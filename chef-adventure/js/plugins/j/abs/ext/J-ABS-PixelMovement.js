@@ -60,12 +60,9 @@ J.ABS.EXT.PIXEL.PluginParameters = PluginManager.parameters(J.ABS.EXT.PIXEL.Meta
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ABS.EXT.PIXEL.Aliased =
-  {
-    Game_Character: new Map(),
-    Game_CharacterBase: new Map(),
-    Game_Player: new Map(),
-  };
+J.ABS.EXT.PIXEL.Aliased = {
+  Game_Character: new Map(), Game_CharacterBase: new Map(), Game_Player: new Map(),
+};
 //endregion metadata
 
 /**
@@ -88,7 +85,8 @@ Game_Character.prototype.processMoveCommand = function(command)
   }
 
   // perform the original logic.
-  J.ABS.EXT.PIXEL.Aliased.Game_Character.get('processMoveCommand').call(this, command);
+  J.ABS.EXT.PIXEL.Aliased.Game_Character.get('processMoveCommand')
+    .call(this, command);
 };
 
 /**
@@ -99,7 +97,8 @@ J.ABS.EXT.PIXEL.Aliased.Game_CharacterBase.set('initMembers', Game_CharacterBase
 Game_CharacterBase.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT.PIXEL.Aliased.Game_CharacterBase.get('initMembers').call(this);
+  J.ABS.EXT.PIXEL.Aliased.Game_CharacterBase.get('initMembers')
+    .call(this);
 
   // initialize the additional members.
   this.initPixelMovementMembers();
@@ -187,7 +186,7 @@ Game_CharacterBase.prototype.addPositionalRecord = function(positionalRecord)
  * Gets the first-added record from the collection of coordinate tracking.
  * @returns {Point}
  */
-Game_CharacterBase.prototype.oldestPositionalRecord = function ()
+Game_CharacterBase.prototype.oldestPositionalRecord = function()
 {
   // grab the records.
   const records = this.positionalRecords();
@@ -341,7 +340,8 @@ Game_CharacterBase.prototype.isMoving = function()
   if (this.isMovePressed()) return true;
 
   // otherwise, return the original logic's result.
-  return J.ABS.EXT.PIXEL.Aliased.Game_CharacterBase.get('isMoving').call(this);
+  return J.ABS.EXT.PIXEL.Aliased.Game_CharacterBase.get('isMoving')
+    .call(this);
 };
 
 /**
@@ -436,8 +436,8 @@ Game_CharacterBase.prototype.diagonalDistancePerFrame = function()
 Game_CharacterBase.prototype.movePixelDistance = function(direction, distance)
 {
   // define the direction types.
-  const straightDirections = [2, 4, 6, 8];
-  const diagonalDirections = [1, 3, 7, 9];
+  const straightDirections = [ 2, 4, 6, 8 ];
+  const diagonalDirections = [ 1, 3, 7, 9 ];
 
   // check what kind of direction it was.
   const isStraight = straightDirections.includes(direction);
@@ -648,7 +648,7 @@ Game_CharacterBase.prototype.moveStraight = function(direction)
 J.ABS.EXT.PIXEL.Aliased.Game_CharacterBase.set('moveDiagonally', Game_CharacterBase.prototype.moveDiagonally);
 Game_CharacterBase.prototype.moveDiagonally = function(direction)
 {
-  const [horz, vert] = this.getDiagonalDirections(direction);
+  const [ horz, vert ] = this.getDiagonalDirections(direction);
   this.setMovementSuccess(this.canPassDiagonally(this._x, this._y, horz, vert));
 
   if (this.isMovementSucceeded())
@@ -1029,7 +1029,7 @@ JABS_Battler.prototype.angleToDirection = function(angle)
   const upLeft = (angle > 30) && (angle < 60);
 
   // between 30 and -30 go straight left.
-  const left = (angle > -30)  && (angle < 30);
+  const left = (angle > -30) && (angle < 30);
 
   // between -30 and -60 go diagonal down-left.
   const downLeft = (angle > -60) && (angle < -30);
@@ -1152,7 +1152,7 @@ Game_Follower.prototype.pixelFaceCharacter = function(otherCharacter = $gamePlay
 Game_Player.prototype.checkEventTriggerHere = function(triggers)
 {
   // check if we can start an event at the current location.
-  if (this.canStartLocalEvents()) 
+  if (this.canStartLocalEvents())
   {
     // round the x,y coordinates.
     const roundX = Math.round(this.x);
@@ -1180,7 +1180,8 @@ Game_Player.prototype.checkEventTriggerThere = function(triggers)
   this._y = Math.round(this.y);
 
   // perform original logic.
-  J.ABS.EXT.PIXEL.Aliased.Game_Player.get('checkEventTriggerThere').call(this, triggers);
+  J.ABS.EXT.PIXEL.Aliased.Game_Player.get('checkEventTriggerThere')
+    .call(this, triggers);
 
   this._x = oldX;
   this._y = oldY;
@@ -1205,7 +1206,8 @@ Game_Player.prototype.checkEventTriggerTouch = function(x, y)
   if (didTrigger)
   {
     // return the original logic's result.
-    return J.ABS.EXT.PIXEL.Aliased.Game_Player.get('checkEventTriggerTouch').call(this, roundX, roundY);
+    return J.ABS.EXT.PIXEL.Aliased.Game_Player.get('checkEventTriggerTouch')
+      .call(this, roundX, roundY);
   }
 
   // no triggering the event.
@@ -1215,7 +1217,7 @@ Game_Player.prototype.checkEventTriggerTouch = function(x, y)
 /**
  * Updates whether or not the player is dashing.
  */
-Game_Player.prototype.updateDashing = function() 
+Game_Player.prototype.updateDashing = function()
 {
   // if we are moving by means other than pressing the button, don't process.
   if (this.isMoving() && !this.isMovePressed()) return;
@@ -1238,7 +1240,7 @@ Game_Player.prototype.updateDashing = function()
  * Overrides {@link Game_Player.moveByInput}.<br>
  * The meat and potatoes for pixel movement of the player.
  */
-Game_Player.prototype.moveByInput = function() 
+Game_Player.prototype.moveByInput = function()
 {
   // determine if we should be moving when we are not.
   const notMovingButShouldBe = (!this.isMoving() || this.isMovePressed());
@@ -1250,7 +1252,7 @@ Game_Player.prototype.moveByInput = function()
     let direction = Input.dir8;
 
     // make sure we are not just sitting there.
-    if (direction > 0) 
+    if (direction > 0)
     {
       // clear the point-click destination.
       $gameTemp.clearDestination();
@@ -1282,7 +1284,7 @@ Game_Player.prototype.moveByInput = function()
       }
 
       // check if we've succeeded in moving somehow.
-      if (this.isMovementSucceeded()) 
+      if (this.isMovementSucceeded())
       {
         // move the followers with the player.
         this.processFollowersPixelMoving();
@@ -1291,7 +1293,7 @@ Game_Player.prototype.moveByInput = function()
         this.setMovePressed(true);
       }
       // we haven't succeeded in moving.
-      else 
+      else
       {
         // halt the followers pixel movement.
         this.stopFollowersPixelMoving();
@@ -1323,7 +1325,8 @@ J.ABS.EXT.PIXEL.Aliased.Game_Player.set('onStep', Game_Player.prototype.onStep);
 Game_Player.prototype.onStep = function()
 {
   // perform original logic.
-  J.ABS.EXT.PIXEL.Aliased.Game_Player.get('onStep').call(this);
+  J.ABS.EXT.PIXEL.Aliased.Game_Player.get('onStep')
+    .call(this);
 
   // also process a step.
   this.handleOnStepEffects();
@@ -1338,7 +1341,7 @@ Game_Player.prototype.handleOnStepEffects = function()
   this.increaseSteps();
 
   // checks if there is an event to trigger at this location.
-  this.checkEventTriggerHere([1, 2]);
+  this.checkEventTriggerHere([ 1, 2 ]);
 };
 
 /**

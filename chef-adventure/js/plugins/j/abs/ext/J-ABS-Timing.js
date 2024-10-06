@@ -282,10 +282,12 @@ J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.ge
 JABS_Action.prototype.getCastTime = function()
 {
   // perform original logic to get regular cast time.
-  const skillCastTime = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCastTime').call(this);
+  const skillCastTime = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCastTime')
+    .call(this);
 
   // grab the caster.
-  const caster = this.getCaster().getBattler();
+  const caster = this.getCaster()
+    .getBattler();
 
   // if we have no caster, then don't try to calculate it.
   if (!caster) return skillCastTime;
@@ -305,10 +307,12 @@ J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.ge
 JABS_Action.prototype.getCooldown = function()
 {
   // perform original logic to get regular cooldown.
-  const skillCooldown = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCooldown').call(this);
+  const skillCooldown = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCooldown')
+    .call(this);
 
   // grab the caster.
-  const caster = this.getCaster().getBattler();
+  const caster = this.getCaster()
+    .getBattler();
 
   // if we have no caster, then don't try to calculate it.
   if (!caster) return skillCooldown;
@@ -591,8 +595,7 @@ Game_Battler.prototype.baseCastSpeed = function()
   const baseParam = 0;
 
   // sum together all the csp flat modifiers.
-  const baseCsp = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const baseCsp = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.ABS.EXT.TIMING.RegExp.BaseCastSpeed,
     baseParam,
     this);
@@ -614,8 +617,7 @@ Game_Battler.prototype.castSpeedFlat = function()
   const baseParam = this.baseCastSpeed();
 
   // sum together all the csp flat modifiers.
-  const cspFlat = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const cspFlat = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.ABS.EXT.TIMING.RegExp.CastSpeedFlat,
     baseParam,
     this);
@@ -637,8 +639,7 @@ Game_Battler.prototype.castSpeedRate = function()
   const baseParam = this.baseCastSpeed();
 
   // sum together all the csp rate modifiers.
-  const cspRate = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const cspRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.ABS.EXT.TIMING.RegExp.CastSpeedRate,
     baseParam,
     this);
@@ -717,8 +718,7 @@ Game_Battler.prototype.baseFastCooldown = function()
   const baseParam = 0;
 
   // sum together all the fcd flat modifiers.
-  const baseFcd = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const baseFcd = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.ABS.EXT.TIMING.RegExp.BaseFastCooldown,
     baseParam,
     this);
@@ -740,8 +740,7 @@ Game_Battler.prototype.fastCooldownFlat = function()
   const baseParam = this.baseFastCooldown();
 
   // sum together all the fcd flat modifiers.
-  const fcdFlat = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const fcdFlat = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.ABS.EXT.TIMING.RegExp.FastCooldownFlat,
     baseParam,
     this);
@@ -763,8 +762,7 @@ Game_Battler.prototype.fastCooldownRate = function()
   const baseParam = this.baseFastCooldown();
 
   // grab the base parameter value.
-  const fcdRate = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const fcdRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.ABS.EXT.TIMING.RegExp.FastCooldownRate,
     baseParam,
     this);

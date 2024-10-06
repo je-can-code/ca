@@ -130,15 +130,13 @@ J.REGIONS.Helpers.translateRegionIds = regionsBlob =>
  * The global region ids that allow passage on all maps.
  * @type {number[]}
  */
-J.REGIONS.Metadata.GlobalAllowRegions =
-  J.REGIONS.Helpers.translateRegionIds(J.REGIONS.PluginParameters["globalAllowRegions"]);
+J.REGIONS.Metadata.GlobalAllowRegions = J.REGIONS.Helpers.translateRegionIds(J.REGIONS.PluginParameters["globalAllowRegions"]);
 
 /**
  * The global region ids that deny passage on all maps.
  * @type {number[]}
  */
-J.REGIONS.Metadata.GlobalDenyRegions =
-  J.REGIONS.Helpers.translateRegionIds(J.REGIONS.PluginParameters["globalDenyRegions"]);
+J.REGIONS.Metadata.GlobalDenyRegions = J.REGIONS.Helpers.translateRegionIds(J.REGIONS.PluginParameters["globalDenyRegions"]);
 //endregion metadata
 
 /**
@@ -346,9 +344,7 @@ Game_Map.prototype.canRefreshRegionEffects = function()
 Game_Map.prototype.refreshAllowRegionEffects = function()
 {
   // grab the regions.
-  const allowedRegions = RPGManager.getArrayFromNotesByRegex(
-    { note: this.note() },
-    J.REGIONS.RegExp.AllowRegions)
+  const allowedRegions = RPGManager.getArrayFromNotesByRegex({ note: this.note() }, J.REGIONS.RegExp.AllowRegions)
 
   // stop processing if there was nothing found.
   if (!allowedRegions) return;
@@ -363,9 +359,7 @@ Game_Map.prototype.refreshAllowRegionEffects = function()
 Game_Map.prototype.refreshDenyRegionEffects = function()
 {
   // grab the regions.
-  const deniedRegions = RPGManager.getArrayFromNotesByRegex(
-    { note: this.note() },
-    J.REGIONS.RegExp.DenyRegions)
+  const deniedRegions = RPGManager.getArrayFromNotesByRegex({ note: this.note() }, J.REGIONS.RegExp.DenyRegions)
 
   // stop processing if there was nothing found.
   if (!deniedRegions) return;

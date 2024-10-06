@@ -112,6 +112,7 @@ function Map_TextPop()
 {
   this.initialize(...arguments);
 }
+
 Map_TextPop.prototype = {};
 Map_TextPop.prototype.constructor = Map_TextPop;
 
@@ -190,13 +191,7 @@ Map_TextPop.Types = {
  * Builds the text pop based on the given parameters.
  */
 Map_TextPop.prototype.initialize = function({
-  iconIndex,
-  textColorIndex,
-  popupType,
-  value,
-  critical,
-  coordinateVariance,
-  healing,
+  iconIndex, textColorIndex, popupType, value, critical, coordinateVariance, healing,
 })
 {
   /**
@@ -333,6 +328,7 @@ class TextPopBuilder
    * @private
    */
   #yVariance = 0;
+
   //endregion properties
 
   /**
@@ -412,7 +408,7 @@ class TextPopBuilder
    */
   #makeCoordinateVariance()
   {
-    return [this.#xVariance, this.#yVariance];
+    return [ this.#xVariance, this.#yVariance ];
   }
 
   //region setters
@@ -591,6 +587,7 @@ class TextPopBuilder
     this.setYVariance(yVariance);
     return this;
   }
+
   //endregion setters
 
   //region presets
@@ -959,8 +956,10 @@ class TextPopBuilder
     // return the builder for fluent chaining.
     return this;
   }
+
   //endregion presents
 }
+
 //endregion TextPopBuilder
 
 //region TextPopSpriteManager
@@ -1077,6 +1076,7 @@ class TextPopSpriteManager
     }
   }
 }
+
 //endregion TextPopSpriteManager
 
 //region Game_Character
@@ -1105,7 +1105,8 @@ Game_Character.prototype.initMembers = function()
   this._j._textPopRequest = false;
 
   // run the rest of the original logic.
-  J.POPUPS.Aliased.Game_Character.get('initMembers').call(this);
+  J.POPUPS.Aliased.Game_Character.get('initMembers')
+    .call(this);
 };
 
 /**
@@ -1204,7 +1205,8 @@ Sprite_Character.prototype.initMembers = function()
    */
   this._j._popups._nonDamagePopSprites = [];
 
-  J.POPUPS.Aliased.Sprite_Character.get('initMembers').call(this);
+  J.POPUPS.Aliased.Sprite_Character.get('initMembers')
+    .call(this);
 };
 
 /**
@@ -1266,7 +1268,8 @@ J.POPUPS.Aliased.Sprite_Character.set('update', Sprite_Character.prototype.updat
 Sprite_Character.prototype.update = function()
 {
   // execute original update processing.
-  J.POPUPS.Aliased.Sprite_Character.get('update').call(this);
+  J.POPUPS.Aliased.Sprite_Character.get('update')
+    .call(this);
 
   // effectively a subscription for creating new text pops on this character.
   this.processIncomingTextPops();
@@ -1543,7 +1546,8 @@ Sprite_Character.prototype.removeNonDamagePop = function(popup, index)
 J.POPUPS.Aliased.Sprite_Damage.set('initialize', Sprite_Damage.prototype.initialize);
 Sprite_Damage.prototype.initialize = function()
 {
-  J.POPUPS.Aliased.Sprite_Damage.get('initialize').call(this);
+  J.POPUPS.Aliased.Sprite_Damage.get('initialize')
+    .call(this);
   this.initMembers();
 };
 
@@ -1691,7 +1695,8 @@ Sprite_Damage.prototype.setYVariance = function(yVariance)
 J.POPUPS.Aliased.Sprite_Damage.set('createChildSprite', Sprite_Damage.prototype.createChildSprite);
 Sprite_Damage.prototype.createChildSprite = function(width, height)
 {
-  const sprite = J.POPUPS.Aliased.Sprite_Damage.get('createChildSprite').call(this, width, height);
+  const sprite = J.POPUPS.Aliased.Sprite_Damage.get('createChildSprite')
+    .call(this, width, height);
   this.setupMotionData(sprite);
   return sprite;
 };
@@ -1927,7 +1932,8 @@ Sprite_Damage.prototype.damageColor = function()
 J.POPUPS.Aliased.Sprite_Damage.set('setupCriticalEffect', Sprite_Damage.prototype.setupCriticalEffect);
 Sprite_Damage.prototype.setupCriticalEffect = function()
 {
-  J.POPUPS.Aliased.Sprite_Damage.get('setupCriticalEffect').call(this);
+  J.POPUPS.Aliased.Sprite_Damage.get('setupCriticalEffect')
+    .call(this);
 
   // confirm this is indeed a critical popup.
   this._j._popups._isCritical = true;

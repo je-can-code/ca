@@ -8,10 +8,7 @@ class BasicChoiceConditional
    * A static property containing the strings representing validation types supported.
    */
   static Types = {
-    Leader: 'leader',
-    NotLeader: 'not-leader',
-    SwitchOn: 'switch-on',
-    SwitchOff: 'switch-off',
+    Leader: 'leader', NotLeader: 'not-leader', SwitchOn: 'switch-on', SwitchOff: 'switch-off',
   }
 
   /**
@@ -47,11 +44,13 @@ class BasicChoiceConditional
     {
       // validate the leader is in fact the correct leader.
       case BasicChoiceConditional.Types.Leader:
-        return ($gameParty.leader() && $gameParty.leader()?.actorId() === this.id);
+        return ($gameParty.leader() && $gameParty.leader()
+          ?.actorId() === this.id);
 
       // validate the leader is in fact the not the specified leader.
       case BasicChoiceConditional.Types.NotLeader:
-        return ($gameParty.leader() && $gameParty.leader()?.actorId() !== this.id);
+        return ($gameParty.leader() && $gameParty.leader()
+          ?.actorId() !== this.id);
 
       // validate the conditional switch is ON.
       case BasicChoiceConditional.Types.SwitchOn:
@@ -64,6 +63,7 @@ class BasicChoiceConditional
     return true;
   }
 }
+
 //endregion BasicChoiceConditional
 
 //region Introduction
@@ -261,17 +261,12 @@ Game_Event.prototype.filterCommentCommandsForBasicConditionals = function(comman
 
   // extract the types of regex we will be considering.
   const {
-    LeaderChoiceConditional,
-    NotLeaderChoiceConditional,
-    SwitchOnChoiceConditional,
-    SwitchOffChoiceConditional
+    LeaderChoiceConditional, NotLeaderChoiceConditional, SwitchOnChoiceConditional, SwitchOffChoiceConditional
   } = J.MESSAGE.RegExp;
 
   return [
-    LeaderChoiceConditional,
-    NotLeaderChoiceConditional,
-    SwitchOnChoiceConditional,
-    SwitchOffChoiceConditional ].some(regex => regex.test(comment));
+    LeaderChoiceConditional, NotLeaderChoiceConditional, SwitchOnChoiceConditional, SwitchOffChoiceConditional ].some(
+    regex => regex.test(comment));
 };
 
 /**
@@ -331,7 +326,8 @@ J.MESSAGE.Aliased.Game_Interpreter.set('setupChoices', Game_Interpreter.prototyp
 Game_Interpreter.prototype.setupChoices = function(params)
 {
   // perform original choice setup logic.
-  J.MESSAGE.Aliased.Game_Interpreter.get('setupChoices').call(this, params);
+  J.MESSAGE.Aliased.Game_Interpreter.get('setupChoices')
+    .call(this, params);
 
   // also backup the original options.
   $gameMessage.backupChoices();
@@ -368,8 +364,9 @@ Game_Interpreter.prototype.hideSpecificChoiceBranches = function(params)
   // identify the start and end of the choice branches.
   const startShowChoiceIndex = currentPage.list.findIndex(item => item === currentCommand);
   const endShowChoiceIndex = currentPage.list
-    .findIndex((item, index) =>
-      (index > startShowChoiceIndex && item.indent === currentCommand.indent && item.code === 404));
+    .findIndex((
+      item,
+      index) => (index > startShowChoiceIndex && item.indent === currentCommand.indent && item.code === 404));
 
   // build an array of indexes that align with the options.
   const showChoiceIndices = currentPage.list
@@ -467,7 +464,8 @@ J.MESSAGE.Aliased.Game_Message.set('clear', Game_Message.prototype.clear);
 Game_Message.prototype.clear = function()
 {
   // perform original logic.
-  J.MESSAGE.Aliased.Game_Message.get('clear').call(this);
+  J.MESSAGE.Aliased.Game_Message.get('clear')
+    .call(this);
 
   /**
    * An object tracking key:value (index:boolean) pairs for whether or not an index of a choice is hidden.
@@ -577,7 +575,8 @@ Window_Base.prototype.convertEscapeCharacters = function(text)
   textToModify = this.translateSdpTextCode(textToModify);
 
   // let the rest of the conversion occur with the newly modified text.
-  return J.MESSAGE.Aliased.Window_Base.get('convertEscapeCharacters').call(this, textToModify);
+  return J.MESSAGE.Aliased.Window_Base.get('convertEscapeCharacters')
+    .call(this, textToModify);
 };
 
 /**
@@ -806,7 +805,7 @@ Window_Base.prototype.translateSdpTextCode = function(text)
 {
   // if not using the SDP system, then don't try to process the text.
   if (!J.SDP) return text;
-  
+
   return text.replace(/\\sdp\[(.*)]/gi, (_, p1) =>
   {
     // determine the sdp key.
@@ -876,7 +875,8 @@ Window_Base.prototype.translateQuestTextCode = function(text)
 J.MESSAGE.Aliased.Window_Base.set('obtainEscapeCode', Window_Base.prototype.obtainEscapeCode);
 Window_Base.prototype.obtainEscapeCode = function(textState)
 {
-  const originalEscape = J.MESSAGE.Aliased.Window_Base.get('obtainEscapeCode').call(this, textState);
+  const originalEscape = J.MESSAGE.Aliased.Window_Base.get('obtainEscapeCode')
+    .call(this, textState);
   if (!originalEscape)
   {
     return this.customEscapeCodes(textState);
@@ -928,7 +928,8 @@ Window_Base.prototype.escapeCodes = function()
 J.MESSAGE.Aliased.Window_Base.set('processEscapeCharacter', Window_Base.prototype.processEscapeCharacter);
 Window_Base.prototype.processEscapeCharacter = function(code, textState)
 {
-  J.MESSAGE.Aliased.Window_Base.get('processEscapeCharacter').call(this, code, textState);
+  J.MESSAGE.Aliased.Window_Base.get('processEscapeCharacter')
+    .call(this, code, textState);
   switch (code)
   {
     case "_":
@@ -1015,7 +1016,8 @@ Window_ChoiceList.prototype.makeCommandList = function()
   this.clearChoiceMap();
 
   // perform original logic.
-  J.MESSAGE.Aliased.Window_ChoiceList.get('makeCommandList').call(this);
+  J.MESSAGE.Aliased.Window_ChoiceList.get('makeCommandList')
+    .call(this);
 
   let needsUpdate = false;
 

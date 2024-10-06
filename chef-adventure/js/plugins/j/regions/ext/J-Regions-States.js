@@ -40,6 +40,7 @@ class RegionStateData
     this.animationId = animationId;
   }
 }
+
 //endregion RegionStateData
 
 //region annotations
@@ -185,6 +186,7 @@ class J_RegionStatesPluginMetadata extends PluginMetadata
     this.delayBetweenApplications = this.parsedPluginParameters['application-delay'] ?? 15;
   }
 }
+
 //endregion plugin metadata
 
 /**
@@ -392,7 +394,8 @@ J.REGIONS.EXT.STATES.Aliased.Game_Map.set('initialize', Game_Map.prototype.initi
 Game_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.REGIONS.EXT.STATES.Aliased.Game_Map.get('initialize').call(this);
+  J.REGIONS.EXT.STATES.Aliased.Game_Map.get('initialize')
+    .call(this);
 
   // initialize the region states.
   this.initRegionStatesMembers();
@@ -442,7 +445,8 @@ Game_Map.prototype.getRegionStates = function()
  */
 Game_Map.prototype.getRegionStatesByRegionId = function(regionId)
 {
-  return this.getRegionStates().get(regionId) ?? Array.empty;
+  return this.getRegionStates()
+    .get(regionId) ?? Array.empty;
 };
 
 /**
@@ -459,7 +463,7 @@ Game_Map.prototype.addRegionStateDataByRegionId = function(regionId, regionState
   if (!regionStates.has(regionId))
   {
     // add it with the given stateIds.
-    regionStates.set(regionId, [regionStateData]);
+    regionStates.set(regionId, [ regionStateData ]);
   }
   // the regionId is already being tracked.
   else
@@ -484,7 +488,8 @@ J.REGIONS.EXT.STATES.Aliased.Game_Map.set('setup', Game_Map.prototype.setup);
 Game_Map.prototype.setup = function(mapId)
 {
   // perform original logic.
-  J.REGIONS.EXT.STATES.Aliased.Game_Map.get('setup').call(this, mapId);
+  J.REGIONS.EXT.STATES.Aliased.Game_Map.get('setup')
+    .call(this, mapId);
 
   // setup the region state data.
   this.setupRegionStates();
@@ -523,8 +528,7 @@ Game_Map.prototype.refreshRegionStates = function()
   if (!this.canRefreshRegionEffects()) return;
 
   // grab the region data.
-  const regionStatesData = RPGManager.getArraysFromNotesByRegex(
-    { note: this.note() },
+  const regionStatesData = RPGManager.getArraysFromNotesByRegex({ note: this.note() },
     J.REGIONS.EXT.STATES.RegExp.RegionState,
     true);
 
@@ -535,14 +539,10 @@ Game_Map.prototype.refreshRegionStates = function()
   regionStatesData.forEach(regionStateData =>
   {
     // deconstruct the data.
-    const [regionId, stateId, chanceOfApplication, animationId] = regionStateData;
+    const [ regionId, stateId, chanceOfApplication, animationId ] = regionStateData;
 
     // generate the new data based on the tag.
-    const newRegionStateData = new RegionStateData(
-      regionId,
-      stateId,
-      chanceOfApplication,
-      animationId);
+    const newRegionStateData = new RegionStateData(regionId, stateId, chanceOfApplication, animationId);
 
     // add the new data.
     this.addRegionStateDataByRegionId(regionId, newRegionStateData);
@@ -558,7 +558,8 @@ J.REGIONS.EXT.STATES.Aliased.Game_System.set('onAfterLoad', Game_System.prototyp
 Game_System.prototype.onAfterLoad = function()
 {
   // perform original logic.
-  J.REGIONS.EXT.STATES.Aliased.Game_System.get('onAfterLoad').call(this);
+  J.REGIONS.EXT.STATES.Aliased.Game_System.get('onAfterLoad')
+    .call(this);
 
   // update from the latest plugin metadata.
   this.updateRegionStatesAfterLoad();
@@ -572,7 +573,9 @@ Game_System.prototype.updateRegionStatesAfterLoad = function()
   $gameMap.initRegionStatesMembers();
   $gameMap.setupRegionStates();
   $gamePlayer.initRegionStatesMembers();
-  $gamePlayer.followers().data().forEach(follower => follower.initRegionStatesMembers());
+  $gamePlayer.followers()
+    .data()
+    .forEach(follower => follower.initRegionStatesMembers());
 };
 
 //endregion Game_System

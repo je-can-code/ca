@@ -47,6 +47,7 @@ class RegionSkillData
     this.isFriendly = isFriendly;
   }
 }
+
 //endregion RegionSkillData
 
 //region annoations
@@ -131,6 +132,7 @@ class J_RegionSkillsPluginMetadata extends PluginMetadata
     this.delayBetweenExecutions = this.parsedPluginParameters['execution-delay'] ?? 60;
   }
 }
+
 //endregion plugin metadata
 
 //region initialization
@@ -203,8 +205,7 @@ JABS_Engine.prototype.setMapDamageBattler = function(dummyEnemyId, isFriendly)
     .setBattlerId(dummyEnemyId)
     .isDummy(isFriendly)
     .build();
-  this.mapDamageBattler = new JABS_Battler(
-    $gamePlayer, // irrelevant, but should be some event/character on the current map.
+  this.mapDamageBattler = new JABS_Battler($gamePlayer, // irrelevant, but should be some event/character on the current map.
     $gameEnemies.enemy(dummyEnemyId),
     coreData);
 };
@@ -356,8 +357,7 @@ Game_Character.prototype.executeRegionSkills = function()
     }
 
     // execute the skill.
-    $jabsEngine.forceMapAction(
-      $jabsEngine.getMapDamageBattler(),
+    $jabsEngine.forceMapAction($jabsEngine.getMapDamageBattler(),
       skillId,
       false,
       targetJabsBattler.getX(),
@@ -523,8 +523,7 @@ Game_Map.prototype.refreshRegionSkills = function()
   if (!this.canRefreshRegionEffects()) return;
 
   // grab the region data.
-  const regionSkillsData = RPGManager.getArraysFromNotesByRegex(
-    { note: this.note() },
+  const regionSkillsData = RPGManager.getArraysFromNotesByRegex({ note: this.note() },
     J.REGIONS.EXT.SKILLS.RegExp.RegionSkill,
     true);
 
@@ -554,7 +553,8 @@ J.REGIONS.EXT.SKILLS.Aliased.Game_System.set('onAfterLoad', Game_System.prototyp
 Game_System.prototype.onAfterLoad = function()
 {
   // perform original logic.
-  J.REGIONS.EXT.SKILLS.Aliased.Game_System.get('onAfterLoad').call(this);
+  J.REGIONS.EXT.SKILLS.Aliased.Game_System.get('onAfterLoad')
+    .call(this);
 
   // update from the latest plugin metadata.
   this.updateRegionSkillsAfterLoad();
@@ -568,7 +568,9 @@ Game_System.prototype.updateRegionSkillsAfterLoad = function()
   $gameMap.initRegionSkillsMembers();
   $gameMap.setupRegionSkills();
   $gamePlayer.initRegionSkillsMembers();
-  $gamePlayer.followers().data().forEach(follower => follower.initRegionSkillsMembers());
+  $gamePlayer.followers()
+    .data()
+    .forEach(follower => follower.initRegionSkillsMembers());
 };
 
 //endregion Game_System

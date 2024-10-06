@@ -80,7 +80,8 @@ JABS_Battler.prototype.setDodgeSteps = function(stepCount)
   const modifiedStepCount = (stepCount * CycloneMovement.stepCount);
 
   // perform original logic- but with the modified step count.
-  J.ABS.EXT.CYCLE.Aliased.JABS_Battler.get('setDodgeSteps').call(this, modifiedStepCount);
+  J.ABS.EXT.CYCLE.Aliased.JABS_Battler.get('setDodgeSteps')
+    .call(this, modifiedStepCount);
 };
 
 /**
@@ -91,10 +92,12 @@ J.ABS.EXT.CYCLE.Aliased.JABS_Battler.set('destroy', JABS_Battler.prototype.destr
 JABS_Battler.prototype.destroy = function()
 {
   // before destruction, check if the battler was not an actor.
-  const isNotActor = !this.getBattler().isActor();
+  const isNotActor = !this.getBattler()
+    .isActor();
 
   // perform original logic.
-  J.ABS.EXT.CYCLE.Aliased.JABS_Battler.get('destroy').call(this);
+  J.ABS.EXT.CYCLE.Aliased.JABS_Battler.get('destroy')
+    .call(this);
 
   // check if the defeated battler was not an actor.
   if (isNotActor)
@@ -109,7 +112,7 @@ JABS_Battler.prototype.destroy = function()
  * This is explicitly in regards to move route commands.
  * @type {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]}
  */
-Game_Character.repeatableMoveCommandCodes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+Game_Character.repeatableMoveCommandCodes = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ];
 
 //region properties
 /**
@@ -120,7 +123,8 @@ J.ABS.EXT.CYCLE.Aliased.Game_Character.set('initMembers', Game_Character.prototy
 Game_Character.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT.CYCLE.Aliased.Game_Character.get('initMembers').call(this);
+  J.ABS.EXT.CYCLE.Aliased.Game_Character.get('initMembers')
+    .call(this);
 
   // initialize our adapter members.
   this.initCycloneAdapterMembers();
@@ -221,7 +225,8 @@ Game_Character.prototype.updateRoutineMove = function()
   if (this.isJabsAction())
   {
     // perform original logic.
-    J.ABS.EXT.CYCLE.Aliased.Game_Character.get('updateRoutineMove').call(this);
+    J.ABS.EXT.CYCLE.Aliased.Game_Character.get('updateRoutineMove')
+      .call(this);
 
     // stop processing.
     return;
@@ -345,7 +350,8 @@ Game_Follower.prototype.chaseCharacter = function(character)
   }
 
   // perform original logic.
-  J.ABS.EXT.CYCLE.Aliased.Game_Follower.get('chaseCharacter').call(this, character);
+  J.ABS.EXT.CYCLE.Aliased.Game_Follower.get('chaseCharacter')
+    .call(this, character);
 };
 
 /**
@@ -382,7 +388,8 @@ Game_Player.prototype.shouldTriggerEvent = function(event, triggers, normal)
   if (event.isJabsBattler()) return false;
 
   // perform original logic.
-  return J.ABS.EXT.CYCLE.Aliased.Game_Player.get('shouldTriggerEvent').call(this, event, triggers, normal);
+  return J.ABS.EXT.CYCLE.Aliased.Game_Player.get('shouldTriggerEvent')
+    .call(this, event, triggers, normal);
 };
 
 /**

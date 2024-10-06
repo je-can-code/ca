@@ -4,8 +4,7 @@
  */
 class StatDistributionPanel
 {
-  constructor(
-    name,
+  constructor(name,
     key,
     iconIndex,
     rarity,
@@ -144,7 +143,8 @@ class StatDistributionPanel
    */
   isUnlocked()
   {
-    return $gameParty.getSdpTrackingByKey(this.key).isUnlocked();
+    return $gameParty.getSdpTrackingByKey(this.key)
+      .isUnlocked();
   }
 
   /**
@@ -163,11 +163,7 @@ class StatDistributionPanel
     $gameParty.lockSdp(this.key);
   }
 
-  calculateBonusByRank(
-    paramId,
-    currentRank,
-    baseParam = 0,
-    fractional = false)
+  calculateBonusByRank(paramId, currentRank, baseParam = 0, fractional = false)
   {
     // determine all the applicable panel parameters.
     const panelParameters = this.panelParameters.filter(panelParameter => panelParameter.parameterId === paramId);
@@ -227,7 +223,7 @@ class StatDistributionPanel
    */
   getPanelRarityText()
   {
-    switch(this.rarity)
+    switch (this.rarity)
     {
       case 0:
         return "Common";
@@ -262,6 +258,7 @@ class StatDistributionPanel
     static #multGrowth = 1.0;
     static #parameters = [];
     static #rewards = [];
+
     //endregion properties
 
     /**
@@ -271,8 +268,7 @@ class StatDistributionPanel
     static build()
     {
       // build the panel based off current parameters.
-      const sdp = new StatDistributionPanel(
-        this.#name,
+      const sdp = new StatDistributionPanel(this.#name,
         this.#key,
         this.#iconIndex,
         this.#rarity,
@@ -388,9 +384,11 @@ class StatDistributionPanel
       this.#rewards = rewards;
       return this;
     }
+
     //endregion setters
   }
 }
+
 //endregion SDP_Panel
 
 //region SDP_Parameter
@@ -401,6 +399,7 @@ function PanelParameter()
 {
   this.initialize(...arguments);
 }
+
 PanelParameter.prototype = {};
 PanelParameter.prototype.constructor = PanelParameter;
 
@@ -412,10 +411,8 @@ PanelParameter.prototype.constructor = PanelParameter;
  * @param {boolean} isCore True if this is a core parameter, false otherwise.
  */
 PanelParameter.prototype.initialize = function({
-  parameterId,
-  perRank,
-  isFlat = false,
-  isCore = false,})
+  parameterId, perRank, isFlat = false, isCore = false,
+})
 {
   /**
    * The id of the parameter this class represents.
@@ -694,6 +691,7 @@ class SDP_Rarity
     }
   }
 }
+
 //endregion SDP_Rarity
 
 //region SDP_RankupReward
@@ -1069,8 +1067,7 @@ class J_SdpPluginMetadata extends PluginMetadata
         panelRewards.forEach(reward =>
         {
           const parsedReward = reward;
-          const panelReward = new PanelRankupReward(
-            parsedReward.rewardName,
+          const panelReward = new PanelRankupReward(parsedReward.rewardName,
             parseInt(parsedReward.rankRequired),
             parsedReward.effect);
           parsedPanelRewards.push(panelReward);
@@ -1208,6 +1205,7 @@ class J_SdpPluginMetadata extends PluginMetadata
     this.jabsShowInBothMenus = this.parsedPluginParameters['showInBoth'] === "true";
   }
 }
+
 //endregion plugin metadata
 
 /**
@@ -1332,13 +1330,12 @@ PluginManager.registerCommand(J.SDP.Metadata.name, "Modify party SDP points", ar
  * The SDP key of this item.
  * @type {string}
  */
-Object.defineProperty(RPG_DropItem.prototype, "sdpKey",
+Object.defineProperty(RPG_DropItem.prototype, "sdpKey", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getSdpKey();
-    },
-  });
+    return this.getSdpKey();
+  },
+});
 
 /**
  * Gets the SDP key of this item.
@@ -1374,13 +1371,12 @@ RPG_DropItem.prototype.isSdpDrop = function()
  * The number of SDP points this enemy will yield upon defeat.
  * @type {number|null}
  */
-Object.defineProperty(RPG_Enemy.prototype, "sdpPoints",
+Object.defineProperty(RPG_Enemy.prototype, "sdpPoints", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getSdpPoints();
-    },
-  });
+    return this.getSdpPoints();
+  },
+});
 
 /**
  * Gets the expiration time in frames.
@@ -1413,49 +1409,45 @@ RPG_Enemy.prototype.extractSdpPoints = function()
  * The second index is the numeric id of the item associated with the panel.
  * @type {[string, number, number]|null}
  */
-Object.defineProperty(RPG_Enemy.prototype, "sdpDropData",
+Object.defineProperty(RPG_Enemy.prototype, "sdpDropData", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getSdpDropData() ?? [String.empty, 0, 0];
-    },
-  });
+    return this.getSdpDropData() ?? [ String.empty, 0, 0 ];
+  },
+});
 
 /**
  * Gets the key of the panel being dropped.
  * @type {string}
  */
-Object.defineProperty(RPG_Enemy.prototype, "sdpDropKey",
+Object.defineProperty(RPG_Enemy.prototype, "sdpDropKey", {
+  get: function()
   {
-    get: function()
-    {
-      return this.sdpDropData[0];
-    },
-  });
+    return this.sdpDropData[0];
+  },
+});
 
 /**
  * Gets the drop rate for this panel.
  * @type {number}
  */
-Object.defineProperty(RPG_Enemy.prototype, "sdpDropChance",
+Object.defineProperty(RPG_Enemy.prototype, "sdpDropChance", {
+  get: function()
   {
-    get: function()
-    {
-      return this.sdpDropData[1];
-    },
-  });
+    return this.sdpDropData[1];
+  },
+});
 
 /**
  * Gets the id of the item associated with this panel, if any.
  * @type {number}
  */
-Object.defineProperty(RPG_Enemy.prototype, "sdpDropItemId",
+Object.defineProperty(RPG_Enemy.prototype, "sdpDropItemId", {
+  get: function()
   {
-    get: function()
-    {
-      return this.sdpDropData[2] ?? 0;
-    },
-  });
+    return this.sdpDropData[2] ?? 0;
+  },
+});
 
 /**
  * Gets the SDP data for this enemy.
@@ -1482,13 +1474,12 @@ RPG_Enemy.prototype.extractSdpDropData = function()
  * The SDP key that this item unlocks upon use.
  * @type {string}
  */
-Object.defineProperty(RPG_Item.prototype, "sdpKey",
+Object.defineProperty(RPG_Item.prototype, "sdpKey", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getSdpKey();
-    },
-  });
+    return this.getSdpKey();
+  },
+});
 
 /**
  * Gets the key of the SDP this item unlocks.
@@ -1509,12 +1500,12 @@ J.SDP.Aliased.BattleManager.set('makeRewards', BattleManager.makeRewards);
 BattleManager.makeRewards = function()
 {
   // perform original logic.
-  J.SDP.Aliased.BattleManager.get('makeRewards').call(this);
+  J.SDP.Aliased.BattleManager.get('makeRewards')
+    .call(this);
 
   // extend the rewards to include SDP points.
   this._rewards = {
-    ...this._rewards,
-    sdp: $gameTroop.sdpTotal(),
+    ...this._rewards, sdp: $gameTroop.sdpTotal(),
   };
 };
 
@@ -1526,7 +1517,8 @@ J.SDP.Aliased.BattleManager.set('gainRewards', BattleManager.gainRewards);
 BattleManager.gainRewards = function()
 {
   // perform original logic.
-  J.SDP.Aliased.BattleManager.get('gainRewards').call(this);
+  J.SDP.Aliased.BattleManager.get('gainRewards')
+    .call(this);
 
   // also gain the SDP rewards.
   this.gainSdpPoints();
@@ -1556,7 +1548,8 @@ BattleManager.displayRewards = function()
   this.displaySdp();
 
   // perform original logic.
-  J.SDP.Aliased.BattleManager.get('displayRewards').call(this);
+  J.SDP.Aliased.BattleManager.get('displayRewards')
+    .call(this);
 };
 
 /**
@@ -1591,7 +1584,8 @@ IconManager.longParam = function(paramId)
     case 33:
       return this.sdpMultiplier(); // sdp
     default:
-      return J.SDP.Aliased.IconManager.get('longParam').call(this, paramId);
+      return J.SDP.Aliased.IconManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -1617,7 +1611,8 @@ if (J.ABS)
   JABS_Engine.prototype.gainBasicRewards = function(enemy, actor)
   {
     // perform original logic.
-    J.SDP.Aliased.JABS_Engine.get('gainBasicRewards').call(this, enemy, actor);
+    J.SDP.Aliased.JABS_Engine.get('gainBasicRewards')
+      .call(this, enemy, actor);
 
     // grab the sdp points value.
     let sdpPoints = enemy.sdpPoints();
@@ -1649,10 +1644,12 @@ if (J.ABS)
     if (!sdpPoints) return;
 
     // sdp points are obtained by all members in the party.
-    $gameParty.members().forEach(member => member.modSdpPoints(sdpPoints));
+    $gameParty.members()
+      .forEach(member => member.modSdpPoints(sdpPoints));
 
     // get the true amount obtained after multipliers for the leader.
-    const sdpMultiplier = actor.getBattler().sdpMultiplier();
+    const sdpMultiplier = actor.getBattler()
+      .sdpMultiplier();
     const multipliedSdpPoints = Math.round(sdpMultiplier * sdpPoints);
 
     // generate the text popup for the obtained sdp points.
@@ -1729,7 +1726,8 @@ TextManager.longParam = function(paramId)
       return this.sdpMultiplier(); // sdp multiplier
     default:
       // perform original logic.
-      return J.SDP.Aliased.TextManager.get('longParam').call(this, paramId);
+      return J.SDP.Aliased.TextManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -1756,7 +1754,8 @@ TextManager.longParamDescription = function(paramId)
       return this.sdpMultiplierDescription(); // sdp multiplier
     default:
       // perform original logic.
-      return J.SDP.Aliased.TextManager.get('longParamDescription').call(this, paramId);
+      return J.SDP.Aliased.TextManager.get('longParamDescription')
+        .call(this, paramId);
   }
 };
 
@@ -1768,8 +1767,7 @@ TextManager.sdpMultiplierDescription = function()
 {
   return [
     "The percentage bonuses being applied against SDP point gain.",
-    "Higher amounts of this yields greater SDP point generation."
-  ];
+    "Higher amounts of this yields greater SDP point generation." ];
 };
 //endregion TextManager
 
@@ -1782,7 +1780,8 @@ J.SDP.Aliased.Game_Action.set('applyGlobal', Game_Action.prototype.applyGlobal);
 Game_Action.prototype.applyGlobal = function()
 {
   // perform original logic.
-  J.SDP.Aliased.Game_Action.get('applyGlobal').call(this);
+  J.SDP.Aliased.Game_Action.get('applyGlobal')
+    .call(this);
 
   // apply the SDP effects if appropriate.
   this.handleSdpEffects();
@@ -1845,7 +1844,8 @@ J.SDP.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
 Game_Actor.prototype.initMembers = function()
 {
   // perform original logic.
-  J.SDP.Aliased.Game_Actor.get('initMembers').call(this);
+  J.SDP.Aliased.Game_Actor.get('initMembers')
+    .call(this);
 
   /**
    * The J object where all my additional properties live.
@@ -2032,9 +2032,7 @@ Game_Actor.prototype.sdpMultiplier = function()
   const objectsToCheck = this.getAllNotes();
 
   // get the vision multiplier from anything this battler has available.
-  const sdpMultiplierBonus = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
-    J.SDP.RegExp.SdpMultiplier);
+  const sdpMultiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.SDP.RegExp.SdpMultiplier);
 
   // get the sum of the base and bonus multipliers.
   const sdpMultiplier = (multiplier + sdpMultiplierBonus);
@@ -2049,7 +2047,8 @@ Game_Actor.prototype.sdpMultiplier = function()
  */
 Game_Actor.prototype.rankUpPanel = function(panelKey)
 {
-  this.getSdpByKey(panelKey).rankUp();
+  this.getSdpByKey(panelKey)
+    .rankUp();
 };
 
 /**
@@ -2140,7 +2139,8 @@ J.SDP.Aliased.Game_Actor.set("param", Game_Actor.prototype.param);
 Game_Actor.prototype.param = function(paramId)
 {
   // perform original logic.
-  const baseParam = J.SDP.Aliased.Game_Actor.get("param").call(this, paramId);
+  const baseParam = J.SDP.Aliased.Game_Actor.get("param")
+    .call(this, paramId);
 
   const panelModifications = this.getSdpBonusForCoreParam(paramId, baseParam);
   const result = baseParam + panelModifications;
@@ -2154,7 +2154,8 @@ J.SDP.Aliased.Game_Actor.set("xparam", Game_Actor.prototype.xparam);
 Game_Actor.prototype.xparam = function(xparamId)
 {
   // perform original logic.
-  const baseParam = J.SDP.Aliased.Game_Actor.get("xparam").call(this, xparamId);
+  const baseParam = J.SDP.Aliased.Game_Actor.get("xparam")
+    .call(this, xparamId);
 
   const panelModifications = this.getSdpBonusForNonCoreParam(xparamId, baseParam, 8);
   const result = baseParam + panelModifications;
@@ -2168,7 +2169,8 @@ J.SDP.Aliased.Game_Actor.set("sparam", Game_Actor.prototype.sparam);
 Game_Actor.prototype.sparam = function(sparamId)
 {
   // perform original logic.
-  const baseParam = J.SDP.Aliased.Game_Actor.get("sparam").call(this, sparamId);
+  const baseParam = J.SDP.Aliased.Game_Actor.get("sparam")
+    .call(this, sparamId);
 
   const panelModifications = this.getSdpBonusForNonCoreParam(sparamId, baseParam, 18);
   const result = baseParam + panelModifications;
@@ -2184,7 +2186,8 @@ J.SDP.Aliased.Game_Actor.set("maxTp", Game_Actor.prototype.maxTp);
 Game_Actor.prototype.maxTp = function()
 {
   // perform original logic.
-  const baseMaxTp = J.SDP.Aliased.Game_Actor.get("maxTp").call(this);
+  const baseMaxTp = J.SDP.Aliased.Game_Actor.get("maxTp")
+    .call(this);
 
   // calculate the bonus max tp from the panels.
   const bonusMaxTpFromSdp = this.maxTpSdpBonuses(baseMaxTp);
@@ -2286,7 +2289,8 @@ J.SDP.Aliased.Game_Enemy.set("extraDrops", Game_Enemy.prototype.extraDrops);
 Game_Enemy.prototype.extraDrops = function()
 {
   // get the original drop list.
-  const dropList = J.SDP.Aliased.Game_Enemy.get("extraDrops").call(this);
+  const dropList = J.SDP.Aliased.Game_Enemy.get("extraDrops")
+    .call(this);
 
   // if we cannot drop the SDP for some reason, then return the unmodified drop list.
   if (!this.canDropSdp()) return dropList;
@@ -2333,7 +2337,7 @@ Game_Enemy.prototype.canDropSdp = function()
 Game_Enemy.prototype.makeSdpDrop = function()
 {
   // grab all the data points to build the SDP drop.
-  const [key, chance, itemId] = this.getSdpDropData();
+  const [ key, chance, itemId ] = this.getSdpDropData();
 
   // if debug is enabled, panels should always drop.
   const debugChance = $gameSystem.shouldForceDropSdp()
@@ -2387,7 +2391,8 @@ J.SDP.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
 Game_Party.prototype.initialize = function()
 {
   // perform original logic.
-  J.SDP.Aliased.Game_Party.get('initialize').call(this);
+  J.SDP.Aliased.Game_Party.get('initialize')
+    .call(this);
 
   // init sdp members.
   this.initSdpMembers();
@@ -2444,7 +2449,8 @@ Game_Party.prototype.getAllSdpTrackings = function()
  */
 Game_Party.prototype.getUnlockedSdpTrackings = function()
 {
-  return this.getAllSdpTrackings().filter(panel => panel.isUnlocked());
+  return this.getAllSdpTrackings()
+    .filter(panel => panel.isUnlocked());
 };
 
 /**
@@ -2468,17 +2474,18 @@ Game_Party.prototype.getUnlockedSdps = function()
   const unlockedSdps = [];
 
   // iterate over each of the unlocked trackings.
-  this.getUnlockedSdpTrackings().forEach(tracking =>
-  {
-    // grab the panel associated with the key.
-    const panel = this.getSdpByKey(tracking.key);
+  this.getUnlockedSdpTrackings()
+    .forEach(tracking =>
+    {
+      // grab the panel associated with the key.
+      const panel = this.getSdpByKey(tracking.key);
 
-    // skip unfound keys if we have those somehow.
-    if (!panel) return;
+      // skip unfound keys if we have those somehow.
+      if (!panel) return;
 
-    // add the panel to the list.
-    unlockedSdps.push(panel);
-  }, this);
+      // add the panel to the list.
+      unlockedSdps.push(panel);
+    }, this);
 
   // return what we found.
   return unlockedSdps;
@@ -2509,7 +2516,8 @@ Game_Party.prototype.unlockSdp = function(key)
 Game_Party.prototype.unlockAllSdps = function()
 {
   // unlock the panel.
-  this.getAllSdpTrackings().forEach(tracking => tracking.unlock());
+  this.getAllSdpTrackings()
+    .forEach(tracking => tracking.unlock());
 };
 
 /**
@@ -2557,7 +2565,8 @@ Game_Party.prototype.getAllSdpsAsMap = function()
  */
 Game_Party.prototype.getSdpByKey = function(key)
 {
-  return this.getAllSdpsAsMap().get(key);
+  return this.getAllSdpsAsMap()
+    .get(key);
 };
 
 /**
@@ -2598,7 +2607,8 @@ J.SDP.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
   // perform original logic.
-  J.SDP.Aliased.Game_System.get('initialize').call(this);
+  J.SDP.Aliased.Game_System.get('initialize')
+    .call(this);
 
   // initializes members for this plugin.
   this.initSdpMembers();
@@ -2663,7 +2673,8 @@ Game_Troop.prototype.sdpTotal = function()
   let sdpPoints = 0;
 
   // iterate over each dead enemy and sum their total SDP points.
-  this.deadMembers().forEach(enemy => sdpPoints += enemy.sdpPoints());
+  this.deadMembers()
+    .forEach(enemy => sdpPoints += enemy.sdpPoints());
 
   // return the summed value.
   return sdpPoints;
@@ -2678,7 +2689,8 @@ J.SDP.Aliased.Scene_Map.set('createJabsAbsMenuMainWindow', Scene_Map.prototype.c
 Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
 {
   // perform original logic.
-  J.SDP.Aliased.Scene_Map.get('createJabsAbsMenuMainWindow').call(this);
+  J.SDP.Aliased.Scene_Map.get('createJabsAbsMenuMainWindow')
+    .call(this);
 
   // grab the list window.
   const mainMenuWindow = this.getJabsMainListWindow();
@@ -2704,7 +2716,8 @@ J.SDP.Aliased.Scene_Menu.set('createCommandWindow', Scene_Menu.prototype.createC
 Scene_Menu.prototype.createCommandWindow = function()
 {
   // perform original logic.
-  J.SDP.Aliased.Scene_Menu.get('createCommandWindow').call(this);
+  J.SDP.Aliased.Scene_Menu.get('createCommandWindow')
+    .call(this);
 
   // add an additional handler for the new menu.
   this._commandWindow.setHandler("sdp-menu", this.commandSdp.bind(this));
@@ -2806,6 +2819,7 @@ class Scene_SDP extends Scene_MenuBase
      */
     this._j._sdp._windows._sdpRankData = null;
   }
+
   //endregion init
 
   //region create
@@ -2837,6 +2851,7 @@ class Scene_SDP extends Scene_MenuBase
   createButtons()
   {
   }
+
   //endregion create
 
   //region windows
@@ -2946,6 +2961,7 @@ class Scene_SDP extends Scene_MenuBase
   {
     this._j._sdp._windows._sdpList = listWindow;
   }
+
   //endregion sdp list window
 
   //region parameter list window
@@ -3023,6 +3039,7 @@ class Scene_SDP extends Scene_MenuBase
   {
     this._j._sdp._windows._sdpParameterList = listWindow;
   }
+
   //endregion parameter list window
 
   //region reward list window
@@ -3106,6 +3123,7 @@ class Scene_SDP extends Scene_MenuBase
   {
     this._j._sdp._windows._sdpRewardList = listWindow;
   }
+
   //endregion reward list window
 
   //region rank data window
@@ -3173,6 +3191,7 @@ class Scene_SDP extends Scene_MenuBase
   {
     this._j._sdp._windows._sdpRankData = rankDataWindow;
   }
+
   //endregion rank data window
 
   //region help window
@@ -3237,6 +3256,7 @@ class Scene_SDP extends Scene_MenuBase
   {
     this._j._sdp._windows._sdpHelp = helpWindow;
   }
+
   // endregion help window
 
   //region points window
@@ -3305,6 +3325,7 @@ class Scene_SDP extends Scene_MenuBase
   {
     this._j._sdp._windows._sdpPoints = pointsWindow;
   }
+
   //endregion points window
 
   //region confirmation window
@@ -3376,6 +3397,7 @@ class Scene_SDP extends Scene_MenuBase
   {
     this._j._sdp._windows._sdpConfirmation = confirmationWindow;
   }
+
   //endregion confirmation window
   //endregion windows
 
@@ -3422,21 +3444,25 @@ class Scene_SDP extends Scene_MenuBase
   onPanelHoveredChange()
   {
     // validate panels are present before updating everything.
-    const hasPanels = this.getSdpListWindow().hasCommands();
+    const hasPanels = this.getSdpListWindow()
+      .hasCommands();
     if (!hasPanels) return;
 
     // grab the current panel.
     /** @type {StatDistributionPanel} */
-    const currentPanel = this.getSdpListWindow().currentExt();
+    const currentPanel = this.getSdpListWindow()
+      .currentExt();
 
     // grab the current actor of the menu.
     const currentActor = $gameParty.menuActor();
 
     // update the actor associated with the sdp listing.
-    this.getSdpListWindow().setActor(currentActor);
+    this.getSdpListWindow()
+      .setActor(currentActor);
 
     // update the actor associated with the sdp point tracking.
-    this.getSdpPointsWindow().setActor(currentActor);
+    this.getSdpPointsWindow()
+      .setActor(currentActor);
 
     // update the parameter list with the latest panel parameters.
     const parameterListWindow = this.getSdpParameterListWindow();
@@ -3450,18 +3476,20 @@ class Scene_SDP extends Scene_MenuBase
     rewardListWindow.refresh();
 
     // update the text in the help window to reflect the description of the panel.
-    this.getSdpHelpWindow().setText(currentPanel.description);
+    this.getSdpHelpWindow()
+      .setText(currentPanel.description);
 
     // update the cost data window.
     const panelRanking = currentActor.getSdpByKey(currentPanel.key);
-    this.getSdpRankDataWindow().setRankData(
-      currentPanel.getPanelRarityColorIndex(),
-      currentPanel.getPanelRarityText(),
-      panelRanking.currentRank,
-      currentPanel.maxRank,
-      currentPanel.rankUpCost(panelRanking.currentRank),
-      currentActor.getSdpPoints());
-    this.getSdpRankDataWindow().refresh();
+    this.getSdpRankDataWindow()
+      .setRankData(currentPanel.getPanelRarityColorIndex(),
+        currentPanel.getPanelRarityText(),
+        panelRanking.currentRank,
+        currentPanel.maxRank,
+        currentPanel.rankUpCost(panelRanking.currentRank),
+        currentActor.getSdpPoints());
+    this.getSdpRankDataWindow()
+      .refresh();
   }
 
   /**
@@ -3479,7 +3507,8 @@ class Scene_SDP extends Scene_MenuBase
     this.onPanelHoveredChange();
 
     // re-activate the list window.
-    this.getSdpListWindow().activate();
+    this.getSdpListWindow()
+      .activate();
   }
 
   /**
@@ -3488,7 +3517,8 @@ class Scene_SDP extends Scene_MenuBase
   onUpgradeConfirm()
   {
     // grab the panel we're working with.
-    const panel = this.getSdpListWindow().currentExt();
+    const panel = this.getSdpListWindow()
+      .currentExt();
 
     // grab the actor we're working with.
     const actor = $gameParty.menuActor();
@@ -3512,10 +3542,12 @@ class Scene_SDP extends Scene_MenuBase
     this.onPanelHoveredChange();
 
     // close the confirmation window.
-    this.getSdpConfirmationWindow().close();
+    this.getSdpConfirmationWindow()
+      .close();
 
     // refocus back to the list window.
-    this.getSdpListWindow().activate();
+    this.getSdpListWindow()
+      .activate();
   }
 
   /**
@@ -3531,10 +3563,13 @@ class Scene_SDP extends Scene_MenuBase
     window.hide();
 
     // re-activate the main list window.
-    this.getSdpListWindow().activate();
+    this.getSdpListWindow()
+      .activate();
   }
+
   //endregion actions
 }
+
 //endregion Scene_SDP
 
 //region Window_AbsMenu
@@ -3549,7 +3584,8 @@ if (J.ABS)
   Window_AbsMenu.prototype.buildCommands = function()
   {
     // perform original logic to get the base commands.
-    const originalCommands = J.SDP.Aliased.Window_AbsMenu.get('buildCommands').call(this);
+    const originalCommands = J.SDP.Aliased.Window_AbsMenu.get('buildCommands')
+      .call(this);
 
     // if the SDP switch is not ON, then this menu command is not present.
     if (!this.canAddSdpCommand()) return originalCommands;
@@ -3594,8 +3630,7 @@ if (J.ABS)
   {
     const description = [
       "The ever-growing list of stat distribution panels, aka your junction system.",
-      "Junction points can be spent here to modify your stats- permanently."
-    ];
+      "Junction points can be spent here to modify your stats- permanently." ];
 
     return description.join("\n");
   };
@@ -3610,7 +3645,8 @@ J.SDP.Aliased.Window_MenuCommand.set('makeCommandList', Window_MenuCommand.proto
 Window_MenuCommand.prototype.makeCommandList = function()
 {
   // perform original logic.
-  J.SDP.Aliased.Window_MenuCommand.get('makeCommandList').call(this);
+  J.SDP.Aliased.Window_MenuCommand.get('makeCommandList')
+    .call(this);
 
   // if we cannot add the command, then do not.
   if (!this.canAddSdpCommand()) return;
@@ -3704,6 +3740,7 @@ class Window_SdpConfirmation extends Window_Command
     this.addCommand(`Cancel`, `panel-upgrade-cancel`, true, null, 90);
   }
 }
+
 //endregion Window_SdpConfirmation
 
 //region Window_SdpHelp
@@ -3722,6 +3759,7 @@ class Window_SdpHelp extends Window_Help
     this.initialize(rect);
   }
 }
+
 //endregion Window_SdpHelp
 
 //region Window_SdpList
@@ -3857,6 +3895,7 @@ class Window_SdpList extends Window_Command
     return command;
   }
 }
+
 //endregion Window_SdpList
 
 //region Window_SdpParameterList
@@ -3933,14 +3972,18 @@ class Window_SdpParameterList extends Window_Command
     const { parameterId, isCore } = panelParameter;
 
     // determine the item color.
-    const colorIndex = isCore ? 14 : 0;
+    const colorIndex = isCore
+      ? 14
+      : 0;
 
     // determine the parameter data to display.
     const paramName = TextManager.longParam(parameterId);
     const paramIcon = IconManager.longParam(parameterId);
     let paramValue = this.currentActor.longParam(parameterId);
     const isPercentParamValue = this.isPercentParameter(parameterId);
-    const percentValue = isPercentParamValue ? '%' : String.empty;
+    const percentValue = isPercentParamValue
+      ? '%'
+      : String.empty;
 
     // non-base parameters (and not max tp) get multiplied by 100.
     if (!Game_BattlerBase.isBaseParam(parameterId) && parameterId !== 30)
@@ -4044,8 +4087,12 @@ class Window_SdpParameterList extends Window_Command
     // a small helper function for building the modifier's text.
     const buildModifierText = (modifier, isFlat) =>
     {
-      const isPercent = isFlat ? `` : `%`;
-      const isPositive = modifier >= 0 ? '+' : String.empty;
+      const isPercent = isFlat
+        ? ``
+        : `%`;
+      const isPositive = modifier >= 0
+        ? '+'
+        : String.empty;
       return `(${isPositive}${modifier}${isPercent})`;
     };
 
@@ -4150,6 +4197,7 @@ class Window_SdpParameterList extends Window_Command
     return this.lineHeight() * 2;
   }
 }
+
 //endregion Window_SdpParameterList
 
 //region Window_SdpPoints
@@ -4231,10 +4279,7 @@ class Window_SdpPoints extends Window_Base
     // don't draw the points if the actor is unavailable.
     if (!this._actor) return;
 
-    this.drawFace(
-      this._actor.faceName(),
-      this._actor.faceIndex(),
-      0, 0,   // x,y
+    this.drawFace(this._actor.faceName(), this._actor.faceIndex(), 0, 0,   // x,y
       128, 40);// w,h
   }
 
@@ -4248,6 +4293,7 @@ class Window_SdpPoints extends Window_Base
     this.refresh();
   }
 }
+
 //endregion Window_SdpPoints
 
 //region Window_SdpRankData
@@ -4437,6 +4483,7 @@ class Window_SdpRankData extends Window_Base
     }
   }
 }
+
 //endregion Window_SdpRankData
 
 //region Window_SdpRewardList
@@ -4510,7 +4557,6 @@ class Window_SdpRewardList extends Window_Command
       }
 
 
-
       // identify the right-aligned current and bonus amounts.
       let parameterData = `Rank: ${rankText}`;
 
@@ -4528,4 +4574,5 @@ class Window_SdpRewardList extends Window_Command
     return commands;
   }
 }
+
 //endregion Window_SdpRewardList

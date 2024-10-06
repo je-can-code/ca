@@ -324,11 +324,7 @@ J.LEVEL.Metadata.EnemyBalanceVariable = Number(J.LEVEL.PluginParameters['variabl
  * All aliased methods for this plugin.
  */
 J.LEVEL.Aliased = {
-  Game_Actor: new Map(),
-  Game_Battler: new Map(),
-  Game_Action: new Map(),
-  Game_System: new Map(),
-  Game_Troop: new Map(),
+  Game_Actor: new Map(), Game_Battler: new Map(), Game_Action: new Map(), Game_System: new Map(), Game_Troop: new Map(),
 };
 
 /**
@@ -411,6 +407,7 @@ class LevelScaling
    * @type {number}
    */
   static #lowerInvariance = J.LEVEL.Metadata.InvariantLowerRange;
+
   //endregion properties
 
   /**
@@ -475,8 +472,7 @@ class LevelScaling
     const growth = this.#growthMultiplier;
 
     // check if the difference is within our invariance range.
-    if (levelDifference <= this.#upperInvariance &&
-      levelDifference >= this.#lowerInvariance) return base;
+    if (levelDifference <= this.#upperInvariance && levelDifference >= this.#lowerInvariance) return base;
 
     // determine the level difference lesser the invariance range.
     const invariantDifference = levelDifference > 0
@@ -490,6 +486,7 @@ class LevelScaling
     return result.clamp(this.#minimumMultiplier, this.#maximumMultiplier);
   }
 }
+
 //endregion LevelScaling
 
 //region Game_Action
@@ -500,7 +497,8 @@ J.LEVEL.Aliased.Game_Action.set('makeDamageValue', Game_Action.prototype.makeDam
 Game_Action.prototype.makeDamageValue = function(target, critical)
 {
   // get the base damage that would've been done.
-  const baseDamage = J.LEVEL.Aliased.Game_Action.get('makeDamageValue').call(this, target, critical);
+  const baseDamage = J.LEVEL.Aliased.Game_Action.get('makeDamageValue')
+    .call(this, target, critical);
 
   // get the multiplier based on target and user levels.
   const multiplier = LevelScaling.multiplier(this.subject().level, target.level);
@@ -557,19 +555,16 @@ Game_Actor.prototype.getLevelBalancer = function()
  * This is the same as `battler.lvl`.
  * @returns {number}
  */
-Object.defineProperty(
-  Game_Battler.prototype,
-  "level",
+Object.defineProperty(Game_Battler.prototype, "level", {
+  get()
   {
-    get()
-    {
-      // get the level from this battler.
-      return this.getLevel();
-    },
+    // get the level from this battler.
+    return this.getLevel();
+  },
 
-    // sure, lets make this level property configurable.
-    configurable: true,
-  });
+  // sure, lets make this level property configurable.
+  configurable: true,
+});
 
 /**
  * Generates the "lvl" property for all battlers, along with
@@ -578,19 +573,16 @@ Object.defineProperty(
  * This is the same as `battler.level`.
  * @returns {number}
  */
-Object.defineProperty(
-  Game_Battler.prototype,
-  "lvl",
+Object.defineProperty(Game_Battler.prototype, "lvl", {
+  get()
   {
-    get()
-    {
-      // get the level from this battler.
-      return this.getLevel();
-    },
+    // get the level from this battler.
+    return this.getLevel();
+  },
 
-    // sure, lets make this level property configurable.
-    configurable: true,
-  });
+  // sure, lets make this level property configurable.
+  configurable: true,
+});
 
 /**
  * Gets the level for this battler.
@@ -731,7 +723,8 @@ J.LEVEL.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
   // perform original logic.
-  J.LEVEL.Aliased.Game_System.get('initialize').call(this);
+  J.LEVEL.Aliased.Game_System.get('initialize')
+    .call(this);
 
   /**
    * The overarching _j object, where all my stateful plugin data is stored.
@@ -789,7 +782,8 @@ Game_Troop.prototype.expTotal = function()
   else
   {
     // return the default logic instead.
-    return J.LEVEL.Aliased.Game_Troop.get('expTotal').call(this);
+    return J.LEVEL.Aliased.Game_Troop.get('expTotal')
+      .call(this);
   }
 };
 

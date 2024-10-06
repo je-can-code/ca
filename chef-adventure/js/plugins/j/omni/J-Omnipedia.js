@@ -103,7 +103,8 @@ J.OMNI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
 Game_Party.prototype.initialize = function()
 {
   // perform original logic.
-  J.OMNI.Aliased.Game_Party.get('initialize').call(this);
+  J.OMNI.Aliased.Game_Party.get('initialize')
+    .call(this);
 
   // initialize all omnipedia-related members.
   this.initOmnipediaMembers();
@@ -167,7 +168,8 @@ J.OMNI.Aliased.Scene_Map.set('createJabsAbsMenuMainWindow', Scene_Map.prototype.
 Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
 {
   // perform original logic.
-  J.OMNI.Aliased.Scene_Map.get('createJabsAbsMenuMainWindow').call(this);
+  J.OMNI.Aliased.Scene_Map.get('createJabsAbsMenuMainWindow')
+    .call(this);
 
   // grab the list window.
   const mainMenuWindow = this.getJabsMainListWindow();
@@ -193,7 +195,8 @@ J.OMNI.Aliased.Scene_Menu.set('createCommandWindow', Scene_Menu.prototype.create
 Scene_Menu.prototype.createCommandWindow = function()
 {
   // perform original logic.
-  J.OMNI.Aliased.Scene_Menu.get('createCommandWindow').call(this);
+  J.OMNI.Aliased.Scene_Menu.get('createCommandWindow')
+    .call(this);
 
   // add an additional handler for the new menu.
   this._commandWindow.setHandler(J.OMNI.Metadata.Command.Symbol, this.commandOmnipedia.bind(this));
@@ -285,6 +288,7 @@ class Scene_Omnipedia extends Scene_MenuBase
      */
     this._j._omni._pediaListHeader = null;
   }
+
   //endregion init
 
   //region create
@@ -317,6 +321,7 @@ class Scene_Omnipedia extends Scene_MenuBase
     // create all root windows for the main listing.
     this.createOmnipediaRootWindows();
   }
+
   //endregion create
 
   //region windows
@@ -431,6 +436,7 @@ class Scene_Omnipedia extends Scene_MenuBase
     rootHeaderWindow.close();
     rootHeaderWindow.hide();
   }
+
   //endregion header window
 
   //region list window
@@ -545,8 +551,10 @@ class Scene_Omnipedia extends Scene_MenuBase
    */
   getRootOmnipediaKey()
   {
-    return this.getOmnipediaListWindow().currentSymbol();
+    return this.getOmnipediaListWindow()
+      .currentSymbol();
   }
+
   //endregion list window
 
   /**
@@ -572,6 +580,7 @@ class Scene_Omnipedia extends Scene_MenuBase
     // close the header window.
     this.closeRootHeaderWindow();
   }
+
   //endregion windows
 
   //region actions
@@ -584,9 +593,11 @@ class Scene_Omnipedia extends Scene_MenuBase
   {
     console.debug(`selected "${this.getRootOmnipediaKey()}" option.`);
   }
+
   //endregion root actions
   //endregion actions
 }
+
 //endregion Scene_Omnipedia
 
 //region Window_AbsMenu
@@ -601,7 +612,8 @@ if (J.ABS)
   Window_AbsMenu.prototype.buildCommands = function()
   {
     // perform original logic to get the base commands.
-    const originalCommands = J.OMNI.Aliased.Window_AbsMenu.get('buildCommands').call(this);
+    const originalCommands = J.OMNI.Aliased.Window_AbsMenu.get('buildCommands')
+      .call(this);
 
     // if the switch is not ON, then this command is not present.
     if (!this.canAddOmnipediaCommand()) return originalCommands;
@@ -642,8 +654,7 @@ if (J.ABS)
   {
     const description = [
       "An encyclopedia-like system full of data-driven entries.",
-      "It can contain many sub-categories, such as the Monsterpedia."
-    ];
+      "It can contain many sub-categories, such as the Monsterpedia." ];
 
     return description.join("\n");
   };
@@ -659,7 +670,8 @@ J.OMNI.Aliased.Window_MenuCommand.set('makeCommandList', Window_MenuCommand.prot
 Window_MenuCommand.prototype.makeCommandList = function()
 {
   // perform original logic.
-  J.OMNI.Aliased.Window_MenuCommand.get('makeCommandList').call(this);
+  J.OMNI.Aliased.Window_MenuCommand.get('makeCommandList')
+    .call(this);
 
   // if we cannot add the command, then do not.
   if (!this.canAddOmnipediaCommand()) return;
@@ -773,6 +785,7 @@ class Window_OmnipediaList extends Window_Command
     return this.lineHeight() * 2;
   }
 }
+
 //endregion Window_OmnipediaList
 
 //region Window_OmnipediaListHeader
@@ -794,7 +807,7 @@ class Window_OmnipediaListHeader extends Window_Base
   drawContent()
   {
     // define the origin x,y coordinates.
-    const [x, y] = [0, 0];
+    const [ x, y ] = [ 0, 0 ];
 
     // shorthand the lineHeight.
     const lh = this.lineHeight();
@@ -856,4 +869,5 @@ class Window_OmnipediaListHeader extends Window_Base
     this.resetFontSettings();
   }
 }
+
 //endregion Window_OmnipediaListHeader

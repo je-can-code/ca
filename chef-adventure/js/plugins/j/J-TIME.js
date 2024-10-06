@@ -584,9 +584,7 @@ J.TIME.Metadata.YearsPerIncrement = Number(J.TIME.PluginParameters['yearsPerIncr
  * A collection of all aliased methods for this plugin.
  */
 J.TIME.Aliased = {
-  DataManager: {},
-  Scene_Base: {},
-  Scene_Map: {},
+  DataManager: {}, Scene_Base: {}, Scene_Map: {},
 };
 
 /**
@@ -610,15 +608,8 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "showMapTime", () =>
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "setTime", args =>
 {
-  const {Second, Minute, Hour, Day, Month, Year} = args;
-  $gameTime.setTime(
-    parseInt(Second),
-    parseInt(Minute),
-    parseInt(Hour),
-    parseInt(Day),
-    parseInt(Month),
-    parseInt(Year)
-  );
+  const { Second, Minute, Hour, Day, Month, Year } = args;
+  $gameTime.setTime(parseInt(Second), parseInt(Minute), parseInt(Hour), parseInt(Day), parseInt(Month), parseInt(Year));
 });
 
 /**
@@ -626,7 +617,7 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "setTime", args =>
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "fastForwardtime", args =>
 {
-  const {Second, Minute, Hour, Day, Month, Year} = args;
+  const { Second, Minute, Hour, Day, Month, Year } = args;
   $gameTime.addSeconds(parseInt(Second));
   $gameTime.addMinutes(parseInt(Minute));
   $gameTime.addHours(parseInt(Hour));
@@ -640,7 +631,7 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "fastForwardtime", args =>
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "rewindTime", args =>
 {
-  const {Second, Minute, Hour, Day, Month, Year} = args;
+  const { Second, Minute, Hour, Day, Month, Year } = args;
   $gameTime.addSeconds(-parseInt(Second));
   $gameTime.addMinutes(-parseInt(Minute));
   $gameTime.addHours(-parseInt(Hour));
@@ -654,7 +645,7 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "rewindTime", args =>
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "jumpToTimeOfDay", args =>
 {
-  const {TimeOfDay} = args;
+  const { TimeOfDay } = args;
   $gameTime.jumpToTimeOfDay(parseInt(TimeOfDay));
 });
 
@@ -716,12 +707,12 @@ Game_Time.prototype.constructor = Game_Time;
  * A static representation of the tones for each time of day.
  */
 Game_Time.toneOfDay = {
-  Night: [-100, -100, -30, 100],
-  Dawn: [-30, -15, 15, 64],
-  Morning: [0, 0, 0, 0],
-  Afternoon: [10, 10, 10, 10],
-  Evening: [0, -30, -30, -30],
-  Twilight: [-68, -68, 0, 68],
+  Night: [ -100, -100, -30, 100 ],
+  Dawn: [ -30, -15, 15, 64 ],
+  Morning: [ 0, 0, 0, 0 ],
+  Afternoon: [ 10, 10, 10, 10 ],
+  Evening: [ 0, -30, -30, -30 ],
+  Twilight: [ -68, -68, 0, 68 ],
 };
 //endregion statics
 
@@ -1112,7 +1103,7 @@ Game_Time.prototype.translateHourToTone = function()
   const hours = J.TIME.Metadata.UseRealTime
     ? new Date().getHours()
     : this._hours;
-  let tone = [0, 0, 0, 0];
+  let tone = [ 0, 0, 0, 0 ];
   switch (hours)
   {
     case  0: // night
@@ -1204,14 +1195,18 @@ Game_Time.prototype.translateHourToTone = function()
  */
 Game_Time.prototype.toneBetweenTones = function(tone1, tone2, rate)
 {
-  const diff = (a, b) => a > b ? a - b : b - a;
+  const diff = (a, b) => a > b
+    ? a - b
+    : b - a;
   const newTone = [];
   tone1.forEach((color1, index) =>
   {
     const color2 = tone2[index];
     const diffToNext = diff(color1, color2);
     const partial = Math.round(diffToNext * rate);
-    const newRgbValue = color2 > color1 ? color1 + partial : color1 - partial;
+    const newRgbValue = color2 > color1
+      ? color1 + partial
+      : color1 - partial;
     newTone.push(newRgbValue);
   });
 
@@ -1306,8 +1301,7 @@ Game_Time.prototype.determineArtificialTime = function()
 {
   const timeOfDayId = this.timeOfDay(this._hours);
   const seasonOfYearId = this.seasonOfYear(this._months);
-  return new Time_Snapshot(
-    this._seconds,
+  return new Time_Snapshot(this._seconds,
     this._minutes,
     this._hours,
     this._days,
@@ -1332,15 +1326,7 @@ Game_Time.prototype.determineRealTime = function()
   const years = date.getFullYear();
   const timeOfDayId = this.timeOfDay(hours);
   const seasonOfYearId = this.seasonOfYear(months);
-  return new Time_Snapshot(
-    seconds,
-    minutes,
-    hours,
-    days,
-    months,
-    years,
-    timeOfDayId,
-    seasonOfYearId);
+  return new Time_Snapshot(seconds, minutes, hours, days, months, years, timeOfDayId, seasonOfYearId);
 };
 
 /**
@@ -1384,10 +1370,10 @@ Game_Time.prototype.startOfTimeOfDay = function(timeOfDayId)
  */
 Game_Time.prototype.seasonOfYear = function(months)
 {
-  const springMonths = [3, 4, 5];
-  const summerMonths = [6, 7, 8];
-  const autumnMonths = [9, 10, 11];
-  const winterMonths = [1, 2, 12];
+  const springMonths = [ 3, 4, 5 ];
+  const summerMonths = [ 6, 7, 8 ];
+  const autumnMonths = [ 9, 10, 11 ];
+  const winterMonths = [ 1, 2, 12 ];
   switch (true)
   {
     case (springMonths.includes(months)):
@@ -1868,7 +1854,7 @@ Scene_Base.prototype.update = function()
  */
 Scene_Base.prototype.shouldUpdateTime = function()
 {
-  const noTimeScenes = [Scene_Boot, Scene_File, Scene_Save, Scene_Load, Scene_Title, Scene_Gameover];
+  const noTimeScenes = [ Scene_Boot, Scene_File, Scene_Save, Scene_Load, Scene_Title, Scene_Gameover ];
   const checkIfNoTimeScene = scene => SceneManager._scene instanceof scene;
   const isNoTimeScene = !noTimeScenes.some(checkIfNoTimeScene);
   const isTimeActive = $gameTime.isActive();
@@ -1998,8 +1984,7 @@ Scene_Map.prototype.blockIfTagged = function()
 /**
  * A window class for displaying the time.
  */
-class Window_Time
-  extends Window_Base
+class Window_Time extends Window_Base
 {
   /**
    * @constructor
@@ -2078,9 +2063,15 @@ class Window_Time
    */
   drawContent()
   {
-    const colon1 = this._alternating ? ":" : " ";
-    const colon2 = this._alternating ? " " : ":";
-    const ampm = this.time.hours > 11 ? "PM" : "AM";
+    const colon1 = this._alternating
+      ? ":"
+      : " ";
+    const colon2 = this._alternating
+      ? " "
+      : ":";
+    const ampm = this.time.hours > 11
+      ? "PM"
+      : "AM";
     const lh = this.lineHeight();
 
     const seconds = this.time.seconds.padZero(2);
@@ -2101,4 +2092,5 @@ class Window_Time
     this.drawTextEx(`${years}/${months}/${days}`, 0, lh * 3, 200);
   };
 }
+
 //endregion Window_Time

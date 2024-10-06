@@ -70,21 +70,17 @@ J.ABS.EXT.INPUT.PluginParameters = PluginManager.parameters(J.ABS.EXT.INPUT.Meta
 /**
  * Extend this plugin's metadata with additional configurable data points.
  */
-J.ABS.EXT.INPUT.Metadata =
-  {
-    // the previously defined metadata.
-    ...J.ABS.EXT.INPUT.Metadata,
-  };
+J.ABS.EXT.INPUT.Metadata = {
+  // the previously defined metadata.
+  ...J.ABS.EXT.INPUT.Metadata,
+};
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.ABS.EXT.INPUT.Aliased =
-  {
-    DataManager: new Map(),
-    JABS_Engine: new Map(),
-    JABS_Battler: new Map(),
-  };
+J.ABS.EXT.INPUT.Aliased = {
+  DataManager: new Map(), JABS_Engine: new Map(), JABS_Battler: new Map(),
+};
 //endregion metadata
 
 /**
@@ -105,7 +101,8 @@ J.ABS.EXT.INPUT.Aliased.JABS_Battler.set('createPlayer', JABS_Battler.createPlay
 JABS_Battler.createPlayer = function()
 {
   // intercept return data from original logic.
-  const playerJabsBattler = J.ABS.EXT.INPUT.Aliased.JABS_Battler.get('createPlayer').call(this);
+  const playerJabsBattler = J.ABS.EXT.INPUT.Aliased.JABS_Battler.get('createPlayer')
+    .call(this);
 
   // assign newly players are created to controller 1.
   $jabsController1.battler = playerJabsBattler;
@@ -218,6 +215,7 @@ class JABS_Button
    * @type {string}
    */
   static CombatSkill4 = "CombatSkill4";
+
   //endregion  L1 + buttons
 
   /**
@@ -229,23 +227,17 @@ class JABS_Button
     // the valid set of assignable inputs.
     const okInputs = [
       // primary
-      this.Mainhand,
-      this.Offhand,
-      this.Tool,
-      this.Dodge,
+      this.Mainhand, this.Offhand, this.Tool, this.Dodge,
 
       // L1 + buttons
-      this.CombatSkill1,
-      this.CombatSkill2,
-      this.CombatSkill3,
-      this.CombatSkill4,
-    ];
+      this.CombatSkill1, this.CombatSkill2, this.CombatSkill3, this.CombatSkill4, ];
 
     // a filter function for ensuring only the correct inputs are accepted.
     const filtering = buttonInput => !okInputs.includes(buttonInput);
 
     // return the filtered buttons.
-    return this.allButtons().filter(filtering);
+    return this.allButtons()
+      .filter(filtering);
   }
 
   /**
@@ -256,28 +248,19 @@ class JABS_Button
   {
     return [
       // functionality
-      this.Menu,
-      this.Select,
+      this.Menu, this.Select,
 
       // primary
-      this.Mainhand,
-      this.Offhand,
-      this.Tool,
-      this.Dodge,
+      this.Mainhand, this.Offhand, this.Tool, this.Dodge,
 
       // mobility
-      this.Strafe,
-      this.Rotate,
-      this.Guard,
+      this.Strafe, this.Rotate, this.Guard,
 
       // L1 + buttons
-      this.CombatSkill1,
-      this.CombatSkill2,
-      this.CombatSkill3,
-      this.CombatSkill4,
-    ];
+      this.CombatSkill1, this.CombatSkill2, this.CombatSkill3, this.CombatSkill4, ];
   }
 }
+
 //endregion JABS_Button
 
 //region JABS_InputController
@@ -396,6 +379,7 @@ class JABS_InputController
     // update!
     return true;
   }
+
   //endregion update
 
   //region menu action
@@ -436,6 +420,7 @@ class JABS_InputController
   {
     JABS_InputAdapter.performMenuAction();
   }
+
   //endregion menu action
 
   //region party cycle
@@ -476,6 +461,7 @@ class JABS_InputController
   {
     JABS_InputAdapter.performPartyCycling(false);
   }
+
   //endregion party cycle
 
   //region mainhand
@@ -522,6 +508,7 @@ class JABS_InputController
   {
     JABS_InputAdapter.performMainhandAction(this.battler);
   }
+
   //endregion mainhand
 
   //region offhand
@@ -568,6 +555,7 @@ class JABS_InputController
   {
     JABS_InputAdapter.performOffhandAction(this.battler);
   }
+
   //endregion offhand
 
   //region tool
@@ -614,6 +602,7 @@ class JABS_InputController
   {
     JABS_InputAdapter.performToolAction($jabsEngine.getPlayer1());
   }
+
   //endregion tool
 
   //region dodge
@@ -654,6 +643,7 @@ class JABS_InputController
   {
     JABS_InputAdapter.performDodgeAction($jabsEngine.getPlayer1());
   }
+
   //endregion dodge
 
   //region combat actions
@@ -680,9 +670,7 @@ class JABS_InputController
    */
   performCombatAction(slot)
   {
-    JABS_InputAdapter.performCombatAction(
-      slot,
-      $jabsEngine.getPlayer1());
+    JABS_InputAdapter.performCombatAction(slot, $jabsEngine.getPlayer1());
   }
 
   //region combat action 1
@@ -722,6 +710,7 @@ class JABS_InputController
     // A was never triggered while L1 was held down.
     return false;
   }
+
   //endregion combat action 1
 
   //region combat action 2
@@ -761,6 +750,7 @@ class JABS_InputController
     // B was never triggered while L1 was held down.
     return false;
   }
+
   //endregion combat action 2
 
   //region combat action 3
@@ -800,6 +790,7 @@ class JABS_InputController
     // X was never triggered while L1 was held down.
     return false;
   }
+
   //endregion combat action 3
 
   //region combat action 4
@@ -839,6 +830,7 @@ class JABS_InputController
     // Y was never triggered while L1 was held down.
     return false;
   }
+
   //endregion combat action 4
   //endregion combat actions
 
@@ -894,6 +886,7 @@ class JABS_InputController
   {
     JABS_InputAdapter.performStrafe(false, this.battler);
   }
+
   //endregion strafe
 
   //region rotate
@@ -948,6 +941,7 @@ class JABS_InputController
   {
     JABS_InputAdapter.performRotate(false, $jabsEngine.getPlayer1());
   }
+
   //endregion strafe
 
   //region guard
@@ -1002,8 +996,10 @@ class JABS_InputController
   {
     JABS_InputAdapter.performGuard(false, $jabsEngine.getPlayer1());
   }
+
   //endregion guard
 }
+
 //endregion JABS_InputController
 
 //region DataManager
@@ -1011,7 +1007,8 @@ J.ABS.EXT.INPUT.Aliased.DataManager.set('createGameObjects', DataManager.createG
 DataManager.createGameObjects = function()
 {
   // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.DataManager.get('createGameObjects').call(this);
+  J.ABS.EXT.INPUT.Aliased.DataManager.get('createGameObjects')
+    .call(this);
 
   // initialize controller 1 for JABS.
   $jabsController1 = new JABS_InputController();
@@ -1067,7 +1064,8 @@ J.ABS.EXT.INPUT.Aliased.JABS_Engine.set('performPartyCycling', JABS_Engine.proto
 JABS_Engine.prototype.performPartyCycling = function()
 {
   // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.JABS_Engine.get('performPartyCycling').call(this);
+  J.ABS.EXT.INPUT.Aliased.JABS_Engine.get('performPartyCycling')
+    .call(this);
 
   // when the player party cycles, update their controls to the updated battler.
   $jabsController1.battler = this.getPlayer1();
@@ -1080,7 +1078,8 @@ J.ABS.EXT.INPUT.Aliased.JABS_Engine.set('updateInput', JABS_Engine.prototype.upd
 JABS_Engine.prototype.updateInput = function()
 {
   // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.JABS_Engine.get('updateInput').call(this);
+  J.ABS.EXT.INPUT.Aliased.JABS_Engine.get('updateInput')
+    .call(this);
 
   // don't update if we aren't allowed to update.
   if (!this.canUpdateInput()) return;

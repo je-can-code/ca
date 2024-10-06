@@ -182,13 +182,12 @@ J.PASSIVE.Aliased.Window_MoreEquipData = new Map();
  * The passive state ids that this item possesses.
  * @type {number[]}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, "passiveStateIds",
+Object.defineProperty(RPG_BaseBattler.prototype, "passiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractPassiveStateIds();
-    },
-  });
+    return this.extractPassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -205,13 +204,12 @@ RPG_BaseBattler.prototype.extractPassiveStateIds = function()
  * The passive state ids that this item possesses.
  * @type {number[]}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, "uniquePassiveStateIds",
+Object.defineProperty(RPG_BaseBattler.prototype, "uniquePassiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractUniquePassiveStateIds();
-    },
-  });
+    return this.extractUniquePassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -228,13 +226,12 @@ RPG_BaseBattler.prototype.extractUniquePassiveStateIds = function()
  * The battler itself cannot be equipped, thus it cannot have equipped passive states.
  * @type {Array.empty}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, "equippedPassiveStateIds",
+Object.defineProperty(RPG_BaseBattler.prototype, "equippedPassiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return Array.empty;
-    },
-  });
+    return Array.empty;
+  },
+});
 //endregion equipped passive state ids
 
 //region unique equipped passive state ids
@@ -242,13 +239,12 @@ Object.defineProperty(RPG_BaseBattler.prototype, "equippedPassiveStateIds",
  * The battler itself cannot be equipped, thus it cannot have equipped passive states.
  * @type {Array.empty}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, "uniqueEquippedPassiveStateIds",
+Object.defineProperty(RPG_BaseBattler.prototype, "uniqueEquippedPassiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return Array.empty;
-    },
-  });
+    return Array.empty;
+  },
+});
 //endregion unique equipped passive state ids
 //endregion RPG_BaseBattler
 
@@ -258,13 +254,12 @@ Object.defineProperty(RPG_BaseBattler.prototype, "uniqueEquippedPassiveStateIds"
  * The passive state ids that this item possesses.
  * @type {number[]}
  */
-Object.defineProperty(RPG_BaseItem.prototype, "passiveStateIds",
+Object.defineProperty(RPG_BaseItem.prototype, "passiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractPassiveStateIds();
-    },
-  });
+    return this.extractPassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -281,13 +276,12 @@ RPG_BaseItem.prototype.extractPassiveStateIds = function()
  * The non-duplicative passive state ids that this item possesses.
  * @type {number[]}
  */
-Object.defineProperty(RPG_BaseItem.prototype, "uniquePassiveStateIds",
+Object.defineProperty(RPG_BaseItem.prototype, "uniquePassiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractUniquePassiveStateIds();
-    },
-  });
+    return this.extractUniquePassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -304,13 +298,12 @@ RPG_BaseItem.prototype.extractUniquePassiveStateIds = function()
  * The passive state ids that this equipment will apply while this equip is equipped.
  * @type {number[]}
  */
-Object.defineProperty(RPG_BaseItem.prototype, "equippedPassiveStateIds",
+Object.defineProperty(RPG_BaseItem.prototype, "equippedPassiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractEquippedPassiveStateIds();
-    },
-  });
+    return this.extractEquippedPassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -328,13 +321,12 @@ RPG_BaseItem.prototype.extractEquippedPassiveStateIds = function()
  * while this equip is equipped.
  * @type {number[]}
  */
-Object.defineProperty(RPG_BaseItem.prototype, "uniqueEquippedPassiveStateIds",
+Object.defineProperty(RPG_BaseItem.prototype, "uniqueEquippedPassiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractUniqueEquippedPassiveStateIds();
-    },
-  });
+    return this.extractUniqueEquippedPassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -353,13 +345,12 @@ RPG_BaseItem.prototype.extractUniqueEquippedPassiveStateIds = function()
  * The passive state ids that this item possesses.
  * @type {number[]}
  */
-Object.defineProperty(RPG_Class.prototype, "passiveStateIds",
+Object.defineProperty(RPG_Class.prototype, "passiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractPassiveStateIds();
-    },
-  });
+    return this.extractPassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -376,13 +367,12 @@ RPG_Class.prototype.extractPassiveStateIds = function()
  * The non-duplicative passive state ids that this item possesses.
  * @type {number[]}
  */
-Object.defineProperty(RPG_Class.prototype, "uniquePassiveStateIds",
+Object.defineProperty(RPG_Class.prototype, "uniquePassiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractUniquePassiveStateIds();
-    },
-  });
+    return this.extractUniquePassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -399,13 +389,12 @@ RPG_Class.prototype.extractUniquePassiveStateIds = function()
  * The passive state ids that this equipment will apply while this equip is equipped.
  * @type {number[]}
  */
-Object.defineProperty(RPG_Class.prototype, "equippedPassiveStateIds",
+Object.defineProperty(RPG_Class.prototype, "equippedPassiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractEquippedPassiveStateIds();
-    },
-  });
+    return this.extractEquippedPassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -423,13 +412,12 @@ RPG_Class.prototype.extractEquippedPassiveStateIds = function()
  * while this equip is equipped.
  * @type {number[]}
  */
-Object.defineProperty(RPG_Class.prototype, "uniqueEquippedPassiveStateIds",
+Object.defineProperty(RPG_Class.prototype, "uniqueEquippedPassiveStateIds", {
+  get: function()
   {
-    get: function()
-    {
-      return this.extractUniqueEquippedPassiveStateIds();
-    },
-  });
+    return this.extractUniqueEquippedPassiveStateIds();
+  },
+});
 
 /**
  * Extracts the value from the notes.
@@ -452,7 +440,8 @@ J.PASSIVE.Aliased.Game_Actor.set('onSetup', Game_Actor.prototype.onSetup);
 Game_Actor.prototype.onSetup = function(actorId)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Actor.get('onSetup').call(this, actorId);
+  J.PASSIVE.Aliased.Game_Actor.get('onSetup')
+    .call(this, actorId);
 
   // refresh all passive states on this battler.
   this.refreshPassiveStates();
@@ -476,8 +465,7 @@ Game_Actor.prototype.getPassiveStateSources = function()
     ...this.equippedEquips(),
 
     // also add the class for this
-    this.currentClass(),
-  ];
+    this.currentClass(), ];
 
   // combine the sources.
   const combinedSources = originalSources.concat(actorPassiveSources);
@@ -494,7 +482,8 @@ J.PASSIVE.Aliased.Game_Actor.set('traitObjects', Game_Actor.prototype.traitObjec
 Game_Actor.prototype.traitObjects = function()
 {
   // perform original logic.
-  const originalObjects = J.PASSIVE.Aliased.Game_Actor.get('traitObjects').call(this);
+  const originalObjects = J.PASSIVE.Aliased.Game_Actor.get('traitObjects')
+    .call(this);
 
   // add our own passive states.
   originalObjects.push(...this.getPassiveStates());
@@ -514,7 +503,8 @@ J.PASSIVE.Aliased.Game_Actor.set('onLearnNewSkill', Game_Actor.prototype.onLearn
 Game_Actor.prototype.onLearnNewSkill = function(skillId)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Actor.get('onLearnNewSkill').call(this, skillId);
+  J.PASSIVE.Aliased.Game_Actor.get('onLearnNewSkill')
+    .call(this, skillId);
 
   // refresh our passive state list.
   this.refreshPassiveStates();
@@ -528,7 +518,8 @@ J.PASSIVE.Aliased.Game_Actor.set('onForgetSkill', Game_Actor.prototype.onForgetS
 Game_Actor.prototype.onForgetSkill = function(skillId)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Actor.get('onForgetSkill').call(this, skillId);
+  J.PASSIVE.Aliased.Game_Actor.get('onForgetSkill')
+    .call(this, skillId);
 
   // refresh our passive state list.
   this.refreshPassiveStates();
@@ -542,7 +533,8 @@ J.PASSIVE.Aliased.Game_Actor.set('onEquipChange', Game_Actor.prototype.onEquipCh
 Game_Actor.prototype.onEquipChange = function()
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Actor.get('onEquipChange').call(this);
+  J.PASSIVE.Aliased.Game_Actor.get('onEquipChange')
+    .call(this);
 
   // refresh our passive state list.
   this.refreshPassiveStates();
@@ -556,7 +548,8 @@ J.PASSIVE.Aliased.Game_Actor.set('onClassChange', Game_Actor.prototype.onClassCh
 Game_Actor.prototype.onClassChange = function(classId, keepExp)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Actor.get('onClassChange').call(this, classId, keepExp);
+  J.PASSIVE.Aliased.Game_Actor.get('onClassChange')
+    .call(this, classId, keepExp);
 
   // refresh our passive state list.
   this.refreshPassiveStates();
@@ -571,7 +564,8 @@ J.PASSIVE.Aliased.Game_Actor.set('getNotesSources', Game_Actor.prototype.getNote
 Game_Actor.prototype.getNotesSources = function()
 {
   // perform original logic to get notes.
-  const originalSources = J.PASSIVE.Aliased.Game_Actor.get('getNotesSources').call(this);
+  const originalSources = J.PASSIVE.Aliased.Game_Actor.get('getNotesSources')
+    .call(this);
 
   // newly defined sources for passives.
   const passiveSources = [
@@ -579,8 +573,7 @@ Game_Actor.prototype.getNotesSources = function()
     ...this.getPassiveStates(),
 
     // also apply the party's effects.
-    ...$gameParty.passiveStates(),
-  ];
+    ...$gameParty.passiveStates(), ];
 
   // combine the sources.
   const combinedSources = originalSources.concat(passiveSources);
@@ -599,7 +592,8 @@ J.PASSIVE.Aliased.Game_BattlerBase.set('initMembers', Game_Battler.prototype.ini
 Game_Battler.prototype.initMembers = function()
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_BattlerBase.get('initMembers').call(this);
+  J.PASSIVE.Aliased.Game_BattlerBase.get('initMembers')
+    .call(this);
 
   // initialize the passive states properties.
   this.initPassiveStatesMembers();
@@ -643,7 +637,8 @@ Game_Battler.prototype.getPassiveStateIds = function()
  */
 Game_Battler.prototype.hasPassiveStateId = function(stateId)
 {
-  return this.getPassiveStateIds().includes(stateId);
+  return this.getPassiveStateIds()
+    .includes(stateId);
 };
 
 /**
@@ -674,7 +669,8 @@ Game_Battler.prototype.addPassiveStateId = function(stateId, allowDuplicates = t
 Game_Battler.prototype.canAddPassiveStateId = function(stateId, allowDuplicates)
 {
   // if we don't allow duplicates and already are have this stateId, then don't add it.
-  if (!allowDuplicates && this.getPassiveStateIds().includes(stateId)) return false;
+  if (!allowDuplicates && this.getPassiveStateIds()
+    .includes(stateId)) return false;
 
   // TODO: check for blacklisted ids as well.
 
@@ -688,7 +684,8 @@ Game_Battler.prototype.canAddPassiveStateId = function(stateId, allowDuplicates)
  */
 Game_Battler.prototype.getPassiveStates = function()
 {
-  return this.getPassiveStateIds().map(this.state, this);
+  return this.getPassiveStateIds()
+    .map(this.state, this);
 };
 
 /**
@@ -809,7 +806,7 @@ Game_Battler.prototype.getAllStackablePassiveStateIds = function()
         const stack = stackablePassiveStateIds.get(id);
 
         // increment the stack.
-        stackablePassiveStateIds.set(id, stack+1);
+        stackablePassiveStateIds.set(id, stack + 1);
       }
       // we aren't tracking this passive state id yet.
       else
@@ -842,8 +839,7 @@ Game_Battler.prototype.getPassiveStateSources = function()
     ...this.allStates(),
 
     // all skills available to this battler.
-    ...this.skills(),
-  ];
+    ...this.skills(), ];
 
   // return this collection of stuff.
   return battlerSources;
@@ -869,7 +865,8 @@ J.PASSIVE.Aliased.Game_Battler.set('allStates', Game_Battler.prototype.allStates
 Game_Battler.prototype.allStates = function()
 {
   // get all original states.
-  const states = J.PASSIVE.Aliased.Game_Battler.get('allStates').call(this);
+  const states = J.PASSIVE.Aliased.Game_Battler.get('allStates')
+    .call(this);
 
   // add in all passive skill states.
   states.push(...this.getPassiveStates());
@@ -889,7 +886,8 @@ Game_Battler.prototype.isStateAddable = function(stateId)
   if (this.isPassiveState(stateId)) return false;
 
   // otherwise, check as normal.
-  return J.PASSIVE.Aliased.Game_Battler.get('isStateAddable').call(this, stateId);
+  return J.PASSIVE.Aliased.Game_Battler.get('isStateAddable')
+    .call(this, stateId);
 };
 
 /**
@@ -901,7 +899,8 @@ J.PASSIVE.Aliased.Game_Battler.set('onStateAdded', Game_Battler.prototype.onStat
 Game_Battler.prototype.onStateAdded = function(stateId)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Battler.get('onStateAdded').call(this, stateId);
+  J.PASSIVE.Aliased.Game_Battler.get('onStateAdded')
+    .call(this, stateId);
 
   // refresh our passive state list.
   this.refreshPassiveStates();
@@ -918,7 +917,8 @@ Game_Battler.prototype.removeState = function(stateId)
   if (this.isPassiveState(stateId)) return;
 
   // otherwise, remove as normal.
-  J.PASSIVE.Aliased.Game_Battler.get('removeState').call(this, stateId);
+  J.PASSIVE.Aliased.Game_Battler.get('removeState')
+    .call(this, stateId);
 };
 
 /**
@@ -930,7 +930,8 @@ J.PASSIVE.Aliased.Game_Battler.set('onStateRemoval', Game_Battler.prototype.onSt
 Game_Battler.prototype.onStateRemoval = function(stateId)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Battler.get('onStateRemoval').call(this, stateId);
+  J.PASSIVE.Aliased.Game_Battler.get('onStateRemoval')
+    .call(this, stateId);
 
   // refresh our passive state list.
   this.refreshPassiveStates();
@@ -947,7 +948,8 @@ J.PASSIVE.Aliased.Game_Enemy.set('onSetup', Game_Enemy.prototype.onSetup);
 Game_Enemy.prototype.onSetup = function(enemyId)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Enemy.get('onSetup').call(this, enemyId);
+  J.PASSIVE.Aliased.Game_Enemy.get('onSetup')
+    .call(this, enemyId);
 
   // refresh all passive states on this battler.
   this.refreshPassiveStates();
@@ -961,7 +963,8 @@ J.PASSIVE.Aliased.Game_Enemy.set('traitObjects', Game_Enemy.prototype.traitObjec
 Game_Enemy.prototype.traitObjects = function()
 {
   // perform original logic.
-  const originalObjects = J.PASSIVE.Aliased.Game_Enemy.get('traitObjects').call(this);
+  const originalObjects = J.PASSIVE.Aliased.Game_Enemy.get('traitObjects')
+    .call(this);
 
   // add our own passive states.
   originalObjects.push(...this.getPassiveStates());
@@ -979,13 +982,13 @@ J.PASSIVE.Aliased.Game_Enemy.set('getNotesSources', Game_Enemy.prototype.getNote
 Game_Enemy.prototype.getNotesSources = function()
 {
   // perform original logic to get notes.
-  const originalSources = J.PASSIVE.Aliased.Game_Enemy.get('getNotesSources').call(this);
+  const originalSources = J.PASSIVE.Aliased.Game_Enemy.get('getNotesSources')
+    .call(this);
 
   // newly defined sources for passives.
   const passiveSources = [
     // then add all those currently applied passive skill states, too.
-    ...this.getPassiveStates(),
-  ];
+    ...this.getPassiveStates(), ];
 
   // combine the sources.
   const combinedSources = originalSources.concat(passiveSources);
@@ -1004,7 +1007,8 @@ J.PASSIVE.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
 Game_Party.prototype.initialize = function()
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Party.get('initialize').call(this);
+  J.PASSIVE.Aliased.Game_Party.get('initialize')
+    .call(this);
 
   // initialize our members as well.
   this.initPassiveItemStates();
@@ -1190,7 +1194,7 @@ Game_Party.prototype.getAllStackablePassiveStateIds = function()
         const stack = stackablePassiveStateIds.get(id);
 
         // increment the stack.
-        stackablePassiveStateIds.set(id, stack+1);
+        stackablePassiveStateIds.set(id, stack + 1);
       }
       // we aren't tracking this passive state id yet.
       else
@@ -1216,7 +1220,8 @@ J.PASSIVE.Aliased.Game_Party.set('gainItem', Game_Party.prototype.gainItem);
 Game_Party.prototype.gainItem = function(item, amount, includeEquip)
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Game_Party.get('gainItem').call(this, item, amount, includeEquip);
+  J.PASSIVE.Aliased.Game_Party.get('gainItem')
+    .call(this, item, amount, includeEquip);
 
   // also refresh our passive states tracker.
   this.refreshPassiveStates();
@@ -1232,7 +1237,8 @@ J.PASSIVE.Aliased.Window_MoreEquipData.set('addJabsEquipmentData', Window_MoreEq
 Window_MoreEquipData.prototype.addJabsEquipmentData = function()
 {
   // perform original logic.
-  J.PASSIVE.Aliased.Window_MoreEquipData.get('addJabsEquipmentData').call(this);
+  J.PASSIVE.Aliased.Window_MoreEquipData.get('addJabsEquipmentData')
+    .call(this);
 
   // also add the passive state data.
   this.addPassiveStateData();
@@ -1251,7 +1257,7 @@ Window_MoreEquipData.prototype.addPassiveStateData = function()
   const uniquePassiveIds = this.item.uniqueEquippedPassiveStateIds;
 
   // combine the two groups of ids.
-  const allIds = [...stackablePassiveIds, ...uniquePassiveIds].sort();
+  const allIds = [ ...stackablePassiveIds, ...uniquePassiveIds ].sort();
 
   // an iterator function for rendering a command based on the passive state id.
   const forEacher = passiveStateId =>

@@ -202,33 +202,31 @@ J.CRIT = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.CRIT.Metadata =
-  {
-    /**
-     * The name of this plugin.
-     */
-    Name: `J-CriticalFactors`,
+J.CRIT.Metadata = {
+  /**
+   * The name of this plugin.
+   */
+  Name: `J-CriticalFactors`,
 
-    /**
-     * The version of this plugin.
-     */
-    Version: '1.0.0',
-  };
+  /**
+   * The version of this plugin.
+   */
+  Version: '1.0.0',
+};
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.CRIT.Aliased =
-  {
-    Game_Action: new Map(),
-    Game_Actor: new Map(),
-    Game_Battler: new Map(),
-    Game_BattlerBase: new Map(),
-    Game_Enemy: new Map(),
-    IconManager: new Map(),
-    TextManager: new Map(),
-    Window_SDP_Details: new Map(),
-  };
+J.CRIT.Aliased = {
+  Game_Action: new Map(),
+  Game_Actor: new Map(),
+  Game_Battler: new Map(),
+  Game_BattlerBase: new Map(),
+  Game_Enemy: new Map(),
+  IconManager: new Map(),
+  TextManager: new Map(),
+  Window_SDP_Details: new Map(),
+};
 
 /**
  * All regular expressions used by this plugin.
@@ -269,7 +267,8 @@ IconManager.longParam = function(paramId)
     case 29:
       return this.critParam(1);   // cdr
     default:
-      return J.CRIT.Aliased.IconManager.get('longParam').call(this, paramId);
+      return J.CRIT.Aliased.IconManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -306,7 +305,8 @@ TextManager.longParam = function(paramId)
       return this.critParam(1);   // cdr
     default:
       // perform original logic.
-      return J.CRIT.Aliased.TextManager.get('longParam').call(this, paramId);
+      return J.CRIT.Aliased.TextManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -341,7 +341,8 @@ TextManager.longParamDescription = function(paramId)
       return this.critParamDescription(1);   // cdr
     default:
       // perform original logic.
-      return J.CRIT.Aliased.TextManager.get('longParamDescription').call(this, paramId);
+      return J.CRIT.Aliased.TextManager.get('longParamDescription')
+        .call(this, paramId);
   }
 };
 
@@ -357,13 +358,11 @@ TextManager.critParamDescription = function(paramId)
     case 0:
       return [
         "The numeric value to the intensity of one's critical hits.",
-        "Higher amounts of this yield bigger critical hits."
-      ];
+        "Higher amounts of this yield bigger critical hits." ];
     case 1:
       return [
         "The numeric value to one's percent reduction of critical damage.",
-        "Enemy critical amp is directly reduced by this amount."
-      ];
+        "Enemy critical amp is directly reduced by this amount." ];
   }
 };
 //endregion TextManager
@@ -378,7 +377,8 @@ J.CRIT.Aliased.Game_Action.set('initialize', Game_Action.prototype.initialize);
 Game_Action.prototype.initialize = function(subject, forcing)
 {
   // perform original logic.
-  J.CRIT.Aliased.Game_Action.get('initialize').call(this, subject, forcing);
+  J.CRIT.Aliased.Game_Action.get('initialize')
+    .call(this, subject, forcing);
 
   /**
    * The target of this action.
@@ -419,7 +419,8 @@ Game_Action.prototype.apply = function(target)
   this.setTargetBattler(target);
 
   // perform whatever the base action application is to the target.
-  J.CRIT.Aliased.Game_Action.get('apply').call(this, target);
+  J.CRIT.Aliased.Game_Action.get('apply')
+    .call(this, target);
 };
 
 /**
@@ -501,7 +502,8 @@ J.CRIT.Aliased.Game_Actor.set('applyNaturalCustomGrowths', Game_Actor.prototype.
 Game_Actor.prototype.applyNaturalCustomGrowths = function()
 {
   // perform original logic.
-  J.CRIT.Aliased.Game_Actor.get('applyNaturalCustomGrowths').call(this);
+  J.CRIT.Aliased.Game_Actor.get('applyNaturalCustomGrowths')
+    .call(this);
 
   // short circuit if aren't using the system.
   if (!J.NATURAL) return;
@@ -526,7 +528,8 @@ Game_Actor.prototype.longParam = function(longParamId)
     case 29:
       return this.cdr;
     default:
-      return J.CRIT.Aliased.Game_Actor.get('longParam').call(this, longParamId);
+      return J.CRIT.Aliased.Game_Actor.get('longParam')
+        .call(this, longParamId);
   }
 };
 
@@ -536,7 +539,7 @@ Game_Actor.prototype.longParam = function(longParamId)
 Game_Actor.prototype.applyNaturalCdmGrowths = function()
 {
   // destructure out the plus and rate structures for growths.
-  const [,,growthPlusStructure, growthRateStructure] = this.getNaturalGrowthsRegexForCrit();
+  const [ , , growthPlusStructure, growthRateStructure ] = this.getNaturalGrowthsRegexForCrit();
 
   // grab the base CDM for value basing.
   const baseCdm = this.baseCriticalMultiplier();
@@ -560,7 +563,7 @@ Game_Actor.prototype.applyNaturalCdmGrowths = function()
 Game_Actor.prototype.applyNaturalCdrGrowths = function()
 {
   // destructure out the plus and rate structures for growths.
-  const [growthPlusStructure, growthRateStructure,,] = this.getNaturalGrowthsRegexForCrit();
+  const [ growthPlusStructure, growthRateStructure, , ] = this.getNaturalGrowthsRegexForCrit();
 
   // grab the base CDR for value basing.
   const baseCdr = this.baseCriticalReduction();
@@ -588,8 +591,7 @@ Game_Actor.prototype.getNaturalGrowthsRegexForCrit = function()
     J.CRIT.RegExp.CritDamageReductionGrowthPlus,
     J.CRIT.RegExp.CritDamageReductionGrowthRate,
     J.CRIT.RegExp.CritDamageMultiplierGrowthPlus,
-    J.CRIT.RegExp.CritDamageMultiplierGrowthRate,
-  ];
+    J.CRIT.RegExp.CritDamageMultiplierGrowthRate, ];
 };
 
 /**
@@ -644,7 +646,8 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
   if (!J.NATURAL) return;
 
   // perform original logic.
-  J.CRIT.Aliased.Game_Battler.get("initNaturalGrowthParameters").call(this);
+  J.CRIT.Aliased.Game_Battler.get("initNaturalGrowthParameters")
+    .call(this);
 
   /**
    * The J object where all my additional properties live.
@@ -765,8 +768,7 @@ Game_Battler.prototype.baseCriticalMultiplier = function()
   const objectsToCheck = this.getAllNotes();
 
   // sum together all the base CDM tags.
-  const baseCriticalMultiplier = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
+  const baseCriticalMultiplier = RPGManager.getSumFromAllNotesByRegex(objectsToCheck,
     J.CRIT.RegExp.CritDamageMultiplierBase);
 
   // calculate the factor for the CDM.
@@ -808,9 +810,7 @@ Game_Battler.prototype.getCriticalDamageMultiplier = function()
   const objectsToCheck = this.getAllNotes();
 
   // sum together all cdm values across the notes.
-  const cdmBonuses = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
-    J.CRIT.RegExp.CritDamageMultiplier);
+  const cdmBonuses = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageMultiplier);
 
   // return the sum of all bonuses.
   return cdmBonuses;
@@ -848,15 +848,13 @@ Game_Battler.prototype.cdmNaturalBuffs = function()
   const baseParam = this.baseCriticalMultiplier();
 
   // sum together all the cdm buff pluses across the notes.
-  const cdmBuffPlus = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const cdmBuffPlus = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.CRIT.RegExp.CritDamageMultiplierBuffPlus,
     baseParam,
     this);
 
   // sum together all the cdm buff rates across the notes.
-  const cdmBuffRate = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const cdmBuffRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.CRIT.RegExp.CritDamageMultiplierBuffRate,
     baseParam,
     this);
@@ -900,8 +898,7 @@ Game_Battler.prototype.baseCriticalReduction = function()
   const objectsToCheck = this.getAllNotes();
 
   // sum together all the base CDR tags.
-  const baseCriticalReduction = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
+  const baseCriticalReduction = RPGManager.getSumFromAllNotesByRegex(objectsToCheck,
     J.CRIT.RegExp.CritDamageReductionBase);
 
   // calculate the factor for the CDR.
@@ -943,9 +940,7 @@ Game_Battler.prototype.getCriticalDamageReduction = function()
   const objectsToCheck = this.getAllNotes();
 
   // sum together all cdm values across the notes.
-  const cdrBonuses = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
-    J.CRIT.RegExp.CritDamageReduction);
+  const cdrBonuses = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReduction);
 
   // return the sum of all bonuses.
   return cdrBonuses;
@@ -983,15 +978,13 @@ Game_Battler.prototype.cdrNaturalBuffs = function()
   const baseParam = this.baseCriticalReduction();
 
   // sum together all the cdm buff pluses across the notes.
-  const cdrBuffPlus = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const cdrBuffPlus = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.CRIT.RegExp.CritDamageReductionBuffPlus,
     baseParam,
     this);
 
   // sum together all the cdm buff rates across the notes.
-  const cdrBuffRate = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
+  const cdrBuffRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck,
     J.CRIT.RegExp.CritDamageReductionBuffRate,
     baseParam,
     this);
@@ -1031,37 +1024,31 @@ Game_Battler.prototype.cdrNaturalGrowths = function()
 
 //region Game_BattlerBase
 // add our new critical-related parameters to all battlers.
-Object.defineProperties(
-  Game_BattlerBase.prototype,
-  {
-    /**
-     * The battler's critical damage multiplier.
-     * Critical hits are multiplied by this amount to determine the total critical hit damage.
-     * @type {number}
-     */
-    cdm:
-      {
-        get: function()
-        {
-          return this.criticalDamageMultiplier();
-        },
-        configurable: true
-      },
+Object.defineProperties(Game_BattlerBase.prototype, {
+  /**
+   * The battler's critical damage multiplier.
+   * Critical hits are multiplied by this amount to determine the total critical hit damage.
+   * @type {number}
+   */
+  cdm: {
+    get: function()
+    {
+      return this.criticalDamageMultiplier();
+    }, configurable: true
+  },
 
-    /**
-     * The battler's critical damage reduction.
-     * Critical hit damage is reduced by this percent before being applied.
-     * @type {number}
-     */
-    cdr:
-      {
-        get: function()
-        {
-          return this.criticalDamageReduction();
-        },
-        configurable: true
-      },
-  });
+  /**
+   * The battler's critical damage reduction.
+   * Critical hit damage is reduced by this percent before being applied.
+   * @type {number}
+   */
+  cdr: {
+    get: function()
+    {
+      return this.criticalDamageReduction();
+    }, configurable: true
+  },
+});
 
 /**
  * The base critical damage multiplier.

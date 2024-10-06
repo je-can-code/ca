@@ -194,18 +194,17 @@ J.PROF = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.PROF.Metadata =
-  {
-    /**
-     * The version of this plugin.
-     */
-    Name: `J-Proficiency`,
+J.PROF.Metadata = {
+  /**
+   * The version of this plugin.
+   */
+  Name: `J-Proficiency`,
 
-    /**
-     * The version of this plugin.
-     */
-    Version: '1.0.0',
-  };
+  /**
+   * The version of this plugin.
+   */
+  Version: '1.0.0',
+};
 
 J.PROF.Helpers = new Map();
 J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
@@ -231,8 +230,7 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
     parsedRequirements.forEach(requirementBlob =>
     {
       const parsedRequirement = JSON.parse(requirementBlob);
-      const requirement = new ProficiencyRequirement(
-        parseInt(parsedRequirement.skillId),
+      const requirement = new ProficiencyRequirement(parseInt(parsedRequirement.skillId),
         parseInt(parsedRequirement.proficiency))
       requirements.push(requirement);
     });
@@ -252,17 +250,11 @@ J.PROF.PluginParameters = PluginManager.parameters(J.PROF.Metadata.Name);
 /**
  * The various aliases associated with this plugin.
  */
-J.PROF.Aliased =
-  {
-    Game_Actor: new Map(),
-    Game_Action: new Map(),
-    Game_Battler: new Map(),
-    Game_Enemy: new Map(),
-    Game_System: new Map(),
+J.PROF.Aliased = {
+  Game_Actor: new Map(), Game_Action: new Map(), Game_Battler: new Map(), Game_Enemy: new Map(), Game_System: new Map(),
 
-    IconManager: new Map(),
-    TextManager: new Map(),
-  };
+  IconManager: new Map(), TextManager: new Map(),
+};
 
 J.PROF.RegExp = {};
 J.PROF.RegExp.ProficiencyBonus = /<proficiencyBonus:[ ]?(\d+)>/i;
@@ -275,8 +267,10 @@ J.PROF.RegExp.ProficiencyGainingBlock = /<proficiencyGainingBlock>/i;
 PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyActorSkillProficiency", args =>
 {
   const { actorIds, skillIds } = args;
-  const parsedActorIds = JSON.parse(actorIds).map(num => parseInt(num));
-  const parsedSkillIds = JSON.parse(skillIds).map(num => parseInt(num));
+  const parsedActorIds = JSON.parse(actorIds)
+    .map(num => parseInt(num));
+  const parsedSkillIds = JSON.parse(skillIds)
+    .map(num => parseInt(num));
   let { amount } = args;
   amount = parseInt(amount);
   parsedSkillIds.forEach(skillId =>
@@ -297,15 +291,17 @@ PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyPartySkillProficiency
 {
   const { skillIds } = args;
   let { amount } = args;
-  const parsedSkillIds = JSON.parse(skillIds).map(num => parseInt(num));
+  const parsedSkillIds = JSON.parse(skillIds)
+    .map(num => parseInt(num));
   amount = parseInt(amount);
-  $gameParty.members().forEach(actor =>
-  {
-    parsedSkillIds.forEach(skillId =>
+  $gameParty.members()
+    .forEach(actor =>
     {
-      actor.increaseSkillProficiency(skillId, amount);
+      parsedSkillIds.forEach(skillId =>
+      {
+        actor.increaseSkillProficiency(skillId, amount);
+      });
     });
-  });
 });
 //endregion Introduction
 
@@ -406,10 +402,7 @@ SkillProficiency.prototype.constructor = SkillProficiency;
 /**
  * Initializes this class with the given parameters.
  */
-SkillProficiency.prototype.initialize = function(
-  skillId,
-  initialProficiency = 0
-)
+SkillProficiency.prototype.initialize = function(skillId, initialProficiency = 0)
 {
   /**
    * The skill id of the skill for this prof.
@@ -460,7 +453,8 @@ IconManager.longParam = function(paramId)
     case 32:
       return this.proficiencyBoost(); // prof
     default:
-      return J.PROF.Aliased.IconManager.get('longParam').call(this, paramId);
+      return J.PROF.Aliased.IconManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -489,7 +483,8 @@ TextManager.longParam = function(paramId)
       return this.proficiencyBonus(); // proficiency boost
     default:
       // perform original logic.
-      return J.PROF.Aliased.TextManager.get('longParam').call(this, paramId);
+      return J.PROF.Aliased.TextManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -516,7 +511,8 @@ TextManager.longParamDescription = function(paramId)
       return this.proficiencyDescription(); // proficiency boost
     default:
       // perform original logic.
-      return J.PROF.Aliased.TextManager.get('longParamDescription').call(this, paramId);
+      return J.PROF.Aliased.TextManager.get('longParamDescription')
+        .call(this, paramId);
   }
 };
 
@@ -528,8 +524,7 @@ TextManager.proficiencyDescription = function()
 {
   return [
     "The numeric bonus of proficiency gained when gaining proficiency.",
-    "Higher amounts of this means achieving proficiency mastery faster."
-  ];
+    "Higher amounts of this means achieving proficiency mastery faster." ];
 };
 //endregion TextManager
 
@@ -540,7 +535,8 @@ TextManager.proficiencyDescription = function()
 J.PROF.Aliased.Game_Action.set("apply", Game_Action.prototype.apply);
 Game_Action.prototype.apply = function(target)
 {
-  J.PROF.Aliased.Game_Action.get("apply").call(this, target);
+  J.PROF.Aliased.Game_Action.get("apply")
+    .call(this, target);
 
   const result = target.result();
 
@@ -564,7 +560,8 @@ Game_Action.prototype.canIncreaseProficiency = function(target)
   if (!isSkill) return false;
 
   // only gain proficiency if we hit the target.
-  const isHit = target.result().isHit();
+  const isHit = target.result()
+    .isHit();
   if (!isHit) return false;
 
   // only gain proficiency if the target allows it.
@@ -572,7 +569,8 @@ Game_Action.prototype.canIncreaseProficiency = function(target)
   if (!canGiveProficiency) return false;
 
   // only gain proficiency if the attacker allows it.
-  const canGainProficiency = this.subject().canGainProficiency();
+  const canGainProficiency = this.subject()
+    .canGainProficiency();
   if (!canGainProficiency) return false;
 
   // if we made it this far, then we can gain proficiency!
@@ -605,7 +603,8 @@ Game_Action.prototype.skillProficiency = function()
   if (this.isSkill() && this.subject())
   {
     const skill = this.item();
-    const skillProficiency = this.subject().skillProficiencyBySkillId(skill.id);
+    const skillProficiency = this.subject()
+      .skillProficiencyBySkillId(skill.id);
     if (skillProficiency)
     {
       return skillProficiency.proficiency;
@@ -627,7 +626,8 @@ if (J.ABS)
   Game_Action.prototype.onParry = function(jabsBattler)
   {
     // perform original logic.
-    J.PROF.Aliased.Game_Action.get('onParry').call(this, jabsBattler);
+    J.PROF.Aliased.Game_Action.get('onParry')
+      .call(this, jabsBattler);
 
     // gain some proficiency from guarding.
     this.gainProficiencyFromGuarding(jabsBattler);
@@ -642,7 +642,8 @@ if (J.ABS)
   Game_Action.prototype.onGuard = function(jabsBattler)
   {
     // perform original logic.
-    J.PROF.Aliased.Game_Action.get('onGuard').call(this, jabsBattler);
+    J.PROF.Aliased.Game_Action.get('onGuard')
+      .call(this, jabsBattler);
 
     // gain some proficiency from guarding.
     this.gainProficiencyFromGuarding(jabsBattler);
@@ -661,7 +662,8 @@ if (J.ABS)
     const skillId = jabsBattler.getGuardSkillId();
 
     // gain some proficiency for the parry skill.
-    jabsBattler.getBattler().increaseSkillProficiency(skillId, 1);
+    jabsBattler.getBattler()
+      .increaseSkillProficiency(skillId, 1);
   };
 
   /**
@@ -672,7 +674,8 @@ if (J.ABS)
   Game_Action.prototype.canGainProficiencyFromGuarding = function(jabsBattler)
   {
     // determine whether or not this battler can gain proficiency.
-    const canGainProficiency = jabsBattler.getBattler().canGainProficiency();
+    const canGainProficiency = jabsBattler.getBattler()
+      .canGainProficiency();
 
     // if the battler is blocked from gaining proficiency don't gain proficiency.
     if (!canGainProficiency) return false;
@@ -697,7 +700,8 @@ J.PROF.Aliased.Game_Actor.set("initMembers", Game_Actor.prototype.initMembers);
 Game_Actor.prototype.initMembers = function()
 {
   // perform original logic.
-  J.PROF.Aliased.Game_Actor.get("initMembers").call(this);
+  J.PROF.Aliased.Game_Actor.get("initMembers")
+    .call(this);
 
   /**
    * The J object where all my additional properties live.
@@ -736,7 +740,8 @@ J.PROF.Aliased.Game_Actor.set("setup", Game_Actor.prototype.setup);
 Game_Actor.prototype.setup = function(actorId)
 {
   // perform original logic.
-  J.PROF.Aliased.Game_Actor.get("setup").call(this, actorId);
+  J.PROF.Aliased.Game_Actor.get("setup")
+    .call(this, actorId);
 
   // update own proficiency conditionals.
   this.updateOwnConditionals();
@@ -816,7 +821,8 @@ Game_Actor.prototype.addUnlockedConditional = function(conditional)
 Game_Actor.prototype.proficiencyConditionalBySkillId = function(skillId)
 {
   const filtering = (conditional) => conditional.requirements.some(requirement => requirement.skillId === skillId);
-  return this.proficiencyConditionals().filter(filtering);
+  return this.proficiencyConditionals()
+    .filter(filtering);
 };
 
 /**
@@ -826,7 +832,8 @@ Game_Actor.prototype.proficiencyConditionalBySkillId = function(skillId)
  */
 Game_Actor.prototype.isConditionalLocked = function(key)
 {
-  return this.unlockedConditionals().includes(key);
+  return this.unlockedConditionals()
+    .includes(key);
 };
 
 /**
@@ -835,8 +842,10 @@ Game_Actor.prototype.isConditionalLocked = function(key)
  */
 Game_Actor.prototype.lockedConditionals = function()
 {
-  const filtering = (conditional) => !this.unlockedConditionals().includes(conditional.key);
-  return this.proficiencyConditionals().filter(filtering);
+  const filtering = (conditional) => !this.unlockedConditionals()
+    .includes(conditional.key);
+  return this.proficiencyConditionals()
+    .filter(filtering);
 };
 
 /**
@@ -845,7 +854,8 @@ Game_Actor.prototype.lockedConditionals = function()
  */
 Game_Actor.prototype.unlockConditional = function(key)
 {
-  if (this.unlockedConditionals().includes(key))
+  if (this.unlockedConditionals()
+    .includes(key))
   {
     console.warn(`Attempted to unlock conditional: [${key}], but it was already unlocked.`);
     return;
@@ -975,7 +985,8 @@ J.PROF.Aliased.Game_Actor.set("onLearnNewSkill", Game_Actor.prototype.onLearnNew
 Game_Actor.prototype.onLearnNewSkill = function(skillId)
 {
   // perform original logic.
-  J.PROF.Aliased.Game_Actor.get("onLearnNewSkill").call(this, skillId);
+  J.PROF.Aliased.Game_Actor.get("onLearnNewSkill")
+    .call(this, skillId);
 
   // add the skill proficiency.
   this.addSkillProficiency(skillId);
@@ -1049,9 +1060,7 @@ Game_Actor.prototype.checkProficiencyConditionals = function()
  */
 Game_Actor.prototype.bonusSkillProficiencyGains = function()
 {
-  return RPGManager.getSumFromAllNotesByRegex(
-    this.getAllNotes(),
-    J.PROF.RegExp.ProficiencyBonus);
+  return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyBonus);
 };
 //endregion Game_Actor
 
@@ -1111,9 +1120,7 @@ Game_Battler.prototype.bonusSkillProficiencyGains = function()
 Game_Battler.prototype.canGiveProficiency = function()
 {
   // return the inversion of whether or not we found any of the blocker tags.
-  return !RPGManager.checkForBooleanFromAllNotesByRegex(
-    this.getAllNotes(),
-    J.PROF.RegExp.ProficiencyGivingBlock)
+  return !RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyGivingBlock)
 };
 
 /**
@@ -1123,9 +1130,7 @@ Game_Battler.prototype.canGiveProficiency = function()
 Game_Battler.prototype.canGainProficiency = function()
 {
   // return the inversion of whether or not we found any of the blocker tags.
-  return !RPGManager.checkForBooleanFromAllNotesByRegex(
-    this.getAllNotes(),
-    J.PROF.RegExp.ProficiencyGainingBlock)
+  return !RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyGainingBlock)
 };
 //endregion Game_Battler
 
@@ -1133,7 +1138,8 @@ Game_Battler.prototype.canGainProficiency = function()
 J.PROF.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
 Game_Enemy.prototype.initMembers = function()
 {
-  J.PROF.Aliased.Game_Enemy.get("initMembers").call(this);
+  J.PROF.Aliased.Game_Enemy.get("initMembers")
+    .call(this);
 
   /**
    * The J object where all my additional properties live.
@@ -1216,7 +1222,8 @@ J.PROF.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
   // perform original logic.
-  J.PROF.Aliased.Game_System.get('initialize').call(this);
+  J.PROF.Aliased.Game_System.get('initialize')
+    .call(this);
 
   // initializes members for this plugin.
   this.initProficiencyMembers();
@@ -1249,7 +1256,8 @@ J.PROF.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad)
 Game_System.prototype.onAfterLoad = function()
 {
   // perform original logic.
-  J.PROF.Aliased.Game_System.get('onAfterLoad').call(this);
+  J.PROF.Aliased.Game_System.get('onAfterLoad')
+    .call(this);
 
   // update from the latest plugin metadata.
   this.updateProficienciesFromPluginMetadata();

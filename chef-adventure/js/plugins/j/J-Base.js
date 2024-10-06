@@ -301,7 +301,9 @@ J.BASE.Helpers.generateUuid = function()
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
     .replace(/[xy]/g, c =>
     {
-      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      const r = Math.random() * 16 | 0, v = c === 'x'
+        ? r
+        : (r & 0x3 | 0x8);
       return v.toString(16);
     });
 };
@@ -315,7 +317,9 @@ J.BASE.Helpers.shortUuid = function()
   return 'xxx-xxx'
     .replace(/[xy]/g, c =>
     {
-      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      const r = Math.random() * 16 | 0, v = c === 'x'
+        ? r
+        : (r & 0x3 | 0x8);
       return v.toString(16);
     });
 };
@@ -381,11 +385,11 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure, asBoolean = false)
 {
   const stringifiedStructure = structure.toString();
   const openChar = '<';
-  const closeChar = asBoolean ? '>' : ':';
+  const closeChar = asBoolean
+    ? '>'
+    : ':';
   return stringifiedStructure
-    .substring(
-      stringifiedStructure.indexOf(openChar) + 1,
-      stringifiedStructure.indexOf(closeChar));
+    .substring(stringifiedStructure.indexOf(openChar) + 1, stringifiedStructure.indexOf(closeChar));
 };
 
 /**
@@ -406,15 +410,12 @@ Object.defineProperty(String, "empty", { value: "", writable: false });
  * adding empty hard brackets all over the place.
  * @type {[]}
  */
-Object.defineProperty(Array, "empty",
+Object.defineProperty(Array, "empty", {
+  enumerable: true, configurable: false, get: function()
   {
-    enumerable: true,
-    configurable: false,
-    get: function()
-    {
-      return Array.of();
-    },
-  });
+    return Array.of();
+  },
+});
 
 /**
  * Executes a given function a given number of `times`.
@@ -425,7 +426,7 @@ Object.defineProperty(Array, "empty",
  */
 Array.iterate = function(times, func, thisArg = undefined)
 {
-  [...Array(times)].forEach(func, thisArg);
+  [ ...Array(times) ].forEach(func, thisArg);
 };
 
 /**
@@ -440,7 +441,8 @@ J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
   const structure = /[0-9A-Za-z\-()[\]*!?'"=@,.]/ig;
 
   // return the masked string content.
-  return stringToMask.toString().replace(structure, maskingCharacter);
+  return stringToMask.toString()
+    .replace(structure, maskingCharacter);
 };
 //endregion Helpers
 
@@ -572,10 +574,7 @@ class JsonMapper
       const innerArray = this.parseArrayFromString(slicedArrayString);
 
       // splice the inner array into the original array replacing all elements.
-      exposedArray.splice(
-        innerArrayStartIndex,
-        ((outerArrayEndIndex + 1) - innerArrayStartIndex),
-        innerArray);
+      exposedArray.splice(innerArrayStartIndex, ((outerArrayEndIndex + 1) - innerArrayStartIndex), innerArray);
     }
 
     // with the content exposed, attempt to continue parsing.
@@ -602,6 +601,7 @@ class JsonMapper
     return str;
   }
 }
+
 //endregion JsonMapper
 
 //region RPG_ClassLearning
@@ -628,6 +628,7 @@ class RPG_ClassLearning
    * @type {string}
    */
   note = String.empty;
+
   //endregion properties
 
   /**
@@ -642,6 +643,7 @@ class RPG_ClassLearning
     this.note = learning.note;
   }
 }
+
 //endregion RPG_ClassLearning
 
 //region RPG_DropItem
@@ -681,16 +683,20 @@ class RPG_DropItem
     switch (letter.toLowerCase())
     {
       // "i" for "item".
-      case ('i'||'item'): return this.Types.Item;
+      case ('i' || 'item'):
+        return this.Types.Item;
 
       // "w" for "weapon".
-      case ('w'||'weapon'): return this.Types.Weapon;
+      case ('w' || 'weapon'):
+        return this.Types.Weapon;
 
       // "a" for "armor".
-      case ('a'||'armor'): return this.Types.Armor;
+      case ('a' || 'armor'):
+        return this.Types.Armor;
 
       // don't use this with invalid item types.
-      default: throw new Error(`invalid item type letter provided: [${letter}].`);
+      default:
+        throw new Error(`invalid item type letter provided: [${letter}].`);
     }
   }
 
@@ -705,16 +711,20 @@ class RPG_DropItem
     switch (number)
     {
       // "1" for "item".
-      case 1: return 'i';
+      case 1:
+        return 'i';
 
       // "2" for "weapon".
-      case 2: return 'w';
+      case 2:
+        return 'w';
 
       // "3" for "armor".
-      case 3: return 'a';
+      case 3:
+        return 'a';
 
       // don't use this with invalid item types.
-      default: throw new Error(`invalid item type number provided: [${number}].`);
+      default:
+        throw new Error(`invalid item type number provided: [${number}].`);
     }
   }
 
@@ -737,6 +747,7 @@ class RPG_DropItem
    * @type {number}
    */
   kind = 0;
+
   //endregion properties
 
   /**
@@ -751,6 +762,7 @@ class RPG_DropItem
     this.kind = kind;
   }
 }
+
 //endregion RPG_DropItem
 
 //region RPG_EnemyAction
@@ -789,6 +801,7 @@ class RPG_EnemyAction
    * @type {number}
    */
   skillId = 1;
+
   //endregion properties
 
   /**
@@ -805,6 +818,7 @@ class RPG_EnemyAction
     this.skillId = enemyAction.skillId;
   }
 }
+
 //endregion RPG_EnemyAction
 
 //region RPG_SkillDamage
@@ -843,6 +857,7 @@ class RPG_SkillDamage
    * @type {number}
    */
   variance = 0;
+
   //endregion properties
 
   /**
@@ -866,6 +881,7 @@ class RPG_SkillDamage
     }
   }
 }
+
 //endregion RPG_SkillDamage
 
 //region RPG_Trait
@@ -884,9 +900,9 @@ class RPG_Trait
    */
   static fromValues(code, dataId, value)
   {
-    return new RPG_Trait({code, dataId, value});
+    return new RPG_Trait({ code, dataId, value });
   }
-  
+
   /**
    * The code that designates what kind of trait this is.
    * @type {number}
@@ -986,7 +1002,9 @@ class RPG_Trait
       case 54:
         return `${$dataSystem.equipTypes[this.dataId]}`;
       case 55:
-        return `${this.dataId ? "Enable" : "Disable"}`;
+        return `${this.dataId
+          ? "Enable"
+          : "Disable"}`;
 
       // sixth tab.
       case 61:
@@ -1014,26 +1032,38 @@ class RPG_Trait
       // first tab.
       case 11:
         const calculatedElementalRate = Math.round(100 - (this.value * 100));
-        return `${calculatedElementalRate > 0 ? "-" : "+"}${calculatedElementalRate}%`;
+        return `${calculatedElementalRate > 0
+          ? "-"
+          : "+"}${calculatedElementalRate}%`;
       case 12:
         const calculatedDebuffRate = Math.round((this.value * 100) - 100);
-        return `${calculatedDebuffRate > 0 ? "+" : "-"}${calculatedDebuffRate}%`;
+        return `${calculatedDebuffRate > 0
+          ? "+"
+          : "-"}${calculatedDebuffRate}%`;
       case 13:
         const calculatedStateRate = Math.round(100 - (this.value * 100));
-        return `${calculatedStateRate > 0 ? "+" : "-"}${calculatedStateRate}%`;
+        return `${calculatedStateRate > 0
+          ? "+"
+          : "-"}${calculatedStateRate}%`;
       case 14:
         return $dataStates[this.dataId].name;
 
       // second tab.
       case 21:
         const calculatedBParam = Math.round((this.value * 100) - 100);
-        return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
+        return `${calculatedBParam >= 0
+          ? "+"
+          : ""}${calculatedBParam}%`;
       case 22:
         const calculatedXParam = Math.round((this.value * 100));
-        return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
+        return `${calculatedXParam >= 0
+          ? "+"
+          : ""}${calculatedXParam}%`;
       case 23:
         const calculatedSParam = Math.round((this.value * 100) - 100);
-        return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
+        return `${calculatedSParam >= 0
+          ? "+"
+          : ""}${calculatedSParam}%`;
 
       // third tab.
       case 31:
@@ -1041,9 +1071,13 @@ class RPG_Trait
       case 32:
         return `${(this.value * 100)}%`;
       case 33:
-        return `${this.value > 0 ? "+" : "-"}${this.value}`;
+        return `${this.value > 0
+          ? "+"
+          : "-"}${this.value}`;
       case 34:
-        return `${this.value > 0 ? "+" : "-"}${this.value}`;
+        return `${this.value > 0
+          ? "+"
+          : "-"}${this.value}`;
       case 35:
         return `${$dataSkills[this.value].name}`;
 
@@ -1117,6 +1151,7 @@ class RPG_Trait
     }
   }
 }
+
 //endregion RPG_Trait
 
 //region RPG_UsableEffect
@@ -1149,6 +1184,7 @@ class RPG_UsableEffect
    * @type {number}
    */
   value2 = 0;
+
   //endregion properties
 
   /**
@@ -1168,19 +1204,32 @@ class RPG_UsableEffect
   {
     switch (this.code)
     {
-      case 11: return "Recover Life";
-      case 12: return "Recover Magi";
-      case 13: return "Recover Tech";
-      case 21: return "Add State";
-      case 22: return "Remove State";
-      case 31: return "Add Buff";
-      case 32: return "Add Debuff";
-      case 33: return "Remove Buff";
-      case 34: return "Remove Debuff";
-      case 41: return "Special";
-      case 42: return "Core Stat Growth";
-      case 43: return "Learn Skill";
-      case 44: return "Execute Common Event";
+      case 11:
+        return "Recover Life";
+      case 12:
+        return "Recover Magi";
+      case 13:
+        return "Recover Tech";
+      case 21:
+        return "Add State";
+      case 22:
+        return "Remove State";
+      case 31:
+        return "Add Buff";
+      case 32:
+        return "Add Debuff";
+      case 33:
+        return "Remove Buff";
+      case 34:
+        return "Remove Debuff";
+      case 41:
+        return "Special";
+      case 42:
+        return "Core Stat Growth";
+      case 43:
+        return "Learn Skill";
+      case 44:
+        return "Execute Common Event";
       default:
         console.warn(`Unsupported code of [${this.code}] was provided.`);
         return "UNKNOWN";
@@ -1199,24 +1248,37 @@ class RPG_UsableEffect
         if (percHp) msg += ` ${percHp}%`;
         if (flatHp === 0 && percHp === 0) msg = '0';
         return msg.trim();
-      case 12: return "Recover Magi";
-      case 13: return "Recover Tech";
-      case 21: return "Add State";
-      case 22: return "Remove State";
-      case 31: return "Add Buff";
-      case 32: return "Add Debuff";
-      case 33: return "Remove Buff";
-      case 34: return "Remove Debuff";
-      case 41: return "Special";
-      case 42: return "Core Stat Growth";
-      case 43: return "Learn Skill";
-      case 44: return "Execute Common Event";
+      case 12:
+        return "Recover Magi";
+      case 13:
+        return "Recover Tech";
+      case 21:
+        return "Add State";
+      case 22:
+        return "Remove State";
+      case 31:
+        return "Add Buff";
+      case 32:
+        return "Add Debuff";
+      case 33:
+        return "Remove Buff";
+      case 34:
+        return "Remove Debuff";
+      case 41:
+        return "Special";
+      case 42:
+        return "Core Stat Growth";
+      case 43:
+        return "Learn Skill";
+      case 44:
+        return "Execute Common Event";
       default:
         console.warn(`Unsupported code of [${this.code}] was provided.`);
         return "UNKNOWN";
     }
   }
 }
+
 //endregion RPG_UsableEffect
 
 //region RPG_Base
@@ -1353,6 +1415,7 @@ class RPG_Base
   {
     return this._index();
   }
+
   //endregion base
 
   //region meta
@@ -1504,7 +1567,7 @@ class RPG_Base
         // expose the stringified segments of the array.
         const exposedArray = obj
           // peel off the outer brackets.
-          .slice(1, obj.length-1)
+          .slice(1, obj.length - 1)
           // split string into an array by comma or space+comma.
           .split(/, |,/);
         return this.#parseObject(exposedArray);
@@ -1544,6 +1607,7 @@ class RPG_Base
     // it must just be a word or something.
     return str;
   }
+
   //endregion meta
 
   //region note
@@ -1577,7 +1641,7 @@ class RPG_Base
     // split the notes by new lines.
     const formattedNotes = this.note
       .split(/[\r\n]+/)
-    // filter out invalid note data.
+      // filter out invalid note data.
       .filter(this.invalidNoteFilter, this);
 
     // if we have no length left after filtering, then there is no note data.
@@ -1657,7 +1721,9 @@ class RPG_Base
     if (!lines.length)
     {
       // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value.
@@ -1708,7 +1774,9 @@ class RPG_Base
     if (!lines.length)
     {
       // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : [];
+      return nullIfEmpty
+        ? null
+        : [];
     }
 
     // initialize the value.
@@ -1718,10 +1786,11 @@ class RPG_Base
     lines.forEach(line =>
     {
       // extract the captured formula.
-      const [,result] = structure.exec(line);
+      const [ , result ] = structure.exec(line);
 
       // parse out the array of stringified numbers, and parse the strings.
-      const parsed = JSON.parse(result).map(parseFloat);
+      const parsed = JSON.parse(result)
+        .map(parseFloat);
 
       // destructure the array and add its bits to the running collection.
       val.push(...parsed);
@@ -1758,7 +1827,9 @@ class RPG_Base
     if (!lines.length)
     {
       // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value.
@@ -1784,7 +1855,8 @@ class RPG_Base
       const formula = structure.exec(line)[1];
 
       // evaluate the formula/value.
-      const result = eval(formula).toFixed(3);
+      const result = eval(formula)
+        .toFixed(3);
 
       // add it to the running total.
       val += parseFloat(result);
@@ -2091,6 +2163,7 @@ class RPG_Base
     // return the found value.
     return matchingLines;
   }
+
   //endregion note
 
   /**
@@ -2129,6 +2202,7 @@ class RPG_Base
     return false;
   }
 }
+
 //endregion RPG_Base
 
 //region RPG_BaseBattler
@@ -2167,6 +2241,7 @@ class RPG_BaseBattler extends RPG_Base
       .map(trait => new RPG_Trait(trait));
   }
 }
+
 //endregion RPG_BaseBattler
 
 //region RPG_BaseItem
@@ -2204,6 +2279,7 @@ class RPG_BaseItem extends RPG_Base
     this.iconIndex = baseItem.iconIndex;
   }
 }
+
 //endregion RPG_BaseItem
 
 //region RPG_Traited
@@ -2233,6 +2309,7 @@ class RPG_Traited extends RPG_BaseItem
     this.traits = baseItem.traits.map(trait => new RPG_Trait(trait));
   }
 }
+
 //endregion RPG_Traited
 
 //region RPG_EquipItem
@@ -2256,13 +2333,14 @@ class RPG_EquipItem extends RPG_Traited
    * in that order.
    * @type {[number, number, number, number, number, number, number, number]}
    */
-  params = [1, 0, 0, 0, 0, 0, 0, 0];
+  params = [ 1, 0, 0, 0, 0, 0, 0, 0 ];
 
   /**
    * The price of this equip.
    * @type {number}
    */
   price = 0;
+
   //endregion properties
 
   /**
@@ -2300,6 +2378,7 @@ class RPG_EquipItem extends RPG_Traited
     return this.etypeId > 1;
   }
 }
+
 //endregion RPG_EquipItem
 
 //region RPG_UsableItem
@@ -2369,6 +2448,7 @@ class RPG_UsableItem extends RPG_BaseItem
    * @type {number}
    */
   tpGain = 0;
+
   //endregion properties
 
   /**
@@ -2394,6 +2474,7 @@ class RPG_UsableItem extends RPG_BaseItem
     this.tpGain = usableItem.tpGain;
   }
 }
+
 //endregion RPG_UsableItem
 
 //region RPG_Actor
@@ -2428,7 +2509,7 @@ class RPG_Actor extends RPG_BaseBattler
    * of the actors from the database.
    * @type {number[]}
    */
-  equips = [0, 0, 0, 0, 0];
+  equips = [ 0, 0, 0, 0, 0 ];
 
   /**
    * The index of the face sprite of this battler on
@@ -2467,6 +2548,7 @@ class RPG_Actor extends RPG_BaseBattler
    * @type {string}
    */
   profile = String.empty;
+
   //endregion properties
 
   /**
@@ -2502,6 +2584,7 @@ class RPG_Actor extends RPG_BaseBattler
     this.profile = actor.profile;
   }
 }
+
 //endregion RPG_Actor
 
 //region RPG_Armor
@@ -2523,6 +2606,7 @@ class RPG_Armor extends RPG_EquipItem
    * @type {3}
    */
   kind = 3;
+
   //endregion properties
 
   /**
@@ -2548,6 +2632,7 @@ class RPG_Armor extends RPG_EquipItem
     return true;
   }
 }
+
 //endregion RPG_Armor
 
 //region RPG_Class
@@ -2561,7 +2646,7 @@ class RPG_Class extends RPG_Base
    * The four data points that comprise the EXP curve for this class.
    * @type {[number, number, number, number]}
    */
-  expParams = [0, 0, 0, 0];
+  expParams = [ 0, 0, 0, 0 ];
 
   /**
    * A collection of skill learning data points for this class.
@@ -2575,13 +2660,14 @@ class RPG_Class extends RPG_Base
    * in that order, but for all 100 of the base levels.
    * @type {[number, number, number, number, number, number, number, number]}
    */
-  params = [[1], [0], [0], [0], [0], [0], [0], [0]];
+  params = [ [ 1 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ] ];
 
   /**
    * A collection of traits this class has.
    * @type {RPG_Trait[]}
    */
   traits = [];
+
   //endregion properties
 
   /**
@@ -2603,6 +2689,7 @@ class RPG_Class extends RPG_Base
       .map(trait => new RPG_Trait(trait));
   }
 }
+
 //endregion RPG_Class
 
 //region RPG_Enemy
@@ -2648,7 +2735,8 @@ class RPG_Enemy extends RPG_BaseBattler
    * in that order.
    * @type {[number, number, number, number, number, number, number, number]}
    */
-  params = [1, 0, 0, 0, 0, 0, 0, 0];
+  params = [ 1, 0, 0, 0, 0, 0, 0, 0 ];
+
   //endregion properties
 
   /**
@@ -2682,6 +2770,7 @@ class RPG_Enemy extends RPG_BaseBattler
     this.params = enemy.params;
   }
 }
+
 //endregion RPG_Enemy
 
 //region RPG_Item
@@ -2715,6 +2804,7 @@ class RPG_Item extends RPG_UsableItem
    * @type {1}
    */
   kind = 1;
+
   //endregion properties
 
   /**
@@ -2742,6 +2832,7 @@ class RPG_Item extends RPG_UsableItem
     return true;
   }
 }
+
 //endregion RPG_Item
 
 //region RPG_Skill
@@ -2798,6 +2889,7 @@ class RPG_Skill extends RPG_UsableItem
    * @type {number}
    */
   tpCost = 0;
+
   //endregion properties
 
   /**
@@ -2841,6 +2933,7 @@ class RPG_Skill extends RPG_UsableItem
     return true;
   }
 }
+
 //endregion RPG_Skill
 
 //region RPG_State
@@ -2976,6 +3069,7 @@ class RPG_State extends RPG_Traited
    * @type {number}
    */
   stepsToRemove = 100;
+
   //endregion properties
 
   /**
@@ -3010,6 +3104,7 @@ class RPG_State extends RPG_Traited
     this.stepsToRemove = state.stepsToRemove;
   }
 }
+
 //endregion RPG_State
 
 //region RPG_Weapon
@@ -3037,6 +3132,7 @@ class RPG_Weapon extends RPG_EquipItem
    * @type {2}
    */
   kind = 2;
+
   //endregion properties
 
   /**
@@ -3063,6 +3159,7 @@ class RPG_Weapon extends RPG_EquipItem
     return true;
   }
 }
+
 //endregion RPG_Weapon
 
 /**
@@ -3553,7 +3650,8 @@ DataManager.rewriteProcessed = function()
 J.BASE.Aliased.DataManager.set('isDatabaseLoaded', DataManager.isDatabaseLoaded);
 DataManager.isDatabaseLoaded = function()
 {
-  const isLoaded = J.BASE.Aliased.DataManager.get('isDatabaseLoaded').call(this);
+  const isLoaded = J.BASE.Aliased.DataManager.get('isDatabaseLoaded')
+    .call(this);
   if (isLoaded)
   {
     this.onDatabaseLoad();
@@ -4005,37 +4103,34 @@ DataManager.isArmor = function(unidentified)
  * determined.
  * @returns {number} Always positive.
  */
-Object.defineProperty(Graphics, "horizontalPadding",
+Object.defineProperty(Graphics, "horizontalPadding", {
+  get: function()
   {
-    get: function()
-    {
-      return Math.abs(this.width - this.boxWidth);
-    }
-  });
+    return Math.abs(this.width - this.boxWidth);
+  }
+});
 
 /**
  * The vertical padding between {@link Graphics.height} and {@link Graphics.boxHeight}.<br>
  * @returns {number} Always positive.
  */
-Object.defineProperty(Graphics, "verticalPadding",
+Object.defineProperty(Graphics, "verticalPadding", {
+  get: function()
   {
-    get: function()
-    {
-      return Math.abs(this.height - this.boxHeight);
-    }
-  });
+    return Math.abs(this.height - this.boxHeight);
+  }
+});
 
 /**
  * The origin x and y coordinates of the "box" width and height values.
  * @returns {[number, number]} A destructurable array of the box's ox and oy coordinates.
  */
-Object.defineProperty(Graphics, "boxOrigin",
+Object.defineProperty(Graphics, "boxOrigin", {
+  get: function()
   {
-    get: function()
-    {
-      return [this.horizontalPadding, this.verticalPadding];
-    }
-  });
+    return [ this.horizontalPadding, this.verticalPadding ];
+  }
+});
 //endregion Graphics
 
 //region IconManager
@@ -4533,12 +4628,9 @@ class IconManager
   /**
    * A tag for correlating a JABS parameter to an icon.
    */
-  static JABS_PARAMETER =
-    {
-      BONUS_HITS: "bonus-hits",
-      ATTACK_SKILL: "attack-skill",
-      SPEED_BOOST: "speed-boost",
-    };
+  static JABS_PARAMETER = {
+    BONUS_HITS: "bonus-hits", ATTACK_SKILL: "attack-skill", SPEED_BOOST: "speed-boost",
+  };
 
   /**
    * Gets the JABS-related icon based on parameter type.
@@ -4561,15 +4653,14 @@ class IconManager
   /**
    * A tag for correlating a JAFTING parameter to an icon.
    */
-  static JAFTING_PARAMETER =
-    {
-      MAX_REFINE: "max-refine-count",
-      MAX_TRAITS: "max-trait-count",
-      NOT_BASE: "not-refinement-base",
-      NOT_MATERIAL: "not-refinement-material",
-      TIMES_REFINED: "refined-count",
-      UNREFINABLE: "unrefinable"
-    };
+  static JAFTING_PARAMETER = {
+    MAX_REFINE: "max-refine-count",
+    MAX_TRAITS: "max-trait-count",
+    NOT_BASE: "not-refinement-base",
+    NOT_MATERIAL: "not-refinement-material",
+    TIMES_REFINED: "refined-count",
+    UNREFINABLE: "unrefinable"
+  };
 
   /**
    * Gets the JAFTING-related icon based on parameter type.
@@ -4613,6 +4704,7 @@ class IconManager
     }
   }
 }
+
 //endregion IconManager
 
 //region ImageManager
@@ -4772,7 +4864,7 @@ class RPGManager
       if (result === null) return;
 
       // extract the captured formula.
-      const [ /* skip first index */, stringResult] = result;
+      const [ /* skip first index */, stringResult ] = result;
 
       // set this to what we found.
       val = stringResult;
@@ -4865,7 +4957,9 @@ class RPGManager
     if (!lines.length)
     {
       // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value.
@@ -5059,7 +5153,9 @@ class RPGManager
     if (!databaseDatas.length)
     {
       // short circuit with null if we are using the flag, or 0 otherwise.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value to 0.
@@ -5092,18 +5188,15 @@ class RPGManager
    * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
    * @returns {number|null} The calculated result from all formula summed together.
    */
-  static getResultsFromAllNotesByRegex(
-    databaseDatas,
-    structure,
-    baseParam = 0,
-    context = null,
-    nullIfEmpty = false)
+  static getResultsFromAllNotesByRegex(databaseDatas, structure, baseParam = 0, context = null, nullIfEmpty = false)
   {
     // check to make sure we have a collection to work with.
     if (!databaseDatas.length)
     {
       // short circuit with null if we are using the flag, or 0 otherwise.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value to 0.
@@ -5173,7 +5266,7 @@ class RPGManager
     const mapper = data =>
     {
       // extract the data points from the array found.
-      const [skillId, chance] = data;
+      const [ skillId, chance ] = data;
 
       // return the built on-chance effect with the given data.
       return new JABS_OnChanceEffect(skillId, chance ?? 100, key);
@@ -5278,8 +5371,9 @@ class RPGManager
   static checkForBooleanFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
   {
     // get all results from all objects that could have true/false/null values.
-    const results = databaseDatas.map(databaseData =>
-      this.checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
+    const results = databaseDatas.map(databaseData => this.checkForBooleanFromNoteByRegex(databaseData,
+      structure,
+      nullIfEmpty));
 
     // filter away the non-values.
     const onlyTrueRemains = results
@@ -5336,7 +5430,7 @@ class RPGManager
       if (line.match(structure))
       {
         // extract the captured formula.
-        const [, result] = structure.exec(line);
+        const [ , result ] = structure.exec(line);
 
         // parse the value out of the regex capture group.
         val.push(result);
@@ -5393,7 +5487,7 @@ class RPGManager
       if (line.match(structure))
       {
         // extract the captured formula.
-        const [, result] = structure.exec(line);
+        const [ , result ] = structure.exec(line);
 
         // parse the value out of the regex capture group.
         val = JSON.parse(result);
@@ -5497,29 +5591,20 @@ TextManager.rewardDescription = function(paramId)
   {
     case 0:
       return [
-        "The resource required to accumulate to rise in level.",
-        "Levels give unseen advantages."
-      ];
+        "The resource required to accumulate to rise in level.", "Levels give unseen advantages." ];
     case 1:
       return [
-        "The primary currency of the universe.",
-        "Most vendors happily take this in exchange for goods."
-      ];
+        "The primary currency of the universe.", "Most vendors happily take this in exchange for goods." ];
     case 2:
       return [
-        "The rate at which enemies will drop loot.",
-        "Higher rates yield more frequent drops."
-      ];
+        "The rate at which enemies will drop loot.", "Higher rates yield more frequent drops." ];
     case 3:
       return [
         "The frequency of which the party will be engage in battles.",
-        "Lower rates result in less random encounters."
-      ];
+        "Lower rates result in less random encounters." ];
     case 4:
       return [
-        "The rate of SDP accumulation from any source.",
-        "Bigger rates yield fatter stacks of them sweet SDP points."
-      ];
+        "The rate of SDP accumulation from any source.", "Bigger rates yield fatter stacks of them sweet SDP points." ];
   }
 };
 
@@ -5609,56 +5694,40 @@ TextManager.bparamDescription = function(paramId)
     // MHP (Max Hit Points)
     case 0:
       return [
-        "The base resource that defines life and death.",
-        "Enemies and allies alike obey the rule of '0hp = dead'."
-      ];
+        "The base resource that defines life and death.", "Enemies and allies alike obey the rule of '0hp = dead'." ];
     // MMP (Max Magic Points)
     case 1:
       return [
-        "The base resource that most magic-based spells consume.",
-        "Without this, spells typically cannot be cast."
-      ];
+        "The base resource that most magic-based spells consume.", "Without this, spells typically cannot be cast." ];
     // ATK (ATtacK)
     case 2:
       return [
         "The base stat that influences physical damage.",
-        "Higher amounts of this yield higher physical damage output."
-      ];
+        "Higher amounts of this yield higher physical damage output." ];
     // DEF (DEFense)
     case 3:
       return [
-        "The base stat that reduces physical damage.",
-        "Higher amounts of this will reduce incoming physical damage."
-      ];
+        "The base stat that reduces physical damage.", "Higher amounts of this will reduce incoming physical damage." ];
     // MAT (Magic ATtack)
     case 4:
       return [
-        "The base stat that influences magical damage.",
-        "Higher amounts of this yield higher magical damage output."
-      ];
+        "The base stat that influences magical damage.", "Higher amounts of this yield higher magical damage output." ];
     // MDF (Magic DeFense)
     case 5:
       return [
-        "The base stat that reduces magical damage.",
-        "Higher amounts of this will reduce incoming magical damage."
-      ];
+        "The base stat that reduces magical damage.", "Higher amounts of this will reduce incoming magical damage." ];
     // AGI (AGIlity)
     case 6:
       return [
-        "The base stat that governs movement and agility.",
-        "The effects of this are unknown at higher levels."
-      ];
+        "The base stat that governs movement and agility.", "The effects of this are unknown at higher levels." ];
     // LUK (LUcK)
     case 7:
       return [
-        "The base stat that governs fortune and luck.",
-        "The effects of this are wide and varied."
-      ];
+        "The base stat that governs fortune and luck.", "The effects of this are wide and varied." ];
     case 30:
       return [
         "The base resource that many weapon-based skills utilize.",
-        "Without this, techniques typically cannot be executed."
-      ];
+        "Without this, techniques typically cannot be executed." ];
   }
 };
 
@@ -5674,9 +5743,7 @@ TextManager.xparamDescription = function(paramId)
     // HIT (HIT chance)
     case 0:
       return [
-        "The stat representing one's skill of accuracy.",
-        "Being more accurate will result in being parried less."
-      ];
+        "The stat representing one's skill of accuracy.", "Being more accurate will result in being parried less." ];
 
     // EVA (physical hit EVasion)
     case 1:
@@ -5684,66 +5751,54 @@ TextManager.xparamDescription = function(paramId)
         // "The stat representing skill in physically evading attacks.",  // original function.
         // "Having higher evasion is often seen as a form of tanking.",   // original function.
         "The stat governing one's uncanny ability to parry precisely.",
-        "An optional stat, but having more will make parrying easier."
-      ];
+        "An optional stat, but having more will make parrying easier." ];
 
     // CRI (CRItical hit chance)
     case 2:
       return [
         "A numeric value to one's chance of landing a critical hit.",
-        "Critical hits will deal percent-increased damage."
-      ];
+        "Critical hits will deal percent-increased damage." ];
 
     // CEV (Critical hit Evasion)
     case 3:
       return [
         "A numeric value to one's chance of evading a critical hit.",
-        "Enemy critical hit chance is directly reduced by this amount."
-      ];
+        "Enemy critical hit chance is directly reduced by this amount." ];
 
     // MEV (Magic attack EVasion)
     case 4:
       return [
         "A numeric value to one's chance of evading a magical hit.",
-        "Enemy magical hit chance is directly reduced by this amount."
-      ];
+        "Enemy magical hit chance is directly reduced by this amount." ];
 
     // MRF (Magic attack ReFlection)
     case 5:
       return [
         // "The chance of reflecting a magical hit back to its caster.",  // original function
         "The chance of reflecting a skill back to its caster.",
-        "Aside from it being reflected back, it is as if you casted it."
-      ];
+        "Aside from it being reflected back, it is as if you casted it." ];
 
     // CNT (CouNTer chance)
     case 6:
       return [
         // "The chance of responding with a basic attack when hit.",  // original function
         "The chance of auto-executing counter skills when struck.",
-        "Being un-reducable, 100 makes countering inevitable."
-      ];
+        "Being un-reducable, 100 makes countering inevitable." ];
 
     // HRG (Hp ReGeneration)
     case 7:
       return [
-        "The amount of Life restored over 5 seconds.",
-        "Recovery Rate amplifies this effect."
-      ];
+        "The amount of Life restored over 5 seconds.", "Recovery Rate amplifies this effect." ];
 
     // MRG (Mp ReGeneration)
     case 8:
       return [
-        "The amount of Magi rejuvenated over 5 seconds.",
-        "Recovery Rate amplifies this effect."
-      ];
+        "The amount of Magi rejuvenated over 5 seconds.", "Recovery Rate amplifies this effect." ];
 
     // TRG (Tp ReGeneration)
     case 9:
       return [
-        "The amount of Tech recovered over 5 seconds.",
-        "Recovery Rate amplifies this effect."
-      ];
+        "The amount of Tech recovered over 5 seconds.", "Recovery Rate amplifies this effect." ];
   }
 };
 
@@ -5759,9 +5814,7 @@ TextManager.sparamDescription = function(paramId)
     // TGR (TarGeting Rate)
     case 0:
       return [
-        "The percentage of aggro that will be applied.",
-        "Reduce for stealthing; increase for taunting."
-      ];
+        "The percentage of aggro that will be applied.", "Reduce for stealthing; increase for taunting." ];
 
     // GRD (GuaRD rate)
     case 1:
@@ -5769,64 +5822,55 @@ TextManager.sparamDescription = function(paramId)
         // "Improves the damage reduction when guarding.",  // original function.
         // "This stat speaks for itself.",                  // original function.
         "A numeric value representing the frequency of parrying.",
-        "More of this will result in auto-parrying faced foes."
-      ];
+        "More of this will result in auto-parrying faced foes." ];
 
     // REC (RECovery boost rate)
     case 2:
       return [
         "The percentage effectiveness of healing applied to oneself.",
-        "Higher amounts of this will make healing need less effort."
-      ];
+        "Higher amounts of this will make healing need less effort." ];
 
     // PHA (PHArmacology rate)
     case 3:
       return [
         "The percentage effectiveness of items applied to oneself.",
-        "Higher amounts of this will make items more potent."
-      ];
+        "Higher amounts of this will make items more potent." ];
 
     // MCR (Magic Cost Rate)
     case 4:
       return [
         "The percentage bonuses being applied to Magi costs.",
-        "Enemy magical hit chance is directly reduced by this amount."
-      ];
+        "Enemy magical hit chance is directly reduced by this amount." ];
 
     // TCR (Tech ChaRge rate)
     case 5:
       return [
         "The percentage bonuses being applied to Tech generation.",
-        "Taking and dealing damage in combat will earn more Tech."
-      ];
+        "Taking and dealing damage in combat will earn more Tech." ];
 
     // PDR (Physical Damage Rate)
     case 6:
       return [
         "The percentage bonuses being applied to physical damage.",
-        "-100 is immune while 100+ takes double+ physical damage."
-      ];
+        "-100 is immune while 100+ takes double+ physical damage." ];
 
     // MDR (Magic Damage Rate)
     case 7:
       return [
         "The percentage bonuses being applied to magical damage.",
-        "-100 is immune while 100+ takes double+ magical damage."
-      ];
+        "-100 is immune while 100+ takes double+ magical damage." ];
 
     // FDR (Floor Damage Rate)
     case 8:
       return [
         "The percentage bonuses being applied to floor damage.",
-        "-100 is immune while 100+ takes double+ floor damage."
-      ];
+        "-100 is immune while 100+ takes double+ floor damage." ];
 
     // EXR (EXperience Rate)
     case 9:
       return [
         "The percentage bonuses being applied to experience gain.",
-        "Higher amounts of this result in faster level growth."
-      ];
+        "Higher amounts of this result in faster level growth." ];
   }
 };
 
@@ -6105,19 +6149,32 @@ TextManager.usableEffectByCode = function(code)
 {
   switch (code)
   {
-    case 11: return "Recover Life";
-    case 12: return "Recover Magi";
-    case 13: return "Recover Tech";
-    case 21: return "Add State";
-    case 22: return "Remove State";
-    case 31: return "Add Buff";
-    case 32: return "Add Debuff";
-    case 33: return "Remove Buff";
-    case 34: return "Remove Debuff";
-    case 41: return "Special";
-    case 42: return "Core Stat Growth";
-    case 43: return "Learn Skill";
-    case 44: return "Execute Common Event";
+    case 11:
+      return "Recover Life";
+    case 12:
+      return "Recover Magi";
+    case 13:
+      return "Recover Tech";
+    case 21:
+      return "Add State";
+    case 22:
+      return "Remove State";
+    case 31:
+      return "Add Buff";
+    case 32:
+      return "Add Debuff";
+    case 33:
+      return "Remove Buff";
+    case 34:
+      return "Remove Debuff";
+    case 41:
+      return "Special";
+    case 42:
+      return "Core Stat Growth";
+    case 43:
+      return "Learn Skill";
+    case 44:
+      return "Execute Common Event";
     default:
       console.warn(`Unsupported code of [${code}] was provided.`);
       return "UNKNOWN";
@@ -6228,8 +6285,7 @@ class BuiltWindowCommand
     lines = [],
     helpText = String.empty,
     isSubtext = true,
-    faceData = [String.empty, -1]
-  )
+    faceData = [ String.empty, -1 ])
   {
     this.#name = name;
     this.#key = symbol;
@@ -6243,7 +6299,7 @@ class BuiltWindowCommand
     this.#helpText = helpText;
     this.#isSubtext = isSubtext;
 
-    const [faceName, faceIndex] = faceData;
+    const [ faceName, faceIndex ] = faceData;
     this.#faceName = faceName;
     this.#faceIndex = faceIndex;
   }
@@ -6367,8 +6423,9 @@ class BuiltWindowCommand
 
   get faceData()
   {
-    return [this.#faceName, this.#faceIndex];
+    return [ this.#faceName, this.#faceIndex ];
   }
+
   //endregion getters
 }
 
@@ -6383,6 +6440,7 @@ class BuiltWindowCommand
 class J_EventEmitter extends PIXI.utils.EventEmitter
 {
 }
+
 //endregion J_EventEmitter
 
 //region J_Timer
@@ -6460,7 +6518,7 @@ J_Timer.prototype.initMembers = function()
  * Gets the key of this timer, if one was set.
  * @returns {string|String.empty}
  */
-J_Timer.prototype.getKey= function()
+J_Timer.prototype.getKey = function()
 {
   return this._key;
 }
@@ -6804,6 +6862,7 @@ class PluginMetadata
   {
   }
 }
+
 //endregion PluginMetadata
 
 //region PluginVersion
@@ -6855,7 +6914,7 @@ class PluginVersion
    */
   version()
   {
-    return [this.major, this.minor, this.patch].join('.');
+    return [ this.major, this.minor, this.patch ].join('.');
   }
 
   /**
@@ -6900,6 +6959,7 @@ class PluginVersion
     #major = 0;
     #minor = 0;
     #patch = 0;
+
     //endregion parameters
 
     /**
@@ -6910,7 +6970,7 @@ class PluginVersion
     build()
     {
       // group all the parts in the correct order.
-      const semverParts = [this.#major, this.#minor, this.#patch];
+      const semverParts = [ this.#major, this.#minor, this.#patch ];
 
       // join the semver parts into a string as the 3 parts.
       const semver = semverParts.join('.');
@@ -6973,6 +7033,7 @@ class PluginVersion
     }
   }
 }
+
 //endregion PluginVersion
 
 /**
@@ -7063,6 +7124,7 @@ class WindowCommandBuilder
    * @type {number}
    */
   #faceIndex = -1;
+
   //endregion properties
 
   /**
@@ -7082,8 +7144,7 @@ class WindowCommandBuilder
   build()
   {
     // construct the command.
-    const command = new BuiltWindowCommand(
-      this.#name,
+    const command = new BuiltWindowCommand(this.#name,
       this.#key,
       this.#enabled,
       this.#extensionData,
@@ -7094,8 +7155,7 @@ class WindowCommandBuilder
       this.#lines,
       this.#helpText,
       this.#isSubtext,
-      [this.#faceName, this.#faceIndex]
-    );
+      [ this.#faceName, this.#faceIndex ]);
 
     // return the built command.
     return command;
@@ -7404,8 +7464,7 @@ Game_Actor.prototype.getActorNotes = function()
     actor,
 
     // add the actor's class to the source list.
-    this.class(actor.classId)
-  ];
+    this.class(actor.classId) ];
 };
 
 /**
@@ -7423,8 +7482,7 @@ Game_Actor.prototype.getNotesSources = function()
     this.currentClass(),
 
     // add all of the actor's valid equips to the source list.
-    ...this.equippedEquips(),
-  ];
+    ...this.equippedEquips(), ];
 
   // combine the two source lists.
   const combinedNoteSources = baseNoteSources.concat(actorUniqueNoteSources);
@@ -7441,7 +7499,8 @@ J.BASE.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
 Game_Actor.prototype.setup = function(actorId)
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('setup').call(this, actorId);
+  J.BASE.Aliased.Game_Actor.get('setup')
+    .call(this, actorId);
 
   // execute the on-setup hook.
   this.onSetup(actorId);
@@ -7473,7 +7532,8 @@ Game_Actor.prototype.learnSkill = function(skillId)
   }
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('learnSkill').call(this, skillId);
+  J.BASE.Aliased.Game_Actor.get('learnSkill')
+    .call(this, skillId);
 };
 
 /**
@@ -7502,7 +7562,8 @@ Game_Actor.prototype.forgetSkill = function(skillId)
   }
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('forgetSkill').call(this, skillId);
+  J.BASE.Aliased.Game_Actor.get('forgetSkill')
+    .call(this, skillId);
 };
 
 /**
@@ -7523,7 +7584,8 @@ J.BASE.Aliased.Game_Actor.set('die', Game_Actor.prototype.die);
 Game_Actor.prototype.die = function()
 {
   // perform original effects.
-  J.BASE.Aliased.Game_Actor.get('die').call(this);
+  J.BASE.Aliased.Game_Actor.get('die')
+    .call(this);
 
   // perform on-death effects.
   this.onDeath();
@@ -7546,7 +7608,8 @@ J.BASE.Aliased.Game_Actor.set('revive', Game_Actor.prototype.revive);
 Game_Actor.prototype.revive = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('revive').call(this);
+  J.BASE.Aliased.Game_Actor.get('revive')
+    .call(this);
 
   // perform on-revive effects.
   this.onRevive();
@@ -7574,7 +7637,8 @@ J.BASE.Aliased.Game_Actor.set('changeClass', Game_Actor.prototype.changeClass);
 Game_Actor.prototype.changeClass = function(classId, keepExp)
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('changeClass').call(this, classId, keepExp);
+  J.BASE.Aliased.Game_Actor.get('changeClass')
+    .call(this, classId, keepExp);
 
   // perform on-class-change effects.
   this.onClassChange(classId, keepExp);
@@ -7600,7 +7664,8 @@ Game_Actor.prototype.changeEquip = function(slotId, item)
   const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('changeEquip').call(this, slotId, item);
+  J.BASE.Aliased.Game_Actor.get('changeEquip')
+    .call(this, slotId, item);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = !oldEquips.equals(this._equips);
@@ -7624,7 +7689,8 @@ Game_Actor.prototype.discardEquip = function(item)
   const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('discardEquip').call(this, item);
+  J.BASE.Aliased.Game_Actor.get('discardEquip')
+    .call(this, item);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = !oldEquips.equals(this._equips);
@@ -7648,7 +7714,8 @@ Game_Actor.prototype.forceChangeEquip = function(slotId, item)
   const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('forceChangeEquip').call(this, slotId, item);
+  J.BASE.Aliased.Game_Actor.get('forceChangeEquip')
+    .call(this, slotId, item);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = !oldEquips.equals(this._equips);
@@ -7672,7 +7739,8 @@ Game_Actor.prototype.releaseUnequippableItems = function(forcing)
   const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('releaseUnequippableItems').call(this, forcing);
+  J.BASE.Aliased.Game_Actor.get('releaseUnequippableItems')
+    .call(this, forcing);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = this.haveEquipsChanged(oldEquips);
@@ -7728,7 +7796,8 @@ Game_Actor.prototype.haveEquipsChanged = function(oldEquips)
  */
 Game_Actor.prototype.equippedEquips = function()
 {
-  return this.equips().filter(equip => !!equip);
+  return this.equips()
+    .filter(equip => !!equip);
 };
 
 /**
@@ -7747,7 +7816,8 @@ J.BASE.Aliased.Game_Actor.set('levelUp', Game_Actor.prototype.levelUp);
 Game_Actor.prototype.levelUp = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('levelUp').call(this);
+  J.BASE.Aliased.Game_Actor.get('levelUp')
+    .call(this);
 
   // triggers the on-level-up hook.
   this.onLevelUp();
@@ -7769,7 +7839,8 @@ J.BASE.Aliased.Game_Actor.set('levelDown', Game_Actor.prototype.levelDown);
 Game_Actor.prototype.levelDown = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('levelDown').call(this);
+  J.BASE.Aliased.Game_Actor.get('levelDown')
+    .call(this);
 
   // triggers the on-level-down hook.
   this.onLevelDown();
@@ -7860,8 +7931,7 @@ Game_Battler.prototype.getNotesSources = function()
     ...this.skills(),
 
     // add all currently applied states to the source list.
-    ...this.allStates(),
-  ];
+    ...this.allStates(), ];
 };
 
 /**
@@ -7907,7 +7977,8 @@ Game_Battler.prototype.eraseState = function(stateId)
   const oldStates = Array.from(this._states);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Battler.get('eraseState').call(this, stateId);
+  J.BASE.Aliased.Game_Battler.get('eraseState')
+    .call(this, stateId);
 
   // determine if the states array changed from what it was before original logic.
   const isChanged = !oldStates.equals(this._states);
@@ -7941,7 +8012,8 @@ Game_Battler.prototype.addNewState = function(stateId)
   const oldStates = Array.from(this._states);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Battler.get('addNewState').call(this, stateId);
+  J.BASE.Aliased.Game_Battler.get('addNewState')
+    .call(this, stateId);
 
   // determine if the states array changed from what it was before original logic.
   const isChanged = !oldStates.equals(this._states);
@@ -8009,7 +8081,7 @@ Game_Battler.prototype.currentHpPercent100 = function()
  */
 Game_BattlerBase.knownBaseParameterIds = function()
 {
-  return [0, 1, 2, 3, 4, 5, 6, 7];
+  return [ 0, 1, 2, 3, 4, 5, 6, 7 ];
 };
 
 /**
@@ -8018,7 +8090,7 @@ Game_BattlerBase.knownBaseParameterIds = function()
  */
 Game_BattlerBase.knownExParameterIds = function()
 {
-  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  return [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
 };
 
 /**
@@ -8027,7 +8099,7 @@ Game_BattlerBase.knownExParameterIds = function()
  */
 Game_BattlerBase.knownSpParameterIds = function()
 {
-  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  return [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
 };
 
 /**
@@ -8037,7 +8109,8 @@ Game_BattlerBase.knownSpParameterIds = function()
  */
 Game_BattlerBase.isBaseParam = function(longParameterId)
 {
-  return this.knownBaseParameterIds().includes(longParameterId);
+  return this.knownBaseParameterIds()
+    .includes(longParameterId);
 };
 
 /**
@@ -8047,7 +8120,8 @@ Game_BattlerBase.isBaseParam = function(longParameterId)
  */
 Game_BattlerBase.isExParam = function(longParameterId)
 {
-  return this.knownExParameterIds().includes(longParameterId - 8);
+  return this.knownExParameterIds()
+    .includes(longParameterId - 8);
 };
 
 /**
@@ -8057,7 +8131,8 @@ Game_BattlerBase.isExParam = function(longParameterId)
  */
 Game_BattlerBase.isSpParam = function(longParameterId)
 {
-  return this.knownSpParameterIds().includes(longParameterId - 18);
+  return this.knownSpParameterIds()
+    .includes(longParameterId - 18);
 };
 
 /**
@@ -8068,7 +8143,7 @@ Game_BattlerBase.isSpParam = function(longParameterId)
  */
 Game_BattlerBase.isRegenParamId = function(paramId)
 {
-  const regenParamIds = [7, 8, 9];
+  const regenParamIds = [ 7, 8, 9 ];
   return regenParamIds.includes(paramId);
 };
 
@@ -8080,21 +8155,19 @@ Game_BattlerBase.isRegenParamId = function(paramId)
  */
 Game_BattlerBase.isRegenLongParamId = function(longParamId)
 {
-  const regenParamIds = [7, 8, 9];
+  const regenParamIds = [ 7, 8, 9 ];
   return regenParamIds.includes(longParamId - 8);
 };
 
 /**
  * Gets the maximum tp/tech for this battler.
  */
-Object.defineProperty(Game_BattlerBase.prototype, "mtp",
+Object.defineProperty(Game_BattlerBase.prototype, "mtp", {
+  get: function()
   {
-    get: function() 
-    {
-      return this.maxTp();
-    },
-    configurable: true
-  });
+    return this.maxTp();
+  }, configurable: true
+});
 //endregion Game_BattlerBase
 
 /**
@@ -8180,7 +8253,7 @@ Game_Character.prototype.distanceFromCharacter = function(character)
  */
 Game_CharacterBase.prototype.isDiagonalDirection = function(direction)
 {
-  return [1, 3, 7, 9].contains(direction);
+  return [ 1, 3, 7, 9 ].contains(direction);
 };
 
 /**
@@ -8190,7 +8263,7 @@ Game_CharacterBase.prototype.isDiagonalDirection = function(direction)
  */
 Game_CharacterBase.prototype.isStraightDirection = function(direction)
 {
-  return [2, 4, 6, 8].contains(direction);
+  return [ 2, 4, 6, 8 ].contains(direction);
 };
 
 /**
@@ -8202,13 +8275,13 @@ Game_CharacterBase.prototype.getDiagonalDirections = function(direction)
   switch (direction)
   {
     case 1:
-      return [4, 2];
+      return [ 4, 2 ];
     case 3:
-      return [6, 2];
+      return [ 6, 2 ];
     case 7:
-      return [4, 8];
+      return [ 4, 8 ];
     case 9:
-      return [6, 8];
+      return [ 6, 8 ];
   }
 };
 
@@ -8249,6 +8322,7 @@ class Game_Enemies
     return enemy;
   }
 }
+
 //endregion Game_Enemies
 
 //region Game_Enemy
@@ -8282,8 +8356,7 @@ Game_Enemy.prototype.getEnemyNotes = function()
   // return a collection of all things related to this enemy.
   return [
     // add the enemy itself to the source list.
-    enemy
-  ];
+    enemy ];
 };
 
 /**
@@ -8358,15 +8431,13 @@ Game_Enemy.prototype.learnSkill = function(skillId)
 
   // build the new underlying action to be detected by the enemy.
   const rpgEnemyAction = {
-    "conditionParam1": 0,
-    "conditionParam2": 0,
-    "conditionType": 0,
-    "rating": 5,
-    "skillId": skillId
+    "conditionParam1": 0, "conditionParam2": 0, "conditionType": 0, "rating": 5, "skillId": skillId
   };
 
   // add the action to the enemy's list of known skills.
-  this.enemy().actions.push(rpgEnemyAction);
+  this.enemy()
+    .actions
+    .push(rpgEnemyAction);
 
   // indicate that a new skill was learned to any callers that might be interested.
   return true;
@@ -8408,7 +8479,8 @@ Game_Event.prototype.getValidCommentCommands = function()
   if (!this.canGetValidCommentCommands()) return Array.empty;
 
   // otherwise, return the filtered list.
-  return this.list().filter(this.filterInvalidEventCommand, this);
+  return this.list()
+    .filter(this.filterInvalidEventCommand, this);
 };
 
 /**
@@ -8438,7 +8510,7 @@ Game_Event.prototype.filterInvalidEventCommand = function(command)
   if (!this.matchesControlCode(command.code)) return false;
 
   // shorthand the comment into a variable.
-  const [comment,] = command.parameters;
+  const [ comment, ] = command.parameters;
 
   // consider this comment valid if it passes, skip it otherwise.
   return J.BASE.RegExp.ParsableComment.test(comment);
@@ -8492,20 +8564,21 @@ Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = nu
   let val = defaultValue;
 
   // iterate over all valid comments.
-  this.getValidCommentCommands().forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [comment,] = command.parameters;
+  this.getValidCommentCommands()
+    .forEach(command =>
+    {
+      // shorthand the comment into a variable.
+      const [ comment, ] = command.parameters;
 
-    // check if the comment matches the regex.
-    const regexResult = structure.exec(comment);
+      // check if the comment matches the regex.
+      const regexResult = structure.exec(comment);
 
-    // if the comment didn't match, then don't try to parse it.
-    if (!regexResult) return;
+      // if the comment didn't match, then don't try to parse it.
+      if (!regexResult) return;
 
-    // extract the regex capture group.
-    [,val] = regexResult;
-  });
+      // extract the regex capture group.
+      [ , val ] = regexResult;
+    });
 
   // if we did not find anything, return the default.
   if (val === defaultValue) return val;
@@ -8531,7 +8604,7 @@ Game_Event.prototype.getDataForCommandByRegex = function(command, structure, def
   let val = defaultValue;
 
   // shorthand the comment into a variable.
-  const [comment,] = command.parameters;
+  const [ comment, ] = command.parameters;
 
   // check if the comment matches the regex.
   const regexResult = structure.exec(comment);
@@ -8540,7 +8613,7 @@ Game_Event.prototype.getDataForCommandByRegex = function(command, structure, def
   if (!regexResult) return;
 
   // extract the regex capture group.
-  [,val] = regexResult;
+  [ , val ] = regexResult;
 
   // if we did not find anything, return the default.
   if (val === defaultValue) return val;
@@ -8779,7 +8852,8 @@ Game_Party.prototype.allItemsQuantified = function()
  */
 Game_Party.prototype.recoverAllMembers = function()
 {
-  this.members().forEach(member => member.recoverAll());
+  this.members()
+    .forEach(member => member.recoverAll());
 };
 
 Game_Party.prototype.maxBattleMembers = function()
@@ -8807,7 +8881,8 @@ J.BASE.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_System.get('initialize').call(this);
+  J.BASE.Aliased.Game_System.get('initialize')
+    .call(this);
 
   // initialize our class members.
   this.initMembers();
@@ -8884,7 +8959,8 @@ J.BASE.Aliased.Game_Temp.set('initialize', Game_Temp.prototype.initialize);
 Game_Temp.prototype.initialize = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Temp.get('initialize').call(this);
+  J.BASE.Aliased.Game_Temp.get('initialize')
+    .call(this);
 
   // initialize our class members.
   this.initMembers();
@@ -8917,7 +8993,8 @@ J.BASE.Aliased.Scene_Base.set('initialize', Scene_Base.prototype.initialize);
 Scene_Base.prototype.initialize = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Scene_Base.get('initialize').call(this);
+  J.BASE.Aliased.Scene_Base.get('initialize')
+    .call(this);
 
   // also add custom members to this class.
   this.initMembers();
@@ -8949,9 +9026,7 @@ class Sprite_BaseText extends Sprite
    * The available supported text alignments.
    */
   static Alignments = {
-    Left: "left",
-    Center: "center",
-    Right: "right",
+    Left: "left", Center: "center", Right: "right",
   };
 
   /**
@@ -9234,10 +9309,7 @@ class Sprite_BaseText extends Sprite
   isValidAlignment(alignment)
   {
     const validAlignments = [
-      Sprite_BaseText.Alignments.Left,
-      Sprite_BaseText.Alignments.Center,
-      Sprite_BaseText.Alignments.Right
-    ]
+      Sprite_BaseText.Alignments.Left, Sprite_BaseText.Alignments.Center, Sprite_BaseText.Alignments.Right ]
 
     return validAlignments.includes(alignment);
   }
@@ -9358,15 +9430,10 @@ class Sprite_BaseText extends Sprite
       : this.bitmapWidth();
 
     // draw the text with the current settings onto the bitmap.
-    this.bitmap.drawText(
-      this.text(),
-      0,
-      0,
-      width,
-      this.bitmapHeight(),
-      this.alignment());
+    this.bitmap.drawText(this.text(), 0, 0, width, this.bitmapHeight(), this.alignment());
   }
 }
+
 //endregion Sprite_BaseText
 
 /**
@@ -9426,8 +9493,7 @@ Sprite_Face.prototype.initialize = function(faceName, faceIndex)
 Sprite_Face.prototype.initMembers = function(faceName, faceIndex)
 {
   this._j = {
-    _faceName: faceName,
-    _faceIndex: faceIndex,
+    _faceName: faceName, _faceIndex: faceIndex,
   };
 };
 
@@ -9530,7 +9596,7 @@ class Sprite_Icon extends Sprite
     this.unReady();
 
     // setup a promise for when the bitmap loads.
-    const bitmapPromise = ImageManager.loadBitmapPromise(`IconSet`,`img/system/`)
+    const bitmapPromise = ImageManager.loadBitmapPromise(`IconSet`, `img/system/`)
       .then(bitmap => this.setIconsetBitmap(bitmap))
       .catch(() =>
       {
@@ -9538,8 +9604,8 @@ class Sprite_Icon extends Sprite
       });
 
     // upon promise delivery, execute the rendering.
-    Promise.all([bitmapPromise])
-    // execute on-ready logic, such as setting the icon index of this sprite to render.
+    Promise.all([ bitmapPromise ])
+      // execute on-ready logic, such as setting the icon index of this sprite to render.
       .then(() => this.onReady(iconIndex))
   }
 
@@ -9681,6 +9747,7 @@ class Sprite_Icon extends Sprite
     this.setFrame(x, y, iconWidth, iconHeight);
   }
 }
+
 //endregion Sprite_Icon
 
 //region Sprite_MapGauge
@@ -9694,14 +9761,12 @@ function Sprite_MapGauge()
 
 Sprite_MapGauge.prototype = Object.create(Sprite_Gauge.prototype);
 Sprite_MapGauge.prototype.constructor = Sprite_MapGauge;
-Sprite_MapGauge.prototype.initialize = function(
-  bitmapWidth = 96,
+Sprite_MapGauge.prototype.initialize = function(bitmapWidth = 96,
   bitmapHeight = 24,
   gaugeHeight = 6,
   label = String.empty,
   value = null,
-  iconIndex = -1
-)
+  iconIndex = -1)
 {
   this._duration = 0;
   this._gauge = {};
@@ -9799,13 +9864,7 @@ Sprite_MapGauge.prototype.drawLabel = function()
     const x = 32;
     const y = 0;
     this.bitmap.fontSize = 12;
-    this.bitmap.drawText(
-      this._gauge._label,
-      x,
-      y,
-      this.bitmapWidth(),
-      this.bitmapHeight(),
-      "left");
+    this.bitmap.drawText(this._gauge._label, x, y, this.bitmapWidth(), this.bitmapHeight(), "left");
   }
 };
 
@@ -10032,7 +10091,8 @@ J.BASE.Aliased.Window_Base.set('resetFontSettings', Window_Base.prototype.resetF
 Window_Base.prototype.resetFontSettings = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Window_Base.get('resetFontSettings').call(this);
+  J.BASE.Aliased.Window_Base.get('resetFontSettings')
+    .call(this);
 
   // also reset the italics/bold back to false.
   this.resetFontFormatting();
@@ -10193,9 +10253,7 @@ Window_Command.prototype.drawItem = function(index)
 
   // grab the rectangle for the line item.
   const {
-    x: rectX,
-    y: rectY,
-    width: rectWidth
+    x: rectX, y: rectY, width: rectWidth
   } = this.itemLineRect(index);
 
   // build the command name.
@@ -10247,8 +10305,7 @@ Window_Command.prototype.drawItem = function(index)
   if (hasFaceData)
   {
     const faceY = rectY;
-    this.drawFace(
-      faceName.substring(faceName.lastIndexOf('/') + 1),
+    this.drawFace(faceName.substring(faceName.lastIndexOf('/') + 1),
       faceIndex,
       commandNameX - 36,
       faceY - 12,
@@ -10519,23 +10576,11 @@ Window_Command.prototype.commandFaceData = function(index)
  * @param {number=} icon The icon index for this command; defaults to 0.
  * @param {number=} color The color index for this command; defaults to 0.
  */
-Window_Command.prototype.addCommand = function(
-  name,
-  symbol,
-  enabled = true,
-  ext = null,
-  icon = 0,
-  color = 0,
-)
+Window_Command.prototype.addCommand = function(name, symbol, enabled = true, ext = null, icon = 0, color = 0,)
 {
   this.commandList()
     .push({
-      name,
-      symbol,
-      enabled,
-      ext,
-      icon,
-      color
+      name, symbol, enabled, ext, icon, color
     });
 };
 
@@ -10560,23 +10605,11 @@ Window_Command.prototype.addBuiltCommand = function(command)
  * @param {number=} icon The icon index for this command; defaults to 0.
  * @param {number=} color The color index for this command; defaults to 0.
  */
-Window_Command.prototype.prependCommand = function(
-  name,
-  symbol,
-  enabled = true,
-  ext = null,
-  icon = 0,
-  color = 0,
-)
+Window_Command.prototype.prependCommand = function(name, symbol, enabled = true, ext = null, icon = 0, color = 0,)
 {
   this.commandList()
     .unshift({
-      name,
-      symbol,
-      enabled,
-      ext,
-      icon,
-      color
+      name, symbol, enabled, ext, icon, color
     });
 };
 
@@ -10667,7 +10700,6 @@ Window_EquipItem.prototype.postEquipSetupActorClone = function(actorClone)
 {
 };
 //endregion Window_EquipItem
-
 
 /**
  * Gets the text from this help window.
@@ -10765,7 +10797,7 @@ Window_Help.prototype.getSecondaryNewline = function()
  * Extracts the text rendering out into its own function, but this function
  * still does the same thing: clears and redraws the contents of the window.
  */
-Window_Help.prototype.refresh = function() 
+Window_Help.prototype.refresh = function()
 {
   // clear the contents of the window.
   this.contents.clear();
@@ -10974,6 +11006,7 @@ class Window_MoreData extends Window_Command
     }
   }
 }
+
 //endregion Window_MoreData
 
 //region Window_Selectable
@@ -11023,7 +11056,9 @@ Window_Selectable.prototype.isMoreEnabled = function()
  */
 Window_Selectable.prototype.isMoreTriggered = function()
 {
-  return this._canRepeat ? Input.isRepeated("shift") : Input.isTriggered("shift");
+  return this._canRepeat
+    ? Input.isRepeated("shift")
+    : Input.isTriggered("shift");
 };
 
 /**
@@ -11081,9 +11116,7 @@ WindowLayer.prototype.render = function(renderer)
     return;
   }
 
-  const graphics = new PIXI.Graphics()
-    , {gl} = renderer
-    , children = this.children.clone();
+  const graphics = new PIXI.Graphics(), { gl } = renderer, children = this.children.clone();
 
   // noinspection JSUnresolvedFunction
   renderer.framebuffer.forceStencil();

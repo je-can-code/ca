@@ -263,6 +263,7 @@ class RPG_DropItemBuilder
    * @type {number}
    */
   #chance = 0;
+
   //endregion properties
 
   /**
@@ -274,9 +275,7 @@ class RPG_DropItemBuilder
   {
     // create an anonymous object representing the drop data.
     const dropItem = {
-      kind: this.#type,
-      dataId: this.#id,
-      denominator: this.#chance,
+      kind: this.#type, dataId: this.#id, denominator: this.#chance,
     };
 
     // check to make sure the clear needs execution.
@@ -375,6 +374,7 @@ class RPG_DropItemBuilder
     this.setChance(percentChance);
     return this.build();
   }
+
   //endregion builders
 }
 
@@ -460,9 +460,7 @@ Game_Actor.prototype.getDropMultiplierBonus = function()
   const objectsToCheck = this.getAllNotes();
 
   // get the multiplier from anything this battler has available.
-  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
-    J.DROPS.RegExp.DropMultiplier);
+  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropMultiplier);
 
   // calculate the multiplier factor.
   const factor = (multiplierBonus + baseMultiplier) / 100;
@@ -484,9 +482,7 @@ Game_Actor.prototype.getGoldMultiplier = function()
   const objectsToCheck = this.getAllNotes();
 
   // get the multiplier from anything this battler has available.
-  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
-    J.DROPS.RegExp.GoldMultiplier);
+  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.GoldMultiplier);
 
   // calculate the multiplier factor.
   const factor = (multiplierBonus + baseMultiplier) / 100;
@@ -539,7 +535,8 @@ J.DROPS.Aliased.Game_Enemy.set("gold", Game_Enemy.prototype.gold);
 Game_Enemy.prototype.gold = function()
 {
   const baseGoldRate = this.getBaseGoldRate();
-  const baseGold = (J.DROPS.Aliased.Game_Enemy.get("gold").call(this) * baseGoldRate);
+  const baseGold = (J.DROPS.Aliased.Game_Enemy.get("gold")
+    .call(this) * baseGoldRate);
   const multiplier = $gameParty.getGoldMultiplier();
   return Math.round(baseGold * multiplier);
 };
@@ -650,10 +647,11 @@ Game_Enemy.prototype.didFindLoot = function(rate)
 Game_Enemy.prototype.getDropItems = function()
 {
   // validate the original drop items from the enemy in the database.
-  const databaseDropItems = this.enemy().originalDropItems();
+  const databaseDropItems = this.enemy()
+    .originalDropItems();
 
   // initialize the drops to be the enemy's own valid drop items from the database.
-  const allDropItems = [...databaseDropItems];
+  const allDropItems = [ ...databaseDropItems ];
 
   // grab any extra drops available.
   const extraDropItems = this.extraDrops();
@@ -753,9 +751,9 @@ Game_Party.prototype.getGoldMultiplier = function()
   const membersToConsider = this.goldMultiplierMembers();
 
   // calculate the total.
-  const goldMultiplier = membersToConsider.reduce(
-    (runningTotal, currentActor) => runningTotal + currentActor.getGoldMultiplier(),
-    baseMultiplier);
+  const goldMultiplier = membersToConsider.reduce((
+    runningTotal,
+    currentActor) => runningTotal + currentActor.getGoldMultiplier(), baseMultiplier);
 
   // return the result.
   return goldMultiplier;
@@ -804,9 +802,9 @@ Game_Party.prototype.getPartyDropMultiplier = function()
   const membersToConsider = this.dropMultiplierMembers();
 
   // calculate the total.
-  const dropMultiplier = membersToConsider.reduce(
-    (runningTotal, currentActor) => runningTotal + currentActor.getDropMultiplierBonus(),
-    baseMultiplier);
+  const dropMultiplier = membersToConsider.reduce((
+    runningTotal,
+    currentActor) => runningTotal + currentActor.getDropMultiplierBonus(), baseMultiplier);
 
   // return the result.
   return dropMultiplier;

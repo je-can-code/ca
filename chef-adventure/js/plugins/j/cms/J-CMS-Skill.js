@@ -47,9 +47,7 @@ J.CMS_K.Metadata.Name = `J-CMS-Skill`;
 J.CMS_K.Metadata.Version = '1.0.0';
 
 J.CMS_K.Aliased = {
-  Scene_Skill: {},
-  Window_SkillList: {},
-  Window_EquipSlot: {},
+  Scene_Skill: {}, Window_SkillList: {}, Window_EquipSlot: {},
 };
 //endregion Introduction
 
@@ -108,6 +106,7 @@ class JCMS_ParameterKvp
     return this._colorId;
   }
 }
+
 //endregion JCMS_ParameterKvp
 
 //region Scene_Skill
@@ -130,7 +129,9 @@ Scene_Skill.prototype.skillTypeWindowRect = function()
 {
   const ww = this.mainCommandWidth();
   const wh = this.calcWindowHeight(4, true);
-  const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
+  const wx = this.isRightInputMode()
+    ? Graphics.boxWidth - ww
+    : 0;
   const wy = this.mainAreaTop();
   return new Rectangle(wx, wy, ww, wh);
 };
@@ -147,7 +148,9 @@ Scene_Skill.prototype.skillDetailRect = function()
 {
   const ww = Graphics.boxWidth - this.mainCommandWidth();
   const wh = this.mainAreaHeight() - this._statusWindow.height
-  const wx = this.isRightInputMode() ? 0 : Graphics.boxWidth - ww;
+  const wx = this.isRightInputMode()
+    ? 0
+    : Graphics.boxWidth - ww;
   const wy = this.mainAreaTop() + this._statusWindow.height;
   return new Rectangle(wx, wy, ww, wh);
 };
@@ -171,7 +174,9 @@ Scene_Skill.prototype.itemWindowRect = function()
 {
   const ww = this.mainCommandWidth();
   const wh = this.mainAreaHeight() - this._statusWindow.height;
-  const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
+  const wx = this.isRightInputMode()
+    ? Graphics.boxWidth - ww
+    : 0;
   const wy = this._statusWindow.y + this._statusWindow.height;
   return new Rectangle(wx, wy, ww, wh);
 };
@@ -456,10 +461,16 @@ class Window_SkillDetail extends Window_Base
         p = skillProficiency.proficiency;
       }
     }
-    const sign = [3, 4].includes(skill.damage.type) ? -1 : 1;
+    const sign = [ 3, 4 ].includes(skill.damage.type)
+      ? -1
+      : 1;
     const value = Math.round(Math.max(eval(skill.damage.formula), 0));
-    const potential = isNaN(value) ? 0 : value;
-    const color = sign > 0 ? 10 : 24;
+    const potential = isNaN(value)
+      ? 0
+      : value;
+    const color = sign > 0
+      ? 10
+      : 24;
     return new JCMS_ParameterKvp(`\\C[${color}]Raw Damage\\C[0]`, potential);
   }
 
@@ -568,7 +579,7 @@ class Window_SkillDetail extends Window_Base
         if (!skillRewardId)
         {
           console.warn(conditional);
-          console.log(skillRewardId,  "not a valid skill reward.");
+          console.log(skillRewardId, "not a valid skill reward.");
           return;
         }
 
@@ -578,7 +589,9 @@ class Window_SkillDetail extends Window_Base
 
         const actorKnowsSkill = actor.isLearnedSkill(skillRewardId);
         const extendedSkill = actor.skill(skillRewardId);
-        const learnedIcon = actorKnowsSkill ? 91 : 90;
+        const learnedIcon = actorKnowsSkill
+          ? 91
+          : 90;
         const name = `\\I[${learnedIcon}]\\Skill[${extendedSkill.id}]`;
         const value = `${requiredProficiency.proficiency}`;
         params.push(new JCMS_ParameterKvp(name, value));
@@ -604,7 +617,7 @@ class Window_SkillDetail extends Window_Base
   {
     const elementParams = [];
     elementParams.push(new JCMS_ParameterKvp(`\\C[17]Elemental Affiliations\\C[0]`));
-    const attackElements = [skill.damage.elementId];
+    const attackElements = [ skill.damage.elementId ];
     attackElements.push(...Game_Action.extractElementsFromAction(skill));
     attackElements.forEach(attackElement =>
     {
@@ -632,10 +645,10 @@ class Window_SkillDetail extends Window_Base
    */
   makeSkillTypeParam(skill)
   {
-    const support = [0];
-    const damage = [1, 2];
-    const healer = [3, 4];
-    const drain = [5, 6];
+    const support = [ 0 ];
+    const damage = [ 1, 2 ];
+    const healer = [ 3, 4 ];
+    const drain = [ 5, 6 ];
 
     let name = "";
     let color = ColorManager.normalColor();
@@ -697,6 +710,7 @@ class Window_SkillDetail extends Window_Base
     return new JCMS_ParameterKvp(tpName, tpCost, tpColor);
   }
 }
+
 //endregion Window_SkillDetail
 
 //region Window_SkillList
@@ -707,7 +721,7 @@ J.CMS_K.Aliased.Window_SkillList.initialize = Window_SkillList.prototype.initial
 Window_SkillList.prototype.initialize = function(rect)
 {
   J.CMS_K.Aliased.Window_SkillList.initialize.call(this, rect);
-  
+
   /**
    * The detail window for the skill.
    *  @type {Window_SkillDetail}

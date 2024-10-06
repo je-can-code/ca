@@ -178,6 +178,7 @@ class J_PosesPluginMetadata extends PluginMetadata
   //     .build();
   // }
 }
+
 //endregion plugin metadata
 
 //region initialization
@@ -228,49 +229,45 @@ J.ABS.EXT.POSES.RegExp.PoseSuffix = /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+
  * The second index is the number of frames to spend in this pose.
  * @type {[string, number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseData",
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseData", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJabsPoseData();
-    },
-  });
+    return this.getJabsPoseData();
+  },
+});
 
 /**
  * Gets the JABS pose suffix for this skill.
  * @type {string}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseSuffix",
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseSuffix", {
+  get: function()
   {
-    get: function()
-    {
-      return this.jabsPoseData[0];
-    },
-  });
+    return this.jabsPoseData[0];
+  },
+});
 
 /**
  * Gets the JABS pose index for this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseIndex",
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseIndex", {
+  get: function()
   {
-    get: function()
-    {
-      return this.jabsPoseData[1];
-    },
-  });
+    return this.jabsPoseData[1];
+  },
+});
 
 /**
  * Gets the JABS pose duration for this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration",
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration", {
+  get: function()
   {
-    get: function()
-    {
-      return this.jabsPoseData[2];
-    },
-  });
+    return this.jabsPoseData[2];
+  },
+});
 
 /**
  * Gets the JABS pose suffix data for this skill.

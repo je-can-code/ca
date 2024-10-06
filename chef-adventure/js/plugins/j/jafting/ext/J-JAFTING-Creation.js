@@ -107,6 +107,7 @@ class CraftingCategory
    * True this crafting category is unlocked by default, false otherwise.
    */
   unlockedByDefault = false;
+
   //endregion properties
 
   /**
@@ -147,6 +148,7 @@ class CraftingCategory
       .some(unlockedRecipe => unlockedRecipe.categoryKeys.includes(this.key), this);
   }
 }
+
 //endregion CraftingCategory
 
 //region CraftingComponent
@@ -155,26 +157,19 @@ class CraftingCategory
  */
 class CraftingComponent
 {
-  static Types =
-    {
-      Item: 'i',
-      Weapon: 'w',
-      Armor: 'a',
-      Gold: 'g',
-      SDP: 's',
-    }
+  static Types = {
+    Item: 'i', Weapon: 'w', Armor: 'a', Gold: 'g', SDP: 's',
+  }
 
-  static Typed =
-    {
-      Gold: () => CraftingComponent.builder
-        .id(0)
-        .type(CraftingComponent.Types.Gold)
-        .build(),
-      SDP: () => CraftingComponent.builder
-        .id(0)
-        .type(CraftingComponent.Types.SDP)
-        .build(),
-    }
+  static Typed = {
+    Gold: () => CraftingComponent.builder
+      .id(0)
+      .type(CraftingComponent.Types.Gold)
+      .build(), SDP: () => CraftingComponent.builder
+      .id(0)
+      .type(CraftingComponent.Types.SDP)
+      .build(),
+  }
 
   /**
    * The number of instances required of the given component.
@@ -428,7 +423,8 @@ class CraftingComponent
     if (J.JAFTING.EXT.CREATE.Metadata.usingSdp())
     {
       // its SDP, so use the leader's points.
-      if (this.isSdp()) return $gameParty.leader().getSdpPoints();
+      if (this.isSdp()) return $gameParty.leader()
+        .getSdpPoints();
     }
 
     console.warn('an unsupported component type was presented for quantity.', this);
@@ -461,7 +457,8 @@ class CraftingComponent
     {
       // TODO: update this to only apply to the leader?
       // give the points to each member of the party.
-      $gameParty.members().forEach(actor => actor.modSdpPoints(this.#count));
+      $gameParty.members()
+        .forEach(actor => actor.modSdpPoints(this.#count));
     }
   }
 
@@ -489,7 +486,8 @@ class CraftingComponent
     {
       // TODO: update this to only apply to the leader?
       // remove points from each member of the party.
-      $gameParty.members().forEach(actor => actor.modSdpPoints(-this.#count));
+      $gameParty.members()
+        .forEach(actor => actor.modSdpPoints(-this.#count));
     }
   }
 
@@ -530,7 +528,8 @@ class CraftingComponent
     {
       // TODO: update this to only apply to the leader?
       // give the points to each member of the party.
-      return (this.#count <= $gameParty.leader().getSdpPoints());
+      return (this.#count <= $gameParty.leader()
+        .getSdpPoints());
     }
 
     // we don't have enough.
@@ -563,10 +562,7 @@ class CraftingComponent
 
     build()
     {
-      const builtComponent = new CraftingComponent(
-        this.#count,
-        this.#id,
-        this.#type)
+      const builtComponent = new CraftingComponent(this.#count, this.#id, this.#type)
 
       this.#clear();
 
@@ -599,6 +595,7 @@ class CraftingComponent
     }
   }
 }
+
 //endregion CraftingComponent
 
 //region crafting configuration
@@ -670,9 +667,7 @@ class CraftingConfiguration
      */
     build()
     {
-      const newConfig = new CraftingConfiguration(
-        this.#recipes,
-        this.#categories);
+      const newConfig = new CraftingConfiguration(this.#recipes, this.#categories);
 
       this.#clear();
 
@@ -711,6 +706,7 @@ class CraftingConfiguration
     }
   }
 }
+
 //endregion
 
 //region CraftingRecipe
@@ -780,10 +776,10 @@ class CraftingRecipe
    * @type {CraftingComponent[]}
    */
   outputs = [];
+
   //endregion
 
-  constructor(
-    name,
+  constructor(name,
     key,
     categoryKeys,
     iconIndex,
@@ -953,7 +949,8 @@ class CraftingRecipe
    */
   getPrimaryOutput()
   {
-    return this.outputs.at(0)?.getItem();
+    return this.outputs.at(0)
+      ?.getItem();
   }
 
   /**
@@ -965,6 +962,7 @@ class CraftingRecipe
     this.tools.forEach(tool => tool.generate());
   }
 }
+
 //endregion CraftingRecipe
 
 //region RecipeTracking
@@ -1345,8 +1343,7 @@ class J_CraftingCreatePluginMetadata extends PluginMetadata
       const parsedOutputs = mappableRecipe.outputs.map(componentMapper, this);
 
       // create the recipe.
-      const newJaftingRecipe = new CraftingRecipe(
-        mappableRecipe.name,
+      const newJaftingRecipe = new CraftingRecipe(mappableRecipe.name,
         mappableRecipe.key,
         mappableRecipe.categoryKeys,
         mappableRecipe.iconIndex,
@@ -1554,6 +1551,7 @@ class J_CraftingCreatePluginMetadata extends PluginMetadata
       .build();
   }
 }
+
 //endregion plugin metadata
 
 //region initialization
@@ -1597,55 +1595,43 @@ J.JAFTING.EXT.CREATE.RegExp = {};
  * A plugin command.<br>
  * Calls the JAFTING creation menu.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.CREATE.Metadata.name,
-  "call-menu",
-  () =>
-  {
-    Scene_JaftingCreate.callScene();
-  });
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "call-menu", () =>
+{
+  Scene_JaftingCreate.callScene();
+});
 
 /**
  * A plugin command.<br>
  * Unlocks all categories matching the provided keys.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.CREATE.Metadata.name,
-  "unlock-categories",
-  args =>
-  {
-    const {categoryKeys} = args;
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "unlock-categories", args =>
+{
+  const { categoryKeys } = args;
 
-    const parsedCategoryKeys = JSON.parse(categoryKeys);
-    parsedCategoryKeys.forEach($gameParty.unlockCategory, $gameParty);
-  });
+  const parsedCategoryKeys = JSON.parse(categoryKeys);
+  parsedCategoryKeys.forEach($gameParty.unlockCategory, $gameParty);
+});
 
 /**
  * A plugin command.<br>
  * Unlocks all categories matching the provided keys.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.CREATE.Metadata.name,
-  "lock-categories",
-  args =>
-  {
-    const {categoryKeys} = args;
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "lock-categories", args =>
+{
+  const { categoryKeys } = args;
 
-    const parsedCategoryKeys = JSON.parse(categoryKeys);
-    parsedCategoryKeys.forEach($gameParty.lockCategory, $gameParty);
-  });
+  const parsedCategoryKeys = JSON.parse(categoryKeys);
+  parsedCategoryKeys.forEach($gameParty.lockCategory, $gameParty);
+});
 
 /**
  * A plugin command.<br>
  * Unlocks all recipes matching the provided keys.<br>
  * If the owning categories are not unlocked, the recipes won't be accessible.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.CREATE.Metadata.name,
-  "unlock-recipes",
-  args =>
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "unlock-recipes", args =>
 {
-  const {recipeKeys} = args;
+  const { recipeKeys } = args;
 
   const parsedRecipeKeys = JSON.parse(recipeKeys);
   parsedRecipeKeys.forEach($gameParty.unlockRecipe, $gameParty);
@@ -1655,64 +1641,49 @@ PluginManager.registerCommand(
  * A plugin command.<br>
  * Unlocks all categories matching the provided keys.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.CREATE.Metadata.name,
-  "lock-recipes",
-  args =>
-  {
-    const {recipeKeys} = args;
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "lock-recipes", args =>
+{
+  const { recipeKeys } = args;
 
-    const parsedRecipeKeys = JSON.parse(recipeKeys);
-    parsedRecipeKeys.forEach($gameParty.lockRecipe, $gameParty);
-  });
+  const parsedRecipeKeys = JSON.parse(recipeKeys);
+  parsedRecipeKeys.forEach($gameParty.lockRecipe, $gameParty);
+});
 
 /**
  * A plugin command.<br>
  * Unlocks all categories.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.CREATE.Metadata.name,
-  "unlock-all-categories",
-  () =>
-  {
-    $gameParty.unlockAllCategories();
-  });
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "unlock-all-categories", () =>
+{
+  $gameParty.unlockAllCategories();
+});
 
 /**
  * A plugin command.<br>
  * Unlocks all categories.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.CREATE.Metadata.name,
-  "lock-all-categories",
-  () =>
-  {
-    $gameParty.lockAllCategories();
-  });
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "lock-all-categories", () =>
+{
+  $gameParty.lockAllCategories();
+});
 
 /**
  * A plugin command.<br>
  * Unlocks all recipes.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.CREATE.Metadata.name,
-  "unlock-all-recipes",
-  () =>
-  {
-    $gameParty.unlockAllRecipes();
-  });
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "unlock-all-recipes", () =>
+{
+  $gameParty.unlockAllRecipes();
+});
 
 /**
  * A plugin command.<br>
  * Unlocks all recipes.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.CREATE.Metadata.name,
-  "lock-all-recipes",
-  () =>
-  {
-    $gameParty.lockAllRecipes();
-  });
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "lock-all-recipes", () =>
+{
+  $gameParty.lockAllRecipes();
+});
 //endregion plugin commands
 
 //region Game_Party
@@ -2231,7 +2202,8 @@ J.JAFTING.EXT.CREATE.Aliased.Game_System.set('onAfterLoad', Game_System.prototyp
 Game_System.prototype.onAfterLoad = function()
 {
   // perform original logic.
-  J.JAFTING.EXT.CREATE.Aliased.Game_System.get('onAfterLoad').call(this);
+  J.JAFTING.EXT.CREATE.Aliased.Game_System.get('onAfterLoad')
+    .call(this);
 
   // update the recipes & categories.
   $gameParty.updateRecipesFromConfig();
@@ -2261,7 +2233,8 @@ Scene_Jafting.prototype.onRootJaftingSelection = function()
   else
   {
     // possibly activate other choices.
-    J.JAFTING.EXT.CREATE.Aliased.Scene_Jafting.get('onRootJaftingSelection').call(this);
+    J.JAFTING.EXT.CREATE.Aliased.Scene_Jafting.get('onRootJaftingSelection')
+      .call(this);
   }
 };
 
@@ -2403,6 +2376,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
      */
     this._j._crafting._create._recipeOutputList = null;
   }
+
   //endregion init
 
   //region create
@@ -2452,7 +2426,8 @@ class Scene_JaftingCreate extends Scene_MenuBase
   {
     // also update with the currently selected item, if one exists.
     this.getCreationDescriptionWindow()
-      .setText(this.getCategoryListWindow().currentHelpText() ?? String.empty);
+      .setText(this.getCategoryListWindow()
+        .currentHelpText() ?? String.empty);
   }
 
   /**
@@ -2464,7 +2439,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
     this._backgroundFilter = new PIXI.filters.AlphaFilter(0.1);
     this._backgroundSprite = new Sprite();
     this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-    this._backgroundSprite.filters = [this._backgroundFilter];
+    this._backgroundSprite.filters = [ this._backgroundFilter ];
     this.addChild(this._backgroundSprite);
     //this.setBackgroundOpacity(220);
   }
@@ -2477,6 +2452,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
   createButtons()
   {
   }
+
   //endregion create
 
   //region creation description
@@ -2548,6 +2524,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
   {
     this._j._crafting._create._creationDescription = someWindow;
   }
+
   //endregion creation description
 
   //region category list
@@ -2594,7 +2571,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
   getCategoryListRectangle()
   {
     // the window's origin coordinates are the box window's origin as well.
-    const [x, y] = Graphics.boxOrigin;
+    const [ x, y ] = Graphics.boxOrigin;
 
     // define the width of the window.
     const width = 300;
@@ -2624,9 +2601,11 @@ class Scene_JaftingCreate extends Scene_MenuBase
 
   onCategoryListIndexChange()
   {
-    const helpText = this.getCategoryListWindow().currentHelpText();
+    const helpText = this.getCategoryListWindow()
+      .currentHelpText();
 
-    this.getCreationDescriptionWindow().setText(helpText ?? String.empty);
+    this.getCreationDescriptionWindow()
+      .setText(helpText ?? String.empty);
   }
 
   onCategoryListCancel()
@@ -2697,6 +2676,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
     window.hide();
     window.deactivate();
   }
+
   //endregion category list
 
   //region recipe list
@@ -2747,7 +2727,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
   getRecipeListRectangle()
   {
     // the window's origin coordinates are the box window's origin as well.
-    const [x, y] = Graphics.boxOrigin;
+    const [ x, y ] = Graphics.boxOrigin;
 
     // define the width of the window.
     const width = this.getCategoryListRectangle().width;
@@ -2814,10 +2794,14 @@ class Scene_JaftingCreate extends Scene_MenuBase
     listWindow.deactivate();
 
     // hide all those windows.
-    this.getRecipeDetailsWindow().hide();
-    this.getRecipeIngredientListWindow().hide();
-    this.getRecipeToolListWindow().hide();
-    this.getRecipeOutputListWindow().hide();
+    this.getRecipeDetailsWindow()
+      .hide();
+    this.getRecipeIngredientListWindow()
+      .hide();
+    this.getRecipeToolListWindow()
+      .hide();
+    this.getRecipeOutputListWindow()
+      .hide();
   }
 
   onRecipeListIndexChange()
@@ -2881,12 +2865,14 @@ class Scene_JaftingCreate extends Scene_MenuBase
 
   craftSelection()
   {
-    const currentRecipe = this.getRecipeListWindow().currentExt();
+    const currentRecipe = this.getRecipeListWindow()
+      .currentExt();
 
     currentRecipe.craft();
 
     SoundManager.playShop();
   }
+
   //endregion recipe list
 
   //region recipe details
@@ -2958,6 +2944,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
   {
     this._j._crafting._create._recipeDetails = someWindow;
   }
+
   //endregion recipe details
 
   //region recipe ingredient list
@@ -3031,6 +3018,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
   {
     this._j._crafting._create._recipeIngredientList = someWindow;
   }
+
   //endregion recipe ingredient list
 
   //region recipe tool list
@@ -3104,6 +3092,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
   {
     this._j._crafting._create._recipeToolList = someWindow;
   }
+
   //endregion recipe tool list
 
   //region recipe output list
@@ -3178,6 +3167,7 @@ class Scene_JaftingCreate extends Scene_MenuBase
 
   //endregion recipe output list
 }
+
 //endregion Scene_JaftingCreate
 
 //region Window_CategoryList
@@ -3255,6 +3245,7 @@ class Window_CategoryList extends Window_Command
     return this.lineHeight() * 2;
   }
 }
+
 //endregion Window_CategoryList
 
 //region Window_CreationDescription
@@ -3265,6 +3256,7 @@ class Window_CreationDescription extends Window_Help
     super(rect);
   }
 }
+
 //endregion Window_CreationDescription
 
 //region Window_JaftingList
@@ -3276,7 +3268,8 @@ J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList.set('buildCommands', Window_Jaft
 Window_JaftingList.prototype.buildCommands = function()
 {
   // get the original list of commands.
-  const commands = J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList.get('buildCommands').call(this);
+  const commands = J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList.get('buildCommands')
+    .call(this);
 
   // add the creation command.
   commands.push(this.buildCreationCommand());
@@ -3345,7 +3338,7 @@ class Window_RecipeDetails extends Window_Base
     if (!this.#canDrawContent()) return;
 
     // define the origin x,y coordinates.
-    const [x, y] = [0, 0];
+    const [ x, y ] = [ 0, 0 ];
 
     // render the ingredients header text.
     const ingredientsX = x;
@@ -3399,10 +3392,10 @@ class Window_RecipeDetails extends Window_Base
     this.modFontSize(-12);
     this.toggleItalics();
     const subtext = 'Materials consumed when crafting this recipe.';
-    this.drawText(subtext, x, y+20, this.textWidth(subtext), Window_Base.TextAlignments.Left);
+    this.drawText(subtext, x, y + 20, this.textWidth(subtext), Window_Base.TextAlignments.Left);
     this.toggleItalics();
 
-    this.drawHorizontalLine(x, y+50, 300, 3);
+    this.drawHorizontalLine(x, y + 50, 300, 3);
   }
 
   /**
@@ -3423,9 +3416,9 @@ class Window_RecipeDetails extends Window_Base
     this.modFontSize(-12);
     this.toggleItalics();
     const subtext = "Materials required to craft this recipe.";
-    this.drawText(subtext, x, y+20, this.textWidth(subtext), Window_Base.TextAlignments.Left);
+    this.drawText(subtext, x, y + 20, this.textWidth(subtext), Window_Base.TextAlignments.Left);
 
-    this.drawHorizontalLine(x, y+50, 300, 3);
+    this.drawHorizontalLine(x, y + 50, 300, 3);
   }
 
   /**
@@ -3446,9 +3439,9 @@ class Window_RecipeDetails extends Window_Base
     this.modFontSize(-12);
     this.toggleItalics();
     const subtext = "Materials generated when the recipe is crafted.";
-    this.drawText(subtext, x, y+20, this.textWidth(subtext), Window_Base.TextAlignments.Left);
+    this.drawText(subtext, x, y + 20, this.textWidth(subtext), Window_Base.TextAlignments.Left);
 
-    this.drawHorizontalLine(x, y+50, 300, 3);
+    this.drawHorizontalLine(x, y + 50, 300, 3);
   }
 
   drawPrimaryOutput(x, y)
@@ -3497,7 +3490,8 @@ class Window_RecipeDetails extends Window_Base
     const lh = this.lineHeight() - 4;
 
     // grab the underlying item we're working with.
-    const output = this.#currentRecipe.outputs.at(0).getItem();
+    const output = this.#currentRecipe.outputs.at(0)
+      .getItem();
 
     const lifeY = y + (lh * 1);
     this.drawLifeMessage(output, x, lifeY);
@@ -3688,9 +3682,8 @@ class Window_RecipeDetails extends Window_Base
 
     // find the first revival effect.
     const revivalEffect = output.effects
-      .find(effect =>
-        effect.code === Game_Action.EFFECT_REMOVE_STATE &&
-        effect.dataId === $gameParty.leader().deathStateId());
+      .find(effect => effect.code === Game_Action.EFFECT_REMOVE_STATE && effect.dataId === $gameParty.leader()
+        .deathStateId());
 
     this.drawIcon($dataStates.at(1).iconIndex, x, y);
 
@@ -3714,10 +3707,9 @@ class Window_RecipeDetails extends Window_Base
 
     // grab all the food-specific state effects.
     const foodStateEffects = output.effects
-      .filter(effect =>
-        // it has to add one of OUR states.
-        effect.code === Game_Action.EFFECT_ADD_STATE &&
-        this.#foodStateIds().includes(effect.dataId));
+      .filter(effect => // it has to add one of OUR states.
+        effect.code === Game_Action.EFFECT_ADD_STATE && this.#foodStateIds()
+          .includes(effect.dataId));
 
     // shorthand the line height.
     const lh = this.lineHeight() - 4;
@@ -3746,8 +3738,9 @@ class Window_RecipeDetails extends Window_Base
 
   #foodStateIds()
   {
-    return [82, 83, 84, 85, 86, 87, 88];
+    return [ 82, 83, 84, 85, 86, 87, 88 ];
   }
+
   //endregion item output
 
   //region weapon/armor output
@@ -3757,7 +3750,8 @@ class Window_RecipeDetails extends Window_Base
     const lh = this.lineHeight() - 4;
 
     // grab the underlying weapon we're working with.
-    const output = this.#currentRecipe.outputs.at(0).getItem();
+    const output = this.#currentRecipe.outputs.at(0)
+      .getItem();
 
     const coreParamsY = y + (lh * 1);
     this.drawCoreParams(output, x, coreParamsY);
@@ -3779,51 +3773,67 @@ class Window_RecipeDetails extends Window_Base
 
     // draw mhp
     const mhpY = y;
-    const mhp = this.needsMasking ? '??' : output.params.at(0);
+    const mhp = this.needsMasking
+      ? '??'
+      : output.params.at(0);
     this.drawIcon(IconManager.param(0), leftX, mhpY);
-    this.drawText(mhp, leftX+40, mhpY);
+    this.drawText(mhp, leftX + 40, mhpY);
 
     // draw mmp
     const mmpY = y + (lh * 1);
-    const mmp = this.needsMasking ? '??' : output.params.at(1);
+    const mmp = this.needsMasking
+      ? '??'
+      : output.params.at(1);
     this.drawIcon(IconManager.param(1), leftX, mmpY);
-    this.drawText(mmp, leftX+40, mmpY);
+    this.drawText(mmp, leftX + 40, mmpY);
 
     // draw atk
     const atkY = y + (lh * 2);
-    const atk = this.needsMasking ? '??' : output.params.at(2);
+    const atk = this.needsMasking
+      ? '??'
+      : output.params.at(2);
     this.drawIcon(IconManager.param(2), leftX, atkY);
-    this.drawText(atk, leftX+40, atkY);
+    this.drawText(atk, leftX + 40, atkY);
 
     // draw def
     const defY = y + (lh * 3);
-    const def = this.needsMasking ? '??' : output.params.at(3);
+    const def = this.needsMasking
+      ? '??'
+      : output.params.at(3);
     this.drawIcon(IconManager.param(3), leftX, defY);
-    this.drawText(def, leftX+40, defY);
+    this.drawText(def, leftX + 40, defY);
 
     // draw agi
     const agiY = y;
-    const agi = this.needsMasking ? '??' : output.params.at(6);
+    const agi = this.needsMasking
+      ? '??'
+      : output.params.at(6);
     this.drawIcon(IconManager.param(6), rightX, agiY);
-    this.drawText(agi, rightX+40, agiY);
+    this.drawText(agi, rightX + 40, agiY);
 
     // draw def
     const lukY = y + (lh * 1);
-    const luk = this.needsMasking ? '??' : output.params.at(7);
+    const luk = this.needsMasking
+      ? '??'
+      : output.params.at(7);
     this.drawIcon(IconManager.param(7), rightX, lukY);
-    this.drawText(luk, rightX+40, lukY);
+    this.drawText(luk, rightX + 40, lukY);
 
     // draw mat
     const matY = y + (lh * 2);
-    const mat = this.needsMasking ? '??' : output.params.at(4);
+    const mat = this.needsMasking
+      ? '??'
+      : output.params.at(4);
     this.drawIcon(IconManager.param(4), rightX, matY);
-    this.drawText(mat, rightX+40, matY);
+    this.drawText(mat, rightX + 40, matY);
 
     // draw mdf
     const mdfY = y + (lh * 3);
-    const mdf = this.needsMasking ? '??' : output.params.at(5);
+    const mdf = this.needsMasking
+      ? '??'
+      : output.params.at(5);
     this.drawIcon(IconManager.param(5), rightX, mdfY);
-    this.drawText(mdf, rightX+40, mdfY);
+    this.drawText(mdf, rightX + 40, mdfY);
   }
 
   drawTraits(output, x, y)
@@ -3848,6 +3858,7 @@ class Window_RecipeDetails extends Window_Base
 
     output.traits.forEach(forEacher, this);
   }
+
   //endregion weapon/armor output
 
   //region resource output
@@ -3857,7 +3868,8 @@ class Window_RecipeDetails extends Window_Base
     const lh = this.lineHeight() - 4;
 
     // grab the underlying resource we're working with.
-    const output = this.#currentRecipe.outputs.at(0).getItem();
+    const output = this.#currentRecipe.outputs.at(0)
+      .getItem();
 
     // render the text.
     this.drawText('Resource:', x, y + (lh * 1), 150);
@@ -3874,7 +3886,8 @@ class Window_RecipeDetails extends Window_Base
     const lh = this.lineHeight() - 4;
 
     // grab the underlying resource we're working with.
-    const output = this.#currentRecipe.outputs.at(0).getItem();
+    const output = this.#currentRecipe.outputs.at(0)
+      .getItem();
 
     // render the text.
     this.drawText('Resource:', x, y + (lh * 1), 150);
@@ -3884,8 +3897,10 @@ class Window_RecipeDetails extends Window_Base
     this.drawText('SDP', x, resourceY, 150);
     this.drawText(output.quantity(), x, resourceY, 150, Window_Base.TextAlignments.Right);
   }
+
   //endregion resource output
 }
+
 //endregion Window_RecipeDetails
 
 //region Window_IngredientList
@@ -3966,7 +3981,9 @@ class Window_RecipeIngredientList extends Window_Command
     // determine how many we need vs have on-hand.
     const need = component.quantity();
     const have = component.getHandledQuantity();
-    const haveTextColor = (have >= need) ? 24 : 18;
+    const haveTextColor = (have >= need)
+      ? 24
+      : 18;
     const needQuantity = `x${need}`;
 
     const subtexts = [];
@@ -4016,6 +4033,7 @@ class Window_RecipeIngredientList extends Window_Command
   {
   }
 }
+
 //endregion Window_IngredientList
 
 //region Window_RecipeList
@@ -4138,6 +4156,7 @@ class Window_RecipeList extends Window_Command
   {
   }
 }
+
 //endregion Window_RecipeList
 
 //region Window_RecipeOutputList
@@ -4233,7 +4252,8 @@ class Window_RecipeOutputList extends Window_Command
     let subTextLine = `(have: ${have})`;
 
     const possiblyMaskedOutput = this.needsMasking
-      ? component.getName().replace(/[A-Za-z\-!?',.]/ig, "?")
+      ? component.getName()
+        .replace(/[A-Za-z\-!?',.]/ig, "?")
       : component.getName();
 
     // build a command based on the component.
@@ -4273,6 +4293,7 @@ class Window_RecipeOutputList extends Window_Command
   {
   }
 }
+
 //endregion Window_RecipeOutputList
 
 //region Window_RecipeToolList
@@ -4353,7 +4374,9 @@ class Window_RecipeToolList extends Window_Command
     // determine how many we need vs have on-hand.
     const need = component.quantity();
     const have = component.getHandledQuantity();
-    const haveTextColor = (have >= need) ? 24 : 18;
+    const haveTextColor = (have >= need)
+      ? 24
+      : 18;
     const needQuantity = `x${need}`;
 
     const subtexts = [];
@@ -4403,4 +4426,5 @@ class Window_RecipeToolList extends Window_Command
   {
   }
 }
+
 //endregion Window_RecipeToolList

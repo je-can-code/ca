@@ -27,11 +27,9 @@ class JAFTING_RefinementData
    */
   getMaxRefineCount()
   {
-    return RPGManager.getNumberFromNoteByRegex(
-      // because it expects actual database objects for inspection,
+    return RPGManager.getNumberFromNoteByRegex(// because it expects actual database objects for inspection,
       // hand-craft an object with a note property to be inspected.
-      { note: this._notes },
-      J.JAFTING.EXT.REFINE.MaxRefineCount);
+      { note: this._notes }, J.JAFTING.EXT.REFINE.MaxRefineCount);
   }
 
   /**
@@ -40,11 +38,9 @@ class JAFTING_RefinementData
    */
   getMaxTraitCount()
   {
-    return RPGManager.getNumberFromNoteByRegex(
-      // because it expects actual database objects for inspection,
+    return RPGManager.getNumberFromNoteByRegex(// because it expects actual database objects for inspection,
       // hand-craft an object with a note property to be inspected.
-      { note: this._notes },
-      J.JAFTING.EXT.REFINE.MaxRefinedTraits);
+      { note: this._notes }, J.JAFTING.EXT.REFINE.MaxRefinedTraits);
   }
 
   /**
@@ -53,11 +49,9 @@ class JAFTING_RefinementData
    */
   isNotRefinableAsMaterial()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(
-      // because it expects actual database objects for inspection,
+    return RPGManager.checkForBooleanFromNoteByRegex(// because it expects actual database objects for inspection,
       // hand-craft an object with a note property to be inspected.
-      { note: this._notes },
-      J.JAFTING.EXT.REFINE.NotRefinementMaterial);
+      { note: this._notes }, J.JAFTING.EXT.REFINE.NotRefinementMaterial);
   }
 
   /**
@@ -66,11 +60,9 @@ class JAFTING_RefinementData
    */
   isNotRefinableAsBase()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(
-      // because it expects actual database objects for inspection,
+    return RPGManager.checkForBooleanFromNoteByRegex(// because it expects actual database objects for inspection,
       // hand-craft an object with a note property to be inspected.
-      { note: this._notes },
-      J.JAFTING.EXT.REFINE.NotRefinementBase);
+      { note: this._notes }, J.JAFTING.EXT.REFINE.NotRefinementBase);
   }
 
   /**
@@ -80,13 +72,12 @@ class JAFTING_RefinementData
    */
   isNotRefinable()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(
-      // because it expects actual database objects for inspection,
+    return RPGManager.checkForBooleanFromNoteByRegex(// because it expects actual database objects for inspection,
       // hand-craft an object with a note property to be inspected.
-      { note: this._notes },
-      J.JAFTING.EXT.REFINE.Unrefinable);
+      { note: this._notes }, J.JAFTING.EXT.REFINE.Unrefinable);
   }
 }
+
 //endregion JAFT_RefinementData
 
 //region JAFTING_Trait
@@ -98,6 +89,7 @@ function JAFTING_Trait()
 {
   this.initialize(...arguments);
 }
+
 JAFTING_Trait.prototype = {};
 JAFTING_Trait.prototype.constructor = JAFTING_Trait;
 
@@ -132,8 +124,7 @@ Object.defineProperty(JAFTING_Trait.prototype, "nameAndValue", {
   get()
   {
     return `${this.name} ${this.value}`;
-  },
-  configurable: true,
+  }, configurable: true,
 });
 
 /**
@@ -195,7 +186,9 @@ Object.defineProperty(JAFTING_Trait.prototype, "name", {
       case 54:
         return `${$dataSystem.equipTypes[this._dataId]}`;
       case 55:
-        return `${this._dataId ? "Enable" : "Disable"}`;
+        return `${this._dataId
+          ? "Enable"
+          : "Disable"}`;
 
       // sixth tab.
       case 61:
@@ -210,8 +203,7 @@ Object.defineProperty(JAFTING_Trait.prototype, "name", {
       default:
         return "All traits were implemented,";
     }
-  },
-  configurable: true,
+  }, configurable: true,
 });
 
 /**
@@ -226,26 +218,38 @@ Object.defineProperty(JAFTING_Trait.prototype, "value", {
       // first tab.
       case 11:
         const calculatedElementalRate = Math.round(100 - (this._value * 100));
-        return `${calculatedElementalRate > 0 ? "-" : "+"}${calculatedElementalRate}%`;
+        return `${calculatedElementalRate > 0
+          ? "-"
+          : "+"}${calculatedElementalRate}%`;
       case 12:
         const calculatedDebuffRate = Math.round((this._value * 100) - 100);
-        return `${calculatedDebuffRate > 0 ? "+" : "-"}${calculatedDebuffRate}%`;
+        return `${calculatedDebuffRate > 0
+          ? "+"
+          : "-"}${calculatedDebuffRate}%`;
       case 13:
         const calculatedStateRate = Math.round(100 - (this._value * 100));
-        return `${calculatedStateRate > 0 ? "+" : "-"}${calculatedStateRate}%`;
+        return `${calculatedStateRate > 0
+          ? "+"
+          : "-"}${calculatedStateRate}%`;
       case 14:
         return `${$dataStates[this._dataId].name}`;
 
       // second tab.
       case 21:
         const calculatedBParam = Math.round((this._value * 100) - 100);
-        return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
+        return `${calculatedBParam >= 0
+          ? "+"
+          : ""}${calculatedBParam}%`;
       case 22:
         const calculatedXParam = Math.round((this._value * 100));
-        return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
+        return `${calculatedXParam >= 0
+          ? "+"
+          : ""}${calculatedXParam}%`;
       case 23:
         const calculatedSParam = Math.round((this._value * 100) - 100);
-        return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
+        return `${calculatedSParam >= 0
+          ? "+"
+          : ""}${calculatedSParam}%`;
 
       // third tab.
       case 31:
@@ -253,9 +257,13 @@ Object.defineProperty(JAFTING_Trait.prototype, "value", {
       case 32:
         return `${(this._value * 100)}%`;
       case 33:
-        return `${this._value > 0 ? "+" : "-"}${this._value}`;
+        return `${this._value > 0
+          ? "+"
+          : "-"}${this._value}`;
       case 34:
-        return `${this._value > 0 ? "+" : "-"}${this._value}`;
+        return `${this._value > 0
+          ? "+"
+          : "-"}${this._value}`;
       case 35:
         return `${$dataSkills[this._value].name}`;
 
@@ -293,8 +301,7 @@ Object.defineProperty(JAFTING_Trait.prototype, "value", {
       default:
         return "is this a custom trait?";
     }
-  },
-  configurable: true,
+  }, configurable: true,
 });
 
 /**
@@ -583,6 +590,7 @@ class J_CraftingRefinePluginMetadata extends PluginMetadata
     this.commandIconIndex = parseInt(this.parsedPluginParameters['menu-icon']) ?? 0;
   }
 }
+
 //endregion plugin metadata
 
 /**
@@ -719,12 +727,10 @@ J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
  * A plugin command.<br>
  * Calls the JAFTING refinement menu.
  */
-PluginManager.registerCommand(
-  J.JAFTING.EXT.REFINE.Metadata.name,
-  "call-menu", () => 
-  {
-    Scene_JaftingRefine.callScene();
-  });
+PluginManager.registerCommand(J.JAFTING.EXT.REFINE.Metadata.name, "call-menu", () =>
+{
+  Scene_JaftingRefine.callScene();
+});
 //endregion plugin commands
 
 /**
@@ -739,7 +745,8 @@ J.JAFTING.EXT.REFINE.Aliased.RPG_Base.set('_generate', RPG_Base.prototype._gener
 RPG_Base.prototype._generate = function(overrides, index)
 {
   // perform original logic.
-  const original = J.JAFTING.EXT.REFINE.Aliased.RPG_Base.get('_generate').call(this, overrides, index);
+  const original = J.JAFTING.EXT.REFINE.Aliased.RPG_Base.get('_generate')
+    .call(this, overrides, index);
 
   // update the refined count to the latest.
   original.jaftingRefinedCount = overrides.jaftingRefinedCount;
@@ -761,13 +768,12 @@ RPG_EquipItem.prototype.jaftingRefinedCount ||= 0;
  * Whether or not this equip is blocked from being used as a base for refinement.
  * @type {boolean}
  */
-Object.defineProperty(RPG_EquipItem.prototype, "jaftingNotRefinementBase",
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingNotRefinementBase", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJaftingNotRefinementBase();
-    },
-  });
+    return this.getJaftingNotRefinementBase();
+  },
+});
 
 /**
  * Gets whether or not this equip is blocked from being used as a base for refinement.
@@ -793,13 +799,12 @@ RPG_EquipItem.prototype.extractJaftingNotRefinementBase = function()
  * Whether or not this equip is blocked from being used as a material for refinement.
  * @type {boolean}
  */
-Object.defineProperty(RPG_EquipItem.prototype, "jaftingNotRefinementMaterial",
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingNotRefinementMaterial", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJaftingNotRefinementBase();
-    },
-  });
+    return this.getJaftingNotRefinementBase();
+  },
+});
 
 /**
  * Gets whether or not this equip is blocked from being used as a material for refinement.
@@ -827,13 +832,12 @@ RPG_EquipItem.prototype.extractJaftingNotRefinementMaterial = function()
  * existing on the same equip.
  * @type {boolean}
  */
-Object.defineProperty(RPG_EquipItem.prototype, "jaftingUnrefinable",
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingUnrefinable", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJaftingUnrefinable();
-    },
-  });
+    return this.getJaftingUnrefinable();
+  },
+});
 
 /**
  * Gets whether or not this equip is blocked from being used as a material for refinement.
@@ -878,13 +882,12 @@ RPG_EquipItem.prototype.extractJaftingUnrefinable = function()
  * The maximum number of times this equip can be refined.
  * @type {number}
  */
-Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxRefineCount",
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxRefineCount", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJaftingMaxRefineCount();
-    },
-  });
+    return this.getJaftingMaxRefineCount();
+  },
+});
 
 /**
  * Gets how many times this equip can be refined.
@@ -910,13 +913,12 @@ RPG_EquipItem.prototype.extractJaftingMaxRefineCount = function()
  * This is defined as the number of traits that come after the divider.
  * @type {number}
  */
-Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxTraitCount",
+Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxTraitCount", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJaftingMaxTraitCount();
-    },
-  });
+    return this.getJaftingMaxTraitCount();
+  },
+});
 
 /**
  * Gets how many traits this equip can have from refinement.
@@ -947,8 +949,7 @@ class JaftingManager
    * A collection of categories of equipment that are refinable.
    */
   static RefinementTypes = {
-    Armor: "armor",
-    Weapon: "weapon",
+    Armor: "armor", Weapon: "weapon",
   }
 
   /**
@@ -968,7 +969,7 @@ class JaftingManager
   static parseTraits(equip)
   {
     // shallow copy of the traits (which is all we need- traits aren't layered).
-    const allTraits = [...equip.traits];
+    const allTraits = [ ...equip.traits ];
 
     // identify where the divider is.
     const divider = allTraits.findIndex(trait => trait.code === 63);
@@ -1172,9 +1173,9 @@ class JaftingManager
     let baseTraits = this.parseTraits(base);
     let materialTraits = this.parseTraits(material);
 
-    [baseTraits, materialTraits] = this.removeIncompatibleTraits(baseTraits, materialTraits);
+    [ baseTraits, materialTraits ] = this.removeIncompatibleTraits(baseTraits, materialTraits);
 
-    [baseTraits, materialTraits] = this.#overwriteAllOverwritableTraits(baseTraits, materialTraits);
+    [ baseTraits, materialTraits ] = this.#overwriteAllOverwritableTraits(baseTraits, materialTraits);
 
     // copy of primary equip that represents the projected result.
     const output = base._generate(base, base._index());
@@ -1231,7 +1232,7 @@ class JaftingManager
   static removeIncompatibleTraits(baseTraits, materialTraits)
   {
     // a list of traits that should be purged from the secondary list if found.
-    const noDuplicateTraitCodes = [14, 31, 41, 42, 43, 44, 51, 52, 53, 54, 55, 62, 64];
+    const noDuplicateTraitCodes = [ 14, 31, 41, 42, 43, 44, 51, 52, 53, 54, 55, 62, 64 ];
     baseTraits.forEach(jaftingTrait =>
     {
       if (noDuplicateTraitCodes.includes(jaftingTrait._code))
@@ -1241,18 +1242,18 @@ class JaftingManager
     });
 
     // handle lock/unlock skills types.
-    [baseTraits, materialTraits] = this.removeOppositeTrait(baseTraits, materialTraits, 41, 42);
+    [ baseTraits, materialTraits ] = this.removeOppositeTrait(baseTraits, materialTraits, 41, 42);
 
     // handle lock/unlock skills.
-    [baseTraits, materialTraits] = this.removeOppositeTrait(baseTraits, materialTraits, 43, 44);
+    [ baseTraits, materialTraits ] = this.removeOppositeTrait(baseTraits, materialTraits, 43, 44);
 
     // overwrite basic attack skill.
-    [baseTraits, materialTraits] = this.replaceTrait(baseTraits, materialTraits, 35);
+    [ baseTraits, materialTraits ] = this.replaceTrait(baseTraits, materialTraits, 35);
 
     // overwrite enable/disable of dual-wield (unique case!)
-    [baseTraits, materialTraits] = this.replaceTrait(baseTraits, materialTraits, 55);
+    [ baseTraits, materialTraits ] = this.replaceTrait(baseTraits, materialTraits, 55);
 
-    return [baseTraits, materialTraits];
+    return [ baseTraits, materialTraits ];
   }
 
   /**
@@ -1349,7 +1350,7 @@ class JaftingManager
     baseTraitList = baseTraitList.filter(trait => !!trait);
     materialTraitList = materialTraitList.filter(trait => !!trait);
 
-    return [baseTraitList, materialTraitList];
+    return [ baseTraitList, materialTraitList ];
   }
 
   /**
@@ -1378,7 +1379,7 @@ class JaftingManager
 
     // cleanup both our lists from any removed traits.
     baseTraitList = baseTraitList.filter(trait => !!trait);
-    return [baseTraitList, materialTraitList];
+    return [ baseTraitList, materialTraitList ];
   }
 
   /**
@@ -1389,13 +1390,13 @@ class JaftingManager
    */
   static #overwriteAllOverwritableTraits(baseTraits, materialTraits)
   {
-    const overwritableCodes = [11, 12, 13, 32, 33, 34, 61];
+    const overwritableCodes = [ 11, 12, 13, 32, 33, 34, 61 ];
     overwritableCodes.forEach(code =>
     {
-      [baseTraits, materialTraits] = this.#overwriteIfBetter(baseTraits, materialTraits, code);
+      [ baseTraits, materialTraits ] = this.#overwriteIfBetter(baseTraits, materialTraits, code);
     });
 
-    return [baseTraits, materialTraits];
+    return [ baseTraits, materialTraits ];
   }
 
   /**
@@ -1416,9 +1417,7 @@ class JaftingManager
       if (trait._code !== code) return false;
 
       // check if another version of the trait exists on the material.
-      const index = materialTraitList.findIndex(jaftingTrait =>
-        jaftingTrait._code === code &&
-        jaftingTrait._dataId === trait._dataId);
+      const index = materialTraitList.findIndex(jaftingTrait => jaftingTrait._code === code && jaftingTrait._dataId === trait._dataId);
       return index > -1;
     };
 
@@ -1433,14 +1432,14 @@ class JaftingManager
     });
 
     // if we have no matches to combine, then just return the lists untouched.
-    if (!sameIndices.length) return [baseTraitList, materialTraitList];
+    if (!sameIndices.length) return [ baseTraitList, materialTraitList ];
 
     // create copies for working with.
     let tempBaseList = JsonEx.makeDeepCopy(baseTraitList);
     let tempMaterialList = JsonEx.makeDeepCopy(materialTraitList);
 
-    const higherIsBetterCodes = [32, 33, 34, 61];
-    const lowerIsBetterCodes = [11, 12, 13];
+    const higherIsBetterCodes = [ 32, 33, 34, 61 ];
+    const lowerIsBetterCodes = [ 11, 12, 13 ];
 
     // iterate over all shared traits to analyze them further.
     sameIndices.forEach(i =>
@@ -1486,7 +1485,7 @@ class JaftingManager
       .filter(t => !!t)
       .map(t => new JAFTING_Trait(t._code, t._dataId, t._value));
 
-    return [tempBaseList, tempMaterialList];
+    return [ tempBaseList, tempMaterialList ];
   }
 
   /**
@@ -1609,6 +1608,7 @@ class JaftingManager
     }
   }
 }
+
 //endregion JaftingManager
 
 //region Game_Item
@@ -1620,7 +1620,8 @@ J.JAFTING.EXT.REFINE.Aliased.Game_Item.set('setObject', Game_Item.prototype.setO
 Game_Item.prototype.setObject = function(item)
 {
   // perform original logic.
-  J.JAFTING.EXT.REFINE.Aliased.Game_Item.get('setObject').call(this, item);
+  J.JAFTING.EXT.REFINE.Aliased.Game_Item.get('setObject')
+    .call(this, item);
 
   // assign the item id to here.
   this._itemId = item
@@ -1638,7 +1639,8 @@ J.JAFTING.EXT.REFINE.Aliased.Game_Party.set('initialize', Game_Party.prototype.i
 Game_Party.prototype.initialize = function()
 {
   // perform original logic.
-  J.JAFTING.EXT.REFINE.Aliased.Game_Party.get('initialize').call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Game_Party.get('initialize')
+    .call(this);
 
   // init the members.
   this.initJaftingRefinementMembers();
@@ -1733,11 +1735,12 @@ Game_Party.prototype.addRefinedArmor = function(equip)
  */
 Game_Party.prototype.refreshDatabaseWeapons = function()
 {
-  this.getRefinedWeapons().forEach(weapon =>
-  {
-    const updatedWeapon = new RPG_Weapon(weapon, weapon.index);
-    $dataWeapons[updatedWeapon._key()] = updatedWeapon;
-  });
+  this.getRefinedWeapons()
+    .forEach(weapon =>
+    {
+      const updatedWeapon = new RPG_Weapon(weapon, weapon.index);
+      $dataWeapons[updatedWeapon._key()] = updatedWeapon;
+    });
 };
 
 /**
@@ -1746,11 +1749,12 @@ Game_Party.prototype.refreshDatabaseWeapons = function()
  */
 Game_Party.prototype.refreshDatabaseArmors = function()
 {
-  this.getRefinedArmors().forEach(armor =>
-  {
-    const updatedArmor = new RPG_Armor(armor, armor.index);
-    $dataArmors[updatedArmor._key()] = updatedArmor;
-  });
+  this.getRefinedArmors()
+    .forEach(armor =>
+    {
+      const updatedArmor = new RPG_Armor(armor, armor.index);
+      $dataArmors[updatedArmor._key()] = updatedArmor;
+    });
 };
 
 /**
@@ -1782,7 +1786,8 @@ J.JAFTING.EXT.REFINE.Aliased.Game_System.set('onAfterLoad', Game_System.prototyp
 Game_System.prototype.onAfterLoad = function()
 {
   // perform original logic.
-  J.JAFTING.EXT.REFINE.Aliased.Game_System.get('onAfterLoad').call(this);
+  J.JAFTING.EXT.REFINE.Aliased.Game_System.get('onAfterLoad')
+    .call(this);
 
   // update the weapons & armor.
   $gameParty.refreshDatabaseWeapons();
@@ -1812,7 +1817,8 @@ Scene_Jafting.prototype.onRootJaftingSelection = function()
   else
   {
     // possibly activate other choices.
-    J.JAFTING.EXT.REFINE.Aliased.Scene_Jafting.get('onRootJaftingSelection').call(this);
+    J.JAFTING.EXT.REFINE.Aliased.Scene_Jafting.get('onRootJaftingSelection')
+      .call(this);
   }
 };
 
@@ -1975,6 +1981,7 @@ class Scene_JaftingRefine extends Scene_MenuBase
   {
     this._j._crafting._refine._consumedSelected = equip;
   }
+
   //endregion init
 
   //region create
@@ -2023,7 +2030,8 @@ class Scene_JaftingRefine extends Scene_MenuBase
     const listWindow = this.getBaseRefinableListWindow();
 
     // also update with the currently selected item, if one exists.
-    this.getRefinementDescriptionWindow().setText(listWindow.currentHelpText() ?? String.empty);
+    this.getRefinementDescriptionWindow()
+      .setText(listWindow.currentHelpText() ?? String.empty);
 
     const selected = listWindow.currentExt();
     this.setBaseSelected(selected.data);
@@ -2041,7 +2049,7 @@ class Scene_JaftingRefine extends Scene_MenuBase
     this._backgroundFilter = new PIXI.filters.AlphaFilter(0.1);
     this._backgroundSprite = new Sprite();
     this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-    this._backgroundSprite.filters = [this._backgroundFilter];
+    this._backgroundSprite.filters = [ this._backgroundFilter ];
     this.addChild(this._backgroundSprite);
     //this.setBackgroundOpacity(220);
   }
@@ -2054,6 +2062,7 @@ class Scene_JaftingRefine extends Scene_MenuBase
   createButtons()
   {
   }
+
   //endregion create
 
   //region refinement description
@@ -2124,6 +2133,7 @@ class Scene_JaftingRefine extends Scene_MenuBase
   {
     this._j._crafting._refine._refinementDescription = someWindow;
   }
+
   //endregion refinement description
 
   //region base refinable list
@@ -2173,7 +2183,7 @@ class Scene_JaftingRefine extends Scene_MenuBase
   getBaseRefinableListRectangle()
   {
     // the window's origin coordinates are the box window's origin as well.
-    const [x, y] = Graphics.boxOrigin;
+    const [ x, y ] = Graphics.boxOrigin;
 
     // define the width of the window.
     const width = 350;
@@ -2229,7 +2239,8 @@ class Scene_JaftingRefine extends Scene_MenuBase
     const listWindow = this.getBaseRefinableListWindow();
 
     const helpText = listWindow.currentHelpText();
-    this.getRefinementDescriptionWindow().setText(helpText ?? String.empty);
+    this.getRefinementDescriptionWindow()
+      .setText(helpText ?? String.empty);
 
     const baseRefinable = listWindow.currentExt();
     this.getRefinementDetailsWindow().primaryEquip = baseRefinable?.data;
@@ -2251,6 +2262,7 @@ class Scene_JaftingRefine extends Scene_MenuBase
     this.deselectBaseRefinableListWindow();
     this.selectConsumableRefinableListWindow();
   }
+
   //endregion base refinable list
 
   //region consumable refinable list
@@ -2301,7 +2313,7 @@ class Scene_JaftingRefine extends Scene_MenuBase
   getConsumableRefinableListRectangle()
   {
     // the window's origin coordinates are the box window's origin as well.
-    const [x, y] = Graphics.boxOrigin;
+    const [ x, y ] = Graphics.boxOrigin;
 
     // define the width of the window.
     const width = 350;
@@ -2364,7 +2376,8 @@ class Scene_JaftingRefine extends Scene_MenuBase
     const listWindow = this.getConsumableRefinableListWindow();
 
     const helpText = listWindow.currentHelpText();
-    this.getRefinementDescriptionWindow().setText(helpText ?? String.empty);
+    this.getRefinementDescriptionWindow()
+      .setText(helpText ?? String.empty);
 
     const consumedRefinable = listWindow.currentExt();
     this.getRefinementDetailsWindow().secondaryEquip = consumedRefinable.data;
@@ -2387,6 +2400,7 @@ class Scene_JaftingRefine extends Scene_MenuBase
     //this.deselectConsumableRefinableListWindow();
     this.selectRefinementConfirmationWindow();
   }
+
   //endregion consumable refinable list
 
   //region refinement details
@@ -2454,6 +2468,7 @@ class Scene_JaftingRefine extends Scene_MenuBase
   {
     this._j._crafting._refine._refinementDetails = someWindow;
   }
+
   //endregion refinement details
 
   //region confirmation prompt
@@ -2584,10 +2599,13 @@ class Scene_JaftingRefine extends Scene_MenuBase
     listWindow.refresh();
     listWindow.select(0);
 
-    this.getConsumableRefinableListWindow().refresh();
+    this.getConsumableRefinableListWindow()
+      .refresh();
   }
+
   //endregion confirmation prompt
 }
+
 //endregion
 
 //region Window_JaftingList
@@ -2599,7 +2617,8 @@ J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList.set('buildCommands', Window_Jaft
 Window_JaftingList.prototype.buildCommands = function()
 {
   // get the original list of commands.
-  const commands = J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList.get('buildCommands').call(this);
+  const commands = J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList.get('buildCommands')
+    .call(this);
 
   // add the creation command.
   commands.push(this.buildRefinementCommand());
@@ -2758,7 +2777,7 @@ class Window_RefinableList extends Window_Command
         ? true
         : canSelectBaseAgain; // only select the base again if you have 2+ copies of it.
 
-      let {iconIndex} = equip;
+      let { iconIndex } = equip;
 
       let errorText = "";
 
@@ -2855,7 +2874,7 @@ class Window_RefinableList extends Window_Command
         iconIndex = 91;
       }
 
-      const extData = {data: equip, error: errorText};
+      const extData = { data: equip, error: errorText };
 
       const command = new WindowCommandBuilder(equip.name)
         .setSymbol('refine-object')
@@ -2872,6 +2891,7 @@ class Window_RefinableList extends Window_Command
     });
   }
 }
+
 //endregion Window_JaftingEquip
 
 //region Window_JaftingRefinementConfirmation
@@ -2900,6 +2920,7 @@ class Window_RefinementConfirmation extends Window_Command
     this.addCommand(`${J.JAFTING.EXT.REFINE.Messages.CancelRefinementCommandName}`, `cancel`, true, null, 90);
   }
 }
+
 //endregion Window_JaftingRefinementConfirmation
 
 //region Window_RefinementDescription
@@ -2910,6 +2931,7 @@ class Window_RefinementDescription extends Window_Help
     super(rect);
   }
 }
+
 //endregion Window_RefinementDescription
 
 //region Window_RefinementDetails
@@ -3177,4 +3199,5 @@ class Window_RefinementDetails extends Window_Base
     this.outputEquip = result;
   }
 }
+
 //endregion Window_RefinementDetails

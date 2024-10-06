@@ -80,7 +80,8 @@ J.HUD.EXT.PARTY.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initiali
 Scene_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('initialize').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('initialize')
+    .call(this);
 
   /**
    * The shared root namespace for all of J's plugin data.
@@ -101,7 +102,8 @@ J.HUD.EXT.PARTY.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.cr
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('createAllWindows')
+    .call(this);
 
   // create the hud.
   this.createPartyFrameWindow();
@@ -165,7 +167,8 @@ J.HUD.EXT.PARTY.Aliased.Scene_Map.set('refreshHud', Scene_Map.prototype.refreshH
 Scene_Map.prototype.refreshHud = function()
 {
   // perform original logic.
-  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('refreshHud').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('refreshHud')
+    .call(this);
 
   // refresh the party frame.
   this._j._partyFrame.refresh();
@@ -178,7 +181,8 @@ J.HUD.EXT.PARTY.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.upd
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.PARTY.Aliased.Scene_Map.get('updateHudFrames')
+    .call(this);
 
   // manages hud refreshes.
   this.handleRefreshPartyFrame();
@@ -437,11 +441,7 @@ Sprite_StateTimer.prototype.loadBitmap = function()
   this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
   this.bitmap.fontFace = this.fontFace();
   this.bitmap.fontSize = this.fontSize();
-  this.bitmap.drawText(
-    this._j._text,
-    0, 0,
-    this.bitmapWidth(), this.bitmapHeight(),
-    "center");
+  this.bitmap.drawText(this._j._text, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
 }
 
 Sprite_StateTimer.prototype.update = function()
@@ -455,11 +455,7 @@ Sprite_StateTimer.prototype.updateCooldownText = function()
   this.bitmap.clear();
   const durationRemaining = (this._j._stateData.duration / 60).toFixed(1);
 
-  this.bitmap.drawText(
-    durationRemaining.toString(),
-    0, 0,
-    this.bitmapWidth(), this.bitmapHeight(),
-    "center");
+  this.bitmap.drawText(durationRemaining.toString(), 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
 };
 
 /**
@@ -776,8 +772,7 @@ class Window_PartyFrame extends Window_Base
       Window_PartyFrame.gaugeTypes.HP,
       Window_PartyFrame.gaugeTypes.MP,
       Window_PartyFrame.gaugeTypes.TP,
-      Window_PartyFrame.gaugeTypes.XP
-    ];
+      Window_PartyFrame.gaugeTypes.XP ];
   }
 
   /**
@@ -1449,12 +1444,7 @@ class Window_PartyFrame extends Window_Base
     this.toggleBold();
     this.toggleItalics();
 
-    this.drawText(
-      `x${trackedState.stackCount}`,
-      ox ,
-      y - 30,
-      64,
-      Window_Base.TextAlignments.Left);
+    this.drawText(`x${trackedState.stackCount}`, ox, y - 30, 64, Window_Base.TextAlignments.Left);
 
     this.resetFontSettings()
   }

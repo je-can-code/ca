@@ -47,9 +47,7 @@ J.CMS_E.Metadata.Name = `J-CMS-Equip`;
 J.CMS_E.Metadata.Version = '1.0.0';
 
 J.CMS_E.Aliased = {
-  Scene_Equip: {},
-  Window_EquipItem: {},
-  Window_EquipSlot: {},
+  Scene_Equip: {}, Window_EquipItem: {}, Window_EquipSlot: {},
 };
 //endregion Introduction
 
@@ -401,7 +399,7 @@ Window_EquipStatus.prototype.drawAllParams = function()
  */
 Window_EquipStatus.prototype.drawAllBParams = function(ox, oy)
 {
-  const params = [0, 1, 2, 3, 4, 5, 6, 7];
+  const params = [ 0, 1, 2, 3, 4, 5, 6, 7 ];
   params.forEach((_, paramId) =>
   {
     this.drawBParamName(paramId, ox, oy);
@@ -479,7 +477,7 @@ Window_EquipStatus.prototype.drawNextBParam = function(paramId, ox, oy)
  */
 Window_EquipStatus.prototype.drawAllXParams = function(ox, oy)
 {
-  const xparams = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const xparams = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
   xparams.forEach((_, xparamId) =>
   {
     this.drawXParamName(xparamId, ox, oy);
@@ -558,7 +556,7 @@ Window_EquipStatus.prototype.drawNextXParam = function(xparamId, ox, oy)
  */
 Window_EquipStatus.prototype.drawAllSParams = function(ox, oy)
 {
-  const sparams = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const sparams = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
   sparams.forEach((_, xparamId) =>
   {
     this.drawSParamName(xparamId, ox, oy);
@@ -987,8 +985,8 @@ class Window_MoreEquipData extends Window_MoreData
     const allTraits = this.item.traits;
     if (!allTraits.length) return;
 
-    const xparamNoPercents = [0, 2, 7, 8, 9]; // code 22
-    const sparamNoPercents = [1]; // code 23
+    const xparamNoPercents = [ 0, 2, 7, 8, 9 ]; // code 22
+    const sparamNoPercents = [ 1 ]; // code 23
     const dividerIndex = allTraits.findIndex(trait => trait.code === J.BASE.Traits.NO_DISAPPEAR);
     const hasDivider = dividerIndex !== -1;
     if (hasDivider)
@@ -1007,7 +1005,9 @@ class Window_MoreEquipData extends Window_MoreData
           const paramId = convertedTrait._dataId;
           const paramBase = this.actor.paramBase(paramId);
           const bonus = paramBase * (convertedTrait._value - 1);
-          const sign = bonus >= 0 ? '+' : '-';
+          const sign = bonus >= 0
+            ? '+'
+            : '-';
           commandName += ` \\C[6](${sign}${bonus.toFixed(2)})\\C[0]`;
           break;
         case 22:
@@ -1037,4 +1037,5 @@ class Window_MoreEquipData extends Window_MoreData
     });
   }
 }
+
 //endregion Window_MoreEquipData

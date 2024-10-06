@@ -88,6 +88,7 @@ class J_HUD_Quest_PluginMetadata extends PluginMetadata
     this.menuSwitchId = parseInt(this.parsedPluginParameters['menu-switch']);
   }
 }
+
 //endregion plugin metadata
 
 //region initialization
@@ -127,13 +128,10 @@ J.HUD.EXT.QUEST.RegExp.Points = /<tag:[ ]?(\d+)>/i;
 /**
  * Plugin command for doing the thing.
  */
-PluginManager.registerCommand(
-  J.HUD.EXT.QUEST.Metadata.name,
-  "do-the-thing",
-  args =>
-  {
-    console.log('did the thing.');
-  });
+PluginManager.registerCommand(J.HUD.EXT.QUEST.Metadata.name, "do-the-thing", args =>
+{
+  console.log('did the thing.');
+});
 //endregion plugin commands
 
 //region TrackedOmniObjective
@@ -166,7 +164,8 @@ J.HUD.EXT.QUEST.Aliased.TrackedOmniQuest.set('refreshState', TrackedOmniQuest.pr
 TrackedOmniQuest.prototype.refreshState = function()
 {
   // perform original logic.
-  J.HUD.EXT.QUEST.Aliased.TrackedOmniQuest.get('refreshState').call(this);
+  J.HUD.EXT.QUEST.Aliased.TrackedOmniQuest.get('refreshState')
+    .call(this);
 
   // also refresh the quest HUD with a progression of objectives.
   $hudManager.requestQuestRefresh();
@@ -181,7 +180,8 @@ J.HUD.EXT.QUEST.Aliased.TrackedOmniQuest.set('unlock', TrackedOmniQuest.prototyp
 TrackedOmniQuest.prototype.unlock = function(objectiveId = null)
 {
   // perform original logic.
-  J.HUD.EXT.QUEST.Aliased.TrackedOmniQuest.get('unlock').call(this, objectiveId);
+  J.HUD.EXT.QUEST.Aliased.TrackedOmniQuest.get('unlock')
+    .call(this, objectiveId);
 
   // check if we have any tracked quests.
   const hasNoTrackedQuests = QuestManager.trackedQuests().length === 0;
@@ -207,7 +207,8 @@ J.HUD.EXT.QUEST.Aliased.HudManager.set('initMembers', HudManager.prototype.initM
 HudManager.prototype.initMembers = function()
 {
   // perform original logic.
-  J.HUD.EXT.QUEST.Aliased.HudManager.get('initMembers').call(this);
+  J.HUD.EXT.QUEST.Aliased.HudManager.get('initMembers')
+    .call(this);
 
   /**
    * The request state for the quest data of the HUD.
@@ -251,7 +252,8 @@ J.HUD.EXT.QUEST.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.init
 Scene_Map.prototype.initHudMembers = function()
 {
   // perform original logic.
-  J.HUD.EXT.QUEST.Aliased.Scene_Map.get('initHudMembers').call(this);
+  J.HUD.EXT.QUEST.Aliased.Scene_Map.get('initHudMembers')
+    .call(this);
 
   /**
    * A grouping of all properties that belong to quest extension of the HUD.
@@ -273,7 +275,8 @@ J.HUD.EXT.QUEST.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.cr
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT.QUEST.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.QUEST.Aliased.Scene_Map.get('createAllWindows')
+    .call(this);
 
   // create the target frame.
   this.createQuestFrameWindow();
@@ -360,13 +363,15 @@ J.HUD.EXT.QUEST.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.upd
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT.QUEST.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.QUEST.Aliased.Scene_Map.get('updateHudFrames')
+    .call(this);
 
   // check if we need to refresh quest data.
   if ($hudManager.needsQuestRefresh())
   {
     // refresh the quest frame.
-    this.getQuestFrameWindow().refresh();
+    this.getQuestFrameWindow()
+      .refresh();
 
     // acknowledge the refresh.
     $hudManager.acknowledgeQuestRefresh();
@@ -379,13 +384,13 @@ Scene_Map.prototype.updateHudFrames = function()
  * Extends {@link onQuestopediaListSelection}.<br/>
  * Triggers a HUD update request when something is selected in the list of quests.
  */
-J.HUD.EXT.QUEST.Aliased.Scene_Questopedia.set(
-  'onQuestopediaListSelection',
+J.HUD.EXT.QUEST.Aliased.Scene_Questopedia.set('onQuestopediaListSelection',
   Scene_Questopedia.prototype.onQuestopediaListSelection);
 Scene_Questopedia.prototype.onQuestopediaListSelection = function()
 {
   // perform original logic.
-  J.HUD.EXT.QUEST.Aliased.Scene_Questopedia.get('onQuestopediaListSelection').call(this);
+  J.HUD.EXT.QUEST.Aliased.Scene_Questopedia.get('onQuestopediaListSelection')
+    .call(this);
 
   // also refresh the HUD when the user gets back to the map if they added/removed trackings of quests.
   $hudManager.requestQuestRefresh();
@@ -451,7 +456,7 @@ class Window_QuestFrame extends Window_Base
       {
         this.close();
       }
-      
+
       // don't do anything else if the hud can't be shown.
       return;
     }
@@ -528,7 +533,7 @@ class Window_QuestFrame extends Window_Base
   {
     // don't draw the hud if it can't be shown.
     if (!$hudManager.canShowHud()) return;
-    
+
     // we default to the upper left most point of the window for origin.
     const [ x, y ] = [ 0, 0 ];
 

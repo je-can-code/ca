@@ -141,9 +141,7 @@ J.HUD.PluginParameters = PluginManager.parameters(J.HUD.Metadata.Name);
  * A collection of all aliased methods for this plugin.
  */
 J.HUD.Aliased = {
-  Game_System: new Map(),
-  Scene_Map: new Map(),
-  DataManager: new Map(),
+  Game_System: new Map(), Scene_Map: new Map(), DataManager: new Map(),
 };
 //endregion metadata
 
@@ -213,7 +211,8 @@ J.HUD.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects
 DataManager.createGameObjects = function()
 {
   // perform original logic.
-  J.HUD.Aliased.DataManager.get('createGameObjects').call(this);
+  J.HUD.Aliased.DataManager.get('createGameObjects')
+    .call(this);
 
   // create the global hud manager object.
   if (!$hudManager)
@@ -227,7 +226,8 @@ J.HUD.Aliased.DataManager.set('extractSaveContents', DataManager.extractSaveCont
 DataManager.extractSaveContents = function(contents)
 {
   // perform original logic.
-  J.HUD.Aliased.DataManager.get('extractSaveContents').call(this, contents);
+  J.HUD.Aliased.DataManager.get('extractSaveContents')
+    .call(this, contents);
 
   // setup the hud now that we know we have the save contents available.
   $hudManager.setup();
@@ -237,7 +237,8 @@ J.HUD.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
 DataManager.setupNewGame = function()
 {
   // perform original logic.
-  J.HUD.Aliased.DataManager.get('setupNewGame').call(this);
+  J.HUD.Aliased.DataManager.get('setupNewGame')
+    .call(this);
 
   // setup the hud now that we know we have the save contents available.
   $hudManager.setup();
@@ -332,6 +333,7 @@ class HudManager
    * @private
    */
   #ready = false;
+
   //endregion properties
 
   /**
@@ -504,6 +506,7 @@ class HudManager
   {
     this.#setRequestRefreshImageCache(false);
   }
+
   //endregion refresh
 
   //region target frame
@@ -567,6 +570,7 @@ class HudManager
   {
     this.setNewTarget(null);
   }
+
   //endregion target frame
 
   //region input frame
@@ -594,6 +598,7 @@ class HudManager
   {
     this.#setRequestRefreshInputFrame(false);
   }
+
   //endregion input frame
 
   //region private functions
@@ -805,8 +810,10 @@ class HudManager
   {
     this.#requestHideHud = request;
   }
+
   //endregion private functions
 }
+
 //endregion Hud_Manager
 
 //region Game_System
@@ -817,11 +824,11 @@ J.HUD.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
   // perform original logic.
-  J.HUD.Aliased.Game_System.get('initialize').call(this);
+  J.HUD.Aliased.Game_System.get('initialize')
+    .call(this);
   this._j ||= {};
   this._j._hud ||= {
-    _hudVisible: true,
-    _alliesVisible: true,
+    _hudVisible: true, _alliesVisible: true,
   };
 };
 
@@ -872,7 +879,8 @@ J.HUD.Aliased.Scene_Map.set('initMembers', Scene_Map.prototype.initMembers);
 Scene_Map.prototype.initMembers = function()
 {
   // perform original logic.
-  J.HUD.Aliased.Scene_Map.get('initMembers').call(this);
+  J.HUD.Aliased.Scene_Map.get('initMembers')
+    .call(this);
 
   // also initialize the HUD members.
   this.initHudMembers();
@@ -903,7 +911,8 @@ J.HUD.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
 Scene_Map.prototype.update = function()
 {
   // perform original logic.
-  J.HUD.Aliased.Scene_Map.get('update').call(this);
+  J.HUD.Aliased.Scene_Map.get('update')
+    .call(this);
 
   // keep our HUD up to date.
   this.updateHudFrames();
@@ -926,7 +935,8 @@ J.HUD.Aliased.Scene_Map.set('onPartyRotate', Scene_Map.prototype.onPartyRotate);
 Scene_Map.prototype.onPartyRotate = function()
 {
   // perform original logic.
-  J.HUD.Aliased.Scene_Map.get('onPartyRotate').call(this);
+  J.HUD.Aliased.Scene_Map.get('onPartyRotate')
+    .call(this);
 
   // also refresh the HUD when the party is rotated for JABS.
   this.refreshHud();
@@ -985,7 +995,8 @@ class Window_Frame extends Window_Base
     /* eslint-disable max-len */
     /**
      * The cached collection of sprites.
-     * @type {Map<string, Sprite_Icon|Sprite_BaseText|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
+     * @type {Map<string,
+     *   Sprite_Icon|Sprite_BaseText|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
      */
     this._j._spriteCache = new Map();
     /* eslint-enable max-len */
@@ -1032,6 +1043,7 @@ class Window_Frame extends Window_Base
   {
     // fill with sprite creation methods.
   }
+
   //endregion caching
 
   /**
@@ -1054,4 +1066,5 @@ class Window_Frame extends Window_Base
     // fill with window frame logic.
   }
 }
+
 //endregion Window_Frame
