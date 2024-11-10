@@ -117,11 +117,8 @@ J.REGIONS.Helpers.translateRegionIds = regionsBlob =>
   // convert the string to an array of strings.
   const parsedRegions = JSON.parse(regionsBlob);
 
-  // parse each of the region ids.
-  const regionIds = parsedRegions.map(parseInt);
-
   // return the parsed region ids.
-  return regionIds;
+  return parsedRegions.map(id => parseInt(id));
 };
 //endregion helpers
 

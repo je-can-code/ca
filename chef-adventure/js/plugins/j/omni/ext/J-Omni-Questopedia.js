@@ -925,7 +925,8 @@ TrackedOmniObjective.prototype.populateFulfillmentData = function(omniFulfillmen
   {
     // if the type is indiscriminate, then it is event-controlled and not automagical.
     case OmniObjective.Types.Indiscriminate:
-      this._indiscriminateTargetData = omniFulfillmentData.indiscriminate.hint ?? "No indiscriminate objective instructions provided.";
+      this._indiscriminateTargetData = omniFulfillmentData.indiscriminate.hint 
+        ?? "No indiscriminate objective instructions provided.";
       return;
 
     // if the fulfillment is of type 'destination', then fill in the data.
@@ -936,7 +937,7 @@ TrackedOmniObjective.prototype.populateFulfillmentData = function(omniFulfillmen
         x1, y1 ];
       const point2 = [
         x2, y2 ];
-      this._targetCoordinateRange.push(point1, point2);
+      this._targetCoordinateRange = [ point1, point2 ];
       break;
 
     // if the fulfillment is of type 'fetch', then fill in the data.
@@ -954,7 +955,7 @@ TrackedOmniObjective.prototype.populateFulfillmentData = function(omniFulfillmen
 
     // if the fulfillment is of type 'quest', then fill in the data.
     case OmniObjective.Types.Quest:
-      this._targetQuestKeys.push(...omniFulfillmentData.quest.keys);
+      this._targetQuestKeys = [ ...omniFulfillmentData.quest.keys ];
       break;
   }
 };
@@ -2133,12 +2134,9 @@ TrackedOmniQuest.prototype._processQuestCompletionQuestsCheck = function()
   // iterate over each of the destination objectives.
   activeQuestCompletionObjectives.forEach(objective =>
   {
-    // extract the coordinate range from the objective.
-    const targetQuestKeys = objective.questCompletionData();
-
-    // if the quest keys for the objective don't align, then don't worry about that quest.
-    if (!targetQuestKeys.includes(this.key)) return;
-
+    // check if all quests have been completed for the target objective after this quest.
+    if (!objective.hasCompletedAllQuests()) return;
+    
     // grab the quest for reference.
     const questToProgress = QuestManager.quest(objective.questKey);
 
@@ -2912,7 +2910,21 @@ class QuestManager
     const quest = this.quest(questKey);
 
     // return if the quest is currently active.
-    return quest.state === OmniQuest.States.Active;
+    return quest.isActive();
+  }
+
+  /**
+   * Checks if a quest is unlocked (aka not inactive).
+   * @param {string} questKey The key of the quest to check for completion.
+   * @returns {boolean}
+   */
+  static isQuestUnlocked(questKey)
+  {
+    // grab the quest.
+    const quest = this.quest(questKey);
+
+    // return if the quest is currently in any state aside from inactive.
+    return !quest.isInactive();
   }
 
   /**
@@ -3654,11 +3666,28 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function()
       foundTracking.categoryKey = omniquest.categoryKey;
 
       // if the objective length hasn't changed, then don't process anymore.
-      if (foundTracking.objectives.length <= omniquest.objectives.length) return;
+      if (omniquest.objectives.length > foundTracking.objectives.length)
+      {
+        // concat the new objectives onto the existing tracking.
+        const objectivesToAdd = newTracking.objectives.slice(foundTracking.objectives.length);
+        foundTracking.objectives.splice(foundTracking.objectives.length, 0, ...objectivesToAdd);
+      }
+      
+      foundTracking.objectives.forEach((objective, index) =>
+      {
+        // if the new objectives don't go as far as they previously did, don't process it.
+        if (!omniquest.objectives.at(index)) return;
 
-      // concat the new objectives onto the existing tracking.
-      const objectivesToAdd = newTracking.objectives.slice(foundTracking.objectives.length);
-      foundTracking.objectives.splice(foundTracking.objectives.length, 0, ...objectivesToAdd);
+        // update the fulfillment data for the obejctive.
+        objective.populateFulfillmentData(omniquest.objectives.at(index)?.fulfillment);
+
+        // grab the new objective from the tracking for comparison.
+        const newObjective = newTracking.objectives.at(index);
+        
+        // update the old objective with the new data points.
+        objective.hidden = newObjective.hidden;
+        objective.optional = newObjective.optional;
+      })
     }
     // if the tracking doesn't exist yet, it should be added.
     else
@@ -4756,11 +4785,8 @@ class Window_QuestopediaCategories extends Window_HorzCommand
     // grab all possible categories.
     const questCategories = QuestManager.categories(false);
 
-    // compile the list of commands.
-    const commands = questCategories.map(this.buildCommand, this);
-
     // return the compiled list of commands.
-    return commands;
+    return questCategories.map(this.buildCommand, this);
   }
 
   /**
@@ -5191,11 +5217,8 @@ class Window_QuestopediaList extends Window_Command
     // no quests to display.
     if (filteredQuests.length === 0) return [];
 
-    // compile the list of commands.
-    const commands = filteredQuests.map(this.buildCommand, this);
-
     // return the compiled list of commands.
-    return commands;
+    return filteredQuests.map(this.buildCommand, this);
   }
 
   /**
@@ -5205,6 +5228,7 @@ class Window_QuestopediaList extends Window_Command
    */
   _questFiltering(quest)
   {
+    // grab the current category being viewed.
     const currentCategory = this.getCurrentCategoryKey();
 
     // if the current category is unset or empty, then no filtering is applied.

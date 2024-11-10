@@ -170,8 +170,8 @@
 /*~struct~ProficiencyRequirementStruct:
  * @param skillId
  * @type skill
- * @text Skill
- * @desc The skill to base this requirement on.
+ * @text Primary Skill Id
+ * @desc The skill to base this requirement on- if the player has no proficiency in this, they cannot unlock this.
  * @default 1
  *
  * @param proficiency
@@ -179,6 +179,12 @@
  * @text Proficiency Required
  * @desc The prof required in the designated skill to fulfill this requirement.
  * @default 100
+ * 
+ * @param secondarySkillIds
+ * @type skill[]
+ * @text Secondary Skill Ids
+ * @desc The secondary skills that will count towards this proficiency as well as the primary.
+ * @default []
  */
 
 /**
@@ -230,8 +236,12 @@ J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
     parsedRequirements.forEach(requirementBlob =>
     {
       const parsedRequirement = JSON.parse(requirementBlob);
-      const requirement = new ProficiencyRequirement(parseInt(parsedRequirement.skillId),
-        parseInt(parsedRequirement.proficiency))
+      const secondarySkillIds = JSON.parse(parsedRequirement.secondarySkillIds)
+        .map(id => parseInt(id));
+      const requirement = new ProficiencyRequirement(
+        parseInt(parsedRequirement.skillId),
+        parseInt(parsedRequirement.proficiency),
+        secondarySkillIds);
       requirements.push(requirement);
     });
 
@@ -251,9 +261,14 @@ J.PROF.PluginParameters = PluginManager.parameters(J.PROF.Metadata.Name);
  * The various aliases associated with this plugin.
  */
 J.PROF.Aliased = {
-  Game_Actor: new Map(), Game_Action: new Map(), Game_Battler: new Map(), Game_Enemy: new Map(), Game_System: new Map(),
+  Game_Actor: new Map(),
+  Game_Action: new Map(),
+  Game_Battler: new Map(),
+  Game_Enemy: new Map(),
+  Game_System: new Map(),
 
-  IconManager: new Map(), TextManager: new Map(),
+  IconManager: new Map(),
+  TextManager: new Map(),
 };
 
 J.PROF.RegExp = {};
@@ -266,7 +281,10 @@ J.PROF.RegExp.ProficiencyGainingBlock = /<proficiencyGainingBlock>/i;
  */
 PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyActorSkillProficiency", args =>
 {
-  const { actorIds, skillIds } = args;
+  const {
+    actorIds,
+    skillIds
+  } = args;
   const parsedActorIds = JSON.parse(actorIds)
     .map(num => parseInt(num));
   const parsedSkillIds = JSON.parse(skillIds)
@@ -371,7 +389,7 @@ ProficiencyRequirement.prototype.constructor = ProficiencyRequirement;
 /**
  * Initializes this class with the given parameters.
  */
-ProficiencyRequirement.prototype.initialize = function(skillId, proficiency)
+ProficiencyRequirement.prototype.initialize = function(skillId, proficiency, secondarySkillIds)
 {
   /**
    * The skill id for this requirement.
@@ -380,10 +398,43 @@ ProficiencyRequirement.prototype.initialize = function(skillId, proficiency)
   this.skillId = skillId;
 
   /**
-   * The level of prof required to consider this requirement fulfilled.
+   * The level of proficiency required to consider this requirement fulfilled.
    * @type {number}
    */
   this.proficiency = proficiency;
+
+  /**
+   * The skill ids for this requirement.
+   * @type {number[]}
+   */
+  this.secondarySkillIds = secondarySkillIds;
+};
+
+/**
+ * Check the total proficiency for this requirement to be unlocked by battler.
+ * @param {Game_Actor|Game_Enemy} battler The battler whose proficiency this is being checked for.
+ * @returns {number}
+ */
+ProficiencyRequirement.prototype.totalProficiency = function(battler)
+{
+  // identify the proficiency of the primary skill.
+  const skillProficiency = battler.tryGetSkillProficiencyBySkillId(this.skillId);
+  
+  // grab the current proficiency of the skill for the battler.
+  const primaryProficiency = skillProficiency.proficiency;
+
+  // accumulate the primary proficiency plus all the secondary proficiencies.
+  return this.secondarySkillIds
+    .reduce((accumulator, secondarySkillId) =>
+    {
+      // check if there is any proficiency for the primary skill associated with the requirement.
+      const secondaryProficiency = battler.tryGetSkillProficiencyBySkillId(secondarySkillId);
+      
+      // add the additional proficiency onto the accumulation.
+      return accumulator + secondaryProficiency.proficiency;
+      
+      // the base proficiency is this requirement's known proficiency.
+    }, primaryProficiency);
 };
 //endregion proficiencyRequirement
 
@@ -927,13 +978,13 @@ Game_Actor.prototype.skillProficiencyBySkillId = function(skillId)
 {
   return this
     .skillProficiencies()
-    .find(prof => prof.skillId === skillId);
+    .find(skillProficiency => skillProficiency.skillId === skillId);
 };
 
 /**
  * A safe means of attempting to retrieve a skill proficiency. If the proficiency
- * does not exist, then it will be created.
- * @param skillId
+ * does not exist, then it will be created with the default of zero starting proficiency.
+ * @param {number} skillId The skill id to identify the proficiency for.
  * @returns {SkillProficiency}
  */
 Game_Actor.prototype.tryGetSkillProficiencyBySkillId = function(skillId)
@@ -999,59 +1050,60 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId)
  */
 Game_Actor.prototype.increaseSkillProficiency = function(skillId, amount = 1)
 {
-  let proficiency = this.skillProficiencyBySkillId(skillId);
+  // get or create anew the skill proficiency associated with the skill id.
+  const proficiency = this.tryGetSkillProficiencyBySkillId(skillId);
 
-  // if the proficiency doesn't exist, create it first.
-  if (!proficiency)
-  {
-    proficiency = this.addSkillProficiency(skillId);
-  }
-
+  // improve the proficiency of the skill.
   proficiency.improve(amount);
-  this.checkProficiencyConditionals();
+  
+  // re-evaluate all conditionals to see if this resulted in unlocking any.
+  this.evaluateProficiencyConditionals();
 };
 
 /**
  * Check all proficiency conditionals to see if any of them are now met.
  */
-Game_Actor.prototype.checkProficiencyConditionals = function()
+Game_Actor.prototype.evaluateProficiencyConditionals = function()
 {
+  // grab all the currently-locked proficiency conditionals for this actor.
   const lockedConditionals = this.lockedConditionals();
 
   // if we don't have any locked conditionals, then don't process.
-  if (!lockedConditionals.length)
-  {
-    return;
-  }
+  if (!lockedConditionals.length) return;
 
   // check each locked conditional to see if we can unlock it.
-  lockedConditionals.forEach(conditional =>
+  lockedConditionals.forEach(this.evaluateProficiencyConditional, this);
+};
+
+/**
+ * Checks the conditional to see if requirements are met to unlock it.
+ * @param {ProficiencyConditional} conditional The conditional being evaluated.
+ */
+Game_Actor.prototype.evaluateProficiencyConditional = function(conditional)
+{
+  // TODO: does this work as a one-liner to skip the crap below?
+  const allRequirementsMet = conditional.requirements.every(this.isRequirementMet, this);
+
+  // check if the requirements are all met for unlocking.
+  if (allRequirementsMet)
   {
-    // check all requirements to see if we met them all.
-    const requirementCount = conditional.requirements.length;
-    let requirementsMet = 0;
-    for (const requirement of conditional.requirements)
-    {
-      const currentProficiency = this.skillProficiencyBySkillId(requirement.skillId);
-      if (!currentProficiency)
-      {
-        break;
-      }
+    this.unlockConditional(conditional.key);
+    this.executeConditionalReward(conditional);
+  }
+};
 
-      // check if the proficiency for the skill has reached or exceeded the conditional.
-      if (currentProficiency.proficiency >= requirement.proficiency)
-      {
-        requirementsMet++;
-      }
-    }
+/**
+ * Validates whether or not a proficiency requirement is met.
+ * @param {ProficiencyRequirement} requirement The requirement being evaluated.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isRequirementMet = function(requirement)
+{
+  // compute the current accumulated proficiency for the requirement based on this actor.
+  const accumulatedProficiency = requirement.totalProficiency(this);
 
-    // check if the requirement count equals the requirements now met.
-    if (requirementsMet === requirementCount)
-    {
-      this.unlockConditional(conditional.key);
-      this.executeConditionalReward(conditional);
-    }
-  });
+  // check if the proficiency for the skill has reached or exceeded the conditional.
+  return accumulatedProficiency >= requirement.proficiency;
 };
 
 /**
@@ -1077,11 +1129,11 @@ Game_Battler.prototype.skillProficiencies = function()
 /**
  * Gets the prof of one particular skill for this battler.
  * @param {number} skillId The id of the skill to get proficiency for.
- * @returns {number}
+ * @returns {SkillProficiency|null}
  */
 Game_Battler.prototype.skillProficiencyBySkillId = function(skillId)
 {
-  return 0;
+  return null;
 };
 
 /**
@@ -1193,6 +1245,29 @@ Game_Enemy.prototype.addSkillProficiency = function(skillId, initialProficiency 
   this._j._profs.push(proficiency);
   this._j._profs.sort();
   return proficiency;
+};
+
+/**
+ * A safe means of attempting to retrieve a skill proficiency. If the proficiency
+ * does not exist, then it will be created with the default of zero starting proficiency.
+ * @param {number} skillId The skill id to identify the proficiency for.
+ * @returns {SkillProficiency}
+ */
+Game_Enemy.prototype.tryGetSkillProficiencyBySkillId = function(skillId)
+{
+  // look up the proficiency; this could be undefined
+  // if we didn't learn it directly via .learnSkill() somehow.
+  const exists = this.skillProficiencyBySkillId(skillId);
+  if (exists)
+  {
+    // if we did find it, then return it.
+    return exists;
+  }
+  else
+  {
+    // if we didn't find the proficiency, just add it.
+    return this.addSkillProficiency(skillId);
+  }
 };
 
 /**

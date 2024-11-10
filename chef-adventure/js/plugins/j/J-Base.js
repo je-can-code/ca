@@ -6822,7 +6822,7 @@ class PluginMetadata
     // deconstructs the patch values out to ensure we have them all.
     const [ major, minor, patch ] = version
       .split('.')
-      .map(parseInt);
+      .map(part => parseInt(part));
 
     // use the builder to build the version.
     const pluginVersion = PluginVersion.builder
@@ -6897,7 +6897,7 @@ class PluginVersion
     // the string should be three whole integer parts.
     const semverParts = version
       .split('.')
-      .map(parseInt);
+      .map(part => parseInt(part));
 
     // the order is as below:
     const [ major, minor, patch ] = semverParts;

@@ -708,18 +708,26 @@ Game_Party.prototype.elementalJabsBattlers = function()
       .actorId();
 
     // identify if the actor id is among the known elemental actor id list.
-    const isElementalActor = Game_Party.ELEMENTAL_ALLY_ACTOR_IDS.contains(actorId);
-
     // return what we found.
-    return isElementalActor;
+    return Game_Party.ELEMENTAL_ALLY_ACTOR_IDS.includes(actorId);
   };
 
   // filter the battlers to only the elemental ones that are currently unlocked.
-  const jabsBattlers = JABS_AiManager.getActorBattlers()
-    .filter(filtering, this);
-
   // return what was found.
-  return jabsBattlers;
+  return JABS_AiManager.getActorBattlers()
+    .filter(filtering, this);
+};
+
+/**
+ * Determine if the leader is the given actorId.
+ * @param {number} actorId The actor id to compare the leader's actor id with.
+ * @returns {boolean} True if the leader is the same actor as the designated id, false otherwise.
+ */
+Game_Party.prototype.isLeaderActor = function(actorId)
+{
+  // determine if the leader is the same as the designated actor.
+  return this.leader()
+    .actorId() === actorId;
 };
 //endregion Game_Party
 

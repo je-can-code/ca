@@ -13,7 +13,7 @@ class BasicChoiceConditional
 
   /**
    * The {@link BasicChoiceConditional.Types} that this conditional is.
-   * @type {BasicChoiceConditional.Types}
+   * @type {string}
    */
   type = String.empty;
 
