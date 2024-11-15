@@ -251,7 +251,7 @@ J.MESSAGE.RegExp.SwitchOffChoiceConditional = /<switchOffChoiceCondition:[ ]?(\d
  * @param {rm.types.EventCommand} command The command being evaluated.
  * @returns {boolean}
  */
-Game_Event.prototype.filterCommentCommandsForBasicConditionals = function(command)
+Game_Event.filterCommentCommandsForBasicConditionals = function(command)
 {
   // identify the actual comment being evaluated.
   const [ comment, ] = command.parameters;
@@ -274,7 +274,7 @@ Game_Event.prototype.filterCommentCommandsForBasicConditionals = function(comman
  * @param {rm.types.EventCommand} commentCommand The comment command to parse into a conditional.
  * @returns {BasicChoiceConditional}
  */
-Game_Event.prototype.toBasicConditional = function(commentCommand)
+Game_Event.toBasicConditional = function(commentCommand)
 {
   // shorthand the comment into a variable.
   const [ comment, ] = commentCommand.parameters;
@@ -355,21 +355,21 @@ Game_Interpreter.prototype.hideSpecificChoiceBranches = function(params)
   // identify some event metadata.
   const currentCommand = this.currentCommand();
   const eventMetadata = $gameMap.event(this.eventId());
-  const currentPage = eventMetadata.page();
+  const currentPageCommands = !!eventMetadata
+    ? eventMetadata.page().list
+    : $dataCommonEvents.at(this._commonEventId).list;
 
   // 102 = start show choice
   // 402 = one of the show choice options
   // 404 = end show choice
 
   // identify the start and end of the choice branches.
-  const startShowChoiceIndex = currentPage.list.findIndex(item => item === currentCommand);
-  const endShowChoiceIndex = currentPage.list
-    .findIndex((
-      item,
-      index) => (index > startShowChoiceIndex && item.indent === currentCommand.indent && item.code === 404));
+  const startShowChoiceIndex = currentPageCommands.findIndex(item => item === currentCommand);
+  const endShowChoiceIndex = currentPageCommands.findIndex((item,
+    index) => (index > startShowChoiceIndex && item.indent === currentCommand.indent && item.code === 404));
 
   // build an array of indexes that align with the options.
-  const showChoiceIndices = currentPage.list
+  const showChoiceIndices = currentPageCommands
     .map((command, index) =>
     {
       if (index < startShowChoiceIndex || index > endShowChoiceIndex) return null;
@@ -420,19 +420,21 @@ Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandInd
 {
   // grab some metadata about the event.
   const eventMetadata = $gameMap.event(this.eventId());
-  const currentPage = eventMetadata.page();
+  const currentPageCommands = !!eventMetadata
+    ? eventMetadata.page().list
+    : $dataCommonEvents.at(this._commonEventId).list;
 
   // grab the event subcommand.
-  const subEventCommand = currentPage.list.at(subChoiceCommandIndex);
+  const subEventCommand = currentPageCommands.at(subChoiceCommandIndex);
 
   // ignore non-comment event commands.
-  if (!eventMetadata.filterInvalidEventCommand(subEventCommand)) return false;
+  if (!Game_Event.filterInvalidEventCommand(subEventCommand)) return false;
 
   // ignore non-relevant comment commands.
-  if (!eventMetadata.filterCommentCommandsForBasicConditionals(subEventCommand)) return false;
+  if (!Game_Event.filterCommentCommandsForBasicConditionals(subEventCommand)) return false;
 
   // build the conditional.
-  const conditional = eventMetadata.toBasicConditional(subEventCommand);
+  const conditional = Game_Event.toBasicConditional(subEventCommand);
 
   // if the condition is met, then we don't need to hide.
   const met = conditional.isMet();

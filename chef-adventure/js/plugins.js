@@ -29,7 +29,7 @@ var $plugins =
 {"name":"others/SmoothCamera","status":true,"description":"なめらかカメラ v1.0.2","parameters":{"EnableSmoothCameraSwitchId":"0","MaxScrollFar":"8","MinScrollFar":"2","BaseScrollDiv":"32"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/abs/ext/J-ABS-Timing","status":true,"description":"[v1.0.0 TIMING] Enable modifying cooldowns/casting for actions.","parameters":{}},
-{"name":"j/abs/ext/J-ABS-Charge","status":true,"description":"[v1.0.0 CHARGE] Enable skills to be charged to perform other skills.","parameters":{"defaults":"","defaultChargingAnimId":"0","defaultTierCompleteAnimId":"0","useTierCompleteSE":"false","allowTierCompleteSEandAnim":"false"}},
+{"name":"j/abs/ext/J-ABS-Charge","status":true,"description":"[v1.0.0 CHARGE] Enable skills to be charged to perform other skills.","parameters":{"defaults":"","defaultChargingAnimId":"160","defaultTierCompleteAnimId":"161","defaultFullyChargedAnimId":"162","useTierCompleteSE":"false","allowTierCompleteSEandAnim":"false"}},
 {"name":"j/abs/ext/J-ABS-DangerIndicator","status":true,"description":"[v1.0.0 DANGER] Enable danger indicators on foes on the map.","parameters":{"defaultEnemyShowDangerIndicator":"true","dangerIndicatorIconData":"{\"Worthless\":\"880\",\"Simple\":\"881\",\"Easy\":\"882\",\"Average\":\"883\",\"Hard\":\"884\",\"Grueling\":\"885\",\"Deadly\":\"886\"}"}},
 {"name":"j/abs/ext/J-ABS-Star","status":false,"description":"[v1.0.0 STAR] Converts random encounters into star battles.","parameters":{}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},

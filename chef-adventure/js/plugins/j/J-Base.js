@@ -8480,14 +8480,14 @@ Game_Event.prototype.getValidCommentCommands = function()
 
   // otherwise, return the filtered list.
   return this.list()
-    .filter(this.filterInvalidEventCommand, this);
+    .filter(Game_Event.filterInvalidEventCommand, this);
 };
 
 /**
  * Gets all valid-shaped comment event commands from a designated page.
  * @param {rm.types.Page} page The event page to parse comments from.
  */
-Game_Event.prototype.getValidCommentCommandsFromPage = function(page)
+Game_Event.getValidCommentCommandsFromPage = function(page)
 {
   // grab the list of commands from the given page.
   const commands = page.list;
@@ -8496,7 +8496,7 @@ Game_Event.prototype.getValidCommentCommandsFromPage = function(page)
   if (commands.length === 0) return Array.empty;
 
   // otherwise, return the filtered list.
-  return commands.filter(this.filterInvalidEventCommand, this);
+  return commands.filter(Game_Event.filterInvalidEventCommand, this);
 };
 
 /**
@@ -8504,10 +8504,10 @@ Game_Event.prototype.getValidCommentCommandsFromPage = function(page)
  * @param {rm.types.EventCommand} command The command to evaluate.
  * @returns {boolean}
  */
-Game_Event.prototype.filterInvalidEventCommand = function(command)
+Game_Event.filterInvalidEventCommand = function(command)
 {
   // if it is not a comment, then don't include it.
-  if (!this.matchesControlCode(command.code)) return false;
+  if (!Game_Event.matchesControlCode(command.code)) return false;
 
   // shorthand the comment into a variable.
   const [ comment, ] = command.parameters;
@@ -8538,7 +8538,7 @@ Game_Event.prototype.canGetValidCommentCommands = function()
  * @param {number} code The code to match.
  * @returns {boolean}
  */
-Game_Event.prototype.matchesControlCode = function(code)
+Game_Event.matchesControlCode = function(code)
 {
   // valid comment codes.
   const controlCodes = [

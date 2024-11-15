@@ -31,6 +31,29 @@
  * A skill can have multiple tiers of charging to represent the ability to
  * have different releasable abilities depending on how long you charge.
  * ----------------------------------------------------------------------------
+ * PLUGIN PARAMETERS:
+ * The plugin parameters provide some convenient defaults for the charging
+ * functionality.
+ * 
+ * DefaultChargingAnimationId:
+ * The animation that will play if none is specified while the player is
+ * charging up a skill.
+ * 
+ * DefaultTierCompleteAnimationId:
+ * The animation that will play upon completing a any non-final tier of
+ * charging.
+ * 
+ * DefaultFullyChargedAnimationId:
+ * The animation that will play upon completing the final tier of charging.
+ * 
+ * UseTierCompleteSE:
+ * If you'd prefer to go purely by sound, there are sounds configured to play
+ * instead of an animation.
+ * 
+ * AllowTierCompleteSEandAnimation:
+ * Whether or not to allow both the animation and the sounds to play. This is
+ * not recommended.
+ * ----------------------------------------------------------------------------
  * LIMITATIONS:
  * While the reference above makes it sound like ANY skill can be charged, that
  * is only partially true. ANY skill can be charged, as long as it meets a few
@@ -161,13 +184,37 @@
  * @desc This will be the default animation to play when a
  * charging tier is charged. 0 means no animation.
  * @default 0
+ * 
+ * @param defaultFullyChargedAnimId
+ * @parent defaults
+ * @type animation
+ * @text Fully Charged Animation
+ * @desc This will be the default animation to play when the
+ * player can charge no further- aka the final tier completed.
+ * @default 0
+ * 
+ * @param tierCompleteSE
+ * @parent defaults
+ * @type struct<soundEffect>
+ * @text Charge Tier Complete SE
+ * @desc This will be the default sound effect to play when a
+ * charging tier is charged. Empty means no sound effect.
+ * @default
+ * 
+ * @param chargeReadySE
+ * @parent defaults
+ * @type struct<soundEffect>
+ * @text Max Charge Ready SE
+ * @desc This will be the default sound effect to play when a
+ * all tiers are charged and ready. Empty means no sound effect.
+ * @default
  *
- * @param useTierCompleteSE
+ * @param useDefaultChargingSE
  * @parent defaults
  * @type boolean
  * @text Use Tier Complete SE
- * @desc Whether or not to use the charging tier complete sound
- * effects.
+ * @desc Whether or not to use the tierComplete and chargeReady
+ * sound effects.
  * @default false
  *
  * @param allowTierCompleteSEandAnim
@@ -177,6 +224,41 @@
  * @desc Whether or not to use both sound effects and the defined
  * animations when a charging tier completes.
  * @default false
+ */
+/*~struct~soundEffect
+ *
+ * @param name
+ * @type file
+ * @text Sound Effect Name
+ * @desc The name of the sound effect file to play.
+ * @default ""
+ * 
+ * @param volume
+ * @type number
+ * @min 0
+ * @max 100
+ * @text Volume
+ * @desc The volume at which to play the sound effect.
+ * @default 90
+ * 
+ * @param pitch
+ * @type number
+ * @min 50
+ * @max 150
+ * @text Pitch
+ * @desc The pitch of the sound effect- aka the speed of how the
+ * sound effect is played. Higher is faster.
+ * @default 100
+ * 
+ * @param pan
+ * @type number
+ * @min -100
+ * @max 100
+ * @text Volume
+ * @desc The directional pan of the sound effect.
+ * Negative is played to the left, positive to the right.
+ * @default 0
+ * 
  */
 
 /**
@@ -196,7 +278,7 @@ J.ABS.EXT.CHARGE.Metadata = {
   /**
    * The name of this plugin.
    */
-  Name: `J-ABS-ActionCharging`,
+  Name: `J-ABS-Charge`,
 
   /**
    * The version of this plugin.
@@ -221,20 +303,39 @@ J.ABS.EXT.CHARGE.Metadata = {
    * 0 will yield no default animation.
    * @type {number}
    */
-  DefaultChargingAnimationId: Number(J.ABS.EXT.CHARGE.PluginParameters['defaultChargingAnimId']),
+  DefaultChargingAnimationId: parseInt(J.ABS.EXT.CHARGE.PluginParameters['defaultChargingAnimId']),
 
   /**
    * The default tier complete animation id.
    * 0 will yield no default animation.
    * @type {number}
    */
-  DefaultTierCompleteAnimationId: Number(J.ABS.EXT.CHARGE.PluginParameters['defaultTierCompleteAnimId']),
+  DefaultTierCompleteAnimationId: parseInt(J.ABS.EXT.CHARGE.PluginParameters['defaultTierCompleteAnimId']),
+
+  /**
+   * The default fully charged animation id.
+   * 0 will yield no default animation.
+   * @type {number}
+   */
+  DefaultFullyChargedAnimationId: parseInt(J.ABS.EXT.CHARGE.PluginParameters['defaultFullyChargedAnimId']),
+
+  /**
+   * The sound effect to play when the a charging tier has completed.
+   * @type {RPG_SoundEffect}
+   */
+  TierCompleteSE: J.ABS.EXT.CHARGE.PluginParameters['tierCompleteSE'],
+
+  /**
+   * The sound effect to play when the final charge tier has completed charging.
+   * @type {RPG_SoundEffect}
+   */
+  ChargeReadySE: J.ABS.EXT.CHARGE.PluginParameters['chargeReadySE'],
 
   /**
    * Whether or not to use the charging tier complete sound effect.
    * @type {boolean}
    */
-  UseTierCompleteSE: J.ABS.EXT.CHARGE.PluginParameters['useTierCompleteSE'] === "true",
+  UseTierCompleteSE: J.ABS.EXT.CHARGE.PluginParameters['useDefaultChargingSE'] === "true",
 
   /**
    * Whether or not to use the charging tier complete sound effect when there is an animation present.
@@ -787,6 +888,14 @@ JABS_Battler.prototype.normalizeChargeTierData = function(chargeTierData)
       // splice in the filler at the correct index.
       sortedTiers.splice(index, 0, filler);
     }
+  }
+  
+  // check if the final tier is missing a charge complete animation, and that we have a default to provide.
+  if (sortedTiers.at(-1).chargeTierCompleteAnimationId === 0 &&
+    J.ABS.EXT.CHARGE.Metadata.DefaultFullyChargedAnimationId)
+  {
+    // apply the default fully charged animation.
+    sortedTiers.at(-1).chargeTierCompleteAnimationId = J.ABS.EXT.CHARGE.Metadata.DefaultFullyChargedAnimationId;
   }
 
   // return our normalized and sorted tiers.
@@ -1971,7 +2080,8 @@ SoundManager.playMaxChargeReadySE = function()
  */
 SoundManager.chargeTierCompleteSE = function()
 {
-  return new RPG_SoundEffect("Heal6", 40, 130, 0);
+  return J.ABS.EXT.CHARGE.Metadata.TierCompleteSE 
+    ?? new RPG_SoundEffect("Heal6", 40, 130, 0);
 };
 
 /**
@@ -1980,6 +2090,7 @@ SoundManager.chargeTierCompleteSE = function()
  */
 SoundManager.maxChargeReadySE = function()
 {
-  return new RPG_SoundEffect("Item3", 50, 110, 0);
+  return J.ABS.EXT.CHARGE.Metadata.ChargeReadySE 
+    ?? new RPG_SoundEffect("Item3", 50, 110, 0);
 };
 //endregion SoundManager

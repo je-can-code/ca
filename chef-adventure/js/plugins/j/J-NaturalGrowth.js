@@ -610,10 +610,7 @@ Game_Actor.prototype.xparamNaturalBonuses = function(xparamId)
     .call(this, xparamId);
 
   // destructure into the plus and rate regexp structures.
-  const paramNaturalBonuses = this.getXparamNaturalBonuses(xparamId, structures, baseParam);
-
-  // return result.
-  return (paramNaturalBonuses);
+  return this.getXparamNaturalBonuses(xparamId, baseParam);
 };
 
 /**
@@ -693,7 +690,7 @@ Game_Actor.prototype.sparamNaturalBonuses = function(sparamId)
   if (!structures) return 0;
 
   // destructure into the plus and rate regexp structures.
-  const sparamNaturalBonuses = this.getSparamNaturalBonuses(sparamId, structures, baseParam);
+  const sparamNaturalBonuses = this.getSparamNaturalBonuses(sparamId, baseParam);
 
   // return result.
   return (sparamNaturalBonuses);
@@ -703,14 +700,13 @@ Game_Actor.prototype.sparamNaturalBonuses = function(sparamId)
  * Gets all natural growths for this sp-parameter.
  * Actors have buffs and growths.
  * @param {number} sparamId The parameter id in question.
- * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
  * @param {number} baseParam The base parameter.
  * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
  */
-Game_Actor.prototype.getSparamNaturalBonuses = function(sparamId, structures, baseParam)
+Game_Actor.prototype.getSparamNaturalBonuses = function(sparamId, baseParam)
 {
   // determine temporary buff for this param.
-  const paramBuff = this.calculateSpParamBuff(baseParam, sparamId);
+  const paramBuff = this.calculateSpParamBuff(sparamId, baseParam);
 
   // determine permanent growth for this param.
   const paramGrowth = (this.getSparamGrowth(sparamId, baseParam) / 100);
@@ -1712,7 +1708,7 @@ Game_Battler.prototype.getRegexByParamId = function(paramId)
 /**
  * Translates a ex-parameter id into its corresponding RegExp buff plus and rate structures.
  * @param {number} xParamId The ex-parameter id to find the RegExp structures for.
- * @returns {RegExp} The relevant RegExp structures for this parameter id.
+ * @returns {[RegExp, RegExp]} The relevant RegExp structures for this parameter id.
  */
 Game_Battler.prototype.getRegexByExParamId = function(xParamId)
 {
@@ -1746,7 +1742,7 @@ Game_Battler.prototype.getRegexByExParamId = function(xParamId)
 /**
  * Translates a sp-parameter id into its corresponding RegExp buff plus and rate structures.
  * @param {number} sParamId The sp-parameter id to find the RegExp structures for.
- * @returns {RegExp} The relevant RegExp structures for this parameter id.
+ * @returns {[RegExp, RegExp]} The relevant RegExp structures for this parameter id.
  */
 Game_Battler.prototype.getRegexBySpParamId = function(sParamId)
 {
@@ -1805,10 +1801,7 @@ Game_Battler.prototype.calculateBParamBuff = function(paramId, baseParam)
   const buffRate = this.bParamBuffRate(paramId) / 100;
 
   // calculate the result into a variable for debugging.
-  const result = (baseParam * buffRate) + buffPlus;
-
-  // return result.
-  return result;
+  return (baseParam * buffRate) + buffPlus;
 };
 
 /**
@@ -1820,10 +1813,10 @@ Game_Battler.prototype.calculateBParamBuff = function(paramId, baseParam)
 Game_Battler.prototype.calculateExParamBuff = function(paramId, baseParam)
 {
   // determine buff plus for this param.
-  const buffPlus = (this.xParamBuffPlus() / 100);
+  const buffPlus = this.xParamBuffPlus(paramId);
 
   // determine buff rate for this param.
-  const buffRate = (this.xParamBuffRate() / 100);
+  const buffRate = this.xParamBuffRate(paramId);
 
   // don't calculate if we don't have anything.
   if (!buffPlus && !buffRate) return 0;
@@ -1841,10 +1834,10 @@ Game_Battler.prototype.calculateExParamBuff = function(paramId, baseParam)
 Game_Battler.prototype.calculateSpParamBuff = function(paramId, baseParam)
 {
   // determine buff plus for this param.
-  const buffPlus = (this.sParamBuffPlus() / 100);
+  const buffPlus = this.sParamBuffPlus(paramId);
 
   // determine buff rate for this param.
-  const buffRate = (this.sParamBuffRate() / 100);
+  const buffRate = this.sParamBuffRate(paramId);
 
   // don't calculate if we don't have anything.
   if (!buffPlus && !buffRate) return 0;
@@ -1870,10 +1863,7 @@ Game_Battler.prototype.calculatePlusRate = function(baseValue, paramPlus, paramR
   const paramBase = (baseValue + paramPlus);
 
   // remove the value of base param since it is added at the end.
-  const result = (paramBase * paramFactor) - baseValue;
-
-  // return result.
-  return result;
+  return (paramBase * paramFactor) - baseValue;
 };
 
 //region max tp
@@ -1924,11 +1914,8 @@ Game_Battler.prototype.maxTpNaturalBonuses = function()
  */
 Game_Battler.prototype.getMaxTpNaturalBonuses = function(baseParam)
 {
-  // determine the buffs to the parameter.
-  const maxTpBuff = this.getMaxTpBuff(baseParam);
-
   // return the natural growth buffs currently applied.
-  return maxTpBuff;
+  return this.getMaxTpBuff(baseParam);
 };
 
 /**
@@ -2080,10 +2067,7 @@ Game_Enemy.prototype.paramBaseNaturalBonuses = function(paramId)
 Game_Enemy.prototype.getParamBaseNaturalBonuses = function(paramId, baseParam)
 {
   // determine temporary buff for this param.
-  const paramBuff = this.calculateBParamBuff(paramId, baseParam);
-
-  // return result.
-  return paramBuff;
+  return this.calculateBParamBuff(paramId, baseParam);
 };
 //endregion b params
 
@@ -2123,26 +2107,19 @@ Game_Enemy.prototype.xparamNaturalBonuses = function(xparamId)
   if (!structures) return 0;
 
   // destructure into the plus and rate regexp structures.
-  const paramNaturalBonuses = this.getXparamNaturalBonuses(xparamId, structures, baseParam);
-
-  // return result.
-  return paramNaturalBonuses;
+  return this.getXparamNaturalBonuses(xparamId, baseParam);
 };
 
 /**
  * Gets all natural growths for this ex-parameter.
  * @param {number} xparamId The parameter id in question.
- * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
  * @param {number} baseParam The base parameter.
  * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
  */
-Game_Enemy.prototype.getXparamNaturalBonuses = function(xparamId, structures, baseParam)
+Game_Enemy.prototype.getXparamNaturalBonuses = function(xparamId, baseParam)
 {
   // determine temporary buff for this param.
-  const paramBuff = this.calculateExParamBuff(baseParam, xparamId);
-
-  // return result.
-  return paramBuff;
+  return this.calculateExParamBuff(xparamId, baseParam);
 };
 //endregion ex params
 
@@ -2182,27 +2159,20 @@ Game_Enemy.prototype.sparamNaturalBonuses = function(sparamId)
   if (!structures) return 0;
 
   // destructure into the plus and rate regexp structures.
-  const sparamNaturalBonuses = this.getSparamNaturalBonuses(sparamId, structures, baseParam);
-
-  // return result.
-  return sparamNaturalBonuses;
+  return this.getSparamNaturalBonuses(sparamId, baseParam);
 };
 
 /**
  * Gets all natural growths for this sp-parameter.
  * Enemies only have buffs.
  * @param {number} sparamId The parameter id in question.
- * @param {[RegExp, RegExp]} structures The pair of regex structures for plus and rate.
  * @param {number} baseParam The base parameter.
  * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
  */
-Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, structures, baseParam)
+Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, baseParam)
 {
   // determine temporary buff for this param.
-  const paramBuff = this.calculateSpParamBuff(baseParam, sparamId);
-
-  // return result.
-  return paramBuff;
+  return this.calculateSpParamBuff(sparamId, baseParam);
 };
 //endregion sp params
 //endregion Game_Enemy

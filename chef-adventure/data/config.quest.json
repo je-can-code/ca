@@ -3516,7 +3516,7 @@
       ],
       "unknownHint": "Check with the Hunting Lord.",
       "overview": "A new anomaly to slay has been identified!\r\nThe anomaly is a secretive thief that has been eating souls to gain unreal strength.\r\n\r\nSupposedly it frequents the Erocian Isthmus.",
-      "recommendedLevel": 35,
+      "recommendedLevel": 45,
       "objectives": [
         {
           "id": 0,
@@ -3572,7 +3572,7 @@
       ],
       "unknownHint": "Check with the Hunting Lord.",
       "overview": "A new anomaly to slay has been identified!\r\nThe anomaly is a space-time distorting crab with tremendous durability.\r\n\r\nSupposedly it makes a nest for itself in the back of the Volcanis Grotto.",
-      "recommendedLevel": 35,
+      "recommendedLevel": 55,
       "objectives": [
         {
           "id": 0,
@@ -3628,7 +3628,7 @@
       ],
       "unknownHint": "Check with the Hunting Lord.",
       "overview": "A new anomaly to slay has been identified!\r\nThe anomaly is a ghastly bear with powers from beyond the void.\r\n\r\nSupposedly it likes admiring the fountain in the Erocian Kingdom.",
-      "recommendedLevel": 35,
+      "recommendedLevel": 65,
       "objectives": [
         {
           "id": 0,
@@ -3684,7 +3684,7 @@
       ],
       "unknownHint": "Check with the Hunting Lord.",
       "overview": "A new anomaly to slay has been identified!\r\nThe anomaly is a ghastly bear with powers from beyond the void.\r\n\r\nSupposedly it likes admiring the fountain in the Erocian Kingdom.",
-      "recommendedLevel": 35,
+      "recommendedLevel": 65,
       "objectives": [
         {
           "id": 0,

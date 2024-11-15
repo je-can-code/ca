@@ -3217,22 +3217,19 @@ Game_Event.prototype.meetsConditions = function(page)
 
   // grab the list of valid comments.
   //const commentCommandList = this.getValidCommentCommands();
-  const commentCommandList = this.getValidCommentCommandsFromPage(page);
+  const commentCommandList = Game_Event.getValidCommentCommandsFromPage(page);
 
   // there aren't any comments on this event at all.
   if (commentCommandList.length === 0) return true;
 
   // gather all quest comments from the comment commands of this event.
-  const questConditionals = this.toQuestConditionals(commentCommandList);
+  const questConditionals = Game_Event.toQuestConditionals(commentCommandList);
 
   // if there are none, then this event is fine to proceed!
   if (questConditionals.length === 0) return true;
 
   // determine if all the quest conditionals are satisfied.
-  const questConditionalsMet = questConditionals.every(this.questConditionalMet, this);
-
-  // return whether or not the quest conditionals were satisfied.
-  return questConditionalsMet;
+  return questConditionals.every(Game_Event.questConditionalMet, this);
 };
 
 /**
@@ -3240,17 +3237,17 @@ Game_Event.prototype.meetsConditions = function(page)
  * @param {rm.types.EventCommand[]} commentCommandList The comment commands to potentially convert to conditionals.
  * @returns {OmniConditional[]}
  */
-Game_Event.prototype.toQuestConditionals = function(commentCommandList)
+Game_Event.toQuestConditionals = function(commentCommandList)
 {
   // gather all quest comments from the comment commands of this event.
   const questCommentCommands = commentCommandList
-    .filter(this.filterCommentCommandsByEventQuestConditional, this);
+    .filter(Game_Event.filterCommentCommandsByEventQuestConditional, this);
 
   // if there are no quest conditionals available for parsing, don't bother.
   if (questCommentCommands.length === 0) return [];
 
   // map all the quest conditionals from the parsed regex.
-  return questCommentCommands.map(this.toQuestConditional, this);
+  return questCommentCommands.map(Game_Event.toQuestConditional, this);
 };
 
 /**
@@ -3258,7 +3255,7 @@ Game_Event.prototype.toQuestConditionals = function(commentCommandList)
  * @param {rm.types.EventCommand} commentCommand The comment command to parse into a conditional.
  * @returns {OmniConditional}
  */
-Game_Event.prototype.toQuestConditional = function(commentCommand)
+Game_Event.toQuestConditional = function(commentCommand)
 {
   // shorthand the comment into a variable.
   const [ comment, ] = commentCommand.parameters;
@@ -3326,7 +3323,7 @@ Game_Event.prototype.toQuestConditional = function(commentCommand)
  * @param {rm.types.EventCommand} command The command being evaluated.
  * @returns {boolean}
  */
-Game_Event.prototype.filterCommentCommandsByEventQuestConditional = function(command)
+Game_Event.filterCommentCommandsByEventQuestConditional = function(command)
 {
   // identify the actual comment being evaluated.
   const [ comment, ] = command.parameters;
@@ -3344,7 +3341,7 @@ Game_Event.prototype.filterCommentCommandsByEventQuestConditional = function(com
  * @param {rm.types.EventCommand} command The command being evaluated.
  * @returns {boolean}
  */
-Game_Event.prototype.filterCommentCommandsByChoiceQuestConditional = function(command)
+Game_Event.filterCommentCommandsByChoiceQuestConditional = function(command)
 {
   // identify the actual comment being evaluated.
   const [ comment, ] = command.parameters;
@@ -3362,7 +3359,7 @@ Game_Event.prototype.filterCommentCommandsByChoiceQuestConditional = function(co
  * @param {OmniConditional} questConditional The quest conditional to evaluate satisfaction of.
  * @returns {boolean}
  */
-Game_Event.prototype.questConditionalMet = function(questConditional)
+Game_Event.questConditionalMet = function(questConditional)
 {
   // grab reference to this quest.
   const quest = QuestManager.quest(questConditional.questKey);
@@ -3402,22 +3399,24 @@ Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandInd
 
   // grab some metadata about the event.
   const eventMetadata = $gameMap.event(this.eventId());
-  const currentPage = eventMetadata.page();
+  const currentPageCommands = !!eventMetadata
+    ? eventMetadata.page().list
+    : $dataCommonEvents.at(this._commonEventId).list;
 
   // grab the event subcommand.
-  const subEventCommand = currentPage.list.at(subChoiceCommandIndex);
+  const subEventCommand = currentPageCommands.at(subChoiceCommandIndex);
 
   // ignore non-comment event commands.
-  if (!eventMetadata.filterInvalidEventCommand(subEventCommand)) return false;
+  if (!Game_Event.filterInvalidEventCommand(subEventCommand)) return false;
 
   // ignore non-quest comment commands.
-  if (!eventMetadata.filterCommentCommandsByChoiceQuestConditional(subEventCommand)) return false;
+  if (!Game_Event.filterCommentCommandsByChoiceQuestConditional(subEventCommand)) return false;
 
   // convert the known-quest-command to a conditional.
   const conditional = eventMetadata.toQuestConditional(subEventCommand);
 
   // if the condition is met, then we don't need to hide.
-  const met = eventMetadata.questConditionalMet(conditional);
+  const met = Game_Event.questConditionalMet(conditional);
   if (met) return false;
 
   // the conditional isn't met, hide the group.

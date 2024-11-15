@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 CRIT] Manages critical damage multiplier/reduction of battlers.
+ * [v1.0.2 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -26,6 +26,40 @@
  * default, and is parameterized for your convenience- because lets face it:
  * triple damage for a crit is an awful lot for the default.
  *
+ * ============================================================================
+ * THIS ACTION CRITICAL MODIFIERS:
+ * Have you ever wanted to modify the current action's critical chance and/or
+ * modifier? Well now you can! By applying the appropriate tag to the database
+ * objects in question, you can control the critical chance and critical
+ * damage modifiers for a specific skill's execution!
+ * 
+ * NOTE:
+ * This stacks additively with other crit effects.
+ * 
+ * NOTE:
+ * The effects of these tags do not apply to skills that cannot crit, so be
+ * sure to make certain the critical dropdown is set to "YES" in the damage
+ * formula box for the given skill. 
+ * 
+ * TAG USAGE:
+ * - Items
+ * - Skills
+ * 
+ * TAG FORMAT:
+ *  <thisCritChance:[FORMULA]>
+ *  <thisCritDamageMultiplier:[FORMULA]>
+ *  <thisCritsAlways>
+ * 
+ * TAG EXAMPLES:
+ *  <thisCritChance:[25]>
+ * Increases the critical chance of this particular skill by 25%.
+ * 
+ *  <thisCritDamageMultiplier:[10 + a.agi]>
+ * Increases the critical damage multiplier by 10% plus the battler's agility.
+ * 
+ *  <thisCritsAlways>
+ * The skill or item with this tag will ALWAYS crit.
+ * 
  * ============================================================================
  * CRITICAL DAMAGE MULTIPLIER:
  * Have you ever wanted to have any amount of control over critical damage?
@@ -211,7 +245,7 @@ J.CRIT.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.0',
+  Version: '1.0.2',
 };
 
 /**
@@ -232,11 +266,16 @@ J.CRIT.Aliased = {
  * All regular expressions used by this plugin.
  */
 J.CRIT.RegExp = {
+  // this-skill only.
+  ThisCritDamageChance: /<thisCritChance:\[([+\-*/ ().\w]+)]>/gi,
+  ThisCritDamageMultiplier: /<thisCritMultiplier:\[([+\-*/ ().\w]+)]>/gi,
+  ThisCritsAlways: /<thisCritsAlways>/gi,
+
   // base functionality.
-  CritDamageReductionBase: /<critReductionBase:[ ]?(\d+)>/gi,
-  CritDamageReduction: /<critReduction:[ ]?(\d+)>/gi,
-  CritDamageMultiplierBase: /<critMultiplierBase:[ ]?(\d+)>/gi,
-  CritDamageMultiplier: /<critMultiplier:[ ]?(\d+)>/gi,
+  CritDamageReductionBase: /<critReductionBase: ?(\d+)>/gi,
+  CritDamageReduction: /<critReduction: ?(\d+)>/gi,
+  CritDamageMultiplierBase: /<critMultiplierBase: ?(\d+)>/gi,
+  CritDamageMultiplier: /<critMultiplier: ?(\d+)>/gi,
 
   // for natural growths compatability.
   CritDamageReductionBuffPlus: /<cdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
@@ -424,7 +463,8 @@ Game_Action.prototype.apply = function(target)
 };
 
 /**
- * OVERWRITE Replaces the way critical damage is calculated by
+ * Overrides {@link #applyCritical}.<br/>
+ * Replaces the way critical damage is calculated by
  * adding multiplier and reduction modifiers for actors and enemies alike.
  * @param {number} baseDamage The base damage before crit modification.
  * @returns {number} The critically modified damage.
@@ -437,11 +477,8 @@ Game_Action.prototype.applyCritical = function(baseDamage)
   // reduce the above bonus critical damage by any reductions on the target.
   const reducedCriticalBonusDamage = this.applyCriticalDamageReduction(criticalBonusDamage);
 
-  // add the remaining bonus critical
-  const criticalDamage = baseDamage + reducedCriticalBonusDamage;
-
   // return the total damage including critical modifiers.
-  return criticalDamage;
+  return baseDamage + reducedCriticalBonusDamage;
 };
 
 /**
@@ -460,11 +497,11 @@ Game_Action.prototype.applyCriticalDamageMultiplier = function(baseDamage)
   // get the attacker's bonus crit multiplier.
   critMultiplier += attacker.cdm;
 
-  // calculate the bonus damage.
-  const criticalDamage = (baseDamage * critMultiplier);
+  // add the action's specific multiplier if any exists.
+  critMultiplier += this.ownCriticalDamageMultiplier();
 
   // return the calculated amount of critical bonus damage to add onto the base.
-  return criticalDamage;
+  return (baseDamage * critMultiplier);
 };
 
 /**
@@ -486,11 +523,62 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage)
   // this cannot reduce the crit bonus damage below 0.
   const criticalReductionRate = Math.max(baseCriticalReductionRate, 0);
 
-  // the newly modified amount of damage after reduction.
-  const modifiedCriticalDamage = criticalDamage * criticalReductionRate;
-
   // return the calculated amount of remaining critical damage after reductions.
-  return modifiedCriticalDamage;
+  return criticalDamage * criticalReductionRate;
+};
+
+/**
+ * Overrides {@link #itemCri}.<br/>
+ * Includes the addition of potential action-based crit rate boosts.
+ * @param {Game_Battler} target The target being struck with the critical.
+ * @returns {number} The calculated critical chance of this action.
+ */
+Game_Action.prototype.itemCri = function(target)
+{
+  // if this action can't crit, then do not process it as a critical hit.
+  if (!this.item().damage.critical) return 0;
+  
+  // check if its a guaranteed crit- if so, return an unrealistically high number over 1.
+  if (this.isGuaranteedCrit()) return 9999;
+  
+  // grab the attacker's crit chance.
+  let critChance = this.subject().cri;
+
+  // add any bonus crit from the action.
+  critChance += this.ownCriticalChanceBonus();
+
+  // calculate the crit chance against the target's crit evasion.
+  critChance -= target.cev;
+  
+  // normalize the crit to 0 just in case it drops below.
+  return Math.max(critChance, 0);
+};
+
+/**
+ * Calculates this action's own bonus to crit damage multipliers.
+ * @returns {number}
+ */
+Game_Action.prototype.ownCriticalDamageMultiplier = function()
+{
+  return RPGManager.getSumFromAllNotesByRegex([ this.item() ], J.CRIT.RegExp.ThisCritDamageMultiplier) / 100;
+};
+
+/**
+ * Checks if this action is a guaranteed critical hit.
+ * @returns {boolean}
+ */
+Game_Action.prototype.isGuaranteedCrit = function()
+{
+  return RPGManager.checkForBooleanFromNoteByRegex(this.item(), J.CRIT.RegExp.ThisCritsAlways);
+};
+
+/**
+ * Calculates this action's own bonus to crit chance.
+ * @returns {number}
+ */
+Game_Action.prototype.ownCriticalChanceBonus = function()
+{
+  return RPGManager.getSumFromAllNotesByRegex([ this.item() ], J.CRIT.RegExp.ThisCritDamageChance) / 100;
 };
 //endregion Game_Action
 
