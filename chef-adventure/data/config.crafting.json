@@ -1323,6 +1323,284 @@
       ]
     },
     {
+      "name": "===NEW RECIPE===",
+      "key": "_RECIPE-JOURNAL-3",
+      "iconIndex": 0,
+      "description": "a new recipe, ripe for a plump and savory definition.",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [],
+      "tools": [],
+      "ingredients": [],
+      "outputs": []
+    },
+    {
+      "name": "",
+      "key": "food_ghastly-goulash",
+      "iconIndex": 0,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 451,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 347,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 333,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 77,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "outputs": [
+        {
+          "id": 177,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_river-smoothie",
+      "iconIndex": 0,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [
+        {
+          "id": 101,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 77,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 166,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 413,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 91,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 88,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 73,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 178,
+          "type": "i",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_slime-puree",
+      "iconIndex": 0,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-drink"
+      ],
+      "tools": [],
+      "ingredients": [
+        {
+          "id": 418,
+          "type": "a",
+          "count": 5
+        }
+      ],
+      "outputs": [
+        {
+          "id": 179,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_slimordervs",
+      "iconIndex": 0,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 179,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 403,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 398,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 180,
+          "type": "i",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_blood-seared-snake",
+      "iconIndex": 0,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 372,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 398,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 97,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 98,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 181,
+          "type": "i",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "food_grim-flankebobs",
+      "iconIndex": 0,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "cook-meal"
+      ],
+      "tools": [
+        {
+          "id": 103,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 387,
+          "type": "a",
+          "count": 3
+        },
+        {
+          "id": 373,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 353,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "id": 182,
+          "type": "i",
+          "count": 3
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "_BLUEPRINTS",
       "iconIndex": -1,
@@ -1447,6 +1725,95 @@
     },
     {
       "name": "",
+      "key": "w-sword-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 4,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 26,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 27,
+          "type": "i",
+          "count": 3
+        }
+      ],
+      "outputs": [
+        {
+          "id": 5,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-sword-6",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 3,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 37,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 24,
+          "type": "i",
+          "count": 10
+        }
+      ],
+      "outputs": [
+        {
+          "id": 6,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
       "key": "w-greatsword-2",
       "iconIndex": -1,
       "description": "",
@@ -1536,6 +1903,58 @@
     },
     {
       "name": "",
+      "key": "w-greatsword-6",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 12,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 15
+        },
+        {
+          "id": 17,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 18,
+          "type": "i",
+          "count": 3
+        }
+      ],
+      "outputs": [
+        {
+          "id": 14,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
       "key": "w-dualsword-2",
       "iconIndex": -1,
       "description": "",
@@ -1573,7 +1992,7 @@
     },
     {
       "name": "",
-      "key": "w-dualsword-3",
+      "key": "w-dualsword-4",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -1603,6 +2022,90 @@
       "outputs": [
         {
           "id": 23,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-dualsword-5",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 24,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 36,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 37,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "outputs": [
+        {
+          "id": 25,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-dualsword-6",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 22,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 38,
+          "type": "i",
+          "count": 20
+        },
+        {
+          "id": 39,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "outputs": [
+        {
+          "id": 26,
           "type": "w",
           "count": 1
         }
@@ -1736,6 +2239,53 @@
     },
     {
       "name": "",
+      "key": "w-spear-6",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 33,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 373,
+          "type": "a",
+          "count": 10
+        },
+        {
+          "id": 313,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "outputs": [
+        {
+          "id": 35,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
       "key": "w-basher-2",
       "iconIndex": -1,
       "description": "",
@@ -1820,6 +2370,48 @@
     },
     {
       "name": "",
+      "key": "w-basher-6",
+      "iconIndex": -1,
+      "description": "",
+      "unlockedByDefault": false,
+      "maskedUntilCrafted": true,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "ingredients": [
+        {
+          "id": 43,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "id": 34,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "outputs": [
+        {
+          "id": 44,
+          "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
       "key": "w-javelin-2",
       "iconIndex": -1,
       "description": "",
@@ -1879,24 +2471,24 @@
       ],
       "ingredients": [
         {
-          "id": 51,
+          "id": 53,
           "type": "w",
           "count": 1
         },
         {
-          "id": 327,
-          "type": "a",
-          "count": 5
-        },
-        {
-          "id": 49,
+          "id": 51,
           "type": "i",
           "count": 4
+        },
+        {
+          "id": 328,
+          "type": "a",
+          "count": 15
         }
       ],
       "outputs": [
         {
-          "id": 53,
+          "id": 54,
           "type": "w",
           "count": 1
         }
