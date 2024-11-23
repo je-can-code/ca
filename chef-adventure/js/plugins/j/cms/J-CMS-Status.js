@@ -366,7 +366,8 @@ Window_Status.prototype.drawBlock2 = function()
  * and rendered only the b-params. This window now extends `Window_Base` and renders all
  * params, including b-/x-/s- params.
  */
-class Window_StatusParameters extends Window_Base
+class Window_StatusParameters
+  extends Window_Base
 {
   /**
    * @param {Rectangle} rect A rectangle that represents the shape of this window.
@@ -1103,11 +1104,15 @@ class Window_StatusParameters extends Window_Base
         // higher rates mean more incoming damage.
         colorIndex = 10; // red
       }
-      // check fi the rate is under the base 100 rate.
-      else if (rate < 100)
+      // check if the rate is under the base 100 rate.
+      else if (rate < 100 && rate > 0)
       {
         // lower rates mean less incoming damage.
         colorIndex = 3; // green
+      }
+      else if (rate === 0)
+      {
+        colorIndex = 7; // grey
       }
 
       // determine the icon index for the element.
@@ -1117,7 +1122,15 @@ class Window_StatusParameters extends Window_Base
       const actualElementName = (elementName === String.empty)
         ? "Neutral"
         : elementName;
-      this.drawParameter(`${actualElementName}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
+
+      let ratePrefix = String.empty;
+      if (J.ELEM && this.actor.isElementAbsorbed(index))
+      {
+        ratePrefix = "-"; // prefix with a minus to indicate absorption.
+        colorIndex = 5; // set it to purple regardless of greater or lesser than 100.
+      }
+
+      this.drawParameter(`${actualElementName}`, `${ratePrefix}${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
   }
 
@@ -1134,24 +1147,34 @@ class Window_StatusParameters extends Window_Base
     // draw a visual separator from title and data.
     this.drawHorizontalLine(x, y + 36, 450, 3);
 
-    const states = $dataStates.slice(4, 13);
+    const states = $dataStates.slice(4, 18);
     states.forEach((state, index) =>
     {
       if (!state) return;
 
       const modY = y + ((index + 1) * this.lineHeight()) + 8;
-      const rate = ((this.actor.traitsPi(13, index + 4)) * 100);
+      let rate = ((this.actor.traitsPi(13, state.id)) * 100);
+
+      if (this.actor.isStateResist(state.id))
+      {
+        rate = 0;
+      }
+
       let colorIndex = 0;
       if (rate > 100)
       {
         colorIndex = 10; // red
       }
-      else if (rate < 100)
+      else if (rate < 100 && rate > 0)
       {
         colorIndex = 3; // green
       }
-      const { iconIndex } = state;
-      this.drawParameter(`${state.name}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
+      else if (rate === 0)
+      {
+        colorIndex = 7; // grey
+      }
+
+      this.drawParameter(`${state.name}`, `${rate}%`, state.iconIndex, x + 40, modY, colorIndex);
     });
   }
 

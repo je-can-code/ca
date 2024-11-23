@@ -3659,8 +3659,6 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function()
     // if the tracking already exists, it should be updated.
     if (foundTracking)
     {
-      console.log(`updating existing quest; ${omniquest.key}`);
-
       // update the category.
       foundTracking.categoryKey = omniquest.categoryKey;
 
@@ -3812,8 +3810,6 @@ Game_Party.prototype.synchronizeQuestopediaAfterLoad = function()
 
   // translate the cache into saveables.
   this.translateQuestopediaCacheToSaveables();
-
-  console.log('executed "synchronizeQuestopediaAfterLoad".');
 };
 
 /**

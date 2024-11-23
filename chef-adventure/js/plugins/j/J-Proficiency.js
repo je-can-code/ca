@@ -1,441 +1,123 @@
-//region Introduction
-/*:
- * @target MZ
- * @plugindesc
- * [v1.0.0 PROF] Enables skill proficiency tracking.
- * @author JE
- * @url https://github.com/je-can-code/rmmz-plugins
- * @base J-Base
- * @orderAfter J-Base
- * @help
- * ============================================================================
- * This plugin enables the ability to have actors grow in prof when
- * using skills. Additionally, triggers can now be configured to execute
- * against these new proficiencies (and other things).
- * ============================================================================
- * PROFICIENCY BONUSES:
- * Have you ever wanted a battler to be able to gain some bonus proficiency by
- * means of something from the database? Well now you can! By applying the
- * appropriate tag to the various database locations, you too can have your
- * battlers gain bonus proficiency!
- *
- * NOTE:
- * Bonuses are flat bonuses that get added to the base amount, not percentage.
- *
- * TAG USAGE:
- * - Actors
- * - Classes
- * - Skills
- * - Weapons
- * - Armors
- * - Enemies
- * - States
- *
- * TAG FORMAT:
- *  <proficiencyBonus:NUM>
- *
- * TAG EXAMPLES:
- *  <proficiencyBonus:3>
- * The attacker now gains +3 bonus proficiency for any skill used.
- *
- *  <proficiencyBonus:50>
- * The attacker now gains +50 bonus proficiency for any skill used.
- * ============================================================================
- * PROFICIENCY BLOCKING:
- * Have you ever wanted a battler to NOT be able to gain proficiency? Well now
- * you can! By applying the appropriate tags to the various database locations,
- * you too can block any battler from giving or gaining proficiency!
- *
- * NOTE:
- * It is important to recognize that there are two tags that both block the
- * gain of proficiency in different ways. One tag is designed to prevent the
- * GIVING of proficiency, for most commonly being placed on enemies or states
- * that enemies can be placed in. The second tag is designed to prevent the
- * GAINING of proficiency, most commonly being placed on actors or states that
- * actors can be placed in... though either tag can go on anything as long as
- * you understand what you're doing.
- *
- * TAG USAGE:
- * - Actors
- * - Classes
- * - Skills
- * - Weapons
- * - Armors
- * - Enemies
- * - States
- *
- * TAG FORMAT:
- *  <proficiencyGivingBlock>
- * or
- *  <proficiencyGainingBlock>
- *
- * TAG EXAMPLES:
- *  <proficiencyGivingBlock>
- * The battler that has this tag will not GIVE proficiency to any opposing
- * battlers that hit this battler with skills.
- *
- *  <proficiencyGainingBlock>
- * The battler that has this tag will not be able to GAIN proficiency from any
- * battlers that this battler uses skills against.
- * ============================================================================
- * PLUGIN COMMANDS
- * ----------------------------------------------------------------------------
- * COMMAND:
- * "Modify Actor's Proficiency"
- * This command will allow you to increase or decrease a single actor's
- * proficiency for a given skill. You only need choose the actor, skill, and
- * the amount to increase/decrease by.
- *
- * COMMAND:
- * "Modify Party's Proficiency"
- * This command will do the same as the single actor's command above, but
- * instead apply against the whole party.
- *
- * NOTES:
- * - You cannot reduce a skill's proficiency in a skill below 0.
- * - Increasing the proficiency can trigger rewards for the skill.
- * - Decreasing the proficiency will NOT undo rewards gained.
- *
- * ============================================================================
- * @param conditionals
- * @type struct<ProficiencyConditionalStruct>[]
- * @text Proficiency Conditionals
- * @desc A set of conditions that when met reward the player.
- * @default []
- *
- * @command modifyActorSkillProficiency
- * @text Modify Actor's Proficiency
- * @desc Increase/decrease one or more actor's proficiency with one or more skills.
- * @arg actorIds
- * @type actor[]
- * @text Actor Id
- * @desc Choose one or more actors to modify the proficiency for.
- * @arg skillIds
- * @type skill[]
- * @text Skill Id
- * @desc Choose one or more skills to modify the proficiency for.
- * @arg amount
- * @type number
- * @text Modifier
- * @desc This modifier can be negative or positive.
- * @min -999999
- * @max 999999
- *
- * @command modifyPartySkillProficiency
- * @text Modify Party's Proficiency
- * @desc Increase/decrease every member in the current party's proficiency with a particular skill.
- * @arg skillIds
- * @type skill[]
- * @text Skill Id
- * @desc Choose one or more skills to modify the proficiency for.
- * @arg amount
- * @type number
- * @text Modifier
- * @desc This modifier can be negative or positive.
- * @min -999999
- * @max 999999
- *
- */
-/*~struct~ProficiencyConditionalStruct:
- * @param key
- * @type string
- * @text Key
- * @desc The conditional unique key so no actor can achieve the same conditional twice!
- * @default 1H-SWD_COMBO-3
- *
- * @param actorIds
- * @type actor[]
- * @text Actors
- * @desc The actors of which this proficiency conditional applies to.
- * @default []
- *
- * @param requirements
- * @type struct<ProficiencyRequirementStruct>[]
- * @text Requirements
- * @desc A set of requirements required to fulfill this condition.
- * @default []
- *
- * @param skillRewards
- * @type skill[]
- * @text Skill Rewards
- * @desc All skills chosen here will be learned for fulfilling this condition. Stacks with JS rewards.
- * @default [1]
- *
- * @param jsRewards
- * @type multiline_string
- * @text JS Rewards
- * @desc Use Javascript to define the reward for fulfilling this condition. Stacks with skill rewards.
- * @default a.learnSkill(5);
- */
-/*~struct~ProficiencyRequirementStruct:
- * @param skillId
- * @type skill
- * @text Primary Skill Id
- * @desc The skill to base this requirement on- if the player has no proficiency in this, they cannot unlock this.
- * @default 1
- *
- * @param proficiency
- * @type number
- * @text Proficiency Required
- * @desc The prof required in the designated skill to fulfill this requirement.
- * @default 100
- * 
- * @param secondarySkillIds
- * @type skill[]
- * @text Secondary Skill Ids
- * @desc The secondary skills that will count towards this proficiency as well as the primary.
- * @default []
- */
-
-/**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
-
-/**
- * The plugin umbrella that governs all things related to this plugin.
- */
-J.PROF = {};
-
-/**
- * The `metadata` associated with this plugin, such as version.
- */
-J.PROF.Metadata = {
-  /**
-   * The version of this plugin.
-   */
-  Name: `J-Proficiency`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.0',
-};
-
-J.PROF.Helpers = new Map();
-J.PROF.Helpers.TranslateProficiencyRequirements = function(obj)
-{
-  const parsedBlob = JSON.parse(obj);
-  const conditionals = [];
-  parsedBlob.forEach(conditionalBlob =>
-  {
-    const parsedConditional = JSON.parse(conditionalBlob);
-
-    const { key } = parsedConditional;
-    // skip proficiencies that are just headers for visual clarity.
-    if (key.startsWith("===")) return;
-
-    const actorIdBlob = JSON.parse(parsedConditional.actorIds);
-    const actorIds = actorIdBlob.map(id => parseInt(id));
-    const skillrewardBlob = JSON.parse(parsedConditional.skillRewards);
-    const skillRewards = skillrewardBlob.map(id => parseInt(id));
-    const reward = parsedConditional.jsRewards;
-    const requirements = [];
-
-    const parsedRequirements = JSON.parse(parsedConditional.requirements);
-    parsedRequirements.forEach(requirementBlob =>
-    {
-      const parsedRequirement = JSON.parse(requirementBlob);
-      const secondarySkillIds = JSON.parse(parsedRequirement.secondarySkillIds)
-        .map(id => parseInt(id));
-      const requirement = new ProficiencyRequirement(
-        parseInt(parsedRequirement.skillId),
-        parseInt(parsedRequirement.proficiency),
-        secondarySkillIds);
-      requirements.push(requirement);
-    });
-
-    const conditional = new ProficiencyConditional(key, actorIds, requirements, skillRewards, reward);
-    conditionals.push(conditional);
-  })
-
-  return conditionals;
-};
-
-/**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.PROF.PluginParameters = PluginManager.parameters(J.PROF.Metadata.Name);
-
-/**
- * The various aliases associated with this plugin.
- */
-J.PROF.Aliased = {
-  Game_Actor: new Map(),
-  Game_Action: new Map(),
-  Game_Battler: new Map(),
-  Game_Enemy: new Map(),
-  Game_System: new Map(),
-
-  IconManager: new Map(),
-  TextManager: new Map(),
-};
-
-J.PROF.RegExp = {};
-J.PROF.RegExp.ProficiencyBonus = /<proficiencyBonus:[ ]?(\d+)>/i;
-J.PROF.RegExp.ProficiencyGivingBlock = /<proficiencyGivingBlock>/i;
-J.PROF.RegExp.ProficiencyGainingBlock = /<proficiencyGainingBlock>/i;
-
-/**
- * Plugin command for modifying proficiency for one or more actors for one or more skills by a given amount.
- */
-PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyActorSkillProficiency", args =>
-{
-  const {
-    actorIds,
-    skillIds
-  } = args;
-  const parsedActorIds = JSON.parse(actorIds)
-    .map(num => parseInt(num));
-  const parsedSkillIds = JSON.parse(skillIds)
-    .map(num => parseInt(num));
-  let { amount } = args;
-  amount = parseInt(amount);
-  parsedSkillIds.forEach(skillId =>
-  {
-    parsedActorIds.forEach(actorId =>
-    {
-      $gameActors
-        .actor(actorId)
-        .increaseSkillProficiency(skillId, amount);
-    });
-  });
-});
-
-/**
- * Plugin command for modifying proficiency of the whole party for one or more skills by a given amount.
- */
-PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyPartySkillProficiency", args =>
-{
-  const { skillIds } = args;
-  let { amount } = args;
-  const parsedSkillIds = JSON.parse(skillIds)
-    .map(num => parseInt(num));
-  amount = parseInt(amount);
-  $gameParty.members()
-    .forEach(actor =>
-    {
-      parsedSkillIds.forEach(skillId =>
-      {
-        actor.increaseSkillProficiency(skillId, amount);
-      });
-    });
-});
-//endregion Introduction
-
 //region ProficiencyConditional
 /**
- * A conditional revolving around skill proficiencies that when met, will
- * execute some kind of logic.
+ * A collection of requirements associated with a collection of actors that will grant one or more rewards upon
+ * satisfying all requirements.
  */
-function ProficiencyConditional()
-{
-  this.initialize(...arguments);
-}
-
-ProficiencyConditional.prototype = {};
-ProficiencyConditional.prototype.constructor = ProficiencyConditional;
-
-/**
- * Initializes this class with the given parameters.
- */
-ProficiencyConditional.prototype.initialize = function(key, actorIds, requirements, skillRewards, jsRewards)
+class ProficiencyConditional
 {
   /**
    * The key of this conditional.
    * @type {string}
    */
-  this.key = key;
+  key = String.empty;
 
   /**
-   * The actor's id of which this conditional belongs to.
+   * The actor's id of which this conditional applies to.
    * @type {number[]}
    */
-  this.actorIds = actorIds;
+  actorIds = Array.empty;
 
   /**
    * The requirements for this conditional.
    * @type {ProficiencyRequirement[]}
    */
-  this.requirements = requirements;
+  requirements = Array.empty;
 
   /**
    * The skills rewarded when all requirements are fulfilled.
    * @type {number[]}
    */
-  this.skillRewards = skillRewards;
+  skillRewards = Array.empty;
 
   /**
    * The javascript to execute when all requirements are fulfilled.
    * @type {string}
    */
-  this.jsRewards = jsRewards;
-};
+  jsRewards = String.empty;
+
+  /**
+   * Constructor.
+   * @param {string} key The unique identifier of this skill proficiency conditional.
+   * @param {number[]} actorIds The ids of all actors this conditional applies to.
+   * @param {ProficiencyRequirement[]} requirements All requirements that must be satisfied to grant the rewards.
+   * @param {number[]} skillRewards The skills rewarded upon satisfying all requirements.
+   * @param {string} jsRewards The raw javascript to execute upon satisfying all requirements.
+   */
+  constructor(key, actorIds, requirements, skillRewards, jsRewards)
+  {
+    this.key = key;
+    this.actorIds = actorIds;
+    this.requirements = requirements;
+    this.skillRewards = skillRewards;
+    this.jsRewards = jsRewards;
+  }
+}
 //endregion ProficiencyConditional
 
 //region proficiencyRequirement
 /**
- * A single requirement of a skill prof conditional.
- * @constructor
+ * A single requirement of a skill proficiency conditional.
  */
-function ProficiencyRequirement()
-{
-  this.initialize(...arguments);
-}
-
-ProficiencyRequirement.prototype = {};
-ProficiencyRequirement.prototype.constructor = ProficiencyRequirement;
-
-/**
- * Initializes this class with the given parameters.
- */
-ProficiencyRequirement.prototype.initialize = function(skillId, proficiency, secondarySkillIds)
+class ProficiencyRequirement
 {
   /**
    * The skill id for this requirement.
    * @type {number}
    */
-  this.skillId = skillId;
+  skillId = 0;
 
   /**
    * The level of proficiency required to consider this requirement fulfilled.
    * @type {number}
    */
-  this.proficiency = proficiency;
+  proficiency = 0;
 
   /**
    * The skill ids for this requirement.
    * @type {number[]}
    */
-  this.secondarySkillIds = secondarySkillIds;
-};
+  secondarySkillIds = [];
 
-/**
- * Check the total proficiency for this requirement to be unlocked by battler.
- * @param {Game_Actor|Game_Enemy} battler The battler whose proficiency this is being checked for.
- * @returns {number}
- */
-ProficiencyRequirement.prototype.totalProficiency = function(battler)
-{
-  // identify the proficiency of the primary skill.
-  const skillProficiency = battler.tryGetSkillProficiencyBySkillId(this.skillId);
-  
-  // grab the current proficiency of the skill for the battler.
-  const primaryProficiency = skillProficiency.proficiency;
+  /**
+   * Constructor.
+   * @param {number} skillId The primary skill id of the requirement.
+   * @param {number} proficiency The proficiency required.
+   * @param {number[]} secondarySkillIds The secondary skill ids for the requirement.
+   */
+  constructor(skillId, proficiency, secondarySkillIds)
+  {
+    this.skillId = skillId;
+    this.proficiency = proficiency;
+    this.secondarySkillIds = secondarySkillIds;
+  }
 
-  // accumulate the primary proficiency plus all the secondary proficiencies.
-  return this.secondarySkillIds
-    .reduce((accumulator, secondarySkillId) =>
-    {
-      // check if there is any proficiency for the primary skill associated with the requirement.
-      const secondaryProficiency = battler.tryGetSkillProficiencyBySkillId(secondarySkillId);
-      
-      // add the additional proficiency onto the accumulation.
-      return accumulator + secondaryProficiency.proficiency;
-      
-      // the base proficiency is this requirement's known proficiency.
-    }, primaryProficiency);
-};
+  /**
+   * Check the total proficiency for this requirement to be unlocked by battler.
+   * @param {Game_Actor|Game_Enemy} battler The battler whose proficiency this is being checked for.
+   * @returns {number}
+   */
+  totalProficiency(battler)
+  {
+    // identify the proficiency of the primary skill.
+    const skillProficiency = battler.tryGetSkillProficiencyBySkillId(this.skillId);
+
+    // grab the current proficiency of the skill for the battler.
+    const primaryProficiency = skillProficiency.proficiency;
+
+    // accumulate the primary proficiency plus all the secondary proficiencies.
+    return this.secondarySkillIds
+      .reduce((accumulator, secondarySkillId) =>
+      {
+        // check if there is any proficiency for the primary skill associated with the requirement.
+        const secondaryProficiency = battler.tryGetSkillProficiencyBySkillId(secondarySkillId);
+
+        // add the additional proficiency onto the accumulation.
+        return accumulator + secondaryProficiency.proficiency;
+
+        // the base proficiency is this requirement's known proficiency.
+      }, primaryProficiency);
+  };
+}
 //endregion proficiencyRequirement
 
 //region SkillProficiency
@@ -490,6 +172,369 @@ SkillProficiency.prototype.improve = function(value)
   }
 };
 //endregion SkillProficiency
+
+//region Introduction
+/*:
+ * @target MZ
+ * @plugindesc
+ * [v2.0.0 PROF] Enables skill proficiency tracking.
+ * @author JE
+ * @url https://github.com/je-can-code/rmmz-plugins
+ * @base J-Base
+ * @orderAfter J-Base
+ * @orderAfter J-ABS
+ * @help
+ * ============================================================================
+ * OVERVIEW
+ * This plugin enables the ability to have actors grow in prof when using
+ * skills. Additionally, triggers can now be configured to execute
+ * against these new proficiencies (and other things).
+ *
+ * Integrates with others of mine plugins:
+ * - J-ABS; actions performed in JABS will accrue proficiency.
+ * - J-Elem; enables damage formula integration for proficiency.
+ * ----------------------------------------------------------------------------
+ * DETAILS
+ * This plugin tracks all skill usage for all battlers (actors and enemies,
+ * though with enemies it is much less meaningful since they are short-lived).
+ * By defining "proficiency conditionals", you can enable actors to unlock new
+ * skills or gain other javascript-based rewards by using their skills.
+ *
+ * WHEN USING J-ELEMENTALISTICS
+ * Additionally, a new parameter is exposed in the "damage formula" for "p"
+ * which represents the attacker's proficiency in the skill being used. For
+ * example, consider the following formula:
+ *
+ *  ((a.atk * 4) + p) - (b.def * 2)
+ *
+ * We would now translate that as:
+ * 4X attacker ATK + attacker's proficiency in this skill
+ * minus
+ * 2X defender DEF
+ *
+ * Which gives this skill the ability to scale the more the attacker uses this
+ * skill. Be aware there is no practical upper limit on proficiency, so if the
+ * game is intended to go on for a long while, such scaling could be difficult
+ * to balance in the long run. Use it in damage formulas wisely!
+ * ----------------------------------------------------------------------------
+ * !              IMPORTANT NOTE ABOUT CONFIGURATION DATA                     !
+ * The configuration data for this plugin is derived from an external file
+ * rather than the plugin's parameters. This file lives in the "/data"
+ * directory of your project, and is called "config.proficiency.json". You can
+ * absolutely generate/modify this file by hand, but you'll probably want to
+ * visit my github and swipe the jmz-data-editor project I've built that
+ * provides a convenient GUI for generating and modifying the configuration.
+ *
+ * If this configuration file is missing, the game will not run.
+ *
+ * Additionally, due to the way RMMZ base code is designed, by loading external
+ * files for configuration like this, a project made with this plugin will
+ * simply crash when attempting to load in a web context with an error akin to:
+ *    "ReferenceError require is not defined"
+ * This error is a result of attempting to leverage nodejs's "require" loader
+ * to load the "fs" (file system) library to then load the plugin's config
+ * file. Normally a web deployed game will alternatively use "forage" instead
+ * to handle things that need to be read or saved, but because the config file
+ * is just that- a file sitting in the /data directory rather than loaded into
+ * forage storage- it becomes unaccessible.
+ * ============================================================================
+ * PROFICIENCY BONUSES
+ * Have you ever wanted a battler to be able to gain some bonus proficiency by
+ * means of something from the database? Well now you can! By applying the
+ * appropriate tag to the various database locations, you too can have your
+ * battlers gain bonus proficiency!
+ *
+ * NOTE:
+ * Bonuses are flat bonuses that get added to the base amount, not percentage.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <proficiencyBonus:NUM>
+ *
+ * TAG EXAMPLES:
+ *  <proficiencyBonus:3>
+ * The attacker now gains +3 bonus proficiency for any skill used.
+ *
+ *  <proficiencyBonus:50>
+ * The attacker now gains +50 bonus proficiency for any skill used.
+ * ============================================================================
+ * PROFICIENCY BLOCKING
+ * Have you ever wanted a battler to NOT be able to gain proficiency? Well now
+ * you can! By applying the appropriate tags to the various database locations,
+ * you too can block any battler from giving or gaining proficiency!
+ *
+ * NOTE:
+ * It is important to recognize that there are two tags that both block the
+ * gain of proficiency in different ways. One tag is designed to prevent the
+ * GIVING of proficiency, for most commonly being placed on enemies or states
+ * that enemies can be placed in. The second tag is designed to prevent the
+ * GAINING of proficiency, most commonly being placed on actors or states that
+ * actors can be placed in... though either tag can go on anything as long as
+ * you understand what you're doing.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <proficiencyGivingBlock>
+ * or
+ *  <proficiencyGainingBlock>
+ *
+ * TAG EXAMPLES:
+ *  <proficiencyGivingBlock>
+ * The battler that has this tag will not GIVE proficiency to any opposing
+ * battlers that hit this battler with skills.
+ *
+ *  <proficiencyGainingBlock>
+ * The battler that has this tag will not be able to GAIN proficiency from any
+ * battlers that this battler uses skills against.
+ * ============================================================================
+ * PLUGIN COMMANDS
+ * ----------------------------------------------------------------------------
+ * COMMAND:
+ * "Modify Actor's Proficiency"
+ * This command will allow you to increase or decrease a single actor's
+ * proficiency for a given skill. You only need choose the actor, skill, and
+ * the amount to increase/decrease by.
+ *
+ * COMMAND:
+ * "Modify Party's Proficiency"
+ * This command will do the same as the single actor's command above, but
+ * instead apply against the whole party.
+ *
+ * NOTES:
+ * - You cannot reduce a skill's proficiency in a skill below 0.
+ * - Increasing the proficiency can trigger rewards for the skill.
+ * - Decreasing the proficiency will NOT undo rewards gained.
+ * ============================================================================
+ * CHANGELOG:
+ * - 2.0.0
+ *    THIS UPDATE BREAKS WEB DEPLOY FUNCTIONALITY FOR YOUR GAME.
+ *    Updated to extend common plugin metadata patterns.
+ *    Loads configuration data from external file.
+ *    Proficiency conditional data is no longer saved to the actor.
+ *    Retroactively added this changelog.
+ * - 1.0.0
+ *    The initial release.
+ * ============================================================================
+ * @param conditionals
+ * @type struct<ProficiencyConditionalStruct>[]
+ * @text Proficiency Conditionals
+ * @desc A set of conditions that when met reward the player.
+ * @default []
+ *
+ * @command modifyActorSkillProficiency
+ * @text Modify Actor's Proficiency
+ * @desc Increase/decrease one or more actor's proficiency with one or more skills.
+ * @arg actorIds
+ * @type actor[]
+ * @text Actor Id
+ * @desc Choose one or more actors to modify the proficiency for.
+ * @arg skillIds
+ * @type skill[]
+ * @text Skill Id
+ * @desc Choose one or more skills to modify the proficiency for.
+ * @arg amount
+ * @type number
+ * @text Modifier
+ * @desc This modifier can be negative or positive.
+ * @min -999999
+ * @max 999999
+ *
+ * @command modifyPartySkillProficiency
+ * @text Modify Party's Proficiency
+ * @desc Increase/decrease every member in the current party's proficiency with a particular skill.
+ * @arg skillIds
+ * @type skill[]
+ * @text Skill Id
+ * @desc Choose one or more skills to modify the proficiency for.
+ * @arg amount
+ * @type number
+ * @text Modifier
+ * @desc This modifier can be negative or positive.
+ * @min -999999
+ * @max 999999
+ *
+ */
+
+//region plugin metadata
+class J_ProficiencyPluginMetadata
+  extends PluginMetadata
+{
+  /**
+   * The path where the external configuration file is located relative to the root of the project.
+   * @type {string}
+   */
+  static CONFIG_PATH = 'data/config.proficiency.json';
+
+  /**
+   * Maps all the raw proficiency conditional data
+   * @param {any} parsedBlob The JSON.parse()'d data blob of the config.
+   * @returns {ProficiencyConditional[]}
+   */
+  static classifyConditionals(parsedBlob)
+  {
+    return parsedBlob.conditionals.map(conditional =>
+    {
+      const requirements = conditional.requirements
+        .map(requirement => new ProficiencyRequirement(
+          requirement.skillId,
+          requirement.proficiency,
+          requirement.secondarySkillIds));
+
+      return new ProficiencyConditional(
+        conditional.key,
+        conditional.actorIds,
+        requirements,
+        conditional.skillRewards,
+        conditional.jsRewards);
+    });
+  }
+
+  /**
+   * Constructor.
+   */
+  constructor(name, version)
+  {
+    super(name, version);
+  }
+
+  postInitialize()
+  {
+    super.postInitialize();
+
+    this.initializeProficiencies();
+  }
+
+  initializeProficiencies()
+  {
+    const parsedConditionals = JSON.parse(StorageManager.fsReadFile(J_ProficiencyPluginMetadata.CONFIG_PATH));
+    if (parsedConditionals === null)
+    {
+      console.error('no proficiency configuration was found in the /data directory of the project.');
+      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
+      throw new Error('Proficiency plugin is being used, but no config file is present.');
+    }
+
+    const classifiedConditionalData = J_ProficiencyPluginMetadata.classifyConditionals(parsedConditionals);
+
+    /**
+     * The collection of all defined skill proficiencies.
+     * @type {ProficiencyConditional[]}
+     */
+    this.conditionals = classifiedConditionalData;
+
+    /**
+     * A map of actorId:conditional[] for more easily accessing all conditionals associated with a given actor.
+     * @type {Map<number, ProficiencyConditional[]>}
+     */
+    this.actorConditionalsMap = new Map();
+
+    console.log(`loaded:
+      - ${this.conditionals.length} proficiency conditionals
+      from file ${J_ProficiencyPluginMetadata.CONFIG_PATH}.`);
+  }
+}
+
+//endregion plugin metadata
+
+/**
+ * The core where all of my extensions live: in the `J` object.
+ */
+var J = J || {};
+
+/**
+ * The plugin umbrella that governs all things related to this plugin.
+ */
+J.PROF = {};
+
+/**
+ * The metadata associated with this plugin.
+ * @type {J_ProficiencyPluginMetadata}
+ */
+J.PROF.Metadata = new J_ProficiencyPluginMetadata('J-Proficiency', '2.0.0');
+
+/**
+ * The various aliases associated with this plugin.
+ */
+J.PROF.Aliased = {
+  Game_Actor: new Map(),
+  Game_Action: new Map(),
+  Game_Battler: new Map(),
+  Game_Enemy: new Map(),
+  Game_System: new Map(),
+
+  IconManager: new Map(),
+  TextManager: new Map(),
+};
+
+J.PROF.RegExp = {};
+J.PROF.RegExp.ProficiencyBonus = /<proficiencyBonus:[ ]?(\d+)>/i;
+J.PROF.RegExp.ProficiencyGivingBlock = /<proficiencyGivingBlock>/i;
+J.PROF.RegExp.ProficiencyGainingBlock = /<proficiencyGainingBlock>/i;
+//endregion Introduction
+
+//region plugin commands
+/**
+ * Plugin command for modifying proficiency for one or more actors for one or more skills by a given amount.
+ */
+PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyActorSkillProficiency", args =>
+{
+  const {
+    actorIds, skillIds
+  } = args;
+
+  const parsedActorIds = JSON.parse(actorIds)
+    .map(num => parseInt(num));
+  const parsedSkillIds = JSON.parse(skillIds)
+    .map(num => parseInt(num));
+  let { amount } = args;
+  amount = parseInt(amount);
+  parsedSkillIds.forEach(skillId =>
+  {
+    parsedActorIds.forEach(actorId =>
+    {
+      $gameActors
+        .actor(actorId)
+        .increaseSkillProficiency(skillId, amount);
+    });
+  });
+});
+
+/**
+ * Plugin command for modifying proficiency of the whole party for one or more skills by a given amount.
+ */
+PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyPartySkillProficiency", args =>
+{
+  const { skillIds } = args;
+  let { amount } = args;
+  const parsedSkillIds = JSON.parse(skillIds)
+    .map(num => parseInt(num));
+  amount = parseInt(amount);
+  $gameParty.members()
+    .forEach(actor =>
+    {
+      parsedSkillIds.forEach(skillId =>
+      {
+        actor.increaseSkillProficiency(skillId, amount);
+      });
+    });
+});
+//endregion plugin commands
 
 //region IconManager
 /**
@@ -771,47 +816,12 @@ Game_Actor.prototype.initMembers = function()
   this._j._proficiency._proficiencies ||= [];
 
   /**
-   * A grouping of all conditionals that apply to this actor.
-   * @type {ProficiencyConditional[]}
-   */
-  this._j._proficiency._ownConditionals = [];
-
-  /**
    * All conditionals that have been unlocked by this actor.
    * @type {string[]}
    */
   this._j._proficiency._unlockedConditionals ||= [];
-};
 
-/**
- * Extends the setup of an actor to include setting up all the skill
- * proficiency conditionals for this actor.
- */
-J.PROF.Aliased.Game_Actor.set("setup", Game_Actor.prototype.setup);
-Game_Actor.prototype.setup = function(actorId)
-{
-  // perform original logic.
-  J.PROF.Aliased.Game_Actor.get("setup")
-    .call(this, actorId);
-
-  // update own proficiency conditionals.
-  this.updateOwnConditionals();
-};
-
-/**
- * Updates this actor's own conditionals with the latest ones from the plugin metadata.
- */
-Game_Actor.prototype.updateOwnConditionals = function()
-{
-  // grab the latest conditionals.
-  const conditionals = $gameSystem.proficiencyConditionals();
-
-  // if we have no conditionals, then do not update.
-  if (!conditionals || !conditionals.length) return;
-
-  // update with conditionals applicable to this actor.
-  this._j._proficiency._ownConditionals = conditionals
-    .filter(conditional => conditional.actorIds.includes(this.actorId()));
+  this._j._proficiency._bonusSkillProficiencyGains = 0;
 };
 
 /**
@@ -842,7 +852,7 @@ Game_Actor.prototype.addNewSkillProficiency = function(skillProficiency)
  */
 Game_Actor.prototype.proficiencyConditionals = function()
 {
-  return this._j._proficiency._ownConditionals;
+  return J.PROF.Metadata.actorConditionalsMap.get(this.actorId());
 };
 
 /**
@@ -855,8 +865,8 @@ Game_Actor.prototype.unlockedConditionals = function()
 };
 
 /**
- * Adds the newly unlocked conditional to this actor.
- * @param {ProficiencyConditional} conditional The newly unlocked conditional.
+ * Registers a conditional as unlocked by its key.
+ * @param {string} conditional The key of the conditional to unlock.
  */
 Game_Actor.prototype.addUnlockedConditional = function(conditional)
 {
@@ -864,16 +874,14 @@ Game_Actor.prototype.addUnlockedConditional = function(conditional)
 };
 
 /**
- * Gets all of this actor's skill proficiency conditionals
- * that include a requirement of the provided skillId.
+ * Gets all of this actor's skill proficiency conditionals that include a requirement of the provided skillId.
  * @param {number} skillId The skill id to find conditionals for.
  * @returns {ProficiencyConditional[]}
  */
 Game_Actor.prototype.proficiencyConditionalBySkillId = function(skillId)
 {
-  const filtering = (conditional) => conditional.requirements.some(requirement => requirement.skillId === skillId);
   return this.proficiencyConditionals()
-    .filter(filtering);
+    .filter(conditional => conditional.requirements.some(requirement => requirement.skillId === skillId));
 };
 
 /**
@@ -881,7 +889,7 @@ Game_Actor.prototype.proficiencyConditionalBySkillId = function(skillId)
  * @param key {string} The key of the conditional.
  * @returns {boolean}
  */
-Game_Actor.prototype.isConditionalLocked = function(key)
+Game_Actor.prototype.isConditionalUnlocked = function(key)
 {
   return this.unlockedConditionals()
     .includes(key);
@@ -893,10 +901,8 @@ Game_Actor.prototype.isConditionalLocked = function(key)
  */
 Game_Actor.prototype.lockedConditionals = function()
 {
-  const filtering = (conditional) => !this.unlockedConditionals()
-    .includes(conditional.key);
   return this.proficiencyConditionals()
-    .filter(filtering);
+    .filter(conditional => this.isConditionalUnlocked(conditional.key) === false);
 };
 
 /**
@@ -905,8 +911,7 @@ Game_Actor.prototype.lockedConditionals = function()
  */
 Game_Actor.prototype.unlockConditional = function(key)
 {
-  if (this.unlockedConditionals()
-    .includes(key))
+  if (this.isConditionalUnlocked(key))
   {
     console.warn(`Attempted to unlock conditional: [${key}], but it was already unlocked.`);
     return;
@@ -1015,7 +1020,7 @@ Game_Actor.prototype.addSkillProficiency = function(skillId, initialProficiency 
   const exists = this.skillProficiencyBySkillId(skillId);
   if (exists)
   {
-    console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.<br>`);
+    console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.`);
     return exists;
   }
 
@@ -1055,7 +1060,7 @@ Game_Actor.prototype.increaseSkillProficiency = function(skillId, amount = 1)
 
   // improve the proficiency of the skill.
   proficiency.improve(amount);
-  
+
   // re-evaluate all conditionals to see if this resulted in unlocking any.
   this.evaluateProficiencyConditionals();
 };
@@ -1081,7 +1086,6 @@ Game_Actor.prototype.evaluateProficiencyConditionals = function()
  */
 Game_Actor.prototype.evaluateProficiencyConditional = function(conditional)
 {
-  // TODO: does this work as a one-liner to skip the crap below?
   const allRequirementsMet = conditional.requirements.every(this.isRequirementMet, this);
 
   // check if the requirements are all met for unlocking.
@@ -1107,12 +1111,44 @@ Game_Actor.prototype.isRequirementMet = function(requirement)
 };
 
 /**
+ * Extends {@link #onBattlerDataChange}.<br/>
+ * Also updates bonus skill proficiency gains.
+ */
+J.PROF.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function()
+{
+  // perform original logic.
+  J.PROF.Aliased.Game_Actor.get('onBattlerDataChange')
+    .call(this);
+
+  // update the skill gains as well.
+  this.updateBonusSkillProficiencyGains();
+};
+
+/**
+ * Updates the skill proficiency gains for this actor.
+ */
+Game_Actor.prototype.updateBonusSkillProficiencyGains = function()
+{
+  // TEMPORARY FIX FOR UPDATING SAVES IN PROGRESS.
+  if (this._j._proficiency._bonusSkillProficiencyGains === undefined
+    || this._j._proficiency._bonusSkillProficiencyGains === null)
+  {
+    this._j._proficiency._bonusSkillProficiencyGains = 0;
+  }
+
+  this._j._proficiency._bonusSkillProficiencyGains = RPGManager.getSumFromAllNotesByRegex(
+    this.getAllNotes(),
+    J.PROF.RegExp.ProficiencyBonus)
+};
+
+/**
  * Calculates total amount of bonus proficiency gain when gaining skill proficiency.
  * @returns {number}
  */
 Game_Actor.prototype.bonusSkillProficiencyGains = function()
 {
-  return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyBonus);
+  return this._j._proficiency._bonusSkillProficiencyGains;
 };
 //endregion Game_Actor
 
@@ -1237,7 +1273,7 @@ Game_Enemy.prototype.addSkillProficiency = function(skillId, initialProficiency 
   const exists = this.skillProficiencyBySkillId(skillId);
   if (exists)
   {
-    console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.<br>`);
+    console.warn(`Attempted to recreate skill proficiency for skillId: ${skillId}.`);
     return exists;
   }
 
@@ -1291,40 +1327,6 @@ Game_Enemy.prototype.increaseSkillProficiency = function(skillId, amount = 1)
 
 //region Game_System
 /**
- * Hooks in and initializes the SDP system.
- */
-J.PROF.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
-Game_System.prototype.initialize = function()
-{
-  // perform original logic.
-  J.PROF.Aliased.Game_System.get('initialize')
-    .call(this);
-
-  // initializes members for this plugin.
-  this.initProficiencyMembers();
-};
-
-Game_System.prototype.initProficiencyMembers = function()
-{
-  /**
-   * The J object where all my additional properties live.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with the proficiency system.
-   */
-  this._j._proficiency ||= {};
-
-  /**
-   * The master collection of proficiency conditionals.
-   * @type {ProficiencyConditional[]}
-   */
-  this._j._proficiency._conditionals = J.PROF.Helpers
-    .TranslateProficiencyRequirements(J.PROF.PluginParameters.conditionals);
-};
-
-/**
  * Updates the list of all available proficiency conditionals from the latest plugin metadata.
  */
 J.PROF.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
@@ -1339,31 +1341,15 @@ Game_System.prototype.onAfterLoad = function()
 };
 
 /**
- * Updates the proficiency conditional list from the latest plugin metadata.
- * Also updates all actors' conditionals in case something changed.
+ * Updates the plugin metadata after the game data has loaded.
  */
 Game_System.prototype.updateProficienciesFromPluginMetadata = function()
 {
-  // refresh the proficiency conditional list from the latest plugin metadata.
-  this._j._proficiency._conditionals = J.PROF.Helpers
-    .TranslateProficiencyRequirements(J.PROF.PluginParameters.conditionals);
+  $gameActors.actorIds()
+    .forEach(actorId =>
+    {
+      const actorConditionals = J.PROF.Metadata.conditionals.filter(condition => condition.actorIds.includes(actorId));
+      J.PROF.Metadata.actorConditionalsMap.set(actorId, actorConditionals);
+    });
 
-  // iterate over all the actors and update their conditionals based on this data change.
-  $gameActors._data.forEach(actor =>
-  {
-    // the first actor in this array is null, just skip it.
-    if (!actor) return;
-
-    // update all their conditionals with the latest.
-    actor.updateOwnConditionals();
-  });
-};
-
-/**
- * Gets all defined proficiency conditionals.
- * @returns {ProficiencyConditional[]}
- */
-Game_System.prototype.proficiencyConditionals = function()
-{
-  return this._j._proficiency._conditionals;
 };
