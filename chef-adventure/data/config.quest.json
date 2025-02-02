@@ -1,7 +1,7 @@
 {
   "quests": [
     {
-      "key": "neo-9999",
+      "key": "divider-main",
       "name": "=== MAIN QUESTS",
       "iconIndex": 0,
       "categoryKey": "",
@@ -33,7 +33,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -85,7 +85,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -123,7 +123,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -161,7 +161,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -199,7 +199,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -237,7 +237,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -275,7 +275,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -313,7 +313,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -351,7 +351,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -403,7 +403,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -441,7 +441,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -479,7 +479,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -531,7 +531,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -569,7 +569,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -607,7 +607,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Item",
+              "type": 0,
               "id": 151,
               "amount": 1
             },
@@ -659,7 +659,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -697,7 +697,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -735,7 +735,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -773,7 +773,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -811,7 +811,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -849,7 +849,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -887,7 +887,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -939,7 +939,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -977,7 +977,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1015,7 +1015,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1053,7 +1053,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1091,7 +1091,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1129,7 +1129,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1167,7 +1167,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1219,7 +1219,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1257,7 +1257,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1295,7 +1295,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1335,7 +1335,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1387,7 +1387,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1425,7 +1425,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1463,7 +1463,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1501,7 +1501,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1539,7 +1539,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1577,7 +1577,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1615,7 +1615,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1653,7 +1653,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1705,7 +1705,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1743,7 +1743,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1781,7 +1781,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1819,7 +1819,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1857,7 +1857,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1895,7 +1895,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1945,7 +1945,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -1995,7 +1995,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2033,7 +2033,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2071,7 +2071,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2123,7 +2123,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2161,7 +2161,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2211,7 +2211,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2261,7 +2261,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2299,7 +2299,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2349,7 +2349,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2401,7 +2401,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2453,7 +2453,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2505,7 +2505,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2543,7 +2543,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2581,7 +2581,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2633,7 +2633,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2671,7 +2671,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2709,7 +2709,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2747,7 +2747,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2799,7 +2799,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2851,7 +2851,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2889,7 +2889,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2927,7 +2927,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -2965,7 +2965,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3003,7 +3003,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3053,7 +3053,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3105,7 +3105,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3157,7 +3157,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3209,7 +3209,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3261,7 +3261,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3317,7 +3317,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3373,7 +3373,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3429,7 +3429,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3485,7 +3485,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3541,7 +3541,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3597,7 +3597,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3653,7 +3653,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3709,7 +3709,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },
@@ -3765,7 +3765,7 @@
               "y2": -1
             },
             "fetch": {
-              "type": "Unset",
+              "type": -1,
               "id": 0,
               "amount": 0
             },

@@ -1323,10 +1323,10 @@
       ]
     },
     {
-      "name": "===NEW RECIPE===",
+      "name": "",
       "key": "_RECIPE-JOURNAL-3",
       "iconIndex": 0,
-      "description": "a new recipe, ripe for a plump and savory definition.",
+      "description": "",
       "unlockedByDefault": false,
       "maskedUntilCrafted": true,
       "categoryKeys": [],
@@ -1353,24 +1353,19 @@
       ],
       "ingredients": [
         {
-          "id": 451,
-          "type": "a",
+          "type": "i",
+          "id": 83,
           "count": 3
         },
         {
-          "id": 347,
-          "type": "a",
-          "count": 2
-        },
-        {
-          "id": 333,
-          "type": "a",
+          "type": "i",
+          "id": 99,
           "count": 1
         },
         {
-          "id": 77,
-          "type": "i",
-          "count": 2
+          "type": "a",
+          "id": 333,
+          "count": 5
         }
       ],
       "outputs": [
@@ -1448,12 +1443,23 @@
       "categoryKeys": [
         "cook-drink"
       ],
-      "tools": [],
+      "tools": [
+        {
+          "type": "i",
+          "id": 112,
+          "count": 1
+        }
+      ],
       "ingredients": [
         {
           "id": 418,
           "type": "a",
           "count": 5
+        },
+        {
+          "type": "a",
+          "id": 368,
+          "count": 1
         }
       ],
       "outputs": [
@@ -1466,7 +1472,7 @@
     },
     {
       "name": "",
-      "key": "food_slimordervs",
+      "key": "food_jelli-hors-doeuvres",
       "iconIndex": 0,
       "description": "",
       "unlockedByDefault": false,
@@ -1488,19 +1494,24 @@
       ],
       "ingredients": [
         {
-          "id": 179,
           "type": "i",
-          "count": 2
+          "id": 179,
+          "count": 4
         },
         {
-          "id": 403,
-          "type": "a",
-          "count": 1
+          "type": "i",
+          "id": 91,
+          "count": 2
         },
         {
           "id": 398,
           "type": "a",
           "count": 1
+        },
+        {
+          "type": "i",
+          "id": 75,
+          "count": 2
         }
       ],
       "outputs": [
@@ -1513,7 +1524,7 @@
     },
     {
       "name": "",
-      "key": "food_blood-seared-snake",
+      "key": "food_blood-seared-asp",
       "iconIndex": 0,
       "description": "",
       "unlockedByDefault": false,
@@ -1573,22 +1584,32 @@
           "id": 103,
           "type": "i",
           "count": 1
+        },
+        {
+          "type": "i",
+          "id": 107,
+          "count": 1
         }
       ],
       "ingredients": [
         {
-          "id": 387,
           "type": "a",
+          "id": 388,
           "count": 3
         },
         {
-          "id": 373,
-          "type": "a",
-          "count": 1
+          "type": "i",
+          "id": 74,
+          "count": 3
         },
         {
-          "id": 353,
-          "type": "a",
+          "type": "i",
+          "id": 78,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 97,
           "count": 1
         }
       ],
@@ -1610,6 +1631,462 @@
       "categoryKeys": [],
       "tools": [],
       "ingredients": [],
+      "outputs": []
+    },
+    {
+      "key": "__INGOTS",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [],
+      "tools": [],
+      "outputs": []
+    },
+    {
+      "key": "ingot-iron",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 30,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 105,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 31,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "ingot-silver",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 32,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 105,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 33,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "ingot-bleu",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 34,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 105,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 35,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "ingot-sandwraith",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 36,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 105,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "ingot-engle",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 38,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 105,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 39,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "ingot-deep",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 40,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 105,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 41,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "ingot-might",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 42,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 105,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 43,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "ingot-ultanium",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 44,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 105,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 45,
+          "count": 2
+        }
+      ]
+    },
+    {
+      "key": "__PAPER",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [],
+      "tools": [],
+      "outputs": []
+    },
+    {
+      "key": "paper-basic",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 47,
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 111,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 48,
+          "count": 5
+        }
+      ]
+    },
+    {
+      "key": "paper-lofty",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 49,
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 111,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 50,
+          "count": 5
+        }
+      ]
+    },
+    {
+      "key": "paper-dense",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 51,
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 111,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 52,
+          "count": 5
+        }
+      ]
+    },
+    {
+      "key": "paper-grim",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 53,
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 111,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 54,
+          "count": 5
+        }
+      ]
+    },
+    {
+      "key": "paper-sheer",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 55,
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 111,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 56,
+          "count": 5
+        }
+      ]
+    },
+    {
+      "key": "paper-decadent",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 57,
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "type": "i",
+          "id": 111,
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "i",
+          "id": 58,
+          "count": 5
+        }
+      ]
+    },
+    {
+      "key": "__WEAPONS",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [],
+      "ingredients": [],
+      "tools": [],
       "outputs": []
     },
     {
@@ -1682,6 +2159,53 @@
       ]
     },
     {
+      "key": "w-sword-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "id": 2,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 33,
+          "count": 5
+        },
+        {
+          "type": "i",
+          "id": 23,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 3,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-sword-4",
       "iconIndex": -1,
@@ -1725,7 +2249,7 @@
     },
     {
       "name": "",
-      "key": "w-sword-5",
+      "key": "w-sword-6",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -1772,7 +2296,7 @@
     },
     {
       "name": "",
-      "key": "w-sword-6",
+      "key": "w-sword-7",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -1808,6 +2332,90 @@
         {
           "id": 6,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-sword-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 5,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 43,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 28,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 7,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-sword-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 6,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 45,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 25,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 8,
           "count": 1
         }
       ]
@@ -1902,6 +2510,58 @@
       ]
     },
     {
+      "key": "w-greatsword-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 11,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 33,
+          "count": 15
+        },
+        {
+          "type": "i",
+          "id": 20,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 21,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 13,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-greatsword-6",
       "iconIndex": -1,
@@ -1954,6 +2614,147 @@
       ]
     },
     {
+      "key": "w-greatsword-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 13,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 41,
+          "count": 15
+        },
+        {
+          "type": "i",
+          "id": 21,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 15,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-greatsword-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 14,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 43,
+          "count": 15
+        },
+        {
+          "type": "i",
+          "id": 19,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 16,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-greatsword-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 15,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 45,
+          "count": 15
+        },
+        {
+          "type": "i",
+          "id": 22,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 17,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-dualsword-2",
       "iconIndex": -1,
@@ -1991,8 +2792,45 @@
       ]
     },
     {
+      "key": "w-dualsword-3a",
       "name": "",
-      "key": "w-dualsword-4",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 31,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 33,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 22,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-dualsword-3b",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -2028,8 +2866,45 @@
       ]
     },
     {
+      "key": "w-dualsword-4",
       "name": "",
-      "key": "w-dualsword-5",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 33,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 24,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-dualsword-6",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -2071,7 +2946,7 @@
     },
     {
       "name": "",
-      "key": "w-dualsword-6",
+      "key": "w-dualsword-7",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -2107,6 +2982,174 @@
         {
           "id": 26,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-dualsword-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 23,
+          "count": 1
+        },
+        {
+          "id": 38,
+          "type": "i",
+          "count": 20
+        },
+        {
+          "id": 39,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 27,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-dualsword-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 21,
+          "count": 1
+        },
+        {
+          "id": 38,
+          "type": "i",
+          "count": 20
+        },
+        {
+          "id": 39,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 28,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-dualsword-10a",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 25,
+          "count": 1
+        },
+        {
+          "id": 38,
+          "type": "i",
+          "count": 20
+        },
+        {
+          "id": 39,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 29,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-dualsword-10b",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-blade"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 26,
+          "count": 1
+        },
+        {
+          "id": 38,
+          "type": "i",
+          "count": 20
+        },
+        {
+          "id": 39,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 30,
           "count": 1
         }
       ]
@@ -2191,6 +3234,58 @@
       ]
     },
     {
+      "key": "w-spear-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 32,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 31,
+          "count": 5
+        },
+        {
+          "type": "a",
+          "id": 312,
+          "count": 2
+        },
+        {
+          "type": "a",
+          "id": 371,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 33,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-spear-5",
       "iconIndex": -1,
@@ -2266,6 +3361,11 @@
           "count": 1
         },
         {
+          "type": "i",
+          "id": 33,
+          "count": 5
+        },
+        {
           "id": 373,
           "type": "a",
           "count": 10
@@ -2280,6 +3380,147 @@
         {
           "id": 35,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-spear-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 34,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 33,
+          "count": 5
+        },
+        {
+          "id": 313,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 36,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-spear-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 36,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 33,
+          "count": 5
+        },
+        {
+          "id": 313,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 37,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-spear-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 35,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 33,
+          "count": 5
+        },
+        {
+          "id": 313,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 38,
           "count": 1
         }
       ]
@@ -2322,6 +3563,58 @@
         {
           "id": 41,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-basher-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 41,
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 20,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 21,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 42,
           "count": 1
         }
       ]
@@ -2370,7 +3663,7 @@
     },
     {
       "name": "",
-      "key": "w-basher-6",
+      "key": "w-basher-7",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -2406,6 +3699,132 @@
         {
           "id": 44,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-basher-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 42,
+          "count": 1
+        },
+        {
+          "id": 34,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 45,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-basher-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 44,
+          "count": 1
+        },
+        {
+          "id": 34,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 46,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-basher-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 45,
+          "count": 1
+        },
+        {
+          "id": 34,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 47,
           "count": 1
         }
       ]
@@ -2453,8 +3872,92 @@
       ]
     },
     {
+      "key": "w-javelin-3",
       "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 51,
+          "count": 1
+        },
+        {
+          "id": 326,
+          "type": "a",
+          "count": 1
+        },
+        {
+          "id": 47,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 52,
+          "count": 1
+        }
+      ]
+    },
+    {
       "key": "w-javelin-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 51,
+          "count": 1
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 328,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 53,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "w-javelin-6",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -2495,6 +3998,132 @@
       ]
     },
     {
+      "key": "w-javelin-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 52,
+          "count": 1
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 328,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 55,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-javelin-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 54,
+          "count": 1
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 328,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 56,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-javelin-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-spear"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 55,
+          "count": 1
+        },
+        {
+          "id": 51,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 328,
+          "type": "a",
+          "count": 15
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 57,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-pistol-1",
       "iconIndex": -1,
@@ -2513,8 +4142,13 @@
       ],
       "ingredients": [
         {
-          "id": 331,
+          "type": "i",
+          "id": 47,
+          "count": 1
+        },
+        {
           "type": "a",
+          "id": 331,
           "count": 1
         }
       ],
@@ -2555,6 +4189,11 @@
           "count": 1
         },
         {
+          "type": "i",
+          "id": 47,
+          "count": 1
+        },
+        {
           "id": 331,
           "type": "a",
           "count": 2
@@ -2564,6 +4203,58 @@
         {
           "id": 62,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-pistol-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 62,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 47,
+          "count": 1
+        },
+        {
+          "id": 331,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 63,
           "count": 1
         }
       ]
@@ -2606,6 +4297,174 @@
         {
           "id": 64,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-pistol-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 63,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 332,
+          "type": "a",
+          "count": 6
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 65,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-pistol-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 64,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 332,
+          "type": "a",
+          "count": 6
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 66,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-pistol-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 66,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 332,
+          "type": "a",
+          "count": 6
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 67,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-pistol-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 65,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 332,
+          "type": "a",
+          "count": 6
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 68,
           "count": 1
         }
       ]
@@ -2658,6 +4517,58 @@
       ]
     },
     {
+      "key": "w-taser-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 71,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 307,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 72,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-taser-4",
       "iconIndex": -1,
@@ -2705,6 +4616,194 @@
       ]
     },
     {
+      "key": "w-taser-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 73,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 307,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 74,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-taser-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 72,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 307,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 75,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-taser-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 74,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 307,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 76,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-taser-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 75,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 307,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 77,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-shotgun-2",
       "iconIndex": -1,
@@ -2747,6 +4846,53 @@
       ]
     },
     {
+      "key": "w-shotgun-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "id": 81,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 82,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-shotgun-4",
       "iconIndex": -1,
@@ -2784,6 +4930,174 @@
         {
           "id": 83,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-shotgun-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 83,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 84,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-shotgun-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 82,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 85,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-shotgun-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 84,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 86,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-shotgun-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-gun"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 85,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 87,
           "count": 1
         }
       ]
@@ -2863,6 +5177,53 @@
       ]
     },
     {
+      "key": "w-hatchet-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 91,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 447,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 93,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-hatchet-5",
       "iconIndex": -1,
@@ -2905,6 +5266,174 @@
       ]
     },
     {
+      "key": "w-hatchet-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 93,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 447,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 95,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-hatchet-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 94,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 447,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 96,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-hatchet-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 96,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 447,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 97,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-hatchet-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 95,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 5
+        },
+        {
+          "id": 447,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 98,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-battleaxe-2",
       "iconIndex": -1,
@@ -2942,6 +5471,53 @@
         {
           "id": 101,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-battleaxe-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 101,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 102,
           "count": 1
         }
       ]
@@ -2994,6 +5570,194 @@
       ]
     },
     {
+      "key": "w-battleaxe-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 102,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 412,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 104,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-battleaxe-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 103,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 412,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 105,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-battleaxe-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 105,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 412,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 106,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-battleaxe-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 104,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 412,
+          "type": "a",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 107,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-twinaxe-2",
       "iconIndex": -1,
@@ -3036,6 +5800,63 @@
         {
           "id": 111,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-twinaxe-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "id": 111,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 363,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 112,
           "count": 1
         }
       ]
@@ -3088,6 +5909,214 @@
         {
           "id": 113,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-twinaxe-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 113,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 363,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 114,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-twinaxe-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 112,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 363,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 115,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-twinaxe-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 114,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 363,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 116,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-twinaxe-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-axe"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 115,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 363,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 117,
           "count": 1
         }
       ]
@@ -3156,6 +6185,53 @@
       ]
     },
     {
+      "key": "w-staff-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "id": 122,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 382,
+          "type": "a",
+          "count": 7
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 123,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-staff-5",
       "iconIndex": -1,
@@ -3193,6 +6269,174 @@
         {
           "id": 124,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-staff-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 123,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 382,
+          "type": "a",
+          "count": 7
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 125,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-staff-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 124,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 382,
+          "type": "a",
+          "count": 7
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 126,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-staff-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 126,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 382,
+          "type": "a",
+          "count": 7
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 127,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-staff-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 125,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 382,
+          "type": "a",
+          "count": 7
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 128,
           "count": 1
         }
       ]
@@ -3282,6 +6526,221 @@
       ]
     },
     {
+      "key": "w-wand-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 132,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 6
+        },
+        {
+          "id": 417,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 133,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-wand-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 133,
+          "count": 1
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 6
+        },
+        {
+          "id": 417,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 134,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-wand-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 132,
+          "count": 1
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 6
+        },
+        {
+          "id": 417,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 135,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-wand-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 135,
+          "count": 1
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 6
+        },
+        {
+          "id": 417,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 136,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-wand-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 134,
+          "count": 1
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 6
+        },
+        {
+          "id": 417,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 137,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-tome-2",
       "iconIndex": -1,
@@ -3324,6 +6783,53 @@
       ]
     },
     {
+      "key": "w-tome-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 141,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 48,
+          "type": "i",
+          "count": 2
+        },
+        {
+          "id": 406,
+          "type": "a",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 110,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 142,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-tome-4",
       "iconIndex": -1,
@@ -3361,6 +6867,174 @@
         {
           "id": 143,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-tome-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 142,
+          "count": 1
+        },
+        {
+          "id": 50,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 407,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 110,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 144,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-tome-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 143,
+          "count": 1
+        },
+        {
+          "id": 50,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 407,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 110,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 145,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-tome-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 145,
+          "count": 1
+        },
+        {
+          "id": 50,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 407,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 110,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 146,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-tome-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-wand"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 144,
+          "count": 1
+        },
+        {
+          "id": 50,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 407,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [
+        {
+          "id": 110,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 147,
           "count": 1
         }
       ]
@@ -3423,6 +7097,52 @@
       ]
     },
     {
+      "key": "w-fist-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "id": 152,
+          "type": "w",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 10
+        },
+        {
+          "id": 337,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 20,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 153,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-fist-5",
       "iconIndex": -1,
@@ -3464,6 +7184,170 @@
       ]
     },
     {
+      "key": "w-fist-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 153,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 10
+        },
+        {
+          "id": 337,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 20,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 155,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-fist-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 154,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 10
+        },
+        {
+          "id": 337,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 20,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 156,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-fist-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 156,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 10
+        },
+        {
+          "id": 337,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 20,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 157,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-fist-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 155,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 10
+        },
+        {
+          "id": 337,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 20,
+          "type": "i",
+          "count": 6
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 158,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-claw-2",
       "iconIndex": -1,
@@ -3500,6 +7384,47 @@
       ]
     },
     {
+      "key": "w-claw-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 161,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 352,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 162,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-claw-4",
       "iconIndex": -1,
@@ -3531,6 +7456,150 @@
         {
           "id": 163,
           "type": "w",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-claw-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 162,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 352,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 164,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-claw-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 163,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 352,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 165,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-claw-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 165,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 352,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 166,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "w-claw-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 164,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 352,
+          "type": "a",
+          "count": 8
+        }
+      ],
+      "tools": [],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 167,
           "count": 1
         }
       ]
@@ -3573,6 +7642,48 @@
       ]
     },
     {
+      "key": "w-beat-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 171,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "id": 367,
+          "type": "a",
+          "count": 12
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "w",
+          "id": 172,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "w-beat-4",
       "iconIndex": -1,
@@ -3610,462 +7721,150 @@
       ]
     },
     {
-      "name": "===NEW RECIPE===",
-      "key": "_UPGRADES",
-      "iconIndex": 0,
-      "description": "a new recipe, ripe for a plump and savory definition.",
-      "unlockedByDefault": false,
+      "key": "w-beat-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
       "maskedUntilCrafted": true,
-      "categoryKeys": [],
-      "tools": [],
-      "ingredients": [],
-      "outputs": []
-    },
-    {
-      "name": "",
-      "key": "up-iron",
-      "iconIndex": 0,
-      "description": "Smelts raw iron ore into refined ingots.",
       "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
       "categoryKeys": [
-        "smith-upgrade"
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 173,
+          "count": 1
+        },
+        {
+          "id": 367,
+          "type": "a",
+          "count": 12
+        }
       ],
       "tools": [
         {
-          "id": 105,
+          "id": 107,
           "type": "i",
           "count": 1
         }
       ],
-      "ingredients": [
-        {
-          "id": 30,
-          "type": "i",
-          "count": 10
-        }
-      ],
       "outputs": [
         {
-          "id": 31,
-          "type": "i",
-          "count": 5
+          "type": "w",
+          "id": 174,
+          "count": 1
         }
       ]
     },
     {
+      "key": "w-beat-7",
       "name": "",
-      "key": "up-silver",
-      "iconIndex": 0,
-      "description": "Smelts raw silver ore into refined ingots.",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
       "categoryKeys": [
-        "smith-upgrade"
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 172,
+          "count": 1
+        },
+        {
+          "id": 367,
+          "type": "a",
+          "count": 12
+        }
       ],
       "tools": [
         {
-          "id": 105,
+          "id": 107,
           "type": "i",
           "count": 1
         }
       ],
-      "ingredients": [
-        {
-          "id": 32,
-          "type": "i",
-          "count": 10
-        }
-      ],
       "outputs": [
         {
-          "id": 33,
-          "type": "i",
-          "count": 5
+          "type": "w",
+          "id": 175,
+          "count": 1
         }
       ]
     },
     {
+      "key": "w-beat-9",
       "name": "",
-      "key": "up-bleu",
-      "iconIndex": 0,
-      "description": "Smelts raw bleu ore into refined ingots.",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
       "categoryKeys": [
-        "smith-upgrade"
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 174,
+          "count": 1
+        },
+        {
+          "id": 367,
+          "type": "a",
+          "count": 12
+        }
       ],
       "tools": [
         {
-          "id": 105,
+          "id": 107,
           "type": "i",
           "count": 1
         }
       ],
-      "ingredients": [
-        {
-          "id": 34,
-          "type": "i",
-          "count": 10
-        }
-      ],
       "outputs": [
         {
-          "id": 35,
-          "type": "i",
-          "count": 5
+          "type": "w",
+          "id": 176,
+          "count": 1
         }
       ]
     },
     {
+      "key": "w-beat-10",
       "name": "",
-      "key": "up-sandwraith",
-      "iconIndex": 0,
-      "description": "Smelts raw sandwraith ore into refined ingots.",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
       "categoryKeys": [
-        "smith-upgrade"
+        "smith-fist"
+      ],
+      "ingredients": [
+        {
+          "type": "w",
+          "id": 175,
+          "count": 1
+        },
+        {
+          "id": 367,
+          "type": "a",
+          "count": 12
+        }
       ],
       "tools": [
         {
-          "id": 105,
+          "id": 107,
           "type": "i",
           "count": 1
         }
       ],
-      "ingredients": [
-        {
-          "id": 36,
-          "type": "i",
-          "count": 10
-        }
-      ],
       "outputs": [
         {
-          "id": 37,
-          "type": "i",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-engle",
-      "iconIndex": 0,
-      "description": "Smelts raw engle ore into refined ingots.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 105,
-          "type": "i",
+          "type": "w",
+          "id": 177,
           "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 38,
-          "type": "i",
-          "count": 10
-        }
-      ],
-      "outputs": [
-        {
-          "id": 39,
-          "type": "i",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-deep",
-      "iconIndex": 0,
-      "description": "Smelts raw deep ore into refined ingots.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 105,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 40,
-          "type": "i",
-          "count": 10
-        }
-      ],
-      "outputs": [
-        {
-          "id": 41,
-          "type": "i",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-might",
-      "iconIndex": 0,
-      "description": "Smelts raw might ore into refined ingots.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 105,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 42,
-          "type": "i",
-          "count": 10
-        }
-      ],
-      "outputs": [
-        {
-          "id": 43,
-          "type": "i",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-ultanium",
-      "iconIndex": 0,
-      "description": "Smelts raw ultanium ore into refined ingots.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 105,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 44,
-          "type": "i",
-          "count": 10
-        }
-      ],
-      "outputs": [
-        {
-          "id": 45,
-          "type": "i",
-          "count": 5
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-oak",
-      "iconIndex": 0,
-      "description": "Shaves oak into insanely thin slices of paper.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 47,
-          "type": "i",
-          "count": 2
-        }
-      ],
-      "outputs": [
-        {
-          "id": 48,
-          "type": "i",
-          "count": 10
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-dreamwood",
-      "iconIndex": 0,
-      "description": "Shaves dreamwood into insanely thin slices of paper.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 49,
-          "type": "i",
-          "count": 2
-        }
-      ],
-      "outputs": [
-        {
-          "id": 50,
-          "type": "i",
-          "count": 10
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-negapine",
-      "iconIndex": 0,
-      "description": "Shaves negapine into insanely thin slices of paper.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 51,
-          "type": "i",
-          "count": 2
-        }
-      ],
-      "outputs": [
-        {
-          "id": 52,
-          "type": "i",
-          "count": 10
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-grimwood",
-      "iconIndex": 0,
-      "description": "Shaves grimwood into insanely thin slices of paper.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 53,
-          "type": "i",
-          "count": 2
-        }
-      ],
-      "outputs": [
-        {
-          "id": 54,
-          "type": "i",
-          "count": 10
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-subwood",
-      "iconIndex": 0,
-      "description": "Shaves subwood into insanely thin slices of paper.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 55,
-          "type": "i",
-          "count": 2
-        }
-      ],
-      "outputs": [
-        {
-          "id": 56,
-          "type": "i",
-          "count": 10
-        }
-      ]
-    },
-    {
-      "name": "",
-      "key": "up-heartwood",
-      "iconIndex": 0,
-      "description": "Shaves heartwood into insanely thin slices of paper.",
-      "unlockedByDefault": false,
-      "maskedUntilCrafted": false,
-      "categoryKeys": [
-        "smith-upgrade"
-      ],
-      "tools": [
-        {
-          "id": 111,
-          "type": "i",
-          "count": 1
-        }
-      ],
-      "ingredients": [
-        {
-          "id": 57,
-          "type": "i",
-          "count": 2
-        }
-      ],
-      "outputs": [
-        {
-          "id": 58,
-          "type": "i",
-          "count": 10
         }
       ]
     },
@@ -4137,19 +7936,14 @@
       ],
       "ingredients": [
         {
-          "id": 1,
           "type": "a",
-          "count": 1
-        },
-        {
           "id": 336,
-          "type": "a",
-          "count": 1
+          "count": 5
         },
         {
-          "id": 26,
           "type": "i",
-          "count": 1
+          "id": 26,
+          "count": 3
         }
       ],
       "outputs": [
@@ -4179,14 +7973,14 @@
       ],
       "ingredients": [
         {
-          "id": 2,
           "type": "a",
+          "id": 1,
           "count": 1
         },
         {
-          "id": 337,
           "type": "a",
-          "count": 1
+          "id": 337,
+          "count": 3
         },
         {
           "id": 14,
@@ -4221,25 +8015,277 @@
       ],
       "ingredients": [
         {
-          "id": 3,
           "type": "a",
-          "count": 1
-        },
-        {
-          "id": 23,
-          "type": "i",
-          "count": 2
-        },
-        {
           "id": 337,
-          "type": "a",
-          "count": 2
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 23,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 24,
+          "count": 5
         }
       ],
       "outputs": [
         {
           "id": 4,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-light-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 2,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 338,
+          "count": 5
+        },
+        {
+          "type": "i",
+          "id": 27,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 5,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-light-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 4,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 338,
+          "count": 5
+        },
+        {
+          "type": "i",
+          "id": 24,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 6,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-light-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 3,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 338,
+          "count": 5
+        },
+        {
+          "type": "i",
+          "id": 24,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 7,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-light-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 5,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 338,
+          "count": 5
+        },
+        {
+          "type": "i",
+          "id": 24,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 8,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-light-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 6,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 338,
+          "count": 5
+        },
+        {
+          "type": "i",
+          "id": 24,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 9,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-light-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 7,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 338,
+          "count": 5
+        },
+        {
+          "type": "i",
+          "id": 24,
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 109,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 10,
           "count": 1
         }
       ]
@@ -4403,6 +8449,258 @@
         {
           "id": 14,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-medium-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 14,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 15,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-medium-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 15,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 16,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-medium-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 16,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 17,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-medium-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 17,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 18,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-medium-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 18,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 19,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-medium-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 19,
+          "count": 1
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 312,
+          "type": "a",
+          "count": 5
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 20,
           "count": 1
         }
       ]
@@ -4586,6 +8884,323 @@
       ]
     },
     {
+      "key": "a-off-heavy-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 24,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 25,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-heavy-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 25,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 26,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-heavy-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 26,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 27,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-heavy-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 26,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 28,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-heavy-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 27,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 28,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 29,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-off-heavy-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-off"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 29,
+          "count": 1
+        },
+        {
+          "id": 49,
+          "type": "i",
+          "count": 8
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 30,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "a-body-light-1",
       "iconIndex": -1,
@@ -4735,11 +9350,6 @@
           "count": 1
         },
         {
-          "id": 34,
-          "type": "a",
-          "count": 6
-        },
-        {
           "id": 422,
           "type": "a",
           "count": 4
@@ -4754,6 +9364,258 @@
         {
           "id": 34,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-light-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 34,
+          "count": 1
+        },
+        {
+          "id": 422,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 451,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 35,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-light-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 35,
+          "count": 1
+        },
+        {
+          "id": 422,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 451,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 36,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-light-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 36,
+          "count": 1
+        },
+        {
+          "id": 422,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 451,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 37,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-light-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 37,
+          "count": 1
+        },
+        {
+          "id": 422,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 451,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 38,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-light-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 38,
+          "count": 1
+        },
+        {
+          "id": 422,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 451,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 39,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-light-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 39,
+          "count": 1
+        },
+        {
+          "id": 422,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 451,
+          "type": "a",
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 108,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 40,
           "count": 1
         }
       ]
@@ -4809,11 +9671,6 @@
       ],
       "ingredients": [
         {
-          "id": 41,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 376,
           "type": "a",
           "count": 2
@@ -4851,8 +9708,8 @@
       ],
       "ingredients": [
         {
-          "id": 42,
           "type": "a",
+          "id": 41,
           "count": 1
         },
         {
@@ -4903,15 +9760,247 @@
       ],
       "ingredients": [
         {
-          "id": 43,
           "type": "a",
-          "count": 7
+          "id": 43,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 32,
+          "count": 3
         }
       ],
       "outputs": [
         {
           "id": 44,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-medium-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 44,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 36,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 27,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 45,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-medium-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 42,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 36,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 46,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-medium-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 46,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 36,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 47,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-medium-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 47,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 36,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 48,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-medium-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 48,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 36,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 49,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-medium-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 49,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 45,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 50,
           "count": 1
         }
       ]
@@ -5080,6 +10169,258 @@
       ]
     },
     {
+      "key": "a-body-heavy-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 54,
+          "count": 1
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 4
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 55,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-heavy-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 55,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 12,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 15,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 56,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-heavy-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 56,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 12,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 15,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 57,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-heavy-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 57,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 12,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 15,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 58,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-heavy-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 58,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 12,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 15,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 59,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-body-heavy-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-body"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 59,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 12,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 15,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 60,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "a-feet-light-1",
       "iconIndex": -1,
@@ -5225,6 +10566,288 @@
       ]
     },
     {
+      "key": "a-feet-light-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 64,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 442,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 327,
+          "type": "a",
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 65,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-light-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 65,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 442,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 327,
+          "type": "a",
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 66,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-light-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 66,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 442,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 327,
+          "type": "a",
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 67,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-light-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 67,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 442,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 327,
+          "type": "a",
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 68,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-light-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 68,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 442,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 327,
+          "type": "a",
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 69,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-light-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 69,
+          "count": 1
+        },
+        {
+          "id": 302,
+          "type": "a",
+          "count": 4
+        },
+        {
+          "id": 442,
+          "type": "a",
+          "count": 2
+        },
+        {
+          "id": 327,
+          "type": "a",
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 70,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "a-feet-heavy-1",
       "iconIndex": -1,
@@ -5327,11 +10950,6 @@
       ],
       "ingredients": [
         {
-          "id": 72,
-          "type": "a",
-          "count": 1
-        },
-        {
           "id": 30,
           "type": "i",
           "count": 2
@@ -5374,8 +10992,8 @@
       ],
       "ingredients": [
         {
-          "id": 73,
           "type": "a",
+          "id": 72,
           "count": 1
         },
         {
@@ -5403,6 +11021,348 @@
         {
           "id": 74,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-heavy-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 74,
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 75,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-heavy-6",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 73,
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 76,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-heavy-7",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 75,
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 77,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-heavy-8",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 76,
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 78,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-heavy-9",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 78,
+          "count": 1
+        },
+        {
+          "id": 30,
+          "type": "i",
+          "count": 10
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 79,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-feet-heavy-10",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "survive-feet"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 78,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 77,
+          "count": 1
+        },
+        {
+          "id": 31,
+          "type": "i",
+          "count": 4
+        },
+        {
+          "id": 32,
+          "type": "i",
+          "count": 6
+        },
+        {
+          "id": 33,
+          "type": "i",
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 105,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 80,
           "count": 1
         }
       ]
@@ -5532,8 +11492,8 @@
           "count": 1
         },
         {
-          "id": 30,
           "type": "i",
+          "id": 31,
           "count": 1
         }
       ],
@@ -5574,8 +11534,8 @@
           "count": 1
         },
         {
-          "id": 30,
           "type": "i",
+          "id": 31,
           "count": 1
         }
       ],
@@ -5616,8 +11576,8 @@
           "count": 1
         },
         {
-          "id": 30,
           "type": "i",
+          "id": 31,
           "count": 1
         }
       ],
@@ -5658,8 +11618,8 @@
           "count": 1
         },
         {
-          "id": 30,
           "type": "i",
+          "id": 31,
           "count": 1
         }
       ],
@@ -5700,8 +11660,8 @@
           "count": 1
         },
         {
-          "id": 30,
           "type": "i",
+          "id": 31,
           "count": 1
         }
       ],
@@ -5742,8 +11702,8 @@
           "count": 1
         },
         {
-          "id": 30,
           "type": "i",
+          "id": 31,
           "count": 1
         }
       ],
@@ -5789,9 +11749,9 @@
           "count": 4
         },
         {
-          "id": 31,
           "type": "i",
-          "count": 1
+          "id": 33,
+          "count": 2
         }
       ],
       "outputs": [
@@ -5836,9 +11796,9 @@
           "count": 4
         },
         {
-          "id": 31,
           "type": "i",
-          "count": 1
+          "id": 33,
+          "count": 2
         }
       ],
       "outputs": [
@@ -5883,9 +11843,9 @@
           "count": 4
         },
         {
-          "id": 31,
           "type": "i",
-          "count": 1
+          "id": 33,
+          "count": 2
         }
       ],
       "outputs": [
@@ -5930,9 +11890,9 @@
           "count": 4
         },
         {
-          "id": 31,
           "type": "i",
-          "count": 1
+          "id": 33,
+          "count": 2
         }
       ],
       "outputs": [
@@ -5977,9 +11937,9 @@
           "count": 4
         },
         {
-          "id": 31,
           "type": "i",
-          "count": 1
+          "id": 33,
+          "count": 2
         }
       ],
       "outputs": [
@@ -6024,9 +11984,9 @@
           "count": 4
         },
         {
-          "id": 31,
           "type": "i",
-          "count": 1
+          "id": 33,
+          "count": 2
         }
       ],
       "outputs": [
@@ -6124,10 +12084,10 @@
       "unlockedByDefault": false
     },
     {
-      "name": "===NEW CATEGORY===",
-      "key": "survive-",
-      "iconIndex": 0,
-      "description": "",
+      "name": "Accessorizing",
+      "key": "survive-extra",
+      "iconIndex": 145,
+      "description": "The act of \\C[1]Accessorizing\\C[0] is known to few, and mastered by fewer.\nThe depths of which one can dive into this is varied, and magical, and also highly encouraged.",
       "unlockedByDefault": false
     },
     {

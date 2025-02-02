@@ -238,6 +238,7 @@ J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
  *    <someKeyWithArrayAndSingleNumberValue:[123]>
  *    <someKeyWithArrayAndManyNumberValues:[123,456]>
  *    <someKeyWithStringValue:someValue>
+ *    <someKeyWithRangeValue:startRange-endRange>
  *  </pre>
  * @type {RegExp}
  */
@@ -400,7 +401,13 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure, asBoolean = false)
  * adding empty double quotes all over the place.
  * @type {string}
  */
-Object.defineProperty(String, "empty", { value: "", writable: false });
+Object.defineProperty(
+  String,
+  "empty",
+  {
+    value: "",
+    writable: false
+  });
 
 /**
  * Extends the global javascript {@link Array} object.
@@ -411,7 +418,9 @@ Object.defineProperty(String, "empty", { value: "", writable: false });
  * @type {[]}
  */
 Object.defineProperty(Array, "empty", {
-  enumerable: true, configurable: false, get: function()
+  enumerable: true,
+  configurable: false,
+  get: function()
   {
     return Array.of();
   },
@@ -427,6 +436,40 @@ Object.defineProperty(Array, "empty", {
 Array.iterate = function(times, func, thisArg = undefined)
 {
   [ ...Array(times) ].forEach(func, thisArg);
+};
+
+/**
+ * Adds a given number of days based on this date.
+ * @param {number} days The number of days to add to a date.
+ * @returns {Date} The updated date with the designated days.
+ */
+Date.prototype.addDays = function(days)
+{
+  var result = new Date(this.valueOf());
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+/**
+ * Adds a given number of hours based on this date.
+ * @param {number} hours The number of hours to add to a date.
+ * @returns {Date} The updated date with the designated hours.
+ */
+Date.prototype.addHours = function(hours)
+{
+  this.setTime(this.getTime() + (hours * 60 * 60 * 1000));
+  return this;
+};
+
+/**
+ * Adds a given number of minutes based on this date.
+ * @param {number} minutes The number of minutes to add to a date.
+ * @returns {Date} The updated date with the designated minutes.
+ */
+Date.prototype.addMinutes = function(minutes)
+{
+  this.setTime(this.getTime() + (minutes * 60 * 1000));
+  return this;
 };
 
 /**
@@ -1688,12 +1731,6 @@ class RPG_Base
     // cleanup any duplicate newlines.
     this.note = this.note.replace(/\n\n/gmi, '\n');
     this.note = this.note.replace(/\r\r/gmi, '\r');
-
-    // cleanup any leading newlines.
-    if (this.note.startsWith('\r') || this.note.startsWith('\n'))
-    {
-      this.note = this.note.slice(2);
-    }
   }
 
   /**
@@ -2658,7 +2695,7 @@ class RPG_Class extends RPG_Base
    * A multi-dimensional array of the core parameters that all battlers have:
    * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
    * in that order, but for all 100 of the base levels.
-   * @type {[number, number, number, number, number, number, number, number]}
+   * @type {[number[], number[], number[], number[], number[], number[], number[], number[]]}
    */
   params = [ [ 1 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ] ];
 
@@ -4951,7 +4988,7 @@ class RPGManager
     }
 
     // get the note data from this skill.
-    const lines = databaseData.note.split(/[\r\n]+/);
+    const lines = databaseData.note?.split(/[\r\n]+/) ?? [];
 
     // if we have no matching notes, then short circuit.
     if (!lines.length)
@@ -4963,7 +5000,7 @@ class RPGManager
     }
 
     // initialize the value.
-    let val = 0;
+    let val = null;
 
     // iterate over each valid line of the note.
     lines.forEach(line =>
@@ -4981,7 +5018,15 @@ class RPGManager
       val = parseFloat(numericResult);
     });
 
-    // return the
+    if (val === null)
+    {
+      // return null or 0 depending on provided options.
+      return nullIfEmpty
+        ? null
+        : 0;
+    }
+
+    // return the value.
     return val;
   }
 
@@ -5407,7 +5452,7 @@ class RPGManager
    * If the optional flag `tryParse` is true, then it will attempt to parse out
    * the array of values as well, including translating strings to numbers/booleans
    * and keeping array structures all intact.
-   * @param {string} databaseObject The contents of the note of a given object.
+   * @param {RPG_Base} databaseObject The database object to parse notes from.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean} tryParse Whether or not to attempt to parse the found array.
    * @returns {any[][]|null} The array of arrays from the notes, or null.

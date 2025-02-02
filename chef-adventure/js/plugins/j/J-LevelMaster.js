@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 LEVEL] Allows levels to have greater control and purpose.
+ * [v1.1.1 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -200,6 +200,9 @@
  * This same logic is again applied to gold from each defeated enemy.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Added ability to manipulate max level for actors.
+ *    Adapted extended plugin metadata structure.
  * - 1.1.0
  *    Refactored various data retrieval methods from given battlers.
  *    Fixed issue with mismapped level calculations.
@@ -209,7 +212,11 @@
  * - 1.0.0
  *    The initial release.
  * ============================================================================
+ * @param parentConfigScaling
+ * @text SCALING
+ *
  * @param useScaling
+ * @parent parentConfigScaling
  * @type boolean
  * @text Start Enabled
  * @desc Whether or not this scaling functionality is enabled by default.
@@ -218,6 +225,7 @@
  * @default true
  *
  * @param minMultiplier
+ * @parent parentConfigScaling
  * @type number
  * @decimals 2
  * @text Minimum Multiplier
@@ -225,6 +233,7 @@
  * @default 0.10
  *
  * @param maxMultiplier
+ * @parent parentConfigScaling
  * @type number
  * @decimals 2
  * @text Maximum Multiplier
@@ -232,6 +241,7 @@
  * @default 2.00
  *
  * @param growthMultiplier
+ * @parent parentConfigScaling
  * @type number
  * @decimals 2
  * @text Growth Multiplier
@@ -239,28 +249,53 @@
  * @default 0.10
  *
  * @param invariantUpperRange
+ * @parent parentConfigScaling
  * @type number
  * @text Upper Invariance
  * @desc The amount of level difference over 0 before scaling takes effect.
  * @default 1
  *
  * @param invariantLowerRange
+ * @parent parentConfigScaling
  * @type number
  * @text Lower Invariance
  * @desc The amount of level difference under 0 before scaling takes effect.
  * @default 1
  *
  * @param variableActorBalancer
+ * @parent parentConfigScaling
  * @type variable
  * @text Actor Balancer
  * @desc The variable id to act as a constant level modifier in favor of actors.
  * @default 141
  *
  * @param variableEnemyBalancer
+ * @parent parentConfigScaling
  * @type variable
  * @text Enemy Balancer
  * @desc The variable id to act as a constant level modifier in favor of enemies.
  * @default 142
+ *
+ * @param parentConfigMaxLevel
+ * @text MAX LEVEL
+ *
+ * @param defaultBeyondMaxLevel
+ * @parent parentConfigMaxLevel
+ * @type number
+ * @min 100
+ * @max 1000
+ * @text Default Beyond Max Level
+ * @desc The default for what the max level is if beyond the cap. Requires max level for actors to be set to 99.
+ * @default 255
+ *
+ * @param trueMaxLevel
+ * @parent parentConfigMaxLevel
+ * @type number
+ * @min 1
+ * @max 1000
+ * @text Max Boosted Level
+ * @desc The max level your level can be. While this is intended to always be beyond the max, it can be lower.
+ * @default 1000
  *
  *
  * @command enableScaling
@@ -272,23 +307,104 @@
  * @desc Disables the scaling functionality for damage/rewards.
  */
 
+//region plugin metadata
+class J_LevelPluginMetadata
+  extends PluginMetadata
+{
+  /**
+   * The maximum level definable in the level. Any level below this can be determined without extra calculations.
+   * @type {number}
+   */
+  static EditorMaxLevel = 99;
+
+  /**
+   * Constructor.
+   */
+  constructor(name, version)
+  {
+    super(name, version);
+  }
+
+  postInitialize()
+  {
+    super.postInitialize();
+
+    this.initializeLevelMaster();
+  }
+
+  initializeLevelMaster()
+  {
+    /**
+     * Whether or not the scaling functionality is enabled.
+     * @type {boolean}
+     */
+    this.enabled = this.parsedPluginParameters['useScaling'] === "true";
+
+    /**
+     * The minimum multiplier that scaling can reduce to based on level difference. This should never actually be zero
+     * or lower or unexpected things can happen.
+     * @type {number}
+     */
+    this.minimumMultiplier = Number(this.parsedPluginParameters['minMultiplier']);
+
+    /**
+     * The maximum multiplier that scaling can reach based on level difference.
+     * @type {number}
+     */
+    this.maximumMultiplier = Number(this.parsedPluginParameters['maxMultiplier']);
+
+    /**
+     * The amount per level up or down that applies. This amount stacks additively.
+     * @type {number}
+     */
+    this.growthMultiplier = Number(this.parsedPluginParameters['growthMultiplier']);
+
+    /**
+     * The upper limit from a zero level difference before scaling kicks in.
+     * @type {number}
+     */
+    this.invariantUpperRange = Number(this.parsedPluginParameters['invariantUpperRange']);
+
+    /**
+     * The lower limit from a zero level difference before scaling kicks in.
+     * @type {number}
+     */
+    this.invariantLowerRange = Number(this.parsedPluginParameters['invariantLowerRange']);
+
+    /**
+     * The variableId to set to modify the actor level balancer value. This number is directly added to all actors'
+     * levels when considering scaling.
+     * @type {number}
+     */
+    this.actorBalanceVariable = Number(this.parsedPluginParameters['variableActorBalancer']);
+
+    /**
+     * The variableId to set to modify the enemy level balancer value. This number is directly added to all enemies'
+     * levels when considering scaling.
+     * @type {number}
+     */
+    this.enemyBalanceVariable = Number(this.parsedPluginParameters['variableEnemyBalancer']);
+
+    /**
+     * The default max level beyond the max set by the database.
+     * @type {number}
+     */
+    this.defaultBeyondMaxLevel = Number(this.parsedPluginParameters['defaultBeyondMaxLevel']);
+
+    /**
+     * The true max level. No actor level can ascend beyond this. This will override actor max level if applicable.
+     * @type {number}
+     */
+    this.trueMaxLevel = Number(this.parsedPluginParameters['trueMaxLevel']);
+  }
+}
+
+//endregion plugin metadata
+
 /**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
-
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
-})();
-//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -298,33 +414,20 @@ J.LEVEL = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.LEVEL.Metadata = {};
-J.LEVEL.Metadata.Version = '1.0.0';
-J.LEVEL.Metadata.Name = `J-LevelMaster`;
-
-/**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.LEVEL.PluginParameters = PluginManager.parameters(J.LEVEL.Metadata.Name);
-
-/**
- * Whether or not the scaling functionality is enabled.
- * @type {boolean}
- */
-J.LEVEL.Metadata.Enabled = J.LEVEL.PluginParameters['useScaling'] === "true";
-J.LEVEL.Metadata.MinimumMultiplier = Number(J.LEVEL.PluginParameters['minMultiplier']);
-J.LEVEL.Metadata.MaximumMultiplier = Number(J.LEVEL.PluginParameters['maxMultiplier']);
-J.LEVEL.Metadata.GrowthMultiplier = Number(J.LEVEL.PluginParameters['growthMultiplier']);
-J.LEVEL.Metadata.InvariantUpperRange = Number(J.LEVEL.PluginParameters['invariantUpperRange']);
-J.LEVEL.Metadata.InvariantLowerRange = Number(J.LEVEL.PluginParameters['invariantLowerRange']);
-J.LEVEL.Metadata.ActorBalanceVariable = Number(J.LEVEL.PluginParameters['variableActorBalancer']);
-J.LEVEL.Metadata.EnemyBalanceVariable = Number(J.LEVEL.PluginParameters['variableEnemyBalancer']);
+J.LEVEL.Metadata = new J_LevelPluginMetadata(`J-LevelMaster`, '1.1.1');
 
 /**
  * All aliased methods for this plugin.
  */
 J.LEVEL.Aliased = {
-  Game_Actor: new Map(), Game_Battler: new Map(), Game_Action: new Map(), Game_System: new Map(), Game_Troop: new Map(),
+  Game_Actor: new Map(),
+  Game_Battler: new Map(),
+  Game_Action: new Map(),
+  Game_System: new Map(),
+  Game_Temp: new Map(),
+  Game_Troop: new Map(),
+
+  DataManager: new Map(),
 };
 
 /**
@@ -336,28 +439,50 @@ J.LEVEL.RegExp = {
    * @type {RegExp}
    */
   BattlerLevel: /<(?:lv|lvl|level):[ ]?(-?\+?\d+)>/i,
+
+  /**
+   * The regex for granting bonuses or penalties to max level (for actors only).
+   * @type {RegExp}
+   */
+  MaxLevelBoost: /<maxLevelBoost: ?(-?\+?\d+)>/i,
 };
+//endregion initialization
 
 //region Plugin Command Registration
 /**
  * Plugin command for enabling the level scaling functionality.
  */
-PluginManager.registerCommand(J.LEVEL.Metadata.Name, "enableScaling", () =>
+PluginManager.registerCommand(J.LEVEL.Metadata.name, "enableScaling", () =>
 {
-  J.LEVEL.Metadata.Enabled = true;
+  J.LEVEL.Metadata.enabled = true;
   $gameSystem.enableLevelScaling();
 });
 
 /**
  * Plugin command for disabling the level scaling functionality.
  */
-PluginManager.registerCommand(J.LEVEL.Metadata.Name, "disableScaling", () =>
+PluginManager.registerCommand(J.LEVEL.Metadata.name, "disableScaling", () =>
 {
-  J.LEVEL.Metadata.Enabled = false;
+  J.LEVEL.Metadata.enabled = false;
   $gameSystem.disableLevelScaling();
 });
 //endregion Plugin Command Registration
-//endregion initialization
+
+//region DataManager
+/**
+ * Extends {@link #setupNewGame}.<br/>
+ * Also builds the beyond max data for classes.
+ */
+J.LEVEL.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
+DataManager.setupNewGame = function()
+{
+  // perform original logic.
+  J.LEVEL.Aliased.DataManager.get('setupNewGame').call(this);
+
+  // also build the beyond max data.
+  $gameTemp.buildBeyondMaxData();
+};
+//endregion DataManager
 
 //region LevelScaling
 /**
@@ -379,34 +504,34 @@ class LevelScaling
    * @type {number}
    * @private
    */
-  static #minimumMultiplier = J.LEVEL.Metadata.MinimumMultiplier;
+  static #minimumMultiplier = J.LEVEL.Metadata.minimumMultiplier;
 
   /**
    * The maximum amount the multiplier can be.
    * If after calculation it is higher, it will be lowered to this amount.
    * @type {number}
    */
-  static #maximumMultiplier = J.LEVEL.Metadata.MaximumMultiplier;
+  static #maximumMultiplier = J.LEVEL.Metadata.maximumMultiplier;
 
   /**
    * The amount of growth per level of difference in the scaling multiplier.
    * @type {number}
    */
-  static #growthMultiplier = J.LEVEL.Metadata.GrowthMultiplier;
+  static #growthMultiplier = J.LEVEL.Metadata.growthMultiplier;
 
   /**
    * The upper threshold of invariance, effective the dead zone for ignoring
    * level differences when they are not high enough.
    * @type {number}
    */
-  static #upperInvariance = J.LEVEL.Metadata.InvariantUpperRange;
+  static #upperInvariance = J.LEVEL.Metadata.invariantUpperRange;
 
   /**
    * The lower threshold of invariance, effective the dead zone for ignoring
    * level differences when they are not low enough.
    * @type {number}
    */
-  static #lowerInvariance = J.LEVEL.Metadata.InvariantLowerRange;
+  static #lowerInvariance = J.LEVEL.Metadata.invariantLowerRange;
 
   //endregion properties
 
@@ -510,6 +635,147 @@ Game_Action.prototype.makeDamageValue = function(target, critical)
 
 //region Game_Actor
 /**
+ * Extends {@link #initMembers}.<br>
+ * Also initializes this plugin's members.
+ */
+J.LEVEL.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
+Game_Actor.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.LEVEL.Aliased.Game_Actor.get('initMembers')
+    .call(this);
+
+  /**
+   * The J object where all my additional properties live.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with this plugin.
+   */
+  this._j._level ||= {};
+
+  /**
+   * The calculated max level of this actor.
+   * @type {number}
+   */
+  this._j._level._realMaxLevel = J_LevelPluginMetadata.EditorMaxLevel;
+};
+
+Game_Actor.prototype.getRealMaxLevel = function()
+{
+  return this._j._level._realMaxLevel;
+};
+
+Game_Actor.prototype.setRealMaxLevel = function(newRealLevel)
+{
+  this._j._level._realMaxLevel = newRealLevel;
+};
+
+J.LEVEL.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function()
+{
+  // perform original logic.
+  J.LEVEL.Aliased.Game_Actor.get('onBattlerDataChange')
+    .call(this);
+
+  this.updateRealMaxLevel();
+};
+
+Game_Actor.prototype.updateRealMaxLevel = function()
+{
+  const newMaxLevel = this.calculateRealMaxLevel();
+  this.setRealMaxLevel(newMaxLevel);
+};
+
+Game_Actor.prototype.calculateRealMaxLevel = function()
+{
+  // grab the defined max level for this actor.
+  const baseMaxLevel = this.baseMaxLevel();
+
+  // grab the boosts to max level found across the actor.
+  const maxLevelBoosts = this.maxLevelBoost();
+
+  // if there are no boosts, then don't do any unnecessary math.
+  if (maxLevelBoosts === 0) return baseMaxLevel;
+
+  // sum the two max levels together.
+  const maxLevelSum = baseMaxLevel + maxLevelBoosts;
+
+  // can't be higher level than the defined cap.
+  const cappedMaxLevel = Math.min(maxLevelSum, J.LEVEL.Metadata.trueMaxLevel);
+
+  // have to be at least level 1.
+  const normalizedMaxLevel = Math.max(cappedMaxLevel, 1);
+
+  // return the overall normalized max level.
+  return normalizedMaxLevel;
+};
+
+/**
+ * Overrides {@link #maxLevel}.<br/>
+ * Recalculates the max level based on the possibility of a modified max level.
+ * @returns {number}
+ */
+Game_Actor.prototype.maxLevel = function()
+{
+  return this.getRealMaxLevel();
+};
+
+/**
+ * Gets the max level boost from all available notes for this battler.
+ * @returns {number|null}
+ */
+Game_Actor.prototype.maxLevelBoost = function()
+{
+  return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.LEVEL.RegExp.MaxLevelBoost);
+};
+
+/**
+ * The base max level for a given actor. If it is set below 99 in the database, it'll just be that value. If it is set
+ * to 99, then it'll return what is defined in the plugin parameters.
+ * @returns {number}
+ */
+Game_Actor.prototype.baseMaxLevel = function()
+{
+  // if the actor has less than 99, then obey their max level settings.
+  if (this.actor().maxLevel < 99) return this.actor().maxLevel;
+
+  // return our defined beyond max level.
+  return J.LEVEL.Metadata.defaultBeyondMaxLevel;
+};
+
+/**
+ * Overrides {@link #paramBase}.<br/>
+ * Potentially fetches "beyond max data" for when ones level is beyond the editor max of 99.
+ * @param {number} paramId The paramId to fetch the data for.
+ * @returns {number}
+ */
+Game_Actor.prototype.paramBase = function(paramId)
+{
+  // TODO: use the calculated "getLevel()" instead after some sort of optimizations?
+  const level = this._level;
+
+  // check if the level is still within database norms.
+  if (level <= J_LevelPluginMetadata.EditorMaxLevel)
+  {
+    // just return the regular database parameter.
+    return this.currentClass().params[paramId][level];
+  }
+
+  // check if the cache has already been built for beyond max data.
+  if ($gameTemp.hasCachedBeyondMaxData() === false)
+  {
+    // build it!
+    $gameTemp.buildBeyondMaxData();
+  }
+
+  // grab the beyond max data instead.
+  const params = $gameTemp.getBeyondMaxData(this.currentClass().id);
+  return params[paramId][level];
+};
+
+/**
  * The base or default level for this battler.
  * Actors have a level tracker, so we'll use that for the base.
  * @returns {number}
@@ -526,7 +792,15 @@ Game_Actor.prototype.getBattlerBaseLevel = function()
 Game_Actor.prototype.getLevelSources = function()
 {
   // our sources of data that a level can be retrieved from.
-  return this.getAllNotes();
+  return [
+    // add the actor/enemy to the source list.
+    this.databaseData(),
+
+    // add all actor equipment to the source list.
+    ...this.equips(),
+
+    // add all currently applied states to the source list.
+    ...this.allStates(), ];
 };
 
 /**
@@ -536,10 +810,10 @@ Game_Actor.prototype.getLevelSources = function()
 Game_Actor.prototype.getLevelBalancer = function()
 {
   // check if we have a variable set for the fixed balancing.
-  if (J.LEVEL.Metadata.ActorBalanceVariable)
+  if (J.LEVEL.Metadata.actorBalanceVariable)
   {
     // return the adjustment from the variable value instead.
-    return $gameVariables.value(J.LEVEL.Metadata.ActorBalanceVariable);
+    return $gameVariables.value(J.LEVEL.Metadata.actorBalanceVariable);
   }
 
   // we don't have any balancing required.
@@ -680,10 +954,10 @@ Game_Enemy.prototype.getBattlerBaseLevel = function()
 Game_Enemy.prototype.getLevelBalancer = function()
 {
   // check if we have a variable set for the fixed balancing.
-  if (J.LEVEL.Metadata.EnemyBalanceVariable)
+  if (J.LEVEL.Metadata.enemyBalanceVariable)
   {
     // return the adjustment from the variable value instead.
-    return $gameVariables.value(J.LEVEL.Metadata.EnemyBalanceVariable);
+    return $gameVariables.value(J.LEVEL.Metadata.enemyBalanceVariable);
   }
 
   // we don't have any balancing required.
@@ -716,10 +990,10 @@ Game_Party.prototype.averageActorLevel = function()
 //endregion Game_Party
 
 //region Game_System
-J.LEVEL.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 /**
  * Extends `initialize()` to include properties for this plugin.
  */
+J.LEVEL.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
   // perform original logic.
@@ -735,7 +1009,7 @@ Game_System.prototype.initialize = function()
    * Whether or not the level scaling is enabled.
    * @type {boolean}
    */
-  this._j._levelScalingEnabled ||= J.LEVEL.Metadata.Enabled;
+  this._j._levelScalingEnabled ||= J.LEVEL.Metadata.enabled;
 };
 
 /**
@@ -762,7 +1036,158 @@ Game_System.prototype.disableLevelScaling = function()
 {
   this._j._levelScalingEnabled = false;
 };
+
+/**
+ * Rebuilds the beyond max parameter data for all actors.
+ */
+J.LEVEL.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function()
+{
+  // perform original logic.
+  J.LEVEL.Aliased.Game_System.get('onAfterLoad')
+    .call(this);
+
+  // build the beyond max data.
+  $gameTemp.buildBeyondMaxData();
+};
 //endregion Game_System
+
+//region Game_Temp
+/**
+ * Intializes all additional members of this class.
+ */
+J.LEVEL.Aliased.Game_Temp.set('initMembers', Game_Temp.prototype.initMembers);
+Game_Temp.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.LEVEL.Aliased.Game_Temp.get('initMembers')
+    .call(this);
+
+  /**
+   * The shared root namespace for all of J's plugin data.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with this plugin.
+   */
+  this._j._level ||= {};
+
+  /**
+   * Whether or not the beyond max data has been cached.
+   * @type {boolean}
+   */
+  this._j._level._hasCachedBeyondMaxData = false;
+
+  /**
+   * All the level data for beyond the max level.
+   */
+  this._j._level._beyondMaxData ||= {};
+};
+
+/**
+ * Iterate over all actors and build the parameter data for all classes.
+ */
+Game_Temp.prototype.buildBeyondMaxData = function()
+{
+  // iterate over each class to build the extended parameter data.
+  $dataClasses.forEach(dataClass =>
+  {
+    // the first class is always null.
+    if (!dataClass) return;
+
+    // build the data for this actor and this class.
+    this.buildBeyondMaxDataForClass(dataClass.id);
+  }, this);
+
+  this.flagBeyondMaxDataAsCached();
+};
+
+/**
+ * Builds the beyond max parameter data for a given class.
+ * @param {number} classId The classId to build the beyond max data for.
+ */
+Game_Temp.prototype.buildBeyondMaxDataForClass = function(classId)
+{
+  // grab the parameter collections for the class.
+  const classParams = $dataClasses.at(classId).params;
+
+  // start a new array for the updated class parameters.
+  const newClassParams = Array.empty;
+
+  // iterate over each of the known base parameters to boost beyond max.
+  Game_BattlerBase.knownBaseParameterIds().forEach(paramId =>
+  {
+    // clone the class parameters.
+    const parameterValues = classParams.at(paramId)
+      .toSpliced(0, 0);
+
+    // grab the final five levels to determine the average growth to continue with.
+    const lastFive = parameterValues.slice(parameterValues.length-6);
+    const growth = Array.empty;
+    lastFive.forEach((value, index) =>
+    {
+      if (index === 0) return;
+
+      const previousValue = lastFive[index - 1];
+      const difference = value - previousValue;
+      growth.push(difference);
+    });
+
+    // determine the average growth rate to continue beyond level 99 with.
+    const averageGrowth = growth.reduce((sum, value) => sum + value, 0) / growth.length;
+
+    // arbitrarily evaluate ten thousand levels worth of parameters upfront.
+    for (let i = 100; i < 1000; i++)
+    {
+      const nextParameterValue = parameterValues.at(i - 1) + averageGrowth;
+      parameterValues[i] = Math.ceil(nextParameterValue);
+    }
+
+    // add the data to the running collection.
+    newClassParams.push(parameterValues);
+  });
+
+  // set the data.
+  this.setBeyondMaxData(classId, newClassParams);
+};
+
+/**
+ * Gets the parameter collection for the class
+ * @param {number} classId The classId to build the beyond max data for.
+ * @returns {number[][]} The parameter collection for a given class and its parameters.
+ */
+Game_Temp.prototype.getBeyondMaxData = function(classId)
+{
+  return this._j._level._beyondMaxData[classId];
+};
+
+/**
+ * Sets the parameter data for the given class.
+ * @param {number} classId The classId to set the parameter data for.
+ * @param {number[][]} parameterData The array of arrays of parameter values- one for each base paramId.
+ */
+Game_Temp.prototype.setBeyondMaxData = function(classId, parameterData)
+{
+  this._j._level._beyondMaxData[classId] = parameterData;
+};
+
+/**
+ * Determines whether or not the beyond max data has been cached yet.
+ * @returns {boolean} True if it has been cached already, false otherwise.
+ */
+Game_Temp.prototype.hasCachedBeyondMaxData = function()
+{
+  return this._j._level._hasCachedBeyondMaxData;
+};
+
+/**
+ * Flags the beyond max data as having been cached.
+ */
+Game_Temp.prototype.flagBeyondMaxDataAsCached = function()
+{
+  this._j._level._hasCachedBeyondMaxData = true;
+};
 
 //region Game_Troop
 /**
@@ -773,7 +1198,7 @@ J.LEVEL.Aliased.Game_Troop.set('expTotal', Game_Troop.prototype.expTotal);
 Game_Troop.prototype.expTotal = function()
 {
   // check if the level scaling functionality is enabled.
-  if (J.LEVEL.Metadata.Enabled)
+  if (J.LEVEL.Metadata.enabled)
   {
     // return the scaled result instead.
     return this.getScaledExpResult();

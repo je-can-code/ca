@@ -1059,7 +1059,8 @@ Input.keyMapper = {
 //region JABS_Engine
 J.ABS.EXT.INPUT.Aliased.JABS_Engine.set('performPartyCycling', JABS_Engine.prototype.performPartyCycling);
 /**
- * Extends `performPartyCycling()` to include reassigning the controller to the player.
+ * Extends {@link #performPartyCycling}.<br/>
+ * Include reassigning the controller to the player.
  */
 JABS_Engine.prototype.performPartyCycling = function()
 {

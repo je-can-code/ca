@@ -98,6 +98,20 @@ Scene_Equip.prototype.buttonAreaHeight = () => 0;
 Scene_Equip.prototype.statusWidth = () => 1024;
 
 /**
+ * Overrides {@link #helpWindowRect}.<br/>
+ * Changes the width to be what we want it to be.
+ * @returns {Rectangle}
+ */
+Scene_Equip.prototype.helpWindowRect = function()
+{
+  const wx = 0;
+  const wy = this.helpAreaTop();
+  const ww = this.statusWidth();
+  const wh = this.helpAreaHeight();
+  return new Rectangle(wx, wy, ww, wh);
+};
+
+/**
  * OVERWRITE Modifies the size of the equip slots window.
  * @returns {Rectangle}
  */

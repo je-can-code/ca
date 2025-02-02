@@ -515,19 +515,6 @@
  */
 var J = J || {};
 
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
-})();
-//endregion version check
-
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -559,10 +546,10 @@ J.TIME.Metadata.HoursVariable = Number(J.TIME.PluginParameters['hoursVariable'])
 J.TIME.Metadata.DaysVariable = Number(J.TIME.PluginParameters['daysVariable']);
 J.TIME.Metadata.MonthsVariable = Number(J.TIME.PluginParameters['monthsVariable']);
 J.TIME.Metadata.YearsVariable = Number(J.TIME.PluginParameters['yearsVariable']);
-J.TIME.Metadata.TimeOfDayIdVariable = Number(J.TIME.PluginParameters['yearsVariable']);
-J.TIME.Metadata.TimeOfDayNameVariable = Number(J.TIME.PluginParameters['yearsVariable']);
-J.TIME.Metadata.SeasonOfYearIdVariable = Number(J.TIME.PluginParameters['yearsVariable']);
-J.TIME.Metadata.SeasonOfYearNameVariable = Number(J.TIME.PluginParameters['yearsVariable']);
+J.TIME.Metadata.TimeOfDayIdVariable = Number(J.TIME.PluginParameters['timeOfDayIdVariable']);
+J.TIME.Metadata.TimeOfDayNameVariable = Number(J.TIME.PluginParameters['timeOfDayNameVariable']);
+J.TIME.Metadata.SeasonOfYearIdVariable = Number(J.TIME.PluginParameters['seasonOfYearIdVariable']);
+J.TIME.Metadata.SeasonOfYearNameVariable = Number(J.TIME.PluginParameters['seasonOfYearNameVariable']);
 
 J.TIME.Metadata.FramesPerTick = Number(J.TIME.PluginParameters['framesPerTick']);
 
@@ -584,9 +571,67 @@ J.TIME.Metadata.YearsPerIncrement = Number(J.TIME.PluginParameters['yearsPerIncr
  * A collection of all aliased methods for this plugin.
  */
 J.TIME.Aliased = {
-  DataManager: {}, Scene_Base: {}, Scene_Map: {},
+  DataManager: {},
+
+  Game_Event: new Map(),
+  Game_Interpreter: new Map(),
+
+  JABS_InputController: new Map(),
+
+  Scene_Base: {},
+  Scene_Map: new Map(),
+
+  Window_Base: new Map(),
 };
 
+/**
+ * A collection of all regular expressions for this plugin.
+ */
+J.TIME.RegExp = {};
+J.TIME.RegExp.MinutePage = /<minutePage:[ ]?(\d+),? ?( )?>/i;
+J.TIME.RegExp.HourPage = /<hourPage:[ ]?(\d+)>/i;
+J.TIME.RegExp.DayPage = /<dayPage:[ ]?(\d+)>/i;
+J.TIME.RegExp.MonthPage = /<monthPage:[ ]?(\d+)>/i;
+J.TIME.RegExp.YearPage = /<yearPage:[ ]?(\d+)>/i;
+J.TIME.RegExp.TimeOfDayPage = /<timeOfDayPage:[ ]?([0-5]|night|dawn|morning|afternoon|evening|twilight)>/i;
+J.TIME.RegExp.SeasonOfYearPage = /<seasonOfYearPage:[ ]?([0-3]|spring|summer|autumn|winter)>/i;
+
+J.TIME.RegExp.MinuteRangePage = /<minuteRangePage:[ ]?(\d+)-(\d+)>/i;
+J.TIME.RegExp.HourRangePage = /<hourRangePage:[ ]?(\d+)-(\d+)>/i;
+J.TIME.RegExp.DayRangePage = /<dayRangePage:[ ]?(\d+)-(\d+)>/i;
+J.TIME.RegExp.MonthRangePage = /<monthRangePage:[ ]?(\d+)-(\d+)>/i;
+J.TIME.RegExp.YearRangePage = /<yearRangePage:[ ]?(\d+)-(\d+)>/i;
+
+J.TIME.RegExp.TimeRangePage = /<timeRangePage:[ ]?(\d{1,2}):(\d{1,2})-(\d{1,2}):(\d{1,2})>/i;
+J.TIME.RegExp.FullDateRangePage = /<fullDateRangePage:[ ]?(\[\d+, ?\d+, ?\d+, ?\d+, ?\d+])-(\[\d+, ?\d+, ?\d+, ?\d+, ?\d+])>/i
+
+
+J.TIME.RegExp.MinuteChoice = /<minuteChoice:[ ]?(\d+)>/i;
+J.TIME.RegExp.HourChoice = /<hourChoice:[ ]?(\d+)>/i;
+J.TIME.RegExp.DayChoice = /<dayChoice:[ ]?(\d+)>/i;
+J.TIME.RegExp.MonthChoice = /<monthChoice:[ ]?(\d+)>/i;
+J.TIME.RegExp.YearChoice = /<yearChoice:[ ]?(\d+)>/i;
+J.TIME.RegExp.TimeOfDayChoice = /<timeOfDayChoice:[ ]?([0-5]|night|dawn|morning|afternoon|evening|twilight)>/i;
+J.TIME.RegExp.SeasonOfYearChoice = /<seasonOfYearChoice:[ ]?([0-3]|spring|summer|autumn|winter)>/i;
+
+J.TIME.RegExp.MinuteRangeChoice = /<minuteRangeChoice:[ ]?(\d+)-(\d+)>/i;
+J.TIME.RegExp.HourRangeChoice = /<hourRangeChoice:[ ]?(\d+)-(\d+)>/i;
+J.TIME.RegExp.DayRangeChoice = /<dayRangeChoice:[ ]?(\d+)-(\d+)>/i;
+J.TIME.RegExp.MonthRangeChoice = /<monthRangeChoice:[ ]?(\d+)-(\d+)>/i;
+J.TIME.RegExp.YearRangeChoice = /<yearRangeChoice:[ ]?(\d+)-(\d+)>/i;
+
+J.TIME.RegExp.TimeRangeChoice = /<timeRangeChoice:[ ]?(\d{1,2}):(\d{1,2})-(\d{1,2}):(\d{1,2})>/i;
+J.TIME.RegExp.FullDateRangeChoice = /<fullDateRangeChoice:[ ]?(\[\d+, ?\d+, ?\d+, ?\d+, ?\d+])-(\[\d+, ?\d+, ?\d+, ?\d+, ?\d+])>/i
+
+/**
+ * A global object for storing data related to TIME.
+ * @global
+ * @type {Game_Time}
+ */
+var $gameTime = null;
+//endregion Introduction
+
+//region plugin commands
 /**
  * Plugin command for hiding the TIME window on the map.
  */
@@ -608,7 +653,14 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "showMapTime", () =>
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "setTime", args =>
 {
-  const { Second, Minute, Hour, Day, Month, Year } = args;
+  const {
+    Second,
+    Minute,
+    Hour,
+    Day,
+    Month,
+    Year
+  } = args;
   $gameTime.setTime(parseInt(Second), parseInt(Minute), parseInt(Hour), parseInt(Day), parseInt(Month), parseInt(Year));
 });
 
@@ -617,7 +669,14 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "setTime", args =>
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "fastForwardtime", args =>
 {
-  const { Second, Minute, Hour, Day, Month, Year } = args;
+  const {
+    Second,
+    Minute,
+    Hour,
+    Day,
+    Month,
+    Year
+  } = args;
   $gameTime.addSeconds(parseInt(Second));
   $gameTime.addMinutes(parseInt(Minute));
   $gameTime.addHours(parseInt(Hour));
@@ -631,7 +690,14 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "fastForwardtime", args =>
  */
 PluginManager.registerCommand(J.TIME.Metadata.Name, "rewindTime", args =>
 {
-  const { Second, Minute, Hour, Day, Month, Year } = args;
+  const {
+    Second,
+    Minute,
+    Hour,
+    Day,
+    Month,
+    Year
+  } = args;
   $gameTime.addSeconds(-parseInt(Second));
   $gameTime.addMinutes(-parseInt(Minute));
   $gameTime.addHours(-parseInt(Hour));
@@ -681,14 +747,7 @@ PluginManager.registerCommand(J.TIME.Metadata.Name, "lockTone", () =>
 {
   $gameTime.lockTone();
 });
-
-/**
- * A global object for storing data related to TIME.
- * @global
- * @type {Game_Time}
- */
-var $gameTime = null;
-//endregion Introduction
+//endregion plugin commands
 
 //region Game_Time
 /**
@@ -696,7 +755,11 @@ var $gameTime = null;
  */
 function Game_Time()
 {
-  this.initialize(...arguments)
+  // initialize all the properties of TIME.
+  this.initMembers();
+
+  // update the tone for the first time.
+  this.updateCurrentTone();
 }
 
 Game_Time.prototype = {};
@@ -719,97 +782,85 @@ Game_Time.toneOfDay = {
 /**
  * Initializes the members of this class.
  */
-Game_Time.prototype.initialize = function()
+Game_Time.prototype.initMembers = function()
 {
   /**
    * The number of frames that must pass before we execute a tick.
    * @type {number}
    */
-  this._tickFrames = this._tickFrames ?? J.TIME.Metadata.FramesPerTick;
+  this._tickFrames ??= J.TIME.Metadata.FramesPerTick;
 
   /**
    * The number of seconds per tick.
    * @type {number}
    */
-  this._secondsPerTick = this._secondsPerTick ?? J.TIME.Metadata.SecondsPerIncrement;
+  this._secondsPerTick ??= J.TIME.Metadata.SecondsPerIncrement;
 
   /**
    * The number of minutes per tick.
    * @type {number}
    */
-  this._minutesPerTick = this._minutesPerTick ?? J.TIME.Metadata.MinutesPerIncrement;
+  this._minutesPerTick ??= J.TIME.Metadata.MinutesPerIncrement;
 
   /**
    * The number of hours per tick.
    * @type {number}
    */
-  this._hoursPerTick = this._hoursPerTick ?? J.TIME.Metadata.HoursPerIncrement;
+  this._hoursPerTick ??= J.TIME.Metadata.HoursPerIncrement;
 
   /**
    * The number of days per tick.
    * @type {number}
    */
-  this._daysPerTick = this._daysPerTick ?? J.TIME.Metadata.DaysPerIncrement;
+  this._daysPerTick ??= J.TIME.Metadata.DaysPerIncrement;
 
   /**
    * The number of months per tick.
    * @type {number}
    */
-  this._monthsPerTick = this._monthsPerTick ?? J.TIME.Metadata.MonthsPerIncrement;
+  this._monthsPerTick ??= J.TIME.Metadata.MonthsPerIncrement;
 
   /**
    * The number of years per tick.
    * @type {number}
    */
-  this._yearsPerTick = this._yearsPerTick ?? J.TIME.Metadata.YearsPerIncrement;
+  this._yearsPerTick ??= J.TIME.Metadata.YearsPerIncrement;
 
   /**
    * The current second.
    * @type {number}
    */
-  this._seconds = this._seconds ?? J.TIME.Metadata.StartingSecond;
+  this._seconds ??= J.TIME.Metadata.StartingSecond;
 
   /**
    * The current minute.
    * @type {number}
    */
-  this._minutes = this._minutes ?? J.TIME.Metadata.StartingMinute;
+  this._minutes ??= J.TIME.Metadata.StartingMinute;
 
   /**
    * The current hour.
    * @type {number}
    */
-  this._hours = this._hours ?? J.TIME.Metadata.StartingHour;
+  this._hours ??= J.TIME.Metadata.StartingHour;
 
   /**
    * The current day (number).
    * @type {number}
    */
-  this._days = this._days ?? J.TIME.Metadata.StartingDay;
+  this._days ??= J.TIME.Metadata.StartingDay;
 
   /**
    * The current month (number).
    * @type {number}
    */
-  this._months = this._months ?? J.TIME.Metadata.StartingMonth;
+  this._months ??= J.TIME.Metadata.StartingMonth;
 
   /**
    * The current year.
    * @type {number}
    */
-  this._years = this._years ?? J.TIME.Metadata.StartingYear;
-
-  /**
-   * The general time of day, such as "twilight" or "afternoon"- numerically mapped.
-   * @type {number}
-   */
-  this._timeOfDay = 0;
-
-  /**
-   * The general season of the year, such as "spring" or "winter"- numerically mapped.
-   * @type {number}
-   */
-  this._seasonOfYear = 0;
+  this._years ??= J.TIME.Metadata.StartingYear;
 
   /**
    * Whether or not the screen's tone needs to be changed based on the time.
@@ -827,19 +878,19 @@ Game_Time.prototype.initialize = function()
    * Whether or not the tone is able to be changed.
    * @type {boolean}
    */
-  this._toneLocked = this._toneLocked ?? !J.TIME.Metadata.ChangeToneByTime;
+  this._toneLocked ??= !J.TIME.Metadata.ChangeToneByTime;
 
   /**
    * Whether or not the time window is visible on the map.
    * @type {boolean}
    */
-  this._visible = this._visible ?? J.TIME.Metadata.StartVisible;
+  this._visible ??= J.TIME.Metadata.StartVisible;
 
   /**
    * Whether or not time is currently flowing.
    * @type {boolean}
    */
-  this._active = this._active ?? J.TIME.Metadata.StartActivated;
+  this._active ??= J.TIME.Metadata.StartActivated;
 
   /**
    * Whether or not time is blocked from flowing for some predetermined reason.
@@ -847,10 +898,16 @@ Game_Time.prototype.initialize = function()
    * plugin commands.
    * @type {boolean}
    */
-  this._blocked = this._blocked ?? false;
-  this.updateCurrentTone();
+  this._blocked ??= false;
+
+  /**
+   * Whether or not this has been updated. This is primarily for HUD elements keeping in-sync with TIME.
+   * @type {boolean}
+   */
+  this._hasBeenUpdated ??= false;
 };
 
+//region properties
 /**
  * Gets the current tick speed.
  * @returns {number}
@@ -858,6 +915,32 @@ Game_Time.prototype.initialize = function()
 Game_Time.prototype.getTickSpeed = function()
 {
   return this._tickFrames;
+};
+
+/**
+ * Sets the new tick speed to (60 / multiplier) frames per second.
+ *
+ * The threshold for this multiplier is `0.1` to `10.0`.
+ * @param {number} flowSpeedMultiplier The new multiplier for how fast a single tick is.
+ */
+Game_Time.prototype.setTickSpeed = function(flowSpeedMultiplier)
+{
+  // localize the variable.
+  let flow = flowSpeedMultiplier;
+
+  // if the user is trying to speed it up to more than 10x, then lock it at 10x.
+  if (flow > 10)
+  {
+    flow = 10;
+  }
+  // if the user is trying to reduce the speed to less than 0.1x, then lock it at 0.1x.
+  else if (flow < 0.1)
+  {
+    flow = 0.1;
+  }
+
+  const newTickSpeed = Math.ceil(60 / flow);
+  this._tickFrames = newTickSpeed;
 };
 
 /**
@@ -961,45 +1044,125 @@ Game_Time.prototype.showMapWindow = function()
 };
 
 /**
- * Sets the new tick speed to (60 / multiplier) frames per second.
- *
- * The threshold for this multiplier is `0.1` to `10.0`.
- * @param {number} flowSpeedMultiplier The new multiplier for how fast a single tick is.
+ * Toggles the map window visibility.
  */
-Game_Time.prototype.setTickSpeed = function(flowSpeedMultiplier)
+Game_Time.prototype.toggleMapWindow = function()
 {
-  // if the user is trying to speed it up to more than 10x, then lock it at 10x.
-  if (flowSpeedMultiplier > 10)
+  if (this._visible === true)
   {
-    flowSpeedMultiplier = 10;
+    this._visible = false;
   }
-  // if the user is trying to reduce the speed to less than 0.1x, then lock it at 0.1x.
-  else if (flowSpeedMultiplier < 0.1)
+  else if (this._visible === false)
   {
-    flowSpeedMultiplier = 0.1;
+    this._visible = true;
+  }
+};
+
+/**
+ * Flags oneself for having been updated so HUD elements can update accordingly.
+ */
+Game_Time.prototype.flagForHudUpdate = function()
+{
+  if (this._hasBeenUpdated === undefined)
+  {
+    this._hasBeenUpdated = true;
+    console.log('hasBeenUpdated property added.');
   }
 
-  const newTickSpeed = Math.ceil(60 / flowSpeedMultiplier);
-  this._tickFrames = newTickSpeed;
+  this._hasBeenUpdated = true;
 };
+
+/**
+ * Acknowledges a HUD update.
+ */
+Game_Time.prototype.acknowledgeHudUpdate = function()
+{
+  if (this._hasBeenUpdated === undefined)
+  {
+    this._hasBeenUpdated = false;
+    console.log('hasBeenUpdated property added.');
+  }
+
+  this._hasBeenUpdated = false;
+};
+
+/**
+ * Gets whether or not TIME has been updated and thus the HUD should be updated.
+ * @returns {boolean}
+ */
+Game_Time.prototype.needsHudUpdate = function()
+{
+  if (this._hasBeenUpdated === undefined)
+  {
+    this._hasBeenUpdated = false;
+    console.log('hasBeenUpdated property added.');
+  }
+
+  return this._hasBeenUpdated;
+};
+//endregion properties
 
 /**
  * Updates the time when the framecount aligns with the designated tick frame count.
  */
 Game_Time.prototype.update = function()
 {
-  if (Graphics.frameCount % this._tickFrames === 0)
+  // check if we can update TIME.
+  if (this.canUpdateTime())
   {
-    this.tickTime();
+    // process the TIME update.
+    this.handleUpdateTime();
   }
 
+  // check if we need to process a tone change.
   if (this.getNeedsToneChange())
   {
-    this.setNeedsToneChange(false);
-    this.processToneChange();
+    // process the tone update.
+    this.handleUpdateTone();
   }
 };
 
+/**
+ * Determine if TIME can be updated.
+ * @returns {boolean}
+ */
+Game_Time.prototype.canUpdateTime = function()
+{
+  // if the frame count is divisible cleanly by the flow of TIME, then its time to tick TIME.
+  if (Graphics.frameCount % this.getTickSpeed() === 0) return true;
+
+  // it is not time to update TIME.
+  return false;
+};
+
+/**
+ * Processes TIME updating.
+ */
+Game_Time.prototype.handleUpdateTime = function()
+{
+  // process time advancement.
+  this.tickTime();
+
+  // update the relevant variables- if applicable.
+  this.updateVariables();
+
+  // flag for HUD updates.
+  this.flagForHudUpdate();
+};
+
+/**
+ * Processes screen tone updating.
+ */
+Game_Time.prototype.handleUpdateTone = function()
+{
+  // disable the flag for tone change processing.
+  this.setNeedsToneChange(false);
+
+  // execute the tone change.
+  this.processToneChange();
+};
+
+//region tone management
 /**
  * Gets whether or not the screen's tone change is needed.
  * @returns {boolean}
@@ -1246,39 +1409,83 @@ Game_Time.prototype.processToneChange = function(skip = false)
     $gameScreen.startTint(this._currentTone, 300);
   }
 };
+//endregion tone management
 
+//region time management
 /**
  * Gets a snapshot of the current time.
  * @returns {Time_Snapshot}
  */
 Game_Time.prototype.currentTime = function()
 {
-  let timeSnapshot;
+  // return the snapshot.
+  return this.getTimeSnapshot();
+};
+
+/**
+ * Gets the {@link Time_Snapshot} based on mode of time configured.
+ * @returns {Time_Snapshot}
+ */
+Game_Time.prototype.getTimeSnapshot = function()
+{
+  // check if we're using real or artificial time.
   if (J.TIME.Metadata.UseRealTime)
   {
-    timeSnapshot = this.determineRealTime();
+    // render a realtime snapshot.
+    return this.determineRealTime();
   }
+  // we're using artificial time.
   else
   {
-    timeSnapshot = this.determineArtificialTime();
+    // render the artificial snapshot.
+    return this.determineArtificialTime();
   }
+};
 
-  // also update the variables with the current time snapshot.
-  this.updateVariables(timeSnapshot);
-  return timeSnapshot;
+/**
+ * Builds a snapshot of the time designated by the array of numbers.
+ * @param {[number, number, number, number, number, number]} fromArray The six-length array of numbers
+ * @returns {Time_Snapshot}
+ */
+Game_Time.prototype.toTimeSnapshot = function(fromArray)
+{
+  const [ seconds, minutes, hours, days, months, years ] = fromArray;
+  const timeOfDayId = this.timeOfDay(hours);
+  const seasonOfYearId = this.seasonOfYear(months);
+  return new Time_Snapshot(
+    seconds,
+    minutes,
+    hours,
+    days,
+    months,
+    years,
+    timeOfDayId,
+    seasonOfYearId);
 };
 
 /**
  * Assigns the current time to the designated variables.
- * @param {Time_Snapshot} timeSnapshot The current time to update.
  */
-Game_Time.prototype.updateVariables = function(timeSnapshot)
+Game_Time.prototype.updateVariables = function()
 {
   // if they haven't chosen to use variable assignment, then don't do that.
-  if (!J.TIME.Metadata.UseVariableAssignment)
-  {
-    return;
-  }
+  if (!J.TIME.Metadata.UseVariableAssignment) return;
+
+  // grab the current time's snapshot.
+  const timeSnapshot = this.getTimeSnapshot();
+
+  // also update the variables with the current time snapshot.
+  this.updateVariablesBySnapshot(timeSnapshot);
+};
+
+/**
+ * Update the variables for TIME based on a {@link Time_Snapshot}.
+ * @param {Time_Snapshot} timeSnapshot The snapshot of TIME to update variables with.
+ */
+Game_Time.prototype.updateVariablesBySnapshot = function(timeSnapshot)
+{
+  // if they haven't chosen to use variable assignment, then don't do that.
+  if (!J.TIME.Metadata.UseVariableAssignment) return;
 
   // assign all them values to their variables.
   $gameVariables.setValue(J.TIME.Metadata.SecondsVariable, timeSnapshot.seconds);
@@ -1301,7 +1508,8 @@ Game_Time.prototype.determineArtificialTime = function()
 {
   const timeOfDayId = this.timeOfDay(this._hours);
   const seasonOfYearId = this.seasonOfYear(this._months);
-  return new Time_Snapshot(this._seconds,
+  return new Time_Snapshot(
+    this._seconds,
     this._minutes,
     this._hours,
     this._days,
@@ -1450,6 +1658,7 @@ Game_Time.prototype.tickTime = function()
 {
   this.addSeconds();
 };
+//endregion time management
 
 //region add time
 /**
@@ -1673,7 +1882,8 @@ class Time_Snapshot
       case 3:
         return "Winter";
       default:
-        return `${seasonId} is not a valid season id.`;
+        console.error(`${seasonId} is not a valid season id.`);
+        return null;
     }
   };
 
@@ -1700,6 +1910,30 @@ class Time_Snapshot
   };
 
   /**
+   * Translates the name of the season into its id.
+   * @param {string} seasonName The name of the season.
+   * @returns {number}
+   */
+  static SeasonsId(seasonName)
+  {
+    switch (seasonName.toLowerCase())
+    {
+      case "spring":
+        return 0;
+      case "summer":
+        return 1;
+      case "autumn":
+      case "fall":
+        return 2;
+      case "winter":
+        return 3;
+      default:
+        console.error(`${seasonName} is not a valid season name.`);
+        return -1;
+    }
+  }
+
+  /**
    * Translates the numeric time of the day into it's proper name.
    * @param {number} timeOfDayId The numeric representation of the time of the day.
    * @returns {string}
@@ -1709,19 +1943,20 @@ class Time_Snapshot
     switch (timeOfDayId)
     {
       case 0:
-        return "Night";     // midnight-4am
+        return "Night";     // midnight-4am aka 0-4
       case 1:
-        return "Dawn";      // 4am-8am
+        return "Dawn";      // 4am-8am aka 4-8
       case 2:
-        return "Morning";   // 8am-noon
+        return "Morning";   // 8am-noon aka 8-12
       case 3:
-        return "Afternoon"; // noon-4pm
+        return "Afternoon"; // noon-4pm aka 12-16
       case 4:
-        return "Evening";   // 4pm-8pm
+        return "Evening";   // 4pm-8pm aka 16-20
       case 5:
-        return "Twilight";  // 8pm-midnight
+        return "Twilight";  // 8pm-midnight aka 20-2359
       default:
-        return `${timeOfDayId} is not a valid time of day id.`;
+        console.error(`${timeOfDayId} is not a valid time of day id.`);
+        return null;
     }
   };
 
@@ -1750,6 +1985,33 @@ class Time_Snapshot
         return `${timeOfDayId} is not a valid time of day id.`;
     }
   };
+
+  /**
+   * Translates the name of a time of the day into its id.
+   * @param {string} timeOfDayString The name of the time of the day.
+   * @returns {number}
+   */
+  static TimesOfDayId(timeOfDayString)
+  {
+    switch (timeOfDayString.toLowerCase())
+    {
+      case "night":
+        return 0;     // midnight-4am
+      case "dawn":
+        return 1;      // 4am-8am
+      case "morning":
+        return 2;   // 8am-noon
+      case "afternoon":
+        return 3; // noon-4pm
+      case "evening":
+        return 4;   // 4pm-8pm
+      case "twilight":
+        return 5;  // 8pm-midnight
+      default:
+        console.error(`${timeOfDayString} is not a valid time of day name.`);
+        return -1;
+    }
+  }
 
   //endregion statics
 
@@ -1788,9 +2050,147 @@ class Time_Snapshot
   {
     return Time_Snapshot.TimesOfDayIcon(this._timeOfDayId);
   };
+
+  /**
+   * Determines if this {@link Time_Snapshot} is effectively the same as the provided snapshot.<br/>
+   * "Effectively the same" translates to "all time properties are the same from seconds to years" as the target.
+   * @param {Time_Snapshot} snapshot The target snapshot to compare equality against.
+   * @returns {boolean} True if this snapshot is effectively the same, false otherwise.
+   */
+  equals(snapshot)
+  {
+    // if any of the properties don't match, then it isn't equal to the target.
+    if (this.years !== snapshot.years) return false;
+    if (this.months !== snapshot.months) return false;
+    if (this.days !== snapshot.days) return false;
+    if (this.hours !== snapshot.hours) return false;
+    if (this.minutes !== snapshot.minutes) return false;
+    if (this.seconds !== snapshot.seconds) return false;
+
+    // it must be equal!
+    return true;
+  }
+
+  /**
+   * Determines if this {@link Time_Snapshot} is after the provided snapshot.
+   * @param {Time_Snapshot} snapshot The target snapshot to see if this snapshot is after.
+   * @returns {boolean} True if this snapshot is after the target, false otherwise.
+   */
+  isAfter(snapshot)
+  {
+    // NOTE: for using Date objects, the months value is the index, but we use it as the literal month value.
+    const thisDate = new Date(this.years, this.months-1, this.days, this.hours, this.minutes, this.seconds);
+    const targetDate = new Date(snapshot.years, snapshot.months-1, snapshot.days, snapshot.hours, snapshot.minutes, snapshot.seconds);
+
+    return thisDate > targetDate;
+  }
+
+  /**
+   * Determines if this {@link Time_Snapshot} is before the provided snapshot.
+   * @param {Time_Snapshot} snapshot The target snapshot to see if this snapshot is before.
+   * @returns {boolean} True if this snapshot is before the target, false otherwise.
+   */
+  isBefore(snapshot)
+  {
+    // NOTE: for using Date objects, the months value is the index, but we use it as the literal month value.
+    const thisDate = new Date(this.years, this.months-1, this.days, this.hours, this.minutes, this.seconds);
+    const targetDate = new Date(snapshot.years, snapshot.months-1, snapshot.days, snapshot.hours, snapshot.minutes, snapshot.seconds);
+
+    return thisDate < targetDate;
+  }
+
+  /**
+   * Determines of this {@link Time_Snapshot} is between the two provided snapshots.
+   * @param {Time_Snapshot} start The starting snapshot to check betweenness against.
+   * @param {Time_Snapshot} end The ending snapshot to check betweenness against.
+   * @param {boolean} [startInclusive=false] Whether or not to include the start time as "between"; defaults to false.
+   * @param {boolean} [endInclusive=false] Whether or not to include the end time as "between"; defaults to false.
+   */
+  isBetweenSnapshots(start, end, startInclusive = false, endInclusive = false)
+  {
+    // check if this snapshot is after the start.
+    const isAfterStart = this.isAfter(start) || (startInclusive && this.equals(start));
+
+    // if this snapshot isn't after the start, then it is not between.
+    if (!isAfterStart) return false;
+
+    // check if this snapshot is before the end.
+    const isBeforeEnd = this.isBefore(end) || (endInclusive && this.equals(end));
+
+    // if this snapshot isn't before the end, then it is not between.
+    if (!isBeforeEnd) return false;
+
+    // this snapshot is between the start and end!
+    return true;
+  }
+
+  /**
+   * Determines whether or not this {@link Time_Snapshot} is between the given start and end {@link Date}s.
+   * @param {Date} start The start date.
+   * @param {Date} end The end date.
+   * @param {boolean} [startInclusive=false] Whether or not to include the start time as "between"; defaults to false.
+   * @param {boolean} [endInclusive=false] Whether or not to include the end time as "between"; defaults to false.
+   */
+  isBetweenDates(start, end, startInclusive = false, endInclusive = false)
+  {
+    const startTimeSnapshot = this.#dateToSnapshot(start);
+    const endTimeSnapshot = this.#dateToSnapshot(end);
+
+    return this.isBetweenSnapshots(startTimeSnapshot, endTimeSnapshot, startInclusive, endInclusive);
+  }
+
+  /**
+   * Maps a {@link Date} to a {@link Time_Snapshot}.
+   * @param {Date} date The date to map to a {@link Time_Snapshot}.
+   * @returns {Time_Snapshot} The mapped snapshot.
+   */
+  #dateToSnapshot(date)
+  {
+    const dateTimeOfDay = $gameTime.timeOfDay(date.getHours());
+    const seasonOfYear = $gameTime.seasonOfYear(date.getMonth() + 1);
+    return new Time_Snapshot(
+      date.getSeconds(),
+      date.getMinutes(),
+      date.getHours(),
+      date.getDate(),
+      date.getMonth() + 1,
+      date.getFullYear(),
+      dateTimeOfDay,
+      seasonOfYear)
+  }
 }
 
 //endregion Time_Snapshot
+
+class TimeConditional
+{
+  isTimeRange = false;
+  isFullDateRange = false;
+
+  seconds = -1;
+  minutes = -1;
+  hours = -1;
+  days = -1;
+  months = -1;
+  years = -1;
+
+  timeOfDay = -1;
+  seasonOfYear = -1;
+
+  /**
+   * The start range for a time if there are two numbers in the array, or a full date range if there are 5 numbers.
+   * @type {[number, number]|[number,number,number,number,number]}
+   */
+  startRange = [];
+
+  /**
+   * The end range for a time if there are two numbers in the array, or a full date range if there are six numbers.
+   * When it is two numbers, it is `[hour, minute]`, like reading a clock.<br/>
+   * When it is six numbers, it is `[second, minute, hour, day, month, year]`- though seconds are not customizable.
+   * @type {[number, number]|[number,number,number,number,number,number]}
+   */
+  endRange = [];
+}
 
 //region DataManager
 /**
@@ -1833,6 +2233,693 @@ DataManager.extractSaveContents = function(contents)
 };
 //endregion DataManager
 
+//region JABS_InputAdapter
+// only setup this shortcut key if we're using JABS.
+if (J.ABS)
+{
+  /**
+   * Calls the questopedia directly on the map.
+   */
+  JABS_InputAdapter.performTimeWindowAction = function()
+  {
+    // if we cannot toggle the time window, then do not.
+    if (!this._canPerformTimeWindowAction()) return;
+
+    // call up the menu.
+    $gameTime.toggleMapWindow();
+  };
+
+  /**
+   * Determines whether or not the player can toggle the time window.
+   * @returns {boolean}
+   * @private
+   */
+  JABS_InputAdapter._canPerformTimeWindowAction = function()
+  {
+    // TODO: check if the time window can be toggled.
+    return true;
+  };
+}
+//endregion JABS_InputAdapter
+
+//region Game_Event
+/**
+ * Extends {@link meetsConditions}.<br/>
+ * Also includes the custom conditions that relate to time.
+ * @param {any} page
+ * @returns {boolean}
+ */
+J.TIME.Aliased.Game_Event.set('meetsConditions', Game_Event.prototype.meetsConditions);
+Game_Event.prototype.meetsConditions = function(page)
+{
+  // check original conditions.
+  const metOtherPageConditions = J.TIME.Aliased.Game_Event.get('meetsConditions')
+    .call(this, page);
+
+  // if other conditions aren't met, then TIME conditions don't override that.
+  if (!metOtherPageConditions) return false;
+
+  // grab the list of valid comments.
+  const commentCommandList = Game_Event.getValidCommentCommandsFromPage(page);
+
+  // there aren't any comments on this event at all.
+  if (commentCommandList.length === 0) return true;
+
+  // gather all conditional comments from the comment commands of this event.
+  const timeConditionals = Game_Event.toTimeConditionals(commentCommandList);
+
+  // if there are none, then this event is fine to proceed!
+  if (timeConditionals.length === 0) return true;
+
+  // determine if all the TIME conditionals are satisfied.
+  return timeConditionals.every(Game_Event.timeConditionalMet, this);
+};
+
+/**
+ * Filters the comment commands to only TIME conditionals- should any exist in the collection.
+ * @param {rm.types.EventCommand[]} commentCommandList The comment commands to potentially convert to conditionals.
+ * @returns {TimeConditional[]}
+ */
+Game_Event.toTimeConditionals = function(commentCommandList)
+{
+  // gather all TIME comments from the comment commands of this event.
+  const timeCommentComands = commentCommandList
+    .filter(Game_Event.filterCommentCommandsByEventTimeConditional, this);
+
+  // if there are no TIME conditionals available for parsing, don't bother.
+  if (timeCommentComands.length === 0) return [];
+
+  // map all the TIME conditionals from the parsed regex.
+  return timeCommentComands.map(Game_Event.toTimeConditional, this);
+};
+
+/**
+ * A filter function for only including comment event commands relevant to TIME.
+ * @param {rm.types.EventCommand} command The command being evaluated.
+ * @returns {boolean}
+ */
+Game_Event.filterCommentCommandsByEventTimeConditional = function(command)
+{
+  // identify the actual comment being evaluated.
+  const [ comment, ] = command.parameters;
+
+  // in case the command isn't even valid for comment-validation.
+  if (!comment) return false;
+
+  // extract the types of regex we will be considering.
+  const {
+    MinutePage,
+    HourPage,
+    DayPage,
+    MonthPage,
+    YearPage,
+    TimeOfDayPage,
+    SeasonOfYearPage,
+    TimeRangePage,
+    MinuteRangePage,
+    HourRangePage,
+    DayRangePage,
+    MonthRangePage,
+    YearRangePage,
+    FullDateRangePage,
+  } = J.TIME.RegExp;
+  return [
+    MinutePage,
+    HourPage,
+    DayPage,
+    MonthPage,
+    YearPage,
+    TimeOfDayPage,
+    SeasonOfYearPage,
+    TimeRangePage,
+    MinuteRangePage,
+    HourRangePage,
+    DayRangePage,
+    MonthRangePage,
+    YearRangePage,
+    FullDateRangePage, ].some(regex => regex.test(comment));
+};
+
+/**
+ * A filter function for only including comment event commands relevant to TIME.
+ * @param {rm.types.EventCommand} command The command being evaluated.
+ * @returns {boolean}
+ */
+Game_Event.filterCommentCommandsByChoiceTimeConditional = function(command)
+{
+  // identify the actual comment being evaluated.
+  const [ comment, ] = command.parameters;
+
+  // in case the command isn't even valid for comment-validation.
+  if (!comment) return false;
+
+  // extract the types of regex we will be considering.
+  const {
+    MinuteChoice,
+    HourChoice,
+    DayChoice,
+    MonthChoice,
+    YearChoice,
+    TimeOfDayChoice,
+    SeasonOfYearChoice,
+    TimeRangeChoice,
+    MinuteRangeChoice,
+    HourRangeChoice,
+    DayRangeChoice,
+    MonthRangeChoice,
+    YearRangeChoice,
+    FullDateRangeChoice,
+  } = J.TIME.RegExp;
+  return [
+    MinuteChoice,
+    HourChoice,
+    DayChoice,
+    MonthChoice,
+    YearChoice,
+    TimeOfDayChoice,
+    SeasonOfYearChoice,
+    TimeRangeChoice,
+    MinuteRangeChoice,
+    HourRangeChoice,
+    DayRangeChoice,
+    MonthRangeChoice,
+    YearRangeChoice,
+    FullDateRangeChoice, ].some(regex => regex.test(comment));
+};
+
+/**
+ * Converts a known comment event command into a conditional for TIME control.
+ * @param {rm.types.EventCommand} commentCommand The comment command to parse into a conditional.
+ * @returns {TimeConditional}
+ */
+Game_Event.toTimeConditional = function(commentCommand)
+{
+  // shorthand the comment into a variable.
+  const [ comment, ] = commentCommand.parameters;
+
+  // use a switch block to identify which RegExp should be used to populate the conditional.
+  switch (true)
+  {
+    //region events
+    // FOR WHOLE EVENTS:
+    case J.TIME.RegExp.MinutePage.test(comment):
+      return TimeMapper.minuteToConditional(comment, J.TIME.RegExp.MinutePage);
+    case J.TIME.RegExp.HourPage.test(comment):
+      return TimeMapper.hourToConditional(comment, J.TIME.RegExp.HourPage);
+    case J.TIME.RegExp.DayPage.test(comment):
+      return TimeMapper.dayToConditional(comment, J.TIME.RegExp.DayPage);
+    case J.TIME.RegExp.MonthPage.test(comment):
+      return TimeMapper.monthToConditional(comment, J.TIME.RegExp.MonthPage);
+    case J.TIME.RegExp.YearPage.test(comment):
+      return TimeMapper.yearToConditional(comment, J.TIME.RegExp.YearPage);
+    case J.TIME.RegExp.TimeOfDayPage.test(comment):
+      return TimeMapper.timeOfDayToConditional(comment, J.TIME.RegExp.TimeOfDayPage);
+    case J.TIME.RegExp.SeasonOfYearPage.test(comment):
+      return TimeMapper.seasonOfYearToConditional(comment, J.TIME.RegExp.SeasonOfYearPage);
+    case J.TIME.RegExp.TimeRangePage.test(comment):
+      return TimeMapper.timeRangeToConditional(comment, J.TIME.RegExp.TimeRangePage);
+    case J.TIME.RegExp.FullDateRangePage.test(comment):
+      return TimeMapper.fullDateRangeToConditional(comment, J.TIME.RegExp.FullDateRangePage);
+    case J.TIME.RegExp.MinuteRangePage.test(comment):
+      return TimeMapper.minuteRangeToConditional(comment, J.TIME.RegExp.MinuteRangePage);
+    case J.TIME.RegExp.HourRangePage.test(comment):
+      return TimeMapper.hourRangeToConditional(comment, J.TIME.RegExp.HourRangePage);
+    case J.TIME.RegExp.DayRangePage.test(comment):
+      return TimeMapper.dayRangeToConditional(comment, J.TIME.RegExp.DayRangePage);
+    case J.TIME.RegExp.MonthRangePage.test(comment):
+      return TimeMapper.monthRangeToConditional(comment, J.TIME.RegExp.MonthRangePage);
+    case J.TIME.RegExp.YearRangePage.test(comment):
+      return TimeMapper.yearRangeToConditional(comment, J.TIME.RegExp.YearRangePage);
+    //endregion events
+
+    //region choices
+    // JUST FOR CHOICES:
+    case J.TIME.RegExp.MinuteChoice.test(comment):
+      return TimeMapper.minuteToConditional(comment, J.TIME.RegExp.MinuteChoice);
+    case J.TIME.RegExp.HourChoice.test(comment):
+      return TimeMapper.hourToConditional(comment, J.TIME.RegExp.HourChoice);
+    case J.TIME.RegExp.DayChoice.test(comment):
+      return TimeMapper.dayToConditional(comment, J.TIME.RegExp.DayChoice);
+    case J.TIME.RegExp.MonthChoice.test(comment):
+      return TimeMapper.monthToConditional(comment, J.TIME.RegExp.MonthChoice);
+    case J.TIME.RegExp.YearChoice.test(comment):
+      return TimeMapper.yearToConditional(comment, J.TIME.RegExp.YearChoice);
+    case J.TIME.RegExp.TimeOfDayChoice.test(comment):
+      return TimeMapper.timeOfDayToConditional(comment, J.TIME.RegExp.TimeOfDayChoice);
+    case J.TIME.RegExp.SeasonOfYearChoice.test(comment):
+      return TimeMapper.seasonOfYearToConditional(comment, J.TIME.RegExp.SeasonOfYearChoice);
+    case J.TIME.RegExp.TimeRangeChoice.test(comment):
+      return TimeMapper.timeRangeToConditional(comment, J.TIME.RegExp.TimeRangeChoice);
+    case J.TIME.RegExp.FullDateRangeChoice.test(comment):
+      return TimeMapper.fullDateRangeToConditional(comment, J.TIME.RegExp.FullDateRangeChoice);
+    case J.TIME.RegExp.MinuteRangeChoice.test(comment):
+      return TimeMapper.minuteRangeToConditional(comment, J.TIME.RegExp.MinuteRangeChoice);
+    case J.TIME.RegExp.HourRangeChoice.test(comment):
+      return TimeMapper.hourRangeToConditional(comment, J.TIME.RegExp.HourRangeChoice);
+    case J.TIME.RegExp.DayRangeChoice.test(comment):
+      return TimeMapper.dayRangeToConditional(comment, J.TIME.RegExp.DayRangeChoice);
+    case J.TIME.RegExp.MonthRangeChoice.test(comment):
+      return TimeMapper.monthRangeToConditional(comment, J.TIME.RegExp.MonthRangeChoice);
+    case J.TIME.RegExp.YearRangeChoice.test(comment):
+      return TimeMapper.yearRangeToConditional(comment, J.TIME.RegExp.YearRangeChoice);
+    //endregion choices
+
+    default:
+      console.warn(`time conditional was not generated for an identified TIME tag; ${comment}`);
+      return new TimeConditional();
+  }
+};
+
+/**
+ * Evaluates a {@link TimeConditional} to see if its requirements are currently met.
+ * @param {TimeConditional} timeConditional The TIME conditional to evaluate satisfaction of.
+ * @returns {boolean}
+ */
+Game_Event.timeConditionalMet = function(timeConditional)
+{
+  // if this is a full date range, then use the full date range checking functionality.
+  if (timeConditional.isFullDateRange) return Game_Event._timeConditionalFullDateRangeMet(timeConditional);
+
+  // if this is a time range, then use the time range checking functionality.
+  if (timeConditional.isTimeRange) return Game_Event._timeConditionalTimeRangeMet(timeConditional);
+
+  // otherwise, use the direct checking.
+  return Game_Event._timeConditionalDirectMet(timeConditional);
+};
+
+/**
+ * Determines if the conditional comparison was equal.
+ * @param {TimeConditional} timeConditional
+ * @returns {boolean}
+ * @private
+ */
+Game_Event._timeConditionalDirectMet = function(timeConditional)
+{
+  // grab the current time snapshot.
+  const currentTime = $gameTime.currentTime();
+
+  // extract the various data points from the conditional.
+  const {
+    years,
+    months,
+    days,
+    hours,
+    minutes,
+    seconds,
+    timeOfDay,
+    seasonOfYear,
+  } = timeConditional;
+
+  // validate if the data points are something other than -1, that they match.
+  if (years !== -1 && years !== currentTime.years) return false;
+  if (months !== -1 && months !== currentTime.months) return false;
+  if (days !== -1 && days !== currentTime.days) return false;
+  if (hours !== -1 && hours !== currentTime.hours) return false;
+  if (minutes !== -1 && minutes !== currentTime.minutes) return false;
+  if (seconds !== -1 && seconds !== currentTime.seconds) return false;
+  if (timeOfDay !== -1 && timeOfDay !== currentTime._timeOfDayId) return false;
+  if (seasonOfYear !== -1 && seasonOfYear !== currentTime._seasonOfYearId) return false;
+
+  // everything that isn't -1 must match, so conditional met!
+  return true;
+};
+
+/**
+ * Determines if the current time was within the conditional time range.
+ * @param {TimeConditional} timeConditional
+ * @returns {boolean}
+ * @private
+ */
+Game_Event._timeConditionalTimeRangeMet = function(timeConditional)
+{
+  // grab the current time snapshot.
+  const {
+    years,
+    months,
+    days
+  } = $gameTime.currentTime();
+
+  // extract the start and end ranges for time comparison.
+  const {
+    startRange,
+    endRange
+  } = timeConditional;
+
+  // identify the hour markers.
+  const startHour = startRange.at(0);
+  const endHour = endRange.at(0);
+
+  // if the end hour is less than the starting hour, then its intended to be overnight.
+  const isOvernight = startHour > endHour;
+
+  // identify the minute markers.
+  const startMinute = startRange.at(1);
+  const endMinute = endRange.at(1);
+
+  // if the end minute is less than the starting minute, then its intended to be the next hour.
+  const isOverhour = startMinute > endMinute;
+
+  // build a starting date based on the "start" time.
+  const fakeStartTimeArray = [ years, months - 1, days, startHour, startMinute, 0 ];
+  const fakeStartDate = new Date(...fakeStartTimeArray);
+
+  // build an ending date based on "end" time.
+  const fakeEndTimeArray = [ years, months - 1, days, endHour, endMinute, 0 ];
+  const fakeEndDate = new Date(...fakeEndTimeArray);
+
+  // if the time difference translates to overnight, then add a day.
+  if (isOvernight)
+  {
+    fakeEndDate.addDays(1);
+  }
+
+  // if the time difference translates to the next hour, then add an hour.
+  if (isOverhour)
+  {
+    fakeEndDate.addHours(1);
+  }
+
+  // if we are not within the range of the projected start and end dates, then we did not meet the conditional.
+  if (!$gameTime.currentTime()
+    .isBetweenDates(fakeStartDate, fakeEndDate))
+  {
+    return false;
+  }
+
+  // we are within range!
+  return true;
+};
+
+/**
+ * Determines if the current full date time was within the conditional full date time range.
+ * @param {TimeConditional} timeConditional
+ * @returns {boolean}
+ * @private
+ */
+Game_Event._timeConditionalFullDateRangeMet = function(timeConditional)
+{
+  // grab the current time snapshot.
+  const currentSnapshot = $gameTime.currentTime();
+
+  // build snapshots based on the start and end range.
+  const startSnapshot = $gameTime.toTimeSnapshot(timeConditional.startRange);
+  const endSnapshot = $gameTime.toTimeSnapshot(timeConditional.endRange);
+
+  return currentSnapshot.isBetweenSnapshots(startSnapshot, endSnapshot);
+};
+//endregion Game_Event
+
+//region Game_Interpreter
+/**
+ * Extends {@link shouldHideChoiceBranch}.<br/>
+ * Includes possibility of hiding time-related options.
+ * @param {number} subChoiceCommandIndex The index in the list of commands of an event that represents this branch.
+ * @returns {boolean}
+ */
+J.TIME.Aliased.Game_Interpreter.set('shouldHideChoiceBranch', Game_Interpreter.prototype.shouldHideChoiceBranch);
+Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandIndex)
+{
+  // perform original logic to see if this branch was already hidden.
+  const defaultShow = J.TIME.Aliased.Game_Interpreter.get('shouldHideChoiceBranch')
+    .call(this, subChoiceCommandIndex);
+
+  // if there is another reason to hide this branch, then do not process quest reasons.
+  if (defaultShow) return true;
+
+  // grab some metadata about the event.
+  const eventMetadata = $gameMap.event(this.eventId());
+  const currentPageCommands = !!eventMetadata
+    ? eventMetadata.page().list
+    : $dataCommonEvents.at(this._commonEventId).list;
+
+  // grab the event subcommand.
+  const subEventCommand = currentPageCommands.at(subChoiceCommandIndex);
+
+  // ignore the comment if its not a tag.
+  if (!Game_Event.filterInvalidEventCommand(subEventCommand)) return false;
+
+  // if its not a choice time conditional tag, don't hide it.
+  if (!Game_Event.filterCommentCommandsByChoiceTimeConditional(subEventCommand)) return false;
+
+  // convert the known-conditional-command to a conditional.
+  const conditional = Game_Event.toTimeConditional(subEventCommand);
+
+  // if the condition is met, then we don't need to hide.
+  const met = Game_Event.timeConditionalMet(conditional);
+  if (met) return false;
+
+  // the conditional isn't met, hide the group.
+  return true;
+};
+//endregion Game_Interpreter
+
+//region JABS_InputController
+/**
+ * Extends {@link #update}.<br/>
+ * Also handles input detection for the the time window toggle shortcut key.
+ */
+J.TIME.Aliased.JABS_InputController.set('update', JABS_InputController.prototype.update);
+JABS_InputController.prototype.update = function()
+{
+  // perform original logic.
+  J.TIME.Aliased.JABS_InputController.get('update')
+    .call(this);
+
+  // update input for the time window toggle shortcut key.
+  this.updateTimeWindowAction();
+};
+
+/**
+ * Monitors and takes action based on player input regarding the time window toggle shortcut key.
+ */
+JABS_InputController.prototype.updateTimeWindowAction = function()
+{
+  // check if the action's input requirements have been met.
+  if (this.isTimeWindowActionTriggered())
+  {
+    // execute the action.
+    this.performTimeWindowAction();
+  }
+
+};
+
+/**
+ * Checks the inputs of the time window action.
+ * @returns {boolean}
+ */
+JABS_InputController.prototype.isTimeWindowActionTriggered = function()
+{
+  // this action requires the left stick button to be triggered.
+  if (Input.isTriggered(J.ABS.Input.L3))
+  {
+    return true;
+  }
+
+  // input was not triggered.
+  return false;
+}
+
+/**
+ * Executes the time window toggle action.
+ */
+JABS_InputController.prototype.performTimeWindowAction = function()
+{
+  JABS_InputAdapter.performTimeWindowAction();
+}
+//endregion JABS_InputController
+
+//region TimeMapper
+/**
+ * A class with several static mapping functions for parsing comments into {@link TimeConditional}s.
+ */
+class TimeMapper
+{
+  constructor()
+  {
+    throw new Error("This is a static class.");
+  }
+
+  static minuteToConditional(comment, regex)
+  {
+    const [ , minutes ] = regex.exec(comment);
+    const timeConditional = new TimeConditional();
+    timeConditional.minutes = parseInt(minutes);
+    return timeConditional;
+  }
+
+  static hourToConditional(comment, regex)
+  {
+    const [ , hours ] = regex.exec(comment);
+    const timeConditional = new TimeConditional();
+    timeConditional.hours = parseInt(hours);
+    return timeConditional;
+  }
+
+  static dayToConditional(comment, regex)
+  {
+    const [ , days ] = regex.exec(comment);
+    const timeConditional = new TimeConditional();
+    timeConditional.days = parseInt(days);
+    return timeConditional;
+  }
+
+  static monthToConditional(comment, regex)
+  {
+    const [ , months ] = regex.exec(comment);
+    const timeConditional = new TimeConditional();
+    timeConditional.months = parseInt(months);
+    return timeConditional;
+  }
+
+  static yearToConditional(comment, regex)
+  {
+    const [ , years ] = regex.exec(comment);
+    const timeConditional = new TimeConditional();
+    timeConditional.years = parseInt(years);
+    return timeConditional;
+  }
+
+  static timeOfDayToConditional(comment, regex)
+  {
+    const [ , timeOfDay ] = regex.exec(comment);
+    const maybeStringTimeOfDay = parseInt(timeOfDay);
+    const timeConditional = new TimeConditional();
+    isNaN(maybeStringTimeOfDay) === false
+      ? timeConditional.timeOfDay = maybeStringTimeOfDay
+      : timeConditional.timeOfDay = Time_Snapshot.TimesOfDayId(timeOfDay);
+    return timeConditional;
+  }
+
+  static seasonOfYearToConditional(comment, regex)
+  {
+    const [ , seasonOfYear ] = regex.exec(comment);
+    const maybeStringSeasonOfYear = parseInt(seasonOfYear);
+    const timeConditional = new TimeConditional();
+    isNaN(maybeStringSeasonOfYear) === false
+      ? timeConditional.seasonOfYear = maybeStringSeasonOfYear
+      : timeConditional.seasonOfYear = Time_Snapshot.SeasonsId(seasonOfYear);
+    return timeConditional;
+  }
+
+  static timeRangeToConditional(comment, regex)
+  {
+    const [ , startHour, startMinute, endHour, endMinute ] = regex.exec(comment);
+    // NOTE: there should only be two digits per time range- hours and minutes- like a clock.
+    const startTimeRange = [ parseInt(startHour), parseInt(startMinute) ];
+    const endTimeRange = [ parseInt(endHour), parseInt(endMinute) ];
+    const timeConditional = new TimeConditional();
+    timeConditional.startRange = startTimeRange;
+    timeConditional.endRange = endTimeRange;
+    timeConditional.isTimeRange = true;
+    return timeConditional;
+  }
+
+  static fullDateRangeToConditional(comment, regex)
+  {
+    const [ , startFullRangeRaw, endFullRangeRaw ] = regex.exec(comment);
+    // seconds are not a part of the regex but still need to be entered.
+    const startFullRange = [ 0, ...JSON.parse(startFullRangeRaw) ];
+    const endFullRange = [ 59, ...JSON.parse(endFullRangeRaw) ];
+    const timeConditional = new TimeConditional();
+    timeConditional.startRange = startFullRange;
+    timeConditional.endRange = endFullRange;
+    timeConditional.isFullDateRange = true;
+    return timeConditional;
+  }
+
+  static minuteRangeToConditional(comment, regex)
+  {
+    const currentTimeSnapshot = $gameTime.currentTime();
+    const [ , startMinuteRange, endMinuteRange ] = regex.exec(comment);
+    const minuteRangeHourStart = currentTimeSnapshot.hours;
+    let minuteRangeHourEnd = startMinuteRange < endMinuteRange
+      ? currentTimeSnapshot.hours
+      : currentTimeSnapshot.hours + 1;
+    // if we teetered over to the next day, then reset the hour to zero.
+    if (minuteRangeHourEnd === 24)
+    {
+      minuteRangeHourEnd = 0;
+    }
+    const startMinuteRangeTimeRange = [ minuteRangeHourStart, parseInt(startMinuteRange) ];
+    const endMinuteRangeTimeRange = [ minuteRangeHourEnd, parseInt(endMinuteRange) ];
+    const timeConditional = new TimeConditional();
+    timeConditional.startRange = startMinuteRangeTimeRange;
+    timeConditional.endRange = endMinuteRangeTimeRange;
+    timeConditional.isTimeRange = true;
+    return timeConditional;
+  }
+
+  static hourRangeToConditional(comment, regex)
+  {
+    const [ , startHourRange, endHourRange ] = regex.exec(comment);
+    const startHourRangeTimeRange = [ parseInt(startHourRange), 0 ];
+    const endHourRangeTimeRange = [ parseInt(endHourRange), 0];
+    const timeConditional = new TimeConditional();
+    timeConditional.startRange = startHourRangeTimeRange;
+    timeConditional.endRange = endHourRangeTimeRange;
+    timeConditional.isTimeRange = true;
+    return timeConditional;
+  }
+
+  static dayRangeToConditional(comment, regex)
+  {
+    const currentTimeSnapshot = $gameTime.currentTime();
+    const [ , startDayRange, endDayRange ] = regex.exec(comment);
+    const dayRangeStart = parseInt(startDayRange);
+    const dayRangeEnd = parseInt(endDayRange);
+    // seconds, minutes, and hours are all defaulted to zero for start.
+    const fullDateRangeStart = [ 0, 0, 0, dayRangeStart, currentTimeSnapshot.months, currentTimeSnapshot.years ];
+    let dayRangeMonthEnd = dayRangeEnd < dayRangeStart
+      ? currentTimeSnapshot.months + 1
+      : currentTimeSnapshot.months;
+    let dayRangeYearEnd = currentTimeSnapshot.years;
+    if (dayRangeMonthEnd === 13)
+    {
+      dayRangeMonthEnd = 1;
+      dayRangeYearEnd += 1;
+    }
+    const fullDateRangeEnd = [ 59, 59, 23, dayRangeEnd, dayRangeMonthEnd, dayRangeYearEnd ];
+    const timeConditional = new TimeConditional();
+    timeConditional.startRange = fullDateRangeStart;
+    timeConditional.endRange = fullDateRangeEnd;
+    timeConditional.isFullDateRange = true;
+    return timeConditional;
+  }
+
+  static monthRangeToConditional(comment, regex)
+  {
+    const currentTimeSnapshot = $gameTime.currentTime();
+    const [ , startMonthRange, endMonthRange ] = regex.exec(comment);
+    const monthRangeStart = parseInt(startMonthRange);
+    const monthRangeEnd = parseInt(endMonthRange);
+    const fullDateRangeStart = [ 0, 0, 0, 1, monthRangeStart, currentTimeSnapshot.years ];
+    let monthRangeYearEnd = monthRangeEnd < monthRangeStart
+      ? currentTimeSnapshot.years + 1
+      : currentTimeSnapshot.years;
+    const fullDateRangeEnd = [ 59, 59, 23, 30, monthRangeEnd, monthRangeYearEnd ];
+    const timeConditional = new TimeConditional();
+    timeConditional.startRange = fullDateRangeStart;
+    timeConditional.endRange = fullDateRangeEnd;
+    timeConditional.isFullDateRange = true;
+    return timeConditional;
+  }
+
+  static yearRangeToConditional(comment, regex)
+  {
+    const [ , startYearRange, endYearRange ] = regex.exec(comment);
+    const yearRangeStart = parseInt(startYearRange);
+    const yearRangeEnd = parseInt(endYearRange);
+    const fullDateRangeStart = [ 0, 0, 0, 1, 1, yearRangeStart ];
+    const fullDateRangeEnd = [ 0, 0, 0, 1, 1, yearRangeEnd ];
+    const timeConditional = new TimeConditional();
+    timeConditional.startRange = fullDateRangeStart;
+    timeConditional.endRange = fullDateRangeEnd;
+    timeConditional.isFullDateRange = true;
+    return timeConditional;
+  }
+}
+//endregion TimeMapper
+
 //region Scene_Base
 /**
  * Extend the highest level `Scene_Base.update()` to also update time when applicable.
@@ -1866,21 +2953,30 @@ Scene_Base.prototype.shouldUpdateTime = function()
 
 //region Scene_Map
 /**
- * Extends `Scene_Map.initialize()` to also initialize the TIME window.
+ * Extends {@link Scene_Map#initialize}.<br/>
+ * Also initializes the TIME window.
  */
-J.TIME.Aliased.Scene_Map.initialize = Scene_Map.prototype.initialize;
+J.TIME.Aliased.Scene_Map.set("initialize", Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
-  J.TIME.Aliased.Scene_Map.initialize.call(this);
-  this._j = this._j || {};
-  this.initTimeWindow();
+  // perform original logic.
+  J.TIME.Aliased.Scene_Map.get("initialize")
+    .call(this);
+
+  // init the TIME window.
+  this.initTimeMembers();
 };
 
 /**
- * Initializes the property containing the TIME window.
+ * Initializes all members related to the TIME system.
  */
-Scene_Map.prototype.initTimeWindow = function()
+Scene_Map.prototype.initTimeMembers = function()
 {
+  /**
+   * The shared root namespace for all of J's plugin data.
+   */
+  this._j ||= {};
+
   /**
    * The window that displays the current time, real or artificial.
    * @type {Window_Time}
@@ -1889,43 +2985,122 @@ Scene_Map.prototype.initTimeWindow = function()
 };
 
 /**
- * Extends `Scene_Map.createAllWindows()` to also create the TIME window.
+ * Extends {@link Scene_Map#createAllWindows}.<br/>
+ * Also creates the TIME window.
  */
-J.TIME.Aliased.Scene_Map.createAllWindows = Scene_Map.prototype.createAllWindows;
+J.TIME.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);
 Scene_Map.prototype.createAllWindows = function()
 {
-  J.TIME.Aliased.Scene_Map.createAllWindows.call(this);
+  // perform original logic.
+  J.TIME.Aliased.Scene_Map.get("createAllWindows")
+    .call(this);
+
+  // also create the TIME window.
   this.createTimeWindow();
 };
 
+//region TIME window
 /**
  * Creates the TIME window.
  */
 Scene_Map.prototype.createTimeWindow = function()
 {
-  const w = 200;
-  const h = 180;
-  const x = J.TIME.Metadata.TimeWindowX;
-  const y = J.TIME.Metadata.TimeWindowY;
-  const rect = new Rectangle(x, y, w, h);
-  const wind = new Window_Time(rect);
-  this._j._timeWindow = wind;
-  this.addWindow(this._j._timeWindow);
+  // create the window.
+  const window = this.buildTimeWindow();
+
+  // update the tracker with the new window.
+  this.setTimeWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
 };
 
 /**
- * Extends the `Scene_Map.update()` to also update the TIME window.
+ * Sets up and defines the TIME window.
+ * @returns {Window_Time}
  */
-J.TIME.Aliased.Scene_Map.update = Scene_Map.prototype.update;
+Scene_Map.prototype.buildTimeWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.timeWindowRect();
+
+  // create the window with the rectangle.
+  const window = new Window_Time(rectangle);
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Creates the rectangle representing the window for TIME.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.timeWindowRect = function()
+{
+  // defined the width of the window.
+  const width = 200;
+
+  // define the height of the window.
+  const height = 180;
+
+  // the x and y are defined by the plugin parameters.
+  const x = J.TIME.Metadata.TimeWindowX;
+  const y = J.TIME.Metadata.TimeWindowY;
+
+  // return the built rectangle.
+  return new Rectangle(x, y, width, height);
+};
+
+/**
+ * Gets the currently tracked TIME window.
+ * @returns {Window_Time}
+ */
+Scene_Map.prototype.getTimeWindow = function()
+{
+  return this._j._timeWindow;
+};
+
+/**
+ * Sets the currently tracked TIME window to the given window.
+ * @param window
+ */
+Scene_Map.prototype.setTimeWindow = function(window)
+{
+  this._j._timeWindow = window;
+};
+//endregion TIME window
+
+/**
+ * Extends {@link Scene_Map#update}.<br/>
+ * Also updates the TIME window.
+ */
+J.TIME.Aliased.Scene_Map.set("update", Scene_Map.prototype.update);
 Scene_Map.prototype.update = function()
 {
-  J.TIME.Aliased.Scene_Map.update.call(this);
+  // perform original logic.
+  J.TIME.Aliased.Scene_Map.get("update")
+    .call(this);
 
-  if (this._j._timeWindow)
-  {
-    this._j._timeWindow.update();
-    this.manageTimeVisibility();
-  }
+  // also update the TIME window.
+  this.updateTimeWindow();
+};
+
+/**
+ * Handles the updating of the TIME window.
+ */
+Scene_Map.prototype.updateTimeWindow = function()
+{
+  // grab the TIME window.
+  const timeWindow = this.getTimeWindow();
+
+  // if for some reason, there is no TIME window, then don't try to update it.
+  if (timeWindow === null) return;
+
+  // update TIME.
+  timeWindow.update();
+
+  // handle visibility.
+  this.manageTimeVisibility();
 };
 
 /**
@@ -1933,52 +3108,180 @@ Scene_Map.prototype.update = function()
  */
 Scene_Map.prototype.manageTimeVisibility = function()
 {
+  // grab the TIME window.
+  const timeWindow = this.getTimeWindow();
+
+  // check if the map window should be visible.
   if ($gameTime.isMapWindowVisible())
   {
-    this._j._timeWindow.show();
-    this._j._timeWindow.open();
+    // show the window.
+    timeWindow.show();
+    timeWindow.open();
   }
+  // it shouldn't be visible.
   else
   {
-    this._j._timeWindow.close();
-    this._j._timeWindow.hide();
+    // hide the window.
+    timeWindow.close();
+    timeWindow.hide();
   }
 };
 
 /**
- * Extends the `Scene_Map.onMapLoaded()` function to handle blocking/unblocking by tag.
+ * Extends {@link Scene_Map#onMapLoaded}.<br/>
+ * Also handles blocking/unblocking the flow of TIME based on the presence of tags.
  */
-J.TIME.Aliased.Scene_Map.onMapLoaded = Scene_Map.prototype.onMapLoaded;
+J.TIME.Aliased.Scene_Map.set("onMapLoaded", Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function()
 {
+  // inspect if this map was loaded as a result of a map transfer.
   if (this._transfer)
   {
-    this.blockIfTagged();
+    // handle the blockage of TIME as-needed.
+    this.handleTimeBlock();
+
+    // flag the system for needing a tone change (potentially) upon map transfer.
+    $gameTime.setNeedsToneChange(true);
   }
 
-  J.TIME.Aliased.Scene_Map.onMapLoaded.call(this);
+  // perform original logic.
+  J.TIME.Aliased.Scene_Map.get("onMapLoaded")
+    .call(this);
 };
 
 /**
  * Blocks the flow of time if the target map is tagged with the specified tag.
  */
-Scene_Map.prototype.blockIfTagged = function()
+Scene_Map.prototype.handleTimeBlock = function()
 {
+  // check if TIME should be blocked.
+  // TODO: update this to use notes instead of meta.
   if ($dataMap.meta && $dataMap.meta['timeBlock'])
   {
+    // block it.
     $gameTime.block();
   }
+  // it shouldn't be blocked.
   else
   {
-    if ($gameTime.isBlocked())
-    {
-      // console.log('Time is no longer blocked.');
-    }
-
+    // unblock it.
     $gameTime.unblock();
   }
 };
 //endregion Scene_Map
+
+//region Window_Base
+/**
+ * Extends {@link #convertEscapeCharacters}.<br>
+ * Adds handling for new text codes for TIME data.
+ */
+J.TIME.Aliased.Window_Base.set('convertEscapeCharacters', Window_Base.prototype.convertEscapeCharacters);
+Window_Base.prototype.convertEscapeCharacters = function(text)
+{
+  // capture the text in a local variable for good practices!
+  let textToModify = text;
+
+  // handle season of year replacements.
+  textToModify = this.translateSeasonOfYearTextCode(textToModify);
+
+  // handle time of day replacements.
+  textToModify = this.translateTimeOfDayTextCode(textToModify);
+
+  // handle current time replacements.
+  textToModify = this.translateCurrentTimeTextCode(textToModify);
+
+  // let the rest of the conversion occur with the newly modified text.
+  return J.TIME.Aliased.Window_Base.get('convertEscapeCharacters')
+    .call(this, textToModify);
+};
+
+/**
+ * Translates the text code into the name and icon of the corresponding time of day.
+ * @param {string} text The text that has a text code in it.
+ * @returns {string} The new text to parse.
+ */
+Window_Base.prototype.translateTimeOfDayTextCode = function(text)
+{
+  // if not using the TIME system, then don't try to process the text.
+  if (!J.TIME) return text;
+
+  return text.replace(/\\timeOfDay\[(\d+)]/gi, (_, p1) =>
+  {
+    // determine the time of day id.
+    const timeOfDayId = parseInt(p1) ?? -1;
+
+    // if no id was provided, then do not parse.
+    if (timeOfDayId === -1) return text;
+
+    // determine the name of the time of day.
+    const timeOfDayName = Time_Snapshot.TimesOfDayName(timeOfDayId);
+
+    // if we got null back, then it was an invalid id.
+    if (timeOfDayName === null) return text;
+
+    // grab the iconIndex for the time of day.
+    const timeOfDayIconIndex = Time_Snapshot.TimesOfDayIcon(timeOfDayId);
+
+    // return the constructed replacement string.
+    return `\\I[${timeOfDayIconIndex}]\\C[1]${timeOfDayName}\\C[0]`;
+  });
+};
+
+/**
+ * Translates the text code into the name and icon of the corresponding season of year.
+ * @param {string} text The text that has a text code in it.
+ * @returns {string} The new text to parse.
+ */
+Window_Base.prototype.translateSeasonOfYearTextCode = function(text)
+{
+  // if not using the TIME system, then don't try to process the text.
+  if (!J.TIME) return text;
+
+  return text.replace(/\\seasonOfYear\[(\d+)]/gi, (_, p1) =>
+  {
+    // determine the season of year id.
+    const seasonOfYearId = parseInt(p1) ?? -1;
+
+    // if no id was provided, then do not parse.
+    if (seasonOfYearId === -1) return text;
+
+    // determine the name of the season of the year.
+    const seasonOfYearName = Time_Snapshot.SeasonsName(seasonOfYearId);
+
+    // if we got null back, then it was an invalid id.
+    if (seasonOfYearName === null) return text;
+
+    // grab the iconIndex for the season of the year.
+    const seasonOfYearIconIndex = Time_Snapshot.SeasonsIconIndex(seasonOfYearId);
+
+    // return the constructed replacement string.
+    return `\\I[${seasonOfYearIconIndex}]\\C[1]${seasonOfYearName}\\C[0]`;
+  });
+};
+
+/**
+ * Translates the text code into the current time.
+ * @param {string} text The text that has a text code in it.
+ * @returns {string} The new text to parse.
+ */
+Window_Base.prototype.translateCurrentTimeTextCode = function(text)
+{
+  // if not using the TIME system, then don't try to process the text.
+  if (!J.TIME) return text;
+
+  return text.replace(/\\currentTime/gi, (_) =>
+  {
+    // grab the current time.
+    const currentTime = $gameTime.currentTime();
+
+    // extract the display for time.
+    const { hours, minutes, seconds } = currentTime;
+
+    // return the constructed replacement string.
+    return `\\I[${currentTime.timeOfDayIcon}]\\C[1]${hours}:${minutes}:${seconds}\\C[0]`;
+  });
+};
+//endregion Window_Base
 
 //region Window_Time
 /**
@@ -1992,15 +3295,24 @@ class Window_Time extends Window_Base
    */
   constructor(rect)
   {
+    // perform original logic.
     super(rect);
+
+    // set the opacity of the window as 100% transparent.
     this.opacity = 0;
+
+    // identify the background for this window.
     this.generateBackground();
+
+    // initialize all members for this window.
     this.initMembers();
+
+    // initialize the window with a refresh.
+    this.refresh();
   };
 
   /**
-   * Replaces the background of the time window with what will look like a standard
-   * "dimmed" window gradient.
+   * Renders the background of the time window with what will look like a standard "dimmed" window gradient.
    */
   generateBackground()
   {
@@ -2019,34 +3331,64 @@ class Window_Time extends Window_Base
    */
   initMembers()
   {
+    /**
+     * The TIME rendered by this window.
+     * @type {Time_Snapshot}
+     */
     this.time = null;
-    this._frames = 0;
+
+    /**
+     * The boolean managing the alternating colon for this window.
+     * @type {boolean}
+     */
     this._alternating = false;
-    this.refresh();
   };
+
+  /**
+   * Toggles the alternating colon boolean.
+   */
+  toggleAlternating()
+  {
+    this._alternating = !this._alternating;
+  }
 
   /**
    * Updates the frames and refreshes the window's contents once every half second.
    */
   update()
   {
+    // perform original logic.
     super.update();
 
-    // don't actually update rendering the time if time isn't active.
-    if (!$gameTime.isActive() || $gameTime.isBlocked()) return;
-
-    this._frames++;
-    if (this._frames % $gameTime.getTickSpeed() === 0)
+    // check if the TIME window can be updated.
+    if (this.canUpdate())
     {
-      this.refresh();
-    }
+      // toggle the colons!
+      this.toggleAlternating();
 
-    if (this._frames % 60 === 0)
-    {
-      this._alternating = !this._alternating;
+      // process window refresh.
       this.refresh();
+
+      // acknowledge the TIME update.
+      $gameTime.acknowledgeHudUpdate();
     }
   };
+
+  /**
+   * Determine if the window can be updated.
+   * @returns {boolean}
+   */
+  canUpdate()
+  {
+    // cannot process TIME update if it is inactive or blocked.
+    if (!$gameTime.isActive() || $gameTime.isBlocked()) return false;
+
+    // cannot process TIME update if time hasn't ticked.
+    if ($gameTime.needsHudUpdate() === false) return false;
+
+    // TIME should be processed.
+    return true;
+  }
 
   /**
    * Refreshes the window by clearing it and redrawing everything.
@@ -2054,12 +3396,21 @@ class Window_Time extends Window_Base
   refresh()
   {
     this.time = $gameTime.currentTime();
-    this.contents.clear();
-    this.drawContent();
+    this.redrawContent();
   };
 
   /**
-   * Draws the contents of the window.
+   * Clears and redraws the contents of the window.
+   */
+  redrawContent()
+  {
+    this.contents.clear();
+    this.drawContent();
+  }
+
+  /**
+   * Implements {@link #drawContent}.<br/>
+   * Renders the TIME into the window.
    */
   drawContent()
   {

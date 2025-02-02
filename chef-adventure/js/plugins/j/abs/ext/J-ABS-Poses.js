@@ -291,8 +291,8 @@ RPG_Skill.prototype.extractJabsPoseData = function()
 //region JABS_Engine
 /**
  * Handles the pose functionality behind this action.
- * @param {JABS_Battler} caster The `JABS_Battler` executing the `JABS_Action`.
- * @param {JABS_Action} action The `JABS_Action` to execute.
+ * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
+ * @param {JABS_Action} action The JABS action to execute.
  */
 JABS_Engine.handleActionPose = function(caster, action)
 {
@@ -302,11 +302,11 @@ JABS_Engine.handleActionPose = function(caster, action)
 
 J.ABS.EXT.POSES.Aliased.JABS_Engine.set('executeMapAction', JABS_Engine.executeMapAction);
 /**
- * Executes the provided `JABS_Action`.
+ * Executes the provided JABS action.
  * It generates a copy of an event from the "ActionMap" and fires it off
  * based on it's move route.
- * @param {JABS_Battler} caster The `JABS_Battler` executing the `JABS_Action`.
- * @param {JABS_Action} action The `JABS_Action` to execute.
+ * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
+ * @param {JABS_Action} action The JABS action to execute.
  * @param {number?} targetX The target's `x` coordinate, if applicable.
  * @param {number?} targetY The target's `y` coordinate, if applicable.
  */

@@ -1351,5 +1351,4 @@ Game_System.prototype.updateProficienciesFromPluginMetadata = function()
       const actorConditionals = J.PROF.Metadata.conditionals.filter(condition => condition.actorIds.includes(actorId));
       J.PROF.Metadata.actorConditionalsMap.set(actorId, actorConditionals);
     });
-
 };

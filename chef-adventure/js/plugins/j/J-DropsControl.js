@@ -207,6 +207,7 @@ J.DROPS.RegExp.GoldMultiplier = /<goldMultiplier:[ ]?(-?\d+)>/i;
  */
 J.DROPS.Aliased = {
   Game_Enemy: new Map(),
+  RPG_Enemy: new Map(),
 };
 //endregion Introduction
 
@@ -378,6 +379,61 @@ class RPG_DropItemBuilder
   //endregion builders
 }
 
+//region RPG_Enemy
+/**
+ * Extends {@link #initMembers}.<br/>
+ * Also initializes the extra drops.
+ */
+J.DROPS.Aliased.Game_Enemy.set("initMembers", RPG_Enemy.prototype.initMembers);
+RPG_Enemy.prototype.initMembers = function(enemy)
+{
+  // perform original logic.
+  J.DROPS.Aliased.Game_Enemy.get("initMembers")
+    .call(this, enemy);
+
+  // also parse our extra drops into the drop items list.
+  this.initExtraDrops();
+};
+
+/**
+ * Parses the extra drops on the enemy and adds them into the collection.
+ */
+RPG_Enemy.prototype.initExtraDrops = function()
+{
+  // if the enemy is null or something, just nix it.
+  if (this === null)
+  {
+    throw new Error('we initialized extra drops for a null enemy, oops.');
+  }
+
+  // get the drops found on this enemy.
+  const moreDrops = RPGManager.getArraysFromNotesByRegex(this, J.DROPS.RegExp.ExtraDrop, true) ?? [];
+
+  // if there are no more drops, then skip processing.
+  if (moreDrops.length === 0) return;
+
+  // a mapping function to build proper drop items from the arrays.
+  const mapper = drop =>
+  {
+    // deconstruct the array into drop properties.
+    const [ dropType, dropId, chance ] = drop;
+
+    // build the new drop item.
+    return new RPG_DropItemBuilder()
+      .setType(RPG_DropItem.TypeFromLetter(dropType))
+      .setId(dropId)
+      .setChance(chance)
+      .build();
+  };
+
+  // map the converted drops.
+  const convertedDrops = moreDrops
+    .map(mapper, this);
+
+  // return the found extra drops.
+  this.dropItems.push(...convertedDrops);
+};
+
 /**
  * Gets the list of original drop items from the enemy in the database.
  *
@@ -408,6 +464,7 @@ RPG_Enemy.prototype.validDropItemFilter = function(dropItem)
   // the item is valid!
   return true;
 };
+//endregion RPG_Enemy
 
 /**
  * A class representing a static collection of party strategies relating to rewards.
@@ -501,7 +558,7 @@ Game_Actor.prototype.getGoldMultiplier = function()
 Game_Battler.prototype.extractExtraDrops = function(referenceData)
 {
   // get the drops found on this enemy.
-  const moreDrops = referenceData.getArraysFromNotesByRegex(J.DROPS.RegExp.ExtraDrop, true) ?? [];
+  const moreDrops = RPGManager.getArraysFromNotesByRegex(referenceData, J.DROPS.RegExp.ExtraDrop, true) ?? [];
 
   // a mapping function to build proper drop items from the arrays.
   const mapper = drop =>
@@ -623,7 +680,7 @@ Game_Enemy.prototype.canFindLoot = function(item)
  */
 Game_Enemy.prototype.didFindLoot = function(rate)
 {
-  // locally assign the percent chance to find something..
+  // locally assign the percent chance to find something.
   let chance = rate;
 
   // check if anyone in the party has the double-drop trait.
@@ -646,12 +703,12 @@ Game_Enemy.prototype.didFindLoot = function(rate)
  */
 Game_Enemy.prototype.getDropItems = function()
 {
-  // validate the original drop items from the enemy in the database.
-  const databaseDropItems = this.enemy()
+  // validate the drop items from the enemy- from the database and additionally parsed drops.
+  const baseDropItems = this.enemy()
     .originalDropItems();
 
   // initialize the drops to be the enemy's own valid drop items from the database.
-  const allDropItems = [ ...databaseDropItems ];
+  const allDropItems = [ ...baseDropItems ];
 
   // grab any extra drops available.
   const extraDropItems = this.extraDrops();
@@ -697,11 +754,8 @@ Game_Enemy.prototype.extraDrops = function()
  */
 Game_Enemy.prototype.dropSources = function()
 {
-  // initialize our sources tracking.
+  // initialize our sources tracking- by default there are no extra sources beyond oneself.
   const sources = [];
-
-  // add the enemy's own self to the list of sources.
-  sources.push(this.enemy());
 
   // return what we found.
   return sources;

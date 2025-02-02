@@ -34,6 +34,7 @@
  *
  * ----------------------------------------------------------------------------
  * CA-UNIQUE CHANGES:
+ * - forces the previous leader to be in the second party slot after cycling.
  * - loot drop x,y adjustment unique to CA
  * - anti-null elementIds hard-coded
  * - mini floor-damage system built with tags (TODO: replace with plugin?)
@@ -99,6 +100,7 @@ J.CAMods.Aliased.Game_Actor = new Map();
 J.CAMods.Aliased.Game_BattlerBase = new Map();
 J.CAMods.Aliased.Game_Enemy = new Map();
 J.CAMods.Aliased.Game_Map = new Map();
+J.CAMods.Aliased.Game_Party = new Map();
 J.CAMods.Aliased.Scene_Boot = new Map();
 //endregion initialization
 
@@ -389,6 +391,31 @@ JABS_Engine.prototype.trackActionData = function(action)
       // any skills
       break;
   }
+};
+
+J.CAMods.Aliased.JABS_Engine.set('handlePartyCycleMemberChanges', JABS_Engine.prototype.handlePartyCycleMemberChanges);
+JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
+{
+  // identify the previous leader's actorId.
+  const originalLeaderActorId = $gameParty._actors.at(0);
+
+  // perform original logic.
+  J.CAMods.Aliased.JABS_Engine.get('handlePartyCycleMemberChanges')
+    .call(this);
+
+  // identify the location of the previous leader.
+  const newIndexOfPreviousLeader = $gameParty._actors.findIndex(actorId => actorId === originalLeaderActorId);
+
+  // remove leader from previous location.
+  $gameParty._actors.splice(newIndexOfPreviousLeader, 1);
+
+  // insert them at the secondary index.
+  $gameParty._actors.splice(1, 0, originalLeaderActorId);
+
+  $gamePlayer.refresh();
+
+  // recreate the JABS player battler and set it to the player character.
+  this.refreshPlayer1Data();
 };
 //endregion JABS_Engine
 

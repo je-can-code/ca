@@ -514,6 +514,16 @@ PanelRanking.prototype.rankUp = function()
   }
 };
 
+PanelRanking.prototype.normalizeRank = function()
+{
+  const panel = $gameParty.getSdpByKey(this.key);
+  const { maxRank } = panel;
+  if (this.currentRank > maxRank)
+  {
+    this.currentRank = maxRank;
+  }
+};
+
 /**
  * Gets whether or not this panel is maxed out.
  * @returns {boolean} True if this panel is maxed out, false otherwise.
@@ -1139,7 +1149,7 @@ class J_SdpPluginMetadata extends PluginMetadata
     }
 
     // classify each panel.
-    const classifiedPanels = J_SdpPluginMetadata.classifyPanels(parsedPanels);
+    const classifiedPanels = J_SdpPluginMetadata.classifyPanels(parsedPanels.sdps);
 
     /**
      * The collection of all defined SDPs.
@@ -2435,6 +2445,44 @@ Game_Party.prototype.populateSdpTrackings = function()
 };
 
 /**
+ * Updates the {@link PanelTracking}s with any new ones found from the metadata.
+ */
+Game_Party.prototype.updateSdpTrackingsFromConfig = function()
+{
+  // grab the current list of trackings by reference.
+  const trackings = this.getAllSdpTrackings();
+
+  J.SDP.Metadata.panels.forEach(panel =>
+  {
+    // skip ones that we shouldn't be adding.
+    if (!this.canGainEntry(panel.name)) return;
+
+    // find one by the same key in the existing trackings.
+    const foundTracking = trackings.find(tracking => tracking.key === panel.key);
+
+    // check if we found a tracking that has had its default unlock status changed.
+    if (foundTracking && !foundTracking.unlocked && panel.unlockedByDefault)
+    {
+      // unlock it.
+      panel.unlock();
+      return;
+    }
+
+    // check if we actually didn't find any panel by that key.
+    if (!foundTracking)
+    {
+      // add it anew.
+      const newTracking = new PanelTracking(panel.key, panel.unlockedByDefault);
+      trackings.push(newTracking);
+      console.log(`adding new sdp: ${newTracking.key}`);
+    }
+  });
+
+  // sort them.
+  trackings.sort((a, b) => a.key - b.key);
+};
+
+/**
  * Gets all SDP trackings.
  * @return {PanelTracking[]}
  */
@@ -2596,6 +2644,14 @@ Game_Party.prototype.getSdpRankByActorAndKey = function(actorId, key)
     return 0;
   }
 };
+
+Game_Party.prototype.normalizeSdpRankings = function()
+{
+  this.allMembers().forEach(member =>
+  {
+    member._j._sdp._ranks.forEach(ranking => ranking.normalizeRank())
+  });
+};
 //endregion Game_Party
 
 //region Game_System
@@ -2659,6 +2715,21 @@ Game_System.prototype.disableForcedSdpDrops = function()
 Game_System.prototype.shouldForceDropSdp = function()
 {
   return this._j._sdp._forceDropPanels ?? false;
+};
+
+/**
+ * Extends {@link #onAfterLoad}.<br>
+ * Updates the list of all available panels from the latest plugin metadata.
+ */
+J.SDP.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function()
+{
+  // perform original logic.
+  J.SDP.Aliased.Game_System.get('onAfterLoad')
+    .call(this);
+
+  // setup the difficulty layers in the temp data.
+  $gameParty.updateSdpTrackingsFromConfig();
 };
 //endregion Game_System
 
@@ -3862,7 +3933,7 @@ class Window_SdpList extends Window_Command
     const { currentRank } = panelRanking;
 
     // check if we're at max rank already.
-    const isMaxRank = maxRank === currentRank;
+    const isMaxRank = maxRank <= currentRank;
 
     // check if the panel is max rank AND we're using the no max panels filter.
     if (isMaxRank && this.usingNoMaxPanelsFilter())

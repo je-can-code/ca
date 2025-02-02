@@ -392,7 +392,7 @@ JABS_Battler.prototype.isGapClosable = function()
 
 /**
  * Executes a gap close to the target based on the provided action.
- * @param {JABS_Action} action The `JABS_Action` containing the action data.
+ * @param {JABS_Action} action The JABS action containing the action data.
  * @param {JABS_Battler} target The target having the action applied against.
  */
 JABS_Battler.prototype.gapCloseToTarget = function(action, target)
@@ -615,7 +615,7 @@ RPG_Skill.prototype.extractJabsGapCloseMode = function()
 
 /**
  * Processes the various on-hit effects against the target.
- * @param {JABS_Action} action The `JABS_Action` containing the action data.
+ * @param {JABS_Action} action The JABS action containing the action data.
  * @param {JABS_Battler} target The target having the action applied against.
  */
 J.ABS.EXT.TOOLS.Aliased.JABS_Engine.set('processOnHitEffects', JABS_Engine.prototype.processOnHitEffects)
@@ -643,7 +643,7 @@ JABS_Engine.prototype.handleGapClose = function(action, target)
 
 /**
  * Determine whether or not the target can be gap closed to.
- * @param {JABS_Action} action The `JABS_Action` containing the action data.
+ * @param {JABS_Action} action The JABS action containing the action data.
  * @param {JABS_Battler} target The target having the action applied against.
  * @returns {boolean} True if the target can be gap closed to, false otherwise.
  */
