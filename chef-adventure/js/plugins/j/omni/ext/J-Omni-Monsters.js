@@ -2298,7 +2298,7 @@ class Window_MonsterpediaDetail extends Window_Base
     const [ sdpKey, sdpDropChance, sdpItemId ] = sdpDropData;
 
     // grab the corresponding panel with this key.
-    const panel = $gameParty.getSdpByKey(sdpKey);
+    const panel = J.SDP.Metadata.panelsMap.get(sdpKey);
 
     // if there is no panel, then don't try to render it.
     if (!panel) return;

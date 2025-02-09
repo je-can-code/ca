@@ -709,7 +709,7 @@ Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam)
   panelRankings.forEach(panelRanking =>
   {
     // grab our panel by its key.
-    const panel = $gameParty.getSdpByKey(panelRanking.key);
+    const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
 
     // protect our players against changed keys mid-save file!
     if (!panel) return;

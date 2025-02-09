@@ -166,7 +166,7 @@
         {
           "rewardName": "Unlock: \\sdp[DRG_1]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"DRG_1\");"
+          "effect": "a.unlockSdpByKey(\"DRG_1\");"
         }
       ],
       "rarity": 3
@@ -227,7 +227,7 @@
         {
           "rewardName": "Unlock: \\sdp[ENC_2]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"ENC_2\");"
+          "effect": "a.unlockSdpByKey(\"ENC_2\");"
         }
       ],
       "rarity": 0
@@ -279,7 +279,7 @@
         {
           "rewardName": "Unlock: \\sdp[ENC_3]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"ENC_3\");"
+          "effect": "a.unlockSdpByKey(\"ENC_3\");"
         }
       ],
       "rarity": 3
@@ -331,7 +331,7 @@
         {
           "rewardName": "Unlock: \\sdp[ENC_4]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"ENC_4\");"
+          "effect": "a.unlockSdpByKey(\"ENC_4\");"
         }
       ],
       "rarity": 23
@@ -383,7 +383,7 @@
         {
           "rewardName": "Unlock: \\sdp[ENC_5]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"ENC_5\");"
+          "effect": "a.unlockSdpByKey(\"ENC_5\");"
         }
       ],
       "rarity": 23
@@ -441,7 +441,7 @@
         {
           "rewardName": "Unlock: \\sdp[ENC_6]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"ENC_6\");"
+          "effect": "a.unlockSdpByKey(\"ENC_6\");"
         }
       ],
       "rarity": 31
@@ -499,7 +499,7 @@
         {
           "rewardName": "Unlock: \\sdp[ENC_7]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"ENC_7\");"
+          "effect": "a.unlockSdpByKey(\"ENC_7\");"
         }
       ],
       "rarity": 31
@@ -563,7 +563,7 @@
         {
           "rewardName": "Unlock: \\sdp[ENC_8]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"ENC_8\");"
+          "effect": "a.unlockSdpByKey(\"ENC_8\");"
         }
       ],
       "rarity": 20
@@ -627,7 +627,7 @@
         {
           "rewardName": "Unlock: \\sdp[ENC_9]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"ENC_9\");"
+          "effect": "a.unlockSdpByKey(\"ENC_9\");"
         }
       ],
       "rarity": 20
@@ -691,7 +691,7 @@
         {
           "rewardName": "Unlock: \\sdp[ENC_10]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"ENC_10\");"
+          "effect": "a.unlockSdpByKey(\"ENC_10\");"
         }
       ],
       "rarity": 20
@@ -810,7 +810,7 @@
         {
           "rewardName": "Unlock: \\sdp[FGT_2]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"FGT_2\");"
+          "effect": "a.unlockSdpByKey(\"FGT_2\");"
         }
       ],
       "rarity": 0
@@ -856,7 +856,7 @@
         {
           "rewardName": "Unlock: \\sdp[FGT_3]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"FGT_3\");"
+          "effect": "a.unlockSdpByKey(\"FGT_3\");"
         }
       ],
       "rarity": 3
@@ -908,7 +908,7 @@
         {
           "rewardName": "Unlock: \\sdp[FGT_4]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"FGT_4\");"
+          "effect": "a.unlockSdpByKey(\"FGT_4\");"
         }
       ],
       "rarity": 23
@@ -960,7 +960,7 @@
         {
           "rewardName": "Unlock: \\sdp[FGT_5]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"FGT_5\");"
+          "effect": "a.unlockSdpByKey(\"FGT_5\");"
         }
       ],
       "rarity": 23
@@ -1018,7 +1018,7 @@
         {
           "rewardName": "Unlock: \\sdp[FGT_6]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"FGT_6\");"
+          "effect": "a.unlockSdpByKey(\"FGT_6\");"
         }
       ],
       "rarity": 31
@@ -1076,7 +1076,7 @@
         {
           "rewardName": "Unlock: \\sdp[FGT_7]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"FGT_7\");"
+          "effect": "a.unlockSdpByKey(\"FGT_7\");"
         }
       ],
       "rarity": 31
@@ -1140,7 +1140,7 @@
         {
           "rewardName": "Unlock: \\sdp[FGT_8]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"FGT_8\");"
+          "effect": "a.unlockSdpByKey(\"FGT_8\");"
         }
       ],
       "rarity": 20
@@ -1204,7 +1204,7 @@
         {
           "rewardName": "Unlock: \\sdp[FGT_9]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"FGT_9\");"
+          "effect": "a.unlockSdpByKey(\"FGT_9\");"
         }
       ],
       "rarity": 20
@@ -1268,7 +1268,7 @@
         {
           "rewardName": "Unlock: \\sdp[FGT_10]",
           "rankRequired": 0,
-          "effect": "$gameParty.unlockSdp(\"FGT_10\");"
+          "effect": "a.unlockSdpByKey(\"FGT_10\");"
         }
       ],
       "rarity": 20

@@ -3461,7 +3461,7 @@ ColorManager.equipType = function(equipTypeId)
 ColorManager.sdp = function(rarity)
 {
   // parse the rarity color.
-  const rarityColorIndex = SDP_Rarity.fromRarityToColor(rarity);
+  const rarityColorIndex = PanelRarity.fromRarityToColor(rarity);
 
   // return the text code for it.
   return this.textColor(rarityColorIndex);
