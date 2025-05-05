@@ -266,7 +266,10 @@ JABS_Engine.prototype.postExecuteSkillEffects = function(action, target)
 JABS_Engine.prototype.trackAttackData = function(target)
 {
   // extract the data points from the battler's action result.
-  const { hpDamage, critical } = target.getBattler()
+  const {
+    hpDamage,
+    critical
+  } = target.getBattler()
     .result();
 
   // check if it was hp-related.
@@ -304,7 +307,12 @@ JABS_Engine.prototype.trackAttackData = function(target)
  */
 JABS_Engine.prototype.trackDefensiveData = function(target)
 {
-  const { hpDamage, critical, parried, preciseParried } = target.getBattler()
+  const {
+    hpDamage,
+    critical,
+    parried,
+    preciseParried
+  } = target.getBattler()
     .result();
   if (hpDamage)
   {

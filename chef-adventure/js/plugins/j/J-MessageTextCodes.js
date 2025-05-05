@@ -8,7 +8,10 @@ class BasicChoiceConditional
    * A static property containing the strings representing validation types supported.
    */
   static Types = {
-    Leader: 'leader', NotLeader: 'not-leader', SwitchOn: 'switch-on', SwitchOff: 'switch-off',
+    Leader: 'leader',
+    NotLeader: 'not-leader',
+    SwitchOn: 'switch-on',
+    SwitchOff: 'switch-off',
   }
 
   /**
@@ -261,7 +264,10 @@ Game_Event.filterCommentCommandsForBasicConditionals = function(command)
 
   // extract the types of regex we will be considering.
   const {
-    LeaderChoiceConditional, NotLeaderChoiceConditional, SwitchOnChoiceConditional, SwitchOffChoiceConditional
+    LeaderChoiceConditional,
+    NotLeaderChoiceConditional,
+    SwitchOnChoiceConditional,
+    SwitchOffChoiceConditional
   } = J.MESSAGE.RegExp;
 
   return [
@@ -365,7 +371,8 @@ Game_Interpreter.prototype.hideSpecificChoiceBranches = function(params)
 
   // identify the start and end of the choice branches.
   const startShowChoiceIndex = currentPageCommands.findIndex(item => item === currentCommand);
-  const endShowChoiceIndex = currentPageCommands.findIndex((item,
+  const endShowChoiceIndex = currentPageCommands.findIndex((
+    item,
     index) => (index > startShowChoiceIndex && item.indent === currentCommand.indent && item.code === 404));
 
   // build an array of indexes that align with the options.
@@ -823,7 +830,11 @@ Window_Base.prototype.translateSdpTextCode = function(text)
     if (!sdp) return text;
 
     // extract the necessary data from the SDP.
-    const { name, rarity: colorIndex, iconIndex } = sdp;
+    const {
+      name,
+      rarity: colorIndex,
+      iconIndex
+    } = sdp;
 
     // return the constructed replacement string.
     return `\\I[${iconIndex}]\\C[${colorIndex}]${name}\\C[0]`;

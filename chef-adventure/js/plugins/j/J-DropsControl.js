@@ -276,7 +276,9 @@ class RPG_DropItemBuilder
   {
     // create an anonymous object representing the drop data.
     const dropItem = {
-      kind: this.#type, dataId: this.#id, denominator: this.#chance,
+      kind: this.#type,
+      dataId: this.#id,
+      denominator: this.#chance,
     };
 
     // check to make sure the clear needs execution.

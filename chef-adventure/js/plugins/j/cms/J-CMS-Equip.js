@@ -47,7 +47,9 @@ J.CMS_E.Metadata.Name = `J-CMS-Equip`;
 J.CMS_E.Metadata.Version = '1.0.0';
 
 J.CMS_E.Aliased = {
-  Scene_Equip: {}, Window_EquipItem: {}, Window_EquipSlot: {},
+  Scene_Equip: {},
+  Window_EquipItem: {},
+  Window_EquipSlot: {},
 };
 //endregion Introduction
 
@@ -670,7 +672,8 @@ Window_EquipStatus.prototype.arrowCharacter = function(diffValue)
 /**
  * A window designed to display "more" data associated with the equipment.
  */
-class Window_MoreEquipData extends Window_MoreData
+class Window_MoreEquipData
+  extends Window_MoreData
 {
   constructor(rect)
   {
@@ -862,7 +865,10 @@ class Window_MoreEquipData extends Window_MoreData
     }
 
     // determine the actual skill.
-    const { name, iconIndex } = skill;
+    const {
+      name,
+      iconIndex
+    } = skill;
 
     // define the command name.
     const attackSkillCommand = `${baseAttackSkillCommand}: \\C[2]${name}\\C[0]`;

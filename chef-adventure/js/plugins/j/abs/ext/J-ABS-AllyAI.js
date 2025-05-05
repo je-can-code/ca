@@ -357,7 +357,8 @@ JABS_AllyAI.modes = {
    * When this mode is assigned, the battler will take no action.
    */
   DO_NOTHING: {
-    key: "do-nothing", name: J.ABS.EXT.ALLYAI.Metadata.AiModeDoNothingText,
+    key: "do-nothing",
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeDoNothingText,
   },
 
   /**
@@ -365,28 +366,32 @@ JABS_AllyAI.modes = {
    * If no skill is equipped in their main hand, they will do nothing.
    */
   BASIC_ATTACK: {
-    key: "basic-attack", name: J.ABS.EXT.ALLYAI.Metadata.AiModeOnlyAttackText,
+    key: "basic-attack",
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeOnlyAttackText,
   },
 
   /**
    * When this mode is assigned, the battler will intelligently decide from any skill they have equipped.
    */
   VARIETY: {
-    key: "variety", name: J.ABS.EXT.ALLYAI.Metadata.AiModeVarietyText
+    key: "variety",
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeVarietyText
   },
 
   /**
    * When this mode is assigned, the battler will use the biggest and strongest skills available.
    */
   FULL_FORCE: {
-    key: "full-force", name: J.ABS.EXT.ALLYAI.Metadata.AiModeFullForceText
+    key: "full-force",
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeFullForceText
   },
 
   /**
    * When this mode is assigned, the battler will prioritize supporting and healing allies.
    */
   SUPPORT: {
-    key: "support", name: J.ABS.EXT.ALLYAI.Metadata.AiModeSupportText
+    key: "support",
+    name: J.ABS.EXT.ALLYAI.Metadata.AiModeSupportText
   },
 };
 
@@ -1412,7 +1417,10 @@ JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
 
   // if we are in active motion, do not idle.
   if (!allyBattler.getCharacter()
-    .isStopping()) return false;
+    .isStopping())
+  {
+    return false;
+  }
 
   // perform!
   return true;
@@ -1514,7 +1522,8 @@ JABS_Engine.prototype.prePartyCycling = function()
  * Overrides {@link JABS_Engine.handlePartyCycleMemberChanges}.<br>
  * Jumps all followers to the player upon party cycling.
  */
-J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.set('handlePartyCycleMemberChanges',
+J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.set(
+  'handlePartyCycleMemberChanges',
   JABS_Engine.prototype.handlePartyCycleMemberChanges);
 JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
 {
@@ -1540,7 +1549,8 @@ JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
  * Extends {@link JABS_Engine.continuedPrimaryBattleEffects}.<br>
  * Also applies battle memories as-necessary.
  */
-J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.set('continuedPrimaryBattleEffects',
+J.ABS.EXT.ALLYAI.Aliased.Game_BattleMap.set(
+  'continuedPrimaryBattleEffects',
   JABS_Engine.prototype.continuedPrimaryBattleEffects);
 JABS_Engine.prototype.continuedPrimaryBattleEffects = function(action, target)
 {
@@ -1566,7 +1576,8 @@ JABS_Engine.prototype.applyBattleMemories = function(result, action, target)
   if (this.canApplyBattleMemories(target)) return;
 
   // generate the new battle memory of the action and its result for the target.
-  const newMemory = new JABS_BattleMemory(target.getBattlerId(),
+  const newMemory = new JABS_BattleMemory(
+    target.getBattlerId(),
     action.getBaseSkill().id,
     action.getAction()
       .calculateRawElementRate(target.getBattler()),
@@ -1932,7 +1943,8 @@ Game_Follower.prototype.update = function()
   if (!this.canObeyJabsAi())
   {
     // perform original logic if we are not.
-    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('update').call(this);
+    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('update')
+      .call(this);
 
     // stop processing.
     return;
@@ -1951,7 +1963,8 @@ Game_Follower.prototype.setDirectionFix = function(isDirectionFixed)
   if (!battler)
   {
     // perform original logic if we are not.
-    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('setDirectionFix').call(this, isDirectionFixed);
+    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('setDirectionFix')
+      .call(this, isDirectionFixed);
 
     // do no further processing.
     return;
@@ -1961,7 +1974,8 @@ Game_Follower.prototype.setDirectionFix = function(isDirectionFixed)
   if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) return;
 
   // perform original logic if we are not.
-  J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('setDirectionFix').call(this, isDirectionFixed);
+  J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('setDirectionFix')
+    .call(this, isDirectionFixed);
 };
 
 /**
@@ -2742,7 +2756,10 @@ Window_AbsMenuSelect.prototype.makeAllyAiModeList = function()
   const forEacher = mode =>
   {
     // extract some data from this ally AI mode.
-    const { key, name } = mode;
+    const {
+      key,
+      name
+    } = mode;
 
     // check if the currently selected ally AI mode is this command.
     const isEquipped = currentAi.getMode() === key;

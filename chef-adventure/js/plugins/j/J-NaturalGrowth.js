@@ -241,7 +241,10 @@ J.NATURAL.Metadata.BaseTpMaxEnemies = Number(J.NATURAL.PluginParameters['enemyBa
  * A collection of all aliased methods for this plugin.
  */
 J.NATURAL.Aliased = {
-  Game_Actor: new Map(), Game_Battler: new Map(), Game_Enemy: new Map(), Game_Party: new Map(),
+  Game_Actor: new Map(),
+  Game_Battler: new Map(),
+  Game_Enemy: new Map(),
+  Game_Party: new Map(),
 
   Scene_Equip: new Map(),
 

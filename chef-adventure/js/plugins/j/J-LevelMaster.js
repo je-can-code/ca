@@ -477,7 +477,8 @@ J.LEVEL.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
 DataManager.setupNewGame = function()
 {
   // perform original logic.
-  J.LEVEL.Aliased.DataManager.get('setupNewGame').call(this);
+  J.LEVEL.Aliased.DataManager.get('setupNewGame')
+    .call(this);
 
   // also build the beyond max data.
   $gameTemp.buildBeyondMaxData();
@@ -1116,37 +1117,38 @@ Game_Temp.prototype.buildBeyondMaxDataForClass = function(classId)
   const newClassParams = Array.empty;
 
   // iterate over each of the known base parameters to boost beyond max.
-  Game_BattlerBase.knownBaseParameterIds().forEach(paramId =>
-  {
-    // clone the class parameters.
-    const parameterValues = classParams.at(paramId)
-      .toSpliced(0, 0);
-
-    // grab the final five levels to determine the average growth to continue with.
-    const lastFive = parameterValues.slice(parameterValues.length-6);
-    const growth = Array.empty;
-    lastFive.forEach((value, index) =>
+  Game_BattlerBase.knownBaseParameterIds()
+    .forEach(paramId =>
     {
-      if (index === 0) return;
+      // clone the class parameters.
+      const parameterValues = classParams.at(paramId)
+        .toSpliced(0, 0);
 
-      const previousValue = lastFive[index - 1];
-      const difference = value - previousValue;
-      growth.push(difference);
+      // grab the final five levels to determine the average growth to continue with.
+      const lastFive = parameterValues.slice(parameterValues.length - 6);
+      const growth = Array.empty;
+      lastFive.forEach((value, index) =>
+      {
+        if (index === 0) return;
+
+        const previousValue = lastFive[index - 1];
+        const difference = value - previousValue;
+        growth.push(difference);
+      });
+
+      // determine the average growth rate to continue beyond level 99 with.
+      const averageGrowth = growth.reduce((sum, value) => sum + value, 0) / growth.length;
+
+      // arbitrarily evaluate ten thousand levels worth of parameters upfront.
+      for (let i = 100; i < 1000; i++)
+      {
+        const nextParameterValue = parameterValues.at(i - 1) + averageGrowth;
+        parameterValues[i] = Math.ceil(nextParameterValue);
+      }
+
+      // add the data to the running collection.
+      newClassParams.push(parameterValues);
     });
-
-    // determine the average growth rate to continue beyond level 99 with.
-    const averageGrowth = growth.reduce((sum, value) => sum + value, 0) / growth.length;
-
-    // arbitrarily evaluate ten thousand levels worth of parameters upfront.
-    for (let i = 100; i < 1000; i++)
-    {
-      const nextParameterValue = parameterValues.at(i - 1) + averageGrowth;
-      parameterValues[i] = Math.ceil(nextParameterValue);
-    }
-
-    // add the data to the running collection.
-    newClassParams.push(parameterValues);
-  });
 
   // set the data.
   this.setBeyondMaxData(classId, newClassParams);

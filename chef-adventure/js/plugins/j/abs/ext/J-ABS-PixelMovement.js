@@ -61,7 +61,9 @@ J.ABS.EXT.PIXEL.PluginParameters = PluginManager.parameters(J.ABS.EXT.PIXEL.Meta
  * A collection of all aliased methods for this plugin.
  */
 J.ABS.EXT.PIXEL.Aliased = {
-  Game_Character: new Map(), Game_CharacterBase: new Map(), Game_Player: new Map(),
+  Game_Character: new Map(),
+  Game_CharacterBase: new Map(),
+  Game_Player: new Map(),
 };
 //endregion metadata
 
@@ -373,7 +375,10 @@ Game_CharacterBase.prototype.recordPixelPosition = function()
   else if (!last || deltaDistance > 0.1)
   {
     // TODO: use the Point class?
-    const point = { x: this.x, y: this.y }; //new Point(this.x, this.y);
+    const point = {
+      x: this.x,
+      y: this.y
+    }; //new Point(this.x, this.y);
 
     // add the point to the tracking.
     this.addPositionalRecord(point);

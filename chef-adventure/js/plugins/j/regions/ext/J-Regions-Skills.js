@@ -94,7 +94,8 @@ class RegionSkillData
 //endregion annotations
 
 //region plugin metadata
-class J_RegionSkillsPluginMetadata extends PluginMetadata
+class J_RegionSkillsPluginMetadata
+  extends PluginMetadata
 {
   /**
    * Constructor.
@@ -205,7 +206,8 @@ JABS_Engine.prototype.setMapDamageBattler = function(dummyEnemyId, isFriendly)
     .setBattlerId(dummyEnemyId)
     .isDummy(isFriendly)
     .build();
-  this.mapDamageBattler = new JABS_Battler($gamePlayer, // irrelevant, but should be some event/character on the current map.
+  this.mapDamageBattler = new JABS_Battler(
+    $gamePlayer, // irrelevant, but should be some event/character on the current map.
     $gameEnemies.enemy(dummyEnemyId),
     coreData);
 };
@@ -337,7 +339,12 @@ Game_Character.prototype.executeRegionSkills = function()
   regionSkillDatas.forEach(regionSkillData =>
   {
     // deconstruct the region skill data.
-    const { skillId, chance, casterId, isFriendly } = regionSkillData;
+    const {
+      skillId,
+      chance,
+      casterId,
+      isFriendly
+    } = regionSkillData;
 
     // roll the dice and see if we should even execute it.
     if (!RPGManager.chanceIn100(chance)) return;
@@ -357,7 +364,8 @@ Game_Character.prototype.executeRegionSkills = function()
     }
 
     // execute the skill.
-    $jabsEngine.forceMapAction($jabsEngine.getMapDamageBattler(),
+    $jabsEngine.forceMapAction(
+      $jabsEngine.getMapDamageBattler(),
       skillId,
       false,
       targetJabsBattler.getX(),
@@ -523,7 +531,8 @@ Game_Map.prototype.refreshRegionSkills = function()
   if (!this.canRefreshRegionEffects()) return;
 
   // grab the region data.
-  const regionSkillsData = RPGManager.getArraysFromNotesByRegex({ note: this.note() },
+  const regionSkillsData = RPGManager.getArraysFromNotesByRegex(
+    { note: this.note() },
     J.REGIONS.EXT.SKILLS.RegExp.RegionSkill,
     true);
 

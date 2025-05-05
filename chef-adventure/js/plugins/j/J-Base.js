@@ -65,6 +65,7 @@
  *    Added max item quantity functionality with tag.
  *    Added note grouping methods specific to actors/enemies.
  *    Added Window_Command updates to enable drawing faces as well.
+ *    Updated Game_Timer to track elapsed time.
  * - 2.1.3
  *    Added help text functionality for window commands.
  *    Added description text for all parameters.
@@ -256,6 +257,7 @@ J.BASE.Aliased = {
   Game_Enemy: new Map(),
   Game_Party: new Map(),
   Game_Temp: new Map(),
+  Game_Timer: new Map(),
   Game_System: new Map(),
   Scene_Base: new Map(),
   SoundManager: new Map(),
@@ -633,7 +635,11 @@ class JsonMapper
   static parseString(str)
   {
     // check if its actually boolean true.
-    if (str.toLowerCase() === "true") return true;
+    if (str.toLowerCase() === "true")
+    {
+      return true;
+    }
+
     // check if its actually boolean false.
     else if (str.toLowerCase() === "false") return false;
 
@@ -797,7 +803,11 @@ class RPG_DropItem
    * Constructor.
    * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
    */
-  constructor({ dataId, denominator, kind })
+  constructor({
+                dataId,
+                denominator,
+                kind
+              })
   {
     // map the enemy drop to this object.
     this.dataId = dataId;
@@ -943,7 +953,11 @@ class RPG_Trait
    */
   static fromValues(code, dataId, value)
   {
-    return new RPG_Trait({ code, dataId, value });
+    return new RPG_Trait({
+      code,
+      dataId,
+      value
+    });
   }
 
   /**
@@ -1640,8 +1654,10 @@ class RPG_Base
   #parseString(str)
   {
     // check if its actually boolean true.
-    if (str.toLowerCase() === "true") return true;
-    // check if its actually boolean false.
+    if (str.toLowerCase() === "true")
+    {
+      return true;
+    }// check if its actually boolean false.
     else if (str.toLowerCase() === "false") return false;
 
     // check if its actually a number.
@@ -2247,7 +2263,8 @@ class RPG_Base
  * A class representing the groundwork for what all battlers
  * database data look like.
  */
-class RPG_BaseBattler extends RPG_Base
+class RPG_BaseBattler
+  extends RPG_Base
 {
   /**
    * The name of the battler while in battle.
@@ -2286,7 +2303,8 @@ class RPG_BaseBattler extends RPG_Base
  * The class representing baseItem from the database,
  * and now an iconIndex with a description.
  */
-class RPG_BaseItem extends RPG_Base
+class RPG_BaseItem
+  extends RPG_Base
 {
   /**
    * The description of this entry.
@@ -2323,7 +2341,8 @@ class RPG_BaseItem extends RPG_Base
 /**
  * A class representing a BaseItem from the database, but with traits.
  */
-class RPG_Traited extends RPG_BaseItem
+class RPG_Traited
+  extends RPG_BaseItem
 {
   /**
    * A collection of all traits this item possesses.
@@ -2354,7 +2373,8 @@ class RPG_Traited extends RPG_BaseItem
  * A base class representing containing common properties found in both
  * weapons and armors.
  */
-class RPG_EquipItem extends RPG_Traited
+class RPG_EquipItem
+  extends RPG_Traited
 {
   //region properties
   /**
@@ -2423,7 +2443,8 @@ class RPG_EquipItem extends RPG_Traited
  * A class representing the base properties for any usable item or skill
  * from the database.
  */
-class RPG_UsableItem extends RPG_BaseItem
+class RPG_UsableItem
+  extends RPG_BaseItem
 {
   //region properties
   /**
@@ -2518,7 +2539,8 @@ class RPG_UsableItem extends RPG_BaseItem
 /**
  * A class representing a single actor battler's data from the database.
  */
-class RPG_Actor extends RPG_BaseBattler
+class RPG_Actor
+  extends RPG_BaseBattler
 {
   //region properties
   /**
@@ -2628,7 +2650,8 @@ class RPG_Actor extends RPG_BaseBattler
 /**
  * A class representing a single armor from the database.
  */
-class RPG_Armor extends RPG_EquipItem
+class RPG_Armor
+  extends RPG_EquipItem
 {
   //region properties
   /**
@@ -2676,7 +2699,8 @@ class RPG_Armor extends RPG_EquipItem
 /**
  * A class representing a RPG-relevant class from the database.
  */
-class RPG_Class extends RPG_Base
+class RPG_Class
+  extends RPG_Base
 {
   //region properties
   /**
@@ -2733,7 +2757,8 @@ class RPG_Class extends RPG_Base
 /**
  * A class representing a single enemy battler's data from the database.
  */
-class RPG_Enemy extends RPG_BaseBattler
+class RPG_Enemy
+  extends RPG_BaseBattler
 {
   //region properties
   /**
@@ -2814,7 +2839,8 @@ class RPG_Enemy extends RPG_BaseBattler
 /**
  * A class representing a single item entry from the database.
  */
-class RPG_Item extends RPG_UsableItem
+class RPG_Item
+  extends RPG_UsableItem
 {
   //region properties
   /**
@@ -2876,7 +2902,8 @@ class RPG_Item extends RPG_UsableItem
 /**
  * An class representing a single skill from the database.
  */
-class RPG_Skill extends RPG_UsableItem
+class RPG_Skill
+  extends RPG_UsableItem
 {
   //region properties
   /**
@@ -2977,7 +3004,8 @@ class RPG_Skill extends RPG_UsableItem
 /**
  * An class representing a single state from the database.
  */
-class RPG_State extends RPG_Traited
+class RPG_State
+  extends RPG_Traited
 {
   //region properties
   /**
@@ -3148,7 +3176,8 @@ class RPG_State extends RPG_Traited
 /**
  * A class representing a single weapon from the database.
  */
-class RPG_Weapon extends RPG_EquipItem
+class RPG_Weapon
+  extends RPG_EquipItem
 {
   //region properties
   /**
@@ -4666,7 +4695,9 @@ class IconManager
    * A tag for correlating a JABS parameter to an icon.
    */
   static JABS_PARAMETER = {
-    BONUS_HITS: "bonus-hits", ATTACK_SKILL: "attack-skill", SPEED_BOOST: "speed-boost",
+    BONUS_HITS: "bonus-hits",
+    ATTACK_SKILL: "attack-skill",
+    SPEED_BOOST: "speed-boost",
   };
 
   /**
@@ -4765,9 +4796,10 @@ ImageManager.loadBitmapPromise = function(filename, directory)
     bitmap.addLoadListener(thisBitmap =>
     {
       // if everything is clear, resolve with the loaded bitmap.
-      if (thisBitmap.isReady()) resolve(thisBitmap);
-
-      // if there were problems, then reject.
+      if (thisBitmap.isReady())
+      {
+        resolve(thisBitmap);
+      }// if there were problems, then reject.
       else if (thisBitmap.isError()) reject();
     });
   });
@@ -5416,7 +5448,8 @@ class RPGManager
   static checkForBooleanFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
   {
     // get all results from all objects that could have true/false/null values.
-    const results = databaseDatas.map(databaseData => this.checkForBooleanFromNoteByRegex(databaseData,
+    const results = databaseDatas.map(databaseData => this.checkForBooleanFromNoteByRegex(
+      databaseData,
       structure,
       nullIfEmpty));
 
@@ -6482,7 +6515,8 @@ class BuiltWindowCommand
  * Consider reviewing nodejs documentation about the {@link EventEmitter} class
  * for usage instructions.
  */
-class J_EventEmitter extends PIXI.utils.EventEmitter
+class J_EventEmitter
+  extends PIXI.utils.EventEmitter
 {
 }
 
@@ -7189,7 +7223,8 @@ class WindowCommandBuilder
   build()
   {
     // construct the command.
-    const command = new BuiltWindowCommand(this.#name,
+    const command = new BuiltWindowCommand(
+      this.#name,
       this.#key,
       this.#enabled,
       this.#extensionData,
@@ -7922,6 +7957,16 @@ Game_Actors.prototype.actorIds = function()
   return actorIds;
 };
 
+/**
+ * Gets all proper actors available in the database.
+ * @returns {Game_Actor[]}
+ */
+Game_Actors.prototype.actors = function()
+{
+  return this.actorIds()
+    .map(id => this.actor(id), this);
+};
+
 //endregion Game_Actors
 
 //region Game_Battler
@@ -8243,7 +8288,8 @@ Object.defineProperty(Game_BattlerBase.prototype, "mtp", {
   get: function()
   {
     return this.maxTp();
-  }, configurable: true
+  },
+  configurable: true
 });
 //endregion Game_BattlerBase
 
@@ -8508,7 +8554,11 @@ Game_Enemy.prototype.learnSkill = function(skillId)
 
   // build the new underlying action to be detected by the enemy.
   const rpgEnemyAction = {
-    "conditionParam1": 0, "conditionParam2": 0, "conditionType": 0, "rating": 5, "skillId": skillId
+    "conditionParam1": 0,
+    "conditionParam2": 0,
+    "conditionType": 0,
+    "rating": 5,
+    "skillId": skillId
   };
 
   // add the action to the enemy's list of known skills.
@@ -9051,6 +9101,49 @@ Game_Temp.prototype.initMembers = function()
 };
 //endregion Game_Temp
 
+//region Game_Timer
+/**
+ * Extends {@link #initialize}.<br/>
+ * Also initializes the duration.
+ */
+J.BASE.Aliased.Game_Timer.set('initialize', Game_Timer.prototype.initialize);
+Game_Timer.prototype.initialize = function()
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Timer.get('start')
+    .call(this);
+
+  /**
+   * Also initialize the duration of the timer.
+   * @type {number}
+   */
+  this._duration = 0;
+};
+
+/**
+ * Extends {@link #start}.<br/>
+ * Also sets the duration of the timer for tracking relative elapsed time.
+ */
+J.BASE.Aliased.Game_Timer.set('start', Game_Timer.prototype.start);
+Game_Timer.prototype.start = function(duration)
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Timer.get('start')
+    .call(this, duration);
+
+  this._duration = duration;
+};
+
+/**
+ * Gets the elapsed amount of time relative to the duration.
+ * @returns {number}
+ */
+Game_Timer.prototype.elapsedFrames = function()
+{
+  return this._duration - this._frames;
+};
+//endregion Game_Timer
+
 //region Game_Vehicle
 /**
  * Vehicles are in fact vehicles.
@@ -9097,13 +9190,16 @@ Scene_Base.prototype.callScene = function()
  * A sprite that displays some text.
  * This acts as a base class for a number of other text-based sprites.
  */
-class Sprite_BaseText extends Sprite
+class Sprite_BaseText
+  extends Sprite
 {
   /**
    * The available supported text alignments.
    */
   static Alignments = {
-    Left: "left", Center: "center", Right: "right",
+    Left: "left",
+    Center: "center",
+    Right: "right",
   };
 
   /**
@@ -9570,7 +9666,8 @@ Sprite_Face.prototype.initialize = function(faceName, faceIndex)
 Sprite_Face.prototype.initMembers = function(faceName, faceIndex)
 {
   this._j = {
-    _faceName: faceName, _faceIndex: faceIndex,
+    _faceName: faceName,
+    _faceIndex: faceIndex,
   };
 };
 
@@ -9600,7 +9697,8 @@ Sprite_Face.prototype.loadBitmap = function()
  * but can be modified manually to different iconsets bitmaps and/or
  * different icon widths and heights.
  */
-class Sprite_Icon extends Sprite
+class Sprite_Icon
+  extends Sprite
 {
   /**
    * Initializes this sprite with the designated icon.
@@ -9838,7 +9936,8 @@ function Sprite_MapGauge()
 
 Sprite_MapGauge.prototype = Object.create(Sprite_Gauge.prototype);
 Sprite_MapGauge.prototype.constructor = Sprite_MapGauge;
-Sprite_MapGauge.prototype.initialize = function(bitmapWidth = 96,
+Sprite_MapGauge.prototype.initialize = function(
+  bitmapWidth = 96,
   bitmapHeight = 24,
   gaugeHeight = 6,
   label = String.empty,
@@ -10268,7 +10367,12 @@ Window_Base.prototype.drawBackgroundRect = function(rect)
   const color2 = ColorManager.itemBackColor2();
 
   // extract the data from the rectangle.
-  const { x, y, width, height } = rect;
+  const {
+    x,
+    y,
+    width,
+    height
+  } = rect;
 
   // render the background.
   this.contentsBack.gradientFillRect(x, y, width, height, color1, color2, true);
@@ -10330,7 +10434,9 @@ Window_Command.prototype.drawItem = function(index)
 
   // grab the rectangle for the line item.
   const {
-    x: rectX, y: rectY, width: rectWidth
+    x: rectX,
+    y: rectY,
+    width: rectWidth
   } = this.itemLineRect(index);
 
   // build the command name.
@@ -10382,7 +10488,8 @@ Window_Command.prototype.drawItem = function(index)
   if (hasFaceData)
   {
     const faceY = rectY;
-    this.drawFace(faceName.substring(faceName.lastIndexOf('/') + 1),
+    this.drawFace(
+      faceName.substring(faceName.lastIndexOf('/') + 1),
       faceIndex,
       commandNameX - 36,
       faceY - 12,
@@ -10657,7 +10764,12 @@ Window_Command.prototype.addCommand = function(name, symbol, enabled = true, ext
 {
   this.commandList()
     .push({
-      name, symbol, enabled, ext, icon, color
+      name,
+      symbol,
+      enabled,
+      ext,
+      icon,
+      color
     });
 };
 
@@ -10686,7 +10798,12 @@ Window_Command.prototype.prependCommand = function(name, symbol, enabled = true,
 {
   this.commandList()
     .unshift({
-      name, symbol, enabled, ext, icon, color
+      name,
+      symbol,
+      enabled,
+      ext,
+      icon,
+      color
     });
 };
 
@@ -10889,7 +11006,11 @@ Window_Help.prototype.refresh = function()
 Window_Help.prototype.renderText = function()
 {
   // grab the rectangle coordinates to draw the text in.
-  const { x, y, width } = this.baseTextRect();
+  const {
+    x,
+    y,
+    width
+  } = this.baseTextRect();
 
   // draw the actual text.
   this.drawTextEx(this._text, x, y, width);
@@ -10901,7 +11022,8 @@ Window_Help.prototype.renderText = function()
  * "More" data is typically defined as parameters not found otherwise listed
  * in the screens these lists usually reside in.
  */
-class Window_MoreData extends Window_Command
+class Window_MoreData
+  extends Window_Command
 {
   /**
    * The various types supported by "more data" functionality.

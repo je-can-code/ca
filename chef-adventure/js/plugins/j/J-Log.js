@@ -341,7 +341,9 @@ PluginManager.registerCommand(J.LOG.Metadata.Name, "hideDiaLog", () =>
 PluginManager.registerCommand(J.LOG.Metadata.Name, "addDiaLog", args =>
 {
   const {
-    lines, faceName, faceIndex
+    lines,
+    faceName,
+    faceIndex
   } = args;
   const actualLines = lines.split(/[\r\n]+/);
   const log = new DiaLogBuilder()
@@ -384,7 +386,8 @@ PluginManager.registerCommand(J.LOG.Metadata.Name, "hideLootLog", () =>
 PluginManager.registerCommand(J.LOG.Metadata.Name, "addLootLog", args =>
 {
   const {
-    lootId, lootType
+    lootId,
+    lootType
   } = args;
   const log = new LootLogBuilder()
     .setupLootObtained(lootType, lootId)
@@ -1685,7 +1688,8 @@ Scene_Map.prototype.setLootLogWindow = function(window)
  * A base window that manages standard log management in a command window.<br/>
  * The default {@link Window_MapLog} is used for the action log.
  */
-class Window_MapLog extends Window_Command
+class Window_MapLog
+  extends Window_Command
 {
   /**
    * The height of one row; 16.
@@ -2075,8 +2079,10 @@ class Window_MapLog extends Window_Command
   handlePlayerInterference()
   {
     // if we are above 64, rapidly decrement by -15 until we get below 64.
-    if (this.contentsOpacity > 64) this.contentsOpacity -= 15;
-    // if we are below 64, increment by +1 until we get to 64.
+    if (this.contentsOpacity > 64)
+    {
+      this.contentsOpacity -= 15;
+    }// if we are below 64, increment by +1 until we get to 64.
     else if (this.contentsOpacity < 64) this.contentsOpacity += 1;
   }
 
@@ -2200,7 +2206,8 @@ class Window_MapLog extends Window_Command
  * An extension/modification of the base {@link Window_MapLog}.<br/>
  * The {@link Window_DiaLog} is used for the chatter log.
  */
-class Window_DiaLog extends Window_MapLog
+class Window_DiaLog
+  extends Window_MapLog
 {
   /**
    * The height of one row; 64.<br/>
@@ -2303,7 +2310,8 @@ class Window_DiaLog extends Window_MapLog
  * An extension/modification of the base {@link Window_MapLog}.<br/>
  * The {@link Window_DiaLog} is used for the chatter log.
  */
-class Window_LootLog extends Window_MapLog
+class Window_LootLog
+  extends Window_MapLog
 {
   /**
    * Constructor.

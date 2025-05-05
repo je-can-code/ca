@@ -191,8 +191,14 @@ Map_TextPop.Types = {
  * Builds the text pop based on the given parameters.
  */
 Map_TextPop.prototype.initialize = function({
-  iconIndex, textColorIndex, popupType, value, critical, coordinateVariance, healing,
-})
+                                              iconIndex,
+                                              textColorIndex,
+                                              popupType,
+                                              value,
+                                              critical,
+                                              coordinateVariance,
+                                              healing,
+                                            })
 {
   /**
    * The id of the icon to display alongside this `Map_TextPop`.

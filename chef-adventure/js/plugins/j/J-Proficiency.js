@@ -52,6 +52,7 @@ class ProficiencyConditional
     this.jsRewards = jsRewards;
   }
 }
+
 //endregion ProficiencyConditional
 
 //region proficiencyRequirement
@@ -118,6 +119,7 @@ class ProficiencyRequirement
       }, primaryProficiency);
   };
 }
+
 //endregion proficiencyRequirement
 
 //region SkillProficiency
@@ -444,7 +446,7 @@ class J_ProficiencyPluginMetadata
      */
     this.actorConditionalsMap = new Map();
     // TODO: fix this!
-    [1, 2, 3, 4, 5, 6].forEach(actorId =>
+    [ 1, 2, 3, 4, 5, 6 ].forEach(actorId =>
     {
       this.actorConditionalsMap.set(actorId, Array.empty);
     });
@@ -511,7 +513,8 @@ J.PROF.RegExp.ProficiencyGainingBlock = /<proficiencyGainingBlock>/i;
 PluginManager.registerCommand(J.PROF.Metadata.Name, "modifyActorSkillProficiency", args =>
 {
   const {
-    actorIds, skillIds
+    actorIds,
+    skillIds
   } = args;
 
   const parsedActorIds = JSON.parse(actorIds)

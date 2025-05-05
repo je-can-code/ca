@@ -45,7 +45,9 @@ J.CMS_M.Metadata.Name = `J-CMS-MAin`;
 J.CMS_M.Metadata.Version = '1.0.0';
 
 J.CMS_M.Aliased = {
-  Scene_Menu: {}, Window_EquipItem: {}, Window_EquipSlot: {},
+  Scene_Menu: {},
+  Window_EquipItem: {},
+  Window_EquipSlot: {},
 };
 
 Scene_Menu.prototype.commandWindowRect = function()

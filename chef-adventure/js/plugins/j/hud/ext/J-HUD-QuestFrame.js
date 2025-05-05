@@ -53,7 +53,8 @@
 //endregion annotations
 
 //region plugin metadata
-class J_HUD_Quest_PluginMetadata extends PluginMetadata
+class J_HUD_Quest_PluginMetadata
+  extends PluginMetadata
 {
   /**
    * Constructor.
@@ -384,7 +385,8 @@ Scene_Map.prototype.updateHudFrames = function()
  * Extends {@link onQuestopediaListSelection}.<br/>
  * Triggers a HUD update request when something is selected in the list of quests.
  */
-J.HUD.EXT.QUEST.Aliased.Scene_Questopedia.set('onQuestopediaListSelection',
+J.HUD.EXT.QUEST.Aliased.Scene_Questopedia.set(
+  'onQuestopediaListSelection',
   Scene_Questopedia.prototype.onQuestopediaListSelection);
 Scene_Questopedia.prototype.onQuestopediaListSelection = function()
 {
@@ -402,7 +404,8 @@ Scene_Questopedia.prototype.onQuestopediaListSelection = function()
 /**
  * A window containing the HUD data for the {@link QuestManager}'s tracked quests.
  */
-class Window_QuestFrame extends Window_Base
+class Window_QuestFrame
+  extends Window_Base
 {
   /**
    * @constructor
@@ -512,8 +515,10 @@ class Window_QuestFrame extends Window_Base
   handlePlayerInterference()
   {
     // if we are above 64, rapidly decrement by -15 until we get below 64.
-    if (this.contentsOpacity > 64) this.contentsOpacity -= 15;
-    // if we are below 64, increment by +1 until we get to 64.
+    if (this.contentsOpacity > 64)
+    {
+      this.contentsOpacity -= 15;
+    }// if we are below 64, increment by +1 until we get to 64.
     else if (this.contentsOpacity < 64) this.contentsOpacity += 1;
   }
 

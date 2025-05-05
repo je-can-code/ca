@@ -215,7 +215,8 @@ Scene_Menu.prototype.commandOmnipedia = function()
 /**
  * A scene containing access to all available and implemented pedia entries.
  */
-class Scene_Omnipedia extends Scene_MenuBase
+class Scene_Omnipedia
+  extends Scene_MenuBase
 {
   /**
    * Pushes this current scene onto the stack, forcing it into action.
@@ -718,7 +719,8 @@ Window_MenuCommand.prototype.canAddOmnipediaCommand = function()
 /**
  * A window displaying the list of pedias available.
  */
-class Window_OmnipediaList extends Window_Command
+class Window_OmnipediaList
+  extends Window_Command
 {
   /**
    * Constructor.
@@ -789,7 +791,8 @@ class Window_OmnipediaList extends Window_Command
 //endregion Window_OmnipediaList
 
 //region Window_OmnipediaListHeader
-class Window_OmnipediaListHeader extends Window_Base
+class Window_OmnipediaListHeader
+  extends Window_Base
 {
   /**
    * Constructor.

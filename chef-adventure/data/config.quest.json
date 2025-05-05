@@ -3021,6 +3021,207 @@
       ]
     },
     {
+      "key": "side-009",
+      "name": "The Journal of Alchemy",
+      "overview": "After rescuing the alchemist, you had a brief chat with him and discovered he apparently was under the tutelage of a legendary scientist that was fully aware of worlds beyond their own and wrote in non-Erocian, apparently. It isn't clear who this person is, but she left a full journal with the recipe to the legendary Philosopher's Stone in it, but it got snatched and scattered to the four winds by a fucking giant bird of some sort. Dutiful protagonist, your trade for fetching his multitude of journal pages is a reward of alchemic formulai.\n\nFor your convenience, this quest will guide you through finding each page, one objective at a time.",
+      "tagKeys": [],
+      "categoryKey": "side",
+      "recommendedLevel": 65,
+      "unknownHint": "Rescuing alchemists always deserves a reward...",
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "Supposedly, some giant bird up on the Negative Peaks is where it all began- lets take care of that.",
+          "logs": {
+            "inactive": "",
+            "active": "Maybe the birds only come out at certain times of day?",
+            "completed": "As predicted, but one page was with the bird...",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Find the journal page that the early morning bird is in possession of."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "If I was a bird, I'd probably fly around all over, like maybe to somewhere where there was a great Lakeside View...",
+          "logs": {
+            "inactive": "",
+            "active": "There are multiple places to view the lake, but maybe an elevated place would be nice...",
+            "completed": "Perfect guess! As expected.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Find the journal page on the Lakeside View."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": "Indiscriminate",
+          "description": "If I was a bird, I'd probably like to enjoy the heat when I'm resting. Maybe there is a good place over by the grotto...",
+          "logs": {
+            "inactive": "",
+            "active": "As with before, an elevated place would probably be good, maybe overlooking some water, too.",
+            "completed": "Perfect guess! Again.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Find the journal page on the Eastern Way of Highwater Way."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 3,
+          "type": "Indiscriminate",
+          "description": "If I was a bird, I'd probably need to eat eventually, and what better place to find prey than the Forest of Dreams?",
+          "logs": {
+            "inactive": "",
+            "active": "Continuing on with elevated places to look down upon prey, weren't there some cliffs in the forest somewhere?",
+            "completed": "Perfect guess! Maybe I was a bird in my past life.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Find the journal page in the western cliffs in the Forest of Dreams."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 4,
+          "type": "Indiscriminate",
+          "description": "If I was a bird, after eating, I'd need some toothpicks. Where do birds get toothpicks to get the faeries out of their beaks?",
+          "logs": {
+            "inactive": "",
+            "active": "Though technically ALL of the outer cliffs were elevated, there were probably some more elevated spots than others...",
+            "completed": "Perfect guess! Not gonna ask why a bird needs to pick faerie guts out of its beak though.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Find the journal page in the Outer Cliffs somewhere."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
       "key": "neo-9999",
       "name": "=== ANOMALIES",
       "iconIndex": 0,

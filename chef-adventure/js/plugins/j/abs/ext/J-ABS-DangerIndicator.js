@@ -294,34 +294,35 @@ Game_Actor.prototype.showDangerIndicator = function()
 Game_Battler.prototype.getPowerLevel = function()
 {
   let powerLevel = 0;
-  let counter = 2;
-  // skip HP/MP
+
   const bparams = [ 2, 3, 4, 5, 6, 7 ];
-  const xparams = [ 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 ];
-  const sparams = [ 18, 19, 20, 21, 22, 23, 24, 25 ];
-  while (counter < 28)
+  bparams.forEach(paramId =>
   {
-    if (bparams.includes(counter))
-    {
-      powerLevel += this.param(counter);
-    }
+    // add most of the base parameters 1:1 power level- skipping max HP/MP/TP.
+    powerLevel += this.param(paramId);
+  });
 
-    if (xparams.includes(counter))
-    {
-      powerLevel += this.xparam(counter - 8) * 100;
-    }
+  const xparams = [ 0, 1, 2, 3, 4, 5, 6 ];
+  xparams.forEach(paramId =>
+  {
+    //  add some of the ex-parameters 5:1 power level- skipping HRG/MRG/TRG.
+    powerLevel += (this.xparam(paramId) * 100) * 5;
+  });
 
-    if (sparams.includes(counter))
-    {
-      powerLevel += (this.sparam(counter - 18) * 100 - 100);
-    }
+  // add GRD 5:1.
+  powerLevel += (this.sparam(1) * 100) * 5;
 
-    counter++;
-  }
+  // add PDR/MDR 10:1
+  const sparams = [ 6, 7 ];
+  sparams.forEach(paramId =>
+  {
+    const invertedDamageReductionMultiplier = (this.sparam(paramId) * 100 - 100) * -1;
+    powerLevel += invertedDamageReductionMultiplier * 10;
+  });
 
   if (Number.isNaN(powerLevel))
   {
-    console.warn('what happened');
+    console.warn('what happened to the power level?');
   }
 
   powerLevel += (this.level ** 2);
@@ -373,7 +374,8 @@ Game_Battler.prototype.getDangerIndicatorIcon = function()
 Game_Enemy.prototype.showDangerIndicator = function()
 {
   // check if any of the things have this tag on it.
-  const hasNoIndicatorTag = RPGManager.checkForBooleanFromNoteByRegex(this.enemy(),
+  const hasNoIndicatorTag = RPGManager.checkForBooleanFromNoteByRegex(
+    this.enemy(),
     J.ABS.EXT.DANGER.RegExp.NoIndicator);
 
   // check if we found the tag.
@@ -616,7 +618,10 @@ Sprite_Character.prototype.canUpdateDangerIndicator = function()
 
   // if we aren't allowed to show the indicator, then it shouldn't update.
   if (!this._character.getJabsBattler()
-    .showDangerIndicator()) return false;
+    .showDangerIndicator())
+  {
+    return false;
+  }
 
   // we should update!
   return true;
@@ -652,7 +657,8 @@ Sprite_Character.prototype.hideDangerIndicator = function()
 /**
  * Extends `refreshAllCharacterSprites()` to also refresh danger indicators.
  */
-J.ABS.EXT.DANGER.Aliased.Spriteset_Map.set('refreshAllCharacterSprites',
+J.ABS.EXT.DANGER.Aliased.Spriteset_Map.set(
+  'refreshAllCharacterSprites',
   Spriteset_Map.prototype.refreshAllCharacterSprites);
 Spriteset_Map.prototype.refreshAllCharacterSprites = function()
 {

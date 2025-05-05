@@ -47,7 +47,9 @@ J.CMS_K.Metadata.Name = `J-CMS-Skill`;
 J.CMS_K.Metadata.Version = '1.0.0';
 
 J.CMS_K.Aliased = {
-  Scene_Skill: {}, Window_SkillList: {}, Window_EquipSlot: {},
+  Scene_Skill: {},
+  Window_SkillList: {},
+  Window_EquipSlot: {},
 };
 //endregion Introduction
 
@@ -804,16 +806,16 @@ Window_SkillList.prototype.includes = function(skill)
 {
   // if there is no skill, then it shouldn't be included.
   if (!skill) return false;
-  
+
   // check if the skill matches the selected type.
   const matchesSkillTypeId = skill.stypeId === this._stypeId;
-  
+
   // if there is no actor, then we only factor in the skill itself.
   if (!this._actor) return matchesSkillTypeId;
-  
+
   // check if the actor's equipped weapon matches the skill type.
   const matchesWeaponTypeId = this._actor.isSkillWtypeOk(skill);
-  
+
   // return whether or not both skill and weapon types match.
   return (matchesSkillTypeId && matchesWeaponTypeId);
 };
@@ -837,7 +839,8 @@ Window_SkillType.prototype.makeCommandList = function()
   if (!currentActor) return;
 
   /** @type {number[]} */
-  const skillTypeIds = currentActor.addedSkillTypes().filter((x, i, self) => self.indexOf(x) === i);
+  const skillTypeIds = currentActor.addedSkillTypes()
+    .filter((x, i, self) => self.indexOf(x) === i);
 
   skillTypeIds.forEach(skillTypeId =>
   {

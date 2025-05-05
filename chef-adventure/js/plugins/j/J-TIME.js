@@ -2079,8 +2079,14 @@ class Time_Snapshot
   isAfter(snapshot)
   {
     // NOTE: for using Date objects, the months value is the index, but we use it as the literal month value.
-    const thisDate = new Date(this.years, this.months-1, this.days, this.hours, this.minutes, this.seconds);
-    const targetDate = new Date(snapshot.years, snapshot.months-1, snapshot.days, snapshot.hours, snapshot.minutes, snapshot.seconds);
+    const thisDate = new Date(this.years, this.months - 1, this.days, this.hours, this.minutes, this.seconds);
+    const targetDate = new Date(
+      snapshot.years,
+      snapshot.months - 1,
+      snapshot.days,
+      snapshot.hours,
+      snapshot.minutes,
+      snapshot.seconds);
 
     return thisDate > targetDate;
   }
@@ -2093,8 +2099,14 @@ class Time_Snapshot
   isBefore(snapshot)
   {
     // NOTE: for using Date objects, the months value is the index, but we use it as the literal month value.
-    const thisDate = new Date(this.years, this.months-1, this.days, this.hours, this.minutes, this.seconds);
-    const targetDate = new Date(snapshot.years, snapshot.months-1, snapshot.days, snapshot.hours, snapshot.minutes, snapshot.seconds);
+    const thisDate = new Date(this.years, this.months - 1, this.days, this.hours, this.minutes, this.seconds);
+    const targetDate = new Date(
+      snapshot.years,
+      snapshot.months - 1,
+      snapshot.days,
+      snapshot.hours,
+      snapshot.minutes,
+      snapshot.seconds);
 
     return thisDate < targetDate;
   }
@@ -2853,7 +2865,7 @@ class TimeMapper
   {
     const [ , startHourRange, endHourRange ] = regex.exec(comment);
     const startHourRangeTimeRange = [ parseInt(startHourRange), 0 ];
-    const endHourRangeTimeRange = [ parseInt(endHourRange), 0];
+    const endHourRangeTimeRange = [ parseInt(endHourRange), 0 ];
     const timeConditional = new TimeConditional();
     timeConditional.startRange = startHourRangeTimeRange;
     timeConditional.endRange = endHourRangeTimeRange;
@@ -2918,6 +2930,7 @@ class TimeMapper
     return timeConditional;
   }
 }
+
 //endregion TimeMapper
 
 //region Scene_Base
@@ -3275,7 +3288,11 @@ Window_Base.prototype.translateCurrentTimeTextCode = function(text)
     const currentTime = $gameTime.currentTime();
 
     // extract the display for time.
-    const { hours, minutes, seconds } = currentTime;
+    const {
+      hours,
+      minutes,
+      seconds
+    } = currentTime;
 
     // return the constructed replacement string.
     return `\\I[${currentTime.timeOfDayIcon}]\\C[1]${hours}:${minutes}:${seconds}\\C[0]`;
@@ -3287,7 +3304,8 @@ Window_Base.prototype.translateCurrentTimeTextCode = function(text)
 /**
  * A window class for displaying the time.
  */
-class Window_Time extends Window_Base
+class Window_Time
+  extends Window_Base
 {
   /**
    * @constructor

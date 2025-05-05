@@ -158,14 +158,19 @@ class CraftingCategory
 class CraftingComponent
 {
   static Types = {
-    Item: 'i', Weapon: 'w', Armor: 'a', Gold: 'g', SDP: 's',
+    Item: 'i',
+    Weapon: 'w',
+    Armor: 'a',
+    Gold: 'g',
+    SDP: 's',
   }
 
   static Typed = {
     Gold: () => CraftingComponent.builder
       .id(0)
       .type(CraftingComponent.Types.Gold)
-      .build(), SDP: () => CraftingComponent.builder
+      .build(),
+    SDP: () => CraftingComponent.builder
       .id(0)
       .type(CraftingComponent.Types.SDP)
       .build(),
@@ -423,8 +428,11 @@ class CraftingComponent
     if (J.JAFTING.EXT.CREATE.Metadata.usingSdp())
     {
       // its SDP, so use the leader's points.
-      if (this.isSdp()) return $gameParty.leader()
-        .getSdpPoints();
+      if (this.isSdp())
+      {
+        return $gameParty.leader()
+          .getSdpPoints();
+      }
     }
 
     console.warn('an unsupported component type was presented for quantity.', this);
@@ -779,7 +787,8 @@ class CraftingRecipe
 
   //endregion
 
-  constructor(name,
+  constructor(
+    name,
     key,
     categoryKeys,
     iconIndex,
@@ -1290,7 +1299,8 @@ RecipeTracking.prototype.craftingProficiency = function()
  * Such data includes things like recipes, categories, and connectivity
  * with the SDP system.
  */
-class J_CraftingCreatePluginMetadata extends PluginMetadata
+class J_CraftingCreatePluginMetadata
+  extends PluginMetadata
 {
   /**
    * The path where the config for panels is located.
@@ -1329,7 +1339,11 @@ class J_CraftingCreatePluginMetadata extends PluginMetadata
     // a mapping function for classifying the components of the recipe.
     const componentMapper = mappableComponent =>
     {
-      const { count, id, type } = mappableComponent;
+      const {
+        count,
+        id,
+        type
+      } = mappableComponent;
       const newComponent = new CraftingComponent(count, id, type);
       return newComponent;
     };
@@ -1343,7 +1357,8 @@ class J_CraftingCreatePluginMetadata extends PluginMetadata
       const parsedOutputs = mappableRecipe.outputs.map(componentMapper, this);
 
       // create the recipe.
-      const newJaftingRecipe = new CraftingRecipe(mappableRecipe.name,
+      const newJaftingRecipe = new CraftingRecipe(
+        mappableRecipe.name,
         mappableRecipe.key,
         mappableRecipe.categoryKeys,
         mappableRecipe.iconIndex,
@@ -1373,7 +1388,13 @@ class J_CraftingCreatePluginMetadata extends PluginMetadata
     // a maping function for classify the categories of the configuration.
     const categoryMapper = mappableCategory =>
     {
-      const { name, key, iconIndex, description, unlockedByDefault } = mappableCategory;
+      const {
+        name,
+        key,
+        iconIndex,
+        description,
+        unlockedByDefault
+      } = mappableCategory;
       const newCategory = new CraftingCategory(name, key, iconIndex, description, unlockedByDefault);
       return newCategory
     };
@@ -2252,7 +2273,8 @@ Scene_Jafting.prototype.jaftingCreationSelected = function()
 //endregion Scene_Jafting
 
 //region Scene_JaftingCreate
-class Scene_JaftingCreate extends Scene_MenuBase
+class Scene_JaftingCreate
+  extends Scene_MenuBase
 {
   /**
    * Pushes this current scene onto the stack, forcing it into action.
@@ -2812,7 +2834,11 @@ class Scene_JaftingCreate extends Scene_MenuBase
     // shorthand the currently-selected recipe.
     /** @type {CraftingRecipe} */
     const currentRecipe = recipeListWindow.currentExt();
-    const { ingredients, tools, outputs } = currentRecipe;
+    const {
+      ingredients,
+      tools,
+      outputs
+    } = currentRecipe;
 
     // set the help text to the recipe's description, which is the help text.
     this.getCreationDescriptionWindow()
@@ -3174,7 +3200,8 @@ class Scene_JaftingCreate extends Scene_MenuBase
 /**
  * A window containing the list of all crafting categories.
  */
-class Window_CategoryList extends Window_Command
+class Window_CategoryList
+  extends Window_Command
 {
   /**
    * Constructor.
@@ -3249,7 +3276,8 @@ class Window_CategoryList extends Window_Command
 //endregion Window_CategoryList
 
 //region Window_CreationDescription
-class Window_CreationDescription extends Window_Help
+class Window_CreationDescription
+  extends Window_Help
 {
   constructor(rect)
   {
@@ -3295,7 +3323,8 @@ Window_JaftingList.prototype.buildCreationCommand = function()
 //endregion Window_JaftingList
 
 //region Window_RecipeDetails
-class Window_RecipeDetails extends Window_Base
+class Window_RecipeDetails
+  extends Window_Base
 {
   /**
    * The currently selected recipe being detailed.
@@ -3904,7 +3933,8 @@ class Window_RecipeDetails extends Window_Base
 //endregion Window_RecipeDetails
 
 //region Window_IngredientList
-class Window_RecipeIngredientList extends Window_Command
+class Window_RecipeIngredientList
+  extends Window_Command
 {
   /**
    * Constructor.
@@ -4040,7 +4070,8 @@ class Window_RecipeIngredientList extends Window_Command
 /**
  * A window containing the list of all crafting recipes.
  */
-class Window_RecipeList extends Window_Command
+class Window_RecipeList
+  extends Window_Command
 {
   /**
    * The currently selected category on the category list window.
@@ -4160,7 +4191,8 @@ class Window_RecipeList extends Window_Command
 //endregion Window_RecipeList
 
 //region Window_RecipeOutputList
-class Window_RecipeOutputList extends Window_Command
+class Window_RecipeOutputList
+  extends Window_Command
 {
   /**
    * True if the text of this list should be masked, false otherwise.
@@ -4297,7 +4329,8 @@ class Window_RecipeOutputList extends Window_Command
 //endregion Window_RecipeOutputList
 
 //region Window_RecipeToolList
-class Window_RecipeToolList extends Window_Command
+class Window_RecipeToolList
+  extends Window_Command
 {
   /**
    * Constructor.

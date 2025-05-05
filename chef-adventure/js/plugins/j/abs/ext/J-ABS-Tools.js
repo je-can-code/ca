@@ -407,7 +407,10 @@ JABS_Battler.prototype.gapCloseToTarget = function(action, target)
   this.setGapCloseDestination([ target.getX(), target.getY() ]);
 
   // extract the gap close details from the skill.
-  let { jabsGapCloseMode, jabsGapClosePosition } = action.getBaseSkill();
+  let {
+    jabsGapCloseMode,
+    jabsGapClosePosition
+  } = action.getBaseSkill();
 
   // if the position is not identified, then default to "same".
   jabsGapClosePosition ??= J.ABS.EXT.TOOLS.GapClosePositions.Same;

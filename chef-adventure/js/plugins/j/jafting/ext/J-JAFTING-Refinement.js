@@ -124,7 +124,8 @@ Object.defineProperty(JAFTING_Trait.prototype, "nameAndValue", {
   get()
   {
     return `${this.name} ${this.value}`;
-  }, configurable: true,
+  },
+  configurable: true,
 });
 
 /**
@@ -203,7 +204,8 @@ Object.defineProperty(JAFTING_Trait.prototype, "name", {
       default:
         return "All traits were implemented,";
     }
-  }, configurable: true,
+  },
+  configurable: true,
 });
 
 /**
@@ -301,7 +303,8 @@ Object.defineProperty(JAFTING_Trait.prototype, "value", {
       default:
         return "is this a custom trait?";
     }
-  }, configurable: true,
+  },
+  configurable: true,
 });
 
 /**
@@ -542,7 +545,8 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
  * Plugin metadata for the refinement JAFTING plugin.<br>
  * Because this plugin has little to be configured, it is pretty light.
  */
-class J_CraftingRefinePluginMetadata extends PluginMetadata
+class J_CraftingRefinePluginMetadata
+  extends PluginMetadata
 {
   /**
    * Constructor.
@@ -949,7 +953,8 @@ class JaftingManager
    * A collection of categories of equipment that are refinable.
    */
   static RefinementTypes = {
-    Armor: "armor", Weapon: "weapon",
+    Armor: "armor",
+    Weapon: "weapon",
   }
 
   /**
@@ -1836,7 +1841,8 @@ Scene_Jafting.prototype.jaftingRefinementSelected = function()
 //endregion Scene_Jafting
 
 //region Scene_JaftingRefine
-class Scene_JaftingRefine extends Scene_MenuBase
+class Scene_JaftingRefine
+  extends Scene_MenuBase
 {
   /**
    * Pushes this current scene onto the stack, forcing it into action.
@@ -2647,7 +2653,8 @@ Window_JaftingList.prototype.buildRefinementCommand = function()
 /**
  * A window that shows a list of all equipment.
  */
-class Window_RefinableList extends Window_Command
+class Window_RefinableList
+  extends Window_Command
 {
   /**
    * @constructor
@@ -2874,7 +2881,10 @@ class Window_RefinableList extends Window_Command
         iconIndex = 91;
       }
 
-      const extData = { data: equip, error: errorText };
+      const extData = {
+        data: equip,
+        error: errorText
+      };
 
       const command = new WindowCommandBuilder(equip.name)
         .setSymbol('refine-object')
@@ -2899,7 +2909,8 @@ class Window_RefinableList extends Window_Command
  * A window that gives the player a chance to confirm or cancel their
  * refinement before executing.
  */
-class Window_RefinementConfirmation extends Window_Command
+class Window_RefinementConfirmation
+  extends Window_Command
 {
   /**
    * @constructor
@@ -2924,7 +2935,8 @@ class Window_RefinementConfirmation extends Window_Command
 //endregion Window_JaftingRefinementConfirmation
 
 //region Window_RefinementDescription
-class Window_RefinementDescription extends Window_Help
+class Window_RefinementDescription
+  extends Window_Help
 {
   constructor(rect)
   {
@@ -2938,7 +2950,8 @@ class Window_RefinementDescription extends Window_Help
 /**
  * The window containing the chosen equips for refinement and also the projected results.
  */
-class Window_RefinementDetails extends Window_Base
+class Window_RefinementDetails
+  extends Window_Base
 {
   /**
    * @constructor

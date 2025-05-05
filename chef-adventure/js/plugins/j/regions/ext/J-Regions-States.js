@@ -155,7 +155,8 @@ class RegionStateData
 //endregion annotations
 
 //region plugin metadata
-class J_RegionStatesPluginMetadata extends PluginMetadata
+class J_RegionStatesPluginMetadata
+  extends PluginMetadata
 {
   /**
    * Constructor.
@@ -351,7 +352,11 @@ Game_Character.prototype.applyRegionStates = function()
   regionStateDatas.forEach(regionStateData =>
   {
     // deconstruct the region state data.
-    const { stateId, chance, animationId } = regionStateData;
+    const {
+      stateId,
+      chance,
+      animationId
+    } = regionStateData;
 
     // get the calculated rate for the state being applied.
     const calculatedChance = battler.stateRate(stateId) * chance;
@@ -528,7 +533,8 @@ Game_Map.prototype.refreshRegionStates = function()
   if (!this.canRefreshRegionEffects()) return;
 
   // grab the region data.
-  const regionStatesData = RPGManager.getArraysFromNotesByRegex({ note: this.note() },
+  const regionStatesData = RPGManager.getArraysFromNotesByRegex(
+    { note: this.note() },
     J.REGIONS.EXT.STATES.RegExp.RegionState,
     true);
 

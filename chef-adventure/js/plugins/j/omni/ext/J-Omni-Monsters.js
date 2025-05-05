@@ -536,7 +536,10 @@ Game_Enemy.prototype.observeDrop = function(drop)
   const observations = this.getMonsterPediaObservations();
 
   // extract the drop data.
-  const { kind: dropType, id: dropId } = drop;
+  const {
+    kind: dropType,
+    id: dropId
+  } = drop;
 
   // don't process the drop if its already known.
   if (observations.isDropKnown(dropType, dropId)) return;
@@ -826,7 +829,8 @@ if (J.HUD && J.HUD.EXT.TARGET)
 /**
  * A scene for interacting with the Monsterpedia.
  */
-class Scene_Monsterpedia extends Scene_MenuBase
+class Scene_Monsterpedia
+  extends Scene_MenuBase
 {
   /**
    * Constructor.
@@ -1288,7 +1292,8 @@ Scene_Omnipedia.prototype.monsterpediaSelected = function()
 //endregion root actions
 //endregion Scene_Omnipedia
 
-class Window_MonsterpediaDetail extends Window_Base
+class Window_MonsterpediaDetail
+  extends Window_Base
 {
   //region properties
   /**
@@ -1777,7 +1782,10 @@ class Window_MonsterpediaDetail extends Window_Base
     this.toggleBold(true);
 
     // grab the id out of the current observations.
-    const { id, knowsName } = this.getObservations();
+    const {
+      id,
+      knowsName
+    } = this.getObservations();
 
     // pull the enemy's database data out.
     const databaseEnemy = $dataEnemies.at(id);
@@ -1805,7 +1813,10 @@ class Window_MonsterpediaDetail extends Window_Base
   drawEnemySprite(x, y)
   {
     // grab the id out of the current observations.
-    const { id, numberDefeated } = this.getObservations();
+    const {
+      id,
+      numberDefeated
+    } = this.getObservations();
 
     // don't render the sprite if we have never defeated it.
     if (numberDefeated < 1) return;
@@ -1868,7 +1879,10 @@ class Window_MonsterpediaDetail extends Window_Base
     this.modFontSize(-4);
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = this.getObservations();
+    const {
+      id,
+      knowsParameters
+    } = this.getObservations();
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -1897,13 +1911,20 @@ class Window_MonsterpediaDetail extends Window_Base
     this.modFontSize(-4);
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = this.getObservations();
+    const {
+      id,
+      knowsParameters
+    } = this.getObservations();
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
 
     // extract the parameters to draw from this enemy.
-    const { mhp, mmp, mtp, } = gameEnemy;
+    const {
+      mhp,
+      mmp,
+      mtp,
+    } = gameEnemy;
 
     const maxRemover = parameterName =>
     {
@@ -1944,14 +1965,28 @@ class Window_MonsterpediaDetail extends Window_Base
     this.modFontSize(-4);
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = this.getObservations();
+    const {
+      id,
+      knowsParameters
+    } = this.getObservations();
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
 
     // extract the parameters to draw from this enemy.
     const {
-      atk, def, pdr, mat, mdf, mdr, agi, hit, cnt, luk, cri, cev,
+      atk,
+      def,
+      pdr,
+      mat,
+      mdf,
+      mdr,
+      agi,
+      hit,
+      cnt,
+      luk,
+      cri,
+      cev,
     } = gameEnemy;
 
     // the modifier for where the left column begins.
@@ -1964,7 +1999,8 @@ class Window_MonsterpediaDetail extends Window_Base
     // draw the endurance parameter.
     const defXPlus = leftColumnX + 8;
     const defYPlus = lh * 1;
-    this.drawEnemyParameter(x + defXPlus,
+    this.drawEnemyParameter(
+      x + defXPlus,
       y + defYPlus,
       IconManager.param(3),
       TextManager.param(3),
@@ -1976,7 +2012,8 @@ class Window_MonsterpediaDetail extends Window_Base
     const pdrXPlus = leftColumnX + 8;
     const pdrYPlus = lh * 2;
     const pdrValue = (pdr * 100) - 100;
-    this.drawEnemyParameter(x + pdrXPlus,
+    this.drawEnemyParameter(
+      x + pdrXPlus,
       y + pdrYPlus,
       IconManager.sparam(6),
       TextManager.sparam(6),
@@ -1987,7 +2024,8 @@ class Window_MonsterpediaDetail extends Window_Base
     // draw the force parameter.
     const matXPlus = leftColumnX;
     const matYPlus = lh * 3;
-    this.drawEnemyParameter(x + matXPlus,
+    this.drawEnemyParameter(
+      x + matXPlus,
       y + matYPlus,
       IconManager.param(4),
       TextManager.param(4),
@@ -1998,7 +2036,8 @@ class Window_MonsterpediaDetail extends Window_Base
     // draw the resist parameter.
     const mdfXPlus = leftColumnX + 8;
     const mdfYPlus = lh * 4;
-    this.drawEnemyParameter(x + mdfXPlus,
+    this.drawEnemyParameter(
+      x + mdfXPlus,
       y + mdfYPlus,
       IconManager.param(5),
       TextManager.param(5),
@@ -2010,7 +2049,8 @@ class Window_MonsterpediaDetail extends Window_Base
     const mdrXPlus = leftColumnX + 8;
     const mdrYPlus = lh * 5;
     const mdrValue = (mdr * 100) - 100;
-    this.drawEnemyParameter(x + mdrXPlus,
+    this.drawEnemyParameter(
+      x + mdrXPlus,
       y + mdrYPlus,
       IconManager.sparam(7),
       TextManager.sparam(7),
@@ -2021,7 +2061,8 @@ class Window_MonsterpediaDetail extends Window_Base
     // draw the speed parameter.
     const agiXPlus = leftColumnX;
     const agiYPlus = lh * 6;
-    this.drawEnemyParameter(x + agiXPlus,
+    this.drawEnemyParameter(
+      x + agiXPlus,
       y + agiYPlus,
       IconManager.param(6),
       TextManager.param(6),
@@ -2033,7 +2074,8 @@ class Window_MonsterpediaDetail extends Window_Base
     const hitXPlus = leftColumnX + 8;
     const hitYPlus = lh * 7;
     const hitValue = (hit * 100);
-    this.drawEnemyParameter(x + hitXPlus,
+    this.drawEnemyParameter(
+      x + hitXPlus,
       y + hitYPlus,
       IconManager.xparam(0),
       TextManager.xparam(0),
@@ -2045,7 +2087,8 @@ class Window_MonsterpediaDetail extends Window_Base
     const cntXPlus = leftColumnX + 8;
     const cntYPlus = lh * 8;
     const cntValue = (cnt * 100);
-    this.drawEnemyParameter(x + cntXPlus,
+    this.drawEnemyParameter(
+      x + cntXPlus,
       y + cntYPlus,
       IconManager.xparam(6),
       TextManager.xparam(6),
@@ -2056,7 +2099,8 @@ class Window_MonsterpediaDetail extends Window_Base
     // draw the b-param parameter.
     const lukXPlus = leftColumnX;
     const lukYPlus = lh * 9;
-    this.drawEnemyParameter(x + lukXPlus,
+    this.drawEnemyParameter(
+      x + lukXPlus,
       y + lukYPlus,
       IconManager.param(7),
       TextManager.param(7),
@@ -2068,7 +2112,8 @@ class Window_MonsterpediaDetail extends Window_Base
     const criXPlus = leftColumnX + 8;
     const criYPlus = lh * 10;
     const criValue = (cri * 100);
-    this.drawEnemyParameter(x + criXPlus,
+    this.drawEnemyParameter(
+      x + criXPlus,
       y + criYPlus,
       IconManager.xparam(2),
       TextManager.xparam(2),
@@ -2080,7 +2125,8 @@ class Window_MonsterpediaDetail extends Window_Base
     const cevXPlus = leftColumnX + 8;
     const cevYPlus = lh * 11;
     const cevValue = (cev * 100);
-    this.drawEnemyParameter(x + cevXPlus,
+    this.drawEnemyParameter(
+      x + cevXPlus,
       y + cevYPlus,
       IconManager.xparam(3),
       TextManager.xparam(3),
@@ -2232,7 +2278,10 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = observations;
+    const {
+      id,
+      knowsParameters
+    } = observations;
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -2275,7 +2324,10 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = observations;
+    const {
+      id,
+      knowsParameters
+    } = observations;
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -2314,7 +2366,10 @@ class Window_MonsterpediaDetail extends Window_Base
     }
 
     // extract the item data associated with the panel.
-    const { name, iconIndex } = $dataItems.at(sdpItemId);
+    const {
+      name,
+      iconIndex
+    } = $dataItems.at(sdpItemId);
 
     // mask the name if applicable.
     const panelName = knowsParameters
@@ -2345,7 +2400,10 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id, numberDefeated } = observations;
+    const {
+      id,
+      numberDefeated
+    } = observations;
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -2384,7 +2442,9 @@ class Window_MonsterpediaDetail extends Window_Base
 
       // extract the data out of the drop with more accurate naming.
       const {
-        dataId: dropId, denominator: dropChance, kind: dropType
+        dataId: dropId,
+        denominator: dropChance,
+        kind: dropType
       } = drop;
 
       // determine if we know this drop.
@@ -2487,7 +2547,10 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id, knowsDescription } = observations;
+    const {
+      id,
+      knowsDescription
+    } = observations;
 
     // grab a reference to the enemy for database analysis.
     const { monsterpediaDescription } = $dataEnemies.at(id);
@@ -2603,7 +2666,8 @@ class Window_MonsterpediaDetail extends Window_Base
 /**
  * A window containing the list of all enemies perceived for the monsterpedia.
  */
-class Window_MonsterpediaList extends Window_Command
+class Window_MonsterpediaList
+  extends Window_Command
 {
   /**
    * Constructor.
@@ -2685,7 +2749,10 @@ class Window_MonsterpediaList extends Window_Command
   buildCommand(enemy)
   {
     // deconstruct data points out for building the list.
-    const { id, name } = enemy;
+    const {
+      id,
+      name
+    } = enemy;
 
     // grab the observations associated with this enemy id.
     const observations = $gameParty.getOrCreateMonsterpediaObservationsById(id);

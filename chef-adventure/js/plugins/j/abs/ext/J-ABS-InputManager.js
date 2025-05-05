@@ -79,7 +79,9 @@ J.ABS.EXT.INPUT.Metadata = {
  * A collection of all aliased methods for this plugin.
  */
 J.ABS.EXT.INPUT.Aliased = {
-  DataManager: new Map(), JABS_Engine: new Map(), JABS_Battler: new Map(),
+  DataManager: new Map(),
+  JABS_Engine: new Map(),
+  JABS_Battler: new Map(),
 };
 //endregion metadata
 

@@ -1079,7 +1079,8 @@ class DifficultyMetadata
 /* eslint-enable */
 
 //region plugin metadata
-class J_DiffPluginMetadata extends PluginMetadata
+class J_DiffPluginMetadata
+  extends PluginMetadata
 {
   /**
    * The path where the config for panels is located.
@@ -1128,7 +1129,17 @@ class J_DiffPluginMetadata extends PluginMetadata
     {
       // extract the data points from the blob.
       const {
-        key, name, description, iconIndex, cost, actorEffects, enemyEffects, rewards, enabled, unlocked, hidden
+        key,
+        name,
+        description,
+        iconIndex,
+        cost,
+        actorEffects,
+        enemyEffects,
+        rewards,
+        enabled,
+        unlocked,
+        hidden
       } = parsedDifficultyBlob;
 
       // an iterator function for updating all param collections for these battler effects.
@@ -1141,7 +1152,12 @@ class J_DiffPluginMetadata extends PluginMetadata
         const newCParams = [];
 
         // extract all the raw parameters.
-        const { bparams, xparams, sparams, cparams } = battlerEffects;
+        const {
+          bparams,
+          xparams,
+          sparams,
+          cparams
+        } = battlerEffects;
 
         // update the bparams for the effects.
         bparams.forEach((paramRate, paramId) => newBParams[paramId] = paramRate);
@@ -1317,7 +1333,11 @@ J.DIFFICULTY.PluginParameters = PluginManager.parameters(J.DIFFICULTY.Metadata.n
 J.DIFFICULTY.Aliased = {
   DataManager: new Map(),
 
-  Game_Actor: new Map(), Game_Enemy: new Map(), Game_Map: new Map(), Game_System: new Map(), Game_Temp: new Map(),
+  Game_Actor: new Map(),
+  Game_Enemy: new Map(),
+  Game_Map: new Map(),
+  Game_System: new Map(),
+  Game_Temp: new Map(),
 
   Scene_Map: new Map(),
 };
@@ -2227,7 +2247,10 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   const enabledEnemyEffects = new DifficultyBattlerEffects();
 
   // destructure the direct values out.
-  let { cost, rewards } = DifficultyLayer.fromLayer(J_DiffPluginMetadata.defaultLayer());
+  let {
+    cost,
+    rewards
+  } = DifficultyLayer.fromLayer(J_DiffPluginMetadata.defaultLayer());
 
   // iterate over each difficulty layer and apply it multiplicatively to the running amounts.
   enabledDifficulties.forEach(layer =>
@@ -2236,7 +2259,10 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
     cost += layer.cost;
 
     // extract the effects data.
-    const { actorEffects, enemyEffects } = layer;
+    const {
+      actorEffects,
+      enemyEffects
+    } = layer;
 
     // iterate over each of the b-params.
     actorEffects.bparams.forEach((bparam, bIndex) =>
@@ -2330,7 +2356,11 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
   }, this);
 
   // deconstruct the static descriptors of the applied difficulty layer.
-  const { appliedKey, appliedName, appliedDescription } = DifficultyLayer;
+  const {
+    appliedKey,
+    appliedName,
+    appliedDescription
+  } = DifficultyLayer;
 
   // build the new applied difficulty layer.
   const newDifficulty = new DifficultyBuilder(appliedName, appliedKey)
@@ -2350,7 +2380,8 @@ Game_Temp.prototype.buildAppliedDifficulty = function()
 /**
  * The difficulty scene for managing the current difficulty.
  */
-class Scene_Difficulty extends Scene_MenuBase
+class Scene_Difficulty
+  extends Scene_MenuBase
 {
   /**
    * Pushes this current scene onto the stack, forcing it into action.
@@ -2809,7 +2840,10 @@ class Scene_Difficulty extends Scene_MenuBase
   difficultyActorEffectsRectangle()
   {
     // grab the width and x of the effects for calculating x of the actor effects.
-    const { x: enemyEffectsX, width: effectsEffectsWidth } = this.getDifficultyEnemyEffectsWindow();
+    const {
+      x: enemyEffectsX,
+      width: effectsEffectsWidth
+    } = this.getDifficultyEnemyEffectsWindow();
 
     // grab the height from the help window.
     const { height: helpHeight } = this.getHelpWindow();
@@ -2927,7 +2961,10 @@ class Scene_Difficulty extends Scene_MenuBase
     if (!hoveredDifficulty) return;
 
     // extract the data points from the window.
-    const { actorEffects, enemyEffects } = hoveredDifficulty;
+    const {
+      actorEffects,
+      enemyEffects
+    } = hoveredDifficulty;
 
     // update the actor effects.
     this.updateActorEffectsWindow(actorEffects);
@@ -2946,7 +2983,11 @@ class Scene_Difficulty extends Scene_MenuBase
     {
       // extract the data points from the window.
       const {
-        exp, gold, sdp, drops, encounters
+        exp,
+        gold,
+        sdp,
+        drops,
+        encounters
       } = this.hoveredDifficulty().rewards;
 
       // build the bonus effects.
@@ -2972,7 +3013,11 @@ class Scene_Difficulty extends Scene_MenuBase
     {
       // extract the data points from the window.
       const {
-        exp, gold, sdp, drops, encounters
+        exp,
+        gold,
+        sdp,
+        drops,
+        encounters
       } = this.hoveredDifficulty().rewards;
 
       // build the bonus effects.
@@ -3098,7 +3143,8 @@ class Scene_Difficulty extends Scene_MenuBase
 //endregion Scene_Difficulty
 
 //region Window_DifficultyEffects
-class Window_DifficultyEffects extends Window_Command
+class Window_DifficultyEffects
+  extends Window_Command
 {
   /**
    * The difficulty being hovered over from the list.
@@ -3131,14 +3177,17 @@ class Window_DifficultyEffects extends Window_Command
    * The types of comparison that are valid when comparing parameter values.
    */
   static ComparisonTypes = {
-    SAME: "same", EASIER: "easier", HARDER: "harder",
+    SAME: "same",
+    EASIER: "easier",
+    HARDER: "harder",
   };
 
   /**
    * The types of effects that can be listed in this window.
    */
   static EffectsTypes = {
-    ACTOR: "actor", ENEMY: "enemy",
+    ACTOR: "actor",
+    ENEMY: "enemy",
   };
 
   /**
@@ -3240,7 +3289,11 @@ class Window_DifficultyEffects extends Window_Command
     if (!effectsList) return;
 
     // extract the data out of the hovered difficulty.
-    const { bparams, xparams, sparams } = effectsList;
+    const {
+      bparams,
+      xparams,
+      sparams
+    } = effectsList;
 
     // initialize our command collection for enemies.
     const battlerEffectsCommands = Array.empty;
@@ -3844,7 +3897,8 @@ class Window_DifficultyEffects extends Window_Command
 //endregion Window_DifficultyEffects
 
 //region Window_DifficultyList
-class Window_DifficultyList extends Window_Command
+class Window_DifficultyList
+  extends Window_Command
 {
   /**
    * @constructor
@@ -3882,7 +3936,8 @@ class Window_DifficultyList extends Window_Command
     const appliedDifficulty = $gameTemp.getAppliedDifficulty();
 
     // slide the applied difficulty command above all others.
-    this.prependCommand(`\\I[${appliedDifficulty.iconIndex}]${appliedDifficulty.name}`,
+    this.prependCommand(
+      `\\I[${appliedDifficulty.iconIndex}]${appliedDifficulty.name}`,
       appliedDifficulty.key,
       false,// enabled
       appliedDifficulty,
@@ -3931,7 +3986,8 @@ class Window_DifficultyList extends Window_Command
     const enabled = (difficulty.isUnlocked() && enoughLayerPoints);
 
     // render the command with the given details.
-    this.addCommand(difficultyName,           // drawEx(name)
+    this.addCommand(
+      difficultyName,           // drawEx(name)
       difficulty.key,           // symbol
       enabled,                  // enabled/disabled command
       difficulty,               // extra data
@@ -3960,7 +4016,8 @@ class Window_DifficultyList extends Window_Command
 /**
  * A window containing the difficulty points information.
  */
-class Window_DifficultyPoints extends Window_Base
+class Window_DifficultyPoints
+  extends Window_Base
 {
   /**
    * The difficulty layer that the cursor is currently hovering over.

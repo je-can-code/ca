@@ -381,7 +381,10 @@ class BossFrameManager
 
     // if the eventId is not a valid eventId, we cannot create from that.
     if (!$gameMap.event(eventId)
-      .getJabsBattler()) return false;
+      .getJabsBattler())
+    {
+      return false;
+    }
 
     // create the boss!
     return true;
@@ -577,7 +580,8 @@ Scene_Map.prototype.handleShowBossFrame = function()
 };
 
 //region Window_BossFrame
-class Window_BossFrame extends Window_TargetFrame
+class Window_BossFrame
+  extends Window_TargetFrame
 {
   constructor(rect)
   {

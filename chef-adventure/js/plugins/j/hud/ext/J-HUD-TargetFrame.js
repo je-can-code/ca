@@ -463,7 +463,10 @@ J.HUD.EXT.TARGET.Metadata = {
  * A collection of all aliased methods for this plugin.
  */
 J.HUD.EXT.TARGET.Aliased = {
-  Game_System: new Map(), Hud_Manager: new Map(), JABS_Battler: new Map(), Scene_Map: new Map(),
+  Game_System: new Map(),
+  Hud_Manager: new Map(),
+  JABS_Battler: new Map(),
+  Scene_Map: new Map(),
 };
 
 /**
@@ -647,7 +650,10 @@ JABS_Battler.prototype.canUpdateTargetFrame = function(potentialTarget)
 
   // don't re-update the last hit if they haven't changed.
   if (this.getTarget()
-    .getUuid() === potentialTarget.getUuid()) return false;
+    .getUuid() === potentialTarget.getUuid())
+  {
+    return false;
+  }
 
   // time to update target frame!
   return true;
@@ -673,7 +679,8 @@ JABS_Battler.prototype.buildFramedTarget = function(battlerLastHit)
   const targetConfiguration = battlerLastHit.buildFramedTargetConfiguration();
 
   // create the new framed target for this battler.
-  return new FramedTarget(battlerName,
+  return new FramedTarget(
+    battlerName,
     targetFrameText,
     targetFrameIcon,
     battlerLastHit.getBattler(),
@@ -691,7 +698,10 @@ JABS_Battler.prototype.canShowTargetFrame = function()
 
   // if there isn't an event or character remaining, don't bother.
   if (!this.getCharacter() || this.getCharacter()
-    .isErased()) return false;
+    .isErased())
+  {
+    return false;
+  }
 
   // check the event to see if we can show the target frame.
   const hiddenByEvent = !this.getCharacter()
@@ -750,11 +760,17 @@ JABS_Battler.prototype.canShowTargetHp = function()
 
   // if the event says don't show it, then don't show it.
   if (!this.getCharacter()
-    .showTargetHpBar()) return false;
+    .showTargetHpBar())
+  {
+    return false;
+  }
 
   // if the enemy in the database says don't show it, then don't show it.
   if (!this.getBattler()
-    .showTargetHpBar()) return false;
+    .showTargetHpBar())
+  {
+    return false;
+  }
 
   // show what the defaults are.
   return true;
@@ -774,15 +790,24 @@ JABS_Battler.prototype.canShowTargetMp = function()
 
   // if the event says don't show it, then don't show it.
   if (!this.getCharacter()
-    .showTargetMpBar()) return false;
+    .showTargetMpBar())
+  {
+    return false;
+  }
 
   // if the enemy in the database says don't show it, then don't show it.
   if (!this.getBattler()
-    .showTargetMpBar()) return false;
+    .showTargetMpBar())
+  {
+    return false;
+  }
 
   // TODO: should we hide the bar if the max value is 0?
   if (this.getBattler()
-    .param(1) === 0) return false;
+    .param(1) === 0)
+  {
+    return false;
+  }
 
   // show what the defaults are.
   return true;
@@ -802,15 +827,24 @@ JABS_Battler.prototype.canShowTargetTp = function()
 
   // if the event says don't show it, then don't show it.
   if (!this.getCharacter()
-    .showTargetTpBar()) return false;
+    .showTargetTpBar())
+  {
+    return false;
+  }
 
   // if the enemy in the database says don't show it, then don't show it.
   if (!this.getBattler()
-    .showTargetTpBar()) return false;
+    .showTargetTpBar())
+  {
+    return false;
+  }
 
   // TODO: should we hide the bar if the max value is 0?
   if (this.getBattler()
-    .maxTp() === 0 || this.isInanimate()) return false;
+    .maxTp() === 0 || this.isInanimate())
+  {
+    return false;
+  }
 
   // show what the defaults are.
   return true;
@@ -827,11 +861,17 @@ JABS_Battler.prototype.canShowTargetText = function()
 
   // if the event says don't show it, then don't show it.
   if (!this.getCharacter()
-    .showTargetText()) return false;
+    .showTargetText())
+  {
+    return false;
+  }
 
   // if the enemy in the database says don't show it, then don't show it.
   if (!this.getBattler()
-    .showTargetText()) return false;
+    .showTargetText())
+  {
+    return false;
+  }
 
   // show it.
   return true;
@@ -1404,11 +1444,14 @@ Scene_Map.prototype.handleAssignTarget = function()
  * A gauge that acts like a regular `Sprite_Gauge` that is instead based
  * on images and also "flows".
  */
-class Sprite_FlowingGauge extends Sprite
+class Sprite_FlowingGauge
+  extends Sprite
 {
   //region properties
   static Types = {
-    HP: "hp", MP: "mp", TP: "tp",
+    HP: "hp",
+    MP: "mp",
+    TP: "tp",
   };
 
   /**
@@ -2122,7 +2165,8 @@ class Sprite_FlowingGauge extends Sprite
 /**
  * A window that displays a target and their relevant information.
  */
-class Window_TargetFrame extends Window_Base
+class Window_TargetFrame
+  extends Window_Base
 {
   /**
    * The maximum possible duration in frames.

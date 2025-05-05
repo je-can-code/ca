@@ -221,207 +221,211 @@ class OmniFulfillmentData
 /**
  * A class representing the data shape of a single objective on a quest.
  */
-class OmniObjective {
+class OmniObjective
+{
+  /**
+   * The various types that a quest objective can be.
+   * <pre>
+   *     Indiscriminate: -1
+   *     Destination: 0
+   *     Fetch: 1
+   *     Slay: 2
+   *     Quest: 3
+   * </pre>
+   */
+  static Types = {
     /**
-     * The various types that a quest objective can be.
-     * <pre>
-     *     Indiscriminate: -1
-     *     Destination: 0
-     *     Fetch: 1
-     *     Slay: 2
-     *     Quest: 3
-     * </pre>
+     * An objective that is of type "indiscriminate" means that it does not have any known fulfillment criteria as far
+     * as the player is concerned, and thus must be manually handled by the developer with events and/or plugin
+     * commands.
      */
-    static Types = {
-        /**
-         * An objective that is of type "indiscriminate" means that it does not have any known fulfillment criteria as far
-         * as the player is concerned, and thus must be manually handled by the developer with events and/or plugin
-         * commands.
-         */
-        Indiscriminate: "Indiscriminate",
+    Indiscriminate: "Indiscriminate",
 
-        /**
-         * An objective that is of type "destination" means that to fulfill the objective, the player must arrive at a
-         * particular mapId, usually within a set of coordinates on a given map. These types of quests will stop being
-         * monitored once the objective has been achieved.
-         */
-        Destination: "Destination",
+    /**
+     * An objective that is of type "destination" means that to fulfill the objective, the player must arrive at a
+     * particular mapId, usually within a set of coordinates on a given map. These types of quests will stop being
+     * monitored once the objective has been achieved.
+     */
+    Destination: "Destination",
 
-        /**
-         * An objective that is of type "fetch" means that to fulfill the objective, the player must acquire one or more of
-         * a specified item/weapon/armor in their inventory at a given time. These types of quests are perpetually monitored
-         * until the quest is turned in, so the objective can potentially go in and out of a "completed" state.
-         */
-        Fetch: "Fetch",
+    /**
+     * An objective that is of type "fetch" means that to fulfill the objective, the player must acquire one or more of
+     * a specified item/weapon/armor in their inventory at a given time. These types of quests are perpetually monitored
+     * until the quest is turned in, so the objective can potentially go in and out of a "completed" state.
+     */
+    Fetch: "Fetch",
 
-        /**
-         * An objective that is of type "slay" means that to fulfill the objective, the player must defeat one or more of a
-         * specified enemy after the objective has been made active. Once the enemy has been defeated X times, the objective
-         * will be identified as completed and will cease being monitored.
-         */
-        Slay: "Slay",
+    /**
+     * An objective that is of type "slay" means that to fulfill the objective, the player must defeat one or more of a
+     * specified enemy after the objective has been made active. Once the enemy has been defeated X times, the objective
+     * will be identified as completed and will cease being monitored.
+     */
+    Slay: "Slay",
 
-        /**
-         * An objective that is of type "quest" means that to fulfill the objective, the player must fully complete another
-         * quest. Once the quest in question is completed, this objective will also be completed, however, if the target
-         * quest is failed, this objective will be considered failed as well, usually resulting in the quest this objective
-         * belonging to being considered failed.
-         */
-        Quest: "Quest",
+    /**
+     * An objective that is of type "quest" means that to fulfill the objective, the player must fully complete another
+     * quest. Once the quest in question is completed, this objective will also be completed, however, if the target
+     * quest is failed, this objective will be considered failed as well, usually resulting in the quest this objective
+     * belonging to being considered failed.
+     */
+    Quest: "Quest",
+  }
+
+  /**
+   * The various states that an objective can be in.
+   * <pre>
+   *     Inactive: 0
+   *     Active: 1
+   *     Completed: 2
+   *     Failed: 3
+   *     Missed: 4
+   * </pre>
+   * @type {{Active: number, Failed: number, Completed: number, Inactive: number, Missed: number}}
+   */
+  static States = {
+    /**
+     * When an objective is in the "inactive" state, it means it has yet to be discovered by the player so it will not
+     * show up in the questopedia.
+     */
+    Inactive: 0,
+
+    /**
+     * When an objective is in the "active" state, it means it is currently being tracked, whatever the objective is.
+     */
+    Active: 1,
+
+    /**
+     * When an objective is in the "completed" state, it means it was was successfully completed and the next objective
+     * in the quest should be or already is activated.
+     */
+    Completed: 2,
+
+    /**
+     * When an objective is in the "failed" state, it means it was activated, but the fulfillment critera were not met.
+     * Typically a failed objective means the quest is a failure.
+     */
+    Failed: 3,
+
+    /**
+     * When an objective is in the "missed" state, it means it was activated either intentionally or otherwise, and the
+     * fulfillment criteria were not met. However, missed objectives typically don't fail quests.
+     */
+    Missed: 4,
+  }
+
+  static FetchTypes = {
+    Item: 0,
+    Weapon: 1,
+    Armor: 2,
+  }
+
+  //region properties
+  /**
+   * The id of this objective. This is typically used to indicate order between objectives within a single quest.
+   * @type {number}
+   */
+  id = -1;
+
+  /**
+   * The type of objective this is, defining how the fulfillment criteria is monitored.
+   * @type {number}
+   */
+  type = OmniObjective.Types.Indiscriminate;
+
+  /**
+   * The contextual description that will be displayed in the objective itself regarding why the objective should be
+   * completed.
+   * @type {string}
+   */
+  description = String.empty;
+
+  /**
+   * The log information associated with the different states of this objective.
+   * @type {OmniObjectiveLogs}
+   */
+  logs = null;
+
+  /**
+   * The various data points that define how the objective can be fulfilled.
+   * @type {OmniFulfillmentData}
+   */
+  fulfillment = null;
+
+  /**
+   * Whether or not this objective is hidden by default.
+   * @type {boolean}
+   */
+  hiddenByDefault = true;
+
+  /**
+   * Whether or not this objective is considered "optional", in that it is not strictly required to complete the parent
+   * quest. Typically these objectives will end up "missed" if not completed rather than "failed".
+   * @type {boolean}
+   */
+  isOptional = false;
+
+  //endregion properties
+
+  /**
+   * Constructor.
+   * @param {number} id The id of this objective.
+   * @param {number} type The common classification of this objective.
+   * @param {string} description The contextural description of this objective.
+   * @param {OmniObjectiveLogs} logs The log information associated with the different states of this objective.
+   * @param {OmniFulfillmentData} fulfillment The fulfillment data for this objective.
+   * @param {boolean=} hiddenByDefault Whether or not this objective will be hidden upon activating the parent quest.
+   * @param {boolean=} isOptional Whether or not this objective is optional for its parent quest.
+   */
+  constructor(id, type, description, logs, fulfillment, hiddenByDefault = true, isOptional = false)
+  {
+    this.id = id;
+    this.type = type;
+    this.description = description;
+    this.logs = logs;
+    this.fulfillment = fulfillment;
+
+    this.hiddenByDefault = hiddenByDefault;
+    this.isOptional = isOptional;
+  }
+
+  /**
+   * The various fulfillment string templates that are re-used based on the type of template the objective is. For each
+   * of the {@link OmniObjective.Types}, the expected templateDetails shape varies as described below.
+   * <pre>
+   *   Indiscriminate: Should be a single string representing what the UI will display for this objective.
+   *   Destination: Should be three elements, a string destination, and the x,y coordinates as numbers.
+   *   Fetch: Should be the number to fetch, and the thing to fetch the number of.
+   *   Slay: Should be the number to defeat, and the enemy to defeat the number of times.
+   *   Quest: Should be the name of the quest or some other clue to fulfill the objective.
+   * </pre>
+   * @param {number} type The type that aligns with one of {@link OmniObjective.Types}.
+   * @param {string[]=} templateDetails The details to plug into the fulfillment template- varies by what type it is.
+   * @returns {string} The templated fulfillment for this objective.
+   */
+  static FulfillmentTemplate(type, ...templateDetails)
+  {
+    switch (type)
+    {
+      case OmniObjective.Types.Indiscriminate:
+        return templateDetails.at(0);
+
+      case OmniObjective.Types.Destination:
+        return `Navigate to ${templateDetails.at(0)} at [${templateDetails.at(1)}, ${templateDetails.at(2)}].`;
+
+      case OmniObjective.Types.Fetch:
+        return `Acquire \\*${templateDetails.at(0)}\\* ${templateDetails.at(1)}.`;
+
+      case OmniObjective.Types.Slay:
+        return `Defeat \\*${templateDetails.at(0)}\\* \\Enemy[${templateDetails.at(1)}].`;
+
+      case OmniObjective.Types.Quest:
+        return `Complete the other quest(s): ${templateDetails.at(0)}.`;
+
+      default:
+        return 'This objective is not defined.';
     }
 
-    /**
-     * The various states that an objective can be in.
-     * <pre>
-     *     Inactive: 0
-     *     Active: 1
-     *     Completed: 2
-     *     Failed: 3
-     *     Missed: 4
-     * </pre>
-     * @type {{Active: number, Failed: number, Completed: number, Inactive: number, Missed: number}}
-     */
-    static States = {
-        /**
-         * When an objective is in the "inactive" state, it means it has yet to be discovered by the player so it will not
-         * show up in the questopedia.
-         */
-        Inactive: 0,
-
-        /**
-         * When an objective is in the "active" state, it means it is currently being tracked, whatever the objective is.
-         */
-        Active: 1,
-
-        /**
-         * When an objective is in the "completed" state, it means it was was successfully completed and the next objective
-         * in the quest should be or already is activated.
-         */
-        Completed: 2,
-
-        /**
-         * When an objective is in the "failed" state, it means it was activated, but the fulfillment critera were not met.
-         * Typically a failed objective means the quest is a failure.
-         */
-        Failed: 3,
-
-        /**
-         * When an objective is in the "missed" state, it means it was activated either intentionally or otherwise, and the
-         * fulfillment criteria were not met. However, missed objectives typically don't fail quests.
-         */
-        Missed: 4,
-    }
-
-    static FetchTypes = {
-        Item: 0,
-        Weapon: 1,
-        Armor: 2,
-    }
-
-    //region properties
-    /**
-     * The id of this objective. This is typically used to indicate order between objectives within a single quest.
-     * @type {number}
-     */
-    id = -1;
-
-    /**
-     * The type of objective this is, defining how the fulfillment criteria is monitored.
-     * @type {number}
-     */
-    type = OmniObjective.Types.Indiscriminate;
-
-    /**
-     * The contextual description that will be displayed in the objective itself regarding why the objective should be
-     * completed.
-     * @type {string}
-     */
-    description = String.empty;
-
-    /**
-     * The log information associated with the different states of this objective.
-     * @type {OmniObjectiveLogs}
-     */
-    logs = null;
-
-    /**
-     * The various data points that define how the objective can be fulfilled.
-     * @type {OmniFulfillmentData}
-     */
-    fulfillment = null;
-
-    /**
-     * Whether or not this objective is hidden by default.
-     * @type {boolean}
-     */
-    hiddenByDefault = true;
-
-    /**
-     * Whether or not this objective is considered "optional", in that it is not strictly required to complete the parent
-     * quest. Typically these objectives will end up "missed" if not completed rather than "failed".
-     * @type {boolean}
-     */
-    isOptional = false;
-
-    //endregion properties
-
-    /**
-     * Constructor.
-     * @param {number} id The id of this objective.
-     * @param {number} type The common classification of this objective.
-     * @param {string} description The contextural description of this objective.
-     * @param {OmniObjectiveLogs} logs The log information associated with the different states of this objective.
-     * @param {OmniFulfillmentData} fulfillment The fulfillment data for this objective.
-     * @param {boolean=} hiddenByDefault Whether or not this objective will be hidden upon activating the parent quest.
-     * @param {boolean=} isOptional Whether or not this objective is optional for its parent quest.
-     */
-    constructor(id, type, description, logs, fulfillment, hiddenByDefault = true, isOptional = false) {
-        this.id = id;
-        this.type = type;
-        this.description = description;
-        this.logs = logs;
-        this.fulfillment = fulfillment;
-
-        this.hiddenByDefault = hiddenByDefault;
-        this.isOptional = isOptional;
-    }
-
-    /**
-     * The various fulfillment string templates that are re-used based on the type of template the objective is. For each
-     * of the {@link OmniObjective.Types}, the expected templateDetails shape varies as described below.
-     * <pre>
-     *   Indiscriminate: Should be a single string representing what the UI will display for this objective.
-     *   Destination: Should be three elements, a string destination, and the x,y coordinates as numbers.
-     *   Fetch: Should be the number to fetch, and the thing to fetch the number of.
-     *   Slay: Should be the number to defeat, and the enemy to defeat the number of times.
-     *   Quest: Should be the name of the quest or some other clue to fulfill the objective.
-     * </pre>
-     * @param {number} type The type that aligns with one of {@link OmniObjective.Types}.
-     * @param {string[]=} templateDetails The details to plug into the fulfillment template- varies by what type it is.
-     * @returns {string} The templated fulfillment for this objective.
-     */
-    static FulfillmentTemplate(type, ...templateDetails) {
-        switch (type) {
-            case OmniObjective.Types.Indiscriminate:
-                return templateDetails.at(0);
-
-            case OmniObjective.Types.Destination:
-                return `Navigate to ${templateDetails.at(0)} at [${templateDetails.at(1)}, ${templateDetails.at(2)}].`;
-
-            case OmniObjective.Types.Fetch:
-                return `Acquire \\*${templateDetails.at(0)}\\* ${templateDetails.at(1)}.`;
-
-            case OmniObjective.Types.Slay:
-                return `Defeat \\*${templateDetails.at(0)}\\* \\Enemy[${templateDetails.at(1)}].`;
-
-            case OmniObjective.Types.Quest:
-                return `Complete the other quest(s): ${templateDetails.at(0)}.`;
-
-            default:
-                return 'This objective is not defined.';
-        }
-
-    }
+  }
 }
 
 //endregion OmniObjective
@@ -657,7 +661,8 @@ class OmniQuestBuilder
 
   build()
   {
-    const omniquest = new OmniQuest(this.#name,
+    const omniquest = new OmniQuest(
+      this.#name,
       this.#key,
       this.#categoryKey,
       this.#tagKeys,
@@ -917,13 +922,19 @@ TrackedOmniObjective.prototype.populateFulfillmentData = function(omniFulfillmen
   {
     // if the type is indiscriminate, then it is event-controlled and not automagical.
     case OmniObjective.Types.Indiscriminate:
-      this._indiscriminateTargetData = omniFulfillmentData.indiscriminate.hint 
+      this._indiscriminateTargetData = omniFulfillmentData.indiscriminate.hint
         ?? "No indiscriminate objective instructions provided.";
       return;
 
     // if the fulfillment is of type 'destination', then fill in the data.
     case OmniObjective.Types.Destination:
-      const { mapId, x1, y1, x2, y2 } = omniFulfillmentData.destination;
+      const {
+        mapId,
+        x1,
+        y1,
+        x2,
+        y2
+      } = omniFulfillmentData.destination;
       this._targetMapId = mapId;
       const point1 = [
         x1, y1 ];
@@ -1125,7 +1136,13 @@ TrackedOmniObjective.prototype.description = function()
 TrackedOmniObjective.prototype.log = function()
 {
   // deconstruct the logs out of the metadata.
-  const { inactive, active, completed, failed, missed } = this.objectiveMetadata().logs;
+  const {
+    inactive,
+    active,
+    completed,
+    failed,
+    missed
+  } = this.objectiveMetadata().logs;
 
   switch (this.state)
   {
@@ -2128,7 +2145,7 @@ TrackedOmniQuest.prototype._processQuestCompletionQuestsCheck = function()
   {
     // check if all quests have been completed for the target objective after this quest.
     if (!objective.hasCompletedAllQuests()) return;
-    
+
     // grab the quest for reference.
     const questToProgress = QuestManager.quest(objective.questKey);
 
@@ -2424,7 +2441,8 @@ TrackedOmniQuest.prototype.handleQuestUpdateLog = function()
 //endregion annotations
 
 //region plugin metadata
-class J_QUEST_PluginMetadata extends PluginMetadata
+class J_QUEST_PluginMetadata
+  extends PluginMetadata
 {
   /**
    * The path where the config for quests is located.
@@ -2667,7 +2685,10 @@ PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "progress-quest", 
  */
 PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "finalize-quest", args =>
 {
-  const { key, state } = args;
+  const {
+    key,
+    state
+  } = args;
   const quest = QuestManager.quest(key);
   switch (state)
   {
@@ -2688,7 +2709,10 @@ PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "finalize-quest", 
  */
 PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "set-quest-tracking", args =>
 {
-  const { key, trackingState } = args;
+  const {
+    key,
+    trackingState
+  } = args;
   QuestManager.setQuestTrackingByKey(key, trackingState);
 });
 //endregion plugin commands
@@ -2991,7 +3015,10 @@ class QuestManager
 
           // validate the player is on the current objective's map.
           if ($gameMap.mapId() !== objective.destinationData()
-            .at(0)) return false;
+            .at(0))
+          {
+            return false;
+          }
 
           // this is an objective to check!
           return true;
@@ -3323,7 +3350,11 @@ Game_Event.filterCommentCommandsByEventQuestConditional = function(command)
   if (!comment) return false;
 
   // extract the types of regex we will be considering.
-  const { EventQuest, EventQuestObjective, EventQuestObjectiveForState } = J.OMNI.EXT.QUEST.RegExp;
+  const {
+    EventQuest,
+    EventQuestObjective,
+    EventQuestObjectiveForState
+  } = J.OMNI.EXT.QUEST.RegExp;
   return [ EventQuest, EventQuestObjective, EventQuestObjectiveForState, ].some(regex => regex.test(comment));
 };
 
@@ -3341,7 +3372,11 @@ Game_Event.filterCommentCommandsByChoiceQuestConditional = function(command)
   if (!comment) return false;
 
   // extract the types of regex we will be considering.
-  const { ChoiceQuest, ChoiceQuestObjective, ChoiceQuestObjectiveForState } = J.OMNI.EXT.QUEST.RegExp;
+  const {
+    ChoiceQuest,
+    ChoiceQuestObjective,
+    ChoiceQuestObjectiveForState
+  } = J.OMNI.EXT.QUEST.RegExp;
   return [ ChoiceQuest, ChoiceQuestObjective, ChoiceQuestObjectiveForState, ].some(regex => regex.test(comment));
 };
 
@@ -3377,7 +3412,8 @@ Game_Event.questConditionalMet = function(questConditional)
  * @param {number} subChoiceCommandIndex The index in the list of commands of an event that represents this branch.
  * @returns {boolean}
  */
-J.OMNI.EXT.QUEST.Aliased.Game_Interpreter.set('shouldHideChoiceBranch',
+J.OMNI.EXT.QUEST.Aliased.Game_Interpreter.set(
+  'shouldHideChoiceBranch',
   Game_Interpreter.prototype.shouldHideChoiceBranch);
 Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandIndex)
 {
@@ -3616,7 +3652,8 @@ Game_Party.prototype.populateQuestopediaTrackings = function()
  */
 Game_Party.prototype.toTrackedOmniQuest = function(omniquest)
 {
-  const objectivesMapper = omniObjective => new TrackedOmniObjective(omniquest.key,
+  const objectivesMapper = omniObjective => new TrackedOmniObjective(
+    omniquest.key,
     omniObjective.id,
     omniObjective.fulfillment,
     omniObjective.hiddenByDefault,
@@ -3660,7 +3697,7 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function()
         const objectivesToAdd = newTracking.objectives.slice(foundTracking.objectives.length);
         foundTracking.objectives.splice(foundTracking.objectives.length, 0, ...objectivesToAdd);
       }
-      
+
       foundTracking.objectives.forEach((objective, index) =>
       {
         // if the new objectives don't go as far as they previously did, don't process it.
@@ -3671,7 +3708,7 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function()
 
         // grab the new objective from the tracking for comparison.
         const newObjective = newTracking.objectives.at(index);
-        
+
         // update the old objective with the new data points.
         objective.hidden = newObjective.hidden;
         objective.optional = newObjective.optional;
@@ -4055,7 +4092,8 @@ Scene_Omnipedia.prototype.questopediaSelected = function()
 /**
  * A scene for interacting with the Questopedia.
  */
-class Scene_Questopedia extends Scene_MenuBase
+class Scene_Questopedia
+  extends Scene_MenuBase
 {
   /**
    * Constructor.
@@ -4741,7 +4779,8 @@ Window_OmnipediaList.prototype.canAddMonsterpediaCommand = function()
 };
 
 //region Window_QuestopediaCategories
-class Window_QuestopediaCategories extends Window_HorzCommand
+class Window_QuestopediaCategories
+  extends Window_HorzCommand
 {
   constructor(rect)
   {
@@ -4804,7 +4843,8 @@ class Window_QuestopediaCategories extends Window_HorzCommand
 
 //endregion Window_QuestopediaCategories
 
-class Window_QuestopediaDescription extends Window_Base
+class Window_QuestopediaDescription
+  extends Window_Base
 {
   /**
    * The current selected quest in the quest list window.
@@ -5139,7 +5179,8 @@ class Window_QuestopediaDescription extends Window_Base
 }
 
 //region Window_QuestopediaList
-class Window_QuestopediaList extends Window_Command
+class Window_QuestopediaList
+  extends Window_Command
 {
   /**
    * The category that this list is being filtered by. When an empty string, no filter is applied.
@@ -5289,7 +5330,8 @@ class Window_QuestopediaList extends Window_Command
 //endregion Window_QuestopediaList
 
 //region Window_QuestopediaObjectives
-class Window_QuestopediaObjectives extends Window_Command
+class Window_QuestopediaObjectives
+  extends Window_Command
 {
   _currentObjectives = [];
 

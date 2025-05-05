@@ -162,7 +162,8 @@ J.OTIB.Helpers.translateOTIBs = rawJson =>
     parsedBoostsBlob.forEach(rawBoostBlob =>
     {
       const parsedBoostBlob = JSON.parse(rawBoostBlob);
-      const boostParam = new OneTimeItemBoostParam(parseInt(parsedBoostBlob.parameterId),
+      const boostParam = new OneTimeItemBoostParam(
+        parseInt(parsedBoostBlob.parameterId),
         parseFloat(parsedBoostBlob.boost),
         parsedBoostBlob.isPercent === "true");
       parsedBoosts.push(boostParam);
@@ -191,7 +192,8 @@ J.OTIB.Metadata = {
  */
 J.OTIB.PluginParameters = PluginManager.parameters(J.OTIB.Metadata.Name);
 J.OTIB.Metadata = {
-  ...J.OTIB.Metadata, /**
+  ...J.OTIB.Metadata,
+  /**
    * The version of this plugin.
    */
   Version: 1.0,
@@ -207,7 +209,9 @@ J.OTIB.Metadata = {
  * The collection of all aliased classes for extending.
  */
 J.OTIB.Aliased = {
-  DataManager: {}, Game_Actor: new Map(), Game_Battler: new Map(),
+  DataManager: {},
+  Game_Actor: new Map(),
+  Game_Battler: new Map(),
 };
 //endregion Introduction
 

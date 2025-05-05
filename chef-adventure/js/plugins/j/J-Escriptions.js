@@ -97,7 +97,8 @@ J.ESCRIBE.RegExp = {
  * The collection of all aliased classes for extending.
  */
 J.ESCRIBE.Aliased = {
-  Game_Event: new Map(), Sprite_Character: new Map(),
+  Game_Event: new Map(),
+  Sprite_Character: new Map(),
 };
 //endregion Introduction
 
@@ -602,7 +603,8 @@ Sprite_Character.prototype.initMembers = function()
        * @type {number}
        */
       _proximity: -1,
-    }, /**
+    },
+    /**
      * A grouping of all properties associated with icon-based escriptions.
      */
     _iconDescribe: {
@@ -992,7 +994,10 @@ Sprite_Character.prototype.createDescribeTextSprite = function()
   this.setEscriptionTextProximity(describe.proximityTextRange());
 
   // extract the x and character name from the underlying character.
-  const { _realX, _characterName } = this.character();
+  const {
+    _realX,
+    _characterName
+  } = this.character();
 
   // build the text sprite.
   const sprite = new Sprite_BaseText()

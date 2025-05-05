@@ -53,7 +53,8 @@
  * Because this plugin offers little actual functionality, there is little that
  * can be configured.
  */
-class J_CraftingPluginMetadata extends PluginMetadata
+class J_CraftingPluginMetadata
+  extends PluginMetadata
 {
   /**
    * Constructor.
@@ -118,7 +119,8 @@ PluginManager.registerCommand(J.JAFTING.Metadata.name, "call-menu", () =>
 //endregion plugin commands
 
 //region Scene_Jafting
-class Scene_Jafting extends Scene_MenuBase
+class Scene_Jafting
+  extends Scene_MenuBase
 {
   /**
    * Pushes this current scene onto the stack, forcing it into action.
@@ -507,7 +509,8 @@ class Scene_Jafting extends Scene_MenuBase
 /**
  * A window displaying the list of jafting types available.
  */
-class Window_JaftingList extends Window_Command
+class Window_JaftingList
+  extends Window_Command
 {
   /**
    * Constructor.
@@ -571,7 +574,8 @@ class Window_JaftingList extends Window_Command
 //endregion Window_OmnipediaList
 
 //region Window_OmnipediaListHeader
-class Window_JaftingListHeader extends Window_Base
+class Window_JaftingListHeader
+  extends Window_Base
 {
   /**
    * Constructor.

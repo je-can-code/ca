@@ -105,9 +105,13 @@ J.ABS.EXT.SPEED.PluginParameters = PluginManager.parameters(J.ABS.EXT.SPEED.Meta
  * A collection of all aliased methods for this plugin.
  */
 J.ABS.EXT.SPEED.Aliased = {
-  Game_Actor: new Map(), Game_Character: new Map(), Game_Battler: new Map(), Game_Enemy: new Map(),
+  Game_Actor: new Map(),
+  Game_Character: new Map(),
+  Game_Battler: new Map(),
+  Game_Enemy: new Map(),
 
-  TextManager: new Map(), IconManager: new Map(),
+  TextManager: new Map(),
+  IconManager: new Map(),
 };
 
 /**

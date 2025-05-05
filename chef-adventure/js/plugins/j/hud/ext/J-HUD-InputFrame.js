@@ -281,7 +281,8 @@ Scene_Map.prototype.refreshHud = function()
  * A sprite that represents a skill slot.
  * This is a base class for other things that need data from a skill slot.
  */
-class Sprite_BaseSkillSlot extends Sprite_BaseText
+class Sprite_BaseSkillSlot
+  extends Sprite_BaseText
 {
   /**
    * Extend initialization of the sprite to assign a skill slot for tracking.
@@ -423,7 +424,10 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
 
     // if it is an item, then the base skill id is the only id.
     if (this.skillSlot()
-      .isItem()) return skillId;
+      .isItem())
+    {
+      return skillId;
+    }
 
     // grab the cooldown data for this skill.
     const cooldownData = this.cooldownData();
@@ -464,7 +468,8 @@ class Sprite_BaseSkillSlot extends Sprite_BaseText
  * A simple calculated gauge representing the current cooldown of an action.
  * While the skill is ready, this gauge is invisible.
  */
-class Sprite_CooldownGauge extends Sprite
+class Sprite_CooldownGauge
+  extends Sprite
 {
   constructor(cooldownData)
   {
@@ -794,7 +799,8 @@ class Sprite_CooldownGauge extends Sprite
     const [ borderedX, borderedY ] = [ x + 1, y + 1 ];
 
     // render the filled portion of the gauge onto the bitmap.
-    this.bitmap.gradientFillRect(borderedX,            // the x including borders.
+    this.bitmap.gradientFillRect(
+      borderedX,            // the x including borders.
       borderedY,            // the y including borders.
       fillW,                // the width to fill.
       fillH,                // the hieght to fill.
@@ -914,7 +920,8 @@ Sprite_CooldownTimer.prototype.fontFace = function()
 /**
  * A single sprite that owns the drawing and management of a single input key slot.
  */
-class Sprite_InputKeySlot extends Sprite
+class Sprite_InputKeySlot
+  extends Sprite
 {
   /**
    * Extend initialization of the sprite to assign a skill slot for tracking.
@@ -1040,7 +1047,10 @@ class Sprite_InputKeySlot extends Sprite
 
     // if it is an item, then the base skill id is the only id.
     if (this.skillSlot()
-      .isItem()) return skillId;
+      .isItem())
+    {
+      return skillId;
+    }
 
     // grab the cooldown data for this skill.
     const cooldownData = this.cooldownData();
@@ -1681,13 +1691,17 @@ class Sprite_InputKeySlot extends Sprite
 /**
  * A sprite that represents a skill slot's assigned skill's mp cost.
  */
-class Sprite_SkillCost extends Sprite_BaseSkillSlot
+class Sprite_SkillCost
+  extends Sprite_BaseSkillSlot
 {
   /**
    * The supported types of skill costs for this sprite.
    */
   static Types = {
-    HP: "hp", MP: "mp", TP: "tp", Item: "item"
+    HP: "hp",
+    MP: "mp",
+    TP: "tp",
+    Item: "item"
   };
 
   /**
@@ -1890,7 +1904,8 @@ class Sprite_SkillCost extends Sprite_BaseSkillSlot
 /**
  * A sprite that represents a skill slot's assigned skill's name.
  */
-class Sprite_SkillName extends Sprite_BaseSkillSlot
+class Sprite_SkillName
+  extends Sprite_BaseSkillSlot
 {
   /**
    * Extends the `update()` to also synchronize the text to
@@ -1945,7 +1960,8 @@ class Sprite_SkillName extends Sprite_BaseSkillSlot
 /**
  * A sprite that displays the icon represented by the assigned skill slot.
  */
-class Sprite_SkillSlotIcon extends Sprite_Icon
+class Sprite_SkillSlotIcon
+  extends Sprite_Icon
 {
   /**
    * Initializes this sprite with the designated icon.
@@ -2104,7 +2120,8 @@ class Sprite_SkillSlotIcon extends Sprite_Icon
 /**
  * A window displaying available skills and button inputs.
  */
-class Window_InputFrame extends Window_Frame
+class Window_InputFrame
+  extends Window_Frame
 {
   /**
    * Constructor.
@@ -2339,8 +2356,10 @@ class Window_InputFrame extends Window_Frame
     this._j._spriteCache.forEach((sprite, _) =>
     {
       // if we are above 64, rapidly decrement by -15 until we get below 64.
-      if (sprite.opacity > 64) sprite.opacity -= 15;
-      // if we are below 64, increment by +1 until we get to 64.
+      if (sprite.opacity > 64)
+      {
+        sprite.opacity -= 15;
+      }// if we are below 64, increment by +1 until we get to 64.
       else if (sprite.opacity < 64) sprite.opacity += 1;
     });
   }
@@ -2353,8 +2372,10 @@ class Window_InputFrame extends Window_Frame
     this._j._spriteCache.forEach((sprite, _) =>
     {
       // if we are below 255, rapidly increment by +15 until we get to 255.
-      if (sprite.opacity < 255) sprite.opacity += 15;
-      // if we are above 255, set to 255.
+      if (sprite.opacity < 255)
+      {
+        sprite.opacity += 15;
+      }// if we are above 255, set to 255.
       else if (sprite.opacity > 255) sprite.opacity = 255;
     });
   }

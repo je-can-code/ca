@@ -141,7 +141,9 @@ J.HUD.PluginParameters = PluginManager.parameters(J.HUD.Metadata.Name);
  * A collection of all aliased methods for this plugin.
  */
 J.HUD.Aliased = {
-  Game_System: new Map(), Scene_Map: new Map(), DataManager: new Map(),
+  Game_System: new Map(),
+  Scene_Map: new Map(),
+  DataManager: new Map(),
 };
 //endregion metadata
 
@@ -828,7 +830,8 @@ Game_System.prototype.initialize = function()
     .call(this);
   this._j ||= {};
   this._j._hud ||= {
-    _hudVisible: true, _alliesVisible: true,
+    _hudVisible: true,
+    _alliesVisible: true,
   };
 };
 
@@ -955,7 +958,8 @@ Scene_Map.prototype.refreshHud = function()
 /**
  * A base class with some common sprite-cache-management features.
  */
-class Window_Frame extends Window_Base
+class Window_Frame
+  extends Window_Base
 {
   /**
    * Constructor.

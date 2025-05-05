@@ -670,7 +670,10 @@ Game_Battler.prototype.canAddPassiveStateId = function(stateId, allowDuplicates)
 {
   // if we don't allow duplicates and already are have this stateId, then don't add it.
   if (!allowDuplicates && this.getPassiveStateIds()
-    .includes(stateId)) return false;
+    .includes(stateId))
+  {
+    return false;
+  }
 
   // TODO: check for blacklisted ids as well.
 
@@ -1264,7 +1267,10 @@ Window_MoreEquipData.prototype.addPassiveStateData = function()
   {
     // extract the data from the state.
     const state = this.actor.state(passiveStateId);
-    const { name, iconIndex } = state;
+    const {
+      name,
+      iconIndex
+    } = state;
 
     // define the name of the command.
     const commandName = `Passive: ${name}`;
