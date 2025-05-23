@@ -1878,14 +1878,14 @@
           "description": "The sin is defeated, but what of the kingdom?",
           "logs": {
             "inactive": "",
-            "active": "",
-            "completed": "",
+            "active": "The kingdom is not your problem.",
+            "completed": "The kingdom is not your problem, time to find another minion.",
             "failed": "",
             "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Head back to Raevula. (TBD)"
+              "hint": "Discuss what is next."
             },
             "destination": {
               "mapId": -1,
@@ -1902,6 +1902,285 @@
             "slay": {
               "id": 0,
               "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        }
+      ]
+    },
+    {
+      "key": "main-008",
+      "name": "Peak Performance",
+      "overview": "In an agreement with the other elementals, our fearless protagonists have decided to round up the final elemental in an effort to round out the elemental spread of the party. However, considering the fourth of the primary elementals is \\element[6], it means you'll be ascending a mountain... and where did you last see mountains? Just north of Raevula. So go to Raevula and head due north to check out the \\C[1]Negative Peaks\\C[0].",
+      "tagKeys": [
+        "ch4"
+      ],
+      "categoryKey": "main",
+      "recommendedLevel": 0,
+      "unknownHint": "",
+      "objectives": [
+        {
+          "id": 0,
+          "type": "Indiscriminate",
+          "description": "Head north of Raevula to reach the foothills of the peaks.",
+          "logs": {
+            "inactive": "",
+            "active": "Apparently snakerope is necessary for ascending to the peaks, good thing we have that!",
+            "completed": "And there was also a gate in the way, what a peculiar place for that.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Use the snakerope to reach the foothills of the peaks."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "Ascend the mountain to reach the summit!",
+          "logs": {
+            "inactive": "",
+            "active": "There is an SOS signal at the summit?",
+            "completed": "Yikes, apparently the only way forward is into those icy caves.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Begin your ascent to reach the summit."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": "Indiscriminate",
+          "description": "Navigate the icy caves to continue the ascent.",
+          "logs": {
+            "inactive": "",
+            "active": "No one said it would be easy to reach the summit.",
+            "completed": "Sliding-on-ice puzzles are fun, aren't they?",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Navigate the icy caves."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 3,
+          "type": "Indiscriminate",
+          "description": "There is no choice but to continue the ascent to the summit.",
+          "logs": {
+            "inactive": "",
+            "active": "The snowstorm really makes it tough to see, but the ascent contnues!",
+            "completed": "The SOS signal is just ahead! To rest or not to rest?",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Continue the ascent to the summit."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 4,
+          "type": "Indiscriminate",
+          "description": "SOS just ahead! Which means the summit is, too.",
+          "logs": {
+            "inactive": "",
+            "active": "Head to the summit when ready.",
+            "completed": "Definitely not predictable to fight the fourth elemental...",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Proceed to the summit when fully prepared."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": 109,
+              "amount": 1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 5,
+          "type": "Slay",
+          "description": "Defeat \\N[6]!",
+          "logs": {
+            "inactive": "",
+            "active": "Self-preservation is important! Dying means gameover!",
+            "completed": "Even when they are your eventual allies, defeating bitches is satisfying.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": ""
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": 109,
+              "amount": 1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 6,
+          "type": "Indiscriminate",
+          "description": "Discuss the situation with \\N[6].",
+          "logs": {
+            "inactive": "",
+            "active": "It is important to be able to discuss things in great detail.",
+            "completed": "It always seems there are more unanswered questions after these long discussions...",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Discuss what is next."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
             },
             "quest": {
               "keys": []
@@ -2783,7 +3062,7 @@
           "logs": {
             "inactive": "",
             "active": "The gate looks way too advanced for this world, maybe someone technologically inclined can help unlock it?",
-            "completed": "Nice work, who would've thought to do that?",
+            "completed": "Maybe with the four elementals, you can somehow get in.",
             "failed": "",
             "missed": ""
           },
@@ -2806,6 +3085,82 @@
             "slay": {
               "id": 0,
               "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "With the four elementals, see what you can learn about the castle.",
+          "logs": {
+            "inactive": "",
+            "active": "The castle is still locked, but can you unlock it?",
+            "completed": "So you just need some more keys. Easy.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Visit the misplaced castle with the four elementals."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": "Indiscriminate",
+          "description": "Unlock the main gate by using the three technodisks.",
+          "logs": {
+            "inactive": "",
+            "active": "Seems more keys are needed, so we gotta find em.",
+            "completed": "Three keys to open one door seems a bit excessive.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Gather all three technodisks to open the Frozen Fortress's front gate."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "id": -1,
+              "type": -1,
+              "amount": -1
+            },
+            "slay": {
+              "id": -1,
+              "amount": -1
             },
             "quest": {
               "keys": []
