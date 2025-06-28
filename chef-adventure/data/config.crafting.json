@@ -11398,8 +11398,8 @@
       ],
       "ingredients": [
         {
-          "id": 412,
           "type": "a",
+          "id": 411,
           "count": 1
         },
         {
@@ -11408,8 +11408,8 @@
           "count": 1
         },
         {
-          "id": 30,
           "type": "i",
+          "id": 30,
           "count": 1
         }
       ],
@@ -11417,6 +11417,174 @@
         {
           "id": 225,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-life-2",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 412,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 372,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 34,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 233,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-life-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 413,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 373,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 38,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 241,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-life-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 414,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 374,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 42,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 249,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-life-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 415,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 375,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 44,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 257,
           "count": 1
         }
       ]
@@ -11464,6 +11632,174 @@
       ]
     },
     {
+      "key": "a-gems-magi-2",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 392,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 372,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 34,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 234,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-magi-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 393,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 373,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 38,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 242,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-magi-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 394,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 374,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 42,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 250,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-magi-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "a",
+          "id": 395,
+          "count": 1
+        },
+        {
+          "type": "a",
+          "id": 375,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 44,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 258,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "a-gems-power-1",
       "iconIndex": -1,
@@ -11501,6 +11837,174 @@
         {
           "id": 227,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-power-2",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 60,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 11,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 35,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 235,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-power-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 60,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 12,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 39,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 243,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-power-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 61,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 12,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 43,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 251,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-power-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 61,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 13,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 45,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 259,
           "count": 1
         }
       ]
@@ -11548,6 +12052,174 @@
       ]
     },
     {
+      "key": "a-gems-endurance-2",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 64,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 20,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 35,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 236,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-endurance-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 64,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 21,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 39,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 244,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-endurance-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 65,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 21,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 43,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 252,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-endurance-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 65,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 22,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 45,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 260,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "a-gems-force-1",
       "iconIndex": -1,
@@ -11585,6 +12257,174 @@
         {
           "id": 229,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-force-2",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 66,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 14,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 35,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 237,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-force-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 66,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 15,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 39,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 245,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-force-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 67,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 15,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 43,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 253,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-force-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 67,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 16,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 45,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 261,
           "count": 1
         }
       ]
@@ -11632,6 +12472,174 @@
       ]
     },
     {
+      "key": "a-gems-resist-2",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 68,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 23,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 35,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 238,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-resist-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 68,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 24,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 39,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 246,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-resist-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 69,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 24,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 43,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 254,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-resist-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 69,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 25,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 45,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 262,
+          "count": 1
+        }
+      ]
+    },
+    {
       "name": "",
       "key": "a-gems-speed-1",
       "iconIndex": -1,
@@ -11669,6 +12677,174 @@
         {
           "id": 231,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-speed-2",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 62,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 17,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 35,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 239,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-speed-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 62,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 18,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 39,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 247,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-speed-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 63,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 18,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 43,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 255,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-speed-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 63,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 19,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 45,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 263,
           "count": 1
         }
       ]
@@ -11716,8 +12892,176 @@
       ]
     },
     {
+      "key": "a-gems-luck-2",
       "name": "",
-      "key": "a-runes-heatglyph",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 70,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 26,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 35,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 240,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-luck-3",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "id": 70,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 27,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 39,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 248,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-luck-4",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 71,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 27,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 43,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 256,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-gems-luck-5",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-gems"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 71,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 28,
+          "count": 1
+        },
+        {
+          "type": "i",
+          "id": 45,
+          "count": 1
+        }
+      ],
+      "tools": [
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 264,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "",
+      "key": "a-runes-heat-glyph",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -11764,7 +13108,7 @@
     },
     {
       "name": "",
-      "key": "a-runes-liquidglyph",
+      "key": "a-runes-liquid-glyph",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -11811,7 +13155,7 @@
     },
     {
       "name": "",
-      "key": "a-runes-airglyph",
+      "key": "a-runes-air-glyph",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -11858,7 +13202,7 @@
     },
     {
       "name": "",
-      "key": "a-runes-groundglyph",
+      "key": "a-runes-ground-glyph",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -11905,7 +13249,7 @@
     },
     {
       "name": "",
-      "key": "a-runes-energyglyph",
+      "key": "a-runes-energy-glyph",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -11952,7 +13296,7 @@
     },
     {
       "name": "",
-      "key": "a-runes-voidglyph",
+      "key": "a-runes-void-glyph",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -11993,6 +13337,684 @@
         {
           "id": 210,
           "type": "a",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-undead-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 27,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 408,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 211,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-reptile-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 12,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 378,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 212,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-aquatic-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 15,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 343,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 213,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-slime-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 27,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 417,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 214,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-plant-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 21,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 448,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 215,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-beast-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 12,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 413,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 216,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-insect-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 18,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 328,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 217,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-humanoid-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 18,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 443,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 218,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-construct-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 21,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 453,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 219,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-deity-seal",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 24,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 453,
+          "count": 2
+        },
+        {
+          "type": "i",
+          "id": 37,
+          "count": 2
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 220,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-anti-weapon",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 13,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 28,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 354,
+          "count": 20
+        },
+        {
+          "type": "i",
+          "id": 41,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 221,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-anti-flying",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 19,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 28,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 424,
+          "count": 20
+        },
+        {
+          "type": "i",
+          "id": 41,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 222,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-anti-shield",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 16,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 25,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 429,
+          "count": 20
+        },
+        {
+          "type": "i",
+          "id": 41,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 223,
+          "count": 1
+        }
+      ]
+    },
+    {
+      "key": "a-runes-anti-aura",
+      "name": "",
+      "description": "",
+      "iconIndex": -1,
+      "maskedUntilCrafted": true,
+      "unlockedByDefault": false,
+      "categoryKeys": [
+        "alchemy-runes"
+      ],
+      "ingredients": [
+        {
+          "type": "i",
+          "id": 22,
+          "count": 10
+        },
+        {
+          "type": "i",
+          "id": 25,
+          "count": 10
+        },
+        {
+          "type": "a",
+          "id": 334,
+          "count": 20
+        },
+        {
+          "type": "i",
+          "id": 41,
+          "count": 10
+        }
+      ],
+      "tools": [
+        {
+          "id": 106,
+          "type": "i",
+          "count": 1
+        },
+        {
+          "id": 107,
+          "type": "i",
+          "count": 1
+        }
+      ],
+      "outputs": [
+        {
+          "type": "a",
+          "id": 224,
           "count": 1
         }
       ]

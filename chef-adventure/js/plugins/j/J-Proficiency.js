@@ -1245,6 +1245,7 @@ Game_Battler.prototype.canGainProficiency = function()
 J.PROF.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
 Game_Enemy.prototype.initMembers = function()
 {
+  // perform original logic.
   J.PROF.Aliased.Game_Enemy.get("initMembers")
     .call(this);
 

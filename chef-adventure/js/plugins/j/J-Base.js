@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.0 BASE] The base class for all J plugins.
+ * [v2.2.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -59,6 +59,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.1
+ *    Added dev filter function for action to skill mapping for enemies.
  * - 2.2.0
  *    Added parent class for subclassing to strongly type plugin metadata.
  *    Added Game_Character#isVehicle function.
@@ -112,7 +114,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '2.2.0';
+J.BASE.Metadata.Version = '2.2.1';
 
 /**
  * A collection of helpful mappings for `notes` that are placed in
@@ -638,9 +640,7 @@ class JsonMapper
     if (str.toLowerCase() === "true")
     {
       return true;
-    }
-
-    // check if its actually boolean false.
+    }// check if its actually boolean false.
     else if (str.toLowerCase() === "false") return false;
 
     // check if its actually a number.
@@ -5505,10 +5505,11 @@ class RPGManager
     noteLines.forEach(line =>
     {
       // check if this line matches the given regex structure.
-      if (line.match(structure))
+      const match = structure.exec(line);
+      if (match)
       {
         // extract the captured formula.
-        const [ , result ] = structure.exec(line);
+        const [ , result ] = match;
 
         // parse the value out of the regex capture group.
         val.push(result);
@@ -8517,6 +8518,7 @@ Game_Enemy.prototype.skills = function()
   // grab the actions for the enemy.
   const actions = this.enemy()
     .actions
+    .filter(this.canMapActionToSkill, this)
     .map(action => this.skill(action.skillId), this);
 
   // grab any additional skills added via traits.
@@ -8528,6 +8530,16 @@ Game_Enemy.prototype.skills = function()
   return actions
     .concat(skillTraits)
     .sort();
+};
+
+/**
+ * Determines whether or not the action can be mapped to a skill.
+ * @param {RPG_EnemyAction} action The action being mapped to a skill.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.canMapActionToSkill = function(action)
+{
+  return true;
 };
 
 /**

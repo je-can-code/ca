@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.1 NATURAL] Enables level-based growth of all parameters.
+ * [v2.1.0 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -16,6 +16,7 @@
  * Integrates with others of mine plugins:
  * - J-CriticalFactors; enables natural growths of CDM/CDR.
  * - J-Passives; updates with relic gain as well.
+ * - J-LevelMaster; enables the ".lvl" access for formulas.
  *
  * ----------------------------------------------------------------------------
  * DETAILS:
@@ -93,6 +94,38 @@
  *  <atkGrowthPlus:[a.level * 3]>
  * Gain (the battler's level multiplied by 3) attack (atk) per level.
  * This would result in gaining an ever-increasing amount of attack per level.
+ * ----------------------------------------------------------------------------
+ * NATURAL GROWTHS AND REWARDS:
+ * While the above parameters and such are shared between actors and enemies
+ * alike, and thus a common pattern was useful, there are a couple of
+ * "parameters" that are unique to enemies: rewards. Specifically, experience
+ * and gold. Since they aren't directly useful in combat, their tags are a bit
+ * different.
+ *
+ * NOTE:
+ * The base value that is in the database for experience will be added to the
+ * calculated value for exp/gold, thus the static value in the database can
+ * be thought of as a "base" value.
+ *
+ * TAG USAGE:
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <(REWARD)(PLUS):[FORMULA]>
+ * Where (REWARD) is either exp or gold.
+ * Where (PLUS) is... plus. There is no "rate" for this value.
+ * Where [FORMULA] is the formula to produce the amount.
+ *
+ * EXAMPLE:
+ *  <expPlus:[5 + a.lvl * 50]>
+ * When defeating this enemy, the experience gained will be increased by the
+ * enemy's level multiplied by 50, plus an extra 5.
+ *
+ *  <goldPlus:[100 + a.luk + a.level ** 2]>
+ * When defeating this enemy, the gold gained will be increased by 100 plus the
+ * enemy's luck value plus the enemy's level squared (to the second power).
+ *
  * ==============================================================================
  * EXAMPLE IDEAS:
  * While you can read about the syntax in the next section below, here I wanted
@@ -178,8 +211,14 @@
  * Custom Parameters:
  * - mtp (max tp)
  *
+ * Rewards (plus only, no rate):
+ * - exp
+ * - gold
+ *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    Added formula evaluation for enemy rewards on enemies.
  * - 2.0.1
  *    Fixed issue with buffs not being refreshed in Scene_Equip.
  * - 2.0.0
@@ -227,7 +266,7 @@ J.NATURAL.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.0.1',
+  Version: '2.1.0',
 };
 
 /**
@@ -401,6 +440,10 @@ J.NATURAL.RegExp = {
   MaxTechBuffRate: /mtpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
   MaxTechGrowthPlus: /mtpGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
   MaxTechGrowthRate: /mtpGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+
+  // battle result rewards.
+  RewardExp: /<expPlus:\[([+\-*/ ().\w]+)]>/gi,
+  RewardGold: /<goldPlus:\[([+\-*/ ().\w]+)]>/gi,
 };
 //endregion Metadata
 
@@ -1121,6 +1164,18 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
    * @type {number[]}
    */
   this._j._natural._xParamsBuffRate = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+
+  /**
+   * The amount of additional exp to gain. Only affects experience gained from an enemy's defeat.
+   * @type {number}
+   */
+  this._j._natural._expPlus = 0;
+
+  /**
+   * The amount of additional gold to gain. Only affects gold gained from an enemy's defeat.
+   * @type {number}
+   */
+  this._j._natural._goldPlus = 0;
 };
 
 //region max tp
@@ -1442,6 +1497,43 @@ Game_Battler.prototype.setXparamBuffRate = function(paramId, amount)
   this._j._natural._xParamsBuffRate[paramId] = amount;
 };
 //endregion x-params
+
+//region rewards
+/**
+ * Gets the bonus to rewarded experience.
+ * @returns {number}
+ */
+Game_Battler.prototype.expPlus = function()
+{
+  return this._j._natural._expPlus ?? 0;
+};
+
+/**
+ * Sets the bonus to rewarded experience.
+ * @param {number} expPlus The new bonus rewarded experience value.
+ */
+Game_Battler.prototype.setExpPlus = function(expPlus)
+{
+  this._j._natural._expPlus = expPlus;
+};
+
+/**
+ * Gets the bonus to rewarded gold.
+ */
+Game_Battler.prototype.goldPlus = function()
+{
+  return this._j._natural._goldPlus ?? 0;
+};
+
+/**
+ * Sets the bonus to rewarded gold.
+ * @param {number} goldPlus The new bonus rewarded gold value.
+ */
+Game_Battler.prototype.setGoldPlus = function(goldPlus)
+{
+  this._j._natural._goldPlus = goldPlus;
+};
+//endregion rewards
 //endregion properties
 
 /**
@@ -1457,6 +1549,7 @@ Game_Battler.prototype.refreshAllParameterBuffs = function()
   this.refreshBParamBuffs();
   this.refreshSParamBuffs();
   this.refreshXParamBuffs();
+  this.refreshRewardBonuses();
 };
 
 /**
@@ -1473,6 +1566,8 @@ Game_Battler.prototype.clearAllParameterBuffs = function()
   this._j._natural._sParamsBuffRate = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
   this._j._natural._xParamsBuffPlus = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
   this._j._natural._xParamsBuffRate = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+  this._j._natural._expPlus = 0;
+  this._j._natural._goldPlus = 0;
 };
 
 /**
@@ -1596,6 +1691,14 @@ Game_Battler.prototype.refreshSParamBuffs = function()
     // set the s-param buff rate modifier to this amount.
     this.setSparamBuffRate(paramId, buffRate);
   }, this);
+};
+
+/**
+ * Refreshes battle reward bonuses for the battler.
+ */
+Game_Battler.prototype.refreshRewardBonuses = function()
+{
+  // do nothing at this level.
 };
 
 /**
@@ -2178,6 +2281,92 @@ Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, baseParam)
   return this.calculateSpParamBuff(sparamId, baseParam);
 };
 //endregion sp params
+
+//region rewards
+/**
+ * Overrides {@link #refreshRewardBonuses}.<br>
+ * Implements the refresh for battle reward bonuses for the enemy.
+ */
+Game_Enemy.prototype.refreshRewardBonuses = function()
+{
+  this.refreshExpRewardBonuses();
+  this.refreshGoldRewardBonuses();
+};
+
+/**
+ * Refreshes the experience reward bonuses for this enemy.
+ */
+Game_Enemy.prototype.refreshExpRewardBonuses = function()
+{
+  // add the extracted formulai to an array.
+  const expBonusFormulai = this.extractParameterFormulai(J.NATURAL.RegExp.RewardExp);
+
+  // if no formulai were found, then stop processing.
+  if (!expBonusFormulai.length) return;
+
+  // calculate all formulai found for this enemy that could affect experience.
+  const bonusExp = this.naturalParamBuff(J.NATURAL.RegExp.RewardExp, this.enemy().exp);
+
+  // update the experience reward bonus.
+  this.setExpPlus(bonusExp);
+};
+
+/**
+ * Refreshes the gold reward bonuses for this enemy.
+ */
+Game_Enemy.prototype.refreshGoldRewardBonuses = function()
+{
+  // add the extracted formulai to an array.
+  const goldBonusFormulai = this.extractParameterFormulai(J.NATURAL.RegExp.RewardGold);
+
+  // if no formulai were found, then stop processing.
+  if (!goldBonusFormulai.length) return;
+
+  // calculate all formulai found for this enemy that could affect gold.
+  const bonusGold = this.naturalParamBuff(J.NATURAL.RegExp.RewardGold, this.enemy().gold);
+
+  // update the gold reward bonus.
+  this.setGoldPlus(bonusGold);
+};
+
+/**
+ * Extends {@link #exp}.<br>
+ * Also adds on any natural bonuses of experience.
+ * @returns {number}
+ */
+J.NATURAL.Aliased.Game_Enemy.set("exp", Game_Enemy.prototype.exp);
+Game_Enemy.prototype.exp = function()
+{
+  // grab the original value.
+  const baseReward = J.NATURAL.Aliased.Game_Enemy.get("exp")
+    .call(this);
+
+  // grab the bonus experience rewards.
+  const expBonus = this.expPlus();
+
+  // return the combined value.
+  return (baseReward + expBonus);
+};
+
+/**
+ * Extends {@link #gold}.<br>
+ * Also adds on any natural bonuses of gold.
+ * @returns {number}
+ */
+J.NATURAL.Aliased.Game_Enemy.set("gold", Game_Enemy.prototype.gold);
+Game_Enemy.prototype.gold = function()
+{
+  // grab the original value.
+  const baseReward = J.NATURAL.Aliased.Game_Enemy.get("gold")
+    .call(this);
+
+  // grab the bonus gold rewards.
+  const goldBonus = this.goldPlus();
+
+  // return the combined value.
+  return (baseReward + goldBonus);
+};
+//endregion rewards
 //endregion Game_Enemy
 
 //region Game_Party

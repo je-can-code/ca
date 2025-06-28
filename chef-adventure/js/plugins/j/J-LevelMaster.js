@@ -2,11 +2,12 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 LEVEL] Allows levels to have greater control and purpose.
+ * [v1.2.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
+ * @orderAfter J-ABS
  * @help
  * ============================================================================
  * OVERVIEW
@@ -25,6 +26,10 @@
  * CAUTION:
  * This probably won't work with any other plugins that mess with the
  * level functionality of battlers.
+ *
+ * Integrates with others of mine plugins:
+ * - J-ABS; enables per-event-enemy level overrides.
+ *
  * ============================================================================
  * PLUGIN PARAMETERS BREAKDOWN:
  *  - Start Enabled:
@@ -78,6 +83,15 @@
  * each member of your party that gives experience- and is affected by the
  * normal level-scaling mechanics. The same applies to gold rewards.
  *
+ * NOTE ABOUT WORKING WITH JABS:
+ * If a level is present on an event that is identified as a JABS enemy, this
+ * level will override whatever is present on the database note section. You
+ * can think of the event as the real level, while the database notes are the
+ * "default" level for enemies. The overriden level still gets combined with
+ * any other modifications from states and whatnot. If an enemy has a level, by
+ * default it will show up in their battler name. If it is desired to be
+ * hidden, it can be converted to ??? by using the hide level tag.
+ *
  * DETAILS:
  * This was initially designed only for enemies, but has since been expanded to
  * also allow you to apply modifiers to your actors as well. For enemies, since
@@ -90,6 +104,7 @@
  * ENEMY TAG USAGE:
  * - Enemies
  * - States
+ * - Events (w/ JABS)
  *
  * ACTOR TAG USAGE:
  * - Actors
@@ -107,6 +122,7 @@
  *  <level:4>
  * On enemies, if on the enemy, it would set their base level to 4.
  * On enemies, if on a state, it would grant a +4 modifier to their base level.
+ * On events, this will override whatever the JABS enemy's level would be.
  * On actors, this would grant a +4 level modifier to their base level.
  *
  *  <level:-2>
@@ -114,6 +130,12 @@
  * On enemies, if on a state, and they have a base level set,
  *  this will grant a -2 modifier to their base level.
  * On actors, this will grant a -2 modifier to their base level.
+ *
+ *  <hideLevel>
+ * On enemies, this will turn the level into "???" instead of the level value.
+ * On events, this will override a singular enemy into hiding the value.
+ * On states, this will do nothing.
+ *
  * ============================================================================
  * SAMPLE CALCULATIONS:
  * Here is an example back and forth encounter between an allied party and
@@ -200,6 +222,8 @@
  * This same logic is again applied to gold from each defeated enemy.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Added ability to override JABS enemies on the map with a new level.
  * - 1.1.1
  *    Added ability to manipulate max level for actors.
  *    Adapted extended plugin metadata structure.
@@ -414,20 +438,24 @@ J.LEVEL = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.LEVEL.Metadata = new J_LevelPluginMetadata(`J-LevelMaster`, '1.1.1');
+J.LEVEL.Metadata = new J_LevelPluginMetadata(`J-LevelMaster`, '1.2.0');
 
 /**
  * All aliased methods for this plugin.
  */
 J.LEVEL.Aliased = {
+  Game_Action: new Map(),
   Game_Actor: new Map(),
   Game_Battler: new Map(),
-  Game_Action: new Map(),
+  Game_Enemy: new Map(),
+  Game_Event: new Map(),
   Game_System: new Map(),
   Game_Temp: new Map(),
   Game_Troop: new Map(),
 
   DataManager: new Map(),
+
+  Sprite_Character: new Map(),
 };
 
 /**
@@ -435,10 +463,22 @@ J.LEVEL.Aliased = {
  */
 J.LEVEL.RegExp = {
   /**
+   * The regex for hiding the level display of a battler.
+   * @type {RegExp}
+   */
+  HideLevel: /<hideLevel>/i,
+
+  /**
    * The regex for the level tag on various database objects.
    * @type {RegExp}
    */
-  BattlerLevel: /<(?:lv|lvl|level):[ ]?(-?\+?\d+)>/i,
+  Level: /<(?:lv|lvl|level):[ ]?(-?\+?\d+)>/i,
+
+  /**
+   * The regex for when a skill id is learned at a designated level.
+   * @type {RegExp}
+   */
+  Learning: /<learning: ?(\[\d+, ?\d+])>/i,
 
   /**
    * The regex for granting bonuses or penalties to max level (for actors only).
@@ -879,7 +919,7 @@ Game_Battler.prototype.getLevel = function()
   {
     // add the level extracted from the data.
     level += this.extractLevel(rpgData);
-  });
+  }, this);
 
   // return the new amount.
   return level;
@@ -920,11 +960,192 @@ Game_Battler.prototype.getLevelBalancer = function()
 Game_Battler.prototype.extractLevel = function(rpgData)
 {
   // extract the level from the notes.
-  return rpgData.getNumberFromNotesByRegex(J.LEVEL.RegExp.BattlerLevel);
+  return RPGManager.getNumberFromNoteByRegex(rpgData, J.LEVEL.RegExp.Level);
 };
 //endregion Game_Battler
 
 //region Game_Enemy
+
+/**
+ * Extends {@link Game_Enemy.setup}.<br>
+ * Includes setting up the learned level map for skills.
+ */
+J.LEVEL.Aliased.Game_Enemy.set('initMembers', Game_Enemy.prototype.initMembers);
+Game_Enemy.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.LEVEL.Aliased.Game_Enemy.get('initMembers')
+    .call(this);
+
+  /**
+   * The J object where all my additional properties live.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with levels.
+   */
+  this._j._level ||= {};
+
+  /**
+   * All skill learnings this enemy has for it recorded as a dictionary.
+   * @type {Record<number, number>}
+   */
+  this._j._level._skillLearnings = {};
+};
+
+/**
+ * Sets a skill's learning by its skill and level.
+ * @param {number} skillId The skill id to be learned.
+ * @param {number} level The level the corresponding skill is learned.
+ */
+Game_Enemy.prototype.setSkillLearning = function(skillId, level)
+{
+  this._j._level._skillLearnings[skillId] = level;
+};
+
+/**
+ * Extends {@link Game_Enemy.setup}.<br>
+ * Includes setting up the learned level map for skills.
+ */
+J.LEVEL.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
+Game_Enemy.prototype.setup = function(enemyId, x, y)
+{
+  // perform original logic.
+  J.LEVEL.Aliased.Game_Enemy.get('setup')
+    .call(this, enemyId, x, y);
+
+  // initialize the skill learnings for this enemy.
+  this.setupSkillLearnings();
+};
+
+/**
+ * Sets up the learnings defined on the enemy.
+ */
+Game_Enemy.prototype.setupSkillLearnings = function()
+{
+  const learnings = RPGManager.getArraysFromNotesByRegex(this.enemy(), J.LEVEL.RegExp.Learning) ?? [];
+  if (learnings.length === 0) return;
+
+  learnings.forEach(learning => this.setSkillLearning(learning.at(0), learning.at(1)));
+};
+
+/**
+ * Extends {@link #canMapActionToSkill}.<br/>
+ * Also factors in whether or not the skill is technically learned or not.
+ * @param {RPG_EnemyAction} action The action being mapped to a skill.
+ * @returns {boolean}
+ */
+J.LEVEL.Aliased.Game_Enemy.set('canMapActionToSkill', Game_Enemy.prototype.canMapActionToSkill);
+Game_Enemy.prototype.canMapActionToSkill = function(action)
+{
+  // perform original logic.
+  const baseCanMap = J.LEVEL.Aliased.Game_Enemy.get('canMapActionToSkill')
+    .call(this, action);
+
+  // if the skill is otherwise unmappable, then don't bother with level-related logic.
+  if (baseCanMap === false) return false;
+
+  // determine if the skill is learned according to its level.
+  const isLearned = this.isLearnedSkillByLevel(action);
+
+  // return what we found.
+  return isLearned;
+};
+
+/**
+ * Determines if a skill has been learned from potential level restrictions.
+ * @param {RPG_EnemyAction} action The action being mapped to a skill.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.isLearnedSkillByLevel = function(action)
+{
+  const levelLearned = this._j._level._skillLearnings[action.skillId];
+
+  // if the skill didn't map, then the value will be undefined.
+  if (levelLearned === undefined) return true;
+
+  // if the enemy is at or above the level learned, then the skill is learned.
+  if (this.level >= levelLearned) return true;
+
+  // otherwise, the skill is not learned and shouldn't be considered.
+  return false;
+};
+
+/**
+ * Overrides {@link #getBattlerBaseLevel}.<br/>
+ * Instead of defaulting to zero, it will use the enemy's own note, accommodating any overrides if present.
+ * @returns {number}
+ */
+J.LEVEL.Aliased.Game_Enemy.set('getBattlerBaseLevel', Game_Enemy.prototype.getBattlerBaseLevel);
+Game_Enemy.prototype.getBattlerBaseLevel = function()
+{
+  // calculate the original level- probably zero unless another plugin modifies this.
+  const defaultBaseLevel = J.LEVEL.Aliased.Game_Enemy.get('getBattlerBaseLevel')
+    .call(this);
+
+  // grab the level from the enemy's own note.
+  const noteLevel = RPGManager.getNumberFromNoteByRegex(this.enemy(), J.LEVEL.RegExp.Level);
+
+  // combine the default and enemy levels.
+  const baseLevel = defaultBaseLevel + noteLevel;
+
+  // if there are no overrides, then return the base level.
+  if (this.hasLevelOverride() === false) return baseLevel;
+
+  // get the JABS_Battler associated with this enemy by UUID.
+  const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
+
+  // return the level override.
+  return jabsBattler.getCharacter()
+    .getLevelOverrides();
+};
+
+/**
+ * Checks if this enemy in particular has any JABS level overrides.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.hasLevelOverride = function()
+{
+  // if JABS isn't available, then there won't be a level override.
+  if (!J.ABS) return false;
+
+  // if there is no battler on this enemy, then there won't be a level override to check.
+  if (!this.getUuid()) return false;
+
+  // get the JABS_Battler associated with this enemy by UUID.
+  const jabsBattler = JABS_AiManager.getBattlerByUuid(this.getUuid());
+
+  // if there is no battler being tracked by this UUID, then there are no overrides.
+  if (!jabsBattler) return false;
+
+  // if overrides is null, then there are none.
+  if (jabsBattler.getCharacter()
+    .getLevelOverrides() === null)
+  {
+    return false;
+  }
+
+  // there must be overrides!
+  return true;
+};
+
+/**
+ * Determines if the level should be hidden for this enemy based on its notes.
+ * @returns {boolean} True if the level should be hidden, false otherwise.
+ */
+Game_Enemy.prototype.shouldHideLevel = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.enemy();
+
+  // check if the hideLevel tag exists in the enemy's notes.
+  const hideLevel = RPGManager.checkForBooleanFromNoteByRegex(referenceData, J.LEVEL.RegExp.HideLevel);
+
+  // return whether the level should be hidden.
+  return hideLevel;
+};
+
 /**
  * Gets all database sources we can get levels from.
  * @returns {RPG_BaseItem[]}
@@ -933,19 +1154,8 @@ Game_Enemy.prototype.getLevelSources = function()
 {
   // our sources of data that a level can be retrieved from.
   return [
-    this.enemy(),     // this enemy is a source.
     ...this.states(), // all states applied to this enemy are sources.
   ];
-};
-
-/**
- * The base or default level for this battler.
- * Enemies do not have a base level.
- * @returns {number}
- */
-Game_Enemy.prototype.getBattlerBaseLevel = function()
-{
-  return 0;
 };
 
 /**
@@ -965,6 +1175,182 @@ Game_Enemy.prototype.getLevelBalancer = function()
   return 0;
 };
 //endregion Game_Enemy
+
+//region Game_Event
+/**
+ * Extends {@link Game_Event.initMembers}.<br>
+ * Initializes level-related properties.
+ */
+J.LEVEL.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers);
+Game_Event.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.LEVEL.Aliased.Game_Event.get('initMembers')
+    .call(this);
+
+  /**
+   * The J object where all my additional properties live.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with levels.
+   */
+  this._j._level ||= {};
+
+  /**
+   * The cached level override value.
+   * @type {number|null}
+   */
+  this._j._level._cachedLevelOverride = null;
+
+  /**
+   * The cached check of whether or not to hide the level in the battler's name.
+   * @type {boolean|null}
+   */
+  this._j._level._cachedHideLevel = null;
+};
+
+/**
+ * Gets the cached level override.<br>
+ * If there is no override, this returns null instead.
+ * @returns {number|null}
+ */
+Game_Event.prototype.getCachedLevelOverride = function()
+{
+  return this._j._level._cachedLevelOverride;
+};
+
+/**
+ * Gets the cached flag for whether or not the level should be hidden.<br>
+ * If there is this hasn't been parsed, this returns null instead.
+ * @returns {boolean|null}
+ */
+Game_Event.prototype.getCachedHideLevel = function()
+{
+  return this._j._level._cachedHideLevel;
+};
+
+/**
+ * Sets the level override as a cached value.
+ * @param {number|null} level The new cached value.
+ */
+Game_Event.prototype.setCachedLevelOverride = function(level)
+{
+  this._j._level._cachedLevelOverride = level;
+};
+
+/**
+ * Sets the flag for hiding the level as a cached value.
+ * @param {boolean|null} hideLevel The new cached value.
+ */
+Game_Event.prototype.setCachedHideLevel = function(hideLevel)
+{
+  this._j._level._cachedHideLevel = hideLevel;
+};
+
+/**
+ * Extends {@link Game_Event.refresh}.<br>
+ * Clears the level override cache when the event page changes.
+ */
+J.LEVEL.Aliased.Game_Event.set('refresh', Game_Event.prototype.refresh);
+Game_Event.prototype.refresh = function()
+{
+  // perform original logic.
+  J.LEVEL.Aliased.Game_Event.get('refresh')
+    .call(this);
+
+  // clear the level override cache when the event page changes
+  this.clearLevelCache();
+};
+
+/**
+ * Clears the cached values related to levels.
+ */
+Game_Event.prototype.clearLevelCache = function()
+{
+  // reset back to default.
+  this.setCachedLevelOverride(null);
+  this.setCachedHideLevel(null);
+};
+
+/**
+ * Parses out the level from a list of event commands.
+ * @returns {number|null} The found level, or null if not found.
+ */
+Game_Event.prototype.getLevelOverrides = function()
+{
+  // check if we have a cached value
+  if (this._j._level._cachedLevelOverride !== null)
+  {
+    // return the cached value
+    return this._j._level._cachedLevelOverride;
+  }
+
+  // default to no level override
+  let level = null;
+
+  // check all the valid event commands to see if we have a level override
+  this.getValidCommentCommands()
+    .forEach(command =>
+    {
+      // shorthand the comment into a variable
+      const [ comment, ] = command.parameters;
+
+      // check if the comment matches the regex
+      const regexResult = J.LEVEL.RegExp.Level.exec(comment);
+
+      // if the comment didn't match, then don't try to parse it
+      if (!regexResult) return;
+
+      // parse the value out of the regex capture group
+      level = parseInt(regexResult[1]);
+    });
+
+  // cache the result for future use
+  this._j._level._cachedLevelOverride = level;
+
+  // return what we found
+  return level;
+};
+
+/**
+ * Determines if the level should be hidden for this event.
+ * @returns {boolean} True if the level should be hidden, false otherwise.
+ */
+Game_Event.prototype.shouldHideLevel = function()
+{
+  // check if we have a cached value.
+  if (this.getCachedHideLevel() !== null)
+  {
+    // return the cached value.
+    return this.getCachedHideLevel();
+  }
+
+  // default to not hiding the level.
+  let hideLevel = false;
+
+  // check all the valid event commands to see if we have a hide level tag.
+  this.getValidCommentCommands()
+    .forEach(command =>
+    {
+      // shorthand the comment into a variable.
+      const [ comment, ] = command.parameters;
+
+      // check if the comment contains the hideLevel tag.
+      if (J.LEVEL.RegExp.HideLevel.test(comment))
+      {
+        hideLevel = true;
+      }
+    });
+
+  // cache the result for future use
+  this.setCachedHideLevel(hideLevel);
+
+  // return what we found
+  return hideLevel;
+};
+//endregion Game_Event
 
 //region Game_Party
 /**
@@ -1248,3 +1634,51 @@ Game_Troop.prototype.getScaledExpResult = function()
   return Math.round(deadEnemies.reduce(reducer, 0));
 };
 //endregion Game_Troop
+
+//region Sprite_Character
+/**
+ * Gets this battler's name.
+ * If there is no battler, this will return an empty string.
+ * @returns {string}
+ */
+J.LEVEL.Aliased.Sprite_Character.set('getBattlerName', Sprite_Character.prototype.getBattlerName);
+Sprite_Character.prototype.getBattlerName = function()
+{
+  // get the original name of the sprite.
+  const originalName = J.LEVEL.Aliased.Sprite_Character.get('getBattlerName')
+    .call(this);
+
+  // if there was no battler name, then there probably isn't a battler.
+  if (originalName === String.empty) return originalName;
+
+  // grab the battler- we know it should exist by now.
+  const battler = this.getBattler();
+
+  // non-enemies don't get levels in their names.
+  if (battler.isEnemy() === false) return originalName;
+
+  // get the battler's level.
+  const level = battler.level;
+
+  // a zero level indicates there is no level logic associated with this battler.
+  if (level === 0) return originalName;
+
+  // capture the level as a string type for type-correct potential overriding.
+  let levelString = `${level.padZero(3)}`;
+
+  // check if this character is an event and if the level should be hidden
+  if (this._character && this._character.isEvent() && this._character.shouldHideLevel())
+  {
+    levelString = "???";
+  }
+
+  // if the level is not already hidden by event comments, check the enemy notes
+  if (levelString !== "???" && battler.shouldHideLevel())
+  {
+    levelString = "???";
+  }
+
+  // return the name with level.
+  return `${levelString} ${originalName}`;
+};
+//endregion Sprite_Character
