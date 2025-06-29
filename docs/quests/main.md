@@ -4,9 +4,11 @@
 >   This will likely be enhanced as a full guide as time goes on. If you found this without me personally directing
 >   you to it, read at your own discretion!
 
+
+
 ## NE Raevula
 
-### The Innkeeper
+### [The Innkeeper](./NE-raevula/innkeeper.md)
 
 The innkeeper's name is Yelena. She stands behind the counter of the inn and offers inn services, teaches the player
 how to do cooking JAFTING, allows usage of her kitchen, and sells cooking-related goods.
@@ -27,6 +29,8 @@ This guy's name is Cerak. He stands outside of the Save Shrine.
 ### The Temporal Merchant
 
 This guy's name is Gilbert. He is the sketchy merchant.
+
+
 
 ## NW Reavula
 
@@ -53,6 +57,8 @@ The Hunting Lord does not reveal their name. They stand behind the counter in th
 The Page's name is Frederick. He is a part of the main story in the first chapter of the game, and the mansion becomes
 closed off until chapter 4.
 
+
+
 ## SE Raevula
 
 ### The Drunken Smith
@@ -76,6 +82,8 @@ The foreign gentleman's name is Satoru. He stands around outside a house in the 
 ### The Hungry Kitty
 
 The hungry kitty's name is Mittens. The cat wanders aimlessly around the SE quadrant of Raevula.
+
+
 
 ## SW Raevula
 
