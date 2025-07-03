@@ -13,7 +13,7 @@
 The innkeeper's name is Yelena. She stands behind the counter of the inn and offers inn services, teaches the player
 how to do cooking JAFTING, allows usage of her kitchen, and sells cooking-related goods.
 
-### The Offlander Scientist
+### [The Offlander Scientist](./NE-raevula/scientist.md)
 
 The scientist's name is Treis. She becomes a part of the main story for chapters 2 and 3. Afterwards, she settles into
 a room in the upstairs of the inn.
