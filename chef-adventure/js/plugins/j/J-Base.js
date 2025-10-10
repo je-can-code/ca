@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.1 BASE] The base class for all J plugins.
+ * [v2.3.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -11,11 +11,6 @@
  * This is the base class that is required for basically ALL of J-* plugins.
  * Please be sure this is above all other J-* plugins, and keep it up to date!
  * ----------------------------------------------------------------------------
- * While this plugin doesn't do a whole lot all by itself, it contains a number
- * of centralized functionalities that are used by ALL of my plugins.
- * ----------------------------------------------------------------------------
- * If you are not a dev, you can stop reading if you want (or read on to learn
- * more about the code underneath).
  * ============================================================================
  * MAX ITEM QUANTITY:
  * Have you ever wanted to define a max quantity for items/weapons/armors in
@@ -39,6 +34,44 @@
  *  <max:15>
  * The maximum amount of the database entry decorated with this is 15.
  * ============================================================================
+ * CUSTOM MAX TP:
+ * Have you ever wanted to define a max value for TP instead of the default of
+ * 100 across the board for all battlers?  Well now you can! By applying the
+ * correct tags to the relevant entries in the database, you too can have
+ * varying amounts of max tp for actors and enemies alike!.
+ *
+ * NOTE ABOUT COMBINING TAGS:
+ * This is additive across the board, so if a single actor has multiple tags
+ * from various equipment and/or states, all amounts of max tP will be summed
+ * together.
+ *
+ * NOTE ABOUT NEGATIVES:
+ * The tag value can be negative, so you can make "cursed" equipment or states
+ * that reduce TP capabilities.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <maxTp:VALUE>
+ *    Where VALUE represents the amount of max TP provided by the entry.
+ *
+ * TAG EXAMPLES:
+ *  <maxTp:15>    (on actor)
+ * The max TP for this battler would be 15.
+ *
+ *  <maxTp:25>    (on state)
+ *  <maxTp:100>   (on weapon)
+ *  <maxTp:50000> (on armor)
+ * The max TP for this battler would be 50125 until the state wears off, then
+ * it would reduce to 50100.
+ *
+ * ============================================================================
  *
  * DEV DETAILS:
  * I would encourage you peruse the added functions to the various classes.
@@ -59,6 +92,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.3.0
+ *    Added base Max TP management with tags for battlers.
+ *    Added helper functions for detecting plugin commands inside of events.
+ *    Added helper function for converting horz/vert directions to a direction.
+ *    Added helper functions for direction validation.
  * - 2.2.1
  *    Added dev filter function for action to skill mapping for enemies.
  * - 2.2.0
@@ -96,7 +134,20 @@
  *    All equipment now have a ._jafting property available on them.
  * - 1.0.0
  *    First proper actual release where I'm leveraging and enforcing versioning.
- * ==============================================================================
+ * ============================================================================
+ * @param actorBaseTp
+ * @type number
+ * @min 0
+ * @text Actor Base TP Max
+ * @desc The base TP for actors is this amount. Any formulai add onto this.
+ * @default 0
+ *
+ * @param enemyBaseTp
+ * @type number
+ * @min 0
+ * @text Enemy Base TP Max
+ * @desc The base TP for enemies is this amount. Any formulai add onto this.
+ * @default 100
  */
 
 /**
@@ -114,7 +165,14 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '2.2.1';
+J.BASE.Metadata.Version = '2.3.0';
+
+/**
+ * The actual `plugin parameters` extracted from RMMZ.
+ */
+J.BASE.PluginParameters = PluginManager.parameters(J.BASE.Metadata.Name);
+J.BASE.Metadata.BaseTpMaxActors = Number(J.BASE.PluginParameters['actorBaseTp']);
+J.BASE.Metadata.BaseTpMaxEnemies = Number(J.BASE.PluginParameters['enemyBaseTp']);
 
 /**
  * A collection of helpful mappings for `notes` that are placed in
@@ -246,6 +304,11 @@ J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
  * @type {RegExp}
  */
 J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\]+>$/i;
+
+/**
+ * The basic structure for retrieving summable max tech values.
+ */
+J.BASE.RegExp.MaxTp = /<maxTp: ?(-?\d+)>/i;
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -5104,7 +5167,7 @@ class RPGManager
       // handle the return.
       return nullIfEmpty
         ? null
-        : String.empty;
+        : 0;
     }
 
     // return what we found.
@@ -5214,7 +5277,7 @@ class RPGManager
     }
 
     // return what we found.
-    return noNullVals;
+    return vals;
   }
 
   /**
@@ -5542,7 +5605,7 @@ class RPGManager
    * If the optional flag `tryParse` is true, then it will attempt to parse out
    * the array of values as well, including translating strings to numbers/booleans
    * and keeping array structures all intact.
-   * @param {string} databaseObject The contents of the note of a given object.
+   * @param {RPG_Base} databaseObject The contents of the note of a given object.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean} tryParse Whether or not to attempt to parse the found array.
    * @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
@@ -5594,6 +5657,117 @@ class RPGManager
 
     // return the found value.
     return val;
+  }
+
+  /**
+   * Gets all capture groups (excluding the full match) for every note line that matches the regex.
+   *
+   * Each matching line contributes one entry to the result array. The entry is an array of strings
+   * corresponding to the capture groups for that match (index 1..n of the RegExp exec result).
+   *
+   * Example:
+   *   Regex: /<on-(hit|use):affect-(self|allies|target|enemies|all):\[([+\-/ ().\w]+)]>/gi
+   *   Line:  "<on-hit:affect-self:[a.atk * 400]>"
+   *   Pushes: [ "hit", "self", "a.atk * 400" ]
+   *
+   * @param {RPG_BaseItem} databaseData The database object to inspect.
+   * @param {RegExp} structure The regular expression to find values for.
+   * @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+   * @returns {string[][]|null} An array of capture arrays, or null.
+   */
+  static getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false)
+  {
+    // validate the incoming data object.
+    if (!databaseData)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : [];
+    }
+
+    // get the note data from this object (split by newlines).
+    const lines = databaseData.note?.split(/[\r\n]+/) ?? [];
+
+    // if we have no matching notes, then short circuit.
+    if (!lines.length)
+    {
+      // return null or [] depending on provided options.
+      return nullIfEmpty
+        ? null
+        : [];
+    }
+
+    // initialize the collection of capture arrays.
+    const captures = [];
+
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
+    {
+      // reset the regex pointer to ensure consistent exec() behavior with /g.
+      structure.lastIndex = 0;
+
+      // execute the structure against this line.
+      const result = structure.exec(line);
+
+      // skip if it didn’t match.
+      if (!result) return;
+
+      // slice off the full match, keep only capture groups 1..n.
+      const groups = result.slice(1);
+
+      // push the capture group array.
+      captures.push(groups);
+    });
+
+    // check if we found nothing and want null.
+    if (!captures.length && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+
+    // return all captures (possibly empty array).
+    return captures;
+  }
+
+  /**
+   * Gets all capture arrays from a collection of database objects.
+   *
+   * See {@link RPGManager.getAllCapturesFromNoteByRegex} for details on the shape
+   * of the returned values for each matching tag.
+   *
+   * @param {RPG_BaseItem[]} databaseDatas The database objects to inspect.
+   * @param {RegExp} structure The regular expression to find values for.
+   * @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+   * @returns {string[][]|null} All capture arrays found across all provided objects.
+   */
+  static getAllCapturesFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
+  {
+    // initialize the collection of capture arrays.
+    const captures = [];
+
+    // iterate over each of the database objects for inspection.
+    databaseDatas.forEach(databaseData =>
+    {
+      // gather captures from this one object.
+      const found = this.getAllCapturesFromNoteByRegex(databaseData, structure, false);
+
+      // if any found, concatenate into the running collection.
+      if (found && found.length)
+      {
+        captures.push(...found);
+      }
+    }, this);
+
+    // return null if nothing found and nullIfEmpty requested.
+    if (!captures.length && nullIfEmpty)
+    {
+      return null;
+    }
+
+    // return captures (possibly empty array).
+    return captures;
   }
 }
 
@@ -7926,6 +8100,15 @@ Game_Actor.prototype.levelDown = function()
   // triggers the on-level-down hook.
   this.onLevelDown();
 };
+
+/**
+ * Gets the base max tp for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.getBaseMaxTp = function()
+{
+  return J.BASE.Metadata.BaseTpMaxActors;
+};
 //endregion Game_Actor
 
 //region Game_Actors
@@ -8022,6 +8205,46 @@ Game_Battler.prototype.databaseData = function()
 Game_Battler.prototype.class = function(classId)
 {
   return $dataClasses.at(classId);
+};
+
+/**
+ * Overrides {@link #maxTp}.<br/>
+ * Replaces the default of 100 for all battlers with a tag-based calculation that reviews all available notes to sum
+ * together all maxTp values for a custom value.
+ * @returns {number}
+ */
+Game_Battler.prototype.maxTp = function()
+{
+  // get the base max tp for the battler.
+  const baseMaxTp = this.getBaseMaxTp();
+
+  // determine the sum of all max tech values from the available notes- if any.
+  const combinedMaxTp = this.getBaseMaxTpBonuses();
+
+  // check if none of the notes had any max tech v
+  return Math.max(0, (baseMaxTp + combinedMaxTp));
+};
+
+/**
+ * The base max TP for all battlers- always 0 at this level.
+ * @returns {number}
+ */
+Game_Battler.prototype.getBaseMaxTp = function()
+{
+  return 0;
+};
+
+/**
+ * The base bonus to max tech on this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.getBaseMaxTpBonuses = function()
+{
+  // grab all the notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // determine the sum of all max tech values from the available notes- if any.
+  return RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.BASE.RegExp.MaxTp);
 };
 
 /**
@@ -8371,6 +8594,33 @@ Game_Character.prototype.distanceFromCharacter = function(character)
 };
 
 /**
+ * Gets all valid directions supported by the default system.
+ * @returns {number[]}
+ */
+Game_CharacterBase.prototype.getValidDirections = function()
+{
+  return [ ...this.getValidCardinalDirections(), ...this.getValidDiagonalDirections() ];
+};
+
+/**
+ * Gets all valid diagonal directions.
+ * @returns {number[]}
+ */
+Game_CharacterBase.prototype.getValidDiagonalDirections = function()
+{
+  return [ 1, 3, 7, 9 ];
+};
+
+/**
+ * Gets all valid cardinal directions.
+ * @returns {number[]}
+ */
+Game_CharacterBase.prototype.getValidCardinalDirections = function()
+{
+  return [ 2, 4, 6, 8 ];
+};
+
+/**
  * Determines if a numeric directional input is diagonal.
  * @param {number} direction The direction to check.
  * @returns {boolean} True if the input is diagonal, false otherwise.
@@ -8407,6 +8657,47 @@ Game_CharacterBase.prototype.getDiagonalDirections = function(direction)
     case 9:
       return [ 6, 8 ];
   }
+};
+
+/**
+ * Converts a horizontal/vertical direction pair into a single 8-dir code.
+ * Valid inputs are (4|6) for horz and (2|8) for vert. Returns 0 if invalid.
+ * @param {4|6} horz The horizontal component (4=left, 6=right).
+ * @param {2|8} vert The vertical component (2=down, 8=up).
+ * @returns {1|3|7|9|0} The 8-dir code for the diagonal, or 0 if invalid.
+ */
+Game_CharacterBase.prototype.directionFromHorzVert = function(horz, vert)
+{
+  // Check for down-left (1).
+  if (horz === 4 && vert === 2)
+  {
+    // Return direction 1 for down-left.
+    return 1;
+  }
+
+  // Check for down-right (3).
+  if (horz === 6 && vert === 2)
+  {
+    // Return direction 3 for down-right.
+    return 3;
+  }
+
+  // Check for up-left (7).
+  if (horz === 4 && vert === 8)
+  {
+    // Return direction 7 for up-left.
+    return 7;
+  }
+
+  // Check for up-right (9).
+  if (horz === 6 && vert === 8)
+  {
+    // Return direction 9 for up-right.
+    return 9;
+  }
+
+  // Invalid combination; return 0.
+  return 0;
 };
 
 //region Game_Enemies
@@ -8605,6 +8896,15 @@ Game_Enemy.prototype.onDeath = function()
   // flag this battler for needing a data update.
   this.onBattlerDataChange();
 };
+
+/**
+ * Gets the base max tp for this enemy.
+ * @returns {number}
+ */
+Game_Enemy.prototype.getBaseMaxTp = function()
+{
+  return J.BASE.Metadata.BaseTpMaxEnemies;
+};
 //endregion Game_Enemy
 
 //region Game_Event
@@ -8732,6 +9032,7 @@ Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = nu
 /**
  * Extracts a value out of an event's comments based on the provided structure.
  * If there are multiple matches in the comments, only the last one will be returned.
+ * @param {rm.types.EventCommand} command The command in question.
  * @param {RegExp} structure The regex to find values for.
  * @param {any=} defaultValue The default value to start with; defaults to null.
  * @param {boolean=} andParse Whether or not to parse the results; defaults to true.
@@ -8744,6 +9045,9 @@ Game_Event.prototype.getDataForCommandByRegex = function(command, structure, def
 
   // shorthand the comment into a variable.
   const [ comment, ] = command.parameters;
+
+  // reset just in case the regex is global.
+  structure.lastIndex = 0;
 
   // check if the comment matches the regex.
   const regexResult = structure.exec(comment);
@@ -8762,6 +9066,57 @@ Game_Event.prototype.getDataForCommandByRegex = function(command, structure, def
 
   // return the parsed result instead.
   return JsonMapper.parseObject(val);
+};
+
+/**
+ * Gets the current page's event command list if it is present, or an empty array if it isn't.
+ * @returns {rm.types.EventCommand[]}
+ */
+Game_Event.prototype.getEventCommandList = function()
+{
+  // initialize to an empty array.
+  let list = [];
+
+  // in certain situations, one or both of these may be unavailable.
+  if (this.page() && this.list())
+  {
+    // the list was available.
+    list = this.list() ?? [];
+  }
+
+  // return what we found.
+  return list;
+};
+
+/**
+ * Determines whether or not the given plugin commands are present in the list of event commands for a given plugin.
+ * @param {string} targetPluginName The name of the plugin to look for commands for.
+ * @param {string[]} commandNames The collection of plugin command names to validate existence of.
+ */
+Game_Event.prototype.hasPluginCommand = function(targetPluginName, commandNames)
+{
+  // pull the current page’s command list.
+  const list = this.getEventCommandList();
+
+  // find any matching plugin command.
+  const found = !!list.find(cmd =>
+  {
+    // ensure this is a plugin command.
+    if (!cmd || cmd.code !== 357) return false;
+
+    // deconstruct the typical MZ plugin command payload.
+    const [ pluginName, commandName ] = cmd.parameters;
+    if (!commandName) return false;
+
+    // if we know the quest plugin name, require it to match.
+    if (pluginName !== targetPluginName) return false;
+
+    // return true if the command is one of the desired names.
+    return commandNames.includes(commandName);
+  });
+
+  // return whether we found a matching command.
+  return found;
 };
 
 /**
@@ -9939,7 +10294,7 @@ class Sprite_Icon
 
 //region Sprite_MapGauge
 /**
- * The sprite for displaying a gauge over a character's sprite.
+ * The sprite for displaying a gauge on a character's sprite.
  */
 function Sprite_MapGauge()
 {
@@ -9956,7 +10311,6 @@ Sprite_MapGauge.prototype.initialize = function(
   value = null,
   iconIndex = -1)
 {
-  this._duration = 0;
   this._gauge = {};
   this._gauge._bitmapWidth = bitmapWidth;
   this._gauge._bitmapHeight = bitmapHeight;
@@ -9964,6 +10318,7 @@ Sprite_MapGauge.prototype.initialize = function(
   this._gauge._label = label;
   this._gauge._value = value;
   this._gauge._iconIndex = iconIndex;
+  this._gauge._iconSprite = null;
 
   this._gauge._activated = true;
 
@@ -9989,7 +10344,6 @@ Sprite_MapGauge.prototype.update = function()
   if (!this._gauge._activated) return;
 
   Sprite_Gauge.prototype.update.call(this);
-  //this.manageGaugeVisibility();
 };
 
 /**
@@ -10062,7 +10416,43 @@ Sprite_MapGauge.prototype.drawLabel = function()
  */
 Sprite_MapGauge.prototype.setIcon = function(iconIndex)
 {
+  // assign the new index (use -1 as the sentinel for "no icon").
   this._gauge._iconIndex = iconIndex;
+
+  // if we already have an icon sprite, update it in-place.
+  if (this._gauge._iconSprite)
+  {
+    // when "no icon", keep the sprite but hide it.
+    if (this._gauge._iconIndex < 0)
+    {
+      this._gauge._iconSprite.visible = false; // hide without removing
+    }
+    else
+    {
+      // update the icon tile and make sure it is visible.
+      this._gauge._iconSprite.setIconIndex(this._gauge._iconIndex);
+      this._gauge._iconSprite.visible = true;
+
+      // re-center vertically in case the gauge height changed.
+      const iconHeight = 16; // after 0.5 scale of a 32px icon
+      const centeredY = Math.floor((this.bitmapHeight() - iconHeight) / 2);
+      this._gauge._iconSprite.move(10, centeredY);
+    }
+
+    // redraw the gauge (label/gradient may still need updating).
+    this.redraw();
+    return;
+  }
+
+  // if we don’t have a sprite yet and the index is valid, create one now.
+  if (this._gauge._iconIndex >= 0)
+  {
+    const sprite = this.createIconSprite();
+    this.addChild(sprite);
+    this._gauge._iconSprite = sprite;
+  }
+
+  // redraw the gauge (label/gradient may still need updating).
   this.redraw();
 };
 
@@ -10071,19 +10461,47 @@ Sprite_MapGauge.prototype.setIcon = function(iconIndex)
  */
 Sprite_MapGauge.prototype.drawIcon = function()
 {
-  if (this._gauge._iconIndex > 0 && !this.children.length)
+  // reconcile presence & visibility without destroying when unnecessary.
+  if (this._gauge._iconIndex >= 0)
   {
-    const sprite = this.createIconSprite();
-    sprite.move(10, 20);
-    this.addChild(sprite);
+    if (!this._gauge._iconSprite)
+    {
+      // add if missing.
+      const sprite = this.createIconSprite();
+      this.addChild(sprite);
+      this._gauge._iconSprite = sprite;
+    }
+
+    // ensure visible when we have an icon index.
+    this._gauge._iconSprite.visible = true;
+  }
+  else if (this._gauge._iconSprite)
+  {
+    // hide (do not remove) when no icon is intended.
+    this._gauge._iconSprite.visible = false;
   }
 };
 
+/**
+ * Creates the sprite for the icon on this gauge.
+ * @returns {Sprite_Icon}
+ */
 Sprite_MapGauge.prototype.createIconSprite = function()
 {
+  // create the icon sprite at the current index.
   const sprite = new Sprite_Icon(this._gauge._iconIndex);
+
+  // scale the icon smaller for map display.
   sprite.scale.x = 0.5;
   sprite.scale.y = 0.5;
+
+  // center the icon vertically inside this gauge’s bitmap height.
+  const iconHeight = 16;
+  const centeredY = Math.floor((this.bitmapHeight() - iconHeight) / 2);
+
+  // give it a small left padding so the label can start at x=32 nicely.
+  sprite.move(10, centeredY);
+
   return sprite;
 };
 
@@ -10102,15 +10520,29 @@ Sprite_MapGauge.prototype.drawValue = function()
  */
 Sprite_MapGauge.prototype.redraw = function()
 {
+  // clear any prior drawing first.
   this.bitmap.clear();
-  const currentValue = this.currentValue();
+
+  // compute current value and cache it into the same fields the base gauge uses.
+  const currentValue = this.currentValue(); // may be NaN to skip drawing
   if (!isNaN(currentValue))
   {
+
+
+    // IMPORTANT: assign backing fields for gaugeRate() to function.
+    this._value = currentValue; // current filled amount
+    this._maxValue = this.currentMaxValue(); // maximum value for fill
+
+    // draw the colored fill/backdrop using the cached rate values.
     this.drawGauge();
+
+    // draw label & icon similarly to your existing behavior (skip for "time").
     if (this._statusType !== "time")
     {
       this.drawLabel();
       this.drawIcon();
+
+      // only draw numeric value when valid (map gauges typically hide values).
       if (this.isValid())
       {
         this.drawValue();

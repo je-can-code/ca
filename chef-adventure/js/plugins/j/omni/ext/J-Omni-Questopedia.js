@@ -2613,6 +2613,7 @@ class J_QUEST_PluginMetadata
 
 //endregion plugin metadata
 
+/* eslint-disable max-len */
 //region initialization
 /**
  * The core where all of my extensions live: in the `J` object.

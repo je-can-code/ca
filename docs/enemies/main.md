@@ -2,247 +2,351 @@
 
 ## Destructibles (5)
 
-### Geodes
+### Grass
 
-- (0) [57]Deposit (Iron)
-- (0) [63]Deposit (Bleu)
-- (0) [88]Deposit (Silver)
-- (0) [92]Deposit (Sandwraith)
-- (0) [108]Deposit (Bleu / Silver)
+- (0) [1]Grass (Erocian)
+- (0) [2]Grass (Dream)
+- (0) [3]Puff (Earthen)
+- (0) [4]Grass (Grotto)
+- (0) [5]Grass (Airy)
 
 ### Trees
 
-- (0) [56]Shrub (Oak)
-- (0) [58]Shrub (Dreamwood)
-- (0) [107]Shrub (Negapine)
+- (0) [11]Shrub (Oak)
+- (0) [12]Shrub (Dreamwood)
+- (0) [??? 13]Shrub (Negapine)
 
-### Shrubbery
+### Ore
 
-- (0) [1]Grass (Erocian)
-- (0) [34]Grass (Dream)
-- (0) [87]Grass (Grotto)
-- (0) [106]Grass (Airy)
-
-### Other
-
-- (0) [2]Crumbly Wall (in the mansion)
-- (0) [3]Crate (in the mines)
+- (0) [21]Deposit (Iron)
+- (0) [22]Deposit (Silver)
+- (0) [23]Deposit (Bleu)
+- (0) [24]Deposit (Sandwraith)
+- (0) [25]Deposit (Bleu / Silver)
 
 ### Tool Targets
 
-- (0) [39]Spire (for banjo)
-- (0) [50]Torch (for ruby rod)
-- (0) [59]Suspicious Crack (for bombs)
-- (0) [71]Durable Post (for snakerope)
+- (0) [31]Spire (for banjo)
+- (0) [32]Suspicious Crack (for bombs)
+- (0) [33]Durable Post (for snakerope)
+- (0) [34]Torch (for ruby rod)
+
+### Other
+
+- (0) [41]Crumbly Wall (in the mansion)
+- (0) [42]Crate (in the mines)
 
 ---
 
-## Undead (4)
+## Undead (5)
 
 ### Ghost
 
-- (4)  [11]Ghosty
-- (3)  [12]Ghostie
-- (5)  [35]!Ghastly Ghosty
-- (26) [53]Spooky
-- (52) [83]Tsukumogami
+Ghosts are typically "careful" and tend to be a bit more defensive in stats.
+
+- (4)  [101]Ghosty
+- (3)  [102]Ghostie
+- (5)  [103]!Ghastly Ghosty
+- (26) [104]Spooky
+- (52) [105]Tsukumogami
 
 ### Reborn
 
-- (10) [23]Wraith
-- (15) [37]!Spoop Maestro
-- (49) [81]Onryo
+Reborn typically seek out weaknesses with their "executor" trait, and lean into offensive force-based attacks.
+
+- (10) [111]Wraith
+- (15) [112]!Spoop Maestro
 
 ### Wisp
 
-- (8)  [21]Will 'o' Wisp
-- (26) [44]!Blistering Blaze
+Since Wisps are basically intangible spiritual entities, their are heavily force and resist-centric, but inherently are
+not fast by any stretch of the imagination. Due to the fact that they are primal spirits, they tend to "recklessly"
+spam thier abilities without constraint.
+
+- (8)  [121]Will 'o' Wisp
+- (26) [122]!Blistering Blaze
+- (49) [123]Onryo
 
 ### Skelly
 
-- (22) [46]Skeletor
-- (20) [47]Skeledoggo
+Skeleton types tend to run in pairs or packs, with a single leader skeleton and many skeledoggos.
+
+The leader skeletons were probably intelligent at one point so they tend to "execute" your weak points.
+
+The doggos can't do any tricks if they have no leader, but have some vicious moves that their leader will command them
+to execute if letting them stay together.
+
+- (22) [131]Skeletor
+- (20) [132]Skeledoggo
+
+### Necro
+
+- (??) [??]Necromancer
 
 ---
 
-## Reptile (2)
+## Reptile (5)
 
 ### Snake
 
-- (24) [49]Prince Cobra
-- (30) [89]!Vice Cobra
-- (37) [69]Lamia
-- (51) [82]Asp
+In the snake sub-family, there are two distinct types of snakes that one will encounter: snakes (like the animal), and
+lamias (human + snake).
+
+Snakes are notorious for being swift and deadly, high crit rate combined with poisons or bleeds
+which can lead to unexpected death.
+
+Lamias tend to play it safe and careful, leveraging magic when possible and doing
+damage from afar, using their intellect to lead allies to execute dangerous plans.
+
+- (24) [151]Prince Cobra
+- (30) [152]!Vice Cobra
+- (37) [153]Lamia
+- (51) [154]Asp
 
 ### Dragon
 
-- (34) [68]Lesser Dargin
-- (64) [102]Chill Wyvern
+Dragons have always boasted high raw stats across the board, and they are no exception in this game. They also often
+are paired with a high level of recklessness due to their ego.
+
+- (34) [161]Lesser Dargin
+- (64) [162]Chill Wyvern
+
+### Draconian
+
+- (??) [??]Draco Knight
+
+### Hydra
+
+- (??) [??]Trydra
+
+### Lizard
+
+- (??) [??]Salamander
 
 ---
 
-## Aquatic (3)
+## Aquatic (5)
 
-### Imp
+### Kappa
 
-- (8)  [18]Kappa
-- (10) [36]!Kapn' Kappa
-- (32) [62]Kappa Shaman
-- (36) [72]Kappa Myrmidon
+- (8)  [201]Kappa
+- (10) [202]!Kapn' Kappa
+- (32) [203]Kappa Shaman
+- (36) [204]Kappa Myrmidon
 
 ### Amphibian
 
-- (31) [61]Froggo
+- (31) [211]Froggo
 
 ### Crustacean
 
-- (42) [77]Crimson Vice
-- (55) [91]!Distorting Melter
-- 
+- (42) [221]Crimson Vice
+- (55) [222]!Distorting Melter
+
+### Fish
+
+- (??) [??]Pirahna
 
 ---
 
-## Slime (3)
+### Cephalopod
+
+- (??) [??]Octopus
+
+## Slime (5)
 
 ### Glob
 
-- (3) [14]#Erocian Slime
-- (6) [19]Erocian Slimette
-- (22) [43]#Pudding
-- (30) [60]Flan
-- (35) [70]Phasing Jelly
-- (40) [75]Living Lava
+- (3)  [251]#Erocian Slime
+- (6)  [252]Erocian Slimette
+- (22) [253]#Pudding
+- (30) [254]Flan
+- (35) [255]Phasing Globby
+- (40) [256]Living Lava
 
 ### Tentacled
 
-- (28) [54]Roper
+- (28) [261]Roper
 
-### Gel
+### Jel
 
-- (12) [29]Jelly
-- (55) [85]Jelliton
+- (12) [271]Jelly
+- (55) [272]Jelliton
+
+### Aerial
+
+- (19) [281]Goobat
+- (35) [282]!Magi Goobat
+
+### Cube
+
+- (??) [??]Mortal Cube
 
 ---
 
-## Plant (3)
+## Plant (5)
 
 ### Traps
 
-- (5) [16]Wolftrap
-- (23) [45]Bloodtrap
+- (5)  [301]Wolftrap
+- (23) [302]Bloodtrap
 
-### Shroom
+### Fungus
 
-- (10) [28]Fungrowth
-- (64) [100]Ghastroom
+- (10) [311]Fungrowth
+- (64) [312]Ghastroom
 
-### Faerie
+### Fae
 
-- (11) [30]Dryad
-- (20) [38]!Queen of Stone
-- (61) [104]Mimi
+- (11) [321]Dryad
+- (20) [322]!Queen of Stone
+- (61) [323]Mimi
 
----
+### Treant
 
-## Beast (4)
+- (??) [??]Treant
+
+### Flower
+
+- (??) [??]Seedspitter
+
+## Beast (5)
 
 ### Hybrid
 
-- (6) [17]Bearcat
-- (23) [41]Stonefur
-- (56) [84]Grimfang
-- (65) [98]Ghostfang
+- (6) [351]Bearcat
+- (23) [352]Stonefur
+- (56) [353]Grimfang
+- (65) [354]!Ghostfang
 
 ### Winger
 
-- (6)  [20]Cave Bat
-- (19) [41]Goo Bat
-- (35) [55]!Magi Goo Bat
-- (39) [76]Redeye
-- (65) [96]Doom Harbinger
-  - (65) [97]Doom Winger
+- (6)  [361]Cave Bat
+- (39) [362]Redeye
+- (65) [363]Doom Harbinger
+- (65) [364]Doom Winger
 
 ### Beaks
-- (70) [105]Crazed Garuda
+- (70) [421]#Crazed Garuda
 
 ### Rodent
 
-- (32) [67]Rot Rat
+- (32) [381]Rot Rat
 
 ---
 
-## Insect (3)
+### Quadraped
 
-### Bee
+- (??) [??]Wolfe
 
-- (3) [15]Needler
-- (25) [51]Penetrator
-- (65) [101]Driller
+## Insect (5)
+
+### Hivemind
+
+- (3) [401]Needler
+- (25) [402]Penetrator
+- (65) [403]Driller
 
 ### Worm
 
-- (17) [40]Crawler
-- (43) [78]Magma Worm
-- (64) [103]Wriggle Worm
+- (17) [411]Crawler
+- (43) [412]Magma Worm
+- (64) [413]Wriggle Worm
 
 ---
 
-### Legged
+### Lonewolf
 
-- (??) [??]Leaping Fangs
+- (??) [??]Spider
 
-## Humanoid (3)
+### Jumper
+
+- (??) [??]Rockhopper
+
+### Parasite
+
+- (??) [??]Controller
+
+## Humanoid (5)
 
 ### Bull
 
-- (10) [22]Minitaur
-- (25) [46]Megataur
+- (10) [!!! 22]Minitaur
+- (25) [452]Megataur
 
 ### Orcan
 
-- (38) [24]Orc Minion
-- (40) [25]Orc Fighter
-- (41) [26]Orc Caster
-- (45) [27]Orc Chieftain
-- (62) [99]Mountain Orc
+- (38) [461]Orc Minion
+- (40) [462]Orc Fighter
+- (41) [463]Orc Caster
+- (45) [464]Orc Chieftain
+- (62) [515]Mountain Orc
 
 ### Thief
 
-- (12) [31]Bandit
-- (38) [73]Outlaw
-- (45) [90]!Wanted Criminal
-- (82) [86]Mercenary
+- (12) [471]Bandit
+- (38) [472]Outlaw
+- (45) [473]!Wanted Criminal
+- (82) [476]Mercenary
+
+### Walker
+
+- (??) [??]Yeti
+
+### Clan
+
+- (??) [??]Goblin
+
+## Construct (4/5)
+
+### Golem
+
+- (69) [501]Heated Titan
+
+### Hazard
+
+- (0) [??? 13]Fire Trap
+- (0) [512]Lava Trap (not used?)
+- (0) [513]Zap trap
 
 ---
 
-## Construct (2)
+### Robot
 
-### Mammet
+- (??) [??]Borg
 
-- (69) [74]Heated Titan
+### Homonculus
 
-### Traps
+- (??) [??]Shell
 
-- (0) [13]Fire Trap
-- (0) [80]Lava Trap
-- (0) [93]Zap trap
+### Mimic
 
----
+- (??) [??]Faker
 
-## Deity (2)
+## Deity (2/5)
 
 ### Elemental Allies
 
 - (??) [??]Earthie
-- (30) [64,65,66]Aqualock
-- (45) [79]Cynder
-- (70) [109]Skye
+- (30) [552]Aqualock
+- (45) [553]Cynder
+- (70) [604]Skye
 
 ### Sin
 
-- (15) [32]#Gluttonwolf Mayor (gluttony)
-  - (17) [33]Gluttonwolf
-- (70) [94]Vampire King (wrath)
-  - (72) [95]Vampire Shade
+- (15) [561]#Gluttonwolf Mayor (gluttony)
+  - (17) [562]Gluttonwolf
+- (70) [563]Vampire King (wrath)
+  - (72) [564]Vampire Shade
 
----
+### Deity-3
+
+- (??) [??]???
+
+### Deity-4
+
+- (??) [??]???
+
+### Deity-5
+
+- (??) [??]???

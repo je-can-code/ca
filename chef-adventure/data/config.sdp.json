@@ -1359,20 +1359,20 @@
       "unlockedByDefault": false,
       "description": "Even the ever-iconic ghosty has things you can learn.|Just lean in and listen real good, they whisper dark things and touch your butt.",
       "topFlavorText": "Slaying Ghostys is required in this game. Good job.",
-      "maxRank": 10,
+      "maxRank": 15,
       "baseCost": 25,
       "flatGrowthCost": 25,
       "multGrowthCost": 1.2,
       "panelParameters": [
         {
-          "parameterId": 3,
-          "perRank": -0.25,
+          "parameterId": 11,
+          "perRank": 1,
           "isFlat": true,
           "isCore": true
         },
         {
           "parameterId": 18,
-          "perRank": -1,
+          "perRank": -0.2,
           "isFlat": true,
           "isCore": true
         },
@@ -1384,29 +1384,69 @@
         }
       ],
       "panelRewards": [],
-      "rarity": 0
+      "rarity": 3
     },
     {
-      "name": "Otherworldly Dark",
+      "name": "Foreboding Mist",
       "key": "GHO_2",
       "iconIndex": 2210,
       "unlockedByDefault": false,
-      "description": "Sometimes, the dead end up reaching back and touching you in ways you don't like-|Like murderously.",
-      "topFlavorText": "Learn the skill \"Death's Touch\" when this panel is maxed.",
+      "description": "This one tried to be menacing, but just dying your sheet red doesn't really count.",
+      "topFlavorText": "Red Ghostys are just as bad as others.",
       "maxRank": 10,
       "baseCost": 270,
       "flatGrowthCost": 30,
       "multGrowthCost": 1.7,
       "panelParameters": [
         {
-          "parameterId": 3,
-          "perRank": -1,
+          "parameterId": 11,
+          "perRank": 1,
           "isFlat": true,
           "isCore": true
         },
         {
           "parameterId": 18,
-          "perRank": -1,
+          "perRank": -0.4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 3.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[216]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(216);"
+        }
+      ],
+      "rarity": 0
+    },
+    {
+      "name": "Tortuous Threestep",
+      "key": "GHO_3",
+      "iconIndex": 2210,
+      "unlockedByDefault": false,
+      "description": "No one suspected that this ultra-evil entity known as \\enemy[103] would drop a node.|Good thing you were ready for it.",
+      "topFlavorText": "The menacing spirit hisses at you even in node form.",
+      "maxRank": 15,
+      "baseCost": 450,
+      "flatGrowthCost": 150,
+      "multGrowthCost": 1.8,
+      "panelParameters": [
+        {
+          "parameterId": 11,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 18,
+          "perRank": -0.4,
           "isFlat": true,
           "isCore": true
         },
@@ -1417,7 +1457,19 @@
           "isCore": false
         },
         {
-          "parameterId": 29,
+          "parameterId": 11,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 12,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 13,
           "perRank": 1,
           "isFlat": true,
           "isCore": false
@@ -1430,63 +1482,75 @@
           "effect": "a.learnSkill(216);"
         }
       ],
-      "rarity": 3
+      "rarity": 31
     },
     {
       "name": "Spooky Aura",
-      "key": "GHO_3",
+      "key": "GHO_4",
       "iconIndex": 2210,
       "unlockedByDefault": false,
       "description": "The spooky is an ancient earthen spirit that was laid to rest centuries ago.|Here you are, disturbing its beauty rest like some kind of jackass- seriously, why?!",
       "topFlavorText": "When the going gets tough, the ghosty levels up to a spooky.",
-      "maxRank": 20,
+      "maxRank": 15,
       "baseCost": 200,
       "flatGrowthCost": 50,
       "multGrowthCost": 1.15,
       "panelParameters": [
         {
-          "parameterId": 3,
-          "perRank": -0.5,
+          "parameterId": 11,
+          "perRank": 0.2,
           "isFlat": true,
           "isCore": true
         },
         {
           "parameterId": 18,
-          "perRank": -2,
+          "perRank": -0.2,
           "isFlat": true,
           "isCore": true
         },
         {
-          "parameterId": 9,
+          "parameterId": 4,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 7,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 28,
           "perRank": 2,
           "isFlat": true,
           "isCore": false
         }
       ],
       "panelRewards": [],
-      "rarity": 0
+      "rarity": 23
     },
     {
       "name": "Ghastly Plating",
-      "key": "GHO_4",
+      "key": "GHO_5",
       "iconIndex": 2210,
       "unlockedByDefault": false,
       "description": "The \\Enemy[83] somehow are known even in local lands to you, but here they are just armored ghosty foes.|Destroying them is tantamount to your mission.",
       "topFlavorText": "Defeating ghosty enemies is tough, but when they wear armor that is just downright unfair.",
-      "maxRank": 15,
+      "maxRank": 20,
       "baseCost": 2000,
       "flatGrowthCost": 250,
       "multGrowthCost": 1.15,
       "panelParameters": [
         {
-          "parameterId": 3,
+          "parameterId": 11,
           "perRank": 1,
           "isFlat": false,
           "isCore": true
         },
         {
           "parameterId": 18,
-          "perRank": -3,
+          "perRank": -0.5,
           "isFlat": true,
           "isCore": true
         },
@@ -1503,20 +1567,20 @@
           "isCore": false
         },
         {
-          "parameterId": 11,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 14,
-          "perRank": 0.5,
+          "parameterId": 5,
+          "perRank": 2.5,
           "isFlat": true,
           "isCore": false
         },
         {
           "parameterId": 24,
-          "perRank": -1,
+          "perRank": -0.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 25,
+          "perRank": -0.5,
           "isFlat": true,
           "isCore": false
         },
@@ -1537,6 +1601,1190 @@
       "rarity": 25
     },
     {
+      "key": "REB___",
+      "name": "==REBORN==",
+      "iconIndex": -1,
+      "unlockedByDefault": false,
+      "description": "The best panel ever, hands down. You only need to acquire it somehow!",
+      "topFlavorText": "Get this panel, you will not regret it.",
+      "maxRank": 10,
+      "baseCost": 100,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.2,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Otherworldly Dark",
+      "key": "REB_1",
+      "iconIndex": 2210,
+      "unlockedByDefault": false,
+      "description": "Sometimes, the dead end up reaching back and touching you in ways you don't like-|Like murderously.",
+      "topFlavorText": "",
+      "maxRank": 10,
+      "baseCost": 270,
+      "flatGrowthCost": 30,
+      "multGrowthCost": 1.7,
+      "panelParameters": [
+        {
+          "parameterId": 5,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 12,
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 16,
+          "perRank": 2.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 29,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 3
+    },
+    {
+      "name": "Shade of Night",
+      "key": "REB_2",
+      "iconIndex": 2210,
+      "unlockedByDefault": false,
+      "description": "When gloom overtakes us, just embrace it, really.|Nothing wrong with a little evil to balance good or whatever.",
+      "topFlavorText": "The touch of death is cold as ice.",
+      "maxRank": 15,
+      "baseCost": 300,
+      "flatGrowthCost": 75,
+      "multGrowthCost": 1.8,
+      "panelParameters": [
+        {
+          "parameterId": 5,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 12,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 19,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 25,
+          "perRank": -0.2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[216]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(216);"
+        }
+      ],
+      "rarity": 23
+    },
+    {
+      "name": "==WISPS==",
+      "key": "WIL___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Flame's Caress",
+      "key": "WIL_1",
+      "iconIndex": 2188,
+      "unlockedByDefault": false,
+      "description": "When the flames caress you, the power swells within.|It might be something else swelling, though.",
+      "topFlavorText": "Learn the skill \\Skill[214] when this node is maxed.",
+      "maxRank": 15,
+      "baseCost": 70,
+      "flatGrowthCost": 30,
+      "multGrowthCost": 1.25,
+      "panelParameters": [
+        {
+          "parameterId": 24,
+          "perRank": 0.2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 22,
+          "perRank": -0.2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 0,
+          "perRank": 15,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 1,
+          "perRank": 25,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[214]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(214);"
+        }
+      ],
+      "rarity": 23
+    },
+    {
+      "name": "Fiery Shuffle",
+      "key": "WIL_2",
+      "iconIndex": 2188,
+      "unlockedByDefault": false,
+      "description": "Wisps that perpetually explode are a nuisance to society- and also drop pretty aggressive nodes.",
+      "topFlavorText": "",
+      "maxRank": 20,
+      "baseCost": 250,
+      "flatGrowthCost": 80,
+      "multGrowthCost": 1.5,
+      "panelParameters": [
+        {
+          "parameterId": 24,
+          "perRank": 0.3,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 22,
+          "perRank": -0.4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 31
+    },
+    {
+      "name": "Yokai Blaze",
+      "key": "WIL_3",
+      "iconIndex": 2188,
+      "unlockedByDefault": false,
+      "description": "Killing the already-dead is an impressive feat.|Not like you cared or could even tell since it was taking fiery swings at ya like a douchebag.",
+      "topFlavorText": "The wrathful blaze of a dead dead thing is scary.",
+      "maxRank": 5,
+      "baseCost": 3000,
+      "flatGrowthCost": 1500,
+      "multGrowthCost": 1.1,
+      "panelParameters": [
+        {
+          "parameterId": 24,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 22,
+          "perRank": -0.8,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 4,
+          "perRank": 10,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==BONES==",
+      "key": "BON___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Boney Situation",
+      "key": "BON_1",
+      "iconIndex": 298,
+      "unlockedByDefault": false,
+      "description": "The skeleton is an age-old RPG enemy- often frail and wimpy.|These skeletors live up to that expectation in spades.",
+      "topFlavorText": "Learn the skill \"Backstep\" when this panel is maxed.",
+      "maxRank": 5,
+      "baseCost": 200,
+      "flatGrowthCost": 200,
+      "multGrowthCost": 1,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": -30,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 20,
+          "perRank": -3,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[292]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(292);"
+        }
+      ],
+      "rarity": 0
+    },
+    {
+      "name": "Spinal Control",
+      "key": "BON_2",
+      "iconIndex": 298,
+      "unlockedByDefault": false,
+      "description": "When the opportunity to smash up skeletons comes about, one must accept.|Smashing up skeledoggos is no exception to this hardfast rule.",
+      "topFlavorText": "The benefits of the dead should be weighed carefully.",
+      "maxRank": 10,
+      "baseCost": 280,
+      "flatGrowthCost": 100,
+      "multGrowthCost": 1.2,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": -10,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 20,
+          "perRank": -1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 2,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 6,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 11,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 23
+    },
+    {
+      "name": "==NECROS==",
+      "key": "NEC___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==SNAKE==",
+      "key": "SNK___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Princely Flourish",
+      "key": "SNK_1",
+      "iconIndex": 1797,
+      "unlockedByDefault": false,
+      "description": "Regally speaking, one should verily be theoretically flourishing preposterously nonstop.|Indubitibly🧐.",
+      "topFlavorText": "Be mindful of the poison, because poison fuckin' hurts and there are no antidotes.",
+      "maxRank": 15,
+      "baseCost": 225,
+      "flatGrowthCost": 75,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 28,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 23,
+          "perRank": -0.2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 9,
+          "perRank": -1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 31
+    },
+    {
+      "name": "Vice Fangs",
+      "key": "SNK_2",
+      "iconIndex": 1797,
+      "unlockedByDefault": false,
+      "description": "The golden viper bears the deadliest poison in all of Erocia.|Claiming its crown- its incisors- was ruthless, but a \\_real\\_ power move.",
+      "topFlavorText": "A viper's fangs are sharp as ... things that are very sharp.",
+      "maxRank": 5,
+      "baseCost": 800,
+      "flatGrowthCost": 950,
+      "multGrowthCost": 3.3,
+      "panelParameters": [
+        {
+          "parameterId": 28,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 23,
+          "perRank": -1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 2,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 8,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 18,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 22,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 28,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 15,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 25
+    },
+    {
+      "name": "Lamian Royalty",
+      "key": "SNK_3",
+      "iconIndex": 1797,
+      "unlockedByDefault": false,
+      "description": "Regally speaking, one should verily be theoretically flourishing preposterously nonstop.|Indubitibly🧐.",
+      "topFlavorText": "Learn the skill \"Energy Arrow\" when this panel is maxed.",
+      "maxRank": 20,
+      "baseCost": 250,
+      "flatGrowthCost": 100,
+      "multGrowthCost": 1.5,
+      "panelParameters": [
+        {
+          "parameterId": 28,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 23,
+          "perRank": -0.2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 3,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 16,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 19,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[243]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(243);"
+        }
+      ],
+      "rarity": 23
+    },
+    {
+      "name": "Gasp King",
+      "key": "SNK_4",
+      "iconIndex": 1797,
+      "unlockedByDefault": false,
+      "description": "Deadly snakes that do deadly things should be made ded faster than they ded you.",
+      "topFlavorText": "You dedded this snake so gud.",
+      "maxRank": 10,
+      "baseCost": 1500,
+      "flatGrowthCost": 1000,
+      "multGrowthCost": 3.25,
+      "panelParameters": [
+        {
+          "parameterId": 28,
+          "perRank": 3.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 23,
+          "perRank": -0.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 0,
+          "perRank": 25,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 11,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 9,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 21,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 15,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[443]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(443);"
+        }
+      ],
+      "rarity": 20
+    },
+    {
+      "name": "==DRAGON==",
+      "key": "DRG___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Dragonic Sacrifice",
+      "key": "DRG_1",
+      "iconIndex": 14,
+      "unlockedByDefault": false,
+      "description": "The dargins of Erocia can vary wildly in shape, size, color, and elemental affinity.|The Lesser Dargins are known for their petite stature, but they are still formidible.",
+      "topFlavorText": "Learn the skill \"Dargin Flames\" when this panel is maxed.",
+      "maxRank": 5,
+      "baseCost": 500,
+      "flatGrowthCost": 750,
+      "multGrowthCost": 1.2,
+      "panelParameters": [
+        {
+          "parameterId": 2,
+          "perRank": 2,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 0,
+          "perRank": 50,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 18,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 28,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[242]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(242);"
+        }
+      ],
+      "rarity": 31
+    },
+    {
+      "name": "Arctica Chillius",
+      "key": "DRG_2",
+      "iconIndex": 14,
+      "unlockedByDefault": false,
+      "description": "The dargins of Erocia can vary wildly in shape, size, color, and elemental affinity.|The Chilly Wyverns are known for being careful and calculating.",
+      "topFlavorText": "Something something witty something.",
+      "maxRank": 15,
+      "baseCost": 750,
+      "flatGrowthCost": 1000,
+      "multGrowthCost": 1.4,
+      "panelParameters": [
+        {
+          "parameterId": 2,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 1,
+          "perRank": 30,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 6,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 18,
+          "perRank": 2.5,
+          "isFlat": false,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 23
+    },
+    {
+      "name": "==DRACONIAN==",
+      "key": "DCO___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==HYDRA==",
+      "key": "HYD___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==SALAMANDER==",
+      "key": "SAL___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==KAPPA==",
+      "key": "KAP___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Impish Insight",
+      "key": "KAP_1",
+      "iconIndex": 67,
+      "unlockedByDefault": false,
+      "description": "The insight of the kappa is literally dripping with moisture.|Incase you're not sure what that means, neither am I.",
+      "topFlavorText": "",
+      "maxRank": 10,
+      "baseCost": 15,
+      "flatGrowthCost": 15,
+      "multGrowthCost": 1.5,
+      "panelParameters": [
+        {
+          "parameterId": 8,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 3.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 16,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 25,
+          "perRank": -0.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 3
+    },
+    {
+      "name": "Captain of the Kaps",
+      "key": "KAP_2",
+      "iconIndex": 67,
+      "unlockedByDefault": false,
+      "description": "Once in a literal blue moon- not the metaphorical one- the captain of kappas emerge to feast.|They eat a lot of things, but what they eat isn't as important as this sweet sweet node.",
+      "topFlavorText": "Even kappas have a captain, apparently.",
+      "maxRank": 15,
+      "baseCost": 40,
+      "flatGrowthCost": 150,
+      "multGrowthCost": 1.6,
+      "panelParameters": [
+        {
+          "parameterId": 8,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 4,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 5,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 13,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 20,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[211]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(211);"
+        }
+      ],
+      "rarity": 31
+    },
+    {
+      "name": "River Runs Deep",
+      "key": "KAP_3",
+      "iconIndex": 67,
+      "unlockedByDefault": false,
+      "description": "In some regions, kappa have come together in a sort of community and begun showing more civilized behavior.|This particular kappa appears to communicate with some sort of higher deity... I wonder if we'll meet them later?",
+      "topFlavorText": "Learn the skill \"Energy Beam\" when this panel is maxed.",
+      "maxRank": 15,
+      "baseCost": 100,
+      "flatGrowthCost": 150,
+      "multGrowthCost": 1.25,
+      "panelParameters": [
+        {
+          "parameterId": 8,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 0,
+          "perRank": 30,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterId": 5,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 18,
+          "perRank": -1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 26,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[238]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(238);"
+        }
+      ],
+      "rarity": 20
+    },
+    {
+      "name": "Kappan Dirty Tricks",
+      "key": "KAP_4",
+      "iconIndex": 67,
+      "unlockedByDefault": false,
+      "description": "Not all kappas are magical and worship their deities.|Some are guards for said shamans, and they really like playing dirty.",
+      "topFlavorText": "When you're just a shark-man, you sometimes need a dirty trick or two to win.",
+      "maxRank": 20,
+      "baseCost": 250,
+      "flatGrowthCost": 200,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 8,
+          "perRank": 2.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 0.5,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 10,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 28,
+          "perRank": 2.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 11,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 23
+    },
+    {
+      "name": "==FROG==",
+      "key": "FRG___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Bounding Joy",
+      "key": "FRG_1",
+      "iconIndex": 67,
+      "unlockedByDefault": false,
+      "description": "Cave frogs do hippity hop and lickity spit as annoyingly as you would expect.",
+      "topFlavorText": "",
+      "maxRank": 10,
+      "baseCost": 15,
+      "flatGrowthCost": 15,
+      "multGrowthCost": 1.5,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": 20,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 13,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 2,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 9,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 23
+    },
+    {
+      "name": "Ribbit Burps",
+      "key": "FRG_2",
+      "iconIndex": 67,
+      "unlockedByDefault": false,
+      "description": "When reaching the frogs is harder, they seem to somehow become more annoying and will teach you the same.",
+      "topFlavorText": "",
+      "maxRank": 15,
+      "baseCost": 250,
+      "flatGrowthCost": 100,
+      "multGrowthCost": 1.7,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": 10,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 13,
+          "perRank": 0.2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 8,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==CRAB==",
+      "key": "CRB___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Crabtastical Crunchiness",
+      "key": "CRB_1",
+      "iconIndex": 227,
+      "unlockedByDefault": false,
+      "description": "The crabs of Volcanis are no joke, what with them constantly trying to keep you rooted in-place.|It is unclear how they exist in such a hot area without just being cooked by the ambient temperature.",
+      "topFlavorText": "Combo crabs are the worst- not even good enough for eating.",
+      "maxRank": 10,
+      "baseCost": 1000,
+      "flatGrowthCost": 600,
+      "multGrowthCost": 1.6,
+      "panelParameters": [
+        {
+          "parameterId": 29,
+          "perRank": 2,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 19,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 19,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterId": 24,
+          "perRank": -1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 3
+    },
+    {
+      "name": "==FISH==",
+      "key": "FSH___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==CEPHALOPOD==",
+      "key": "CPH___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==SLIME==",
       "key": "SLI___",
       "iconIndex": 0,
@@ -1552,11 +2800,11 @@
       "rarity": 0
     },
     {
-      "name": "Erocian Strong Style",
+      "name": "Slimestep",
       "key": "SLI_1",
       "iconIndex": 2164,
       "unlockedByDefault": false,
-      "description": "This long-forgotten slime really knew how to wrangle.|The Erocian Strong Style is a reckless style with a goal of maximizing enemy bone breakage.",
+      "description": "A slime in the depths of some no-name cave in Erocia wielded great four-step moves.|Learn from the master and step on your enemies how they like it.",
       "topFlavorText": "\"Slimes just aren't as strong as they used to be.\" --Rupert",
       "maxRank": 10,
       "baseCost": 50,
@@ -1614,8 +2862,106 @@
       "key": "SLI_2",
       "iconIndex": 2164,
       "unlockedByDefault": false,
-      "description": "A slime literally in a dark ass basin apparently had this panel.|This slime doesn't appear different than normal slimes, but Liquify sure does hurt.",
-      "topFlavorText": "Learn the skill \"Liquify\" when this panel is maxed.",
+      "description": "The wilds around Raevula are home to the slimes bearing this node.|Like ghostys, these desert-themed slimes should be eradicated without mercy.",
+      "topFlavorText": "You can still hear their exotic throbbing while you gaze at the node.",
+      "maxRank": 20,
+      "baseCost": 300,
+      "flatGrowthCost": 80,
+      "multGrowthCost": 1.2,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": 60,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 15,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": -1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 14,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 9,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 9,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 31
+    },
+    {
+      "name": "The Jigglejest",
+      "key": "SLI_3",
+      "iconIndex": 2164,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 20,
+      "baseCost": 300,
+      "flatGrowthCost": 80,
+      "multGrowthCost": 1.2,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": 60,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 15,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": -1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 14,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[230]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(230);"
+        }
+      ],
+      "rarity": 3
+    },
+    {
+      "name": "Romping Dessert",
+      "key": "SLI_4",
+      "iconIndex": 2164,
+      "unlockedByDefault": false,
+      "description": "A slime literally in a dark ass basin apparently had this node.|This slime doesn't appear much different from normal slimes, but \\skill[230] sure does hurt.",
+      "topFlavorText": "Liquifaction is a state of being, according to slimes.",
       "maxRank": 20,
       "baseCost": 300,
       "flatGrowthCost": 80,
@@ -1659,61 +3005,15 @@
           "effect": "a.learnSkill(230);"
         }
       ],
-      "rarity": 31
+      "rarity": 23
     },
     {
-      "name": "Mostly-Seeing Eyes",
-      "key": "SLI_3",
-      "iconIndex": 2164,
-      "unlockedByDefault": false,
-      "description": "It was a stretch to call this a slime, but then you see its tentacles.|Known for gorging on bearcats during the winter, apparently.",
-      "topFlavorText": "Learn the skill \"Brainfog\" when this panel is maxed.",
-      "maxRank": 10,
-      "baseCost": 325,
-      "flatGrowthCost": 110,
-      "multGrowthCost": 1.3,
-      "panelParameters": [
-        {
-          "parameterId": 0,
-          "perRank": 40,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 15,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 3,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 11,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[237]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(237);"
-        }
-      ],
-      "rarity": 3
-    },
-    {
-      "name": "Temporal Tactics",
-      "key": "SLI_4",
+      "name": "Temporal Tapdance",
+      "key": "SLI_5",
       "iconIndex": 2164,
       "unlockedByDefault": false,
       "description": "While some slimes just absorb your essence through material breakdown,|others are more inclined to melt your face off from another dimension.",
-      "topFlavorText": "Learn the skill \"Auto-Trudge\" when this panel is maxed.",
+      "topFlavorText": "Why do all slimes want to absorb you???",
       "maxRank": 10,
       "baseCost": 600,
       "flatGrowthCost": 400,
@@ -1773,11 +3073,11 @@
     },
     {
       "name": "Redhot Blobbing",
-      "key": "SLI_5",
+      "key": "SLI_6",
       "iconIndex": 2164,
       "unlockedByDefault": false,
       "description": "It is difficult to tell if this was an actual living entity, or just some blob of lava you hacked at for a while.|Either way, its explosions suck so chopping these up is encouraged.",
-      "topFlavorText": "Learn the skill \\Skill[423] when this panel is maxed.",
+      "topFlavorText": "Dimensional magma hurts just as much as local magma- more at 11.",
       "maxRank": 5,
       "baseCost": 500,
       "flatGrowthCost": 500,
@@ -1812,8 +3112,8 @@
       "rarity": 0
     },
     {
-      "name": "==BEES==",
-      "key": "BEE___",
+      "name": "==TENTACLED==",
+      "key": "TNT___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -1827,1324 +3127,53 @@
       "rarity": 0
     },
     {
-      "name": "Sting like a Bee",
-      "key": "BEE_1",
-      "iconIndex": 298,
+      "name": "Mostly-Seeing Eyes",
+      "key": "TNT_1",
+      "iconIndex": 2164,
       "unlockedByDefault": false,
-      "description": "The lessons learned by all of the slain needlers in the land.|Slaying these pests not only make you feel better, but also help \"the people\".",
-      "topFlavorText": "Learn the skill \"Lunge\" when this panel is maxed.",
-      "maxRank": 5,
-      "baseCost": 10,
-      "flatGrowthCost": 10,
-      "multGrowthCost": 2,
-      "panelParameters": [
-        {
-          "parameterId": 8,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 9,
-          "perRank": 2.5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 14,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 28,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 30,
-          "perRank": 10,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[291]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(291);"
-        }
-      ],
-      "rarity": 23
-    },
-    {
-      "name": "Pressure Points",
-      "key": "BEE_2",
-      "iconIndex": 298,
-      "unlockedByDefault": false,
-      "description": "These appear to be just off-colored Needlers, but they are exponentially more vicious!|The speed of these things is insane, and now yours can be, too.",
-      "topFlavorText": "Learn the skill \"Venomous Burst\" when this panel is maxed.",
+      "description": "It was a stretch to call this a slime, but then you see its tentacles.|Known for gorging on bearcats during the winter, apparently.",
+      "topFlavorText": "Learn the skill \"Brainfog\" when this panel is maxed.",
       "maxRank": 10,
-      "baseCost": 350,
-      "flatGrowthCost": 75,
+      "baseCost": 325,
+      "flatGrowthCost": 110,
       "multGrowthCost": 1.3,
       "panelParameters": [
-        {
-          "parameterId": 8,
-          "perRank": 4.5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 9,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 10,
-          "perRank": 2.5,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[235]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(235);"
-        }
-      ],
-      "rarity": 0
-    },
-    {
-      "name": "Drillsation",
-      "key": "BEE_3",
-      "iconIndex": 298,
-      "unlockedByDefault": false,
-      "description": "Much much more than your average bumblebee, this ruthless stinger has evolved in the harshest of wildernesses to execute even mighty megataurs in a single blow.\nCrits truly are deadly and piss everyone off.",
-      "topFlavorText": "Learn skill when maxed.",
-      "maxRank": 20,
-      "baseCost": 750,
-      "flatGrowthCost": 250,
-      "multGrowthCost": 2.6,
-      "panelParameters": [
-        {
-          "parameterId": 8,
-          "perRank": 0.5,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 9,
-          "perRank": 1.5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 2,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 6,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 8,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 10,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 18,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 28,
-          "perRank": 2.5,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[235]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(235);"
-        }
-      ],
-      "rarity": 25
-    },
-    {
-      "name": "==TENTACLES==",
-      "key": "TEN___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Tentacular Touch",
-      "key": "TEN_1",
-      "iconIndex": 2338,
-      "unlockedByDefault": false,
-      "description": "Sometimes you just need to reach out and slap a lot of people at once.",
-      "topFlavorText": "Whip it good.",
-      "maxRank": 15,
-      "baseCost": 60,
-      "flatGrowthCost": 40,
-      "multGrowthCost": 1.2,
-      "panelParameters": [
-        {
-          "parameterId": 1,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 19,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 6,
-          "perRank": -2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 16,
-          "perRank": 8,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 3
-    },
-    {
-      "name": "Bloody Embrace",
-      "key": "TEN_2",
-      "iconIndex": 2338,
-      "unlockedByDefault": false,
-      "description": "The poison of the bloodtrap is extremely dangerous.|Even a few drops can weaken the body enough to be devourable by the trap.",
-      "topFlavorText": "Learn the skill \"Sap\" when this panel is maxed.",
-      "maxRank": 20,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.33,
-      "panelParameters": [
-        {
-          "parameterId": 1,
-          "perRank": 2,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 19,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 25,
-          "perRank": -0.5,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[231]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(231);"
-        }
-      ],
-      "rarity": 0
-    },
-    {
-      "name": "==BEARS==",
-      "key": "BER___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Bearfisting It",
-      "key": "BER_1",
-      "iconIndex": 105,
-      "unlockedByDefault": false,
-      "description": "Why put a glove on it when you can just bearfist it instead?|Bearfisting is an ancient technique passed down from grizzly to grizzly.",
-      "topFlavorText": "Learn the skill \"Heavy Blow\" when this panel is maxed.",
-      "maxRank": 15,
-      "baseCost": 100,
-      "flatGrowthCost": 15,
-      "multGrowthCost": 1.3,
-      "panelParameters": [
-        {
-          "parameterId": 3,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 5,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 2,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 15,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 17,
-          "perRank": 0.1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 28,
-          "perRank": 1.5,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[210]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(210);"
-        }
-      ],
-      "rarity": 31
-    },
-    {
-      "name": "Stone's Secret",
-      "key": "BER_2",
-      "iconIndex": 105,
-      "unlockedByDefault": false,
-      "description": "The panel derived from centuries of breeding. Not selective or anything, just regular ol' breeding.|Probably started with a goal in mind, but ya know, bear urges happened.",
-      "topFlavorText": "It was rather difficult finding this panel on the bear considering it had fur made of stone.",
-      "maxRank": 10,
-      "baseCost": 400,
-      "flatGrowthCost": 120,
-      "multGrowthCost": 1.4,
-      "panelParameters": [
-        {
-          "parameterId": 3,
-          "perRank": 6,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 5,
-          "perRank": -2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 3,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterId": 11,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 29,
-          "perRank": 0.5,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[229]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(229);"
-        }
-      ],
-      "rarity": 23
-    },
-    {
-      "name": "Descend into Darkness",
-      "key": "BER_3",
-      "iconIndex": 105,
-      "unlockedByDefault": false,
-      "description": "A void-consumed bear proved difficult to defeat considering its vast amount of life, but at least|you managed to pry this node from its dead bear mitts.",
-      "topFlavorText": "The deepest desires of a bear apparently have always been to descend into darkness.",
-      "maxRank": 10,
-      "baseCost": 600,
-      "flatGrowthCost": 250,
-      "multGrowthCost": 1.1,
-      "panelParameters": [
-        {
-          "parameterId": 3,
-          "perRank": -2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 5,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 15,
-          "perRank": -0.5,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterId": 20,
-          "perRank": -3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 5,
-          "perRank": -5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 18,
-          "perRank": -2,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 31
-    },
-    {
-      "name": "==ORCS==",
-      "key": "ORC___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Orcan Obediance",
-      "key": "ORC_1",
-      "iconIndex": 471,
-      "unlockedByDefault": false,
-      "description": "These orcs were once quite menacing, but clearly your subduing put them into place.|If only you could make use of some of their skills...",
-      "topFlavorText": "Learn \\Skill[246] when this panel is maxed.",
-      "maxRank": 10,
-      "baseCost": 300,
-      "flatGrowthCost": 300,
-      "multGrowthCost": 1.3,
-      "panelParameters": [
-        {
-          "parameterId": 30,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 14,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": true
-        },
         {
           "parameterId": 0,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[246]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(246);"
-        }
-      ],
-      "rarity": 0
-    },
-    {
-      "name": "Orcan Stormcalling",
-      "key": "ORC_2",
-      "iconIndex": 471,
-      "unlockedByDefault": false,
-      "description": "Upper eschelons of orcs are oft heavily intuned with nature, allowing manipulation of the elements.|Thunder is deadly to manipulate, so why not learn it yourself?",
-      "topFlavorText": "Learn \\Skill[247] when this panel is maxed.",
-      "maxRank": 15,
-      "baseCost": 600,
-      "flatGrowthCost": 750,
-      "multGrowthCost": 1.2,
-      "panelParameters": [
-        {
-          "parameterId": 30,
-          "perRank": 2,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 14,
-          "perRank": 0.5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 1,
-          "perRank": 25,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 3,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterId": 4,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 28,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 18,
-          "perRank": -1,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[247]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(247);"
-        }
-      ],
-      "rarity": 20
-    },
-    {
-      "name": "Orcan Mountaineering",
-      "key": "ORC_3",
-      "iconIndex": 471,
-      "unlockedByDefault": false,
-      "description": "Orcs that are capable of countering are mean douchebags deserving of getting kicked in the face-\nhopefully that was precisely what you did to acquire this node.",
-      "topFlavorText": "A deadly orc in the mountains that was very deadly and deadly and also kinda chonky.",
-      "maxRank": 10,
-      "baseCost": 900,
-      "flatGrowthCost": 900,
-      "multGrowthCost": 2,
-      "panelParameters": [
-        {
-          "parameterId": 30,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 14,
-          "perRank": 0.5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 9,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 19,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 29,
-          "perRank": 2.5,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 23
-    },
-    {
-      "name": "==KAPPAS==",
-      "key": "IMP___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Impish Insight",
-      "key": "IMP_1",
-      "iconIndex": 67,
-      "unlockedByDefault": false,
-      "description": "The insight of the kappa is literally dripping with moisture.|Incase you're not sure what that means, neither am I.",
-      "topFlavorText": "Learn the skill \"Kappa Slap\" when this panel is maxed.",
-      "maxRank": 10,
-      "baseCost": 15,
-      "flatGrowthCost": 15,
-      "multGrowthCost": 1.5,
-      "panelParameters": [
-        {
-          "parameterId": 8,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 16,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 7,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 25,
-          "perRank": -0.5,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[211]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(211);"
-        }
-      ],
-      "rarity": 31
-    },
-    {
-      "name": "River Runs Deep",
-      "key": "IMP_2",
-      "iconIndex": 67,
-      "unlockedByDefault": false,
-      "description": "In some regions, kappa have come together in a sort of community and begun showing more civilized behavior.|This particular kappa appears to communicate with some sort of higher deity... I wonder if we'll meet them later?",
-      "topFlavorText": "Learn the skill \"Energy Beam\" when this panel is maxed.",
-      "maxRank": 15,
-      "baseCost": 100,
-      "flatGrowthCost": 150,
-      "multGrowthCost": 1.25,
-      "panelParameters": [
-        {
-          "parameterId": 8,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 16,
-          "perRank": 8,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 0,
-          "perRank": 30,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 4,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterId": 5,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 18,
-          "perRank": -1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 26,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[238]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(238);"
-        }
-      ],
-      "rarity": 20
-    },
-    {
-      "name": "Kappan Dirty Tricks",
-      "key": "IMP_3",
-      "iconIndex": 67,
-      "unlockedByDefault": false,
-      "description": "Not all kappas are magical and worship their deities.|Some are guards for said shamans, and they really like playing dirty.",
-      "topFlavorText": "When you're just a shark-man, you sometimes need a dirty trick or two to win.",
-      "maxRank": 20,
-      "baseCost": 250,
-      "flatGrowthCost": 200,
-      "multGrowthCost": 1.3,
-      "panelParameters": [
-        {
-          "parameterId": 8,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 16,
-          "perRank": 0.5,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 10,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 28,
-          "perRank": 2.5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 11,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 23
-    },
-    {
-      "name": "==RODENTS==",
-      "key": "RAT___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Resourceful Ratactics",
-      "key": "RAT_1",
-      "iconIndex": 2404,
-      "unlockedByDefault": false,
-      "description": "Rats manage to thrive in nearly all environments, including flooded rivers.|Channel your inner rat and get resourceful.",
-      "topFlavorText": "Learn the skill \"Tumble\" when this panel is maxed.",
-      "maxRank": 10,
-      "baseCost": 300,
-      "flatGrowthCost": 100,
-      "multGrowthCost": 1.3,
-      "panelParameters": [
-        {
-          "parameterId": 27,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 6,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 7,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 11,
-          "perRank": -1,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[293]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(293);"
-        }
-      ],
-      "rarity": 3
-    },
-    {
-      "name": "==BATS==",
-      "key": "BAT___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Skies of the Cave",
-      "key": "BAT_1",
-      "iconIndex": 2372,
-      "unlockedByDefault": false,
-      "description": "Bats are vicious and obnoxious creatures|They are renowned far and wide for slaying young would-be protagonists.",
-      "topFlavorText": "You truly can never chop up enough bats. You're doing the cave a favor.",
-      "maxRank": 10,
-      "baseCost": 70,
-      "flatGrowthCost": 30,
-      "multGrowthCost": 1.5,
-      "panelParameters": [
-        {
-          "parameterId": 6,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 17,
-          "perRank": 0.25,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 9,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Soak 'n' Spray",
-      "key": "BAT_2",
-      "iconIndex": 2372,
-      "unlockedByDefault": false,
-      "description": "Apparently, this planet has somehow managed to evolve water bats.|We aren't talking about bats that like water, we're talking bats MADE OF WATER.",
-      "topFlavorText": "Bats that are made of water are just as stupid as those that aren't.",
-      "maxRank": 15,
-      "baseCost": 400,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.6,
-      "panelParameters": [
-        {
-          "parameterId": 6,
-          "perRank": -1,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 17,
-          "perRank": 0.1,
+          "perRank": 40,
           "isFlat": true,
           "isCore": true
         },
         {
           "parameterId": 15,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterId": 20,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 3
-    },
-    {
-      "name": "Crimson Gaze",
-      "key": "BAT_3",
-      "iconIndex": 2372,
-      "unlockedByDefault": false,
-      "description": "An ever-iconic eyeball with wings. They can be found all across the universe for some reason.|This one however, appears to be wrapped in flames, which makes it rather annoying to get close to.",
-      "topFlavorText": "Learn the skill \\Skill[248] when this panel is maxed.",
-      "maxRank": 10,
-      "baseCost": 600,
-      "flatGrowthCost": 300,
-      "multGrowthCost": 1.3,
-      "panelParameters": [
-        {
-          "parameterId": 6,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 17,
-          "perRank": 0.25,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 7,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 10,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 30,
-          "perRank": 5,
-          "isFlat": false,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[248]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(248);"
-        }
-      ],
-      "rarity": 23
-    },
-    {
-      "name": "==WISPS==",
-      "key": "WIL___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Flame's Caress",
-      "key": "WIL_1",
-      "iconIndex": 2188,
-      "unlockedByDefault": false,
-      "description": "When the flames caress you, the power swells within.|It might be something else swelling, though.",
-      "topFlavorText": "Learn the skill \\Skill[214] when this node is maxed.",
-      "maxRank": 30,
-      "baseCost": 70,
-      "flatGrowthCost": 30,
-      "multGrowthCost": 1.25,
-      "panelParameters": [
-        {
-          "parameterId": 24,
-          "perRank": 0.5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 22,
-          "perRank": -0.5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 0,
-          "perRank": 15,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 1,
-          "perRank": 25,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 4,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 10,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 18,
-          "perRank": 1.5,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[214]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(214);"
-        }
-      ],
-      "rarity": 20
-    },
-    {
-      "name": "Yokai Blaze",
-      "key": "WIL_2",
-      "iconIndex": 2188,
-      "unlockedByDefault": false,
-      "description": "Killing the already-dead is an impressive feat.|Not like you cared or could even tell since it was taking fiery swings at ya like a douchebag.",
-      "topFlavorText": "The wrathful blaze of a dead dead thing is scary.",
-      "maxRank": 5,
-      "baseCost": 3000,
-      "flatGrowthCost": 1500,
-      "multGrowthCost": 1.1,
-      "panelParameters": [
-        {
-          "parameterId": 24,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 22,
-          "perRank": -0.75,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 4,
-          "perRank": 10,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==MINOTAURS=",
-      "key": "MIN___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Bullheaded",
-      "key": "MIN_1",
-      "iconIndex": 2392,
-      "unlockedByDefault": false,
-      "description": "Being bullheaded isn't always a bad thing.|He grew to be big and strong from a little cow before you slayed him!",
-      "topFlavorText": "Be strong and tenacious like the bull. Or pretend at least.",
-      "maxRank": 10,
-      "baseCost": 70,
-      "flatGrowthCost": 30,
-      "multGrowthCost": 1.4,
-      "panelParameters": [
-        {
-          "parameterId": 0,
-          "perRank": 1.5,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 2,
           "perRank": 2,
           "isFlat": true,
           "isCore": true
         },
         {
-          "parameterId": 27,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 12,
+          "parameterId": 3,
           "perRank": 2,
           "isFlat": true,
           "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 3
-    },
-    {
-      "name": "Ironfist of Iron",
-      "key": "MIN_2",
-      "iconIndex": 2392,
-      "unlockedByDefault": false,
-      "description": "The terror of the megataurs are known far and wide.|Deleting them would save hundreds of lives per year.",
-      "topFlavorText": "The one with the iron fist of iron will rule.",
-      "maxRank": 10,
-      "baseCost": 330,
-      "flatGrowthCost": 70,
-      "multGrowthCost": 1.6,
-      "panelParameters": [
-        {
-          "parameterId": 0,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 2,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": true
         },
         {
           "parameterId": 11,
           "perRank": 2,
           "isFlat": true,
           "isCore": false
-        },
-        {
-          "parameterId": 29,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 23
-    },
-    {
-      "name": "==FLORA==",
-      "key": "PLA___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Pissed Off Sprout",
-      "key": "PLA_1",
-      "iconIndex": 2320,
-      "unlockedByDefault": false,
-      "description": "The rage of a sprout (such as a Fungrowth) should never be underestimated.|Never forget.",
-      "topFlavorText": "Learn the skill \"Rage Growth\" when this panel is maxed.",
-      "maxRank": 5,
-      "baseCost": 100,
-      "flatGrowthCost": 100,
-      "multGrowthCost": 1,
-      "panelParameters": [
-        {
-          "parameterId": 14,
-          "perRank": 0.2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 21,
-          "perRank": -3,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 2,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 2,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterId": 4,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 4,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": false
         }
       ],
       "panelRewards": [
         {
-          "rewardName": "Learn: \\Skill[217]",
+          "rewardName": "Learn: \\Skill[237]",
           "rankRequired": 0,
-          "effect": "a.learnSkill(217);"
+          "effect": "a.learnSkill(237);"
         }
       ],
-      "rarity": 31
+      "rarity": 3
     },
     {
-      "name": "Spiritual Shrooming",
-      "key": "PLA_2",
-      "iconIndex": 2320,
-      "unlockedByDefault": false,
-      "description": "Fungrowths that have ceased to exist actually don't cease to exist in this realm,\nthey just respawn as ghosty versions and are much more menacing.",
-      "topFlavorText": "Learn their trademark skill upon maxing this panel.",
-      "maxRank": 15,
-      "baseCost": 1000,
-      "flatGrowthCost": 650,
-      "multGrowthCost": 2.2,
-      "panelParameters": [
-        {
-          "parameterId": 14,
-          "perRank": 0.1,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 21,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 5,
-          "perRank": 2.5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 12,
-          "perRank": 2.5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 13,
-          "perRank": 0.5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 16,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 22,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[217]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(217);"
-        }
-      ],
-      "rarity": 20
-    },
-    {
-      "name": "==JELLIES==",
+      "name": "==JEL==",
       "key": "JEL___",
       "iconIndex": 0,
       "unlockedByDefault": false,
@@ -3245,7 +3274,349 @@
       "rarity": 3
     },
     {
-      "name": "==FAERIES==",
+      "name": "==AERIAL==",
+      "key": "AER___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Soak 'n' Spray",
+      "key": "AER_1",
+      "iconIndex": 2372,
+      "unlockedByDefault": false,
+      "description": "Apparently, this planet has somehow managed to evolve water bats.|We aren't talking about bats that like water, we're talking bats MADE OF WATER.",
+      "topFlavorText": "Bats that are made of water are just as stupid as those that aren't.",
+      "maxRank": 10,
+      "baseCost": 400,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.6,
+      "panelParameters": [
+        {
+          "parameterId": 9,
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 20,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 20,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Mystic Gooping",
+      "key": "AER_2",
+      "iconIndex": 2372,
+      "unlockedByDefault": false,
+      "description": "TODO (magi-goobat)",
+      "topFlavorText": "TODO",
+      "maxRank": 15,
+      "baseCost": 400,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.6,
+      "panelParameters": [
+        {
+          "parameterId": 9,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 20,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 1,
+          "perRank": 30,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 13,
+          "perRank": 0.8,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 23
+    },
+    {
+      "name": "==CUBE==",
+      "key": "CUB___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==TRAP==",
+      "key": "TRP___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Tentacular Touch",
+      "key": "TRP_1",
+      "iconIndex": 2338,
+      "unlockedByDefault": false,
+      "description": "Sometimes you just need to reach out and slap a lot of people at once.",
+      "topFlavorText": "Whip it good.",
+      "maxRank": 15,
+      "baseCost": 60,
+      "flatGrowthCost": 40,
+      "multGrowthCost": 1.2,
+      "panelParameters": [
+        {
+          "parameterId": 1,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 19,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": -2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 16,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 3
+    },
+    {
+      "name": "Bloody Embrace",
+      "key": "TRP_2",
+      "iconIndex": 2338,
+      "unlockedByDefault": false,
+      "description": "The poison of the bloodtrap is extremely dangerous.|Even a few drops can weaken the body enough to be devourable by the trap.",
+      "topFlavorText": "Learn the skill \"Sap\" when this panel is maxed.",
+      "maxRank": 20,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.33,
+      "panelParameters": [
+        {
+          "parameterId": 1,
+          "perRank": 2,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 19,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 25,
+          "perRank": -0.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[231]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(231);"
+        }
+      ],
+      "rarity": 0
+    },
+    {
+      "name": "==FUNGUS==",
+      "key": "FUN___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Pissed Off Sprout",
+      "key": "FUN_1",
+      "iconIndex": 2320,
+      "unlockedByDefault": false,
+      "description": "The rage of a sprout (such as a Fungrowth) should never be underestimated.|Never forget.",
+      "topFlavorText": "Learn the skill \"Rage Growth\" when this panel is maxed.",
+      "maxRank": 5,
+      "baseCost": 100,
+      "flatGrowthCost": 100,
+      "multGrowthCost": 1,
+      "panelParameters": [
+        {
+          "parameterId": 14,
+          "perRank": 0.2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 21,
+          "perRank": -3,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 2,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 2,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[217]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(217);"
+        }
+      ],
+      "rarity": 31
+    },
+    {
+      "name": "Spiritual Shrooming",
+      "key": "FUN_2",
+      "iconIndex": 2320,
+      "unlockedByDefault": false,
+      "description": "Fungrowths that have ceased to exist actually don't cease to exist in this realm,\nthey just respawn as ghosty versions and are much more menacing.",
+      "topFlavorText": "Learn their trademark skill upon maxing this panel.",
+      "maxRank": 15,
+      "baseCost": 1000,
+      "flatGrowthCost": 650,
+      "multGrowthCost": 2.2,
+      "panelParameters": [
+        {
+          "parameterId": 14,
+          "perRank": 0.1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 21,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 5,
+          "perRank": 2.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 12,
+          "perRank": 2.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 13,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 16,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 22,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[217]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(217);"
+        }
+      ],
+      "rarity": 20
+    },
+    {
+      "name": "==FAE==",
       "key": "FAE___",
       "iconIndex": 0,
       "unlockedByDefault": false,
@@ -3306,8 +3677,66 @@
       "rarity": 3
     },
     {
-      "name": "Unseelie Court",
+      "name": "Regius Terra",
       "key": "FAE_2",
+      "iconIndex": 5,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 20,
+      "baseCost": 800,
+      "flatGrowthCost": 800,
+      "multGrowthCost": 2.5,
+      "panelParameters": [
+        {
+          "parameterId": 4,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 4,
+          "perRank": 0.25,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 1,
+          "perRank": 25,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 12,
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 18,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": -0.5
+        },
+        {
+          "parameterId": 25,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": -0.5
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[442]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(442);"
+        }
+      ],
+      "rarity": 23
+    },
+    {
+      "name": "Unseelie Court",
+      "key": "FAE_3",
       "iconIndex": 5,
       "unlockedByDefault": false,
       "description": "When the unseelie chaos can be encapsulated, it can eventually be converted into a battery to fuel your stats ala this node!",
@@ -3364,8 +3793,8 @@
       "rarity": 31
     },
     {
-      "name": "==BANDITS==",
-      "key": "THF___",
+      "name": "==TREANT==",
+      "key": "TRE___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -3379,112 +3808,252 @@
       "rarity": 0
     },
     {
-      "name": "Thief's Code",
-      "key": "THF_1",
-      "iconIndex": 191,
+      "name": "==FLOWER==",
+      "key": "FLW___",
+      "iconIndex": 0,
       "unlockedByDefault": false,
-      "description": "The thief's code describes all sorts of various rules.|They are really more like guidelines, though.",
-      "topFlavorText": "Learn the skill \"Shockwave\" when this panel is maxed.",
-      "maxRank": 10,
-      "baseCost": 40,
-      "flatGrowthCost": 60,
-      "multGrowthCost": 2.2,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==HYBRID==",
+      "key": "HBR___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Bearfisting It",
+      "key": "HBR_1",
+      "iconIndex": 105,
+      "unlockedByDefault": false,
+      "description": "Why put a glove on it when you can just bearfist it instead?|Bearfisting is an ancient technique passed down from grizzly to grizzly.",
+      "topFlavorText": "Learn the skill \"Heavy Blow\" when this panel is maxed.",
+      "maxRank": 15,
+      "baseCost": 100,
+      "flatGrowthCost": 15,
+      "multGrowthCost": 1.3,
       "panelParameters": [
         {
-          "parameterId": 6,
+          "parameterId": 3,
           "perRank": 1,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 21,
-          "perRank": 2,
           "isFlat": true,
           "isCore": true
         },
         {
-          "parameterId": 6,
-          "perRank": 5,
+          "parameterId": 5,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 2,
+          "perRank": 4,
           "isFlat": true,
           "isCore": false
         },
         {
-          "parameterId": 7,
+          "parameterId": 15,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 28,
           "perRank": 1.5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 11,
-          "perRank": 1,
           "isFlat": true,
           "isCore": false
         }
       ],
       "panelRewards": [
         {
-          "rewardName": "Learn: \\Skill[222]",
+          "rewardName": "Learn: \\Skill[210]",
           "rankRequired": 0,
-          "effect": "a.learnSkill(222);"
+          "effect": "a.learnSkill(210);"
         }
       ],
-      "rarity": 0
+      "rarity": 31
     },
     {
-      "name": "Outlaw's Shortcuts",
-      "key": "THF_2",
-      "iconIndex": 191,
+      "name": "Stone's Secret",
+      "key": "HBR_2",
+      "iconIndex": 105,
       "unlockedByDefault": false,
-      "description": "In the north eastern reaches of Erocia, disaster appears to have struck.|Bandits leveled up their game and transcended to outlaws, making your life that much harder.",
-      "topFlavorText": "Even bandits need to step up their game from time to time.",
+      "description": "The panel derived from centuries of breeding. Not selective or anything, just regular ol' breeding.|Probably started with a goal in mind, but ya know, bear urges happened.",
+      "topFlavorText": "It was rather difficult finding this panel on the bear considering it had fur made of stone.",
       "maxRank": 10,
-      "baseCost": 300,
-      "flatGrowthCost": 300,
-      "multGrowthCost": 1.9,
+      "baseCost": 400,
+      "flatGrowthCost": 120,
+      "multGrowthCost": 1.4,
       "panelParameters": [
         {
-          "parameterId": 6,
-          "perRank": 2,
+          "parameterId": 3,
+          "perRank": 6,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 5,
+          "perRank": -2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 3,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterId": 11,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 29,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[229]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(229);"
+        }
+      ],
+      "rarity": 23
+    },
+    {
+      "name": "Descend into Darkness",
+      "key": "HBR_3",
+      "iconIndex": 105,
+      "unlockedByDefault": false,
+      "description": "A void-consumed bear proved difficult to defeat considering its vast amount of life, but at least|you managed to pry this node from its dead bear mitts.",
+      "topFlavorText": "The deepest desires of a bear apparently have always been to descend into darkness.",
+      "maxRank": 10,
+      "baseCost": 600,
+      "flatGrowthCost": 250,
+      "multGrowthCost": 1.1,
+      "panelParameters": [
+        {
+          "parameterId": 3,
+          "perRank": -2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 5,
+          "perRank": 1,
           "isFlat": false,
           "isCore": true
         },
         {
-          "parameterId": 21,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 6,
-          "perRank": 8,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 30,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 17,
-          "perRank": 0.5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 23,
+          "parameterId": 15,
           "perRank": -0.5,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterId": 20,
+          "perRank": -3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 5,
+          "perRank": -5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 18,
+          "perRank": -2,
           "isFlat": true,
           "isCore": false
         }
       ],
       "panelRewards": [],
-      "rarity": 23
+      "rarity": 31
     },
     {
-      "name": "==SINS==",
-      "key": "SIN___",
+      "name": "Voidal Rendering",
+      "key": "HBR_4",
+      "iconIndex": 105,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 10,
+      "baseCost": 600,
+      "flatGrowthCost": 250,
+      "multGrowthCost": 1.1,
+      "panelParameters": [
+        {
+          "parameterId": 3,
+          "perRank": -2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 5,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 15,
+          "perRank": -0.5,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterId": 20,
+          "perRank": -3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 5,
+          "perRank": -5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 18,
+          "perRank": -2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 3
+    },
+    {
+      "name": "==WINGER==",
+      "key": "WNG___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -3498,27 +4067,448 @@
       "rarity": 0
     },
     {
-      "name": "Glutton's Dogma",
-      "key": "SIN_1",
-      "iconIndex": 1547,
+      "name": "Skies of the Cave",
+      "key": "WNG_1",
+      "iconIndex": 2372,
       "unlockedByDefault": false,
-      "description": "The dogma of the Glutton is held above all else: \"thou must satiate thine hunger\".",
-      "topFlavorText": "This node radiates with a strange energy...",
-      "maxRank": 20,
-      "baseCost": 0,
-      "flatGrowthCost": 250,
-      "multGrowthCost": 2.5,
+      "description": "Bats are vicious and obnoxious creatures|They are renowned far and wide for slaying young would-be protagonists.",
+      "topFlavorText": "You truly can never chop up enough bats. You're doing the cave a favor.",
+      "maxRank": 10,
+      "baseCost": 70,
+      "flatGrowthCost": 30,
+      "multGrowthCost": 1.5,
       "panelParameters": [
         {
-          "parameterId": 0,
-          "perRank": 25,
+          "parameterId": 6,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.25,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 9,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Crimson Gaze",
+      "key": "WNG_2",
+      "iconIndex": 2372,
+      "unlockedByDefault": false,
+      "description": "An ever-iconic eyeball with wings. They can be found all across the universe for some reason.|This one however, appears to be wrapped in flames, which makes it rather annoying to get close to.",
+      "topFlavorText": "Learn the skill \\Skill[248] when this panel is maxed.",
+      "maxRank": 10,
+      "baseCost": 600,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.25,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": false,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[248]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(248);"
+        }
+      ],
+      "rarity": 23
+    },
+    {
+      "name": "Call from the Dark",
+      "key": "WNG_3",
+      "iconIndex": 2372,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 10,
+      "baseCost": 600,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.25,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": false,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[248]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(248);"
+        }
+      ],
+      "rarity": 25
+    },
+    {
+      "name": "Answer from the Dark",
+      "key": "WNG_4",
+      "iconIndex": 2372,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 10,
+      "baseCost": 600,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.25,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": false,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[248]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(248);"
+        }
+      ],
+      "rarity": 3
+    },
+    {
+      "name": "==BEAK==",
+      "key": "BEK___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Crazy Beak",
+      "key": "BEK_1",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 3
+    },
+    {
+      "name": "==RODENTS==",
+      "key": "RAT___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Resourceful Ratactics",
+      "key": "ROD_1",
+      "iconIndex": 2404,
+      "unlockedByDefault": false,
+      "description": "Rats manage to thrive in nearly all environments, including flooded rivers.|Channel your inner rat and get resourceful.",
+      "topFlavorText": "Learn the skill \"Tumble\" when this panel is maxed.",
+      "maxRank": 10,
+      "baseCost": 300,
+      "flatGrowthCost": 100,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 27,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 11,
+          "perRank": -1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[293]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(293);"
+        }
+      ],
+      "rarity": 3
+    },
+    {
+      "name": "==QUADRAPED==",
+      "key": "QUA___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==HIVEMIND==",
+      "key": "HIV___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Sting like a Bee",
+      "key": "HIV_1",
+      "iconIndex": 298,
+      "unlockedByDefault": false,
+      "description": "The lessons learned by all of the slain needlers in the land.|Slaying these pests not only make you feel better, but also help \"the people\".",
+      "topFlavorText": "Learn the skill \"Lunge\" when this panel is maxed.",
+      "maxRank": 5,
+      "baseCost": 10,
+      "flatGrowthCost": 10,
+      "multGrowthCost": 2,
+      "panelParameters": [
+        {
+          "parameterId": 8,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 9,
+          "perRank": 2.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 14,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 28,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 10,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[291]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(291);"
+        }
+      ],
+      "rarity": 23
+    },
+    {
+      "name": "Pressure Points",
+      "key": "HIV_2",
+      "iconIndex": 298,
+      "unlockedByDefault": false,
+      "description": "These appear to be just off-colored Needlers, but they are exponentially more vicious!|The speed of these things is insane, and now yours can be, too.",
+      "topFlavorText": "Learn the skill \"Venomous Burst\" when this panel is maxed.",
+      "maxRank": 10,
+      "baseCost": 350,
+      "flatGrowthCost": 75,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 8,
+          "perRank": 4.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 9,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 10,
+          "perRank": 2.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[235]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(235);"
+        }
+      ],
+      "rarity": 0
+    },
+    {
+      "name": "Drillsation",
+      "key": "HIV_3",
+      "iconIndex": 298,
+      "unlockedByDefault": false,
+      "description": "Much much more than your average bumblebee, this ruthless stinger has evolved in the harshest of wildernesses to execute even mighty megataurs in a single blow.\nCrits truly are deadly and piss everyone off.",
+      "topFlavorText": "Learn skill when maxed.",
+      "maxRank": 20,
+      "baseCost": 750,
+      "flatGrowthCost": 250,
+      "multGrowthCost": 2.6,
+      "panelParameters": [
+        {
+          "parameterId": 8,
+          "perRank": 0.5,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 9,
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 2,
+          "perRank": 2,
           "isFlat": true,
           "isCore": false
         },
         {
           "parameterId": 6,
-          "perRank": 1.5,
-          "isFlat": false,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 8,
+          "perRank": 1,
+          "isFlat": true,
           "isCore": false
         },
         {
@@ -3528,14 +4518,8 @@
           "isCore": false
         },
         {
-          "parameterId": 17,
-          "perRank": 0.5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 23,
-          "perRank": -0.25,
+          "parameterId": 18,
+          "perRank": 3,
           "isFlat": true,
           "isCore": false
         },
@@ -3543,63 +4527,17 @@
           "parameterId": 28,
           "perRank": 2.5,
           "isFlat": true,
-          "isCore": true
+          "isCore": false
         }
       ],
-      "panelRewards": [],
-      "rarity": 31
-    },
-    {
-      "name": "Wrath's Dogma",
-      "key": "SIN_2",
-      "iconIndex": 1547,
-      "unlockedByDefault": false,
-      "description": "The dogma of the Wrath is held above all else: \"thou must satiate thine rage\".",
-      "topFlavorText": "This node radiates with a strange energy...",
-      "maxRank": 20,
-      "baseCost": 0,
-      "flatGrowthCost": 500,
-      "multGrowthCost": 2.5,
-      "panelParameters": [
+      "panelRewards": [
         {
-          "parameterId": 1,
-          "perRank": 10,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 4,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 4,
-          "perRank": 1.5,
-          "isFlat": false,
-          "isCore": false
-        },
-        {
-          "parameterId": 8,
-          "perRank": 3,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 10,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 20,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": true
+          "rewardName": "Learn: \\Skill[235]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(235);"
         }
       ],
-      "panelRewards": [],
-      "rarity": 31
+      "rarity": 25
     },
     {
       "name": "==WORMS==",
@@ -3773,8 +4711,8 @@
       "rarity": 3
     },
     {
-      "name": "==SKELETONS==",
-      "key": "SKE___",
+      "name": "==LONER==",
+      "key": "LON___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -3788,84 +4726,123 @@
       "rarity": 0
     },
     {
-      "name": "Boney Situation",
-      "key": "SKE_1",
-      "iconIndex": 298,
+      "name": "==JUMPER==",
+      "key": "JMP___",
+      "iconIndex": 0,
       "unlockedByDefault": false,
-      "description": "The skeleton is an age-old RPG enemy- often frail and wimpy.|These skeletors live up to that expectation in spades.",
-      "topFlavorText": "Learn the skill \"Backstep\" when this panel is maxed.",
-      "maxRank": 5,
-      "baseCost": 200,
-      "flatGrowthCost": 200,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
       "multGrowthCost": 1,
-      "panelParameters": [
-        {
-          "parameterId": 0,
-          "perRank": -30,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 20,
-          "perRank": -3,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 7,
-          "perRank": 8,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[292]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(292);"
-        }
-      ],
+      "panelParameters": [],
+      "panelRewards": [],
       "rarity": 0
     },
     {
-      "name": "Spinal Control",
-      "key": "SKE_2",
-      "iconIndex": 298,
+      "name": "==PARASITE==",
+      "key": "PAR___",
+      "iconIndex": 0,
       "unlockedByDefault": false,
-      "description": "When the opportunity to smash up skeletons comes about, one must accept.|Smashing up skeledoggos is no exception to this hardfast rule.",
-      "topFlavorText": "The benefits of the dead should be weighed carefully.",
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==BULL==",
+      "key": "BUL___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Bullheaded",
+      "key": "BUL_1",
+      "iconIndex": 2392,
+      "unlockedByDefault": false,
+      "description": "Being bullheaded isn't always a bad thing.|He grew to be big and strong from a little cow before you slayed him!",
+      "topFlavorText": "Be strong and tenacious like the bull. Or pretend at least.",
       "maxRank": 10,
-      "baseCost": 280,
-      "flatGrowthCost": 100,
-      "multGrowthCost": 1.2,
+      "baseCost": 70,
+      "flatGrowthCost": 30,
+      "multGrowthCost": 1.4,
       "panelParameters": [
         {
           "parameterId": 0,
-          "perRank": -10,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 20,
-          "perRank": -1,
-          "isFlat": true,
+          "perRank": 1.5,
+          "isFlat": false,
           "isCore": true
         },
         {
           "parameterId": 2,
           "perRank": 2,
           "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 27,
+          "perRank": 1,
+          "isFlat": true,
           "isCore": false
         },
         {
-          "parameterId": 6,
+          "parameterId": 12,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 3
+    },
+    {
+      "name": "Ironfist of Iron",
+      "key": "BUL_2",
+      "iconIndex": 2392,
+      "unlockedByDefault": false,
+      "description": "The terror of the megataurs are known far and wide.|Deleting them would save hundreds of lives per year.",
+      "topFlavorText": "The one with the iron fist of iron will rule.",
+      "maxRank": 10,
+      "baseCost": 330,
+      "flatGrowthCost": 70,
+      "multGrowthCost": 1.6,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 2,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 11,
           "perRank": 2,
           "isFlat": true,
           "isCore": false
         },
         {
-          "parameterId": 11,
-          "perRank": 2,
+          "parameterId": 29,
+          "perRank": 1,
           "isFlat": true,
           "isCore": false
         }
@@ -3874,8 +4851,8 @@
       "rarity": 23
     },
     {
-      "name": "==SNAKES==",
-      "key": "SNK___",
+      "name": "==ORC==",
+      "key": "ORC___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -3889,78 +4866,26 @@
       "rarity": 0
     },
     {
-      "name": "Princely Flourish",
-      "key": "SNK_1",
-      "iconIndex": 1797,
+      "name": "Orcan Obediance",
+      "key": "ORC_1",
+      "iconIndex": 471,
       "unlockedByDefault": false,
-      "description": "Regally speaking, one should verily be theoretically flourishing preposterously nonstop.|Indubitibly🧐.",
-      "topFlavorText": "Be mindful of the poison, because poison fuckin' hurts and there are no antidotes.",
-      "maxRank": 15,
-      "baseCost": 225,
-      "flatGrowthCost": 75,
+      "description": "The most scrubby and pathetic orc.|It mines and mines and mines. Fortunately it has tireless stamina.",
+      "topFlavorText": "Abuse the excessive endurance in the name of grinding.",
+      "maxRank": 10,
+      "baseCost": 300,
+      "flatGrowthCost": 300,
       "multGrowthCost": 1.3,
       "panelParameters": [
         {
-          "parameterId": 28,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 23,
-          "perRank": -1,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 6,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 10,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 9,
-          "perRank": -1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
           "parameterId": 30,
-          "perRank": 5,
+          "perRank": 1.5,
           "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 31
-    },
-    {
-      "name": "Lamian Royalty",
-      "key": "SNK_2",
-      "iconIndex": 1797,
-      "unlockedByDefault": false,
-      "description": "Regally speaking, one should verily be theoretically flourishing preposterously nonstop.|Indubitibly🧐.",
-      "topFlavorText": "Learn the skill \"Energy Arrow\" when this panel is maxed.",
-      "maxRank": 20,
-      "baseCost": 250,
-      "flatGrowthCost": 100,
-      "multGrowthCost": 1.5,
-      "panelParameters": [
-        {
-          "parameterId": 28,
-          "perRank": 0.5,
-          "isFlat": false,
           "isCore": true
         },
         {
-          "parameterId": 23,
-          "perRank": -0.5,
+          "parameterId": 14,
+          "perRank": 0.5,
           "isFlat": true,
           "isCore": true
         },
@@ -3969,129 +4894,130 @@
           "perRank": 2,
           "isFlat": true,
           "isCore": false
-        },
-        {
-          "parameterId": 16,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 19,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
         }
       ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[243]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(243);"
-        }
-      ],
-      "rarity": 23
+      "panelRewards": [],
+      "rarity": 0
     },
     {
-      "name": "Gasp King",
-      "key": "SNK_3",
-      "iconIndex": 1797,
+      "name": "Orcan Brutality",
+      "key": "ORC_2",
+      "iconIndex": 471,
       "unlockedByDefault": false,
-      "description": "Deadly snakes that do deadly things should be made ded faster than they ded you.",
-      "topFlavorText": "You dedded this snake so gud.",
-      "maxRank": 10,
-      "baseCost": 1500,
-      "flatGrowthCost": 1000,
-      "multGrowthCost": 3.25,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 15,
+      "baseCost": 600,
+      "flatGrowthCost": 750,
+      "multGrowthCost": 1.2,
       "panelParameters": [
         {
-          "parameterId": 28,
-          "perRank": 10,
+          "parameterId": 30,
+          "perRank": 2,
           "isFlat": true,
           "isCore": true
         },
         {
-          "parameterId": 23,
-          "perRank": 1.5,
+          "parameterId": 14,
+          "perRank": 0.5,
           "isFlat": true,
           "isCore": true
         },
         {
-          "parameterId": 0,
-          "perRank": 25,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 11,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 9,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 21,
+          "parameterId": 2,
           "perRank": 3,
           "isFlat": true,
           "isCore": false
         },
         {
+          "parameterId": 15,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 3
+    },
+    {
+      "name": "Orcan Stormcalling",
+      "key": "ORC_3",
+      "iconIndex": 471,
+      "unlockedByDefault": false,
+      "description": "Upper eschelons of orcs are oft heavily intuned with nature, allowing manipulation of the elements.|Thunder is deadly to manipulate, so why not learn it yourself?",
+      "topFlavorText": "Learn \\Skill[247] when this panel is maxed.",
+      "maxRank": 15,
+      "baseCost": 600,
+      "flatGrowthCost": 750,
+      "multGrowthCost": 1.2,
+      "panelParameters": [
+        {
           "parameterId": 30,
-          "perRank": 15,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 14,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 1,
+          "perRank": 25,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 28,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 18,
+          "perRank": -1,
           "isFlat": true,
           "isCore": false
         }
       ],
       "panelRewards": [
         {
-          "rewardName": "Learn: \\Skill[443]",
+          "rewardName": "Learn: \\Skill[247]",
           "rankRequired": 0,
-          "effect": "a.learnSkill(443);"
+          "effect": "a.learnSkill(247);"
         }
       ],
-      "rarity": 20
+      "rarity": 31
     },
     {
-      "name": "==DRAGONS==",
-      "key": "DRG___",
-      "iconIndex": 0,
+      "name": "Orcan Management",
+      "key": "ORC_4",
+      "iconIndex": 471,
       "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Dragonic Sacrifice",
-      "key": "DRG_1",
-      "iconIndex": 14,
-      "unlockedByDefault": false,
-      "description": "The dargins of Erocia can vary wildly in shape, size, color, and elemental affinity.|The Lesser Dargins are known for their petite stature, but they are still formidible.",
-      "topFlavorText": "Learn the skill \"Dargin Flames\" when this panel is maxed.",
-      "maxRank": 5,
-      "baseCost": 500,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 20,
+      "baseCost": 600,
       "flatGrowthCost": 750,
       "multGrowthCost": 1.2,
       "panelParameters": [
         {
-          "parameterId": 2,
-          "perRank": 2,
-          "isFlat": false,
+          "parameterId": 30,
+          "perRank": 3.5,
+          "isFlat": true,
           "isCore": true
         },
         {
-          "parameterId": 17,
-          "perRank": 1,
+          "parameterId": 14,
+          "perRank": 0.5,
           "isFlat": true,
           "isCore": true
         },
@@ -4102,73 +5028,73 @@
           "isCore": false
         },
         {
-          "parameterId": 4,
-          "perRank": 2,
-          "isFlat": true,
+          "parameterId": 0,
+          "perRank": 0.5,
+          "isFlat": false,
           "isCore": false
         },
         {
-          "parameterId": 18,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 28,
+          "parameterId": 3,
           "perRank": 3,
           "isFlat": true,
           "isCore": false
-        }
-      ],
-      "panelRewards": [
+        },
         {
-          "rewardName": "Learn: \\Skill[242]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(242);"
-        }
-      ],
-      "rarity": 31
-    },
-    {
-      "name": "Arctica Chillius",
-      "key": "DRG_2",
-      "iconIndex": 14,
-      "unlockedByDefault": false,
-      "description": "The dargins of Erocia can vary wildly in shape, size, color, and elemental affinity.|The Chilly Wyverns are known for being careful and calculating.",
-      "topFlavorText": "Something something witty something.",
-      "maxRank": 15,
-      "baseCost": 750,
-      "flatGrowthCost": 1000,
-      "multGrowthCost": 1.4,
-      "panelParameters": [
-        {
-          "parameterId": 2,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": true
+          "parameterId": 5,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
         },
         {
           "parameterId": 17,
-          "perRank": 1.5,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 20
+    },
+    {
+      "name": "Orcan Mountaineering",
+      "key": "ORC_5",
+      "iconIndex": 471,
+      "unlockedByDefault": false,
+      "description": "Orcs that are capable of countering are mean douchebags deserving of getting kicked in the face-\nhopefully that was precisely what you did to acquire this node.",
+      "topFlavorText": "A deadly orc in the mountains that was very deadly and deadly and also kinda chonky.",
+      "maxRank": 10,
+      "baseCost": 900,
+      "flatGrowthCost": 900,
+      "multGrowthCost": 2,
+      "panelParameters": [
+        {
+          "parameterId": 30,
+          "perRank": 2.5,
           "isFlat": true,
           "isCore": true
         },
         {
-          "parameterId": 1,
-          "perRank": 30,
+          "parameterId": 14,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 9,
+          "perRank": 1,
           "isFlat": true,
           "isCore": false
         },
         {
-          "parameterId": 4,
-          "perRank": 6,
+          "parameterId": 19,
+          "perRank": 4,
           "isFlat": true,
           "isCore": false
         },
         {
-          "parameterId": 18,
+          "parameterId": 29,
           "perRank": 2.5,
-          "isFlat": false,
+          "isFlat": true,
           "isCore": false
         }
       ],
@@ -4176,8 +5102,359 @@
       "rarity": 23
     },
     {
-      "name": "==TITANS==",
-      "key": "TIT___",
+      "name": "==THIEF==",
+      "key": "THF___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Thief's Code",
+      "key": "THF_1",
+      "iconIndex": 191,
+      "unlockedByDefault": false,
+      "description": "The thief's code describes all sorts of various rules.|They are really more like guidelines, though.",
+      "topFlavorText": "Learn the skill \"Shockwave\" when this panel is maxed.",
+      "maxRank": 10,
+      "baseCost": 40,
+      "flatGrowthCost": 60,
+      "multGrowthCost": 2.2,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 21,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 11,
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[222]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(222);"
+        }
+      ],
+      "rarity": 0
+    },
+    {
+      "name": "Outlaw's Shortcuts",
+      "key": "THF_2",
+      "iconIndex": 191,
+      "unlockedByDefault": false,
+      "description": "In the north eastern reaches of Erocia, disaster appears to have struck.|Bandits leveled up their game and transcended to outlaws, making your life that much harder.",
+      "topFlavorText": "Even bandits need to step up their game from time to time.",
+      "maxRank": 10,
+      "baseCost": 300,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.9,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 2,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 21,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 23
+    },
+    {
+      "name": "Dark Alley Deals",
+      "key": "THF_3",
+      "iconIndex": 191,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 10,
+      "baseCost": 300,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.9,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 2,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 21,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 28,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 23,
+          "perRank": -0.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 26,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": -0.5
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 25
+    },
+    {
+      "name": "TODO",
+      "key": "THF_4",
+      "iconIndex": 191,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 10,
+      "baseCost": 300,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.9,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 2,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 21,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 23,
+          "perRank": -0.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "TODO",
+      "key": "THF_5",
+      "iconIndex": 191,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 10,
+      "baseCost": 300,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.9,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 2,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 21,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 23,
+          "perRank": -0.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Vagrant Variance",
+      "key": "THF_6",
+      "iconIndex": 191,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 10,
+      "baseCost": 300,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.9,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 2,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 21,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 6,
+          "perRank": 8,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 23,
+          "perRank": -0.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 31
+    },
+    {
+      "name": "==WALKER==",
+      "key": "WLK___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==CLAN==",
+      "key": "CLN___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==GOLEM==",
+      "key": "GOL___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -4192,7 +5469,7 @@
     },
     {
       "name": "Titan's Girth",
-      "key": "TIT_1",
+      "key": "GOL_1",
       "iconIndex": 466,
       "unlockedByDefault": false,
       "description": "Titans are a mighty race, surpassed only by folks who have guns, because guns obviously.|You really can just end a lot of life if you get good at shooting shit.",
@@ -4243,8 +5520,8 @@
       "rarity": 23
     },
     {
-      "name": "==CRABS==",
-      "key": "CRB___",
+      "name": "==HAZARD==",
+      "key": "HAZ___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -4258,44 +5535,354 @@
       "rarity": 0
     },
     {
-      "name": "Crabtastical Crunchiness",
-      "key": "CRB_1",
-      "iconIndex": 227,
+      "name": "Rampaging Ignition",
+      "key": "HAZ_1",
+      "iconIndex": 0,
       "unlockedByDefault": false,
-      "description": "The crabs of Volcanis are no joke, what with them constantly trying to keep you rooted in-place.|It is unclear how they exist in such a hot area without just being cooked by the ambient temperature.",
-      "topFlavorText": "Combo crabs are the worst- not even good enough for eating.",
-      "maxRank": 10,
-      "baseCost": 1000,
-      "flatGrowthCost": 600,
-      "multGrowthCost": 1.6,
+      "description": "Its not blond babes shooting guns everywhere, but it does teach you how to respond with fire for anything.",
+      "topFlavorText": "",
+      "maxRank": 5,
+      "baseCost": 50,
+      "flatGrowthCost": 100,
+      "multGrowthCost": 1.8,
       "panelParameters": [
         {
-          "parameterId": 29,
-          "perRank": 2,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 19,
-          "perRank": 3,
+          "parameterId": 14,
+          "isCore": true,
           "isFlat": true,
-          "isCore": true
+          "perRank": 0.6
         },
         {
-          "parameterId": 19,
-          "perRank": 1,
+          "parameterId": 26,
+          "isCore": true,
+          "isFlat": true,
+          "perRank": 1
+        },
+        {
+          "parameterId": 29,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 0.6
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Splashback in Style",
+      "key": "HAZ_2",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "It isn't clear why anyone would embrace splashback except as revenge, which is perfectly acceptable here.",
+      "topFlavorText": "",
+      "maxRank": 5,
+      "baseCost": 50,
+      "flatGrowthCost": 100,
+      "multGrowthCost": 1.8,
+      "panelParameters": [
+        {
+          "parameterId": 14,
+          "isCore": true,
+          "isFlat": true,
+          "perRank": 1.2
+        },
+        {
+          "parameterId": 26,
+          "isCore": true,
+          "isFlat": true,
+          "perRank": 0.5
+        },
+        {
+          "parameterId": 2,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 6
+        },
+        {
+          "parameterId": 8,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 4
+        },
+        {
+          "parameterId": 11,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 2
+        },
+        {
+          "parameterId": 28,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 3
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 31
+    },
+    {
+      "name": "Electric Boogyman",
+      "key": "HAZ_3",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "Shocking revelations are found everywhere, including places that enable you to shock back.",
+      "topFlavorText": "",
+      "maxRank": 5,
+      "baseCost": 50,
+      "flatGrowthCost": 100,
+      "multGrowthCost": 1.8,
+      "panelParameters": [
+        {
+          "parameterId": 14,
+          "isCore": true,
+          "isFlat": true,
+          "perRank": 0.8
+        },
+        {
+          "parameterId": 26,
+          "isCore": true,
+          "isFlat": true,
+          "perRank": 0.8
+        },
+        {
+          "parameterId": 7,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 4
+        },
+        {
+          "parameterId": 10,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 2
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 3
+    },
+    {
+      "name": "==ROBOT==",
+      "key": "RBT___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==HOMONCULUS==",
+      "key": "HOM___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==?CONSTRUCT-5?==",
+      "key": "CN5___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==ELEMENTALS==",
+      "key": "ELE___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==SINS==",
+      "key": "SIN___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Glutton's Dogma",
+      "key": "SIN_1",
+      "iconIndex": 1547,
+      "unlockedByDefault": false,
+      "description": "The dogma of the Glutton is held above all else: \"thou must satiate thine hunger\".",
+      "topFlavorText": "This node radiates with a strange energy...",
+      "maxRank": 20,
+      "baseCost": 0,
+      "flatGrowthCost": 250,
+      "multGrowthCost": 2.5,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": 25,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 6,
+          "perRank": 1.5,
           "isFlat": false,
           "isCore": false
         },
         {
-          "parameterId": 24,
-          "perRank": -1,
+          "parameterId": 10,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 23,
+          "perRank": -0.25,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 28,
+          "perRank": 2.5,
           "isFlat": true,
           "isCore": false
         }
       ],
       "panelRewards": [],
-      "rarity": 3
+      "rarity": 31
+    },
+    {
+      "name": "Wrath's Dogma",
+      "key": "SIN_2",
+      "iconIndex": 1547,
+      "unlockedByDefault": false,
+      "description": "The dogma of the Wrath is held above all else: \"thou must satiate thine rage\".",
+      "topFlavorText": "This node radiates with a strange energy...",
+      "maxRank": 20,
+      "baseCost": 0,
+      "flatGrowthCost": 500,
+      "multGrowthCost": 2.5,
+      "panelParameters": [
+        {
+          "parameterId": 1,
+          "perRank": 10,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 4,
+          "perRank": 1.5,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterId": 8,
+          "perRank": 3,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 20,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 31
+    },
+    {
+      "name": "==?DEITY-3?==",
+      "key": "DE3___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==?DEITY-4?==",
+      "key": "DE4___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==?DEITY-5?==",
+      "key": "DE5___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
     }
   ]
 }

@@ -2825,6 +2825,7 @@ class Window_RefinableList
             {
               enabled = false;
               iconIndex = 90;
+              // eslint-disable-next-line max-len
               errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedRefineCount} ${projectedCount}/${primaryMaxRefineCount}.<br>\n`;
             }
           }
@@ -2839,6 +2840,7 @@ class Window_RefinableList
           {
             enabled = false;
             iconIndex = 92
+            // eslint-disable-next-line max-len
             errorText += `${J.JAFTING.EXT.REFINE.Messages.ExceedTraitCount} ${projectedResultTraitCount}/${baseMaxTraitCount}.<br>\n`;
           }
         }
@@ -2896,8 +2898,6 @@ class Window_RefinableList
         .build();
 
       this.addBuiltCommand(command);
-
-      // this.addCommand(equip.name, 'refine-object', enabled, extData, iconIndex);
     });
   }
 }

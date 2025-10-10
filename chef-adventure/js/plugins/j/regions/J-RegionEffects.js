@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.1 REGIONS] A plugin that controls passage by region ids.
+ * @plugindesc [v1.0.2 REGIONS] A plugin that controls passage by region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -53,6 +53,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Fixed issue with referencing CycloneMovement.
  * - 1.0.1
  *    Created plugin extension namespace for REGIONS plugin extensions.
  * - 1.0.0
@@ -94,7 +96,7 @@ J.REGIONS.EXT = {};
  */
 J.REGIONS.Metadata = {};
 J.REGIONS.Metadata.Name = `J-RegionEffects`;
-J.REGIONS.Metadata.Version = '1.0.0';
+J.REGIONS.Metadata.Version = '1.0.2';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -315,7 +317,7 @@ Game_Map.prototype.refreshRegionEffects = function()
   this.refreshDenyRegionEffects();
 
   // check if using cyclone movement.
-  if (CycloneMovement)
+  if (globalThis.CycloneMovement)
   {
     // refresh the collision after the region effects are refreshed.
     CycloneMovement.setupCollision();
@@ -454,8 +456,8 @@ Game_Map.prototype.isAllowRegionId = function(regionId)
 Game_Map.prototype.projectCoordinatesByDirection = function(x, y, d)
 {
   // accommodate cyclone movement if available.
-  const increment = CycloneMovement
-    ? (1 / CycloneMovement?.stepCount ?? 1)
+  const increment = (globalThis.CycloneMovement)
+    ? (1 / CycloneMovement.stepCount)
     : 1;
 
   // default the projected coordinates to the current.

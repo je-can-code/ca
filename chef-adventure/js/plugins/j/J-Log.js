@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.0 LOG] A log window for viewing on the map.
+ * [v2.2.1 LOG] A log window for viewing on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -110,6 +110,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.1
+ *    Added SDP drop-related logging.
  * - 2.2.0
  *    Added DiaLog functionality, enabling passive chats to happen on the map.
  *    Added Loot Log functionality, where loot-related logs now show up.
@@ -241,7 +243,7 @@ J.LOG = {};
  */
 J.LOG.Metadata = {};
 J.LOG.Metadata.Name = `J-Log`;
-J.LOG.Metadata.Version = `2.1.0`;
+J.LOG.Metadata.Version = `2.1.1`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -830,6 +832,23 @@ class ActionLogBuilder
 
     // construct the message.
     const message = `${defender} acquired \\*${amount}\\* SDP points.`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  }
+
+  /**
+   * Sets up a message for unlocking an SDP.
+   * @param {string} sdpKey The key of the SDP being unlocked.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupSdpUnlocked(sdpKey)
+  {
+    // construct the message.
+    const message = `\\sdp[${sdpKey}] has been unlocked!`;
 
     // assign the message to this log.
     this.setMessage(message);

@@ -342,9 +342,6 @@ Game_Follower.prototype.chaseCharacter = function(character)
   // if we are
   if (this.isDoingJabsAllyAiThings())
   {
-    // let the AI handle the chasing.
-    this.obeyJabsAi(character);
-
     // stop processing.
     return;
   }
@@ -365,12 +362,6 @@ Game_Follower.prototype.isDoingJabsAllyAiThings = function()
 
   // if we cannot obey, we are not doing JABS AI things.
   if (!canObey) return false;
-
-  // check if we are in combat.
-  const isInCombat = this.isInCombat();
-
-  // if we are not in combat, then we are not doing JABS AI things.
-  if (!isInCombat) return false;
 
   // we must be doing JABS AI things!
   return true;

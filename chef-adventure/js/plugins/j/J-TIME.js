@@ -2,17 +2,17 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 TIME] A system for tracking time- real or artificial.
+ * [v1.0.1 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
- * ==============================================================================
- * This is a system that tracks time, either artificial or real, and manipulates
- * various components of the game based on the time.
+ * =============================================================================
+ * This is a system that tracks time, either artificial or real, and
+ * manipulates various components of the game based on the time.
  *
- * 	Temporally Integrated Monitoring of Ecosystems- aka TIME.
+ *   Temporally Integrated Monitoring of Ecosystems- aka TIME.
  *
- * ==============================================================================
+ * =============================================================================
  * This plugin enables a TIME system. The TIME system functions much like you'd
  * expect: it tracks TIME. This TIME however, is configurable in many ways that
  * regular time is not.
@@ -20,36 +20,36 @@
  * There are two forms of time-keeping, real and artificial.
  *
  * REAL TIME
- * Real time acts much like you'd expect: it reads the client's computer's time
- * and updates every half of a second to keep in sync with real time. All of
- * the features surrounding this TIME system (relating to time of day or seasons)
- * operate the same as artificial, but based on real time.
+ * Real time acts much like you'd expect: it reads the client's computer's
+ * time and updates every half of a second to keep in sync with real time. All
+ * of the features surrounding this TIME system (relating to time of day or
+ * seasons) operate the same as artificial, but based on real time.
  *
  * ARTIFICIAL TIME
  * Artificial time acts similar to real time, but instead of reading the time
- * from your computer, it starts at a designated point that you specify and ticks
- * ever forward. The rate at which time ticks forward defaults to 60 frames per
- * second, but you can reduce that if you want time to pass faster. Alternatively
- * (or in addition to), you can also adjust the amount of time that passes per
- * "tock". A "tock" is defined as "on-increment", so for example, when the second
- * counter increments past 59 to 60, you would expect the minutes to go up by 1.
- * That incrementing is a "tock", that is defined by you. You can define how much
- * that increment is for each unit of time: seconds, minutes, hours, days,
- * months, and years. I would encourage this be explored before tweaking the
- * defaults.
+ * from your computer, it starts at a designated point that you specify and
+ * ticks ever forward. The rate at which time ticks forward defaults to 60
+ * frames per second, but you can reduce that if you want time to pass faster.
+ * Alternatively (or in addition to), you can also adjust the amount of time
+ * that passes per "tock". A "tock" is defined as "on-increment", so for
+ * example, when the second counter increments past 59 to 60, you would expect
+ * the minutes to go up by 1. That incrementing is a "tock", that is defined
+ * by you. You can define how much that increment is for each unit of time:
+ * seconds, minutes, hours, days, months, and years. I would encourage this be
+ * explored before tweaking the defaults.
  *
  * VARIABLES
  * Unless disabled, both real and artificial TIME will track the various
  * components of the current TIME in variables, to allow for developing events
- * revolving around TIME. You can specify in the plugin parameters which variables
- * you want these to be assigned to. If you do not want one or more of the TIME
- * components tracked in variable, but do want to leverage the functionality of
- * variable assignment, then just assign the TIME components that you do not care
- * about to variable id of 0.
+ * revolving around TIME. You can specify in the plugin parameters which
+ * variables you want these to be assigned to. If you do not want one or more
+ * of the TIME components tracked in variable, but do want to leverage the
+ * functionality of variable assignment, then just assign the TIME components
+ * that you do not care about to variable id of 0.
  *
  * TIME OF DAY
- * Additionally, this system tracks "time of day". "Time of Day" is defined as
- * a block of time (measured in hours) that is named.
+ * Additionally, this system tracks "time of day". "Time of Day" is defined
+ * as a block of time (measured in hours) that is named.
  * There are six of these blocks of time that make up a day:
  * - Night (00:00am - 03:59am)
  * - Dawn (04:00am - 7:59am)
@@ -98,8 +98,8 @@
  *   morning)
  *
  * - Set Time
- *   This sets the time to a fixed point in time. This is not relative. You will
- *   likely need to be cautious when using this particular command.
+ *   This sets the time to a fixed point in time. This is not relative. You
+ *   will likely need to be cautious when using this particular command.
  *
  * - Fast Forward Time
  *   This fast-forwards time by a given amount.
@@ -116,15 +116,15 @@
  *
  * - Stop TIME
  *   This halts the flow of TIME.
- *   NOTE: This is not compatible with "real" time. If you use this command with
- *   real time, it will pause the counting for the duration and pick back up
- *   with the current time when TIME is unblocked.
+ *   NOTE: This is not compatible with "real" time. If you use this command
+ *   with real time, it will pause the counting for the duration and pick back
+ *   up with the current time when TIME is unblocked.
  *
  * - Start TIME
  *   This re-enables the flow of TIME.
- *   NOTE: This is not compatible with "real" time. If you used the stop command
- *   to halt real time, when re-enabled, it will pick up wherever it is currently
- *   which may result in skipping time.
+ *   NOTE: This is not compatible with "real" time. If you used the stop
+ *   command to halt real time, when re-enabled, it will pick up wherever it is
+ *   currently which may result in skipping time.
  *
  * - Unlock Screen Tone
  *   This (re-)allows the TIME system to control screen tone.
@@ -134,11 +134,13 @@
  * - Lock Screen Tone
  *   This locks the TIME system from controlling the screen tone.
  *
- * ==============================================================================
+ * =============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Fixed issue with "hours per tick" not being respected.
  * - 1.0.0
  *    J-TIME's initial release.
- * ==============================================================================
+ * =============================================================================
  *
  * @param BASEconfigs
  * @text BASE SETUP
@@ -189,7 +191,7 @@
  * @parent BASEconfigs
  * @type boolean
  * @text Change Tone by Time
- * @desc Allows the TIME system to manage the tone of the screen based on the hour.
+ * @desc Lets TIME manage screen tone based on the hour.
  * @on Allow
  * @off Disallow
  * @default true
@@ -396,7 +398,7 @@
  *
  * @command jumpToTimeOfDay
  * @text Jump to Time of Day
- * @desc Jumps to the next instance of a particular time of day, such as morning or night.
+ * @desc Jump to the next instance of a chosen time of day (e.g., morning).
  * @arg TimeOfDay
  * @type select
  * @desc Use the dropdown to select a time of day to jump to.
@@ -441,7 +443,7 @@
  *
  * @command fastForwardtime
  * @text Fast Forward Time
- * @desc Fast forwards time by a designated amount; only applicable to artificial time.
+ * @desc Fast-forwards time by a set amount; artificial time only.
  * @arg Second
  * @type number
  * @default 0
@@ -463,7 +465,7 @@
  *
  * @command rewindTime
  * @text Rewind Time
- * @desc Rewinds time by a designated amount; only applicable to artificial time.
+ * @desc Rewinds time by a set amount; artificial time only.
  * @arg Second
  * @type number
  * @default 0
@@ -524,7 +526,7 @@ J.TIME = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.TIME.Metadata = {};
-J.TIME.Metadata.Version = '1.0.0';
+J.TIME.Metadata.Version = '1.0.1';
 J.TIME.Metadata.Name = `J-TIME`;
 
 /**
@@ -1702,7 +1704,7 @@ Game_Time.prototype.addMinutes = function(minutes = this._minutesPerTick)
   {
     while (potentialMinutes >= 60)
     {
-      this.addHours(this._hoursPerDay);
+      this.addHours(this._hoursPerTick);
       potentialMinutes -= 60;
     }
 
@@ -2712,7 +2714,6 @@ JABS_InputController.prototype.updateTimeWindowAction = function()
     // execute the action.
     this.performTimeWindowAction();
   }
-
 };
 
 /**

@@ -808,7 +808,7 @@ class StatDistributionPanel
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.2 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v2.1.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -818,6 +818,7 @@ class StatDistributionPanel
  * @orderAfter J-ABS-Speed
  * @orderAfter J-DropsControl
  * @orderAfter J-CriticalFactors
+ * @orderAfter J-Natural
  * @orderAfter J-Proficiency
  * @help
  * ============================================================================
@@ -826,10 +827,11 @@ class StatDistributionPanel
  * of leveling up to raise an actor's stats.
  *
  * Integrates with others of mine plugins:
- * - J-DropsControl; enables usage of item-as-panel drops.
  * - J-ABS; enemies will individually drop their points and panels.
  * - J-ABS-Speed; enables usage of Movespeed Boost as a parameter on panels.
  * - J-CriticalFactors; enables usage of CDM/CDR as parameters on panels.
+ * - J-DropsControl; enables usage of item-as-panel drops.
+ * - J-Natural; enables SDP reward modifications.
  * - J-Proficiency; enables usage of Proficiency+ as a parameter on panels.
  *
  * ----------------------------------------------------------------------------
@@ -890,6 +892,60 @@ class StatDistributionPanel
  * Then the panel will not be included in the list that is parsed from the
  * configuration file upon starting the game.
  * ============================================================================
+ * ENEMY SDP DROPS:
+ * Ever want enemies to drop SDPs themselves for unlocking across the party?
+ * Well now you can! By applying the appropriate tag to enemies in the
+ * database, you can have enemies drop any singular SDP at any integer percent
+ * chance you want them to.
+ *
+ * NOTE ABOUT SDP DROPS AND JABS:
+ * This system was explicitly designed with JABS in mind. If you are not using
+ * JABS, you probably instead should just use the SDP UNLOCK tag on an item
+ * that the enemy drops for similar functionality. This functionality will
+ * dynamically generate the loot for the SDP being unlocked with no database
+ * backing and unlock it upon pickup- which would be incompatible outside of
+ * JABS.
+ *
+ * TAG USAGE:
+ * - Enemies only.
+ *
+ * TAG FORMAT:
+ *  <sdpDropData:[SDP_KEY, DROP_CHANCE]>
+ *   Where SDP_KEY is the unique string key for the SDP to unlock.
+ *   Where DROP_CHANCE is the 1-100 percent chance that the SDP will drop.
+ *
+ * TAG EXAMPLES:
+ *  <sdpDropData:[ORC_1, 5]>
+ * The enemy with this tag will drop an SDP with the key of "ORC_1" upon defeat
+ * 5% of the time.
+ *
+ *  <sdpDropData:[GOB_4, 100]>
+ * The enemy with this tag will drop an SDP with the key of "GOB_4" upon defeat
+ * 100% of the time- aka guaranteed drop upon defeat.
+ *
+ * ============================================================================
+ * SDP UNLOCK:
+ * Ever wanted items used to unlock SDPs? Well now you can! By applying the
+ * necessary tags onto items in the database, you too can have items that will
+ * function as SDP unlockers (in addition to whatever else they do).
+ * 
+ * TAG USAGE:
+ * - Items only.
+ * 
+ * TAG FORMAT:
+ *  <sdpUnlock:SDP_KEY>
+ *   Where SDP_KEY is the unique string key for the SDP to unlock.
+ *
+ * TAG EXAMPLES:
+ *  <sdpUnlock:ORC_1>
+ * An item used with this tag on it will unlock the SDP with the key of "ORC_1"
+ * upon use- in addition to its other effects.
+ *
+ *  <sdpUnlock:GOB_4>
+ * An item used with this tag on it will unlock the SDP with the key of "GOB_4"
+ * upon use- in addition to its other effects.
+ * 
+ * ============================================================================
  * SDP POINTS:
  * Ever want enemies to drop SDP Points? Well now they can! By applying the
  * appropriate tag to the enemy/enemies in question, you can have enemies drop
@@ -907,6 +963,7 @@ class StatDistributionPanel
  *
  *  <sdp:123456>
  * The party will gain 123456 SDP points from defeating this enemy.
+ *
  * ============================================================================
  * SDP MULTIPLIERS:
  * Ever want allies to gain some percentage amount more (or less) of the SDP
@@ -942,8 +999,12 @@ class StatDistributionPanel
  *  <sdpMultiplier:-30>
  * An actor with something equipped/applied that has both of the above tags
  * will now gain 50% increased SDP points (80 - 30 = 50).
+ *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    Removed association of SDPs being backed by actual database items.
+ *    Implemented JABS-centric basis for dynamically generating drops.
  * - 2.0.2
  *    Added new getTotalSdpRanks function to actors for a new data point.
  * - 2.0.1
@@ -974,6 +1035,7 @@ class StatDistributionPanel
  *    Update to accommodate J-CriticalFactors.
  * - 1.0.0
  *    The initial release.
+ *
  * ============================================================================
  *
  * @param SDPconfigs
@@ -1288,7 +1350,7 @@ J.SDP = {};
 /**
  * The metadata associated with this plugin.
  */
-J.SDP.Metadata = new J_SdpPluginMetadata('J-SDP', '2.0.2');
+J.SDP.Metadata = new J_SdpPluginMetadata('J-SDP', '2.1.0');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -1304,6 +1366,7 @@ J.SDP.Aliased = {
   Game_Actor: new Map(),
   Game_Enemy: new Map(),
   Game_Party: new Map(),
+  Game_Player: new Map(),
   Game_Switches: new Map(),
   Game_System: new Map(),
 
@@ -1318,10 +1381,10 @@ J.SDP.Aliased = {
  * All regular expressions used by this plugin.
  */
 J.SDP.RegExp = {
-  SdpPoints: /<sdpPoints:[ ]?-?([0-9]+)>/i,
-  SdpMultiplier: /<sdpMultiplier:[ ]?([-.\d]+)>/i,
-  SdpDropData: /<sdpDropData:[ ]?(\[[-\w]+,[ ]?\d+(:?,[ ]?\d+)?])>/i,
-  SdpUnlockKey: /<sdpUnlock:(.+)>/i,
+  SdpPoints: /<sdpPoints: ?-?([0-9]+)>/i,
+  SdpMultiplier: /<sdpMultiplier: ?([-.\d]+)>/i,
+  SdpDropData: /<sdpDropData: ?(\[[-\w]+,[ ]?\d+])>/i,
+  SdpUnlockKey: /<sdpUnlock: ?(.+)>/i,
 };
 //endregion Introduction
 
@@ -1492,17 +1555,6 @@ Object.defineProperty(RPG_Enemy.prototype, "sdpDropChance", {
   get: function()
   {
     return this.sdpDropData[1];
-  },
-});
-
-/**
- * Gets the id of the item associated with this panel, if any.
- * @type {number}
- */
-Object.defineProperty(RPG_Enemy.prototype, "sdpDropItemId", {
-  get: function()
-  {
-    return this.sdpDropData[2] ?? 0;
   },
 });
 
@@ -1754,6 +1806,52 @@ if (J.ABS)
 
     const sdpLog = new ActionLogBuilder()
       .setupSdpAcquired(battler.battlerName(), sdpPoints)
+      .build();
+    $actionLogManager.addLog(sdpLog);
+  };
+
+  /**
+   * Generates a text pop for an SDP unlock on a target character.
+   * @param {string} sdpKey The key of the SDP being unlocked.
+   * @param {Game_Character} character The character to display the pop on.
+   */
+  JABS_Engine.prototype.generateSdpUnlock = function(sdpKey, character)
+  {
+    // if we are not using popups, then don't do this.
+    if (!J.POPUPS) return;
+    
+    const sdp = J.SDP.Metadata.panelsMap.get(sdpKey);
+
+    // generate the textpop.
+    const sdpPop = this.configureSdpUnlockPop(sdp);
+
+    // add the pop to the caster's tracking.
+    character.addTextPop(sdpPop);
+    character.requestTextPop();
+  };
+
+  /**
+   * Creates the text pop of the SDP unlocked.
+   * @param {StatDistributionPanel} panel The SDP to create a pop for.
+   * @returns {Map_TextPop}
+   */
+  JABS_Engine.prototype.configureSdpUnlockPop = function(panel)
+  {
+    return new TextPopBuilder(panel.name)
+      .isSdpPoints()
+      .build();
+  };
+
+  /**
+   * Creates the log entry if using the J-LOG.
+   * @param {string} sdpKey The SDP ponts gained.
+   */
+  JABS_Engine.prototype.createSdpUnlockLog = function(sdpKey)
+  {
+    if (!J.LOG) return;
+
+    const sdpLog = new ActionLogBuilder()
+      .setupSdpUnlocked(sdpKey)
       .build();
     $actionLogManager.addLog(sdpLog);
   };
@@ -2264,24 +2362,28 @@ Game_Actor.prototype.getSdpBonusForCoreParam = function(paramId, baseParam)
   panelRankings.forEach(panelRanking =>
   {
     // get the corresponding SDP's panel parameters.
-    const panelParameters = J.SDP.Metadata.panelsMap.get(panelRanking.key)
-      .getPanelParameterById(paramId);
-    if (panelParameters.length)
+    const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
+    if (!panel)
     {
-      panelParameters.forEach(panelParameter =>
-      {
-        const { perRank } = panelParameter;
-        const curRank = panelRanking.currentRank;
-        if (!panelParameter.isFlat)
-        {
-          panelModifications += Math.floor(baseParam * (curRank * perRank) / 100);
-        }
-        else
-        {
-          panelModifications += curRank * perRank;
-        }
-      });
+      return;
     }
+
+    const panelParameters = panel.getPanelParameterById(paramId);
+    if (!panelParameters.length) return;
+
+    panelParameters.forEach(panelParameter =>
+    {
+      const { perRank } = panelParameter;
+      const curRank = panelRanking.currentRank;
+      if (!panelParameter.isFlat)
+      {
+        panelModifications += Math.floor(baseParam * (curRank * perRank) / 100);
+      }
+      else
+      {
+        panelModifications += curRank * perRank;
+      }
+    });
   });
 
   return panelModifications;
@@ -2304,24 +2406,28 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
   panelRankings.forEach(panelRanking =>
   {
     // get the corresponding SDP's panel parameters.
-    const panelParameters = J.SDP.Metadata.panelsMap.get(panelRanking.key)
-      .getPanelParameterById(sparamId + idExtra); // need +10 because sparams start higher.
-    if (panelParameters.length)
+    const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
+    if (!panel)
     {
-      panelParameters.forEach(panelParameter =>
-      {
-        const { perRank } = panelParameter;
-        const curRank = panelRanking.currentRank;
-        if (!panelParameter.isFlat)
-        {
-          panelModifications += baseParam * (curRank * perRank) / 100;
-        }
-        else
-        {
-          panelModifications += (curRank * perRank) / 100;
-        }
-      });
+      return;
     }
+
+    const panelParameters = panel.getPanelParameterById(sparamId + idExtra); // need +10 because sparams start higher.
+    if (!panelParameters.length) return;
+
+    panelParameters.forEach(panelParameter =>
+    {
+      const { perRank } = panelParameter;
+      const curRank = panelRanking.currentRank;
+      if (!panelParameter.isFlat)
+      {
+        panelModifications += baseParam * (curRank * perRank) / 100;
+      }
+      else
+      {
+        panelModifications += (curRank * perRank) / 100;
+      }
+    });
   });
 
   return panelModifications;
@@ -2414,8 +2520,14 @@ Game_Actor.prototype.maxTpSdpBonuses = function(baseMaxTp)
   panelRankings.forEach(panelRanking =>
   {
     // get the corresponding SDP's panel parameters.
-    const panelParameters = J.SDP.Metadata.panelsMap.get(panelRanking.key)
-      .getPanelParameterById(30); // TODO: generalize this whole thing.
+    const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
+    if (!panel)
+    {
+      return;
+    }
+
+    // TODO: generalize this whole thing.
+    const panelParameters = panel.getPanelParameterById(30);
 
     // validate we have any parameters from this panel.
     if (panelParameters.length)
@@ -2570,6 +2682,64 @@ Game_Enemy.prototype.hasSdpDropData = function()
 };
 
 /**
+ * Extends {@link #findLoot}.<br/>
+ * Custom handles SDP drops to enable potentially item-less SDP relations.
+ * @param {RPG_DropItem} drop The drop being found.
+ * @param {RPG_BaseItem} itemsFound The running list of items that have been found.
+ */
+J.SDP.Aliased.Game_Enemy.set("findLoot", Game_Enemy.prototype.findLoot);
+Game_Enemy.prototype.findLoot = function(drop, itemsFound)
+{
+  // determine if the item was in fact an SDP drop.
+  if (drop.isSdpDrop())
+  {
+    // construct the dynamic custom drop.
+    const sdpLoot = this.buildSdpLoot(drop);
+
+    // add it to the running list.
+    itemsFound.push(sdpLoot);
+
+    // stop processing.
+    return;
+  }
+
+  // instead, perform original logic.
+  J.SDP.Aliased.Game_Enemy.get("findLoot")
+    .call(this, drop, itemsFound);
+};
+
+/**
+ * Dynamically generates a custom drop exclusive for picking up and unlocking an SDP without a backing item.
+ * @param {RPG_DropItem} drop The SDP loot to build.
+ * @returns {{name: string, iconIndex: number, description: string, itypeId: number, sdpKey: string, jabsUseOnPickup: boolean}}
+ */
+Game_Enemy.prototype.buildSdpLoot = function(drop)
+{
+  // identify the panel in question.
+  const panel = J.SDP.Metadata.panelsMap.get(drop.sdpKey);
+
+  const dynamicLoot = {
+    // core data.
+    id: 0,
+    meta: {},
+    note: String.empty,
+    name: panel.name,
+    iconIndex: panel.iconIndex ?? J.SDP.Metadata.sdpIconIndex,
+    description: panel.description ?? "",
+    itypeId: 1,
+    animationId: 119,
+
+    // SDP metadata for pickup behavior.
+    sdpKey: panel.key,
+
+    // Ensure it is immediately consumed on pickup instead of stored.
+    jabsUseOnPickup: true,
+  };
+
+  return dynamicLoot;
+};
+
+/**
  * Gets the base amount of SDP points this enemy grants.
  * @returns {number}
  */
@@ -2699,6 +2869,40 @@ Game_Party.prototype.getSdpRankByActorAndKey = function(actorId, key)
   }
 };
 //endregion Game_Party
+
+//region Game_Player
+/**
+ * Extends {@link #useOnPickup}.<br/>
+ * If the loot being picked up is actually an SDP, then support the possibility of there not being a backing item from
+ * the database to execute effects on.
+ * @param {RPG_Item|RPG_Weapon|RPG_Armor} lootData An object representing the loot.
+ */
+J.SDP.Aliased.Game_Player.set("useOnPickup", Game_Player.prototype.useOnPickup);
+Game_Player.prototype.useOnPickup = function(lootData)
+{
+  // check if the loot has an SDP key.
+  if (lootData.sdpKey)
+  {
+    // unlock the SDP for the party.
+    $gameParty.unlockSdp(lootData.sdpKey);
+
+    // generate a popup indicating we picked it up.
+    $jabsEngine.generateSdpUnlock(lootData.sdpKey, this);
+
+    // generate a log entry for unlocking it.
+    $jabsEngine.createSdpUnlockLog(lootData.sdpKey);
+
+    // play an SE for the pickup.
+    this.requestAnimation(lootData.animationId ?? 119);
+
+    // do not process any further.
+    return;
+  }
+
+  // perform original logic.
+  J.SDP.Aliased.Game_Player.get("useOnPickup").call(this, lootData);
+};
+//endregion Game_Player
 
 //region Game_System
 /**
