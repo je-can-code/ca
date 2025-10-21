@@ -204,7 +204,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 11,
+              "id": 101,
               "amount": 8
             },
             "quest": {
@@ -280,7 +280,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 12,
+              "id": 101,
               "amount": 4
             },
             "quest": {
@@ -331,7 +331,7 @@
         {
           "id": 7,
           "type": "Slay",
-          "description": "It is pretty unlikely the \\Enemy[14] will willingly give you its flesh, so that means you get to take it by force.",
+          "description": "It is pretty unlikely the \\Enemy[251] will willingly give you its flesh, so that means you get to take it by force.",
           "logs": {
             "inactive": "",
             "active": "Chop up the \\Enemy[14] and carve off a chunk of its exomorpha!",
@@ -356,7 +356,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 14,
+              "id": 251,
               "amount": 1
             },
             "quest": {
@@ -511,7 +511,7 @@
         {
           "id": 0,
           "type": "Slay",
-          "description": "Before you're allowed to use the kitchen, you have to go chop up bearcats.",
+          "description": "Before you're allowed to use the kitchen, you have to go chop up \\enemy[351]s.",
           "logs": {
             "inactive": "",
             "active": "Go chop up the bearcats to gain access to the kitchen.",
@@ -536,7 +536,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 17,
+              "id": 351,
               "amount": 4
             },
             "quest": {
@@ -549,7 +549,7 @@
         {
           "id": 1,
           "type": "Indiscriminate",
-          "description": "Go back and boast about your amazing efforts chopping up bearcats.",
+          "description": "Go back and boast about your amazing efforts chopping up \\enemy[351]s.",
           "logs": {
             "inactive": "",
             "active": "The innkeeper will surely be pleased you chopped up four of them.",
@@ -892,7 +892,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 32,
+              "id": 561,
               "amount": 1
             },
             "quest": {
@@ -1074,7 +1074,7 @@
           "description": "The alchemist was located, and just in the nick of time- he was about to get his face melted by a stupid slime!",
           "logs": {
             "inactive": "",
-            "active": "Holy shit, save him before he dies! You'll never get a tool if he gets melted by a \\Enemy[43]!",
+            "active": "Holy shit, save him before he dies! You'll never get a tool if he gets melted by a \\Enemy[253]!",
             "completed": "Why does everything in this stupid cave regenerate so much???",
             "failed": "",
             "missed": ""
@@ -1096,7 +1096,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 43,
+              "id": 253,
               "amount": 1
             },
             "quest": {
@@ -1582,7 +1582,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 79,
+              "id": 553,
               "amount": 1
             },
             "quest": {
@@ -1862,7 +1862,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 94,
+              "id": 563,
               "amount": 1
             },
             "quest": {
@@ -2141,7 +2141,7 @@
               "amount": -1
             },
             "slay": {
-              "id": 109,
+              "id": 554,
               "amount": 1
             },
             "quest": {
@@ -3325,7 +3325,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 66,
+              "id": 552,
               "amount": 1
             },
             "quest": {
@@ -3666,7 +3666,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 36,
+              "id": 202,
               "amount": 1
             },
             "quest": {
@@ -3718,7 +3718,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 37,
+              "id": 112,
               "amount": 1
             },
             "quest": {
@@ -3770,7 +3770,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 38,
+              "id": 322,
               "amount": 1
             },
             "quest": {
@@ -3878,7 +3878,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 44,
+              "id": 122,
               "amount": 1
             },
             "quest": {
@@ -3934,7 +3934,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 55,
+              "id": 282,
               "amount": 1
             },
             "quest": {
@@ -3990,7 +3990,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 89,
+              "id": 152,
               "amount": 1
             },
             "quest": {
@@ -4102,7 +4102,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 90,
+              "id": 473,
               "amount": 1
             },
             "quest": {
@@ -4158,7 +4158,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 91,
+              "id": 222,
               "amount": 1
             },
             "quest": {
@@ -4214,7 +4214,7 @@
               "amount": 0
             },
             "slay": {
-              "id": 98,
+              "id": 354,
               "amount": 1
             },
             "quest": {

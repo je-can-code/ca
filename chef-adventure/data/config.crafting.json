@@ -1153,7 +1153,7 @@
     },
     {
       "name": "",
-      "key": "food_snoopy-jambalaya",
+      "key": "food_seeing-jambalaya",
       "iconIndex": -1,
       "description": "",
       "unlockedByDefault": false,
@@ -1175,8 +1175,8 @@
       ],
       "ingredients": [
         {
-          "id": 358,
           "type": "a",
+          "id": 357,
           "count": 2
         },
         {
@@ -1212,9 +1212,9 @@
       ],
       "outputs": [
         {
-          "id": 174,
           "type": "i",
-          "count": 2
+          "id": 174,
+          "count": 3
         }
       ]
     },

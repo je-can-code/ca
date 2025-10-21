@@ -1,6 +1,6 @@
 [
 null,
-{"id":1,"expanded":true,"name":"Test Oasis","order":3,"parentId":0,"scrollX":816,"scrollY":624,"quick":true},
+{"id":1,"expanded":false,"name":"Test Oasis","order":3,"parentId":0,"scrollX":816,"scrollY":624,"quick":true},
 {"id":2,"expanded":false,"name":"_ActionMap","order":1,"parentId":0,"scrollX":923.4545454545455,"scrollY":681.8181818181819},
 {"id":3,"expanded":true,"name":"DUNGEON: Intro","order":241,"parentId":14,"scrollX":1594.6666666666667,"scrollY":876},
 {"id":4,"expanded":false,"name":"Cave - 1 - START","order":242,"parentId":3,"scrollX":982.5,"scrollY":658.5,"quick":true},

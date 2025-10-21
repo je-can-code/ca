@@ -18,7 +18,7 @@ how to do cooking JAFTING, allows usage of her kitchen, and sells cooking-relate
 The scientist's name is Treis. She becomes a part of the main story for chapters 2 and 3. Afterwards, she settles into
 a room in the upstairs of the inn.
 
-### The Rich Ass Man and the Average Man
+### [The Rich Ass Man and the Average Man](./NE-raevula/rich-and-poor.md)
 
 The rich man is named Vanderslop and the average man is named Peter. They stand together outside of the inn.
 
