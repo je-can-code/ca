@@ -1708,6 +1708,64 @@
       "rarity": 23
     },
     {
+      "name": "Vero Noctu",
+      "key": "REB_3",
+      "iconIndex": 2210,
+      "unlockedByDefault": false,
+      "description": "They say that for all light there is darkness, but this darkness is counterbalanced by the night.",
+      "topFlavorText": "The darkness always falls- but not in the good way.",
+      "maxRank": 10,
+      "baseCost": 1000,
+      "flatGrowthCost": 250,
+      "multGrowthCost": 3.5,
+      "panelParameters": [
+        {
+          "parameterId": 5,
+          "perRank": 4.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 12,
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 1,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 30
+        },
+        {
+          "parameterId": 5,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterId": 11,
+          "perRank": 1.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 19,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 3
+        },
+        {
+          "parameterId": 24,
+          "perRank": -0.5,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 20
+    },
+    {
       "name": "==WISPS==",
       "key": "WIL___",
       "iconIndex": 0,
@@ -2350,6 +2408,52 @@
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
+    },
+    {
+      "name": "Mouth Breather",
+      "key": "DCO_1",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 20,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [
+        {
+          "parameterId": 3,
+          "isCore": true,
+          "isFlat": true,
+          "perRank": 4
+        },
+        {
+          "parameterId": 18,
+          "isCore": true,
+          "isFlat": true,
+          "perRank": 3
+        },
+        {
+          "parameterId": 0,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 3
+        },
+        {
+          "parameterId": 0,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 3
+        },
+        {
+          "parameterId": 0,
+          "isCore": false,
+          "isFlat": true,
+          "perRank": 3
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 23
     },
     {
       "name": "==HYDRA==",
@@ -3171,6 +3275,64 @@
         }
       ],
       "rarity": 3
+    },
+    {
+      "name": "Impenetrable Gazes",
+      "key": "TNT_2",
+      "iconIndex": 2164,
+      "unlockedByDefault": false,
+      "description": "This variant of roper has seen so much moisture that even its blobby ropes splash about when cracked.|Bondage not included.",
+      "topFlavorText": "Whippy ropes galore.",
+      "maxRank": 20,
+      "baseCost": 1600,
+      "flatGrowthCost": 250,
+      "multGrowthCost": 1.8,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": 80,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 15,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 0,
+          "perRank": 0.75,
+          "isFlat": false,
+          "isCore": false
+        },
+        {
+          "parameterId": 8,
+          "perRank": 2.5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 18,
+          "perRank": 0.75,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[237]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(237);"
+        }
+      ],
+      "rarity": 31
     },
     {
       "name": "==JEL==",
