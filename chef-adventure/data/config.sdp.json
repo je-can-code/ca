@@ -1387,7 +1387,7 @@
       "rarity": 3
     },
     {
-      "name": "Foreboding Mist",
+      "name": "Foreboding Mists",
       "key": "GHO_2",
       "iconIndex": 2210,
       "unlockedByDefault": false,
@@ -2415,8 +2415,8 @@
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
-      "topFlavorText": "",
-      "maxRank": 20,
+      "topFlavorText": "It has serious issues with asthma, don't judge.",
+      "maxRank": 15,
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
@@ -2431,25 +2431,25 @@
           "parameterId": 18,
           "isCore": true,
           "isFlat": true,
-          "perRank": 3
+          "perRank": 2
         },
         {
           "parameterId": 0,
           "isCore": false,
           "isFlat": true,
-          "perRank": 3
+          "perRank": 30
         },
         {
-          "parameterId": 0,
+          "parameterId": 19,
           "isCore": false,
           "isFlat": true,
-          "perRank": 3
+          "perRank": 2.5
         },
         {
-          "parameterId": 0,
+          "parameterId": 29,
           "isCore": false,
           "isFlat": true,
-          "perRank": 3
+          "perRank": 1.5
         }
       ],
       "panelRewards": [],

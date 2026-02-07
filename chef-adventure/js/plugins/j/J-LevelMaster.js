@@ -138,6 +138,77 @@
  * On states, this will do nothing.
  *
  * ============================================================================
+ * SKILL LEARNING TAGS
+ * Have you ever wanted enemies to learn new skills as they "level up"? Well,
+ * now you can! By applying the appropriate tag w/ data points to the enemies,
+ * you too can have enemies obtain new skills as they reach ever-higher levels!
+ *
+ * NOTE ABOUT LEVELS AND SKILLS:
+ * The actual skill needs to be in the actions list of an enemy in order for it
+ * to ever be available. The tag is basically a "guard" that level-checks before
+ * allowing the skill to be included in the skill list when the list of skills
+ * for an enemy is grabbed and mapped.
+ *
+ * NOTE ABOUT COMPATIBILITY:
+ * Due to the nature of how this functionality works, this tag probably won't
+ * work as-intended outside of JABS. An extension would need to be drafted
+ * that leverages the Game_Enemy.prototype.skills function to determine their
+ * available skills instead of the default- which directly parses the actions.
+ *
+ * TAG USAGE:
+ * - Enemies only.
+ *
+ * TAG FORMAT:
+ *  <learning:[SKILL_ID, LEVEL_LEARNED]>
+ * Where SKILL_ID is the skill being learned, and LEVEL_LEARNED is the level
+ * at which the enemy must be before the skill becomes available to them.
+ *
+ * TAG EXAMPLE:
+ *  <learning:[210, 10]>
+ * An enemy with this tag will have skill of ID 210 become "learned" when the
+ * enemy is level 10 or higher.
+ *
+ * ============================================================================
+ * BEYOND THE MAX LEVELS
+ * Have you ever wanted levels to exceed 99? Well now you can! By properly
+ * setting the plugin configuration, you too can reach beyond the max level!
+ *
+ * NOTE ABOUT PLUGIN CONFIGURATION:
+ * There are two important values that should be considered when working with
+ * beyond max level tags: the "default beyond max level" value- aka the "base",
+ * and the "max boosted level" value- aka the "cap", as they influence the tags
+ * in this section.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - States
+ *
+ * TAG FORMAT:
+ *  <maxLevelBoost:AMOUNT>
+ * Where AMOUNT is a negative or positive integer applied to the base beyond
+ * max level.
+ *
+ * TAG EXAMPLES:
+ *  <maxLevelBoost:+25> (on the actor)
+ * The actor with this tag will have a +25 modifier to their base max level,
+ * but no higher than the cap max level.
+ *
+ *  <maxLevelBoost:+100> (on the actor)
+ *  <maxLevelBoost:-25> (on an equipped weapon)
+ * The actor with these tags will have a +75 (100-25=75) modifier to their base
+ * max level, but no higher than the cap max level.
+ *
+ *  <maxLevelBoost:-50> (on the actor)
+ *  <maxLevelBoost:-25> (on a learned skill for the actor)
+ *  <maxLevelBoost:+10> (on a state applied to the actor)
+ * The actor with these tags will have a -65 (-50-25+10=-65) modifier to their
+ * base max level.
+ *
+ * ============================================================================
  * SAMPLE CALCULATIONS:
  * Here is an example back and forth encounter between an allied party and
  * enemy party.
@@ -480,6 +551,7 @@ J.LEVEL.RegExp = {
 
   /**
    * The regex for when a skill id is learned at a designated level.
+   * The array capture group is [SKILL_ID, LEVEL_LEARNED].
    * @type {RegExp}
    */
   Learning: /<learning: ?(\[\d+, ?\d+])>/i,

@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_core.js v1.5.0
+// rmmz_core.js v1.10.0
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ Utils.RPGMAKER_NAME = "MZ";
  * @type string
  * @constant
  */
-Utils.RPGMAKER_VERSION = "1.5.0";
+Utils.RPGMAKER_VERSION = "1.10.0";
 
 /**
  * Checks whether the current RPG Maker version is greater than or equal to
@@ -872,7 +872,7 @@ Graphics._createErrorPrinter = function() {
 };
 
 Graphics._updateErrorPrinter = function() {
-    const width = 640 * this._realScale;
+    const width = this._width * 0.8 * this._realScale;
     const height = 100 * this._realScale;
     this._errorPrinter.style.width = width + "px";
     this._errorPrinter.style.height = height + "px";
@@ -1148,13 +1148,15 @@ Point.prototype.initialize = function(x, y) {
 /**
  * The rectangle class.
  *
- * @param {number} x The `ox` coordinate.
- * @param {number} y The `oy` coordinate.
- * @param {number} width The width of the rectangle.
- * @param {number} height The height of the rectangle.
+ * @class
+ * @extends PIXI.Rectangle
+ * @param {number} x - The x coordinate for the upper-left corner.
+ * @param {number} y - The y coordinate for the upper-left corner.
+ * @param {number} width - The width of the rectangle.
+ * @param {number} height - The height of the rectangle.
  */
-function Rectangle(x, y, width, height) {
-    this.initialize(x, y, width, height);
+function Rectangle() {
+    this.initialize(...arguments);
 }
 
 Rectangle.prototype = Object.create(PIXI.Rectangle.prototype);
@@ -1167,6 +1169,10 @@ Rectangle.prototype.initialize = function(x, y, width, height) {
 //-----------------------------------------------------------------------------
 /**
  * The basic object that represents an image.
+ *
+ * @class
+ * @param {number} width - The width of the bitmap.
+ * @param {number} height - The height of the bitmap.
  */
 function Bitmap() {
     this.initialize(...arguments);
@@ -2396,9 +2402,9 @@ Tilemap.prototype._createLayers = function() {
      *  8 : Animation
      *  9 : Destination
      */
-    this._lowerLayer = new Tilemap.Layer();
+    this._lowerLayer = new Tilemap.CombinedLayer();
     this._lowerLayer.z = 0;
-    this._upperLayer = new Tilemap.Layer();
+    this._upperLayer = new Tilemap.CombinedLayer();
     this._upperLayer.z = 4;
     this.addChild(this._lowerLayer);
     this.addChild(this._upperLayer);
@@ -2890,6 +2896,7 @@ Tilemap.Layer.prototype.initialize = function() {
 
 Tilemap.Layer.MAX_GL_TEXTURES = 3;
 Tilemap.Layer.VERTEX_STRIDE = 9 * 4;
+Tilemap.Layer.MAX_SIZE = 16000;
 
 Tilemap.Layer.prototype.destroy = function() {
     if (this._vao) {
@@ -2910,6 +2917,10 @@ Tilemap.Layer.prototype.setBitmaps = function(bitmaps) {
 Tilemap.Layer.prototype.clear = function() {
     this._elements.length = 0;
     this._needsVertexUpdate = true;
+};
+
+Tilemap.Layer.prototype.size = function() {
+    return this._elements.length;
 };
 
 Tilemap.Layer.prototype.addRect = function(setNumber, sx, sy, dx, dy, w, h) {
@@ -3044,6 +3055,57 @@ Tilemap.Layer.prototype._updateVertexBuffer = function() {
         vertexArray[index++] = dy + h;
     }
     this._vertexBuffer.update(vertexArray);
+};
+
+Tilemap.CombinedLayer = function() {
+    this.initialize(...arguments);
+};
+
+Tilemap.CombinedLayer.prototype = Object.create(PIXI.Container.prototype);
+Tilemap.CombinedLayer.prototype.constructor = Tilemap.CombinedLayer;
+
+Tilemap.CombinedLayer.prototype.initialize = function() {
+    PIXI.Container.call(this);
+    for (let i = 0; i < 2; i++) {
+        this.addChild(new Tilemap.Layer());
+    }
+};
+
+Tilemap.CombinedLayer.prototype.destroy = function() {
+    const options = { children: true, texture: true };
+    PIXI.Container.prototype.destroy.call(this, options);
+};
+
+Tilemap.CombinedLayer.prototype.setBitmaps = function(bitmaps) {
+    for (const child of this.children) {
+        child.setBitmaps(bitmaps);
+    }
+};
+
+Tilemap.CombinedLayer.prototype.clear = function() {
+    for (const child of this.children) {
+        child.clear();
+    }
+};
+
+Tilemap.CombinedLayer.prototype.size = function() {
+    return this.children.reduce((r, child) => r + child.size(), 0);
+};
+
+// prettier-ignore
+Tilemap.CombinedLayer.prototype.addRect = function(
+    setNumber, sx, sy, dx, dy, w, h
+) {
+    for (const child of this.children) {
+        if (child.size() < Tilemap.Layer.MAX_SIZE) {
+            child.addRect(setNumber, sx, sy, dx, dy, w, h);
+            break;
+        }
+    }
+};
+
+Tilemap.CombinedLayer.prototype.isReady = function() {
+    return this.children.every(child => child.isReady());
 };
 
 Tilemap.Renderer = function() {
@@ -3535,7 +3597,8 @@ Object.defineProperty(Window.prototype, "windowskin", {
 /**
  * The bitmap used for the window contents.
  *
- * @type {Bitmap}
+ * @type Bitmap
+ * @name Window#contents
  */
 Object.defineProperty(Window.prototype, "contents", {
     get: function() {

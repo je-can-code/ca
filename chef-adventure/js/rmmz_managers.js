@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_managers.js v1.5.0
+// rmmz_managers.js v1.10.0
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -285,6 +285,10 @@ DataManager.isBattleTest = function() {
 
 DataManager.isEventTest = function() {
     return Utils.isOptionValid("etest");
+};
+
+DataManager.isTitleSkip = function() {
+    return Utils.isOptionValid("tskip");
 };
 
 DataManager.isSkill = function(item) {
@@ -916,14 +920,58 @@ function ImageManager() {
     throw new Error("This is a static class");
 }
 
-ImageManager.iconWidth = 32;
-ImageManager.iconHeight = 32;
-ImageManager.faceWidth = 144;
-ImageManager.faceHeight = 144;
+ImageManager.standardIconWidth = 32;
+ImageManager.standardIconHeight = 32;
+ImageManager.standardFaceWidth = 144;
+ImageManager.standardFaceHeight = 144;
 
 ImageManager._cache = {};
 ImageManager._system = {};
 ImageManager._emptyBitmap = new Bitmap(1, 1);
+
+Object.defineProperty(ImageManager, "iconWidth", {
+    get: function() {
+        return this.getIconSize();
+    },
+    configurable: true
+});
+
+Object.defineProperty(ImageManager, "iconHeight", {
+    get: function() {
+        return this.getIconSize();
+    },
+    configurable: true
+});
+
+Object.defineProperty(ImageManager, "faceWidth", {
+    get: function() {
+        return this.getFaceSize();
+    },
+    configurable: true
+});
+
+Object.defineProperty(ImageManager, "faceHeight", {
+    get: function() {
+        return this.getFaceSize();
+    },
+    configurable: true
+});
+
+ImageManager.getIconSize = function() {
+    if ("iconSize" in $dataSystem) {
+        return $dataSystem.iconSize;
+    } else {
+        return this.standardIconWidth;
+    }
+};
+
+ImageManager.getFaceSize = function() {
+    if ("faceSize" in $dataSystem) {
+        return $dataSystem.faceSize;
+    } else {
+        return this.standardFaceWidth;
+    }
+};
 
 ImageManager.loadAnimation = function(filename) {
     return this.loadBitmap("img/animations/", filename);
@@ -2871,8 +2919,8 @@ BattleManager.invokeMagicReflection = function(subject, target) {
 
 BattleManager.applySubstitute = function(target) {
     if (this.checkSubstitute(target)) {
-        const substitute = target.friendsUnit().substituteBattler();
-        if (substitute && target !== substitute) {
+        const substitute = target.friendsUnit().substituteBattler(target);
+        if (substitute) {
             this._logWindow.displaySubstitute(substitute, target);
             return substitute;
         }
@@ -2885,12 +2933,18 @@ BattleManager.checkSubstitute = function(target) {
 };
 
 BattleManager.isActionForced = function() {
-    return !!this._actionForcedBattler;
+    return (
+        !!this._actionForcedBattler &&
+        !$gameParty.isAllDead() &&
+        !$gameTroop.isAllDead()
+    );
 };
 
 BattleManager.forceAction = function(battler) {
-    this._actionForcedBattler = battler;
-    this._actionBattlers.remove(battler);
+    if (battler.numActions() > 0) {
+        this._actionForcedBattler = battler;
+        this._actionBattlers.remove(battler);
+    }
 };
 
 BattleManager.processForcedAction = function() {
