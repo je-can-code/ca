@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 DROPS] Enables greater control over loot drops.
+ * [v2.1.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -158,6 +158,8 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    Further abstracted some of the logic for drops to support extension.
  * - 2.0.0
  *    Retroactively added this CHANGELOG.
  *    Refactored various data retrieval methods from given battlers.
@@ -191,7 +193,7 @@ J.DROPS.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.0.0',
+  Version: '2.1.0',
 };
 
 /**
@@ -207,6 +209,7 @@ J.DROPS.RegExp.GoldMultiplier = /<goldMultiplier:[ ]?(-?\d+)>/i;
  */
 J.DROPS.Aliased = {
   Game_Enemy: new Map(),
+  RPG_Enemy: new Map(),
 };
 //endregion Introduction
 
@@ -263,6 +266,7 @@ class RPG_DropItemBuilder
    * @type {number}
    */
   #chance = 0;
+
   //endregion properties
 
   /**
@@ -375,8 +379,64 @@ class RPG_DropItemBuilder
     this.setChance(percentChance);
     return this.build();
   }
+
   //endregion builders
 }
+
+//region RPG_Enemy
+/**
+ * Extends {@link #initMembers}.<br/>
+ * Also initializes the extra drops.
+ */
+J.DROPS.Aliased.Game_Enemy.set("initMembers", RPG_Enemy.prototype.initMembers);
+RPG_Enemy.prototype.initMembers = function(enemy)
+{
+  // perform original logic.
+  J.DROPS.Aliased.Game_Enemy.get("initMembers")
+    .call(this, enemy);
+
+  // also parse our extra drops into the drop items list.
+  this.initExtraDrops();
+};
+
+/**
+ * Parses the extra drops on the enemy and adds them into the collection.
+ */
+RPG_Enemy.prototype.initExtraDrops = function()
+{
+  // if the enemy is null or something, just nix it.
+  if (this === null)
+  {
+    throw new Error('we initialized extra drops for a null enemy, oops.');
+  }
+
+  // get the drops found on this enemy.
+  const moreDrops = RPGManager.getArraysFromNotesByRegex(this, J.DROPS.RegExp.ExtraDrop, true) ?? [];
+
+  // if there are no more drops, then skip processing.
+  if (moreDrops.length === 0) return;
+
+  // a mapping function to build proper drop items from the arrays.
+  const mapper = drop =>
+  {
+    // deconstruct the array into drop properties.
+    const [ dropType, dropId, chance ] = drop;
+
+    // build the new drop item.
+    return new RPG_DropItemBuilder()
+      .setType(RPG_DropItem.TypeFromLetter(dropType))
+      .setId(dropId)
+      .setChance(chance)
+      .build();
+  };
+
+  // map the converted drops.
+  const convertedDrops = moreDrops
+    .map(mapper, this);
+
+  // return the found extra drops.
+  this.dropItems.push(...convertedDrops);
+};
 
 /**
  * Gets the list of original drop items from the enemy in the database.
@@ -408,6 +468,7 @@ RPG_Enemy.prototype.validDropItemFilter = function(dropItem)
   // the item is valid!
   return true;
 };
+//endregion RPG_Enemy
 
 /**
  * A class representing a static collection of party strategies relating to rewards.
@@ -460,9 +521,7 @@ Game_Actor.prototype.getDropMultiplierBonus = function()
   const objectsToCheck = this.getAllNotes();
 
   // get the multiplier from anything this battler has available.
-  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
-    J.DROPS.RegExp.DropMultiplier);
+  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropMultiplier);
 
   // calculate the multiplier factor.
   const factor = (multiplierBonus + baseMultiplier) / 100;
@@ -484,9 +543,7 @@ Game_Actor.prototype.getGoldMultiplier = function()
   const objectsToCheck = this.getAllNotes();
 
   // get the multiplier from anything this battler has available.
-  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
-    J.DROPS.RegExp.GoldMultiplier);
+  const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.GoldMultiplier);
 
   // calculate the multiplier factor.
   const factor = (multiplierBonus + baseMultiplier) / 100;
@@ -495,39 +552,6 @@ Game_Actor.prototype.getGoldMultiplier = function()
   return factor;
 };
 //endregion Game_Actor
-
-//region Game_Battler
-/**
- * Parses the given reference data to extract any extra drops that may be present.
- * @param {RPG_BaseItem} referenceData The database object to parse.
- * @returns {RPG_DropItem[]}
- */
-Game_Battler.prototype.extractExtraDrops = function(referenceData)
-{
-  // get the drops found on this enemy.
-  const moreDrops = referenceData.getArraysFromNotesByRegex(J.DROPS.RegExp.ExtraDrop, true) ?? [];
-
-  // a mapping function to build proper drop items from the arrays.
-  const mapper = drop =>
-  {
-    // deconstruct the array into drop properties.
-    const [ dropType, dropId, chance ] = drop;
-
-    // build the new drop item.
-    return new RPG_DropItemBuilder()
-      .setType(RPG_DropItem.TypeFromLetter(dropType))
-      .setId(dropId)
-      .setChance(chance)
-      .build();
-  };
-
-  // map the converted drops.
-  const convertedDrops = moreDrops.map(mapper, this);
-
-  // return the found extra drops.
-  return convertedDrops;
-};
-//endregion Game_Battler
 
 //region Game_Enemy
 /**
@@ -538,9 +562,17 @@ Game_Battler.prototype.extractExtraDrops = function(referenceData)
 J.DROPS.Aliased.Game_Enemy.set("gold", Game_Enemy.prototype.gold);
 Game_Enemy.prototype.gold = function()
 {
+  // identifies the base rate of gold gain.
   const baseGoldRate = this.getBaseGoldRate();
-  const baseGold = (J.DROPS.Aliased.Game_Enemy.get("gold").call(this) * baseGoldRate);
+
+  // calculates the gold accordingly with the base multiplier.
+  const baseGold = (J.DROPS.Aliased.Game_Enemy.get("gold")
+    .call(this) * baseGoldRate);
+
+  // multiplies the gold again by the party's gold multiplier.
   const multiplier = $gameParty.getGoldMultiplier();
+
+  // returns the rounded amount to avoid fractional gains in currency.
   return Math.round(baseGold * multiplier);
 };
 
@@ -555,9 +587,9 @@ Game_Enemy.prototype.getBaseGoldRate = function()
 };
 
 /**
- * OVERWRITE Modifies the drop chance algorithm to treat the number entered in the
- * database as a percent chance instead of some weird fractional shit. Also applies
- * any applicable multipliers against the discovery rate of loot.
+ * Overrides {@link #makeDropItems}.<br/>
+ * Modifies the drop chance algorithm to treat the number entered in the database as a percent chance instead of some
+ * weird fractional shit. Also applies any applicable multipliers against the discovery rate of loot.
  * @returns {RPG_BaseItem[]} The array of loot successfully found.
  */
 Game_Enemy.prototype.makeDropItems = function()
@@ -577,14 +609,8 @@ Game_Enemy.prototype.makeDropItems = function()
   // iterate over all drops to see what we got.
   dropList.forEach(drop =>
   {
-    // we don't deal with empty loot here.
-    if (drop.kind === 0) return;
-
-    // determine the loot we're finding.
-    const item = this.itemObject(drop.kind, drop.dataId);
-
     // check if this loot is findable.
-    if (!this.canFindLoot(item)) return;
+    if (!this.canFindLoot(drop)) return;
 
     // here we're using the number from the database as a percentage chance instead.
     const rate = drop.denominator * multiplier;
@@ -597,24 +623,41 @@ Game_Enemy.prototype.makeDropItems = function()
       ? true                    // we were already a boss.
       : this.didFindLoot(rate); // roll the dice!
 
-    // check if we earned the loot.
-    if (foundLoot)
-    {
-      // add it to the list of earned drops from this enemy.
-      itemsFound.push(item);
-    }
-  });
+    // if we didn't find the loot, then don't proceed.
+    if (foundLoot === false) return;
+
+    // find the loot.
+    this.findLoot(drop, itemsFound);
+  }, this);
 
   // return all earned loot!
   return itemsFound;
 };
 
 /**
- * Determines if the item is allowed to be found.
- * @param {RPG_BaseItem} item The item to find.
+ * Builds the drop to be found and adds it to the running list.
+ * @param {RPG_DropItem} drop The drop being found.
+ * @param {RPG_BaseItem} itemsFound The running list of items that have been found.
  */
-Game_Enemy.prototype.canFindLoot = function(item)
+Game_Enemy.prototype.findLoot = function(drop, itemsFound)
 {
+  // determine the loot we're finding.
+  const item = this.itemObject(drop.kind, drop.dataId);
+
+  // add it to the list of earned drops from this enemy.
+  itemsFound.push(item);
+};
+
+/**
+ * Determines if the drop is allowed to be found.
+ * @param {RPG_DropItem} drop The drop to potentially to find.
+ */
+Game_Enemy.prototype.canFindLoot = function(drop)
+{
+  // we don't deal with empty loot here.
+  if (drop.kind === 0) return false;
+
+  // find it!
   return true;
 };
 
@@ -626,7 +669,7 @@ Game_Enemy.prototype.canFindLoot = function(item)
  */
 Game_Enemy.prototype.didFindLoot = function(rate)
 {
-  // locally assign the percent chance to find something..
+  // locally assign the percent chance to find something.
   let chance = rate;
 
   // check if anyone in the party has the double-drop trait.
@@ -649,11 +692,12 @@ Game_Enemy.prototype.didFindLoot = function(rate)
  */
 Game_Enemy.prototype.getDropItems = function()
 {
-  // validate the original drop items from the enemy in the database.
-  const databaseDropItems = this.enemy().originalDropItems();
+  // validate the drop items from the enemy- from the database and additionally parsed drops.
+  const baseDropItems = this.enemy()
+    .originalDropItems();
 
   // initialize the drops to be the enemy's own valid drop items from the database.
-  const allDropItems = [...databaseDropItems];
+  const allDropItems = [ ...baseDropItems ];
 
   // grab any extra drops available.
   const extraDropItems = this.extraDrops();
@@ -667,7 +711,6 @@ Game_Enemy.prototype.getDropItems = function()
 
 /**
  * Gets any additional drops from the notes of this particular enemy.
- *
  * @returns {RPG_DropItem[]}
  */
 Game_Enemy.prototype.extraDrops = function()
@@ -686,7 +729,7 @@ Game_Enemy.prototype.extraDrops = function()
 
     // add what was found.
     extraDrops.push(...drops);
-  });
+  }, this);
 
   // return all the extras.
   return extraDrops;
@@ -699,14 +742,42 @@ Game_Enemy.prototype.extraDrops = function()
  */
 Game_Enemy.prototype.dropSources = function()
 {
-  // initialize our sources tracking.
+  // initialize our sources tracking- by default there are no extra sources beyond oneself.
   const sources = [];
-
-  // add the enemy's own self to the list of sources.
-  sources.push(this.enemy());
 
   // return what we found.
   return sources;
+};
+
+/**
+ * Parses the given reference data to extract any extra drops that may be present.
+ * @param {RPG_BaseItem} referenceData The database object to parse.
+ * @returns {RPG_DropItem[]}
+ */
+Game_Enemy.prototype.extractExtraDrops = function(referenceData)
+{
+  // get the drops found on this enemy.
+  const moreDrops = RPGManager.getArraysFromNotesByRegex(referenceData, J.DROPS.RegExp.ExtraDrop, true) ?? [];
+
+  // a mapping function to build proper drop items from the arrays.
+  const mapper = drop =>
+  {
+    // deconstruct the array into drop properties.
+    const [ dropType, dropId, chance ] = drop;
+
+    // build the new drop item.
+    return new RPG_DropItemBuilder()
+      .setType(RPG_DropItem.TypeFromLetter(dropType))
+      .setId(dropId)
+      .setChance(chance)
+      .build();
+  };
+
+  // map the converted drops.
+  const convertedDrops = moreDrops.map(mapper, this);
+
+  // return the found extra drops.
+  return convertedDrops;
 };
 
 /**
@@ -753,9 +824,9 @@ Game_Party.prototype.getGoldMultiplier = function()
   const membersToConsider = this.goldMultiplierMembers();
 
   // calculate the total.
-  const goldMultiplier = membersToConsider.reduce(
-    (runningTotal, currentActor) => runningTotal + currentActor.getGoldMultiplier(),
-    baseMultiplier);
+  const goldMultiplier = membersToConsider.reduce((
+    runningTotal,
+    currentActor) => runningTotal + currentActor.getGoldMultiplier(), baseMultiplier);
 
   // return the result.
   return goldMultiplier;
@@ -804,9 +875,9 @@ Game_Party.prototype.getPartyDropMultiplier = function()
   const membersToConsider = this.dropMultiplierMembers();
 
   // calculate the total.
-  const dropMultiplier = membersToConsider.reduce(
-    (runningTotal, currentActor) => runningTotal + currentActor.getDropMultiplierBonus(),
-    baseMultiplier);
+  const dropMultiplier = membersToConsider.reduce((
+    runningTotal,
+    currentActor) => runningTotal + currentActor.getDropMultiplierBonus(), baseMultiplier);
 
   // return the result.
   return dropMultiplier;

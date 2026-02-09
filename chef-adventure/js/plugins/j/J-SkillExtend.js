@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 EXTEND] Extends the capabilities of skills/actions.
+ * [v1.1.0 EXTEND] Extends the capabilities of skills/actions.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -85,43 +85,20 @@
  *      only for this execution of the skill for overlay purposes only.
  *    - the editor's speed cap of +/-2000 is not respected!
  *    - the editor's success cap of 0-100 is not respected!
- *  If using JABS, the following data points are added if missing or if
- * they already exist on the base skill, their values are updated:
- *  - moveType (???)
- *  - projectile
- *  - counterGuard (***)
- *  - counterParry (***)
- *  - parry (***)
- *  - guard (***)
- *  - bonusHits
- *  - aggroMultiplier
- *  - bonusAggro
- *  - combo (!!!)
- *  - castTime
- *  - castAnimation
- *  - poseSuffix
- *  - knockback
- *  - piercing
- *  - shape
- *  - duration
- *  - actionId (!!!)
- *  - proximity
- *  - range
- *  - cooldown
- * If using JABs, the following datapoints will simply continue to exist
- * because they are idempotent traits:
- *  - uniqueCooldown
- *  - direct (!!!)
- *  - freeCombo
+ *  When it comes to the note section:
+ *    - all tags by default will be overridden where the key matches.
+ *    - you can avoid override behavior by configuring duplicate keys.
  *
- * ???:
+ * If using this plugin with JABS...
+ *
+ * Note about adding move-related tags:
  *  The effects of adding the "moveType" tag onto a skill that didn't
  *  previously have it are completely untested, use at your own risk!
- * ***:
+ * Note about adding guard-related tags:
  *  The effects of adding the "counterGuard/counterParry" tags onto a skill
  *  that didn't previously have it are untested, though shouldn't cause any
  *  problems if they are added onto a skill with "guard & parry".
- * !!!:
+ * Note about combo-related tags:
  *  The effects of adding the "combo/actionId/direct" tags onto any skills is
  *  something to be careful about, as they very significantly change how
  *  the manager interacts with the actions. Replacing any of those values
@@ -175,6 +152,8 @@
  * target. This happens regardless the outcome of the skill.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Rewrite tag override functionality to replace excluding specified keys.
  * - 1.0.1
  *    Fixed reference error when attempting to extend skills w/ on-hit effects.
  *    Retroactively added this CHANGELOG.
@@ -207,7 +186,7 @@ J.EXTEND.Metadata.Name = `J-SkillExtend`;
 /**
  * The version of this plugin.
  */
-J.EXTEND.Metadata.Version = '1.0.0';
+J.EXTEND.Metadata.Version = '1.1.0';
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -220,9 +199,33 @@ J.EXTEND.Aliased.Game_Item = new Map();
  * All regular expressions used by this plugin.
  */
 J.EXTEND.RegExp = {};
+J.EXTEND.RegExp.SkillExtend = /<skillExtend:[ ]?(\[[ ]?\d+(?:,[ ]?\d+)*[ ]?])>/i;
 J.EXTEND.RegExp.OnHitSelfState = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
 J.EXTEND.RegExp.OnCastSelfState = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
 //endregion Metadata
+
+//region RPG_Skill
+/**
+ * Determines whether or not there are any skill extensions on this skill.
+ */
+Object.defineProperty(RPG_Skill.prototype, "isSkillExtension", {
+  get: function()
+  {
+    return !!RPGManager.getArrayFromNotesByRegex(this, J.EXTEND.RegExp.SkillExtend, true, true);
+  },
+});
+
+/**
+ * Gets all skill extensions for this skill- if any.
+ * Will return an empty array if none are present.
+ */
+Object.defineProperty(RPG_Skill.prototype, "getSkillExtensions", {
+  get: function()
+  {
+    return RPGManager.getArrayFromNotesByRegex(this, J.EXTEND.RegExp.SkillExtend, true);
+  },
+});
+//endregion RPG_Skill
 
 //region OverlayManager
 /**
@@ -231,9 +234,80 @@ J.EXTEND.RegExp.OnCastSelfState = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
  */
 class OverlayManager
 {
+  /**
+   * The line types available for overlaying in the context of a note.
+   */
+  static LineType = {
+    /**
+     * A "key value pair" tag, such as <key:value>.
+     */
+    kvp: 'kvp',
+
+    /**
+     * A "boolean" tag, such as <key>.
+     */
+    boolean: 'boolean',
+
+    /**
+     * A tag that isn't supported by this framework at this time.
+     * Any tag that is not one of the defined types will qualify as this and not get mutated.
+     */
+    unsupported: 'unsupported',
+  }
+
+  /**
+   * A cache for caster-skill extensions.
+   * This is effectively a map of maps, where the parent map is keyed by the caster, while the child map is keyed by
+   * a combination of the skill id and its extension skill ids.
+   * @type {Map<Game_Actor|Game_Enemy, Map<string, RPG_Skill>>}
+   */
+  static _casterExtendCache = new WeakMap();
+
+  /**
+   * Constructor.
+   * This is a static class so using this constructor will throw an error.
+   */
   constructor()
   {
     throw new Error('The OverlayManager is a static class.');
+  }
+
+  /**
+   * Gets the OverlayManager-owned per-caster cache.
+   * The cache maps a caster to a Map keyed by a deterministic overlay set key.
+   * @returns {WeakMap<Game_Actor|Game_Enemy, Map<string, RPG_Skill>>} The cache WeakMap.
+   */
+  static getCasterExtendCache()
+  {
+    // return the WeakMap that contains per-caster extended-skill caches.
+    return this._casterExtendCache;
+  }
+
+  /**
+   * Gets the existing cache of a caster's skill extensions.
+   * If a cache does not yet exist for the caster, it'll be created.
+   * @param {Game_Actor|Game_Enemy} caster The caster of the skill.
+   * @returns {Map<string, RPG_Skill>}
+   */
+  static getOrCreateCasterCache(caster)
+  {
+    // retrieve the OverlayManager-owned per-caster cache WeakMap.
+    const cacheByCaster = this.getCasterExtendCache();
+
+    // attempt to get the existing per-caster Map from the WeakMap.
+    let casterCache = cacheByCaster.get(caster);
+
+    // if the caster has a cache, return it.
+    if (casterCache !== undefined) return casterCache;
+
+    // create the new Map that will store extended results keyed by overlay combination.
+    casterCache = new Map();
+
+    // record the new Map into the WeakMap for this caster.
+    cacheByCaster.set(caster, casterCache);
+
+    // return the newly-built cache.
+    return casterCache;
   }
 
   /**
@@ -244,51 +318,73 @@ class OverlayManager
    */
   static getExtendedSkill(caster, skillId)
   {
-    // if we don't have a caster for some reason, don't process anything.
-    if (!caster)
-    {
-      console.warn(`no caster was provided to check skill extensions for skillId: ${skillId}.<br>`);
-      return $dataSkills[skillId];
-    }
+    if (skillId <= 0) throw new Error('Invalid skill extension id.');
 
-    // make a copy of the original skill to be overlayed.
-    const baseSkill = $dataSkills[skillId]._clone();
+    // if we don't have a caster for some reason, don't process anything.
+    if (!caster) return $dataSkills[skillId];
+
+    // attempt to get the existing per-caster Map from the WeakMap.
+    const casterCache = this.getOrCreateCasterCache(caster);
 
     // the filter for filtering whether or not a skill is an extension skill.
     /** @param {RPG_Skill} skill */
-    const skillExtendFilter = (skill) =>
+    const isOverlayForBase = (skill) =>
     {
-      // if the skill isn't an extension skill, skip it.
-      const isExtensionSkill = (skill.metadata('skillExtend'));
-      if (!isExtensionSkill) return false;
+      // if this skill is not an extension skill, then it cannot overlay the base.
+      if (skill.isSkillExtension === false) return false;
 
-      const skillsExtended = JSON.parse(skill.metadata('skillExtend'))
-        .map(parseInt);
-      return skillsExtended.includes(skillId);
+      // indicate whether or not this skill overlays the base.
+      return skill.getSkillExtensions.includes(skillId);
     };
 
     // get all skills we can extend this skillId with.
-    const filteredSkills = caster
-      .skills()
-      .filter(skillExtendFilter);
-    const skillExtendSkills = [ ...filteredSkills ];
+    // collect all overlay-capable skills for the provided base skill id.
+    const overlaySkills = caster.skills()
+      .filter(isOverlayForBase);
 
-    // based on the number of skill extend skills we have...
-    switch (skillExtendSkills.length)
+    // if there are no overlays, return the original skill without incurring clone cost.
+    if (overlaySkills.length === 0)
     {
-      // there was no skills to extend with.
-      case 0:
-        return baseSkill;
-
-      // we found one skill to extend with.
-      case 1:
-        return this.extendSkill(baseSkill, skillExtendSkills[0]);
-
-      // there are many skills to extend with sequentially.
-      default:
-        const reducer = (skillPreviously, skillOverlay) => this.extendSkill(skillPreviously, skillOverlay);
-        return skillExtendSkills.reduce(reducer, baseSkill);
+      // return the base database skill untouched.
+      return $dataSkills[skillId];
     }
+
+    // sort overlays deterministically by their id to ensure stable and predictable results.
+    overlaySkills.sort((a, b) => a.id - b.id);
+
+    // construct a cache key that represents the base skill and the exact overlay set order.
+    const overlayKey = `${skillId}|${overlaySkills.map(s => s.id)
+      .join(",")}`;
+
+    // attempt to retrieve a cached extended result for this exact combination.
+    if (casterCache.has(overlayKey))
+    {
+      // return the cached extended skill for this combination.
+      return casterCache.get(overlayKey);
+    }
+
+    // clone the base skill so overlays can safely mutate the clone without affecting the database.
+    const baseClone = $dataSkills[skillId]._clone();
+
+    // define a reducer that applies a single overlay onto the current working skill.
+    /**
+     * @param {RPG_Skill} working The skill being mutated.
+     * @param {RPG_Skill} overlay This current skill overlay being layered ontop of the working skill.
+     **/
+    const applyOverlay = (working, overlay) =>
+    {
+      // return the result of extending the working skill with the overlay skill.
+      return this.extendSkill(working, overlay);
+    };
+
+    // apply all overlays in order to produce the final extended skill.
+    const extended = overlaySkills.reduce(applyOverlay, baseClone);
+
+    // cache the extended skill for this caster and overlay combination.
+    casterCache.set(overlayKey, extended);
+
+    // return the final extended skill.
+    return extended;
   }
 
   /**
@@ -300,59 +396,16 @@ class OverlayManager
   static extendSkill(baseSkill, skillOverlay)
   {
     // merge all of the base skill data.
-    baseSkill = this.baseSkillData(baseSkill, skillOverlay);
-
-    // update all the JABS-specific data.
-    baseSkill = this.overwrite(baseSkill, skillOverlay);
+    const updatedBaseSkill = this.extendBaseSkill(baseSkill, skillOverlay);
 
     // sanitize the skill extends out of the base skill to prevent recursive extensions.
-    baseSkill = this.sanitizeBaseSkill(baseSkill);
+    this.sanitizeExtensions(updatedBaseSkill);
 
     // return the base skill merged with the overlay.
-    return baseSkill;
+    return updatedBaseSkill;
   }
 
-  /**
-   * Overlays `skillOverlay` onto the `baseSkill`.
-   *
-   * All parameters that the `skillOverlay` and `baseSkill` share will
-   * be overridden by the `skillOverlay` values. Any parameters the
-   * `skillOverlay` has that the `baseSkill` lacks will be added anew.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static overwrite(baseSkill, skillOverlay)
-  {
-    baseSkill = this.cooldown(baseSkill, skillOverlay);
-    baseSkill = this.range(baseSkill, skillOverlay);
-    baseSkill = this.proximity(baseSkill, skillOverlay);
-    baseSkill = this.actionId(baseSkill, skillOverlay);
-    baseSkill = this.duration(baseSkill, skillOverlay);
-    baseSkill = this.shape(baseSkill, skillOverlay);
-    baseSkill = this.knockback(baseSkill, skillOverlay);
-    baseSkill = this.poseSuffix(baseSkill, skillOverlay);
-    baseSkill = this.castAnimation(baseSkill, skillOverlay);
-    baseSkill = this.castTime(baseSkill, skillOverlay);
-    baseSkill = this.freeCombo(baseSkill, skillOverlay);
-    baseSkill = this.direct(baseSkill, skillOverlay);
-    baseSkill = this.bonusAggro(baseSkill, skillOverlay);
-    baseSkill = this.aggroMultiplier(baseSkill, skillOverlay);
-    baseSkill = this.bonusHits(baseSkill, skillOverlay);
-    baseSkill = this.guard(baseSkill, skillOverlay);
-    baseSkill = this.counterParry(baseSkill, skillOverlay);
-    baseSkill = this.counterGuard(baseSkill, skillOverlay);
-    baseSkill = this.projectile(baseSkill, skillOverlay);
-    baseSkill = this.uniqueCooldown(baseSkill, skillOverlay);
-    baseSkill = this.moveType(baseSkill, skillOverlay);
-    baseSkill = this.invincibleDodge(baseSkill, skillOverlay);
-    baseSkill = this.piercing(baseSkill, skillOverlay);
-    baseSkill = this.combo(baseSkill, skillOverlay);
-
-    return baseSkill;
-  }
-
-  //region overwrites
+  //region extensions
   /**
    * Overlays the base skill data.
    *
@@ -363,108 +416,29 @@ class OverlayManager
    * @param skillOverlay {RPG_Skill} The overlay skill.
    * @returns {RPG_Skill} The overlayed base skill.
    */
-  static baseSkillData(baseSkill, skillOverlay)
+  static extendBaseSkill(baseSkill, skillOverlay)
   {
-    // if the overlay damage type isn't "none", then overlay those values.
-    if (skillOverlay.damage.type)
-    {
-      // if the critical toggle doesn't match...
-      if (baseSkill.damage.critical !== skillOverlay.damage.critical)
-      {
-        // overwrite the critical toggle.
-        baseSkill.damage.critical = skillOverlay.damage.critical;
-      }
+    // extend all the sections of the skill with the skill overlay.
+    this.extendGeneral(baseSkill, skillOverlay);
+    this.extendDamage(baseSkill, skillOverlay);
+    this.extendEffects(baseSkill, skillOverlay);
+    this.extendInvocation(baseSkill, skillOverlay);
+    this.extendMessage(baseSkill, skillOverlay);
 
-      // overwrite the base element.
-      if (baseSkill.damage.elementId !== skillOverlay.damage.elementId)
-      {
-        baseSkill.damage.elementId = skillOverlay.damage.elementId;
-      }
+    // extend the note and metadata with the skill overlay.
+    this.extendMetadata(baseSkill, skillOverlay);
 
-      // overwrite damage type.
-      if (baseSkill.damage.type !== skillOverlay.damage.type)
-      {
-        // allow upgrading hp-damage >> hp-drain.
-        if (baseSkill.damage.type === 1 && skillOverlay.damage.type === 5)
-        {
-          baseSkill.damage.type = 5;
-        }
-        // allow upgrading mp-damage >> mp-drain.
-        else if (baseSkill.damage.type === 2 && skillOverlay.damage.type === 6)
-        {
-          baseSkill.damage.type = 6;
-        }
+    // return the base skill extended by the overlay.
+    return baseSkill;
+  }
 
-        // otherwise, overwrite damage type.
-        // TODO: when stacking damage types, update here.
-      }
-
-      // overwrite the variance.
-      if (baseSkill.damage.variance !== skillOverlay.damage.variance)
-      {
-        baseSkill.damage.variance = skillOverlay.damage.variance;
-      }
-
-      // if the overlay formula is present, and doesn't match the base skill...
-      if (skillOverlay.damage.formula && baseSkill.damage.formula !== skillOverlay.damage.formula)
-      {
-        // overwrite the formula.
-        baseSkill.damage.formula = skillOverlay.damage.formula;
-      }
-    }
-
-    // combine the effects.
-    baseSkill.effects = baseSkill.effects.concat(skillOverlay.effects);
-
-    // combine the meta together.
-    baseSkill.meta = {
-      ...baseSkill.meta,
-      ...skillOverlay.meta,
-    }
-
-    // append the notes.
-    baseSkill.note += skillOverlay.note;
-
-    // combine repeats if they aren't just 1 (default).
-    if (skillOverlay.repeats !== 1)
-    {
-      baseSkill.repeats += (skillOverlay.repeats - 1);
-    }
-
-    // combine speeds.
-    if (skillOverlay.speed !== 0)
-    {
-      baseSkill.speed += skillOverlay.speed;
-    }
-
-    // if they aren't the same, and aren't 100 (default), then add them.
-    if (baseSkill.successRate !== skillOverlay.successRate ||
-      skillOverlay.successRate !== 100)
-    {
-      baseSkill.successRate += skillOverlay.successRate;
-    }
-
-    // overwrite message 1.
-    if (baseSkill.message1 !== skillOverlay.message1)
-    {
-      baseSkill.message1 = skillOverlay.message1;
-    }
-
-    // overwrite message 2.
-    if (baseSkill.message2 !== skillOverlay.message2)
-    {
-      baseSkill.message2 = skillOverlay.message2;
-    }
-
-    // overwrite scope if not "none" (0 = default) and not the same.
-    const bothHaveScopes = baseSkill.scope !== 0 && skillOverlay.scope !== 0;
-    const scopesHaveChanged = baseSkill.scope !== skillOverlay.scope;
-    if (bothHaveScopes && scopesHaveChanged)
-    {
-      // TODO: extend, don't overwrite!
-      baseSkill.scope = skillOverlay.scope;
-    }
-
+  /**
+   * Extends the general settings section of a skill.
+   * @param {RPG_Skill} baseSkill The skill being extended.
+   * @param {RPG_Skill} skillOverlay The skill extending the base skill.
+   */
+  static extendGeneral(baseSkill, skillOverlay)
+  {
     // overwrite mp costs if not the same.
     if (baseSkill.mpCost !== skillOverlay.mpCost)
     {
@@ -477,6 +451,122 @@ class OverlayManager
       baseSkill.tpCost = skillOverlay.tpCost;
     }
 
+    // overwrite scope if not "none" (0 = default) and not the same.
+    const bothHaveScopes = baseSkill.scope !== 0 && skillOverlay.scope !== 0;
+    const scopesHaveChanged = baseSkill.scope !== skillOverlay.scope;
+    if (bothHaveScopes && scopesHaveChanged)
+    {
+      baseSkill.scope = skillOverlay.scope;
+    }
+
+    // NOTE: not overriding "occasion".
+    // NOTE: not overriding "skill type".
+  }
+
+  /**
+   * Extends the damage section of a skill.
+   * @param {RPG_Skill} baseSkill The skill being extended.
+   * @param {RPG_Skill} skillOverlay The skill extending the base skill.
+   */
+  static extendDamage(baseSkill, skillOverlay)
+  {
+    // if the overlay damage type isn't "none", then overlay those values.
+    if (!skillOverlay.damage.type)
+    {
+      return;
+    }
+
+    if (baseSkill.damage.critical !== skillOverlay.damage.critical)
+    {
+      // overwrite the critical toggle.
+      baseSkill.damage.critical = skillOverlay.damage.critical;
+    }
+
+    if (baseSkill.damage.elementId !== skillOverlay.damage.elementId)
+    {
+      baseSkill.damage.elementId = skillOverlay.damage.elementId;
+    }
+
+    if (baseSkill.damage.type !== skillOverlay.damage.type)
+    {
+      // allow upgrading hp-damage >> hp-drain.
+      if (baseSkill.damage.type === 1 && skillOverlay.damage.type === 5)
+      {
+        baseSkill.damage.type = 5;
+      }
+      // allow upgrading mp-damage >> mp-drain.
+      else if (baseSkill.damage.type === 2 && skillOverlay.damage.type === 6)
+      {
+        baseSkill.damage.type = 6;
+      }
+
+      // otherwise, overwrite damage type.
+      // TODO: when stacking damage types, update here.
+    }
+    if (baseSkill.damage.variance !== skillOverlay.damage.variance)
+    {
+      baseSkill.damage.variance = skillOverlay.damage.variance;
+    }
+
+    if (skillOverlay.damage.formula && baseSkill.damage.formula !== skillOverlay.damage.formula)
+    {
+      // overwrite the formula.
+      baseSkill.damage.formula = skillOverlay.damage.formula;
+    }
+  }
+
+  /**
+   * Extends the effects section of a skill.
+   * @param {RPG_Skill} baseSkill The skill being extended.
+   * @param {RPG_Skill} skillOverlay The skill extending the base skill.
+   */
+  static extendEffects(baseSkill, skillOverlay)
+  {
+    // combine the effects.
+    baseSkill.effects = baseSkill.effects.concat(skillOverlay.effects);
+  }
+
+  /**
+   * Extends the metadata of a skill.
+   * @param {RPG_Skill} baseSkill The skill being extended.
+   * @param {RPG_Skill} skillOverlay The skill extending the base skill.
+   */
+  static extendMetadata(baseSkill, skillOverlay)
+  {
+    // combine the meta together.
+    baseSkill.meta = {
+      ...baseSkill.meta, ...skillOverlay.meta,
+    };
+
+    // merge notes via overwriteNote() instead of blind concatenation.
+    baseSkill.note = this.overwriteNote(baseSkill.note, skillOverlay.note);
+  }
+
+  /**
+   * Extends the invocation section of a skill.
+   * @param {RPG_Skill} baseSkill The skill being extended.
+   * @param {RPG_Skill} skillOverlay The skill extending the base skill.
+   */
+  static extendInvocation(baseSkill, skillOverlay)
+  {
+    // combine speeds.
+    if (skillOverlay.speed !== 0)
+    {
+      baseSkill.speed += skillOverlay.speed;
+    }
+
+    // if they aren't the same, and aren't 100 (default), then add them.
+    if (baseSkill.successRate !== skillOverlay.successRate || skillOverlay.successRate !== 100)
+    {
+      baseSkill.successRate += skillOverlay.successRate;
+    }
+
+    // combine repeats if they aren't just 1 (default).
+    if (skillOverlay.repeats !== 1)
+    {
+      baseSkill.repeats += (skillOverlay.repeats - 1);
+    }
+
     // combine the tp gains.
     baseSkill.tpGain += skillOverlay.tpGain;
 
@@ -487,22 +577,30 @@ class OverlayManager
     }
 
     // overwrite the animation if not 0 (default) and it changed.
-    if (baseSkill.animationId !== 0 &&
-      baseSkill.animationId !== skillOverlay.animationId)
+    if (baseSkill.animationId !== 0 && baseSkill.animationId !== skillOverlay.animationId)
     {
       baseSkill.animationId = skillOverlay.animationId;
     }
+  }
 
-    /*
-    NOTE:
-      the 'occasion' should not be changed!
-      that can result in unexpected/unwanted behavior!
-    */
+  /**
+   * Extends the message section of a skill.
+   * @param {RPG_Skill} baseSkill The skill being extended.
+   * @param {RPG_Skill} skillOverlay The skill extending the base skill.
+   */
+  static extendMessage(baseSkill, skillOverlay)
+  {
+    // overwrite message 1.
+    if (baseSkill.message1 !== skillOverlay.message1)
+    {
+      baseSkill.message1 = skillOverlay.message1;
+    }
 
-    // sanitize the base skill from all skill extend shenanigans.
-    baseSkill = this.sanitizeBaseSkill(baseSkill);
-
-    return baseSkill;
+    // overwrite message 2.
+    if (baseSkill.message2 !== skillOverlay.message2)
+    {
+      baseSkill.message2 = skillOverlay.message2;
+    }
   }
 
   /**
@@ -510,488 +608,450 @@ class OverlayManager
    * @param baseSkill {RPG_Skill} The base skill.
    * @returns {RPG_Skill} The overlayed base skill.
    */
-  static sanitizeBaseSkill(baseSkill)
+  static sanitizeExtensions(baseSkill)
   {
+    // TODO: move this delete logic to RPGManager.
     // remove the skill extend from the metadata.
     baseSkill.deleteMetadata('skillExtend');
 
     // remove the skill extend from the notedata.
-    baseSkill.deleteNotedata(/<skillExtend:\[[\d,]+]>/gmi);
-
-    // return the base skill sans any reference to skill extension.
-    return baseSkill;
+    baseSkill.deleteNotedata(J.EXTEND.RegExp.SkillExtend);
   }
 
+  //region extend note
+  // TODO: make this configurable.
   /**
-   * Overlays the `invincibleDodge`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
+   * The list of keys on notes that should never get merged/overridden, but instead appended.
+   * @type {string[]}
    */
-  static invincibleDodge(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsBoolean(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.InvincibleDodge,
-      skillOverlay.jabsInvincibleDodge);
-  }
+  static _nonCombiningKeys = [ "drop" ];
 
   /**
-   * Overlays the `moveType`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
+   * Gets the keys that should never be combined- they will effectively be treated as unsupported.
+   * @returns {string[]}
    */
-  static moveType(baseSkill, skillOverlay)
+  static getNonCombiningKeys()
   {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.MoveType,
-      skillOverlay.jabsMoveType);
+    return this._nonCombiningKeys;
   }
 
   /**
-   * Overlays the `uniqueCooldown`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
+   * Sets the global list of tag keys that should NOT be replaced when merging, but instead combined.
+   * This allows multi-instance tags like `drop` to append additional lines from the overlay note.
+   * @param {string[]} keys The array of keys that should be non-combining (case-insensitive).
    */
-  static uniqueCooldown(baseSkill, skillOverlay)
+  static setNonCombiningKeys(keys)
   {
-    return this._overwriteAsBoolean(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.UniqueCooldown,
-      skillOverlay.jabsUniqueCooldown);
+    // ensure we store a normalized list of lowercase keys for comparisons.
+    this._nonCombiningKeys = Array.isArray(keys)
+      ? keys.map(k => String(k)
+        .toLowerCase())
+      : [];
   }
 
   /**
-   * Overlays the `projectile`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static projectile(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Projectile,
-      skillOverlay.jabsProjectile);
-  }
-
-  /**
-   * Overlays the `parry`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static parry(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Parry,
-      skillOverlay.jabsParry);
-  }
-
-  /**
-   * Overlays the `counterParry`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static counterParry(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.CounterParry,
-      skillOverlay.jabsCounterParry);
-  }
-
-  /**
-   * Overlays the `guard`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static guard(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Guard,
-      skillOverlay.jabsGuard);
-  }
-
-  /**
-   * Overlays the `counterGuard`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static counterGuard(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.CounterGuard,
-      skillOverlay.jabsCounterGuard);
-  }
-
-  /**
-   * Overlays the `getBonusHits`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static bonusHits(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.BonusHits,
-      skillOverlay.jabsBonusHits);
-  }
-
-  /**
-   * Overlays the `aggroMultiplier`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static aggroMultiplier(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.AggroMultiplier,
-      skillOverlay.jabsAggroMultiplier);
-  }
-
-  /**
-   * Overlays the `bonusAggro`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static bonusAggro(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.BonusAggro,
-      skillOverlay.jabsBonusAggro);
-  }
-
-  /**
-   * Overlays the `direct`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static direct(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsBoolean(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Direct,
-      skillOverlay.jabsDirect);
-  }
-
-  /**
-   * Overlays the `combo`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static combo(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.ComboAction,
-      skillOverlay.jabsComboAction);
-  }
-
-  /**
-   * Overlays the `freeCombo`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static freeCombo(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsBoolean(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.FreeCombo,
-      skillOverlay.jabsFreeCombo);
-  }
-
-  /**
-   * Overlays the `castTime`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static castTime(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.CastTime,
-      skillOverlay.jabsCastTime);
-  }
-
-  /**
-   * Overlays the `castAnimation`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static castAnimation(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.CastAnimation,
-      skillOverlay.jabsCastAnimation);
-  }
-
-  /**
-   * Overlays the `poseSuffix`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static poseSuffix(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.PoseSuffix,
-      skillOverlay.jabsPoseData);
-  }
-
-  /**
-   * Overlays the `knockback`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static knockback(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Knockback,
-      skillOverlay.jabsKnockback);
-  }
-
-  /**
-   * Overlays the `piercing`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static piercing(baseSkill, skillOverlay)
-  {
-    // grab the overlay data.
-    let overlayData = skillOverlay.jabsPiercingData;
-
-    // check if the overlay data is just the default.
-    if (overlayData.equals([ 1, 0 ]))
-    {
-      // replace the default with null so we get the proper kind of overwrite.
-      overlayData = null;
-    }
-
-    // overwrite the value with the new one.
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.PiercingData,
-      overlayData);
-  }
-
-  /**
-   * Overlays the `shape`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static shape(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Shape,
-      skillOverlay.jabsShape);
-  }
-
-  /**
-   * Overlays the `duration`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static duration(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Duration,
-      skillOverlay.jabsDuration);
-  }
-
-  /**
-   * Overlays the `actionId`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static actionId(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.ActionId,
-      skillOverlay.jabsActionId);
-  }
-
-  /**
-   * Overlays the `proximity`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static proximity(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Proximity,
-      skillOverlay.jabsProximity);
-  }
-
-  /**
-   * Overlays the `range`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static range(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Range,
-      skillOverlay.jabsRadius);
-  }
-
-  /**
-   * Overlays the `cooldown`.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @returns {RPG_Skill} The overlayed base skill.
-   */
-  static cooldown(baseSkill, skillOverlay)
-  {
-    return this._overwriteAsKvp(
-      baseSkill,
-      skillOverlay,
-      J.ABS.RegExp.Cooldown,
-      skillOverlay.jabsCooldown);
-  }
-
-  /**
-   * An overlay type of which we overwrite whatever the existing data is with
-   * the new data found on the skill overlay.
+   * Merges the overlay note into the base note with key-aware behavior.
+   * - For keys not in the exclusions set: replace base lines with overlay lines if overlay provides any.
+   * - For keys in the exclusions set: append unique overlay lines after base lines (multi-instance tags like "drop").
+   * - Unsupported lines (non-tag text) are preserved from both notes with deduplication; base lines keep priority.
    *
-   * This applies to numeric key-value pairs.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @param {RegExp} structure The regex structure being overwritten.
-   * @param {number|null} value The value to overwrite with from the overlay; may be null.
-   * @returns {RPG_Skill} The overlayed base skill.
+   * Keys are case-insensitive. Tags are those enclosed with angle brackets (e.g., `<key:value>` or `<key>`).
+   *
+   * @param {string} baseNote The base note content.
+   * @param {string} overlayNote The overlay note content.
+   * @param {string[]=} nonCombiningKeys Optional keys to merge instead of replace; defaults to configured static list.
+   * @returns {string} The merged note text, joined with newlines.
    */
-  static _overwriteAsKvp(baseSkill, skillOverlay, structure, value)
+  static overwriteNote(baseNote, overlayNote, nonCombiningKeys)
   {
-    // if the value doesn't exist, don't overlay; return the base skill.
-    if (value === null) return baseSkill;
+    // normalize the incoming notes to empty strings if nullish.
+    const oldNote = baseNote || String.empty;
 
-    // strip out all tags that match the regex.
-    baseSkill.deleteNotedata(structure);
+    // normalize the overlay note to empty string if nullish.
+    const newNote = overlayNote || String.empty;
 
-    // determine the key from the regex.
-    const key = J.BASE.Helpers.getKeyFromRegexp(structure);
+    // normalize the incoming non-combining keys; fall back to configured static if not provided.
+    const exclusions = this._normalizeExclusions(nonCombiningKeys);
 
-    // rebuild the tag for the skill.
-    let rebuiltTag;
+    // tokenize both notes into tags and unsupported lines.
+    const oldTokens = this._tokenizeNote(oldNote);
 
-    // check if the value is an array.
-    if (Array.isArray(value))
-    {
-      // stuff arrays back in their brackets!
-      rebuiltTag = `<${key}:[${value}]>`;
-    }
-    // it is not an array.
-    else
-    {
-      // just place the value in there as-is.
-      rebuiltTag = `<${key}:${value}>`;
-    }
+    // tokenize the new note into tags and unsupported lines as well.
+    const newTokens = this._tokenizeNote(newNote);
 
-    // append the rebuilt tag to the note.
-    baseSkill.note += rebuiltTag;
+    // bucket the tags by key for old note.
+    const oldBuckets = this._toKeyBuckets(oldTokens.tags);
 
-    // overwrite the meta object with the overwrite value.
-    baseSkill.meta[key] = value;
+    // bucket the tags by key for new note.
+    const newBuckets = this._toKeyBuckets(newTokens.tags);
 
-    // return the overlayed base skill.
-    return baseSkill;
+    // merge the buckets based on replace-or-merge rules and exclusions.
+    const merged = this._mergeBuckets(oldBuckets, newBuckets, exclusions);
+
+    // merge unsupported lines from old then new with deduplication.
+    const mergedUnsupported = this._mergeUnsupported(oldTokens.unsupported, newTokens.unsupported);
+
+    // reconstruct the final note text from unsupported + merged tags in key order.
+    const result = this._reconstructNote(mergedUnsupported, merged);
+
+    // return the final merged note string.
+    return result;
   }
 
   /**
-   * An overlay type of which we overwrite whatever the existing data is with
-   * the new data found on the skill overlay.
-   *
-   * This applies to booleans, where there is no value, only a key.
-   * @param baseSkill {RPG_Skill} The base skill.
-   * @param skillOverlay {RPG_Skill} The overlay skill.
-   * @param {RegExp} structure The regex structure being overwritten.
-   * @param {number|null} value The value to overwrite with from the overlay; may be null.
-   * @returns {RPG_Skill} The overlayed base skill.
+   * Normalizes the incoming exclusions array, or falls back to the static configuration.
+   * @param {string[]|null|undefined} exclusions The caller-provided keys that should merge instead of replace.
+   * @returns {string[]} A lowercase array of keys to treat as non-replacing during merges.
    */
-  static _overwriteAsBoolean(baseSkill, skillOverlay, structure, value)
+  static _normalizeExclusions(exclusions)
   {
-    // if the value doesn't exist, don't overlay; return the base skill.
-    if (value === null) return baseSkill;
+    // determine the base keys list to use.
+    const provided = Array.isArray(exclusions)
+      ? exclusions
+      : this.getNonCombiningKeys();
 
-    // strip out all tags that match the regex.
-    baseSkill.note = baseSkill.note.replace(structure, String.empty);
-
-    // determine the key from the regex.
-    const key = J.BASE.Helpers.getKeyFromRegexp(structure, true);
-
-    // rebuild the tag for the skill.
-    const rebuiltTag = `<${key}>`;
-
-    // append the rebuilt tag to the note.
-    baseSkill.note += rebuiltTag;
-
-    // overwrite the meta object with the overwrite value.
-    baseSkill.meta[key] = value;
-
-    // return the overlayed base skill.
-    return baseSkill;
+    // normalize all keys to lowercase for case-insensitive comparisons.
+    return provided.map(k => String(k)
+      .toLowerCase());
   }
 
-//endregion overwrites
+  /**
+   * Tokenizes a note text into angle-bracketed tags and unsupported lines.
+   * Handles tags concatenated without newlines by regex extraction, and also
+   * collects newline-separated content that is not tags.
+   * @param {string} note The raw note text.
+   * @returns {{tags: string[], unsupported: string[]}} The extracted tags and unsupported lines.
+   */
+  static _tokenizeNote(note)
+  {
+    // find angle-bracketed chunks like <key:value> or <key>.
+    const tags = note.match(/<[^>]+>/g) || [];
+
+    // split the raw text on newlines to capture any free-form lines.
+    const rawLines = (note.split(/[\r\n]+/) || []).filter(l => l.length > 0);
+
+    // build a fast look-up set of exact tag strings.
+    const tagSet = new Set(tags);
+
+    // anything that is not an exact tag string is considered unsupported.
+    const unsupported = rawLines.filter(l => tagSet.has(l) === false);
+
+    // return the separated collections.
+    return {
+      tags: tags,
+      unsupported: unsupported
+    };
+  }
+
+  /**
+   * Parses a single tag string into a key and type using the existing classifier.
+   * @param {string} tag The tag, e.g. "<range:5>" or "<direct>".
+   * @returns {{type: string, key: (string|null), line: string}} The parsed record.
+   */
+  static _parseTag(tag)
+  {
+    // classify tag or unsupported using existing logic.
+    const type = this._classifyLine(tag);
+
+    // unsupported tags simply echo back with null key.
+    if (type === OverlayManager.LineType.unsupported)
+    {
+      // return unsupported tag data.
+      return {
+        type: type,
+        key: null,
+        line: tag
+      };
+    }
+
+    // strip off the leading and trailing angle brackets.
+    const inner = tag.substring(1, tag.length - 1);
+
+    // if this is a kvp like <key:value> then split on the first colon.
+    if (type === OverlayManager.LineType.kvp)
+    {
+      // find the first colon index.
+      const idx = inner.indexOf(":");
+
+      // extract and normalize the key to lowercase.
+      const key = inner.substring(0, idx)
+        .trim()
+        .toLowerCase();
+
+      // return the parsed kvp.
+      return {
+        type: type,
+        key: key,
+        line: tag
+      };
+    }
+
+    // it must be boolean; use the entire inner content as the key.
+    const key = inner.trim()
+      .toLowerCase();
+
+    // return the parsed boolean.
+    return {
+      type: OverlayManager.LineType.boolean,
+      key: key,
+      line: tag
+    };
+  }
+
+  /**
+   * Determines if the note line is one of our standard key-value pairs separated by a colon.
+   * @param {string} line The note line as a string.
+   * @returns {boolean} True if it is a conventional <key:value> type of line.
+   */
+  static _classifyLine(line)
+  {
+    // must at least start and end with angle brackets.
+    if (line.startsWith('<') === false || line.endsWith('>') === false) return OverlayManager.LineType.unsupported;
+
+    // too many angle brackets.
+    if ((line.match(/</g) || []).length > 1) return OverlayManager.LineType.unsupported;
+    if ((line.match(/>/g) || []).length > 1) return OverlayManager.LineType.unsupported;
+
+    // if a colon exists, then it must be a key-value pair of some kind.
+    if (line.includes(':')) return OverlayManager.LineType.kvp;
+
+    // its just a pair of angle brackets, so its a boolean-type tag.
+    return OverlayManager.LineType.boolean;
+  }
+
+  /**
+   * Buckets an array of tag strings by their keys, preserving the first-seen key order
+   * and deduping exact duplicate lines within a key.
+   * @param {string[]} tags The tag strings to bucket.
+   * @returns {{ order: string[], map: Record<string, string[]> }} The ordered keys and per-key lines.
+   */
+  static _toKeyBuckets(tags)
+  {
+    // the ordered list of unique keys as encountered.
+    const order = [];
+
+    // the key -> array-of-lines mapping.
+    const map = Object.create(null);
+
+    // iterate over each tag.
+    tags.forEach(tag =>
+    {
+      // parse the tag into its parts.
+      const parsed = this._parseTag(tag);
+
+      // skip unsupported; those are handled elsewhere.
+      if (parsed.type === OverlayManager.LineType.unsupported)
+      {
+        return;
+      }
+
+      // if encountering this key for the first time, initialize it.
+      if (map[parsed.key] === undefined)
+      {
+        // initialize the array of lines for this key.
+        map[parsed.key] = [];
+
+        // record the encounter order for later reconstruction.
+        order.push(parsed.key);
+      }
+
+      // dedupe exact duplicate lines for this key.
+      if (map[parsed.key].includes(parsed.line) === false)
+      {
+        // add this unique line.
+        map[parsed.key].push(parsed.line);
+      }
+    });
+
+    // return the buckets.
+    return {
+      order: order,
+      map: map
+    };
+  }
+
+  /**
+   * Merges the old and new buckets according to replacement rules and exclusions.
+   * - For keys NOT in exclusions: replace old lines entirely with new lines (if provided), else keep old.
+   * - For keys IN exclusions: combine old lines with new lines (append unique new lines), preserving order.
+   * - New-only keys are appended in the order they appear in the new note.
+   * @param {{order: string[], map: Record<string, string[]>}} oldBuckets The buckets from the base note.
+   * @param {{order: string[], map: Record<string, string[]>}} newBuckets The buckets from the overlay note.
+   * @param {string[]} exclusions The keys to be combined instead of replaced.
+   * @returns {{ order: string[], map: Record<string, string[]> }} The merged buckets.
+   */
+  static _mergeBuckets(oldBuckets, newBuckets, exclusions)
+  {
+    // the merged map to accumulate into.
+    const mergedMap = Object.create(null);
+
+    // the merged key order to output.
+    const mergedOrder = [];
+
+    // helper to append a key with its lines in order while honoring dedupe.
+    const appendKey = (key, lines) =>
+    {
+      // ignore if no lines provided.
+      if (!lines || lines.length === 0)
+      {
+        return;
+      }
+
+      // set the lines array as a shallow copy.
+      mergedMap[key] = lines.slice(0);
+
+      // record the key order if not already present.
+      if (mergedOrder.includes(key) === false)
+      {
+        // push the key preserving order.
+        mergedOrder.push(key);
+      }
+    };
+
+    // step 1: walk old keys first to preserve their order baseline.
+    oldBuckets.order.forEach(key =>
+    {
+      // determine whether this key is in the exclusions list.
+      const isExcluded = exclusions.includes(key);
+
+      // gather the old lines for this key.
+      const oldLines = oldBuckets.map[key];
+
+      // gather any new lines for this key, if present.
+      const newLines = newBuckets.map[key];
+
+      // if we have new lines and the key is not excluded, then replace.
+      if (newLines && newLines.length > 0 && isExcluded === false)
+      {
+        // replace the old lines entirely with the new lines.
+        appendKey(key, newLines);
+        return;
+      }
+
+      // if the key is excluded and we have new lines, then combine.
+      if (isExcluded && newLines && newLines.length > 0)
+      {
+        // start with a copy of old lines.
+        const combined = oldLines.slice(0);
+
+        // append any new unique lines.
+        newLines.forEach(line =>
+        {
+          // only include if not present.
+          if (combined.includes(line) === false)
+          {
+            // add the unique new line.
+            combined.push(line);
+          }
+        });
+
+        // append the combined lines for this key.
+        appendKey(key, combined);
+        return;
+      }
+
+      // otherwise, no new lines or no exclusion behavior; keep old.
+      appendKey(key, oldLines);
+    });
+
+    // step 2: append any new-only keys at the end in the order they appear in the new note.
+    newBuckets.order.forEach(key =>
+    {
+      // only consider keys we don't already have.
+      if (mergedOrder.includes(key) === false)
+      {
+        // add the new-only key with its lines as-is.
+        appendKey(key, newBuckets.map[key]);
+      }
+    });
+
+    // return the merged buckets for reconstruction.
+    return {
+      order: mergedOrder,
+      map: mergedMap
+    };
+  }
+
+  /**
+   * Merges unsupported lines by appending new unsupported lines that do not already exist.
+   * Old unsupported lines retain their relative order.
+   * @param {string[]} oldUnsupported The unsupported lines from the base note.
+   * @param {string[]} newUnsupported The unsupported lines from the overlay note.
+   * @returns {string[]} The merged unsupported lines.
+   */
+  static _mergeUnsupported(oldUnsupported, newUnsupported)
+  {
+    // initialize the merged unsupported list honoring old order.
+    const merged = [];
+
+    // include all old unsupported while deduping.
+    oldUnsupported.forEach(line =>
+    {
+      // only include if not already added.
+      if (merged.includes(line) === false)
+      {
+        // add the old unsupported line.
+        merged.push(line);
+      }
+    });
+
+    // append any new unsupported lines not already present.
+    newUnsupported.forEach(line =>
+    {
+      // only include if not already present.
+      if (merged.includes(line) === false)
+      {
+        // add the new unsupported line.
+        merged.push(line);
+      }
+    });
+
+    // return the merged unsupported lines.
+    return merged;
+  }
+
+  /**
+   * Reconstructs a note from unsupported lines and merged buckets of tags.
+   * Unsupported lines are emitted first, followed by tags grouped by key in key order.
+   * @param {string[]} unsupported The unsupported lines to emit first.
+   * @param {{order: string[], map: Record<string, string[]>}} buckets The merged buckets.
+   * @returns {string} The reconstructed note text.
+   */
+  static _reconstructNote(unsupported, buckets)
+  {
+    // initialize an array of parts to join.
+    const parts = [];
+
+    // append unsupported lines first, honoring their order.
+    unsupported.forEach(line =>
+    {
+      // push the unsupported line.
+      parts.push(line);
+    });
+
+    // for each key in order, append its lines in recorded order.
+    buckets.order.forEach(key =>
+    {
+      // retrieve the lines for this key.
+      const lines = buckets.map[key];
+
+      // append each tag line.
+      lines.forEach(line =>
+      {
+        // push the tag line.
+        parts.push(line);
+      });
+    });
+
+    // join with newlines to keep readability and stability.
+    const result = parts.join("\n");
+
+    // return the reconstructed note.
+    return result;
+  }
+
+  //endregion extend note
+  //endregion extensions
 }
 
 //endregion OverlayManager
@@ -1009,7 +1069,8 @@ Game_Action.prototype.setSkill = function(skillId)
   if (!this.subject())
   {
     // perform original logic.
-    J.EXTEND.Aliased.Game_Action.get('setSkill').call(this, skillId);
+    J.EXTEND.Aliased.Game_Action.get('setSkill')
+      .call(this, skillId);
 
     // stop processing.
     return;
@@ -1033,7 +1094,8 @@ Game_Action.prototype.setItemObject = function(itemObject)
   if (!this.subject())
   {
     // perform original logic.
-    J.EXTEND.Aliased.Game_Action.get('setItemObject').call(this, itemObject);
+    J.EXTEND.Aliased.Game_Action.get('setItemObject')
+      .call(this, itemObject);
 
     // stop processing.
     return;
@@ -1051,7 +1113,8 @@ J.EXTEND.Aliased.Game_Action.set('apply', Game_Action.prototype.apply);
 Game_Action.prototype.apply = function(target)
 {
   // perform original logic.
-  J.EXTEND.Aliased.Game_Action.get('apply').call(this, target);
+  J.EXTEND.Aliased.Game_Action.get('apply')
+    .call(this, target);
 
   // apply our on-hit self-states if we have any.
   this.applyOnHitSelfStates();
@@ -1076,9 +1139,7 @@ Game_Action.prototype.onHitSelfStates = function()
   const sources = this.selfStateSources();
 
   // get all "skill chances" aka "chance to inflict a state" on oneself.
-  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(
-    sources,
-    J.EXTEND.RegExp.OnHitSelfState);
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnHitSelfState);
 
   // return what we found.
   return stateChances;
@@ -1092,7 +1153,8 @@ J.EXTEND.Aliased.Game_Action.set('applyItemUserEffect', Game_Action.prototype.ap
 Game_Action.prototype.applyItemUserEffect = function(target)
 {
   // perform original logic.
-  J.EXTEND.Aliased.Game_Action.get('applyItemUserEffect').call(this, target);
+  J.EXTEND.Aliased.Game_Action.get('applyItemUserEffect')
+    .call(this, target);
 
   // apply our on-cast self-states if we have any.
   this.applyOnCastSelfStates();
@@ -1117,9 +1179,7 @@ Game_Action.prototype.onCastSelfStates = function()
   const sources = this.selfStateSources();
 
   // get all "skill chances" aka "chance to inflict a state" on oneself.
-  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(
-    sources,
-    J.EXTEND.RegExp.OnCastSelfState);
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnCastSelfState);
 
   // return what we found.
   return stateChances;
@@ -1137,8 +1197,8 @@ Game_Action.prototype.selfStateSources = function()
     this.item(),
 
     // the caster's states also apply as a source.
-    ...this.subject().allStates(),
-  ];
+    ...this.subject()
+      .allStates(), ];
 
   // return what we found.
   return sources;
@@ -1188,7 +1248,8 @@ J.EXTEND.Aliased.Game_Item.set('initialize', Game_Item.prototype.initialize);
 Game_Item.prototype.initialize = function(item)
 {
   // perform original logic.
-  J.EXTEND.Aliased.Game_Item.get('initialize').call(this, item);
+  J.EXTEND.Aliased.Game_Item.get('initialize')
+    .call(this, item);
 
   /**
    * The underlying object associated with this item.
@@ -1220,7 +1281,8 @@ J.EXTEND.Aliased.Game_Item.set('setObject', Game_Item.prototype.setObject);
 Game_Item.prototype.setObject = function(obj)
 {
   // perform original logic.
-  J.EXTEND.Aliased.Game_Item.get('setObject').call(this, obj);
+  J.EXTEND.Aliased.Game_Item.get('setObject')
+    .call(this, obj);
 
   // check to make sure we have something to work with.
   if (!obj) return;
@@ -1254,7 +1316,8 @@ Game_Item.prototype.object = function()
     return this._item;
   }
 
-  return J.EXTEND.Aliased.Game_Item.get('object').call(this);
+  return J.EXTEND.Aliased.Game_Item.get('object')
+    .call(this);
 };
 //endregion Game_Item
 

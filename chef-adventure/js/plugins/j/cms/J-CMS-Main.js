@@ -54,16 +54,20 @@ Scene_Menu.prototype.commandWindowRect = function()
 {
   const ww = this.mainCommandWidth();
   const wh = this.mainAreaHeight() - this.goldWindowRect().height;
-  const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
+  const wx = this.isRightInputMode()
+    ? Graphics.boxWidth - ww
+    : 0;
   const wy = this.mainAreaTop();
   return new Rectangle(wx, wy, ww, wh);
 };
 
-Scene_Menu.prototype.statusWindowRect = function() 
+Scene_Menu.prototype.statusWindowRect = function()
 {
   const ww = Graphics.boxWidth - this.mainCommandWidth();
   const wh = this.mainAreaHeight();
-  const wx = this.isRightInputMode() ? 0 : Graphics.boxWidth - ww;
+  const wx = this.isRightInputMode()
+    ? 0
+    : Graphics.boxWidth - ww;
   const wy = this.mainAreaTop();
   return new Rectangle(wx, wy, ww, wh);
 };
@@ -86,44 +90,44 @@ Scene_Menu.prototype.isBottomButtonMode = function()
 Window_MenuCommand.prototype.addMainCommands = function()
 {
   const enabled = this.areMainCommandsEnabled();
-  if (this.needsCommand("item")) 
+  if (this.needsCommand("item"))
   {
     this.addCommand(TextManager.item, "item", enabled, null, 2567);
   }
 
-  if (this.needsCommand("skill")) 
+  if (this.needsCommand("skill"))
   {
     this.addCommand(TextManager.skill, "skill", enabled, null, 2564);
   }
 
-  if (this.needsCommand("equip")) 
+  if (this.needsCommand("equip"))
   {
     this.addCommand(TextManager.equip, "equip", enabled, null, 2565);
   }
 
-  if (this.needsCommand("status")) 
+  if (this.needsCommand("status"))
   {
 
     this.addCommand(TextManager.status, "status", enabled, null, 2560);
   }
 };
 
-Window_MenuCommand.prototype.addOptionsCommand = function() 
+Window_MenuCommand.prototype.addOptionsCommand = function()
 {
-  if (this.needsCommand("options")) 
+  if (this.needsCommand("options"))
   {
     const enabled = this.isOptionsEnabled();
     this.addCommand(TextManager.options, "options", enabled, null, 2566);
   }
 };
 
-Window_MenuCommand.prototype.addGameEndCommand = function() 
+Window_MenuCommand.prototype.addGameEndCommand = function()
 {
   const enabled = this.isGameEndEnabled();
   this.addCommand(TextManager.gameEnd, "gameEnd", enabled, null, 2562);
 };
 
-Window_MenuStatus.prototype.numVisibleRows = function() 
+Window_MenuStatus.prototype.numVisibleRows = function()
 {
   return 6;
 };

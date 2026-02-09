@@ -428,37 +428,36 @@ J.HUD.EXT.TARGET.PluginParameters = PluginManager.parameters(J.HUD.EXT.TARGET.Me
 /**
  * Extend this plugin's metadata with additional configurable data points.
  */
-J.HUD.EXT.TARGET.Metadata =
-  {
-    // the previously defined metadata.
-    ...J.HUD.EXT.TARGET.Metadata,
+J.HUD.EXT.TARGET.Metadata = {
+  // the previously defined metadata.
+  ...J.HUD.EXT.TARGET.Metadata,
 
-    // our configurable data points.
-    TargetFrameX: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameX']),
-    TargetFrameY: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameY']),
-    TargetFrameWidth: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameWidth']),
-    TargetFrameHeight: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameHeight']),
-    BackgroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['backgroundGaugeImageX']),
-    BackgroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['backgroundGaugeImageY']),
-    MiddlegroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['middlegroundGaugeImageX']),
-    MiddlegroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['middlegroundGaugeImageY']),
-    ForegroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['foregroundGaugeImageX']),
-    ForegroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['foregroundGaugeImageY']),
-    BackgroundFilename: J.HUD.EXT.TARGET.PluginParameters['backgroundImageFilename'],
-    ForegroundFilename: J.HUD.EXT.TARGET.PluginParameters['foregroundImageFilename'],
-    EnableHP: J.HUD.EXT.TARGET.PluginParameters['enableHp'] === "true",
-    EnableMP: J.HUD.EXT.TARGET.PluginParameters['enableMp'] === "true",
-    EnableTP: J.HUD.EXT.TARGET.PluginParameters['enableTp'] === "true",
-    HpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeScaleX']),
-    HpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeScaleY']),
-    HpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeRotation']),
-    MpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeScaleX']),
-    MpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeScaleY']),
-    MpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeRotation']),
-    TpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeScaleX']),
-    TpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeScaleY']),
-    TpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeRotation']),
-  };
+  // our configurable data points.
+  TargetFrameX: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameX']),
+  TargetFrameY: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameY']),
+  TargetFrameWidth: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameWidth']),
+  TargetFrameHeight: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameHeight']),
+  BackgroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['backgroundGaugeImageX']),
+  BackgroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['backgroundGaugeImageY']),
+  MiddlegroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['middlegroundGaugeImageX']),
+  MiddlegroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['middlegroundGaugeImageY']),
+  ForegroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['foregroundGaugeImageX']),
+  ForegroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['foregroundGaugeImageY']),
+  BackgroundFilename: J.HUD.EXT.TARGET.PluginParameters['backgroundImageFilename'],
+  ForegroundFilename: J.HUD.EXT.TARGET.PluginParameters['foregroundImageFilename'],
+  EnableHP: J.HUD.EXT.TARGET.PluginParameters['enableHp'] === "true",
+  EnableMP: J.HUD.EXT.TARGET.PluginParameters['enableMp'] === "true",
+  EnableTP: J.HUD.EXT.TARGET.PluginParameters['enableTp'] === "true",
+  HpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeScaleX']),
+  HpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeScaleY']),
+  HpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeRotation']),
+  MpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeScaleX']),
+  MpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeScaleY']),
+  MpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeRotation']),
+  TpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeScaleX']),
+  TpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeScaleY']),
+  TpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeRotation']),
+};
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -537,6 +536,7 @@ class FramedTarget
     this.configuration = configuration;
   }
 }
+
 //endregion FramedTarget
 
 //region FramedTargetConfiguration
@@ -597,6 +597,7 @@ class FramedTargetConfiguration
     this.showTp = showTp;
   }
 }
+
 //endregion FramedTargetConfiguration
 
 //region JABS_Battler
@@ -618,7 +619,8 @@ JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit)
   }
 
   // perform original logic.
-  J.HUD.EXT.TARGET.Aliased.JABS_Battler.get('setBattlerLastHit').call(this, battlerLastHit);
+  J.HUD.EXT.TARGET.Aliased.JABS_Battler.get('setBattlerLastHit')
+    .call(this, battlerLastHit);
 };
 
 /**
@@ -647,7 +649,11 @@ JABS_Battler.prototype.canUpdateTargetFrame = function(potentialTarget)
   }
 
   // don't re-update the last hit if they haven't changed.
-  if (this.getTarget().getUuid() === potentialTarget.getUuid()) return false;
+  if (this.getTarget()
+    .getUuid() === potentialTarget.getUuid())
+  {
+    return false;
+  }
 
   // time to update target frame!
   return true;
@@ -691,16 +697,22 @@ JABS_Battler.prototype.canShowTargetFrame = function()
   if (!this.isEnemy()) return false;
 
   // if there isn't an event or character remaining, don't bother.
-  if (!this.getCharacter() || this.getCharacter().isErased()) return false;
+  if (!this.getCharacter() || this.getCharacter()
+    .isErased())
+  {
+    return false;
+  }
 
   // check the event to see if we can show the target frame.
-  const hiddenByEvent = !this.getCharacter().canShowTargetFrame();
+  const hiddenByEvent = !this.getCharacter()
+    .canShowTargetFrame();
 
   // if the event prevents showing the target frame, then don't show it.
   if (hiddenByEvent) return false;
 
   // check the enemy to see if the enemy in the database prevents showing.
-  const hiddenByDatabase = !this.getBattler().showTargetFrame();
+  const hiddenByDatabase = !this.getBattler()
+    .showTargetFrame();
 
   // if one or the other are indicating not to show, then don't.
   if (hiddenByDatabase) return false;
@@ -731,12 +743,7 @@ JABS_Battler.prototype.buildFramedTargetConfiguration = function()
   const showTpGauge = this.canShowTargetTp();
 
   // return the built configuration.
-  return new FramedTargetConfiguration(
-    showName,
-    showText,
-    showHpGauge,
-    showMpGauge,
-    showTpGauge);
+  return new FramedTargetConfiguration(showName, showText, showHpGauge, showMpGauge, showTpGauge);
 };
 
 /**
@@ -752,10 +759,18 @@ JABS_Battler.prototype.canShowTargetHp = function()
   if (!this.isEnemy()) return false;
 
   // if the event says don't show it, then don't show it.
-  if (!this.getCharacter().showTargetHpBar()) return false;
+  if (!this.getCharacter()
+    .showTargetHpBar())
+  {
+    return false;
+  }
 
   // if the enemy in the database says don't show it, then don't show it.
-  if (!this.getBattler().showTargetHpBar()) return false;
+  if (!this.getBattler()
+    .showTargetHpBar())
+  {
+    return false;
+  }
 
   // show what the defaults are.
   return true;
@@ -774,13 +789,25 @@ JABS_Battler.prototype.canShowTargetMp = function()
   if (!this.isEnemy()) return false;
 
   // if the event says don't show it, then don't show it.
-  if (!this.getCharacter().showTargetMpBar()) return false;
+  if (!this.getCharacter()
+    .showTargetMpBar())
+  {
+    return false;
+  }
 
   // if the enemy in the database says don't show it, then don't show it.
-  if (!this.getBattler().showTargetMpBar()) return false;
+  if (!this.getBattler()
+    .showTargetMpBar())
+  {
+    return false;
+  }
 
   // TODO: should we hide the bar if the max value is 0?
-  if (this.getBattler().param(1) === 0) return false;
+  if (this.getBattler()
+    .param(1) === 0)
+  {
+    return false;
+  }
 
   // show what the defaults are.
   return true;
@@ -799,13 +826,25 @@ JABS_Battler.prototype.canShowTargetTp = function()
   if (!this.isEnemy()) return false;
 
   // if the event says don't show it, then don't show it.
-  if (!this.getCharacter().showTargetTpBar()) return false;
+  if (!this.getCharacter()
+    .showTargetTpBar())
+  {
+    return false;
+  }
 
   // if the enemy in the database says don't show it, then don't show it.
-  if (!this.getBattler().showTargetTpBar()) return false;
+  if (!this.getBattler()
+    .showTargetTpBar())
+  {
+    return false;
+  }
 
   // TODO: should we hide the bar if the max value is 0?
-  if (this.getBattler().maxTp() === 0 || this.isInanimate()) return false;
+  if (this.getBattler()
+    .maxTp() === 0 || this.isInanimate())
+  {
+    return false;
+  }
 
   // show what the defaults are.
   return true;
@@ -821,10 +860,18 @@ JABS_Battler.prototype.canShowTargetText = function()
   if (!this.isEnemy()) return false;
 
   // if the event says don't show it, then don't show it.
-  if (!this.getCharacter().showTargetText()) return false;
+  if (!this.getCharacter()
+    .showTargetText())
+  {
+    return false;
+  }
 
   // if the enemy in the database says don't show it, then don't show it.
-  if (!this.getBattler().showTargetText()) return false;
+  if (!this.getBattler()
+    .showTargetText())
+  {
+    return false;
+  }
 
   // show it.
   return true;
@@ -840,13 +887,15 @@ JABS_Battler.prototype.getTargetFrameText = function()
   if (!this.isEnemy()) return String.empty;
 
   // extract the text from the event.
-  let targetFrameText = this.getCharacter().getTargetFrameText();
+  let targetFrameText = this.getCharacter()
+    .getTargetFrameText();
 
   // if there wasn't any on the event, check the enemy.
   if (!targetFrameText)
   {
     // extract the icon index from the enemy.
-    targetFrameText = this.getBattler().targetFrameText();
+    targetFrameText = this.getBattler()
+      .targetFrameText();
   }
 
   // and return it.
@@ -863,13 +912,15 @@ JABS_Battler.prototype.getTargetFrameIcon = function()
   if (!this.isEnemy()) return 0;
 
   // extract the icon index from the event.
-  let targetFrameIcon = this.getCharacter().getTargetFrameIcon();
+  let targetFrameIcon = this.getCharacter()
+    .getTargetFrameIcon();
 
   // if there wasn't one on the event, check the enemy.
   if (!targetFrameIcon)
   {
     // extract the icon index from the enemy.
-    targetFrameIcon = this.getBattler().targetFrameIcon();
+    targetFrameIcon = this.getBattler()
+      .targetFrameIcon();
   }
 
   // and return it.
@@ -900,9 +951,7 @@ ImageManager.loadHudBitmap = function(filename)
 Game_Enemy.prototype.targetFrameText = function()
 {
   // return the extracted the target frame extra text from this enemy.
-  return RPGManager.getStringFromNoteByRegex(
-    this.enemy(),
-    J.HUD.EXT.TARGET.RegExp.TargetFrameText);
+  return RPGManager.getStringFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameText);
 };
 
 /**
@@ -913,9 +962,7 @@ Game_Enemy.prototype.targetFrameText = function()
 Game_Enemy.prototype.targetFrameIcon = function()
 {
   // extract the target icon from this enemy.
-  return RPGManager.getNumberFromNoteByRegex(
-    this.enemy(),
-    J.HUD.EXT.TARGET.RegExp.TargetFrameText);
+  return RPGManager.getNumberFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameText);
 };
 
 /**
@@ -926,9 +973,7 @@ Game_Enemy.prototype.targetFrameIcon = function()
 Game_Enemy.prototype.showTargetFrame = function()
 {
   // extract whether or not the target frame for this enemy is hidden.
-  return !RPGManager.checkForBooleanFromNoteByRegex(
-    this.enemy(),
-    J.HUD.EXT.TARGET.RegExp.HideTargetFrame);
+  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetFrame);
 };
 
 /**
@@ -939,9 +984,7 @@ Game_Enemy.prototype.showTargetFrame = function()
 Game_Enemy.prototype.showTargetHpBar = function()
 {
   // extract whether or not to show the target HP for this enemy.
-  return !RPGManager.checkForBooleanFromNoteByRegex(
-    this.enemy(),
-    J.HUD.EXT.TARGET.RegExp.HideTargetHP);
+  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetHP);
 };
 
 /**
@@ -952,9 +995,7 @@ Game_Enemy.prototype.showTargetHpBar = function()
 Game_Enemy.prototype.showTargetMpBar = function()
 {
   // extract whether or not to show the target MP for this enemy.
-  return !RPGManager.checkForBooleanFromNoteByRegex(
-    this.enemy(),
-    J.HUD.EXT.TARGET.RegExp.HideTargetMP);
+  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetMP);
 };
 
 /**
@@ -965,9 +1006,7 @@ Game_Enemy.prototype.showTargetMpBar = function()
 Game_Enemy.prototype.showTargetTpBar = function()
 {
   // extract whether or not to show the target TP for this enemy.
-  return !RPGManager.checkForBooleanFromNoteByRegex(
-    this.enemy(),
-    J.HUD.EXT.TARGET.RegExp.HideTargetTP);
+  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetTP);
 };
 
 /**
@@ -978,9 +1017,7 @@ Game_Enemy.prototype.showTargetTpBar = function()
 Game_Enemy.prototype.showTargetText = function()
 {
   // extract whether or not to show the target text from this enemy.
-  return !RPGManager.checkForBooleanFromNoteByRegex(
-    this.enemy(),
-    J.HUD.EXT.TARGET.RegExp.HideTargetText);
+  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetText);
 };
 //endregion Game_Enemy
 
@@ -1254,7 +1291,8 @@ J.HUD.EXT.TARGET.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.ini
 Scene_Map.prototype.initHudMembers = function()
 {
   // perform original logic.
-  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('initHudMembers').call(this);
+  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('initHudMembers')
+    .call(this);
 
   /**
    * A grouping of all properties that belong to target extension
@@ -1285,7 +1323,8 @@ J.HUD.EXT.TARGET.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.c
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('createAllWindows')
+    .call(this);
 
   // create the target frame.
   this.createTargetFrameWindow();
@@ -1372,7 +1411,8 @@ J.HUD.EXT.TARGET.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.up
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('updateHudFrames')
+    .call(this);
 
   // manages target frame assignments.
   this.handleAssignTarget();
@@ -1390,7 +1430,8 @@ Scene_Map.prototype.handleAssignTarget = function()
   const newTarget = $hudManager.getNewTarget();
 
   // set the target frame's target to this new target.
-  this.getTargetFrameWindow().setTarget(newTarget);
+  this.getTargetFrameWindow()
+    .setTarget(newTarget);
 
   // let the hud manager know we've done the deed.
   $hudManager.acknowledgeAssignedTarget();
@@ -1403,15 +1444,15 @@ Scene_Map.prototype.handleAssignTarget = function()
  * A gauge that acts like a regular `Sprite_Gauge` that is instead based
  * on images and also "flows".
  */
-class Sprite_FlowingGauge extends Sprite
+class Sprite_FlowingGauge
+  extends Sprite
 {
   //region properties
-  static Types =
-    {
-      HP: "hp",
-      MP: "mp",
-      TP: "tp",
-    };
+  static Types = {
+    HP: "hp",
+    MP: "mp",
+    TP: "tp",
+  };
 
   /**
    * The bitmap for the background sprite.
@@ -1482,6 +1523,7 @@ class Sprite_FlowingGauge extends Sprite
    * @type {boolean}
    */
   _isReady = false;
+
   //endregion properties
 
   /**
@@ -1530,7 +1572,7 @@ class Sprite_FlowingGauge extends Sprite
 
     // when both back and foreground are done loading, let this gauge know we're ready.
     Promise
-      .all([backgroundPromise, foregroundPromise])
+      .all([ backgroundPromise, foregroundPromise ])
       .then(() => this.onReady());
   }
 
@@ -1996,7 +2038,7 @@ class Sprite_FlowingGauge extends Sprite
   upTone()
   {
     // [red, green, blue, grey].
-    return [0,255,0,128];
+    return [ 0, 255, 0, 128 ];
   }
 
   /**
@@ -2006,7 +2048,7 @@ class Sprite_FlowingGauge extends Sprite
   downTone()
   {
     // [red, green, blue, grey].
-    return [255,0,0,0];
+    return [ 255, 0, 0, 0 ];
   }
 
   /**
@@ -2016,7 +2058,7 @@ class Sprite_FlowingGauge extends Sprite
   greyTone()
   {
     // [red, green, blue, grey].
-    return [0, 0, 0, 255];
+    return [ 0, 0, 0, 255 ];
   }
 
   /**
@@ -2116,13 +2158,15 @@ class Sprite_FlowingGauge extends Sprite
     return Math.floor(this._gaugeBitmap.height / 2);
   }
 }
+
 //endregion Sprite_FlowingGauge
 
 //region Window_TargetFrame
 /**
  * A window that displays a target and their relevant information.
  */
-class Window_TargetFrame extends Window_Base
+class Window_TargetFrame
+  extends Window_Base
 {
   /**
    * The maximum possible duration in frames.
@@ -2367,6 +2411,7 @@ class Window_TargetFrame extends Window_Base
     // return the created sprite.
     return sprite;
   }
+
   //endregion caching
 
   /**
@@ -2524,16 +2569,16 @@ class Window_TargetFrame extends Window_Base
     this.drawTargetName(x, y);
 
     // draw the level of the target.
-    this.drawTargetLevel(x+220, y);
+    this.drawTargetLevel(x + 220, y);
 
     // draw the extra data for the target.
-    this.drawTargetExtra(x, y+24);
+    this.drawTargetExtra(x, y + 24);
 
     // draw the relation of the target.
-    this.drawTargetIcon(x, y+48);
+    this.drawTargetIcon(x, y + 48);
 
     // draw the battler data of the target- if available.
-    this.drawTargetBattlerInfo(x+32, y);
+    this.drawTargetBattlerInfo(x + 32, y);
   }
 
   /**
@@ -2599,7 +2644,7 @@ class Window_TargetFrame extends Window_Base
     let name = `\\FS[24]${this.targetName()}`;
     if (J.MESSAGE)
     {
-      name = `\\*`+ name;
+      name = `\\*` + name;
     }
 
     this.drawTextEx(name, x, y, 200);
@@ -2616,7 +2661,7 @@ class Window_TargetFrame extends Window_Base
     if (!this.canDrawTargetLevel()) return;
 
     // get the level from the battler.
-    const {level} = this._j._battler;
+    const { level } = this._j._battler;
 
     // check to see if the enemy is leveled.
     if (level)
@@ -2683,7 +2728,7 @@ class Window_TargetFrame extends Window_Base
     if (!this.hasTargetIcon()) return;
 
     // draw the target's icon.
-    this.drawIcon(this.targetIcon(), x, y+4);
+    this.drawIcon(this.targetIcon(), x, y + 4);
   }
 
   /**
@@ -2769,8 +2814,8 @@ class Window_TargetFrame extends Window_Base
   {
     // draw all three of the primary gauges.
     this.drawTargetHpGauge(x, y);
-    this.drawTargetMpGauge(x, y+22);
-    this.drawTargetTpGauge(x-10, y+32);
+    this.drawTargetMpGauge(x, y + 22);
+    this.drawTargetTpGauge(x - 10, y + 32);
   }
 
   /**
@@ -2839,4 +2884,5 @@ class Window_TargetFrame extends Window_Base
     gauge.move(x, y);
   }
 }
+
 //endregion Window_TargetFrame

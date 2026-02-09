@@ -72,7 +72,8 @@
 //endregion annotations
 
 //region plugin metadata
-class J_PosesPluginMetadata extends PluginMetadata
+class J_PosesPluginMetadata
+  extends PluginMetadata
 {
   /**
    * Constructor.
@@ -178,6 +179,7 @@ class J_PosesPluginMetadata extends PluginMetadata
   //     .build();
   // }
 }
+
 //endregion plugin metadata
 
 //region initialization
@@ -228,49 +230,45 @@ J.ABS.EXT.POSES.RegExp.PoseSuffix = /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+
  * The second index is the number of frames to spend in this pose.
  * @type {[string, number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseData",
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseData", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJabsPoseData();
-    },
-  });
+    return this.getJabsPoseData();
+  },
+});
 
 /**
  * Gets the JABS pose suffix for this skill.
  * @type {string}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseSuffix",
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseSuffix", {
+  get: function()
   {
-    get: function()
-    {
-      return this.jabsPoseData[0];
-    },
-  });
+    return this.jabsPoseData[0];
+  },
+});
 
 /**
  * Gets the JABS pose index for this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseIndex",
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseIndex", {
+  get: function()
   {
-    get: function()
-    {
-      return this.jabsPoseData[1];
-    },
-  });
+    return this.jabsPoseData[1];
+  },
+});
 
 /**
  * Gets the JABS pose duration for this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration",
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration", {
+  get: function()
   {
-    get: function()
-    {
-      return this.jabsPoseData[2];
-    },
-  });
+    return this.jabsPoseData[2];
+  },
+});
 
 /**
  * Gets the JABS pose suffix data for this skill.
@@ -294,8 +292,8 @@ RPG_Skill.prototype.extractJabsPoseData = function()
 //region JABS_Engine
 /**
  * Handles the pose functionality behind this action.
- * @param {JABS_Battler} caster The `JABS_Battler` executing the `JABS_Action`.
- * @param {JABS_Action} action The `JABS_Action` to execute.
+ * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
+ * @param {JABS_Action} action The JABS action to execute.
  */
 JABS_Engine.handleActionPose = function(caster, action)
 {
@@ -305,11 +303,11 @@ JABS_Engine.handleActionPose = function(caster, action)
 
 J.ABS.EXT.POSES.Aliased.JABS_Engine.set('executeMapAction', JABS_Engine.executeMapAction);
 /**
- * Executes the provided `JABS_Action`.
+ * Executes the provided JABS action.
  * It generates a copy of an event from the "ActionMap" and fires it off
  * based on it's move route.
- * @param {JABS_Battler} caster The `JABS_Battler` executing the `JABS_Action`.
- * @param {JABS_Action} action The `JABS_Action` to execute.
+ * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
+ * @param {JABS_Action} action The JABS action to execute.
  * @param {number?} targetX The target's `x` coordinate, if applicable.
  * @param {number?} targetY The target's `y` coordinate, if applicable.
  */

@@ -282,10 +282,12 @@ J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.ge
 JABS_Action.prototype.getCastTime = function()
 {
   // perform original logic to get regular cast time.
-  const skillCastTime = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCastTime').call(this);
+  const skillCastTime = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCastTime')
+    .call(this);
 
   // grab the caster.
-  const caster = this.getCaster().getBattler();
+  const caster = this.getCaster()
+    .getBattler();
 
   // if we have no caster, then don't try to calculate it.
   if (!caster) return skillCastTime;
@@ -305,10 +307,12 @@ J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.ge
 JABS_Action.prototype.getCooldown = function()
 {
   // perform original logic to get regular cooldown.
-  const skillCooldown = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCooldown').call(this);
+  const skillCooldown = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCooldown')
+    .call(this);
 
   // grab the caster.
-  const caster = this.getCaster().getBattler();
+  const caster = this.getCaster()
+    .getBattler();
 
   // if we have no caster, then don't try to calculate it.
   if (!caster) return skillCooldown;

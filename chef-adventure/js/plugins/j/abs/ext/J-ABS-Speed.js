@@ -127,13 +127,12 @@ J.ABS.EXT.SPEED.RegExp = {
  * The movement speed modifier from this from database object.
  * @type {number|null}
  */
-Object.defineProperty(RPG_Base.prototype, "jabsSpeedBoost",
+Object.defineProperty(RPG_Base.prototype, "jabsSpeedBoost", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJabsSpeedBoost();
-    },
-  });
+    return this.getJabsSpeedBoost();
+  },
+});
 
 /**
  * Gets the movement speed modifier from this database object.
@@ -167,7 +166,8 @@ IconManager.longParam = function(paramId)
     case 31:
       return this.movespeed(); // move
     default:
-      return J.ABS.EXT.SPEED.Aliased.IconManager.get('longParam').call(this, paramId);
+      return J.ABS.EXT.SPEED.Aliased.IconManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -195,7 +195,8 @@ TextManager.longParam = function(paramId)
       return this.movespeed(); // move speed boost
     default:
       // perform original logic.
-      return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParam').call(this, paramId);
+      return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -221,7 +222,8 @@ TextManager.longParamDescription = function(paramId)
       return this.moveSpeedDescription(); // move speed boost
     default:
       // perform original logic.
-      return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParamDescription').call(this, paramId);
+      return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParamDescription')
+        .call(this, paramId);
   }
 };
 
@@ -233,8 +235,7 @@ TextManager.moveSpeedDescription = function()
 {
   return [
     "The percentage modifier against this character's base movespeed.",
-    "Higher amounts of this result in faster walk and run speeds."
-  ];
+    "Higher amounts of this result in faster walk and run speeds." ];
 };
 //endregion TextManager
 
@@ -247,7 +248,8 @@ J.ABS.EXT.SPEED.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototy
 Game_Actor.prototype.onBattlerDataChange = function()
 {
   // perform original logic.
-  J.ABS.EXT.SPEED.Aliased.Game_Actor.get('onBattlerDataChange').call(this);
+  J.ABS.EXT.SPEED.Aliased.Game_Actor.get('onBattlerDataChange')
+    .call(this);
 
   // update JABS-related things.
   this.refreshSpeedBoosts();
@@ -262,7 +264,8 @@ J.ABS.EXT.SPEED.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.i
 Game_Battler.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT.SPEED.Aliased.Game_Battler.get('initMembers').call(this);
+  J.ABS.EXT.SPEED.Aliased.Game_Battler.get('initMembers')
+    .call(this);
 
   // initialize the extra members.
   this.initSpeedBoosts();
@@ -346,7 +349,8 @@ J.ABS.EXT.SPEED.Aliased.Game_Character.set('distancePerFrame', Game_Character.pr
 Game_Character.prototype.distancePerFrame = function()
 {
   // determine base distance per frame.
-  const base = J.ABS.EXT.SPEED.Aliased.Game_Character.get('distancePerFrame').call(this);
+  const base = J.ABS.EXT.SPEED.Aliased.Game_Character.get('distancePerFrame')
+    .call(this);
 
   // calculate the speed boost bonus based on the base.
   const bonus = this.calculateSpeedBoostBonus(base);
@@ -375,7 +379,8 @@ Game_Character.prototype.calculateSpeedBoostBonus = function(baseMoveSpeed)
   if (!battler) return 0;
 
   // get the current speed boosts associated with the battler.
-  const scale = battler.getBattler().getWalkSpeedBoosts();
+  const scale = battler.getBattler()
+    .getWalkSpeedBoosts();
 
   // if we have no boosts, then don't process.
   if (scale === 0) return 0;
@@ -422,7 +427,8 @@ J.ABS.EXT.SPEED.Aliased.Game_Enemy.set('onBattlerDataChange', Game_Enemy.prototy
 Game_Enemy.prototype.onBattlerDataChange = function()
 {
   // perform original logic.
-  J.ABS.EXT.SPEED.Aliased.Game_Enemy.get('onBattlerDataChange').call(this);
+  J.ABS.EXT.SPEED.Aliased.Game_Enemy.get('onBattlerDataChange')
+    .call(this);
 
   // update JABS-related things.
   this.refreshSpeedBoosts();

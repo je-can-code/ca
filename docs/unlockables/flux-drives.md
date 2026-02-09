@@ -19,6 +19,7 @@ Read on to learn more about the available `Flux Drives`, what they do, and how t
 | [All Difficulty Layers](#all-layers)                |
 | [Flux Drive: Crimson](#drive-crimson)               |
 | [Flux Drive: Saffron](#drive-saffron)               |
+| [Flux Drive: Lemon](#drive-lemon)                   |
 
 ## <a name="unlock" /> Unlocking the `Spacial Flux Engine`
 Unlocking the `Spacial Flux Engine` is straight-forward, the player only needs to:

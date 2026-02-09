@@ -1,3 +1,149 @@
+//region MonsterpediaObservations
+/**
+ * A monsterpedia entry of observations about a particular monster.
+ * This data drives the visibility of data within a given monsterpedia entry.
+ * @param {number} enemyId The id of the enemy these observations are for.
+ */
+function MonsterpediaObservations(enemyId)
+{
+  this.initialize(enemyId);
+}
+
+MonsterpediaObservations.prototype = {};
+MonsterpediaObservations.prototype.constructor = MonsterpediaObservations;
+
+/**
+ * Initialize a set of observations for a new enemy.
+ * @param {number} enemyId The id of the enemy these observations are for.
+ */
+MonsterpediaObservations.prototype.initialize = function(enemyId)
+{
+  /**
+   * The id of the monster in the monsterpedia.
+   * @type {number}
+   */
+  this.id = enemyId;
+
+  // initialize other properties.
+  this.initMembers();
+};
+
+/**
+ * Initialize other observations that cannot be initialized with parameters.
+ */
+MonsterpediaObservations.prototype.initMembers = function()
+{
+  /**
+   * The number of this monster that has been defeated by the player.
+   * @type {number}
+   */
+  this.numberDefeated = 0;
+
+  /**
+   * Whether or not the player knows the name of this monster.
+   * When the name is unknown, it'll be masked.
+   * @type {boolean}
+   */
+  this.knowsName = false;
+
+  /**
+   * Whether or not the player knows the family this monster belongs to.
+   * When the family is unknown, the icon will be omitted from the list and
+   * the family will be masked in the detail.
+   * @type {boolean}
+   */
+  this.knowsFamily = true;
+
+  /**
+   * Whether or not the player knows the description of this monster.
+   * When the description is unknown, it'll be masked.
+   * @type {boolean}
+   */
+  this.knowsDescription = false;
+
+  /**
+   * Whether or not the player knows the regions this monster is found in.
+   * When the regions are unknown, it'll simply be blank.
+   * @type {boolean}
+   */
+  this.knowsRegions = false;
+
+  /**
+   * Whether or not the player knows the parameters of this monster.
+   * When the parameters are unknown, they will be masked.
+   * @type {boolean}
+   */
+  this.knowsParameters = false;
+
+  /**
+   * Whether or not the player knows the ailmentalistics of this monster.
+   * When the ailmentalistics are unknown, they will be masked.
+   * @type {boolean}
+   */
+  this.knowsAilmentalistics = false;
+
+  /**
+   * All drops observed to be lootable from this enemy.
+   * @type {['i'|'w'|'a', number][]}
+   */
+  this.knownDrops = [];
+
+  /**
+   * All element ids that have been observed in-action against this enemy.
+   * @type {number[]}
+   */
+  this.knownElementalistics = [];
+};
+
+/**
+ * Adds an observed drop to this monster's observations.
+ * @param {'i'|'w'|'a'} dropType The type of loot drop observed.
+ * @param {number} dropId The id of the drop.
+ */
+MonsterpediaObservations.prototype.addKnownDrop = function(dropType, dropId)
+{
+  this.knownDrops.push([ dropType, dropId ]);
+};
+
+/**
+ * Determines whether or not a given drop is known.
+ * @param {'i'|'w'|'a'} dropType The type of drop this is.
+ * @param {number} dropId The id of the drop.
+ * @returns {boolean} True if the drop is known, false otherwise.
+ */
+MonsterpediaObservations.prototype.isDropKnown = function(dropType, dropId)
+{
+  // a finder function for seeing if this drop is known.
+  const finder = drop =>
+  {
+    // deconstruct the drop data.
+    const [ type, id ] = drop;
+
+    // if we have this entry in the list of known drops, then the drop is known.
+    if (type === dropType && id === dropId) return true;
+
+    // we do not have the drop in the list of known drops.
+    return false;
+  };
+
+  // check if we found the item amongst the known drops.
+  const found = this.knownDrops.find(finder, this);
+
+  // return the boolean of whether or not we found it.
+  return !!found;
+};
+
+MonsterpediaObservations.prototype.addKnownElementalistic = function(elementId)
+{
+  this.knownElementalistics.push(elementId);
+};
+
+MonsterpediaObservations.prototype.isElementalisticKnown = function(elementId)
+{
+  return this.knownElementalistics.includes(elementId);
+};
+//endregion MonsterpediaObservations
+
 //region Introduction
 /*:
  * @target MZ
@@ -119,199 +265,17 @@ J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription = /<descriptionLine:[ ]?([\w\s
 J.OMNI.EXT.MONSTER.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
 //endregion Metadata
 
-//region JABS_Battler
-if (J.HUD && J.HUD.EXT.TARGET)
-{
-  /**
-   * Gets the target frame icon from the underlying character.
-   * @returns {number}
-   */
-  J.OMNI.EXT.MONSTER.Aliased.JABS_Battler.set('getTargetFrameIcon', JABS_Battler.prototype.getTargetFrameIcon);
-  JABS_Battler.prototype.getTargetFrameIcon = function()
-  {
-    // perform original logic to get the target frame icon.
-    const originalTargetFrameIcon = J.OMNI.EXT.MONSTER.Aliased.JABS_Battler.get('getTargetFrameIcon').call(this);
-
-    // if a target frame icon was provided, then just use that.
-    if (originalTargetFrameIcon !== 0) return originalTargetFrameIcon;
-
-    // if this isn't an enemy, then they don't get target frame icons.
-    const enemy = this.getBattler().enemy();
-
-    // check for a monster family icon instead.
-    const monsterFamilyIconIndex = enemy.monsterFamilyIcon;
-
-    // validate we have a monster family icon, too.
-    if (monsterFamilyIconIndex)
-    {
-      // return the monster family icon by default.
-      return monsterFamilyIconIndex;
-    }
-
-    // there is no freebie icons for this enemy.
-    return 0;
-  };
-}
-//endregion JABS_Battler
-
-//region MonsterpediaObservations
-/**
- * A monsterpedia entry of observations about a particular monster.
- * This data drives the visibility of data within a given monsterpedia entry.
- * @param {number} enemyId The id of the enemy these observations are for.
- */
-function MonsterpediaObservations(enemyId)
-{
-  this.initialize(enemyId);
-}
-
-MonsterpediaObservations.prototype = {};
-MonsterpediaObservations.prototype.constructor = MonsterpediaObservations;
-
-/**
- * Initialize a set of observations for a new enemy.
- * @param {number} enemyId The id of the enemy these observations are for.
- */
-MonsterpediaObservations.prototype.initialize = function(enemyId)
-{
-  /**
-   * The id of the monster in the monsterpedia.
-   * @type {number}
-   */
-  this.id = enemyId;
-
-  // initialize other properties.
-  this.initMembers();
-};
-
-/**
- * Initialize other observations that cannot be initialized with parameters.
- */
-MonsterpediaObservations.prototype.initMembers = function()
-{
-  /**
-   * The number of this monster that has been defeated by the player.
-   * @type {number}
-   */
-  this.numberDefeated = 0;
-
-  /**
-   * Whether or not the player knows the name of this monster.
-   * When the name is unknown, it'll be masked.
-   * @type {boolean}
-   */
-  this.knowsName = false;
-
-  /**
-   * Whether or not the player knows the family this monster belongs to.
-   * When the family is unknown, the icon will be omitted from the list and
-   * the family will be masked in the detail.
-   * @type {boolean}
-   */
-  this.knowsFamily = true;
-
-  /**
-   * Whether or not the player knows the description of this monster.
-   * When the description is unknown, it'll be masked.
-   * @type {boolean}
-   */
-  this.knowsDescription = false;
-
-  /**
-   * Whether or not the player knows the regions this monster is found in.
-   * When the regions are unknown, it'll simply be blank.
-   * @type {boolean}
-   */
-  this.knowsRegions = false;
-
-  /**
-   * Whether or not the player knows the parameters of this monster.
-   * When the parameters are unknown, they will be masked.
-   * @type {boolean}
-   */
-  this.knowsParameters = false;
-
-  /**
-   * Whether or not the player knows the ailmentalistics of this monster.
-   * When the ailmentalistics are unknown, they will be masked.
-   * @type {boolean}
-   */
-  this.knowsAilmentalistics = false;
-
-  /**
-   * All drops observed to be lootable from this enemy.
-   * @type {[i|w|a, number][]}
-   */
-  this.knownDrops = [];
-
-  /**
-   * All element ids that have been observed in-action against this enemy.
-   * @type {number[]}
-   */
-  this.knownElementalistics = [];
-};
-
-/**
- * Adds an observed drop to this monster's observations.
- * @param {i|w|a} dropType The type of loot drop observed.
- * @param {number} dropId The id of the drop.
- */
-MonsterpediaObservations.prototype.addKnownDrop = function(dropType, dropId)
-{
-  this.knownDrops.push([dropType, dropId]);
-};
-
-/**
- * Determines whether or not a given drop is known.
- * @param {i|w|a} dropType The type of drop this is.
- * @param {number} dropId The id of the drop.
- * @returns {boolean} True if the drop is known, false otherwise.
- */
-MonsterpediaObservations.prototype.isDropKnown = function(dropType, dropId)
-{
-  // a finder function for seeing if this drop is known.
-  const finder = drop =>
-  {
-    // deconstruct the drop data.
-    const [type, id] = drop;
-
-    // if we have this entry in the list of known drops, then the drop is known.
-    if (type === dropType && id === dropId) return true;
-
-    // we do not have the drop in the list of known drops.
-    return false;
-  };
-
-  // check if we found the item amongst the known drops.
-  const found = this.knownDrops.find(finder, this);
-
-  // return the boolean of whether or not we found it.
-  return !!found;
-};
-
-MonsterpediaObservations.prototype.addKnownElementalistic = function(elementId)
-{
-  this.knownElementalistics.push(elementId);
-};
-
-MonsterpediaObservations.prototype.isElementalisticKnown = function(elementId)
-{
-  return this.knownElementalistics.includes(elementId);
-};
-//endregion MonsterpediaObservations
-
 //region RPG_Enemy
 /**
  * Whether or not this enemy should be hidden from the monsterpedia.
  * @type {boolean} True if the enemy should be hidden, false otherwise.
  */
-Object.defineProperty(RPG_Enemy.prototype, "hideFromMonsterpedia",
+Object.defineProperty(RPG_Enemy.prototype, "hideFromMonsterpedia", {
+  get: function()
   {
-    get: function()
-    {
-      return this.shouldHideFromMonsterpedia();
-    },
-  });
+    return this.shouldHideFromMonsterpedia();
+  },
+});
 
 /**
  * Determines whether or not this enemy should be hidden from the monsterpedia.
@@ -326,13 +290,12 @@ RPG_Enemy.prototype.shouldHideFromMonsterpedia = function()
  * The icon index of the monster family this enemy belongs to.
  * @type {number}
  */
-Object.defineProperty(RPG_Enemy.prototype, "monsterFamilyIcon",
+Object.defineProperty(RPG_Enemy.prototype, "monsterFamilyIcon", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getMonsterFamilyIconIndex();
-    },
-  });
+    return this.getMonsterFamilyIconIndex();
+  },
+});
 
 /**
  * Gets the icon index representing the monster family of this enemy.
@@ -347,13 +310,12 @@ RPG_Enemy.prototype.getMonsterFamilyIconIndex = function()
  * The description of the enemy for the monsterpedia.
  * @type {string[]}
  */
-Object.defineProperty(RPG_Enemy.prototype, "monsterpediaDescription",
+Object.defineProperty(RPG_Enemy.prototype, "monsterpediaDescription", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getMonsterpediaDescription();
-    },
-  });
+    return this.getMonsterpediaDescription();
+  },
+});
 
 /**
  * Gets the description of this enemy for the monsterpedia.
@@ -368,14 +330,15 @@ RPG_Enemy.prototype.getMonsterpediaDescription = function()
 //region JABS_Engine
 /**
  * Processes the various on-hit effects against the target.
- * @param {JABS_Action} action The `JABS_Action` containing the action data.
+ * @param {JABS_Action} action The JABS action containing the action data.
  * @param {JABS_Battler} target The target having the action applied against.
  */
 J.OMNI.EXT.MONSTER.Aliased.JABS_Engine.set('processOnHitEffects', JABS_Engine.prototype.processOnHitEffects);
 JABS_Engine.prototype.processOnHitEffects = function(action, target)
 {
   // perform original logic.
-  J.OMNI.EXT.MONSTER.Aliased.JABS_Engine.get('processOnHitEffects').call(this, action, target);
+  J.OMNI.EXT.MONSTER.Aliased.JABS_Engine.get('processOnHitEffects')
+    .call(this, action, target);
 
   // check if the target is an enemy.
   if (target.isEnemy())
@@ -412,7 +375,8 @@ JABS_Engine.prototype.processElementalisticObservations = function(action, targe
   if (baseElement === -1)
   {
     // pile in the attacker's elements.
-    elements.push(...caster.getBattler().attackElements());
+    elements.push(...caster.getBattler()
+      .attackElements());
   }
   // don't add the "normal attack" element into the mix.
   else
@@ -448,7 +412,8 @@ J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set('onDeath', Game_Enemy.prototype.onDeat
 Game_Enemy.prototype.onDeath = function()
 {
   // perform original logic.
-  J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get('onDeath').call(this);
+  J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get('onDeath')
+    .call(this);
 
   // increment the counter for how many times we've defeated this enemy.
   this.updateMonsterpediaObservation();
@@ -547,7 +512,8 @@ J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.set('makeDropItems', Game_Enemy.prototype.
 Game_Enemy.prototype.makeDropItems = function()
 {
   // perform original logic to retrieve original drops.
-  const drops = J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get('makeDropItems').call(this);
+  const drops = J.OMNI.EXT.MONSTER.Aliased.Game_Enemy.get('makeDropItems')
+    .call(this);
 
   // validate we have drops.
   if (drops.length)
@@ -570,7 +536,10 @@ Game_Enemy.prototype.observeDrop = function(drop)
   const observations = this.getMonsterPediaObservations();
 
   // extract the drop data.
-  const { kind: dropType, id: dropId } = drop;
+  const {
+    kind: dropType,
+    id: dropId
+  } = drop;
 
   // don't process the drop if its already known.
   if (observations.isDropKnown(dropType, dropId)) return;
@@ -605,7 +574,8 @@ J.OMNI.EXT.MONSTER.Aliased.Game_Party.set('initOmnipediaMembers', Game_Party.pro
 Game_Party.prototype.initOmnipediaMembers = function()
 {
   // perform original logic.
-  J.OMNI.EXT.MONSTER.Aliased.Game_Party.get('initOmnipediaMembers').call(this);
+  J.OMNI.EXT.MONSTER.Aliased.Game_Party.get('initOmnipediaMembers')
+    .call(this);
 
   // initialize the monsterpedia.
   this.initMonsterpediaMembers();
@@ -641,15 +611,6 @@ Game_Party.prototype.initMonsterpediaMembers = function()
    * @type {Map<number, MonsterpediaObservations>}
    */
   this._j._omni._monsterpediaObservationsCache = new Map();
-};
-
-/**
- * Determines whether or not the omnipedia has been initialized.
- * @returns {boolean}
- */
-Game_Party.prototype.isOmnipediaInitialized = function()
-{
-  return !!this._j._omni;
 };
 
 /**
@@ -704,6 +665,31 @@ Game_Party.prototype.translateMonsterpediaCacheForSaving = function()
 };
 
 /**
+ * Updates the monsterpedia observations cache with the data from the saveables.
+ */
+Game_Party.prototype.translateMonsterpediaSaveablesToCache = function()
+{
+  // grab the observation collection that is saveable.
+  const saveableObservations = this.getSavedMonsterpediaObservations();
+
+  // grab the cache of observations we've been maintaining.
+  const cache = new Map();
+
+  // iterate over each saved item.
+  saveableObservations.forEach((observation, enemyId) =>
+  {
+    // if the observation is invalid, do not store it in the cache.
+    if (!observation) return;
+
+    // update the cache with the saveable.
+    cache.set(enemyId, observation);
+  }, this);
+
+  // update the cache with the latest saveable datas.
+  this.setMonsterpediaObservationsCache(cache);
+};
+
+/**
  * Synchronizes the monsterpedia cache into the saveable datas.
  */
 Game_Party.prototype.synchronizeMonsterpediaDataBeforeSave = function()
@@ -739,31 +725,6 @@ Game_Party.prototype.synchronizeMonsterpediaAfterLoad = function()
 
   // translate the cache into saveables.
   this.translateMonsterpediaCacheForSaving();
-};
-
-/**
- * Updates the monsterpedia observations cache with the data from the saveables.
- */
-Game_Party.prototype.translateMonsterpediaSaveablesToCache = function()
-{
-  // grab the observation collection that is saveable.
-  const saveableObservations = this.getSavedMonsterpediaObservations();
-
-  // grab the cache of observations we've been maintaining.
-  const cache = new Map();
-
-  // iterate over each saved item.
-  saveableObservations.forEach((observation, enemyId) =>
-  {
-    // if the observation is invalid, do not store it in the cache.
-    if (!observation) return;
-
-    // update the cache with the saveable.
-    cache.set(enemyId, observation);
-  }, this);
-
-  // update the cache with the latest saveable datas.
-  this.setMonsterpediaObservationsCache(cache);
 };
 
 /**
@@ -806,7 +767,8 @@ J.OMNI.EXT.MONSTER.Aliased.Game_System.set('onBeforeSave', Game_System.prototype
 Game_System.prototype.onBeforeSave = function()
 {
   // perform original logic.
-  J.OMNI.EXT.MONSTER.Aliased.Game_System.get('onBeforeSave').call(this);
+  J.OMNI.EXT.MONSTER.Aliased.Game_System.get('onBeforeSave')
+    .call(this);
 
   // update the cache into saveable data.
   $gameParty.synchronizeMonsterpediaDataBeforeSave();
@@ -819,18 +781,69 @@ J.OMNI.EXT.MONSTER.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.
 Game_System.prototype.onAfterLoad = function()
 {
   // perform original logic.
-  J.OMNI.EXT.MONSTER.Aliased.Game_System.get('onAfterLoad').call(this);
+  J.OMNI.EXT.MONSTER.Aliased.Game_System.get('onAfterLoad')
+    .call(this);
 
   // update the savable data into the cache.
   $gameParty.synchronizeMonsterpediaAfterLoad();
 };
 //endregion Game_System
 
-/**
- * A scene containing access to all available and implemented pedia entries.
- */
-class Scene_Monsterpedia extends Scene_MenuBase
+//region JABS_Battler
+if (J.HUD && J.HUD.EXT.TARGET)
 {
+  /**
+   * Gets the target frame icon from the underlying character.
+   * @returns {number}
+   */
+  J.OMNI.EXT.MONSTER.Aliased.JABS_Battler.set('getTargetFrameIcon', JABS_Battler.prototype.getTargetFrameIcon);
+  JABS_Battler.prototype.getTargetFrameIcon = function()
+  {
+    // perform original logic to get the target frame icon.
+    const originalTargetFrameIcon = J.OMNI.EXT.MONSTER.Aliased.JABS_Battler.get('getTargetFrameIcon')
+      .call(this);
+
+    // if a target frame icon was provided, then just use that.
+    if (originalTargetFrameIcon !== 0) return originalTargetFrameIcon;
+
+    // if this isn't an enemy, then they don't get target frame icons.
+    const enemy = this.getBattler()
+      .enemy();
+
+    // check for a monster family icon instead.
+    const monsterFamilyIconIndex = enemy.monsterFamilyIcon;
+
+    // validate we have a monster family icon, too.
+    if (monsterFamilyIconIndex)
+    {
+      // return the monster family icon by default.
+      return monsterFamilyIconIndex;
+    }
+
+    // there is no freebie icons for this enemy.
+    return 0;
+  };
+}
+//endregion JABS_Battler
+
+/**
+ * A scene for interacting with the Monsterpedia.
+ */
+class Scene_Monsterpedia
+  extends Scene_MenuBase
+{
+  /**
+   * Constructor.
+   */
+  constructor()
+  {
+    // call super when having extended constructors.
+    super();
+
+    // jumpstart initialization on creation.
+    this.initialize();
+  }
+
   /**
    * Pushes this current scene onto the stack, forcing it into action.
    */
@@ -866,23 +879,11 @@ class Scene_Monsterpedia extends Scene_MenuBase
       allDrops.forEach(drop => observations.addKnownDrop(drop.kind, drop.dataId), this);
 
       // iterate over all standard elements in the context of CA.
-      [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(id => observations.addKnownElementalistic(id), this);
+      [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ].forEach(id => observations.addKnownElementalistic(id), this);
     };
 
     // iterate over every enemy.
     $dataEnemies.forEach(forEacher, this);
-  }
-
-  /**
-   * Constructor.
-   */
-  constructor()
-  {
-    // call super when having extended constructors.
-    super();
-
-    // jumpstart initialization on creation.
-    this.initialize();
   }
 
   //region init
@@ -957,6 +958,7 @@ class Scene_Monsterpedia extends Scene_MenuBase
      */
     this._j._omni._monster._pediaHelp = null;
   }
+
   //endregion init
 
   //region create
@@ -1008,10 +1010,11 @@ class Scene_Monsterpedia extends Scene_MenuBase
     this._backgroundFilter = new PIXI.filters.AlphaFilter(0.1);
     this._backgroundSprite = new Sprite();
     this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-    this._backgroundSprite.filters = [this._backgroundFilter];
+    this._backgroundSprite.filters = [ this._backgroundFilter ];
     this.addChild(this._backgroundSprite);
     //this.setBackgroundOpacity(220);
   }
+
   //endregion create
 
   //region windows
@@ -1023,10 +1026,10 @@ class Scene_Monsterpedia extends Scene_MenuBase
   {
     // create the window.
     const window = this.buildMonsterpediaListWindow();
-  
+
     // update the tracker with the new window.
     this.setMonsterpediaListWindow(window);
-  
+
     // add the window to the scene manager's tracking.
     this.addWindow(window);
   }
@@ -1039,19 +1042,19 @@ class Scene_Monsterpedia extends Scene_MenuBase
   {
     // define the rectangle of the window.
     const rectangle = this.monsterpediaListRectangle();
-  
+
     // create the window with the rectangle.
     const window = new Window_MonsterpediaList(rectangle);
-  
+
     // assign cancel functionality.
     window.setHandler('cancel', this.onCancelMonsterpedia.bind(this));
-  
+
     // assign on-select functionality.
     window.setHandler('ok', this.onMonsterpediaListSelection.bind(this));
-  
+
     // overwrite the onIndexChange hook with our local onMonsterpediaIndexChange hook.
     window.onIndexChange = this.onMonsterpediaIndexChange.bind(this);
-  
+
     // return the built and configured omnipedia list window.
     return window;
   }
@@ -1063,14 +1066,14 @@ class Scene_Monsterpedia extends Scene_MenuBase
   monsterpediaListRectangle()
   {
     // the list window's origin coordinates are the box window's origin as well.
-    const [x, y] = Graphics.boxOrigin;
-  
+    const [ x, y ] = Graphics.boxOrigin;
+
     // define the width of the list.
     const width = 400;
-  
+
     // define the height of the list.
     const height = Graphics.boxHeight - (Graphics.verticalPadding * 2);
-  
+
     // build the rectangle to return.
     return new Rectangle(x, y, width, height);
   }
@@ -1092,6 +1095,7 @@ class Scene_Monsterpedia extends Scene_MenuBase
   {
     this._j._omni._monster._pediaList = listWindow;
   }
+
   //endregion list window
 
   //region detail window
@@ -1102,13 +1106,13 @@ class Scene_Monsterpedia extends Scene_MenuBase
   {
     // create the window.
     const window = this.buildMonsterpediaDetailWindow();
-  
+
     // update the tracker with the new window.
     this.setMonsterpediaDetailWindow(window);
-  
+
     // populate all image sprites used in this window.
     window.populateImageCache();
-  
+
     // add the window to the scene manager's tracking.
     this.addWindow(window);
   }
@@ -1121,10 +1125,10 @@ class Scene_Monsterpedia extends Scene_MenuBase
   {
     // define the rectangle of the window.
     const rectangle = this.monsterpediaDetailRectangle();
-  
+
     // create the window with the rectangle.
     const window = new Window_MonsterpediaDetail(rectangle);
-  
+
     // return the built and configured omnipedia list window.
     return window;
   }
@@ -1137,19 +1141,19 @@ class Scene_Monsterpedia extends Scene_MenuBase
   {
     // grab the monsterpedia list window.
     const listWindow = this.getMonsterpediaListWindow();
-  
+
     // calculate the X for where the origin of the list window should be.
     const x = listWindow.x + listWindow.width;
-  
+
     // calculate the Y for where the origin of the list window should be.
     const y = Graphics.verticalPadding;
-  
+
     // define the width of the list.
     const width = Graphics.boxWidth - listWindow.width - (Graphics.horizontalPadding * 2);
-  
+
     // define the height of the list.
     const height = Graphics.boxHeight - (Graphics.verticalPadding * 2);
-  
+
     // build the rectangle to return.
     return new Rectangle(x, y, width, height);
   }
@@ -1197,6 +1201,7 @@ class Scene_Monsterpedia extends Scene_MenuBase
     window.close();
     window.hide();
   }
+
   //endregion detail window
   //endregion windows
 
@@ -1208,16 +1213,16 @@ class Scene_Monsterpedia extends Scene_MenuBase
   {
     // grab the list window.
     const listWindow = this.getMonsterpediaListWindow();
-  
+
     // grab the detail window.
     const detailWindow = this.getMonsterpediaDetailWindow();
-  
+
     // grab the highlighted enemy's extra data, their observations.
     const highlightedEnemyObservations = listWindow.currentExt();
-  
+
     // sync the detail window with the currently-highlighted enemy.
     detailWindow.setObservations(highlightedEnemyObservations);
-  
+
     // refresh the window for the content update.
     detailWindow.refresh();
   }
@@ -1228,9 +1233,9 @@ class Scene_Monsterpedia extends Scene_MenuBase
   onMonsterpediaListSelection()
   {
     const listWindow = this.getMonsterpediaListWindow();
-  
+
     console.log(`monster selected index: [${listWindow.index()}].`);
-  
+
     listWindow.activate();
   }
 
@@ -1242,6 +1247,7 @@ class Scene_Monsterpedia extends Scene_MenuBase
     // revert to the previous scene.
     SceneManager.pop();
   }
+
   //endregion actions
 }
 
@@ -1267,7 +1273,8 @@ Scene_Omnipedia.prototype.onRootPediaSelection = function()
   else
   {
     // possibly activate other choices.
-    J.OMNI.EXT.MONSTER.Aliased.Scene_Omnipedia.get('onRootPediaSelection').call(this);
+    J.OMNI.EXT.MONSTER.Aliased.Scene_Omnipedia.get('onRootPediaSelection')
+      .call(this);
   }
 }
 
@@ -1285,7 +1292,8 @@ Scene_Omnipedia.prototype.monsterpediaSelected = function()
 //endregion root actions
 //endregion Scene_Omnipedia
 
-class Window_MonsterpediaDetail extends Window_Base
+class Window_MonsterpediaDetail
+  extends Window_Base
 {
   //region properties
   /**
@@ -1317,6 +1325,7 @@ class Window_MonsterpediaDetail extends Window_Base
    * @type {Map<number, Sprite_Icon>}
    */
   #exParameterIconCache = new Map();
+
   //endregion properties
 
   /**
@@ -1431,7 +1440,8 @@ class Window_MonsterpediaDetail extends Window_Base
   populateBaseParameterIconSpriteCache()
   {
     // define the parameter ids that qualify as b-params.
-    const bparamIds = Game_BattlerBase.knownBaseParameterIds().concat(30);
+    const bparamIds = Game_BattlerBase.knownBaseParameterIds()
+      .concat(30);
 
     // an iterator function for creating base parameter icon sprites.
     const forEacher = (_, bParamId) => this.getOrCreateBaseParameterIconSprite(bParamId);
@@ -1621,6 +1631,7 @@ class Window_MonsterpediaDetail extends Window_Base
     // return the created sprite.
     return sprite;
   }
+
   //endregion image caching
 
   /**
@@ -1652,7 +1663,7 @@ class Window_MonsterpediaDetail extends Window_Base
     if (!observations) return;
 
     // define the origin x,y coordinates.
-    const [x, y] = [0, 0];
+    const [ x, y ] = [ 0, 0 ];
 
     // shorthand the lineHeight.
     const lh = this.lineHeight();
@@ -1771,7 +1782,10 @@ class Window_MonsterpediaDetail extends Window_Base
     this.toggleBold(true);
 
     // grab the id out of the current observations.
-    const { id, knowsName } = this.getObservations();
+    const {
+      id,
+      knowsName
+    } = this.getObservations();
 
     // pull the enemy's database data out.
     const databaseEnemy = $dataEnemies.at(id);
@@ -1799,7 +1813,10 @@ class Window_MonsterpediaDetail extends Window_Base
   drawEnemySprite(x, y)
   {
     // grab the id out of the current observations.
-    const { id, numberDefeated } = this.getObservations();
+    const {
+      id,
+      numberDefeated
+    } = this.getObservations();
 
     // don't render the sprite if we have never defeated it.
     if (numberDefeated < 1) return;
@@ -1862,7 +1879,10 @@ class Window_MonsterpediaDetail extends Window_Base
     this.modFontSize(-4);
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = this.getObservations();
+    const {
+      id,
+      knowsParameters
+    } = this.getObservations();
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -1871,14 +1891,7 @@ class Window_MonsterpediaDetail extends Window_Base
     const { level, } = gameEnemy;
 
     // draw the level parameter.
-    this.drawEnemyParameter(
-      x,
-      y,
-      IconManager.level(),
-      TextManager.level,
-      level,
-      !knowsParameters,
-      4);
+    this.drawEnemyParameter(x, y, IconManager.level(), TextManager.level, level, !knowsParameters, 4);
   }
 
   /**
@@ -1898,13 +1911,20 @@ class Window_MonsterpediaDetail extends Window_Base
     this.modFontSize(-4);
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = this.getObservations();
+    const {
+      id,
+      knowsParameters
+    } = this.getObservations();
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
 
     // extract the parameters to draw from this enemy.
-    const { mhp, mmp, mtp, } = gameEnemy;
+    const {
+      mhp,
+      mmp,
+      mtp,
+    } = gameEnemy;
 
     const maxRemover = parameterName =>
     {
@@ -1913,39 +1933,19 @@ class Window_MonsterpediaDetail extends Window_Base
 
     // draw the max hp parameter.
     const maxHpName = maxRemover(TextManager.param(0));
-    this.drawEnemyParameter(
-      x,
-      y,
-      IconManager.param(0),
-      maxHpName,
-      mhp,
-      !knowsParameters);
+    this.drawEnemyParameter(x, y, IconManager.param(0), maxHpName, mhp, !knowsParameters);
 
     // draw the max mp parameter.
     const maxMpName = maxRemover(TextManager.param(1));
     const maxMpXPlus = 12;
     const maxMpYPlus = lh * 1;
-    this.drawEnemyParameter(
-      x + maxMpXPlus,
-      y + maxMpYPlus,
-      IconManager.param(1),
-      maxMpName,
-      mmp,
-      !knowsParameters,
-      6);
+    this.drawEnemyParameter(x + maxMpXPlus, y + maxMpYPlus, IconManager.param(1), maxMpName, mmp, !knowsParameters, 6);
 
     // draw the max tp parameter.
     const maxTpName = maxRemover(TextManager.maxTp());
     const maxTpXPlus = 24;
     const maxTpYPlus = lh * 2;
-    this.drawEnemyParameter(
-      x + maxTpXPlus,
-      y + maxTpYPlus,
-      IconManager.maxTp(),
-      maxTpName,
-      mtp,
-      !knowsParameters,
-      6);
+    this.drawEnemyParameter(x + maxTpXPlus, y + maxTpYPlus, IconManager.maxTp(), maxTpName, mtp, !knowsParameters, 6);
   }
 
   /**
@@ -1965,17 +1965,28 @@ class Window_MonsterpediaDetail extends Window_Base
     this.modFontSize(-4);
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = this.getObservations();
+    const {
+      id,
+      knowsParameters
+    } = this.getObservations();
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
 
     // extract the parameters to draw from this enemy.
     const {
-      atk, def, pdr,
-      mat, mdf, mdr,
-      agi, hit, cnt,
-      luk, cri, cev,
+      atk,
+      def,
+      pdr,
+      mat,
+      mdf,
+      mdr,
+      agi,
+      hit,
+      cnt,
+      luk,
+      cri,
+      cev,
     } = gameEnemy;
 
     // the modifier for where the left column begins.
@@ -1983,14 +1994,7 @@ class Window_MonsterpediaDetail extends Window_Base
 
     // draw the attack parameter.
     const atkXPlus = leftColumnX;
-    this.drawEnemyParameter(
-      x + atkXPlus,
-      y,
-      IconManager.param(2),
-      TextManager.param(2),
-      atk,
-      !knowsParameters,
-      4);
+    this.drawEnemyParameter(x + atkXPlus, y, IconManager.param(2), TextManager.param(2), atk, !knowsParameters, 4);
 
     // draw the endurance parameter.
     const defXPlus = leftColumnX + 8;
@@ -2144,15 +2148,7 @@ class Window_MonsterpediaDetail extends Window_Base
    * @param {number=} padZeroCount The number of zeroes to pad a masked parameter value with.
    * @param {number=} spacePlus Additional space to add between the name and value of this parameter.
    */
-  drawEnemyParameter(
-    x,
-    y,
-    iconIndex,
-    parameterName,
-    parameterValue,
-    maskValue = false,
-    padZeroCount = 8,
-    spacePlus = 0)
+  drawEnemyParameter(x, y, iconIndex, parameterName, parameterValue, maskValue = false, padZeroCount = 8, spacePlus = 0)
   {
     // determine the padding for prefixing with an icon.
     const iconWidthPadding = iconIndex === 0
@@ -2220,7 +2216,7 @@ class Window_MonsterpediaDetail extends Window_Base
     this.changeTextColor(ColorManager.textColor(8))
     const charWidth = this.textWidth(value.charAt(0));
     const totalCharWidth = value.length * charWidth;
-    [...value].forEach((char, index) =>
+    [ ...value ].forEach((char, index) =>
     {
       if (char !== "0")
       {
@@ -2282,7 +2278,10 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = observations;
+    const {
+      id,
+      knowsParameters
+    } = observations;
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -2291,42 +2290,21 @@ class Window_MonsterpediaDetail extends Window_Base
     const expIcon = IconManager.rewardParam(0);
     const expName = TextManager.rewardParam(0);
     const expValue = gameEnemy.exp();
-    this.drawEnemyParameter(
-      x,
-      y,
-      expIcon,
-      expName,
-      expValue,
-      !knowsParameters,
-      0);
+    this.drawEnemyParameter(x, y, expIcon, expName, expValue, !knowsParameters, 0);
 
     // draw the gold data.
     const goldIcon = IconManager.rewardParam(1);
     const goldName = TextManager.rewardParam(1);
     const goldValue = gameEnemy.gold();
     const goldYPlus = lh * 1;
-    this.drawEnemyParameter(
-      x,
-      y + goldYPlus,
-      goldIcon,
-      goldName,
-      goldValue,
-      !knowsParameters,
-      0);
+    this.drawEnemyParameter(x, y + goldYPlus, goldIcon, goldName, goldValue, !knowsParameters, 0);
 
     // draw the SDP data.
     const sdpIcon = IconManager.rewardParam(4);
     const sdpName = TextManager.rewardParam(4);
     const sdpValue = gameEnemy.sdpPoints();
     const sdpYPlus = lh * 2;
-    this.drawEnemyParameter(
-      x,
-      y + sdpYPlus,
-      sdpIcon,
-      sdpName,
-      sdpValue,
-      !knowsParameters,
-      0);
+    this.drawEnemyParameter(x, y + sdpYPlus, sdpIcon, sdpName, sdpValue, !knowsParameters, 0);
   }
 
   /**
@@ -2346,7 +2324,10 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id, knowsParameters } = observations;
+    const {
+      id,
+      knowsParameters
+    } = observations;
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -2369,7 +2350,7 @@ class Window_MonsterpediaDetail extends Window_Base
     const [ sdpKey, sdpDropChance, sdpItemId ] = sdpDropData;
 
     // grab the corresponding panel with this key.
-    const panel = $gameParty.getSdpByKey(sdpKey);
+    const panel = J.SDP.Metadata.panelsMap.get(sdpKey);
 
     // if there is no panel, then don't try to render it.
     if (!panel) return;
@@ -2385,7 +2366,10 @@ class Window_MonsterpediaDetail extends Window_Base
     }
 
     // extract the item data associated with the panel.
-    const { name, iconIndex } = $dataItems.at(sdpItemId);
+    const {
+      name,
+      iconIndex
+    } = $dataItems.at(sdpItemId);
 
     // mask the name if applicable.
     const panelName = knowsParameters
@@ -2393,15 +2377,7 @@ class Window_MonsterpediaDetail extends Window_Base
       : J.BASE.Helpers.maskString(name);
 
     // render the parameter.
-    this.drawEnemyParameter(
-      x,
-      y,
-      iconIndex,
-      panelName,
-      dropText,
-      false,
-      0,
-      20);
+    this.drawEnemyParameter(x, y, iconIndex, panelName, dropText, false, 0, 20);
   }
 
   /**
@@ -2424,7 +2400,10 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id, numberDefeated } = observations;
+    const {
+      id,
+      numberDefeated
+    } = observations;
 
     // grab a reference to the enemy for database analysis.
     const gameEnemy = $gameEnemies.enemy(id);
@@ -2483,14 +2462,7 @@ class Window_MonsterpediaDetail extends Window_Base
 
       // draw the loot drop.
       const dropYPlus = (index - numberSkipped) * lh;
-      this.drawEnemyParameter(
-        x,
-        y + dropYPlus,
-        dropIcon,
-        dropName,
-        `${dropChance}%`,
-        false,
-        4);
+      this.drawEnemyParameter(x, y + dropYPlus, dropIcon, dropName, `${dropChance}%`, false, 4);
     };
 
     // draw all the drops.
@@ -2510,19 +2482,22 @@ class Window_MonsterpediaDetail extends Window_Base
     // skippable items don't show up in this list.
     if (drop.kind === RPG_DropItem.Types.Item)
     {
-      return this.skippableItemIds().includes(drop.dataId);
+      return this.skippableItemIds()
+        .includes(drop.dataId);
     }
 
     // skippable weapons don't show up in this list.
     if (drop.kind === RPG_DropItem.Types.Weapon)
     {
-      return this.skippableWeaponIds().includes(drop.dataId);
+      return this.skippableWeaponIds()
+        .includes(drop.dataId);
     }
 
     // skippable armors don't show up in this list.
     if (drop.kind === RPG_DropItem.Types.Armor)
     {
-      return this.skippableArmorIds().includes(drop.dataId);
+      return this.skippableArmorIds()
+        .includes(drop.dataId);
     }
 
     return true;
@@ -2534,7 +2509,7 @@ class Window_MonsterpediaDetail extends Window_Base
    */
   skippableItemIds()
   {
-    return [2, 3, 4, 8, 9];
+    return [ 2, 3, 4, 8, 9 ];
   }
 
   /**
@@ -2572,7 +2547,10 @@ class Window_MonsterpediaDetail extends Window_Base
     const observations = this.getObservations();
 
     // grab the id out of the current observations.
-    const { id, knowsDescription } = observations;
+    const {
+      id,
+      knowsDescription
+    } = observations;
 
     // grab a reference to the enemy for database analysis.
     const { monsterpediaDescription } = $dataEnemies.at(id);
@@ -2629,7 +2607,7 @@ class Window_MonsterpediaDetail extends Window_Base
     // reduce the font size for the description text.
     this.modFontSize(-4);
 
-    const validElementIds = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const validElementIds = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
 
     validElementIds.forEach((elementId, index) =>
     {
@@ -2672,14 +2650,7 @@ class Window_MonsterpediaDetail extends Window_Base
       }
 
       const elementYPlus = lh * index;
-      this.drawEnemyParameter(
-        x,
-        y + elementYPlus,
-        elementIcon,
-        elementName,
-        elementRate,
-        false,
-        4);
+      this.drawEnemyParameter(x, y + elementYPlus, elementIcon, elementName, elementRate, false, 4);
     });
   }
 
@@ -2688,7 +2659,6 @@ class Window_MonsterpediaDetail extends Window_Base
   sections include
   - regions found
   - ailmentalistics
-  - elementalistics
    */
 }
 
@@ -2696,7 +2666,8 @@ class Window_MonsterpediaDetail extends Window_Base
 /**
  * A window containing the list of all enemies perceived for the monsterpedia.
  */
-class Window_MonsterpediaList extends Window_Command
+class Window_MonsterpediaList
+  extends Window_Command
 {
   /**
    * Constructor.
@@ -2709,7 +2680,7 @@ class Window_MonsterpediaList extends Window_Command
 
   /**
    * Implements {@link #makeCommandList}.<br>
-   * Creates the command list of omnipedia entries available for this window.
+   * Creates the command list of all observable monsters in this window.
    */
   makeCommandList()
   {
@@ -2722,7 +2693,7 @@ class Window_MonsterpediaList extends Window_Command
 
   /**
    * Builds all commands for this command window.
-   * Adds all omnipedia commands to the list that are available.
+   * Adds all monsters to the list that can possibly be observed.
    * @returns {BuiltWindowCommand[]}
    */
   buildCommands()
@@ -2778,7 +2749,10 @@ class Window_MonsterpediaList extends Window_Command
   buildCommand(enemy)
   {
     // deconstruct data points out for building the list.
-    const { id, name } = enemy;
+    const {
+      id,
+      name
+    } = enemy;
 
     // grab the observations associated with this enemy id.
     const observations = $gameParty.getOrCreateMonsterpediaObservationsById(id);
@@ -2811,6 +2785,7 @@ class Window_MonsterpediaList extends Window_Command
       .build();
   }
 }
+
 //endregion Window_MonsterpediaList
 
 /**
@@ -2821,7 +2796,8 @@ J.OMNI.EXT.MONSTER.Aliased.Window_OmnipediaList.set('buildCommands', Window_Omni
 Window_OmnipediaList.prototype.buildCommands = function()
 {
   // perform original logic.
-  const originalCommands = J.OMNI.EXT.MONSTER.Aliased.Window_OmnipediaList.get('buildCommands').call(this);
+  const originalCommands = J.OMNI.EXT.MONSTER.Aliased.Window_OmnipediaList.get('buildCommands')
+    .call(this);
 
   // check if the monsterpedia command should be added.
   if (this.canAddMonsterpediaCommand())
