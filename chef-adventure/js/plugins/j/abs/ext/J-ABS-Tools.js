@@ -228,7 +228,8 @@ J.ABS.EXT.TOOLS.Aliased.JABS_Battler.set('initGeneralInfo', JABS_Battler.prototy
 JABS_Battler.prototype.initGeneralInfo = function()
 {
   // perform original logic.
-  J.ABS.EXT.TOOLS.Aliased.JABS_Battler.get('initGeneralInfo').call(this);
+  J.ABS.EXT.TOOLS.Aliased.JABS_Battler.get('initGeneralInfo')
+    .call(this);
 
   /**
    * The counter for how long this battler is waiting.
@@ -240,7 +241,7 @@ JABS_Battler.prototype.initGeneralInfo = function()
    * The destination coordinates of where this battler is gap closing to.
    * @type {[number, number]}
    */
-  this._gapCloseDestination = [0, 0];
+  this._gapCloseDestination = [ 0, 0 ];
 };
 
 /**
@@ -293,7 +294,7 @@ JABS_Battler.prototype.setGapCloseDestination = function(destination)
 JABS_Battler.prototype.hasGapCloseDestination = function()
 {
   // destructure the gap close destination.
-  const [goalX, goalY] = this.gapCloseDestination();
+  const [ goalX, goalY ] = this.gapCloseDestination();
 
   // if the destination is 0:0, then we don't have a destination.
   if (goalX === 0 && goalY === 0) return false;
@@ -307,7 +308,7 @@ JABS_Battler.prototype.hasGapCloseDestination = function()
  */
 JABS_Battler.prototype.clearGapCloseDestination = function()
 {
-  this._gapCloseDestination = [0, 0];
+  this._gapCloseDestination = [ 0, 0 ];
 };
 
 /**
@@ -318,7 +319,8 @@ J.ABS.EXT.TOOLS.Aliased.JABS_Battler.set('update', JABS_Battler.prototype.update
 JABS_Battler.prototype.update = function()
 {
   // perform original logic.
-  J.ABS.EXT.TOOLS.Aliased.JABS_Battler.get('update').call(this);
+  J.ABS.EXT.TOOLS.Aliased.JABS_Battler.get('update')
+    .call(this);
 
   // also update gap closing.
   this.updateGapClosing();
@@ -390,7 +392,7 @@ JABS_Battler.prototype.isGapClosable = function()
 
 /**
  * Executes a gap close to the target based on the provided action.
- * @param {JABS_Action} action The `JABS_Action` containing the action data.
+ * @param {JABS_Action} action The JABS action containing the action data.
  * @param {JABS_Battler} target The target having the action applied against.
  */
 JABS_Battler.prototype.gapCloseToTarget = function(action, target)
@@ -402,16 +404,19 @@ JABS_Battler.prototype.gapCloseToTarget = function(action, target)
   this.beginGapClosing();
 
   // set the gap close destination to wherever the target is at this moment.
-  this.setGapCloseDestination([target.getX(), target.getY()]);
+  this.setGapCloseDestination([ target.getX(), target.getY() ]);
 
   // extract the gap close details from the skill.
-  let { jabsGapCloseMode, jabsGapClosePosition } = action.getBaseSkill();
+  let {
+    jabsGapCloseMode,
+    jabsGapClosePosition
+  } = action.getBaseSkill();
 
   // if the position is not identified, then default to "same".
   jabsGapClosePosition ??= J.ABS.EXT.TOOLS.GapClosePositions.Same;
 
   // determine the destination delta coordiantes.
-  const [x, y] = this.determineGapCloseCoordinates(target, jabsGapClosePosition);
+  const [ x, y ] = this.determineGapCloseCoordinates(target, jabsGapClosePosition);
 
   // if the mode is not identified, then default to "jump".
   jabsGapCloseMode ??= J.ABS.EXT.TOOLS.GapCloseModes.Jump;
@@ -447,24 +452,24 @@ JABS_Battler.prototype.determineGapCloseCoordinates = function(target, position)
 {
   const targetCharacter = target.getCharacter();
 
-  const [x, y] = [this.getX(), this.getY()];
+  const [ x, y ] = [ this.getX(), this.getY() ];
   const goalX = targetCharacter.deltaXFrom(x);
   const goalY = targetCharacter.deltaYFrom(y);
 
   if (position === J.ABS.EXT.TOOLS.GapClosePositions.Behind)
   {
     // TODO: adjust goal x,y based on position w/ target.
-    return [goalX, goalY];
+    return [ goalX, goalY ];
   }
 
   if (position === J.ABS.EXT.TOOLS.GapClosePositions.Infront)
   {
     // TODO: adjust goal x,y based on position w/ target.
-    return [goalX, goalY];
+    return [ goalX, goalY ];
   }
 
   // position must be "same", so just return the target's coordinates.
-  return [goalX, goalY];
+  return [ goalX, goalY ];
 };
 
 /**
@@ -484,18 +489,19 @@ JABS_Battler.prototype.hasReachedGapCloseDestination = function()
   }
 
   // destructure the destination out.
-  const [goalX, goalY] = this.gapCloseDestination();
+  const [ goalX, goalY ] = this.gapCloseDestination();
 
   // check where we're currently at.
-  const [actualX, actualY] = [this.getX(), this.getY()];
+  const [ actualX, actualY ] = [ this.getX(), this.getY() ];
 
   // the amount of wiggle room for gap closing- perfect gap closing is not viable.
   const fuzzy = JABS_Battler.gapCloseWiggleRoom();
 
   // check if we are generally at the target destination.
-  const xOk = (actualX >= goalX-fuzzy) && (actualX <= goalX+fuzzy);
-  const yOk = (actualY >= goalY-fuzzy) && (actualY <= goalY+fuzzy);
-  const doneMoving = !(this.getCharacter().isMoving());
+  const xOk = (actualX >= goalX - fuzzy) && (actualX <= goalX + fuzzy);
+  const yOk = (actualY >= goalY - fuzzy) && (actualY <= goalY + fuzzy);
+  const doneMoving = !(this.getCharacter()
+    .isMoving());
 
   // if we have reached the destination, then we're done.
   if (xOk && yOk && doneMoving) return true;
@@ -520,13 +526,12 @@ JABS_Battler.gapCloseWiggleRoom = function()
  * Gap-closing will pull the player to wherever the skill connected.
  * @type {boolean}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGapClose",
+Object.defineProperty(RPG_Skill.prototype, "jabsGapClose", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJabsGapClose();
-    },
-  });
+    return this.getJabsGapClose();
+  },
+});
 
 /**
  * Gets whether or not this skill is a gap close skill.
@@ -553,13 +558,12 @@ RPG_Skill.prototype.extractJabsGapClose = function()
  * If there is no gap close mode available, then it'll be null instead.
  * @type {J.ABS.EXT.TOOLS.GapCloseModes|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGapCloseMode",
+Object.defineProperty(RPG_Skill.prototype, "jabsGapCloseMode", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJabsGapCloseMode();
-    },
-  });
+    return this.getJabsGapCloseMode();
+  },
+});
 
 /**
  * Gets the gap close mode of this skill.
@@ -586,13 +590,12 @@ RPG_Skill.prototype.extractJabsGapCloseMode = function()
  * If there is no gap close position available, then it'll be null instead.
  * @type {J.ABS.EXT.TOOLS.GapClosePositions|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGapClosePosition",
+Object.defineProperty(RPG_Skill.prototype, "jabsGapClosePosition", {
+  get: function()
   {
-    get: function()
-    {
-      return this.getJabsGapCloseMode();
-    },
-  });
+    return this.getJabsGapCloseMode();
+  },
+});
 
 /**
  * Gets the gap close position of this skill.
@@ -615,14 +618,15 @@ RPG_Skill.prototype.extractJabsGapCloseMode = function()
 
 /**
  * Processes the various on-hit effects against the target.
- * @param {JABS_Action} action The `JABS_Action` containing the action data.
+ * @param {JABS_Action} action The JABS action containing the action data.
  * @param {JABS_Battler} target The target having the action applied against.
  */
 J.ABS.EXT.TOOLS.Aliased.JABS_Engine.set('processOnHitEffects', JABS_Engine.prototype.processOnHitEffects)
 JABS_Engine.prototype.processOnHitEffects = function(action, target)
 {
   // perform original logic.
-  J.ABS.EXT.TOOLS.Aliased.JABS_Engine.get('processOnHitEffects').call(this, action, target);
+  J.ABS.EXT.TOOLS.Aliased.JABS_Engine.get('processOnHitEffects')
+    .call(this, action, target);
 
   // handle gapclose logic.
   this.handleGapClose(action, target);
@@ -642,7 +646,7 @@ JABS_Engine.prototype.handleGapClose = function(action, target)
 
 /**
  * Determine whether or not the target can be gap closed to.
- * @param {JABS_Action} action The `JABS_Action` containing the action data.
+ * @param {JABS_Action} action The JABS action containing the action data.
  * @param {JABS_Battler} target The target having the action applied against.
  * @returns {boolean} True if the target can be gap closed to, false otherwise.
  */
@@ -706,7 +710,8 @@ J.ABS.EXT.TOOLS.Aliased.Game_CharacterBase.set('initMembers', Game_CharacterBase
 Game_CharacterBase.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT.TOOLS.Aliased.Game_CharacterBase.get('initMembers').call(this);
+  J.ABS.EXT.TOOLS.Aliased.Game_CharacterBase.get('initMembers')
+    .call(this);
 
   // initialize our class members.
   this.initToolsMembers();
@@ -762,18 +767,19 @@ Game_Event.prototype.isGapClosable = function()
   let gapCloseTarget = false;
 
   // check all the valid event commands to see if this target is gap closable.
-  this.getValidCommentCommands().forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [comment,] = command.parameters;
-
-    // check if it is a gap closable target.
-    if (J.ABS.EXT.TOOLS.RegExp.GapCloseTarget.test(comment))
+  this.getValidCommentCommands()
+    .forEach(command =>
     {
-      // flag it as such.
-      gapCloseTarget = true;
-    }
-  });
+      // shorthand the comment into a variable.
+      const [ comment, ] = command.parameters;
+
+      // check if it is a gap closable target.
+      if (J.ABS.EXT.TOOLS.RegExp.GapCloseTarget.test(comment))
+      {
+        // flag it as such.
+        gapCloseTarget = true;
+      }
+    });
 
   // return what we found.
   return gapCloseTarget;
@@ -789,7 +795,8 @@ J.ABS.EXT.TOOLS.Aliased.Game_System.set('initMembers', Game_System.prototype.ini
 Game_System.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT.TOOLS.Aliased.Game_System.get('initMembers').call(this);
+  J.ABS.EXT.TOOLS.Aliased.Game_System.get('initMembers')
+    .call(this);
 
   // initialize our class members.
   this.initToolsMembers();

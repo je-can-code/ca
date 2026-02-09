@@ -47,6 +47,7 @@ class RegionSkillData
     this.isFriendly = isFriendly;
   }
 }
+
 //endregion RegionSkillData
 
 //region annoations
@@ -93,7 +94,8 @@ class RegionSkillData
 //endregion annotations
 
 //region plugin metadata
-class J_RegionSkillsPluginMetadata extends PluginMetadata
+class J_RegionSkillsPluginMetadata
+  extends PluginMetadata
 {
   /**
    * Constructor.
@@ -131,6 +133,7 @@ class J_RegionSkillsPluginMetadata extends PluginMetadata
     this.delayBetweenExecutions = this.parsedPluginParameters['execution-delay'] ?? 60;
   }
 }
+
 //endregion plugin metadata
 
 //region initialization
@@ -336,7 +339,12 @@ Game_Character.prototype.executeRegionSkills = function()
   regionSkillDatas.forEach(regionSkillData =>
   {
     // deconstruct the region skill data.
-    const { skillId, chance, casterId, isFriendly } = regionSkillData;
+    const {
+      skillId,
+      chance,
+      casterId,
+      isFriendly
+    } = regionSkillData;
 
     // roll the dice and see if we should even execute it.
     if (!RPGManager.chanceIn100(chance)) return;
@@ -554,7 +562,8 @@ J.REGIONS.EXT.SKILLS.Aliased.Game_System.set('onAfterLoad', Game_System.prototyp
 Game_System.prototype.onAfterLoad = function()
 {
   // perform original logic.
-  J.REGIONS.EXT.SKILLS.Aliased.Game_System.get('onAfterLoad').call(this);
+  J.REGIONS.EXT.SKILLS.Aliased.Game_System.get('onAfterLoad')
+    .call(this);
 
   // update from the latest plugin metadata.
   this.updateRegionSkillsAfterLoad();
@@ -568,7 +577,9 @@ Game_System.prototype.updateRegionSkillsAfterLoad = function()
   $gameMap.initRegionSkillsMembers();
   $gameMap.setupRegionSkills();
   $gamePlayer.initRegionSkillsMembers();
-  $gamePlayer.followers().data().forEach(follower => follower.initRegionSkillsMembers());
+  $gamePlayer.followers()
+    .data()
+    .forEach(follower => follower.initRegionSkillsMembers());
 };
 
 //endregion Game_System

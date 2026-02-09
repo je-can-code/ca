@@ -34,6 +34,7 @@
  *
  * ----------------------------------------------------------------------------
  * CA-UNIQUE CHANGES:
+ * - forces the previous leader to be in the second party slot after cycling.
  * - loot drop x,y adjustment unique to CA
  * - anti-null elementIds hard-coded
  * - mini floor-damage system built with tags (TODO: replace with plugin?)
@@ -99,6 +100,7 @@ J.CAMods.Aliased.Game_Actor = new Map();
 J.CAMods.Aliased.Game_BattlerBase = new Map();
 J.CAMods.Aliased.Game_Enemy = new Map();
 J.CAMods.Aliased.Game_Map = new Map();
+J.CAMods.Aliased.Game_Party = new Map();
 J.CAMods.Aliased.Scene_Boot = new Map();
 //endregion initialization
 
@@ -114,7 +116,8 @@ J.CAMods.Aliased.JABS_Battler.set('getTargetFrameText', JABS_Battler.prototype.g
 JABS_Battler.prototype.getTargetFrameText = function()
 {
   // perform original logic to get the target frame text.
-  const originalTargetFrameText = J.CAMods.Aliased.JABS_Battler.get('getTargetFrameText').call(this);
+  const originalTargetFrameText = J.CAMods.Aliased.JABS_Battler.get('getTargetFrameText')
+    .call(this);
 
   // if a target frame text was provided, then just use that.
   if (originalTargetFrameText !== String.empty) return originalTargetFrameText;
@@ -129,7 +132,7 @@ JABS_Battler.prototype.getTargetFrameText = function()
   const hasAura = battler.elementRate(24) > 1;
 
   // a quick check to see if there even are any traits.
-  const hasNoTraits = !([isArmed, isFlying, isShielded, hasAura].every(trait => !!trait));
+  const hasNoTraits = !([ isArmed, isFlying, isShielded, hasAura ].every(trait => !!trait));
 
   // if we have no traits, no need to do anymore work.
   if (hasNoTraits) return String.empty;
@@ -181,9 +184,10 @@ JABS_Engine.prototype.addLootDropToMap = function(targetX, targetY, item)
 {
   // move the Y up by one because CA is weird?
   const modifiedTargetY = targetY + 1;
-  
+
   // perform original logic.
-  return J.CAMods.Aliased.JABS_Engine.get('addLootDropToMap').call(this, targetX, modifiedTargetY, item);
+  return J.CAMods.Aliased.JABS_Engine.get('addLootDropToMap')
+    .call(this, targetX, modifiedTargetY, item);
 };
 
 /**
@@ -195,7 +199,8 @@ J.CAMods.Aliased.JABS_Engine.set('handleDefeatedEnemy', JABS_Engine.prototype.ha
 JABS_Engine.prototype.handleDefeatedEnemy = function(defeatedTarget, caster)
 {
   // perform original logic.
-  J.CAMods.Aliased.JABS_Engine.get('handleDefeatedEnemy').call(this, defeatedTarget, caster);
+  J.CAMods.Aliased.JABS_Engine.get('handleDefeatedEnemy')
+    .call(this, defeatedTarget, caster);
 
   // determine whether to add to the destructibles count or regular count.
   if (defeatedTarget.isInanimate())
@@ -221,7 +226,8 @@ JABS_Engine.prototype.handleDefeatedPlayer = function()
   J.BASE.Helpers.modVariable(J.CAMods.Tracking.NumberOfDeaths, 1);
 
   // perform original logic.
-  J.CAMods.Aliased.JABS_Engine.get('handleDefeatedPlayer').call(this);
+  J.CAMods.Aliased.JABS_Engine.get('handleDefeatedPlayer')
+    .call(this);
 };
 
 /**
@@ -234,7 +240,8 @@ J.CAMods.Aliased.JABS_Engine.set('postExecuteSkillEffects', JABS_Engine.prototyp
 JABS_Engine.prototype.postExecuteSkillEffects = function(action, target)
 {
   // execute the original method so the result is on the target.
-  J.CAMods.Aliased.JABS_Engine.get('postExecuteSkillEffects').call(this, action, target);
+  J.CAMods.Aliased.JABS_Engine.get('postExecuteSkillEffects')
+    .call(this, action, target);
 
   // don't track these data points if its a tool.
   if (action.getCooldownType() !== JABS_Button.Tool)
@@ -259,7 +266,11 @@ JABS_Engine.prototype.postExecuteSkillEffects = function(action, target)
 JABS_Engine.prototype.trackAttackData = function(target)
 {
   // extract the data points from the battler's action result.
-  const {hpDamage, critical} = target.getBattler().result();
+  const {
+    hpDamage,
+    critical
+  } = target.getBattler()
+    .result();
 
   // check if it was hp-related.
   if (hpDamage > 0)
@@ -296,7 +307,13 @@ JABS_Engine.prototype.trackAttackData = function(target)
  */
 JABS_Engine.prototype.trackDefensiveData = function(target)
 {
-  const {hpDamage, critical, parried, preciseParried} = target.getBattler().result();
+  const {
+    hpDamage,
+    critical,
+    parried,
+    preciseParried
+  } = target.getBattler()
+    .result();
   if (hpDamage)
   {
     // count all damage received.
@@ -348,7 +365,8 @@ J.CAMods.Aliased.JABS_Engine.set('executeMapAction', JABS_Engine.prototype.execu
 JABS_Engine.prototype.executeMapAction = function(caster, action, targetX, targetY)
 {
   // perform original logic.
-  J.CAMods.Aliased.JABS_Engine.get('executeMapAction').call(this, caster, action, targetX, targetY);
+  J.CAMods.Aliased.JABS_Engine.get('executeMapAction')
+    .call(this, caster, action, targetX, targetY);
 
   // validate the caster is a player before tracking.
   if (caster.isPlayer())
@@ -382,6 +400,31 @@ JABS_Engine.prototype.trackActionData = function(action)
       break;
   }
 };
+
+J.CAMods.Aliased.JABS_Engine.set('handlePartyCycleMemberChanges', JABS_Engine.prototype.handlePartyCycleMemberChanges);
+JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
+{
+  // identify the previous leader's actorId.
+  const originalLeaderActorId = $gameParty._actors.at(0);
+
+  // perform original logic.
+  J.CAMods.Aliased.JABS_Engine.get('handlePartyCycleMemberChanges')
+    .call(this);
+
+  // identify the location of the previous leader.
+  const newIndexOfPreviousLeader = $gameParty._actors.findIndex(actorId => actorId === originalLeaderActorId);
+
+  // remove leader from previous location.
+  $gameParty._actors.splice(newIndexOfPreviousLeader, 1);
+
+  // insert them at the secondary index.
+  $gameParty._actors.splice(1, 0, originalLeaderActorId);
+
+  $gamePlayer.refresh();
+
+  // recreate the JABS player battler and set it to the player character.
+  this.refreshPlayer1Data();
+};
 //endregion JABS_Engine
 
 //region Game_Action
@@ -391,7 +434,7 @@ JABS_Engine.prototype.trackActionData = function(action)
  */
 Game_Action.prototype.getAntiNullElementIds = function()
 {
-  return [25, 26, 27, 28];
+  return [ 25, 26, 27, 28 ];
 };
 //endregion Game_Action
 
@@ -404,7 +447,8 @@ J.CAMods.Aliased.Game_Actor.set("equipSlots", Game_Actor.prototype.equipSlots);
 Game_Actor.prototype.equipSlots = function()
 {
   // perform original logic to determine the base slots.
-  const baseSlots = J.CAMods.Aliased.Game_Actor.get("equipSlots").call(this);
+  const baseSlots = J.CAMods.Aliased.Game_Actor.get("equipSlots")
+    .call(this);
 
   // add a copy of the 5th equip type at the end of the list.
   baseSlots.push(5);
@@ -437,7 +481,8 @@ Game_Actor.prototype.basicFloorDamage = function()
 {
   if (!$dataMap || !$dataMap.meta)
   {
-    return J.CAMods.Aliased.Game_Actor.get("basicFloorDamage").call(this);
+    return J.CAMods.Aliased.Game_Actor.get("basicFloorDamage")
+      .call(this);
   }
   else
   {
@@ -523,17 +568,18 @@ Game_Actor.prototype.refreshAutoEquippedSkills = function()
   const allSlots = this.getAllEquippedSkills();
 
   // iterate over each of the skills and auto-assign/equip them where applicable.
-  this.skills().forEach(skill =>
-  {
-    // extract the skill id.
-    const skillId = skill.id;
+  this.skills()
+    .forEach(skill =>
+    {
+      // extract the skill id.
+      const skillId = skill.id;
 
-    // don't autoassign the same skill if a slot already has it somehow.
-    if (allSlots.some(slot => slot.id === skillId)) return;
+      // don't autoassign the same skill if a slot already has it somehow.
+      if (allSlots.some(slot => slot.id === skillId)) return;
 
-    // process the learned skill!
-    this.jabsProcessLearnedSkill(skill.id);
-  }, this);
+      // process the learned skill!
+      this.jabsProcessLearnedSkill(skill.id);
+    }, this);
 };
 //endregion Game_Actor
 
@@ -546,7 +592,8 @@ J.CAMods.Aliased.Game_BattlerBase.set('recoverAll', Game_BattlerBase.prototype.r
 Game_BattlerBase.prototype.recoverAll = function()
 {
   // perform original logic.
-  J.CAMods.Aliased.Game_BattlerBase.get('recoverAll').call(this);
+  J.CAMods.Aliased.Game_BattlerBase.get('recoverAll')
+    .call(this);
 
   // also set current TP to max.
   this._tp = this.maxTp();
@@ -563,7 +610,8 @@ J.CAMods.Aliased.Game_Enemy.set("dropSources", Game_Enemy.prototype.dropSources)
 Game_Enemy.prototype.dropSources = function()
 {
   // perform original logic to determine base drop sources.
-  const sources = J.CAMods.Aliased.Game_Enemy.get("dropSources").call(this);
+  const sources = J.CAMods.Aliased.Game_Enemy.get("dropSources")
+    .call(this);
 
   // also add all the passive states applied to oneself.
   sources.push(...this.allStates());
@@ -639,7 +687,8 @@ J.CAMods.Aliased.Game_Map.set('setup', Game_Map.prototype.setup);
 Game_Map.prototype.setup = function(mapId)
 {
   // perform original logic.
-  J.CAMods.Aliased.Game_Map.get('setup').call(this, mapId);
+  J.CAMods.Aliased.Game_Map.get('setup')
+    .call(this, mapId);
 
   // update rare/named enemy variable.
   $gameVariables.setValue(13, Math.randomInt(100) + 1);
@@ -647,6 +696,10 @@ Game_Map.prototype.setup = function(mapId)
 //endregion Game_Map
 
 //region Game_Party
+/**
+ * The actorIds that correlate with elemental actors in regards to Chef Adventure.
+ * @type {number[]}
+ */
 Game_Party.ELEMENTAL_ALLY_ACTOR_IDS = [ 3, 4, 5, 6 ];
 
 /**
@@ -686,21 +739,30 @@ Game_Party.prototype.elementalJabsBattlers = function()
   const filtering = jabsBattler =>
   {
     // grab the actor's id of this jabs battler.
-    const actorId = jabsBattler.getBattler().actorId();
+    const actorId = jabsBattler.getBattler()
+      .actorId();
 
     // identify if the actor id is among the known elemental actor id list.
-    const isElementalActor = Game_Party.ELEMENTAL_ALLY_ACTOR_IDS.contains(actorId);
-
     // return what we found.
-    return isElementalActor;
+    return Game_Party.ELEMENTAL_ALLY_ACTOR_IDS.includes(actorId);
   };
 
   // filter the battlers to only the elemental ones that are currently unlocked.
-  const jabsBattlers = JABS_AiManager.getActorBattlers()
-    .filter(filtering, this);
-
   // return what was found.
-  return jabsBattlers;
+  return JABS_AiManager.getActorBattlers()
+    .filter(filtering, this);
+};
+
+/**
+ * Determine if the leader is the given actorId.
+ * @param {number} actorId The actor id to compare the leader's actor id with.
+ * @returns {boolean} True if the leader is the same actor as the designated id, false otherwise.
+ */
+Game_Party.prototype.isLeaderActor = function(actorId)
+{
+  // determine if the leader is the same as the designated actor.
+  return this.leader()
+    .actorId() === actorId;
 };
 //endregion Game_Party
 

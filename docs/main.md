@@ -21,7 +21,6 @@ And of course, a list of unlockables and their details:
 - [Flux Drive locations][15]
 - [Recipe Journal locations][16]
 - [Blueprint Scrap locations][17]
-- [Elemental ally locations][18]
 - [Alchemy Page locations][18]
 
 [1]: https://github.com/je-can-code/rmmz-plugins

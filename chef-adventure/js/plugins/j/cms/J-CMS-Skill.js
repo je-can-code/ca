@@ -108,6 +108,7 @@ class JCMS_ParameterKvp
     return this._colorId;
   }
 }
+
 //endregion JCMS_ParameterKvp
 
 //region Scene_Skill
@@ -130,7 +131,9 @@ Scene_Skill.prototype.skillTypeWindowRect = function()
 {
   const ww = this.mainCommandWidth();
   const wh = this.calcWindowHeight(4, true);
-  const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
+  const wx = this.isRightInputMode()
+    ? Graphics.boxWidth - ww
+    : 0;
   const wy = this.mainAreaTop();
   return new Rectangle(wx, wy, ww, wh);
 };
@@ -147,7 +150,9 @@ Scene_Skill.prototype.skillDetailRect = function()
 {
   const ww = Graphics.boxWidth - this.mainCommandWidth();
   const wh = this.mainAreaHeight() - this._statusWindow.height
-  const wx = this.isRightInputMode() ? 0 : Graphics.boxWidth - ww;
+  const wx = this.isRightInputMode()
+    ? 0
+    : Graphics.boxWidth - ww;
   const wy = this.mainAreaTop() + this._statusWindow.height;
   return new Rectangle(wx, wy, ww, wh);
 };
@@ -171,7 +176,9 @@ Scene_Skill.prototype.itemWindowRect = function()
 {
   const ww = this.mainCommandWidth();
   const wh = this.mainAreaHeight() - this._statusWindow.height;
-  const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
+  const wx = this.isRightInputMode()
+    ? Graphics.boxWidth - ww
+    : 0;
   const wy = this._statusWindow.y + this._statusWindow.height;
   return new Rectangle(wx, wy, ww, wh);
 };
@@ -181,7 +188,8 @@ Scene_Skill.prototype.itemWindowRect = function()
 /**
  * A window responsible for showing various datapoints of a skill.
  */
-class Window_SkillDetail extends Window_Base
+class Window_SkillDetail
+  extends Window_Base
 {
   constructor(rect)
   {
@@ -456,10 +464,16 @@ class Window_SkillDetail extends Window_Base
         p = skillProficiency.proficiency;
       }
     }
-    const sign = [3, 4].includes(skill.damage.type) ? -1 : 1;
+    const sign = [ 3, 4 ].includes(skill.damage.type)
+      ? -1
+      : 1;
     const value = Math.round(Math.max(eval(skill.damage.formula), 0));
-    const potential = isNaN(value) ? 0 : value;
-    const color = sign > 0 ? 10 : 24;
+    const potential = isNaN(value)
+      ? 0
+      : value;
+    const color = sign > 0
+      ? 10
+      : 24;
     return new JCMS_ParameterKvp(`\\C[${color}]Raw Damage\\C[0]`, potential);
   }
 
@@ -472,8 +486,7 @@ class Window_SkillDetail extends Window_Base
   makeHitsParam(skill, actor)
   {
     const value = (skill.repeats - 1) + skill.jabsPierceCount;
-    const param = new JCMS_ParameterKvp('Max Possible Hits', `x${value}`, ColorManager.textColor(0));
-    return param;
+    return new JCMS_ParameterKvp('Max Possible Hits', `x${value}`, ColorManager.textColor(0));
   }
 
   /**
@@ -534,13 +547,17 @@ class Window_SkillDetail extends Window_Base
    * Makes a parameter that displays this actor's proficiency with this skill.
    * @param {Game_Actor} actor The actor.
    * @param {RPG_Skill} skill The skill.
-   * @returns {JCMS_ParameterKvp}
+   * @returns {JCMS_ParameterKvp[]}
    */
   makeSkillProficiency(actor, skill)
   {
     const proficiencyParams = [];
     const skillProficiency = actor.tryGetSkillProficiencyBySkillId(skill.id);
-    proficiencyParams.push(new JCMS_ParameterKvp(`\\C[21]Proficiency:\\C[0]`, skillProficiency.proficiency));
+
+    const proficiencyKey = '\\C[21]Proficiency:\\C[0]';
+    const proficiencyValue = `${skillProficiency.proficiency}`;
+    const proficiencyParam = new JCMS_ParameterKvp(proficiencyKey, proficiencyValue);
+    proficiencyParams.push(proficiencyParam);
     proficiencyParams.push(...this.makeRelatedProficiencyConditionals(actor, skill));
     proficiencyParams.push(this.makeDividerParam());
 
@@ -562,25 +579,28 @@ class Window_SkillDetail extends Window_Base
       // if there are no rewards, then don't even draw the "related" section.
       if (!conditional.skillRewards.length) return;
 
-
       conditional.skillRewards.forEach(skillRewardId =>
       {
         if (!skillRewardId)
         {
           console.warn(conditional);
-          console.log(skillRewardId,  "not a valid skill reward.");
+          console.log(skillRewardId, "not a valid skill reward.");
           return;
         }
 
         // get the current/required proficiency level for the reward.
-        const requiredProficiency = conditional.requirements
+        const proficiencyRequirement = conditional.requirements
           .find(requirement => requirement.skillId === skill.id);
 
         const actorKnowsSkill = actor.isLearnedSkill(skillRewardId);
         const extendedSkill = actor.skill(skillRewardId);
-        const learnedIcon = actorKnowsSkill ? 91 : 90;
+        const learnedIcon = actorKnowsSkill
+          ? 91
+          : 90;
         const name = `\\I[${learnedIcon}]\\Skill[${extendedSkill.id}]`;
-        const value = `${requiredProficiency.proficiency}`;
+        const currentProficiency = proficiencyRequirement.totalProficiency(actor);
+        const requiredProficiency = proficiencyRequirement.proficiency;
+        const value = `${currentProficiency} / ${requiredProficiency}`;
         params.push(new JCMS_ParameterKvp(name, value));
       });
     });
@@ -604,7 +624,7 @@ class Window_SkillDetail extends Window_Base
   {
     const elementParams = [];
     elementParams.push(new JCMS_ParameterKvp(`\\C[17]Elemental Affiliations\\C[0]`));
-    const attackElements = [skill.damage.elementId];
+    const attackElements = [ skill.damage.elementId ];
     attackElements.push(...Game_Action.extractElementsFromAction(skill));
     attackElements.forEach(attackElement =>
     {
@@ -632,10 +652,10 @@ class Window_SkillDetail extends Window_Base
    */
   makeSkillTypeParam(skill)
   {
-    const support = [0];
-    const damage = [1, 2];
-    const healer = [3, 4];
-    const drain = [5, 6];
+    const support = [ 0 ];
+    const damage = [ 1, 2 ];
+    const healer = [ 3, 4 ];
+    const drain = [ 5, 6 ];
 
     let name = "";
     let color = ColorManager.normalColor();
@@ -697,17 +717,19 @@ class Window_SkillDetail extends Window_Base
     return new JCMS_ParameterKvp(tpName, tpCost, tpColor);
   }
 }
+
 //endregion Window_SkillDetail
 
 //region Window_SkillList
 /**
- * Extends `.initialize()` to include our skill detail window.
+ * Extends {@link #initialize}.<br/>
+ * Includes our skill detail window.
  */
 J.CMS_K.Aliased.Window_SkillList.initialize = Window_SkillList.prototype.initialize;
 Window_SkillList.prototype.initialize = function(rect)
 {
   J.CMS_K.Aliased.Window_SkillList.initialize.call(this, rect);
-  
+
   /**
    * The detail window for the skill.
    *  @type {Window_SkillDetail}
@@ -753,7 +775,8 @@ Window_SkillList.prototype.select = function(index)
 };
 
 /**
- * OVERWRITE Forces a single column for skills in this window.
+ * Overwrites {@link #maxCols}.<br/>
+ * Forces a single column for skills in this window.
  * @returns {number}
  */
 Window_SkillList.prototype.maxCols = function()
@@ -762,7 +785,8 @@ Window_SkillList.prototype.maxCols = function()
 };
 
 /**
- * OVERWRITE Does not draw costs of any kind.
+ * Overwrites {@link #drawSkillCost}.<br/>
+ * Does not draw costs of any kind.
  * @param {RPG_Skill} skill The skill to draw costs for.
  * @param {number} x The `x` coordinate.
  * @param {number} y The `y` coordinate.
@@ -770,6 +794,30 @@ Window_SkillList.prototype.maxCols = function()
  */
 Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width)
 {
+};
+
+/**
+ * Overwrites {@link #includes}.<br/>
+ * Limits the skills displayed to those relevant to the actor's equipped weapon- if one exists.
+ * @param {RPG_Skill} skill The skill to see if filtering is necessary.
+ * @returns {boolean}
+ */
+Window_SkillList.prototype.includes = function(skill)
+{
+  // if there is no skill, then it shouldn't be included.
+  if (!skill) return false;
+
+  // check if the skill matches the selected type.
+  const matchesSkillTypeId = skill.stypeId === this._stypeId;
+
+  // if there is no actor, then we only factor in the skill itself.
+  if (!this._actor) return matchesSkillTypeId;
+
+  // check if the actor's equipped weapon matches the skill type.
+  const matchesWeaponTypeId = this._actor.isSkillWtypeOk(skill);
+
+  // return whether or not both skill and weapon types match.
+  return (matchesSkillTypeId && matchesWeaponTypeId);
 };
 //endregion Window_SkillList
 
@@ -785,15 +833,20 @@ Window_SkillType.prototype.maxCols = function()
 
 Window_SkillType.prototype.makeCommandList = function()
 {
-  if (this._actor)
+  /** @type {Game_Actor} */
+  const currentActor = this._actor;
+
+  if (!currentActor) return;
+
+  /** @type {number[]} */
+  const skillTypeIds = currentActor.addedSkillTypes()
+    .filter((x, i, self) => self.indexOf(x) === i);
+
+  skillTypeIds.forEach(skillTypeId =>
   {
-    const skillTypeIds = this._actor.skillTypes();
-    skillTypeIds.forEach(skillTypeId =>
-    {
-      const name = $dataSystem.skillTypes[skillTypeId];
-      const icon = IconManager.skillType(skillTypeId);
-      this.addCommand(name, "skill", true, skillTypeId, icon);
-    });
-  }
+    const name = $dataSystem.skillTypes[skillTypeId];
+    const icon = IconManager.skillType(skillTypeId);
+    this.addCommand(name, "skill", true, skillTypeId, icon);
+  });
 };
 //endregion Window_SkillType

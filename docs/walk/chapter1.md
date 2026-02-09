@@ -5,9 +5,12 @@
 >   you to it, read at your own discretion!
 
 ### Overview
-Chapter 1 is the main introductory chapter. It'll cover all the way up through an introduction to the hub city of the
-game, Raevula. At this point, it isn't really made clear that the town is the "hub city" of the game, but that will be
-gradually introduced as the player is continually returned to the city.
+Chapter 1 is the main introductory chapter. It'll cover an introduction to the hub city of the game, Raevula. At this
+point, it isn't really made clear that the town is the "hub city" of the game, but that will be gradually introduced as
+the player is continually returned to the city.
+
+The chapter will bring the player from the introduction series of events, through the hub city, into the mines, and
+through the forest.
 
 > All named enemies except for the tutorial named enemy have a (50%) chance to drop either blueprint scrap available in
 > this chapter. Yes, that does mean you could potentially get both from a single named enemy.
@@ -277,24 +280,6 @@ lead you back to `Raevula` where you can restock, hit up Viktor for some smithin
 
 
 done with forest at around level 18-20.
-
-### <a name="step6" /> Step 6: First Dive Into the Forlorn Basin
-
-The `Forlorn Basin` is another dungeon-within-a-dungeon. To reach there, just go directly south 2 maps from `Millie`
-the "Nature Lover", and there will be a cave that previously was unexplorable due to the path being blocked by `The
-Alchemist`, but he is notably missing, granting entry to the dungeon.
-
-| name           | drop % | description                                                                       |
-|----------------|:------:|-----------------------------------------------------------------------------------|
-| Crawler        |   4%   | A rare panel that trades Power for improved Hit and resistance to Environ Damage. |
-| Goobat         |  10%   | An unusual panel that reduces speed, but improves HP/TP regen and healing rate.   |
-| Will 'o' Wisp  |   1%   | The first legendary panel, bestowing tremendous magical offensive powers!         |
-| !Blister       |  50%   | `an improved drop rate of the Will 'o' Wisp's panel`                              |
-| Stonefur       |   4%   | A physically defensive panel that also gives a buff to ones healing rate.         |
-| Pudding (Boss) |  `--`  | `This enemy does not drop a panel.`                                               |
-
-
-done with basin at around level 23-25.
 
 ---
 [1]: ../unlockables/flux-drives

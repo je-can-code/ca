@@ -150,7 +150,7 @@ J.HUD.Aliased = {
 /**
  * A global object for managing the hud.
  * @global
- * @type {Hud_Manager}
+ * @type {HudManager}
  */
 var $hudManager = null;
 
@@ -213,13 +213,14 @@ J.HUD.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects
 DataManager.createGameObjects = function()
 {
   // perform original logic.
-  J.HUD.Aliased.DataManager.get('createGameObjects').call(this);
+  J.HUD.Aliased.DataManager.get('createGameObjects')
+    .call(this);
 
   // create the global hud manager object.
   if (!$hudManager)
   {
     // if somehow we're missing this global object, then re-add it.
-    $hudManager = new Hud_Manager();
+    $hudManager = new HudManager();
   }
 };
 
@@ -227,7 +228,8 @@ J.HUD.Aliased.DataManager.set('extractSaveContents', DataManager.extractSaveCont
 DataManager.extractSaveContents = function(contents)
 {
   // perform original logic.
-  J.HUD.Aliased.DataManager.get('extractSaveContents').call(this, contents);
+  J.HUD.Aliased.DataManager.get('extractSaveContents')
+    .call(this, contents);
 
   // setup the hud now that we know we have the save contents available.
   $hudManager.setup();
@@ -237,7 +239,8 @@ J.HUD.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
 DataManager.setupNewGame = function()
 {
   // perform original logic.
-  J.HUD.Aliased.DataManager.get('setupNewGame').call(this);
+  J.HUD.Aliased.DataManager.get('setupNewGame')
+    .call(this);
 
   // setup the hud now that we know we have the save contents available.
   $hudManager.setup();
@@ -249,7 +252,7 @@ DataManager.setupNewGame = function()
  * A manager class for the hud.
  * Use this class to issue requests to show/hide the hud.
  */
-class Hud_Manager
+class HudManager
 {
   //region properties
   /**
@@ -332,6 +335,7 @@ class Hud_Manager
    * @private
    */
   #ready = false;
+
   //endregion properties
 
   /**
@@ -342,12 +346,18 @@ class Hud_Manager
     // if we're already setup, then don't do it again.
     if (this.#isReady()) return;
 
+    this.initMembers();
+
     // configure the hud based on what we remember from settings.
     this.#setHudVisible($gameSystem.getHudVisible() ?? true);
     this.#setShowAllies($gameSystem.getHudAlliesVisible() ?? true);
 
     // flag this as ready for processing.
     this.#setReady(true);
+  }
+
+  initMembers()
+  {
   }
 
   /**
@@ -498,6 +508,7 @@ class Hud_Manager
   {
     this.#setRequestRefreshImageCache(false);
   }
+
   //endregion refresh
 
   //region target frame
@@ -561,6 +572,7 @@ class Hud_Manager
   {
     this.setNewTarget(null);
   }
+
   //endregion target frame
 
   //region input frame
@@ -588,6 +600,7 @@ class Hud_Manager
   {
     this.#setRequestRefreshInputFrame(false);
   }
+
   //endregion input frame
 
   //region private functions
@@ -799,8 +812,10 @@ class Hud_Manager
   {
     this.#requestHideHud = request;
   }
+
   //endregion private functions
 }
+
 //endregion Hud_Manager
 
 //region Game_System
@@ -811,7 +826,8 @@ J.HUD.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
   // perform original logic.
-  J.HUD.Aliased.Game_System.get('initialize').call(this);
+  J.HUD.Aliased.Game_System.get('initialize')
+    .call(this);
   this._j ||= {};
   this._j._hud ||= {
     _hudVisible: true,
@@ -866,7 +882,8 @@ J.HUD.Aliased.Scene_Map.set('initMembers', Scene_Map.prototype.initMembers);
 Scene_Map.prototype.initMembers = function()
 {
   // perform original logic.
-  J.HUD.Aliased.Scene_Map.get('initMembers').call(this);
+  J.HUD.Aliased.Scene_Map.get('initMembers')
+    .call(this);
 
   // also initialize the HUD members.
   this.initHudMembers();
@@ -897,7 +914,8 @@ J.HUD.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
 Scene_Map.prototype.update = function()
 {
   // perform original logic.
-  J.HUD.Aliased.Scene_Map.get('update').call(this);
+  J.HUD.Aliased.Scene_Map.get('update')
+    .call(this);
 
   // keep our HUD up to date.
   this.updateHudFrames();
@@ -920,7 +938,8 @@ J.HUD.Aliased.Scene_Map.set('onPartyRotate', Scene_Map.prototype.onPartyRotate);
 Scene_Map.prototype.onPartyRotate = function()
 {
   // perform original logic.
-  J.HUD.Aliased.Scene_Map.get('onPartyRotate').call(this);
+  J.HUD.Aliased.Scene_Map.get('onPartyRotate')
+    .call(this);
 
   // also refresh the HUD when the party is rotated for JABS.
   this.refreshHud();
@@ -939,7 +958,8 @@ Scene_Map.prototype.refreshHud = function()
 /**
  * A base class with some common sprite-cache-management features.
  */
-class Window_Frame extends Window_Base
+class Window_Frame
+  extends Window_Base
 {
   /**
    * Constructor.
@@ -979,7 +999,8 @@ class Window_Frame extends Window_Base
     /* eslint-disable max-len */
     /**
      * The cached collection of sprites.
-     * @type {Map<string, Sprite_Icon|Sprite_BaseText|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
+     * @type {Map<string,
+     *   Sprite_Icon|Sprite_BaseText|Sprite_SkillCost|Sprite_CooldownGauge|Sprite_ActorValue|Sprite_MapGauge|Sprite_Gauge|Sprite_FlowingGauge|Sprite_Face|Sprite>}
      */
     this._j._spriteCache = new Map();
     /* eslint-enable max-len */
@@ -1026,6 +1047,7 @@ class Window_Frame extends Window_Base
   {
     // fill with sprite creation methods.
   }
+
   //endregion caching
 
   /**
@@ -1048,4 +1070,5 @@ class Window_Frame extends Window_Base
     // fill with window frame logic.
   }
 }
+
 //endregion Window_Frame

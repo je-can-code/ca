@@ -312,7 +312,7 @@ Game_Action.prototype.getApplicableElements = function(target)
   const baseElement = skillOrItem.damage.elementId;
 
   // initialize elements collection for this action.
-  const elements = [baseElement];
+  const elements = [ baseElement ];
 
   // add any extra elements the action has.
   const addedElements = Game_Action.extractElementsFromAction(skillOrItem);
@@ -328,7 +328,7 @@ Game_Action.prototype.getApplicableElements = function(target)
   // if "none"-element is present, that is all that matters.
   if (elements.includes(0))
   {
-    return [0];
+    return [ 0 ];
   }
 
   // check if the target's strict elements contain the attack elements.
@@ -346,9 +346,7 @@ Game_Action.prototype.getApplicableElements = function(target)
  */
 Game_Action.extractElementsFromAction = function(databaseObject)
 {
-  return RPGManager.getNumbersFromNoteByRegex(
-    databaseObject,
-    J.ELEM.RegExp.AttackElementIds);
+  return RPGManager.getNumbersFromNoteByRegex(databaseObject, J.ELEM.RegExp.AttackElementIds);
 };
 
 /**
@@ -378,7 +376,8 @@ Game_Action.prototype.multipleElementalRates = function(target, elements)
   }
 
   // if we have an absorb rate amidst the attack elements that the target absorbs...
-  const hasAbsorbRate = target.elementsAbsorbed().some(absorbed => elements.includes(absorbed));
+  const hasAbsorbRate = target.elementsAbsorbed()
+    .some(absorbed => elements.includes(absorbed));
   if (hasAbsorbRate)
   {
     return this.calculateAbsorbRate(target, elements);
@@ -499,7 +498,8 @@ Game_Action.prototype.calculateAbsorbRate = function(target, attackElements)
   const reducer = (previousRate, currentRate) => previousRate * currentRate;
 
   // get all those element ids that the target absorbs.
-  const filteredAbsorbedIds = target.elementsAbsorbed().filter(absorbed => attackElements.includes(absorbed));
+  const filteredAbsorbedIds = target.elementsAbsorbed()
+    .filter(absorbed => attackElements.includes(absorbed));
 
   // translate the ids into rates.
   const absorbRates = filteredAbsorbedIds
@@ -543,7 +543,8 @@ Game_Action.prototype.getAntiNullElementIds = function()
 Game_Action.prototype.evalDamageFormula = function(target)
 {
   const item = this.item();
-  const attackElements = Game_Action.extractElementsFromAction(item).concat(item.damage.elementId);
+  const attackElements = Game_Action.extractElementsFromAction(item)
+    .concat(item.damage.elementId);
   const absorbedElements = target.elementsAbsorbed();
   const targetAbsorbs = attackElements.some(elementId => absorbedElements.includes(elementId));
 
@@ -576,7 +577,9 @@ Game_Action.prototype.evalDamageFormula = function(target)
       value = Math.max(eval(item.damage.formula), 0) * sign;
     }
 
-    return isNaN(value) ? 0 : value;
+    return isNaN(value)
+      ? 0
+      : value;
   }
   catch (e)
   {
@@ -597,8 +600,10 @@ Game_Action.prototype.evalDamageFormula = function(target)
  */
 Game_Action.prototype.healingFactor = function(targetAbsorbs)
 {
-  const isHealingAction = [3, 4].includes(this.item().damage.type);
-  return isHealingAction && !targetAbsorbs ? -1 : 1;
+  const isHealingAction = [ 3, 4 ].includes(this.item().damage.type);
+  return isHealingAction && !targetAbsorbs
+    ? -1
+    : 1;
 };
 //endregion Game_Action
 
@@ -609,9 +614,12 @@ Game_Action.prototype.healingFactor = function(targetAbsorbs)
 J.ELEM.Aliased.Game_Actor.set("elementRate", Game_Actor.prototype.elementRate);
 Game_Actor.prototype.elementRate = function(elementId)
 {
-  const baseRate = J.ELEM.Aliased.Game_Enemy.get("elementRate").call(this, elementId);
+  const baseRate = J.ELEM.Aliased.Game_Enemy.get("elementRate")
+    .call(this, elementId);
 
-  const isAbsorbed = this.isElementAbsorbed(elementId) ? -1 : 1;
+  const isAbsorbed = this.isElementAbsorbed(elementId)
+    ? -1
+    : 1;
   return baseRate * isAbsorbed;
 };
 
@@ -690,7 +698,8 @@ Game_Actor.prototype.elementRateBoost = function(elementId)
  */
 Game_Battler.prototype.isElementAbsorbed = function(elementId)
 {
-  return this.elementsAbsorbed().includes(elementId);
+  return this.elementsAbsorbed()
+    .includes(elementId);
 };
 
 /**
@@ -732,9 +741,7 @@ Game_Battler.prototype.elementsAbsorbed = function()
  */
 Game_Battler.prototype.extractAbsorbedElements = function(databaseObject)
 {
-  return RPGManager.getNumbersFromNoteByRegex(
-    databaseObject,
-    J.ELEM.RegExp.AbsorbElementIds);
+  return RPGManager.getNumbersFromNoteByRegex(databaseObject, J.ELEM.RegExp.AbsorbElementIds);
 };
 
 /**
@@ -757,9 +764,7 @@ Game_Battler.prototype.strictElements = function()
  */
 Game_Battler.prototype.extractStrictElements = function(databaseObject)
 {
-  return RPGManager.getNumbersFromNoteByRegex(
-    databaseObject,
-    J.ELEM.RegExp.StrictElementIds);
+  return RPGManager.getNumbersFromNoteByRegex(databaseObject, J.ELEM.RegExp.StrictElementIds);
 };
 
 /**
@@ -791,7 +796,7 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
     {
       const id = parseInt(RegExp.$1);
       const boost = parseInt(RegExp.$2);
-      boostedElements.push([id, boost]);
+      boostedElements.push([ id, boost ]);
     }
   });
 
@@ -806,9 +811,12 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
 J.ELEM.Aliased.Game_Enemy.set("elementRate", Game_Enemy.prototype.elementRate);
 Game_Enemy.prototype.elementRate = function(elementId)
 {
-  const baseRate = J.ELEM.Aliased.Game_Enemy.get("elementRate").call(this, elementId);
+  const baseRate = J.ELEM.Aliased.Game_Enemy.get("elementRate")
+    .call(this, elementId);
 
-  const isAbsorbed = this.isElementAbsorbed(elementId) ? -1 : 1;
+  const isAbsorbed = this.isElementAbsorbed(elementId)
+    ? -1
+    : 1;
   return baseRate * isAbsorbed;
 };
 

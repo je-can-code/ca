@@ -37,7 +37,8 @@
  */
 
 //region plugin metadata
-class J_UtilsPluginMetadata extends PluginMetadata
+class J_UtilsPluginMetadata
+  extends PluginMetadata
 {
   /**
    * Constructor.
@@ -69,6 +70,7 @@ class J_UtilsPluginMetadata extends PluginMetadata
     this.autoloadDevtools = this.parsedPluginParameters['autoload-devtools'] === 'true';
   }
 }
+
 //endregion plugin metadata
 
 /**
@@ -111,8 +113,12 @@ J.UTILS.Helpers = {};
  * @param {any} o The object to check.
  * @returns {number} Chances are if this returns a number you're fine, otherwise it'll hang.
  */
-J.UTILS.Helpers.depth = (o) =>
-  Object (o) === o ? 1 + Math.max(-1, ...Object.values(o).map(J.UTILS.Helpers.depth)) : 0;
+J.UTILS.Helpers.depth = (o) => Object(o) === o
+  ? 1 + Math.max(
+  -1,
+  ...Object.values(o)
+    .map(J.UTILS.Helpers.depth))
+  : 0;
 
 /**
  * Overrides {@link Bitmap#_createCanvas}.<br>
@@ -140,14 +146,13 @@ Bitmap.prototype._createCanvas = function(width, height)
 /**
  * Extends the existing mapper to track additional inputs.
  */
-Input.keyMapper =
-  {
-    // ... the rest of the input keys.
-    ...Input.keyMapper,
+Input.keyMapper = {
+  // ... the rest of the input keys.
+  ...Input.keyMapper,
 
-    // F6, the volume toggle key.
-    117: 'volumeToggle',
-  };
+  // F6, the volume toggle key.
+  117: 'volumeToggle',
+};
 //endregion Input
 
 /**
@@ -158,7 +163,8 @@ J.UTILS.Aliased.Game_Actor.set('onLearnNewSkill', Game_Actor.prototype.onLearnNe
 Game_Actor.prototype.onLearnNewSkill = function(skillId)
 {
   // perform original logic.
-  J.UTILS.Aliased.Game_Actor.get('onLearnNewSkill').call(this, skillId);
+  J.UTILS.Aliased.Game_Actor.get('onLearnNewSkill')
+    .call(this, skillId);
 
   // instead of responding with undefined to the console, return the name of the skill.
   return `[${skillId}] {${this.skill(skillId).name}} was learned.`;
@@ -172,7 +178,8 @@ J.UTILS.Aliased.Game_Actor.set('onForgetSkill', Game_Actor.prototype.onForgetSki
 Game_Actor.prototype.onForgetSkill = function(skillId)
 {
   // perform original logic.
-  J.UTILS.Aliased.Game_Actor.get('onForgetSkill').call(this, skillId);
+  J.UTILS.Aliased.Game_Actor.get('onForgetSkill')
+    .call(this, skillId);
 
   // instead of responding with undefined to the console, return the name of the skill.
   return `[${skillId}] {${this.skill(skillId).name}} was not learned.`;
@@ -207,7 +214,8 @@ J.UTILS.Aliased.Game_Temp.set('initMembers', Game_Temp.prototype.initMembers);
 Game_Temp.prototype.initMembers = function()
 {
   // perform original logic.
-  J.UTILS.Aliased.Game_Temp.get('initMembers').call(this);
+  J.UTILS.Aliased.Game_Temp.get('initMembers')
+    .call(this);
 
   /**
    * The shared root namespace for all of J's plugin data.
@@ -278,7 +286,8 @@ J.UTILS.Aliased.Scene_Base.set('update', Scene_Base.prototype.update);
 Scene_Base.prototype.update = function()
 {
   // perform original logic.
-  J.UTILS.Aliased.Scene_Base.get('update').call(this);
+  J.UTILS.Aliased.Scene_Base.get('update')
+    .call(this);
 
   // check if the volume toggling is happening.
   if (this.isVolumeToggling())
@@ -304,7 +313,12 @@ Scene_Base.prototype.isVolumeToggling = function()
  */
 Scene_Base.prototype.toggleVolume = function()
 {
-  const { bgmVolume, bgsVolume, meVolume, seVolume } = ConfigManager;
+  const {
+    bgmVolume,
+    bgsVolume,
+    meVolume,
+    seVolume
+  } = ConfigManager;
   const isMuted = !bgmVolume || !bgsVolume || !meVolume || !seVolume;
   if (isMuted)
   {
@@ -344,7 +358,8 @@ Scene_Boot.prototype.startNormalGame = function()
   // otherwise, perform original logic.
   else
   {
-    J.UTILS.Aliased.Scene_Boot.get('startNormalGame').call(this);
+    J.UTILS.Aliased.Scene_Boot.get('startNormalGame')
+      .call(this);
   }
 };
 
@@ -356,7 +371,8 @@ J.UTILS.Aliased.Scene_Boot.set('start', Scene_Boot.prototype.start);
 Scene_Boot.prototype.start = function()
 {
   // perform original logic.
-  J.UTILS.Aliased.Scene_Boot.get('start').call(this);
+  J.UTILS.Aliased.Scene_Boot.get('start')
+    .call(this);
 
   // if using the "autoload-devtools" feature, then also load this up.
   if (J.UTILS.Metadata.autoloadDevtools)
@@ -365,7 +381,8 @@ Scene_Boot.prototype.start = function()
     SceneManager.showDevTools();
 
     // set a timer for after the devtools has loaded to focus the game window.
-    setTimeout(() => nw.Window.get().focus(), 1000);
+    setTimeout(() => nw.Window.get()
+      .focus(), 1000);
   }
 };
 //endregion Scene_Boot
@@ -424,18 +441,24 @@ Scene_Map.prototype.logClickedPlayer = function(x, y)
 Scene_Map.prototype.logClickedAnyAllies = function(x, y)
 {
   // if we aren't showing followers, don't try to log their data.
-  if (!$gamePlayer.followers().isVisible()) return;
+  if (!$gamePlayer.followers()
+    .isVisible())
+  {
+    return;
+  }
 
   // iterate over the followers.
-  $gamePlayer.followers().data().forEach(follower =>
-  {
-    // make sure the follower was clicked.
-    if (follower.pos(x, y))
+  $gamePlayer.followers()
+    .data()
+    .forEach(follower =>
     {
-      // log the output.
-      this.extractAndLogBattlerData(follower, x, y);
-    }
-  });
+      // make sure the follower was clicked.
+      if (follower.pos(x, y))
+      {
+        // log the output.
+        this.extractAndLogBattlerData(follower, x, y);
+      }
+    });
 };
 
 Scene_Map.prototype.extractAndLogBattlerData = function(target, x, y)
@@ -457,14 +480,15 @@ Scene_Map.prototype.extractAndLogBattlerData = function(target, x, y)
   }
 
   // otherwise, log the jabs battler data.
-  console.log(`[x:${x}, y:${y}]\n[uuid:${battler.getUuid()}]\n[name:${battler.getBattler().name()}]\n`, battler);
+  console.log(`[x:${x}, y:${y}]\n[uuid:${battler.getUuid()}]\n[name:${battler.getBattler()
+    .name()}]\n`, battler);
 };
 
 //region TileMap
 /**
  * OVERWRITE Fuck those autoshadows.
  */
-Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) 
+Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy)
 {
 };
 //endregion TileMap

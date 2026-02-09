@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.0 LOG] A log window for viewing on the map.
+ * [v2.2.1 LOG] A log window for viewing on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -110,6 +110,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.1
+ *    Added SDP drop-related logging.
  * - 2.2.0
  *    Added DiaLog functionality, enabling passive chats to happen on the map.
  *    Added Loot Log functionality, where loot-related logs now show up.
@@ -241,7 +243,7 @@ J.LOG = {};
  */
 J.LOG.Metadata = {};
 J.LOG.Metadata.Name = `J-Log`;
-J.LOG.Metadata.Version = `2.1.0`;
+J.LOG.Metadata.Version = `2.1.1`;
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -447,6 +449,7 @@ class ActionLog
     return this.#message;
   }
 }
+
 //endregion ActionLog
 
 //region MapLogBuilder
@@ -531,15 +534,21 @@ class ActionLogBuilder
     let hurtOrHeal;
     if (isCritical)
     {
-      hurtOrHeal = isHealing ? "critically healed" : "landed a critical";
+      hurtOrHeal = isHealing
+        ? "critically healed"
+        : "landed a critical";
     }
     else
     {
-      hurtOrHeal = isHealing ? "healed" : "hit";
+      hurtOrHeal = isHealing
+        ? "healed"
+        : "hit";
     }
 
     // the text color index is based on whether or not its flagged as healing.
-    const color = isHealing ? 29 : 10;
+    const color = isHealing
+      ? 29
+      : 10;
 
     // construct the message.
     // eslint-disable-next-line max-len
@@ -561,15 +570,21 @@ class ActionLogBuilder
     let hurtOrHeal;
     if (isCritical)
     {
-      hurtOrHeal = isHealing ? "critically healed" : "devastatingly damaged";
+      hurtOrHeal = isHealing
+        ? "critically healed"
+        : "devastatingly damaged";
     }
     else
     {
-      hurtOrHeal = isHealing ? "restored" : "struck";
+      hurtOrHeal = isHealing
+        ? "restored"
+        : "struck";
     }
 
     // the text color index is based on whether or not its flagged as healing.
-    const color = isHealing ? 29 : 10;
+    const color = isHealing
+      ? 29
+      : 10;
 
     // construct the message.
     // eslint-disable-next-line max-len
@@ -699,8 +714,12 @@ class ActionLogBuilder
     const defender = this.#wrapName(targetName, 16);
 
     // construct the message.
-    const prefix = isPreciseParry ? "precise-" : "";
-    const suffix = isPreciseParry ? " with finesse!" : ".";
+    const prefix = isPreciseParry
+      ? "precise-"
+      : "";
+    const suffix = isPreciseParry
+      ? " with finesse!"
+      : ".";
     const message = `${defender} ${prefix}parried ${casterName}'s \\Skill[${skillId}]${suffix}`;
 
     // assign the message to this log.
@@ -820,7 +839,25 @@ class ActionLogBuilder
     // return the builder for continuous building.
     return this;
   }
+
+  /**
+   * Sets up a message for unlocking an SDP.
+   * @param {string} sdpKey The key of the SDP being unlocked.
+   * @returns {this} This builder, for fluent chaining.
+   */
+  setupSdpUnlocked(sdpKey)
+  {
+    // construct the message.
+    const message = `\\sdp[${sdpKey}] has been unlocked!`;
+
+    // assign the message to this log.
+    this.setMessage(message);
+
+    // return the builder for continuous building.
+    return this;
+  }
 }
+
 //endregion MapLogBuilder
 
 //region DiaLog
@@ -921,6 +958,7 @@ class DiaLog
     return this.#faceIndex;
   }
 }
+
 //endregion DiaLog
 
 //region DiaLogBuilder
@@ -948,18 +986,15 @@ class DiaLogBuilder
   #faceIndex = -1;
 
   /**
-   * Builds the log in its current state.
+   * Builds the log in its current state and clears it.
    * @returns {ActionLog}
    */
   build()
   {
     // build the log.
-    const log = new DiaLog(
-      // copy the lines over.
-      [...this.#lines],
-      // assign the face information.
-      this.#faceName,
-      this.#faceIndex);
+    const log = new DiaLog(// copy the lines over.
+      [ ...this.#lines ], // assign the face information.
+      this.#faceName, this.#faceIndex);
 
     // empty out the data from the builder.
     this.clear();
@@ -975,33 +1010,56 @@ class DiaLogBuilder
   clear()
   {
     this.#lines = [];
+    this.#faceIndex = -1;
+    this.#faceName = String.empty;
     return this;
   }
 
+  /**
+   * Adds a line to this dialog builder.
+   * @param {string} line The line to add.
+   * @returns {this}
+   */
   addLine(line)
   {
     this.#lines.push(line);
     return this;
   }
 
+  /**
+   * Sets the lines for this dialog builder.
+   * @param {string[]} lines The lines to set.
+   * @returns {this} This builder for fluent chaining.
+   */
   setLines(lines)
   {
     this.#lines = lines;
     return this;
   }
 
+  /**
+   * Sets the filename (without the extension) for the face image of this dialog builder.
+   * @param {string} faceName The filename.
+   * @returns {this}
+   */
   setFaceName(faceName)
   {
     this.#faceName = faceName;
     return this;
   }
 
+  /**
+   * Sets the index for which face to use in the face sheet.
+   * @param {number} faceIndex The index of the face.
+   * @returns {this}
+   */
   setFaceIndex(faceIndex)
   {
     this.#faceIndex = faceIndex;
     return this;
   }
 }
+
 //endregion DiaLogBuilder
 
 //region LootLogBuilder
@@ -1138,11 +1196,11 @@ class LootLogBuilder
     switch (lootType)
     {
       case "armor":
-        return `\\Armor[${lootId}]`;
+        return `\\Armor[${lootId}] (${$gameParty.numItems($dataArmors.at(lootId))})`;
       case "weapon":
-        return `\\Weapon[${lootId}]`;
+        return `\\Weapon[${lootId}] (${$gameParty.numItems($dataWeapons.at(lootId))})`;
       case "item":
-        return `\\Item[${lootId}]`;
+        return `\\Item[${lootId}] (${$gameParty.numItems($dataItems.at(lootId))})`;
       default:
         return String.empty;
     }
@@ -1159,7 +1217,8 @@ J.LOG.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects
 DataManager.createGameObjects = function()
 {
   // perform original logic.
-  J.LOG.Aliased.DataManager.get('createGameObjects').call(this);
+  J.LOG.Aliased.DataManager.get('createGameObjects')
+    .call(this);
 
   // generate a new instance of the action log manager.
   $actionLogManager = new MapLogManager();
@@ -1198,6 +1257,7 @@ class MapLogManager
   #visible = true;
 
   #maxLogCount = 100;
+
   //endregion properties
 
   /**
@@ -1338,6 +1398,7 @@ class MapLogManager
     this.#visible = true;
   }
 }
+
 //endregion MapLogManager
 
 //region Scene_Map
@@ -1348,7 +1409,8 @@ J.LOG.Aliased.Scene_Map.set('initialize', Scene_Map.prototype.initialize);
 Scene_Map.prototype.initialize = function()
 {
   // perform original logic.
-  J.LOG.Aliased.Scene_Map.get('initialize').call(this);
+  J.LOG.Aliased.Scene_Map.get('initialize')
+    .call(this);
 
   /**
    * The shared root namespace for all of J's plugin data.
@@ -1381,7 +1443,8 @@ J.LOG.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWin
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.LOG.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.LOG.Aliased.Scene_Map.get('createAllWindows')
+    .call(this);
 
   // create the actions log.
   this.createActionLogWindow();
@@ -1644,7 +1707,8 @@ Scene_Map.prototype.setLootLogWindow = function(window)
  * A base window that manages standard log management in a command window.<br/>
  * The default {@link Window_MapLog} is used for the action log.
  */
-class Window_MapLog extends Window_Command
+class Window_MapLog
+  extends Window_Command
 {
   /**
    * The height of one row; 16.
@@ -1953,7 +2017,8 @@ class Window_MapLog extends Window_Command
     if (!this.logManager) return [];
 
     // iterate over each log and build a command for them.
-    const commands = this.logManager.getLogs()
+    // return the built commands.
+    return this.logManager.getLogs()
       .map((log, index) =>
       {
         // add the message as a "command" into the log window.
@@ -1962,9 +2027,6 @@ class Window_MapLog extends Window_Command
           .setEnabled(true)
           .build();
       });
-
-    // return the built commands.
-    return commands;
   }
 
   //endregion update logging
@@ -2025,10 +2087,9 @@ class Window_MapLog extends Window_Command
     // check if the player is below this window's origin Y.
     const xInterference = (playerX > this.x) && playerX < (this.x + this.width);
     const yInterference = (playerY > this.y) && playerY < (this.y + this.height);
-    const isInterfering = (xInterference) && (yInterference);
 
     // return what we deduced.
-    return isInterfering;
+    return (xInterference) && (yInterference);
   }
 
   /**
@@ -2037,8 +2098,10 @@ class Window_MapLog extends Window_Command
   handlePlayerInterference()
   {
     // if we are above 64, rapidly decrement by -15 until we get below 64.
-    if (this.contentsOpacity > 64) this.contentsOpacity -= 15;
-    // if we are below 64, increment by +1 until we get to 64.
+    if (this.contentsOpacity > 64)
+    {
+      this.contentsOpacity -= 15;
+    }// if we are below 64, increment by +1 until we get to 64.
     else if (this.contentsOpacity < 64) this.contentsOpacity += 1;
   }
 
@@ -2083,7 +2146,7 @@ class Window_MapLog extends Window_Command
     if (this.inactivityTimer % 2 === 0)
     {
       // reduce opacity if it is.
-      this.contentsOpacity -= 12;
+      this.fadeContentsOpacityTick();
     }
     // otherwise, check if the timer is simply 0.
     else if (this.inactivityTimer === 0)
@@ -2091,6 +2154,12 @@ class Window_MapLog extends Window_Command
       // and hide the window if it is.
       this.hideWindow();
     }
+  }
+
+  fadeContentsOpacityTick()
+  {
+    // reduce opacity if it is.
+    this.contentsOpacity -= 12;
   }
 
   /**
@@ -2156,11 +2225,12 @@ class Window_MapLog extends Window_Command
  * An extension/modification of the base {@link Window_MapLog}.<br/>
  * The {@link Window_DiaLog} is used for the chatter log.
  */
-class Window_DiaLog extends Window_MapLog
+class Window_DiaLog
+  extends Window_MapLog
 {
   /**
-   * The height of one row; 48.<br/>
-   * This is intended to be equivalent to three regular log lines.
+   * The height of one row; 64.<br/>
+   * This is intended to be equivalent to four regular log lines.
    * @type {number}
    */
   static rowHeight = 64;
@@ -2212,16 +2282,6 @@ class Window_DiaLog extends Window_MapLog
     return Window_DiaLog.rowHeight;
   }
 
-  /**
-   * Overrides {@link drawBackgroundRect}.<br/>
-   * Re-provides a background to each item in the log window to improve visibility.
-   * @param {Rectangle} rect The rectangle of the background image.
-   */
-  drawBackgroundRect(rect)
-  {
-    // perform real original logic.
-    Window_Selectable.prototype.drawBackgroundRect.call(this, rect);
-  }
   //endregion overwrites
 
   /**
@@ -2234,28 +2294,34 @@ class Window_DiaLog extends Window_MapLog
     if (!this.logManager) return [];
 
     // build all the commands from the dia logs.
-    const commands = this.logManager.getLogs()
+    // return the built commands.
+    return this.logManager.getLogs()
       .map((log, index) =>
       {
         /** @type {DiaLog} */
         const currentLog = log;
-        // build the new command.
+
         // use the first line for the "main" line of the message.
-        return new WindowCommandBuilder(currentLog.lines().at(0))
+        const commandName = currentLog.lines()
+          .at(0);
+
+        // use everything after the first line for the rest of the message.
+        const dialogLines = currentLog.lines()
+          .slice(1);
+
+        // build the new "command".
+        return new WindowCommandBuilder(commandName)
           .setSymbol(`log-${index}`)
           .setEnabled(true)
-          // use everything after the first line for the rest of the message.
-          .setTextLines(currentLog.lines().slice(1))
+          .setTextLines(dialogLines)
           .flagAsMultiline()
           .setFaceName(currentLog.faceName())
           .setFaceIndex(currentLog.faceIndex())
           .build();
       });
-
-    // return the built commands.
-    return commands;
   }
 }
+
 //endregion Window_DiaLog
 
 //region Window_LootLog
@@ -2263,7 +2329,8 @@ class Window_DiaLog extends Window_MapLog
  * An extension/modification of the base {@link Window_MapLog}.<br/>
  * The {@link Window_DiaLog} is used for the chatter log.
  */
-class Window_LootLog extends Window_MapLog
+class Window_LootLog
+  extends Window_MapLog
 {
   /**
    * Constructor.

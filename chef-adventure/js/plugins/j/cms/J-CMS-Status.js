@@ -200,7 +200,7 @@ class StatusParameter
     if (finalPrettyValue.endsWith(".0"))
     {
       // strip em off.
-      finalPrettyValue = finalPrettyValue.slice(0, finalPrettyValue.length-2);
+      finalPrettyValue = finalPrettyValue.slice(0, finalPrettyValue.length - 2);
     }
 
     // the long param ids that should be decorated with a % symbol.
@@ -219,8 +219,7 @@ class StatusParameter
 
     // the long param ids that should be decorated with a regen rate per second.
     const needsRegenRate = [
-      15, 16, 17
-    ];
+      15, 16, 17 ];
 
     // check if our long param id is in this group.
     if (needsRegenRate.includes(this.longParamId))
@@ -243,6 +242,7 @@ class StatusParameter
     return finalPrettyValue;
   }
 }
+
 //endregion StatusParameter
 
 //region Scene_Status
@@ -369,7 +369,8 @@ Window_Status.prototype.drawBlock2 = function()
  * and rendered only the b-params. This window now extends `Window_Base` and renders all
  * params, including b-/x-/s- params.
  */
-class Window_StatusParameters extends Window_Base
+class Window_StatusParameters
+  extends Window_Base
 {
   /**
    * @param {Rectangle} rect A rectangle that represents the shape of this window.
@@ -426,10 +427,10 @@ class Window_StatusParameters extends Window_Base
     if (!this.actor) return;
 
     // define the two column x coordinates.
-    const [column1X, column2X] = [0, 500];
+    const [ column1X, column2X ] = [ 0, 500 ];
 
     // define the three row y coordinates.
-    const [row1Y, row2Y, row3Y, row4Y] = [0, 180, 360, 470];
+    const [ row1Y, row2Y, row3Y, row4Y ] = [ 0, 180, 360, 470 ];
 
     // draw row 1.
     this.drawCombatStats(column1X, row1Y);
@@ -465,7 +466,7 @@ class Window_StatusParameters extends Window_Base
     const rowBaseY = y + 8;
 
     // draw the T separator; arbitrary line height decision by design.
-    this.drawTSeparator(x, rowBaseY-2, w, 4);
+    this.drawTSeparator(x, rowBaseY - 2, w, 4);
 
     // draw the parameters for the combat
     this.drawVitalityParameters(x, rowBaseY, w);
@@ -557,7 +558,7 @@ class Window_StatusParameters extends Window_Base
   drawCombatStats(x, y)
   {
     // draw the title for damage.
-    this.drawTitle("Combat", x, (y-15), 76, 10);
+    this.drawTitle("Combat", x, (y - 15), 76, 10);
 
     // the width of the section.
     const w = 450;
@@ -566,7 +567,7 @@ class Window_StatusParameters extends Window_Base
     const rowBaseY = y + 8;
 
     // draw the T separator; arbitrary line height decision by design.
-    this.drawTSeparator(x, (rowBaseY-4), w, 2);
+    this.drawTSeparator(x, (rowBaseY - 4), w, 2);
 
     // draw the parameters for the combat
     this.drawCombatParameters(x, rowBaseY, w);
@@ -637,7 +638,7 @@ class Window_StatusParameters extends Window_Base
     const rowBaseY = y + 8;
 
     // draw the T separator; arbitrary line height decision by design.
-    this.drawTSeparator(x, rowBaseY-2, w, 4);
+    this.drawTSeparator(x, rowBaseY - 2, w, 4);
 
     // draw the parameters for the combat
     this.drawPrecisionParameters(x, rowBaseY, w);
@@ -729,7 +730,7 @@ class Window_StatusParameters extends Window_Base
   drawDefensiveStats(x, y)
   {
     // draw the title for damage.
-    this.drawTitle("Defensive", x, (y-15), 1625, 26);
+    this.drawTitle("Defensive", x, (y - 15), 1625, 26);
 
     // the width of the section.
     const w = 450;
@@ -738,7 +739,7 @@ class Window_StatusParameters extends Window_Base
     const rowBaseY = y + 8;
 
     // draw the T separator; arbitrary line height decision by design.
-    this.drawTSeparator(x, (rowBaseY-4), w, 2);
+    this.drawTSeparator(x, (rowBaseY - 4), w, 2);
 
     // draw the parameters for the combat
     this.drawDefensiveParameters(x, rowBaseY, w);
@@ -800,7 +801,7 @@ class Window_StatusParameters extends Window_Base
   drawMobilityStats(x, y)
   {
     // draw the title for damage.
-    this.drawTitle("Mobility", x, (y-15), 82, 20);
+    this.drawTitle("Mobility", x, (y - 15), 82, 20);
 
     // the width of the section.
     const w = 450;
@@ -809,7 +810,7 @@ class Window_StatusParameters extends Window_Base
     const rowBaseY = y + 8;
 
     // draw the T separator; arbitrary line height decision by design.
-    this.drawTSeparator(x, (rowBaseY-4), w, 1);
+    this.drawTSeparator(x, (rowBaseY - 4), w, 1);
 
     // draw the parameters for the combat
     this.drawMobilityParameters(x, rowBaseY, w);
@@ -847,7 +848,7 @@ class Window_StatusParameters extends Window_Base
   drawFateStats(x, y)
   {
     // draw the title for damage.
-    this.drawTitle("Fate", x, (y-15), 1619, 27);
+    this.drawTitle("Fate", x, (y - 15), 1619, 27);
 
     // the width of the section.
     const w = 450;
@@ -856,7 +857,7 @@ class Window_StatusParameters extends Window_Base
     const rowBaseY = y + 8;
 
     // draw the T separator; arbitrary line height decision by design.
-    this.drawTSeparator(x, (rowBaseY-4), w, 2);
+    this.drawTSeparator(x, (rowBaseY - 4), w, 2);
 
     // draw the parameters for the combat
     this.drawFateParameters(x, rowBaseY, w);
@@ -927,7 +928,7 @@ class Window_StatusParameters extends Window_Base
     const firstRowY = y + (lh * 1);
 
     // separate the title from the parameters, for visual effect.
-    this.drawHorizontalLine(x, firstRowY - 4, w+16, 3);
+    this.drawHorizontalLine(x, firstRowY - 4, w + 16, 3);
 
     // define the right column's x coordinate.
     const secondColumnX = x + (w / 2) + 12;
@@ -939,7 +940,7 @@ class Window_StatusParameters extends Window_Base
     const verticalLineHeight = (lh * lines) + 4;
 
     // separate the two columns of parameters, for visual effect.
-    this.drawVerticalLine(verticalLineX, firstRowY-2, verticalLineHeight, 3);
+    this.drawVerticalLine(verticalLineX, firstRowY - 2, verticalLineHeight, 3);
 
   }
 
@@ -1083,7 +1084,7 @@ class Window_StatusParameters extends Window_Base
     this.drawTitle("Elemental Affiliations", x, y - 10, 64, 8);
 
     // draw a visual separator from title and data.
-    this.drawHorizontalLine(x, y+36, 450, 3);
+    this.drawHorizontalLine(x, y + 36, 450, 3);
 
     // grab all relevant elements.
     const elements = $dataSystem.elements.slice(0, limit);
@@ -1106,11 +1107,15 @@ class Window_StatusParameters extends Window_Base
         // higher rates mean more incoming damage.
         colorIndex = 10; // red
       }
-      // check fi the rate is under the base 100 rate.
-      else if (rate < 100)
+      // check if the rate is under the base 100 rate.
+      else if (rate < 100 && rate > 0)
       {
         // lower rates mean less incoming damage.
         colorIndex = 3; // green
+      }
+      else if (rate === 0)
+      {
+        colorIndex = 7; // grey
       }
 
       // determine the icon index for the element.
@@ -1120,7 +1125,15 @@ class Window_StatusParameters extends Window_Base
       const actualElementName = (elementName === String.empty)
         ? "Neutral"
         : elementName;
-      this.drawParameter(`${actualElementName}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
+
+      let ratePrefix = String.empty;
+      if (J.ELEM && this.actor.isElementAbsorbed(index))
+      {
+        ratePrefix = "-"; // prefix with a minus to indicate absorption.
+        colorIndex = 5; // set it to purple regardless of greater or lesser than 100.
+      }
+
+      this.drawParameter(`${actualElementName}`, `${ratePrefix}${rate}%`, iconIndex, x + 40, modY, colorIndex);
     });
   }
 
@@ -1135,26 +1148,36 @@ class Window_StatusParameters extends Window_Base
     this.drawTitle("Ailment Resistances", x, y - 10, 2, 8);
 
     // draw a visual separator from title and data.
-    this.drawHorizontalLine(x, y+36, 450, 3);
+    this.drawHorizontalLine(x, y + 36, 450, 3);
 
-    const states = $dataStates.slice(4, 13);
+    const states = $dataStates.slice(4, 18);
     states.forEach((state, index) =>
     {
       if (!state) return;
 
       const modY = y + ((index + 1) * this.lineHeight()) + 8;
-      const rate = ((this.actor.traitsPi(13, index + 4)) * 100);
+      let rate = ((this.actor.traitsPi(13, state.id)) * 100);
+
+      if (this.actor.isStateResist(state.id))
+      {
+        rate = 0;
+      }
+
       let colorIndex = 0;
       if (rate > 100)
       {
         colorIndex = 10; // red
       }
-      else if (rate < 100)
+      else if (rate < 100 && rate > 0)
       {
         colorIndex = 3; // green
       }
-      const { iconIndex } = state;
-      this.drawParameter(`${state.name}`, `${rate}%`, iconIndex, x + 40, modY, colorIndex);
+      else if (rate === 0)
+      {
+        colorIndex = 7; // grey
+      }
+
+      this.drawParameter(`${state.name}`, `${rate}%`, state.iconIndex, x + 40, modY, colorIndex);
     });
   }
 
@@ -1207,4 +1230,5 @@ class Window_StatusParameters extends Window_Base
     this.resetFontSettings();
   }
 }
+
 //endregion Window_StatusParameters

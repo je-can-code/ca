@@ -53,7 +53,8 @@
  * Because this plugin offers little actual functionality, there is little that
  * can be configured.
  */
-class J_CraftingPluginMetadata extends PluginMetadata
+class J_CraftingPluginMetadata
+  extends PluginMetadata
 {
   /**
    * Constructor.
@@ -63,6 +64,7 @@ class J_CraftingPluginMetadata extends PluginMetadata
     super(name, version);
   }
 }
+
 //endregion plugin metadata
 
 /**
@@ -110,17 +112,15 @@ J.JAFTING.Aliased.Game_Party = new Map();
  * A plugin command.<br>
  * Calls the core JAFTING menu.
  */
-PluginManager.registerCommand(
-  J.JAFTING.Metadata.name,
-  "call-menu",
-  () =>
-  {
-    Scene_Jafting.callScene();
-  });
+PluginManager.registerCommand(J.JAFTING.Metadata.name, "call-menu", () =>
+{
+  Scene_Jafting.callScene();
+});
 //endregion plugin commands
 
 //region Scene_Jafting
-class Scene_Jafting extends Scene_MenuBase
+class Scene_Jafting
+  extends Scene_MenuBase
 {
   /**
    * Pushes this current scene onto the stack, forcing it into action.
@@ -193,6 +193,7 @@ class Scene_Jafting extends Scene_MenuBase
      */
     this._j._crafting._listHeader = null;
   }
+
   //endregion init
 
   //region create
@@ -225,6 +226,7 @@ class Scene_Jafting extends Scene_MenuBase
     // create all root windows for the main listing.
     this.createJaftingRootWindows();
   }
+
   //endregion create
 
   //region windows
@@ -339,6 +341,7 @@ class Scene_Jafting extends Scene_MenuBase
     rootHeaderWindow.close();
     rootHeaderWindow.hide();
   }
+
   //endregion header window
 
   //region list window
@@ -453,8 +456,10 @@ class Scene_Jafting extends Scene_MenuBase
    */
   getRootJaftingKey()
   {
-    return this.getJaftingListWindow().currentSymbol();
+    return this.getJaftingListWindow()
+      .currentSymbol();
   }
+
   //endregion list window
 
   /**
@@ -480,6 +485,7 @@ class Scene_Jafting extends Scene_MenuBase
     // close the header window.
     this.closeRootHeaderWindow();
   }
+
   //endregion windows
 
   //region actions
@@ -492,16 +498,19 @@ class Scene_Jafting extends Scene_MenuBase
   {
     console.debug(`selected "${this.getRootJaftingKey()}" option.`);
   }
+
   //endregion root actions
   //endregion actions
 }
+
 //endregion Scene_Jafting
 
 //region Window_OmnipediaList
 /**
  * A window displaying the list of jafting types available.
  */
-class Window_JaftingList extends Window_Command
+class Window_JaftingList
+  extends Window_Command
 {
   /**
    * Constructor.
@@ -561,10 +570,12 @@ class Window_JaftingList extends Window_Command
     return this.lineHeight() * 2;
   }
 }
+
 //endregion Window_OmnipediaList
 
 //region Window_OmnipediaListHeader
-class Window_JaftingListHeader extends Window_Base
+class Window_JaftingListHeader
+  extends Window_Base
 {
   /**
    * Constructor.
@@ -582,7 +593,7 @@ class Window_JaftingListHeader extends Window_Base
   drawContent()
   {
     // define the origin x,y coordinates.
-    const [x, y] = [0, 0];
+    const [ x, y ] = [ 0, 0 ];
 
     // shorthand the lineHeight.
     const lh = this.lineHeight();
@@ -644,4 +655,5 @@ class Window_JaftingListHeader extends Window_Base
     this.resetFontSettings();
   }
 }
+
 //endregion Window_OmnipediaListHeader

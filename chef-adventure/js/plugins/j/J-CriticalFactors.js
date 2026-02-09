@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 CRIT] Manages critical damage multiplier/reduction of battlers.
+ * [v1.0.2 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -26,6 +26,40 @@
  * default, and is parameterized for your convenience- because lets face it:
  * triple damage for a crit is an awful lot for the default.
  *
+ * ============================================================================
+ * THIS ACTION CRITICAL MODIFIERS:
+ * Have you ever wanted to modify the current action's critical chance and/or
+ * modifier? Well now you can! By applying the appropriate tag to the database
+ * objects in question, you can control the critical chance and critical
+ * damage modifiers for a specific skill's execution!
+ * 
+ * NOTE:
+ * This stacks additively with other crit effects.
+ * 
+ * NOTE:
+ * The effects of these tags do not apply to skills that cannot crit, so be
+ * sure to make certain the critical dropdown is set to "YES" in the damage
+ * formula box for the given skill. 
+ * 
+ * TAG USAGE:
+ * - Items
+ * - Skills
+ * 
+ * TAG FORMAT:
+ *  <thisCritChance:[FORMULA]>
+ *  <thisCritDamageMultiplier:[FORMULA]>
+ *  <thisCritsAlways>
+ * 
+ * TAG EXAMPLES:
+ *  <thisCritChance:[25]>
+ * Increases the critical chance of this particular skill by 25%.
+ * 
+ *  <thisCritDamageMultiplier:[10 + a.agi]>
+ * Increases the critical damage multiplier by 10% plus the battler's agility.
+ * 
+ *  <thisCritsAlways>
+ * The skill or item with this tag will ALWAYS crit.
+ * 
  * ============================================================================
  * CRITICAL DAMAGE MULTIPLIER:
  * Have you ever wanted to have any amount of control over critical damage?
@@ -202,43 +236,46 @@ J.CRIT = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.CRIT.Metadata =
-  {
-    /**
-     * The name of this plugin.
-     */
-    Name: `J-CriticalFactors`,
+J.CRIT.Metadata = {
+  /**
+   * The name of this plugin.
+   */
+  Name: `J-CriticalFactors`,
 
-    /**
-     * The version of this plugin.
-     */
-    Version: '1.0.0',
-  };
+  /**
+   * The version of this plugin.
+   */
+  Version: '1.0.2',
+};
 
 /**
  * A collection of all aliased methods for this plugin.
  */
-J.CRIT.Aliased =
-  {
-    Game_Action: new Map(),
-    Game_Actor: new Map(),
-    Game_Battler: new Map(),
-    Game_BattlerBase: new Map(),
-    Game_Enemy: new Map(),
-    IconManager: new Map(),
-    TextManager: new Map(),
-    Window_SDP_Details: new Map(),
-  };
+J.CRIT.Aliased = {
+  Game_Action: new Map(),
+  Game_Actor: new Map(),
+  Game_Battler: new Map(),
+  Game_BattlerBase: new Map(),
+  Game_Enemy: new Map(),
+  IconManager: new Map(),
+  TextManager: new Map(),
+  Window_SDP_Details: new Map(),
+};
 
 /**
  * All regular expressions used by this plugin.
  */
 J.CRIT.RegExp = {
+  // this-skill only.
+  ThisCritDamageChance: /<thisCritChance:\[([+\-*/ ().\w]+)]>/gi,
+  ThisCritDamageMultiplier: /<thisCritMultiplier:\[([+\-*/ ().\w]+)]>/gi,
+  ThisCritsAlways: /<thisCritsAlways>/gi,
+
   // base functionality.
-  CritDamageReductionBase: /<critReductionBase:[ ]?(\d+)>/gi,
-  CritDamageReduction: /<critReduction:[ ]?(\d+)>/gi,
-  CritDamageMultiplierBase: /<critMultiplierBase:[ ]?(\d+)>/gi,
-  CritDamageMultiplier: /<critMultiplier:[ ]?(\d+)>/gi,
+  CritDamageReductionBase: /<critReductionBase: ?(\d+)>/gi,
+  CritDamageReduction: /<critReduction: ?(\d+)>/gi,
+  CritDamageMultiplierBase: /<critMultiplierBase: ?(\d+)>/gi,
+  CritDamageMultiplier: /<critMultiplier: ?(\d+)>/gi,
 
   // for natural growths compatability.
   CritDamageReductionBuffPlus: /<cdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
@@ -269,7 +306,8 @@ IconManager.longParam = function(paramId)
     case 29:
       return this.critParam(1);   // cdr
     default:
-      return J.CRIT.Aliased.IconManager.get('longParam').call(this, paramId);
+      return J.CRIT.Aliased.IconManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -306,7 +344,8 @@ TextManager.longParam = function(paramId)
       return this.critParam(1);   // cdr
     default:
       // perform original logic.
-      return J.CRIT.Aliased.TextManager.get('longParam').call(this, paramId);
+      return J.CRIT.Aliased.TextManager.get('longParam')
+        .call(this, paramId);
   }
 };
 
@@ -341,7 +380,8 @@ TextManager.longParamDescription = function(paramId)
       return this.critParamDescription(1);   // cdr
     default:
       // perform original logic.
-      return J.CRIT.Aliased.TextManager.get('longParamDescription').call(this, paramId);
+      return J.CRIT.Aliased.TextManager.get('longParamDescription')
+        .call(this, paramId);
   }
 };
 
@@ -357,13 +397,11 @@ TextManager.critParamDescription = function(paramId)
     case 0:
       return [
         "The numeric value to the intensity of one's critical hits.",
-        "Higher amounts of this yield bigger critical hits."
-      ];
+        "Higher amounts of this yield bigger critical hits." ];
     case 1:
       return [
         "The numeric value to one's percent reduction of critical damage.",
-        "Enemy critical amp is directly reduced by this amount."
-      ];
+        "Enemy critical amp is directly reduced by this amount." ];
   }
 };
 //endregion TextManager
@@ -378,7 +416,8 @@ J.CRIT.Aliased.Game_Action.set('initialize', Game_Action.prototype.initialize);
 Game_Action.prototype.initialize = function(subject, forcing)
 {
   // perform original logic.
-  J.CRIT.Aliased.Game_Action.get('initialize').call(this, subject, forcing);
+  J.CRIT.Aliased.Game_Action.get('initialize')
+    .call(this, subject, forcing);
 
   /**
    * The target of this action.
@@ -419,11 +458,13 @@ Game_Action.prototype.apply = function(target)
   this.setTargetBattler(target);
 
   // perform whatever the base action application is to the target.
-  J.CRIT.Aliased.Game_Action.get('apply').call(this, target);
+  J.CRIT.Aliased.Game_Action.get('apply')
+    .call(this, target);
 };
 
 /**
- * OVERWRITE Replaces the way critical damage is calculated by
+ * Overrides {@link #applyCritical}.<br/>
+ * Replaces the way critical damage is calculated by
  * adding multiplier and reduction modifiers for actors and enemies alike.
  * @param {number} baseDamage The base damage before crit modification.
  * @returns {number} The critically modified damage.
@@ -436,11 +477,8 @@ Game_Action.prototype.applyCritical = function(baseDamage)
   // reduce the above bonus critical damage by any reductions on the target.
   const reducedCriticalBonusDamage = this.applyCriticalDamageReduction(criticalBonusDamage);
 
-  // add the remaining bonus critical
-  const criticalDamage = baseDamage + reducedCriticalBonusDamage;
-
   // return the total damage including critical modifiers.
-  return criticalDamage;
+  return baseDamage + reducedCriticalBonusDamage;
 };
 
 /**
@@ -459,11 +497,11 @@ Game_Action.prototype.applyCriticalDamageMultiplier = function(baseDamage)
   // get the attacker's bonus crit multiplier.
   critMultiplier += attacker.cdm;
 
-  // calculate the bonus damage.
-  const criticalDamage = (baseDamage * critMultiplier);
+  // add the action's specific multiplier if any exists.
+  critMultiplier += this.ownCriticalDamageMultiplier();
 
   // return the calculated amount of critical bonus damage to add onto the base.
-  return criticalDamage;
+  return (baseDamage * critMultiplier);
 };
 
 /**
@@ -485,11 +523,62 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage)
   // this cannot reduce the crit bonus damage below 0.
   const criticalReductionRate = Math.max(baseCriticalReductionRate, 0);
 
-  // the newly modified amount of damage after reduction.
-  const modifiedCriticalDamage = criticalDamage * criticalReductionRate;
-
   // return the calculated amount of remaining critical damage after reductions.
-  return modifiedCriticalDamage;
+  return criticalDamage * criticalReductionRate;
+};
+
+/**
+ * Overrides {@link #itemCri}.<br/>
+ * Includes the addition of potential action-based crit rate boosts.
+ * @param {Game_Battler} target The target being struck with the critical.
+ * @returns {number} The calculated critical chance of this action.
+ */
+Game_Action.prototype.itemCri = function(target)
+{
+  // if this action can't crit, then do not process it as a critical hit.
+  if (!this.item().damage.critical) return 0;
+
+  // check if its a guaranteed crit- if so, return an unrealistically high number over 1.
+  if (this.isGuaranteedCrit()) return 9999;
+
+  // grab the attacker's crit chance.
+  let critChance = this.subject().cri;
+
+  // add any bonus crit from the action.
+  critChance += this.ownCriticalChanceBonus();
+
+  // calculate the crit chance against the target's crit evasion.
+  critChance -= target.cev;
+
+  // normalize the crit to 0 just in case it drops below.
+  return Math.max(critChance, 0);
+};
+
+/**
+ * Calculates this action's own bonus to crit damage multipliers.
+ * @returns {number}
+ */
+Game_Action.prototype.ownCriticalDamageMultiplier = function()
+{
+  return RPGManager.getSumFromAllNotesByRegex([ this.item() ], J.CRIT.RegExp.ThisCritDamageMultiplier) / 100;
+};
+
+/**
+ * Checks if this action is a guaranteed critical hit.
+ * @returns {boolean}
+ */
+Game_Action.prototype.isGuaranteedCrit = function()
+{
+  return RPGManager.checkForBooleanFromNoteByRegex(this.item(), J.CRIT.RegExp.ThisCritsAlways);
+};
+
+/**
+ * Calculates this action's own bonus to crit chance.
+ * @returns {number}
+ */
+Game_Action.prototype.ownCriticalChanceBonus = function()
+{
+  return RPGManager.getSumFromAllNotesByRegex([ this.item() ], J.CRIT.RegExp.ThisCritDamageChance) / 100;
 };
 //endregion Game_Action
 
@@ -501,7 +590,8 @@ J.CRIT.Aliased.Game_Actor.set('applyNaturalCustomGrowths', Game_Actor.prototype.
 Game_Actor.prototype.applyNaturalCustomGrowths = function()
 {
   // perform original logic.
-  J.CRIT.Aliased.Game_Actor.get('applyNaturalCustomGrowths').call(this);
+  J.CRIT.Aliased.Game_Actor.get('applyNaturalCustomGrowths')
+    .call(this);
 
   // short circuit if aren't using the system.
   if (!J.NATURAL) return;
@@ -526,7 +616,8 @@ Game_Actor.prototype.longParam = function(longParamId)
     case 29:
       return this.cdr;
     default:
-      return J.CRIT.Aliased.Game_Actor.get('longParam').call(this, longParamId);
+      return J.CRIT.Aliased.Game_Actor.get('longParam')
+        .call(this, longParamId);
   }
 };
 
@@ -536,7 +627,7 @@ Game_Actor.prototype.longParam = function(longParamId)
 Game_Actor.prototype.applyNaturalCdmGrowths = function()
 {
   // destructure out the plus and rate structures for growths.
-  const [,,growthPlusStructure, growthRateStructure] = this.getNaturalGrowthsRegexForCrit();
+  const [ , , growthPlusStructure, growthRateStructure ] = this.getNaturalGrowthsRegexForCrit();
 
   // grab the base CDM for value basing.
   const baseCdm = this.baseCriticalMultiplier();
@@ -560,7 +651,7 @@ Game_Actor.prototype.applyNaturalCdmGrowths = function()
 Game_Actor.prototype.applyNaturalCdrGrowths = function()
 {
   // destructure out the plus and rate structures for growths.
-  const [growthPlusStructure, growthRateStructure,,] = this.getNaturalGrowthsRegexForCrit();
+  const [ growthPlusStructure, growthRateStructure, , ] = this.getNaturalGrowthsRegexForCrit();
 
   // grab the base CDR for value basing.
   const baseCdr = this.baseCriticalReduction();
@@ -588,8 +679,7 @@ Game_Actor.prototype.getNaturalGrowthsRegexForCrit = function()
     J.CRIT.RegExp.CritDamageReductionGrowthPlus,
     J.CRIT.RegExp.CritDamageReductionGrowthRate,
     J.CRIT.RegExp.CritDamageMultiplierGrowthPlus,
-    J.CRIT.RegExp.CritDamageMultiplierGrowthRate,
-  ];
+    J.CRIT.RegExp.CritDamageMultiplierGrowthRate, ];
 };
 
 /**
@@ -619,7 +709,7 @@ Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam)
   panelRankings.forEach(panelRanking =>
   {
     // grab our panel by its key.
-    const panel = $gameParty.getSdpByKey(panelRanking.key);
+    const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
 
     // protect our players against changed keys mid-save file!
     if (!panel) return;
@@ -644,7 +734,8 @@ Game_Battler.prototype.initNaturalGrowthParameters = function()
   if (!J.NATURAL) return;
 
   // perform original logic.
-  J.CRIT.Aliased.Game_Battler.get("initNaturalGrowthParameters").call(this);
+  J.CRIT.Aliased.Game_Battler.get("initNaturalGrowthParameters")
+    .call(this);
 
   /**
    * The J object where all my additional properties live.
@@ -808,9 +899,7 @@ Game_Battler.prototype.getCriticalDamageMultiplier = function()
   const objectsToCheck = this.getAllNotes();
 
   // sum together all cdm values across the notes.
-  const cdmBonuses = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
-    J.CRIT.RegExp.CritDamageMultiplier);
+  const cdmBonuses = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageMultiplier);
 
   // return the sum of all bonuses.
   return cdmBonuses;
@@ -943,9 +1032,7 @@ Game_Battler.prototype.getCriticalDamageReduction = function()
   const objectsToCheck = this.getAllNotes();
 
   // sum together all cdm values across the notes.
-  const cdrBonuses = RPGManager.getSumFromAllNotesByRegex(
-    objectsToCheck,
-    J.CRIT.RegExp.CritDamageReduction);
+  const cdrBonuses = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReduction);
 
   // return the sum of all bonuses.
   return cdrBonuses;
@@ -1031,37 +1118,33 @@ Game_Battler.prototype.cdrNaturalGrowths = function()
 
 //region Game_BattlerBase
 // add our new critical-related parameters to all battlers.
-Object.defineProperties(
-  Game_BattlerBase.prototype,
-  {
-    /**
-     * The battler's critical damage multiplier.
-     * Critical hits are multiplied by this amount to determine the total critical hit damage.
-     * @type {number}
-     */
-    cdm:
-      {
-        get: function()
-        {
-          return this.criticalDamageMultiplier();
-        },
-        configurable: true
-      },
+Object.defineProperties(Game_BattlerBase.prototype, {
+  /**
+   * The battler's critical damage multiplier.
+   * Critical hits are multiplied by this amount to determine the total critical hit damage.
+   * @type {number}
+   */
+  cdm: {
+    get: function()
+    {
+      return this.criticalDamageMultiplier();
+    },
+    configurable: true
+  },
 
-    /**
-     * The battler's critical damage reduction.
-     * Critical hit damage is reduced by this percent before being applied.
-     * @type {number}
-     */
-    cdr:
-      {
-        get: function()
-        {
-          return this.criticalDamageReduction();
-        },
-        configurable: true
-      },
-  });
+  /**
+   * The battler's critical damage reduction.
+   * Critical hit damage is reduced by this percent before being applied.
+   * @type {number}
+   */
+  cdr: {
+    get: function()
+    {
+      return this.criticalDamageReduction();
+    },
+    configurable: true
+  },
+});
 
 /**
  * The base critical damage multiplier.

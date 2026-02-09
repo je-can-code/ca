@@ -110,6 +110,7 @@ function Escription()
 {
   this.initialize(...arguments);
 }
+
 Escription.prototype = {};
 Escription.prototype.constructor = Escription;
 
@@ -120,9 +121,7 @@ Escription.prototype.constructor = Escription;
  * @param {number} proximityTextRange The distance required for the describe text to be visible.
  * @param {number} proximityIconRange The distance required for the describe icon to be visible.
  */
-Escription.prototype.initialize = function(
-  text, iconIndex, proximityTextRange, proximityIconRange
-)
+Escription.prototype.initialize = function(text, iconIndex, proximityTextRange, proximityIconRange)
 {
   this._text = text;
   this._iconIndex = iconIndex;
@@ -199,7 +198,8 @@ J.ESCRIBE.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers
 Game_Event.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ESCRIBE.Aliased.Game_Event.get('initMembers').call(this);
+  J.ESCRIBE.Aliased.Game_Event.get('initMembers')
+    .call(this);
 
   /**
    * The shared root namespace for all of J's plugin data.
@@ -347,7 +347,8 @@ J.ESCRIBE.Aliased.Game_Event.set('setupPage', Game_Event.prototype.setupPage);
 Game_Event.prototype.setupPage = function()
 {
   // perform original logic.
-  J.ESCRIBE.Aliased.Game_Event.get('setupPage').call(this);
+  J.ESCRIBE.Aliased.Game_Event.get('setupPage')
+    .call(this);
 
   // refresh the escription data for this event page.
   this.refreshEscription();
@@ -473,7 +474,8 @@ J.ESCRIBE.Aliased.Game_Event.set('update', Game_Event.prototype.update);
 Game_Event.prototype.update = function()
 {
   // perform original logic.
-  J.ESCRIBE.Aliased.Game_Event.get('update').call(this);
+  J.ESCRIBE.Aliased.Game_Event.get('update')
+    .call(this);
 
   if (this.eventId() === 3)
   {
@@ -567,7 +569,8 @@ J.ESCRIBE.Aliased.Sprite_Character.set('initMembers', Sprite_Character.prototype
 Sprite_Character.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ESCRIBE.Aliased.Sprite_Character.get('initMembers').call(this);
+  J.ESCRIBE.Aliased.Sprite_Character.get('initMembers')
+    .call(this);
 
   /**
    * The shared root namespace for all of J's plugin data.
@@ -894,7 +897,8 @@ Sprite_Character.prototype.isEmptyCharacter = function()
   if (this.hasCharacterEscriptionData() && !this.isErased()) return false;
 
   // perform original logic.
-  return J.ESCRIBE.Aliased.Sprite_Character.get('isEmptyCharacter').call(this);
+  return J.ESCRIBE.Aliased.Sprite_Character.get('isEmptyCharacter')
+    .call(this);
 };
 
 /**
@@ -925,7 +929,8 @@ J.ESCRIBE.Aliased.Sprite_Character.set('setCharacterBitmap', Sprite_Character.pr
 Sprite_Character.prototype.setCharacterBitmap = function()
 {
   // perform original logic.
-  J.ESCRIBE.Aliased.Sprite_Character.get('setCharacterBitmap').call(this);
+  J.ESCRIBE.Aliased.Sprite_Character.get('setCharacterBitmap')
+    .call(this);
 
   // parse all the comments from the underlying sprite's character.
   this.refreshCharacterEscription();
@@ -989,7 +994,10 @@ Sprite_Character.prototype.createDescribeTextSprite = function()
   this.setEscriptionTextProximity(describe.proximityTextRange());
 
   // extract the x and character name from the underlying character.
-  const { _realX, _characterName } = this.character();
+  const {
+    _realX,
+    _characterName
+  } = this.character();
 
   // build the text sprite.
   const sprite = new Sprite_BaseText()
@@ -1000,7 +1008,9 @@ Sprite_Character.prototype.createDescribeTextSprite = function()
 
   // determine the location of the sprite.
   const x = _realX - (sprite.width / 2);
-  const y = ImageManager.isBigCharacter(_characterName) ? -128 : -80;
+  const y = ImageManager.isBigCharacter(_characterName)
+    ? -128
+    : -80;
 
   // relocate the sprite.
   sprite.move(x, y);
@@ -1055,7 +1065,9 @@ Sprite_Character.prototype.createDescribeIconSprite = function()
 
   // determine the location of the sprite.
   const x = 0 - (ImageManager.iconWidth / 2) - 4;
-  let y = ImageManager.isBigCharacter(_characterName) ? -128 : -80;
+  let y = ImageManager.isBigCharacter(_characterName)
+    ? -128
+    : -80;
   y -= 32;
 
   // build the sprite.
@@ -1104,7 +1116,8 @@ J.ESCRIBE.Aliased.Sprite_Character.set('update', Sprite_Character.prototype.upda
 Sprite_Character.prototype.update = function()
 {
   // perform original logic.
-  J.ESCRIBE.Aliased.Sprite_Character.get('update').call(this);
+  J.ESCRIBE.Aliased.Sprite_Character.get('update')
+    .call(this);
 
   // manage the updates of the escriptions.
   this.updateEscriptions();
@@ -1157,7 +1170,8 @@ Sprite_Character.prototype.removeEscriptionTextData = function()
   if (this.escriptionTextSprite())
   {
     // destroy it before removal.
-    this.escriptionTextSprite().destroy();
+    this.escriptionTextSprite()
+      .destroy();
   }
 
   // set the sprite back to null.
@@ -1179,7 +1193,8 @@ Sprite_Character.prototype.removeEscriptionIconData = function()
   if (this.escriptionIconSprite())
   {
     // destroy it before removal.
-    this.escriptionIconSprite().destroy();
+    this.escriptionIconSprite()
+      .destroy();
   }
 
   // set the sprite back to null.

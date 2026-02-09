@@ -109,6 +109,7 @@ class BossFrameManager
    * @type {boolean}
    */
   static #showBossRequest = false;
+
   //endregion properties
 
   /**
@@ -187,7 +188,8 @@ class BossFrameManager
     if (!this.boss) return 0;
 
     // return the bosses hp as a percent integer.
-    return this.getBossGameBattler().currentHpPercent100();
+    return this.getBossGameBattler()
+      .currentHpPercent100();
   }
 
   /**
@@ -201,7 +203,8 @@ class BossFrameManager
     if (!this.boss) return false;
 
     // determine if the boss is above the threshold.
-    const aboveThreshold = this.getBossGameBattler().currentHpPercent100() >= hpPercentThreshold;
+    const aboveThreshold = this.getBossGameBattler()
+      .currentHpPercent100() >= hpPercentThreshold;
 
     // return the result.
     return aboveThreshold;
@@ -218,7 +221,8 @@ class BossFrameManager
     if (!this.boss) return false;
 
     // determine if the boss is below the threshold.
-    const aboveThreshold = this.getBossGameBattler().currentHpPercent100() <= hpPercentThreshold;
+    const aboveThreshold = this.getBossGameBattler()
+      .currentHpPercent100() <= hpPercentThreshold;
 
     // return the result.
     return aboveThreshold;
@@ -236,7 +240,8 @@ class BossFrameManager
     if (!this.boss) return false;
 
     // check where the battler's currently is at.
-    const hpPercent = this.getBossGameBattler().currentHpPercent100();
+    const hpPercent = this.getBossGameBattler()
+      .currentHpPercent100();
 
     // determine if the boss is within the threshold.
     const withinThreshold = lowerRange <= hpPercent <= upperRange;
@@ -244,6 +249,7 @@ class BossFrameManager
     // return the result.
     return withinThreshold;
   }
+
   //endregion boss checking
 
   //region refresh
@@ -271,6 +277,7 @@ class BossFrameManager
   {
     this.#newBossRequest = false;
   }
+
   //endregion refresh
 
   //region hide
@@ -298,6 +305,7 @@ class BossFrameManager
   {
     this.#hideBossRequest = false;
   }
+
   //endregion hide
 
   //region show
@@ -325,6 +333,7 @@ class BossFrameManager
   {
     this.#showBossRequest = false;
   }
+
   //endregion show
 
   //region privates
@@ -344,7 +353,8 @@ class BossFrameManager
     }
 
     // grab the battler for the event.
-    const bossJabsBattler = $gameMap.event(eventId).getJabsBattler();
+    const bossJabsBattler = $gameMap.event(eventId)
+      .getJabsBattler();
 
     // grab the battler from the jabs battler.
     const bossBattler = bossJabsBattler.getBattler();
@@ -353,12 +363,7 @@ class BossFrameManager
     const framedTargetConfiguration = new FramedTargetConfiguration();
 
     // build the boss's framed target.
-    const framedTarget = new FramedTarget(
-      bossBattler.name(),
-      String.empty,
-      14,
-      bossBattler,
-      framedTargetConfiguration);
+    const framedTarget = new FramedTarget(bossBattler.name(), String.empty, 14, bossBattler, framedTargetConfiguration);
 
     // return the built target.
     return framedTarget;
@@ -375,13 +380,19 @@ class BossFrameManager
     if (!eventId) return false;
 
     // if the eventId is not a valid eventId, we cannot create from that.
-    if (!$gameMap.event(eventId).getJabsBattler()) return false;
+    if (!$gameMap.event(eventId)
+      .getJabsBattler())
+    {
+      return false;
+    }
 
     // create the boss!
     return true;
   }
+
   //endregion privates
 }
+
 //endregion BossFrameManager
 
 //region Scene_Map
@@ -393,7 +404,8 @@ J.HUD.EXT.BOSS.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.initH
 Scene_Map.prototype.initHudMembers = function()
 {
   // perform original logic.
-  J.HUD.EXT.BOSS.Aliased.Scene_Map.get('initHudMembers').call(this);
+  J.HUD.EXT.BOSS.Aliased.Scene_Map.get('initHudMembers')
+    .call(this);
 
   /**
    * A grouping of all properties that belong to the boss frame
@@ -417,7 +429,8 @@ J.HUD.EXT.BOSS.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.cre
 Scene_Map.prototype.createAllWindows = function()
 {
   // perform original logic.
-  J.HUD.EXT.BOSS.Aliased.Scene_Map.get('createAllWindows').call(this);
+  J.HUD.EXT.BOSS.Aliased.Scene_Map.get('createAllWindows')
+    .call(this);
 
   // create the boss frame.
   this.createBossFrameWindow();
@@ -504,7 +517,8 @@ J.HUD.EXT.BOSS.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.upda
 Scene_Map.prototype.updateHudFrames = function()
 {
   // perform original logic.
-  J.HUD.EXT.BOSS.Aliased.Scene_Map.get('updateHudFrames').call(this);
+  J.HUD.EXT.BOSS.Aliased.Scene_Map.get('updateHudFrames')
+    .call(this);
 
   // manages boss frame assignments.
   this.handleAssignBoss();
@@ -525,7 +539,8 @@ Scene_Map.prototype.handleAssignBoss = function()
   const newBoss = BossFrameManager.getBossFrame();
 
   // set the target frame's target to this new target.
-  this.getBossFrameWindow().setTarget(newBoss);
+  this.getBossFrameWindow()
+    .setTarget(newBoss);
 
   // let the boss manager know we've done the deed.
   BossFrameManager.acknowledgeBossFrameRefresh();
@@ -544,7 +559,8 @@ Scene_Map.prototype.handleHideBossFrame = function()
   if (!BossFrameManager.needsBossFrameHiding()) return;
 
   // request the boss frame to be hidden.
-  this.getBossFrameWindow().requestHideBossFrame();
+  this.getBossFrameWindow()
+    .requestHideBossFrame();
 
   // let the manager know we've done the deed.
   BossFrameManager.acknowledgeBossFrameHidden();
@@ -556,14 +572,16 @@ Scene_Map.prototype.handleShowBossFrame = function()
   if (!BossFrameManager.needsBossFrameShowing()) return;
 
   // request the boss frame to be shown.
-  this.getBossFrameWindow().requestShowBossFrame();
+  this.getBossFrameWindow()
+    .requestShowBossFrame();
 
   // let the manager know we've done the deed.
   BossFrameManager.acknowledgeBossFrameHidden();
 };
 
 //region Window_BossFrame
-class Window_BossFrame extends Window_TargetFrame
+class Window_BossFrame
+  extends Window_TargetFrame
 {
   constructor(rect)
   {
@@ -687,6 +705,7 @@ class Window_BossFrame extends Window_TargetFrame
     // return the created sprite.
     return sprite;
   }
+
   //endregion caching
 
   handleInactivity()
@@ -770,7 +789,7 @@ class Window_BossFrame extends Window_TargetFrame
     let name = `\\FS[24]${this.targetName()}`;
     if (J.MESSAGE)
     {
-      name = `\\*`+ name;
+      name = `\\*` + name;
     }
 
     const textWidth = this.textWidth(name);
@@ -791,4 +810,5 @@ class Window_BossFrame extends Window_TargetFrame
     this.drawTargetHpGauge(x, y);
   }
 }
+
 //endregion Window_BossFrame

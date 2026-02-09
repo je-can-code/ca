@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.0 BASE] The base class for all J plugins.
+ * [v2.3.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -11,11 +11,6 @@
  * This is the base class that is required for basically ALL of J-* plugins.
  * Please be sure this is above all other J-* plugins, and keep it up to date!
  * ----------------------------------------------------------------------------
- * While this plugin doesn't do a whole lot all by itself, it contains a number
- * of centralized functionalities that are used by ALL of my plugins.
- * ----------------------------------------------------------------------------
- * If you are not a dev, you can stop reading if you want (or read on to learn
- * more about the code underneath).
  * ============================================================================
  * MAX ITEM QUANTITY:
  * Have you ever wanted to define a max quantity for items/weapons/armors in
@@ -39,6 +34,44 @@
  *  <max:15>
  * The maximum amount of the database entry decorated with this is 15.
  * ============================================================================
+ * CUSTOM MAX TP:
+ * Have you ever wanted to define a max value for TP instead of the default of
+ * 100 across the board for all battlers?  Well now you can! By applying the
+ * correct tags to the relevant entries in the database, you too can have
+ * varying amounts of max tp for actors and enemies alike!.
+ *
+ * NOTE ABOUT COMBINING TAGS:
+ * This is additive across the board, so if a single actor has multiple tags
+ * from various equipment and/or states, all amounts of max tP will be summed
+ * together.
+ *
+ * NOTE ABOUT NEGATIVES:
+ * The tag value can be negative, so you can make "cursed" equipment or states
+ * that reduce TP capabilities.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <maxTp:VALUE>
+ *    Where VALUE represents the amount of max TP provided by the entry.
+ *
+ * TAG EXAMPLES:
+ *  <maxTp:15>    (on actor)
+ * The max TP for this battler would be 15.
+ *
+ *  <maxTp:25>    (on state)
+ *  <maxTp:100>   (on weapon)
+ *  <maxTp:50000> (on armor)
+ * The max TP for this battler would be 50125 until the state wears off, then
+ * it would reduce to 50100.
+ *
+ * ============================================================================
  *
  * DEV DETAILS:
  * I would encourage you peruse the added functions to the various classes.
@@ -59,12 +92,20 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.3.0
+ *    Added base Max TP management with tags for battlers.
+ *    Added helper functions for detecting plugin commands inside of events.
+ *    Added helper function for converting horz/vert directions to a direction.
+ *    Added helper functions for direction validation.
+ * - 2.2.1
+ *    Added dev filter function for action to skill mapping for enemies.
  * - 2.2.0
  *    Added parent class for subclassing to strongly type plugin metadata.
  *    Added Game_Character#isVehicle function.
  *    Added max item quantity functionality with tag.
  *    Added note grouping methods specific to actors/enemies.
  *    Added Window_Command updates to enable drawing faces as well.
+ *    Updated Game_Timer to track elapsed time.
  * - 2.1.3
  *    Added help text functionality for window commands.
  *    Added description text for all parameters.
@@ -93,7 +134,20 @@
  *    All equipment now have a ._jafting property available on them.
  * - 1.0.0
  *    First proper actual release where I'm leveraging and enforcing versioning.
- * ==============================================================================
+ * ============================================================================
+ * @param actorBaseTp
+ * @type number
+ * @min 0
+ * @text Actor Base TP Max
+ * @desc The base TP for actors is this amount. Any formulai add onto this.
+ * @default 0
+ *
+ * @param enemyBaseTp
+ * @type number
+ * @min 0
+ * @text Enemy Base TP Max
+ * @desc The base TP for enemies is this amount. Any formulai add onto this.
+ * @default 100
  */
 
 /**
@@ -111,7 +165,14 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '2.2.0';
+J.BASE.Metadata.Version = '2.3.0';
+
+/**
+ * The actual `plugin parameters` extracted from RMMZ.
+ */
+J.BASE.PluginParameters = PluginManager.parameters(J.BASE.Metadata.Name);
+J.BASE.Metadata.BaseTpMaxActors = Number(J.BASE.PluginParameters['actorBaseTp']);
+J.BASE.Metadata.BaseTpMaxEnemies = Number(J.BASE.PluginParameters['enemyBaseTp']);
 
 /**
  * A collection of helpful mappings for `notes` that are placed in
@@ -238,10 +299,16 @@ J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
  *    <someKeyWithArrayAndSingleNumberValue:[123]>
  *    <someKeyWithArrayAndManyNumberValues:[123,456]>
  *    <someKeyWithStringValue:someValue>
+ *    <someKeyWithRangeValue:startRange-endRange>
  *  </pre>
  * @type {RegExp}
  */
 J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\]+>$/i;
+
+/**
+ * The basic structure for retrieving summable max tech values.
+ */
+J.BASE.RegExp.MaxTp = /<maxTp: ?(-?\d+)>/i;
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -255,6 +322,7 @@ J.BASE.Aliased = {
   Game_Enemy: new Map(),
   Game_Party: new Map(),
   Game_Temp: new Map(),
+  Game_Timer: new Map(),
   Game_System: new Map(),
   Scene_Base: new Map(),
   SoundManager: new Map(),
@@ -301,7 +369,9 @@ J.BASE.Helpers.generateUuid = function()
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
     .replace(/[xy]/g, c =>
     {
-      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      const r = Math.random() * 16 | 0, v = c === 'x'
+        ? r
+        : (r & 0x3 | 0x8);
       return v.toString(16);
     });
 };
@@ -315,7 +385,9 @@ J.BASE.Helpers.shortUuid = function()
   return 'xxx-xxx'
     .replace(/[xy]/g, c =>
     {
-      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      const r = Math.random() * 16 | 0, v = c === 'x'
+        ? r
+        : (r & 0x3 | 0x8);
       return v.toString(16);
     });
 };
@@ -381,11 +453,11 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure, asBoolean = false)
 {
   const stringifiedStructure = structure.toString();
   const openChar = '<';
-  const closeChar = asBoolean ? '>' : ':';
+  const closeChar = asBoolean
+    ? '>'
+    : ':';
   return stringifiedStructure
-    .substring(
-      stringifiedStructure.indexOf(openChar) + 1,
-      stringifiedStructure.indexOf(closeChar));
+    .substring(stringifiedStructure.indexOf(openChar) + 1, stringifiedStructure.indexOf(closeChar));
 };
 
 /**
@@ -394,9 +466,15 @@ J.BASE.Helpers.getKeyFromRegexp = function(structure, asBoolean = false)
  *
  * This is used to more clearly show developer intent rather than just arbitrarily
  * adding empty double quotes all over the place.
- * @type {""}
+ * @type {string}
  */
-Object.defineProperty(String, "empty", { value: "", writable: false });
+Object.defineProperty(
+  String,
+  "empty",
+  {
+    value: "",
+    writable: false
+  });
 
 /**
  * Extends the global javascript {@link Array} object.
@@ -406,15 +484,14 @@ Object.defineProperty(String, "empty", { value: "", writable: false });
  * adding empty hard brackets all over the place.
  * @type {[]}
  */
-Object.defineProperty(Array, "empty",
+Object.defineProperty(Array, "empty", {
+  enumerable: true,
+  configurable: false,
+  get: function()
   {
-    enumerable: true,
-    configurable: false,
-    get: function()
-    {
-      return Array.of();
-    },
-  });
+    return Array.of();
+  },
+});
 
 /**
  * Executes a given function a given number of `times`.
@@ -425,7 +502,41 @@ Object.defineProperty(Array, "empty",
  */
 Array.iterate = function(times, func, thisArg = undefined)
 {
-  [...Array(times)].forEach(func, thisArg);
+  [ ...Array(times) ].forEach(func, thisArg);
+};
+
+/**
+ * Adds a given number of days based on this date.
+ * @param {number} days The number of days to add to a date.
+ * @returns {Date} The updated date with the designated days.
+ */
+Date.prototype.addDays = function(days)
+{
+  var result = new Date(this.valueOf());
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+/**
+ * Adds a given number of hours based on this date.
+ * @param {number} hours The number of hours to add to a date.
+ * @returns {Date} The updated date with the designated hours.
+ */
+Date.prototype.addHours = function(hours)
+{
+  this.setTime(this.getTime() + (hours * 60 * 60 * 1000));
+  return this;
+};
+
+/**
+ * Adds a given number of minutes based on this date.
+ * @param {number} minutes The number of minutes to add to a date.
+ * @returns {Date} The updated date with the designated minutes.
+ */
+Date.prototype.addMinutes = function(minutes)
+{
+  this.setTime(this.getTime() + (minutes * 60 * 1000));
+  return this;
 };
 
 /**
@@ -440,7 +551,8 @@ J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?")
   const structure = /[0-9A-Za-z\-()[\]*!?'"=@,.]/ig;
 
   // return the masked string content.
-  return stringToMask.toString().replace(structure, maskingCharacter);
+  return stringToMask.toString()
+    .replace(structure, maskingCharacter);
 };
 //endregion Helpers
 
@@ -572,10 +684,7 @@ class JsonMapper
       const innerArray = this.parseArrayFromString(slicedArrayString);
 
       // splice the inner array into the original array replacing all elements.
-      exposedArray.splice(
-        innerArrayStartIndex,
-        ((outerArrayEndIndex + 1) - innerArrayStartIndex),
-        innerArray);
+      exposedArray.splice(innerArrayStartIndex, ((outerArrayEndIndex + 1) - innerArrayStartIndex), innerArray);
     }
 
     // with the content exposed, attempt to continue parsing.
@@ -591,8 +700,10 @@ class JsonMapper
   static parseString(str)
   {
     // check if its actually boolean true.
-    if (str.toLowerCase() === "true") return true;
-    // check if its actually boolean false.
+    if (str.toLowerCase() === "true")
+    {
+      return true;
+    }// check if its actually boolean false.
     else if (str.toLowerCase() === "false") return false;
 
     // check if its actually a number.
@@ -602,6 +713,7 @@ class JsonMapper
     return str;
   }
 }
+
 //endregion JsonMapper
 
 //region RPG_ClassLearning
@@ -628,6 +740,7 @@ class RPG_ClassLearning
    * @type {string}
    */
   note = String.empty;
+
   //endregion properties
 
   /**
@@ -642,6 +755,7 @@ class RPG_ClassLearning
     this.note = learning.note;
   }
 }
+
 //endregion RPG_ClassLearning
 
 //region RPG_DropItem
@@ -681,16 +795,20 @@ class RPG_DropItem
     switch (letter.toLowerCase())
     {
       // "i" for "item".
-      case ('i'||'item'): return this.Types.Item;
+      case ('i' || 'item'):
+        return this.Types.Item;
 
       // "w" for "weapon".
-      case ('w'||'weapon'): return this.Types.Weapon;
+      case ('w' || 'weapon'):
+        return this.Types.Weapon;
 
       // "a" for "armor".
-      case ('a'||'armor'): return this.Types.Armor;
+      case ('a' || 'armor'):
+        return this.Types.Armor;
 
       // don't use this with invalid item types.
-      default: throw new Error(`invalid item type letter provided: [${letter}].`);
+      default:
+        throw new Error(`invalid item type letter provided: [${letter}].`);
     }
   }
 
@@ -705,16 +823,20 @@ class RPG_DropItem
     switch (number)
     {
       // "1" for "item".
-      case 1: return 'i';
+      case 1:
+        return 'i';
 
       // "2" for "weapon".
-      case 2: return 'w';
+      case 2:
+        return 'w';
 
       // "3" for "armor".
-      case 3: return 'a';
+      case 3:
+        return 'a';
 
       // don't use this with invalid item types.
-      default: throw new Error(`invalid item type number provided: [${number}].`);
+      default:
+        throw new Error(`invalid item type number provided: [${number}].`);
     }
   }
 
@@ -737,13 +859,18 @@ class RPG_DropItem
    * @type {number}
    */
   kind = 0;
+
   //endregion properties
 
   /**
    * Constructor.
    * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
    */
-  constructor({ dataId, denominator, kind })
+  constructor({
+                dataId,
+                denominator,
+                kind
+              })
   {
     // map the enemy drop to this object.
     this.dataId = dataId;
@@ -751,6 +878,7 @@ class RPG_DropItem
     this.kind = kind;
   }
 }
+
 //endregion RPG_DropItem
 
 //region RPG_EnemyAction
@@ -789,6 +917,7 @@ class RPG_EnemyAction
    * @type {number}
    */
   skillId = 1;
+
   //endregion properties
 
   /**
@@ -805,6 +934,7 @@ class RPG_EnemyAction
     this.skillId = enemyAction.skillId;
   }
 }
+
 //endregion RPG_EnemyAction
 
 //region RPG_SkillDamage
@@ -843,6 +973,7 @@ class RPG_SkillDamage
    * @type {number}
    */
   variance = 0;
+
   //endregion properties
 
   /**
@@ -866,6 +997,7 @@ class RPG_SkillDamage
     }
   }
 }
+
 //endregion RPG_SkillDamage
 
 //region RPG_Trait
@@ -884,9 +1016,13 @@ class RPG_Trait
    */
   static fromValues(code, dataId, value)
   {
-    return new RPG_Trait({code, dataId, value});
+    return new RPG_Trait({
+      code,
+      dataId,
+      value
+    });
   }
-  
+
   /**
    * The code that designates what kind of trait this is.
    * @type {number}
@@ -986,7 +1122,9 @@ class RPG_Trait
       case 54:
         return `${$dataSystem.equipTypes[this.dataId]}`;
       case 55:
-        return `${this.dataId ? "Enable" : "Disable"}`;
+        return `${this.dataId
+          ? "Enable"
+          : "Disable"}`;
 
       // sixth tab.
       case 61:
@@ -1014,26 +1152,38 @@ class RPG_Trait
       // first tab.
       case 11:
         const calculatedElementalRate = Math.round(100 - (this.value * 100));
-        return `${calculatedElementalRate > 0 ? "-" : "+"}${calculatedElementalRate}%`;
+        return `${calculatedElementalRate > 0
+          ? "-"
+          : "+"}${calculatedElementalRate}%`;
       case 12:
         const calculatedDebuffRate = Math.round((this.value * 100) - 100);
-        return `${calculatedDebuffRate > 0 ? "+" : "-"}${calculatedDebuffRate}%`;
+        return `${calculatedDebuffRate > 0
+          ? "+"
+          : "-"}${calculatedDebuffRate}%`;
       case 13:
         const calculatedStateRate = Math.round(100 - (this.value * 100));
-        return `${calculatedStateRate > 0 ? "+" : "-"}${calculatedStateRate}%`;
+        return `${calculatedStateRate > 0
+          ? "+"
+          : "-"}${calculatedStateRate}%`;
       case 14:
         return $dataStates[this.dataId].name;
 
       // second tab.
       case 21:
         const calculatedBParam = Math.round((this.value * 100) - 100);
-        return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
+        return `${calculatedBParam >= 0
+          ? "+"
+          : ""}${calculatedBParam}%`;
       case 22:
         const calculatedXParam = Math.round((this.value * 100));
-        return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
+        return `${calculatedXParam >= 0
+          ? "+"
+          : ""}${calculatedXParam}%`;
       case 23:
         const calculatedSParam = Math.round((this.value * 100) - 100);
-        return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
+        return `${calculatedSParam >= 0
+          ? "+"
+          : ""}${calculatedSParam}%`;
 
       // third tab.
       case 31:
@@ -1041,9 +1191,13 @@ class RPG_Trait
       case 32:
         return `${(this.value * 100)}%`;
       case 33:
-        return `${this.value > 0 ? "+" : "-"}${this.value}`;
+        return `${this.value > 0
+          ? "+"
+          : "-"}${this.value}`;
       case 34:
-        return `${this.value > 0 ? "+" : "-"}${this.value}`;
+        return `${this.value > 0
+          ? "+"
+          : "-"}${this.value}`;
       case 35:
         return `${$dataSkills[this.value].name}`;
 
@@ -1117,6 +1271,7 @@ class RPG_Trait
     }
   }
 }
+
 //endregion RPG_Trait
 
 //region RPG_UsableEffect
@@ -1149,6 +1304,7 @@ class RPG_UsableEffect
    * @type {number}
    */
   value2 = 0;
+
   //endregion properties
 
   /**
@@ -1168,19 +1324,32 @@ class RPG_UsableEffect
   {
     switch (this.code)
     {
-      case 11: return "Recover Life";
-      case 12: return "Recover Magi";
-      case 13: return "Recover Tech";
-      case 21: return "Add State";
-      case 22: return "Remove State";
-      case 31: return "Add Buff";
-      case 32: return "Add Debuff";
-      case 33: return "Remove Buff";
-      case 34: return "Remove Debuff";
-      case 41: return "Special";
-      case 42: return "Core Stat Growth";
-      case 43: return "Learn Skill";
-      case 44: return "Execute Common Event";
+      case 11:
+        return "Recover Life";
+      case 12:
+        return "Recover Magi";
+      case 13:
+        return "Recover Tech";
+      case 21:
+        return "Add State";
+      case 22:
+        return "Remove State";
+      case 31:
+        return "Add Buff";
+      case 32:
+        return "Add Debuff";
+      case 33:
+        return "Remove Buff";
+      case 34:
+        return "Remove Debuff";
+      case 41:
+        return "Special";
+      case 42:
+        return "Core Stat Growth";
+      case 43:
+        return "Learn Skill";
+      case 44:
+        return "Execute Common Event";
       default:
         console.warn(`Unsupported code of [${this.code}] was provided.`);
         return "UNKNOWN";
@@ -1199,24 +1368,37 @@ class RPG_UsableEffect
         if (percHp) msg += ` ${percHp}%`;
         if (flatHp === 0 && percHp === 0) msg = '0';
         return msg.trim();
-      case 12: return "Recover Magi";
-      case 13: return "Recover Tech";
-      case 21: return "Add State";
-      case 22: return "Remove State";
-      case 31: return "Add Buff";
-      case 32: return "Add Debuff";
-      case 33: return "Remove Buff";
-      case 34: return "Remove Debuff";
-      case 41: return "Special";
-      case 42: return "Core Stat Growth";
-      case 43: return "Learn Skill";
-      case 44: return "Execute Common Event";
+      case 12:
+        return "Recover Magi";
+      case 13:
+        return "Recover Tech";
+      case 21:
+        return "Add State";
+      case 22:
+        return "Remove State";
+      case 31:
+        return "Add Buff";
+      case 32:
+        return "Add Debuff";
+      case 33:
+        return "Remove Buff";
+      case 34:
+        return "Remove Debuff";
+      case 41:
+        return "Special";
+      case 42:
+        return "Core Stat Growth";
+      case 43:
+        return "Learn Skill";
+      case 44:
+        return "Execute Common Event";
       default:
         console.warn(`Unsupported code of [${this.code}] was provided.`);
         return "UNKNOWN";
     }
   }
 }
+
 //endregion RPG_UsableEffect
 
 //region RPG_Base
@@ -1341,7 +1523,6 @@ class RPG_Base
     return new this.constructor(overrides, index);
   }
 
-
   /**
    * The unique key that is used to register this object against
    * its corresponding container when the party has one or more of these
@@ -1354,6 +1535,7 @@ class RPG_Base
   {
     return this._index();
   }
+
   //endregion base
 
   //region meta
@@ -1505,7 +1687,7 @@ class RPG_Base
         // expose the stringified segments of the array.
         const exposedArray = obj
           // peel off the outer brackets.
-          .slice(1, obj.length-1)
+          .slice(1, obj.length - 1)
           // split string into an array by comma or space+comma.
           .split(/, |,/);
         return this.#parseObject(exposedArray);
@@ -1535,8 +1717,10 @@ class RPG_Base
   #parseString(str)
   {
     // check if its actually boolean true.
-    if (str.toLowerCase() === "true") return true;
-    // check if its actually boolean false.
+    if (str.toLowerCase() === "true")
+    {
+      return true;
+    }// check if its actually boolean false.
     else if (str.toLowerCase() === "false") return false;
 
     // check if its actually a number.
@@ -1545,6 +1729,7 @@ class RPG_Base
     // it must just be a word or something.
     return str;
   }
+
   //endregion meta
 
   //region note
@@ -1578,7 +1763,7 @@ class RPG_Base
     // split the notes by new lines.
     const formattedNotes = this.note
       .split(/[\r\n]+/)
-    // filter out invalid note data.
+      // filter out invalid note data.
       .filter(this.invalidNoteFilter, this);
 
     // if we have no length left after filtering, then there is no note data.
@@ -1625,12 +1810,6 @@ class RPG_Base
     // cleanup any duplicate newlines.
     this.note = this.note.replace(/\n\n/gmi, '\n');
     this.note = this.note.replace(/\r\r/gmi, '\r');
-
-    // cleanup any leading newlines.
-    if (this.note.startsWith('\r') || this.note.startsWith('\n'))
-    {
-      this.note = this.note.slice(2);
-    }
   }
 
   /**
@@ -1658,7 +1837,9 @@ class RPG_Base
     if (!lines.length)
     {
       // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value.
@@ -1709,7 +1890,9 @@ class RPG_Base
     if (!lines.length)
     {
       // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : [];
+      return nullIfEmpty
+        ? null
+        : [];
     }
 
     // initialize the value.
@@ -1719,10 +1902,11 @@ class RPG_Base
     lines.forEach(line =>
     {
       // extract the captured formula.
-      const [,result] = structure.exec(line);
+      const [ , result ] = structure.exec(line);
 
       // parse out the array of stringified numbers, and parse the strings.
-      const parsed = JSON.parse(result).map(parseFloat);
+      const parsed = JSON.parse(result)
+        .map(parseFloat);
 
       // destructure the array and add its bits to the running collection.
       val.push(...parsed);
@@ -1759,7 +1943,9 @@ class RPG_Base
     if (!lines.length)
     {
       // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value.
@@ -1785,7 +1971,8 @@ class RPG_Base
       const formula = structure.exec(line)[1];
 
       // evaluate the formula/value.
-      const result = eval(formula).toFixed(3);
+      const result = eval(formula)
+        .toFixed(3);
 
       // add it to the running total.
       val += parseFloat(result);
@@ -2092,8 +2279,46 @@ class RPG_Base
     // return the found value.
     return matchingLines;
   }
+
   //endregion note
+
+  /**
+   * Whether or not this database entry is an item.
+   * @returns {boolean}
+   */
+  isItem()
+  {
+    return false;
+  }
+
+  /**
+   * Whether or not this database entry is a weapon.
+   * @returns {boolean}
+   */
+  isWeapon()
+  {
+    return false;
+  }
+
+  /**
+   * Whether or not this database entry is an armor.
+   * @returns {boolean}
+   */
+  isArmor()
+  {
+    return false;
+  }
+
+  /**
+   * Whether or not this database entry is a skill.
+   * @returns {boolean}
+   */
+  isSkill()
+  {
+    return false;
+  }
 }
+
 //endregion RPG_Base
 
 //region RPG_BaseBattler
@@ -2101,7 +2326,8 @@ class RPG_Base
  * A class representing the groundwork for what all battlers
  * database data look like.
  */
-class RPG_BaseBattler extends RPG_Base
+class RPG_BaseBattler
+  extends RPG_Base
 {
   /**
    * The name of the battler while in battle.
@@ -2132,6 +2358,7 @@ class RPG_BaseBattler extends RPG_Base
       .map(trait => new RPG_Trait(trait));
   }
 }
+
 //endregion RPG_BaseBattler
 
 //region RPG_BaseItem
@@ -2139,7 +2366,8 @@ class RPG_BaseBattler extends RPG_Base
  * The class representing baseItem from the database,
  * and now an iconIndex with a description.
  */
-class RPG_BaseItem extends RPG_Base
+class RPG_BaseItem
+  extends RPG_Base
 {
   /**
    * The description of this entry.
@@ -2169,13 +2397,15 @@ class RPG_BaseItem extends RPG_Base
     this.iconIndex = baseItem.iconIndex;
   }
 }
+
 //endregion RPG_BaseItem
 
 //region RPG_Traited
 /**
  * A class representing a BaseItem from the database, but with traits.
  */
-class RPG_Traited extends RPG_BaseItem
+class RPG_Traited
+  extends RPG_BaseItem
 {
   /**
    * A collection of all traits this item possesses.
@@ -2198,6 +2428,7 @@ class RPG_Traited extends RPG_BaseItem
     this.traits = baseItem.traits.map(trait => new RPG_Trait(trait));
   }
 }
+
 //endregion RPG_Traited
 
 //region RPG_EquipItem
@@ -2205,7 +2436,8 @@ class RPG_Traited extends RPG_BaseItem
  * A base class representing containing common properties found in both
  * weapons and armors.
  */
-class RPG_EquipItem extends RPG_Traited
+class RPG_EquipItem
+  extends RPG_Traited
 {
   //region properties
   /**
@@ -2221,13 +2453,14 @@ class RPG_EquipItem extends RPG_Traited
    * in that order.
    * @type {[number, number, number, number, number, number, number, number]}
    */
-  params = [1, 0, 0, 0, 0, 0, 0, 0];
+  params = [ 1, 0, 0, 0, 0, 0, 0, 0 ];
 
   /**
    * The price of this equip.
    * @type {number}
    */
   price = 0;
+
   //endregion properties
 
   /**
@@ -2265,6 +2498,7 @@ class RPG_EquipItem extends RPG_Traited
     return this.etypeId > 1;
   }
 }
+
 //endregion RPG_EquipItem
 
 //region RPG_UsableItem
@@ -2272,7 +2506,8 @@ class RPG_EquipItem extends RPG_Traited
  * A class representing the base properties for any usable item or skill
  * from the database.
  */
-class RPG_UsableItem extends RPG_BaseItem
+class RPG_UsableItem
+  extends RPG_BaseItem
 {
   //region properties
   /**
@@ -2334,6 +2569,7 @@ class RPG_UsableItem extends RPG_BaseItem
    * @type {number}
    */
   tpGain = 0;
+
   //endregion properties
 
   /**
@@ -2359,13 +2595,15 @@ class RPG_UsableItem extends RPG_BaseItem
     this.tpGain = usableItem.tpGain;
   }
 }
+
 //endregion RPG_UsableItem
 
 //region RPG_Actor
 /**
  * A class representing a single actor battler's data from the database.
  */
-class RPG_Actor extends RPG_BaseBattler
+class RPG_Actor
+  extends RPG_BaseBattler
 {
   //region properties
   /**
@@ -2393,7 +2631,7 @@ class RPG_Actor extends RPG_BaseBattler
    * of the actors from the database.
    * @type {number[]}
    */
-  equips = [0, 0, 0, 0, 0];
+  equips = [ 0, 0, 0, 0, 0 ];
 
   /**
    * The index of the face sprite of this battler on
@@ -2432,6 +2670,7 @@ class RPG_Actor extends RPG_BaseBattler
    * @type {string}
    */
   profile = String.empty;
+
   //endregion properties
 
   /**
@@ -2467,13 +2706,15 @@ class RPG_Actor extends RPG_BaseBattler
     this.profile = actor.profile;
   }
 }
+
 //endregion RPG_Actor
 
 //region RPG_Armor
 /**
  * A class representing a single armor from the database.
  */
-class RPG_Armor extends RPG_EquipItem
+class RPG_Armor
+  extends RPG_EquipItem
 {
   //region properties
   /**
@@ -2488,6 +2729,7 @@ class RPG_Armor extends RPG_EquipItem
    * @type {3}
    */
   kind = 3;
+
   //endregion properties
 
   /**
@@ -2503,21 +2745,32 @@ class RPG_Armor extends RPG_EquipItem
     // map the data.
     this.atypeId = armor.atypeId;
   }
+
+  /**
+   * Whether or not this database entry is an armor.
+   * @returns {boolean}
+   */
+  isArmor()
+  {
+    return true;
+  }
 }
+
 //endregion RPG_Armor
 
 //region RPG_Class
 /**
  * A class representing a RPG-relevant class from the database.
  */
-class RPG_Class extends RPG_Base
+class RPG_Class
+  extends RPG_Base
 {
   //region properties
   /**
    * The four data points that comprise the EXP curve for this class.
    * @type {[number, number, number, number]}
    */
-  expParams = [0, 0, 0, 0];
+  expParams = [ 0, 0, 0, 0 ];
 
   /**
    * A collection of skill learning data points for this class.
@@ -2529,15 +2782,16 @@ class RPG_Class extends RPG_Base
    * A multi-dimensional array of the core parameters that all battlers have:
    * MHP, MMP, ATK, DEF, MAT, MDF, SPD, LUK,
    * in that order, but for all 100 of the base levels.
-   * @type {[number, number, number, number, number, number, number, number]}
+   * @type {[number[], number[], number[], number[], number[], number[], number[], number[]]}
    */
-  params = [[1], [0], [0], [0], [0], [0], [0], [0]];
+  params = [ [ 1 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ] ];
 
   /**
    * A collection of traits this class has.
    * @type {RPG_Trait[]}
    */
   traits = [];
+
   //endregion properties
 
   /**
@@ -2559,13 +2813,15 @@ class RPG_Class extends RPG_Base
       .map(trait => new RPG_Trait(trait));
   }
 }
+
 //endregion RPG_Class
 
 //region RPG_Enemy
 /**
  * A class representing a single enemy battler's data from the database.
  */
-class RPG_Enemy extends RPG_BaseBattler
+class RPG_Enemy
+  extends RPG_BaseBattler
 {
   //region properties
   /**
@@ -2604,7 +2860,8 @@ class RPG_Enemy extends RPG_BaseBattler
    * in that order.
    * @type {[number, number, number, number, number, number, number, number]}
    */
-  params = [1, 0, 0, 0, 0, 0, 0, 0];
+  params = [ 1, 0, 0, 0, 0, 0, 0, 0 ];
+
   //endregion properties
 
   /**
@@ -2638,13 +2895,15 @@ class RPG_Enemy extends RPG_BaseBattler
     this.params = enemy.params;
   }
 }
+
 //endregion RPG_Enemy
 
 //region RPG_Item
 /**
  * A class representing a single item entry from the database.
  */
-class RPG_Item extends RPG_UsableItem
+class RPG_Item
+  extends RPG_UsableItem
 {
   //region properties
   /**
@@ -2671,6 +2930,7 @@ class RPG_Item extends RPG_UsableItem
    * @type {1}
    */
   kind = 1;
+
   //endregion properties
 
   /**
@@ -2688,14 +2948,25 @@ class RPG_Item extends RPG_UsableItem
     this.itypeId = item.itypeId;
     this.price = item.price;
   }
+
+  /**
+   * Whether or not this database entry is an item.
+   * @returns {boolean}
+   */
+  isItem()
+  {
+    return true;
+  }
 }
+
 //endregion RPG_Item
 
 //region RPG_Skill
 /**
  * An class representing a single skill from the database.
  */
-class RPG_Skill extends RPG_UsableItem
+class RPG_Skill
+  extends RPG_UsableItem
 {
   //region properties
   /**
@@ -2745,6 +3016,7 @@ class RPG_Skill extends RPG_UsableItem
    * @type {number}
    */
   tpCost = 0;
+
   //endregion properties
 
   /**
@@ -2778,14 +3050,25 @@ class RPG_Skill extends RPG_UsableItem
     this.stypeId = skill.stypeId;
     this.tpCost = skill.tpCost;
   }
+
+  /**
+   * Whether or not this database entry is a skill.
+   * @returns {boolean}
+   */
+  isSkill()
+  {
+    return true;
+  }
 }
+
 //endregion RPG_Skill
 
 //region RPG_State
 /**
  * An class representing a single state from the database.
  */
-class RPG_State extends RPG_Traited
+class RPG_State
+  extends RPG_Traited
 {
   //region properties
   /**
@@ -2914,6 +3197,7 @@ class RPG_State extends RPG_Traited
    * @type {number}
    */
   stepsToRemove = 100;
+
   //endregion properties
 
   /**
@@ -2948,13 +3232,15 @@ class RPG_State extends RPG_Traited
     this.stepsToRemove = state.stepsToRemove;
   }
 }
+
 //endregion RPG_State
 
 //region RPG_Weapon
 /**
  * A class representing a single weapon from the database.
  */
-class RPG_Weapon extends RPG_EquipItem
+class RPG_Weapon
+  extends RPG_EquipItem
 {
   //region properties
   /**
@@ -2975,6 +3261,7 @@ class RPG_Weapon extends RPG_EquipItem
    * @type {2}
    */
   kind = 2;
+
   //endregion properties
 
   /**
@@ -2991,7 +3278,17 @@ class RPG_Weapon extends RPG_EquipItem
     this.animationId = weapon.animationId;
     this.wtypeId = weapon.wtypeId;
   }
+
+  /**
+   * Whether or not this database entry is a weapon.
+   * @returns {boolean}
+   */
+  isWeapon()
+  {
+    return true;
+  }
 }
+
 //endregion RPG_Weapon
 
 /**
@@ -3256,18 +3553,200 @@ ColorManager.equipType = function(equipTypeId)
 ColorManager.sdp = function(rarity)
 {
   // parse the rarity color.
-  const rarityColorIndex = SDP_Rarity.fromRarityToColor(rarity);
+  const rarityColorIndex = PanelRarity.fromRarityToColor(rarity);
 
   // return the text code for it.
   return this.textColor(rarityColorIndex);
 };
 //endregion ColorManager
 
+// noinspection SillyAssignmentJS
+
+/**
+ * This rule is being disabled so that my personal IDE will recognize the data types and allow for intellisense to
+ * actually work as-expected. The IDE gets confused due to the fact that these are globally defined as "var" and
+ * reassigned in multiple locations, the last checked being "null" or otherwise unknown (like from file loading).
+ */
+
 //region DataManager
 /**
  * The over-arching object containing all of my added parameters.
  */
 DataManager._j ||= {};
+
+/**
+ * A mapped collection of actors from the database.
+ * @type {RPG_Actor[]}
+ */
+$dataActors = $dataActors;
+
+/**
+ * A mapped collection of classes from the database.
+ * @type {RPG_Class[]}
+ */
+$dataClasses = $dataClasses;
+
+/**
+ * A mapped collection of skills from the database.
+ * @type {RPG_Skill[]}
+ */
+$dataSkills = $dataSkills;
+
+/**
+ * A mapped collection of items from the database.
+ * @type {RPG_Item[]}
+ */
+$dataItems = $dataItems;
+
+/**
+ * A mapped collection of weapons from the database.
+ * @type {RPG_Weapon[]}
+ */
+$dataWeapons = $dataWeapons;
+
+/**
+ * A mapped collection of armors from the database.
+ * @type {RPG_Armor[]}
+ */
+$dataArmors = $dataArmors;
+
+/**
+ * A mapped collection of enemies from the database.
+ * @type {RPG_Enemy[]}
+ */
+$dataEnemies = $dataEnemies;
+
+/**
+ * A mapped collection of troops from the database.
+ * @type {object[]} (this is not a type that has been declared)
+ */
+$dataTroops = $dataTroops;
+
+/**
+ * The mapped collection of states from the database.
+ * @type {RPG_State[]}
+ */
+$dataStates = $dataStates;
+
+/**
+ * The mapped collection of animations from the database.
+ * @type {object[]} (this is not a type that has been declared)
+ */
+$dataAnimations = $dataAnimations;
+
+/**
+ * The mapped collection of tilesets from the database.
+ * @type {object[]} (this is not a type that has been declared)
+ */
+$dataTilesets = $dataTilesets;
+
+/**
+ * The mapped collection of common events from the database.
+ * @type {object[]} (this is not a type that has been declared)
+ */
+$dataCommonEvents = $dataCommonEvents;
+
+/**
+ * The various data points written into the system tabs of the database.
+ * @type {object} (this is not a type that has been declared)
+ */
+$dataSystem = $dataSystem;
+
+/**
+ * (need to go look at this to understand what it is and map it)
+ * @type {object[]}
+ */
+$dataMapInfos = $dataMapInfos;
+
+/**
+ * The metadata from the database about the current map.
+ * @type {object} (this is not a type that has been declared)
+ */
+$dataMap = $dataMap;
+
+/**
+ * The temp data for this current play session that isn't saved.
+ * @type {Game_Temp}
+ */
+$gameTemp = $gameTemp;
+
+/**
+ * The current state of the system in this save file.
+ * @type {Game_System}
+ */
+$gameSystem = $gameSystem;
+
+/**
+ * The current state of the screen and manager thereof.
+ * @type {Game_Screen}
+ */
+$gameScreen = $gameScreen;
+
+/**
+ * The timer manager.
+ * @type {Game_Timer}
+ */
+$gameTimer = $gameTimer;
+
+/**
+ * The message manager.
+ * @type {Game_Message}
+ */
+$gameMessage = $gameMessage;
+
+/**
+ * The current state of all switches in this save file.
+ * @type {Game_Switches}
+ */
+$gameSwitches = $gameSwitches;
+
+/**
+ * The current state of all variables in this save file.
+ * @type {Game_Variables}
+ */
+$gameVariables = $gameVariables;
+
+/**
+ * The current state of all self-switches in this save file.
+ * @type {Game_SelfSwitches}
+ */
+$gameSelfSwitches = $gameSelfSwitches;
+
+/**
+ * The current state of all actors in this save file.
+ * @type {Game_Actors}
+ */
+$gameActors = $gameActors;
+
+/**
+ * The party manager- but for actors.
+ * @type {Game_Party}
+ */
+$gameParty = $gameParty;
+
+/**
+ * The party manager- but for enemies.
+ * @type {Game_Troop}
+ */
+$gameTroop = $gameTroop;
+
+/**
+ * The overarching map object that is rebuilt every map transition to manage the currently-running map.
+ * @type {Game_Map}
+ */
+$gameMap = $gameMap;
+
+/**
+ * The current state of the player-controlled {@link Game_Character} on the map.
+ * @type {Game_Player}
+ */
+$gamePlayer = $gamePlayer;
+
+/**
+ * An event purely for testing.
+ * @type {Game_Event}
+ */
+$testEvent = $testEvent;
 
 //region rewrite data
 /**
@@ -3300,7 +3779,8 @@ DataManager.rewriteProcessed = function()
 J.BASE.Aliased.DataManager.set('isDatabaseLoaded', DataManager.isDatabaseLoaded);
 DataManager.isDatabaseLoaded = function()
 {
-  const isLoaded = J.BASE.Aliased.DataManager.get('isDatabaseLoaded').call(this);
+  const isLoaded = J.BASE.Aliased.DataManager.get('isDatabaseLoaded')
+    .call(this);
   if (isLoaded)
   {
     this.onDatabaseLoad();
@@ -3752,37 +4232,34 @@ DataManager.isArmor = function(unidentified)
  * determined.
  * @returns {number} Always positive.
  */
-Object.defineProperty(Graphics, "horizontalPadding",
+Object.defineProperty(Graphics, "horizontalPadding", {
+  get: function()
   {
-    get: function()
-    {
-      return Math.abs(this.width - this.boxWidth);
-    }
-  });
+    return Math.abs(this.width - this.boxWidth);
+  }
+});
 
 /**
  * The vertical padding between {@link Graphics.height} and {@link Graphics.boxHeight}.<br>
  * @returns {number} Always positive.
  */
-Object.defineProperty(Graphics, "verticalPadding",
+Object.defineProperty(Graphics, "verticalPadding", {
+  get: function()
   {
-    get: function()
-    {
-      return Math.abs(this.height - this.boxHeight);
-    }
-  });
+    return Math.abs(this.height - this.boxHeight);
+  }
+});
 
 /**
  * The origin x and y coordinates of the "box" width and height values.
  * @returns {[number, number]} A destructurable array of the box's ox and oy coordinates.
  */
-Object.defineProperty(Graphics, "boxOrigin",
+Object.defineProperty(Graphics, "boxOrigin", {
+  get: function()
   {
-    get: function()
-    {
-      return [this.horizontalPadding, this.verticalPadding];
-    }
-  });
+    return [ this.horizontalPadding, this.verticalPadding ];
+  }
+});
 //endregion Graphics
 
 //region IconManager
@@ -3797,7 +4274,7 @@ class IconManager
    */
   constructor()
   {
-    throw new Error("The IconManager is a static class.");
+    throw new Error("This is a static class.");
   }
 
   /**
@@ -4280,12 +4757,11 @@ class IconManager
   /**
    * A tag for correlating a JABS parameter to an icon.
    */
-  static JABS_PARAMETER =
-    {
-      BONUS_HITS: "bonus-hits",
-      ATTACK_SKILL: "attack-skill",
-      SPEED_BOOST: "speed-boost",
-    };
+  static JABS_PARAMETER = {
+    BONUS_HITS: "bonus-hits",
+    ATTACK_SKILL: "attack-skill",
+    SPEED_BOOST: "speed-boost",
+  };
 
   /**
    * Gets the JABS-related icon based on parameter type.
@@ -4308,15 +4784,14 @@ class IconManager
   /**
    * A tag for correlating a JAFTING parameter to an icon.
    */
-  static JAFTING_PARAMETER =
-    {
-      MAX_REFINE: "max-refine-count",
-      MAX_TRAITS: "max-trait-count",
-      NOT_BASE: "not-refinement-base",
-      NOT_MATERIAL: "not-refinement-material",
-      TIMES_REFINED: "refined-count",
-      UNREFINABLE: "unrefinable"
-    };
+  static JAFTING_PARAMETER = {
+    MAX_REFINE: "max-refine-count",
+    MAX_TRAITS: "max-trait-count",
+    NOT_BASE: "not-refinement-base",
+    NOT_MATERIAL: "not-refinement-material",
+    TIMES_REFINED: "refined-count",
+    UNREFINABLE: "unrefinable"
+  };
 
   /**
    * Gets the JAFTING-related icon based on parameter type.
@@ -4360,6 +4835,7 @@ class IconManager
     }
   }
 }
+
 //endregion IconManager
 
 //region ImageManager
@@ -4383,9 +4859,10 @@ ImageManager.loadBitmapPromise = function(filename, directory)
     bitmap.addLoadListener(thisBitmap =>
     {
       // if everything is clear, resolve with the loaded bitmap.
-      if (thisBitmap.isReady()) resolve(thisBitmap);
-
-      // if there were problems, then reject.
+      if (thisBitmap.isReady())
+      {
+        resolve(thisBitmap);
+      }// if there were problems, then reject.
       else if (thisBitmap.isError()) reject();
     });
   });
@@ -4519,7 +4996,7 @@ class RPGManager
       if (result === null) return;
 
       // extract the captured formula.
-      const [ /* skip first index */, stringResult] = result;
+      const [ /* skip first index */, stringResult ] = result;
 
       // set this to what we found.
       val = stringResult;
@@ -4606,17 +5083,19 @@ class RPGManager
     }
 
     // get the note data from this skill.
-    const lines = databaseData.note.split(/[\r\n]+/);
+    const lines = databaseData.note?.split(/[\r\n]+/) ?? [];
 
     // if we have no matching notes, then short circuit.
     if (!lines.length)
     {
       // return null or 0 depending on provided options.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value.
-    let val = 0;
+    let val = null;
 
     // iterate over each valid line of the note.
     lines.forEach(line =>
@@ -4634,7 +5113,15 @@ class RPGManager
       val = parseFloat(numericResult);
     });
 
-    // return the
+    if (val === null)
+    {
+      // return null or 0 depending on provided options.
+      return nullIfEmpty
+        ? null
+        : 0;
+    }
+
+    // return the value.
     return val;
   }
 
@@ -4680,7 +5167,7 @@ class RPGManager
       // handle the return.
       return nullIfEmpty
         ? null
-        : String.empty;
+        : 0;
     }
 
     // return what we found.
@@ -4790,7 +5277,7 @@ class RPGManager
     }
 
     // return what we found.
-    return noNullVals;
+    return vals;
   }
 
   /**
@@ -4806,7 +5293,9 @@ class RPGManager
     if (!databaseDatas.length)
     {
       // short circuit with null if we are using the flag, or 0 otherwise.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value to 0.
@@ -4839,18 +5328,15 @@ class RPGManager
    * @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
    * @returns {number|null} The calculated result from all formula summed together.
    */
-  static getResultsFromAllNotesByRegex(
-    databaseDatas,
-    structure,
-    baseParam = 0,
-    context = null,
-    nullIfEmpty = false)
+  static getResultsFromAllNotesByRegex(databaseDatas, structure, baseParam = 0, context = null, nullIfEmpty = false)
   {
     // check to make sure we have a collection to work with.
     if (!databaseDatas.length)
     {
       // short circuit with null if we are using the flag, or 0 otherwise.
-      return nullIfEmpty ? null : 0;
+      return nullIfEmpty
+        ? null
+        : 0;
     }
 
     // initialize the value to 0.
@@ -4920,7 +5406,7 @@ class RPGManager
     const mapper = data =>
     {
       // extract the data points from the array found.
-      const [skillId, chance] = data;
+      const [ skillId, chance ] = data;
 
       // return the built on-chance effect with the given data.
       return new JABS_OnChanceEffect(skillId, chance ?? 100, key);
@@ -5025,8 +5511,10 @@ class RPGManager
   static checkForBooleanFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
   {
     // get all results from all objects that could have true/false/null values.
-    const results = databaseDatas.map(databaseData =>
-      this.checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
+    const results = databaseDatas.map(databaseData => this.checkForBooleanFromNoteByRegex(
+      databaseData,
+      structure,
+      nullIfEmpty));
 
     // filter away the non-values.
     const onlyTrueRemains = results
@@ -5060,7 +5548,7 @@ class RPGManager
    * If the optional flag `tryParse` is true, then it will attempt to parse out
    * the array of values as well, including translating strings to numbers/booleans
    * and keeping array structures all intact.
-   * @param {string} databaseObject The contents of the note of a given object.
+   * @param {RPG_Base} databaseObject The database object to parse notes from.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean} tryParse Whether or not to attempt to parse the found array.
    * @returns {any[][]|null} The array of arrays from the notes, or null.
@@ -5080,10 +5568,11 @@ class RPGManager
     noteLines.forEach(line =>
     {
       // check if this line matches the given regex structure.
-      if (line.match(structure))
+      const match = structure.exec(line);
+      if (match)
       {
         // extract the captured formula.
-        const [, result] = structure.exec(line);
+        const [ , result ] = match;
 
         // parse the value out of the regex capture group.
         val.push(result);
@@ -5116,7 +5605,7 @@ class RPGManager
    * If the optional flag `tryParse` is true, then it will attempt to parse out
    * the array of values as well, including translating strings to numbers/booleans
    * and keeping array structures all intact.
-   * @param {string} databaseObject The contents of the note of a given object.
+   * @param {RPG_Base} databaseObject The contents of the note of a given object.
    * @param {RegExp} structure The regular expression to filter notes by.
    * @param {boolean} tryParse Whether or not to attempt to parse the found array.
    * @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
@@ -5140,7 +5629,7 @@ class RPGManager
       if (line.match(structure))
       {
         // extract the captured formula.
-        const [, result] = structure.exec(line);
+        const [ , result ] = structure.exec(line);
 
         // parse the value out of the regex capture group.
         val = JSON.parse(result);
@@ -5168,6 +5657,117 @@ class RPGManager
 
     // return the found value.
     return val;
+  }
+
+  /**
+   * Gets all capture groups (excluding the full match) for every note line that matches the regex.
+   *
+   * Each matching line contributes one entry to the result array. The entry is an array of strings
+   * corresponding to the capture groups for that match (index 1..n of the RegExp exec result).
+   *
+   * Example:
+   *   Regex: /<on-(hit|use):affect-(self|allies|target|enemies|all):\[([+\-/ ().\w]+)]>/gi
+   *   Line:  "<on-hit:affect-self:[a.atk * 400]>"
+   *   Pushes: [ "hit", "self", "a.atk * 400" ]
+   *
+   * @param {RPG_BaseItem} databaseData The database object to inspect.
+   * @param {RegExp} structure The regular expression to find values for.
+   * @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+   * @returns {string[][]|null} An array of capture arrays, or null.
+   */
+  static getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false)
+  {
+    // validate the incoming data object.
+    if (!databaseData)
+    {
+      // handle the return.
+      return nullIfEmpty
+        ? null
+        : [];
+    }
+
+    // get the note data from this object (split by newlines).
+    const lines = databaseData.note?.split(/[\r\n]+/) ?? [];
+
+    // if we have no matching notes, then short circuit.
+    if (!lines.length)
+    {
+      // return null or [] depending on provided options.
+      return nullIfEmpty
+        ? null
+        : [];
+    }
+
+    // initialize the collection of capture arrays.
+    const captures = [];
+
+    // iterate over each valid line of the note.
+    lines.forEach(line =>
+    {
+      // reset the regex pointer to ensure consistent exec() behavior with /g.
+      structure.lastIndex = 0;
+
+      // execute the structure against this line.
+      const result = structure.exec(line);
+
+      // skip if it didn’t match.
+      if (!result) return;
+
+      // slice off the full match, keep only capture groups 1..n.
+      const groups = result.slice(1);
+
+      // push the capture group array.
+      captures.push(groups);
+    });
+
+    // check if we found nothing and want null.
+    if (!captures.length && nullIfEmpty)
+    {
+      // return null.
+      return null;
+    }
+
+    // return all captures (possibly empty array).
+    return captures;
+  }
+
+  /**
+   * Gets all capture arrays from a collection of database objects.
+   *
+   * See {@link RPGManager.getAllCapturesFromNoteByRegex} for details on the shape
+   * of the returned values for each matching tag.
+   *
+   * @param {RPG_BaseItem[]} databaseDatas The database objects to inspect.
+   * @param {RegExp} structure The regular expression to find values for.
+   * @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+   * @returns {string[][]|null} All capture arrays found across all provided objects.
+   */
+  static getAllCapturesFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false)
+  {
+    // initialize the collection of capture arrays.
+    const captures = [];
+
+    // iterate over each of the database objects for inspection.
+    databaseDatas.forEach(databaseData =>
+    {
+      // gather captures from this one object.
+      const found = this.getAllCapturesFromNoteByRegex(databaseData, structure, false);
+
+      // if any found, concatenate into the running collection.
+      if (found && found.length)
+      {
+        captures.push(...found);
+      }
+    }, this);
+
+    // return null if nothing found and nullIfEmpty requested.
+    if (!captures.length && nullIfEmpty)
+    {
+      return null;
+    }
+
+    // return captures (possibly empty array).
+    return captures;
   }
 }
 
@@ -5244,29 +5844,20 @@ TextManager.rewardDescription = function(paramId)
   {
     case 0:
       return [
-        "The resource required to accumulate to rise in level.",
-        "Levels give unseen advantages."
-      ];
+        "The resource required to accumulate to rise in level.", "Levels give unseen advantages." ];
     case 1:
       return [
-        "The primary currency of the universe.",
-        "Most vendors happily take this in exchange for goods."
-      ];
+        "The primary currency of the universe.", "Most vendors happily take this in exchange for goods." ];
     case 2:
       return [
-        "The rate at which enemies will drop loot.",
-        "Higher rates yield more frequent drops."
-      ];
+        "The rate at which enemies will drop loot.", "Higher rates yield more frequent drops." ];
     case 3:
       return [
         "The frequency of which the party will be engage in battles.",
-        "Lower rates result in less random encounters."
-      ];
+        "Lower rates result in less random encounters." ];
     case 4:
       return [
-        "The rate of SDP accumulation from any source.",
-        "Bigger rates yield fatter stacks of them sweet SDP points."
-      ];
+        "The rate of SDP accumulation from any source.", "Bigger rates yield fatter stacks of them sweet SDP points." ];
   }
 };
 
@@ -5356,56 +5947,40 @@ TextManager.bparamDescription = function(paramId)
     // MHP (Max Hit Points)
     case 0:
       return [
-        "The base resource that defines life and death.",
-        "Enemies and allies alike obey the rule of '0hp = dead'."
-      ];
+        "The base resource that defines life and death.", "Enemies and allies alike obey the rule of '0hp = dead'." ];
     // MMP (Max Magic Points)
     case 1:
       return [
-        "The base resource that most magic-based spells consume.",
-        "Without this, spells typically cannot be cast."
-      ];
+        "The base resource that most magic-based spells consume.", "Without this, spells typically cannot be cast." ];
     // ATK (ATtacK)
     case 2:
       return [
         "The base stat that influences physical damage.",
-        "Higher amounts of this yield higher physical damage output."
-      ];
+        "Higher amounts of this yield higher physical damage output." ];
     // DEF (DEFense)
     case 3:
       return [
-        "The base stat that reduces physical damage.",
-        "Higher amounts of this will reduce incoming physical damage."
-      ];
+        "The base stat that reduces physical damage.", "Higher amounts of this will reduce incoming physical damage." ];
     // MAT (Magic ATtack)
     case 4:
       return [
-        "The base stat that influences magical damage.",
-        "Higher amounts of this yield higher magical damage output."
-      ];
+        "The base stat that influences magical damage.", "Higher amounts of this yield higher magical damage output." ];
     // MDF (Magic DeFense)
     case 5:
       return [
-        "The base stat that reduces magical damage.",
-        "Higher amounts of this will reduce incoming magical damage."
-      ];
+        "The base stat that reduces magical damage.", "Higher amounts of this will reduce incoming magical damage." ];
     // AGI (AGIlity)
     case 6:
       return [
-        "The base stat that governs movement and agility.",
-        "The effects of this are unknown at higher levels."
-      ];
+        "The base stat that governs movement and agility.", "The effects of this are unknown at higher levels." ];
     // LUK (LUcK)
     case 7:
       return [
-        "The base stat that governs fortune and luck.",
-        "The effects of this are wide and varied."
-      ];
+        "The base stat that governs fortune and luck.", "The effects of this are wide and varied." ];
     case 30:
       return [
         "The base resource that many weapon-based skills utilize.",
-        "Without this, techniques typically cannot be executed."
-      ];
+        "Without this, techniques typically cannot be executed." ];
   }
 };
 
@@ -5421,9 +5996,7 @@ TextManager.xparamDescription = function(paramId)
     // HIT (HIT chance)
     case 0:
       return [
-        "The stat representing one's skill of accuracy.",
-        "Being more accurate will result in being parried less."
-      ];
+        "The stat representing one's skill of accuracy.", "Being more accurate will result in being parried less." ];
 
     // EVA (physical hit EVasion)
     case 1:
@@ -5431,66 +6004,54 @@ TextManager.xparamDescription = function(paramId)
         // "The stat representing skill in physically evading attacks.",  // original function.
         // "Having higher evasion is often seen as a form of tanking.",   // original function.
         "The stat governing one's uncanny ability to parry precisely.",
-        "An optional stat, but having more will make parrying easier."
-      ];
+        "An optional stat, but having more will make parrying easier." ];
 
     // CRI (CRItical hit chance)
     case 2:
       return [
         "A numeric value to one's chance of landing a critical hit.",
-        "Critical hits will deal percent-increased damage."
-      ];
+        "Critical hits will deal percent-increased damage." ];
 
     // CEV (Critical hit Evasion)
     case 3:
       return [
         "A numeric value to one's chance of evading a critical hit.",
-        "Enemy critical hit chance is directly reduced by this amount."
-      ];
+        "Enemy critical hit chance is directly reduced by this amount." ];
 
     // MEV (Magic attack EVasion)
     case 4:
       return [
         "A numeric value to one's chance of evading a magical hit.",
-        "Enemy magical hit chance is directly reduced by this amount."
-      ];
+        "Enemy magical hit chance is directly reduced by this amount." ];
 
     // MRF (Magic attack ReFlection)
     case 5:
       return [
         // "The chance of reflecting a magical hit back to its caster.",  // original function
         "The chance of reflecting a skill back to its caster.",
-        "Aside from it being reflected back, it is as if you casted it."
-      ];
+        "Aside from it being reflected back, it is as if you casted it." ];
 
     // CNT (CouNTer chance)
     case 6:
       return [
         // "The chance of responding with a basic attack when hit.",  // original function
         "The chance of auto-executing counter skills when struck.",
-        "Being un-reducable, 100 makes countering inevitable."
-      ];
+        "Being un-reducable, 100 makes countering inevitable." ];
 
     // HRG (Hp ReGeneration)
     case 7:
       return [
-        "The amount of Life restored over 5 seconds.",
-        "Recovery Rate amplifies this effect."
-      ];
+        "The amount of Life restored over 5 seconds.", "Recovery Rate amplifies this effect." ];
 
     // MRG (Mp ReGeneration)
     case 8:
       return [
-        "The amount of Magi rejuvenated over 5 seconds.",
-        "Recovery Rate amplifies this effect."
-      ];
+        "The amount of Magi rejuvenated over 5 seconds.", "Recovery Rate amplifies this effect." ];
 
     // TRG (Tp ReGeneration)
     case 9:
       return [
-        "The amount of Tech recovered over 5 seconds.",
-        "Recovery Rate amplifies this effect."
-      ];
+        "The amount of Tech recovered over 5 seconds.", "Recovery Rate amplifies this effect." ];
   }
 };
 
@@ -5506,9 +6067,7 @@ TextManager.sparamDescription = function(paramId)
     // TGR (TarGeting Rate)
     case 0:
       return [
-        "The percentage of aggro that will be applied.",
-        "Reduce for stealthing; increase for taunting."
-      ];
+        "The percentage of aggro that will be applied.", "Reduce for stealthing; increase for taunting." ];
 
     // GRD (GuaRD rate)
     case 1:
@@ -5516,64 +6075,55 @@ TextManager.sparamDescription = function(paramId)
         // "Improves the damage reduction when guarding.",  // original function.
         // "This stat speaks for itself.",                  // original function.
         "A numeric value representing the frequency of parrying.",
-        "More of this will result in auto-parrying faced foes."
-      ];
+        "More of this will result in auto-parrying faced foes." ];
 
     // REC (RECovery boost rate)
     case 2:
       return [
         "The percentage effectiveness of healing applied to oneself.",
-        "Higher amounts of this will make healing need less effort."
-      ];
+        "Higher amounts of this will make healing need less effort." ];
 
     // PHA (PHArmacology rate)
     case 3:
       return [
         "The percentage effectiveness of items applied to oneself.",
-        "Higher amounts of this will make items more potent."
-      ];
+        "Higher amounts of this will make items more potent." ];
 
     // MCR (Magic Cost Rate)
     case 4:
       return [
         "The percentage bonuses being applied to Magi costs.",
-        "Enemy magical hit chance is directly reduced by this amount."
-      ];
+        "Enemy magical hit chance is directly reduced by this amount." ];
 
     // TCR (Tech ChaRge rate)
     case 5:
       return [
         "The percentage bonuses being applied to Tech generation.",
-        "Taking and dealing damage in combat will earn more Tech."
-      ];
+        "Taking and dealing damage in combat will earn more Tech." ];
 
     // PDR (Physical Damage Rate)
     case 6:
       return [
         "The percentage bonuses being applied to physical damage.",
-        "-100 is immune while 100+ takes double+ physical damage."
-      ];
+        "-100 is immune while 100+ takes double+ physical damage." ];
 
     // MDR (Magic Damage Rate)
     case 7:
       return [
         "The percentage bonuses being applied to magical damage.",
-        "-100 is immune while 100+ takes double+ magical damage."
-      ];
+        "-100 is immune while 100+ takes double+ magical damage." ];
 
     // FDR (Floor Damage Rate)
     case 8:
       return [
         "The percentage bonuses being applied to floor damage.",
-        "-100 is immune while 100+ takes double+ floor damage."
-      ];
+        "-100 is immune while 100+ takes double+ floor damage." ];
 
     // EXR (EXperience Rate)
     case 9:
       return [
         "The percentage bonuses being applied to experience gain.",
-        "Higher amounts of this result in faster level growth."
-      ];
+        "Higher amounts of this result in faster level growth." ];
   }
 };
 
@@ -5640,6 +6190,7 @@ TextManager.xparam = function(xParamId)
       return "TP Regen"; //J.Param.TRG_text;
   }
 };
+
 /**
  * Gets the `parameter name` based on the "long" parameter id.
  *
@@ -5851,19 +6402,32 @@ TextManager.usableEffectByCode = function(code)
 {
   switch (code)
   {
-    case 11: return "Recover Life";
-    case 12: return "Recover Magi";
-    case 13: return "Recover Tech";
-    case 21: return "Add State";
-    case 22: return "Remove State";
-    case 31: return "Add Buff";
-    case 32: return "Add Debuff";
-    case 33: return "Remove Buff";
-    case 34: return "Remove Debuff";
-    case 41: return "Special";
-    case 42: return "Core Stat Growth";
-    case 43: return "Learn Skill";
-    case 44: return "Execute Common Event";
+    case 11:
+      return "Recover Life";
+    case 12:
+      return "Recover Magi";
+    case 13:
+      return "Recover Tech";
+    case 21:
+      return "Add State";
+    case 22:
+      return "Remove State";
+    case 31:
+      return "Add Buff";
+    case 32:
+      return "Add Debuff";
+    case 33:
+      return "Remove Buff";
+    case 34:
+      return "Remove Debuff";
+    case 41:
+      return "Special";
+    case 42:
+      return "Core Stat Growth";
+    case 43:
+      return "Learn Skill";
+    case 44:
+      return "Execute Common Event";
     default:
       console.warn(`Unsupported code of [${code}] was provided.`);
       return "UNKNOWN";
@@ -5974,8 +6538,7 @@ class BuiltWindowCommand
     lines = [],
     helpText = String.empty,
     isSubtext = true,
-    faceData = [String.empty, -1]
-  )
+    faceData = [ String.empty, -1 ])
   {
     this.#name = name;
     this.#key = symbol;
@@ -5989,7 +6552,7 @@ class BuiltWindowCommand
     this.#helpText = helpText;
     this.#isSubtext = isSubtext;
 
-    const [faceName, faceIndex] = faceData;
+    const [ faceName, faceIndex ] = faceData;
     this.#faceName = faceName;
     this.#faceIndex = faceIndex;
   }
@@ -6113,8 +6676,9 @@ class BuiltWindowCommand
 
   get faceData()
   {
-    return [this.#faceName, this.#faceIndex];
+    return [ this.#faceName, this.#faceIndex ];
   }
+
   //endregion getters
 }
 
@@ -6126,10 +6690,301 @@ class BuiltWindowCommand
  * Consider reviewing nodejs documentation about the {@link EventEmitter} class
  * for usage instructions.
  */
-class J_EventEmitter extends PIXI.utils.EventEmitter
+class J_EventEmitter
+  extends PIXI.utils.EventEmitter
 {
 }
+
 //endregion J_EventEmitter
+
+//region J_Timer
+/**
+ * A reusable timer with some nifty functions.
+ */
+function J_Timer(timerMax)
+{
+  this.initialize(timerMax);
+}
+
+J_Timer.prototype = {};
+J_Timer.prototype.constructor = J_Timer;
+
+/**
+ * Constructor.
+ *
+ * NOTE: A key is not required, but can be set with setters.
+ * @param {number=} [timerMax=0] The max duration of this timer.
+ * @param {boolean=} [stopCounting=true] Whether or not to stop counting after completing; defaults to true.
+ * @param {?Function} callback EXPERIMENTAL. A callback function for completion of this timer.
+ */
+J_Timer.prototype.initialize = function(timerMax = 0, stopCounting = true, callback = null)
+{
+  /**
+   * The maximum count this timer can reach.
+   * @type {number}
+   */
+  this._timerMax = timerMax;
+
+  /**
+   * Whether or not to stop counting after we've reached the max.
+   * @type {boolean}
+   */
+  this._stopCounting = stopCounting;
+
+  /**
+   * The callback function to execute when the timer completes.
+   * If none is provided, nothing will happen, though the {@link #onComplete} will still execute
+   * in case you would prefer to handle it in code yourself.
+   * @type {Function|null}
+   */
+  this._callback = callback;
+
+  this.initMembers();
+};
+
+/**
+ * Initializes the default members for the timer.
+ */
+J_Timer.prototype.initMembers = function()
+{
+  /**
+   * A key or name for this timer.
+   * This is not strictly enforced by the timer, so this is for
+   * developer convenience if needed.
+   * @type {string}
+   */
+  this._key = String.empty;
+
+  /**
+   * The counter on this timer that ticks up to the max.
+   * @type {number}
+   */
+  this._timer = 0;
+
+  /**
+   * The maximum count this timer can reach.
+   * @type {number}
+   */
+  this._timerMax = 0;
+};
+
+/**
+ * Gets the key of this timer, if one was set.
+ * @returns {string|String.empty}
+ */
+J_Timer.prototype.getKey = function()
+{
+  return this._key;
+}
+
+/**
+ * Sets the key of this timer to the given value.
+ * @param {string} key The new key or name for this timer.
+ */
+J_Timer.prototype.setKey = function(key)
+{
+  this._key = key;
+}
+
+/**
+ * Gets the current time on this timer.
+ * @returns {number}
+ */
+J_Timer.prototype.getCurrentTime = function()
+{
+  return this._timer;
+}
+
+/**
+ * Sets the current time of this timer to a given amount.
+ * Reducing below max time will remove completion if applicable.
+ * Setting at or above max time will apply completion if applicable.
+ * @param {number} time The new time for this timer.
+ */
+J_Timer.prototype.setCurrentTime = function(time)
+{
+  this._timer = time;
+
+  // handle the possibility of the timer becoming incomplete.
+  this._handleIfIncomplete();
+
+  // handle the possibility that this timer is completed.
+  this._handleIfComplete();
+}
+
+/**
+ * Modify the current time of this timer by the given amount.
+ * Reducing below max time will remove completion if applicable.
+ * Setting at or above max time will apply completion if applicable.
+ * @param {number} time The amount to modify by.
+ * @returns {number} The new total after modification.
+ */
+J_Timer.prototype.modCurrentTime = function(time)
+{
+  // modify by this amount.
+  this._timer += time;
+
+  // handle the possibility of the timer becoming incomplete.
+  this._handleIfIncomplete();
+
+  // handle the possibility that this timer is completed.
+  this._handleIfComplete();
+
+  // for convenience, returns the new total.
+  return this._timer;
+}
+
+/**
+ * Gets the total time set to run on this timer.
+ * @returns {number}
+ */
+J_Timer.prototype.getMaxTime = function()
+{
+  return this._timerMax;
+}
+
+/**
+ * Sets the max time for this timer to the given amount.
+ * @param {number} maxTime The new max time for this timer.
+ */
+J_Timer.prototype.setMaxTime = function(maxTime)
+{
+  this._timerMax = maxTime;
+}
+
+/**
+ * Whether or not we should stop counting beyond max when updating.
+ * @returns {boolean}
+ */
+J_Timer.prototype.shouldStopCounting = function()
+{
+  return this._stopCounting;
+}
+
+/**
+ * Normalize time that is above bounds while the "stop counting" flag is set.
+ */
+J_Timer.prototype.normalizeTime = function()
+{
+  // don't mess with time that isn't finished.
+  if (!this.isTimerComplete()) return;
+
+  // normalize only applies to "should stop counting".
+  if (!this.shouldStopCounting()) return;
+
+  // reset the time to the max time.
+  this._timer = this.getMaxTime();
+}
+
+/**
+ * Checks whether or not this timer is completed.
+ * @returns {boolean} True if it is completed, false otherwise.
+ */
+J_Timer.prototype.isTimerComplete = function()
+{
+  return this._timerComplete;
+}
+
+/**
+ * Resets the timer back to initial state.
+ */
+J_Timer.prototype.reset = function()
+{
+  // re-initialize the timer.
+  this._timer = 0;
+
+  // re-initialize the completion flag.
+  this._timerComplete = false;
+}
+
+/**
+ * The main update method of this timer.
+ */
+J_Timer.prototype.update = function()
+{
+  // process the tick of this timer.
+  this.tick();
+
+  // process the tock of this timer.
+  this.tock();
+}
+
+/**
+ * Processes the incrementing of the time.
+ */
+J_Timer.prototype.tick = function()
+{
+  // you cannot tick past the completion.
+  if (this.isTimerComplete()) return;
+
+  // increment the timer.
+  this._timer++;
+}
+
+/**
+ * Processes the management of state of this timer.
+ */
+J_Timer.prototype.tock = function()
+{
+  // handle the possibility that this timer is completed.
+  this._handleIfComplete();
+}
+
+/**
+ * Handles the possibility of this timer becoming incomplete.
+ */
+J_Timer.prototype._handleIfIncomplete = function()
+{
+  // check if we are below the max time duration.
+  if (this._timer < this._timerMax)
+  {
+    // going below the timer marks this timer as incomplete.
+    this._timerComplete = false;
+  }
+
+  // normalize if applicable.
+  this.normalizeTime();
+}
+
+/**
+ * Handles the possibility of this timer becoming complete.
+ */
+J_Timer.prototype._handleIfComplete = function()
+{
+  // do nothing if already complete.
+  if (this.isTimerComplete()) return;
+
+  // check if we have reached or exceeded the max time duration.
+  if (this._timer >= this._timerMax)
+  {
+    // surpassing the timer marks this timer as complete.
+    this._timerComplete = true;
+
+    // normalize if applicable.
+    this.normalizeTime();
+
+    // process the on-completion event hook.
+    this.onComplete();
+  }
+}
+
+/**
+ * Forcefully completes this timer.
+ */
+J_Timer.prototype.forceComplete = function()
+{
+  // set the current to the max time.
+  this.setCurrentTime(this.getMaxTime());
+
+  // process completion of the timer.
+  this._handleIfComplete();
+}
+
+J_Timer.prototype.onComplete = function()
+{
+  //console.log(`timer completed`, this);
+}
+//endregion J_Timer
 
 //region PluginMetadata
 class PluginMetadata
@@ -6221,7 +7076,7 @@ class PluginMetadata
     // deconstructs the patch values out to ensure we have them all.
     const [ major, minor, patch ] = version
       .split('.')
-      .map(parseInt);
+      .map(part => parseInt(part));
 
     // use the builder to build the version.
     const pluginVersion = PluginVersion.builder
@@ -6261,6 +7116,7 @@ class PluginMetadata
   {
   }
 }
+
 //endregion PluginMetadata
 
 //region PluginVersion
@@ -6295,7 +7151,7 @@ class PluginVersion
     // the string should be three whole integer parts.
     const semverParts = version
       .split('.')
-      .map(parseInt);
+      .map(part => parseInt(part));
 
     // the order is as below:
     const [ major, minor, patch ] = semverParts;
@@ -6312,7 +7168,7 @@ class PluginVersion
    */
   version()
   {
-    return [this.major, this.minor, this.patch].join('.');
+    return [ this.major, this.minor, this.patch ].join('.');
   }
 
   /**
@@ -6357,6 +7213,7 @@ class PluginVersion
     #major = 0;
     #minor = 0;
     #patch = 0;
+
     //endregion parameters
 
     /**
@@ -6367,7 +7224,7 @@ class PluginVersion
     build()
     {
       // group all the parts in the correct order.
-      const semverParts = [this.#major, this.#minor, this.#patch];
+      const semverParts = [ this.#major, this.#minor, this.#patch ];
 
       // join the semver parts into a string as the 3 parts.
       const semver = semverParts.join('.');
@@ -6430,6 +7287,7 @@ class PluginVersion
     }
   }
 }
+
 //endregion PluginVersion
 
 /**
@@ -6520,6 +7378,7 @@ class WindowCommandBuilder
    * @type {number}
    */
   #faceIndex = -1;
+
   //endregion properties
 
   /**
@@ -6551,8 +7410,7 @@ class WindowCommandBuilder
       this.#lines,
       this.#helpText,
       this.#isSubtext,
-      [this.#faceName, this.#faceIndex]
-    );
+      [ this.#faceName, this.#faceIndex ]);
 
     // return the built command.
     return command;
@@ -6613,7 +7471,7 @@ class WindowCommandBuilder
   }
 
   /**
-   * Sets this command to identify its additiona lines as subtext rather than a multiline command.
+   * Sets this command to identify its additional lines as subtext rather than a multiline command.
    * @returns {WindowCommandBuilder}
    */
   flagAsSubText()
@@ -6861,8 +7719,7 @@ Game_Actor.prototype.getActorNotes = function()
     actor,
 
     // add the actor's class to the source list.
-    this.class(actor.classId)
-  ];
+    this.class(actor.classId) ];
 };
 
 /**
@@ -6880,8 +7737,7 @@ Game_Actor.prototype.getNotesSources = function()
     this.currentClass(),
 
     // add all of the actor's valid equips to the source list.
-    ...this.equippedEquips(),
-  ];
+    ...this.equippedEquips(), ];
 
   // combine the two source lists.
   const combinedNoteSources = baseNoteSources.concat(actorUniqueNoteSources);
@@ -6898,7 +7754,8 @@ J.BASE.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
 Game_Actor.prototype.setup = function(actorId)
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('setup').call(this, actorId);
+  J.BASE.Aliased.Game_Actor.get('setup')
+    .call(this, actorId);
 
   // execute the on-setup hook.
   this.onSetup(actorId);
@@ -6930,7 +7787,8 @@ Game_Actor.prototype.learnSkill = function(skillId)
   }
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('learnSkill').call(this, skillId);
+  J.BASE.Aliased.Game_Actor.get('learnSkill')
+    .call(this, skillId);
 };
 
 /**
@@ -6959,7 +7817,8 @@ Game_Actor.prototype.forgetSkill = function(skillId)
   }
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('forgetSkill').call(this, skillId);
+  J.BASE.Aliased.Game_Actor.get('forgetSkill')
+    .call(this, skillId);
 };
 
 /**
@@ -6980,7 +7839,8 @@ J.BASE.Aliased.Game_Actor.set('die', Game_Actor.prototype.die);
 Game_Actor.prototype.die = function()
 {
   // perform original effects.
-  J.BASE.Aliased.Game_Actor.get('die').call(this);
+  J.BASE.Aliased.Game_Actor.get('die')
+    .call(this);
 
   // perform on-death effects.
   this.onDeath();
@@ -7003,7 +7863,8 @@ J.BASE.Aliased.Game_Actor.set('revive', Game_Actor.prototype.revive);
 Game_Actor.prototype.revive = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('revive').call(this);
+  J.BASE.Aliased.Game_Actor.get('revive')
+    .call(this);
 
   // perform on-revive effects.
   this.onRevive();
@@ -7031,7 +7892,8 @@ J.BASE.Aliased.Game_Actor.set('changeClass', Game_Actor.prototype.changeClass);
 Game_Actor.prototype.changeClass = function(classId, keepExp)
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('changeClass').call(this, classId, keepExp);
+  J.BASE.Aliased.Game_Actor.get('changeClass')
+    .call(this, classId, keepExp);
 
   // perform on-class-change effects.
   this.onClassChange(classId, keepExp);
@@ -7057,7 +7919,8 @@ Game_Actor.prototype.changeEquip = function(slotId, item)
   const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('changeEquip').call(this, slotId, item);
+  J.BASE.Aliased.Game_Actor.get('changeEquip')
+    .call(this, slotId, item);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = !oldEquips.equals(this._equips);
@@ -7081,7 +7944,8 @@ Game_Actor.prototype.discardEquip = function(item)
   const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('discardEquip').call(this, item);
+  J.BASE.Aliased.Game_Actor.get('discardEquip')
+    .call(this, item);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = !oldEquips.equals(this._equips);
@@ -7105,7 +7969,8 @@ Game_Actor.prototype.forceChangeEquip = function(slotId, item)
   const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('forceChangeEquip').call(this, slotId, item);
+  J.BASE.Aliased.Game_Actor.get('forceChangeEquip')
+    .call(this, slotId, item);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = !oldEquips.equals(this._equips);
@@ -7129,7 +7994,8 @@ Game_Actor.prototype.releaseUnequippableItems = function(forcing)
   const oldEquips = JsonEx.makeDeepCopy(this._equips);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('releaseUnequippableItems').call(this, forcing);
+  J.BASE.Aliased.Game_Actor.get('releaseUnequippableItems')
+    .call(this, forcing);
 
   // determine if the equips array changed from what it was before original logic.
   const isChanged = this.haveEquipsChanged(oldEquips);
@@ -7185,7 +8051,8 @@ Game_Actor.prototype.haveEquipsChanged = function(oldEquips)
  */
 Game_Actor.prototype.equippedEquips = function()
 {
-  return this.equips().filter(equip => !!equip);
+  return this.equips()
+    .filter(equip => !!equip);
 };
 
 /**
@@ -7204,7 +8071,8 @@ J.BASE.Aliased.Game_Actor.set('levelUp', Game_Actor.prototype.levelUp);
 Game_Actor.prototype.levelUp = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('levelUp').call(this);
+  J.BASE.Aliased.Game_Actor.get('levelUp')
+    .call(this);
 
   // triggers the on-level-up hook.
   this.onLevelUp();
@@ -7226,12 +8094,64 @@ J.BASE.Aliased.Game_Actor.set('levelDown', Game_Actor.prototype.levelDown);
 Game_Actor.prototype.levelDown = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Actor.get('levelDown').call(this);
+  J.BASE.Aliased.Game_Actor.get('levelDown')
+    .call(this);
 
   // triggers the on-level-down hook.
   this.onLevelDown();
 };
+
+/**
+ * Gets the base max tp for this actor.
+ * @returns {number}
+ */
+Game_Actor.prototype.getBaseMaxTp = function()
+{
+  return J.BASE.Metadata.BaseTpMaxActors;
+};
 //endregion Game_Actor
+
+//region Game_Actors
+/**
+ * Gets all proper actor ids available for actors in the database.
+ * @returns {number[]}
+ */
+Game_Actors.prototype.actorIds = function()
+{
+  // start with an empty array.
+  const actorIds = Array.empty;
+
+  // iterate over all the actors in the database.
+  $dataActors.forEach(actor =>
+  {
+    // the first actor is always null.
+    if (!actor) return;
+
+    // funny-named actors shouldn't be considered.
+    if (actor.name.length === 0) return;
+    if (actor.name.startsWith(" ")) return;
+    if (actor.name.startsWith("==")) return;
+    if (actor.name.startsWith("__")) return;
+
+    // add the valid actor id.
+    actorIds.push(actor.id);
+  });
+
+  // return the collection of defined actor ids.
+  return actorIds;
+};
+
+/**
+ * Gets all proper actors available in the database.
+ * @returns {Game_Actor[]}
+ */
+Game_Actors.prototype.actors = function()
+{
+  return this.actorIds()
+    .map(id => this.actor(id), this);
+};
+
+//endregion Game_Actors
 
 //region Game_Battler
 /**
@@ -7288,6 +8208,46 @@ Game_Battler.prototype.class = function(classId)
 };
 
 /**
+ * Overrides {@link #maxTp}.<br/>
+ * Replaces the default of 100 for all battlers with a tag-based calculation that reviews all available notes to sum
+ * together all maxTp values for a custom value.
+ * @returns {number}
+ */
+Game_Battler.prototype.maxTp = function()
+{
+  // get the base max tp for the battler.
+  const baseMaxTp = this.getBaseMaxTp();
+
+  // determine the sum of all max tech values from the available notes- if any.
+  const combinedMaxTp = this.getBaseMaxTpBonuses();
+
+  // check if none of the notes had any max tech v
+  return Math.max(0, (baseMaxTp + combinedMaxTp));
+};
+
+/**
+ * The base max TP for all battlers- always 0 at this level.
+ * @returns {number}
+ */
+Game_Battler.prototype.getBaseMaxTp = function()
+{
+  return 0;
+};
+
+/**
+ * The base bonus to max tech on this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.getBaseMaxTpBonuses = function()
+{
+  // grab all the notes.
+  const objectsToCheck = this.getAllNotes();
+
+  // determine the sum of all max tech values from the available notes- if any.
+  return RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.BASE.RegExp.MaxTp);
+};
+
+/**
  * Gets everything that this battler has with notes on it.
  * All battlers have their own database data, along with all their states.
  * Actors also get their class, skills, and equips added.
@@ -7317,8 +8277,7 @@ Game_Battler.prototype.getNotesSources = function()
     ...this.skills(),
 
     // add all currently applied states to the source list.
-    ...this.allStates(),
-  ];
+    ...this.allStates(), ];
 };
 
 /**
@@ -7364,7 +8323,8 @@ Game_Battler.prototype.eraseState = function(stateId)
   const oldStates = Array.from(this._states);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Battler.get('eraseState').call(this, stateId);
+  J.BASE.Aliased.Game_Battler.get('eraseState')
+    .call(this, stateId);
 
   // determine if the states array changed from what it was before original logic.
   const isChanged = !oldStates.equals(this._states);
@@ -7398,7 +8358,8 @@ Game_Battler.prototype.addNewState = function(stateId)
   const oldStates = Array.from(this._states);
 
   // perform original logic.
-  J.BASE.Aliased.Game_Battler.get('addNewState').call(this, stateId);
+  J.BASE.Aliased.Game_Battler.get('addNewState')
+    .call(this, stateId);
 
   // determine if the states array changed from what it was before original logic.
   const isChanged = !oldStates.equals(this._states);
@@ -7466,7 +8427,7 @@ Game_Battler.prototype.currentHpPercent100 = function()
  */
 Game_BattlerBase.knownBaseParameterIds = function()
 {
-  return [0, 1, 2, 3, 4, 5, 6, 7];
+  return [ 0, 1, 2, 3, 4, 5, 6, 7 ];
 };
 
 /**
@@ -7475,7 +8436,7 @@ Game_BattlerBase.knownBaseParameterIds = function()
  */
 Game_BattlerBase.knownExParameterIds = function()
 {
-  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  return [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
 };
 
 /**
@@ -7484,7 +8445,7 @@ Game_BattlerBase.knownExParameterIds = function()
  */
 Game_BattlerBase.knownSpParameterIds = function()
 {
-  return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  return [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
 };
 
 /**
@@ -7494,7 +8455,8 @@ Game_BattlerBase.knownSpParameterIds = function()
  */
 Game_BattlerBase.isBaseParam = function(longParameterId)
 {
-  return this.knownBaseParameterIds().includes(longParameterId);
+  return this.knownBaseParameterIds()
+    .includes(longParameterId);
 };
 
 /**
@@ -7504,7 +8466,8 @@ Game_BattlerBase.isBaseParam = function(longParameterId)
  */
 Game_BattlerBase.isExParam = function(longParameterId)
 {
-  return this.knownExParameterIds().includes(longParameterId - 8);
+  return this.knownExParameterIds()
+    .includes(longParameterId - 8);
 };
 
 /**
@@ -7514,7 +8477,8 @@ Game_BattlerBase.isExParam = function(longParameterId)
  */
 Game_BattlerBase.isSpParam = function(longParameterId)
 {
-  return this.knownSpParameterIds().includes(longParameterId - 18);
+  return this.knownSpParameterIds()
+    .includes(longParameterId - 18);
 };
 
 /**
@@ -7525,7 +8489,7 @@ Game_BattlerBase.isSpParam = function(longParameterId)
  */
 Game_BattlerBase.isRegenParamId = function(paramId)
 {
-  const regenParamIds = [7, 8, 9];
+  const regenParamIds = [ 7, 8, 9 ];
   return regenParamIds.includes(paramId);
 };
 
@@ -7537,21 +8501,20 @@ Game_BattlerBase.isRegenParamId = function(paramId)
  */
 Game_BattlerBase.isRegenLongParamId = function(longParamId)
 {
-  const regenParamIds = [7, 8, 9];
+  const regenParamIds = [ 7, 8, 9 ];
   return regenParamIds.includes(longParamId - 8);
 };
 
 /**
  * Gets the maximum tp/tech for this battler.
  */
-Object.defineProperty(Game_BattlerBase.prototype, "mtp",
+Object.defineProperty(Game_BattlerBase.prototype, "mtp", {
+  get: function()
   {
-    get: function() 
-    {
-      return this.maxTp();
-    },
-    configurable: true
-  });
+    return this.maxTp();
+  },
+  configurable: true
+});
 //endregion Game_BattlerBase
 
 /**
@@ -7631,13 +8594,40 @@ Game_Character.prototype.distanceFromCharacter = function(character)
 };
 
 /**
+ * Gets all valid directions supported by the default system.
+ * @returns {number[]}
+ */
+Game_CharacterBase.prototype.getValidDirections = function()
+{
+  return [ ...this.getValidCardinalDirections(), ...this.getValidDiagonalDirections() ];
+};
+
+/**
+ * Gets all valid diagonal directions.
+ * @returns {number[]}
+ */
+Game_CharacterBase.prototype.getValidDiagonalDirections = function()
+{
+  return [ 1, 3, 7, 9 ];
+};
+
+/**
+ * Gets all valid cardinal directions.
+ * @returns {number[]}
+ */
+Game_CharacterBase.prototype.getValidCardinalDirections = function()
+{
+  return [ 2, 4, 6, 8 ];
+};
+
+/**
  * Determines if a numeric directional input is diagonal.
  * @param {number} direction The direction to check.
  * @returns {boolean} True if the input is diagonal, false otherwise.
  */
 Game_CharacterBase.prototype.isDiagonalDirection = function(direction)
 {
-  return [1, 3, 7, 9].contains(direction);
+  return [ 1, 3, 7, 9 ].contains(direction);
 };
 
 /**
@@ -7647,7 +8637,7 @@ Game_CharacterBase.prototype.isDiagonalDirection = function(direction)
  */
 Game_CharacterBase.prototype.isStraightDirection = function(direction)
 {
-  return [2, 4, 6, 8].contains(direction);
+  return [ 2, 4, 6, 8 ].contains(direction);
 };
 
 /**
@@ -7659,14 +8649,55 @@ Game_CharacterBase.prototype.getDiagonalDirections = function(direction)
   switch (direction)
   {
     case 1:
-      return [4, 2];
+      return [ 4, 2 ];
     case 3:
-      return [6, 2];
+      return [ 6, 2 ];
     case 7:
-      return [4, 8];
+      return [ 4, 8 ];
     case 9:
-      return [6, 8];
+      return [ 6, 8 ];
   }
+};
+
+/**
+ * Converts a horizontal/vertical direction pair into a single 8-dir code.
+ * Valid inputs are (4|6) for horz and (2|8) for vert. Returns 0 if invalid.
+ * @param {4|6} horz The horizontal component (4=left, 6=right).
+ * @param {2|8} vert The vertical component (2=down, 8=up).
+ * @returns {1|3|7|9|0} The 8-dir code for the diagonal, or 0 if invalid.
+ */
+Game_CharacterBase.prototype.directionFromHorzVert = function(horz, vert)
+{
+  // Check for down-left (1).
+  if (horz === 4 && vert === 2)
+  {
+    // Return direction 1 for down-left.
+    return 1;
+  }
+
+  // Check for down-right (3).
+  if (horz === 6 && vert === 2)
+  {
+    // Return direction 3 for down-right.
+    return 3;
+  }
+
+  // Check for up-left (7).
+  if (horz === 4 && vert === 8)
+  {
+    // Return direction 7 for up-left.
+    return 7;
+  }
+
+  // Check for up-right (9).
+  if (horz === 6 && vert === 8)
+  {
+    // Return direction 9 for up-right.
+    return 9;
+  }
+
+  // Invalid combination; return 0.
+  return 0;
 };
 
 //region Game_Enemies
@@ -7706,6 +8737,7 @@ class Game_Enemies
     return enemy;
   }
 }
+
 //endregion Game_Enemies
 
 //region Game_Enemy
@@ -7739,8 +8771,7 @@ Game_Enemy.prototype.getEnemyNotes = function()
   // return a collection of all things related to this enemy.
   return [
     // add the enemy itself to the source list.
-    enemy
-  ];
+    enemy ];
 };
 
 /**
@@ -7778,6 +8809,7 @@ Game_Enemy.prototype.skills = function()
   // grab the actions for the enemy.
   const actions = this.enemy()
     .actions
+    .filter(this.canMapActionToSkill, this)
     .map(action => this.skill(action.skillId), this);
 
   // grab any additional skills added via traits.
@@ -7789,6 +8821,16 @@ Game_Enemy.prototype.skills = function()
   return actions
     .concat(skillTraits)
     .sort();
+};
+
+/**
+ * Determines whether or not the action can be mapped to a skill.
+ * @param {RPG_EnemyAction} action The action being mapped to a skill.
+ * @returns {boolean}
+ */
+Game_Enemy.prototype.canMapActionToSkill = function(action)
+{
+  return true;
 };
 
 /**
@@ -7823,7 +8865,9 @@ Game_Enemy.prototype.learnSkill = function(skillId)
   };
 
   // add the action to the enemy's list of known skills.
-  this.enemy().actions.push(rpgEnemyAction);
+  this.enemy()
+    .actions
+    .push(rpgEnemyAction);
 
   // indicate that a new skill was learned to any callers that might be interested.
   return true;
@@ -7852,6 +8896,15 @@ Game_Enemy.prototype.onDeath = function()
   // flag this battler for needing a data update.
   this.onBattlerDataChange();
 };
+
+/**
+ * Gets the base max tp for this enemy.
+ * @returns {number}
+ */
+Game_Enemy.prototype.getBaseMaxTp = function()
+{
+  return J.BASE.Metadata.BaseTpMaxEnemies;
+};
 //endregion Game_Enemy
 
 //region Game_Event
@@ -7865,17 +8918,41 @@ Game_Event.prototype.getValidCommentCommands = function()
   if (!this.canGetValidCommentCommands()) return Array.empty;
 
   // otherwise, return the filtered list.
-  return this.list().filter(command =>
-  {
-    // if it is not a comment, then don't include it.
-    if (!this.matchesControlCode(command.code)) return false;
+  return this.list()
+    .filter(Game_Event.filterInvalidEventCommand, this);
+};
 
-    // shorthand the comment into a variable.
-    const [comment,] = command.parameters;
+/**
+ * Gets all valid-shaped comment event commands from a designated page.
+ * @param {rm.types.Page} page The event page to parse comments from.
+ */
+Game_Event.getValidCommentCommandsFromPage = function(page)
+{
+  // grab the list of commands from the given page.
+  const commands = page.list;
 
-    // consider this comment valid if it passes, skip it otherwise.
-    return J.BASE.RegExp.ParsableComment.test(comment);
-  }, this);
+  // don't process if we have no event commands.
+  if (commands.length === 0) return Array.empty;
+
+  // otherwise, return the filtered list.
+  return commands.filter(Game_Event.filterInvalidEventCommand, this);
+};
+
+/**
+ * Filters out event commands that are not comments intended for regex parsing.
+ * @param {rm.types.EventCommand} command The command to evaluate.
+ * @returns {boolean}
+ */
+Game_Event.filterInvalidEventCommand = function(command)
+{
+  // if it is not a comment, then don't include it.
+  if (!Game_Event.matchesControlCode(command.code)) return false;
+
+  // shorthand the comment into a variable.
+  const [ comment, ] = command.parameters;
+
+  // consider this comment valid if it passes, skip it otherwise.
+  return J.BASE.RegExp.ParsableComment.test(comment);
 };
 
 /**
@@ -7885,7 +8962,11 @@ Game_Event.prototype.getValidCommentCommands = function()
 Game_Event.prototype.canGetValidCommentCommands = function()
 {
   // if we are missing anything here, just don't try.
-  if (!this || !this.page() || !this.page().list || !this.list() || this.list().length === 0) return false;
+  if (!this) return false;
+  if (!this.page()) return false;
+  if (!this.page().list) return false;
+  if (!this.list()) return false;
+  if (this.list().length === 0) return false;
 
   // get those comment commands!
   return true;
@@ -7896,7 +8977,7 @@ Game_Event.prototype.canGetValidCommentCommands = function()
  * @param {number} code The code to match.
  * @returns {boolean}
  */
-Game_Event.prototype.matchesControlCode = function(code)
+Game_Event.matchesControlCode = function(code)
 {
   // valid comment codes.
   const controlCodes = [
@@ -7922,20 +9003,21 @@ Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = nu
   let val = defaultValue;
 
   // iterate over all valid comments.
-  this.getValidCommentCommands().forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [comment,] = command.parameters;
+  this.getValidCommentCommands()
+    .forEach(command =>
+    {
+      // shorthand the comment into a variable.
+      const [ comment, ] = command.parameters;
 
-    // check if the comment matches the regex.
-    const regexResult = structure.exec(comment);
+      // check if the comment matches the regex.
+      const regexResult = structure.exec(comment);
 
-    // if the comment didn't match, then don't try to parse it.
-    if (!regexResult) return;
+      // if the comment didn't match, then don't try to parse it.
+      if (!regexResult) return;
 
-    // extract the regex capture group.
-    [,val] = regexResult;
-  });
+      // extract the regex capture group.
+      [ , val ] = regexResult;
+    });
 
   // if we did not find anything, return the default.
   if (val === defaultValue) return val;
@@ -7945,6 +9027,96 @@ Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = nu
 
   // return the parsed result instead.
   return JsonMapper.parseObject(val);
+};
+
+/**
+ * Extracts a value out of an event's comments based on the provided structure.
+ * If there are multiple matches in the comments, only the last one will be returned.
+ * @param {rm.types.EventCommand} command The command in question.
+ * @param {RegExp} structure The regex to find values for.
+ * @param {any=} defaultValue The default value to start with; defaults to null.
+ * @param {boolean=} andParse Whether or not to parse the results; defaults to true.
+ * @returns {any} The last found value, or the default if nothing was found.
+ */
+Game_Event.prototype.getDataForCommandByRegex = function(command, structure, defaultValue = null, andParse = true)
+{
+  // initalize to the provided default.
+  let val = defaultValue;
+
+  // shorthand the comment into a variable.
+  const [ comment, ] = command.parameters;
+
+  // reset just in case the regex is global.
+  structure.lastIndex = 0;
+
+  // check if the comment matches the regex.
+  const regexResult = structure.exec(comment);
+
+  // if the comment didn't match, then don't try to parse it.
+  if (!regexResult) return;
+
+  // extract the regex capture group.
+  [ , val ] = regexResult;
+
+  // if we did not find anything, return the default.
+  if (val === defaultValue) return val;
+
+  // if we are not parsing, then return the raw findings.
+  if (!andParse) return val;
+
+  // return the parsed result instead.
+  return JsonMapper.parseObject(val);
+};
+
+/**
+ * Gets the current page's event command list if it is present, or an empty array if it isn't.
+ * @returns {rm.types.EventCommand[]}
+ */
+Game_Event.prototype.getEventCommandList = function()
+{
+  // initialize to an empty array.
+  let list = [];
+
+  // in certain situations, one or both of these may be unavailable.
+  if (this.page() && this.list())
+  {
+    // the list was available.
+    list = this.list() ?? [];
+  }
+
+  // return what we found.
+  return list;
+};
+
+/**
+ * Determines whether or not the given plugin commands are present in the list of event commands for a given plugin.
+ * @param {string} targetPluginName The name of the plugin to look for commands for.
+ * @param {string[]} commandNames The collection of plugin command names to validate existence of.
+ */
+Game_Event.prototype.hasPluginCommand = function(targetPluginName, commandNames)
+{
+  // pull the current page’s command list.
+  const list = this.getEventCommandList();
+
+  // find any matching plugin command.
+  const found = !!list.find(cmd =>
+  {
+    // ensure this is a plugin command.
+    if (!cmd || cmd.code !== 357) return false;
+
+    // deconstruct the typical MZ plugin command payload.
+    const [ pluginName, commandName ] = cmd.parameters;
+    if (!commandName) return false;
+
+    // if we know the quest plugin name, require it to match.
+    if (pluginName !== targetPluginName) return false;
+
+    // return true if the command is one of the desired names.
+    return commandNames.includes(commandName);
+  });
+
+  // return whether we found a matching command.
+  return found;
 };
 
 /**
@@ -8010,7 +9182,7 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip)
     return;
   }
 
-  // grab the container of items.
+  // grab the container of items.S
   const container = this.itemContainer(item);
 
   // check to make sure we have a container.
@@ -8174,7 +9346,8 @@ Game_Party.prototype.allItemsQuantified = function()
  */
 Game_Party.prototype.recoverAllMembers = function()
 {
-  this.members().forEach(member => member.recoverAll());
+  this.members()
+    .forEach(member => member.recoverAll());
 };
 
 Game_Party.prototype.maxBattleMembers = function()
@@ -8202,7 +9375,8 @@ J.BASE.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
 Game_System.prototype.initialize = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_System.get('initialize').call(this);
+  J.BASE.Aliased.Game_System.get('initialize')
+    .call(this);
 
   // initialize our class members.
   this.initMembers();
@@ -8279,7 +9453,8 @@ J.BASE.Aliased.Game_Temp.set('initialize', Game_Temp.prototype.initialize);
 Game_Temp.prototype.initialize = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Game_Temp.get('initialize').call(this);
+  J.BASE.Aliased.Game_Temp.get('initialize')
+    .call(this);
 
   // initialize our class members.
   this.initMembers();
@@ -8292,6 +9467,49 @@ Game_Temp.prototype.initMembers = function()
 {
 };
 //endregion Game_Temp
+
+//region Game_Timer
+/**
+ * Extends {@link #initialize}.<br/>
+ * Also initializes the duration.
+ */
+J.BASE.Aliased.Game_Timer.set('initialize', Game_Timer.prototype.initialize);
+Game_Timer.prototype.initialize = function()
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Timer.get('start')
+    .call(this);
+
+  /**
+   * Also initialize the duration of the timer.
+   * @type {number}
+   */
+  this._duration = 0;
+};
+
+/**
+ * Extends {@link #start}.<br/>
+ * Also sets the duration of the timer for tracking relative elapsed time.
+ */
+J.BASE.Aliased.Game_Timer.set('start', Game_Timer.prototype.start);
+Game_Timer.prototype.start = function(duration)
+{
+  // perform original logic.
+  J.BASE.Aliased.Game_Timer.get('start')
+    .call(this, duration);
+
+  this._duration = duration;
+};
+
+/**
+ * Gets the elapsed amount of time relative to the duration.
+ * @returns {number}
+ */
+Game_Timer.prototype.elapsedFrames = function()
+{
+  return this._duration - this._frames;
+};
+//endregion Game_Timer
 
 //region Game_Vehicle
 /**
@@ -8312,7 +9530,8 @@ J.BASE.Aliased.Scene_Base.set('initialize', Scene_Base.prototype.initialize);
 Scene_Base.prototype.initialize = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Scene_Base.get('initialize').call(this);
+  J.BASE.Aliased.Scene_Base.get('initialize')
+    .call(this);
 
   // also add custom members to this class.
   this.initMembers();
@@ -8338,7 +9557,8 @@ Scene_Base.prototype.callScene = function()
  * A sprite that displays some text.
  * This acts as a base class for a number of other text-based sprites.
  */
-class Sprite_BaseText extends Sprite
+class Sprite_BaseText
+  extends Sprite
 {
   /**
    * The available supported text alignments.
@@ -8629,10 +9849,7 @@ class Sprite_BaseText extends Sprite
   isValidAlignment(alignment)
   {
     const validAlignments = [
-      Sprite_BaseText.Alignments.Left,
-      Sprite_BaseText.Alignments.Center,
-      Sprite_BaseText.Alignments.Right
-    ]
+      Sprite_BaseText.Alignments.Left, Sprite_BaseText.Alignments.Center, Sprite_BaseText.Alignments.Right ]
 
     return validAlignments.includes(alignment);
   }
@@ -8753,15 +9970,10 @@ class Sprite_BaseText extends Sprite
       : this.bitmapWidth();
 
     // draw the text with the current settings onto the bitmap.
-    this.bitmap.drawText(
-      this.text(),
-      0,
-      0,
-      width,
-      this.bitmapHeight(),
-      this.alignment());
+    this.bitmap.drawText(this.text(), 0, 0, width, this.bitmapHeight(), this.alignment());
   }
 }
+
 //endregion Sprite_BaseText
 
 /**
@@ -8852,7 +10064,8 @@ Sprite_Face.prototype.loadBitmap = function()
  * but can be modified manually to different iconsets bitmaps and/or
  * different icon widths and heights.
  */
-class Sprite_Icon extends Sprite
+class Sprite_Icon
+  extends Sprite
 {
   /**
    * Initializes this sprite with the designated icon.
@@ -8925,7 +10138,7 @@ class Sprite_Icon extends Sprite
     this.unReady();
 
     // setup a promise for when the bitmap loads.
-    const bitmapPromise = ImageManager.loadBitmapPromise(`IconSet`,`img/system/`)
+    const bitmapPromise = ImageManager.loadBitmapPromise(`IconSet`, `img/system/`)
       .then(bitmap => this.setIconsetBitmap(bitmap))
       .catch(() =>
       {
@@ -8933,8 +10146,8 @@ class Sprite_Icon extends Sprite
       });
 
     // upon promise delivery, execute the rendering.
-    Promise.all([bitmapPromise])
-    // execute on-ready logic, such as setting the icon index of this sprite to render.
+    Promise.all([ bitmapPromise ])
+      // execute on-ready logic, such as setting the icon index of this sprite to render.
       .then(() => this.onReady(iconIndex))
   }
 
@@ -9076,11 +10289,12 @@ class Sprite_Icon extends Sprite
     this.setFrame(x, y, iconWidth, iconHeight);
   }
 }
+
 //endregion Sprite_Icon
 
 //region Sprite_MapGauge
 /**
- * The sprite for displaying a gauge over a character's sprite.
+ * The sprite for displaying a gauge on a character's sprite.
  */
 function Sprite_MapGauge()
 {
@@ -9095,10 +10309,8 @@ Sprite_MapGauge.prototype.initialize = function(
   gaugeHeight = 6,
   label = String.empty,
   value = null,
-  iconIndex = -1
-)
+  iconIndex = -1)
 {
-  this._duration = 0;
   this._gauge = {};
   this._gauge._bitmapWidth = bitmapWidth;
   this._gauge._bitmapHeight = bitmapHeight;
@@ -9106,6 +10318,7 @@ Sprite_MapGauge.prototype.initialize = function(
   this._gauge._label = label;
   this._gauge._value = value;
   this._gauge._iconIndex = iconIndex;
+  this._gauge._iconSprite = null;
 
   this._gauge._activated = true;
 
@@ -9131,7 +10344,6 @@ Sprite_MapGauge.prototype.update = function()
   if (!this._gauge._activated) return;
 
   Sprite_Gauge.prototype.update.call(this);
-  //this.manageGaugeVisibility();
 };
 
 /**
@@ -9194,13 +10406,7 @@ Sprite_MapGauge.prototype.drawLabel = function()
     const x = 32;
     const y = 0;
     this.bitmap.fontSize = 12;
-    this.bitmap.drawText(
-      this._gauge._label,
-      x,
-      y,
-      this.bitmapWidth(),
-      this.bitmapHeight(),
-      "left");
+    this.bitmap.drawText(this._gauge._label, x, y, this.bitmapWidth(), this.bitmapHeight(), "left");
   }
 };
 
@@ -9210,7 +10416,43 @@ Sprite_MapGauge.prototype.drawLabel = function()
  */
 Sprite_MapGauge.prototype.setIcon = function(iconIndex)
 {
+  // assign the new index (use -1 as the sentinel for "no icon").
   this._gauge._iconIndex = iconIndex;
+
+  // if we already have an icon sprite, update it in-place.
+  if (this._gauge._iconSprite)
+  {
+    // when "no icon", keep the sprite but hide it.
+    if (this._gauge._iconIndex < 0)
+    {
+      this._gauge._iconSprite.visible = false; // hide without removing
+    }
+    else
+    {
+      // update the icon tile and make sure it is visible.
+      this._gauge._iconSprite.setIconIndex(this._gauge._iconIndex);
+      this._gauge._iconSprite.visible = true;
+
+      // re-center vertically in case the gauge height changed.
+      const iconHeight = 16; // after 0.5 scale of a 32px icon
+      const centeredY = Math.floor((this.bitmapHeight() - iconHeight) / 2);
+      this._gauge._iconSprite.move(10, centeredY);
+    }
+
+    // redraw the gauge (label/gradient may still need updating).
+    this.redraw();
+    return;
+  }
+
+  // if we don’t have a sprite yet and the index is valid, create one now.
+  if (this._gauge._iconIndex >= 0)
+  {
+    const sprite = this.createIconSprite();
+    this.addChild(sprite);
+    this._gauge._iconSprite = sprite;
+  }
+
+  // redraw the gauge (label/gradient may still need updating).
   this.redraw();
 };
 
@@ -9219,19 +10461,47 @@ Sprite_MapGauge.prototype.setIcon = function(iconIndex)
  */
 Sprite_MapGauge.prototype.drawIcon = function()
 {
-  if (this._gauge._iconIndex > 0 && !this.children.length)
+  // reconcile presence & visibility without destroying when unnecessary.
+  if (this._gauge._iconIndex >= 0)
   {
-    const sprite = this.createIconSprite();
-    sprite.move(10, 20);
-    this.addChild(sprite);
+    if (!this._gauge._iconSprite)
+    {
+      // add if missing.
+      const sprite = this.createIconSprite();
+      this.addChild(sprite);
+      this._gauge._iconSprite = sprite;
+    }
+
+    // ensure visible when we have an icon index.
+    this._gauge._iconSprite.visible = true;
+  }
+  else if (this._gauge._iconSprite)
+  {
+    // hide (do not remove) when no icon is intended.
+    this._gauge._iconSprite.visible = false;
   }
 };
 
+/**
+ * Creates the sprite for the icon on this gauge.
+ * @returns {Sprite_Icon}
+ */
 Sprite_MapGauge.prototype.createIconSprite = function()
 {
+  // create the icon sprite at the current index.
   const sprite = new Sprite_Icon(this._gauge._iconIndex);
+
+  // scale the icon smaller for map display.
   sprite.scale.x = 0.5;
   sprite.scale.y = 0.5;
+
+  // center the icon vertically inside this gauge’s bitmap height.
+  const iconHeight = 16;
+  const centeredY = Math.floor((this.bitmapHeight() - iconHeight) / 2);
+
+  // give it a small left padding so the label can start at x=32 nicely.
+  sprite.move(10, centeredY);
+
   return sprite;
 };
 
@@ -9250,15 +10520,29 @@ Sprite_MapGauge.prototype.drawValue = function()
  */
 Sprite_MapGauge.prototype.redraw = function()
 {
+  // clear any prior drawing first.
   this.bitmap.clear();
-  const currentValue = this.currentValue();
+
+  // compute current value and cache it into the same fields the base gauge uses.
+  const currentValue = this.currentValue(); // may be NaN to skip drawing
   if (!isNaN(currentValue))
   {
+
+
+    // IMPORTANT: assign backing fields for gaugeRate() to function.
+    this._value = currentValue; // current filled amount
+    this._maxValue = this.currentMaxValue(); // maximum value for fill
+
+    // draw the colored fill/backdrop using the cached rate values.
     this.drawGauge();
+
+    // draw label & icon similarly to your existing behavior (skip for "time").
     if (this._statusType !== "time")
     {
       this.drawLabel();
       this.drawIcon();
+
+      // only draw numeric value when valid (map gauges typically hide values).
       if (this.isValid())
       {
         this.drawValue();
@@ -9427,7 +10711,8 @@ J.BASE.Aliased.Window_Base.set('resetFontSettings', Window_Base.prototype.resetF
 Window_Base.prototype.resetFontSettings = function()
 {
   // perform original logic.
-  J.BASE.Aliased.Window_Base.get('resetFontSettings').call(this);
+  J.BASE.Aliased.Window_Base.get('resetFontSettings')
+    .call(this);
 
   // also reset the italics/bold back to false.
   this.resetFontFormatting();
@@ -9526,7 +10811,12 @@ Window_Base.prototype.drawBackgroundRect = function(rect)
   const color2 = ColorManager.itemBackColor2();
 
   // extract the data from the rectangle.
-  const { x, y, width, height } = rect;
+  const {
+    x,
+    y,
+    width,
+    height
+  } = rect;
 
   // render the background.
   this.contentsBack.gradientFillRect(x, y, width, height, color1, color2, true);
@@ -9914,14 +11204,7 @@ Window_Command.prototype.commandFaceData = function(index)
  * @param {number=} icon The icon index for this command; defaults to 0.
  * @param {number=} color The color index for this command; defaults to 0.
  */
-Window_Command.prototype.addCommand = function(
-  name,
-  symbol,
-  enabled = true,
-  ext = null,
-  icon = 0,
-  color = 0,
-)
+Window_Command.prototype.addCommand = function(name, symbol, enabled = true, ext = null, icon = 0, color = 0,)
 {
   this.commandList()
     .push({
@@ -9955,14 +11238,7 @@ Window_Command.prototype.addBuiltCommand = function(command)
  * @param {number=} icon The icon index for this command; defaults to 0.
  * @param {number=} color The color index for this command; defaults to 0.
  */
-Window_Command.prototype.prependCommand = function(
-  name,
-  symbol,
-  enabled = true,
-  ext = null,
-  icon = 0,
-  color = 0,
-)
+Window_Command.prototype.prependCommand = function(name, symbol, enabled = true, ext = null, icon = 0, color = 0,)
 {
   this.commandList()
     .unshift({
@@ -10063,7 +11339,6 @@ Window_EquipItem.prototype.postEquipSetupActorClone = function(actorClone)
 };
 //endregion Window_EquipItem
 
-
 /**
  * Gets the text from this help window.
  * @returns {string}
@@ -10160,7 +11435,7 @@ Window_Help.prototype.getSecondaryNewline = function()
  * Extracts the text rendering out into its own function, but this function
  * still does the same thing: clears and redraws the contents of the window.
  */
-Window_Help.prototype.refresh = function() 
+Window_Help.prototype.refresh = function()
 {
   // clear the contents of the window.
   this.contents.clear();
@@ -10175,7 +11450,11 @@ Window_Help.prototype.refresh = function()
 Window_Help.prototype.renderText = function()
 {
   // grab the rectangle coordinates to draw the text in.
-  const { x, y, width } = this.baseTextRect();
+  const {
+    x,
+    y,
+    width
+  } = this.baseTextRect();
 
   // draw the actual text.
   this.drawTextEx(this._text, x, y, width);
@@ -10187,7 +11466,8 @@ Window_Help.prototype.renderText = function()
  * "More" data is typically defined as parameters not found otherwise listed
  * in the screens these lists usually reside in.
  */
-class Window_MoreData extends Window_Command
+class Window_MoreData
+  extends Window_Command
 {
   /**
    * The various types supported by "more data" functionality.
@@ -10369,6 +11649,7 @@ class Window_MoreData extends Window_Command
     }
   }
 }
+
 //endregion Window_MoreData
 
 //region Window_Selectable
@@ -10418,7 +11699,9 @@ Window_Selectable.prototype.isMoreEnabled = function()
  */
 Window_Selectable.prototype.isMoreTriggered = function()
 {
-  return this._canRepeat ? Input.isRepeated("shift") : Input.isTriggered("shift");
+  return this._canRepeat
+    ? Input.isRepeated("shift")
+    : Input.isTriggered("shift");
 };
 
 /**
@@ -10476,9 +11759,7 @@ WindowLayer.prototype.render = function(renderer)
     return;
   }
 
-  const graphics = new PIXI.Graphics()
-    , {gl} = renderer
-    , children = this.children.clone();
+  const graphics = new PIXI.Graphics(), { gl } = renderer, children = this.children.clone();
 
   // noinspection JSUnresolvedFunction
   renderer.framebuffer.forceStencil();
