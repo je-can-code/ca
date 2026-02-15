@@ -578,9 +578,9 @@ J.TIME.Aliased = {
   Game_Event: new Map(),
   Game_Interpreter: new Map(),
 
-  JABS_InputController: new Map(),
+  JABS_StandardController: new Map(),
 
-  Scene_Base: {},
+  Scene_Base: new Map(),
   Scene_Map: new Map(),
 
   Window_Base: new Map(),
@@ -605,6 +605,7 @@ J.TIME.RegExp.MonthRangePage = /<monthRangePage:[ ]?(\d+)-(\d+)>/i;
 J.TIME.RegExp.YearRangePage = /<yearRangePage:[ ]?(\d+)-(\d+)>/i;
 
 J.TIME.RegExp.TimeRangePage = /<timeRangePage:[ ]?(\d{1,2}):(\d{1,2})-(\d{1,2}):(\d{1,2})>/i;
+// eslint-disable-next-line max-len
 J.TIME.RegExp.FullDateRangePage = /<fullDateRangePage:[ ]?(\[\d+, ?\d+, ?\d+, ?\d+, ?\d+])-(\[\d+, ?\d+, ?\d+, ?\d+, ?\d+])>/i
 
 
@@ -623,6 +624,7 @@ J.TIME.RegExp.MonthRangeChoice = /<monthRangeChoice:[ ]?(\d+)-(\d+)>/i;
 J.TIME.RegExp.YearRangeChoice = /<yearRangeChoice:[ ]?(\d+)-(\d+)>/i;
 
 J.TIME.RegExp.TimeRangeChoice = /<timeRangeChoice:[ ]?(\d{1,2}):(\d{1,2})-(\d{1,2}):(\d{1,2})>/i;
+// eslint-disable-next-line max-len
 J.TIME.RegExp.FullDateRangeChoice = /<fullDateRangeChoice:[ ]?(\[\d+, ?\d+, ?\d+, ?\d+, ?\d+])-(\[\d+, ?\d+, ?\d+, ?\d+, ?\d+])>/i
 
 /**
@@ -630,6 +632,7 @@ J.TIME.RegExp.FullDateRangeChoice = /<fullDateRangeChoice:[ ]?(\[\d+, ?\d+, ?\d+
  * @global
  * @type {Game_Time}
  */
+// eslint-disable-next-line no-unused-vars
 var $gameTime = null;
 //endregion Introduction
 
@@ -2692,11 +2695,11 @@ Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandInd
  * Extends {@link #update}.<br/>
  * Also handles input detection for the the time window toggle shortcut key.
  */
-J.TIME.Aliased.JABS_InputController.set('update', JABS_InputController.prototype.update);
-JABS_InputController.prototype.update = function()
+J.TIME.Aliased.JABS_StandardController.set('update', JABS_StandardController.prototype.update);
+JABS_StandardController.prototype.update = function()
 {
   // perform original logic.
-  J.TIME.Aliased.JABS_InputController.get('update')
+  J.TIME.Aliased.JABS_StandardController.get('update')
     .call(this);
 
   // update input for the time window toggle shortcut key.
@@ -2706,7 +2709,7 @@ JABS_InputController.prototype.update = function()
 /**
  * Monitors and takes action based on player input regarding the time window toggle shortcut key.
  */
-JABS_InputController.prototype.updateTimeWindowAction = function()
+JABS_StandardController.prototype.updateTimeWindowAction = function()
 {
   // check if the action's input requirements have been met.
   if (this.isTimeWindowActionTriggered())
@@ -2720,7 +2723,7 @@ JABS_InputController.prototype.updateTimeWindowAction = function()
  * Checks the inputs of the time window action.
  * @returns {boolean}
  */
-JABS_InputController.prototype.isTimeWindowActionTriggered = function()
+JABS_StandardController.prototype.isTimeWindowActionTriggered = function()
 {
   // this action requires the left stick button to be triggered.
   if (Input.isTriggered(J.ABS.Input.L3))
@@ -2735,7 +2738,7 @@ JABS_InputController.prototype.isTimeWindowActionTriggered = function()
 /**
  * Executes the time window toggle action.
  */
-JABS_InputController.prototype.performTimeWindowAction = function()
+JABS_StandardController.prototype.performTimeWindowAction = function()
 {
   JABS_InputAdapter.performTimeWindowAction();
 }
@@ -2936,16 +2939,28 @@ class TimeMapper
 
 //region Scene_Base
 /**
- * Extend the highest level `Scene_Base.update()` to also update time when applicable.
+ * The scenes that should not update artificial time.
  */
-J.TIME.Aliased.Scene_Base.update = Scene_Base.prototype.update;
+Scene_Base._noTimeScenes = [
+  Scene_Boot, Scene_Splash, Scene_File, Scene_Save, Scene_Load, Scene_Title, Scene_Gameover
+];
+
+/**
+ * Extends {@link #update}.<br>
+ * Also updates artificial time if it should be updated.
+ */
+J.TIME.Aliased.Scene_Base.set('update', Scene_Base.prototype.update);
 Scene_Base.prototype.update = function()
 {
-  J.TIME.Aliased.Scene_Base.update.call(this);
-  if (this.shouldUpdateTime())
-  {
-    $gameTime.update();
-  }
+  // perform original logic.
+  J.TIME.Aliased.Scene_Base.get('update')
+    .call(this);
+
+  // if time shouldn't update, then do not.
+  if (this.shouldUpdateTime() === false) return;
+
+  // update the time.
+  $gameTime.update();
 };
 
 /**
@@ -2955,13 +2970,21 @@ Scene_Base.prototype.update = function()
  */
 Scene_Base.prototype.shouldUpdateTime = function()
 {
-  const noTimeScenes = [ Scene_Boot, Scene_File, Scene_Save, Scene_Load, Scene_Title, Scene_Gameover ];
+  // if we are on a no-time scene, then it shouldn't update.
   const checkIfNoTimeScene = scene => SceneManager._scene instanceof scene;
-  const isNoTimeScene = !noTimeScenes.some(checkIfNoTimeScene);
-  const isTimeActive = $gameTime.isActive();
-  const isTimeUnblocked = !$gameTime.isBlocked();
+  const isOnNoTimeScene = Scene_Base._noTimeScenes.some(checkIfNoTimeScene, this) === true;
+  if (isOnNoTimeScene) return false;
 
-  return isNoTimeScene && isTimeActive && isTimeUnblocked;
+  // if time is inactive, then it shouldn't update.
+  const isTimeInactive = $gameTime.isActive() === false;
+  if (isTimeInactive) return false;
+
+  // if time is blocked, then it shouldn't update.
+  const isTimeUnblocked = $gameTime.isBlocked() === false;
+  if (isTimeUnblocked) return false;
+
+  // time can update!
+  return true;
 };
 //endregion Scene_Base
 

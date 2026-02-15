@@ -2036,6 +2036,62 @@ class JABS_AI
 
 //endregion JABS_AI
 
+//region JABS_BaseController
+/**
+ * Base class for all JABS input controllers.
+ */
+class JABS_BaseController
+{
+  /**
+   * The battler this controller is associated with.
+   * @type {JABS_Battler|null}
+   */
+  battler = null;
+
+  /**
+   * Default constructor for registering this controller with the input adapter.
+   */
+  constructor()
+  {
+    // register this controller with the input adapter.
+    this.register();
+  }
+
+  /**
+   * Connects this controller to the {@link JABS_InputAdapter}.
+   */
+  register()
+  {
+    // register this controller with the input adapter.
+    JABS_InputAdapter.register(this);
+  }
+
+  /**
+   * Gets the battler this controller is associated with.
+   * @returns {JABS_Battler|null}
+   */
+  getBattler()
+  {
+    return this.battler;
+  }
+
+  /**
+   * Sets the battler this controller is associated with.
+   * @param {JABS_Battler} battler The new battler to associate this controller with.
+   */
+  setBattler(battler)
+  {
+    if (battler === undefined)
+    {
+      throw new Error(`Cannot set the controller's battler to undefined. Use null if you want to clear it.`);
+    }
+
+    this.battler = battler;
+  }
+}
+
+//endregion JABS_BaseController
+
 //region JABS_Battler
 /**
  * An object that represents the binding of a `Game_Event` to a `Game_Battler`.
@@ -10144,7 +10200,7 @@ class JABS_InputAdapter
 {
   /**
    * A collection of registered controllers.
-   * @type {JABS_InputController|any}
+   * @type {JABS_BaseController[]}
    */
   static controllers = [];
 
@@ -10159,7 +10215,7 @@ class JABS_InputAdapter
 
   /**
    * Registers a controller with this input adapter.
-   * @param {JABS_InputController|any} controller The controller to register.
+   * @param {JABS_BaseController} controller The controller to register.
    */
   static register(controller)
   {
@@ -10167,8 +10223,7 @@ class JABS_InputAdapter
   }
 
   /**
-   * Checks whether or not any controllers have been registered
-   * with this input adapter.
+   * Checks whether or not any controllers have been registered with this input adapter.
    * @returns {boolean} True if we have at least one registered controller, false otherwise.
    */
   static hasControllers()
@@ -10406,6 +10461,31 @@ class JABS_InputAdapter
     if (jabsBattler.getAttackData(slot).length === 0) return false;
 
     // perform!
+    return true;
+  }
+
+  /**
+   * Executes the sprint action.
+   * The player will move at increased speed while sprinting is active.
+   * @param {boolean} sprinting True if the player is sprinting, false otherwise.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
+   */
+  static performSprint(sprinting, jabsBattler)
+  {
+    // check if we can sprint.
+    if (!this.#canPerformSprint(jabsBattler)) return;
+
+    // perform the sprint.
+    jabsBattler.getCharacter()._dashing = sprinting;
+  }
+
+  /**
+   * Determines whether or not the player can sprint.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
+   * @returns {boolean} True if they can, false otherwise.
+   */
+  static #canPerformSprint(jabsBattler)
+  {
     return true;
   }
 
@@ -12794,7 +12874,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.0.0 JABS] Enables combat to be carried out on the map.
+ * [v4.1.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -12838,6 +12918,8 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.1.0
+ *    Added support for J-ABS-InputManager 2.0.0 (including button remaps).
  * - 4.0.0
  *    Added hitbox visibility for castable skills along with related tags.
  *    Properly abstracted DIAG out of this plugin.
@@ -19469,7 +19551,7 @@ Input.keyMapper = {
   81: J.ABS.Input.SkillTrigger, // q
   17: J.ABS.Input.StrafeTrigger,// ctrl
   69: J.ABS.Input.GuardTrigger, // e
-  9: J.ABS.Input.MobilitySkill,// tab (overwrite)
+  9: J.ABS.Input.MobilitySkill, // tab (overwrite)
 
   // quickmenu button.
   13: J.ABS.Input.Quickmenu,    // enter (overwrite)
