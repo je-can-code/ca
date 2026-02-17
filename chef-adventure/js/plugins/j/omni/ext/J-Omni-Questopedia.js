@@ -2286,7 +2286,7 @@ TrackedOmniQuest.prototype.handleQuestUpdateLog = function()
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v1.0.1 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -2378,6 +2378,8 @@ TrackedOmniQuest.prototype.handleQuestUpdateLog = function()
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Adds support for JABS-based input remapping.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -2633,12 +2635,13 @@ J.OMNI.EXT.QUEST = {};
 /**
  * The metadata associated with this plugin.
  */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata('J-Omni-Questopedia', '1.0.0');
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata('J-Omni-Questopedia', '1.0.1');
 
 /**
  * A collection of all aliased methods for this plugin.
  */
 J.OMNI.EXT.QUEST.Aliased = {};
+J.OMNI.EXT.QUEST.Aliased.DataManager = new Map();
 J.OMNI.EXT.QUEST.Aliased.Game_Enemy = new Map();
 J.OMNI.EXT.QUEST.Aliased.Game_Event = new Map();
 J.OMNI.EXT.QUEST.Aliased.Game_Interpreter = new Map();
@@ -2648,6 +2651,7 @@ J.OMNI.EXT.QUEST.Aliased.Game_System = new Map();
 J.OMNI.EXT.QUEST.Aliased.JABS_StandardController = new Map();
 J.OMNI.EXT.QUEST.Aliased.Scene_Omnipedia = new Map();
 J.OMNI.EXT.QUEST.Aliased.Window_OmnipediaList = new Map();
+J.OMNI.EXT.QUEST.Aliased.Window_JabsRemapActions = new Map();
 
 /**
  * All regular expressions used by this plugin.
@@ -2718,6 +2722,46 @@ PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "set-quest-trackin
 });
 //endregion plugin commands
 
+//region DataManager
+/**
+ * Extends/Overrides {@link #createGameObjects}.<br/>
+ * Also registers J.OMNI.QUEST input actions and defaults.
+ */
+J.OMNI.EXT.QUEST.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
+DataManager.createGameObjects = function()
+{
+  // perform original logic.
+  J.OMNI.EXT.QUEST.Aliased.DataManager.get('createGameObjects')
+    .call(this);
+
+  // register (or re-register) quest actions/defaults each boot/load.
+  DataManager.registerQuestopediaInputActions();
+};
+
+/**
+ * Registers the quest actions and seeds defaults into the engine-owned Input registry.
+ * Called each time game objects are (re)created.
+ */
+DataManager.registerQuestopediaInputActions = function()
+{
+  // register the logical action under the J.OMNI.QUEST namespace.
+  Input.registerAction('J.OMNI.QUEST', {
+    key: 'open-quest-log',
+    label: 'Open Quest Log',
+    defaults: [ J.ABS.Input.DPadRight ],
+    category: 'ui',
+  });
+
+  // seed defaults (replacement-idempotent) and ensure live bindings exist.
+  Input.seedDefaultBindings('J.OMNI.QUEST', {
+    'open-quest-log': [ J.ABS.Input.DPadRight ],
+  });
+
+  // lazily initialize the live bindings bucket for this ns if needed.
+  Input.getAllBindings('J.OMNI.QUEST');
+};
+//endregion DataManager
+
 //region JABS_InputAdapter
 // only setup this shortcut key if we're using JABS.
 if (J.ABS)
@@ -2741,7 +2785,25 @@ if (J.ABS)
    */
   JABS_InputAdapter._canPerformQuestopediaAction = function()
   {
-    // TODO: check if questopedia is accessible.
+    // only allow while on the map scene.
+    if (!(SceneManager._scene instanceof Scene_Map))
+    {
+      return false;
+    }
+
+    // block while messages are active to avoid input conflicts.
+    if ($gameMessage.isBusy())
+    {
+      return false;
+    }
+
+    // block during transfers to avoid scene-change collisions.
+    if ($gamePlayer.isTransferring())
+    {
+      return false;
+    }
+
+    // allow otherwise.
     return true;
   };
 }
@@ -4030,8 +4092,8 @@ JABS_StandardController.prototype.updateQuestopediaAction = function()
  */
 JABS_StandardController.prototype.isQuestopediaActionTriggered = function()
 {
-  // this action requires the right stick button to be triggered.
-  if (Input.isTriggered(J.ABS.Input.R3))
+  // this action requires the registered quest open to be triggered (edge press).
+  if (Input.isActionTriggered("J.OMNI.QUEST", "open-quest-log"))
   {
     return true;
   }
@@ -4736,6 +4798,37 @@ class Scene_Questopedia
 }
 
 //endregion Scene_Questopedia
+
+//region Window_JabsRemapActions
+/**
+ * Extends {@link #buildPostExtensionGroups}.<br/>
+ * Also appends a "Quest Actions" section for external (J.OMNI.QUEST) actions.
+ * @param {BuiltWindowCommand[]} rows The rows being built.
+ * @param {Set<string>} can The set of assignable logical action keys.
+ */
+J.OMNI.EXT.QUEST.Aliased.Window_JabsRemapActions.set(
+  'buildPostExtensionGroups',
+  Window_JabsRemapActions.prototype.buildPostExtensionGroups
+);
+Window_JabsRemapActions.prototype.buildPostExtensionGroups = function(rows, can)
+{
+  // perform original logic (defaults to other extensions or no-op).
+  J.OMNI.EXT.QUEST.Aliased.Window_JabsRemapActions
+    .get('buildPostExtensionGroups')
+    .call(this, rows, can);
+
+  // append a header for the quest actions.
+  rows.push(this.buildHeaderCommand('Quest Actions'));
+
+  // add external action row for opening the quest log with fixed per-action icon.
+  rows.push(this.buildExternalActionCommand(
+    'J.OMNI.QUEST',
+    'open-quest-log',
+    'Open Quest Log',
+    186
+  ));
+};
+//endregion Window_JabsRemapActions
 
 /**
  * Extends {@link #buildCommands}.<br>
