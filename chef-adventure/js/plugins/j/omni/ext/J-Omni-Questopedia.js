@@ -4394,13 +4394,13 @@ class Scene_Questopedia
     const categoriesRectangle = this.questopediaCategoriesRectangle();
 
     // the list x coordinate is aligned with the categories window.
-    const x = categoriesRectangle.x;
+    const { x } = categoriesRectangle;
 
     // the list y coordinate is below the categories window.
     const y = categoriesRectangle.height + Graphics.verticalPadding;
 
     // define the width of the list.
-    const width = categoriesRectangle.width;
+    const { width } = categoriesRectangle;
 
     // define the height of the list.
     const height = Graphics.boxHeight - Graphics.verticalPadding - y;
@@ -4710,7 +4710,7 @@ class Scene_Questopedia
       // check if we are at the beginning of the list.
       if (currentIndex === 0)
       {
-        categoriesWindow.select(categoriesWindow._list.length - 1)
+        categoriesWindow.select(categoriesWindow._list.length - 1);
       }
       // this isn't the beginning of the list, so select the previous entry.
       else
