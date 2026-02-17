@@ -216,6 +216,7 @@ class MinimapEventType
  * CHANGELOG:
  * - 1.0.1
  *    Adds support for JABS-based input remapping.
+ *    Removes connection between TIME system and minimap visibility.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -514,26 +515,14 @@ if (J.ABS)
    */
   JABS_InputAdapter.performMinimapWindowAction = function()
   {
-    // if we cannot toggle the time window, then do not.
-    if (!this._canPerformMinimapWindowAction()) return;
-
-    // check if we're using the TIME system.
-    if (J.TIME)
+    // If we cannot toggle the minimap (ex: map blocks minimap), then do not.
+    if (this._canPerformMinimapWindowAction() === false)
     {
-      // grab the current TIME window visibility.
-      const currentTimeWindowVisibility = $gameTime.isMapWindowVisible();
-
-      // if the visibility is the same, then do nothing.
-      if ($gameSystem.isMinimapVisible() === currentTimeWindowVisibility) return;
-
-      // otherwise, set the visibility to whatever the TIME window is now.
-      $gameSystem.setMinimapVisibility(currentTimeWindowVisibility);
+      return;
     }
-    else
-    {
-      // just toggle the visibility.
-      $gameSystem.toggleMinimapVisibility();
-    }
+
+    // flip the minimap visibility directly.
+    $gameSystem.toggleMinimapVisibility();
   };
 
   /**

@@ -2717,6 +2717,12 @@ Game_System.prototype.getJabsInputConfig = function(controllerKey)
  */
 Game_System.prototype.getInputBindingsSnapshot = function()
 {
+  // in case this save file was created ahead of the remap update, handle it.
+  if (!this._j || !this._j._abs || !this._j._abs._input || !this._j._abs._input._bindings)
+  {
+    return {};
+  }
+
   // return the stored snapshot bag (may be empty object).
   return this._j._abs._input._bindings || {};
 };
@@ -2865,6 +2871,63 @@ Game_System.prototype.resolveJabsControllerKey = function(controller, index)
 };
 
 /**
+ * Initializes JABS input data for legacy saves that predate persistence.
+ * If both the stored controller mappings and Input bindings snapshot are missing,
+ * this seeds defaults one time so subsequent saves/loads work normally.
+ */
+Game_System.prototype.initializeJabsInputForLegacySaveIfMissing = function()
+{
+  // Ensure the JABS input scaffolding exists on loaded saves.
+  this.initJabsInputConfigMembers();
+
+  // Read the mappings dictionary if available, otherwise null.
+  const mappingsDict = (this._j && this._j._abs && this._j._abs._input)
+    ? this._j._abs._input._mappings
+    : null;
+
+  // Read the bindings dictionary if available, otherwise null.
+  const bindingsDict = (this._j && this._j._abs && this._j._abs._input)
+    ? this._j._abs._input._bindings
+    : null;
+
+  // Determine if any mappings exist in the save.
+  const hasMappings = mappingsDict
+    ? Object.keys(mappingsDict).length > 0
+    : false;
+
+  // Determine if any bindings exist in the save.
+  const hasBindings = bindingsDict
+    ? Object.keys(bindingsDict).length > 0
+    : false;
+
+  // If neither mappings nor bindings exist, initialize defaults for old saves.
+  if (hasMappings === false && hasBindings === false)
+  {
+    // Ensure the live Input registry is bootstrapped with defaults.
+    Input.ensureRemapBootstrapped();
+
+    // For any currently-registered controllers, apply and persist defaults.
+    const controllers = JABS_InputAdapter.getAllControllers();
+    controllers.forEach((controller, index) =>
+    {
+      // Resolve a stable key for this controller.
+      const key = this.resolveJabsControllerKey(controller, index);
+
+      // Build defaults and apply to the live controller.
+      const defaults = controller.buildDefaultMapping();
+      controller.setAllInputs(defaults);
+
+      // Persist defaults into the system store so it exists next save.
+      this.setJabsInputConfig(key, defaults);
+    });
+
+    // Snapshot the default Input registry across all namespaces for persistence.
+    const snapshot = Input.exportAllBindingsForSave();
+    this.setInputBindingsSnapshot(snapshot);
+  }
+};
+
+/**
  * Extends {@link #onBeforeSave}.<br/>
  * Snapshots controller mappings before saving.
  */
@@ -2892,6 +2955,9 @@ Game_System.prototype.onAfterLoad = function()
   // perform original logic.
   J.ABS.EXT.INPUT.Aliased.Game_System.get('onAfterLoad')
     .call(this);
+
+  // Perform one-time initialization for legacy saves if required.
+  this.initializeJabsInputForLegacySaveIfMissing();
 
   // apply the persisted Input bindings back into the live registry.
   this.applyAllInputBindingsToInput();
