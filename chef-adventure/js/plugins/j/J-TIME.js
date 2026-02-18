@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 TIME] A system for tracking time- real or artificial.
+ * [v1.0.3 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -136,6 +136,8 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Adapted for updates to J-ABS-InputManager (input namespace).
  * - 1.0.2
  *    Adapted input remappability update of J-ABS-InputManager.
  *    Removed connection between J-MAP and J-TIME toggling (HUD).
@@ -530,7 +532,7 @@ J.TIME = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.TIME.Metadata = {};
-J.TIME.Metadata.Version = '1.0.2';
+J.TIME.Metadata.Version = '1.0.3';
 J.TIME.Metadata.Name = `J-TIME`;
 
 /**
@@ -2730,7 +2732,7 @@ JABS_StandardController.prototype.updateTimeWindowAction = function()
 JABS_StandardController.prototype.isTimeWindowActionTriggered = function()
 {
   // this action requires the left stick button to be triggered.
-  if (Input.isTriggered(J.ABS.Input.L3))
+  if (Input.isTriggered(J.ABS.EXT.INPUT.Symbols.L3))
   {
     return true;
   }

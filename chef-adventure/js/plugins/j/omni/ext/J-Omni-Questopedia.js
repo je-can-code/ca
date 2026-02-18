@@ -2286,7 +2286,7 @@ TrackedOmniQuest.prototype.handleQuestUpdateLog = function()
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v1.0.2 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -2378,6 +2378,8 @@ TrackedOmniQuest.prototype.handleQuestUpdateLog = function()
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Adapted for updates to J-ABS-InputManager (input namespace).
  * - 1.0.1
  *    Adds support for JABS-based input remapping.
  * - 1.0.0
@@ -2635,7 +2637,7 @@ J.OMNI.EXT.QUEST = {};
 /**
  * The metadata associated with this plugin.
  */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata('J-Omni-Questopedia', '1.0.1');
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata('J-Omni-Questopedia', '1.0.2');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -2748,13 +2750,13 @@ DataManager.registerQuestopediaInputActions = function()
   Input.registerAction('J.OMNI.QUEST', {
     key: 'open-quest-log',
     label: 'Open Quest Log',
-    defaults: [ J.ABS.Input.DPadRight ],
+    defaults: [ J.ABS.EXT.INPUT.Symbols.DPadRight ],
     category: 'ui',
   });
 
   // seed defaults (replacement-idempotent) and ensure live bindings exist.
   Input.seedDefaultBindings('J.OMNI.QUEST', {
-    'open-quest-log': [ J.ABS.Input.DPadRight ],
+    'open-quest-log': [ J.ABS.EXT.INPUT.Symbols.DPadRight ],
   });
 
   // lazily initialize the live bindings bucket for this ns if needed.

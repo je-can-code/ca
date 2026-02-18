@@ -5897,9 +5897,6 @@ JABS_Battler.prototype.canActionConnect = function ()
   // this battler is untargetable.
   if (this.isInvincible()) return false;
 
-  // the player cannot be targeted while holding the DEBUG button.
-  if (this.isPlayer() && Input.isPressed(J.ABS.Input.Debug)) return false;
-
   // precise timing allows for battlers to hit other battlers the instant they
   // meet event conditions, and that is not grounds to hit enemies.
   if (this.getCharacter()
@@ -12874,7 +12871,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.1.0 JABS] Enables combat to be carried out on the map.
+ * [v4.1.1 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -12918,6 +12915,9 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.1.1
+ *    Moved ownership of debug movement to J-ABS-InputManager.
+ *    Removed dead code (deprecated dash input).
  * - 4.1.0
  *    Added support for J-ABS-InputManager 2.0.0 (including button remaps).
  * - 4.0.0
@@ -14943,7 +14943,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.0.0';
+J.ABS.Metadata.Version = '4.1.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -31673,27 +31673,6 @@ Game_Party.prototype.leaderJabsBattler = function()
 
 //region Game_Player
 /**
- * OVERWRITE Changes the button detection to look for a different button instead of SHIFT.
- */
-Game_Player.prototype.isDashButtonPressed = function()
-{
-  // define the baseline for whether or not the player is dashing.
-  const shift = Input.isPressed(J.ABS.Input.Dash);
-
-  // figure out if we're inverting the baseline.
-  if (ConfigManager.alwaysDash)
-  {
-    // invert the baseline.
-    return !shift;
-  }
-  else
-  {
-    // keep with the baseline.
-    return shift;
-  }
-};
-
-/**
  * While JABS is enabled, don't try to interact with events if they are enemies.
  */
 J.ABS.Aliased.Game_Player.set('startMapEvent', Game_Player.prototype.startMapEvent);
@@ -31707,6 +31686,7 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal)
     {
       for (const event of $gameMap.eventsXy(x, y))
       {
+        // eslint-disable-next-line max-len
         if (!event.isErased() && event.isTriggerIn(triggers) && event.isNormalPriority() === normal && !event.getJabsBattler())
         {
           event.start();
@@ -31748,24 +31728,6 @@ Game_Player.prototype.canMove = function()
   {
     // perform original logic.
     return J.ABS.Aliased.Game_Player.get('canMove')
-      .call(this);
-  }
-};
-
-J.ABS.Aliased.Game_Player.set('isDebugThrough', Game_Player.prototype.isDebugThrough);
-Game_Player.prototype.isDebugThrough = function()
-{
-  // check if JABS is enabled.
-  if ($jabsEngine.absEnabled)
-  {
-    // the debug button is changed while JABS is active.
-    return Input.isPressed(J.ABS.Input.Debug) && $gameTemp.isPlaytest();
-  }
-  // JABS is not enabled.
-  else
-  {
-    // perform original logic.
-    return J.ABS.Aliased.Game_Player.get('isDebugThrough')
       .call(this);
   }
 };
