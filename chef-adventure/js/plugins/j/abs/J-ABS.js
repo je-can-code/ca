@@ -2036,6 +2036,62 @@ class JABS_AI
 
 //endregion JABS_AI
 
+//region JABS_BaseController
+/**
+ * Base class for all JABS input controllers.
+ */
+class JABS_BaseController
+{
+  /**
+   * The battler this controller is associated with.
+   * @type {JABS_Battler|null}
+   */
+  battler = null;
+
+  /**
+   * Default constructor for registering this controller with the input adapter.
+   */
+  constructor()
+  {
+    // register this controller with the input adapter.
+    this.register();
+  }
+
+  /**
+   * Connects this controller to the {@link JABS_InputAdapter}.
+   */
+  register()
+  {
+    // register this controller with the input adapter.
+    JABS_InputAdapter.register(this);
+  }
+
+  /**
+   * Gets the battler this controller is associated with.
+   * @returns {JABS_Battler|null}
+   */
+  getBattler()
+  {
+    return this.battler;
+  }
+
+  /**
+   * Sets the battler this controller is associated with.
+   * @param {JABS_Battler} battler The new battler to associate this controller with.
+   */
+  setBattler(battler)
+  {
+    if (battler === undefined)
+    {
+      throw new Error(`Cannot set the controller's battler to undefined. Use null if you want to clear it.`);
+    }
+
+    this.battler = battler;
+  }
+}
+
+//endregion JABS_BaseController
+
 //region JABS_Battler
 /**
  * An object that represents the binding of a `Game_Event` to a `Game_Battler`.
@@ -10144,7 +10200,7 @@ class JABS_InputAdapter
 {
   /**
    * A collection of registered controllers.
-   * @type {JABS_InputController|any}
+   * @type {JABS_BaseController[]}
    */
   static controllers = [];
 
@@ -10159,7 +10215,7 @@ class JABS_InputAdapter
 
   /**
    * Registers a controller with this input adapter.
-   * @param {JABS_InputController|any} controller The controller to register.
+   * @param {JABS_BaseController} controller The controller to register.
    */
   static register(controller)
   {
@@ -10167,8 +10223,7 @@ class JABS_InputAdapter
   }
 
   /**
-   * Checks whether or not any controllers have been registered
-   * with this input adapter.
+   * Checks whether or not any controllers have been registered with this input adapter.
    * @returns {boolean} True if we have at least one registered controller, false otherwise.
    */
   static hasControllers()
@@ -10406,6 +10461,31 @@ class JABS_InputAdapter
     if (jabsBattler.getAttackData(slot).length === 0) return false;
 
     // perform!
+    return true;
+  }
+
+  /**
+   * Executes the sprint action.
+   * The player will move at increased speed while sprinting is active.
+   * @param {boolean} sprinting True if the player is sprinting, false otherwise.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
+   */
+  static performSprint(sprinting, jabsBattler)
+  {
+    // check if we can sprint.
+    if (!this.#canPerformSprint(jabsBattler)) return;
+
+    // perform the sprint.
+    jabsBattler.getCharacter()._dashing = sprinting;
+  }
+
+  /**
+   * Determines whether or not the player can sprint.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
+   * @returns {boolean} True if they can, false otherwise.
+   */
+  static #canPerformSprint(jabsBattler)
+  {
     return true;
   }
 
@@ -12794,7 +12874,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.0.0 JABS] Enables combat to be carried out on the map.
+ * [v4.1.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -12838,6 +12918,8 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.1.0
+ *    Added support for J-ABS-InputManager 2.0.0 (including button remaps).
  * - 4.0.0
  *    Added hitbox visibility for castable skills along with related tags.
  *    Properly abstracted DIAG out of this plugin.
@@ -19318,12 +19400,12 @@ DataManager.getSkillMasterMap = function()
   const mapId = J.ABS.DefaultValues.ActionMap;
   if (mapId > 0)
   {
-    const filename = "Map%1.json".format(mapId.padZero(3));
-    this.loadSkillMasterMap("$dataMap", filename);
+    const filename = 'Map%1.json'.format(mapId.padZero(3));
+    this.loadSkillMasterMap('$dataMap', filename);
   }
   else
   {
-    throw new Error("Missing skill master map.");
+    throw new Error('Missing skill master map.');
   }
 };
 
@@ -19335,9 +19417,9 @@ DataManager.getSkillMasterMap = function()
 DataManager.loadSkillMasterMap = function(name, src)
 {
   const xhr = new XMLHttpRequest();
-  const url = "data/" + src;
-  xhr.open("GET", url);
-  xhr.overrideMimeType("application/json");
+  const url = 'data/' + src;
+  xhr.open('GET', url);
+  xhr.overrideMimeType('application/json');
   xhr.onload = () => this.onMapGet(xhr, name, src, url);
   xhr.onerror = () => this.gracefulFail(name, src, url);
   xhr.send();
@@ -19373,123 +19455,6 @@ DataManager.gracefulFail = function(name, src, url)
   console.error(name, src, url);
 };
 //endregion
-
-
-//TODO: move these to the input manager?
-//region Input
-/**
- * The mappings of the gamepad descriptions to their buttons.
- */
-J.ABS.Input = {};
-
-// this section of inputs is an attempt to align with the internal RMMZ mapping convention.
-J.ABS.Input.DirUp = "up";
-J.ABS.Input.DirDown = "down";
-J.ABS.Input.DirLeft = "left";
-J.ABS.Input.DirRight = "right";
-J.ABS.Input.Mainhand = "ok";
-J.ABS.Input.Offhand = "cancel";
-J.ABS.Input.Dash = "shift";
-J.ABS.Input.Tool = "tab";
-J.ABS.Input.GuardTrigger = "pagedown";
-J.ABS.Input.SkillTrigger = "pageup";
-
-// this section of inputs are newly implemented.
-J.ABS.Input.MobilitySkill = "r2";
-J.ABS.Input.StrafeTrigger = "l2";
-J.ABS.Input.Quickmenu = "start";
-J.ABS.Input.PartyCycle = "select";
-J.ABS.Input.Debug = "cheat";
-
-// for gamepads, these buttons are tracked, but aren't used by JABS right now.
-J.ABS.Input.R3 = "r3";
-J.ABS.Input.L3 = "l3";
-
-// for keyboards, these buttons are for direct combatskill usage.
-J.ABS.Input.CombatSkill1 = "combat-skill-1";
-J.ABS.Input.CombatSkill2 = "combat-skill-2";
-J.ABS.Input.CombatSkill3 = "combat-skill-3";
-J.ABS.Input.CombatSkill4 = "combat-skill-4";
-
-/**
- * OVERWRITE Defines gamepad button input to instead perform the various
- * actions that are expected in this ABS.
- *
- * This includes:
- * - D-Pad up, down, left, right
- * - A/kross, B/circle, X/square, Y/triangle
- * - L1/LB, R1/RB
- * - NEW: select/options, start/menu
- * - NEW: L2/LT, R2/RT
- * - NEW: L3/LSB, R3/RSB
- * - OVERWRITE: Y now is the tool button, and start is the menu.
- */
-Input.gamepadMapper = {
-  0: J.ABS.Input.Mainhand,      // kross
-  1: J.ABS.Input.Offhand,       // circle
-  2: J.ABS.Input.Dash,          // square
-  3: J.ABS.Input.Tool,          // triangle
-
-  4: J.ABS.Input.SkillTrigger,  // (L1) left bumper
-  5: J.ABS.Input.GuardTrigger,  // (R1) right bumper
-  6: J.ABS.Input.StrafeTrigger, // (L2) left trigger
-  7: J.ABS.Input.MobilitySkill, // (R2) right trigger
-
-  8: J.ABS.Input.PartyCycle,    // select
-  9: J.ABS.Input.Quickmenu,     // start
-
-  10: J.ABS.Input.L3,           // (L3) left stick button
-  11: J.ABS.Input.R3,           // (R3) right stick button
-
-  12: J.ABS.Input.DirUp,        // d-pad up
-  13: J.ABS.Input.DirDown,      // d-pad down
-  14: J.ABS.Input.DirLeft,      // d-pad left
-  15: J.ABS.Input.DirRight,     // d-pad right
-  // the analog stick should be natively supported for movement.
-};
-
-/**
- * Extends the existing mapper for keyboards to accommodate for the
- * additional skill inputs that are used for gamepads.
- */
-Input.keyMapper = {
-  // define the original keyboard mapping.
-  ...Input.keyMapper,
-
-  // this is the new debug move-through for use with JABS.
-  192: J.ABS.Input.Debug,       // ` (backtick)
-
-  // core buttons.
-  90: J.ABS.Input.Mainhand,     // z
-  88: J.ABS.Input.Offhand,      // x
-  16: J.ABS.Input.Dash,         // shift (overwrite)
-  67: J.ABS.Input.Tool,         // c
-
-  // functional buttons.
-  81: J.ABS.Input.SkillTrigger, // q
-  17: J.ABS.Input.StrafeTrigger,// ctrl
-  69: J.ABS.Input.GuardTrigger, // e
-  9: J.ABS.Input.MobilitySkill,// tab (overwrite)
-
-  // quickmenu button.
-  13: J.ABS.Input.Quickmenu,    // enter (overwrite)
-
-  // party cycling button.
-  46: J.ABS.Input.PartyCycle,   // del
-
-  // movement buttons.
-  38: J.ABS.Input.DirUp,        // arrow up
-  40: J.ABS.Input.DirDown,      // arrow down
-  37: J.ABS.Input.DirLeft,      // arrow left
-  39: J.ABS.Input.DirRight,     // arrow right
-
-  // keyboard alternative for the multi-button skills.
-  49: J.ABS.Input.CombatSkill1,       // 1 = L1 + cross
-  50: J.ABS.Input.CombatSkill2,       // 2 = L1 + circle
-  51: J.ABS.Input.CombatSkill3,       // 3 = L1 + square
-  52: J.ABS.Input.CombatSkill4,       // 4 = L1 + triangle
-};
-//endregion Input
 
 //region JABS_AiManager
 /**

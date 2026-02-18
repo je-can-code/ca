@@ -2640,7 +2640,6 @@ Game_Party.prototype.initAllyAi = function()
    * @type {string}
    */
   this._j._abs._allyAI._partyFormation = J.ABS.EXT.ALLYAI.Metadata.DefaultFormationType;
-  console.log(this._j._abs._allyAI._partyFormation);
 };
 
 /**

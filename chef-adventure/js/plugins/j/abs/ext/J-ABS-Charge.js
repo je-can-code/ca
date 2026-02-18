@@ -354,7 +354,7 @@ J.ABS.EXT.CHARGE.Aliased = {
   Game_Enemy: new Map(),
   JABS_Action: new Map(),
   JABS_Battler: new Map(),
-  JABS_InputController: new Map(),
+  JABS_StandardController: new Map(),
   SoundManager: new Map(),
 };
 
@@ -1354,11 +1354,11 @@ JABS_InputAdapter.canPerformCombatSkillCharging = function(jabsBattler)
 //endregion JABS_InputAdapter
 
 //region JABS_InputController
-J.ABS.EXT.CHARGE.Aliased.JABS_InputController.set('initMembers', JABS_InputController.prototype.initMembers);
-JABS_InputController.prototype.initMembers = function()
+J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set('initMembers', JABS_StandardController.prototype.initMembers);
+JABS_StandardController.prototype.initMembers = function()
 {
   // perform original logic.
-  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('initMembers')
+  J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.get('initMembers')
     .call(this);
 
   /**
@@ -1381,7 +1381,7 @@ JABS_InputController.prototype.initMembers = function()
  * Gets the input delay for charging.
  * @returns {number} The delay in number of frames.
  */
-JABS_InputController.prototype.getChargeInputDelayAmount = function()
+JABS_StandardController.prototype.getChargeInputDelayAmount = function()
 {
   return this._chargeInputDelayMax;
 };
@@ -1389,7 +1389,7 @@ JABS_InputController.prototype.getChargeInputDelayAmount = function()
 /**
  * Initializes the input delays for this controller.
  */
-JABS_InputController.prototype.initInputDelays = function()
+JABS_StandardController.prototype.initInputDelays = function()
 {
   // clear the map if there was already stuff there somehow.
   this._chargeInputDelay.clear();
@@ -1408,7 +1408,7 @@ JABS_InputController.prototype.initInputDelays = function()
  * @param {string} slot The slot to retrieve the charge input delay timer for.
  * @returns {JABS_Timer}
  */
-JABS_InputController.prototype.getChargeInputDelayBySlot = function(slot)
+JABS_StandardController.prototype.getChargeInputDelayBySlot = function(slot)
 {
   return this._chargeInputDelay.get(slot);
 };
@@ -1417,7 +1417,7 @@ JABS_InputController.prototype.getChargeInputDelayBySlot = function(slot)
  * Updates the charge input delay in the given slot.
  * @param {string} slot The slot to update the charge input delay timer for.
  */
-JABS_InputController.prototype.updateChargeInputDelayBySlot = function(slot)
+JABS_StandardController.prototype.updateChargeInputDelayBySlot = function(slot)
 {
   this.getChargeInputDelayBySlot(slot)
     .update();
@@ -1427,7 +1427,7 @@ JABS_InputController.prototype.updateChargeInputDelayBySlot = function(slot)
  * Resets the charge input delay in the given slot back to default.
  * @param {string} slot The slot to refresh the charge input delay timer for.
  */
-JABS_InputController.prototype.resetChargeInputDelayBySlot = function(slot)
+JABS_StandardController.prototype.resetChargeInputDelayBySlot = function(slot)
 {
   this.getChargeInputDelayBySlot(slot)
     .reset();
@@ -1438,7 +1438,7 @@ JABS_InputController.prototype.resetChargeInputDelayBySlot = function(slot)
  * @param {string} slot The slot to refresh the charge input delay timer for.
  * @returns {boolean} True if the slot's timer is complete, false otherwise.
  */
-JABS_InputController.prototype.isTimerCompleteBySlot = function(slot)
+JABS_StandardController.prototype.isTimerCompleteBySlot = function(slot)
 {
   return this.getChargeInputDelayBySlot(slot)
     .isTimerComplete();
@@ -1446,15 +1446,15 @@ JABS_InputController.prototype.isTimerCompleteBySlot = function(slot)
 
 //region mainhand
 /**
- * Extends {@link JABS_InputController.updateMainhandAction}.<br>
+ * Extends {@link JABS_StandardController.updateMainhandAction}.<br>
  * Handles charging capability for this input.
  */
-J.ABS.EXT.CHARGE.Aliased.JABS_InputController
-  .set('updateMainhandAction', JABS_InputController.prototype.updateMainhandAction);
-JABS_InputController.prototype.updateMainhandAction = function()
+J.ABS.EXT.CHARGE.Aliased.JABS_StandardController
+  .set('updateMainhandAction', JABS_StandardController.prototype.updateMainhandAction);
+JABS_StandardController.prototype.updateMainhandAction = function()
 {
   // perform original logic.
-  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateMainhandAction')
+  J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.get('updateMainhandAction')
     .call(this);
 
   // handle the charging.
@@ -1464,7 +1464,7 @@ JABS_InputController.prototype.updateMainhandAction = function()
 /**
  * Handles the charging detection and interaction for the mainhand.
  */
-JABS_InputController.prototype.handleMainhandCharging = function()
+JABS_StandardController.prototype.handleMainhandCharging = function()
 {
   // check if the action's input requirements have been met.
   if (this.isMainhandActionCharging())
@@ -1484,7 +1484,7 @@ JABS_InputController.prototype.handleMainhandCharging = function()
  * Checks the inputs of the mainhand action currently assigned (A default).
  * @returns {boolean}
  */
-JABS_InputController.prototype.isMainhandActionCharging = function()
+JABS_StandardController.prototype.isMainhandActionCharging = function()
 {
   // if the player is preparing to use a skill, don't do this as well.
   if (!this.canChargeMainhandAction()) return false;
@@ -1500,7 +1500,7 @@ JABS_InputController.prototype.isMainhandActionCharging = function()
  * Determines whether or not the mainhand action can be charged.
  * @returns {boolean}
  */
-JABS_InputController.prototype.canChargeMainhandAction = function()
+JABS_StandardController.prototype.canChargeMainhandAction = function()
 {
   // do not charge if we are just mashing the button.
   if (this.isMainhandActionTriggered()) return false;
@@ -1516,7 +1516,7 @@ JABS_InputController.prototype.canChargeMainhandAction = function()
  * Determines whether or not the charging is ready.
  * @returns {boolean} True if the charging is ready, false otherwise.
  */
-JABS_InputController.prototype.isMainhandChargeActionReady = function()
+JABS_StandardController.prototype.isMainhandChargeActionReady = function()
 {
   // the delay is still ticking.
   if (!this.isTimerCompleteBySlot(JABS_Button.Mainhand)) return false;
@@ -1528,7 +1528,7 @@ JABS_InputController.prototype.isMainhandChargeActionReady = function()
 /**
  * Begins charging up the mainhand action.
  */
-JABS_InputController.prototype.performMainhandChargeAction = function()
+JABS_StandardController.prototype.performMainhandChargeAction = function()
 {
   // check if the delay has passed.
   if (this.isMainhandChargeActionReady())
@@ -1547,7 +1547,7 @@ JABS_InputController.prototype.performMainhandChargeAction = function()
 /**
  * When the mainhand is not charging, then cancel the charge.
  */
-JABS_InputController.prototype.performMainhandChargeAlterAction = function()
+JABS_StandardController.prototype.performMainhandChargeAlterAction = function()
 {
   // execute the alter-action- aka stop charging and release if applicable.
   JABS_InputAdapter.performMainhandActionCharging(false, $jabsEngine.getPlayer1());
@@ -1559,15 +1559,15 @@ JABS_InputController.prototype.performMainhandChargeAlterAction = function()
 
 //region offhand
 /**
- * Extends {@link JABS_InputController.updateOffhandAction}.<br>
+ * Extends {@link JABS_StandardController.updateOffhandAction}.<br>
  * Handles charging capability to the offhand.
  */
-J.ABS.EXT.CHARGE.Aliased.JABS_InputController
-  .set('updateOffhandAction', JABS_InputController.prototype.updateOffhandAction);
-JABS_InputController.prototype.updateOffhandAction = function()
+J.ABS.EXT.CHARGE.Aliased.JABS_StandardController
+  .set('updateOffhandAction', JABS_StandardController.prototype.updateOffhandAction);
+JABS_StandardController.prototype.updateOffhandAction = function()
 {
   // perform original logic.
-  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateOffhandAction')
+  J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.get('updateOffhandAction')
     .call(this);
 
   // handle the charging.
@@ -1577,7 +1577,7 @@ JABS_InputController.prototype.updateOffhandAction = function()
 /**
  * Handles the charging detection and interaction for the mainhand.
  */
-JABS_InputController.prototype.handleOffhandCharging = function()
+JABS_StandardController.prototype.handleOffhandCharging = function()
 {
   // check if the action's input requirements have been met.
   if (this.isOffhandActionCharging())
@@ -1597,7 +1597,7 @@ JABS_InputController.prototype.handleOffhandCharging = function()
  * Checks the inputs of the offhand action currently assigned (B default).
  * @returns {boolean}
  */
-JABS_InputController.prototype.isOffhandActionCharging = function()
+JABS_StandardController.prototype.isOffhandActionCharging = function()
 {
   // if the player is preparing to use a skill, don't do this as well.
   if (!this.canChargeOffhandAction()) return false;
@@ -1613,7 +1613,7 @@ JABS_InputController.prototype.isOffhandActionCharging = function()
  * Determines whether or not the offhand action can be charged.
  * @returns {boolean}
  */
-JABS_InputController.prototype.canChargeOffhandAction = function()
+JABS_StandardController.prototype.canChargeOffhandAction = function()
 {
   // do not charge if we are just mashing the button.
   if (this.isOffhandActionTriggered()) return false;
@@ -1629,7 +1629,7 @@ JABS_InputController.prototype.canChargeOffhandAction = function()
  * Determines whether or not the charging is ready.
  * @returns {boolean} True if the charging is ready, false otherwise.
  */
-JABS_InputController.prototype.isOffhandChargeActionReady = function()
+JABS_StandardController.prototype.isOffhandChargeActionReady = function()
 {
   // the delay is still ticking.
   if (!this.isTimerCompleteBySlot(JABS_Button.Offhand)) return false;
@@ -1641,7 +1641,7 @@ JABS_InputController.prototype.isOffhandChargeActionReady = function()
 /**
  * Begins charging up the offhand action.
  */
-JABS_InputController.prototype.performOffhandChargeAction = function()
+JABS_StandardController.prototype.performOffhandChargeAction = function()
 {
   // check if the delay has passed.
   if (this.isOffhandChargeActionReady())
@@ -1660,7 +1660,7 @@ JABS_InputController.prototype.performOffhandChargeAction = function()
 /**
  * When the offhand is not charging, then cancel the charge.
  */
-JABS_InputController.prototype.performOffhandChargeAlterAction = function()
+JABS_StandardController.prototype.performOffhandChargeAlterAction = function()
 {
   JABS_InputAdapter.performOffhandActionCharging(false, $jabsEngine.getPlayer1())
 };
@@ -1671,7 +1671,7 @@ JABS_InputController.prototype.performOffhandChargeAlterAction = function()
  * Determines whether or not the charging is ready.
  * @returns {boolean} True if the charging is ready, false otherwise.
  */
-JABS_InputController.prototype.isCombatActionChargeReady = function(slot)
+JABS_StandardController.prototype.isCombatActionChargeReady = function(slot)
 {
   // the delay is still ticking.
   if (!this.isTimerCompleteBySlot(slot)) return false;
@@ -1684,7 +1684,7 @@ JABS_InputController.prototype.isCombatActionChargeReady = function(slot)
  * Begins charging up the combat skill action.
  * @param {string} slot The slot to charge alter action with.
  */
-JABS_InputController.prototype.performCombatSkillChargeAction = function(slot)
+JABS_StandardController.prototype.performCombatSkillChargeAction = function(slot)
 {
   // check if the delay has passed.
   if (this.isCombatActionChargeReady(slot))
@@ -1704,7 +1704,7 @@ JABS_InputController.prototype.performCombatSkillChargeAction = function(slot)
  * If the combat skill is not charging, then cancel the charge.
  * @param {string} slot The slot to charge alter action with.
  */
-JABS_InputController.prototype.performCombatSkillChargeAlterAction = function(slot)
+JABS_StandardController.prototype.performCombatSkillChargeAlterAction = function(slot)
 {
   // execute the alter-action- aka stop charging and release if applicable.
   JABS_InputAdapter.performCombatSkillCharging(false, $jabsEngine.getPlayer1(), slot);
@@ -1715,15 +1715,15 @@ JABS_InputController.prototype.performCombatSkillChargeAlterAction = function(sl
 
 //region combat skill 1
 /**
- * Extends {@link JABS_InputController.updateCombatAction1}.<br>
+ * Extends {@link JABS_StandardController.updateCombatAction1}.<br>
  * Handles charging capability for this input.
  */
-J.ABS.EXT.CHARGE.Aliased.JABS_InputController
-  .set('updateCombatAction1', JABS_InputController.prototype.updateCombatAction1);
-JABS_InputController.prototype.updateCombatAction1 = function()
+J.ABS.EXT.CHARGE.Aliased.JABS_StandardController
+  .set('updateCombatAction1', JABS_StandardController.prototype.updateCombatAction1);
+JABS_StandardController.prototype.updateCombatAction1 = function()
 {
   // perform original logic.
-  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction1')
+  J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.get('updateCombatAction1')
     .call(this);
 
   // handle the charging.
@@ -1733,7 +1733,7 @@ JABS_InputController.prototype.updateCombatAction1 = function()
 /**
  * Handles the charging detection and interaction for this input.
  */
-JABS_InputController.prototype.handleCombatAction1Charging = function()
+JABS_StandardController.prototype.handleCombatAction1Charging = function()
 {
   // check if the action's input requirements have been met.
   if (this.isCombatAction1Charging())
@@ -1753,7 +1753,7 @@ JABS_InputController.prototype.handleCombatAction1Charging = function()
  * Determines if the inputs are being pressed to charge this combat skill.
  * @returns {boolean}
  */
-JABS_InputController.prototype.isCombatAction1Charging = function()
+JABS_StandardController.prototype.isCombatAction1Charging = function()
 {
   // if the player is preparing to use a skill, don't do this as well.
   if (!this.canChargeCombatAction1()) return false;
@@ -1772,7 +1772,7 @@ JABS_InputController.prototype.isCombatAction1Charging = function()
  * Determines whether or not the combat action can be charged.
  * @returns {boolean}
  */
-JABS_InputController.prototype.canChargeCombatAction1 = function()
+JABS_StandardController.prototype.canChargeCombatAction1 = function()
 {
   // do not charge if we are just mashing the button.
   if (this.isCombatAction1Triggered()) return false;
@@ -1784,15 +1784,15 @@ JABS_InputController.prototype.canChargeCombatAction1 = function()
 
 //region combat skill 2
 /**
- * Extends {@link JABS_InputController.updateCombatAction2}.<br>
+ * Extends {@link JABS_StandardController.updateCombatAction2}.<br>
  * Handles charging capability for this input.
  */
-J.ABS.EXT.CHARGE.Aliased.JABS_InputController
-  .set('updateCombatAction2', JABS_InputController.prototype.updateCombatAction2);
-JABS_InputController.prototype.updateCombatAction2 = function()
+J.ABS.EXT.CHARGE.Aliased.JABS_StandardController
+  .set('updateCombatAction2', JABS_StandardController.prototype.updateCombatAction2);
+JABS_StandardController.prototype.updateCombatAction2 = function()
 {
   // perform original logic.
-  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction2')
+  J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.get('updateCombatAction2')
     .call(this);
 
   // handle the charging.
@@ -1802,7 +1802,7 @@ JABS_InputController.prototype.updateCombatAction2 = function()
 /**
  * Handles the charging detection and interaction for this input.
  */
-JABS_InputController.prototype.handleCombatAction2Charging = function()
+JABS_StandardController.prototype.handleCombatAction2Charging = function()
 {
   // check if the action's input requirements have been met.
   if (this.isCombatAction2Charging())
@@ -1822,7 +1822,7 @@ JABS_InputController.prototype.handleCombatAction2Charging = function()
  * Determines if the inputs are being pressed to charge this combat skill.
  * @returns {boolean}
  */
-JABS_InputController.prototype.isCombatAction2Charging = function()
+JABS_StandardController.prototype.isCombatAction2Charging = function()
 {
   // if the player is preparing to use a skill, don't do this as well.
   if (!this.canChargeCombatAction2()) return false;
@@ -1841,7 +1841,7 @@ JABS_InputController.prototype.isCombatAction2Charging = function()
  * Determines whether or not the combat action can be charged.
  * @returns {boolean}
  */
-JABS_InputController.prototype.canChargeCombatAction2 = function()
+JABS_StandardController.prototype.canChargeCombatAction2 = function()
 {
   // do not charge if we are just mashing the button.
   if (this.isCombatAction2Triggered()) return false;
@@ -1853,15 +1853,15 @@ JABS_InputController.prototype.canChargeCombatAction2 = function()
 
 //region combat skill 3
 /**
- * Extends {@link JABS_InputController.updateCombatAction3}.<br>
+ * Extends {@link JABS_StandardController.updateCombatAction3}.<br>
  * Handles charging capability for this input.
  */
-J.ABS.EXT.CHARGE.Aliased.JABS_InputController
-  .set('updateCombatAction3', JABS_InputController.prototype.updateCombatAction3);
-JABS_InputController.prototype.updateCombatAction3 = function()
+J.ABS.EXT.CHARGE.Aliased.JABS_StandardController
+  .set('updateCombatAction3', JABS_StandardController.prototype.updateCombatAction3);
+JABS_StandardController.prototype.updateCombatAction3 = function()
 {
   // perform original logic.
-  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction3')
+  J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.get('updateCombatAction3')
     .call(this);
 
   // handle the charging.
@@ -1871,7 +1871,7 @@ JABS_InputController.prototype.updateCombatAction3 = function()
 /**
  * Handles the charging detection and interaction for this input.
  */
-JABS_InputController.prototype.handleCombatAction3Charging = function()
+JABS_StandardController.prototype.handleCombatAction3Charging = function()
 {
   // check if the action's input requirements have been met.
   if (this.isCombatAction3Charging())
@@ -1891,7 +1891,7 @@ JABS_InputController.prototype.handleCombatAction3Charging = function()
  * Determines if the inputs are being pressed to charge this combat skill.
  * @returns {boolean}
  */
-JABS_InputController.prototype.isCombatAction3Charging = function()
+JABS_StandardController.prototype.isCombatAction3Charging = function()
 {
   // if the player is preparing to use a skill, don't do this as well.
   if (!this.canChargeCombatAction3()) return false;
@@ -1910,7 +1910,7 @@ JABS_InputController.prototype.isCombatAction3Charging = function()
  * Determines whether or not the combat action can be charged.
  * @returns {boolean}
  */
-JABS_InputController.prototype.canChargeCombatAction3 = function()
+JABS_StandardController.prototype.canChargeCombatAction3 = function()
 {
   // do not charge if we are just mashing the button.
   if (this.isCombatAction3Triggered()) return false;
@@ -1922,15 +1922,15 @@ JABS_InputController.prototype.canChargeCombatAction3 = function()
 
 //region combat skill 4
 /**
- * Extends {@link JABS_InputController.updateCombatAction4}.<br>
+ * Extends {@link JABS_StandardController.updateCombatAction4}.<br>
  * Handles charging capability for this input.
  */
-J.ABS.EXT.CHARGE.Aliased.JABS_InputController
-  .set('updateCombatAction4', JABS_InputController.prototype.updateCombatAction4);
-JABS_InputController.prototype.updateCombatAction4 = function()
+J.ABS.EXT.CHARGE.Aliased.JABS_StandardController
+  .set('updateCombatAction4', JABS_StandardController.prototype.updateCombatAction4);
+JABS_StandardController.prototype.updateCombatAction4 = function()
 {
   // perform original logic.
-  J.ABS.EXT.CHARGE.Aliased.JABS_InputController.get('updateCombatAction4')
+  J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.get('updateCombatAction4')
     .call(this);
 
   // handle the charging.
@@ -1940,7 +1940,7 @@ JABS_InputController.prototype.updateCombatAction4 = function()
 /**
  * Handles the charging detection and interaction for this input.
  */
-JABS_InputController.prototype.handleCombatAction4Charging = function()
+JABS_StandardController.prototype.handleCombatAction4Charging = function()
 {
   // check if the action's input requirements have been met.
   if (this.isCombatAction4Charging())
@@ -1960,7 +1960,7 @@ JABS_InputController.prototype.handleCombatAction4Charging = function()
  * Determines if the inputs are being pressed to charge this combat skill.
  * @returns {boolean}
  */
-JABS_InputController.prototype.isCombatAction4Charging = function()
+JABS_StandardController.prototype.isCombatAction4Charging = function()
 {
   // if the player is preparing to use a skill, don't do this as well.
   if (!this.canChargeCombatAction4()) return false;
@@ -1979,7 +1979,7 @@ JABS_InputController.prototype.isCombatAction4Charging = function()
  * Determines whether or not the combat action can be charged.
  * @returns {boolean}
  */
-JABS_InputController.prototype.canChargeCombatAction4 = function()
+JABS_StandardController.prototype.canChargeCombatAction4 = function()
 {
   // do not charge if we are just mashing the button.
   if (this.isCombatAction4Triggered()) return false;
