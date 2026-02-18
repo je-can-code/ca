@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 TIME] A system for tracking time- real or artificial.
+ * [v1.0.2 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -136,6 +136,10 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Adapted input remappability update of J-ABS-InputManager.
+ *    Removed connection between J-MAP and J-TIME toggling (HUD).
+ *    Updated to support RMMZ v1.10.X base scripts (Scene_Splash).
  * - 1.0.1
  *    Fixed issue with "hours per tick" not being respected.
  * - 1.0.0
@@ -526,7 +530,7 @@ J.TIME = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.TIME.Metadata = {};
-J.TIME.Metadata.Version = '1.0.1';
+J.TIME.Metadata.Version = '1.0.2';
 J.TIME.Metadata.Name = `J-TIME`;
 
 /**
