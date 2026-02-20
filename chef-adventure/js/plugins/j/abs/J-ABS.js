@@ -5892,7 +5892,7 @@ JABS_Battler.prototype.countdownParryWindow = function()
  * Performs a preliminary check to see if the target is actually able to be hit.
  * @returns {boolean} True if actions can potentially connect, false otherwise.
  */
-JABS_Battler.prototype.canActionConnect = function ()
+JABS_Battler.prototype.canActionConnect = function()
 {
   // this battler is untargetable.
   if (this.isInvincible()) return false;
@@ -5917,7 +5917,7 @@ JABS_Battler.prototype.canActionConnect = function ()
  * @param {boolean} alreadyHitOne Whether or not this action has already hit a target.
  */
 // eslint-disable-next-line complexity
-JABS_Battler.prototype.isWithinScope = function (
+JABS_Battler.prototype.isWithinScope = function(
   action,
   target,
   alreadyHitOne = false
@@ -5975,7 +5975,7 @@ JABS_Battler.prototype.isWithinScope = function (
  * @param {JABS_ActionOptions=} actionOptions The options associated with this action.
  * @returns {JABS_Action[]} The JABS actions based on the skill id provided.
  */
-JABS_Battler.prototype.createJabsActionFromSkill = function (
+JABS_Battler.prototype.createJabsActionFromSkill = function(
   skillId,
   actionOptions = JABS_ActionOptions.Default()
 )
@@ -5989,147 +5989,41 @@ JABS_Battler.prototype.createJabsActionFromSkill = function (
   // grab the potentially extended skill.
   const skill = this.getSkill(skillId);
 
-  // calculate the projectile count and directions.
-  const projectileCount = skill.jabsProjectile ?? 1;
-  const projectileDirections = $jabsEngine.determineActionDirections(this.getCharacter()
-    .direction(), projectileCount);
+  // resolve the formation for this skill; defaults to "line" if not provided.
+  const formation = $jabsEngine.resolveProjectileFormationForSkill(skill);
+
+  // resolve the projectile count for this skill; defaults to 1 if not provided.
+  const projectileCount = $jabsEngine.resolveProjectileCountForSkill(skill);
+
+  // generate the spoke directions based on facing, formation, and count.
+  const facing = this.getCharacter()
+    .direction();
+  const projectileDirections = $jabsEngine.determineActionDirections(facing, formation, projectileCount);
 
   // calculate how many actions will be generated to accommodate the directions.
   const actions = this.convertProjectileDirectionsToActions(projectileDirections, action, actionOptions);
 
+  // return the generated actions.
   return actions;
 };
 
 /**
  * Generates actions for each projectile direction given.
- * Also applies lateral spawn offsets for parallel lanes on 2- and 3-projectile patterns.
+ * Applies lateral spawn offsets per spoke to create parallel lanes for any count (odd/even),
+ * including diagonals, while remaining 8-dir/tile-native.
  * @param {number[]} projectileDirections The directions that should be mapped to actions.
  * @param {Game_Action} action The underlying action data.
  * @param {JABS_ActionOptions} actionOptions The options for this action.
  * @returns {JABS_Action[]}
  */
-JABS_Battler.prototype.convertProjectileDirectionsToActions = function (
+JABS_Battler.prototype.convertProjectileDirectionsToActions = function(
   projectileDirections,
   action,
   actionOptions
 )
 {
-  // determine how many projectiles we are generating.
-  const count = projectileDirections.length;
-
-  // compute the lateral offsets in tiles for the given count.
-  // 1: [0]
-  // 2: [-0.5, +0.5]
-  // 3: [0, +1, -1]
-  const computeOffsets = projectileCount =>
-  {
-    if (projectileCount === 1)
-    {
-      // center only.
-      return [ 0 ];
-    }
-
-    if (projectileCount === 2)
-    {
-      // two lanes with 1 tile between them (0.5 tile offset from center for each).
-      return [ -0.5, 0.5 ];
-    }
-
-    if (projectileCount === 3)
-    {
-      // center + left/right at 1 tile.
-      return [ 0, 1, -1 ];
-    }
-
-    // for other patterns, do not offset.
-    const zeros = [];
-    for (let i = 0; i < projectileCount; i++)
-    {
-      zeros.push(0);
-    }
-
-    return zeros;
-  };
-
-  // capture the offsets collection for this volley.
-  const lateralOffsets = computeOffsets(count);
-
-  // resolve the caster’s current position as the base origin.
-  const originX = this.getX();
-  const originY = this.getY();
-
-  // helper to translate a lateral offset into dx/dy against a facing.
-  const offsetToDelta = (
-    facing,
-    lateral
-  ) =>
-  {
-    // default to no offset.
-    let dx = 0;
-    let dy = 0;
-
-    // for vertical facings (up/down), lateral offset maps to X.
-    if (facing === J.ABS.Directions.UP || facing === J.ABS.Directions.DOWN)
-    {
-      // apply the offset to x.
-      dx = lateral;
-    }
-    // for horizontal facings (left/right), lateral offset maps to Y.
-    else if (facing === J.ABS.Directions.LEFT || facing === J.ABS.Directions.RIGHT)
-    {
-      // apply the offset to y.
-      dy = lateral;
-    }
-
-    // return the computed delta as a tuple.
-    return [ dx, dy ];
-  };
-
-  // build a single action with its own positional offset.
-  const mapper = (
-    projectileDirection,
-    index
-  ) =>
-  {
-    // derive the lateral in-tiles offset for this specific projectile.
-    const lateral = lateralOffsets[index] ?? 0;
-
-    // translate lateral offset into dx/dy for the given facing.
-    const [ dx, dy ] = offsetToDelta(projectileDirection, lateral);
-
-    // compute the per-projectile spawn location in tiles.
-    const spawnX = originX + dx;
-    const spawnY = originY + dy;
-
-    // construct a location for this projectile; also capture direction for clarity.
-    const perActionLocation = JABS_Location.Builder()
-      .setX(spawnX)
-      .setY(spawnY)
-      .setDirection(projectileDirection)
-      .build();
-
-    // clone/compose a new options instance per projectile to avoid shared state.
-    const perActionOptions = JABS_ActionOptions.Builder()
-      .setIsRetaliation(actionOptions.isActionRetaliation())
-      .setCooldownKey(actionOptions.getCooldownKey())
-      .setLocation(perActionLocation)
-      .setIsTerrainDamage(actionOptions.isTerrainDamage())
-      .build();
-
-    // build and return the action bound to this projectile’s setup.
-    return JABS_Action.Builder()
-      .setCaster(this)
-      .setGameAction(action)
-      .setInitialDirection(projectileDirection)
-      .setActionOptions(perActionOptions)
-      .build();
-  };
-
-  // map directions to fully built actions with offsets.
-  const actions = projectileDirections.map(mapper, this);
-
-  // return the full collection of actions for this volley.
-  return actions;
+  // delegate to the shared action spawner for volley construction.
+  return JABS_ActionSpawner.buildVolley(this, projectileDirections, action, actionOptions);
 };
 
 /**
@@ -6137,7 +6031,7 @@ JABS_Battler.prototype.convertProjectileDirectionsToActions = function (
  * @param {string} cooldownKey The cooldown key.
  * @returns {JABS_Action[]} The constructed JABS actions.
  */
-JABS_Battler.prototype.getAttackData = function (cooldownKey)
+JABS_Battler.prototype.getAttackData = function(cooldownKey)
 {
   // grab the underlying battler.
   const battler = this.getBattler();
@@ -6192,7 +6086,7 @@ JABS_Battler.prototype.getAttackData = function (cooldownKey)
  * @param {string} slot The slot for the skill to check.
  * @returns {number}
  */
-JABS_Battler.prototype.getSkillIdForAction = function (slot)
+JABS_Battler.prototype.getSkillIdForAction = function(slot)
 {
   // grab the underlying battler.
   const battler = this.getBattler();
@@ -6223,7 +6117,7 @@ JABS_Battler.prototype.getSkillIdForAction = function (slot)
  * @param {boolean} isLoot Whether or not this is a loot pickup.
  */
 // eslint-disable-next-line complexity
-JABS_Battler.prototype.applyToolEffects = function (
+JABS_Battler.prototype.applyToolEffects = function(
   toolId,
   isLoot = false
 )
@@ -6348,7 +6242,7 @@ JABS_Battler.prototype.applyToolEffects = function (
  * Applies the effects of the tool against the leader.
  * @param {number} toolId The id of the tool/item being used.
  */
-JABS_Battler.prototype.applyToolToPlayer = function (toolId)
+JABS_Battler.prototype.applyToolToPlayer = function(toolId)
 {
   // apply tool effects against player.
   const battler = this.getBattler();
@@ -6369,7 +6263,7 @@ JABS_Battler.prototype.applyToolToPlayer = function (toolId)
  * @param {number} itemId The target having the action applied against.
  * @param {JABS_Battler} target The target for calculating damage; defaults to self.
  */
-JABS_Battler.prototype.generatePopItem = function (
+JABS_Battler.prototype.generatePopItem = function(
   gameAction,
   itemId,
   target = this
@@ -6400,7 +6294,7 @@ JABS_Battler.prototype.generatePopItem = function (
  * Applies the effects of the tool against all allies on the team.
  * @param {number} toolId The id of the tool/item being used.
  */
-JABS_Battler.prototype.applyToolForAllAllies = function (toolId)
+JABS_Battler.prototype.applyToolForAllAllies = function(toolId)
 {
   const battlers = $gameParty.battleMembers();
   if (battlers.length > 1)
@@ -6422,7 +6316,7 @@ JABS_Battler.prototype.applyToolForAllAllies = function (toolId)
  * Applies the effects of the tool against all opponents on the map.
  * @param {number} toolId The id of the tool/item being used.
  */
-JABS_Battler.prototype.applyToolForOneOpponent = function (toolId)
+JABS_Battler.prototype.applyToolForOneOpponent = function(toolId)
 {
   const item = $dataItems[toolId];
   let jabsBattler = this.getTarget();
@@ -6455,7 +6349,7 @@ JABS_Battler.prototype.applyToolForOneOpponent = function (toolId)
  * Applies the effects of the tool against all opponents on the map.
  * @param {number} toolId The id of the tool/item being used.
  */
-JABS_Battler.prototype.applyToolForAllOpponents = function (toolId)
+JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
 {
   const battlers = JABS_AiManager.getEnemyBattlers();
   battlers.forEach(jabsBattler =>
@@ -6478,7 +6372,7 @@ JABS_Battler.prototype.applyToolForAllOpponents = function (toolId)
  * Creates the text log entry for executing an tool effect.
  * @param {RPG_Item} item The tool being used in the log.
  */
-JABS_Battler.prototype.createToolLog = function (item)
+JABS_Battler.prototype.createToolLog = function(item)
 {
   // if not enabled, skip this.
   if (!J.LOG) return;
@@ -6493,7 +6387,7 @@ JABS_Battler.prototype.createToolLog = function (item)
  * Executes the pre-defeat processing for a battler.
  * @param {JABS_Battler} victor The battler that defeated this battler.
  */
-JABS_Battler.prototype.performPredefeatEffects = function (victor)
+JABS_Battler.prototype.performPredefeatEffects = function(victor)
 {
   // handle death animations first.
   this.handleOnDeathAnimations();
@@ -6508,7 +6402,7 @@ JABS_Battler.prototype.performPredefeatEffects = function (victor)
 /**
  * Handles the on-death animations associated with this battler.
  */
-JABS_Battler.prototype.handleOnDeathAnimations = function ()
+JABS_Battler.prototype.handleOnDeathAnimations = function()
 {
   // grab the loser battler.
   const battler = this.getBattler();
@@ -6532,7 +6426,7 @@ JABS_Battler.prototype.handleOnDeathAnimations = function ()
  * Since actors will persist as followers after defeat, they require additional
  * logic to prevent the repeated loop of death animation.
  */
-JABS_Battler.prototype.handleActorOnDeathAnimation = function ()
+JABS_Battler.prototype.handleActorOnDeathAnimation = function()
 {
   // perform the actor death animation.
   this.showAnimation(152);
@@ -6547,7 +6441,7 @@ JABS_Battler.prototype.handleActorOnDeathAnimation = function ()
  * Since they are instantly removed after, their logic doesn't require
  * toggling of battler death effects.
  */
-JABS_Battler.prototype.handleEnemyOnDeathAnimation = function ()
+JABS_Battler.prototype.handleEnemyOnDeathAnimation = function()
 {
   // perform the enemy death animation.
   this.showAnimation(151);
@@ -6557,7 +6451,7 @@ JABS_Battler.prototype.handleEnemyOnDeathAnimation = function ()
  * Handles the execution of any on-own-defeat skills the defeated battler may possess.
  * @param {JABS_Battler} victor The battler that defeated this battler.
  */
-JABS_Battler.prototype.handleOnOwnDefeatSkills = function (victor)
+JABS_Battler.prototype.handleOnOwnDefeatSkills = function(victor)
 {
   // grab the loser battler.
   const battler = this.getBattler();
@@ -6600,7 +6494,7 @@ JABS_Battler.prototype.handleOnOwnDefeatSkills = function (victor)
  * Handles the execution of any on-target-defeat skills the victorious battler may possess.
  * @param {JABS_Battler} victor The battler that defeated this battler.
  */
-JABS_Battler.prototype.handleOnTargetDefeatSkills = function (victor)
+JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
 {
   // grab all of the victor battler's on-target-defeat skills.
   const onTargetDefeatSkills = victor.getBattler()
@@ -6641,7 +6535,8 @@ JABS_Battler.prototype.handleOnTargetDefeatSkills = function (victor)
  * Executes the post-defeat processing for a defeated battler.
  * @param {JABS_Battler} victor The battler that defeated this battler.
  */
-JABS_Battler.prototype.performPostdefeatEffects = function (victor)
+// eslint-disable-next-line no-unused-vars
+JABS_Battler.prototype.performPostdefeatEffects = function(victor)
 {
   // check if the defeated battler is an actor.
   if (this.isActor())
@@ -12915,6 +12810,8 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.2.0
+ *    Split projectile count from projectile formation.
  * - 4.1.1
  *    Moved ownership of debug movement to J-ABS-InputManager.
  *    Removed dead code (deprecated dash input).
@@ -13391,19 +13288,32 @@ class JABS_Timer
  * ----------------------------------------------------------------------------
  * PROJECTILE:
  * The "projectile" value will define how many projectiles will be fired when
- * the skill is executed. This works a bit differently than you probably think.
- * The values available for this are:
- *  1: A single projectile that will fire forward.
- *  2: Two projectiles in a V shape firing forward.
- *  3: Three projectiles in a W shape firing forward.
- *  4: Four projectiles, one in each of the cardinal directions.
- *  8: Eight projectiles, one in each of the cardinal and diagonal directions.
+ * the skill is executed. All counts are fired in parallel starting in the
+ * direction that the caster is facing.
  *
  *    <projectile:VAL>
- *  Where VAL is one of the valid numeric values listed above.
+ *  Where VAL is the number of projectiles per direction that will fire.
+ *
+ * NOTE ABOUT COUNT LIMITS:
+ * Technically speaking, there is not really a hard limit that I have coded
+ * into the engine to prevent abuse. However, it is recommended to keep the
+ * count "reasonable" to avoid performance issues...
+ *
+ * ----------------------------------------------------------------------------
+ * FORMATION:
+ * The "formation" value will define what direction the projectile count will
+ * fire in. There are currently 5 valid values:
+ *  line: Fire in a straight line.
+ *  spray: Fire in a spray pattern (like a W).
+ *  cross: Fire in a cross pattern (in the cardinal 4 directions).
+ *  xburst: Fire in an X pattern (in the diagonal 4 directions).
+ *  nova: Fire in a circle pattern (in all 8 cardinal & diagonal directions).
+ *
+ *    <formation:VAL>
+ *  Where VAL is one of the valid formation values listed above.
  *
  * NOTE ABOUT PROJECTILE MOTION:
- * I would strongly encourage when building your actions on the action map,
+ * I would strongly encourage when building your actions on the action map
  * to use "turn X degrees" instead of "turn X direction", as they can mess up
  * the illusion of the projectiles obeying the direction they were fired in.
  * In that same vein, I'd also encourage using "1 step forward/backward" in
@@ -14943,7 +14853,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.1.1';
+J.ABS.Metadata.Version = '4.2.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -15255,7 +15165,7 @@ J.ABS.Directions = {
   UP: 8,
 
   /**
-   * Represents the RIGTH direction, or 6.
+   * Represents the RIGHT direction, or 6.
    * @type {6}
    */
   RIGHT: 6,
@@ -15343,6 +15253,26 @@ J.ABS.Shapes = {
 };
 
 /**
+ * Strongly-typed projectile formation names used across JABS.
+ */
+J.ABS.ProjectileFormations = {
+  /** A single spoke in the forward direction. */
+  Line: "line",
+
+  /** Three spokes: forward, forward-left, forward-right. */
+  Spray: "spray",
+
+  /** Four cardinals: up, right, down, left. */
+  Cross: "cross",
+
+  /** Four diagonals: up-right, down-right, down-left, up-left. */
+  Xburst: "xburst",
+
+  /** All eight directions: cardinals + diagonals. */
+  Nova: "nova",
+};
+
+/**
  * A collection of helpful mappings for `notes` that are placed in
  * various locations, like events on the map, or in a database enemy.
  */
@@ -15369,12 +15299,13 @@ J.ABS.RegExp = {
   Cooldown: /<cooldown:[ ]?(\d+)>/gi,
   UniqueCooldown: /<uniqueCooldown>/gi,
 
-  // action-size-related.
+  // action size/shape/count related.
   SizeInPixels: /<size:[ ]?(\d+)>/gi,
   Degrees: /<degrees:[ ]?(\d+)>/gi,
   Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
   Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
-  Projectile: /<projectile:[ ]?([12348])>/gi,
+  Projectile: /<projectile:[ ]?(\d+)>/gi,
+  ProjectileFormation: /<formation:[ ]?(line|spray|cross|xburst|nova)>/gi,
   Thickness: /<thickness:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
 
   // action-execution-related.
@@ -16898,7 +16829,7 @@ RPG_Item.prototype.extractJabsExpirationFrames = function()
  * context of collision with targets.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsRadius", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsRadius', {
   get: function()
   {
     return this.getJabsRadius();
@@ -16928,7 +16859,7 @@ RPG_Skill.prototype.extractJabsRadius = function()
  * A new property for retrieving the JABS proximity from this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsProximity", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsProximity', {
   get: function()
   {
     return this.getJabsProximity();
@@ -16958,7 +16889,7 @@ RPG_Skill.prototype.extractJabsProximity = function()
  * A new property for retrieving the JABS actionId from this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsActionId", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsActionId', {
   get: function()
   {
     return this.getJabsActionId();
@@ -16989,7 +16920,7 @@ RPG_Skill.prototype.extractJabsActionId = function()
  * A new property for retrieving the JABS duration from this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsDuration", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsDuration', {
   get: function()
   {
     return this.getJabsDuration();
@@ -17021,7 +16952,7 @@ RPG_Skill.prototype.extractJabsDuration = function()
  * Defaults to 10 if no tag is present.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsLinger", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsLinger', {
   get: function()
   {
     return this.getJabsLinger();
@@ -17052,7 +16983,7 @@ RPG_Skill.prototype.extractJabsLinger = function()
  * A new property for retrieving the JABS shape from this skill.
  * @type {string}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsShape", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsShape', {
   get: function()
   {
     return this.getJabsShape();
@@ -17083,7 +17014,7 @@ RPG_Skill.prototype.extractJabsShape = function()
  * Gets the JABS knockback this skill.
  * @type {number|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsKnockback", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsKnockback', {
   get: function()
   {
     return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.Knockback, true);
@@ -17096,7 +17027,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsKnockback", {
  * A new property for retrieving the JABS castAnimation id from this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsCastAnimation", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsCastAnimation', {
   get: function()
   {
     return this.getJabsCastAnimation();
@@ -17127,7 +17058,7 @@ RPG_Skill.prototype.extractJabsCastAnimation = function()
  * A new property for retrieving the JABS castTime from this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsCastTime", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsCastTime', {
   get: function()
   {
     return this.getJabsCastTime();
@@ -17158,7 +17089,7 @@ RPG_Skill.prototype.extractJabsCastTime = function()
  * A new property for retrieving the JABS direct from this skill.
  * @type {boolean}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsDirect", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsDirect', {
   get: function()
   {
     return this.getJabsDirect();
@@ -17197,7 +17128,7 @@ RPG_Skill.prototype.extractJabsDirect = function()
  * A new property for retrieving the JABS directLock from this skill.
  * @type {boolean}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsDirectLock", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsDirectLock', {
   get: function()
   {
     // return the boolean for <directLock>.
@@ -17231,7 +17162,7 @@ RPG_Skill.prototype.extractJabsDirectLock = function()
  * A new property for retrieving the JABS bonusAggro from this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsBonusAggro", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsBonusAggro', {
   get: function()
   {
     return this.getJabsBonusAggro();
@@ -17262,7 +17193,7 @@ RPG_Skill.prototype.extractJabsBonusAggro = function()
  * A new property for retrieving the JABS aggroMultiplier from this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsAggroMultiplier", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsAggroMultiplier', {
   get: function()
   {
     return this.getJabsAggroMultiplier();
@@ -17294,7 +17225,7 @@ RPG_Skill.prototype.extractJabsAggroMultiplier = function()
  * Will return null if there is no guard tag available on this
  * @type {JABS_GuardData}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGuardData", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsGuardData', {
   get: function()
   {
     return this.getJabsGuardData();
@@ -17313,7 +17244,8 @@ RPG_Skill.prototype.getJabsGuardData = function()
     this.jabsGuardPercent,
     this.jabsCounterGuard,
     this.jabsCounterParry,
-    this.jabsParry)
+    this.jabsParry
+  );
 };
 //endregion jabsGuardData
 
@@ -17322,7 +17254,7 @@ RPG_Skill.prototype.getJabsGuardData = function()
  * A new property for retrieving the JABS guard from this skill.
  * @type {[number, number]}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGuard", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsGuard', {
   get: function()
   {
     return this.getJabsGuard();
@@ -17335,7 +17267,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGuard", {
  * If positive, this flat damage will instead be added on while guarding.
  * @type {number|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGuardFlat", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsGuardFlat', {
   get: function()
   {
     return this.jabsGuard[0];
@@ -17348,7 +17280,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGuardFlat", {
  * If positive, this percent damage will instead be added on while guarding.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGuardPercent", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsGuardPercent', {
   get: function()
   {
     return this.jabsGuard[1];
@@ -17380,7 +17312,7 @@ RPG_Skill.prototype.extractJabsGuard = function()
  * when first guarding.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsParry", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsParry', {
   get: function()
   {
     return this.getJabsParryFrames();
@@ -17412,7 +17344,7 @@ RPG_Skill.prototype.extractJabsParryFrames = function()
  * executed in retaliation.
  * @type {number[]}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsCounterParry", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsCounterParry', {
   get: function()
   {
     return this.getJabsCounterParry();
@@ -17443,7 +17375,7 @@ RPG_Skill.prototype.extractJabsCounterParry = function()
  * While guarding, this skill id will be automatically executed in retaliation.
  * @type {number[]}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsCounterGuard", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsCounterGuard', {
   get: function()
   {
     return this.getJabsCounterGuard();
@@ -17474,7 +17406,7 @@ RPG_Skill.prototype.extractJabsCounterGuard = function()
  * A new property for retrieving the JABS projectile frames from this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsProjectile", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsProjectile', {
   get: function()
   {
     return this.getJabsProjectile();
@@ -17500,12 +17432,47 @@ RPG_Skill.prototype.extractJabsProjectile = function()
 };
 //endregion projectile
 
+//region projectileFormation
+/**
+ * A new property for retrieving the JABS projectile formation from this skill.
+ * @type {string}
+ */
+Object.defineProperty(RPG_Skill.prototype, 'jabsProjectileFormation', {
+  get: function()
+  {
+    // get the parsed projectile formation.
+    return this.getJabsProjectileFormation();
+  },
+});
+
+/**
+ * Gets the JABS projectile formation for this skill.
+ * @returns {string|null}
+ */
+RPG_Skill.prototype.getJabsProjectileFormation = function()
+{
+  // extract the projectile formation.
+  return this.extractJabsProjectileFormation();
+};
+
+/**
+ * Extracts the JABS projectile formation for this skill from its notes.
+ * Parsing is validated by regex; returns the matched formation or null.
+ * @returns {string|null}
+ */
+RPG_Skill.prototype.extractJabsProjectileFormation = function()
+{
+  // parse the projectile formation from notes using the strict regex.
+  return this.getStringFromNotesByRegex(J.ABS.RegExp.ProjectileFormation, true);
+};
+//endregion projectileFormation
+
 //region uniqueCooldown
 /**
  * A new property for retrieving the JABS uniqueCooldown from this skill.
  * @type {boolean}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsUniqueCooldown", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsUniqueCooldown', {
   get: function()
   {
     return this.getJabsUniqueCooldown();
@@ -17536,7 +17503,7 @@ RPG_Skill.prototype.extractJabsUniqueCooldown = function()
  * The direction that this dodge skill will move.
  * @type {string}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsMoveType", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsMoveType', {
   get: function()
   {
     return this.getJabsMoveType();
@@ -17568,7 +17535,7 @@ RPG_Skill.prototype.extractJabsMoveType = function()
  * skill's dodge movement.
  * @type {boolean}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsInvincibleDodge", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsInvincibleDodge', {
   get: function()
   {
     return this.getJabsInvincibileDodge();
@@ -17601,7 +17568,7 @@ RPG_Skill.prototype.extractJabsInvincibleDodge = function()
  * the actual timing factor for combos.
  * @type {boolean|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsFreeCombo", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsFreeCombo', {
   get: function()
   {
     return this.getJabsFreeCombo();
@@ -17637,7 +17604,7 @@ RPG_Skill.prototype.extractJabsFreeCombo = function()
  * Will be null if the combo tag is missing from the skill.
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsComboAction", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsComboAction', {
   get: function()
   {
     return this.getJabsComboAction();
@@ -17647,7 +17614,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsComboAction", {
 /**
  * Whether or not this skill can be used to engage in a combo.
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsComboStarter", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsComboStarter', {
   get: function()
   {
     return this.getJabsComboStarter();
@@ -17667,7 +17634,7 @@ RPG_Skill.prototype.getJabsComboStarter = function()
  * Whether or not this skill is a "skill extend" skill.
  * @returns {boolean} True if this is a "skill extend" skill, false otherwise.
  */
-Object.defineProperty(RPG_Skill.prototype, "isSkillExtender", {
+Object.defineProperty(RPG_Skill.prototype, 'isSkillExtender', {
   get: function()
   {
     return !!this.getSkillExtender();
@@ -17687,7 +17654,7 @@ RPG_Skill.prototype.getSkillExtender = function()
  * Whether or not this skill can be chosen at all by the JABS AI.
  * Combo skills can still be executed as they are chosen by different means.
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsAiSkillExclusion", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsAiSkillExclusion', {
   get: function()
   {
     return this.getAiSkillExclusion();
@@ -17708,7 +17675,7 @@ RPG_Skill.prototype.getAiSkillExclusion = function()
  * by the caster.
  * @type {number|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsComboSkillId", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsComboSkillId', {
   get: function()
   {
     return this.jabsComboAction[0];
@@ -17719,7 +17686,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsComboSkillId", {
  * The JABS combo delay in frames before the combo skill can be triggered.
  * @type {number|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsComboDelay", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsComboDelay', {
   get: function()
   {
     return this.jabsComboAction[1];
@@ -17825,7 +17792,7 @@ RPG_Skill.prototype.shouldRecurseForComboSkills = function(skill, lastSkillId)
  * Will be null if the piercing tag is missing from the skill.
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPiercingData", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsPiercingData', {
   get: function()
   {
     const piercingData = this.getJabsPiercingData();
@@ -17842,7 +17809,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPiercingData", {
  * The number of times this skill can hit targets.
  * @type {number|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPierceCount", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsPierceCount', {
   get: function()
   {
     return this.jabsPiercingData.at(0);
@@ -17853,7 +17820,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPierceCount", {
  * The delay in frames between each pierce hit on targets.
  * @type {number|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsPierceDelay", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsPierceDelay', {
   get: function()
   {
     return Math.max(this.jabsPiercingData.at(1), 5);
@@ -17884,7 +17851,7 @@ RPG_Skill.prototype.extractJabsPiercingData = function()
  * The percent of parry rating ignored by this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsIgnoreParry", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsIgnoreParry', {
   get: function()
   {
     return this.getJabsIgnoreParry();
@@ -17897,7 +17864,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsIgnoreParry", {
  */
 RPG_Skill.prototype.getJabsIgnoreParry = function()
 {
-  return this.extractJabsIgnoreParry()
+  return this.extractJabsIgnoreParry();
 };
 
 /**
@@ -17915,7 +17882,7 @@ RPG_Skill.prototype.extractJabsIgnoreParry = function()
  * Whether or not this skill is completely unparryable by the target.
  * @type {boolean}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsUnparryable", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsUnparryable', {
   get: function()
   {
     return this.getJabsUnparryable();
@@ -17947,7 +17914,7 @@ RPG_Skill.prototype.extractJabsUnparryable = function()
  * The animation id to play on oneself when executing this skill.
  * @type {number}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsSelfAnimationId", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsSelfAnimationId', {
   get: function()
   {
     return this.getJabsSelfAnimationId();
@@ -17983,7 +17950,7 @@ RPG_Skill.prototype.extractJabsSelfAnimationId = function()
  * Will be null if the delay tag is missing from the skill.
  * @type {[number, boolean, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsDelayData", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsDelayData', {
   get: function()
   {
     // grab the parsed delay data.
@@ -18004,7 +17971,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsDelayData", {
  * The duration in frames before this skill's action will trigger.
  * @type {number|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsDelayDuration", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsDelayDuration', {
   get: function()
   {
     return this.jabsDelayData[0];
@@ -18015,7 +17982,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsDelayDuration", {
  * Whether or not the delay will be ignored if an enemy touches this skill's action.
  * @type {boolean|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsDelayTriggerByTouch", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsDelayTriggerByTouch', {
   get: function()
   {
     return this.jabsDelayData[1];
@@ -18027,7 +17994,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsDelayTriggerByTouch", {
  * If not provided, the action’s normal hitbox is used (legacy behavior).
  * @type {number|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsDelayTriggerRadius", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsDelayTriggerRadius', {
   get: function()
   {
     // if a third value exists, return its numeric form.
@@ -18078,7 +18045,7 @@ RPG_Skill.prototype.extractJabsDelayData = function()
  * Example: <visOffset:[-6, -12]>
  * @type {[number, number]}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisOffset", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffset', {
   get: function()
   {
     // memoize parsed value.
@@ -18108,7 +18075,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffset", {
  * Example: <visAnchor:[0.5, 0.5]>
  * @type {[number, number]}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisAnchor", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisAnchor', {
   get: function()
   {
     // memoize parsed value.
@@ -18139,7 +18106,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisAnchor", {
  * Example: <visZ: 12>
  * @type {number|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisZ", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisZ', {
   get: function()
   {
     // memoize parsed value.
@@ -18159,7 +18126,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisZ", {
  * Example: <visRotate>
  * @type {boolean}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisRotate", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisRotate', {
   get: function()
   {
     // memoize parsed value.
@@ -18178,7 +18145,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisRotate", {
  * Example: <visScale:[1.25, 1.0]>
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisScale", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisScale', {
   get: function()
   {
     // memoize parsed value.
@@ -18209,7 +18176,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisScale", {
  * Example: <visDebug>
  * @type {boolean}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisDebug", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisDebug', {
   get: function()
   {
     // memoize parsed value.
@@ -18229,7 +18196,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisDebug", {
  * Example: <visOffsetU:[0, -24]>
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetU", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetU', {
   get: function()
   {
     if (this._jabsVisOffsetU === undefined)
@@ -18248,7 +18215,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetU", {
  * Example: <visOffsetD:[0, -24]>
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetD", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetD', {
   get: function()
   {
     if (this._jabsVisOffsetD === undefined)
@@ -18267,7 +18234,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetD", {
  * Example: <visOffsetL:[-6, -12]>
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetL", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetL', {
   get: function()
   {
     if (this._jabsVisOffsetL === undefined)
@@ -18286,7 +18253,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetL", {
  * Example: <visOffsetR:[6, -12]>
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetR", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetR', {
   get: function()
   {
     if (this._jabsVisOffsetR === undefined)
@@ -18305,7 +18272,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetR", {
  * Example: <visOffsetUR:[6, -18]>
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetUR", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetUR', {
   get: function()
   {
     if (this._jabsVisOffsetUR === undefined)
@@ -18324,7 +18291,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetUR", {
  * Example: <visOffsetUL:[-6, -18]>
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetUL", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetUL', {
   get: function()
   {
     if (this._jabsVisOffsetUL === undefined)
@@ -18343,7 +18310,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetUL", {
  * Example: <visOffsetDR:[6, -10]>
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetDR", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetDR', {
   get: function()
   {
     if (this._jabsVisOffsetDR === undefined)
@@ -18362,7 +18329,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetDR", {
  * Example: <visOffsetDL:[-6, -10]>
  * @type {[number, number]|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetDL", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetDL', {
   get: function()
   {
     if (this._jabsVisOffsetDL === undefined)
@@ -19455,6 +19422,284 @@ DataManager.gracefulFail = function(name, src, url)
   console.error(name, src, url);
 };
 //endregion
+
+/**
+ * The action spawner is responsible for translating projectile directions into
+ * fully-formed `JABS_Action` instances, including per-spoke odd/even parallel
+ * lane offsets and origin deltas. This remains 8-dir/tile-native.
+ */
+class JABS_ActionSpawner
+{
+  /**
+   * Builds a collection of `JABS_Action` instances from provided directions.
+   * @param {JABS_Battler} caster The battler spawning the actions.
+   * @param {number[]} projectileDirections The directions to translate into actions.
+   * @param {Game_Action} action The underlying action payload shared by all.
+   * @param {JABS_ActionOptions} actionOptions The base options to clone per projectile.
+   * @returns {JABS_Action[]} The actions representing this volley.
+   */
+  static buildVolley(
+    caster,
+    projectileDirections,
+    action,
+    actionOptions
+  )
+  {
+    // resolve the caster’s current position as the base origin.
+    const originX = caster.getX();
+    const originY = caster.getY();
+
+    // build a per-direction tally for how many projectiles each spoke will spawn.
+    const countsByDir = this.buildProjectileCountsByDirection(projectileDirections);
+
+    // precompute the lateral offset arrays for each direction based on counts.
+    const offsetsByDir = this.buildOffsetsByDirection(countsByDir);
+
+    // build all actions from directions using per-spoke offsets and origin.
+    const actions = this.buildActionsForDirections(
+      caster,
+      projectileDirections,
+      originX,
+      originY,
+      action,
+      actionOptions,
+      offsetsByDir
+    );
+
+    // return the full collection of actions for this volley.
+    return actions;
+  }
+
+  /**
+   * Builds a map of total projectiles to spawn per direction.
+   * @param {number[]} projectileDirections The flat list of directions to spawn.
+   * @returns {Object.<number, number>} A map of `dir -> count`.
+   */
+  static buildProjectileCountsByDirection(projectileDirections)
+  {
+    // initialize the per-direction counts.
+    /** @type {Object.<number, number>} */
+    const totalByDir = {};
+
+    // iterate over all projectile directions.
+    projectileDirections.forEach(dir =>
+    {
+      // initialize the count for this direction if not present.
+      if (totalByDir[dir] === undefined)
+      {
+        // start the count at zero.
+        totalByDir[dir] = 0;
+      }
+
+      // increment the count for this direction.
+      totalByDir[dir]++;
+    });
+
+    // return the computed per-direction totals.
+    return totalByDir;
+  }
+
+  /**
+   * Precomputes offset arrays for each direction based on how many projectiles that spoke has.
+   * @param {Object.<number, number>} countsByDir The per-direction counts.
+   * @returns {Object.<number, number[]>} A map of `dir -> [offsets...]`.
+   */
+  static buildOffsetsByDirection(countsByDir)
+  {
+    // initialize the per-direction offsets.
+    /** @type {Object.<number, number[]>} */
+    const offsetsByDir = {};
+
+    // iterate over the directions present.
+    Object.keys(countsByDir)
+      .forEach(key =>
+      {
+        // parse the numeric direction from the key.
+        const dir = Number(key);
+
+        // compute the offsets for this direction based on its count.
+        offsetsByDir[dir] = this.buildOffsets(countsByDir[dir]);
+      }, this);
+
+    // return the computed per-direction offsets.
+    return offsetsByDir;
+  }
+
+  /**
+   * Builds the lateral-offset series for any N using odd/even rules, in tile units.
+   * Odd N:  [0, +1, -1, +2, -2, ...]
+   * Even N: [-0.5, +0.5, -1.5, +1.5, ...]
+   * @param {number} projectileCount The number of parallel projectiles in a spoke.
+   * @returns {number[]} The sequence of lateral offsets.
+   */
+  static buildOffsets(projectileCount = 1)
+  {
+    // initialize the collection of offsets.
+    const offsets = [];
+
+    // check if the count is odd.
+    if ((projectileCount % 2) === 1)
+    {
+      // add the centered lane first.
+      offsets.push(0);
+
+      // calculate how many pairs are needed.
+      const pairs = (projectileCount - 1) / 2;
+
+      // add symmetric integer lanes outward from center.
+      for (let i = 1; i <= pairs; i++)
+      {
+        // add the positive then negative to alternate sides.
+        offsets.push(i);
+        offsets.push(-i);
+      }
+
+      // return the constructed offsets.
+      return offsets;
+    }
+
+    // for even counts, build half-tile spaced pairs outward.
+    const pairs = projectileCount / 2;
+
+    // iterate for each pair of lanes.
+    for (let i = 0; i < pairs; i++)
+    {
+      // compute the base offset at a half-tile plus i tiles.
+      const halfStep = i + 0.5;
+
+      // push the negative then positive to keep symmetry about center.
+      offsets.push(-halfStep);
+      offsets.push(halfStep);
+    }
+
+    // return the constructed offsets.
+    return offsets;
+  }
+
+  /**
+   * Translates a lateral offset (in tiles) into an [dx, dy] spawn delta for a given 8-dir facing.
+   * @param {number} facing The spoke direction (2/4/6/8 or 1/3/7/9 for diagonals).
+   * @param {number} lateral The lateral offset in tiles (may be fractional).
+   * @returns {[number, number]} The [dx, dy] pair to add to origin.
+   */
+  static offsetToDelta(facing, lateral)
+  {
+    // default to no offset.
+    let dx = 0;
+    let dy = 0;
+
+    // determine the perpendicular axis based on facing.
+    if (facing === J.ABS.Directions.UP || facing === J.ABS.Directions.DOWN)
+    {
+      // vertical spokes shift along x.
+      dx = lateral;
+    }
+    else if (facing === J.ABS.Directions.LEFT || facing === J.ABS.Directions.RIGHT)
+    {
+      // horizontal spokes shift along y.
+      dy = lateral;
+    }
+    else if (facing === J.ABS.Directions.UPPERRIGHT || facing === J.ABS.Directions.LOWERLEFT)
+    {
+      // UR/DL diagonal spokes shift along the (1,1) perpendicular.
+      dx = lateral;
+      dy = lateral;
+    }
+    else if (facing === J.ABS.Directions.UPPERLEFT || facing === J.ABS.Directions.LOWERRIGHT)
+    {
+      // UL/DR diagonal spokes shift along the (1,-1) perpendicular.
+      dx = lateral;
+      dy = -lateral;
+    }
+
+    // return the computed delta as a tuple.
+    return [ dx, dy ];
+  }
+
+  /**
+   * Builds a collection of `JABS_Action` instances for a list of directions using per-spoke offsets.
+   * @param {JABS_Battler} caster The battler spawning the actions.
+   * @param {number[]} projectileDirections The flat list of directions to translate into actions.
+   * @param {number} originX The caster’s origin x (tiles).
+   * @param {number} originY The caster’s origin y (tiles).
+   * @param {Game_Action} action The game action payload shared across projectiles.
+   * @param {JABS_ActionOptions} actionOptions The base options to clone per projectile.
+   * @param {Object.<number, number[]>} offsetsByDir The per-direction lateral offsets array.
+   * @returns {JABS_Action[]} The built actions.
+   */
+  static buildActionsForDirections(
+    caster,
+    projectileDirections,
+    originX,
+    originY,
+    action,
+    actionOptions,
+    offsetsByDir
+  )
+  {
+    // track how many offsets have been consumed per direction.
+    /** @type {Object.<number, number>} */
+    const usedIndexByDir = {};
+
+    // a mapping function to build one action for a projectile in a specific direction.
+    const mapper = (
+      projectileDirection
+    ) =>
+    {
+      // initialize how many have been used for this direction.
+      if (usedIndexByDir[projectileDirection] === undefined)
+      {
+        // set the used index to zero.
+        usedIndexByDir[projectileDirection] = 0;
+      }
+
+      // capture the index within this spoke for offset picking.
+      const spokeIndex = usedIndexByDir[projectileDirection];
+
+      // increment usage for this direction for the next projectile.
+      usedIndexByDir[projectileDirection]++;
+
+      // derive the lateral offset for this specific projectile in this spoke.
+      const lateral = (offsetsByDir[projectileDirection] && offsetsByDir[projectileDirection][spokeIndex]) || 0;
+
+      // translate lateral offset into dx/dy for the given facing.
+      const delta = this.offsetToDelta(projectileDirection, lateral);
+
+      // compute the per-projectile spawn location in tiles.
+      const spawnX = originX + delta[0];
+      const spawnY = originY + delta[1];
+
+      // construct a location for this projectile; also capture direction for clarity.
+      const perActionLocation = JABS_Location.Builder()
+        .setX(spawnX)
+        .setY(spawnY)
+        .setDirection(projectileDirection)
+        .build();
+
+      // clone/compose a new options instance per projectile to avoid shared state.
+      const perActionOptions = JABS_ActionOptions.Builder()
+        .setIsRetaliation(actionOptions.isActionRetaliation())
+        .setCooldownKey(actionOptions.getCooldownKey())
+        .setLocation(perActionLocation)
+        .setIsTerrainDamage(actionOptions.isTerrainDamage())
+        .build();
+
+      // build and return the action bound to this projectile’s setup.
+      return JABS_Action.Builder()
+        .setCaster(caster)
+        .setGameAction(action)
+        .setInitialDirection(projectileDirection)
+        .setActionOptions(perActionOptions)
+        .build();
+    };
+
+    // map directions to fully built actions with per-spoke offsets.
+    const actions = projectileDirections.map(mapper, this);
+
+    // return the built actions.
+    return actions;
+  }
+}
 
 //region JABS_AiManager
 /**
@@ -21294,6 +21539,7 @@ class JABS_Engine
 
   //endregion static
 
+  //region init
   /**
    * Creates all members available in this class.
    */
@@ -21352,10 +21598,7 @@ class JABS_Engine
    * @param {JABS_Action} actionEvent The JABS action to add.
    * @param {rm.types.Event} actionEventData The event metadata, if anything.
    */
-  addActionEvent(
-    actionEvent,
-    actionEventData
-  )
+  addActionEvent(actionEvent, actionEventData)
   {
     // grab the current collection of actions.
     const actions = this.getAllActionEvents();
@@ -21413,10 +21656,7 @@ class JABS_Engine
    * @param {object} skill The $dataSkills object for this skill.
    * @param {JABS_Battler} caster The caster of this skill.
    */
-  getAnimationId(
-    skill,
-    caster
-  )
+  getAnimationId(skill, caster)
   {
     // grab the animation id from the skill.
     const { animationId } = skill;
@@ -21534,6 +21774,8 @@ class JABS_Engine
     // initialize the player!
     return false;
   }
+
+  //endregion init
 
   //region update
   /**
@@ -21741,10 +21983,7 @@ class JABS_Engine
    * @param {number} stateId The state id to check if a battler is afflicted with.
    * @returns {boolean} True if the battler is currently afflicted with the given state, false otherwise.
    */
-  hasJabsStateByUuid(
-    uuid,
-    stateId
-  )
+  hasJabsStateByUuid(uuid, stateId)
   {
     // grabs a list of tracked states the battler is currently afflicted with.
     const jabsStates = this.getJabsStatesByUuid(uuid);
@@ -21759,10 +21998,7 @@ class JABS_Engine
    * @param {number} stateId The id of the state to find.
    * @returns {JABS_State|undefined} The tracked state data, or undefined if the battler isn't afflicted.
    */
-  getJabsStateByUuidAndStateId(
-    uuid,
-    stateId
-  )
+  getJabsStateByUuidAndStateId(uuid, stateId)
   {
     // grabs a list of tracked states the battler is currently afflicted with.
     const jabsStates = this.getJabsStatesByUuid(uuid);
@@ -21776,10 +22012,7 @@ class JABS_Engine
    * @param {string} uuid The uuid of the battler.
    * @param {JABS_State} jabsState The state in to add or update.
    */
-  addOrUpdateStateByUuid(
-    uuid,
-    jabsState
-  )
+  addOrUpdateStateByUuid(uuid, jabsState)
   {
     // check if the battler has the given state.
     if (this.hasJabsStateByUuid(uuid, jabsState.stateId))
@@ -21800,10 +22033,7 @@ class JABS_Engine
    * @param {string} uuid The uuid of the battler.
    * @param {JABS_State} newJabsState The state in to update.
    */
-  updateJabsStateByUuid(
-    uuid,
-    newJabsState
-  )
+  updateJabsStateByUuid(uuid, newJabsState)
   {
     // get the states afflicted upon this battler.
     const jabsStates = this.getJabsStatesByUuid(uuid);
@@ -21827,11 +22057,7 @@ class JABS_Engine
    * @param {JABS_State} jabsState The previous tracked state data.
    * @param {JABS_State} newJabsState The new tracked state data.
    */
-  handleJabsStateUpdate(
-    updateType,
-    jabsState,
-    newJabsState
-  )
+  handleJabsStateUpdate(updateType, jabsState, newJabsState)
   {
     switch (updateType)
     {
@@ -21853,10 +22079,7 @@ class JABS_Engine
    * @param {JABS_State} jabsState The previous tracked state data.
    * @param {JABS_State} newJabsState The new tracked state data.
    */
-  refreshJabsState(
-    jabsState,
-    newJabsState
-  )
+  refreshJabsState(jabsState, newJabsState)
   {
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
@@ -21886,10 +22109,7 @@ class JABS_Engine
    * @param {JABS_State} jabsState The previous tracked state data.
    * @param {JABS_State} newJabsState The new tracked state data.
    */
-  extendJabsState(
-    jabsState,
-    newJabsState
-  )
+  extendJabsState(jabsState, newJabsState)
   {
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
@@ -21916,10 +22136,7 @@ class JABS_Engine
    * @param {JABS_State} jabsState The previous tracked state data.
    * @param {JABS_State} newJabsState The new tracked state data.
    */
-  stackJabsState(
-    jabsState,
-    newJabsState
-  )
+  stackJabsState(jabsState, newJabsState)
   {
     // don't refresh the state if it was just applied.
     if (jabsState.wasRecentlyApplied()) return;
@@ -21942,10 +22159,7 @@ class JABS_Engine
    * @param {string} uuid The uuid of the battler.
    * @param {JABS_State} jabsState The state in to add.
    */
-  addJabsStateByUuid(
-    uuid,
-    jabsState
-  )
+  addJabsStateByUuid(uuid, jabsState)
   {
     // get the states afflicted upon this battler.
     const jabsStates = this.getJabsStatesByUuid(uuid);
@@ -22251,10 +22465,7 @@ class JABS_Engine
    * @param {number} partyIndex The index of the member in the party.
    * @returns
    */
-  canCycleToAlly(
-    actorId,
-    partyIndex
-  )
+  canCycleToAlly(actorId, partyIndex)
   {
     // ignore switching to self.
     if (partyIndex === 0) return false;
@@ -22306,14 +22517,7 @@ class JABS_Engine
    * @param {number=} targetY The target's `y` coordinate; defaults to null.
    * @param {boolean=} isMapDamage Whether or not this skill is from an environmental hazard.
    */
-  forceMapAction(
-    caster,
-    skillId,
-    isRetaliation = false,
-    targetX = null,
-    targetY = null,
-    isMapDamage = false
-  )
+  forceMapAction(caster, skillId, isRetaliation = false, targetX = null, targetY = null, isMapDamage = false)
   {
     // build options based on inputs.
     const actionLocation = JABS_Location.Builder()
@@ -22343,12 +22547,7 @@ class JABS_Engine
    * @param {number|null} targetX The target's `x` coordinate, if applicable.
    * @param {number|null} targetY The target's `y` coordinate, if applicable.
    */
-  executeMapActions(
-    caster,
-    actions,
-    targetX = null,
-    targetY = null
-  )
+  executeMapActions(caster, actions, targetX = null, targetY = null)
   {
     // if we cannot execute map actions, then do not.
     if (!this.canExecuteMapActions(caster, actions)) return;
@@ -22395,10 +22594,7 @@ class JABS_Engine
    * @param {JABS_Action[]} actions All actions to perform.
    * @returns {boolean} True if the actions can be executed, false otherwise.
    */
-  canExecuteMapActions(
-    caster,
-    actions
-  )
+  canExecuteMapActions(caster, actions)
   {
     // if there are no actions to execute, then do not execute.
     if (!actions.length) return false;
@@ -22412,10 +22608,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The battler executing the skill.
    * @param {JABS_Action} primaryAction The 0th index action.
    */
-  applyOnExecutionEffects(
-    caster,
-    primaryAction
-  )
+  applyOnExecutionEffects(caster, primaryAction)
   {
     // retaliation skills are exempt from execution effects.
     if (primaryAction.isRetaliation()) return;
@@ -22436,12 +22629,7 @@ class JABS_Engine
    * @param {number?} targetX The target's `x` coordinate, if applicable.
    * @param {number?} targetY The target's `y` coordinate, if applicable.
    */
-  executeMapAction(
-    caster,
-    action,
-    targetX,
-    targetY
-  )
+  executeMapAction(caster, action, targetX, targetY)
   {
     // handle the possibility of "freecombo".
     this.handleActionCombo(caster, action);
@@ -22458,10 +22646,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
    * @param {JABS_Action} action The JABS action to execute.
    */
-  handleActionCombo(
-    caster,
-    action
-  )
+  handleActionCombo(caster, action)
   {
     // check if this action has the "freecombo" tag.
     if (action.getBaseSkill().jabsFreeCombo)
@@ -22476,10 +22661,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
    * @param {JABS_Action} action The JABS action to execute.
    */
-  handleActionCastAnimation(
-    caster,
-    action
-  )
+  handleActionCastAnimation(caster, action)
   {
     // check if a cast animation exists.
     const casterAnimation = action.getCastAnimation();
@@ -22498,12 +22680,7 @@ class JABS_Engine
    * @param {number|null} x The target's `x` coordinate, if applicable.
    * @param {number|null} y The target's `y` coordinate, if applicable.
    */
-  handleActionGeneration(
-    caster,
-    action,
-    x,
-    y
-  )
+  handleActionGeneration(caster, action, x, y)
   {
     // all actions start with null.
     let actionEventData = null;
@@ -22534,12 +22711,7 @@ class JABS_Engine
    * @param {number|null} y The target's `y` coordinate, if applicable.
    * @returns {rm.types.Event}
    */
-  buildActionEventData(
-    caster,
-    action,
-    x,
-    y
-  )
+  buildActionEventData(caster, action, x, y)
   {
     // reference the action event id defined on the action.
     const eventId = action.getActionId();
@@ -22597,60 +22769,48 @@ class JABS_Engine
   }
 
   /**
-   * Determines the directions of all projectiles.
-   * @param {number} facing The base direction the battler is facing.
-   * @param {number} projectile The pattern/number of projectiles to generate directions for.
-   * @returns {number[]} The collection of directions to fire projectiles off in.
+   * Determines the directions of all projectiles for a given formation and count.
+   * @param {number} facing The base direction the battler is facing (2/4/6/8 and diagonals).
+   * @param {string} formation The formation name.
+   * @param {number} count The projectile count per direction.
+   * @returns {number[]} The flat collection of directions to fire projectiles.
    */
-  determineActionDirections(
-    facing,
-    projectile
-  )
+  determineActionDirections(facing, formation, count = 1)
   {
+    // resolve the spokes for the requested formation.
+    const spokes = this.resolveFormationSpokes(facing, formation);
+
+    // determine whether count is per spoke or total.
+    const perSpoke = this.isPerSpokeFormation(formation);
+
     // initialize the collection of directions.
     const directions = [];
 
-    // choose directions based on projectile pattern.
-    switch (projectile)
+    // if count is per-spoke, repeat each spoke count times.
+    if (perSpoke)
     {
-      case 1:
+      // iterate over each spoke direction.
+      spokes.forEach(dir =>
       {
-        // single projectile: just straight in the current facing.
-        directions.push(facing);
-        break;
-      }
-      case 2:
+        // push this spoke direction once per count.
+        for (let i = 0; i < count; i++)
+        {
+          // add the direction.
+          directions.push(dir);
+        }
+      });
+    }
+    // otherwise, count is total for a single spoke.
+    else
+    {
+      // use the first (and only) spoke when not per-spoke.
+      const forward = spokes[0] ?? facing;
+
+      // push the single spoke direction once per count.
+      for (let i = 0; i < count; i++)
       {
-        // two projectiles: both straight in the current facing (parallel lanes).
-        directions.push(facing);
-        directions.push(facing);
-        break;
-      }
-      case 3:
-      {
-        // three projectiles: all straight in the current facing (center + two parallel lanes).
-        directions.push(facing);
-        directions.push(facing);
-        directions.push(facing);
-        break;
-      }
-      case 4:
-      {
-        // four projectiles: retain legacy cross pattern.
-        directions.push(facing);
-        directions.push(this.rotate90degrees(facing, true));
-        directions.push(this.rotate90degrees(facing, false));
-        directions.push(this.rotate180degrees(facing));
-        break;
-      }
-      case 8:
-      {
-        // eight projectiles: retain legacy radial pattern.
-        directions.push(
-          1, 3, 7, 9,   // diagonal
-          2, 4, 6, 8
-        );  // cardinal
-        break;
+        // add the direction.
+        directions.push(forward);
       }
     }
 
@@ -22659,64 +22819,254 @@ class JABS_Engine
   }
 
   /**
+   * Resolves the spoke directions for a formation relative to a given facing.
+   * Assumes `formation` is a valid token from `J.ABS.ProjectileFormations`.
+   * @param {number} facing The base direction the battler is facing.
+   * @param {string} formation One of the `J.ABS.ProjectileFormations.*` values.
+   * @returns {number[]} The ordered list of spoke directions.
+   */
+  resolveFormationSpokes(facing, formation)
+  {
+    // initialize the canonical spokes as if facing were up.
+    let canonical = [];
+
+    // choose spokes based on the provided formation constant.
+    switch (formation)
+    {
+      case J.ABS.ProjectileFormations.Spray:
+      {
+        // forward, forward-right, forward-left (relative to up).
+        canonical = [
+          J.ABS.Directions.UP,
+          J.ABS.Directions.UPPERRIGHT,
+          J.ABS.Directions.UPPERLEFT,
+        ];
+        break;
+      }
+      case J.ABS.ProjectileFormations.Cross:
+      {
+        // the four cardinals.
+        canonical = [
+          J.ABS.Directions.UP,
+          J.ABS.Directions.RIGHT,
+          J.ABS.Directions.DOWN,
+          J.ABS.Directions.LEFT,
+        ];
+        break;
+      }
+      case J.ABS.ProjectileFormations.Xburst:
+      {
+        // diagonals only.
+        canonical = [
+          J.ABS.Directions.UPPERRIGHT,
+          J.ABS.Directions.LOWERRIGHT,
+          J.ABS.Directions.LOWERLEFT,
+          J.ABS.Directions.UPPERLEFT,
+        ];
+        break;
+      }
+      case J.ABS.ProjectileFormations.Nova:
+      {
+        // all eight directions.
+        canonical = [
+          J.ABS.Directions.UP,
+          J.ABS.Directions.UPPERRIGHT,
+          J.ABS.Directions.RIGHT,
+          J.ABS.Directions.LOWERRIGHT,
+          J.ABS.Directions.DOWN,
+          J.ABS.Directions.LOWERLEFT,
+          J.ABS.Directions.LEFT,
+          J.ABS.Directions.UPPERLEFT,
+        ];
+        break;
+      }
+      case J.ABS.ProjectileFormations.Line:
+      default:
+      {
+        // single forward spoke.
+        canonical = [ J.ABS.Directions.UP ];
+        break;
+      }
+    }
+
+    // rotate the canonical spokes such that canonical forward(UP) becomes the actual facing.
+    const rotated = canonical.map(dir => this.rotateSpokeFromUpToFacing(dir, facing));
+
+    // return the rotated spokes.
+    return rotated;
+  }
+
+  /**
+   * Determines if a formation interprets `count` as per-spoke multiplier.
+   * @param {string} formation The formation name.
+   * @returns {boolean} True if per-spoke, false if total.
+   */
+  isPerSpokeFormation(formation)
+  {
+    // multi-spoke formations use per-spoke counts; line is total.
+    if (formation === J.ABS.ProjectileFormations.Spray) return true;
+    if (formation === J.ABS.ProjectileFormations.Cross) return true;
+    if (formation === J.ABS.ProjectileFormations.Xburst) return true;
+    if (formation === J.ABS.ProjectileFormations.Nova) return true;
+
+    // otherwise, interpreted as total (line, default).
+    return false;
+  }
+
+  /**
+   * Rotates a canonical direction (defined relative to UP) to the provided facing.
+   * This uses the existing 45/90/180 rotation helpers to remain 8-dir correct.
+   * @param {number} canonicalDir The canonical direction (as-if facing were UP).
+   * @param {number} facing The actual facing to rotate into.
+   * @returns {number} The rotated direction code.
+   */
+  // eslint-disable-next-line complexity
+  rotateSpokeFromUpToFacing(canonicalDir, facing)
+  {
+    // if already facing up, no rotation is required.
+    if (facing === J.ABS.Directions.UP)
+    {
+      // return the canonical as-is.
+      return canonicalDir;
+    }
+
+    // map rotational steps from UP to the target facing using 90/180/270.
+    // we perform minimal rotations while preserving diagonals when needed.
+    switch (facing)
+    {
+      case J.ABS.Directions.RIGHT:
+      {
+        // rotating from UP to RIGHT is a 90-degree clockwise rotation.
+        if (canonicalDir === J.ABS.Directions.UP) return J.ABS.Directions.RIGHT;
+        if (canonicalDir === J.ABS.Directions.RIGHT) return J.ABS.Directions.DOWN;
+        if (canonicalDir === J.ABS.Directions.DOWN) return J.ABS.Directions.LEFT;
+        if (canonicalDir === J.ABS.Directions.LEFT) return J.ABS.Directions.UP;
+        if (canonicalDir === J.ABS.Directions.UPPERRIGHT) return J.ABS.Directions.LOWERRIGHT;
+        if (canonicalDir === J.ABS.Directions.LOWERRIGHT) return J.ABS.Directions.LOWERLEFT;
+        if (canonicalDir === J.ABS.Directions.LOWERLEFT) return J.ABS.Directions.UPPERLEFT;
+        if (canonicalDir === J.ABS.Directions.UPPERLEFT) return J.ABS.Directions.UPPERRIGHT;
+        break;
+      }
+      case J.ABS.Directions.DOWN:
+      {
+        // rotating from UP to DOWN is a 180-degree rotation.
+        if (canonicalDir === J.ABS.Directions.UP) return J.ABS.Directions.DOWN;
+        if (canonicalDir === J.ABS.Directions.RIGHT) return J.ABS.Directions.LEFT;
+        if (canonicalDir === J.ABS.Directions.DOWN) return J.ABS.Directions.UP;
+        if (canonicalDir === J.ABS.Directions.LEFT) return J.ABS.Directions.RIGHT;
+        if (canonicalDir === J.ABS.Directions.UPPERRIGHT) return J.ABS.Directions.LOWERLEFT;
+        if (canonicalDir === J.ABS.Directions.LOWERRIGHT) return J.ABS.Directions.UPPERLEFT;
+        if (canonicalDir === J.ABS.Directions.LOWERLEFT) return J.ABS.Directions.UPPERRIGHT;
+        if (canonicalDir === J.ABS.Directions.UPPERLEFT) return J.ABS.Directions.LOWERRIGHT;
+        break;
+      }
+      case J.ABS.Directions.LEFT:
+      {
+        // rotating from UP to LEFT is a 90-degree counter-clockwise rotation.
+        if (canonicalDir === J.ABS.Directions.UP) return J.ABS.Directions.LEFT;
+        if (canonicalDir === J.ABS.Directions.RIGHT) return J.ABS.Directions.UP;
+        if (canonicalDir === J.ABS.Directions.DOWN) return J.ABS.Directions.RIGHT;
+        if (canonicalDir === J.ABS.Directions.LEFT) return J.ABS.Directions.DOWN;
+        if (canonicalDir === J.ABS.Directions.UPPERRIGHT) return J.ABS.Directions.UPPERLEFT;
+        if (canonicalDir === J.ABS.Directions.LOWERRIGHT) return J.ABS.Directions.UPPERRIGHT;
+        if (canonicalDir === J.ABS.Directions.LOWERLEFT) return J.ABS.Directions.LOWERRIGHT;
+        if (canonicalDir === J.ABS.Directions.UPPERLEFT) return J.ABS.Directions.LOWERLEFT;
+        break;
+      }
+      default:
+      {
+        // for diagonals or unrecognized facings, fall back to canonical.
+        return canonicalDir;
+      }
+    }
+
+    // default return if no case matched; return canonical.
+    return canonicalDir;
+  }
+
+  /**
+   * Resolves the projectile formation for a given skill.
+   * Parsing is responsible for validation; engine code assumes correctness.
+   * Defaults to `line` when not provided.
+   * @param {RPG_Skill} skill The skill being executed.
+   * @returns {string} The formation name.
+   */
+  resolveProjectileFormationForSkill(skill)
+  {
+    // default to line if nothing is specified on the skill.
+    const formation = skill.jabsProjectileFormation ?? J.ABS.ProjectileFormations.Line;
+
+    // return the resolved formation.
+    return formation;
+  }
+
+  /**
+   * Resolves the projectile count for a given skill.
+   * Defaults to `1` when not provided.
+   * @param {RPG_Skill} skill The skill being executed.
+   * @returns {number} The projectile count.
+   */
+  resolveProjectileCountForSkill(skill)
+  {
+    // default to 1 if nothing is specified on the skill.
+    const count = skill.jabsProjectile ?? 1;
+
+    // return the resolved projectile count.
+    return count;
+  }
+
+  /**
    * Rotates the direction provided 45 degrees.
    * @param {number} direction The base direction to rotate from.
    * @param {boolean} clockwise True if rotating clockwise, false otherwise.
    * @returns {number} The direction after rotation.
    */
-  rotate45degrees(
-    direction,
-    clockwise
-  )
+  rotate45degrees(direction, clockwise)
   {
     let newDirection = direction;
     switch (direction)
     {
       case J.ABS.Directions.UP:
         newDirection = clockwise
-          ? 9
-          : 7;
+          ? J.ABS.Directions.UPPERRIGHT
+          : J.ABS.Directions.UPPERLEFT;
         break;
       case J.ABS.Directions.RIGHT:
         newDirection = clockwise
-          ? 3
-          : 9;
+          ? J.ABS.Directions.LOWERRIGHT
+          : J.ABS.Directions.UPPERRIGHT;
         break;
       case J.ABS.Directions.LEFT:
         newDirection = clockwise
-          ? 7
-          : 1;
+          ? J.ABS.Directions.UPPERLEFT
+          : J.ABS.Directions.LOWERLEFT;
         break;
       case J.ABS.Directions.DOWN:
         newDirection = clockwise
-          ? 1
-          : 3;
+          ? J.ABS.Directions.LOWERLEFT
+          : J.ABS.Directions.LOWERRIGHT;
         break;
       case J.ABS.Directions.LOWERLEFT:
         newDirection = clockwise
-          ? 4
-          : 2;
+          ? J.ABS.Directions.LEFT
+          : J.ABS.Directions.DOWN;
         break;
       case J.ABS.Directions.LOWERRIGHT:
         newDirection = clockwise
-          ? 2
-          : 6;
+          ? J.ABS.Directions.DOWN
+          : J.ABS.Directions.RIGHT;
         break;
       case J.ABS.Directions.UPPERLEFT:
         newDirection = clockwise
-          ? 8
-          : 4;
+          ? J.ABS.Directions.UP
+          : J.ABS.Directions.LEFT;
         break;
       case J.ABS.Directions.UPPERRIGHT:
         newDirection = clockwise
-          ? 6
-          : 8;
-        break;
-      default:
-        console.warn('non-dir8 provided, no rotation performed.');
+          ? J.ABS.Directions.RIGHT
+          : J.ABS.Directions.UP;
         break;
     }
-
     return newDirection;
   }
 
@@ -22726,10 +23076,7 @@ class JABS_Engine
    * @param {boolean} clockwise True if rotating clockwise, false otherwise.
    * @returns {number} The direction after rotation.
    */
-  rotate90degrees(
-    direction,
-    clockwise
-  )
+  rotate90degrees(direction, clockwise)
   {
     let newDirection = direction;
     switch (direction)
@@ -22841,10 +23188,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The battler casting the action.
    * @param {JABS_Action} action The action(skill) to pay the cost for.
    */
-  paySkillCosts(
-    caster,
-    action
-  )
+  paySkillCosts(caster, action)
   {
     const battler = caster.getBattler();
     const skill = action.getBaseSkill();
@@ -22856,10 +23200,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
    * @param {JABS_Action} action The JABS action to execute.
    */
-  applyCooldownCounters(
-    caster,
-    action
-  )
+  applyCooldownCounters(caster, action)
   {
     this.applyPlayerCooldowns(caster, action);
   }
@@ -22869,10 +23210,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The player.
    * @param {JABS_Action} action The JABS action to execute.
    */
-  applyPlayerCooldowns(
-    caster,
-    action
-  )
+  applyPlayerCooldowns(caster, action)
   {
     const cooldownType = action.getCooldownType();
     const cooldownValue = action.getCooldown();
@@ -22904,10 +23242,7 @@ class JABS_Engine
    * @param {rm.types.Event} actionEventData An object representing the data of a `Game_Event`.
    * @param {JABS_Action} action An object representing the data of a `Game_Event`.
    */
-  addJabsActionToMap(
-    actionEventData,
-    action
-  )
+  addJabsActionToMap(actionEventData, action)
   {
     // find the first available hole in the data map event list.
     let index = -1; // the index we will insert at.
@@ -22989,10 +23324,7 @@ class JABS_Engine
    * @param {Game_Event} actionEventSprite The event being created for the action.
    * @param {JABS_Action} action The action being applied.
    */
-  applyActionToActionEventSprite(
-    actionEventSprite,
-    action
-  )
+  applyActionToActionEventSprite(actionEventSprite, action)
   {
     actionEventSprite.setJabsAction(action); // wire action.
     actionEventSprite.setDirection(action.direction()); // facing.
@@ -23004,11 +23336,7 @@ class JABS_Engine
    * @param {number} y The `y` coordinate of the battler dropping the loot.
    * @param {RPG_EquipItem|RPG_Item} item The loot's raw data object.
    */
-  addLootDropToMap(
-    x,
-    y,
-    item
-  )
+  addLootDropToMap(x, y, item)
   {
     // clone the loot data from the action map event id of 1.
     const lootEventData = JsonEx.makeDeepCopy($actionMap.events[1]); // base template.
@@ -23071,11 +23399,7 @@ class JABS_Engine
    * @param {number} y The y coordinate of where to place the enemy on the map.
    * @param {number} enemyCloneEventId The eventId from the enemy clone map identifying the enemy to clone.
    */
-  addEnemyToMap(
-    x,
-    y,
-    enemyCloneEventId
-  )
+  addEnemyToMap(x, y, enemyCloneEventId)
   {
     // check if we've initialized the enemy map, yet.
     if (!JABS_Engine.#isEnemyMapInitialized())
@@ -23128,10 +23452,7 @@ class JABS_Engine
    * @param {JABS_Action} action The JABS action containing the action data.
    * @param {JABS_Battler} target The target having the action applied against.
    */
-  applyPrimaryBattleEffects(
-    action,
-    target
-  )
+  applyPrimaryBattleEffects(action, target)
   {
     // execute the action against the target.
     this.executeSkillEffects(action, target);
@@ -23152,10 +23473,7 @@ class JABS_Engine
    * @param {JABS_Battler} target The target to apply skill effects against.
    * @returns {Game_ActionResult}
    */
-  executeSkillEffects(
-    action,
-    target
-  )
+  executeSkillEffects(action, target)
   {
     // grab the battler of the target.
     const targetBattler = target.getBattler();
@@ -23232,10 +23550,7 @@ class JABS_Engine
    * @param {JABS_Battler} target The target having the action applied against.
    */
   // eslint-disable-next-line no-unused-vars
-  preExecuteSkillEffects(
-    action,
-    target
-  )
+  preExecuteSkillEffects(action, target)
   {
   }
 
@@ -23245,10 +23560,7 @@ class JABS_Engine
    * @param {JABS_Action} action The action being executed.
    * @param {JABS_Battler} target The target to apply skill effects against.
    */
-  postExecuteSkillEffects(
-    action,
-    target
-  )
+  postExecuteSkillEffects(action, target)
   {
     // apply aggro regardless of successful hit.
     this.applyAggroEffects(action, target);
@@ -23259,10 +23571,7 @@ class JABS_Engine
    * @param {JABS_Action} action The JABS action containing the action data.
    * @param {JABS_Battler} target The target having the action applied against.
    */
-  applyAggroEffects(
-    action,
-    target
-  )
+  applyAggroEffects(action, target)
   {
     // grab the attacker.
     const attacker = action.getCaster();
@@ -23356,10 +23665,7 @@ class JABS_Engine
    * @param {JABS_Action} action The JABS action containing the action data.
    * @param {JABS_Battler} target The target having the action applied against.
    */
-  applyOnHitEffects(
-    action,
-    target
-  )
+  applyOnHitEffects(action, target)
   {
     // if the result isn't a hit or a parry, then we don't process on-hit effects.
     const result = target.getBattler()
@@ -23375,10 +23681,7 @@ class JABS_Engine
    * @param {JABS_Action} action The JABS action containing the action data.
    * @param {JABS_Battler} target The target having the action applied against.
    */
-  processOnHitEffects(
-    action,
-    target
-  )
+  processOnHitEffects(action, target)
   {
     // grab some shorthand variables for local use.
     const caster = action.getCaster();
@@ -23425,10 +23728,7 @@ class JABS_Engine
    * @param {JABS_Battler} target The map battler to potentially knockback.
    */
   // eslint-disable-next-line complexity
-  checkKnockback(
-    action,
-    target
-  )
+  checkKnockback(action, target)
   {
     // if we can't be knocked back, don't process.
     if (!this.canBeKnockedBack(action, target)) return;
@@ -23528,10 +23828,7 @@ class JABS_Engine
     targetSprite.jump(realX - targetSprite.x, realY - targetSprite.y);
   }
 
-  canBeKnockedBack(
-    action,
-    target
-  )
+  canBeKnockedBack(action, target)
   {
     // don't knockback if already being knocked back.
     if (target.getCharacter()
@@ -23556,10 +23853,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The battler that casted this skill.
    * @param {JABS_Action} action The action that contains the skill to check for combos.
    */
-  checkComboSequence(
-    caster,
-    action
-  )
+  checkComboSequence(caster, action)
   {
     // check to make sure we have combo data before processing the combo.
     if (!this.canUpdateComboSequence(caster, action)) return;
@@ -23575,10 +23869,7 @@ class JABS_Engine
    * @param {JABS_Action} action The action executed.
    * @returns {boolean} True if the combo action should be updated, false otherwise.
    */
-  canUpdateComboSequence(
-    caster,
-    action
-  )
+  canUpdateComboSequence(caster, action)
   {
     // grab the skill out of the action.
     const skill = action.getBaseSkill();
@@ -23603,10 +23894,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The caster of the action.
    * @param {JABS_Action} action The action executed.
    */
-  updateComboSequence(
-    caster,
-    action
-  )
+  updateComboSequence(caster, action)
   {
     // extract the combo data out of the skill.
     const {
@@ -23641,11 +23929,7 @@ class JABS_Engine
    * @param {JABS_Action} action The action being executed.
    * @returns {boolean} True if the action was parried, false otherwise.
    */
-  checkParry(
-    caster,
-    target,
-    action
-  )
+  checkParry(caster, target, action)
   {
     // cannot parry if not facing target.
     if (!this.isParryPossible(caster, target)) return false;
@@ -23741,10 +24025,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The one executing the skill against the target.
    * @param {JABS_Battler} target The one being attacked by the caster.
    */
-  isParryPossible(
-    caster,
-    target
-  )
+  isParryPossible(caster, target)
   {
     // cannot parry if not facing target.
     const isFacing = caster.isFacingTarget(target.getCharacter());
@@ -23770,10 +24051,7 @@ class JABS_Engine
    * @param {JABS_Battler} attacker The battler triggering the alert.
    * @param {JABS_Battler} target The battler entering the alert state.
    */
-  triggerAlert(
-    attacker,
-    target
-  )
+  triggerAlert(attacker, target)
   {
     // check if the target can actually be alerted first.
     if (!this.canBeAlerted(attacker, target)) return;
@@ -23797,10 +24075,7 @@ class JABS_Engine
    * @param {JABS_Battler} battler The battler to be alerted.
    * @return {boolean} True if they can be alerted, false otherwise.
    */
-  canBeAlerted(
-    attacker,
-    battler
-  )
+  canBeAlerted(attacker, battler)
   {
     // cannot be alerted by inanimate battlers.
     if (attacker.isInanimate()) return false;
@@ -23825,10 +24100,7 @@ class JABS_Engine
    * @param {JABS_Action} action The JABS action containing the action data.
    * @param {JABS_Battler} target The target having the action applied against.
    */
-  continuedPrimaryBattleEffects(
-    action,
-    target
-  )
+  continuedPrimaryBattleEffects(action, target)
   {
     // checks for retaliation from the target.
     this.checkRetaliate(action, target);
@@ -23839,10 +24111,7 @@ class JABS_Engine
    * @param {JABS_Action} action The action affecting the target.
    * @param {JABS_Battler} targetBattler The target having the action applied against.
    */
-  checkRetaliate(
-    action,
-    targetBattler
-  )
+  checkRetaliate(action, targetBattler)
   {
     // do not retaliate against other battler's retaliations.
     if (action.isRetaliation()) return;
@@ -23946,10 +24215,7 @@ class JABS_Engine
     return true;
   }
 
-  handleCounterGuard(
-    battler,
-    alreadyCounterParried
-  )
+  handleCounterGuard(battler, alreadyCounterParried)
   {
     // do nothing if the battler already counter-parried, no double-dipping!
     if (alreadyCounterParried) return false;
@@ -23999,10 +24265,7 @@ class JABS_Engine
    * @param {JABS_Battler} battler The battler doing the autocounter.
    * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.<br>
    */
-  doAutoCounter(
-    battler,
-    slot = JABS_Button.Offhand
-  )
+  doAutoCounter(battler, slot = JABS_Button.Offhand)
   {
     // execute counterparrying.
     this.doCounterParry(battler, slot);
@@ -24016,10 +24279,7 @@ class JABS_Engine
    * @param {JABS_Battler} battler The battler to perform the skills.
    * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.<br>
    */
-  doCounterGuard(
-    battler,
-    slot = JABS_Button.Offhand
-  )
+  doCounterGuard(battler, slot = JABS_Button.Offhand)
   {
     // destructure out the guard and parry ids.
     const { counterGuardIds } = battler.getGuardData(slot);
@@ -24037,10 +24297,7 @@ class JABS_Engine
    * @param {JABS_Battler} battler The battler to perform the skills.
    * @param {string=} slot The skill slot key; defaults to {@link JABS_Button.Offhand}.<br>
    */
-  doCounterParry(
-    battler,
-    slot = JABS_Button.Offhand
-  )
+  doCounterParry(battler, slot = JABS_Button.Offhand)
   {
     // destructure out the parry ids.
     const { counterParryIds } = battler.getGuardData(slot);
@@ -24102,10 +24359,7 @@ class JABS_Engine
    * @param {JABS_Action} action The action affecting the target.
    * @param {JABS_Battler} target The target having the action applied against.
    */
-  postPrimaryBattleEffects(
-    action,
-    target
-  )
+  postPrimaryBattleEffects(action, target)
   {
     // generate log for this action.
     this.createAttackLog(action, target);
@@ -24122,10 +24376,7 @@ class JABS_Engine
    * @param {JABS_Action} action The action affecting the target.
    * @param {JABS_Battler} target The target having the action applied against.
    */
-  generatePopAttack(
-    action,
-    target
-  )
+  generatePopAttack(action, target)
   {
     // if we are not using popups, then don't do this.
     if (!J.POPUPS) return;
@@ -24149,10 +24400,7 @@ class JABS_Engine
    * @param {JABS_Battler} target The target having the action applied against.
    */
   // eslint-disable-next-line no-unused-vars
-  generatePopSkillUsage(
-    action,
-    target
-  )
+  generatePopSkillUsage(action, target)
   {
     // if we are not using popups, then don't do this.
     if (!J.POPUPS) return;
@@ -24183,10 +24431,7 @@ class JABS_Engine
    * @param {JABS_Action} action The action affecting the target.
    * @param {JABS_Battler} target The `JABS_Battler` who was the target of the action.
    */
-  createAttackLog(
-    action,
-    target
-  )
+  createAttackLog(action, target)
   {
     // if not enabled, skip this.
     if (!J.LOG) return;
@@ -24316,12 +24561,7 @@ class JABS_Engine
    * @param {JABS_Battler} target The target battler the popup is placed on.
    * @returns {Map_TextPop}
    */
-  configureDamagePop(
-    gameAction,
-    skill,
-    caster,
-    target
-  )
+  configureDamagePop(gameAction, skill, caster, target)
   {
     // get the underlying battler associated with the popup.
     const targetBattler = target.getBattler();
@@ -24412,10 +24652,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The battler performing the action.
    * @returns {number} The icon index to use for this popup.
    */
-  determineElementalIcon(
-    skill,
-    caster
-  )
+  determineElementalIcon(skill, caster)
   {
     // if not using the elemental icons, don't return one.
     if (!J.ABS.Metadata.UseElementalIcons) return 0;
@@ -24660,13 +24897,7 @@ class JABS_Engine
    * @param {number} range How big the collision shape is.
    * @param {string} shape The collision formula based on shape.
    */
-  isTargetWithinRange(
-    facing,
-    targetCharacter,
-    actionEvent,
-    range,
-    shape
-  )
+  isTargetWithinRange(facing, targetCharacter, actionEvent, range, shape)
   {
     // determine collision based on the selected shape.
     switch (shape)
@@ -24772,13 +25003,7 @@ class JABS_Engine
    * @param {number} degrees The wedge sweep in degrees (0–360); <360 enables angle gate.
    * @returns {boolean} True if the sector overlaps the target.
    */
-  collisionSector(
-    target,
-    action,
-    range,
-    facing,
-    degrees
-  )
+  collisionSector(target, action, range, facing, degrees)
   {
     // derive pixel radius from tiles.
     const tw = $gameMap.tileWidth(); // tile width in px.
@@ -24866,11 +25091,7 @@ class JABS_Engine
    * @param {number} range How big the collision shape is (tiles).
    * @returns {boolean}
    */
-  collisionCircle(
-    target,
-    action,
-    range
-  )
+  collisionCircle(target, action, range)
   {
     // derive circle parameters in pixels.
     const tw = $gameMap.tileWidth(); // assume square tiles unless specified otherwise.
@@ -24897,11 +25118,7 @@ class JABS_Engine
    * @param {number} range How big the collision shape is (tiles).
    * @returns {boolean} True if the target is within the diamond.
    */
-  collisionRhombus(
-    target,
-    action,
-    range
-  )
+  collisionRhombus(target, action, range)
   {
     // grab tile dimensions for normalization.
     const tw = $gameMap.tileWidth(); // tile width in px.
@@ -24960,11 +25177,7 @@ class JABS_Engine
    * @param {number} range The range in tiles.
    * @returns {boolean}
    */
-  collisionSquare(
-    target,
-    action,
-    range
-  )
+  collisionSquare(target, action, range)
   {
     // compute action-centered square size in pixels.
     const tw = $gameMap.tileWidth(); // tile width.
@@ -24999,12 +25212,7 @@ class JABS_Engine
    * @param {2|4|6|8} facing The direction the action is facing.
    * @returns {boolean}
    */
-  collisionFrontSquare(
-    target,
-    action,
-    range,
-    facing
-  )
+  collisionFrontSquare(target, action, range, facing)
   {
     // compute half-square dimensions in pixels.
     const tw = $gameMap.tileWidth(); // tile width.
@@ -25072,12 +25280,7 @@ class JABS_Engine
    * @param {2|4|6|8} facing Facing direction.
    * @returns {boolean}
    */
-  collisionLine(
-    target,
-    action,
-    range,
-    facing
-  )
+  collisionLine(target, action, range, facing)
   {
     // acquire tile dimensions.
     const tw = $gameMap.tileWidth(); // tile width in px.
@@ -25152,12 +25355,7 @@ class JABS_Engine
    * @param {2|4|6|8} facing The direction at time of cast.
    * @returns {boolean} True if the sector overlaps the target.
    */
-  collisionFrontRhombus(
-    target,
-    action,
-    range,
-    facing
-  )
+  collisionFrontRhombus(target, action, range, facing)
   {
     // prefer explicit degrees if present; otherwise legacy default 180°.
     const degrees = this.getActionDegrees(action) ?? 180;
@@ -25175,12 +25373,7 @@ class JABS_Engine
    * @param {2|4|6|8} facing Facing direction.
    * @returns {boolean}
    */
-  collisionWall(
-    target,
-    action,
-    range,
-    facing
-  )
+  collisionWall(target, action, range, facing)
   {
     const tw = $gameMap.tileWidth();
     const th = $gameMap.tileHeight();
@@ -25234,11 +25427,7 @@ class JABS_Engine
    * @param {number} range Range in tiles (extends out from origin on each arm).
    * @returns {boolean}
    */
-  collisionCross(
-    target,
-    action,
-    range
-  )
+  collisionCross(target, action, range)
   {
     const tw = $gameMap.tileWidth();
     const th = $gameMap.tileHeight();
@@ -25277,10 +25466,7 @@ class JABS_Engine
    * @param {JABS_Battler} target The `Game_Battler` that was defeated.
    * @param {JABS_Battler} caster The `Game_Battler` that defeated the target.
    */
-  handleDefeatedTarget(
-    target,
-    caster
-  )
+  handleDefeatedTarget(target, caster)
   {
     // handle on-defeat effects, but before the battler is actually removed.
     this.predefeatHandler(target, caster);
@@ -25311,10 +25497,7 @@ class JABS_Engine
    * @param {JABS_Battler} target The `Game_Battler` that was defeated.
    * @param {JABS_Battler} caster The `Game_Battler` that defeated the target.
    */
-  predefeatHandler(
-    target,
-    caster
-  )
+  predefeatHandler(target, caster)
   {
     target.performPredefeatEffects(caster);
   }
@@ -25324,10 +25507,7 @@ class JABS_Engine
    * @param {JABS_Battler} target The `Game_Battler` that was defeated.
    * @param {JABS_Battler} caster The `Game_Battler` that defeated the target.
    */
-  postDefeatHandler(
-    target,
-    caster
-  )
+  postDefeatHandler(target, caster)
   {
     target.performPostdefeatEffects(caster);
   }
@@ -25357,10 +25537,7 @@ class JABS_Engine
    * @param {JABS_Battler} defeatedTarget The `JABS_Battler` that was defeated.
    * @param {JABS_Battler} caster The `JABS_Battler` that defeated the target.
    */
-  handleDefeatedEnemy(
-    defeatedTarget,
-    caster
-  )
+  handleDefeatedEnemy(defeatedTarget, caster)
   {
     // remove all leader/follower data the battler may have.
     defeatedTarget.clearFollowers();
@@ -25397,10 +25574,7 @@ class JABS_Engine
    * @param {Game_Enemy} enemy The target battler that was defeated.
    * @param {JABS_Battler} actor The map battler that defeated the target.
    */
-  gainBasicRewards(
-    enemy,
-    actor
-  )
+  gainBasicRewards(enemy, actor)
   {
     let experience = enemy.exp();
     let gold = enemy.gold();
@@ -25422,10 +25596,7 @@ class JABS_Engine
    * @param {Game_Battler} enemy The target battler that was defeated.
    * @param {JABS_Battler} actor The map battler that defeated the target.
    */
-  getRewardScalingMultiplier(
-    enemy,
-    actor
-  )
+  getRewardScalingMultiplier(enemy, actor)
   {
     // default the multiplier to 1x.
     let multiplier = 1.0;
@@ -25448,10 +25619,7 @@ class JABS_Engine
    * @param {number} experience The experience to be gained as a reward.
    * @param {Game_Character} casterCharacter The character who defeated the target.
    */
-  gainExperienceReward(
-    experience,
-    casterCharacter
-  )
+  gainExperienceReward(experience, casterCharacter)
   {
     // don't do anything if the enemy didn't grant any experience.
     if (!experience) return;
@@ -25472,10 +25640,7 @@ class JABS_Engine
    * @param {number} amount The amount in the popup.
    * @param {Game_Character} character The character the popup is on.
    */
-  generatePopExperience(
-    amount,
-    character
-  )
+  generatePopExperience(amount, character)
   {
     // if we are not using popups, then don't do this.
     if (!J.POPUPS) return;
@@ -25509,10 +25674,7 @@ class JABS_Engine
    * @param {number} gold The gold to be gained as a reward.
    * @param {Game_Character} character The character who defeated the target.
    */
-  gainGoldReward(
-    gold,
-    character
-  )
+  gainGoldReward(gold, character)
   {
     // don't do anything if the enemy didn't grant any gold.
     if (!gold) return;
@@ -25529,10 +25691,7 @@ class JABS_Engine
    * @param {number} amount The amount in the popup.
    * @param {Game_Character} character The character the popup is on.
    */
-  generatePopGold(
-    amount,
-    character
-  )
+  generatePopGold(amount, character)
   {
     // if we are not using popups, then don't do this.
     if (!J.POPUPS) return;
@@ -25566,11 +25725,7 @@ class JABS_Engine
    * @param {number} gold The gold to be gained as a reward.
    * @param {JABS_Battler} caster The ally gaining the experience and gold.
    */
-  createRewardsLog(
-    experience,
-    gold,
-    caster
-  )
+  createRewardsLog(experience, gold, caster)
   {
     if (!J.LOG) return;
 
@@ -25597,10 +25752,7 @@ class JABS_Engine
    * @param {JABS_Battler} caster The ally that defeated the enemy.
    */
   // eslint-disable-next-line no-unused-vars
-  createLootDrops(
-    target,
-    caster
-  )
+  createLootDrops(target, caster)
   {
     // actors don't drop loot.
     if (target.isActor()) return;
@@ -25647,19 +25799,13 @@ class JABS_Engine
    * @param {RPG_BaseItem[]} itemDataList All items picked up.
    * @param {Game_Character} character The character displaying the popups.
    */
-  generatePopItemBulk(
-    itemDataList,
-    character
-  )
+  generatePopItemBulk(itemDataList, character)
   {
     // if we are not using popups, then don't do this.
     if (!J.POPUPS) return;
 
     // iterate over all loot.
-    itemDataList.forEach((
-      itemData,
-      index
-    ) =>
+    itemDataList.forEach((itemData, index) =>
     {
       // generate a pop that moves based on index.
       this.generatePopItem(itemData, character, 32 + (index * 24));
@@ -25679,11 +25825,7 @@ class JABS_Engine
    * @param {Game_Character} character The character displaying the popup.
    * @param {number} y The y coordiante for this item pop.
    */
-  generatePopItem(
-    itemData,
-    character,
-    y
-  )
+  generatePopItem(itemData, character, y)
   {
     // if we are not using popups, then don't do this.
     if (!J.POPUPS) return;
@@ -25700,10 +25842,7 @@ class JABS_Engine
    * @param {RPG_BaseItem} itemData The item's database object.
    * @param {number} y The y coordiante for this item pop.
    */
-  configureItemPop(
-    itemData,
-    y
-  )
+  configureItemPop(itemData, y)
   {
     // build the popup.
     return new TextPopBuilder(itemData.name)
@@ -25776,10 +25915,7 @@ class JABS_Engine
    * @param {number} newLevel The level being reached.
    * @returns {ActionLog}
    */
-  configureLevelUpLog(
-    targetName,
-    newLevel
-  )
+  configureLevelUpLog(targetName, newLevel)
   {
     return new ActionLogBuilder()
       .setupLevelUp(targetName, newLevel)
@@ -25800,10 +25936,7 @@ class JABS_Engine
    * @param {RPG_Skill} skill The skill being learned.
    * @param {string} uuid The uuid of the battler leveling up.
    */
-  battlerSkillLearn(
-    skill,
-    uuid
-  )
+  battlerSkillLearn(skill, uuid)
   {
     const battler = JABS_AiManager.getBattlerByUuid(uuid);
     if (battler)
@@ -25819,10 +25952,7 @@ class JABS_Engine
    * @param {RPG_Skill} skill The skill being learned.
    * @param {Game_Character} character The character to show the popup on.
    */
-  generatePopSkillLearn(
-    skill,
-    character
-  )
+  generatePopSkillLearn(skill, character)
   {
     // if we are not using popups, then don't do this.
     if (!J.POPUPS) return;
@@ -25852,10 +25982,7 @@ class JABS_Engine
    * @param {RPG_Skill} skill The skill being learned.
    * @param {JABS_Battler} player The player's `JABS_Battler`.
    */
-  createSkillLearnLog(
-    skill,
-    player
-  )
+  createSkillLearnLog(skill, player)
   {
     if (!J.LOG) return;
 
@@ -25869,10 +25996,7 @@ class JABS_Engine
    * @param {number} learnedSkillId The id of the skill learned.
    * @returns {ActionLog}
    */
-  configureSkillLearnLog(
-    targetName,
-    learnedSkillId
-  )
+  configureSkillLearnLog(targetName, learnedSkillId)
   {
     return new ActionLogBuilder()
       .setupSkillLearn(targetName, learnedSkillId)
