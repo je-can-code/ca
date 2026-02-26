@@ -6,6 +6,8 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
+ * @orderAfter J-Base
+ * @orderAfter J-NaturalGrowth
  * @help
  * ============================================================================
  * This plugin enables the ability to control the multiplier of critical damage
@@ -161,11 +163,15 @@
  * Have you ever wanted to permanently grow your CDM/CDR stats along with your
  * other growths that you have setup because you're also using my
  *
- *        J-NaturalGrowths
+ *        J-NaturalGrowth
  *
  * plugin? Well now you can! By taking advantage of the same builder-like
  * pattern already established by the natural growths plugin, you too can start
  * growing your CDR and CDM by flat or rate multipliers as you level up!
+ *
+ * NOTE ABOUT NATURAL "BUFFS" FOR CDM/CDR:
+ * Unlike other natural buffs, cdm/cdr are not tracked and only used during the
+ * calculation of a critical hit.
  *
  * TAG USAGE:
  * - Actors
@@ -203,6 +209,9 @@
  * Please refer to the other plugin's documentation for more details.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Added dependency note about NaturalGrowth.
+ *    Added ordering annotation for coming after J-NaturalGrowth.
  * - 1.0.1
  *    Fixed issue where CDM and CDR were not being calculated for SDP bonuses.
  * - 1.0.0

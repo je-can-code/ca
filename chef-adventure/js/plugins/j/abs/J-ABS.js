@@ -19249,7 +19249,6 @@ RPG_Traited.prototype.extractJabsBonusHits = function()
 //endregion bonusHits
 //endregion RPG_Traited
 
-
 //region RPG_UsableItem
 //region bonusHits
 /**
