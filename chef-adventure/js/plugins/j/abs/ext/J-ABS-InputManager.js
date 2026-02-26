@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.0 INPUT] A manager for overseeing the input of JABS.
+ * [v2.1.1 INPUT] A manager for overseeing the input of JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -38,14 +38,16 @@
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 2.1.1
+ *    Fixed typo in custom input mapping.
  * - 2.1.0
- *   Added ability to use dpad in "Window_Select"-based windows.
- *   Moved debug logic from J-ABS to this plugin.
- *   Updated old namespace for inputs to match this plugin.
+ *    Added ability to use dpad in "Window_Select"-based windows.
+ *    Moved debug logic from J-ABS to this plugin.
+ *    Updated old namespace for inputs to match this plugin.
  * - 2.0.0
- *   Significantly overhauled the plugin to support with input remapping.
+ *    Significantly overhauled the plugin to support with input remapping.
  * - 1.0.0
- *   Initial release.
+ *    Initial release.
  * ============================================================================
  */
 
@@ -78,7 +80,7 @@ J.ABS.EXT.INPUT = {};
  */
 J.ABS.EXT.INPUT = {};
 J.ABS.EXT.INPUT.Metadata = {};
-J.ABS.EXT.INPUT.Metadata.Version = '2.1.0';
+J.ABS.EXT.INPUT.Metadata.Version = '2.1.1';
 J.ABS.EXT.INPUT.Metadata.Name = `J-ABS-InputManager`;
 
 /**
@@ -5517,7 +5519,7 @@ class Window_JabsRemapPrompt
   {
     // collect core input constants from the JABS input adapter constants.
     // These should reflect only keyboard/gamepad bindings.
-    const k = J.ABS.Input;
+    const k = J.ABS.EXT.INPUT.Symbols;
 
     // build the list using adapter constants.
     const inputs = [
