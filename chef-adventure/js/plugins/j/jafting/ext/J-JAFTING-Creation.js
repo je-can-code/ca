@@ -1480,7 +1480,7 @@ class J_CraftingCreatePluginMetadata
      */
     this.categoriesMap = categoriesMap;
 
-    if (this.#hasMinimumBaseVersion() && J.BASE.Metadata.ShowExternalFileLoadInfo)
+    if (J_CraftingCreatePluginMetadata.#hasMinimumBaseVersion() && J.BASE.Metadata.ShowExternalFileLoadInfo)
     {
       console.log(`loaded:
       - ${this.recipes.length} recipes
@@ -1586,7 +1586,7 @@ class J_CraftingCreatePluginMetadata
    * Checks if the BASE plugin meets the minimum version requirement for this plugin.
    * @return {boolean}
    */
-  #hasMinimumBaseVersion()
+  static #hasMinimumBaseVersion()
   {
     // identify the two versions for comparison.
     const minimumVersion = this.#minimumBaseVersion();
@@ -1606,7 +1606,7 @@ class J_CraftingCreatePluginMetadata
    * Gets the current minimum version of the J-BASE system this plugin requires.
    * @returns {PluginVersion}
    */
-  #minimumBaseVersion()
+  static #minimumBaseVersion()
   {
     return PluginVersion.builder
       .major('2')

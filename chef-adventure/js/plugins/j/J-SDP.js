@@ -1276,7 +1276,7 @@ class J_SdpPluginMetadata
      */
     this.panelsMap = panelMap;
 
-    if (this.#hasMinimumBaseVersion() && J.BASE.Metadata.ShowExternalFileLoadInfo)
+    if (J_SdpPluginMetadata.#hasMinimumBaseVersion() && J.BASE.Metadata.ShowExternalFileLoadInfo)
     {
       console.log(`loaded:
       - ${this.panels.length} panels
@@ -1336,7 +1336,7 @@ class J_SdpPluginMetadata
    * Checks if the BASE plugin meets the minimum version requirement for this plugin.
    * @return {boolean}
    */
-  #hasMinimumBaseVersion()
+  static #hasMinimumBaseVersion()
   {
     // identify the two versions for comparison.
     const minimumVersion = this.#minimumBaseVersion();
@@ -1356,7 +1356,7 @@ class J_SdpPluginMetadata
    * Gets the current minimum version of the J-BASE system this plugin requires.
    * @returns {PluginVersion}
    */
-  #minimumBaseVersion()
+  static #minimumBaseVersion()
   {
     return PluginVersion.builder
       .major('2')
