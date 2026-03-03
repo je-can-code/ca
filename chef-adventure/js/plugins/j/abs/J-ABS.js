@@ -238,6 +238,12 @@ class JABS_Action
      * @type {JABS_ActionOptions|null}
      */
     this._actionOptions = null;
+
+    /**
+     * The animation id to play once on the caster when the skill executes (after any casting).
+     * @type {number}
+     */
+    this._onCastAnimationId = this.getBaseSkill().jabsOnCastAnimationId ?? 0;
   }
 
   /**
@@ -444,6 +450,46 @@ class JABS_Action
   }
 
   /**
+   * Gets whether or not this action has an on-cast animation id.
+   * @returns {boolean}
+   */
+  hasOnCastAnimationId()
+  {
+    // non-zero indicates a configured animation.
+    return this.getOnCastAnimationId() !== 0;
+  }
+
+  /**
+   * Gets the on-cast animation id to display on the caster when executing this action.
+   * @returns {number}
+   */
+  getOnCastAnimationId()
+  {
+    // return the cached on-cast animation id.
+    return this._onCastAnimationId;
+  }
+
+  /**
+   * Performs the on-cast animation on the caster.
+   * @param {JABS_Battler=} caster Optional caster override; defaults to this action’s caster.
+   */
+  performOnCastAnimation(caster)
+  {
+    // determine the caster if not provided.
+    const who = caster || this.getCaster();
+
+    // validate a caster exists.
+    if (!who) return;
+
+    // only perform if a valid animation id is defined.
+    if (this.hasOnCastAnimationId())
+    {
+      // request the one-off animation on the caster’s map character.
+      who.getCharacter().requestAnimation(this.getOnCastAnimationId());
+    }
+  }
+
+  /**
    * Gets the `uuid` of this action.
    *
    * If one is not returned, then it is probably a direct action with no event representing it.
@@ -594,7 +640,7 @@ class JABS_Action
    */
   getMaxDuration()
   {
-    return Math.max(this.getBaseSkill().jabsDuration, JABS_Action.getMinimumDuration())
+    return Math.max(this.getBaseSkill().jabsDuration, JABS_Action.getMinimumDuration());
   }
 
   /**
@@ -1849,6 +1895,31 @@ JABS_Aggro.prototype.modAggro = function(modAggro, forced = false)
   this.aggro += modAggro;
   if (this.aggro < 0) this.aggro = 0;
 };
+
+/**
+ * Determines whether or not this aggro is for a living actor.
+ * @returns {boolean}
+ */
+JABS_Aggro.prototype.isForLivingActor = function()
+{
+  // grab the battler for reference.
+  const battler = JABS_AiManager.getBattlerByUuid(this.battlerUuid);
+
+  // if there was no battler by this id, then its not for an actor.
+  if (!battler) return false;
+
+  // if the battler is not an actor, then its not for an actor.
+  if (battler.isActor() !== false) return false;
+
+  // if the actor is dead, then it doesn't count.
+  if (battler.isDead() === true) return false;
+
+  // if the aggro is reset/empty, then it doesn't count.
+  if (this.aggro <= 0) return false;
+
+  // the aggro's target is a living actor.
+  return true;
+};
 //endregion JABS_Aggro
 
 //region JABS_AI
@@ -2521,6 +2592,18 @@ JABS_Battler.prototype.initBattleInfo = function()
    * @type {JABS_Aggro[]}
    */
   this._aggros = [];
+
+  /**
+   * Frames remaining that this battler is considered “in combat”.
+   * @type {number}
+   */
+  this._inCombatCountdown = 0;
+
+  /**
+   * Default window for the in‑combat countdown (60fps × seconds).
+   * @type {number}
+   */
+  this._inCombatWindowMax = 600; // 10s default.
 };
 
 /**
@@ -2589,6 +2672,7 @@ JABS_Battler.prototype.initCooldowns = function()
 //endregion initialize battler
 
 //region reference helpers
+//region else
 /**
  * Reassigns the character to something else.
  * @param {Game_Event|Game_Player|Game_Follower} newCharacter The new character to assign.
@@ -2903,7 +2987,7 @@ JABS_Battler.prototype.addFollower = function(newFollowerUuid)
   const found = this.getFollowerByUuid(newFollowerUuid);
   if (found)
   {
-    console.error("this follower already existed within the follower list.");
+    console.error('this follower already existed within the follower list.');
   }
   else
   {
@@ -2924,7 +3008,7 @@ JABS_Battler.prototype.removeFollower = function(oldFollowerUuid)
   }
   else
   {
-    console.error("could not find follower to remove from the list.", oldFollowerUuid);
+    console.error('could not find follower to remove from the list.', oldFollowerUuid);
   }
 };
 
@@ -2982,7 +3066,7 @@ JABS_Battler.prototype.removeFollowerByUuid = function(uuid)
  */
 JABS_Battler.prototype.clearLeaderData = function()
 {
-  this.setLeader("");
+  this.setLeader('');
   this.clearLeaderDecidedActionsQueue();
 };
 
@@ -3055,7 +3139,7 @@ JABS_Battler.prototype.isPlayer = function()
  */
 JABS_Battler.prototype.isActor = function()
 {
-  return (this.isPlayer() || this.getBattler() instanceof Game_Actor)
+  return (this.isPlayer() || this.getBattler() instanceof Game_Actor);
 };
 
 /**
@@ -4174,6 +4258,129 @@ JABS_Battler.prototype.isShowingAnimation = function()
   return this.getCharacter()
     .isAnimationPlaying();
 };
+
+//endregion rest
+
+//region in-combat
+/**
+ * Flags this battler as in‑combat for the full window.
+ */
+JABS_Battler.prototype.enterCombat = function()
+{
+  // set the in‑combat countdown to the window max.
+  this.setInCombatCountdown(this.getCombatWindowMax());
+};
+
+/**
+ * Gets the remaining frames for the in‑combat countdown.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getInCombatCountdown = function()
+{
+  // return the number of frames remaining while in combat.
+  return this._inCombatCountdown || 0;
+};
+
+/**
+ * Gets the remaining in‑combat time in seconds with one decimal.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getCombatSecondsRemaining = function()
+{
+  // convert remaining frames to seconds (60fps) with one decimal place.
+  const seconds = (this.getInCombatCountdown() / 60).toFixed(1);
+
+  // return the remaining seconds as a number.
+  return parseFloat(seconds);
+};
+
+/**
+ * Gets whether or not this battler is currently considered in‑combat.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isInCombat = function()
+{
+  // honor the forced combat flag.
+  if ($jabsEngine.forcedCombat === true) return true;
+
+  // a positive countdown means still in combat.
+  if (this._inCombatCountdown > 0) return true;
+
+  // nothing combat-related is happening.
+  return false;
+};
+
+/**
+ * Gets the default in‑combat window duration.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getCombatWindowMax = function()
+{
+  // return the configured max (fallback guards against legacy saves).
+  return this._inCombatWindowMax || 600;
+};
+
+/**
+ * Sets the default in‑combat window duration.
+ * @param {number} frames The number of frames to use for the window.
+ */
+JABS_Battler.prototype.setCombatWindowMax = function(frames)
+{
+  // clamp to zero minimum.
+  this._inCombatWindowMax = Math.max(0, frames);
+};
+
+/**
+ * Sets the current in‑combat countdown window.
+ * @param {number} frames The number of frames remaining.
+ */
+JABS_Battler.prototype.setInCombatCountdown = function(frames)
+{
+  // clamp to zero minimum.
+  this._inCombatCountdown = Math.max(0, frames);
+};
+
+/**
+ * Counts down the in‑combat timer.
+ */
+JABS_Battler.prototype.countdownCombat = function()
+{
+  // stop counting if finished.
+  if (this._inCombatCountdown <= 0)
+  {
+    this._inCombatCountdown = 0;
+    return;
+  }
+
+  // opportunistically compress the countdown when combat is truly clear.
+  // This reduces long tails after one‑shot wipes or non-retaliated kills.
+  // Tail length is 120 frames (2.0s) by default.
+  this._maybeShortenCombatTail(120);
+
+  // tick the countdown.
+  this._inCombatCountdown--;
+};
+
+/**
+ * Optionally clamps the in‑combat countdown to a short tail when there are
+ * no living enemies with aggro on the party.
+ * @param {number} tailFrames The maximum tail to leave when calm (in frames).
+ */
+JABS_Battler.prototype._maybeShortenCombatTail = function(tailFrames)
+{
+  // do not lengthen; only clamp if the window is larger than our tail.
+  if (this._inCombatCountdown <= tailFrames)
+  {
+    return;
+  }
+
+  // if nobody is aggroed to the party, compress the combat tail.
+  if (JABS_AiManager.anyLivingEnemiesAggroedToParty() === false)
+  {
+    this._inCombatCountdown = tailFrames;
+  }
+};
+//endregion in-combat
 //endregion reference helpers
 
 //region statics
@@ -4410,7 +4617,7 @@ JABS_Battler.prototype.update = function()
   this.updateCooldowns();
   this.updateTimers();
   this.updateEngagement();
-  this.updateRG();
+  this.updateRegen();
   this.updateDodging();
   this.updateDeathHandling();
 };
@@ -4441,7 +4648,9 @@ JABS_Battler.prototype.processQueuedActions = function()
     const options = primaryAction.getActionOptions();
 
     // try to read a frozen target location from the options.
-    const loc = options ? options.getTargetLocation() : null;
+    const loc = options
+      ? options.getTargetLocation()
+      : null;
 
     // if a frozen location exists, extract coordinates from it.
     if (loc)
@@ -4652,6 +4861,7 @@ JABS_Battler.prototype.updateTimers = function()
   this.processAlertTimer();
   this.processParryTimer();
   this.processLastHitTimer();
+  this.processCombatTimer();
   this.processCastingTimer();
   this.processEngagementTimer();
 };
@@ -4699,6 +4909,18 @@ JABS_Battler.prototype.processLastHitTimer = function()
   if (this.hasBattlerLastHit())
   {
     this.countdownLastHit();
+  }
+};
+
+/**
+ * Updates the timer for "in combat".
+ */
+JABS_Battler.prototype.processCombatTimer = function()
+{
+  // if in combat, update the combat timer.
+  if (this.isInCombat())
+  {
+    this.countdownCombat();
   }
 };
 
@@ -7044,10 +7266,10 @@ JABS_Battler.prototype.canPaySkillCost = function(skillId)
 /**
  * Updates all regenerations and ticks four times per second.
  */
-JABS_Battler.prototype.updateRG = function()
+JABS_Battler.prototype.updateRegen = function()
 {
   // check if we are able to update the RG.
-  if (!this.canUpdateRG()) return;
+  if (!this.canUpdateRegen()) return;
 
   //
   this.performRegeneration();
@@ -7058,7 +7280,7 @@ JABS_Battler.prototype.updateRG = function()
  * Determines whether or not the regeneration can be updated.
  * @returns {boolean}
  */
-JABS_Battler.prototype.canUpdateRG = function()
+JABS_Battler.prototype.canUpdateRegen = function()
 {
   // check if the regen is even ready for this battler.
   if (!this.isRegenReady()) return false;
@@ -7154,8 +7376,6 @@ JABS_Battler.prototype.processNaturalRegens = function()
   // process the natural hp/mp regens, possibly reduced.
   this.processNaturalHpRegen(isReduced);
   this.processNaturalMpRegen(isReduced);
-
-  // natural TP regen is never reduced.
   this.processNaturalTpRegen(isReduced);
 };
 
@@ -7168,12 +7388,11 @@ JABS_Battler.prototype.isNaturalRegenReduced = function()
   // enemies are not impacted by reduced natural regen.
   if (this.isEnemy()) return false;
 
-  // in-combat players will have a "last battler hit" tracked. Once that fades, they aren't in combat.
-  // TODO: may need to add a "i was last hit in the last 10 seconds" tracker.
-  if (this.isPlayer() && this.getBattlerLastHit() !== null) return true;
+  // if combat is globally forced (boss phases, etc), always reduced for non‑enemies.
+  if ($jabsEngine.forcedCombat === true) return true;
 
   // in-combat allies will be actors that are presently engaged.
-  if (this.isActor() && this.isEngaged()) return true;
+  if (this.isActor() && this.isInCombat()) return true;
 
   // no reason to reduce natural regen.
   return false;
@@ -7544,7 +7763,7 @@ JABS_Battler.prototype.slipEval = function(formula, sourceBattler, afflictedBatt
     if (!Number.isFinite(result))
     {
       // throw, and then catch to properly log in the next block.
-      throw new Error("Invalid formula.")
+      throw new Error('Invalid formula.');
     }
   }
   catch (err)
@@ -12810,6 +13029,11 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.3.0
+ *    Unified sprint and dash as one alter-action.
+ *    Added a notion of "being in combat" based on hitting or being hit.
+ *    Force dash function to change to mobility skill while "in combat".
+ *    Added "on cast animation" that plays once a skill is done casting.
  * - 4.2.0
  *    Split projectile count from projectile formation.
  * - 4.1.1
@@ -14765,7 +14989,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.3';
+  const requiredBaseVersion = '2.3.1';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -14783,7 +15007,7 @@ J.ABS = {};
 /**
  * The parent namespace for all JABS extensions.
  */
-J.ABS.EXT = {}
+J.ABS.EXT = {};
 
 //region helpers
 /**
@@ -14805,17 +15029,17 @@ J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot =>
 {
   switch (slot)
   {
-    case "Tool":
+    case 'Tool':
       return JABS_Button.Tool;
-    case "Dodge":
+    case 'Dodge':
       return JABS_Button.Dodge;
-    case "L1A":
+    case 'L1A':
       return JABS_Button.CombatSkill1;
-    case "L1B":
+    case 'L1B':
       return JABS_Button.CombatSkill2;
-    case "L1X":
+    case 'L1X':
       return JABS_Button.CombatSkill3;
-    case "L1Y":
+    case 'L1Y':
       return JABS_Button.CombatSkill4;
   }
 };
@@ -14853,7 +15077,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.2.0';
+J.ABS.Metadata.Version = '4.3.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -14881,14 +15105,14 @@ J.ABS.Metadata.DefaultEnemyPursuitRange = Number(J.ABS.PluginParameters['default
 J.ABS.Metadata.DefaultEnemyAlertedSightBoost = Number(J.ABS.PluginParameters['defaultEnemyAlertedSightBoost']);
 J.ABS.Metadata.DefaultEnemyAlertedPursuitBoost = Number(J.ABS.PluginParameters['defaultEnemyAlertedPursuitBoost']);
 J.ABS.Metadata.DefaultEnemyAlertDuration = Number(J.ABS.PluginParameters['defaultEnemyAlertDuration']);
-J.ABS.Metadata.DefaultEnemyCanIdle = Boolean(J.ABS.PluginParameters['defaultEnemyCanIdle'] === "true");
-J.ABS.Metadata.DefaultEnemyShowHpBar = Boolean(J.ABS.PluginParameters['defaultEnemyShowHpBar'] === "true");
-J.ABS.Metadata.DefaultEnemyShowBattlerName = Boolean(J.ABS.PluginParameters['defaultEnemyShowBattlerName'] === "true");
-J.ABS.Metadata.DefaultEnemyIsInvincible = Boolean(J.ABS.PluginParameters['defaultEnemyIsInvincible'] === "true");
-J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['defaultEnemyIsInanimate'] === "true");
+J.ABS.Metadata.DefaultEnemyCanIdle = Boolean(J.ABS.PluginParameters['defaultEnemyCanIdle'] === 'true');
+J.ABS.Metadata.DefaultEnemyShowHpBar = Boolean(J.ABS.PluginParameters['defaultEnemyShowHpBar'] === 'true');
+J.ABS.Metadata.DefaultEnemyShowBattlerName = Boolean(J.ABS.PluginParameters['defaultEnemyShowBattlerName'] === 'true');
+J.ABS.Metadata.DefaultEnemyIsInvincible = Boolean(J.ABS.PluginParameters['defaultEnemyIsInvincible'] === 'true');
+J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['defaultEnemyIsInanimate'] === 'true');
 
 // custom data configurations.
-J.ABS.Metadata.UseElementalIcons = J.ABS.PluginParameters['useElementalIcons'] === "true";
+J.ABS.Metadata.UseElementalIcons = J.ABS.PluginParameters['useElementalIcons'] === 'true';
 J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['elementalIconData']);
 
 // action decided configurations.
@@ -14920,10 +15144,10 @@ J.ABS.Metadata.DefaultStateLoseAllStacksAtOnce = (J.ABS.PluginParameters['defaul
 
 // miscellaneous configurations.
 J.ABS.Metadata.LootPickupRange = Number(J.ABS.PluginParameters['lootPickupDistance']);
-J.ABS.Metadata.DisableTextPops = Boolean(J.ABS.PluginParameters['disableTextPops'] === "true");
+J.ABS.Metadata.DisableTextPops = Boolean(J.ABS.PluginParameters['disableTextPops'] === 'true');
 J.ABS.Metadata.AllyRubberbandAdjustment = Number(J.ABS.PluginParameters['allyRubberbandAdjustment']);
 J.ABS.Metadata.DashSpeedBoost = Number(J.ABS.PluginParameters['dashSpeedBoost']);
-J.ABS.Metadata.HitboxOverlaysInitiallyVisible = (J.ABS.PluginParameters['hitboxOverlaysInitiallyVisible'] === "true");
+J.ABS.Metadata.HitboxOverlaysInitiallyVisible = (J.ABS.PluginParameters['hitboxOverlaysInitiallyVisible'] === 'true');
 
 // quick menu commands configurations.
 J.ABS.Metadata.EquipCombatSkillsText = J.ABS.PluginParameters['equipCombatSkillsText'];
@@ -14976,8 +15200,12 @@ J.ABS.Metadata.HitboxStyles = {
   // Battler overrides by kind (player/follower/battler)
   byKind:
     {
-      player:  { fillColor: 0x4DA3FF, lineColor: 0x2368CC, fillAlpha: 0.25 },
-      follower:{ fillColor: 0x9B59B6 },
+      player: {
+        fillColor: 0x4DA3FF,
+        lineColor: 0x2368CC,
+        fillAlpha: 0.25
+      },
+      follower: { fillColor: 0x9B59B6 },
       battler: { fillColor: 0x2ECC71 },
     },
 
@@ -15087,9 +15315,9 @@ J.ABS.Globals = {};
  *
  * * TODO: implement the global cooldown blocking other cooldowns.
  * * TODO: alternatively, consider applying cooldowns against global to all slots on a battler.
- * @type {"global"}
+ * @type {'global'}
  */
-J.ABS.Globals.GlobalCooldownKey = "global";
+J.ABS.Globals.GlobalCooldownKey = 'global';
 
 /**
  * A collection of helpful mappings for emoji balloons
@@ -15214,42 +15442,42 @@ J.ABS.Shapes = {
   /**
    * A circle shaped hitbox.
    */
-  Circle: "circle",
+  Circle: 'circle',
 
   /**
    * A rhombus (aka diamond) shaped hitbox.
    */
-  Rhombus: "rhombus",
+  Rhombus: 'rhombus',
 
   /**
    * A square around the target hitbox.
    */
-  Square: "square",
+  Square: 'square',
 
   /**
    *  A square in front of the target hitbox.
    */
-  FrontSquare: "frontsquare",
+  FrontSquare: 'frontsquare',
 
   /**
    * A line from the target hitbox.
    */
-  Line: "line",
+  Line: 'line',
 
   /**
    * An arc shape hitbox in front of the action.
    */
-  Arc: "arc",
+  Arc: 'arc',
 
   /**
    * A wall in front of the target hitbox.
    */
-  Wall: "wall",
+  Wall: 'wall',
 
   /**
    * A cross from the target hitbox.
    */
-  Cross: "cross"
+  Cross: 'cross'
 };
 
 /**
@@ -15257,19 +15485,19 @@ J.ABS.Shapes = {
  */
 J.ABS.ProjectileFormations = {
   /** A single spoke in the forward direction. */
-  Line: "line",
+  Line: 'line',
 
   /** Three spokes: forward, forward-left, forward-right. */
-  Spray: "spray",
+  Spray: 'spray',
 
   /** Four cardinals: up, right, down, left. */
-  Cross: "cross",
+  Cross: 'cross',
 
   /** Four diagonals: up-right, down-right, down-left, up-left. */
-  Xburst: "xburst",
+  Xburst: 'xburst',
 
   /** All eight directions: cardinals + diagonals. */
-  Nova: "nova",
+  Nova: 'nova',
 };
 
 /**
@@ -15278,9 +15506,9 @@ J.ABS.ProjectileFormations = {
  */
 J.ABS.Notetags = {
   MoveType: {
-    Forward: "forward",
-    Backward: "backward",
-    Directional: "directional",
+    Forward: 'forward',
+    Backward: 'backward',
+    Directional: 'directional',
   }
 };
 
@@ -15319,6 +15547,7 @@ J.ABS.RegExp = {
 
   // animation-related.
   SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
+  OnCastAnimationId: /<onCastAnimationId:[ ]?(\d+)>/gi,
 
   // combo-related.
   ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
@@ -15480,10 +15709,10 @@ J.ABS.RegExp.VisDebug = /<visDebug>/gi; // show visual center/debug gizmo
  * Cardinal: U/D/L/R
  * Optional diagonals: UR/UL/DR/DL
  */
-J.ABS.RegExp.VisOffsetU  = /<visOffsetU:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
-J.ABS.RegExp.VisOffsetD  = /<visOffsetD:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
-J.ABS.RegExp.VisOffsetL  = /<visOffsetL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
-J.ABS.RegExp.VisOffsetR  = /<visOffsetR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
+J.ABS.RegExp.VisOffsetU = /<visOffsetU:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
+J.ABS.RegExp.VisOffsetD = /<visOffsetD:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
+J.ABS.RegExp.VisOffsetL = /<visOffsetL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
+J.ABS.RegExp.VisOffsetR = /<visOffsetR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
 
 // Optional diagonals for future use.
 J.ABS.RegExp.VisOffsetUR = /<visOffsetUR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi; // [x, y]
@@ -17939,6 +18168,40 @@ RPG_Skill.prototype.extractJabsSelfAnimationId = function()
 };
 //endregion range
 
+//region onCastAnimation
+/**
+ * The animation id to play on the caster once when the skill actually executes.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, 'jabsOnCastAnimationId', {
+  get: function()
+  {
+    // retrieve the parsed on-cast animation id from notes.
+    return this.getJabsOnCastAnimationId();
+  },
+});
+
+/**
+ * Gets the on-cast animation id for this skill.
+ * @returns {number}
+ */
+RPG_Skill.prototype.getJabsOnCastAnimationId = function()
+{
+  // parse and return the value from notes.
+  return this.extractJabsOnCastAnimationId();
+};
+
+/**
+ * Extracts the on-cast animation id for this skill from its notes.
+ * @returns {number}
+ */
+RPG_Skill.prototype.extractJabsOnCastAnimationId = function()
+{
+  // use the shared regex dictionary to pull the integer.
+  return this.getNumberFromNotesByRegex(J.ABS.RegExp.OnCastAnimationId, true);
+};
+//endregion onCastAnimation
+
 //region delay
 /**
  * The JABS delay data for this skill.
@@ -19738,7 +20001,7 @@ class JABS_AiManager
    */
   constructor()
   {
-    throw new Error("This is a static class.");
+    throw new Error('This is a static class.');
   }
 
   //region get battlers
@@ -20055,6 +20318,38 @@ class JABS_AiManager
     return battlers.sort(comparing);
   }
 
+  /**
+   * Determines whether any living enemy currently has aggro on any party member.
+   * @returns {boolean}
+   */
+  static anyLivingEnemiesAggroedToParty()
+  {
+    // get all tracked enemy battlers from your registry.
+    const enemies = JABS_AiManager.getEnemyBattlers();
+
+    // if there are no enemies, then there is no aggro.
+    if (!enemies.length) return false;
+
+    // iterate for any enemy who is alive and has aggro on a party target.
+    const hasAggroOnParty = enemies.some(enemy =>
+    {
+      // grab all the aggros for this enemy for reference.
+      const aggros = enemy.getAllAggros();
+
+      // if there are no aggros, then this enemy has no aggro for the party.
+      if (aggros.length === 0) return false;
+
+      // return whether or not there are active aggros for a living actor.
+      return aggros.some(aggro => aggro.isForLivingActor());
+    });
+
+    // one or more of the enemies has active aggro on the party.
+    if (hasAggroOnParty) return true;
+
+    // nobody has aggro on the party.
+    return false;
+  }
+
   //endregion get battlers
 
   //region manage battlers
@@ -20178,7 +20473,7 @@ class JABS_AiManager
     this.postConvertMutate(battler, jabsBattler);
 
     // if there is something affecting max hp- such as natural growths- they should be fully healed on-creation.
-    battler.recoverAll()
+    battler.recoverAll();
 
     // return the newly created battler.
     return jabsBattler;
@@ -20260,7 +20555,7 @@ class JABS_AiManager
     if (J.ABS.EXT.DANGER)
     {
       // never show the danger indicator for allies.
-      builder.setShowDangerIndicator(false)
+      builder.setShowDangerIndicator(false);
     }
 
     // build the core data.
@@ -20427,7 +20722,8 @@ class JABS_AiManager
     // grab all available battlers within a fixed range.
     const battlers = this.getAllBattlersWithinRangeSortedByDistance(
       $jabsEngine.getPlayer1(),
-      J.ABS.Metadata.MaxAiUpdateRange);
+      J.ABS.Metadata.MaxAiUpdateRange
+    );
 
     // if we have no battlers, then do not process AI.
     if (!battlers.length) return;
@@ -21137,13 +21433,13 @@ class JABS_AiManager
     if (action.isSupportAction())
     {
       // show the "support decision" animation on the battler.
-      battler.showAnimation(J.ABS.Metadata.SupportDecidedAnimationId)
+      battler.showAnimation(J.ABS.Metadata.SupportDecidedAnimationId);
     }
     // the action is not a support action.
     else
     {
       // show the "attack decision" animation on the battler.
-      battler.showAnimation(J.ABS.Metadata.AttackDecidedAnimationId)
+      battler.showAnimation(J.ABS.Metadata.AttackDecidedAnimationId);
     }
   }
 
@@ -21421,6 +21717,12 @@ class JABS_Engine
    */
   hitboxOverlaysVisible = false;
 
+  /**
+   * When `true`, all non‑enemies are considered in combat (UI and mechanics that consult the engine).
+   * Useful for boss phases or scripted moments.
+   * @type {boolean}
+   */
+  forcedCombat = false;
   //endregion properties
 
   /**
@@ -22636,6 +22938,9 @@ class JABS_Engine
     // handle the cast animation for this action.
     this.handleActionCastAnimation(caster, action);
 
+    // handle the one-off on-cast animation on the caster at execution time.
+    this.handleActionOnCastAnimation(caster, action);
+
     // handle the generation of the action on the map.
     this.handleActionGeneration(caster, action, targetX, targetY);
   }
@@ -22669,6 +22974,21 @@ class JABS_Engine
       // execute the cast animation.
       caster.getCharacter()
         .requestAnimation(casterAnimation);
+    }
+  }
+
+  /**
+   * Handles the single-fire, on-cast animation on the caster at execution time.
+   * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
+   * @param {JABS_Action} action The JABS action to execute.
+   */
+  handleActionOnCastAnimation(caster, action)
+  {
+    // only perform if an on-cast animation id is configured.
+    if (action.hasOnCastAnimationId())
+    {
+      // play it once on the caster’s character.
+      action.performOnCastAnimation(caster);
     }
   }
 
@@ -23715,9 +24035,19 @@ class JABS_Engine
     this.triggerAlert(caster, target);
 
     // if the attacker and the target are the same team, then don't set that as "last hit".
-    if (!(caster.isSameTeam(target.getTeam())))
+    if ((caster.isSameTeam(target.getTeam())) === false)
     {
       caster.setBattlerLastHit(target);
+
+      // refresh in‑combat timers on real engagements only.
+      const isHealing = action.isHealing();
+      const hitOrParry = (result.isHit() || result.parried);
+      if (hitOrParry && isHealing === false && target.isInanimate() === false)
+      {
+        // both sides are considered engaged.
+        caster.enterCombat();
+        target.enterCombat();
+      }
     }
   }
 
@@ -31792,6 +32122,31 @@ Game_Party.prototype.leaderJabsBattler = function()
   // return the leader's battler.
   return JABS_AiManager.getBattlerByUuid(leaderUuid);
 };
+
+/**
+ * Gets whether any current party battle member is in combat.
+ * @returns {boolean}
+ */
+Game_Party.prototype.anyMemberInCombat = function()
+{
+  // if globally forced, then the party is in combat.
+  if ($jabsEngine.forcedCombat === true) return true;
+
+  // check each battle member for a tracked JABS battler that is in combat.
+  const members = this.battleMembers();
+  for (let i = 0; i < members.length; i++)
+  {
+    const actor = members[i];
+    const jabsBattler = JABS_AiManager.getBattlerByUuid(actor.getUuid());
+    if (jabsBattler && jabsBattler.isInCombat())
+    {
+      return true;
+    }
+  }
+
+  // nobody is in combat.
+  return false;
+};
 //endregion Game_Party
 
 //region Game_Player
@@ -31856,6 +32211,25 @@ Game_Player.prototype.canMove = function()
 };
 
 /**
+ * Extends/Overrides {@link #isDashing}.<br/>
+ * Disables engine dash while the player is in JABS combat.
+ */
+J.ABS.Aliased.Game_Player.set("isDashing", Game_Player.prototype.isDashing);
+Game_Player.prototype.isDashing = function()
+{
+  // if JABS says the party is in combat, engine-style dashing is disabled.
+  const inCombat = $gameParty.anyMemberInCombat();
+  if (inCombat)
+  {
+    // force no dash during combat so sprint cannot re-assert itself.
+    return false;
+  }
+
+  // otherwise, perform original engine logic.
+  return J.ABS.Aliased.Game_Player.get("isDashing").call(this);
+};
+
+/**
  * Initializes the player's `JABS_Battler` if it was not already initialized.
  */
 J.ABS.Aliased.Game_Player.set('refresh', Game_Player.prototype.refresh);
@@ -31886,6 +32260,7 @@ Game_Player.prototype.updateMove = function()
   this.checkForLoot();
 };
 
+//region loot
 /**
  * Checks to see if the player coordinates are intercepting with any loot
  * currently on the ground.
@@ -32050,6 +32425,7 @@ Game_Player.prototype.removeLoot = function(lootEvent)
   lootEvent.setLootNeedsRemoving(true);
   $jabsEngine.requestClearLoot = true;
 };
+//endregion loot
 //endregion Game_Player
 
 //region Game_Switches
