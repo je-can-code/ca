@@ -179,7 +179,7 @@ SkillProficiency.prototype.improve = function(value)
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 PROF] Enables skill proficiency tracking.
+ * [v2.0.1 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -324,6 +324,9 @@ SkillProficiency.prototype.improve = function(value)
  * - Decreasing the proficiency will NOT undo rewards gained.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.1
+ *    Added flag for showing external file load info.
+ *    Removed dead plugin parameters for conditionals.
  * - 2.0.0
  *    THIS UPDATE BREAKS WEB DEPLOY FUNCTIONALITY FOR YOUR GAME.
  *    Updated to extend common plugin metadata patterns.
@@ -333,12 +336,6 @@ SkillProficiency.prototype.improve = function(value)
  * - 1.0.0
  *    The initial release.
  * ============================================================================
- * @param conditionals
- * @type struct<ProficiencyConditionalStruct>[]
- * @text Proficiency Conditionals
- * @desc A set of conditions that when met reward the player.
- * @default []
- *
  * @command modifyActorSkillProficiency
  * @text Modify Actor's Proficiency
  * @desc Increase/decrease one or more actor's proficiency with one or more skills.
@@ -396,14 +393,16 @@ class J_ProficiencyPluginMetadata
         .map(requirement => new ProficiencyRequirement(
           requirement.skillId,
           requirement.proficiency,
-          requirement.secondarySkillIds));
+          requirement.secondarySkillIds
+        ));
 
       return new ProficiencyConditional(
         conditional.key,
         conditional.actorIds,
         requirements,
         conditional.skillRewards,
-        conditional.jsRewards);
+        conditional.jsRewards
+      );
     });
   }
 
@@ -460,11 +459,18 @@ class J_ProficiencyPluginMetadata
         data.push(conditional);
         this.actorConditionalsMap.set(actorId, data);
       });
-    })
+    });
 
-    console.log(`loaded:
+    if (J.BASE.Metadata.ShowExternalFileLoadInfo)
+    {
+      console.log(`loaded:
       - ${this.conditionals.length} proficiency conditionals
       from file ${J_ProficiencyPluginMetadata.CONFIG_PATH}.`);
+    }
+    else
+    {
+      console.log(`loaded from file ${J_ProficiencyPluginMetadata.CONFIG_PATH}.`);
+    }
   }
 }
 
@@ -484,7 +490,7 @@ J.PROF = {};
  * The metadata associated with this plugin.
  * @type {J_ProficiencyPluginMetadata}
  */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata('J-Proficiency', '2.0.0');
+J.PROF.Metadata = new J_ProficiencyPluginMetadata('J-Proficiency', '2.0.1');
 
 /**
  * The various aliases associated with this plugin.

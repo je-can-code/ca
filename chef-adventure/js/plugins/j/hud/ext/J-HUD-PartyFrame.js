@@ -2,14 +2,14 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 HUD-PARTY] A HUD frame that displays your party's data.
+ * [v1.1.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
- * @base J-ABS
  * @base J-Base
+ * @base J-ABS
  * @base J-HUD
- * @orderAfter J-ABS
  * @orderAfter J-Base
+ * @orderAfter J-ABS
  * @orderAfter J-HUD
  * @help
  * ============================================================================
@@ -19,6 +19,11 @@
  * This is the Party Frame, which displays the leader and allied members that
  * the player currently has in their party.
  *
+ * This plugin requires JABS.
+ * This plugin requires the base HUD.
+ * This plugin has no additional configuration required.
+ * ----------------------------------------------------------------------------
+ * DETAILS:
  * This includes the following data points for all actors:
  * - face portrait
  * - hp gauge
@@ -29,6 +34,16 @@
  * - current level
  * - experience gauge
  * - positive/negative state tracking
+ * - in combat indicator
+ * ============================================================================
+ * CHANGELOG
+ * ----------------------------------------------------------------------------
+ * - 1.1.0
+ *    Added visual tracking indicator for "in combat" for the leader.
+ *    Retroactively added this changelog.
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
  */
 
 /**
@@ -40,7 +55,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '1.0.0';
+  const requiredBaseVersion = '2.3.1';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -60,7 +75,7 @@ J.HUD.EXT.PARTY = {};
  */
 J.HUD.EXT.PARTY = {};
 J.HUD.EXT.PARTY.Metadata = {};
-J.HUD.EXT.PARTY.Metadata.Version = '1.0.0';
+J.HUD.EXT.PARTY.Metadata.Version = '1.1.0';
 J.HUD.EXT.PARTY.Metadata.Name = `J-HUD-PartyFrame`;
 
 /**
@@ -308,29 +323,70 @@ Sprite_ActorValue.prototype.refresh = function()
  */
 Sprite_ActorValue.prototype.hasParameterChanged = function()
 {
+  // default to "changed" in case we do not match a parameter.
   let changed = true;
+
+  // decide which parameter we are tracking and compare against the cache.
   switch (this._j._parameter)
   {
-    case "hp":
+    case 'hp':
+    {
+      // check for hp change.
       changed = this._j._actor.hp !== this._j._last._hp;
+
+      // update the last-known hp if changed.
       if (changed) this._j._last._hp = this._j._actor.hp;
+
+      // end case.
       return changed;
-    case "mp":
+    }
+    case 'mp':
+    {
+      // check for mp change.
       changed = this._j._actor.mp !== this._j._last._mp;
+
+      // update the last-known mp if changed.
       if (changed) this._j._last._mp = this._j._actor.mp;
+
+      // end case.
       return changed;
-    case "tp":
+    }
+    case 'tp':
+    {
+      // check for tp change.
       changed = this._j._actor.tp !== this._j._last._tp;
-      if (changed) this._j._last.tp = this._j._actor.tp;
+
+      // update the last-known tp if changed.
+      if (changed) this._j._last._tp = this._j._actor.tp;
+
+      // end case.
       return changed;
-    case "time":
-      changed = this._j._actor.currentExp() !== this._j._last._xp;
-      if (changed) this._j._last._xp = this._j._actor.currentExp();
+    }
+    case 'time':
+    {
+      // compute the current exp for comparison.
+      const current = this._j._actor.currentExp();
+
+      // check for exp change.
+      changed = current !== this._j._last._xp;
+
+      // update the last-known exp if changed.
+      if (changed) this._j._last._xp = current;
+
+      // end case.
       return changed;
-    case "lvl":
+    }
+    case 'lvl':
+    {
+      // check for level change.
       changed = this._j._actor.level !== this._j._last._lvl;
+
+      // update the last-known level if changed.
       if (changed) this._j._last._lvl = this._j._actor.level;
+
+      // end case.
       return changed;
+    }
   }
 };
 
@@ -339,44 +395,109 @@ Sprite_ActorValue.prototype.hasParameterChanged = function()
  */
 Sprite_ActorValue.prototype.createBitmap = function()
 {
+  // default the value to 0.
   let value = 0;
+
+  // determine the bitmap dimensions.
   const width = this.bitmapWidth();
+
+  // determine the bitmap height relative to font size.
   const height = this.fontSize() + 4;
+
+  // create the bitmap for this value sprite.
   const bitmap = new Bitmap(width, height);
+
+  // assign the font face for this value.
   bitmap.fontFace = this.fontFace();
+
+  // assign the font size for this value.
   bitmap.fontSize = this.fontSize();
+
+  // decide how to render based on the parameter being displayed.
   switch (this._j._parameter)
   {
-    case "hp":
+    case 'hp':
+    {
+      // set the outline thickness for readability.
       bitmap.outlineWidth = 4;
-      bitmap.outlineColor = "rgba(128, 24, 24, 1.0)";
-      value = Math.floor(this._j._actor.hp);
+
+      // set the red-tinted outline color for HP.
+      bitmap.outlineColor = 'rgba(128, 24, 24, 1.0)';
+
+      // display rounded HP to avoid off-by-one visuals against fractional HP.
+      value = Math.round(this._j._actor.hp);
+
+      // end case.
       break;
-    case "mp":
+    }
+    case 'mp':
+    {
+      // set the outline thickness for readability.
       bitmap.outlineWidth = 4;
-      bitmap.outlineColor = "rgba(24, 24, 192, 1.0)";
-      value = Math.floor(this._j._actor.mp);
+
+      // set the blue-tinted outline color for MP.
+      bitmap.outlineColor = 'rgba(24, 24, 192, 1.0)';
+
+      // display rounded MP to align with fractional accumulation.
+      value = Math.round(this._j._actor.mp);
+
+      // end case.
       break;
-    case "tp":
+    }
+    case 'tp':
+    {
+      // set the outline thickness for readability.
       bitmap.outlineWidth = 2;
-      bitmap.outlineColor = "rgba(64, 128, 64, 1.0)";
-      value = Math.floor(this._j._actor.tp);
+
+      // set the green-tinted outline color for TP.
+      bitmap.outlineColor = 'rgba(64, 128, 64, 1.0)';
+
+      // TP can change in non-integers under JABS; display rounded for consistency.
+      value = Math.round(this._j._actor.tp);
+
+      // end case.
       break;
-    case "time":
+    }
+    case 'time':
+    {
+      // set the outline thickness for readability.
       bitmap.outlineWidth = 4;
-      bitmap.outlineColor = "rgba(72, 72, 72, 1.0)";
+
+      // set the neutral outline for XP remaining.
+      bitmap.outlineColor = 'rgba(72, 72, 72, 1.0)';
+
+      // compute exp remaining to next level.
       const curExp = (this._j._actor.nextLevelExp() - this._j._actor.currentLevelExp());
+
+      // compute progress into the current level.
       const nextLv = (this._j._actor.currentExp() - this._j._actor.currentLevelExp());
+
+      // calculate the remaining exp as a whole number.
       value = curExp - nextLv;
+
+      // end case.
       break;
-    case "lvl":
+    }
+    case 'lvl':
+    {
+      // set the outline thickness for readability.
       bitmap.outlineWidth = 4;
-      bitmap.outlineColor = "rgba(72, 72, 72, 1.0)";
+
+      // set the neutral outline for level text.
+      bitmap.outlineColor = 'rgba(72, 72, 72, 1.0)';
+
+      // display the level as a 3-digit number.
       value = this._j._actor.level.padZero(3);
+
+      // end case.
       break;
+    }
   }
 
-  bitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, "left");
+  // draw the value left-aligned across the bitmap.
+  bitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, 'left');
+
+  // return the created bitmap.
   return bitmap;
 };
 
@@ -505,29 +626,29 @@ class Window_PartyFrame
     /**
      * The type of gauge for hp.
      */
-    HP: "hp",
+    HP: 'hp',
 
     /**
      * The type of gauge for mp.
      */
-    MP: "mp",
+    MP: 'mp',
 
     /**
      * The type of gauge for tp.
      */
-    TP: "tp",
+    TP: 'tp',
 
     /**
      * The type of gauge for xp.
      * We borrow the "time" gauge for this, though.
      */
-    XP: "time",
+    XP: 'time',
 
     /**
      * Not actually a gauge, but does have an actorvalue representing
      * the actor's level.
      */
-    Level: "lvl"
+    Level: 'lvl'
   };
 
   /**
@@ -566,7 +687,7 @@ class Window_PartyFrame
   {
     /**
      * The cached collection of hud sprites.
-     * @type {Map<string, Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon>}
+     * @type {Map<string, Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon|Sprite_BaseText>}
      */
     this._hudSprites = new Map();
   }
@@ -773,7 +894,8 @@ class Window_PartyFrame
       Window_PartyFrame.gaugeTypes.HP,
       Window_PartyFrame.gaugeTypes.MP,
       Window_PartyFrame.gaugeTypes.TP,
-      Window_PartyFrame.gaugeTypes.XP ];
+      Window_PartyFrame.gaugeTypes.XP
+    ];
   }
 
   /**
@@ -1099,6 +1221,117 @@ class Window_PartyFrame
     return sprite;
   }
 
+  /**
+   * Creates or retrieves the combat icon sprite for the given actor.
+   * @param {Game_Actor} actor The actor this icon represents.
+   * @returns {Sprite_Icon} The combat icon sprite.
+   */
+  getOrCreateCombatIcon(actor)
+  {
+    // create a unique cache key for the icon.
+    const key = `combat-icon-${actor.name()}-${actor.actorId()}`;
+
+    // if cached already, return it.
+    if (this._hudSprites.has(key))
+    {
+      return this._hudSprites.get(key);
+    }
+
+    // in-combat icon index is two fists punching.
+    const iconIndex = 31;
+
+    // create the icon sprite.
+    const sprite = new Sprite_Icon(iconIndex);
+
+    // indicate we'll manage the opacity ourselves.
+    sprite.selfManageOpacity();
+
+    // cache and stage it.
+    this._hudSprites.set(key, sprite);
+    sprite.hide();
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  }
+
+  /**
+   * Creates or retrieves the combat timer sprite for the given actor.
+   * @param {Game_Actor} actor The actor this timer represents.
+   * @returns {Sprite_BaseText} The combat seconds text sprite.
+   */
+  getOrCreateCombatTimer(actor)
+  {
+    // create a unique cache key for the timer.
+    const key = `combat-timer-${actor.name()}-${actor.actorId()}`;
+
+    // if cached already, return it.
+    if (this._hudSprites.has(key))
+    {
+      return this._hudSprites.get(key);
+    }
+
+    // create a text sprite.
+    const sprite = new Sprite_BaseText('');
+
+    // configure the font for a small numeric readout (seconds, one decimal).
+    sprite.setFontFace($gameSystem.numberFontFace());
+    sprite.setFontSize($gameSystem.mainFontSize() - 10);
+    sprite.setAlignment(Sprite_BaseText.Alignments.Center);
+    sprite.setMinWidth(ImageManager.iconWidth);
+
+    // this sprite manages its own opacity (for fade out), so opt out of auto-managed opacity.
+    sprite.selfManageOpacity();
+
+    // start hidden until we actually show it in-combat.
+    sprite.hide();
+
+    // cache and stage it.
+    this._hudSprites.set(key, sprite);
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  }
+
+  /**
+   * Creates or retrieves the combat label sprite for the given actor.
+   * Shows a text blurb like "IN COMBAT" or "FREE" near the combat icon.
+   * @param {Game_Actor} actor The actor this label represents.
+   * @returns {Sprite_BaseText} The combat status label sprite.
+   */
+  getOrCreateCombatLabel(actor)
+  {
+    // create a unique cache key for the label.
+    const key = `combat-label-${actor.name()}-${actor.actorId()}`;
+
+    // if cached already, return it.
+    if (this._hudSprites.has(key))
+    {
+      return this._hudSprites.get(key);
+    }
+
+    // create a text sprite.
+    const sprite = new Sprite_BaseText('');
+
+    // configure the font for emphasis and readability.
+    sprite
+      .setFontFace($gameSystem.mainFontFace())
+      .setFontSize($gameSystem.mainFontSize() - 6)
+      .setAlignment(Sprite_BaseText.Alignments.Center)
+      .setBold(true)
+      .setItalics(true)
+      .setMinWidth(Math.round(ImageManager.iconWidth * 2.5))
+      .selfManageOpacity();
+
+    // cache and stage it.
+    this._hudSprites.set(key, sprite);
+    this.addChild(sprite);
+
+    // return the created sprite.
+    return sprite;
+  }
+
   //endregion caching
 
   /**
@@ -1204,13 +1437,20 @@ class Window_PartyFrame
   {
     this._hudSprites.forEach((sprite, _) =>
     {
+      // if the interference shouldn't be handled for this sprite, then don't.
+      if (this.canHandleSpriteInterference(sprite) === false) return;
+
       // if we are above 64, rapidly decrement by -15 until we get below 64.
       if (sprite.opacity > 64)
       {
         sprite.opacity -= 15;
-      }// if we are below 64, increment by +1 until we get to 64.
-      else if (sprite.opacity < 64) sprite.opacity += 1;
-    });
+      }
+      // if we are below 64, increment by +1 until we get to 64.
+      else if (sprite.opacity < 64)
+      {
+        sprite.opacity += 1;
+      }
+    }, this);
   }
 
   /**
@@ -1220,13 +1460,38 @@ class Window_PartyFrame
   {
     this._hudSprites.forEach((sprite, _) =>
     {
+      // if the interference shouldn't be handled for this sprite, then don't.
+      if (this.canHandleSpriteInterference(sprite) === false) return;
+
       // if we are below 255, rapidly increment by +15 until we get to 255.
       if (sprite.opacity < 255)
       {
         sprite.opacity += 15;
-      }// if we are above 255, set to 255.
-      else if (sprite.opacity > 255) sprite.opacity = 255;
-    });
+      }
+      // if we are above 255, set to 255.
+      else if (sprite.opacity > 255)
+      {
+        sprite.opacity = 255;
+      }
+    }, this);
+  }
+
+  /**
+   * Checks if the given sprite should be handled for interference.
+   * @param {Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon|Sprite_BaseText} sprite
+   * @returns {boolean}
+   */
+  canHandleSpriteInterference(sprite)
+  {
+    // certain sprites can have self-managed opacity.
+    if (sprite instanceof Sprite_BaseText || sprite instanceof Sprite_Icon)
+    {
+      // if they have self-managed opacity, they shouldn't be handled.
+      if (sprite.hasSelfManagedOpacity() === true) return false;
+    }
+
+    // let the system handle the opacity management.
+    return true;
   }
 
   //endregion visibility
@@ -1260,6 +1525,9 @@ class Window_PartyFrame
     const statesX = gaugesX;
     const statesY = gaugesY - (ImageManager.iconHeight * 2) - 24;
     this.drawStates(statesX, statesY);
+
+    // draw the in‑combat indicator (icon + timer) just to the right of the gauges.
+    this.drawLeaderCombatIndicator(gaugesX, gaugesY);
   }
 
   /**
@@ -1388,6 +1656,108 @@ class Window_PartyFrame
   }
 
   /**
+   * Draws the leader's "in‑combat" indicator to the right of the gauges.
+   * @param {number} gaugesX The x coordinate where gauges start.
+   * @param {number} gaugesY The y coordinate where gauges start.
+   */
+  drawLeaderCombatIndicator(gaugesX, gaugesY)
+  {
+    // grab the leader and their tracked battler.
+    const leader = $gameParty.leader();
+    const leaderBattler = $gameParty.leaderJabsBattler();
+
+    // if we cannot resolve the tracked battler, don't draw.
+    if (!leader || !leaderBattler) return;
+
+    // decide visibility based on the combat rules.
+    const inCombat = ($jabsEngine.forcedCombat === true) || leaderBattler.isInCombat();
+
+    // grab the hp gauge sprite for width math (hp/mp/tp share the same width).
+
+    // fetch or create the three sprites we need.
+    const icon = this.getOrCreateCombatIcon(leader);
+    const timer = this.getOrCreateCombatTimer(leader);
+    const label = this.getOrCreateCombatLabel(leader);
+
+    // determine anchor coordinates to the immediate right of the gauges.
+    const hpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.HP);
+    const iconX = (gaugesX - 24) + hpGauge.bitmapWidth() + 8;
+    const iconY = gaugesY; // align with the HP row.
+    icon.move(iconX, iconY);
+
+    // move the timer to be centered below the icon.
+    const timerWidth = timer.bitmap
+      ? timer.bitmap.width
+      : ImageManager.iconWidth;
+    const timerX = iconX + Math.floor((ImageManager.iconWidth - timerWidth) / 2);
+    const timerY = iconY + ImageManager.iconHeight - 6;
+    timer.move(timerX, timerY);
+
+    // move the label to be centered above the icon.
+    const labelX = iconX - Math.floor((label.bitmap.width - ImageManager.iconWidth) / 2);
+    const labelY = iconY - label.bitmap.height;
+    label.move(labelX, labelY);
+
+    // configure a per‑frame fade step for ~0.5 seconds at 60fps.
+    const fadeStep = 9; // 255 / 30 ≈ 8.5 → 9
+
+    // we only branch once on inCombat for all three sprites.
+    if (inCombat)
+    {
+      // icon: snap visible and fully opaque while in combat.
+      icon.visible = true;
+      icon.opacity = 255;
+
+      // timer: update text, show, fully opaque.
+      const seconds = leaderBattler.getCombatSecondsRemaining();
+      const secondsText = Number(seconds)
+        .toFixed(1);
+      timer.setText(secondsText);
+      timer.show();
+      timer.opacity = 255;
+
+      // label: red "IN COMBAT" above the icon.
+      label.setColor('#ff3b3b');
+      label.setText('IN COMBAT');
+      label.show();
+      label.opacity = 255;
+    }
+    else
+    {
+      // not in combat: fade the icon and timer out over ~0.5s, then hide.
+
+      // icon fade.
+      if (icon.opacity > 0)
+      {
+        icon.opacity = Math.max(0, icon.opacity - fadeStep);
+        icon.visible = true;
+        if (icon.opacity === 0) icon.visible = false;
+      }
+      else
+      {
+        icon.visible = false;
+      }
+
+      // timer fade.
+      if (timer.opacity > 0)
+      {
+        timer.opacity = Math.max(0, timer.opacity - fadeStep);
+        if (timer.opacity === 0) timer.hide();
+      }
+      else
+      {
+        timer.hide();
+      }
+
+      // label: instant green "FREE" for strong visual contrast when idle.
+      label.setColor('#44ff66');
+      label.setText('FREE');
+      label.show();
+      label.opacity = 255;
+    }
+  }
+
+  /**
    * Hides all expired states on the leader.
    * @param {Game_Actor} leader The actor to hide states for.
    */
@@ -1451,7 +1821,7 @@ class Window_PartyFrame
 
     this.drawText(`x${trackedState.stackCount}`, ox, y - 30, 64, Window_Base.TextAlignments.Left);
 
-    this.resetFontSettings()
+    this.resetFontSettings();
   }
 
   /**

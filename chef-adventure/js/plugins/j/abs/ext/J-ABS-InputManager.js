@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 INPUT] A manager for overseeing the input of JABS.
+ * [v2.2.0 INPUT] A manager for overseeing the input of JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -38,6 +38,10 @@
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 2.2.0
+ *    Removed independent remappability of sprint and mobility.
+ *    Added support for tracking "in combat" to handle dash/mobility switching.
+ *    Updated sprint input to switch to mobility skill while "in combat".
  * - 2.1.1
  *    Fixed typo in custom input mapping.
  * - 2.1.0
@@ -60,7 +64,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
+  const requiredBaseVersion = '2.3.1';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -80,7 +84,7 @@ J.ABS.EXT.INPUT = {};
  */
 J.ABS.EXT.INPUT = {};
 J.ABS.EXT.INPUT.Metadata = {};
-J.ABS.EXT.INPUT.Metadata.Version = '2.1.1';
+J.ABS.EXT.INPUT.Metadata.Version = '2.2.0';
 J.ABS.EXT.INPUT.Metadata.Name = `J-ABS-InputManager`;
 
 /**
@@ -287,7 +291,7 @@ class JABS_Button
     // the valid set of assignable inputs.
     const okInputs = [
       // primary
-      this.Mainhand, this.Offhand, this.Tool, this.Dodge,
+      this.Mainhand, this.Offhand, this.Tool,
 
       // modifiers & mobility
       this.SkillTrigger, this.Sprint, this.Strafe, this.Rotate,
@@ -389,6 +393,14 @@ class JABS_StandardController
      * @type {Map<string, string[]>}
      */
     this.inputMapping = new Map();
+
+    /**
+     * Tracks whether the last-processed frame was considered in combat.
+     * Used for treating a hold across the boundary (exploration → combat)
+     * as a single edge-press for Mobility.
+     * @type {boolean}
+     */
+    this._lastInCombat = false;
   }
 
   /**
@@ -405,7 +417,8 @@ class JABS_StandardController
     this.inputMapping.set(JABS_Button.Mainhand, [ J.ABS.EXT.INPUT.Symbols.Mainhand ]);
     this.inputMapping.set(JABS_Button.Offhand, [ J.ABS.EXT.INPUT.Symbols.Offhand ]);
     this.inputMapping.set(JABS_Button.Tool, [ J.ABS.EXT.INPUT.Symbols.Tool ]);
-    this.inputMapping.set(JABS_Button.Dodge, [ J.ABS.EXT.INPUT.Symbols.MobilitySkill ]);
+
+    // NOTE: Dodge is intentionally not seeded; Sprint handles mobility contextually.
 
     // seed mobility & modifiers.
     this.inputMapping.set(JABS_Button.Sprint, [ J.ABS.EXT.INPUT.Symbols.Dash ]);
@@ -414,7 +427,7 @@ class JABS_StandardController
     this.inputMapping.set(JABS_Button.Guard, [ J.ABS.EXT.INPUT.Symbols.GuardTrigger ]);
     this.inputMapping.set(JABS_Button.SkillTrigger, [ J.ABS.EXT.INPUT.Symbols.SkillTrigger ]);
 
-    // seed L1 + buttons (combat skills).
+    // seed L1+ face shortcuts (keyboard direct shortcuts available separately).
     this.inputMapping.set(JABS_Button.CombatSkill1, [ J.ABS.EXT.INPUT.Symbols.CombatSkill1 ]);
     this.inputMapping.set(JABS_Button.CombatSkill2, [ J.ABS.EXT.INPUT.Symbols.CombatSkill2 ]);
     this.inputMapping.set(JABS_Button.CombatSkill3, [ J.ABS.EXT.INPUT.Symbols.CombatSkill3 ]);
@@ -642,7 +655,7 @@ class JABS_StandardController
     this.updateMainhandAction();
     this.updateOffhandAction();
     this.updateToolAction();
-    this.updateDodgeAction();
+    this.updateSprintCommand();
 
     // update input for multi-button actions.
     this.updateCombatAction1();
@@ -651,7 +664,6 @@ class JABS_StandardController
     this.updateCombatAction4();
 
     // update input for the pressed(held down)-button actions.
-    this.updateSprintCommand();
     this.updateGuardCommand();
     this.updateStrafeCommand();
     this.updateRotateCommand();
@@ -871,27 +883,61 @@ class JABS_StandardController
 
   /**
    * Checks the inputs of the sprint action currently assigned (Shift default).
+   * Context-aware:
+   * - Out of combat: treat Sprint as a held input (classic run).
+   * - In combat: treat Sprint strictly as an edge-trigger (for Mobility/Dodge).
    * @returns {boolean}
    */
   isSprintActionTriggered()
   {
-    // this action requires Sprint to be pressed.
-    if (this.isActionPressed(JABS_Button.Sprint))
+    // grab the battler for reference.
+    const battler = this.getBattler();
+
+    // determine if the battler is in combat.
+    const inCombat = battler.isInCombat();
+
+    // if in combat, only a new press (edge) should trigger mobility.
+    if (inCombat)
     {
-      return true;
+      // update last-known combat state for subsequent frames.
+      this._lastInCombat = true;
+
+      // return whether Sprint was newly triggered this frame.
+      return this.isActionTriggered(JABS_Button.Sprint);
     }
 
-    // Sprint is not being pressed.
-    return false;
+    // not in combat → classic sprint is a held input.
+    // update last-known combat state before returning.
+    this._lastInCombat = false;
+
+    // return whether Sprint is currently held.
+    return this.isActionPressed(JABS_Button.Sprint);
   }
 
   /**
-   * Enables sprinting for this controller's battler.
+   * Enables sprinting for this controller's battler when out of combat.
+   * In combat, Sprint becomes the Mobility/Dodge action instead.
    */
   performSprintAction()
   {
-    // perform sprint enable for this controller's battler.
-    JABS_InputAdapter.performSprint(true, this.battler);
+    // grab the battler for reference.
+    const battler = this.getBattler();
+
+    // check if the battler is in combat.
+    if (battler.isInCombat())
+    {
+      // proactively disable exploration sprint when entering combat.
+      JABS_InputAdapter.performSprint(false, battler);
+
+      // perform the dodge action for this controller's battler.
+      JABS_InputAdapter.performDodgeAction(battler);
+
+      // end early; no sprint toggling while in combat.
+      return;
+    }
+
+    // not in combat → enable classic sprint while the input is held.
+    JABS_InputAdapter.performSprint(true, battler);
   }
 
   /**
@@ -899,9 +945,19 @@ class JABS_StandardController
    */
   performSprintAlterAction()
   {
-    // perform sprint disable for this controller's battler.
-    JABS_InputAdapter.performSprint(false, this.battler);
+    // grab the battler for reference.
+    const battler = this.getBattler();
+
+    // check if the battler is in combat.
+    if (battler.isInCombat())
+    {
+      return;
+    }
+
+    // not in combat → disable sprint when the input is released.
+    JABS_InputAdapter.performSprint(false, battler);
   }
+
   //endregion sprint
 
   //region tool
@@ -951,48 +1007,6 @@ class JABS_StandardController
   }
 
   //endregion tool
-
-  //region dodge
-  /**
-   * Monitors and takes action based on player input regarding the dodge action.
-   * This is `R2` on the gamepad by default.
-   */
-  updateDodgeAction()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isDodgeActionTriggered())
-    {
-      // execute the action.
-      this.performDodgeAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the dodge action currently assigned (R2 default).
-   * @returns {boolean}
-   */
-  isDodgeActionTriggered()
-  {
-    // this action requires the logical Dodge to be triggered.
-    if (this.isActionTriggered(JABS_Button.Dodge))
-    {
-      return true;
-    }
-
-    // Dodge is not being triggered.
-    return false;
-  }
-
-  /**
-   * Executes the currently assigned dodge action (R2 default).
-   */
-  performDodgeAction()
-  {
-    // perform the dodge action for this controller's battler.
-    JABS_InputAdapter.performDodgeAction(this.getBattler());
-  }
-
-  //endregion dodge
 
   //region combat actions
   /**
@@ -1135,7 +1149,7 @@ class JABS_StandardController
     if (this.isCombatSkillUsageEnabled())
     {
       // ...and Dodge is triggered this frame, then combat action 3 should fire.
-      if (this.isActionTriggered(JABS_Button.Dodge))
+      if (this.isActionTriggered(JABS_Button.Sprint))
       {
         return true;
       }
@@ -1958,31 +1972,42 @@ Input.getRemapCaptureSymbols = function()
  */
 Input.ensureRemapBootstrapped = function()
 {
+  // if already bootstrapped for this session, do nothing.
   if (Input._jRegistries.bootstrapped === true)
   {
-    return; // already bootstrapped for this session
+    return;
   }
 
   // Seed JABS defaults (logical actions -> physical symbols).
   const d = {};
+
+  // functionality
   d[JABS_Button.Menu] = [ J.ABS.EXT.INPUT.Symbols.Quickmenu ];
   d[JABS_Button.Select] = [ J.ABS.EXT.INPUT.Symbols.PartyCycle ];
+
+  // primary actions
   d[JABS_Button.Mainhand] = [ J.ABS.EXT.INPUT.Symbols.Mainhand ];
   d[JABS_Button.Offhand] = [ J.ABS.EXT.INPUT.Symbols.Offhand ];
   d[JABS_Button.Tool] = [ J.ABS.EXT.INPUT.Symbols.Tool ];
-  d[JABS_Button.Dodge] = [ J.ABS.EXT.INPUT.Symbols.MobilitySkill ];
+
+  // mobility & modifiers
+  // IMPORTANT: No default binding for Dodge; Sprint handles mobility contextually.
+  // d[JABS_Button.Dodge] is intentionally omitted.
   d[JABS_Button.Sprint] = [ J.ABS.EXT.INPUT.Symbols.Dash ];
   d[JABS_Button.Strafe] = [ J.ABS.EXT.INPUT.Symbols.StrafeTrigger ];
   d[JABS_Button.Rotate] = [ J.ABS.EXT.INPUT.Symbols.GuardTrigger ];
   d[JABS_Button.Guard] = [ J.ABS.EXT.INPUT.Symbols.GuardTrigger ];
   d[JABS_Button.SkillTrigger] = [ J.ABS.EXT.INPUT.Symbols.SkillTrigger ];
+
+  // L1 + buttons (keyboard shortcuts available separately)
   d[JABS_Button.CombatSkill1] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill1 ];
   d[JABS_Button.CombatSkill2] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill2 ];
   d[JABS_Button.CombatSkill3] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill3 ];
   d[JABS_Button.CombatSkill4] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill4 ];
 
+  // register the defaults and ensure live bindings are initialized.
   Input.seedDefaultBindings('JABS', d);
-  Input.getAllBindings('JABS'); // lazy-init live bindings
+  Input.getAllBindings('JABS');
 
   // friendly labels for some common symbols.
   Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.L3, 'L3');
@@ -1993,7 +2018,7 @@ Input.ensureRemapBootstrapped = function()
   Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadLeft, 'D-Pad Left');
   Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadRight, 'D-Pad Right');
 
-  // Allow these symbols to be captured in the prompt if desired.
+  // allow these symbols to be captured in the prompt if desired.
   Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.L3);
   Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.R3);
   Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadUp);
@@ -2001,11 +2026,41 @@ Input.ensureRemapBootstrapped = function()
   Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadLeft);
   Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadRight);
 
-  // NEW: expose all non-engine keyboard keys for capture/binding.
+  // expose all non-engine keyboard keys for capture/binding.
   Input.bootstrapAllKeyboardKeysForCapture();
 
-  // Mark as bootstrapped for this runtime session.
+  // SAFETY: strip deprecated Dodge bindings from existing saves/config.
+  Input.removeDeprecatedDodgeBindings();
+
+  // mark as bootstrapped for this runtime session.
   Input._jRegistries.bootstrapped = true;
+};
+
+/**
+ * Removes any live/default bindings for the deprecated standalone Dodge action.
+ * This is a migration helper and may be removed in a future version.
+ */
+Input.removeDeprecatedDodgeBindings = function()
+{
+
+  // TODO: remove this function in some later patch after 2.0.2.
+
+
+  // read live bindings for JABS and clear Dodge if present.
+  const live = Input.getAllBindings('JABS');
+  if (live && Object.hasOwn(live, JABS_Button.Dodge))
+  {
+    // clear the list of physical symbols bound to Dodge.
+    live[JABS_Button.Dodge] = [];
+  }
+
+  // also clear from defaults if present (legacy boot sequences).
+  const defs = Input._jRegistries.defaults['JABS'];
+  if (defs && Object.hasOwn(defs, JABS_Button.Dodge))
+  {
+    // clear any default mapping that may have been serialized previously.
+    defs[JABS_Button.Dodge] = [];
+  }
 };
 
 /**
@@ -2017,9 +2072,7 @@ Input.bootstrapAllKeyboardKeysForCapture = function()
   // collect a snapshot of engine/core-reserved symbols to avoid overriding them.
   const reserved = new Set([
     // core engine actions and directions.
-    'ok', 'cancel', 'menu', 'escape',
-    'tab', 'pageup', 'pagedown', 'shift', 'control',
-    'up', 'down', 'left', 'right',
+    'ok', 'cancel', 'menu', 'escape', 'tab', 'pageup', 'pagedown', 'shift', 'control', 'up', 'down', 'left', 'right',
   ]);
 
   // also consider whatever the current keyMapper already resolves to.
@@ -3212,7 +3265,7 @@ class Scene_JabsRemap
   topHelpWindowRectangle()
   {
     // determine the height for the top help window (single row).
-    const wh = this.calcWindowHeight(1.8, true);
+    const wh = this.calcWindowHeight(1.6, true);
 
     // compute the total width for the centered middle group.
     const ww = Math.floor(Graphics.boxWidth * 0.60);
