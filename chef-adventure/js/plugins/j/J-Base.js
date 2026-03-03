@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.3.0 BASE] The base class for all J plugins.
+ * [v2.3.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -92,6 +92,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.3.1
+ *    Added flag for showing external file load info across plugins.
+ *    Removed extraneous note tag enum-like object.
+ *    Updated various custom sprites with additional helpful methods.
  * - 2.3.0
  *    Added base Max TP management with tags for battlers.
  *    Added helper functions for detecting plugin commands inside of events.
@@ -165,7 +169,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '2.3.0';
+J.BASE.Metadata.Version = '2.3.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -174,34 +178,8 @@ J.BASE.PluginParameters = PluginManager.parameters(J.BASE.Metadata.Name);
 J.BASE.Metadata.BaseTpMaxActors = Number(J.BASE.PluginParameters['actorBaseTp']);
 J.BASE.Metadata.BaseTpMaxEnemies = Number(J.BASE.PluginParameters['enemyBaseTp']);
 
-/**
- * A collection of helpful mappings for `notes` that are placed in
- * various locations, like events on the map, or in a database enemy.
- */
-J.BASE.Notetags = {
-  // on actors in database.
-  KnockbackResist: "knockbackResist",
-  NoSwitch: "noSwitch",
-
-  MaxRefineCount: "maxRefine",
-  MaxRefineTraits: "maxRefinedTraits",
-  NotRefinementBase: "notRefinementBase",
-  NotRefinementMaterial: "notRefinementMaterial",
-  NoRefinement: "noRefine",
-
-  // on events on map.
-  Sight: "s",
-  Pursuit: "p",
-  MoveSpeed: "ms",
-  NoIdle: "noIdle",
-  NoHpBar: "noHpBar",
-  NoDangerIndicator: "noDangerIndicator",
-  NoBattlerName: "noName",
-  Inanimate: "inanimate",
-  AlertDuration: "ad",
-  AlertSightBoost: "as",
-  AlertPursuitBoost: "ap",
-};
+// TODO: plugin parameterize this and make it "show/minimal/hide".
+J.BASE.Metadata.ShowExternalFileLoadInfo = false;
 
 /**
  * The various traits captured here by id with a more meaningful descriptor.
@@ -288,6 +266,10 @@ J.BASE.Traits = {
  * All regular expressions used by this plugin.
  */
 J.BASE.RegExp = {};
+
+/**
+ * The basic structure for the maximum count of a number of items holdable is.
+ */
 J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
 
 /**
@@ -301,7 +283,6 @@ J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
  *    <someKeyWithStringValue:someValue>
  *    <someKeyWithRangeValue:startRange-endRange>
  *  </pre>
- * @type {RegExp}
  */
 J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\]+>$/i;
 
@@ -9564,9 +9545,9 @@ class Sprite_BaseText
    * The available supported text alignments.
    */
   static Alignments = {
-    Left: "left",
-    Center: "center",
-    Right: "right",
+    Left: 'left',
+    Center: 'center',
+    Right: 'right',
   };
 
   /**
@@ -9612,7 +9593,7 @@ class Sprite_BaseText
      * This should be a hexcode.
      * @type {string}
      */
-    this._j._color = "#ffffff";
+    this._j._color = '#ffffff';
 
     /**
      * The alignment of text in this sprite.
@@ -9643,6 +9624,19 @@ class Sprite_BaseText
      * @type {number}
      */
     this._j._fontSize = $gameSystem.mainFontSize();
+
+    /**
+     * The minimum width of the text.
+     * @type {number}
+     */
+    this._j._minWidth = 0;
+
+    /**
+     * Some systems that leverage {@link Sprite_BaseText} may have automation to manage the opacity of their text.
+     * Setting this flag to true will disable that automation and allow you to manage the opacity yourself.
+     * @type {boolean}
+     */
+    this._j._disableManagedOpacity = false;
   }
 
   /**
@@ -9676,6 +9670,9 @@ class Sprite_BaseText
     this.bitmap.fontBold = this.isBold();
     this.bitmap.fontItalic = this.isItalics();
     this.bitmap.textColor = this.color();
+
+    this.bitmap.outlineColor = "#000000"; // or a theme color
+    this.bitmap.outlineWidth = Math.max(2, Math.floor(this.fontSize() / 6));
   }
 
   /**
@@ -9714,8 +9711,10 @@ class Sprite_BaseText
     this._j._testBitmap.fontItalic = this.isItalics();
     this._j._testBitmap.fontBold = this.isBold();
 
-    // and return the measured text width.
-    return this._j._testBitmap.measureTextWidth(this.text());
+    // measure the text and respect a configured minimum width, if any.
+    const measured = this._j._testBitmap.measureTextWidth(this.text());
+    const min = this._j._minWidth;
+    return Math.max(measured, min);
   }
 
   /**
@@ -9797,7 +9796,7 @@ class Sprite_BaseText
   isValidColor(color)
   {
     // use regex to validate the hex color.
-    const structure = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
+    const structure = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
     const isHexColor = structure.test(color);
 
     // check if we failed the validation.
@@ -9849,7 +9848,8 @@ class Sprite_BaseText
   isValidAlignment(alignment)
   {
     const validAlignments = [
-      Sprite_BaseText.Alignments.Left, Sprite_BaseText.Alignments.Center, Sprite_BaseText.Alignments.Right ]
+      Sprite_BaseText.Alignments.Left, Sprite_BaseText.Alignments.Center, Sprite_BaseText.Alignments.Right
+    ];
 
     return validAlignments.includes(alignment);
   }
@@ -9961,16 +9961,71 @@ class Sprite_BaseText
   }
 
   /**
+   * Gets the minimum width for the text box.
+   * @returns {number}
+   */
+  minWidth()
+  {
+    return this._j._minWidth;
+  }
+
+  /**
+   * Sets a minimum width for the text box. Useful to make center/right alignment visible.
+   * @param {number} width The minimum pixel width of this sprite’s bitmap.
+   * @returns {this}
+   */
+  setMinWidth(width)
+  {
+    // guard to make sure the width isn't being set to something negative.
+    const w = Math.max(0, width);
+
+    if (this._j._minWidth !== w)
+    {
+      this._j._minWidth = w;
+      this.refresh();
+    }
+
+    // return this for chaining if desired.
+    return this;
+  }
+
+  /**
+   * Flags this sprite to disable the managed opacity automation.
+   */
+  selfManageOpacity()
+  {
+    this._j._disableManagedOpacity = true;
+  }
+
+  /**
+   * Unflags this sprite to enable the managed opacity automation.
+   */
+  autoManageOpacity()
+  {
+    this._j._disableManagedOpacity = false;
+  }
+
+  /**
+   * Checks whether or not this sprite is flagged for self-managed opacity.
+   * @returns {boolean}
+   */
+  hasSelfManagedOpacity()
+  {
+    return this._j._disableManagedOpacity;
+  }
+
+  /**
    * Renders the text of this sprite.
    */
   renderText()
   {
-    const width = this.alignment() === Sprite_BaseText.Alignments.Center
-      ? this.width
+    // always draw using the bitmap’s own width so alignment behaves predictably.
+    const drawWidth = this.bitmap
+      ? this.bitmap.width
       : this.bitmapWidth();
 
     // draw the text with the current settings onto the bitmap.
-    this.bitmap.drawText(this.text(), 0, 0, width, this.bitmapHeight(), this.alignment());
+    this.bitmap.drawText(this.text(), 0, 0, drawWidth, this.bitmapHeight(), this.alignment());
   }
 }
 
@@ -10126,6 +10181,13 @@ class Sprite_Icon
      * @type {number}
      */
     this._j._iconColumns = ImageManager.iconColumns;
+
+    /**
+     * Some systems that leverage {@link Sprite_Icon} may have automation to manage the opacity of their icons.
+     * Setting this flag to true will disable that automation and allow you to manage the opacity yourself.
+     * @type {boolean}
+     */
+    this._j._disableManagedOpacity = false;
   }
 
   /**
@@ -10148,7 +10210,7 @@ class Sprite_Icon
     // upon promise delivery, execute the rendering.
     Promise.all([ bitmapPromise ])
       // execute on-ready logic, such as setting the icon index of this sprite to render.
-      .then(() => this.onReady(iconIndex))
+      .then(() => this.onReady(iconIndex));
   }
 
   /**
@@ -10177,6 +10239,7 @@ class Sprite_Icon
     this.bitmap = bitmap;
   }
 
+  //region properties
   /**
    * Gets the icon index from the iconset for this sprite.
    * @returns {number}
@@ -10255,6 +10318,33 @@ class Sprite_Icon
   {
     this._j._iconColumns = columns;
   }
+
+  /**
+   * Flags this sprite to disable the managed opacity automation.
+   */
+  selfManageOpacity()
+  {
+    this._j._disableManagedOpacity = true;
+  }
+
+  /**
+   * Unflags this sprite to enable the managed opacity automation.
+   */
+  autoManageOpacity()
+  {
+    this._j._disableManagedOpacity = false;
+  }
+
+  /**
+   * Checks whether or not this sprite is flagged for self-managed opacity.
+   * @returns {boolean}
+   */
+  hasSelfManagedOpacity()
+  {
+    return this._j._disableManagedOpacity;
+  }
+
+  //endregion properties
 
   /**
    * Upon becoming ready, execute this logic.
@@ -10618,21 +10708,21 @@ Window_Base.TextAlignments = {
    * The "left" text alignment.
    * This is the default and not normally required to be set.
    */
-  Left: "left",
+  Left: 'left',
 
   /**
    * The "center" text alignment.
    * This requires the full width of the area attempting to be centered within
    * be provided (such as the whole window's width).
    */
-  Center: "center",
+  Center: 'center',
 
   /**
    * The "right" text alignment.
    * It is encouraged to use {@link Window_Base.prototype.textWidth} to define the
    * width parameter in order to properly right-align.
    */
-  Right: "right"
+  Right: 'right'
 };
 
 /**

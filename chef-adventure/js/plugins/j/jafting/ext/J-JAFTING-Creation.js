@@ -1072,7 +1072,7 @@ RecipeTracking.prototype.craftingProficiency = function()
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 JAFT-Create] An extension for JAFTING to enable recipe creation.
+ * [v1.0.2 JAFT-Create] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1204,6 +1204,8 @@ RecipeTracking.prototype.craftingProficiency = function()
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Added flag for showing external file load info.
  * - 1.0.1
  *    Recipes & Categories can now be updated for existing save files.
  * - 1.0.0
@@ -1367,7 +1369,8 @@ class J_CraftingCreatePluginMetadata
         mappableRecipe.maskedUntilCrafted,
         parsedIngredients,
         parsedTools,
-        parsedOutputs);
+        parsedOutputs
+      );
 
       return newJaftingRecipe;
     };
@@ -1396,7 +1399,7 @@ class J_CraftingCreatePluginMetadata
         unlockedByDefault
       } = mappableCategory;
       const newCategory = new CraftingCategory(name, key, iconIndex, description, unlockedByDefault);
-      return newCategory
+      return newCategory;
     };
 
     // iterate over each category to classify the data.
@@ -1477,10 +1480,17 @@ class J_CraftingCreatePluginMetadata
      */
     this.categoriesMap = categoriesMap;
 
-    console.log(`loaded:
+    if (J_CraftingCreatePluginMetadata.#hasMinimumBaseVersion() && J.BASE.Metadata.ShowExternalFileLoadInfo)
+    {
+      console.log(`loaded:
       - ${this.recipes.length} recipes
       - ${this.categories.length} categories
       from file ${J_CraftingCreatePluginMetadata.CONFIG_PATH}.`);
+    }
+    else
+    {
+      console.log(`loaded from file ${J_CraftingCreatePluginMetadata.CONFIG_PATH}.`);
+    }
   }
 
   /**
@@ -1571,6 +1581,39 @@ class J_CraftingCreatePluginMetadata
       .patch('0')
       .build();
   }
+
+  /**
+   * Checks if the BASE plugin meets the minimum version requirement for this plugin.
+   * @return {boolean}
+   */
+  static #hasMinimumBaseVersion()
+  {
+    // identify the two versions for comparison.
+    const minimumVersion = this.#minimumBaseVersion();
+    const actualVersion = new PluginVersion(J.BASE.Metadata.Version);
+
+    // check if we meet the minimum version threshold.
+    const meetsThreshold = actualVersion.satisfiesPluginVersion(minimumVersion);
+
+    // if the version isn't high enough, then we cannot proceed.
+    if (!meetsThreshold) return false;
+
+    // we're good!
+    return true;
+  }
+
+  /**
+   * Gets the current minimum version of the J-BASE system this plugin requires.
+   * @returns {PluginVersion}
+   */
+  static #minimumBaseVersion()
+  {
+    return PluginVersion.builder
+      .major('2')
+      .minor('3')
+      .patch('1')
+      .build();
+  }
 }
 
 //endregion plugin metadata
@@ -1594,7 +1637,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
  * The metadata associated with this plugin.
  */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata('J-JAFTING-Creation', '1.0.0');
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata('J-JAFTING-Creation', '1.0.2');
 
 /**
  * A collection of all aliased methods for this plugin.
