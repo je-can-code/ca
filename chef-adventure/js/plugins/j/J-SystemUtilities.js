@@ -70,6 +70,14 @@ class J_UtilsPluginMetadata
      * @type {boolean}
      */
     this.autoloadDevtools = this.parsedPluginParameters['autoload-devtools'] === 'true';
+
+    /**
+     * A toggle for circular save data check.
+     * The console gets very noisy when this is true, but is helpful for identifying issues
+     * with serialization that is blocking saving.
+     * @type {boolean}
+     */
+    this.useCircularSaveDataCheck = false;
   }
 }
 
@@ -94,6 +102,7 @@ J.UTILS.Metadata = new J_UtilsPluginMetadata('J-SystemUtilities', '1.1.1');
  * A collection of all aliased methods for this plugin.
  */
 J.UTILS.Aliased = {
+  DataManager: new Map(),
   Game_Actor: new Map(),
   Game_Temp: new Map(),
   Input: new Map(),
@@ -233,6 +242,41 @@ Bitmap.prototype._createCanvas = function(width, height)
   this._canvas.width = width;
   this._canvas.height = height;
   this._createBaseTexture(this._canvas);
+};
+
+/**
+ * Extends {@link DataManager.makeSaveContents}.<br/>
+ * Reviews the save contents to ensure that there are no circular references.
+ */
+J.UTILS.Aliased.DataManager.set('makeSaveContents', DataManager.makeSaveContents);
+DataManager.makeSaveContents = function()
+{
+  // perform original logic.
+  const contents = J.UTILS.Aliased.DataManager.get('makeSaveContents')
+    .call(this);
+
+  // this is extremely noisy in the console, so gate it behind metadata check.
+  if (J.UTILS.Metadata.useCircularSaveDataCheck)
+  {
+    // peek at all the contents
+    console.log(contents);
+
+    // usually the map is the offender, but you may need to check other properties.
+    console.log(contents.map);
+
+    // iterate over all the sub-offenders to see which is the culprit.
+    for (const event of contents.map._events)
+    {
+      // peek at the details.
+      console.log(event);
+
+      // check their depth to see if they are causing circular problems.
+      console.log(J.UTILS.Helpers.depth(event));
+    }
+  }
+
+  // return the contents.
+  return contents;
 };
 
 //region Input

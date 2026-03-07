@@ -566,10 +566,10 @@ JABS_Battler.prototype.tryStartPose = function(skill)
   }
   else
   {
-    console.warn('Skill executed that declared pose data, but no matching sprite was found.');
-    console.warn(`Skill of id [ ${skill.id} ]; consider cross-checking the database with your assets.`);
-    console.warn('Parsed JABS pose data:');
-    console.warn(skill.jabsPoseData);
+    // console.warn('Skill executed that declared pose data, but no matching sprite was found.');
+    // console.warn(`Skill of id [ ${skill.id} ]; consider cross-checking the database with your assets.`);
+    // console.warn('Parsed JABS pose data:');
+    // console.warn(skill.jabsPoseData);
   }
 };
 

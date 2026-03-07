@@ -61,6 +61,7 @@ var $plugins =
 {"name":"j/J-MessageTextCodes","status":true,"description":"[v1.2.0 MESSAGE] Gives access to more message window functionality.","parameters":{}},
 {"name":"j/J-Log","status":true,"description":"[v2.2.0 LOG] A log window for viewing on the map.","parameters":{"defaultInactivityTime":"300"}},
 {"name":"j/J-TextPops","status":true,"description":"[v1.0.0 POPUPS] Enable text pops on the map.","parameters":{}},
+{"name":"j/abs/ext/J-ABS-Shield","status":true,"description":"[v1.0.0 SHIELD] A JABS extension that provides state-based HP shields.","parameters":{"parentConfig":"","menu-switch":"101"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/J-NaturalGrowth","status":true,"description":"[v2.0.1 NATURAL] Enables level-based growth of all parameters.","parameters":{"actorBaseTp":"0","enemyBaseTp":"100"}},
 {"name":"j/J-CriticalFactors","status":true,"description":"[v1.0.1 CRIT] Manages critical damage multiplier/reduction of battlers.","parameters":{}},

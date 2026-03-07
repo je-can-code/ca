@@ -1785,7 +1785,6 @@ Game_Battler.prototype.extractParameterFormulai = function(structure)
       matchingFormulai.forEach(line =>
       {
         // extract the captured formula.
-        // eslint-disable-next-line prefer-destructuring
         const result = structure.exec(line);
 
         // make sure we had a real formula first.

@@ -3552,7 +3552,7 @@ class Window_RecipeDetails
         break;
     }
 
-    this.drawText('', x, y + (lh * 1), 300);
+    this.drawText(String.empty, x, y + (lh * 1), 300);
   }
 
   //region item output

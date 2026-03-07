@@ -191,14 +191,14 @@ Map_TextPop.Types = {
  * Builds the text pop based on the given parameters.
  */
 Map_TextPop.prototype.initialize = function({
-                                              iconIndex,
-                                              textColorIndex,
-                                              popupType,
-                                              value,
-                                              critical,
-                                              coordinateVariance,
-                                              healing,
-                                            })
+  iconIndex,
+  textColorIndex,
+  popupType,
+  value,
+  critical,
+  coordinateVariance,
+  healing,
+})
 {
   /**
    * The id of the icon to display alongside this `Map_TextPop`.
@@ -798,7 +798,7 @@ class TextPopBuilder
   }
 
   /**
-   * Add some convenient defaults for configuration earned experience popups.
+   * Add some convenient defaults for configuring earned experience popups.
    * @returns {TextPopBuilder} The builder, for fluent chaining.
    */
   isExperience()
@@ -823,7 +823,7 @@ class TextPopBuilder
   }
 
   /**
-   * Add some convenient defaults for configuration found gold popups.
+   * Add some convenient defaults for configuring found gold popups.
    * @returns {TextPopBuilder} The builder, for fluent chaining.
    */
   isGold()
@@ -873,7 +873,7 @@ class TextPopBuilder
   }
 
   /**
-   * Add some convenient defaults for configuration collected loot popups.
+   * Add some convenient defaults for configuring collected loot popups.
    * @param {number} y The y coordinate.
    * @returns {TextPopBuilder} The builder, for fluent chaining.
    */
@@ -1059,7 +1059,6 @@ class TextPopSpriteManager
       case Map_TextPop.Types.Slip:
         return 0;
       default:
-        console.warn(`unsupported popup type of [${popupType}] found.`);
         return 0;
     }
   }
