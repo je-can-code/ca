@@ -1,4 +1,4 @@
-//region annoations
+//region annotations
 /*:
  * @target MZ
  * @plugindesc
@@ -9,6 +9,7 @@
  * @base J-ABS
  * @orderAfter J-Base
  * @orderAfter J-ABS
+ * @orderAfter J-Elementalistics
  * @orderAfter J-HUD-Party
  * @orderAfter J-TextPops
  * @help
@@ -20,6 +21,7 @@
  * Integrates with others of mine plugins:
  * - J-Base; to be honest this is just required for all my plugins.
  * - J-ABS; this plugin is an extension to JABS.
+ * - J-Elementalistics; considers all elements for shield typing/bypassing.
  * - J-HUD-Party; the shield gauge will be rendered above the hp gauge.
  * - J-TextPops; shield damage popups will be generated.
  *
@@ -30,16 +32,35 @@
  * always will have a maximum amount that it can absorb (cap).
  *
  * NOTE ABOUT SHIELD/STATE EXPIRATION:
- * When a shield is exhausted (as in, reduced to zero), the state will be
- * removed. This means one should make shield states unique from other effects.
- * Inversely, when a state expires, the shield is removed.
+ * When a shield breaks (as in, reduced to zero), the state will be removed.
+ * This means one should probably make shield states unique from other effects
+ * unless it is desired that the effects of the state are lost when the shield
+ * breaks. Inversely, when a state owning a shield expires, the shield is
+ * removed with the state.
+ *
+ * NOTE ABOUT STACKING:
+ * Stacking works about like one might envision: a shield with stacks will be
+ * multiple instances of the same shield. When damage is dealt to a battler
+ * with a shield state applied having a stack greater than 1, the damage will
+ * iterate through each stack until damage is fully absorbed, or until the
+ * state's stacks are depleted. The exception to the "stack iteration" is when
+ * a state also has the "shieldProtect" tag, in which case only one stack can
+ * ever be removed per application of damage (because any overflow will be
+ * negated by the protect functionality instead of carried to the next stack).
+ * This means you could potentially apply a shield state with something like 10
+ * stacks of 1 shield point, and it will effectively mitigate 10 hits-
+ * assuming each hit deals at least 1 damage.
+ *
+ * NOTE ABOUT SLIP DAMAGE:
+ * Currently, slip damage (aka damage over time) is not mitigated by shields.
+ * It will apply directly to the battler, leaving shields intact.
+ * This may change in a future update.
  *
  * ============================================================================
  * SHIELDING:
  * Have you ever wanted to apply some amount of shield points to a state to
  * protect against damage? Well now you can! By applying the appropriate tag
- * across the various database locations, you too can apply shields to your
- * heart's content.
+ * on your states, you too can apply shields to your heart's content.
  *
  * NOTE ABOUT FORMULA-BASED TAGS:
  * All formula-based tags are recalculated upon application of the state, and
@@ -49,54 +70,241 @@
  * simply replaced with the updated value.
  *
  * TAG USAGE:
- * - States
+ * - States only.
  *
  * TAG FORMAT:
- *  <shield:VALUE>
- *    Where VALUE represents the flat amount to absorb.
- *
- *  <sh-formula:[FORMULA]>
+ *  <shield:[FORMULA]>
  *    Where FORMULA represents a damage-like formula calculating the amount to
  *    absorb. The variables 'a' and 'b' can be used in the formulas like you
  *    would in a damage formula, where 'a' represents the target afflicted
  *    with the shield state, and 'b' represents the RPG_State object.
  *
  * TAG EXAMPLES:
- *  <shield:100>
+ *  <shield:[100]>
  * A shield to protect against 100 daamge will be supplied when afflicted with
  * the state bearing this tag.
  *
- *  <sh-formula:[(a.atk * 3) + b.stepsToRemove]>
+ *  <shield:[(a.atk * 3) + b.stepsToRemove]>
  * A shield to protect against damage based on triple the afflicted's attack
  * parameter as well as the value in the "steps to remove" field on the state.
  *
+ * ============================================================================
+ * SHIELD CAPS:
+ * Have you ever wanted to have a cap on shields that was higher than the
+ * initially applied amount? Well now you can! By applying the appropriate tag
+ * on your states, you too can have shield caps as high as your heart desires!
  *
+ * NOTE ABOUT OMITTING SHIELD CAPS:
+ * If the shield cap is omitted from a shield state, then the cap will
+ * automatically be set to the initial shield amount. This tag lets you create
+ * states that can be reapplied to further increase the shield amount up to a
+ * certain point- the cap.
+ *
+ * TAG USAGE:
+ * - States only.
+ *
+ * TAG FORMAT:
+ *  <shieldCap:[FORMULA]>
+ *    Where FORMULA represents a damage-like formula calculating the cap shield
+ *    amount. The variables 'a' and 'b' can be used in the formulas like you
+ *    would in a damage formula, where 'a' represents the target afflicted
+ *    with the shield state, and 'b' represents the RPG_State object.
+ *
+ * TAG EXAMPLES:
+ *  <shieldCap:[100]>
+ * A shield cap of 100 will be applied when afflicted with the state bearing this
+ * tag.
+ *
+ *  <shieldCap:[(a.atk * 3) + b.stepsToRemove]>
+ * A shield cap of (target's attack * 3) + (number of steps to remove) will be
+ * applied when afflicted with the state bearing this tag.
+ *
+ * ============================================================================
+ * SHIELD PRIORITY:
+ * Have you ever wanted to force your shields to be consumed in a particular
+ * order? Well now you can! By applying the shield priority tag to the various
+ * shield states, you too can have deterministically controlled shield
+ * consumption!
+ *
+ * NOTE ABOUT DUPLICATE PRIORITY:
+ * If multiple shields have the same priority, then the timestamp at which
+ * they were applied will be deferred to as a tie-breaker for determining
+ * which should come first.
+ *
+ * TAG USAGE:
+ * - States only.
+ *
+ * TAG FORMAT:
+ *  <shieldPriority:PRIORITY>
+ *    Where PRIORITY is an integer that represents the priority of the shield
+ *    state. Shield states with higher priority will be consumed first.
+ *
+ * TAG EXAMPLES:
+ *  <shieldPriority:5> (on stateA)
+ *  <shieldPriority:10> (on stateB)
+ *  <shieldPriority:1> (on stateC)
+ * When afflicted with stateA, stateB, and stateC, the shields will be consumed
+ * in the order of priority, with stateB consuming first, followed by stateA,
+ * and finally stateC (because 10 > 5 > 1).
+ *
+ * ============================================================================
+ * SHIELD PROTECT:
+ * Have you ever wanted your shields to protect you from the overflow damage
+ * after they break like they do in certain other games you might've played?
+ * Well now you can! By applying the shield protect tag to the various shield
+ * states, you too can have shields that will protect you from damage that
+ * would otherwise overflow and deal damage after a shield is broken.
+ *
+ * TAG USAGE:
+ * - States only.
+ *
+ * TAG FORMAT:
+ *  <shieldProtect>
+ *    This tag is used to indicate that the shield should protect you from
+ *    damage that would otherwise overflow and deal damage after the shield
+ *    is broken.
+ *
+ * TAG EXAMPLES:
+ *  <shieldProtect>
+ * Let us assume that a battler is afflicted with a shield state with the
+ * <shield:[100]> tag as well, meaning they have a flat 100 shield points. If
+ * this battler was struck with a blow that dealt 150 damage, normally 100 of
+ * it would be soaked up by the shield leaving 50 to overflow back and damage
+ * the battler's HP. If that same state also had the protect tag, then that
+ * overflow of 50 would instead be nullified entirely.
+ *
+ * ============================================================================
+ * SHIELD TYPE:
+ * Have you ever wanted to have a shield that was explicitly designed to
+ * protect the bearer from fire damage? Or even fire, ice, and lightning, but
+ * nothing else? Well now you can! By applying the appropriate tag on your
+ * states, you too can have elemental shields that are explicitly designed to
+ * protect certain types of damage.
+ *
+ * TAG USAGE:
+ * - States only.
+ *
+ * TAG FORMAT:
+ *  <shieldType:[TYPES...]>
+ *    Where TYPES... is a comma-delimited array of numbers that represent the
+ *    element ids from your database of the elements that you want this shield
+ *    to be typed with.
+ *
+ * TAG EXAMPLES:
+ *  <shieldType:[1,2,3]>
+ * A shield that will soak damage if damage is taken that is of elements 1, 2,
+ * or 3.
+ *
+ *  <shieldType:[1]>
+ * A shield that will soak damage if damage is taken that is of element 1.
+ *
+ * ============================================================================
+ * SHIELD BYPASS:
+ * Have you ever wanted to be able to ignore all those awesome shields that we
+ * just setup from all the previous tags? Well now you can! By applying the
+ * appropriate tag on your skills, you too can bypass shields as much as you
+ * feel the player should.
+ *
+ * NOTE ABOUT TYPES AND BYPASS INTERSECTIONS:
+ * Shield bypassing is expected to go hand-in-hand with shield typing. If a
+ * shield has any types that intersect with the types of the skill AND the
+ * bypass types also intersect with any of the shield types, then the result
+ * is that the shield will be bypassed. That sounds confusing to write, but
+ * in practice it'll probably be a lot less complicated since skills typically
+ * only have one element associated with them. If you just want a skill that
+ * totally bypasses shields, then use the typeless tag.
+ *
+ * TAG USAGE:
+ * - Skills only.
+ *
+ * TAG FORMAT:
+ *  <shieldBypass>
+ *    This tag will indicate a skill will bypass any and all shields entirely.
+ *
+ *  <shieldBypass:[TYPES...]>
+ *    Where TYPES... is a comma-delimited array of numbers that represent the
+ *    element ids from your database of the elements that you want this skill
+ *    to bypass shields for.
+ *
+ * TAG EXAMPLES:
+ *  <shieldBypass>
+ * This skill will entirely bypass all shields. There are no exceptions.
+ *
+ *  <shieldBypass:[1,2,3]>
+ * This skill will bypass shields for elements with ids 1, 2, and 3.
+ *
+ * ============================================================================
+ * SHIELD BONUS DAMAGE:
+ * Have you ever wanted to be able to deal bonus damage to all those pesky
+ * shields that the enemy has on them? Well now you can! By applying the
+ * appropriate tags to skills, you too can create skills that are shield
+ * destroyers!
+ *
+ * TAG USAGE:
+ * - Skills only.
+ *
+ * TAG FORMAT:
+ *  <shieldDamage:[FORMULA]>
+ *    Where FORMULA represents a damage-like formula calculating the amount of
+ *    bonus damage to deal. The variables 'a', 'b', and 'o' can be used in
+ *    the formulas like you would in a damage formula, where 'a' represents
+ *    the attacker executing the skill, 'b' represents target with the shield,
+ *    and 'o' represents the pre-shielded amount of damage.
+ *
+ * TAG EXAMPLES:
+ *  <shieldDamage:[100]>
+ *    A skill with this tag will deal a flat 100 bonus damage to shields.
+ *
+ *  <shieldDamage:[o * 3]>
+ *    A skill with this tag will deal triple the original damage to shields.
+ *
+ *  <shieldDamage:[b.currentShieldValue() / 2]>
+ *    A skill with this tag will deal half of the current shield value as bonus
+ *    damage to shields.
+ *
+ *  <shieldDamage:[a.hp + ($gameParty.gold() * 100)]>
+ *    A skill with this tag will deal the amount equal to the attacker's
+ *    current hp plus 100 times the party's gold.
+ *    (a bizarre formula, but demonstrating availability to globals)
+ *
+ * ============================================================================
+ * SHIELD BREAK SKILLS:
+ * Have you ever wanted to be able to retaliate with particular skills when
+ * your shield breaks? Well now you can! By applying the appropriate tags on
+ * various applicable database objects, you too can customize your shield
+ * break retaliation.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <shieldBreak:[SKILL_IDS...]>
+ *    Where SKILL_IDS... is a comma-delimited array of numbers that represent
+ *    the ids of the skills that will be executed when any shield breaks.
+ *
+ * TAG EXAMPLES:
+ *  <shieldBreak:[1,2,3]> (on the shield state applied to the battler)
+ *    This actor will execute skill 1, 2, and 3 when their shield breaks.
+ *
+ * <shieldBreak:[1,2,3]> (on the battler)
+ * <shieldBreak:[1,4]>   (on the shield state applied to the battler)
+ *    This battler will execute skills 1 (once), 2, 3, and 4 when their shield
+ *    breaks- the 1 only triggers once even though it shows up twice.
+ *
+ * ============================================================================
+ * There are no plugin parameters/commands for this plugin.
+ * They are mostly just states, so work with them as you would any other state.
  *
  * ============================================================================
  * CHANGELOG:
  * - 1.0.0
  *    The initial release.
  * ============================================================================
- *
- * @param parentConfig
- * @text SETUP
- *
- * @param menu-switch
- * @parent parentConfig
- * @type switch
- * @text Menu Switch ID
- * @desc When this switch is ON, then this command is visible in the menu.
- * @default 101
- *
- *
- * @command do-the-thing
- * @text Add/Remove points
- * @desc Adds or removes a designated amount of points from all members of the current party.
- * @arg points
- * @type number
- * @min -99999999
- * @max 99999999
- * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  */
 //endregion annotations
 
@@ -130,11 +338,7 @@ class JShield_PluginMetadata
    */
   initializeMetadata()
   {
-    /**
-     * The id of a switch that represents whether or not this system is accessible in the menu.
-     * @type {number}
-     */
-    this.menuSwitchId = parseInt(this.parsedPluginParameters['menu-switch']);
+    // no-op; no configuration to initialize.
   }
 }
 
@@ -166,6 +370,7 @@ J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata('J-ABS-Shield', '1.0.0');
  */
 J.ABS.EXT.SHIELD.Aliased = {
   Game_Action: new Map(),
+  Game_Actor: new Map(),
   Game_Battler: new Map(),
   JABS_Engine: new Map(),
   JABS_State: new Map(),
@@ -179,59 +384,47 @@ J.ABS.EXT.SHIELD.Aliased = {
  */
 J.ABS.EXT.SHIELD.RegExp = {
   /**
-   * Represents the shield points of a shield.
-   */
-  Points: /<shield:[ ]?(\d+)>/i,
-
-  /**
    * Represents the shield points derived from a damage formula.
    */
-  PointsFormula: /<sh-formula:\[([+\-*/ ().\w]+)]>/gi,
-
-  /**
-   * Represents the shield cap of a shield.
-   */
-  Cap: /<shield-cap:[ ]?(\d+)>/i,
+  ShieldPointsFormula: /<shield:\[([+\-*/ ().\w]+)]>/gi,
 
   /**
    * Represents the shield cap derived from a damage formula.
    */
-  CapFormula: /<sh-cap-formula:\[([+\-*/ ().\w]+)]>/gi,
+  ShieldCapFormula: /<shieldCap:\[([+\-*/ ().\w]+)]>/gi,
 
   /**
    * Represents the priority of a shield.
    */
-  Priority: /<shield-priority:[ ]?(\d+)>/i,
-
-  /**
-   * Represents the type of shield.
-   */
-  Type: /<shield-type:[ ]?(\[[\d, ]+])>/gi,
+  Priority: /<shieldPriority:[ ]?(\d+)>/i,
 
   /**
    * Dictates if the shield should prevent overflow damage upon breaking.
    */
-  Protect: /<shield-protect>/i,
+  Protect: /<shieldProtect>/i,
+
+  /**
+   * Represents the type of shield.
+   */
+  Type: /<shieldType:[ ]?(\[[\d, ]+])>/gi,
 
   /**
    * On an action, this means it will bypass either all shields or specific shields.
    */
-  Bypass: /<shield-bypass(?::[ ]?(\[[\d, ]+]))?>/gi,
+  Bypass: /<shieldBypass(?::[ ]?(\[[\d, ]+]))?>/gi,
+
+  /**
+   * Represents an additional damage formula for shield-only damage from the action.
+   * 'a' is the attacker, 'b' is the shielded battler, 'o' is the original damage before mitigation.
+   */
+  ShieldDamage: /<shieldDamage:\[([+\-*/ ().\w]+)]>/gi,
+
+  /**
+   * Represents one or many skills to fire when this state’s shield breaks.
+   */
+  Break: /<shieldBreak:[ ]?(\[[\d, ]+])>/i,
 };
 //endregion initialization
-
-//region plugin commands
-/**
- * Plugin command for doing the thing.
- */
-PluginManager.registerCommand(
-  J.ABS.EXT.SHIELD.Metadata.name,
-  "do-the-thing",
-  args =>
-  {
-    console.log('did the thing.');
-  });
-//endregion plugin commands
 
 //region JABS_Shield
 /**
@@ -251,11 +444,8 @@ class JABS_Shield
     // TODO: target may perceive enhanced shield bonuses from state.
     const state = target.state(stateId);
 
-    // check how many points the shield is.
-    const flatPoints = RPGManager.getNumberFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.Points);
-
     // grab all the formulas that the
-    const pointFormulas = RPGManager.getStringsFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.PointsFormula);
+    const pointFormulas = RPGManager.getStringsFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.ShieldPointsFormula);
 
     // allows access to the battler and state itself.
     /* eslint-disable no-unused-vars */
@@ -264,20 +454,17 @@ class JABS_Shield
     /* eslint-enable no-unused-vars */
 
     const totalPoints = pointFormulas
-      .reduce((total, formula) => total + eval(formula), 0) + flatPoints;
+      .reduce((total, formula) => total + eval(formula), 0);
 
     // if we have no shield points, then nothing else matters.
     if (totalPoints === 0) return null;
 
-    // identify the cap for shields of this state.
-    const flatCap = RPGManager.getNumberFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.Cap);
-
     // grab all the formulas that make up the cap.
-    const capFormulas = RPGManager.getStringsFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.CapFormula);
+    const capFormulas = RPGManager.getStringsFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.ShieldCapFormula);
 
     // combine all the cap formulas into a single value and add the flat cap points.
     const totalCap = capFormulas
-      .reduce((total, formula) => total + eval(formula), 0) + flatCap;
+      .reduce((total, formula) => total + eval(formula), 0);
 
     // if no cap was specified, then use the total points as the cap by default.
     const normalizedCap = totalCap === 0
@@ -596,100 +783,131 @@ if (J.POPUPS)
 //endregion Map_TextPop
 
 //region RPG_Skill
-Object.defineProperties(
-  RPG_UsableItem.prototype,
-  {
-    /**
-     * Gets the elementIds that this skill bypasses.
-     *
-     * Shapes supported:
-     * - <shield-bypass> → universal bypass (handled by {@link isShieldBypassUniversal}); this getter returns null.
-     * - <shield-bypass: [1, 5, 7]> → typed bypass list; returns an array of element ids.
-     *
-     * Notes:
-     * - Returns null when no tag is present, or when the tag is parameterless (universal form).
-     * - The parameterized list must contain only element ids (numbers); names are not supported for this tag.
-     *
-     * @type {number[]|null}
-     */
-    shieldBypassElements: {
-      get: function()
+Object.defineProperties(RPG_UsableItem.prototype, {
+  /**
+   * Gets the elementIds that this skill bypasses.
+   *
+   * Shapes supported:
+   * - <shield-bypass> → universal bypass (handled by {@link isShieldBypassUniversal}); this getter returns null.
+   * - <shield-bypass: [1, 5, 7]> → typed bypass list; returns an array of element ids.
+   *
+   * Notes:
+   * - Returns null when no tag is present, or when the tag is parameterless (universal form).
+   * - The parameterized list must contain only element ids (numbers); names are not supported for this tag.
+   *
+   * @type {number[]|null}
+   */
+  shieldBypassElements: {
+    get: function()
+    {
+      // if there is no bypass tag at all, then nothing to parse.
+      if (this.hasShieldBypass === false)
       {
-        // if there is no bypass tag at all, then nothing to parse.
-        if (this.hasShieldBypass === false)
-        {
-          return null;
-        }
+        return null;
+      }
 
-        // attempt to match the extension-provided bypass regex.
-        const match = J.ABS.EXT.SHIELD.RegExp.Bypass.exec(this.note);
+      // reset the index.
+      J.ABS.EXT.SHIELD.RegExp.Bypass.lastIndex = 0;
 
-        // if somehow we didn't match (shouldn't happen), treat as no list.
-        if (!match)
-        {
-          return null;
-        }
+      // attempt to match the extension-provided bypass regex.
+      const match = J.ABS.EXT.SHIELD.RegExp.Bypass.exec(this.note);
 
-        // when the capture group is missing/empty, this is the universal (parameterless) form.
-        if (!match[1] || String(match[1]).trim().length === 0)
-        {
-          // universal bypass is handled by a separate boolean; return null here.
-          return null;
-        }
+      // if somehow we didn't match (shouldn't happen), treat as no list.
+      if (!match)
+      {
+        return null;
+      }
 
-        // otherwise, parse the numeric list via RPGManager using the same regex.
-        const list = RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass, true);
+      // when the capture group is missing/empty, this is the universal (parameterless) form.
+      if (!match[1] || String(match[1])
+        .trim().length === 0)
+      {
+        // universal bypass is handled by a separate boolean; return null here.
+        return null;
+      }
 
-        // return the parsed numeric list.
-        return list;
-      },
-      configurable: true
+      // otherwise, parse the numeric list via RPGManager using the same regex.
+      const list = RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass, true);
+
+      // return the parsed numeric list.
+      return list;
     },
+    configurable: true
+  },
 
-    /**
-     * Whether this skill/item declares a shield bypass of any kind.
-     * Supports both parameterless and parameterized forms.
-     * @type {boolean}
-     */
-    hasShieldBypass: {
-      get: function()
-      {
-        // simple presence check against the canonical regex.
-        return J.ABS.EXT.SHIELD.RegExp.Bypass.test(this.note);
-      },
-      configurable: true
+  /**
+   * Whether this skill/item declares a shield bypass of any kind.
+   * Supports both parameterless and parameterized forms.
+   * @type {boolean}
+   */
+  hasShieldBypass: {
+    get: function()
+    {
+      // reset the index.
+      J.ABS.EXT.SHIELD.RegExp.Bypass.lastIndex = 0;
+
+      // simple presence check against the canonical regex.
+      return J.ABS.EXT.SHIELD.RegExp.Bypass.test(this.note);
     },
+    configurable: true
+  },
 
-    /**
-     * True when the skill/item has the parameterless universal bypass form: <shield-bypass>
-     * (no parameters after the colon). This means bypass ALL shields regardless of typing.
-     * @type {boolean}
-     */
-    isShieldBypassUniversal: {
-      get: function()
+  /**
+   * True when the skill/item has the parameterless universal bypass form: <shield-bypass>
+   * (no parameters after the colon). This means bypass ALL shields regardless of typing.
+   * @type {boolean}
+   */
+  isShieldBypassUniversal: {
+    get: function()
+    {
+      // if the tag doesn't exist at all, then it cannot be universal.
+      if (this.hasShieldBypass === false)
       {
-        // if the tag doesn't exist at all, then it cannot be universal.
-        if (this.hasShieldBypass === false)
-        {
-          return false;
-        }
-
-        // exec to inspect the capture; universal form will have no usable group.
-        const match = J.ABS.EXT.SHIELD.RegExp.Bypass.exec(this.note);
-
-        // if present and no parameter payload, then it's universal.
-        if (match && (!match[1] || String(match[1]).trim().length === 0))
-        {
-          return true;
-        }
-
-        // otherwise, it's the parameterized typed form.
         return false;
-      },
-      configurable: true
-    }
-  }
-);
+      }
+
+      // reset the index.
+      J.ABS.EXT.SHIELD.RegExp.Bypass.lastIndex = 0;
+
+      // exec to inspect the capture; universal form will have no usable group.
+      const match = J.ABS.EXT.SHIELD.RegExp.Bypass.exec(this.note);
+
+      // if present and no parameter payload, then it's universal.
+      if (match && (!match[1] || String(match[1])
+        .trim().length === 0))
+      {
+        return true;
+      }
+
+      // otherwise, it's the parameterized typed form.
+      return false;
+    },
+    configurable: true
+  },
+
+  /**
+   * A collection of damage formulas that contribute bonus SHIELD-ONLY damage.
+   * Multiple tags are allowed; the results are summed when applying shields.
+   * Ex: <shield-bonus:[a.atk*0.2]> or <shield-bonus:[p*0.5]> (where p is base HP damage).
+   * @type {string[]}
+   */
+  shieldBonusFormulas: {
+    get: function()
+    {
+      // reset the index.
+      J.ABS.EXT.SHIELD.RegExp.ShieldDamage.lastIndex = 0;
+
+      // Retrieve all matching formula strings from the note.
+      const formulas = RPGManager.getStringsFromNoteByRegex(this, J.ABS.EXT.SHIELD.RegExp.ShieldDamage);
+
+      // If no tags present, return an empty array for simpler consumers.
+      return Array.isArray(formulas)
+        ? formulas
+        : [];
+    },
+    configurable: true
+  },
+});
 //endregion RPG_Skill
 
 //region ColorManager
@@ -802,254 +1020,6 @@ if (J.POPUPS)
   };
 }
 //endregion TextPopBuilder
-
-//region Game_Action
-/**
- * Extends {@link #executeDamage}.<br/>
- * Considers shields when executing damage.
- */
-J.ABS.EXT.SHIELD.Aliased.Game_Action.set('executeDamage', Game_Action.prototype.executeDamage);
-Game_Action.prototype.executeDamage = function(target, value)
-{
-  // reduce damage by shields where applicable.
-  const updatedValue = this.applyShields(target, value);
-
-  // perform original logic.
-  J.ABS.EXT.SHIELD.Aliased.Game_Action.get('executeDamage')
-    .call(this, target, updatedValue);
-};
-
-/**
- * Potentially applies shields to the damage value.
- * @param {Game_Actor|Game_Enemy} target The target of the action.
- * @param {number} value The damage value to be applied.
- * @returns {number} The updated damage value after applying shields.
- */
-Game_Action.prototype.applyShields = function(target, value)
-{
-  // don't bother with shield processing if there is no damage.
-  if (value === 0) return value;
-
-  // grab the actionable data.
-  const skillOrItem = this.item();
-
-  // valid damage types are HP Damage and HP Drain.
-  const validDamageTypes = [ 1, 5 ];
-
-  // if the damage type is not valid, then we can skip shield processing.
-  if (validDamageTypes.includes(skillOrItem.damage.type) === false) return value;
-
-  // grab the currently active shields.
-  const shieldStates = target.getShieldStates();
-
-  // if there are no shields, then we can skip shield processing.
-  if (shieldStates.length === 0) return value;
-
-  // declare a modifiable damage value for shield processing.
-  let updatedValue = value;
-
-  // iterate over the shields and apply them to the damage value.
-  for (const shieldState of shieldStates)
-  {
-    // update the value and mitigate damage.
-    updatedValue = this.applyShield(shieldState, target, updatedValue);
-
-    // if we have no damage left, then we can stop processing shields.
-    if (updatedValue === 0) break;
-  }
-
-  // return the updated value after processing shields.
-  return updatedValue;
-};
-
-/**
- * Applies the shield to the damage value against the target.
- * @param {JABS_State} shieldState The state bearing the shield.
- * @param {Game_Actor|Game_Enemy} target The target of the action.
- * @param {number} value The damage value to be applied.
- * @returns {number} The leftover damage value after applying the shield.
- */
-Game_Action.prototype.applyShield = function(shieldState, target, value)
-{
-  // check if we should bypass shields for this hit (typed or universal).
-  if (this.shouldBypassShield(shieldState.shield))
-  {
-    return value;
-  }
-
-  // track the remaining damage for this hit as we consume shields.
-  let remaining = value;
-
-  // continue absorbing while there is damage remaining and this state still has a shield pool.
-  // this enables rolling overflow into the next stack (same state) within the same hit.
-  while (remaining > 0)
-  {
-    // re-resolve the shield reference in case the state refilled/removed it on a previous break.
-    const { shield } = shieldState;
-
-    // if there is no capacity remaining on this pool (defensive), stop.
-    const before = shield.getCurrent();
-    if (before <= 0)
-    {
-      break;
-    }
-
-    // absorb as much as possible from this pool.
-    const absorbed = Math.min(remaining, before);
-
-    // apply the absorption.
-    shield.setCurrent(before - absorbed);
-
-    // reduce the remaining incoming damage by what was absorbed.
-    remaining -= absorbed;
-
-    // show a shield damage popup for the absorbed amount.
-    if (absorbed > 0)
-    {
-      this.generateShieldDamagePop(target, absorbed);
-    }
-
-    // determine whether this shield broke on this partial application.
-    const brokeThisHit = (before > 0 && shield.getCurrent() === 0);
-
-    // if the shield broke on this hit, handle the break lifecycle.
-    if (brokeThisHit)
-    {
-      // consume a stack, refill if stacks remain, or remove the state if none remain.
-      shieldState.onShieldBreak();
-
-      // show a popup indicating the shield broke.
-      this.generateShieldBreakPop(target);
-
-      // if this shield is protected, the remainder of this hit is nullified.
-      if (shield.isProtected())
-      {
-        // stop processing entirely for this hit.
-        return 0;
-      }
-
-      // if not protected: if stacks remain, the state refilled and we loop to keep absorbing.
-      // if no stacks remain, shieldState.shield will be null and the loop will exit.
-      continue;
-    }
-
-    // if this pool did not break and we still have remainder, the next shield state will handle it.
-    // break out of the loop to allow the outer iteration over other states to proceed.
-    break;
-  }
-
-  // return whatever damage remains after rolling through this state's stacks.
-  return remaining;
-};
-
-/**
- * Determines whether or not a shield should be bypassed by this action.
- * @param {JABS_Shield} shield The shield to check.
- * @returns {boolean} True if the shield should be bypassed, false otherwise.
- */
-Game_Action.prototype.shouldBypassShield = function(shield)
-{
-  // grab the actionable data.
-  const skillOrItem = this.item();
-
-  // you cannot bypass shields without any bypass tag.
-  if (skillOrItem.hasShieldBypass === false)
-  {
-    return false;
-  }
-
-  // parameterless form bypasses ALL shields regardless of typing.
-  if (skillOrItem.isShieldBypassUniversal === true)
-  {
-    return true;
-  }
-
-  // gather this action's applicable elements.
-  // default to the skill/item's own element id.
-  let actionElements = [ skillOrItem.damage.elementId ];
-
-  // check if using the elementalistics plugin.
-  if (J.ELEM)
-  {
-    // gather all elements applicable for this action from the subject.
-    actionElements = [ ...this.getApplicableElements(this.subject()) ];
-  }
-
-  // read the shield's typed elements and the typed bypass elements from the action.
-  const shieldElements = shield.getShieldTypes();
-  const bypassElements = skillOrItem.shieldBypassElements;
-
-  // typing needs to be present on both sides of the bypass, or it won't bypass.
-  if (bypassElements.length === 0 || shieldElements.length === 0)
-  {
-    return false;
-  }
-
-  // we have a typed shield and typed bypass list; verify both intersections include this action's elements.
-  const actionEnablesBypass = ArrayHelper.hasAnyIntersection(actionElements, bypassElements);
-  if (actionEnablesBypass === false)
-  {
-    return false;
-  }
-
-  // ensure the shield's types are actually relevant to this action's elements.
-  const shieldMatchesAction = ArrayHelper.hasAnyIntersection(actionElements, shieldElements);
-  if (shieldMatchesAction === false)
-  {
-    return false;
-  }
-
-  // both conditions satisfied: bypass this shield for this hit.
-  return true;
-};
-
-/**
- * Generates a damage pop showing how much damage was mitigated by shields.
- * @param {Game_Actor|Game_Enemy} target The battler doing the mitigating.
- * @param {number} value The amount of damage mitigated.
- */
-Game_Action.prototype.generateShieldDamagePop = function(target, value)
-{
-  // if we are not using popups, then don't do this.
-  if (!J.POPUPS) return;
-
-  // grab the character on the field.
-  const character = JABS_AiManager.getBattlerByUuid(target.getUuid())
-    .getCharacter();
-
-  // build the popup.
-  const textPop = new TextPopBuilder(`  -${Math.round(value)}`)
-    .isShieldDamage()
-    .build();
-
-  // add the popup to the character.
-  character.addTextPop(textPop);
-  character.requestTextPop();
-};
-
-/**
- * Generates a damage pop indicating a shield broke.
- * @param {Game_Actor|Game_Enemy} target The battler with the shield breaking.
- */
-Game_Action.prototype.generateShieldBreakPop = function(target)
-{
-  // if we are not using popups, then don't do this.
-  if (!J.POPUPS) return;
-
-  // grab the character on the field.
-  const character = JABS_AiManager.getBattlerByUuid(target.getUuid())
-    .getCharacter();
-
-  // build the popup.
-  const textPop = new TextPopBuilder(`B R E A K`)
-    .isShieldBreak()
-    .build();
-
-  // add the popup to the character.
-  character.addTextPop(textPop);
-  character.requestTextPop();
-};
-//endregion Game_Action
 
 //region Game_Battler
 /**
@@ -1202,8 +1172,481 @@ Game_Battler.prototype.currentShieldStacks = function()
  */
 Game_Battler.prototype.onShieldBreak = function()
 {
+  // Resolve the bearer’s JABS battler.
+  const caster = JABS_AiManager.getBattlerByUuid(this.getUuid());
+
+  // check if we have a valid caster.
+  if (!caster) return;
+
+  // identify all the sources from which shield break skills can be pulled from.
+  const sources = this.shieldBreakSources().filter(source => !!source);
+
+  /**
+   * A reducer function to grab all the shield break skills.
+   * @param {number[]} accumulator The accumulator of skill ids.
+   * @param {RPG_Base} source The source from which to pull shield break skills.
+   */
+  const reducer = (accumulator, source) =>
+  {
+    // grab all the skill ids.
+    const skillIds = RPGManager.getArrayFromNotesByRegex(source, J.ABS.EXT.SHIELD.RegExp.Break, true);
+
+    // concat them onto the accumulation.
+    return accumulator.concat(...skillIds);
+  };
+
+  // grab all the shield break skills.
+  const breakSkillIds = sources.reduce(reducer, []);
+
+  // if no skillIds were found, then we can skip processing.
+  if (breakSkillIds.length === 0) return;
+
+  // trigger all skills in succession.
+  breakSkillIds.forEach(skillId => $jabsEngine.forceMapAction(caster, skillId, true));
+};
+
+/**
+ * Gets all the sources from which shield break skills can be pulled from.
+ * @returns {[RPG_Actor|RPG_Enemy|RPG_State]}
+ */
+Game_Battler.prototype.shieldBreakSources = function()
+{
+  return [
+    this.databaseData(), ...this.states(),
+  ];
 };
 //endregion Game_Battler
+
+//region Game_Action
+/**
+ * Extends {@link #executeDamage}.<br/>
+ * Considers shields when executing damage.
+ */
+J.ABS.EXT.SHIELD.Aliased.Game_Action.set('executeDamage', Game_Action.prototype.executeDamage);
+Game_Action.prototype.executeDamage = function(target, value)
+{
+  // reduce damage by shields where applicable.
+  const updatedValue = this.applyShields(target, value);
+
+  // perform original logic.
+  J.ABS.EXT.SHIELD.Aliased.Game_Action.get('executeDamage')
+    .call(this, target, updatedValue);
+};
+
+/**
+ * Potentially applies shields to the damage value.
+ * @param {Game_Actor|Game_Enemy} target The target of the action.
+ * @param {number} value The damage value to be applied.
+ * @returns {number} The updated damage value after applying shields.
+ */
+Game_Action.prototype.applyShields = function(target, value)
+{
+  // don't bother with shield processing if there is no damage.
+  if (value === 0) return value;
+
+  // grab the actionable data.
+  const skillOrItem = this.item();
+
+  // valid damage types are HP Damage and HP Drain.
+  const validDamageTypes = [ 1, 5 ];
+
+  // if the damage type is not valid, then we can skip shield processing.
+  if (validDamageTypes.includes(skillOrItem.damage.type) === false) return value;
+
+  // grab the currently active shields.
+  const shieldStates = target.getShieldStates();
+
+  // if there are no shields, then we can skip shield processing.
+  if (shieldStates.length === 0) return value;
+
+  // declare a modifiable damage value for shield processing.
+  let updatedValue = value;
+
+  // iterate over the shields and apply them to the damage value.
+  for (const shieldState of shieldStates)
+  {
+    // update the value and mitigate damage.
+    updatedValue = this.applyShield(shieldState, target, updatedValue);
+
+    // if we have no damage left, then we can stop processing shields.
+    if (updatedValue === 0) break;
+  }
+
+  // return the updated value after processing shields.
+  return updatedValue;
+};
+
+/**
+ * Applies the shield to the damage value against the target.
+ * Also applies any shield-only bonus damage from this action.
+ * @param {JABS_State} shieldState The state bearing the shield.
+ * @param {Game_Actor|Game_Enemy} target The target of the action.
+ * @param {number} value The damage value to be applied.
+ * @returns {number} The leftover damage value after applying the shield.
+ */
+Game_Action.prototype.applyShield = function(shieldState, target, value)
+{
+  // validate we have a shield to work with.
+  const { shield } = shieldState;
+
+  // if there is no shield, then there is nothing to apply.
+  if (!shield)
+  {
+    return value;
+  }
+
+  // resolve the elements for this action for relevance checks.
+  const skillOrItem = this.item();
+  const actionElements = this.getActionElementsForShieldChecks(this.subject(), skillOrItem);
+
+  // if the shield is typed but does not match the action, the shield is not relevant to this hit.
+  if (this.isShieldRelevantToAction(shield, actionElements) === false)
+  {
+    return value;
+  }
+
+  // check if we should bypass shields for this hit (typed or universal).
+  if (this.shouldBypassShield(shield))
+  {
+    return value;
+  }
+
+  // compute shield-only damage bonus for this target.
+  // this bonus can only be absorbed by shields; it will never spill into HP.
+  const pendingBonusInitial = this.calculateShieldBonusDamage(target, value);
+
+  // delegate the absorption into a helper that mutates the pools and handles break logic.
+  const postAbsorption = this.absorbDamageIntoShield(shieldState, target, value, pendingBonusInitial);
+
+  // return whatever HP damage remains after shield absorption.
+  return postAbsorption;
+};
+
+/**
+ * Determines whether or not a shield should be bypassed by this action.
+ * @param {JABS_Shield} shield The shield to check.
+ * @returns {boolean} True if the shield should be bypassed, false otherwise.
+ */
+Game_Action.prototype.shouldBypassShield = function(shield)
+{
+  // no shield means there is nothing to bypass.
+  if (!shield)
+  {
+    return false;
+  }
+
+  // grab the actionable data.
+  const skillOrItem = this.item();
+
+  // you cannot bypass shields without any bypass tag.
+  if (skillOrItem.hasShieldBypass === false)
+  {
+    return false;
+  }
+
+  // parameterless form bypasses ALL shields regardless of typing.
+  if (skillOrItem.isShieldBypassUniversal === true)
+  {
+    return true;
+  }
+
+  // read the shield's typed elements and the typed bypass elements from the action.
+  const shieldElements = shield.getShieldTypes();
+  const bypassElements = skillOrItem.shieldBypassElements;
+
+  // typing needs to be present on both sides of the bypass, or it won't bypass.
+  if (!bypassElements || bypassElements.length === 0 || shieldElements.length === 0)
+  {
+    return false;
+  }
+
+  // typed bypass applies when the action's bypass list targets this shield's types.
+  const bypassesThisShield = ArrayHelper.hasAnyIntersection(shieldElements, bypassElements);
+  if (bypassesThisShield === false)
+  {
+    return false;
+  }
+
+  // typed bypass conditions satisfied: bypass this shield for this hit.
+  return true;
+};
+
+/**
+ * Calculates the SHIELD-ONLY bonus damage for this action against a specific target.
+ * The result may be absorbed by shields but can never spill into HP damage.
+ *
+ * Variables available to formulas:
+ * - a: the subject/caster of this action.
+ * - b: the target receiving this action.
+ * - o: the HP damage value for this hit (pre-shield processing).
+ *
+ * @param {Game_Actor|Game_Enemy} target The target of the action.
+ * @param {number} baseDamage The base HP damage value (pre-shield).
+ * @returns {number} The total non-negative, rounded shield-only bonus value.
+ */
+Game_Action.prototype.calculateShieldBonusDamage = function(target, baseDamage)
+{
+  // Grab the action data.
+  const skillOrItem = this.item();
+
+  // Pull all shield-bonus formulas.
+  const formulas = skillOrItem.shieldBonusFormulas;
+
+  // If no formulas are present, then there is no bonus.
+  if (formulas.length === 0)
+  {
+    return 0;
+  }
+
+  // Provide common variables for evaluation.
+  /* eslint-disable no-unused-vars */
+  const a = this.subject();
+  const b = target;
+  const o = baseDamage;
+  /* eslint-enable no-unused-vars */
+
+  // Sum the evaluated formulas (clamped to non-negative, rounded).
+  const sum = formulas.reduce((total, f) =>
+  {
+    // Evaluate the formula in the action context.
+    const result = eval(f);
+
+    // Coerce to number and clamp to non-negative.
+    const n = Number(result) || 0;
+
+    // Accumulate the rounded non-negative value.
+    return total + Math.max(0, Math.round(n));
+  }, 0);
+
+  // Return the computed sum.
+  return sum;
+};
+
+/**
+ * Absorbs as much of the provided damage as possible into the provided shield state.
+ * This will also consume any shield-only bonus damage, display pops, and handle break logic.
+ * If the shield is protected, the remainder of the hit is nullified.
+ *
+ * @param {JABS_State} shieldState The state bearing the shield to absorb damage.
+ * @param {Game_Actor|Game_Enemy} target The target receiving the action.
+ * @param {number} overflowDamage The current remaining HP damage to be applied to the target.
+ * @param {number} bonusDamage The current remaining SHIELD-ONLY bonus damage available.
+ * @returns {number} The leftover HP damage after absorption (0 if shield protected and nullified).
+ */
+Game_Action.prototype.absorbDamageIntoShield = function(shieldState, target, overflowDamage, bonusDamage)
+{
+  // assign locally.
+  let remainingDamage = overflowDamage;
+  let pendingBonusDamage = bonusDamage;
+
+  // continue absorbing while there is remaining HP damage OR pending shield-bonus,
+  // and this state still has a shield pool (handle stacked state refresh).
+  while ((remainingDamage > 0 || pendingBonusDamage > 0))
+  {
+    // re-resolve the shield reference (it may have been refreshed on a prior break in this loop).
+    const { shield: updatedShield } = shieldState;
+
+    // if there is no shield to absorb, stop processing this state.
+    if (!updatedShield || updatedShield.getCurrent() <= 0)
+    {
+      break;
+    }
+
+    // how much could be absorbed this iteration when considering the bonus?
+    const before = updatedShield.getCurrent();
+
+    // the maximum absorb this tick is limited by the pool.
+    const maxAbsorbThisTick = before;
+
+    // our available absorb power combines real damage + pendingBonus.
+    const absorbPower = remainingDamage + pendingBonusDamage;
+
+    // determine absorption this iteration.
+    const absorbed = Math.min(absorbPower, maxAbsorbThisTick);
+
+    // split the absorption between real damage and bonus.
+    const useFromReal = Math.min(remainingDamage, absorbed);
+    const useFromBonus = absorbed - useFromReal;
+
+    // deduct from the shield first.
+    updatedShield.setCurrent(before - absorbed);
+
+    // reduce the pools accordingly.
+    remainingDamage -= useFromReal;
+    pendingBonusDamage -= useFromBonus;
+
+    // show a shield damage popup for the amount absorbed (real + bonus).
+    if (absorbed > 0)
+    {
+      this.generateShieldDamagePop(target, absorbed);
+    }
+
+    // determine whether this shield broke on this application.
+    const brokeThisHit = (before > 0 && updatedShield.getCurrent() === 0);
+
+    // if the shield broke on this hit, handle the break lifecycle.
+    if (brokeThisHit)
+    {
+      // show a popup indicating the shield broke.
+      this.generateShieldBreakPop(target);
+
+      // consume a stack, refill if stacks remain, or remove the state if none remain.
+      shieldState.onShieldBreak();
+
+      // if this shield is protected, the remainder of this hit is nullified.
+      if (updatedShield.isProtected())
+      {
+        // stop processing entirely for this hit.
+        return 0;
+      }
+
+      // loop again: if stacks remain, the state refilled and we keep absorbing.
+      continue;
+    }
+
+    // if the pool did not break and we still have either remaining HP damage or pending bonus,
+    // the next shield state (outer loop) will handle it; break out for this state.
+    break;
+  }
+
+  // return whatever HP damage remains after rolling through this state's stacks.
+  // note: pendingBonus never affects returned HP damage.
+  return remainingDamage;
+};
+
+/**
+ * Resolves the element ids that should be considered for shield relevance checks.
+ * Falls back to the skill/item's element, expands via J.ELEM when present,
+ * or uses the subject's normal attack elements when the element id is -1.
+ * @param {Game_Battler} subject The acting battler.
+ * @param {RPG_UsableItem} skillOrItem The action being executed.
+ * @returns {number[]} The collection of element ids for this action.
+ */
+Game_Action.prototype.getActionElementsForShieldChecks = function(subject, skillOrItem)
+{
+  // start with the database-declared element id.
+  const declaredId = skillOrItem.damage.elementId;
+
+  // if using the elementalistics plugin, gather all applicable elements.
+  if (J.ELEM)
+  {
+    // gather all elements applicable for this action from the subject.
+    return [ ...this.getApplicableElements(subject) ];
+  }
+
+  // if the element is "normal attack", use the subject's attack elements.
+  if (declaredId === -1)
+  {
+    // include all the subject's normal attack elements.
+    return [ ...subject.attackElements() ];
+  }
+
+  // otherwise just use the declared element id.
+  return [ declaredId ];
+};
+
+/**
+ * Determines whether or not the provided shield is relevant to the action's elements.
+ * Untyped shields are always relevant. Typed shields must intersect with the action's elements.
+ * @param {JABS_Shield} shield The shield being checked for relevance.
+ * @param {number[]} actionElements The elements associated with the action.
+ * @returns {boolean} True if the shield is relevant to this action, false otherwise.
+ */
+Game_Action.prototype.isShieldRelevantToAction = function(shield, actionElements)
+{
+  // read the shield's typed elements.
+  const shieldElements = shield.getShieldTypes();
+
+  // untyped shields are always relevant.
+  if (shieldElements.length === 0)
+  {
+    return true;
+  }
+
+  // typed shields are only relevant if the action elements overlap the shield types.
+  const matches = ArrayHelper.hasAnyIntersection(actionElements, shieldElements);
+  if (matches === false)
+  {
+    return false;
+  }
+
+  // the shield is relevant to this action.
+  return true;
+};
+
+/**
+ * Generates a damage pop showing how much damage was mitigated by shields.
+ * @param {Game_Actor|Game_Enemy} target The battler doing the mitigating.
+ * @param {number} value The amount of damage mitigated.
+ */
+Game_Action.prototype.generateShieldDamagePop = function(target, value)
+{
+  // if we are not using popups, then don't do this.
+  if (!J.POPUPS) return;
+
+  // grab the character on the field.
+  const character = JABS_AiManager.getBattlerByUuid(target.getUuid())
+    .getCharacter();
+
+  // build the popup.
+  const textPop = new TextPopBuilder(`  -${Math.round(value)}`)
+    .isShieldDamage()
+    .build();
+
+  // add the popup to the character.
+  character.addTextPop(textPop);
+  character.requestTextPop();
+};
+
+/**
+ * Generates a damage pop indicating a shield broke.
+ * @param {Game_Actor|Game_Enemy} target The battler with the shield breaking.
+ */
+Game_Action.prototype.generateShieldBreakPop = function(target)
+{
+  // if we are not using popups, then don't do this.
+  if (!J.POPUPS) return;
+
+  // grab the character on the field.
+  const character = JABS_AiManager.getBattlerByUuid(target.getUuid())
+    .getCharacter();
+
+  // build the popup.
+  const textPop = new TextPopBuilder(`B R E A K`)
+    .isShieldBreak()
+    .build();
+
+  // add the popup to the character.
+  character.addTextPop(textPop);
+  character.requestTextPop();
+};
+//endregion Game_Action
+
+//region Game_Actor
+/**
+ * Extends {@link #shieldBreakSources}.<br/>
+ * Also adds actor-specific shield break skill sources.
+ */
+J.ABS.EXT.SHIELD.Aliased.Game_Actor.set('shieldBreakSources', Game_Actor.prototype.shieldBreakSources);
+Game_Actor.prototype.shieldBreakSources = function()
+{
+  // get the original sources.
+  const originalSources = J.ABS.EXT.SHIELD.Aliased.Game_Actor.get('shieldBreakSources')
+    .call(this);
+
+  // return all sources for shield break skills.
+  return [
+    // start with the original sources.
+    ...originalSources,
+
+    // the actor's class is also considered.
+    this.class(),
+
+    // all equips on the actor are also considered.
+    ...this.equips(),
+  ];
+};
+//endregion Game_Actor
 
 //region Sprite_ActorValue
 /**
@@ -1247,12 +1690,7 @@ Sprite_ActorValue.prototype.makeShieldValue = function(actor)
   if (actor.currentShieldStacks() > 1)
   {
     // append the stack count.
-    shieldLabel += `🛡` // this is a shield emoji.
-      .repeat(actor.currentShieldStacks());
-  }
-  else
-  {
-    shieldLabel = String.empty;
+    shieldLabel += `${actor.currentShieldStacks()}x🛡`
   }
 
   // return the shield value.
