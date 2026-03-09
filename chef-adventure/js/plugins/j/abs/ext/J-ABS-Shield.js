@@ -374,6 +374,7 @@ J.ABS.EXT.SHIELD.Aliased = {
   Game_Battler: new Map(),
   JABS_Engine: new Map(),
   JABS_State: new Map(),
+  JABS_StateBuilder: new Map(),
   Sprite_ActorValue: new Map(),
   Sprite_Character: new Map(),
   Window_PartyFrame: new Map(),
@@ -697,6 +698,35 @@ class JABS_Shield
 //endregion JABS_Shield
 
 //region JABS_State
+
+/**
+ * The shield for this state.
+ * @type {JABS_Shield|null}
+ */
+Object.defineProperty(
+  JABS_State.prototype, 'shield',
+  {
+    get()
+    {
+      // Return null if the backing field hasn’t been set yet.
+      if (this._shield === undefined)
+      {
+        return null;
+      }
+
+      // Return the current shield value.
+      return this._shield;
+    },
+    set(v)
+    {
+      // Assign the shield backing field.
+      this._shield = v;
+    },
+    enumerable: true,
+    configurable: true,
+  }
+);
+
 /**
  * Extends {@link #removeFromBattler}.<br/>
  * Also removes the shield when the state expires.
@@ -761,8 +791,13 @@ JABS_State.prototype.recalculateShield = function()
   // validate we have a shield to update.
   if (updatedShield === null || updatedShield === undefined) return;
 
+  // sometimes, somehow, the shield is null at this stage.
+  const current = this.shield
+    ? this.shield.getCurrent()
+    : 0;
+
   // update the updated shield with the current shield's current value.
-  updatedShield.setCurrent(this.shield?.getCurrent() ?? 0);
+  updatedShield.setCurrent(current);
 
   // updates the shield.
   this.shield = updatedShield;
@@ -793,6 +828,65 @@ JABS_State.prototype.canRefreshShield = function()
   return true;
 };
 //endregion JABS_State
+
+//region JABS_StateBuilder
+
+/**
+ * The shield for this state.
+ * @type {JABS_Shield|null}
+ */
+Object.defineProperty(
+  JABS_StateBuilder.prototype, 'shield',
+  {
+    get()
+    {
+      // Return null if the backing field hasn’t been set yet.
+      if (this._shield === undefined)
+      {
+        return null;
+      }
+
+      // Return the current shield value.
+      return this._shield;
+    },
+    set(v)
+    {
+      // Assign the shield backing field.
+      this._shield = v;
+    },
+    enumerable: true,
+    configurable: true,
+  }
+);
+
+J.ABS.EXT.SHIELD.Aliased.JABS_StateBuilder.set('build', JABS_StateBuilder.prototype.build);
+JABS_StateBuilder.prototype.build = function()
+{
+  // perform original logic.
+  const originalState = J.ABS.EXT.SHIELD.Aliased.JABS_StateBuilder.get('build')
+    .call(this);
+
+  // add the shield.
+  originalState.shield = this.shield;
+
+  // return the state.
+  return originalState;
+};
+
+/**
+ * Attaches a prebuilt {@link JABS_Shield} to the state after construction.
+ * @param {JABS_Shield} shield The shield model to assign.
+ * @returns {JABS_StateBuilder} This builder for chaining.
+ */
+JABS_StateBuilder.prototype.setShield = function(shield)
+{
+  // assign the shield to be applied post-construction.
+  this.shield = shield;
+
+  // return this for chaining.
+  return this;
+};
+//endregion JABS_StateBuilder
 
 //region Map_TextPop
 
@@ -1708,7 +1802,7 @@ Sprite_ActorValue.prototype.makeShieldValue = function(actor)
   if (currentShields === 0) return String.empty;
 
   // return the shield value.
-  let shieldLabel = `(${currentShields})`;
+  let shieldLabel = `(${Math.round(currentShields)})`;
 
   // check if there are multiple stacks on the shield.
   if (actor.currentShieldStacks() > 1)

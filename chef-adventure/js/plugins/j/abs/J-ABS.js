@@ -12373,12 +12373,6 @@ class JABS_State
    */
   #refreshResetCounter = 0;
 
-  /**
-   * The shield that this state bestows.
-   * @type {JABS_Shield|null}
-   */
-  shield = null;
-
   //endregion properties
 
   /**
@@ -12389,9 +12383,8 @@ class JABS_State
    * @param {number} duration The duration in frames that this state will remain.
    * @param {number=} startingStacks The number of stacks to start out with; defaults to 1.
    * @param {Game_Battler=} source The battler who afflicted the state; defaults to self.
-   * @param {JABS_Shield=} shield The shield that this state grants; defaults to null.
    */
-  constructor(battler, stateId, iconIndex, duration, startingStacks = 1, source = battler, shield = null)
+  constructor(battler, stateId, iconIndex, duration, startingStacks = 1, source = battler)
   {
     // initialize the values of the tracker.
     this.battler = battler;
@@ -12400,7 +12393,6 @@ class JABS_State
     this.duration = duration;
     this.stackCount = startingStacks;
     this.source = source;
-    this.shield = shield;
 
     // mirror the duration as base duration for stacks.
     this.setBaseDuration(duration);
@@ -12784,7 +12776,6 @@ class JABS_State
  * const built = new JABS_StateBuilder(target, stateId, iconIndex, duration)
  *   .setStartingStacks(2)
  *   .setSource(attacker)
- *   .setShield(myShield)
  *   .build();
  */
 class JABS_StateBuilder
@@ -12828,12 +12819,6 @@ class JABS_StateBuilder
    */
   #source = null;
 
-  /**
-   * The optional shield model to attach directly to the resulting {@link JABS_State} via `state.shield`.
-   * @type {JABS_Shield|null}
-   */
-  #shield = null;
-
   //endregion private fields
 
   /**
@@ -12861,40 +12846,10 @@ class JABS_StateBuilder
       this.#duration,
       this.#startingStacks,
       this.#source,
-      this.#shield,
     );
 
     // return the fully constructed state instance.
     return state;
-  }
-
-  /**
-   * Sets the starting stack count for the state (defaults to 1 if not set).
-   * @param {number} stacks The starting stack count.
-   * @returns {JABS_StateBuilder} This builder for chaining.
-   */
-  setStartingStacks(stacks)
-  {
-    // assign the starting stacks.
-    this.#startingStacks = stacks;
-
-    // return this for chaining.
-    return this;
-  }
-
-  /**
-   * Sets the source battler who applied the state.
-   * If not provided, it defaults to the afflicted battler during {@link build}.
-   * @param {Game_Battler} source The applying battler.
-   * @returns {JABS_StateBuilder} This builder for chaining.
-   */
-  setSource(source)
-  {
-    // assign the source battler.
-    this.#source = source;
-
-    // return this for chaining.
-    return this;
   }
 
   /**
@@ -12925,14 +12880,29 @@ class JABS_StateBuilder
   }
 
   /**
-   * Attaches a prebuilt {@link JABS_Shield} to the state after construction.
-   * @param {JABS_Shield} shield The shield model to assign.
+   * Sets the starting stack count for the state (defaults to 1 if not set).
+   * @param {number} stacks The starting stack count.
    * @returns {JABS_StateBuilder} This builder for chaining.
    */
-  setShield(shield)
+  setStartingStacks(stacks)
   {
-    // assign the shield to be applied post-construction.
-    this.#shield = shield;
+    // assign the starting stacks.
+    this.#startingStacks = stacks;
+
+    // return this for chaining.
+    return this;
+  }
+
+  /**
+   * Sets the source battler who applied the state.
+   * If not provided, it defaults to the afflicted battler during {@link build}.
+   * @param {Game_Battler} source The applying battler.
+   * @returns {JABS_StateBuilder} This builder for chaining.
+   */
+  setSource(source)
+  {
+    // assign the source battler.
+    this.#source = source;
 
     // return this for chaining.
     return this;
@@ -13226,7 +13196,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.1.1 JABS] Enables combat to be carried out on the map.
+ * [v4.3.1 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13270,6 +13240,12 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.3.1
+ *    Prevented serialization of JABS_Action#_actionSprite.
+ *    Fixed issue with combat indicator and duration tailing not working.
+ *    Extended JABS_State to leverage a builder for extension.
+ *    Adapted J-ABS-Shield.
+ *
  * - 4.3.0
  *    Unified sprint and dash as one alter-action.
  *    Added a notion of "being in combat" based on hitting or being hit.
@@ -15230,7 +15206,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.3.1';
+  const requiredBaseVersion = '2.3.2';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -15318,7 +15294,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.3.0';
+J.ABS.Metadata.Version = '4.3.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
