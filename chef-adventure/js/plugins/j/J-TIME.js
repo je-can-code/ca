@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 TIME] A system for tracking time- real or artificial.
+ * [v1.0.4 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -136,6 +136,8 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.0.4
+ *    Fixed reversed check that only let time pass while blocked (oops!).
  * - 1.0.3
  *    Adapted for updates to J-ABS-InputManager (input namespace).
  * - 1.0.2
@@ -532,7 +534,7 @@ J.TIME = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.TIME.Metadata = {};
-J.TIME.Metadata.Version = '1.0.3';
+J.TIME.Metadata.Version = '1.0.4';
 J.TIME.Metadata.Name = `J-TIME`;
 
 /**
@@ -1106,7 +1108,6 @@ Game_Time.prototype.needsHudUpdate = function()
   if (this._hasBeenUpdated === undefined)
   {
     this._hasBeenUpdated = false;
-    console.log('hasBeenUpdated property added.');
   }
 
   return this._hasBeenUpdated;
@@ -2986,8 +2987,8 @@ Scene_Base.prototype.shouldUpdateTime = function()
   if (isTimeInactive) return false;
 
   // if time is blocked, then it shouldn't update.
-  const isTimeUnblocked = $gameTime.isBlocked() === false;
-  if (isTimeUnblocked) return false;
+  const isTimeBlocked = $gameTime.isBlocked() === true;
+  if (isTimeBlocked) return false;
 
   // time can update!
   return true;
