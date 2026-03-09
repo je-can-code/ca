@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 UTIL] Various system utilities.
+ * [v1.1.2 UTIL] Various system utilities.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -17,6 +17,8 @@
  * - pull up devtools window in background upon testplay (always).
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Added debugging for helping diagnose recursive saved things.
  * - 1.1.1
  *    Added debugger for gamepad inputs.
  * - 1.1.0
@@ -96,7 +98,7 @@ J.UTILS = {};
 /**
  * The metadata associated with this plugin, such as name and version.
  */
-J.UTILS.Metadata = new J_UtilsPluginMetadata('J-SystemUtilities', '1.1.1');
+J.UTILS.Metadata = new J_UtilsPluginMetadata('J-SystemUtilities', '1.1.2');
 
 /**
  * A collection of all aliased methods for this plugin.

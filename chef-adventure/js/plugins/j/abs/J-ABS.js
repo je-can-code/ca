@@ -13244,7 +13244,9 @@ class JABS_Timer
  *    Prevented serialization of JABS_Action#_actionSprite.
  *    Fixed issue with combat indicator and duration tailing not working.
  *    Extended JABS_State to leverage a builder for extension.
- *    Adapted J-ABS-Shield.
+ *    Adjusted state stack loss to allow non-duration stack loss.
+ *    Fixed issue where eternal states were not refreshing if removed.
+ *    Removed action events from being added to save files.
  *
  * - 4.3.0
  *    Unified sprint and dash as one alter-action.

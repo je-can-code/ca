@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 HUD-PARTY] A HUD frame that displays your party's data.
+ * [v1.2.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -11,6 +11,7 @@
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @orderAfter J-HUD
+ * @orderBefore J-ABS-Shield
  * @help
  * ============================================================================
  * OVERVIEW
@@ -35,9 +36,14 @@
  * - experience gauge
  * - positive/negative state tracking
  * - in combat indicator
+ * - shield gauge (if using J-ABS-Shield)
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 1.2.0
+ *    Integrated J-ABS-Shields; supports display for shield gauge.
+ *    Updated many classes to use modern class syntax.
+ *    Updated visuals for clarity across many aspects of the HUD.
  * - 1.1.0
  *    Added visual tracking indicator for "in combat" for the leader.
  *    Retroactively added this changelog.
@@ -55,7 +61,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.3.1';
+  const requiredBaseVersion = '2.3.2';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -75,7 +81,7 @@ J.HUD.EXT.PARTY = {};
  */
 J.HUD.EXT.PARTY = {};
 J.HUD.EXT.PARTY.Metadata = {};
-J.HUD.EXT.PARTY.Metadata.Version = '1.1.0';
+J.HUD.EXT.PARTY.Metadata.Version = '1.2.0';
 J.HUD.EXT.PARTY.Metadata.Name = `J-HUD-PartyFrame`;
 
 /**
