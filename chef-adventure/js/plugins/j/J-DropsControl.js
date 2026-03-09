@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.0 DROPS] Enables greater control over loot drops.
+ * [v2.1.1 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -158,6 +158,8 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.1
+ *    Added guard to prevent adding invalid drops to the drop list.
  * - 2.1.0
  *    Further abstracted some of the logic for drops to support extension.
  * - 2.0.0
@@ -193,7 +195,7 @@ J.DROPS.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.1.0',
+  Version: '2.1.1',
 };
 
 /**
@@ -559,14 +561,14 @@ Game_Actor.prototype.getGoldMultiplier = function()
  * This includes multipliers from our gold bonuses.
  * @returns {number} The rounded product of the base gold against the multiplier.
  */
-J.DROPS.Aliased.Game_Enemy.set("gold", Game_Enemy.prototype.gold);
+J.DROPS.Aliased.Game_Enemy.set('gold', Game_Enemy.prototype.gold);
 Game_Enemy.prototype.gold = function()
 {
   // identifies the base rate of gold gain.
   const baseGoldRate = this.getBaseGoldRate();
 
   // calculates the gold accordingly with the base multiplier.
-  const baseGold = (J.DROPS.Aliased.Game_Enemy.get("gold")
+  const baseGold = (J.DROPS.Aliased.Game_Enemy.get('gold')
     .call(this) * baseGoldRate);
 
   // multiplies the gold again by the party's gold multiplier.
@@ -643,6 +645,17 @@ Game_Enemy.prototype.findLoot = function(drop, itemsFound)
 {
   // determine the loot we're finding.
   const item = this.itemObject(drop.kind, drop.dataId);
+
+  // validate the drop resolves.
+  if (!item)
+  {
+    console.warn(`Invalid drop resolved:
+       enemy=${this.enemy().name}, kind=${drop.kind}, id=${drop.dataId},
+      "(check DB entry and note tags).`);
+
+    // don't add junk data to the drop list.
+    return;
+  }
 
   // add it to the list of earned drops from this enemy.
   itemsFound.push(item);

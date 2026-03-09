@@ -219,7 +219,13 @@ class JABS_Action
      * The `Game_Event` this JABS action is bound to. Represents the visual aspect on the map.
      * @type {Game_Event}
      */
-    this._actionSprite = null;
+    Object.defineProperty(this, '_actionSprite',
+      {
+        value: null,
+        enumerable: false,
+        writable: true,
+        configurable: true,
+      });
 
     /**
      * The animation id to be performed on the action itself upon execution.
@@ -485,7 +491,8 @@ class JABS_Action
     if (this.hasOnCastAnimationId())
     {
       // request the one-off animation on the caster’s map character.
-      who.getCharacter().requestAnimation(this.getOnCastAnimationId());
+      who.getCharacter()
+        .requestAnimation(this.getOnCastAnimationId());
     }
   }
 
@@ -1909,7 +1916,7 @@ JABS_Aggro.prototype.isForLivingActor = function()
   if (!battler) return false;
 
   // if the battler is not an actor, then its not for an actor.
-  if (battler.isActor() !== false) return false;
+  if (battler.isActor() === false) return false;
 
   // if the actor is dead, then it doesn't count.
   if (battler.isDead() === true) return false;
@@ -4370,6 +4377,19 @@ JABS_Battler.prototype._maybeShortenCombatTail = function(tailFrames)
 {
   // do not lengthen; only clamp if the window is larger than our tail.
   if (this._inCombatCountdown <= tailFrames)
+  {
+    return;
+  }
+
+  // establish the full combat window for comparison.
+  const windowMax = this.getCombatWindowMax();
+
+  // define a grace period to allow AI aggro to register after (re)entering combat.
+  const graceFrames = 15;
+
+  // determine if we are within the grace window (i.e., just re/entered combat).
+  const withinGraceWindow = this._inCombatCountdown > (windowMax - graceFrames);
+  if (withinGraceWindow)
   {
     return;
   }
@@ -12252,6 +12272,12 @@ JABS_SkillSlotManager.prototype.unlockAllSlots = function()
  */
 class JABS_State
 {
+  /**
+   * A factory that generates builders for creating {@link JABS_State}s.
+   * @returns {JABS_StateBuilder}
+   */
+  static Builder = (target, stateId) => new JABS_StateBuilder(target, stateId);
+
   //region properties
   /**
    * The list of rulesets available for how to handle reapplication of a state.
@@ -12259,22 +12285,22 @@ class JABS_State
   static reapplicationType = {
     /**
      * "Refresh" will refresh the duration of a state when reapplied.
-     * @type {"refresh"}
+     * @type {'refresh'}
      */
-    Refresh: "refresh",
+    Refresh: 'refresh',
 
     /**
      * "Extend" will add the remaining duration onto the new duration when reapplied.
-     * @type {"extend"}
+     * @type {'extend'}
      */
-    Extend: "extend",
+    Extend: 'extend',
 
     /**
      * "Stack" will add an additional stack of the state when reapplied.
-     * @type {"stack"}
+     * @type {'stack'}
      */
-    Stack: "stack",
-  }
+    Stack: 'stack',
+  };
 
   /**
    * The battler being afflicted with this state.
@@ -12424,7 +12450,7 @@ class JABS_State
    */
   refreshRefreshResetCounter(newRefreshResetAmount = J.ABS.Metadata.DefaultStateRefreshReset)
   {
-    this.#refreshResetCounter = newRefreshResetAmount
+    this.#refreshResetCounter = newRefreshResetAmount;
   }
 
   /**
@@ -12436,8 +12462,8 @@ class JABS_State
     // handle all counters associated with the state.
     this.handleCounters();
 
-    // remove stacks as-needed.
-    this.decrementStacks();
+    // remove stacks on a duration-centric basis.
+    this.handleStackLossFromDuration();
 
     // handle the removal if applicable.
     this.handleExpiration();
@@ -12503,27 +12529,65 @@ class JABS_State
 
   /**
    * Decrement the stack counter as-needed.
+   * @param {number=} stacksToRemove The number of stacks to decrement; defaults to 1.
    */
-  decrementStacks()
+  decrementStacks(stacksToRemove = 1)
   {
-    // check if we are at 0 duration and have stacks remaining.
-    if (this.duration <= 0 && this.stackCount > 0 && !this.hasEternalDuration())
+    // if not being forced, then consider losing all stacks at once.
+    this.stackCount -= stacksToRemove;
+
+    // check if we STILL have stacks remaining.
+    if (this.stackCount > 0)
     {
-      // grab whether or not to lose all stacks at once.
-      const loseAllStacksAtOnce = this.source.state(this.stateId).jabsLoseAllStacksAtOnce;
-
-      // decrement the stack counter accordingly.
-      this.stackCount -= loseAllStacksAtOnce
-        ? this.stackCount
-        : 1;
-
-      // check if we STILL have stacks remaining.
-      if (this.stackCount > 0)
-      {
-        // reset the duration to the initial duration.
-        this.refreshDuration();
-      }
+      // reset the duration to the initial duration.
+      this.refreshDuration();
     }
+
+    // check if we need to normalize the stack count.
+    if (this.stackCount < 0)
+    {
+      // normalize the stack count.
+      this.stackCount = 0;
+    }
+  }
+
+  /**
+   * Handles stack loss from duration.
+   */
+  handleStackLossFromDuration()
+  {
+    // don't do anything if we should not decrement.
+    if (this.canLoseStackFromDuration() === false) return;
+
+    // grab whether or not to lose all stacks at once.
+    const loseAllStacksAtOnce = this.source.state(this.stateId).jabsLoseAllStacksAtOnce;
+
+    // if not being forced, then consider losing all stacks at once.
+    const stacksLossCount = (loseAllStacksAtOnce === true)
+      ? this.stackCount
+      : 1;
+
+    // decrement the stacks.
+    this.decrementStacks(stacksLossCount);
+  }
+
+  /**
+   * Determines whether or not this state can lose stacks from duration.
+   * @returns {boolean} True if it can, false otherwise.
+   */
+  canLoseStackFromDuration()
+  {
+    // must still have stacks left.
+    if (this.stackCount <= 0) return false;
+
+    // duration must be zero.
+    if (this.duration > 0) return false;
+
+    // cannot be a perpetual state.
+    if (this.hasEternalDuration()) return false;
+
+    // this is a decrementable state.
+    return true;
   }
 
   /**
@@ -12533,7 +12597,7 @@ class JABS_State
   refreshDuration(newDuration = this.#baseDuration)
   {
     // don't refresh the state if the provided duration is actually 0.
-    if (newDuration <= 0) return;
+    if (newDuration === 0) return;
 
     // refresh the duration.
     this.duration = newDuration;
@@ -12699,6 +12763,153 @@ class JABS_State
 }
 
 //endregion JABS_State
+
+//region JABS_StateBuilder
+/**
+ * A fluent builder/factory for constructing {@link JABS_State} instances.
+ *
+ * Required parameters are provided at construction to prevent half-baked builders.
+ * Optional parameters can be configured via fluent setters before calling {@link build}.
+ *
+ * Usage example:
+ *
+ * const built = new JABS_StateBuilder(target, stateId, iconIndex, duration)
+ *   .setStartingStacks(2)
+ *   .setSource(attacker)
+ *   .build();
+ */
+class JABS_StateBuilder
+{
+  //region private fields
+  /**
+   * The battler that will receive the state when built.
+   * @type {Game_Battler}
+   */
+  #battler = null;
+
+  /**
+   * The database id of the state to apply.
+   * @type {number}
+   */
+  #stateId = null;
+
+  /**
+   * The icon index for the state (visual reference only).
+   * @type {number}
+   */
+  #iconIndex = 0;
+
+  /**
+   * The duration in frames for the state instance.
+   * @type {number}
+   */
+  #duration = 0;
+
+  /**
+   * The number of stacks the state should start with.
+   * Defaults to 1 if not overridden via {@link setStartingStacks}.
+   * @type {number}
+   */
+  #startingStacks = 1;
+
+  /**
+   * The battler that applied the state (source/assailant).
+   * If not provided, it defaults to the afflicted battler at build time.
+   * @type {Game_Battler|null}
+   */
+  #source = null;
+
+  //endregion private fields
+
+  /**
+   * Constructor.
+   * @param {Game_Battler} battler The battler afflicted by the state.
+   * @param {number} stateId The database id of the state being applied.
+   */
+  constructor(battler, stateId)
+  {
+    this.#battler = battler;
+    this.#stateId = stateId;
+  }
+
+  /**
+   * Builds a {@link JABS_State} with the configured parameters.
+   * @returns {JABS_State} The constructed state instance.
+   */
+  build()
+  {
+    // construct the JABS_State using the canonical constructor.
+    const state = new JABS_State(
+      this.#battler,
+      this.#stateId,
+      this.#iconIndex,
+      this.#duration,
+      this.#startingStacks,
+      this.#source,
+    );
+
+    // return the fully constructed state instance.
+    return state;
+  }
+
+  /**
+   * Sets the icon index for the state.
+   * @param {number} iconIndex The icon index.
+   * @returns {JABS_StateBuilder}
+   */
+  setIconIndex(iconIndex)
+  {
+    // assign the icon index.
+    this.#iconIndex = iconIndex;
+
+    // return this for chaining.
+    return this;
+  }
+
+  /**
+   * Sets the duration of the state in frames.
+   * @param {number} duration The number of frames the state lasts.
+   */
+  setDuration(duration)
+  {
+    // assign the duration.
+    this.#duration = duration;
+
+    // return this for chaining.
+    return this;
+  }
+
+  /**
+   * Sets the starting stack count for the state (defaults to 1 if not set).
+   * @param {number} stacks The starting stack count.
+   * @returns {JABS_StateBuilder} This builder for chaining.
+   */
+  setStartingStacks(stacks)
+  {
+    // assign the starting stacks.
+    this.#startingStacks = stacks;
+
+    // return this for chaining.
+    return this;
+  }
+
+  /**
+   * Sets the source battler who applied the state.
+   * If not provided, it defaults to the afflicted battler during {@link build}.
+   * @param {Game_Battler} source The applying battler.
+   * @returns {JABS_StateBuilder} This builder for chaining.
+   */
+  setSource(source)
+  {
+    // assign the source battler.
+    this.#source = source;
+
+    // return this for chaining.
+    return this;
+  }
+}
+
+//endregion JABS_StateBuilder
 
 //region JABS_Timer
 /**
@@ -12985,7 +13196,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.1.1 JABS] Enables combat to be carried out on the map.
+ * [v4.3.1 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13029,6 +13240,14 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.3.1
+ *    Prevented serialization of JABS_Action#_actionSprite.
+ *    Fixed issue with combat indicator and duration tailing not working.
+ *    Extended JABS_State to leverage a builder for extension.
+ *    Adjusted state stack loss to allow non-duration stack loss.
+ *    Fixed issue where eternal states were not refreshing if removed.
+ *    Removed action events from being added to save files.
+ *
  * - 4.3.0
  *    Unified sprint and dash as one alter-action.
  *    Added a notion of "being in combat" based on hitting or being hit.
@@ -14989,7 +15208,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.3.1';
+  const requiredBaseVersion = '2.3.2';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -15077,7 +15296,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.3.0';
+J.ABS.Metadata.Version = '4.3.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -19575,6 +19794,7 @@ RPG_UsableItem.prototype.extractJabsCooldown = function()
 //endregion cooldown
 //endregion RPG_UsableItem
 
+/* eslint-disable no-unused-vars */
 //region DataManager
 /**
  * The global reference for the `JABS_Engine` data object.
@@ -19682,6 +19902,39 @@ DataManager.onMapGet = function(xhr, name, src, url)
 DataManager.gracefulFail = function(name, src, url)
 {
   console.error(name, src, url);
+};
+
+/**
+ * Extends {@link DataManager.makeSaveContents}.<br/>
+ * Reviews the save contents to ensure that there are no circular references.
+ */
+J.ABS.Aliased.DataManager.set('makeSaveContents', DataManager.makeSaveContents);
+DataManager.makeSaveContents = function()
+{
+  // perform original logic.
+  const contents = J.ABS.Aliased.DataManager.get('makeSaveContents')
+    .call(this);
+
+  /** @type {Game_Event[]} */
+  const originalEvents = contents.map._events;
+
+  const actionlessEvents = originalEvents.map(event =>
+  {
+    // if the event itself is falsey, then return whatever it is.
+    if (!event) return event;
+
+    // don't save actions.
+    if (event.isJabsAction()) return null;
+
+    // save it.
+    return event;
+  });
+
+  // update the events with the action-free list.
+  contents.map._events = actionlessEvents;
+
+  // return the contents.
+  return contents;
 };
 //endregion
 
@@ -20325,7 +20578,8 @@ class JABS_AiManager
   static anyLivingEnemiesAggroedToParty()
   {
     // get all tracked enemy battlers from your registry.
-    const enemies = JABS_AiManager.getEnemyBattlers();
+    const enemies = JABS_AiManager.getEnemyBattlers()
+      .filter(enemy => enemy.isDead() === false);
 
     // if there are no enemies, then there is no aggro.
     if (!enemies.length) return false;
@@ -21631,7 +21885,6 @@ class JABS_Engine
   // TODO: implement them as a map.
   /**
    * A cached collection of actions keyed by their uuids.
-   * @type {JABS_Timer, JABS_Action}
    */
   cachedActions = new Map();
 
@@ -21723,6 +21976,7 @@ class JABS_Engine
    * @type {boolean}
    */
   forcedCombat = false;
+
   //endregion properties
 
   /**
@@ -22395,7 +22649,7 @@ class JABS_Engine
     const refreshAmount = newJabsState.duration - diminishmentAmount;
 
     // safely capture the duration.
-    const actualDuration = Math.max(refreshAmount, 0);
+    const actualDuration = Math.max(refreshAmount, -1);
 
     // refresh the refresh reset counter since this state is being refreshed.
     jabsState.refreshRefreshResetCounter(state.jabsStateRefreshReset);
@@ -22805,7 +23059,7 @@ class JABS_Engine
   //endregion update actions
   //endregion update
 
-  //region action execution
+  //region actions
   /**
    * Generates a new JABS action based on a skillId, and executes the skill.
    * This overrides the need for costs or cooldowns.<br/>
@@ -23604,7 +23858,7 @@ class JABS_Engine
     const skillName = action.getBaseSkill().name; // get skill name.
     const casterName = action.getCaster()
       .battlerName(); // get caster name.
-    actionEventSprite.__actionName = `_${casterName}-${skillName}`; // tag for debugging/tools.
+    actionEventSprite.__actionName = `_${casterName}-${skillName}-${index}`; // tag for debugging/tools.
 
     // on rare occasions, the timing of adding an action to the map coincides with the removal of the caster.
     if (!actionEventData || !actionEventData.pages.length)
@@ -24818,9 +25072,9 @@ class JABS_Engine
       roundedDamage = roundedDamage >= 0
         ? roundedDamage
         : roundedDamage.toString()
-          .replace('-', '');
+          .replace('-', String.empty);
       const damageReduction = Math.round(result.reduced);
-      let reducedAmount = '';
+      let reducedAmount = String.empty;
       if (damageReduction)
       {
         reducedAmount = `(${parseInt(damageReduction)})`;
@@ -25018,7 +25272,7 @@ class JABS_Engine
       : 0;
   }
 
-  //endregion action execution
+  //endregion actions
 
   //region collision
   /**
@@ -29016,11 +29270,34 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker)
   // grab the number of stacks to apply at once.
   const stacks = state.jabsStateStacksApplied;
 
-  // build the new state.
-  const jabsState = new JABS_State(this, stateId, iconIndex, totalDuration, stacks, assailant);
+  // populate the state builder.
+  const builder = this.createJabsState(this, stateId, iconIndex, totalDuration, stacks, assailant);
+
+  // build the state.
+  const jabsState = builder.build();
 
   // add the state to the engine's tracker.
   $jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
+};
+
+/**
+ * An abstraction for creating a new {@link JABS_State} with the given parameters.
+ * Returns the builder with the designated parameters so that extension from the builder is possible.
+ * @param {Game_Battler} target the battler being affected by the state.
+ * @param {number} stateId The id of the state being applied.
+ * @param {number} iconIndex The icon index of the state being applied.
+ * @param {number} totalDuration The total duration in frames of the state being applied.
+ * @param {number} stacks The number of stacks of the state being applied.
+ * @param {Game_Battler} attacker The battler applying the state.
+ * @returns {JABS_StateBuilder} The builder with all the parameters of the state being applied.
+ */
+Game_Battler.prototype.createJabsState = function(target, stateId, iconIndex, totalDuration, stacks, attacker)
+{
+  return JABS_State.Builder(target, stateId)
+    .setIconIndex(iconIndex)
+    .setDuration(totalDuration)
+    .setStartingStacks(stacks)
+    .setSource(attacker);
 };
 
 /**
@@ -29048,7 +29325,8 @@ Game_Battler.prototype.getStateDurationBoost = function(baseDuration)
     objectsToCheck,
     J.ABS.RegExp.StateDurationFormulaPlus,
     baseDuration,
-    this);
+    this
+  );
 
   // sum the boosts together to get the total boost.
   const durationBoost = flat + percentBoost + formulaiBoost;
@@ -29095,7 +29373,8 @@ Game_Battler.prototype.refreshBonusHits = function()
 Game_Battler.prototype.getBonusHitsSources = function()
 {
   return [
-    this.states(), [ this.databaseData() ], ];
+    this.states(), [ this.databaseData() ],
+  ];
 };
 
 /**
@@ -29148,7 +29427,7 @@ Game_Battler.prototype.getBonusHitsFromSources = function(sources)
     bonusHits += source.traits
       .filter(isHitsTrait)
       .reduce(addHitsReducer, 0);
-  }
+  };
 
   // iterate over all equips.
   sources.forEach(collectBonusHitsForEacher);
@@ -34594,7 +34873,7 @@ Sprite_Character.prototype.isEmptyCharacter = function()
     ? false
     // otherwise, perform original logic.
     : J.ABS.Aliased.Sprite_Character.get('isEmptyCharacter')
-      .call(this)
+      .call(this);
 };
 
 /**
@@ -34678,11 +34957,11 @@ Sprite_Character.prototype.setupMapSprite = function()
  * Extends/Overrides {@link Sprite_Character.prototype.updatePosition}.<br/>
  * Also applies per-skill visual metadata (offset, anchor, z, rotation, scale) to JABS action sprites.
  */
-J.ABS.Aliased.Sprite_Character.set("updatePosition", Sprite_Character.prototype.updatePosition);
+J.ABS.Aliased.Sprite_Character.set('updatePosition', Sprite_Character.prototype.updatePosition);
 Sprite_Character.prototype.updatePosition = function()
 {
   // perform original logic.
-  J.ABS.Aliased.Sprite_Character.get("updatePosition")
+  J.ABS.Aliased.Sprite_Character.get('updatePosition')
     .call(this);
 
   // only apply to JABS action sprites that still exist and aren’t erased.
@@ -35038,7 +35317,7 @@ Sprite_Character.prototype.setupHpGauge = function()
   this._j._abs._gauges._hpGauge.activateGauge();
 
   // locate the gauge below the character.
-  this._j._abs._gauges._hpGauge.move(-(this._j._abs._gauges._hpGauge.bitmapWidth() / 1.5), -12);
+  this._j._abs._gauges._hpGauge.move(-(this._j._abs._gauges._hpGauge.bitmapWidth() / 2), -12);
 };
 
 /**
@@ -35204,9 +35483,10 @@ Sprite_Character.prototype.updateCastGauge = function()
     const currentJabs = this._character.getJabsBattler();
 
     // if the bound JABS battler or its expected host changed, rebind.
+    // eslint-disable-next-line max-len
     const needsRebind = (gauge._jabsBattler !== currentJabs || gauge._expectedCharacter !== this._character || gauge._expectedUuid !== (currentJabs
-        ? currentJabs.getUuid()
-        : null));
+      ? currentJabs.getUuid()
+      : null));
 
     if (needsRebind)
     {
@@ -35298,7 +35578,7 @@ Sprite_Character.prototype.createBattlerNameSprite = function()
     .setText(battlerName)
     .setFontSize(16)
     .setAlignment(Sprite_BaseText.Alignments.Left)
-    .setColor("#ffffff");
+    .setColor('#ffffff');
   sprite.setText(battlerName); // TODO: is this second assignment necessary???
 
   // relocate the sprite to a better position.
@@ -36277,41 +36557,27 @@ Sprite_MapCastGauge.prototype.gaugeColor2 = function()
  * A dedicated HP gauge for map sprites.
  * Extends {@link Sprite_MapGauge} and binds to a {@link Game_Battler}.
  */
-function Sprite_MapHpGauge()
+class Sprite_MapHpGauge
+  extends Sprite_MapGauge
 {
-  this.initialize(...arguments);
+  constructor(bitmapWidth = 96, bitmapHeight = 24, gaugeHeight = 6)
+  {
+    super(bitmapWidth, bitmapHeight, gaugeHeight);
+
+    this._statusType = 'hp';
+  }
+
+  /**
+   * Binds this gauge to a battler.
+   * @param {Game_Battler} battler The battler to bind the gauge to.
+   */
+  setupBattler(battler)
+  {
+    // use the base Sprite_Gauge setup for value/max and redraw lifecycle.
+    this.setup(battler, 'hp');
+  }
 }
 
-Sprite_MapHpGauge.prototype = Object.create(Sprite_MapGauge.prototype);
-Sprite_MapHpGauge.prototype.constructor = Sprite_MapHpGauge;
-
-/**
- * Initializes this map HP gauge with the given parameters.
- * @param {number=} bitmapWidth The bitmap width of this gauge.
- * @param {number=} bitmapHeight The bitmap height of this gauge.
- * @param {number=} gaugeHeight The height of the filled strip.
- */
-Sprite_MapHpGauge.prototype.initialize = function(
-  bitmapWidth = 96,
-  bitmapHeight = 24,
-  gaugeHeight = 6)
-{
-  // initialize as a map gauge.
-  Sprite_MapGauge.prototype.initialize.call(this, bitmapWidth, bitmapHeight, gaugeHeight);
-
-  // designate the bar as an HP gauge.
-  this._statusType = "hp";
-};
-
-/**
- * Binds this gauge to a battler.
- * @param {Game_Battler} battler The battler to bind the gauge to.
- */
-Sprite_MapHpGauge.prototype.setupBattler = function(battler)
-{
-  // use the base Sprite_Gauge setup for value/max and redraw lifecycle.
-  this.setup(battler, "hp");
-};
 //endregion Sprite_MapHpGauge
 
 //region Spriteset_Map
@@ -37593,7 +37859,7 @@ Spriteset_Map.prototype.getActionHitboxStyleFor = function (shape)
   const base = Object.assign({}, defaults, styles.base || {}); // merged base.
 
   // apply shape-specific overrides if provided.
-  const key = (shape || '').toLowerCase(); // normalized key.
+  const key = (shape || String.empty).toLowerCase(); // normalized key.
   const shapeOverrides = styles.byShape?.[key] || null; // optional per-shape.
 
   // produce the final style.
@@ -38387,7 +38653,7 @@ Spriteset_Map.prototype.getBattlerHitboxStyle = function (
   const byKind = styles.byKind?.[kindKey] || null; // optional kind overrides.
 
   // apply state-specific overrides if provided (e.g., colliding).
-  const stateKey = (state || '').toLowerCase(); // normalized.
+  const stateKey = (state || String.empty).toLowerCase(); // normalized.
   const byState = stateKey
     ? (styles.byState?.[stateKey] || null)
     : null; // optional state overrides.

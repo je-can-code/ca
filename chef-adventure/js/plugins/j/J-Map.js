@@ -943,7 +943,7 @@ Game_Map.prototype.isMinimapBlocked = function()
   J.MAP.RegExp.BlockMinimap.lastIndex = 0;
 
   // return what we found.
-  return J.MAP.RegExp.BlockMinimap.test(this.note() ?? '');
+  return J.MAP.RegExp.BlockMinimap.test(this.note() ?? String.empty);
 };
 //endregion Game_Map
 
@@ -2663,7 +2663,7 @@ class Sprite_MiniMap
   toCss(hex)
   {
     if (typeof hex !== 'string') return '#ff00ff';
-    const clean = hex.replace(/\s+/g, '');
+    const clean = hex.replace(/\s+/g, String.empty);
     if (!clean.startsWith('#')) return '#ff00ff';
 
     if (clean.length === 7) return clean; // #rrggbb

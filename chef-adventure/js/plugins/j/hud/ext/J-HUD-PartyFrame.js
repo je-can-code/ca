@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 HUD-PARTY] A HUD frame that displays your party's data.
+ * [v1.2.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -11,6 +11,7 @@
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @orderAfter J-HUD
+ * @orderBefore J-ABS-Shield
  * @help
  * ============================================================================
  * OVERVIEW
@@ -35,9 +36,14 @@
  * - experience gauge
  * - positive/negative state tracking
  * - in combat indicator
+ * - shield gauge (if using J-ABS-Shield)
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 1.2.0
+ *    Integrated J-ABS-Shields; supports display for shield gauge.
+ *    Updated many classes to use modern class syntax.
+ *    Updated visuals for clarity across many aspects of the HUD.
  * - 1.1.0
  *    Added visual tracking indicator for "in combat" for the leader.
  *    Retroactively added this changelog.
@@ -55,7 +61,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.3.1';
+  const requiredBaseVersion = '2.3.2';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -75,7 +81,7 @@ J.HUD.EXT.PARTY = {};
  */
 J.HUD.EXT.PARTY = {};
 J.HUD.EXT.PARTY.Metadata = {};
-J.HUD.EXT.PARTY.Metadata.Version = '1.1.0';
+J.HUD.EXT.PARTY.Metadata.Version = '1.2.0';
 J.HUD.EXT.PARTY.Metadata.Name = `J-HUD-PartyFrame`;
 
 /**
@@ -244,373 +250,475 @@ Scene_Map.prototype.handleRefreshPartyFrameImageCache = function()
 
 //region Sprite_ActorValue
 /**
- * A sprite that monitors one of the primary fluctuating values (hp/mp/tp).
+ * A sprite that represents a value of an actor's parameter.
  */
-function Sprite_ActorValue()
+class Sprite_ActorValue
+  extends Sprite
 {
-  this.initialize(...arguments);
-}
-
-Sprite_ActorValue.prototype = Object.create(Sprite.prototype);
-Sprite_ActorValue.prototype.constructor = Sprite_ActorValue;
-Sprite_ActorValue.prototype.initialize = function(actor, parameter, fontSizeMod = 0)
-{
-  this._j = {};
-  Sprite.prototype.initialize.call(this);
-  this.initMembers(actor, parameter, fontSizeMod);
-  this.bitmap = this.createBitmap();
-};
-
-/**
- * Initializes the properties associated with this sprite.
- * @param {object} actor The actor to track the value of.
- * @param {string} parameter The parameter to track of "hp"/"mp"/"tp"/"time".
- * @param {number} fontSizeMod The modification of the font size for this value.
- */
-Sprite_ActorValue.prototype.initMembers = function(actor, parameter, fontSizeMod)
-{
-  this._j._parameter = parameter;
-  this._j._actor = actor;
-  this._j._fontSizeMod = fontSizeMod;
-  this._j._last = {};
-  this._j._last._hp = actor.hp;
-  this._j._last._mp = actor.mp;
-  this._j._last._tp = actor.tp;
-  this._j._last._xp = actor.currentExp();
-  this._j._last._lvl = actor.level;
-  this._j._autoCounter = 60;
-};
-
-/**
- * Updates the bitmap if it needs updating.
- */
-Sprite_ActorValue.prototype.update = function()
-{
-  Sprite.prototype.update.call(this);
-  if (this.hasParameterChanged())
+  /**
+   * Constructor.
+   * @param {Game_Actor} actor The actor to track the value of.
+   * @param {string} parameter The parameter to track.
+   * @param {number=} fontSizeMod The modification of the font size for this value.
+   */
+  constructor(actor, parameter, fontSizeMod = 0)
   {
-    this.refresh();
+    // execute original constructor.
+    super();
+
+    // initialize the additional members.
+    this.initMembers(actor, parameter, fontSizeMod);
+
+    // generate the bitmap.
+    this.bitmap = this.createBitmap();
   }
 
-  this.autoRefresh();
-};
-
-/**
- * Automatically refreshes the value being represented by this sprite
- * after a fixed amount of time.
- */
-Sprite_ActorValue.prototype.autoRefresh = function()
-{
-  if (this._j._autoCounter <= 0)
+  /**
+   * Initializes the properties associated with this sprite.
+   * @param {object} actor The actor to track the value of.
+   * @param {string} parameter The parameter to track.
+   * @param {number} fontSizeMod The modification of the font size for this value.
+   */
+  initMembers(actor, parameter, fontSizeMod)
   {
-    this.refresh();
+    // initialize our namespaced property block.
+    this._j ||= {};
+
+    /**
+     * The parameter being tracked by this sprite.
+     * @type {string}
+     */
+    this._j._parameter = parameter;
+
+    /**
+     * The actor being tracked by this sprite.
+     * @type {Game_Actor}
+     */
+    this._j._actor = actor;
+
+    /**
+     * The font modification from the default font size.
+     * @type {number}
+     */
+    this._j._fontSizeMod = fontSizeMod;
+
+    /**
+     * A grouping of all the last-known values for this actor.
+     */
+    this._j._last ||= {};
+
+    /**
+     * The last known hp value.
+     * @type {number}
+     */
+    this._j._last._hp = actor.hp;
+
+    /**
+     * The last known mp value.
+     * @type {number}
+     */
+    this._j._last._mp = actor.mp;
+
+    /**
+     * The last known tp value.
+     * @type {number}
+     */
+    this._j._last._tp = actor.tp;
+
+    /**
+     * The last known exp value- aka the current exp value.
+     * @type {number}
+     */
+    this._j._last._xp = actor.currentExp();
+
+    /**
+     * The last known level value- aka the current level.
+     * @type {number}
+     */
+    this._j._last._lvl = actor.level;
+
+    /**
+     * A counter for auto refreshing the value.
+     * @type {number}
+     */
     this._j._autoCounter = 60;
   }
 
-  this._j._autoCounter--;
-};
-
-/**
- * Refreshes the value being represented by this sprite.
- */
-Sprite_ActorValue.prototype.refresh = function()
-{
-  this.bitmap = this.createBitmap();
-};
-
-/**
- * Checks whether or not a given parameter has changed.
- */
-Sprite_ActorValue.prototype.hasParameterChanged = function()
-{
-  // default to "changed" in case we do not match a parameter.
-  let changed = true;
-
-  // decide which parameter we are tracking and compare against the cache.
-  switch (this._j._parameter)
+  /**
+   * Gets the parameter being tracked by this sprite.
+   * @returns {string}
+   */
+  getParameter()
   {
-    case 'hp':
-    {
-      // check for hp change.
-      changed = this._j._actor.hp !== this._j._last._hp;
-
-      // update the last-known hp if changed.
-      if (changed) this._j._last._hp = this._j._actor.hp;
-
-      // end case.
-      return changed;
-    }
-    case 'mp':
-    {
-      // check for mp change.
-      changed = this._j._actor.mp !== this._j._last._mp;
-
-      // update the last-known mp if changed.
-      if (changed) this._j._last._mp = this._j._actor.mp;
-
-      // end case.
-      return changed;
-    }
-    case 'tp':
-    {
-      // check for tp change.
-      changed = this._j._actor.tp !== this._j._last._tp;
-
-      // update the last-known tp if changed.
-      if (changed) this._j._last._tp = this._j._actor.tp;
-
-      // end case.
-      return changed;
-    }
-    case 'time':
-    {
-      // compute the current exp for comparison.
-      const current = this._j._actor.currentExp();
-
-      // check for exp change.
-      changed = current !== this._j._last._xp;
-
-      // update the last-known exp if changed.
-      if (changed) this._j._last._xp = current;
-
-      // end case.
-      return changed;
-    }
-    case 'lvl':
-    {
-      // check for level change.
-      changed = this._j._actor.level !== this._j._last._lvl;
-
-      // update the last-known level if changed.
-      if (changed) this._j._last._lvl = this._j._actor.level;
-
-      // end case.
-      return changed;
-    }
-  }
-};
-
-/**
- * Creates a bitmap to attach to this sprite that shows the value.
- */
-Sprite_ActorValue.prototype.createBitmap = function()
-{
-  // default the value to 0.
-  let value = 0;
-
-  // determine the bitmap dimensions.
-  const width = this.bitmapWidth();
-
-  // determine the bitmap height relative to font size.
-  const height = this.fontSize() + 4;
-
-  // create the bitmap for this value sprite.
-  const bitmap = new Bitmap(width, height);
-
-  // assign the font face for this value.
-  bitmap.fontFace = this.fontFace();
-
-  // assign the font size for this value.
-  bitmap.fontSize = this.fontSize();
-
-  // decide how to render based on the parameter being displayed.
-  switch (this._j._parameter)
-  {
-    case 'hp':
-    {
-      // set the outline thickness for readability.
-      bitmap.outlineWidth = 4;
-
-      // set the red-tinted outline color for HP.
-      bitmap.outlineColor = 'rgba(128, 24, 24, 1.0)';
-
-      // display rounded HP to avoid off-by-one visuals against fractional HP.
-      value = Math.round(this._j._actor.hp);
-
-      // end case.
-      break;
-    }
-    case 'mp':
-    {
-      // set the outline thickness for readability.
-      bitmap.outlineWidth = 4;
-
-      // set the blue-tinted outline color for MP.
-      bitmap.outlineColor = 'rgba(24, 24, 192, 1.0)';
-
-      // display rounded MP to align with fractional accumulation.
-      value = Math.round(this._j._actor.mp);
-
-      // end case.
-      break;
-    }
-    case 'tp':
-    {
-      // set the outline thickness for readability.
-      bitmap.outlineWidth = 2;
-
-      // set the green-tinted outline color for TP.
-      bitmap.outlineColor = 'rgba(64, 128, 64, 1.0)';
-
-      // TP can change in non-integers under JABS; display rounded for consistency.
-      value = Math.round(this._j._actor.tp);
-
-      // end case.
-      break;
-    }
-    case 'time':
-    {
-      // set the outline thickness for readability.
-      bitmap.outlineWidth = 4;
-
-      // set the neutral outline for XP remaining.
-      bitmap.outlineColor = 'rgba(72, 72, 72, 1.0)';
-
-      // compute exp remaining to next level.
-      const curExp = (this._j._actor.nextLevelExp() - this._j._actor.currentLevelExp());
-
-      // compute progress into the current level.
-      const nextLv = (this._j._actor.currentExp() - this._j._actor.currentLevelExp());
-
-      // calculate the remaining exp as a whole number.
-      value = curExp - nextLv;
-
-      // end case.
-      break;
-    }
-    case 'lvl':
-    {
-      // set the outline thickness for readability.
-      bitmap.outlineWidth = 4;
-
-      // set the neutral outline for level text.
-      bitmap.outlineColor = 'rgba(72, 72, 72, 1.0)';
-
-      // display the level as a 3-digit number.
-      value = this._j._actor.level.padZero(3);
-
-      // end case.
-      break;
-    }
+    return this._j._parameter;
   }
 
-  // draw the value left-aligned across the bitmap.
-  bitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, 'left');
+  /**
+   * Gets the actor being tracked by this sprite.
+   * @returns {Game_Actor}
+   */
+  getActor()
+  {
+    return this._j._actor;
+  }
 
-  // return the created bitmap.
-  return bitmap;
-};
+  /**
+   * Gets the autorefresh counter.
+   * @returns {number}
+   */
+  getAutoCounter()
+  {
+    return this._j._autoCounter;
+  }
 
-/**
- * Defaults the bitmap width to be a fixed 200 pixels.
- */
-Sprite_ActorValue.prototype.bitmapWidth = function()
-{
-  return 200;
-};
+  /**
+   * Decrements the autorefresh counter.
+   */
+  decrementAutoCounter()
+  {
+    this._j._autoCounter--;
+  }
 
-/**
- * Defaults the font size to be an adjusted amount from the base font size.
- */
-Sprite_ActorValue.prototype.fontSize = function()
-{
-  return $gameSystem.mainFontSize() + this._j._fontSizeMod;
-};
+  /**
+   * Resets the autorefresh counter to its default value.
+   */
+  resetAutoCounter()
+  {
+    this._j._autoCounter = 60;
+  }
 
-/**
- * Defaults the font face to be the number font.
- */
-Sprite_ActorValue.prototype.fontFace = function()
-{
-  return $gameSystem.numberFontFace();
-};
+  /**
+   * Updates the bitmap if it needs updating.
+   */
+  update()
+  {
+    // perform original update.
+    super.update();
+
+    // updates the actor value accordingly.
+    this.handleActorValueUpdates();
+  }
+
+  /**
+   * Handles the update loop for the actor value tracking.
+   */
+  handleActorValueUpdates()
+  {
+    // check if any parameters have changed at this frame.
+    if (this.hasParameterChanged())
+    {
+      // trigger a refresh.
+      this.refresh();
+
+      // reset the autocounter.
+      this.resetAutoCounter();
+    }
+
+    // handle the autorefresh.
+    this.handleAutoRefresh();
+  }
+
+  /**
+   * Automatically refreshes the value being represented by this sprite
+   * after a fixed amount of time.
+   */
+  handleAutoRefresh()
+  {
+    // check if we need to autorefresh.
+    if (this.needsAutoRefresh())
+    {
+      // refresh the value.
+      this.refresh();
+
+      // reset the autocounter.
+      this.resetAutoCounter();
+
+      // stop processing.
+      return;
+    }
+
+    // decrement the autocounter.
+    this.decrementAutoCounter();
+  }
+
+  /**
+   * Determines whether or not we need to trigger an autorefresh.
+   * @returns {boolean} True if we need to autorefresh, false otherwise.
+   */
+  needsAutoRefresh()
+  {
+    // if the autocounter has reached 0, we need to refresh.
+    if (this.getAutoCounter() <= 0) return true;
+
+    // no need to refresh.
+    return false;
+  }
+
+  /**
+   * Refreshes the value being represented by this sprite.
+   */
+  refresh()
+  {
+    this.bitmap = this.createBitmap();
+  }
+
+  /**
+   * Checks whether or not a given parameter has changed.
+   */
+  hasParameterChanged()
+  {
+    // default to "changed" in case we do not match a parameter.
+    let changed = true;
+
+    const actor = this.getActor();
+
+    // decide which parameter we are tracking and compare against the cache.
+    switch (this.getParameter())
+    {
+      case Window_PartyFrame.gaugeTypes.HP:
+      {
+        // check for hp change.
+        changed = actor.hp !== this._j._last._hp;
+
+        // update the last-known hp if changed.
+        if (changed) this._j._last._hp = actor.hp;
+
+        // end case.
+        return changed;
+      }
+      case Window_PartyFrame.gaugeTypes.MP:
+      {
+        // check for mp change.
+        changed = actor.mp !== this._j._last._mp;
+
+        // update the last-known mp if changed.
+        if (changed) this._j._last._mp = actor.mp;
+
+        // end case.
+        return changed;
+      }
+      case Window_PartyFrame.gaugeTypes.TP:
+      {
+        // check for tp change.
+        changed = actor.tp !== this._j._last._tp;
+
+        // update the last-known tp if changed.
+        if (changed) this._j._last._tp = actor.tp;
+
+        // end case.
+        return changed;
+      }
+      case Window_PartyFrame.gaugeTypes.XP:
+      {
+        // compute the current exp for comparison.
+        const current = actor.currentExp();
+
+        // check for exp change.
+        changed = current !== this._j._last._xp;
+
+        // update the last-known exp if changed.
+        if (changed) this._j._last._xp = current;
+
+        // end case.
+        return changed;
+      }
+      case Window_PartyFrame.gaugeTypes.Level:
+      {
+        // check for level change.
+        changed = actor.level !== this._j._last._lvl;
+
+        // update the last-known level if changed.
+        if (changed) this._j._last._lvl = actor.level;
+
+        // end case.
+        return changed;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Creates a bitmap to attach to this sprite that shows the value.
+   */
+  createBitmap()
+  {
+    // determine the bitmap dimensions.
+    const width = this.bitmapWidth();
+
+    // determine the bitmap height relative to font size.
+    const height = this.fontSize() + 4;
+
+    // create the bitmap for this value sprite.
+    const bitmap = new Bitmap(width, height);
+
+    // update the bitmap based on the parameter.
+    const updatedBitmap = this.updateBitmapByParameter(bitmap);
+
+    // get the current value to display.
+    const value = this.getActorValue();
+
+    // draw the value left-aligned across the bitmap.
+    updatedBitmap.drawText(value, 0, 0, bitmap.width, bitmap.height, 'left');
+
+    // return the created bitmap.
+    return bitmap;
+  }
+
+  /**
+   * Gets the current value of the actor being tracked by this sprite.
+   * @returns {number}
+   */
+  getActorValue()
+  {
+    const actor = this.getActor();
+
+    // decide how to render based on the parameter being displayed.
+    switch (this.getParameter())
+    {
+      case Window_PartyFrame.gaugeTypes.HP:
+      {
+        // display rounded HP to avoid off-by-one visuals against fractional HP.
+        return Math.round(actor.hp);
+      }
+      case Window_PartyFrame.gaugeTypes.MP:
+      {
+        // display rounded MP to align with fractional accumulation.
+        return Math.round(actor.mp);
+      }
+      case Window_PartyFrame.gaugeTypes.TP:
+      {
+        // TP can change in non-integers under JABS; display rounded for consistency.
+        return Math.round(actor.tp);
+      }
+      case Window_PartyFrame.gaugeTypes.XP:
+      {
+        // compute exp remaining to next level.
+        const curExp = (actor.nextLevelExp() - actor.currentLevelExp());
+
+        // compute progress into the current level.
+        const nextLv = (actor.currentExp() - actor.currentLevelExp());
+
+        // calculate the remaining exp as a whole number.
+        return curExp - nextLv;
+      }
+      case Window_PartyFrame.gaugeTypes.Level:
+      {
+        // display the level as a 3-digit number.
+        return actor.level.padZero(3);
+      }
+    }
+
+    // if we didn't hit a case, return 0.
+    return null;
+  }
+
+  /**
+   * Mutates the bitmap based on the parameter being tracked.
+   * @param {Bitmap} bitmap The bitmap to mutate.
+   * @returns {Bitmap} The mutated bitmap.
+   */
+  updateBitmapByParameter(bitmap)
+  {
+    // assign for local mutation.
+    const updatedBitmap = bitmap;
+
+    // decide how to render based on the parameter being displayed.
+    switch (this.getParameter())
+    {
+      case Window_PartyFrame.gaugeTypes.HP:
+      {
+        // set the outline thickness for readability.
+        updatedBitmap.outlineWidth = 4;
+
+        // set the red-tinted outline color for HP.
+        updatedBitmap.outlineColor = 'rgba(128, 24, 24, 1.0)';
+
+        // end case.
+        break;
+      }
+      case Window_PartyFrame.gaugeTypes.MP:
+      {
+        // set the outline thickness for readability.
+        updatedBitmap.outlineWidth = 4;
+
+        // set the blue-tinted outline color for MP.
+        updatedBitmap.outlineColor = 'rgba(24, 24, 192, 1.0)';
+
+        // end case.
+        break;
+      }
+      case Window_PartyFrame.gaugeTypes.TP:
+      {
+        // set the outline thickness for readability.
+        updatedBitmap.outlineWidth = 4;
+
+        // set the green-tinted outline color for TP.
+        updatedBitmap.outlineColor = 'rgba(24, 64, 24, 1.0)';
+
+        // end case.
+        break;
+      }
+      case Window_PartyFrame.gaugeTypes.XP:
+      {
+        // set the outline thickness for readability.
+        updatedBitmap.outlineWidth = 4;
+
+        // set the neutral outline for XP remaining.
+        updatedBitmap.outlineColor = 'rgba(72, 72, 72, 1.0)';
+
+        // end case.
+        break;
+      }
+      case Window_PartyFrame.gaugeTypes.Level:
+      {
+        // set the outline thickness for readability.
+        updatedBitmap.outlineWidth = 4;
+
+        // set the neutral outline for level text.
+        updatedBitmap.outlineColor = 'rgba(72, 72, 72, 1.0)';
+
+        // end case.
+        break;
+      }
+    }
+
+    // assign the font face for this value.
+    updatedBitmap.fontFace = this.fontFace();
+
+    // assign the font size for this value.
+    updatedBitmap.fontSize = this.fontSize();
+
+    // return the mutated bitmap.
+    return updatedBitmap;
+  }
+
+  /**
+   * Defaults the bitmap width to be a fixed 200 pixels.
+   */
+  bitmapWidth()
+  {
+    return 200;
+  }
+
+  /**
+   * Defaults the font size to be an adjusted amount from the base font size.
+   */
+  fontSize()
+  {
+    return $gameSystem.mainFontSize() + this._j._fontSizeMod;
+  }
+
+  /**
+   * Defaults the font face to be the number font.
+   */
+  fontFace()
+  {
+    return $gameSystem.numberFontFace();
+  }
+}
+
 //endregion Sprite_ActorValue
-
-//region Sprite_StateTimer
-/**
- * A sprite that displays some the remaining duration for a state in seconds with one decimal point.
- */
-function Sprite_StateTimer()
-{
-  this.initialize(...arguments);
-}
-
-Sprite_StateTimer.prototype = Object.create(Sprite.prototype);
-Sprite_StateTimer.prototype.constructor = Sprite_StateTimer;
-Sprite_StateTimer.prototype.initialize = function(stateData)
-{
-  Sprite.prototype.initialize.call(this);
-  this.initMembers(stateData);
-  this.loadBitmap();
-}
-
-/**
- * Initializes the properties associated with this sprite.
- * @param {object} stateData The state data associated with this sprite.
- */
-Sprite_StateTimer.prototype.initMembers = function(stateData)
-{
-  this._j = {};
-  this._j._stateData = stateData;
-};
-
-/**
- * Loads the bitmap into the sprite.
- */
-Sprite_StateTimer.prototype.loadBitmap = function()
-{
-  this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
-  this.bitmap.fontFace = this.fontFace();
-  this.bitmap.fontSize = this.fontSize();
-  this.bitmap.drawText(this._j._text, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
-}
-
-Sprite_StateTimer.prototype.update = function()
-{
-  Sprite.prototype.update.call(this);
-  this.updateCooldownText();
-};
-
-Sprite_StateTimer.prototype.updateCooldownText = function()
-{
-  this.bitmap.clear();
-  const durationRemaining = (this._j._stateData.duration / 60).toFixed(1);
-
-  this.bitmap.drawText(durationRemaining.toString(), 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
-};
-
-/**
- * Determines the width of the bitmap accordingly to the length of the string.
- */
-Sprite_StateTimer.prototype.bitmapWidth = function()
-{
-  return 40;
-};
-
-/**
- * Determines the width of the bitmap accordingly to the length of the string.
- */
-Sprite_StateTimer.prototype.bitmapHeight = function()
-{
-  return this.fontSize() * 3;
-};
-
-/**
- * Determines the font size for text in this sprite.
- */
-Sprite_StateTimer.prototype.fontSize = function()
-{
-  return $gameSystem.mainFontSize() - 10;
-};
-
-/**
- * determines the font face for text in this sprite.
- */
-Sprite_StateTimer.prototype.fontFace = function()
-{
-  return $gameSystem.numberFontFace();
-};
-//endregion Sprite_StateTimer
 
 //region Window_PartyFrame
 /**
@@ -698,7 +806,7 @@ class Window_PartyFrame
   configure()
   {
     // make the window's background opacity transparent.
-    this.opacity = 0;
+    this.opacity = 32;
 
     // initialize the cache.
     this.refreshCache();
@@ -914,28 +1022,6 @@ class Window_PartyFrame
   }
 
   /**
-   * Determines the gauge height based on the gauge type.
-   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge we need height for.
-   * @returns {number}
-   */
-  fullGaugeHeight(gaugeType)
-  {
-    switch (gaugeType)
-    {
-      case Window_PartyFrame.gaugeTypes.HP:
-        return 18;
-      case Window_PartyFrame.gaugeTypes.MP:
-        return 14;
-      case Window_PartyFrame.gaugeTypes.TP:
-        return 10;
-      case Window_PartyFrame.gaugeTypes.XP:
-        return 8;
-      default:
-        throw new Error(`Please use a valid gauge type from the list.`);
-    }
-  }
-
-  /**
    * Creates a full-sized gauge sprite for the given actor and caches it.
    * @param {Game_Actor} actor The actor to draw a gauge sprite for.
    * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge this is.
@@ -954,7 +1040,9 @@ class Window_PartyFrame
     }
 
     // gets the full-sized gauge height for this gauge type.
-    const gaugeHeight = this.fullGaugeHeight(gaugeType);
+    const gaugeHeight = gaugeType === Window_PartyFrame.gaugeTypes.XP
+      ? 12
+      : 24;
 
     // determine gauge width based on gauge type.
     const gaugeWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP
@@ -962,7 +1050,7 @@ class Window_PartyFrame
       : 144;
 
     // create a new full-sized gauge sprite of the actor.
-    const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, 32);
+    const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, gaugeHeight);
 
     // setup the gauge sprite to point to the actor.
     sprite.setup(actor, gaugeType);
@@ -984,28 +1072,6 @@ class Window_PartyFrame
   }
 
   /**
-   * Determines the gauge height based on the gauge type.
-   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge we need height for.
-   * @returns {number}
-   */
-  miniGaugeHeight(gaugeType)
-  {
-    switch (gaugeType)
-    {
-      case Window_PartyFrame.gaugeTypes.HP:
-        return 10;
-      case Window_PartyFrame.gaugeTypes.MP:
-        return 10;
-      case Window_PartyFrame.gaugeTypes.TP:
-        return 10;
-      case Window_PartyFrame.gaugeTypes.XP:
-        return 4;
-      default:
-        throw new Error(`Please use a valid gauge type from the list.`);
-    }
-  }
-
-  /**
    * Creates a mini-sized gauge sprite for the given actor and caches it.
    * @param {Game_Actor} actor The actor to draw a gauge sprite for.
    * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of gauge this is.
@@ -1024,15 +1090,15 @@ class Window_PartyFrame
     }
 
     // gets the mini-sized gauge height for this gauge type.
-    const gaugeHeight = this.miniGaugeHeight(gaugeType);
+    const bitmapHeight = 12;
 
     // determine gauge width based on gauge type.
-    const gaugeWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP
+    const bitmapWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP
       ? 42
       : 96;
 
     // create a new mini-sized gauge sprite of the actor.
-    const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, 24);
+    const sprite = new Sprite_MapGauge(bitmapWidth, bitmapHeight, bitmapHeight);
 
     // setup the gauge sprite to point to the actor.
     sprite.setup(actor, gaugeType);
@@ -1085,8 +1151,10 @@ class Window_PartyFrame
       return this._hudSprites.get(key);
     }
 
-    // determine the font size based on the gauget ype.
-    const valueFontSize = this.actorValueFontSize(gaugeType);
+    // determine the font size.
+    const valueFontSize = gaugeType === Window_PartyFrame.gaugeTypes.XP
+      ? -6
+      : -2;
 
     // create a new full-sized face sprite of the actor.
     const sprite = new Sprite_ActorValue(actor, gaugeType, valueFontSize);
@@ -1102,30 +1170,6 @@ class Window_PartyFrame
 
     // return the created sprite.
     return sprite;
-  }
-
-  /**
-   * Determines the font size for the actor value based on the gauge type.
-   * @param {Window_PartyFrame.gaugeTypes} gaugeType The type of actor value this is.
-   * @returns {number}
-   */
-  actorValueFontSize(gaugeType)
-  {
-    switch (gaugeType)
-    {
-      case Window_PartyFrame.gaugeTypes.HP:
-        return -4;
-      case Window_PartyFrame.gaugeTypes.MP:
-        return -6;
-      case Window_PartyFrame.gaugeTypes.TP:
-        return -10;
-      case Window_PartyFrame.gaugeTypes.XP:
-        return -6;
-      case Window_PartyFrame.gaugeTypes.Level:
-        return 2;
-      default:
-        throw new Error(`Please use a valid gauge type from the list.`);
-    }
   }
 
   /**
@@ -1191,7 +1235,7 @@ class Window_PartyFrame
    * Creates the timer sprite for a given state.
    * @param {Game_Actor} actor The actor to draw the state data for.
    * @param {JABS_State} trackedState The tracked state data for this state.
-   * @returns {Sprite_StateTimer} The state timer sprite.
+   * @returns {Sprite_BaseText} The state timer sprite.
    */
   getOrCreateStateTimer(actor, trackedState)
   {
@@ -1206,19 +1250,76 @@ class Window_PartyFrame
     }
 
     // create a new full-sized face sprite of the actor.
-    const sprite = new Sprite_StateTimer(trackedState);
+    const spriteText = new Sprite_BaseText();
+
+    // configure the font for a small numeric readout (seconds, one decimal).
+    spriteText.setFontFace($gameSystem.numberFontFace());
+    spriteText.setFontSize($gameSystem.mainFontSize() - 6);
+    spriteText.setAlignment(Sprite_BaseText.Alignments.Center);
+    spriteText.setMinWidth(ImageManager.iconWidth);
 
     // cache the sprite.
-    this._hudSprites.set(key, sprite);
+    this._hudSprites.set(key, spriteText);
 
     // hide the sprite for now.
-    sprite.hide();
+    spriteText.hide();
 
     // add the sprite to tracking.
-    this.addChild(sprite);
+    this.addChild(spriteText);
 
     // return the created sprite.
-    return sprite;
+    return spriteText;
+  }
+
+  /**
+   * Creates the key for an actor's state affliction.
+   * @param {Game_Actor} actor The actor to draw a actor value sprite for.
+   * @param {number} stateId The id of the state to generate a key for.
+   * @returns {string} The key for this actor value sprite.
+   */
+  makeStateStackCountSpriteKey(actor, stateId)
+  {
+    return `stacks-${stateId}-${actor.name()}-${actor.actorId()}`;
+  }
+
+  /**
+   * Creates the timer sprite for a given state.
+   * @param {Game_Actor} actor The actor to draw the state data for.
+   * @param {JABS_State} trackedState The tracked state data for this state.
+   * @returns {Sprite_BaseText} The state timer sprite.
+   */
+  getOrCreateStateStackCount(actor, trackedState)
+  {
+    // the key for the sprite.
+    const key = this.makeStateStackCountSpriteKey(actor, trackedState.stateId);
+
+    // check if the key already maps to a cached sprite.
+    if (this._hudSprites.has(key))
+    {
+      // if it does, just return that.
+      return this._hudSprites.get(key);
+    }
+
+    // create a new full-sized face sprite of the actor.
+    const spriteText = new Sprite_BaseText();
+
+    // configure the font for a small numeric readout (seconds, one decimal).
+    spriteText.setFontFace($gameSystem.numberFontFace());
+    spriteText.setFontSize($gameSystem.mainFontSize() - 4);
+    spriteText.setAlignment(Sprite_BaseText.Alignments.Center);
+    spriteText.setMinWidth(ImageManager.iconWidth);
+
+    // cache the sprite.
+    this._hudSprites.set(key, spriteText);
+
+    // hide the sprite for now.
+    spriteText.hide();
+
+    // add the sprite to tracking.
+    this.addChild(spriteText);
+
+    // return the created sprite.
+    return spriteText;
   }
 
   /**
@@ -1272,11 +1373,11 @@ class Window_PartyFrame
     }
 
     // create a text sprite.
-    const sprite = new Sprite_BaseText('');
+    const sprite = new Sprite_BaseText(String.empty);
 
     // configure the font for a small numeric readout (seconds, one decimal).
     sprite.setFontFace($gameSystem.numberFontFace());
-    sprite.setFontSize($gameSystem.mainFontSize() - 10);
+    sprite.setFontSize($gameSystem.mainFontSize() - 8);
     sprite.setAlignment(Sprite_BaseText.Alignments.Center);
     sprite.setMinWidth(ImageManager.iconWidth);
 
@@ -1288,6 +1389,8 @@ class Window_PartyFrame
 
     // cache and stage it.
     this._hudSprites.set(key, sprite);
+
+    // add the sprite to tracking.
     this.addChild(sprite);
 
     // return the created sprite.
@@ -1312,12 +1415,12 @@ class Window_PartyFrame
     }
 
     // create a text sprite.
-    const sprite = new Sprite_BaseText('');
+    const sprite = new Sprite_BaseText(String.empty);
 
     // configure the font for emphasis and readability.
     sprite
       .setFontFace($gameSystem.mainFontFace())
-      .setFontSize($gameSystem.mainFontSize() - 6)
+      .setFontSize($gameSystem.mainFontSize() - 8)
       .setAlignment(Sprite_BaseText.Alignments.Center)
       .setBold(true)
       .setItalics(true)
@@ -1344,30 +1447,6 @@ class Window_PartyFrame
 
     // update our stuff.
     this.drawHud();
-  }
-
-  /**
-   * Draws the contents of the HUD.
-   */
-  drawHud()
-  {
-    // if we cannot draw the hud, then do not.
-    if (!$hudManager.canShowHud()) return;
-
-    // handle the visibility of the hud for dynamic interferences.
-    this.manageVisibility();
-
-    // draw the leader data.
-    const leaderX = 0;
-    const leaderY = 0;
-    this.drawLeader(leaderX, leaderY);
-
-    // if we cannot draw your allies, then do not.
-    if (!$hudManager.canShowAllies()) return;
-
-    // draw all allies' data.
-    const alliesY = this.height - ImageManager.faceHeight - (this.lineHeight() + 12);
-    this.drawAllies(leaderX, alliesY);
   }
 
   //region visibility
@@ -1496,6 +1575,31 @@ class Window_PartyFrame
 
   //endregion visibility
 
+  //region draw
+  /**
+   * Draws the contents of the HUD.
+   */
+  drawHud()
+  {
+    // if we cannot draw the hud, then do not.
+    if (!$hudManager.canShowHud()) return;
+
+    // handle the visibility of the hud for dynamic interferences.
+    this.manageVisibility();
+
+    // draw the leader data.
+    const leaderX = 0;
+    const leaderY = 0;
+    this.drawLeader(leaderX, leaderY);
+
+    // if we cannot draw your allies, then do not.
+    if (!$hudManager.canShowAllies()) return;
+
+    // draw all allies' data.
+    const alliesY = this.height - ImageManager.faceHeight - (this.lineHeight() + 12);
+    this.drawAllies(leaderX, alliesY);
+  }
+
   /**
    * Draw the leader's data for the HUD.
    * @param {number} x The x coordinate.
@@ -1512,7 +1616,7 @@ class Window_PartyFrame
 
     // render the resource gauges: hp/mp/tp.
     const gaugesX = x + ImageManager.faceWidth;
-    const gaugeHeight = 16;
+    const gaugeHeight = 24;
     const gaugesY = this.height - (gaugeHeight * 3);
     this.drawLeaderResourceGauges(gaugesX, gaugesY);
 
@@ -1523,7 +1627,7 @@ class Window_PartyFrame
 
     // draw states for the leader.
     const statesX = gaugesX;
-    const statesY = gaugesY - (ImageManager.iconHeight * 2) - 24;
+    const statesY = gaugesY - (ImageManager.iconHeight * 2) - 48;
     this.drawStates(statesX, statesY);
 
     // draw the in‑combat indicator (icon + timer) just to the right of the gauges.
@@ -1546,48 +1650,59 @@ class Window_PartyFrame
     sprite.show();
   }
 
+  /**
+   * Draws all the various resource gauges for the leader.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
   drawLeaderResourceGauges(x, y)
   {
     // grab the leader of the party.
     const leader = $gameParty.leader();
 
-    // shorthand the line height variable.
-    const lh = this.lineHeight();
+    const numbersX = x + 12;
 
     // locate the hp gauge.
     const hpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.HP);
     hpGauge.activateGauge();
-    hpGauge.move(x - 24, y);
+    hpGauge.move(x, y);
     hpGauge.show();
 
     // locate the hp numbers.
     const hpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.HP);
-    hpNumbers.move(x, y);
+    hpNumbers.move(numbersX, y - 2);
     hpNumbers.show();
 
     // grab and locate the sprite.
+    const mpGaugeY = y + 24;
     const mpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.MP);
     mpGauge.activateGauge();
-    mpGauge.move(x - 24, y + lh - 2 - mpGauge.bitmapHeight());
+    mpGauge.move(x, mpGaugeY);
     mpGauge.show();
 
     // locate the mp numbers.
     const mpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.MP);
-    mpNumbers.move(x, y + 19);
+    mpNumbers.move(numbersX, mpGaugeY - 2);
     mpNumbers.show();
 
     // grab and locate the sprite.
+    const tpGaugeY = y + 48;
     const tpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.TP);
     tpGauge.activateGauge();
-    tpGauge.move(x - 24, y + 46 - tpGauge.bitmapHeight());
+    tpGauge.move(x, tpGaugeY);
     tpGauge.show();
 
     // locate the tp numbers.
     const tpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.TP);
-    tpNumbers.move(x, y + 33);
+    tpNumbers.move(numbersX, tpGaugeY - 2);
     tpNumbers.show();
   }
 
+  /**
+   * Draws all the extraneous resource gauges for the leader.
+   * @param {number} x The x coordinate.
+   * @param {number} y The y coordinate.
+   */
   drawLeaderExtraneousGauges(x, y)
   {
     // grab the leader of the party.
@@ -1597,17 +1712,17 @@ class Window_PartyFrame
     const xpY = y;
     const xpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.XP);
     xpGauge.activateGauge();
-    xpGauge.move(x + 5, xpY);
+    xpGauge.move(x, xpY);
     xpGauge.show();
 
     // locate the xp numbers.
     const xpNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.XP);
-    xpNumbers.move(x, xpY);
+    xpNumbers.move(x + 4, xpY);
     xpNumbers.show();
 
     // locate the level numbers.
     const levelNumbers = this.getOrCreateActorValueSprite(leader, Window_PartyFrame.gaugeTypes.Level);
-    levelNumbers.move(x + 84, xpY);
+    levelNumbers.move(x + 80, xpY);
     levelNumbers.show();
   }
 
@@ -1670,7 +1785,7 @@ class Window_PartyFrame
     if (!leader || !leaderBattler) return;
 
     // decide visibility based on the combat rules.
-    const inCombat = ($jabsEngine.forcedCombat === true) || leaderBattler.isInCombat();
+    const inCombat = leaderBattler.isInCombat();
 
     // grab the hp gauge sprite for width math (hp/mp/tp share the same width).
 
@@ -1681,8 +1796,8 @@ class Window_PartyFrame
 
     // determine anchor coordinates to the immediate right of the gauges.
     const hpGauge = this.getOrCreateFullSizeGaugeSprite(leader, Window_PartyFrame.gaugeTypes.HP);
-    const iconX = (gaugesX - 24) + hpGauge.bitmapWidth() + 8;
-    const iconY = gaugesY; // align with the HP row.
+    const iconX = gaugesX + hpGauge.bitmapWidth() + ImageManager.iconWidth;
+    const iconY = gaugesY + 10; // align with the HP row.
     icon.move(iconX, iconY);
 
     // move the timer to be centered below the icon.
@@ -1690,12 +1805,12 @@ class Window_PartyFrame
       ? timer.bitmap.width
       : ImageManager.iconWidth;
     const timerX = iconX + Math.floor((ImageManager.iconWidth - timerWidth) / 2);
-    const timerY = iconY + ImageManager.iconHeight - 6;
+    const timerY = iconY + ImageManager.iconHeight - 16;
     timer.move(timerX, timerY);
 
     // move the label to be centered above the icon.
     const labelX = iconX - Math.floor((label.bitmap.width - ImageManager.iconWidth) / 2);
-    const labelY = iconY - label.bitmap.height;
+    const labelY = iconY - label.bitmap.height + 20;
     label.move(labelX, labelY);
 
     // configure a per‑frame fade step for ~0.5 seconds at 60fps.
@@ -1781,20 +1896,34 @@ class Window_PartyFrame
         // make the keys for the sprites in question.
         const iconKey = this.makeStateIconSpriteKey(leader, state.stateId);
         const timerKey = this.makeStateTimerSpriteKey(leader, state.stateId);
+        const stackKey = this.makeStateStackCountSpriteKey(leader, state.stateId);
 
-        // skip trying if they don't exist.
-        if (!this._hudSprites.has(iconKey) || !this._hudSprites.has(timerKey)) return;
+        // check if we have an icon sprite to hide.
+        if (this._hudSprites.has(iconKey))
+        {
+          // fetch and hide it.
+          const iconSprite = this._hudSprites.get(iconKey);
+          iconSprite.hide();
+        }
 
-        // get the sprites in question.
-        const iconSprite = this._hudSprites.get(iconKey);
-        const timerSprite = this._hudSprites.get(timerKey);
+        // check if we have a timer sprite to hide.
+        if (this._hudSprites.has(timerKey))
+        {
+          // fetch and clear and hide it.
+          const timerSprite = this._hudSprites.get(timerKey);
+          timerSprite.setText(String.empty);
+          timerSprite.hide();
+        }
 
-        // hide the sprites.
-        iconSprite.hide();
-        timerSprite.hide();
+        // check if we have a stack count sprite to hide.
+        if (this._hudSprites.has(stackKey))
+        {
+          // fetch and clear and hide it.
+          const stackSprite = this._hudSprites.get(stackKey);
+          stackSprite.setText(String.empty);
+          stackSprite.hide();
+        }
       });
-
-      this.clearContent();
     }
   }
 
@@ -1807,19 +1936,36 @@ class Window_PartyFrame
    */
   drawState(actor, trackedState, ox, y)
   {
+    // don't render an eternal duration- they are just -1.
+    if (trackedState.hasEternalDuration() === false)
+    {
+      const seconds = (trackedState.duration / 60).toFixed(1);
+      const timerSprite = this.getOrCreateStateTimer(actor, trackedState);
+      timerSprite.setText(seconds);
+      timerSprite.move(ox, y + 20);
+      timerSprite.show();
+    }
+
     const iconSprite = this.getOrCreateStateIcon(actor, trackedState.stateId);
     iconSprite.move(ox, y);
     iconSprite.show();
 
-    const timerSprite = this.getOrCreateStateTimer(actor, trackedState);
-    timerSprite.move(ox - 4, y + 20);
-    timerSprite.show();
-
-    this.modFontSize(-0);
+    this.modFontSize(-4);
     this.toggleBold();
     this.toggleItalics();
 
-    this.drawText(`x${trackedState.stackCount}`, ox, y - 30, 64, Window_Base.TextAlignments.Left);
+    const stackSprite = this.getOrCreateStateStackCount(actor, trackedState);
+    if (trackedState.stackCount > 1)
+    {
+      stackSprite.setText(`x${trackedState.stackCount}`);
+      stackSprite.move(ox, y - ImageManager.iconHeight);
+      stackSprite.show();
+    }
+    else
+    {
+      stackSprite.setText(String.empty);
+      stackSprite.hide();
+    }
 
     this.resetFontSettings();
   }
@@ -1892,21 +2038,23 @@ class Window_PartyFrame
     // locate the hp gauge.
     const hpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyFrame.gaugeTypes.HP);
     hpGauge.activateGauge();
-    hpGauge.move(x - 24, oy + lh * 0);
+    hpGauge.move(x, oy + lh * 0);
     hpGauge.show();
 
     // grab and locate the sprite.
     const mpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyFrame.gaugeTypes.MP);
     mpGauge.activateGauge();
-    mpGauge.move(x - 24, oy + lh * 1);
+    mpGauge.move(x, oy + lh * 1);
     mpGauge.show();
 
     // grab and locate the sprite.
     const tpGauge = this.getOrCreateMiniSizeGaugeSprite(ally, Window_PartyFrame.gaugeTypes.TP);
     tpGauge.activateGauge();
-    tpGauge.move(x - 24, oy + lh * 2);
+    tpGauge.move(x, oy + lh * 2);
     tpGauge.show();
   }
+
+  //endregion draw
 }
 
 //endregion Window_PartyFrame
