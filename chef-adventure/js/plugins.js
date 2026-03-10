@@ -28,6 +28,7 @@ var $plugins =
 {"name":"j/abs/ext/J-ABS-Tools","status":true,"description":"[v1.0.0 TOOLS] Enable new tool-like tags for use with skills.","parameters":{"canGapCloseByDefault":"false"}},
 {"name":"others/SmoothCamera","status":true,"description":"なめらかカメラ v1.0.2","parameters":{"EnableSmoothCameraSwitchId":"0","MaxScrollFar":"8","MinScrollFar":"2","BaseScrollDiv":"32"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
+{"name":"j/abs/ext/J-ABS-Hitstop","status":true,"description":"[v1.0.0 HITSTOP] An extension for JABS that adds hitstop functionality.","parameters":{"parentConfig":"","menu-switch":"101"}},
 {"name":"j/abs/ext/J-ABS-Timing","status":true,"description":"[v1.0.0 TIMING] Enable modifying cooldowns/casting for actions.","parameters":{}},
 {"name":"j/abs/ext/J-ABS-Charge","status":true,"description":"[v1.0.0 CHARGE] Enable skills to be charged to perform other skills.","parameters":{"defaults":"","defaultChargingAnimId":"160","defaultTierCompleteAnimId":"161","defaultFullyChargedAnimId":"162","useTierCompleteSE":"false","allowTierCompleteSEandAnim":"false"}},
 {"name":"j/abs/ext/J-ABS-Formula","status":true,"description":"[v1.0.0 FORMULA] An extension for JABS that allows multiple damage formulas.","parameters":{"parentConfig":"","menu-switch":"101"}},
