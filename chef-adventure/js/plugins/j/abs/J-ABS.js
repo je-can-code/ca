@@ -2214,9 +2214,12 @@ JABS_Battler.prototype.initialize = function(event, battler, battlerCoreData)
    * @type {boolean}
    */
   this._hidden = false;
+
+  // initialize the sectioned battler properties.
   this.initCoreData(battlerCoreData);
   this.initFromNotes();
   this.initGeneralInfo();
+  this.initDodgeInfo();
   this.initBattleInfo();
   this.initIdleInfo();
   this.initCooldowns();
@@ -2362,6 +2365,43 @@ JABS_Battler.prototype.initGeneralInfo = function()
    * @type {JABS_Timer}
    */
   this._engagementTimer = new JABS_Timer(15);
+};
+
+/**
+ * Initialize the dodge-related information for this battler.
+ */
+JABS_Battler.prototype.initDodgeInfo = function()
+{
+  /**
+   * The distance in steps/tiles/squares that the dodge will move the battler.
+   * @type {number}
+   */
+  this._dodgeSteps = 0;
+
+  /**
+   * Whether or not this battler is dodging.
+   * @type {boolean}
+   */
+  this._dodging = false;
+
+  /**
+   * The direction of which this battler is dodging.
+   * Always `0` until a dodge is executed.
+   * @type {number}
+   */
+  this._dodgeDirection = 0;
+
+  /**
+   * The current frame of the dodge animation.
+   * @type {number}
+   */
+  this._dodgeFrame = 0;
+
+  /**
+   * The window of frames that the battler is invincible.
+   * @type {[number, number]|null}
+   */
+  this._dodgeIframes = null;
 };
 
 /**
@@ -2525,25 +2565,6 @@ JABS_Battler.prototype.initBattleInfo = function()
    * @type {number}
    */
   this._regenCounter = 1;
-
-  /**
-   * The distance in steps/tiles/squares that the dodge will move the battler.
-   * @type {number}
-   */
-  this._dodgeSteps = 0;
-
-  /**
-   * Whether or not this battler is dodging.
-   * @type {boolean}
-   */
-  this._dodging = false;
-
-  /**
-   * The direction of which this battler is dodging.
-   * Always `0` until a dodge is executed.
-   * @type {number}
-   */
-  this._dodgeDirection = 0;
 
   /**
    * Whether or not this battler is guarding.
@@ -5186,11 +5207,42 @@ JABS_Battler.prototype.shouldCancelDodge = function()
  */
 JABS_Battler.prototype.handleDodgeMovement = function()
 {
+  // update the iframes for the dodge.
+  this.updateDodgeIFrames()
+
   // if we cannot dodge move, do not.
   if (!this.canDodgeMove()) return;
 
   // perform the movement.
   this.executeDodgeMovement();
+};
+
+/**
+ * Updates the dodge iframes, and applies windowed invincibility.
+ */
+JABS_Battler.prototype.updateDodgeIFrames = function()
+{
+  // only process i‑frames while actively dodging.
+  if (!this.isDodging()) return;
+
+  // advance the dodge frames.
+  this.incrementDodgeFrame();
+
+  // grab the iframes window.
+  const iframesWindow = this.getDodgeIFrames();
+
+  // if there isn't an iframe window, then don't update them.
+  if (iframesWindow === null) return;
+
+  // destructure the iframe window into its start and end frames.
+  const [ startF, endF ] = iframesWindow;
+
+  // grab the current frame.
+  const currentFrame = this.getDodgeFrame();
+
+  // apply windowed invincibility.
+  const inWindow = (currentFrame >= startF && currentFrame <= endF);
+  this.setInvincible(inWindow);
 };
 
 /**
@@ -5224,12 +5276,22 @@ JABS_Battler.prototype.canDodgeMove = function()
  */
 JABS_Battler.prototype.executeDodgeMovement = function()
 {
-  // move the character.
-  this.getCharacter()
-    .moveStraight(this._dodgeDirection);
+  const character = this.getCharacter();
+  const direction = this.getDodgeDirection();
+
+  // move the character based on their direction.
+  if (character.isDiagonalDirection(direction))
+  {
+    character.moveDiagonally(direction);
+  }
+  else if (character.isStraightDirection(direction))
+  {
+    character.moveStraight(direction);
+  }
+
 
   // reduce the dodge steps.
-  this._dodgeSteps--;
+  this.decrementDodgeSteps();
 };
 
 /**
@@ -5237,6 +5299,9 @@ JABS_Battler.prototype.executeDodgeMovement = function()
  */
 JABS_Battler.prototype.handleDodgeEnd = function()
 {
+  // keep i‑frames evaluated every tick even if we didn’t step this frame.
+  this.updateDodgeIFrames();
+
   // check if we even should end the dodge.
   if (!this.shouldEndDodge()) return;
 
@@ -5274,6 +5339,15 @@ JABS_Battler.prototype.endDodge = function()
 
   // disable the invincibility from dodging.
   this.setInvincible(false);
+
+  // explicitly clear the dodge speed modifier to avoid residual boosts.
+  this.getCharacter().setDodgeModifier(0);
+
+  // reset the dodge frames.
+  this.setDodgeFrame(0);
+
+  // reset the dodge Iframes.
+  this.setDodgeIFrames(0);
 };
 //endregion update dodging
 
@@ -5661,6 +5735,7 @@ JABS_Battler.prototype.aggroExists = function(uuid)
 //endregion aggro
 
 //region dodging
+//region properties
 /**
  * Gets whether or not this battler is dodging.
  * @returns {boolean} True if currently dodging, false otherwise.
@@ -5677,6 +5752,15 @@ JABS_Battler.prototype.isDodging = function()
 JABS_Battler.prototype.setDodging = function(dodging)
 {
   this._dodging = dodging;
+};
+
+/**
+ * Gets the direction that the battler will be moved when dodging.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getDodgeDirection = function()
+{
+  return this._dodgeDirection;
 };
 
 /**
@@ -5707,6 +5791,59 @@ JABS_Battler.prototype.setDodgeSteps = function(stepCount)
 };
 
 /**
+ * Decrements the dodge steps remaining.
+ */
+JABS_Battler.prototype.decrementDodgeSteps = function()
+{
+  this._dodgeSteps--;
+};
+
+/**
+ * Gets the current frame of the dodge animation.
+ * @returns {number}
+ */
+JABS_Battler.prototype.getDodgeFrame = function()
+{
+  return this._dodgeFrame;
+};
+
+/**
+ * Sets the current frame of the dodge animation.
+ * @param {number} frame The dodge frame.
+ */
+JABS_Battler.prototype.setDodgeFrame = function(frame)
+{
+  this._dodgeFrame = frame;
+};
+
+/**
+ * Increments the dodge frame.
+ */
+JABS_Battler.prototype.incrementDodgeFrame = function()
+{
+  this._dodgeFrame++;
+};
+
+/**
+ * Gets the iframe window for this dodge, or null if there is none.
+ * @returns {[number, number]|null}
+ */
+JABS_Battler.prototype.getDodgeIFrames = function()
+{
+  return this._dodgeIframes;
+};
+
+/**
+ * Sets the number of iframes the dodge has.
+ * @param {number} frames The number of iframes.
+ */
+JABS_Battler.prototype.setDodgeIFrames = function(frames)
+{
+  this._dodgeIFrames = frames;
+};
+//endregion properties
+
+/**
  * Tries to execute the battler's dodge skill.
  * Checks to see if costs are payable before executing.
  */
@@ -5725,10 +5862,7 @@ JABS_Battler.prototype.tryDodgeSkill = function()
   const skill = this.getSkill(skillId);
 
   // determine if it can be paid.
-  const canPay = battler.canPaySkillCost(skill);
-
-  // check if the user can pay the cost and if there is a move type available.
-  if (canPay && skill.jabsMoveType)
+  if (battler.canPaySkillCost(skill))
   {
     // execute the skill in the dodge slot.
     this.executeDodgeSkill(skill);
@@ -5741,28 +5875,36 @@ JABS_Battler.prototype.tryDodgeSkill = function()
  */
 JABS_Battler.prototype.executeDodgeSkill = function(skill)
 {
-  // trigger invincibility for dodging if applicable.
+  // set up any parsed i‑frame window; not applied yet pending semantics.
+  this.setDodgeIFrames(skill.jabsIFrames);
+
+  // apply invincibility now if using the full‑duration flag.
   this.setInvincible(skill.jabsInvincibleDodge);
 
-  // increase the move speed while dodging to give the illusion of "dodge-rolling".
-  // TODO: get dodge modifier from skill.
-  const dodgeSpeedBonus = 2;
+  // apply the move speed modifier for the dodge.
   this.getCharacter()
-    .setDodgeModifier(dodgeSpeedBonus);
+    .setDodgeModifier(skill.jabsDodgeSpeed);
 
-  // set the number of steps this dodge will roll you.
-  this.setDodgeSteps(skill.jabsRadius);
+  // set the number of steps this dodge will move you.
+  this.setDodgeSteps(skill.jabsDodgeSteps);
 
-  // set the direction to be dodging in (front/back/specified).
+  // set the direction to be dodging in.
   const dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);
   this.setDodgeDirection(dodgeDirection);
 
-  // pay whatever costs are associated with the skill.
-  this.getBattler()
-    .paySkillCost(skill);
+  // also execute the mobility skill’s action payload.
+  const actionOptions = JABS_ActionOptions.Builder()
+    .setCooldownKey(JABS_Button.Dodge)
+    .build();
 
-  // apply the cooldowns for the dodge.
-  this.modCooldownCounter(JABS_Button.Dodge, skill.jabsCooldown);
+  // create the action(s) from the dodge skill.
+  const actions = this.createJabsActionFromSkill(skill.id, actionOptions);
+
+  // ensure the cooldown key is present on each action (mirrors main/offhand path).
+  actions.forEach(a => a.setCooldownType(JABS_Button.Dodge));
+
+  // execute the actions immediately; this applies costs/cooldowns/animations properly.
+  $jabsEngine.executeMapActions(this, actions);
 
   // trigger the dodge!
   this.setDodging(true);
@@ -5770,48 +5912,40 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
 
 /**
  * Translates a dodge skill type into a direction to move.
- * @param {string} moveType The type of dodge skill the player is using.
+ * @param {'forward'|'backward'|'directional'} moveType The type of dodge skill the player is using.
  */
 JABS_Battler.prototype.determineDodgeDirection = function(moveType)
 {
+  // grab the player's current direction.
   const player = this.getCharacter();
-  let direction;
+
+  // pivot on move type.
   switch (moveType)
   {
+    // "forward" represents the direction the player is currently facing.
     case J.ABS.Notetags.MoveType.Forward:
-      direction = player.direction();
-      break;
-    case J.ABS.Notetags.MoveType.Backward:
-      direction = player.reverseDir(player.direction());
-      break;
-    case J.ABS.Notetags.MoveType.Directional:
-      if (Input.isPressed("up"))
-      {
-        direction = J.ABS.Directions.UP;
-      }
-      else if (Input.isPressed("right"))
-      {
-        direction = J.ABS.Directions.RIGHT;
-      }
-      else if (Input.isPressed("left"))
-      {
-        direction = J.ABS.Directions.LEFT;
-      }
-      else if (Input.isPressed("down"))
-      {
-        direction = J.ABS.Directions.DOWN;
-      }
-      else
-      {
-        direction = player.direction();
-      }
-      break;
-    default:
-      direction = player.direction();
-      break;
-  }
+      return player.direction();
 
-  return direction;
+    // "backward" is the inverse of the direction the player's current direction.
+    case J.ABS.Notetags.MoveType.Backward:
+      return player.reverseDir(player.direction());
+
+    // "directional" is the direction that the player is moving.
+    case J.ABS.Notetags.MoveType.Directional:
+      // check if the player is just standing there.
+      if (Input.dir8 === 0)
+      {
+        // move the player in the direction they are facing.
+        return player.direction();
+      }
+
+      // return the direction the player is moving.
+      return Input.dir8;
+
+    // other forms of dodge default to moving the way the player is facing.
+    default:
+      return player.direction();
+  }
 };
 //endregion dodging
 
@@ -13196,7 +13330,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.3.1 JABS] Enables combat to be carried out on the map.
+ * [v4.4.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13240,6 +13374,10 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.4.0
+ *    Revamped dodge skills.
+ *    Dodge skills now execute their skill as well.
+ *    Added new tags for additional customization of dodge skills.
  * - 4.3.1
  *    Prevented serialization of JABS_Action#_actionSprite.
  *    Fixed issue with combat indicator and duration tailing not working.
@@ -13247,7 +13385,6 @@ class JABS_Timer
  *    Adjusted state stack loss to allow non-duration stack loss.
  *    Fixed issue where eternal states were not refreshing if removed.
  *    Removed action events from being added to save files.
- *
  * - 4.3.0
  *    Unified sprint and dash as one alter-action.
  *    Added a notion of "being in combat" based on hitting or being hit.
@@ -14126,6 +14263,11 @@ class JABS_Timer
  * will not only need some tags below, but also need to be a part of the skill
  * type that is defined in the plugin parameters for "dodge skill type".
  *
+ * NOTE ABOUT OTHER ASPECTS OF THE DODGE SKILL:
+ * Aside from the tags you'll see below, the skill will still be executed
+ * through the normal JABS action execution pipeline, meaning it can still
+ * apply states, deal damage, fire projectiles, be extended, etc.
+ *
  * DODGE MOVETYPE:
  * The "move type" defines one of three kinds of movetypes available for the
  * dodge skill.
@@ -14141,6 +14283,24 @@ class JABS_Timer
  * The "directional move type" will grant the player the ability to move in
  * whatever direction they are pressing when the skill is executed.
  *
+ * DODGE DISTANCE:
+ * Sometimes you may want the player to only dodge a couple steps, maybe other
+ * times you'll want them to be able to dodge across the map. In either case,
+ * if you want to define this distance, you'll use the "dodge" tag:
+ *    <dodge:DISTANCE>
+ *  Where DISTANCE is the number of tiles to be forcefully moved.
+ *
+ * DODGE SPEED:
+ * Dodging can be fast or slow (it is up to you). For your designing
+ * convenience, there is a tag that designates the speed at which the dodging
+ * will move. Note that this is considered a "modifier" against the player's
+ * current movespeed at the time of dodge skill execution:
+ *    <dodgeSpeed:MODIFIER>
+ *  Where MODIFIER is the amount of speed to add to the player's current speed.
+ *
+ * Note that the amount can be a decimal (ex: 1.5, 2.3).
+ * Note that the amount can be negative. (ex: -0.75, -2).
+ *
  * DODGE INVINCIBILITY:
  * Normally when performing a dodge skill, the player is simply being
  * forcefully moved by the skill, but are still susceptible to interruption by
@@ -14149,13 +14309,21 @@ class JABS_Timer
  * this tag.
  *    <invincibleDodge>
  *
- * DODGE DISTANCE:
- * Sometimes you may want the player to only dodge a couple steps, maybe other
- * times you'll want them to be able to dodge across the map. In either case,
- * if you want to define this distance, you'll use the "radius" tag that is
- * already used to define distance for skills:
- *    <radius:DISTANCE>
- *  Where DISTANCE is the number of tiles to be forcefully moved.
+ * Alternatively, if you prefer to not have full invincibility for the whole
+ * duration of the dodge, you can specify a window of frames that will
+ * basically count as "i-frames" during the dodge execution:
+ *    <iframes:[START_FRAME, END_FRAME]>
+ *  Where START_FRAME is the frame at which the player begins being invincible.
+ *  Where END_FRAME is the frame at which the player stops being invincible.
+ *
+ * Note that short dodge distance and/or high dodge speed can result in very
+ * small durations of dodging. If the window described by "iframes" is outside
+ * of the dodge duration, then the player will only be invincible for the
+ * times the window intersects with the dodge duration. For example, if the
+ * window is [3,10] (indicating you start invicibility at frame 3, and stop
+ * invincibility at frame 10), but the dodge duration is only 5 frames, then
+ * the player will only be invincible for frames 3, 4, and 5 and the rest will
+ * be ignored.
  *
  * ----------------------------------------------------------------------------
  * COMBAT SKILL SLOTS:
@@ -15296,7 +15464,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.3.1';
+J.ABS.Metadata.Version = '4.4.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -15799,13 +15967,17 @@ J.ABS.RegExp = {
   CounterGuard: /<counterGuard:[ ]?(\[\d+(?:\.\d+)?(?:,\s*\d+(?:\.\d+)?)*])>/gi,
 
   // dodge-related.
+  DodgeSteps: /<dodge:[ ]?(\d+)>/gi,
+  DodgeSpeed: /<dodgeSpeed:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
   MoveType: /<moveType:[ ]?(forward|backward|directional)>/gi,
   InvincibleDodge: /<invincibleDodge>/gi,
+  IFrames: /<iframes:[ ]?(\[\d+,[ ]?\d+])>/gi,
 
   // counter-related (on-chance-effect template)
   Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
   OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
-  onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi, //endregion ON SKILLS
+  onTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+  //endregion ON SKILLS
 
   //region ON EQUIPS
   // skill-related.
@@ -15940,7 +16112,7 @@ J.ABS.RegExp.VisOffsetDR = /<visOffsetDR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi; // [x, y]
 J.ABS.RegExp.VisOffsetDL = /<visOffsetDL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi; // [x, y]
 //endregion visual directional metadata (new)
 
-//region cast preview tags (MVP)
+//region cast preview tags
 /**
  * Skill-level: disable preview for this skill.
  */
@@ -15955,7 +16127,7 @@ J.ABS.RegExp.CastPreviewWarnAt = /<castPreviewWarnAt:[ ]?(\d+)>/gi;
  * Battler-level: disable previews for all skills this battler will execute.
  */
 J.ABS.RegExp.NoCastPreviewsBattler = /<noCastPreviews>/gi;
-//endregion cast preview tags (MVP)
+//endregion cast preview tags
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -17946,7 +18118,40 @@ RPG_Skill.prototype.extractJabsUniqueCooldown = function()
 };
 //endregion uniqueCooldown
 
-//region moveType
+//region dodging
+/**
+ * The number of steps that the battler will move during this dodge.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, 'jabsDodgeSteps', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.DodgeSteps);
+  },
+});
+
+/**
+ * The speed bonus the battler will receive during this dodge.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, 'jabsDodgeSpeed', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.DodgeSpeed);
+  },
+});
+
+/**
+ * The iFrames for the start and end of an action that will be applied to the battler.
+ * @type {[number, number]|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, 'jabsIFrames', {
+  get: function()
+  {
+    return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.IFrames, true, true);
+  },
+});
+
 /**
  * The direction that this dodge skill will move.
  * @type {string}
@@ -17954,30 +18159,10 @@ RPG_Skill.prototype.extractJabsUniqueCooldown = function()
 Object.defineProperty(RPG_Skill.prototype, 'jabsMoveType', {
   get: function()
   {
-    return this.getJabsMoveType();
+    return RPGManager.getStringFromNoteByRegex(this, J.ABS.RegExp.MoveType, true);
   },
 });
 
-/**
- * Gets the JABS moveType this skill.
- * @returns {string|null}
- */
-RPG_Skill.prototype.getJabsMoveType = function()
-{
-  return this.extractJabsMoveType();
-};
-
-/**
- * Extracts the JABS moveType for this skill from its notes.
- * @returns {string|null}
- */
-RPG_Skill.prototype.extractJabsMoveType = function()
-{
-  return this.getStringFromNotesByRegex(J.ABS.RegExp.MoveType, true);
-};
-//endregion moveType
-
-//region invincibleDodge
 /**
  * Whether or not the battler is invincible for the duration of this
  * skill's dodge movement.
@@ -17986,29 +18171,12 @@ RPG_Skill.prototype.extractJabsMoveType = function()
 Object.defineProperty(RPG_Skill.prototype, 'jabsInvincibleDodge', {
   get: function()
   {
-    return this.getJabsInvincibileDodge();
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.InvincibleDodge);
   },
 });
+//endregion dodging
 
-/**
- * Gets the dodge invincibility flag for this skill.
- * @returns {number|null}
- */
-RPG_Skill.prototype.getJabsInvincibileDodge = function()
-{
-  return this.extractJabsInvincibleDodge();
-};
-
-/**
- * Extracts the JABS invincibleDodge for this skill from its notes.
- * @returns {number|null}
- */
-RPG_Skill.prototype.extractJabsInvincibleDodge = function()
-{
-  return this.getBooleanFromNotesByRegex(J.ABS.RegExp.InvincibleDodge, true);
-};
-//endregion invincibleDodge
-
+//region combos
 //region freeCombo
 /**
  * Whether or not this skill has the "free combo" trait on it.
@@ -18229,6 +18397,7 @@ RPG_Skill.prototype.shouldRecurseForComboSkills = function(skill, lastSkillId)
   // we should recurse!
   return true;
 };
+//endregion combos
 
 //region piercing
 /**
@@ -18521,7 +18690,7 @@ RPG_Skill.prototype.extractJabsDelayData = function()
 };
 //endregion delay
 
-//region visual metadata (new)
+//region visual metadata
 /**
  * Optional per-skill pixel offset to nudge the action visual relative to its default position.
  * Example: <visOffset:[-6, -12]>
@@ -18672,7 +18841,7 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsVisDebug', {
   },
 });
 
-//region visual metadata (directional, new)
+//region directional
 /**
  * Optional UP-facing visual offset.
  * Example: <visOffsetU:[0, -24]>
@@ -18831,6 +19000,7 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetDL', {
  * @param {1|2|3|4|6|7|8|9} direction The numeric direction from the action.
  * @returns {[number, number]} The resolved [x, y] visual offset.
  */
+// eslint-disable-next-line complexity
 RPG_Skill.prototype.getJabsVisOffsetFor = function(direction)
 {
   // start from the default offset (may be [0, 0]).
@@ -18861,8 +19031,8 @@ RPG_Skill.prototype.getJabsVisOffsetFor = function(direction)
   // unknown direction: return default.
   return def || [ 0, 0 ];
 };
-//endregion visual metadata (directional, new)
-//endregion visual metadata (new)
+//endregion directional
+//endregion visual metadata
 //endregion RPG_Skill effects
 
 //region RPG_State effects
