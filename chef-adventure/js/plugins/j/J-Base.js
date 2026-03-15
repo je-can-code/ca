@@ -92,6 +92,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.3.3
+ *    Extended database object type-checking.
+ *    Provided way for any database object to provide a unique identifier.
+ *    Added gauge-drawing into the Window_Base class.
+ *    Added API on Game_Actor and Game_Party for directly setting levels.
+ *    Added Window_ActorRibbon for re-use.
  * - 2.3.2
  *    Added helper function to determine array intersections.
  *    Added prototype helper class for common prototype operations (unused).
