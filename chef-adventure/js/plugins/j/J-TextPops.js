@@ -608,13 +608,13 @@ class TextPopBuilder
     if (elementalRate < 1)
     {
       // add an arbitrary elipses at the end of the damage.
-      this.setSuffix("...");
+      this.setSuffix('...');
     }
     // check if the rate is above 1, such as 1.5 aka 150% damage.
     else if (elementalRate > 1)
     {
       // add an arbitrary triple bang at the end of the damage.
-      this.setSuffix("!!!");
+      this.setSuffix('!!!');
     }
 
     // return the builder for continuous building.
