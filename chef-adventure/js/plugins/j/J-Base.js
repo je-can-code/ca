@@ -92,6 +92,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.3.3
+ *    Extended database object type-checking.
+ *    Provided way for any database object to provide a unique identifier.
+ *    Added gauge-drawing into the Window_Base class.
+ *    Added API on Game_Actor and Game_Party for directly setting levels.
+ *    Added Window_ActorRibbon for re-use.
  * - 2.3.2
  *    Added helper function to determine array intersections.
  *    Added prototype helper class for common prototype operations (unused).
@@ -1709,7 +1715,7 @@ class RPG_Base
    */
   deleteMetadata(key)
   {
-    delete this.meta[key]
+    delete this.meta[key];
   }
 
   /**
@@ -1769,12 +1775,12 @@ class RPG_Base
     if (fromMeta)
     {
       // check if the value was a truthy value.
-      if (fromMeta === true || fromMeta.toLowerCase() === "true")
+      if (fromMeta === true || fromMeta.toLowerCase() === 'true')
       {
         return true;
       }
       // check if the value was a falsey value.
-      else if (fromMeta === false || fromMeta.toLowerCase() === "false")
+      else if (fromMeta === false || fromMeta.toLowerCase() === 'false')
       {
         return false;
       }
@@ -1812,10 +1818,10 @@ class RPG_Base
   #parseObject(obj)
   {
     // check if the object to parse is a string.
-    if (typeof obj === "string")
+    if (typeof obj === 'string')
     {
       // check if the string is an unparsed array.
-      if (obj.startsWith("[") && obj.endsWith("]"))
+      if (obj.startsWith('[') && obj.endsWith(']'))
       {
         // expose the stringified segments of the array.
         const exposedArray = obj
@@ -1850,11 +1856,11 @@ class RPG_Base
   #parseString(str)
   {
     // check if its actually boolean true.
-    if (str.toLowerCase() === "true")
+    if (str.toLowerCase() === 'true')
     {
       return true;
     }// check if its actually boolean false.
-    else if (str.toLowerCase() === "false") return false;
+    else if (str.toLowerCase() === 'false') return false;
 
     // check if its actually a number.
     if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
@@ -2416,6 +2422,33 @@ class RPG_Base
   //endregion note
 
   /**
+   * Whether or not this database entry is an actor.
+   * @returns {boolean}
+   */
+  isActor()
+  {
+    return false;
+  }
+
+  /**
+   * Whether or not this database entry is a class.
+   * @returns {boolean}
+   */
+  isClass()
+  {
+    return false;
+  }
+
+  /**
+   * Whether or not this database entry is an enemy.
+   * @returns {boolean}
+   */
+  isEnemy()
+  {
+    return false;
+  }
+
+  /**
    * Whether or not this database entry is an item.
    * @returns {boolean}
    */
@@ -2449,6 +2482,24 @@ class RPG_Base
   isSkill()
   {
     return false;
+  }
+
+  /**
+   * Whether or not this database entry is a state.
+   * @returns {boolean}
+   */
+  isState()
+  {
+    return false;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return '@base';
   }
 }
 
@@ -2489,6 +2540,15 @@ class RPG_BaseBattler
     this.battlerName = battler.battlerName;
     this.traits = battler.traits
       .map(trait => new RPG_Trait(trait));
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:battler`;
   }
 }
 
@@ -2560,6 +2620,15 @@ class RPG_Traited
     // map the base item's traits.
     this.traits = baseItem.traits.map(trait => new RPG_Trait(trait));
   }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:traited`;
+  }
 }
 
 //endregion RPG_Traited
@@ -2629,6 +2698,15 @@ class RPG_EquipItem
   isArmor()
   {
     return this.etypeId > 1;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:equip`;
   }
 }
 
@@ -2727,6 +2805,15 @@ class RPG_UsableItem
     this.successRate = usableItem.successRate;
     this.tpGain = usableItem.tpGain;
   }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:usable`;
+  }
 }
 
 //endregion RPG_UsableItem
@@ -2817,7 +2904,7 @@ class RPG_Actor
     super(actor, index);
 
     // map the data.
-    this.initMembers(actor)
+    this.initMembers(actor);
   }
 
   /**
@@ -2837,6 +2924,24 @@ class RPG_Actor
     this.maxLevel = actor.maxLevel;
     this.nickname = actor.nickname;
     this.profile = actor.profile;
+  }
+
+  /**
+   * Whether or not this database entry is an actor.
+   * @returns {boolean}
+   */
+  isActor()
+  {
+    return true;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:actor`;
   }
 }
 
@@ -2886,6 +2991,15 @@ class RPG_Armor
   isArmor()
   {
     return true;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:armor`;
   }
 }
 
@@ -2944,6 +3058,24 @@ class RPG_Class
     this.params = classData.params;
     this.traits = classData.traits
       .map(trait => new RPG_Trait(trait));
+  }
+
+  /**
+   * Whether or not this database entry is a class.
+   * @returns {boolean}
+   */
+  isClass()
+  {
+    return true;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:class`;
   }
 }
 
@@ -3027,6 +3159,24 @@ class RPG_Enemy
     this.gold = enemy.gold;
     this.params = enemy.params;
   }
+
+  /**
+   * Whether or not this database entry is an enemy.
+   * @returns {boolean}
+   */
+  isEnemy()
+  {
+    return true;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:enemy`;
+  }
 }
 
 //endregion RPG_Enemy
@@ -3089,6 +3239,15 @@ class RPG_Item
   isItem()
   {
     return true;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:item`;
   }
 }
 
@@ -3191,6 +3350,15 @@ class RPG_Skill
   isSkill()
   {
     return true;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:skill`;
   }
 }
 
@@ -3364,6 +3532,24 @@ class RPG_State
     this.restriction = state.restriction;
     this.stepsToRemove = state.stepsToRemove;
   }
+
+  /**
+   * Whether or not this database entry is a state.
+   * @returns {boolean}
+   */
+  isState()
+  {
+    return true;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:state`;
+  }
 }
 
 //endregion RPG_State
@@ -3419,6 +3605,15 @@ class RPG_Weapon
   isWeapon()
   {
     return true;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:weapon`;
   }
 }
 
@@ -6881,6 +7076,268 @@ class BuiltWindowCommand
   //endregion getters
 }
 
+//region GaugeOptionsBuilder
+/**
+ * A factory for generating {@link WindowGaugeOptions}.
+ * Comes with sensible defaults.
+ */
+class GaugeOptionsBuilder
+{
+  //region properties
+  /**
+   * The color of the gauge's background.
+   * @type {string}
+   */
+  #backColor = String.empty;
+
+  /**
+   * The color of the gauge's border.
+   * @type {string}
+   */
+  #borderColor = 'rgba(255, 255, 255, 0.85)';
+
+  /**
+   * The left color gradient for the gauge.
+   * Blends to the right color.
+   * @type {string}
+   */
+  #leftColor = 'rgba(179, 89, 0, 1)';
+
+  /**
+   * The right color gradient for the gauge.
+   * Blends from the left color.
+   * @type {string}
+   */
+  #rightColor = 'rgba(255, 166, 77, 1)';
+
+  /**
+   * The thickness of the gauge's border.
+   * @type {number}
+   */
+  #borderThickness = 2;
+
+  /**
+   * The gap between the gauge's border and the inner fill area.
+   * @type {number}
+   */
+  #borderGap = 1;
+
+  /**
+   * The color of the segment dividers.
+   * @type {string}
+   */
+  #dividerColor = 'rgba(255, 255, 255, 0.85)';
+
+  /**
+   * The number of visual segments.
+   * @type {number}
+   */
+  #segments = 8;
+
+  /**
+   * The gap between visual segments in pixels.
+   * @type {number}
+   */
+  #gap = 2;
+
+  /**
+   * The corner radius of the pill gauge in pixels.
+   * @type {number}
+   */
+  #radius = 4;
+
+  /**
+   * The thickness of the radial gauge in pixels.
+   * @type {number}
+   */
+  #thickness = 6;
+
+  /**
+   * The start angle of the radial gauge in radians.
+   * @type {number}
+   */
+  #startAngle = (-Math.PI / 2);
+
+  /**
+   * The type of gauge to render.
+   * @type {string}
+   */
+  #gaugeType = Window_Base.GAUGE_TYPES.Rectangle;
+
+  //endregion properties
+
+  /**
+   * Builds the {@link WindowGaugeOptions}.
+   * @returns {WindowGaugeOptions}
+   */
+  build()
+  {
+    return new WindowGaugeOptions(
+      this.#gaugeType,
+      this.#backColor,
+      this.#leftColor,
+      this.#rightColor,
+      this.#borderColor,
+      this.#borderThickness,
+      this.#borderGap,
+      this.#dividerColor,
+      this.#segments,
+      this.#gap,
+      this.#radius,
+      this.#thickness,
+      this.#startAngle,
+    );
+  }
+
+  //region setters
+  /**
+   * The type of gauge, from {@link Window_Base.GAUGE_TYPES}.
+   * @param {string} type The gauge type.
+   * @returns {GaugeOptionsBuilder}
+   */
+  gaugeType(type)
+  {
+    this.#gaugeType = type;
+    return this;
+  }
+
+  /**
+   * Sets the gauge's background color.
+   * @param {string} color The color to set.
+   * @returns {GaugeOptionsBuilder}
+   */
+  backColor(color)
+  {
+    this.#backColor = color;
+    return this;
+  }
+
+  /**
+   * Sets the left color gradient for the gauge.
+   * @param {string} color The color to set.
+   * @returns {GaugeOptionsBuilder}
+   */
+  leftGradientColor(color)
+  {
+    this.#leftColor = color;
+    return this;
+  }
+
+  /**
+   * Sets the right color gradient for the gauge.
+   * @param {string} color The color to set.
+   * @returns {GaugeOptionsBuilder}
+   */
+  rightGradientColor(color)
+  {
+    this.#rightColor = color;
+    return this;
+  }
+
+  /**
+   * Sets the gauge’s border color.
+   * @param {string} color The outline color.
+   * @returns {GaugeOptionsBuilder}
+   */
+  borderColor(color)
+  {
+    this.#borderColor = color;
+    return this;
+  }
+
+  /**
+   * Sets the border thickness in pixels (>=1).
+   * @param {number} thickness The outline thickness.
+   * @returns {GaugeOptionsBuilder}
+   */
+  borderThickness(thickness)
+  {
+    this.#borderThickness = thickness;
+    return this;
+  }
+
+  /**
+   * Sets the padding between outline and inner fill area (>=0).
+   * @param {number} gap The padding.
+   * @returns {GaugeOptionsBuilder}
+   */
+  borderGap(gap)
+  {
+    this.#borderGap = gap;
+    return this;
+  }
+
+  /**
+   * Sets the color for segment dividers (defaults to borderColor if omitted).
+   * @param {string} color The divider color.
+   * @returns {GaugeOptionsBuilder}
+   */
+  dividerColor(color)
+  {
+    this.#dividerColor = color;
+    return this;
+  }
+
+  /**
+   * Sets the number of visual segments (>=1).
+   * @param {number} count The segment count.
+   * @returns {GaugeOptionsBuilder}
+   */
+  segments(count)
+  {
+    this.#segments = count;
+    return this;
+  }
+
+  /**
+   * Sets the inter‑segment gap in pixels (>=0).
+   * @param {number} px The gap width.
+   * @returns {GaugeOptionsBuilder}
+   */
+  gap(px)
+  {
+    this.#gap = px;
+    return this;
+  }
+
+  /**
+   * Sets the visual corner radius for pill gauges.
+   * @param {number} r The radius in pixels.
+   * @returns {GaugeOptionsBuilder}
+   */
+  radius(r)
+  {
+    this.#radius = r;
+    return this;
+  }
+
+  /**
+   * Sets the ring thickness for radial gauges.
+   * @param {number|null} t The thickness in pixels; null to derive automatically.
+   * @returns {GaugeOptionsBuilder}
+   */
+  thickness(t)
+  {
+    this.#thickness = t;
+    return this;
+  }
+
+  /**
+   * Sets the start angle for radial gauges (radians).
+   * @param {number} radians The start angle.
+   * @returns {GaugeOptionsBuilder}
+   */
+  startAngle(radians)
+  {
+    this.#startAngle = radians;
+    return this;
+  }
+
+  //endregion setters
+}
+
+//endregion GaugeOptionsBuilder
+
 //region J_EventEmitter
 /**
  * A custom event emitter for providing an event-driven approach to targeted
@@ -7790,6 +8247,139 @@ class WindowCommandBuilder
   }
 }
 
+//region WindowGaugeOptions
+/**
+ * The options for a gauge that shows up in the window.
+ */
+class WindowGaugeOptions
+{
+  /**
+   * A factory for generating {@link WindowGaugeOptions}.
+   * @returns {GaugeOptionsBuilder}
+   * @constructor
+   */
+  static Builder = () => new GaugeOptionsBuilder();
+
+  //region properties
+  /**
+   * The type of gauge to render.
+   * @type {string}
+   */
+  gaugeType = String.empty;
+
+  /**
+   * The color of the gauge's background.
+   * @type {string}
+   */
+  backColor = String.empty;
+
+  /**
+   * The left color gradient for the gauge.
+   * @type {string}
+   */
+  leftGradientColor = String.empty;
+
+  /**
+   * The right color gradient for the gauge.
+   * @type {string}
+   */
+  rightGradientColor = String.empty;
+
+  /**
+   * The color of the gauge's border.
+   * @type {string}
+   */
+  borderColor = String.empty;
+
+  /**
+   * The thickness of the gauge's border.
+   * @type {number}
+   */
+  borderThickness = 0;
+
+  /**
+   * The gap between the gauge's border and the inner fill area.
+   * @type {number}
+   */
+  borderGap = 0;
+
+  /**
+   * The color of the segment dividers.
+   * @type {string}
+   */
+  dividerColor = String.empty;
+
+  /**
+   * The number of visual segments.
+   * @type {number}
+   */
+  segments = 1;
+
+  /**
+   * The gap between visual segments in pixels.
+   * @type {number}
+   */
+  gap = 0;
+
+  /**
+   * The corner radius of the pill gauge in pixels.
+   * @type {number}
+   */
+  radius = 0;
+
+  /**
+   * The thickness of the radial gauge in pixels.
+   * @type {number}
+   */
+  thickness = 1;
+
+  /**
+   * The start angle of the radial gauge in radians.
+   * @type {number}
+   */
+  startAngle = 0;
+
+  //endregion properties
+
+  /**
+   * Constructor.
+   */
+  constructor(
+    gaugeType,
+    backColor,
+    leftGradientColor,
+    rightGradientColor,
+    borderColor,
+    borderThickness,
+    borderGap,
+    dividerColor,
+    segments,
+    gap,
+    radius,
+    thickness,
+    startAngle
+  )
+  {
+    this.gaugeType = gaugeType;
+    this.backColor = backColor;
+    this.leftGradientColor = leftGradientColor;
+    this.rightGradientColor = rightGradientColor;
+    this.borderColor = borderColor;
+    this.borderThickness = borderThickness;
+    this.borderGap = borderGap;
+    this.dividerColor = dividerColor;
+    this.segments = segments;
+    this.gap = gap;
+    this.radius = radius;
+    this.thickness = thickness;
+    this.startAngle = startAngle;
+  }
+}
+
+//endregion WindowGaugeOptions
+
+/* eslint-disable no-unused-vars */
+
 //region Game_Actor
 /**
  * Gets the parameter value from the "long" parameter id.
@@ -7918,7 +8508,8 @@ Game_Actor.prototype.getActorNotes = function()
     actor,
 
     // add the actor's class to the source list.
-    this.class(actor.classId) ];
+    this.class(actor.classId)
+  ];
 };
 
 /**
@@ -7936,7 +8527,8 @@ Game_Actor.prototype.getNotesSources = function()
     this.currentClass(),
 
     // add all of the actor's valid equips to the source list.
-    ...this.equippedEquips(), ];
+    ...this.equippedEquips(),
+  ];
 
   // combine the two source lists.
   const combinedNoteSources = baseNoteSources.concat(actorUniqueNoteSources);
@@ -8087,6 +8679,10 @@ Game_Actor.prototype.onEquipChange = function()
   this.onBattlerDataChange();
 };
 
+/**
+ * Extends {@link #changeClass}.<br/>
+ * Adds a hook for performing actions when the actor changes class.
+ */
 J.BASE.Aliased.Game_Actor.set('changeClass', Game_Actor.prototype.changeClass);
 Game_Actor.prototype.changeClass = function(classId, keepExp)
 {
@@ -8255,6 +8851,19 @@ Game_Actor.prototype.equippedEquips = function()
 };
 
 /**
+ * Sets the level of this actor to the given level.
+ * @param {number} level The level to set this actor to.
+ */
+Game_Actor.prototype.setLevel = function(level)
+{
+  // Identify the minimum threshold of experience for the target level.
+  const newExperience = this.expForLevel(level);
+
+  // change the experience for this actor to the new level's amount.
+  this.changeExp(newExperience, false);
+};
+
+/**
  * An event hook fired when this actor levels up.
  */
 Game_Actor.prototype.onLevelUp = function()
@@ -8263,7 +8872,7 @@ Game_Actor.prototype.onLevelUp = function()
 };
 
 /**
- * Extends {@link #levelUp}.<br>
+ * Extends {@link #levelUp}.<br/>
  * Adds a hook for performing actions when an the actor levels up.
  */
 J.BASE.Aliased.Game_Actor.set('levelUp', Game_Actor.prototype.levelUp);
@@ -9549,9 +10158,32 @@ Game_Party.prototype.recoverAllMembers = function()
     .forEach(member => member.recoverAll());
 };
 
+/**
+ * Overrides {@link #maxBattleMembers}.<br/>
+ * Sets the maximum number of battle members to 8.
+ * @returns {number}
+ */
 Game_Party.prototype.maxBattleMembers = function()
 {
   return 8;
+};
+
+/**
+ * Sets the level of all party members to the given level.
+ * @param {number} level The level to set all party members to.
+ */
+Game_Party.prototype.setLevel = function(level)
+{
+  // iterate over each member and set their level to the designated level.
+  this.members()
+    .forEach(member =>
+    {
+      // ensure the level is within the valid range.
+      const normalizedLevel = level.clamp(1, member.maxLevel());
+
+      // set the level.
+      member.setLevel(normalizedLevel);
+    });
 };
 //endregion Game_Party
 
@@ -11086,6 +11718,231 @@ Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy)
 };
 //endregion TileMap
 
+//region Window_ActorRibbon
+/**
+ * A window for rendering a ribbon of an actor's face.
+ * If the window is made longer or taller, additional info could be rendered around it.
+ */
+class Window_ActorRibbon
+  extends Window_Base
+{
+  //region init
+  /**
+   * @constructor
+   * @param {Rectangle} rect The rectangle that defines this window's shape.
+   */
+  constructor(rect)
+  {
+    // perform original logic.
+    super(rect);
+
+    // initialize our custom members.
+    this.initMembers();
+  }
+
+  /**
+   * Initializes all custom members of this window.
+   */
+  initMembers()
+  {
+    /**
+     * The actor in this window.
+     * @type {Game_Actor|null}
+     */
+    this._actor = null;
+
+    /**
+     * The width of the actor face in the ribbon.
+     * @type {number}
+     */
+    this._faceWidth = 128;
+
+    /**
+     * The height of the actor face in the ribbon.
+     * @type {number}
+     */
+    this._faceHeight = 40;
+
+    /**
+     * The x of the actor's face in the ribbon.
+     * @type {number}
+     */
+    this._faceX = 0;
+
+    /**
+     * The y of the actor's face in the ribbon.
+     * @type {number}
+     */
+    this._faceY = 0;
+  }
+
+  //endregion init
+
+  //region properties
+  //region actor
+  /**
+   * Gets the actor focus for the window.
+   * @returns {Game_Actor|null}
+   */
+  actor()
+  {
+    return this._actor;
+  }
+
+  /**
+   * Sets the actor focus for the window and optionally refreshes.
+   * @param {Game_Actor} actor The actor to display.
+   * @param {boolean} [andRefresh=true] Whether or not to refresh the window; defaults to true.
+   */
+  setActor(actor, andRefresh = true)
+  {
+    // set the actor.
+    this._actor = actor;
+
+    // check if a refresh is desired.
+    if (andRefresh)
+    {
+      // refresh the window.
+      this.refresh();
+    }
+  }
+
+  //endregion actor
+
+  // region face size
+  /**
+   * The width of the actor face in the ribbon.
+   * @returns {number}
+   */
+  faceWidth()
+  {
+    return this._faceWidth;
+  }
+
+  /**
+   * The width of the actor face in the ribbon.
+   * @returns {number}
+   */
+  setFaceWidth(width)
+  {
+    this._faceWidth = width;
+  }
+
+  /**
+   * The height of the actor face in the ribbon.
+   * @returns {number}
+   */
+  faceHeight()
+  {
+    return this._faceHeight;
+  }
+
+  /**
+   * The height of the actor face in the ribbon.
+   * @returns {number}
+   */
+  setFaceHeight(height)
+  {
+    this._faceHeight = height;
+  }
+
+  /**
+   * Gets the size of the actor face in the ribbon.
+   * @returns {[number, number]}
+   */
+  faceSize()
+  {
+    return [ this.faceWidth(), this.faceHeight() ];
+  }
+
+  //endregion face size
+
+  //region face coordinates
+  /**
+   * Gets the x coordinate of the actor face in the ribbon.
+   * @returns {number}
+   */
+  faceX()
+  {
+    return this._faceX;
+  }
+
+  /**
+   * Sets the x coordinate of the actor face in the ribbon.
+   * @param {number} x The x coordinate.
+   */
+  setFaceX(x)
+  {
+    this._faceX = x;
+  }
+
+  /**
+   * Gets the y coordinate of the actor face in the ribbon.
+   * @returns {number}
+   */
+  faceY()
+  {
+    return this._faceY;
+  }
+
+  /**
+   * Sets the y coordinate of the actor face in the ribbon.
+   * @param {number} y The y coordinate.
+   */
+  setFaceY(y)
+  {
+    this._faceY = y;
+  }
+
+  /**
+   * Gets the coordinates of the actor face in the ribbon.
+   * @returns {[number, number]}
+   */
+  faceCoordinates()
+  {
+    return [ this.faceX(), this.faceY() ];
+  }
+
+  //endregion face coordinates
+  //endregion properties
+
+  //region draw
+  /**
+   * Implements {@link #drawContent}.<br/>
+   * Draws the actor face in the ribbon.
+   */
+  drawContent()
+  {
+    // don't draw if the actor is unavailable.
+    if (!this._actor) return;
+
+    // draw the actor face.
+    this.drawActorRibbon();
+  }
+
+  /**
+   * Draws the actor face in the ribbon.
+   */
+  drawActorRibbon()
+  {
+    // grab the actor.
+    const actor = this.actor();
+
+    // grab the coordinates of the face.
+    const [ x, y ] = this.faceCoordinates();
+
+    // grab the size of the face.
+    const [ w, h ] = this.faceSize();
+
+    // draw the face.
+    this.drawFace(actor.faceName(), actor.faceIndex(), x, y, w, h);
+  }
+
+  //endregion draw
+}
+
+//endregion Window_ActorRibbon
+
 //region Window_Base
 /**
  * All alignments available for {@link Window_Base.prototype.drawText}.<br>
@@ -11111,6 +11968,25 @@ Window_Base.TextAlignments = {
    */
   Right: 'right'
 };
+
+/**
+ * Enumerates built-in gauge types for {@link Window_Base#drawGauge}.
+ */
+Window_Base.GAUGE_TYPES = {
+  // a bordered rectangular gauge with gradient fill.
+  Rectangle: 'rect',
+
+  // a segmented gauge.
+  Segmented: 'segmented',
+
+  // a rounded-corner style.
+  Pill: 'pill',
+
+  // a circular ring gauge.
+  Radial: 'radial',
+};
+
+//region draw text
 
 /**
  * Draws a horizontal "line" with the given parameters.
@@ -11276,6 +12152,8 @@ Window_Base.prototype.setFontSize = function(fontSize)
   this.contents.fontSize = normalizedFontSize;
 };
 
+//endregion draw text
+
 /**
  * Renders a "background" of a given rectangle.
  * This is centralized for all windows to leverage if necessary.
@@ -11299,6 +12177,422 @@ Window_Base.prototype.drawBackgroundRect = function(rect)
   this.contentsBack.gradientFillRect(x, y, width, height, color1, color2, true);
   this.contentsBack.strokeRect(x, y, width, height, color1);
 };
+
+// region draw gauge
+
+/**
+ * The height of this gauge.
+ */
+Window_Base.prototype.gaugeHeight = function()
+{
+  return 10;
+};
+
+/**
+ * The backdrop color.
+ * Defaults to black with 50% opacity.
+ * @returns {string}
+ */
+Window_Base.prototype.gaugeBackColor = function()
+{
+  return 'rgba(0, 0, 0, 0.5)';
+};
+
+/**
+ * Draws a gauge using a {@link Rectangle} and a {@link WindowGaugeOptions}.
+ * @param {Rectangle} rect The rectangle area to draw within.
+ * @param {number} rate The 0..1 fill amount.
+ * @param {WindowGaugeOptions} options The gauge options.
+ */
+Window_Base.prototype.drawGauge = function(
+  rect,
+  rate,
+  options,
+)
+{
+  // delegate to the Rectangle-based switch.
+  this.drawGaugeRect(rect, rate, options);
+};
+
+/**
+ * Dispatches to the specific gauge renderer based on the options.
+ * Provides an inner-rect (padding) and delegates shape/back/border to the style.
+ * @param {Rectangle} rect The rectangle area.
+ * @param {number} rate The 0..1 fill amount.
+ * @param {WindowGaugeOptions} options The strongly-typed gauge options.
+ */
+Window_Base.prototype.drawGaugeRect = function(rect, rate, options)
+{
+  // clamp the rate to the 0..1 range.
+  const clampedRate = Math.max(0, Math.min(1, rate));
+
+  // compute the inner rectangle to avoid the border padding.
+  const inner = this._computeGaugeInnerRect(rect, options);
+
+  // extract the inner rectangle coordinates.
+  const {
+    x,
+    y,
+    width,
+    height
+  } = inner;
+
+  // route to the appropriate style.
+  switch (options.gaugeType)
+  {
+    case Window_Base.GAUGE_TYPES.Segmented:
+    {
+      this.drawGaugeSegmented(x, y, width, height, clampedRate, options);
+      break;
+    }
+    case Window_Base.GAUGE_TYPES.Pill:
+    {
+      this.drawGaugePill(x, y, width, height, clampedRate, options);
+      break;
+    }
+    case Window_Base.GAUGE_TYPES.Radial:
+    {
+      this.drawGaugeRadial(x, y, width, height, clampedRate, options);
+      break;
+    }
+    case Window_Base.GAUGE_TYPES.Rectangle:
+    default:
+    {
+      this.drawGaugeBorderedRect(x, y, width, height, clampedRate, options);
+      break;
+    }
+  }
+};
+
+/**
+ * Draws a rectangular gauge with a gradient fill and a rectangle border that
+ * hugs the fill area. Back color is rendered first.
+ * @param {number} x The x coordinate inside the inner rect.
+ * @param {number} y The y coordinate inside the inner rect.
+ * @param {number} w The inner width.
+ * @param {number} h The inner height.
+ * @param {number} rate The 0..1 fill amount.
+ * @param {WindowGaugeOptions} options The strongly-typed gauge options.
+ */
+Window_Base.prototype.drawGaugeBorderedRect = function(x, y, w, h, rate, options)
+{
+  // styling.
+  const { backColor } = options;
+  const { borderColor } = options;
+  const { borderThickness } = options;
+
+  // fill back area.
+  this.contents.fillRect(x, y, w, h, backColor);
+
+  // fill gradient portion.
+  const fw = Math.max(0, Math.floor(w * Math.max(0, Math.min(1, rate))));
+  if (fw > 0 && h > 0)
+  {
+    this.contents.gradientFillRect(x, y, fw, h, options.leftGradientColor, options.rightGradientColor);
+  }
+
+  // stroke rectangular border.
+  const ctx = this.contents._context;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x + 0.5, y + 0.5, w - 1, h - 1);
+  ctx.lineWidth = borderThickness;
+  ctx.strokeStyle = borderColor;
+  ctx.stroke();
+  ctx.restore();
+};
+
+/**
+ * Draws a segmented gauge with a single continuous gradient across the filled length.
+ * Then carves gap bars so color transitions don’t reset per segment.
+ * Border is a simple rectangle following the gauge.
+ * @param {number} x The x coordinate.
+ * @param {number} y The y coordinate.
+ * @param {number} w The inner width.
+ * @param {number} h The inner height.
+ * @param {number} rate The 0..1 fill amount.
+ * @param {WindowGaugeOptions} options The strongly-typed gauge options.
+ */
+Window_Base.prototype.drawGaugeSegmented = function(x, y, w, h, rate, options)
+{
+  // pull styling.
+  const { backColor } = options;
+  const { borderColor } = options;
+  const { borderThickness } = options;
+
+  // divider styling (defaults to border color so it remains visible on any fill).
+  const dividerColor = options.dividerColor || borderColor;
+
+  // coerce parameters.
+  const count = Math.max(1, Number(options.segments));
+  const spacing = Math.max(0, Number(options.gap));
+
+  // compute the filled width and early outs.
+  const clamped = Math.max(0, Math.min(1, rate));
+  const fw = Math.max(0, Math.floor(w * clamped));
+  if (h <= 0) return;
+
+  // BACK: whole rect.
+  this.contents.fillRect(x, y, w, h, backColor);
+
+  // FILL: one continuous gradient across fw.
+  if (fw > 0)
+  {
+    this.contents.gradientFillRect(x, y, fw, h, options.leftGradientColor, options.rightGradientColor);
+
+    // carve gaps without breaking the gradient.
+    if (count > 1 && spacing > 0)
+    {
+      const totalGap = spacing * (count - 1);
+      const segW = Math.max(1, Math.floor((w - totalGap) / count));
+      for (let i = 1; i < count; i++)
+      {
+        // location of the i-th divider (left edge of the gap)
+        const gx = x + i * segW + (i - 1) * spacing;
+
+        // only carve within the filled area.
+        if (gx < x + fw)
+        {
+          // width to carve for this divider (may be truncated if near the fill edge).
+          const carve = Math.min(spacing, (x + fw) - gx);
+
+          // draw the divider using its own color for strong contrast.
+          if (carve > 0)
+          {
+            this.contents.fillRect(gx, y, carve, h, dividerColor);
+          }
+        }
+      }
+    }
+  }
+
+  // BORDER: rectangular stroke around the shape.
+  const ctx = this.contents._context;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x + 0.5, y + 0.5, w - 1, h - 1);
+  ctx.lineWidth = borderThickness;
+  ctx.strokeStyle = borderColor;
+  ctx.stroke();
+  ctx.restore();
+};
+
+/**
+ * Draws a pill gauge with a true rounded-rectangle path (no scanlines),
+ * then outlines it so the border follows the pill shape.
+ * @param {number} x The x coordinate.
+ * @param {number} y The y coordinate.
+ * @param {number} w The inner width.
+ * @param {number} h The inner height.
+ * @param {number} rate The 0..1 fill amount.
+ * @param {WindowGaugeOptions} options The strongly-typed gauge options.
+ */
+Window_Base.prototype.drawGaugePill = function(x, y, w, h, rate, options)
+{
+  // clamp the radius to avoid pointy ends.
+  const maxR = Math.max(0, Math.floor(h / 2) - 1);
+  const r = Math.max(0, Math.min(Number(options.radius), maxR));
+
+  // derive styling.
+  const { backColor } = options;
+  const { borderColor } = options;
+  const { borderThickness } = options;
+
+  // compute the filled width.
+  const fw = Math.max(0, Math.floor(w * Math.max(0, Math.min(1, rate))));
+  if (h <= 0) return;
+
+  // get 2D context and gradient.
+  const ctx = this.contents._context;
+  const grad = ctx.createLinearGradient(x, y, x + w, y);
+  grad.addColorStop(0, options.leftGradientColor);
+  grad.addColorStop(1, options.rightGradientColor);
+
+  // helper to draw a rounded-rect path.
+  const roundedRectPath = () =>
+  {
+    const x2 = x + w;
+    const y2 = y + h;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x2 - r, y);
+    ctx.arcTo(x2, y, x2, y + r, r);
+    ctx.lineTo(x2, y2 - r);
+    ctx.arcTo(x2, y2, x2 - r, y2, r);
+    ctx.lineTo(x + r, y2);
+    ctx.arcTo(x, y2, x, y2 - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+  };
+
+  // BACK: pill outline filled with back color.
+  ctx.save();
+  roundedRectPath();
+  ctx.fillStyle = backColor;
+  ctx.fill();
+  ctx.restore();
+
+  // FILL: draw only the left fw portion — clip to the pill shape for clean ends.
+  if (fw > 0)
+  {
+    ctx.save();
+    roundedRectPath();
+    ctx.clip();
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, fw, h);
+    ctx.restore();
+  }
+
+  // BORDER: stroke the pill outline.
+  ctx.save();
+  roundedRectPath();
+  ctx.lineWidth = borderThickness;
+  ctx.strokeStyle = borderColor;
+  ctx.stroke();
+  ctx.restore();
+};
+
+/**
+ * Draws an elliptical (oval-capable) radial gauge inside the given rect.
+ * Renders: back ring → filled wedge → border strokes that follow outer+inner ellipses.
+ * @param {number} x The inner-rect x.
+ * @param {number} y The inner-rect y.
+ * @param {number} w The inner-rect width.
+ * @param {number} h The inner-rect height.
+ * @param {number} rate The 0..1 fill amount.
+ * @param {WindowGaugeOptions} options The strongly-typed gauge options.
+ */
+Window_Base.prototype.drawGaugeRadial = function(x, y, w, h, rate, options)
+{
+  // compute outer radii and center.
+  const rx = Math.max(2, Math.floor(w / 2) - 1);
+  const ry = Math.max(2, Math.floor(h / 2) - 1);
+  const cx = x + Math.floor(w / 2);
+  const cy = y + Math.floor(h / 2);
+
+  // clamp rate and angles.
+  const r = Math.max(0, Math.min(1, rate));
+  const a0 = options.startAngle;
+  const a1 = a0 + (Math.PI * 2 * r);
+
+  // inner radii from thickness.
+  const t = Math.max(1, Math.floor(options.thickness));
+  const irx = Math.max(1, rx - t);
+  const iry = Math.max(1, ry - t);
+
+  // styling.
+  const { backColor } = options;
+  const { borderColor } = options;
+  const { borderThickness } = options;
+
+  // acquire 2D context and gradient.
+  const ctx = this.contents._context;
+  const midAngle = a0 + (a1 - a0) / 2;
+  const gx0 = cx + Math.cos(a0) * irx;
+  const gy0 = cy + Math.sin(a0) * iry;
+  const gx1 = cx + Math.cos(midAngle) * rx;
+  const gy1 = cy + Math.sin(midAngle) * ry;
+  const grad = ctx.createLinearGradient(gx0, gy0, gx1, gy1);
+  grad.addColorStop(0, options.leftGradientColor);
+  grad.addColorStop(1, options.rightGradientColor);
+
+  // BACK: full ring.
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2, false);
+  ctx.ellipse(cx, cy, irx, iry, 0, Math.PI * 2, 0, true);
+  ctx.closePath();
+  ctx.fillStyle = backColor;
+  ctx.fill();
+  ctx.restore();
+
+  // FILL: wedge slice (donut section) if any progress.
+  if (r > 0)
+  {
+    ctx.save();
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, rx, ry, 0, a0, a1, false);
+    ctx.ellipse(cx, cy, irx, iry, 0, a1, a0, true);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // BORDER: outer + inner ellipses stroked to match the ring’s shape.
+  ctx.save();
+  ctx.lineWidth = borderThickness;
+  ctx.strokeStyle = borderColor;
+
+  // outer ring border.
+  ctx.beginPath();
+  ctx.ellipse(
+    cx,
+    cy,
+    rx - (borderThickness % 2
+      ? 0.5
+      : 0),
+    ry - (borderThickness % 2
+      ? 0.5
+      : 0),
+    0,
+    0,
+    Math.PI * 2,
+    false
+  );
+  ctx.stroke();
+
+  // inner ring border.
+  ctx.beginPath();
+  ctx.ellipse(
+    cx,
+    cy,
+    irx + (borderThickness % 2
+      ? 0.5
+      : 0),
+    iry + (borderThickness % 2
+      ? 0.5
+      : 0),
+    0,
+    0,
+    Math.PI * 2,
+    false
+  );
+  ctx.stroke();
+  ctx.restore();
+};
+
+/**
+ * Computes the inner rectangle to draw into by applying border/padding options.
+ * This prevents the fill from touching the border while letting each style
+ * render its own border/backdrop shape.
+ * @param {Rectangle} rect The outer rectangle passed to drawGauge.
+ * @param {WindowGaugeOptions} options The gauge options (includes border settings).
+ * @returns {Rectangle} The inner rect.
+ */
+Window_Base.prototype._computeGaugeInnerRect = function(rect, options)
+{
+  // pull padding factors.
+  const borderThickness = Math.max(1, options.borderThickness);
+  const borderGap = Math.max(0, options.borderGap);
+
+  // compute inner rect inside the padding.
+  const ix = rect.x + borderThickness + borderGap;
+  const iy = rect.y + borderThickness + borderGap;
+  const iw = Math.max(0, rect.width - ((borderThickness + borderGap) * 2));
+  const ih = Math.max(0, rect.height - ((borderThickness + borderGap) * 2));
+
+  // return the inner rect.
+  return {
+    x: ix,
+    y: iy,
+    width: iw,
+    height: ih
+  };
+};
+
+//endregion draw gauge
 //endregion Window_Base
 
 //region Window_Command
@@ -11367,7 +12661,7 @@ Window_Command.prototype.drawItem = function(index)
   const rightText = this.commandRightText(index);
 
   // grab the subtext for this command.
-  const isSubtext = this.isCommandSubtext(index)
+  const isSubtext = this.isCommandSubtext(index);
   const subtexts = this.commandSubtext(index);
 
   // grab the extra lines for this command.
@@ -11415,7 +12709,8 @@ Window_Command.prototype.drawItem = function(index)
       commandNameX - 36,
       faceY - 12,
       ImageManager.faceWidth,
-      ImageManager.faceHeight);
+      ImageManager.faceHeight
+    );
     commandNameX += 36;
   }
 
@@ -11459,7 +12754,7 @@ Window_Command.prototype.drawItem = function(index)
     this.processColorChange(this.commandRightColorIndex(index));
 
     // render the right-aligned text.
-    this.drawText(rightText, rightTextX, rightTextY, textWidth, "right");
+    this.drawText(rightText, rightTextX, rightTextY, textWidth, 'right');
 
     // bolden the text if we have subtext to make it stand out.
     this.toggleBold(false);

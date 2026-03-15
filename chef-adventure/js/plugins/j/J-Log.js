@@ -462,7 +462,7 @@ class ActionLogBuilder
    * The current message that this log contains.
    * @type {string}
    */
-  #message = "message-unset";
+  #message = 'message-unset';
 
   /**
    * Builds the log based on the currently provided info.
@@ -535,14 +535,14 @@ class ActionLogBuilder
     if (isCritical)
     {
       hurtOrHeal = isHealing
-        ? "critically healed"
-        : "landed a critical";
+        ? 'critically healed'
+        : 'landed a critical';
     }
     else
     {
       hurtOrHeal = isHealing
-        ? "healed"
-        : "hit";
+        ? 'healed'
+        : 'hit';
     }
 
     // the text color index is based on whether or not its flagged as healing.
@@ -571,14 +571,14 @@ class ActionLogBuilder
     if (isCritical)
     {
       hurtOrHeal = isHealing
-        ? "critically healed"
-        : "devastatingly damaged";
+        ? 'critically healed'
+        : 'devastatingly damaged';
     }
     else
     {
       hurtOrHeal = isHealing
-        ? "restored"
-        : "struck";
+        ? 'restored'
+        : 'struck';
     }
 
     // the text color index is based on whether or not its flagged as healing.
@@ -715,11 +715,11 @@ class ActionLogBuilder
 
     // construct the message.
     const prefix = isPreciseParry
-      ? "precise-"
-      : "";
+      ? 'precise-'
+      : '';
     const suffix = isPreciseParry
-      ? " with finesse!"
-      : ".";
+      ? ' with finesse!'
+      : '.';
     const message = `${defender} ${prefix}parried ${casterName}'s \\Skill[${skillId}]${suffix}`;
 
     // assign the message to this log.

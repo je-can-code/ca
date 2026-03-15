@@ -634,6 +634,7 @@ JABS_AiManager.postConvertMutate = function(battler, jabsBattler)
 /**
  * A helper class for calculating level-based scaling multipliers.
  */
+// eslint-disable-next-line no-unused-vars
 class LevelScaling
 {
   //region properties
@@ -687,7 +688,7 @@ class LevelScaling
    */
   constructor()
   {
-    throw new Error("This is a static class.");
+    throw new Error('This is a static class.');
   }
 
   /**
@@ -946,7 +947,8 @@ Game_Actor.prototype.getLevelSources = function()
     ...this.equips(),
 
     // add all currently applied states to the source list.
-    ...this.allStates(), ];
+    ...this.allStates(),
+  ];
 };
 
 /**
