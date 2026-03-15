@@ -4641,7 +4641,7 @@ class Window_SdpPoints
     const x = 240;
     const y = 0;
     const textWidth = 300;
-    const alignment = "left";
+    const alignment = 'left';
     this.drawText(points, x, y, textWidth, alignment);
   }
 
@@ -4654,8 +4654,13 @@ class Window_SdpPoints
     if (!this._actor) return;
 
     this.drawFace(
-      this._actor.faceName(), this._actor.faceIndex(), 0, 0,   // x,y
-      128, 40);// w,h
+      this._actor.faceName(),
+      this._actor.faceIndex(),
+      0,
+      0,
+      128,
+      40
+    );
   }
 
   /**

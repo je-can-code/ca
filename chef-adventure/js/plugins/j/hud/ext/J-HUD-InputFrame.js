@@ -608,7 +608,7 @@ class Sprite_CooldownGauge
    */
   gaugeColor1()
   {
-    return "rgba(0, 0, 255, 1)";
+    return 'rgba(0, 0, 255, 1)';
   }
 
   /**
@@ -618,7 +618,7 @@ class Sprite_CooldownGauge
    */
   gaugeColor2()
   {
-    return "rgba(0, 255, 0, 1)";
+    return 'rgba(0, 255, 0, 1)';
   }
 
   /**
@@ -628,7 +628,7 @@ class Sprite_CooldownGauge
    */
   gaugeBackColor()
   {
-    return "rgba(0, 0, 0, 0.5)";
+    return 'rgba(0, 0, 0, 0.5)';
   }
 
   /**
@@ -812,7 +812,8 @@ class Sprite_CooldownGauge
       fillW,                // the width to fill.
       fillH,                // the hieght to fill.
       this.gaugeColor1(),   // the color gradient to start with.
-      this.gaugeColor2());  // the color gradient to end with.
+      this.gaugeColor2()
+    );  // the color gradient to end with.
   }
 }
 
