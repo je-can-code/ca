@@ -390,11 +390,11 @@ class RPG_DropItemBuilder
  * Extends {@link #initMembers}.<br/>
  * Also initializes the extra drops.
  */
-J.DROPS.Aliased.Game_Enemy.set("initMembers", RPG_Enemy.prototype.initMembers);
+J.DROPS.Aliased.Game_Enemy.set('initMembers', RPG_Enemy.prototype.initMembers);
 RPG_Enemy.prototype.initMembers = function(enemy)
 {
   // perform original logic.
-  J.DROPS.Aliased.Game_Enemy.get("initMembers")
+  J.DROPS.Aliased.Game_Enemy.get('initMembers')
     .call(this, enemy);
 
   // also parse our extra drops into the drop items list.
@@ -406,14 +406,8 @@ RPG_Enemy.prototype.initMembers = function(enemy)
  */
 RPG_Enemy.prototype.initExtraDrops = function()
 {
-  // if the enemy is null or something, just nix it.
-  if (this === null)
-  {
-    throw new Error('we initialized extra drops for a null enemy, oops.');
-  }
-
   // get the drops found on this enemy.
-  const moreDrops = RPGManager.getArraysFromNotesByRegex(this, J.DROPS.RegExp.ExtraDrop, true) ?? [];
+  const moreDrops = RPGManager.getArraysFromNotesByRegex(this, J.DROPS.RegExp.ExtraDrop, true);
 
   // if there are no more drops, then skip processing.
   if (moreDrops.length === 0) return;

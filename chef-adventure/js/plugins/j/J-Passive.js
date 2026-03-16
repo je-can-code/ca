@@ -185,18 +185,9 @@ J.PASSIVE.Aliased.Window_MoreEquipData = new Map();
 Object.defineProperty(RPG_BaseBattler.prototype, "passiveStateIds", {
   get: function()
   {
-    return this.extractPassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.PassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_BaseBattler.prototype.extractPassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.PassiveStateIds);
-};
 //endregion passive state ids
 
 //region unique passive state ids
@@ -207,18 +198,9 @@ RPG_BaseBattler.prototype.extractPassiveStateIds = function()
 Object.defineProperty(RPG_BaseBattler.prototype, "uniquePassiveStateIds", {
   get: function()
   {
-    return this.extractUniquePassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.UniquePassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_BaseBattler.prototype.extractUniquePassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniquePassiveStateIds);
-};
 //endregion unique passive state ids
 
 //region equipped passive state ids
@@ -257,18 +239,9 @@ Object.defineProperty(RPG_BaseBattler.prototype, "uniqueEquippedPassiveStateIds"
 Object.defineProperty(RPG_BaseItem.prototype, "passiveStateIds", {
   get: function()
   {
-    return this.extractPassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.PassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_BaseItem.prototype.extractPassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.PassiveStateIds);
-};
 //endregion passive state ids
 
 //region unique passive state ids
@@ -279,18 +252,9 @@ RPG_BaseItem.prototype.extractPassiveStateIds = function()
 Object.defineProperty(RPG_BaseItem.prototype, "uniquePassiveStateIds", {
   get: function()
   {
-    return this.extractUniquePassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.UniquePassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_BaseItem.prototype.extractUniquePassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniquePassiveStateIds);
-};
 //endregion unique passive state ids
 
 //region equipped passive state ids
@@ -301,18 +265,9 @@ RPG_BaseItem.prototype.extractUniquePassiveStateIds = function()
 Object.defineProperty(RPG_BaseItem.prototype, "equippedPassiveStateIds", {
   get: function()
   {
-    return this.extractEquippedPassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.EquippedPassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_BaseItem.prototype.extractEquippedPassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.EquippedPassiveStateIds);
-};
 //endregion equipped passive state ids
 
 //region unique equipped passive state ids
@@ -324,18 +279,9 @@ RPG_BaseItem.prototype.extractEquippedPassiveStateIds = function()
 Object.defineProperty(RPG_BaseItem.prototype, "uniqueEquippedPassiveStateIds", {
   get: function()
   {
-    return this.extractUniqueEquippedPassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_BaseItem.prototype.extractUniqueEquippedPassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds);
-};
 //endregion unique equipped passive state ids
 //endregion RPG_BaseItem
 
@@ -348,18 +294,9 @@ RPG_BaseItem.prototype.extractUniqueEquippedPassiveStateIds = function()
 Object.defineProperty(RPG_Class.prototype, "passiveStateIds", {
   get: function()
   {
-    return this.extractPassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.PassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_Class.prototype.extractPassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.PassiveStateIds);
-};
 //endregion passive state ids
 
 //region unique passive state ids
@@ -370,18 +307,9 @@ RPG_Class.prototype.extractPassiveStateIds = function()
 Object.defineProperty(RPG_Class.prototype, "uniquePassiveStateIds", {
   get: function()
   {
-    return this.extractUniquePassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.UniquePassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_Class.prototype.extractUniquePassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniquePassiveStateIds);
-};
 //endregion unique passive state ids
 
 //region equipped passive state ids
@@ -392,18 +320,9 @@ RPG_Class.prototype.extractUniquePassiveStateIds = function()
 Object.defineProperty(RPG_Class.prototype, "equippedPassiveStateIds", {
   get: function()
   {
-    return this.extractEquippedPassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.EquippedPassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_Class.prototype.extractEquippedPassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.EquippedPassiveStateIds);
-};
 //endregion equipped passive state ids
 
 //region unique equipped passive state ids
@@ -415,18 +334,9 @@ RPG_Class.prototype.extractEquippedPassiveStateIds = function()
 Object.defineProperty(RPG_Class.prototype, "uniqueEquippedPassiveStateIds", {
   get: function()
   {
-    return this.extractUniqueEquippedPassiveStateIds();
+    return RPGManager.getNumbersFromNoteByRegex(this, J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds);
   },
 });
-
-/**
- * Extracts the value from the notes.
- * @returns {number[]}
- */
-RPG_Class.prototype.extractUniqueEquippedPassiveStateIds = function()
-{
-  return this.getNumberArrayFromNotesByRegex(J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds);
-};
 //endregion unique equipped passive state ids
 //endregion RPG_Class
 

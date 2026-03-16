@@ -2001,27 +2001,9 @@ JABS_StandardController.prototype.canChargeCombatAction4 = function()
 Object.defineProperty(RPG_Skill.prototype, "jabsChargeData", {
   get: function()
   {
-    return this.getJabsChargeData();
+    return RPGManager.getArraysFromNotesByRegex(this, J.ABS.EXT.CHARGE.RegExp.ChargeData, true);
   },
 });
-
-/**
- * Gets the charge tier data from this skill.
- * @returns {[number, number, number, number][]|null}
- */
-RPG_Base.prototype.getJabsChargeData = function()
-{
-  return this.extractJabsChargeData()
-};
-
-/**
- * Gets the value from its notes.
- * @returns {[number, number, number, number][]|null}
- */
-RPG_Base.prototype.extractJabsChargeData = function()
-{
-  return this.getArraysFromNotesByRegex(J.ABS.EXT.CHARGE.RegExp.ChargeData, true);
-};
 //endregion RPG_Skill
 
 //region SoundManager

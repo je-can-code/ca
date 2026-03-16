@@ -192,8 +192,13 @@ J.EXTEND.Metadata.Version = '1.1.0';
  * A collection of all aliased methods for this plugin.
  */
 J.EXTEND.Aliased = {};
+J.EXTEND.Aliased.DataManager = new Map();
 J.EXTEND.Aliased.Game_Action = new Map();
+J.EXTEND.Aliased.Game_Actor = new Map();
+J.EXTEND.Aliased.Game_Enemy = new Map();
 J.EXTEND.Aliased.Game_Item = new Map();
+J.EXTEND.Aliased.Game_Item = new Map();
+J.EXTEND.Aliased.JABS_SkillSlotManager = new Map();
 
 /**
  * All regular expressions used by this plugin.
@@ -227,6 +232,78 @@ Object.defineProperty(RPG_Skill.prototype, "getSkillExtensions", {
 });
 //endregion RPG_Skill
 
+//region DataManager
+/**
+ * Extends {@link #setupNewGame}.<br/>
+ * Also clears the RPGManager note cache for a fresh session.
+ */
+J.EXTEND.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
+DataManager.setupNewGame = function()
+{
+  // clear any previously cached skill extensions before creating a new game.
+  OverlayManager.clearCache();
+
+  // perform original logic.
+  J.EXTEND.Aliased.DataManager.get('setupNewGame')
+    .call(this);
+};
+
+/**
+ * Extends {@link #extractSaveContents}.<br/>
+ * Also clears the RPGManager note cache before applying save data.
+ */
+J.EXTEND.Aliased.DataManager.set('extractSaveContents', DataManager.extractSaveContents);
+DataManager.extractSaveContents = function(contents)
+{
+  // clear any previously cached skill extensions before applying the save contents.
+  OverlayManager.clearCache();
+
+  // perform original logic.
+  J.EXTEND.Aliased.DataManager.get('extractSaveContents')
+    .call(this, contents);
+};
+
+/**
+ * Extends {@link #setupBattleTest}.<br/>
+ * Also clears the RPGManager note cache when entering battle test.
+ */
+J.EXTEND.Aliased.DataManager.set('setupBattleTest', DataManager.setupBattleTest);
+DataManager.setupBattleTest = function()
+{
+  // clear cache to ensure battle test uses fresh extensions.
+  OverlayManager.clearCache();
+
+  // perform original logic.
+  J.EXTEND.Aliased.DataManager.get('setupBattleTest')
+    .call(this);
+};
+//endregion DataManager
+
+//region JABS_SkillSlotManager
+J.EXTEND.Aliased.JABS_SkillSlotManager.set('filterActionSkills', JABS_SkillSlotManager.prototype.filterActionSkills);
+/**
+ * Extends {@link #filterActionSkills}.<br/>
+ * Also filters out skill extensions.
+ * @param {Game_Enemy} enemy The enemy to check.
+ * @param {RPG_EnemyAction} action The action to check.
+ */
+JABS_SkillSlotManager.prototype.filterActionSkills = function(enemy, action)
+{
+  // perform original logic.
+  const originalLogic = J.EXTEND.Aliased.JABS_SkillSlotManager.get('filterActionSkills')
+    .call(this, enemy, action);
+
+  // if the original logic returns false, then don't continue.
+  if (originalLogic === false) return false;
+
+  // grab the skill from the database.
+  const skill = enemy.skill(action.skillId);
+
+  // filter out the extend skills.
+  return skill.isSkillExtension === false;
+};
+//endregion JABS_SkillSlotManager
+
 //region OverlayManager
 /**
  * A static class for managing the overlaying of one skill onto another.
@@ -253,34 +330,42 @@ class OverlayManager
      * Any tag that is not one of the defined types will qualify as this and not get mutated.
      */
     unsupported: 'unsupported',
-  }
+  };
 
+  //region caching
   /**
    * A cache for caster-skill extensions.
    * This is effectively a map of maps, where the parent map is keyed by the caster, while the child map is keyed by
    * a combination of the skill id and its extension skill ids.
-   * @type {Map<Game_Actor|Game_Enemy, Map<string, RPG_Skill>>}
+   * @type {WeakMap<Game_Actor|Game_Enemy, Map<string, RPG_Skill>>}
    */
   static _casterExtendCache = new WeakMap();
 
   /**
-   * Constructor.
-   * This is a static class so using this constructor will throw an error.
+   * The metrics for this manager.
+   * @type {{ hits: number, misses: number }}
    */
-  constructor()
+  static _metrics = {
+    hits: 0,
+    misses: 0,
+  };
+
+  /**
+   * Invalidates the cache for the given battler.
+   * @param {Game_Actor|Game_Enemy} battler The battler to invalidate the cache for.
+   * @returns {boolean} True if the cache was invalidated, false otherwise.
+   */
+  static invalidate(battler)
   {
-    throw new Error('The OverlayManager is a static class.');
+    return this._casterExtendCache.delete(battler);
   }
 
   /**
-   * Gets the OverlayManager-owned per-caster cache.
-   * The cache maps a caster to a Map keyed by a deterministic overlay set key.
-   * @returns {WeakMap<Game_Actor|Game_Enemy, Map<string, RPG_Skill>>} The cache WeakMap.
+   * Clears the cache for all objects.
    */
-  static getCasterExtendCache()
+  static clearCache()
   {
-    // return the WeakMap that contains per-caster extended-skill caches.
-    return this._casterExtendCache;
+    this._casterExtendCache = new WeakMap();
   }
 
   /**
@@ -289,26 +374,59 @@ class OverlayManager
    * @param {Game_Actor|Game_Enemy} caster The caster of the skill.
    * @returns {Map<string, RPG_Skill>}
    */
-  static getOrCreateCasterCache(caster)
+  static getOrCreateCacheForCaster(caster)
   {
-    // retrieve the OverlayManager-owned per-caster cache WeakMap.
-    const cacheByCaster = this.getCasterExtendCache();
+    // check if the cache for this caster already exists.
+    const cacheHit = this._casterExtendCache.get(caster);
 
-    // attempt to get the existing per-caster Map from the WeakMap.
-    let casterCache = cacheByCaster.get(caster);
+    // if it does exist, return it.
+    if (cacheHit) return cacheHit;
 
-    // if the caster has a cache, return it.
-    if (casterCache !== undefined) return casterCache;
+    // it doesn't exist yet, so create it.
+    const newCasterCache = new Map();
+    this._casterExtendCache.set(caster, newCasterCache);
 
-    // create the new Map that will store extended results keyed by overlay combination.
-    casterCache = new Map();
-
-    // record the new Map into the WeakMap for this caster.
-    cacheByCaster.set(caster, casterCache);
-
-    // return the newly-built cache.
-    return casterCache;
+    // return the newly created cache.
+    return newCasterCache;
   }
+
+  /**
+   * Retrieves a cached value for this caster/key, or computes and stores it.
+   *
+   * @param {Game_Actor|Game_Enemy} caster - The caster whose cache bucket to use.
+   * @param {string} key - Stable key representing the computed value (ex: base skill id + overlay ids).
+   * @param {Function} computeFn - A no-arg function that computes the value on a cache miss.
+   * @returns {RPG_Skill} - The cached or newly computed extended skill.
+   */
+  static cached(caster, key, computeFn)
+  {
+    // get or create the per-caster cache map from the WeakMap.
+    const perCaster = this.getOrCreateCacheForCaster(caster);
+
+    // if we already have this key cached, return it and track a hit.
+    if (perCaster.has(key))
+    {
+      // increment metrics for visibility while iterating on this.
+      this._metrics.hits++;
+
+      // return the cached value.
+      return perCaster.get(key);
+    }
+
+    // we do not yet have a cached value; compute it now.
+    const value = computeFn();
+
+    // store the computed value in the per-caster cache.
+    perCaster.set(key, value);
+
+    // increment miss counter.
+    this._metrics.misses++;
+
+    // return the computed value.
+    return value;
+  }
+
+  //endregion caching
 
   /**
    * Gets the extended skill based on the caster's learned skills.
@@ -318,30 +436,57 @@ class OverlayManager
    */
   static getExtendedSkill(caster, skillId)
   {
+    // validate the incoming base id.
     if (skillId <= 0) throw new Error('Invalid skill extension id.');
 
     // if we don't have a caster for some reason, don't process anything.
     if (!caster) return $dataSkills[skillId];
 
-    // attempt to get the existing per-caster Map from the WeakMap.
-    const casterCache = this.getOrCreateCasterCache(caster);
-
-    // the filter for filtering whether or not a skill is an extension skill.
-    /** @param {RPG_Skill} skill */
-    const isOverlayForBase = (skill) =>
-    {
-      // if this skill is not an extension skill, then it cannot overlay the base.
-      if (skill.isSkillExtension === false) return false;
-
-      // indicate whether or not this skill overlays the base.
-      return skill.getSkillExtensions.includes(skillId);
-    };
-
-    // get all skills we can extend this skillId with.
     // collect all overlay-capable skills for the provided base skill id.
     const overlaySkills = caster.skills()
-      .filter(isOverlayForBase);
+      .filter(skill => this.#isOverlayForBase(skill, skillId));
 
+    // sort overlays deterministically by their id to ensure stable and predictable results.
+    if (overlaySkills.length > 0)
+    {
+      overlaySkills.sort((a, b) => a.id - b.id);
+    }
+
+    // construct a cache key that represents the base skill and the exact overlay set order.
+    const overlayKey = `${skillId}|${overlaySkills.map(s => s.id)
+      .join(',')}`;
+
+    // fetch from cache or compute the extended skill once for this exact combination.
+    return this.cached(
+      caster,
+      overlayKey,
+      () => this.#getExtendedSkill(overlaySkills, skillId)
+    );
+  }
+
+  /**
+   * Checks if a given skill is an extension skill that can overlay the given base skill.
+   * @param {RPG_Skill} skill The skill that potentially is the overlay.
+   * @param {number} skillId The id of the base skill to check for overlay compatibility.
+   * @returns {boolean} Whether or not the skill is an overlay for the base skill.
+   */
+  static #isOverlayForBase(skill, skillId)
+  {
+    // if this skill is not an extension skill, then it cannot overlay the base.
+    if (skill.isSkillExtension === false) return false;
+
+    // indicate whether or not this skill overlays the base.
+    return skill.getSkillExtensions.includes(skillId);
+  }
+
+  /**
+   * Extends the base skill with the given overlay skills in sequential order.
+   * @param {RPG_Skill[]} overlaySkills - The skill overlays to apply.
+   * @param {number} skillId - The id of the base skill to extend.
+   * @returns {RPG_Skill} The extended skill.
+   */
+  static #getExtendedSkill(overlaySkills, skillId)
+  {
     // if there are no overlays, return the original skill without incurring clone cost.
     if (overlaySkills.length === 0)
     {
@@ -349,39 +494,12 @@ class OverlayManager
       return $dataSkills[skillId];
     }
 
-    // sort overlays deterministically by their id to ensure stable and predictable results.
-    overlaySkills.sort((a, b) => a.id - b.id);
-
-    // construct a cache key that represents the base skill and the exact overlay set order.
-    const overlayKey = `${skillId}|${overlaySkills.map(s => s.id)
-      .join(",")}`;
-
-    // attempt to retrieve a cached extended result for this exact combination.
-    if (casterCache.has(overlayKey))
-    {
-      // return the cached extended skill for this combination.
-      return casterCache.get(overlayKey);
-    }
-
     // clone the base skill so overlays can safely mutate the clone without affecting the database.
     const baseClone = $dataSkills[skillId]._clone();
 
-    // define a reducer that applies a single overlay onto the current working skill.
-    /**
-     * @param {RPG_Skill} working The skill being mutated.
-     * @param {RPG_Skill} overlay This current skill overlay being layered ontop of the working skill.
-     **/
-    const applyOverlay = (working, overlay) =>
-    {
-      // return the result of extending the working skill with the overlay skill.
-      return this.extendSkill(working, overlay);
-    };
-
     // apply all overlays in order to produce the final extended skill.
-    const extended = overlaySkills.reduce(applyOverlay, baseClone);
-
-    // cache the extended skill for this caster and overlay combination.
-    casterCache.set(overlayKey, extended);
+    const extended = overlaySkills
+      .reduce((working, overlay) => this.extendSkill(working, overlay), baseClone);
 
     // return the final extended skill.
     return extended;
@@ -540,6 +658,9 @@ class OverlayManager
 
     // merge notes via overwriteNote() instead of blind concatenation.
     baseSkill.note = this.overwriteNote(baseSkill.note, skillOverlay.note);
+
+    // invalidate all cached tag parses for this object (RPGManager WeakMap cache).
+    RPGManager.invalidate(baseSkill);
   }
 
   /**
@@ -610,12 +731,18 @@ class OverlayManager
    */
   static sanitizeExtensions(baseSkill)
   {
-    // TODO: move this delete logic to RPGManager.
     // remove the skill extend from the metadata.
-    baseSkill.deleteMetadata('skillExtend');
+    delete baseSkill.meta['skillExtend'];
 
     // remove the skill extend from the notedata.
-    baseSkill.deleteNotedata(J.EXTEND.RegExp.SkillExtend);
+    baseSkill.note = baseSkill.note.replace(J.EXTEND.RegExp.SkillExtend, String.empty);
+
+    // cleanup any duplicate newlines.
+    baseSkill.note = baseSkill.note.replace(/\n\n/gmi, '\n');
+    baseSkill.note = baseSkill.note.replace(/\r\r/gmi, '\r');
+
+    // we changed the note – invalidate cached parses for this skill.
+    RPGManager.invalidate(baseSkill);
   }
 
   //region extend note
@@ -624,7 +751,7 @@ class OverlayManager
    * The list of keys on notes that should never get merged/overridden, but instead appended.
    * @type {string[]}
    */
-  static _nonCombiningKeys = [ "drop" ];
+  static _nonCombiningKeys = [ 'drop' ];
 
   /**
    * Gets the keys that should never be combined- they will effectively be treated as unsupported.
@@ -771,7 +898,7 @@ class OverlayManager
     if (type === OverlayManager.LineType.kvp)
     {
       // find the first colon index.
-      const idx = inner.indexOf(":");
+      const idx = inner.indexOf(':');
 
       // extract and normalize the key to lowercase.
       const key = inner.substring(0, idx)
@@ -1044,7 +1171,7 @@ class OverlayManager
     });
 
     // join with newlines to keep readability and stability.
-    const result = parts.join("\n");
+    const result = parts.join('\n');
 
     // return the reconstructed note.
     return result;
@@ -1229,16 +1356,63 @@ Game_Action.prototype.applyStates = function(target, jabsOnChanceEffects)
 
 //region Game_Actor
 /**
- * OVERWRITE Gets the skill associated with the given skill id.
- * By abstracting this, we can modify the underlying skill before it reaches its destination.
+ * Overrides {@link #skill}<br/>.
+ * Overlays the skill with any skill extensions.
  * @param {number} skillId The skill id to get the skill for.
- * @returns {RPG_Skill}
+ * @returns {RPG_Skill} The potentially extended skill.
  */
 Game_Actor.prototype.skill = function(skillId)
 {
   return OverlayManager.getExtendedSkill(this, skillId);
 };
+
+/**
+ * Extends {@link #learnSkill}.<br/>
+ * Invalidates the caster cache when a skill is learned.
+ */
+J.EXTEND.Aliased.Game_Actor.set('learnSkill', Game_Actor.prototype.learnSkill);
+Game_Actor.prototype.learnSkill = function(skillId)
+{
+  // perform original logic.
+  J.EXTEND.Aliased.Game_Actor.get('learnSkill')
+    .call(this, skillId);
+
+  // also invalidate the caster cache.
+  OverlayManager.invalidate(this);
+};
+
+/**
+ * Extends {@link #forgetSkill}.<br/>
+ * Invalidates the caster cache when a skill is forgotten.
+ */
+J.EXTEND.Aliased.Game_Actor.set('forgetSkill', Game_Actor.prototype.forgetSkill);
+Game_Actor.prototype.forgetSkill = function(skillId)
+{
+  // perform original logic.
+  J.EXTEND.Aliased.Game_Actor.get('forgetSkill')
+    .call(this, skillId);
+
+  // also invalidate the caster cache.
+  OverlayManager.invalidate(this);
+};
 //endregion Game_Actor
+
+//region Game_Enemy
+/**
+ * Extends {@link #learnSkill}.<br/>
+ * Invalidates the caster cache when a skill is learned.
+ */
+J.EXTEND.Aliased.Game_Enemy.set('learnSkill', Game_Enemy.prototype.learnSkill);
+Game_Enemy.prototype.learnSkill = function(skillId)
+{
+  // perform original logic.
+  J.EXTEND.Aliased.Game_Enemy.get('learnSkill')
+    .call(this, skillId);
+
+  // also invalidate the caster cache.
+  OverlayManager.invalidate(this);
+};
+//endregion Game_Enemy
 
 //region Game_Item
 /**

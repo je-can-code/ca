@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.0.1 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -92,6 +92,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    - Added emergency initialization for existing saves.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -211,7 +213,7 @@ J.APT.EXT ||= {};
 /**
  * The metadata associated with this plugin.
  */
-J.APT.Metadata = new JAptitude_PluginMetadata('J-Aptitude', '1.0.0');
+J.APT.Metadata = new JAptitude_PluginMetadata('J-Aptitude', '1.0.1');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -1577,6 +1579,9 @@ Game_Actor.prototype.initAptitudeMembers = function()
  */
 Game_Actor.prototype.getAllAptitudeProgresses = function()
 {
+  // emergency initialize for existing saves.
+  if (!this._j._aptitude) this.initAptitudeMembers();
+
   return this._j._aptitude._progress;
 };
 
@@ -1586,6 +1591,9 @@ Game_Actor.prototype.getAllAptitudeProgresses = function()
  */
 Game_Actor.prototype.getAllAptitudeSkillsLearned = function()
 {
+  // emergency initialize for existing saves.
+  if (!this._j._aptitude) this.initAptitudeMembers();
+
   return this._j._aptitude._learned;
 };
 
@@ -1647,6 +1655,9 @@ Game_Actor.prototype.getAptitudeSkillAggregates = function()
  */
 Game_Actor.prototype.getAptitudeProgress = function(key)
 {
+  // emergency initialize for existing saves.
+  if (!this._j._aptitude) this.initAptitudeMembers();
+
   // get the progress, or coalesce politely to null if it doesn't exist.
   return this._j._aptitude._progress[key] ?? null;
 };

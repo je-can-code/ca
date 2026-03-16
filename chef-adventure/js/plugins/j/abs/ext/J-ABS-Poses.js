@@ -233,7 +233,7 @@ J.ABS.EXT.POSES.RegExp.PoseSuffix = /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+
 Object.defineProperty(RPG_Skill.prototype, "jabsPoseData", {
   get: function()
   {
-    return this.getJabsPoseData();
+    return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.POSES.RegExp.PoseSuffix, true);
   },
 });
 
@@ -269,24 +269,6 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration", {
     return this.jabsPoseData[2];
   },
 });
-
-/**
- * Gets the JABS pose suffix data for this skill.
- * @returns {[string, number, number]|null}
- */
-RPG_Skill.prototype.getJabsPoseData = function()
-{
-  return this.extractJabsPoseData();
-};
-
-/**
- * Extracts the JABS pose suffix data for this skill from its notes.
- * @returns {[string, number, number]|null}
- */
-RPG_Skill.prototype.extractJabsPoseData = function()
-{
-  return this.getArrayFromNotesByRegex(J.ABS.EXT.POSES.RegExp.PoseSuffix, true);
-};
 //endregion RPG_Skill
 
 //region JABS_Engine

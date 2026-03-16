@@ -273,18 +273,9 @@ J.OMNI.EXT.MONSTER.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
 Object.defineProperty(RPG_Enemy.prototype, "hideFromMonsterpedia", {
   get: function()
   {
-    return this.shouldHideFromMonsterpedia();
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia);
   },
 });
-
-/**
- * Determines whether or not this enemy should be hidden from the monsterpedia.
- * @returns {boolean} True if the enemy should be hidden, false otherwise.
- */
-RPG_Enemy.prototype.shouldHideFromMonsterpedia = function()
-{
-  return this.getBooleanFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.HideFromMonsterpedia);
-};
 
 /**
  * The icon index of the monster family this enemy belongs to.
@@ -293,18 +284,9 @@ RPG_Enemy.prototype.shouldHideFromMonsterpedia = function()
 Object.defineProperty(RPG_Enemy.prototype, "monsterFamilyIcon", {
   get: function()
   {
-    return this.getMonsterFamilyIconIndex();
+    return RPGManager.getNumberFromNoteByRegex(this, J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon);
   },
 });
-
-/**
- * Gets the icon index representing the monster family of this enemy.
- * @returns {number}
- */
-RPG_Enemy.prototype.getMonsterFamilyIconIndex = function()
-{
-  return this.getNumberFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.MonsterpediaFamilyIcon);
-};
 
 /**
  * The description of the enemy for the monsterpedia.
@@ -313,18 +295,9 @@ RPG_Enemy.prototype.getMonsterFamilyIconIndex = function()
 Object.defineProperty(RPG_Enemy.prototype, "monsterpediaDescription", {
   get: function()
   {
-    return this.getMonsterpediaDescription();
+    return RPGManager.getStringsFromNoteByRegex(this, J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription);
   },
 });
-
-/**
- * Gets the description of this enemy for the monsterpedia.
- * @returns {string[]}
- */
-RPG_Enemy.prototype.getMonsterpediaDescription = function()
-{
-  return this.getStringsFromNotesByRegex(J.OMNI.EXT.MONSTER.RegExp.MonsterpediaDescription);
-};
 //endregion RPG_Enemy
 
 //region JABS_Engine

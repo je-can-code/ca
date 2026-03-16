@@ -786,21 +786,9 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return [];
 
-  const lines = referenceData.note.split(/[\r\n]+/);
-  const boostedElements = [];
-
-  // get all the boosts first.
-  lines.forEach(line =>
-  {
-    if (line.match(J.ELEM.RegExp.BoostElement))
-    {
-      const id = parseInt(RegExp.$1);
-      const boost = parseInt(RegExp.$2);
-      boostedElements.push([ id, boost ]);
-    }
-  });
-
-  return boostedElements;
+  const caps = RPGManager
+    .getAllCapturesFromNoteByRegex(referenceData, J.ELEM.RegExp.BoostElement);
+  return caps.map(([ id, boost ]) => [ Number(id), Number(boost) ]);
 };
 //endregion Game_Battler
 
