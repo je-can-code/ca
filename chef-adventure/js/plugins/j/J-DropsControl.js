@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 DROPS] Enables greater control over loot drops.
+ * [v2.1.2 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -158,6 +158,8 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.2
+ *    Consumed `RPGManager` updates.
  * - 2.1.1
  *    Added guard to prevent adding invalid drops to the drop list.
  * - 2.1.0
@@ -195,7 +197,7 @@ J.DROPS.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.1.1',
+  Version: '2.1.2',
 };
 
 /**
@@ -390,11 +392,11 @@ class RPG_DropItemBuilder
  * Extends {@link #initMembers}.<br/>
  * Also initializes the extra drops.
  */
-J.DROPS.Aliased.Game_Enemy.set("initMembers", RPG_Enemy.prototype.initMembers);
+J.DROPS.Aliased.Game_Enemy.set('initMembers', RPG_Enemy.prototype.initMembers);
 RPG_Enemy.prototype.initMembers = function(enemy)
 {
   // perform original logic.
-  J.DROPS.Aliased.Game_Enemy.get("initMembers")
+  J.DROPS.Aliased.Game_Enemy.get('initMembers')
     .call(this, enemy);
 
   // also parse our extra drops into the drop items list.
@@ -406,14 +408,8 @@ RPG_Enemy.prototype.initMembers = function(enemy)
  */
 RPG_Enemy.prototype.initExtraDrops = function()
 {
-  // if the enemy is null or something, just nix it.
-  if (this === null)
-  {
-    throw new Error('we initialized extra drops for a null enemy, oops.');
-  }
-
   // get the drops found on this enemy.
-  const moreDrops = RPGManager.getArraysFromNotesByRegex(this, J.DROPS.RegExp.ExtraDrop, true) ?? [];
+  const moreDrops = RPGManager.getArraysFromNotesByRegex(this, J.DROPS.RegExp.ExtraDrop, true);
 
   // if there are no more drops, then skip processing.
   if (moreDrops.length === 0) return;

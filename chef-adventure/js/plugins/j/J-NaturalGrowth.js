@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 NATURAL] Enables level-based growth of all parameters.
+ * [v2.1.2 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -224,6 +224,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.2
+ *    Fixed issue with broken regex structures for max TP.
+ *    Consumed `RPGManager` updates.
  * - 2.1.1
  *    Relocates basic max TP management to the J.BASE plugin.
  *    Adds ability to also add a bonus to SDP dropped.
@@ -276,7 +279,7 @@ J.NATURAL.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.1.1',
+  Version: '2.1.2',
 };
 
 /**
@@ -431,7 +434,7 @@ J.NATURAL.RegExp = {
   FloorDmgRateGrowthPlus: /<fdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
   ExpGainRateGrowthPlus: /<exrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
 
-  // sp parameter buffs rate (permanent).
+  // sp parameter growths rate (permanent).
   AggroGrowthRate: /<tgrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
   ParryGrowthRate: /<grdGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
   HealingGrowthRate: /<recGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
@@ -446,10 +449,10 @@ J.NATURAL.RegExp = {
   // additionally supported parameters.
   // TP-related parameters.
   BaseMaxTech: /<baseMaxTp:\[([+\-*/ ().\w]+)]>/gi,
-  MaxTechBuffPlus: /mtpBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
-  MaxTechBuffRate: /mtpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
-  MaxTechGrowthPlus: /mtpGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
-  MaxTechGrowthRate: /mtpGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechBuffPlus: /<mtpBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechBuffRate: /<mtpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechGrowthPlus: /<mtpGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+  MaxTechGrowthRate: /<mtpGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 
   // battle result rewards.
   RewardExp: /<expPlus:\[([+\-*/ ().\w]+)]>/gi,
@@ -1730,75 +1733,14 @@ Game_Battler.prototype.refreshRewardBonuses = function()
  */
 Game_Battler.prototype.naturalParamBuff = function(structure, baseParam)
 {
-  // add the extracted formulai to an array.
-  const paramGrowthFormulai = this.extractParameterFormulai(structure);
-
-  // if no formulai were found, then stop processing.
-  if (!paramGrowthFormulai.length) return 0;
-
-  // allows access to the battler and base parameter values in formula.
-  /* eslint-disable no-unused-vars */
-  const a = this;
-  const b = baseParam;
-  /* eslint-enable no-unused-vars */
-
-  // the growth amount from the formula.
-  let bonusParam = 0;
-
-  // iterate over each of the found formulai.
-  paramGrowthFormulai.forEach(formula =>
-  {
-    // evaluate the result of the formula and add it to the bonuses.
-    const result = parseFloat(eval(formula)
-      .toFixed(3));
-    bonusParam += result;
-  });
-
-  // return the new addition to this parameter.
-  return bonusParam;
-};
-
-/**
- * Extracts the formulai matching the regexp structure provided from all possible
- * note objects that this battler has.
- * @param {RegExp} structure The regular expression to scan for.
- * @returns {string[]} The found collection of formulai to apply.
- */
-Game_Battler.prototype.extractParameterFormulai = function(structure)
-{
-  // start the formula container with none.
-  const paramGrowthFormulai = [];
-
-  // grab all things with notes that a battler could gain parameters from.
+  // gather all database objects with notes that influence parameters.
   const objectsToCheck = this.getAllNotes();
 
-  // iterate over all relevant objects.
-  objectsToCheck.forEach(databaseData =>
-  {
-    // grab the formulai matching the regex from this object.
-    const matchingFormulai = databaseData.getFilteredNotesByRegex(structure);
+  // leverage RPGManager to evaluate and sum all matching formulas across all notes.
+  const total = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, structure, baseParam, this, false);
 
-    // check to make sure we have matching formulai.
-    if (matchingFormulai.length)
-    {
-      // iterate over the found formulai.
-      matchingFormulai.forEach(line =>
-      {
-        // extract the captured formula.
-        const result = structure.exec(line);
-
-        // make sure we had a real formula first.
-        if (result)
-        {
-          // shove it into the formula container.
-          paramGrowthFormulai.push(result[1]);
-        }
-      });
-    }
-  });
-
-  // return the formula container.
-  return paramGrowthFormulai;
+  // return the calculated sum (0 if nothing found).
+  return total;
 };
 
 /**
@@ -1857,9 +1799,9 @@ Game_Battler.prototype.getRegexByExParamId = function(xParamId)
     case 7:
       return [ J.NATURAL.RegExp.LifeRegenBuffPlus, J.NATURAL.RegExp.LifeRegenBuffRate ];
     case 8:
-      return [ J.NATURAL.RegExp.MagiRegenBuffPlus, J.NATURAL.RegExp.MagiReflectBuffRate ];
+      return [ J.NATURAL.RegExp.MagiRegenBuffPlus, J.NATURAL.RegExp.MagiRegenBuffRate ];
     case 9:
-      return [ J.NATURAL.RegExp.TechRegenBuffPlus, J.NATURAL.RegExp.MagiReflectBuffRate ];
+      return [ J.NATURAL.RegExp.TechRegenBuffPlus, J.NATURAL.RegExp.TechRegenBuffRate ];
     default:
       return null;
   }
@@ -1908,7 +1850,7 @@ Game_Battler.prototype.getRegexBySpParamId = function(sParamId)
 Game_Battler.prototype.getParamBaseNaturalBonuses = function(paramId, baseParam)
 {
   // this is intended to be implemented in subclasses.
-  console.warn(`Leveraged a Game_Battler subclass that isn't recognized by this plugin.`, this)
+  console.warn(`Leveraged a Game_Battler subclass that isn't recognized by this plugin.`, this);
   return 0;
 };
 
@@ -2310,12 +2252,6 @@ Game_Enemy.prototype.refreshRewardBonuses = function()
  */
 Game_Enemy.prototype.refreshExpRewardBonuses = function()
 {
-  // add the extracted formulai to an array.
-  const expBonusFormulai = this.extractParameterFormulai(J.NATURAL.RegExp.RewardExp);
-
-  // if no formulai were found, then stop processing.
-  if (!expBonusFormulai.length) return;
-
   // calculate all formulai found for this enemy that could affect experience.
   const bonusExp = this.naturalParamBuff(J.NATURAL.RegExp.RewardExp, this.enemy().exp);
 
@@ -2328,12 +2264,6 @@ Game_Enemy.prototype.refreshExpRewardBonuses = function()
  */
 Game_Enemy.prototype.refreshGoldRewardBonuses = function()
 {
-  // add the extracted formulai to an array.
-  const goldBonusFormulai = this.extractParameterFormulai(J.NATURAL.RegExp.RewardGold);
-
-  // if no formulai were found, then stop processing.
-  if (!goldBonusFormulai.length) return;
-
   // calculate all formulai found for this enemy that could affect gold.
   const bonusGold = this.naturalParamBuff(J.NATURAL.RegExp.RewardGold, this.enemy().gold);
 
@@ -2349,13 +2279,7 @@ Game_Enemy.prototype.refreshSdpRewardBonuses = function()
   // if we are not using the SDP system, then don't do this.
   if (!J.SDP) return;
 
-  // add the extracted formulai to an array.
-  const sdpsBonusRewardFormula = this.extractParameterFormulai(J.NATURAL.RegExp.RewardGold);
-
-  // if no formulai were found, then stop processing.
-  if (!sdpsBonusRewardFormula.length) return;
-
-  // calculate all formulai found for this enemy that could affect gold.
+  // calculate all formulai found for this enemy that could affect SDPs.
   const sdpsBonus = this.naturalParamBuff(J.NATURAL.RegExp.RewardSdps, this.enemy().sdpPoints);
 
   // update the reward bonus.
