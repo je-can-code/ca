@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 EXTEND] Extends the capabilities of skills/actions.
+ * [v1.2.0 EXTEND] Extends the capabilities of skills/actions.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -152,6 +152,9 @@
  * target. This happens regardless the outcome of the skill.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Implement caching for skill extensions by caster.
+ *    Consume `RPGManager` updates.
  * - 1.1.0
  *    Rewrite tag override functionality to replace excluding specified keys.
  * - 1.0.1
@@ -167,6 +170,19 @@
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
+
+//region version checks
+(() =>
+{
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '3.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement)
+  {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -186,7 +202,7 @@ J.EXTEND.Metadata.Name = `J-SkillExtend`;
 /**
  * The version of this plugin.
  */
-J.EXTEND.Metadata.Version = '1.1.0';
+J.EXTEND.Metadata.Version = '1.2.0';
 
 /**
  * A collection of all aliased methods for this plugin.

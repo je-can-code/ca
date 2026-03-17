@@ -808,7 +808,7 @@ class StatDistributionPanel
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v2.1.2 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1002,6 +1002,8 @@ class StatDistributionPanel
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.2
+ *    Consumed `RPGManager` updates.
  * - 2.1.1
  *    Added flag for showing external file load info.
  * - 2.1.0
@@ -1381,7 +1383,7 @@ J.SDP = {};
 /**
  * The metadata associated with this plugin.
  */
-J.SDP.Metadata = new J_SdpPluginMetadata('J-SDP', '2.1.1');
+J.SDP.Metadata = new J_SdpPluginMetadata('J-SDP', '2.1.2');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -1546,7 +1548,7 @@ Object.defineProperty(RPG_Enemy.prototype, "sdpDropData", {
   get: function()
   {
     // grab the data from the enemy.
-    const sdpData = RPGManager.getArrayFromNotesByRegex(this, J.SDP.RegExp.SdpDropData, true);
+    const sdpData = RPGManager.getArrayFromNotesByRegex(this, J.SDP.RegExp.SdpDropData, true, true);
 
     // return the data, or the default.
     return sdpData ?? [ String.empty, 0 ];

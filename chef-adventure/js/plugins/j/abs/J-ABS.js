@@ -13272,7 +13272,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.4.0 JABS] Enables combat to be carried out on the map.
+ * [v4.5.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13316,6 +13316,11 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.5.0
+ *    Consumed `RPGManager` update.
+ *    Removed useless extraneous layers that handled note extraction.
+ *    Removed hard-coded reference to `J-Extend` from this plugin.
+ *    Shifted hard-coded regex to live in the initialization section.
  * - 4.4.0
  *    Revamped dodge skills.
  *    Dodge skills now execute their skill as well.
@@ -15318,7 +15323,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.3.2';
+  const requiredBaseVersion = '3.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -15406,7 +15411,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.4.0';
+J.ABS.Metadata.Version = '4.5.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.

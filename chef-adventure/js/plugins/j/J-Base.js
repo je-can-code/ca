@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.3.2 BASE] The base class for all J plugins.
+ * [v3.0.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -92,6 +92,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.0
+ *    Removed all legacy note-parsing logic from RPG_Base.
+ *    Updated RPGManager to leverage WeakMap caching for parsed notes.
  * - 2.3.3
  *    Extended database object type-checking.
  *    Provided way for any database object to provide a unique identifier.
@@ -180,7 +183,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '2.3.2';
+J.BASE.Metadata.Version = '3.0.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -1458,7 +1461,7 @@ class RPG_Base
    * The index of this entry in the database.
    * @type {number}
    */
-  #index = 0;
+  index = 0;
 
   /**
    * The entry's id in the database.
@@ -1486,7 +1489,7 @@ class RPG_Base
 
   //endregion properties
 
-  //region base
+  //region init
   /**
    * Constructor.
    * Maps the base item's properties into this object.
@@ -1496,7 +1499,7 @@ class RPG_Base
   constructor(baseItem, index)
   {
     this.#original = baseItem;
-    this.#index = index;
+    this.index = index;
 
     // map the core data that all database objects have.
     this.id = baseItem.id;
@@ -1505,13 +1508,16 @@ class RPG_Base
     this.note = baseItem.note;
   }
 
+  //endregion init
+
+  //region accessors
   /**
    * Retrieves the index of this entry in the database.
    * @returns {number}
    */
   _index()
   {
-    return this.#index;
+    return this.index;
   }
 
   /**
@@ -1520,7 +1526,20 @@ class RPG_Base
    */
   _updateIndex(newIndex)
   {
-    this.#index = newIndex;
+    this.index = newIndex;
+  }
+
+  /**
+   * The unique key that is used to register this object against
+   * its corresponding container when the party has one or more of these
+   * in their possession. By default, this is just the index of the item's entry
+   * from the database, but you can change it if you need a more unique means
+   * of identifying things.
+   * @returns {any}
+   */
+  _key()
+  {
+    return this._index();
   }
 
   /**
@@ -1533,6 +1552,9 @@ class RPG_Base
     return this.#original;
   }
 
+  //endregion accessors
+
+  //region cloning
   /**
    * Creates a new instance of this wrapper class with all the same
    * database data that this one contains.
@@ -1560,20 +1582,7 @@ class RPG_Base
     return new this.constructor(overrides, index);
   }
 
-  /**
-   * The unique key that is used to register this object against
-   * its corresponding container when the party has one or more of these
-   * in their possession. By default, this is just the index of the item's entry
-   * from the database, but you can change it if you need a more unique means
-   * of identifying things.
-   * @returns {any}
-   */
-  _key()
-  {
-    return this._index();
-  }
-
-  //endregion base
+  //endregion aloning
 
   //region typing
   /**
@@ -7194,6 +7203,11 @@ class PluginMetadata
   static hasPlugin(pluginName)
   {
     return this.#plugins.has(pluginName);
+  }
+
+  static getPlugin(pluginName)
+  {
+    return this.#plugins.get(pluginName);
   }
 
   /**

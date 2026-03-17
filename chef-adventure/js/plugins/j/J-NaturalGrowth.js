@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 NATURAL] Enables level-based growth of all parameters.
+ * [v2.1.2 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -224,6 +224,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.2
+ *    Fixed issue with broken regex structures for max TP.
+ *    Consumed `RPGManager` updates.
  * - 2.1.1
  *    Relocates basic max TP management to the J.BASE plugin.
  *    Adds ability to also add a bonus to SDP dropped.
@@ -276,7 +279,7 @@ J.NATURAL.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '2.1.1',
+  Version: '2.1.2',
 };
 
 /**

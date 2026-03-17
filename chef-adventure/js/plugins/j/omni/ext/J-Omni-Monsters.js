@@ -148,7 +148,7 @@ MonsterpediaObservations.prototype.isElementalisticKnown = function(elementId)
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 OMNI-MON] Extends the Omnipedia with a Monsterpedia entry.
+ * [v1.0.2 OMNI-MON] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -171,6 +171,8 @@ MonsterpediaObservations.prototype.isElementalisticKnown = function(elementId)
  * - J-SDP              : renders SDP points earned and panel drop rate.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Consumed `RPGManager` updates.
  * - 1.0.1
  *    Added support for auto-generating target frame icons where applicable.
  * - 1.0.0
@@ -189,7 +191,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
+  const requiredBaseVersion = '3.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -221,7 +223,7 @@ J.OMNI.EXT.MONSTER.Metadata.Name = 'J-Omni-Monsterpedia';
 /**
  * The version of this plugin.
  */
-J.OMNI.EXT.MONSTER.Metadata.Version = '1.0.1';
+J.OMNI.EXT.MONSTER.Metadata.Version = '1.0.2';
 
 /**
  * The plugin parameters for this plugin.

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v2.0.1 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -115,6 +115,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.1
+ *    Consumed `RPGManager` update.
  * - 2.0.0
  *    Added a concept of "formations".
  *    Allies now own their own movement instead of mirroring the player.
@@ -255,7 +257,7 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.3';
+  const requiredBaseVersion = '3.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
@@ -263,7 +265,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '3.3.0';
+  const requiredJabsVersion = '4.5.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -283,7 +285,7 @@ J.ABS.EXT.ALLYAI = {};
  */
 J.ABS.EXT.ALLYAI.Metadata = {};
 J.ABS.EXT.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ABS.EXT.ALLYAI.Metadata.Version = '2.0.0';
+J.ABS.EXT.ALLYAI.Metadata.Version = '2.0.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.

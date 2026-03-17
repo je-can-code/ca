@@ -363,7 +363,7 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 JAFT-Refine] An extension for JAFTING to enable equip refinement.
+ * [v1.0.1 JAFT-Refine] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -504,7 +504,8 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
  *
  * ============================================================================
  * CHANGELOG:
- *
+ * - 1.0.1
+ *    Consumed `RPGManager` updates.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -602,6 +603,19 @@ class J_CraftingRefinePluginMetadata
  */
 var J = J || {};
 
+//region version checks
+(() =>
+{
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '3.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement)
+  {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//endregion version check
+
 /**
  * The plugin umbrella that governs all things related to this extension plugin.
  */
@@ -610,7 +624,7 @@ J.JAFTING.EXT.REFINE = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata('J-JAFTING-Refinement', '1.0.0');
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata('J-JAFTING-Refinement', '1.0.1');
 
 
 /**
@@ -1664,7 +1678,7 @@ Game_Party.prototype.refreshDatabaseWeapons = function()
   this.getRefinedWeapons()
     .forEach(weapon =>
     {
-      const updatedWeapon = new RPG_Weapon(weapon, weapon._index());
+      const updatedWeapon = new RPG_Weapon(weapon, weapon.index);
       $dataWeapons[updatedWeapon._key()] = updatedWeapon;
     });
 };
@@ -1678,7 +1692,7 @@ Game_Party.prototype.refreshDatabaseArmors = function()
   this.getRefinedArmors()
     .forEach(armor =>
     {
-      const updatedArmor = new RPG_Armor(armor, armor._index());
+      const updatedArmor = new RPG_Armor(armor, armor.index);
       $dataArmors[updatedArmor._key()] = updatedArmor;
     });
 };
