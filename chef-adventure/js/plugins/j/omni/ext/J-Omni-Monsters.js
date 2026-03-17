@@ -173,6 +173,8 @@ MonsterpediaObservations.prototype.isElementalisticKnown = function(elementId)
  * CHANGELOG:
  * - 1.0.2
  *    Consumed `RPGManager` updates.
+ *    Fixed missed issue with SDP rendering.
+ *    Adjusted monster detail view to accommodate fontsize 24 at 1080p.
  * - 1.0.1
  *    Added support for auto-generating target frame icons where applicable.
  * - 1.0.0
@@ -1643,8 +1645,9 @@ class Window_MonsterpediaDetail
     // shorthand the lineHeight.
     const lh = this.lineHeight();
 
-    // draw the enemyId of the enemy.
-    this.drawEnemyId(x, y);
+    // draw the enemy defeat information.
+    const defeatedY = y + 4;
+    this.drawEnemyDefeat(x, defeatedY);
 
     // draw the enemy name.
     const enemyNameX = x + 100;
@@ -1659,7 +1662,7 @@ class Window_MonsterpediaDetail
     this.drawEnemyParameters(parametersX, y);
 
     // draw the drops for the enemy.
-    const dropsX = this.width - 550;
+    const dropsX = this.width - 600;
     this.drawEnemyDrops(dropsX, y);
 
     // draw the description of the enemy.
@@ -1673,11 +1676,11 @@ class Window_MonsterpediaDetail
   }
 
   /**
-   * Draws the enemy's id at the given point.
+   * Draws the enemy defeat information at the location.
    * @param {number} x The x coordinate of the point.
    * @param {number} y The y coordinate of the point.
    */
-  drawEnemyId(x, y)
+  drawEnemyDefeat(x, y)
   {
     // clear residual font modifications.
     const valueX = x + 12;
@@ -1731,7 +1734,7 @@ class Window_MonsterpediaDetail
     this.toggleItalics(true);
 
     // capture the text to render.
-    const defeatCounterText = "DEFEATED";
+    const defeatCounterText = 'DEFEATED';
 
     // determine the text width for the key.
     const textWidth = this.textWidth(defeatCounterText);
@@ -1903,7 +1906,7 @@ class Window_MonsterpediaDetail
 
     const maxRemover = parameterName =>
     {
-      return parameterName.replace('Max ', String.empty)
+      return parameterName.replace('Max ', String.empty);
     };
 
     // draw the max hp parameter.
@@ -1969,7 +1972,14 @@ class Window_MonsterpediaDetail
 
     // draw the attack parameter.
     const atkXPlus = leftColumnX;
-    this.drawEnemyParameter(x + atkXPlus, y, IconManager.param(2), TextManager.param(2), atk, !knowsParameters, 4);
+    this.drawEnemyParameter(
+      x + atkXPlus,
+      y,
+      IconManager.param(2),
+      TextManager.param(2),
+      atk,
+      !knowsParameters,
+      4);
 
     // draw the endurance parameter.
     const defXPlus = leftColumnX + 8;
@@ -1981,12 +1991,13 @@ class Window_MonsterpediaDetail
       TextManager.param(3),
       def,
       !knowsParameters,
-      4);
+      4
+    );
 
     // draw the phys dmg down parameter.
     const pdrXPlus = leftColumnX + 8;
     const pdrYPlus = lh * 2;
-    const pdrValue = (pdr * 100) - 100;
+    const pdrValue = Math.round((pdr * 100) - 100);
     this.drawEnemyParameter(
       x + pdrXPlus,
       y + pdrYPlus,
@@ -1994,7 +2005,8 @@ class Window_MonsterpediaDetail
       TextManager.sparam(6),
       pdrValue,
       !knowsParameters,
-      3);
+      3
+    );
 
     // draw the force parameter.
     const matXPlus = leftColumnX;
@@ -2006,7 +2018,8 @@ class Window_MonsterpediaDetail
       TextManager.param(4),
       mat,
       !knowsParameters,
-      4);
+      4
+    );
 
     // draw the resist parameter.
     const mdfXPlus = leftColumnX + 8;
@@ -2018,12 +2031,13 @@ class Window_MonsterpediaDetail
       TextManager.param(5),
       mdf,
       !knowsParameters,
-      4);
+      4
+    );
 
     // draw the magi def down parameter.
     const mdrXPlus = leftColumnX + 8;
     const mdrYPlus = lh * 5;
-    const mdrValue = (mdr * 100) - 100;
+    const mdrValue = Math.round((mdr * 100) - 100);
     this.drawEnemyParameter(
       x + mdrXPlus,
       y + mdrYPlus,
@@ -2031,7 +2045,8 @@ class Window_MonsterpediaDetail
       TextManager.sparam(7),
       mdrValue,
       !knowsParameters,
-      3);
+      3
+    );
 
     // draw the speed parameter.
     const agiXPlus = leftColumnX;
@@ -2043,12 +2058,13 @@ class Window_MonsterpediaDetail
       TextManager.param(6),
       agi,
       !knowsParameters,
-      4);
+      4
+    );
 
     // draw the hit rate parameter.
     const hitXPlus = leftColumnX + 8;
     const hitYPlus = lh * 7;
-    const hitValue = (hit * 100);
+    const hitValue = Math.round(hit * 100);
     this.drawEnemyParameter(
       x + hitXPlus,
       y + hitYPlus,
@@ -2056,12 +2072,13 @@ class Window_MonsterpediaDetail
       TextManager.xparam(0),
       hitValue,
       !knowsParameters,
-      4);
+      4
+    );
 
     // draw the autocounter parameter.
     const cntXPlus = leftColumnX + 8;
     const cntYPlus = lh * 8;
-    const cntValue = (cnt * 100);
+    const cntValue = Math.round(cnt * 100);
     this.drawEnemyParameter(
       x + cntXPlus,
       y + cntYPlus,
@@ -2069,7 +2086,8 @@ class Window_MonsterpediaDetail
       TextManager.xparam(6),
       cntValue,
       !knowsParameters,
-      3);
+      3
+    );
 
     // draw the b-param parameter.
     const lukXPlus = leftColumnX;
@@ -2081,12 +2099,13 @@ class Window_MonsterpediaDetail
       TextManager.param(7),
       luk,
       !knowsParameters,
-      4);
+      4
+    );
 
     // draw the crit chance parameter.
     const criXPlus = leftColumnX + 8;
     const criYPlus = lh * 10;
-    const criValue = (cri * 100);
+    const criValue = Math.round(cri * 100);
     this.drawEnemyParameter(
       x + criXPlus,
       y + criYPlus,
@@ -2094,12 +2113,13 @@ class Window_MonsterpediaDetail
       TextManager.xparam(2),
       criValue,
       !knowsParameters,
-      4);
+      4
+    );
 
     // draw the cev parameter.
     const cevXPlus = leftColumnX + 8;
     const cevYPlus = lh * 11;
-    const cevValue = (cev * 100);
+    const cevValue = Math.round(cev * 100);
     this.drawEnemyParameter(
       x + cevXPlus,
       y + cevYPlus,
@@ -2107,7 +2127,8 @@ class Window_MonsterpediaDetail
       TextManager.xparam(3),
       cevValue,
       !knowsParameters,
-      4);
+      4
+    );
   }
 
   /**
@@ -2125,6 +2146,9 @@ class Window_MonsterpediaDetail
    */
   drawEnemyParameter(x, y, iconIndex, parameterName, parameterValue, maskValue = false, padZeroCount = 8, spacePlus = 0)
   {
+    // draw the icon for the parameter.
+    this.drawIcon(iconIndex, x, y);
+
     // determine the padding for prefixing with an icon.
     const iconWidthPadding = iconIndex === 0
       ? 0   // no padding for no icon.
@@ -2132,9 +2156,6 @@ class Window_MonsterpediaDetail
 
     // a small space between parameter name and value.
     const nameValueSpace = 48 + spacePlus;
-
-    // draw the icon for the parameter.
-    this.drawIcon(iconIndex, x, y);
 
     // calculate the x coordinate for the parameter name.
     const parameterNameX = x + iconWidthPadding;
@@ -2145,7 +2166,7 @@ class Window_MonsterpediaDetail
       : 0;
 
     // start the parameter value x coordinate where the name is, in case we are skipping the name.
-    let parameterValueX = parameterNameX;
+    let parameterValueX = parameterNameX + 48;
 
     // check if we're adding the name.
     if (parameterName !== String.empty)
@@ -2175,7 +2196,7 @@ class Window_MonsterpediaDetail
       : this.textWidth(possiblyMaskedValue);
 
     // draw the parameter value.
-    this.drawEnemyParameterValue(parameterValueX, y, possiblyMaskedValue, parameterValueWidth)
+    this.drawEnemyParameterValue(parameterValueX, y, possiblyMaskedValue, parameterValueWidth);
   }
 
   /**
@@ -2188,12 +2209,12 @@ class Window_MonsterpediaDetail
   drawEnemyParameterValue(x, y, value, width)
   {
     let isBold = false;
-    this.changeTextColor(ColorManager.textColor(8))
+    this.changeTextColor(ColorManager.textColor(8));
     const charWidth = this.textWidth(value.charAt(0));
     const totalCharWidth = value.length * charWidth;
     [ ...value ].forEach((char, index) =>
     {
-      if (char !== "0")
+      if (char !== '0')
       {
         isBold = true;
         this.changeTextColor(ColorManager.normalColor());
@@ -2276,7 +2297,7 @@ class Window_MonsterpediaDetail
 
     // draw the SDP data.
     const sdpIcon = IconManager.rewardParam(4);
-    const sdpName = TextManager.rewardParam(4);
+    const sdpName = TextManager.sdpPoints();
     const sdpValue = gameEnemy.sdpPoints();
     const sdpYPlus = lh * 2;
     this.drawEnemyParameter(x, y + sdpYPlus, sdpIcon, sdpName, sdpValue, !knowsParameters, 0);
@@ -2322,7 +2343,7 @@ class Window_MonsterpediaDetail
     }
 
     // extract the data from the sdp drop.
-    const [ sdpKey, sdpDropChance, sdpItemId ] = sdpDropData;
+    const [ sdpKey, sdpDropChance ] = sdpDropData;
 
     // grab the corresponding panel with this key.
     const panel = J.SDP.Metadata.panelsMap.get(sdpKey);
@@ -2340,19 +2361,13 @@ class Window_MonsterpediaDetail
       dropText = `✅`;
     }
 
-    // extract the item data associated with the panel.
-    const {
-      name,
-      iconIndex
-    } = $dataItems.at(sdpItemId);
-
     // mask the name if applicable.
     const panelName = knowsParameters
-      ? name
-      : J.BASE.Helpers.maskString(name);
+      ? panel.name
+      : J.BASE.Helpers.maskString(panel.name);
 
     // render the parameter.
-    this.drawEnemyParameter(x, y, iconIndex, panelName, dropText, false, 0, 20);
+    this.drawEnemyParameter(x, y, panel.iconIndex, panelName, dropText, false, 0, 20);
   }
 
   /**
@@ -2537,7 +2552,7 @@ class Window_MonsterpediaDetail
     if (!monsterpediaDescription.length)
     {
       // render the missing description text if there is no description.
-      const missingDescriptionText = "There is no description for this enemy.";
+      const missingDescriptionText = 'There is no description for this enemy.';
       const missingDescriptionTextWidth = this.textWidth(missingDescriptionText);
       this.drawText(missingDescriptionText, x, y, missingDescriptionTextWidth);
 
@@ -2592,7 +2607,7 @@ class Window_MonsterpediaDetail
 
       const elementName = TextManager.element(elementId);
 
-      let elementRate = gameEnemy.elementRate(elementId) * 100;
+      let elementRate = Math.round(gameEnemy.elementRate(elementId) * 100);
 
       const knowsElementalistic = observations.isElementalisticKnown(elementId);
 
@@ -2711,6 +2726,9 @@ class Window_MonsterpediaList
 
     // if an enemy is explicitly hidden, then the enemy is invalid.
     if (enemy.hideFromMonsterpedia) return false;
+
+    // enemies that have names starting with '===' are placeholders.
+    if (enemy.name.startsWith('===')) return false;
 
     // the enemy is valid!
     return true;

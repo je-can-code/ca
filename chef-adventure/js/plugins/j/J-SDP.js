@@ -1857,7 +1857,7 @@ if (J.ABS)
  */
 TextManager.sdpPoints = function()
 {
-  return "SDPs";
+  return 'SDPs';
 };
 
 /**
@@ -1885,7 +1885,7 @@ TextManager.longParam = function(paramId)
  */
 TextManager.sdpMultiplier = function()
 {
-  return "SDP Multiplier";
+  return 'SDP Multiplier';
 };
 
 /**
@@ -1914,8 +1914,9 @@ TextManager.longParamDescription = function(paramId)
 TextManager.sdpMultiplierDescription = function()
 {
   return [
-    "The percentage bonuses being applied against SDP point gain.",
-    "Higher amounts of this yields greater SDP point generation." ];
+    'The percentage bonuses being applied against SDP point gain.',
+    'Higher amounts of this yields greater SDP point generation.'
+  ];
 };
 //endregion TextManager
 
