@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 ELEM] Enables greater control over elements.
+ * [v1.0.1 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -203,12 +203,31 @@
  * This battler now can only receive damage from skills that include the
  * element id of 1, 2, 3, 4, 5, 6, or 8.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Consumed `RPGManager` updates.
+ * - 1.0.0
+ *    The initial release.
+ * ============================================================================
  */
 
 /**
  * The core where all of my extensions live: in the `J` object.
  */
 var J = J || {};
+
+//region version checks
+(() =>
+{
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '3.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement)
+  {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//endregion version check
 
 /**
  * The plugin umbrella that governs all things related to this plugin.
@@ -227,7 +246,7 @@ J.ELEM.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.0',
+  Version: '1.0.1',
 };
 
 J.ELEM.Aliased = {
@@ -786,21 +805,9 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData)
   // if for some reason there is no note, then don't try to parse it.
   if (!referenceData.note) return [];
 
-  const lines = referenceData.note.split(/[\r\n]+/);
-  const boostedElements = [];
-
-  // get all the boosts first.
-  lines.forEach(line =>
-  {
-    if (line.match(J.ELEM.RegExp.BoostElement))
-    {
-      const id = parseInt(RegExp.$1);
-      const boost = parseInt(RegExp.$2);
-      boostedElements.push([ id, boost ]);
-    }
-  });
-
-  return boostedElements;
+  const caps = RPGManager
+    .getAllCapturesFromNoteByRegex(referenceData, J.ELEM.RegExp.BoostElement);
+  return caps.map(([ id, boost ]) => [ Number(id), Number(boost) ]);
 };
 //endregion Game_Battler
 

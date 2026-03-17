@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 TOOLS] Enable new tool-like tags for use with skills.
+ * [v1.0.1 TOOLS] Enable new tool-like tags for use with skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -76,6 +76,8 @@
  * Using skill 25 against the event will pull the player to the event.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Consumed `RPGManager` update.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -95,11 +97,19 @@ var J = J || {};
 (() =>
 {
   // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.0';
+  const requiredBaseVersion = '3.0.0';
   const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
   if (!hasBaseRequirement)
   {
     throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+
+  // Check to ensure we have the minimum required version of the J-ABS plugin.
+  const requiredJabsVersion = '4.5.0';
+  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
+  if (!hasJabsRequirement)
+  {
+    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
   }
 })();
 //endregion version check
@@ -121,7 +131,7 @@ J.ABS.EXT.TOOLS.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.0',
+  Version: '1.0.1',
 };
 
 /**
@@ -526,30 +536,12 @@ JABS_Battler.gapCloseWiggleRoom = function()
  * Gap-closing will pull the player to wherever the skill connected.
  * @type {boolean}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGapClose", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsGapClose', {
   get: function()
   {
-    return this.getJabsGapClose();
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapClose);
   },
 });
-
-/**
- * Gets whether or not this skill is a gap close skill.
- * @returns {boolean}
- */
-RPG_Skill.prototype.getJabsGapClose = function()
-{
-  return this.extractJabsGapClose();
-};
-
-/**
- * Extracts the value from its notes.
- * @returns {boolean}
- */
-RPG_Skill.prototype.extractJabsGapClose = function()
-{
-  return this.getBooleanFromNotesByRegex(J.ABS.EXT.TOOLS.RegExp.GapClose);
-};
 //endregion gapClose
 
 //region gapCloseMode
@@ -558,30 +550,12 @@ RPG_Skill.prototype.extractJabsGapClose = function()
  * If there is no gap close mode available, then it'll be null instead.
  * @type {J.ABS.EXT.TOOLS.GapCloseModes|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGapCloseMode", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsGapCloseMode', {
   get: function()
   {
-    return this.getJabsGapCloseMode();
+    return RPGManager.getStringFromNoteByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapCloseMode, true);
   },
 });
-
-/**
- * Gets the gap close mode of this skill.
- * @returns {J.ABS.EXT.TOOLS.GapCloseModes|null}
- */
-RPG_Skill.prototype.getJabsGapCloseMode = function()
-{
-  return this.extractJabsGapCloseMode();
-};
-
-/**
- * Extracts the value from its notes.
- * @returns {J.ABS.EXT.TOOLS.GapCloseModes|null}
- */
-RPG_Skill.prototype.extractJabsGapCloseMode = function()
-{
-  return this.getStringFromNotesByRegex(J.ABS.EXT.TOOLS.RegExp.GapCloseMode, true);
-};
 //endregion gapCloseMode
 
 //region gapClosePosition
@@ -590,30 +564,12 @@ RPG_Skill.prototype.extractJabsGapCloseMode = function()
  * If there is no gap close position available, then it'll be null instead.
  * @type {J.ABS.EXT.TOOLS.GapClosePositions|null}
  */
-Object.defineProperty(RPG_Skill.prototype, "jabsGapClosePosition", {
+Object.defineProperty(RPG_Skill.prototype, 'jabsGapClosePosition', {
   get: function()
   {
-    return this.getJabsGapCloseMode();
+    return RPGManager.getStringFromNoteByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapClosePosition, true);
   },
 });
-
-/**
- * Gets the gap close position of this skill.
- * @returns {J.ABS.EXT.TOOLS.GapClosePositions|null}
- */
-RPG_Skill.prototype.getJabsGapCloseMode = function()
-{
-  return this.extractJabsGapCloseMode();
-};
-
-/**
- * Extracts the value from its notes.
- * @returns {J.ABS.EXT.TOOLS.GapClosePositions|null}
- */
-RPG_Skill.prototype.extractJabsGapCloseMode = function()
-{
-  return this.getStringFromNotesByRegex(J.ABS.EXT.TOOLS.RegExp.GapClosePosition, true);
-};
 //endregion gapClosePosition
 
 /**
@@ -674,32 +630,10 @@ JABS_Engine.prototype.canGapClose = function(action, target)
  */
 Game_Battler.prototype.isGapClosable = function()
 {
-  // grab all the note objects.
-  const objectsToCheck = this.getAllNotes();
-
-  // initialize the data.
-  let gapCloseTarget = false;
-
-  // iterate over all the note objects.
-  objectsToCheck.forEach(obj =>
-  {
-    // split up the notes.
-    const notedata = obj.note.split(/[\r\n]+/);
-
-    // iterate over all the lines of the note object.
-    notedata.forEach(line =>
-    {
-      // check if it is a gap closable target.
-      if (J.ABS.EXT.TOOLS.RegExp.GapCloseTarget.test(line))
-      {
-        // flag it as such.
-        gapCloseTarget = true;
-      }
-    });
-  });
-
-  // return what we found.
-  return gapCloseTarget;
+  return RPGManager.checkForBooleanFromAllNotesByRegex(
+    this.getAllNotes(),
+    J.ABS.EXT.TOOLS.RegExp.GapCloseTarget
+  );
 };
 
 /**

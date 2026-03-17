@@ -808,7 +808,7 @@ class StatDistributionPanel
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v2.1.2 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1002,6 +1002,8 @@ class StatDistributionPanel
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.2
+ *    Consumed `RPGManager` updates.
  * - 2.1.1
  *    Added flag for showing external file load info.
  * - 2.1.0
@@ -1381,7 +1383,7 @@ J.SDP = {};
 /**
  * The metadata associated with this plugin.
  */
-J.SDP.Metadata = new J_SdpPluginMetadata('J-SDP', '2.1.1');
+J.SDP.Metadata = new J_SdpPluginMetadata('J-SDP', '2.1.2');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -1525,27 +1527,9 @@ RPG_DropItem.prototype.isSdpDrop = function()
 Object.defineProperty(RPG_Enemy.prototype, "sdpPoints", {
   get: function()
   {
-    return this.getSdpPoints();
+    return RPGManager.getNumberFromNoteByRegex(this, J.SDP.RegExp.SdpPoints);
   },
 });
-
-/**
- * Gets the expiration time in frames.
- * @returns {number|null}
- */
-RPG_Enemy.prototype.getSdpPoints = function()
-{
-  return this.extractSdpPoints();
-};
-
-/**
- * Gets the value from its notes.
- * @returns {number|null}
- */
-RPG_Enemy.prototype.extractSdpPoints = function()
-{
-  return this.getNumberFromNotesByRegex(J.SDP.RegExp.SdpPoints);
-};
 //endregion sdpPoints
 
 //region sdpDropData
@@ -1563,7 +1547,11 @@ RPG_Enemy.prototype.extractSdpPoints = function()
 Object.defineProperty(RPG_Enemy.prototype, "sdpDropData", {
   get: function()
   {
-    return this.getSdpDropData() ?? [ String.empty, 0, 0 ];
+    // grab the data from the enemy.
+    const sdpData = RPGManager.getArrayFromNotesByRegex(this, J.SDP.RegExp.SdpDropData, true, true);
+
+    // return the data, or the default.
+    return sdpData ?? [ String.empty, 0 ];
   },
 });
 
@@ -1588,24 +1576,6 @@ Object.defineProperty(RPG_Enemy.prototype, "sdpDropChance", {
     return this.sdpDropData[1];
   },
 });
-
-/**
- * Gets the SDP data for this enemy.
- * @returns {[string, number, number]|null}
- */
-RPG_Enemy.prototype.getSdpDropData = function()
-{
-  return this.extractSdpDropData();
-};
-
-/**
- * Extracts the value from the notes.
- * @returns {[string, number, number]|null}
- */
-RPG_Enemy.prototype.extractSdpDropData = function()
-{
-  return this.getArrayFromNotesByRegex(J.SDP.RegExp.SdpDropData, true);
-};
 //endregion sdpDropData
 //endregion RPG_Enemy
 
@@ -1614,21 +1584,12 @@ RPG_Enemy.prototype.extractSdpDropData = function()
  * The SDP key that this item unlocks upon use.
  * @type {string}
  */
-Object.defineProperty(RPG_Item.prototype, "sdpKey", {
+Object.defineProperty(RPG_Item.prototype, 'sdpKey', {
   get: function()
   {
-    return this.getSdpKey();
+    return RPGManager.getStringFromNoteByRegex(this, J.SDP.RegExp.SdpUnlockKey);
   },
 });
-
-/**
- * Gets the key of the SDP this item unlocks.
- * @returns {string}
- */
-RPG_Item.prototype.getSdpKey = function()
-{
-  return this.getStringFromNotesByRegex(J.SDP.RegExp.SdpUnlockKey);
-};
 //endregion RPG_Item
 
 //region BattleManager
@@ -1896,7 +1857,7 @@ if (J.ABS)
  */
 TextManager.sdpPoints = function()
 {
-  return "SDPs";
+  return 'SDPs';
 };
 
 /**
@@ -1924,7 +1885,7 @@ TextManager.longParam = function(paramId)
  */
 TextManager.sdpMultiplier = function()
 {
-  return "SDP Multiplier";
+  return 'SDP Multiplier';
 };
 
 /**
@@ -1953,8 +1914,9 @@ TextManager.longParamDescription = function(paramId)
 TextManager.sdpMultiplierDescription = function()
 {
   return [
-    "The percentage bonuses being applied against SDP point gain.",
-    "Higher amounts of this yields greater SDP point generation." ];
+    'The percentage bonuses being applied against SDP point gain.',
+    'Higher amounts of this yields greater SDP point generation.'
+  ];
 };
 //endregion TextManager
 

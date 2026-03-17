@@ -363,7 +363,7 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 JAFT-Refine] An extension for JAFTING to enable equip refinement.
+ * [v1.0.1 JAFT-Refine] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -504,7 +504,8 @@ JAFTING_Trait.prototype.convertToRmTrait = function()
  *
  * ============================================================================
  * CHANGELOG:
- *
+ * - 1.0.1
+ *    Consumed `RPGManager` updates.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -602,6 +603,19 @@ class J_CraftingRefinePluginMetadata
  */
 var J = J || {};
 
+//region version checks
+(() =>
+{
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '3.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement)
+  {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+})();
+//endregion version check
+
 /**
  * The plugin umbrella that governs all things related to this extension plugin.
  */
@@ -610,7 +624,7 @@ J.JAFTING.EXT.REFINE = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata('J-JAFTING-Refinement', '1.0.0');
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata('J-JAFTING-Refinement', '1.0.1');
 
 
 /**
@@ -775,27 +789,9 @@ RPG_EquipItem.prototype.jaftingRefinedCount ||= 0;
 Object.defineProperty(RPG_EquipItem.prototype, "jaftingNotRefinementBase", {
   get: function()
   {
-    return this.getJaftingNotRefinementBase();
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.JAFTING.EXT.REFINE.RegExp.NotRefinementBase);
   },
 });
-
-/**
- * Gets whether or not this equip is blocked from being used as a base for refinement.
- * @returns {boolean}
- */
-RPG_EquipItem.prototype.getJaftingNotRefinementBase = function()
-{
-  return this.extractJaftingNotRefinementBase();
-};
-
-/**
- * Extracts the value from the notes.
- * @returns {boolean}
- */
-RPG_EquipItem.prototype.extractJaftingNotRefinementBase = function()
-{
-  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.NotRefinementBase);
-};
 //endregion notRefinementBase
 
 //region notRefinementMaterial
@@ -806,27 +802,9 @@ RPG_EquipItem.prototype.extractJaftingNotRefinementBase = function()
 Object.defineProperty(RPG_EquipItem.prototype, "jaftingNotRefinementMaterial", {
   get: function()
   {
-    return this.getJaftingNotRefinementBase();
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.JAFTING.EXT.REFINE.RegExp.NotRefinementMaterial);
   },
 });
-
-/**
- * Gets whether or not this equip is blocked from being used as a material for refinement.
- * @returns {boolean}
- */
-RPG_EquipItem.prototype.getJaftingNotRefinementBase = function()
-{
-  return this.extractJaftingNotRefinementMaterial();
-};
-
-/**
- * Extracts the value from the notes.
- * @returns {boolean}
- */
-RPG_EquipItem.prototype.extractJaftingNotRefinementMaterial = function()
-{
-  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.NotRefinementMaterial);
-};
 //endregion notRefinementMaterial
 
 //region unrefinable
@@ -850,7 +828,7 @@ Object.defineProperty(RPG_EquipItem.prototype, "jaftingUnrefinable", {
 RPG_EquipItem.prototype.getJaftingUnrefinable = function()
 {
   // check if the notes say this is explicitly unrefinable.
-  let unrefinable = this.extractJaftingUnrefinable();
+  let unrefinable = RPGManager.checkForBooleanFromNoteByRegex(this, J.JAFTING.EXT.REFINE.RegExp.Unrefinable);
 
   // if the notes didn't have the tag, lets check for the other pair.
   if (!unrefinable)
@@ -870,15 +848,6 @@ RPG_EquipItem.prototype.getJaftingUnrefinable = function()
   // return our result.
   return unrefinable;
 };
-
-/**
- * Extracts the value from the notes.
- * @returns {boolean}
- */
-RPG_EquipItem.prototype.extractJaftingUnrefinable = function()
-{
-  return this.getBooleanFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.Unrefinable);
-};
 //endregion unrefinable
 
 //region maxRefineCount
@@ -889,26 +858,9 @@ RPG_EquipItem.prototype.extractJaftingUnrefinable = function()
 Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxRefineCount", {
   get: function()
   {
-    return this.getJaftingMaxRefineCount();
+    return RPGManager.getNumberFromNoteByRegex(this, J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount);
   },
 });
-
-/**
- * Gets how many times this equip can be refined.
- * @returns {number}
- */
-RPG_EquipItem.prototype.getJaftingMaxRefineCount = function()
-{
-  return this.extractJaftingMaxRefineCount();
-};
-
-/**
- * Extracts the value from the notes.
- */
-RPG_EquipItem.prototype.extractJaftingMaxRefineCount = function()
-{
-  return this.getNumberFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.MaxRefineCount);
-};
 //endregion maxRefineCount
 
 //region maxTraitCount
@@ -920,26 +872,9 @@ RPG_EquipItem.prototype.extractJaftingMaxRefineCount = function()
 Object.defineProperty(RPG_EquipItem.prototype, "jaftingMaxTraitCount", {
   get: function()
   {
-    return this.getJaftingMaxTraitCount();
+    return RPGManager.getNumberFromNoteByRegex(this, J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount);
   },
 });
-
-/**
- * Gets how many traits this equip can have from refinement.
- * @returns {number}
- */
-RPG_EquipItem.prototype.getJaftingMaxTraitCount = function()
-{
-  return this.extractJaftingMaxTraitCount();
-};
-
-/**
- * Extracts the value from the notes.
- */
-RPG_EquipItem.prototype.extractJaftingMaxTraitCount = function()
-{
-  return this.getNumberFromNotesByRegex(J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount);
-};
 //endregion maxRefineCount
 
 //region JaftingManager

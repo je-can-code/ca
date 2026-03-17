@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.0.1 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -92,6 +92,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Added emergency initialization for existing saves.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -198,6 +200,27 @@ class JAptitude_PluginMetadata
  */
 var J = J || {};
 
+//region version checks
+(() =>
+{
+  // Check to ensure we have the minimum required version of the J-Base plugin.
+  const requiredBaseVersion = '3.0.0';
+  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+  if (!hasBaseRequirement)
+  {
+    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+  }
+
+  // Check to ensure we have the minimum required version of the J-ABS plugin.
+  const requiredJabsVersion = '4.5.0';
+  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
+  if (!hasJabsRequirement)
+  {
+    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
+  }
+})();
+//endregion version check
+
 /**
  * The plugin umbrella that governs all things related to this plugin.
  */
@@ -211,7 +234,7 @@ J.APT.EXT ||= {};
 /**
  * The metadata associated with this plugin.
  */
-J.APT.Metadata = new JAptitude_PluginMetadata('J-Aptitude', '1.0.0');
+J.APT.Metadata = new JAptitude_PluginMetadata('J-Aptitude', '1.0.1');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -1577,6 +1600,9 @@ Game_Actor.prototype.initAptitudeMembers = function()
  */
 Game_Actor.prototype.getAllAptitudeProgresses = function()
 {
+  // emergency initialize for existing saves.
+  if (!this._j._aptitude) this.initAptitudeMembers();
+
   return this._j._aptitude._progress;
 };
 
@@ -1586,6 +1612,9 @@ Game_Actor.prototype.getAllAptitudeProgresses = function()
  */
 Game_Actor.prototype.getAllAptitudeSkillsLearned = function()
 {
+  // emergency initialize for existing saves.
+  if (!this._j._aptitude) this.initAptitudeMembers();
+
   return this._j._aptitude._learned;
 };
 
@@ -1647,6 +1676,9 @@ Game_Actor.prototype.getAptitudeSkillAggregates = function()
  */
 Game_Actor.prototype.getAptitudeProgress = function(key)
 {
+  // emergency initialize for existing saves.
+  if (!this._j._aptitude) this.initAptitudeMembers();
+
   // get the progress, or coalesce politely to null if it doesn't exist.
   return this._j._aptitude._progress[key] ?? null;
 };
