@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.0 BASE] The base class for all J plugins.
+ * [v3.0.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -92,6 +92,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.1
+ *    Fixed issue with RPGManager parsing arrays of notes.
+ *    Added some arbitrary defaults for icon indices of types.
  * - 3.0.0
  *    Removed all legacy note-parsing logic from RPG_Base.
  *    Updated RPGManager to leverage WeakMap caching for parsed notes.
@@ -3815,7 +3818,7 @@ class IconManager
    */
   constructor()
   {
-    throw new Error("This is a static class.");
+    throw new Error('This is a static class.');
   }
 
   /**
@@ -4158,8 +4161,26 @@ class IconManager
   {
     switch (weaponTypeId)
     {
-      case 1:
-        return 16;
+      case 1:   // blade
+        return 401;
+      case 2:   // spear
+        return 408;
+      case 3:   // gun
+        return 438;
+      case 4:   // axe
+        return 434;
+      case 5:   // wand
+        return 442;
+      case 6:   // fist
+        return 461;
+      case 7:   // only-earthie
+        return 2074;
+      case 8:   // only-skye
+        return 2077;
+      case 9:   // only-cynder
+        return 2076;
+      case 10:  // only-aqualock
+        return 2075;
       default:
         return 16;
     }
@@ -4299,9 +4320,9 @@ class IconManager
    * A tag for correlating a JABS parameter to an icon.
    */
   static JABS_PARAMETER = {
-    BONUS_HITS: "bonus-hits",
-    ATTACK_SKILL: "attack-skill",
-    SPEED_BOOST: "speed-boost",
+    BONUS_HITS: 'bonus-hits',
+    ATTACK_SKILL: 'attack-skill',
+    SPEED_BOOST: 'speed-boost',
   };
 
   /**
@@ -4326,12 +4347,12 @@ class IconManager
    * A tag for correlating a JAFTING parameter to an icon.
    */
   static JAFTING_PARAMETER = {
-    MAX_REFINE: "max-refine-count",
-    MAX_TRAITS: "max-trait-count",
-    NOT_BASE: "not-refinement-base",
-    NOT_MATERIAL: "not-refinement-material",
-    TIMES_REFINED: "refined-count",
-    UNREFINABLE: "unrefinable"
+    MAX_REFINE: 'max-refine-count',
+    MAX_TRAITS: 'max-trait-count',
+    NOT_BASE: 'not-refinement-base',
+    NOT_MATERIAL: 'not-refinement-material',
+    TIMES_REFINED: 'refined-count',
+    UNREFINABLE: 'unrefinable'
   };
 
   /**
@@ -4479,6 +4500,11 @@ class RPGManager
     if (cache.has(tagKey) === false)
     {
       this._metrics.misses++;
+
+      if (object instanceof RPG_Class && tagKey === 'any[][]:<aptitudeTyped:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?[A-Za-z]+,[ ]?[A-Za-z0-9_\\- ]+])>::gi::tryParse=true::nullIfEmpty=false')
+      {
+        console.log('hit!', object);
+      }
 
       // compute the data and cache it.
       const data = computeFn();
@@ -5299,6 +5325,12 @@ class RPGManager
    */
   static #getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false)
   {
+    // build a non-global, non-sticky scanner to avoid lastIndex side effects across lines.
+    const safeFlags = structure.flags
+      .replace('g', '')
+      .replace('y', '');
+    const scan = new RegExp(structure.source, safeFlags);
+
     // get the note data from this skill.
     const lines = databaseData.note.split(/[\r\n]+/);
 
@@ -5311,19 +5343,20 @@ class RPGManager
     // iterate the note data array.
     lines.forEach(line =>
     {
-      // check if this line matches the given regex structure.
-      const match = structure.exec(line);
-      if (match)
-      {
-        // extract the captured formula.
-        const [ , result ] = match;
+      // grab the regex execution result for this note line.
+      const result = scan.exec(line);
 
-        // parse the value out of the regex capture group.
-        val.push(result);
+      // if there is no result, then skip.
+      if (result === null) return;
 
-        // flag that we found a match.
-        hasMatch = true;
-      }
+      // extract the captured formula.
+      const [ , match ] = result;
+
+      // parse the value out of the regex capture group.
+      val.push(match);
+
+      // flag that we found a match.
+      hasMatch = true;
     });
 
     // if we didn't find a match, return null instead of attempting to parse.
