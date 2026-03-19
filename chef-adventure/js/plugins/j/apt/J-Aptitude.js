@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.0.2 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -54,7 +54,7 @@
  *    Where REQUIRED_AP is how much AP that source needs to teach it.
  *
  * TAG EXAMPLES:
- *  <aptitude:[12, 150]>
+ *  <aptitude:[12,150]>
  * This source enables learning skill of id 12 once the owner gains 150 AP.
  * ============================================================================
  * AP
@@ -72,7 +72,7 @@
  * - Enemies only.
  *
  * TAG FORMAT:
- *  <ap:[AMOUNT]>
+ *  <ap:AMOUNT>
  *    Where AMOUNT is the amount of AP to be gained.
  *
  * TAG EXAMPLES:
@@ -92,6 +92,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Updated to be more extensible for extensions.
+ *    Fixed issue with parsing inputs for aptitude progresses.
  * - 1.0.1
  *    Added emergency initialization for existing saves.
  * - 1.0.0
@@ -127,6 +130,7 @@
  * @min -99999999
  * @max 99999999
  * @desc The amount of AP to modify by. Negative removes AP. Per-source never goes below 0.
+ * @default 10
  *
  * @command mod-ap
  * @text Add/Remove AP
@@ -134,11 +138,13 @@
  * @arg actorId
  * @type actor
  * @desc The id of the actor to modify AP for.
+ * @default 1
  * @arg points
  * @type number
  * @min -99999999
  * @max 99999999
  * @desc The amount of AP to modify by. Negative removes AP. Per-source never goes below 0.
+ * @default 10
  */
 //endregion annotations
 
@@ -234,7 +240,7 @@ J.APT.EXT ||= {};
 /**
  * The metadata associated with this plugin.
  */
-J.APT.Metadata = new JAptitude_PluginMetadata('J-Aptitude', '1.0.1');
+J.APT.Metadata = new JAptitude_PluginMetadata('J-Aptitude', '1.0.2');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -796,19 +802,11 @@ class AptitudeSkillSourceProgress
    */
   constructor(sourceKey, skillId, currentAp, requiredAp, learned)
   {
-    // store the source key.
-    this.#sourceKey = sourceKey;
-
-    this.#skillId = skillId;
-
-    // store current AP.
-    this.#currentAp = currentAp;
-
-    // store required AP.
-    this.#requiredAp = requiredAp;
-
-    // store learned flag.
-    this.#learned = learned === true;
+    this.#sourceKey = String(sourceKey);
+    this.#skillId = Number(skillId);
+    this.#currentAp = Number(currentAp);
+    this.#requiredAp = Number(requiredAp);
+    this.#learned = Boolean(learned === true);
   }
 
   /**
@@ -924,9 +922,6 @@ if (J.ABS)
     // grab the AP amount from the enemy.
     const ap = enemy.apPoints();
 
-    // if there is no AP, do nothing.
-    if (ap === 0) return;
-
     // gain the AP.
     this.gainAptitudeReward(ap, actor, enemy);
   };
@@ -935,7 +930,7 @@ if (J.ABS)
    * Gains AP from battle rewards.
    * @param {number} ap The AP to gain.
    * @param {JABS_Battler} actor The map battler that defeated the target.
-   * @param {JABS_Battler} enemy The map battler that was defeated.
+   * @param {Game_Enemy} enemy The map battler that was defeated.
    */
   JABS_Engine.prototype.gainAptitudeReward = function(ap, actor, enemy)
   {
@@ -1077,14 +1072,24 @@ if (J.POPUPS)
 Object.defineProperty(RPG_Base.prototype, 'aptitudeTeachings', {
   get()
   {
-    // extract the data from the notes- should be [skillId, requiredAp].
-    const raw = RPGManager.getArraysFromNotesByRegex(this, J.APT.RegExp.AptitudeTeachable, true) ?? [];
-
-    // map all the raw data to DTOs.
-    return raw.map(([ skillId, requiredAp ]) => new AptitudeTeachable(skillId, requiredAp));
+    // delegate to the build function so extensions can alias it cleanly.
+    return this.buildAptitudeTeachings();
   },
 });
 
+/**
+ * Builds the array of {@link AptitudeTeachable}s associated with this database object.
+ * Extensions may alias this to append additional teachables.
+ * @returns {AptitudeTeachable[]} The built list.
+ */
+RPG_Base.prototype.buildAptitudeTeachings = function()
+{
+  // extract the data from the notes- should be [skillId, requiredAp].
+  const raw = RPGManager.getArraysFromNotesByRegex(this, J.APT.RegExp.AptitudeTeachable, true);
+
+  // map all the raw data to DTOs.
+  return raw.map(([ skillId, requiredAp ]) => new AptitudeTeachable(skillId, requiredAp));
+};
 //endregion RPG_Base
 
 //region RPG_Enemy
@@ -1113,23 +1118,20 @@ class ApManager
    */
   static gainAp(actor, amount, cause = 'victory')
   {
-    // don't bother if the AP gained is zero.
+    // don't bother if the AP gained is zero or actor cannot gain.
     if (this.canGainAp(actor, amount) === false) return;
 
     // build the list of active sources for this actor.
-    const teachableSources = this.#activeTeachables(actor);
+    const teachableSources = this.activeTeachables(actor);
 
     // iterate each active source to apply AP.
     teachableSources.forEach(source =>
     {
       // deconstruct the source for readability.
-      const {
-        key,
-        teachables
-      } = source;
+      const { key, teachables } = source;
 
       // apply the AP to this source's taught skills.
-      this.#applyApToSource(actor, key, teachables, amount, cause);
+      this.applyApToSource(actor, key, teachables, amount, cause);
     });
   }
 
@@ -1328,7 +1330,7 @@ class ApManager
    * @param {Game_Actor} actor The actor to evaluate.
    * @returns {{ key: string, teachables: AptitudeTeachable[] }[]} The active teachable sources.
    */
-  static #activeTeachables(actor)
+  static activeTeachables(actor)
   {
     // acquire all potential sources.
     const sources = actor.getAptitudeSources();
@@ -1386,7 +1388,7 @@ class ApManager
    * @param {number} amount The AP awarded for this tick.
    * @param {string} cause The cause string for debugging/toasts.
    */
-  static #applyApToSource(actor, sourceKey, teachables, amount, cause)
+  static applyApToSource(actor, sourceKey, teachables, amount, cause)
   {
     // iterate each teachable to add progress and check thresholds.
     teachables.forEach(teachable =>
@@ -2040,6 +2042,41 @@ class Scene_Aptitude
     this._j._aptitude._windows._sourceDetails = null;
   }
 
+  /**
+   * Applies initial visibility and selection to match the current view mode.
+   * Ensures index 0 is selected (or the remembered index) and details are set.
+   */
+  initializeView()
+  {
+    // ensure we have selection trackers for this actor.
+    this.resetSelectionTrackers();
+
+    // decide which index to start from based on the active view.
+    const startIndex = this.viewMode() === Scene_Aptitude.viewMode.AGGREGATE
+      ? this.lastAggregateIndex()
+      : this.lastSourceIndex();
+
+    // align visibility and selections with the current view mode.
+    if (this.viewMode() === Scene_Aptitude.viewMode.AGGREGATE)
+    {
+      // hide the source pair and show the aggregate pair.
+      this.hideSourceWindows();
+      this.showAggregateWindows();
+
+      // select/activate and push selection into details.
+      this.refreshSelectionForCurrentView(startIndex);
+    }
+    else
+    {
+      // hide the aggregate pair and show the source pair.
+      this.hideAggregateWindows();
+      this.showSourceWindows();
+
+      // select/activate and push selection into details.
+      this.refreshSelectionForCurrentView(startIndex);
+    }
+  }
+
   //endregion init
 
   //region accessors
@@ -2050,7 +2087,8 @@ class Scene_Aptitude
   lastAggregateIndex()
   {
     // get the current actor id.
-    const actorId = this.actor().actorId();
+    const actorId = this.actor()
+      .actorId();
 
     // pull from the map; default to 0 if not yet set.
     const map = this._j._aptitude._lastAggregateIndexByActor;
@@ -2070,7 +2108,8 @@ class Scene_Aptitude
   setLastAggregateIndex(index)
   {
     // get the current actor id.
-    const actorId = this.actor().actorId();
+    const actorId = this.actor()
+      .actorId();
 
     // update the remembered index for this actor.
     this._j._aptitude._lastAggregateIndexByActor[actorId] = index;
@@ -2083,7 +2122,8 @@ class Scene_Aptitude
   lastSourceIndex()
   {
     // get the current actor id.
-    const actorId = this.actor().actorId();
+    const actorId = this.actor()
+      .actorId();
 
     // pull from the map; default to 0 if not yet set.
     const map = this._j._aptitude._lastSourceIndexByActor;
@@ -2103,7 +2143,8 @@ class Scene_Aptitude
   setLastSourceIndex(index)
   {
     // get the current actor id.
-    const actorId = this.actor().actorId();
+    const actorId = this.actor()
+      .actorId();
 
     // update the remembered index for this actor.
     this._j._aptitude._lastSourceIndexByActor[actorId] = index;
@@ -2116,7 +2157,8 @@ class Scene_Aptitude
   resetSelectionTrackers()
   {
     // get the current actor id.
-    const actorId = this.actor().actorId();
+    const actorId = this.actor()
+      .actorId();
 
     // ensure aggregate index exists.
     const aggMap = this._j._aptitude._lastAggregateIndexByActor;
@@ -2144,6 +2186,15 @@ class Scene_Aptitude
   }
 
   /**
+   * Sets the cached list of per‑skill aggregates for the current actor.
+   * @param {AptitudeSkillAggregate[]} aggregates The new aggregates.
+   */
+  setAggregates(aggregates)
+  {
+    this._j._aptitude._aggregates = aggregates;
+  }
+
+  /**
    * Rebuilds the aggregates cache for the current actor.
    */
   rebuildAggregatesForActor()
@@ -2153,7 +2204,7 @@ class Scene_Aptitude
       .getAptitudeSkillAggregates();
 
     // replace the cache.
-    this._j._aptitude._aggregates = next;
+    this.setAggregates(next);
   }
 
   /**
@@ -2184,7 +2235,7 @@ class Scene_Aptitude
       .getAptitudeSources();
 
     // replace the cache.
-    this._j._aptitude._sources = next;
+    this.setSources(next);
   }
 
   /**
@@ -2325,6 +2376,9 @@ class Scene_Aptitude
 
     // create the details window that responds to source selection.
     this.createAptitudeSourceDetailsWindow();
+
+    // initialize the view mode.
+    this.initializeView();
   }
 
   //region ribbon
@@ -3026,7 +3080,7 @@ class Scene_Aptitude
     SoundManager.playOk();
 
     // reselect the list to ensure it remains active.
-    this.aptitudeAggregateListWindow()
+    this.currentListWindow()
       .activate();
   }
 
@@ -3347,6 +3401,9 @@ class Window_AptitudeAggregateDetails
     // draw the icon + label on the left side of the row.
     this.drawTextEx(`\\C[${activityColorIndex}]\\I[${iconIndex}]${name}\\C[0]`, 0, y, leftW);
 
+    // give extensions an opportunity to render additional info.
+    this.drawExtensionData(sourceProgress, 0 + leftW, y);
+
     // determine learned state for this specific source.
     const learned = sourceProgress.learned() === true;
 
@@ -3398,35 +3455,62 @@ class Window_AptitudeAggregateDetails
     const shouldDrawGauge = learned === false && knownElsewhere === false;
     if (shouldDrawGauge === true)
     {
-      // compute the gauge rectangle centered vertically within the row.
-      const gaugeX = Math.floor(this.contentsWidth() * 0.40);
-      const gaugeY = y + Math.round(this.lineHeight() / 2) - Math.round(this.gaugeHeight() / 2);
-      const rect = new Rectangle(gaugeX, gaugeY, this.gaugeWidth(), this.gaugeHeight());
-
-      // compute the rate between 0..1 for the gauge.
-      const progressRate = Math.max(0, Math.min(sourceProgress.currentAp() / sourceProgress.requiredAp(), 1));
-
-      // build the gauge options with a dynamic segment count and colors.
-      const leftGaugeColor = isActive
-        ? this.gaugeColor1()
-        : this.inactiveColor1();
-      const rightGaugeColor = isActive
-        ? this.gaugeColor2()
-        : this.inactiveColor2();
-      const segOpts = WindowGaugeOptions.Builder()
-        .gaugeType(Window_Base.GAUGE_TYPES.Segmented)
-        .segments(Math.max(1, Math.ceil(sourceProgress.requiredAp() / this.segmentValue())))
-        .gap(2)
-        .leftGradientColor(leftGaugeColor)
-        .rightGradientColor(rightGaugeColor)
-        .build();
-
       // draw the segmented gauge.
-      this.drawGauge(rect, progressRate, segOpts);
+      this.drawProgressGauge(sourceProgress.currentAp(), sourceProgress.requiredAp(), isActive);
     }
 
     // advance to the next row position.
     this.setNextY(y + this.lineHeight());
+  }
+
+  /**
+   * Extension hook for drawing additional per-source information (such as typed badges).
+   * @param {AptitudeSkillSourceProgress} sourceProgress - The per-source progress for this skill.
+   * @param {number} x - The row's x coordinate.
+   * @param {number} y - The row's y coordinate.
+   */
+  // eslint-disable-next-line no-unused-vars
+  drawExtensionData(sourceProgress, x, y)
+  {
+    // no-op.
+  }
+
+  /**
+   * Draws a gauge for a progress of the skill for this source.
+   * @param {number} currentAp The current AP for the progress.
+   * @param {number} requiredAp The required AP for the progress.
+   * @param {boolean} isActive Whether the source is currently active.
+   */
+  drawProgressGauge(currentAp, requiredAp, isActive)
+  {
+    // grab the next y position.
+    const y = this.nextY();
+
+    // compute the gauge rectangle centered vertically within the row.
+    const gaugeX = Math.floor(this.contentsWidth() * 0.40);
+    const gaugeY = y + Math.round(this.lineHeight() / 2) - Math.round(this.gaugeHeight() / 2);
+    const rect = new Rectangle(gaugeX, gaugeY, this.gaugeWidth(), this.gaugeHeight());
+
+    // compute the rate between 0..1 for the gauge.
+    const progressRate = Math.max(0, Math.min(currentAp / requiredAp, 1));
+
+    // build the gauge options with a dynamic segment count and colors.
+    const leftGaugeColor = isActive
+      ? this.gaugeColor1()
+      : this.inactiveColor1();
+    const rightGaugeColor = isActive
+      ? this.gaugeColor2()
+      : this.inactiveColor2();
+    const segOpts = WindowGaugeOptions.Builder()
+      .gaugeType(Window_Base.GAUGE_TYPES.Segmented)
+      .segments(Math.max(1, Math.ceil(requiredAp / this.segmentValue())))
+      .gap(2)
+      .leftGradientColor(leftGaugeColor)
+      .rightGradientColor(rightGaugeColor)
+      .build();
+
+    // draw the segmented gauge.
+    this.drawGauge(rect, progressRate, segOpts);
   }
 
   //endregion draw
@@ -3438,7 +3522,7 @@ class Window_AptitudeAggregateDetails
    */
   gaugeWidth()
   {
-    return 256;
+    return 200;
   }
 
   /**
@@ -3963,7 +4047,7 @@ class Window_AptitudeSourceDetails
     this.drawHeader();
 
     // draw the learnable skills from the source.
-    this.drawDetails();
+    this.drawSourceDetails();
   }
 
   /**
@@ -4027,7 +4111,11 @@ class Window_AptitudeSourceDetails
     this.setNextY(y);
   }
 
-  drawDetails()
+  /**
+   * Draws the details for the source.
+   * This includes the learnable skills and their progress.
+   */
+  drawSourceDetails()
   {
     // grab the source data.
     const source = this.source();
@@ -4056,116 +4144,155 @@ class Window_AptitudeSourceDetails
       return;
     }
 
+    // iterate over the teachables and draw the details for each.
+    teachables.forEach(this.drawTeachable, this);
+  }
+
+  /**
+   * Draws the details for a single teachable.
+   * @param {AptitudeTeachable} teachable The teachable to render.
+   */
+  drawTeachable(teachable)
+  {
     // grab the actor.
     const actor = this.actor();
 
     // derive the key from the source.
-    const sourceKey = ApManager.deriveKey(source);
+    const sourceKey = ApManager.deriveKey(this.source());
 
-    // iterate over the teachables and draw the details for each.
-    teachables.forEach(teachable =>
+    // default with 0 for the x coordinate.
+    const x = 0;
+
+    // start with the nextY.
+    const nextY = this.nextY();
+
+    // calculate the left column width for the icon+label.
+    const leftW = Math.floor(this.contentsWidth() * 0.60);
+
+    // extract the AP required to learn this skill.
+    const {
+      requiredAp,
+      skillId
+    } = teachable;
+
+    // identify the skill.
+    const skill = actor.skill(skillId);
+
+    // determine if the actor is learning this teachable.
+    const learning = actor.getAptitudeLearning(sourceKey, skillId);
+
+    // identify if the learning exists or not.
+    const hasLearning = learning !== null;
+
+    // render the learnable skill name.
+    this.drawTextEx(`\\I[${skill.iconIndex}]${skill.name}`, x, nextY, leftW);
+
+    // give extensions an opportunity to render additional info.
+    this.drawExtensionData(teachable, sourceKey, x + leftW, nextY);
+
+    // determine the current AP count for this skill.
+    const currentAp = hasLearning
+      ? learning.currentAp
+      : 0;
+
+    // determine learned state for this specific source.
+    const learned = hasLearning && learning.isLearned() === true;
+
+    // determine if the actor already knows the skill via some other source.
+    const knownElsewhere = (learned === false) &&
+      this.actor()
+        .hasSkill(skillId);
+
+    // decide the right-side text content.
+    let rightText = '';
+    if (learned === true)
     {
-      // default with 0 for the x coordinate.
-      const x = 0;
+      // if learned from this source, show DONE.
+      rightText = 'DONE';
+    }
+    else if (knownElsewhere === true)
+    {
+      // if not learned from this source but the actor already knows the skill, show KNOWN.
+      rightText = 'KNOWN';
+    }
+    else
+    {
+      // otherwise, show the current/required AP counts.
+      rightText = `${currentAp}/${requiredAp}`;
+    }
 
-      // start with the nextY.
-      const nextY = this.nextY();
+    // decide the right-side color index.
+    let rightColor = 7; // gray by default
+    if (learned === true)
+    {
+      // green when learned.
+      rightColor = 11;
+    }
+    else if (currentAp > 0)
+    {
+      // yellow when in-progress.
+      rightColor = 6;
+    }
 
-      // calculate the left column width for the icon+label.
-      const leftW = Math.floor(this.contentsWidth() * 0.60);
+    // apply the right-side color and draw the right-aligned status text.
+    this.changeTextColor(ColorManager.textColor(rightColor));
+    const rightW = this.contentsWidth() - leftW;
+    this.drawText(rightText, 0, nextY, rightW, Window_Base.TextAlignments.Right);
 
-      // extract the AP required to learn this skill.
-      const { requiredAp, skillId } = teachable;
+    // Only draw a gauge if the skill is neither DONE nor KNOWN.
+    const shouldDrawGauge = learned === false && knownElsewhere === false;
+    if (shouldDrawGauge === true)
+    {
+      // draw the segmented gauge.
+      this.drawTeachableGauge(currentAp, requiredAp);
+    }
 
-      // identify the skill.
-      const skill = actor.skill(skillId);
+    // and add a line for the next row.
+    this.setNextY(nextY + this.lineHeight());
+  }
 
-      // determine if the actor is learning this teachable.
-      const learning = actor.getAptitudeLearning(sourceKey, skillId);
+  /**
+   * Draws a gauge for a teachable skill.
+   * @param {number} currentAp The current AP for the teachable.
+   * @param {number} requiredAp The required AP for the teachable.
+   */
+  drawTeachableGauge(currentAp, requiredAp)
+  {
+    // grab the nextY position.
+    const nextY = this.nextY();
 
-      // identify if the learning exists or not.
-      const hasLearning = learning !== null;
+    // compute the gauge rectangle centered vertically within the row.
+    const gaugeX = Math.floor(this.contentsWidth() * 0.40);
+    const gaugeY = nextY + Math.round(this.lineHeight() / 2) - Math.round(this.gaugeHeight() / 2);
+    const rect = new Rectangle(gaugeX, gaugeY, this.gaugeWidth(), this.gaugeHeight());
 
-      // render the learnable skill name.
-      this.drawTextEx(`\\I[${skill.iconIndex}]${skill.name}`, x, nextY, this.contentsWidth());
+    // compute the rate between 0..1 for the gauge.
+    const progressRate = Math.max(0, Math.min(currentAp / requiredAp, 1));
 
-      // determine the current AP count for this skill.
-      const currentAp = hasLearning
-        ? learning.currentAp
-        : 0;
+    // build the gauge options with a dynamic segment count and colors.
+    const segOpts = WindowGaugeOptions.Builder()
+      .gaugeType(Window_Base.GAUGE_TYPES.Segmented)
+      .segments(Math.max(1, Math.ceil(requiredAp / this.segmentValue())))
+      .gap(2)
+      .leftGradientColor(this.gaugeColor1())
+      .rightGradientColor(this.gaugeColor2())
+      .build();
 
-      // determine learned state for this specific source.
-      const learned = hasLearning && learning.isLearned() === true;
+    // draw the segmented gauge.
+    this.drawGauge(rect, progressRate, segOpts);
+  }
 
-      // determine if the actor already knows the skill via some other source.
-      const knownElsewhere = (learned === false) &&
-        this.actor()
-          .hasSkill(skillId);
-
-      // decide the right-side text content.
-      let rightText = '';
-      if (learned === true)
-      {
-        // if learned from this source, show DONE.
-        rightText = 'DONE';
-      }
-      else if (knownElsewhere === true)
-      {
-        // if not learned from this source but the actor already knows the skill, show KNOWN.
-        rightText = 'KNOWN';
-      }
-      else
-      {
-        // otherwise, show the current/required AP counts.
-        rightText = `${currentAp}/${requiredAp}`;
-      }
-
-      // decide the right-side color index.
-      let rightColor = 7; // gray by default
-      if (learned === true)
-      {
-        // green when learned.
-        rightColor = 11;
-      }
-      else if (currentAp > 0)
-      {
-        // yellow when in-progress.
-        rightColor = 6;
-      }
-
-      // apply the right-side color and draw the right-aligned status text.
-      this.changeTextColor(ColorManager.textColor(rightColor));
-      const rightW = this.contentsWidth() - leftW;
-      this.drawText(rightText, 0, nextY, rightW, Window_Base.TextAlignments.Right);
-
-      // Only draw a gauge if the skill is neither DONE nor KNOWN.
-      const shouldDrawGauge = learned === false && knownElsewhere === false;
-      if (shouldDrawGauge === true)
-      {
-        // compute the gauge rectangle centered vertically within the row.
-        const gaugeX = Math.floor(this.contentsWidth() * 0.40);
-        const gaugeY = nextY + Math.round(this.lineHeight() / 2) - Math.round(this.gaugeHeight() / 2);
-        const rect = new Rectangle(gaugeX, gaugeY, this.gaugeWidth(), this.gaugeHeight());
-
-        // compute the rate between 0..1 for the gauge.
-        const progressRate = Math.max(0, Math.min(currentAp / requiredAp, 1));
-
-        // build the gauge options with a dynamic segment count and colors.
-        const segOpts = WindowGaugeOptions.Builder()
-          .gaugeType(Window_Base.GAUGE_TYPES.Segmented)
-          .segments(Math.max(1, Math.ceil(requiredAp / this.segmentValue())))
-          .gap(2)
-          .leftGradientColor(this.gaugeColor1())
-          .rightGradientColor(this.gaugeColor2())
-          .build();
-
-        // draw the segmented gauge.
-        this.drawGauge(rect, progressRate, segOpts);
-      }
-
-      // and add a line for the next row.
-      this.setNextY(nextY + this.lineHeight());
-    });
+  /**
+   * Extension hook for drawing additional teachable information.
+   * @param {AptitudeTeachable} teachable - The teachable being rendered.
+   * @param {string} sourceKey - The stable key for the source currently displayed.
+   * @param {number} x - The row's x coordinate.
+   * @param {number} y - The row's y coordinate.
+   */
+  // eslint-disable-next-line no-unused-vars
+  drawExtensionData(teachable, sourceKey, x, y)
+  {
+    // no-op.
   }
 
   //endregion draw
@@ -4177,7 +4304,7 @@ class Window_AptitudeSourceDetails
    */
   gaugeWidth()
   {
-    return 256;
+    return 200;
   }
 
   /**
@@ -4216,16 +4343,6 @@ class Window_AptitudeSourceDetails
   gaugeColor2()
   {
     return 'rgba(255, 166, 77, 1)';
-  }
-
-  inactiveColor1()
-  {
-    return 'rgba(77, 77, 77, 1)';
-  }
-
-  inactiveColor2()
-  {
-    return 'rgba(153, 153, 153, 1)';
   }
 
   /**
