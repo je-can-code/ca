@@ -76,6 +76,8 @@ var $plugins =
 {"name":"j/apt/J-Aptitude","status":true,"description":"[v1.0.0 APT] A plugin that grants the ability to learn by gaining points.","parameters":{"parentConfig":"","menu-switch":"107","levelConfig":"","max-level-threshold":"10"}},
 {"name":"j/apt/J-Aptitude-Typed","status":true,"description":"[v1.0.0 APT-TYPED] A plugin that does cool stuff.","parameters":{"implicitConfig":"","implicitEnemyElementPercent":"0","resistThreshold":"75","slayerWeaknessThreshold":"125","excludedAlignmentElements":"[]"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
+{"name":"j/J-SkillSlots","status":true,"description":"[v1.0.0 SKS] A plugin that enables skills to be equippable.","parameters":{"parentConfig":"","menu-switch":"101","equippable-skill-type-ids":"[\"12\"]"}},
+{"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/regions/J-RegionEffects","status":true,"description":"[v1.0.1 REGIONS] A plugin that controls passage by region ids.","parameters":{"globalAllowRegions":"[]","globalDenyRegions":"[\"10\"]"}},
 {"name":"j/regions/ext/J-Regions-Skills","status":true,"description":"[v1.0.0 REGIONS-SKILLS] Enables execution of skills via region ids.","parameters":{"execution-delay":"60"}},
 {"name":"j/regions/ext/J-Regions-States","status":true,"description":"[v1.0.0 REGIONS-STATES] Enables application of states via region ids.","parameters":{"application-delay":"15"}},

@@ -4550,7 +4550,7 @@ JABS_Battler.isSkillVisibleInCombatMenu = function(skill)
   if (!skill) return false;
 
   // explicitly hidden skills are not visible in the combat skill menu.
-  if (skill.jabsVisibleInMenus === false) return false;
+  if (skill.jabsHiddenFromMenus) return false;
 
   // dodge skills are not visible in the combat skill menu.
   if (JABS_Battler.isDodgeSkillById(skill.id)) return false;
@@ -4577,7 +4577,7 @@ JABS_Battler.isSkillVisibleInDodgeMenu = function(skill)
   if (!skill) return false;
 
   // explicitly hidden skills are not visible in the dodge menu.
-  if (skill.jabsVisibleInMenus === false) return false;
+  if (skill.jabsHiddenFromMenus) return false;
 
   // non-dodge skills are not visible in the dodge menu.
   if (!JABS_Battler.isDodgeSkillById(skill.id)) return false;
@@ -4598,7 +4598,7 @@ JABS_Battler.isItemVisibleInToolMenu = function(item)
   if (!item) return false;
 
   // explicitly hidden items are not visible in the item menu.
-  if (item.jabsVisibleInMenus === false) return false;
+  if (item.jabsHiddenFromMenus) return false;
 
   // non-items or non-always-occasion items are not visible in the item menu.
   const isItem = DataManager.isItem(item) && item.itypeId === 1;
@@ -18164,12 +18164,14 @@ Object.defineProperty(RPG_UsableItem.prototype, 'jabsUniqueCooldown', {
 
 //region usability
 /**
- * Whether or not the skill or item is visible in the JABS quick menus.
+ * Whether or not the skill or item is hidden from the JABS quick menus.
+ * True when the explicit hide tag is present; false otherwise.
  * @type {boolean}
  */
-Object.defineProperty(RPG_UsableItem.prototype, 'jabsVisibleInMenus', {
+Object.defineProperty(RPG_UsableItem.prototype, 'jabsHiddenFromMenus', {
   get: function()
   {
+    // direct passthrough: tag present = true (hidden), tag absent = false (visible).
     return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.HideFromJabsMenu);
   },
 });
