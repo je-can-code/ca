@@ -3551,9 +3551,6 @@ JABS_Battler.prototype.disengageTarget = function()
 
   // reset all the phases back to default.
   this.resetPhases();
-
-  // TODO: abstract this.
-  //this.showBalloon(J.ABS.Balloons.Frustration);
 };
 
 /**
@@ -20373,7 +20370,6 @@ class JABS_Engine
    */
   static #enemyCloneList = null;
 
-  // TODO: implement them as a map.
   /**
    * A cached collection of actions keyed by their uuids.
    */

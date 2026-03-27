@@ -220,6 +220,40 @@
  * - 1.0.0
  *    Initial release.
  * ==============================================================================
+ * @param castTimeConfigs
+ * @text CAST TIME DEFAULTS
+ *
+ * @param baseCastSpeed
+ * @parent castTimeConfigs
+ * @type number
+ * @text Base Cast Speed
+ * @desc The base cast speed modifier applied to all battlers before tags. Positive = slower, negative = faster.
+ * @default 0
+ *
+ * @param minimumCastTime
+ * @parent castTimeConfigs
+ * @type number
+ * @text Minimum Cast Time
+ * @desc The minimum number of frames a cast time can be reduced to.
+ * @default 0
+ *
+ * @param cooldownConfigs
+ * @text COOLDOWN DEFAULTS
+ *
+ * @param baseFastCooldown
+ * @parent cooldownConfigs
+ * @type number
+ * @text Base Fast Cooldown
+ * @desc The base fast cooldown modifier applied to all battlers before tags. Positive = slower, negative = faster.
+ * @default 0
+ *
+ * @param minimumCooldown
+ * @parent cooldownConfigs
+ * @type number
+ * @text Minimum Cooldown
+ * @desc The minimum number of frames a cooldown can be reduced to.
+ * @default 0
+ *
  */
 
 //region Introduction
@@ -270,6 +304,34 @@ J.ABS.EXT.TIMING.Metadata = {
 };
 
 J.ABS.EXT.TIMING.PluginParameters = PluginManager.parameters(J.ABS.EXT.TIMING.Metadata.Name);
+
+J.ABS.EXT.TIMING.Metadata = {
+  ...J.ABS.EXT.TIMING.Metadata,
+
+  /**
+   * The base cast speed modifier applied globally before notetags.
+   * @type {number}
+   */
+  BaseCastSpeed: Number(J.ABS.EXT.TIMING.PluginParameters['baseCastSpeed'] ?? 0),
+
+  /**
+   * The minimum cast time in frames.
+   * @type {number}
+   */
+  MinimumCastTime: Number(J.ABS.EXT.TIMING.PluginParameters['minimumCastTime'] ?? 0),
+
+  /**
+   * The base fast cooldown modifier applied globally before notetags.
+   * @type {number}
+   */
+  BaseFastCooldown: Number(J.ABS.EXT.TIMING.PluginParameters['baseFastCooldown'] ?? 0),
+
+  /**
+   * The minimum cooldown in frames.
+   * @type {number}
+   */
+  MinimumCooldown: Number(J.ABS.EXT.TIMING.PluginParameters['minimumCooldown'] ?? 0),
+};
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -613,8 +675,7 @@ Game_Battler.prototype.baseCastSpeed = function()
   // grab everything with notes.
   const objectsToCheck = this.getAllNotes();
 
-  // TODO: add to plugin parameters?
-  const baseParam = 0;
+  const baseParam = J.ABS.EXT.TIMING.Metadata.BaseCastSpeed;
 
   // sum together all the csp flat modifiers.
   const baseCsp = RPGManager.getResultsFromAllNotesByRegex(
@@ -720,8 +781,7 @@ Game_Battler.prototype.applyCastSpeed = function(originalCastTime)
  */
 Game_Battler.prototype.minimumCastTime = function()
 {
-  // TODO: parameterize minimum into plugin parameter.
-  return 0;
+  return J.ABS.EXT.TIMING.Metadata.MinimumCastTime;
 };
 //endregion castspeed
 
@@ -739,8 +799,7 @@ Game_Battler.prototype.baseFastCooldown = function()
   // grab everything with notes.
   const objectsToCheck = this.getAllNotes();
 
-  // TODO: add to plugin parameters?
-  const baseParam = 0;
+  const baseParam = J.ABS.EXT.TIMING.Metadata.BaseFastCooldown;
 
   // sum together all the fcd flat modifiers.
   const baseFcd = RPGManager.getResultsFromAllNotesByRegex(
@@ -849,8 +908,7 @@ Game_Battler.prototype.applyFastCooldown = function(originalCooldownTime)
  */
 Game_Battler.prototype.minimumCooldown = function()
 {
-  // TODO: parameterize minimum into plugin parameter.
-  return 0;
+  return J.ABS.EXT.TIMING.Metadata.MinimumCooldown;
 };
 //endregion fast cooldown
 //endregion Game_Battler

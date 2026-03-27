@@ -2079,38 +2079,8 @@ Input.ensureRemapBootstrapped = function()
   // expose all non-engine keyboard keys for capture/binding.
   Input.bootstrapAllKeyboardKeysForCapture();
 
-  // SAFETY: strip deprecated Dodge bindings from existing saves/config.
-  Input.removeDeprecatedDodgeBindings();
-
   // mark as bootstrapped for this runtime session.
   Input._jRegistries.bootstrapped = true;
-};
-
-/**
- * Removes any live/default bindings for the deprecated standalone Dodge action.
- * This is a migration helper and may be removed in a future version.
- */
-Input.removeDeprecatedDodgeBindings = function()
-{
-
-  // TODO: remove this function in some later patch after 2.0.2.
-
-
-  // read live bindings for JABS and clear Dodge if present.
-  const live = Input.getAllBindings('JABS');
-  if (live && Object.hasOwn(live, JABS_Button.Dodge))
-  {
-    // clear the list of physical symbols bound to Dodge.
-    live[JABS_Button.Dodge] = [];
-  }
-
-  // also clear from defaults if present (legacy boot sequences).
-  const defs = Input._jRegistries.defaults['JABS'];
-  if (defs && Object.hasOwn(defs, JABS_Button.Dodge))
-  {
-    // clear any default mapping that may have been serialized previously.
-    defs[JABS_Button.Dodge] = [];
-  }
 };
 
 /**

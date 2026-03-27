@@ -193,6 +193,23 @@
  * @desc The icon indicating party-wide aggressive engagement is enabled.
  * @default 15
  *
+ * @param allyFormationsConfigs
+ * @text ALLY FORMATIONS DETAILS
+ *
+ * @param allyFormationsCommandName
+ * @parent allyFormationsConfigs
+ * @type string
+ * @text Formations Command Text
+ * @desc The text displayed for the ally formations command in the party menu.
+ * @default Ally Formations
+ *
+ * @param allyFormationsCommandIconIndex
+ * @parent allyFormationsConfigs
+ * @type number
+ * @text Formations Command Icon
+ * @desc The icon displayed beside the ally formations command.
+ * @default 289
+ *
  * @param aiModeConfigs
  * @text AI-MODE DETAILS
  *
@@ -307,6 +324,9 @@ J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex = Number(J.ABS.EXT.ALLYAI.P
 // configuration for the various ai modes.
 J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['aiModeEquipped']);
 J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['aiModeNotEquipped']);
+J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandName = J.ABS.EXT.ALLYAI.PluginParameters['allyFormationsCommandName'] || 'Ally Formations';
+J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['allyFormationsCommandIconIndex'] || 289);
+
 J.ABS.EXT.ALLYAI.Metadata.AiModeDoNothingText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeDoNothing'];
 J.ABS.EXT.ALLYAI.Metadata.AiModeOnlyAttackText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeOnlyAttack'];
 J.ABS.EXT.ALLYAI.Metadata.AiModeVarietyText = J.ABS.EXT.ALLYAI.PluginParameters['aiModeVariety'];
@@ -3295,7 +3315,8 @@ Window_AbsMenuSelect.prototype.itemHeight = function()
 
 //region Window_AbsMenuSelect
 /**
- * Extends the initialization to include the actor id for ai management.
+ * Extends {@link Window_AbsMenuSelect#initialize}.<br/>
+ * Also initializes the ally AI members.
  */
 J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set('initialize', Window_AbsMenuSelect.prototype.initialize);
 Window_AbsMenuSelect.prototype.initialize = function(rect, type)
@@ -3304,7 +3325,19 @@ Window_AbsMenuSelect.prototype.initialize = function(rect, type)
   J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get('initialize')
     .call(this, rect, type);
 
-  // TODO: init properly.
+  // initialize ally AI-specific members.
+  this.initJabsAllyAiMenuMembers();
+};
+
+/**
+ * Initializes the ally AI members for this window.
+ */
+Window_AbsMenuSelect.prototype.initJabsAllyAiMenuMembers = function()
+{
+  /**
+   * The actor id of the ally currently being managed via this window.
+   * @type {number}
+   */
   this._j._chosenActorId = 0;
 };
 
@@ -3412,13 +3445,9 @@ Window_AbsMenuSelect.prototype.addAggroPassiveToggleCommand = function()
  */
 Window_AbsMenuSelect.prototype.addAllyFormationCommand = function()
 {
-  // define the icons for passive/aggressive ally AI aggro settings.
-  // build the command.
-  // tODO: parameterize this.
-  const allyFormationsCommand = new WindowCommandBuilder("Ally Formations")
+  const allyFormationsCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandName)
     .setSymbol('ally-formations')
-    // tODO: parameterize this.
-    .setIconIndex(289)
+    .setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandIconIndex)
     .setColorIndex(23)
     .build();
 
