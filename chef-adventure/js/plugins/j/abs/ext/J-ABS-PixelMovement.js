@@ -105,7 +105,9 @@ J.ABS.EXT.PIXEL.Aliased = {
  * A small debug container for one-frame collision sampling traces.
  */
 J.ABS.EXT.PIXEL.Debug = {
-  /** @type {{x:number,y:number,color:string}[]} */
+  /**
+   * @type {{x:number,y:number,color:string}[]}
+   */
   samples: [],
 
   /**
@@ -119,7 +121,9 @@ J.ABS.EXT.PIXEL.Debug = {
     this.samples.push({ x, y, color });
   },
 
-  /** Clears samples at end-of-frame. */
+  /**
+   * Clears samples at end-of-frame.
+   */
   clear()
   {
     this.samples.length = 0;
@@ -163,8 +167,10 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
   const chr = allyBattler.getCharacter();
 
   // resolve tolerances.
-  let tolerance = 0.45; // default if ALLYAI not present.
-  let hysteresis = 0.25; // extra ring outside tolerance for gentle throttling near target.
+  // default if ALLYAI not present.
+  let tolerance = 0.45;
+  // extra ring outside tolerance for gentle throttling near target.
+  let hysteresis = 0.25;
   if (J.ABS.EXT.ALLYAI && J.ABS.EXT.ALLYAI.Metadata)
   {
     // use the configured formation tolerance if available.
@@ -279,8 +285,10 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
   const chr = allyBattler.getCharacter();
 
   // resolve tolerances.
-  let tolerance = 0.45; // default if ALLYAI not present.
-  let hysteresis = 0.25; // extra ring outside tolerance for gentle throttling near target.
+  // default if ALLYAI not present.
+  let tolerance = 0.45;
+  // extra ring outside tolerance for gentle throttling near target.
+  let hysteresis = 0.25;
   if (J.ABS.EXT.ALLYAI && J.ABS.EXT.ALLYAI.Metadata)
   {
     tolerance = J.ABS.EXT.ALLYAI.Metadata.FormationTolerance;
@@ -935,6 +943,7 @@ PIXEL_CollisionManager.GridShiftX = 0;
 PIXEL_CollisionManager.GridShiftY = 0;
 //endregion PIXEL_CollisionManager
 
+//region Game_Character
 /**
  * Extends {@link processMoveCommand}.<br>
  * Ensures when move routes are being processed, that we adjust the x,y coordinates.
@@ -968,6 +977,8 @@ Game_Character.prototype.searchLimit = function()
 {
   return 40;
 };
+//endregion Game_Character
+
 
 //region Game_CharacterBase
 //region init
@@ -1485,7 +1496,8 @@ Game_CharacterBase.prototype.recordPixelPosition = function()
     const point = {
       x: this.x,
       y: this.y
-    }; //new Point(this.x, this.y);
+    // new Point(this.x, this.y);.
+    };
 
     // add the point to the tracking.
     this.addPositionalRecord(point);
@@ -3029,8 +3041,10 @@ Game_CharacterBase.prototype._pixelCheckLeftPassage = function(x, y, xDest, hb, 
     const ny = row / count;
 
     // DEBUG markers.
-    J.ABS.EXT.PIXEL.Debug.push(curColX,  ny, "rgba(255, 255, 0, 0.6)"); // yellow current
-    J.ABS.EXT.PIXEL.Debug.push(destColX, ny, "rgba(0, 255, 255, 0.6)"); // cyan dest
+    // yellow current.
+    J.ABS.EXT.PIXEL.Debug.push(curColX,  ny, "rgba(255, 255, 0, 0.6)");
+    // cyan dest.
+    J.ABS.EXT.PIXEL.Debug.push(destColX, ny, "rgba(0, 255, 255, 0.6)");
 
     // Current left-most subcell must allow moving LEFT (exiting left).
     if (this._pixelIsPositionPassable(curColX, ny, J.ABS.Directions.LEFT) === false) return false;
@@ -3092,8 +3106,10 @@ Game_CharacterBase.prototype._pixelCheckRightPassage = function(x, y, xDest, hb,
     const ny = row / count;
 
     // DEBUG markers.
-    J.ABS.EXT.PIXEL.Debug.push(curColX,  ny, "rgba(255, 255, 0, 0.6)"); // yellow current
-    J.ABS.EXT.PIXEL.Debug.push(destColX, ny, "rgba(0, 255, 255, 0.6)");  // cyan dest
+    // yellow current.
+    J.ABS.EXT.PIXEL.Debug.push(curColX,  ny, "rgba(255, 255, 0, 0.6)");
+    // cyan dest.
+    J.ABS.EXT.PIXEL.Debug.push(destColX, ny, "rgba(0, 255, 255, 0.6)");
 
     // Current right-most must allow RIGHT (exiting right).
     if (this._pixelIsPositionPassable(curColX, ny, J.ABS.Directions.RIGHT) === false) return false;
@@ -3157,8 +3173,10 @@ Game_CharacterBase.prototype._pixelCheckUpPassage = function(x, y, yDest, hb, co
     const nx = col / count;
 
     // DEBUG markers.
-    J.ABS.EXT.PIXEL.Debug.push(nx, curRowY,  "rgba(255, 255, 0, 0.6)");    // yellow current
-    J.ABS.EXT.PIXEL.Debug.push(nx, destRowY, "rgba(0, 255, 255, 0.6)");    // cyan dest
+    // yellow current.
+    J.ABS.EXT.PIXEL.Debug.push(nx, curRowY,  "rgba(255, 255, 0, 0.6)");
+    // cyan dest.
+    J.ABS.EXT.PIXEL.Debug.push(nx, destRowY, "rgba(0, 255, 255, 0.6)");
 
     // Current top must allow UP (exiting upward).
     if (this._pixelIsPositionPassable(nx, curRowY,  J.ABS.Directions.UP)   === false) return false;
@@ -3220,8 +3238,10 @@ Game_CharacterBase.prototype._pixelCheckDownPassage = function(x, y, yDest, hb, 
     const nx = col / count;
 
     // DEBUG markers.
-    J.ABS.EXT.PIXEL.Debug.push(nx, curRowY,  "rgba(255, 255, 0, 0.6)"); // yellow current
-    J.ABS.EXT.PIXEL.Debug.push(nx, destRowY, "rgba(0, 255, 255, 0.6)"); // cyan dest
+    // yellow current.
+    J.ABS.EXT.PIXEL.Debug.push(nx, curRowY,  "rgba(255, 255, 0, 0.6)");
+    // cyan dest.
+    J.ABS.EXT.PIXEL.Debug.push(nx, destRowY, "rgba(0, 255, 255, 0.6)");
 
     // Current bottom must allow DOWN (exiting downward).
     if (this._pixelIsPositionPassable(nx, curRowY,  J.ABS.Directions.DOWN) === false) return false;
@@ -3412,6 +3432,7 @@ Game_Event.prototype.isCollidedWithEvents = function(x, y)
 
 //endregion Game_Event
 
+//region Game_Follower
 /**
  * Updates the direction and position based on the preceding character.
  * This forces followers to always face the character infront of them in the follower train.
@@ -3568,6 +3589,8 @@ Game_Follower.prototype.moveDiagonally = function(horz, vert)
   J.ABS.EXT.PIXEL.Aliased.Game_Follower.get("moveDiagonally")
     .call(this, horz, vert);
 };
+//endregion Game_Follower
+
 
 //region Game_Map
 /**
@@ -3587,6 +3610,7 @@ Game_Map.prototype.setup = function(mapId)
 };
 //endregion Game_Map
 
+//region Game_Player
 /**
  * Overrides {@link Game_Player.checkEventTriggerHere}.<br>
  * Includes the rounding of the x,y coordinates when checking event triggers for things beneath you.
@@ -3660,7 +3684,8 @@ Game_Player.prototype.checkEventTriggerTouch = function(x, y)
 
   // TODO: does this actually need to round?
   // determine the threshold for pixel movement regarding event triggering.
-  const didTrigger = Math.abs(roundX - x) < 0.3 && Math.abs(roundY - y) < 0.3; // within 1/3 of a tile triggers?
+  // within 1/3 of a tile triggers?
+  const didTrigger = Math.abs(roundX - x) < 0.3 && Math.abs(roundY - y) < 0.3;
 
   // check if the event was triggered with the threshold coordinates.
   if (didTrigger)
@@ -3907,6 +3932,8 @@ Game_Player.prototype.stopFollowersPixelMoving = function()
     follower.stopPixelMoving();
   });
 };
+//endregion Game_Player
+
 
 //region JABS_Battler
 /**
@@ -4435,61 +4462,77 @@ JABS_Battler.prototype.angleToDirection = function(angle)
   const half = 22.5;
 
   // RIGHT: -22.5 .. 22.5
-  const isRight = angle > -half && angle <= half; // 6
+  // 6.
+  const isRight = angle > -half && angle <= half;
 
   // DOWN-RIGHT: 22.5 .. 67.5
-  const isDownRight = angle > half && angle <= (half + 45); // 3
+  // 3.
+  const isDownRight = angle > half && angle <= (half + 45);
 
   // DOWN: 67.5 .. 112.5
-  const isDown = angle > (half + 45) && angle <= (half + 90); // 2
+  // 2.
+  const isDown = angle > (half + 45) && angle <= (half + 90);
 
   // DOWN-LEFT: 112.5 .. 157.5
-  const isDownLeft = angle > (half + 90) && angle <= (half + 135); // 1
+  // 1.
+  const isDownLeft = angle > (half + 90) && angle <= (half + 135);
 
   // LEFT: >157.5 or <= -157.5
-  const isLeft = angle > (half + 135) || angle <= -(half + 135); // 4
+  // 4.
+  const isLeft = angle > (half + 135) || angle <= -(half + 135);
 
   // UP-LEFT: -157.5 .. -112.5
-  const isUpLeft = angle > -(half + 135) && angle <= -(half + 90); // 7
+  // 7.
+  const isUpLeft = angle > -(half + 135) && angle <= -(half + 90);
 
   // UP: -112.5 .. -67.5
-  const isUp = angle > -(half + 90) && angle <= -(half + 45); // 8
+  // 8.
+  const isUp = angle > -(half + 90) && angle <= -(half + 45);
 
   // UP-RIGHT: -67.5 .. -22.5
-  const isUpRight = angle > -(half + 45) && angle <= -half; // 9
+  // 9.
+  const isUpRight = angle > -(half + 45) && angle <= -half;
 
   // Map the sector to the direction numbers.
   if (isRight)
   {
-    return J.ABS.Directions.RIGHT; // 6
+    // 6.
+    return J.ABS.Directions.RIGHT;
   }
   else if (isDownRight)
   {
-    return J.ABS.Directions.LOWERRIGHT; // 3
+    // 3.
+    return J.ABS.Directions.LOWERRIGHT;
   }
   else if (isDown)
   {
-    return J.ABS.Directions.DOWN; // 2
+    // 2.
+    return J.ABS.Directions.DOWN;
   }
   else if (isDownLeft)
   {
-    return J.ABS.Directions.LOWERLEFT; // 1
+    // 1.
+    return J.ABS.Directions.LOWERLEFT;
   }
   else if (isLeft)
   {
-    return J.ABS.Directions.LEFT; // 4
+    // 4.
+    return J.ABS.Directions.LEFT;
   }
   else if (isUpLeft)
   {
-    return J.ABS.Directions.UPPERLEFT; // 7
+    // 7.
+    return J.ABS.Directions.UPPERLEFT;
   }
   else if (isUp)
   {
-    return J.ABS.Directions.UP; // 8
+    // 8.
+    return J.ABS.Directions.UP;
   }
   else if (isUpRight)
   {
-    return J.ABS.Directions.UPPERRIGHT; // 9
+    // 9.
+    return J.ABS.Directions.UPPERRIGHT;
   }
 
   // Unknown sector; return 0.

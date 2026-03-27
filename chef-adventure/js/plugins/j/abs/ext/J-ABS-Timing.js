@@ -222,6 +222,7 @@
  * ==============================================================================
  */
 
+//region Introduction
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -809,13 +810,16 @@ Game_Battler.prototype.applyFastCooldown = function(originalCooldownTime)
   if (!originalCooldownTime) return 0;
 
   // get the base value.
-  const baseParam = this.baseFastCooldown(); // this.getBaseFastCooldown();
+  // this.getBaseFastCooldown();.
+  const baseParam = this.baseFastCooldown();
 
   // grab the flat modifier.
-  const flatModifier = this.fastCooldownFlat(); //this.getFastCooldownFlat();
+  // this.getFastCooldownFlat();.
+  const flatModifier = this.fastCooldownFlat();
 
   // grab the multiplicative modifier, and add the base-100 to the value.
-  const multModifier = this.fastCooldownRate(); //this.getFastCooldownRate();
+  // this.getFastCooldownRate();.
+  const multModifier = this.fastCooldownRate();
 
   // short circuit before calculations if we have no values.
   if (!baseParam && !flatModifier && !multModifier) return originalCooldownTime;

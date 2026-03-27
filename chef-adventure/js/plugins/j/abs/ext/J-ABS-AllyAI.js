@@ -247,6 +247,7 @@
  *
  */
 
+//region Introduction
 /* eslint-disable max-len */
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -325,12 +326,18 @@ J.ABS.EXT.ALLYAI.Metadata.FormationTypes = [
     description: "The rear-wedge formation.\nAllies will fan out behind you for support.",
     formation:
       [
-        [ -1, -1 ], // 1 back-left (behind is negative Y when facing DOWN)
-        [  1, -1 ], // 2 back-right
-        [  0, -2 ], // 3 two tiles behind
-        [ -1, -2 ], // 4 farther back-left
-        [  1, -2 ], // 5 farther back-right
-        [  0, -4 ], // 6 three tiles behind
+        // 1 back-left (behind is negative Y when facing DOWN).
+        [ -1, -1 ],
+        // 2 back-right.
+        [  1, -1 ],
+        // 3 two tiles behind.
+        [  0, -2 ],
+        // 4 farther back-left.
+        [ -1, -2 ],
+        // 5 farther back-right.
+        [  1, -2 ],
+        // 6 three tiles behind.
+        [  0, -4 ],
       ],
     effects: [],
   },
@@ -340,12 +347,18 @@ J.ABS.EXT.ALLYAI.Metadata.FormationTypes = [
     description: "A side- flank formation.\nAllies will flank you at either side to look extra menacing.",
     formation:
       [
-        [ -1,  0 ], // 1 left
-        [  1,  0 ], // 2 right
-        [ -2,  0 ], // 3 far-left
-        [  2,  0 ], // 4 far-right
-        [ -3,  0 ], // 5 farther-left
-        [  3,  0 ], // 6 farther-right
+        // 1 left.
+        [ -1,  0 ],
+        // 2 right.
+        [  1,  0 ],
+        // 3 far-left.
+        [ -2,  0 ],
+        // 4 far-right.
+        [  2,  0 ],
+        // 5 farther-left.
+        [ -3,  0 ],
+        // 6 farther-right.
+        [  3,  0 ],
       ],
     effects: [],
   },
@@ -355,14 +368,22 @@ J.ABS.EXT.ALLYAI.Metadata.FormationTypes = [
     description: "The tight circle formation.\nNo one will get to most delicate squishy innard!",
     formation:
       [
-        [  0,  1 ], // 1 below
-        [  1,  0 ], // 2 right
-        [  0, -1 ], // 3 above
-        [ -1,  0 ], // 4 left
-        [  1,  1 ], // 5 lower-right
-        [ -1,  1 ], // 6 lower-left
-        [  1, -1 ], // 7 upper-right
-        [ -1, -1 ], // 8 upper-left
+        // 1 below.
+        [  0,  1 ],
+        // 2 right.
+        [  1,  0 ],
+        // 3 above.
+        [  0, -1 ],
+        // 4 left.
+        [ -1,  0 ],
+        // 5 lower-right.
+        [  1,  1 ],
+        // 6 lower-left.
+        [ -1,  1 ],
+        // 7 upper-right.
+        [  1, -1 ],
+        // 8 upper-left.
+        [ -1, -1 ],
       ],
     effects: [],
   },
@@ -865,7 +886,8 @@ JABS_AllyAI.prototype.decideSupportCleansing = function(availableSkills, healer)
       // the find the first one that we can cleanse.
       const cleansableState = allyStates.find(state =>
       {
-        const isNegative = state.jabsNegative; // skills to be cleansed have a "negative" tag.
+        // skills to be cleansed have a "negative" tag.
+        const isNegative = state.jabsNegative;
         const canBeCleansed = this.determineBestSkillForStateCleansing(availableSkills, state.id, healer);
         return isNegative && canBeCleansed;
       });
@@ -935,9 +957,12 @@ JABS_AllyAI.prototype.decideSupportHealing = function(availableSkills, healer)
   {
     const testAction = new Game_Action(healer.getBattler());
     testAction.setSkill(skillId);
-    return (testAction.isForAliveFriend() &&  // must target living allies.
-      testAction.isRecover() &&               // must recover something.
-      testAction.isHpEffect());               // must affect hp.
+    // must target living allies.
+    return (testAction.isForAliveFriend() &&
+      // must recover something.
+      testAction.isRecover() &&
+      // must affect hp.
+      testAction.isHpEffect());
   });
 
   let bestSkillId = 0;
@@ -1040,7 +1065,8 @@ JABS_AllyAI.prototype.countLowHpAllies = function(healer, threshold = 0.6)
 JABS_AllyAI.prototype.bestFitHealingOneSkill = function(healingTypeSkills, healerBattler, lowestAllyBattler)
 {
   let bestSkillId = 0;
-  let smallestDifference = Number.MAX_SAFE_INTEGER; // need it to be an unrealistically high difference to start.
+  // need it to be an unrealistically high difference to start.
+  let smallestDifference = Number.MAX_SAFE_INTEGER;
   healingTypeSkills.forEach(skillId =>
   {
     const skill = healerBattler.skill(skillId);
@@ -1096,7 +1122,8 @@ JABS_AllyAI.prototype.bestFitHealingAllSkill = function(healingTypeSkills, heale
   // if there is only one skill that multi-targets, then use that.
   if (multiTargetHealingTypeSkills.length === 1) return multiTargetHealingTypeSkills[0];
 
-  let smallestDifference = 99999999; // need it to be an unrealistically high difference to start.
+  // need it to be an unrealistically high difference to start.
+  let smallestDifference = 99999999;
   multiTargetHealingTypeSkills.forEach(skillId =>
   {
     const skill = healerBattler.skill(skillId);
@@ -3063,7 +3090,9 @@ Scene_Map.prototype.commandSelectAllyFormation = function()
 {
   const window = this.getAllyFormationWindow();
 
-  /** @type {JABS_Formation} */
+  /**
+   * @type {JABS_Formation}
+   */
   const selectedFormation = window.currentExt();
   $gameParty.setPartyFormation(selectedFormation.key);
   window.refresh();
@@ -3385,9 +3414,11 @@ Window_AbsMenuSelect.prototype.addAllyFormationCommand = function()
 {
   // define the icons for passive/aggressive ally AI aggro settings.
   // build the command.
-  const allyFormationsCommand = new WindowCommandBuilder("Ally Formations") // TODO: parameterize this.
+  // tODO: parameterize this.
+  const allyFormationsCommand = new WindowCommandBuilder("Ally Formations")
     .setSymbol('ally-formations')
-    .setIconIndex(289) // TODO: parameterize this.
+    // tODO: parameterize this.
+    .setIconIndex(289)
     .setColorIndex(23)
     .build();
 
@@ -3459,6 +3490,7 @@ Window_AbsMenuSelect.prototype.itemHeight = function()
 };
 //endregion Window_AbsMenuSelect
 
+//region Window_Formations
 /**
  * A window that allows selection from a list of ally AI formations.
  */
@@ -3526,3 +3558,4 @@ class Window_Formations
     return this.lineHeight() * 2;
   }
 }
+//endregion Window_Formations

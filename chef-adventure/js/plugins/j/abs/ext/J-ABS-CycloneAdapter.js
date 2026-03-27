@@ -21,6 +21,7 @@
  * ----------------------------------------------------------------------------
  */
 
+//region Introduction
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -90,6 +91,7 @@ J.ABS.EXT.CYCLE.Aliased = {
 };
 //endregion Introduction
 
+//region JABS_Battler
 /**
  * Sets the number of steps that will be force-moved when dodging.
  * @param {number} stepCount The number of steps to dodge.
@@ -127,6 +129,8 @@ JABS_Battler.prototype.destroy = function()
     CycloneMovement.loadDefaultCollisionTable();
   }
 };
+//endregion JABS_Battler
+
 
 /**
  * A collection of all command codes that are associated with movement of the character.
@@ -352,6 +356,7 @@ Game_Character.prototype.updateRepeatedMovements = function()
   }
 };
 
+//region Game_Follower
 /**
  * Overrides {@link Game_Follower.chaseCharacter}.<br>
  * Prevents the follower from chasing after the player while they are in combat.
@@ -387,6 +392,8 @@ Game_Follower.prototype.isDoingJabsAllyAiThings = function()
   // we must be doing JABS AI things!
   return true;
 };
+//endregion Game_Follower
+
 
 //region Game_Player
 /**

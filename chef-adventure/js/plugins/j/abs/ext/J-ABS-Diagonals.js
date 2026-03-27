@@ -87,6 +87,7 @@
  * ============================================================================
  */
 
+//region Initialization
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -274,7 +275,7 @@ Game_Event.prototype.moveDiagonally = function(horz, vert)
   if (this.isJabsAction() === false) return;
 
   // if this is not a diagonal direction, don't try to modify facing.
-  if (this.isDiagonalDirection(this.direction()) === false) return;
+  if (!this.isDiagonalDirection(this.direction())) return;
 
   // determine the correct direction to face and set it.
   const newDirection = this.normalizeActionDirection();
@@ -300,55 +301,76 @@ Game_Event.prototype.normalizeActionDirection = function()
   // normalize the direction that should be faced.
   switch (castedDirection)
   {
-    case 2: // caster faced down
+    // caster faced down.
+    case 2:
       switch (actionDirection)
       {
-        case 1: // action moving lower left
-        case 3: // action moving lower right
+        // action moving lower left.
+        case 1:
+        // action moving lower right.
+        case 3:
           return castedDirection;
-        case 7: // action moving upper left
-        case 9: // action moving upper right
+        // action moving upper left.
+        case 7:
+        // action moving upper right.
+        case 9:
           return this.reverseDir(castedDirection);
       }
       return castedDirection;
 
-    case 4: // caster faced left
+    // caster faced left.
+    case 4:
       switch (actionDirection)
       {
-        case 1: // action moving lower left
-        case 7: // action moving upper left
+        // action moving lower left.
+        case 1:
+        // action moving upper left.
+        case 7:
           return castedDirection;
-        case 3: // action moving lower right
-        case 9: // action moving upper right
+        // action moving lower right.
+        case 3:
+        // action moving upper right.
+        case 9:
           return this.reverseDir(castedDirection);
       }
       return castedDirection;
 
-    case 6: // caster faced right
+    // caster faced right.
+    case 6:
       switch (actionDirection)
       {
-        case 3: // action moving lower right
-        case 9: // action moving upper right
+        // action moving lower right.
+        case 3:
+        // action moving upper right.
+        case 9:
           return castedDirection;
-        case 1: // action moving lower left
-        case 7: // action moving upper left
+        // action moving lower left.
+        case 1:
+        // action moving upper left.
+        case 7:
           return this.reverseDir(castedDirection);
       }
       return castedDirection;
 
-    case 8: // caster faced up
+    // caster faced up.
+    case 8:
       switch (actionDirection)
       {
-        case 7: // action moving upper left
-        case 9: // action moving upper right
+        // action moving upper left.
+        case 7:
+        // action moving upper right.
+        case 9:
           return castedDirection;
-        case 1: // action moving lower left
-        case 3: // action moving lower right
+        // action moving lower left.
+        case 1:
+        // action moving lower right.
+        case 3:
           return this.reverseDir(castedDirection);
       }
       return castedDirection;
 
-    default: // somehow we were not facing one of the four cardinal directions, return default.
+    // somehow we were not facing one of the four cardinal directions, return default.
+    default:
       return castedDirection;
   }
 };
