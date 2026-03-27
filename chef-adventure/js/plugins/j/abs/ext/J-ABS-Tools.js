@@ -86,6 +86,24 @@
  * @text Gap Close Default
  * @desc True if you can gap close to anything hittable, false if only specific targets.
  * @default false
+ *
+ * @param grabThrowConfigs
+ * @text GRAB AND THROW DEFAULTS
+ *
+ * @param grabThrowEnabled
+ * @parent grabThrowConfigs
+ * @type boolean
+ * @text Grab and Throw Enabled
+ * @desc True if grab and throw functionality is enabled globally by default.
+ * @default true
+ *
+ * @param directionFixAlways
+ * @parent grabThrowConfigs
+ * @type boolean
+ * @text Always Fix Throw Direction
+ * @desc True if the throw direction is always fixed regardless of input.
+ * @default false
+ *
  */
 
 //region Introduction
@@ -152,7 +170,19 @@ J.ABS.EXT.TOOLS.Metadata = {
    * The behavior for whether or not the player can gap close to anything they hit, or if they
    * can only gap close to targets bearing the "gap close target" tag.
    */
-  CanGapCloseByDefault: J.ABS.EXT.TOOLS.PluginParameters["canGapCloseByDefault"] === "true",
+  CanGapCloseByDefault: J.ABS.EXT.TOOLS.PluginParameters['canGapCloseByDefault'] === 'true',
+
+  /**
+   * Whether or not grab and throw functionality is enabled globally by default.
+   * @type {boolean}
+   */
+  GrabThrowEnabled: J.ABS.EXT.TOOLS.PluginParameters['grabThrowEnabled'] !== 'false',
+
+  /**
+   * Whether or not the throw direction is always fixed regardless of input.
+   * @type {boolean}
+   */
+  DirectionFixAlways: J.ABS.EXT.TOOLS.PluginParameters['directionFixAlways'] === 'true',
 };
 
 /**
@@ -693,8 +723,7 @@ Game_CharacterBase.prototype.initToolsMembers = function()
 
   this._j._tools._grabThrow._throw._through = false;
 
-  // tODO: from plugin params.
-  this._j._tools._grabThrow._throw._directionFixAlways = false;
+  this._j._tools._grabThrow._throw._directionFixAlways = J.ABS.EXT.TOOLS.Metadata.DirectionFixAlways;
 
   this._j._tools._grabThrow._throw._directionFix = false;
 
@@ -770,8 +799,7 @@ Game_System.prototype.initToolsMembers = function()
    * Whether or not the grab and throw functionality is currently enabled.
    * @type {boolean}
    */
-  // tODO: parameterize this.
-  this._j._tools._grabThrowEnabled = true;
+  this._j._tools._grabThrowEnabled = J.ABS.EXT.TOOLS.Metadata.GrabThrowEnabled;
 };
 
 /**
