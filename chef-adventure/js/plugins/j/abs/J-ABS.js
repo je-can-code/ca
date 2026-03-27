@@ -14,13 +14,41 @@ class JABS_Aabb
    */
   constructor(x, y, w, h)
   {
-    /** @type {number} */ this.x = x; // top-left x in pixels.
-    /** @type {number} */ this.y = y; // top-left y in pixels.
-    /** @type {number} */ this.w = w; // width in pixels.
-    /** @type {number} */ this.h = h; // height in pixels.
+    /**
+     * The top-left x coordinate in pixels.
+     * @type {number}
+     */
+    this.x = x;
 
-    /** @type {number} */ this.cx = x + (w / 2); // center x in pixels.
-    /** @type {number} */ this.cy = y + (h / 2); // center y in pixels.
+    /**
+     * The top-left y coordinate in pixels.
+     * @type {number}
+     */
+    this.y = y;
+
+    /**
+     * The width in pixels.
+     * @type {number}
+     */
+    this.w = w;
+
+    /**
+     * The height in pixels.
+     * @type {number}
+     */
+    this.h = h;
+
+    /**
+     * The center x coordinate in pixels.
+     * @type {number}
+     */
+    this.cx = x + (w / 2);
+
+    /**
+     * The center y coordinate in pixels.
+     * @type {number}
+     */
+    this.cy = y + (h / 2);
   }
 
   /**
@@ -33,8 +61,10 @@ class JABS_Aabb
    */
   static fromFeet(feetX, feetY, tw, th)
   {
-    const x = feetX - (tw / 2); // left edge half a tile left of feet.
-    const y = feetY - th;       // top edge one tile above feet.
+    // left edge half a tile left of feet.
+    const x = feetX - (tw / 2);
+    // top edge one tile above feet.
+    const y = feetY - th;
     return new JABS_Aabb(x, y, tw, th);
   }
 
@@ -414,10 +444,9 @@ class JABS_Action
     const event = this.getActionSprite();
 
     // check if the action has an animation to play before destroying.
-    if (this.hasSelfAnimationId())
+    if (this.hasSelfAnimationId() && event)
     {
-      // play it on oneself.
-      event?.requestAnimation(this.getSelfAnimationId());
+      event.requestAnimation(this.getSelfAnimationId());
     }
   }
 
@@ -581,8 +610,10 @@ class JABS_Action
   {
     const damageType = this.getBaseSkill().damage.type;
     return [
-      3, // HP recover
-      4, // MP recover
+      // hP recover.
+      3,
+      // mP recover.
+      4,
     ].includes(damageType);
   }
 
@@ -1213,7 +1244,8 @@ class JABS_Action
     // this allows sprite-less actions to still render a pulse anchored to the caster.
     let originX = 0;
     let originY = 0;
-    let facing = 2; // default to down as a safe fallback.
+    // default to down as a safe fallback.
+    let facing = 2;
 
     // attempt to use the action event for origin and facing when present.
     if (actionEvent)
@@ -2286,7 +2318,8 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData)
    * @type {boolean}
    */
   this._canIdle = battlerCoreData.isInanimate()
-    ? false // don't move idly if inanimate.
+    // don't move idly if inanimate.
+    ? false
     : battlerCoreData.canIdle();
 
   /**
@@ -2295,7 +2328,8 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData)
    * @type {boolean}
    */
   this._showHpBar = battlerCoreData.isInanimate()
-    ? false // don't show hp bar if inanimate.
+    // don't show hp bar if inanimate.
+    ? false
     : battlerCoreData.showHpBar();
 
   /**
@@ -2304,7 +2338,8 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData)
    * @type {boolean}
    */
   this._showBattlerName = battlerCoreData.isInanimate()
-    ? false // don't show battler name if inanimate.
+    // don't show battler name if inanimate.
+    ? false
     : battlerCoreData.showBattlerName();
 
   /**
@@ -2631,7 +2666,8 @@ JABS_Battler.prototype.initBattleInfo = function()
    * Default window for the in‑combat countdown (60fps × seconds).
    * @type {number}
    */
-  this._inCombatWindowMax = 600; // 10s default.
+  // 10s default.
+  this._inCombatWindowMax = 600;
 };
 
 /**
@@ -3661,15 +3697,18 @@ JABS_Battler.prototype.isDead = function()
   const battler = this.getBattler();
 
   if (!battler)
-  { // has no battler.
+  // has no battler.
+  {
     return true;
   }
   else if (!JABS_AiManager.getBattlerByUuid(battler.getUuid()))
-  { // battler isn't on the map.
+  // battler isn't on the map.
+  {
     return true;
   }
   else if (battler.isDead() || this.isDying())
-  { // battler is actually dead.
+  // battler is actually dead.
+  {
     return true;
   }
   // battler is OK!
@@ -6675,7 +6714,8 @@ JABS_Battler.prototype.applyToolForAllAllies = function(toolId)
   const battlers = $gameParty.battleMembers();
   if (battlers.length > 1)
   {
-    battlers.shift(); // remove the leader, because that's the player.
+    // remove the leader, because that's the player.
+    battlers.shift();
     battlers.forEach(battler =>
     {
       const gameAction = new Game_Action(battler, false);
@@ -7898,10 +7938,14 @@ JABS_Battler.prototype.slipEval = function(formula, sourceBattler, afflictedBatt
 {
   // variables for contextual eval().
   /* eslint-disable no-unused-vars */
-  const a = sourceBattler;        // the one who applied the state.
-  const b = afflictedBattler;     // this battler, afflicted by the state.
-  const v = $gameVariables._data; // access to variables if you need it.
-  const s = state;                // access to the state itself if you need it.
+  // the one who applied the state.
+  const a = sourceBattler;
+  // this battler, afflicted by the state.
+  const b = afflictedBattler;
+  // access to variables if you need it.
+  const v = $gameVariables._data;
+  // access to the state itself if you need it.
+  const s = state;
   /* eslint-enable no-unused-vars */
 
   // initialize the result.
@@ -7994,13 +8038,16 @@ JABS_Battler.prototype.configureSlipPop = function(amount, type)
   // based on the hp/mp/tp type, we apply different visual effects.
   switch (type)
   {
-    case 0: // hp
+    // hp.
+    case 0:
       textPopBuilder.isHpDamage();
       break;
-    case 1: // mp
+    // mp.
+    case 1:
       textPopBuilder.isMpDamage();
       break;
-    case 2: // tp
+    // tp.
+    case 2:
       textPopBuilder.isTpDamage();
       break;
   }
@@ -9861,9 +9908,12 @@ class JABS_EnemyAI
     {
       const testAction = new Game_Action(user.getBattler());
       testAction.setSkill(skillId);
-      return (testAction.isForAliveFriend() &&  // must target living allies.
-        testAction.isRecover() &&               // must recover something.
-        testAction.isHpEffect());               // must affect hp.
+      // must target living allies.
+      return (testAction.isForAliveFriend() &&
+        // must recover something.
+        testAction.isRecover() &&
+        // must affect hp.
+        testAction.isHpEffect());
     });
 
     // if we have 0 or 1 skills left after healing, just return that.
@@ -10937,7 +10987,7 @@ class JABS_Location
    * @param {JABS_Location} sourceLocation The source location to copy the values of.
    * @returns {JABS_Location} A new instance of the same location.
    */
-  static Clone = sourceLocation => new JABS_Location(sourceLocation?.x, sourceLocation?.y, sourceLocation?.d);
+  static Clone = sourceLocation => new JABS_Location(sourceLocation.x, sourceLocation.y, sourceLocation.d);
 
   /**
    * A factory that generates builders for creating {@link JABS_Location}s.
@@ -15495,7 +15545,8 @@ J.ABS.Metadata.UnassignedText = J.ABS.PluginParameters['unassignedText'];
 J.ABS.Metadata.HitboxStyles = {
   // Base defaults used for all shapes unless overridden below.
   base: {
-    fillColor: 0xFFA500, // orange
+    // orange.
+    fillColor: 0xFFA500,
     fillAlpha: 0.35,
     lineColor: 0xE08000,
     lineAlpha: 0.9,
@@ -15505,13 +15556,16 @@ J.ABS.Metadata.HitboxStyles = {
   // Optional per-shape overrides.
   byShape: {
     circle: {
-      fillColor: 0xFF7F50, // coral
+      // coral.
+      fillColor: 0xFF7F50,
     },
     rhombus: {
-      fillColor: 0xFFD580, // light orange
+      // light orange.
+      fillColor: 0xFFD580,
     },
     square: {
-      fillColor: 0xFFA64D, // darker orange
+      // darker orange.
+      fillColor: 0xFFA64D,
     },
     frontsquare: {
       fillAlpha: 0.28,
@@ -15548,7 +15602,8 @@ J.ABS.Metadata.HitboxStyles = {
     {
       colliding:
         {
-          fillColor: 0xFF3B30, // bright red while overlapping an action.
+          // bright red while overlapping an action.
+          fillColor: 0xFF3B30,
           fillAlpha: 0.35,
           lineColor: 0xC12722,
           lineWidth: 3,
@@ -15818,19 +15873,29 @@ J.ABS.Shapes = {
  * Strongly-typed projectile formation names used across JABS.
  */
 J.ABS.ProjectileFormations = {
-  /** A single spoke in the forward direction. */
+  /**
+   * A single spoke in the forward direction.
+   */
   Line: 'line',
 
-  /** Three spokes: forward, forward-left, forward-right. */
+  /**
+   * Three spokes: forward, forward-left, forward-right.
+   */
   Spray: 'spray',
 
-  /** Four cardinals: up, right, down, left. */
+  /**
+   * Four cardinals: up, right, down, left.
+   */
   Cross: 'cross',
 
-  /** Four diagonals: up-right, down-right, down-left, up-left. */
+  /**
+   * Four diagonals: up-right, down-right, down-left, up-left.
+   */
   Xburst: 'xburst',
 
-  /** All eight directions: cardinals + diagonals. */
+  /**
+   * All eight directions: cardinals + diagonals.
+   */
   Nova: 'nova',
 };
 
@@ -15937,11 +16002,13 @@ J.ABS.RegExp = {
   KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
 
   // parry-related.
-  IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi, //endregion ON EQUIPS
+  IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
+  //endregion ON EQUIPS
 
   //region ON ITEMS
   UseOnPickup: /<useOnPickup>/gi,
-  Expires: /<expires:[ ]?(\d+)>/gi, //endregion ON ITEMS
+  Expires: /<expires:[ ]?(\d+)>/gi,
+  //endregion ON ITEMS
 
   //region ON STATES
   // definition-related.
@@ -15985,7 +16052,8 @@ J.ABS.RegExp = {
   // state duration-related.
   StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
   StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
-  StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi, //endregion ON STATES
+  StateDurationFormulaPlus: /<stateDurationForm:\[([+\-*/ ().\w]+)]>/gi,
+  //endregion ON STATES
 
   //region ON BATTLERS
   // core concepts.
@@ -16022,7 +16090,8 @@ J.ABS.RegExp = {
   ConfigInvincible: /<jabsConfig:[ ]?invincible>/i,
   ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
   ConfigNoName: /<jabsConfig:[ ]?noName>/i,
-  ConfigShowName: /<jabsConfig:[ ]?showName>/i, //endregion ON BATTLERS
+  ConfigShowName: /<jabsConfig:[ ]?showName>/i,
+  //endregion ON BATTLERS
 
   //region ON ACTORS/CLASSES
   ConfigNoSwitch: /<noSwitch>/i,
@@ -16034,12 +16103,18 @@ J.ABS.RegExp = {
  * Visual customization for action sprites (per-skill).
  * All tags are optional and purely visual; physics/hitboxes remain unchanged.
  */
-J.ABS.RegExp.VisOffset = /<visOffset:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi; // capture full [x, y]
-J.ABS.RegExp.VisAnchor = /<visAnchor:[ ]?(\[(?:0|1|0?\.\d+),[ ]?(?:0|1|0?\.\d+)])>/gi; // capture full [ax, ay]
-J.ABS.RegExp.VisRotate = /<visRotate>/gi; // boolean
-J.ABS.RegExp.VisScale = /<visScale:[ ]?(\[-?\d+(?:\.\d+)?,[ ]?-?\d+(?:\.\d+)?])>/gi; // capture full [sx, sy]
-J.ABS.RegExp.VisZ = /<visZ:[ ]?(-?\d+)>/gi; // z-order override (number only)
-J.ABS.RegExp.VisDebug = /<visDebug>/gi; // show visual center/debug gizmo
+// capture full [x, y].
+J.ABS.RegExp.VisOffset = /<visOffset:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
+// capture full [ax, ay].
+J.ABS.RegExp.VisAnchor = /<visAnchor:[ ]?(\[(?:0|1|0?\.\d+),[ ]?(?:0|1|0?\.\d+)])>/gi;
+// boolean.
+J.ABS.RegExp.VisRotate = /<visRotate>/gi;
+// capture full [sx, sy].
+J.ABS.RegExp.VisScale = /<visScale:[ ]?(\[-?\d+(?:\.\d+)?,[ ]?-?\d+(?:\.\d+)?])>/gi;
+// z-order override (number only).
+J.ABS.RegExp.VisZ = /<visZ:[ ]?(-?\d+)>/gi;
+// show visual center/debug gizmo.
+J.ABS.RegExp.VisDebug = /<visDebug>/gi;
 //endregion visual metadata (new)
 
 //region visual directional metadata (new)
@@ -16049,16 +16124,24 @@ J.ABS.RegExp.VisDebug = /<visDebug>/gi; // show visual center/debug gizmo
  * Cardinal: U/D/L/R
  * Optional diagonals: UR/UL/DR/DL
  */
-J.ABS.RegExp.VisOffsetU = /<visOffsetU:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
-J.ABS.RegExp.VisOffsetD = /<visOffsetD:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
-J.ABS.RegExp.VisOffsetL = /<visOffsetL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
-J.ABS.RegExp.VisOffsetR = /<visOffsetR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;  // [x, y]
+// [x, y].
+J.ABS.RegExp.VisOffsetU = /<visOffsetU:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
+// [x, y].
+J.ABS.RegExp.VisOffsetD = /<visOffsetD:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
+// [x, y].
+J.ABS.RegExp.VisOffsetL = /<visOffsetL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
+// [x, y].
+J.ABS.RegExp.VisOffsetR = /<visOffsetR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
 
 // Optional diagonals for future use.
-J.ABS.RegExp.VisOffsetUR = /<visOffsetUR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi; // [x, y]
-J.ABS.RegExp.VisOffsetUL = /<visOffsetUL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi; // [x, y]
-J.ABS.RegExp.VisOffsetDR = /<visOffsetDR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi; // [x, y]
-J.ABS.RegExp.VisOffsetDL = /<visOffsetDL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi; // [x, y]
+// [x, y].
+J.ABS.RegExp.VisOffsetUR = /<visOffsetUR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
+// [x, y].
+J.ABS.RegExp.VisOffsetUL = /<visOffsetUL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
+// [x, y].
+J.ABS.RegExp.VisOffsetDR = /<visOffsetDR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
+// [x, y].
+J.ABS.RegExp.VisOffsetDL = /<visOffsetDL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
 //endregion visual directional metadata (new)
 
 //region cast preview tags
@@ -16308,7 +16391,9 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Spawn Loot", args =>
   const parsedArmors = JSON.parse(lootArmorIds)
     .map(id => $dataArmors.at(parseInt(id)));
   const parsedAnimationId = parseInt(spawnAnimationId);
-  /** @type {Game_Event} */
+  /**
+   * @type {Game_Event}
+   */
   let lastDropped = null;
 
   // iterate and drop all the item loot.
@@ -17710,27 +17795,36 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsVisOffsetDL', {
 RPG_Skill.prototype.getJabsVisOffsetFor = function(direction)
 {
   // start from the default offset (may be [0, 0]).
-  const def = this.jabsVisOffset; // default visual offset.
+  // default visual offset.
+  const def = this.jabsVisOffset;
 
   // resolve directional override if present.
   switch (direction)
   {
-    case 8: // UP
+    // uP.
+    case 8:
       return this.jabsVisOffsetU || def || [ 0, 0 ];
-    case 2: // DOWN
+    // dOWN.
+    case 2:
       return this.jabsVisOffsetD || def || [ 0, 0 ];
-    case 4: // LEFT
+    // lEFT.
+    case 4:
       return this.jabsVisOffsetL || def || [ 0, 0 ];
-    case 6: // RIGHT
+    // rIGHT.
+    case 6:
       return this.jabsVisOffsetR || def || [ 0, 0 ];
 
-    case 9: // UP-RIGHT
+    // uP-RIGHT.
+    case 9:
       return this.jabsVisOffsetUR || this.jabsVisOffsetU || this.jabsVisOffsetR || def || [ 0, 0 ];
-    case 7: // UP-LEFT
+    // uP-LEFT.
+    case 7:
       return this.jabsVisOffsetUL || this.jabsVisOffsetU || this.jabsVisOffsetL || def || [ 0, 0 ];
-    case 3: // DOWN-RIGHT
+    // dOWN-RIGHT.
+    case 3:
       return this.jabsVisOffsetDR || this.jabsVisOffsetD || this.jabsVisOffsetR || def || [ 0, 0 ];
-    case 1: // DOWN-LEFT
+    // dOWN-LEFT.
+    case 1:
       return this.jabsVisOffsetDL || this.jabsVisOffsetD || this.jabsVisOffsetL || def || [ 0, 0 ];
   }
 
@@ -18250,7 +18344,7 @@ DataManager.getSkillMasterMap = function()
 DataManager.loadSkillMasterMap = function(name, src)
 {
   const xhr = new XMLHttpRequest();
-  const url = 'data/' + src;
+  const url = `data/${src}`;
   xhr.open('GET', url);
   xhr.overrideMimeType('application/json');
   xhr.onload = () => this.onMapGet(xhr, name, src, url);
@@ -18299,7 +18393,9 @@ DataManager.makeSaveContents = function()
   const contents = J.ABS.Aliased.DataManager.get('makeSaveContents')
     .call(this);
 
-  /** @type {Game_Event[]} */
+  /**
+   * @type {Game_Event[]}
+   */
   const originalEvents = contents.map._events;
 
   const actionlessEvents = originalEvents.map(event =>
@@ -18322,6 +18418,7 @@ DataManager.makeSaveContents = function()
 };
 //endregion
 
+//region JABS_ActionSpawner
 /**
  * The action spawner is responsible for translating projectile directions into
  * fully-formed `JABS_Action` instances, including per-spoke odd/even parallel
@@ -18377,7 +18474,9 @@ class JABS_ActionSpawner
   static buildProjectileCountsByDirection(projectileDirections)
   {
     // initialize the per-direction counts.
-    /** @type {Object.<number, number>} */
+    /**
+     * @type {Object.<number, number>}
+     */
     const totalByDir = {};
 
     // iterate over all projectile directions.
@@ -18406,7 +18505,9 @@ class JABS_ActionSpawner
   static buildOffsetsByDirection(countsByDir)
   {
     // initialize the per-direction offsets.
-    /** @type {Object.<number, number[]>} */
+    /**
+     * @type {Object.<number, number[]>}
+     */
     const offsetsByDir = {};
 
     // iterate over the directions present.
@@ -18537,7 +18638,9 @@ class JABS_ActionSpawner
   )
   {
     // track how many offsets have been consumed per direction.
-    /** @type {Object.<number, number>} */
+    /**
+     * @type {Object.<number, number>}
+     */
     const usedIndexByDir = {};
 
     // a mapping function to build one action for a projectile in a specific direction.
@@ -18599,6 +18702,8 @@ class JABS_ActionSpawner
     return actions;
   }
 }
+//endregion JABS_ActionSpawner
+
 
 //region JABS_AiManager
 /**
@@ -18704,7 +18809,9 @@ class JABS_AiManager
     const nearbyBattlers = this.getAlliedBattlersWithinRange(leaderBattler, leaderBattler.getPursuitRadius());
 
     // the filter function for determining if a battler is a follower to this leader.
-    /** @param battler {JABS_Battler} */
+    /**
+     * @param {JABS_Battler} battler
+     */
     const filtering = battler =>
     {
       // actors are not considered for leader/follower.
@@ -20462,14 +20569,13 @@ class JABS_Engine
       };
     }
 
-    // determine the tile height for vertical correction.
-    const th = $gameMap.tileHeight(); // tile height in pixels.
+    // tile height is needed to vertically center the origin above the feet.
+    const th = $gameMap.tileHeight();
 
-    // compute the corrected origin at the center of the tile above the feet.
-    const x = actionEvent.screenX(); // on-screen x at feet.
-    const y = actionEvent.screenY() - (th / 2); // corrected y above feet.
+    // center the origin one tile above the feet position.
+    const x = actionEvent.screenX();
+    const y = actionEvent.screenY() - (th / 2);
 
-    // provide the computed origin.
     return {
       x,
       y
@@ -20851,7 +20957,9 @@ class JABS_Engine
   getPositiveJabsStatesByUuid(uuid)
   {
     // a filter function defining what is a "positive" state.
-    /** @param {JABS_State} trackedState */
+    /**
+     * @param {JABS_State} trackedState
+     */
     const filtering = trackedState =>
     {
       // if the state is expired, it is not positive.
@@ -21719,7 +21827,8 @@ class JABS_Engine
     actionEventData.uniqueId = action.getUuid();
 
     // default the deletion flag.
-    actionEventData.actionDeleted = false; // not deleted by default.
+    // not deleted by default.
+    actionEventData.actionDeleted = false;
 
     // return the mutated copy.
     return actionEventData;
@@ -22202,78 +22311,110 @@ class JABS_Engine
   addJabsActionToMap(actionEventData, action)
   {
     // find the first available hole in the data map event list.
-    let index = -1; // the index we will insert at.
+    // the index we will insert at.
+    let index = -1;
     for (let i = 0; i < $dataMap.events.length; i++)
     {
       // if an empty spot is found, use that.
       if (!$dataMap.events[i])
       {
-        index = i; // capture the hole index.
-        break; // stop searching.
+        // capture the hole index.
+        index = i;
+        // stop searching.
+        break;
       }
     }
 
     // if no hole was found, append to the end.
     if (index === -1)
     {
-      index = $dataMap.events.length; // assign next index.
+      // assign next index.
+      index = $dataMap.events.length;
     }
 
     // add the data to the $dataMap.events at the chosen index.
-    $dataMap.events[index] = actionEventData; // keep array dense.
-    actionEventData.actionIndex = index; // persist the action index.
+    // keep array dense.
+    $dataMap.events[index] = actionEventData;
+    // persist the action index.
+    actionEventData.actionIndex = index;
 
     // assign this so it exists, but isn't valid.
-    actionEventData.lootIndex = 0; // not a loot event.
+    // not a loot event.
+    actionEventData.lootIndex = 0;
 
     // create the event by hand with this new data.
-    const actionEventSprite = new Game_Event(J.ABS.DefaultValues.ActionMap, index); // construct sprite.
+    // construct sprite.
+    const actionEventSprite = new Game_Event(J.ABS.DefaultValues.ActionMap, index);
 
     const {
       x: actionX,
       y: actionY
-    } = actionEventData; // extract coordinates.
-    actionEventSprite._realX = actionX; // align position.
-    actionEventSprite._realY = actionY; // align position.
-    actionEventSprite._x = actionX; // align grid x.
-    actionEventSprite._y = actionY; // align grid y.
+    // extract coordinates.
+    } = actionEventData;
+    // align position.
+    actionEventSprite._realX = actionX;
+    // align position.
+    actionEventSprite._realY = actionY;
+    // align grid x.
+    actionEventSprite._x = actionX;
+    // align grid y.
+    actionEventSprite._y = actionY;
 
     // give it a name.
-    const skillName = action.getBaseSkill().name; // get skill name.
+    // get skill name.
+    const skillName = action.getBaseSkill().name;
     const casterName = action.getCaster()
-      .battlerName(); // get caster name.
-    actionEventSprite.__actionName = `_${casterName}-${skillName}-${index}`; // tag for debugging/tools.
+      // get caster name.
+      .battlerName();
+    // tag for debugging/tools.
+    actionEventSprite.__actionName = `_${casterName}-${skillName}-${index}`;
 
     // on rare occasions, the timing of adding an action to the map coincides with the removal of the caster.
     if (!actionEventData || !actionEventData.pages.length)
     {
-      console.error('that rare error occurred!'); // preserve existing behavior.
-      return; // stop if invalid.
+      // preserve existing behavior.
+      console.error('that rare error occurred!');
+      // stop if invalid.
+      return;
     }
 
-    const pageIndex = actionEventSprite.findProperPageIndex(); // resolve page index.
+    // resolve page index.
+    const pageIndex = actionEventSprite.findProperPageIndex();
     const {
       characterIndex,
       characterName
-    } = actionEventData.pages[pageIndex].image; // extract image data.
+    // extract image data.
+    } = actionEventData.pages[pageIndex].image;
 
-    actionEventSprite.setActionSpriteNeedsAdding(); // flag to add sprite.
-    actionEventSprite._eventId = actionEventData.id; // assign event id.
-    actionEventSprite._characterName = characterName; // assign sprite name.
-    actionEventSprite._characterIndex = characterIndex; // assign sprite index.
-    const pageData = actionEventData.pages[pageIndex]; // get page.
-    actionEventSprite.setMoveFrequency(pageData.moveFrequency); // frequency.
-    actionEventSprite.setMoveRoute(pageData.moveRoute); // route.
-    actionEventSprite.setCastedDirection($gamePlayer.direction()); // cast facing.
+    // flag to add sprite.
+    actionEventSprite.setActionSpriteNeedsAdding();
+    // assign event id.
+    actionEventSprite._eventId = actionEventData.id;
+    // assign sprite name.
+    actionEventSprite._characterName = characterName;
+    // assign sprite index.
+    actionEventSprite._characterIndex = characterIndex;
+    // get page.
+    const pageData = actionEventData.pages[pageIndex];
+    // frequency.
+    actionEventSprite.setMoveFrequency(pageData.moveFrequency);
+    // route.
+    actionEventSprite.setMoveRoute(pageData.moveRoute);
+    // cast facing.
+    actionEventSprite.setCastedDirection($gamePlayer.direction());
 
     this.applyActionToActionEventSprite(actionEventSprite, action);
 
     // prevent player interaction with the action event.
-    actionEventSprite.start = () => false; // no-op start.
+    // no-op start.
+    actionEventSprite.start = () => false;
 
-    action.setActionSprite(actionEventSprite); // associate back.
-    $gameMap.addEvent(actionEventSprite); // add to map, with hole reuse.
-    this.requestActionRendering = true; // trigger render.
+    // associate back.
+    action.setActionSprite(actionEventSprite);
+    // add to map, with hole reuse.
+    $gameMap.addEvent(actionEventSprite);
+    // trigger render.
+    this.requestActionRendering = true;
   }
 
   /**
@@ -22283,8 +22424,10 @@ class JABS_Engine
    */
   applyActionToActionEventSprite(actionEventSprite, action)
   {
-    actionEventSprite.setJabsAction(action); // wire action.
-    actionEventSprite.setDirection(action.direction()); // facing.
+    // wire action.
+    actionEventSprite.setJabsAction(action);
+    // facing.
+    actionEventSprite.setDirection(action.direction());
   }
 
   /**
@@ -22296,54 +22439,72 @@ class JABS_Engine
   addLootDropToMap(x, y, item)
   {
     // clone the loot data from the action map event id of 1.
-    const lootEventData = JsonEx.makeDeepCopy($actionMap.events[1]); // base template.
+    // base template.
+    const lootEventData = JsonEx.makeDeepCopy($actionMap.events[1]);
 
-    lootEventData.x = x; // position x.
-    lootEventData.y = y; // position y.
+    // position x.
+    lootEventData.x = x;
+    // position y.
+    lootEventData.y = y;
 
     // find the first available hole in the data map event list.
-    let index = -1; // the index we will insert at.
+    // the index we will insert at.
+    let index = -1;
     for (let i = 0; i < $dataMap.events.length; i++)
     {
       // if an empty spot is found, use that.
       if (!$dataMap.events[i])
       {
-        index = i; // capture the hole index.
-        break; // stop searching.
+        // capture the hole index.
+        index = i;
+        // stop searching.
+        break;
       }
     }
 
     // if no hole was found, append to the end.
     if (index === -1)
     {
-      index = $dataMap.events.length; // assign next index.
+      // assign next index.
+      index = $dataMap.events.length;
     }
 
     // add the loot event to the datamap list of events.
-    $dataMap.events[index] = lootEventData; // keep array dense.
-    lootEventData.lootIndex = index; // persist the loot index.
+    // keep array dense.
+    $dataMap.events[index] = lootEventData;
+    // persist the loot index.
+    lootEventData.lootIndex = index;
 
     // create the loot event by hand with this new data.
-    const jabsLootData = new JABS_LootDrop(item); // create loot model.
-    lootEventData.uuid = jabsLootData.uuid; // associate unique id.
+    // create loot model.
+    const jabsLootData = new JABS_LootDrop(item);
+    // associate unique id.
+    lootEventData.uuid = jabsLootData.uuid;
 
     // set the duration of this loot drop
     // if a custom time is available, then use that, otherwise use the default.
-    jabsLootData.duration = item.jabsExpiration ?? J.ABS.Metadata.DefaultLootExpiration; // lifetime.
+    // lifetime.
+    jabsLootData.duration = item.jabsExpiration ?? J.ABS.Metadata.DefaultLootExpiration;
 
     // generate a new event to visually represent the loot drop and flag it for adding.
-    const eventId = index; // use the reused/appended index.
-    const lootEvent = new Game_Event($gameMap.mapId(), eventId); // construct sprite.
-    lootEvent.setJabsLoot(jabsLootData); // attach loot.
+    // use the reused/appended index.
+    const eventId = index;
+    // construct sprite.
+    const lootEvent = new Game_Event($gameMap.mapId(), eventId);
+    // attach loot.
+    lootEvent.setJabsLoot(jabsLootData);
 
     // flag for adding a character sprite later via HUD/spriteset integration (unchanged elsewhere).
-    lootEvent.setLootNeedsAdding(); // if your code uses such a flag.
+    // if your code uses such a flag.
+    lootEvent.setLootNeedsAdding();
 
     // add to the map, reusing holes in the live event list as well.
-    $gameMap.addEvent(lootEvent); // will reuse holes per updated addEvent().
+    // will reuse holes per updated addEvent().
+    $gameMap.addEvent(lootEvent);
 
     // trigger the spriteset to scan and add loot sprites.
-    this.requestLootRendering = true; // ensure loot renders this frame.
+    // ensure loot renders this frame.
+    this.requestLootRendering = true;
 
     // return the loot drop that was added.
     return lootEvent;
@@ -22920,7 +23081,8 @@ class JABS_Engine
     const defenderGrd = (baseGrd + bonusGrdFromAgi + bonusGrdFromLuk) * parryIgnoredFactor;
 
     // attacker's stat calculation of hit, bonuses from agi/luk.
-    const defaultHit = 50; // this flat amount is necessary to not be ridiculously parryful early game.
+    // this flat amount is necessary to not be ridiculously parryful early game.
+    const defaultHit = 50;
     const baseHit = hundredX(casterBattler.hit) + defaultHit;
     const bonusHitFromAgi = tenPercent(casterBattler.agi);
     const bonusHitFromLuk = tenPercent(casterBattler.luk);
@@ -22947,7 +23109,8 @@ class JABS_Engine
     if (difference > 100)
     {
       return false;
-    }// the grd is too great, there is no chance of landing a hit.
+    // the grd is too great, there is no chance of landing a hit.
+    }
     else if (difference <= 0) return true;
 
     return rng > difference;
@@ -23973,9 +24136,12 @@ class JABS_Engine
   collisionSector(target, action, range, facing, degrees)
   {
     // derive pixel radius from tiles.
-    const tw = $gameMap.tileWidth(); // tile width in px.
-    const th = $gameMap.tileHeight(); // tile height in px.
-    const rPx = range * tw; // convert to pixels (use tw for circles/sectors).
+    // tile width in px.
+    const tw = $gameMap.tileWidth();
+    // tile height in px.
+    const th = $gameMap.tileHeight();
+    // convert to pixels (use tw for circles/sectors).
+    const rPx = range * tw;
 
     // get the unified, corrected origin for the action.
     const {
@@ -24002,8 +24168,10 @@ class JABS_Engine
 
     // build a unit facing vector from the numeric direction.
     // Note: J.ABS.Directions.* uses cardinals; diagonals are not used for gating.
-    let fx = 0; // facing x component.
-    let fy = 0; // facing y component.
+    // facing x component.
+    let fx = 0;
+    // facing y component.
+    let fy = 0;
     switch (facing)
     {
       case J.ABS.Directions.DOWN:
@@ -24024,8 +24192,10 @@ class JABS_Engine
     }
 
     // compute vector from origin to the target rect’s center.
-    const tx = targetRect.cx - cx; // delta x to target center.
-    const ty = targetRect.cy - cy; // delta y to target center.
+    // delta x to target center.
+    const tx = targetRect.cx - cx;
+    // delta y to target center.
+    const ty = targetRect.cy - cy;
 
     // degenerate case: target’s center exactly at origin → accept.
     if (tx === 0 && ty === 0)
@@ -24035,16 +24205,22 @@ class JABS_Engine
     }
 
     // normalize the target vector for dot-product angle testing.
-    const tLen = Math.hypot(tx, ty); // Euclidean length.
-    const tnx = tx / tLen; // unit x.
-    const tny = ty / tLen; // unit y.
+    // euclidean length.
+    const tLen = Math.hypot(tx, ty);
+    // unit x.
+    const tnx = tx / tLen;
+    // unit y.
+    const tny = ty / tLen;
 
     // compute cosine threshold for the half-angle.
-    const halfAngleRad = (degrees * 0.5) * (Math.PI / 180); // half-angle in radians.
-    const cosHalf = Math.cos(halfAngleRad); // cosine threshold.
+    // half-angle in radians.
+    const halfAngleRad = (degrees * 0.5) * (Math.PI / 180);
+    // cosine threshold.
+    const cosHalf = Math.cos(halfAngleRad);
 
     // dot-product with the facing unit vector yields cos(theta).
-    const dot = (fx * tnx) + (fy * tny); // cos(theta).
+    // cos(theta).
+    const dot = (fx * tnx) + (fy * tny);
 
     // accept if the angle is within the wedge sweep.
     return dot >= cosHalf;
@@ -24061,20 +24237,25 @@ class JABS_Engine
   collisionCircle(target, action, range)
   {
     // derive circle parameters in pixels.
-    const tw = $gameMap.tileWidth(); // assume square tiles unless specified otherwise.
-    const rPx = range * tw; // radius in pixels.
+    // assume square tiles unless specified otherwise.
+    const tw = $gameMap.tileWidth();
+    // radius in pixels.
+    const rPx = range * tw;
 
     // centralized, corrected origin for action.
     const {
       x: originCx,
       y: originCy
-    } = JABS_Engine.getActionOriginPixels(action); // unified origin.
+    // unified origin.
+    } = JABS_Engine.getActionOriginPixels(action);
 
     // build the target’s AABB.
-    const targetRect = JABS_Engine.getBattlerAabbModel(target); // target rect.
+    // target rect.
+    const targetRect = JABS_Engine.getBattlerAabbModel(target);
 
     // circle-vs-rect test.
-    return targetRect.intersectsCircle(originCx, originCy, rPx); // overlap?
+    // overlap?
+    return targetRect.intersectsCircle(originCx, originCy, rPx);
   }
 
   /**
@@ -24088,17 +24269,21 @@ class JABS_Engine
   collisionRhombus(target, action, range)
   {
     // grab tile dimensions for normalization.
-    const tw = $gameMap.tileWidth(); // tile width in px.
-    const th = $gameMap.tileHeight(); // tile height in px.
+    // tile width in px.
+    const tw = $gameMap.tileWidth();
+    // tile height in px.
+    const th = $gameMap.tileHeight();
 
     // unified action origin in pixels.
     const {
       x: cx,
       y: cy
-    } = JABS_Engine.getActionOriginPixels(action); // action origin.
+    // action origin.
+    } = JABS_Engine.getActionOriginPixels(action);
 
     // target’s AABB in pixels.
-    const rect = JABS_Engine.getBattlerAabbModel(target); // target rect.
+    // target rect.
+    const rect = JABS_Engine.getBattlerAabbModel(target);
 
     // initialize the unsigned horizontal pixel gap from origin point to rect.
     let dxPx = 0;
@@ -24129,8 +24314,10 @@ class JABS_Engine
     }
 
     // convert pixel gaps to tile distances.
-    const dxTiles = dxPx / tw; // x in tiles.
-    const dyTiles = dyPx / th; // y in tiles.
+    // x in tiles.
+    const dxTiles = dxPx / tw;
+    // y in tiles.
+    const dyTiles = dyPx / th;
 
     // inside the diamond if L1 distance in tile units is within range.
     return (dxTiles + dyTiles) <= range;
@@ -24147,27 +24334,37 @@ class JABS_Engine
   collisionSquare(target, action, range)
   {
     // compute action-centered square size in pixels.
-    const tw = $gameMap.tileWidth(); // tile width.
-    const th = $gameMap.tileHeight(); // tile height.
-    const tilesW = (2 * range + 1); // width in tiles.
-    const tilesH = (2 * range + 1); // height in tiles.
-    const wPx = tilesW * tw; // width in px.
-    const hPx = tilesH * th; // height in px.
+    // tile width.
+    const tw = $gameMap.tileWidth();
+    // tile height.
+    const th = $gameMap.tileHeight();
+    // width in tiles.
+    const tilesW = (2 * range + 1);
+    // height in tiles.
+    const tilesH = (2 * range + 1);
+    // width in px.
+    const wPx = tilesW * tw;
+    // height in px.
+    const hPx = tilesH * th;
 
     // centralized, corrected origin for action.
     const {
       x: originCx,
       y: originCy
-    } = JABS_Engine.getActionOriginPixels(action); // unified origin.
+    // unified origin.
+    } = JABS_Engine.getActionOriginPixels(action);
 
     // build action area rect centered at the corrected origin.
-    const actionRect = JABS_Aabb.centerSized(originCx, originCy, wPx, hPx); // action rect.
+    // action rect.
+    const actionRect = JABS_Aabb.centerSized(originCx, originCy, wPx, hPx);
 
     // build target AABB.
-    const targetRect = JABS_Engine.getBattlerAabbModel(target); // target rect.
+    // target rect.
+    const targetRect = JABS_Engine.getBattlerAabbModel(target);
 
     // rect-rect test.
-    return actionRect.intersectsRect(targetRect); // overlap?
+    // overlap?
+    return actionRect.intersectsRect(targetRect);
   }
 
   /**
@@ -24182,29 +24379,38 @@ class JABS_Engine
   collisionFrontSquare(target, action, range, facing)
   {
     // compute half-square dimensions in pixels.
-    const tw = $gameMap.tileWidth(); // tile width.
-    const th = $gameMap.tileHeight(); // tile height.
+    // tile width.
+    const tw = $gameMap.tileWidth();
+    // tile height.
+    const th = $gameMap.tileHeight();
 
     // total full-square tiles and derived pixel dimensions.
-    const fullTiles = (2 * range + 1); // full square tiles.
-    const fullW = fullTiles * tw; // full width in px.
-    const fullH = fullTiles * th; // full height in px.
+    // full square tiles.
+    const fullTiles = (2 * range + 1);
+    // full width in px.
+    const fullW = fullTiles * tw;
+    // full height in px.
+    const fullH = fullTiles * th;
 
     // centralized, corrected origin for action.
     const {
       x: originCx,
       y: originCy
-    } = JABS_Engine.getActionOriginPixels(action); // unified origin.
+    // unified origin.
+    } = JABS_Engine.getActionOriginPixels(action);
 
     // derive the front-half rectangle based on facing (anchored at corrected origin).
-    let actionRect; // will be computed based on facing.
+    // will be computed based on facing.
+    let actionRect;
     switch (facing)
     {
-      case J.ABS.Directions.DOWN: // 2 → bottom half from origin
+      // 2 → bottom half from origin.
+      case J.ABS.Directions.DOWN:
         actionRect = new JABS_Aabb(originCx - (fullW / 2), originCy, fullW, (fullH / 2) + (th / 2));
         break;
 
-      case J.ABS.Directions.UP: // 8 → top half up from origin
+      // 8 → top half up from origin.
+      case J.ABS.Directions.UP:
         actionRect = new JABS_Aabb(
           originCx - (fullW / 2),
           originCy - (fullH / 2) - (th / 2),
@@ -24213,11 +24419,13 @@ class JABS_Engine
         );
         break;
 
-      case J.ABS.Directions.RIGHT: // 6 → right half from origin
+      // 6 → right half from origin.
+      case J.ABS.Directions.RIGHT:
         actionRect = new JABS_Aabb(originCx, originCy - (fullH / 2), (fullW / 2) + (tw / 2), fullH);
         break;
 
-      case J.ABS.Directions.LEFT: // 4 → left half from origin
+      // 4 → left half from origin.
+      case J.ABS.Directions.LEFT:
         actionRect = new JABS_Aabb(
           originCx - (fullW / 2) - (tw / 2),
           originCy - (fullH / 2),
@@ -24232,10 +24440,12 @@ class JABS_Engine
     }
 
     // build target AABB.
-    const targetRect = JABS_Engine.getBattlerAabbModel(target); // target rect.
+    // target rect.
+    const targetRect = JABS_Engine.getBattlerAabbModel(target);
 
     // test overlap.
-    return actionRect.intersectsRect(targetRect); // overlap?
+    // overlap?
+    return actionRect.intersectsRect(targetRect);
   }
 
   /**
@@ -24250,37 +24460,48 @@ class JABS_Engine
   collisionLine(target, action, range, facing)
   {
     // acquire tile dimensions.
-    const tw = $gameMap.tileWidth(); // tile width in px.
-    const th = $gameMap.tileHeight(); // tile height in px.
+    // tile width in px.
+    const tw = $gameMap.tileWidth();
+    // tile height in px.
+    const th = $gameMap.tileHeight();
 
     // line length in pixels (use major axis for length, matching visualization elsewhere).
-    const lengthPx = range * Math.max(tw, th); // length in px.
+    // length in px.
+    const lengthPx = range * Math.max(tw, th);
 
     // determine configured thickness in tiles, fallback to default of 1 tile.
-    const thicknessTiles = this.getActionThicknessTiles(action) ?? 1; // tiles.
+    // tiles.
+    const thicknessTiles = this.getActionThicknessTiles(action) ?? 1;
 
     // clamp to a very small positive minimum in pixels to ensure the AABB has area.
-    const minPx = 1; // small positive safeguard.
+    // small positive safeguard.
+    const minPx = 1;
 
     // compute thickness in pixels along each orientation.
-    const thicknessX = Math.max(minPx, thicknessTiles * tw); // horizontal thickness.
-    const thicknessY = Math.max(minPx, thicknessTiles * th); // vertical thickness.
+    // horizontal thickness.
+    const thicknessX = Math.max(minPx, thicknessTiles * tw);
+    // vertical thickness.
+    const thicknessY = Math.max(minPx, thicknessTiles * th);
 
     // centralized, corrected origin.
     const {
       x: originCx,
       y: originCy
-    } = JABS_Engine.getActionOriginPixels(action); // unified origin.
+    // unified origin.
+    } = JABS_Engine.getActionOriginPixels(action);
 
     // build the line-as-rect based on facing from origin.
-    let actionRect; // rectangle approximation of the line.
+    // rectangle approximation of the line.
+    let actionRect;
     switch (facing)
     {
-      case J.ABS.Directions.DOWN: // 2
+      // 2.
+      case J.ABS.Directions.DOWN:
         // extend downward from the origin center, include a small extra half-tile pad.
         actionRect = new JABS_Aabb(originCx - (thicknessX / 2), originCy, thicknessX, lengthPx + (th / 2));
         break;
-      case J.ABS.Directions.UP: // 8
+      // 8.
+      case J.ABS.Directions.UP:
         // extend upward from the origin center, include a small extra half-tile pad.
         actionRect = new JABS_Aabb(
           originCx - (thicknessX / 2),
@@ -24289,11 +24510,13 @@ class JABS_Engine
           lengthPx + (th / 2)
         );
         break;
-      case J.ABS.Directions.RIGHT: // 6
+      // 6.
+      case J.ABS.Directions.RIGHT:
         // extend rightward from the origin center, include a small extra half-tile pad.
         actionRect = new JABS_Aabb(originCx, originCy - (thicknessY / 2), lengthPx + (tw / 2), thicknessY);
         break;
-      case J.ABS.Directions.LEFT: // (4)
+      // (4).
+      case J.ABS.Directions.LEFT:
         // extend leftward from the origin center, include a small extra half-tile pad.
         actionRect = new JABS_Aabb(
           originCx - lengthPx - (tw / 2),
@@ -24308,8 +24531,10 @@ class JABS_Engine
     }
 
     // build target AABB and test overlap.
-    const targetRect = JABS_Engine.getBattlerAabbModel(target); // target rect.
-    return actionRect.intersectsRect(targetRect); // overlap?
+    // target rect.
+    const targetRect = JABS_Engine.getBattlerAabbModel(target);
+    // overlap?
+    return actionRect.intersectsRect(targetRect);
   }
 
   /**
@@ -24348,8 +24573,10 @@ class JABS_Engine
     // resolve thickness (depth) in tiles (default 1 tile if not specified).
     const thicknessTiles = this.getActionThicknessTiles(action) ?? 1;
     const minPx = 1;
-    const depthW = Math.max(minPx, thicknessTiles * tw); // depth when vertical
-    const depthH = Math.max(minPx, thicknessTiles * th); // depth when horizontal
+    // depth when vertical.
+    const depthW = Math.max(minPx, thicknessTiles * tw);
+    // depth when horizontal.
+    const depthH = Math.max(minPx, thicknessTiles * th);
 
     // unified origin consistent with other shapes.
     const {
@@ -24365,16 +24592,20 @@ class JABS_Engine
     let actionRect;
     switch (facing)
     {
-      case J.ABS.Directions.DOWN: // 2 → horizontal wall below origin
+      // 2 → horizontal wall below origin.
+      case J.ABS.Directions.DOWN:
         actionRect = new JABS_Aabb(originCx - (breadthW / 2), originCy, breadthW, depthH);
         break;
-      case J.ABS.Directions.UP: // 8 → horizontal wall above origin
+      // 8 → horizontal wall above origin.
+      case J.ABS.Directions.UP:
         actionRect = new JABS_Aabb(originCx - (breadthW / 2), originCy - depthH, breadthW, depthH);
         break;
-      case J.ABS.Directions.RIGHT: // 6 → vertical wall right of origin
+      // 6 → vertical wall right of origin.
+      case J.ABS.Directions.RIGHT:
         actionRect = new JABS_Aabb(originCx, originCy - (breadthH / 2), depthW, breadthH);
         break;
-      case J.ABS.Directions.LEFT: // (4) → vertical wall left of origin
+      // (4) → vertical wall left of origin.
+      case J.ABS.Directions.LEFT:
         actionRect = new JABS_Aabb(originCx - depthW, originCy - (breadthH / 2), depthW, breadthH);
         break;
       default:
@@ -24983,19 +25214,29 @@ class JABS_Engine
 class JABS_HitboxPulseManager
 {
   //region static fields
-  /** @type {PIXI.Container|null} */
+  /**
+   * @type {PIXI.Container|null}
+   */
   static _layer = null;
 
-  /** @type {Sprite_HitboxPulse[]} */
+  /**
+   * @type {Sprite_HitboxPulse[]}
+   */
   static _active = [];
 
-  /** @type {Sprite_HitboxPulse[]} */
+  /**
+   * @type {Sprite_HitboxPulse[]}
+   */
   static _pool = [];
 
-  /** @type {number} */
+  /**
+   * @type {number}
+   */
   static _cap = 8;
 
-  /** @type {JABS_HitboxPulseOptions} */
+  /**
+   * @type {JABS_HitboxPulseOptions}
+   */
   static _defaults = JABS_HitboxPulseOptions.defaults();
   //endregion static fields
 
@@ -25245,7 +25486,8 @@ class JABS_HitboxPulseManager
   static directionToRadians(dir)
   {
     // precomputed constants for clarity.
-    const RAD_0 = 0;           // right
+    // right.
+    const RAD_0 = 0;
     const RAD_45 = Math.PI / 4;
     const RAD_90 = Math.PI / 2;
     const RAD_180 = Math.PI;
@@ -25254,14 +25496,22 @@ class JABS_HitboxPulseManager
 
     switch (dir)
     {
-      case 6: return RAD_0;                // right
-      case 3: return RAD_45;               // down-right
-      case 2: return RAD_90;               // down
-      case 1: return RAD_180 - RAD_45;     // down-left (135°)
-      case 4: return RAD_180;              // left
-      case 7: return -RAD_180 + RAD_45;    // up-left (-135°)
-      case 8: return RAD_N90;              // up
-      case 9: return RAD_N45;              // up-right (-45°)
+      // right.
+      case 6: return RAD_0;
+      // down-right.
+      case 3: return RAD_45;
+      // down.
+      case 2: return RAD_90;
+      // down-left (135°).
+      case 1: return RAD_180 - RAD_45;
+      // left.
+      case 4: return RAD_180;
+      // up-left (-135°).
+      case 7: return -RAD_180 + RAD_45;
+      // up.
+      case 8: return RAD_N90;
+      // up-right (-45°).
+      case 9: return RAD_N45;
     }
 
     // default: point right.
@@ -25774,7 +26024,8 @@ Game_Action.prototype.itemEffectAddState = function(target, effect)
 Game_Action.prototype.canItemEffectAddState = function(target, effect)
 {
   // if the target parried the result, then its state-related effects do not apply.
-  if (target.result()?.parried) return false;
+  const result = target.result();
+  if (result && result.parried) return false;
 
   // see if the state-related effects are applied!
   return true;
@@ -27467,7 +27718,9 @@ J.ABS.Aliased.Game_Battler.set('states', Game_Battler.prototype.states);
 Game_Battler.prototype.states = function()
 {
   // grab the original states as they were.
-  /** @type {RPG_State[]} */
+  /**
+   * @type {RPG_State[]}
+   */
   const originalStates = J.ABS.Aliased.Game_Battler.get('states')
     .call(this);
 
@@ -30338,7 +30591,9 @@ Game_Map.prototype.expiredActionEvents = function()
 Game_Map.prototype.actionEventsFromDataMapByUuid = function(uuid)
 {
   // the filter function for retrieving action metadatas from the datamap.
-  /** @param {rm.types.Event} metadata */
+  /**
+   * @param {rm.types.Event} metadata
+   */
   const filtering = metadata =>
   {
     // don't include invalid or non-action event metadatas.
@@ -30426,7 +30681,9 @@ Game_Map.prototype.expiredLootEvents = function()
 Game_Map.prototype.lootEventsFromDataMapByUuid = function(uuid)
 {
   // the filter function for retrieving loot metadatas from the datamap.
-  /** @param {rm.types.Event} metadata */
+  /**
+   * @param {rm.types.Event} metadata
+   */
   const filtering = metadata =>
   {
     // don't include invalid or non-action event metadatas.
@@ -30520,23 +30777,28 @@ Game_Map.prototype.newBattlerEvents = function()
 Game_Map.prototype.addEvent = function(event)
 {
   // attempt to find the first available hole in the event list.
-  let inserted = false; // whether or not we found a spot to insert.
+  // whether or not we found a spot to insert.
+  let inserted = false;
 
   for (let i = 0; i < this._events.length; i++)
   {
     // if the slot is empty/nullish, then reuse it.
     if (!this._events[i])
     {
-      this._events[i] = event; // assign into the first available hole.
-      inserted = true; // flag that we inserted.
-      break; // stop looking for holes.
+      // assign into the first available hole.
+      this._events[i] = event;
+      // flag that we inserted.
+      inserted = true;
+      // stop looking for holes.
+      break;
     }
   }
 
   // if we didn't find a hole, then append to the end as usual.
   if (!inserted)
   {
-    this._events.push(event); // append to the end.
+    // append to the end.
+    this._events.push(event);
   }
 };
 
@@ -30559,7 +30821,8 @@ Game_Map.prototype.removeEvent = function(eventToRemove)
     this.handleLootEventRemoval(eventToRemove);
 
     // mark the slot as empty to avoid sparseness while preserving indices.
-    this._events[eventIndex] = null; // keep array dense and reusable.
+    // keep array dense and reusable.
+    this._events[eventIndex] = null;
   }
 };
 
@@ -30570,22 +30833,26 @@ Game_Map.prototype.removeEvent = function(eventToRemove)
 Game_Map.prototype.handleActionEventRemoval = function(actionToRemove)
 {
   // don't process if this event isn't an action.
-  if (!actionToRemove.isJabsAction()) return; // only handle actions.
+  // only handle actions.
+  if (!actionToRemove.isJabsAction()) return;
 
   // get the relevant metadatas for the action.
   const actionMetadatas = this.actionEventsFromDataMapByUuid(actionToRemove.getJabsActionUuid());
 
   // all removed events get erased.
-  actionToRemove.erase(); // ensure event is erased visually/logic-wise.
+  // ensure event is erased visually/logic-wise.
+  actionToRemove.erase();
 
   // and also to cleanup the current list of active jabs action events.
-  $jabsEngine.clearActionEvents(); // purge internal tracking.
+  // purge internal tracking.
+  $jabsEngine.clearActionEvents();
 
   // iterate over each of the metadatas for deletion.
   actionMetadatas.forEach(actionMetadata =>
   {
     // instead of deleting (which creates sparse arrays), null the slot.
-    $dataMap.events[actionMetadata.actionIndex] = null; // maintain dense array kind.
+    // maintain dense array kind.
+    $dataMap.events[actionMetadata.actionIndex] = null;
   });
 };
 
@@ -30596,7 +30863,8 @@ Game_Map.prototype.handleActionEventRemoval = function(actionToRemove)
 Game_Map.prototype.handleLootEventRemoval = function(lootToRemove)
 {
   // don't process if this event isn't loot.
-  if (!lootToRemove.isJabsLoot()) return; // only handle loot.
+  // only handle loot.
+  if (!lootToRemove.isJabsLoot()) return;
 
   // get the relevant metadatas for the loot.
   const lootMetadatas = this.lootEventsFromDataMapByUuid(lootToRemove.getJabsLoot().uuid);
@@ -30605,7 +30873,8 @@ Game_Map.prototype.handleLootEventRemoval = function(lootToRemove)
   lootMetadatas.forEach(lootMetadata =>
   {
     // instead of deleting (which creates sparse arrays), null the slot.
-    $dataMap.events[lootMetadata.lootIndex] = null; // maintain dense array kind.
+    // maintain dense array kind.
+    $dataMap.events[lootMetadata.lootIndex] = null;
   });
 };
 
@@ -30669,7 +30938,7 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler)
 
   // when using cyclone's movement plugin, rounding is necessary to accommodate interacting with events
   // without actually executing your weapon attack.
-  if (J.ABS.EXT?.CYCLE)
+  if (J.ABS.EXT.CYCLE)
   {
     x2 = Math.round($gameMap.roundXWithDirection(x1, direction));
     y2 = Math.round($gameMap.roundYWithDirection(y1, direction));
@@ -32838,6 +33107,7 @@ Scene_Map.prototype.forceCloseAbsMenu = function()
 };
 //endregion Scene_Map
 
+//region Sprite_Animation
 /**
  * Extends {@link Sprite_Animation.prototype.targetPosition}.<br/>
  * Adds a guard to ensure we don't attempt to calculate positions for destroyed sprites.
@@ -32909,7 +33179,10 @@ Sprite_Animation.prototype.targetSpritePosition = function (sprite)
     return new Point(0, 0);
   }
 };
+//endregion Sprite_Animation
 
+
+//region Sprite_AnimationMV
 /**
  * Extends/Overrides {@link Sprite_AnimationMV.prototype.updatePosition}.<br/>
  * Adds a guard to ensure we don't attempt to follow destroyed or removed sprites.
@@ -32988,6 +33261,8 @@ Sprite_AnimationMV.prototype.updatePosition = function ()
       .call(this);
   }
 };
+//endregion Sprite_AnimationMV
+
 
 //region Sprite_Character
 //region init
@@ -36249,7 +36524,7 @@ Spriteset_Map.prototype.getActionHitboxStyleFor = function (shape)
 
   // apply shape-specific overrides if provided.
   const key = (shape || String.empty).toLowerCase(); // normalized key.
-  const shapeOverrides = styles.byShape?.[key] || null; // optional per-shape.
+  const shapeOverrides = (styles.byShape || {})[key] || null;
 
   // produce the final style.
   const finalStyle = Object.assign({}, base, shapeOverrides || {}); // merged final style.
@@ -37039,13 +37314,13 @@ Spriteset_Map.prototype.getBattlerHitboxStyle = function (
 
   // apply kind-specific overrides if provided.
   const kindKey = (kind || 'battler').toLowerCase(); // normalized.
-  const byKind = styles.byKind?.[kindKey] || null; // optional kind overrides.
+  const byKind = (styles.byKind || {})[kindKey] || null;
 
   // apply state-specific overrides if provided (e.g., colliding).
-  const stateKey = (state || String.empty).toLowerCase(); // normalized.
+  const stateKey = (state || String.empty).toLowerCase();
   const byState = stateKey
-    ? (styles.byState?.[stateKey] || null)
-    : null; // optional state overrides.
+    ? ((styles.byState || {})[stateKey] || null)
+    : null;
 
   // layered result: base -> kind -> state.
   const finalStyle = Object.assign({}, base, byKind || {}, byState || {}); // merged final style.
@@ -37074,6 +37349,7 @@ Spriteset_Map.prototype.destroyBattlerHitboxSprite = function (sprite)
 //endregion hitbox sprites
 //endregion Spriteset_Map
 
+//region Window_AbsHelp
 class Window_AbsHelp
   extends Window_Help
 {
@@ -37082,6 +37358,8 @@ class Window_AbsHelp
     super(rect);
   }
 }
+//endregion Window_AbsHelp
+
 
 //region Window_AbsMenu
 /**
@@ -37480,7 +37758,9 @@ class Window_AbsMenuSelect
     const leader = $gameParty.leader();
 
     // an iterator function for iterating over skill slots and rendering their data.
-    /** @param {JABS_SkillSlot} skillSlot */
+    /**
+     * @param {JABS_SkillSlot} skillSlot
+     */
     const forEacher = skillSlot =>
     {
       // initialize the command variables.

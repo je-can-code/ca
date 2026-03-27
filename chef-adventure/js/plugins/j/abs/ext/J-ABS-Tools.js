@@ -88,6 +88,7 @@
  * @default false
  */
 
+//region Introduction
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -231,6 +232,7 @@ J.ABS.EXT.TOOLS.GapClosePositions = {
 };
 //endregion Introduction
 
+//region JABS_Battler
 /**
  * Initializes the properties of this battler that are not related to anything in particular.
  */
@@ -529,6 +531,8 @@ JABS_Battler.gapCloseWiggleRoom = function()
 {
   return 0.5;
 };
+//endregion JABS_Battler
+
 
 //region gapClose
 /**
@@ -572,6 +576,7 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsGapClosePosition', {
 });
 //endregion gapClosePosition
 
+//region JABS_Engine
 /**
  * Processes the various on-hit effects against the target.
  * @param {JABS_Action} action The JABS action containing the action data.
@@ -623,7 +628,10 @@ JABS_Engine.prototype.canGapClose = function(action, target)
   // we can gap close!
   return true;
 };
+//endregion JABS_Engine
 
+
+//region Game_Battler
 /**
  * Determines whether or not this battler is a gap close target.
  * @returns {boolean} True if this battler is a gap close target, false otherwise.
@@ -635,7 +643,10 @@ Game_Battler.prototype.isGapClosable = function()
     J.ABS.EXT.TOOLS.RegExp.GapCloseTarget
   );
 };
+//endregion Game_Battler
 
+
+//region Game_CharacterBase
 /**
  * Extends {@link Game_CharacterBase.initMembers}.<br>
  * Also initializes our new members.
@@ -682,7 +693,8 @@ Game_CharacterBase.prototype.initToolsMembers = function()
 
   this._j._tools._grabThrow._throw._through = false;
 
-  this._j._tools._grabThrow._throw._directionFixAlways = false; // TODO: from plugin params.
+  // tODO: from plugin params.
+  this._j._tools._grabThrow._throw._directionFixAlways = false;
 
   this._j._tools._grabThrow._throw._directionFix = false;
 
@@ -690,7 +702,10 @@ Game_CharacterBase.prototype.initToolsMembers = function()
 
   this._j._tools._grabThrow._throw._wait = new JABS_Timer(0);
 };
+//endregion Game_CharacterBase
 
+
+//region Game_Event
 /**
  * Determines whether or not this event has any gap close target overrides.
  * @returns {boolean} True if this event has a gap close override, false otherwise.
@@ -718,9 +733,12 @@ Game_Event.prototype.isGapClosable = function()
   // return what we found.
   return gapCloseTarget;
 };
+//endregion Game_Event
 
 
 
+
+//region Game_System
 /**
  * Extends {@link Game_System.initMembers}.<br>
  * Also initializes our new members.
@@ -752,7 +770,8 @@ Game_System.prototype.initToolsMembers = function()
    * Whether or not the grab and throw functionality is currently enabled.
    * @type {boolean}
    */
-  this._j._tools._grabThrowEnabled = true; // TODO: parameterize this.
+  // tODO: parameterize this.
+  this._j._tools._grabThrowEnabled = true;
 };
 
 /**
@@ -780,4 +799,6 @@ Game_System.prototype.toggleGrabThrowEnabled = function()
 {
   this._j._tools._grabThrowEnabled = !this.isGrabThrowEnabled();
 };
+//endregion Game_System
+
 

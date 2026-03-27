@@ -76,6 +76,7 @@
  * @default 588
 */
 
+//region Introduction
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -308,6 +309,7 @@ Game_Actor.prototype.showDangerIndicator = function()
 };
 //endregion Game_Actor
 
+//region Game_Battler
 /**
  * Gets the numeric representation of this battler's strength.
  * @returns {number}
@@ -385,6 +387,8 @@ Game_Battler.prototype.getDangerIndicatorIcon = function()
       return -1;
   }
 };
+//endregion Game_Battler
+
 
 //region Game_Enemy
 /**
