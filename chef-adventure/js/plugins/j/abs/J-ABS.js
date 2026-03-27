@@ -3523,7 +3523,16 @@ JABS_Battler.prototype.engageTarget = function(target)
   // if we're alerted, also clear the alert state.
   this.clearAlert();
 
-  // TODO: abstract this.
+  // perform on-engage effects.
+  this.onEngage();
+};
+
+/**
+ * A hook to perform all side effects of engaging a target.
+ * Extensions may alias this to add telemetry, custom visuals, or other behavior.
+ */
+JABS_Battler.prototype.onEngage = function()
+{
   this.showBalloon(J.ABS.Balloons.Exclamation);
 };
 
@@ -3551,6 +3560,19 @@ JABS_Battler.prototype.disengageTarget = function()
 
   // reset all the phases back to default.
   this.resetPhases();
+
+  // perform on-disengage effects.
+  this.onDisengage();
+};
+
+/**
+ * A hook to perform all side effects of disengaging from a target.
+ * Extensions may alias this to add telemetry, custom visuals, or other behavior.
+ */
+JABS_Battler.prototype.onDisengage = function()
+{
+  if (J.ABS.Metadata.ShowDisengageBalloon === false) return;
+  this.showBalloon(J.ABS.Metadata.DisengageBalloonId);
 };
 
 /**
@@ -15145,6 +15167,25 @@ class JABS_Timer
  * @desc Whether or not to overlay the map with battler and action hitbox visuals- for debugging.
  * @default false
  *
+ *
+ * @param disengageConfigs
+ * @text DISENGAGE SETUP
+ *
+ * @param showDisengageBalloon
+ * @parent disengageConfigs
+ * @type boolean
+ * @text Show Disengage Balloon
+ * @desc Whether or not to show a balloon above a battler when they disengage from their target.
+ * @default false
+ *
+ * @param disengageBalloonId
+ * @parent disengageConfigs
+ * @type number
+ * @text Disengage Balloon Id
+ * @desc The id of the balloon to display when a battler disengages. Requires "Show Disengage Balloon" to be enabled.
+ * @default 7
+ *
+ *
  * @param quickmenuConfigs
  * @text QUICKMENU SETUP
  *
@@ -15529,6 +15570,10 @@ J.ABS.Metadata.DisableTextPops = Boolean(J.ABS.PluginParameters['disableTextPops
 J.ABS.Metadata.AllyRubberbandAdjustment = Number(J.ABS.PluginParameters['allyRubberbandAdjustment']);
 J.ABS.Metadata.DashSpeedBoost = Number(J.ABS.PluginParameters['dashSpeedBoost']);
 J.ABS.Metadata.HitboxOverlaysInitiallyVisible = (J.ABS.PluginParameters['hitboxOverlaysInitiallyVisible'] === 'true');
+
+// disengage configurations.
+J.ABS.Metadata.ShowDisengageBalloon = (J.ABS.PluginParameters['showDisengageBalloon'] === 'true');
+J.ABS.Metadata.DisengageBalloonId = Number(J.ABS.PluginParameters['disengageBalloonId']) || J.ABS.Balloons.Frustration;
 
 // quick menu commands configurations.
 J.ABS.Metadata.EquipCombatSkillsText = J.ABS.PluginParameters['equipCombatSkillsText'];
@@ -25836,19 +25881,14 @@ Game_Action.prototype.processParry = function(jabsBattler)
   // perform on-parry effects.
   this.onParry(jabsBattler);
 
-  // TODO: pull the parry logic out of the requestanimation function.
-  // play the parry animation.
-  const parryAnimationId = 122;
-  jabsBattler.getCharacter()
-    .requestAnimation(parryAnimationId);
-
   // reset the player's guarding.
   jabsBattler.setParryWindow(0);
   jabsBattler.setGuardSkillId(0);
 };
 
 /**
- * A hook to perform actions on-parry.
+ * A hook to perform all side effects of a successful parry.
+ * Extensions may alias this to add telemetry, custom visuals, or other behavior.
  * @param {JABS_Battler} jabsBattler The battler that is parrying.
  */
 Game_Action.prototype.onParry = function(jabsBattler)
@@ -25859,6 +25899,11 @@ Game_Action.prototype.onParry = function(jabsBattler)
   // gain 10x of the tp from the guard skill when parrying.
   jabsBattler.getBattler()
     .gainTp(guardSkillTp);
+
+  // play the parry animation.
+  const parryAnimationId = 122;
+  jabsBattler.getCharacter()
+    .requestAnimation(parryAnimationId);
 };
 
 /**
