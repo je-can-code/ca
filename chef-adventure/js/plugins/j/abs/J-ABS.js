@@ -15573,7 +15573,7 @@ J.ABS.Metadata.HitboxOverlaysInitiallyVisible = (J.ABS.PluginParameters['hitboxO
 
 // disengage configurations.
 J.ABS.Metadata.ShowDisengageBalloon = (J.ABS.PluginParameters['showDisengageBalloon'] === 'true');
-J.ABS.Metadata.DisengageBalloonId = Number(J.ABS.PluginParameters['disengageBalloonId']) || J.ABS.Balloons.Frustration;
+J.ABS.Metadata.DisengageBalloonId = Number(J.ABS.PluginParameters['disengageBalloonId']) || 7;
 
 // quick menu commands configurations.
 J.ABS.Metadata.EquipCombatSkillsText = J.ABS.PluginParameters['equipCombatSkillsText'];
