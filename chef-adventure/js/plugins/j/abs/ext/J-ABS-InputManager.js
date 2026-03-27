@@ -55,6 +55,7 @@
  * ============================================================================
  */
 
+//region introduction
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -1679,37 +1680,56 @@ Input.keyMapper = {
   ...Input.keyMapper,
 
   // this is the new debug move-through for use with JABS.
-  192: J.ABS.EXT.INPUT.Symbols.Debug,       // ` (backtick)
+  // ` (backtick).
+  192: J.ABS.EXT.INPUT.Symbols.Debug,
 
   // core buttons.
-  90: J.ABS.EXT.INPUT.Symbols.Mainhand,       // z
-  88: J.ABS.EXT.INPUT.Symbols.Offhand,        // x
-  16: J.ABS.EXT.INPUT.Symbols.Dash,           // shift (already defined)
-  67: J.ABS.EXT.INPUT.Symbols.Tool,           // c
+  // z.
+  90: J.ABS.EXT.INPUT.Symbols.Mainhand,
+  // x.
+  88: J.ABS.EXT.INPUT.Symbols.Offhand,
+  // shift (already defined).
+  16: J.ABS.EXT.INPUT.Symbols.Dash,
+  // c.
+  67: J.ABS.EXT.INPUT.Symbols.Tool,
 
   // functional buttons.
-  81: J.ABS.EXT.INPUT.Symbols.SkillTrigger,   // q
-  17: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,  // ctrl
-  69: J.ABS.EXT.INPUT.Symbols.GuardTrigger,   // e
-  9: J.ABS.EXT.INPUT.Symbols.MobilitySkill,   // tab
+  // q.
+  81: J.ABS.EXT.INPUT.Symbols.SkillTrigger,
+  // ctrl.
+  17: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,
+  // e.
+  69: J.ABS.EXT.INPUT.Symbols.GuardTrigger,
+  // tab.
+  9: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
 
   // quickmenu button.
-  13: J.ABS.EXT.INPUT.Symbols.Quickmenu,      // enter
+  // enter.
+  13: J.ABS.EXT.INPUT.Symbols.Quickmenu,
 
   // party cycling button.
-  46: J.ABS.EXT.INPUT.Symbols.PartyCycle,     // del
+  // del.
+  46: J.ABS.EXT.INPUT.Symbols.PartyCycle,
 
   // movement buttons.
-  38: J.ABS.EXT.INPUT.Symbols.DirUp,          // arrow up
-  40: J.ABS.EXT.INPUT.Symbols.DirDown,        // arrow down
-  37: J.ABS.EXT.INPUT.Symbols.DirLeft,        // arrow left
-  39: J.ABS.EXT.INPUT.Symbols.DirRight,       // arrow right
+  // arrow up.
+  38: J.ABS.EXT.INPUT.Symbols.DirUp,
+  // arrow down.
+  40: J.ABS.EXT.INPUT.Symbols.DirDown,
+  // arrow left.
+  37: J.ABS.EXT.INPUT.Symbols.DirLeft,
+  // arrow right.
+  39: J.ABS.EXT.INPUT.Symbols.DirRight,
 
   // keyboard alternative for the multi-button skills.
-  49: J.ABS.EXT.INPUT.Symbols.CombatSkill1,   // 1 = L1 + cross
-  50: J.ABS.EXT.INPUT.Symbols.CombatSkill2,   // 2 = L1 + circle
-  51: J.ABS.EXT.INPUT.Symbols.CombatSkill3,   // 3 = L1 + square
-  52: J.ABS.EXT.INPUT.Symbols.CombatSkill4,   // 4 = L1 + triangle
+  // 1 = L1 + cross.
+  49: J.ABS.EXT.INPUT.Symbols.CombatSkill1,
+  // 2 = L1 + circle.
+  50: J.ABS.EXT.INPUT.Symbols.CombatSkill2,
+  // 3 = L1 + square.
+  51: J.ABS.EXT.INPUT.Symbols.CombatSkill3,
+  // 4 = L1 + triangle.
+  52: J.ABS.EXT.INPUT.Symbols.CombatSkill4,
 };
 
 /**
@@ -1727,44 +1747,66 @@ Input.keyMapper = {
  */
 Input.gamepadMapper = {
   // action face buttons.
-  0: J.ABS.EXT.INPUT.Symbols.Mainhand,      // kross
-  1: J.ABS.EXT.INPUT.Symbols.Offhand,       // circle
-  2: J.ABS.EXT.INPUT.Symbols.Dash,          // square
-  3: J.ABS.EXT.INPUT.Symbols.Tool,          // triangle
+  // kross.
+  0: J.ABS.EXT.INPUT.Symbols.Mainhand,
+  // circle.
+  1: J.ABS.EXT.INPUT.Symbols.Offhand,
+  // square.
+  2: J.ABS.EXT.INPUT.Symbols.Dash,
+  // triangle.
+  3: J.ABS.EXT.INPUT.Symbols.Tool,
 
   // shoulder/trigger buttons.
-  4: J.ABS.EXT.INPUT.Symbols.SkillTrigger,  // (L1) left bumper
-  5: J.ABS.EXT.INPUT.Symbols.GuardTrigger,  // (R1) right bumper
-  6: J.ABS.EXT.INPUT.Symbols.StrafeTrigger, // (L2) left trigger
-  7: J.ABS.EXT.INPUT.Symbols.MobilitySkill, // (R2) right trigger
+  // (L1) left bumper.
+  4: J.ABS.EXT.INPUT.Symbols.SkillTrigger,
+  // (R1) right bumper.
+  5: J.ABS.EXT.INPUT.Symbols.GuardTrigger,
+  // (L2) left trigger.
+  6: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,
+  // (R2) right trigger.
+  7: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
 
   // meta/menu buttons.
-  8: J.ABS.EXT.INPUT.Symbols.PartyCycle,    // select
-  9: J.ABS.EXT.INPUT.Symbols.Quickmenu,     // start
+  // select.
+  8: J.ABS.EXT.INPUT.Symbols.PartyCycle,
+  // start.
+  9: J.ABS.EXT.INPUT.Symbols.Quickmenu,
 
   // stick-click buttons.
-  10: J.ABS.EXT.INPUT.Symbols.L3,           // (L3) left stick button
-  11: J.ABS.EXT.INPUT.Symbols.R3,           // (R3) right stick button
+  // (L3) left stick button.
+  10: J.ABS.EXT.INPUT.Symbols.L3,
+  // (R3) right stick button.
+  11: J.ABS.EXT.INPUT.Symbols.R3,
 
   // D-pad buttons remapped to dedicated shortcut symbols (not movement directions).
-  12: J.ABS.EXT.INPUT.Symbols.DPadUp,       // d-pad up (shortcut)
-  13: J.ABS.EXT.INPUT.Symbols.DPadDown,     // d-pad down (shortcut)
-  14: J.ABS.EXT.INPUT.Symbols.DPadLeft,     // d-pad left (shortcut)
-  15: J.ABS.EXT.INPUT.Symbols.DPadRight,    // d-pad right (shortcut)
+  // d-pad up (shortcut).
+  12: J.ABS.EXT.INPUT.Symbols.DPadUp,
+  // d-pad down (shortcut).
+  13: J.ABS.EXT.INPUT.Symbols.DPadDown,
+  // d-pad left (shortcut).
+  14: J.ABS.EXT.INPUT.Symbols.DPadLeft,
+  // d-pad right (shortcut).
+  15: J.ABS.EXT.INPUT.Symbols.DPadRight,
 
   // the analog stick should be natively supported for movement.
 };
 
-// region registries
+//region registries
 
 // Ensure a single bag for registry/bindings data on Input.
 Input._jRegistries ||= {
-  actions: Object.create(null),     // ns -> Array<action def>
-  symbolLabels: Object.create(null),// symbol -> label
-  capture: new Set(),               // Set<string>
-  bindings: Object.create(null),    // ns -> { key: string[] }
-  defaults: Object.create(null),    // ns -> { key: string[] }
-  bootstrapped: false,              // idempotency flag
+  // ns -> Array<action def>.
+  actions: Object.create(null),
+  // symbol -> label.
+  symbolLabels: Object.create(null),
+  // set<string>.
+  capture: new Set(),
+  // ns -> { key: string[] }.
+  bindings: Object.create(null),
+  // ns -> { key: string[] }.
+  defaults: Object.create(null),
+  // idempotency flag.
+  bootstrapped: false,
 };
 
 /**
@@ -3748,7 +3790,8 @@ class Scene_JabsRemap
     const extKeys = Object.keys(ext);
     for (let i = 0; i < extKeys.length; i++)
     {
-      const compound = extKeys[i]; // in the form ns:key
+      // in the form ns:key.
+      const compound = extKeys[i];
       const arr = ext[compound];
       combined[`__ext__${compound}`] = Array.isArray(arr)
         ? arr.slice(0)
@@ -4257,6 +4300,7 @@ class Scene_JabsRemap
 
 //endregion Scene_JabsRemap
 
+//region Scene_Menu
 /**
  * Extends {@link #createCommandWindow}.<br/>
  * Also wires the handler for opening the JABS input remapping scene.
@@ -4275,6 +4319,8 @@ Scene_Menu.prototype.createCommandWindow = function()
     SceneManager.push(Scene_JabsRemap);
   });
 };
+//endregion Scene_Menu
+
 
 /* eslint-disable max-len */
 
@@ -5156,21 +5202,21 @@ class Window_JabsRemapActions
     if (button === 'Primary Actions')
     {
       // describe the purpose of primary actions.
-      return 'Primary actions used moment-to-moment: mainhand/offhand attacks and tools.\n' + 'These are your core mapped buttons for direct, immediate use.';
+      return 'Primary actions used moment-to-moment: mainhand/offhand attacks and tools.\nThese are your core mapped buttons for direct, immediate use.';
     }
 
     // provide descriptions for section headers when selected.
     if (button === 'Secondary Actions')
     {
       // describe the purpose of secondary actions.
-      return 'Secondary and modifier inputs: Skill Trigger, Rotate, Strafe, Dodge.\n' + 'Hold or tap to modify movement or enable combat skill slots.';
+      return 'Secondary and modifier inputs: Skill Trigger, Rotate, Strafe, Dodge.\nHold or tap to modify movement or enable combat skill slots.';
     }
 
     // provide descriptions for section headers when selected.
     if (button === 'Functional Actions')
     {
       // describe the purpose of functional actions.
-      return 'Functional shortcuts unrelated to attacks: open the JABS menu, cycle party leader.\n' + 'Useful for management between encounters or to swap leaders on the fly.';
+      return 'Functional shortcuts unrelated to attacks: open the JABS menu, cycle party leader.\nUseful for management between encounters or to swap leaders on the fly.';
     }
 
     // a small dictionary of descriptions per logical action.
@@ -5302,7 +5348,8 @@ class Window_JabsRemapPrompt
    * Can be migrated to plugin parameters later.
    * @type {number}
    */
-  static WarmupFrames = 20; // ~0.33s
+  // ~0.33s.
+  static WarmupFrames = 20;
 
   /**
    * Maximum frames the prompt remains active before auto-closing.
@@ -5310,7 +5357,8 @@ class Window_JabsRemapPrompt
    * Can be migrated to plugin parameters later.
    * @type {number}
    */
-  static TimeoutFrames = 5 * 60; // 5s
+  // 5s.
+  static TimeoutFrames = 5 * 60;
   //endregion static
 
   /**
@@ -5750,6 +5798,7 @@ class Window_JabsRemapUsageHelp
 
 //endregion Window_JabsRemapUsageHelp
 
+//region Window_MenuCommand
 /**
  * Extends {@link #addOriginalCommands}.<br/>
  * Also adds a command to open the JABS input remapping scene from the main menu.
@@ -5808,6 +5857,8 @@ Window_MenuCommand.prototype.canAddJabsRemapCommand = function()
   // render the command!
   return true;
 };
+//endregion Window_MenuCommand
+
 
 //region Window_Selectable
 /**

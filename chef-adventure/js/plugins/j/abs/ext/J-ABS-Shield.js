@@ -1230,11 +1230,13 @@ Game_Battler.prototype.getShieldStates = function()
       const bPri = bShield.getPriority() || 0;
       if (aPri !== bPri)
       {
-        return bPri - aPri; // DESC
+        // dESC.
+        return bPri - aPri;
       }
 
       // tie-breaker: FIFO by appliedAt (earlier first).
-      return aShield.getAppliedAt() - bShield.getAppliedAt(); // ASC
+      // aSC.
+      return aShield.getAppliedAt() - bShield.getAppliedAt();
     });
 };
 

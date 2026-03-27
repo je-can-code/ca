@@ -93,6 +93,7 @@ J.ABS.EXT.STAR.Regexp = {
   BattleMapId: /<battleMapId:(\d+)>/gi,
 };
 
+//region StarOrigin
 /**
  * A simple container of the coordinates of a destination.
  */
@@ -129,7 +130,10 @@ class StarOrigin
     this.y = y;
   }
 }
+//endregion StarOrigin
 
+
+//region StarPhase
 /**
  * A single phase in the stars battle.
  */
@@ -158,7 +162,10 @@ class StarPhase
    */
   key = 0;
 }
+//endregion StarPhase
 
+
+//region StarPhases
 /**
  * A collection of {@link StarPhase}s that represent the flow of a star battle.
  * @type {StarPhases}
@@ -213,7 +220,10 @@ class StarPhases
    */
   static BACKTOMAP = new StarPhase("Back-to-map", 5);
 }
+//endregion StarPhases
 
+
+//region BattleManager
 /**
  * The `enemyMap` is a property containing the master map from which enemies
  * from the troop are derived from.
@@ -394,7 +404,10 @@ BattleManager.origin = function()
 {
   return this._originLocation;
 };
+//endregion BattleManager
 
+
+//region DataManager
 /**
  * Extends {@link DataManager.createGameObjects}.<br>
  * Includes fetching the enemy map and storing it memory.
@@ -473,7 +486,10 @@ DataManager.onEnemyMapGet = function(xhr, name, src, url)
     this.gracefulFail(name, src, url);
   }
 };
+//endregion DataManager
 
+
+//region Game_Interpreter
 /**
  * Overrides {@link Game_Interpreter.command301}.<br>
  * Alters the event command handler of "Battle Processing".
@@ -540,6 +556,8 @@ Game_Interpreter.prototype.command301convertToTroopId = function(designationType
   console.error(`invalid event command params, `, designationType, troopIdentifier);
   throw new Error('borked');
 };
+//endregion Game_Interpreter
+
 
 /**
  * Extends {@link Game_Map.update}.<br>
@@ -781,6 +799,7 @@ Game_Map.prototype.returnPlayerToOrigin = function()
 //region phase 5 - backtomap
 //endregion phase 5 - backtomap
 
+//region Game_Player
 /**
  * Extends {@link Game_Player.clearTransferInfo}.<br>
  * Parse out enemy data from the troop and convert them into JABS battlers.
@@ -827,7 +846,10 @@ Game_Player.prototype.reserveOriginTransfer = function()
   } = BattleManager.origin();
   this.reserveTransfer(mapId, x, y);
 };
+//endregion Game_Player
 
+
+//region Game_Troop
 /**
  * Extends {@link Game_Troop.initialize}.<br>
  * Initializes our additional members for STABS.
@@ -890,7 +912,10 @@ Game_Troop.prototype.areEnemiesAlive = function()
 {
   return this.getRemainingEnemyCount() > 0;
 };
+//endregion Game_Troop
 
+
+//region Scene_Map
 /**
  * Overrides {@link Scene_Map.updateEncounter}.<br>
  * Disables base encounter scene management.
@@ -917,3 +942,4 @@ Scene_Map.prototype.update = function()
 
   //? TODO: Modify encountereffect here.
 };
+//endregion Scene_Map

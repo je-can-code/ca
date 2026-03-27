@@ -73,6 +73,7 @@
  * ============================================================================
  */
 
+//region Introduction
 /**
  * The core where all of my extensions live: in the `J` object.
  */
@@ -169,7 +170,8 @@ IconManager.longParam = function(paramId)
   switch (paramId)
   {
     case 31:
-      return this.movespeed(); // move
+      // move.
+      return this.movespeed();
     default:
       return J.ABS.EXT.SPEED.Aliased.IconManager.get('longParam')
         .call(this, paramId);
@@ -197,7 +199,8 @@ TextManager.longParam = function(paramId)
   switch (paramId)
   {
     case 31:
-      return this.movespeed(); // move speed boost
+      // move speed boost.
+      return this.movespeed();
     default:
       // perform original logic.
       return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParam')
@@ -224,7 +227,8 @@ TextManager.longParamDescription = function(paramId)
   switch (paramId)
   {
     case 31:
-      return this.moveSpeedDescription(); // move speed boost
+      // move speed boost.
+      return this.moveSpeedDescription();
     default:
       // perform original logic.
       return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParamDescription')
@@ -416,7 +420,8 @@ Game_Character.prototype.minimumDistancePerFrame = function()
 {
   // the minimum speed is "2" aka "4x slower" according to events.
   // remove comment to let it go lower, but be careful, thats really low!
-  const minimumDistance = 0.015625; // / 2;
+  // / 2;.
+  const minimumDistance = 0.015625;
 
   // return the calculated amount.
   return minimumDistance;
