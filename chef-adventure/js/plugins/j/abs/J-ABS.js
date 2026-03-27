@@ -3541,6 +3541,9 @@ JABS_Battler.prototype.onEngage = function()
  */
 JABS_Battler.prototype.disengageTarget = function()
 {
+  // fire the hook before state is cleared so it can inspect engagement status.
+  this.onDisengage();
+
   // clear any targeting.
   this.setTarget(null);
   this.setAllyTarget(null);
@@ -3560,9 +3563,6 @@ JABS_Battler.prototype.disengageTarget = function()
 
   // reset all the phases back to default.
   this.resetPhases();
-
-  // perform on-disengage effects.
-  this.onDisengage();
 };
 
 /**
@@ -3571,6 +3571,9 @@ JABS_Battler.prototype.disengageTarget = function()
  */
 JABS_Battler.prototype.onDisengage = function()
 {
+  // only react to genuine disengagements, not initialization resets.
+  if (!this.isEngaged()) return;
+
   if (J.ABS.Metadata.ShowDisengageBalloon === false) return;
   this.showBalloon(J.ABS.Metadata.DisengageBalloonId);
 };
