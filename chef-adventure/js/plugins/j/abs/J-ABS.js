@@ -2905,6 +2905,13 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData)
   this._alertDuration = battlerCoreData.alertDuration();
 
   /**
+   * The explicit guardian engagement range for this battler.
+   * Null when not tagged; guardian falls back to the largest ward pursuit in that case.
+   * @type {number|null}
+   */
+  this._guardRange = battlerCoreData.guardRange();
+
+  /**
    * The `JABS_EnemyAI` of this battler.
    * Only utilized by AI (duh).
    * @type {JABS_EnemyAI}
@@ -4081,6 +4088,17 @@ JABS_Battler.prototype.getPursuitRadius = function()
   }
 
   return pursuit;
+};
+
+/**
+ * Gets the explicit guard range for this battler, if tagged.
+ * Only relevant for guardian-role enemies; actors always return null.
+ * When null, the guardian falls back to the largest pursuit radius among allied wards.
+ * @returns {number|null}
+ */
+JABS_Battler.prototype.getGuardRange = function()
+{
+  return this._guardRange;
 };
 
 /**
@@ -8885,6 +8903,7 @@ JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
  * @param {number} pursuitRange The pursuit range.
  * @param {number} alertedPursuitBoost The boost to pursuit range while alerted.
  * @param {number} alertDuration The duration in frames of how long to remain alerted.
+ * @param {number|null} guardRange The explicit guardian engagement range, or null to use the ward-pursuit fallback.
  * @param {boolean} canIdle Whether or not this battler can idle.
  * @param {boolean} showHpBar Whether or not to show the hp bar.
  * @param {boolean} showBattlerName Whether or not to show the battler's name.
@@ -8901,6 +8920,7 @@ JABS_BattlerCoreData.prototype.initialize = function({
                                                        pursuitRange,
                                                        alertedPursuitBoost,
                                                        alertDuration,
+                                                       guardRange,
                                                        canIdle,
                                                        showHpBar,
                                                        showBattlerName,
@@ -8961,6 +8981,13 @@ JABS_BattlerCoreData.prototype.initialize = function({
    * @type {number}
    */
   this._alertDuration = alertDuration;
+
+  /**
+   * The explicit engagement range for guardian-role battlers.
+   * When null, the guardian falls back to the largest ward pursuit radius among its allies.
+   * @type {number|null}
+   */
+  this._guardRange = guardRange ?? null;
 
   /**
    * Whether or not this battler will move around while idle.
@@ -9089,6 +9116,16 @@ JABS_BattlerCoreData.prototype.alertDuration = function()
 };
 
 /**
+ * Gets the explicit guardian engagement range.
+ * When null, the guardian falls back to the largest ward pursuit radius.
+ * @returns {number|null}
+ */
+JABS_BattlerCoreData.prototype.guardRange = function()
+{
+  return this._guardRange;
+};
+
+/**
  * Gets whether or not this battler will move around while idle.
  * @returns {boolean}
  */
@@ -9214,6 +9251,13 @@ class JABS_BattlerCoreDataBuilder
   #alertDuration = J.ABS.Metadata.DefaultEnemyAlertDuration;
 
   /**
+   * The explicit guardian engagement range, or null to use the ward-pursuit fallback.
+   * @type {number|null}
+   * @private
+   */
+  #guardRange = null;
+
+  /**
    * Whether or not this battler is allowed to idle about.
    * @type {boolean}
    * @private
@@ -9287,6 +9331,7 @@ class JABS_BattlerCoreDataBuilder
       pursuitRange: this.#pursuitRange,
       alertedPursuitBoost: this.#alertedPursuitBoost,
       alertDuration: this.#alertDuration,
+      guardRange: this.#guardRange,
 
       // configure on-the-map settings.
       canIdle: this.#canIdle,
@@ -9471,6 +9516,18 @@ class JABS_BattlerCoreDataBuilder
   }
 
   /**
+   * Sets the explicit guardian engagement range for this core data.
+   * Pass null to use the default ward-pursuit fallback behavior.
+   * @param {number|null} guardRange The guard range, or null for fallback.
+   * @returns {this} This builder for fluent-building.
+   */
+  setGuardRange(guardRange)
+  {
+    this.#guardRange = guardRange;
+    return this;
+  }
+
+  /**
    * Sets whether or not this battler can idle while not in combat.
    * @param {boolean} canIdle Whether or not this battler can idle about.
    * @returns {this} This builder for fluent-building.
@@ -9547,7 +9604,7 @@ class JABS_BattlerCoreDataBuilder
  * Roles define how a battler relates to and coordinates with other battlers,
  * distinct from AI traits which govern individual skill-selection decisions.
  *
- * Assigned via the {@code <jabsRole: X>} notetag family. The legacy
+ * Assigned via the {@code <aiRole: X>} notetag family. The legacy
  * {@code <aiTrait: leader>} and {@code <aiTrait: follower>} tags are
  * supported as backward-compatible aliases.
  */
@@ -13963,59 +14020,71 @@ class JABS_Timer
  * ============================================================================
  * OVERVIEW
  * This plugin is JABS: J's Action Battle System.
- * Using this plugin will enable you to carry out combat directly on the map
- * in real-time, similar to popular game franchises like Zelda.
+ * Using this plugin will enable you to carry out combat directly on the
+ * map in real-time, similar to popular game franchises like Zelda.
  *
  * ----------------------------------------------------------------------------
  * DETAILS:
  * Have you ever wanted to decorate events with tons of event comments and
- * watch them come to life as AI-controlled allies/enemies in an action battle
- * system for your button-mashing hack-n-slash pleasure? Well now you can! Just
- * slap some tags on the various everything across the entire RMMZ editor, and
- * you too can have a functional ABS, aka JABS!
+ * watch them come to life as AI-controlled allies/enemies in an action
+ * battle system for your button-mashing hack-n-slash pleasure? Well now
+ * you can! Just slap some tags on the various everything across the entire
+ * RMMZ editor, and you too can have a functional ABS, aka JABS!
  *
  * ============================================================================
  * INTEGRATIONS:
- * In addition to JABS, I've written a suite(20+) of other plugins that add
- * new systems or modify existing systems.
+ * In addition to JABS, I've written a suite (20+) of other plugins that
+ * add new systems or modify existing systems.
  *
- * All plugins I have written are highly compatible with eachother, and JABS.
- * Many of them were written to compliment JABS, such as the HUD or Ally AI.
+ * All plugins I have written are highly compatible with each other, and
+ * with JABS. Many of them were written to complement JABS, such as the
+ * HUD or Ally AI.
  *
- * If you find issue with how my plugins are interacting with one another, feel
- * free to reach out and let me know and I'll see if I can fix it.
+ * If you find an issue with how my plugins are interacting with one
+ * another, feel free to reach out and let me know.
  *
- * If you find issue with how JABS is interacting with someone elses' plugin,
- * I encourage you communicate with that plugin author to have them reach out
- * to me and we shall discuss the problem and try to come to a solution if one
- * exists for the problem.
+ * If you find an issue with how JABS is interacting with someone else's
+ * plugin, I encourage you to communicate with that plugin author to have
+ * them reach out to me. We shall discuss the problem and try to find a
+ * solution.
  *
- * As an alternative to the above, you are also welcome to file an issue
- * against my github repository describing the issue and how to reproduce it
- * minimally, and I will look into it when possible.
+ * Alternatively, you are welcome to file an issue against my GitHub
+ * repository describing the issue and how to reproduce it minimally,
+ * and I will look into it when possible.
  * ============================================================================
- * Due to the sheer length of instruction provided below, the changelog for
- * JABS lives at the top instead of the bottom like the rest of my plugins.
+ * Due to the sheer length of instruction provided below, the changelog
+ * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
  * - 4.7.0
- *    Implemented sentinel role behavior: sentinels disengage when their target leaves their home sight radius.
- *    Implemented guardian role behavior: guardians retarget to protect nearby ward-role allies under attack.
- *    Ward role is passive; no behavioral code runs on wards directly.
+ *    Renamed battler role tag from <jabsRole: X> to <aiRole: X>.
+ *    Fixed axis-alignment for AI using Line, Wall, and Arc hitboxes.
+ *    Fixed sentinel aggro flicker when a non-sentinel target leaves home
+ *    sight range.
+ *    Fixed guardian aggro flicker when ward is attacked from outside the
+ *    guardian's pursuit range.
+ *    Added <guardRange: N> for guardians to define an explicit engagement
+ *    range for ward-protection; falls back to max ward pursuit otherwise.
+ *    Added balloon on target-switch for guardian battlers.
  * - 4.6.0
- *    Fixed `JABS_EnemyAI#decideAction` using `switch (this)` against boolean traits, which never matched and forced generic AI for all enemies since 2023.
- *    Fixed undefined `defensive` reference in healer follower skill filtering.
- *    Fixed `!skillsToUse.length > 1` operator-precedence bugs in elemental and healer filters.
- *    Lifted shared AI helpers into `JABS_AI`: elemental filters, support decisions (cleanse/heal/buff), healing best-fit helpers, battle memory CRUD.
- *    Moved `JABS_BattleMemory` into core so both enemy and ally AI can share the same memory model.
- *    Added `JABS_BattlerRole` and `<jabsRole:>` tags: leader, follower, guardian, ward, solo, sentinel (legacy `<aiTrait: leader/follower>` still honored).
- *    Added enemy AI traits: cleanser, buffer, tactical, berserker; split coordination out of trait flags into roles.
- *    Routed leader/follower coordination through `JABS_AiManager#decideEnemyAiPhase2Action` before skill selection; solo role skips coordination.
- *    New notetags: `<aiTrait: cleanser|buffer|tactical|berserker>` and full `jabsRole` family under `J.ABS.RegExp`.
+ *    Fixed JABS_EnemyAI#decideAction using switch(this) against boolean
+ *    traits, which never matched and forced generic AI for all enemies
+ *    since 2023.
+ *    Fixed undefined "defensive" reference in healer follower filtering.
+ *    Fixed operator-precedence bugs in elemental and healer skill filters.
+ *    Lifted shared AI helpers into JABS_AI.
+ *    Moved JABS_BattleMemory into core for shared ally/enemy AI use.
+ *    Added JABS_BattlerRole and <aiRole: X> tags: leader, follower,
+ *    guardian, ward, solo, sentinel.
+ *    Added enemy AI traits: cleanser, buffer, tactical, berserker.
+ *    Routed leader/follower coordination through AiManager before skill
+ *    selection; solo role skips coordination entirely.
+ *    New notetags: <aiTrait: cleanser|buffer|tactical|berserker> and the
+ *    full <aiRole: X> family.
  * - 4.5.0
- *    Consumed `RPGManager` update.
+ *    Consumed RPGManager update.
  *    Removed useless extraneous layers that handled note extraction.
- *    Removed hard-coded reference to `J-Extend` from this plugin.
+ *    Removed hard-coded reference to J-Extend from this plugin.
  *    Shifted hard-coded regex to live in the initialization section.
  * - 4.4.0
  *    Revamped dodge skills.
@@ -14031,37 +14100,37 @@ class JABS_Timer
  * - 4.3.0
  *    Unified sprint and dash as one alter-action.
  *    Added a notion of "being in combat" based on hitting or being hit.
- *    Force dash function to change to mobility skill while "in combat".
- *    Added "on cast animation" that plays once a skill is done casting.
+ *    Force dash to change to mobility skill while "in combat".
+ *    Added "on cast animation" that plays once a skill finishes casting.
  * - 4.2.0
  *    Split projectile count from projectile formation.
  * - 4.1.1
  *    Moved ownership of debug movement to J-ABS-InputManager.
  *    Removed dead code (deprecated dash input).
  * - 4.1.0
- *    Added support for J-ABS-InputManager 2.0.0 (including button remaps).
+ *    Added support for J-ABS-InputManager 2.0.0.
  * - 4.0.0
- *    Added hitbox visibility for castable skills along with related tags.
+ *    Added hitbox visibility for castable skills and related tags.
  *    Properly abstracted DIAG out of this plugin.
  *    Added castbar visibility while casting.
  *    Added performance improvements for maps with large battler counts.
  *    Fixed numerous issues with collision and hitboxes.
  *    Added additional tags related to hitboxes.
- *    Updated projectile counts 2 & 3 to no longer be V and W respectively.
+ *    Updated projectile counts 2 & 3 to no longer be V and W.
  *    Added support for delayed actions to touch-trigger within a radius.
  * - 3.4.3
  *    Added hook for post-battler-conversion mutation.
  * - 3.4.2
- *    Adjusted font size and sprite location for enemy battler name on map.
+ *    Adjusted font size and sprite location for enemy battler name.
  * - 3.4.1
- *    Applied significant regeneration reduction for actors while in-combat.
- *    Fixed facing-auto-parry not working as-intended.
+ *    Applied significant regeneration reduction for actors in-combat.
+ *    Fixed facing-auto-parry not working as intended.
  *    Fixed strafe functionality forcing strafe on allies.
- *    Fixed knockback on player affecting all allies of the party.
+ *    Fixed knockback on player affecting all party allies.
  * - 3.4.0
  *    Added functionality surrounding skill auto-assignment.
- *    Extracted "poses" functionality to an extension for future enhancements.
- *    Added Scene_Map#forceCloseAbsMenu() to programmatically close the menu.
+ *    Extracted "poses" functionality to an extension for future work.
+ *    Added Scene_Map#forceCloseAbsMenu().
  * - 3.3.0
  *    Added plugin command to generate enemies on the map dynamically.
  *    Added plugin command to generate loot on the map dynamically.
@@ -14076,8 +14145,8 @@ class JABS_Timer
  *    Refactored slip effects to accommodate the J-Passives update.
  *    Fixed issue where endlessly delaying actions would never expire.
  * - 3.2.0
- *    Fixed bug where actions couldn't connect if the attacker was too close.
- *    Upgraded AI to be able to leverage combos (ally AI, too).
+ *    Fixed bug where actions couldn't connect if attacker was too close.
+ *    Upgraded AI to leverage combos (ally AI, too).
  *    Refactored code surrounding AI action decision-making.
  * - 3.1.2
  *    Refactored some of the JABS menu in a non-breaking way.
@@ -14085,9 +14154,7 @@ class JABS_Timer
  * - 3.1.1
  *    Retroactively added this CHANGELOG.
  * - 3.1.0
- *    Optimized battler tracking and management.
- *    Optimized state tracking and management.
- *    Optimized integrations with my other plugins.
+ *    Optimized battler, state, and integration tracking.
  *    Added proper guidance in the plugin description.
  *    Added state duration modifiers functionality.
  *    Fixed "ignore all parry" tag.
@@ -14095,33 +14162,31 @@ class JABS_Timer
  *    Added "Casting Modifiers" as JABS extension.
  *    Added "Map Tools" as JABS extension.
  *    Added "Cyclone-Movement" adapter as JABS extension.
- *    Updated distance-centric tags to now allow for decimals (like "range").
- *    Added "circle" hitbox.
- *    Updated hitbox logic.
- *    Updated tags surrounding enemy event configuration.
- *    Updated tags surrounding AI definition for enemies.
+ *    Updated distance-centric tags to allow decimals.
+ *    Added "circle" hitbox; updated hitbox logic.
+ *    Updated tags surrounding enemy event and AI configuration.
  *    Optimized AI decision-making capabilities based on AI traits.
  * - 3.0.0
  *    Extracted "Text Pops" as a JABS extension plugin.
  *    Extracted "Input Management" as a JABS extension plugin.
  *    Extracted "Diagonal Movements" as a JABS extension plugin.
  *    Extracted "Movespeed Modifiers" as a JABS extension plugin.
- *    Integrated "Ally AI" as JABS extension.
+ *    Integrated "Ally AI" as a JABS extension.
  *    Added Aggro functionality.
  *    Added skill delay functionality (like bombs).
- *    Adjusted numerous data points to be customizable in plugin parameters.
+ *    Adjusted numerous data points to be customizable in plugin params.
  *    Further optimized "under-the-hood" parts of JABS.
  * - 2.3.1
  *    Updated loot drop functionality to be less wonky.
  *    Other miscellaneous bugfixes.
  * - 2.3.0
  *    Updated plugin parameters format to be cleaner.
- *    Added "Danger Indicator" functionality (see indicator on enemies on map).
- *    Added "Battler Name" functionality (see names of enemies on map).
+ *    Added "Danger Indicator" functionality.
+ *    Added "Battler Name" functionality.
  *    Other miscellaneous bugfixes.
  * - 2.2.0
  *    Added 2 new AI types: "leader" and "follower".
- *    Shifted tag location for enemies from event notebox to comment format.
+ *    Shifted enemy tag location from event notebox to comment format.
  *    Other miscellaneous bugfixes.
  * - 2.1.0
  *    Implemented party cycling between members of the party.
@@ -14132,7 +14197,7 @@ class JABS_Timer
  *    Enemies now perform their active event page upon defeat.
  *    Disabled on-hit effects against targets that parry.
  *    Added "counter-guard" and "counter-parry" functionality.
- *    Added visual indicator for "action decided" for AI-controlled battlers.
+ *    Added visual indicator for "action decided" for AI battlers.
  *    Excessive number of bugfixes.
  * - 2.0.0
  *    Added guarding functionality.
@@ -14145,161 +14210,276 @@ class JABS_Timer
  *    The initial release.
  * ============================================================================
  * SETTING UP YOUR ENEMY EVENTS:
- * There are a lot of potential tags that you can place all across the database
- * to accomplish various goals, so lets get started with setting up an enemy
- * event.
+ * There are a lot of potential tags you can place all across the database
+ * to accomplish various goals, so let's get started with setting up an
+ * enemy event.
  *
- * First and foremost, all tags will be living inside comment event commands:
+ * First and foremost, all tags will be living inside comment event
+ * commands:
  *    "Event Commands > Flow Control > Comment"
  *
  * NOTE ABOUT PRIORITY OF TAGS:
- * With the exception of the ENEMY ID tag and MOVE SPEED tag in an event, all
- * the rest are mostly optional. If you place the same tags for ENEMY EVENTS
- * in the database, then they will become the defaults for enemies, where the
- * tags in the ENEMY EVENTS will act as "overrides".
- * So the priority order looks like this:
+ * With the exception of the ENEMY ID tag and MOVE SPEED tag, all the
+ * rest are mostly optional. If you place the same tags for ENEMY EVENTS
+ * in the database, they will become the defaults for that enemy, and the
+ * tags in the event will act as "overrides".
+ * Priority order:
  *    1st: tags in the ENEMY EVENT.
  *    2nd: tags in the database on that particular enemy.
  *    3rd: the defaults listed in the plugin parameters.
  * ----------------------------------------------------------------------------
  * ENEMY ID:
- * If you want an event to be tagged as an enemy, then the system needs a way
- * to associate the event with the enemy. To accomplish this, we'll use the
- * "enemy" tag:
+ * If you want an event to act as an enemy, the system needs a way to
+ * associate the event with the enemy in the database. Use the "enemy" tag:
  *    <enemyId:ENEMY_ID>
- *  Where ENEMY_ID is the id from the database of the enemy for this event.
+ *  Where ENEMY_ID is the id from the database for this enemy.
  *
  * ----------------------------------------------------------------------------
  * SIGHT RADIUS:
- * The "sight" of an enemy, is the radius around the enemy that it can perceive
- * the player. When the player comes within this radius, the enemy will try to
- * attack the player. To define the "sight" radius of an enemy, we'll use the
- * "sight" tag:
+ * Sight is the radius around the enemy that it can perceive the player.
+ * When the player enters this radius, the enemy will try to engage.
  *    <sight:RADIUS>
  *  Where RADIUS is the distance in tiles this enemy can see.
  *
- * NOTE: Enemy sight ignores obstacles like walls. They have x-ray vision.
+ * NOTE: Enemy sight ignores obstacles like walls; they have x-ray vision.
  *
- * This can also be placed in the database on the enemy to set it as a default.
+ * This can also be placed in the database on the enemy as a default.
  *
  * ----------------------------------------------------------------------------
  * PURSUIT RADIUS:
- * The "pursuit" of an enemy is the radius around the enemy that if will
- * pursue the player once in combat. Effectively, this is the enemy's sight
- * radius after it is engaged in combat. This is typically designed to be
- * bigger than the sight radius. To define the "pursuit" radius of an enemy,
- * we'll use the "pursuit" tag:
+ * Pursuit is the radius an enemy will maintain while actively engaged in
+ * combat. Think of it as the "sight radius after aggro". It is typically
+ * designed to be larger than the sight radius so enemies don't trivially
+ * disengage the moment the player steps back one tile.
  *    <pursuit:RADIUS>
- *  Where RADIUS is the distance in tiles this enemy can pursue combatants.
+ *  Where RADIUS is the distance in tiles this enemy can pursue.
  *
- * This can also be placed in the database on the enemy to set it as a default.
+ * This can also be placed in the database on the enemy as a default.
+ *
+ * ----------------------------------------------------------------------------
+ * PREPARE TIME:
+ * Every enemy has a "prepare" timer -- the number of frames they wait
+ * before taking their first action. By default this is controlled by the
+ * "Attack Speed" trait in the database enemy editor, but you can override
+ * it per event or per database enemy with this tag:
+ *    <prepare:FRAMES>
+ *  Where FRAMES is the number of frames to wait before first acting.
+ *
+ * This can also be placed in the database on the enemy as a default.
  *
  * ----------------------------------------------------------------------------
  * ALERTING:
- * When an enemy is struck with a skill from outside of its sight/pursuit
- * range, the enemy will enter an "alerted" state. While in said "alerted"
- * state, they can have heightened sight and pursuit, and will navigate to the
- * point of which they believe the attacker resides. It is encouraged to use
- * this functionality, or else enemies can be easily defeated with ranged
- * skills and no risk. To leverage this functionality, there are a few tags you
- * may want to use:
+ * When an enemy is struck from outside of its sight/pursuit range, it
+ * enters an "alerted" state. While alerted, it gains heightened sight and
+ * pursuit and navigates to where it believes the attacker is. Use this
+ * functionality, or else enemies can be cheaply defeated with ranged
+ * skills from outside their range. There are a few tags to configure it:
  *    <alertDuration:DURATION>
- *  Where DURATION is the duration in frames to remain alerted.
+ *  Where DURATION is the number of frames to remain alerted.
  *
  *    <alertedSightBoost:RADIUS_BOOST>
- *  Where RADIUS_BOOST is the amount of bonus sight gained while alerted.
+ *  Where RADIUS_BOOST is bonus sight gained while alerted.
  *
  *    <alertedPursuitBoost:RADIUS_BOOST>
- *  Where RADIUS_BOOST is the amount of bonus pursuit gained while alerted.
+ *  Where RADIUS_BOOST is bonus pursuit gained while alerted.
  *
- * This can also be placed in the database on the enemy to set it as a default.
+ * This can also be placed in the database on the enemy as a default.
+ *
+ * ----------------------------------------------------------------------------
+ * VISION MULTIPLIER:
+ * You can scale how well a battler sees its opponents using this tag.
+ * It modifies the sight and pursuit radii by a percent offset from 100.
+ *    <visionMultiplier:VAL>
+ *  Where VAL is the percent offset (e.g. 50 adds 50%, -50 cuts in half).
+ *
+ * A value of 0 has no effect. Tags from all applicable notes are summed.
+ * Values are clamped so the result never drops below zero. Place this on
+ * actors, classes, enemies, weapons, armors, or states.
+ *
+ * EXAMPLE: An enemy with sight 4 and a state bearing <visionMultiplier:50>
+ * will see as if it had sight 6 for the duration of that state.
  *
  * ----------------------------------------------------------------------------
  * MOVE SPEED:
- * Sometimes, you want an enemy to move somewhere between 3 and 4 movespeed,
- * because 3 to 4 movespeed is literally a 2x jump in movespeed. If you want
- * to assign a number like 3.7 as an enemy's move speed, you can use this tag:
+ * Sometimes you want an enemy to move between 3 and 4 movespeed, because
+ * 3 to 4 is literally a 2x jump. To assign a value like 3.7, use this:
  *    <moveSpeed:SPEED>
- *  Where SPEED is the numeric value to represent the move speed.
+ *  Where SPEED is the numeric value to set as the move speed.
  *
  * NOTE: This will override whatever the native RMMZ event page is set to.
- * NOTE: I have found a good balance is between 3.5 and 4.5 for move speed.
+ * NOTE: A good balance is usually between 3.5 and 4.5 for move speed.
  *
- * ----------------------------------------------------------------------------
+ * ============================================================================
  * AI TRAITS:
- * While the basic AI works, you may want to modify the AI a bit for various
- * enemies. To do this, I've built some tags that flex the various themes that
- * the AI can perform. These tags should be added alongside wherever you might
- * add the above tags for things like enemy id and sight radius.
+ * While the basic AI works, you may want to tune it for specific enemies.
+ * AI traits modify how an enemy chooses and uses its skills. Add these
+ * tags alongside the enemy id, sight, and other configuration tags.
  *
- * NOTE: Enemies have a default AI in the sense that they will still attack
- * and perform skills, but mostly its just at random if you don't slap some
- * ai traits on them. Though, skills still can only be used as often as their
- * cooldown and resources permit.
+ * NOTE: Without any AI traits, enemies will still attack and use skills,
+ * but skill selection will be mostly random within what is available,
+ * subject to cooldowns and resource costs.
+ *
+ * NOTE: Multiple AI traits can be stacked on a single enemy.
  *
  * ----------------------------------------------------------------------------
  * <aiTrait:careful>
- * Enemies with the Careful AI trait will be more calculating about their
- * strategies, and avoid using things that would benefit you, such as skills
- * that are elementally ineffective. This also influences decision-making for
- * other AI traits.
+ * Careful enemies are more calculating. They avoid using skills that
+ * would be elementally ineffective, and generally make smarter decisions.
+ * This also amplifies the judgment of other AI traits when combined.
  *
  * ----------------------------------------------------------------------------
  * <aiTrait:executor>
- * Enemies with the Executor AI trait will prioritize leveraging skills that
- * maximize damage and target weak spots. They know everything and will
- * use every skill in their arsenal to destroy you.
+ * Executor enemies prioritize skills that maximize damage and target weak
+ * spots. They will use everything in their arsenal to destroy you.
  *
  * ----------------------------------------------------------------------------
  * <aiTrait:reckless>
- * Enemies with the Reckless AI trait will never use their basic attack, and
- * will spam their learned skills until they are out of resources instead.
- * This also influences decision-making for other AI traits.
+ * Reckless enemies never use their basic attack. They will spam their
+ * learned skills until they are out of resources. This also influences
+ * decision-making for other traits when combined.
  *
  * ----------------------------------------------------------------------------
  * <aiTrait:healer>
- * Enemies with the Healer AI trait will monitor their nearby allies while they
- * use their various skills and prioritize their own healing skills to keep
- * their allies alive. If an enemy has the Reckless AI trait alongside this,
- * they will disregard efficiency and just use the strongest healing skill to
- * heal their allies. If an enemy has the Careful AI trait, they will be more
- * calculating and use the "best fitted" healing skill for the situation.
+ * Healer enemies monitor nearby allies and prioritize healing skills to
+ * keep those allies alive. If combined with Reckless, they will ignore
+ * efficiency and use the strongest healing skill available. If combined
+ * with Careful, they will use the best-fit healing skill for the
+ * situation rather than just the most powerful one.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:cleanser>
+ * Cleanser enemies scan nearby allies for negative states and attempt to
+ * remove them using skills flagged as state-removing. They will prioritize
+ * cleansing over attacking when allies are suffering. If combined with
+ * Careful, they use the most targeted cleanser available. If combined with
+ * Reckless, they will use any cleanser regardless of overlap.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:buffer>
+ * Buffer enemies try to apply positive states to nearby allies using
+ * buff-flagged skills before choosing an attack. This lets you build
+ * support enemies who bolster their teammates before engaging the player.
+ * Buffer is amplified by Careful (more selective) and Reckless (spams it).
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:tactical>
+ * Tactical enemies step back to maintain optimal range before using a
+ * skill. Where a basic enemy will fire wherever they happen to be,
+ * a tactical enemy will reposition first. Pair with Careful or Executor
+ * for enemies that stay at range and punish you for advancing.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiTrait:berserker>
+ * Berserker enemies go all-out when their HP drops below a threshold.
+ * Once low on health, they stop caring about range, cooldowns, or
+ * efficiency, and just attack as fast as possible. Think of it as the
+ * AI equivalent of "panic mode".
  *
  * ----------------------------------------------------------------------------
  * <aiTrait:follower>
- * Enemies with the Follower AI trait are restricted to only using their basic
- * attack skill when without a leader. When another enemy is in the nearby
- * vicinity that has the Leader AI Trait, then the leader enemy will decide
- * actions on behalf of the follower enemy to perform. This AI trait is
- * typically used to create "dormant" enemies that awaken when a leader is
- * present and can utilize their skills. You can also gate healing skills
- * behind requiring a leader to leverage them.
- *
- * NOTE: Leader/Follower traits have not been heavily tested, use with care!
+ * NOTE: This is a coordination trait. Prefer <aiRole: follower> instead.
+ * Supported as a backward-compatible alias only.
  *
  * ----------------------------------------------------------------------------
  * <aiTrait:leader>
- * Enemies with the Leader AI trait are just like normal enemies and will obey
- * their other AI traits, but also they will take over and make decisions on
- * behalf of any available followers in the nearby vicinity using their own
- * AI traits to decide what skills for the follower to use.
+ * NOTE: This is a coordination trait. Prefer <aiRole: leader> instead.
+ * Supported as a backward-compatible alias only.
  *
- * NOTE: Leader/Follower traits have not been heavily tested, use with care!
+ * ============================================================================
+ * AI ROLES:
+ * AI roles define how a battler coordinates with other battlers on its
+ * team. They are distinct from AI traits, which govern what skills an
+ * enemy chooses -- roles govern who they work with and how.
+ *
+ * A battler can only meaningfully hold one role. Assigning multiple roles
+ * to the same battler has undefined behavior.
+ *
+ * NOTE: AI roles are configured with the <aiRole: X> tag on the enemy
+ * database entry or as an event comment override. All roles are optional;
+ * an enemy with no role behaves as a default self-interested combatant.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiRole: leader>
+ * Leader battlers act like normal enemies and obey their own AI traits,
+ * but they also make skill decisions on behalf of nearby followers. A
+ * leader uses its own AI traits to choose which skill a follower should
+ * execute, effectively turning followers into remote extensions of the
+ * leader's strategy.
+ *
+ * NOTE: Leaders need followers nearby to actually coordinate. Without
+ * any followers in range, a leader behaves like a normal enemy.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiRole: follower>
+ * Follower battlers are restricted to only their basic attack when no
+ * leader is nearby. When a leader is in range, the leader will take over
+ * and decide which of the follower's skills to use. This is a great way
+ * to create "dormant" enemies that suddenly become dangerous when a boss
+ * or leader enemy is present.
+ *
+ * NOTE: Followers are intentionally hobbled without a leader. If you
+ * want followers that can still fight independently but coordinate when
+ * a leader is around, give them other AI traits on top of this role.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiRole: guardian>
+ * Guardians are passive by default; they will not initiate attacks on
+ * their own. However, the moment one of their ward-role allies is struck,
+ * the guardian immediately retargets to engage whoever attacked the ward.
+ * Think of guardians as bodyguards who stay out of the fight unless their
+ * charge is threatened.
+ *
+ * GUARD RANGE:
+ * By default, a guardian's engagement range when protecting a ward is the
+ * largest pursuit radius of any ward currently nearby. You can override
+ * this with an explicit range tag:
+ *    <guardRange:RADIUS>
+ *  Where RADIUS is the tile distance at which the guardian can respond
+ *  to ward attacks and stay engaged after engaging.
+ *
+ * Use this when you want a guardian that sits at a distance but swoops
+ * in the moment its ward is touched, even from across the room.
+ *
+ * NOTE: guardRange only applies while the guardian is in guardian mode.
+ * Without this tag, the fallback is the max ward pursuit radius, which
+ * may be smaller than you want if your wards are close-range fighters.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiRole: ward>
+ * Wards are the potential targets of guardian battlers. A ward itself has
+ * no special behavioral code -- it simply serves as the "trigger" for a
+ * guardian to engage. Place this on any enemy you want others to protect.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiRole: solo>
+ * Solo battlers act purely on their own, ignoring all coordination logic.
+ * A solo enemy will not respond to leader commands and will not be picked
+ * up as a follower. Use this for enemies that should fight independently
+ * even if they happen to be in the same area as a leader or follower.
+ *
+ * ----------------------------------------------------------------------------
+ * <aiRole: sentinel>
+ * Sentinel battlers hold their position. A sentinel will engage enemies
+ * that enter their sight, but once the target leaves the sentinel's home
+ * range (based on pursuit radius), the sentinel disengages and returns
+ * home. Use this for "guard" type enemies who aren't supposed to chase
+ * the player across the entire map.
+ *
+ * NOTE: The sentinel's "home range" is measured from its spawn position.
+ * If the sentinel itself is pushed far from home, it may disengage more
+ * readily than expected. Keep sentinel pursuit values reasonable.
  *
  * ============================================================================
  * TEAMS:
- * By default, when an enemy is created, they are assigned a numeric team value
- * of 1. When allied battlers (such as the player) are created, they are given
- * the team value of 0. Because these two battlers are on different teams, they
- * are able to deal damage to each other with skills. If your game is more
- * complex than "good guy" & "bad guy", you may require additional teams. While
- * it isn't greatly supported in the sense that there is team relationships
- * and associations you can create (such as two separate teams that consider
- * eachother allies, or neutral teams), you can still add a tag to enemies on
- * the map that will redefine their team id, to potentially allow enemies to
- * fight eachother.
+ * By default, enemies are assigned team 1 and allied battlers are team 0.
+ * Because they are on different teams, they can damage each other. If your
+ * game needs more than "good guys and bad guys", you can reassign teams.
  *
- * By default, the following teams are already setup:
+ * NOTE: Team relationships (allies between teams, neutral factions, etc.)
+ * are not deeply supported, but you can still redefine team ids to make
+ * enemies fight each other.
+ *
+ * Default teams:
  * - 0 is for the player/allies.
  * - 1 is for enemies/monsters.
  * - 2 is for "neutral", aka inanimate objects.
@@ -14309,551 +14489,538 @@ class JABS_Timer
  *
  * ============================================================================
  * CIRCUMSTANTIAL CONFIG OPTIONS:
- * There are a few more tags that you may want to be aware of that modify the
- * base functionality of how enemies on the map look or act. Add these to the
- * enemy somehow, and the defaults can be changed.
+ * A few more tags modify the base look or behavior of enemies. Add these
+ * to the enemy (in the database or as an event comment override) to
+ * change the defaults.
  *
  * ----------------------------------------------------------------------------
  * IDLING:
- * By default, enemies will kinda idle about in a 2-tile radius surrounding
- * wherever they are placed on the map. If you want to change this, or undo
- * your defaults, there are tags for that!
+ * By default, enemies idle in a 2-tile radius around where they were
+ * placed on the map. To change this:
  *    <jabsConfig:noIdle>
  *    <jabsConfig:canIdle>
  *
  * ----------------------------------------------------------------------------
  * HP BAR:
- * Enemies by default will have small hp bars beneath them on the map. It is a
- * nice visual indicator that it is an enemy and displays their current health.
- * However, if you have a reason to hide it (or show it), you can use the tags
- * below to do this.
+ * Enemies have small HP bars beneath them by default. To hide or force
+ * the HP bar to show:
  *    <jabsConfig:noHpBar>
  *    <jabsConfig:showHpBar>
  *
  * ----------------------------------------------------------------------------
  * BATTLER NAME:
- * The name of enemies is shown beneath the battler's character itself. If you
- * want to conceal or reveal this name, you can use the below tags to do that.
+ * The name of the enemy is shown beneath their character sprite. To
+ * conceal or reveal it:
  *    <jabsConfig:noName>
  *    <jabsConfig:showName>
  *
  * ----------------------------------------------------------------------------
  * INVINCIBLE:
- * Enemies don't always need to be defeatable. If you want to make an enemy
- * completely invincible (combat actions will not connect with this enemy), or
- * disable said invincibility, you can using the tags below.
+ * To make an enemy completely invincible (skills will not connect), or
+ * to disable invincibility:
  *    <jabsConfig:invincible>
  *    <jabsConfig:notInvincible>
  *
  * ----------------------------------------------------------------------------
  * INANIMATE:
- * Some enemies actually aren't enemies. They are pots, crates, bushes, or
- * other various inanimate objects that are just there to be chopped up. You
- * can disable an enemy's AI, movement, knockback, hp bar, etc., all from one
- * convenient tag!
+ * Pots, crates, bushes, environmental objects -- things that shouldn't
+ * think, move, or react. This one tag disables AI, movement, knockback,
+ * the HP bar, and more:
  *    <jabsConfig:inanimate>
  *    <jabsConfig:notInanimate>
  *
  * ============================================================================
  * FIRST TIME SETUP, THE ENEMY MAP:
- * While you can create enemies on the map as much as your heart desires, it
- * is also possible to dynamically generate enemies on-the-fly with plugin
- * commands or script commands in events. If you hope to make use of this, you
- * will need to define an "enemy clone map", aka a map of premade enemy events
- * that are exclusively used by the plugin/script commands for spawning
- * enemies, as the commands in question refer to enemyEventIds that would be
- * derived from the "enemy clone map".
+ * While you can create enemies on the map as much as your heart desires,
+ * it is also possible to dynamically generate enemies on-the-fly with
+ * plugin or script commands. If you want to use this, you will need to
+ * define an "enemy clone map" -- a map of premade enemy events used
+ * exclusively for spawning via plugin/script commands.
  *
- * NOTE:
- * If you have zero chance of using this functionality, JABS will operate
- * completely fine as long as the map defined as "enemy clone map" in the
- * plugin configuration does indeed exist- just know that the dynamic spawning
- * will be broken unless that map gets implemented as it was intended.
+ * NOTE: If you have zero chance of using this functionality, JABS will
+ * operate fine as long as the map defined as "enemy clone map" in the
+ * plugin configuration does indeed exist.
  *
  * ============================================================================
  * SETTING UP THE ENEMIES IN THE DATABASE:
- * While you may wish that the enemies would just... work out of the box as
- * soon as you set them up on the map, there is a bit more to it than that! We
- * still need to define a couple of the basics for them in the database. Rather
- * than tons of notes, it'll be a bit of trait management and clicking.
+ * Setting up an enemy event is not quite enough on its own. A couple of
+ * basics still need to be defined in the database.
  *
- * NOTE:
- * Most configuration you want to universally apply to all enemies of a given
- * id can be applied to the notes of the enemies in the database instead of on
- * every single event you create of that enemy.
+ * NOTE: Configuration you want to apply universally to all enemies of a
+ * given id should be placed in the database notes for that enemy, rather
+ * than repeated on every single event.
  *
  * ----------------------------------------------------------------------------
  * BASIC ATTACK:
- * All enemies probably should have a "basic attack".
- * This is defined by the "Attack Skill" trait, found on the top of the third
- * page in the trait picker for enemies.
+ * All enemies should have a "basic attack". This is defined by the
+ * "Attack Skill" trait, found at the top of the third page in the trait
+ * picker for enemies.
  *
  * PREPARE SPEED:
- * To emulate a "turn speed" of sorts, enemies all have a fixed amount of time
- * that they must wait before they take action. This value is defined by the
- * "Attack Speed" trait, found in the middle of the third page in the trait
- * picker for enemies.
+ * To emulate a "turn speed", enemies wait a fixed number of frames before
+ * acting. This is defined by the "Attack Speed" trait found in the middle
+ * of the third page in the trait picker. You can also use the
+ * <prepare: FRAMES> tag described above to override this value.
  * ----------------------------------------------------------------------------
  * AVAILABLE SKILLS:
  * Any skills listed in the "Action Patterns" section of an enemy in the
- * database will be considered an "available skill" for use. To create a skill
- * that is usable by battlers in JABS (actors or enemies), see the "SETTING UP
- * YOUR SKILLS" section below.
+ * database will be considered available. To create a skill usable in
+ * JABS, see the "SETTING UP YOUR SKILLS" section below.
  *
  * NOTE ABOUT CONDITIONS:
- * Enemies do not currently obey any conditions; they will obey their AI in
- * combination with skill cooldowns and such.
+ * Enemies do not currently obey conditions; they obey their AI traits
+ * along with skill cooldowns.
  *
  * NOTE ABOUT SKILL EXTENSION FOR ENEMIES:
- * If you are leveraging my other plugin "J-SkillExtend", then something to
- * consider is that for a skill to be extended, it must be known to the enemy
- * in some way. If a skill has a skill extend tag, they will not be available
- * for enemies to choose as a skill to perform in combat, but it will still
- * apply any extension effects as applicable.
+ * If you are leveraging "J-SkillExtend", extension skills must be known
+ * to the enemy in some form. Extension skills are excluded from random
+ * selection but will still apply their extension effects.
  *
  * ============================================================================
  * FIRST TIME SETUP, THE ACTION MAP:
- * If you're not using the demo as a base, then you'll need to add a new map to
- * your project where all the "action events" will live. These events represent
- * the visual components of skills executed on the map and are mapped by adding
- * a tag to the skills that associate your skill with the designated event on
- * the action map. Once you've created the map, you'll need to take note of the
- * map id and align it in the plugin parameters with the "Action Map Id" param.
+ * If you're not using the demo as a base, you'll need to add a new map
+ * to your project where all the "action events" will live. These events
+ * represent the visual components of skills on the map and are linked to
+ * skills via a tag on the skill. Once you've created the map, take note
+ * of the map id and set it in the plugin parameters as "Action Map Id".
  *
  * ============================================================================
  * SETTING UP YOUR SKILLS:
- * In addition to setting up your enemies, you'll need to setup skills as well.
- * There are a huge variety of tags to be used, but there are a few that you'll
- * probably include on most skills.
+ * In addition to setting up enemies, you'll need to set up skills.
+ * There are a huge variety of tags to use, but a few will appear on
+ * most skills.
  *
  * NOTE ABOUT THROUGH:
- * I would strongly encourage when building actions on the action map, to set
- * your action events to have "through" checked. Otherwise, they may get stuck
- * on various events or terrains unexpectedly- especially if using any kind of
- * pixel movement plugins/adapters.
+ * I would strongly encourage setting action events on the action map to
+ * have "through" checked. Otherwise, they may get stuck on events or
+ * terrains unexpectedly, especially with pixel movement plugins.
  *
  * ----------------------------------------------------------------------------
  * ACTION ID:
- * You setup the action map, right?
- * Well, now that you did and defined some events in there, you'll need to pick
- * one to represent what this skill looks like on the map.
+ * Associate a skill with an event on the action map.
  *    <actionId:EVENT_ID>
- *  Where EVENT_ID is the id of the event from the action map for this skill.
+ *  Where EVENT_ID is the id of the event from the action map.
  *
  * ----------------------------------------------------------------------------
  * DURATION:
- * The duration of a skill defines how long its corresponding action event will
- * remain on the map.
+ * How long the skill's action event persists on the map.
  *    <duration:FRAMES>
- *  Where FRAMES is the amount of time in frames this event will exist.
+ *  Where FRAMES is how long in frames this event will exist.
  *
  * NOTE ABOUT HIT COUNT:
- * When a skill has hit it's maximum number of times (once by default, or as
- * many times as defined by the "pierce" tag), it will disappear.
+ * When a skill hits its maximum number of times (once by default, or as
+ * many as defined by the "pierce" tag), it disappears.
  *
  * NOTE ABOUT MIN DURATION:
- * Skills still have an arbitrary minimum duration of 8 frames.
+ * Skills have an arbitrary minimum duration of 8 frames.
+ *
+ * ----------------------------------------------------------------------------
+ * LINGER:
+ * When an action expires (runs out of hits or duration), it normally
+ * vanishes immediately. With linger, the action event will fade out over
+ * the given number of frames instead, giving a visual tail. Collision is
+ * disabled during the linger phase.
+ *    <linger:FRAMES>
+ *  Where FRAMES is how many frames to spend fading out.
+ *
+ * NOTE: All skills have a default linger of 10 frames if no tag is set.
+ * Set to 0 if you want the action event to disappear instantly.
  *
  * ----------------------------------------------------------------------------
  * COOLDOWN MANAGEMENT:
- * In interest of not letting the player endlessly spam their skills, you'll
- * probably want to introduce cooldowns to their skills. There are two tags for
- * handling that you'll probably want to use.
+ * To prevent endless skill spam, you'll want to add cooldowns.
  *
  * COOLDOWN:
- * The cooldown is the primary tag to handle cooldowns. This tag defines an
- * amount of time in frames that must pass before the battler can use the skill
- * again.
+ * The primary tag for cooldown management. This defines the number of
+ * frames that must pass before the skill can be used again.
  *    <cooldown:VAL>
- *  Where VAL is the cooldown amount in frames for this skill.
+ *  Where VAL is the cooldown in frames for this skill.
  *
  * NOTE ABOUT SLOTS ON COOLDOWN:
- * JABS permits the assignment of the same skill to multiple slots on a single
- * battler. By default, when using a skill with a cooldown, if any other skills
- * are equipped that share the same skill ID, they too will go on cooldown for
- * the same amount as defined in the skill. However, you can change this
- * functionality by using the next tag.
+ * JABS allows the same skill to be equipped in multiple slots. By
+ * default, when a skill with a cooldown is used, all slots carrying that
+ * same skill ID will also go on cooldown. Use the next tag to change this.
  *
  * UNIQUE COOLDOWN:
- * Using the "unique cooldown" tag on a skill will force each slot a skill is
- * equipped to to handle their cooldown independently, even if the skill shares
- * the same skill ID as another slot.
+ * Forces each slot to track its cooldown independently, even if the skill
+ * shares the same ID as another slot.
  *    <uniqueCooldown>
  *
  * ----------------------------------------------------------------------------
  * RADIUS:
- * The radius represents how big the "hitbox" of this skill using tiles as the
- * measurement. This must be a positive integer value.
+ * How large the hitbox of this skill is, using tiles as measurement.
+ * Must be a positive number.
  *    <radius:VAL>
  *  Where VAL is the radius value for this skill.
  *
  * ----------------------------------------------------------------------------
  * PROXIMITY:
- * The proximity represents how close an AI-controlled battler must get to the
- * target before they are able to execute a skill. This has a unique
- * interaction with "direct" skills.
+ * How close an AI-controlled battler must get to the target before they
+ * can execute this skill.
  *    <proximity:VAL>
  *  Where VAL is the proximity value for this skill.
  *
  * ----------------------------------------------------------------------------
  * DIRECT:
- * For a skill with the "direct" tag, there will be no projectile produced.
- * Instead, the skill will directly target the nearest foe that is within the
- * caster's PROXIMITY. The skill will still obey other tags like CAST TIME,
- * RADIUS, HITBOX, and so on. The most common use case I can think of would
- * probably be to use this tag for healing skills, or skills you don't want to
- * have a chance at being dodged.
+ * With the "direct" tag, no projectile event is produced. Instead, the
+ * skill immediately targets the nearest foe within the caster's proximity.
+ * The skill still obeys CAST TIME, RADIUS, HITBOX, and other tags.
+ * The most common use case is healing skills, or skills that should feel
+ * instant and unblockable.
  *    <direct>
  *
  * NOTE ABOUT PARRYING:
- * A "direct" skill can still be parried if the conditions are met.
+ * A "direct" skill can still be parried if all parry conditions are met.
+ *
+ * NOTE ABOUT DODGING:
+ * By default, a direct skill snapshots the target's position when the
+ * decision is made. If the target moves during the cast window, the
+ * action will fire at where the target was, not where they are now.
+ * This gives a skilled player a window to dodge by moving away during
+ * the cast. If you want to remove that window, use <directLock> below.
+ *
+ * ----------------------------------------------------------------------------
+ * DIRECT LOCK:
+ * Similar to <direct>, but locks onto the target's live position at the
+ * moment the skill fires rather than when it was decided. This removes
+ * the dodge window -- the action will always originate right on top of
+ * the target regardless of how far they moved during the cast.
+ *    <directLock>
+ *
+ * Use this for skills that should feel guaranteed and inescapable, like
+ * a debuff that snaps to the target even if they teleport mid-cast.
+ *
+ * NOTE: <directLock> and <direct> are mutually exclusive. If both are
+ * present on a skill, <directLock> takes precedence.
  *
  * ----------------------------------------------------------------------------
  * PROJECTILE:
- * The "projectile" value will define how many projectiles will be fired when
- * the skill is executed. All counts are fired in parallel starting in the
- * direction that the caster is facing.
- *
+ * How many projectiles fire when the skill is executed. All fire in
+ * parallel in the direction the caster is facing.
  *    <projectile:VAL>
- *  Where VAL is the number of projectiles per direction that will fire.
+ *  Where VAL is the number of projectiles per direction.
  *
- * NOTE ABOUT COUNT LIMITS:
- * Technically speaking, there is not really a hard limit that I have coded
- * into the engine to prevent abuse. However, it is recommended to keep the
- * count "reasonable" to avoid performance issues...
+ * NOTE: There is no hard cap, but keep the count reasonable to avoid
+ * performance issues.
  *
  * ----------------------------------------------------------------------------
  * FORMATION:
- * The "formation" value will define what direction the projectile count will
- * fire in. There are currently 5 valid values:
- *  line: Fire in a straight line.
- *  spray: Fire in a spray pattern (like a W).
- *  cross: Fire in a cross pattern (in the cardinal 4 directions).
- *  xburst: Fire in an X pattern (in the diagonal 4 directions).
- *  nova: Fire in a circle pattern (in all 8 cardinal & diagonal directions).
+ * Defines the direction pattern in which projectiles fire. Valid values:
+ *  line:   Fires in a straight line.
+ *  spray:  Fires in a spray pattern (like a W).
+ *  cross:  Fires in a cross (the four cardinal directions).
+ *  xburst: Fires in an X (the four diagonal directions).
+ *  nova:   Fires in a circle (all 8 cardinal + diagonal directions).
  *
  *    <formation:VAL>
  *  Where VAL is one of the valid formation values listed above.
  *
  * NOTE ABOUT PROJECTILE MOTION:
- * I would strongly encourage when building your actions on the action map
- * to use "turn X degrees" instead of "turn X direction", as they can mess up
- * the illusion of the projectiles obeying the direction they were fired in.
- * In that same vein, I'd also encourage using "1 step forward/backward" in
- * place of "Move up/down/left/right" for the same reason.
+ * Use "turn X degrees" instead of "turn X direction" in custom move
+ * routes, and "1 step forward/backward" instead of "Move up/down/
+ * left/right". This preserves the illusion that projectiles respect
+ * the direction they were fired.
  *
  * NOTE ABOUT DIAGONALS:
- * I would also encourage using my "J-ABS-Diagonals" plugin to gain access to
- * more precise rotation within the custom move routes among other things.
- *
- * NOTE ABOUT FUTURE PLANS:
- * There is developer dreams to refine the projectile functionality into
- * something a bit cleaner, so this is tentative to change.
+ * Use my "J-ABS-Diagonals" plugin for more precise rotation within
+ * custom move routes.
  *
  * ----------------------------------------------------------------------------
  * HITBOX:
- * The hitbox defines the shape of the hitbox for this skill (surprise!).
- * The value for this must be selected from the given list, and each can
- * interact a bit differently with the "radius" tag.
+ * The hitbox defines the shape of collision for this skill. The hitbox
+ * is always centered on the action event (with some exceptions).
  *
- * NOTE ABOUT COLLISION:
- * It is important to remember that while the hitbox defines the shape of
- * collision, the hitbox is always centered on the action event (with some
- * exceptions), and can definitely be moving.
- *
- * NOTE ABOUT PROJECTILES:
- * If this skill has multiple projectiles, ALL projectiles will share the same
- * hitbox.
+ * NOTE: If this skill has multiple projectiles, all share the same
+ * hitbox shape.
  *
  * CIRCLE:
- * The "circle" hitbox is just what you'd think: a circle that grows in size
- * the greater the radius.
+ * A circle that grows in size with greater radius.
  *    <hitbox:circle>
  *
  * RHOMBUS:
- * The "rhombus" hitbox is effectively a diamond that grows in size the
- * greater the "radius" value is.
+ * A diamond that grows in size with greater radius.
  *    <hitbox:rhombus>
  *
  * ARC:
- * The "arc" hitbox is similar to rhombus, but instead of being a full diamond
- * all around the action event, the side that is not the direction the action
- * event is facing is omitted.
+ * A forward-facing wedge. Like a rhombus, but the back half is omitted.
+ * The width of the arc at its widest point is controlled by the
+ * <degrees: VAL> tag (see below). Defaults to 90 degrees if omitted.
  *    <hitbox:arc>
  *
  * SQUARE:
- * The "square" hitbox is an equal square, with the "radius" defining what the
- * length of the side of the square is.
+ * An equal square. The <radius> defines the length of each side.
  *    <hitbox:square>
  *
  * FRONTSQUARE:
- * The "frontsquare" hitbox is similar to square, but instead of being a full
- * square all around the action event, the side that is not the direction the
- * action event is facing is omitted.
+ * Like square, but the back half (behind the action) is omitted.
  *    <hitbox:frontsquare>
  *
  * LINE:
- * The "line" hitbox is a single 1-width line with the "radius" defining what
- * the length of this line is.
+ * A single 1-tile-wide line. The <radius> defines the line's length.
  *    <hitbox:line>
  *
  * WALL:
- * The "wall" hitbox is a single 1-height line with the "radius" defining what
- * the width of this line is. This is kind of a strange one, but easy to
- * visualize if you think of it as an inverted line hitbox.
+ * A single 1-tile-tall horizontal wall. The <radius> defines its width.
+ * Think of it as an inverted line hitbox.
  *    <hitbox:wall>
  *
  * CROSS:
- * The "cross" hitbox is basically just the combination of both line and wall
- * hitboxes in one. The "radius" determines how far the cross will reach.
+ * The combination of line and wall in one cross shape. The <radius>
+ * determines how far each arm of the cross reaches.
  *    <hitbox:cross>
  *
  * ----------------------------------------------------------------------------
+ * DEGREES:
+ * Controls the angular width of an ARC hitbox. Values from 1 to 359.
+ * If degrees is 180 or more, the arc effectively becomes a full forward
+ * hemisphere with width equal to double the radius.
+ *    <degrees:VAL>
+ *  Where VAL is the arc angle in degrees.
+ *
+ * NOTE: This tag only affects the ARC hitbox. It is ignored by all
+ * other hitbox types.
+ *
+ * ----------------------------------------------------------------------------
+ * THICKNESS:
+ * Controls how many extra tiles of width a LINE or WALL hitbox occupies
+ * perpendicular to its primary axis.
+ *    <thickness:VAL>
+ *  Where VAL is the additional perpendicular width in tiles.
+ *
+ * For a LINE hitbox, thickness grows the hit area sideways.
+ * For a WALL hitbox, thickness grows the hit area upward/downward.
+ * NOTE: This tag only affects LINE and WALL hitboxes.
+ *
+ * ----------------------------------------------------------------------------
+ * SIZE:
+ * Overrides the collision radius for this skill in pixels rather than
+ * tiles. Useful for fine-tuning hitboxes that feel too small or too large
+ * at standard tile resolution.
+ *    <size:VAL>
+ *  Where VAL is the collision radius in pixels.
+ *
+ * NOTE: Most skills will not need this. Use <radius> for tile-based
+ * sizing and only reach for <size> when pixel precision matters.
+ *
+ * ----------------------------------------------------------------------------
  * CAST TIME:
- * The "cast time" is probably what you think: a number of frames that the
- * battler executing a skill must wait helplessly before a skill is performed.
- * While the battler is casting, the "cast animation" will loop if the skill
- * has a cast animation value.
+ * The number of frames the battler must wait before the skill fires.
+ * While casting, the "cast animation" will loop if one is defined.
  *    <castTime:VAL>
  *  Where VAL is the number of frames to cast this skill.
  *
  * ----------------------------------------------------------------------------
  * CAST ANIMATION:
- * The "cast animation" is simply a numeric value that represents an animation
- * that will play on the caster while the skill being casted.
+ * An animation that loops on the caster while the skill is being cast.
  *    <castAnimation:VAL>
- *  Where VAL is the animation id to repeatedly loop while casting.
+ *  Where VAL is the animation id to loop while casting.
  *
  * ----------------------------------------------------------------------------
  * SELF ANIMATION:
- * The "self animation" is simply a numeric value that represents an animation
- * that will play on the caster when the skill hits a target.
+ * An animation that plays on the caster when the skill hits a target.
  *    <selfAnimationId:VAL>
- *  Where VAL is the animation id to execute once finished casting.
+ *  Where VAL is the animation id to execute once the hit lands.
+ *
+ * ----------------------------------------------------------------------------
+ * ON-CAST ANIMATION:
+ * An animation that plays on the caster once the cast is complete and
+ * the skill fires. Unlike the CAST ANIMATION (which loops during casting),
+ * this plays exactly once at the moment of skill execution.
+ *    <onCastAnimationId:VAL>
+ *  Where VAL is the animation id to play at the moment of execution.
+ *
+ * Use this to create a "launch" effect -- e.g., the cast animation builds
+ * up tension, and the on-cast animation is the visible "release".
  *
  * ----------------------------------------------------------------------------
  * PIERCING:
- * The "pierce" tag is a tag that enables a skill to hit multiple targets
- * multiple times, potentially with a delay between each hit.
+ * Enables a skill to hit multiple targets multiple times, with an optional
+ * delay between each hit.
  *    <pierce:[TIMES,DELAY]>
  *  Where TIMES is the maximum number of times this skill can pierce.
  *  Where DELAY is the number of frames between each hit.
  *
  * NOTE ABOUT HIT FREQUENCY:
- * The most a skill can hit via "pierce" is once per frame. If the DELAY
- * is set to 0, then it will hit each frame that the skill's hitbox collides
- * with the target.
+ * The most a skill can hit is once per frame. A DELAY of 0 means it
+ * hits every frame it collides.
  *
  * NOTE ABOUT SKILL REPEATS:
- * The "repeats" field from the database is added onto the TIMES value,
- * even if there is no "pierce" tag on the skill, meaning if you omit the
- * "pierce" tag and add "5 repeats" via the database editor, the skill will
- * effectively have this tag on it:
- *    <pierce:[6,0]>
+ * The database "repeats" field is added on top of the TIMES value.
+ * Omitting the tag and adding "5 repeats" in the database is equivalent
+ * to having <pierce:[6,0]> on the skill.
  *
  * ----------------------------------------------------------------------------
  * KNOCKBACK:
- * The "knockback" tag defines how many tiles the target will be knocked back
- * when hit by this skill.
+ * How many tiles the target is knocked back when hit by this skill.
  *    <knockback:VAL>
- *  Where VAL is distance the target will be knocked back.
+ *  Where VAL is the distance the target will be knocked back.
  *
  * ----------------------------------------------------------------------------
  * DELAY:
- * The "delay" tag is a bit of a tricky one that allows a skill to exist on the
- * map for a duration of time before triggering. The simplest example of this
- * would be like a time bomb, or a time landmine. If you want an action to
- * persist indefinitely, you can set the DURATION to -1 and it will not
- * disappear until it is touched.
+ * Allows a skill to sit on the map for a duration before triggering.
+ * Think time bombs or landmines. Set DURATION to -1 to never detonate
+ * until touched.
  *    <delay:[DURATION,TOUCHABLE]>
- *  Where DURATION is number of frames to exist on the map before detonating.
- *  Where TOUCHABLE a boolean defining whether or not it triggers when touched.
+ *  Where DURATION is frames to exist before detonating.
+ *  Where TOUCHABLE is true/false for whether touching it triggers it.
  *
  * EXAMPLE:
- *    <delay:[300,true]>
- * As an example, the above tag would result in an action that was placed where
- * the caster was at time of skill execution, and sit there for 300 frames
- * (which is roughly 5 seconds). If an enemy touched this action, the action
- * would trigger.
- *
- * NOTE ABOUT TOUCHING:
- * "touched" is a term used loosely. To "touch" an action, you simply need to
- * collide with it, which can be deceiving if its a bomb with a large hitbox.
+ *      <delay:[300,true]>
+ * Sits on the map for 300 frames (~5 seconds). Any enemy who walks
+ * into it triggers the action.
  *
  * WARNING ABOUT INDEFINITE DELAY:
- * If the DURATION is set to -1, don't forget to set the TOUCHABLE to "true"!
- * If you do not, the action will sit there forever and never trigger due to
- * not being touchable.
+ * If DURATION is -1, set TOUCHABLE to true, or the action will sit
+ * there forever and never trigger.
  *
  * ----------------------------------------------------------------------------
  * COMBOS:
- * This is a somewhat broad topic encompassing multiple tags, but "comboing"
- * can also be a feature of JABS if desired.
- *
  * COMBO ACTION:
- * The "combo action" tag will define what skill can be followed when using
- * this skill. This will cause a skill to temporarily be replaced by the
- * COMBOSKILLID in the tag, and be executable after LINKTIME frames.
+ * Defines what skill can be followed up after using this skill, and how
+ * long until that follow-up becomes available.
  *    <combo:[COMBO_SKILL_ID,LINK_TIME]>
  *  Where COMBO_SKILL_ID is the skill ID that will be combo'd into.
  *  Where LINK_TIME is the number of frames until the combo is available.
  *
- * If a skill has a combo tag on it like this, the cooldown of the skill must
- * have a longer cooldown than the LINK_TIME frames, otherwise it will never be
- * usable. After the original skill's cooldown time expires (as in, the skill
- * that initiated the combo), it will undo all subsequent combo effects and
- * return back to the original skill. Keep in mind that with each subsequent
- * combo action executed, the remaining cooldown gets extended by the LINK_TIME
- * frames amount, allowing the combo to continue.
- *
- * This sounds complicated, but take a look at the sample project for examples
- * and play around with it a bit to gain a firmer grasp on it.
+ * The combo-starter's cooldown must be longer than the LINK_TIME, or
+ * the combo will never be reachable. Each executed combo action extends
+ * the remaining cooldown by LINK_TIME, keeping the chain going.
  *
  * EXAMPLE:
  *      <combo:[2,10]>
- * As an example, if skill contained the above tag and a battler used this
- * this skill, their skill would become skill ID 2, and be usable after
- * 10 frames (roughly 1/6 of a second).
+ * Using this skill makes skill ID 2 available after 10 frames.
  *
  * COMBO STARTER:
- * While combo action tags work as you might suspect for when the player is
- * controlling a particular battler, AI-controlled battlers require a bit of
- * extra hand-holding in order to use combos. The main tag for that is the
- * "combo starter" tag, that looks something like this:
+ * AI-controlled battlers ignore skills with combo tags by default.
+ * Adding this tag tells the AI that this skill is safe to initiate.
  *    <comboStarter>
  *
- * That is it. By default, AI-controlled battlers will dismiss skills that
- * have the "combo action" tag on them, but if you add the "combo starter"
- * tag to the skills that are intended to start a combo, the AI will know that
- * it can use that skill as well. The chance of pursuing a combo is dependent
- * on the AI configuration (ally or enemy), but generally hovers between 50-100
- * percent chance of obeying the "combo action" tag. More on that down in the
- * AI traits section, and in the J-ABS-AllyAI plugin.
- *
- * NOTE ABOUT FOLLOW-UP COMBOS:
- * In order for a combo action to become available, it REQUIRES the skill to
- * connect with a target. However, if you want a skill to not require hitting
- * anything and instead become available as soon as the skill is executed,
- * then check the next tag.
+ * NOTE: Follow-up combos require the skill to connect with a target.
+ * If you want the combo to become available regardless of whether the
+ * skill hit, use <freeCombo> instead.
  *
  * FREECOMBO:
- * In some cases, you may want a skill to not have a requirement to hit
- * anything in order to combo. In these cases, there is another tag to add to
- * your skill that you want to freely combo into another.
+ * Makes the next combo action available immediately on skill execution,
+ * without requiring a hit.
  *    <freeCombo>
  *
- * Using this will instantly make the next combo skill available to execute.
- *
  * AI SKILL EXCLUSION:
- * While this isn't explicitly related to combos, this is most likely to be
- * used in conjunction with combo tags. The "ai skill exclusion" tag does
- * exactly what you probably suspect it will do: exclude the skill from the
- * list of available skills that an AI-controlled battler can leverage. You
- * may ask "why would I want to add a skill to an enemy, and then exclude it?"
- * and the answer is "because its a part of a combo". As you may recall from
- * the many paragraphs of combo information above, in order for a skill to be
- * usable within a combo, the battler must know the skill. However, a skill
- * that is the end of a combo typically won't have a combo tag, meaning the
- * AI will be able to randomly also select the combo-ender skill while deciding
- * actions. By adding the "ai skill exclusion" tag to said combo-ender skills,
- * you can avoid this behavior with grace. You can also use this to exclude
- * skills that perform other functionalities that shouldn't be executed in
- * battle, such as "passive" skills.
+ * Excludes this skill from the pool of skills an AI battler can select.
+ * Useful for combo-ender skills that should only be reachable through
+ * the combo chain, not random selection.
  *    <aiSkillExclusion>
  *
  * NOTE ABOUT SKILL EXTENSION SKILLS:
- * If also using the "J-SkillExtend" plugin, by default all extension skills
- * will be excluded from random selection, identical in behavior to the
- * "ai skill exclusion" tag above.
+ * If using "J-SkillExtend", extension skills are automatically excluded
+ * from random AI selection, identical to the tag above.
  *
  * ----------------------------------------------------------------------------
  * GUARDING:
- * Guarding is a first-class citizen of functionality in JABS! If you want a
- * skill to be considered a guard skill, there are a variety of tags you can
- * use to build full-featured defending fun.
+ * Guarding is a first-class feature of JABS!
  *
  * NOTE ABOUT GUARD SKILL TYPES:
- * It is important to note that a skill must have the "Guard Skill Type" id in
- * order for it to be even recognized as a guard skill. That is defined by you
- * in the plugin parameters.
+ * A skill must have the "Guard Skill Type" id to be recognized as a
+ * guard skill. This is defined in the plugin parameters.
  *
  * GUARD:
- * The most basic of guarding requires the "guard" tag. This is a tag made up
- * of a pair of values to define damage reduction/amplification.
+ * The basic guard tag defines damage reduction when guarding.
  *    <guard:[FLAT,PERCENT]>
- *  Where FLAT is the flat amount to modify damage by.
- *  Where PERCENT is the percent amount to modify damage by.
- *
- * The FLAT and PERCENT values should likely be negative most of the time,
- * unless your intent is to make it so that guarding increases damage instead.
+ *  Where FLAT is the flat damage modification (usually negative).
+ *  Where PERCENT is the percent damage modification (usually negative).
  *
  * EXAMPLE:
  *      <guard:[-10,-25]>
- * As an example, if a guard skill contained the above tag, then the damage
- * would be reduced by a flat 10 and then reduced by 25%.
- * This order favors the player, because we want our players to have fun!
+ * Reduces damage by 10 flat, then by 25%. Flat comes first to favor
+ * the player.
  *
  * PARRY:
- * Parrying as a functionality is a means to completely mitigate an incoming
- * attack if the player guards at "just the right time". Using this tag, you
- * can define how large the window is for "just the right time".
+ * Defines the window (in frames) where a "just guard" completely
+ * mitigates an incoming attack.
  *    <parry:VAL>
  *  Where VAL is the number of frames parrying is available.
  *
- * The window of "just the right time" always starts when guarding starts and
- * counts down VAL number of frames until zero. The parry window is visually
- * identified by its unique blue flash on the guarding battler.
+ * The window opens when guarding starts and counts down. A successful
+ * parry is identified by a blue flash on the guarding battler.
  *
- * NOTE ABOUT CONSECUTIVE PARRIES:
- * Do be aware that upon successful parry, all guarding stops automatically
- * and the parry window is immediately ended. However, the character will
- * still be in "pivot mode", where they can rotate in place. To guard or
- * parry again, you will need to release the button and press it again.
+ * NOTE: On a successful parry, all guarding stops and the parry window
+ * ends. Release and re-press the guard button to parry again.
  *
  * COUNTER-GUARD/COUNTER-PARRY:
- * In addition to just guarding to reduce damage and/or parrying to mitigate,
- * you can define guard skills that can have a chance (or always) result in
- * retaliating with a skill in response to being hit while guarding or
- * parrying.
+ * Define a skill to fire back when guarding or parrying.
  *    <counterGuard:[SKILL,CHANCE]>
- *  Where SKILL is the skill ID to potentially counter with when guarding.
- *  Where CHANCE is the percent chance to execute the SKILL per hit guarded.
+ *  Where SKILL is the skill ID to counter with when guarding.
+ *  Where CHANCE is the percent chance to execute per hit guarded.
  *
  *    <counterParry:[SKILL,CHANCE]>
- *  Where SKILL is the skill ID to potentially counter with when parrying.
- *  Where CHANCE is the percent chance to execute the SKILL on-parry.
+ *  Where SKILL is the skill ID to counter with when parrying.
+ *  Where CHANCE is the percent chance to execute on parry.
  *
- * NOTE ABOUT COUNTER PRIORITIES:
- * Counter-parrying takes precedence over counter-guarding. If both
- * counter-guard and counter-parry are available on the same battler and RNG
- * favors you, only counter-parry will be executed.
+ * NOTE: Counter-parry takes precedence over counter-guard. If both
+ * are available and RNG favors a counter, only counter-parry fires.
  *
  * UNPARRYABLE:
- * Should the need arise that you need a particular skill skip the possibility
- * of being parried (like for an important skill that should always hit), then
- * we have a tag for that too.
+ * Makes a skill unable to be parried under any circumstances.
  *    <unparryable>
  *
- * Using this tag will make a skill simply unable to be parried, even should
- * all requirements be met.
+ * ============================================================================
+ * ON-CHANCE EFFECTS:
+ * These tags define skills that can fire under special circumstances.
+ * Each tag takes the form [SKILL_ID, CHANCE], where CHANCE is an integer
+ * percent (0-100).
+ *
+ * ----------------------------------------------------------------------------
+ * RETALIATE:
+ * When this battler is struck, they have a chance to fire a skill in
+ * immediate retaliation.
+ *    <retaliate:[SKILL_ID,CHANCE]>
+ *  Where SKILL_ID is the skill to fire.
+ *  Where CHANCE is the integer percent chance to fire it (0-100).
+ *
+ * Place this tag on a state or on a piece of equipment. A battler under
+ * a "thorns" state is a classic example of how to use this.
+ *
+ * ----------------------------------------------------------------------------
+ * ON OWN DEFEAT:
+ * When this battler is defeated, they may fire a parting skill.
+ *    <onOwnDefeat:[SKILL_ID,CHANCE]>
+ *  Where SKILL_ID is the skill to fire on self-defeat.
+ *  Where CHANCE is the integer percent chance to fire it (0-100).
+ *
+ * Use this for enemies that "explode" or curse the player on death.
+ *
+ * ----------------------------------------------------------------------------
+ * ON TARGET DEFEAT:
+ * When this battler defeats a target, they may fire a follow-up skill.
+ *    <onTargetDefeat:[SKILL_ID,CHANCE]>
+ *  Where SKILL_ID is the skill to fire when killing a target.
+ *  Where CHANCE is the integer percent chance to fire it (0-100).
+ *
+ * Use this for "execute" skills or landing a visual flourish on a kill.
+ *
+ * ----------------------------------------------------------------------------
+ * ON DEFEATED TARGET:
+ * A companion flag for <onTargetDefeat>. When present on a skill that
+ * fires via onTargetDefeat, the action event spawns on top of the
+ * defeated target's last position rather than on the caster.
+ *    <onDefeatedTarget>
+ *
+ * Without this flag, the onTargetDefeat skill spawns at the caster.
+ * With this flag, the visual effect appears where the target fell.
+ * Use this to create effects like "on kill: play animation on corpse".
  *
  * ============================================================================
  * USING SKILLS:
- * Now that you've spent all this time setting up skills with a massive pile of
- * tags, you'll probably want to execute them to chop up your trash mobs!
- * Fortunately for you, that is relatively straight forward. There are two ways
- * to do this.
+ * Now that you've spent all this time setting up skills, you'll probably
+ * want to actually use them. Fortunately, that is relatively easy.
  *
  * NOTE ABOUT SKILL USABILITY:
- * In addition to the default RMMZ skill usage requirements (cost etc), it is
- * extremely important to note that the battler MUST know the skill in order to
- * execute it. That sounds silly, but given the nature of being able to equip
- * gear that uses a skill (potentially without having ever learned it), this is
- * an important fact to be aware of- especially in the mainhand/offhand slots.
+ * In addition to the default RMMZ requirements (cost etc), the battler
+ * MUST know the skill to execute it. This is especially relevant for
+ * the mainhand/offhand slots, where gear can provide a skill the actor
+ * never explicitly learned.
  *
  * A LITTLE ABOUT SKILL SLOTS FIRST:
- * JABS makes use of what is called "skill slots". There are eight of them, all
- * of which I arbitrarily just made up.
+ * JABS has eight skill slots:
  * - mainhand
  * - offhand
  * - tool
@@ -14865,542 +15032,486 @@ class JABS_Timer
  *
  * ----------------------------------------------------------------------------
  * MAINHAND AND OFFHAND SLOTS:
- * The "mainhand" and "offhand" slots are typically slots the player does not
- * assign directly. They are instead autoassigned via equipment. Normally, the
- * weapon slot will translate to your mainhand slot, and the shield will define
- * your offhand slot. If the actor is dual-wielding, then the second weapon
- * slot will fill the offhand slot instead. In order to designate what skills
- * the equipment grant to the actor, you'll use the "skill ID" tag:
+ * These slots are typically auto-assigned via equipment. The weapon slot
+ * translates to mainhand; the shield fills offhand. Dual-wielding puts
+ * the second weapon in the offhand slot. To designate which skill a
+ * piece of equipment grants, use:
  *    <skillId:SKILL_ID>
- *  Where SKILL_ID is the skill to be assigned to the equip slot.
+ *  Where SKILL_ID is the skill to assign to the equip slot.
  *
- * The usability of the skill in the equip slot is defined by the skill itself.
- * If you want the shield to have an attack skill of some kind, then you can
- * assign it as such. However, ONLY THE OFFHAND CAN DEFINE A GUARD SKILL. So
- * keep that in mind.
+ * NOTE: Only the offhand slot can define a guard skill.
+ *
+ * OFFHAND SKILL OVERRIDE:
+ * In some cases, you may want a weapon to specify a different skill for
+ * the offhand slot than the mainhand slot. This is useful for two-handed
+ * weapons that also define their own offhand behavior:
+ *    <offhandSkillId:SKILL_ID>
+ *  Where SKILL_ID is the skill to assign specifically to the offhand.
+ *
+ * KNOCKBACK RESISTANCE:
+ * Equip this on a weapon or armor to reduce the tiles a battler carrying
+ * this equipment is knocked back by incoming hits:
+ *    <knockbackResist:VAL>
+ *  Where VAL is the number of knockback tiles to cancel.
  *
  * HIDING ITEMS/SKILLS FROM ASSIGNMENT:
- * Should you find yourself the need to have certain items/skills that should
- * never appear in the assignment menu for a given slot, use this tag:
+ * To prevent certain items or skills from appearing in the assignment
+ * menu for a given slot:
  *    <hideFromJabsMenu>
  *
- * This hiding applies to "dodge" and "combat" skills, as well as "tools".
- * Anything hidden from the quick menu will still be revealed in the main menu.
+ * This applies to "dodge" and "combat" skills and "tools". Hidden skills
+ * still appear in the main menu.
  *
  * ----------------------------------------------------------------------------
  * TOOL SLOT:
- * The "tool" slot is always player-assigned (or via plugin commands if you
- * want). The "tool" slot represents usable items. These can be potions, bombs,
- * or whatever else you want. Similar to equipment, you'll only need assign a
- * SKILL_ID to them and they become usable with the given effects defined in
- * the database:
+ * The tool slot is always player-assigned and represents usable items.
+ * Like equipment, assign a SKILL_ID to them to make them usable:
  *    <skillId:SKILL_ID>
- *  Where SKILL_ID is the skill to be performed by the tool slot.
+ *  Where SKILL_ID is the skill to perform from the tool slot.
  *
  * ----------------------------------------------------------------------------
  * DODGE SLOT:
- * The "dodge" slot is also always player-assigned. This slot represents a
- * unique "mobility" type skill (normally), where there are additional tags
- * that can help define how the player moves when executing the skill. Keep
- * in mind that in order for a skill to be identified as a "dodge" skill, it
- * will not only need some tags below, but also need to be a part of the skill
- * type that is defined in the plugin parameters for "dodge skill type".
+ * The dodge slot represents a unique mobility skill. For a skill to be
+ * recognized as a "dodge" skill, it must belong to the skill type defined
+ * in the plugin parameters for "dodge skill type".
  *
- * NOTE ABOUT OTHER ASPECTS OF THE DODGE SKILL:
- * Aside from the tags you'll see below, the skill will still be executed
- * through the normal JABS action execution pipeline, meaning it can still
- * apply states, deal damage, fire projectiles, be extended, etc.
+ * NOTE: The dodge skill is still processed through the normal JABS action
+ * pipeline, so it can apply states, deal damage, fire projectiles, etc.
  *
  * DODGE MOVETYPE:
- * The "move type" defines one of three kinds of movetypes available for the
- * dodge skill.
  *    <moveType:TYPE>
  *  Where TYPE is one of "forward", "backward", or "directional".
  *
- * The "forward move type" will force the dodge skill to move the player in
- * the same direction they are facing.
- *
- * The "backward move type" will force the dodge skill to move the player in
- * the opposite direction they are facing.
- *
- * The "directional move type" will grant the player the ability to move in
- * whatever direction they are pressing when the skill is executed.
+ * - forward: Move in the direction the player is facing.
+ * - backward: Move in the opposite direction.
+ * - directional: Move in whatever direction the player is pressing.
  *
  * DODGE DISTANCE:
- * Sometimes you may want the player to only dodge a couple steps, maybe other
- * times you'll want them to be able to dodge across the map. In either case,
- * if you want to define this distance, you'll use the "dodge" tag:
  *    <dodge:DISTANCE>
  *  Where DISTANCE is the number of tiles to be forcefully moved.
  *
  * DODGE SPEED:
- * Dodging can be fast or slow (it is up to you). For your designing
- * convenience, there is a tag that designates the speed at which the dodging
- * will move. Note that this is considered a "modifier" against the player's
- * current movespeed at the time of dodge skill execution:
  *    <dodgeSpeed:MODIFIER>
- *  Where MODIFIER is the amount of speed to add to the player's current speed.
- *
- * Note that the amount can be a decimal (ex: 1.5, 2.3).
- * Note that the amount can be negative. (ex: -0.75, -2).
+ *  Where MODIFIER is added to the player's current move speed.
+ *  Note that this value can be a decimal or negative.
  *
  * DODGE INVINCIBILITY:
- * Normally when performing a dodge skill, the player is simply being
- * forcefully moved by the skill, but are still susceptible to interruption by
- * enemy attacks if they collide with something. If you want the player to
- * instead be invincible for the duration of the movement, then you can use
- * this tag.
+ * Makes the player fully invincible for the entire dodge duration.
  *    <invincibleDodge>
  *
- * Alternatively, if you prefer to not have full invincibility for the whole
- * duration of the dodge, you can specify a window of frames that will
- * basically count as "i-frames" during the dodge execution:
+ * For partial invincibility (i-frames), specify a start and end frame:
  *    <iframes:[START_FRAME, END_FRAME]>
- *  Where START_FRAME is the frame at which the player begins being invincible.
- *  Where END_FRAME is the frame at which the player stops being invincible.
+ *  Where START_FRAME is when invincibility begins.
+ *  Where END_FRAME is when invincibility ends.
  *
- * Note that short dodge distance and/or high dodge speed can result in very
- * small durations of dodging. If the window described by "iframes" is outside
- * of the dodge duration, then the player will only be invincible for the
- * times the window intersects with the dodge duration. For example, if the
- * window is [3,10] (indicating you start invicibility at frame 3, and stop
- * invincibility at frame 10), but the dodge duration is only 5 frames, then
- * the player will only be invincible for frames 3, 4, and 5 and the rest will
- * be ignored.
+ * NOTE: If the iframes window extends beyond the dodge duration, only
+ * the overlapping frames are counted.
  *
  * ----------------------------------------------------------------------------
  * COMBAT SKILL SLOTS:
- * There are four combat skill slots available, and all four are assigned by
- * the player. They are designed to be swappable anytime from the quickmenu
- * from whatever skills the player currently knows and also have been setup.
- * Using all the various tags you've learned about above (and below), those are
- * the skills that can be designated as "combat skills".
+ * There are four combat skill slots, all player-assigned. They can be
+ * swapped at any time from the quickmenu using skills the player knows
+ * and has set up with the appropriate tags.
  *
  * ----------------------------------------------------------------------------
  * AUTO ASSIGNMENT OF SKILLS:
- * For convenience of the developer, there are a few additional tags that can
- * automatically assign new skills to the combat slots upon learning. Skills
- * that are auto assigned can only be assigned to the four combat skill slots,
- * not the primary slots.
+ * For developer convenience, new skills can be auto-assigned to combat
+ * slots when learned. Skills can only auto-assign to the four combat
+ * slots, not mainhand/offhand/dodge/tool.
  *
  * AUTO ASSIGNMENT CONDITIONALS:
- * The entire chain of checking whether or not a skill can be auto assigned
- * upon learning looks like this:
- * 1) the actor or class learning the skill has the "enable auto assign" tag.
- * 2) the actor doesn't already have the skill equipped.
- * 3) the actor does have empty slots to equip this skill to.
- * 4) the learned skill itself is blocked from auto assignment.
- * 5) the learned skill itself is not upgrade-only.
- * 6) the learned skill is not among the blacklisted skill types.
- * If all of the above are true, then the skill can be auto assigned.
+ * The full check for auto-assignment upon learning a skill:
+ * 1) The actor or class has the "enable auto assign" tag.
+ * 2) The actor doesn't already have the skill equipped.
+ * 3) The actor has an empty combat slot.
+ * 4) The skill is not blocked from auto assignment.
+ * 5) The skill is not upgrade-only.
+ * 6) The skill type is not on the blacklist.
+ * If all are true, the skill is auto-assigned.
  *
  * ENABLE AUTO ASSIGN:
- * To enable the auto assignment of skills in any capacity, the actor or its
- * class must have the appropriate tag:
  *    <autoAssignSkills>
  *
+ * ENABLE AUTO UPGRADE:
+ * To allow auto-learned skills to replace existing equipped skills:
+ *    <autoUpgradeSkills>
+ *
+ * Place this on the actor or class whose skills should automatically
+ * upgrade when a newer version is learned.
+ *
  * BLOCK AUTO ASSIGNMENT PER SKILL TYPE:
- * Sometimes there are particular families of skills that you don't want to
- * ever be auto assigned, and when that is the case, you should use the
- * blacklist skill type tag:
  *    <noAutoAssignType:[TYPE_IDS...]>
- * Where TYPE_IDS is a comma-delimited list of skill type ids found in your
- * database that you don't want to ever be auto assigned.
+ *  Where TYPE_IDS is a comma-delimited list of skill type ids.
  *
  * BLOCK AUTO ASSIGNMENT PER INDIVIDUAL SKILL:
- * Sometimes blocking an entire category of skill is simply not feasible, in
- * which case instead you can use the individual version of skill blocking by
- * placing the appropriate tag on the designated skill that should never be
- * automatically assigned.
  *    <noAutoAssign>
  *
- * AUTO [ASSIGNMENT OF] SKILL UPGRADES:
- * Auto upgrading skills builds ontop of the auto assignment functionality, but
- * has its own set of tags that should be considered. The core concept behind a
- * "skill upgrade", is that it replaces a skill that is already equipped to the
- * actor's skill slots. With the flexible tags below, you can set up your game
- * to do this as well.
- *
- * SKILL UPGRADE CONDITIONALS:
- * 1) The actor or class upgrading the skill has the "enable auto upgrade" tag.
- * 2) The learned skill has the "upgrade over skill" tag.
- * 3) The learned skill isn't tagged with "no upgrade".
- * If all the above are true, then the skill learned will replace the
- * designated skill.
- *
+ * AUTO SKILL UPGRADES:
  * UPGRADE OVER SKILL:
- * To make a skill replace another currently-equipped skill, it should be
- * tagged accordingly:
+ * Makes a newly learned skill replace a currently equipped skill.
  *    <upgradeOverSkill:NUM>
- * Where NUM is the skill id this skill should replace.
- * (NOTE: this doesn't unlearn the previous skill, only replaces it on the
- * battler's equipped skill slot)
+ *  Where NUM is the skill id this skill should replace.
  *
- * Generally speaking, the upgrade functionality would probably end up getting
- * used to do things like upgrading a skillslot from "Fire 1" to "Fire 2".
- * However, it doesn't have to be used like that, and can absolutely be used
- * to replace any skill regardless of semantics or context. "Fire 1" could be
- * replaced with "Tsunami" or "Super Duper Cutter" if you desired.
- *
- * Additionally, if the target skill id that this skill should upgrade over,
- * that doesn't mean the skill won't be auto assigned. It just means it will
- * not replace any existing slots with this skill. To give creative liberty to
- * the dev, the skill will still be auto assigned unless it has another tag to
- * prevent it.
+ * NOTE: If the target skill isn't equipped, the new skill will still
+ * be auto-assigned unless it has a tag preventing it.
  *
  * UPGRADE ONLY SKILL:
- * If the dev decides to place a firmer restriction on the availability of the
- * player adjusting their own skill slots, then this tag can help by preventing
- * a skill from be auto assigned if the battler also has the "enable auto
- * assign" tag.
+ * Prevents a skill from being auto-assigned (only via upgrade):
  *    <onlyUpgrade>
  *
  * NO UPGRADING A SKILL:
- * If for whatever reason, you the dev decide to utilize this, there is also
- * a tag for preventing a skill from being upgradeable, even if a newly
- * learned skill has the "upgrade over skill" tag that aligns with the skill
- * tagged with this:
+ * Prevents a skill from ever being upgraded by another skill:
  *    <noUpgrade>
  *
  * ============================================================================
  * AGGRO MANAGEMENT:
- * When it comes to AI and allies and enemies all taking swings at eachother,
- * sometimes certain allies should be grabbing the attention of enemies and
- * vice versa. Thus we have an aggro system- a numeric representation of how
- * mad a battler is at another. Any AI-controlled battler will always target
- * the battler with the highest aggro value in relation to them.
+ * Any AI-controlled battler always targets the foe with the highest aggro
+ * value in relation to them. Aggro is a numeric representation of how mad
+ * a battler is at another.
  *
- * It is worth noting that there are a bundle of plugin parameter tags that
- * revolve around defaults of aggro generation, so do be sure to review them.
+ * Review the plugin parameter tags for aggro generation defaults.
  *
- * Additionally, there are a few basics that are simply the way this system
- * functions. There is no way to change this without going into the code and
- * manually changing it, so pay attention!
- *
- * Aggro always starts with the base amount defined in the plugin params.
- * Aggro accumulates the HP then MP then TP damage calculations next.
- * Aggro accumulates the HP Drain next (MP/TP not considered!)
- * Aggro accumulates the amount when parried if applicable next.
- *  (the target parrying also aggros the attacker!)
- * Aggro then accumulates any bonus aggro from tags described below.
- * Aggro then multiplies any bonus rates from tags described below.
- * Aggro then multiplies iteratively over every attacker state from tags below.
- * Aggro then multiplies iteratively over every target state from tags below.
- * Aggro then multiplies based on the attacker's TGR stat.
- * Aggro then multiplies based on the player-unique multiplier if applicable.
- *
- * By default, you don't need to do anything special to utilize this system,
- * but if you want to manipulate it in any way, like making skills that will
- * generate more aggro than others, or lock aggro, or reduce aggro, then you
- * will want to leverage the following tags.
+ * Aggro calculation order:
+ * 1. Base amount from plugin params.
+ * 2. HP, then MP, then TP damage.
+ * 3. HP Drain (MP/TP not considered).
+ * 4. Parry amount if applicable (target parrying also aggros attacker).
+ * 5. Bonus aggro from tags below.
+ * 6. Bonus rate from tags below.
+ * 7. Iterative multiplier from attacker states.
+ * 8. Iterative multiplier from target states.
+ * 9. Attacker TGR stat multiplier.
+ * 10. Player-unique multiplier, if applicable.
  *
  * ----------------------------------------------------------------------------
  * AGGRO TAGS FOR SKILLS:
- * There are a couple of tags that you can place on skills to affect aggro.
- * They will influence how much or little a skill will affect the aggro
- * generation based on the above aggro logic.
- *
  * BONUS AGGRO:
- * As suggested, this tag will cause skills to generate additional aggro. This
- * can also be used to reduce aggro if you opt to make the amount negative.
  *    <aggro:VAL>
- *  Where VAL is the numeric amount of aggro to gain (or lose).
+ *  Where VAL is the flat amount of aggro to gain (or lose if negative).
  *
  * AGGRO MULTIPLIER:
- * The aggro multiplier tag can be used to make skills still use all the same
- * formulas, but then just pile on an extra multiplier atop that to further
- * amplify aggro.
  *    <aggroMultiplier:VAL>
- *  Where VAL is a decimal multiplier against aggro.
+ *  Where VAL is a decimal multiplier applied on top of all other aggro.
  *
- * NOTE ABOUT DEFAULT AGGRO MULTIPLIERS:
- * The default is 1.0 if unspecified, so when adding a multiplier to skills,
- * you'll probably want it to be some fractional number between ~0.1 and ~10.
+ * NOTE: Default is 1.0. A value of 0.5 halves aggro; 2.0 doubles it.
  *
  * ----------------------------------------------------------------------------
  * AGGRO TAGS FOR STATES:
- * There are also a couple of tags that you can place on states to affect
- * aggro. These will be in effect for the duration of the state on the battler.
- *
  * AGGRO LOCK:
- * To lock a battler's aggro means it cannot be changed while the state is
- * applied to the battler. They can still influence other battler's aggro, but
- * they themselves cannot have their aggro adjusted by any means.
+ * Prevents this battler's aggro from changing while the state is active.
+ * They can still affect others' aggro, but theirs is frozen.
  *    <aggroLock>
  *
  * AGGRO OUT AMPLIFIER:
- * As the title suggests, applying this tag to a state will cause all aggro
- * this battler generates to be multiplied by a given amount.
+ * Multiplies all aggro this battler generates while the state is active.
  *    <aggroOutAmp:VAL>
  *  Where VAL is the decimal multiplier against outgoing aggro.
  *
  * AGGRO IN AMPLIFIER:
- * Similar to the AGGRO OUT AMPLIFIER, applying this tag to a state will cause
- * all received aggro for this battler to be multiplied by a given amount.
+ * Multiplies all aggro received by this battler while the state is active.
  *    <aggroInAmp:VAL>
  *  Where VAL is the decimal multiplier against incoming aggro.
  *
  * ============================================================================
  * CONFIGURING LOOT:
- * After a hard day of chopping up trash mobs, you should be a benevolent RMMZ
- * developer and reward your player with loot. Any droppable item that is
- * listed in the database can be dropped and subsequently collected. However,
- * the setup is kind of clumsy by default. I would encourage using another of
- * my plugins called "J-DropsControl". Regardless if you do or don't, there
- * are a couple of tags you may want to consider using in tandem with the
- * plugin parameters for loot drops.
+ * After a hard day of chopping up trash mobs, reward your player with
+ * loot! Any droppable item from the database can be collected. Consider
+ * using "J-DropsControl" for cleaner loot drop configuration.
  *
  * ----------------------------------------------------------------------------
  * USE ON PICKUP:
- * The "heart" drop, made iconic by the Zelda franchise, is an item that when
- * picked up, will immediately heal for a given amount. Should you also want to
- * create such functionality, you can use the "use on pickup" tag. Simply add
- * the tag to an ITEM that can be dropped from a foe on defeat, and when the
- * player collects the loot, it will instead be immediately performed as if
- * using the item on oneself.
+ * The "heart drop" from Zelda: an item that heals when picked up. Add
+ * this tag to any droppable item to have it immediately perform as if
+ * used on the player who picks it up.
  *    <useOnPickup>
- *
- * While I use the classic "heart" drop from Zelda as an example, it does not
- * have to be a healing item that is immediately used. Get creative!
  *
  * ----------------------------------------------------------------------------
  * EXPIRATION:
- * In the plugin parameters, you can set the default duration for which an loot
- * drop can persist on the map after being dropped. While it could be set for
- * loot to persist indefinitely, if you should ever need to make a particular
- * loot drop only last for a designated amount of time, then this is the tag
- * for you.
+ * Override the default loot duration for a specific drop.
  *    <expires:DURATION>
- *  Where DURATION is the number of frames to persist after being dropped.
+ *  Where DURATION is the number of frames the loot persists.
  *
- * NOTE ABOUT MAP TRANSFERS:
- * All loot is erased upon transfering maps. This is an intended functionality.
- * If you want to demand the player collect loot, you should consider either
- * locking the player on the map or forcing the item into the player's
- * inventory via eventing.
+ * NOTE: All loot is erased on map transfer. This is intentional.
  *
  * ----------------------------------------------------------------------------
  * DYNAMICALLY SPAWNING LOOT:
- * In addition to configuring the loot, if you so desire, one can also use
- * plugin/script commands to dynamically generate and spawn loot at a specified
- * location on the map. See the plugin commands for input parameter details.
+ * Plugin/script commands can generate and spawn loot at any map location.
+ * See the plugin commands for input parameter details.
  *
  * ============================================================================
  * SETTING UP STATES:
- * States are obviously an important part of any good RPG! So naturally, when
- * you go about building states with JABS, there are a few additional details
- * that you should understand when it comes to their setup and functionality.
- * There is one tag for defining what is a "negative" state, and four tags
- * for locking core functionality on a battler. Additionally, there are a host
- * of other tags that grant other useful functionality. Read on to learn more!
+ * States are obviously critical to any good RPG! There are a few
+ * important concepts to understand when building states for JABS.
  *
  * ----------------------------------------------------------------------------
  * NEGATIVE:
- * Functionally, a state being "negative" does not impact how it operates, but
- * it does influence how the AI perceives the states and considers actions when
- * attempting to heal (like by trying to purge states). Thus, if you want a
- * state to be considered negative and thus AI-controlled battlers will attempt
- * to heal this state when using either <aiTrait:healer> or setting ally AI to
- * "support", then add this tag to the state.
+ * Functionally, a "negative" flag does not change how a state works, but
+ * it informs the AI that this state is harmful. Healers and support ally
+ * AI will attempt to remove these states when choosing actions.
  *    <negative>
  *
  * ----------------------------------------------------------------------------
  * ROOTED:
- * A state with the "rooted" tag will lock the battler's movement.
- * This includes Dodge skills for the player and allies.
+ * Locks the battler's movement, including dodge skills for actors.
  *    <rooted>
  *
  * ----------------------------------------------------------------------------
- * DISARMED:
- * A state with the "disarmed" tag will lock the battler's basic attacks.
- * Basic attacks are considered either the main or offhand for actor battlers,
- * and the "basic attack" traited skill for enemy battlers.
- *    <disarmed>
+ * DISABLED:
+ * Locks the battler's basic attacks. For actors, this is mainhand and
+ * offhand. For enemies, this is their basic attack traited skill.
+ *    <disabled>
  *
  * ----------------------------------------------------------------------------
  * MUTED:
- * A state with the "muted" tag will lock the battler's combat actions.
- * Combat actions are considered either the four extra equippable slots for
- * actor battlers, and any non-basic-attack skills for enemy battlers.
+ * Locks the battler's combat skills. For actors, this is the four combat
+ * slots. For enemies, this is any skill that isn't the basic attack.
  *    <muted>
  *
  * ----------------------------------------------------------------------------
  * PARALYZED:
- * A state with the "paralyzed" tag will lock everything about a battler.
- * It is functionally the same as being "rooted", "disarmed", and "muted", all
- * at the same time.
+ * Functionally the same as being rooted, disabled, and muted all at once.
  *    <paralyzed>
  *
  * ----------------------------------------------------------------------------
  * ----------------------------------------------------------------------------
  * SLIP DAMAGE:
- * For those unfamiliar with the term, "slip damage" is an alternative naming
- * for "damage over time". There are three types of tags for each of the three
- * categories of slip damage. It is important to note that the values you place
- * in the value portion of these tags equals "this much per 5 seconds". See the
- * examples for more details on that. But if you want to think about math, then
- * just consider it that the tick value you see will be about 1/20 of that VAL.
- * And that the tick happens 4 times per second.
+ * "Slip damage" is an alternative name for damage over time. There are
+ * three types: flat, percent, and formula-based. All values are expressed
+ * as "this much per 5 seconds" and are spread over 20 ticks (4/second).
+ * The math:
+ *    VAL / 20 = AMOUNT_PER_TICK
  *
  * ----------------------------------------------------------------------------
  * SLIP DAMAGE AS A CONCEPT:
- * Battlers have three pools of parameters that are conventionally replenished
- * or diminished by some means or another, those being hp/mp/tp. Slip damage in
- * the context of JABS revolves around manipulation of these three parameters.
+ * Battlers have three parameter pools: HP, MP, and TP. Slip tags can
+ * diminish or replenish any of them.
  *
  * NEGATIVE SLIP DAMAGE:
- * When the aim of a state is to diminish a target's pools, use negative slip
- * damage. Common examples of this are:
- * - Poison for reducing HP steadily for a time.
- * - Forgetful for reducing MP steadily for a time.
- * - Exhaustion for reducing TP steadily for a time.
+ * To diminish a pool over time (poison, exhaustion, etc.):
+ * Use negative VAL values.
  *
  * POSITIVE SLIP DAMAGE:
- * When the aim of a state is to replenish a target's pools, use positive slip
- * damage. Common examples of this are:
- * - Regenerate for increasing HP steadily for a time.
- * - Zen for increasing MP steadily for a time.
- * - Focused for increasing TP steadily for a time.
- *
- * With this in mind, the tags are grouped into three categories, and named with
- * clarity in mind when reading the tag. This means there are three permutations
- * of three categories of ways slip damage is applied. You can read about them
- * in the three subsections below.
- *
- * IMPORTANT NOTE ABOUT DAMAGE FREQUENCY:
- * It is important to note that the values in all three categories of damage
- * application are assumed to be the amount of damage/healing applied over the
- * spread of five seconds. The amount is spread over a total of 20 ticks per
- * five seconds, translating to four ticks per second. This was an arbitrary
- * decision, but important to comprehend the magic formula of which each tick
- * will translate to based on the amount you enter as VAL in the values of the
- * tags below:
- *    VAL / 20 = AMOUNT_PER_TICK
+ * To replenish a pool over time (regen, meditation, etc.):
+ * Use positive VAL values.
  *
  * FLAT:
- * Flat damage is just that, a fixed amount of unmitigatable damage or healing
- * against the given parameter.
  *    <hpFlat:VAL>
  *    <mpFlat:VAL>
  *    <tpFlat:VAL>
- *  Where VAL is the amount to lose per 5.
+ *  Where VAL is the flat amount to gain or lose per 5 seconds.
  *
  * PERCENT:
- * Percent damage will eat a portion of the battler's max value per tick.
- * Use this tag with care, because it adds up fast!
+ * Eats a portion of the battler's max value per tick. Use with care!
  *    <hpPercent:VAL>
  *    <mpPercent:VAL>
  *    <tpPercent:VAL>
- *  Where VAL is the % of max value to lose per 5.
+ *  Where VAL is the % of max value to gain or lose per 5 seconds.
  *
  * FORMULA:
- * Formula-driven damage allows you to build formulas that can potentially
- * scale with a battler's stats. Similar to the damage formula you define in
- * skills, you can define a similar formula within the brackets to deal
- * formula-based damage with every tick. This formula will have access to the
- * one afflicted with the state as "a", the one who applied the state as "b",
- * the collection of variables as "v", and the state object itself as "s".
+ * Allows damage that scales with battler stats. "a" is the afflicted
+ * battler, "b" is the one who applied the state, "v" is variables,
+ * and "s" is the state object.
  *    <hpFormula:[FORMULA]>
  *    <mpFormula:[FORMULA]>
  *    <tpFormula:[FORMULA]>
- *  Where FORMULA is the damage-like formula to calculate VAL to lose per 5.
+ *  Where FORMULA is a damage-like formula to calculate VAL per 5 sec.
  *
  * EXAMPLES:
  *    <hpFlat:-100>
- *  A battler with this tag would lose 100 HP over five seconds, at the rate of
- *  5 damage per tick.
+ *  Lose 100 HP over five seconds (5 per tick).
  *
  *    <mpPercent:50>
- *  A battler would lose 50% of their max MP over five seconds, at the rate of
- *  2.5% damage per tick.
+ *  Lose 50% max MP over five seconds (2.5% per tick).
  *
  *    <tpFormula:[(a.atk * 2)]>
- *  A battler would gain TP equal to "200% of own attack" over five seconds, at
- * the rate of 10% healing per tick.
- *
- *    <hpPercent:80>
- *  A battler would gain 80% of their max HP over five seconds, at the rate of
- *  4% healing per tick.
- *
- *    <mpFormula:[a.mdf + b.mdf]>
- *  A battler would gain MP equal to "100% of my own and the afflicter's magic
- *  defense" over five seconds, at the rate of 5% healing per tick.
- *
- *    <tpFlat:-20>
- *  A battler would lose 20 TP over five seconds, at the rate of exactly
- *  1 damage per tick.
+ *  Gain TP equal to 200% of own ATK over five seconds.
  *
  * NOTE ABOUT VAL OUTPUT:
- * Making the output VAL a multiple of 20x is an easy mental and visual way to
- * control the damage or healing by increments of 1. For example, having the
- * healing output change between 20 to 40 to 60 to 80 would visually be
- * outputed as seeing popups change from 1, to 2, to 3, to 4, and onward. The
- * same concept applies if the output is negative.
+ * Multiples of 20 are a handy mental shortcut: val 20 = 1 per tick,
+ * val 40 = 2 per tick, and so on.
  *
  * STATE DURATIONS:
- * After all that talk about manipulation of health and stuff via states, you
- * might be saying "you've told me that everything is outputed as per five
- * seconds, but how do I specify how long they last?". To accommodate the fact
- * that I wanted governance over durations to be accessible, I opted to
- * repurposes the "stepstoRemove" property on states, which is the "Remove by
- * Walking" number box in the database editor. The number entered into that box
- * will be the number of frames that a state will persist. Considering RMMZ
- * runs natively at roughly 60 frames per second, you can assume that if you
- * make a state duration last 300 frames, that it will roughly afflict the
- * battler with exactly as much as you specify in the VAL output of the slip
- * damage or other effects.
+ * State duration is controlled by the "Remove by Walking" number box in
+ * the database editor. That value is the number of frames the state
+ * persists. At ~60 FPS, 300 frames ≈ 5 seconds.
  *
- * NOTE ABOUT FRAMES PER SECOND:
- * I do say "roughly" a number of times in the section above. That is because
- * while the engine assumes you'll be running at 60 frames per second, the
- * reality is that it teeters somewhere between 30 and 60 depending on the
- * level of action and how powerful your computer is, etc. This means that
- * even though the state may be designated to last 300 frames, and you convert
- * that in your head to 5 seconds, it may actually be longer than 5 seconds if
- * your frames per second are spending a lot of time below 60.
- * Keep that in mind when designing states.
+ * NOTE: RMMZ targets 60 FPS but may run lower under heavy load, so
+ * actual duration may exceed what the math suggests.
+ *
  * ============================================================================
  * STATE DURATION EXTENSIONS:
- * In some cases, you may want the player to acquire armor or have states to
- * apply modifiers to how long states last. To accomplish this functionality,
- * we have another trio of tags that can modify the duration of states applied
- * by a given battler.
+ * Tags that modify the outgoing duration of states applied by a battler.
+ * Place on weapons, armors, states, or other note-bearing objects.
  *
- * NOTE ABOUT SCOPE OF USE:
- * This is for outgoing state duration only!
- * This does NOT extend or reduce state durations for incoming states.
+ * NOTE: These affect outgoing state duration only. They do not shorten
+ * or extend how long incoming states last on this battler.
  *
- * NOTE ABOUT POSITIVE OR NEGATIVE:
- * Any of the below values can be positive or negative and will modify the
- * base duration accordingly.
- *
- * NOTE ABOUT MULTIPLE TAGS:
- * All tags are summed up into their respective groups and added together
- * from all available note-containing sources applicable to the battler.
+ * NOTE: Multiple tags are summed from all applicable sources.
  *
  * FLAT:
- * Flat state duration boosts are exactly as you might suspect, a flat number
- * of frames that will be added to the base duration.
  *    <stateDurationFlat: VAL>
- *  Where VAL is the number of frames to add onto the base duration.
+ *  Where VAL is the flat number of frames to add (can be negative).
  *
  * PERCENT:
- * Percent state duration boosts are also what you might expect: a percent
- * modifier of the base duration added to the base duration.
  *    <stateDurationPerc: VAL>
- *  Where VAL is the % of base duration to be added onto the base duration.
+ *  Where VAL is the % of base duration to add (can be negative).
  *
  * FORMULA:
- * For more complex scenarios, you may want to use a formula to calculate the
- * bonus state duration to be added to the base duration.
  *    <stateDurationForm:[FORMULA]>
- *  Where FORMULA is the damage-like formula to calculate VAL to add onto
- *  the base duration.
+ *  Where FORMULA calculates bonus frames to add to the base duration.
+ *  "a" is the afflicted battler, "b" is the base duration, "v" is
+ *  the variable store.
  *
- *  Within the FORMULA, there are pre-defined variables available for use:
- *    - "a": which represents the battler afflicted with the state.
- *    - "b": which represents the base duration of the state.
- *    - "v": which represents access to the variable store.
+ * ============================================================================
+ * PER-STATE REAPPLY OVERRIDES:
+ * By default, all states use the reapply strategy defined in the plugin
+ * parameters (refresh, extend, or stack). You can override this on a
+ * per-state basis using these tags on individual states in the database.
+ *
+ * STACK TYPE:
+ * Overrides the reapply strategy for this specific state.
+ *    <stackType:TYPE>
+ *  Where TYPE is one of: refresh, extend, stack.
+ *
+ * REFRESH CONFIG OVERRIDES:
+ *    <stateRefreshDiminish:VAL>
+ *  Frames shaved off each successive refresh (diminishing returns).
+ *
+ *    <stateRefreshReset:VAL>
+ *  Frames of quiet time after which diminish resets back to zero.
+ *
+ * EXTEND CONFIG OVERRIDES:
+ *    <stackExtendAmount:VAL>
+ *  Frames added to the remaining duration on each extend application.
+ *
+ *    <stackExtendMax:VAL>
+ *  The maximum total duration this state can be extended to.
+ *
+ * STACK CONFIG OVERRIDES:
+ *    <stackMax:VAL>
+ *  Maximum number of stacks this state can accumulate.
+ *
+ *    <applyStacks:VAL>
+ *  Number of stacks applied per hit (default 1).
+ *
+ *    <loseAllStacksAtOnce>
+ *  If present, all stacks are lost at once upon expiration rather
+ *  than losing one stack and refreshing.
+ *
+ * ============================================================================
+ * ACTOR/CLASS TAGS:
+ * These tags are placed on actors or classes in the database.
+ *
+ * ----------------------------------------------------------------------------
+ * NO SWITCH:
+ * Prevents the player from switching to this actor as the party leader
+ * via the JABS party rotate command. Use this for actors that should
+ * never be player-controlled (permanent support members, story actors,
+ * etc.).
+ *    <noSwitch>
+ *
+ * ============================================================================
+ * VISUAL METADATA:
+ * These tags are placed on skills and control how the action event
+ * sprite looks on the map. None of them affect hitboxes or physics.
+ *
+ * All tags are optional. Omitting a tag leaves that property at its
+ * default value.
+ *
+ * ----------------------------------------------------------------------------
+ * VIS OFFSET:
+ * Shifts the action sprite by a fixed pixel offset relative to the
+ * center of the action event.
+ *    <visOffset:[X,Y]>
+ *  Where X is the horizontal offset in pixels (positive = right).
+ *  Where Y is the vertical offset in pixels (positive = down).
+ *
+ * DIRECTIONAL OFFSETS:
+ * Apply a different pixel offset depending on the direction the action
+ * is traveling. Useful when a sprite looks off-center in some directions.
+ *    <visOffsetU:[X,Y]>   (facing up)
+ *    <visOffsetD:[X,Y]>   (facing down)
+ *    <visOffsetL:[X,Y]>   (facing left)
+ *    <visOffsetR:[X,Y]>   (facing right)
+ *    <visOffsetUR:[X,Y]>  (diagonal: up-right)
+ *    <visOffsetUL:[X,Y]>  (diagonal: up-left)
+ *    <visOffsetDR:[X,Y]>  (diagonal: down-right)
+ *    <visOffsetDL:[X,Y]>  (diagonal: down-left)
+ *
+ * NOTE: Directional offsets take precedence over <visOffset> when
+ * a direction-specific tag is present.
+ *
+ * ----------------------------------------------------------------------------
+ * VIS ANCHOR:
+ * Overrides the anchor point of the action sprite. Anchor values are
+ * between 0.0 and 1.0, where [0.5, 0.5] is the center.
+ *    <visAnchor:[AX,AY]>
+ *  Where AX is the horizontal anchor (0.0 = left edge, 1.0 = right).
+ *  Where AY is the vertical anchor (0.0 = top, 1.0 = bottom).
+ *
+ * ----------------------------------------------------------------------------
+ * VIS ROTATE:
+ * Makes the action sprite rotate to face the direction it is moving.
+ * Useful for directional projectile sprites like arrows or energy beams.
+ *    <visRotate>
+ *
+ * ----------------------------------------------------------------------------
+ * VIS SCALE:
+ * Overrides the scale (stretch) of the action sprite.
+ *    <visScale:[SX,SY]>
+ *  Where SX is the horizontal scale (1.0 = normal).
+ *  Where SY is the vertical scale (1.0 = normal).
+ *
+ * ----------------------------------------------------------------------------
+ * VIS Z:
+ * Overrides the z-order of the action sprite, controlling whether it
+ * renders above or below other map sprites.
+ *    <visZ:VAL>
+ *  Where VAL is the z-order integer (higher = renders on top).
+ *
+ * ----------------------------------------------------------------------------
+ * VIS DEBUG:
+ * Renders a center-point debug gizmo on the action sprite. Use this
+ * during development to diagnose offset and anchor issues.
+ *    <visDebug>
+ *
+ * NOTE: Remove this before shipping. It is a development aid only.
+ *
+ * ============================================================================
+ * CAST PREVIEW:
+ * These tags control the hitbox preview overlay that is shown on the map
+ * while a battler is casting a skill. Previews are visible by default if
+ * the hitbox overlay system is enabled.
+ *
+ * ----------------------------------------------------------------------------
+ * NO CAST PREVIEW (PER SKILL):
+ * Disables the preview for this specific skill while it is being cast.
+ *    <noCastPreview>
+ *
+ * Use this for skills where showing the hitbox preview would be too much
+ * of a hint or ruin the surprise.
+ *
+ * ----------------------------------------------------------------------------
+ * CAST PREVIEW WARN AT:
+ * Instead of showing the preview for the full cast duration, this delays
+ * the preview until only the last N frames of the cast remain.
+ *    <castPreviewWarnAt:FRAMES>
+ *  Where FRAMES is how many frames before cast completion the preview
+ *  should appear.
+ *
+ * Use this for a "danger warning" style: the hitbox flashes briefly
+ * right before the skill fires, giving the player a reaction window
+ * instead of full cast visibility.
+ *
+ * ----------------------------------------------------------------------------
+ * NO CAST PREVIEWS (PER BATTLER):
+ * Disables cast previews for every skill this battler executes.
+ *    <noCastPreviews>
+ *
+ * Place this on an enemy (in the database or as an event comment) to
+ * make all of that enemy's skills fire without any hitbox preview.
+ * Good for boss enemies whose telegraphs should come from animation
+ * and sound rather than a hitbox overlay.
  *
  * ============================================================================
  * @param baseConfigs
@@ -16026,6 +16137,7 @@ class JABS_Timer
 */
 //=================================================================================================
 /* eslint-enable max-len */
+
 
 /* eslint-disable max-len */
 //region Metadata
@@ -16699,7 +16811,7 @@ J.ABS.RegExp = {
   // jabs core ailment functionalities.
   Paralyzed: /<paralyzed>/gi,
   Rooted: /<rooted>/gi,
-  Disarmed: /<disabled>/gi,
+  Disabled: /<disabled>/gi,
   Muted: /<muted>/gi,
 
   // aggro-related.
@@ -16730,6 +16842,7 @@ J.ABS.RegExp = {
   TeamId: /<teamId:[ ]?(\d+)>/g,
   Sight: /<sight:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
   Pursuit: /<pursuit:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
+  GuardRange: /<guardRange:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
   MoveSpeed: /<moveSpeed:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
   PrepareTime: /<prepare:[ ]?(\d+)>/i,
 
@@ -16756,12 +16869,12 @@ J.ABS.RegExp = {
   AiTraitLeader: /<aiTrait:[ ]?leader>/i,
 
   // battler roles — structural position in group coordination.
-  JabsRoleLeader: /<jabsRole:[ ]?leader>/i,
-  JabsRoleFollower: /<jabsRole:[ ]?follower>/i,
-  JabsRoleGuardian: /<jabsRole:[ ]?guardian>/i,
-  JabsRoleWard: /<jabsRole:[ ]?ward>/i,
-  JabsRoleSolo: /<jabsRole:[ ]?solo>/i,
-  JabsRoleSentinel: /<jabsRole:[ ]?sentinel>/i,
+  AiRoleLeader: /<aiRole:[ ]?leader>/i,
+  AiRoleFollower: /<aiRole:[ ]?follower>/i,
+  AiRoleGuardian: /<aiRole:[ ]?guardian>/i,
+  AiRoleWard: /<aiRole:[ ]?ward>/i,
+  AiRoleSolo: /<aiRole:[ ]?solo>/i,
+  AiRoleSentinel: /<aiRole:[ ]?sentinel>/i,
 
   // miscellaneous combat configurables.
   ConfigNoIdle: /<jabsConfig:[ ]?noIdle>/i,
@@ -17195,6 +17308,22 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsPursuitRange', {
 });
 //endregion pursuit range
 
+//region guard range
+/**
+ * The JABS guard range for this battler.
+ * When tagged on a guardian-role enemy, this defines the maximum distance at which the guardian
+ * will notice threatened wards and continue to pursue their attacker, overriding the normal pursuit radius.
+ * When omitted, the guardian falls back to the largest pursuit radius among its allied wards.
+ * @returns {number|null}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsGuardRange', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.GuardRange, true);
+  },
+});
+//endregion guard range
+
 //region alert duration
 /**
  * The JABS alert duration for this battler.
@@ -17270,19 +17399,20 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsBattlerAi', {
 /**
  * The compiled {@link JABS_BattlerRole}.<br>
  * This defines this battler's structural coordination role on the battlefield.
- * Supports both the new {@code <jabsRole:>} tag and the legacy {@code <aiTrait: leader/follower>} tags.
+ * Assigned via {@code <aiRole: X>}. The {@code <aiTrait: leader>} and {@code <aiTrait: follower>} tags
+ * are supported as backward-compatible aliases.
  * @type {JABS_BattlerRole}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsBattlerRole', {
   get: function()
   {
-    // check new jabsRole tags first, then fall back to legacy aiTrait tags.
-    const leader = this.jabsRoleLeader || this.jabsAiTraitLeader;
-    const follower = this.jabsRoleFollower || this.jabsAiTraitFollower;
-    const guardian = this.jabsRoleGuardian;
-    const ward = this.jabsRoleWard;
-    const solo = this.jabsRoleSolo;
-    const sentinel = this.jabsRoleSentinel;
+    // fall back to legacy aiTrait aliases for leader and follower.
+    const leader = this.jabsAiRoleLeader || this.jabsAiTraitLeader;
+    const follower = this.jabsAiRoleFollower || this.jabsAiTraitFollower;
+    const guardian = this.jabsAiRoleGuardian;
+    const ward = this.jabsAiRoleWard;
+    const solo = this.jabsAiRoleSolo;
+    const sentinel = this.jabsAiRoleSentinel;
 
     return new JABS_BattlerRole(leader, follower, guardian, ward, solo, sentinel);
   },
@@ -17348,7 +17478,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitHealer', {
 /**
  * The JABS AI trait of follower.
  * This boolean decides whether or not this battler has this AI trait.
- * @deprecated Use {@code <jabsRole: follower>} instead. Supported as a backward-compatible alias.
+ * @deprecated Use {@code <aiRole: follower>} instead. Supported as a backward-compatible alias.
  * @type {boolean}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitFollower', {
@@ -17363,7 +17493,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitFollower', {
 /**
  * The JABS AI trait of leader.
  * This boolean decides whether or not this battler has this AI trait.
- * @deprecated Use {@code <jabsRole: leader>} instead. Supported as a backward-compatible alias.
+ * @deprecated Use {@code <aiRole: leader>} instead. Supported as a backward-compatible alias.
  * @type {boolean}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitLeader', {
@@ -17432,78 +17562,78 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitBerserker', {
 
 //region role:leader
 /**
- * The JABS role of leader.
+ * The AI role of leader.
  * @type {boolean}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, 'jabsRoleLeader', {
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleLeader', {
   get: function()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.JabsRoleLeader, true);
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiRoleLeader, true);
   },
 });
 //endregion role:leader
 
 //region role:follower
 /**
- * The JABS role of follower.
+ * The AI role of follower.
  * @type {boolean}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, 'jabsRoleFollower', {
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleFollower', {
   get: function()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.JabsRoleFollower, true);
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiRoleFollower, true);
   },
 });
 //endregion role:follower
 
 //region role:guardian
 /**
- * The JABS role of guardian.
+ * The AI role of guardian.
  * @type {boolean}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, 'jabsRoleGuardian', {
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleGuardian', {
   get: function()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.JabsRoleGuardian, true);
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiRoleGuardian, true);
   },
 });
 //endregion role:guardian
 
 //region role:ward
 /**
- * The JABS role of ward.
+ * The AI role of ward.
  * @type {boolean}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, 'jabsRoleWard', {
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleWard', {
   get: function()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.JabsRoleWard, true);
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiRoleWard, true);
   },
 });
 //endregion role:ward
 
 //region role:solo
 /**
- * The JABS role of solo.
+ * The AI role of solo.
  * @type {boolean}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, 'jabsRoleSolo', {
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleSolo', {
   get: function()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.JabsRoleSolo, true);
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiRoleSolo, true);
   },
 });
 //endregion role:solo
 
 //region role:sentinel
 /**
- * The JABS role of sentinel.
+ * The AI role of sentinel.
  * @type {boolean}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, 'jabsRoleSentinel', {
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleSentinel', {
   get: function()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.JabsRoleSentinel, true);
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.AiRoleSentinel, true);
   },
 });
 //endregion role:sentinel
@@ -18728,7 +18858,7 @@ Object.defineProperty(RPG_State.prototype, 'jabsMuted', {
 Object.defineProperty(RPG_State.prototype, 'jabsDisarmed', {
   get: function()
   {
-    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.Disarmed, true);
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.Disabled, true);
   },
 });
 //endregion disarmed
@@ -20428,8 +20558,12 @@ class JABS_AiManager
    */
   static getGuardianWardAttacker(guardian)
   {
-    // gather allied battlers within sight range and filter to those with the ward role.
-    const nearbyWards = this.getAlliedBattlersWithinRange(guardian, guardian.getSightRadius())
+    // use explicit guard range if available; otherwise limit the scan to the guardian's sight radius.
+    const guardRange = guardian.getGuardRange();
+    const scanRange = guardRange !== null ? guardRange : guardian.getSightRadius();
+
+    // gather allied battlers within scan range and filter to those with the ward role.
+    const nearbyWards = this.getAlliedBattlersWithinRange(guardian, scanRange)
       .filter(ally => ally.getBattlerRole().ward);
 
     // no wards nearby means nothing to protect.
@@ -20718,6 +20852,13 @@ class JABS_AiManager
     // check if the distance is invalid.
     if (distance === null) return true;
 
+    // guardian role: effective pursuit respects <guardRange> or the max ward pursuit fallback.
+    // this is evaluated before the hard cap since guard ranges can exceed it intentionally.
+    if (battler.getBattlerRole().guardian)
+    {
+      return distance > this.getGuardianEffectivePursuitRadius(battler);
+    }
+
     // check if the distance arbitrarily is too great.
     if (distance > 20) return true;
 
@@ -20729,6 +20870,29 @@ class JABS_AiManager
 
     // do not disengage.
     return false;
+  }
+
+  /**
+   * Computes the effective pursuit radius for a guardian-role battler.
+   * If the guardian has an explicit `<guardRange:N>` tag, that value is used directly.
+   * Otherwise, the result is the larger of the guardian's own pursuit radius and the greatest
+   * pursuit radius among all allied ward-role battlers currently on the map.
+   * @param {JABS_Battler} guardian The guardian battler to evaluate.
+   * @returns {number} The effective pursuit radius the guardian should honor.
+   */
+  static getGuardianEffectivePursuitRadius(guardian)
+  {
+    // explicit tag takes priority over any calculated fallback.
+    const guardRange = guardian.getGuardRange();
+    if (guardRange !== null) return guardRange;
+
+    // fallback: use the guardian's own pursuit or the largest ward pursuit, whichever is greater.
+    const allAllies = this.getAlliedBattlers(guardian);
+    const maxWardPursuit = allAllies
+      .filter(ally => ally.getBattlerRole().ward)
+      .reduce((max, ward) => Math.max(max, ward.getPursuitRadius()), 0);
+
+    return Math.max(guardian.getPursuitRadius(), maxWardPursuit);
   }
 
   /**
@@ -30171,6 +30335,22 @@ Game_Enemy.prototype.pursuitRange = function()
 };
 
 /**
+ * Gets the enemy's guard range from their notes.
+ * When set, overrides the default fallback behavior for guardian-role battlers,
+ * defining how far they will scan for threatened wards and pursue attackers.
+ * Returns null when not defined, signaling the guardian to use the ward-pursuit fallback.
+ * @returns {number|null}
+ */
+Game_Enemy.prototype.guardRange = function()
+{
+  // grab the reference data for this battler.
+  const referenceData = this.databaseData();
+
+  // return the parsed value, or null if not tagged.
+  return referenceData.jabsGuardRange;
+};
+
+/**
  * Gets the enemy's boost to pursuit range when alerted from their notes.
  * This will be overwritten by values provided from an event.
  * @returns {number}
@@ -30615,6 +30795,7 @@ Game_Event.prototype.parseEnemyComments = function()
   const pursuitRange = this.getPursuitRangeOverrides() ?? enemyBattler.pursuitRange();
   const alertedPursuitBoost = this.getAlertedPursuitBoostOverrides() ?? enemyBattler.alertedPursuitBoost();
   const alertDuration = this.getAlertDurationOverrides() ?? enemyBattler.alertDuration();
+  const guardRange = this.getGuardRangeOverrides() ?? enemyBattler.guardRange();
   let canIdle = this.getCanIdleOverrides() ?? enemyBattler.canIdle();
   let showHpBar = this.getShowHpBarOverrides() ?? enemyBattler.showHpBar();
   let showBattlerName = this.getShowBattlerNameOverrides() ?? enemyBattler.showBattlerName();
@@ -30644,6 +30825,7 @@ Game_Event.prototype.parseEnemyComments = function()
     .setPursuitRange(pursuitRange)
     .setAlertedPursuitBoost(alertedPursuitBoost)
     .setAlertDuration(alertDuration)
+    .setGuardRange(guardRange)
     .setCanIdle(canIdle)
     .setShowHpBar(showHpBar)
     .setShowBattlerName(showBattlerName)
@@ -30916,6 +31098,37 @@ Game_Event.prototype.getPursuitRangeOverrides = function()
 };
 
 /**
+ * Parses out the guard range from a list of event commands.
+ * Only relevant for guardian-role battlers; null signals the ward-pursuit fallback.
+ * @returns {number|null} The found guard range, or null if not found.
+ */
+Game_Event.prototype.getGuardRangeOverrides = function()
+{
+  // guard range is null by default.
+  let guardRange = null;
+
+  // check all the valid event commands to see if we have an override for this.
+  this.getValidCommentCommands()
+    .forEach(command =>
+    {
+      // shorthand the comment into a variable.
+      const [ comment, ] = command.parameters;
+
+      // check if the comment matches the regex.
+      const regexResult = J.ABS.RegExp.GuardRange.exec(comment);
+
+      // if the comment didn't match, then don't try to parse it.
+      if (!regexResult) return;
+
+      // parse the value out of the regex capture group.
+      guardRange = parseInt(regexResult[1]);
+    });
+
+  // return what we found.
+  return guardRange;
+};
+
+/**
  * Parses out the alerted pursuit boost from a list of event commands.
  * @returns {number|null} The found alerted pursuit boost range, or null if not found.
  */
@@ -31153,7 +31366,7 @@ Game_Event.prototype.getShowBattlerNameOverrides = function()
 
 /**
  * Parses out the battler role from event comments.
- * Supports both the {@code <jabsRole:>} tag family and the legacy
+ * Supports the {@code <aiRole:>} tag family and the legacy
  * {@code <aiTrait: leader>} / {@code <aiTrait: follower>} aliases.
  * @returns {JABS_BattlerRole|null} The constructed role, or null if no role tags were found.
  */
@@ -31175,38 +31388,38 @@ Game_Event.prototype.getBattlerRoleOverrides = function()
       // shorthand the comment into a variable.
       const [ comment, ] = command.parameters;
 
-      // check the jabsRole tag family first.
-      if (J.ABS.RegExp.JabsRoleLeader.test(comment))
+      // check the aiRole tag family.
+      if (J.ABS.RegExp.AiRoleLeader.test(comment))
       {
         leader = true;
         found = true;
       }
 
-      if (J.ABS.RegExp.JabsRoleFollower.test(comment))
+      if (J.ABS.RegExp.AiRoleFollower.test(comment))
       {
         follower = true;
         found = true;
       }
 
-      if (J.ABS.RegExp.JabsRoleGuardian.test(comment))
+      if (J.ABS.RegExp.AiRoleGuardian.test(comment))
       {
         guardian = true;
         found = true;
       }
 
-      if (J.ABS.RegExp.JabsRoleWard.test(comment))
+      if (J.ABS.RegExp.AiRoleWard.test(comment))
       {
         ward = true;
         found = true;
       }
 
-      if (J.ABS.RegExp.JabsRoleSolo.test(comment))
+      if (J.ABS.RegExp.AiRoleSolo.test(comment))
       {
         solo = true;
         found = true;
       }
 
-      if (J.ABS.RegExp.JabsRoleSentinel.test(comment))
+      if (J.ABS.RegExp.AiRoleSentinel.test(comment))
       {
         sentinel = true;
         found = true;
