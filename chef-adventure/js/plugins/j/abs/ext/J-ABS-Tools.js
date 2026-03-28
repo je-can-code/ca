@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 TOOLS] Enable new tool-like tags for use with skills.
+ * [v1.0.3 TOOLS] Enable new tool-like tags for use with skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -76,6 +76,10 @@
  * Using skill 25 against the event will pull the player to the event.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Raised minimum J-ABS version requirement to 4.7.0.
+ * - 1.0.2
+ *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.1
  *    Consumed `RPGManager` update.
  * - 1.0.0
@@ -124,7 +128,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -150,7 +154,7 @@ J.ABS.EXT.TOOLS.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.1',
+  Version: '1.0.2',
 };
 
 /**
