@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 HITSTOP] An extension for JABS that adds hitstop functionality.
+ * [v1.0.2 HITSTOP] An extension for JABS that adds hitstop functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -42,6 +42,10 @@
  * 100 of something will occur when this is triggered.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Raised minimum J-ABS version requirement to 4.7.0.
+ * - 1.0.1
+ *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -229,7 +233,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -246,7 +250,7 @@ J.ABS.EXT.HITSTOP = {};
 /**
  * The metadata associated with this plugin.
  */
-J.ABS.EXT.HITSTOP.Metadata = new JHitstop_PluginMetadata('J-ABS-Hitstop', '1.0.0');
+J.ABS.EXT.HITSTOP.Metadata = new JHitstop_PluginMetadata('J-ABS-Hitstop', '1.0.1');
 
 /**
  * A collection of all aliased methods for this plugin.

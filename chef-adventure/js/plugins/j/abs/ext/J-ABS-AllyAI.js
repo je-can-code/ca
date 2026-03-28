@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.1 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v2.1.1 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -90,7 +90,8 @@
  * ----------------------------------------------------------------------------
  * BATTLE MEMORIES:
  * Additionally, in the modes of "Variety" and "Full Force", there is an extra
- * functionality to be considered called "battle memories"- unique to ally ai.
+ * functionality to be considered called "battle memories". The data type is
+ * defined in J-ABS core and is primarily used by ally AI in those modes.
  * Battle Memories are effectively a snapshot recollection of your ally using
  * a skill against the enemy. The ally remembers the damage dealt, and the
  * level of effectiveness (elemental efficacy) versus a given target with a
@@ -115,6 +116,14 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.1
+ *    Raised minimum J-ABS version to 4.7.0.
+ * - 2.1.0
+ *    Raised minimum J-ABS version to 4.6.0.
+ *    Delegates cleanse/heal/buff support logic to shared `JABS_AI` base methods (same behavior, less duplication).
+ *    Fixed `aiComboChanceModifier` using `getMode().key` when `getMode()` already returns the mode key string.
+ *    Fixed `bestFitHealingAllSkill` calling `bestFitHealingOneSkill` with no arguments on multi-heal fallback.
+ *    Battle memory helpers now live on `JABS_AI`; `JABS_BattleMemory` class moved to J-ABS core.
  * - 2.0.1
  *    Consumed `RPGManager` update.
  * - 2.0.0
@@ -283,7 +292,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -303,7 +312,7 @@ J.ABS.EXT.ALLYAI = {};
  */
 J.ABS.EXT.ALLYAI.Metadata = {};
 J.ABS.EXT.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ABS.EXT.ALLYAI.Metadata.Version = '2.0.1';
+J.ABS.EXT.ALLYAI.Metadata.Version = '2.1.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -850,378 +859,21 @@ JABS_AllyAI.prototype.decideSupport = function(usableSkills, user)
     return this.followWithCombo(user);
   }
 
-  // initialize our support skill id.
-  let supportSkillId = 0;
-
   // first priority is cleansing status ailments, including death, from allies.
-  supportSkillId = this.decideSupportCleansing(usableSkills, user);
+  const cleanseId = this.decideCleansing(user, usableSkills);
+  if (cleanseId) return cleanseId;
 
-  // check if there was no need for cleansing.
-  if (!supportSkillId)
-  {
-    // prioritize recovering missing health for allies.
-    supportSkillId = this.decideSupportHealing(usableSkills, user);
-  }
+  // second priority is recovering missing health for allies.
+  const healId = this.decideHealing(user, usableSkills);
+  if (healId) return healId;
 
-  // check if there was no need for healing.
-  if (!supportSkillId)
-  {
-    // prioritize status buffing on allies.
-    supportSkillId = this.decideSupportBuffing(usableSkills, user);
-  }
+  // third priority is status buffing on allies.
+  const buffId = this.decideBuffing(user, usableSkills);
+  if (buffId) return buffId;
 
-  // check if there was no need for any healing.
-  if (!supportSkillId)
-  {
-    // do nothing.
-    return this.decideDoNothing(user);
-  }
-
-  // return the chosen skill id.
-  return supportSkillId;
+  // nothing needed; wait briefly.
+  return this.decideDoNothing(user);
 };
-
-//region support-cleansing
-/**
- * Decides on the best cleansing skill from the selection of skills available.
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {JABS_Battler} healer The battler choosing the skill.
- * @returns {number}
- */
-JABS_AllyAI.prototype.decideSupportCleansing = function(availableSkills, healer)
-{
-  const nearbyAllies = healer.getAllNearbyAllies();
-  let bestSkillId = 0;
-
-  // iterate over all nearby allies.
-  nearbyAllies.forEach(ally =>
-  {
-    const allyBattler = ally.getBattler();
-
-    // and check each of their states.
-    const allyStates = allyBattler.states();
-    if (allyStates.length > 0)
-    {
-
-      // the find the first one that we can cleanse.
-      const cleansableState = allyStates.find(state =>
-      {
-        // skills to be cleansed have a "negative" tag.
-        const isNegative = state.jabsNegative;
-        const canBeCleansed = this.determineBestSkillForStateCleansing(availableSkills, state.id, healer);
-        return isNegative && canBeCleansed;
-      });
-
-      // if we have a cleansable state, then return the best skill for it.
-      if (cleansableState)
-      {
-        bestSkillId = this.determineBestSkillForStateCleansing(availableSkills, cleansableState.id, healer);
-      }
-    }
-  });
-
-  return bestSkillId;
-};
-
-/**
- * Determines which skill of the available skills is the most effective for cleansing a given state.
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {number} stateIdToBeCleansed The id of the state to be cleansed.
- * @param {JABS_Battler} healer The battler choosing the skill.
- * @returns {number}
- */
-JABS_AllyAI.prototype.determineBestSkillForStateCleansing = function(availableSkills, stateIdToBeCleansed, healer)
-{
-  let bestSkillForStateCleansing = null;
-  let highestCleanseRate = 0.0;
-
-  // iterate over all skills available to find the best rate of state removal for the target state.
-  availableSkills.forEach(skillId =>
-  {
-    const skill = healer.getSkill(skillId);
-
-    // find all effects from a skill that remove states.
-    const stateCleansingEffects = skill.effects.filter(fx => fx.code === 22 && fx.dataId === stateIdToBeCleansed);
-
-    // if we have effects...
-    if (stateCleansingEffects.length > 0)
-    {
-
-      // ...iterate over them to find the best rate of state removal.
-      stateCleansingEffects.forEach(effect =>
-      {
-        if (highestCleanseRate < effect.value1)
-        {
-          bestSkillForStateCleansing = skillId;
-          highestCleanseRate = effect.value1;
-        }
-      });
-    }
-  });
-
-  return bestSkillForStateCleansing;
-};
-//endregion support-cleansing
-
-//region support-healing
-/**
- * Decides on the best healing skill from the selection of skills available.
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {JABS_Battler} healer The battler choosing the skill.
- * @returns {number}
- */
-JABS_AllyAI.prototype.decideSupportHealing = function(availableSkills, healer)
-{
-  // filter out the skills that aren't for allies.
-  const healingTypeSkills = availableSkills.filter(skillId =>
-  {
-    const testAction = new Game_Action(healer.getBattler());
-    testAction.setSkill(skillId);
-    // must target living allies.
-    return (testAction.isForAliveFriend() &&
-      // must recover something.
-      testAction.isRecover() &&
-      // must affect hp.
-      testAction.isHpEffect());
-  });
-
-  let bestSkillId = 0;
-
-  // if we have no healing type skills, then do nothing.
-  if (healingTypeSkills.length === 0) return bestSkillId;
-
-  // set the lowest hp ally as your target for supporting with one of our skills.
-  const lowestAlly = this.determineLowestHpAlly(healer);
-  healer.setAllyTarget(lowestAlly);
-
-  // get all the low hp allies.
-  const below60 = this.countLowHpAllies(healer);
-  const lowestAllyBattler = lowestAlly.getBattler();
-  const healerBattler = healer.getBattler();
-
-  // depending on how many wounded targets we have, determine the best healing skill to use.
-  if (below60 === 0)
-  {
-    // if we have no targets in need of healing, then don't.
-    return bestSkillId;
-  }
-
-  if (below60 === 1)
-  {
-    // find the best fit healing skill for a single target.
-    bestSkillId = this.bestFitHealingOneSkill(healingTypeSkills, healerBattler, lowestAllyBattler);
-  }
-  else if (below60 >= 2)
-  {
-    // find the best fit healing skill for all targets.
-    bestSkillId = this.bestFitHealingAllSkill(healingTypeSkills, healerBattler, lowestAllyBattler);
-  }
-
-  return bestSkillId;
-};
-
-/**
- * Gets the lowest hp ally nearby.
- * @param {JABS_Battler} healer The battler performing the healing.
- * @returns {JABS_Battler}
- */
-JABS_AllyAI.prototype.determineLowestHpAlly = function(healer)
-{
-  const nearbyAllies = healer.getAllNearbyAllies();
-
-  // determine the lowest ally within range.
-  let lowestAlly = null;
-  nearbyAllies.forEach(ally =>
-  {
-    if (!lowestAlly)
-    {
-      // if we don't yet have a lowest ally, assign it.
-      lowestAlly = ally;
-    }
-    else if (ally.getBattler()
-      .currentHpPercent() < lowestAlly.getBattler()
-      .currentHpPercent())
-    {
-      // update the ally to determine the lowest ally with the lowest hp.
-      lowestAlly = ally;
-    }
-  });
-
-  return lowestAlly;
-};
-
-/**
- * Gets how many of the nearby allies are BELOW the given hp threshold.
- * The default threshold is 60% of max hp.
- * @param {JABS_Battler} healer The battler performing the healing.
- * @param {number} threshold The percent (decimal between 0-1) of what is defined as "low" hp.
- * @returns {number}
- */
-JABS_AllyAI.prototype.countLowHpAllies = function(healer, threshold = 0.6)
-{
-  const nearbyAllies = healer.getAllNearbyAllies();
-  let belowThreshold = 0;
-  // tally up the allies below the threshold % hp.
-  nearbyAllies.forEach(ally =>
-  {
-    if (ally.getBattler()
-      .currentHpPercent() < threshold)
-    {
-      belowThreshold++;
-    }
-  });
-
-  return belowThreshold;
-};
-
-/**
- * Finds the best-fit healing skill for the target.
- * This is agnostic to whether or not the skill is a multi-target healing skill.
- * @param {number[]} healingTypeSkills The collection of skills that heal hp.
- * @param {Game_Battler} healerBattler The battler choosing the skill.
- * @param {Game_Battler} lowestAllyBattler The ally battler who has the lowest hp.
- * @returns {number}
- */
-JABS_AllyAI.prototype.bestFitHealingOneSkill = function(healingTypeSkills, healerBattler, lowestAllyBattler)
-{
-  let bestSkillId = 0;
-  // need it to be an unrealistically high difference to start.
-  let smallestDifference = Number.MAX_SAFE_INTEGER;
-  healingTypeSkills.forEach(skillId =>
-  {
-    const skill = healerBattler.skill(skillId);
-    const testAction = new Game_Action(healerBattler);
-    testAction.setItemObject(skill);
-
-    // if the lowest ally isn't yourself, and this skill only targets yourself, don't consider it.
-    if (healerBattler !== lowestAllyBattler && testAction.isForUser()) return;
-
-    // if the skill doesn't target 1 or all or dead allies, then don't use it (omit random).
-    if (!testAction.isForOne() && !testAction.isForAll() && !testAction.isForDeadFriend()) return;
-
-    // get the test heal amount for this skill against the ally.
-    const healAmount = Math.abs(testAction.makeDamageValue(lowestAllyBattler, false));
-
-    // determine the difference between the closest healing to full and
-    const differenceFromMax = Math.abs((lowestAllyBattler.hp + healAmount) - lowestAllyBattler.mhp);
-    if (differenceFromMax < smallestDifference)
-    {
-      bestSkillId = skillId;
-      smallestDifference = differenceFromMax;
-    }
-  });
-
-  return bestSkillId;
-};
-
-/**
- * Finds the best-fit healing skill for multiple targets.
- * If there are no multi-target healing skills available, will instead choose the best single-target.
- * If
- * @param {number[]} healingTypeSkills The collection of skills that heal hp.
- * @param {Game_Battler} healerBattler The battler choosing the skill.
- * @param {Game_Battler} lowestAllyBattler The ally battler who has the lowest hp.
- * @returns {number}
- */
-JABS_AllyAI.prototype.bestFitHealingAllSkill = function(healingTypeSkills, healerBattler, lowestAllyBattler)
-{
-  let bestSkillId = 0;
-
-  // filter out all skills that are not for multiple targets.
-  const multiTargetHealingTypeSkills = healingTypeSkills.filter(skillId =>
-  {
-    const skill = healerBattler.skill(skillId);
-    const testAction = new Game_Action(healerBattler);
-    testAction.setItemObject(skill);
-    return testAction.isForAll();
-  });
-
-  // if we have no skills that are multi-targeting, then instead find the best single target.
-  if (multiTargetHealingTypeSkills.length === 0) return this.bestFitHealingOneSkill();
-
-  // if there is only one skill that multi-targets, then use that.
-  if (multiTargetHealingTypeSkills.length === 1) return multiTargetHealingTypeSkills[0];
-
-  // need it to be an unrealistically high difference to start.
-  let smallestDifference = 99999999;
-  multiTargetHealingTypeSkills.forEach(skillId =>
-  {
-    const skill = healerBattler.skill(skillId);
-    const testAction = new Game_Action(healerBattler);
-    testAction.setItemObject(skill);
-
-    // get the test heal amount for this skill against the ally.
-    const healAmount = Math.abs(testAction.makeDamageValue(lowestAllyBattler, false));
-
-    // determine the difference between the closest healing to full and
-    const differenceFromMax = Math.abs((lowestAllyBattler.hp + healAmount) - lowestAllyBattler.mhp);
-    if (differenceFromMax < smallestDifference)
-    {
-      bestSkillId = skillId;
-      smallestDifference = differenceFromMax;
-    }
-  });
-
-  return bestSkillId;
-};
-//endregion support-healing
-
-//region support-buffing
-/**
- * Decides on the best buffing skill from the selection of skills available.
- * @param {number[]} availableSkills The skill ids available to choose from.
- * @param {JABS_Battler} healer The battler choosing the skill.
- * @returns {number}
- */
-JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
-{
-  const nearbyAllies = healer.getAllNearbyAllies();
-
-  // iterate over all skills available to find a state that would benefit your allies.
-  let bestSkillId = 0;
-  let chosenAlly = null;
-  availableSkills.forEach(skillId =>
-  {
-    const skill = healer.getSkill(skillId);
-
-    // find all effects from a skill that add states.
-    const stateAddingEffects = skill.effects.filter(fx => fx.code === 21);
-
-    // if we have effects...
-    if (stateAddingEffects.length > 0)
-    {
-      // ...iterate over them...
-      let ready = false;
-      stateAddingEffects.forEach(effect =>
-      {
-        if (ready) return;
-
-        // ...and check each ally and see if they have it yet.
-        nearbyAllies.forEach(ally =>
-        {
-          // see if the state for this ally is expired or about to expire.
-          const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(ally.getUuid(), effect.dataId);
-          if (!trackedState || trackedState.isAboutToExpire())
-          {
-            // stop looking and use the below skill and target ally.
-            ready = true;
-            bestSkillId = skillId;
-            chosenAlly = ally;
-          }
-        });
-      });
-    }
-  });
-
-  // if we ended up deciding an ally, then set them for targeting.
-  if (chosenAlly)
-  {
-    healer.setAllyTarget(chosenAlly);
-  }
-
-  return bestSkillId;
-};
-//endregion support-buffing
 //endregion support
 
 /**
@@ -1232,7 +884,7 @@ JABS_AllyAI.prototype.decideSupportBuffing = function(availableSkills, healer)
 JABS_AllyAI.prototype.aiComboChanceModifier = function()
 {
   // determine which AI mode the ally is assigned.
-  const currentMode = this.getMode().key;
+  const currentMode = this.getMode();
 
   // modify the combo chance based on the selected AI mode.
   switch (currentMode)
@@ -1250,97 +902,6 @@ JABS_AllyAI.prototype.aiComboChanceModifier = function()
   }
 };
 //endregion decide action
-
-//region battle memory
-/**
- * Handles a new memory for this battler's ally ai.
- * @param {JABS_BattleMemory} newMemory The new memory to handle.
- */
-JABS_AllyAI.prototype.applyMemory = function(newMemory)
-{
-  const memory = this.getMemory(newMemory.battlerId, newMemory.skillId);
-  if (!memory)
-  {
-    this.addMemory(newMemory);
-  }
-  else
-  {
-    this.updateMemory(newMemory);
-  }
-};
-
-/**
- * Gets a memory for a given battler id and skill id.
- * @param {number} battlerId The composite key of the battler id to find a memory for.
- * @param {number} skillId The composite key of the skill id to find a memory for.
- * @returns {JABS_BattleMemory}
- */
-JABS_AllyAI.prototype.getMemory = function(battlerId, skillId)
-{
-  return this.getMemories()
-    .find(mem => mem.battlerId === battlerId && mem.skillId === skillId);
-};
-
-/**
- * Gets all memories currently saved by this ally.
- * @returns {JABS_BattleMemory[]}
- */
-JABS_AllyAI.prototype.getMemories = function()
-{
-  return this.memory;
-};
-
-/**
- * Adds a new battle memory to this ally ai.
- * @param {JABS_BattleMemory} newMemory The new memory to add to the collection.
- */
-JABS_AllyAI.prototype.addMemory = function(newMemory)
-{
-  this.memory.push(newMemory);
-  this.memory.sort();
-};
-
-/**
- * Updates a battle memory with the new one.
- * @param {JABS_BattleMemory} newMemory The new memory to replace the old.
- */
-JABS_AllyAI.prototype.updateMemory = function(newMemory)
-{
-  let memory = this.getMemory(newMemory.battlerId, newMemory.skillId);
-  memory.effectiveness = newMemory.effectiveness;
-  memory.damageApplied = newMemory.damageApplied;
-  this.memory.sort();
-};
-
-/**
- * Filters out all "ineffective" skills from a list of possible skills based on
- * ones own memories.
- * @param {number[]} usableSkills The collection of skillIds that are being filtered.
- * @param {JABS_BattleMemory[]} memoriesOfTarget All currently stored memories this AI has for a given target.
- * @returns {number[]} All "effective" skills after the filtering has taken place.
- */
-JABS_AllyAI.prototype.filterMemoriesByEffectiveness = function(usableSkills, memoriesOfTarget)
-{
-  // a filtering function for filtering out unknown or ineffective skill ids.
-  const filtering = skillId =>
-  {
-    // grab the prior memory based on the skill id.
-    const priorMemory = memoriesOfTarget.find(mem => mem.skillId === skillId);
-
-    // if there was no prior memory, then this skill isn't known to be effective.
-    if (!priorMemory) return false;
-
-    // if the memory exists and was effective, then include this skill.
-    if (priorMemory.wasEffective()) return true;
-
-    // the memory existed, but wasn't effective, so disclude this skill.
-    return false;
-  };
-
-  // return the filtered list of skills.
-  return usableSkills.filter(filtering, this);
-};
-//endregion battle memory
 //endregion JABS_AllyAI
 
 //region JABS_AllyAIMode
@@ -1382,64 +943,6 @@ class JABS_AllyAIMode
 }
 
 //endregion JABS_AllyAIMode
-
-//region JABS_BattleMemory
-/**
- * A class representing a single battle memory.
- * Battle memories are simply a mapping of the battler targeted, the skill used, and
- * the effectiveness of the skill on the target.
- * This is used when the AI decides which action to use.
- */
-function JABS_BattleMemory()
-{
-  this.initialize(...arguments);
-}
-
-JABS_BattleMemory.prototype = {};
-JABS_BattleMemory.prototype.constructor = JABS_BattleMemory;
-
-/**
- * Initializes this class.
- * @param {number} battlerId The id of the battler the memory is built on.
- * @param {number} skillId The skill id executed against the battler.
- * @param {number} effectiveness The level of effectiveness of the skill used on this battler.
- * @param {boolean} damageApplied The damage applied to the target.
- */
-JABS_BattleMemory.prototype.initialize = function(battlerId, skillId, effectiveness, damageApplied)
-{
-  /**
-   * The id of the battler targeted.
-   * @type {number}
-   */
-  this.battlerId = battlerId;
-
-  /**
-   * The id of the skill executed.
-   * @type {number}
-   */
-  this.skillId = skillId;
-
-  /**
-   * How elementally effective the skill was that was used on the given battler id.
-   * @type {boolean}
-   */
-  this.effectiveness = effectiveness;
-
-  /**
-   * The damage dealt from this action.
-   */
-  this.damageApplied = damageApplied;
-};
-
-/**
- * Checks if this memory was an effective one.
- * @returns {boolean}
- */
-JABS_BattleMemory.prototype.wasEffective = function()
-{
-  return this.effectiveness >= 1;
-};
-//endregion JABS_BattleMemory
 
 //region JABS_Battler
 /**

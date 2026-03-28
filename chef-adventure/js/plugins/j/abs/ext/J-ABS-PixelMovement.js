@@ -53,7 +53,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -77,7 +77,7 @@ J.ABS.EXT.PIXEL = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.ABS.EXT.PIXEL.Metadata = {};
-J.ABS.EXT.PIXEL.Metadata.Version = '1.0.0';
+J.ABS.EXT.PIXEL.Metadata.Version = '1.0.1';
 J.ABS.EXT.PIXEL.Metadata.Name = `J-ABS-PixelMovement`;
 
 /**
