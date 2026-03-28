@@ -13822,7 +13822,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.5.0 JABS] Enables combat to be carried out on the map.
+ * [v4.6.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13866,6 +13866,16 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.6.0
+ *    Fixed `JABS_EnemyAI#decideAction` using `switch (this)` against boolean traits, which never matched and forced generic AI for all enemies since 2023.
+ *    Fixed undefined `defensive` reference in healer follower skill filtering.
+ *    Fixed `!skillsToUse.length > 1` operator-precedence bugs in elemental and healer filters.
+ *    Lifted shared AI helpers into `JABS_AI`: elemental filters, support decisions (cleanse/heal/buff), healing best-fit helpers, battle memory CRUD.
+ *    Moved `JABS_BattleMemory` into core so both enemy and ally AI can share the same memory model.
+ *    Added `JABS_BattlerRole` and `<jabsRole:>` tags: leader, follower, guardian, ward, solo, sentinel (legacy `<aiTrait: leader/follower>` still honored).
+ *    Added enemy AI traits: cleanser, buffer, tactical, berserker; split coordination out of trait flags into roles.
+ *    Routed leader/follower coordination through `JABS_AiManager#decideEnemyAiPhase2Action` before skill selection; solo role skips coordination.
+ *    New notetags: `<aiTrait: cleanser|buffer|tactical|berserker>` and full `jabsRole` family under `J.ABS.RegExp`.
  * - 4.5.0
  *    Consumed `RPGManager` update.
  *    Removed useless extraneous layers that handled note extraction.
@@ -15980,7 +15990,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.5.0';
+J.ABS.Metadata.Version = '4.6.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.

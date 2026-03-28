@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 TIMING] Enable modifying cooldowns/casting for actions.
+ * [v1.0.1 TIMING] Enable modifying cooldowns/casting for actions.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -217,6 +217,8 @@
  * (not a practical formula, but demonstrating use)
  * ==============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.0
  *    Initial release.
  * ==============================================================================
@@ -274,7 +276,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -300,7 +302,7 @@ J.ABS.EXT.TIMING.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.0',
+  Version: '1.0.1',
 };
 
 J.ABS.EXT.TIMING.PluginParameters = PluginManager.parameters(J.ABS.EXT.TIMING.Metadata.Name);

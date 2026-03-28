@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 DANGER] Enable danger indicators on foes on the map.
+ * [v1.0.1 DANGER] Enable danger indicators on foes on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -19,6 +19,10 @@
  * If you are using JABS, then JABS already knows what to do to make use of
  * this functionality. Just add this plugin after/below JABS, and it'll work
  * with no additional adjustments.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Raised minimum J-ABS version requirement to 4.6.0.
  * ============================================================================
  * @param defaultEnemyShowDangerIndicator
  * @type boolean
@@ -94,7 +98,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -120,7 +124,7 @@ J.ABS.EXT.DANGER.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.0',
+  Version: '1.0.1',
 };
 
 /**

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 DIAG] Enables diagonal movement.
+ * [v1.1.1 DIAG] Enables diagonal movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -77,6 +77,8 @@
  *   this.seekTarget();
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.1.0
  *    Retroactively added this CHANGELOG.
  *    Removed unnecessary references to Cyclone-Movement from this plugin.
@@ -105,7 +107,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -125,7 +127,7 @@ J.ABS.EXT.DIAG = {};
  */
 J.ABS.EXT.DIAG.Metadata = {};
 J.ABS.EXT.DIAG.Metadata.Name = `J-ABS-Diagonals`;
-J.ABS.EXT.DIAG.Metadata.Version = '1.1.0';
+J.ABS.EXT.DIAG.Metadata.Version = '1.1.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.

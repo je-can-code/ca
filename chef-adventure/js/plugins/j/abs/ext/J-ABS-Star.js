@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 STAR] Converts random encounters into star battles.
+ * [v1.0.1 STAR] Converts random encounters into star battles.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -12,6 +12,12 @@
  * This plugin is an extension to JABS, that enables standard "encounters" as
  * interpreted by RMMZ to be converted into on-the-map field-based encounters
  * leveraging JABS combat.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Raised minimum J-ABS version requirement to 4.6.0.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
  */
 
@@ -37,7 +43,7 @@ J.ABS.EXT.STAR = {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -51,7 +57,7 @@ J.ABS.EXT.STAR = {};
  */
 J.ABS.EXT.STAR.Metadata = {};
 J.ABS.EXT.STAR.Metadata.Name = 'J-ABS-STAR';
-J.ABS.EXT.STAR.Metadata.Version = '1.0.0';
+J.ABS.EXT.STAR.Metadata.Version = '1.0.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.

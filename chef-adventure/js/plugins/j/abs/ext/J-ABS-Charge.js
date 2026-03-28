@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 CHARGE] Enable skills to be charged to perform other skills.
+ * [v1.0.3 CHARGE] Enable skills to be charged to perform other skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -163,6 +163,8 @@
  * 1st tier charge skill as a result.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.2
  *    Consumed `RPGManager` update.
  * - 1.0.1
@@ -283,7 +285,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -309,7 +311,7 @@ J.ABS.EXT.CHARGE.Metadata = {
   /**
    * The version of this plugin.
    */
-  Version: '1.0.2',
+  Version: '1.0.3',
 };
 
 /**

@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 PIXEL] WIP Enables pixel movement.
+ * [v1.0.1 PIXEL] WIP Enables pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -29,6 +29,8 @@
  * movement routes with respect to pixel movement.
  * ==============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.0
  *    The initial release.
  * ==============================================================================
@@ -53,7 +55,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.5.0';
+  const requiredJabsVersion = '4.6.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -77,7 +79,7 @@ J.ABS.EXT.PIXEL = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.ABS.EXT.PIXEL.Metadata = {};
-J.ABS.EXT.PIXEL.Metadata.Version = '1.0.0';
+J.ABS.EXT.PIXEL.Metadata.Version = '1.0.1';
 J.ABS.EXT.PIXEL.Metadata.Name = `J-ABS-PixelMovement`;
 
 /**
