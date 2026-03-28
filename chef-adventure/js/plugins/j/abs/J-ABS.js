@@ -1404,6 +1404,26 @@ class JABS_Action
   }
 
   /**
+   * Gets the hitbox thickness in tiles for this JABS action.
+   * Applies to {@link J.ABS.Shapes.Line} and {@link J.ABS.Shapes.Wall} shapes.
+   * @returns {number} The thickness in tiles; defaults to 1 if not tagged.
+   */
+  getThicknessTiles()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.Thickness, true) ?? 1;
+  }
+
+  /**
+   * Gets the arc sweep in degrees for this JABS action.
+   * Applies to {@link J.ABS.Shapes.Arc} shapes.
+   * @returns {number} The degrees sweep; defaults to 180 if not tagged.
+   */
+  getDegrees()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.Degrees, true) ?? 180;
+  }
+
+  /**
    * Gets the knockback of this action.
    * @returns {number|null}
    */
@@ -1651,19 +1671,37 @@ class JABS_ActionOptions
   #terrainDamage = false;
 
   /**
+   * The per-projectile spawn offset along the X axis, in tiles, relative to the caster's
+   * fire-time position. Used by multi-projectile volleys for parallel lane separation.
+   * @type {number}
+   */
+  #spawnOffsetX = 0;
+
+  /**
+   * The per-projectile spawn offset along the Y axis, in tiles, relative to the caster's
+   * fire-time position. Used by multi-projectile volleys for parallel lane separation.
+   * @type {number}
+   */
+  #spawnOffsetY = 0;
+
+  /**
    * Constructor.<br/>
    * Use the {@link JABS_ActionOptionsBuilder} to fluently and properly build these.
    * @param {boolean} isRetaliation Whether or not the action is a retaliation of another battler.
    * @param {string} cooldownKey The cooldown's key associated with the action being executed.
    * @param {JABS_Location} location The location of the target of this action, and where it will originate.
    * @param {boolean} terrainDamage Whether or not the action is a result of terrain damage.
+   * @param {number} spawnOffsetX The X spawn offset in tiles relative to caster fire-time position.
+   * @param {number} spawnOffsetY The Y spawn offset in tiles relative to caster fire-time position.
    */
-  constructor(isRetaliation, cooldownKey, location, terrainDamage)
+  constructor(isRetaliation, cooldownKey, location, terrainDamage, spawnOffsetX = 0, spawnOffsetY = 0)
   {
     this.#isRetaliation = isRetaliation;
     this.#cooldownKey = cooldownKey;
     this.#location = location;
     this.#terrainDamage = terrainDamage;
+    this.#spawnOffsetX = spawnOffsetX;
+    this.#spawnOffsetY = spawnOffsetY;
   }
 
   /**
@@ -1705,6 +1743,26 @@ class JABS_ActionOptions
   isTerrainDamage()
   {
     return this.#terrainDamage;
+  }
+
+  /**
+   * The per-projectile spawn offset along the X axis in tiles, relative to the caster's
+   * fire-time position.
+   * @returns {number}
+   */
+  getSpawnOffsetX()
+  {
+    return this.#spawnOffsetX;
+  }
+
+  /**
+   * The per-projectile spawn offset along the Y axis in tiles, relative to the caster's
+   * fire-time position.
+   * @returns {number}
+   */
+  getSpawnOffsetY()
+  {
+    return this.#spawnOffsetY;
   }
 
   /**
@@ -1754,6 +1812,18 @@ class JABS_ActionOptionsBuilder
   #isTerrainDamage = false;
 
   /**
+   * The per-projectile spawn offset along the X axis in tiles.
+   * @type {number}
+   */
+  #spawnOffsetX = 0;
+
+  /**
+   * The per-projectile spawn offset along the Y axis in tiles.
+   * @type {number}
+   */
+  #spawnOffsetY = 0;
+
+  /**
    * Builds a new instance of the options based on the built parameters.
    * @returns {JABS_ActionOptions}
    */
@@ -1768,7 +1838,9 @@ class JABS_ActionOptionsBuilder
       this.#isRetaliation,
       this.#cooldownKey,
       JABS_Location.Clone(locationToClone),
-      this.#isTerrainDamage);
+      this.#isTerrainDamage,
+      this.#spawnOffsetX,
+      this.#spawnOffsetY);
 
     // clear out the previous data.
     this.clear();
@@ -1787,6 +1859,8 @@ class JABS_ActionOptionsBuilder
     this.#cooldownKey = J.ABS.Globals.GlobalCooldownKey;
     this.#sourceLocation = null;
     this.#isTerrainDamage = false;
+    this.#spawnOffsetX = 0;
+    this.#spawnOffsetY = 0;
   }
 
   /**
@@ -1829,6 +1903,20 @@ class JABS_ActionOptionsBuilder
   setIsTerrainDamage(isTerrainDamage)
   {
     this.#isTerrainDamage = isTerrainDamage;
+    return this;
+  }
+
+  /**
+   * Sets the per-projectile spawn offset deltas relative to the caster's fire-time position.
+   * Used by multi-projectile volleys to position parallel lanes without freezing a decision-time origin.
+   * @param {number} dx The X offset in tiles.
+   * @param {number} dy The Y offset in tiles.
+   * @returns {JABS_ActionOptionsBuilder}
+   */
+  setSpawnOffset(dx, dy)
+  {
+    this.#spawnOffsetX = dx;
+    this.#spawnOffsetY = dy;
     return this;
   }
 }
@@ -19185,22 +19273,16 @@ class JABS_ActionSpawner
     actionOptions
   )
   {
-    // resolve the caster’s current position as the base origin.
-    const originX = caster.getX();
-    const originY = caster.getY();
-
     // build a per-direction tally for how many projectiles each spoke will spawn.
     const countsByDir = this.buildProjectileCountsByDirection(projectileDirections);
 
     // precompute the lateral offset arrays for each direction based on counts.
     const offsetsByDir = this.buildOffsetsByDirection(countsByDir);
 
-    // build all actions from directions using per-spoke offsets and origin.
+    // build all actions from directions using per-spoke offsets.
     const actions = this.buildActionsForDirections(
       caster,
       projectileDirections,
-      originX,
-      originY,
       action,
       actionOptions,
       offsetsByDir
@@ -19364,8 +19446,6 @@ class JABS_ActionSpawner
    * Builds a collection of `JABS_Action` instances for a list of directions using per-spoke offsets.
    * @param {JABS_Battler} caster The battler spawning the actions.
    * @param {number[]} projectileDirections The flat list of directions to translate into actions.
-   * @param {number} originX The caster’s origin x (tiles).
-   * @param {number} originY The caster’s origin y (tiles).
    * @param {Game_Action} action The game action payload shared across projectiles.
    * @param {JABS_ActionOptions} actionOptions The base options to clone per projectile.
    * @param {Object.<number, number[]>} offsetsByDir The per-direction lateral offsets array.
@@ -19374,8 +19454,6 @@ class JABS_ActionSpawner
   static buildActionsForDirections(
     caster,
     projectileDirections,
-    originX,
-    originY,
     action,
     actionOptions,
     offsetsByDir
@@ -19411,26 +19489,17 @@ class JABS_ActionSpawner
       // translate lateral offset into dx/dy for the given facing.
       const delta = this.offsetToDelta(projectileDirection, lateral);
 
-      // compute the per-projectile spawn location in tiles.
-      const spawnX = originX + delta[0];
-      const spawnY = originY + delta[1];
-
-      // construct a location for this projectile; also capture direction for clarity.
-      const perActionLocation = JABS_Location.Builder()
-        .setX(spawnX)
-        .setY(spawnY)
-        .setDirection(projectileDirection)
-        .build();
-
-      // clone/compose a new options instance per projectile to avoid shared state.
+      // clone/compose a new options instance per projectile, storing only the lateral delta.
+      // the absolute spawn position is resolved at fire time by applying this offset to the
+      // caster's current coordinates in JABS_Engine.buildActionEventData.
       const perActionOptions = JABS_ActionOptions.Builder()
         .setIsRetaliation(actionOptions.isActionRetaliation())
         .setCooldownKey(actionOptions.getCooldownKey())
-        .setLocation(perActionLocation)
+        .setSpawnOffset(delta[0], delta[1])
         .setIsTerrainDamage(actionOptions.isTerrainDamage())
         .build();
 
-      // build and return the action bound to this projectile’s setup.
+      // build and return the action bound to this projectile's setup.
       return JABS_Action.Builder()
         .setCaster(caster)
         .setGameAction(action)
@@ -21080,7 +21149,13 @@ class JABS_AiManager
       // get closer to the target so we can execute the skill.
       this.phase2MoveCloser(battler);
     }
-    // the battler is close enough.
+    // within proximity; check lateral axis alignment for narrow directional hitboxes.
+    else if (this.needsAxisAlignment(battler))
+    {
+      // step laterally so the target falls within the skill's effective hitbox path.
+      this.phase2AlignOnAxis(battler);
+    }
+    // the battler is close enough and aligned.
     else
     {
       // flag this battler as in-position to execute.
@@ -21147,6 +21222,104 @@ class JABS_AiManager
     {
       // move towards the target instead.
       battler.smartMoveTowardTarget();
+    }
+  }
+
+  /**
+   * Determines whether this battler needs to step laterally to align with the target
+   * along the axis the decided skill's hitbox travels.
+   * Only applies to narrow directional shapes: {@link J.ABS.Shapes.Line},
+   * {@link J.ABS.Shapes.Wall}, and {@link J.ABS.Shapes.Arc} with a narrow degree sweep.
+   * @param {JABS_Battler} battler The battler to check.
+   * @returns {boolean} True if a lateral alignment step is required before firing.
+   */
+  static needsAxisAlignment(battler)
+  {
+    // grab the decided action.
+    const [ action, ] = battler.getDecidedAction();
+
+    // only narrow directional hitboxes require lateral alignment.
+    const shape = action.getShape();
+    const isNarrowShape = (
+      shape === J.ABS.Shapes.Line ||
+      shape === J.ABS.Shapes.Wall ||
+      shape === J.ABS.Shapes.Arc
+    );
+
+    // self-targeting and wide shapes do not benefit from alignment.
+    if (isNarrowShape === false) return false;
+
+    // grab the relevant target (ally or enemy).
+    const target = battler.getAllyTarget() ?? battler.getTarget();
+    if (!target) return false;
+
+    const bx = battler.getX();
+    const by = battler.getY();
+    const tx = target.getX();
+    const ty = target.getY();
+
+    // derive the perpendicular misalignment based on the dominant approach axis.
+    const absDx = Math.abs(tx - bx);
+    const absDy = Math.abs(ty - by);
+    const misalignment = (absDx >= absDy)
+      ? Math.abs(ty - by)
+      : Math.abs(tx - bx);
+
+    // compute the effective half-width tolerance for the shape.
+    let tolerance;
+    if (shape === J.ABS.Shapes.Arc)
+    {
+      // cone half-width at proximity distance: proximity * tan(halfAngle).
+      // at the default 180 degrees, tan(90) = Infinity so alignment never fires for untagged arcs.
+      const halfAngleRad = (action.getDegrees() / 2) * (Math.PI / 180);
+      tolerance = action.getProximity() * Math.tan(halfAngleRad);
+    }
+    else
+    {
+      // line and wall use the physical tile half-thickness as their tolerance.
+      tolerance = action.getThicknessTiles() / 2;
+    }
+
+    // alignment is needed when the lateral gap exceeds the shape's effective half-width.
+    return misalignment > tolerance;
+  }
+
+  /**
+   * Steps this battler one tile laterally toward the axis shared with its target,
+   * so the decided skill's narrow hitbox will cover the target when fired.
+   * Falls back to setting in-position if the lateral tile is not passable.
+   * @param {JABS_Battler} battler The battler to align.
+   */
+  static phase2AlignOnAxis(battler)
+  {
+    // grab the relevant target (ally or enemy).
+    const target = battler.getAllyTarget() ?? battler.getTarget();
+
+    const bx = battler.getX();
+    const by = battler.getY();
+    const tx = target.getX();
+    const ty = target.getY();
+
+    const absDx = Math.abs(tx - bx);
+    const absDy = Math.abs(ty - by);
+    const character = battler.getCharacter();
+
+    // for a horizontal approach, slide along Y to match the target's row;
+    // for a vertical approach, slide along X to match the target's column.
+    const alignX = (absDx >= absDy) ? bx : tx;
+    const alignY = (absDx >= absDy) ? ty : by;
+
+    // verify the lateral step is passable before committing.
+    const direction = character.findDirectionTo(alignX, alignY);
+    if (character.canPass(character.x, character.y, direction))
+    {
+      // step toward the aligned position.
+      battler.smartMoveTowardCoordinates(alignX, alignY);
+    }
+    else
+    {
+      // tile is blocked; fire from current position rather than stalling indefinitely.
+      battler.setInPosition(true);
     }
   }
 
@@ -22665,27 +22838,14 @@ class JABS_Engine
     // this aligns with AABB/collision using `screenY() - (th / 2)` for origin.
     let spawnY = (y ?? caster.getY());
 
-    // if per-action options provided an explicit location, honor it (for any action type).
+    // apply per-projectile lateral offset if present; defaults are 0 so single-projectile
+    // skills are unaffected. for multi-projectile volleys, the delta was stored at decision
+    // time and is applied here against the caster's fire-time position.
     const options = action.getActionOptions();
     if (options)
     {
-      // retrieve the target location from the options.
-      const loc = options.getTargetLocation();
-
-      // if a concrete tile coordinate is present, override the spawn.
-      if (loc)
-      {
-        const lx = loc.getX();
-        const ly = loc.getY();
-
-        // respect only when both coordinates are defined.
-        if (lx !== null && ly !== null)
-        {
-          // assign the explicit location into the spawn position.
-          spawnX = lx;
-          spawnY = ly;
-        }
-      }
+      spawnX += options.getSpawnOffsetX();
+      spawnY += options.getSpawnOffsetY();
     }
 
     // assign the spawn coordinates to the action event.
