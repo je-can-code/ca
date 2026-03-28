@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 PIXEL] WIP Enables pixel movement.
+ * [v1.0.0 PIXEL] WIP Enables pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -29,8 +29,6 @@
  * movement routes with respect to pixel movement.
  * ==============================================================================
  * CHANGELOG:
- * - 1.0.1
- *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.0
  *    The initial release.
  * ==============================================================================

@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 STAR] Converts random encounters into star battles.
+ * [v1.0.0 STAR] Converts random encounters into star battles.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14,8 +14,6 @@
  * leveraging JABS combat.
  * ============================================================================
  * CHANGELOG:
- * - 1.0.1
- *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
