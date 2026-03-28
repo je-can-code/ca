@@ -21269,10 +21269,12 @@ class JABS_AiManager
     let tolerance;
     if (shape === J.ABS.Shapes.Arc)
     {
-      // cone half-width at proximity distance: proximity * tan(halfAngle).
-      // at the default 180 degrees, tan(90) = Infinity so alignment never fires for untagged arcs.
-      const halfAngleRad = (action.getDegrees() / 2) * (Math.PI / 180);
-      tolerance = action.getProximity() * Math.tan(halfAngleRad);
+      // chord half-width at the arc's outer edge: range * sin(halfAngle).
+      // the half-angle is clamped to 90 degrees so arcs >= 180 degrees always use the
+      // full radius as tolerance, matching the geometric widest-point behavior for wide sweeps.
+      const degrees = action.getDegrees();
+      const clampedHalfRad = Math.min(degrees / 2, 90) * (Math.PI / 180);
+      tolerance = action.getRange() * Math.sin(clampedHalfRad);
     }
     else
     {
