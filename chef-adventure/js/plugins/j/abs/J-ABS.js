@@ -20298,6 +20298,12 @@ class JABS_AiManager
     }
 
     // guardian is already engaged; redirect to the ward's attacker.
+    // only show the anger balloon when the target is actually changing.
+    if (battler.getTarget() !== attacker)
+    {
+      battler.showBalloon(J.ABS.Balloons.Anger);
+    }
+
     battler.setTarget(attacker);
   }
 
