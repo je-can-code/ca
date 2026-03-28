@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 SHIELD] A JABS extension that provides state-based HP shields.
+ * [v1.0.2 SHIELD] A JABS extension that provides state-based HP shields.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -302,6 +302,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.0

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.0 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v2.1.1 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -116,6 +116,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.1
+ *    Raised minimum J-ABS version to 4.7.0.
  * - 2.1.0
  *    Raised minimum J-ABS version to 4.6.0.
  *    Delegates cleanse/heal/buff support logic to shared `JABS_AI` base methods (same behavior, less duplication).

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 HITSTOP] An extension for JABS that adds hitstop functionality.
+ * [v1.0.2 HITSTOP] An extension for JABS that adds hitstop functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -42,6 +42,8 @@
  * 100 of something will occur when this is triggered.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.0

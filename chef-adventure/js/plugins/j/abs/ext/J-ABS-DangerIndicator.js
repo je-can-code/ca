@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 DANGER] Enable danger indicators on foes on the map.
+ * [v1.0.2 DANGER] Enable danger indicators on foes on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -21,6 +21,8 @@
  * with no additional adjustments.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * ============================================================================

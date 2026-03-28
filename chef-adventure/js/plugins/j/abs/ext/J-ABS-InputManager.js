@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.1 INPUT] A manager for overseeing the input of JABS.
+ * [v2.2.2 INPUT] A manager for overseeing the input of JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -38,6 +38,8 @@
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 2.2.2
+ *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 2.2.1
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 2.2.0

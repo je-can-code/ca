@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 POSES] Enable action poses for JABS.
+ * [v1.0.3 POSES] Enable action poses for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -55,6 +55,8 @@
  * This is not a highly tested feature of JABS and may not work as intended.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.2
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.1

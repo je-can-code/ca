@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 CHARGE] Enable skills to be charged to perform other skills.
+ * [v1.0.4 CHARGE] Enable skills to be charged to perform other skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -163,6 +163,8 @@
  * 1st tier charge skill as a result.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.4
+ *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.3
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.2

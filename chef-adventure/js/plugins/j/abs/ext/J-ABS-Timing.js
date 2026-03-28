@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 TIMING] Enable modifying cooldowns/casting for actions.
+ * [v1.0.2 TIMING] Enable modifying cooldowns/casting for actions.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -217,6 +217,8 @@
  * (not a practical formula, but demonstrating use)
  * ==============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.0

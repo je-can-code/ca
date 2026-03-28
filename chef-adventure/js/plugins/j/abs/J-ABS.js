@@ -13822,7 +13822,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.6.0 JABS] Enables combat to be carried out on the map.
+ * [v4.7.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13866,6 +13866,10 @@ class JABS_Timer
  * JABS lives at the top instead of the bottom like the rest of my plugins.
  *
  * CHANGELOG:
+ * - 4.7.0
+ *    Implemented sentinel role behavior: sentinels disengage when their target leaves their home sight radius.
+ *    Implemented guardian role behavior: guardians retarget to protect nearby ward-role allies under attack.
+ *    Ward role is passive; no behavioral code runs on wards directly.
  * - 4.6.0
  *    Fixed `JABS_EnemyAI#decideAction` using `switch (this)` against boolean traits, which never matched and forced generic AI for all enemies since 2023.
  *    Fixed undefined `defensive` reference in healer follower skill filtering.
@@ -20231,6 +20235,12 @@ class JABS_AiManager
       // if we are no longer engaged due to removing dead aggros, then stop.
       if (!battler.isEngaged()) return;
 
+      // guardian role: override the current target if a nearby ward is under attack.
+      if (battler.getBattlerRole().guardian)
+      {
+        this.applyGuardianTargeting(battler);
+      }
+
       // don't try to idle while engaged.
       battler.setIdle(false);
 
@@ -20254,10 +20264,78 @@ class JABS_AiManager
     }
     else
     {
+      // guardian role: proactively engage if a nearby ward is under attack while idle.
+      if (battler.getBattlerRole().guardian)
+      {
+        this.applyGuardianTargeting(battler);
+      }
+
       // the battler is not engaged, instead just idle about.
       this.aiPhase0(battler);
     }
   }
+
+  //region guardian
+  /**
+   * Applies guardian-role targeting for the given battler.
+   * If a nearby allied ward is under attack, this guardian redirects its focus to that attacker.
+   * When not yet engaged, the guardian will engage the attacker directly.
+   * Falls through silently when no ward attacker is found.
+   * @param {JABS_Battler} battler The guardian battler to retarget.
+   */
+  static applyGuardianTargeting(battler)
+  {
+    const attacker = this.getGuardianWardAttacker(battler);
+
+    // no one is threatening a nearby ward; nothing to do.
+    if (!attacker) return;
+
+    // if the guardian isn't yet engaged, engage the attacker.
+    if (battler.isEngaged() === false)
+    {
+      battler.engageTarget(attacker);
+      return;
+    }
+
+    // guardian is already engaged; redirect to the ward's attacker.
+    battler.setTarget(attacker);
+  }
+
+  /**
+   * Scans for the first opposing battler that is currently targeting a ward-role ally
+   * within this guardian's sight range.
+   * @param {JABS_Battler} guardian The guardian battler performing the scan.
+   * @returns {JABS_Battler|null} The attacker of the nearest ward, or null if none is found.
+   */
+  static getGuardianWardAttacker(guardian)
+  {
+    // gather allied battlers within sight range and filter to those with the ward role.
+    const nearbyWards = this.getAlliedBattlersWithinRange(guardian, guardian.getSightRadius())
+      .filter(ally => ally.getBattlerRole().ward);
+
+    // no wards nearby means nothing to protect.
+    if (nearbyWards.length === 0) return null;
+
+    // gather all opposing battlers once to avoid repeated calls.
+    const enemies = this.getOpposingBattlers(guardian);
+
+    // find the first enemy whose current target is one of the nearby wards.
+    for (const ward of nearbyWards)
+    {
+      const wardUuid = ward.getUuid();
+      const attacker = enemies.find(enemy =>
+      {
+        const enemyTarget = enemy.getTarget();
+        return enemyTarget && enemyTarget.getUuid() === wardUuid;
+      });
+
+      if (attacker) return attacker;
+    }
+
+    // no ward is currently being attacked.
+    return null;
+  }
+  //endregion guardian
 
   //endregion update loop
 
@@ -20527,8 +20605,31 @@ class JABS_AiManager
     // check if the distance is outside of the pursuit radius of this battler.
     if (battler.getPursuitRadius() < distance) return true;
 
+    // sentinel role: disengage once the target leaves the sentinel's home sight radius.
+    if (battler.getBattlerRole().sentinel && this.hasSentinelTargetExceededHomeRange(battler)) return true;
+
     // do not disengage.
     return false;
+  }
+
+  /**
+   * Determines whether or not a sentinel battler's current target has left the sentinel's home range.
+   * Sentinels hold their home position and refuse to pursue targets that escape that zone.
+   * @param {JABS_Battler} battler The sentinel battler to evaluate.
+   * @returns {boolean} True if the target is beyond the sentinel's home sight radius, false otherwise.
+   */
+  static hasSentinelTargetExceededHomeRange(battler)
+  {
+    const target = battler.getTarget();
+
+    // no target means nothing to chase; treat as exceeded to trigger disengage.
+    if (!target) return true;
+
+    // measure how far the target is from this sentinel's home coordinates.
+    const distanceFromHome = target.distanceToPoint(battler.getHomeX(), battler.getHomeY());
+
+    // disengage when the target has left the home sight zone.
+    return distanceFromHome > battler.getSightRadius();
   }
 
   /**

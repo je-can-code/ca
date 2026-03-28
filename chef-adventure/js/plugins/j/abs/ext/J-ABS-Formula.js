@@ -363,7 +363,7 @@ class FormulaEffect
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 FORMULA] An extension for JABS that allows multiple damage formulas.
+ * [v1.0.2 FORMULA] An extension for JABS that allows multiple damage formulas.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -528,6 +528,8 @@ class FormulaEffect
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 1.0.2
+ *   Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
  *   Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.0

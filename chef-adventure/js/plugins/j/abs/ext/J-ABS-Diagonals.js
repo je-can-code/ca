@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 DIAG] Enables diagonal movement.
+ * [v1.1.2 DIAG] Enables diagonal movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -77,6 +77,8 @@
  *   this.seekTarget();
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.1.1
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.1.0

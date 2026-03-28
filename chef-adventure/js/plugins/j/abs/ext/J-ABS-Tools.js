@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 TOOLS] Enable new tool-like tags for use with skills.
+ * [v1.0.3 TOOLS] Enable new tool-like tags for use with skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -76,6 +76,8 @@
  * Using skill 25 against the event will pull the player to the event.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.2
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.1
