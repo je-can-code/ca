@@ -637,6 +637,17 @@ class JABS_Action
   }
 
   /**
+   * Overrides the facing direction stored on this action.
+   * Used to re-orient a volley at execution time after alignment movement
+   * has shifted the caster's position relative to the target.
+   * @param {2|4|6|8|1|3|7|9} direction The new facing direction.
+   */
+  setFacing(direction)
+  {
+    this._facing = direction;
+  }
+
+  /**
    * Whether or not this action was a result of terrain damage.
    * @returns {boolean}
    */
@@ -5982,6 +5993,13 @@ JABS_Battler.prototype.executeDodgeMovement = function()
 {
   const character = this.getCharacter();
   const direction = this.getDodgeDirection();
+
+  // #region agent log
+  if (this.getDodgeSteps() % 10 === 0)
+  {
+    fetch('http://127.0.0.1:7857/ingest/2bd1aced-05ff-48e3-9b46-1d0919e2cceb', {method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1d58a7'},body:JSON.stringify({sessionId:'1d58a7',runId:'run1',hypothesisId:'H-C',location:'_updates.js:executeDodgeMovement',message:'dodge step fired',data:{stepsRemaining:this.getDodgeSteps(),distancePerFrame:character.distancePerFrame(),realMoveSpeed:character.realMoveSpeed(),dodgeModifier:character.dodgeModifier ? character.dodgeModifier() : null,frame:Graphics.frameCount},timestamp:Date.now()})}).catch(()=>{});
+  }
+  // #endregion agent log
 
   // move the character based on their direction.
   if (character.isDiagonalDirection(direction))
@@ -14011,7 +14029,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.7.0 JABS] Enables combat to be carried out on the map.
+ * [v4.7.1 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14056,6 +14074,18 @@ class JABS_Timer
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.7.1
+ *    Added plugin parameter "Parry Map Animation Id" for the database
+ *    animation played on successful parry (default 122; 0 disables).
+ *    Fixed Sprite_MapCastGauge gauge track being shortened by skill name width;
+ *    track now always occupies the full bitmap width.
+ *    Fixed enemy projectile fire direction baked at decision time rather than
+ *    execution time; added restampActionDirections to re-orient volleys to the
+ *    battler's facing at the moment of firing.
+ *    Fixed hasInteractableEventInFront using raw fractional player coordinates
+ *    with eventsXy, which always returned no match; coordinates are now rounded
+ *    to the nearest tile before the look-ahead is computed.
+ *    Removed obsolete J.ABS.EXT.CYCLE guard from hasInteractableEventInFront.
  * - 4.7.0
  *    Renamed battler role tag from <jabsRole: X> to <aiRole: X>.
  *    Fixed axis-alignment for AI using Line, Wall, and Arc hitboxes.
@@ -15924,6 +15954,18 @@ class JABS_Timer
  * @default 7
  *
  *
+ * @param guardParryVisualConfigs
+ * @text GUARD / PARRY VISUALS
+ *
+ * @param parryCharacterAnimationId
+ * @parent guardParryVisualConfigs
+ * @type number
+ * @min 0
+ * @text Parry Map Animation Id
+ * @desc Database animation id played on the map character when a parry succeeds. Use 0 to skip the effect.
+ * @default 122
+ *
+ *
  * @param quickmenuConfigs
  * @text QUICKMENU SETUP
  *
@@ -16238,7 +16280,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.6.0';
+J.ABS.Metadata.Version = '4.7.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -16313,6 +16355,14 @@ J.ABS.Metadata.HitboxOverlaysInitiallyVisible = (J.ABS.PluginParameters['hitboxO
 // disengage configurations.
 J.ABS.Metadata.ShowDisengageBalloon = (J.ABS.PluginParameters['showDisengageBalloon'] === 'true');
 J.ABS.Metadata.DisengageBalloonId = Number(J.ABS.PluginParameters['disengageBalloonId']) || 7;
+
+// guard / parry visuals.
+const parryCharacterAnimationRaw = J.ABS.PluginParameters['parryCharacterAnimationId'];
+const parryCharacterAnimationParsed = Number(parryCharacterAnimationRaw);
+J.ABS.Metadata.ParryCharacterAnimationId = (Number.isFinite(parryCharacterAnimationParsed)
+  && parryCharacterAnimationParsed >= 0)
+  ? Math.floor(parryCharacterAnimationParsed)
+  : 122;
 
 // quick menu commands configurations.
 J.ABS.Metadata.EquipCombatSkillsText = J.ABS.PluginParameters['equipCombatSkillsText'];
@@ -20829,13 +20879,12 @@ class JABS_AiManager
     // check if the battler is "close".
     this.maintainSafeDistance(battler);
 
-    // check if we should turn towards the target.
-    // NOTE: this prevents 100% always facing the target, preventing perma-parry.
-    if (Math.randomInt(100) < 70)
-    {
-      // turn towards the target.
-      battler.turnTowardTarget();
-    }
+    // always turn toward the target during movement.
+    // with pixel movement, moveStraight is called every frame and setDirection
+    // keeps facing current regardless; a random non-turn here is cosmetically
+    // misleading without meaningful gameplay effect. the anti-parry roll has
+    // been moved to execution time where it actually controls fire direction.
+    battler.turnTowardTarget();
   }
 
   /**
@@ -21057,8 +21106,13 @@ class JABS_AiManager
    */
   static executeAiPhase2Action(battler)
   {
-    // face the target to execute the action.
+    // face the target and re-orient the volley to the fresh facing.
+    // anti-parry protection is provided by cast time: the enemy commits a
+    // direction when the cast begins, giving the player the cast window to
+    // read the angle and dodge or parry. skills with zero cast time fire
+    // instantly and are not intended to be parried.
     battler.turnTowardTarget();
+    this.restampActionDirections(battler);
 
     // destructure the primary action from the decided actions.
     const [ action, ] = battler.getDecidedAction();
@@ -21085,6 +21139,40 @@ class JABS_AiManager
 
     // start the cast timer.
     battler.setCastCountdown(action.getCastTime());
+  }
+
+  /**
+   * Re-orients the decided action volley to the battler's current facing direction.
+   * The spoke pattern (formation + count) is re-derived from the primary action's
+   * skill and rotated around the fresh facing so the volley reflects the actual
+   * target position at fire time, not the position captured at decision time.
+   * @param {JABS_Battler} battler The battler whose decided actions should be re-stamped.
+   */
+  static restampActionDirections(battler)
+  {
+    // grab the decided actions; nothing to do if empty.
+    const decidedActions = battler.getDecidedAction();
+    if (!decidedActions || decidedActions.length === 0) return;
+
+    // derive formation and count from the primary action's skill.
+    const [ primaryAction ] = decidedActions;
+    const skill = battler.getSkill(primaryAction.getBaseSkill().id);
+    const formation = $jabsEngine.resolveProjectileFormationForSkill(skill);
+    const projectileCount = $jabsEngine.resolveProjectileCountForSkill(skill);
+
+    // compute spoke directions from the fresh facing.
+    const freshFacing = battler.getCharacter().direction();
+    const freshDirections = $jabsEngine.determineActionDirections(freshFacing, formation, projectileCount);
+
+    // stamp each action with its corresponding fresh spoke direction.
+    decidedActions.forEach((action, index) =>
+    {
+      // only stamp if a direction exists for this spoke index.
+      if (freshDirections[index] !== undefined)
+      {
+        action.setFacing(freshDirections[index]);
+      }
+    });
   }
 
   /**
@@ -27071,10 +27159,13 @@ Game_Action.prototype.onParry = function(jabsBattler)
   jabsBattler.getBattler()
     .gainTp(guardSkillTp);
 
-  // play the parry animation.
-  const parryAnimationId = 122;
-  jabsBattler.getCharacter()
-    .requestAnimation(parryAnimationId);
+  // play the parry animation (0 = disabled via plugin parameters).
+  const parryAnimationId = J.ABS.Metadata.ParryCharacterAnimationId;
+  if (parryAnimationId > 0)
+  {
+    jabsBattler.getCharacter()
+      .requestAnimation(parryAnimationId);
+  }
 };
 
 /**
@@ -32283,18 +32374,13 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler)
 {
   const player = jabsBattler.getCharacter();
   const direction = player.direction();
-  const x1 = player.x;
-  const y1 = player.y;
-  let x2 = $gameMap.roundXWithDirection(x1, direction);
-  let y2 = $gameMap.roundYWithDirection(y1, direction);
 
-  // when using cyclone's movement plugin, rounding is necessary to accommodate interacting with events
-  // without actually executing your weapon attack.
-  if (J.ABS.EXT.CYCLE)
-  {
-    x2 = Math.round($gameMap.roundXWithDirection(x1, direction));
-    y2 = Math.round($gameMap.roundYWithDirection(y1, direction));
-  }
+  // player coordinates are fractional with pixel movement; round to the nearest tile
+  // before computing the look-ahead so eventsXy() can match event positions correctly.
+  const x1 = Math.round(player.x);
+  const y1 = Math.round(player.y);
+  const x2 = $gameMap.roundXWithDirection(x1, direction);
+  const y2 = $gameMap.roundYWithDirection(y1, direction);
 
   const triggers = [ 0, 1, 2 ];
 
@@ -36535,6 +36621,18 @@ Sprite_MapCastGauge.prototype.drawLabel = function()
     Math.floor(w),
     Math.floor(h),
     "left");
+};
+
+/**
+ * Overrides {@link Sprite_Gauge.gaugeX}.<br/>
+ * Returns 0 so the fill track occupies the full bitmap width.
+ * The skill name label and icon are drawn overlaid on the fill, not to its left,
+ * so the track must not be shortened by the label text width.
+ * @returns {number}
+ */
+Sprite_MapCastGauge.prototype.gaugeX = function()
+{
+  return 0;
 };
 
 /**

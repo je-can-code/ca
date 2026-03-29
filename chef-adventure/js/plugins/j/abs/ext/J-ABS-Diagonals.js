@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 DIAG] Enables diagonal movement.
+ * [v1.1.3 DIAG] Enables diagonal movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -77,6 +77,10 @@
  *   this.seekTarget();
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.3
+ *    Removed obsolete J.ABS.EXT.CYCLE / CycloneMovement guards from the
+ *    moveStraight and moveDiagonally overrides; diagonal logic now runs
+ *    unconditionally since Cyclone Movement is no longer supported.
  * - 1.1.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.1.1
@@ -862,19 +866,12 @@ Game_Player.prototype.getInputDirection = function()
 J.ABS.EXT.DIAG.Aliased.Game_Player.set('moveStraight', Game_Player.prototype.moveStraight);
 Game_Player.prototype.moveStraight = function(direction)
 {
-  // if we're using cyclone movement, rely on that instead.
-  if (globalThis.CycloneMovement)
-  {
-    // perform original logic.
-    return J.ABS.EXT.DIAG.Aliased.Game_Player.get('moveStraight')
-      .call(this, direction);
-  }
-
   // check if the direction being moved is actually a diagonal direction.
   if (this.isDiagonalDirection(direction) === false)
   {
     // perform original logic.
-    return J.ABS.EXT.DIAG.Aliased.Game_Player.moveStraight.call(this, direction);
+    return J.ABS.EXT.DIAG.Aliased.Game_Player.get('moveStraight')
+      .call(this, direction);
   }
 
   // break down the diagonal directions from the single directional.
@@ -899,9 +896,6 @@ Game_Player.prototype.moveDiagonally = function(horz, vert)
   // perform original logic.
   J.ABS.EXT.DIAG.Aliased.Game_Player.get('moveDiagonally')
     .call(this, horz, vert);
-
-  // if we're using cyclone movement, rely on that instead.
-  if (globalThis.CycloneMovement) return;
 
   // check if the movement failed.
   if (this.isMovementSucceeded() === true) return;
