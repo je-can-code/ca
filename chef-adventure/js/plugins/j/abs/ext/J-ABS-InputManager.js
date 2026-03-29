@@ -3791,37 +3791,94 @@ class Scene_JabsRemap
 
   /**
    * Ensures at most one logical action holds a given symbol across the mapping.
-   * Last occurrence wins in iteration order.
+   * The first key visited in {@link JABS_Button.assignableInputs} / {@link JABS_Button.allButtons}
+   * order keeps the symbol; later duplicates are cleared.
    * @param {Object<string, string[]>} mapping The mapping to sanitize.
    */
   sanitizeMappingUnique(mapping)
   {
-    // track the first owner of each symbol while scanning.
     const ownerBySymbol = {};
-
-    // first pass: record the first time we see a symbol and clear dups on the fly.
-    Object.keys(mapping)
-      .forEach(button =>
+    const visit = button =>
+    {
+      const list = mapping[button] || [];
+      if (list.length === 0)
       {
-        // get the list for this button (we treat only the first binding in UI).
-        const list = mapping[button] || [];
+        return;
+      }
+      const [ symbol ] = list;
+      if (!ownerBySymbol[symbol])
+      {
+        ownerBySymbol[symbol] = button;
+        return;
+      }
+      mapping[button] = [];
+    };
 
-        // if empty, continue.
-        if (list.length === 0) return;
+    const seen = new Set();
+    const assignable = JABS_Button.assignableInputs();
+    for (let i = 0; i < assignable.length; i++)
+    {
+      const button = assignable[i];
+      if (Object.prototype.hasOwnProperty.call(mapping, button))
+      {
+        visit(button);
+        seen.add(button);
+      }
+    }
 
-        // read the primary symbol.
-        const [ symbol ] = list;
+    const all = JABS_Button.allButtons();
+    for (let i = 0; i < all.length; i++)
+    {
+      const button = all[i];
+      if (seen.has(button))
+      {
+        continue;
+      }
+      if (Object.prototype.hasOwnProperty.call(mapping, button))
+      {
+        visit(button);
+        seen.add(button);
+      }
+    }
 
-        // if we’ve not seen it, mark ownership and continue.
-        if (!ownerBySymbol[symbol])
-        {
-          ownerBySymbol[symbol] = button;
-          return;
-        }
+    const keys = Object.keys(mapping);
+    for (let i = 0; i < keys.length; i++)
+    {
+      const button = keys[i];
+      if (seen.has(button))
+      {
+        continue;
+      }
+      visit(button);
+    }
+  }
 
-        // otherwise another action already owns it; unbind here.
-        mapping[button] = [];
-      });
+  /**
+   * Copies a controller-style mapping into {@link Input} namespace `JABS` so saves and registry UIs match gameplay.
+   * @param {Object<string, string|string[]>} mapping Logical JABS keys to physical symbol(s).
+   */
+  syncJabsInputRegistryFromControllerMapping(mapping)
+  {
+    const keys = Object.keys(mapping);
+    for (let i = 0; i < keys.length; i++)
+    {
+      const logicalKey = keys[i];
+      const raw = mapping[logicalKey];
+      let arr;
+      if (Array.isArray(raw))
+      {
+        arr = raw.slice(0);
+      }
+      else if (raw)
+      {
+        arr = [ raw ];
+      }
+      else
+      {
+        arr = [];
+      }
+      Input.setBindings('JABS', logicalKey, arr);
+    }
   }
 
   /**
@@ -3848,6 +3905,9 @@ class Scene_JabsRemap
 
       // persist the mapping into the system for saves.
       $gameSystem.setJabsInputConfig(key, mapping);
+
+      // keep the Input 'JABS' namespace aligned with the controller (snapshots + any registry readers).
+      this.syncJabsInputRegistryFromControllerMapping(mapping);
     }
 
     // commit any staged external (registry-backed) edits now that Apply was chosen.
@@ -3876,9 +3936,9 @@ class Scene_JabsRemap
     // replace the pending mapping with defaults.
     this._state()._pendingByKey[key] = defaults;
 
-    // refresh the actions to reflect defaults.
+    // refresh the actions list with pending JABS + staged external rows.
     this.getActionsWindow()
-      .setMapping(this._state()._pendingByKey[key]);
+      .setMapping(this.buildDisplayMapping());
 
     // flip back to the remap window.
     this.onActionsCancel();
@@ -3967,9 +4027,8 @@ class Scene_JabsRemap
       // stage an empty binding array for this external action.
       this.setPendingExternalBinding(cmd.ext.ns, cmd.ext.key, []);
 
-      // refresh to reflect the staged clear.
       this.getActionsWindow()
-        .refresh();
+        .setMapping(this.buildDisplayMapping());
       return;
     }
 
@@ -3979,7 +4038,7 @@ class Scene_JabsRemap
     const pending = this.currentPendingMapping();
     pending[button] = [];
     this.getActionsWindow()
-      .setMapping(pending);
+      .setMapping(this.buildDisplayMapping());
   }
 
   /**
@@ -3994,9 +4053,11 @@ class Scene_JabsRemap
     // set the capture flag.
     this._state()._isCapturing = true;
 
-    // show the capture prompt overlay.
+    // show the capture prompt overlay (humanized label for JABS logical keys).
+    const promptLabel = this.getActionsWindow()
+      .humanizeButton(button);
     this.getPromptWindow()
-      .startPrompt(button);
+      .startPrompt(promptLabel);
 
     // deactivate normal windows while capturing.
     this.getCommandWindow()
@@ -4238,12 +4299,8 @@ class Scene_JabsRemap
       return;
     }
 
-    // resolve and assign with conflict handling.
+    // resolve and assign with conflict handling (also refreshes the actions window mapping).
     this.assignWithConflictResolution(this._state()._capturingButton, captured);
-
-    // reflect the updated combined mapping (controller pending + external staged).
-    this.getActionsWindow()
-      .setMapping(this.buildDisplayMapping());
 
     // end the capture flow.
     this.endCapture();
@@ -4296,13 +4353,77 @@ Scene_Menu.prototype.createCommandWindow = function()
 //endregion Scene_Menu
 
 
-/* eslint-disable max-len */
-
 //region Window_JabsRemapActions
+
+const JABS_REMAP_HEADER_HELP = {
+  'Primary Actions':
+    'Primary actions used moment-to-moment: mainhand/offhand attacks and tools.\n'
+    + 'These are your core mapped buttons for direct, immediate use.',
+  'Secondary Actions':
+    'Secondary and modifier inputs: Skill Trigger, Rotate, Strafe, Dodge.\n'
+    + 'Hold or tap to modify movement or enable combat skill slots.',
+  'Functional Actions':
+    'Functional shortcuts unrelated to attacks: open the JABS menu, cycle party leader.\n'
+    + 'Useful for management between encounters or to swap leaders on the fly.',
+};
+
+/**
+ * Cached labels + help text for logical JABS buttons (built once; keys use {@link JABS_Button}).
+ * @returns {{ labels: Object<string, string>, help: Object<string, string> }}
+ */
+function jabsRemapActionLookupMaps()
+{
+  if (jabsRemapActionLookupMaps._cached)
+  {
+    return jabsRemapActionLookupMaps._cached;
+  }
+
+  const labels = {};
+  labels[JABS_Button.Mainhand] = 'Mainhand';
+  labels[JABS_Button.Offhand] = 'Offhand';
+  labels[JABS_Button.Tool] = 'Tool';
+  labels[JABS_Button.Dodge] = 'Dodge';
+  labels[JABS_Button.CombatSkill1] = 'Skill Trigger + Mainhand';
+  labels[JABS_Button.CombatSkill2] = 'Skill Trigger + Offhand';
+  labels[JABS_Button.CombatSkill3] = 'Skill Trigger + Dodge';
+  labels[JABS_Button.CombatSkill4] = 'Skill Trigger + Tool';
+  labels[JABS_Button.Sprint] = 'Sprint';
+  labels[JABS_Button.SkillTrigger] = 'Skill Trigger';
+  labels[JABS_Button.Strafe] = 'Strafe';
+  labels[JABS_Button.Rotate] = 'Rotate';
+  labels[JABS_Button.Guard] = 'Guard';
+  labels[JABS_Button.Menu] = 'Menu';
+  labels[JABS_Button.Select] = 'Party Cycle';
+
+  const help = {};
+  help[JABS_Button.Menu] = 'Open the JABS quick menu.\nAccess actions, tools, and options.';
+  help[JABS_Button.Select] = 'Cycle the party leader.\nRotate the front actor with the next in line.';
+  help[JABS_Button.Mainhand] = 'Use the mainhand action.\nTypically your basic weapon attack.';
+  help[JABS_Button.Offhand] = 'Use the offhand action.\nTypically your secondary skill, or the guard-ready indicator.';
+  help[JABS_Button.Tool] = 'Use the selected tool.\nExecutes the currently equipped tool skill.';
+  help[JABS_Button.Sprint] = 'Sprint while held.\nMove faster when conditions allow.';
+  help[JABS_Button.Dodge] = 'Execute the mobility skill.\nLunge, backstep, tumble, or similar move.';
+  help[JABS_Button.Strafe] = 'Hold facing while moving.\nLocks direction for circle-strafing.';
+  help[JABS_Button.Rotate] =
+    'Rotate in place while held.\nIf you are guard-ready, you will also raise your guard.';
+  help[JABS_Button.SkillTrigger] =
+    'Enable combat skills while held.\nPrimary actions become Combat skills 1-4.';
+  // Not directly mappable; shares input with rotation in practice.
+  help[JABS_Button.Guard] =
+    'Hold to raise guard (if guard skill is available).\nRaises guard skill when available.';
+  help[JABS_Button.CombatSkill1] = 'Trigger Combat Skill 1.\nUsed with the Skill Trigger modifier.';
+  help[JABS_Button.CombatSkill2] = 'Trigger Combat Skill 2.\nUsed with the Skill Trigger modifier.';
+  help[JABS_Button.CombatSkill3] = 'Trigger Combat Skill 3.\nUsed with the Skill Trigger modifier.';
+  help[JABS_Button.CombatSkill4] = 'Trigger Combat Skill 4.\nUsed with the Skill Trigger modifier.';
+
+  jabsRemapActionLookupMaps._cached = { labels, help };
+  return jabsRemapActionLookupMaps._cached;
+}
+
 /**
  * The list window that shows logical actions and current bindings.
- * Refactored to extend {@link Window_Command} with builder-style organization
- * and namespaced state under {@link this._j._abs._input}.
+ * Extends {@link Window_Command} with builder-style rows and namespaced state under
+ * {@link this._j._abs._input._actions}.
  */
 class Window_JabsRemapActions
   extends Window_Command
@@ -4313,77 +4434,33 @@ class Window_JabsRemapActions
    */
   constructor(rect)
   {
-    // perform super initialize.
     super(rect);
-
-    // initialize the root-namespace definition members.
-    this.initCoreMembers();
-
-    // initialize the window-local members.
-    this.initPrimaryMembers();
-
-    // align selection to the first actionable entry by default.
+    this.initMembers();
     this.select(this.firstActionIndex());
   }
 
   //region init
   /**
-   * Initializes the shared root namespace for this plugin branch.
+   * Ensures `this._j._abs._input._actions` exists and seeds state/view bags.
+   * Also hydrates the assignable button list when empty.
    */
-  initCoreMembers()
+  initMembers()
   {
-    /**
-     * The shared root namespace for all of J's plugin data.
-     */
     this._j ||= {};
-
-    /**
-     * A grouping of all properties associated with JABS.
-     */
     this._j._abs ||= {};
-
-    /**
-     * A grouping of all properties associated with JABS input.
-     */
     this._j._abs._input ||= {};
-
-    /**
-     * A grouping for this window within the input branch.
-     */
     this._j._abs._input._actions ||= {};
-  }
 
-  /**
-   * Initializes the state and view members for this window.
-   */
-  initPrimaryMembers()
-  {
-    /**
-     * Window-local state bag.
-     */
-    this._j._abs._input._actions._state = {
-      // The JABS mapping to display (owned/managed by the scene).
+    const actions = this._j._abs._input._actions;
+    actions._state = {
       _mapping: {},
-
-      // The external mapping for rows built via buildExternalActionCommand().
       _externalMapping: {},
-
-      // The authoritative, ordered list of JABS logical action keys to display.
       _buttons: [],
     };
+    actions._view = { _helpWindow: null };
 
-    /**
-     * Window-local view bag.
-     */
-    this._j._abs._input._actions._view = {
-      // The help window bound to this command window.
-      _helpWindow: null,
-    };
-
-    // Pre-build the static button list if not already present.
     if (this.getButtons().length === 0)
     {
-      // Set the authoritative buttons list for this window.
       this.setButtons(this.buildButtonList());
     }
   }
@@ -4397,7 +4474,6 @@ class Window_JabsRemapActions
    */
   getMapping()
   {
-    // read from the lazily-initialized state bag.
     return this._state()._mapping || {};
   }
 
@@ -4407,35 +4483,27 @@ class Window_JabsRemapActions
    */
   setMapping(mapping)
   {
-    // store the mapping reference (scene owns lifecycle of the object).
     this._state()._mapping = mapping || {};
-
-    // refresh the contents to draw the values.
     this.refresh();
   }
 
   /**
-   * Gets the current external mapping reference owned by the scene.
-   * The shape is: { [`${ns}:${key}`]: string[] }
+   * Gets the external mapping reference for rows from {@link buildExternalActionCommand}.
+   * Shape: `{ [`${ns}:${key}`]: string[] }` (scene-owned; optional).
    * @returns {Object<string, string[]>}
    */
   getExternalMapping()
   {
-    // Read from the lazily-initialized state bag.
     return this._state()._externalMapping || {};
   }
 
   /**
-   * Sets the external mapping reference for external action rows.
-   * The scene should maintain and update this object; the window only reads it.
+   * Sets the external mapping reference; scene owns lifecycle.
    * @param {Object<string, string[]>} externalMapping The external mapping.
    */
   setExternalMapping(externalMapping)
   {
-    // Store the reference (scene owns lifecycle and updates).
     this._state()._externalMapping = externalMapping || {};
-
-    // Refresh the contents to draw the values.
     this.refresh();
   }
 
@@ -4445,16 +4513,11 @@ class Window_JabsRemapActions
    */
   getButtons()
   {
-    // obtain the window state bag.
     const state = this._state();
-
-    // if we already have an authoritative list, use it.
     if (state._buttons && state._buttons.length > 0)
     {
       return state._buttons;
     }
-
-    // otherwise, fall back to the canonical assignable list without mutating state.
     return this.buildButtonList();
   }
 
@@ -4464,12 +4527,9 @@ class Window_JabsRemapActions
    */
   setButtons(buttons)
   {
-    // store a defensive copy of the ordered button list.
     this._state()._buttons = Array.isArray(buttons)
       ? buttons.slice(0)
       : [];
-
-    // rebuild the command list to reflect the new set of rows.
     this.refresh();
   }
 
@@ -4479,7 +4539,6 @@ class Window_JabsRemapActions
    */
   getHelpWindow()
   {
-    // return the tracked help window instance.
     return this._view()._helpWindow;
   }
 
@@ -4489,47 +4548,43 @@ class Window_JabsRemapActions
    */
   setHelpWindow(helpWindow)
   {
-    // store a local reference for access via getter.
     this._view()._helpWindow = helpWindow;
-
-    // also perform the default linkage.
     super.setHelpWindow(helpWindow);
   }
 
   /**
-   * Returns the current logical button at the cursor (or section label for headers).
+   * Returns the current logical button at the cursor (or section / external label for headers).
    * @returns {string}
    */
   currentButton()
   {
-    // read the current command.
     const cmd = this.currentData();
-
-    // if there is no command, return empty.
-    if (!cmd) return String.empty;
-
-    // if this is a header, return its label.
+    if (!cmd)
+    {
+      return String.empty;
+    }
     if (cmd.ext && cmd.ext.kind === 'header')
     {
       return String(cmd.ext.label || String.empty);
     }
-
-    // if this is an external action, return its display label (for prompt/help).
     if (cmd.ext && cmd.ext.kind === 'ext-action')
     {
       return String(cmd.ext.label || String.empty);
     }
-
-    // otherwise return the logical action key.
+    if (cmd.ext && cmd.ext.kind === 'action')
+    {
+      return String(cmd.ext.button || cmd.symbol || String.empty);
+    }
     return String(cmd.symbol || String.empty);
   }
 
   /**
-   * Lazily ensures the root namespace exists.
+   * Ensures the `_j._abs._input._actions` chain exists.
+   * Lazily mirrors ctor init so accessors stay valid when this window is touched without a full
+   * new-game init path (continued saves, aliased entry, or future scene wiring).
    */
   _root()
   {
-    // ensure root namespaces.
     this._j ||= {};
     this._j._abs ||= {};
     this._j._abs._input ||= {};
@@ -4538,14 +4593,11 @@ class Window_JabsRemapActions
 
   /**
    * Lazily ensures and returns the window-local state bag.
-   * @returns {{_mapping:Object<string,string[]>, _externalMapping:Object<string, string[]> , _buttons:string[]}}
+   * @returns {{_mapping:Object<string,string[]>, _externalMapping:Object<string, string[]>, _buttons:string[]}}
    */
   _state()
   {
-    // Ensure root namespaces.
     this._root();
-
-    // Ensure and return the state bag with all tracked properties.
     const actions = this._j._abs._input._actions;
     actions._state ||= {
       _mapping: {},
@@ -4561,10 +4613,7 @@ class Window_JabsRemapActions
    */
   _view()
   {
-    // ensure root namespaces.
     this._root();
-
-    // ensure and return the view bag.
     const actions = this._j._abs._input._actions;
     actions._view ||= { _helpWindow: null };
     return actions._view;
@@ -4574,84 +4623,109 @@ class Window_JabsRemapActions
 
   //region builders
   /**
+   * Built-in section specs (title + logical keys). Override to reorder or replace default sections.
+   * @returns {{ title: string, buttons: string[] }[]}
+   */
+  _builtinSectionSpecs()
+  {
+    return [
+      {
+        title: 'Primary Actions',
+        buttons: [
+          JABS_Button.Mainhand,
+          JABS_Button.Offhand,
+          JABS_Button.Tool,
+          JABS_Button.Sprint,
+        ],
+      },
+      {
+        title: 'Secondary Actions',
+        buttons: [
+          JABS_Button.SkillTrigger,
+          JABS_Button.Rotate,
+          JABS_Button.Strafe,
+          JABS_Button.Dodge,
+        ],
+      },
+      {
+        title: 'Functional Actions',
+        buttons: [
+          JABS_Button.Menu,
+          JABS_Button.Select,
+        ],
+      },
+    ];
+  }
+
+  /**
+   * Appends built-in header + action rows between pre/post extension hooks.
+   * @param {BuiltWindowCommand[]} rows Accumulated rows.
+   * @param {Set<string>} can Assignable logical keys for this window.
+   */
+  buildBuiltinActionSections(rows, can)
+  {
+    const specs = this._builtinSectionSpecs();
+    for (let i = 0; i < specs.length; i++)
+    {
+      const spec = specs[i];
+      rows.push(this.buildHeaderCommand(spec.title));
+      for (let j = 0; j < spec.buttons.length; j++)
+      {
+        this._addIf(rows, can, spec.buttons[j]);
+      }
+    }
+  }
+
+  /**
    * Builds the ordered list of logical actions to show.
    * @returns {string[]}
    */
   buildButtonList()
   {
-    // build from the canonical list of assignable inputs provided by JABS_Button.
-    const list = JABS_Button.assignableInputs();
-
-    // return as-is (the provided list is authoritative and de-duplicated).
-    return list;
+    return JABS_Button.assignableInputs();
   }
 
   /**
-   * Implements {@link Window_Command.prototype.makeCommandList}.<br>
-   * Creates all commands (headers + actions) for this window.
+   * Implements {@link Window_Command.prototype.makeCommandList}.
    */
   makeCommandList()
   {
-    // build all the commands for the window; this does not require pre-initialized state.
     const commands = this.buildCommands();
-
-    // add all built commands to the list.
     commands.forEach(this.addBuiltCommand, this);
   }
 
   /**
-   * Builds all commands for this command window (headers + actions).
-   * Composed from small group builders to encourage extension.
+   * Builds all commands (headers + actions) for this window.
    * @returns {BuiltWindowCommand[]}
    */
   buildCommands()
   {
-    // reference the assignable set for quick membership checks; falls back if not stored yet.
     const can = new Set(this.getButtons());
-
-    // compile the rows in order using composition.
     const rows = [];
-
-    // allow extensions to prepend entire sections before the built-ins.
     this.buildPreExtensionGroups(rows, can);
-
-    // build primary group.
-    this.buildPrimaryGroupRows(rows, can);
-
-    // build secondary group.
-    this.buildSecondaryGroupRows(rows, can);
-
-    // build functional group.
-    this.buildFunctionalGroupRows(rows, can);
-
-    // allow extensions to append entire sections after the built-ins.
+    this.buildBuiltinActionSections(rows, can);
     this.buildPostExtensionGroups(rows, can);
-
-    // return the compiled list of commands.
     return rows;
   }
 
   /**
-   * Adds an action command row if the logical button is assignable in this context.
-   * @param {BuiltWindowCommand[]} rows The rows being built.
-   * @param {Set<string>} can The set of assignable logical action keys.
-   * @param {string} button The logical button to conditionally add.
+   * Adds an action row when the logical key is assignable in this context.
+   * @param {BuiltWindowCommand[]} rows Rows being built.
+   * @param {Set<string>} can Assignable logical keys.
+   * @param {string} button Logical key.
    */
   _addIf(rows, can, button)
   {
-    // only add if the action is assignable in this context.
     if (can.has(button))
     {
-      // build and push the action command row.
       rows.push(this.buildActionCommand(button));
     }
   }
 
   /**
-   * Allows plugins to prepend custom sections before the built-in groups.
-   * Default: no-op. Alias to insert rows.
-   * @param {BuiltWindowCommand[]} rows The rows being built.
-   * @param {Set<string>} can The set of assignable logical action keys.
+   * Prepend custom sections before built-in groups.
+   * @param {BuiltWindowCommand[]} rows Rows being built.
+   * @param {Set<string>} can Assignable logical keys.
    */
   // eslint-disable-next-line no-unused-vars
   buildPreExtensionGroups(rows, can)
@@ -4659,122 +4733,66 @@ class Window_JabsRemapActions
   }
 
   /**
-   * Builds the Primary Actions section and its rows.
-   * @param {BuiltWindowCommand[]} rows The rows being built.
-   * @param {Set<string>} can The set of assignable logical action keys.
-   */
-  buildPrimaryGroupRows(rows, can)
-  {
-    // add a header for the primary actions.
-    rows.push(this.buildHeaderCommand('Primary Actions'));
-
-    // add primary logical actions if assignable.
-    this._addIf(rows, can, JABS_Button.Mainhand);
-    this._addIf(rows, can, JABS_Button.Offhand);
-    this._addIf(rows, can, JABS_Button.Tool);
-    this._addIf(rows, can, JABS_Button.Sprint);
-  }
-
-  /**
-   * Builds the Secondary Actions section and its rows.
-   * @param {BuiltWindowCommand[]} rows The rows being built.
-   * @param {Set<string>} can The set of assignable logical action keys.
-   */
-  buildSecondaryGroupRows(rows, can)
-  {
-    // add a header for the secondary actions.
-    rows.push(this.buildHeaderCommand('Secondary Actions'));
-
-    // add secondary logical actions if assignable.
-    this._addIf(rows, can, JABS_Button.SkillTrigger);
-    this._addIf(rows, can, JABS_Button.Rotate);
-    this._addIf(rows, can, JABS_Button.Strafe);
-    this._addIf(rows, can, JABS_Button.Dodge);
-  }
-
-  /**
-   * Builds the Functional Actions section and its rows.
-   * @param {BuiltWindowCommand[]} rows The rows being built.
-   * @param {Set<string>} can The set of assignable logical action keys.
-   */
-  buildFunctionalGroupRows(rows, can)
-  {
-    // add a header for the functional actions.
-    rows.push(this.buildHeaderCommand('Functional Actions'));
-
-    // add functional logical actions if assignable.
-    this._addIf(rows, can, JABS_Button.Menu);
-    this._addIf(rows, can, JABS_Button.Select);
-  }
-
-  /**
-   * Allows plugins to append custom sections after the built-in groups.
-   * Default: no-op. Override/alias to insert rows.
-   * @param {BuiltWindowCommand[]} rows The rows being built.
-   * @param {Set<string>} can The set of assignable logical action keys.
+   * Append custom sections after built-in groups.
+   * @param {BuiltWindowCommand[]} rows Rows being built.
+   * @param {Set<string>} can Assignable logical keys.
    */
   // eslint-disable-next-line no-unused-vars
   buildPostExtensionGroups(rows, can)
   {
-    // default: intentionally empty for extensions to override.
   }
 
   /**
-   * Builds a header command that is non-interactive.
-   * @param {string} label The header label to display.
+   * Builds a non-interactive section header.
+   * @param {string} label Header label.
    * @returns {BuiltWindowCommand}
    */
   buildHeaderCommand(label)
   {
-    // build a disabled command that represents a section header.
     return new WindowCommandBuilder(label)
       .setSymbol(`__header__${label}`)
       .setExtensionData({
         kind: 'header',
-        label
+        label,
       })
       .setEnabled(false)
       .build();
   }
 
   /**
-   * Builds an actionable command for a logical action button.
-   * @param {string} button The logical action key.
+   * Builds a remappable JABS logical action row.
+   * @param {string} button Logical action key.
    * @returns {BuiltWindowCommand}
    */
   buildActionCommand(button)
   {
-    // build an enabled command that represents a remappable action.
     return new WindowCommandBuilder(this.humanizeButton(button))
       .setSymbol(button)
       .setExtensionData({
         kind: 'action',
-        button
+        button,
       })
       .setEnabled(true)
       .build();
   }
 
   /**
-   * Builds an actionable command for an external namespace logical action.
-   * The window will read/write these directly via the Input registry.
-   * @param {string} ns The namespace (ex: "J.MAP").
-   * @param {string} key The logical key within that namespace.
-   * @param {string} label The row label to display.
-   * @param {number} [iconIndex=0] Optional fixed left-side icon index for this action.
+   * Builds a row backed by {@link Input} registry keys (external namespace).
+   * @param {string} ns Namespace (e.g. `"J.MAP"`).
+   * @param {string} key Logical key within `ns`.
+   * @param {string} label Row label.
+   * @param {number} [iconIndex=0] Optional fixed left icon; 0 = derive from binding.
    * @returns {BuiltWindowCommand}
    */
   buildExternalActionCommand(ns, key, label, iconIndex)
   {
-    // build an enabled command that carries external namespace metadata.
     return new WindowCommandBuilder(label)
       .setSymbol(`__ext__${ns}:${key}`)
       .setExtensionData({
         kind: 'ext-action',
-        ns: ns,
-        key: key,
-        label: label,
-        // an optional fixed per-action icon for the left glyph; 0 means none provided.
+        ns,
+        key,
+        label,
         icon: Number(iconIndex) || 0,
       })
       .setEnabled(true)
@@ -4785,243 +4803,161 @@ class Window_JabsRemapActions
 
   //region drawing
   /**
-   * Draws a single item.
-   * @param {number} index The index to draw.
+   * @param {number} index Row index.
    */
   drawItem(index)
   {
-    // get the rectangle for this line.
     const rect = this.itemRectWithPadding(index);
-
-    // resolve the command to draw.
     const cmd = this._list[index];
-
-    // if no command found, do nothing.
     if (!cmd)
     {
       return;
     }
-
-    // if this is a header row, draw it and exit.
     if (cmd.ext && cmd.ext.kind === 'header')
     {
       this._drawHeaderItem(rect, cmd);
       return;
     }
-
-    // if this is an external registry-backed action, draw that and exit.
     if (cmd.ext && cmd.ext.kind === 'ext-action')
     {
       this._drawExternalActionItem(rect, cmd);
       return;
     }
-
-    // otherwise render the standard JABS logical action row.
     this._drawJabsActionItem(rect, cmd);
   }
 
   /**
-   * Draws a header row centered with system color styling.
-   * @param {Rectangle} rect The row rectangle.
-   * @param {{name:string, ext:object}} cmd The command data for this row.
+   * @param {Rectangle} rect Row rect.
+   * @param {{name:string, ext:object}} cmd Command data.
    */
   _drawHeaderItem(rect, cmd)
   {
-    // resolve a friendly header label.
     const name = cmd.name || String.empty;
-
-    // apply system color and bold before drawing.
     this.changeTextColor(ColorManager.systemColor());
     this.contents.fontBold = true;
-
-    // draw the header centered across the full row.
     this.drawText(name, rect.x, rect.y, rect.width, 'center');
-
-    // reset text styling after drawing.
     this.resetTextColor();
     this.contents.fontBold = false;
   }
 
   /**
-   * Draws an external registry-backed action row.
-   * @param {Rectangle} rect The row rectangle.
-   * @param {{ name:string, symbol:string, ext:object }} cmd The command for this row.
+   * @param {Rectangle} rect Row rect.
+   * @param {{ name:string, symbol:string, ext:object }} cmd Command data.
    */
   _drawExternalActionItem(rect, cmd)
   {
-    // read the display label for this external action.
-    const displayLabel = String(cmd.ext.label || "");
-
-    // read the combined mapping from the window (scene-provided view model).
+    const displayLabel = String(cmd.ext.label || '');
     const combined = this.getMapping();
-
-    // the command symbol is a stable token: "__ext__<ns>:<key>".
-    const token = String(cmd.symbol || "");
-
-    // if a staged entry exists in the combined mapping, prefer that list.
+    const token = String(cmd.symbol || '');
     const hasStaged = Object.prototype.hasOwnProperty.call(combined, token);
     const staged = hasStaged ? combined[token] : null;
-
-    // otherwise, fall back to the live registry for this external action.
-    const boundList = staged !== null
-      ? (Array.isArray(staged) ? staged : [])
-      : (Input.getBindings(cmd.ext.ns, cmd.ext.key) || []);
-
-    // extract the primary binding if any.
+    let boundList;
+    if (staged !== null)
+    {
+      boundList = Array.isArray(staged) ? staged : [];
+    }
+    else
+    {
+      boundList = Input.getBindings(cmd.ext.ns, cmd.ext.key) || [];
+    }
     const bound = boundList.length > 0
       ? boundList[0]
       : String.empty;
-
-    // prefer a fixed per-action icon if provided; otherwise use the bound symbol’s icon.
-    const leftIcon = (cmd.ext.icon && cmd.ext.icon > 0)
-      ? cmd.ext.icon
-      : this.iconIndexForSymbol(bound);
-
-    // compute vertical placement for the icon and the mid X for two-column layout.
-    const iconY = this._iconYForRect(rect);
-    const midX = rect.x + Math.floor(rect.width / 2);
-
-    // draw the left column (icon + label).
-    this._drawLeftLabelWithOptionalIcon(rect.x, iconY, leftIcon, displayLabel, rect, midX);
-
-    // draw the center arrow.
-    this._drawArrowBetweenColumns(rect, midX);
-
-    // draw the right column binding text with icon escapes.
-    const rightText = IconManager.jabsIconTextForSymbol(bound);
-    this._drawRightBindingText(rect, midX, rightText);
+    let leftIcon = 0;
+    if (cmd.ext.icon && cmd.ext.icon > 0)
+    {
+      leftIcon = cmd.ext.icon;
+    }
+    this._drawActionBindingRow(rect, displayLabel, bound, leftIcon);
   }
 
   /**
-   * Draws a standard JABS logical action row using the window’s mapping.
-   * @param {Rectangle} rect The row rectangle.
-   * @param {{symbol:string}} cmd The command data for this row.
+   * @param {Rectangle} rect Row rect.
+   * @param {{symbol:string}} cmd Command data.
    */
   _drawJabsActionItem(rect, cmd)
   {
-    // resolve the logical button key from the command.
     const button = String(cmd.symbol);
-
-    // read the displayed mapping from the window state.
     const mapping = this.getMapping();
-
-    // read the binding list for this logical action.
     const boundList = mapping[button] || [];
-
-    // extract the primary binding if present.
     const bound = boundList.length > 0
       ? boundList[0]
       : String.empty;
-
-    // choose a readable label for the logical action.
     const label = this.humanizeButton(button);
-
-    // draw the shared layout for this label/binding.
-    this._drawActionBindingRow(rect, label, bound);
+    this._drawActionBindingRow(rect, label, bound, 0);
   }
 
   /**
-   * Computes a vertically-centered Y for drawing an icon within a row.
-   * @param {Rectangle} rect The row rectangle.
-   * @returns {number} The Y coordinate for the icon.
+   * @param {Rectangle} rect Row rect.
+   * @returns {number} Icon Y.
    */
   _iconYForRect(rect)
   {
-    // read shared icon height from the image manager.
     const ih = ImageManager.iconHeight;
-
-    // compute a vertically-centered y for the icon within the row.
     return rect.y + Math.max(0, Math.floor((this.lineHeight() - ih) / 2));
   }
 
   /**
-   * Draws an optional icon at the left and the provided label next to it.
-   * @param {number} leftX The left column start X.
-   * @param {number} iconY The Y where an icon would be drawn.
-   * @param {number} iconIndex The icon index to draw; 0 means no icon.
-   * @param {string} label The label to draw.
-   * @param {Rectangle} rect The row rectangle.
-   * @param {number} midX The mid X to limit left column width.
+   * @param {number} leftX Left column X.
+   * @param {number} iconY Icon Y.
+   * @param {number} iconIndex Icon index; 0 = skip icon.
+   * @param {string} label Text after optional icon.
+   * @param {Rectangle} rect Row rect.
+   * @param {number} midX Column split.
    */
   _drawLeftLabelWithOptionalIcon(leftX, iconY, iconIndex, label, rect, midX)
   {
-    // start the text at the left side.
     let labelX = leftX;
-
-    // if we have a valid icon index (> 0), draw it and push the text to the right.
     if (iconIndex > 0)
     {
-      // draw the icon to the far-left, preceding the action label.
       this.drawIcon(iconIndex, leftX, iconY);
-
-      // add spacing for the icon width + padding before drawing the action text.
       labelX += ImageManager.iconWidth + 6;
     }
-
-    // compute the maximum width for the left column (half of the row width).
     const leftW = Math.max(0, midX - rect.x);
-
-    // draw the action label to the right of the icon (if any).
     this.drawText(label, labelX, rect.y, leftW);
   }
 
   /**
-   * Draws a complete two-column action row for a given label and binding.
-   * @param {Rectangle} rect The row rectangle.
-   * @param {string} label The left-column label to display.
-   * @param {string} bound The primary bound physical symbol to display on the right.
+   * Two-column row: optional fixed left icon, label, arrow, binding (with icon escapes).
+   * @param {Rectangle} rect Row rect.
+   * @param {string} label Left column label.
+   * @param {string} bound Primary physical symbol for the right column.
+   * @param {number} leftIconOverride Fixed left icon index; 0 = use {@link iconIndexForSymbol} on `bound`.
    */
-  _drawActionBindingRow(rect, label, bound)
+  _drawActionBindingRow(rect, label, bound, leftIconOverride)
   {
-    // resolve an icon index for the bound physical symbol.
-    const iconIndex = this.iconIndexForSymbol(bound);
-
-    // compute the vertical placement for an icon.
+    let iconIndex = leftIconOverride;
+    if (!(iconIndex > 0))
+    {
+      iconIndex = this.iconIndexForSymbol(bound);
+    }
     const iconY = this._iconYForRect(rect);
-
-    // compute the middle x for two-column layout.
     const midX = rect.x + Math.floor(rect.width / 2);
-
-    // draw the left column (icon + label).
     this._drawLeftLabelWithOptionalIcon(rect.x, iconY, iconIndex, label, rect, midX);
-
-    // draw the center arrow.
     this._drawArrowBetweenColumns(rect, midX);
-
-    // draw the right column binding text with icon escapes.
     const rightText = IconManager.jabsIconTextForSymbol(bound);
     this._drawRightBindingText(rect, midX, rightText);
   }
 
   /**
-   * Draws the center arrow that separates left/right columns.
-   * @param {Rectangle} rect The row rectangle.
-   * @param {number} midX The middle X of the row.
+   * @param {Rectangle} rect Row rect.
+   * @param {number} midX Column split.
    */
   _drawArrowBetweenColumns(rect, midX)
   {
-    // define the arrow glyph to draw.
     const arrow = '→';
-
-    // draw the arrow centered between columns.
     this.drawText(arrow, midX - this.textWidth(arrow), rect.y, Math.floor(rect.width / 2));
   }
 
   /**
-   * Draws the right-column binding text (may contain icon escapes), right-aligned.
-   * @param {Rectangle} rect The row rectangle.
-   * @param {number} midX The middle X of the row.
-   * @param {string} rightText The text to draw (often produced by IconManager).
+   * @param {Rectangle} rect Row rect.
+   * @param {number} midX Column split.
+   * @param {string} rightText Text for {@link Window_Base.prototype.drawTextEx}.
    */
   _drawRightBindingText(rect, midX, rightText)
   {
-    // measure the rendered width (icons + text) to right-align manually.
     const rightWidth = this.textSizeEx(rightText).width;
-
-    // compute the right-aligned x within the right half.
     const rightX = midX + Math.floor(rect.width / 2) - rightWidth;
-
-    // draw the mapping text on the right column using drawTextEx (enables icons).
     this.drawTextEx(rightText, rightX, rect.y, Math.floor(rect.width / 2));
   }
 
@@ -5029,69 +4965,50 @@ class Window_JabsRemapActions
 
   //region help
   /**
-   * Updates the linked help window with a description of the selected action.
+   * Updates the linked help window from the current selection.
    */
   updateHelp()
   {
-    // read the bound help window.
     const help = this.getHelpWindow();
-
-    // if we have no help window, do nothing.
-    if (!help) return;
-
-    // resolve the currently selected logical or header label.
+    if (!help)
+    {
+      return;
+    }
     const button = this.currentButton();
-
-    // build the description for this selection.
-    const text = this.describeButton(button);
-
-    // update the help text.
-    help.setText(text);
+    help.setText(this.describeButton(button));
   }
 
   //endregion help
 
   //region handling
   /**
-   * Processes the OK input.
-   * Prevents confirming header rows.
+   * Blocks OK on header rows only.
    */
   processOk()
   {
-    // read the current command.
     const cmd = this.currentData();
-
-    // if there is no command, buzz and do nothing.
     if (!cmd)
     {
       SoundManager.playBuzzer();
       return;
     }
-
-    // block only headers; allow normal and external actions to proceed.
     if (cmd.ext && cmd.ext.kind === 'header')
     {
       SoundManager.playBuzzer();
       return;
     }
-
-    // defer to default behavior when actionable.
     super.processOk();
   }
 
   /**
-   * Defines the standard handlers for OK/Cancel and Clear.
+   * Forwards to base handling and maps PageDown to the `clear` handler.
    */
   processHandling()
   {
-    // perform super handling.
     super.processHandling();
-
-    // handle clear binding when the delete-like key is pressed.
-    if (this.isOpenAndActive())
+    if (this.isOpenAndActive() && Input.isTriggered('pagedown'))
     {
-      // if the PageDown key was triggered, clear the binding.
-      if (Input.isTriggered('pagedown')) this.callHandler('clear');
+      this.callHandler('clear');
     }
   }
 
@@ -5099,136 +5016,66 @@ class Window_JabsRemapActions
 
   //region utils
   /**
-   * Finds the first actionable command index (skips headers).
+   * First enabled command index (skips disabled headers).
    * @returns {number}
    */
   firstActionIndex()
   {
-    // find the first index in the list that is enabled.
     for (let i = 0; i < this._list.length; i++)
     {
-      // read the command at this index.
       const cmd = this._list[i];
-
-      // if enabled, return this index.
-      if (cmd && cmd.enabled !== false) return i;
+      if (cmd && cmd.enabled !== false)
+      {
+        return i;
+      }
     }
-
-    // fallback to zero when none found.
     return 0;
   }
 
   /**
-   * Converts a logical button key into a readable label.
-   * @param {string} button The logical button key.
+   * @param {string} button Logical key.
    * @returns {string}
    */
   humanizeButton(button)
   {
-    // map known logical keys to nice labels.
-    const map = {};
-    map[JABS_Button.Mainhand] = 'Mainhand';
-    map[JABS_Button.Offhand] = 'Offhand';
-    map[JABS_Button.Tool] = 'Tool';
-    map[JABS_Button.Dodge] = 'Dodge';
-
-    // updated, descriptive labels for the four combat actions (not assignable here).
-    map[JABS_Button.CombatSkill1] = 'Skill Trigger + Mainhand';
-    map[JABS_Button.CombatSkill2] = 'Skill Trigger + Offhand';
-    map[JABS_Button.CombatSkill3] = 'Skill Trigger + Dodge';
-    map[JABS_Button.CombatSkill4] = 'Skill Trigger + Tool';
-
-    // modifiers & mobility.
-    map[JABS_Button.Sprint] = 'Sprint';
-    map[JABS_Button.SkillTrigger] = 'Skill Trigger';
-    map[JABS_Button.Strafe] = 'Strafe';
-    map[JABS_Button.Rotate] = 'Rotate';
-    map[JABS_Button.Guard] = 'Guard';
-
-    // functionality.
-    map[JABS_Button.Menu] = 'Menu';
-    map[JABS_Button.Select] = 'Party Cycle';
-
-    // return the translated label or the key if missing.
-    return map[button] || button;
+    const { labels } = jabsRemapActionLookupMaps();
+    return labels[button] || button;
   }
 
   /**
-   * Resolves an icon for a physical input symbol by consulting the IconManager.
-   * Falls back to 0 (no icon) when unmapped.
-   * @param {string} symbol The physical symbol to resolve an icon for.
-   * @returns {number} The icon index to draw, or 0 if none.
+   * @param {string} symbol Physical symbol.
+   * @returns {number} Icon index, or 0.
    */
   iconIndexForSymbol(symbol)
   {
-    // delegate to IconManager for a single icon index (or 0).
     return IconManager.jabsIconIndexForSymbol(symbol);
   }
 
   /**
-   * Gets a human-readable description for a logical action or header.
-   * @param {string} button The logical action key or header label.
-   * @returns {string} The description text.
+   * Help text for a header label, logical key, or external row label.
+   * @param {string} button Value from {@link currentButton}.
+   * @returns {string}
    */
   describeButton(button)
   {
-    // provide descriptions for section headers when selected.
-    if (button === 'Primary Actions')
+    const header = JABS_REMAP_HEADER_HELP[button];
+    if (header)
     {
-      // describe the purpose of primary actions.
-      return 'Primary actions used moment-to-moment: mainhand/offhand attacks and tools.\nThese are your core mapped buttons for direct, immediate use.';
+      return header;
     }
-
-    // provide descriptions for section headers when selected.
-    if (button === 'Secondary Actions')
+    const { help } = jabsRemapActionLookupMaps();
+    if (help[button])
     {
-      // describe the purpose of secondary actions.
-      return 'Secondary and modifier inputs: Skill Trigger, Rotate, Strafe, Dodge.\nHold or tap to modify movement or enable combat skill slots.';
+      return help[button];
     }
-
-    // provide descriptions for section headers when selected.
-    if (button === 'Functional Actions')
-    {
-      // describe the purpose of functional actions.
-      return 'Functional shortcuts unrelated to attacks: open the JABS menu, cycle party leader.\nUseful for management between encounters or to swap leaders on the fly.';
-    }
-
-    // a small dictionary of descriptions per logical action.
-    const d = {};
-
-    // functionality
-    d[JABS_Button.Menu] = 'Open the JABS quick menu.\nAccess actions, tools, and options.';
-    d[JABS_Button.Select] = 'Cycle the party leader.\nRotate the front actor with the next in line.';
-
-    // primaries
-    d[JABS_Button.Mainhand] = 'Use the mainhand action.\nTypically your basic weapon attack.';
-    d[JABS_Button.Offhand] = 'Use the offhand action.\nTypically your secondary skill, or the guard-ready indicator.';
-    d[JABS_Button.Tool] = 'Use the selected tool.\nExecutes the currently equipped tool skill.';
-    d[JABS_Button.Sprint] = 'Sprint while held.\nMove faster when conditions allow.';
-
-    // modifiers
-    d[JABS_Button.Dodge] = 'Execute the mobility skill.\nLunge, backstep, tumble, or similar move.';
-    d[JABS_Button.Strafe] = 'Hold facing while moving.\nLocks direction for circle-strafing.';
-    d[JABS_Button.Rotate] = 'Rotate in place while held.\nIf you are guard-ready, you will also raise your guard.';
-    d[JABS_Button.SkillTrigger] = 'Enable combat skills while held.\nPrimary actions become Combat skills 1-4.';
-
-    // NOTE: this is not actually directly mappable- it arbitrarily shares input with rotation.
-    d[JABS_Button.Guard] = 'Hold to raise guard (if guard skill is available).\nRaises guard skill when available.';
-
-    // combat (L1 + face buttons)
-    d[JABS_Button.CombatSkill1] = 'Trigger Combat Skill 1.\nUsed with the Skill Trigger modifier.';
-    d[JABS_Button.CombatSkill2] = 'Trigger Combat Skill 2.\nUsed with the Skill Trigger modifier.';
-    d[JABS_Button.CombatSkill3] = 'Trigger Combat Skill 3.\nUsed with the Skill Trigger modifier.';
-    d[JABS_Button.CombatSkill4] = 'Trigger Combat Skill 4.\nUsed with the Skill Trigger modifier.';
-
-    // fallback to the logical name if no description exists.
-    return d[button] || String(button);
+    return String(button);
   }
 
   //endregion utils
 }
 
 //endregion Window_JabsRemapActions
+
 
 //region Window_JabsRemapCommand
 /**
