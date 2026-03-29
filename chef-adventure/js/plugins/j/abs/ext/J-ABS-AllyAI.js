@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.1 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v2.1.2 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -116,6 +116,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.2
+ *    decideAction and ally AI mode helpers now return a skill-id array, matching J-ABS 4.7.2.
+ *    Raised minimum J-ABS version to 4.7.2.
  * - 2.1.1
  *    Raised minimum J-ABS version to 4.7.0.
  * - 2.1.0
@@ -292,7 +295,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.6.0';
+  const requiredJabsVersion = '4.7.2';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -312,7 +315,7 @@ J.ABS.EXT.ALLYAI = {};
  */
 J.ABS.EXT.ALLYAI.Metadata = {};
 J.ABS.EXT.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ABS.EXT.ALLYAI.Metadata.Version = '2.1.0';
+J.ABS.EXT.ALLYAI.Metadata.Version = '2.1.2';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -596,11 +599,22 @@ JABS_AllyAI.prototype.changeMode = function(newMode)
 
 //region decide action
 /**
+ * Wraps a base support helper result (0 means none) as a uniform skill-id list.
+ * @param {number} skillId
+ * @returns {number[]}
+ */
+JABS_AllyAI.prototype.wrapSupportSkillId = function(skillId)
+{
+  if (!skillId) return [];
+  return [ skillId ];
+};
+
+/**
  * Decides an action based on this battler's AI, the target, and the given available skills.
  * @param {JABS_Battler} user The battler of the AI deciding a skill.
  * @param {JABS_Battler} target The target battler to decide an action against.
  * @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
- * @returns {number|null} The skill id chosen to use, or null if none were valid choices for this AI.
+ * @returns {number[]} Exactly one skill id, or empty when no valid choice exists.
  */
 JABS_AllyAI.prototype.decideAction = function(user, target, availableSkills)
 {
@@ -624,22 +638,24 @@ JABS_AllyAI.prototype.decideAction = function(user, target, availableSkills)
     case JABS_AllyAI.modes.SUPPORT.key:
       return this.decideSupport(usableSkills, user);
     default:
-      return usableSkills.at(0);
+    {
+      const fallbackId = usableSkills.at(0);
+      return this.isSkillIdValid(fallbackId) ? [ fallbackId ] : [];
+    }
   }
 };
 
 //region do-nothing
 /**
  * Decides to do nothing and waits a short amount of time before doing anything else.
- * @returns {null}
+ * @returns {number[]}
  */
 JABS_AllyAI.prototype.decideDoNothing = function(attacker)
 {
   // forces a short wait before thinking about what to do next.
   attacker.setWaitCountdown(20);
 
-  // return nothing to indicate no action should be taken.
-  return null;
+  return [];
 };
 //endregion do-nothing
 
@@ -648,15 +664,14 @@ JABS_AllyAI.prototype.decideDoNothing = function(attacker)
  * Decides a skill id based on the ai mode of "basic attack only".
  * @param {number[]} usableSkills The skill ids available to choose from.
  * @param {JABS_Battler} user The battler choosing the skill.
- * @returns {number|null}
+ * @returns {number[]}
  */
 JABS_AllyAI.prototype.decideBasicAttack = function(usableSkills, user)
 {
   // check first if we should follow with the next hit of the combo.
   if (this.shouldFollowWithCombo(user))
   {
-    // we're doing the next combo in the chain!
-    return this.followWithCombo(user);
+    return [ this.followWithCombo(user) ];
   }
 
   // determine which skill of the skills available is the mainhand skill.
@@ -670,29 +685,24 @@ JABS_AllyAI.prototype.decideBasicAttack = function(usableSkills, user)
       .findSlotForSkillId(id).key === JABS_Button.Offhand);
 
   // if we have neither basic attack skills, then do not process.
-  if (!mainBasicAttackSkillId && !offhandBasicAttackSkillId) return null;
+  if (!mainBasicAttackSkillId && !offhandBasicAttackSkillId) return [];
 
   // check if we have to decide between using mainhand or offhand.
   if (mainBasicAttackSkillId && offhandBasicAttackSkillId)
   {
-    // a 70% chance to use mainhand, 30% chance to use offhand by default.
-    return RPGManager.chanceIn100(70)
+    const picked = RPGManager.chanceIn100(70)
       ? mainBasicAttackSkillId
       : offhandBasicAttackSkillId;
+    return [ picked ];
   }
 
   // check if we do not have a mainhand skill.
   if (!mainBasicAttackSkillId)
   {
-    // in which case we return the offhand skill.
-    return offhandBasicAttackSkillId;
+    return [ offhandBasicAttackSkillId ];
   }
-  // since we do have a mainhand skill.
-  else
-  {
-    // lets return it.
-    return mainBasicAttackSkillId;
-  }
+
+  return [ mainBasicAttackSkillId ];
 };
 //endregion basic-attack
 
@@ -705,15 +715,14 @@ JABS_AllyAI.prototype.decideBasicAttack = function(usableSkills, user)
  * @param {number[]} usableSkills The skill ids available to choose from.
  * @param {JABS_Battler} user The battler choosing the skill.
  * @param {JABS_Battler} target The targeted battler to use the skill against.
- * @returns {number}
+ * @returns {number[]}
  */
 JABS_AllyAI.prototype.decideVariety = function(usableSkills, user, target)
 {
   // check first if we should follow with the next hit of the combo.
   if (this.shouldFollowWithCombo(user))
   {
-    // we're doing the next combo in the chain!
-    return this.followWithCombo(user);
+    return [ this.followWithCombo(user) ];
   }
 
   // initialize the chosen skill id.
@@ -762,8 +771,8 @@ JABS_AllyAI.prototype.decideVariety = function(usableSkills, user, target)
     chosenSkillId = tempAvailableSkills[Math.randomInt(tempAvailableSkills.length)];
   }
 
-  // return the decided skill id.
-  return chosenSkillId;
+  if (!this.isSkillIdValid(chosenSkillId)) return [];
+  return [ chosenSkillId ];
 };
 //endregion variety
 
@@ -775,15 +784,14 @@ JABS_AllyAI.prototype.decideVariety = function(usableSkills, user, target)
  * @param {number[]} usableSkills The skill ids available to choose from.
  * @param {JABS_Battler} user The battler choosing the skill.
  * @param {JABS_Battler} target The targeted battler to use the skill against.
- * @returns {number}
+ * @returns {number[]}
  */
 JABS_AllyAI.prototype.decideFullForce = function(usableSkills, user, target)
 {
   // check first if we should follow with the next hit of the combo.
   if (this.shouldFollowWithCombo(user))
   {
-    // we're doing the next combo in the chain!
-    return this.followWithCombo(user);
+    return [ this.followWithCombo(user) ];
   }
 
   let chosenSkillId = 0;
@@ -836,8 +844,8 @@ JABS_AllyAI.prototype.decideFullForce = function(usableSkills, user, target)
     chosenSkillId = tempAvailableSkills.at(Math.randomInt(tempAvailableSkills.length));
   }
 
-  // return the chosen skill.
-  return chosenSkillId;
+  if (!this.isSkillIdValid(chosenSkillId)) return [];
+  return [ chosenSkillId ];
 };
 //endregion full-force
 
@@ -848,28 +856,27 @@ JABS_AllyAI.prototype.decideFullForce = function(usableSkills, user, target)
  * Support priorities = cleansing > healing > buffing.
  * @param {number[]} usableSkills The skill ids available to choose from.
  * @param {JABS_Battler} user The battler choosing the skill.
- * @returns {number} The chosen support skill id to perform.
+ * @returns {number[]}
  */
 JABS_AllyAI.prototype.decideSupport = function(usableSkills, user)
 {
   // check first if we should follow with the next hit of the combo.
   if (this.shouldFollowWithCombo(user))
   {
-    // we're doing the next combo in the chain!
-    return this.followWithCombo(user);
+    return [ this.followWithCombo(user) ];
   }
 
   // first priority is cleansing status ailments, including death, from allies.
-  const cleanseId = this.decideCleansing(user, usableSkills);
-  if (cleanseId) return cleanseId;
+  const cleansePick = this.wrapSupportSkillId(this.decideCleansing(user, usableSkills));
+  if (cleansePick.length) return cleansePick;
 
   // second priority is recovering missing health for allies.
-  const healId = this.decideHealing(user, usableSkills);
-  if (healId) return healId;
+  const healPick = this.wrapSupportSkillId(this.decideHealing(user, usableSkills));
+  if (healPick.length) return healPick;
 
   // third priority is status buffing on allies.
-  const buffId = this.decideBuffing(user, usableSkills);
-  if (buffId) return buffId;
+  const buffPick = this.wrapSupportSkillId(this.decideBuffing(user, usableSkills));
+  if (buffPick.length) return buffPick;
 
   // nothing needed; wait briefly.
   return this.decideDoNothing(user);
@@ -1538,12 +1545,12 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
   const currentlyEquippedSkillIds = validSkillSlots.map(skillSlot => skillSlot.id);
 
   // decide the action based on the ally ai mode currently assigned.
-  const decidedSkillId = jabsBattler
+  const decidedPicks = jabsBattler
     .getAllyAiMode()
     .decideAction(jabsBattler, jabsBattler.getTarget(), currentlyEquippedSkillIds);
 
   // validate the skill chosen.
-  if (!this.isSkillIdValid(decidedSkillId))
+  if (decidedPicks.length === 0 || !this.isSkillIdValid(decidedPicks[0]))
   {
     // cancel the setup.
     this.cancelActionSetup(jabsBattler);
@@ -1551,6 +1558,8 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
     // stop processing.
     return;
   }
+
+  const decidedSkillId = decidedPicks[0];
 
   // TODO: allow allies to use dodge skills, but code the AI to use it intelligently.
   // check if the skill id is actually a mobility skill.
