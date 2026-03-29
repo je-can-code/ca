@@ -4501,11 +4501,6 @@ class RPGManager
     {
       this._metrics.misses++;
 
-      if (object instanceof RPG_Class && tagKey === 'any[][]:<aptitudeTyped:[ ]?(\\[\\d+,[ ]?\\d+,[ ]?[A-Za-z]+,[ ]?[A-Za-z0-9_\\- ]+])>::gi::tryParse=true::nullIfEmpty=false')
-      {
-        console.log('hit!', object);
-      }
-
       // compute the data and cache it.
       const data = computeFn();
       cache.set(tagKey, data);

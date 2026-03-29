@@ -316,11 +316,10 @@ Game_Map.prototype.refreshRegionEffects = function()
   this.refreshAllowRegionEffects();
   this.refreshDenyRegionEffects();
 
-  // check if using cyclone movement.
-  if (globalThis.CycloneMovement)
+  // rebuild the pixel collision table after region effects are refreshed.
+  if (globalThis.PIXEL_CollisionManager)
   {
-    // refresh the collision after the region effects are refreshed.
-    CycloneMovement.setupCollision();
+    PIXEL_CollisionManager.setupCollision();
   }
 };
 
@@ -455,29 +454,24 @@ Game_Map.prototype.isAllowRegionId = function(regionId)
  */
 Game_Map.prototype.projectCoordinatesByDirection = function(x, y, d)
 {
-  // accommodate cyclone movement if available.
-  const increment = (globalThis.CycloneMovement)
-    ? (1 / CycloneMovement.stepCount)
-    : 1;
-
   // default the projected coordinates to the current.
   let projectedX = x;
   let projectedY = y;
 
-  // pivot on the direction headed.
+  // pivot on the direction headed, projecting exactly one tile in that direction.
   switch (d)
   {
     case 2:
-      projectedY += increment;
+      projectedY += 1;
       break;
     case 4:
-      projectedX -= increment;
+      projectedX -= 1;
       break;
     case 6:
-      projectedX += increment * 2; // not sure why only this requires 2x?
+      projectedX += 1;
       break;
     case 8:
-      projectedY += increment;
+      projectedY -= 1;
       break;
   }
 
