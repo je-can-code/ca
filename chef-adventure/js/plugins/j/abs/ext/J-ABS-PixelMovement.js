@@ -3760,8 +3760,15 @@ Game_Player.prototype.updateDashing = function()
   // check if we can move, are out of a vehicle, and dashing is enabled.
   if (this.canMove() && !this.isInVehicle() && !$gameMap.isDashDisabled())
   {
+    const jabsPlayer = $jabsEngine && $jabsEngine.getPlayer1();
+    const pivotGuardBlocksDash = jabsPlayer
+      && jabsPlayer.getCharacter() === this
+      && (jabsPlayer.canBattlerMove() === false || jabsPlayer.guarding());
+
     // we're dashing then if the we clicked to go somewhere, or we're holding dash.
-    this._dashing = this.isDashButtonPressed() || $gameTemp.isDestinationValid();
+    // pivot guard and dash cannot stack; pixel movement would otherwise reassert dash each frame.
+    this._dashing = !pivotGuardBlocksDash
+      && (this.isDashButtonPressed() || $gameTemp.isDestinationValid());
 
     // stop processing.
     return;
@@ -3777,6 +3784,44 @@ Game_Player.prototype.updateDashing = function()
  */
 Game_Player.prototype.moveByInput = function()
 {
+  const jabsPlayer = $jabsEngine && $jabsEngine.getPlayer1();
+  const pivotGuardBlocksMotion = jabsPlayer
+    && jabsPlayer.getCharacter() === this
+    && (jabsPlayer.canBattlerMove() === false || jabsPlayer.guarding());
+
+  if (pivotGuardBlocksMotion)
+  {
+    $gameTemp.clearDestination();
+    this.stopFollowersPixelMoving();
+    this.setMovePressed(false);
+    this.setMovementSuccess(false);
+
+    let faceDir = 0;
+    const vAngle = this.getVectorInputAngle();
+
+    if (vAngle !== null)
+    {
+      faceDir = this.angleToNearestDirection(vAngle);
+    }
+    else
+    {
+      const d8 = Input.dir8;
+
+      if (d8 > 0)
+      {
+        faceDir = this.angleToNearestDirection(this.dir8ToAngle(d8));
+      }
+    }
+
+    if (faceDir > 0)
+    {
+      this.setDirection(faceDir);
+      this.checkEventTriggerTouchFront(faceDir);
+    }
+
+    return;
+  }
+
   // determine if we should be moving when we are not.
   const notMovingButShouldBe = (!this.isMoving() || this.isMovePressed());
 

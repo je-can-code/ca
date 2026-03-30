@@ -11511,6 +11511,12 @@ class JABS_InputAdapter
     // check if we can sprint.
     if (!this.#canPerformSprint(jabsBattler)) return;
 
+    // dash and guard are mutually exclusive.
+    if (sprinting && jabsBattler.guarding())
+    {
+      jabsBattler.executeGuard(false, JABS_Button.Offhand);
+    }
+
     // perform the sprint.
     jabsBattler.getCharacter()._dashing = sprinting;
   }
@@ -11586,6 +11592,12 @@ class JABS_InputAdapter
   {
     // check if we can guard with the offhand slot.
     if (!this.#canPerformGuardBySlot(JABS_Button.Offhand, jabsBattler)) return;
+
+    // dash and guard are mutually exclusive; pivot-in-place guard wins over residual dash.
+    if (guarding)
+    {
+      jabsBattler.getCharacter()._dashing = false;
+    }
 
     // perform the guard skill in the offhand slot.
     jabsBattler.executeGuard(guarding, JABS_Button.Offhand);
@@ -14968,6 +14980,22 @@ class JABS_Timer
  * GUARDING:
  * Guarding is a first-class feature of JABS!
  *
+ * IMPLICIT VS EXPLICIT PARRY:
+ * Implicit (passive) parry uses attacker pressure A vs defender pressure D: baseline
+ * floor plus per-level on each side (caster level on A, target level on D), then
+ * 100×HIT and 100×(GRD−1) respectively and small AGI/LUK terms; J-LEVEL scales A like
+ * other attacker-vs-target effects, then
+ * ratio = A/max(D,1). If ratio >= M (plugin param, default 2), no parry; if
+ * ratio <= 1/M, always parry; between, linear chance. It does
+ * not run while the defender is guarding, casting, or dashing — timed guard
+ * parry replaces implicit while a guard is held, and committed movement or
+ * casts suspend passive parry. Dash and guard are mutually exclusive for the
+ * player (pivot guard clears dash; pixel movement does not reapply dash while
+ * guarding).
+ *
+ * Explicit parry is the <parry:N> window after raising guard; EVA extends
+ * that window. Skills may still use <unparryable> and <ignoreParry:N>.
+ *
  * NOTE ABOUT GUARD SKILL TYPES:
  * A skill must have the "Guard Skill Type" id to be recognized as a
  * guard skill. This is defined in the plugin parameters.
@@ -15986,6 +16014,37 @@ class JABS_Timer
  * @default 122
  *
  *
+ * @param implicitParryConfigs
+ * @text IMPLICIT PARRY (PASSIVE)
+ *
+ * @param implicitParryDominanceMultiplier
+ * @parent implicitParryConfigs
+ * @type number
+ * @decimals 2
+ * @min 1.01
+ * @text Dominance Multiplier (M)
+ * @desc A/D ratio: no parry if >= M; always parry if <= 1/M; else linear odds. Default 2. Min 1.01.
+ * @default 2
+ *
+ * @param implicitParryBaselineFloor
+ * @parent implicitParryConfigs
+ * @type number
+ * @decimals 2
+ * @min 0
+ * @text Implicit Parry Baseline Floor
+ * @desc Base pressure on both A and D before the per-level add below.
+ * @default 50
+ *
+ * @param implicitParryBaselinePerLevel
+ * @parent implicitParryConfigs
+ * @type number
+ * @decimals 3
+ * @min 0
+ * @text Baseline Per Caster/Target Level
+ * @desc Extra baseline per level: caster level on A, target level on D (Lv1 adds 0).
+ * @default 0.25
+ *
+ *
  * @param quickmenuConfigs
  * @text QUICKMENU SETUP
  *
@@ -16383,6 +16442,24 @@ J.ABS.Metadata.ParryCharacterAnimationId = (Number.isFinite(parryCharacterAnimat
   && parryCharacterAnimationParsed >= 0)
   ? Math.floor(parryCharacterAnimationParsed)
   : 122;
+
+const implicitParryDomRaw = J.ABS.PluginParameters['implicitParryDominanceMultiplier'];
+const implicitParryDomParsed = Number(implicitParryDomRaw);
+J.ABS.Metadata.ImplicitParryDominanceMultiplier = (Number.isFinite(implicitParryDomParsed) && implicitParryDomParsed > 1)
+  ? implicitParryDomParsed
+  : 2;
+
+const implicitParryBaselineFloorRaw = J.ABS.PluginParameters['implicitParryBaselineFloor'];
+const implicitParryBaselineFloorParsed = Number(implicitParryBaselineFloorRaw);
+J.ABS.Metadata.ImplicitParryBaselineFloor = (Number.isFinite(implicitParryBaselineFloorParsed) && implicitParryBaselineFloorParsed >= 0)
+  ? implicitParryBaselineFloorParsed
+  : 50;
+
+const implicitParryBaselinePerLevelRaw = J.ABS.PluginParameters['implicitParryBaselinePerLevel'];
+const implicitParryBaselinePerLevelParsed = Number(implicitParryBaselinePerLevelRaw);
+J.ABS.Metadata.ImplicitParryBaselinePerLevel = (Number.isFinite(implicitParryBaselinePerLevelParsed) && implicitParryBaselinePerLevelParsed >= 0)
+  ? implicitParryBaselinePerLevelParsed
+  : 0.25;
 
 // quick menu commands configurations.
 J.ABS.Metadata.EquipCombatSkillsText = J.ABS.PluginParameters['equipCombatSkillsText'];
@@ -23931,14 +24008,6 @@ class JABS_Engine
     // get whether or not this action was unparryable.
     let isUnparryable = action.isUnparryable();
 
-    // check if the target is a player and also dashing.
-    if (target.isPlayer() && target.getCharacter()
-      .isDashButtonPressed())
-    {
-      // dashing players cannot parry anything, making the action unparryable.
-      isUnparryable = true;
-    }
-
     // check if this is for healing.
     if (action.isHealing())
     {
@@ -23950,7 +24019,7 @@ class JABS_Engine
     const caster = action.getCaster();
 
     let willParry = false;
-    if (isUnparryable === false)
+    if (isUnparryable === false && this.canAttemptImplicitParry(target))
     {
       willParry = this.checkParry(caster, target, action);
     }
@@ -24374,7 +24443,31 @@ class JABS_Engine
   }
 
   /**
-   * Calculates whether or not the attack was parried.
+   * Whether implicit (facing + GRD vs HIT) parry may roll for this target.
+   * While guarding, only explicit timed parry applies; casting and dashing
+   * suppress implicit parry only.
+   * @param {JABS_Battler} target The defender.
+   * @returns {boolean} True if implicit parry is allowed this frame.
+   */
+  canAttemptImplicitParry(target)
+  {
+    if (target.guarding()) return false;
+
+    if (target.isCasting()) return false;
+
+    const character = target.getCharacter();
+    if (character && character.isDashing()) return false;
+
+    return true;
+  }
+
+  /**
+   * Calculates whether or not the attack was parried by implicit (passive) parry.
+   * Uses ratio of attacker pressure A to defender pressure D with dominance
+   * multiplier M from plugin metadata. Baseline pressure uses floor + per-level on each
+   * side: attacker from caster level, defender from target level. Caller must use
+   * {@link #canAttemptImplicitParry} first; timed parry while guarding is handled in
+   * {@link Game_Action.handleGuardEffects}.
    * @param {JABS_Battler} caster The battler performing the action.
    * @param {JABS_Battler} target The target the action is against.
    * @param {JABS_Action} action The action being executed.
@@ -24392,89 +24485,73 @@ class JABS_Engine
     // grab the amount of parry ignored.
     const parryIgnoredFactor = (100 - (action.getBaseSkill().jabsIgnoreParry ?? 0)) / 100;
 
-    // TODO: lift these to some kind of manager for global re-use.
     const hundredX = value => parseFloat((value * 100).toFixed(3));
     const tenPercent = value => parseFloat((value * 0.1).toFixed(3));
 
-    // WIP formula!
-    // defender's stat calculation of grd, bonuses from agi/luk.
-    const baseGrd = hundredX(targetBattler.grd - 1);
+    const baselineFloor = J.ABS.Metadata.ImplicitParryBaselineFloor;
+    const baselinePerLevel = J.ABS.Metadata.ImplicitParryBaselinePerLevel;
+    const baselineA = baselineFloor + baselinePerLevel * Math.max(0, casterBattler.level - 1);
+    const baselineD = baselineFloor + baselinePerLevel * Math.max(0, targetBattler.level - 1);
+
+    // defender pressure D (scaled by ignoreParry on the skill).
+    const baseGrd = baselineD + hundredX(targetBattler.grd - 1);
     const bonusGrdFromAgi = tenPercent(targetBattler.agi);
     const bonusGrdFromLuk = tenPercent(targetBattler.luk);
-    const defenderGrd = (baseGrd + bonusGrdFromAgi + bonusGrdFromLuk) * parryIgnoredFactor;
+    const D = (baseGrd + bonusGrdFromAgi + bonusGrdFromLuk) * parryIgnoredFactor;
 
-    // attacker's stat calculation of hit, bonuses from agi/luk.
-    // this flat amount is necessary to not be ridiculously parryful early game.
-    const defaultHit = 50;
-    const baseHit = hundredX(casterBattler.hit) + defaultHit;
+    // attacker pressure A (level scaling matches Game_Action: caster vs target).
+    const baseHit = hundredX(casterBattler.hit) + baselineA;
     const bonusHitFromAgi = tenPercent(casterBattler.agi);
     const bonusHitFromLuk = tenPercent(casterBattler.luk);
-    const attackerHit = baseHit + bonusHitFromAgi + bonusHitFromLuk;
+    let A = baseHit + bonusHitFromAgi + bonusHitFromLuk;
 
-    // determine the difference and apply the multiplier if applicable.
-    let difference = attackerHit - defenderGrd;
     if (J.LEVEL && J.LEVEL.Metadata.enabled)
     {
-      const multiplier = LevelScaling.multiplier(targetBattler.level, casterBattler.level);
-      difference *= multiplier;
+      const levelMul = LevelScaling.multiplier(casterBattler.level, targetBattler.level);
+      A *= levelMul;
+    }
+
+    const defenderFloor = 1;
+    const ratio = A / Math.max(D, defenderFloor);
+
+    let M = J.ABS.Metadata.ImplicitParryDominanceMultiplier;
+    if (!Number.isFinite(M) || M <= 1)
+    {
+      M = 2;
+    }
+
+    const invM = 1 / M;
+
+    if (ratio >= M)
+    {
+      return false;
+    }
+
+    if (ratio <= invM)
+    {
+      return true;
+    }
+
+    const span = M - invM;
+    const t = (ratio - invM) / span;
+    const parryChancePercent = Math.round(100 * (1 - t));
+
+    if (parryChancePercent >= 100)
+    {
+      return true;
+    }
+
+    if (parryChancePercent <= 0)
+    {
+      return false;
     }
 
     const rng = Math.randomInt(100) + 1;
-
-    const debug = false;
-    if (debug === true)
-    {
-      // eslint-disable-next-line max-len
-      console.log(`[${casterBattler.name()}] hit: ${attackerHit}, grd: ${defenderGrd}, rng: ${rng}, diff: ${difference}, parried: ${rng > difference}`);
-    }
-
-    // the hit is too great, there is no chance of being parried.
-    if (difference > 100)
-    {
-      return false;
-    // the grd is too great, there is no chance of landing a hit.
-    }
-    else if (difference <= 0) return true;
-
-    return rng > difference;
-
-    // OLD FORMULA
-    // apply the hit bonus to hit (10% of actual hit).
-    // const bonusHit = parseFloat((casterBattler.hit * 0.1).toFixed(3));
-    //
-    // // calculate the hit rate (rng + bonus hit).
-    // const calculatedHitRate = parseFloat((Math.random() + bonusHit).toFixed(3));
-    //
-    // // calculate the target's parry rate.
-    // const targetGuardRate = (targetBattler.grd - 1) - parryIgnoredFactor;
-    //
-    // // truncate the parry rate to 3 places.
-    // const parryRate = parseFloat((targetGuardRate).toFixed(3));
-    //
-    // // encapsulated local function for hit parry rate calculation.
-    // const result = (hit, parry) => (hit < parry);
-    //
-    // // set to true for debugging.
-    // const useDebug = true;
-    // if (useDebug)
-    // {
-    //   console.log(`logs for ${caster.battlerName()} using ${action.getBaseSkill().name}.`);
-    //   console.log(`calculatedHitRate: [ ${calculatedHitRate} ].`);
-    //   console.log(`parryIgnored: [ ${parryIgnoredFactor} ].`);
-    //   console.log(`targetGuardRate: [ ${targetGuardRate} ].`);
-    //   console.log(`parryRate: [ ${parryRate} ].`);
-    //   const outcome = result(calculatedHitRate, parryRate)
-    //     ? 'YES-PARRY'
-    //     : 'NO-PARRY';
-    //   console.log(`result: ${outcome}`);
-    // }
-    //
-    // // return whether or not the hit was successful.
-    // return result(calculatedHitRate, parryRate);
+    return rng <= parryChancePercent;
   }
 
   /**
-   * Determines whether or not the target can actually parry the caster based on certain circumstances.
+   * Prerequisites for implicit {@link #checkParry} (facing, GRD, attacker ignore-parry states).
    * @param {JABS_Battler} caster The one executing the skill against the target.
    * @param {JABS_Battler} target The one being attacked by the caster.
    */
