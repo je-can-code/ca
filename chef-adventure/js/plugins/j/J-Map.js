@@ -2961,3 +2961,5 @@ Window_JabsRemapActions.prototype.buildPostExtensionGroups = function(rows, can)
   rows.push(this.buildExternalActionCommand("J.MAP", "expand-minimap", "Expand Minimap (Hold)", 2480));
 };
 //endregion Window_JabsRemapActions
+
+//# sourceMappingURL=J-Map.js.map

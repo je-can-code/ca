@@ -4281,3 +4281,5 @@ class Window_StatusStatList
 }
 
 //endregion Window_StatusStatList
+
+//# sourceMappingURL=J-CMS-Status.js.map

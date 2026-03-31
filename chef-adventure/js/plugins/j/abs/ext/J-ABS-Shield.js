@@ -2519,3 +2519,5 @@ if (J.HUD && J.HUD.EXT.PARTY)
     shield.show();
   };
 }
+
+//# sourceMappingURL=J-ABS-Shield.js.map

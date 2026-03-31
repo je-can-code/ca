@@ -694,3 +694,5 @@ Game_Battler.prototype.handleOtibUnlock = function(item)
   }
 };
 //endregion Game_Battler
+
+//# sourceMappingURL=J-OneTimeItemBoost.js.map

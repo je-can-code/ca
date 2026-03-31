@@ -4545,3 +4545,5 @@ Window_MenuCommand.prototype.addOriginalCommands = function()
   }
 };
 //endregion Window_MenuCommand
+
+//# sourceMappingURL=J-Aptitude.js.map

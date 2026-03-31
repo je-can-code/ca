@@ -5107,3 +5107,5 @@ Spriteset_Map.prototype.update = function()
   }
 };
 //endregion Spriteset_Map
+
+//# sourceMappingURL=J-ABS-PixelMovement.js.map

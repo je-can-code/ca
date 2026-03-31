@@ -3149,3 +3149,5 @@ class Window_RefinementDetails
 }
 
 //endregion Window_RefinementDetails
+
+//# sourceMappingURL=J-JAFTING-Refinement.js.map

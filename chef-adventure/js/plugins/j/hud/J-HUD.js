@@ -1072,3 +1072,5 @@ class Window_Frame
 }
 
 //endregion Window_Frame
+
+//# sourceMappingURL=J-HUD.js.map

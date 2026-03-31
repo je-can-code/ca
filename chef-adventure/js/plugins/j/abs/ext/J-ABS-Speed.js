@@ -448,3 +448,5 @@ Game_Enemy.prototype.onBattlerDataChange = function()
   this.refreshSpeedBoosts();
 };
 //endregion Game_Enemy
+
+//# sourceMappingURL=J-ABS-Speed.js.map

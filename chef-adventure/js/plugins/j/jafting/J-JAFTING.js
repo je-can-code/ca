@@ -657,3 +657,5 @@ class Window_JaftingListHeader
 }
 
 //endregion Window_OmnipediaListHeader
+
+//# sourceMappingURL=J-JAFTING.js.map

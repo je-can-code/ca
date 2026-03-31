@@ -2303,3 +2303,5 @@ class Window_SkillEquipSlots
 }
 
 //endregion Window_SkillEquipSlots
+
+//# sourceMappingURL=J-SkillSlots.js.map

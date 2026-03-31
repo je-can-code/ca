@@ -1378,3 +1378,5 @@ Game_System.prototype.updateProficienciesFromPluginMetadata = function()
       J.PROF.Metadata.actorConditionalsMap.set(actorId, actorConditionals);
     });
 };
+
+//# sourceMappingURL=J-Proficiency.js.map

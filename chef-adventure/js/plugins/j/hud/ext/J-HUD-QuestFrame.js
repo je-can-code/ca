@@ -709,3 +709,5 @@ class Window_QuestFrame
 }
 
 //endregion Window_QuestFrame
+
+//# sourceMappingURL=J-HUD-QuestFrame.js.map

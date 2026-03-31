@@ -2823,3 +2823,5 @@ Window_OmnipediaList.prototype.canAddMonsterpediaCommand = function()
   // add the command!
   return true;
 };
+
+//# sourceMappingURL=J-Omni-Monsters.js.map

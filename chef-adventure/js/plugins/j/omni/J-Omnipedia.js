@@ -874,3 +874,5 @@ class Window_OmnipediaListHeader
 }
 
 //endregion Window_OmnipediaListHeader
+
+//# sourceMappingURL=J-Omnipedia.js.map

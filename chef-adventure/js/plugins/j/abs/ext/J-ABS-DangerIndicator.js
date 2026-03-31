@@ -701,3 +701,5 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function()
     .call(this);
 };
 //endregion Spriteset_Map
+
+//# sourceMappingURL=J-ABS-DangerIndicator.js.map

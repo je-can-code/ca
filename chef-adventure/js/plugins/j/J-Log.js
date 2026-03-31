@@ -2368,3 +2368,5 @@ class Window_LootLog
 }
 
 //endregion Window_LootLog
+
+//# sourceMappingURL=J-Log.js.map

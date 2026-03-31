@@ -1081,3 +1081,5 @@ Window_ChoiceList.prototype.callOkHandler = function()
   this.close();
 };
 //endregion Window_ChoiceList
+
+//# sourceMappingURL=J-MessageTextCodes.js.map

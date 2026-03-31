@@ -585,3 +585,5 @@ Game_System.prototype.updateRegionStatesAfterLoad = function()
 };
 
 //endregion Game_System
+
+//# sourceMappingURL=J-Regions-States.js.map

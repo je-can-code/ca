@@ -583,3 +583,5 @@ Game_System.prototype.updateRegionSkillsAfterLoad = function()
 };
 
 //endregion Game_System
+
+//# sourceMappingURL=J-Regions-Skills.js.map

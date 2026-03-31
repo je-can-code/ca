@@ -922,3 +922,5 @@ Game_Party.prototype.dropMultiplierMembers = function(strategy = DropsPartyStrat
   return membersToConsider;
 };
 //endregion Game_Party
+
+//# sourceMappingURL=J-DropsControl.js.map

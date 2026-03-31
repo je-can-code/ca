@@ -787,3 +787,5 @@ Scene_MenuBase.prototype.createButtons = function()
 {
 };
 //endregion Scene_MenuBase
+
+//# sourceMappingURL=J-CA-Mods.js.map

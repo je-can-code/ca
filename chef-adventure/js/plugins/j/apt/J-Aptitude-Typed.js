@@ -1401,3 +1401,5 @@ Window_Base.prototype.drawTypedBadge = function(apTypeKey, x, y)
   this.resetTextColor();
 };
 //endregion Window_Base
+
+//# sourceMappingURL=J-Aptitude-Typed.js.map

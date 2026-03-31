@@ -409,9 +409,16 @@ PanelTracking.prototype.lock = function()
 //region StatDistributionPanel
 /**
  * The class that governs the details of a single SDP.
+ * Use the {@link StatDistributionPanelBuilder} to fluently build these.
  */
 class StatDistributionPanel
 {
+  /**
+   * A factory that generates builders for creating {@link StatDistributionPanel}s.
+   * @returns {StatDistributionPanelBuilder}
+   */
+  static Builder = () => new StatDistributionPanelBuilder();
+
   constructor(
     name,
     key,
@@ -652,156 +659,135 @@ class StatDistributionPanel
         return `unknown rarity: [ ${this.rarity} ]`;
     }
   }
-
-  static Builder = class SDPBuilder
-  {
-    //region properties
-    static #name = String.empty;
-    static #key = String.empty;
-    static #iconIndex = 0;
-    static #rarity = 0;
-    static #unlockedByDefault = false;
-    static #description = String.empty;
-    static #flavorText = String.empty;
-    static #maxRank = 1;
-    static #baseCost = 0;
-    static #flatGrowth = 0;
-    static #multGrowth = 1.0;
-    static #parameters = [];
-    static #rewards = [];
-
-    //endregion properties
-
-    /**
-     * Builds the WIP SDP.
-     * @return {StatDistributionPanel}
-     */
-    static build()
-    {
-      // build the panel based off current parameters.
-      const sdp = new StatDistributionPanel(
-        this.#name,
-        this.#key,
-        this.#iconIndex,
-        this.#rarity,
-        this.#unlockedByDefault,
-        this.#description,
-        this.#flavorText,
-        this.#maxRank,
-        this.#baseCost,
-        this.#flatGrowth,
-        this.#multGrowth,
-        this.#parameters,
-        this.#rewards);
-
-      // wipe all the existing parameters.
-      this.#clear();
-
-      // return the built object.
-      return sdp;
-    }
-
-    //region setters
-    static #clear()
-    {
-      this.#name = String.empty;
-      this.#key = String.empty;
-      this.#iconIndex = 0;
-      this.#unlockedByDefault = false;
-      this.#description = String.empty;
-      this.#flavorText = String.empty;
-      this.#maxRank = 1;
-      this.#baseCost = 0;
-      this.#flatGrowth = 0;
-      this.#multGrowth = 1.0;
-      this.#rarity = 0;
-      this.#parameters = [];
-      this.#rewards = [];
-    }
-
-    static name(name)
-    {
-      this.#name = name;
-      return this;
-    }
-
-    static key(key)
-    {
-      this.#key = key;
-      return this;
-    }
-
-    static iconIndex(iconIndex)
-    {
-      this.#iconIndex = iconIndex;
-      return this;
-    }
-
-    static unlockedByDefault(unlockedByDefault)
-    {
-      this.#unlockedByDefault = unlockedByDefault;
-      return this;
-    }
-
-    static description(description)
-    {
-      this.#description = description;
-      return this;
-    }
-
-    static flavorText(flavorText)
-    {
-      this.#flavorText = flavorText;
-      return this;
-    }
-
-    static maxRank(maxRank)
-    {
-      this.#maxRank = maxRank;
-      return this;
-    }
-
-    static baseCost(baseCost)
-    {
-      this.#baseCost = baseCost;
-      return this;
-    }
-
-    static flatGrowth(flatGrowth)
-    {
-      this.#flatGrowth = flatGrowth;
-      return this;
-    }
-
-    static multGrowth(multGrowth)
-    {
-      this.#multGrowth = multGrowth;
-      return this;
-    }
-
-    static rarity(rarity)
-    {
-      this.#rarity = rarity;
-      return this;
-    }
-
-    static parameters(parameters)
-    {
-      this.#parameters = parameters;
-      return this;
-    }
-
-    static rewards(rewards)
-    {
-      this.#rewards = rewards;
-      return this;
-    }
-
-    //endregion setters
-  }
 }
 
 //endregion StatDistributionPanel
+
+//region StatDistributionPanelBuilder
+/**
+ * A builder for creating {@link StatDistributionPanel}.
+ */
+class StatDistributionPanelBuilder
+{
+  #name = String.empty;
+  #key = String.empty;
+  #iconIndex = 0;
+  #rarity = 0;
+  #unlockedByDefault = false;
+  #description = String.empty;
+  #flavorText = String.empty;
+  #maxRank = 1;
+  #baseCost = 0;
+  #flatGrowth = 0;
+  #multGrowth = 1.0;
+  #parameters = [];
+  #rewards = [];
+
+  /**
+   * Builds the configured panel.
+   * @returns {StatDistributionPanel}
+   */
+  build()
+  {
+    return new StatDistributionPanel(
+      this.#name,
+      this.#key,
+      this.#iconIndex,
+      this.#rarity,
+      this.#unlockedByDefault,
+      this.#description,
+      this.#flavorText,
+      this.#maxRank,
+      this.#baseCost,
+      this.#flatGrowth,
+      this.#multGrowth,
+      this.#parameters,
+      this.#rewards);
+  }
+
+  //region setters
+  name(name)
+  {
+    this.#name = name;
+    return this;
+  }
+
+  key(key)
+  {
+    this.#key = key;
+    return this;
+  }
+
+  iconIndex(iconIndex)
+  {
+    this.#iconIndex = iconIndex;
+    return this;
+  }
+
+  unlockedByDefault(unlockedByDefault)
+  {
+    this.#unlockedByDefault = unlockedByDefault;
+    return this;
+  }
+
+  description(description)
+  {
+    this.#description = description;
+    return this;
+  }
+
+  flavorText(flavorText)
+  {
+    this.#flavorText = flavorText;
+    return this;
+  }
+
+  maxRank(maxRank)
+  {
+    this.#maxRank = maxRank;
+    return this;
+  }
+
+  baseCost(baseCost)
+  {
+    this.#baseCost = baseCost;
+    return this;
+  }
+
+  flatGrowth(flatGrowth)
+  {
+    this.#flatGrowth = flatGrowth;
+    return this;
+  }
+
+  multGrowth(multGrowth)
+  {
+    this.#multGrowth = multGrowth;
+    return this;
+  }
+
+  rarity(rarity)
+  {
+    this.#rarity = rarity;
+    return this;
+  }
+
+  parameters(parameters)
+  {
+    this.#parameters = parameters;
+    return this;
+  }
+
+  rewards(rewards)
+  {
+    this.#rewards = rewards;
+    return this;
+  }
+
+  //endregion setters
+}
+//endregion StatDistributionPanelBuilder
+
 
 //region Introduction
 /* eslint-disable */
@@ -1197,7 +1183,7 @@ class J_SdpPluginMetadata
       }
 
       // create the panel.
-      const panel = StatDistributionPanel.Builder
+      const panel = StatDistributionPanel.Builder()
         .name(parsedPanel.name)
         .key(parsedPanel.key)
         .iconIndex(parseInt(parsedPanel.iconIndex))
@@ -4923,3 +4909,5 @@ class Window_SdpRewardList
 }
 
 //endregion Window_SdpRewardList
+
+//# sourceMappingURL=J-SDP.js.map

@@ -1059,3 +1059,5 @@ class Window_MoreEquipData
 }
 
 //endregion Window_MoreEquipData
+
+//# sourceMappingURL=J-CMS-Equip.js.map
