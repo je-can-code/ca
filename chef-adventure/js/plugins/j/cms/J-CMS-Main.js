@@ -141,3 +141,5 @@ Window_MenuStatus.prototype.drawActorSimpleStatus = function(actor, x, y)
   this.drawActorClass(actor, x2, y);
   this.placeBasicGauges(actor, x2, y + lineHeight);
 };
+
+//# sourceMappingURL=J-CMS-Main.js.map

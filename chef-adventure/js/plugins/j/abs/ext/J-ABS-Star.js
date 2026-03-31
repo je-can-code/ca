@@ -947,3 +947,6 @@ Scene_Map.prototype.update = function()
   //? TODO: Modify encountereffect here.
 };
 //endregion Scene_Map
+
+
+//# sourceMappingURL=J-ABS-Star.js.map

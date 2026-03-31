@@ -1552,3 +1552,5 @@ Game_Party.prototype.extraOnCastSelfStateSources = function()
   return extraSources;
 };
 //endregion Game_Party
+
+//# sourceMappingURL=J-SkillExtend.js.map

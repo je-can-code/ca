@@ -5754,3 +5754,5 @@ Window_Selectable.prototype.processCursorMove = function()
   }
 };
 //endregion Window_Selectable
+
+//# sourceMappingURL=J-ABS-InputManager.js.map

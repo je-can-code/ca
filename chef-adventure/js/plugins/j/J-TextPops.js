@@ -1950,3 +1950,5 @@ Sprite_Damage.prototype.setupCriticalEffect = function()
   this.addDuration(60);
 };
 //endregion Sprite_Damage
+
+//# sourceMappingURL=J-TextPops.js.map

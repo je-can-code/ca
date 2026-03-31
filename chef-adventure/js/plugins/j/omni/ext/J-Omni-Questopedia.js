@@ -5585,3 +5585,5 @@ class Window_QuestopediaObjectives
 }
 
 //endregion Window_QuestopediaObjectives
+
+//# sourceMappingURL=J-Omni-Questopedia.js.map

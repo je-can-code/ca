@@ -3217,3 +3217,5 @@ class Window_InputFrame
 }
 
 //endregion Window_InputFrame
+
+//# sourceMappingURL=J-HUD-InputFrame.js.map

@@ -2110,3 +2110,5 @@ SoundManager.maxChargeReadySE = function()
     ?? new RPG_SoundEffect("Item3", 50, 110, 0);
 };
 //endregion SoundManager
+
+//# sourceMappingURL=J-ABS-Charge.js.map

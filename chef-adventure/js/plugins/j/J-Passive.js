@@ -1214,3 +1214,5 @@ Window_MoreEquipData.prototype.canAddPassiveStateData = function()
   return true;
 };
 //endregion Window_MoreEquipData
+
+//# sourceMappingURL=J-Passive.js.map

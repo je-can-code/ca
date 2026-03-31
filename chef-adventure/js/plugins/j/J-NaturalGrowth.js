@@ -2406,3 +2406,5 @@ Window_EquipItem.prototype.postEquipSetupActorClone = function(actorClone)
   actorClone.refreshAllParameterBuffs();
 };
 //endregion Window_EquipItem
+
+//# sourceMappingURL=J-NaturalGrowth.js.map

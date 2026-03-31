@@ -895,3 +895,5 @@ Game_Enemy.prototype.elementRateBoost = function(elementId)
 };
 
 //endregion Game_Enemy
+
+//# sourceMappingURL=J-Elementalistics.js.map

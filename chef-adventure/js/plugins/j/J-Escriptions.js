@@ -1330,3 +1330,5 @@ Sprite_Character.prototype.fadeInEscribeIcon = function()
 };
 //endregion update describe sprites
 //endregion Sprite_Character
+
+//# sourceMappingURL=J-Escriptions.js.map

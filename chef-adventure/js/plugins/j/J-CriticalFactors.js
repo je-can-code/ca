@@ -1197,3 +1197,5 @@ Game_BattlerBase.prototype.criticalDamageReduction = function()
   return 0.0;
 };
 //endregion Game_BattlerBase
+
+//# sourceMappingURL=J-CriticalFactors.js.map

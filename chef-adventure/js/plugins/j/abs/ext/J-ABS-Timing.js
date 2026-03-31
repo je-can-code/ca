@@ -916,3 +916,5 @@ Game_Battler.prototype.minimumCooldown = function()
 };
 //endregion fast cooldown
 //endregion Game_Battler
+
+//# sourceMappingURL=J-ABS-Timing.js.map

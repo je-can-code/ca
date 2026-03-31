@@ -904,3 +904,5 @@ Game_Character.prototype.applyQueuedKnockbackIfAny = function()
   }
 };
 //endregion Game_Character
+
+//# sourceMappingURL=J-ABS-Hitstop.js.map

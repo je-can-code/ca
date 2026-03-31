@@ -740,3 +740,5 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
 };
 //endregion action poses
 //endregion JABS_Battler
+
+//# sourceMappingURL=J-ABS-Poses.js.map

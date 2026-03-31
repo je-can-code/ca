@@ -2058,3 +2058,5 @@ class Window_PartyFrame
 }
 
 //endregion Window_PartyFrame
+
+//# sourceMappingURL=J-HUD-PartyFrame.js.map

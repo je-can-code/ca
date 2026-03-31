@@ -917,3 +917,5 @@ Game_Player.prototype.moveDiagonally = function(horz, vert)
   // don't move at all.
 };
 //endregion Game_Player
+
+//# sourceMappingURL=J-ABS-Diagonals.js.map

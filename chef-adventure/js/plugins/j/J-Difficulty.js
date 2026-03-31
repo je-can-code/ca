@@ -4007,3 +4007,5 @@ class Window_DifficultyPoints
     this.resetFontSettings();
   }
 }
+
+//# sourceMappingURL=J-Difficulty.js.map

@@ -1381,3 +1381,5 @@ Game_Action.prototype.applyGlobal = function()
     .call(this);
 };
 //endregion Game_Action
+
+//# sourceMappingURL=J-ABS-Formula.js.map

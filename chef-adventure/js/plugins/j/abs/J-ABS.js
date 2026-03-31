@@ -39439,3 +39439,5 @@ class Window_AbsMenuSelect
 }
 
 //endregion Window_AbsMenuSelect
+
+//# sourceMappingURL=J-ABS.js.map

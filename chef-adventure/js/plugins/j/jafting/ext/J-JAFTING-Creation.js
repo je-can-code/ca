@@ -4504,3 +4504,5 @@ class Window_RecipeToolList
 }
 
 //endregion Window_RecipeToolList
+
+//# sourceMappingURL=J-JAFTING-Creation.js.map

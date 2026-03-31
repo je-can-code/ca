@@ -2886,3 +2886,5 @@ class Window_TargetFrame
 }
 
 //endregion Window_TargetFrame
+
+//# sourceMappingURL=J-HUD-TargetFrame.js.map

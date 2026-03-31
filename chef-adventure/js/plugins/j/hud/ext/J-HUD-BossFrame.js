@@ -812,3 +812,5 @@ class Window_BossFrame
 }
 
 //endregion Window_BossFrame
+
+//# sourceMappingURL=J-HUD-BossFrame.js.map

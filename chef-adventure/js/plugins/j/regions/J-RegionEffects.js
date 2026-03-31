@@ -479,3 +479,5 @@ Game_Map.prototype.projectCoordinatesByDirection = function(x, y, d)
   return [ projectedX, projectedY ];
 };
 //endregion Game_Map
+
+//# sourceMappingURL=J-RegionEffects.js.map

@@ -850,3 +850,5 @@ Window_SkillType.prototype.makeCommandList = function()
   });
 };
 //endregion Window_SkillType
+
+//# sourceMappingURL=J-CMS-Skill.js.map
