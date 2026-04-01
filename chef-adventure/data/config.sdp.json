@@ -2014,36 +2014,6 @@
       "rarity": 23
     },
     {
-      "name": "==NECROS==",
-      "key": "NEC___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Ashen Requiem",
-      "key": "NEC_1",
-      "iconIndex": 466,
-      "unlockedByDefault": false,
-      "description": "The necromancers are still sketching the choreography for the finale.|Placeholder panel; parameters and rewards TBD.",
-      "topFlavorText": "Nobody claps yet.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
       "name": "==SNAKE==",
       "key": "SNK___",
       "iconIndex": 0,
@@ -2471,66 +2441,6 @@
       "rarity": 23
     },
     {
-      "name": "==HYDRA==",
-      "key": "HYD___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Headcount Advantage",
-      "key": "HYD_1",
-      "iconIndex": 14,
-      "unlockedByDefault": false,
-      "description": "Why run one neck when hydra accounting approves several screaming budgets?|Hydra-line scaffold until stats land.",
-      "topFlavorText": "Extra heads, extra paperwork.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==SALAMANDER==",
-      "key": "SAL___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Newt Interest Rate",
-      "key": "SAL_1",
-      "iconIndex": 67,
-      "unlockedByDefault": false,
-      "description": "Salamanders expect compound flame on every emotional investment.|Salamander placeholder for future scaly economics.",
-      "topFlavorText": "Read the fine ash.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
       "name": "==KAPPA==",
       "key": "KAP___",
       "iconIndex": 0,
@@ -2902,66 +2812,6 @@
       ],
       "panelRewards": [],
       "rarity": 3
-    },
-    {
-      "name": "==FISH==",
-      "key": "FSH___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Scales and Escapism",
-      "key": "FSH_1",
-      "iconIndex": 227,
-      "unlockedByDefault": false,
-      "description": "Fish stance: look bored, mean it, still collect Ws.|Fish family scaffold for future finny nonsense.",
-      "topFlavorText": "Glub with intent.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==CEPHALOPOD==",
-      "key": "CPH___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Inkwell Parliament",
-      "key": "CPH_1",
-      "iconIndex": 2338,
-      "unlockedByDefault": false,
-      "description": "Every tentacle gets a filibuster and a snack budget.|Cephalopod placeholder until the squish lobby signs off.",
-      "topFlavorText": "Motion to kraken.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
     },
     {
       "name": "==SLIME==",
@@ -3606,8 +3456,8 @@
       "rarity": 23
     },
     {
-      "name": "==CUBE==",
-      "key": "CUB___",
+      "name": "==WINGER==",
+      "key": "WNG___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -3621,19 +3471,194 @@
       "rarity": 0
     },
     {
-      "name": "Orthogonal Swagger",
-      "key": "CUB_1",
-      "iconIndex": 2164,
+      "name": "Skies of the Cave",
+      "key": "WNG_1",
+      "iconIndex": 2372,
       "unlockedByDefault": false,
-      "description": "Cube slimes treat every face like a front—because it is.|Point gelatinous cubes here when you are ready to commit.",
-      "topFlavorText": "Think outside the square, then become it.",
+      "description": "Bats are vicious and obnoxious creatures|They are renowned far and wide for slaying young would-be protagonists.",
+      "topFlavorText": "You truly can never chop up enough bats. You're doing the cave a favor.",
       "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
+      "baseCost": 70,
+      "flatGrowthCost": 30,
+      "multGrowthCost": 1.5,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.25,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 9,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
       "panelRewards": [],
       "rarity": 0
+    },
+    {
+      "name": "Crimson Gaze",
+      "key": "WNG_2",
+      "iconIndex": 2372,
+      "unlockedByDefault": false,
+      "description": "An ever-iconic eyeball with wings. They can be found all across the universe for some reason.|This one however, appears to be wrapped in flames, which makes it rather annoying to get close to.",
+      "topFlavorText": "Learn the skill \\Skill[248] when this panel is maxed.",
+      "maxRank": 10,
+      "baseCost": 600,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.25,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": false,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[248]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(248);"
+        }
+      ],
+      "rarity": 23
+    },
+    {
+      "name": "Call from the Dark",
+      "key": "WNG_3",
+      "iconIndex": 2372,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 10,
+      "baseCost": 600,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.25,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": false,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[248]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(248);"
+        }
+      ],
+      "rarity": 25
+    },
+    {
+      "name": "Answer from the Dark",
+      "key": "WNG_4",
+      "iconIndex": 2372,
+      "unlockedByDefault": false,
+      "description": "TODO",
+      "topFlavorText": "TODO",
+      "maxRank": 10,
+      "baseCost": 600,
+      "flatGrowthCost": 300,
+      "multGrowthCost": 1.3,
+      "panelParameters": [
+        {
+          "parameterId": 6,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 17,
+          "perRank": 0.25,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 7,
+          "perRank": 5,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 10,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 30,
+          "perRank": 5,
+          "isFlat": false,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [
+        {
+          "rewardName": "Learn: \\Skill[248]",
+          "rankRequired": 0,
+          "effect": "a.learnSkill(248);"
+        }
+      ],
+      "rarity": 3
     },
     {
       "name": "==TRAP==",
@@ -4045,66 +4070,6 @@
       "rarity": 31
     },
     {
-      "name": "==TREANT==",
-      "key": "TRE___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Bark Oil Maintenance",
-      "key": "TRE_1",
-      "iconIndex": 200,
-      "unlockedByDefault": false,
-      "description": "Treants insist rings tell honest stories if you shut up long enough.|Treant scaffold for angry furniture enjoyers.",
-      "topFlavorText": "Lotion not included.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==FLOWER==",
-      "key": "FLW___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Photosynth Attitude",
-      "key": "FLW_1",
-      "iconIndex": 5,
-      "unlockedByDefault": false,
-      "description": "Stand still, look pretty, ruin someone's afternoon anyway.|Flower-line placeholder; stats TBD.",
-      "topFlavorText": "Smile with chlorophyll.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
       "name": "==HYBRID==",
       "key": "HBR___",
       "iconIndex": 0,
@@ -4334,211 +4299,6 @@
       "rarity": 3
     },
     {
-      "name": "==WINGER==",
-      "key": "WNG___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Skies of the Cave",
-      "key": "WNG_1",
-      "iconIndex": 2372,
-      "unlockedByDefault": false,
-      "description": "Bats are vicious and obnoxious creatures|They are renowned far and wide for slaying young would-be protagonists.",
-      "topFlavorText": "You truly can never chop up enough bats. You're doing the cave a favor.",
-      "maxRank": 10,
-      "baseCost": 70,
-      "flatGrowthCost": 30,
-      "multGrowthCost": 1.5,
-      "panelParameters": [
-        {
-          "parameterId": 6,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 17,
-          "perRank": 0.25,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 9,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Crimson Gaze",
-      "key": "WNG_2",
-      "iconIndex": 2372,
-      "unlockedByDefault": false,
-      "description": "An ever-iconic eyeball with wings. They can be found all across the universe for some reason.|This one however, appears to be wrapped in flames, which makes it rather annoying to get close to.",
-      "topFlavorText": "Learn the skill \\Skill[248] when this panel is maxed.",
-      "maxRank": 10,
-      "baseCost": 600,
-      "flatGrowthCost": 300,
-      "multGrowthCost": 1.3,
-      "panelParameters": [
-        {
-          "parameterId": 6,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 17,
-          "perRank": 0.25,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 7,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 10,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 30,
-          "perRank": 5,
-          "isFlat": false,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[248]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(248);"
-        }
-      ],
-      "rarity": 23
-    },
-    {
-      "name": "Call from the Dark",
-      "key": "WNG_3",
-      "iconIndex": 2372,
-      "unlockedByDefault": false,
-      "description": "TODO",
-      "topFlavorText": "TODO",
-      "maxRank": 10,
-      "baseCost": 600,
-      "flatGrowthCost": 300,
-      "multGrowthCost": 1.3,
-      "panelParameters": [
-        {
-          "parameterId": 6,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 17,
-          "perRank": 0.25,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 7,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 10,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 30,
-          "perRank": 5,
-          "isFlat": false,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[248]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(248);"
-        }
-      ],
-      "rarity": 25
-    },
-    {
-      "name": "Answer from the Dark",
-      "key": "WNG_4",
-      "iconIndex": 2372,
-      "unlockedByDefault": false,
-      "description": "TODO",
-      "topFlavorText": "TODO",
-      "maxRank": 10,
-      "baseCost": 600,
-      "flatGrowthCost": 300,
-      "multGrowthCost": 1.3,
-      "panelParameters": [
-        {
-          "parameterId": 6,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 17,
-          "perRank": 0.25,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 7,
-          "perRank": 5,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 10,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 30,
-          "perRank": 5,
-          "isFlat": false,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [
-        {
-          "rewardName": "Learn: \\Skill[248]",
-          "rankRequired": 0,
-          "effect": "a.learnSkill(248);"
-        }
-      ],
-      "rarity": 3
-    },
-    {
       "name": "==BEAK==",
       "key": "BEK___",
       "iconIndex": 0,
@@ -4570,7 +4330,7 @@
     },
     {
       "name": "==RODENTS==",
-      "key": "RAT___",
+      "key": "ROD___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -4579,21 +4339,6 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Whiskered Fine Print",
-      "key": "RAT_1",
-      "iconIndex": 2404,
-      "unlockedByDefault": false,
-      "description": "Rodent bureaucracy finally got its own filing cabinet.|Placeholder under the RAT prefix; enemy drops still key off ROD_* tiers until this branch is wired up.",
-      "topFlavorText": "Initial here, nibble later.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
@@ -4649,7 +4394,7 @@
       "key": "ROD_2",
       "iconIndex": 2404,
       "unlockedByDefault": false,
-      "description": "After Resourceful Ratactics, the rodents lawyered up and demanded a sequel.|Rodent tier-two placeholder; stats TBD.",
+      "description": "After Resourceful Ratactics, rodents demanded a sequel.|Rodent tier-two scaffold for squeakier litigation.",
       "topFlavorText": "Squeak now, litigate later.",
       "maxRank": 10,
       "baseCost": 50,
@@ -4660,8 +4405,8 @@
       "rarity": 0
     },
     {
-      "name": "==QUADRAPED==",
-      "key": "QUA___",
+      "name": "==BULL==",
+      "key": "BUL___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -4675,19 +4420,84 @@
       "rarity": 0
     },
     {
-      "name": "Paw Traffic Control",
-      "key": "QUA_1",
-      "iconIndex": 2188,
+      "name": "Bullheaded",
+      "key": "BUL_1",
+      "iconIndex": 2392,
       "unlockedByDefault": false,
-      "description": "Four feet, zero excuses, maximum drama.|Quadruped scaffold for wolves, cats, and other drama mammals.",
-      "topFlavorText": "Yield to the tail.",
+      "description": "Being bullheaded isn't always a bad thing.|He grew to be big and strong from a little cow before you slayed him!",
+      "topFlavorText": "Be strong and tenacious like the bull. Or pretend at least.",
       "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
+      "baseCost": 70,
+      "flatGrowthCost": 30,
+      "multGrowthCost": 1.4,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": 1.5,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 2,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 27,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 12,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
       "panelRewards": [],
-      "rarity": 0
+      "rarity": 3
+    },
+    {
+      "name": "Ironfist of Iron",
+      "key": "BUL_2",
+      "iconIndex": 2392,
+      "unlockedByDefault": false,
+      "description": "The terror of the megataurs are known far and wide.|Deleting them would save hundreds of lives per year.",
+      "topFlavorText": "The one with the iron fist of iron will rule.",
+      "maxRank": 10,
+      "baseCost": 330,
+      "flatGrowthCost": 70,
+      "multGrowthCost": 1.6,
+      "panelParameters": [
+        {
+          "parameterId": 0,
+          "perRank": 1,
+          "isFlat": false,
+          "isCore": true
+        },
+        {
+          "parameterId": 2,
+          "perRank": 4,
+          "isFlat": true,
+          "isCore": true
+        },
+        {
+          "parameterId": 11,
+          "perRank": 2,
+          "isFlat": true,
+          "isCore": false
+        },
+        {
+          "parameterId": 29,
+          "perRank": 1,
+          "isFlat": true,
+          "isCore": false
+        }
+      ],
+      "panelRewards": [],
+      "rarity": 23
     },
     {
       "name": "==HIVEMIND==",
@@ -5036,191 +4846,6 @@
       ],
       "panelRewards": [],
       "rarity": 3
-    },
-    {
-      "name": "==LONER==",
-      "key": "LON___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Solo Invoice",
-      "key": "LON_1",
-      "iconIndex": 188,
-      "unlockedByDefault": false,
-      "description": "Lone hunters finally itemized what everyone owes them.|Loner-family placeholder until the brooding pays off.",
-      "topFlavorText": "Tips appreciated, company optional.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==JUMPER==",
-      "key": "JMP___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Airborne Fine Print",
-      "key": "JMP_1",
-      "iconIndex": 1684,
-      "unlockedByDefault": false,
-      "description": "Read the landing terms before you bounce on someone's skull.|Jumper scaffold for leap-and-crit enjoyers.",
-      "topFlavorText": "Gravity is a suggestion.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==PARASITE==",
-      "key": "PAR___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Lodger's Premium",
-      "key": "PAR_1",
-      "iconIndex": 1547,
-      "unlockedByDefault": false,
-      "description": "Your HP is just their Airbnb with aggressive housekeeping.|Parasite placeholder; leech stats later.",
-      "topFlavorText": "Five stars, zero consent.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==BULL==",
-      "key": "BUL___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Bullheaded",
-      "key": "BUL_1",
-      "iconIndex": 2392,
-      "unlockedByDefault": false,
-      "description": "Being bullheaded isn't always a bad thing.|He grew to be big and strong from a little cow before you slayed him!",
-      "topFlavorText": "Be strong and tenacious like the bull. Or pretend at least.",
-      "maxRank": 10,
-      "baseCost": 70,
-      "flatGrowthCost": 30,
-      "multGrowthCost": 1.4,
-      "panelParameters": [
-        {
-          "parameterId": 0,
-          "perRank": 1.5,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 2,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 27,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 12,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 3
-    },
-    {
-      "name": "Ironfist of Iron",
-      "key": "BUL_2",
-      "iconIndex": 2392,
-      "unlockedByDefault": false,
-      "description": "The terror of the megataurs are known far and wide.|Deleting them would save hundreds of lives per year.",
-      "topFlavorText": "The one with the iron fist of iron will rule.",
-      "maxRank": 10,
-      "baseCost": 330,
-      "flatGrowthCost": 70,
-      "multGrowthCost": 1.6,
-      "panelParameters": [
-        {
-          "parameterId": 0,
-          "perRank": 1,
-          "isFlat": false,
-          "isCore": true
-        },
-        {
-          "parameterId": 2,
-          "perRank": 4,
-          "isFlat": true,
-          "isCore": true
-        },
-        {
-          "parameterId": 11,
-          "perRank": 2,
-          "isFlat": true,
-          "isCore": false
-        },
-        {
-          "parameterId": 29,
-          "perRank": 1,
-          "isFlat": true,
-          "isCore": false
-        }
-      ],
-      "panelRewards": [],
-      "rarity": 23
     },
     {
       "name": "==ORC==",
@@ -5795,66 +5420,6 @@
       "rarity": 31
     },
     {
-      "name": "==WALKER==",
-      "key": "WLK___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Shamble Etiquette",
-      "key": "WLK_1",
-      "iconIndex": 2210,
-      "unlockedByDefault": false,
-      "description": "Walkers show up uninvited and still expect appetizers.|Walker scaffold for slow-and-steady horror.",
-      "topFlavorText": "RSVP: never.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==CLAN==",
-      "key": "CLN___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Pack Arithmetic",
-      "key": "CLN_1",
-      "iconIndex": 471,
-      "unlockedByDefault": false,
-      "description": "One goblin is rude; twelve is a curriculum with homework.|Clan placeholder for mob-minded monsters.",
-      "topFlavorText": "Show your work in bruises.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
       "name": "==GOLEM==",
       "key": "GOL___",
       "iconIndex": 0,
@@ -6063,126 +5628,6 @@
       "rarity": 3
     },
     {
-      "name": "==ROBOT==",
-      "key": "RBT___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Oil Change Serenade",
-      "key": "RBT_1",
-      "iconIndex": 1547,
-      "unlockedByDefault": false,
-      "description": "Beep politely, then crit before they read the manual.|Robot scaffold until servo stats arrive.",
-      "topFlavorText": "Lubricate the ego.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==HOMONCULUS==",
-      "key": "HOM___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Flask-Born Frustration",
-      "key": "HOM_1",
-      "iconIndex": 5,
-      "unlockedByDefault": false,
-      "description": "Homunculi filed paperwork for souls and got receipts instead.|Homunculus placeholder for tiny lab accidents.",
-      "topFlavorText": "Shake before raging.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==?CONSTRUCT-5?==",
-      "key": "CN5___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Speculative Torque",
-      "key": "CN5_1",
-      "iconIndex": 466,
-      "unlockedByDefault": false,
-      "description": "Construct-5 blueprints are classified behind crayon doodles.|Fifth-construct scaffold; tighten later.",
-      "topFlavorText": "Torque it til it confesses.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "==ELEMENTALS==",
-      "key": "ELE___",
-      "iconIndex": 0,
-      "unlockedByDefault": false,
-      "description": "",
-      "topFlavorText": "",
-      "maxRank": 1,
-      "baseCost": 50,
-      "flatGrowthCost": 1,
-      "multGrowthCost": 1,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
-      "name": "Elementary Rudeness",
-      "key": "ELE_1",
-      "iconIndex": 2188,
-      "unlockedByDefault": false,
-      "description": "Fire argues, ice sulks, lightning double-texts at 3 a.m.|Elemental placeholder for periodic tantrums.",
-      "topFlavorText": "Ion the prize.",
-      "maxRank": 10,
-      "baseCost": 50,
-      "flatGrowthCost": 50,
-      "multGrowthCost": 1.25,
-      "panelParameters": [],
-      "panelRewards": [],
-      "rarity": 0
-    },
-    {
       "name": "==SINS==",
       "key": "SIN___",
       "iconIndex": 0,
@@ -6302,8 +5747,8 @@
       "rarity": 31
     },
     {
-      "name": "==?DEITY-3?==",
-      "key": "DE3___",
+      "name": "==NECROS==",
+      "key": "NEC___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -6317,12 +5762,12 @@
       "rarity": 0
     },
     {
-      "name": "Third Chair Murmurs",
-      "key": "DE3_1",
-      "iconIndex": 53,
+      "name": "Ashen Requiem",
+      "key": "NEC_1",
+      "iconIndex": 466,
       "unlockedByDefault": false,
-      "description": "The deity hotline is still on hold with terrible hold music.|Deity-3 scaffold for mid-tier apotheosis.",
-      "topFlavorText": "Your call is very important.",
+      "description": "The necros still owe the choir one last bow.|Necros-line scaffold until the dead finish rehearsal.",
+      "topFlavorText": "Encore denied.",
       "maxRank": 10,
       "baseCost": 50,
       "flatGrowthCost": 50,
@@ -6332,8 +5777,8 @@
       "rarity": 0
     },
     {
-      "name": "==?DEITY-4?==",
-      "key": "DE4___",
+      "name": "==HYDRA==",
+      "key": "HYD___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -6347,12 +5792,12 @@
       "rarity": 0
     },
     {
-      "name": "Fourth Verdict Snacks",
-      "key": "DE4_1",
-      "iconIndex": 53,
+      "name": "Headcount Advantage",
+      "key": "HYD_1",
+      "iconIndex": 14,
       "unlockedByDefault": false,
-      "description": "Judgment tastes better with crumbs and a little attitude.|Deity-4 placeholder until the pantheon signs contracts.",
-      "topFlavorText": "Appeal denied, enjoy the chips.",
+      "description": "Hydras treat necks like optional DLC.|Hydra-line scaffold for many-mouthed middle management.",
+      "topFlavorText": "Meeting ran long; heads rolled.",
       "maxRank": 10,
       "baseCost": 50,
       "flatGrowthCost": 50,
@@ -6362,8 +5807,8 @@
       "rarity": 0
     },
     {
-      "name": "==?DEITY-5?==",
-      "key": "DE5___",
+      "name": "==SALAMANDER==",
+      "key": "SAL___",
       "iconIndex": 0,
       "unlockedByDefault": false,
       "description": "",
@@ -6377,12 +5822,552 @@
       "rarity": 0
     },
     {
-      "name": "Fifth Chorus Log",
-      "key": "DE5_1",
+      "name": "Newt Interest Rate",
+      "key": "SAL_1",
+      "iconIndex": 67,
+      "unlockedByDefault": false,
+      "description": "Salamanders compound flame on emotional debt.|Salamander-line scaffold for spicy amortization.",
+      "topFlavorText": "Read the fine ash.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==FISH==",
+      "key": "FSH___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Scales and Escapism",
+      "key": "FSH_1",
+      "iconIndex": 227,
+      "unlockedByDefault": false,
+      "description": "Fish philosophy: look bored, mean it, still win.|Fish-line scaffold for wet lurkers.",
+      "topFlavorText": "Glub with intent.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==CEPHALOPOD==",
+      "key": "CPH___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Inkwell Parliament",
+      "key": "CPH_1",
+      "iconIndex": 2338,
+      "unlockedByDefault": false,
+      "description": "Cephalopod politics: motion to kraken, seconded by panic.|Cephalopod-line scaffold for tentacle think tanks.",
+      "topFlavorText": "Quorum achieved via suction.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==CUBE==",
+      "key": "CUB___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Orthogonal Swagger",
+      "key": "CUB_1",
+      "iconIndex": 2164,
+      "unlockedByDefault": false,
+      "description": "Cube slimes insist every face is the front.|Cube-line scaffold for gelatinous geometry.",
+      "topFlavorText": "Think outside the square, then become it.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==TREANT==",
+      "key": "TRE___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Bark Oil Maintenance",
+      "key": "TRE_1",
+      "iconIndex": 200,
+      "unlockedByDefault": false,
+      "description": "Treants moisturize with patience and spite.|Treant-line scaffold for angry furniture.",
+      "topFlavorText": "Rings do not lie; people do.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==FLOWER==",
+      "key": "FLW___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Photosynth Attitude",
+      "key": "FLW_1",
+      "iconIndex": 5,
+      "unlockedByDefault": false,
+      "description": "Flowers weaponize being pretty in direct sunlight.|Flower-line scaffold for polite carnage.",
+      "topFlavorText": "Smile with chlorophyll.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==QUADRAPED==",
+      "key": "QUA___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Paw Traffic Control",
+      "key": "QUA_1",
+      "iconIndex": 2188,
+      "unlockedByDefault": false,
+      "description": "Quadrupeds argue four feet beats two opinions.|Quadruped-line scaffold for drama mammals.",
+      "topFlavorText": "Yield to the tail.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==LONER==",
+      "key": "LON___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Solo Invoice",
+      "key": "LON_1",
+      "iconIndex": 188,
+      "unlockedByDefault": false,
+      "description": "Loners finally billed the world for bad company.|Loner-line scaffold for brooding specialists.",
+      "topFlavorText": "Tips appreciated, company optional.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==JUMPER==",
+      "key": "JMP___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Airborne Fine Print",
+      "key": "JMP_1",
+      "iconIndex": 1684,
+      "unlockedByDefault": false,
+      "description": "Jumpers negotiate landing rights mid-apex.|Jumper-line scaffold for leap-and-crit enjoyers.",
+      "topFlavorText": "Gravity is a suggestion.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==PARASITE==",
+      "key": "PAR___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Lodger's Premium",
+      "key": "PAR_1",
+      "iconIndex": 1547,
+      "unlockedByDefault": false,
+      "description": "Parasites rebranded room service without consent.|Parasite-line scaffold for intimate freeloaders.",
+      "topFlavorText": "Five stars, zero consent.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==WALKER==",
+      "key": "WLK___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Shamble Etiquette",
+      "key": "WLK_1",
+      "iconIndex": 2210,
+      "unlockedByDefault": false,
+      "description": "Walkers RSVP never and still eat the snacks.|Walker-line scaffold for slow horror.",
+      "topFlavorText": "Save the date for never.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==CLAN==",
+      "key": "CLN___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Pack Arithmetic",
+      "key": "CLN_1",
+      "iconIndex": 471,
+      "unlockedByDefault": false,
+      "description": "Clan math: one goblin is rude, twelve is curriculum.|Clan-line scaffold for mob-minded monsters.",
+      "topFlavorText": "Show your work in bruises.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==ROBOT==",
+      "key": "RBT___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Oil Change Serenade",
+      "key": "RBT_1",
+      "iconIndex": 1547,
+      "unlockedByDefault": false,
+      "description": "Robots serenade servos before the betrayal arc.|Robot-line scaffold for polite murder machines.",
+      "topFlavorText": "Lubricate the ego.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==HOMONCULUS==",
+      "key": "HOM___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Flask-Born Frustration",
+      "key": "HOM_1",
+      "iconIndex": 5,
+      "unlockedByDefault": false,
+      "description": "Homunculi expected souls, got paperwork instead.|Homunculus-line scaffold for lab-grown attitude.",
+      "topFlavorText": "Shake before raging.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==ELEMENTALS==",
+      "key": "ELE___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Elementary Rudeness",
+      "key": "ELE_1",
+      "iconIndex": 2188,
+      "unlockedByDefault": false,
+      "description": "Elementals text back with weather.|Elemental-line scaffold for periodic tantrums.",
+      "topFlavorText": "Ion the prize.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==ASPECT==",
+      "key": "ASP___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Many-Sided Argument",
+      "key": "ASP_1",
       "iconIndex": 53,
       "unlockedByDefault": false,
-      "description": "Apotheosis left a voicemail you are too afraid to transcribe.|Deity-5 scaffold for endgame divinity.",
-      "topFlavorText": "Please hold for creation.",
+      "description": "Gods rarely agree which face you were supposed to see first.|Aspect-line scaffold for divine manifestations that keep swapping masks.",
+      "topFlavorText": "Pick a facet, any facet.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==SOVEREIGN==",
+      "key": "SOV___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Crown Static",
+      "key": "SOV_1",
+      "iconIndex": 53,
+      "unlockedByDefault": false,
+      "description": "When the sovereign speaks, the air files paperwork in triplicate.|Sovereign-line scaffold for thrones that refuse to negotiate.",
+      "topFlavorText": "The mic is divine property.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==COVENANT==",
+      "key": "COV___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Signed in Thunder",
+      "key": "COV_1",
+      "iconIndex": 53,
+      "unlockedByDefault": false,
+      "description": "Covenants are just contracts with better lightning clauses.|Covenant-line scaffold for oaths that outlive the signatories.",
+      "topFlavorText": "Initials optional, witnesses mandatory.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "==RUNE-BOUND==",
+      "key": "RUN___",
+      "iconIndex": 0,
+      "unlockedByDefault": false,
+      "description": "",
+      "topFlavorText": "",
+      "maxRank": 1,
+      "baseCost": 50,
+      "flatGrowthCost": 1,
+      "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Graven Tolerance",
+      "key": "RUN_1",
+      "iconIndex": 466,
+      "unlockedByDefault": false,
+      "description": "Every joint is a sentence; every sentence holds the thing together.|Rune-bound construct scaffold for warded bodies and carved obedience.",
+      "topFlavorText": "Do not sand the fine print.",
       "maxRank": 10,
       "baseCost": 50,
       "flatGrowthCost": 50,
