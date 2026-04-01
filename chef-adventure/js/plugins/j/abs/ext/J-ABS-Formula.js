@@ -572,7 +572,7 @@ class JFORMULA_PluginMetadata
      * The id of a switch that represents whether or not this system is accessible in the menu.
      * @type {number}
      */
-    this.menuSwitchId = parseInt(this.parsedPluginParameters['menu-switch']);
+    this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters['menu-switch'], 0);
   }
 }
 

@@ -359,6 +359,30 @@ J.BASE.Helpers.satisfies = function(currentVersion, minimumVersion)
 };
 
 /**
+ * Parses a base-10 integer from plugin parameter values, using a fallback when missing or invalid.
+ *
+ * @param {string|number|undefined|null} value Raw plugin parameter value.
+ * @param {number} fallback Used when the value is empty or not a finite integer.
+ * @returns {number}
+ */
+J.BASE.Helpers.parsePluginInt = function(value, fallback)
+{
+  if (value === undefined || value === null || value === '')
+  {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(String(value), 10);
+
+  if (Number.isFinite(parsed))
+  {
+    return parsed;
+  }
+
+  return fallback;
+};
+
+/**
  * Generates a `uuid`- a universally unique identifier- for this battler.
  * @returns {string} The `uuid`.
  */
@@ -12150,6 +12174,25 @@ Window_Command.prototype.hasCommands = function()
 };
 
 /**
+ * Command row at {@link index}, or null when out of range (empty list, stale index, pre-refresh).
+ *
+ * @param {number} index
+ * @returns {object|null}
+ */
+Window_Command.prototype.commandEntryAt = function(index)
+{
+  const entry = this.commandList()
+    .at(index);
+
+  if (entry === undefined || entry === null)
+  {
+    return null;
+  }
+
+  return entry;
+};
+
+/**
  * Get the unmodified line height, which should always be `36`.
  * @returns {36}
  */
@@ -12370,8 +12413,14 @@ Window_Command.prototype.buildCommandName = function(index)
  */
 Window_Command.prototype.commandSubtext = function(index)
 {
-  return this.commandList()
-    .at(index).subText ?? [];
+  const command = this.commandEntryAt(index);
+
+  if (command === null)
+  {
+    return [];
+  }
+
+  return command.subText ?? [];
 };
 
 /**
@@ -12381,14 +12430,26 @@ Window_Command.prototype.commandSubtext = function(index)
  */
 Window_Command.prototype.commandLines = function(index)
 {
-  return this.commandList()
-    .at(index).lines ?? [];
+  const command = this.commandEntryAt(index);
+
+  if (command === null)
+  {
+    return [];
+  }
+
+  return command.lines ?? [];
 };
 
 Window_Command.prototype.isCommandSubtext = function(index)
 {
-  return this.commandList()
-    .at(index).isSubtext ?? true;
+  const command = this.commandEntryAt(index);
+
+  if (command === null)
+  {
+    return true;
+  }
+
+  return command.isSubtext ?? true;
 };
 
 /**
@@ -12416,8 +12477,14 @@ Window_Command.prototype.multilineLineHeight = function()
  */
 Window_Command.prototype.commandRightText = function(index)
 {
-  return this.commandList()
-    .at(index).rightText;
+  const command = this.commandEntryAt(index);
+
+  if (command === null)
+  {
+    return String.empty;
+  }
+
+  return command.rightText;
 };
 
 /**
@@ -12427,12 +12494,14 @@ Window_Command.prototype.commandRightText = function(index)
  */
 Window_Command.prototype.commandRightColorIndex = function(index)
 {
-  const command = this.commandList()
-    .at(index);
-  const commandColor = this.commandList()
-    .at(index).rightColor;
-  const color = command.rightColor;
-  return color;
+  const command = this.commandEntryAt(index);
+
+  if (command === null)
+  {
+    return 0;
+  }
+
+  return command.rightColor;
 };
 
 /**
@@ -12442,8 +12511,14 @@ Window_Command.prototype.commandRightColorIndex = function(index)
  */
 Window_Command.prototype.commandHelpText = function(index)
 {
-  return this.commandList()
-    .at(index).helpText;
+  const command = this.commandEntryAt(index);
+
+  if (command === null)
+  {
+    return String.empty;
+  }
+
+  return command.helpText;
 };
 
 /**
@@ -12479,8 +12554,14 @@ Window_Command.prototype.handleColor = function(command, index)
  */
 Window_Command.prototype.commandIcon = function(index)
 {
-  return this.commandList()
-    .at(index).icon;
+  const command = this.commandEntryAt(index);
+
+  if (command === null)
+  {
+    return 0;
+  }
+
+  return command.icon;
 };
 
 /**
@@ -12490,14 +12571,26 @@ Window_Command.prototype.commandIcon = function(index)
  */
 Window_Command.prototype.commandColor = function(index)
 {
-  return this.commandList()
-    .at(index).color;
+  const command = this.commandEntryAt(index);
+
+  if (command === null)
+  {
+    return 0;
+  }
+
+  return command.color;
 };
 
 Window_Command.prototype.commandFaceData = function(index)
 {
-  return this.commandList()
-    .at(index).faceData ?? [ String.empty, -1 ];
+  const command = this.commandEntryAt(index);
+
+  if (command === null)
+  {
+    return [ String.empty, -1 ];
+  }
+
+  return command.faceData ?? [ String.empty, -1 ];
 };
 
 //region adding commands
