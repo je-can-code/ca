@@ -2516,8 +2516,27 @@ class J_QUEST_PluginMetadata
 
   initializeQuests()
   {
+    const rawConfig = StorageManager.fsReadFile(J_QUEST_PluginMetadata.CONFIG_PATH);
+    if (rawConfig === null || rawConfig === '')
+    {
+      console.error('no quest configuration was found in the /data directory of the project.');
+      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
+      throw new Error('OmniQuest plugin is being used, but no config file is present.');
+    }
+
     /** @type {OmniConfiguration} */
-    const parsedConfiguration = JSON.parse(StorageManager.fsReadFile(J_QUEST_PluginMetadata.CONFIG_PATH));
+    let parsedConfiguration;
+    try
+    {
+      parsedConfiguration = JSON.parse(rawConfig);
+    }
+    catch (e)
+    {
+      throw new Error(
+        `Failed to parse JSON at ${J_QUEST_PluginMetadata.CONFIG_PATH}: ${e.message}`,
+      );
+    }
+
     if (parsedConfiguration === null)
     {
       console.error('no quest configuration was found in the /data directory of the project.');
@@ -2525,7 +2544,6 @@ class J_QUEST_PluginMetadata
       throw new Error('OmniQuest plugin is being used, but no config file is present.');
     }
 
-    // classify each panel to skip ones that invalid or not applicable.
     const classifiedQuests = J_QUEST_PluginMetadata.classifyQuests(parsedConfiguration.quests);
 
     /**
@@ -2581,10 +2599,6 @@ class J_QUEST_PluginMetadata
         - ${this.tags.length} tags
         from file ${J_QUEST_PluginMetadata.CONFIG_PATH}.`);
     }
-    else
-    {
-      console.log(`loaded from file ${J_QUEST_PluginMetadata.CONFIG_PATH}.`);
-    }
   }
 
   /**
@@ -2596,7 +2610,7 @@ class J_QUEST_PluginMetadata
      * The id of a switch that represents whether or not this system is accessible in the menu.
      * @type {number}
      */
-    this.menuSwitchId = parseInt(this.parsedPluginParameters['menu-switch']);
+    this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters['menu-switch'], 0);
 
     /**
      * When this switch is enabled, the command will be rendered into the command list as well.

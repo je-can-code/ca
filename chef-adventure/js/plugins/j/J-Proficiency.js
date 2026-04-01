@@ -423,7 +423,26 @@ class J_ProficiencyPluginMetadata
 
   initializeProficiencies()
   {
-    const parsedConditionals = JSON.parse(StorageManager.fsReadFile(J_ProficiencyPluginMetadata.CONFIG_PATH));
+    const rawConfig = StorageManager.fsReadFile(J_ProficiencyPluginMetadata.CONFIG_PATH);
+    if (rawConfig === null || rawConfig === '')
+    {
+      console.error('no proficiency configuration was found in the /data directory of the project.');
+      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
+      throw new Error('Proficiency plugin is being used, but no config file is present.');
+    }
+
+    let parsedConditionals;
+    try
+    {
+      parsedConditionals = JSON.parse(rawConfig);
+    }
+    catch (e)
+    {
+      throw new Error(
+        `Failed to parse JSON at ${J_ProficiencyPluginMetadata.CONFIG_PATH}: ${e.message}`,
+      );
+    }
+
     if (parsedConditionals === null)
     {
       console.error('no proficiency configuration was found in the /data directory of the project.');
@@ -466,10 +485,6 @@ class J_ProficiencyPluginMetadata
       console.log(`loaded:
       - ${this.conditionals.length} proficiency conditionals
       from file ${J_ProficiencyPluginMetadata.CONFIG_PATH}.`);
-    }
-    else
-    {
-      console.log(`loaded from file ${J_ProficiencyPluginMetadata.CONFIG_PATH}.`);
     }
   }
 }
