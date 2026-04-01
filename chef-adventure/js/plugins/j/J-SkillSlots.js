@@ -159,7 +159,7 @@ class JSkillSlots_PluginMetadata
      * The id of a switch that represents whether or not this system is accessible in the menu.
      * @type {number}
      */
-    this.menuSwitchId = parseInt(this.parsedPluginParameters['menu-switch']);
+    this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters['menu-switch'], 0);
 
     /**
      * The skill type IDs whose skills are eligible for equipping into slots.
@@ -168,7 +168,7 @@ class JSkillSlots_PluginMetadata
      * @type {number[]}
      */
     this.equippableSkillTypeIds = JSON.parse(this.parsedPluginParameters['equippable-skill-type-ids'] || '[]')
-      .map(id => parseInt(id));
+      .map(id => J.BASE.Helpers.parsePluginInt(id, 0));
 
     /**
      * The default maximum number of skill slot points for an actor.

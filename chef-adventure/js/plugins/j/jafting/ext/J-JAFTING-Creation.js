@@ -301,7 +301,6 @@ class CraftingComponent
         return false;
       default:
         console.error(`unsupported item type found: [${this.#type}]`);
-        console.log(this);
         throw new Error("The type of this component is unsupported.");
     }
   }
@@ -717,6 +716,144 @@ class CraftingConfiguration
 
 //endregion
 
+//region CraftingCreationSession
+/**
+ * Owns Creation scene workflow state and the craft attempt (delegates rules to {@link CraftingRecipe}).
+ */
+class CraftingCreationSession
+{
+  /**
+   * High-level UX phases for the Creation menu.
+   */
+  static Phase = {
+    BrowsingCategories: 'browsing_categories',
+    BrowsingRecipes: 'browsing_recipes',
+  };
+
+  /**
+   * @type {string}
+   */
+  #phase = CraftingCreationSession.Phase.BrowsingCategories;
+
+  /**
+   * Category key driving the recipe list after the user picks a category.
+   * @type {string|null}
+   */
+  #categoryKey = null;
+
+  /**
+   * Outcome of the last {@link #tryCraftRecipe} for UI or tests.
+   * @type {{ crafted: boolean, playedSuccessSound: boolean, reason: string|null }|null}
+   */
+  #lastCraftOutcome = null;
+
+  /**
+   * Resets session when the Creation scene is entered fresh.
+   */
+  reset()
+  {
+    this.#phase = CraftingCreationSession.Phase.BrowsingCategories;
+    this.#categoryKey = null;
+    this.#lastCraftOutcome = null;
+  }
+
+  /**
+   * @returns {string}
+   */
+  getPhase()
+  {
+    return this.#phase;
+  }
+
+  /**
+   * @returns {string|null}
+   */
+  getCategoryKey()
+  {
+    return this.#categoryKey;
+  }
+
+  /**
+   * @returns {{ crafted: boolean, playedSuccessSound: boolean, reason: string|null }|null}
+   */
+  getLastCraftOutcome()
+  {
+    return this.#lastCraftOutcome;
+  }
+
+  /**
+   * @returns {{ phase: string, categoryKey: string|null, lastCraftOutcome: object|null }}
+   */
+  snapshot()
+  {
+    return {
+      phase: this.#phase,
+      categoryKey: this.#categoryKey,
+      lastCraftOutcome: this.#lastCraftOutcome,
+    };
+  }
+
+  /**
+   * User locked in a category; recipe list should filter to {@link categoryKey}.
+   *
+   * @param {string} categoryKey
+   */
+  enterRecipeBrowsing(categoryKey)
+  {
+    this.#categoryKey = categoryKey;
+    this.#phase = CraftingCreationSession.Phase.BrowsingRecipes;
+  }
+
+  /**
+   * User backed out of the recipe column to categories.
+   */
+  returnToCategoryBrowsing()
+  {
+    this.#phase = CraftingCreationSession.Phase.BrowsingCategories;
+    this.#categoryKey = null;
+  }
+
+  /**
+   * Attempts to craft the given recipe when the player confirms on the recipe list.
+   *
+   * @param {CraftingRecipe|null|undefined} recipe
+   * @returns {{ crafted: boolean, playedSuccessSound: boolean, reason: string|null }}
+   */
+  tryCraftRecipe(recipe)
+  {
+    if (recipe === null || recipe === undefined)
+    {
+      this.#lastCraftOutcome = {
+        crafted: false,
+        playedSuccessSound: false,
+        reason: 'no_recipe',
+      };
+      return this.#lastCraftOutcome;
+    }
+
+    if (recipe.canCraft() === false)
+    {
+      this.#lastCraftOutcome = {
+        crafted: false,
+        playedSuccessSound: false,
+        reason: 'requirements_not_met',
+      };
+      return this.#lastCraftOutcome;
+    }
+
+    recipe.craft();
+    this.#lastCraftOutcome = {
+      crafted: true,
+      playedSuccessSound: true,
+      reason: null,
+    };
+    return this.#lastCraftOutcome;
+  }
+}
+
+//endregion CraftingCreationSession
+
+
 //region CraftingRecipe
 /**
  * A data model for a single recipe in crafting.
@@ -743,7 +880,7 @@ class CraftingRecipe
   categoryKeys = [];
 
   /**
-   * The icon that will display in the type selection window next to this category.
+   * The icon index shown for this recipe in the JAFTING Creation UI.
    * @type {number}
    */
   iconIndex = -1;
@@ -755,8 +892,8 @@ class CraftingRecipe
   description = String.empty;
 
   /**
-   * The list of required tools not consumed but required to execute the recipe.
-   * @type {CraftingComponent[]}
+   * When true, this recipe is available without an explicit unlock step.
+   * @type {boolean}
    */
   unlockedByDefault = false;
 
@@ -1072,7 +1209,7 @@ RecipeTracking.prototype.craftingProficiency = function()
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 JAFT-Create] An extension for JAFTING to enable recipe creation.
+ * [v1.0.3 JAFT-Create] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1204,6 +1341,8 @@ RecipeTracking.prototype.craftingProficiency = function()
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Developer/debug helpers on J.JAFTING.EXT.CREATE.Debug and a plugin command to prep Creation test saves.
  * - 1.0.2
  *    Added flag for showing external file load info.
  * - 1.0.1
@@ -1292,6 +1431,16 @@ RecipeTracking.prototype.craftingProficiency = function()
  * @command lock-all-recipes
  * @text Lock All Recipes
  * @desc Locks all implemented crafting recipes.
+ *
+ * @command debug-prepare-creation-testing
+ * @text DEBUG: Prepare Creation testing
+ * @desc Developer convenience: unlocks all JAFTING Creation entries, maxes DB item/weapon/armor stacks, grants gold (and SDP if linked), then multiplies ingredient/tool grants from config.
+ * @arg recipeStockMultiplier
+ * @type number
+ * @min 1
+ * @default 15
+ * @text Recipe stock multiplier
+ * @desc Each configured ingredient/tool quantity is multiplied by this before granting to the party.
  */
 //endregion annotations
 
@@ -1305,7 +1454,7 @@ class J_CraftingCreatePluginMetadata
   extends PluginMetadata
 {
   /**
-   * The path where the config for panels is located.
+   * Project-relative path to the crafting JSON configuration file.
    * @type {string}
    */
   static CONFIG_PATH = 'data/config.crafting.json';
@@ -1388,7 +1537,7 @@ class J_CraftingCreatePluginMetadata
    */
   static parseCategories(parsedCategoriesBlob)
   {
-    // a maping function for classify the categories of the configuration.
+    // a mapping function for classifying the categories of the configuration.
     const categoryMapper = mappableCategory =>
     {
       const {
@@ -1426,7 +1575,7 @@ class J_CraftingCreatePluginMetadata
     // execute original logic.
     super.postInitialize();
 
-    // initialize the panels from plugin configuration.
+    // initialize recipes and categories from external JSON configuration.
     this.initializeConfiguration();
 
     // initialize this plugin from configuration.
@@ -1434,12 +1583,30 @@ class J_CraftingCreatePluginMetadata
   }
 
   /**
-   * Initializes the SDPs that exist in the SDP configuration.
+   * Loads and classifies crafting recipes and categories from {@link J_CraftingCreatePluginMetadata.CONFIG_PATH}.
    */
   initializeConfiguration()
   {
-    // parse the files as an actual list of objects from the JSON configuration.
-    const parsedJson = JSON.parse(StorageManager.fsReadFile(J_CraftingCreatePluginMetadata.CONFIG_PATH));
+    const rawConfig = StorageManager.fsReadFile(J_CraftingCreatePluginMetadata.CONFIG_PATH);
+    if (rawConfig === null || rawConfig === '')
+    {
+      console.error('no crafting configuration was found in the /data directory of the project.');
+      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
+      throw new Error('Crafting plugin is being used, but no config file is present.');
+    }
+
+    let parsedJson;
+    try
+    {
+      parsedJson = JSON.parse(rawConfig);
+    }
+    catch (e)
+    {
+      throw new Error(
+        `Failed to parse JSON at ${J_CraftingCreatePluginMetadata.CONFIG_PATH}: ${e.message}`,
+      );
+    }
+
     if (parsedJson === null)
     {
       console.error('no crafting configuration was found in the /data directory of the project.');
@@ -1447,7 +1614,6 @@ class J_CraftingCreatePluginMetadata
       throw new Error('Crafting plugin is being used, but no config file is present.');
     }
 
-    // class-ify over each panel.
     const classifiedCraftingConfig = J_CraftingCreatePluginMetadata.classify(parsedJson);
 
     /**
@@ -1487,10 +1653,6 @@ class J_CraftingCreatePluginMetadata
       - ${this.categories.length} categories
       from file ${J_CraftingCreatePluginMetadata.CONFIG_PATH}.`);
     }
-    else
-    {
-      console.log(`loaded from file ${J_CraftingCreatePluginMetadata.CONFIG_PATH}.`);
-    }
   }
 
   /**
@@ -1503,7 +1665,7 @@ class J_CraftingCreatePluginMetadata
      * in the menu.
      * @type {number}
      */
-    this.menuSwitchId = parseInt(this.parsedPluginParameters['menu-switch']);
+    this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters['menu-switch'], 0);
 
     /**
      * The name used for the command when visible in a menu.
@@ -1515,7 +1677,7 @@ class J_CraftingCreatePluginMetadata
      * The icon used alongside the command's name when visible in the menu.
      * @type {number}
      */
-    this.commandIconIndex = parseInt(this.parsedPluginParameters['menu-icon']) ?? 0;
+    this.commandIconIndex = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters['menu-icon'], 0);
   }
 
   /**
@@ -1637,7 +1799,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
  * The metadata associated with this plugin.
  */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata('J-JAFTING-Creation', '1.0.2');
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata('J-JAFTING-Creation', '1.1.0');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -1748,7 +1910,163 @@ PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "lock-all-reci
 {
   $gameParty.lockAllRecipes();
 });
+
+/**
+ * Developer-only convenience: see {@link J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest}.
+ */
+PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "debug-prepare-creation-testing", args =>
+{
+  const { recipeStockMultiplier } = args;
+  let mult = 15;
+
+  if (recipeStockMultiplier !== undefined && recipeStockMultiplier !== null && recipeStockMultiplier !== '')
+  {
+    const parsed = Number(recipeStockMultiplier);
+
+    if (Number.isFinite(parsed) && parsed >= 1)
+    {
+      mult = Math.floor(parsed);
+    }
+  }
+
+  J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest(mult);
+});
 //endregion plugin commands
+
+//region jaftingCreationDebug
+J.JAFTING.EXT.CREATE.Debug = {};
+
+/**
+ * Unlocks every category/recipe the metadata knows about and bumps proficiency so masking drops away.
+ */
+J.JAFTING.EXT.CREATE.Debug.unlockEverythingForTesting = function()
+{
+  $gameParty.unlockEverythingCompletely();
+};
+
+/**
+ * Maxes the party count for every non-null item, weapon, and armor database row (respects engine max item stacks).
+ */
+J.JAFTING.EXT.CREATE.Debug.gainMaxOfAllItemWeaponArmor = function()
+{
+  const grantTable = data =>
+  {
+    if (data === null || data === undefined) return;
+
+    for (let i = 1; i < data.length; i++)
+    {
+      const datum = data[i];
+
+      if (datum === null) continue;
+
+      const cap = $gameParty.maxItems(datum);
+
+      if (cap > 0)
+      {
+        $gameParty.gainItem(datum, cap);
+      }
+    }
+  };
+
+  grantTable($dataItems);
+  grantTable($dataWeapons);
+  grantTable($dataArmors);
+};
+
+/**
+ * Grants gold suitable for recipe tests that charge gold components.
+ *
+ * @param {number} [amount]
+ */
+J.JAFTING.EXT.CREATE.Debug.gainGoldForTesting = function(amount)
+{
+  const value = (amount === undefined || amount === null || amount === 0)
+    ? 999999
+    : amount;
+
+  $gameParty.gainGold(value);
+};
+
+/**
+ * When J-SDP is linked, grants every party member a large SDP pool.
+ *
+ * @param {number} [points]
+ */
+J.JAFTING.EXT.CREATE.Debug.gainBulkSdpIfAvailable = function(points)
+{
+  if (J.JAFTING.EXT.CREATE.Metadata.usingSdp() === false) return;
+
+  const value = (points === undefined || points === null)
+    ? 999999
+    : points;
+
+  $gameParty.members()
+    .forEach(actor => actor.modSdpPoints(value));
+};
+
+/**
+ * Grants ingredients and tools for every unlockable recipe, scaled by {@link multiplier}.
+ *
+ * @param {number} [multiplier]
+ */
+J.JAFTING.EXT.CREATE.Debug.gainStockFromAllRecipes = function(multiplier)
+{
+  const mult = (multiplier === undefined || multiplier === null || multiplier < 1)
+    ? 10
+    : Math.floor(multiplier);
+
+  const recipes = J.JAFTING.EXT.CREATE.Metadata.recipes;
+
+  const feedComponent = component =>
+  {
+    const total = component.quantity() * mult;
+
+    if (component.isDatabaseEntry())
+    {
+      $gameParty.gainItem(component.getItem(), total);
+      return;
+    }
+
+    if (component.isGold())
+    {
+      $gameParty.gainGold(total);
+      return;
+    }
+
+    if (component.isSdp())
+    {
+      if (J.JAFTING.EXT.CREATE.Metadata.usingSdp() === false) return;
+
+      $gameParty.members()
+        .forEach(actor => actor.modSdpPoints(total));
+    }
+  };
+
+  recipes.forEach(recipe =>
+  {
+    if ($gameParty.canGainEntry(recipe.key) === false) return;
+
+    recipe.ingredients.forEach(feedComponent);
+    recipe.tools.forEach(feedComponent);
+  });
+};
+
+/**
+ * One-shot dev harness: unlock all JAFTING Creation content, max DB goods, bulk gold/SDP, and stock recipe mats.
+ *
+ * @param {number} [recipeStockMultiplier] Applied per ingredient/tool quantity in config (default 15).
+ */
+J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest = function(recipeStockMultiplier)
+{
+  J.JAFTING.EXT.CREATE.Debug.unlockEverythingForTesting();
+  J.JAFTING.EXT.CREATE.Debug.gainMaxOfAllItemWeaponArmor();
+  J.JAFTING.EXT.CREATE.Debug.gainGoldForTesting();
+  J.JAFTING.EXT.CREATE.Debug.gainBulkSdpIfAvailable();
+  J.JAFTING.EXT.CREATE.Debug.gainStockFromAllRecipes(recipeStockMultiplier);
+};
+
+//endregion jaftingCreationDebug
+
 
 //region Game_Party
 /**
@@ -1834,7 +2152,6 @@ Game_Party.prototype.updateRecipesFromConfig = function()
     // check if we found a tracking.
     if (!foundTracking)
     {
-      console.log(`adding new recipe; ${recipe.key}`);
       // we didn't find one, so create and add a new tracking.
       const newTracking = new RecipeTracking(recipe.key, recipe.unlockedByDefault);
       trackings.push(newTracking);
@@ -1863,7 +2180,6 @@ Game_Party.prototype.updateCategoriesFromConfig = function()
     // check if we found a tracking.
     if (!found)
     {
-      console.log(`adding new category; ${category.name} : ${category.key}`);
       // we didn't find one, so create and add a new tracking.
       const newTracking = new CategoryTracking(category.key, category.unlockedByDefault);
       trackings.push(newTracking);
@@ -2278,22 +2594,18 @@ Game_System.prototype.onAfterLoad = function()
 //region Scene_Jafting
 /**
  * Extends {@link #onRootJaftingSelection}.<br>
- * When JAFTING is selected, open the root JAFTING menu.
+ * When Creation is chosen on the JAFTING hub, opens the Creation scene.
  */
 J.JAFTING.EXT.CREATE.Aliased.Scene_Jafting
   .set('onRootJaftingSelection', Scene_Jafting.prototype.onRootJaftingSelection);
 Scene_Jafting.prototype.onRootJaftingSelection = function()
 {
-  // grab which JAFTING mode was selected.
   const currentSelection = this.getRootJaftingKey();
 
-  // check if the current selection is create.
   if (currentSelection === Scene_JaftingCreate.KEY)
   {
-    // execute the monsterpedia.
     this.jaftingCreationSelected();
   }
-  // the current selection is not create.
   else
   {
     // possibly activate other choices.
@@ -2303,14 +2615,12 @@ Scene_Jafting.prototype.onRootJaftingSelection = function()
 };
 
 /**
- * Switch to the jafting creation scene when selected from the root jafting list.
+ * Switch to the JAFTING Creation scene from the hub list.
  */
 Scene_Jafting.prototype.jaftingCreationSelected = function()
 {
-  // close the root jafting windows.
   this.closeRootJaftingWindows();
 
-  // call the creation scene.
   Scene_JaftingCreate.callScene();
 };
 //endregion Scene_Jafting
@@ -2320,10 +2630,50 @@ class Scene_JaftingCreate
   extends Scene_MenuBase
 {
   /**
+   * Whether Creation can open: at least one unlocked category has recipes the party may craft.
+   * @returns {boolean}
+   */
+  static isAccessible()
+  {
+    const categories = $gameParty.getUnlockedCategories();
+
+    if (categories.length === 0)
+    {
+      return false;
+    }
+
+    for (let i = 0; i < categories.length; i++)
+    {
+      if (categories[i].hasAnyRecipes())
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Whether the JAFTING hub should show Creation as selectable (menu switch plus content eligibility).
+   * @returns {boolean}
+   */
+  static isCreateCommandEnabled()
+  {
+    return $gameSwitches.value(J.JAFTING.EXT.CREATE.Metadata.menuSwitchId)
+      && Scene_JaftingCreate.isAccessible();
+  }
+
+  /**
    * Pushes this current scene onto the stack, forcing it into action.
    */
   static callScene()
   {
+    if (Scene_JaftingCreate.isAccessible() === false)
+    {
+      SoundManager.playBuzzer();
+      return;
+    }
+
     SceneManager.push(this);
   }
 
@@ -2359,14 +2709,14 @@ class Scene_JaftingCreate
   }
 
   /**
-   * Initialize all properties for our omnipedia.
+   * Initialize all properties for the Creation scene.
    */
   initMembers()
   {
     // initialize the root-namespace definition members.
     this.initCoreMembers();
 
-    // initialize the monsterpedia members.
+    // initialize the Creation windows and state bucket.
     this.initPrimaryMembers();
   }
 
@@ -2381,15 +2731,13 @@ class Scene_JaftingCreate
     this._j ||= {};
 
     /**
-     * A grouping of all properties associated with the omnipedia.
+     * A grouping of all properties associated with this JAFTING scene.
      */
     this._j._crafting = {};
   }
 
   /**
-   * The primary properties of the scene are the initial properties associated with
-   * the main list containing all pedias unlocked by the player along with some subtext of
-   * what the pedia entails.
+   * Primary state for Creation: category and recipe lists, recipe detail panes, and related windows.
    */
   initPrimaryMembers()
   {
@@ -2398,6 +2746,12 @@ class Scene_JaftingCreate
      * Creation is a subcategory of the jafting system.
      */
     this._j._crafting._create = {};
+
+    /**
+     * Workflow state and craft attempts for this scene (keeps UI handlers thin).
+     * @type {CraftingCreationSession}
+     */
+    this._j._crafting._create._session = new CraftingCreationSession();
 
     /**
      * The window that shows the tertiary information about a recipe or category.
@@ -2442,6 +2796,14 @@ class Scene_JaftingCreate
     this._j._crafting._create._recipeOutputList = null;
   }
 
+  /**
+   * @returns {CraftingCreationSession}
+   */
+  craftingCreationSession()
+  {
+    return this._j._crafting._create._session;
+  }
+
   //endregion init
 
   //region create
@@ -2464,6 +2826,9 @@ class Scene_JaftingCreate
   {
     // create all our windows.
     this.createAllWindows();
+
+    // ensure category commands exist before configure reads help text (empty list is valid).
+    this.getCategoryListWindow().refresh();
 
     // configure window relations and such now that they are all created.
     this.configureAllWindows();
@@ -2554,22 +2919,13 @@ class Scene_JaftingCreate
    */
   getCreationDescriptionRectangle()
   {
-    // grab the rect for the recipe list this should be next to.
-    const listWindow = this.getRecipeListRectangle();
-
-    // the description should live at the right side of the list.
-    const x = listWindow.width + Graphics.horizontalPadding;
-
-    // the window's origin coordinates are the box window's origin as well.
-    const [ _, y ] = Graphics.boxOrigin;
-
-    // define the width of the window.
-    const width = Graphics.boxWidth - listWindow.width - Graphics.horizontalPadding;
-
-    // define the height of the window.
+    const listRect = this.getRecipeListRectangle();
+    const [ ox ] = Graphics.boxOrigin;
+    const x = listRect.x + listRect.width + Graphics.horizontalPadding;
+    const y = listRect.y;
+    const width = ox + Graphics.boxWidth - x - Graphics.horizontalPadding;
     const height = 100;
 
-    // build the rectangle to return.
     return new Rectangle(x, y, width, height);
   }
 
@@ -2638,8 +2994,7 @@ class Scene_JaftingCreate
     // the window's origin coordinates are the box window's origin as well.
     const [ x, y ] = Graphics.boxOrigin;
 
-    // define the width of the window.
-    const width = 300;
+    const width = Math.round(300 * 1.1);
 
     // define the height of the window.
     const height = Graphics.boxHeight - (Graphics.verticalPadding * 2);
@@ -2686,6 +3041,8 @@ class Scene_JaftingCreate
 
     // the category key is also the symbol of the category commands.
     const currentCategory = categoryListWindow.currentSymbol();
+
+    this.craftingCreationSession().enterRecipeBrowsing(currentCategory);
 
     // grab the recipe list window.
     const recipeListWindow = this.getRecipeListWindow();
@@ -2912,6 +3269,8 @@ class Scene_JaftingCreate
 
   onRecipeListCancel()
   {
+    this.craftingCreationSession().returnToCategoryBrowsing();
+
     this.deselectRecipeListWindow();
 
     this.selectCategoryListWindow();
@@ -2919,27 +3278,19 @@ class Scene_JaftingCreate
 
   onRecipeListSelection()
   {
-    // craft the recipe.
-    this.craftSelection();
+    const recipe = this.getRecipeListWindow().currentExt();
+    const outcome = this.craftingCreationSession().tryCraftRecipe(recipe);
 
-    // refresh all the windows.
+    if (outcome.playedSuccessSound === true)
+    {
+      SoundManager.playShop();
+    }
+
     this.onRecipeListIndexChange();
 
-    // redirect to the recipe list again.
     const listWindow = this.getRecipeListWindow();
     listWindow.refresh();
     listWindow.activate();
-    console.log('recipe crafted:', listWindow.currentExt());
-  }
-
-  craftSelection()
-  {
-    const currentRecipe = this.getRecipeListWindow()
-      .currentExt();
-
-    currentRecipe.craft();
-
-    SoundManager.playShop();
   }
 
   //endregion recipe list
@@ -2981,19 +3332,15 @@ class Scene_JaftingCreate
    */
   getRecipeDetailsRectangle()
   {
-    const widthReduction = this.getRecipeListRectangle().width + Graphics.horizontalPadding;
-    const x = 0 + widthReduction;
+    const [ ox, oy ] = Graphics.boxOrigin;
+    const listRect = this.getRecipeListRectangle();
+    const descWindow = this.getCreationDescriptionWindow();
 
-    const heightReduction = (this.getCreationDescriptionRectangle().height + Graphics.verticalPadding);
-    const y = 0 + heightReduction;
+    const x = listRect.x + listRect.width + Graphics.horizontalPadding;
+    const y = listRect.y + descWindow.height + Graphics.verticalPadding;
+    const width = ox + Graphics.boxWidth - x - Graphics.horizontalPadding;
+    const height = oy + Graphics.boxHeight - y - Graphics.verticalPadding;
 
-    // define the width of the window.
-    const width = Graphics.boxWidth - widthReduction;
-
-    // define the height of the window.
-    const height = Graphics.boxHeight - heightReduction;
-
-    // build the rectangle to return.
     return new Rectangle(x, y, width, height);
   }
 
@@ -3051,25 +3398,34 @@ class Scene_JaftingCreate
   }
 
   /**
+   * Positions ingredient / tool / output lists in the first three quarters of {@link #getRecipeDetailsRectangle},
+   * below the header block drawn by {@link Window_RecipeDetails}.
+   * @returns {{ leftX: number, y: number, colW: number, remainder: number, height: number }}
+   */
+  getCreationLowerPanelLayout()
+  {
+    const detailsR = this.getRecipeDetailsRectangle();
+    const detailsWindow = this.getRecipeDetailsWindow();
+    const pad = detailsWindow.padding;
+    const innerW = detailsR.width - pad * 2;
+    const { cw, remainder } = Window_RecipeDetails.quarterWidthsFromInner(innerW);
+    const leftX = detailsR.x + pad;
+    const rowInset = Window_RecipeIngredientList.recipeComponentRowTopInsetPx();
+    const listInnerTop = detailsR.y + pad + detailsWindow.componentListRowsInnerStartY() - rowInset;
+    const height = detailsR.y + detailsR.height - listInnerTop - pad;
+
+    return { leftX, y: listInnerTop, colW: cw, remainder, height };
+  }
+
+  /**
    * Gets the rectangle associated with this window.
    * @returns {Rectangle}
    */
   getRecipeIngredientListRectangle()
   {
-    // the window's origin coordinates are the box window's origin as well.
-    const widthReduction = this.getRecipeListRectangle().right;
-    const x = 0 + widthReduction - 20;
+    const L = this.getCreationLowerPanelLayout();
 
-    const y = this.getCreationDescriptionRectangle().bottom + 70;
-
-    // define the width of the window.
-    const width = 350;
-
-    // define the height of the window.
-    const height = Graphics.boxHeight - y - Graphics.verticalPadding;
-
-    // build the rectangle to return.
-    return new Rectangle(x, y, width, height);
+    return new Rectangle(L.leftX, L.y, L.colW, L.height);
   }
 
   /**
@@ -3130,19 +3486,10 @@ class Scene_JaftingCreate
    */
   getRecipeToolListRectangle()
   {
-    // the window's origin coordinates are the box window's origin as well.
-    const x = this.getRecipeIngredientListRectangle().right - 20;
+    const L = this.getCreationLowerPanelLayout();
+    const x = L.leftX + L.colW;
 
-    const y = this.getCreationDescriptionRectangle().bottom + 70;
-
-    // define the width of the window.
-    const width = 350;
-
-    // define the height of the window.
-    const height = Graphics.boxHeight - y - Graphics.verticalPadding;
-
-    // build the rectangle to return.
-    return new Rectangle(x, y, width, height);
+    return new Rectangle(x, L.y, L.colW, L.height);
   }
 
   /**
@@ -3204,18 +3551,11 @@ class Scene_JaftingCreate
    */
   getRecipeOutputListRectangle()
   {
-    // the window's origin coordinates are the box window's origin as well.
-    const x = this.getRecipeToolListRectangle().right - 20;
-    const y = this.getCreationDescriptionRectangle().bottom + 70;
+    const L = this.getCreationLowerPanelLayout();
+    const x = L.leftX + L.colW * 2;
+    const w = L.colW + L.remainder;
 
-    // define the width of the window.
-    const width = 350;
-
-    // define the height of the window.
-    const height = Graphics.boxHeight - y - Graphics.verticalPadding;
-
-    // build the rectangle to return.
-    return new Rectangle(x, y, width, height);
+    return new Rectangle(x, L.y, w, L.height);
   }
 
   /**
@@ -3357,7 +3697,7 @@ Window_JaftingList.prototype.buildCreationCommand = function()
 {
   return new WindowCommandBuilder(J.JAFTING.EXT.CREATE.Metadata.commandName)
     .setSymbol(Scene_JaftingCreate.KEY)
-    .setEnabled($gameSwitches.value(J.JAFTING.EXT.CREATE.Metadata.menuSwitchId))
+    .setEnabled(Scene_JaftingCreate.isCreateCommandEnabled())
     .addTextLine("The crux of creation.")
     .addTextLine("Create items and equips from various categories of crafting- as your heart desires.")
     .setIconIndex(J.JAFTING.EXT.CREATE.Metadata.commandIconIndex)
@@ -3369,6 +3709,20 @@ Window_JaftingList.prototype.buildCreationCommand = function()
 class Window_RecipeDetails
   extends Window_Base
 {
+  /**
+   * Fourth-column divider is drawn this many pixels left of that column's origin; header rules must not extend past this.
+   */
+  static #DETAIL_DIVIDER_LEFT_OFFSET = 12;
+
+  /**
+   * Horizontal rule under each component header is inset this many pixels from each band edge (matches {@link #DETAIL_DIVIDER_LEFT_OFFSET} so column 3 rules never cross the divider).
+   */
+  static #COMPONENT_HEADER_RULE_SIDE_INSET = Window_RecipeDetails.#DETAIL_DIVIDER_LEFT_OFFSET;
+
+  static #COMPONENT_HEADER_RULE_GAP_BEFORE = 2;
+  static #COMPONENT_HEADER_RULE_HEIGHT = 3;
+  static #COMPONENT_HEADER_RULE_GAP_AFTER = 8;
+
   /**
    * The currently selected recipe being detailed.
    * @type {CraftingRecipe}
@@ -3402,6 +3756,67 @@ class Window_RecipeDetails
   }
 
   /**
+   * Same quarter split as {@link #detailsQuarterWidth}, for sibling list windows sized by scene layout.
+   * @param {number} innerWidth inner pixel width (typically window width minus padding on both sides).
+   * @returns {{ cw: number, remainder: number }} cw = floor division width; remainder = pixels to add to the 4th band.
+   */
+  static quarterWidthsFromInner(innerWidth)
+  {
+    const cw = Math.max(80, Math.floor(innerWidth / 4));
+    const remainder = innerWidth - cw * 4;
+
+    return { cw, remainder };
+  }
+
+  /**
+   * Inner Y where ingredient / tool / output list windows should start (below the tallest header band).
+   * Uses the same stacking rules as {@link #drawComponentHeaderColumn}.
+   * @returns {number}
+   */
+  componentListRowsInnerStartY()
+  {
+    const w = this.detailsQuarterWidth();
+    const ends = [
+      this.#componentHeaderColumnInnerEndY(w, 'Materials consumed when crafting this recipe.'),
+      this.#componentHeaderColumnInnerEndY(w, 'Materials required to craft this recipe.'),
+      this.#componentHeaderColumnInnerEndY(w, 'Materials generated when the recipe is crafted.'),
+    ];
+
+    return Math.max(ends[0], ends[1], ends[2]);
+  }
+
+  /**
+   * Width of each of the four bands (ingredients, tools, outputs, detail pane).
+   * @returns {number}
+   */
+  detailsQuarterWidth()
+  {
+    const { cw } = Window_RecipeDetails.quarterWidthsFromInner(this.innerWidth);
+
+    return cw;
+  }
+
+  /**
+   * Width of the fourth band (detail pane), including remainder pixels from {@link #quarterWidthsFromInner}.
+   * @returns {number}
+   */
+  detailsFourthBandWidth()
+  {
+    const { cw, remainder } = Window_RecipeDetails.quarterWidthsFromInner(this.innerWidth);
+
+    return cw + remainder;
+  }
+
+  /**
+   * Max text width in the fourth (detail) column after margins.
+   * @returns {number}
+   */
+  detailsQuarterTextWidth()
+  {
+    return Math.max(56, this.detailsFourthBandWidth() - 10);
+  }
+
+  /**
    * Implements {@link Window_Base.drawContent}.<br>
    * Draws a the recipe details.
    */
@@ -3409,28 +3824,83 @@ class Window_RecipeDetails
   {
     if (!this.#canDrawContent()) return;
 
-    // define the origin x,y coordinates.
     const [ x, y ] = [ 0, 0 ];
+    const { cw, remainder } = Window_RecipeDetails.quarterWidthsFromInner(this.innerWidth);
+    const wDetail = cw + remainder;
 
-    // render the ingredients header text.
-    const ingredientsX = x;
-    const ingredientsY = y;
-    this.drawIngredientsHeader(ingredientsX, ingredientsY);
+    this.#drawComponentHeaderColumn(x + cw * 0, y, cw, 'INGREDIENTS', 'Materials consumed when crafting this recipe.');
+    this.#drawComponentHeaderColumn(x + cw * 1, y, cw, 'TOOLS', 'Materials required to craft this recipe.');
+    this.#drawComponentHeaderColumn(x + cw * 2, y, cw, 'OUTPUTS', 'Materials generated when the recipe is crafted.');
+    this.drawPrimaryOutput(x + cw * 3, y, wDetail);
+  }
 
-    // render the tools header text.
-    const toolsX = x + 330;
-    const toolsY = y;
-    this.drawToolsHeader(toolsX, toolsY);
+  /**
+   * Pixel height of one header band (title + wrapped subtext + rule + gap), for list alignment.
+   * @param {number} bandWidth
+   * @param {string} subtext
+   * @returns {number}
+   */
+  #componentHeaderColumnInnerEndY(bandWidth, subtext)
+  {
+    this.resetFontSettings();
 
-    // render the outputs header text.
-    const outputsX = x + 660;
-    const outputsY = y;
-    this.drawOutputsHeader(outputsX, outputsY);
+    let y = 0;
 
-    // render the primary output data.
-    const primaryOutputX = x + 990;
-    const primaryOutputY = y;
-    this.drawPrimaryOutput(primaryOutputX, primaryOutputY);
+    this.modFontSize(4);
+    this.toggleBold();
+    y += this.lineHeight();
+    this.toggleBold();
+
+    this.modFontSize(-12);
+    this.toggleItalics();
+    const subLh = this.lineHeight();
+    const usableW = Math.max(1, bandWidth - 4);
+    const roughLines = Math.max(1, Math.ceil(this.textWidth(subtext) / usableW));
+    const subLines = Math.min(3, Math.max(1, roughLines));
+    y += subLines * subLh;
+    this.toggleItalics();
+
+    const gapBeforeRule = Window_RecipeDetails.#COMPONENT_HEADER_RULE_GAP_BEFORE;
+    const ruleH = Window_RecipeDetails.#COMPONENT_HEADER_RULE_HEIGHT;
+    const gapAfterRule = Window_RecipeDetails.#COMPONENT_HEADER_RULE_GAP_AFTER;
+
+    return y + gapBeforeRule + ruleH + gapAfterRule;
+  }
+
+  /**
+   * @param {number} x
+   * @param {number} y
+   * @param {number} bandWidth
+   * @param {string} title
+   * @param {string} subtext
+   */
+  #drawComponentHeaderColumn(x, y, bandWidth, title, subtext)
+  {
+    this.resetFontSettings();
+
+    let cursor = y;
+
+    this.modFontSize(4);
+    this.toggleBold();
+    this.drawText(title, x, cursor, bandWidth, 'left');
+    cursor += this.lineHeight();
+    this.toggleBold();
+
+    this.modFontSize(-12);
+    this.toggleItalics();
+    this.drawText(subtext, x, cursor, bandWidth, Window_Base.TextAlignments.Left);
+    const subLh = this.lineHeight();
+    const usableW = Math.max(1, bandWidth - 4);
+    const roughLines = Math.max(1, Math.ceil(this.textWidth(subtext) / usableW));
+    const subLines = Math.min(3, Math.max(1, roughLines));
+    cursor += subLines * subLh;
+    this.toggleItalics();
+
+    const gapBeforeRule = Window_RecipeDetails.#COMPONENT_HEADER_RULE_GAP_BEFORE;
+    const inset = Window_RecipeDetails.#COMPONENT_HEADER_RULE_SIDE_INSET;
+    const ruleW = Math.max(1, bandWidth - inset * 2);
+    const ruleH = Window_RecipeDetails.#COMPONENT_HEADER_RULE_HEIGHT;
+    this.drawHorizontalLine(x + inset, cursor + gapBeforeRule, ruleW, ruleH);
   }
 
   /**
@@ -3447,112 +3917,46 @@ class Window_RecipeDetails
   }
 
   /**
-   * Renders the ingredient list header information.
+   * @param {number} x
+   * @param {number} y
+   * @param {number} bandWidth width of the fourth (detail) column
    */
-  drawIngredientsHeader(x, y)
+  drawPrimaryOutput(x, y, bandWidth)
   {
-    // reset all the font stuff before we start.
     this.resetFontSettings();
 
-    // render the header text.
-    this.modFontSize(4);
-    this.toggleBold();
-    this.drawText('INGREDIENTS', x, y, 300, 'left');
-    this.toggleBold();
+    this.drawVerticalLine(x - Window_RecipeDetails.#DETAIL_DIVIDER_LEFT_OFFSET, y, this.innerHeight, 3);
 
-    // render the subtext.
-    this.modFontSize(-12);
-    this.toggleItalics();
-    const subtext = 'Materials consumed when crafting this recipe.';
-    this.drawText(subtext, x, y + 20, this.textWidth(subtext), Window_Base.TextAlignments.Left);
-    this.toggleItalics();
-
-    this.drawHorizontalLine(x, y + 50, 300, 3);
-  }
-
-  /**
-   * Renders the tool list header information.
-   */
-  drawToolsHeader(x, y)
-  {
-    // reset all the font stuff before we start.
-    this.resetFontSettings();
-
-    // render the header text.
-    this.modFontSize(4);
-    this.toggleBold();
-    this.drawText('TOOLS', x, y, 300, 'left');
-    this.toggleBold();
-
-    // render the subtext.
-    this.modFontSize(-12);
-    this.toggleItalics();
-    const subtext = "Materials required to craft this recipe.";
-    this.drawText(subtext, x, y + 20, this.textWidth(subtext), Window_Base.TextAlignments.Left);
-
-    this.drawHorizontalLine(x, y + 50, 300, 3);
-  }
-
-  /**
-   * Renders the output list header information.
-   */
-  drawOutputsHeader(x, y)
-  {
-    // reset all the font stuff before we start.
-    this.resetFontSettings();
-
-    // render the outputs header text.
-    this.modFontSize(4);
-    this.toggleBold();
-    this.drawText('OUTPUTS', x, y, 300, 'left');
-    this.toggleBold();
-
-    // render the subtext.
-    this.modFontSize(-12);
-    this.toggleItalics();
-    const subtext = "Materials generated when the recipe is crafted.";
-    this.drawText(subtext, x, y + 20, this.textWidth(subtext), Window_Base.TextAlignments.Left);
-
-    this.drawHorizontalLine(x, y + 50, 300, 3);
-  }
-
-  drawPrimaryOutput(x, y)
-  {
-    // reset all the font stuff before we start.
-    this.resetFontSettings();
-
-    // a nice vertical line is appreciated.
-    this.drawVerticalLine(x - 20, y, this.innerHeight, 3);
-
-    // shorthand the line height.
     const lh = this.lineHeight();
+    const textW = Math.max(48, bandWidth - 8);
 
     const proficiency = `Proficiency: ${this.#currentRecipe.getProficiency()}`;
-    this.drawText(proficiency, x, y, 200);
+    this.drawText(proficiency, x, y, textW);
 
-    // grab the component for the primary output of this recipe.
+    const bodyY = this.componentListRowsInnerStartY();
+
     const primaryOutput = this.#currentRecipe.outputs.at(0);
 
     switch (primaryOutput.getComponentType())
     {
       case (CraftingComponent.Types.Item):
-        this.drawPrimaryOutputItem(x, y);
+        this.drawPrimaryOutputItem(x, bodyY);
         break;
       case (CraftingComponent.Types.Weapon):
-        this.drawPrimaryOutputWeaponOrArmor(x, y);
+        this.drawPrimaryOutputWeaponOrArmor(x, bodyY);
         break;
       case (CraftingComponent.Types.Armor):
-        this.drawPrimaryOutputWeaponOrArmor(x, y);
+        this.drawPrimaryOutputWeaponOrArmor(x, bodyY);
         break;
       case (CraftingComponent.Types.Gold):
-        this.drawPrimaryOutputGold(x, y);
+        this.drawPrimaryOutputGold(x, bodyY);
         break;
       case (CraftingComponent.Types.SDP):
-        this.drawPrimaryOutputSdp(x, y);
+        this.drawPrimaryOutputSdp(x, bodyY);
         break;
     }
 
-    this.drawText(String.empty, x, y + (lh * 1), 300);
+    this.drawText(String.empty, x, bodyY + (lh * 1), bandWidth);
   }
 
   //region item output
@@ -3635,8 +4039,7 @@ class Window_RecipeDetails
       recoveryMessage = '??';
     }
 
-    // render the message.
-    this.drawText(recoveryMessage.trim(), x + 40, y, 200);
+    this.drawText(recoveryMessage.trim(), x + 40, y, this.detailsQuarterTextWidth() - 40);
   }
 
   drawMagiMessage(output, x, y)
@@ -3693,8 +4096,7 @@ class Window_RecipeDetails
       recoveryMessage = '??';
     }
 
-    // render the message.
-    this.drawText(recoveryMessage.trim(), x + 40, y, 200);
+    this.drawText(recoveryMessage.trim(), x + 40, y, this.detailsQuarterTextWidth() - 40);
   }
 
   drawTechMessage(output, x, y)
@@ -3743,8 +4145,7 @@ class Window_RecipeDetails
       recoveryMessage = '??';
     }
 
-    // render the message.
-    this.drawText(recoveryMessage, x + 40, y, 200);
+    this.drawText(recoveryMessage, x + 40, y, this.detailsQuarterTextWidth() - 40);
   }
 
   drawRevival(output, x, y)
@@ -3796,13 +4197,14 @@ class Window_RecipeDetails
 
       const foodStateText = `${foodState.name}`;
       const foodStateNameX = x + 40;
-      this.drawText(foodStateText, foodStateNameX, foodStateY, 200);
+      const nameCellW = this.detailsQuarterTextWidth() - 48;
+      this.drawText(foodStateText, foodStateNameX, foodStateY, nameCellW);
 
       const foodStateEffectChance = this.needsMasking
         ? "?"
         : `${foodStateEffect.value1 * 100}%`;
 
-      this.drawText(foodStateEffectChance, foodStateNameX, foodStateY, 160, 'right');
+      this.drawText(foodStateEffectChance, foodStateNameX, foodStateY, nameCellW, 'right');
     };
 
     foodStateEffects.forEach(forEacher, this);
@@ -3838,7 +4240,7 @@ class Window_RecipeDetails
     this.resetFontSettings();
 
     const leftX = x;
-    const rightX = x + 100;
+    const rightX = x + Math.max(72, Math.floor(this.detailsFourthBandWidth() / 2) - 8);
 
     // shorthand the line height.
     const lh = this.lineHeight() - 4;
@@ -3925,7 +4327,7 @@ class Window_RecipeDetails
         traitMessage = traitMessage.replace(/[A-Za-z0-9\-!?',.]/ig, "?");
       }
 
-      this.drawText(traitMessage, x, traitY);
+      this.drawText(traitMessage, x, traitY, this.detailsQuarterTextWidth());
     };
 
     output.traits.forEach(forEacher, this);
@@ -3943,13 +4345,13 @@ class Window_RecipeDetails
     const output = this.#currentRecipe.outputs.at(0)
       .getItem();
 
-    // render the text.
-    this.drawText('Resource:', x, y + (lh * 1), 150);
+    const tw = this.detailsQuarterTextWidth();
+    this.drawText('Resource:', x, y + (lh * 1), tw);
 
     const resourceY = y + (lh * 2);
     this.drawIcon(IconManager.rewardParam(1), x, resourceY);
-    this.drawText('Gold', x, resourceY, 150);
-    this.drawText(`${output.quantity()}`, x, resourceY, 150, Window_Base.TextAlignments.Right);
+    this.drawText('Gold', x, resourceY, tw);
+    this.drawText(`${output.quantity()}`, x, resourceY, tw, Window_Base.TextAlignments.Right);
   }
 
   drawPrimaryOutputSdp(x, y)
@@ -3961,13 +4363,13 @@ class Window_RecipeDetails
     const output = this.#currentRecipe.outputs.at(0)
       .getItem();
 
-    // render the text.
-    this.drawText('Resource:', x, y + (lh * 1), 150);
+    const tw = this.detailsQuarterTextWidth();
+    this.drawText('Resource:', x, y + (lh * 1), tw);
 
     const resourceY = y + (lh * 2);
     this.drawIcon(IconManager.rewardParam(4), x, resourceY);
-    this.drawText('SDP', x, resourceY, 150);
-    this.drawText(output.quantity(), x, resourceY, 150, Window_Base.TextAlignments.Right);
+    this.drawText('SDP', x, resourceY, tw);
+    this.drawText(output.quantity(), x, resourceY, tw, Window_Base.TextAlignments.Right);
   }
 
   //endregion resource output
@@ -4094,6 +4496,37 @@ class Window_RecipeIngredientList
   itemHeight()
   {
     return this.lineHeight() * 1.5;
+  }
+
+  /**
+   * Pixel inset for the first row so {@link Window_Command.prototype.drawItem} subtext name lift does not clip.
+   * Matches {@link Window_RecipeDetails} list band and scene list height math.
+   * @returns {number}
+   */
+  static recipeComponentRowTopInsetPx()
+  {
+    return 30;
+  }
+
+  /**
+   * @returns {number}
+   */
+  recipeComponentRowTopInset()
+  {
+    return Window_RecipeIngredientList.recipeComponentRowTopInsetPx();
+  }
+
+  /**
+   * @param {number} index
+   * @returns {Rectangle}
+   */
+  itemLineRect(index)
+  {
+    const rect = Window_Selectable.prototype.itemLineRect.call(this, index);
+
+    rect.y += this.recipeComponentRowTopInset();
+
+    return rect;
   }
 
   /**
@@ -4359,6 +4792,27 @@ class Window_RecipeOutputList
   }
 
   /**
+   * @returns {number}
+   */
+  recipeComponentRowTopInset()
+  {
+    return Window_RecipeIngredientList.recipeComponentRowTopInsetPx();
+  }
+
+  /**
+   * @param {number} index
+   * @returns {Rectangle}
+   */
+  itemLineRect(index)
+  {
+    const rect = Window_Selectable.prototype.itemLineRect.call(this, index);
+
+    rect.y += this.recipeComponentRowTopInset();
+
+    return rect;
+  }
+
+  /**
    * Overrides {@link #drawBackgroundRect}.<br>
    * Prevents the rendering of the backdrop of each line in the window.
    * @param {Rectangle} _ The rectangle to draw the background for.
@@ -4490,6 +4944,27 @@ class Window_RecipeToolList
   itemHeight()
   {
     return this.lineHeight() * 1.5;
+  }
+
+  /**
+   * @returns {number}
+   */
+  recipeComponentRowTopInset()
+  {
+    return Window_RecipeIngredientList.recipeComponentRowTopInsetPx();
+  }
+
+  /**
+   * @param {number} index
+   * @returns {Rectangle}
+   */
+  itemLineRect(index)
+  {
+    const rect = Window_Selectable.prototype.itemLineRect.call(this, index);
+
+    rect.y += this.recipeComponentRowTopInset();
+
+    return rect;
   }
 
   /**
