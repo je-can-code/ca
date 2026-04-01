@@ -1124,7 +1124,7 @@ class J_SdpPluginMetadata
   extends PluginMetadata
 {
   /**
-   * The path where the config for panels is located.
+   * Project-relative path to the SDP JSON configuration file.
    * @type {string}
    */
   static CONFIG_PATH = 'data/config.sdp.json';
@@ -1237,8 +1237,26 @@ class J_SdpPluginMetadata
    */
   initializePanels()
   {
-    // parse the files as an actual list of objects from the JSON configuration.
-    const parsedPanels = JSON.parse(StorageManager.fsReadFile(J_SdpPluginMetadata.CONFIG_PATH));
+    const rawConfig = StorageManager.fsReadFile(J_SdpPluginMetadata.CONFIG_PATH);
+    if (rawConfig === null || rawConfig === '')
+    {
+      console.error('no SDP configuration was found in the /data directory of the project.');
+      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
+      throw new Error('SDP plugin is being used, but no config file is present.');
+    }
+
+    let parsedPanels;
+    try
+    {
+      parsedPanels = JSON.parse(rawConfig);
+    }
+    catch (e)
+    {
+      throw new Error(
+        `Failed to parse JSON at ${J_SdpPluginMetadata.CONFIG_PATH}: ${e.message}`,
+      );
+    }
+
     if (parsedPanels === null)
     {
       console.error('no SDP configuration was found in the /data directory of the project.');
@@ -1270,10 +1288,6 @@ class J_SdpPluginMetadata
       - ${this.panels.length} panels
       from file ${J_SdpPluginMetadata.CONFIG_PATH}.`);
     }
-    else
-    {
-      console.log(`loaded from file ${J_SdpPluginMetadata.CONFIG_PATH}.`);
-    }
   }
 
   initializeMetadata()
@@ -1283,14 +1297,14 @@ class J_SdpPluginMetadata
      * in the menu.
      * @type {number}
      */
-    this.menuSwitchId = parseInt(this.parsedPluginParameters['menuSwitch']);
+    this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters['menuSwitch'], 0);
 
     /**
      * The icon index that represents the system itself.
      * Used as the icon for costs and currency.
      * @type {number}
      */
-    this.sdpIconIndex = parseInt(this.parsedPluginParameters['sdpIcon']);
+    this.sdpIconIndex = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters['sdpIcon'], 0);
 
     /**
      * The text displayed upon victory during a battle-end victory scene.
@@ -1307,7 +1321,7 @@ class J_SdpPluginMetadata
      * The icon used alongside the command's name when visible in the menu.
      * @type {number}
      */
-    this.commandIconIndex = parseInt(this.parsedPluginParameters['menuCommandIcon']);
+    this.commandIconIndex = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters['menuCommandIcon'], 0);
 
     /**
      * When JABS is enabled, this menu is removed from the main menu and added instead
@@ -2790,6 +2804,18 @@ Game_Party.prototype.unlockSdp = function(key)
 };
 
 /**
+ * Unlocks every defined SDP panel for all actors returned by {@link Game_Actors#actors}
+ * (database actors with valid names). Intended for dev / testing.
+ */
+Game_Party.prototype.unlockAllSdpsForEveryone = function()
+{
+  J.SDP.Metadata.panelsMap.forEach((panel, key) =>
+  {
+    this.unlockSdp(key);
+  });
+};
+
+/**
  * Checks if a particular panel is unlocked for the whole party.
  * @param {string} key The key of the panel to check.
  * @returns {boolean} True if every actor has it unlocked, false otherwise.
@@ -3215,8 +3241,8 @@ class Scene_SDP
     // grab the points rectangle for reference.
     const pointsRectangle = this.sdpPointsRectangle();
 
-    // arbitrarily define the width.
-    const width = 400;
+    // width shares the left ribbon with {@link #sdpPointsRectangle} (scaled up for larger menu fonts).
+    const width = 480;
 
     // determine the modifier of the height for fitting properly..
     const heightFit = (pointsRectangle.height + this.sdpHelpRectangle().height) + 8;
@@ -3292,8 +3318,8 @@ class Scene_SDP
    */
   sdpParameterListRectangle()
   {
-    // define the width of the list.
-    const width = 600;
+    // center column; narrowed when the left ribbon widens so the right column absorbs the difference.
+    const width = 720;
 
     // calculate the X for where the origin of the list window should be.
     const x = this.sdpListRectangle().width;
@@ -3586,9 +3612,9 @@ class Scene_SDP
    */
   sdpPointsRectangle()
   {
-    // the sdp points window sits in the upper-right-most corner.
-    const width = 400;
-    const height = 60;
+    // upper-left ribbon; width matches {@link #sdpListRectangle} for a single vertical stripe.
+    const width = 480;
+    const height = 72;
     const x = 0;
     const y = 0;
     return new Rectangle(x, y, width, height);
@@ -4139,7 +4165,7 @@ class Window_SdpList
         return command;
       }, this)
       .filter(command => command !== null)
-      .sort((a, b) => a.ext.key.localeCompare(b.ext.key));
+      //.sort((a, b) => a.ext.key.localeCompare(b.ext.key));
 
     commands.forEach(this.addBuiltCommand, this);
   }

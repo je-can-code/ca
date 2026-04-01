@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 JAFT] Enables the ability to craft items from recipes.
+ * [v2.0.0 JAFTING-Core] Root JAFTING menu; extensions provide Creation and Refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -21,7 +21,7 @@
  * the "Refinement" extension and place them below this one.
  * ============================================================================
  * ORGANIZATION:
- * Have you ever wanted to a menu that is has a single purpose, such as grant
+ * Have you ever wanted a menu that has a single purpose, such as granting
  * access to all the other crafting menus built to work with JAFTING? Well now
  * you can! Just drop this plugin above your other installed JAFTING extension
  * plugins, and voila! It works.
@@ -144,7 +144,7 @@ class Scene_Jafting
 
   //region init
   /**
-   * Initialize all properties for our omnipedia.
+   * Initialize all properties for the root JAFTING hub scene.
    */
   initMembers()
   {
@@ -154,7 +154,7 @@ class Scene_Jafting
     // initialize the root-namespace definition members.
     this.initCoreMembers();
 
-    // initialize the main omnipedia base list of pedias.
+    // initialize the primary list and header windows.
     this.initPrimaryMembers();
   }
 
@@ -169,26 +169,25 @@ class Scene_Jafting
     this._j ||= {};
 
     /**
-     * A grouping of all properties associated with the omnipedia.
+     * A grouping of all properties associated with this JAFTING scene.
      */
     this._j._crafting = {};
   }
 
   /**
-   * The primary properties of the scene are the initial properties associated with
-   * the main list containing all pedias unlocked by the player along with some subtext of
-   * what the pedia entails.
+   * The primary properties of the scene: the command list and header windows
+   * for the root JAFTING menu.
    */
   initPrimaryMembers()
   {
     /**
-     * The window that shows the list of available pedias.
+     * The window that lists Creation, Refinement, and other registered JAFTING modes.
      * @type {Window_JaftingList}
      */
     this._j._crafting._commandList = null;
 
     /**
-     * The window that displays at the top while the omnipedia list is active.
+     * The window that displays at the top while the JAFTING list is active.
      * @type {Window_JaftingListHeader}
      */
     this._j._crafting._listHeader = null;
@@ -231,11 +230,10 @@ class Scene_Jafting
 
   //region windows
   /**
-   * Creates the root-level omnipedia windows.
+   * Creates the root-level JAFTING hub windows.
    */
   createJaftingRootWindows()
   {
-    // create the root omnipedia list of pedias.
     this.createJaftingListWindow();
 
     // create the header window.
@@ -244,7 +242,7 @@ class Scene_Jafting
 
   //region header window
   /**
-   * Creates a header window for the omnipedia list.
+   * Creates a header window for the JAFTING command list.
    */
   createJaftingListHeaderWindow()
   {
@@ -259,7 +257,7 @@ class Scene_Jafting
   }
 
   /**
-   * Sets up and defines the omnipedia list header window.
+   * Sets up and defines the JAFTING list header window.
    * @returns {Window_JaftingListHeader}
    */
   buildJaftingListHeaderWindow()
@@ -272,12 +270,11 @@ class Scene_Jafting
 
     window.refresh();
 
-    // return the built and configured omnipedia list window.
     return window;
   }
 
   /**
-   * Gets the rectangle associated with the omnipedia list header window.
+   * Gets the rectangle associated with the JAFTING list header window.
    * @returns {Rectangle}
    */
   jaftingListHeaderRectangle()
@@ -299,7 +296,7 @@ class Scene_Jafting
   }
 
   /**
-   * Gets the currently tracked omnipedia list header window.
+   * Gets the currently tracked JAFTING list header window.
    * @returns {Window_JaftingListHeader}
    */
   getJaftingListHeaderWindow()
@@ -308,8 +305,8 @@ class Scene_Jafting
   }
 
   /**
-   * Set the currently tracked omnipedia list header window to the given window.
-   * @param {Window_JaftingListHeader} listHeaderWindow The omnipedia list header window to track.
+   * Set the currently tracked JAFTING list header window to the given window.
+   * @param {Window_JaftingListHeader} listHeaderWindow The header window to track.
    */
   setJaftingListHeaderWindow(listHeaderWindow)
   {
@@ -346,7 +343,7 @@ class Scene_Jafting
 
   //region list window
   /**
-   * Creates the list of pedias available to the player to peruse.
+   * Creates the list of JAFTING modes available to the player.
    */
   createJaftingListWindow()
   {
@@ -361,7 +358,7 @@ class Scene_Jafting
   }
 
   /**
-   * Sets up and defines the omnipedia listing window.
+   * Sets up and defines the JAFTING command list window.
    * @returns {Window_JaftingList}
    */
   buildJaftingListWindow()
@@ -378,12 +375,11 @@ class Scene_Jafting
     // assign on-select functionality.
     window.setHandler('ok', this.onRootJaftingSelection.bind(this));
 
-    // return the built and configured omnipedia list window.
     return window;
   }
 
   /**
-   * Gets the rectangle associated with the omnipedia list command window.
+   * Gets the rectangle associated with the JAFTING command list window.
    * @returns {Rectangle}
    */
   jaftingListRectangle()
@@ -405,7 +401,7 @@ class Scene_Jafting
   }
 
   /**
-   * Gets the currently tracked omnipedia list window.
+   * Gets the currently tracked JAFTING command list window.
    * @returns {Window_JaftingList}
    */
   getJaftingListWindow()
@@ -414,8 +410,8 @@ class Scene_Jafting
   }
 
   /**
-   * Set the currently tracked omnipedia list window to the given window.
-   * @param {Window_JaftingList} listWindow The omnipedia list window to track.
+   * Set the currently tracked JAFTING command list window to the given window.
+   * @param {Window_JaftingList} listWindow The list window to track.
    */
   setJaftingListWindow(listWindow)
   {
@@ -427,7 +423,6 @@ class Scene_Jafting
    */
   openRootListWindow()
   {
-    // grab the root omnipedia list window.
     const rootListWindow = this.getJaftingListWindow();
 
     // open, show, and activate the root list window.
@@ -441,7 +436,6 @@ class Scene_Jafting
    */
   closeRootListWindow()
   {
-    // grab the root omnipedia list window.
     const rootListWindow = this.getJaftingListWindow();
 
     // close and deactivate the root list window.
@@ -450,8 +444,7 @@ class Scene_Jafting
   }
 
   /**
-   * Gets the current symbol of the root omnipedia.
-   * This is effectively the currently highlighted selection's key of that window.
+   * Gets the current symbol of the root JAFTING list (the highlighted command key).
    * @returns {string}
    */
   getRootJaftingKey()
@@ -463,7 +456,7 @@ class Scene_Jafting
   //endregion list window
 
   /**
-   * Opens all windows associated with the root omnipedia.
+   * Opens all windows associated with the root JAFTING hub.
    */
   openRootJaftingWindows()
   {
@@ -475,7 +468,7 @@ class Scene_Jafting
   }
 
   /**
-   * Closes all windows associated with the root omnipedia.
+   * Closes all windows associated with the root JAFTING hub.
    */
   closeRootJaftingWindows()
   {
@@ -496,7 +489,6 @@ class Scene_Jafting
    */
   onRootJaftingSelection()
   {
-    console.debug(`selected "${this.getRootJaftingKey()}" option.`);
   }
 
   //endregion root actions
@@ -505,9 +497,9 @@ class Scene_Jafting
 
 //endregion Scene_Jafting
 
-//region Window_OmnipediaList
+//region Window_JaftingList
 /**
- * A window displaying the list of jafting types available.
+ * Root JAFTING hub list: commands registered by Creation, Refinement, and other extensions.
  */
 class Window_JaftingList
   extends Window_Command
@@ -523,11 +515,10 @@ class Window_JaftingList
 
   /**
    * Implements {@link #makeCommandList}.<br>
-   * Creates the command list of omnipedia entries available for this window.
+   * Builds the hub command list from {@link #buildCommands}.
    */
   makeCommandList()
   {
-    // grab all the omnipedia listings available.
     const commands = this.buildCommands();
 
     // add all the built commands.
@@ -535,8 +526,7 @@ class Window_JaftingList
   }
 
   /**
-   * Builds all commands for this command window.
-   * Adds all omnipedia commands to the list that are available.
+   * Returns hub commands from extensions; core does not add modes here by default.
    * @returns {BuiltWindowCommand[]}
    */
   buildCommands()
@@ -571,9 +561,9 @@ class Window_JaftingList
   }
 }
 
-//endregion Window_OmnipediaList
+//endregion Window_JaftingList
 
-//region Window_OmnipediaListHeader
+//region Window_JaftingListHeader
 class Window_JaftingListHeader
   extends Window_Base
 {
@@ -588,7 +578,7 @@ class Window_JaftingListHeader
 
   /**
    * Implements {@link Window_Base.drawContent}.<br>
-   * Draws a header and some detail for the omnipedia list header.
+   * Draws the JAFTING hub title and short description.
    */
   drawContent()
   {
@@ -656,6 +646,6 @@ class Window_JaftingListHeader
   }
 }
 
-//endregion Window_OmnipediaListHeader
+//endregion Window_JaftingListHeader
 
 //# sourceMappingURL=J-JAFTING.js.map
