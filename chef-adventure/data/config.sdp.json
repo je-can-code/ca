@@ -2029,6 +2029,21 @@
       "rarity": 0
     },
     {
+      "name": "Ashen Requiem",
+      "key": "NEC_1",
+      "iconIndex": 466,
+      "unlockedByDefault": false,
+      "description": "The necromancers are still sketching the choreography for the finale.|Placeholder panel; parameters and rewards TBD.",
+      "topFlavorText": "Nobody claps yet.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==SNAKE==",
       "key": "SNK___",
       "iconIndex": 0,
@@ -2471,6 +2486,21 @@
       "rarity": 0
     },
     {
+      "name": "Headcount Advantage",
+      "key": "HYD_1",
+      "iconIndex": 14,
+      "unlockedByDefault": false,
+      "description": "Why run one neck when hydra accounting approves several screaming budgets?|Hydra-line scaffold until stats land.",
+      "topFlavorText": "Extra heads, extra paperwork.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==SALAMANDER==",
       "key": "SAL___",
       "iconIndex": 0,
@@ -2481,6 +2511,21 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Newt Interest Rate",
+      "key": "SAL_1",
+      "iconIndex": 67,
+      "unlockedByDefault": false,
+      "description": "Salamanders expect compound flame on every emotional investment.|Salamander placeholder for future scaly economics.",
+      "topFlavorText": "Read the fine ash.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
@@ -2874,6 +2919,21 @@
       "rarity": 0
     },
     {
+      "name": "Scales and Escapism",
+      "key": "FSH_1",
+      "iconIndex": 227,
+      "unlockedByDefault": false,
+      "description": "Fish stance: look bored, mean it, still collect Ws.|Fish family scaffold for future finny nonsense.",
+      "topFlavorText": "Glub with intent.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==CEPHALOPOD==",
       "key": "CPH___",
       "iconIndex": 0,
@@ -2884,6 +2944,21 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Inkwell Parliament",
+      "key": "CPH_1",
+      "iconIndex": 2338,
+      "unlockedByDefault": false,
+      "description": "Every tentacle gets a filibuster and a snack budget.|Cephalopod placeholder until the squish lobby signs off.",
+      "topFlavorText": "Motion to kraken.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
@@ -3546,6 +3621,21 @@
       "rarity": 0
     },
     {
+      "name": "Orthogonal Swagger",
+      "key": "CUB_1",
+      "iconIndex": 2164,
+      "unlockedByDefault": false,
+      "description": "Cube slimes treat every face like a front—because it is.|Point gelatinous cubes here when you are ready to commit.",
+      "topFlavorText": "Think outside the square, then become it.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==TRAP==",
       "key": "TRP___",
       "iconIndex": 0,
@@ -3970,6 +4060,21 @@
       "rarity": 0
     },
     {
+      "name": "Bark Oil Maintenance",
+      "key": "TRE_1",
+      "iconIndex": 200,
+      "unlockedByDefault": false,
+      "description": "Treants insist rings tell honest stories if you shut up long enough.|Treant scaffold for angry furniture enjoyers.",
+      "topFlavorText": "Lotion not included.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==FLOWER==",
       "key": "FLW___",
       "iconIndex": 0,
@@ -3980,6 +4085,21 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Photosynth Attitude",
+      "key": "FLW_1",
+      "iconIndex": 5,
+      "unlockedByDefault": false,
+      "description": "Stand still, look pretty, ruin someone's afternoon anyway.|Flower-line placeholder; stats TBD.",
+      "topFlavorText": "Smile with chlorophyll.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
@@ -4464,6 +4584,21 @@
       "rarity": 0
     },
     {
+      "name": "Whiskered Fine Print",
+      "key": "RAT_1",
+      "iconIndex": 2404,
+      "unlockedByDefault": false,
+      "description": "Rodent bureaucracy finally got its own filing cabinet.|Placeholder under the RAT prefix; enemy drops still key off ROD_* tiers until this branch is wired up.",
+      "topFlavorText": "Initial here, nibble later.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "Resourceful Ratactics",
       "key": "ROD_1",
       "iconIndex": 2404,
@@ -4510,6 +4645,21 @@
       "rarity": 3
     },
     {
+      "name": "Second Whiskered Clause",
+      "key": "ROD_2",
+      "iconIndex": 2404,
+      "unlockedByDefault": false,
+      "description": "After Resourceful Ratactics, the rodents lawyered up and demanded a sequel.|Rodent tier-two placeholder; stats TBD.",
+      "topFlavorText": "Squeak now, litigate later.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==QUADRAPED==",
       "key": "QUA___",
       "iconIndex": 0,
@@ -4520,6 +4670,21 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Paw Traffic Control",
+      "key": "QUA_1",
+      "iconIndex": 2188,
+      "unlockedByDefault": false,
+      "description": "Four feet, zero excuses, maximum drama.|Quadruped scaffold for wolves, cats, and other drama mammals.",
+      "topFlavorText": "Yield to the tail.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
@@ -4888,6 +5053,21 @@
       "rarity": 0
     },
     {
+      "name": "Solo Invoice",
+      "key": "LON_1",
+      "iconIndex": 188,
+      "unlockedByDefault": false,
+      "description": "Lone hunters finally itemized what everyone owes them.|Loner-family placeholder until the brooding pays off.",
+      "topFlavorText": "Tips appreciated, company optional.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==JUMPER==",
       "key": "JMP___",
       "iconIndex": 0,
@@ -4903,6 +5083,21 @@
       "rarity": 0
     },
     {
+      "name": "Airborne Fine Print",
+      "key": "JMP_1",
+      "iconIndex": 1684,
+      "unlockedByDefault": false,
+      "description": "Read the landing terms before you bounce on someone's skull.|Jumper scaffold for leap-and-crit enjoyers.",
+      "topFlavorText": "Gravity is a suggestion.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==PARASITE==",
       "key": "PAR___",
       "iconIndex": 0,
@@ -4913,6 +5108,21 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Lodger's Premium",
+      "key": "PAR_1",
+      "iconIndex": 1547,
+      "unlockedByDefault": false,
+      "description": "Your HP is just their Airbnb with aggressive housekeeping.|Parasite placeholder; leech stats later.",
+      "topFlavorText": "Five stars, zero consent.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
@@ -5600,6 +5810,21 @@
       "rarity": 0
     },
     {
+      "name": "Shamble Etiquette",
+      "key": "WLK_1",
+      "iconIndex": 2210,
+      "unlockedByDefault": false,
+      "description": "Walkers show up uninvited and still expect appetizers.|Walker scaffold for slow-and-steady horror.",
+      "topFlavorText": "RSVP: never.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==CLAN==",
       "key": "CLN___",
       "iconIndex": 0,
@@ -5610,6 +5835,21 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Pack Arithmetic",
+      "key": "CLN_1",
+      "iconIndex": 471,
+      "unlockedByDefault": false,
+      "description": "One goblin is rude; twelve is a curriculum with homework.|Clan placeholder for mob-minded monsters.",
+      "topFlavorText": "Show your work in bruises.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
@@ -5838,6 +6078,21 @@
       "rarity": 0
     },
     {
+      "name": "Oil Change Serenade",
+      "key": "RBT_1",
+      "iconIndex": 1547,
+      "unlockedByDefault": false,
+      "description": "Beep politely, then crit before they read the manual.|Robot scaffold until servo stats arrive.",
+      "topFlavorText": "Lubricate the ego.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==HOMONCULUS==",
       "key": "HOM___",
       "iconIndex": 0,
@@ -5848,6 +6103,21 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Flask-Born Frustration",
+      "key": "HOM_1",
+      "iconIndex": 5,
+      "unlockedByDefault": false,
+      "description": "Homunculi filed paperwork for souls and got receipts instead.|Homunculus placeholder for tiny lab accidents.",
+      "topFlavorText": "Shake before raging.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
@@ -5868,6 +6138,21 @@
       "rarity": 0
     },
     {
+      "name": "Speculative Torque",
+      "key": "CN5_1",
+      "iconIndex": 466,
+      "unlockedByDefault": false,
+      "description": "Construct-5 blueprints are classified behind crayon doodles.|Fifth-construct scaffold; tighten later.",
+      "topFlavorText": "Torque it til it confesses.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==ELEMENTALS==",
       "key": "ELE___",
       "iconIndex": 0,
@@ -5878,6 +6163,21 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Elementary Rudeness",
+      "key": "ELE_1",
+      "iconIndex": 2188,
+      "unlockedByDefault": false,
+      "description": "Fire argues, ice sulks, lightning double-texts at 3 a.m.|Elemental placeholder for periodic tantrums.",
+      "topFlavorText": "Ion the prize.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
@@ -6017,6 +6317,21 @@
       "rarity": 0
     },
     {
+      "name": "Third Chair Murmurs",
+      "key": "DE3_1",
+      "iconIndex": 53,
+      "unlockedByDefault": false,
+      "description": "The deity hotline is still on hold with terrible hold music.|Deity-3 scaffold for mid-tier apotheosis.",
+      "topFlavorText": "Your call is very important.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==?DEITY-4?==",
       "key": "DE4___",
       "iconIndex": 0,
@@ -6032,6 +6347,21 @@
       "rarity": 0
     },
     {
+      "name": "Fourth Verdict Snacks",
+      "key": "DE4_1",
+      "iconIndex": 53,
+      "unlockedByDefault": false,
+      "description": "Judgment tastes better with crumbs and a little attitude.|Deity-4 placeholder until the pantheon signs contracts.",
+      "topFlavorText": "Appeal denied, enjoy the chips.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
       "name": "==?DEITY-5?==",
       "key": "DE5___",
       "iconIndex": 0,
@@ -6042,6 +6372,21 @@
       "baseCost": 50,
       "flatGrowthCost": 1,
       "multGrowthCost": 1,
+      "panelParameters": [],
+      "panelRewards": [],
+      "rarity": 0
+    },
+    {
+      "name": "Fifth Chorus Log",
+      "key": "DE5_1",
+      "iconIndex": 53,
+      "unlockedByDefault": false,
+      "description": "Apotheosis left a voicemail you are too afraid to transcribe.|Deity-5 scaffold for endgame divinity.",
+      "topFlavorText": "Please hold for creation.",
+      "maxRank": 10,
+      "baseCost": 50,
+      "flatGrowthCost": 50,
+      "multGrowthCost": 1.25,
       "panelParameters": [],
       "panelRewards": [],
       "rarity": 0
