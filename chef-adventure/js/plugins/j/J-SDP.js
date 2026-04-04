@@ -1754,38 +1754,27 @@ if (J.ABS)
       .sdpMultiplier();
     const multipliedSdpPoints = Math.round(sdpMultiplier * sdpPoints);
 
-    // generate the text popup for the obtained sdp points.
-    this.generatePopSdpPoints(multipliedSdpPoints, actor.getCharacter());
+    // notify that SDP points were rewarded so optional extensions can respond.
+    this.onSdpRewardGranted(multipliedSdpPoints, actor.getCharacter());
   };
 
   /**
-   * Generates a popup for the SDP points obtained.
-   * @param {number} amount The amount to display.
-   * @param {Game_Character} character The character to show the popup on.
+   * Lifecycle event: SDP points were awarded to the party leader's character.
+   * Extended by optional plugins (e.g. J-Popups-SDP) to surface map feedback.
+   * @param {number} sdpPoints The scaled SDP points granted.
+   * @param {Game_Character} character The character who received the reward.
    */
-  JABS_Engine.prototype.generatePopSdpPoints = function(amount, character)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // generate the textpop.
-    const sdpPop = this.configureSdpPop(amount);
-
-    // add the pop to the caster's tracking.
-    character.addTextPop(sdpPop);
-    character.requestTextPop();
-  };
+  // eslint-disable-next-line no-unused-vars
+  JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character) {};
 
   /**
-   * Creates the text pop of the SDP points gained.
-   * @param {number} sdpPoints The amount of experience gained.
+   * Lifecycle event: an SDP panel was unlocked for a character on the map.
+   * Extended by optional plugins (e.g. J-Popups-SDP) to surface map feedback.
+   * @param {string} sdpKey The key of the SDP panel that was unlocked.
+   * @param {Game_Character} character The character who unlocked the panel.
    */
-  JABS_Engine.prototype.configureSdpPop = function(sdpPoints)
-  {
-    return new TextPopBuilder(sdpPoints)
-      .isSdpPoints()
-      .build();
-  };
+  // eslint-disable-next-line no-unused-vars
+  JABS_Engine.prototype.onSdpPanelUnlocked = function(sdpKey, character) {};
 
   /**
    * Creates the log entry if using the J-LOG.
@@ -1803,40 +1792,8 @@ if (J.ABS)
   };
 
   /**
-   * Generates a text pop for an SDP unlock on a target character.
-   * @param {string} sdpKey The key of the SDP being unlocked.
-   * @param {Game_Character} character The character to display the pop on.
-   */
-  JABS_Engine.prototype.generateSdpUnlock = function(sdpKey, character)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-    
-    const sdp = J.SDP.Metadata.panelsMap.get(sdpKey);
-
-    // generate the textpop.
-    const sdpPop = this.configureSdpUnlockPop(sdp);
-
-    // add the pop to the caster's tracking.
-    character.addTextPop(sdpPop);
-    character.requestTextPop();
-  };
-
-  /**
-   * Creates the text pop of the SDP unlocked.
-   * @param {StatDistributionPanel} panel The SDP to create a pop for.
-   * @returns {Map_TextPop}
-   */
-  JABS_Engine.prototype.configureSdpUnlockPop = function(panel)
-  {
-    return new TextPopBuilder(panel.name)
-      .isSdpPoints()
-      .build();
-  };
-
-  /**
    * Creates the log entry if using the J-LOG.
-   * @param {string} sdpKey The SDP ponts gained.
+   * @param {string} sdpKey The SDP panel key that was unlocked.
    */
   JABS_Engine.prototype.createSdpUnlockLog = function(sdpKey)
   {
@@ -1849,6 +1806,7 @@ if (J.ABS)
   };
 }
 //endregion JABS_Engine
+
 
 //region TextManager
 /**
@@ -2891,8 +2849,8 @@ Game_Player.prototype.useOnPickup = function(lootData)
     // unlock the SDP for the party.
     $gameParty.unlockSdp(lootData.sdpKey);
 
-    // generate a popup indicating we picked it up.
-    $jabsEngine.generateSdpUnlock(lootData.sdpKey, this);
+    // notify that an SDP panel was unlocked.
+    $jabsEngine.onSdpPanelUnlocked(lootData.sdpKey, this);
 
     // generate a log entry for unlocking it.
     $jabsEngine.createSdpUnlockLog(lootData.sdpKey);

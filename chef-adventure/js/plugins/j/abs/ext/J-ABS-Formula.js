@@ -1097,7 +1097,7 @@ Game_Action.prototype.applyFormulaModePacket = function(effect, recipient)
   this.makeSuccess(recipient);
 
   // popup with signed amount semantics (negative => healing visuals).
-  this.generateFormulaPopIfAvailable(
+  this.onFormulaResourceDelta(
     recipient,
     isDamage
       ? mag
@@ -1268,52 +1268,15 @@ Game_Action.prototype.executeChildSkillPacket = function(effect, recipient, pare
 };
 
 /**
- * Generates a resource-specific damage/heal popup if the popups plugin is present.
- * The amount is signed (+ = damage, - = heal/gain).
+ * Lifecycle event: a formula effect applied a resource delta to a recipient.
+ * Extended by optional plugins (e.g. J-Popups-ABS) to surface map feedback.
+ * The amount is signed (positive => damage/loss, negative => heal/gain).
  * @param {Game_Battler} recipient The battler who received the effect.
- * @param {number} amount The signed amount (positive => loss, negative => gain).
+ * @param {number} amount The signed amount.
  * @param {"hp"|"mp"|"tp"} resource Which resource this packet targeted.
  */
-Game_Action.prototype.generateFormulaPopIfAvailable = function(recipient, amount, resource)
-{
-  // only if popups plugin exists.
-  if (!J.POPUPS) return;
-
-  // get recipient’s JABS character to anchor the pop.
-  const jabs = JABS_AiManager.getBattlerByUuid(recipient.getUuid());
-  if (!jabs) return;
-
-  // signed magnitude: negative indicates healing, positive indicates damage.
-  const signed = Math.round(amount);
-  const magnitude = Math.abs(signed);
-  if (magnitude === 0) return;
-
-  // Build with a signed value; negative for healing is supported by the builder.
-  const popupValue = signed < 0
-    ? -magnitude
-    : magnitude;
-  const textPopBuilder = new TextPopBuilder(popupValue);
-
-  // Select damage style based on resource.
-  switch (resource)
-  {
-    case FormulaEffect.Resource.HP:
-      textPopBuilder.isHpDamage();
-      break;
-    case FormulaEffect.Resource.MP:
-      textPopBuilder.isMpDamage();
-      break;
-    case FormulaEffect.Resource.TP:
-      textPopBuilder.isTpDamage();
-      break;
-  }
-
-  // Build and queue the popup.
-  const pop = textPopBuilder.build();
-  const chara = jabs.getCharacter();
-  chara.addTextPop(pop);
-  chara.requestTextPop();
-};
+// eslint-disable-next-line no-unused-vars
+Game_Action.prototype.onFormulaResourceDelta = function(recipient, amount, resource) {};
 
 /**
  * Generates an action log entry for FORMULA and child-skill packets for any resource.

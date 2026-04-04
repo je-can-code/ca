@@ -2,83 +2,47 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 POPUPS] Enable text pops on the map.
+ * [v2.0.0 POPUPS] Map text popups (J.POPUPS core).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
- * @orderAfter J-ABS
+ * @orderAfter J-Base
+ * @param disablePopups
+ * @text Disable all map popups
+ * @type boolean
+ * @default false
+ * @desc When true, addTextPop ignores new pops.
  * @help
  * ============================================================================
- * This plugin enables the ability to display text popups on the map.
- *
- * The text pops themselves were designed for use within JABS, but the
- * functionality was abstracted out and no longer relies on JABS to operate.
+ * Core map text pops: {@link TextPopBuilder}, {@link Map_TextPop}, rings, and
+ * {@link Sprite_Damage} presentation. Optional extensions (J-Popups-ABS, etc.)
+ * supply game-specific builders.
  * ============================================================================
  * BASIC USAGE:
- * If you are using JABS, then JABS already knows what to do to make use of
- * this functionality. Just add this plugin after/below JABS, and it'll work
- * with no additional adjustments.
+ * Build with TextPopBuilder (fluent .forEnemyDamageRing(), .forLootDownRing(),
+ * etc.), then character.addTextPop(pop.build()); character.requestTextPop();
+ * Invalid or hand-built Map_TextPop values are rejected with a console warning.
  * ============================================================================
- * PLUGIN DEVELOPER USAGE:
- * If you want to leverage these text popups on the map to display your own
- * custom popup, either in an event or in your plugin, then the below steps
- * will help you accomplish that.
- *
- * Step 1) Get the Game_Character or subclass of Game_Character.
- * The character is the focal point of where a popup is displayed on the map.
- *
- * Step 1a) Getting the character inside an event command.
- * If you're in an event using the event command "Script", then you can use
- * this line:
- *    const character = $gameMap.event(this._eventId);
- * to retrieve the character for reference. "this._eventId" references the
- * executing event. If you wanted it to be on some other particular event, you
- * can swap in another event id instead.
- *
- * Step 1b) Getting the character inside a plugin.
- * If you're in a plugin, I'm afraid you'll need to sort out how to gain access
- * to the character you want yourself. You can peek into JABS code to see some
- * examples of how I fetched characters for display.
- *
- * Step 2) Building the popup.
- * Building the popup is fairly straight forward. You can use the
- * "TextPopBuilder" class to "build" a popup. It uses the builder pattern for
- * piecing together the relevant parts of the popup in a way that makes sense.
- * It also has some convenience presets for more commonly used popups, like
- * hp damage. A basic example of the textpopbuilder in-use would look like:
- *    const customPop = new TextPopBuilder("hello")
- *      .setIconIndex(87)
- *      .setTextColorIndex(27)
- *      .build();
- * which would result in the "customPop" variable to now contain a built
- * popup with the value of "hello", an icon to the left of index 87, and a
- * text color of 27 (see your message window for text color indices).
- *
- * Step 3) Add the pop and flag the character.
- * Once you have the character and built the text pop, you only need to add it
- * to the character and flag them for processing. Going with the above
- * examples, an end result from start to finish could look something like this:
- *
- *    const character = $gameMap.event(this._eventId);
- *    const customPop = new TextPopBuilder("hello")
- *      .setIconIndex(87)
- *      .setTextColorIndex(27)
- *      .build();
- *    character.addTextPop(customPop);
- *    character.requestTextPop();
- *
- * Or if you're in a plugin, the only real difference would be how the
- * character is retrieved, with the rest being the same.
+ * POPUP EMITTER (optional observers):
+ * J.POPUPS.Helpers.PopupEmitter — event names in J.POPUPS.EventNames.
+ * Listeners must stay cheap (O(1), no heavy work per frame).
  * ============================================================================
  * CHANGELOG:
- * - 1.0.1
- *    Removed extraneous event emitter that was being tested.
+ * - 2.0.0
+ *    Split from J-TextPops; plugin renamed J-Popups; layout rings + WeakMap
+ *    stacking; addTextPop validation; J.POPUPS.EXT.* extensions for J-ABS /
+ *    Aptitude / SDP pop builders; disablePopups parameter (no J-ABS required).
+ * - 1.1.0
+ *    PopupEmitter lifecycle; DisablePopups; layout constants; variance/motion
+ *    fixes; textAccent.
  * - 1.0.0
- *    Initial release.
+ *    Initial release (as J-TextPops).
  * ============================================================================
  */
+//endregion Introduction
+
 
 /**
- * The core where all of my extensions live: in the `J` object.
+ * The core where all my extensions live: in the `J` object.
  */
 var J = J || {};
 
@@ -91,8 +55,41 @@ J.POPUPS = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.POPUPS.Metadata = {};
-J.POPUPS.Metadata.Name = `J-TextPops`;
-J.POPUPS.Metadata.Version = '1.0.0';
+J.POPUPS.Metadata.Name = `J-Popups`;
+J.POPUPS.Metadata.Version = '2.0.0';
+
+J.POPUPS.PluginParameters = PluginManager.parameters('J-Popups');
+
+/**
+ * When true, queued map popups are suppressed.
+ * @type {boolean}
+ */
+J.POPUPS.Metadata.DisablePopups = Boolean(J.POPUPS.PluginParameters['disablePopups'] === 'true');
+
+/**
+ * Namespace for optional first-party extensions (J-Popups-ABS, J-Popups-APT, …).
+ */
+J.POPUPS.EXT = {};
+
+/**
+ * Stable event names for {@link J.POPUPS.Helpers.PopupEmitter}.
+ */
+J.POPUPS.EventNames = {
+  Queued: 'popups/queued',
+  SpriteSpawned: 'popups/sprite-spawned',
+  SpriteFinished: 'popups/sprite-finished',
+  FlushRequested: 'popups/flush-requested',
+};
+
+/**
+ * Default layout offsets for anchoring popup sprites to {@link Sprite_Character}.
+ */
+J.POPUPS.Layout = {
+  AnchorOffsetX: 150,
+  ValueBitmapWidth: 400,
+  IconScale: 0.75,
+  MotionBounceMaxExtra: 260,
+};
 
 J.POPUPS.Helpers = {};
 J.POPUPS.Helpers.PopupEmitter = new J_EventEmitter();
@@ -102,7 +99,64 @@ J.POPUPS.Aliased.Game_Character = new Map();
 J.POPUPS.Aliased.Spriteset_Map = new Map();
 J.POPUPS.Aliased.Sprite_Character = new Map();
 J.POPUPS.Aliased.Sprite_Damage = new Map();
+
+//region J_PopupsEvents
+/**
+ * Emits {@link J.POPUPS.EventNames.Queued} after a popup is queued on a character.
+ * @param {Game_Character} character The anchor character.
+ * @param {Map_TextPop} popup The queued popup model.
+ */
+J.POPUPS.notifyPopupQueued = function(character, popup)
+{
+  J.POPUPS.Helpers.PopupEmitter.emit(J.POPUPS.EventNames.Queued, {
+    character,
+    popup,
+  });
+};
+
+/**
+ * Emits {@link J.POPUPS.EventNames.FlushRequested} after requestTextPop.
+ * @param {Game_Character} character The anchor character.
+ */
+J.POPUPS.notifyPopupFlushRequested = function(character)
+{
+  J.POPUPS.Helpers.PopupEmitter.emit(J.POPUPS.EventNames.FlushRequested, {
+    character,
+  });
+};
+
+/**
+ * Emits {@link J.POPUPS.EventNames.SpriteSpawned} after a {@link Sprite_Damage} is built and parented.
+ * @param {Game_Character} character The anchor character.
+ * @param {Map_TextPop} popup The source popup model.
+ * @param {Sprite_Damage} sprite The live popup sprite.
+ */
+J.POPUPS.notifyPopupSpriteSpawned = function(character, popup, sprite)
+{
+  J.POPUPS.Helpers.PopupEmitter.emit(J.POPUPS.EventNames.SpriteSpawned, {
+    character,
+    popup,
+    sprite,
+  });
+};
+
+/**
+ * Emits {@link J.POPUPS.EventNames.SpriteFinished} when a popup sprite finishes and is about to be destroyed.
+ * @param {Game_Character} character The anchor character.
+ * @param {Map_TextPop|null} popup The model captured at spawn (same reference as queue time).
+ * @param {Sprite_Damage} sprite The sprite being torn down.
+ */
+J.POPUPS.notifyPopupSpriteFinished = function(character, popup, sprite)
+{
+  J.POPUPS.Helpers.PopupEmitter.emit(J.POPUPS.EventNames.SpriteFinished, {
+    character,
+    popup,
+    sprite,
+  });
+};
+//endregion J_PopupsEvents
 //endregion Introduction
+
 
 //region Map_TextPop
 /**
@@ -188,6 +242,20 @@ Map_TextPop.Types = {
 };
 
 /**
+ * Layout stream for ring stacking (orthogonal to {@link Map_TextPop.Types}).
+ * Set only via {@link TextPopBuilder} fluent helpers.
+ */
+Map_TextPop.LayoutRings = {
+  EnemyDamage: 'layout-enemy-damage',
+  IncomingHeal: 'layout-incoming-heal',
+  SlipDamage: 'layout-slip-damage',
+  Regen: 'layout-regen',
+  RewardUp: 'layout-reward-up',
+  LootDown: 'layout-loot-down',
+  CenterFocus: 'layout-center-focus',
+};
+
+/**
  * Builds the text pop based on the given parameters.
  */
 Map_TextPop.prototype.initialize = function({
@@ -198,6 +266,8 @@ Map_TextPop.prototype.initialize = function({
   critical,
   coordinateVariance,
   healing,
+  textAccent,
+  layoutRing,
 })
 {
   /**
@@ -243,6 +313,18 @@ Map_TextPop.prototype.initialize = function({
    * @type {boolean}
    */
   this.healing = healing;
+
+  /**
+   * Optional typography hint for the value line (e.g. miss, evade, parry).
+   * @type {string|null|undefined}
+   */
+  this.textAccent = textAccent;
+
+  /**
+   * Which layout ring advances for this pop (stacking); see {@link Map_TextPop.LayoutRings}.
+   * @type {string}
+   */
+  this.layoutRing = layoutRing;
 };
 //endregion Map_TextPop
 
@@ -335,6 +417,20 @@ class TextPopBuilder
    */
   #yVariance = 0;
 
+  /**
+   * Optional typography hint forwarded to {@link Sprite_Damage.prototype.createValue}.
+   * @type {string|null}
+   * @private
+   */
+  #textAccent = null;
+
+  /**
+   * Layout ring for stacking offsets; only {@link Map_TextPop.LayoutRings} values are valid on build.
+   * @type {string}
+   * @private
+   */
+  #layoutRing = Map_TextPop.LayoutRings.EnemyDamage;
+
   //endregion properties
 
   /**
@@ -362,6 +458,8 @@ class TextPopBuilder
       value: this.#makePopupValue(),
       coordinateVariance: this.#makeCoordinateVariance(),
       healing: this.#isHealing,
+      textAccent: this.#textAccent,
+      layoutRing: this.#layoutRing,
     });
 
     // clear out the just-built popup.
@@ -387,6 +485,8 @@ class TextPopBuilder
     this.#suffix = String.empty;
     this.#xVariance = 0;
     this.#yVariance = 0;
+    this.#textAccent = null;
+    this.#layoutRing = Map_TextPop.LayoutRings.EnemyDamage;
   }
 
   /**
@@ -397,15 +497,14 @@ class TextPopBuilder
    */
   #makePopupValue()
   {
-    // if there is a hyphen in the value, it was probably a healing effect.
-    if (this.#value.indexOf(`-`) !== -1)
+    let valuePart = this.#value;
+
+    if (valuePart.indexOf(`-`) !== -1)
     {
-      // remove the hyphen.
-      this.#value = this.#value.substring(1);
+      valuePart = valuePart.substring(1);
     }
 
-    // concatenate the prefix + value + suffix to make the value.
-    return `${this.#prefix}${this.#value}${this.#suffix}`;
+    return `${this.#prefix}${valuePart}${this.#suffix}`;
   }
 
   /**
@@ -496,6 +595,17 @@ class TextPopBuilder
   setHealing(isHealing = true)
   {
     this.#isHealing = isHealing;
+    return this;
+  }
+
+  /**
+   * Sets a typography hint for the value line (miss, evade, parry); avoids substring checks on localized text.
+   * @param {string|null} accent The accent key, or null to clear.
+   * @returns {TextPopBuilder} The builder, for fluent chaining.
+   */
+  setTextAccent(accent)
+  {
+    this.#textAccent = accent;
     return this;
   }
 
@@ -596,6 +706,86 @@ class TextPopBuilder
 
   //endregion setters
 
+  //region layoutRings
+  /**
+   * @returns {TextPopBuilder} The builder, for fluent chaining.
+   */
+  forEnemyDamageRing()
+  {
+    this.#layoutRing = Map_TextPop.LayoutRings.EnemyDamage;
+    this.setXVariance(Math.randomInt(10));
+    this.setYVariance(Math.randomInt(10));
+    return this;
+  }
+
+  /**
+   * @returns {TextPopBuilder} The builder, for fluent chaining.
+   */
+  forIncomingHealRing()
+  {
+    this.#layoutRing = Map_TextPop.LayoutRings.IncomingHeal;
+    this.setXVariance(Math.randomInt(10));
+    this.setYVariance(Math.randomInt(10));
+    return this;
+  }
+
+  /**
+   * @returns {TextPopBuilder} The builder, for fluent chaining.
+   */
+  forSlipDamageRing()
+  {
+    this.#layoutRing = Map_TextPop.LayoutRings.SlipDamage;
+    this.setXVariance(Math.randomInt(8));
+    this.setYVariance(Math.randomInt(8));
+    return this;
+  }
+
+  /**
+   * @returns {TextPopBuilder} The builder, for fluent chaining.
+   */
+  forRegenRing()
+  {
+    this.#layoutRing = Map_TextPop.LayoutRings.Regen;
+    this.setXVariance(Math.randomInt(8));
+    this.setYVariance(Math.randomInt(8));
+    return this;
+  }
+
+  /**
+   * @returns {TextPopBuilder} The builder, for fluent chaining.
+   */
+  forRewardUpRing()
+  {
+    this.#layoutRing = Map_TextPop.LayoutRings.RewardUp;
+    this.setXVariance(Math.randomInt(8));
+    this.setYVariance(Math.randomInt(8));
+    return this;
+  }
+
+  /**
+   * @returns {TextPopBuilder} The builder, for fluent chaining.
+   */
+  forLootDownRing()
+  {
+    this.#layoutRing = Map_TextPop.LayoutRings.LootDown;
+    this.setXVariance(Math.randomInt(8));
+    this.setYVariance(Math.randomInt(8));
+    return this;
+  }
+
+  /**
+   * @returns {TextPopBuilder} The builder, for fluent chaining.
+   */
+  forCenterFocusRing()
+  {
+    this.#layoutRing = Map_TextPop.LayoutRings.CenterFocus;
+    this.setXVariance(Math.randomInt(6));
+    this.setYVariance(Math.randomInt(6));
+    return this;
+  }
+
+  //endregion layoutRings
+
   //region presets
   /**
    * Changes the suffix based on elemental efficicacy associated with a damage pop.
@@ -677,28 +867,11 @@ class TextPopBuilder
       // if positive, it must be damage.
       if (!this.#isHealing)
       {
-        // set it to the hp damage color.
         this.setTextColorIndex(this.#textColors.hpDamage);
-
-        // randomize the variance a bit.
-        const rngX = Math.randomInt(48);
-        const rngY = Math.randomInt(48);
-        this.setXVariance(rngX);
-        this.setYVariance(rngY);
       }
-      // if negative, it must be healing.
       else
       {
-        // set it to the hp healing color.
         this.setTextColorIndex(this.#textColors.hpHealing);
-
-        // randomize the variance a bit.
-        const rngX = Math.randomInt(48);
-        const rngY = Math.randomInt(48);
-        this.setXVariance(rngX);
-        this.setYVariance(rngY);
-
-        // add a plus because we know its healing.
         this.setPrefix(`+`);
       }
     }
@@ -722,28 +895,11 @@ class TextPopBuilder
       // if positive, it must be damage.
       if (!this.#isHealing)
       {
-        // set it to the mp damage color.
         this.setTextColorIndex(this.#textColors.mpDamage);
-
-        // randomize the variance a bit.
-        const rngX = Math.randomInt(48);
-        const rngY = Math.randomInt(48);
-        this.setXVariance(rngX);
-        this.setYVariance(rngY);
       }
-      // if negative, it must be healing.
       else
       {
-        // set it to the mp healing color.
         this.setTextColorIndex(this.#textColors.mpHealing);
-
-        // randomize the variance a bit.
-        const rngX = Math.randomInt(48);
-        const rngY = Math.randomInt(48);
-        this.setXVariance(rngX);
-        this.setYVariance(rngY);
-
-        // add a plus because we know its healing.
         this.setPrefix(`+`);
       }
     }
@@ -767,28 +923,11 @@ class TextPopBuilder
       // if positive, it must be damage.
       if (!this.#isHealing)
       {
-        // set it to the tp damage color.
         this.setTextColorIndex(this.#textColors.tpDamage);
-
-        // randomize the variance a bit.
-        const rngX = Math.randomInt(48);
-        const rngY = Math.randomInt(48);
-        this.setXVariance(rngX);
-        this.setYVariance(rngY);
       }
-      // if negative, it must be healing.
       else
       {
-        // set it to the tp healing color.
         this.setTextColorIndex(this.#textColors.tpHealing);
-
-        // randomize the variance a bit.
-        const rngX = Math.randomInt(48);
-        const rngY = Math.randomInt(48);
-        this.setXVariance(rngX);
-        this.setYVariance(rngY);
-
-        // add a plus because we know its healing.
         this.setPrefix(`+`);
       }
     }
@@ -812,11 +951,7 @@ class TextPopBuilder
     // set the icon to our experience icon.
     this.setIconIndex(125);
 
-    // add some x variance when working with experience.
-    this.setXVariance(-16);
-
-    // add some y variance when working with experience.
-    this.setYVariance(32);
+    this.forRewardUpRing();
 
     // return the builder for fluent chaining.
     return this;
@@ -837,11 +972,7 @@ class TextPopBuilder
     // set the icon to our experience icon.
     this.setIconIndex(2048);
 
-    // add some x variance when working with gold.
-    this.setXVariance(-8);
-
-    // add some y variance when working with gold.
-    this.setYVariance(48);
+    this.forRewardUpRing();
 
     // return the builder for fluent chaining.
     return this;
@@ -862,11 +993,7 @@ class TextPopBuilder
     // set the icon index to the learned skill's icon.
     this.setIconIndex(306);
 
-    // add no x variance when working with sdp points.
-    this.setXVariance(0);
-
-    // add some y variance when working with sdp points.
-    this.setYVariance(64);
+    this.forRewardUpRing();
 
     // return the builder for fluent chaining.
     return this;
@@ -874,22 +1001,13 @@ class TextPopBuilder
 
   /**
    * Add some convenient defaults for configuring collected loot popups.
-   * @param {number} y The y coordinate.
    * @returns {TextPopBuilder} The builder, for fluent chaining.
    */
-  isLoot(y = 64)
+  isLoot()
   {
-    // set the popup type to be experience.
     this.setPopupType(Map_TextPop.Types.Item);
-
-    // set the text color to be system blue.
     this.setTextColorIndex(1);
-
-    // add some x variance when working with experience.
-    this.setXVariance(y);
-
-    // add some y variance when working with experience.
-    this.setYVariance(0);
+    this.forLootDownRing();
 
     // return the builder for fluent chaining.
     return this;
@@ -909,6 +1027,8 @@ class TextPopBuilder
 
     // set the icon index to our level up icon.
     this.setIconIndex(86);
+
+    this.forRewardUpRing();
 
     // return the builder for fluent chaining.
     return this;
@@ -930,8 +1050,7 @@ class TextPopBuilder
     // set the icon index to the used skill's icon.
     this.setIconIndex(skillIconIndex);
 
-    // add some x variance when working with experience.
-    this.setYVariance(64);
+    this.forRewardUpRing();
 
     // return the builder for fluent chaining.
     return this;
@@ -956,8 +1075,7 @@ class TextPopBuilder
     // add a suffix to indicate the skill was learned.
     this.setSuffix(` LEARNED!`);
 
-    // add some y variance when working with experience.
-    this.setYVariance(32);
+    this.forRewardUpRing();
 
     // return the builder for fluent chaining.
     return this;
@@ -986,18 +1104,22 @@ class TextPopSpriteManager
   /**
    * Converts a `Map_TextPop` into a `Sprite_Damage`.
    * @param {Map_TextPop} popup The popup to convert.
+   * @param {{ x?: number, y?: number }} ringExtra Extra offset from {@link J.POPUPS.consumeLayoutRingOffset}.
    * @returns {Sprite_Damage} The converted sprite.
    */
-  static convert(popup)
+  static convert(popup, ringExtra = { x: 0, y: 0 })
   {
     // start by creating a blank damage sprite.
     const sprite = new Sprite_Damage();
 
+    const rx = ringExtra.x || 0;
+    const ry = ringExtra.y || 0;
+
     // add the x variance to the x coordinate for the base sprite.
-    sprite.setXVariance(popup.coordinateVariance[0]);
+    sprite.setXVariance(popup.coordinateVariance[0] + rx);
 
     // add the y variance to the y coordinate for the base sprite.
-    sprite.setYVariance(popup.coordinateVariance[1]);
+    sprite.setYVariance(popup.coordinateVariance[1] + ry);
 
     // check if there is an iconIndex present.
     if (popup.iconIndex > -1)
@@ -1025,7 +1147,9 @@ class TextPopSpriteManager
       sprite.setupCriticalEffect();
     }
 
-    // assign the text value to be displayed as the popup of the sprite.
+    sprite._j._popups._textAccent = popup.textAccent || null;
+    sprite._j._popups._sourcePopup = popup;
+
     sprite.createValue(popup.value);
 
     // return the constructed sprite for the popup.
@@ -1084,6 +1208,161 @@ class TextPopSpriteManager
 
 //endregion TextPopSpriteManager
 
+//region J_PopupLayoutRings
+/**
+ * Per-character slot offsets for {@link Map_TextPop.LayoutRings}. Ephemeral (WeakMap; not saved).
+ */
+J.POPUPS._layoutRingState = new WeakMap();
+
+/**
+ * Step layout for each ring. Indices wrap at slotCount.
+ */
+J.POPUPS.Layout.RingLayout = {};
+
+J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.EnemyDamage] = {
+  slotCount: 8,
+  stepX: 8,
+  stepY: 32,
+  dirX: 1,
+  dirY: 1,
+};
+
+J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.IncomingHeal] = {
+  slotCount: 8,
+  stepX: -8,
+  stepY: -32,
+  dirX: 1,
+  dirY: 1,
+};
+
+J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.SlipDamage] = {
+  slotCount: 8,
+  stepX: 10,
+  stepY: 28,
+  dirX: 1,
+  dirY: 1,
+};
+
+J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.Regen] = {
+  slotCount: 8,
+  stepX: -10,
+  stepY: -28,
+  dirX: 1,
+  dirY: 1,
+};
+
+J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.RewardUp] = {
+  slotCount: 10,
+  stepX: 0,
+  stepY: -28,
+  dirX: 1,
+  dirY: 1,
+};
+
+J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.LootDown] = {
+  slotCount: 12,
+  stepX: 0,
+  stepY: 22,
+  dirX: 1,
+  dirY: 1,
+};
+
+/**
+ * Resolves how a popup participates in ring stacking vs center-only layout.
+ * @param {Map_TextPop} popup The queued popup model.
+ * @returns {{ usesRing: boolean, ring: string }} rings stack; center uses variance only.
+ */
+J.POPUPS.resolvePopupLayout = function(popup)
+{
+  if (popup.layoutRing === Map_TextPop.LayoutRings.CenterFocus)
+  {
+    return { usesRing: false, ring: popup.layoutRing };
+  }
+
+  return { usesRing: true, ring: popup.layoutRing };
+};
+
+/**
+ * @param {Game_Character} character The anchor character.
+ * @returns {{}}
+ */
+J.POPUPS._getRingCountersForCharacter = function(character)
+{
+  let state = J.POPUPS._layoutRingState.get(character);
+
+  if (!state)
+  {
+    state = {};
+    J.POPUPS._layoutRingState.set(character, state);
+  }
+
+  return state;
+};
+
+/**
+ * Advances the slot for this character and ring, returning pixel offset to add to builder variance.
+ * @param {Game_Character} character The anchor character.
+ * @param {Map_TextPop.LayoutRings} layoutRing The ring id.
+ * @returns {{ x: number, y: number }}
+ */
+J.POPUPS.consumeLayoutRingOffset = function(character, layoutRing)
+{
+  const resolved = J.POPUPS.resolvePopupLayout({ layoutRing });
+
+  if (resolved.usesRing === false)
+  {
+    return { x: 0, y: 0 };
+  }
+
+  const spec = J.POPUPS.Layout.RingLayout[layoutRing];
+
+  if (!spec)
+  {
+    return { x: 0, y: 0 };
+  }
+
+  const counters = J.POPUPS._getRingCountersForCharacter(character);
+  const idx = counters[layoutRing] || 0;
+
+  counters[layoutRing] = (idx + 1) % spec.slotCount;
+
+  const x = spec.stepX * idx * spec.dirX;
+  const y = spec.stepY * idx * spec.dirY;
+
+  return { x, y };
+};
+
+/**
+ * @param {Map_TextPop} textPop The candidate popup.
+ * @returns {boolean} True if safe to queue.
+ */
+J.POPUPS.isValidTextPopForQueue = function(textPop)
+{
+  if (!textPop || textPop.constructor !== Map_TextPop)
+  {
+    return false;
+  }
+
+  if (typeof textPop.layoutRing !== 'string')
+  {
+    return false;
+  }
+
+  const known = Object.values(Map_TextPop.LayoutRings);
+
+  for (let i = 0; i < known.length; i++)
+  {
+    if (known[i] === textPop.layoutRing)
+    {
+      return true;
+    }
+  }
+
+  return false;
+};
+//endregion J_PopupLayoutRings
+
+
 //region Game_Character
 /**
  * Hooks into the `Game_Character.initMembers` and adds in action sprite properties.
@@ -1119,8 +1398,7 @@ Game_Character.prototype.initMembers = function()
  */
 Game_Character.prototype.hasTextPops = function()
 {
-  // don't do this if popups are disabled by JABS.
-  if (J.ABS && J.ABS.Metadata.DisableTextPops) return false;
+  if (J.POPUPS.Metadata.DisablePopups === true) return false;
 
   return this._j._textPopRequest;
 };
@@ -1130,11 +1408,10 @@ Game_Character.prototype.hasTextPops = function()
  */
 Game_Character.prototype.requestTextPop = function()
 {
-  // don't do this if popups are disabled by JABS.
-  if (J.ABS && J.ABS.Metadata.DisableTextPops) return;
+  if (J.POPUPS.Metadata.DisablePopups === true) return;
 
-  // assign the request.
   this._j._textPopRequest = true;
+  J.POPUPS.notifyPopupFlushRequested(this);
 };
 
 /**
@@ -1151,11 +1428,16 @@ Game_Character.prototype.acknowledgeTextPops = function()
  */
 Game_Character.prototype.addTextPop = function(textPop)
 {
-  // don't do this if popups are disabled by JABS.
-  if (J.ABS && J.ABS.Metadata.DisableTextPops) return;
+  if (J.POPUPS.Metadata.DisablePopups === true) return;
 
-  // add the text pop to the tracking.
+  if (J.POPUPS.isValidTextPopForQueue(textPop) === false)
+  {
+    console.warn(`[${J.POPUPS.Metadata.Name}] addTextPop rejected invalid Map_TextPop (bad type or layoutRing).`, textPop);
+    return;
+  }
+
   this._j._textPops.push(textPop);
+  J.POPUPS.notifyPopupQueued(this, textPop);
 };
 
 /**
@@ -1174,10 +1456,18 @@ Game_Character.prototype.emptyDamagePops = function()
 {
   const textPops = this.getTextPops();
 
-  // empty the contents of the array for all references to see.
   textPops.splice(0, textPops.length);
 };
+
+/**
+ * Preferred name for clearing the pending popup queue (same as emptyDamagePops).
+ */
+Game_Character.prototype.clearPendingTextPops = function()
+{
+  this.emptyDamagePops();
+};
 //endregion Game_Character
+
 
 //region Sprite_Character
 /**
@@ -1272,14 +1562,10 @@ Sprite_Character.prototype.cleanupNonDamagePops = function()
 J.POPUPS.Aliased.Sprite_Character.set('update', Sprite_Character.prototype.update);
 Sprite_Character.prototype.update = function()
 {
-  // execute original update processing.
   J.POPUPS.Aliased.Sprite_Character.get('update')
     .call(this);
 
-  // effectively a subscription for creating new text pops on this character.
   this.processIncomingTextPops();
-
-  // and perform the update for popups if it is.
   this.updateTextPops();
 };
 
@@ -1289,16 +1575,11 @@ Sprite_Character.prototype.update = function()
  */
 Sprite_Character.prototype.processIncomingTextPops = function()
 {
-  // get the character we're working with.
   const character = this.character();
 
-  // listen for notification to process any incoming popups.
   if (character.hasTextPops())
   {
-    // create all incoming text pops!
     this.createIncomingTextPops();
-
-    // end notification for new incoming popups.
     character.acknowledgeTextPops();
   }
 };
@@ -1308,19 +1589,12 @@ Sprite_Character.prototype.processIncomingTextPops = function()
  */
 Sprite_Character.prototype.createIncomingTextPops = function()
 {
-  // get the character we're working with.
   const character = this.character();
-
-  // get all the popups to create.
   const newPopups = character.getTextPops();
 
-  // assuming we actually have popups to create, create them.
   if (newPopups.length)
   {
-    // iterate over each of the new popups and create them.
     newPopups.forEach(this.createIncomingTextPop, this);
-
-    // after processing, remove them all.
     character.emptyDamagePops();
   }
 };
@@ -1331,10 +1605,10 @@ Sprite_Character.prototype.createIncomingTextPops = function()
  */
 Sprite_Character.prototype.createIncomingTextPop = function(popup)
 {
-  // configure the sprite associated with the popup.
-  const sprite = TextPopSpriteManager.convert(popup);
+  const character = this.character();
+  const ringExtra = J.POPUPS.consumeLayoutRingOffset(character, popup.layoutRing);
+  const sprite = TextPopSpriteManager.convert(popup, ringExtra);
 
-  // add the sprites to their corresponding collections for tracking.
   if (sprite.isDamage())
   {
     this._j._popups._damagePopSprites.push(sprite);
@@ -1344,8 +1618,8 @@ Sprite_Character.prototype.createIncomingTextPop = function(popup)
     this._j._popups._nonDamagePopSprites.push(sprite);
   }
 
-  // add the sprite to the parent for visual tracking.
   this.parent.addChild(sprite);
+  J.POPUPS.notifyPopupSpriteSpawned(character, popup, sprite);
 };
 //endregion incoming subscription
 
@@ -1355,194 +1629,115 @@ Sprite_Character.prototype.createIncomingTextPop = function(popup)
  */
 Sprite_Character.prototype.updateTextPops = function()
 {
-  // check first if we even have damage pops to deal with.
   if (this.hasDamagePops())
   {
-    // update damage-related popups, like skill damage, or healing, etc.
     this.updateDamagePops();
   }
 
-  // check first if we even have non damage pops to deal with.
   if (this.hasNonDamagePops())
   {
-    // update non-damage-related popups, like loot found, or experience earned, etc.
     this.updateNonDamagePops();
   }
 };
 
-//region damage pops
 /**
  * Updates all damage popup sprites on this character.
  */
 Sprite_Character.prototype.updateDamagePops = function()
 {
-  // get all damage pops currently being tracked.
-  const damagePops = this.getDamagePops();
-
-  // iterate over each of the damage pops.
-  const deletedPops = damagePops.map(this.updateDamagePop, this);
-
-  // if we deleted things out of the original array...
-  if (deletedPops.some(pop => pop === true))
-  {
-    // then update the original array with the cleansed one.
-    this.cleanupDamagePops();
-  }
+  this._updateTrackedPopupBucket(this.getDamagePops(), this.updateDamagePopLocation);
 };
 
-/**
- * Updates a single damage pop.
- * @param {Sprite_Damage} damagePop A sprite representing the popup.
- * @param {number} index The index of the popup in the tracking collection.
- * @returns {boolean} True if the popup was also removed, false otherwise.
- */
-Sprite_Character.prototype.updateDamagePop = function(damagePop, index)
-{
-  // tracker for whether or not this damage pop ended up getting deleted.
-  let deleted = false;
-
-  // process the sprite update for the damage pop.
-  damagePop.update();
-
-  // handle the pattern for motion that this popup will experience.
-  this.updateDamagePopLocation(damagePop);
-
-  // if the damage pop isn't playing anymore, handle that.
-  if (!damagePop.isPlaying())
-  {
-    // completely remove the damage pop from tracking.
-    this.removeDamagePop(damagePop, index);
-
-    // toggle the flag for indicating we need to cleanse the collection.
-    deleted = true;
-  }
-
-  // return whether or not we ended up deleting this pop.
-  return deleted;
-};
-
-/**
- * Handles the motion that a popup goes through.
- * Open for extension.
- * @param {Sprite_Damage} damageSprite The damage sprite that is moving.
- */
-Sprite_Character.prototype.updateDamagePopLocation = function(damageSprite)
-{
-  // update their x coordinate with the variance.
-  damageSprite.x = this.x + 150 + damageSprite.getXVariance();
-
-  // update their y coordinate with the variance.
-  damageSprite.y = this.y + damageSprite.getYVariance();
-};
-
-/**
- * Removes a single damage pop from tracking.
- * @param {Sprite_Damage} damagePop A sprite representing the popup.
- * @param {number} index The index of the popup in the tracking collection.
- */
-Sprite_Character.prototype.removeDamagePop = function(damagePop, index)
-{
-  // get all damage pops currently being tracked.
-  const damagePops = this.getDamagePops();
-
-  // remove it from the parent so it no longer shows up.
-  this.parent.removeChild(damagePop);
-
-  // officially destroy the damage pop sprite.
-  damagePop.destroy();
-
-  // purge the item from the tracking.
-  delete damagePops[index];
-};
-//endregion damage pops
-
-//region non-damage pops
 /**
  * Updates all non-damage popup sprites on this character.
  */
 Sprite_Character.prototype.updateNonDamagePops = function()
 {
-  // get all non damage pops currently being tracked.
-  const nonDamagePops = this.getNonDamagePops();
-
-  // iterate over each of the pops.
-  const deletedPops = nonDamagePops.map(this.updateNonDamagePop, this);
-
-  // check to see if we deleted anything from the original array.
-  if (deletedPops.some(pop => pop === true))
-  {
-    // then update the original array with the cleansed one.
-    this.cleanupNonDamagePops();
-  }
+  this._updateTrackedPopupBucket(this.getNonDamagePops(), this.updateNonDamagePopLocation);
 };
 
 /**
- * Updates a single non damage pop.
- * @param {Sprite_Damage} popup A sprite representing the popup.
- * @param {number} index The index of the popup in the tracking collection.
- * @returns {boolean} True if the popup was also removed, false otherwise.
+ * Updates every sprite in a popup bucket; compacts the array after removals.
+ * @param {Sprite_Damage[]} bucket The live sprite list.
+ * @param {function(Sprite_Damage): void} updateLocationFn Hook for positioning (damage vs non-damage override).
  */
-Sprite_Character.prototype.updateNonDamagePop = function(popup, index)
+Sprite_Character.prototype._updateTrackedPopupBucket = function(bucket, updateLocationFn)
 {
-  // tracker for whether or not this popup ended up getting deleted.
-  let deleted = false;
-
-  // process the sprite update for the popup.
-  popup.update();
-
-  // handle the pattern for motion that this popup will experience.
-  this.updateNonDamagePopLocation(popup);
-
-  // if the pop isn't playing anymore, handle that.
-  if (!popup.isPlaying())
+  const deletedFlags = bucket.map((pop, index) =>
   {
-    // completely remove the popupfrom tracking.
-    this.removeNonDamagePop(popup, index);
+    if (!pop) return false;
 
-    // toggle the flag for indicating we need to cleanse the collection.
-    deleted = true;
+    pop.update();
+    updateLocationFn.call(this, pop);
+
+    if (!pop.isPlaying())
+    {
+      this._removeTrackedPopSprite(pop, index, bucket);
+      return true;
+    }
+
+    return false;
+  }, this);
+
+  if (deletedFlags.some(flag => flag === true))
+  {
+    const next = bucket.filter(entry => !!entry);
+    bucket.length = 0;
+
+    for (let i = 0; i < next.length; i++)
+    {
+      bucket.push(next[i]);
+    }
   }
-
-  // return whether or not we ended up deleting this pop.
-  return deleted;
 };
 
 /**
- * Handles the motion that a popup goes through.
- * Open for extension.
+ * Detaches a finished popup, emits lifecycle, and destroys the sprite.
+ * @param {Sprite_Damage} sprite The popup sprite.
+ * @param {number} index Index in the bucket (may be sparse).
+ * @param {Sprite_Damage[]} bucket Owning array.
+ */
+Sprite_Character.prototype._removeTrackedPopSprite = function(sprite, index, bucket)
+{
+  const character = this.character();
+
+  this.parent.removeChild(sprite);
+  J.POPUPS.notifyPopupSpriteFinished(character, sprite._j._popups._sourcePopup, sprite);
+  sprite.destroy();
+  delete bucket[index];
+};
+
+/**
+ * Default anchor for map text pops (override for custom layout).
+ * @param {Sprite_Damage} popSprite The popup sprite.
+ */
+Sprite_Character.prototype.updateTextPopAnchorPosition = function(popSprite)
+{
+  const ox = J.POPUPS.Layout.AnchorOffsetX;
+  popSprite.x = this.x + ox + popSprite.getXVariance();
+  popSprite.y = this.y + popSprite.getYVariance();
+};
+
+/**
+ * Handles the motion that a damage popup goes through.
+ * @param {Sprite_Damage} damageSprite The damage sprite that is moving.
+ */
+Sprite_Character.prototype.updateDamagePopLocation = function(damageSprite)
+{
+  this.updateTextPopAnchorPosition(damageSprite);
+};
+
+/**
+ * Handles the motion that a non-damage popup goes through.
  * @param {Sprite_Damage} nonDamageSprite The popup that is moving.
  */
 Sprite_Character.prototype.updateNonDamagePopLocation = function(nonDamageSprite)
 {
-  // update their x coordinate with the variance.
-  nonDamageSprite.x = this.x + 150 + nonDamageSprite.getXVariance();
-
-  // update their y coordinate with the variance.
-  nonDamageSprite.y = this.y + nonDamageSprite.getYVariance();
+  this.updateTextPopAnchorPosition(nonDamageSprite);
 };
-
-/**
- * Removes a single damage pop from tracking.
- * @param {Sprite_Damage} popup A sprite representing the popup.
- * @param {number} index The index of the popup in the tracking collection.
- */
-Sprite_Character.prototype.removeNonDamagePop = function(popup, index)
-{
-  // get all damage pops currently being tracked.
-  const nonDamagePops = this.getNonDamagePops();
-
-  // remove it from the parent so it no longer shows up.
-  this.parent.removeChild(popup);
-
-  // officially destroy the damage pop sprite.
-  popup.destroy();
-
-  // purge the item from the tracking.
-  delete nonDamagePops[index];
-};
-//endregion non-damage pops
 //endregion handle text pops
 //endregion Sprite_Character
+
 
 //region Sprite_Damage
 /**
@@ -1608,6 +1803,18 @@ Sprite_Damage.prototype.initMembers = function()
    * @type {number}
    */
   this._j._popups._yVariance = 0;
+
+  /**
+   * Typography hint from {@link Map_TextPop#textAccent}.
+   * @type {string|null}
+   */
+  this._j._popups._textAccent = null;
+
+  /**
+   * Source popup for lifecycle events (read-only for observers).
+   * @type {Map_TextPop|null}
+   */
+  this._j._popups._sourcePopup = null;
 };
 
 /**
@@ -1652,13 +1859,7 @@ Sprite_Damage.prototype.setHealingFlag = function(isHealing)
  */
 Sprite_Damage.prototype.getXVariance = function()
 {
-  return this._j._popups._yVariance;
-  // check if this is a healing popup.
-  // return this.isHealing()
-  //   // if it is, return the Y variance instead.
-  //   ? (this._j._popups._yVariance - 48)
-  //   // otherwise, return the x variance as expected.
-  //   : this._j._popups._xVariance;
+  return this._j._popups._xVariance;
 };
 
 /**
@@ -1676,13 +1877,7 @@ Sprite_Damage.prototype.setXVariance = function(xVariance)
  */
 Sprite_Damage.prototype.getYVariance = function()
 {
-  return this._j._popups._xVariance;
-  // check if this is a healing popup.
-  // return this.isHealing()
-  //   // if it is, return the X variance instead.
-  //   ? this._j._popups._xVariance
-  //   // otherwise, return the y variance as expected.
-  //   : this._j._popups._yVariance;
+  return this._j._popups._yVariance;
 };
 
 /**
@@ -1722,7 +1917,7 @@ Sprite_Damage.prototype.setupMotionData = function(sprite)
   sprite.yf2 = 0;
   sprite.yf3 = 0;
   sprite.ex = false;
-  sprite.bounceMaxX = sprite.x + 260;
+  sprite.bounceMaxX = sprite.x + J.POPUPS.Layout.MotionBounceMaxExtra;
 };
 
 /**
@@ -1731,28 +1926,28 @@ Sprite_Damage.prototype.setupMotionData = function(sprite)
  */
 Sprite_Damage.prototype.createValue = function(value)
 {
-  // create a sprite of the designated size.
-  const w = 400;
+  const w = J.POPUPS.Layout.ValueBitmapWidth;
   const h = this.fontSize();
   const sprite = this.createChildSprite(w, h);
 
-  // setup the fontsize for the font.
   let fontSize = 20;
 
-  // check if this is a critical value.
   if (this._j._popups._isCritical)
   {
-    // critical values look bigger and bolder.
     fontSize += 12;
     sprite.bitmap.fontBold = true;
   }
-
-  // check if it was miss/evade/parry.
-  else if (value.includes("Missed") || value.includes("Evaded") || value.includes("Parry"))
+  else
   {
-    // miss/evade/parry are a bit smaller and italic for effect.
-    fontSize -= 6;
-    sprite.bitmap.fontItalic = true;
+    const accent = this._j._popups._textAccent;
+    const accentItalic = accent === 'miss' || accent === 'evade' || accent === 'parry';
+    const legacyItalic = value.includes('Missed') || value.includes('Evaded') || value.includes('Parry');
+
+    if (accentItalic || legacyItalic)
+    {
+      fontSize -= 6;
+      sprite.bitmap.fontItalic = true;
+    }
   }
 
   // assign the new size.
@@ -1784,9 +1979,9 @@ Sprite_Damage.prototype.addIcon = function(iconIndex)
   // blit the icon onto the sprite's bitmap directly.
   sprite.bitmap.blt(bitmap, sx, sy, pw, ph, 0, 0);
 
-  // scale down the icon to be only 75% of the size.
-  sprite.scale.x = 0.75;
-  sprite.scale.y = 0.75;
+  const iconScale = J.POPUPS.Layout.IconScale;
+  sprite.scale.x = iconScale;
+  sprite.scale.y = iconScale;
 
   // adjust the location a bit.
   sprite.x -= 180;
@@ -1850,14 +2045,13 @@ Sprite_Damage.prototype.updateNonDamageSpriteMotion = function(sprite)
  */
 Sprite_Damage.prototype.updateDamageSpriteMotion = function(sprite)
 {
-  // check if the damage sprite is a healing sprite.
   if (this.isHealing())
   {
-    //this.flyawayDamageSpriteMotion(sprite);
+    this.updateNonDamageSpriteMotion(sprite);
   }
   else
   {
-    //this.defaultDamageSpriteMotion(sprite);
+    this.defaultDamageSpriteMotion(sprite);
   }
 };
 
@@ -1951,4 +2145,4 @@ Sprite_Damage.prototype.setupCriticalEffect = function()
 };
 //endregion Sprite_Damage
 
-//# sourceMappingURL=J-TextPops.js.map
+//# sourceMappingURL=J-Popups.js.map

@@ -11,7 +11,6 @@
  * @orderAfter J-ABS
  * @orderAfter J-Aptitude
  * @orderAfter J-Log
- * @orderAfter J-TextPops
  * @help
  * ============================================================================
  * OVERVIEW
@@ -22,7 +21,7 @@
  * Integrates with others of mine plugins:
  * - J-Base; to be honest this is just required for all my plugins.
  * - J-Log; log the type of AP gained.
- * - J-TextPops; updates popups for typed AP gained.
+ * - J-Popups (+ J-Popups-APT); updates popups for typed AP gained.
  *
  * ----------------------------------------------------------------------------
  * DETAILS:
@@ -1136,8 +1135,8 @@ if (J.ABS)
         // award the typed AP.
         ApManager.gainTypedAp(member, actualAp, grant.domain, grant.id, 'on-kill:typed:explicit');
 
-        // reuse existing AP popup/log visuals for consistency.
-        this.generatePopApTyped(actualAp, jabsBattler.getCharacter(), new ApTypeKey(grant.domain, grant.id));
+        // notify that typed AP was granted so optional extensions can respond.
+        this.onTypedApGained(actualAp, jabsBattler.getCharacter(), new ApTypeKey(grant.domain, grant.id));
         this.createLogApTyped(actualAp, jabsBattler, new ApTypeKey(grant.domain, grant.id));
       });
     }
@@ -1154,7 +1153,8 @@ if (J.ABS)
         if (bonus > 0)
         {
           ApManager.gainTypedAp(member, bonus, key.domain, key.id, 'on-kill:typed:inferred-enemy');
-          this.generatePopApTyped(bonus, jabsBattler.getCharacter(), key);
+          // notify that typed AP was granted so optional extensions can respond.
+          this.onTypedApGained(bonus, jabsBattler.getCharacter(), key);
           this.createLogApTyped(bonus, jabsBattler, key);
         }
       });
@@ -1162,29 +1162,14 @@ if (J.ABS)
   };
 
   /**
-   * Generates a typed AP popup with icon + short label.
-   * @param {number} apPoints - The AP amount to display.
-   * @param {Game_Character} character - The character to show the popup on.
-   * @param {ApTypeKey} apTypeKey - The typed key (domain+id) for labeling.
+   * Lifecycle event: typed AP was awarded to a battler on the map.
+   * Extended by optional plugins (e.g. J-Popups-APT) to surface map feedback.
+   * @param {number} apPoints The typed AP amount granted.
+   * @param {Game_Character} character The character who received the reward.
+   * @param {ApTypeKey} apTypeKey The typed key (domain + id) for labeling.
    */
-  JABS_Engine.prototype.generatePopApTyped = function(apPoints, character, apTypeKey)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // resolve display parts for this typed key.
-    const { name, icon } = ApManager.apTypeDisplay(apTypeKey);
-
-    // build a typed AP text pop (reuse AP styling, add icon/label).
-    const apPop = new TextPopBuilder(`${apPoints} [${name}]`)
-      .isAptitude()
-      .setIconIndex(icon)
-      .build();
-
-    // add the pop to the caster's tracking.
-    character.addTextPop(apPop);
-    character.requestTextPop();
-  };
+  // eslint-disable-next-line no-unused-vars
+  JABS_Engine.prototype.onTypedApGained = function(apPoints, character, apTypeKey) {};
 
   /**
    * Creates a typed AP log entry with icon + short label.
