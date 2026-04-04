@@ -5995,13 +5995,6 @@ JABS_Battler.prototype.executeDodgeMovement = function()
   const character = this.getCharacter();
   const direction = this.getDodgeDirection();
 
-  // #region agent log
-  if (this.getDodgeSteps() % 10 === 0)
-  {
-    fetch('http://127.0.0.1:7857/ingest/2bd1aced-05ff-48e3-9b46-1d0919e2cceb', {method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'1d58a7'},body:JSON.stringify({sessionId:'1d58a7',runId:'run1',hypothesisId:'H-C',location:'_updates.js:executeDodgeMovement',message:'dodge step fired',data:{stepsRemaining:this.getDodgeSteps(),distancePerFrame:character.distancePerFrame(),realMoveSpeed:character.realMoveSpeed(),dodgeModifier:character.dodgeModifier ? character.dodgeModifier() : null,frame:Graphics.frameCount},timestamp:Date.now()})}).catch(()=>{});
-  }
-  // #endregion agent log
-
   // move the character based on their direction.
   if (character.isDiagonalDirection(direction))
   {
@@ -7350,44 +7343,21 @@ JABS_Battler.prototype.applyToolToPlayer = function(toolId)
   gameAction.apply(battler);
 
   // display popup from item.
-  this.generatePopItem(gameAction, toolId);
+  this.onItemApplied(gameAction, toolId);
 
   // show tool animation.
   this.showAnimation($dataItems.at(toolId).animationId);
 };
 
 /**
- * Generates a popup based on the item used.
+ * Lifecycle event: an item was applied as a tool by this battler on a target.
+ * Extended by optional plugins (e.g. J-Popups-ABS) to surface map feedback.
  * @param {Game_Action} gameAction The action describing the tool's effect.
- * @param {number} itemId The target having the action applied against.
+ * @param {number} itemId The id of the item/tool used.
  * @param {JABS_Battler} target The target for calculating damage; defaults to self.
  */
-JABS_Battler.prototype.generatePopItem = function(
-  gameAction,
-  itemId,
-  target = this
-)
-{
-  // if we are not using popups, then don't do this.
-  if (!J.POPUPS) return;
-
-  // grab some shorthand variables for local use.
-  const character = this.getCharacter();
-  const toolData = $dataItems.at(itemId);
-
-  if (toolData.sdpKey !== String.empty)
-  {
-    $jabsEngine.generatePopItemBulk([ toolData ], character);
-    return;
-  }
-
-  // generate the textpop.
-  const itemPop = $jabsEngine.configureDamagePop(gameAction, toolData, this, target);
-
-  // add the pop to the target's tracking.
-  character.addTextPop(itemPop);
-  character.requestTextPop();
-};
+// eslint-disable-next-line no-unused-vars
+JABS_Battler.prototype.onItemApplied = function(gameAction, itemId, target = this) {};
 
 /**
  * Applies the effects of the tool against all allies on the team.
@@ -7442,7 +7412,7 @@ JABS_Battler.prototype.applyToolForOneOpponent = function(toolId)
   gameAction.apply(battler);
 
   // generate the text popup for the item usage on the target.
-  this.generatePopItem(gameAction, toolId, jabsBattler);
+  this.onItemApplied(gameAction, toolId, jabsBattler);
 };
 
 /**
@@ -7463,9 +7433,9 @@ JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
     // apply the effects against the battler.
     gameAction.apply(battler);
 
-    // generate the text popup for the item usage on the target.
-    this.generatePopItem(gameAction, toolId);
-  }, this);
+  // generate the text popup for the item usage on the target.
+  this.onItemApplied(gameAction, toolId, jabsBattler);
+}, this);
 };
 
 /**
@@ -8425,8 +8395,7 @@ JABS_Battler.prototype.processStateRegens = function(states)
       // flip the sign for the regen for properly creating pops.
       regen *= -1;
 
-      // generate the textpop.
-      this.generatePopSlip(regen, index);
+      this.onSlipRegenTick(regen, index);
     }
   });
 };
@@ -8688,56 +8657,12 @@ JABS_Battler.prototype.applySlipEffect = function(amount, type)
 };
 
 /**
- * Creates the slip popup on this battler.
- * @param {number} amount The slip pop amount.
- * @param {number} type The slip parameter: 0=hp, 1=mp, 2=tp.
+ * Hook after slip/regen math is applied; extensions may show pops or other feedback.
+ * @param {number} displayAmount Amount passed to popup builders after sign normalization.
+ * @param {0|1|2} type HP / MP / TP index.
  */
-JABS_Battler.prototype.generatePopSlip = function(amount, type)
+JABS_Battler.prototype.onSlipRegenTick = function(displayAmount, type)
 {
-  // if we are not using popups, then don't do this.
-  if (!J.POPUPS) return;
-
-  // gather shorthand variables for use.
-  const character = this.getCharacter();
-
-  // generate the textpop.
-  const slipPop = this.configureSlipPop(amount, type);
-
-  // add the pop to the target's tracking.
-  character.addTextPop(slipPop);
-  character.requestTextPop();
-};
-
-/**
- * Configures a popup based on the slip damage type and amount.
- * @param {number} amount The amount of the slip.
- * @param {0|1|2} type The slip parameter: 0=hp, 1=mp, 2=tp.
- * @returns {Map_TextPop}
- */
-JABS_Battler.prototype.configureSlipPop = function(amount, type)
-{
-  // lets take our time with this text pop building.
-  const textPopBuilder = new TextPopBuilder(amount);
-
-  // based on the hp/mp/tp type, we apply different visual effects.
-  switch (type)
-  {
-    // hp.
-    case 0:
-      textPopBuilder.isHpDamage();
-      break;
-    // mp.
-    case 1:
-      textPopBuilder.isMpDamage();
-      break;
-    // tp.
-    case 2:
-      textPopBuilder.isTpDamage();
-      break;
-  }
-
-  // build and return the popup.
-  return textPopBuilder.build();
 };
 //endregion regeneration
 
@@ -17119,6 +17044,7 @@ J.ABS.Aliased = {
   Game_Enemy: new Map(),
   Game_Event: new Map(),
   Game_Interpreter: {},
+  JABS_Battler: new Map(),
   Game_Map: new Map(),
   Game_Party: new Map(),
   Game_Player: new Map(),
@@ -24894,65 +24820,6 @@ class JABS_Engine
     // generate log for this action.
     this.createAttackLog(action, target);
 
-    // generate the text popup for this action.
-    this.generatePopAttack(action, target);
-
-    // generate the text popup for the skill usage on the caster.
-    this.generatePopSkillUsage(action, target);
-  }
-
-  /**
-   * Generates a popup based on the action executed and its result.
-   * @param {JABS_Action} action The action affecting the target.
-   * @param {JABS_Battler} target The target having the action applied against.
-   */
-  generatePopAttack(action, target)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // gather shorthand variables for use.
-    const skill = action.getBaseSkill();
-    const caster = action.getCaster();
-    const character = target.getCharacter();
-
-    // generate the textpop.
-    const damagePop = this.configureDamagePop(action.getAction(), skill, caster, target);
-
-    // add the pop to the target's tracking.
-    character.addTextPop(damagePop);
-    character.requestTextPop();
-  }
-
-  /**
-   * Generates a popup on the caster based on the skill used.
-   * @param {JABS_Action} action The action affecting the target.
-   * @param {JABS_Battler} target The target having the action applied against.
-   */
-  // eslint-disable-next-line no-unused-vars
-  generatePopSkillUsage(action, target)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // inanimate objects do not have skill usage pops.
-    if (action.getCaster()
-      .isInanimate())
-    {
-      return;
-    }
-
-    // gather shorthand variables for use.
-    const skill = action.getBaseSkill();
-    const character = action.getCaster()
-      .getCharacter();
-
-    // generate the textpop.
-    const skillUsagePop = this.configureSkillUsedPop(skill);
-
-    // add the pop to the caster's tracking.
-    character.addTextPop(skillUsagePop);
-    character.requestTextPop();
   }
 
   /**
@@ -25069,111 +24936,6 @@ class JABS_Engine
         $actionLogManager.addLog(stateAfflictedLog);
       });
     }
-  }
-
-  /**
-   * Configures this skill used popup based on the skill itself.
-   * @param {RPG_Skill} skill The skill that was used.
-   * @returns {Map_TextPop}
-   */
-  configureSkillUsedPop(skill)
-  {
-    return new TextPopBuilder(skill.name)
-      .isSkillUsed(skill.iconIndex)
-      .build();
-  }
-
-  /**
-   * Configures this damage popup based on the action result against the target.
-   * @param {Game_Action} gameAction The action this popup is based on.
-   * @param {RPG_Skill} skill The skill reference data itself.
-   * @param {JABS_Battler} caster The battler who casted this skill.
-   * @param {JABS_Battler} target The target battler the popup is placed on.
-   * @returns {Map_TextPop}
-   */
-  configureDamagePop(gameAction, skill, caster, target)
-  {
-    // get the underlying battler associated with the popup.
-    const targetBattler = target.getBattler();
-
-    // get the underlying actionresult from the skill execution.
-    const actionResult = targetBattler.result();
-
-    // initialize this to false.
-    let targetElementallyImmune = false;
-
-    // determine the elemental factor.
-    let elementalRate;
-
-    // check if using the J-Elementalistics plugin.
-    if (J.ELEM)
-    {
-      // leverage the new elemental algorithm for elemental rates.
-      elementalRate = gameAction.calculateRawElementRate(targetBattler);
-
-      // check to ensure we have any amount of applicable elements.
-      targetElementallyImmune = (gameAction.getApplicableElements(targetBattler)).length === 0;
-    }
-    else
-    {
-      // leverage the default method for obtaining elemental rate.
-      elementalRate = gameAction.calcElementRate(targetBattler);
-    }
-
-    // translate the skill into it's relevant iconIndex, or 0 if not applicable.
-    const elementalIcon = this.determineElementalIcon(skill, caster);
-
-    // if the skill execution was parried, then use that icon instead.
-    const iconIndex = actionResult.parried
-      ? 128
-      : elementalIcon;
-
-    // instantiate the builder for piece-mealing the popup together.
-    const textPopBuilder = new TextPopBuilder(0);
-
-    switch (true)
-    {
-      // if you were parried, sorry about your luck.
-      case actionResult.parried:
-        textPopBuilder.setValue(`PARRY!`);
-        break;
-      // if you were evaded, how unfortunate.
-      case actionResult.evaded:
-        textPopBuilder.setValue(`DODGE`);
-        break;
-      // if the result is hp damage, treat it as such.
-      case actionResult.hpDamage !== 0:
-        textPopBuilder
-          .setValue(actionResult.hpDamage)
-          .isHpDamage();
-        break;
-      // if the result is mp damage, treat it as such.
-      case actionResult.mpDamage !== 0:
-        textPopBuilder
-          .setValue(actionResult.mpDamage)
-          .isMpDamage();
-        break;
-      // if the result is tp damage, treat it as such.
-      case actionResult.tpDamage !== 0:
-        textPopBuilder
-          .setValue(actionResult.tpDamage)
-          .isTpDamage();
-        break;
-      // if for some reason its something else, they are probably immune.
-      default:
-        textPopBuilder
-          .setValue(actionResult.hpDamage)
-          .isHpDamage();
-        //console.warn(`unknown damage output- review Game_ActionResult:`, actionResult, targetBattler);
-        break;
-    }
-
-    // if we somehow used this without a proper damage type, then just build a default.
-    return textPopBuilder
-      .setIconIndex(iconIndex)
-      .isElemental(elementalRate)
-      .setCritical(actionResult.critical)
-      .build();
   }
 
   /**
@@ -26229,42 +25991,6 @@ class JABS_Engine
       member.gainExp(gainedExperience);
     });
 
-    // generate the text popup for the experience earned.
-    this.generatePopExperience(experience, casterCharacter);
-  }
-
-  /**
-   * Generates a popup for experience earned.
-   * @param {number} amount The amount in the popup.
-   * @param {Game_Character} character The character the popup is on.
-   */
-  generatePopExperience(amount, character)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // generate the textpop.
-    const expPop = this.configureExperiencePop(amount);
-
-    // add the pop to the target's tracking.
-    character.addTextPop(expPop);
-    character.requestTextPop();
-  }
-
-  /**
-   * Creates the text pop of the experienced gained.
-   * @param {number} exp The amount of experience gained.
-   * @returns {Map_TextPop}
-   */
-  configureExperiencePop(exp)
-  {
-    // round the experience we've acquired if it is a decimal.
-    const experienceGained = Math.round(exp);
-
-    // build the popup.
-    return new TextPopBuilder(experienceGained)
-      .isExperience()
-      .build();
   }
 
   /**
@@ -26280,41 +26006,6 @@ class JABS_Engine
     // actually gain the gold.
     $gameParty.gainGold(gold);
 
-    // generate the text popup for the gold found.
-    this.generatePopGold(gold, character);
-  }
-
-  /**
-   * Generates a popup for gold found.
-   * @param {number} amount The amount in the popup.
-   * @param {Game_Character} character The character the popup is on.
-   */
-  generatePopGold(amount, character)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // generate the textpop.
-    const goldPop = this.configureGoldPop(amount);
-
-    // add the pop to the target's tracking.
-    character.addTextPop(goldPop);
-    character.requestTextPop();
-  }
-
-  /**
-   * Creates the text pop of the gold gained.
-   * @param {number} gold The amount of gold gained.
-   */
-  configureGoldPop(gold)
-  {
-    // round the gold we've acquired if it is a decimal.
-    const goldGained = Math.round(gold);
-
-    // build the popup.
-    return new TextPopBuilder(goldGained)
-      .isGold()
-      .build();
   }
 
   /**
@@ -26393,61 +26084,13 @@ class JABS_Engine
   }
 
   /**
-   * Generates popups for a pile of items picked up at the same time.
+   * Lifecycle event: items were picked up by a character on the map.
+   * Extended by optional plugins (e.g. J-Popups-ABS) to surface map feedback.
    * @param {RPG_BaseItem[]} itemDataList All items picked up.
-   * @param {Game_Character} character The character displaying the popups.
+   * @param {Game_Character} character The character who picked them up.
    */
-  generatePopItemBulk(itemDataList, character)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // iterate over all loot.
-    itemDataList.forEach((itemData, index) =>
-    {
-      // generate a pop that moves based on index.
-      this.generatePopItem(itemData, character, 32 + (index * 24));
-    }, this);
-
-    // flag the character for processing pops.
-    character.requestTextPop();
-  }
-
-  /**
-   * Generates a popup for an acquired item.
-   *
-   * NOTE:
-   * This is used from within the `generatePopItemBulk()`!
-   * Use that instead of this!
-   * @param {RPG_BaseItem} itemData The item's database object.
-   * @param {Game_Character} character The character displaying the popup.
-   * @param {number} y The y coordiante for this item pop.
-   */
-  generatePopItem(itemData, character, y)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // generate the textpop.
-    const lootPop = this.configureItemPop(itemData, y);
-
-    // add the pop to the target's tracking.
-    character.addTextPop(lootPop);
-  }
-
-  /**
-   * Creates the text pop of the acquired item.
-   * @param {RPG_BaseItem} itemData The item's database object.
-   * @param {number} y The y coordiante for this item pop.
-   */
-  configureItemPop(itemData, y)
-  {
-    // build the popup.
-    return new TextPopBuilder(itemData.name)
-      .isLoot(y)
-      .setIconIndex(itemData.iconIndex)
-      .build();
-  }
+  // eslint-disable-next-line no-unused-vars
+  onItemPickedUp(itemDataList, character) {}
 
   /**
    * Handles a level up for the leader while on the map.
@@ -26460,38 +26103,8 @@ class JABS_Engine
     {
       const character = battler.getCharacter();
       this.playLevelUpAnimation(character);
-      this.generatePopLevelUp(character);
       this.createLevelUpLog(battler);
     }
-  }
-
-  /**
-   * Creates a text pop of the level up.
-   * @param {Game_Character} character The character to show the popup on.
-   */
-  generatePopLevelUp(character)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // generate the textpop.
-    const levelUpPop = this.configureLevelUpPop();
-
-    // add the pop to the target's tracking.
-    character.addTextPop(levelUpPop);
-    character.requestTextPop();
-  }
-
-  /**
-   * Configures the level up text pop.
-   * @returns {Map_TextPop}
-   */
-  configureLevelUpPop()
-  {
-    // build the popup.
-    return new TextPopBuilder(`LEVEL UP`)
-      .isLevelUp()
-      .build();
   }
 
   /**
@@ -26540,39 +26153,8 @@ class JABS_Engine
     if (battler)
     {
       const character = battler.getCharacter();
-      this.generatePopSkillLearn(skill, character);
       this.createSkillLearnLog(skill, battler);
     }
-  }
-
-  /**
-   * Creates a text pop of the skill being learned.
-   * @param {RPG_Skill} skill The skill being learned.
-   * @param {Game_Character} character The character to show the popup on.
-   */
-  generatePopSkillLearn(skill, character)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // generate the textpop.
-    const skillLearnPop = this.configureSkillLearnPop(skill);
-
-    // add the pop to the target's tracking.
-    character.addTextPop(skillLearnPop);
-    character.requestTextPop();
-  }
-
-  /**
-   * Configures the popup for a skill learned.
-   * @param {RPG_Skill} skill The skill learned.
-   * @returns {Map_TextPop}
-   */
-  configureSkillLearnPop(skill)
-  {
-    return new TextPopBuilder(skill.name)
-      .isSkillLearned(skill.iconIndex)
-      .build();
   }
 
   /**
@@ -32837,7 +32419,7 @@ Game_Player.prototype.pickupLootCollection = function(lootCollected)
   });
 
   // generate all popups for the loot collected.
-  $jabsEngine.generatePopItemBulk(lootPickedUp, this);
+  $jabsEngine.onItemPickedUp(lootPickedUp, this);
 
   // oh yeah, and play a sound because you picked things up.
   SoundManager.playUseItem();

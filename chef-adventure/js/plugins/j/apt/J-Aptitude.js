@@ -10,7 +10,6 @@
  * @orderAfter J-ABS
  * @orderAfter J-LevelMaster
  * @orderAfter J-Log
- * @orderAfter J-TextPops
  * @help
  * ============================================================================
  * OVERVIEW
@@ -21,7 +20,7 @@
  * - J-ABS; acquire points from enemy kills and skill executions.
  * - J-LevelMaster; considers level difference for an AP multiplier.
  * - J-Log; log all AP gained.
- * - J-TextPops; display popups for AP gained.
+ * - J-Popups (+ J-Popups-APT); display popups for AP gained.
  *
  * ----------------------------------------------------------------------------
  * DETAILS
@@ -962,9 +961,6 @@ if (J.ABS)
         // gain the applicable points.
         ApManager.gainAp(member, actualAp, 'on-kill');
 
-        // generate the popup.
-        this.generatePopAp(actualAp, jabsBattler.getCharacter());
-
         // create the log entry.
         this.createLogAp(actualAp, jabsBattler);
       });
@@ -993,26 +989,6 @@ if (J.ABS)
   };
 
   /**
-   * Generates a popup.
-   * @param {number} apPoints The amount to display.
-   * @param {Game_Character} character The character to show the popup on.
-   */
-  JABS_Engine.prototype.generatePopAp = function(apPoints, character)
-  {
-    // if we are not using popups, then don't do this.
-    if (!J.POPUPS) return;
-
-    // generate the textpop.
-    const apPop = new TextPopBuilder(apPoints)
-      .isAptitude()
-      .build();
-
-    // add the pop to the caster's tracking.
-    character.addTextPop(apPop);
-    character.requestTextPop();
-  };
-
-  /**
    * Creates the log entry.
    * @param {number} apPoints The AP gained.
    * @param {JABS_Battler} battler The battler gaining the AP.
@@ -1033,41 +1009,15 @@ if (J.ABS)
 }
 //endregion JABS_Battler
 
-if (J.POPUPS)
-{
-  /**
-   * The popup type of "ap", for displaying AP gain pops.
-   */
-  Map_TextPop.Types.Ap = 'ap';
-}
+//region Map_TextPop
+// Aptitude Map_TextPop type additions live in J-Popups-APT (popups/ext/apt).
+//endregion Map_TextPop
 
-if (J.POPUPS)
-{
-  /**
-   * Add some convenient defaults for configuring AP points popups.
-   * @returns {TextPopBuilder} The builder, for fluent chaining.
-   */
-  TextPopBuilder.prototype.isAptitude = function()
-  {
-    // set the popup type to be an AP point acquisition.
-    this.setPopupType(Map_TextPop.Types.Ap);
 
-    // set the text color to be lovely pink.
-    this.setTextColorIndex(17);
+//region TextPopBuilder
+// Aptitude popup builder methods live in J-Popups-APT (popups/ext/apt).
+//endregion TextPopBuilder
 
-    // set the icon index to the learned skill's icon.
-    this.setIconIndex(86);
-
-    // add no x variance when working with AP points.
-    this.setXVariance(48);
-
-    // add some y variance when working with AP points.
-    this.setYVariance(96);
-
-    // return the builder for fluent chaining.
-    return this;
-  };
-}
 
 //region RPG_Base
 /**
