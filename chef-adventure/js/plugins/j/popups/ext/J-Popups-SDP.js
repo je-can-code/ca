@@ -22,9 +22,7 @@ J.POPUPS.EXT.SDP.Aliased.JABS_Engine = new Map();
 //endregion J_PopupsExtSDP_init
 
 
-//region J_POPSDP_Engine
-
-//region JABS_Engine aliases
+//region JABS_Engine
 /**
  * Extends {@link #onSdpRewardGranted}.<br/>
  * Also shows an SDP-points popup on the character.
@@ -32,7 +30,6 @@ J.POPUPS.EXT.SDP.Aliased.JABS_Engine = new Map();
 J.POPUPS.EXT.SDP.Aliased.JABS_Engine.set('onSdpRewardGranted', JABS_Engine.prototype.onSdpRewardGranted);
 JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character)
 {
-  // perform original logic.
   J.POPUPS.EXT.SDP.Aliased.JABS_Engine.get('onSdpRewardGranted')
     .call(this, sdpPoints, character);
 
@@ -40,8 +37,7 @@ JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character)
     .isSdpPoints()
     .build();
 
-  character.addTextPop(pop);
-  character.requestTextPop();
+  TextPopManager.show(pop, character);
 };
 
 /**
@@ -51,7 +47,6 @@ JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character)
 J.POPUPS.EXT.SDP.Aliased.JABS_Engine.set('onSdpPanelUnlocked', JABS_Engine.prototype.onSdpPanelUnlocked);
 JABS_Engine.prototype.onSdpPanelUnlocked = function(sdpKey, character)
 {
-  // perform original logic.
   J.POPUPS.EXT.SDP.Aliased.JABS_Engine.get('onSdpPanelUnlocked')
     .call(this, sdpKey, character);
 
@@ -60,12 +55,8 @@ JABS_Engine.prototype.onSdpPanelUnlocked = function(sdpKey, character)
     .isSdpPoints()
     .build();
 
-  character.addTextPop(pop);
-  character.requestTextPop();
+  TextPopManager.show(pop, character);
 };
-//endregion JABS_Engine aliases
-
-//endregion J_POPSDP_Engine
-
+//endregion JABS_Engine
 
 //# sourceMappingURL=J-Popups-SDP.js.map

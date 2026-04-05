@@ -23,13 +23,14 @@ J.POPUPS.EXT.APT.Aliased.JABS_Engine = new Map();
 //endregion J_PopupsExtAPT_init
 
 
-//region J_POPAPT_Engine
-
+//region Map_TextPop
 /**
- * The popup type for AP (aptitude points) rewards.
+ * The popup type for AP (aptitude point) rewards.
  */
 Map_TextPop.Types.Ap = 'ap';
+//endregion Map_TextPop
 
+//region TextPopBuilder
 /**
  * Add convenient defaults for configuring an AP-gain popup.
  * @returns {TextPopBuilder}
@@ -42,8 +43,9 @@ TextPopBuilder.prototype.isAptitude = function()
   this.forRewardUpRing();
   return this;
 };
+//endregion TextPopBuilder
 
-//region JABS_Engine aliases
+//region JABS_Engine
 /**
  * Extends {@link #gainAptitudeReward}.<br/>
  * Also shows an AP popup on each eligible member's character.
@@ -51,7 +53,6 @@ TextPopBuilder.prototype.isAptitude = function()
 J.POPUPS.EXT.APT.Aliased.JABS_Engine.set('gainAptitudeReward', JABS_Engine.prototype.gainAptitudeReward);
 JABS_Engine.prototype.gainAptitudeReward = function(ap, actor, enemy)
 {
-  // perform original logic.
   J.POPUPS.EXT.APT.Aliased.JABS_Engine.get('gainAptitudeReward')
     .call(this, ap, actor, enemy);
 
@@ -69,10 +70,8 @@ JABS_Engine.prototype.gainAptitudeReward = function(ap, actor, enemy)
       const pop = new TextPopBuilder(actualAp)
         .isAptitude()
         .build();
-      const character = jabsBattler.getCharacter();
 
-      character.addTextPop(pop);
-      character.requestTextPop();
+      TextPopManager.show(pop, jabsBattler.getCharacter());
     });
 };
 
@@ -83,22 +82,20 @@ JABS_Engine.prototype.gainAptitudeReward = function(ap, actor, enemy)
 J.POPUPS.EXT.APT.Aliased.JABS_Engine.set('onTypedApGained', JABS_Engine.prototype.onTypedApGained);
 JABS_Engine.prototype.onTypedApGained = function(apPoints, character, apTypeKey)
 {
-  // perform original logic.
   J.POPUPS.EXT.APT.Aliased.JABS_Engine.get('onTypedApGained')
     .call(this, apPoints, character, apTypeKey);
 
-  const { name, icon } = ApManager.apTypeDisplay(apTypeKey);
+  const {
+    name,
+    icon
+  } = ApManager.apTypeDisplay(apTypeKey);
   const pop = new TextPopBuilder(`${apPoints} [${name}]`)
     .isAptitude()
     .setIconIndex(icon)
     .build();
 
-  character.addTextPop(pop);
-  character.requestTextPop();
+  TextPopManager.show(pop, character);
 };
-//endregion JABS_Engine aliases
-
-//endregion J_POPAPT_Engine
-
+//endregion JABS_Engine
 
 //# sourceMappingURL=J-Popups-APT.js.map
