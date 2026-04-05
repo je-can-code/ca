@@ -688,7 +688,8 @@ Game_Actor.prototype.getNaturalGrowthsRegexForCrit = function()
     J.CRIT.RegExp.CritDamageReductionGrowthPlus,
     J.CRIT.RegExp.CritDamageReductionGrowthRate,
     J.CRIT.RegExp.CritDamageMultiplierGrowthPlus,
-    J.CRIT.RegExp.CritDamageMultiplierGrowthRate, ];
+    J.CRIT.RegExp.CritDamageMultiplierGrowthRate,
+  ];
 };
 
 /**
@@ -736,14 +737,14 @@ Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam)
 /**
  * Extends `.initNaturalGrowthParameters()` to include the new critical damage parameters as growth-ready.
  */
-J.CRIT.Aliased.Game_Battler.set("initNaturalGrowthParameters", Game_Battler.prototype.initNaturalGrowthParameters);
+J.CRIT.Aliased.Game_Battler.set('initNaturalGrowthParameters', Game_Battler.prototype.initNaturalGrowthParameters);
 Game_Battler.prototype.initNaturalGrowthParameters = function()
 {
   // short circuit if not using the natural growths plugin.
   if (!J.NATURAL) return;
 
   // perform original logic.
-  J.CRIT.Aliased.Game_Battler.get("initNaturalGrowthParameters")
+  J.CRIT.Aliased.Game_Battler.get('initNaturalGrowthParameters')
     .call(this);
 
   /**
@@ -867,7 +868,8 @@ Game_Battler.prototype.baseCriticalMultiplier = function()
   // sum together all the base CDM tags.
   const baseCriticalMultiplier = RPGManager.getSumFromAllNotesByRegex(
     objectsToCheck,
-    J.CRIT.RegExp.CritDamageMultiplierBase);
+    J.CRIT.RegExp.CritDamageMultiplierBase
+  );
 
   // calculate the factor for the CDM.
   const baseCdmFactor = baseCriticalMultiplier / 100;
@@ -950,14 +952,16 @@ Game_Battler.prototype.cdmNaturalBuffs = function()
     objectsToCheck,
     J.CRIT.RegExp.CritDamageMultiplierBuffPlus,
     baseParam,
-    this);
+    this
+  );
 
   // sum together all the cdm buff rates across the notes.
   const cdmBuffRate = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
     J.CRIT.RegExp.CritDamageMultiplierBuffRate,
     baseParam,
-    this);
+    this
+  );
 
   // don't calculate if we don't have anything.
   if (!cdmBuffPlus && !cdmBuffRate) return 0;
@@ -1000,7 +1004,8 @@ Game_Battler.prototype.baseCriticalReduction = function()
   // sum together all the base CDR tags.
   const baseCriticalReduction = RPGManager.getSumFromAllNotesByRegex(
     objectsToCheck,
-    J.CRIT.RegExp.CritDamageReductionBase);
+    J.CRIT.RegExp.CritDamageReductionBase
+  );
 
   // calculate the factor for the CDR.
   const baseCdmFactor = baseCriticalReduction / 100;
@@ -1083,14 +1088,16 @@ Game_Battler.prototype.cdrNaturalBuffs = function()
     objectsToCheck,
     J.CRIT.RegExp.CritDamageReductionBuffPlus,
     baseParam,
-    this);
+    this
+  );
 
   // sum together all the cdm buff rates across the notes.
   const cdrBuffRate = RPGManager.getResultsFromAllNotesByRegex(
     objectsToCheck,
     J.CRIT.RegExp.CritDamageReductionBuffRate,
     baseParam,
-    this);
+    this
+  );
 
   // don't calculate if we don't have anything.
   if (!cdrBuffPlus && !cdrBuffRate) return 0;

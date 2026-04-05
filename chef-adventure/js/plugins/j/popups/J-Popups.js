@@ -82,13 +82,133 @@ J.POPUPS.EventNames = {
 };
 
 /**
+ * A collection of all motion styles available for popups.
+ */
+J.POPUPS.MotionStyles = {
+  /**
+   * The default bounce motion.
+   */
+  Bounce: 'bounce',
+
+  /**
+   * A flyaway motion that floats up and fades out.
+   */
+  Flyaway: 'flyaway',
+};
+
+/**
  * Default layout offsets for anchoring popup sprites to {@link Sprite_Character}.
  */
 J.POPUPS.Layout = {
-  AnchorOffsetX: 150,
+  /**
+   * The horizontal offset from the character's center.
+   * @type {number}
+   */
+  AnchorOffsetX: 0,
+
+  /**
+   * The width of the bitmap used for damage values.
+   * @type {number}
+   */
   ValueBitmapWidth: 400,
+
+  /**
+   * The scale of the icons in the popups.
+   * @type {number}
+   */
   IconScale: 0.75,
-  MotionBounceMaxExtra: 260,
+
+  /**
+   * The horizontal distance between slots in a layout ring.
+   * @type {number}
+   */
+  RingStepX: 12,
+
+  /**
+   * The vertical distance between slots in a layout ring.
+   * @type {number}
+   */
+  RingStepY: 16,
+
+  /**
+   * The vertical baseline offset for all popups.
+   * @type {number}
+   */
+  VerticalOffset: -20,
+
+  /**
+   * The horizontal baseline offset for all popups.
+   * @type {number}
+   */
+  HorizontalOffset: -20,
+
+  /**
+   * The horizontal padding from the character's center for motion popups.
+   * @type {number}
+   */
+  PaddingX: 24,
+
+  /**
+   * The vertical padding from the character's center for motion popups.
+   * @type {number}
+   */
+  PaddingY: 0,
+
+  /**
+   * The number of frames of inactivity before a layout ring resets to its first slot.
+   * @type {number}
+   */
+  ResetDuration: 30,
+
+  /**
+   * The base duration in frames that a popup sprite remains visible.
+   * @type {number}
+   */
+  BaseDuration: 60,
+
+  /**
+   * Encapsulated motion-related settings.
+   */
+  Motion: {
+    /**
+     * Whether or not to enable motion for popups.
+     * If this is false, none of the other motion-related settings matter.
+     * @type {boolean}
+     */
+    Enabled: true,
+
+    /**
+     * The style of motion to use for popups.
+     * @type {string}
+     */
+    Style: J.POPUPS.MotionStyles.Bounce,
+
+    /**
+     * The initial vertical jump velocity for the bounce motion.
+     * Negative values go up.
+     * @type {number}
+     */
+    InitialJump: -2,
+
+    /**
+     * The gravity applied to the popup during motion.
+     * Higher values make it fall faster.
+     * @type {number}
+     */
+    Gravity: 0.10,
+
+    /**
+     * The horizontal drift speed during motion.
+     * @type {number}
+     */
+    DriftSpeed: 1.1,
+
+    /**
+     * The maximum horizontal distance a popup can drift during motion.
+     * @type {number}
+     */
+    MaxDrift: 200,
+  },
 };
 
 J.POPUPS.Helpers = {};
@@ -713,8 +833,8 @@ class TextPopBuilder
   forEnemyDamageRing()
   {
     this.#layoutRing = Map_TextPop.LayoutRings.EnemyDamage;
-    this.setXVariance(Math.randomInt(10));
-    this.setYVariance(Math.randomInt(10));
+    this.setXVariance(0);
+    this.setYVariance(0);
     return this;
   }
 
@@ -724,8 +844,8 @@ class TextPopBuilder
   forIncomingHealRing()
   {
     this.#layoutRing = Map_TextPop.LayoutRings.IncomingHeal;
-    this.setXVariance(Math.randomInt(10));
-    this.setYVariance(Math.randomInt(10));
+    this.setXVariance(0);
+    this.setYVariance(0);
     return this;
   }
 
@@ -735,8 +855,8 @@ class TextPopBuilder
   forSlipDamageRing()
   {
     this.#layoutRing = Map_TextPop.LayoutRings.SlipDamage;
-    this.setXVariance(Math.randomInt(8));
-    this.setYVariance(Math.randomInt(8));
+    this.setXVariance(0);
+    this.setYVariance(0);
     return this;
   }
 
@@ -746,8 +866,8 @@ class TextPopBuilder
   forRegenRing()
   {
     this.#layoutRing = Map_TextPop.LayoutRings.Regen;
-    this.setXVariance(Math.randomInt(8));
-    this.setYVariance(Math.randomInt(8));
+    this.setXVariance(0);
+    this.setYVariance(0);
     return this;
   }
 
@@ -757,8 +877,8 @@ class TextPopBuilder
   forRewardUpRing()
   {
     this.#layoutRing = Map_TextPop.LayoutRings.RewardUp;
-    this.setXVariance(Math.randomInt(8));
-    this.setYVariance(Math.randomInt(8));
+    this.setXVariance(0);
+    this.setYVariance(0);
     return this;
   }
 
@@ -768,8 +888,8 @@ class TextPopBuilder
   forLootDownRing()
   {
     this.#layoutRing = Map_TextPop.LayoutRings.LootDown;
-    this.setXVariance(Math.randomInt(8));
-    this.setYVariance(Math.randomInt(8));
+    this.setXVariance(0);
+    this.setYVariance(0);
     return this;
   }
 
@@ -779,8 +899,8 @@ class TextPopBuilder
   forCenterFocusRing()
   {
     this.#layoutRing = Map_TextPop.LayoutRings.CenterFocus;
-    this.setXVariance(Math.randomInt(6));
-    this.setYVariance(Math.randomInt(6));
+    this.setXVariance(0);
+    this.setYVariance(0);
     return this;
   }
 
@@ -1050,7 +1170,7 @@ class TextPopBuilder
     // set the icon index to the used skill's icon.
     this.setIconIndex(skillIconIndex);
 
-    this.forRewardUpRing();
+    this.forCenterFocusRing();
 
     // return the builder for fluent chaining.
     return this;
@@ -1131,11 +1251,11 @@ class TextPopSpriteManager
     // add duration bonus onto sprite.
     sprite.addDuration(this.#getDurationByPopupType(popup.popupType));
 
-    // designate whether or not its a damage popup.
-    sprite.setDamageFlag(this.#isDamageFlagByPopupType(popup.popupType));
-
     // set the healing flag to be what the popup designates.
     sprite.setHealingFlag(popup.healing);
+
+    // designate whether or not its a damage popup.
+    sprite.setDamageFlag(this.#isDamageFlagByPopupType(popup.popupType));
 
     // set the color of the damage for the sprite.
     sprite.setDamageColor(popup.textColorIndex);
@@ -1151,6 +1271,9 @@ class TextPopSpriteManager
     sprite._j._popups._sourcePopup = popup;
 
     sprite.createValue(popup.value);
+
+    // reposition children if both icon and text exist.
+    sprite.repositionChildren();
 
     // return the constructed sprite for the popup.
     return sprite;
@@ -1221,50 +1344,62 @@ J.POPUPS.Layout.RingLayout = {};
 
 J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.EnemyDamage] = {
   slotCount: 8,
-  stepX: 8,
-  stepY: 32,
+  stepX: J.POPUPS.Layout.RingStepX,
+  stepY: J.POPUPS.Layout.RingStepY,
   dirX: 1,
   dirY: 1,
+  baseX: 24,
+  baseY: 24,
 };
 
 J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.IncomingHeal] = {
   slotCount: 8,
-  stepX: -8,
-  stepY: -32,
+  stepX: -J.POPUPS.Layout.RingStepX,
+  stepY: J.POPUPS.Layout.RingStepY,
   dirX: 1,
   dirY: 1,
+  baseX: -24,
+  baseY: 24,
 };
 
 J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.SlipDamage] = {
   slotCount: 8,
-  stepX: 10,
-  stepY: 28,
+  stepX: J.POPUPS.Layout.RingStepX,
+  stepY: -J.POPUPS.Layout.RingStepY,
   dirX: 1,
   dirY: 1,
+  baseX: 24,
+  baseY: -24,
 };
 
 J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.Regen] = {
   slotCount: 8,
-  stepX: -10,
-  stepY: -28,
+  stepX: -J.POPUPS.Layout.RingStepX,
+  stepY: -J.POPUPS.Layout.RingStepY,
   dirX: 1,
   dirY: 1,
+  baseX: -24,
+  baseY: -24,
 };
 
 J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.RewardUp] = {
   slotCount: 10,
   stepX: 0,
-  stepY: -28,
+  stepY: -J.POPUPS.Layout.RingStepY,
   dirX: 1,
   dirY: 1,
+  baseX: 0,
+  baseY: -24,
 };
 
 J.POPUPS.Layout.RingLayout[Map_TextPop.LayoutRings.LootDown] = {
   slotCount: 12,
   stepX: 0,
-  stepY: 22,
+  stepY: J.POPUPS.Layout.RingStepY,
   dirX: 1,
   dirY: 1,
+  baseX: 0,
+  baseY: 24,
 };
 
 /**
@@ -1322,12 +1457,52 @@ J.POPUPS.consumeLayoutRingOffset = function(character, layoutRing)
   }
 
   const counters = J.POPUPS._getRingCountersForCharacter(character);
+  const lastTime = counters[`${layoutRing}_lastTime`] || 0;
+  const currentTime = Graphics.frameCount;
+
+  // if more than the reset duration has passed, reset the counter.
+  if (currentTime - lastTime > J.POPUPS.Layout.ResetDuration)
+  {
+    counters[layoutRing] = 0;
+  }
+
   const idx = counters[layoutRing] || 0;
 
   counters[layoutRing] = (idx + 1) % spec.slotCount;
+  counters[`${layoutRing}_lastTime`] = currentTime;
 
-  const x = spec.stepX * idx * spec.dirX;
-  const y = spec.stepY * idx * spec.dirY;
+  const x = (spec.stepX * idx * spec.dirX) + (spec.baseX || 0);
+  const y = (spec.stepY * idx * spec.dirY) + (spec.baseY || 0);
+
+  return { x, y };
+};
+
+/**
+ * Resolves a simplified offset when motion is enabled.
+ * Healing to the left, damage to the right.
+ * @param {Map_TextPop} popup The popup model.
+ * @returns {{ x: number, y: number }}
+ */
+J.POPUPS.resolveMotionOffset = function(popup)
+{
+  // if it's healing, move left. if it's damage, move right.
+  const px = J.POPUPS.Layout.PaddingX;
+  const py = J.POPUPS.Layout.PaddingY;
+  const x = popup.healing ? -px : px;
+  
+  // start at the vertical offset baseline.
+  let y = J.POPUPS.Layout.VerticalOffset + py;
+
+  // if it's healing, put HP/MP/TP on their own vertical tracks to prevent stacking.
+  if (popup.healing)
+  {
+    switch (popup.popupType)
+    {
+      case Map_TextPop.Types.HpDamage: y -= 16; break;
+      case Map_TextPop.Types.MpDamage: y += 0;  break;
+      case Map_TextPop.Types.TpDamage: y += 16; break;
+    }
+  }
 
   return { x, y };
 };
@@ -1361,6 +1536,40 @@ J.POPUPS.isValidTextPopForQueue = function(textPop)
   return false;
 };
 //endregion J_PopupLayoutRings
+
+
+//region TextPopManager
+/**
+ * A static utility providing the canonical dispatch pattern for map popups.
+ * All popup extensions should route through here rather than calling
+ * addTextPop / requestTextPop directly, so the dispatch point stays singular.
+ */
+class TextPopManager
+{
+  /**
+   * Adds a single popup to a character and flags the flush request.
+   * @param {Map_TextPop} pop The popup to display.
+   * @param {Game_Character} character The character to anchor the popup on.
+   */
+  static show(pop, character)
+  {
+    character.addTextPop(pop);
+    character.requestTextPop();
+  }
+
+  /**
+   * Adds multiple popups to a character, then flags a single flush request.
+   * Prefer this over calling show() in a loop to avoid redundant flush signals.
+   * @param {Map_TextPop[]} pops The popups to display.
+   * @param {Game_Character} character The character to anchor the popups on.
+   */
+  static showBatch(pops, character)
+  {
+    pops.forEach(pop => character.addTextPop(pop));
+    character.requestTextPop();
+  }
+}
+//endregion TextPopManager
 
 
 //region Game_Character
@@ -1606,7 +1815,18 @@ Sprite_Character.prototype.createIncomingTextPops = function()
 Sprite_Character.prototype.createIncomingTextPop = function(popup)
 {
   const character = this.character();
-  const ringExtra = J.POPUPS.consumeLayoutRingOffset(character, popup.layoutRing);
+  
+  // motion is only for damage and healing.
+  const isMotionType = popup.popupType === Map_TextPop.Types.HpDamage ||
+                       popup.popupType === Map_TextPop.Types.MpDamage ||
+                       popup.popupType === Map_TextPop.Types.TpDamage ||
+                       popup.healing === true;
+
+  const useMotion = J.POPUPS.Layout.Motion.Enabled === true && isMotionType;
+
+  const ringExtra = useMotion
+    ? J.POPUPS.resolveMotionOffset(popup)
+    : J.POPUPS.consumeLayoutRingOffset(character, popup.layoutRing);
   const sprite = TextPopSpriteManager.convert(popup, ringExtra);
 
   if (sprite.isDamage())
@@ -1713,7 +1933,7 @@ Sprite_Character.prototype._removeTrackedPopSprite = function(sprite, index, buc
  */
 Sprite_Character.prototype.updateTextPopAnchorPosition = function(popSprite)
 {
-  const ox = J.POPUPS.Layout.AnchorOffsetX;
+  const ox = J.POPUPS.Layout.AnchorOffsetX + J.POPUPS.Layout.HorizontalOffset;
   popSprite.x = this.x + ox + popSprite.getXVariance();
   popSprite.y = this.y + popSprite.getYVariance();
 };
@@ -1908,16 +2128,29 @@ Sprite_Damage.prototype.createChildSprite = function(width, height)
 Sprite_Damage.prototype.setupMotionData = function(sprite)
 {
   sprite.anchor.x = 0.5;
-  sprite.anchor.y = 1;
-  sprite.y = -40;
-  sprite.dy = 0;
-  sprite.zt = 0;
-  sprite.ry = sprite.y;
-  sprite.yf = 0;
-  sprite.yf2 = 0;
-  sprite.yf3 = 0;
-  sprite.ex = false;
-  sprite.bounceMaxX = sprite.x + J.POPUPS.Layout.MotionBounceMaxExtra;
+  sprite.anchor.y = 0.5;
+  
+  // motion is only for damage and healing.
+  const isMotionType = this.isDamage() || this.isHealing();
+
+  // if motion is enabled, initialize the variables needed for it.
+  if (J.POPUPS.Layout.Motion.Enabled === true && isMotionType)
+  {
+    sprite.y = 0; // children start at the parent's baseline.
+    sprite.dy = J.POPUPS.Layout.Motion.InitialJump; // starting jump.
+    sprite.zt = 0;
+    sprite.ry = sprite.y;
+    sprite.yf = 0;
+    sprite.yf2 = 0;
+    sprite.yf3 = 0;
+    sprite.ex = false;
+    sprite.bounceMaxX = sprite.x + J.POPUPS.Layout.Motion.MaxDrift;
+  }
+  else
+  {
+    // motion disabled: use the vertical offset baseline.
+    sprite.y = J.POPUPS.Layout.VerticalOffset;
+  }
 };
 
 /**
@@ -1954,8 +2187,9 @@ Sprite_Damage.prototype.createValue = function(value)
   sprite.bitmap.fontSize = fontSize;
 
   // draw the text.
-  sprite.bitmap.drawText(value, 32, 0, w, h, "left");
-  sprite.dy = 0;
+  // we center the text on the bitmap, and the bitmap is centered on the parent.
+  // using 0 y-offset to align with the icon's vertical center.
+  sprite.bitmap.drawText(value, 0, 0, w, h, "center");
 };
 
 /**
@@ -1983,11 +2217,45 @@ Sprite_Damage.prototype.addIcon = function(iconIndex)
   sprite.scale.x = iconScale;
   sprite.scale.y = iconScale;
 
-  // adjust the location a bit.
-  sprite.x -= 180;
-  sprite.bounceMaxX -= 180;
-  sprite.y += 15;
-  sprite.dy = 0;
+  // track the icon sprite.
+  this._j._popups._iconSprite = sprite;
+
+  // we want the icon to be vertically centered with the text.
+  // since both text and icon now use the same y-offset and anchor=0.5, they align automatically.
+  sprite.anchor.y = 0.5; 
+  
+  sprite.x = 0;
+};
+
+/**
+ * Repositions children to be side-by-side if both icon and text exist.
+ */
+Sprite_Damage.prototype.repositionChildren = function()
+{
+  const icon = this._j._popups._iconSprite;
+  // find the text sprite (it's the one with the large bitmap).
+  const text = this.children.find(child => child !== icon && child.bitmap && child.bitmap.width === J.POPUPS.Layout.ValueBitmapWidth);
+
+  if (icon && text)
+  {
+    const spacing = 4;
+    const iconWidth = ImageManager.iconWidth * J.POPUPS.Layout.IconScale;
+    
+    // measure the actual text width.
+    const textWidth = text.bitmap.measureTextWidth(this._j._popups._sourcePopup.value);
+    const totalWidth = iconWidth + spacing + textWidth;
+    
+    // the center of the group should be at x=0.
+    const startX = -(totalWidth / 2);
+    
+    // icon is on the left.
+    icon.x = startX + (iconWidth / 2);
+    
+    // text is on the right.
+    // since the text is drawn centered in a 400px bitmap, we just move the bitmap
+    // so that its center is at the correct spot for the text content.
+    text.x = startX + iconWidth + spacing + (textWidth / 2);
+  }
 };
 
 /**
@@ -2008,16 +2276,29 @@ Sprite_Damage.prototype.updateChild = function(sprite)
   // flashing always happens, sorry!
   sprite.setBlendColor(this._flashColor);
 
-  // check if we're working with damage or non-damage sprites.
-  if (this.isDamage())
+  // motion is only for damage and healing.
+  const isMotionType = this.isDamage() || this.isHealing();
+
+  // if motion is enabled, execute the designated motion style.
+  if (J.POPUPS.Layout.Motion.Enabled === true && isMotionType)
   {
-    // update damage sprites to be kinda bouncy.
-    this.updateDamageSpriteMotion(sprite);
-  }
-  else
-  {
-    // update non-damage sprites to be mostly motionless aside from a small bounce.
-    this.updateNonDamageSpriteMotion(sprite);
+    const style = J.POPUPS.Layout.Motion.Style;
+    switch (style)
+    {
+      case J.POPUPS.MotionStyles.Bounce:
+        if (this.isDamage())
+        {
+          this.updateDamageSpriteMotion(sprite);
+        }
+        else
+        {
+          this.updateNonDamageSpriteMotion(sprite);
+        }
+        break;
+      case J.POPUPS.MotionStyles.Flyaway:
+        this.flyawayDamageSpriteMotion(sprite);
+        break;
+    }
   }
 };
 
@@ -2028,12 +2309,24 @@ Sprite_Damage.prototype.updateChild = function(sprite)
  */
 Sprite_Damage.prototype.updateNonDamageSpriteMotion = function(sprite)
 {
-  sprite.dy += 0.5;
+  sprite.dy += J.POPUPS.Layout.Motion.Gravity;
   sprite.ry += sprite.dy;
   if (sprite.ry >= 0)
   {
     sprite.ry = 0;
     sprite.dy *= -0.6;
+  }
+
+  // determine the drift direction.
+  // healing drifts left, damage drifts right.
+  const drift = this.isHealing()
+    ? -J.POPUPS.Layout.Motion.DriftSpeed
+    : J.POPUPS.Layout.Motion.DriftSpeed;
+
+  // if we haven't reached the max drift yet, keep drifting.
+  if (Math.abs(sprite.x) < J.POPUPS.Layout.Motion.MaxDrift)
+  {
+    sprite.x += drift;
   }
 
   sprite.y = Math.round(sprite.ry);
@@ -2062,7 +2355,7 @@ Sprite_Damage.prototype.updateDamageSpriteMotion = function(sprite)
  */
 Sprite_Damage.prototype.defaultDamageSpriteMotion = function(sprite)
 {
-  sprite.dy += 0.1;
+  sprite.dy += J.POPUPS.Layout.Motion.Gravity;
   sprite.ry += sprite.dy;
   if (sprite.ry >= 0)
   {
@@ -2070,9 +2363,16 @@ Sprite_Damage.prototype.defaultDamageSpriteMotion = function(sprite)
     sprite.dy *= -0.8;
   }
 
-  if (sprite.x < sprite.bounceMaxX)
+  // determine the drift direction.
+  // healing drifts left, damage drifts right.
+  const drift = this.isHealing()
+    ? -J.POPUPS.Layout.Motion.DriftSpeed
+    : J.POPUPS.Layout.Motion.DriftSpeed;
+  
+  // if we haven't reached the max drift yet, keep drifting.
+  if (Math.abs(sprite.x) < J.POPUPS.Layout.Motion.MaxDrift)
   {
-    sprite.x -= -1.1;
+    sprite.x += drift;
   }
 
   sprite.y = Math.round(sprite.ry);
@@ -2102,9 +2402,10 @@ Sprite_Damage.prototype.flyawayDamageSpriteMotion = function(sprite)
  */
 Sprite_Damage.prototype.updateOpacity = function()
 {
-  if (this._duration < 60)
+  const baseDuration = J.POPUPS.Layout.BaseDuration;
+  if (this._duration < baseDuration)
   {
-    this.opacity = (255 * this._duration) / 60;
+    this.opacity = (255 * this._duration) / baseDuration;
   }
 };
 

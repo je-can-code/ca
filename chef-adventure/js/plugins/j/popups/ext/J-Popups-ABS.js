@@ -15,28 +15,30 @@
 //endregion Introduction
 
 
-//region J_PopupsExtABS_init
-J.POPUPS.EXT.ABS = J.POPUPS.EXT.ABS || {};
+//region initialization
+/**
+ * The core where all of my extensions live: in the `J` object.
+ */
+J.POPUPS.EXT.ABS = {};
 
-J.POPUPS.EXT.ABS.Aliased = J.POPUPS.EXT.ABS.Aliased || {};
+/**
+ * A collection of all aliased methods for this plugin.
+ */
+J.POPUPS.EXT.ABS.Aliased = {};
 J.POPUPS.EXT.ABS.Aliased.JABS_Engine = new Map();
 J.POPUPS.EXT.ABS.Aliased.JABS_Battler = new Map();
 J.POPUPS.EXT.ABS.Aliased.Game_Action = new Map();
+//endregion initialization
 
-if (J.ABS && J.ABS.Metadata && J.ABS.Metadata.DisableTextPops === true)
-{
-  J.POPUPS.Metadata.DisablePopups = true;
-}
-//endregion J_PopupsExtABS_init
-
-
-//region J_POPABS_Engine
-
+//region Map_TextPop
 /**
  * The popup type for shield interactions.
  */
 Map_TextPop.Types.Shield = 'shield';
+//endregion Map_TextPop
 
+
+//region TextPopBuilder
 /**
  * Add convenient defaults for configuring a shield-damage popup.
  * @returns {TextPopBuilder}
@@ -66,14 +68,111 @@ TextPopBuilder.prototype.isShieldBreak = function()
   this.forCenterFocusRing();
   return this;
 };
+//endregion TextPopBuilder
+
+
+//region JABS_Engine
+/**
+ * Extends {@link #postPrimaryBattleEffects}.<br/>
+ * Also shows attack damage and skill-used popups on the affected battlers.
+ */
+J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('postPrimaryBattleEffects', JABS_Engine.prototype.postPrimaryBattleEffects);
+JABS_Engine.prototype.postPrimaryBattleEffects = function(action, target)
+{
+  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('postPrimaryBattleEffects')
+    .call(this, action, target);
+
+  JABS_PopupManager.showAttackPop(action, target, this);
+  JABS_PopupManager.showSkillUsedPop(action);
+};
 
 /**
- * A static utility for building JABS-related map popups.
- * Called exclusively from JABS_Engine and JABS_Battler lifecycle aliases below.
+ * Extends {@link #gainExperienceReward}.<br/>
+ * Also shows an experience popup on the caster's character.
+ */
+J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('gainExperienceReward', JABS_Engine.prototype.gainExperienceReward);
+JABS_Engine.prototype.gainExperienceReward = function(experience, casterCharacter)
+{
+  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('gainExperienceReward')
+    .call(this, experience, casterCharacter);
+
+  if (!experience) return;
+
+  JABS_PopupManager.showExperiencePop(experience, casterCharacter);
+};
+
+/**
+ * Extends {@link #gainGoldReward}.<br/>
+ * Also shows a gold popup on the character.
+ */
+J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('gainGoldReward', JABS_Engine.prototype.gainGoldReward);
+JABS_Engine.prototype.gainGoldReward = function(gold, character)
+{
+  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('gainGoldReward')
+    .call(this, gold, character);
+
+  if (!gold) return;
+
+  JABS_PopupManager.showGoldPop(gold, character);
+};
+
+/**
+ * Extends {@link #onItemPickedUp}.<br/>
+ * Also shows item-loot popups on the character.
+ */
+J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('onItemPickedUp', JABS_Engine.prototype.onItemPickedUp);
+JABS_Engine.prototype.onItemPickedUp = function(itemDataList, character)
+{
+  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('onItemPickedUp')
+    .call(this, itemDataList, character);
+
+  JABS_PopupManager.showItemPickedUpPops(itemDataList, character);
+};
+
+/**
+ * Extends {@link #battlerLevelup}.<br/>
+ * Also shows a level-up popup on the battler's character.
+ */
+J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('battlerLevelup', JABS_Engine.prototype.battlerLevelup);
+JABS_Engine.prototype.battlerLevelup = function(uuid)
+{
+  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('battlerLevelup')
+    .call(this, uuid);
+
+  const battler = JABS_AiManager.getBattlerByUuid(uuid);
+  if (battler)
+  {
+    JABS_PopupManager.showLevelUpPop(battler.getCharacter());
+  }
+};
+
+/**
+ * Extends {@link #battlerSkillLearn}.<br/>
+ * Also shows a skill-learn popup on the battler's character.
+ */
+J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('battlerSkillLearn', JABS_Engine.prototype.battlerSkillLearn);
+JABS_Engine.prototype.battlerSkillLearn = function(skill, uuid)
+{
+  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('battlerSkillLearn')
+    .call(this, skill, uuid);
+
+  const battler = JABS_AiManager.getBattlerByUuid(uuid);
+  if (battler)
+  {
+    JABS_PopupManager.showSkillLearnPop(skill, battler.getCharacter());
+  }
+};
+//endregion JABS_Engine
+
+//region JABS_PopupManager
+/**
+ * A static utility for building and dispatching JABS-related map popups.
+ * All methods delegate final dispatch to {@link TextPopManager}.
  */
 class JABS_PopupManager
 {
   /**
+   * Builds and dispatches a combat-result popup on the target's character.
    * @param {JABS_Action} action The action affecting the target.
    * @param {JABS_Battler} target The target battler.
    * @param {JABS_Engine} engine The live engine instance (for elemental icon resolution).
@@ -82,12 +181,11 @@ class JABS_PopupManager
   {
     const character = target.getCharacter();
     const pop = JABS_PopupManager.buildDamagePop(action, target, engine);
-
-    character.addTextPop(pop);
-    character.requestTextPop();
+    TextPopManager.show(pop, character);
   }
 
   /**
+   * Builds the combat-result {@link Map_TextPop} for an action on a target.
    * @param {JABS_Action} action The action affecting the target.
    * @param {JABS_Battler} target The target battler.
    * @param {JABS_Engine} engine The live engine instance.
@@ -189,28 +287,28 @@ class JABS_PopupManager
   }
 
   /**
-   * @param {JABS_Action} action The action whose caster should show the skill-used pop.
+   * Dispatches a skill-used popup on the caster's character.
+   * @param {JABS_Action} action The action whose caster should show the popup.
    */
   static showSkillUsedPop(action)
   {
-    if (action.getCaster()
-      .isInanimate())
+    const caster = action.getCaster();
+    if (caster.isInanimate())
     {
       return;
     }
 
     const skill = action.getBaseSkill();
-    const character = action.getCaster()
-      .getCharacter();
+    const character = caster.getCharacter();
     const pop = new TextPopBuilder(skill.name)
       .isSkillUsed(skill.iconIndex)
       .build();
 
-    character.addTextPop(pop);
-    character.requestTextPop();
+    TextPopManager.show(pop, character);
   }
 
   /**
+   * Dispatches an experience popup on the given character.
    * @param {number} experience The experience amount.
    * @param {Game_Character} character The character who earned the experience.
    */
@@ -220,11 +318,11 @@ class JABS_PopupManager
       .isExperience()
       .build();
 
-    character.addTextPop(pop);
-    character.requestTextPop();
+    TextPopManager.show(pop, character);
   }
 
   /**
+   * Dispatches a gold popup on the given character.
    * @param {number} gold The gold amount.
    * @param {Game_Character} character The character who earned the gold.
    */
@@ -234,39 +332,28 @@ class JABS_PopupManager
       .isGold()
       .build();
 
-    character.addTextPop(pop);
-    character.requestTextPop();
+    TextPopManager.show(pop, character);
   }
 
   /**
+   * Dispatches a loot popup for each item in the list on the given character.
    * @param {RPG_BaseItem[]} itemDataList All items picked up.
    * @param {Game_Character} character The character who picked them up.
    */
   static showItemPickedUpPops(itemDataList, character)
   {
-    itemDataList.forEach(itemData =>
-    {
-      JABS_PopupManager.showSingleItemPop(itemData, character);
-    });
+    const pops = itemDataList.map(itemData =>
+      new TextPopBuilder(itemData.name)
+        .isLoot()
+        .setIconIndex(itemData.iconIndex)
+        .build()
+    );
 
-    character.requestTextPop();
+    TextPopManager.showBatch(pops, character);
   }
 
   /**
-   * @param {RPG_BaseItem} itemData The item database object.
-   * @param {Game_Character} character The character who picked it up.
-   */
-  static showSingleItemPop(itemData, character)
-  {
-    const pop = new TextPopBuilder(itemData.name)
-      .isLoot()
-      .setIconIndex(itemData.iconIndex)
-      .build();
-
-    character.addTextPop(pop);
-  }
-
-  /**
+   * Dispatches a level-up popup on the given character.
    * @param {Game_Character} character The character who leveled up.
    */
   static showLevelUpPop(character)
@@ -275,11 +362,11 @@ class JABS_PopupManager
       .isLevelUp()
       .build();
 
-    character.addTextPop(pop);
-    character.requestTextPop();
+    TextPopManager.show(pop, character);
   }
 
   /**
+   * Dispatches a skill-learned popup on the given character.
    * @param {RPG_Skill} skill The skill that was learned.
    * @param {Game_Character} character The character who learned it.
    */
@@ -289,11 +376,11 @@ class JABS_PopupManager
       .isSkillLearned(skill.iconIndex)
       .build();
 
-    character.addTextPop(pop);
-    character.requestTextPop();
+    TextPopManager.show(pop, character);
   }
 
   /**
+   * Dispatches a tool-use result popup on the caster's character.
    * @param {Game_Action} gameAction The action describing the tool effect.
    * @param {RPG_Item} itemData The item database entry.
    * @param {JABS_Battler} caster The battler who used the item.
@@ -380,13 +467,13 @@ class JABS_PopupManager
       .setCritical(actionResult.critical)
       .build();
 
-    character.addTextPop(pop);
-    character.requestTextPop();
+    TextPopManager.show(pop, character);
   }
 
   /**
-   * @param {number} displayAmount Display amount after sign flip (negative => regen tick).
-   * @param {0|1|2} type HP / MP / TP index.
+   * Dispatches a slip or regen popup on the battler's character.
+   * @param {number} displayAmount The signed amount (negative = regen).
+   * @param {0|1|2} type HP / MP / TP resource index.
    * @param {JABS_Battler} battler The battler showing the pop.
    */
   static showSlipPop(displayAmount, type, battler)
@@ -416,117 +503,11 @@ class JABS_PopupManager
       textPopBuilder.forSlipDamageRing();
     }
 
-    const pop = textPopBuilder.build();
-
-    character.addTextPop(pop);
-    character.requestTextPop();
+    TextPopManager.show(textPopBuilder.build(), character);
   }
 }
 
-//region JABS_Engine aliases
-/**
- * Extends {@link #postPrimaryBattleEffects}.<br/>
- * Also shows attack damage and skill-used popups on the affected battlers.
- */
-J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('postPrimaryBattleEffects', JABS_Engine.prototype.postPrimaryBattleEffects);
-JABS_Engine.prototype.postPrimaryBattleEffects = function(action, target)
-{
-  // perform original logic.
-  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('postPrimaryBattleEffects')
-    .call(this, action, target);
-
-  // show the damage popup on the target.
-  JABS_PopupManager.showAttackPop(action, target, this);
-
-  // show the skill-used popup on the caster.
-  JABS_PopupManager.showSkillUsedPop(action);
-};
-
-/**
- * Extends {@link #gainExperienceReward}.<br/>
- * Also shows an experience popup on the caster character.
- */
-J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('gainExperienceReward', JABS_Engine.prototype.gainExperienceReward);
-JABS_Engine.prototype.gainExperienceReward = function(experience, casterCharacter)
-{
-  // perform original logic.
-  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('gainExperienceReward')
-    .call(this, experience, casterCharacter);
-
-  if (!experience) return;
-
-  JABS_PopupManager.showExperiencePop(experience, casterCharacter);
-};
-
-/**
- * Extends {@link #gainGoldReward}.<br/>
- * Also shows a gold popup on the character.
- */
-J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('gainGoldReward', JABS_Engine.prototype.gainGoldReward);
-JABS_Engine.prototype.gainGoldReward = function(gold, character)
-{
-  // perform original logic.
-  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('gainGoldReward')
-    .call(this, gold, character);
-
-  if (!gold) return;
-
-  JABS_PopupManager.showGoldPop(gold, character);
-};
-
-/**
- * Extends {@link #onItemPickedUp}.<br/>
- * Also shows item-loot popups on the character.
- */
-J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('onItemPickedUp', JABS_Engine.prototype.onItemPickedUp);
-JABS_Engine.prototype.onItemPickedUp = function(itemDataList, character)
-{
-  // perform original logic.
-  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('onItemPickedUp')
-    .call(this, itemDataList, character);
-
-  JABS_PopupManager.showItemPickedUpPops(itemDataList, character);
-};
-
-/**
- * Extends {@link #battlerLevelup}.<br/>
- * Also shows a level-up popup on the battler's character.
- */
-J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('battlerLevelup', JABS_Engine.prototype.battlerLevelup);
-JABS_Engine.prototype.battlerLevelup = function(uuid)
-{
-  // perform original logic.
-  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('battlerLevelup')
-    .call(this, uuid);
-
-  const battler = JABS_AiManager.getBattlerByUuid(uuid);
-  if (battler)
-  {
-    JABS_PopupManager.showLevelUpPop(battler.getCharacter());
-  }
-};
-
-/**
- * Extends {@link #battlerSkillLearn}.<br/>
- * Also shows a skill-learn popup on the battler's character.
- */
-J.POPUPS.EXT.ABS.Aliased.JABS_Engine.set('battlerSkillLearn', JABS_Engine.prototype.battlerSkillLearn);
-JABS_Engine.prototype.battlerSkillLearn = function(skill, uuid)
-{
-  // perform original logic.
-  J.POPUPS.EXT.ABS.Aliased.JABS_Engine.get('battlerSkillLearn')
-    .call(this, skill, uuid);
-
-  const battler = JABS_AiManager.getBattlerByUuid(uuid);
-  if (battler)
-  {
-    JABS_PopupManager.showSkillLearnPop(skill, battler.getCharacter());
-  }
-};
-//endregion JABS_Engine aliases
-
-//endregion J_POPABS_Engine
-
+//endregion JABS_PopupManager
 
 //region Game_Action
 /**
@@ -536,7 +517,6 @@ JABS_Engine.prototype.battlerSkillLearn = function(skill, uuid)
 J.POPUPS.EXT.ABS.Aliased.Game_Action.set('onFormulaResourceDelta', Game_Action.prototype.onFormulaResourceDelta);
 Game_Action.prototype.onFormulaResourceDelta = function(recipient, amount, resource)
 {
-  // perform original logic.
   J.POPUPS.EXT.ABS.Aliased.Game_Action.get('onFormulaResourceDelta')
     .call(this, recipient, amount, resource);
 
@@ -574,11 +554,7 @@ Game_Action.prototype.onFormulaResourceDelta = function(recipient, amount, resou
     textPopBuilder.forEnemyDamageRing();
   }
 
-  const pop = textPopBuilder.build();
-  const character = jabs.getCharacter();
-
-  character.addTextPop(pop);
-  character.requestTextPop();
+  TextPopManager.show(textPopBuilder.build(), jabs.getCharacter());
 };
 
 /**
@@ -588,7 +564,6 @@ Game_Action.prototype.onFormulaResourceDelta = function(recipient, amount, resou
 J.POPUPS.EXT.ABS.Aliased.Game_Action.set('onShieldDamageAbsorbed', Game_Action.prototype.onShieldDamageAbsorbed);
 Game_Action.prototype.onShieldDamageAbsorbed = function(target, value)
 {
-  // perform original logic.
   J.POPUPS.EXT.ABS.Aliased.Game_Action.get('onShieldDamageAbsorbed')
     .call(this, target, value);
 
@@ -598,10 +573,8 @@ Game_Action.prototype.onShieldDamageAbsorbed = function(target, value)
   const pop = new TextPopBuilder(`  -${Math.round(value)}`)
     .isShieldDamage()
     .build();
-  const character = jabsBattler.getCharacter();
 
-  character.addTextPop(pop);
-  character.requestTextPop();
+  TextPopManager.show(pop, jabsBattler.getCharacter());
 };
 
 /**
@@ -611,7 +584,6 @@ Game_Action.prototype.onShieldDamageAbsorbed = function(target, value)
 J.POPUPS.EXT.ABS.Aliased.Game_Action.set('onShieldBroken', Game_Action.prototype.onShieldBroken);
 Game_Action.prototype.onShieldBroken = function(target)
 {
-  // perform original logic.
   J.POPUPS.EXT.ABS.Aliased.Game_Action.get('onShieldBroken')
     .call(this, target);
 
@@ -621,15 +593,12 @@ Game_Action.prototype.onShieldBroken = function(target)
   const pop = new TextPopBuilder(`B R E A K`)
     .isShieldBreak()
     .build();
-  const character = jabsBattler.getCharacter();
 
-  character.addTextPop(pop);
-  character.requestTextPop();
+  TextPopManager.show(pop, jabsBattler.getCharacter());
 };
 //endregion Game_Action
 
-
-//region J_POPABS_Battler
+//region JABS_Battler
 /**
  * Extends {@link #onSlipRegenTick}.<br/>
  * Also shows a slip or regen popup on the battler's character.
@@ -667,7 +636,6 @@ JABS_Battler.prototype.onItemApplied = function(gameAction, itemId, target = thi
   // show the damage result popup on the caster's character.
   JABS_PopupManager.showItemAppliedPop(gameAction, toolData, this, target);
 };
-//endregion J_POPABS_Battler
-
+//endregion JABS_Battler
 
 //# sourceMappingURL=J-Popups-ABS.js.map

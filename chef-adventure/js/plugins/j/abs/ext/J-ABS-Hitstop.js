@@ -338,12 +338,6 @@ class JABS_HitstopData
     this._frames = 0;
 
     /**
-     * A queued knockback application to apply on release.
-     * @type {{ x:number, y:number }|null}
-     */
-    this._queuedKnockback = null;
-
-    /**
      * A short-lived map of actionUuid => remaining frames used to scale multi-hit decay.
      * This is per-character so decay is per-target per-action.
      * @type {Map<string, number>}
@@ -406,32 +400,6 @@ class JABS_HitstopData
   {
     // return whether or not the frames are still ticking.
     return this._frames > 0;
-  }
-
-  /**
-   * Queues a knockback vector to apply when hitstop ends.
-   * @param {{ x:number, y:number }} vector The vector to apply.
-   */
-  queueKnockback(vector)
-  {
-    // set the queued knockback vector.
-    this._queuedKnockback = vector;
-  }
-
-  /**
-   * Consumes and returns the queued knockback vector if present.
-   * @returns {{ x:number, y:number }|null}
-   */
-  consumeQueuedKnockback()
-  {
-    // capture the queued vector locally.
-    const out = this._queuedKnockback;
-
-    // clear the queued vector.
-    this._queuedKnockback = null;
-
-    // return the consumed vector.
-    return out;
   }
 
   /**
@@ -548,7 +516,7 @@ class JABS_HitstopManager
 
   /**
    * Applies hitstop to the attacker, target, and the delivering action event.
-   * Also handles multi-hit decay and knockback deferral.
+   * Also handles multi-hit decay.
    * @param {JABS_Action} action The action causing the hit.
    * @param {JABS_Battler} attacker The attacker.
    * @param {JABS_Battler} target The target.
@@ -602,9 +570,6 @@ class JABS_HitstopManager
 
     // trigger a tiny screen shake to sell the moment (player-centric, anti-spam).
     this.#applyMicroShake(frames, attacker, target, wasFirstInFlurry);
-
-    // capture knockback now and defer application until release.
-    this.#queueKnockbackIfAny(action, target);
   }
 
   //region internals
@@ -712,60 +677,6 @@ class JABS_HitstopManager
     J.ABS.EXT.HITSTOP.Metadata.lastShakeFrame = now;
   }
 
-  /**
-   * If the action is going to knock the target back, queue it for post-hitstop release.
-   * @param {JABS_Action} action The action.
-   * @param {JABS_Battler} target The target.
-   */
-  static #queueKnockbackIfAny(action, target)
-  {
-    // determine the knockback magnitude from the action.
-    const knockbackTiles = action.getKnockback();
-
-    // if there is no knockback, then nothing to do.
-    if (knockbackTiles === null || knockbackTiles === 0) return;
-
-    // locate the action sprite to derive direction.
-    const actionSprite = action.getActionSprite();
-
-    // if we lack a sprite, we cannot resolve a direction for vectoring.
-    if (!actionSprite) return;
-
-    // derive a simple vector in tile units based on direction.
-    const dir = actionSprite.direction();
-
-    // calculate a naive vector; JABS_Engine will still validate passability on apply.
-    let x = 0;
-    let y = 0;
-
-    // derive vector components from direction.
-    switch (dir)
-    {
-      case 2:
-        y += Math.ceil(knockbackTiles);
-        break;
-      case 4:
-        x -= Math.ceil(knockbackTiles);
-        break;
-      case 6:
-        x += Math.ceil(knockbackTiles);
-        break;
-      case 8:
-        y -= Math.ceil(knockbackTiles);
-        break;
-      default:
-        break;
-    }
-
-    // queue this vector on the target’s character to apply on release.
-    target.getCharacter()
-      .getHitstopData()
-      .queueKnockback({
-        x,
-        y
-      });
-  }
-
   //endregion internals
 }
 
@@ -861,47 +772,6 @@ Game_Character.prototype.update = function()
   // perform original logic.
   J.ABS.EXT.HITSTOP.Aliased.Game_Character.get('update')
     .call(this);
-
-  // after a normal update, if we just came out of hitstop, apply any queued knockback.
-  this.applyQueuedKnockbackIfAny();
-};
-
-/**
- * Applies any queued knockback after a hitstop release.
- */
-Game_Character.prototype.applyQueuedKnockbackIfAny = function()
-{
-  // grab the hitstop data for this character.
-  const data = this.getHitstopData();
-
-  // grab any queued knockback.
-  const vector = data.consumeQueuedKnockback();
-
-  // if a vector exists, attempt to move accordingly.
-  if (vector)
-  {
-    // attempt to move stepwise by vector (engine-level passability checks still apply when trying to move).
-    const {
-      x,
-      y
-    } = vector;
-
-    // apply X displacement (tilewise) one tile at a time.
-    for (let i = 0; i < Math.abs(x); i++)
-    {
-      // move left or right by one tile.
-      if (x < 0) this.moveStraight(4);
-      if (x > 0) this.moveStraight(6);
-    }
-
-    // apply Y displacement (tilewise) one tile at a time.
-    for (let i = 0; i < Math.abs(y); i++)
-    {
-      // move up or down by one tile.
-      if (y < 0) this.moveStraight(8);
-      if (y > 0) this.moveStraight(2);
-    }
-  }
 };
 //endregion Game_Character
 

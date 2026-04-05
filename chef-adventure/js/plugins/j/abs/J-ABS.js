@@ -15870,13 +15870,6 @@ class JABS_Timer
  * @decimals 2
  * @default 1.50
  *
- * @param disableTextPops
- * @parent miscConfigs
- * @type boolean
- * @text Disable Text Pops
- * @desc Whether or not to disable the text popups, including: damage, rewards, parry, etc.
- * @default false
- *
  * @param lootPickupDistance
  * @parent miscConfigs
  * @type number
@@ -16351,7 +16344,6 @@ J.ABS.Metadata.DefaultStateLoseAllStacksAtOnce = (J.ABS.PluginParameters['defaul
 
 // miscellaneous configurations.
 J.ABS.Metadata.LootPickupRange = Number(J.ABS.PluginParameters['lootPickupDistance']);
-J.ABS.Metadata.DisableTextPops = Boolean(J.ABS.PluginParameters['disableTextPops'] === 'true');
 J.ABS.Metadata.AllyRubberbandAdjustment = Number(J.ABS.PluginParameters['allyRubberbandAdjustment']);
 J.ABS.Metadata.DashSpeedBoost = Number(J.ABS.PluginParameters['dashSpeedBoost']);
 J.ABS.Metadata.HitboxOverlaysInitiallyVisible = (J.ABS.PluginParameters['hitboxOverlaysInitiallyVisible'] === 'true');
@@ -24189,6 +24181,7 @@ class JABS_Engine
     const targetKnockbackResist = RPGManager.getSumFromAllNotesByRegex(targetNotes, J.ABS.RegExp.KnockbackResist);
 
     // don't even knock them up or around at all, they are immune to knockback.
+    // having 100 or more resistance means they don't even hop in place.
     if (targetKnockbackResist >= 100) return;
 
     // get the knockback value from the skill if applicable.
@@ -24197,8 +24190,8 @@ class JABS_Engine
     // check to make sure the skill has knockback before processing.
     if (knockback === null) return;
 
-    // multiply the knockback by the resist.
-    knockback *= (targetKnockbackResist / 100);
+    // multiply the knockback by the remaining effectiveness (100 - resistance).
+    knockback *= ((100 - targetKnockbackResist) / 100);
 
     const targetSprite = target.getCharacter();
 
