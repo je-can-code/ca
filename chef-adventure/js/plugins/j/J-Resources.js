@@ -306,6 +306,33 @@ IconManager.longParam = function(paramId)
 class ResourceCostManager
 {
   /**
+   * Determines the individual cost components for a skill's HP cost.
+   * All component values are post-HCR.
+   * @param {Game_Actor|Game_Enemy} battler The battler to check.
+   * @param {RPG_Skill} skill The skill to check.
+   * @returns {{ flat: number, percent: number, calculatedPercent: number, formula: number }}
+   */
+  static hpCostBreakdown(battler, skill)
+  {
+    const flatRaw = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostFlat);
+    const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostPercent);
+    const calculatedPercentRaw = battler.mhp * (percent / 100);
+    const formulaRaw = RPGManager.getResultFromNoteByRegex(
+      skill,
+      J.RESOURCES.RegExp.HpCostFormula,
+      (flatRaw + calculatedPercentRaw),
+      battler
+    );
+    const hcr = battler.hcrFactor();
+    return {
+      flat: flatRaw * hcr,
+      percent,
+      calculatedPercent: calculatedPercentRaw * hcr,
+      formula: formulaRaw * hcr,
+    };
+  }
+
+  /**
    * Determines the amount of HP cost for a skill.
    * @param {Game_Actor|Game_Enemy} battler The battler to check.
    * @param {RPG_Skill} skill The skill to check.
@@ -313,28 +340,40 @@ class ResourceCostManager
    */
   static hpCostBySkill(battler, skill)
   {
-    // extract the costs from the skill's note.
-    const flatCost = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostFlat);
-    const percentCost = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostPercent);
-    const calculatedPercentCost = battler.mhp * (percentCost / 100);
-    const formulaCosts = RPGManager.getResultFromNoteByRegex(
-      skill,
-      J.RESOURCES.RegExp.HpCostFormula,
-      (flatCost + calculatedPercentCost),
-      battler
-    );
+    const { flat, calculatedPercent, formula } = ResourceCostManager.hpCostBreakdown(battler, skill);
 
     // if there are no costs, then return 0.
-    if (flatCost === 0 && calculatedPercentCost === 0 && formulaCosts === 0) return 0;
+    if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
 
-    // add all the costs together.
-    const sumCost = flatCost + calculatedPercentCost + formulaCosts;
+    // return the total cost (all components are already post-HCR from breakdown).
+    return flat + calculatedPercent + formula;
+  }
 
-    // determine how the cost reduction applies to the skill cost.
-    const totalCost = battler.hcrFactor() * sumCost;
-
-    // return the total cost.
-    return totalCost;
+  /**
+   * Determines the individual extra-tag cost components for a skill's MP cost.
+   * All component values are post-MCR.
+   * @param {Game_Actor|Game_Enemy} battler The battler to check.
+   * @param {RPG_Skill} skill The skill to check.
+   * @returns {{ flat: number, percent: number, calculatedPercent: number, formula: number }}
+   */
+  static extraMpCostBreakdown(battler, skill)
+  {
+    const flatRaw = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.MpCostFlat);
+    const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.MpCostPercent);
+    const calculatedPercentRaw = battler.mmp * (percent / 100);
+    const formulaRaw = RPGManager.getResultFromNoteByRegex(
+      skill,
+      J.RESOURCES.RegExp.MpCostFormula,
+      (flatRaw + calculatedPercentRaw),
+      battler
+    );
+    const mcr = battler.mcr;
+    return {
+      flat: flatRaw * mcr,
+      percent,
+      calculatedPercent: calculatedPercentRaw * mcr,
+      formula: formulaRaw * mcr,
+    };
   }
 
   /**
@@ -345,28 +384,40 @@ class ResourceCostManager
    */
   static extraMpCostBySkill(battler, skill)
   {
-    // extract the costs from the skill's note.
-    const flatCost = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.MpCostFlat);
-    const percentCost = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.MpCostPercent);
-    const calculatedPercentCost = battler.mmp * (percentCost / 100);
-    const formulaCosts = RPGManager.getResultFromNoteByRegex(
-      skill,
-      J.RESOURCES.RegExp.MpCostFormula,
-      (flatCost + calculatedPercentCost),
-      battler
-    );
+    const { flat, calculatedPercent, formula } = ResourceCostManager.extraMpCostBreakdown(battler, skill);
 
     // if there are no costs, then return 0.
-    if (flatCost === 0 && calculatedPercentCost === 0 && formulaCosts === 0) return 0;
+    if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
 
-    // add all the costs together.
-    const sumCost = flatCost + calculatedPercentCost + formulaCosts;
+    // return the total extra cost.
+    return flat + calculatedPercent + formula;
+  }
 
-    // determine how the cost reduction applies to the skill cost.
-    const totalCost = battler.mcr * sumCost;
-
-    // return the total cost.
-    return totalCost;
+  /**
+   * Determines the individual extra-tag cost components for a skill's TP cost.
+   * All component values are post-TCR.
+   * @param {Game_Actor|Game_Enemy} battler The battler to check.
+   * @param {RPG_Skill} skill The skill to check.
+   * @returns {{ flat: number, percent: number, calculatedPercent: number, formula: number }}
+   */
+  static extraTpCostBreakdown(battler, skill)
+  {
+    const flatRaw = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostFlat);
+    const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostPercent);
+    const calculatedPercentRaw = battler.mtp * (percent / 100);
+    const formulaRaw = RPGManager.getResultFromNoteByRegex(
+      skill ,
+      J.RESOURCES.RegExp.TpCostFormula,
+      (flatRaw + calculatedPercentRaw),
+      battler
+    );
+    const tcr = battler.tcr;
+    return {
+      flat: flatRaw * tcr,
+      percent,
+      calculatedPercent: calculatedPercentRaw * tcr,
+      formula: formulaRaw * tcr,
+    };
   }
 
   /**
@@ -377,28 +428,13 @@ class ResourceCostManager
    */
   static extraTpCostBySkill(battler, skill)
   {
-    // extract the costs from the skill's note.
-    const flatCost = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostFlat);
-    const percentCost = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostPercent);
-    const calculatedPercentCost = battler.mtp * (percentCost / 100);
-    const formulaCosts = RPGManager.getResultFromNoteByRegex(
-      skill ,
-      J.RESOURCES.RegExp.TpCostFormula,
-      (flatCost + calculatedPercentCost),
-      battler
-    );
+    const { flat, calculatedPercent, formula } = ResourceCostManager.extraTpCostBreakdown(battler, skill);
 
     // if there are no costs, then return 0.
-    if (flatCost === 0 && calculatedPercentCost === 0 && formulaCosts === 0) return 0;
+    if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
 
-    // add all the costs together.
-    const sumCost = flatCost + calculatedPercentCost + formulaCosts;
-
-    // determine how the cost reduction applies to the skill cost.
-    const totalCost = battler.tcr * sumCost;
-
-    // return the total cost.
-    return totalCost;
+    // return the total extra cost.
+    return flat + calculatedPercent + formula;
   }
 
   /**

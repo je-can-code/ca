@@ -405,10 +405,10 @@ class Window_SkillDetail
     {
       this.resetTextColor();
       this.changeTextColor(param.color());
-      this.drawText(`${param.name()}`, ox, oy + (lh * index), 250);
+      this.drawText(`${param.name()}`, ox, oy + (lh * index), 130);
       if (param.value() !== null)
       {
-        this.drawText(`${param.value()}`, ox + 180, oy + (lh * index), 250);
+        this.drawText(`${param.value()}`, ox + 140, oy + (lh * index), 300);
       }
     });
   }
@@ -427,17 +427,17 @@ class Window_SkillDetail
     params.push(this.makeDividerParam());
     params.push(...this.makeAttackStates(skill, actor));
 
-    const ox = 316;
+    const ox = 480;
     const oy = 60;
     const lh = this.lineHeight();
     params.forEach((param, index) =>
     {
       this.resetTextColor();
       this.changeTextColor(param.color());
-      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), 250);
+      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), 200);
       if (param.value() !== null)
       {
-        this.drawTextEx(`${param.value()}`, ox + 250, oy + (lh * index), 250);
+        this.drawTextEx(`${param.value()}`, ox + 200, oy + (lh * index), 200);
       }
     });
   }
@@ -689,6 +689,35 @@ class Window_SkillDetail
   }
 
   /**
+   * Builds a human-readable cost breakdown string from the individual components.
+   *
+   * Only non-zero components are included. Flat and formula amounts are rounded
+   * to whole numbers; the percent component shows both the raw percent and the
+   * translated HP/MP/TP amount so the player understands the actual deduction.
+   *
+   * Examples:
+   *   flat=50, no others           → "50"
+   *   percent=10, calcPercent=70   → "10% (70)"
+   *   flat=50, percent=10(70)      → "50 + 10% (70)"
+   *   all three                    → "50 + 10% (70) + 30"
+   *   all zero                     → "0"
+   * @param {number} flat The flat cost amount (post-rate).
+   * @param {number} percent The raw percent tag value (e.g. 10 for 10%).
+   * @param {number} calculatedPercent The translated percent amount (post-rate).
+   * @param {number} formula The formula cost result (post-rate).
+   * @returns {string}
+   */
+  buildCostBreakdownValue(flat, percent, calculatedPercent, formula)
+  {
+    const parts = [];
+    if (flat !== 0) parts.push(`${Math.round(flat)}`);
+    if (percent !== 0) parts.push(`${percent}% (${Math.round(calculatedPercent)})`);
+    if (formula !== 0) parts.push(`${Math.round(formula)}`);
+    if (parts.length === 0) return '0';
+    return parts.join(' + ');
+  }
+
+  /**
    * Makes the hp cost key value parameter.
    * Requires J-Resources to be present.
    * @param {RPG_Skill} skill The skill object.
@@ -698,31 +727,42 @@ class Window_SkillDetail
   makeHpCostParam(skill, actor)
   {
     const hpName = TextManager.longParam(34);
-    let hpColor = ColorManager.hpCostColor();
-    const hpCost = parseFloat(actor.skillHpCost(skill).toFixed(2));
-    if (hpCost === 0)
-    {
-      hpColor = ColorManager.damageColor();
-    }
-
-    return new JCMS_ParameterKvp(hpName, hpCost, hpColor);
+    const { flat, percent, calculatedPercent, formula } = ResourceCostManager.hpCostBreakdown(actor, skill);
+    const hasAnyCost = flat !== 0 || percent !== 0 || formula !== 0;
+    const hpColor = hasAnyCost
+      ? ColorManager.hpCostColor()
+      : ColorManager.damageColor();
+    const value = this.buildCostBreakdownValue(flat, percent, calculatedPercent, formula);
+    return new JCMS_ParameterKvp(hpName, value, hpColor);
   }
 
   /**
    * Makes the mp cost key value parameter.
    * @param {RPG_Skill} skill The skill object.
    * @param {Game_Actor} actor The actor.
+   * @returns {JCMS_ParameterKvp}
    */
   makeMpCostParam(skill, actor)
   {
     const mpName = TextManager.longParam(22);
-    let mpColor = ColorManager.mpCostColor();
-    const mpCost = parseFloat(actor.skillMpCost(skill).toFixed(2));
-    if (mpCost === 0)
+    if (J.RESOURCES)
     {
-      mpColor = ColorManager.damageColor();
+      // base vanilla cost is the original skillMpCost result (pre-tag-extras, post-MCR).
+      const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get('skillMpCost').call(actor, skill);
+      const { flat: extraFlat, percent, calculatedPercent, formula } = ResourceCostManager.extraMpCostBreakdown(actor, skill);
+      const combinedFlat = baseCost + extraFlat;
+      const hasAnyCost = combinedFlat !== 0 || percent !== 0 || formula !== 0;
+      const mpColor = hasAnyCost
+        ? ColorManager.mpCostColor()
+        : ColorManager.damageColor();
+      const value = this.buildCostBreakdownValue(combinedFlat, percent, calculatedPercent, formula);
+      return new JCMS_ParameterKvp(mpName, value, mpColor);
     }
 
+    const mpCost = parseFloat(actor.skillMpCost(skill).toFixed(2));
+    const mpColor = mpCost === 0
+      ? ColorManager.damageColor()
+      : ColorManager.mpCostColor();
     return new JCMS_ParameterKvp(mpName, mpCost, mpColor);
   }
 
@@ -730,17 +770,29 @@ class Window_SkillDetail
    * Makes the tp cost key value parameter.
    * @param {RPG_Skill} skill The skill object.
    * @param {Game_Actor} actor The actor.
+   * @returns {JCMS_ParameterKvp}
    */
   makeTpCostParam(skill, actor)
   {
     const tpName = TextManager.longParam(23);
-    let tpColor = ColorManager.tpCostColor();
-    const tpCost = parseFloat(actor.skillTpCost(skill).toFixed(2));
-    if (tpCost === 0)
+    if (J.RESOURCES)
     {
-      tpColor = ColorManager.damageColor();
+      // base vanilla cost is the original skillTpCost result (pre-tag-extras, no rate in vanilla).
+      const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get('skillTpCost').call(actor, skill);
+      const { flat: extraFlat, percent, calculatedPercent, formula } = ResourceCostManager.extraTpCostBreakdown(actor, skill);
+      const combinedFlat = baseCost + extraFlat;
+      const hasAnyCost = combinedFlat !== 0 || percent !== 0 || formula !== 0;
+      const tpColor = hasAnyCost
+        ? ColorManager.tpCostColor()
+        : ColorManager.damageColor();
+      const value = this.buildCostBreakdownValue(combinedFlat, percent, calculatedPercent, formula);
+      return new JCMS_ParameterKvp(tpName, value, tpColor);
     }
 
+    const tpCost = parseFloat(actor.skillTpCost(skill).toFixed(2));
+    const tpColor = tpCost === 0
+      ? ColorManager.damageColor()
+      : ColorManager.tpCostColor();
     return new JCMS_ParameterKvp(tpName, tpCost, tpColor);
   }
 }
