@@ -2,9 +2,10 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 POPUPS] Map text popups (J.POPUPS core).
+ * [v2.0.0 POPUPS] Map text popups for JABS and beyond.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
+ * @base J-Base
  * @orderAfter J-Base
  * @param disablePopups
  * @text Disable all map popups
@@ -13,24 +14,37 @@
  * @desc When true, addTextPop ignores new pops.
  * @help
  * ============================================================================
- * Core map text pops: {@link TextPopBuilder}, {@link Map_TextPop}, rings, and
- * {@link Sprite_Damage} presentation. Optional extensions (J-Popups-ABS, etc.)
- * supply game-specific builders.
- * ============================================================================
- * BASIC USAGE:
- * Build with TextPopBuilder (fluent .forEnemyDamageRing(), .forLootDownRing(),
- * etc.), then character.addTextPop(pop.build()); character.requestTextPop();
- * Invalid or hand-built Map_TextPop values are rejected with a console warning.
- * ============================================================================
- * POPUP EMITTER (optional observers):
- * J.POPUPS.Helpers.PopupEmitter — event names in J.POPUPS.EventNames.
- * Listeners must stay cheap (O(1), no heavy work per frame).
+ * OVERVIEW
+ * This plugin is the core of the J-Popups system.
+ *
+ * Have you ever wanted floating text popups on your map for damage, healing,
+ * experience, loot, and more? Well now you can! This plugin provides the
+ * infrastructure for building and displaying text popups on map characters,
+ * and is designed to be extended by the various J-Popups extension plugins.
+ *
+ * Integrates with others of mine plugins:
+ * - J-Popups-ABS;      combat damage, healing, loot, and reward popups.
+ * - J-Popups-APT;      aptitude point reward popups.
+ * - J-Popups-SDP;      SDP point reward popups.
+ * - J-Popups-Resources; skill cost and hit-based resource gain popups.
+ *
+ * ----------------------------------------------------------------------------
+ * DETAILS:
+ * Popups are built using the TextPopBuilder fluent interface, placed into a
+ * layout ring on a map character, and rendered by Sprite_Damage. Each
+ * extension plugin provides its own builders for the popup types it needs.
+ *
+ * NOTE:
+ * Listeners on the optional PopupEmitter (J.POPUPS.Helpers.PopupEmitter) must
+ * stay cheap- no heavy work per frame. Event names live in J.POPUPS.EventNames.
+ *
  * ============================================================================
  * CHANGELOG:
  * - 2.0.0
  *    Split from J-TextPops; plugin renamed J-Popups; layout rings + WeakMap
- *    stacking; addTextPop validation; J.POPUPS.EXT.* extensions for J-ABS /
- *    Aptitude / SDP pop builders; disablePopups parameter (no J-ABS required).
+ *    stacking; addTextPop validation; J.POPUPS.EXT.* extensions for J-ABS,
+ *    Aptitude, SDP, and Resources pop builders; disablePopups parameter
+ *    (no J-ABS required).
  * - 1.1.0
  *    PopupEmitter lifecycle; DisablePopups; layout constants; variance/motion
  *    fixes; textAccent.
@@ -210,6 +224,11 @@ J.POPUPS.Layout = {
     MaxDrift: 200,
   },
 };
+
+/**
+ * Per-character slot offsets for {@link Map_TextPop.LayoutRings}. Ephemeral (WeakMap; not saved).
+ */
+J.POPUPS._layoutRingState = new WeakMap();
 
 J.POPUPS.Helpers = {};
 J.POPUPS.Helpers.PopupEmitter = new J_EventEmitter();
@@ -1332,11 +1351,6 @@ class TextPopSpriteManager
 //endregion TextPopSpriteManager
 
 //region J_PopupLayoutRings
-/**
- * Per-character slot offsets for {@link Map_TextPop.LayoutRings}. Ephemeral (WeakMap; not saved).
- */
-J.POPUPS._layoutRingState = new WeakMap();
-
 /**
  * Step layout for each ring. Indices wrap at slotCount.
  */

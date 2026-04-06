@@ -13,7 +13,7 @@
  * This plugin extends the skill cost and gain system to support HP, MP, and TP
  * costs and gains defined entirely through notetags.
  *
- * Integrates with other plugins:
+ * Integrates with others of mine plugins:
  * - J-ABS; JABS will use these costs/gains when executing skills.
  * - J-CMS-Skill; the skill detail window will display HP costs.
  * - J-HUD-InputFrame; the input frame will display HP costs on skill slots.
@@ -28,11 +28,14 @@
  *
  * ============================================================================
  * HP COST
- * By applying the appropriate notetag to a skill, that skill will cost HP
- * to execute. HP costs can be flat, percentage, or formula-based.
+ * Have you ever wanted your skills to cost HP in addition to (or instead of)
+ * MP and TP? Well now you can! By applying the appropriate tag(s) to a skill,
+ * that skill will cost HP to execute. HP costs support flat amounts,
+ * percentages of max HP, and formula expressions.
  *
- * NOTE: By default, a battler cannot cast a skill if its HP cost would kill
- * them. Add the sacrifice tag to allow casting even when it would be lethal.
+ * NOTE:
+ * By default, a battler cannot cast a skill if its HP cost would kill them.
+ * Add the sacrifice tag to allow casting even when it would be lethal.
  *
  * TAG USAGE:
  * - Skills
@@ -68,9 +71,15 @@
  *
  * ============================================================================
  * HP COST REDUCTION (HCR)
- * Mirroring MCR (MP Cost Rate) and TCR (TP Cost Rate), HCR reduces the total
- * HP cost of skills. Unlike MCR/TCR which are multipliers, HCR is additive
- * subtraction from 100 — a tag of <hcr:5> means "reduce HP costs by 5%".
+ * Have you ever wanted to mitigate how much HP your skills cost, the same
+ * way MCR and TCR work for MP and TP? Well now you can! By applying the
+ * appropriate tag(s) to your database objects, you can reduce HP skill costs
+ * across the board- because lets face it, raw HP costs can add up fast.
+ *
+ * NOTE:
+ * Unlike MCR/TCR which are multipliers, HCR is additive subtraction from 100.
+ * A tag of <hcr:5> means "reduce HP costs by 5 percentage points", making it
+ * easy to read at-a-glance what each piece of equipment contributes.
  *
  * TAG USAGE:
  * - Actors
@@ -89,8 +98,9 @@
  *
  * ============================================================================
  * HP GAIN
- * By applying the appropriate notetag to a skill, that skill will restore HP
- * upon being cast. HP gains can be flat, percentage, or formula-based.
+ * Have you ever wanted a skill that restores HP to the caster upon use,
+ * separate from damage formulas? Well now you can! By applying the appropriate
+ * tag(s) to a skill, the caster will recover HP when the skill is executed.
  *
  * TAG USAGE:
  * - Skills
@@ -106,8 +116,10 @@
  *
  * ============================================================================
  * EXTRA MP / TP COSTS AND GAINS
- * The same flat/percent/formula tags are also available for MP and TP,
- * layered on top of the editor's native MP/TP cost fields.
+ * Have you ever wanted more expressive MP and TP costs than the single integer
+ * the editor provides? Well now you can! The same flat/percent/formula tag
+ * system is available for MP and TP, layered on top of the editor's native
+ * cost fields so you don't lose anything you've already set up.
  *
  * TAG USAGE:
  * - Skills
@@ -660,7 +672,7 @@ J.RESOURCES.Aliased.Game_Battler.set('onBattlerDataChange', Game_Battler.prototy
 Game_Battler.prototype.onBattlerDataChange = function()
 {
   // perform original logic.
-  J.NATURAL.Aliased.Game_Battler.get('onBattlerDataChange')
+  J.RESOURCES.Aliased.Game_Battler.get('onBattlerDataChange')
     .call(this);
 
   // also refresh the hrc.
