@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 CMS_K] A redesign of the skill menu.
+ * [v1.0.1 CMS_K] A redesign of the skill menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13,6 +13,13 @@
  * It includes the ability to see more parameters when inspecting skills.
  *
  * Will reveal various JABS data points.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Added HP skill cost display to the skill detail window (requires J-Resources).
+ *    Updated MP/TP cost display to reflect tag-based extra costs from J-Resources.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
  */
 
@@ -380,29 +387,32 @@ class Window_SkillDetail
     const actor = this._actor;
     const params = [];
 
-    /* TODO: add after implementing hp costs.
-    const hpName = TextManager.longParam(21);
-    const hpCost = parseFloat((skill.hpCost * actor.hcr).toFixed(2));
-    const hpColor = ColorManager.hpCostColor();
-    params.push(new JCMS_ParameterKvp(hpName, hpCost, hpColor));
-    */
-
     params.push(this.makeSkillTypeParam(skill));
     params.push(this.makeDividerParam());
+
+    if (J.RESOURCES)
+    {
+      params.push(this.makeHpCostParam(skill, actor));
+    }
+
     params.push(this.makeMpCostParam(skill, actor));
     params.push(this.makeTpCostParam(skill, actor));
 
-    const ox = 16;
+    const col = Math.floor(this.innerWidth / 3);
+    const ox = 4;
     const oy = 60;
     const lh = this.lineHeight();
+    const nameWidth = Math.floor(col * 0.42);
+    const valueOffset = Math.floor(col * 0.44);
+    const valueWidth = col - valueOffset - 4;
     params.forEach((param, index) =>
     {
       this.resetTextColor();
       this.changeTextColor(param.color());
-      this.drawText(`${param.name()}`, ox, oy + (lh * index), 250);
+      this.drawText(`${param.name()}`, ox, oy + (lh * index), nameWidth);
       if (param.value() !== null)
       {
-        this.drawText(`${param.value()}`, ox + 180, oy + (lh * index), 250);
+        this.drawText(`${param.value()}`, ox + valueOffset, oy + (lh * index), valueWidth);
       }
     });
   }
@@ -421,17 +431,21 @@ class Window_SkillDetail
     params.push(this.makeDividerParam());
     params.push(...this.makeAttackStates(skill, actor));
 
-    const ox = 316;
+    const col = Math.floor(this.innerWidth / 3);
+    const ox = col + 4;
     const oy = 60;
     const lh = this.lineHeight();
+    const nameWidth = Math.floor(col * 0.44);
+    const valueOffset = Math.floor(col * 0.46);
+    const valueWidth = col - valueOffset - 4;
     params.forEach((param, index) =>
     {
       this.resetTextColor();
       this.changeTextColor(param.color());
-      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), 250);
+      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), nameWidth);
       if (param.value() !== null)
       {
-        this.drawTextEx(`${param.value()}`, ox + 250, oy + (lh * index), 250);
+        this.drawTextEx(`${param.value()}`, ox + valueOffset, oy + (lh * index), valueWidth);
       }
     });
   }
@@ -530,15 +544,19 @@ class Window_SkillDetail
 
     params.push(...this.makeAttackElementsList(skill, actor));
 
-    const ox = 700;
+    const col = Math.floor(this.innerWidth / 3);
+    const ox = col * 2 + 4;
     const oy = 0;
     const lh = this.lineHeight();
+    const nameWidth = Math.floor(col * 0.55);
+    const valueOffset = Math.floor(col * 0.57);
+    const valueWidth = col - valueOffset - 4;
     params.forEach((param, index) =>
     {
-      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), 250);
+      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), param.value() !== null ? nameWidth : col - 8);
       if (param.value() !== null)
       {
-        this.drawTextEx(`${param.value()}`, ox + 300, oy + (lh * index), 250);
+        this.drawTextEx(`${param.value()}`, ox + valueOffset, oy + (lh * index), valueWidth);
       }
     });
   }
@@ -683,19 +701,80 @@ class Window_SkillDetail
   }
 
   /**
+   * Builds a human-readable cost breakdown string from the individual components.
+   *
+   * Only non-zero components are included. Flat and formula amounts are rounded
+   * to whole numbers; the percent component shows both the raw percent and the
+   * translated HP/MP/TP amount so the player understands the actual deduction.
+   *
+   * Examples:
+   *   flat=50, no others           → "50"
+   *   percent=10, calcPercent=70   → "10% (70)"
+   *   flat=50, percent=10(70)      → "50 + 10% (70)"
+   *   all three                    → "50 + 10% (70) + 30"
+   *   all zero                     → "0"
+   * @param {number} flat The flat cost amount (post-rate).
+   * @param {number} percent The raw percent tag value (e.g. 10 for 10%).
+   * @param {number} calculatedPercent The translated percent amount (post-rate).
+   * @param {number} formula The formula cost result (post-rate).
+   * @returns {string}
+   */
+  buildCostBreakdownValue(flat, percent, calculatedPercent, formula)
+  {
+    const parts = [];
+    if (flat !== 0) parts.push(`${Math.round(flat)}`);
+    if (percent !== 0) parts.push(`${percent}% (${Math.round(calculatedPercent)})`);
+    if (formula !== 0) parts.push(`${Math.round(formula)}`);
+    if (parts.length === 0) return '0';
+    return parts.join(' + ');
+  }
+
+  /**
+   * Makes the hp cost key value parameter.
+   * Requires J-Resources to be present.
+   * @param {RPG_Skill} skill The skill object.
+   * @param {Game_Actor} actor The actor.
+   * @returns {JCMS_ParameterKvp}
+   */
+  makeHpCostParam(skill, actor)
+  {
+    const hpName = TextManager.longParam(34);
+    const { flat, percent, calculatedPercent, formula } = ResourceCostManager.hpCostBreakdown(actor, skill);
+    const hasAnyCost = flat !== 0 || percent !== 0 || formula !== 0;
+    const hpColor = hasAnyCost
+      ? ColorManager.hpCostColor()
+      : ColorManager.damageColor();
+    const value = this.buildCostBreakdownValue(flat, percent, calculatedPercent, formula);
+    return new JCMS_ParameterKvp(hpName, value, hpColor);
+  }
+
+  /**
    * Makes the mp cost key value parameter.
    * @param {RPG_Skill} skill The skill object.
    * @param {Game_Actor} actor The actor.
+   * @returns {JCMS_ParameterKvp}
    */
   makeMpCostParam(skill, actor)
   {
     const mpName = TextManager.longParam(22);
-    let mpColor = ColorManager.mpCostColor();
-    const mpCost = parseFloat((skill.mpCost * actor.mcr).toFixed(2));
-    if (mpCost === 0)
+    if (J.RESOURCES)
     {
-      mpColor = ColorManager.damageColor();
+      // base vanilla cost is the original skillMpCost result (pre-tag-extras, post-MCR).
+      const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get('skillMpCost').call(actor, skill);
+      const { flat: extraFlat, percent, calculatedPercent, formula } = ResourceCostManager.extraMpCostBreakdown(actor, skill);
+      const combinedFlat = baseCost + extraFlat;
+      const hasAnyCost = combinedFlat !== 0 || percent !== 0 || formula !== 0;
+      const mpColor = hasAnyCost
+        ? ColorManager.mpCostColor()
+        : ColorManager.damageColor();
+      const value = this.buildCostBreakdownValue(combinedFlat, percent, calculatedPercent, formula);
+      return new JCMS_ParameterKvp(mpName, value, mpColor);
     }
+
+    const mpCost = parseFloat(actor.skillMpCost(skill).toFixed(2));
+    const mpColor = mpCost === 0
+      ? ColorManager.damageColor()
+      : ColorManager.mpCostColor();
     return new JCMS_ParameterKvp(mpName, mpCost, mpColor);
   }
 
@@ -703,17 +782,29 @@ class Window_SkillDetail
    * Makes the tp cost key value parameter.
    * @param {RPG_Skill} skill The skill object.
    * @param {Game_Actor} actor The actor.
+   * @returns {JCMS_ParameterKvp}
    */
   makeTpCostParam(skill, actor)
   {
     const tpName = TextManager.longParam(23);
-    let tpColor = ColorManager.tpCostColor();
-    const tpCost = parseFloat((skill.tpCost * actor.tcr).toFixed(2));
-    if (tpCost === 0)
+    if (J.RESOURCES)
     {
-      tpColor = ColorManager.damageColor();
+      // base vanilla cost is the original skillTpCost result (pre-tag-extras, no rate in vanilla).
+      const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get('skillTpCost').call(actor, skill);
+      const { flat: extraFlat, percent, calculatedPercent, formula } = ResourceCostManager.extraTpCostBreakdown(actor, skill);
+      const combinedFlat = baseCost + extraFlat;
+      const hasAnyCost = combinedFlat !== 0 || percent !== 0 || formula !== 0;
+      const tpColor = hasAnyCost
+        ? ColorManager.tpCostColor()
+        : ColorManager.damageColor();
+      const value = this.buildCostBreakdownValue(combinedFlat, percent, calculatedPercent, formula);
+      return new JCMS_ParameterKvp(tpName, value, tpColor);
     }
 
+    const tpCost = parseFloat(actor.skillTpCost(skill).toFixed(2));
+    const tpColor = tpCost === 0
+      ? ColorManager.damageColor()
+      : ColorManager.tpCostColor();
     return new JCMS_ParameterKvp(tpName, tpCost, tpColor);
   }
 }
