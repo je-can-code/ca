@@ -398,17 +398,21 @@ class Window_SkillDetail
     params.push(this.makeMpCostParam(skill, actor));
     params.push(this.makeTpCostParam(skill, actor));
 
-    const ox = 16;
+    const col = Math.floor(this.innerWidth / 3);
+    const ox = 4;
     const oy = 60;
     const lh = this.lineHeight();
+    const nameWidth = Math.floor(col * 0.42);
+    const valueOffset = Math.floor(col * 0.44);
+    const valueWidth = col - valueOffset - 4;
     params.forEach((param, index) =>
     {
       this.resetTextColor();
       this.changeTextColor(param.color());
-      this.drawText(`${param.name()}`, ox, oy + (lh * index), 130);
+      this.drawText(`${param.name()}`, ox, oy + (lh * index), nameWidth);
       if (param.value() !== null)
       {
-        this.drawText(`${param.value()}`, ox + 140, oy + (lh * index), 300);
+        this.drawText(`${param.value()}`, ox + valueOffset, oy + (lh * index), valueWidth);
       }
     });
   }
@@ -427,17 +431,21 @@ class Window_SkillDetail
     params.push(this.makeDividerParam());
     params.push(...this.makeAttackStates(skill, actor));
 
-    const ox = 480;
+    const col = Math.floor(this.innerWidth / 3);
+    const ox = col + 4;
     const oy = 60;
     const lh = this.lineHeight();
+    const nameWidth = Math.floor(col * 0.44);
+    const valueOffset = Math.floor(col * 0.46);
+    const valueWidth = col - valueOffset - 4;
     params.forEach((param, index) =>
     {
       this.resetTextColor();
       this.changeTextColor(param.color());
-      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), 200);
+      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), nameWidth);
       if (param.value() !== null)
       {
-        this.drawTextEx(`${param.value()}`, ox + 200, oy + (lh * index), 200);
+        this.drawTextEx(`${param.value()}`, ox + valueOffset, oy + (lh * index), valueWidth);
       }
     });
   }
@@ -536,15 +544,19 @@ class Window_SkillDetail
 
     params.push(...this.makeAttackElementsList(skill, actor));
 
-    const ox = 700;
+    const col = Math.floor(this.innerWidth / 3);
+    const ox = col * 2 + 4;
     const oy = 0;
     const lh = this.lineHeight();
+    const nameWidth = Math.floor(col * 0.55);
+    const valueOffset = Math.floor(col * 0.57);
+    const valueWidth = col - valueOffset - 4;
     params.forEach((param, index) =>
     {
-      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), 250);
+      this.drawTextEx(`${param.name()}`, ox, oy + (lh * index), param.value() !== null ? nameWidth : col - 8);
       if (param.value() !== null)
       {
-        this.drawTextEx(`${param.value()}`, ox + 300, oy + (lh * index), 250);
+        this.drawTextEx(`${param.value()}`, ox + valueOffset, oy + (lh * index), valueWidth);
       }
     });
   }
