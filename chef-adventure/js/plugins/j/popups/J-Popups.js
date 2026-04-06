@@ -54,7 +54,6 @@
  */
 //endregion Introduction
 
-
 /**
  * The core where all my extensions live: in the `J` object.
  */
@@ -295,7 +294,6 @@ J.POPUPS.notifyPopupSpriteFinished = function(character, popup, sprite)
 };
 //endregion J_PopupsEvents
 //endregion Introduction
-
 
 //region Map_TextPop
 /**
@@ -1551,7 +1549,6 @@ J.POPUPS.isValidTextPopForQueue = function(textPop)
 };
 //endregion J_PopupLayoutRings
 
-
 //region TextPopManager
 /**
  * A static utility providing the canonical dispatch pattern for map popups.
@@ -1584,7 +1581,6 @@ class TextPopManager
   }
 }
 //endregion TextPopManager
-
 
 //region Game_Character
 /**
@@ -1971,7 +1967,6 @@ Sprite_Character.prototype.updateNonDamagePopLocation = function(nonDamageSprite
 };
 //endregion handle text pops
 //endregion Sprite_Character
-
 
 //region Sprite_Damage
 /**

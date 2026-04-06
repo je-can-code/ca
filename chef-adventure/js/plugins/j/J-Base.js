@@ -4990,7 +4990,7 @@ class RPGManager
   //region eval numbers
   /**
    * Get the eval'd formula of all matching values from the notes of a single database object.
-   * @param {RPG_Base} databaseData
+   * @param {RPG_Base} databaseData The database object to parse the notes of.
    * @param {RegExp} structure The RegExp structure to find values for.
    * @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
    * @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
@@ -5021,7 +5021,7 @@ class RPGManager
 
   /**
    * Get the eval'd formula of all matching values from the notes of a single database object.
-   * @param {RPG_Base} databaseData
+   * @param {RPG_Base} databaseData The database object to parse the notes of.
    * @param {RegExp} structure The RegExp structure to find values for.
    * @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
    * @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.

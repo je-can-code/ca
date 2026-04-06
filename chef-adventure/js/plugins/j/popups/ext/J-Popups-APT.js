@@ -31,7 +31,6 @@
  */
 //endregion Introduction
 
-
 //region J_PopupsExtAPT_init
 J.POPUPS.EXT.APT = J.POPUPS.EXT.APT || {};
 

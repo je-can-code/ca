@@ -16177,7 +16177,6 @@ class JABS_Timer
 //=================================================================================================
 /* eslint-enable max-len */
 
-
 /* eslint-disable max-len */
 //region Metadata
 /**

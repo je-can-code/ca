@@ -31,7 +31,6 @@
  */
 //endregion Introduction
 
-
 //region J_PopupsExtSDP_init
 J.POPUPS.EXT.SDP = J.POPUPS.EXT.SDP || {};
 
