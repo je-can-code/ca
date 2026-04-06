@@ -2,17 +2,34 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 POPUPS] SDP map popups (requires J-Popups + J-SDP + J-ABS).
+ * [v1.0.1 POPUPS-SDP] SDP point gain popups.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
+ * @base J-Base
+ * @base J-Popups
+ * @base J-SDP
+ * @orderAfter J-Base
+ * @orderAfter J-Popups
  * @orderAfter J-SDP
  * @help
  * ============================================================================
- * Registers J.POPUPS.EXT.SDP. Load after J-Popups and J-SDP.
+ * OVERVIEW
+ * This plugin is an extension of J-Popups for J-SDP.
+ *
+ * Have you ever wanted a popup to appear whenever a battler earns SDP points
+ * in combat? Well now you can! This plugin wires up SDP reward popups into
+ * the JABS combat flow so players always get that satisfying feedback when
+ * their panel points are ticking up.
+ *
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Renamed source file to standard JABS naming conventions.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
  */
 //endregion Introduction
-
 
 //region J_PopupsExtSDP_init
 J.POPUPS.EXT.SDP = J.POPUPS.EXT.SDP || {};
@@ -22,9 +39,7 @@ J.POPUPS.EXT.SDP.Aliased.JABS_Engine = new Map();
 //endregion J_PopupsExtSDP_init
 
 
-//region J_POPSDP_Engine
-
-//region JABS_Engine aliases
+//region JABS_Engine
 /**
  * Extends {@link #onSdpRewardGranted}.<br/>
  * Also shows an SDP-points popup on the character.
@@ -32,7 +47,6 @@ J.POPUPS.EXT.SDP.Aliased.JABS_Engine = new Map();
 J.POPUPS.EXT.SDP.Aliased.JABS_Engine.set('onSdpRewardGranted', JABS_Engine.prototype.onSdpRewardGranted);
 JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character)
 {
-  // perform original logic.
   J.POPUPS.EXT.SDP.Aliased.JABS_Engine.get('onSdpRewardGranted')
     .call(this, sdpPoints, character);
 
@@ -40,8 +54,7 @@ JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character)
     .isSdpPoints()
     .build();
 
-  character.addTextPop(pop);
-  character.requestTextPop();
+  TextPopManager.show(pop, character);
 };
 
 /**
@@ -51,7 +64,6 @@ JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character)
 J.POPUPS.EXT.SDP.Aliased.JABS_Engine.set('onSdpPanelUnlocked', JABS_Engine.prototype.onSdpPanelUnlocked);
 JABS_Engine.prototype.onSdpPanelUnlocked = function(sdpKey, character)
 {
-  // perform original logic.
   J.POPUPS.EXT.SDP.Aliased.JABS_Engine.get('onSdpPanelUnlocked')
     .call(this, sdpKey, character);
 
@@ -60,12 +72,8 @@ JABS_Engine.prototype.onSdpPanelUnlocked = function(sdpKey, character)
     .isSdpPoints()
     .build();
 
-  character.addTextPop(pop);
-  character.requestTextPop();
+  TextPopManager.show(pop, character);
 };
-//endregion JABS_Engine aliases
-
-//endregion J_POPSDP_Engine
-
+//endregion JABS_Engine
 
 //# sourceMappingURL=J-Popups-SDP.js.map

@@ -1697,55 +1697,6 @@ class RPG_Base
 
 //endregion RPG_Base
 
-//region RPG_BaseBattler
-/**
- * A class representing the groundwork for what all battlers
- * database data look like.
- */
-class RPG_BaseBattler
-  extends RPG_Base
-{
-  /**
-   * The name of the battler while in battle.
-   * @type {string}
-   */
-  battlerName = String.empty;
-
-  /**
-   * The collection of traits this battler has.
-   * @type {RPG_Trait[]}
-   */
-  traits = [];
-
-  /**
-   * Constructor.
-   * Maps the base battler data to the properties on this class.
-   * @param {RPG_Enemy|rm.types.Actor} battler The battler to parse.
-   * @param {number} index The index of the entry in the database.
-   */
-  constructor(battler, index)
-  {
-    // perform original logic.
-    super(battler, index);
-
-    // map core battler data onto this object.
-    this.battlerName = battler.battlerName;
-    this.traits = battler.traits
-      .map(trait => new RPG_Trait(trait));
-  }
-
-  /**
-   * Gets the type of implementation this database entry is.
-   * @returns {string}
-   */
-  implementationType()
-  {
-    return `${super.implementationType()}:battler`;
-  }
-}
-
-//endregion RPG_BaseBattler
-
 //region RPG_BaseItem
 /**
  * The class representing baseItem from the database,
@@ -1824,6 +1775,47 @@ class RPG_Traited
 }
 
 //endregion RPG_Traited
+
+//region RPG_BaseBattler
+/**
+ * A class representing the groundwork for what all battlers
+ * database data look like.
+ */
+class RPG_BaseBattler
+  extends RPG_Traited
+{
+  /**
+   * The name of the battler while in battle.
+   * @type {string}
+   */
+  battlerName = String.empty;
+
+  /**
+   * Constructor.
+   * Maps the base battler data to the properties on this class.
+   * @param {RPG_Enemy|rm.types.Actor} battler The battler to parse.
+   * @param {number} index The index of the entry in the database.
+   */
+  constructor(battler, index)
+  {
+    // perform original logic.
+    super(battler, index);
+
+    // map core battler data onto this object.
+    this.battlerName = battler.battlerName;
+  }
+
+  /**
+   * Gets the type of implementation this database entry is.
+   * @returns {string}
+   */
+  implementationType()
+  {
+    return `${super.implementationType()}:battler`;
+  }
+}
+
+//endregion RPG_BaseBattler
 
 //region RPG_EquipItem
 /**
@@ -2202,7 +2194,7 @@ class RPG_Armor
  * A class representing a RPG-relevant class from the database.
  */
 class RPG_Class
-  extends RPG_Base
+  extends RPG_Traited
 {
   //region properties
   /**
@@ -2225,12 +2217,6 @@ class RPG_Class
    */
   params = [ [ 1 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ], [ 0 ] ];
 
-  /**
-   * A collection of traits this class has.
-   * @type {RPG_Trait[]}
-   */
-  traits = [];
-
   //endregion properties
 
   /**
@@ -2248,8 +2234,6 @@ class RPG_Class
     this.learnings = classData.learnings
       .map(learning => new RPG_ClassLearning(learning));
     this.params = classData.params;
-    this.traits = classData.traits
-      .map(trait => new RPG_Trait(trait));
   }
 
   /**
@@ -5006,7 +4990,7 @@ class RPGManager
   //region eval numbers
   /**
    * Get the eval'd formula of all matching values from the notes of a single database object.
-   * @param {RPG_Base} databaseData
+   * @param {RPG_Base} databaseData The database object to parse the notes of.
    * @param {RegExp} structure The RegExp structure to find values for.
    * @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
    * @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
@@ -5037,7 +5021,7 @@ class RPGManager
 
   /**
    * Get the eval'd formula of all matching values from the notes of a single database object.
-   * @param {RPG_Base} databaseData
+   * @param {RPG_Base} databaseData The database object to parse the notes of.
    * @param {RegExp} structure The RegExp structure to find values for.
    * @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
    * @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
