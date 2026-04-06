@@ -135,7 +135,6 @@
  */
 //endregion annotations
 
-
 //region plugin metadata
 class JResourcesAbs_PluginMetadata
   extends PluginMetadata
@@ -160,7 +159,6 @@ class JResourcesAbs_PluginMetadata
 }
 
 //endregion plugin metadata
-
 
 //region initialization
 /**
@@ -211,7 +209,6 @@ J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainPercent = /<when-hit-tp-gain:(\d+)%>/gi;
 J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainFormula = /<when-hit-tp-gain:\[([+\-*/ ().\w]+)]>/gi;
 
 //endregion initialization
-
 
 //region JABS_Engine
 /**
@@ -305,7 +302,8 @@ class ResourceHitManager
   static onAttackHpGain(caster, skill)
   {
     return ResourceHitManager.#gainBySkill(
-      caster, skill,
+      caster,
+      skill,
       J.RESOURCES.EXT.ABS.RegExp.OnAttackHpGainFlat,
       J.RESOURCES.EXT.ABS.RegExp.OnAttackHpGainPercent,
       J.RESOURCES.EXT.ABS.RegExp.OnAttackHpGainFormula,
@@ -322,7 +320,8 @@ class ResourceHitManager
   static onAttackMpGain(caster, skill)
   {
     return ResourceHitManager.#gainBySkill(
-      caster, skill,
+      caster,
+      skill,
       J.RESOURCES.EXT.ABS.RegExp.OnAttackMpGainFlat,
       J.RESOURCES.EXT.ABS.RegExp.OnAttackMpGainPercent,
       J.RESOURCES.EXT.ABS.RegExp.OnAttackMpGainFormula,
@@ -339,7 +338,8 @@ class ResourceHitManager
   static onAttackTpGain(caster, skill)
   {
     return ResourceHitManager.#gainBySkill(
-      caster, skill,
+      caster,
+      skill,
       J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainFlat,
       J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainPercent,
       J.RESOURCES.EXT.ABS.RegExp.OnAttackTpGainFormula,
@@ -424,9 +424,7 @@ class ResourceHitManager
     const flat = RPGManager.getNumberFromNoteByRegex(skill, flatRegex);
     const percent = RPGManager.getNumberFromNoteByRegex(skill, percentRegex);
     const calculatedPercent = maxStat * (percent / 100);
-    const formula = RPGManager.getResultFromNoteByRegex(
-      skill, formulaRegex, (flat + calculatedPercent), caster
-    );
+    const formula = RPGManager.getResultFromNoteByRegex(skill, formulaRegex, (flat + calculatedPercent), caster);
 
     const total = flat + calculatedPercent + formula;
     if (total === 0) return 0;
@@ -452,16 +450,21 @@ class ResourceHitManager
   {
     const sources = targetBattler.hcrSources();
 
-    const totalFlat = sources.reduce((acc, source) =>
-      acc + RPGManager.getNumberFromNoteByRegex(source, flatRegex), 0);
+    const totalFlat = sources.reduce((acc, source) => acc + RPGManager.getNumberFromNoteByRegex(source, flatRegex), 0);
 
-    const totalPercent = sources.reduce((acc, source) =>
-      acc + RPGManager.getNumberFromNoteByRegex(source, percentRegex), 0);
+    const totalPercent = sources.reduce((acc, source) => acc + RPGManager.getNumberFromNoteByRegex(
+      source,
+      percentRegex
+    ), 0);
     const calculatedPercent = maxStat * (totalPercent / 100);
 
     // damage is passed as `b` so formula authors can write e.g. `b * 0.1` for 10% of damage.
-    const totalFormula = sources.reduce((acc, source) =>
-      acc + RPGManager.getResultFromNoteByRegex(source, formulaRegex, damage, targetBattler), 0);
+    const totalFormula = sources.reduce((acc, source) => acc + RPGManager.getResultFromNoteByRegex(
+      source,
+      formulaRegex,
+      damage,
+      targetBattler
+    ), 0);
 
     const total = totalFlat + calculatedPercent + totalFormula;
     if (total === 0) return 0;

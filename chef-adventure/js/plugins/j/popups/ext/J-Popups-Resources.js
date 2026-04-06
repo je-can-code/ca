@@ -46,7 +46,6 @@
  */
 //endregion annotations
 
-
 //region plugin metadata
 class JPopupsResources_PluginMetadata
   extends PluginMetadata

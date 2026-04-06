@@ -39,7 +39,6 @@
  */
 //endregion Introduction
 
-
 //region initialization
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -61,7 +60,6 @@ J.POPUPS.EXT.ABS.Aliased.Game_Action = new Map();
  */
 Map_TextPop.Types.Shield = 'shield';
 //endregion Map_TextPop
-
 
 //region TextPopBuilder
 /**
@@ -94,7 +92,6 @@ TextPopBuilder.prototype.isShieldBreak = function()
   return this;
 };
 //endregion TextPopBuilder
-
 
 //region JABS_Engine
 /**

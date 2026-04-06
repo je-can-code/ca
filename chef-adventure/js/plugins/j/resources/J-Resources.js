@@ -279,7 +279,6 @@ ColorManager.hpCostColor = function()
 };
 //endregion ColorManager
 
-
 //region IconManager
 /**
  * Gets the icon index for the HP skill cost parameter.
@@ -312,7 +311,6 @@ IconManager.longParam = function(paramId)
     .call(this, paramId);
 };
 //endregion IconManager
-
 
 //region ResourceCostManager
 class ResourceCostManager
@@ -352,7 +350,11 @@ class ResourceCostManager
    */
   static hpCostBySkill(battler, skill)
   {
-    const { flat, calculatedPercent, formula } = ResourceCostManager.hpCostBreakdown(battler, skill);
+    const {
+      flat,
+      calculatedPercent,
+      formula
+    } = ResourceCostManager.hpCostBreakdown(battler, skill);
 
     // if there are no costs, then return 0.
     if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
@@ -379,7 +381,7 @@ class ResourceCostManager
       (flatRaw + calculatedPercentRaw),
       battler
     );
-    const mcr = battler.mcr;
+    const { mcr } = battler;
     return {
       flat: flatRaw * mcr,
       percent,
@@ -396,7 +398,11 @@ class ResourceCostManager
    */
   static extraMpCostBySkill(battler, skill)
   {
-    const { flat, calculatedPercent, formula } = ResourceCostManager.extraMpCostBreakdown(battler, skill);
+    const {
+      flat,
+      calculatedPercent,
+      formula
+    } = ResourceCostManager.extraMpCostBreakdown(battler, skill);
 
     // if there are no costs, then return 0.
     if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
@@ -418,12 +424,12 @@ class ResourceCostManager
     const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostPercent);
     const calculatedPercentRaw = battler.mtp * (percent / 100);
     const formulaRaw = RPGManager.getResultFromNoteByRegex(
-      skill ,
+      skill,
       J.RESOURCES.RegExp.TpCostFormula,
       (flatRaw + calculatedPercentRaw),
       battler
     );
-    const tcr = battler.tcr;
+    const { tcr } = battler;
     return {
       flat: flatRaw * tcr,
       percent,
@@ -440,7 +446,11 @@ class ResourceCostManager
    */
   static extraTpCostBySkill(battler, skill)
   {
-    const { flat, calculatedPercent, formula } = ResourceCostManager.extraTpCostBreakdown(battler, skill);
+    const {
+      flat,
+      calculatedPercent,
+      formula
+    } = ResourceCostManager.extraTpCostBreakdown(battler, skill);
 
     // if there are no costs, then return 0.
     if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
@@ -580,7 +590,6 @@ TextManager.longParam = function(paramId)
     .call(this, paramId);
 };
 //endregion TextManager
-
 
 //region Game_Actor
 /**
@@ -896,8 +905,7 @@ Game_BattlerBase.prototype.skillTpCost = function(skill)
 Game_Enemy.prototype.hcrSources = function()
 {
   return [
-    this.databaseData(),
-    ...this.allStates(),
+    this.databaseData(), ...this.allStates(),
   ];
 };
 //endregion Game_Enemy
