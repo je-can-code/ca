@@ -786,50 +786,43 @@ class Window_MoreEquipData
   }
 
   /**
-   * Add the "bonus hits" command.
-   * Usually goes on weapons, but if bonus hits exist on other
-   * types of equipment, then we'll report those, too.
+   * Adds per-connection bonus hit lines from scoped JABS tags, plus a weapon hit-count summary.
    */
   addHitsCommand()
   {
-    // grab the bonus hits out of the item.
-    const { jabsBonusHits } = this.item;
+    const item = this.item;
+    const isWeapon = item.isWeapon();
+    const globalHits = item.jabsBonusHitsScopeGlobal;
+    const basicHits = item.jabsBonusHitsScopeBasic;
+    const skillHits = item.jabsBonusHitsScopeSkill;
 
-    // check if this is a weapon.
-    const isWeapon = this.item.isWeapon();
+    const hasAnyScope = globalHits > 0 || basicHits > 0 || skillHits > 0;
 
-    // weapons have a default bonus of +1 hits.
-    let bonusHits = jabsBonusHits ?? 0;
+    if (hasAnyScope === false && isWeapon === false) return;
 
-    // if there is no bonus hits, and this isn't a weapon, don't list 0 hits.
-    if (!(bonusHits || isWeapon)) return;
-
-    // define the command name depending on whether or not we its a weapon.
-    let commandName = `Bonus Hits`;
-
-    // check if this is a weapon.
-    if (isWeapon)
-    {
-      // weapons by default have a hit.
-      bonusHits += 1;
-
-      // weapons will instead have a hit count total including bonus hits.
-      commandName = `Hit Count`;
-    }
-
-    // define the command name.
-    const hitBonusCommand = `${commandName}: x${bonusHits}`;
-
-    // its very long, so lets do that icon calculation here.
     const hitBonusIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.BONUS_HITS);
 
-    // build the skill command.
-    const command = new WindowCommandBuilder(hitBonusCommand)
-      .setIconIndex(hitBonusIcon)
-      .build();
+    const pushScopeRow = (label, value) =>
+    {
+      const text = `${label}: +${value}`;
+      const row = new WindowCommandBuilder(text)
+        .setIconIndex(hitBonusIcon)
+        .build();
+      this.addBuiltCommand(row);
+    };
 
-    // add the skill command to the list.
-    this.addBuiltCommand(command);
+    if (globalHits > 0) pushScopeRow('Bonus hits (global)', globalHits);
+    if (basicHits > 0) pushScopeRow('Bonus hits (basic)', basicHits);
+    if (skillHits > 0) pushScopeRow('Bonus hits (skill)', skillHits);
+
+    if (isWeapon)
+    {
+      const weaponHitTotal = 1 + globalHits + basicHits;
+      const hitCountRow = new WindowCommandBuilder(`Hit count: x${weaponHitTotal}`)
+        .setIconIndex(hitBonusIcon)
+        .build();
+      this.addBuiltCommand(hitCountRow);
+    }
   }
 
   /**

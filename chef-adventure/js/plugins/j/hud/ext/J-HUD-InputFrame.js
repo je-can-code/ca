@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 HUD-INPUT] A HUD frame that displays your leader's buttons data.
+ * [v1.1.2 HUD-INPUT] A HUD frame that displays your leader's buttons data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -31,6 +31,9 @@
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 1.1.2
+ *    Combo cooldown gauge merges J-ABS global cooldown (GCD) for GCD-subject
+ *    skill slots (not tool/dodge).
  * - 1.1.1
  *    Wired HP skill cost into Sprite_SkillCost for display on action slots
  *    (requires J-Resources).
@@ -71,7 +74,7 @@ J.HUD.EXT.INPUT = {};
  */
 J.HUD.EXT.INPUT = {};
 J.HUD.EXT.INPUT.Metadata = {};
-J.HUD.EXT.INPUT.Metadata.Version = '1.1.0';
+J.HUD.EXT.INPUT.Metadata.Version = '1.1.2';
 J.HUD.EXT.INPUT.Metadata.Name = `J-HUD-InputFrame`;
 
 /**
@@ -523,7 +526,60 @@ class Sprite_CooldownGauge
        * @type {number}
        */
       _valueMax: 0,
+
+      /**
+       * Highest recent combined cooldown (slot vs GCD) so the bar does not shrink when GCD outlasts the per-skill timer.
+       * @type {number}
+       */
+      _gcdHudPeak: 0,
+
+      /**
+       * Leader battler whose {@link J.ABS.Globals.GlobalCooldownKey} may be reflected on this input-slot gauge.
+       * @type {JABS_Battler|null}
+       */
+      _gcdMergeBattler: null,
+
+      /**
+       * Skill id assigned to this HUD slot; used with {@link JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown} to decide if GCD should merge.
+       * @type {number}
+       */
+      _gcdMergeSkillId: 0,
     };
+  }
+
+  /**
+   * Binds this gauge to show remaining GCD alongside the slot cooldown when the slot maps to a GCD-subject skill.
+   * Clears merge state for tool, dodge, and item slots so those inputs never display the shared timer.
+   * @param {JABS_Battler|null} jabsBattler The leader JABS battler.
+   * @param {JABS_SkillSlot|null} skillSlot Slot shown on this input key.
+   */
+  setHudGcdMerge(jabsBattler, skillSlot)
+  {
+    this._j._gcdMergeBattler = null;
+    this._j._gcdMergeSkillId = 0;
+    if (!jabsBattler || !skillSlot) return;
+    const { key } = skillSlot;
+    if (key === JABS_Button.Tool || key === JABS_Button.Dodge) return;
+    if (skillSlot.isItem()) return;
+    this._j._gcdMergeBattler = jabsBattler;
+    this._j._gcdMergeSkillId = skillSlot.id;
+  }
+
+  /**
+   * Remaining frames on the battler-wide GCD for HUD purposes when merge is armed and the slotted skill is GCD-subject.
+   * Returns zero if J-ABS or {@link JABS_GlobalCooldown} is unavailable, the slot is not merged, or the global timer is ready.
+   * @returns {number} Frames left on {@link J.ABS.Globals.GlobalCooldownKey}, or 0 when not applicable.
+   */
+  globalHudFrames()
+  {
+    if (!this._j._gcdMergeBattler || !this._j._gcdMergeSkillId) return 0;
+    if (typeof J.ABS === 'undefined' || typeof JABS_GlobalCooldown === 'undefined') return 0;
+    const sk = $dataSkills[this._j._gcdMergeSkillId];
+    if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(sk) === false) return 0;
+    const globalCd = this._j._gcdMergeBattler.getCooldown(J.ABS.Globals.GlobalCooldownKey);
+    if (!globalCd) return 0;
+    if (globalCd.isBaseReady() === true) return 0;
+    return globalCd.frames;
   }
 
   /**
@@ -559,7 +615,9 @@ class Sprite_CooldownGauge
    */
   currentValue()
   {
-    return this.cooldownData().frames;
+    const cd = this.cooldownData();
+    const g = this.globalHudFrames();
+    return Math.max(cd.frames, g);
   }
 
   /**
@@ -674,28 +732,33 @@ class Sprite_CooldownGauge
   }
 
   /**
-   * Disables the gauge and makes it invisible.
+   * Disables the gauge, clears the GCD peak used for merged display, and makes it invisible.
    */
   disableGauge()
   {
     // zero the max value.
     this.setMaxValue(0);
 
+    this._j._gcdHudPeak = 0;
+
     // make the sprite invisible.
     this.bitmap.paintOpacity = 0;
   }
 
   /**
-   * Enables the gauge and sets the max value to whatever the cooldown dictates.
-   * If the gauge was previously invisible, it will be made visible.
+   * Enables the gauge and sets the max value from the greater of the slot cooldown and merged GCD so the bar matches the longer wait.
+   * Tracks a peak so the fill rate stays stable when GCD extends past the per-skill countdown.
    */
   enableGauge()
   {
-    // extract the frames from the cooldown data.
-    const { frames } = this.cooldownData();
-
-    // set the new max value.
-    this.setMaxValue(frames);
+    const cd = this.cooldownData();
+    const g = this.globalHudFrames();
+    const eff = Math.max(cd.frames, g);
+    if (this._j._gcdHudPeak < eff)
+    {
+      this._j._gcdHudPeak = eff;
+    }
+    this.setMaxValue(this._j._gcdHudPeak);
 
     // make the sprite visible.
     this.bitmap.paintOpacity = 255;
@@ -733,25 +796,34 @@ class Sprite_CooldownGauge
   }
 
   /**
-   * Handles the visibility of the gauge.
+   * Shows or hides the gauge and updates its max from slot cooldown and optional merged GCD.
+   * Hides only when both the slot base cooldown and merged GCD are finished; otherwise keeps the peak max for a smooth drain.
    */
   handleActionReadiness()
   {
-    // grab the cooldown for this gauge.
     const cooldown = this.cooldownData();
+    const g = this.globalHudFrames();
+    const eff = Math.max(cooldown.frames, g);
 
-    // check if the combo is ready and we have no max.
     if (cooldown.isComboReady() && this.isMaxUnassigned())
     {
-      // enable the gauge with its values.
       this.enableGauge();
     }
 
-    // check if the cooldown's base is ready.
-    if (cooldown.isBaseReady())
+    if (cooldown.isBaseReady() === true && g <= 0)
     {
-      // clear the gauge when the base is ready.
       this.disableGauge();
+      return;
+    }
+
+    if (cooldown.isBaseReady() === false || g > 0)
+    {
+      if (this._j._gcdHudPeak < eff)
+      {
+        this._j._gcdHudPeak = eff;
+      }
+      this.setMaxValue(this._j._gcdHudPeak);
+      this.bitmap.paintOpacity = 255;
     }
   }
 
@@ -1636,6 +1708,7 @@ class Sprite_InputKeySlot
 
     // relocate the sprite.
     const sprite = this.getOrCreateInputKeyComboGaugeSprite(cooldownData, inputType);
+    sprite.setHudGcdMerge(this.jabsBattler(), this.skillSlot());
     sprite.show();
     sprite.move(x + 32, y + 32);
   }
