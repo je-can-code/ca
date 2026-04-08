@@ -378,32 +378,57 @@ class JABS_Action
     this._pierceDelay = new JABS_Timer(this._basePierceDelay);
 
     this._pierceDelay.setCurrentTime(this._pierceDelay.getMaxTime() - 1);
+
+    // extra full battle-effect applications per target per pierce tick, beyond the first.
+    this._hitsPerConnectionBonus = this.makeHitsPerConnectionBonus();
   }
 
   /**
-   * Combines from all available sources the bonus hits for this action.
+   * Builds the pierce-step budget from the skill only (connection count before the action ends).
    * @returns {number}
    */
   makePiercingCount()
   {
-    let pierceCount = this._baseSkill.jabsPierceCount;
+    return this._baseSkill.jabsPierceCount;
+  }
 
-    // handle skill extension bonuses.
-    if (J.EXTEND)
+  /**
+   * Sums battler-scoped and skill-note per-connection bonus hits for this action.
+   * @returns {number}
+   */
+  makeHitsPerConnectionBonus()
+  {
+    const gameBattler = this._caster.getBattler();
+    const isBasicAttack = this._caster.isSkillIdBasicAttack(this._baseSkill.id);
+
+    let bonusHits = gameBattler.getBonusHitsGlobal();
+
+    if (isBasicAttack)
     {
-      // check if there is an underlying item to parse repeats off of.
-      pierceCount += this._gameAction._item
-        // skill extensions borrow from the extended skill repeats instead.
-        ? this._gameAction._item._item.repeats - 1
-        // no extended skill, no bonus repeats.
-        : 0;
+      bonusHits += gameBattler.getBonusHitsBasic();
+    }
+    else
+    {
+      bonusHits += gameBattler.getBonusHitsSkill();
     }
 
-    // handle other bonus hits for basic attacks.
-    const isBasicAttack = [ JABS_Button.Mainhand, JABS_Button.Offhand ].includes(this.getCooldownType());
-    pierceCount += this._caster.getAdditionalHits(this._baseSkill, isBasicAttack);
+    bonusHits += this._baseSkill.jabsBonusHitsFromSkillNote;
 
-    return pierceCount;
+    if (bonusHits < 0)
+    {
+      return 0;
+    }
+
+    return bonusHits;
+  }
+
+  /**
+   * Gets the cached extra applications per target per pierce tick (beyond the first).
+   * @returns {number}
+   */
+  getHitsPerConnectionBonus()
+  {
+    return this._hitsPerConnectionBonus;
   }
 
   /**
@@ -1190,20 +1215,37 @@ class JABS_Action
   }
 
   /**
-   * Handles collision in the context of this action against in-range battlers.
+   * Applies battle effects to every collision target for this pierce tick.
+   * Runs `1 + getHitsPerConnectionBonus()` applications per target; stops early
+   * when the target is dead or when the first application is parried.
    */
   processCollision()
   {
-    // grab all available collision targets.
     const collisionTargets = $jabsEngine.getCollisionTargets(this);
 
-    // check if we have any collision targets.
     if (collisionTargets.length === 0) return;
 
-    // apply the battle effects of the action against each target.
-    collisionTargets.forEach(target => $jabsEngine.applyPrimaryBattleEffects(this, target), this);
+    const applicationsPerTarget = 1 + this.getHitsPerConnectionBonus();
 
-    // perform post-collision action things.
+    collisionTargets.forEach(function(target)
+    {
+      for (let hitIndex = 0; hitIndex < applicationsPerTarget; hitIndex++)
+      {
+        if (target.isDead())
+        {
+          break;
+        }
+
+        $jabsEngine.applyPrimaryBattleEffects(this, target);
+
+        const parried = target.getBattler().result().parried === true;
+        if (parried)
+        {
+          break;
+        }
+      }
+    }, this);
+
     this.onCollision();
   }
 
@@ -4938,34 +4980,6 @@ JABS_Battler.prototype.getAllSkillIdsFromEnemy = function()
 };
 
 /**
- * Gets the number of additional/bonus hits per basic attack.
- * Skills (such as magic) do not receive bonus hits at this time.
- * @param {RPG_Skill} skill The skill to consider regarding bonus hits.
- * @param {boolean} isBasicAttack True if this is a basic attack, false otherwise.
- * @returns {number} The number of bonus hits per attack.
- */
-JABS_Battler.prototype.getAdditionalHits = function(skill, isBasicAttack)
-{
-  let bonusHits = 0;
-  const battler = this.getBattler();
-  if (isBasicAttack)
-  {
-    // TODO: split "basic attack" bonus hits from "skill" and "all" bonus hits.
-    bonusHits += battler.getBonusHits();
-    if (skill.repeats > 1)
-    {
-      bonusHits += skill.repeats - 1;
-    }
-  }
-  else
-  {
-    // check for skills that may have non-pierce-related bonus hits?
-  }
-
-  return bonusHits;
-};
-
-/**
  * Forces a display of a emoji balloon above this battler's head.
  * @param {number} balloonId The id of the balloon to display on this character.
  */
@@ -7915,7 +7929,7 @@ JABS_Battler.prototype.getPrepareTime = function()
 
 /**
  * Determines whether or not a skill can be executed based on restrictions or not.
- * This is used by AI.
+ * This is used by AI. Also enforces the battler-wide global cooldown: GCD-subject skills return false while the shared timer is active.
  * @param {number} chosenSkillId The skill id to be executed.
  * @returns {boolean} True if this skill can be executed, false otherwise.
  */
@@ -7989,6 +8003,11 @@ JABS_Battler.prototype.canExecuteSkill = function(chosenSkillId)
   if (!isCombo && !cooldown.isBaseReady())
   {
     // cooldown is not ready yet.
+    return false;
+  }
+
+  if (JABS_GlobalCooldown.isGlobalBlockingSkillId(this, chosenSkillId))
+  {
     return false;
   }
 
@@ -10771,6 +10790,117 @@ class JABS_EnemyAI
 //endregion JABS_EnemyAI
 
 
+//region JABS_GlobalCooldown
+/**
+ * Stateless helpers for the optional battler-wide global cooldown (GCD), similar to MMO-style GCD.
+ * Whitelisted skill types share one countdown on the {@link JABS_Battler}; while it runs, other GCD-subject skills are
+ * refused by input and AI until the timer clears. Exempt skills (notetags) and non-whitelisted types never stamp or
+ * respect this timer. Tool and dodge paths do not use this class.
+ */
+class JABS_GlobalCooldown
+{
+  /**
+   * Blocks construction so this type stays a pure static namespace.
+   * @throws {Error} Always; the class has no instance API.
+   */
+  constructor()
+  {
+    throw new Error('JABS_GlobalCooldown is a static class.');
+  }
+
+  /**
+   * Whether plugin parameters have turned the GCD system on.
+   * When false, no skill is treated as GCD-subject and no global timer is applied or checked.
+   * @returns {boolean} True when {@link J.ABS.Metadata.EnableGlobalCooldown} is enabled.
+   */
+  static isSystemEnabled()
+  {
+    return J.ABS.Metadata.EnableGlobalCooldown === true;
+  }
+
+  /**
+   * Whether this database skill participates in GCD stamping and blocking.
+   * Requires the system to be enabled, a real skill row, a skill type in the configured whitelist, and absence of
+   * {@code noGlobalCooldown} / {@code ogcd} exemption notetags.
+   * @param {RPG_Skill|null|undefined} skill Skill database entry.
+   * @returns {boolean} True when executing this skill should use the global cooldown rules.
+   */
+  static skillIsSubjectToGlobalCooldown(skill)
+  {
+    if (JABS_GlobalCooldown.isSystemEnabled() === false) return false;
+    if (!skill) return false;
+    if (skill.jabsIgnoresGlobalCooldown === true) return false;
+    return J.ABS.Metadata.GlobalCooldownSkillTypeSet.has(skill.stypeId);
+  }
+
+  /**
+   * Frame count to write onto the battler-wide GCD cooldown when a GCD-subject skill is executed.
+   * Honors a positive per-skill override from {@code <gcd:N>} when present; otherwise uses the plugin default duration.
+   * @param {RPG_Skill|null|undefined} skill Skill database entry (null uses default length only).
+   * @returns {number} Whole frames of GCD to apply (at least the plugin default when no valid override).
+   */
+  static framesForSkill(skill)
+  {
+    if (!skill) return J.ABS.Metadata.GlobalCooldownFrames;
+    const override = skill.jabsGlobalCooldownOverride;
+    if (override !== null && override !== undefined)
+    {
+      const o = Number(override);
+      if (Number.isFinite(o) && o > 0)
+      {
+        return Math.floor(o);
+      }
+    }
+    return J.ABS.Metadata.GlobalCooldownFrames;
+  }
+
+  /**
+   * Whether the battler's active global cooldown should veto using {@code skillId} right now.
+   * Non-subject skills always return false here so oGCD and off-list types never wait on the shared timer.
+   * @param {JABS_Battler} jabsBattler Battler whose {@link J.ABS.Globals.GlobalCooldownKey} cooldown is read.
+   * @param {number} skillId Database skill id for the attempted action.
+   * @returns {boolean} True when GCD is running and this skill is subject to it.
+   */
+  static isGlobalBlockingSkillId(jabsBattler, skillId)
+  {
+    const skill = $dataSkills[skillId];
+    if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(skill) === false) return false;
+    const globalCd = jabsBattler.getCooldown(J.ABS.Globals.GlobalCooldownKey);
+    if (!globalCd) return false;
+    if (globalCd.isBaseReady() === true) return false;
+    return true;
+  }
+
+  /**
+   * Finds the map-driven {@link JABS_Battler} for a party actor (leader or visible follower).
+   * Used when only a {@link Game_Actor} id is known—e.g. plugin commands—because GCD state lives on the map entity, not the database actor alone.
+   * @param {Game_Actor} actor Party member to resolve.
+   * @returns {JABS_Battler|null} Wrapper when that actor is currently the player or a visible follower; otherwise null.
+   */
+  static jabsBattlerForActor(actor)
+  {
+    if (!actor) return null;
+    const leader = $gameParty.leader();
+    if (leader === actor)
+    {
+      return $gamePlayer.getJabsBattler();
+    }
+    const vis = $gamePlayer.followers()
+      .visibleFollowers();
+    for (let i = 0; i < vis.length; i++)
+    {
+      const follower = vis[i];
+      if (follower.actor() === actor)
+      {
+        return follower.getJabsBattler();
+      }
+    }
+    return null;
+  }
+}
+
+//endregion JABS_GlobalCooldown
+
 //region JABS_GuardData
 /**
  * A class responsible for managing the data revolving around guarding and parrying.
@@ -11184,6 +11314,18 @@ class JABS_InputAdapter
   }
 
   /**
+   * True when the battler-wide global cooldown timer should reject this skill attempt for the given battler.
+   * Delegates to {@link JABS_GlobalCooldown.isGlobalBlockingSkillId}; exempt and non-whitelisted skills never block here.
+   * @param {JABS_Battler} jabsBattler The battler performing the action.
+   * @param {number} skillId Skill database id for the attempted action.
+   * @returns {boolean} True when GCD is active and the skill is subject to it.
+   */
+  static #isGlobalCooldownBlockingSkill(jabsBattler, skillId)
+  {
+    return JABS_GlobalCooldown.isGlobalBlockingSkillId(jabsBattler, skillId);
+  }
+
+  /**
    * Checks whether or not any controllers have been registered with this input adapter.
    * @returns {boolean} True if we have at least one registered controller, false otherwise.
    */
@@ -11238,6 +11380,11 @@ class JABS_InputAdapter
 
     // if there are none, then do not perform.
     if (!actions || !actions.length) return false;
+
+    if (JABS_InputAdapter.#isGlobalCooldownBlockingSkill(jabsBattler, actions[0].getBaseSkill().id))
+    {
+      return false;
+    }
 
     // if the player is casting, then do not perform.
     if (jabsBattler.isCasting()) return false;
@@ -11295,6 +11442,11 @@ class JABS_InputAdapter
 
     // if there are none, then do not perform.
     if (!actions || !actions.length) return false;
+
+    if (JABS_InputAdapter.#isGlobalCooldownBlockingSkill(jabsBattler, actions[0].getBaseSkill().id))
+    {
+      return false;
+    }
 
     // if the player is casting, then do not perform.
     if (jabsBattler.isCasting()) return false;
@@ -11419,7 +11571,13 @@ class JABS_InputAdapter
     if (jabsBattler.isCasting()) return false;
 
     // if there is no action data for the skill, then do not perform.
-    if (jabsBattler.getAttackData(slot).length === 0) return false;
+    const combatActions = jabsBattler.getAttackData(slot);
+    if (combatActions.length === 0) return false;
+
+    if (JABS_InputAdapter.#isGlobalCooldownBlockingSkill(jabsBattler, combatActions[0].getBaseSkill().id))
+    {
+      return false;
+    }
 
     // perform!
     return true;
@@ -13980,7 +14138,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.7.2 JABS] Enables combat to be carried out on the map.
+ * [v4.8.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14025,6 +14183,9 @@ class JABS_Timer
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.8.0
+ *    Optional global cooldown (GCD): plugin params, skill-type whitelist, notetags `noGlobalCooldown`/`ogcd`/`gcd`,
+ *    AI and input gating (dodge/tool exempt), HUD combo gauge shows GCD pressure, plugin command to stamp GCD.
  * - 4.7.2
  *    Unified enemy and ally AI skill decisions to return a skill-id array (empty or one id);
  *    JABS_AiManager phase-2 paths read the first element after validation.
@@ -14633,6 +14794,17 @@ class JABS_Timer
  * shares the same ID as another slot.
  *    <uniqueCooldown>
  *
+ * GLOBAL COOLDOWN (GCD):
+ * Optional battler-wide lockout after using skills whose skill type id (stypeId)
+ * is listed in plugin param "Global Cooldown Skill Types" (number[]). Dodge and
+ * tool inputs never participate. Enable via "Enable Global Cooldown".
+ *    <noGlobalCooldown>
+ *    <ogcd>
+ *  Either tag marks an "oGCD" skill: it does not stamp GCD and is not blocked
+ *  by the global timer.
+ *    <gcd:FRAMES>
+ *  Overrides default GCD length for this skill when it triggers GCD.
+ *
  * ----------------------------------------------------------------------------
  * RADIUS:
  * How large the hitbox of this skill is, using tiles as measurement.
@@ -14821,20 +14993,33 @@ class JABS_Timer
  *
  * ----------------------------------------------------------------------------
  * PIERCING:
- * Enables a skill to hit multiple targets multiple times, with an optional
- * delay between each hit.
+ * Defines how many collision "steps" (connections) the map action may
+ * complete before it ends, and the delay between those steps.
  *    <pierce:[TIMES,DELAY]>
- *  Where TIMES is the maximum number of times this skill can pierce.
- *  Where DELAY is the number of frames between each hit.
+ *  Where TIMES is the connection budget for this skill (including the first).
+ *  Where DELAY is the number of frames to wait before the next connection.
  *
  * NOTE ABOUT HIT FREQUENCY:
- * The most a skill can hit is once per frame. A DELAY of 0 means it
- * hits every frame it collides.
+ * The most a skill can register a new connection is once per frame. A DELAY
+ * of 0 means it can connect every frame its hitbox overlaps valid targets.
  *
- * NOTE ABOUT SKILL REPEATS:
- * The database "repeats" field is added on top of the TIMES value.
- * Omitting the tag and adding "5 repeats" in the database is equivalent
- * to having <pierce:[6,0]> on the skill.
+ * NOTE ABOUT DATABASE REPEATS:
+ * JABS does not read the RMMZ skill "repeats" field for pierce or for extra
+ * hits per connection. Use <pierce:[...]> and the bonus-hits tags below.
+ *
+ * ----------------------------------------------------------------------------
+ * PER-CONNECTION BONUS HITS (SKILL NOTE):
+ * Each time a pierce step resolves against targets, JABS runs the full
+ * battle-effect pipeline once per target, plus extra runs controlled by
+ * bonus-hit tags. This tag on the skill adds extra applications per target
+ * for that step (stacking with battler-side tags).
+ *    <bonus-hits:VAL>
+ *  Where VAL is a non-negative integer added to the per-connection bonus.
+ *
+ * PARRY VS GUARD:
+ * If a parry triggers on a target during the first application of a bundle,
+ * remaining applications in that bundle for that target are skipped. Guard
+ * still runs every application in the bundle with normal mitigation each time.
  *
  * ----------------------------------------------------------------------------
  * KNOCKBACK:
@@ -15056,6 +15241,18 @@ class JABS_Timer
  * this equipment is knocked back by incoming hits:
  *    <knockbackResist:VAL>
  *  Where VAL is the number of knockback tiles to cancel.
+ *
+ * ----------------------------------------------------------------------------
+ * PER-CONNECTION BONUS HITS (ACTOR / CLASS / EQUIPMENT / STATES):
+ * These stack with <bonus-hits:VAL> on the executing skill. Place them on
+ * actor, class, weapons, armors, states, or enemy data as appropriate.
+ *    <bonus-hits-global:VAL>
+ * Adds VAL to the per-connection bonus for every JABS action.
+ *    <bonus-hits-basic:VAL>
+ * Adds VAL only when the action is a basic attack (mainhand/offhand for
+ * actors, or the enemy's designated basic attack skill).
+ *    <bonus-hits-skill:VAL>
+ * Adds VAL only for non-basic skills.
  *
  * HIDING ITEMS/SKILLS FROM ASSIGNMENT:
  * To prevent certain items or skills from appearing in the assignment
@@ -16015,6 +16212,31 @@ class JABS_Timer
  * @desc The text that shows up in the JABS quickmenu for the "- unassigned -" command.
  * @default - unassigned -
  *
+ * @param globalCooldownConfigs
+ * @text GLOBAL COOLDOWN (GCD)
+ *
+ * @param enableGlobalCooldown
+ * @parent globalCooldownConfigs
+ * @type boolean
+ * @text Enable Global Cooldown
+ * @desc When true, whitelisted skill types stamp a battler-wide GCD and respect it on skill use (not dodge/tool).
+ * @default false
+ *
+ * @param globalCooldownFrames
+ * @parent globalCooldownConfigs
+ * @type number
+ * @min 1
+ * @text Default GCD Frames
+ * @desc Frames of global lockout after a GCD skill executes. Per-skill override: gcd notetag.
+ * @default 30
+ *
+ * @param globalCooldownSkillTypes
+ * @parent globalCooldownConfigs
+ * @type number[]
+ * @text Global Cooldown Skill Types
+ * @desc Skill type ids (stypeId, same order as Database Types). These types trigger and respect GCD. Empty = no type-based GCD.
+ * @default []
+ *
  *
  *
  *
@@ -16110,6 +16332,21 @@ class JABS_Timer
  * @command Refresh JABS Menu
  * @text Refresh JABS Menu
  * @desc Refreshes the JABS menu in case there were any adjustments made to it.
+ *
+ * @command Apply Global Cooldown
+ * @text Apply global cooldown to actor
+ * @desc Sets the battler-wide GCD timer on a party actor that is on the map (leader or visible follower).
+ * @arg actorId
+ * @type actor
+ * @text Actor
+ * @desc Actor receiving the GCD. Must be the leader or a visible follower on the current map.
+ * @default 1
+ * @arg frames
+ * @type number
+ * @min 0
+ * @text Frames
+ * @desc GCD duration in frames. Use 0 to clear the global cooldown slot.
+ * @default 30
  *
  * @command Spawn Enemy
  * @text Spawn Enemy
@@ -16276,7 +16513,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.7.2';
+J.ABS.Metadata.Version = '4.8.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -16385,6 +16622,50 @@ J.ABS.Metadata.MainMenuText = J.ABS.PluginParameters['mainMenuText'];
 J.ABS.Metadata.CancelText = J.ABS.PluginParameters['cancelText'];
 J.ABS.Metadata.ClearSlotText = J.ABS.PluginParameters['clearSlotText'];
 J.ABS.Metadata.UnassignedText = J.ABS.PluginParameters['unassignedText'];
+
+/**
+ * Global cooldown (GCD) plugin state: master switch, default duration in frames, and whitelist of skill {@code stypeId} values.
+ * {@link J.ABS.Metadata.GlobalCooldownSkillTypeSet} is built from {@code globalCooldownSkillTypes} as JSON array or comma-separated legacy text.
+ */
+// global cooldown (GCD) configurations.
+J.ABS.Metadata.EnableGlobalCooldown = J.ABS.PluginParameters['enableGlobalCooldown'] === 'true';
+J.ABS.Metadata.GlobalCooldownFrames = Number(J.ABS.PluginParameters['globalCooldownFrames']) || 30;
+(() =>
+{
+  const raw = J.ABS.PluginParameters['globalCooldownSkillTypes'] ?? '';
+  const set = new Set();
+  const ingest = v =>
+  {
+    const n = parseInt(String(v), 10);
+    if (Number.isFinite(n))
+    {
+      set.add(n);
+    }
+  };
+  const str = String(raw)
+    .trim();
+  if (str.startsWith('['))
+  {
+    try
+    {
+      const arr = JSON.parse(str);
+      if (Array.isArray(arr))
+      {
+        arr.forEach(ingest);
+      }
+    }
+    catch (e)
+    {
+      console.warn('J-ABS: globalCooldownSkillTypes JSON parse failed.', e);
+    }
+  }
+  else if (str.length)
+  {
+    str.split(',')
+      .forEach(part => ingest(part.trim()));
+  }
+  J.ABS.Metadata.GlobalCooldownSkillTypeSet = set;
+})();
 
 J.ABS.Metadata.HitboxStyles = {
   // Base defaults used for all shapes unless overridden below.
@@ -16540,14 +16821,9 @@ J.ABS.DefaultValues = {
 J.ABS.Globals = {};
 
 /**
- * The cooldown key that will be used for the "global" cooldown of a battler.<br/>
- * Battler cooldowns for both ally and enemy are bound to slots by their cooldown key.<br/>
- * The cooldown key is normally a dynamic value, but every battler also has a "global" cooldown slot as well that
- * is used when no other is defined. This "global" slot generally is not used to describe regular skills being used
- * but instead to describe exceptional events that block other skills while it remains on cooldown*.
- *
- * * TODO: implement the global cooldown blocking other cooldowns.
- * * TODO: alternatively, consider applying cooldowns against global to all slots on a battler.
+ * Cooldown key for the battler-wide global cooldown (GCD).<br/>
+ * When {@link J.ABS.Metadata.EnableGlobalCooldown} is on, executing a whitelisted skill stamps this timer;
+ * other GCD-subject skills cannot be used until it elapses. Dodge and tool inputs ignore GCD.
  * @type {'global'}
  */
 J.ABS.Globals.GlobalCooldownKey = 'global';
@@ -16770,6 +17046,10 @@ J.ABS.RegExp = {
   // post-execution-related.
   Cooldown: /<cooldown:[ ]?(\d+)>/gi,
   UniqueCooldown: /<uniqueCooldown>/gi,
+  // exempt from GCD stamp and block.
+  Ogcd: /<ogcd>/gi,
+  // optional per-skill GCD duration override in frames.
+  GlobalCooldownFrames: /<gcd:[ ]?(\d+)>/gi,
 
   // action size/shape/count related.
   SizeInPixels: /<size:[ ]?(\d+)>/gi,
@@ -16788,6 +17068,7 @@ J.ABS.RegExp = {
   Knockback: /<knockback:[ ]?(\d+)>/gi,
   DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)(?:,[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?))?])>/gi,
   Linger: /<linger:[ ]?(\d+)>/gi,
+  OnDefeatedTarget: /<onDefeatedTarget>/gi,
 
   // animation-related.
   SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
@@ -16800,10 +17081,7 @@ J.ABS.RegExp = {
   FreeCombo: /<freeCombo>/gi,
 
   // learning-related
-  ConfigAutoAssignSkills: /<autoAssignSkills>/gi,
   NoAutoAssign: /<noAutoAssign>/gi,
-  BlacklistAutoAssignSkillType: /<noAutoAssignType:[ ]?(\[[\d, ]+])>/gi,
-  ConfigAutoUpgradeSkills: /<autoUpgradeSkills>/gi,
   UpgradeOverSkill: /<upgradeOverSkill:[ ]?(\d+)>/i,
   NoSkillUpgrading: /<noUpgrade>/i,
   UpgradeOnlySkill: /<onlyUpgrade>/i,
@@ -16814,7 +17092,66 @@ J.ABS.RegExp = {
 
   // hits-related.
   Unparryable: /<unparryable>/gi,
-  BonusHits: /<bonusHits:[ ]?(\d+)>/gi,
+
+  /**
+   * Extra battle-effect applications per target per pierce tick, from the executing skill note only.
+   *
+   * <pre>
+   * Structure:
+   *  <bonus-hits:AMOUNT>
+   *
+   * Example:
+   *  <bonus-hits:2>
+   *
+   * Translation:
+   *  Adds 2 to per-connection bonus hits (3 total applies per target per tick with base 1).
+   * </pre>
+   * @type {RegExp}
+   */
+  BonusHitsSkillNote: /<bonus-hits:[ ]?(\d+)>/gi,
+
+  /**
+   * Bonus hits per connection from battler-side notes, applied to basic attacks only.
+   *
+   * <pre>
+   * Structure:
+   *  <bonus-hits-basic:AMOUNT>
+   *
+   * Example:
+   *  <bonus-hits-basic:1>
+   * </pre>
+   * @type {RegExp}
+   */
+  BonusHitsScopeBasic: /<bonus-hits-basic:[ ]?(\d+)>/gi,
+
+  /**
+   * Bonus hits per connection from battler-side notes, applied to non-basic skills only.
+   *
+   * <pre>
+   * Structure:
+   *  <bonus-hits-skill:AMOUNT>
+   *
+   * Example:
+   *  <bonus-hits-skill:1>
+   * </pre>
+   * @type {RegExp}
+   */
+  BonusHitsScopeSkill: /<bonus-hits-skill:[ ]?(\d+)>/gi,
+
+  /**
+   * Bonus hits per connection from battler-side notes, applied to all JABS actions.
+   *
+   * <pre>
+   * Structure:
+   *  <bonus-hits-global:AMOUNT>
+   *
+   * Example:
+   *  <bonus-hits-global:1>
+   * </pre>
+   * @type {RegExp}
+   */
+  BonusHitsScopeGlobal: /<bonus-hits-global:[ ]?(\d+)>/gi,
+
   PiercingData: /<pierce:[ ]?(\[\d+,[ ]?\d+])>/gi,
 
   // guarding-related.
@@ -16830,11 +17167,27 @@ J.ABS.RegExp = {
   InvincibleDodge: /<invincibleDodge>/gi,
   IFrames: /<iframes:[ ]?(\[\d+,[ ]?\d+])>/gi,
 
-  // counter-related (on-chance-effect template)
-  Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
-  OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
-  OnTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
-  OnDefeatedTarget: /<onDefeatedTarget>/gi,
+  // visual metadata (per-skill; optional; sprites only; hitboxes unchanged).
+  VisOffset: /<visOffset:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  VisAnchor: /<visAnchor:[ ]?(\[(?:0|1|0?\.\d+),[ ]?(?:0|1|0?\.\d+)])>/gi,
+  VisRotate: /<visRotate>/gi,
+  VisScale: /<visScale:[ ]?(\[-?\d+(?:\.\d+)?,[ ]?-?\d+(?:\.\d+)?])>/gi,
+  VisZ: /<visZ:[ ]?(-?\d+)>/gi,
+  VisDebug: /<visDebug>/gi,
+
+  // visual directional metadata (cardinals U/D/L/R; diagonals UR/UL/DR/DL).
+  VisOffsetU: /<visOffsetU:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  VisOffsetD: /<visOffsetD:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  VisOffsetL: /<visOffsetL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  VisOffsetR: /<visOffsetR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  VisOffsetUR: /<visOffsetUR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  VisOffsetUL: /<visOffsetUL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  VisOffsetDR: /<visOffsetDR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+  VisOffsetDL: /<visOffsetDL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
+
+  // cast preview (skill-level).
+  NoCastPreviewSkill: /<noCastPreview>/gi,
+  CastPreviewWarnAt: /<castPreviewWarnAt:[ ]?(\d+)>/gi,
   //endregion ON SKILLS
 
   //region ON EQUIPS
@@ -16950,75 +17303,26 @@ J.ABS.RegExp = {
   ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
   ConfigNoName: /<jabsConfig:[ ]?noName>/i,
   ConfigShowName: /<jabsConfig:[ ]?showName>/i,
+
+  // cast preview (battler-level: all skills from this battler).
+  NoCastPreviewsBattler: /<noCastPreviews>/gi,
+
+  // counter-related (on-chance-effect)
+  OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+  OnTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
   //endregion ON BATTLERS
+
+  //region ON BATTLERS OR STATES
+  Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+  //endregion ON BATTLERS OR STATES
 
   //region ON ACTORS/CLASSES
   ConfigNoSwitch: /<noSwitch>/i,
+  ConfigAutoAssignSkills: /<autoAssignSkills>/gi,
+  ConfigAutoUpgradeSkills: /<autoUpgradeSkills>/gi,
+  BlacklistAutoAssignSkillType: /<noAutoAssignType:[ ]?(\[[\d, ]+])>/gi,
   //endregion ON ACTORS/CLASSES
 };
-
-//region visual metadata (new)
-/**
- * Visual customization for action sprites (per-skill).
- * All tags are optional and purely visual; physics/hitboxes remain unchanged.
- */
-// capture full [x, y].
-J.ABS.RegExp.VisOffset = /<visOffset:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
-// capture full [ax, ay].
-J.ABS.RegExp.VisAnchor = /<visAnchor:[ ]?(\[(?:0|1|0?\.\d+),[ ]?(?:0|1|0?\.\d+)])>/gi;
-// boolean.
-J.ABS.RegExp.VisRotate = /<visRotate>/gi;
-// capture full [sx, sy].
-J.ABS.RegExp.VisScale = /<visScale:[ ]?(\[-?\d+(?:\.\d+)?,[ ]?-?\d+(?:\.\d+)?])>/gi;
-// z-order override (number only).
-J.ABS.RegExp.VisZ = /<visZ:[ ]?(-?\d+)>/gi;
-// show visual center/debug gizmo.
-J.ABS.RegExp.VisDebug = /<visDebug>/gi;
-//endregion visual metadata (new)
-
-//region visual directional metadata (new)
-/**
- * Direction-relative visual offsets (per-skill).
- *
- * Cardinal: U/D/L/R
- * Optional diagonals: UR/UL/DR/DL
- */
-// [x, y].
-J.ABS.RegExp.VisOffsetU = /<visOffsetU:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
-// [x, y].
-J.ABS.RegExp.VisOffsetD = /<visOffsetD:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
-// [x, y].
-J.ABS.RegExp.VisOffsetL = /<visOffsetL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
-// [x, y].
-J.ABS.RegExp.VisOffsetR = /<visOffsetR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
-
-// Optional diagonals for future use.
-// [x, y].
-J.ABS.RegExp.VisOffsetUR = /<visOffsetUR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
-// [x, y].
-J.ABS.RegExp.VisOffsetUL = /<visOffsetUL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
-// [x, y].
-J.ABS.RegExp.VisOffsetDR = /<visOffsetDR:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
-// [x, y].
-J.ABS.RegExp.VisOffsetDL = /<visOffsetDL:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi;
-//endregion visual directional metadata (new)
-
-//region cast preview tags
-/**
- * Skill-level: disable preview for this skill.
- */
-J.ABS.RegExp.NoCastPreviewSkill = /<noCastPreview>/gi;
-
-/**
- * Skill-level: delay the preview until the last N frames of the cast.
- */
-J.ABS.RegExp.CastPreviewWarnAt = /<castPreviewWarnAt:[ ]?(\d+)>/gi;
-
-/**
- * Battler-level: disable previews for all skills this battler will execute.
- */
-J.ABS.RegExp.NoCastPreviewsBattler = /<noCastPreviews>/gi;
-//endregion cast preview tags
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -17188,6 +17492,24 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
 });
 
 /**
+ * Plugin command: forces the global cooldown counter on a party actor who is currently on the map as the player or a visible follower.
+ * Positive {@code frames} starts or refreshes GCD for that battler; zero or invalid clears it. Actors not represented on the map are skipped with a console warning.
+ */
+PluginManager.registerCommand(J.ABS.Metadata.Name, "Apply Global Cooldown", args =>
+{
+  const { actorId, frames } = args;
+  const actor = $gameActors.actor(parseInt(actorId, 10));
+  const jabsBattler = JABS_GlobalCooldown.jabsBattlerForActor(actor);
+  if (!jabsBattler)
+  {
+    console.warn('Apply Global Cooldown: actor is not the leader or a visible follower on the map.');
+    return;
+  }
+  const n = parseInt(frames, 10);
+  jabsBattler.setCooldownCounter(J.ABS.Globals.GlobalCooldownKey, Number.isFinite(n) && n > 0 ? n : 0);
+});
+
+/**
  * Registers a plugin command for dynamically spawning an enemy onto the map.
  * The enemy spawned will be a clone from the enemy clone map.
  */
@@ -17284,33 +17606,77 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Spawn Loot", args =>
 //endregion Plugin Command Registration
 
 //region RPG_BaseBattler
-//region bonusHits
+//region bonusHitsScopes
 /**
- * The number of additional bonus hits this battler adds to their basic attacks.
+ * Bonus hits per connection from this battler database note, applied to all JABS actions.
  * @type {number}
  */
-Object.defineProperty(RPG_BaseBattler.prototype, "jabsBonusHits", {
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsBonusHitsScopeGlobal', {
   get: function()
   {
-    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHits, true);
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsScopeGlobal);
   },
 });
-//endregion bonusHits
+
+/**
+ * Bonus hits per connection from this battler database note, applied to basic attacks only.
+ * @type {number}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsBonusHitsScopeBasic', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsScopeBasic);
+  },
+});
+
+/**
+ * Bonus hits per connection from this battler database note, applied to non-basic skills only.
+ * @type {number}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsBonusHitsScopeSkill', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsScopeSkill);
+  },
+});
+//endregion bonusHitsScopes
 //endregion RPG_BaseBattler
 
 //region RPG_Class
-//region bonusHits
+//region bonusHitsScopes
 /**
- * The number of additional bonus hits this battler adds to their basic attacks.
+ * Bonus hits per connection from this class note, applied to all JABS actions.
  * @type {number}
  */
-Object.defineProperty(RPG_Class.prototype, "jabsBonusHits", {
+Object.defineProperty(RPG_Class.prototype, 'jabsBonusHitsScopeGlobal', {
   get: function()
   {
-    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHits, true);
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsScopeGlobal);
   },
 });
-//endregion bonusHits
+
+/**
+ * Bonus hits per connection from this class note, applied to basic attacks only.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Class.prototype, 'jabsBonusHitsScopeBasic', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsScopeBasic);
+  },
+});
+
+/**
+ * Bonus hits per connection from this class note, applied to non-basic skills only.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Class.prototype, 'jabsBonusHitsScopeSkill', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsScopeSkill);
+  },
+});
+//endregion bonusHitsScopes
 //endregion RPG_Class
 
 //region teamId
@@ -18485,6 +18851,20 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsPierceDelay', {
 });
 //endregion piercing
 
+//region bonusHitsSkillNote
+/**
+ * Extra per-connection bonus hits parsed from this skill note, additive with battler scope tags.
+ * When J-SkillExtend merges extension notes into this skill, matching tags on the extension contribute here too.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Skill.prototype, 'jabsBonusHitsFromSkillNote', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsSkillNote);
+  },
+});
+//endregion bonusHitsSkillNote
+
 //region ignoreParry
 /**
  * The percent of parry rating ignored by this skill.
@@ -19238,41 +19618,50 @@ Object.defineProperty(RPG_State.prototype, 'jabsSlipTpFormulaPerFive', {
 //endregion slipTp
 //endregion RPG_State effects
 
-//region RPG_Traited
-//region bonusHits
+//region RPG_TraitItem
+//region bonusHitsScopes
 /**
- * A new property for retrieving the JABS bonusHits from this traited item.
+ * Bonus hits per connection from this traited object note, applied to all JABS actions.
  * @type {number}
  */
-Object.defineProperty(RPG_Traited.prototype, "jabsBonusHits", {
+Object.defineProperty(RPG_Traited.prototype, 'jabsBonusHitsScopeGlobal', {
   get: function()
   {
-    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHits, true);
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsScopeGlobal);
   },
 });
-//endregion bonusHits
-//endregion RPG_Traited
+
+/**
+ * Bonus hits per connection from this traited object note, applied to basic attacks only.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Traited.prototype, 'jabsBonusHitsScopeBasic', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsScopeBasic);
+  },
+});
+
+/**
+ * Bonus hits per connection from this traited object note, applied to non-basic skills only.
+ * @type {number}
+ */
+Object.defineProperty(RPG_Traited.prototype, 'jabsBonusHitsScopeSkill', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHitsScopeSkill);
+  },
+});
+//endregion bonusHitsScopes
+//endregion RPG_TraitItem
 
 //region RPG_UsableItem
-//region bonusHits
-/**
- * The number of additional bonus hits this skill or item adds to their basic attacks.
- * @type {number}
- */
-Object.defineProperty(RPG_UsableItem.prototype, "jabsBonusHits", {
-  get: function()
-  {
-    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.BonusHits, true);
-  },
-});
-//endregion bonusHits
-
 //region cooldowns
 /**
  * The JABS cooldown when using this skill or item.
  * @type {number}
  */
-Object.defineProperty(RPG_UsableItem.prototype, "jabsCooldown", {
+Object.defineProperty(RPG_UsableItem.prototype, 'jabsCooldown', {
   get: function()
   {
     return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.Cooldown, true);
@@ -19287,6 +19676,32 @@ Object.defineProperty(RPG_UsableItem.prototype, 'jabsUniqueCooldown', {
   get: function()
   {
     return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.UniqueCooldown, true);
+  },
+});
+
+/**
+ * When true, this skill or item never participates in the battler-wide GCD: it does not start the global timer on use
+ * and is never refused because that timer is still counting. Driven by {@code noGlobalCooldown} or {@code ogcd}
+ * notetags.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_UsableItem.prototype, 'jabsIgnoresGlobalCooldown', {
+  get: function()
+  {
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.Ogcd);
+  },
+});
+
+/**
+ * Optional per-entry length in frames for the global cooldown applied after this skill executes, when it is
+ * GCD-subject. Parsed from {@code <gcd:N>}; null or invalid values mean “use the plugin default duration” instead of
+ * overriding.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_UsableItem.prototype, 'jabsGlobalCooldownOverride', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.GlobalCooldownFrames, true);
   },
 });
 //endregion cooldowns
@@ -23589,7 +24004,8 @@ class JABS_Engine
   }
 
   /**
-   * Applies cooldowns in regards to the player for the casted action.
+   * Applies per-slot (or unique) skill cooldowns for the player after an action, then optionally stamps the battler-wide GCD.
+   * When global cooldown is enabled and the skill is subject to it, {@link J.ABS.Globals.GlobalCooldownKey} is set to the computed duration so other GCD-subject skills cannot fire until it elapses.
    * @param {JABS_Battler} caster The player.
    * @param {JABS_Action} action The JABS action to execute.
    */
@@ -23605,19 +24021,26 @@ class JABS_Engine
     {
       // if the skill is unique, only apply the cooldown to the slot assigned.
       caster.setCooldownCounter(cooldownType, cooldownValue);
-      return;
+    }
+    else
+    {
+      // if the skill is not unique, then the cooldown applies to all slots it is equipped to.
+      const equippedSkills = caster.getBattler()
+        .getAllEquippedSkills();
+      equippedSkills.forEach(skillSlot =>
+      {
+        if (skillSlot.id === skill.id)
+        {
+          caster.setCooldownCounter(skillSlot.key, cooldownValue);
+        }
+      });
     }
 
-    // if the skill is not unique, then the cooldown applies to all slots it is equipped to.
-    const equippedSkills = caster.getBattler()
-      .getAllEquippedSkills();
-    equippedSkills.forEach(skillSlot =>
+    if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(skill))
     {
-      if (skillSlot.id === skill.id)
-      {
-        caster.setCooldownCounter(skillSlot.key, cooldownValue);
-      }
-    });
+      const gcdFrames = JABS_GlobalCooldown.framesForSkill(skill);
+      caster.setCooldownCounter(J.ABS.Globals.GlobalCooldownKey, gcdFrames);
+    }
   }
 
   /**
@@ -28243,10 +28666,22 @@ Game_Battler.prototype.initJabsMembers = function()
   this._j._abs._uuid = J.BASE.Helpers.shortUuid();
 
   /**
-   * The number of bonus hits this actor currently has.
+   * Cached per-connection bonus hits from `<bonus-hits-global:>` across battler-side sources.
    * @type {number}
    */
-  this._j._abs._bonusHits = 0;
+  this._j._abs._bonusHitsGlobal = 0;
+
+  /**
+   * Cached per-connection bonus hits from `<bonus-hits-basic:>` across battler-side sources.
+   * @type {number}
+   */
+  this._j._abs._bonusHitsBasic = 0;
+
+  /**
+   * Cached per-connection bonus hits from `<bonus-hits-skill:>` across battler-side sources.
+   * @type {number}
+   */
+  this._j._abs._bonusHitsSkill = 0;
 
   /**
    * All equipped skills on this battler.
@@ -28958,29 +29393,27 @@ Game_Battler.prototype.getStateDurationBoost = function(baseDuration)
 
 //region JABS bonus hits
 /**
- * Updates the bonus hit count for this actor based on equipment.
- *
- * NOTE:
- * This is explicitly not using `this.getAllNotes()` so that we can
- * also parse out the repeats from all the relevant sources as well.
+ * Recomputes cached per-connection bonus hit totals from all {@link Game_Battler.getBonusHitsSources} collections.
  */
 Game_Battler.prototype.refreshBonusHits = function()
 {
-  // default to zero bonus hits.
-  let bonusHits = 0;
+  let bonusHitsGlobal = 0;
+  let bonusHitsBasic = 0;
+  let bonusHitsSkill = 0;
 
-  // collection of collections of sources from which bonus hits may reside.
   const sourceCollections = this.getBonusHitsSources();
 
-  // iterate over the source collections.
   sourceCollections.forEach(sourceCollection =>
   {
-    // add up all the bonus hits available.
-    bonusHits += this.getBonusHitsFromSources(sourceCollection);
+    const part = this.getBonusHitsFromSources(sourceCollection);
+    bonusHitsGlobal += part.global;
+    bonusHitsBasic += part.basic;
+    bonusHitsSkill += part.skill;
   });
 
-  // set the bonus hits to the total amount found everywhere.
-  this.setBonusHits(bonusHits);
+  this.setBonusHitsGlobal(bonusHitsGlobal);
+  this.setBonusHitsBasic(bonusHitsBasic);
+  this.setBonusHitsSkill(bonusHitsSkill);
 };
 
 /**
@@ -28995,62 +29428,80 @@ Game_Battler.prototype.getBonusHitsSources = function()
 };
 
 /**
- * Gets the bonus hits for this battler.
+ * Gets the cached global-scope per-connection bonus hits total for this battler.
  * @returns {number}
  */
-Game_Battler.prototype.getBonusHits = function()
+Game_Battler.prototype.getBonusHitsGlobal = function()
 {
-  return this._j._abs._bonusHits;
+  return this._j._abs._bonusHitsGlobal;
 };
 
 /**
- * Sets the bonus hits to the given value.
- * @param {number} bonusHits The new bonus hits value.
+ * Sets the cached global-scope per-connection bonus hits total.
+ * @param {number} value The new total.
  */
-Game_Battler.prototype.setBonusHits = function(bonusHits)
+Game_Battler.prototype.setBonusHitsGlobal = function(value)
 {
-  this._j._abs._bonusHits = bonusHits;
+  this._j._abs._bonusHitsGlobal = value;
 };
 
 /**
- * Extracts all bonus hits from a collection of traited sources.
- * @param {RPG_Traited[]|RPG_BaseBattler[]|RPG_Class[]|RPG_Skill[]} sources The collection to iterate over.
+ * Gets the cached basic-attack-scope per-connection bonus hits total for this battler.
  * @returns {number}
+ */
+Game_Battler.prototype.getBonusHitsBasic = function()
+{
+  return this._j._abs._bonusHitsBasic;
+};
+
+/**
+ * Sets the cached basic-attack-scope per-connection bonus hits total.
+ * @param {number} value The new total.
+ */
+Game_Battler.prototype.setBonusHitsBasic = function(value)
+{
+  this._j._abs._bonusHitsBasic = value;
+};
+
+/**
+ * Gets the cached non-basic-skill-scope per-connection bonus hits total for this battler.
+ * @returns {number}
+ */
+Game_Battler.prototype.getBonusHitsSkill = function()
+{
+  return this._j._abs._bonusHitsSkill;
+};
+
+/**
+ * Sets the cached non-basic-skill-scope per-connection bonus hits total.
+ * @param {number} value The new total.
+ */
+Game_Battler.prototype.setBonusHitsSkill = function(value)
+{
+  this._j._abs._bonusHitsSkill = value;
+};
+
+/**
+ * Sums scoped per-connection bonus hits from a collection of traited database rows.
+ * @param {RPG_Traited[]|RPG_BaseBattler[]|RPG_Class[]} sources Rows that may carry scoped bonus-hit notes.
+ * @returns {{ global: number, basic: number, skill: number }} Totals contributed by this collection.
  */
 Game_Battler.prototype.getBonusHitsFromSources = function(sources)
 {
-  // set this counter to zero.
-  let bonusHits = 0;
+  const totals = { global: 0, basic: 0, skill: 0 };
 
-  // reducer function for adding repeat traits up as bonus hits.
-  const addHitsReducer = (runningTotal, trait) => runningTotal + trait.value;
-
-  // filter function for getting only "attack repeats" traits off this item.
-  const isHitsTrait = trait => trait.code === J.BASE.Traits.ATTACK_REPEATS;
-
-  // foreach function for collecting bonus hits from the given source.
-  const collectBonusHitsForEacher = source =>
+  const collectFromSource = source =>
   {
-    // if the slot is empty, don't process it.
     if (!source) return;
 
-    // grab the bonus hits from
-    bonusHits += source.jabsBonusHits;
-
-    // stop processing if the source has no traits.
-    if (!source.traits) return;
-
-    // also grab from traits if applicable.
-    bonusHits += source.traits
-      .filter(isHitsTrait)
-      .reduce(addHitsReducer, 0);
+    totals.global += source.jabsBonusHitsScopeGlobal;
+    totals.basic += source.jabsBonusHitsScopeBasic;
+    totals.skill += source.jabsBonusHitsScopeSkill;
   };
 
-  // iterate over all equips.
-  sources.forEach(collectBonusHitsForEacher);
+  sources.forEach(collectFromSource);
 
-  // return the bonus hits from some traited sources.
-  return bonusHits;
+  return totals;
 };
 //endregion JABS bonus hits
 
