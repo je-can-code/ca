@@ -642,7 +642,23 @@ Game_Battler.prototype.initResourcesMembers = function()
    * The hp cost reduction for this battler.
    * @type {number}
    */
-  this._j._hcr = 100;
+  if (typeof this._j._hcr !== 'number' || Number.isNaN(this._j._hcr))
+  {
+    this._j._hcr = 100;
+  }
+};
+
+/**
+ * Saves from before J-Resources may omit `_hcr` on `_j`. {@link #refreshHcr} repopulates it from traits.
+ */
+Game_Battler.prototype._ensureHcrInitializedForResources = function()
+{
+  this._j ||= {};
+  this._j._resources ||= {};
+  if (typeof this._j._hcr !== 'number' || Number.isNaN(this._j._hcr))
+  {
+    this.refreshHcr();
+  }
 };
 
 /**
@@ -651,6 +667,7 @@ Game_Battler.prototype.initResourcesMembers = function()
  */
 Game_Battler.prototype.hcr = function()
 {
+  this._ensureHcrInitializedForResources();
   return this._j._hcr;
 };
 
@@ -660,6 +677,7 @@ Game_Battler.prototype.hcr = function()
  */
 Game_Battler.prototype.hcrFactor = function()
 {
+  this._ensureHcrInitializedForResources();
   const hrcFactor = this._j._hcr / 100;
   return hrcFactor;
 };
@@ -670,6 +688,7 @@ Game_Battler.prototype.hcrFactor = function()
  */
 Game_Battler.prototype.setHcr = function(value)
 {
+  this._j ||= {};
   this._j._hcr = value;
 };
 

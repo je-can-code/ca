@@ -1652,7 +1652,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1682,7 +1684,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1712,7 +1716,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1742,7 +1748,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1772,7 +1780,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1802,7 +1812,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1832,7 +1844,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1862,7 +1876,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1904,7 +1920,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1934,7 +1952,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1964,7 +1984,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -1994,7 +2016,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -2024,7 +2048,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -2054,7 +2080,9 @@
       "iconIndex": -1,
       "maskedUntilCrafted": true,
       "unlockedByDefault": false,
-      "categoryKeys": [],
+      "categoryKeys": [
+        "material-manufacturing"
+      ],
       "ingredients": [
         {
           "type": "i",
@@ -2539,6 +2567,11 @@
           "type": "i",
           "id": 21,
           "count": 5
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -2811,6 +2844,11 @@
           "type": "i",
           "id": 33,
           "count": 10
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -2885,6 +2923,11 @@
           "type": "i",
           "id": 37,
           "count": 5
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -3263,6 +3306,11 @@
           "type": "a",
           "id": 371,
           "count": 10
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -3602,6 +3650,11 @@
           "type": "i",
           "id": 21,
           "count": 5
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -3896,6 +3949,11 @@
           "id": 47,
           "type": "i",
           "count": 2
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -4224,11 +4282,6 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 30,
           "type": "i",
           "count": 1
@@ -4242,6 +4295,11 @@
           "id": 331,
           "type": "a",
           "count": 2
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -4533,11 +4591,6 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 32,
           "type": "i",
           "count": 10
@@ -4546,6 +4599,11 @@
           "id": 307,
           "type": "a",
           "count": 4
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -4875,6 +4933,11 @@
           "id": 49,
           "type": "i",
           "count": 6
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -5193,11 +5256,6 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 32,
           "type": "i",
           "count": 5
@@ -5206,6 +5264,11 @@
           "id": 447,
           "type": "a",
           "count": 8
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -5492,14 +5555,14 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 30,
           "type": "i",
           "count": 4
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -5821,11 +5884,6 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 32,
           "type": "i",
           "count": 6
@@ -5839,6 +5897,11 @@
           "id": 363,
           "type": "a",
           "count": 4
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -6201,11 +6264,6 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 49,
           "type": "i",
           "count": 10
@@ -6214,6 +6272,11 @@
           "id": 382,
           "type": "a",
           "count": 7
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -6542,11 +6605,6 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 312,
           "type": "a",
           "count": 6
@@ -6555,6 +6613,11 @@
           "id": 417,
           "type": "a",
           "count": 8
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -6799,11 +6862,6 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 48,
           "type": "i",
           "count": 2
@@ -6812,6 +6870,11 @@
           "id": 406,
           "type": "a",
           "count": 4
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -7113,11 +7176,6 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 302,
           "type": "a",
           "count": 10
@@ -7131,6 +7189,11 @@
           "id": 20,
           "type": "i",
           "count": 6
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [],
@@ -7400,11 +7463,6 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 32,
           "type": "i",
           "count": 6
@@ -7413,6 +7471,11 @@
           "id": 352,
           "type": "a",
           "count": 8
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [],
@@ -7658,14 +7721,14 @@
           "count": 1
         },
         {
-          "type": "i",
-          "id": 46,
-          "count": 1
-        },
-        {
           "id": 367,
           "type": "a",
           "count": 12
+        },
+        {
+          "type": "i",
+          "id": 46,
+          "count": 1
         }
       ],
       "tools": [
@@ -14081,7 +14144,14 @@
       "name": "Material Mastery",
       "key": "material-mastery",
       "iconIndex": 73,
-      "description": "Mastery over materials is paramount in this land.\r\nThis will cover all your crafty needs regarding material upgrades.",
+      "description": "Mastery over materials is paramount in this land.\nThis will cover all your crafty needs regarding material refinement and processing.",
+      "unlockedByDefault": false
+    },
+    {
+      "key": "material-manufacturing",
+      "name": "Material Manufacturing",
+      "description": "Mastery over materials is paramount in this land.\nBeing able to refine ore into ingots and slice paper from lumber is crucial.",
+      "iconIndex": 73,
       "unlockedByDefault": false
     },
     {
