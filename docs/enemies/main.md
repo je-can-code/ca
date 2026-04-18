@@ -315,7 +315,7 @@ are paired with a high level of recklessness due to their ego.
 
 - (??) [??]Borg
 
-### Homonculus
+### Homunculus
 
 - (??) [??]Shell
 
@@ -330,7 +330,7 @@ are paired with a high level of recklessness due to their ego.
 - (??) [??]Earthie
 - (30) [552]Aqualock
 - (45) [553]Cynder
-- (70) [604]Skye
+- (70) [554]Skye
 
 ### Sin
 
