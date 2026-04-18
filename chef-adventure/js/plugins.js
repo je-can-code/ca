@@ -56,7 +56,7 @@ var $plugins =
 {"name":"j/cms/J-CMS-Skill","status":true,"description":"[v1.0.0 CMS_K] A redesign of the skill menu.","parameters":{}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
 {"name":"j/level/J-LevelMaster","status":true,"description":"[v1.3.0 LEVEL] Allows levels to have greater control and purpose.","parameters":{"parentConfigScaling":"","useScaling":"true","minMultiplier":"0.10","maxMultiplier":"2.00","rewardMinMultiplier":"0.10","rewardMaxMultiplier":"2.00","growthMultiplier":"0.10","invariantUpperRange":"1","invariantLowerRange":"1","variableActorBalancer":"141","variableEnemyBalancer":"142","parentConfigMaxLevel":"","defaultBeyondMaxLevel":"255","trueMaxLevel":"1000"}},
-{"name":"j/level/ext/J-Level-Flat","status":true,"description":"[v1.0.0 LEVEL-FLAT] Level extension for providing flat experience requirements.","parameters":{"parentConfig":"","menu-switch":"101"}},
+{"name":"j/level/ext/J-Level-Flat","status":true,"description":"[v1.0.0 LEVEL-FLAT] Flat per-level thresholds and map-based kill experience.","parameters":{"parentConfigFlat":"","exp-per-level":"1000","policy-multiplier":"1.00"}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
 {"name":"j/J-Escriptions","status":true,"description":"[v1.0.0 ESCRIBE] Enables \"describing\" the event with some text and/or an icon.","parameters":{}},
 {"name":"j/J-SkillExtend","status":true,"description":"[v1.0.1 EXTEND] Extends the capabilities of skills/actions.","parameters":{}},
