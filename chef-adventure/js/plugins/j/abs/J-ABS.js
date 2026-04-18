@@ -4397,18 +4397,18 @@ JABS_Battler.prototype.isDead = function()
   const battler = this.getBattler();
 
   if (!battler)
-  // has no battler.
   {
+    // has no battler.
     return true;
   }
   else if (!JABS_AiManager.getBattlerByUuid(battler.getUuid()))
-  // battler isn't on the map.
   {
+    // battler isn't on the map.
     return true;
   }
   else if (battler.isDead() || this.isDying())
-  // battler is actually dead.
   {
+    // battler is actually dead.
     return true;
   }
   // battler is OK!
@@ -8632,6 +8632,8 @@ JABS_Battler.prototype.slipEval = function(formula, sourceBattler, afflictedBatt
     // check if the eval() produced garbage output despite not throwing.
     if (!Number.isFinite(result))
     {
+      console.warn('result was: ', result);
+
       // throw, and then catch to properly log in the next block.
       throw new Error('Invalid formula.');
     }
@@ -14138,7 +14140,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.8.0 JABS] Enables combat to be carried out on the map.
+ * [v4.8.1 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14183,26 +14185,33 @@ class JABS_Timer
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.8.1
+ *    Refactored gaining of rewards logic for other extensions.
+ *    Fixed issue where EXR was being calculated twice (oops!).
  * - 4.8.0
- *    Optional global cooldown (GCD): plugin params, skill-type whitelist, notetags `noGlobalCooldown`/`ogcd`/`gcd`,
- *    AI and input gating (dodge/tool exempt), HUD combo gauge shows GCD pressure, plugin command to stamp GCD.
+ *    Optional global cooldown (GCD): plugin params, skill-type whitelist,
+ *    notetags `noGlobalCooldown`/`ogcd`/`gcd`,
+ *    AI and input gating (dodge/tool exempt), HUD combo gauge shows GCD
+ *    pressure, plugin command to stamp GCD.
  * - 4.7.2
- *    Unified enemy and ally AI skill decisions to return a skill-id array (empty or one id);
+ *    Unified enemy and ally AI skill decisions to return a skill-id array
+ *    (empty or one id);
  *    JABS_AiManager phase-2 paths read the first element after validation.
- *    JABS_AI#decideAction stub now returns an empty array to match concrete AI classes.
- *    Fixed filterSkillsHealerPriority returning a scalar on the final healing-priority path
- *    instead of an array.
+ *    JABS_AI#decideAction stub now returns an empty array to match concrete AI
+ *    classes.
+ *    Fixed filterSkillsHealerPriority returning a scalar on the final
+ *    healing-priority path instead of an array.
  * - 4.7.1
  *    Added plugin parameter "Parry Map Animation Id" for the database
  *    animation played on successful parry (default 122; 0 disables).
- *    Fixed Sprite_MapCastGauge gauge track being shortened by skill name width;
- *    track now always occupies the full bitmap width.
+ *    Fixed Sprite_MapCastGauge gauge track being shortened by skill name
+ *    width; track now always occupies the full bitmap width.
  *    Fixed enemy projectile fire direction baked at decision time rather than
  *    execution time; added restampActionDirections to re-orient volleys to the
  *    battler's facing at the moment of firing.
  *    Fixed hasInteractableEventInFront using raw fractional player coordinates
- *    with eventsXy, which always returned no match; coordinates are now rounded
- *    to the nearest tile before the look-ahead is computed.
+ *    with eventsXy, which always returned no match; coordinates are now
+ *    rounded to the nearest tile before the look-ahead is computed.
  *    Removed obsolete J.ABS.EXT.CYCLE guard from hasInteractableEventInFront.
  * - 4.7.0
  *    Renamed battler role tag from <jabsRole: X> to <aiRole: X>.
@@ -16513,7 +16522,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.8.0';
+J.ABS.Metadata.Version = '4.8.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -24004,8 +24013,10 @@ class JABS_Engine
   }
 
   /**
-   * Applies per-slot (or unique) skill cooldowns for the player after an action, then optionally stamps the battler-wide GCD.
-   * When global cooldown is enabled and the skill is subject to it, {@link J.ABS.Globals.GlobalCooldownKey} is set to the computed duration so other GCD-subject skills cannot fire until it elapses.
+   * Applies per-slot (or unique) skill cooldowns for the player after an action, then optionally stamps the
+   * battler-wide GCD. When global cooldown is enabled and the skill is subject to it,
+   * {@link J.ABS.Globals.GlobalCooldownKey} is set to the computed duration so other GCD-subject skills cannot fire
+   * until it elapses.
    * @param {JABS_Battler} caster The player.
    * @param {JABS_Action} action The JABS action to execute.
    */
@@ -24089,7 +24100,7 @@ class JABS_Engine
     const {
       x: actionX,
       y: actionY
-    // extract coordinates.
+      // extract coordinates.
     } = actionEventData;
     // align position.
     actionEventSprite._realX = actionX;
@@ -24123,7 +24134,7 @@ class JABS_Engine
     const {
       characterIndex,
       characterName
-    // extract image data.
+      // extract image data.
     } = actionEventData.pages[pageIndex].image;
 
     // flag to add sprite.
@@ -24848,7 +24859,11 @@ class JABS_Engine
 
     if (J.LEVEL && J.LEVEL.Metadata.enabled)
     {
-      const levelMul = LevelScaling.multiplier(casterBattler.level, targetBattler.level);
+      const levelMul = LevelScaling.multiplier(
+        casterBattler.level,
+        targetBattler.level,
+        LevelScaling.Scope.COMBAT
+      );
       A *= levelMul;
     }
 
@@ -25823,7 +25838,7 @@ class JABS_Engine
     const {
       x: originCx,
       y: originCy
-    // unified origin.
+      // unified origin.
     } = JABS_Engine.getActionOriginPixels(action);
 
     // build the target’s AABB.
@@ -25855,7 +25870,7 @@ class JABS_Engine
     const {
       x: cx,
       y: cy
-    // action origin.
+      // action origin.
     } = JABS_Engine.getActionOriginPixels(action);
 
     // target’s AABB in pixels.
@@ -25928,7 +25943,7 @@ class JABS_Engine
     const {
       x: originCx,
       y: originCy
-    // unified origin.
+      // unified origin.
     } = JABS_Engine.getActionOriginPixels(action);
 
     // build action area rect centered at the corrected origin.
@@ -25973,7 +25988,7 @@ class JABS_Engine
     const {
       x: originCx,
       y: originCy
-    // unified origin.
+      // unified origin.
     } = JABS_Engine.getActionOriginPixels(action);
 
     // derive the front-half rectangle based on facing (anchored at corrected origin).
@@ -26064,7 +26079,7 @@ class JABS_Engine
     const {
       x: originCx,
       y: originCy
-    // unified origin.
+      // unified origin.
     } = JABS_Engine.getActionOriginPixels(action);
 
     // build the line-as-rect based on facing from origin.
@@ -26351,25 +26366,73 @@ class JABS_Engine
    */
   gainBasicRewards(enemy, actor)
   {
-    let experience = enemy.exp();
-    let gold = enemy.gold();
+    // identify the character who defeated the enemy.
     const actorCharacter = actor.getCharacter();
 
-    const levelMultiplier = this.getRewardScalingMultiplier(enemy, actor);
-    experience = Math.ceil(experience * levelMultiplier);
-    gold = Math.ceil(gold * levelMultiplier);
-
+    // determine and gain the experience.
+    const experience = this.determineExperienceGained(enemy, actor.getBattler());
     this.gainExperienceReward(experience, actorCharacter);
+
+    // determine and gain the gold.
+    const gold = this.determineGoldGained(enemy, actor.getBattler());
     this.gainGoldReward(gold, actorCharacter);
+
+    // TODO: extract this logging reference out of this plugin and into the J.LOG plugin.
     this.createRewardsLog(experience, gold, actor);
+  }
+
+  /**
+   * Determines how much experience the defeated enemy yielded.
+   * @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+   * @param {Game_Actor} victoriousActor The actor that defeated the enemy.
+   */
+  determineExperienceGained(defeatedEnemy, victoriousActor)
+  {
+    // identify the amount the enemy yielded.
+    const experience = defeatedEnemy.exp();
+
+    // determine the scaling multiplier.
+    const rewardScalingMultiplier = this.getRewardScalingMultiplier(defeatedEnemy, victoriousActor);
+
+    // apply the reward scaling.
+    const scaledExperience = Math.ceil(experience * rewardScalingMultiplier);
+
+    // normalize it.
+    const normalizedExperience = Math.max(scaledExperience, 0);
+
+    // return the amount.
+    return normalizedExperience;
+  }
+
+  /**
+   * Determines how much gold the defeated enemy yielded.
+   * @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+   * @param {Game_Actor} victoriousActor The actor that defeated the enemy.
+   */
+  determineGoldGained(defeatedEnemy, victoriousActor)
+  {
+    // identify the amount the enemy yielded.
+    const gold = defeatedEnemy.gold();
+
+    // determine the scaling multiplier.
+    const rewardScalingMultiplier = this.getRewardScalingMultiplier(defeatedEnemy, victoriousActor);
+
+    // apply the reward scaling.
+    const scaledGold = Math.ceil(gold * rewardScalingMultiplier);
+
+    // normalize it.
+    const normalizedGold = Math.max(scaledGold, 0);
+
+    // return the amount.
+    return normalizedGold;
   }
 
   /**
    * Gets the multiplier based on difference in level between attacker and
    * target to determine if the battle was "too easy" or "very hard", resulting
    * in reduced or increased numeric rewards (excludes loot drops).
-   * @param {Game_Battler} enemy The target battler that was defeated.
-   * @param {JABS_Battler} actor The map battler that defeated the target.
+   * @param {Game_Enemy} enemy The enemy that was defeated.
+   * @param {Game_Actor} actor The actor that defeated the target.
    */
   getRewardScalingMultiplier(enemy, actor)
   {
@@ -26382,7 +26445,11 @@ class JABS_Engine
       // calculate the reverse multiplier using scaling based on enemy and actor.
       // if the enemy is higher, then the rewards will be greater.
       // if the actor is higher, then the rewards will be lesser.
-      multiplier = LevelScaling.multiplier(enemy.level, actor.getBattler().level);
+      multiplier = LevelScaling.multiplier(
+        enemy.level,
+        actor.level,
+        LevelScaling.Scope.REWARD
+      );
     }
 
     // return the findings.
@@ -26399,13 +26466,8 @@ class JABS_Engine
     // don't do anything if the enemy didn't grant any experience.
     if (!experience) return;
 
-    const activeParty = $gameParty.battleMembers();
-    activeParty.forEach(member =>
-    {
-      const gainedExperience = experience * member.exr;
-      member.gainExp(gainedExperience);
-    });
-
+    $gameParty.battleMembers()
+      .forEach(member => member.gainExp(experience));
   }
 
   /**
@@ -26420,7 +26482,6 @@ class JABS_Engine
 
     // actually gain the gold.
     $gameParty.gainGold(gold);
-
   }
 
   /**
@@ -26505,7 +26566,9 @@ class JABS_Engine
    * @param {Game_Character} character The character who picked them up.
    */
   // eslint-disable-next-line no-unused-vars
-  onItemPickedUp(itemDataList, character) {}
+  onItemPickedUp(itemDataList, character)
+  {
+  }
 
   /**
    * Handles a level up for the leader while on the map.
@@ -29943,6 +30006,80 @@ Game_Character.prototype.isMovementSucceeded = function()
 
 /* eslint-disable */
 /**
+ * 8-direction step toward the goal using map wrap deltas only (no A*).
+ * Used for through-moving homing so J-Pixelistics is not asked to run subcell {@link #canPass}
+ * hundreds of times per frame inside path search.
+ *
+ * @param {number} goalX The x coordinate trying to be reached.
+ * @param {number} goalY The y coordinate trying to be reached.
+ * @returns {1|2|3|4|6|7|8|9|0} The direction decided.
+ */
+Game_Character.prototype.findDiagonalDirectionToHeuristic = function(goalX, goalY)
+{
+  const deltaX2 = this.deltaXFrom(goalX);
+  const deltaY2 = this.deltaYFrom(goalY);
+  if (deltaX2 === 0 && deltaY2 === 0)
+  {
+    return 0;
+  }
+
+  if (Math.abs(deltaX2) > Math.abs(deltaY2))
+  {
+    if (deltaX2 > 0)
+    {
+      return deltaY2 === 0
+        ? 4
+        : deltaY2 > 0
+          ? 7
+          : 1;
+    }
+    else if (deltaX2 < 0)
+    {
+      return deltaY2 === 0
+        ? 6
+        : deltaY2 > 0
+          ? 9
+          : 3;
+    }
+    else
+    {
+      return deltaY2 === 0
+        ? 0
+        : deltaY2 > 0
+          ? 8
+          : 2;
+    }
+  }
+  else
+  {
+    if (deltaY2 > 0)
+    {
+      return deltaX2 === 0
+        ? 8
+        : deltaX2 > 0
+          ? 7
+          : 9;
+    }
+    else if (deltaY2 < 0)
+    {
+      return deltaX2 === 0
+        ? 2
+        : deltaX2 > 0
+          ? 1
+          : 3;
+    }
+    else
+    {
+      return deltaX2 === 0
+        ? 0
+        : deltaX2 > 0
+          ? 4
+          : 6;
+    }
+  }
+};
+
+/**
  * Intelligently determines the next step to take on a path to the destination `x,y`.
  * @param {number} goalX The `x` coordinate trying to be reached.
  * @param {number} goalY The `y` coordinate trying to be reached.
@@ -29950,6 +30087,11 @@ Game_Character.prototype.isMovementSucceeded = function()
  */
 Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
 {
+  if (this.isThrough() || this.isDebugThrough())
+  {
+    return this.findDiagonalDirectionToHeuristic(goalX, goalY);
+  }
+
   const searchLimit = this.searchLimit();
   const mapWidth = $gameMap.width();
   const nodeList = [];
@@ -29957,18 +30099,22 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
   const closedList = [];
   const start = {};
   let best = start;
-  let goaled = false;
 
-  if (this.x === goalX && this.y === goalY)
+  const startXi = Math.round(this.x);
+  const startYi = Math.round(this.y);
+  const goalXi = Math.round(goalX);
+  const goalYi = Math.round(goalY);
+
+  if (startXi === goalXi && startYi === goalYi)
   {
     return 0;
   }
 
   start.parent = null;
-  start.x = this.x;
-  start.y = this.y;
+  start.x = startXi;
+  start.y = startYi;
   start.g = 0;
-  start.f = $gameMap.distance(start.x, start.y, goalX, goalY);
+  start.f = $gameMap.distance(start.x, start.y, goalXi, goalYi);
   nodeList.push(start);
   openList.push(start.y * mapWidth + start.x);
 
@@ -29993,10 +30139,9 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
     openList.splice(openList.indexOf(pos1), 1);
     closedList.push(pos1);
 
-    if (current.x === goalX && current.y === goalY)
+    if (current.x === goalXi && current.y === goalYi)
     {
       best = current;
-      goaled = true;
       break;
     }
 
@@ -30066,7 +30211,7 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
         neighbor.x = x2;
         neighbor.y = y2;
         neighbor.g = g2;
-        neighbor.f = g2 + $gameMap.distance(x2, y2, goalX, goalY);
+        neighbor.f = g2 + $gameMap.distance(x2, y2, goalXi, goalYi);
         if (!best || neighbor.f - neighbor.g < best.f - best.g)
         {
           best = neighbor;
@@ -30109,62 +30254,7 @@ Game_Character.prototype.findDiagonalDirectionTo = function(goalX, goalY)
     }
   }
 
-  const deltaX2 = this.deltaXFrom(goalX);
-  const deltaY2 = this.deltaYFrom(goalY);
-  if (Math.abs(deltaX2) > Math.abs(deltaY2))
-  {
-    if (deltaX2 > 0)
-    {
-      return deltaY2 === 0
-        ? 4
-        : deltaY2 > 0
-          ? 7
-          : 1;
-    }
-    else if (deltaX2 < 0)
-    {
-      return deltaY2 === 0
-        ? 6
-        : deltaY2 > 0
-          ? 9
-          : 3;
-    }
-    else
-    {
-      return deltaY2 === 0
-        ? 0
-        : deltaY2 > 0
-          ? 8
-          : 2;
-    }
-  }
-  else
-  {
-    if (deltaY2 > 0)
-    {
-      return deltaX2 === 0
-        ? 8
-        : deltaX2 > 0
-          ? 7
-          : 9;
-    }
-    else if (deltaY2 < 0)
-    {
-      return deltaX2 === 0
-        ? 2
-        : deltaX2 > 0
-          ? 1
-          : 3;
-    }
-    else
-    {
-      return deltaX2 === 0
-        ? 0
-        : deltaX2 > 0
-          ? 4
-          : 6;
-    }
-  }
+  return this.findDiagonalDirectionToHeuristic(goalX, goalY);
 };
 /* eslint-enable */
 //endregion Game_Character
@@ -33099,12 +33189,6 @@ Scene_Map.prototype.initJabsMenu = function()
    * @type {Window_AbsMenuSelect|null}
    */
   this._j._absMenu._equipDodgeWindow = null;
-
-  /**
-   * The help window for displaying information on the highlighted item.
-   * @type {Window_Help|null}
-   */
-  this._j._absMenu._helpWindow = null;
 };
 
 //region properties
@@ -33124,7 +33208,7 @@ Scene_Map.prototype.getJabsMenuFocus = function()
 Scene_Map.prototype.setJabsMenuFocus = function(focus)
 {
   this._j._absMenu._windowFocus = focus;
-}
+};
 
 /**
  * Gets the currently selected menu equip type being perused.
@@ -33142,24 +33226,6 @@ Scene_Map.prototype.getJabsMenuEquipType = function()
 Scene_Map.prototype.setJabsMenuEquipType = function(equipType)
 {
   this._j._absMenu._equipType = equipType;
-}
-
-/**
- * Gets the currently tracked JABS menu help window.
- * @returns {Window_AbsHelp|null}
- */
-Scene_Map.prototype.getJabsMenuHelpWindow = function()
-{
-  return this._j._absMenu._helpWindow;
-};
-
-/**
- * Sets the currently tracked JABS menu help window to the given window.
- * @param {Window_AbsHelp} window The help window to track.
- */
-Scene_Map.prototype.setJabsMenuHelpWindow = function(window)
-{
-  this._j._absMenu._helpWindow = window;
 };
 
 /**
@@ -33310,9 +33376,6 @@ Scene_Map.prototype.createAllWindows = function()
  */
 Scene_Map.prototype.createJabsAbsMenu = function()
 {
-  // the help window used by all menus.
-  this.createJabsAbsMenuHelpWindow();
-
   // the main window that forks into the other three.
   this.createJabsAbsMenuMainWindow();
 
@@ -33326,63 +33389,6 @@ Scene_Map.prototype.createJabsAbsMenu = function()
   this.createJabsAbsMenuEquipToolWindow();
   this.createJabsAbsMenuEquipDodgeWindow();
 };
-
-//region help
-/**
- * Creates a help window for use across all menus in the JABS menu.
- */
-Scene_Map.prototype.createJabsAbsMenuHelpWindow = function()
-{
-  // create the window.
-  const window = this.buildJabsMenuHelpWindow();
-
-  // update the tracker with the new window.
-  this.setJabsMenuHelpWindow(window);
-
-  // add the window to the scene manager's tracking.
-  this.addWindow(window);
-};
-
-/**
- * Sets up and defines the JABS menu help window.
- * @returns {Window_AbsHelp}
- */
-Scene_Map.prototype.buildJabsMenuHelpWindow = function()
-{
-  // define the rectangle of the window.
-  const rectangle = this.jabsMenuHelpWindowRectangle();
-
-  // create the window with the rectangle.
-  const window = new Window_AbsHelp(rectangle);
-
-  // close and hide the window by default upon creation.
-  window.close();
-  window.hide();
-
-  // return the built and configured window.
-  return window;
-};
-
-/**
- * Get the rectangle associated with the main list of the JABS menu.
- * @returns {Rectangle}
- */
-Scene_Map.prototype.jabsMenuHelpWindowRectangle = function()
-{
-  // the width is the full window.
-  const width = Graphics.boxWidth;
-
-  // define the height arbitrarily.
-  const height = 100;
-
-  // the x:y is the upper left.
-  const x = 0;
-  const y = 0;
-
-  // build the rectangle to return.
-  return new Rectangle(x, y, width, height);
-};
-//endregion help
 
 //region main menu
 /**
@@ -33417,14 +33423,11 @@ Scene_Map.prototype.buildJabsMenuMainWindow = function()
   const window = new Window_AbsMenu(rectangle);
 
   // assign functionality for each of the commands.
-  window.setHandler("skill-assign", this.commandSkill.bind(this));
-  window.setHandler("dodge-assign", this.commandDodge.bind(this));
-  window.setHandler("item-assign", this.commandItem.bind(this));
-  window.setHandler("main-menu", this.commandMenu.bind(this));
-  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Main));
-
-  // overwrite the onIndexChange hook with our local onHoverChange hook.
-  window.onIndexChange = this.onJabsMenuHoverChange.bind(this);
+  window.setHandler('skill-assign', this.commandSkill.bind(this));
+  window.setHandler('dodge-assign', this.commandDodge.bind(this));
+  window.setHandler('item-assign', this.commandItem.bind(this));
+  window.setHandler('main-menu', this.commandMenu.bind(this));
+  window.setHandler('cancel', this.closeAbsWindow.bind(this, JABS_MenuType.Main));
 
   // close and hide the window by default upon creation.
   window.close();
@@ -33474,7 +33477,7 @@ Scene_Map.prototype.createJabsAbsSkillListWindow = function()
 
   // add the window to the scene manager's tracking.
   this.addWindow(window);
-}
+};
 
 /**
  * Sets up and defines the skill list of the JABS menu.
@@ -33489,11 +33492,8 @@ Scene_Map.prototype.buildJabsSkillListWindow = function()
   const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.SkillList);
 
   // assign functionality for each of the commands.
-  window.setHandler("cancel", this.closeAbsWindow.bind(this, Window_AbsMenuSelect.SelectionTypes.SkillList));
-  window.setHandler("skill", this.commandEquipSkill.bind(this));
-
-  // overwrite the onIndexChange hook with our local onHoverChange hook.
-  window.onIndexChange = this.onJabsCombatSkillListHoverChange.bind(this);
+  window.setHandler('cancel', this.closeAbsWindow.bind(this, Window_AbsMenuSelect.SelectionTypes.SkillList));
+  window.setHandler('skill', this.commandEquipSkill.bind(this));
 
   // close and hide the window by default upon creation.
   window.close();
@@ -33510,19 +33510,19 @@ Scene_Map.prototype.buildJabsSkillListWindow = function()
 Scene_Map.prototype.jabsSkillListWindowRectangle = function()
 {
   // define the width arbitrarily.
-  const width = 400;
+  const width = Math.round(Graphics.boxWidth * 0.66);
 
   // the general height of a command item is this many pixels.
-  const commandHeight = 36;
+  const commandHeight = 72;
 
-  // the height should be 8 items tall.
-  const height = commandHeight * 8;
+  // the height should be 10 items tall.
+  const height = commandHeight * 10 + 40;
 
   // the x coordinate should push the window against the right side.
   const x = Graphics.boxWidth - width;
 
   // define the y coordinate arbitrarily.
-  const y = 100;
+  const y = 0;
 
   // build the rectangle to return.
   return new Rectangle(x, y, width, height);
@@ -33558,11 +33558,8 @@ Scene_Map.prototype.buildJabsEquippedCombatSkillsWindow = function()
   const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.SkillEquip);
 
   // assign functionality for each of the commands.
-  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
-  window.setHandler("slot", this.commandAssign.bind(this));
-
-  // overwrite the onIndexChange hook with our local onHoverChange hook.
-  window.onIndexChange = this.onJabsEquippedCombatSkillsHoverChange.bind(this);
+  window.setHandler('cancel', this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
+  window.setHandler('slot', this.commandAssign.bind(this));
 
   // close and hide the window by default upon creation.
   window.close();
@@ -33582,10 +33579,10 @@ Scene_Map.prototype.jabsEquippedCombatSkillsWindowRectangle = function()
   const width = 400;
 
   // the general height of a command item is this many pixels.
-  const commandHeight = 36;
+  const commandHeight = 72;
 
-  // the height should be 5 items tall with some padding on top and bottom.
-  const height = (commandHeight * 5) + 20;
+  // the height should be 4 items tall with some padding on top and bottom.
+  const height = commandHeight * 4 + 24;
 
   // the x coordinate should push the window against the right side.
   const x = Graphics.boxWidth - width;
@@ -33630,11 +33627,8 @@ Scene_Map.prototype.buildJabsToolListWindow = function()
   const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.ToolList);
 
   // assign functionality for each of the commands.
-  window.setHandler("cancel", this.closeAbsWindow.bind(this, Window_AbsMenuSelect.SelectionTypes.ToolList));
-  window.setHandler("tool", this.commandEquipTool.bind(this));
-
-  // overwrite the onIndexChange hook with our local onHoverChange hook.
-  window.onIndexChange = this.onJabsToolListHoverChange.bind(this);
+  window.setHandler('cancel', this.closeAbsWindow.bind(this, Window_AbsMenuSelect.SelectionTypes.ToolList));
+  window.setHandler('tool', this.commandEquipTool.bind(this));
 
   // close and hide the window by default upon creation.
   window.close();
@@ -33651,19 +33645,19 @@ Scene_Map.prototype.buildJabsToolListWindow = function()
 Scene_Map.prototype.jabsToolListWindowRectangle = function()
 {
   // define the width arbitrarily.
-  const width = 400;
+  const width = Math.round(Graphics.boxWidth * 0.66);
 
   // the general height of a command item is this many pixels.
-  const commandHeight = 36;
+  const commandHeight = 72;
 
-  // the height should be 8 items tall.
-  const height = commandHeight * 8;
+  // the height should be 10 items tall with some padding on top and bottom.
+  const height = commandHeight * 10 + 40;
 
   // the x coordinate should push the window against the right side.
   const x = Graphics.boxWidth - width;
 
   // define the y coordinate arbitrarily.
-  const y = 100;
+  const y = 0;
 
   // build the rectangle to return.
   return new Rectangle(x, y, width, height);
@@ -33699,11 +33693,8 @@ Scene_Map.prototype.buildJabsEquippedToolWindow = function()
   const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.ToolEquip);
 
   // assign functionality for each of the commands.
-  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
-  window.setHandler("slot", this.commandAssign.bind(this));
-
-  // overwrite the onIndexChange hook with our local onHoverChange hook.
-  window.onIndexChange = this.onJabsEquippedToolHoverChange.bind(this);
+  window.setHandler('cancel', this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
+  window.setHandler('slot', this.commandAssign.bind(this));
 
   // close and hide the window by default upon creation.
   window.close();
@@ -33723,7 +33714,7 @@ Scene_Map.prototype.jabsEquippedToolWindowRectangle = function()
   const width = 400;
 
   // the height should be just enough to fit the single tool in there.
-  const height = 70;
+  const height = 96;
 
   // the x coordinate should push the window against the right side.
   const x = Graphics.boxWidth - width;
@@ -33768,11 +33759,8 @@ Scene_Map.prototype.buildJabsDodgeSkillListWindow = function()
   const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.DodgeList);
 
   // assign functionality for each of the commands.
-  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Dodge));
-  window.setHandler("dodge", this.commandEquipDodge.bind(this));
-
-  // overwrite the onIndexChange hook with our local onHoverChange hook.
-  window.onIndexChange = this.onJabsDodgeSkillListHoverChange.bind(this);
+  window.setHandler('cancel', this.closeAbsWindow.bind(this, JABS_MenuType.Dodge));
+  window.setHandler('dodge', this.commandEquipDodge.bind(this));
 
   // close and hide the window by default upon creation.
   window.close();
@@ -33789,19 +33777,19 @@ Scene_Map.prototype.buildJabsDodgeSkillListWindow = function()
 Scene_Map.prototype.jabsDodgeSkillListWindowRectangle = function()
 {
   // define the width arbitrarily.
-  const width = 400;
+  const width = Math.round(Graphics.boxWidth * 0.66);
 
   // the general height of a command item is this many pixels.
-  const commandHeight = 36;
+  const commandHeight = 72;
 
-  // the height should be 8 items tall.
-  const height = commandHeight * 8;
+  // the height should be 10 items tall with some padding on top and bottom.
+  const height = commandHeight * 10 + 40;
 
   // the x coordinate should push the window against the right side.
   const x = Graphics.boxWidth - width;
 
   // define the y coordinate arbitrarily.
-  const y = 100;
+  const y = 0;
 
   // build the rectangle to return.
   return new Rectangle(x, y, width, height);
@@ -33837,11 +33825,8 @@ Scene_Map.prototype.buildJabsEquippedDodgeSkillWindow = function()
   const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.DodgeEquip);
 
   // assign functionality for each of the commands.
-  window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
-  window.setHandler("slot", this.commandAssign.bind(this));
-
-  // overwrite the onIndexChange hook with our local onHoverChange hook.
-  window.onIndexChange = this.onJabsEquippedDodgeSkillHoverChange.bind(this);
+  window.setHandler('cancel', this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
+  window.setHandler('slot', this.commandAssign.bind(this));
 
   // close and hide the window by default upon creation.
   window.close();
@@ -33861,7 +33846,7 @@ Scene_Map.prototype.jabsEquippedDodgeSkillWindowRectangle = function()
   const width = 400;
 
   // the height should be just enough to fit the single dodge skill in there.
-  const height = 70;
+  const height = 96;
 
   // the x coordinate should push the window against the right side.
   const x = Graphics.boxWidth - width;
@@ -33879,99 +33864,6 @@ Scene_Map.prototype.jabsEquippedDodgeSkillWindowRectangle = function()
 //endregion create
 
 //region actions
-//region onHover
-Scene_Map.prototype.onJabsMenuHoverChange = function()
-{
-  // grab the main menu.
-  const menu = this.getJabsMainListWindow();
-
-  // extract the text out of the current selection.
-  const text = menu.currentHelpText();
-
-  // update the help window with some text.
-  this.getJabsMenuHelpWindow()
-    .setText(text);
-};
-
-Scene_Map.prototype.onJabsCombatSkillListHoverChange = function()
-{
-  // grab the menu.
-  const menu = this.getJabsSkillListWindow();
-
-  // extract the text out of the current selection.
-  const text = menu.currentHelpText();
-
-  // update the help window with some text.
-  this.getJabsMenuHelpWindow()
-    .setText(text);
-};
-
-Scene_Map.prototype.onJabsEquippedCombatSkillsHoverChange = function()
-{
-  // grab the menu.
-  const menu = this.getJabsEquippedCombatSkillsWindow();
-
-  // extract the text out of the current selection.
-  const text = menu.currentHelpText();
-
-  // update the help window with some text.
-  this.getJabsMenuHelpWindow()
-    .setText(text);
-};
-
-Scene_Map.prototype.onJabsToolListHoverChange = function()
-{
-  // grab the menu.
-  const menu = this.getJabsToolListWindow();
-
-  // extract the text out of the current selection.
-  const text = menu.currentHelpText();
-
-  // update the help window with some text.
-  this.getJabsMenuHelpWindow()
-    .setText(text);
-};
-
-Scene_Map.prototype.onJabsEquippedToolHoverChange = function()
-{
-  // grab the menu.
-  const menu = this.getJabsEquippedToolWindow();
-
-  // extract the text out of the current selection.
-  const text = menu.currentHelpText();
-
-  // update the help window with some text.
-  this.getJabsMenuHelpWindow()
-    .setText(text);
-};
-
-Scene_Map.prototype.onJabsDodgeSkillListHoverChange = function()
-{
-  // grab the menu.
-  const menu = this.getJabsDodgeSkillListWindow();
-
-  // extract the text out of the current selection.
-  const text = menu.currentHelpText();
-
-  // update the help window with some text.
-  this.getJabsMenuHelpWindow()
-    .setText(text);
-};
-
-Scene_Map.prototype.onJabsEquippedDodgeSkillHoverChange = function()
-{
-  // grab the menu.
-  const menu = this.getJabsDodgeSkillListWindow();
-
-  // extract the text out of the current selection.
-  const text = menu.currentHelpText();
-
-  // update the help window with some text.
-  this.getJabsMenuHelpWindow()
-    .setText(text);
-};
-//endregion onHover
-
 //region command execution
 /**
  * Brings up the main menu.
@@ -34132,7 +34024,7 @@ Scene_Map.prototype.commandAssign = function()
   const actor = $gameParty.leader();
 
   // initialize the skill and slot variables.
-  let nextActionSkill = 0
+  let nextActionSkill = 0;
   let equippedActionSlot = 0;
 
   // pivot on the currently perused equip type.
@@ -34168,26 +34060,6 @@ Scene_Map.prototype.commandAssign = function()
   this.closeAbsWindow(JABS_MenuType.Assign);
 };
 //endregion command execution
-
-/**
- * Sets the item parsed in the JABS menu help window.
- * @param {RPG_BaseItem} item The item to parse into the help window.
- */
-Scene_Map.prototype.setJabsHelpItem = function(item)
-{
-  this.getJabsMenuHelpWindow()
-    .setItem(item);
-};
-
-/**
- * Sets the text of the JABS menu help window.
- * @param {string} text The text to put into the window.
- */
-Scene_Map.prototype.setJabsHelpText = function(text)
-{
-  this.getJabsMenuHelpWindow()
-    .setText(text);
-};
 //endregion actions
 
 //region update
@@ -34280,7 +34152,6 @@ Scene_Map.prototype.manageAbsMenu = function()
   switch (this.getJabsMenuFocus())
   {
     case JABS_MenuType.Main:
-      this.showJabsMenuHelpWindow();
       this.showJabsMainListWindow();
       break;
     case JABS_MenuType.Skill:
@@ -34318,32 +34189,6 @@ Scene_Map.prototype.callMenu = function()
 };
 
 //region show/hide
-//region help
-/**
- * Shows the JABS menu help window.
- */
-Scene_Map.prototype.showJabsMenuHelpWindow = function()
-{
-  // grab the window.
-  const window = this.getJabsMenuHelpWindow();
-
-  // show the window.
-  this.showJabsMenuWindow(window);
-};
-
-/**
- * Hides the JABS menu help window.
- */
-Scene_Map.prototype.hideJabsMenuHelpWindow = function()
-{
-  // grab the window.
-  const window = this.getJabsMenuHelpWindow();
-
-  // hide the window.
-  this.hideJabsMenuWindow(window);
-};
-//endregion help
-
 //region main
 /**
  * Shows the JABS menu main list window.
@@ -34353,8 +34198,17 @@ Scene_Map.prototype.showJabsMainListWindow = function()
   // grab the window.
   const window = this.getJabsMainListWindow();
 
+  // only when becoming visible so we do not fight the cursor every frame (manageAbsMenu runs per update).
+  const wasHidden = !window.visible;
+
   // show the window.
   this.showJabsMenuWindow(window);
+
+  // force-select the main menu.
+  if (wasHidden && window.maxItems() > 1)
+  {
+    window.forceSelect(0);
+  }
 };
 
 /**
@@ -34540,7 +34394,6 @@ Scene_Map.prototype.hideAllJabsWindows = function()
   this.hideJabsCombatSkillListWindow();
   this.hideJabsEquippedCombatSkillsWindow();
 
-  this.hideJabsMenuHelpWindow();
   this.hideJabsMainWindow();
 
   this.closeAbsMenu();
@@ -34548,7 +34401,7 @@ Scene_Map.prototype.hideAllJabsWindows = function()
 
 /**
  * Shows a JABS menu window.
- * @param {Window_AbsMenu|Window_AbsHelp|Window_AbsMenuSelect} window The window to show.
+ * @param {Window_AbsMenu|Window_AbsMenuSelect} window The window to show.
  */
 Scene_Map.prototype.showJabsMenuWindow = function(window)
 {
@@ -34560,7 +34413,7 @@ Scene_Map.prototype.showJabsMenuWindow = function(window)
 
 /**
  * Hides a JABS menu window.
- * @param {Window_AbsMenu|Window_AbsHelp|Window_AbsMenuSelect} window The window to hide.
+ * @param {Window_AbsMenu|Window_AbsMenuSelect} window The window to hide.
  */
 Scene_Map.prototype.hideJabsMenuWindow = function(window)
 {
@@ -38924,18 +38777,6 @@ Spriteset_Map.prototype.destroyBattlerHitboxSprite = function (sprite)
 //endregion hitbox sprites
 //endregion Spriteset_Map
 
-//region Window_AbsHelp
-class Window_AbsHelp
-  extends Window_Help
-{
-  constructor(rect)
-  {
-    super(rect);
-  }
-}
-//endregion Window_AbsHelp
-
-
 //region Window_AbsMenu
 /**
  * The main JABS menu window called from the map.
@@ -39089,13 +38930,13 @@ class Window_AbsMenuSelect
 {
   /* eslint-disable prefer-destructuring */
   static SelectionTypes = {
-    SkillList: "skill",
-    SkillEquip: "equip-skill",
-    ToolList: "tool",
-    ToolEquip: "equip-tool",
-    DodgeList: "dodge",
-    DodgeEquip: "equip-dodge",
-  }
+    SkillList: 'skill',
+    SkillEquip: 'equip-skill',
+    ToolList: 'tool',
+    ToolEquip: 'equip-tool',
+    DodgeList: 'dodge',
+    DodgeEquip: 'equip-dodge',
+  };
 
   /**
    * @constructor
@@ -39174,9 +39015,9 @@ class Window_AbsMenuSelect
 
     // build the clear slot command.
     const clearSlotCommand = new WindowCommandBuilder(J.ABS.Metadata.ClearSlotText)
-      .setSymbol("skill")
+      .setSymbol('skill')
       .setColorIndex(16)
-      .setHelpText("Remove the existing combat skill from the slot.")
+      .setHelpText('Remove the existing combat skill from the slot.')
       .build();
 
     // add the clear slot command to the list.
@@ -39195,10 +39036,11 @@ class Window_AbsMenuSelect
 
       // build the command.
       const skillCommand = new WindowCommandBuilder(name)
-        .setSymbol("skill")
+        .setSymbol('skill')
         .setExtensionData(id)
         .setIconIndex(iconIndex)
         .setHelpText(description)
+        .setTextLines(description.split(/[\r\n]+/))
         .build();
 
       // add the built command to the list.
@@ -39222,8 +39064,8 @@ class Window_AbsMenuSelect
 
     // build the clear slot command.
     const clearSlotCommand = new WindowCommandBuilder(J.ABS.Metadata.ClearSlotText)
-      .setSymbol("tool")
-      .setHelpText("Remove the existing tool from the slot.")
+      .setSymbol('tool')
+      .setHelpText('Remove the existing tool from the slot.')
       .setColorIndex(16)
       .build();
 
@@ -39245,15 +39087,16 @@ class Window_AbsMenuSelect
       const amount = tool.consumable
         ? $gameParty.numItems(tool)
           .padZero(3)
-        : "♾";
+        : '♾';
 
       // build the command.
       const toolCommand = new WindowCommandBuilder(name)
-        .setSymbol("tool")
+        .setSymbol('tool')
         .setExtensionData(id)
         .setIconIndex(iconIndex)
         .setHelpText(description)
         .setRightText(`x${amount}`)
+        .setTextLines(description.split(/[\r\n]+/))
         .build();
 
       // add the built command to the list.
@@ -39281,9 +39124,9 @@ class Window_AbsMenuSelect
 
     // build the clear slot command.
     const clearSlotCommand = new WindowCommandBuilder(J.ABS.Metadata.ClearSlotText)
-      .setSymbol("dodge")
+      .setSymbol('dodge')
       .setColorIndex(16)
-      .setHelpText("Remove the existing dodge skill from the slot.")
+      .setHelpText('Remove the existing dodge skill from the slot.')
       .build();
 
     // add the clear slot command to the list.
@@ -39307,10 +39150,11 @@ class Window_AbsMenuSelect
 
       // build the command.
       const dodgeCommand = new WindowCommandBuilder(name)
-        .setSymbol("dodge")
+        .setSymbol('dodge')
         .setExtensionData(id)
         .setIconIndex(iconIndex)
         .setHelpText(description)
+        .setTextLines(description.split(/[\r\n]+/))
         .build();
 
       // add the built command to the list.
@@ -39341,7 +39185,7 @@ class Window_AbsMenuSelect
       // initialize the command variables.
       let name = `${skillSlot.key}: ${J.ABS.Metadata.UnassignedText}`;
       let iconIndex = 0;
-      let description = "An empty combat skill slot eagerly awaiting to be filled.";
+      let description = 'An empty combat skill slot eagerly awaiting to be filled.';
 
       // check if the skillslot has something in it.
       if (skillSlot.isUsable())
@@ -39357,7 +39201,7 @@ class Window_AbsMenuSelect
 
       // build the command.
       const command = new WindowCommandBuilder(name)
-        .setSymbol("slot")
+        .setSymbol('slot')
         .setExtensionData(skillSlot.key)
         .setIconIndex(iconIndex)
         .setHelpText(description)
@@ -39399,7 +39243,7 @@ class Window_AbsMenuSelect
       amount = equippedTool.consumable
         ? $gameParty.numItems(equippedTool)
           .padZero(3)
-        : "♾";
+        : '♾';
 
       // update the command variables with the equipped tool data.
       name = equippedTool.name;
@@ -39409,7 +39253,7 @@ class Window_AbsMenuSelect
 
     // build the command.
     const command = new WindowCommandBuilder(name)
-      .setSymbol("slot")
+      .setSymbol('slot')
       .setExtensionData(toolSkillSlot.key)
       .setIconIndex(iconIndex)
       .setHelpText(description)
@@ -39450,7 +39294,7 @@ class Window_AbsMenuSelect
 
     // build the command.
     const command = new WindowCommandBuilder(name)
-      .setSymbol("slot")
+      .setSymbol('slot')
       .setExtensionData(dodgeSkillSlot.key)
       .setIconIndex(iconIndex)
       .setHelpText(description)

@@ -1236,4 +1236,4 @@ JABS_Battler.prototype.angleToDirection = function(angle)
 };
 //endregion JABS_Battler
 
-//# sourceMappingURL=J-ABS-Pixelistics.js.map
+//# sourceMappingURL=J-Pixel-ABS.js.map
