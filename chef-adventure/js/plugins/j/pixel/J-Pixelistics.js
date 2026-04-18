@@ -42,6 +42,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Optional foot-touch trigger delay after map setup (plugin parameter).
  * - 1.0.0
  *    Initial release as standalone J-Pixelistics.
  *    Sub-tile fractional-coordinate movement with AABB subcell collision grid.
@@ -89,6 +91,15 @@
  * @text Enable Vector (360°) Movement
  * @desc When true, the player can move at any angle via analog stick or mouse direction. Falls back to 8-dir if no analog input.
  * @default false
+ *
+ * @param footTouchEventDelayFrames
+ * @parent movementConfigs
+ * @type number
+ * @min 0
+ * @max 120
+ * @text Foot Touch Trigger Delay (frames)
+ * @desc After a map loads, suppress Player Touch / Event Touch on the tile under the player for this many frames (0 = off). Reduces spurious saves after load.
+ * @default 15
  *
  *
  * @param debugConfigs
@@ -148,6 +159,15 @@ class JPixelistics_PluginMetadata
     this.VectorMovementEnabled = (this.parsedPluginParameters['vectorMovementEnabled'] === 'true');
 
     /**
+     * Frames after map setup during which player/event touch triggers underfoot are ignored.
+     * @type {number}
+     */
+    this.FootTouchEventDelayFrames = J.BASE.Helpers.parsePluginInt(
+      this.parsedPluginParameters['footTouchEventDelayFrames'],
+      15
+    );
+
+    /**
      * The number of subcells per tile axis to use for collision resolution.
      * Valid values: 1, 2, or 4.
      * @type {number}
@@ -190,7 +210,7 @@ J.PIXEL.EXT ||= {};
 /**
  * The metadata associated with this plugin.
  */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata('J-Pixelistics', '1.0.0');
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata('J-Pixelistics', '1.0.1');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -1707,8 +1727,8 @@ Game_CharacterBase.prototype.movePixelDistance = function(direction, distance)
   const radius = this.getEffectiveRadius();
 
   // If we ended up overlapping solid tiles after this step, revert the move.
-  // Through characters (e.g. JABS action events) bypass this check entirely.
-  if (this.isThrough() === false && this.isOverlappingSolidTiles(
+  // Through or playtest debug-through bypass this check entirely.
+  if (this.isThrough() === false && this.isDebugThrough() === false && this.isOverlappingSolidTiles(
     this._x + this.getCollisionPivotX(),
     this._y + this.getCollisionPivotY(),
     radius))
@@ -2025,7 +2045,7 @@ Game_CharacterBase.prototype.canPassStraight = function(direction, distance = th
   // to a wall), ensure the final probe AABB does not overlap a solid tile. This matches
   // the post-move check in movePixelDistance and prevents canPassStraight from returning
   // true when the step destination physically overlaps impassable terrain.
-  if (this.isThrough() === false && this.isOverlappingSolidTiles(
+  if (this.isThrough() === false && this.isDebugThrough() === false && this.isOverlappingSolidTiles(
     probeX + this.getCollisionPivotX(),
     probeY + this.getCollisionPivotY(),
     radius))
@@ -3694,7 +3714,7 @@ Game_CharacterBase.prototype.vectorMoveByAngle = function(angleDegrees, speed = 
   this._y += finalDy;
 
   // post-overlap guard: if we ended up inside a solid tile, roll back.
-  if (this.isThrough() === false && this.isOverlappingSolidTiles(
+  if (this.isThrough() === false && this.isDebugThrough() === false && this.isOverlappingSolidTiles(
     this._x + this.getCollisionPivotX(),
     this._y + this.getCollisionPivotY(),
     radius))
@@ -4004,6 +4024,9 @@ Game_Map.prototype.setup = function(mapId)
 
   // Build the PIXEL subcell collision table for this map.
   PIXEL_CollisionManager.setupCollision();
+
+  // suppress Player Touch / Event Touch underfoot briefly after load/transfer.
+  this._pixelFootTouchTriggerCooldown = J.PIXEL.Metadata.FootTouchEventDelayFrames;
 };
 //endregion Game_Map
 
@@ -4018,12 +4041,38 @@ Game_Player.prototype.checkEventTriggerHere = function(triggers)
   // check if we can start an event at the current location.
   if (this.canStartLocalEvents())
   {
+    let effectiveTriggers = triggers;
+    if (($gameMap._pixelFootTouchTriggerCooldown || 0) > 0)
+    {
+      effectiveTriggers = triggers.filter(t => t !== 1 && t !== 2);
+      if (effectiveTriggers.length === 0)
+      {
+        return;
+      }
+    }
+
     // round the x,y coordinates.
     const roundX = Math.round(this.x);
     const roundY = Math.round(this.y);
 
     // start the event with the rounded coordinates.
-    this.startMapEvent(roundX, roundY, triggers, false);
+    this.startMapEvent(roundX, roundY, effectiveTriggers, false);
+  }
+};
+
+/**
+ * Extends {@link Game_Player.update}.<br>
+ * Ticks down the foot-touch trigger cooldown after all movement and trigger logic for the frame.
+ */
+J.PIXEL.Aliased.Game_Player.set('update', Game_Player.prototype.update);
+Game_Player.prototype.update = function(sceneActive)
+{
+  J.PIXEL.Aliased.Game_Player.get('update')
+    .call(this, sceneActive);
+
+  if ($gameMap._pixelFootTouchTriggerCooldown > 0)
+  {
+    $gameMap._pixelFootTouchTriggerCooldown--;
   }
 };
 
