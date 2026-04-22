@@ -74,6 +74,24 @@
  * formula-based slip effects will use the afflicted battler as both the
  * source AND target battlers in the context of "a" and "b" in the formula.
  *
+ * ============================================================================
+ * EVENT PASSIVES (MAP EVENTS)
+ * Have you ever wanted a map event to force a spawned enemy to have specific
+ * passive state ids- without needing to create a duplicate enemy in the
+ * database? Well now you can! By applying the passive tag to an event comment,
+ * you too can inject passive states onto that spawned battler.
+ *
+ * TAG USAGE:
+ * - Events (Comment commands)
+ *
+ * TAG FORMAT:
+ *  <passive:[STATE_IDS]>
+ *    Where STATE_IDS is a comma-delimited list of state ids to be applied.
+ *
+ * TAG EXAMPLES:
+ *  <passive:[10,11]>
+ *    Applies passive states 10 and 11 to the battler spawned from this page.
+ *
  * TAG USAGE:
  * - Actors
  * - Classes
@@ -148,6 +166,11 @@ var J = J || {};
  * The plugin umbrella that governs all things related to this plugin.
  */
 J.PASSIVE = {};
+
+/**
+ * The plugin umbrella that governs all extensions related to this plugin.
+ */
+J.PASSIVE.EXT = {};
 
 /**
  * The `metadata` associated with this plugin, such as version.
@@ -343,31 +366,6 @@ Object.defineProperty(RPG_Class.prototype, "uniqueEquippedPassiveStateIds", {
 //endregion unique equipped passive state ids
 //endregion RPG_Class
 
-//region JABS_AiManager
-if (J.ABS)
-{
-  /**
-   * Extends {@link #postConvertMutate}.<br/>
-   * Also adds the event source to the battler.
-   * @param {Game_Enemy} battler The enemy battler that was converted from the event.
-   * @param {JABS_Battler} jabsBattler The created JABS battler from the event.
-   */
-  J.PASSIVE.Aliased.JABS_AiManager.set('postConvertMutate', JABS_AiManager.postConvertMutate);
-  JABS_AiManager.postConvertMutate = function(battler, jabsBattler)
-  {
-    // perform original logic.
-    J.PASSIVE.Aliased.JABS_AiManager.get('postConvertMutate')
-      .call(this, battler, jabsBattler);
-
-    // add the event source to the battler.
-    battler.addPassiveStateEventSource(jabsBattler.getCharacter());
-
-    // refresh the passive states with the new source as an option.
-    battler.refreshPassiveStates();
-  };
-}
-//endregion JABS_AiManager
-
 //region Game_Actor
 /**
  * Extends {@link #onSetup}.<br>
@@ -559,10 +557,10 @@ Game_Battler.prototype.initPassiveStatesMembers = function()
   this._j._passive._stateIds = [];
 
   /**
-   * A group of all events that are associated with this battler's passive states.
+   * A group of all external sources that are associated with this battler's passive states.
    * @type {RPG_BaseItem[]}
    */
-  this._j._passive._eventSources = [];
+  this._j._passive._externalStateSources = [];
 };
 
 /**
@@ -575,37 +573,37 @@ Game_Battler.prototype.getPassiveStateIds = function()
 };
 
 /**
- * Checks whether or not this battler currently has a given passive state applied.
- * @param {number} stateId The id of the state to check for.
- * @returns {boolean} True if this battler has the passive state applied, false otherwise.
- */
-Game_Battler.prototype.hasPassiveStateId = function(stateId)
-{
-  return this.getPassiveStateIds()
-    .includes(stateId);
-};
-
-/**
- * Gets all the event sources (as base items) for this battler.
+ * Gets all the external sources (as base items) for this battler.
  * @returns {RPG_BaseItem[]}
  */
-Game_Battler.prototype.passiveStateEventSources = function()
+Game_Battler.prototype.passiveExternalStateSources = function()
 {
-  return this._j._passive._eventSources;
+  return this._j._passive._externalStateSources;
 };
 
 /**
- * Adds a new event source to the list of passive state sources for this battler.
- * @param {Game_Event} event The event source to be converted to a base item source.
+ * Adds a collection of state ids to the external passive state ids list.
+ * @param {number[]} stateIds The ids of the external passive states.
  * @param {boolean} deferRefresh Whether or not to defer refreshing the passive states.
  */
-Game_Battler.prototype.addPassiveStateEventSource = function(event, deferRefresh = false)
+Game_Battler.prototype.addPassiveStateExternalSourceByStateIds = function(stateIds, deferRefresh = false)
 {
-  // convert the event to a base item.
-  const converted = this.convertEventToBaseItem(event);
+  // convert the state ids to a base item.
+  const baseItem = this.buildSourceFromStateIds(stateIds);
 
   // add the converted item to the list.
-  this._j._passive._eventSources.push(converted);
+  this.addPassiveStateExternalSource(baseItem, deferRefresh);
+};
+
+/**
+ * Adds a source to the external passive source list.
+ * @param {RPG_BaseItem} source The source to add.
+ * @param {boolean} deferRefresh Whether or not to defer refreshing the passive states.
+ */
+Game_Battler.prototype.addPassiveStateExternalSource = function(source, deferRefresh = false)
+{
+  // add the converted item to the list.
+  this._j._passive._externalStateSources.push(source);
 
   // if we are not deferring refreshing, then do it now.
   if (deferRefresh === true) return;
@@ -615,44 +613,39 @@ Game_Battler.prototype.addPassiveStateEventSource = function(event, deferRefresh
 };
 
 /**
- * Clears the list of passive state event sources for this battler.
+ * Clears all external passive state sources.
+ * @param {boolean} deferRefresh Whether or not to defer refreshing the passive states.
  */
-Game_Battler.prototype.clearPassiveStateEventSources = function()
+Game_Battler.prototype.clearPassiveStateExternalSources = function(deferRefresh = false)
 {
-  // clear the list of event sources.
-  this._j._passive._eventSources = [];
+  // empty the external sources list.
+  this._j._passive._externalStateSources = [];
 
-  // also refresh the passive states.
+  // if we're deferring the refresh, then don't do it.
+  if (deferRefresh === true) return;
+
+  // refresh the passive states.
   this.refreshPassiveStates();
 };
 
 /**
- * Converts the given event to a base item.
+ * Builds a dummy base item that can be used to represent passive state ids.
  *
  * Note: these base items aren't real items from the database and shouldn't be used as such!
- * @param {Game_Event} event The event to convert to a base item.
- * @returns {RPG_BaseItem} The converted base item.
+ * @param {number[]} stateIds The passive state ids to add to the base item.
+ * @returns {RPG_BaseItem} The constructed base item.
  */
-Game_Battler.prototype.convertEventToBaseItem = function(event)
+Game_Battler.prototype.buildSourceFromStateIds = function(stateIds)
 {
   // build a fake base item.
   const baseItem = {
     id: -1,
     meta: {},
-    name: event.event().name,
-    note: String.empty,
+    name: String.empty,
+    note: `<passive:[${stateIds.join(',')}]>`,
     description: String.empty,
     iconIndex: 0,
   };
-
-  // determine the passive state ids for this event.
-  const passiveStateIds = event.getPassiveStateIds();
-
-  // build the note to use.
-  const passiveNote = `<passive:[${passiveStateIds.join(',')}]>`;
-
-  // update the dummy base item with the converted note.
-  baseItem.note = passiveNote;
 
   // return the constructed base item.
   return new RPG_BaseItem(baseItem, baseItem.id);
@@ -862,7 +855,7 @@ Game_Battler.prototype.getPassiveStateSources = function()
     ...this.skills(),
 
     // add all sources from events.
-    ...this.passiveStateEventSources(),
+    ...this.passiveExternalStateSources(),
   ];
 
   // return this collection of stuff.
@@ -1015,7 +1008,7 @@ Game_Enemy.prototype.getNotesSources = function()
     ...this.getPassiveStates(),
 
     // add all sources from events.
-    ...this.passiveStateEventSources(),
+    ...this.passiveExternalStateSources(),
   ];
 
   // combine the sources.
@@ -1040,6 +1033,9 @@ Game_Event.prototype.getPassiveStateIds = function()
   this.getValidCommentCommands()
     .forEach(command =>
     {
+      // reset the regex's lastIndex to 0.
+      J.PASSIVE.RegExp.PassiveStateIds.lastIndex = 0;
+
       // shorthand the comment into a variable.
       const [ comment, ] = command.parameters;
 

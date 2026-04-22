@@ -1001,6 +1001,17 @@ Window_Base.prototype.boldenText = function(text)
 };
 
 /**
+ * Wraps text with `\\C[colorIndex]…\\C[0]` for {@link Window_Base#drawTextEx} (same idea as {@link #boldenText}).
+ * @param {number} colorIndex Palette index for the opening `\\C` code.
+ * @param {string} text Inner text.
+ * @returns {string} Tinted fragment; reset keeps later text from inheriting the color.
+ */
+Window_Base.prototype.colorizeText = function(colorIndex, text)
+{
+  return `\\C[${colorIndex}]${text}\\C[0]`;
+};
+
+/**
  * Wraps the given text with a font-size modifier shorthand.
  * @param {number} modifier The size modification.
  * @param {string} text The text to modify size for.

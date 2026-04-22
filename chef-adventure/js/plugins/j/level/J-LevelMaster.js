@@ -1818,18 +1818,19 @@ Game_Troop.prototype.getScaledExpResult = function()
 //region Sprite_Character
 /**
  * Gets this battler's name.
- * If there is no battler, this will return an empty string.
- * @returns {string}
+ * If there is no battler, this will return an empty name.
+ * @returns {JABS_BattlerName}
  */
 J.LEVEL.Aliased.Sprite_Character.set('getBattlerName', Sprite_Character.prototype.getBattlerName);
 Sprite_Character.prototype.getBattlerName = function()
 {
   // get the original name of the sprite.
+  /** @type {JABS_BattlerName} */
   const originalName = J.LEVEL.Aliased.Sprite_Character.get('getBattlerName')
     .call(this);
 
   // if there was no battler name, then there probably isn't a battler.
-  if (originalName === String.empty) return originalName;
+  if (originalName.name === String.empty) return originalName;
 
   // grab the battler- we know it should exist by now.
   const battler = this.getBattler();
@@ -1838,7 +1839,7 @@ Sprite_Character.prototype.getBattlerName = function()
   if (battler.isEnemy() === false) return originalName;
 
   // get the battler's level.
-  const level = battler.level;
+  const { level } = battler;
 
   // a zero level indicates there is no level logic associated with this battler.
   if (level === 0) return originalName;
@@ -1849,17 +1850,20 @@ Sprite_Character.prototype.getBattlerName = function()
   // check if this character is an event and if the level should be hidden
   if (this._character && this._character.isEvent() && this._character.shouldHideLevel())
   {
-    levelString = "???";
+    levelString = '???';
   }
 
   // if the level is not already hidden by event comments, check the enemy notes
-  if (levelString !== "???" && battler.shouldHideLevel())
+  if (levelString !== '???' && battler.shouldHideLevel())
   {
-    levelString = "???";
+    levelString = '???';
   }
 
+  // update the name with the level.
+  originalName.name = `${levelString} ${originalName.name}`;
+
   // return the name with level.
-  return `${levelString} ${originalName}`;
+  return originalName;
 };
 //endregion Sprite_Character
 
