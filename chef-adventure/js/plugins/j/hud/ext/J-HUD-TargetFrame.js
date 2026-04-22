@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 HUD-TARGET] A HUD frame that displays your battle target.
+ * [v1.0.1 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -380,6 +380,14 @@
  * @text Rotation
  * @desc The degree of rotation for the TP gauge. Between -360 and 360.
  * @default 270
+ *
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    Adjusted target frame defaults for better readability.
+ *    Improved gauge alignment logic for consistent HP/MP positioning.
+ * - 1.0.0
+ *    Initial release.
  */
 
 /**
