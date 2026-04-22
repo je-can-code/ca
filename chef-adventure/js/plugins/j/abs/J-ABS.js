@@ -9563,6 +9563,18 @@ class JABS_BattlerCoreDataBuilder
 
 //endregion JABS_BattlerCoreDataBuilder
 
+//region JABS_BattlerName
+/**
+ * A class representing the name of a JABS battler.
+ */
+class JABS_BattlerName
+{
+  name = String.empty;
+  colorHex = '#ffffff';
+}
+
+//endregion JABS_BattlerName
+
 //region JABS_BattlerRole
 /**
  * A class representing a battler's structural role on the battlefield.
@@ -34741,6 +34753,12 @@ Sprite_Character.prototype.initCombatMembers = function()
    * @type {Sprite_BaseText|null}
    */
   this._j._abs._battlerName = null;
+
+  /**
+   * Thin vertical tier color stripe drawn to the left of the map name text (optional).
+   * @type {Sprite|null}
+   */
+  this._j._abs._battlerNameTierStripe = null;
 };
 
 /**
@@ -35630,8 +35648,19 @@ Sprite_Character.prototype.setupBattlerName = function()
   // check if we already have a battler name present.
   if (this._j._abs._battlerName)
   {
+    // get the name of this battler.
+    const { name, colorHex } = this.getBattlerName();
+
     // redraw the new battler name.
-    this._j._abs._battlerName.setText(this.getBattlerName());
+    this._j._abs._battlerName.setText(name);
+    this._j._abs._battlerName.setColor('#ffffff');
+
+    // refresh the tier stripe bitmap when the stripe exists and the color is still valid.
+    if (this._j._abs._battlerNameTierStripe && this.shouldDrawMapTierStripe(colorHex))
+    {
+      const fontSize = this._j._abs._battlerName.fontSize();
+      this._j._abs._battlerNameTierStripe.bitmap = this.buildMapTierStripeBitmap(colorHex, fontSize);
+    }
 
     // if we already have the sprite, no need to recreate it.
     return;
@@ -35640,7 +35669,12 @@ Sprite_Character.prototype.setupBattlerName = function()
   // build and assign the battler name sprite.
   this._j._abs._battlerName = this.createBattlerNameSprite();
 
-  // add it to this sprite's tracking.
+  // add stripe behind the text so the name draws on top.
+  if (this._j._abs._battlerNameTierStripe)
+  {
+    this.addChild(this._j._abs._battlerNameTierStripe);
+  }
+
   this.addChild(this._j._abs._battlerName);
 };
 
@@ -35650,39 +35684,120 @@ Sprite_Character.prototype.setupBattlerName = function()
  */
 Sprite_Character.prototype.createBattlerNameSprite = function()
 {
-  // get the name of this battler.
-  const battlerName = this.getBattlerName();
+  const battlerNameData = this.getBattlerName();
+  const { name, colorHex } = battlerNameData;
+  const fontSize = 16;
 
-  // build the text sprite.
-  const sprite = new Sprite_BaseText()
-    .setText(battlerName)
-    .setFontSize(16)
+  const textSprite = new Sprite_BaseText()
+    .setText(name)
+    .setFontSize(fontSize)
     .setAlignment(Sprite_BaseText.Alignments.Left)
     .setColor('#ffffff');
-  sprite.setText(battlerName); // TODO: is this second assignment necessary???
 
-  // relocate the sprite to a better position.
-  sprite.move(-70, 0);
+  textSprite.move(-70, 0);
 
-  // return this created sprite.
-  return sprite;
+  this._j._abs._battlerNameTierStripe = null;
+
+  if (this.shouldDrawMapTierStripe(colorHex))
+  {
+    const stripeSprite = new Sprite();
+    stripeSprite.bitmap = this.buildMapTierStripeBitmap(colorHex, fontSize);
+    const outerW = stripeSprite.bitmap.width;
+    const outerH = stripeSprite.bitmap.height;
+    const GAP = 4;
+    const stripeY = this.computeMapTierStripeY(textSprite, outerH);
+    stripeSprite.move(-70 - GAP - outerW, stripeY);
+    this._j._abs._battlerNameTierStripe = stripeSprite;
+  }
+
+  return textSprite;
+};
+
+/**
+ * Map nameplate draws {@link JABS_BattlerName#colorHex} on the stripe only; HUD may use the same field for text.
+ * @param {string} colorHex
+ * @returns {boolean}
+ */
+Sprite_Character.prototype.shouldDrawMapTierStripe = function(colorHex)
+{
+  if (colorHex === String.empty) return false;
+
+  if (this.isValidMapTierStripeHex(colorHex) === false) return false;
+
+  const lower = colorHex.toLowerCase();
+
+  if (lower === '#ffffff' || lower === '#fff') return false;
+
+  return true;
+};
+
+/**
+ * @param {string} color
+ * @returns {boolean}
+ */
+Sprite_Character.prototype.isValidMapTierStripeHex = function(color)
+{
+  const structure = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+
+  return structure.test(color);
+};
+
+/**
+ * @param {string} colorHex
+ * @param {number} fontSize
+ * @returns {Bitmap}
+ */
+Sprite_Character.prototype.buildMapTierStripeBitmap = function(colorHex, fontSize)
+{
+  const BORDER = 1;
+  const INNER_W = 4;
+  const outerW = INNER_W + BORDER * 2;
+  const outerH = fontSize;
+  const bitmap = new Bitmap(outerW, outerH);
+
+  bitmap.fillRect(0, 0, outerW, outerH, '#000000');
+
+  const innerH = outerH - BORDER * 2;
+
+  bitmap.fillRect(BORDER, BORDER, INNER_W, innerH, colorHex);
+
+  return bitmap;
+};
+
+/**
+ * @param {Sprite_BaseText} textSprite
+ * @param {number} outerH
+ * @returns {number}
+ */
+Sprite_Character.prototype.computeMapTierStripeY = function(textSprite, outerH)
+{
+  const textH = textSprite.bitmap
+    ? textSprite.bitmap.height
+    : textSprite.fontSize() * 3;
+
+  return Math.max(0, Math.floor((textH - outerH) / 2));
 };
 
 /**
  * Gets this battler's name.
- * If there is no battler, this will return an empty string.
- * @returns {string}
+ * @returns {JABS_BattlerName}
  */
 Sprite_Character.prototype.getBattlerName = function()
 {
   // get the battler if we have one.
   const battler = this.getBattler();
 
-  // if we don't, then just return an empty string.
-  if (!battler) return String.empty;
+  // initialize the battler name.
+  const battlerName = new JABS_BattlerName();
+
+  // if we don't, then just return an empty name.
+  if (!battler) return battlerName;
+
+  // update the name to reflect the battler's name.
+  battlerName.name = battler.databaseData().name;
 
   // return the battler name.
-  return battler.databaseData().name;
+  return battlerName;
 };
 
 /**
@@ -35733,6 +35848,11 @@ Sprite_Character.prototype.canUpdateBattlerName = function()
 Sprite_Character.prototype.showBattlerName = function()
 {
   this._j._abs._battlerName.show();
+
+  if (this._j._abs._battlerNameTierStripe)
+  {
+    this._j._abs._battlerNameTierStripe.show();
+  }
 };
 
 /**
@@ -35741,6 +35861,11 @@ Sprite_Character.prototype.showBattlerName = function()
 Sprite_Character.prototype.hideBattlerName = function()
 {
   this._j._abs._battlerName.hide();
+
+  if (this._j._abs._battlerNameTierStripe)
+  {
+    this._j._abs._battlerNameTierStripe.hide();
+  }
 };
 //endregion battler name
 

@@ -165,7 +165,7 @@
  * @min 0
  * @text Width
  * @desc The width in pixels of the target frame window.
- * @default 320
+ * @default 480
  *
  * @param targetFrameHeight
  * @parent targetFrameData
@@ -173,7 +173,7 @@
  * @min 0
  * @text Height
  * @desc The height in pixels of the target frame window.
- * @default 120
+ * @default 180
  *
  * @param targetFrameGauge
  * @text Target Frame Gauge
@@ -214,7 +214,7 @@
  * @type number
  * @min 0
  * @text Middleground Image X
- * @desc The x coordinate correction of the "current" gauge image, aka the middleground.
+ * @desc Horizontal position is set from the measured backdrop trough at runtime so HP/MP stay aligned; Y still uses this block.
  * @default 2
  *
  * @param middlegroundGaugeImageY
@@ -241,7 +241,7 @@
  * @type number
  * @min 0
  * @text Foreground Image X
- * @desc The x coordinate correction of the "current" gauge image, aka the foreground.
+ * @desc Horizontal position is set from the measured backdrop trough at runtime so HP/MP stay aligned; Y still uses this block.
  * @default 2
  *
  * @param foregroundGaugeImageY
@@ -417,7 +417,7 @@ J.HUD.EXT.TARGET = {};
  * The `metadata` associated with this plugin, such as version.
  */
 J.HUD.EXT.TARGET.Metadata = {};
-J.HUD.EXT.TARGET.Metadata.Version = '1.0.0';
+J.HUD.EXT.TARGET.Metadata.Version = '1.0.1';
 J.HUD.EXT.TARGET.Metadata.Name = `J-HUD-TargetFrame`;
 
 /**
@@ -520,20 +520,29 @@ class FramedTarget
   configuration = null;
 
   /**
+   * Optional `#RRGGBB` for the name row when tier stripe hex should also tint the HUD (Passive-ABS + J-Passive-ABS).
+   * Empty means use the window default text color.
+   * @type {string|String.empty}
+   */
+  nameColorHex = String.empty;
+
+  /**
    * Constructor.
    * @param {string} name The name of the target.
    * @param {string=} text The additional text for the target; defaults to an empty string.
    * @param {number=} icon The icon to place on this target; defaults to 0.
    * @param {Game_Enemy=} battler The battler data of the target; defaults to null.
    * @param {FramedTargetConfiguration=} configuration The configuration of this target; defaults to null.
+   * @param {string=} nameColorHex Optional hex tint for {@link #drawTargetName}; defaults to empty (no override).
    */
-  constructor(name, text = String.empty, icon = 0, battler = null, configuration = null)
+  constructor(name, text = String.empty, icon = 0, battler = null, configuration = null, nameColorHex = String.empty)
   {
     this.name = name;
     this.text = text;
     this.icon = icon;
     this.battler = battler;
     this.configuration = configuration;
+    this.nameColorHex = nameColorHex;
   }
 }
 
@@ -678,13 +687,14 @@ JABS_Battler.prototype.buildFramedTarget = function(battlerLastHit)
   // extract the target configuration.
   const targetConfiguration = battlerLastHit.buildFramedTargetConfiguration();
 
-  // create the new framed target for this battler.
+  // create the new framed target for this battler (tier name tint is layered by J-Passive-ABS when present).
   return new FramedTarget(
     battlerName,
     targetFrameText,
     targetFrameIcon,
     battlerLastHit.getBattler(),
-    targetConfiguration);
+    targetConfiguration,
+    String.empty);
 };
 
 /**
@@ -1524,6 +1534,30 @@ class Sprite_FlowingGauge
    */
   _isReady = false;
 
+  /**
+   * Left edge (in texture pixels) of the painted fill inside one gauge slice.
+   * @type {number}
+   */
+  _gaugeSliceFillMinX = 0;
+
+  /**
+   * Width (in texture pixels) of the painted fill inside one gauge slice.
+   * @type {number}
+   */
+  _gaugeSliceFillInnerWidth = 0;
+
+  /**
+   * Left edge (in texture pixels) of the background track interior.
+   * @type {number}
+   */
+  _gaugeBackgroundTrackMinX = 0;
+
+  /**
+   * Width (in texture pixels) of the background track interior.
+   * @type {number}
+   */
+  _gaugeBackgroundTrackInnerWidth = 0;
+
   //endregion properties
 
   /**
@@ -1878,6 +1912,12 @@ class Sprite_FlowingGauge
     // create the foreground of the gauge ("two" bars).
     this.createGaugeForeground();
 
+    // measure the real track vs fill extents so scaled gauges don't gap or spill past the frame art.
+    this.measureGaugeArtExtents();
+
+    // snap the bar sprites to the background track using those measurements.
+    this.alignGaugeForegroundToBackgroundTrack();
+
     // update the flow now that we have all our gauges.
     this.updateFlowMax();
 
@@ -1890,8 +1930,11 @@ class Sprite_FlowingGauge
    */
   updateFlowMax()
   {
-    // update the limit based on the sprite width.
-    this._gaugeActualFlowLimit = this.gaugeWidth();
+    // keep the flowing frame inside the bitmap slice while respecting the measured fill inset.
+    const sliceW = this.gaugeWidth();
+    const maxFlow = sliceW - this._gaugeSliceFillMinX - this._gaugeSliceFillInnerWidth;
+
+    this._gaugeActualFlowLimit = Math.max(1, maxFlow);
     this._gaugeActualFlowCurrent = Math.floor(Math.random() * this._gaugeActualFlowLimit);
   }
 
@@ -2011,7 +2054,7 @@ class Sprite_FlowingGauge
    */
   isHpGaugeEmpty()
   {
-    if (!this._gaugeType === Sprite_FlowingGauge.Types.HP) return false;
+    if (this._gaugeType !== Sprite_FlowingGauge.Types.HP) return false;
 
     if (this.target() !== 0) return false;
 
@@ -2108,17 +2151,15 @@ class Sprite_FlowingGauge
    */
   drawCurrentGauge()
   {
-    // get the width of the gauge.
-    const gaugeWidth = this.gaugeWidth();
-
     // get the height of the gauge.
     const gaugeHeight = this.gaugeHeight();
 
-    // determine the actual width to draw.
-    const factor = (this.current() / this.max()) * gaugeWidth;
+    // determine the actual width to draw inside the measured fill band.
+    const factor = (this.current() / this.max()) * this._gaugeSliceFillInnerWidth;
 
     // set the flowed-frame of the gauge.
-    this._gaugeCurrentSprite.setFrame(this._gaugeActualFlowCurrent, gaugeHeight, factor, gaugeHeight);
+    const frameX = this._gaugeActualFlowCurrent + this._gaugeSliceFillMinX;
+    this._gaugeCurrentSprite.setFrame(frameX, gaugeHeight, factor, gaugeHeight);
   }
 
   /**
@@ -2127,17 +2168,15 @@ class Sprite_FlowingGauge
    */
   drawActualGauge()
   {
-    // get the width of the gauge.
-    const gaugeWidth = this.gaugeWidth();
-
     // get the height of the gauge.
     const gaugeHeight = this.gaugeHeight();
 
-    // determine the actual width to draw.
-    const factor = (this.target() / this.max()) * gaugeWidth;
+    // determine the actual width to draw inside the measured fill band.
+    const factor = (this.target() / this.max()) * this._gaugeSliceFillInnerWidth;
 
     // set the flowed-frame of the gauge.
-    this._gaugeActualSprite.setFrame(this._gaugeActualFlowCurrent, 0, factor, gaugeHeight);
+    const frameX = this._gaugeActualFlowCurrent + this._gaugeSliceFillMinX;
+    this._gaugeActualSprite.setFrame(frameX, 0, factor, gaugeHeight);
   }
 
   /**
@@ -2156,6 +2195,239 @@ class Sprite_FlowingGauge
   gaugeHeight()
   {
     return Math.floor(this._gaugeBitmap.height / 2);
+  }
+
+  /**
+   * Measures the interior track on the background and the interior fill band on the foreground slice.
+   * This keeps HP/MP bars inside the frame art when `scale.x` is cranked up.
+   */
+  measureGaugeArtExtents()
+  {
+    // default to full-slice behavior if anything is missing or measurement fails.
+    this._gaugeSliceFillMinX = 0;
+    this._gaugeSliceFillInnerWidth = 1;
+    this._gaugeBackgroundTrackMinX = 0;
+    this._gaugeBackgroundTrackInnerWidth = 1;
+
+    if (!this._gaugeBitmap) return;
+
+    const sliceW = this.gaugeWidth();
+    const sliceH = this.gaugeHeight();
+
+    if (sliceW === 0 || sliceH === 0) return;
+
+    this._gaugeSliceFillInnerWidth = sliceW;
+    this._gaugeBackgroundTrackInnerWidth = this._backgroundBitmap
+      ? this._backgroundBitmap.width
+      : sliceW;
+
+    if (!this._backgroundBitmap) return;
+
+    // Caps on the frame art read as "bright" while the trough reads as near-black; a naive bright min/max would span
+    // cap-to-cap and pretend the gutter is part of the interior (wrong width + wrong left edge).
+    const bgTrack = this.measureLongestOpaqueDarkHorizontalRun(
+      this._backgroundBitmap,
+      0,
+      0,
+      this._backgroundBitmap.width,
+      this._backgroundBitmap.height,
+      80
+    );
+
+    const topTrack = this.measureBrightHorizontalExtent(
+      this._gaugeBitmap,
+      0,
+      0,
+      sliceW,
+      sliceH,
+      24
+    );
+
+    const bottomTrack = this.measureBrightHorizontalExtent(
+      this._gaugeBitmap,
+      0,
+      sliceH,
+      sliceW,
+      sliceH,
+      24
+    );
+
+    const fillMinX = Math.min(topTrack.minX, bottomTrack.minX);
+    const fillMaxX = Math.max(topTrack.maxX, bottomTrack.maxX);
+    const fillInnerW = Math.max(1, fillMaxX - fillMinX + 1);
+
+    const trackInnerW = Math.max(1, bgTrack.maxX - bgTrack.minX + 1);
+
+    this._gaugeSliceFillMinX = fillMinX;
+    this._gaugeSliceFillInnerWidth = fillInnerW;
+    this._gaugeBackgroundTrackMinX = bgTrack.minX;
+    this._gaugeBackgroundTrackInnerWidth = trackInnerW;
+  }
+
+  /**
+   * Positions and scales the bar sprites so the measured fill maps onto the measured background track.
+   */
+  alignGaugeForegroundToBackgroundTrack()
+  {
+    if (!this._gaugeCurrentSprite || !this._gaugeActualSprite) return;
+
+    if (this._gaugeSliceFillInnerWidth <= 0 || this._gaugeBackgroundTrackInnerWidth <= 0) return;
+
+    const bgX = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageX;
+
+    // Left edge of the fill must share the same origin as the measured trough (`bgX + troughMinX`). Using the plugin
+    // middle/foreground ImageX values here while also clamping width from `troughRight - ImageX` split the problem:
+    // the right clamp assumed one coordinate system and the hand-tuned X another — e.g. trough starts at column 1 but
+    // defaults put the fill at 2, so a green underlay shows in that column and HP vs MP could disagree if anything
+    // differed between layers. One `fillLeftX` and one `ratio` keeps both strips locked.
+    const fillLeftX = bgX + this._gaugeBackgroundTrackMinX;
+
+    const troughRightExclusive = bgX + this._gaugeBackgroundTrackMinX + this._gaugeBackgroundTrackInnerWidth;
+
+    const effectiveBarWidth = Math.max(
+      1,
+      Math.min(this._gaugeBackgroundTrackInnerWidth, troughRightExclusive - fillLeftX)
+    );
+
+    const ratio = effectiveBarWidth / this._gaugeSliceFillInnerWidth;
+
+    this._gaugeCurrentSprite.scale.x = ratio;
+    this._gaugeActualSprite.scale.x = ratio;
+
+    this._gaugeCurrentSprite.x = fillLeftX;
+    this._gaugeActualSprite.x = fillLeftX;
+  }
+
+  /**
+   * Finds the horizontal span of "bright enough" pixels inside a bitmap rectangle.
+   * Used to ignore near-black border pixels that are still opaque.
+   * @param {Bitmap} bitmap The bitmap to scan.
+   * @param {number} rectX The left of the scan rectangle.
+   * @param {number} rectY The top of the scan rectangle.
+   * @param {number} rectW The width of the scan rectangle.
+   * @param {number} rectH The height of the scan rectangle.
+   * @param {number} minBrightSum Minimum r+g+b sum to count as interior content.
+   * @returns {{minX:number,maxX:number}}
+   */
+  measureBrightHorizontalExtent(bitmap, rectX, rectY, rectW, rectH, minBrightSum)
+  {
+    let minX = rectW;
+    let maxX = -1;
+
+    for (let y = 0; y < rectH; y++)
+    {
+      for (let x = 0; x < rectW; x++)
+      {
+        const px = rectX + x;
+        const py = rectY + y;
+
+        if (bitmap.getAlphaPixel(px, py) < 8) continue;
+
+        const hex = bitmap.getPixel(px, py);
+        const bright = this.sumRgbFromHexString(hex);
+
+        if (bright <= minBrightSum) continue;
+
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+      }
+    }
+
+    if (maxX < 0)
+    {
+      return { minX: 0, maxX: rectW - 1 };
+    }
+
+    return { minX, maxX };
+  }
+
+  /**
+   * Finds the longest horizontal run of opaque "dark" pixels in a rectangle (row by row).
+   * Used for capsule-style gauge frames where the playable trough is darker than the end caps.
+   * @param {Bitmap} bitmap The bitmap to scan.
+   * @param {number} rectX The left of the scan rectangle.
+   * @param {number} rectY The top of the scan rectangle.
+   * @param {number} rectW The width of the scan rectangle.
+   * @param {number} rectH The height of the scan rectangle.
+   * @param {number} maxDarkSum Inclusive ceiling on r+g+b for a pixel to count as trough (caps sit above this).
+   * @returns {{minX:number,maxX:number}} Inclusive span of the best run in the same local x space as {@link measureBrightHorizontalExtent}.
+   */
+  measureLongestOpaqueDarkHorizontalRun(bitmap, rectX, rectY, rectW, rectH, maxDarkSum)
+  {
+    let bestMinX = 0;
+    let bestMaxX = rectW - 1;
+    let bestLen = 0;
+
+    for (let y = 0; y < rectH; y++)
+    {
+      const py = rectY + y;
+      let runStart = -1;
+
+      for (let x = 0; x <= rectW; x++)
+      {
+        const atEnd = x === rectW;
+        let isDark = false;
+
+        if (atEnd === false)
+        {
+          const px = rectX + x;
+
+          if (bitmap.getAlphaPixel(px, py) < 8)
+          {
+            isDark = false;
+          }
+          else
+          {
+            const sum = this.sumRgbFromHexString(bitmap.getPixel(px, py));
+
+            isDark = sum <= maxDarkSum;
+          }
+        }
+
+        if (isDark && runStart < 0)
+        {
+          runStart = x;
+        }
+
+        if ((isDark === false || atEnd) && runStart >= 0)
+        {
+          const runEnd = x - 1;
+          const len = runEnd - runStart + 1;
+
+          if (len > bestLen)
+          {
+            bestLen = len;
+            bestMinX = runStart;
+            bestMaxX = runEnd;
+          }
+
+          runStart = -1;
+        }
+      }
+    }
+
+    if (bestLen === 0)
+    {
+      return { minX: 0, maxX: rectW - 1 };
+    }
+
+    return { minX: bestMinX, maxX: bestMaxX };
+  }
+
+  /**
+   * Parses `#RRGGBB` from {@link Bitmap#getPixel} and sums the channels.
+   * @param {string} hex The color string.
+   * @returns {number}
+   */
+  sumRgbFromHexString(hex)
+  {
+    if (!hex || hex.length < 7) return 0;
+
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+
+    return r + g + b;
   }
 }
 
@@ -2224,6 +2496,12 @@ class Window_TargetFrame
      * @type {string}
      */
     this._j._name = String.empty;
+
+    /**
+     * When set, {@link #drawTargetName} tints the line with this `#RRGGBB` before `drawTextEx` (Passive-ABS tier stripe hex).
+     * @type {string|String.empty}
+     */
+    this._j._nameColorHex = String.empty;
 
     /**
      * The second line associated with the target.
@@ -2422,6 +2700,7 @@ class Window_TargetFrame
   {
     // assign the newly provided data.
     this._j._name = target.name;
+    this._j._nameColorHex = target.nameColorHex;
     this._j._text = target.text;
     this._j._icon = target.icon;
     this._j._battler = target.battler;
@@ -2563,13 +2842,54 @@ class Window_TargetFrame
     }
   }
 
+  /**
+   * Pixel width reserved for the level column (Lv.xxx).
+   * @returns {number}
+   */
+  targetFrameLevelColumnWidth()
+  {
+    return 96;
+  }
+
+  /**
+   * Max draw width for the name row so the level column does not overlap long tier names.
+   * @returns {number}
+   */
+  targetFrameNameLineInnerWidth()
+  {
+    const gap = 8;
+
+    const w = this.contentsWidth() - this.targetFrameLevelColumnWidth() - gap;
+
+    return Math.max(200, w);
+  }
+
+  /**
+   * X offset for the level text (right-hand column after the name).
+   * @param {number} baseX Content-relative base x.
+   * @returns {number}
+   */
+  targetFrameLevelDrawX(baseX)
+  {
+    return baseX + this.targetFrameNameLineInnerWidth() + 4;
+  }
+
+  /**
+   * Max width for subtext lines that span the window body.
+   * @returns {number}
+   */
+  targetFrameBodyTextWidth()
+  {
+    return Math.max(200, this.contentsWidth() - 8);
+  }
+
   drawContent(x, y)
   {
     // draw the name of the target.
     this.drawTargetName(x, y);
 
     // draw the level of the target.
-    this.drawTargetLevel(x + 220, y);
+    this.drawTargetLevel(this.targetFrameLevelDrawX(x), y);
 
     // draw the extra data for the target.
     this.drawTargetExtra(x, y + 24);
@@ -2647,7 +2967,29 @@ class Window_TargetFrame
       name = `\\*` + name;
     }
 
-    this.drawTextEx(name, x, y, 200);
+    const hex = this._j._nameColorHex;
+    const useHex = hex !== String.empty && hex.length > 0;
+
+    const w = this.targetFrameNameLineInnerWidth();
+
+    // `Window_Base#drawTextEx` begins with `resetFontSettings()`, which calls `resetTextColor()` and would wipe a
+    // tier tint applied before the call. Mirror the engine path but keep Passive-ABS `nameColorHex` after font setup.
+    this.contents.fontFace = $gameSystem.mainFontFace();
+    this.contents.fontSize = $gameSystem.mainFontSize();
+
+    if (useHex)
+    {
+      this.changeTextColor(hex);
+      this.changeOutlineColor(ColorManager.outlineColor());
+    }
+    else
+    {
+      this.resetFontSettings();
+    }
+
+    const textState = this.createTextState(name, x, y, w);
+    this.processAllText(textState);
+    this.resetTextColor();
   }
 
   /**
@@ -2670,7 +3012,7 @@ class Window_TargetFrame
       const levelString = `\\FS[14]Lv.${level.padZero(3)}`;
 
       // and draw it to the window.
-      this.drawTextEx(levelString, x, y, 200);
+      this.drawTextEx(levelString, x, y, this.targetFrameLevelColumnWidth());
     }
   }
 
@@ -2701,7 +3043,7 @@ class Window_TargetFrame
     if (!this.hasTargetText()) return;
 
     // draw the extra text.
-    this.drawTextEx(`\\FS[14]${this.targetText()}`, x, y, 200);
+    this.drawTextEx(`\\FS[14]${this.targetText()}`, x, y, this.targetFrameBodyTextWidth());
   }
 
   /**
