@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.1 PASSIVE] Grants passive states from various database objects.
+ * [v2.0.2 PASSIVE] Grants passive states from various database objects.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -143,6 +143,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.2
+ *    Added support for passives driven by map events.
  * - 2.0.1
  *    Consumed `RPGManager` updates.
  * - 2.0.0
@@ -177,7 +179,7 @@ J.PASSIVE.EXT = {};
  */
 J.PASSIVE.Metadata = {};
 J.PASSIVE.Metadata.Name = `J-Passive`;
-J.PASSIVE.Metadata.Version = '2.0.1';
+J.PASSIVE.Metadata.Version = '2.0.2';
 
 /**
  * All regular expressions used by this plugin.

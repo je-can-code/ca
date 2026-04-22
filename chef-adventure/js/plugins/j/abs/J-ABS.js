@@ -14152,7 +14152,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.8.1 JABS] Enables combat to be carried out on the map.
+ * [v4.8.2 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14197,6 +14197,8 @@ class JABS_Timer
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.8.2
+ *    Added battler name model to support richer name rendering.
  * - 4.8.1
  *    Refactored gaining of rewards logic for other extensions.
  *    Fixed issue where EXR was being calculated twice (oops!).
@@ -16534,7 +16536,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.8.1';
+J.ABS.Metadata.Version = '4.8.2';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
