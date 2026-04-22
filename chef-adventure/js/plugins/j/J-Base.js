@@ -186,7 +186,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '3.0.0';
+J.BASE.Metadata.Version = '3.0.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -675,6 +675,17 @@ class ArrayHelper
 
     // no matches were found across both arrays.
     return false;
+  }
+
+  /**
+   * Creates an array of numbers from a range, inclusive.
+   * @param {number} a The starting number of the range.
+   * @param {number} b The ending number of the range.
+   * @returns {number[]} An array of numbers from a to b, inclusive.
+   */
+  static rangeInclusive(a, b)
+  {
+    return Array.from({ length: b - a + 1 }, (_, i) => a + i);
   }
 }
 
@@ -3089,6 +3100,143 @@ ColorManager.sdp = function(rarity)
   // return the text code for it.
   return this.textColor(rarityColorIndex);
 };
+
+/**
+ * True when {@code colorHex} looks like {@code #RGB} or {@code #RRGGBB} (case-insensitive), including white.
+ * @param {string} colorHex Candidate hex string.
+ * @returns {boolean}
+ */
+ColorManager.isValidHexColor = function(colorHex)
+{
+  if (!colorHex || colorHex === String.empty)
+  {
+    return false;
+  }
+
+  const structure = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+
+  return structure.test(colorHex.trim());
+};
+
+/**
+ * Parses {@code #RGB} or {@code #RRGGBB} into RGB components.
+ * @param {string} hexString Source color.
+ * @returns {{r:number,g:number,b:number}|null}
+ */
+ColorManager.parseHexStringToRgb = function(hexString)
+{
+  if (!hexString || hexString === String.empty)
+  {
+    return null;
+  }
+
+  let h = hexString.trim();
+
+  if (h.startsWith('#') === false)
+  {
+    return null;
+  }
+
+  h = h.slice(1);
+
+  if (h.length === 3)
+  {
+    h = h.split('')
+      .map(function(ch)
+      {
+        return ch + ch;
+      })
+      .join('');
+  }
+
+  if (h.length !== 6)
+  {
+    return null;
+  }
+
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b))
+  {
+    return null;
+  }
+
+  return {
+    r,
+    g,
+    b
+  };
+};
+
+/**
+ * Squared Euclidean distance between two RGB triples (fast compare without sqrt).
+ * @param {{r:number,g:number,b:number}} a First color.
+ * @param {{r:number,g:number,b:number}} b Second color.
+ * @returns {number}
+ */
+ColorManager.rgbDistanceSquared = function(a, b)
+{
+  const dr = a.r - b.r;
+  const dg = a.g - b.g;
+  const db = a.b - b.b;
+
+  return dr * dr + dg * dg + db * db;
+};
+
+/**
+ * Picks the windowskin text palette index whose {@link ColorManager.textColor} sample is closest to {@code hexString}.
+ * Pure white ({@code #fff} / {@code #ffffff}) returns {@code null} so callers can skip redundant {@code \\C[n]} wraps.
+ * @param {string} hexString Candidate {@code #RGB} / {@code #RRGGBB}.
+ * @returns {number|null} Palette index, or {@code null} when invalid or white.
+ */
+ColorManager.colorIndexFromHex = function(hexString)
+{
+  if (ColorManager.isValidHexColor(hexString) === false)
+  {
+    return null;
+  }
+
+  const lower = hexString.trim()
+    .toLowerCase();
+
+  if (lower === '#ffffff' || lower === '#fff')
+  {
+    return null;
+  }
+
+  const targetRgb = ColorManager.parseHexStringToRgb(hexString);
+
+  if (targetRgb === null)
+  {
+    return null;
+  }
+
+  let bestIndex = 0;
+  let bestDist = Infinity;
+
+  for (let i = 0; i < 32; i++)
+  {
+    const sample = ColorManager.textColor(i);
+    const sampleRgb = ColorManager.parseHexStringToRgb(sample);
+
+    if (sampleRgb === null)
+    {
+      continue;
+    }
+
+    const d = ColorManager.rgbDistanceSquared(targetRgb, sampleRgb);
+
+    if (d < bestDist)
+    {
+      bestDist = d;
+      bestIndex = i;
+    }
+  }
+
+  return bestIndex;
+};
 //endregion ColorManager
 
 /* eslint-disable no-self-assign */
@@ -4638,6 +4786,36 @@ class RPGManager
     return success;
   }
 
+  /**
+   * A quick and re-usable means of rolling for chance using a weighted model against a map of (key=id,val=weight).
+   * @param {Map<any,number>} map The map of key-value pairs to choose from.
+   * @param {number} totalWeight The total weight of all values in the map.
+   * @returns {any|null} The chosen key or null if no valid choice is found.
+   */
+  static weightedMapChoice(map, totalWeight)
+  {
+    // if there is no total weight, then this doesn't work.
+    if (totalWeight <= 0) return null;
+
+    // bless me, RNGesus.
+    let r = Math.random() * totalWeight;
+
+    // iterate over each entry in the map.
+    for (const [ key, val ] of map)
+    {
+      // if the value is empty, then skip it.
+      if (val <= 0) continue;
+
+      // decrement the remaining weight.
+      r -= val;
+
+      // check if the random number is less than zero.
+      if (r < 0) return key;
+    }
+
+    // somehow, we didn't find anything, so return null.
+    return null;
+  }
   //endregion chance
 
   //region strings

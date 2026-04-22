@@ -177,6 +177,8 @@
  * Party members still apply their experience rate (exr) when the engine
  * actually grants EXP. This plugin does not fold exr into the policy number;
  * that stays the engine's job in gainExp.
+
+
  *
  * ----------------------------------------------------------------------------
  * NOTE ABOUT LEVEL:
