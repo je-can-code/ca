@@ -294,93 +294,13 @@ Game_Event.prototype.moveDiagonally = function(horz, vert)
  * Determines the appropriate cardinal direction to face if moving a diagonal direction.
  * @returns {2|4|6|8}
  */
-// eslint-disable-next-line complexity
 Game_Event.prototype.normalizeActionDirection = function()
 {
   // if this isn't an action, then this shouldn't try to calculate.
   if (this.isJabsAction() === false) return this.direction();
 
-  // identify the direction this action was casted in.
-  const castedDirection = this.getCastedDirection();
-
-  // identify this action's current facing.
-  const actionDirection = this.direction();
-
-  // normalize the direction that should be faced.
-  switch (castedDirection)
-  {
-    // caster faced down.
-    case 2:
-      switch (actionDirection)
-      {
-        // action moving lower left.
-        case 1:
-        // action moving lower right.
-        case 3:
-          return castedDirection;
-        // action moving upper left.
-        case 7:
-        // action moving upper right.
-        case 9:
-          return this.reverseDir(castedDirection);
-      }
-      return castedDirection;
-
-    // caster faced left.
-    case 4:
-      switch (actionDirection)
-      {
-        // action moving lower left.
-        case 1:
-        // action moving upper left.
-        case 7:
-          return castedDirection;
-        // action moving lower right.
-        case 3:
-        // action moving upper right.
-        case 9:
-          return this.reverseDir(castedDirection);
-      }
-      return castedDirection;
-
-    // caster faced right.
-    case 6:
-      switch (actionDirection)
-      {
-        // action moving lower right.
-        case 3:
-        // action moving upper right.
-        case 9:
-          return castedDirection;
-        // action moving lower left.
-        case 1:
-        // action moving upper left.
-        case 7:
-          return this.reverseDir(castedDirection);
-      }
-      return castedDirection;
-
-    // caster faced up.
-    case 8:
-      switch (actionDirection)
-      {
-        // action moving upper left.
-        case 7:
-        // action moving upper right.
-        case 9:
-          return castedDirection;
-        // action moving lower left.
-        case 1:
-        // action moving lower right.
-        case 3:
-          return this.reverseDir(castedDirection);
-      }
-      return castedDirection;
-
-    // somehow we were not facing one of the four cardinal directions, return default.
-    default:
-      return castedDirection;
-  }
+  // shared with spawn-time sprite framing so $ sheets never see diagonal direction codes.
+  return $jabsEngine.actionTravelDirectionToSpritePatternDirection(this.direction(), this.getCastedDirection());
 };
 
 /**
