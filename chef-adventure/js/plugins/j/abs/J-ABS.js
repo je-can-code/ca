@@ -280,6 +280,13 @@ class JABS_Action
      * @type {number}
      */
     this._onCastAnimationId = this.getBaseSkill().jabsOnCastAnimationId ?? 0;
+
+    /**
+     * Stable `{ note }` blob for {@link RPGManager} when action-map Comment lines carry `<vis*>` tags.
+     * Stamped once at spawn from the template event + resolved page; null when nothing to parse.
+     * @type {{ note: string }|null}
+     */
+    this._actionMapVisualNoteHolder = null;
   }
 
   /**
@@ -673,6 +680,77 @@ class JABS_Action
   }
 
   /**
+   * RMMZ 8-dir code (1–9 except 5) for directional `<visOffset*>` tag lookup via {@link RPG_Skill#getJabsVisOffsetFor}.
+   * Uses {@link #direction} — logical travel on {@link JABS_Action}, not {@link Game_Character#direction} on the action
+   * event (that can be a cardinal sprite-row stamp for `$` sheets).
+   * Collapsing diagonals to a nearest cardinal was wrong: ties picked one axis arbitrarily and skipped diagonal notes /
+   * the documented UR→U→R fallback chain in {@link RPG_Skill#getJabsVisOffsetFor}.
+   * @returns {1|2|3|4|6|7|8|9}
+   */
+  getDirectionForVisOffsetTags()
+  {
+    return this.direction();
+  }
+
+  /**
+   * Builds a synthetic multiline note from the action-map template event + active page so {@link RPGManager}
+   * can parse `<vis*>` tags (optional event-level `note` field on {@link rm.types.Event}, parsable Comment commands on that page).
+   * @param {rm.types.Event} eventData Raw event blob from `$actionMap`.
+   * @param {rm.types.EventPage} pageData The resolved page used for this spawn.
+   * @returns {string}
+   */
+  static collectSyntheticVisualNoteFromActionEventPage(eventData, pageData)
+  {
+    const lines = [];
+
+    if (eventData && eventData.note && String(eventData.note).trim())
+    {
+      lines.push(String(eventData.note).trim());
+    }
+
+    if (!pageData || !pageData.list || pageData.list.length === 0)
+    {
+      return lines.join('\n');
+    }
+
+    Game_Event.getValidCommentCommandsFromPage(pageData)
+      .forEach(command =>
+      {
+        const [ comment ] = command.parameters;
+
+        lines.push(comment);
+      });
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Stamps {@link #_actionMapVisualNoteHolder} once from the template used to spawn this action’s map event.
+   * @param {rm.types.Event} eventData Raw event blob from `$actionMap`.
+   * @param {rm.types.EventPage} pageData The resolved page used for this spawn.
+   */
+  stampActionMapVisualNoteFromActionEvent(eventData, pageData)
+  {
+    const synthetic = JABS_Action.collectSyntheticVisualNoteFromActionEventPage(eventData, pageData);
+
+    if (!synthetic.length)
+    {
+      return;
+    }
+
+    this._actionMapVisualNoteHolder = { note: synthetic };
+  }
+
+  /**
+   * Holder passed to {@link RPGManager} for merged `<vis*>` tags from the action-map template (Comment lines).
+   * @returns {{ note: string }|null}
+   */
+  getActionMapVisualNoteHolder()
+  {
+    return this._actionMapVisualNoteHolder;
+  }
+
+  /**
    * Whether or not this action was a result of terrain damage.
    * @returns {boolean}
    */
@@ -939,7 +1017,8 @@ class JABS_Action
 
     // check circle distance for each candidate relative to the action sprite.
     const targets = [];
-    const actionDirection = actionSprite.direction();
+    // circle collision ignores facing, but keep logical dir8 for parity with shaped actions.
+    const actionDirection = jabsAction.direction();
     candidates
       .filter(canActionConnectWithBattler, this)
       .forEach(battler =>
@@ -1307,8 +1386,8 @@ class JABS_Action
       originX = actionEvent.screenX();
       originY = actionEvent.screenY();
 
-      // derive facing from the action event.
-      facing = actionEvent.direction();
+      // derive facing from logical travel dir8 (map event direction may be cardinal for `$` sheet rows).
+      facing = this.direction();
     }
     else
     {
@@ -1738,6 +1817,14 @@ class JABS_ActionOptions
   #spawnOffsetY = 0;
 
   /**
+   * Optional travel angle in degrees for map projectiles (0 = right, 90 = down, RMMZ Y-down).
+   * When null, movement follows the action event move route unchanged.
+   * Reserved for extensions (e.g. continuous-angle vector travel); v1 uses 8-dir via facing.
+   * @type {number|null}
+   */
+  #projectileTravelAngleDegrees = null;
+
+  /**
    * Constructor.<br/>
    * Use the {@link JABS_ActionOptionsBuilder} to fluently and properly build these.
    * @param {boolean} isRetaliation Whether or not the action is a retaliation of another battler.
@@ -1746,8 +1833,17 @@ class JABS_ActionOptions
    * @param {boolean} terrainDamage Whether or not the action is a result of terrain damage.
    * @param {number} spawnOffsetX The X spawn offset in tiles relative to caster fire-time position.
    * @param {number} spawnOffsetY The Y spawn offset in tiles relative to caster fire-time position.
+   * @param {number|null} projectileTravelAngleDegrees Optional vector angle for projectile motion.
    */
-  constructor(isRetaliation, cooldownKey, location, terrainDamage, spawnOffsetX = 0, spawnOffsetY = 0)
+  constructor(
+    isRetaliation,
+    cooldownKey,
+    location,
+    terrainDamage,
+    spawnOffsetX = 0,
+    spawnOffsetY = 0,
+    projectileTravelAngleDegrees = null
+  )
   {
     this.#isRetaliation = isRetaliation;
     this.#cooldownKey = cooldownKey;
@@ -1755,6 +1851,7 @@ class JABS_ActionOptions
     this.#terrainDamage = terrainDamage;
     this.#spawnOffsetX = spawnOffsetX;
     this.#spawnOffsetY = spawnOffsetY;
+    this.#projectileTravelAngleDegrees = projectileTravelAngleDegrees;
   }
 
   /**
@@ -1819,6 +1916,16 @@ class JABS_ActionOptions
   }
 
   /**
+   * Optional projectile travel angle in degrees, when an extension replaces straight
+   * move-route steps with vector motion. Null keeps legacy route-driven movement.
+   * @returns {number|null}
+   */
+  getProjectileTravelAngleDegrees()
+  {
+    return this.#projectileTravelAngleDegrees;
+  }
+
+  /**
    * A factory that generates {@link JABS_ActionOptions} with all default values.
    * @returns {JABS_ActionOptions}
    */
@@ -1877,6 +1984,12 @@ class JABS_ActionOptionsBuilder
   #spawnOffsetY = 0;
 
   /**
+   * Optional projectile travel angle in degrees (null = move route only).
+   * @type {number|null}
+   */
+  #projectileTravelAngleDegrees = null;
+
+  /**
    * Builds a new instance of the options based on the built parameters.
    * @returns {JABS_ActionOptions}
    */
@@ -1893,7 +2006,8 @@ class JABS_ActionOptionsBuilder
       JABS_Location.Clone(locationToClone),
       this.#isTerrainDamage,
       this.#spawnOffsetX,
-      this.#spawnOffsetY);
+      this.#spawnOffsetY,
+      this.#projectileTravelAngleDegrees);
 
     // clear out the previous data.
     this.clear();
@@ -1914,6 +2028,7 @@ class JABS_ActionOptionsBuilder
     this.#isTerrainDamage = false;
     this.#spawnOffsetX = 0;
     this.#spawnOffsetY = 0;
+    this.#projectileTravelAngleDegrees = null;
   }
 
   /**
@@ -1970,6 +2085,19 @@ class JABS_ActionOptionsBuilder
   {
     this.#spawnOffsetX = dx;
     this.#spawnOffsetY = dy;
+    return this;
+  }
+
+  /**
+   * Sets an optional projectile travel angle in degrees (RMMZ map space: 0 = right, 90 = down).
+   * Extensions may read this from {@link JABS_Action#getActionOptions} to drive vector motion;
+   * null preserves classic move-route movement.
+   * @param {number|null} degrees The angle, or null to clear.
+   * @returns {JABS_ActionOptionsBuilder}
+   */
+  setProjectileTravelAngleDegrees(degrees)
+  {
+    this.#projectileTravelAngleDegrees = degrees;
     return this;
   }
 }
@@ -7102,8 +7230,9 @@ JABS_Battler.prototype.createJabsActionFromSkill = function(
   const projectileCount = $jabsEngine.resolveProjectileCountForSkill(skill);
 
   // generate the spoke directions based on facing, formation, and count.
-  const facing = this.getCharacter()
-    .direction();
+  // use the battler hook so pixel vector aim can supply a true 8-dir base while
+  // the map character's direction() stays cardinal for sprite facing.
+  const facing = this.getProjectileSpawnBaseDirection();
   const projectileDirections = $jabsEngine.determineActionDirections(facing, formation, projectileCount);
 
   // calculate how many actions will be generated to accommodate the directions.
@@ -7130,6 +7259,19 @@ JABS_Battler.prototype.convertProjectileDirectionsToActions = function(
 {
   // delegate to the shared action spawner for volley construction.
   return JABS_ActionSpawner.buildVolley(this, projectileDirections, action, actionOptions);
+};
+
+/**
+ * Resolves the 8-direction base used when building projectile spokes for a skill.
+ * Defaults to the map character's {@link Game_CharacterBase#direction}; extensions
+ * (e.g. J-ABS-Pixelistics) may override to read analog / vector movement instead.
+ * @returns {number} A JABS direction code (2/4/6/8/1/3/7/9).
+ */
+JABS_Battler.prototype.getProjectileSpawnBaseDirection = function()
+{
+  // standard tile-facing is the historical source for line / formation forward.
+  return this.getCharacter()
+    .direction();
 };
 
 /**
@@ -14152,7 +14294,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.8.2 JABS] Enables combat to be carried out on the map.
+ * [v4.8.4 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14197,6 +14339,19 @@ class JABS_Timer
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.8.4
+ *    Action-map template `<vis*>` tags: Comment lines (+ optional event `note` on the event) are stamped once at spawn
+ *    into a synthetic note on {@link JABS_Action}; {@link RPGManager} merges them with skill notes (skill wins on duplicate tags).
+ * - 4.8.3
+ *    Projectile formation rotation supports diagonal facings (45° steps).
+ *    New {@link JABS_Battler#getProjectileSpawnBaseDirection} hook for aim vs map facing.
+ *    Optional {@link JABS_ActionOptions#getProjectileTravelAngleDegrees} on action options
+ *    (builder API) reserved for vector-travel extensions; null preserves move-route motion.
+ *    Action sprites keep cardinal {@link Game_Character#direction} for RMMZ bitmap rows
+ *    while diagonal travel stays on {@link JABS_Action}; fixes `$` sheet tearing.
+ *    `<visOffset*>` uses {@link JABS_Action#getDirectionForVisOffsetTags} (full 8-dir travel,
+ *    not sprite-row direction on the action event). `<visRotate>` uses the same travel direction.
+ *    Cast stamp on action events records the caster's facing (not always the player).
  * - 4.8.2
  *    Added battler name model to support richer name rendering.
  * - 4.8.1
@@ -14932,10 +15087,6 @@ class JABS_Timer
  * SQUARE:
  * An equal square. The <radius> defines the length of each side.
  *    <hitbox:square>
- *
- * FRONTSQUARE:
- * Like square, but the back half (behind the action) is omitted.
- *    <hitbox:frontsquare>
  *
  * LINE:
  * A single 1-tile-wide line. The <radius> defines the line's length.
@@ -16536,7 +16687,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.8.2';
+J.ABS.Metadata.Version = '4.8.3';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -16714,9 +16865,6 @@ J.ABS.Metadata.HitboxStyles = {
     square: {
       // darker orange.
       fillColor: 0xFFA64D,
-    },
-    frontsquare: {
-      fillAlpha: 0.28,
     },
     line: {
       lineWidth: 3,
@@ -16987,11 +17135,6 @@ J.ABS.Shapes = {
   Square: 'square',
 
   /**
-   *  A square in front of the target hitbox.
-   */
-  FrontSquare: 'frontsquare',
-
-  /**
    * A line from the target hitbox.
    */
   Line: 'line',
@@ -17078,7 +17221,7 @@ J.ABS.RegExp = {
   SizeInPixels: /<size:[ ]?(\d+)>/gi,
   Degrees: /<degrees:[ ]?(\d+)>/gi,
   Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
-  Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
+  Shape: /<hitbox:[ ]?(circle|rhombus|square|line|arc|wall|cross)>/gi,
   Projectile: /<projectile:[ ]?(\d+)>/gi,
   ProjectileFormation: /<formation:[ ]?(line|spray|cross|xburst|nova)>/gi,
   Thickness: /<thickness:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
@@ -19269,6 +19412,197 @@ RPG_Skill.prototype.getJabsVisOffsetFor = function(direction)
   // unknown direction: return default.
   return def || [ 0, 0 ];
 };
+
+/**
+ * Prefers skill note matches over action-map synthetic note (`holder`) for one array shaped tag pair.
+ * @param {RPG_Base} skill The owning skill instance.
+ * @param {RPG_Base|null} holder Object with `.note` from {@link JABS_Action#getActionMapVisualNoteHolder}, if any.
+ * @param {RegExp} regExp Same structures as skill visual tags.
+ * @returns {number[]|null}
+ */
+RPG_Skill.mergeJabsVisPairFromNotes = function(skill, holder, regExp)
+{
+  const sk = RPGManager.getArrayFromNotesByRegex(skill, regExp, true, true);
+  const ev = holder ? RPGManager.getArrayFromNotesByRegex(holder, regExp, true, true) : null;
+
+  if (sk !== null)
+  {
+    return sk;
+  }
+
+  if (ev !== null)
+  {
+    return ev;
+  }
+
+  return null;
+};
+
+/**
+ * Prefers skill over action-map synthetic note for one numeric tag.
+ * @param {RPG_Base} skill The owning skill instance.
+ * @param {RPG_Base|null} holder Synthetic note holder, if any.
+ * @param {RegExp} regExp Structured numeric tag regex.
+ * @returns {number|null}
+ */
+RPG_Skill.mergeJabsVisPairNumberFromNotes = function(skill, holder, regExp)
+{
+  const sk = RPGManager.getNumberFromNoteByRegex(skill, regExp, true);
+  const ev = holder ? RPGManager.getNumberFromNoteByRegex(holder, regExp, true) : null;
+
+  if (sk !== null)
+  {
+    return sk;
+  }
+
+  return ev;
+};
+
+/**
+ * Prefers skill over action-map synthetic note for boolean presence tags (`null` when absent on both sides).
+ * @param {RPG_Base} skill The owning skill instance.
+ * @param {RPG_Base|null} holder Synthetic note holder, if any.
+ * @param {RegExp} regExp Structured boolean regex.
+ * @returns {boolean|null}
+ */
+RPG_Skill.mergeJabsVisPairBoolFromNotes = function(skill, holder, regExp)
+{
+  const sk = RPGManager.checkForBooleanFromNoteByRegex(skill, regExp, true);
+  const ev = holder ? RPGManager.checkForBooleanFromNoteByRegex(holder, regExp, true) : null;
+
+  if (sk !== null)
+  {
+    return sk;
+  }
+
+  return ev;
+};
+
+/**
+ * Merged sprite anchor tags with tags on the action-map template ({@link RPG_Skill#jabsVisAnchor}); skill wins overlaps.
+ * @param {JABS_Action|null} jabsAction The executing action so we can read stamped synthetic notes.
+ * @returns {[number, number]|null}
+ */
+RPG_Skill.prototype.getJabsVisAnchorMergedForActionMap = function(jabsAction)
+{
+  const holder = jabsAction ? jabsAction.getActionMapVisualNoteHolder() : null;
+  const combined = RPG_Skill.mergeJabsVisPairFromNotes(this, holder, J.ABS.RegExp.VisAnchor);
+
+  if (combined === null)
+  {
+    return null;
+  }
+
+  const ax = Math.max(0, Math.min(1, combined[0]));
+  const ay = Math.max(0, Math.min(1, combined[1]));
+
+  return [ ax, ay ];
+};
+
+/**
+ * Merged `{@link #jabsVisZ}` with template notes.
+ * @param {JABS_Action|null} jabsAction Context action.
+ * @returns {number|null}
+ */
+RPG_Skill.prototype.getJabsVisZMergedForActionMap = function(jabsAction)
+{
+  const holder = jabsAction ? jabsAction.getActionMapVisualNoteHolder() : null;
+
+  return RPG_Skill.mergeJabsVisPairNumberFromNotes(this, holder, J.ABS.RegExp.VisZ);
+};
+
+/**
+ * Merged `{@link #jabsVisRotate}` with template notes (false when absent on both).
+ * @param {JABS_Action|null} jabsAction Context action.
+ * @returns {boolean}
+ */
+RPG_Skill.prototype.getJabsVisRotateMergedForActionMap = function(jabsAction)
+{
+  const holder = jabsAction ? jabsAction.getActionMapVisualNoteHolder() : null;
+  const merged = RPG_Skill.mergeJabsVisPairBoolFromNotes(this, holder, J.ABS.RegExp.VisRotate);
+
+  return merged !== null ? merged : false;
+};
+
+/**
+ * Merged `{@link #jabsVisScale}` with template notes.
+ * @param {JABS_Action|null} jabsAction Context action.
+ * @returns {[number, number]|null}
+ */
+RPG_Skill.prototype.getJabsVisScaleMergedForActionMap = function(jabsAction)
+{
+  const holder = jabsAction ? jabsAction.getActionMapVisualNoteHolder() : null;
+
+  return RPG_Skill.mergeJabsVisPairFromNotes(this, holder, J.ABS.RegExp.VisScale);
+};
+
+/**
+ * Merged `{@link #jabsVisDebug}` with template notes.
+ * @param {JABS_Action|null} jabsAction Context action.
+ * @returns {boolean}
+ */
+RPG_Skill.prototype.getJabsVisDebugMergedForActionMap = function(jabsAction)
+{
+  const holder = jabsAction ? jabsAction.getActionMapVisualNoteHolder() : null;
+  const merged = RPG_Skill.mergeJabsVisPairBoolFromNotes(this, holder, J.ABS.RegExp.VisDebug);
+
+  return merged !== null ? merged : false;
+};
+
+/**
+ * Same resolution as {@link #getJabsVisOffsetFor}, but each tag prefers the skill note over the stamped action-map synthetic note.
+ * @param {JABS_Action|null} jabsAction Context action.
+ * @param {number} direction RMMZ 8-dir travel code (1–9 except 5).
+ * @returns {[number, number]}
+ */
+// eslint-disable-next-line complexity
+RPG_Skill.prototype.getJabsVisOffsetForMergedActionMap = function(jabsAction, direction)
+{
+  const holder = jabsAction ? jabsAction.getActionMapVisualNoteHolder() : null;
+
+  if (!holder)
+  {
+    return this.getJabsVisOffsetFor(direction);
+  }
+
+  const pick = RPG_Skill.mergeJabsVisPairFromNotes;
+
+  const defSkill = RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.VisOffset, true, true);
+  const defEv = RPGManager.getArrayFromNotesByRegex(holder, J.ABS.RegExp.VisOffset, true, true);
+  const defRaw = defSkill !== null ? defSkill : defEv;
+  const def = defRaw !== null ? defRaw : [ 0, 0 ];
+
+  const mergedU = pick(this, holder, J.ABS.RegExp.VisOffsetU);
+  const mergedD = pick(this, holder, J.ABS.RegExp.VisOffsetD);
+  const mergedL = pick(this, holder, J.ABS.RegExp.VisOffsetL);
+  const mergedR = pick(this, holder, J.ABS.RegExp.VisOffsetR);
+  const mergedUR = pick(this, holder, J.ABS.RegExp.VisOffsetUR);
+  const mergedUL = pick(this, holder, J.ABS.RegExp.VisOffsetUL);
+  const mergedDR = pick(this, holder, J.ABS.RegExp.VisOffsetDR);
+  const mergedDL = pick(this, holder, J.ABS.RegExp.VisOffsetDL);
+
+  switch (direction)
+  {
+    case 8:
+      return mergedU || def || [ 0, 0 ];
+    case 2:
+      return mergedD || def || [ 0, 0 ];
+    case 4:
+      return mergedL || def || [ 0, 0 ];
+    case 6:
+      return mergedR || def || [ 0, 0 ];
+    case 9:
+      return mergedUR || mergedU || mergedR || def || [ 0, 0 ];
+    case 7:
+      return mergedUL || mergedU || mergedL || def || [ 0, 0 ];
+    case 3:
+      return mergedDR || mergedD || mergedR || def || [ 0, 0 ];
+    case 1:
+      return mergedDL || mergedD || mergedL || def || [ 0, 0 ];
+  }
+
+  return def || [ 0, 0 ];
+};
 //endregion directional
 //endregion visual metadata
 //endregion RPG_Skill effects
@@ -20138,6 +20472,7 @@ class JABS_ActionSpawner
         .setCooldownKey(actionOptions.getCooldownKey())
         .setSpawnOffset(delta[0], delta[1])
         .setIsTerrainDamage(actionOptions.isTerrainDamage())
+        .setProjectileTravelAngleDegrees(actionOptions.getProjectileTravelAngleDegrees())
         .build();
 
       // build and return the action bound to this projectile's setup.
@@ -20165,6 +20500,134 @@ class JABS_ActionSpawner
  */
 class JABS_AiManager
 {
+  /**
+   * Converts a dir8 code into a normalized unit vector in map space (RMMZ Y-down).
+   * @param {1|2|3|4|6|7|8|9} dir8 The direction code.
+   * @returns {{x: number, y: number}} The unit vector.
+   */
+  static dir8ToUnitVector(dir8)
+  {
+    let x = 0;
+    let y = 0;
+
+    switch (dir8)
+    {
+      case J.ABS.Directions.DOWN:
+        y = 1;
+        break;
+      case J.ABS.Directions.UP:
+        y = -1;
+        break;
+      case J.ABS.Directions.RIGHT:
+        x = 1;
+        break;
+      case J.ABS.Directions.LEFT:
+        x = -1;
+        break;
+      case J.ABS.Directions.LOWERRIGHT:
+        x = 1;
+        y = 1;
+        break;
+      case J.ABS.Directions.LOWERLEFT:
+        x = -1;
+        y = 1;
+        break;
+      case J.ABS.Directions.UPPERRIGHT:
+        x = 1;
+        y = -1;
+        break;
+      case J.ABS.Directions.UPPERLEFT:
+        x = -1;
+        y = -1;
+        break;
+      default:
+        y = 1;
+        break;
+    }
+
+    const len = Math.hypot(x, y);
+    return {
+      x: x / len,
+      y: y / len,
+    };
+  }
+
+  /**
+   * Converts an angle in degrees (0=right, 90=down) into an 8-direction code.
+   * @param {number} angleDegrees The angle in degrees (RMMZ Y-down).
+   * @returns {1|2|3|4|6|7|8|9} The closest dir8 code.
+   */
+  static angleToDir8(angleDegrees)
+  {
+    // normalize to [0, 360).
+    let a = angleDegrees % 360;
+    if (a < 0) a += 360;
+
+    // 8 sectors of 45°; add half-sector to round to nearest.
+    const idx = Math.floor((a + 22.5) / 45) % 8;
+    const dirs = [
+      J.ABS.Directions.RIGHT,       // 0°
+      J.ABS.Directions.LOWERRIGHT,  // 45°
+      J.ABS.Directions.DOWN,        // 90°
+      J.ABS.Directions.LOWERLEFT,   // 135°
+      J.ABS.Directions.LEFT,        // 180°
+      J.ABS.Directions.UPPERLEFT,   // 225°
+      J.ABS.Directions.UP,          // 270°
+      J.ABS.Directions.UPPERRIGHT,  // 315°
+    ];
+
+    return dirs[idx];
+  }
+
+  /**
+   * Derives a fire-time facing for AI volleys from caster→target, falling back to map facing when:
+   * - no target exists, or
+   * - the target vector is "behind" the battler's current facing (dot ≤ 0).
+   * @param {JABS_Battler} battler The battler firing.
+   * @returns {1|2|3|4|6|7|8|9} The derived dir8 facing.
+   */
+  static deriveFreshFacingForAi(battler)
+  {
+    // start from the conventional facing hook.
+    const fallbackFacing = battler.getProjectileSpawnBaseDirection();
+
+    // grab the relevant target (ally or enemy).
+    const target = battler.getAllyTarget() ?? battler.getTarget();
+    if (!target)
+    {
+      return fallbackFacing;
+    }
+
+    const bx = battler.getX();
+    const by = battler.getY();
+    const tx = target.getX();
+    const ty = target.getY();
+
+    // if overlapping, keep facing.
+    const dx = tx - bx;
+    const dy = ty - by;
+    if (dx === 0 && dy === 0)
+    {
+      return fallbackFacing;
+    }
+
+    // check if the target is generally in front; if behind, do not "snap-aim" through the body.
+    const fv = this.dir8ToUnitVector(fallbackFacing);
+    const tLen = Math.hypot(dx, dy);
+    const tvx = dx / tLen;
+    const tvy = dy / tLen;
+    const dot = (fv.x * tvx) + (fv.y * tvy);
+    if (dot <= 0)
+    {
+      return fallbackFacing;
+    }
+
+    // derive the RMMZ angle in degrees (0=right, 90=down).
+    const angleDegrees = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    return this.angleToDir8(angleDegrees);
+  }
+
   /**
    * A collection of all battlers being managed by this manager.
    * @type {Map<string, JABS_Battler>}
@@ -21612,8 +22075,8 @@ class JABS_AiManager
     const formation = $jabsEngine.resolveProjectileFormationForSkill(skill);
     const projectileCount = $jabsEngine.resolveProjectileCountForSkill(skill);
 
-    // compute spoke directions from the fresh facing.
-    const freshFacing = battler.getCharacter().direction();
+    // compute spoke directions from the fresh facing (AI aims at its target when possible).
+    const freshFacing = this.deriveFreshFacingForAi(battler);
     const freshDirections = $jabsEngine.determineActionDirections(freshFacing, formation, projectileCount);
 
     // stamp each action with its corresponding fresh spoke direction.
@@ -23736,73 +24199,172 @@ class JABS_Engine
 
   /**
    * Rotates a canonical direction (defined relative to UP) to the provided facing.
-   * This uses the existing 45/90/180 rotation helpers to remain 8-dir correct.
+   * Composes 45° steps so cardinals and diagonals share one code path.
    * @param {number} canonicalDir The canonical direction (as-if facing were UP).
    * @param {number} facing The actual facing to rotate into.
    * @returns {number} The rotated direction code.
    */
-  // eslint-disable-next-line complexity
   rotateSpokeFromUpToFacing(canonicalDir, facing)
   {
-    // if already facing up, no rotation is required.
+    // no twist when already aligned with the canonical "up" forward axis.
     if (facing === J.ABS.Directions.UP)
     {
-      // return the canonical as-is.
       return canonicalDir;
     }
 
-    // map rotational steps from UP to the target facing using 90/180/270.
-    // we perform minimal rotations while preserving diagonals when needed.
-    switch (facing)
+    // clockwise order of 8-direction codes starting at UP (map space, Y-down).
+    const clockwiseFromUp = [
+      J.ABS.Directions.UP,
+      J.ABS.Directions.UPPERRIGHT,
+      J.ABS.Directions.RIGHT,
+      J.ABS.Directions.LOWERRIGHT,
+      J.ABS.Directions.DOWN,
+      J.ABS.Directions.LOWERLEFT,
+      J.ABS.Directions.LEFT,
+      J.ABS.Directions.UPPERLEFT,
+    ];
+
+    const steps = clockwiseFromUp.indexOf(facing);
+
+    // guard unknown facings so we never rotate into garbage.
+    if (steps === -1)
     {
-      case J.ABS.Directions.RIGHT:
+      return canonicalDir;
+    }
+
+    // each step is 45° clockwise; compose with the existing helper.
+    let rotated = canonicalDir;
+    for (let i = 0; i < steps; i++)
+    {
+      rotated = this.rotate45degrees(rotated, true);
+    }
+
+    return rotated;
+  }
+
+  /**
+   * Converts logical travel facing into a direction safe for RMMZ character sheet rows.
+   * {@link Sprite_Character#characterPatternY} uses `(direction - 2) / 2`, which only works for
+   * cardinals; diagonals yield fractional rows and corrupt `$` single-character sheets.
+   * @param {number} travelDir The JABS / map travel direction (1–9).
+   * @param {number} castedCardinal The caster's facing at fire time (expects 2/4/6/8).
+   * @returns {2|4|6|8} A cardinal for {@link Game_Character#setDirection} on action sprites.
+   */
+  actionTravelDirectionToSpritePatternDirection(travelDir, castedCardinal)
+  {
+    if (travelDir === 2 || travelDir === 4 || travelDir === 6 || travelDir === 8)
+    {
+      return travelDir;
+    }
+
+    const casted = castedCardinal;
+    const rev = d =>
+    {
+      if (d === 2) return 8;
+      if (d === 8) return 2;
+      if (d === 4) return 6;
+      if (d === 6) return 4;
+      return d;
+    };
+
+    if (travelDir !== 1 && travelDir !== 3 && travelDir !== 7 && travelDir !== 9)
+    {
+      if (casted === 2 || casted === 4 || casted === 6 || casted === 8)
       {
-        // rotating from UP to RIGHT is a 90-degree clockwise rotation.
-        if (canonicalDir === J.ABS.Directions.UP) return J.ABS.Directions.RIGHT;
-        if (canonicalDir === J.ABS.Directions.RIGHT) return J.ABS.Directions.DOWN;
-        if (canonicalDir === J.ABS.Directions.DOWN) return J.ABS.Directions.LEFT;
-        if (canonicalDir === J.ABS.Directions.LEFT) return J.ABS.Directions.UP;
-        if (canonicalDir === J.ABS.Directions.UPPERRIGHT) return J.ABS.Directions.LOWERRIGHT;
-        if (canonicalDir === J.ABS.Directions.LOWERRIGHT) return J.ABS.Directions.LOWERLEFT;
-        if (canonicalDir === J.ABS.Directions.LOWERLEFT) return J.ABS.Directions.UPPERLEFT;
-        if (canonicalDir === J.ABS.Directions.UPPERLEFT) return J.ABS.Directions.UPPERRIGHT;
+        return casted;
+      }
+
+      return 2;
+    }
+
+    let result = casted;
+    switch (casted)
+    {
+      case 2:
+      {
+        switch (travelDir)
+        {
+          case 1:
+          case 3:
+            result = casted;
+            break;
+          case 7:
+          case 9:
+            result = rev(casted);
+            break;
+          default:
+            result = casted;
+            break;
+        }
         break;
       }
-      case J.ABS.Directions.DOWN:
+      case 4:
       {
-        // rotating from UP to DOWN is a 180-degree rotation.
-        if (canonicalDir === J.ABS.Directions.UP) return J.ABS.Directions.DOWN;
-        if (canonicalDir === J.ABS.Directions.RIGHT) return J.ABS.Directions.LEFT;
-        if (canonicalDir === J.ABS.Directions.DOWN) return J.ABS.Directions.UP;
-        if (canonicalDir === J.ABS.Directions.LEFT) return J.ABS.Directions.RIGHT;
-        if (canonicalDir === J.ABS.Directions.UPPERRIGHT) return J.ABS.Directions.LOWERLEFT;
-        if (canonicalDir === J.ABS.Directions.LOWERRIGHT) return J.ABS.Directions.UPPERLEFT;
-        if (canonicalDir === J.ABS.Directions.LOWERLEFT) return J.ABS.Directions.UPPERRIGHT;
-        if (canonicalDir === J.ABS.Directions.UPPERLEFT) return J.ABS.Directions.LOWERRIGHT;
+        switch (travelDir)
+        {
+          case 1:
+          case 7:
+            result = casted;
+            break;
+          case 3:
+          case 9:
+            result = rev(casted);
+            break;
+          default:
+            result = casted;
+            break;
+        }
         break;
       }
-      case J.ABS.Directions.LEFT:
+      case 6:
       {
-        // rotating from UP to LEFT is a 90-degree counter-clockwise rotation.
-        if (canonicalDir === J.ABS.Directions.UP) return J.ABS.Directions.LEFT;
-        if (canonicalDir === J.ABS.Directions.RIGHT) return J.ABS.Directions.UP;
-        if (canonicalDir === J.ABS.Directions.DOWN) return J.ABS.Directions.RIGHT;
-        if (canonicalDir === J.ABS.Directions.LEFT) return J.ABS.Directions.DOWN;
-        if (canonicalDir === J.ABS.Directions.UPPERRIGHT) return J.ABS.Directions.UPPERLEFT;
-        if (canonicalDir === J.ABS.Directions.LOWERRIGHT) return J.ABS.Directions.UPPERRIGHT;
-        if (canonicalDir === J.ABS.Directions.LOWERLEFT) return J.ABS.Directions.LOWERRIGHT;
-        if (canonicalDir === J.ABS.Directions.UPPERLEFT) return J.ABS.Directions.LOWERLEFT;
+        switch (travelDir)
+        {
+          case 3:
+          case 9:
+            result = casted;
+            break;
+          case 1:
+          case 7:
+            result = rev(casted);
+            break;
+          default:
+            result = casted;
+            break;
+        }
+        break;
+      }
+      case 8:
+      {
+        switch (travelDir)
+        {
+          case 7:
+          case 9:
+            result = casted;
+            break;
+          case 1:
+          case 3:
+            result = rev(casted);
+            break;
+          default:
+            result = casted;
+            break;
+        }
         break;
       }
       default:
       {
-        // for diagonals or unrecognized facings, fall back to canonical.
-        return canonicalDir;
+        result = casted;
+        break;
       }
     }
 
-    // default return if no case matched; return canonical.
-    return canonicalDir;
+    if (result === 2 || result === 4 || result === 6 || result === 8)
+    {
+      return result;
+    }
+
+    return 2;
   }
 
   /**
@@ -24161,12 +24723,16 @@ class JABS_Engine
     actionEventSprite._characterIndex = characterIndex;
     // get page.
     const pageData = actionEventData.pages[pageIndex];
+    // stamp synthetic note once from template event + this page so Comment `<vis*>` tags merge with skill notes later.
+    action.stampActionMapVisualNoteFromActionEvent(actionEventData, pageData);
     // frequency.
     actionEventSprite.setMoveFrequency(pageData.moveFrequency);
     // route.
     actionEventSprite.setMoveRoute(pageData.moveRoute);
-    // cast facing.
-    actionEventSprite.setCastedDirection($gamePlayer.direction());
+    // stamp which way the caster was facing at fire time (cardinal row hint for $ sheets).
+    actionEventSprite.setCastedDirection(action.getCaster()
+      .getCharacter()
+      .direction());
 
     this.applyActionToActionEventSprite(actionEventSprite, action);
 
@@ -24191,8 +24757,13 @@ class JABS_Engine
   {
     // wire action.
     actionEventSprite.setJabsAction(action);
-    // facing.
-    actionEventSprite.setDirection(action.direction());
+
+    // logical travel can be diagonal (8-dir projectiles), but RMMZ sprite framing
+    // only supports four rows — keep map facing cardinal for the bitmap slice.
+    const travel = action.direction();
+    const casted = actionEventSprite.getCastedDirection();
+    const patternDir = this.actionTravelDirectionToSpritePatternDirection(travel, casted);
+    actionEventSprite.setDirection(patternDir);
   }
 
   /**
@@ -25564,7 +26135,8 @@ class JABS_Engine
         {
           // perform standard spatial collision against the action's event.
           const sprite = battler.getCharacter();
-          const actionDirection = actionSprite.direction();
+          const actionDirection = actionSprite.getJabsAction()
+            .direction();
           const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
           if (result)
           {
@@ -25604,7 +26176,8 @@ class JABS_Engine
 
       // check to see if this battler is now in range for non-direct actions.
       const sprite = battler.getCharacter();
-      const actionDirection = actionSprite.direction();
+      const actionDirection = actionSprite.getJabsAction()
+        .direction();
       const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
       if (result)
       {
@@ -25627,7 +26200,7 @@ class JABS_Engine
 
   /**
    * Determines collision of a given shape vs coordinates.
-   * @param {number} facing The direction the caster is facing.
+   * @param {1|2|3|4|6|7|8|9} facing Logical dir8 travel direction for the action.
    * @param {Game_Event|Game_Player|Game_Character} targetCharacter The target being hit.
    * @param {Game_Event} actionEvent The action sprite against the target.
    * @param {number} range How big the collision shape is.
@@ -25656,10 +26229,6 @@ class JABS_Engine
         return this.collisionCross(targetCharacter, actionEvent, range);
 
       // shapes that require action direction.
-      case J.ABS.Shapes.FrontSquare:
-        // front-half of the full square selected by facing.
-        return this.collisionFrontSquare(targetCharacter, actionEvent, range, facing);
-
       case J.ABS.Shapes.Line:
         // directional bar extending outward from the origin.
         return this.collisionLine(targetCharacter, actionEvent, range, facing);
@@ -25772,30 +26341,8 @@ class JABS_Engine
       return true;
     }
 
-    // build a unit facing vector from the numeric direction.
-    // Note: J.ABS.Directions.* uses cardinals; diagonals are not used for gating.
-    // facing x component.
-    let fx = 0;
-    // facing y component.
-    let fy = 0;
-    switch (facing)
-    {
-      case J.ABS.Directions.DOWN:
-        fy = 1;
-        break;
-      case J.ABS.Directions.UP:
-        fy = -1;
-        break;
-      case J.ABS.Directions.RIGHT:
-        fx = 1;
-        break;
-      case J.ABS.Directions.LEFT:
-        fx = -1;
-        break;
-      default:
-        // TODO: what would be a good default facing for unspecified facings?
-        break;
-    }
+    // build a unit facing vector from the numeric direction (supports diagonals).
+    const { x: fx, y: fy } = this.dir8ToUnitVector(facing);
 
     // compute vector from origin to the target rect’s center.
     // delta x to target center.
@@ -25974,87 +26521,6 @@ class JABS_Engine
   }
 
   /**
-   * A front-square collision (half of the full square) in pixel space.
-   * The half is chosen based on facing.
-   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
-   * @param {Game_Event} action The action sprite against the target.
-   * @param {number} range The range in tiles.
-   * @param {2|4|6|8} facing The direction the action is facing.
-   * @returns {boolean}
-   */
-  collisionFrontSquare(target, action, range, facing)
-  {
-    // compute half-square dimensions in pixels.
-    // tile width.
-    const tw = $gameMap.tileWidth();
-    // tile height.
-    const th = $gameMap.tileHeight();
-
-    // total full-square tiles and derived pixel dimensions.
-    // full square tiles.
-    const fullTiles = (2 * range + 1);
-    // full width in px.
-    const fullW = fullTiles * tw;
-    // full height in px.
-    const fullH = fullTiles * th;
-
-    // centralized, corrected origin for action.
-    const {
-      x: originCx,
-      y: originCy
-      // unified origin.
-    } = JABS_Engine.getActionOriginPixels(action);
-
-    // derive the front-half rectangle based on facing (anchored at corrected origin).
-    // will be computed based on facing.
-    let actionRect;
-    switch (facing)
-    {
-      // 2 → bottom half from origin.
-      case J.ABS.Directions.DOWN:
-        actionRect = new JABS_Aabb(originCx - (fullW / 2), originCy, fullW, (fullH / 2) + (th / 2));
-        break;
-
-      // 8 → top half up from origin.
-      case J.ABS.Directions.UP:
-        actionRect = new JABS_Aabb(
-          originCx - (fullW / 2),
-          originCy - (fullH / 2) - (th / 2),
-          fullW,
-          (fullH / 2) + (th / 2)
-        );
-        break;
-
-      // 6 → right half from origin.
-      case J.ABS.Directions.RIGHT:
-        actionRect = new JABS_Aabb(originCx, originCy - (fullH / 2), (fullW / 2) + (tw / 2), fullH);
-        break;
-
-      // 4 → left half from origin.
-      case J.ABS.Directions.LEFT:
-        actionRect = new JABS_Aabb(
-          originCx - (fullW / 2) - (tw / 2),
-          originCy - (fullH / 2),
-          (fullW / 2) + (tw / 2),
-          fullH
-        );
-        break;
-
-      default:
-        console.warn(`unsupported facing direction: ${facing}`);
-        return false;
-    }
-
-    // build target AABB.
-    // target rect.
-    const targetRect = JABS_Engine.getBattlerAabbModel(target);
-
-    // test overlap.
-    // overlap?
-    return actionRect.intersectsRect(targetRect);
-  }
-
-  /**
    * A line-shaped collision approximated as a thin rectangle extending from the action origin.
    * Range in tiles is converted to pixels. Thickness defaults to one tile, or <thickness:N> tiles if provided.
    * @param {Game_Event|Game_Player|Game_Character} target The target.
@@ -26096,70 +26562,17 @@ class JABS_Engine
       // unified origin.
     } = JABS_Engine.getActionOriginPixels(action);
 
-    // build the line-as-rect based on facing from origin.
-    // rectangle approximation of the line.
-    let actionRect;
-    switch (facing)
-    {
-      // 2.
-      case J.ABS.Directions.DOWN:
-        // extend downward from the origin center, include a small extra half-tile pad.
-        actionRect = new JABS_Aabb(originCx - (thicknessX / 2), originCy, thicknessX, lengthPx + (th / 2));
-        break;
-      // 8.
-      case J.ABS.Directions.UP:
-        // extend upward from the origin center, include a small extra half-tile pad.
-        actionRect = new JABS_Aabb(
-          originCx - (thicknessX / 2),
-          originCy - lengthPx - (th / 2),
-          thicknessX,
-          lengthPx + (th / 2)
-        );
-        break;
-      // 6.
-      case J.ABS.Directions.RIGHT:
-        // extend rightward from the origin center, include a small extra half-tile pad.
-        actionRect = new JABS_Aabb(originCx, originCy - (thicknessY / 2), lengthPx + (tw / 2), thicknessY);
-        break;
-      // (4).
-      case J.ABS.Directions.LEFT:
-        // extend leftward from the origin center, include a small extra half-tile pad.
-        actionRect = new JABS_Aabb(
-          originCx - lengthPx - (tw / 2),
-          originCy - (thicknessY / 2),
-          lengthPx + (tw / 2),
-          thicknessY
-        );
-        break;
-      default:
-        console.warn(`unsupported facing direction: ${facing}`);
-        return false;
-    }
-
-    // build target AABB and test overlap.
-    // target rect.
+    // build target AABB.
     const targetRect = JABS_Engine.getBattlerAabbModel(target);
-    // overlap?
-    return actionRect.intersectsRect(targetRect);
-  }
 
-  /**
-   * Legacy arc/front-rhombus shim; routed to Euclidean sector (wedge) logic.
-   * Existing data with <hitbox:arc> or <hitbox:frontrhombus> should be migrated
-   * to <hitbox:circle> + <degrees:N>; while migrating, this keeps old tags functional.
-   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
-   * @param {Game_Event} action The action sprite against the target.
-   * @param {number} range The size in tiles.
-   * @param {2|4|6|8} facing The direction at time of cast.
-   * @returns {boolean} True if the sector overlaps the target.
-   */
-  collisionFrontRhombus(target, action, range, facing)
-  {
-    // prefer explicit degrees if present; otherwise legacy default 180°.
-    const degrees = this.getActionDegrees(action) ?? 180;
+    // treat the line as an oriented rectangle extending from the origin.
+    // forward length includes a small extra half-tile pad, matching cardinal behavior.
+    const lengthWithPad = lengthPx + (Math.max(tw, th) / 2);
 
-    // perform the Euclidean sector collision instead of the tile front-diamond.
-    return this.collisionSector(target, action, range, facing, degrees);
+    // thickness is expressed per-axis for cardinals; convert to a symmetric half-breadth in pixels for diagonal support.
+    const halfBreadth = Math.max(thicknessX, thicknessY) / 2;
+
+    return this.collisionOrientedRectFromOrigin(targetRect, originCx, originCy, facing, lengthWithPad, halfBreadth);
   }
 
   /**
@@ -26195,32 +26608,108 @@ class JABS_Engine
     const breadthW = breadthTiles * tw;
     const breadthH = breadthTiles * th;
 
-    let actionRect;
-    switch (facing)
+    const targetRect = JABS_Engine.getBattlerAabbModel(target);
+
+    // wall is also an oriented rectangle: small depth along forward, wide breadth perpendicular.
+    const depthPx = Math.max(depthW, depthH);
+    const halfBreadth = Math.max(breadthW, breadthH) / 2;
+
+    return this.collisionOrientedRectFromOrigin(targetRect, originCx, originCy, facing, depthPx, halfBreadth);
+  }
+
+  /**
+   * Collision helper: tests a target AABB against an oriented rectangle that starts at the origin and extends forward.
+   * This supports diagonal facings by projecting into the forward/perpendicular basis and padding by the target AABB extents.
+   * @param {JABS_Aabb} targetRect The target's AABB in pixel space.
+   * @param {number} originCx Origin X in pixels.
+   * @param {number} originCy Origin Y in pixels.
+   * @param {1|2|3|4|6|7|8|9} facing Dir8 facing.
+   * @param {number} lengthPx The forward length in pixels.
+   * @param {number} halfBreadthPx Half-width in pixels along the perpendicular axis.
+   * @returns {boolean} True if the target overlaps the oriented rectangle.
+   */
+  collisionOrientedRectFromOrigin(targetRect, originCx, originCy, facing, lengthPx, halfBreadthPx)
+  {
+    // derive forward unit vector from dir8.
+    const { x: fx, y: fy } = this.dir8ToUnitVector(facing);
+
+    // perpendicular unit vector (rotate 90° clockwise).
+    const px = fy;
+    const py = -fx;
+
+    // delta from origin to target center.
+    const dx = targetRect.cx - originCx;
+    const dy = targetRect.cy - originCy;
+
+    // target center in local forward/perp frame.
+    const u = (dx * fx) + (dy * fy);
+    const v = (dx * px) + (dy * py);
+
+    // target half extents in world space.
+    const hx = targetRect.w / 2;
+    const hy = targetRect.h / 2;
+
+    // project the target AABB half-extents into the local frame (conservative).
+    const extU = (Math.abs(fx) * hx) + (Math.abs(fy) * hy);
+    const extV = (Math.abs(px) * hx) + (Math.abs(py) * hy);
+
+    // overlap if within breadth band and within forward span [0, length].
+    const withinBreadth = Math.abs(v) <= (halfBreadthPx + extV);
+    const withinForward = (u >= -extU) && (u <= (lengthPx + extU));
+
+    return withinBreadth && withinForward;
+  }
+
+  /**
+   * Converts a dir8 code into a normalized unit vector in map space (RMMZ Y-down).
+   * @param {1|2|3|4|6|7|8|9} dir8 The direction code.
+   * @returns {{x: number, y: number}} The unit vector.
+   */
+  dir8ToUnitVector(dir8)
+  {
+    let x = 0;
+    let y = 0;
+
+    switch (dir8)
     {
-      // 2 → horizontal wall below origin.
       case J.ABS.Directions.DOWN:
-        actionRect = new JABS_Aabb(originCx - (breadthW / 2), originCy, breadthW, depthH);
+        y = 1;
         break;
-      // 8 → horizontal wall above origin.
       case J.ABS.Directions.UP:
-        actionRect = new JABS_Aabb(originCx - (breadthW / 2), originCy - depthH, breadthW, depthH);
+        y = -1;
         break;
-      // 6 → vertical wall right of origin.
       case J.ABS.Directions.RIGHT:
-        actionRect = new JABS_Aabb(originCx, originCy - (breadthH / 2), depthW, breadthH);
+        x = 1;
         break;
-      // (4) → vertical wall left of origin.
       case J.ABS.Directions.LEFT:
-        actionRect = new JABS_Aabb(originCx - depthW, originCy - (breadthH / 2), depthW, breadthH);
+        x = -1;
+        break;
+      case J.ABS.Directions.LOWERRIGHT:
+        x = 1;
+        y = 1;
+        break;
+      case J.ABS.Directions.LOWERLEFT:
+        x = -1;
+        y = 1;
+        break;
+      case J.ABS.Directions.UPPERRIGHT:
+        x = 1;
+        y = -1;
+        break;
+      case J.ABS.Directions.UPPERLEFT:
+        x = -1;
+        y = -1;
         break;
       default:
-        console.warn(`unsupported facing direction: ${facing}`);
-        return false;
+        y = 1;
+        break;
     }
 
-    const targetRect = JABS_Engine.getBattlerAabbModel(target);
-    return actionRect.intersectsRect(targetRect);
+    const len = Math.hypot(x, y);
+    return {
+      x: x / len,
+      y: y / len,
+    };
   }
 
   /**
@@ -30899,7 +31388,7 @@ Game_Event.prototype.initMembers = function()
   this._j._abs._initialDirection = 0;
 
   /**
-   * The direction the player was facing when the skill was executed.
+   * The caster's map facing when the skill was executed (cardinal row hint for action art).
    * Only applicable to action events.
    * @type {number}
    */
@@ -35121,8 +35610,9 @@ Sprite_Character.prototype.applyActionVisuals = function()
  */
 Sprite_Character.prototype.applyActionAnchor = function(skill)
 {
-  // resolve anchor override if defined.
-  const visAnchor = skill.jabsVisAnchor; // [ax, ay] or null
+  // resolve anchor override if defined (skill tags override action-map Comment tags).
+  const jabsAction = this.character().getJabsAction();
+  const visAnchor = skill.getJabsVisAnchorMergedForActionMap(jabsAction); // [ax, ay] or null
   if (!visAnchor) return;
 
   // destructure anchor components.
@@ -35141,8 +35631,9 @@ Sprite_Character.prototype.applyActionAnchor = function(skill)
  */
 Sprite_Character.prototype.applyActionZ = function(skill)
 {
-  // resolve z override (nullable).
-  const visZ = skill.jabsVisZ;
+  // resolve z override (nullable); merged with action-map template Comments when present.
+  const jabsAction = this.character().getJabsAction();
+  const visZ = skill.getJabsVisZMergedForActionMap(jabsAction);
   if (visZ === null) return;
 
   // assign z if provided.
@@ -35156,17 +35647,18 @@ Sprite_Character.prototype.applyActionZ = function(skill)
  */
 Sprite_Character.prototype.applyActionOffset = function(skill, jabsAction)
 {
-  // determine the current facing for this action.
-  const facing = jabsAction.direction(); // numeric 2/4/6/8 (+ diagonals 1/3/7/9).
+  // full travel direction — must match {@link RPG_Skill#getJabsVisOffsetFor} (8-dir including diagonals).
+  const facing = jabsAction.getDirectionForVisOffsetTags();
 
   // resolve the most-appropriate offset for the facing.
-  const [ offX, offY ] = skill.getJabsVisOffsetFor(facing);
+  const [ offX, offY ] = skill.getJabsVisOffsetForMergedActionMap(jabsAction, facing);
 
-  // add the offsets if any.
+  // assign from screen space so we never stack drift (parent already assigned x/y from screenX/Y).
   if (offX !== 0 || offY !== 0)
   {
-    this.x += offX; // nudge horizontally.
-    this.y += offY; // nudge vertically.
+    const ch = this.character();
+    this.x = ch.screenX() + offX;
+    this.y = ch.screenY() + offY;
   }
 };
 
@@ -35178,11 +35670,11 @@ Sprite_Character.prototype.applyActionOffset = function(skill, jabsAction)
  */
 Sprite_Character.prototype.applyActionRotation = function(skill, jabsAction)
 {
-  // if rotation not requested, do nothing.
-  if (!skill.jabsVisRotate) return;
+  // if rotation not requested, do nothing (merged with action-map Comments).
+  if (!skill.getJabsVisRotateMergedForActionMap(jabsAction)) return;
 
-  // compute radians from the action's direction.
-  const dir = jabsAction.direction(); // 2/4/6/8 (+ diagonals 1/3/7/9).
+  // same 8-dir travel as offset tags — see {@link JABS_Action#getDirectionForVisOffsetTags}.
+  const dir = jabsAction.direction();
   const radians = this.directionToRadians(dir);
 
   // only assign if different enough to matter.
@@ -35240,8 +35732,9 @@ Sprite_Character.prototype.directionToRadians = function(dir)
  */
 Sprite_Character.prototype.applyActionScale = function(skill)
 {
-  // resolve scale if present.
-  const visScale = skill.jabsVisScale; // [sx, sy] or null
+  // resolve scale if present (merged with action-map Comments).
+  const jabsAction = this.character().getJabsAction();
+  const visScale = skill.getJabsVisScaleMergedForActionMap(jabsAction); // [sx, sy] or null
   if (!visScale) return;
 
   // destructure components.
@@ -35260,8 +35753,10 @@ Sprite_Character.prototype.applyActionScale = function(skill)
  */
 Sprite_Character.prototype.applyActionDebug = function(skill)
 {
-  // if debugging is desired, ensure the gizmo is visible.
-  if (skill.jabsVisDebug)
+  const jabsAction = this.character().getJabsAction();
+
+  // if debugging is desired, ensure the gizmo is visible (merged with action-map Comments).
+  if (skill.getJabsVisDebugMergedForActionMap(jabsAction))
   {
     this._j._abs._visDebugGizmo ||= this.createJabsVisDebugGizmo(); // create once.
     if (!this.children.includes(this._j._abs._visDebugGizmo))
@@ -36356,7 +36851,6 @@ class Sprite_HitboxPulse
       }
 
       case J.ABS.Shapes.Square:
-      case J.ABS.Shapes.FrontSquare: // rotate/face externally; visual approximation here is square AABB
       case J.ABS.Shapes.Rhombus:     // approximation for pulse visualization
       case J.ABS.Shapes.Cross:       // approximation for pulse visualization
       case J.ABS.Shapes.Wall:        // approximation (wall uses Line in engine; see Line branch below if needed)
@@ -37792,12 +38286,6 @@ Spriteset_Map.prototype.drawCastPreviewInto = function (
       break;
     }
 
-    case J.ABS.Shapes.FrontSquare:
-    {
-      this.drawFrontSquareG(g, range, facing, tw, th);
-      break;
-    }
-
     case J.ABS.Shapes.Line:
     {
       const lengthPx = range * Math.max(tw, th);
@@ -38025,7 +38513,8 @@ Spriteset_Map.prototype.isBattlerCollidingWithAnyAction = function (item)
     // derive parameters for the shape collision.
     const shape = jabsAction.getShape();
     const range = jabsAction.getRange();
-    const facing = actionEvent.direction();
+    // logical travel dir8 on the action model (map event direction may be cardinal for `$` sheet rows).
+    const facing = jabsAction.direction();
 
     // ask the engine if the target is within this action's range according to shape logic.
     const overlapped = $jabsEngine.isTargetWithinRange(facing, target, actionEvent, range, shape); // engine parity.
@@ -38134,7 +38623,8 @@ Spriteset_Map.prototype.refreshExistingActionHitboxSprites = function ()
 
     const shape = jabsAction.getShape(); // the action's hitbox shape.
     const range = jabsAction.getRange(); // the action's range.
-    const facing = actionEvent.direction(); // 2=down,4=left,6=right,8=up.
+    // logical travel dir8 on the action model (map event direction may be cardinal for `$` sheet rows).
+    const facing = jabsAction.direction();
 
     // locate the sprite for this action.
     const sprite = this.getOrCreateActionHitboxSpriteFor(actionEvent); // ensure we have a sprite.
@@ -38250,13 +38740,48 @@ Spriteset_Map.prototype.destroyActionHitboxSprite = function (sprite)
 };
 
 /**
+ * Draws a filled convex quad for an oriented rectangle starting at local (0,0) and extending
+ * forward along the dir8 unit vector from `$jabsEngine.dir8ToUnitVector`, with half-breadth perpendicular.
+ * @param {PIXI.Graphics} g The graphics to draw on.
+ * @param {1|2|3|4|6|7|8|9} facing The dir8 facing for the forward axis.
+ * @param {number} lengthPx Forward length in pixels.
+ * @param {number} halfBreadthPx Half-width in pixels along the perpendicular axis.
+ * @returns {void}
+ */
+Spriteset_Map.prototype.drawOrientedHitboxQuadG = function (
+  g,
+  facing,
+  lengthPx,
+  halfBreadthPx
+)
+{
+  const { x: fx, y: fy } = $jabsEngine.dir8ToUnitVector(facing);
+  const px = fy;
+  const py = -fx;
+  const ax = -px * halfBreadthPx;
+  const ay = -py * halfBreadthPx;
+  const bx = px * halfBreadthPx;
+  const by = py * halfBreadthPx;
+  const cx = (fx * lengthPx) + bx;
+  const cy = (fy * lengthPx) + by;
+  const dx = (fx * lengthPx) + ax;
+  const dy = (fy * lengthPx) + ay;
+
+  g.moveTo(ax, ay);
+  g.lineTo(bx, by);
+  g.lineTo(cx, cy);
+  g.lineTo(dx, dy);
+  g.closePath();
+};
+
+/**
  * Draws the collision/visual hitbox into the provided sprite’s internal PIXI.Graphics.
  * Honors <thickness:N> for line, wall, and cross.
  *
  * @param {Sprite} sprite The container sprite that owns the PIXI.Graphics.
  * @param {string} shape One of J.ABS.Shapes.* values.
  * @param {number} range Size in tiles for the shape (semantics vary by shape; see individual cases).
- * @param {2|4|6|8} facing One of J.ABS.Directions cardinal directions.
+ * @param {1|2|3|4|6|7|8|9} facing Logical dir8 travel direction for the action.
  * @param {number} tw Tile width in pixels.
  * @param {number} th Tile height in pixels.
  * @param {Game_Event} actionEvent The action event for tag resolution.
@@ -38315,35 +38840,15 @@ Spriteset_Map.prototype.drawActionHitboxInto = function (
       break;
     }
 
-    case J.ABS.Shapes.FrontSquare:
-    {
-      // front-half square selected by facing.
-      this.drawFrontSquareG(g, range, facing, tw, th);
-      break;
-    }
-
     case J.ABS.Shapes.Line:
     {
       // length uses major axis regardless of orientation.
       const lengthPx = range * Math.max(tw, th);
 
       // draw oriented rect with a small extra half-tile pad like engine collision.
-      if (facing === J.ABS.Directions.DOWN)
-      {
-        g.drawRect(-(thicknessX / 2), 0, thicknessX, lengthPx + (th / 2));
-      }
-      else if (facing === J.ABS.Directions.UP)
-      {
-        g.drawRect(-(thicknessX / 2), -lengthPx - (th / 2), thicknessX, lengthPx + (th / 2));
-      }
-      else if (facing === J.ABS.Directions.RIGHT)
-      {
-        g.drawRect(0, -(thicknessY / 2), lengthPx + (tw / 2), thicknessY);
-      }
-      else // J.ABS.Directions.LEFT
-      {
-        g.drawRect(-lengthPx - (tw / 2), -(thicknessY / 2), lengthPx + (tw / 2), thicknessY);
-      }
+      const lengthWithPad = lengthPx + (Math.max(tw, th) / 2);
+      const halfBreadth = Math.max(thicknessX, thicknessY) / 2;
+      this.drawOrientedHitboxQuadG(g, facing, lengthWithPad, halfBreadth);
       break;
     }
 
@@ -38351,16 +38856,13 @@ Spriteset_Map.prototype.drawActionHitboxInto = function (
     {
       // breadth spans (2*range+1) tiles across the perpendicular axis.
       const lenTiles = (2 * range + 1);
-      if (facing === J.ABS.Directions.DOWN || facing === J.ABS.Directions.UP)
-      {
-        const w = lenTiles * tw;
-        g.drawRect(-w / 2, -thicknessY / 2, w, thicknessY);
-      }
-      else // RIGHT or LEFT
-      {
-        const h = lenTiles * th;
-        g.drawRect(-thicknessX / 2, -h / 2, thicknessX, h);
-      }
+      const breadthW = lenTiles * tw;
+      const breadthH = lenTiles * th;
+      const depthW = Math.max(minPx, thicknessTiles * tw);
+      const depthH = Math.max(minPx, thicknessTiles * th);
+      const depthPx = Math.max(depthW, depthH);
+      const halfBreadth = Math.max(breadthW, breadthH) / 2;
+      this.drawOrientedHitboxQuadG(g, facing, depthPx, halfBreadth);
       break;
     }
 
@@ -38380,11 +38882,9 @@ Spriteset_Map.prototype.drawActionHitboxInto = function (
       // sector wedge; resolve degrees via engine helper.
       const degrees = ($jabsEngine.getActionDegrees(actionEvent) ?? 180);
 
-      // compute center angle based on facing.
-      let centerRad = 0; // default right.
-      if (facing === J.ABS.Directions.DOWN) centerRad = Math.PI / 2;
-      if (facing === J.ABS.Directions.LEFT) centerRad = Math.PI;
-      if (facing === J.ABS.Directions.UP) centerRad = -Math.PI / 2;
+      // compute center angle from logical dir8 (0 = right, π/2 = down in canvas atan2 space).
+      const { x: fx, y: fy } = $jabsEngine.dir8ToUnitVector(facing);
+      const centerRad = Math.atan2(fy, fx);
 
       // compute sweep in radians and draw.
       const sweepRad = (degrees * Math.PI) / 180;
@@ -38415,125 +38915,6 @@ Spriteset_Map.prototype.drawRhombusG = function (
   g.lineTo(0, ry); // bottom.
   g.lineTo(-rx, 0); // left.
   g.closePath(); // close.
-};
-
-/**
- * Draws a half-diamond (front rhombus) from origin in facing direction.
- * @param {PIXI.Graphics} g The graphics to draw on.
- * @param {number} rx Horizontal radius in px.
- * @param {number} ry Vertical radius in px.
- * @param {number} facing 2/4/6/8
- */
-Spriteset_Map.prototype.drawFrontRhombusG = function (
-  g,
-  rx,
-  ry,
-  facing
-)
-{
-  if (facing === 2) // down
-  {
-    g.moveTo(0, 0);
-    g.lineTo(rx, 0);
-    g.lineTo(0, ry);
-    g.closePath(); // lower-right tri.
-    g.moveTo(0, 0);
-    g.lineTo(0, ry);
-    g.lineTo(-rx, 0);
-    g.closePath(); // lower-left tri.
-  }
-  else if (facing === 8) // up
-  {
-    g.moveTo(0, 0);
-    g.lineTo(0, -ry);
-    g.lineTo(rx, 0);
-    g.closePath(); // upper-right tri.
-    g.moveTo(0, 0);
-    g.lineTo(-rx, 0);
-    g.lineTo(0, -ry);
-    g.closePath(); // upper-left tri.
-  }
-  else if (facing === 6) // right
-  {
-    g.moveTo(0, 0);
-    g.lineTo(rx, 0);
-    g.lineTo(0, -ry);
-    g.closePath(); // right-upper tri.
-    g.moveTo(0, 0);
-    g.lineTo(0, ry);
-    g.lineTo(rx, 0);
-    g.closePath(); // right-lower tri.
-  }
-  else // left
-  {
-    g.moveTo(0, 0);
-    g.lineTo(-rx, 0);
-    g.lineTo(0, -ry);
-    g.closePath(); // left-upper tri.
-    g.moveTo(0, 0);
-    g.lineTo(0, ry);
-    g.lineTo(-rx, 0);
-    g.closePath(); // left-lower tri.
-  }
-};
-
-/**
- * Draws the front-half of a square in the facing direction from origin.
- * @param {PIXI.Graphics} g The graphics to draw on.
- * @param {number} range Range in tiles.
- * @param {2|4|6|8} facing One of J.ABS.Directions cardinals.
- * @param {number} tw Tile width in px.
- * @param {number} th Tile height in px.
- */
-Spriteset_Map.prototype.drawFrontSquareG = function (
-  g,
-  range,
-  facing,
-  tw,
-  th
-)
-{
-  // total full-square size in pixels.
-  const totalW = (2 * range + 1) * tw; // total width of full square.
-  const totalH = (2 * range + 1) * th; // total height of full square.
-
-  // match engine collisionFrontSquare offsets with extra half-tile padding.
-  switch (facing)
-  {
-    case J.ABS.Directions.DOWN: // 2 → bottom half from origin
-    {
-      // width full, height half + half-tile padding, starting at y=0.
-      g.drawRect(-(totalW / 2), 0, totalW, (totalH / 2) + (th / 2));
-      break;
-    }
-
-    case J.ABS.Directions.UP: // 8 → top half up from origin
-    {
-      // width full, height half + half-tile padding, starting above origin.
-      g.drawRect(-(totalW / 2), -((totalH / 2) + (th / 2)), totalW, (totalH / 2) + (th / 2));
-      break;
-    }
-
-    case J.ABS.Directions.RIGHT: // 6 → right half from origin
-    {
-      // width half + half-tile padding, full height, starting at x=0.
-      g.drawRect(0, -(totalH / 2), (totalW / 2) + (tw / 2), totalH);
-      break;
-    }
-
-    case J.ABS.Directions.LEFT: // 4 → left half from origin
-    {
-      // width half + half-tile padding, full height, starting to the left of origin.
-      g.drawRect(-((totalW / 2) + (tw / 2)), -(totalH / 2), (totalW / 2) + (tw / 2), totalH);
-      break;
-    }
-
-    default:
-    {
-      console.warn(`unsupported facing direction: ${facing}`);
-      return; // do not draw unknown
-    }
-  }
 };
 
 /**
