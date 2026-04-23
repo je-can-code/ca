@@ -1017,7 +1017,8 @@ class JABS_Action
 
     // check circle distance for each candidate relative to the action sprite.
     const targets = [];
-    const actionDirection = actionSprite.direction();
+    // circle collision ignores facing, but keep logical dir8 for parity with shaped actions.
+    const actionDirection = jabsAction.direction();
     candidates
       .filter(canActionConnectWithBattler, this)
       .forEach(battler =>
@@ -1385,8 +1386,8 @@ class JABS_Action
       originX = actionEvent.screenX();
       originY = actionEvent.screenY();
 
-      // derive facing from the action event.
-      facing = actionEvent.direction();
+      // derive facing from logical travel dir8 (map event direction may be cardinal for `$` sheet rows).
+      facing = this.direction();
     }
     else
     {
@@ -15087,10 +15088,6 @@ class JABS_Timer
  * An equal square. The <radius> defines the length of each side.
  *    <hitbox:square>
  *
- * FRONTSQUARE:
- * Like square, but the back half (behind the action) is omitted.
- *    <hitbox:frontsquare>
- *
  * LINE:
  * A single 1-tile-wide line. The <radius> defines the line's length.
  *    <hitbox:line>
@@ -16869,9 +16866,6 @@ J.ABS.Metadata.HitboxStyles = {
       // darker orange.
       fillColor: 0xFFA64D,
     },
-    frontsquare: {
-      fillAlpha: 0.28,
-    },
     line: {
       lineWidth: 3,
     },
@@ -17141,11 +17135,6 @@ J.ABS.Shapes = {
   Square: 'square',
 
   /**
-   *  A square in front of the target hitbox.
-   */
-  FrontSquare: 'frontsquare',
-
-  /**
    * A line from the target hitbox.
    */
   Line: 'line',
@@ -17232,7 +17221,7 @@ J.ABS.RegExp = {
   SizeInPixels: /<size:[ ]?(\d+)>/gi,
   Degrees: /<degrees:[ ]?(\d+)>/gi,
   Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
-  Shape: /<hitbox:[ ]?(circle|rhombus|square|frontsquare|line|arc|wall|cross)>/gi,
+  Shape: /<hitbox:[ ]?(circle|rhombus|square|line|arc|wall|cross)>/gi,
   Projectile: /<projectile:[ ]?(\d+)>/gi,
   ProjectileFormation: /<formation:[ ]?(line|spray|cross|xburst|nova)>/gi,
   Thickness: /<thickness:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
@@ -26211,7 +26200,7 @@ class JABS_Engine
 
   /**
    * Determines collision of a given shape vs coordinates.
-   * @param {number} facing The direction the caster is facing.
+   * @param {1|2|3|4|6|7|8|9} facing Logical dir8 travel direction for the action.
    * @param {Game_Event|Game_Player|Game_Character} targetCharacter The target being hit.
    * @param {Game_Event} actionEvent The action sprite against the target.
    * @param {number} range How big the collision shape is.
@@ -26240,10 +26229,6 @@ class JABS_Engine
         return this.collisionCross(targetCharacter, actionEvent, range);
 
       // shapes that require action direction.
-      case J.ABS.Shapes.FrontSquare:
-        // front-half of the full square selected by facing.
-        return this.collisionFrontSquare(targetCharacter, actionEvent, range, facing);
-
       case J.ABS.Shapes.Line:
         // directional bar extending outward from the origin.
         return this.collisionLine(targetCharacter, actionEvent, range, facing);
@@ -26536,87 +26521,6 @@ class JABS_Engine
   }
 
   /**
-   * A front-square collision (half of the full square) in pixel space.
-   * The half is chosen based on facing.
-   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
-   * @param {Game_Event} action The action sprite against the target.
-   * @param {number} range The range in tiles.
-   * @param {2|4|6|8} facing The direction the action is facing.
-   * @returns {boolean}
-   */
-  collisionFrontSquare(target, action, range, facing)
-  {
-    // compute half-square dimensions in pixels.
-    // tile width.
-    const tw = $gameMap.tileWidth();
-    // tile height.
-    const th = $gameMap.tileHeight();
-
-    // total full-square tiles and derived pixel dimensions.
-    // full square tiles.
-    const fullTiles = (2 * range + 1);
-    // full width in px.
-    const fullW = fullTiles * tw;
-    // full height in px.
-    const fullH = fullTiles * th;
-
-    // centralized, corrected origin for action.
-    const {
-      x: originCx,
-      y: originCy
-      // unified origin.
-    } = JABS_Engine.getActionOriginPixels(action);
-
-    // derive the front-half rectangle based on facing (anchored at corrected origin).
-    // will be computed based on facing.
-    let actionRect;
-    switch (facing)
-    {
-      // 2 → bottom half from origin.
-      case J.ABS.Directions.DOWN:
-        actionRect = new JABS_Aabb(originCx - (fullW / 2), originCy, fullW, (fullH / 2) + (th / 2));
-        break;
-
-      // 8 → top half up from origin.
-      case J.ABS.Directions.UP:
-        actionRect = new JABS_Aabb(
-          originCx - (fullW / 2),
-          originCy - (fullH / 2) - (th / 2),
-          fullW,
-          (fullH / 2) + (th / 2)
-        );
-        break;
-
-      // 6 → right half from origin.
-      case J.ABS.Directions.RIGHT:
-        actionRect = new JABS_Aabb(originCx, originCy - (fullH / 2), (fullW / 2) + (tw / 2), fullH);
-        break;
-
-      // 4 → left half from origin.
-      case J.ABS.Directions.LEFT:
-        actionRect = new JABS_Aabb(
-          originCx - (fullW / 2) - (tw / 2),
-          originCy - (fullH / 2),
-          (fullW / 2) + (tw / 2),
-          fullH
-        );
-        break;
-
-      default:
-        console.warn(`unsupported facing direction: ${facing}`);
-        return false;
-    }
-
-    // build target AABB.
-    // target rect.
-    const targetRect = JABS_Engine.getBattlerAabbModel(target);
-
-    // test overlap.
-    // overlap?
-    return actionRect.intersectsRect(targetRect);
-  }
-
-  /**
    * A line-shaped collision approximated as a thin rectangle extending from the action origin.
    * Range in tiles is converted to pixels. Thickness defaults to one tile, or <thickness:N> tiles if provided.
    * @param {Game_Event|Game_Player|Game_Character} target The target.
@@ -26669,25 +26573,6 @@ class JABS_Engine
     const halfBreadth = Math.max(thicknessX, thicknessY) / 2;
 
     return this.collisionOrientedRectFromOrigin(targetRect, originCx, originCy, facing, lengthWithPad, halfBreadth);
-  }
-
-  /**
-   * Legacy arc/front-rhombus shim; routed to Euclidean sector (wedge) logic.
-   * Existing data with <hitbox:arc> or <hitbox:frontrhombus> should be migrated
-   * to <hitbox:circle> + <degrees:N>; while migrating, this keeps old tags functional.
-   * @param {Game_Event|Game_Player|Game_Character} target The target being hit.
-   * @param {Game_Event} action The action sprite against the target.
-   * @param {number} range The size in tiles.
-   * @param {2|4|6|8} facing The direction at time of cast.
-   * @returns {boolean} True if the sector overlaps the target.
-   */
-  collisionFrontRhombus(target, action, range, facing)
-  {
-    // prefer explicit degrees if present; otherwise legacy default 180°.
-    const degrees = this.getActionDegrees(action) ?? 180;
-
-    // perform the Euclidean sector collision instead of the tile front-diamond.
-    return this.collisionSector(target, action, range, facing, degrees);
   }
 
   /**
@@ -36966,7 +36851,6 @@ class Sprite_HitboxPulse
       }
 
       case J.ABS.Shapes.Square:
-      case J.ABS.Shapes.FrontSquare: // rotate/face externally; visual approximation here is square AABB
       case J.ABS.Shapes.Rhombus:     // approximation for pulse visualization
       case J.ABS.Shapes.Cross:       // approximation for pulse visualization
       case J.ABS.Shapes.Wall:        // approximation (wall uses Line in engine; see Line branch below if needed)
@@ -38402,12 +38286,6 @@ Spriteset_Map.prototype.drawCastPreviewInto = function (
       break;
     }
 
-    case J.ABS.Shapes.FrontSquare:
-    {
-      this.drawFrontSquareG(g, range, facing, tw, th);
-      break;
-    }
-
     case J.ABS.Shapes.Line:
     {
       const lengthPx = range * Math.max(tw, th);
@@ -38635,7 +38513,8 @@ Spriteset_Map.prototype.isBattlerCollidingWithAnyAction = function (item)
     // derive parameters for the shape collision.
     const shape = jabsAction.getShape();
     const range = jabsAction.getRange();
-    const facing = actionEvent.direction();
+    // logical travel dir8 on the action model (map event direction may be cardinal for `$` sheet rows).
+    const facing = jabsAction.direction();
 
     // ask the engine if the target is within this action's range according to shape logic.
     const overlapped = $jabsEngine.isTargetWithinRange(facing, target, actionEvent, range, shape); // engine parity.
@@ -38744,7 +38623,8 @@ Spriteset_Map.prototype.refreshExistingActionHitboxSprites = function ()
 
     const shape = jabsAction.getShape(); // the action's hitbox shape.
     const range = jabsAction.getRange(); // the action's range.
-    const facing = actionEvent.direction(); // 2=down,4=left,6=right,8=up.
+    // logical travel dir8 on the action model (map event direction may be cardinal for `$` sheet rows).
+    const facing = jabsAction.direction();
 
     // locate the sprite for this action.
     const sprite = this.getOrCreateActionHitboxSpriteFor(actionEvent); // ensure we have a sprite.
@@ -38860,13 +38740,48 @@ Spriteset_Map.prototype.destroyActionHitboxSprite = function (sprite)
 };
 
 /**
+ * Draws a filled convex quad for an oriented rectangle starting at local (0,0) and extending
+ * forward along the dir8 unit vector from `$jabsEngine.dir8ToUnitVector`, with half-breadth perpendicular.
+ * @param {PIXI.Graphics} g The graphics to draw on.
+ * @param {1|2|3|4|6|7|8|9} facing The dir8 facing for the forward axis.
+ * @param {number} lengthPx Forward length in pixels.
+ * @param {number} halfBreadthPx Half-width in pixels along the perpendicular axis.
+ * @returns {void}
+ */
+Spriteset_Map.prototype.drawOrientedHitboxQuadG = function (
+  g,
+  facing,
+  lengthPx,
+  halfBreadthPx
+)
+{
+  const { x: fx, y: fy } = $jabsEngine.dir8ToUnitVector(facing);
+  const px = fy;
+  const py = -fx;
+  const ax = -px * halfBreadthPx;
+  const ay = -py * halfBreadthPx;
+  const bx = px * halfBreadthPx;
+  const by = py * halfBreadthPx;
+  const cx = (fx * lengthPx) + bx;
+  const cy = (fy * lengthPx) + by;
+  const dx = (fx * lengthPx) + ax;
+  const dy = (fy * lengthPx) + ay;
+
+  g.moveTo(ax, ay);
+  g.lineTo(bx, by);
+  g.lineTo(cx, cy);
+  g.lineTo(dx, dy);
+  g.closePath();
+};
+
+/**
  * Draws the collision/visual hitbox into the provided sprite’s internal PIXI.Graphics.
  * Honors <thickness:N> for line, wall, and cross.
  *
  * @param {Sprite} sprite The container sprite that owns the PIXI.Graphics.
  * @param {string} shape One of J.ABS.Shapes.* values.
  * @param {number} range Size in tiles for the shape (semantics vary by shape; see individual cases).
- * @param {2|4|6|8} facing One of J.ABS.Directions cardinal directions.
+ * @param {1|2|3|4|6|7|8|9} facing Logical dir8 travel direction for the action.
  * @param {number} tw Tile width in pixels.
  * @param {number} th Tile height in pixels.
  * @param {Game_Event} actionEvent The action event for tag resolution.
@@ -38925,35 +38840,15 @@ Spriteset_Map.prototype.drawActionHitboxInto = function (
       break;
     }
 
-    case J.ABS.Shapes.FrontSquare:
-    {
-      // front-half square selected by facing.
-      this.drawFrontSquareG(g, range, facing, tw, th);
-      break;
-    }
-
     case J.ABS.Shapes.Line:
     {
       // length uses major axis regardless of orientation.
       const lengthPx = range * Math.max(tw, th);
 
       // draw oriented rect with a small extra half-tile pad like engine collision.
-      if (facing === J.ABS.Directions.DOWN)
-      {
-        g.drawRect(-(thicknessX / 2), 0, thicknessX, lengthPx + (th / 2));
-      }
-      else if (facing === J.ABS.Directions.UP)
-      {
-        g.drawRect(-(thicknessX / 2), -lengthPx - (th / 2), thicknessX, lengthPx + (th / 2));
-      }
-      else if (facing === J.ABS.Directions.RIGHT)
-      {
-        g.drawRect(0, -(thicknessY / 2), lengthPx + (tw / 2), thicknessY);
-      }
-      else // J.ABS.Directions.LEFT
-      {
-        g.drawRect(-lengthPx - (tw / 2), -(thicknessY / 2), lengthPx + (tw / 2), thicknessY);
-      }
+      const lengthWithPad = lengthPx + (Math.max(tw, th) / 2);
+      const halfBreadth = Math.max(thicknessX, thicknessY) / 2;
+      this.drawOrientedHitboxQuadG(g, facing, lengthWithPad, halfBreadth);
       break;
     }
 
@@ -38961,16 +38856,13 @@ Spriteset_Map.prototype.drawActionHitboxInto = function (
     {
       // breadth spans (2*range+1) tiles across the perpendicular axis.
       const lenTiles = (2 * range + 1);
-      if (facing === J.ABS.Directions.DOWN || facing === J.ABS.Directions.UP)
-      {
-        const w = lenTiles * tw;
-        g.drawRect(-w / 2, -thicknessY / 2, w, thicknessY);
-      }
-      else // RIGHT or LEFT
-      {
-        const h = lenTiles * th;
-        g.drawRect(-thicknessX / 2, -h / 2, thicknessX, h);
-      }
+      const breadthW = lenTiles * tw;
+      const breadthH = lenTiles * th;
+      const depthW = Math.max(minPx, thicknessTiles * tw);
+      const depthH = Math.max(minPx, thicknessTiles * th);
+      const depthPx = Math.max(depthW, depthH);
+      const halfBreadth = Math.max(breadthW, breadthH) / 2;
+      this.drawOrientedHitboxQuadG(g, facing, depthPx, halfBreadth);
       break;
     }
 
@@ -38990,11 +38882,9 @@ Spriteset_Map.prototype.drawActionHitboxInto = function (
       // sector wedge; resolve degrees via engine helper.
       const degrees = ($jabsEngine.getActionDegrees(actionEvent) ?? 180);
 
-      // compute center angle based on facing.
-      let centerRad = 0; // default right.
-      if (facing === J.ABS.Directions.DOWN) centerRad = Math.PI / 2;
-      if (facing === J.ABS.Directions.LEFT) centerRad = Math.PI;
-      if (facing === J.ABS.Directions.UP) centerRad = -Math.PI / 2;
+      // compute center angle from logical dir8 (0 = right, π/2 = down in canvas atan2 space).
+      const { x: fx, y: fy } = $jabsEngine.dir8ToUnitVector(facing);
+      const centerRad = Math.atan2(fy, fx);
 
       // compute sweep in radians and draw.
       const sweepRad = (degrees * Math.PI) / 180;
@@ -39025,125 +38915,6 @@ Spriteset_Map.prototype.drawRhombusG = function (
   g.lineTo(0, ry); // bottom.
   g.lineTo(-rx, 0); // left.
   g.closePath(); // close.
-};
-
-/**
- * Draws a half-diamond (front rhombus) from origin in facing direction.
- * @param {PIXI.Graphics} g The graphics to draw on.
- * @param {number} rx Horizontal radius in px.
- * @param {number} ry Vertical radius in px.
- * @param {number} facing 2/4/6/8
- */
-Spriteset_Map.prototype.drawFrontRhombusG = function (
-  g,
-  rx,
-  ry,
-  facing
-)
-{
-  if (facing === 2) // down
-  {
-    g.moveTo(0, 0);
-    g.lineTo(rx, 0);
-    g.lineTo(0, ry);
-    g.closePath(); // lower-right tri.
-    g.moveTo(0, 0);
-    g.lineTo(0, ry);
-    g.lineTo(-rx, 0);
-    g.closePath(); // lower-left tri.
-  }
-  else if (facing === 8) // up
-  {
-    g.moveTo(0, 0);
-    g.lineTo(0, -ry);
-    g.lineTo(rx, 0);
-    g.closePath(); // upper-right tri.
-    g.moveTo(0, 0);
-    g.lineTo(-rx, 0);
-    g.lineTo(0, -ry);
-    g.closePath(); // upper-left tri.
-  }
-  else if (facing === 6) // right
-  {
-    g.moveTo(0, 0);
-    g.lineTo(rx, 0);
-    g.lineTo(0, -ry);
-    g.closePath(); // right-upper tri.
-    g.moveTo(0, 0);
-    g.lineTo(0, ry);
-    g.lineTo(rx, 0);
-    g.closePath(); // right-lower tri.
-  }
-  else // left
-  {
-    g.moveTo(0, 0);
-    g.lineTo(-rx, 0);
-    g.lineTo(0, -ry);
-    g.closePath(); // left-upper tri.
-    g.moveTo(0, 0);
-    g.lineTo(0, ry);
-    g.lineTo(-rx, 0);
-    g.closePath(); // left-lower tri.
-  }
-};
-
-/**
- * Draws the front-half of a square in the facing direction from origin.
- * @param {PIXI.Graphics} g The graphics to draw on.
- * @param {number} range Range in tiles.
- * @param {2|4|6|8} facing One of J.ABS.Directions cardinals.
- * @param {number} tw Tile width in px.
- * @param {number} th Tile height in px.
- */
-Spriteset_Map.prototype.drawFrontSquareG = function (
-  g,
-  range,
-  facing,
-  tw,
-  th
-)
-{
-  // total full-square size in pixels.
-  const totalW = (2 * range + 1) * tw; // total width of full square.
-  const totalH = (2 * range + 1) * th; // total height of full square.
-
-  // match engine collisionFrontSquare offsets with extra half-tile padding.
-  switch (facing)
-  {
-    case J.ABS.Directions.DOWN: // 2 → bottom half from origin
-    {
-      // width full, height half + half-tile padding, starting at y=0.
-      g.drawRect(-(totalW / 2), 0, totalW, (totalH / 2) + (th / 2));
-      break;
-    }
-
-    case J.ABS.Directions.UP: // 8 → top half up from origin
-    {
-      // width full, height half + half-tile padding, starting above origin.
-      g.drawRect(-(totalW / 2), -((totalH / 2) + (th / 2)), totalW, (totalH / 2) + (th / 2));
-      break;
-    }
-
-    case J.ABS.Directions.RIGHT: // 6 → right half from origin
-    {
-      // width half + half-tile padding, full height, starting at x=0.
-      g.drawRect(0, -(totalH / 2), (totalW / 2) + (tw / 2), totalH);
-      break;
-    }
-
-    case J.ABS.Directions.LEFT: // 4 → left half from origin
-    {
-      // width half + half-tile padding, full height, starting to the left of origin.
-      g.drawRect(-((totalW / 2) + (tw / 2)), -(totalH / 2), (totalW / 2) + (tw / 2), totalH);
-      break;
-    }
-
-    default:
-    {
-      console.warn(`unsupported facing direction: ${facing}`);
-      return; // do not draw unknown
-    }
-  }
 };
 
 /**
