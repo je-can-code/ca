@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.0.2 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -34,6 +34,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    While strafe (direction fix) is active on the leader, projectile base direction follows
+ *    sprite facing instead of movement vector — avoids firing opposite the drawn facing.
+ * - 1.0.1
+ *    Leader projectile aim uses vector / analog input (8-dir) so diagonals match movement.
+ *    Sprites stay 4-dir; load order remains J-Base → J-ABS → J-Pixelistics → this plugin.
  * - 1.0.0
  *    Initial release as the JABS integration layer for J-Pixelistics.
  *    Pixel-aware idle wander state machine: idle enemies pick a random
@@ -137,7 +143,7 @@ J.PIXEL.EXT.ABS = {};
 /**
  * The metadata associated with this plugin.
  */
-J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata('J-ABS-Pixelistics', '1.0.0');
+J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata('J-ABS-Pixelistics', '1.0.1');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -1233,6 +1239,41 @@ JABS_Battler.prototype.angleToDirection = function(angle)
 
   // Unknown sector; return 0.
   return 0;
+};
+
+/**
+ * Extends {@link JABS_Battler#getProjectileSpawnBaseDirection}.<br/>
+ * Uses analog / keyboard vector input for the party leader so projectile spokes
+ * match actual travel intent: {@link Game_CharacterBase#vectorMoveByAngle} keeps
+ * {@link Game_Character#direction} cardinal for 4-dir sprites, which would
+ * otherwise mis-aim line and formation projectiles.
+ * When {@link Game_CharacterBase#isDirectionFixed} is true (JABS strafe / hold facing),
+ * movement can disagree with sprite facing — fall back to map facing so shots do not
+ * emit opposite the way the character is drawn.
+ */
+J.PIXEL.EXT.ABS.Aliased.JABS_Battler.set('getProjectileSpawnBaseDirection', JABS_Battler.prototype.getProjectileSpawnBaseDirection);
+JABS_Battler.prototype.getProjectileSpawnBaseDirection = function()
+{
+  const chr = this.getCharacter();
+
+  // party leader: prefer the true bearing while vector movement is active.
+  if (chr === $gamePlayer && typeof chr.getVectorInputAngle === 'function')
+  {
+    // strafe locks facing via direction fix — vector aim would track movement and look like backward fire.
+    if (typeof chr.isDirectionFixed === 'function' && chr.isDirectionFixed())
+    {
+      return J.PIXEL.EXT.ABS.Aliased.JABS_Battler.get('getProjectileSpawnBaseDirection').call(this);
+    }
+
+    const vectorAngle = chr.getVectorInputAngle();
+
+    if (vectorAngle !== null)
+    {
+      return this.angleToDirection(vectorAngle);
+    }
+  }
+
+  return J.PIXEL.EXT.ABS.Aliased.JABS_Battler.get('getProjectileSpawnBaseDirection').call(this);
 };
 //endregion JABS_Battler
 
