@@ -20512,6 +20512,134 @@ class JABS_ActionSpawner
 class JABS_AiManager
 {
   /**
+   * Converts a dir8 code into a normalized unit vector in map space (RMMZ Y-down).
+   * @param {1|2|3|4|6|7|8|9} dir8 The direction code.
+   * @returns {{x: number, y: number}} The unit vector.
+   */
+  static dir8ToUnitVector(dir8)
+  {
+    let x = 0;
+    let y = 0;
+
+    switch (dir8)
+    {
+      case J.ABS.Directions.DOWN:
+        y = 1;
+        break;
+      case J.ABS.Directions.UP:
+        y = -1;
+        break;
+      case J.ABS.Directions.RIGHT:
+        x = 1;
+        break;
+      case J.ABS.Directions.LEFT:
+        x = -1;
+        break;
+      case J.ABS.Directions.LOWERRIGHT:
+        x = 1;
+        y = 1;
+        break;
+      case J.ABS.Directions.LOWERLEFT:
+        x = -1;
+        y = 1;
+        break;
+      case J.ABS.Directions.UPPERRIGHT:
+        x = 1;
+        y = -1;
+        break;
+      case J.ABS.Directions.UPPERLEFT:
+        x = -1;
+        y = -1;
+        break;
+      default:
+        y = 1;
+        break;
+    }
+
+    const len = Math.hypot(x, y);
+    return {
+      x: x / len,
+      y: y / len,
+    };
+  }
+
+  /**
+   * Converts an angle in degrees (0=right, 90=down) into an 8-direction code.
+   * @param {number} angleDegrees The angle in degrees (RMMZ Y-down).
+   * @returns {1|2|3|4|6|7|8|9} The closest dir8 code.
+   */
+  static angleToDir8(angleDegrees)
+  {
+    // normalize to [0, 360).
+    let a = angleDegrees % 360;
+    if (a < 0) a += 360;
+
+    // 8 sectors of 45°; add half-sector to round to nearest.
+    const idx = Math.floor((a + 22.5) / 45) % 8;
+    const dirs = [
+      J.ABS.Directions.RIGHT,       // 0°
+      J.ABS.Directions.LOWERRIGHT,  // 45°
+      J.ABS.Directions.DOWN,        // 90°
+      J.ABS.Directions.LOWERLEFT,   // 135°
+      J.ABS.Directions.LEFT,        // 180°
+      J.ABS.Directions.UPPERLEFT,   // 225°
+      J.ABS.Directions.UP,          // 270°
+      J.ABS.Directions.UPPERRIGHT,  // 315°
+    ];
+
+    return dirs[idx];
+  }
+
+  /**
+   * Derives a fire-time facing for AI volleys from caster→target, falling back to map facing when:
+   * - no target exists, or
+   * - the target vector is "behind" the battler's current facing (dot ≤ 0).
+   * @param {JABS_Battler} battler The battler firing.
+   * @returns {1|2|3|4|6|7|8|9} The derived dir8 facing.
+   */
+  static deriveFreshFacingForAi(battler)
+  {
+    // start from the conventional facing hook.
+    const fallbackFacing = battler.getProjectileSpawnBaseDirection();
+
+    // grab the relevant target (ally or enemy).
+    const target = battler.getAllyTarget() ?? battler.getTarget();
+    if (!target)
+    {
+      return fallbackFacing;
+    }
+
+    const bx = battler.getX();
+    const by = battler.getY();
+    const tx = target.getX();
+    const ty = target.getY();
+
+    // if overlapping, keep facing.
+    const dx = tx - bx;
+    const dy = ty - by;
+    if (dx === 0 && dy === 0)
+    {
+      return fallbackFacing;
+    }
+
+    // check if the target is generally in front; if behind, do not "snap-aim" through the body.
+    const fv = this.dir8ToUnitVector(fallbackFacing);
+    const tLen = Math.hypot(dx, dy);
+    const tvx = dx / tLen;
+    const tvy = dy / tLen;
+    const dot = (fv.x * tvx) + (fv.y * tvy);
+    if (dot <= 0)
+    {
+      return fallbackFacing;
+    }
+
+    // derive the RMMZ angle in degrees (0=right, 90=down).
+    const angleDegrees = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    return this.angleToDir8(angleDegrees);
+  }
+
+  /**
    * A collection of all battlers being managed by this manager.
    * @type {Map<string, JABS_Battler>}
    */
@@ -21958,8 +22086,8 @@ class JABS_AiManager
     const formation = $jabsEngine.resolveProjectileFormationForSkill(skill);
     const projectileCount = $jabsEngine.resolveProjectileCountForSkill(skill);
 
-    // compute spoke directions from the fresh facing (same hook as initial spawn).
-    const freshFacing = battler.getProjectileSpawnBaseDirection();
+    // compute spoke directions from the fresh facing (AI aims at its target when possible).
+    const freshFacing = this.deriveFreshFacingForAi(battler);
     const freshDirections = $jabsEngine.determineActionDirections(freshFacing, formation, projectileCount);
 
     // stamp each action with its corresponding fresh spoke direction.
@@ -26018,7 +26146,8 @@ class JABS_Engine
         {
           // perform standard spatial collision against the action's event.
           const sprite = battler.getCharacter();
-          const actionDirection = actionSprite.direction();
+          const actionDirection = actionSprite.getJabsAction()
+            .direction();
           const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
           if (result)
           {
@@ -26058,7 +26187,8 @@ class JABS_Engine
 
       // check to see if this battler is now in range for non-direct actions.
       const sprite = battler.getCharacter();
-      const actionDirection = actionSprite.direction();
+      const actionDirection = actionSprite.getJabsAction()
+        .direction();
       const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
       if (result)
       {
@@ -26226,30 +26356,8 @@ class JABS_Engine
       return true;
     }
 
-    // build a unit facing vector from the numeric direction.
-    // Note: J.ABS.Directions.* uses cardinals; diagonals are not used for gating.
-    // facing x component.
-    let fx = 0;
-    // facing y component.
-    let fy = 0;
-    switch (facing)
-    {
-      case J.ABS.Directions.DOWN:
-        fy = 1;
-        break;
-      case J.ABS.Directions.UP:
-        fy = -1;
-        break;
-      case J.ABS.Directions.RIGHT:
-        fx = 1;
-        break;
-      case J.ABS.Directions.LEFT:
-        fx = -1;
-        break;
-      default:
-        // TODO: what would be a good default facing for unspecified facings?
-        break;
-    }
+    // build a unit facing vector from the numeric direction (supports diagonals).
+    const { x: fx, y: fy } = this.dir8ToUnitVector(facing);
 
     // compute vector from origin to the target rect’s center.
     // delta x to target center.
@@ -26550,51 +26658,17 @@ class JABS_Engine
       // unified origin.
     } = JABS_Engine.getActionOriginPixels(action);
 
-    // build the line-as-rect based on facing from origin.
-    // rectangle approximation of the line.
-    let actionRect;
-    switch (facing)
-    {
-      // 2.
-      case J.ABS.Directions.DOWN:
-        // extend downward from the origin center, include a small extra half-tile pad.
-        actionRect = new JABS_Aabb(originCx - (thicknessX / 2), originCy, thicknessX, lengthPx + (th / 2));
-        break;
-      // 8.
-      case J.ABS.Directions.UP:
-        // extend upward from the origin center, include a small extra half-tile pad.
-        actionRect = new JABS_Aabb(
-          originCx - (thicknessX / 2),
-          originCy - lengthPx - (th / 2),
-          thicknessX,
-          lengthPx + (th / 2)
-        );
-        break;
-      // 6.
-      case J.ABS.Directions.RIGHT:
-        // extend rightward from the origin center, include a small extra half-tile pad.
-        actionRect = new JABS_Aabb(originCx, originCy - (thicknessY / 2), lengthPx + (tw / 2), thicknessY);
-        break;
-      // (4).
-      case J.ABS.Directions.LEFT:
-        // extend leftward from the origin center, include a small extra half-tile pad.
-        actionRect = new JABS_Aabb(
-          originCx - lengthPx - (tw / 2),
-          originCy - (thicknessY / 2),
-          lengthPx + (tw / 2),
-          thicknessY
-        );
-        break;
-      default:
-        console.warn(`unsupported facing direction: ${facing}`);
-        return false;
-    }
-
-    // build target AABB and test overlap.
-    // target rect.
+    // build target AABB.
     const targetRect = JABS_Engine.getBattlerAabbModel(target);
-    // overlap?
-    return actionRect.intersectsRect(targetRect);
+
+    // treat the line as an oriented rectangle extending from the origin.
+    // forward length includes a small extra half-tile pad, matching cardinal behavior.
+    const lengthWithPad = lengthPx + (Math.max(tw, th) / 2);
+
+    // thickness is expressed per-axis for cardinals; convert to a symmetric half-breadth in pixels for diagonal support.
+    const halfBreadth = Math.max(thicknessX, thicknessY) / 2;
+
+    return this.collisionOrientedRectFromOrigin(targetRect, originCx, originCy, facing, lengthWithPad, halfBreadth);
   }
 
   /**
@@ -26649,32 +26723,108 @@ class JABS_Engine
     const breadthW = breadthTiles * tw;
     const breadthH = breadthTiles * th;
 
-    let actionRect;
-    switch (facing)
+    const targetRect = JABS_Engine.getBattlerAabbModel(target);
+
+    // wall is also an oriented rectangle: small depth along forward, wide breadth perpendicular.
+    const depthPx = Math.max(depthW, depthH);
+    const halfBreadth = Math.max(breadthW, breadthH) / 2;
+
+    return this.collisionOrientedRectFromOrigin(targetRect, originCx, originCy, facing, depthPx, halfBreadth);
+  }
+
+  /**
+   * Collision helper: tests a target AABB against an oriented rectangle that starts at the origin and extends forward.
+   * This supports diagonal facings by projecting into the forward/perpendicular basis and padding by the target AABB extents.
+   * @param {JABS_Aabb} targetRect The target's AABB in pixel space.
+   * @param {number} originCx Origin X in pixels.
+   * @param {number} originCy Origin Y in pixels.
+   * @param {1|2|3|4|6|7|8|9} facing Dir8 facing.
+   * @param {number} lengthPx The forward length in pixels.
+   * @param {number} halfBreadthPx Half-width in pixels along the perpendicular axis.
+   * @returns {boolean} True if the target overlaps the oriented rectangle.
+   */
+  collisionOrientedRectFromOrigin(targetRect, originCx, originCy, facing, lengthPx, halfBreadthPx)
+  {
+    // derive forward unit vector from dir8.
+    const { x: fx, y: fy } = this.dir8ToUnitVector(facing);
+
+    // perpendicular unit vector (rotate 90° clockwise).
+    const px = fy;
+    const py = -fx;
+
+    // delta from origin to target center.
+    const dx = targetRect.cx - originCx;
+    const dy = targetRect.cy - originCy;
+
+    // target center in local forward/perp frame.
+    const u = (dx * fx) + (dy * fy);
+    const v = (dx * px) + (dy * py);
+
+    // target half extents in world space.
+    const hx = targetRect.w / 2;
+    const hy = targetRect.h / 2;
+
+    // project the target AABB half-extents into the local frame (conservative).
+    const extU = (Math.abs(fx) * hx) + (Math.abs(fy) * hy);
+    const extV = (Math.abs(px) * hx) + (Math.abs(py) * hy);
+
+    // overlap if within breadth band and within forward span [0, length].
+    const withinBreadth = Math.abs(v) <= (halfBreadthPx + extV);
+    const withinForward = (u >= -extU) && (u <= (lengthPx + extU));
+
+    return withinBreadth && withinForward;
+  }
+
+  /**
+   * Converts a dir8 code into a normalized unit vector in map space (RMMZ Y-down).
+   * @param {1|2|3|4|6|7|8|9} dir8 The direction code.
+   * @returns {{x: number, y: number}} The unit vector.
+   */
+  dir8ToUnitVector(dir8)
+  {
+    let x = 0;
+    let y = 0;
+
+    switch (dir8)
     {
-      // 2 → horizontal wall below origin.
       case J.ABS.Directions.DOWN:
-        actionRect = new JABS_Aabb(originCx - (breadthW / 2), originCy, breadthW, depthH);
+        y = 1;
         break;
-      // 8 → horizontal wall above origin.
       case J.ABS.Directions.UP:
-        actionRect = new JABS_Aabb(originCx - (breadthW / 2), originCy - depthH, breadthW, depthH);
+        y = -1;
         break;
-      // 6 → vertical wall right of origin.
       case J.ABS.Directions.RIGHT:
-        actionRect = new JABS_Aabb(originCx, originCy - (breadthH / 2), depthW, breadthH);
+        x = 1;
         break;
-      // (4) → vertical wall left of origin.
       case J.ABS.Directions.LEFT:
-        actionRect = new JABS_Aabb(originCx - depthW, originCy - (breadthH / 2), depthW, breadthH);
+        x = -1;
+        break;
+      case J.ABS.Directions.LOWERRIGHT:
+        x = 1;
+        y = 1;
+        break;
+      case J.ABS.Directions.LOWERLEFT:
+        x = -1;
+        y = 1;
+        break;
+      case J.ABS.Directions.UPPERRIGHT:
+        x = 1;
+        y = -1;
+        break;
+      case J.ABS.Directions.UPPERLEFT:
+        x = -1;
+        y = -1;
         break;
       default:
-        console.warn(`unsupported facing direction: ${facing}`);
-        return false;
+        y = 1;
+        break;
     }
 
-    const targetRect = JABS_Engine.getBattlerAabbModel(target);
-    return actionRect.intersectsRect(targetRect);
+    const len = Math.hypot(x, y);
+    return {
+      x: x / len,
+      y: y / len,
+    };
   }
 
   /**
