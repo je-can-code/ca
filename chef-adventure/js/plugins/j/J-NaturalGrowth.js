@@ -1847,6 +1847,7 @@ Game_Battler.prototype.getRegexBySpParamId = function(sParamId)
  * @param {number} baseParam The base parameter.
  * @returns {number} The added value of the `baseParam` + `paramBuff` + `paramGrowth`.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Battler.prototype.getParamBaseNaturalBonuses = function(paramId, baseParam)
 {
   // this is intended to be implemented in subclasses.

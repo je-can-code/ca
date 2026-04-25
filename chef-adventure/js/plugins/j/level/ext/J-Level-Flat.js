@@ -269,13 +269,13 @@ class JLevelMasterFlat_PluginMetadata
      * The flat experience required to level up.
      * @type {number}
      */
-    this.expPerLevel = Number(this.parsedPluginParameters['exp-per-level']) ?? 1000;
+    this.expPerLevel = Number(this.parsedPluginParameters['exp-per-level']) || 1000;
 
     /**
      * The multiplier for base experience policy calculations.
      * @type {number}
      */
-    this.policyMultiplier = Number(this.parsedPluginParameters['policy-multiplier']) ?? 1.00;
+    this.policyMultiplier = Number(this.parsedPluginParameters['policy-multiplier']) || 1.00;
   }
 }
 

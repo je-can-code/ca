@@ -133,8 +133,10 @@ Object.defineProperty(JAFTING_Trait.prototype, "nameAndValue", {
  * @returns {string}
  */
 Object.defineProperty(JAFTING_Trait.prototype, "name", {
+  // eslint-disable-next-line complexity
   get()
   {
+    // TODO: reduce complexity via trait-code->name formatter table.
     switch (this._code)
     {
       // first tab.
@@ -213,8 +215,10 @@ Object.defineProperty(JAFTING_Trait.prototype, "name", {
  * @returns {string}
  */
 Object.defineProperty(JAFTING_Trait.prototype, "value", {
+  // eslint-disable-next-line complexity
   get()
   {
+    // TODO: reduce complexity via trait-code->value formatter table.
     switch (this._code)
     {
       // first tab.
@@ -478,7 +482,6 @@ class RefinementWorkflowSession
 }
 
 //endregion RefinementWorkflowSession
-
 
 //region Introduction
 /*:
@@ -840,12 +843,15 @@ J.JAFTING.EXT.REFINE.Messages = {
   /**
    * Step hint while choosing the refinement base (left list).
    */
-  RefinementStepHintPickingBase: "Choose the equipment you want to improve. This item stays in your inventory and receives traits.",
+  RefinementStepHintPickingBase:
+    'Choose the equipment you want to improve. '
+    + 'This item stays in your inventory and receives traits.',
 
   /**
    * Step hint while choosing the material (second list).
    */
-  RefinementStepHintPickingMaterial: "Choose a donor item. Transferable traits merge into your base; the donor is consumed.",
+  RefinementStepHintPickingMaterial:
+    'Choose a donor item. Transferable traits merge into your base; the donor is consumed.',
 
   /**
    * Step hint on the confirmation prompt.
@@ -1076,10 +1082,11 @@ class JaftingManager
    */
   static combineAllParameterTraits(traitList)
   {
-    traitList = this.combineBaseParameterTraits(traitList);
-    traitList = this.combineExParameterTraits(traitList);
-    traitList = this.combineSpParameterTraits(traitList);
-    return traitList;
+    return this.combineSpParameterTraits(
+      this.combineExParameterTraits(
+        this.combineBaseParameterTraits(traitList),
+      ),
+    );
   }
 
   /**
@@ -1318,18 +1325,20 @@ class JaftingManager
     });
 
     // handle lock/unlock skills types.
-    [ baseTraits, materialTraits ] = this.removeOppositeTrait(baseTraits, materialTraits, 41, 42);
+    let a = baseTraits;
+    let b = materialTraits;
+    [ a, b ] = this.removeOppositeTrait(a, b, 41, 42);
 
     // handle lock/unlock skills.
-    [ baseTraits, materialTraits ] = this.removeOppositeTrait(baseTraits, materialTraits, 43, 44);
+    [ a, b ] = this.removeOppositeTrait(a, b, 43, 44);
 
     // overwrite basic attack skill.
-    [ baseTraits, materialTraits ] = this.replaceTrait(baseTraits, materialTraits, 35);
+    [ a, b ] = this.replaceTrait(a, b, 35);
 
     // overwrite enable/disable of dual-wield (unique case!)
-    [ baseTraits, materialTraits ] = this.replaceTrait(baseTraits, materialTraits, 55);
+    [ a, b ] = this.replaceTrait(a, b, 55);
 
-    return [ baseTraits, materialTraits ];
+    return [ a, b ];
   }
 
   /**
@@ -1423,10 +1432,10 @@ class JaftingManager
     }
 
     // cleanup both our lists from any messy falsy traits.
-    baseTraitList = baseTraitList.filter(trait => !!trait);
-    materialTraitList = materialTraitList.filter(trait => !!trait);
+    const prunedBase = baseTraitList.filter(trait => !!trait);
+    const prunedMaterial = materialTraitList.filter(trait => !!trait);
 
-    return [ baseTraitList, materialTraitList ];
+    return [ prunedBase, prunedMaterial ];
   }
 
   /**
@@ -1454,8 +1463,8 @@ class JaftingManager
     }
 
     // cleanup both our lists from any removed traits.
-    baseTraitList = baseTraitList.filter(trait => !!trait);
-    return [ baseTraitList, materialTraitList ];
+    const prunedBase = baseTraitList.filter(trait => !!trait);
+    return [ prunedBase, materialTraitList ];
   }
 
   /**
@@ -1467,12 +1476,14 @@ class JaftingManager
   static #overwriteAllOverwritableTraits(baseTraits, materialTraits)
   {
     const overwritableCodes = [ 11, 12, 13, 32, 33, 34, 61 ];
+    let a = baseTraits;
+    let b = materialTraits;
     overwritableCodes.forEach(code =>
     {
-      [ baseTraits, materialTraits ] = this.#overwriteIfBetter(baseTraits, materialTraits, code);
+      [ a, b ] = this.#overwriteIfBetter(a, b, code);
     });
 
-    return [ baseTraits, materialTraits ];
+    return [ a, b ];
   }
 
   /**
@@ -1493,7 +1504,8 @@ class JaftingManager
       if (trait._code !== code) return false;
 
       // check if another version of the trait exists on the material.
-      const index = materialTraitList.findIndex(jaftingTrait => jaftingTrait._code === code && jaftingTrait._dataId === trait._dataId);
+      const index = materialTraitList.findIndex(jaftingTrait =>
+        jaftingTrait._code === code && jaftingTrait._dataId === trait._dataId);
       return index > -1;
     };
 
@@ -1570,8 +1582,10 @@ class JaftingManager
    * @param {JAFTING_Trait} jaftingTrait The new trait to be potentially transferred.
    * @returns {boolean}
    */
+  // eslint-disable-next-line complexity
   static #isTransferableTrait(output, jaftingTrait)
   {
+    // TODO: reduce complexity via Set of transferable codes + special-case branch(es).
     switch (jaftingTrait._code)
     {
       case 11: // elemental damage rate - stackable.
@@ -2388,7 +2402,7 @@ class Scene_JaftingRefine
     const listRect = this.getBaseRefinableListRectangle();
     const [ ox ] = Graphics.boxOrigin;
     const x = listRect.x + listRect.width + Graphics.horizontalPadding;
-    const y = listRect.y;
+    const {y} = listRect;
     const width = ox + Graphics.boxWidth - x - Graphics.horizontalPadding;
     const height = 100;
 
@@ -3548,6 +3562,5 @@ class Window_RefinementStepHint
 }
 
 //endregion Window_RefinementStepHint
-
 
 //# sourceMappingURL=J-JAFTING-Refinement.js.map

@@ -537,6 +537,7 @@ Game_Action.prototype.calculateAbsorbRate = function(target, attackElements)
  * @param {number[]} attackElements The attacking list of elements.
  * @returns {number} The "factor form" of the rate.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Action.prototype.calculateNullRate = function(target, attackElements)
 {
   // ... open for extension.
@@ -567,10 +568,12 @@ Game_Action.prototype.evalDamageFormula = function(target)
   const absorbedElements = target.elementsAbsorbed();
   const targetAbsorbs = attackElements.some(elementId => absorbedElements.includes(elementId));
 
-  // variables that are used for building damage formulai.
+  /* a, b, v are the standard RPG Maker damage-formula symbols consumed by eval(). */
+  /* eslint-disable no-unused-vars */
   const a = this.subject();
   const b = target;
   const v = $gameVariables._data;
+  /* eslint-enable no-unused-vars */
   let p = 0;
 
   // if skill proficiency is present, the p variable represents that value.
@@ -790,6 +793,7 @@ Game_Battler.prototype.extractStrictElements = function(databaseObject)
  * Gets the element rate boost for this element for this battler.
  * @param {number} elementId The element id to check.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Battler.prototype.elementRateBoost = function(elementId)
 {
   return 1;

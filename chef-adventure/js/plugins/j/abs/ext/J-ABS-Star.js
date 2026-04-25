@@ -136,7 +136,6 @@ class StarOrigin
 }
 //endregion StarOrigin
 
-
 //region StarPhase
 /**
  * A single phase in the stars battle.
@@ -167,7 +166,6 @@ class StarPhase
   key = 0;
 }
 //endregion StarPhase
-
 
 //region StarPhases
 /**
@@ -225,7 +223,6 @@ class StarPhases
   static BACKTOMAP = new StarPhase("Back-to-map", 5);
 }
 //endregion StarPhases
-
 
 //region BattleManager
 /**
@@ -410,7 +407,6 @@ BattleManager.origin = function()
 };
 //endregion BattleManager
 
-
 //region DataManager
 /**
  * Extends {@link DataManager.createGameObjects}.<br>
@@ -492,7 +488,6 @@ DataManager.onEnemyMapGet = function(xhr, name, src, url)
 };
 //endregion DataManager
 
-
 //region Game_Interpreter
 /**
  * Overrides {@link Game_Interpreter.command301}.<br>
@@ -561,7 +556,6 @@ Game_Interpreter.prototype.command301convertToTroopId = function(designationType
   throw new Error('borked');
 };
 //endregion Game_Interpreter
-
 
 /**
  * Extends {@link Game_Map.update}.<br>
@@ -852,7 +846,6 @@ Game_Player.prototype.reserveOriginTransfer = function()
 };
 //endregion Game_Player
 
-
 //region Game_Troop
 /**
  * Extends {@link Game_Troop.initialize}.<br>
@@ -918,7 +911,6 @@ Game_Troop.prototype.areEnemiesAlive = function()
 };
 //endregion Game_Troop
 
-
 //region Scene_Map
 /**
  * Overrides {@link Scene_Map.updateEncounter}.<br>
@@ -947,6 +939,5 @@ Scene_Map.prototype.update = function()
   //? TODO: Modify encountereffect here.
 };
 //endregion Scene_Map
-
 
 //# sourceMappingURL=J-ABS-Star.js.map

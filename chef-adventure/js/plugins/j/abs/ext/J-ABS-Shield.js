@@ -476,11 +476,9 @@ class JABS_Shield
     // grab all the formulas that the
     const pointFormulas = RPGManager.getStringsFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.ShieldPointsFormula);
 
-    // allows access to the attacker and target.
-    /* eslint-disable no-unused-vars */
+    // allows access to the attacker and target (RPG formula bindings for eval()).
     const a = attacker ?? target;
     const b = target;
-    /* eslint-enable no-unused-vars */
 
     /**
      * A safe reduce function that wears a diaper during evaluation.
@@ -916,7 +914,6 @@ JABS_StateBuilder.prototype.setShield = function(shield)
 // Shield Map_TextPop type additions live in J-Popups-ABS (popups/ext/abs).
 //endregion Map_TextPop
 
-
 //region RPG_Skill
 Object.defineProperties(RPG_UsableItem.prototype, {
   /**
@@ -1108,7 +1105,6 @@ JABS_Engine.prototype.extendJabsState = function(jabsState, newJabsState)
 //region TextPopBuilder
 // Shield popup builder methods live in J-Popups-ABS (popups/ext/abs).
 //endregion TextPopBuilder
-
 
 //region Game_Battler
 /**
@@ -1672,7 +1668,8 @@ Game_Action.prototype.isShieldRelevantToAction = function(shield, actionElements
  * @param {number} value The amount of damage mitigated.
  */
 // eslint-disable-next-line no-unused-vars
-Game_Action.prototype.onShieldDamageAbsorbed = function(target, value) {};
+Game_Action.prototype.onShieldDamageAbsorbed = function(target, value) 
+{};
 
 /**
  * Lifecycle event: a shield broke on the target.
@@ -1680,7 +1677,8 @@ Game_Action.prototype.onShieldDamageAbsorbed = function(target, value) {};
  * @param {Game_Actor|Game_Enemy} target The battler with the shield breaking.
  */
 // eslint-disable-next-line no-unused-vars
-Game_Action.prototype.onShieldBroken = function(target) {};
+Game_Action.prototype.onShieldBroken = function(target) 
+{};
 //endregion Game_Action
 
 //region Game_Actor

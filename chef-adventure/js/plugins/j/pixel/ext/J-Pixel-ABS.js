@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+ 
 //region annotations
 /*:
  * @target MZ
@@ -73,7 +73,6 @@
  */
 //endregion annotations
 
-
 //region plugin metadata
 /**
  * Plugin metadata class for J-ABS-Pixelistics.
@@ -119,7 +118,6 @@ class JAbsPixelistics_PluginMetadata
 }
 //endregion plugin metadata
 
-
 //region initialization
 /**
  * The core where all of my extensions live: in the `J` object.
@@ -156,7 +154,6 @@ J.PIXEL.EXT.ABS.Aliased = {
 //endregion metadata
 //endregion initialization
 
-
 //region JABS_AiManager
 /**
  * Overrides {@link #canMoveIdly}.<br/>
@@ -166,6 +163,7 @@ J.PIXEL.EXT.ABS.Aliased = {
  * @returns {boolean} Always true; the battler's own state machine controls pacing.
  */
 J.PIXEL.EXT.ABS.Aliased.JABS_AiManager.set('canMoveIdly', JABS_AiManager.canMoveIdly);
+// eslint-disable-next-line no-unused-vars
 JABS_AiManager.canMoveIdly = function(battler)
 {
   return true;
@@ -242,7 +240,7 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
   let tolerance = 0.45;
 
   // extra ring outside tolerance for gentle throttling near target.
-  let hysteresis = 0.25;
+  const hysteresis = 0.25;
 
   if (J.ABS.EXT.ALLYAI && J.ABS.EXT.ALLYAI.Metadata)
   {
@@ -341,7 +339,6 @@ JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, toler
 };
 //endregion JABS_AiManager
 
-
 //region Game_Player
 /**
  * Pivot guard is one input: movement lock in place, with guard layered when the offhand is guard-ready.
@@ -413,7 +410,6 @@ Game_Player.prototype.updateDashing = function()
     .call(this);
 };
 //endregion Game_Player
-
 
 //region JABS_Battler
 /**
@@ -689,7 +685,7 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function()
     const cachedDirection = chr.getMicroRouteDirection();
 
     // Determine if the cached direction remains passable.
-    let cachedPassable = false;
+    let cachedPassable;
 
     // Check diagonal passability for diagonal directions.
     if (chr.isDiagonalDirection(cachedDirection))
@@ -1251,7 +1247,10 @@ JABS_Battler.prototype.angleToDirection = function(angle)
  * movement can disagree with sprite facing — fall back to map facing so shots do not
  * emit opposite the way the character is drawn.
  */
-J.PIXEL.EXT.ABS.Aliased.JABS_Battler.set('getProjectileSpawnBaseDirection', JABS_Battler.prototype.getProjectileSpawnBaseDirection);
+J.PIXEL.EXT.ABS.Aliased.JABS_Battler.set(
+  'getProjectileSpawnBaseDirection',
+  JABS_Battler.prototype.getProjectileSpawnBaseDirection,
+);
 JABS_Battler.prototype.getProjectileSpawnBaseDirection = function()
 {
   const chr = this.getCharacter();

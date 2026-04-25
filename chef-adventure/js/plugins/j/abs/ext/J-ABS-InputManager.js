@@ -4352,7 +4352,6 @@ Scene_Menu.prototype.createCommandWindow = function()
 };
 //endregion Scene_Menu
 
-
 //region Window_JabsRemapActions
 
 const JABS_REMAP_HEADER_HELP = {
@@ -5076,7 +5075,6 @@ class Window_JabsRemapActions
 
 //endregion Window_JabsRemapActions
 
-
 //region Window_JabsRemapCommand
 /**
  * Bottom command strip for Apply / Reset / Cancel.
@@ -5679,7 +5677,6 @@ Window_MenuCommand.prototype.canAddJabsRemapCommand = function()
   return true;
 };
 //endregion Window_MenuCommand
-
 
 //region Window_Selectable
 /**

@@ -678,8 +678,10 @@ class PIXEL_CollisionManager
    * @param {boolean} blockRight Whether the right edge is blocked.
    * @returns {number} The representative collision code.
    */
+  // eslint-disable-next-line complexity
   static _mergeSingleTile(blockUp, blockDown, blockLeft, blockRight)
   {
+    // TODO: reduce complexity via UDLR bitmask -> code lookup table.
     // If all edges are blocked, the tile is fully solid.
     if (blockUp && blockDown && blockLeft && blockRight)
     {
@@ -769,8 +771,10 @@ class PIXEL_CollisionManager
    * @param {2|4|6|8} d The entering direction.
    * @returns {boolean} True if passable, false otherwise.
    */
+  // eslint-disable-next-line complexity
   static isPositionPassable(px, py, d)
   {
+    // TODO: reduce complexity via code->predicate table (and shared direction helpers).
     // Apply the global lattice shift only for reads.
     const sx = px + this.GridShiftX;
     const sy = py + this.GridShiftY;
@@ -978,7 +982,6 @@ Game_Character.prototype.searchLimit = function()
   return 40;
 };
 //endregion Game_Character
-
 
 //region Game_CharacterBase
 //region init
@@ -1767,8 +1770,10 @@ Game_CharacterBase.prototype.moveDiagonal9UpRight = function(pixelDistance)
  * @param {number} distance The distance to move (in tiles, fractional).
  * @returns {boolean} True if movement is permitted this frame, false otherwise.
  */
+// eslint-disable-next-line complexity
 Game_CharacterBase.prototype.canPassStraight = function(direction, distance = this.distancePerFrame())
 {
+  // TODO: reduce complexity (collision kernel); extract pure helpers without changing semantics.
   // Acquire the current fractional center.
   const x0 = this._x;
 
@@ -2329,8 +2334,10 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction)
  * @param {2|8} vert The vertical leg.
  * @returns {boolean} True if diagonal is permitted.
  */
+// eslint-disable-next-line complexity
 Game_CharacterBase.prototype.canPassDiagonally = function(x, y, horz, vert)
 {
+  // TODO: reduce complexity (collision kernel); extract pure helpers without changing semantics.
   // Snapshot current to restore after checks.
   const oldX = this._x;
 
@@ -2855,6 +2862,7 @@ Game_CharacterBase.prototype._pixelHitbox = function(radius)
  * @param {number} step The intended straight step size for this frame.
  * @returns {number} The collision subgrid count.
  */
+// eslint-disable-next-line no-unused-vars
 Game_CharacterBase.prototype._pixelCollisionSubCount = function(step)
 {
   if (!PIXEL_CollisionManager.collisionStepCount)
@@ -3591,7 +3599,6 @@ Game_Follower.prototype.moveDiagonally = function(horz, vert)
 };
 //endregion Game_Follower
 
-
 //region Game_Map
 /**
  * Extends {@link Game_Map.setup}.<br>
@@ -3707,6 +3714,7 @@ Game_Player.prototype.checkEventTriggerTouch = function(x, y)
  * @param {number} direction The attempted move direction (ignored; uses current facing).
  * @returns {boolean} True if a touch trigger fired, false otherwise.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Player.prototype.checkEventTriggerTouchFront = function(direction)
 {
   // Round the base coordinates to the nearest tile for consistent tile addressing.
@@ -3979,7 +3987,6 @@ Game_Player.prototype.stopFollowersPixelMoving = function()
 };
 //endregion Game_Player
 
-
 //region JABS_Battler
 /**
  * Tries to move this battler away from its current target until leaving the "close" band.
@@ -4032,19 +4039,9 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function()
     const cachedDirection = chr.getMicroRouteDirection();
 
     // Determine if the cached direction remains passable.
-    let cachedPassable = false;
-
-    // Check diagonal passability for diagonal directions.
-    if (chr.isDiagonalDirection(cachedDirection))
-    {
-      // Check diagonal passability.
-      cachedPassable = chr.canPassDiagonalByDirection(cachedDirection);
-    }
-    else
-    {
-      // Check straight passability.
-      cachedPassable = chr.canPassStraight(cachedDirection);
-    }
+    const cachedPassable = chr.isDiagonalDirection(cachedDirection)
+      ? chr.canPassDiagonalByDirection(cachedDirection)
+      : chr.canPassStraight(cachedDirection);
 
     // If still passable, apply it and decrement remaining frames.
     if (cachedPassable)

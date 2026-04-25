@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 //region annotations
 /*:
  * @target MZ
@@ -115,7 +114,6 @@
  */
 //endregion annotations
 
-
 //region plugin metadata
 /**
  * Plugin metadata class for J-Pixelistics.
@@ -188,7 +186,6 @@ class JPixelistics_PluginMetadata
   }
 }
 //endregion plugin metadata
-
 
 //region initialization
 /**
@@ -280,7 +277,6 @@ J.PIXEL.Debug = {
 };
 //endregion metadata
 //endregion initialization
-
 
 //region PIXEL_CollisionManager
 /**
@@ -638,8 +634,10 @@ class PIXEL_CollisionManager
    * @param {boolean} blockRight Whether the right edge is blocked.
    * @returns {number} The representative collision code.
    */
+  // eslint-disable-next-line complexity
   static _mergeSingleTile(blockUp, blockDown, blockLeft, blockRight)
   {
+    // TODO: reduce complexity via UDLR bitmask -> code lookup table.
     // If all edges are blocked, the tile is fully solid.
     if (blockUp && blockDown && blockLeft && blockRight)
     {
@@ -729,8 +727,10 @@ class PIXEL_CollisionManager
    * @param {2|4|6|8} d The entering direction.
    * @returns {boolean} True if passable, false otherwise.
    */
+  // eslint-disable-next-line complexity
   static isPositionPassable(px, py, d)
   {
+    // TODO: reduce complexity via code->predicate table (and shared direction helpers).
     // Apply the global lattice shift only for reads.
     const sx = px + this.GridShiftX;
     const sy = py + this.GridShiftY;
@@ -1027,7 +1027,6 @@ Game_Character.prototype.canStartPixelRepeatMove = function(command)
   return true;
 };
 //endregion Game_Character
-
 
 //region Game_CharacterBase
 //region init
@@ -1902,8 +1901,10 @@ Game_CharacterBase.prototype.moveDiagonal9UpRight = function(pixelDistance)
  * @param {number} distance The distance to move (in tiles, fractional).
  * @returns {boolean} True if movement is permitted this frame, false otherwise.
  */
+// eslint-disable-next-line complexity
 Game_CharacterBase.prototype.canPassStraight = function(direction, distance = this.distancePerFrame())
 {
+  // TODO: reduce complexity (collision kernel); extract pure helpers without changing semantics.
   // Acquire the current fractional center.
   const x0 = this._x;
 
@@ -2594,8 +2595,10 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction)
  * @param {2|8} vert The vertical leg.
  * @returns {boolean} True if diagonal is permitted.
  */
+// eslint-disable-next-line complexity
 Game_CharacterBase.prototype.canPassDiagonally = function(x, y, horz, vert)
 {
+  // TODO: reduce complexity (collision kernel); extract pure helpers without changing semantics.
   // Snapshot current to restore after checks.
   const oldX = this._x;
 
@@ -3675,12 +3678,24 @@ Game_CharacterBase.prototype.vectorMoveByAngle = function(angleDegrees, speed = 
   const radius = this.getEffectiveRadius();
 
   // determine the nearest 8-direction for per-axis collision probing.
-  const horzDir = (dx > 0)
-    ? J.PIXEL.Directions.RIGHT
-    : (dx < 0 ? J.PIXEL.Directions.LEFT : 0);
-  const vertDir = (dy > 0)
-    ? J.PIXEL.Directions.DOWN
-    : (dy < 0 ? J.PIXEL.Directions.UP : 0);
+  let horzDir = 0;
+  if (dx > 0)
+  {
+    horzDir = J.PIXEL.Directions.RIGHT;
+  }
+  else if (dx < 0)
+  {
+    horzDir = J.PIXEL.Directions.LEFT;
+  }
+  let vertDir = 0;
+  if (dy > 0)
+  {
+    vertDir = J.PIXEL.Directions.DOWN;
+  }
+  else if (dy < 0)
+  {
+    vertDir = J.PIXEL.Directions.UP;
+  }
 
   // probe horizontal component if non-zero.
   let canMoveX = (dx === 0);
@@ -4008,7 +4023,6 @@ Game_Follower.prototype.getCollisionPivotY = function()
 };
 //endregion Game_Follower
 
-
 //region Game_Map
 /**
  * Extends {@link Game_Map.setup}.<br>
@@ -4152,6 +4166,7 @@ Game_Player.prototype.checkEventTriggerTouch = function(x, y)
  * @param {number} direction The attempted move direction (ignored; uses current facing).
  * @returns {boolean} True if a touch trigger fired, false otherwise.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Player.prototype.checkEventTriggerTouchFront = function(direction)
 {
   // Round the base coordinates to the nearest tile for consistent tile addressing.
@@ -4286,8 +4301,7 @@ Game_Player.prototype._readGamepadAnalogAngle = function()
       continue;
     }
 
-    const axisX = gamepad.axes[0];
-    const axisY = gamepad.axes[1];
+    const [axisX, axisY] = gamepad.axes;
 
     // compute magnitude to apply a circular dead zone.
     const magnitude = Math.sqrt(axisX * axisX + axisY * axisY);
@@ -4629,7 +4643,6 @@ Game_Player.prototype.getCollisionPivotY = function()
   return 0.70;
 };
 //endregion Game_Player
-
 
 //region Sprite_PixelCollisionOverlay
 /**

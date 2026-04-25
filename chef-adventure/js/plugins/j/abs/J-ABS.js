@@ -693,8 +693,9 @@ class JABS_Action
   }
 
   /**
-   * Builds a synthetic multiline note from the action-map template event + active page so {@link RPGManager}
-   * can parse `<vis*>` tags (optional event-level `note` field on {@link rm.types.Event}, parsable Comment commands on that page).
+   * Builds a synthetic multiline note from the action-map template event + active page so
+   * {@link RPGManager} can parse `<vis*>` tags (optional event-level `note` on {@link rm.types.Event},
+   * parsable Comment commands on that page).
    * @param {rm.types.Event} eventData Raw event blob from `$actionMap`.
    * @param {rm.types.EventPage} pageData The resolved page used for this spawn.
    * @returns {string}
@@ -1374,10 +1375,9 @@ class JABS_Action
 
     // determine the origin/facing from either the action event (preferred) or the caster’s character as a fallback.
     // this allows sprite-less actions to still render a pulse anchored to the caster.
-    let originX = 0;
-    let originY = 0;
-    // default to down as a safe fallback.
-    let facing = 2;
+    let originX;
+    let originY;
+    let facing;
 
     // attempt to use the action event for origin and facing when present.
     if (actionEvent)
@@ -2252,7 +2252,6 @@ class JABS_AI
    * @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
    * @returns {number[]} Empty stub; subclasses return `[]` or `[skillId]`.
    */
-  // eslint-disable-next-line no-unused-vars
   decideAction(user, target, availableSkills)
   {
     return [];
@@ -2866,7 +2865,6 @@ class JABS_AI
 
 //endregion JABS_AI
 
-
 //region JABS_BaseController
 /**
  * Base class for all JABS input controllers.
@@ -2980,7 +2978,6 @@ JABS_BattleMemory.prototype.wasEffective = function()
   return this.effectiveness >= 1;
 };
 //endregion JABS_BattleMemory
-
 
 //region JABS_Battler
 /**
@@ -7120,7 +7117,6 @@ JABS_Battler.prototype.countdownParryWindow = function()
 };
 //endregion guarding
 
-
 //region create/apply effects
 /**
  * Performs a preliminary check to see if the target is actually able to be hit.
@@ -7512,8 +7508,8 @@ JABS_Battler.prototype.applyToolToPlayer = function(toolId)
  * @param {number} itemId The id of the item/tool used.
  * @param {JABS_Battler} target The target for calculating damage; defaults to self.
  */
-// eslint-disable-next-line no-unused-vars
-JABS_Battler.prototype.onItemApplied = function(gameAction, itemId, target = this) {};
+JABS_Battler.prototype.onItemApplied = function(gameAction, itemId, target = this) 
+{};
 
 /**
  * Applies the effects of the tool against all allies on the team.
@@ -7589,9 +7585,9 @@ JABS_Battler.prototype.applyToolForAllOpponents = function(toolId)
     // apply the effects against the battler.
     gameAction.apply(battler);
 
-  // generate the text popup for the item usage on the target.
-  this.onItemApplied(gameAction, toolId, jabsBattler);
-}, this);
+    // generate the text popup for the item usage on the target.
+    this.onItemApplied(gameAction, toolId, jabsBattler);
+  }, this);
 };
 
 /**
@@ -7761,7 +7757,6 @@ JABS_Battler.prototype.handleOnTargetDefeatSkills = function(victor)
  * Executes the post-defeat processing for a defeated battler.
  * @param {JABS_Battler} victor The battler that defeated this battler.
  */
-// eslint-disable-next-line no-unused-vars
 JABS_Battler.prototype.performPostdefeatEffects = function(victor)
 {
   // check if the defeated battler is an actor.
@@ -8071,7 +8066,8 @@ JABS_Battler.prototype.getPrepareTime = function()
 
 /**
  * Determines whether or not a skill can be executed based on restrictions or not.
- * This is used by AI. Also enforces the battler-wide global cooldown: GCD-subject skills return false while the shared timer is active.
+ * This is used by AI. Also enforces the battler-wide global cooldown: GCD-subject skills return false
+ * while the shared timer is active.
  * @param {number} chosenSkillId The skill id to be executed.
  * @returns {boolean} True if this skill can be executed, false otherwise.
  */
@@ -8269,7 +8265,6 @@ JABS_Battler.prototype.canPaySkillCost = function(skillId)
   return true;
 };
 //endregion isReady & cooldowns
-
 
 //region regeneration
 /**
@@ -8530,13 +8525,16 @@ JABS_Battler.prototype.processStateRegens = function(states)
   }
 
   // iterate over the above regens.
-  regens.forEach((regen, index) =>
+  regens.forEach((rawRegen, index) =>
   {
     // if it wasn't modified, don't worry about it.
-    if (!regen)
+    if (!rawRegen)
     {
       return;
     }
+
+    // work on a local copy; the forEach value is the raw slip tick input.
+    let regen = rawRegen;
 
     // apply REC effects against all three regens.
     if (regen > 0)
@@ -8750,8 +8748,7 @@ JABS_Battler.prototype.calculateStateSlipFormula = function(formula, battler, st
  */
 JABS_Battler.prototype.slipEval = function(formula, sourceBattler, afflictedBattler, state)
 {
-  // variables for contextual eval().
-  /* eslint-disable no-unused-vars */
+  // variables for contextual eval() (RPG slip formula bindings: a, b, v, s).
   // the one who applied the state.
   const a = sourceBattler;
   // this battler, afflicted by the state.
@@ -8760,12 +8757,9 @@ JABS_Battler.prototype.slipEval = function(formula, sourceBattler, afflictedBatt
   const v = $gameVariables._data;
   // access to the state itself if you need it.
   const s = state;
-  /* eslint-enable no-unused-vars */
-
-  // initialize the result.
-  let result = 0;
 
   // add a safety net for people who write broken formulas.
+  let result;
   try
   {
     // eval() the formula and default to negative (because "slip" is negative).
@@ -9018,22 +9012,22 @@ JABS_BattlerCoreData.prototype.constructor = JABS_BattlerCoreData;
  * @param {boolean} isInanimate Whether or not this battler is inanimate.
  */
 JABS_BattlerCoreData.prototype.initialize = function({
-                                                       battlerId,
-                                                       teamId,
-                                                       battlerAI,
-                                                       battlerRole,
-                                                       sightRange,
-                                                       alertedSightBoost,
-                                                       pursuitRange,
-                                                       alertedPursuitBoost,
-                                                       alertDuration,
-                                                       guardRange,
-                                                       canIdle,
-                                                       showHpBar,
-                                                       showBattlerName,
-                                                       isInvincible,
-                                                       isInanimate
-                                                     })
+  battlerId,
+  teamId,
+  battlerAI,
+  battlerRole,
+  sightRange,
+  alertedSightBoost,
+  pursuitRange,
+  alertedPursuitBoost,
+  alertDuration,
+  guardRange,
+  canIdle,
+  showHpBar,
+  showBattlerName,
+  isInvincible,
+  isInanimate
+})
 {
   /**
    * The id of the enemy that this battler represents.
@@ -9801,7 +9795,6 @@ JABS_BattlerRole.prototype.hasRole = function()
   return (this.leader || this.follower || this.guardian || this.ward || this.solo || this.sentinel);
 };
 //endregion JABS_BattlerRole
-
 
 //region JABS_Cooldown
 /**
@@ -10734,7 +10727,7 @@ class JABS_EnemyAI
 
     if (healingTypeSkills.length < 2) return healingTypeSkills;
 
-    let bestSkillId = null;
+    let bestSkillId;
     let runningBiggestHealAll = 0;
     let runningBiggestHealOne = 0;
     let runningClosestFitHealAll = 0;
@@ -10945,7 +10938,6 @@ class JABS_EnemyAI
 
 //endregion JABS_EnemyAI
 
-
 //region JABS_GlobalCooldown
 /**
  * Stateless helpers for the optional battler-wide global cooldown (GCD), similar to MMO-style GCD.
@@ -11029,7 +11021,8 @@ class JABS_GlobalCooldown
 
   /**
    * Finds the map-driven {@link JABS_Battler} for a party actor (leader or visible follower).
-   * Used when only a {@link Game_Actor} id is known—e.g. plugin commands—because GCD state lives on the map entity, not the database actor alone.
+   * Used when only a {@link Game_Actor} id is known—e.g. plugin commands—because GCD state lives on the
+   * map entity, not the database actor alone.
    * @param {Game_Actor} actor Party member to resolve.
    * @returns {JABS_Battler|null} Wrapper when that actor is currently the player or a visible follower; otherwise null.
    */
@@ -11471,7 +11464,8 @@ class JABS_InputAdapter
 
   /**
    * True when the battler-wide global cooldown timer should reject this skill attempt for the given battler.
-   * Delegates to {@link JABS_GlobalCooldown.isGlobalBlockingSkillId}; exempt and non-whitelisted skills never block here.
+   * Delegates to {@link JABS_GlobalCooldown.isGlobalBlockingSkillId}; exempt and non-whitelisted skills
+   * never block here.
    * @param {JABS_Battler} jabsBattler The battler performing the action.
    * @param {number} skillId Skill database id for the attempted action.
    * @returns {boolean} True when GCD is active and the skill is subject to it.
@@ -13126,7 +13120,6 @@ JABS_SkillSlotManager.prototype.setupEnemySlots = function(enemy)
  * @param {Game_Enemy} enemy The enemy to check.
  * @param {RPG_EnemyAction} action The action to check.
  */
-// eslint-disable-next-line no-unused-vars
 JABS_SkillSlotManager.prototype.filterActionSkills = function(enemy, action)
 {
   return true;
@@ -13266,23 +13259,22 @@ JABS_SkillSlotManager.prototype.setSlot = function(key, skillId, locked)
 /**
  * Gets the combo id of the given skill slot.
  * @param {string} key The skill slot key.
- * @returns {number}
+ * @returns {number} Pending combo skill id for the slot, or 0 when there is no combo or the key does not match a slot.
  */
 JABS_SkillSlotManager.prototype.getSlotComboId = function(key)
 {
+  // grab the slot once; callers treat 0 as "no combo" (see getSkillIdForAction, canExecuteSkill).
   const jabsSkillSlot = this.getSkillSlotByKey(key);
 
   if (!jabsSkillSlot)
   {
-    console.warn(key);
-    console.warn(this);
-    // TODO: fix this; but until fixed, use skillId#1 in place of the error.
+    // never return a real database skill id here — a bad key or desync must not execute skill #1 (or any arbitrary id).
+    console.warn(`[J-ABS] getSlotComboId: no skill slot for key "${key}". Returning 0 (no combo).`);
 
-    return 1;
+    return 0;
   }
 
-  return this.getSkillSlotByKey(key)
-    .getComboId();
+  return jabsSkillSlot.getComboId();
 };
 
 /**
@@ -17658,8 +17650,10 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Refresh JABS Menu", () =>
 });
 
 /**
- * Plugin command: forces the global cooldown counter on a party actor who is currently on the map as the player or a visible follower.
- * Positive {@code frames} starts or refreshes GCD for that battler; zero or invalid clears it. Actors not represented on the map are skipped with a console warning.
+ * Plugin command: forces the global cooldown counter on a party actor who is currently on the map as
+ * the player or a visible follower.
+ * Positive {@code frames} starts or refreshes GCD for that battler; zero or invalid clears it. Actors
+ * not represented on the map are skipped with a console warning.
  */
 PluginManager.registerCommand(J.ABS.Metadata.Name, "Apply Global Cooldown", args =>
 {
@@ -18018,7 +18012,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsBattlerRole', {
 /**
  * The JABS AI trait of careful.
  * This boolean decides whether or not this battler has this AI trait.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitCareful', {
   get: function()
@@ -18032,7 +18026,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitCareful', {
 /**
  * The JABS AI trait of executor.
  * This boolean decides whether or not this battler has this AI trait.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitExecutor', {
   get: function()
@@ -18046,7 +18040,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitExecutor', {
 /**
  * The JABS AI trait of reckless.
  * This boolean decides whether or not this battler has this AI trait.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitReckless', {
   get: function()
@@ -18060,7 +18054,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitReckless', {
 /**
  * The JABS AI trait of healer.
  * This boolean decides whether or not this battler has this AI trait.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitHealer', {
   get: function()
@@ -18075,7 +18069,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitHealer', {
  * The JABS AI trait of follower.
  * This boolean decides whether or not this battler has this AI trait.
  * @deprecated Use {@code <aiRole: follower>} instead. Supported as a backward-compatible alias.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitFollower', {
   get: function()
@@ -18090,7 +18084,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitFollower', {
  * The JABS AI trait of leader.
  * This boolean decides whether or not this battler has this AI trait.
  * @deprecated Use {@code <aiRole: leader>} instead. Supported as a backward-compatible alias.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitLeader', {
   get: function()
@@ -18104,7 +18098,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitLeader', {
 /**
  * The JABS AI trait of cleanser.
  * This boolean decides whether or not this battler has this AI trait.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitCleanser', {
   get: function()
@@ -18118,7 +18112,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitCleanser', {
 /**
  * The JABS AI trait of buffer.
  * This boolean decides whether or not this battler has this AI trait.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitBuffer', {
   get: function()
@@ -18132,7 +18126,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitBuffer', {
 /**
  * The JABS AI trait of tactical.
  * This boolean decides whether or not this battler has this AI trait.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitTactical', {
   get: function()
@@ -18146,7 +18140,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitTactical', {
 /**
  * The JABS AI trait of berserker.
  * This boolean decides whether or not this battler has this AI trait.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitBerserker', {
   get: function()
@@ -18159,7 +18153,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiTraitBerserker', {
 //region role:leader
 /**
  * The AI role of leader.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleLeader', {
   get: function()
@@ -18172,7 +18166,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleLeader', {
 //region role:follower
 /**
  * The AI role of follower.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleFollower', {
   get: function()
@@ -18185,7 +18179,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleFollower', {
 //region role:guardian
 /**
  * The AI role of guardian.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleGuardian', {
   get: function()
@@ -18198,7 +18192,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleGuardian', {
 //region role:ward
 /**
  * The AI role of ward.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleWard', {
   get: function()
@@ -18211,7 +18205,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleWard', {
 //region role:solo
 /**
  * The AI role of solo.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleSolo', {
   get: function()
@@ -18224,7 +18218,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleSolo', {
 //region role:sentinel
 /**
  * The AI role of sentinel.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleSentinel', {
   get: function()
@@ -18241,7 +18235,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsAiRoleSentinel', {
 /**
  * The JABS config option for enabling idling.
  * This boolean decides whether or not this battler can idle while not engaged in combat.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigCanIdle', {
   get: function()
@@ -18255,7 +18249,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigCanIdle', {
 /**
  * The JABS config option for disabling idling.
  * This boolean decides whether or not this battler can idle while not engaged in combat.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigNoIdle', {
   get: function()
@@ -18269,7 +18263,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigNoIdle', {
 /**
  * The JABS config option for enabling showing the hp bar.
  * This boolean decides whether or not this battler will reveal its hp bar under its sprite.
- * @returns {boolean|null}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigShowHpBar', {
   get: function()
@@ -18283,7 +18277,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigShowHpBar', {
 /**
  * The JABS config option for disabling showing the hp bar.
  * This boolean decides whether or not this battler will hide its hp bar under its sprite.
- * @returns {boolean|null}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigNoHpBar', {
   get: function()
@@ -18297,7 +18291,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigNoHpBar', {
 /**
  * The JABS config option for enabling showing the battler's name.
  * This boolean decides whether or not this battler will reveal its name under its sprite.
- * @returns {boolean|null}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigShowName', {
   get: function()
@@ -18311,7 +18305,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigShowName', {
 /**
  * The JABS config option for disabling showing the battler's name.
  * This boolean decides whether or not this battler will hide its name under its sprite.
- * @returns {boolean|null}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigNoName', {
   get: function()
@@ -18325,7 +18319,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigNoName', {
 /**
  * The JABS config option for enabling invincibility on this battler.
  * This boolean decides whether or not actions can collide with this battler.
- * @returns {boolean|null}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigInvincible', {
   get: function()
@@ -18339,7 +18333,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigInvincible', {
 /**
  * The JABS config option for disabling invincibility on this battler.
  * This boolean decides whether or not actions cannot collide with this battler.
- * @returns {boolean|null}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigNotInvincible', {
   get: function()
@@ -18353,7 +18347,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigNotInvincible', {
 /**
  * The JABS config option for enabling being inanimate for this battler.
  * This boolean decides whether or not to enable being inanimate
- * @returns {boolean|null}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigInanimate', {
   get: function()
@@ -18367,7 +18361,7 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigInanimate', {
 /**
  * The JABS config option for disabling being inanimate for this battler.
  * This boolean decides whether or not to disable being inanimate.
- * @returns {boolean|null}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_BaseBattler.prototype, 'jabsConfigNotInanimate', {
   get: function()
@@ -18614,7 +18608,7 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsDirect', {
 
 /**
  * A new property for retrieving the JABS directLock from this skill.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_Skill.prototype, 'jabsDirectLock', {
   get: function()
@@ -18811,7 +18805,7 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsInvincibleDodge', {
  * Whether or not this skill has the "free combo" trait on it.
  * Skills with "free combo" can continuously be executed regardless of
  * the actual timing factor for combos.
- * @type {boolean|null}
+ * @type {boolean}
  */
 Object.defineProperty(RPG_Skill.prototype, 'jabsFreeCombo', {
   get: function()
@@ -19047,7 +19041,7 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsIgnoreParry', {
 //region unparryable
 /**
  * Whether or not this skill is completely unparryable by the target.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_Skill.prototype, 'jabsUnparryable', {
   get: function()
@@ -19225,7 +19219,7 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsVisZ', {
 /**
  * Rotate the visual to face direction/angle if present.
  * Example: <visRotate>
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_Skill.prototype, 'jabsVisRotate', {
   get: function()
@@ -19260,7 +19254,7 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsVisScale', {
 /**
  * Optional: show a tiny debug cross at the visual origin.
  * Example: <visDebug>
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_Skill.prototype, 'jabsVisDebug', {
   get: function()
@@ -19479,7 +19473,8 @@ RPG_Skill.mergeJabsVisPairBoolFromNotes = function(skill, holder, regExp)
 };
 
 /**
- * Merged sprite anchor tags with tags on the action-map template ({@link RPG_Skill#jabsVisAnchor}); skill wins overlaps.
+ * Merged sprite anchor tags with tags on the action-map template ({@link RPG_Skill#jabsVisAnchor});
+ * skill wins overlaps.
  * @param {JABS_Action|null} jabsAction The executing action so we can read stamped synthetic notes.
  * @returns {[number, number]|null}
  */
@@ -19550,7 +19545,8 @@ RPG_Skill.prototype.getJabsVisDebugMergedForActionMap = function(jabsAction)
 };
 
 /**
- * Same resolution as {@link #getJabsVisOffsetFor}, but each tag prefers the skill note over the stamped action-map synthetic note.
+ * Same resolution as {@link #getJabsVisOffsetFor}, but each tag prefers the skill note over the stamped
+ * action-map synthetic note.
  * @param {JABS_Action|null} jabsAction Context action.
  * @param {number} direction RMMZ 8-dir travel code (1–9 except 5).
  * @returns {[number, number]}
@@ -19612,7 +19608,7 @@ RPG_Skill.prototype.getJabsVisOffsetForMergedActionMap = function(jabsAction, di
 /**
  * Whether or not this state is also a JABS paralysis state.
  * Paralysis is the same as being rooted & muted & disarmed simultaneously.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_State.prototype, 'jabsParalyzed', {
   get: function()
@@ -19626,7 +19622,7 @@ Object.defineProperty(RPG_State.prototype, 'jabsParalyzed', {
 /**
  * Whether or not this state is also a JABS rooted state.
  * Rooted battlers are unable to move on the map.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_State.prototype, 'jabsRooted', {
   get: function()
@@ -19640,7 +19636,7 @@ Object.defineProperty(RPG_State.prototype, 'jabsRooted', {
 /**
  * Whether or not this state is also a JABS muted state.
  * Muted battlers are unable to use their combat skills.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_State.prototype, 'jabsMuted', {
   get: function()
@@ -19654,7 +19650,7 @@ Object.defineProperty(RPG_State.prototype, 'jabsMuted', {
 /**
  * Whether or not this state is also a JABS disarmed state.
  * Disarmed battlers are unable to use their basic attacks.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_State.prototype, 'jabsDisarmed', {
   get: function()
@@ -19669,7 +19665,7 @@ Object.defineProperty(RPG_State.prototype, 'jabsDisarmed', {
  * Whether or not this state is considered "negative" for the purpose
  * of AI action decision-making. Ally AI set to Support or enemy AI set
  * to Healing will attempt to remove "negative" states if possible.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_State.prototype, 'jabsNegative', {
   get: function()
@@ -19850,6 +19846,7 @@ Object.defineProperty(RPG_State.prototype, 'jabsStateStacksApplied', {
  * Whether or not all stacks of a state will be removed upon duration expiration.<br/>
  * Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Stack}.<br/>
  * If no value is defined on the state, the default from configuration will be used.
+ * @type {boolean}
  */
 Object.defineProperty(RPG_State.prototype, 'jabsLoseAllStacksAtOnce', {
   get: function()
@@ -20027,7 +20024,7 @@ Object.defineProperty(RPG_UsableItem.prototype, 'jabsCooldown', {
 
 /**
  * A new property for retrieving the JABS uniqueCooldown from this skill.
- * @type {boolean}
+ * @type {boolean|null}
  */
 Object.defineProperty(RPG_UsableItem.prototype, 'jabsUniqueCooldown', {
   get: function()
@@ -20492,7 +20489,6 @@ class JABS_ActionSpawner
   }
 }
 //endregion JABS_ActionSpawner
-
 
 //region JABS_AiManager
 /**
@@ -22125,7 +22121,7 @@ class JABS_AiManager
         return;
       }
 
-      const followerSkillId = followerPicks[0];
+      const [followerSkillId] = followerPicks;
       const followerSkill = battler.getSkill(followerSkillId);
       if (!followerSkill)
       {
@@ -22153,7 +22149,7 @@ class JABS_AiManager
       return;
     }
 
-    const decidedSkillId = decidedPicks[0];
+    const [decidedSkillId] = decidedPicks;
 
     // construct the skill from the battler's perspective.
     const skill = battler.getSkill(decidedSkillId);
@@ -24112,7 +24108,7 @@ class JABS_Engine
   resolveFormationSpokes(facing, formation)
   {
     // initialize the canonical spokes as if facing were up.
-    let canonical = [];
+    let canonical;
 
     // choose spokes based on the provided formation constant.
     switch (formation)
@@ -24250,8 +24246,10 @@ class JABS_Engine
    * @param {number} castedCardinal The caster's facing at fire time (expects 2/4/6/8).
    * @returns {2|4|6|8} A cardinal for {@link Game_Character#setDirection} on action sprites.
    */
+  // eslint-disable-next-line complexity
   actionTravelDirectionToSpritePatternDirection(travelDir, castedCardinal)
   {
+    // TODO: reduce complexity via lookup matrix by castedCardinal+travelDir.
     if (travelDir === 2 || travelDir === 4 || travelDir === 6 || travelDir === 8)
     {
       return travelDir;
@@ -24277,7 +24275,7 @@ class JABS_Engine
       return 2;
     }
 
-    let result = casted;
+    let result;
     switch (casted)
     {
       case 2:
@@ -26569,7 +26567,8 @@ class JABS_Engine
     // forward length includes a small extra half-tile pad, matching cardinal behavior.
     const lengthWithPad = lengthPx + (Math.max(tw, th) / 2);
 
-    // thickness is expressed per-axis for cardinals; convert to a symmetric half-breadth in pixels for diagonal support.
+    // thickness is expressed per-axis for cardinals; convert to a symmetric half-breadth in pixels for
+    // diagonal support.
     const halfBreadth = Math.max(thicknessX, thicknessY) / 2;
 
     return this.collisionOrientedRectFromOrigin(targetRect, originCx, originCy, facing, lengthWithPad, halfBreadth);
@@ -26619,7 +26618,8 @@ class JABS_Engine
 
   /**
    * Collision helper: tests a target AABB against an oriented rectangle that starts at the origin and extends forward.
-   * This supports diagonal facings by projecting into the forward/perpendicular basis and padding by the target AABB extents.
+   * This supports diagonal facings by projecting into the forward/perpendicular basis and padding by the target AABB
+   * extents.
    * @param {JABS_Aabb} targetRect The target's AABB in pixel space.
    * @param {number} originCx Origin X in pixels.
    * @param {number} originCy Origin Y in pixels.
@@ -26964,6 +26964,7 @@ class JABS_Engine
    * @param {number} experience The experience to be gained as a reward.
    * @param {Game_Character} casterCharacter The character who defeated the target.
    */
+  // eslint-disable-next-line no-unused-vars
   gainExperienceReward(experience, casterCharacter)
   {
     // don't do anything if the enemy didn't grant any experience.
@@ -26978,6 +26979,7 @@ class JABS_Engine
    * @param {number} gold The gold to be gained as a reward.
    * @param {Game_Character} character The character who defeated the target.
    */
+  // eslint-disable-next-line no-unused-vars
   gainGoldReward(gold, character)
   {
     // don't do anything if the enemy didn't grant any gold.
@@ -27837,6 +27839,7 @@ Game_Action.prototype.onParry = function(jabsBattler)
  * @param {number} originalDamage The original amount of damage.
  * @returns {number} The damage after reduction.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Action.prototype.calculateParryDamageReduction = function(jabsBattler, originalDamage)
 {
   // return the parry-modified damage.
@@ -31226,8 +31229,8 @@ Game_Enemy.prototype.canIdle = function()
   // check if we are disallowed from idling.
   const cannotIdle = referenceData.jabsConfigNoIdle;
 
-  // if we found a non-null value, return it.
-  if (cannotIdle !== null) return cannotIdle;
+  // prohibition tag present → not idle (invert presence to "can idle").
+  if (cannotIdle !== null) return !cannotIdle;
 
   // if we have no notes regarding this, then return the default.
   return J.ABS.Metadata.DefaultEnemyCanIdle;
@@ -31252,8 +31255,8 @@ Game_Enemy.prototype.showHpBar = function()
   // check if we are disallowed from showing the hp bar.
   const noHpBar = referenceData.jabsConfigNoHpBar;
 
-  // if we found a non-null value, return it.
-  if (noHpBar !== null) return noHpBar;
+  // prohibition tag present → hide bar.
+  if (noHpBar !== null) return !noHpBar;
 
   // if we have no notes regarding this, then return the default.
   return J.ABS.Metadata.DefaultEnemyShowHpBar;
@@ -31278,8 +31281,8 @@ Game_Enemy.prototype.showBattlerName = function()
   // check if we are disallowed from showing the battler's name.
   const noName = referenceData.jabsConfigNoName;
 
-  // if we found a non-null value, return it.
-  if (noName !== null) return noName;
+  // prohibition tag present → hide name.
+  if (noName !== null) return !noName;
 
   // if we have no notes regarding this, then return the default.
   return J.ABS.Metadata.DefaultEnemyShowBattlerName;
@@ -31304,8 +31307,8 @@ Game_Enemy.prototype.isInvincible = function()
   // check if we are disabling invincibility.
   const notInvincible = referenceData.jabsConfigNotInvincible;
 
-  // if we found a non-null value, return it.
-  if (notInvincible !== null) return notInvincible;
+  // prohibition tag present → not invincible.
+  if (notInvincible !== null) return !notInvincible;
 
   // if we have no notes regarding this, then return the default.
   return J.ABS.Metadata.DefaultEnemyIsInvincible;
@@ -31321,17 +31324,17 @@ Game_Enemy.prototype.isInanimate = function()
   // grab the reference data for this battler.
   const referenceData = this.databaseData();
 
-  // check if we are enabling invincibility.
+  // check if we are enabling inanimate (non-collidable) behavior.
   const isInanimate = referenceData.jabsConfigInanimate;
 
   // if we found a non-null value, return it.
   if (isInanimate !== null) return isInanimate;
 
-  // check if we are disabling invincibility.
+  // check if we are disabling inanimate behavior.
   const notInanimate = referenceData.jabsConfigNotInanimate;
 
-  // if we found a non-null value, return it.
-  if (notInanimate !== null) return notInanimate;
+  // prohibition tag present → animate (collidable / normal).
+  if (notInanimate !== null) return !notInanimate;
 
   // if we have no notes regarding this, then return the default.
   return J.ABS.Metadata.DefaultEnemyIsInanimate;
@@ -31532,10 +31535,21 @@ Game_Event.prototype.page = function()
       .call(this);
   }
 
-  console.log($dataMap.events);
-  console.log($gameMap._events);
-  console.warn(this);
-  console.warn('that thing happened again, you should probably look into this.');
+  // event data is gone (e.g. update after teardown). log only this event's own fields + stack — never dump whole
+  // maps (devtools cost).
+  const {stack} = new Error();
+  console.warn(
+    '[JABS] Game_Event#page: missing event data (race / teardown?).',
+    {
+      eventId: this._eventId,
+      pageIndex: this._pageIndex,
+      x: this.x(),
+      y: this.y(),
+      isJabsAction: this.isJabsAction(),
+      jabsActionUuid: this.getJabsActionUuid(),
+      stack,
+    },
+  );
 
   // return null because... something went awry.
   return null;
@@ -32423,9 +32437,7 @@ Game_Interpreter.prototype.command201 = function(params)
     let y;
     if (params[0] === 0)
     {
-      mapId = params[1];
-      x = params[2];
-      y = params[3];
+      [, mapId, x, y] = params;
     }
     else
     {
@@ -32492,7 +32504,7 @@ Game_Interpreter.prototype.command301 = function(params)
     {
       case 0:
         // Direct designation
-        troopId = params[1];
+        [, troopId] = params;
         break;
       case 1:
         // Designation with a variable
@@ -33566,8 +33578,8 @@ Scene_Load.prototype.reloadMapIfUpdated = function()
   if ($jabsEngine.absEnabled)
   {
     const mapId = $gameMap.mapId();
-    const x = $gamePlayer.x;
-    const y = $gamePlayer.y;
+    const {x} = $gamePlayer;
+    const {y} = $gamePlayer;
     $gamePlayer.reserveTransfer(mapId, x, y);
     $gamePlayer.requestMapReload();
   }
@@ -35091,7 +35103,7 @@ Sprite_Animation.prototype.targetSpritePosition = function (sprite)
     return J.ABS.Aliased.Sprite_Animation.get('targetSpritePosition')
       .call(this, sprite);
   }
-  catch (e)
+  catch
   {
     // silently fail and return a neutral point to prevent console flooding.
     console.log("error happened with sprite targeting anyway: ", sprite);
@@ -35099,7 +35111,6 @@ Sprite_Animation.prototype.targetSpritePosition = function (sprite)
   }
 };
 //endregion Sprite_Animation
-
 
 //region Sprite_AnimationMV
 /**
@@ -35144,10 +35155,10 @@ Sprite_AnimationMV.prototype.updatePosition = function ()
   if (validTargets.length !== this._targets.length)
   {
     // retrieve the first valid target.
-    const target = validTargets[0];
+    const [target] = validTargets;
 
     // calculate parent/grandparent relations.
-    const parent = target.parent;
+    const {parent} = target;
     const grandparent = parent
       ? parent.parent
       : null;
@@ -35181,7 +35192,6 @@ Sprite_AnimationMV.prototype.updatePosition = function ()
   }
 };
 //endregion Sprite_AnimationMV
-
 
 //region Sprite_Character
 //region init
@@ -38102,9 +38112,9 @@ Spriteset_Map.prototype.refreshExistingCastPreviewSprites = function ()
         // if not frozen or is locked, follow the live resolver fallback.
         if (tx === null || ty === null || isLocked)
         {
-          const result = item.battler.resolveDirectActionTargetCoordinates(item.action);
-          tx = result[0];
-          ty = result[1];
+          const [resolvedX, resolvedY] = item.battler.resolveDirectActionTargetCoordinates(item.action);
+          tx = resolvedX;
+          ty = resolvedY;
         }
 
         // if we successfully resolved coords, convert them from tile to screen space.
@@ -38208,6 +38218,7 @@ Spriteset_Map.prototype.destroyCastPreviewSprite = function (sprite)
  * @param {string} shape The hitbox shape name.
  * @returns {{ fillColor:number, fillAlpha:number, lineColor:number, lineAlpha:number, lineWidth:number }}
  */
+// eslint-disable-next-line no-unused-vars
 Spriteset_Map.prototype.getCastPreviewStyleFor = function (shape)
 {
   // MVP: a distinct, more transparent red/orange than live hitboxes.

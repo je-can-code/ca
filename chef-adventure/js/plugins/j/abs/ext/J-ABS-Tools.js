@@ -567,7 +567,6 @@ JABS_Battler.gapCloseWiggleRoom = function()
 };
 //endregion JABS_Battler
 
-
 //region gapClose
 /**
  * Whether or not this skill is designed to gap close.
@@ -664,7 +663,6 @@ JABS_Engine.prototype.canGapClose = function(action, target)
 };
 //endregion JABS_Engine
 
-
 //region Game_Battler
 /**
  * Determines whether or not this battler is a gap close target.
@@ -678,7 +676,6 @@ Game_Battler.prototype.isGapClosable = function()
   );
 };
 //endregion Game_Battler
-
 
 //region Game_CharacterBase
 /**
@@ -737,7 +734,6 @@ Game_CharacterBase.prototype.initToolsMembers = function()
 };
 //endregion Game_CharacterBase
 
-
 //region Game_Event
 /**
  * Determines whether or not this event has any gap close target overrides.
@@ -767,7 +763,6 @@ Game_Event.prototype.isGapClosable = function()
   return gapCloseTarget;
 };
 //endregion Game_Event
-
 
 
 
@@ -832,7 +827,6 @@ Game_System.prototype.toggleGrabThrowEnabled = function()
   this._j._tools._grabThrowEnabled = !this.isGrabThrowEnabled();
 };
 //endregion Game_System
-
 
 
 

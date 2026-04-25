@@ -38,7 +38,6 @@ J.POPUPS.EXT.SDP.Aliased = J.POPUPS.EXT.SDP.Aliased || {};
 J.POPUPS.EXT.SDP.Aliased.JABS_Engine = new Map();
 //endregion J_PopupsExtSDP_init
 
-
 //region JABS_Engine
 /**
  * Extends {@link #onSdpRewardGranted}.<br/>

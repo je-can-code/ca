@@ -788,9 +788,8 @@ class StatDistributionPanelBuilder
 }
 //endregion StatDistributionPanelBuilder
 
-
 //region Introduction
-/* eslint-disable */
+ 
 /*:
  * @target MZ
  * @plugindesc
@@ -1117,7 +1116,7 @@ class StatDistributionPanelBuilder
  * @min -99999999
  * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  */
-/* eslint-enable */
+ 
 
 //region plugin metadata
 class J_SdpPluginMetadata
@@ -1765,7 +1764,8 @@ if (J.ABS)
    * @param {Game_Character} character The character who received the reward.
    */
   // eslint-disable-next-line no-unused-vars
-  JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character) {};
+  JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character) 
+  {};
 
   /**
    * Lifecycle event: an SDP panel was unlocked for a character on the map.
@@ -1774,7 +1774,8 @@ if (J.ABS)
    * @param {Game_Character} character The character who unlocked the panel.
    */
   // eslint-disable-next-line no-unused-vars
-  JABS_Engine.prototype.onSdpPanelUnlocked = function(sdpKey, character) {};
+  JABS_Engine.prototype.onSdpPanelUnlocked = function(sdpKey, character) 
+  {};
 
   /**
    * Creates the log entry if using the J-LOG.
@@ -1806,7 +1807,6 @@ if (J.ABS)
   };
 }
 //endregion JABS_Engine
-
 
 //region TextManager
 /**
@@ -1899,6 +1899,7 @@ Game_Action.prototype.applyGlobal = function()
  * Handles any SDP-related effects for this action.
  * @param {Game_Actor|Game_Enemy} target The target to apply the SDP-related effect to.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Action.prototype.applySdpUnlock = function(target)
 {
   // check if the SDP can be unlocked.
@@ -2272,7 +2273,7 @@ Game_Actor.prototype.modSdpPoints = function(points)
 Game_Actor.prototype.sdpMultiplier = function()
 {
   // initializing with base 100, representing 1x.
-  let multiplier = 100;
+  const multiplier = 100;
 
   // get all the objects to scan for possible sdp multipliers.
   const objectsToCheck = this.getAllNotes();
@@ -2532,6 +2533,7 @@ Game_Battler.prototype.sdpMultiplier = function()
  * @param {number} baseParam The base value of the crit parameter in question.
  * @returns {number}
  */
+// eslint-disable-next-line no-unused-vars
 Game_BattlerBase.prototype.critSdpBonuses = function(critParamId, baseParam)
 {
   // by default, there are no crit bonuses at the root level.
@@ -2662,7 +2664,14 @@ Game_Enemy.prototype.findLoot = function(drop, itemsFound)
 /**
  * Dynamically generates a custom drop exclusive for picking up and unlocking an SDP without a backing item.
  * @param {RPG_DropItem} drop The SDP loot to build.
- * @returns {{name: string, iconIndex: number, description: string, itypeId: number, sdpKey: string, jabsUseOnPickup: boolean}}
+ * @returns {{
+ *   name: string,
+ *   iconIndex: number,
+ *   description: string,
+ *   itypeId: number,
+ *   sdpKey: string,
+ *   jabsUseOnPickup: boolean,
+ * }}
  */
 Game_Enemy.prototype.buildSdpLoot = function(drop)
 {
@@ -4316,7 +4325,7 @@ class Window_SdpParameterList
    * a parameter being smaller is an improvement..
    * @param {PanelParameter} panelParameter The id to translate.
    */
-  // eslint-disable-next-line complexity
+   
   #determineModifierData(panelParameter)
   {
     // a small helper function for calculating the next rank's value.
@@ -4855,8 +4864,8 @@ class Window_SdpRewardList
       } = panelReward;
 
       // determine the icon for the reward..
-      let rankText = String.empty;
-      let iconIndex = 0;
+      let rankText;
+      let iconIndex;
       switch (rankRequired)
       {
         case -1:
@@ -4875,7 +4884,7 @@ class Window_SdpRewardList
 
 
       // identify the right-aligned current and bonus amounts.
-      let parameterData = `Rank: ${rankText}`;
+      const parameterData = `Rank: ${rankText}`;
 
       // construct the command.
       const command = new WindowCommandBuilder(rewardName)
