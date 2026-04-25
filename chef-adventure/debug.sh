@@ -1,1 +1,1 @@
-$NWJS_EXE ./ "test" &>/dev/null &
+../../../utilities/nwjs/nw ./ "test" &>/dev/null &

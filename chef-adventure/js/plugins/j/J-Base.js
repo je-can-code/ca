@@ -810,13 +810,12 @@ class JsonMapper
 J.BASE.Aliased.Bitmap.set('drawText', Bitmap.prototype.drawText);
 Bitmap.prototype.drawText = function(text, x, y, maxWidth, lineHeight, align)
 {
-  if (align === undefined)
-  {
-    align = 'left';
-  }
+  const resolvedAlign = align === undefined
+    ? 'left'
+    : align;
 
   J.BASE.Aliased.Bitmap.get('drawText')
-    .call(this, text, x, y, maxWidth, lineHeight, align);
+    .call(this, text, x, y, maxWidth, lineHeight, resolvedAlign);
 };
 //endregion Bitmap
 
@@ -899,15 +898,18 @@ class RPG_DropItem
     switch (letter.toLowerCase())
     {
       // "i" for "item".
-      case ('i' || 'item'):
+      case 'i':
+      case 'item':
         return this.Types.Item;
 
       // "w" for "weapon".
-      case ('w' || 'weapon'):
+      case 'w':
+      case 'weapon':
         return this.Types.Weapon;
 
       // "a" for "armor".
-      case ('a' || 'armor'):
+      case 'a':
+      case 'armor':
         return this.Types.Armor;
 
       // don't use this with invalid item types.
@@ -971,10 +973,10 @@ class RPG_DropItem
    * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
    */
   constructor({
-                dataId,
-                denominator,
-                kind
-              })
+    dataId,
+    denominator,
+    kind
+  })
   {
     // map the enemy drop to this object.
     this.dataId = dataId;
@@ -1029,6 +1031,7 @@ class RPG_EnemyAction
    * @param {RPG_EnemyAction} enemyAction The action to parse.
    * @param {number} index The index of the entry in the database.
    */
+  // eslint-disable-next-line no-unused-vars
   constructor(enemyAction, index)
   {
     this.conditionParam1 = enemyAction.conditionParam1;
@@ -1172,8 +1175,10 @@ class RPG_Trait
    * Gets the underlying name of the trait as text.
    * @return {string}
    */
+  // eslint-disable-next-line complexity
   textName()
   {
+    // TODO: reduce complexity via code->formatter table.
     switch (this.code)
     {
       // first tab.
@@ -1249,8 +1254,10 @@ class RPG_Trait
    * Gets the underlying value of the trait as text.
    * @return {*|string}
    */
+  // eslint-disable-next-line complexity
   textValue()
   {
+    // TODO: reduce complexity via code->formatter table.
     switch (this.code)
     {
       // first tab.
@@ -3052,6 +3059,7 @@ ColorManager.elementColorIndex = function(elementId)
  * @param {number} skillTypeId The id to get the color for.
  * @returns {rm.types.Color}
  */
+// eslint-disable-next-line no-unused-vars
 ColorManager.skillType = function(skillTypeId)
 {
   return this.textColor(1);
@@ -3062,6 +3070,7 @@ ColorManager.skillType = function(skillTypeId)
  * @param {number} weaponTypeId The id to get the color for.
  * @returns {rm.types.Color}
  */
+// eslint-disable-next-line no-unused-vars
 ColorManager.weaponType = function(weaponTypeId)
 {
   return this.textColor(2);
@@ -3072,6 +3081,7 @@ ColorManager.weaponType = function(weaponTypeId)
  * @param {number} armorTypeId The id to get the color for.
  * @returns {rm.types.Color}
  */
+// eslint-disable-next-line no-unused-vars
 ColorManager.armorType = function(armorTypeId)
 {
   return this.textColor(3);
@@ -3082,6 +3092,7 @@ ColorManager.armorType = function(armorTypeId)
  * @param {number} equipTypeId The id to get the color for.
  * @returns {rm.types.Color}
  */
+// eslint-disable-next-line no-unused-vars
 ColorManager.equipType = function(equipTypeId)
 {
   return this.textColor(4);
@@ -3142,7 +3153,7 @@ ColorManager.parseHexStringToRgb = function(hexString)
   if (h.length === 3)
   {
     h = h.split('')
-      .map(function(ch)
+      .map((ch) =>
       {
         return ch + ch;
       })
@@ -5242,7 +5253,7 @@ class RPGManager
     let val = 0;
 
     // establish a variable to be used as "a" in the formula- the battler.
-    // eslint-disable-next-line no-unused-vars
+     
     const a = context;
 
     // establish a variable to be used as "b" in the formula- the base parameter value.
@@ -8897,6 +8908,7 @@ Game_Battler.prototype.eraseState = function(stateId)
  * An event hook fired when this battler has a state removed.
  * @param {number} stateId The state id being removed.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Battler.prototype.onStateRemoval = function(stateId)
 {
   // flag this battler for needing a data update.
@@ -8932,6 +8944,7 @@ Game_Battler.prototype.addNewState = function(stateId)
  * An event hook fired when this battler has a state added.
  * @param {number} stateId The state id being added.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Battler.prototype.onStateAdded = function(stateId)
 {
   // flag this battler for needing a data update.
@@ -9349,6 +9362,7 @@ Game_Enemy.prototype.setup = function(enemyId)
  * A hook for performing actions when an enemy is setup.
  * @param {number} enemyId The enemy's id.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Enemy.prototype.onSetup = function(enemyId)
 {
   // flag this battler for needing a data update.
@@ -9384,6 +9398,7 @@ Game_Enemy.prototype.skills = function()
  * @param {RPG_EnemyAction} action The action being mapped to a skill.
  * @returns {boolean}
  */
+// eslint-disable-next-line no-unused-vars
 Game_Enemy.prototype.canMapActionToSkill = function(action)
 {
   return true;
@@ -9596,9 +9611,6 @@ Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = nu
  */
 Game_Event.prototype.getDataForCommandByRegex = function(command, structure, defaultValue = null, andParse = true)
 {
-  // initalize to the provided default.
-  let val = defaultValue;
-
   // shorthand the comment into a variable.
   const [ comment, ] = command.parameters;
 
@@ -9612,7 +9624,7 @@ Game_Event.prototype.getDataForCommandByRegex = function(command, structure, def
   if (!regexResult) return;
 
   // extract the regex capture group.
-  [ , val ] = regexResult;
+  const [ , val ] = regexResult;
 
   // if we did not find anything, return the default.
   if (val === defaultValue) return val;
@@ -10005,7 +10017,7 @@ Game_System.prototype.gainAllArmors = function(count = 1)
 Game_System.prototype.canGainEntry = function(entry)
 {
   // skip entries that are null.
-  if (entry == null) return false;
+  if (entry === undefined || entry === null) return false;
 
   // skip entries with empty names.
   if (entry.name.trim().length === 0) return false;
@@ -11461,6 +11473,7 @@ class Sprite_MapGauge
 /**
  * OVERWRITE Fuck those autoshadows.
  */
+// eslint-disable-next-line no-unused-vars
 Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy)
 {
 };

@@ -725,8 +725,8 @@ JABS_AllyAI.prototype.decideVariety = function(usableSkills, user, target)
     return [ this.followWithCombo(user) ];
   }
 
-  // initialize the chosen skill id.
-  let chosenSkillId = 0;
+  // chosen in one of the branches below; validated before return.
+  let chosenSkillId;
 
   // locally capture the list of usable skills for modification.
   let tempAvailableSkills = usableSkills;
@@ -794,7 +794,7 @@ JABS_AllyAI.prototype.decideFullForce = function(usableSkills, user, target)
     return [ this.followWithCombo(user) ];
   }
 
-  let chosenSkillId = 0;
+  let chosenSkillId;
   let tempAvailableSkills = usableSkills;
 
   // determine the strongest skill available that this user can execute.
@@ -1559,7 +1559,7 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
     return;
   }
 
-  const decidedSkillId = decidedPicks[0];
+  const [decidedSkillId] = decidedPicks;
 
   // TODO: allow allies to use dodge skills, but code the AI to use it intelligently.
   // check if the skill id is actually a mobility skill.
@@ -3100,6 +3100,5 @@ class Window_Formations
   }
 }
 //endregion Window_Formations
-
 
 //# sourceMappingURL=J-ABS-AllyAI.js.map

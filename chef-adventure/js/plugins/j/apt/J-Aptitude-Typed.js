@@ -966,7 +966,7 @@ ApManager.resolveDomainId = function(domain, idOrName)
   const key = String(domain)
     .trim()
     .toLowerCase();
-  let list = [];
+  let list;
   switch (key)
   {
     case ApTypeKey.DomainType.Element:
@@ -1017,9 +1017,9 @@ ApManager.apTypeDisplay = function(key)
     .toLowerCase();
   const id = Number(key.id);
 
-  // default fallbacks.
-  let name = '';
-  let icon = 0;
+  // resolved in the switch — always assigned before return.
+  let name;
+  let icon;
 
   switch (domain)
   {
@@ -1169,7 +1169,8 @@ if (J.ABS)
    * @param {ApTypeKey} apTypeKey The typed key (domain + id) for labeling.
    */
   // eslint-disable-next-line no-unused-vars
-  JABS_Engine.prototype.onTypedApGained = function(apPoints, character, apTypeKey) {};
+  JABS_Engine.prototype.onTypedApGained = function(apPoints, character, apTypeKey) 
+  {};
 
   /**
    * Creates a typed AP log entry with icon + short label.

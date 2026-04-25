@@ -1273,8 +1273,10 @@ Game_Time.prototype.canUpdateTone = function()
  * be between -255 and 255.
  * @returns {[number, number, number, number]}
  */
+// eslint-disable-next-line complexity
 Game_Time.prototype.translateHourToTone = function()
 {
+  // TODO: reduce complexity via hour->phase/quarter table + interpolation.
   const hours = J.TIME.Metadata.UseRealTime
     ? new Date().getHours()
     : this._hours;
@@ -1641,7 +1643,7 @@ Game_Time.prototype.setTime = function(seconds, minutes, hours, days, months, ye
 Game_Time.prototype.jumpToTimeOfDay = function(targetTimeOfDayId)
 {
   const currentTimeOfDay = this.timeOfDay(this._hours);
-  let timeUntilTargetTimeOfDay = 0;
+  let timeUntilTargetTimeOfDay;
 
   if (currentTimeOfDay >= targetTimeOfDayId)
   {
@@ -2436,8 +2438,10 @@ Game_Event.filterCommentCommandsByChoiceTimeConditional = function(command)
  * @param {rm.types.EventCommand} commentCommand The comment command to parse into a conditional.
  * @returns {TimeConditional}
  */
+// eslint-disable-next-line complexity
 Game_Event.toTimeConditional = function(commentCommand)
 {
+  // TODO: reduce complexity via ordered [regex, mapper] handler table.
   // shorthand the comment into a variable.
   const [ comment, ] = commentCommand.parameters;
 
@@ -2474,7 +2478,7 @@ Game_Event.toTimeConditional = function(commentCommand)
       return TimeMapper.monthRangeToConditional(comment, J.TIME.RegExp.MonthRangePage);
     case J.TIME.RegExp.YearRangePage.test(comment):
       return TimeMapper.yearRangeToConditional(comment, J.TIME.RegExp.YearRangePage);
-    //endregion events
+      //endregion events
 
     //region choices
     // JUST FOR CHOICES:
@@ -2506,7 +2510,7 @@ Game_Event.toTimeConditional = function(commentCommand)
       return TimeMapper.monthRangeToConditional(comment, J.TIME.RegExp.MonthRangeChoice);
     case J.TIME.RegExp.YearRangeChoice.test(comment):
       return TimeMapper.yearRangeToConditional(comment, J.TIME.RegExp.YearRangeChoice);
-    //endregion choices
+      //endregion choices
 
     default:
       console.warn(`time conditional was not generated for an identified TIME tag; ${comment}`);
@@ -2672,7 +2676,7 @@ Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandInd
 
   // grab some metadata about the event.
   const eventMetadata = $gameMap.event(this.eventId());
-  const currentPageCommands = !!eventMetadata
+  const currentPageCommands = eventMetadata
     ? eventMetadata.page().list
     : $dataCommonEvents.at(this._commonEventId).list;
 
@@ -2754,7 +2758,9 @@ JABS_StandardController.prototype.performTimeWindowAction = function()
 //region TimeMapper
 /**
  * A class with several static mapping functions for parsing comments into {@link TimeConditional}s.
+ * Registered and referenced by time/initialization, not in-file.
  */
+// eslint-disable-next-line no-unused-vars
 class TimeMapper
 {
   constructor()
@@ -2916,7 +2922,7 @@ class TimeMapper
     const monthRangeStart = parseInt(startMonthRange);
     const monthRangeEnd = parseInt(endMonthRange);
     const fullDateRangeStart = [ 0, 0, 0, 1, monthRangeStart, currentTimeSnapshot.years ];
-    let monthRangeYearEnd = monthRangeEnd < monthRangeStart
+    const monthRangeYearEnd = monthRangeEnd < monthRangeStart
       ? currentTimeSnapshot.years + 1
       : currentTimeSnapshot.years;
     const fullDateRangeEnd = [ 59, 59, 23, 30, monthRangeEnd, monthRangeYearEnd ];
@@ -3477,8 +3483,8 @@ class Window_Time
     const seconds = this.time.seconds.padZero(2);
     const minutes = this.time.minutes.padZero(2);
     const hours = this.time.hours.padZero(2);
-    const timeOfDayName = this.time.timeOfDayName;
-    const timeOfDayIcon = this.time.timeOfDayIcon;
+    const {timeOfDayName} = this.time;
+    const {timeOfDayIcon} = this.time;
     const seasonName = this.time.seasonOfTheYearName;
     const seasonIcon = this.time.seasonOfTheYearIcon;
 

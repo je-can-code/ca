@@ -164,8 +164,12 @@ J.ABS.EXT.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons = obj =>
  * The actual `plugin parameters` extracted from RMMZ.
  */
 J.ABS.EXT.DANGER.PluginParameters = PluginManager.parameters(J.ABS.EXT.DANGER.Metadata.Name);
-J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator = J.ABS.EXT.DANGER.PluginParameters['defaultEnemyShowDangerIndicator'] === "true";
-J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons = J.ABS.EXT.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons(J.ABS.EXT.DANGER.PluginParameters['dangerIndicatorIconData']);
+J.ABS.EXT.DANGER.Metadata.DefaultEnemyShowDangerIndicator =
+  J.ABS.EXT.DANGER.PluginParameters['defaultEnemyShowDangerIndicator'] === "true";
+J.ABS.EXT.DANGER.Metadata.DangerIndicatorIcons =
+  J.ABS.EXT.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons(
+    J.ABS.EXT.DANGER.PluginParameters['dangerIndicatorIconData'],
+  );
 
 /**
  * A collection of icons that represent the danger level of a given enemy relative to the player.
@@ -394,7 +398,6 @@ Game_Battler.prototype.getDangerIndicatorIcon = function()
   }
 };
 //endregion Game_Battler
-
 
 //region Game_Enemy
 /**

@@ -853,7 +853,6 @@ class CraftingCreationSession
 
 //endregion CraftingCreationSession
 
-
 //region CraftingRecipe
 /**
  * A data model for a single recipe in crafting.
@@ -2015,7 +2014,7 @@ J.JAFTING.EXT.CREATE.Debug.gainStockFromAllRecipes = function(multiplier)
     ? 10
     : Math.floor(multiplier);
 
-  const recipes = J.JAFTING.EXT.CREATE.Metadata.recipes;
+  const {recipes} = J.JAFTING.EXT.CREATE.Metadata;
 
   const feedComponent = component =>
   {
@@ -2066,7 +2065,6 @@ J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest = function(recipeStockMultipl
 };
 
 //endregion jaftingCreationDebug
-
 
 //region Game_Party
 /**
@@ -2922,7 +2920,7 @@ class Scene_JaftingCreate
     const listRect = this.getRecipeListRectangle();
     const [ ox ] = Graphics.boxOrigin;
     const x = listRect.x + listRect.width + Graphics.horizontalPadding;
-    const y = listRect.y;
+    const {y} = listRect;
     const width = ox + Graphics.boxWidth - x - Graphics.horizontalPadding;
     const height = 100;
 
@@ -3152,7 +3150,7 @@ class Scene_JaftingCreate
     const [ x, y ] = Graphics.boxOrigin;
 
     // define the width of the window.
-    const width = this.getCategoryListRectangle().width;
+    const {width} = this.getCategoryListRectangle();
 
     // define the height of the window.
     const height = Graphics.boxHeight - (Graphics.verticalPadding * 2);
@@ -3710,12 +3708,14 @@ class Window_RecipeDetails
   extends Window_Base
 {
   /**
-   * Fourth-column divider is drawn this many pixels left of that column's origin; header rules must not extend past this.
+   * Fourth-column divider is drawn this many pixels left of that column's origin; header rules must not extend past
+   * this.
    */
   static #DETAIL_DIVIDER_LEFT_OFFSET = 12;
 
   /**
-   * Horizontal rule under each component header is inset this many pixels from each band edge (matches {@link #DETAIL_DIVIDER_LEFT_OFFSET} so column 3 rules never cross the divider).
+   * Horizontal rule under each component header is inset this many pixels from each band edge (matches
+   * {@link #DETAIL_DIVIDER_LEFT_OFFSET} so column 3 rules never cross the divider).
    */
   static #COMPONENT_HEADER_RULE_SIDE_INSET = Window_RecipeDetails.#DETAIL_DIVIDER_LEFT_OFFSET;
 
@@ -3910,7 +3910,7 @@ class Window_RecipeDetails
   #canDrawContent()
   {
     // if there is no recipe, then we cannot draw its detail.
-    if (this.#currentRecipe == null) return false;
+    if (this.#currentRecipe === undefined || this.#currentRecipe === null) return false;
 
     // we can draw content!
     return true;
@@ -4479,8 +4479,8 @@ class Window_RecipeIngredientList
       .setIconIndex(component.getIconIndex())
       .setHelpText(component.getName())
 
-      // TODO: when i/w/a rarity is implemented, add it here.
-      //.setColorIndex(rarityColorIndex)
+    // TODO: when i/w/a rarity is implemented, add it here.
+    //.setColorIndex(rarityColorIndex)
 
       .setRightText(needQuantity)
       .setRightColorIndex(haveTextColor)
@@ -4757,7 +4757,7 @@ class Window_RecipeOutputList
     const have = component.getHandledQuantity();
 
     // determine the subtext messages for the command.
-    let subTextLine = `(have: ${have})`;
+    const subTextLine = `(have: ${have})`;
 
     const possiblyMaskedOutput = this.needsMasking
       ? component.getName()
@@ -4773,8 +4773,8 @@ class Window_RecipeOutputList
       .setRightText(`+${component.quantity()}`)
       .addTextLine(subTextLine)
 
-      // TODO: when i/w/a rarity is implemented, add it here.
-      //.setColorIndex(rarityColorIndex)
+    // TODO: when i/w/a rarity is implemented, add it here.
+    //.setColorIndex(rarityColorIndex)
 
       .build();
 
@@ -4927,8 +4927,8 @@ class Window_RecipeToolList
       .setIconIndex(component.getIconIndex())
       .setHelpText(component.getName())
 
-      // TODO: when i/w/a rarity is implemented, add it here.
-      //.setColorIndex(rarityColorIndex)
+    // TODO: when i/w/a rarity is implemented, add it here.
+    //.setColorIndex(rarityColorIndex)
 
       .setRightText(needQuantity)
       .setRightColorIndex(haveTextColor)

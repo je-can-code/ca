@@ -790,7 +790,7 @@ class Window_MoreEquipData
    */
   addHitsCommand()
   {
-    const item = this.item;
+    const {item} = this;
     const isWeapon = item.isWeapon();
     const globalHits = item.jabsBonusHitsScopeGlobal;
     const basicHits = item.jabsBonusHitsScopeBasic;

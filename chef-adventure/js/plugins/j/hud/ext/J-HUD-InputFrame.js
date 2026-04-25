@@ -528,7 +528,8 @@ class Sprite_CooldownGauge
       _valueMax: 0,
 
       /**
-       * Highest recent combined cooldown (slot vs GCD) so the bar does not shrink when GCD outlasts the per-skill timer.
+       * Highest recent combined cooldown (slot vs GCD) so the bar does not shrink when GCD outlasts the per-skill
+       * timer.
        * @type {number}
        */
       _gcdHudPeak: 0,
@@ -540,7 +541,8 @@ class Sprite_CooldownGauge
       _gcdMergeBattler: null,
 
       /**
-       * Skill id assigned to this HUD slot; used with {@link JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown} to decide if GCD should merge.
+       * Skill id assigned to this HUD slot; used with
+       * {@link JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown} to decide if GCD should merge.
        * @type {number}
        */
       _gcdMergeSkillId: 0,
@@ -566,8 +568,10 @@ class Sprite_CooldownGauge
   }
 
   /**
-   * Remaining frames on the battler-wide GCD for HUD purposes when merge is armed and the slotted skill is GCD-subject.
-   * Returns zero if J-ABS or {@link JABS_GlobalCooldown} is unavailable, the slot is not merged, or the global timer is ready.
+   * Remaining frames on the battler-wide GCD for HUD purposes when merge is armed and the slotted skill is
+   * GCD-subject.
+   * Returns zero if J-ABS or {@link JABS_GlobalCooldown} is unavailable, the slot is not merged, or the global timer
+   * is ready.
    * @returns {number} Frames left on {@link J.ABS.Globals.GlobalCooldownKey}, or 0 when not applicable.
    */
   globalHudFrames()
@@ -746,7 +750,8 @@ class Sprite_CooldownGauge
   }
 
   /**
-   * Enables the gauge and sets the max value from the greater of the slot cooldown and merged GCD so the bar matches the longer wait.
+   * Enables the gauge and sets the max value from the greater of the slot cooldown and merged GCD so the bar matches
+   * the longer wait.
    * Tracks a peak so the fill rate stays stable when GCD extends past the per-skill countdown.
    */
   enableGauge()
@@ -797,7 +802,8 @@ class Sprite_CooldownGauge
 
   /**
    * Shows or hides the gauge and updates its max from slot cooldown and optional merged GCD.
-   * Hides only when both the slot base cooldown and merged GCD are finished; otherwise keeps the peak max for a smooth drain.
+   * Hides only when both the slot base cooldown and merged GCD are finished; otherwise keeps the peak max for a smooth
+   * drain.
    */
   handleActionReadiness()
   {
@@ -1186,9 +1192,6 @@ class Sprite_InputKeySlot
   {
     // with no leader, we have no inputs to make a cache.
     if (!$gameParty.leader()) return;
-
-    // grab the leader and their battler for doing things.
-    const leader = $gameParty.leader();
 
     // TODO: implement.
   }

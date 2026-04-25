@@ -124,7 +124,6 @@
  */
 //endregion annotations
 
-
 //region plugin metadata
 class JSkillSlots_PluginMetadata
   extends PluginMetadata
@@ -243,7 +242,6 @@ PluginManager.registerCommand(
   });
 //endregion plugin commands
 
-
 //region SkillEquipSlot
 /**
  * Represents a single skill equipped in a slot for an actor.
@@ -267,7 +265,6 @@ function SkillEquipSlot(index, skillId)
 }
 //endregion SkillEquipSlot
 
-
 //region RPG_EquipItem
 /**
  * The modifier to the slot cost of all equipped skills for the owner of this item.
@@ -279,7 +276,6 @@ Object.defineProperty(RPG_EquipItem.prototype, 'slotCostModifier', {
   }
 });
 //endregion RPG_EquipItem
-
 
 /**
  * The slot cost for this equip skill.
@@ -800,7 +796,6 @@ Game_Actor.prototype.onSkillUnequipChange = function(slotIndex, skillId)
 //endregion event hooks
 
 //endregion Game_Actor
-
 
 //region Scene_SkillEquip
 /**
@@ -1613,7 +1608,6 @@ class Scene_SkillEquip
 }
 
 //endregion Scene_SkillEquip
-
 
 //region Window_SkillEquipDetail
 /**

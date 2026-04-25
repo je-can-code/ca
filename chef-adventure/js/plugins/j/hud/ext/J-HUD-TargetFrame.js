@@ -1063,7 +1063,7 @@ Game_Event.prototype.getTargetFrameText = function()
   commentCommands.forEach(command =>
   {
     // shorthand the comment into a variable.
-    const comment = command.parameters[0];
+    const [comment] = command.parameters;
 
     // check if any comment matches the structure.
     if (structure.test(comment))
@@ -1100,7 +1100,7 @@ Game_Event.prototype.getTargetFrameIcon = function()
   commentCommands.forEach(command =>
   {
     // shorthand the comment into a variable.
-    const comment = command.parameters[0];
+    const [comment] = command.parameters;
 
     // check if any comment matches the structure.
     if (structure.test(comment))
@@ -1137,7 +1137,7 @@ Game_Event.prototype.canShowTargetFrame = function()
   commentCommands.forEach(command =>
   {
     // shorthand the comment into a variable.
-    const line = command.parameters[0];
+    const [line] = command.parameters;
 
     // check if any line matches the structure.
     if (structure.test(line))
@@ -1174,7 +1174,7 @@ Game_Event.prototype.showTargetHpBar = function()
   commentCommands.forEach(command =>
   {
     // shorthand the comment into a variable.
-    const line = command.parameters[0];
+    const [line] = command.parameters;
 
     // check if any line matches the structure.
     if (structure.test(line))
@@ -1211,7 +1211,7 @@ Game_Event.prototype.showTargetMpBar = function()
   commentCommands.forEach(command =>
   {
     // shorthand the comment into a variable.
-    const line = command.parameters[0];
+    const [line] = command.parameters;
 
     // check if any line matches the structure.
     if (structure.test(line))
@@ -1248,7 +1248,7 @@ Game_Event.prototype.showTargetTpBar = function()
   commentCommands.forEach(command =>
   {
     // shorthand the comment into a variable.
-    const line = command.parameters[0];
+    const [line] = command.parameters;
 
     // check if any line matches the structure.
     if (structure.test(line))
@@ -1285,7 +1285,7 @@ Game_Event.prototype.showTargetText = function()
   commentCommands.forEach(command =>
   {
     // shorthand the comment into a variable.
-    const line = command.parameters[0];
+    const [line] = command.parameters;
 
     // check if any line matches the structure.
     if (structure.test(line))
@@ -2358,7 +2358,8 @@ class Sprite_FlowingGauge
    * @param {number} rectW The width of the scan rectangle.
    * @param {number} rectH The height of the scan rectangle.
    * @param {number} maxDarkSum Inclusive ceiling on r+g+b for a pixel to count as trough (caps sit above this).
-   * @returns {{minX:number,maxX:number}} Inclusive span of the best run in the same local x space as {@link measureBrightHorizontalExtent}.
+   * @returns {{minX:number,maxX:number}} Inclusive span of the best run in the same local x space as
+   * {@link measureBrightHorizontalExtent}.
    */
   measureLongestOpaqueDarkHorizontalRun(bitmap, rectX, rectY, rectW, rectH, maxDarkSum)
   {
@@ -2506,7 +2507,8 @@ class Window_TargetFrame
     this._j._name = String.empty;
 
     /**
-     * When set, {@link #drawTargetName} tints the line with this `#RRGGBB` before `drawTextEx` (Passive-ABS tier stripe hex).
+     * When set, {@link #drawTargetName} tints the line with this `#RRGGBB` before `drawTextEx` (Passive-ABS tier stripe
+     * hex).
      * @type {string|String.empty}
      */
     this._j._nameColorHex = String.empty;

@@ -827,8 +827,8 @@ JABS_Battler.prototype.getChargingTiers = function(slot)
   // grab the underlying battler.
   const battler = this.getBattler();
 
-  // start with a default of 0.
-  let skillId = 0;
+  // resolved from last-used or equipped slot.
+  let skillId;
 
   // check if we have a
   if (this.getLastUsedSkillId())
@@ -1792,7 +1792,11 @@ JABS_StandardController.prototype.isCombatAction1Charging = function()
   if (!this.isCombatSkillUsageEnabled()) return false;
 
   // or just the single-button input to be held down.
-  if (Input.isPressed(J.ABS.EXT.INPUT.Symbols.Mainhand) || Input.isPressed(J.ABS.EXT.INPUT.Symbols.CombatSkill1)) return true;
+  if (Input.isPressed(J.ABS.EXT.INPUT.Symbols.Mainhand)
+    || Input.isPressed(J.ABS.EXT.INPUT.Symbols.CombatSkill1))
+  {
+    return true;
+  }
 
   // inputs are not being held down.
   return false;
@@ -1861,7 +1865,11 @@ JABS_StandardController.prototype.isCombatAction2Charging = function()
   if (!this.isCombatSkillUsageEnabled()) return false;
 
   // or just the single-button input to be held down.
-  if (Input.isPressed(J.ABS.EXT.INPUT.Symbols.Offhand) || Input.isPressed(J.ABS.EXT.INPUT.Symbols.CombatSkill2)) return true;
+  if (Input.isPressed(J.ABS.EXT.INPUT.Symbols.Offhand)
+    || Input.isPressed(J.ABS.EXT.INPUT.Symbols.CombatSkill2))
+  {
+    return true;
+  }
 
   // inputs are not being held down.
   return false;
@@ -1930,7 +1938,11 @@ JABS_StandardController.prototype.isCombatAction3Charging = function()
   if (!this.isCombatSkillUsageEnabled()) return false;
 
   // or just the single-button input to be held down.
-  if (Input.isPressed(J.ABS.EXT.INPUT.Symbols.Dash) || Input.isPressed(J.ABS.EXT.INPUT.Symbols.CombatSkill3)) return true;
+  if (Input.isPressed(J.ABS.EXT.INPUT.Symbols.Dash)
+    || Input.isPressed(J.ABS.EXT.INPUT.Symbols.CombatSkill3))
+  {
+    return true;
+  }
 
   // inputs are not being held down.
   return false;
@@ -1999,7 +2011,11 @@ JABS_StandardController.prototype.isCombatAction4Charging = function()
   if (!this.isCombatSkillUsageEnabled()) return false;
 
   // or just the single-button input to be held down.
-  if (Input.isPressed(J.ABS.EXT.INPUT.Symbols.Tool) || Input.isPressed(J.ABS.EXT.INPUT.Symbols.CombatSkill4)) return true;
+  if (Input.isPressed(J.ABS.EXT.INPUT.Symbols.Tool)
+    || Input.isPressed(J.ABS.EXT.INPUT.Symbols.CombatSkill4))
+  {
+    return true;
+  }
 
   // inputs are not being held down.
   return false;

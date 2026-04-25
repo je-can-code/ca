@@ -1651,7 +1651,10 @@ Game_Character.prototype.addTextPop = function(textPop)
 
   if (J.POPUPS.isValidTextPopForQueue(textPop) === false)
   {
-    console.warn(`[${J.POPUPS.Metadata.Name}] addTextPop rejected invalid Map_TextPop (bad type or layoutRing).`, textPop);
+    console.warn(
+      `[${J.POPUPS.Metadata.Name}] addTextPop rejected invalid Map_TextPop (bad type or layoutRing).`,
+      textPop,
+    );
     return;
   }
 
@@ -1686,7 +1689,6 @@ Game_Character.prototype.clearPendingTextPops = function()
   this.emptyDamagePops();
 };
 //endregion Game_Character
-
 
 //region Sprite_Character
 /**
@@ -2243,7 +2245,8 @@ Sprite_Damage.prototype.repositionChildren = function()
 {
   const icon = this._j._popups._iconSprite;
   // find the text sprite (it's the one with the large bitmap).
-  const text = this.children.find(child => child !== icon && child.bitmap && child.bitmap.width === J.POPUPS.Layout.ValueBitmapWidth);
+  const text = this.children.find(child =>
+    child !== icon && child.bitmap && child.bitmap.width === J.POPUPS.Layout.ValueBitmapWidth);
 
   if (icon && text)
   {

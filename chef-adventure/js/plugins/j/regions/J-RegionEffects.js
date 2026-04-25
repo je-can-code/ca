@@ -129,13 +129,17 @@ J.REGIONS.Helpers.translateRegionIds = regionsBlob =>
  * The global region ids that allow passage on all maps.
  * @type {number[]}
  */
-J.REGIONS.Metadata.GlobalAllowRegions = J.REGIONS.Helpers.translateRegionIds(J.REGIONS.PluginParameters["globalAllowRegions"]);
+J.REGIONS.Metadata.GlobalAllowRegions = J.REGIONS.Helpers.translateRegionIds(
+  J.REGIONS.PluginParameters["globalAllowRegions"],
+);
 
 /**
  * The global region ids that deny passage on all maps.
  * @type {number[]}
  */
-J.REGIONS.Metadata.GlobalDenyRegions = J.REGIONS.Helpers.translateRegionIds(J.REGIONS.PluginParameters["globalDenyRegions"]);
+J.REGIONS.Metadata.GlobalDenyRegions = J.REGIONS.Helpers.translateRegionIds(
+  J.REGIONS.PluginParameters["globalDenyRegions"],
+);
 //endregion metadata
 
 /**

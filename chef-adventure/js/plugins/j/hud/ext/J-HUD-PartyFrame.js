@@ -467,8 +467,8 @@ class Sprite_ActorValue
    */
   hasParameterChanged()
   {
-    // default to "changed" in case we do not match a parameter.
-    let changed = true;
+    // each gauge case assigns before return; unknown types fall through to false.
+    let changed;
 
     const actor = this.getActor();
 

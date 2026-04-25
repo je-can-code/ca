@@ -257,6 +257,7 @@ class ResourceHitManager
    * @param {JABS_Action} action The action that landed.
    * @param {JABS_Battler} target The battler that was hit.
    */
+  // eslint-disable-next-line no-unused-vars
   static applyOnAttackEffects(action, target)
   {
     const caster = action.getCaster()

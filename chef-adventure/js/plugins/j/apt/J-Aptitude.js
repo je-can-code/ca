@@ -1013,11 +1013,9 @@ if (J.ABS)
 // Aptitude Map_TextPop type additions live in J-Popups-APT (popups/ext/apt).
 //endregion Map_TextPop
 
-
 //region TextPopBuilder
 // Aptitude popup builder methods live in J-Popups-APT (popups/ext/apt).
 //endregion TextPopBuilder
-
 
 //region RPG_Base
 /**
@@ -3369,7 +3367,7 @@ class Window_AptitudeAggregateDetails
         .hasSkill(sourceProgress.skillId());
 
     // decide the right-side text content.
-    let rightText = '';
+    let rightText;
     if (learned === true)
     {
       // if learned from this source, show DONE.
@@ -4033,8 +4031,8 @@ class Window_AptitudeSourceDetails
     // advance y.
     y += this.lineHeight();
 
-    // default the description to an empty string.
-    let description = String.empty;
+    // filled per source kind below.
+    let description;
 
     // actors use their profile as the description.
     if (source.isActor())
@@ -4159,7 +4157,7 @@ class Window_AptitudeSourceDetails
         .hasSkill(skillId);
 
     // decide the right-side text content.
-    let rightText = '';
+    let rightText;
     if (learned === true)
     {
       // if learned from this source, show DONE.

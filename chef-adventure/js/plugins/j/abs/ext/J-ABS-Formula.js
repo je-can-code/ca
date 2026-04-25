@@ -677,6 +677,7 @@ J.ABS.EXT.FORMULA.RegExp.SkillApply =
 /**
  * Plugin command for doing the thing.
  */
+// eslint-disable-next-line no-unused-vars
 PluginManager.registerCommand(J.ABS.EXT.FORMULA.Metadata.name, "do-the-thing", args =>
 {
   console.log('did the thing.');
@@ -1014,7 +1015,7 @@ Game_Action.prototype.evaluateFormula = function(formula, source, recipient, ite
   const i = item;
   /* eslint-enable no-unused-vars */
 
-  let result = 0;
+  let result;
   try
   {
     result = eval(formula);
@@ -1157,7 +1158,10 @@ Game_Action.prototype.pipeFormulaThroughBattleCalculations = function(target, ma
 
   // 2) critical only for damage and only if parent was critical (on-hit context).
   const targetResult = target.result();
-  if (isDamage && J.ABS.EXT.FORMULA.Context.activeTrigger === FormulaEffect.Trigger.HIT && targetResult && targetResult.critical)
+  if (isDamage
+    && J.ABS.EXT.FORMULA.Context.activeTrigger === FormulaEffect.Trigger.HIT
+    && targetResult
+    && targetResult.critical)
   {
     value = this.applyCritical(value);
   }
@@ -1213,6 +1217,7 @@ Game_Action.prototype.pipeFormulaThroughBattleCalculations = function(target, ma
  * @param {"hp"|"mp"|"tp"} resource The resource being healed.
  * @returns {number} The REC-adjusted, rounded healing amount.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Action.prototype.applyResourceHealingWithRecovery = function(target, magnitude, resource)
 {
   let healed = magnitude * target.rec;
@@ -1229,6 +1234,7 @@ Game_Action.prototype.applyResourceHealingWithRecovery = function(target, magnit
  * @param {Game_Battler} recipient The recipient of the child skill.
  * @param {Game_Battler} parentTarget The original parent action’s primary target.
  */
+// eslint-disable-next-line no-unused-vars
 Game_Action.prototype.executeChildSkillPacket = function(effect, recipient, parentTarget)
 {
   // look up the child skill.
@@ -1276,7 +1282,8 @@ Game_Action.prototype.executeChildSkillPacket = function(effect, recipient, pare
  * @param {"hp"|"mp"|"tp"} resource Which resource this packet targeted.
  */
 // eslint-disable-next-line no-unused-vars
-Game_Action.prototype.onFormulaResourceDelta = function(recipient, amount, resource) {};
+Game_Action.prototype.onFormulaResourceDelta = function(recipient, amount, resource) 
+{};
 
 /**
  * Generates an action log entry for FORMULA and child-skill packets for any resource.

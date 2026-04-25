@@ -224,7 +224,6 @@ J.REGIONS.EXT.STATES.Aliased.Game_System = new Map();
 J.REGIONS.EXT.STATES.RegExp = {};
 J.REGIONS.EXT.STATES.RegExp.RegionState = /<regionAddState:[ ]?(\[\d+, ?\d+, ?\d+, ?\d+])>/gi;
 
-
 //region Game_Character
 /**
  * Extends {@link #initMembers}.<br>

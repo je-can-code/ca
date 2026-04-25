@@ -224,7 +224,7 @@ J.DROPS.Aliased = {
 RPG_DropItem.prototype.toImplementation = function()
 {
   // define the source to pull the item from.
-  let source = [];
+  let source;
 
   // pivot on the kind of drop item this is.
   switch (this.kind)
@@ -513,7 +513,7 @@ class DropsPartyStrategy
 Game_Actor.prototype.getDropMultiplierBonus = function()
 {
   // define the base multiplier.
-  let baseMultiplier = 0;
+  const baseMultiplier = 0;
 
   // grab all the notes.
   const objectsToCheck = this.getAllNotes();
@@ -535,7 +535,7 @@ Game_Actor.prototype.getDropMultiplierBonus = function()
 Game_Actor.prototype.getGoldMultiplier = function()
 {
   // define the base multiplier.
-  let baseMultiplier = 0;
+  const baseMultiplier = 0;
 
   // grab all the notes.
   const objectsToCheck = this.getAllNotes();

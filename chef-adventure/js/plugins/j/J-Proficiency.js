@@ -414,13 +414,9 @@ class J_ProficiencyPluginMetadata
     super(name, version);
   }
 
-  postInitialize()
-  {
-    super.postInitialize();
-
-    this.initializeProficiencies();
-  }
-
+  /**
+   * Initializes the proficiencies from database and external data.
+   */
   initializeProficiencies()
   {
     const rawConfig = StorageManager.fsReadFile(J_ProficiencyPluginMetadata.CONFIG_PATH);
@@ -438,9 +434,7 @@ class J_ProficiencyPluginMetadata
     }
     catch (e)
     {
-      throw new Error(
-        `Failed to parse JSON at ${J_ProficiencyPluginMetadata.CONFIG_PATH}: ${e.message}`,
-      );
+      throw new Error(`Failed to parse JSON at ${J_ProficiencyPluginMetadata.CONFIG_PATH}: ${e.message}`,);
     }
 
     if (parsedConditionals === null)
@@ -463,23 +457,24 @@ class J_ProficiencyPluginMetadata
      * @type {Map<number, ProficiencyConditional[]>}
      */
     this.actorConditionalsMap = new Map();
-    // TODO: fix this!
-    [ 1, 2, 3, 4, 5, 6 ].forEach(actorId =>
-    {
-      this.actorConditionalsMap.set(actorId, Array.empty);
-    });
 
+    // iterate over the actors to initialize their conditional maps.
+    $dataActors.filter(actor => !!actor)
+      .forEach(actor => this.actorConditionalsMap.set(actor.id, Array.empty));
 
+    // iterate over the identified conditionals.
     this.conditionals.forEach(conditional =>
     {
+      // iterate over each conditional's actorId.
       conditional.actorIds.forEach(actorId =>
       {
+        // add the conditional to the actor's map.
         const data = this.actorConditionalsMap.get(actorId);
         data.push(conditional);
-        this.actorConditionalsMap.set(actorId, data);
       });
     });
 
+    // check if we're allowed to show the loading information before showing it.
     if (J.BASE.Metadata.ShowExternalFileLoadInfo)
     {
       console.log(`loaded:
@@ -518,6 +513,7 @@ J.PROF.Aliased = {
   Game_System: new Map(),
 
   IconManager: new Map(),
+  Scene_Boot: new Map(),
   TextManager: new Map(),
 };
 
@@ -1207,6 +1203,7 @@ Game_Battler.prototype.skillProficiencies = function()
  * @param {number} skillId The id of the skill to get proficiency for.
  * @returns {SkillProficiency|null}
  */
+// eslint-disable-next-line no-unused-vars
 Game_Battler.prototype.skillProficiencyBySkillId = function(skillId)
 {
   return null;
@@ -1393,5 +1390,23 @@ Game_System.prototype.updateProficienciesFromPluginMetadata = function()
       J.PROF.Metadata.actorConditionalsMap.set(actorId, actorConditionals);
     });
 };
+
+//region Scene_Boot
+/**
+ * Extends {@link #onDatabaseLoaded}.<br/>
+ * Initializes the proficiency data.
+ */
+J.PROF.Aliased.Scene_Boot.set('onDatabaseLoaded', Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function ()
+{
+  // perform original logic.
+  J.PROF.Aliased.Scene_Boot.get('onDatabaseLoaded')
+    .call(this);
+
+  // initialize the proficiency data.
+  J.PROF.Metadata.initializeProficiencies();
+};
+
+//endregion Scene_Boot
 
 //# sourceMappingURL=J-Proficiency.js.map
