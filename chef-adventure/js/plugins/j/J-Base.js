@@ -3963,6 +3963,153 @@ DataManager.setupBattleTest = function()
 //endregion caching
 //endregion DataManager
 
+//region ExternalJsonConfigLoader
+/**
+ * A centralized loader for external JSON configuration files in the project.
+ *
+ * This is intended to eliminate duplicated "read file → guard null/empty → JSON.parse try/catch → validate → classify"
+ * boilerplate across plugin metadata initializers.
+ *
+ * This loader is deliberately "domain-agnostic": it knows how to read and parse JSON, but it does not know what the
+ * JSON means. Callers can provide a validator and/or mapper to enforce plugin-specific shapes and transform the parsed
+ * blob into a classified result.
+ */
+// eslint-disable-next-line no-unused-vars
+class ExternalJsonConfigLoader
+{
+  /**
+   * Loads, parses, validates, and optionally maps JSON configuration from a project-relative path.
+   * @template TConfigJson The raw JSON shape after {@link JSON.parse}.
+   * @template TConfigResult The optional mapped/classified result shape.
+   * @param {string} configPath Project-relative path, ex: `data/config.sdp.json`.
+   * @param {ExternalJsonConfigLoaderOptions<TConfigJson, TConfigResult>=} options Additional options to customize
+   * behavior.
+   * @returns {TConfigResult|TConfigJson} The parsed JSON blob, or mapped result if a mapper was provided.
+   */
+  static load(configPath, options = null)
+  {
+    const actualOptions = options ?? new ExternalJsonConfigLoaderOptions();
+
+    // read the raw json text from the filesystem.
+    const rawConfig = StorageManager.fsReadFile(configPath);
+
+    // missing or empty config is a fatal error for plugins that rely on external configuration.
+    if (rawConfig === null || rawConfig === String.empty)
+    {
+      throw this.#missingConfigError(configPath, actualOptions.pluginName, actualOptions.configName);
+    }
+
+    // parse the json in a way that always includes the file path.
+    let parsed;
+    try
+    {
+      parsed = /** @type {TConfigJson} */ (JSON.parse(rawConfig));
+    }
+    catch (e)
+    {
+      const prefix = this.#errorPrefix(actualOptions.pluginName, actualOptions.configName);
+      throw new Error(`${prefix}failed to parse JSON at ${configPath}: ${e.message}`);
+    }
+
+    // json can parse to null; treat that the same as "missing", because downstream logic expects an object/array.
+    if (parsed === null)
+    {
+      throw this.#missingConfigError(configPath, actualOptions.pluginName, actualOptions.configName);
+    }
+
+    // if provided, validate the parsed blob before mapping/classifying.
+    if (actualOptions.validator)
+    {
+      try
+      {
+        actualOptions.validator(parsed);
+      }
+      catch (e)
+      {
+        const prefix = this.#errorPrefix(actualOptions.pluginName, actualOptions.configName);
+        throw new Error(`${prefix}invalid JSON config at ${configPath}: ${e.message}`);
+      }
+    }
+
+    // map/classify the parsed blob when requested.
+    const result = actualOptions.mapper
+      ? actualOptions.mapper(parsed)
+      : parsed;
+
+    // optionally log what was loaded, if enabled at the base level.
+    if (J.BASE.Metadata.ShowExternalFileLoadInfo)
+    {
+      this.#logLoadInfo(configPath, result, actualOptions.logSummary);
+    }
+
+    // return the parsed blob or mapped result.
+    return result;
+  }
+
+  /**
+   * Builds and returns a standardized "missing config" Error.
+   * @param {string} configPath The path that was attempted.
+   * @param {string=} pluginName The plugin name for message context.
+   * @param {string=} configName The config name for message context.
+   * @returns {Error}
+   */
+  static #missingConfigError(configPath, pluginName, configName)
+  {
+    const prefix = this.#errorPrefix(pluginName, configName);
+    const label = configName ?? 'configuration';
+    return new Error(`${prefix}missing ${label} file at ${configPath}.`);
+  }
+
+  /**
+   * Builds a consistent prefix for all errors emitted by this loader.
+   * @param {string=} pluginName The plugin name for message context.
+   * @param {string=} configName The config name for message context.
+   * @returns {string}
+   */
+  static #errorPrefix(pluginName, configName)
+  {
+    // build the context prefix.
+    const parts = [];
+    if (pluginName) parts.push(pluginName);
+    if (configName) parts.push(configName);
+
+    // if we have no context, then don't add one.
+    if (parts.length === 0) return String.empty;
+
+    // return the bracketed prefix with a trailing space.
+    return `[${parts.join('::')}] `;
+  }
+
+  /**
+   * Logs informational details about what was loaded from disk.
+   * @param {string} configPath The project-relative config path.
+   * @param {any} result The result of loading (parsed or mapped).
+   * @param {(result: any) => string|string[]=} logSummary Optional summary builder.
+   */
+  static #logLoadInfo(configPath, result, logSummary)
+  {
+    // if a summary builder was provided, use it.
+    if (logSummary)
+    {
+      const built = logSummary(result);
+      const lines = Array.isArray(built)
+        ? built
+        : [ built ];
+
+      console.log(`loaded:
+${lines.map(line => `      ${line}`)
+    .join('\n')}
+      from file ${configPath}.`);
+      return;
+    }
+
+    // without a summary, fall back to a minimal single-line log.
+    console.log(`loaded external JSON from file ${configPath}.`);
+  }
+}
+
+//endregion ExternalJsonConfigLoader
+
 //region Graphics
 /**
  * The horizontal padding between {@link Graphics.width} and {@link Graphics.boxWidth}.<br>
@@ -6829,6 +6976,198 @@ class BuiltWindowCommand
 
   //endregion getters
 }
+
+//region ExternalJsonConfigLoaderOptions
+/**
+ * The options for {@link ExternalJsonConfigLoader.load}.<br>
+ * This exists to avoid anonymous option objects throughout the codebase.
+ * @template TConfigJson The raw JSON shape after {@link JSON.parse}.
+ * @template TConfigResult The optional mapped/classified result shape.
+ */
+class ExternalJsonConfigLoaderOptions
+{
+  /**
+   * A factory for generating {@link ExternalJsonConfigLoaderOptions}.<br>
+   * @returns {ExternalJsonConfigLoaderOptionsBuilder}
+   * @constructor
+   */
+  static Builder = () => new ExternalJsonConfigLoaderOptionsBuilder();
+
+  /**
+   * The plugin name used for error context.
+   * @type {string|null}
+   */
+  pluginName = null;
+
+  /**
+   * A friendly label for the config used for error context.
+   * @type {string|null}
+   */
+  configName = null;
+
+  /**
+   * Optional validator; throw an Error to reject the parsed blob.
+   * @type {((parsed: TConfigJson) => void)|null}
+   */
+  validator = null;
+
+  /**
+   * Optional mapper/classifier for transforming the parsed blob.
+   * @type {((parsed: TConfigJson) => TConfigResult)|null}
+   */
+  mapper = null;
+
+  /**
+   * Optional log builder when info logging is enabled.
+   * @type {((result: TConfigResult|TConfigJson) => (string|string[]))|null}
+   */
+  logSummary = null;
+
+  /**
+   * Constructor.
+   * @param {string=} pluginName The plugin name used for error context.
+   * @param {string=} configName A friendly label for the config used for error context.
+   */
+  constructor(pluginName = null, configName = null)
+  {
+    this.pluginName = pluginName;
+    this.configName = configName;
+  }
+}
+
+//region ExternalJsonConfigLoaderOptionsBuilder
+/**
+ * A builder for {@link ExternalJsonConfigLoaderOptions}.<br>
+ * Exists to keep configuration setup explicit and chainable.
+ * @template TConfigJson The raw JSON shape after {@link JSON.parse}.
+ * @template TConfigResult The optional mapped/classified result shape.
+ */
+class ExternalJsonConfigLoaderOptionsBuilder
+{
+  //region properties
+  /**
+   * The plugin name used for error context.
+   * @type {string|null}
+   */
+  #pluginName = null;
+
+  /**
+   * A friendly label for the config used for error context.
+   * @type {string|null}
+   */
+  #configName = null;
+
+  /**
+   * Optional validator; throw an Error to reject the parsed blob.
+   * @type {((parsed: TConfigJson) => void)|null}
+   */
+  #validator = null;
+
+  /**
+   * Optional mapper/classifier for transforming the parsed blob.
+   * @type {((parsed: TConfigJson) => TConfigResult)|null}
+   */
+  #mapper = null;
+
+  /**
+   * Optional log builder when info logging is enabled.
+   * @type {((result: TConfigResult|TConfigJson) => (string|string[]))|null}
+   */
+  #logSummary = null;
+
+  //endregion properties
+
+  /**
+   * Builds the {@link ExternalJsonConfigLoaderOptions}.
+   * @returns {ExternalJsonConfigLoaderOptions<TConfigJson, TConfigResult>}
+   */
+  build()
+  {
+    // build the options model from the provided parameters.
+    const options = new ExternalJsonConfigLoaderOptions(this.#pluginName, this.#configName);
+    options.validator = this.#validator;
+    options.mapper = this.#mapper;
+    options.logSummary = this.#logSummary;
+
+    // clear the builder parameters.
+    this.#clear();
+
+    // return the newly-built options.
+    return options;
+  }
+
+  //region setters
+  /**
+   * Sets the plugin name used for error context.
+   * @param {string|null} pluginName The plugin name.
+   * @returns {ExternalJsonConfigLoaderOptionsBuilder}
+   */
+  pluginName(pluginName)
+  {
+    this.#pluginName = pluginName;
+    return this;
+  }
+
+  /**
+   * Sets the config name used for error context.
+   * @param {string|null} configName The config name.
+   * @returns {ExternalJsonConfigLoaderOptionsBuilder}
+   */
+  configName(configName)
+  {
+    this.#configName = configName;
+    return this;
+  }
+
+  /**
+   * Sets the validator callback used for rejecting invalid parsed blobs.
+   * @param {((parsed: TConfigJson) => void)|null} validator The validator callback.
+   * @returns {ExternalJsonConfigLoaderOptionsBuilder<TConfigJson, TConfigResult>}
+   */
+  validator(validator)
+  {
+    this.#validator = validator;
+    return this;
+  }
+
+  /**
+   * Sets the mapper/classifier callback used for transforming parsed blobs.
+   * @param {((parsed: TConfigJson) => TConfigResult)|null} mapper The mapper callback.
+   * @returns {ExternalJsonConfigLoaderOptionsBuilder<TConfigJson, TConfigResult>}
+   */
+  mapper(mapper)
+  {
+    this.#mapper = mapper;
+    return this;
+  }
+
+  /**
+   * Sets the log summary callback used for information logs.
+   * @param {((result: TConfigResult|TConfigJson) => (string|string[]))|null} logSummary The summary callback.
+   * @returns {ExternalJsonConfigLoaderOptionsBuilder<TConfigJson, TConfigResult>}
+   */
+  logSummary(logSummary)
+  {
+    this.#logSummary = logSummary;
+    return this;
+  }
+
+  //endregion setters
+
+  /**
+   * Clears the data in the builder.
+   */
+  #clear()
+  {
+    this.#pluginName = null;
+    this.#configName = null;
+    this.#validator = null;
+    this.#mapper = null;
+    this.#logSummary = null;
+  }
+}
+//endregion ExternalJsonConfigLoaderOptionsBuilder
+//endregion ExternalJsonConfigLoaderOptions
 
 //region GaugeOptionsBuilder
 /**

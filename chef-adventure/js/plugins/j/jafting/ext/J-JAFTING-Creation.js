@@ -1586,34 +1586,21 @@ class J_CraftingCreatePluginMetadata
    */
   initializeConfiguration()
   {
-    const rawConfig = StorageManager.fsReadFile(J_CraftingCreatePluginMetadata.CONFIG_PATH);
-    if (rawConfig === null || rawConfig === '')
-    {
-      console.error('no crafting configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('Crafting plugin is being used, but no config file is present.');
-    }
-
-    let parsedJson;
-    try
-    {
-      parsedJson = JSON.parse(rawConfig);
-    }
-    catch (e)
-    {
-      throw new Error(
-        `Failed to parse JSON at ${J_CraftingCreatePluginMetadata.CONFIG_PATH}: ${e.message}`,
-      );
-    }
-
-    if (parsedJson === null)
-    {
-      console.error('no crafting configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('Crafting plugin is being used, but no config file is present.');
-    }
-
-    const classifiedCraftingConfig = J_CraftingCreatePluginMetadata.classify(parsedJson);
+    const canLogLoadInfo = J_CraftingCreatePluginMetadata.#hasMinimumBaseVersion();
+    const classifiedCraftingConfig = ExternalJsonConfigLoader.load(
+      J_CraftingCreatePluginMetadata.CONFIG_PATH,
+      ExternalJsonConfigLoaderOptions.Builder()
+        .pluginName('J-JAFTING-Creation')
+        .configName('crafting configuration')
+        .mapper(J_CraftingCreatePluginMetadata.classify.bind(J_CraftingCreatePluginMetadata))
+        .logSummary(canLogLoadInfo
+          ? result => [
+            `- ${result.recipes().length} recipes`,
+            `- ${result.categories().length} categories`,
+          ]
+          : null)
+        .build()
+    );
 
     /**
      * The collection of all defined jafting recipes.
@@ -1644,14 +1631,6 @@ class J_CraftingCreatePluginMetadata
      * @type {Map<string, CraftingCategory>}
      */
     this.categoriesMap = categoriesMap;
-
-    if (J_CraftingCreatePluginMetadata.#hasMinimumBaseVersion() && J.BASE.Metadata.ShowExternalFileLoadInfo)
-    {
-      console.log(`loaded:
-      - ${this.recipes.length} recipes
-      - ${this.categories.length} categories
-      from file ${J_CraftingCreatePluginMetadata.CONFIG_PATH}.`);
-    }
   }
 
   /**

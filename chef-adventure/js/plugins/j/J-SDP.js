@@ -1236,35 +1236,19 @@ class J_SdpPluginMetadata
    */
   initializePanels()
   {
-    const rawConfig = StorageManager.fsReadFile(J_SdpPluginMetadata.CONFIG_PATH);
-    if (rawConfig === null || rawConfig === '')
-    {
-      console.error('no SDP configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('SDP plugin is being used, but no config file is present.');
-    }
-
-    let parsedPanels;
-    try
-    {
-      parsedPanels = JSON.parse(rawConfig);
-    }
-    catch (e)
-    {
-      throw new Error(
-        `Failed to parse JSON at ${J_SdpPluginMetadata.CONFIG_PATH}: ${e.message}`,
-      );
-    }
-
-    if (parsedPanels === null)
-    {
-      console.error('no SDP configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('SDP plugin is being used, but no config file is present.');
-    }
-
     // classify each panel.
-    const classifiedPanels = J_SdpPluginMetadata.classifyPanels(parsedPanels.sdps);
+    const canLogLoadInfo = J_SdpPluginMetadata.#hasMinimumBaseVersion();
+    const classifiedPanels = ExternalJsonConfigLoader.load(
+      J_SdpPluginMetadata.CONFIG_PATH,
+      ExternalJsonConfigLoaderOptions.Builder()
+        .pluginName('J-SDP')
+        .configName('sdp configuration')
+        .mapper(parsed => J_SdpPluginMetadata.classifyPanels(parsed.sdps))
+        .logSummary(canLogLoadInfo
+          ? result => [ `- ${result.length} panels` ]
+          : null)
+        .build()
+    );
 
     /**
      * The collection of all defined SDPs.
@@ -1280,13 +1264,6 @@ class J_SdpPluginMetadata
      * @type {Map<string, StatDistributionPanel>}
      */
     this.panelsMap = panelMap;
-
-    if (J_SdpPluginMetadata.#hasMinimumBaseVersion() && J.BASE.Metadata.ShowExternalFileLoadInfo)
-    {
-      console.log(`loaded:
-      - ${this.panels.length} panels
-      from file ${J_SdpPluginMetadata.CONFIG_PATH}.`);
-    }
   }
 
   initializeMetadata()

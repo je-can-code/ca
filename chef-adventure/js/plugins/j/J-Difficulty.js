@@ -1009,47 +1009,21 @@ class J_DiffPluginMetadata
    */
   initializeDifficulties()
   {
-    const rawConfig = StorageManager.fsReadFile(J_DiffPluginMetadata.CONFIG_PATH);
-    if (rawConfig === null || rawConfig === '')
-    {
-      console.error('no Difficulty configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('Difficulty plugin is being used, but no config file is present.');
-    }
-
-    let parsedDifficulties;
-    try
-    {
-      parsedDifficulties = JSON.parse(rawConfig);
-    }
-    catch (e)
-    {
-      throw new Error(
-        `Failed to parse JSON at ${J_DiffPluginMetadata.CONFIG_PATH}: ${e.message}`,
-      );
-    }
-
-    if (parsedDifficulties === null)
-    {
-      console.error('no Difficulty configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('Difficulty plugin is being used, but no config file is present.');
-    }
-
-    const classifiedMetadatas = J_DiffPluginMetadata.classifyDifficulties(parsedDifficulties);
+    const classifiedMetadatas = ExternalJsonConfigLoader.load(
+      J_DiffPluginMetadata.CONFIG_PATH,
+      ExternalJsonConfigLoaderOptions.Builder()
+        .pluginName('J-Difficulty')
+        .configName('difficulty configuration')
+        .mapper(J_DiffPluginMetadata.classifyDifficulties.bind(J_DiffPluginMetadata))
+        .logSummary(result => [ `- ${result.size} difficulty layers` ])
+        .build()
+    );
 
     /**
      * A map of difficulty layer metadatas by their key.
      * @type {Map<string, DifficultyMetadata>}
      */
     this.allMetadatas = classifiedMetadatas;
-
-    if (J.BASE.Metadata.ShowExternalFileLoadInfo)
-    {
-      console.log(`loaded:
-      - ${this.allMetadatas.size} difficulty layers
-      from file ${J_DiffPluginMetadata.CONFIG_PATH}.`);
-    }
   }
 
   initializeMetadata()

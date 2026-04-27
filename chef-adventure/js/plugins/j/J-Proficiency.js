@@ -419,32 +419,15 @@ class J_ProficiencyPluginMetadata
    */
   initializeProficiencies()
   {
-    const rawConfig = StorageManager.fsReadFile(J_ProficiencyPluginMetadata.CONFIG_PATH);
-    if (rawConfig === null || rawConfig === '')
-    {
-      console.error('no proficiency configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('Proficiency plugin is being used, but no config file is present.');
-    }
-
-    let parsedConditionals;
-    try
-    {
-      parsedConditionals = JSON.parse(rawConfig);
-    }
-    catch (e)
-    {
-      throw new Error(`Failed to parse JSON at ${J_ProficiencyPluginMetadata.CONFIG_PATH}: ${e.message}`,);
-    }
-
-    if (parsedConditionals === null)
-    {
-      console.error('no proficiency configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('Proficiency plugin is being used, but no config file is present.');
-    }
-
-    const classifiedConditionalData = J_ProficiencyPluginMetadata.classifyConditionals(parsedConditionals);
+    const classifiedConditionalData = ExternalJsonConfigLoader.load(
+      J_ProficiencyPluginMetadata.CONFIG_PATH,
+      ExternalJsonConfigLoaderOptions.Builder()
+        .pluginName('J-Proficiency')
+        .configName('proficiency configuration')
+        .mapper(J_ProficiencyPluginMetadata.classifyConditionals.bind(J_ProficiencyPluginMetadata))
+        .logSummary(result => [ `- ${result.length} proficiency conditionals` ])
+        .build()
+    );
 
     /**
      * The collection of all defined skill proficiencies.
@@ -473,14 +456,6 @@ class J_ProficiencyPluginMetadata
         data.push(conditional);
       });
     });
-
-    // check if we're allowed to show the loading information before showing it.
-    if (J.BASE.Metadata.ShowExternalFileLoadInfo)
-    {
-      console.log(`loaded:
-      - ${this.conditionals.length} proficiency conditionals
-      from file ${J_ProficiencyPluginMetadata.CONFIG_PATH}.`);
-    }
   }
 }
 
