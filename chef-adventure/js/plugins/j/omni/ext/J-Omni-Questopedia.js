@@ -2516,33 +2516,21 @@ class J_QUEST_PluginMetadata
 
   initializeQuests()
   {
-    const rawConfig = StorageManager.fsReadFile(J_QUEST_PluginMetadata.CONFIG_PATH);
-    if (rawConfig === null || rawConfig === '')
-    {
-      console.error('no quest configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('OmniQuest plugin is being used, but no config file is present.');
-    }
-
-    /** @type {OmniConfiguration} */
-    let parsedConfiguration;
-    try
-    {
-      parsedConfiguration = JSON.parse(rawConfig);
-    }
-    catch (e)
-    {
-      throw new Error(
-        `Failed to parse JSON at ${J_QUEST_PluginMetadata.CONFIG_PATH}: ${e.message}`,
-      );
-    }
-
-    if (parsedConfiguration === null)
-    {
-      console.error('no quest configuration was found in the /data directory of the project.');
-      console.error('Consider adding configuration using the J-MZ data editor, or hand-writing one.');
-      throw new Error('OmniQuest plugin is being used, but no config file is present.');
-    }
+    const canLogLoadInfo = J_QUEST_PluginMetadata.#hasMinimumBaseVersion();
+    const parsedConfiguration = ExternalJsonConfigLoader.load(
+      J_QUEST_PluginMetadata.CONFIG_PATH,
+      ExternalJsonConfigLoaderOptions.Builder()
+        .pluginName('J-Omni-Questopedia')
+        .configName('quest configuration')
+        .logSummary(canLogLoadInfo
+          ? result => [
+            `- ${result.quests.length} quests`,
+            `- ${result.categories.length} categories`,
+            `- ${result.tags.length} tags`,
+          ]
+          : null)
+        .build()
+    );
 
     const classifiedQuests = J_QUEST_PluginMetadata.classifyQuests(parsedConfiguration.quests);
 
@@ -2590,15 +2578,6 @@ class J_QUEST_PluginMetadata
      * @type {Map<string, OmniTag>}
      */
     this.tagsMap = tagMap;
-
-    if (J_QUEST_PluginMetadata.#hasMinimumBaseVersion() && J.BASE.Metadata.ShowExternalFileLoadInfo)
-    {
-      console.log(`loaded:
-        - ${this.quests.length} quests
-        - ${this.categories.length} categories
-        - ${this.tags.length} tags
-        from file ${J_QUEST_PluginMetadata.CONFIG_PATH}.`);
-    }
   }
 
   /**
