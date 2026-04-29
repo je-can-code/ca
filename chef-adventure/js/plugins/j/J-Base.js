@@ -324,6 +324,7 @@ J.BASE.Aliased = {
   Game_Timer: new Map(),
   Game_System: new Map(),
   Scene_Base: new Map(),
+  Scene_MenuBase: new Map(),
   SoundManager: new Map(),
   Window_Base: new Map(),
   Window_Command: {},
@@ -10452,6 +10453,13 @@ Game_Vehicle.prototype.isVehicle = function()
 };
 //endregion Game_Vehicle
 
+//region Scene_Base
+/**
+ * Default {@link Window#contentsOpacity} for {@link #showModalDimmer} / {@link #buildModalDimmerWindow} (0 = clear,
+ * 255 = strongest tint). Raise for heavier dim; override with {@link #showModalDimmer}'s first argument per call.
+ */
+Scene_Base.MODAL_DIMMER_CONTENTS_OPACITY_DEFAULT = 200;
+
 /**
  * Extends {@link #initialize}.<br>
  * Adds extension for initializing custom members for scenes.
@@ -10469,9 +10477,108 @@ Scene_Base.prototype.initialize = function()
 
 /**
  * Initialize any additional custom members for this scene.
+ * This runs once per scene instance; child scenes that override should call <code>super.initMembers</code> first.
  */
 Scene_Base.prototype.initMembers = function()
 {
+  this._j ||= {};
+
+  /**
+   * Lazy-built on first {@link #getModalDimmerWindow}; {@link Scene_Boot} runs {@link #initMembers} before
+   * {@link $gameSystem} exists, so constructing {@link Window_Base} during init would crash in
+   * {@link Window_Base#resetFontSettings}.
+   * @type {Window_Dimmer|null}
+   */
+  this._j._modalDimmerWindow = null;
+};
+
+/**
+ * Allocates the modal dimmer window; only call once {@link $gameSystem} is ready (after boot finishes loading
+ * database).
+ *
+ * @returns {Window_Dimmer} Hidden until {@link #showModalDimmer} runs.
+ */
+Scene_Base.prototype.buildModalDimmerWindow = function()
+{
+  const rect = new Rectangle(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+  const win = new Window_Dimmer(rect);
+  win.visible = false;
+
+  // {@link Window#opacity} only drives {@link Window#_container} (frame/back). The black fill lives in
+  // {@link Window#_clientArea}, so dim strength must use {@link Window#contentsOpacity}.
+  win.contentsOpacity = Scene_Base.MODAL_DIMMER_CONTENTS_OPACITY_DEFAULT;
+
+  return win;
+};
+
+/**
+ * Gets the shared modal dimmer window for this scene, creating it on first use when the engine data layer is live.
+ *
+ * @returns {Window_Dimmer} The dimmer overlay window.
+ */
+Scene_Base.prototype.getModalDimmerWindow = function()
+{
+  if (this._j._modalDimmerWindow === null)
+  {
+    this._j._modalDimmerWindow = this.buildModalDimmerWindow();
+  }
+
+  return this._j._modalDimmerWindow;
+};
+
+/**
+ * Parents the dimmer into {@link Scene_Base#_windowLayer} immediately before the anchor so {@link WindowLayer} draws it
+ * above earlier windows but below that anchor sibling.
+ *
+ * @param {Window} anchorWindow The window that must remain visually above the dimmer (the modal itself).
+ */
+Scene_Base.prototype.ensureModalDimmerBeforeWindow = function(anchorWindow)
+{
+  const dimmer = this.getModalDimmerWindow();
+  const wl = this._windowLayer;
+
+  if (dimmer.parent !== null)
+  {
+    dimmer.parent.removeChild(dimmer);
+  }
+
+  const insertAt = wl.getChildIndex(anchorWindow);
+
+  wl.addChildAt(dimmer, insertAt);
+};
+
+/**
+ * Turns the dimmer on for scenes that already built {@link Scene_Base#_windowLayer}.
+ *
+ * @param {number} opacity Final {@link Window#contentsOpacity} after clamping (tint strength on the black fill).
+ * @param {Window} layerAboveWindow Window that must stay above the dimmer (confirmation, shop prompt, etc.).
+ */
+Scene_Base.prototype.showModalDimmer = function(
+  opacity = Scene_Base.MODAL_DIMMER_CONTENTS_OPACITY_DEFAULT,
+  layerAboveWindow)
+{
+  this.ensureModalDimmerBeforeWindow(layerAboveWindow);
+
+  const win = this.getModalDimmerWindow();
+
+  win.contentsOpacity = opacity.clamp(0, 255);
+  win.show();
+  win.openness = 255;
+  win.visible = true;
+  win.refresh();
+};
+
+/**
+ * Hides the dimmer without destroying the window so the next modal can reuse it.
+ */
+Scene_Base.prototype.hideModalDimmer = function()
+{
+  if (this._j._modalDimmerWindow === null)
+  {
+    return;
+  }
+
+  this._j._modalDimmerWindow.visible = false;
 };
 
 /**
@@ -10481,6 +10588,8 @@ Scene_Base.prototype.callScene = function()
 {
   SceneManager.push(this);
 };
+
+//endregion Scene_Base
 
 //region Sprite_BaseText
 /**
@@ -12252,6 +12361,336 @@ Window_Base.prototype.setFontSize = function(fontSize)
   this.contents.fontSize = normalizedFontSize;
 };
 
+/**
+ * Wraps text with `\\C[colorIndex]…\\C[0]` for {@link Window_Base#drawTextEx} (same idea as {@link #boldenText}).
+ * @param {number} colorIndex Palette index for the opening `\\C` code.
+ * @param {string} text Inner text.
+ * @returns {string} Tinted fragment; reset keeps later text from inheriting the color.
+ */
+Window_Base.prototype.colorizeText = function(colorIndex, text)
+{
+  return `\\C[${colorIndex}]${text}\\C[0]`;
+};
+
+/**
+ * Wraps the given text with a font-size modifier shorthand.
+ * @param {number} modifier The size modification.
+ * @param {string} text The text to modify size for.
+ * @returns {string} The fontsize modified text like this: `\\FS[${number}]${string}\\FS[${number}]`
+ */
+Window_Base.prototype.modFontSizeForText = function(modifier, text)
+{
+  const currentFontSize = this.contents.fontSize;
+
+  const modifiedFontSize = currentFontSize + modifier;
+
+  return `\\FS[${modifiedFontSize}]${text}\\FS[${currentFontSize}]`;
+};
+
+//region font style + escape codes
+/**
+ * Extends text analysis to check for our custom escape codes, too.
+ *
+ * This enables bold and italics parsing for {@link Window_Base.prototype.drawTextEx}
+ * globally via `\\*` and `\\_`.
+ */
+J.BASE.Aliased.Window_Base.set('obtainEscapeCode', Window_Base.prototype.obtainEscapeCode);
+Window_Base.prototype.obtainEscapeCode = function(textState)
+{
+  const originalEscape = J.BASE.Aliased.Window_Base.get('obtainEscapeCode')
+    .call(this, textState);
+  if (!originalEscape)
+  {
+    return this.customEscapeCodes(textState);
+  }
+  else
+  {
+    return originalEscape;
+  }
+};
+
+/**
+ * Retrieves additional escape codes that are our custom creation.
+ * @param {any} textState The rolling text state.
+ * @returns {string} The found escape code, if any.
+ */
+Window_Base.prototype.customEscapeCodes = function(textState)
+{
+  if (!textState) return String.empty;
+
+  const regExp = this.escapeCodes();
+  const arr = regExp.exec(textState.text.slice(textState.index));
+  if (arr)
+  {
+    textState.index += arr[0].length;
+    return arr[0].toUpperCase();
+  }
+  else
+  {
+    return String.empty;
+  }
+};
+
+/**
+ * Gets the regex escape code structure.
+ *
+ * This includes our added custom escape code symbols to look for.
+ * @returns {RegExp}
+ */
+Window_Base.prototype.escapeCodes = function()
+{
+  return /^[$.|^!><{}*_\\]|^[A-Z]+/i;
+};
+
+/**
+ * Extends the processing of escape codes to include our custom ones.
+ *
+ * This adds italics and bold to the possible list of escape codes.
+ */
+J.BASE.Aliased.Window_Base.set('processEscapeCharacter', Window_Base.prototype.processEscapeCharacter);
+Window_Base.prototype.processEscapeCharacter = function(code, textState)
+{
+  J.BASE.Aliased.Window_Base.get('processEscapeCharacter')
+    .call(this, code, textState);
+  switch (code)
+  {
+    case "_":
+      this.toggleItalics();
+      break;
+    case "*":
+      this.toggleBold();
+      break;
+  }
+};
+
+/**
+ * Toggles the italics for the rolling text state.
+ *
+ * This does not apply to {@link Window_Base.prototype.drawTextEx}, but alternatively
+ * you can interpolate `\"\\_\"` before and after the text desired to be italics to
+ * achieve the same effect.
+ * @param {?boolean} force Optional. If provided, will force one way or the other.
+ */
+Window_Base.prototype.toggleItalics = function(force = null)
+{
+  this.contents.fontItalic = force ?? !this.contents.fontItalic;
+};
+
+/**
+ * Wraps the given text with the message code for italics.
+ * @param {string} text The text to italicize.
+ * @returns {string} The italicized text like this: `\\_${text}\\_`
+ */
+Window_Base.prototype.italicizeText = function(text)
+{
+  return `\\_${text}\\_`;
+};
+
+/**
+ * Toggles the bold for the rolling text state.
+ *
+ * This does not apply to {@link Window_Base.prototype.drawTextEx}, but alternatively
+ * you can interpolate `\"\\*\"` before and after the text desired to be bold to
+ * achieve the same effect.
+ * @param {?boolean} force Optional. If provided, will force one way or the other.
+ */
+Window_Base.prototype.toggleBold = function(force = null)
+{
+  this.contents.fontBold = force ?? !this.contents.fontBold;
+};
+
+/**
+ * Wraps the given text with the message code for bold.
+ * @param {string} text The text to bolden.
+ * @returns {string} The bolded text like this: `\\*${text}\\*`
+ */
+Window_Base.prototype.boldenText = function(text)
+{
+  return `\\*${text}\\*`;
+};
+
+//endregion font style + escape codes
+
+//region styled padded values
+/**
+ * Builds a per-character mask: true where a `'0'` is **leading padding** inside a contiguous digit run
+ * (zeros before the first `'1'`–`'9'` in that run). Internal zeros (for example the middle `0` in `2088`)
+ * are false so they render like other significant digits.
+ *
+ * @param {string} value The full string being rendered (may include `(-…)`, `|`, `+`, etc.).
+ * @returns {boolean[]} Same length as `value`; non-digit indices are always false.
+ */
+Window_Base.prototype.buildLeadingPadZeroMask = function(value)
+{
+  const mask = [];
+
+  for (let i = 0; i < value.length; i++)
+  {
+    mask.push(false);
+  }
+
+  let i = 0;
+
+  while (i < value.length)
+  {
+    const ch = value[i];
+
+    if (ch >= '0' && ch <= '9')
+    {
+      const runStart = i;
+
+      while (i < value.length && value[i] >= '0' && value[i] <= '9')
+      {
+        i++;
+      }
+
+      let firstSignificant = -1;
+
+      for (let j = runStart; j < i; j++)
+      {
+        const c = value[j];
+
+        if (c >= '1' && c <= '9')
+        {
+          firstSignificant = j;
+          break;
+        }
+      }
+
+      if (firstSignificant === -1)
+      {
+        for (let j = runStart; j < i; j++)
+        {
+          mask[j] = true;
+        }
+      }
+      else
+      {
+        for (let j = runStart; j < firstSignificant; j++)
+        {
+          mask[j] = true;
+        }
+      }
+    }
+    else
+    {
+      i++;
+    }
+  }
+
+  return mask;
+};
+
+/**
+ * Draws a padded value where leading zeroes are dim, and significant digits are bold.
+ * This is intended for controller-first numeric scanning (Monsterpedia, SDP, etc.).
+ *
+ * @param {number} x The left-most x.
+ * @param {number} y The y.
+ * @param {string} value The padded value to render.
+ * @param {number} width The width to work within.
+ * @param {number=} zeroColorIndex Palette index for leading zeros; defaults to 8.
+ * @param {number=} valueColorIndex Palette index for significant digits; defaults to 0.
+ */
+Window_Base.prototype.drawStyledPaddedValue = function(
+  x,
+  y,
+  value,
+  width,
+  zeroColorIndex = 8,
+  valueColorIndex = 0)
+{
+  // assumes monospaced digits (matches the Monsterpedia presentation); keeps numbers stable and scan-friendly.
+  // use a digit for width so wrapped cost strings like `(-00000042)` don't inherit '(' sizing.
+  const charWidth = this.textWidth('0');
+  const totalCharWidth = value.length * charWidth;
+  const startX = x + width - totalCharWidth;
+  const leadingPadZeroMask = this.buildLeadingPadZeroMask(value);
+
+  [ ...value ].forEach((char, index) =>
+  {
+    const isDigit = char >= '0' && char <= '9';
+    const isLeadingPadZero = isDigit && char === '0' && leadingPadZeroMask[index];
+    const isSignificantDigit = isDigit && isLeadingPadZero === false;
+
+    // color rules:
+    // - leading pad `'0'` digits stay dim.
+    // - all other digits (`'1'`–`'9'` and non-leading `'0'`) use value color + bold.
+    // - non-digits (like '(' / '-' / ')') stay normal.
+    if (isSignificantDigit)
+    {
+      this.processColorChange(valueColorIndex);
+    }
+    else if (isLeadingPadZero)
+    {
+      this.processColorChange(zeroColorIndex);
+    }
+    else
+    {
+      this.processColorChange(0);
+    }
+
+    this.toggleBold(isSignificantDigit);
+
+    const charX = startX + (index * charWidth);
+    this.drawText(char, charX, y, charWidth, Window_Base.TextAlignments.Left);
+
+    // do not allow bold to bleed.
+    this.toggleBold(false);
+  });
+
+  this.processColorChange(0);
+};
+
+/**
+ * Draws a number padded with zeros, with leading zeros dimmed and significant digits bolded.
+ * @param {number} x The left-most x.
+ * @param {number} y The y.
+ * @param {number} number The numeric value.
+ * @param {number} width The width to work within.
+ * @param {number=} padZeroCount The digits to pad to; defaults to 8.
+ * @param {number=} zeroColorIndex Palette index for leading zeros; defaults to 8.
+ * @param {number=} valueColorIndex Palette index for significant digits; defaults to 0.
+ */
+Window_Base.prototype.drawStyledZeroPaddedNumber = function(
+  x,
+  y,
+  number,
+  width,
+  padZeroCount = 8,
+  zeroColorIndex = 8,
+  valueColorIndex = 0)
+{
+  const padded = number.padZero(padZeroCount);
+  this.drawStyledPaddedValue(x, y, padded, width, zeroColorIndex, valueColorIndex);
+};
+
+/**
+ * Draws a cost value wrapped in parenthesis like `(-00000042)` with styled padding.
+ * @param {number} x The left-most x.
+ * @param {number} y The y.
+ * @param {number} cost The cost value.
+ * @param {number} width The width to work within.
+ * @param {number=} padZeroCount The digits to pad to; defaults to 8.
+ * @param {number=} zeroColorIndex Palette index for leading zeros; defaults to 8.
+ * @param {number=} valueColorIndex Palette index for significant digits; defaults to 0.
+ */
+Window_Base.prototype.drawStyledZeroPaddedCost = function(
+  x,
+  y,
+  cost,
+  width,
+  padZeroCount = 8,
+  zeroColorIndex = 8,
+  valueColorIndex = 0)
+{
+  const padded = cost.padZero(padZeroCount);
+  const text = `(-${padded})`;
+  this.drawStyledPaddedValue(x, y, text, width, zeroColorIndex, valueColorIndex);
+};
+
+//endregion styled padded values
+
 //endregion draw text
 
 /**
@@ -12304,11 +12743,7 @@ Window_Base.prototype.gaugeBackColor = function()
  * @param {number} rate The 0..1 fill amount.
  * @param {WindowGaugeOptions} options The gauge options.
  */
-Window_Base.prototype.drawGauge = function(
-  rect,
-  rate,
-  options,
-)
+Window_Base.prototype.drawGauge = function(rect, rate, options,)
 {
   // delegate to the Rectangle-based switch.
   this.drawGaugeRect(rect, rate, options);
@@ -13205,6 +13640,62 @@ Window_Command.prototype.prependBuiltCommand = function(command)
 };
 //endregion adding commands
 //endregion Window_Command
+
+//region Window_Dimmer
+/**
+ * Full-box tint painted into {@link Window_Base#contents}. Uses normal {@link WindowLayer} ordering like any window so
+ * scenes can insert it above most chrome and below a chosen anchor sibling.
+ */
+class Window_Dimmer
+  extends Window_Base
+{
+  /**
+   * Frameless box covering the menu viewport. Strength is {@link Window#contentsOpacity}, not {@link Window#opacity}.
+   *
+   * @param {Rectangle} rect Usually {@link Graphics.boxWidth} by {@link Graphics.boxHeight} at the origin.
+   */
+  initialize(rect)
+  {
+    super.initialize(rect);
+    this.frameVisible = false;
+    this.deactivate();
+    this.refresh();
+  }
+
+  /**
+   * Locks padding at zero so the tint reaches the inner edges.
+   */
+  updatePadding()
+  {
+    this.padding = 0;
+  }
+
+  /**
+   * Skips skin tone shifts so only {@link Window#contentsOpacity} drives how cold the overlay reads.
+   */
+  updateTone()
+  {
+  }
+
+  /**
+   * Hides the plated backdrop so the painted contents alone carry the dim.
+   */
+  updateBackOpacity()
+  {
+    this.backOpacity = 0;
+  }
+
+  /**
+   * Solid black pixels in contents; {@link Window#contentsOpacity} scales the composite.
+   */
+  refresh()
+  {
+    this.contents.clear();
+    this.contents.fillRect(0, 0, this.contentsWidth(), this.contentsHeight(), '#000000');
+  }
+}
+
+//endregion Window_Dimmer
 
 //region Window_EquipItem
 /**
