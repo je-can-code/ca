@@ -2208,28 +2208,8 @@ class Window_MonsterpediaDetail
    */
   drawEnemyParameterValue(x, y, value, width)
   {
-    let isBold = false;
-    this.changeTextColor(ColorManager.textColor(8));
-    const charWidth = this.textWidth(value.charAt(0));
-    const totalCharWidth = value.length * charWidth;
-    [ ...value ].forEach((char, index) =>
-    {
-      if (char !== '0')
-      {
-        isBold = true;
-        this.changeTextColor(ColorManager.normalColor());
-      }
-
-      this.toggleBold(isBold);
-
-      const charX = x + (index * charWidth) - totalCharWidth;
-
-      this.drawText(char, charX, y, width, Window_Base.TextAlignments.Right);
-
-      this.toggleBold(false);
-    });
-
-    this.changeTextColor(ColorManager.normalColor());
+    // delegate to J-Base for styled zero padding (grey zeros + bold significant digits).
+    this.drawStyledPaddedValue(x, y, value, width);
   }
 
   /**

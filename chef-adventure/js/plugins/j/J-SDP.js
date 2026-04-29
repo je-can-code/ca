@@ -272,8 +272,32 @@ PanelRankupReward.prototype.initialize = function(rewardName, rankRequired, effe
 //endregion PanelRankupReward
 
 //region PanelRarity
+/**
+ * Panel rarity indices (**0–5**) and helpers for SDP UI drawing.
+ */
 class PanelRarity
 {
+  /** Common (`rarity` **0**). */
+  static RARITY_COMMON = 0;
+
+  /** Magical (`rarity` **1**). */
+  static RARITY_MAGICAL = 1;
+
+  /** Rare (`rarity` **2**). */
+  static RARITY_RARE = 2;
+
+  /** Epic (`rarity` **3**). */
+  static RARITY_EPIC = 3;
+
+  /** Legendary (`rarity` **4**). */
+  static RARITY_LEGENDARY = 4;
+
+  /** Godlike (`rarity` **5**). */
+  static RARITY_GODLIKE = 5;
+
+  /** Highest valid {@link StatDistributionPanel.rarity} value ({@link PanelRarity.RARITY_GODLIKE}). */
+  static RARITY_MAX = 5;
+
   /**
    * Common SDPs that bring few pros and many cons.
    * @type {"Common"}
@@ -314,32 +338,162 @@ class PanelRarity
    */
   static Godlike = "Godlike";
 
+  /** Window text color index for Magical rarity chrome. */
+  static WindowColorMagical = 3;
+
+  /** Window text color index for Rare rarity chrome. */
+  static WindowColorRare = 23;
+
+  /** Window text color index for Epic rarity chrome. */
+  static WindowColorEpic = 31;
+
+  /** Window text color index for Legendary rarity chrome. */
+  static WindowColorLegendary = 20;
+
+  /** Window text color index for Godlike rarity chrome. */
+  static WindowColorGodlike = 25;
+
   /**
-   * Convert the string form of an SDP's rarity into a color index.
-   * @param {string} rarity The word associated with the rarity.
+   * Converts a rarity label ("Rare", …) into the integer stored as {@link StatDistributionPanel.rarity}.
+   *
+   * @param {string} label The rarity word from JSON or tooling.
+   * @returns {number} {@link PanelRarity.RARITY_COMMON} .. {@link PanelRarity.RARITY_GODLIKE}.
+   */
+  static rarityLabelToIndex(label)
+  {
+    switch (label)
+    {
+      case PanelRarity.Common:
+        return PanelRarity.RARITY_COMMON;
+      case PanelRarity.Magical:
+        return PanelRarity.RARITY_MAGICAL;
+      case PanelRarity.Rare:
+        return PanelRarity.RARITY_RARE;
+      case PanelRarity.Epic:
+        return PanelRarity.RARITY_EPIC;
+      case PanelRarity.Legendary:
+        return PanelRarity.RARITY_LEGENDARY;
+      case PanelRarity.Godlike:
+        return PanelRarity.RARITY_GODLIKE;
+      default:
+        return PanelRarity.RARITY_COMMON;
+    }
+  }
+
+  /**
+   * Window text color index for SDP chrome for this rarity.
+   *
+   * @param {number} rarityIndex {@link PanelRarity.RARITY_COMMON} .. {@link PanelRarity.RARITY_GODLIKE}.
+   * @returns {number}
+   */
+  static rarityIndexToColorIndex(rarityIndex)
+  {
+    switch (rarityIndex)
+    {
+      case PanelRarity.RARITY_COMMON:
+        return 0;
+      case PanelRarity.RARITY_MAGICAL:
+        return PanelRarity.WindowColorMagical;
+      case PanelRarity.RARITY_RARE:
+        return PanelRarity.WindowColorRare;
+      case PanelRarity.RARITY_EPIC:
+        return PanelRarity.WindowColorEpic;
+      case PanelRarity.RARITY_LEGENDARY:
+        return PanelRarity.WindowColorLegendary;
+      case PanelRarity.RARITY_GODLIKE:
+        return PanelRarity.WindowColorGodlike;
+      default:
+        console.warn(`PanelRarity.rarityIndexToColorIndex: unknown rarity index [ ${rarityIndex} ].`);
+        return 0;
+    }
+  }
+
+  /**
+   * Coerces parsed JSON into {@link PanelRarity.RARITY_COMMON} .. {@link PanelRarity.RARITY_GODLIKE}.
+   *
+   * @param {string|number} raw Labels, integers **0–5**, or alternate integer encodings accepted by the loader.
+   * @returns {number}
+   */
+  static normalizeRarityFromJson(raw)
+  {
+    if (typeof raw === "string")
+    {
+      const trimmed = raw.trim();
+
+      if (trimmed === "")
+      {
+        return PanelRarity.RARITY_COMMON;
+      }
+
+      switch (trimmed)
+      {
+        case PanelRarity.Common:
+          return PanelRarity.RARITY_COMMON;
+        case PanelRarity.Magical:
+          return PanelRarity.RARITY_MAGICAL;
+        case PanelRarity.Rare:
+          return PanelRarity.RARITY_RARE;
+        case PanelRarity.Epic:
+          return PanelRarity.RARITY_EPIC;
+        case PanelRarity.Legendary:
+          return PanelRarity.RARITY_LEGENDARY;
+        case PanelRarity.Godlike:
+          return PanelRarity.RARITY_GODLIKE;
+        default:
+          break;
+      }
+
+      const parsedFromString = parseInt(trimmed, 10);
+
+      if (!Number.isNaN(parsedFromString))
+      {
+        return PanelRarity.normalizeRarityFromJson(parsedFromString);
+      }
+
+      console.warn(`PanelRarity.normalizeRarityFromJson: unrecognized string [ ${trimmed} ].`);
+      return PanelRarity.RARITY_COMMON;
+    }
+
+    const n = parseInt(raw, 10);
+
+    if (Number.isNaN(n))
+    {
+      return PanelRarity.RARITY_COMMON;
+    }
+
+    switch (n)
+    {
+      case PanelRarity.WindowColorRare:
+        return PanelRarity.RARITY_RARE;
+      case PanelRarity.WindowColorEpic:
+        return PanelRarity.RARITY_EPIC;
+      case PanelRarity.WindowColorLegendary:
+        return PanelRarity.RARITY_LEGENDARY;
+      case PanelRarity.WindowColorGodlike:
+        return PanelRarity.RARITY_GODLIKE;
+      default:
+        break;
+    }
+
+    if (n >= PanelRarity.RARITY_COMMON && n <= PanelRarity.RARITY_MAX)
+    {
+      return n;
+    }
+
+    console.warn(`PanelRarity.normalizeRarityFromJson: out-of-range rarity [ ${n} ]; clamped to Common.`);
+    return PanelRarity.RARITY_COMMON;
+  }
+
+  /**
+   * Converts a rarity label string into a window text color index for SDP chrome.
+   *
+   * @param {string} rarity The rarity word.
    * @returns {number}
    */
   static fromRarityToColor(rarity)
   {
-    switch (rarity)
-    {
-      case this.Common:
-        return 0;
-      case this.Magical:
-        return 3;
-      case this.Rare:
-        return 23;
-      case this.Epic:
-        return 31;
-      case this.Legendary:
-        return 20;
-      case this.Godlike:
-        return 25;
-      default:
-        console.warn("if modifying the rarity dropdown options, be sure to fix them here, too.");
-        console.warn(`${rarity} was not an implemented option.`);
-        return 0;
-    }
+    const rarityIndex = PanelRarity.rarityLabelToIndex(rarity);
+    return PanelRarity.rarityIndexToColorIndex(rarityIndex);
   }
 }
 
@@ -453,7 +607,7 @@ class StatDistributionPanel
     this.iconIndex = iconIndex;
 
     /**
-     * Gets the color index representing this SDP's rarity.
+     * Panel rarity (**0–5**, Common..Godlike).
      * @type {number}
      */
     this.rarity = rarity;
@@ -483,19 +637,19 @@ class StatDistributionPanel
     this.maxRank = maxRank;
 
     /**
-     * The base cost to rank up this panel.
+     * Additive offset on top of the rarity default base SDP (see `config.sdp.json`; core curve lives in plugin params).
      * @type {number}
      */
     this.baseCost = baseCost;
 
     /**
-     * The flat amount per rank that the cost will grow.
+     * Additive offset on the rarity default exponential coefficient (**flat** term before `mult ** step`).
      * @type {number}
      */
     this.flatGrowthCost = flatGrowthCost;
 
     /**
-     * The multiplicative amount per rank that the cost will grow.
+     * Multiplier applied to the rarity default **mult** (keep **1.0** for “use defaults only”).
      * @type {number}
      */
     this.multGrowthCost = multGrowthCost;
@@ -515,6 +669,11 @@ class StatDistributionPanel
 
   /**
    * Calculates the cost of SDP points to rank this panel up.
+   *
+   * Combines plugin-parameter rarity defaults with per-panel offsets from
+   * **J.SDP.Metadata.resolveEffectiveRankUpCostParts** — effective cost is
+   * `base + floor(flat * mult^(currentRank + 1))` with resolved **base**, **flat**, and **mult**.
+   *
    * @param {number} currentRank The current ranking of this panel for a given actor.
    * @returns {number}
    */
@@ -526,8 +685,14 @@ class StatDistributionPanel
     }
     else
     {
-      const growth = Math.floor(this.multGrowthCost * (this.flatGrowthCost * (currentRank + 1)));
-      return this.baseCost + growth;
+      const rankExponent = currentRank + 1;
+
+      const parts = J.SDP.Metadata.resolveEffectiveRankUpCostParts(this);
+
+      // Use ** here; Vitest stubs global Math (Math.pow may be missing) while ** stays native.
+      const growth = Math.floor(parts.flatGrowthCost * (parts.multGrowthCost ** rankExponent));
+
+      return parts.baseCost + growth;
     }
   }
 
@@ -627,34 +792,36 @@ class StatDistributionPanel
   }
 
   /**
-   * Gets the rarity, aka the color index of the rarity of this panel.
+   * Window text color index for SDP chrome for this panel's rarity.
+   *
    * @returns {number}
    */
   getPanelRarityColorIndex()
   {
-    return this.rarity;
+    return PanelRarity.rarityIndexToColorIndex(this.rarity);
   }
 
   /**
    * Gets the text associated with the rarity of this panel.
+   *
    * @returns {string}
    */
   getPanelRarityText()
   {
     switch (this.rarity)
     {
-      case 0:
-        return "Common";
-      case 3:
-        return "Magical";
-      case 23:
-        return "Rare";
-      case 31:
-        return "Epic";
-      case 20:
-        return "Legendary";
-      case 25:
-        return "Godlike";
+      case PanelRarity.RARITY_COMMON:
+        return PanelRarity.Common;
+      case PanelRarity.RARITY_MAGICAL:
+        return PanelRarity.Magical;
+      case PanelRarity.RARITY_RARE:
+        return PanelRarity.Rare;
+      case PanelRarity.RARITY_EPIC:
+        return PanelRarity.Epic;
+      case PanelRarity.RARITY_LEGENDARY:
+        return PanelRarity.Legendary;
+      case PanelRarity.RARITY_GODLIKE:
+        return PanelRarity.Godlike;
       default:
         return `unknown rarity: [ ${this.rarity} ]`;
     }
@@ -768,7 +935,7 @@ class StatDistributionPanelBuilder
 
   rarity(rarity)
   {
-    this.#rarity = rarity;
+    this.#rarity = PanelRarity.normalizeRarityFromJson(rarity);
     return this;
   }
 
@@ -793,7 +960,7 @@ class StatDistributionPanelBuilder
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.2 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * [v3.0.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -830,7 +997,8 @@ class StatDistributionPanelBuilder
  * Each SDP has the following:
  * - 1+ parameters (of the 27 available in RMMZ) with flat/percent growth.
  * - A fixed rank max.
- * - A relatively customizable formula to determine cost to rank up.
+ * - Rank-up costs driven by **rarity defaults** (plugin parameters) plus optional **per-panel offsets**
+ *   in `config.sdp.json` (`baseCost`, `flatGrowthCost`, `multGrowthCost` — usually **0 / 0 / 1.0**).
  * - Customizable name/icon/description1/description2.
  * - Rank up rewards for any/every/max rank, which can be most anything.
  *
@@ -987,6 +1155,10 @@ class StatDistributionPanelBuilder
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.0
+ *    BREAKING: Rank-up cost spine is defined per **rarity** in plugin parameters; each panel’s `baseCost`,
+ *    `flatGrowthCost`, and `multGrowthCost` in `config.sdp.json` are **offsets / scale** (defaults **0 / 0 / 1.0**).
+ *    Retune plugin defaults or panel overrides when migrating from v2.x absolute triples.
  * - 2.1.2
  *    Consumed `RPGManager` updates.
  * - 2.1.1
@@ -1068,6 +1240,27 @@ class StatDistributionPanelBuilder
  * Use the context menu to easily select an index.
  * @default 2563
  *
+ * @param sdpUnitSingular
+ * @parent SDPconfigs
+ * @type string
+ * @text Unit name (singular)
+ * @desc Player-facing word for one rankable entry (panel, node, junction, etc.).
+ * @default panel
+ *
+ * @param sdpUnitPlural
+ * @parent SDPconfigs
+ * @type string
+ * @text Unit name (plural)
+ * @desc Plural form for counts in confirmations (panels, nodes, …).
+ * @default panels
+ *
+ * @param sdpPointsDisplayName
+ * @parent SDPconfigs
+ * @type string
+ * @text Points name (short)
+ * @desc Currency label in SDP UI (confirmation “Remaining …”, cart wallet header, TextManager.sdpPoints).
+ * @default SDP
+ *
  *
  * @param JABSconfigs
  * @text JABS-ONLY CONFIG
@@ -1078,6 +1271,143 @@ class StatDistributionPanelBuilder
  * @type boolean
  * @desc If ON, then show in both JABS quick menu and main menu, otherwise only JABS quick menu.
  * @default false
+ *
+ *
+ * @param sdpPanelCostDefaults
+ * @text Panel rank-up defaults (by rarity)
+ * @desc Core base / flat coefficient / exponential base (**mult**) per rarity. Panel JSON adds offsets on top.
+ *
+ * @param sdpDefaultCommonBase
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min -999999
+ * @text Common · Base SDP
+ * @default 0
+ *
+ * @param sdpDefaultCommonFlat
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min 0
+ * @text Common · Flat coefficient
+ * @default 70
+ *
+ * @param sdpDefaultCommonMult
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @decimals 2
+ * @min 1.00
+ * @text Common · Mult base
+ * @default 1.06
+ *
+ * @param sdpDefaultMagicalBase
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min -999999
+ * @text Magical · Base SDP
+ * @default 0
+ *
+ * @param sdpDefaultMagicalFlat
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min 0
+ * @text Magical · Flat coefficient
+ * @default 235
+ *
+ * @param sdpDefaultMagicalMult
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @decimals 2
+ * @min 1.00
+ * @text Magical · Mult base
+ * @default 1.06
+ *
+ * @param sdpDefaultRareBase
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min -999999
+ * @text Rare · Base SDP
+ * @default 0
+ *
+ * @param sdpDefaultRareFlat
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min 0
+ * @text Rare · Flat coefficient
+ * @default 1180
+ *
+ * @param sdpDefaultRareMult
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @decimals 2
+ * @min 1.00
+ * @text Rare · Mult base
+ * @default 1.06
+ *
+ * @param sdpDefaultEpicBase
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min -999999
+ * @text Epic · Base SDP
+ * @default 0
+ *
+ * @param sdpDefaultEpicFlat
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min 0
+ * @text Epic · Flat coefficient
+ * @default 4320
+ *
+ * @param sdpDefaultEpicMult
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @decimals 2
+ * @min 1.00
+ * @text Epic · Mult base
+ * @default 1.06
+ *
+ * @param sdpDefaultLegendaryBase
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min -999999
+ * @text Legendary · Base SDP
+ * @default 0
+ *
+ * @param sdpDefaultLegendaryFlat
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min 0
+ * @text Legendary · Flat coefficient
+ * @default 11900
+ *
+ * @param sdpDefaultLegendaryMult
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @decimals 2
+ * @min 1.00
+ * @text Legendary · Mult base
+ * @default 1.06
+ *
+ * @param sdpDefaultGodlikeBase
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min -999999
+ * @text Godlike · Base SDP
+ * @default 0
+ *
+ * @param sdpDefaultGodlikeFlat
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @min 0
+ * @text Godlike · Flat coefficient
+ * @default 30500
+ *
+ * @param sdpDefaultGodlikeMult
+ * @parent sdpPanelCostDefaults
+ * @type number
+ * @decimals 2
+ * @min 1.00
+ * @text Godlike · Mult base
+ * @default 1.06
  *
  * @command Call SDP Menu
  * @text Access the SDP Menu
@@ -1224,11 +1554,96 @@ class J_SdpPluginMetadata
     // execute original logic.
     super.postInitialize();
 
+    // load rarity-based rank-up cost defaults before panels (rankUpCost resolves against these).
+    this.initializePanelCostDefaultsByRarity();
+
     // initialize the panels from plugin configuration.
     this.initializePanels();
 
     // initialize the other miscellaneous plugin configuration.
     this.initializeMetadata();
+  }
+
+  /**
+   * Parses plugin parameters into six rarity rows (**Common..Godlike**) used as the core rank-up cost spine.
+   * Panel JSON fields layer additive / multiplicative offsets on top — see resolveEffectiveRankUpCostParts.
+   */
+  initializePanelCostDefaultsByRarity()
+  {
+    const { parsedPluginParameters: p } = this;
+
+    /**
+     * One rarity tier: base SDP, exponential coefficient, and growth base (**mult**).
+     * @type {{ baseCost: number, flatGrowthCost: number, multGrowthCost: number }}
+     */
+    const row = (baseKey, flatKey, multKey, fbBase, fbFlat, fbMult) =>
+    {
+      return {
+        baseCost: J.BASE.Helpers.parsePluginInt(p[baseKey], fbBase),
+        flatGrowthCost: J.BASE.Helpers.parsePluginInt(p[flatKey], fbFlat),
+        multGrowthCost: J_SdpPluginMetadata.#parsePositiveFloatOr(p[multKey], fbMult),
+      };
+    };
+
+    /**
+     * Indexed **0–5** matching {@link PanelRarity} Common..Godlike.
+     * @type {Array<{ baseCost: number, flatGrowthCost: number, multGrowthCost: number }>}
+     */
+    this.panelCostDefaultsByRarity =
+      [
+        row('sdpDefaultCommonBase', 'sdpDefaultCommonFlat', 'sdpDefaultCommonMult', 0, 70, 1.06),
+        row('sdpDefaultMagicalBase', 'sdpDefaultMagicalFlat', 'sdpDefaultMagicalMult', 0, 235, 1.06),
+        row('sdpDefaultRareBase', 'sdpDefaultRareFlat', 'sdpDefaultRareMult', 0, 1180, 1.06),
+        row('sdpDefaultEpicBase', 'sdpDefaultEpicFlat', 'sdpDefaultEpicMult', 0, 4320, 1.06),
+        row('sdpDefaultLegendaryBase', 'sdpDefaultLegendaryFlat', 'sdpDefaultLegendaryMult', 0, 11900, 1.06),
+        row('sdpDefaultGodlikeBase', 'sdpDefaultGodlikeFlat', 'sdpDefaultGodlikeMult', 0, 30500, 1.06),
+      ];
+  }
+
+  /**
+   * @param {string|number|undefined|null} value
+   * @param {number} fallback
+   * @returns {number}
+   */
+  static #parsePositiveFloatOr(value, fallback)
+  {
+    if (value === undefined || value === null || value === '')
+    {
+      return fallback;
+    }
+
+    const parsed = Number.parseFloat(String(value));
+
+    if (Number.isFinite(parsed) && parsed > 0)
+    {
+      return parsed;
+    }
+
+    return fallback;
+  }
+
+  /**
+   * Effective rank-up cost knobs after combining rarity defaults with per-panel overrides from `config.sdp.json`.
+   *
+   * @param {StatDistributionPanel} panel
+   * @returns {{ baseCost: number, flatGrowthCost: number, multGrowthCost: number }}
+   */
+  resolveEffectiveRankUpCostParts(panel)
+  {
+    const rarityIndex = PanelRarity.normalizeRarityFromJson(panel.rarity);
+    const row = this.panelCostDefaultsByRarity[rarityIndex];
+    const scale = panel.multGrowthCost;
+
+    // zero or negative panel scale would collapse growth; treat as neutral **1.0** so rarity **mult** still applies.
+    const safeScale = (scale > 0)
+      ? scale
+      : 1.0;
+
+    return {
+      baseCost: row.baseCost + panel.baseCost,
+      flatGrowthCost: row.flatGrowthCost + panel.flatGrowthCost,
+      multGrowthCost: row.multGrowthCost * safeScale,
+    };
   }
 
   /**
@@ -1308,6 +1723,24 @@ class J_SdpPluginMetadata
      * @type {boolean}
      */
     this.jabsShowInBothMenus = this.parsedPluginParameters['showInBoth'] === 'true';
+
+    /**
+     * Singular player-facing name for one SDP row (confirmation copy, future labels).
+     * @type {string}
+     */
+    this.unitSingular = this.parsedPluginParameters['sdpUnitSingular'] ?? 'panel';
+
+    /**
+     * Plural player-facing name for counts such as “4 upgrades on 2 …”.
+     * @type {string}
+     */
+    this.unitPlural = this.parsedPluginParameters['sdpUnitPlural'] ?? 'panels';
+
+    /**
+     * Short label for spendable currency (“Remaining …”, cart wallet chip, {@link TextManager#sdpPoints}).
+     * @type {string}
+     */
+    this.sdpPointsDisplayName = this.parsedPluginParameters['sdpPointsDisplayName'] ?? 'SDP';
   }
 
   /**
@@ -1359,7 +1792,7 @@ J.SDP = {};
 /**
  * The metadata associated with this plugin.
  */
-J.SDP.Metadata = new J_SdpPluginMetadata('J-SDP', '2.1.2');
+J.SDP.Metadata = new J_SdpPluginMetadata('J-SDP', '3.0.0');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -1792,7 +2225,7 @@ if (J.ABS)
  */
 TextManager.sdpPoints = function()
 {
-  return 'SDPs';
+  return J.SDP.Metadata.sdpPointsDisplayName;
 };
 
 /**
@@ -2093,7 +2526,7 @@ Game_Actor.prototype.getAllSdpRankings = function()
 };
 
 /**
- * Gets the total number of SDP ranks this actor has.
+ * Sum of all panel current ranks for this actor (convenience for menus / reporting).
  * @returns {number}
  */
 Game_Actor.prototype.getTotalSdpRanks = function()
@@ -3039,6 +3472,12 @@ class Scene_SDP
     this._j._sdp._windows._sdpList = null;
 
     /**
+     * Header strip for the hovered SDP (single-line name/rarity/flavor).
+     * @type {Window_SdpHeader}
+     */
+    this._j._sdp._windows._sdpHeader = null;
+
+    /**
      * The list of parameters associated with the currently selected SDP.
      * @type {Window_SdpParameterList}
      */
@@ -3051,8 +3490,14 @@ class Scene_SDP
     this._j._sdp._windows._sdpRewardList = null;
 
     /**
+     * The shopping cart window for planned rank-ups.
+     * @type {Window_SdpCart}
+     */
+    this._j._sdp._windows._sdpCart = null;
+
+    /**
      * The confirmation window that allows the user to confirm the rankup of a panel.
-     * @type {Window_SdpPoints}
+     * @type {Window_SdpConfirmation}
      */
     this._j._sdp._windows._sdpConfirmation = null;
 
@@ -3069,11 +3514,11 @@ class Scene_SDP
     this._j._sdp._windows._sdpHelp = null;
 
     /**
-     * The rank data window that displays the varioud rank-related details for
-     * the currently hovered SDP.
-     * @type {Window_SdpRankData}
+     * The controller-first shopping cart of queued rankups by panel key.
+     * @type {Map<string, number>}
      */
-    this._j._sdp._windows._sdpRankData = null;
+    this._j._sdp._cart = new Map();
+
   }
 
   //endregion init
@@ -3112,19 +3557,30 @@ class Scene_SDP
 
   //region windows
   /**
+   * Pixel width shared by the center column windows.
+   * @returns {number}
+   */
+  sdpCenterColumnWidth()
+  {
+    return 720;
+  }
+
+  /**
    * Creates all windows associated with the SDP scene.
    */
   createAllWindows()
   {
     // display data windows.
     this.createSdpPointsWindow();
+    this.createSdpHeaderWindow();
+    this.createSdpControlsHintWindow();
     this.createSdpHelpWindow();
-    this.createSdpRankDataWindow();
 
     // selectable data windows.
     this.createSdpListWindow();
     this.createSdpParameterListWindow();
     this.createSdpRewardListWindow();
+    this.createSdpCartWindow();
 
     // this is last to ensure it shows up above other windows.
     this.createSdpConfirmationWindow();
@@ -3165,6 +3621,8 @@ class Scene_SDP
     window.setHandler('cancel', this.popScene.bind(this));
     window.setHandler('ok', this.onSelectPanel.bind(this));
     window.setHandler('more', this.onFilterPanels.bind(this));
+    window.setHandler('cart-dec', this.onCartLevelDecrease.bind(this));
+    window.setHandler('cart-inc', this.onCartLevelIncrease.bind(this));
     window.setHandler('pagedown', this.cycleMembers.bind(this, true));
     window.setHandler('pageup', this.cycleMembers.bind(this, false));
     window.onIndexChange = this.onPanelHoveredChange.bind(this);
@@ -3189,7 +3647,8 @@ class Scene_SDP
     const width = 480;
 
     // determine the modifier of the height for fitting properly..
-    const heightFit = (pointsRectangle.height + this.sdpHelpRectangle().height) + 8;
+    const hintH = this.sdpControlsHintHeight();
+    const heightFit = (pointsRectangle.height + this.sdpHelpRectangle().height + hintH) + 8;
     const height = Graphics.height - heightFit;
 
     // determine the x:y coordinates.
@@ -3252,7 +3711,6 @@ class Scene_SDP
     window.deactivate();
     window.setActor($gameParty.menuActor());
 
-    // return the built and configured omnipedia list window.
     return window;
   }
 
@@ -3262,19 +3720,16 @@ class Scene_SDP
    */
   sdpParameterListRectangle()
   {
-    // center column; narrowed when the left ribbon widens so the right column absorbs the difference.
-    const width = 720;
+    const listRect = this.sdpListRectangle();
+    const headerH = this.sdpHeaderRectangle().height;
+    const helpH = this.sdpHelpRectangle().height;
+    const hintH = this.sdpControlsHintHeight();
 
-    // calculate the X for where the origin of the list window should be.
-    const x = this.sdpListRectangle().width;
+    const x = listRect.width;
+    const y = headerH;
+    const width = this.sdpCenterColumnWidth();
+    const height = Graphics.boxHeight - helpH - headerH - hintH;
 
-    // define the height of the list.
-    const height = Graphics.boxHeight - this.sdpHelpRectangle().height;
-
-    // calculate the Y for where the origin of the list window should be.
-    const y = 0;
-
-    // build the rectangle to return.
     return new Rectangle(x, y, width, height);
   }
 
@@ -3316,7 +3771,7 @@ class Scene_SDP
 
   /**
    * Sets up and defines the sdp reward listing window.
-   * @returns {Window_SdpParameterList}
+   * @returns {Window_SdpRewardList}
    */
   buildSdpRewardListWindow()
   {
@@ -3329,37 +3784,7 @@ class Scene_SDP
     window.deselect();
     window.deactivate();
 
-    // return the built and configured omnipedia list window.
     return window;
-  }
-
-  /**
-   * Gets the rectangle associated with the reward list command window.
-   * @returns {Rectangle}
-   */
-  sdpRewardListRectangle()
-  {
-    const sdpListRect = this.sdpListRectangle();
-    const parameterListRect = this.sdpParameterListRectangle();
-    const helpRect = this.sdpHelpRectangle();
-
-    // define the width of the list.
-    const width = Graphics.boxWidth - parameterListRect.width - sdpListRect.width;
-
-    // the rewards should render on the right side of the parameters.
-    const x = parameterListRect.x + parameterListRect.width;
-
-    // the shared modifier defining the height and y of this rectangle.
-    const ymod = 200;
-
-    // define the height of the list.
-    const height = Graphics.boxHeight - helpRect.height - ymod;
-
-    // calculate the Y for where the origin of the list window should be.
-    const y = ymod;
-
-    // build the rectangle to return.
-    return new Rectangle(x, y, width, height);
   }
 
   /**
@@ -3382,73 +3807,224 @@ class Scene_SDP
 
   //endregion reward list window
 
-  //region rank data window
+  //region cart window
   /**
-   * Creates the rank data window that displays data related to the current
-   * menu actor's ranking in the hovered SDP..
+   * Creates the window for planned ("cart") panel rankups.
    */
-  createSdpRankDataWindow()
+  createSdpCartWindow()
   {
-    // create the window.
-    const window = this.buildSdpRankDataWindow();
+    const window = this.buildSdpCartWindow();
 
-    // update the tracker with the new window.
-    this.setSdpRankDataWindow(window);
-
-    // add the window to the scene manager's tracking.
+    this.setSdpCartWindow(window);
     this.addWindow(window);
   }
 
   /**
-   * Sets up and defines the sdp rank data window.
-   * @returns {Window_SdpRankData}
+   * Builds the cart window (shares the right column with rewards).
+   * @returns {Window_SdpCart}
    */
-  buildSdpRankDataWindow()
+  buildSdpCartWindow()
   {
-    // define the rectangle of the window.
-    const rectangle = this.sdpRankDataRectangle();
+    const rectangle = this.sdpCartRectangle();
+    const window = new Window_SdpCart(rectangle);
 
-    // create the window with the rectangle.
-    const window = new Window_SdpRankData(rectangle);
+    // this is display-only; it should never be selected/scrollable via controller.
+    window.deselect();
+    window.deactivate();
 
-    // return the built and configured window.
     return window;
   }
 
   /**
-   * Gets the rectangle associated with the rank data window.
+   * Gets the tracked cart window.
+   * @returns {Window_SdpCart}
+   */
+  getSdpCartWindow()
+  {
+    return this._j._sdp._windows._sdpCart;
+  }
+
+  /**
+   * Sets the tracked cart window.
+   * @param {Window_SdpCart} cartWindow The cart window to track.
+   */
+  setSdpCartWindow(cartWindow)
+  {
+    this._j._sdp._windows._sdpCart = cartWindow;
+  }
+  //endregion cart window
+
+  /**
+   * Rectangle for the cart window, occupying the bottom half of the right column.
    * @returns {Rectangle}
    */
-  sdpRankDataRectangle()
+  sdpCartRectangle()
   {
-    const parametersRect = this.sdpParameterListRectangle();
+    const rewardsRect = this.sdpRewardListRectangle();
+    const bottom = this.sdpRightColumnBottom();
+    const gap = this.sdpRightColumnSplitGap();
+    const cartY = rewardsRect.y + rewardsRect.height + gap;
+    const cartHeight = bottom - cartY;
+    return new Rectangle(rewardsRect.x, cartY, rewardsRect.width, cartHeight);
+  }
 
-    const width = Graphics.boxWidth - (parametersRect.x + parametersRect.width);
-    const height = Graphics.boxHeight - (this.sdpHelpRectangle().height + this.sdpRewardListRectangle().height);
-    const x = (parametersRect.x + parametersRect.width);
-    const y = 0;
+  /**
+   * Rectangle for the rewards window, occupying the top half of the right column.
+   * @returns {Rectangle}
+   */
+  sdpRewardListRectangle()
+  {
+    const sdpListRect = this.sdpListRectangle();
+    const centerW = this.sdpCenterColumnWidth();
+    const { height: headerH } = this.sdpHeaderRectangle();
+
+    const x = sdpListRect.width + centerW;
+    const y = headerH;
+    const width = Graphics.boxWidth - x;
+    const bottom = this.sdpRightColumnBottom();
+    const gap = this.sdpRightColumnSplitGap();
+    const fullHeight = bottom - y;
+    const height = Math.floor((fullHeight - gap) / 2);
+
     return new Rectangle(x, y, width, height);
   }
 
   /**
-   * Gets the currently tracked rank data window.
-   * @returns {Window_SdpRankData}
+   * The bottom boundary for the right column (rewards + cart).
+   * @returns {number}
    */
-  getSdpRankDataWindow()
+  sdpRightColumnBottom()
   {
-    return this._j._sdp._windows._sdpRankData;
+    // help is not rendered under the right column; take the full height.
+    return Graphics.boxHeight;
   }
 
   /**
-   * Set the currently tracked rank data window to the given window.
-   * @param {Window_SdpRankData} rankDataWindow The rank data window to track.
+   * The gap between rewards and cart windows.
+   * @returns {number}
    */
-  setSdpRankDataWindow(rankDataWindow)
+  sdpRightColumnSplitGap()
   {
-    this._j._sdp._windows._sdpRankData = rankDataWindow;
+    // the window frames already create separation; keep the split tight.
+    return 0;
   }
 
-  //endregion rank data window
+  //region header window
+  /**
+   * Creates the header window for the hovered SDP.
+   */
+  createSdpHeaderWindow()
+  {
+    const window = this.buildSdpHeaderWindow();
+
+    this.setSdpHeaderWindow(window);
+    this.addWindow(window);
+  }
+
+  /**
+   * Builds the header window.
+   * @returns {Window_SdpHeader}
+   */
+  buildSdpHeaderWindow()
+  {
+    const rectangle = this.sdpHeaderRectangle();
+    return new Window_SdpHeader(rectangle);
+  }
+
+  /**
+   * The rectangle for the header strip spanning the top row (right of points ribbon).
+   * @returns {Rectangle}
+   */
+  sdpHeaderRectangle()
+  {
+    const pointsRect = this.sdpPointsRectangle();
+    const { width: x } = pointsRect;
+    const y = 0;
+    const width = Graphics.boxWidth - x;
+    // this header renders two full text rows; match Window_Base.fittingHeight(2).
+    const height = 108;
+    return new Rectangle(x, y, width, height);
+  }
+
+  /**
+   * Gets the tracked header window.
+   * @returns {Window_SdpHeader}
+   */
+  getSdpHeaderWindow()
+  {
+    return this._j._sdp._windows._sdpHeader;
+  }
+
+  /**
+   * Sets the tracked header window.
+   * @param {Window_SdpHeader} headerWindow The header window to track.
+   */
+  setSdpHeaderWindow(headerWindow)
+  {
+    this._j._sdp._windows._sdpHeader = headerWindow;
+  }
+  //endregion header window
+
+  //region controls hint window
+  /**
+   * Pixel height reserved for the controller legend strip above {@link Window_SdpHelp}.
+   * @returns {number}
+   */
+  sdpControlsHintHeight()
+  {
+    // must match {@link Window_Base#fittingHeight}(1): one text row + top/bottom window padding.
+    // a height of 36 would leave ~12px of inner space after padding, so the hint text never shows.
+    const lineHeight = Window_Base.prototype.lineHeight();
+    const pad = $gameSystem.windowPadding();
+
+    return lineHeight + pad * 2;
+  }
+
+  /**
+   * Creates the controller hint strip (cart/checkout/filter legend).
+   */
+  createSdpControlsHintWindow()
+  {
+    const window = this.buildSdpControlsHintWindow();
+
+    this.addWindow(window);
+  }
+
+  /**
+   * Builds the controller hint window.
+   * @returns {Window_SdpControlsHint}
+   */
+  buildSdpControlsHintWindow()
+  {
+    const rectangle = this.sdpControlsHintRectangle();
+    const window = new Window_SdpControlsHint(rectangle);
+
+    window.refresh();
+
+    return window;
+  }
+
+  /**
+   * Rectangle for the controller legend strip (left + center columns only).
+   * @returns {Rectangle}
+   */
+  sdpControlsHintRectangle()
+  {
+    const hintH = this.sdpControlsHintHeight();
+    const {
+      y: helpY,
+      width: helpWidth,
+    } = this.sdpHelpRectangle();
+
+    const x = 0;
+    const y = helpY - hintH;
+    const width = helpWidth;
+    const height = hintH;
+
+    return new Rectangle(x, y, width, height);
+  }
+
+  //endregion controls hint window
 
   //region help window
   /**
@@ -3467,7 +4043,7 @@ class Scene_SDP
   }
 
   /**
-   * Sets up and defines the sdp listing window.
+   * Sets up and defines the sdp help window.
    * @returns {Window_SdpHelp}
    */
   buildSdpHelpWindow()
@@ -3488,8 +4064,13 @@ class Scene_SDP
    */
   sdpHelpRectangle()
   {
-    const width = Graphics.boxWidth;
-    const height = 100;
+    // help only needs to live under the left+center columns, not under the cart/rewards.
+    const { width: ribbonW } = this.sdpPointsRectangle();
+    const width = ribbonW + this.sdpCenterColumnWidth();
+    // two description lines + padding; add slack so large menu fonts / drawTextEx do not clip the last line.
+    const lineHeight = Window_Base.prototype.lineHeight();
+    const pad = $gameSystem.windowPadding();
+    const height = lineHeight * 2 + pad * 2 + 24;
     const x = 0;
     const y = Graphics.boxHeight - height;
     return new Rectangle(x, y, width, height);
@@ -3551,13 +4132,14 @@ class Scene_SDP
   }
 
   /**
-   * Gets the rectangle associated with the sdp confirmation window.
+   * Gets the rectangle associated with the sdp points ribbon window.
    * @returns {Rectangle}
    */
   sdpPointsRectangle()
   {
     // upper-left ribbon; width matches {@link #sdpListRectangle} for a single vertical stripe.
     const width = 480;
+    // header is now two lines; keep the full top band height.
     const height = 72;
     const x = 0;
     const y = 0;
@@ -3614,7 +4196,9 @@ class Scene_SDP
 
     // configure the window input handlers.
     window.setHandler('cancel', this.onUpgradeCancel.bind(this));
-    window.setHandler('ok', this.onUpgradeConfirm.bind(this));
+    window.setHandler('panel-upgrade-ok', this.onUpgradeConfirm.bind(this));
+    window.setHandler('panel-cart-ok', this.onCartCheckoutConfirm.bind(this));
+    window.setHandler('panel-upgrade-cancel', this.onUpgradeCancel.bind(this));
 
     // hide it by default.
     window.hide();
@@ -3629,8 +4213,16 @@ class Scene_SDP
    */
   sdpConfirmationRectangle()
   {
-    const width = 350;
-    const height = 120;
+    // sized for {@link Window_SdpConfirmation}: 4-line summary + 1-row horizontal choices + chrome.
+    const windowPad = $gameSystem.windowPadding();
+    const lh = Window_Base.prototype.lineHeight();
+    const itemPad = 8;
+    const summaryBlock = itemPad + lh * 4 + 8;
+    const commandBlock = lh;
+    const innerSlack = 16;
+    const height = windowPad * 2 + summaryBlock + commandBlock + innerSlack;
+    // cap leaves margins on the box; widened from legacy 560 so long panel names + "will be upgraded… level(s)." fit.
+    const width = Math.min(Graphics.boxWidth - 48, 710);
     const x = (Graphics.boxWidth - width) / 2;
     const y = (Graphics.boxHeight - height) / 2;
     return new Rectangle(x, y, width, height);
@@ -3663,13 +4255,103 @@ class Scene_SDP
    */
   onSelectPanel()
   {
-    // grab the confirmation window.
-    const window = this.getSdpConfirmationWindow();
+    // if the cart has any planned purchases, confirm checkout.
+    if (this._j._sdp._cart.size > 0)
+    {
+      this.openCartCheckoutConfirmation();
+      return;
+    }
 
-    // enable interaction with it.
+    // otherwise, confirm a single rank-up of the hovered panel.
+    this.openSingleUpgradeConfirmation();
+  }
+
+  /**
+   * Opens the confirmation window for purchasing the queued cart.
+   */
+  openCartCheckoutConfirmation()
+  {
+    const window = this.getSdpConfirmationWindow();
+    window.setMode('cart');
+    window.setCartSummary(this.buildCartSummary($gameParty.menuActor()));
+    window.refresh();
     window.show();
     window.open();
     window.activate();
+    this.showModalDimmer(Scene_Base.MODAL_DIMMER_CONTENTS_OPACITY_DEFAULT, this.getSdpConfirmationWindow());
+  }
+
+  /**
+   * Opens the confirmation window for purchasing a single rank-up.
+   */
+  openSingleUpgradeConfirmation()
+  {
+    const actor = $gameParty.menuActor();
+    const panel = this.getSdpListWindow()
+      .currentExt();
+    const { currentRank } = actor.getSdpByKey(panel.key);
+    const cost = panel.rankUpCost(currentRank);
+
+    const window = this.getSdpConfirmationWindow();
+    window.setMode('single');
+    window.setSingleSummary(panel.name, cost, actor.getSdpPoints());
+    window.refresh();
+    window.show();
+    window.open();
+    window.activate();
+    this.showModalDimmer(Scene_Base.MODAL_DIMMER_CONTENTS_OPACITY_DEFAULT, this.getSdpConfirmationWindow());
+  }
+
+  /**
+   * Queues one more level for the currently hovered panel.
+   */
+  onCartLevelIncrease()
+  {
+    this.modifyHoveredPanelCartLevels(1);
+  }
+
+  /**
+   * Removes one queued level for the currently hovered panel.
+   */
+  onCartLevelDecrease()
+  {
+    this.modifyHoveredPanelCartLevels(-1);
+  }
+
+  /**
+   * Adds or removes queued levels for the hovered panel.
+   * @param {number} delta The amount to adjust by.
+   */
+  modifyHoveredPanelCartLevels(delta)
+  {
+    const panel = this.getSdpListWindow()
+      .currentExt();
+    if (!panel)
+    {
+      return;
+    }
+
+    const actor = $gameParty.menuActor();
+    const { key, maxRank } = panel;
+    const { currentRank } = actor.getSdpByKey(key);
+    const maxQueue = Math.max(0, maxRank - currentRank);
+
+    const cart = this._j._sdp._cart;
+    const existing = cart.get(key) ?? 0;
+    const next = Math.max(0, Math.min(existing + delta, maxQueue));
+
+    if (next === 0)
+    {
+      cart.delete(key);
+    }
+    else
+    {
+      cart.set(key, next);
+    }
+
+    this.onPanelHoveredChange();
+    this.getSdpListWindow()
+      .activate();
   }
 
   /**
@@ -3695,6 +4377,149 @@ class Scene_SDP
   }
 
   /**
+   * Attempts to execute all cart rankups in one go.
+   * If the total cost cannot be afforded, nothing happens.
+   */
+  checkoutCart()
+  {
+    const actor = $gameParty.menuActor();
+    const cart = this._j._sdp._cart;
+    if (cart.size === 0)
+    {
+      return false;
+    }
+
+    // calculate the total cost of all queued rankups.
+    let totalCost = 0;
+    cart.forEach((levels, key) =>
+    {
+      const panel = J.SDP.Metadata.panelsMap.get(key);
+      if (!panel)
+      {
+        return;
+      }
+
+      const { currentRank } = actor.getSdpByKey(key);
+      for (let i = 0; i < levels; i++)
+      {
+        totalCost += panel.rankUpCost(currentRank + i);
+      }
+    });
+
+    // if we can't afford it, do nothing.
+    const wallet = actor.getSdpPoints();
+    if (totalCost > wallet)
+    {
+      SoundManager.playBuzzer();
+      return false;
+    }
+
+    // execute each rankup and track spending.
+    cart.forEach((levels, key) =>
+    {
+      const panel = J.SDP.Metadata.panelsMap.get(key);
+      if (!panel)
+      {
+        return;
+      }
+
+      const { currentRank } = actor.getSdpByKey(key);
+      for (let i = 0; i < levels; i++)
+      {
+        const cost = panel.rankUpCost(currentRank + i);
+        if (cost === 0)
+        {
+          return;
+        }
+
+        actor.modSdpPoints(-cost);
+        actor.rankUpPanel(key);
+        actor.modAccumulatedSpentSdpPoints(cost);
+      }
+    });
+
+    // clear the cart after purchasing.
+    this._j._sdp._cart.clear();
+
+    // refresh everything.
+    this.onPanelHoveredChange();
+    this.getSdpListWindow()
+      .activate();
+
+    return true;
+  }
+
+  /**
+   * Builds a summarized view of the cart for display/confirmation.
+   * @param {Game_Actor} actor The actor whose wallet and ranks apply.
+   * @returns {{
+   *   panelCount: number,
+   *   levelCount: number,
+   *   totalCost: number,
+   *   wallet: number,
+   *   remaining: number,
+   *   canAfford: boolean,
+   *   solePanelName: string|null
+   * }}
+   */
+  buildCartSummary(actor)
+  {
+    const cart = this._j._sdp._cart;
+    const wallet = actor.getSdpPoints();
+    let totalCost = 0;
+    let levelCount = 0;
+    let panelCount = 0;
+
+    cart.forEach((levels, key) =>
+    {
+      const panel = J.SDP.Metadata.panelsMap.get(key);
+      if (!panel)
+      {
+        return;
+      }
+
+      // count the entry.
+      panelCount++;
+      levelCount += levels;
+
+      // compute the cumulative cost across the queued levels.
+      const { currentRank } = actor.getSdpByKey(key);
+      for (let i = 0; i < levels; i++)
+      {
+        totalCost += panel.rankUpCost(currentRank + i);
+      }
+    });
+
+    const remaining = wallet - totalCost;
+    const canAfford = remaining >= 0;
+
+    let solePanelName = null;
+
+    if (panelCount === 1)
+    {
+      cart.forEach((_levels, key) =>
+      {
+        const sole = J.SDP.Metadata.panelsMap.get(key);
+
+        if (sole)
+        {
+          solePanelName = sole.name;
+        }
+      });
+    }
+
+    return {
+      panelCount,
+      levelCount,
+      totalCost,
+      wallet,
+      remaining,
+      canAfford,
+      solePanelName,
+    };
+  }
+
+  /**
    * Refreshes all windows in this scene on change of index in the list.
    */
   onPanelHoveredChange()
@@ -3702,7 +4527,14 @@ class Scene_SDP
     // validate panels are present before updating everything.
     const hasPanels = this.getSdpListWindow()
       .hasCommands();
-    if (!hasPanels) return;
+    if (!hasPanels)
+    {
+      this.getSdpHeaderWindow()
+        .setPanel(null);
+      this.getSdpHeaderWindow()
+        .refresh();
+      return;
+    }
 
     // grab the current panel.
     /** @type {StatDistributionPanel} */
@@ -3715,6 +4547,8 @@ class Scene_SDP
     // update the actor associated with the sdp listing.
     this.getSdpListWindow()
       .setActor(currentActor);
+    this.getSdpListWindow()
+      .setCart(this._j._sdp._cart);
 
     // update the actor associated with the sdp point tracking.
     this.getSdpPointsWindow()
@@ -3731,22 +4565,23 @@ class Scene_SDP
     rewardListWindow.setRewards(currentPanel.panelRewards);
     rewardListWindow.refresh();
 
+    // update the cart window with current planned purchases.
+    this.getSdpCartWindow()
+      .setCart(currentActor, this._j._sdp._cart);
+    this.getSdpCartWindow()
+      .refresh();
+
+    // update the header window with name/rarity/flavor.
+    this.getSdpHeaderWindow()
+      .setPanel(currentPanel);
+    this.getSdpHeaderWindow()
+      .refresh();
+
     // update the text in the help window to reflect the description of the panel.
+    // keep this window dedicated to description lines only (often 2 lines with escape codes).
     this.getSdpHelpWindow()
       .setText(currentPanel.description);
 
-    // update the cost data window.
-    const panelRanking = currentActor.getSdpByKey(currentPanel.key);
-    this.getSdpRankDataWindow()
-      .setRankData(
-        currentPanel.getPanelRarityColorIndex(),
-        currentPanel.getPanelRarityText(),
-        panelRanking.currentRank,
-        currentPanel.maxRank,
-        currentPanel.rankUpCost(panelRanking.currentRank),
-        currentActor.getSdpPoints());
-    this.getSdpRankDataWindow()
-      .refresh();
   }
 
   /**
@@ -3755,6 +4590,15 @@ class Scene_SDP
    */
   cycleMembers(isForward = true)
   {
+    // cart is actor-specific (wallet + rank curve); don't allow swapping while it has contents.
+    if (this._j._sdp._cart.size > 0)
+    {
+      SoundManager.playBuzzer();
+      this.getSdpListWindow()
+        .activate();
+      return;
+    }
+
     // cycle the menu actors either forward or backward.
     isForward
       ? $gameParty.makeMenuActorNext()
@@ -3773,6 +4617,8 @@ class Scene_SDP
    */
   onUpgradeConfirm()
   {
+    this.hideModalDimmer();
+
     // grab the panel we're working with.
     const panel = this.getSdpListWindow()
       .currentExt();
@@ -3808,10 +4654,36 @@ class Scene_SDP
   }
 
   /**
+   * Confirms and executes the queued cart rankups.
+   */
+  onCartCheckoutConfirm()
+  {
+    const didCheckout = this.checkoutCart();
+    if (didCheckout === false)
+    {
+      return;
+    }
+
+    this.hideModalDimmer();
+
+    // close the confirmation window.
+    this.getSdpConfirmationWindow()
+      .close();
+    this.getSdpConfirmationWindow()
+      .hide();
+
+    // refocus back to the list window.
+    this.getSdpListWindow()
+      .activate();
+  }
+
+  /**
    * If the player opts to cancel the upgrade process, return to the list window.
    */
   onUpgradeCancel()
   {
+    this.hideModalDimmer();
+
     // grab the confirmation window.
     const window = this.getSdpConfirmationWindow();
 
@@ -3947,9 +4819,283 @@ Window_MenuCommand.prototype.canAddSdpCommand = function()
 };
 //endregion Window_MenuCommand
 
+//region Window_SdpCart
+/**
+ * A controller-first "shopping cart" window for queued SDP rankups.
+ * This window is display-only; selection happens in {@link Window_SdpList}.
+ */
+class Window_SdpCart
+  extends Window_Command
+{
+  /**
+   * The actor whose wallet + rankings apply.
+   * @type {Game_Actor|null}
+   */
+  actor = null;
+
+  /**
+   * The queued cart levels by panel key.
+   * @type {Map<string, number>}
+   */
+  cart = new Map();
+
+  /**
+   * The cached wallet value for the pinned row.
+   * @type {number}
+   */
+  wallet = 0;
+
+  /**
+   * The cached total cost for the pinned row.
+   * @type {number}
+   */
+  totalCost = 0;
+
+  /**
+   * Constructor.
+   * @param {Rectangle} rect The rectangle that represents this window.
+   */
+  constructor(rect)
+  {
+    super(rect);
+  }
+
+  /**
+   * Binds the cart context to this window.
+   * @param {Game_Actor} actor The actor whose SDP points will be spent.
+   * @param {Map<string, number>} cart The queued levels by panel key.
+   */
+  setCart(actor, cart)
+  {
+    this.actor = actor;
+    this.cart = cart;
+  }
+
+  /**
+   * OVERWRITE No commands are selectable in this window.
+   */
+  isCurrentItemEnabled()
+  {
+    return false;
+  }
+
+  /**
+   * Implements {@link #makeCommandList}.<br>
+   * Draws the contents of the cart and the total cost.
+   */
+  makeCommandList()
+  {
+    const { actor } = this;
+    if (!actor)
+    {
+      return;
+    }
+
+    // if the cart is empty, say so.
+    if (this.cart.size === 0)
+    {
+      const empty = new WindowCommandBuilder('Cart: empty')
+        .setSymbol('cart-empty')
+        .setEnabled(false)
+        .setColorIndex(8)
+        .build();
+      this.addBuiltCommand(empty);
+      return;
+    }
+
+    // compute total cost first so it stays pinned at the top.
+    let totalCost = 0;
+    this.cart.forEach((levels, key) =>
+    {
+      const panel = J.SDP.Metadata.panelsMap.get(key);
+      if (!panel)
+      {
+        return;
+      }
+
+      const { currentRank } = actor.getSdpByKey(key);
+      const cost = Window_SdpCart.#calculateQueuedCost(panel, currentRank, levels);
+      totalCost += cost;
+
+    });
+
+    // wallet row (the anchor row) pinned at the top.
+    const wallet = actor.getSdpPoints();
+    this.wallet = wallet;
+    this.totalCost = totalCost;
+
+    // wallet row: we custom-render the styled numbers, so keep the command text simple.
+    const walletRow = new WindowCommandBuilder(J.SDP.Metadata.sdpPointsDisplayName)
+      .setSymbol('cart-wallet')
+      .setEnabled(false)
+      .setIconIndex(J.SDP.Metadata.sdpIconIndex)
+      .build();
+    this.addBuiltCommand(walletRow);
+
+    // now build the cart line items.
+    this.cart.forEach((levels, key) =>
+    {
+      const panel = J.SDP.Metadata.panelsMap.get(key);
+      if (!panel)
+      {
+        return;
+      }
+
+      const { currentRank } = actor.getSdpByKey(key);
+      const cost = Window_SdpCart.#calculateQueuedCost(panel, currentRank, levels);
+
+      const command = new WindowCommandBuilder(panel.name)
+        .setSymbol(`cart-${key}`)
+        .setEnabled(false)
+        .setIconIndex(panel.iconIndex)
+        .setExtensionData({
+          levels,
+          cost,
+        })
+        .build();
+
+      this.addBuiltCommand(command);
+    });
+  }
+
+  /**
+   * OVERWRITE Renders the cart rows with styled padded numbers.
+   * @param {number} index The command index.
+   */
+  drawItem(index)
+  {
+    // handles the setup that occurs before each item drawn.
+    this.preDrawItem(index);
+
+    // grab the rectangle for the line item.
+    const {
+      x: rectX,
+      y: rectY,
+      width: rectWidth
+    } = this.itemLineRect(index);
+
+    // identify the icon for this command.
+    const commandIcon = this.commandIcon(index);
+    if (commandIcon)
+    {
+      this.drawIcon(commandIcon, rectX + 4, rectY);
+    }
+
+    // render the command name.
+    const commandNameX = rectX + 40;
+    this.drawTextEx(this.buildCommandName(index), commandNameX, rectY, rectWidth);
+
+    const symbol = this.commandSymbol(index);
+    if (symbol === 'cart-wallet')
+    {
+      this.drawCartWalletRow(rectX, rectY, rectWidth);
+    }
+    else if (symbol.startsWith('cart-'))
+    {
+      this.drawCartLineItemRow(index, rectX, rectY, rectWidth);
+    }
+  }
+
+  /**
+   * Draws the pinned wallet row with styled numbers.
+   * @param {number} x The row x.
+   * @param {number} y The row y.
+   * @param {number} width The row width.
+   */
+  drawCartWalletRow(x, y, width)
+  {
+    const pad = 12;
+    const gap = 12;
+
+    const spendW = this.textWidth('(-00000000)');
+    const amountW = this.textWidth('00000000');
+    const spendX = x + width - spendW - pad;
+    const amountX = spendX - gap - amountW;
+
+    // wallet amount (always normal coloring; zeros dim).
+    this.drawStyledZeroPaddedNumber(amountX, y, this.wallet, amountW, 8, 8, 0);
+
+    // spend indicator (green when affordable, red when short).
+    const canAfford = this.totalCost <= this.wallet;
+    let spendColor = 0;
+    if (this.totalCost > 0)
+    {
+      spendColor = canAfford
+        ? 24
+        : 18;
+    }
+
+    this.drawStyledZeroPaddedCost(spendX, y, this.totalCost, spendW, 8, 8, spendColor);
+  }
+
+  /**
+   * Draws a cart line item row with `+NN | 00000000` formatting.
+   * @param {number} index The command index.
+   * @param {number} x The row x.
+   * @param {number} y The row y.
+   * @param {number} width The row width.
+   */
+  drawCartLineItemRow(index, x, y, width)
+  {
+    const command = this.commandEntryAt(index);
+    const ext = command
+      ? command.ext
+      : null;
+    if (!ext)
+    {
+      return;
+    }
+
+    const { levels, cost } = ext;
+    const pad = 12;
+    const gap = 8;
+
+    // right-most cost.
+    const costW = this.textWidth('00000000');
+    const costX = x + width - costW - pad;
+    this.drawStyledZeroPaddedNumber(costX, y, cost, costW, 8, 8, 0);
+
+    // prefix: +NN |
+    const prefix = '+';
+    const pipe = ' |';
+    const pipeW = this.textWidth(pipe);
+    const plusW = this.textWidth(prefix);
+    const levelsW = this.textWidth('00');
+
+    const pipeX = costX - gap - pipeW;
+    const levelsX = pipeX - levelsW;
+    const plusX = levelsX - plusW;
+
+    this.drawText(prefix, plusX, y, plusW, Window_Base.TextAlignments.Left);
+    this.drawStyledZeroPaddedNumber(levelsX, y, levels, levelsW, 2, 8, 0);
+    this.drawText(pipe, pipeX, y, pipeW, Window_Base.TextAlignments.Left);
+  }
+
+  /**
+   * Calculates the total cost of a queued number of rankups for a panel.
+   * @param {StatDistributionPanel} panel The panel being purchased.
+   * @param {number} currentRank The current rank of the panel.
+   * @param {number} levels The queued levels.
+   * @returns {number}
+   */
+  static #calculateQueuedCost(panel, currentRank, levels)
+  {
+    let cost = 0;
+    for (let i = 0; i < levels; i++)
+    {
+      cost += panel.rankUpCost(currentRank + i);
+    }
+    return cost;
+  }
+}
+//endregion Window_SdpCart
+
 //region Window_SdpConfirmation
 /**
  * The window that prompts the user to confirm/cancel the upgrading of a chosen panel.
+ * Long panel names must not become {@link Window_Command} labels: {@link Window_Command#drawItem}
+ * feeds names through {@link Window_Base#drawTextEx}, which wraps and stacks multiple lines inside
+ * a single-row {@link Window_Selectable#itemRect}, producing overlapping unreadable text.
  */
 class Window_SdpConfirmation
   extends Window_Command
@@ -3963,6 +5109,15 @@ class Window_SdpConfirmation
     super(rect);
     this.initialize(rect);
     this.initMembers();
+
+    this.opacity = 255;
+    this.contentsBack.opacity = 255;
+    this.contents.opacity = 255;
+  }
+
+  updateBackOpacity()
+  {
+    this.backOpacity = 255;
   }
 
   /**
@@ -3971,16 +5126,299 @@ class Window_SdpConfirmation
   initMembers()
   {
     /**
-     * The cost of this panel to execute an upgrade.
-     * @type {number}
+     * The current mode of this confirmation window.
+     * - single: upgrade hovered panel once.
+     * - cart: checkout the queued cart.
+     * @type {string}
      */
-    this.cost = 0;
+    this.mode = 'single';
 
     /**
-     * The actor to reduce the points of if the player chooses to upgrade the panel.
-     * @type {Game_Actor}
+     * The summary of the current cart checkout, if applicable.
+     * @type {{
+     *   panelCount: number,
+     *   levelCount: number,
+     *   totalCost: number,
+     *   wallet: number,
+     *   remaining: number,
+     *   canAfford: boolean,
+     *   solePanelName: string|null
+     * }|null}
      */
-    this.actor = null;
+    this.cartSummary = null;
+
+    /**
+     * The summary of the current single-panel upgrade, if applicable.
+     * @type {{ panelName: string, cost: number, wallet: number, remaining: number, canAfford: boolean }|null}
+     */
+    this.singleSummary = null;
+  }
+
+  /**
+   * The amount of columns this command window uses.
+   * @returns {number}
+   */
+  maxCols()
+  {
+    // horizontal choice row: [Upgrade] [Cancel].
+    return 2;
+  }
+
+  /**
+   * The width of each command cell.
+   * @returns {number}
+   */
+  itemWidth()
+  {
+    // split the available inner width across two columns.
+    const spacing = this.colSpacing();
+    return Math.floor((this.innerWidth - spacing) / 2);
+  }
+
+  /**
+   * Keep the choice row tight; the summary above does the heavy lifting.
+   * @returns {number}
+   */
+  numVisibleRows()
+  {
+    return 1;
+  }
+
+  /**
+   * Keep the two choices separated but not wasteful.
+   * @returns {number}
+   */
+  colSpacing()
+  {
+    return 12;
+  }
+
+  /**
+   * Sets the mode of this confirmation window.
+   * @param {string} mode The mode key.
+   */
+  setMode(mode)
+  {
+    this.mode = mode;
+  }
+
+  /**
+   * Sets the cart summary for this confirmation window.
+   * @param {{
+   *   panelCount: number,
+   *   levelCount: number,
+   *   totalCost: number,
+   *   wallet: number,
+   *   remaining: number,
+   *   canAfford: boolean,
+   *   solePanelName: string|null
+   * }} summary The cart summary.
+   */
+  setCartSummary(summary)
+  {
+    this.cartSummary = summary;
+  }
+
+  /**
+   * Sets the single-upgrade summary for this confirmation window.
+   * @param {string} panelName The name of the panel being upgraded.
+   * @param {number} cost The cost of the rank-up.
+   * @param {number} wallet The actor wallet.
+   */
+  setSingleSummary(panelName, cost, wallet)
+  {
+    const remaining = wallet - cost;
+    const canAfford = remaining >= 0;
+    this.singleSummary = {
+      panelName,
+      cost,
+      wallet,
+      remaining,
+      canAfford,
+    };
+  }
+
+  /**
+   * Vertical space reserved for the summary block above command rows.
+   * Must stay in sync with {@link #drawConfirmationSummary}.
+   * @returns {number}
+   */
+  confirmationSummaryHeight()
+  {
+    const topPad = this.itemPadding();
+    const lh = this.lineHeight();
+    const gapBeforeCommands = 8;
+
+    // 4-line summary:
+    // - headline (single-panel cart uses panel name + levels; multi-panel cart uses aggregate copy)
+    // - wallet line (icon + wallet amount)
+    // - (-cost) line
+    // - projected remainder line (after horizontal divider).
+    return topPad + lh * 4 + gapBeforeCommands;
+  }
+
+  /**
+   * Shifts command rows below the summary block so list geometry stays coherent.
+   * @param {number} index The command index.
+   * @returns {Rectangle}
+   */
+  itemRect(index)
+  {
+    const rect = Window_Selectable.prototype.itemRect.call(this, index);
+    rect.y += this.confirmationSummaryHeight();
+
+    return rect;
+  }
+
+  /**
+   * Paints summary text first, then command rows (default {@link Window_Selectable#paint} omits summary).
+   */
+  paint()
+  {
+    if (!this.contents)
+    {
+      return;
+    }
+
+    this.contents.clear();
+    if (this.contentsBack)
+    {
+      this.contentsBack.clear();
+    }
+
+    this.drawConfirmationSummary();
+    this.drawAllItems();
+  }
+
+  /**
+   * Draws the checkout / upgrade context above the OK and Cancel lines.
+   */
+  drawConfirmationSummary()
+  {
+    const padX = this.itemPadding();
+    const w = this.innerWidth - padX * 2;
+    let y = this.itemPadding();
+
+    this.resetFontSettings();
+
+    /**
+     * Draws a labeled row with a right-aligned numeric amount.
+     * @param {number} iconIndex The icon index, or 0 for none.
+     * @param {string} label The left-aligned label.
+     * @param {number} amount The right-aligned amount.
+     * @param {number} colorIndex The right-text color index.
+     */
+    const drawLabeledAmountRow = (iconIndex, label, amount, colorIndex = 0) =>
+    {
+      const hasIcon = iconIndex > 0;
+      const iconSpace = hasIcon
+        ? 40
+        : 0;
+      const textX = padX + iconSpace;
+      const textW = w - iconSpace;
+
+      if (hasIcon)
+      {
+        this.drawIcon(iconIndex, padX, y + 2);
+      }
+
+      // left label.
+      this.drawText(label, textX, y, textW, 'left');
+
+      // right amount (styled zeros + bold significant digits).
+      this.drawStyledZeroPaddedNumber(textX, y, amount, textW, 8, 8, colorIndex);
+
+      y += this.lineHeight();
+    };
+
+    if (this.mode === 'cart')
+    {
+      const summary = this.cartSummary;
+      if (!summary)
+      {
+        return;
+      }
+
+      // line 1: one panel in the cart reads like single-upgrade copy; multiple panels stay aggregate.
+      let lineA;
+
+      if (summary.panelCount === 1 && summary.solePanelName)
+      {
+        const levelWord = summary.levelCount === 1
+          ? 'rank'
+          : 'ranks';
+        const nameMarked = this.boldenText(summary.solePanelName);
+
+        lineA = `${nameMarked} will be upgraded by ${summary.levelCount} ${levelWord}.`;
+      }
+      else
+      {
+        const { unitPlural } = J.SDP.Metadata;
+        const upgradeWord = summary.levelCount === 1
+          ? 'upgrade'
+          : 'upgrades';
+
+        lineA = `${summary.levelCount} ${upgradeWord} on ${summary.panelCount} ${unitPlural}; confirm?`;
+      }
+
+      this.drawTextEx(lineA, padX, y, w);
+      y += this.lineHeight();
+
+      // line 2: current amount.
+      drawLabeledAmountRow(J.SDP.Metadata.sdpIconIndex, 'Current Amount', summary.wallet,);
+
+      // line 3: cost to pay.
+      drawLabeledAmountRow(0, 'Cost to pay', summary.totalCost, 18,);
+
+      // line 4: horizontal divider + projected remainder.
+      y -= 8;
+
+      // horizontal divider.
+      this.drawHorizontalLine(padX, y, w);
+      y += 10;
+
+      // remaining row.
+      drawLabeledAmountRow(
+        0,
+        `Remaining ${J.SDP.Metadata.sdpPointsDisplayName}`,
+        summary.remaining,);
+    }
+    else
+    {
+      const summary = this.singleSummary;
+      if (!summary)
+      {
+        return;
+      }
+
+      // line 1: same headline shape as a one-panel cart checkout — single OK path always buys exactly one level.
+      const nameMarked = this.boldenText(summary.panelName);
+      const lineA = `${nameMarked} will be upgraded by 1 rank.`;
+
+      this.drawTextEx(lineA, padX, y, w);
+      y += this.lineHeight();
+
+      // line 2: current amount.
+      drawLabeledAmountRow(J.SDP.Metadata.sdpIconIndex, 'Current Amount', summary.wallet,);
+
+      // line 3: cost to pay.
+      drawLabeledAmountRow(0, 'Cost to pay', summary.cost, 18,);
+
+      // line 4: horizontal divider + projected remainder.
+      y -= 8;
+
+      // horizontal divider.
+      this.drawHorizontalLine(padX, y, w);
+      y += 10;
+
+      // remaining row.
+      drawLabeledAmountRow(
+        0,
+        `Remaining ${J.SDP.Metadata.sdpPointsDisplayName}`,
+        summary.remaining,);
+    }
+
+    this.resetFontSettings();
   }
 
   /**
@@ -3988,12 +5426,142 @@ class Window_SdpConfirmation
    */
   makeCommandList()
   {
-    this.addCommand(`Upgrade this panel`, `panel-upgrade-ok`, true, null, 91);
-    this.addCommand(`Cancel`, `panel-upgrade-cancel`, true, null, 90);
+    // upgrade/checkout lives on the left; cancel on the right.
+    const isCart = this.mode === 'cart';
+    const summary = isCart
+      ? this.cartSummary
+      : this.singleSummary;
+    const canAfford = summary
+      ? summary.canAfford
+      : false;
+
+    const upgrade = new WindowCommandBuilder('Upgrade')
+      .setSymbol(isCart
+        ? 'panel-cart-ok'
+        : 'panel-upgrade-ok')
+      .setEnabled(canAfford)
+      .setIconIndex(91)
+      .build();
+    this.addBuiltCommand(upgrade);
+
+    const cancel = new WindowCommandBuilder('Cancel')
+      .setSymbol('panel-upgrade-cancel')
+      .setEnabled(true)
+      .setIconIndex(90)
+      .build();
+    this.addBuiltCommand(cancel);
   }
 }
 
 //endregion Window_SdpConfirmation
+
+//region Window_SdpControlsHint
+/**
+ * A single-line controller hint for the SDP scene.
+ * This must not live in {@link Window_SdpHelp} because that help window is
+ * reserved for 2 lines of panel description.
+ */
+class Window_SdpControlsHint
+  extends Window_Base
+{
+  /**
+   * @param {Rectangle} rect The dimensions of the window.
+   */
+  constructor(rect)
+  {
+    super(rect);
+    this.initialize(rect);
+  }
+
+  /**
+   * Re-renders the static controller hint.
+   */
+  refresh()
+  {
+    this.contents.clear();
+    this.drawControllerHint();
+  }
+
+  /**
+   * Draws the controller-first legend for cart + checkout + filters.
+   */
+  drawControllerHint()
+  {
+    // pull away from the chrome edges slightly so it reads like helper chrome.
+    const padX = 12;
+
+    // shrink so it fits comfortably without stealing vertical pixels from the panel lists.
+    this.resetFontSettings();
+    this.modFontSize(-4);
+
+    // avoid palette picks that can disappear on darker skins; still lighter than body copy via size alone.
+    this.changeTextColor(ColorManager.normalColor());
+
+    const text = 'L/R: -/+ cart  OK: checkout/upgrade  More: filter';
+
+    const y = Math.max(0, Math.floor((this.innerHeight - this.lineHeight()) / 2));
+    this.drawText(text, padX, y, this.innerWidth - padX * 2, 'left');
+    this.resetFontSettings();
+  }
+}
+
+//endregion Window_SdpControlsHint
+
+//region Window_SdpHeader
+/**
+ * A single-line, help-like header that summarizes the hovered panel.
+ * Name + rarity + flavor in one readable sentence, controller-first.
+ */
+class Window_SdpHeader
+  extends Window_Base
+{
+  /**
+   * @type {StatDistributionPanel|null}
+   */
+  #panel = null;
+
+  /**
+   * Binds the hovered panel to this header.
+   * @param {StatDistributionPanel|null} panel The hovered panel.
+   */
+  setPanel(panel)
+  {
+    this.#panel = panel;
+  }
+
+  /**
+   * Implements {@link Window_Base.drawContent}.<br>
+   * Renders the single-line summary for the hovered panel.
+   */
+  drawContent()
+  {
+    const panel = this.#panel;
+    if (!panel)
+    {
+      return;
+    }
+
+    const { name } = panel;
+    const { topFlavorText: flavor } = panel;
+
+    // line 1: the panel name should be the anchor and larger.
+    // for drawTextEx, we must use text wrappers (\\FS, \\C, \\*) instead of bitmap font mutation.
+    this.resetFontSettings();
+    const rarityCx = panel.getPanelRarityColorIndex();
+    const boldName = `\\*${name}\\*`;
+    const tintedName = this.colorizeText(rarityCx, boldName);
+    const sizedName = this.modFontSizeForText(2, tintedName);
+    this.drawTextEx(sizedName, 0, 0, this.innerWidth);
+    this.resetFontSettings();
+
+    // line 2: flavor text, slightly smaller, escape-code aware.
+    this.resetFontSettings();
+    const sizedFlavor = this.modFontSizeForText(-1, flavor);
+    this.drawTextEx(sizedFlavor, 0, this.lineHeight(), this.innerWidth);
+    this.resetFontSettings();
+  }
+}
+//endregion Window_SdpHeader
 
 //region Window_SdpHelp
 /**
@@ -4023,13 +5591,18 @@ class Window_SdpList
   extends Window_Command
 {
   /**
-   * The currently selected actor. Used for comparing points to cost to see if
-   * the panel in the list window should be enabled or disabled.
+   * The currently selected actor for listing unlocked panels and drawing ranks/costs.
    * @type {Game_Actor}
    */
   currentActor = null;
 
   filterNoMaxedPanels = false;
+
+  /**
+   * The queued cart levels by panel key.
+   * @type {Map<string, number>}
+   */
+  cart = new Map();
 
   /**
    * @constructor
@@ -4047,6 +5620,16 @@ class Window_SdpList
   setActor(actor)
   {
     this.currentActor = actor;
+    this.refresh();
+  }
+
+  /**
+   * Sets the cart map to show queued levels in the list.
+   * @param {Map<string, number>} cart The cart mapping.
+   */
+  setCart(cart)
+  {
+    this.cart = cart;
     this.refresh();
   }
 
@@ -4108,8 +5691,7 @@ class Window_SdpList
         // add the command.
         return command;
       }, this)
-      .filter(command => command !== null)
-      //.sort((a, b) => a.ext.key.localeCompare(b.ext.key));
+      .filter(command => command !== null);
 
     commands.forEach(this.addBuiltCommand, this);
   }
@@ -4122,14 +5704,14 @@ class Window_SdpList
   makeCommand(panel)
   {
     const actor = this.currentActor;
-    const points = actor.getSdpPoints();
     const {
       name,
       key,
       iconIndex,
-      rarity: colorIndex,
       maxRank
     } = panel;
+
+    const colorIndex = panel.getPanelRarityColorIndex();
 
     // get the ranking for a given panel by its key.
     const panelRanking = actor.getSdpByKey(key);
@@ -4147,29 +5729,157 @@ class Window_SdpList
       return null;
     }
 
-    // check if we have enough points to rank up this panel.
-    const hasEnoughPoints = panel.rankUpCost(currentRank) <= points;
-
-    // determine whether or not the command is enabled.
-    const enabled = hasEnoughPoints && !isMaxRank;
-
-    // build the right text out.
-    const rightText = isMaxRank
-      ? "DONE"
-      : `${currentRank} / ${maxRank}`;
+    // keep rows selectable even when the wallet cannot afford the next rank alone — cart totals and
+    // queued levels change continuously; disabling by snapshot points goes stale quickly.
+    const enabled = !isMaxRank;
 
     // construct the SDP command.
     const command = new WindowCommandBuilder(name)
       .setSymbol(key)
       .setEnabled(enabled)
+      // keep the panel as the ext; the scene expects `currentExt()` to be the panel.
       .setExtensionData(panel)
       .setIconIndex(iconIndex)
       .setColorIndex(colorIndex)
-      .setRightText(rightText)
       .build();
 
     return command;
   }
+
+  /**
+   * OVERWRITE Renders SDP list rows with styled padded ranks.
+   * @param {number} index The command index.
+   */
+  drawItem(index)
+  {
+    // handles the setup that occurs before each item drawn.
+    this.preDrawItem(index);
+
+    // grab the rectangle for the line item.
+    const {
+      x: rectX,
+      y: rectY,
+      width: rectWidth
+    } = this.itemLineRect(index);
+
+    // identify the icon for this command.
+    const commandIcon = this.commandIcon(index);
+    if (commandIcon)
+    {
+      this.drawIcon(commandIcon, rectX + 4, rectY);
+    }
+
+    // render the command name.
+    const commandNameX = rectX + 40;
+    this.drawTextEx(this.buildCommandName(index), commandNameX, rectY, rectWidth);
+
+    // draw the rank block on the right.
+    this.drawRankDetails(index, rectX, rectY, rectWidth);
+  }
+
+  /**
+   * Draws the rank block flush right (`CC / MM`). With cart, the left number becomes a preview
+   * (`min(max, current + queued)`) in palette **24** (power-up) — no extra ` +NN` column.
+   * @param {number} index The command index.
+   * @param {number} x The row x.
+   * @param {number} y The row y.
+   * @param {number} width The row width.
+   */
+  drawRankDetails(index, x, y, width)
+  {
+    const command = this.commandEntryAt(index);
+    const panel = command
+      ? command.ext
+      : null;
+    if (!panel)
+    {
+      return;
+    }
+
+    const actor = this.currentActor;
+    const {
+      key,
+      maxRank,
+    } = panel;
+    const { currentRank } = actor.getSdpByKey(key);
+    const isMaxRank = maxRank <= currentRank;
+    const cartLevels = this.cart.get(key) ?? 0;
+
+    const pad = 12;
+    const rightEdge = x + width - pad;
+
+    // maxed panels just say DONE.
+    if (isMaxRank)
+    {
+      const done = 'DONE';
+      const doneW = this.textWidth(done);
+      this.drawText(done, rightEdge - doneW, y, doneW, Window_Base.TextAlignments.Left);
+      return;
+    }
+
+    // `CC / MM` — anchor from the right edge first so columns stay fixed.
+    const rankW = this.textWidth('00');
+    const slashText = ' / ';
+    const slashW = this.textWidth(slashText);
+
+    const maxX = rightEdge - rankW;
+    const slashX = maxX - slashW;
+    const curX = slashX - rankW;
+
+    // with cart levels, the left column shows **preview rank** (capped) in “power up” green; no separate +NN column.
+    const hasCart = cartLevels > 0;
+    const previewCurrent = Math.min(maxRank, currentRank + cartLevels);
+    const currentColor = hasCart
+      ? 24
+      : 0;
+
+    this.drawStyledZeroPaddedNumber(
+      curX,
+      y,
+      hasCart
+        ? previewCurrent
+        : currentRank,
+      rankW,
+      2,
+      8,
+      currentColor);
+    this.drawText(slashText, slashX, y, slashW, Window_Base.TextAlignments.Left);
+    this.drawStyledZeroPaddedNumber(maxX, y, maxRank, rankW, 2, 8, 0);
+  }
+
+  //region cart
+  /**
+   * OVERWRITE Enables tab-switching via left input (controller-first).
+   */
+  cursorLeft(wrap)
+  {
+    // if the scene is listening for cart-dec, then do that instead of noop'ing on a single-column list.
+    if (this.isHandled('cart-dec'))
+    {
+      this.callHandler('cart-dec');
+      return;
+    }
+
+    // perform original logic.
+    Window_Selectable.prototype.cursorLeft.call(this, wrap);
+  }
+
+  /**
+   * OVERWRITE Enables tab-switching via right input (controller-first).
+   */
+  cursorRight(wrap)
+  {
+    // if the scene is listening for cart-inc, then do that instead of noop'ing on a single-column list.
+    if (this.isHandled('cart-inc'))
+    {
+      this.callHandler('cart-inc');
+      return;
+    }
+
+    // perform original logic.
+    Window_Selectable.prototype.cursorRight.call(this, wrap);
+  }
+  //endregion cart
 }
 
 //endregion Window_SdpList
@@ -4297,12 +6007,6 @@ class Window_SdpParameterList
     return command;
   }
 
-  /**
-   * Translates a parameter id into an object with its name, value, iconIndex, and whether or not
-   * a parameter being smaller is an improvement..
-   * @param {PanelParameter} panelParameter The id to translate.
-   */
-   
   #determineModifierData(panelParameter)
   {
     // a small helper function for calculating the next rank's value.
@@ -4493,7 +6197,7 @@ class Window_SdpParameterList
 
 //region Window_SdpPoints
 /**
- * The SDP window containing the amount of SDP points a given actor has.
+ * The SDP window containing the menu actor identity.
  */
 class Window_SdpPoints
   extends Window_Base
@@ -4527,40 +6231,28 @@ class Window_SdpPoints
   }
 
   /**
-   * Draws the SDP icon and number of points this actor has.
+   * Draws the face + actor name of the menu actor.
    */
   drawPoints()
   {
-    this.drawSdpIcon();
-    this.drawSdpPoints();
     this.drawSdpFace();
+    this.drawActorName();
   }
 
   /**
-   * Draws the "SDP icon" representing points.
+   * Draws the menu actor name (wallet moved to the cart).
    */
-  drawSdpIcon()
-  {
-    const x = 200;
-    const y = 2;
-    const iconIndex = J.SDP.Metadata.sdpIconIndex;
-    this.drawIcon(iconIndex, x, y);
-  }
-
-  /**
-   * Draws the SDP points the actor currently has.
-   */
-  drawSdpPoints()
+  drawActorName()
   {
     // don't draw the points if the actor is unavailable.
     if (!this._actor) return;
 
-    const points = this._actor.getSdpPoints();
-    const x = 240;
+    const actorName = this._actor.name();
+    const x = 140;
     const y = 0;
-    const textWidth = 300;
+    const textWidth = this.innerWidth - x;
     const alignment = 'left';
-    this.drawText(points, x, y, textWidth, alignment);
+    this.drawText(actorName, x, y, textWidth, alignment);
   }
 
   /**
@@ -4593,197 +6285,6 @@ class Window_SdpPoints
 }
 
 //endregion Window_SdpPoints
-
-//region Window_SdpRankData
-class Window_SdpRankData
-  extends Window_Base
-{
-  /**
-   * The color index of the rarity of the panel selected.
-   * @type {number}
-   */
-  rarityColorIndex = 0;
-
-  /**
-   * The text describing the rarity of this panel.
-   * @type {string}
-   */
-  rarityText = String.empty;
-
-  /**
-   * The current rank of the panel selected.
-   * @type {number}
-   */
-  currentRank = 0;
-
-  /**
-   * The max rank of the panel selected.
-   * @type {number}
-   */
-  maxRank = 0;
-
-  /**
-   * The calculated amount to rank up the selected panel.
-   * @type {number}
-   */
-  costToNext = 0;
-
-  /**
-   * The currently-available SDP points the actor has.
-   * @type {number}
-   */
-  #availableSdpPoints = 0;
-
-  /**
-   * Constructor.
-   */
-  constructor(rect)
-  {
-    super(rect);
-  }
-
-  /**
-   * Sets all the various data points for the window.
-   */
-  setRankData(rarityColor, rarityText, currentRank, maxRank, costToNext, sdpPoints)
-  {
-    this.rarityColorIndex = rarityColor;
-    this.rarityText = rarityText;
-    this.currentRank = currentRank;
-    this.maxRank = maxRank;
-    this.costToNext = costToNext;
-    this.#availableSdpPoints = sdpPoints;
-  }
-
-  /**
-   * Implements {@link Window_Base.drawContent}.<br>
-   * Draws the various SDP rank-related details.
-   */
-  drawContent()
-  {
-    // draw the rarity information.
-    this.drawPanelRarity(0);
-
-    // draw the cost-to-next-rank data, colorized.
-    this.drawCostDetails(1);
-
-    // draw the current/max rank data.
-    this.drawRankDetails(2);
-  }
-
-  /**
-   * Draws the rarity information for this panel.
-   * @param {number} rowCount The row number this should be drawn on.
-   */
-  drawPanelRarity(rowCount)
-  {
-    // define some variables.
-    const lh = this.lineHeight();
-    const ox = 0;
-    const rowY = lh * rowCount;
-
-    const rarityColor = ColorManager.textColor(this.rarityColorIndex);
-    this.changeTextColor(rarityColor);
-    this.toggleBold();
-    this.toggleItalics();
-    this.modFontSize(16);
-    this.drawText(this.rarityText, ox, rowY, 200, "left");
-    this.resetFontSettings();
-  }
-
-  /**
-   * Draws the cost information of ranking this panel up.
-   * @param {number} rowCount The row number this should be drawn on.
-   */
-  drawCostDetails(rowCount)
-  {
-    // define some variables.
-    const lh = this.lineHeight();
-    const ox = 0;
-    const rowY = lh * rowCount;
-
-    // calculate the color (not-index) for the cost.
-    const costColor = this.#determineCostColor(this.costToNext);
-
-    // draw the cost to rank up this panel.
-    this.drawText(`Cost:`, ox, rowY, 200, "left");
-    if (costColor)
-    {
-      this.changeTextColor(costColor);
-      this.drawText(`${this.costToNext}`, ox + 100, rowY, 120, "left");
-      this.resetTextColor();
-    }
-    else
-    {
-      this.drawText(`---`, ox + 100, rowY, 80, "left");
-    }
-  }
-
-  /**
-   * Draws the current rank information for this panel.
-   * @param {number} rowCount The row number this should be drawn on.
-   */
-  drawRankDetails(rowCount)
-  {
-    // define some variables.
-    const lh = this.lineHeight();
-    const ox = 0;
-    const rowY = lh * rowCount;
-
-    // draw the current and max rank, colorized.
-    this.drawText(`Rank:`, ox, rowY, 200, "left");
-    this.changeTextColor(this.#determinePanelRankColor(this.currentRank, this.maxRank));
-    this.drawText(`${this.currentRank}`, ox + 55, rowY, 50, "right");
-    this.resetTextColor();
-    this.drawText(`/`, ox + 110, rowY, 30, "left");
-    this.drawText(`${this.maxRank}`, ox + 130, rowY, 50, "left");
-  }
-
-  /**
-   * Determines the color of the "current rank" number text.
-   * @param {number} currentRank The current rank of this panel.
-   * @param {number} maxRank The maximum rank of this panel.
-   * @returns {number} The id of the color.
-   */
-  #determinePanelRankColor(currentRank, maxRank)
-  {
-    // if there is no ranks in this panel, then use this color.
-    if (currentRank === 0) return ColorManager.damageColor();
-
-    // if we have ranks, but still aren't max, use this color.
-    if (currentRank < maxRank) return ColorManager.crisisColor();
-
-    // we have exceeded the max rank, so use this color.
-    if (currentRank >= maxRank) return ColorManager.powerUpColor();
-
-    // who knows what situation this happens in, but return normal if we do.
-    return ColorManager.normalColor();
-  }
-
-  /**
-   * Determines the color of the "current rank" number text.
-   * @param {number} rankUpCost The cost to rank up this panel.
-   * @returns {number} The id of the color.
-   */
-  #determineCostColor(rankUpCost)
-  {
-    // if the cost is 0, then just return, it doesn't matter.
-    if (rankUpCost === 0) return null;
-
-    const currentSdpPoints = this.#availableSdpPoints;
-
-    if (rankUpCost <= currentSdpPoints)
-    {
-      return ColorManager.powerUpColor();
-    }
-    else
-    {
-      return ColorManager.damageColor();
-    }
-  }
-}
-
-//endregion Window_SdpRankData
 
 //region Window_SdpRewardList
 class Window_SdpRewardList
@@ -4832,6 +6333,17 @@ class Window_SdpRewardList
     const commands = [];
 
     if (!this.panelRewards) return commands;
+    if (this.panelRewards.length === 0)
+    {
+      const command = new WindowCommandBuilder('No rewards.')
+        .setSymbol('no-rewards')
+        .setEnabled(false)
+        .setColorIndex(8)
+        .build();
+
+      commands.push(command);
+      return commands;
+    }
 
     this.panelRewards.forEach(panelReward =>
     {
@@ -4840,41 +6352,113 @@ class Window_SdpRewardList
         rankRequired
       } = panelReward;
 
-      // determine the icon for the reward..
-      let rankText;
       let iconIndex;
       switch (rankRequired)
       {
         case -1:
           iconIndex = 75;
-          rankText = 'EACH';
           break;
         case 0:
           iconIndex = 73;
-          rankText = 'MAX';
           break;
         default:
           iconIndex = 86;
-          rankText = rankRequired.padZero(3);
           break;
       }
-
-
-      // identify the right-aligned current and bonus amounts.
-      const parameterData = `Rank: ${rankText}`;
 
       // construct the command.
       const command = new WindowCommandBuilder(rewardName)
         .setSymbol(rewardName)
         .setIconIndex(iconIndex)
-        .setRightText(parameterData)
-        .setExtensionData(panelReward)
+        .setExtensionData({
+          panelReward,
+          rankRequired,
+        })
         .build();
 
       commands.push(command);
     });
 
     return commands;
+  }
+
+  /**
+   * OVERWRITE Renders reward rows with styled padded ranks.
+   * @param {number} index The command index.
+   */
+  drawItem(index)
+  {
+    // handles the setup that occurs before each item drawn.
+    this.preDrawItem(index);
+
+    // grab the rectangle for the line item.
+    const {
+      x: rectX,
+      y: rectY,
+      width: rectWidth
+    } = this.itemLineRect(index);
+
+    // identify the icon for this command.
+    const commandIcon = this.commandIcon(index);
+    if (commandIcon)
+    {
+      this.drawIcon(commandIcon, rectX + 4, rectY);
+    }
+
+    // render the reward name.
+    const commandNameX = rectX + 40;
+    this.drawTextEx(this.buildCommandName(index), commandNameX, rectY, rectWidth);
+
+    // draw the rank requirement block on the right.
+    this.drawRewardRankRequirement(index, rectX, rectY, rectWidth);
+  }
+
+  /**
+   * Draws the reward rank requirement on the right side.
+   * @param {number} index The command index.
+   * @param {number} x The row x.
+   * @param {number} y The row y.
+   * @param {number} width The row width.
+   */
+  drawRewardRankRequirement(index, x, y, width)
+  {
+    const command = this.commandEntryAt(index);
+    const ext = command
+      ? command.ext
+      : null;
+    if (!ext)
+    {
+      return;
+    }
+
+    const { rankRequired } = ext;
+
+    const pad = 12;
+    const rightEdge = x + width - pad;
+
+    const label = 'Rank: ';
+    const labelW = this.textWidth(label);
+
+    // draw the label just left of the value.
+    let valueText = String.empty;
+    if (rankRequired === -1) valueText = 'EACH';
+    else if (rankRequired === 0) valueText = 'MAX';
+
+    if (valueText)
+    {
+      const valueW = this.textWidth(valueText);
+      const valueX = rightEdge - valueW;
+      const labelX = valueX - labelW;
+      this.drawText(label, labelX, y, labelW, Window_Base.TextAlignments.Left);
+      this.drawText(valueText, valueX, y, valueW, Window_Base.TextAlignments.Left);
+      return;
+    }
+
+    const valueW = this.textWidth('00');
+    const valueX = rightEdge - valueW;
+    const labelX = valueX - labelW;
+    this.drawText(label, labelX, y, labelW, Window_Base.TextAlignments.Left);
+    this.drawStyledZeroPaddedNumber(valueX, y, rankRequired, valueW, 2, 8, 0);
   }
 }
 
