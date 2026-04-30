@@ -4044,8 +4044,8 @@ JABS_Battler.prototype.isSameTeam = function(targetTeam)
  */
 JABS_Battler.prototype.isFriendlyTeam = function(targetTeam)
 {
-  // TODO: parameterize in objects what are "opposing" teams.
-  return [ this.getTeam() ].includes(targetTeam);
+  // friendly is decided by the centralized team rules.
+  return JABS_TeamRules.isFriendly(this.getTeam(), targetTeam);
 };
 
 /**
@@ -4055,9 +4055,8 @@ JABS_Battler.prototype.isFriendlyTeam = function(targetTeam)
  */
 JABS_Battler.prototype.isOpposingTeam = function(targetTeam)
 {
-  // TODO: parameterize in objects what are "friendly" teams.
-  return !(targetTeam === this.getTeam());
-  //return [].includes(targetTeam);
+  // opposition is decided by the centralized team rules.
+  return JABS_TeamRules.isOpposed(this.getTeam(), targetTeam);
 };
 
 /**
@@ -7166,8 +7165,8 @@ JABS_Battler.prototype.isWithinScope = function(
 
   const targetIsSelf = (user.getUuid() === target.getUuid() || (action.getAction()
     .isForUser()));
-  const actionIsSameTeam = user.getTeam() === this.getTeam();
-  const targetIsOpponent = !user.isSameTeam(this.getTeam());
+  const actionIsSameTeam = JABS_TeamRules.isFriendly(user.getTeam(), this.getTeam());
+  const targetIsOpponent = JABS_TeamRules.isOpposed(user.getTeam(), this.getTeam());
 
   // scope is for 1 target, and we already found one.
   if (scopeSingle && alreadyHitOne)
@@ -14286,7 +14285,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.8.4 JABS] Enables combat to be carried out on the map.
+ * [v4.9.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14331,6 +14330,9 @@ class JABS_Timer
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.9.0
+ *    Team rules are now data-driven via required `data/config.jabs.json`
+ *    (root `{ teams: [...] }` with per-team `opposes` lists).
  * - 4.8.4
  *    Action-map template `<vis*>` tags: Comment lines (+ optional event `note` on the event) are stamped once at spawn
  *    into a synthetic note on {@link JABS_Action}; {@link RPGManager} merges them with skill notes (skill wins on duplicate tags).
@@ -14789,21 +14791,30 @@ class JABS_Timer
  *
  * ============================================================================
  * TEAMS:
- * By default, enemies are assigned team 1 and allied battlers are team 0.
- * Because they are on different teams, they can damage each other. If your
- * game needs more than "good guys and bad guys", you can reassign teams.
+ * JABS teams are now fully data-driven.
  *
- * NOTE: Team relationships (allies between teams, neutral factions, etc.)
- * are not deeply supported, but you can still redefine team ids to make
- * enemies fight each other.
+ * Team relationships (friendly vs opposing) are defined in an external file:
+ *  - `data/config.jabs.json`
  *
- * Default teams:
- * - 0 is for the player/allies.
- * - 1 is for enemies/monsters.
- * - 2 is for "neutral", aka inanimate objects.
+ * This file is REQUIRED. If it is missing or invalid, JABS will error on boot.
  *
+ * The root shape is an object with a `teams` array:
+ *  {
+ *    "teams": [
+ *      { "id": 0, "name": "Allies", "opposes": [ 1, 2 ] },
+ *      { "id": 1, "name": "Enemies", "opposes": [ 0, 2 ] },
+ *      { "id": 2, "name": "Neutral", "opposes": [ 0, 1 ] }
+ *    ]
+ *  }
+ *
+ * Default team assignment (unchanged):
+ * - Actors and party battlers are team 0.
+ * - Enemies are team 1 (unless overridden).
+ * - Inanimate battlers are team 2.
+ *
+ * Assigning a team id is still done via notes/event comments:
  *    <teamId:TEAM>
- *  Where TEAM is the numeric id to assign.
+ * Where TEAM is the numeric id to assign to the battler.
  *
  * ============================================================================
  * CIRCUMSTANTIAL CONFIG OPTIONS:
@@ -16671,6 +16682,53 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
     };
   });
 };
+
+/**
+ * Loads external JABS configuration from the project filesystem.
+ *
+ * This is the entry point for JABS moving configuration out of notes and into a centralized JSON blob.
+ * The root blob must be an object; team configuration is extracted from the {@code teams} property.
+ *
+ * External configuration is required for team rules; missing or invalid configuration will throw.
+ * @param {string=} configPath The project-relative path to the external config.
+ * @returns {object} The parsed root blob.
+ */
+J.ABS.Helpers.loadExternalConfig = (configPath = 'data/config.jabs.json') =>
+{
+  // validate that the parsed blob matches our expected root shape.
+  const validate = parsedConfig =>
+  {
+    // the root must be an object.
+    if (parsedConfig === null || typeof parsedConfig !== 'object')
+    {
+      throw new Error('config root must be an object.');
+    }
+
+    // teams must exist and be an array.
+    const { teams } = parsedConfig;
+    if (Array.isArray(teams) === false)
+    {
+      throw new Error('config root must contain a "teams" array.');
+    }
+  };
+
+  // load and validate the external config.
+  const parsedConfig = ExternalJsonConfigLoader.load(
+    configPath,
+    ExternalJsonConfigLoaderOptions.Builder()
+      .pluginName('J-ABS')
+      .configName('external configuration')
+      .validator(validate)
+      .build()
+  );
+
+  // assign the external config and extracted teams into metadata.
+  J.ABS.Metadata.ExternalConfig = parsedConfig;
+  J.ABS.Metadata.Teams = parsedConfig.teams;
+
+  // return the parsed root blob.
+  return parsedConfig;
+};
 //endregion helpers
 
 //region metadata
@@ -16679,7 +16737,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = obj =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.8.3';
+J.ABS.Metadata.Version = '4.9.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -16716,6 +16774,9 @@ J.ABS.Metadata.DefaultEnemyIsInanimate = Boolean(J.ABS.PluginParameters['default
 // custom data configurations.
 J.ABS.Metadata.UseElementalIcons = J.ABS.PluginParameters['useElementalIcons'] === 'true';
 J.ABS.Metadata.ElementalIcons = J.ABS.Helpers.PluginManager.TranslateElementalIcons(J.ABS.PluginParameters['elementalIconData']);
+
+// external data configurations.
+J.ABS.Helpers.loadExternalConfig();
 
 // action decided configurations.
 J.ABS.Metadata.AttackDecidedAnimationId = Number(J.ABS.PluginParameters['attackDecidedAnimationId']);
@@ -20890,8 +20951,8 @@ class JABS_AiManager
       // neutral battlers are never an opposition.
       if (battler.getTeam() === JABS_Battler.neutralTeamId()) return false;
 
-      // check if the selected battler is not the same team as the target battler's team.
-      const isOpposingTeam = !selectedBattler.isSameTeam(battler.getTeam());
+      // check if the selected battler is opposed to the target battler's team.
+      const isOpposingTeam = JABS_TeamRules.isOpposed(selectedBattler.getTeam(), battler.getTeam());
 
       // return what we found.
       return isOpposingTeam;
@@ -20916,8 +20977,8 @@ class JABS_AiManager
       // neutral battlers are never an ally.
       if (battler.getTeam() === JABS_Battler.neutralTeamId()) return false;
 
-      // check if the selected battler is the same team as the target battler's team.
-      const isSameTeam = selectedBattler.isSameTeam(battler.getTeam());
+      // check if the selected battler is friendly with the target battler's team.
+      const isSameTeam = JABS_TeamRules.isFriendly(selectedBattler.getTeam(), battler.getTeam());
 
       // return what we found.
       return isSameTeam;
@@ -25021,7 +25082,7 @@ class JABS_Engine
     const attacker = action.getCaster();
 
     // don't aggro your allies against you! That's dumb.
-    if (attacker.isSameTeam(target.getTeam())) return;
+    if (JABS_TeamRules.isFriendly(attacker.getTeam(), target.getTeam())) return;
 
     // grab the result on the target, from the action executed.
     const result = target.getBattler()
@@ -25160,7 +25221,7 @@ class JABS_Engine
     this.triggerAlert(caster, target);
 
     // if the attacker and the target are the same team, then don't set that as "last hit".
-    if ((caster.isSameTeam(target.getTeam())) === false)
+    if (JABS_TeamRules.isOpposed(caster.getTeam(), target.getTeam()))
     {
       caster.setBattlerLastHit(target);
 
@@ -25550,7 +25611,7 @@ class JABS_Engine
     if (attacker.isInanimate()) return false;
 
     // cannot alert your own allies.
-    if (attacker.isSameTeam(battler.getTeam())) return false;
+    if (JABS_TeamRules.isFriendly(attacker.getTeam(), battler.getTeam())) return false;
 
     // cannot alert the player.
     if (battler.isPlayer()) return false;
@@ -25586,8 +25647,7 @@ class JABS_Engine
     if (action.isRetaliation()) return;
 
     // do not retaliate against being targeted by battlers of the same team.
-    if (action.getCaster()
-      .isSameTeam(targetBattler.getTeam()))
+    if (JABS_TeamRules.isFriendly(action.getCaster().getTeam(), targetBattler.getTeam()))
     {
       return;
     }
@@ -27487,6 +27547,127 @@ class JABS_HitboxPulseManager
 }
 
 //endregion JABS_HitboxPulseManager (static)
+
+//region JABS_TeamRules
+/**
+ * A static class for resolving team relationships between battlers.
+ *
+ * This exists to replace hardcoded/binary "friendly vs opposing" checks with a data-driven model.
+ * The source of truth for configuration is {@link J.ABS.Metadata.ExternalConfig} and {@link J.ABS.Metadata.Teams},
+ * which are populated by {@link J.ABS.Helpers.loadExternalConfig}.
+ */
+class JABS_TeamRules
+{
+  //region defaults
+  /**
+   * Builds the default team definitions.
+   * These defaults match the legacy behavior:
+   * - "friendly" means "same team id".
+   * - "opposed" means "different team id".
+   * @returns {JabsTeamDefinition[]} The default team definitions.
+   */
+  static defaultTeams()
+  {
+    const allyId = JABS_Battler.allyTeamId();
+    const enemyId = JABS_Battler.enemyTeamId();
+    const neutralId = JABS_Battler.neutralTeamId();
+    return [
+      {
+        id: allyId,
+        key: 'ALLY',
+        name: 'Allies',
+        opposes: [ enemyId, neutralId ],
+      },
+      {
+        id: enemyId,
+        key: 'ENEMY',
+        name: 'Enemies',
+        opposes: [ allyId, neutralId ],
+      },
+      {
+        id: neutralId,
+        key: 'NEUTRAL',
+        name: 'Neutral',
+        opposes: [ allyId, enemyId ],
+      },
+    ];
+  }
+  //endregion defaults
+
+  //region accessors
+  /**
+   * Gets the current team definitions.
+   * @returns {JabsTeamDefinition[]} The current teams (external config or defaults).
+   */
+  static teams()
+  {
+    // prefer externally configured teams when available.
+    const externalTeams = J.ABS.Metadata.Teams;
+    if (Array.isArray(externalTeams))
+    {
+      return externalTeams;
+    }
+
+    // fall back to defaults when no configuration exists.
+    return this.defaultTeams();
+  }
+  //endregion accessors
+
+  //region relationship checks
+  /**
+   * Checks whether or not the two team ids are friendly.
+   * Under legacy behavior, only the same team id is friendly.
+   * @param {number} teamA The first team id.
+   * @param {number} teamB The second team id.
+   * @returns {boolean} True if friendly, false otherwise.
+   */
+  static isFriendly(teamA, teamB)
+  {
+    return teamA === teamB;
+  }
+
+  /**
+   * Checks whether or not the two team ids are opposed.
+   * "Opposed" is driven by the configured {@link JabsTeamDefinition.opposes} list per team.
+   * @param {number} teamA The first team id.
+   * @param {number} teamB The second team id.
+   * @returns {boolean} True if opposed, false otherwise.
+   */
+  static isOpposed(teamA, teamB)
+  {
+    // you cannot be opposed to yourself.
+    if (teamA === teamB)
+    {
+      return false;
+    }
+
+    // locate the "A" team definition.
+    const teamDefinition = this.teams()
+      .find(team => team.id === teamA);
+
+    // if the team definition isn't found, fall back to legacy behavior.
+    if (!teamDefinition)
+    {
+      return true;
+    }
+
+    // determine whether or not "A" opposes "B".
+    const opposedTeams = teamDefinition.opposes ?? [];
+    return opposedTeams.includes(teamB);
+  }
+  //endregion relationship checks
+}
+//endregion JABS_TeamRules
+
+//region typedefs
+/**
+ * @typedef {object} JabsTeamDefinition
+ * @property {number} id The numeric id of this team.
+ * @property {string=} key An optional stable key for this team (useful for tooling).
+ * @property {string=} name An optional display name for this team.
+ * @property {number[]=} opposes The list of team ids that this team treats as opposed.
+ */
+//endregion typedefs
 
 //region Game_Action
 /**

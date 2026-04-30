@@ -1,0 +1,22 @@
+{
+  "teams": [
+    {
+      "id": 0,
+      "key": "ALLY",
+      "name": "Allies",
+      "opposes": [ 1, 2 ]
+    },
+    {
+      "id": 1,
+      "key": "ENEMY",
+      "name": "Enemies",
+      "opposes": [ 0, 2 ]
+    },
+    {
+      "id": 2,
+      "key": "NEUTRAL",
+      "name": "Neutral",
+      "opposes": [ 0, 1 ]
+    }
+  ]
+}
