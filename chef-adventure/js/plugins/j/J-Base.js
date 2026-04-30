@@ -315,6 +315,7 @@ J.BASE.Aliased = {
   AudioManager: new Map(),
   Bitmap: new Map(),
   DataManager: new Map(),
+  JsonEx: new Map(),
   Game_Character: {},
   Game_Actor: new Map(),
   Game_Battler: new Map(),
@@ -498,7 +499,8 @@ Object.defineProperty(
   {
     value: "",
     writable: false
-  });
+  }
+);
 
 /**
  * Extends the global javascript {@link Array} object.
@@ -819,6 +821,110 @@ Bitmap.prototype.drawText = function(text, x, y, maxWidth, lineHeight, align)
     .call(this, text, x, y, maxWidth, lineHeight, resolvedAlign);
 };
 //endregion Bitmap
+
+//region JsonEx
+/**
+ * Extends {@link JsonEx._decode}.<br/>
+ * Also resolves constructors via {@link SerializableRegistry} before falling back
+ * to the engine's default `window[className]` lookup.
+ */
+J.BASE.Aliased.JsonEx.set('_decode', JsonEx._decode);
+JsonEx._decode = function(value)
+{
+  // determine the type of object we're working with.
+  const type = Object.prototype.toString.call(value);
+
+  // handle objects and arrays only.
+  if (type === '[object Object]' || type === '[object Array]')
+  {
+    // check if this object has a constructor tag.
+    if (value['@'])
+    {
+      // grab the constructor name from the tag.
+      const constructorName = value['@'];
+
+      // resolve the constructor by registry-first, window-second.
+      const constructor = SerializableRegistry.resolve(constructorName) || window[constructorName];
+
+      // if the constructor could be resolved, then set the prototype.
+      if (constructor)
+      {
+        Object.setPrototypeOf(value, constructor.prototype);
+      }
+    }
+
+    // recursively decode all keys for this object.
+    Object.keys(value)
+      .forEach(key =>
+      {
+        value[key] = this._decode(value[key]);
+      });
+  }
+
+  // return the fully-decoded value.
+  return value;
+};
+//endregion JsonEx
+
+//region SerializableRegistry
+/**
+ * A central registry of constructors that {@link JsonEx} can use for reliable
+ * type restoration when deserializing.
+ */
+class SerializableRegistry
+{
+  /**
+   * The internal collection of registered constructors.
+   * @type {Map<string, Function>}
+   */
+  static _constructors = new Map();
+
+  /**
+   * Registers a constructor for {@link JsonEx} deserialization.
+   *
+   * This enables modern `class` syntax for serializable models without requiring
+   * `window.SomeClass = SomeClass` global exports.
+   *
+   * @param {Function} constructor The constructor to register.
+   * @param {{id?: string, aliases?: string[]}=} options Options for registration.
+   */
+  static register(constructor, options = undefined)
+  {
+    // determine the primary id for this constructor.
+    const id = (options && options.id)
+      ? options.id
+      : constructor.name;
+
+    // register the primary id.
+    this._constructors.set(id, constructor);
+
+    // register any aliases for backwards compatibility.
+    const aliases = (options && options.aliases)
+      ? options.aliases
+      : [];
+
+    aliases.forEach(alias =>
+    {
+      this._constructors.set(alias, constructor);
+    });
+  }
+
+  /**
+   * Resolves a previously-registered constructor by id.
+   * @param {string} id The serialization id for the constructor.
+   * @returns {Function|null} The resolved constructor, or null when not found.
+   */
+  static resolve(id)
+  {
+    if (this._constructors.has(id))
+    {
+      return this._constructors.get(id);
+    }
+
+    return null;
+  }
+}
+//endregion SerializableRegistry
 
 //region RPG_ClassLearning
 /**
