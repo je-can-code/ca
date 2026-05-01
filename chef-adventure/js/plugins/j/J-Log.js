@@ -2308,6 +2308,9 @@ class Window_DiaLog
     // reduce the font a couple notches so both lines sit comfortably in the row.
     const fontPrefix = `\\FS[18]`;
 
+    // temporary: visualize the full row boundary for centering review.
+    this.contents.fillRect(rectX, rectY, rectWidth, Window_DiaLog.rowHeight, 'rgba(255,0,0,0.2)');
+
     // center the text block vertically within the row.
     // each line is approximately 22px tall at FS[18]; space them by that amount
     // and offset the block so it lands in the middle of the 64px row.
