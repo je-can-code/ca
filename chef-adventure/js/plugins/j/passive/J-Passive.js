@@ -29,7 +29,7 @@
  * @text Menu Switch ID
  * @desc The switch that controls whether the Passives command appears in the menu.
  * Set to 0 (None) to always show the command regardless of switch state.
- * @default 0
+ * @default 108
  *
  * @param menuCommandName
  * @parent menuSettings
@@ -234,8 +234,7 @@ class JPassive_PluginMetadata
      * Configured via plugin parameter "menuSwitch".
      * @type {number}
      */
-    this.menuSwitchId = J.BASE.Helpers.parsePluginInt(
-      this.parsedPluginParameters['menuSwitch'], 0);
+    this.menuSwitchId = parseInt(this.parsedPluginParameters['menuSwitch']);
 
     /**
      * The label shown for the Passives command in the main menu.
@@ -249,8 +248,7 @@ class JPassive_PluginMetadata
      * Configured via plugin parameter "menuCommandIcon".
      * @type {number}
      */
-    this.commandIconIndex = J.BASE.Helpers.parsePluginInt(
-      this.parsedPluginParameters['menuCommandIcon'], 191);
+    this.commandIconIndex = parseInt(this.parsedPluginParameters['menuCommandIcon']);
   }
 }
 //endregion plugin metadata
@@ -2073,15 +2071,10 @@ Window_MenuCommand.prototype.makeCommandList = function()
 
 /**
  * Determines whether the Passives command should be added to the menu.
- * When no switch is configured (id 0), the command is always shown.
  * @returns {boolean}
  */
 Window_MenuCommand.prototype.canAddPassivesCommand = function()
 {
-  // switch id of 0 means "always show"; no switch check needed.
-  if (!J.PASSIVE.Metadata.menuSwitchId) return true;
-
-  // defer to the configured switch.
   return $gameSwitches.value(J.PASSIVE.Metadata.menuSwitchId);
 };
 //endregion Window_MenuCommand
