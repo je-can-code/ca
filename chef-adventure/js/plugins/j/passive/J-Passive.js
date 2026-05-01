@@ -3085,8 +3085,8 @@ class Window_PassiveDetail
     propTraits.forEach(rawTrait =>
     {
       const trait = new RPG_Trait(rawTrait);
-      const icon = (trait.code === 35 && $dataSkills[trait.value])
-        ? $dataSkills[trait.value].iconIndex
+      const icon = (trait.code === 35 && $dataSkills[trait.dataId])
+        ? $dataSkills[trait.dataId].iconIndex
         : 0;
       this.drawDetailRow(icon, trait.textName(), trait.textValue());
     });

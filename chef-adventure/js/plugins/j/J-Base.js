@@ -1420,7 +1420,7 @@ class RPG_Trait
       case 34:
         return `${this.value >= 0 ? "+" : "-"}${Math.abs(this.value)}`;
       case 35:
-        return `${$dataSkills[this.value].name}`;
+        return `${$dataSkills[this.dataId].name}`;
 
       // fourth tab.
       case 41:
