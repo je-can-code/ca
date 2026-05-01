@@ -92,6 +92,18 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.1.0
+ *    Added TraitManager static class for centralized display of slip effects (name and icon
+ *    based on value sign: damage vs regen).
+ *    Extended TextManager with resource() for HP/MP/TP resource display names.
+ *    Added traitsDeltaSum() helper on Game_BattlerBase.
+ *    Overrode sparam, elementRate, paramRate, and stateRate to use additive delta stacking
+ *    instead of multiplicative (traitsPi), with a floor of 0; xparam and attackStatesRate
+ *    were already additive and are unchanged.
+ *    Fixed RPG_Trait.textValue() for trait code 35: attack-skill now resolves via dataId
+ *    instead of value.
+ *    Fixed RPG_Trait.textValue() for xparam 0 (Accuracy) and sparam 1 (Parry) to display
+ *    as flat integers rather than percentages, matching JABS usage.
  * - 3.0.1
  *    Fixed issue with RPGManager parsing arrays of notes.
  *    Added some arbitrary defaults for icon indices of types.
@@ -186,7 +198,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '3.0.1';
+J.BASE.Metadata.Version = '3.1.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
