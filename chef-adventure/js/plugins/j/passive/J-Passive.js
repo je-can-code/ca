@@ -23,6 +23,14 @@
  * @param menuSettings
  * @text Menu Settings
  *
+ * @param menuSwitch
+ * @parent menuSettings
+ * @type switch
+ * @text Menu Switch ID
+ * @desc The switch that controls whether the Passives command appears in the menu.
+ * Set to 0 (None) to always show the command regardless of switch state.
+ * @default 0
+ *
  * @param menuCommandName
  * @parent menuSettings
  * @type string
@@ -220,6 +228,15 @@ class JPassive_PluginMetadata
    */
   initializeMetadata()
   {
+    /**
+     * The id of a switch that controls whether the Passives command is visible in the menu.
+     * A value of 0 means always show, regardless of switch state.
+     * Configured via plugin parameter "menuSwitch".
+     * @type {number}
+     */
+    this.menuSwitchId = J.BASE.Helpers.parsePluginInt(
+      this.parsedPluginParameters['menuSwitch'], 0);
+
     /**
      * The label shown for the Passives command in the main menu.
      * Configured via plugin parameter "menuCommandName".
@@ -2032,6 +2049,9 @@ Window_MenuCommand.prototype.makeCommandList = function()
   J.PASSIVE.Aliased.Window_MenuCommand.get('makeCommandList')
     .call(this);
 
+  // if the guard switch prevents the command, skip it.
+  if (!this.canAddPassivesCommand()) return;
+
   // build and insert the Passives command.
   const command = new WindowCommandBuilder(J.PASSIVE.Metadata.commandName)
     .setSymbol('passive-menu')
@@ -2049,6 +2069,20 @@ Window_MenuCommand.prototype.makeCommandList = function()
   {
     this.addBuiltCommand(command);
   }
+};
+
+/**
+ * Determines whether the Passives command should be added to the menu.
+ * When no switch is configured (id 0), the command is always shown.
+ * @returns {boolean}
+ */
+Window_MenuCommand.prototype.canAddPassivesCommand = function()
+{
+  // switch id of 0 means "always show"; no switch check needed.
+  if (!J.PASSIVE.Metadata.menuSwitchId) return true;
+
+  // defer to the configured switch.
+  return $gameSwitches.value(J.PASSIVE.Metadata.menuSwitchId);
 };
 //endregion Window_MenuCommand
 
