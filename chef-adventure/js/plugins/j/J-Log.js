@@ -2298,6 +2298,9 @@ class Window_DiaLog
 
     const { x: rectX, y: rectY, width: rectWidth } = this.itemLineRect(index);
 
+    // temporary: visualize the full row boundary for layout tuning.
+    this.contents.fillRect(rectX, rectY, rectWidth, Window_DiaLog.rowHeight, 'rgba(255,0,0,0.2)');
+
     // gather the command name and any additional dialog lines.
     const commandName = this.commandName(index);
     const extraLines  = this.commandLines(index);
