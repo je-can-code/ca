@@ -1316,10 +1316,14 @@ Window_PassiveDetail.prototype.drawJabsShieldSection = function(state)
 
   const rows = [];
 
-  // shield points derived from a damage formula.
+  // shield points derived from a formula — evaluated as self vs. self since the bearer
+  // of a permanent passive state is both the acting and target battler.
   const shieldFormula = RPGManager.getStringFromNoteByRegex(
     state, J.ABS.EXT.SHIELD.RegExp.ShieldPointsFormula);
-  if (shieldFormula) rows.push({ icon: 0, label: 'Shield', value: `[${shieldFormula}]` });
+  if (shieldFormula)
+  {
+    rows.push({ icon: 0, label: 'Shield', value: `${this.evaluateFormula(shieldFormula, this._actor)}` });
+  }
 
   // protect mode prevents overflow damage on shield break.
   const shieldProtect = RPGManager.checkForBooleanFromNoteByRegex(
