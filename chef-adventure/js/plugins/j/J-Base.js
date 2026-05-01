@@ -12630,18 +12630,35 @@ Window_Base.prototype.drawContent = function()
 };
 
 /**
- * Extends {@link Window_Base.resetFontSettings}.<br>
- * Also resets bold and italics.
+ * Overrides {@link Window_Base.resetFontSettings}.<br>
+ * Delegates each concern to its own method so individual windows can override
+ * only what they need (e.g. a smaller font size) without re-implementing everything.
  */
 J.BASE.Aliased.Window_Base.set('resetFontSettings', Window_Base.prototype.resetFontSettings);
 Window_Base.prototype.resetFontSettings = function()
 {
-  // perform original logic.
-  J.BASE.Aliased.Window_Base.get('resetFontSettings')
-    .call(this);
-
-  // also reset the italics/bold back to false.
+  // delegate each reset to its own overrideable method.
+  this.resetFontFace();
+  this.resetFontSize();
+  this.resetTextColor();
   this.resetFontFormatting();
+};
+
+/**
+ * Resets the font face to the system default.
+ */
+Window_Base.prototype.resetFontFace = function()
+{
+  this.contents.fontFace = $gameSystem.mainFontFace();
+};
+
+/**
+ * Resets the font size to the system default.<br>
+ * Override this in subclasses to use a different base size for a specific window.
+ */
+Window_Base.prototype.resetFontSize = function()
+{
+  this.contents.fontSize = $gameSystem.mainFontSize();
 };
 
 /**

@@ -2235,6 +2235,8 @@ class Window_DiaLog
    */
   static rowHeight = 64;
 
+  static fontAdjustment = 4;
+
   /**
    * Constructor.
    * @param {Rectangle} rect The rectangle that represents this window.
@@ -2283,45 +2285,27 @@ class Window_DiaLog
   }
 
   /**
-   * Overrides {@link Window_Command#drawItem}.<br>
-   * Draws all lines top-down from the row's natural y position at a reduced font size,
-   * avoiding the base class's centering-around-rectY approach which clips the first
-   * line when the entry sits near the top of the content area.
-   * Lines are spaced by the row height divided evenly among them.
-   * @param {number} index The index of the command to draw.
+   * Overrides {@link Window_Command#multilineLineHeight}.<br>
+   * Increases line spacing slightly to give multi-line entries more breathing room.
+   * @returns {number}
    * @override
    */
-  drawItem(index)
+  multilineLineHeight()
   {
-    // handle color and opacity setup.
-    this.preDrawItem(index);
+    return super.multilineLineHeight() + Math.round(Window_DiaLog.fontAdjustment * 1.5);
+  }
 
-    const { x: rectX, y: rectY, width: rectWidth } = this.itemLineRect(index);
-
-    // gather the command name and any additional dialog lines.
-    const commandName = this.commandName(index);
-    const extraLines  = this.commandLines(index);
-    const allLines    = extraLines.length > 0
-      ? [ commandName, ...extraLines ]
-      : [ commandName ];
-
-    // reduce the font a couple notches so both lines sit comfortably in the row.
-    const fontPrefix = `\\FS[18]`;
-
-    // temporary: visualize the full row boundary for centering review.
-    this.contents.fillRect(rectX, rectY, rectWidth, Window_DiaLog.rowHeight, 'rgba(255,0,0,0.2)');
-
-    // center the text block vertically within the row.
-    // each line is approximately 22px tall at FS[18]; space them by that amount
-    // and offset the block so it lands in the middle of the 64px row.
-    const lineHeight  = 22;
-    const blockHeight = allLines.length * lineHeight;
-    const startY      = rectY + Math.floor((Window_DiaLog.rowHeight - blockHeight) / 2);
-
-    allLines.forEach((line, i) =>
-    {
-      this.drawTextEx(`${fontPrefix}${line}`, rectX + 4, startY + (i * lineHeight), rectWidth);
-    });
+  /**
+   * Overrides {@link Window_Base#resetFontSize}.<br>
+   * Reduces the font size slightly so multi-line entries fit comfortably
+   * within each 64px row without crowding.
+   * @override
+   */
+  resetFontSize()
+  {
+    // start from the system default then step down a couple notches.
+    super.resetFontSize();
+    this.contents.fontSize -= Window_DiaLog.fontAdjustment;
   }
 
   //endregion overwrites
