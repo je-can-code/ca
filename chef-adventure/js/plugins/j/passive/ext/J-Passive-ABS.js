@@ -8,19 +8,19 @@
  * @base J-Base
  * @base J-ABS
  * @base J-Passive
- * @base J-ABS-Ext-Speed
- * @base J-ABS-Ext-Tools
- * @base J-ABS-Ext-Timing
- * @base J-ABS-Ext-Shield
- * @base J-Extend
+ * @base J-ABS-Speed
+ * @base J-ABS-Tools
+ * @base J-ABS-Timing
+ * @base J-ABS-Shield
+ * @base J-SkillExtend
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @orderAfter J-Passive
- * @orderAfter J-ABS-Ext-Speed
- * @orderAfter J-ABS-Ext-Tools
- * @orderAfter J-ABS-Ext-Timing
- * @orderAfter J-ABS-Ext-Shield
- * @orderAfter J-Extend
+ * @orderAfter J-ABS-Speed
+ * @orderAfter J-ABS-Tools
+ * @orderAfter J-ABS-Timing
+ * @orderAfter J-ABS-Shield
+ * @orderAfter J-SkillExtend
  * @orderAfter J-HUD-TargetFrame
  * @orderAfter J-MessageTextCodes
  * @help
