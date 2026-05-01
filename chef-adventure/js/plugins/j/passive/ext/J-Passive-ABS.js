@@ -1126,31 +1126,60 @@ Window_PassiveDetail.prototype.collectJabsAilmentRows = function(state)
 
   // percent-based values are already a plain number; formula-based values are evaluated
   // against the current actor so the player sees an actual quantity, not raw code.
+  // TraitManager derives the display name and icon from the sign of the value:
+  // negative = drain/poison, positive = regen.
   if (slipHpPct)
   {
-    rows.push({ icon: 0, label: 'HP Slip', value: `${slipHpPct}% / 5s` });
+    rows.push({
+      icon:  TraitManager.slipIcon('hp', slipHpPct),
+      label: TraitManager.slipName('hp', slipHpPct),
+      value: `${slipHpPct}% / 5s`,
+    });
   }
   else if (slipHpForm)
   {
-    rows.push({ icon: 0, label: 'HP Slip', value: `${this.evaluateFormula(slipHpForm, this._actor)} / 5s` });
+    const hpEval = this.evaluateFormula(slipHpForm, this._actor);
+    rows.push({
+      icon:  TraitManager.slipIcon('hp', Number(hpEval)),
+      label: TraitManager.slipName('hp', Number(hpEval)),
+      value: `${hpEval} / 5s`,
+    });
   }
 
   if (slipMpPct)
   {
-    rows.push({ icon: 0, label: 'MP Slip', value: `${slipMpPct}% / 5s` });
+    rows.push({
+      icon:  TraitManager.slipIcon('mp', slipMpPct),
+      label: TraitManager.slipName('mp', slipMpPct),
+      value: `${slipMpPct}% / 5s`,
+    });
   }
   else if (slipMpForm)
   {
-    rows.push({ icon: 0, label: 'MP Slip', value: `${this.evaluateFormula(slipMpForm, this._actor)} / 5s` });
+    const mpEval = this.evaluateFormula(slipMpForm, this._actor);
+    rows.push({
+      icon:  TraitManager.slipIcon('mp', Number(mpEval)),
+      label: TraitManager.slipName('mp', Number(mpEval)),
+      value: `${mpEval} / 5s`,
+    });
   }
 
   if (slipTpPct)
   {
-    rows.push({ icon: 0, label: 'TP Slip', value: `${slipTpPct}% / 5s` });
+    rows.push({
+      icon:  TraitManager.slipIcon('tp', slipTpPct),
+      label: TraitManager.slipName('tp', slipTpPct),
+      value: `${slipTpPct}% / 5s`,
+    });
   }
   else if (slipTpForm)
   {
-    rows.push({ icon: 0, label: 'TP Slip', value: `${this.evaluateFormula(slipTpForm, this._actor)} / 5s` });
+    const tpEval = this.evaluateFormula(slipTpForm, this._actor);
+    rows.push({
+      icon:  TraitManager.slipIcon('tp', Number(tpEval)),
+      label: TraitManager.slipName('tp', Number(tpEval)),
+      value: `${tpEval} / 5s`,
+    });
   }
 
   return rows;
