@@ -310,14 +310,11 @@ Game_Actor.prototype.notifyOtibUnlock = function(item, stateIds)
 {
   stateIds.forEach(stateId =>
   {
-    const state = $dataStates[stateId];
-    const stateName = state ? state.name : `Unknown Effect`;
-
-    // two short lines: item consumed (with icon), then state unlocked (with icon).
-    // \I[n] renders the icon inline via drawTextEx — keeps the message readable at a glance.
+    // \item[id] and \state[id] are drawTextEx escape codes that render the icon + name inline.
+    // two lines: item on the first (main), unlocked state on the second (subtext).
     const log = new DiaLogBuilder()
-      .addLine(`\\I[${item.iconIndex}] Consumed ${item.name}.`)
-      .addLine(`\\I[${state ? state.iconIndex : 0}] Unlocked ${stateName}!`)
+      .addLine(`Consuming the \\item[${item.id}]`)
+      .addLine(`unlocked \\state[${stateId}] effect!`)
       .build();
     $diaLogManager.addLog(log);
   });
