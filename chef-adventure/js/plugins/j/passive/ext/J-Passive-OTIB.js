@@ -311,10 +311,13 @@ Game_Actor.prototype.notifyOtibUnlock = function(item, stateIds)
   stateIds.forEach(stateId =>
   {
     const state = $dataStates[stateId];
-    const stateName = state ? state.name : `unknown effect`;
-    const message = `Consuming the ${item.name} unlocked ${stateName} effect!`;
+    const stateName = state ? state.name : `Unknown Effect`;
+
+    // two short lines: item consumed (with icon), then state unlocked (with icon).
+    // \I[n] renders the icon inline via drawTextEx — keeps the message readable at a glance.
     const log = new DiaLogBuilder()
-      .addLine(message)
+      .addLine(`\\I[${item.iconIndex}] Consumed ${item.name}.`)
+      .addLine(`\\I[${state ? state.iconIndex : 0}] Unlocked ${stateName}!`)
       .build();
     $diaLogManager.addLog(log);
   });
