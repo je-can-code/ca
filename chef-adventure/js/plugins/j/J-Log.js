@@ -2282,6 +2282,18 @@ class Window_DiaLog
     return Window_DiaLog.rowHeight;
   }
 
+  /**
+   * Overrides {@link Window_Command#multilineLineHeight}.<br>
+   * Uses half the row height so multiline entries have even vertical spacing
+   * within the 64px row rather than compressing both lines into 16px steps.
+   * @returns {number}
+   * @override
+   */
+  multilineLineHeight()
+  {
+    return Math.floor(Window_DiaLog.rowHeight / 2);
+  }
+
   //endregion overwrites
 
   /**

@@ -13643,6 +13643,10 @@ Window_Command.prototype.drawItem = function(index)
     this.drawIcon(commandIcon, commandNameX - 36, iconY);
   }
 
+  // when there is no icon and no face, the visual-leader indent is wasted space.
+  // collapse it to a small padding so text starts flush with the window edge.
+  if (!commandIcon && !hasFaceData) commandNameX = rectX + 4;
+
   // render the command name.
   this.drawTextEx(commandName, commandNameX, commandNameY, rectWidth);
 
@@ -13706,7 +13710,8 @@ Window_Command.prototype.drawItem = function(index)
   else if (hasMultilineText)
   {
     // calculate the x coordinate for all subtext.
-    let extraLineX = rectX + 32;
+    // align with the command name: skip visual-leader indent when no icon or face is present.
+    let extraLineX = (!commandIcon && !hasFaceData) ? rectX + 4 : rectX + 32;
 
     // if there was face data rendered, then move this over some.
     if (hasFaceData)
