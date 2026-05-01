@@ -20,32 +20,6 @@
  * @orderAfter J-Natural
  * @orderAfter J-ELEM
  *
- * @param menuSettings
- * @text Menu Settings
- *
- * @param menuSwitch
- * @parent menuSettings
- * @type switch
- * @text Menu Switch ID
- * @desc The switch that controls whether the Passives command appears in the menu.
- * Set to 0 (None) to always show the command regardless of switch state.
- * @default 108
- *
- * @param menuCommandName
- * @parent menuSettings
- * @type string
- * @text Menu Name
- * @desc The text shown as the Passives command in the main menu.
- * @default Passives
- *
- * @param menuCommandIcon
- * @parent menuSettings
- * @type number
- * @text Menu Icon
- * @desc The icon index shown beside the Passives command in the menu.
- * Use the context menu to easily select an index.
- * @default 191
- *
  * @help
  * ============================================================================
  * OVERVIEW
@@ -195,6 +169,30 @@
  * - 1.0.0
  *    Initial release.
  * ============================================================================
+ *
+ * @param menuSettings
+ * @text Menu Settings
+ *
+ * @param menuSwitch
+ * @parent menuSettings
+ * @type switch
+ * @text Menu Switch ID
+ * @desc The switch that controls whether the Passives command appears in the menu.
+ * @default 108
+ *
+ * @param menuCommandName
+ * @parent menuSettings
+ * @type string
+ * @text Menu Name
+ * @desc The text shown as the Passives command in the main menu.
+ * @default Passives
+ *
+ * @param menuCommandIcon
+ * @parent menuSettings
+ * @type number
+ * @text Menu Icon
+ * @desc The icon index shown beside the Passives command in the menu.
+ * @default 191
  */
 //endregion Introduction
 
