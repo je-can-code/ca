@@ -1214,11 +1214,11 @@ Window_PassiveDetail.prototype.collectResourcesAbsRows = function(state)
     [rx.OnAttackTpGainFlat, rx.OnAttackTpGainPercent, rx.OnAttackTpGainFormula,
       `On-Attack ${TextManager.maxTp()}`, IconManager.maxTp()],
     [rx.WhenHitHpGainFlat, rx.WhenHitHpGainPercent, rx.WhenHitHpGainFormula,
-      `On-Hit ${TextManager.param(0)}`, IconManager.param(0)],
+      `When-Hit ${TextManager.param(0)}`, IconManager.param(0)],
     [rx.WhenHitMpGainFlat, rx.WhenHitMpGainPercent, rx.WhenHitMpGainFormula,
-      `On-Hit ${TextManager.param(1)}`, IconManager.param(1)],
+      `When-Hit ${TextManager.param(1)}`, IconManager.param(1)],
     [rx.WhenHitTpGainFlat, rx.WhenHitTpGainPercent, rx.WhenHitTpGainFormula,
-      `On-Hit ${TextManager.maxTp()}`, IconManager.maxTp()],
+      `When-Hit ${TextManager.maxTp()}`, IconManager.maxTp()],
   ];
 
   checks.forEach(([flatRx, pctRx, formRx, label, icon]) =>
