@@ -1208,17 +1208,17 @@ Window_PassiveDetail.prototype.collectResourcesAbsRows = function(state)
   // each entry: [flatRx, pctRx, formRx, label, icon]
   const checks = [
     [rx.OnAttackHpGainFlat, rx.OnAttackHpGainPercent, rx.OnAttackHpGainFormula,
-      `On-Attack ${TextManager.param(0)}`, IconManager.param(0)],
+      `On-Attack ${TextManager.resource(0)}`, IconManager.param(0)],
     [rx.OnAttackMpGainFlat, rx.OnAttackMpGainPercent, rx.OnAttackMpGainFormula,
-      `On-Attack ${TextManager.param(1)}`, IconManager.param(1)],
+      `On-Attack ${TextManager.resource(1)}`, IconManager.param(1)],
     [rx.OnAttackTpGainFlat, rx.OnAttackTpGainPercent, rx.OnAttackTpGainFormula,
-      `On-Attack ${TextManager.maxTp()}`, IconManager.maxTp()],
+      `On-Attack ${TextManager.resource(30)}`, IconManager.maxTp()],
     [rx.WhenHitHpGainFlat, rx.WhenHitHpGainPercent, rx.WhenHitHpGainFormula,
-      `When-Hit ${TextManager.param(0)}`, IconManager.param(0)],
+      `When-Hit ${TextManager.resource(0)}`, IconManager.param(0)],
     [rx.WhenHitMpGainFlat, rx.WhenHitMpGainPercent, rx.WhenHitMpGainFormula,
-      `When-Hit ${TextManager.param(1)}`, IconManager.param(1)],
+      `When-Hit ${TextManager.resource(1)}`, IconManager.param(1)],
     [rx.WhenHitTpGainFlat, rx.WhenHitTpGainPercent, rx.WhenHitTpGainFormula,
-      `When-Hit ${TextManager.maxTp()}`, IconManager.maxTp()],
+      `When-Hit ${TextManager.resource(30)}`, IconManager.maxTp()],
   ];
 
   checks.forEach(([flatRx, pctRx, formRx, label, icon]) =>
