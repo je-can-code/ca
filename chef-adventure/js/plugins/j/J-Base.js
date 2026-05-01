@@ -92,6 +92,18 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.1.0
+ *    Added TraitManager static class for centralized display of slip effects (name and icon
+ *    based on value sign: damage vs regen).
+ *    Extended TextManager with resource() for HP/MP/TP resource display names.
+ *    Added traitsDeltaSum() helper on Game_BattlerBase.
+ *    Overrode sparam, elementRate, paramRate, and stateRate to use additive delta stacking
+ *    instead of multiplicative (traitsPi), with a floor of 0; xparam and attackStatesRate
+ *    were already additive and are unchanged.
+ *    Fixed RPG_Trait.textValue() for trait code 35: attack-skill now resolves via dataId
+ *    instead of value.
+ *    Fixed RPG_Trait.textValue() for xparam 0 (Accuracy) and sparam 1 (Parry) to display
+ *    as flat integers rather than percentages, matching JABS usage.
  * - 3.0.1
  *    Fixed issue with RPGManager parsing arrays of notes.
  *    Added some arbitrary defaults for icon indices of types.
@@ -186,7 +198,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '3.0.1';
+J.BASE.Metadata.Version = '3.1.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -316,6 +328,7 @@ J.BASE.Aliased = {
   Bitmap: new Map(),
   DataManager: new Map(),
   JsonEx: new Map(),
+  Game_BattlerBase: new Map(),
   Game_Character: {},
   Game_Actor: new Map(),
   Game_Battler: new Map(),
@@ -1369,39 +1382,45 @@ class RPG_Trait
     {
       // first tab.
       case 11:
+        // positive = resistance (takes less damage), negative = weakness (takes more).
+        // use Math.abs to prevent double-signing when the calc result is already negative.
         const calculatedElementalRate = Math.round(100 - (this.value * 100));
-        return `${calculatedElementalRate > 0
-          ? "-"
-          : "+"}${calculatedElementalRate}%`;
+        return `${calculatedElementalRate > 0 ? "-" : "+"}${Math.abs(calculatedElementalRate)}%`;
       case 12:
+        // positive = more susceptible, negative = less susceptible.
         const calculatedDebuffRate = Math.round((this.value * 100) - 100);
-        return `${calculatedDebuffRate > 0
-          ? "+"
-          : "-"}${calculatedDebuffRate}%`;
+        return `${calculatedDebuffRate >= 0 ? "+" : "-"}${Math.abs(calculatedDebuffRate)}%`;
       case 13:
+        // positive = more resistant (state less likely to land), negative = more susceptible.
         const calculatedStateRate = Math.round(100 - (this.value * 100));
-        return `${calculatedStateRate > 0
-          ? "+"
-          : "-"}${calculatedStateRate}%`;
+        return `${calculatedStateRate > 0 ? "+" : "-"}${Math.abs(calculatedStateRate)}%`;
       case 14:
         return $dataStates[this.dataId].name;
 
       // second tab.
       case 21:
         const calculatedBParam = Math.round((this.value * 100) - 100);
-        return `${calculatedBParam >= 0
-          ? "+"
-          : ""}${calculatedBParam}%`;
+        return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
       case 22:
-        const calculatedXParam = Math.round((this.value * 100));
-        return `${calculatedXParam >= 0
-          ? "+"
-          : ""}${calculatedXParam}%`;
+      {
+        const calculatedXParam = Math.round(this.value * 100);
+
+        // accuracy (hit, dataId 0): xparam base is 0, so value*100 IS the flat integer JABS reads.
+        // same math as the standard xparam formula — only the percent sign is omitted.
+        if (this.dataId === 0) return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}`;
+
+        return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
+      }
       case 23:
+      {
         const calculatedSParam = Math.round((this.value * 100) - 100);
-        return `${calculatedSParam >= 0
-          ? "+"
-          : ""}${calculatedSParam}%`;
+
+        // parry (grd, dataId 1): sparam base is 1.0, so (value*100)-100 IS the flat integer JABS reads.
+        // same math as the standard sparam formula — only the percent sign is omitted.
+        if (this.dataId === 1) return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}`;
+
+        return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
+      }
 
       // third tab.
       case 31:
@@ -1409,15 +1428,11 @@ class RPG_Trait
       case 32:
         return `${(this.value * 100)}%`;
       case 33:
-        return `${this.value > 0
-          ? "+"
-          : "-"}${this.value}`;
+        return `${this.value >= 0 ? "+" : "-"}${Math.abs(this.value)}`;
       case 34:
-        return `${this.value > 0
-          ? "+"
-          : "-"}${this.value}`;
+        return `${this.value >= 0 ? "+" : "-"}${Math.abs(this.value)}`;
       case 35:
-        return `${$dataSkills[this.value].name}`;
+        return `${$dataSkills[this.dataId].name}`;
 
       // fourth tab.
       case 41:
@@ -6214,6 +6229,32 @@ TextManager.maxTp = function()
 };
 
 /**
+ * Gets the "current resource" name for a given parameter id.
+ * This is the shorter, in-world name for the living resource itself
+ * as opposed to the stat-cap name (e.g. "Life" vs "Max Life").
+ * Use this when describing resource recovery rather than a stat modifier.
+ *
+ * Supported ids:
+ *  0  → HP  ("Life")
+ *  1  → MP  ("Magi")
+ *  30 → TP  ("Tech")
+ * @param {number} paramId The resource param id (0, 1, or 30).
+ * @returns {string} The in-world resource name.
+ */
+TextManager.resource = function(paramId)
+{
+  switch (paramId)
+  {
+    case  0: return "Life";
+    case  1: return "Magi";
+    case 30: return "Tech";
+  }
+
+  console.warn(`TextManager.resource: unrecognized paramId [${paramId}].`);
+  return String.empty;
+};
+
+/**
  * Gets the name of the reward parameter.
  * @param {number} paramId The paramId to get the reward text for.
  * @returns {string}
@@ -6246,20 +6287,24 @@ TextManager.rewardDescription = function(paramId)
   {
     case 0:
       return [
-        "The resource required to accumulate to rise in level.", "Levels give unseen advantages." ];
+        "The resource required to accumulate to rise in level.", "Levels give unseen advantages."
+      ];
     case 1:
       return [
-        "The primary currency of the universe.", "Most vendors happily take this in exchange for goods." ];
+        "The primary currency of the universe.", "Most vendors happily take this in exchange for goods."
+      ];
     case 2:
       return [
-        "The rate at which enemies will drop loot.", "Higher rates yield more frequent drops." ];
+        "The rate at which enemies will drop loot.", "Higher rates yield more frequent drops."
+      ];
     case 3:
       return [
-        "The frequency of which the party will be engage in battles.",
-        "Lower rates result in less random encounters." ];
+        "The frequency of which the party will be engage in battles.", "Lower rates result in less random encounters."
+      ];
     case 4:
       return [
-        "The rate of SDP accumulation from any source.", "Bigger rates yield fatter stacks of them sweet SDP points." ];
+        "The rate of SDP accumulation from any source.", "Bigger rates yield fatter stacks of them sweet SDP points."
+      ];
   }
 };
 
@@ -6349,40 +6394,48 @@ TextManager.bparamDescription = function(paramId)
     // MHP (Max Hit Points)
     case 0:
       return [
-        "The base resource that defines life and death.", "Enemies and allies alike obey the rule of '0hp = dead'." ];
+        "The base resource that defines life and death.", "Enemies and allies alike obey the rule of '0hp = dead'."
+      ];
     // MMP (Max Magic Points)
     case 1:
       return [
-        "The base resource that most magic-based spells consume.", "Without this, spells typically cannot be cast." ];
+        "The base resource that most magic-based spells consume.", "Without this, spells typically cannot be cast."
+      ];
     // ATK (ATtacK)
     case 2:
       return [
-        "The base stat that influences physical damage.",
-        "Higher amounts of this yield higher physical damage output." ];
+        "The base stat that influences physical damage.", "Higher amounts of this yield higher physical damage output."
+      ];
     // DEF (DEFense)
     case 3:
       return [
-        "The base stat that reduces physical damage.", "Higher amounts of this will reduce incoming physical damage." ];
+        "The base stat that reduces physical damage.", "Higher amounts of this will reduce incoming physical damage."
+      ];
     // MAT (Magic ATtack)
     case 4:
       return [
-        "The base stat that influences magical damage.", "Higher amounts of this yield higher magical damage output." ];
+        "The base stat that influences magical damage.", "Higher amounts of this yield higher magical damage output."
+      ];
     // MDF (Magic DeFense)
     case 5:
       return [
-        "The base stat that reduces magical damage.", "Higher amounts of this will reduce incoming magical damage." ];
+        "The base stat that reduces magical damage.", "Higher amounts of this will reduce incoming magical damage."
+      ];
     // AGI (AGIlity)
     case 6:
       return [
-        "The base stat that governs movement and agility.", "The effects of this are unknown at higher levels." ];
+        "The base stat that governs movement and agility.", "The effects of this are unknown at higher levels."
+      ];
     // LUK (LUcK)
     case 7:
       return [
-        "The base stat that governs fortune and luck.", "The effects of this are wide and varied." ];
+        "The base stat that governs fortune and luck.", "The effects of this are wide and varied."
+      ];
     case 30:
       return [
         "The base resource that many weapon-based skills utilize.",
-        "Without this, techniques typically cannot be executed." ];
+        "Without this, techniques typically cannot be executed."
+      ];
   }
 };
 
@@ -6398,7 +6451,8 @@ TextManager.xparamDescription = function(paramId)
     // HIT (HIT chance)
     case 0:
       return [
-        "The stat representing one's skill of accuracy.", "Being more accurate will result in being parried less." ];
+        "The stat representing one's skill of accuracy.", "Being more accurate will result in being parried less."
+      ];
 
     // EVA (physical hit EVasion)
     case 1:
@@ -6406,54 +6460,63 @@ TextManager.xparamDescription = function(paramId)
         // "The stat representing skill in physically evading attacks.",  // original function.
         // "Having higher evasion is often seen as a form of tanking.",   // original function.
         "The stat governing one's uncanny ability to parry precisely.",
-        "An optional stat, but having more will make parrying easier." ];
+        "An optional stat, but having more will make parrying easier."
+      ];
 
     // CRI (CRItical hit chance)
     case 2:
       return [
         "A numeric value to one's chance of landing a critical hit.",
-        "Critical hits will deal percent-increased damage." ];
+        "Critical hits will deal percent-increased damage."
+      ];
 
     // CEV (Critical hit Evasion)
     case 3:
       return [
         "A numeric value to one's chance of evading a critical hit.",
-        "Enemy critical hit chance is directly reduced by this amount." ];
+        "Enemy critical hit chance is directly reduced by this amount."
+      ];
 
     // MEV (Magic attack EVasion)
     case 4:
       return [
         "A numeric value to one's chance of evading a magical hit.",
-        "Enemy magical hit chance is directly reduced by this amount." ];
+        "Enemy magical hit chance is directly reduced by this amount."
+      ];
 
     // MRF (Magic attack ReFlection)
     case 5:
       return [
         // "The chance of reflecting a magical hit back to its caster.",  // original function
         "The chance of reflecting a skill back to its caster.",
-        "Aside from it being reflected back, it is as if you casted it." ];
+        "Aside from it being reflected back, it is as if you casted it."
+      ];
 
     // CNT (CouNTer chance)
     case 6:
       return [
         // "The chance of responding with a basic attack when hit.",  // original function
         "The chance of auto-executing counter skills when struck.",
-        "Being un-reducable, 100 makes countering inevitable." ];
+        "Being un-reducable, 100 makes countering inevitable."
+      ];
 
     // HRG (Hp ReGeneration)
     case 7:
       return [
-        "The amount of Life restored over 5 seconds.", "Recovery Rate amplifies this effect." ];
+        "The amount of Life restored over 5 seconds.", "Recovery Rate amplifies this effect."
+      ];
 
     // MRG (Mp ReGeneration)
     case 8:
       return [
-        "The amount of Magi rejuvenated over 5 seconds.", "Recovery Rate amplifies this effect." ];
+        "The amount of Magi rejuvenated over 5 seconds.", "Recovery Rate amplifies this effect."
+      ];
 
     // TRG (Tp ReGeneration)
     case 9:
       return [
-        "The amount of Tech recovered over 5 seconds.", "Recovery Rate amplifies this effect." ];
+        "The amount of Tech recovered over 5 seconds.", "Recovery Rate amplifies this effect."
+      ];
   }
 };
 
@@ -6469,7 +6532,8 @@ TextManager.sparamDescription = function(paramId)
     // TGR (TarGeting Rate)
     case 0:
       return [
-        "The percentage of aggro that will be applied.", "Reduce for stealthing; increase for taunting." ];
+        "The percentage of aggro that will be applied.", "Reduce for stealthing; increase for taunting."
+      ];
 
     // GRD (GuaRD rate)
     case 1:
@@ -6477,55 +6541,63 @@ TextManager.sparamDescription = function(paramId)
         // "Improves the damage reduction when guarding.",  // original function.
         // "This stat speaks for itself.",                  // original function.
         "A numeric value representing the frequency of parrying.",
-        "More of this will result in auto-parrying faced foes." ];
+        "More of this will result in auto-parrying faced foes."
+      ];
 
     // REC (RECovery boost rate)
     case 2:
       return [
         "The percentage effectiveness of healing applied to oneself.",
-        "Higher amounts of this will make healing need less effort." ];
+        "Higher amounts of this will make healing need less effort."
+      ];
 
     // PHA (PHArmacology rate)
     case 3:
       return [
         "The percentage effectiveness of items applied to oneself.",
-        "Higher amounts of this will make items more potent." ];
+        "Higher amounts of this will make items more potent."
+      ];
 
     // MCR (Magic Cost Rate)
     case 4:
       return [
         "The percentage bonuses being applied to Magi costs.",
-        "Enemy magical hit chance is directly reduced by this amount." ];
+        "Enemy magical hit chance is directly reduced by this amount."
+      ];
 
     // TCR (Tech ChaRge rate)
     case 5:
       return [
         "The percentage bonuses being applied to Tech generation.",
-        "Taking and dealing damage in combat will earn more Tech." ];
+        "Taking and dealing damage in combat will earn more Tech."
+      ];
 
     // PDR (Physical Damage Rate)
     case 6:
       return [
         "The percentage bonuses being applied to physical damage.",
-        "-100 is immune while 100+ takes double+ physical damage." ];
+        "-100 is immune while 100+ takes double+ physical damage."
+      ];
 
     // MDR (Magic Damage Rate)
     case 7:
       return [
         "The percentage bonuses being applied to magical damage.",
-        "-100 is immune while 100+ takes double+ magical damage." ];
+        "-100 is immune while 100+ takes double+ magical damage."
+      ];
 
     // FDR (Floor Damage Rate)
     case 8:
       return [
-        "The percentage bonuses being applied to floor damage.",
-        "-100 is immune while 100+ takes double+ floor damage." ];
+        "The percentage bonuses being applied to floor damage.", "-100 is immune while 100+ takes double+ floor damage."
+      ];
 
     // EXR (EXperience Rate)
     case 9:
       return [
         "The percentage bonuses being applied to experience gain.",
-        "Higher amounts of this result in faster level growth." ];
+        "Higher amounts of this result in faster level growth."
+      ];
   }
 };
 
@@ -6587,9 +6659,9 @@ TextManager.xparam = function(xParamId)
     case 7:
       return "HP Regen"; //J.Param.HRG_text;
     case 8:
-      return "MP Regen"; //J.Param.MRG_text;
+      return "MP Rejuv"; //J.Param.MRG_text;
     case 9:
-      return "TP Regen"; //J.Param.TRG_text;
+      return "TP Restore"; //J.Param.TRG_text;
   }
 };
 
@@ -6836,6 +6908,82 @@ TextManager.usableEffectByCode = function(code)
   }
 };
 //endregion TextManager
+
+//region TraitManager
+/**
+ * A static class that centralizes display data (name and icon) for traits and
+ * notetag-driven effects across the ecosystem.
+ *
+ * The goal is a single authoritative place where Jeremy can adjust how any
+ * given tag or trait type presents itself, so every window that renders trait
+ * data stays consistent without needing updates in multiple files.
+ */
+class TraitManager
+{
+  /**
+   * The constructor is not designed to be called.
+   * This is a static class.
+   */
+  constructor()
+  {
+    throw new Error('This is a static class.');
+  }
+
+  /**
+   * Returns the display name for a slip effect.
+   * In JABS convention, negative values are healing and positive values are damage.
+   * @param {'hp'|'mp'|'tp'} type The resource type the slip affects.
+   * @param {number} evaluatedValue The resolved slip amount; sign determines direction.
+   * @returns {string}
+   */
+  static slipName(type, evaluatedValue)
+  {
+    const isDamage = Number(evaluatedValue) > 0;
+    switch (type)
+    {
+      case 'hp':
+        // positive HP slip is damage; negative is regeneration.
+        return isDamage ? 'HP Poison' : TextManager.xparam(7);
+      case 'mp':
+        // positive MP slip drains Magi; negative restores it.
+        return isDamage ? 'MP Leak' : TextManager.xparam(8);
+      case 'tp':
+        // positive TP slip drains Tech; negative charges it.
+        return isDamage ? 'TP Drain' : TextManager.xparam(9);
+    }
+
+    // fallback for any future slip resource types.
+    return 'Slip';
+  }
+
+  /**
+   * Returns the icon index for a slip effect.
+   * In JABS convention, positive values use damage icons; negative values use the stat's regen icon.
+   * @param {'hp'|'mp'|'tp'} type The resource type the slip affects.
+   * @param {number} evaluatedValue The resolved slip amount; sign determines direction.
+   * @returns {number}
+   */
+  static slipIcon(type, evaluatedValue)
+  {
+    const isDamage = Number(evaluatedValue) > 0;
+    switch (type)
+    {
+      case 'hp':
+        // positive = poison/damage icon; negative = hp regen icon.
+        return isDamage ? 2 : IconManager.xparam(7);
+      case 'mp':
+        // positive = mp drain icon; negative = mp regen icon.
+        return isDamage ? 67 : IconManager.xparam(8);
+      case 'tp':
+        // positive = tp drain icon; negative = tp regen icon.
+        return isDamage ? 11 : IconManager.xparam(9);
+    }
+
+    // no icon for unknown slip types.
+    return 0;
+  }
+}
+//endregion TraitManager
 
 /**
  * An implementation of a class surrounding the data for a singular window command.
@@ -9518,6 +9666,116 @@ Game_BattlerBase.isRegenLongParamId = function(longParamId)
 {
   const regenParamIds = [ 7, 8, 9 ];
   return regenParamIds.includes(longParamId - 8);
+};
+
+/**
+ * Gets the sum of deltas above the 1.0 neutral baseline for all traits matching the given
+ * code and dataId.  Each trait value is treated as `1.0 + delta`; this method isolates
+ * the delta portion and sums them additively.
+ *
+ * Intended for use with multiplicative-baseline trait families (sparams, element rates) where
+ * the default {@link Game_BattlerBase#traitsPi} produces unintuitive compound values when stacking.
+ *
+ * @param {number} code The trait code (e.g. {@link Game_BattlerBase.TRAIT_SPARAM}).
+ * @param {number} id The dataId that further identifies the specific trait.
+ * @returns {number} The sum of `(value - 1.0)` for all matching traits.
+ */
+Game_BattlerBase.prototype.traitsDeltaSum = function(code, id)
+{
+  return this.traitsWithId(code, id)
+    .map(trait => trait.value - 1.0)
+    .reduce((total, delta) => total + delta, 0.0);
+};
+
+/**
+ * Overrides {@link Game_BattlerBase#sparam}.<br>
+ * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
+ *
+ * RMMZ stores sparam trait values as multipliers (1.0 = baseline, 1.5 = +50%).
+ * The default engine multiplies them together, so two +50% traits compound to ×2.25 instead
+ * of the intuitive ×2.0. This override subtracts the 1.0 baseline from each trait value,
+ * sums the deltas, then restores the 1.0 baseline — giving linear, predictable stacking
+ * while keeping the 1.0 return value that engine healing/cost/damage formulas expect.
+ *
+ * @param {number} sparamId The sparam index (0–9).
+ * @returns {number} The additively aggregated sparam value.
+ */
+J.BASE.Aliased.Game_BattlerBase.set('sparam', Game_BattlerBase.prototype.sparam);
+Game_BattlerBase.prototype.sparam = function(sparamId)
+{
+  // additive delta stacking: sum deltas above the 1.0 baseline, then restore the baseline.
+  // replaces the default traitsPi which compounded 1.5×1.5 into 2.25 instead of 2.0.
+  return 1.0 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_SPARAM, sparamId);
+};
+
+/**
+ * Overrides {@link Game_BattlerBase#elementRate}.<br>
+ * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
+ *
+ * RMMZ stores element rate trait values as multipliers (1.0 = neutral, 1.2 = +20% damage taken).
+ * The default engine multiplies them together, so two +20% traits compound to ×1.44 instead of
+ * the intuitive ×1.4. This override subtracts the 1.0 baseline from each trait value, sums the
+ * deltas, then restores the 1.0 baseline — giving linear, predictable stacking.
+ *
+ * The result is floored at 0 to prevent negative element rates from inverting damage direction.
+ * Absorption is handled separately by J.ELEM and is not affected by this override.
+ *
+ * @param {number} elementId The element ID to compute the rate for.
+ * @returns {number} The additively aggregated element rate, minimum 0.
+ */
+J.BASE.Aliased.Game_BattlerBase.set('elementRate', Game_BattlerBase.prototype.elementRate);
+Game_BattlerBase.prototype.elementRate = function(elementId)
+{
+  // additive delta stacking: sum deltas above the 1.0 baseline, then restore the baseline.
+  // floor at 0 — traits alone cannot invert damage direction; absorption lives in J.ELEM.
+  const rate = 1.0 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_ELEMENT_RATE, elementId);
+  return Math.max(0, rate);
+};
+
+/**
+ * Overrides {@link Game_BattlerBase#paramRate}.<br>
+ * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
+ *
+ * RMMZ stores param rate trait values as multipliers (1.0 = baseline, 1.5 = +50%).
+ * The default engine multiplies them together, so two +50% ATK traits compound to ×2.25 instead
+ * of the intuitive ×2.0. This override subtracts the 1.0 baseline from each trait value, sums
+ * the deltas, then restores the 1.0 baseline — giving linear, predictable stacking.
+ *
+ * The result is floored at 0; the engine already enforces a param floor via paramMin(),
+ * but keeping the rate non-negative avoids unexpected sign inversions from heavy reductions.
+ *
+ * @param {number} paramId The param index (0–7).
+ * @returns {number} The additively aggregated param rate, minimum 0.
+ */
+J.BASE.Aliased.Game_BattlerBase.set('paramRate', Game_BattlerBase.prototype.paramRate);
+Game_BattlerBase.prototype.paramRate = function(paramId)
+{
+  // additive delta stacking: sum deltas above the 1.0 baseline, then restore the baseline.
+  const rate = 1.0 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_PARAM, paramId);
+  return Math.max(0, rate);
+};
+
+/**
+ * Overrides {@link Game_BattlerBase#stateRate}.<br>
+ * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
+ *
+ * RMMZ stores state rate trait values as multipliers (1.0 = neutral, 0.5 = 50% less likely).
+ * The default engine multiplies them together, so two 50%-resist traits compound to ×0.25 instead
+ * of the intuitive ×0.0 (immunity). This override subtracts the 1.0 baseline from each trait
+ * value, sums the deltas, then restores the baseline — giving linear, predictable stacking.
+ *
+ * The result is floored at 0 so stacked resistances can reach full immunity without going negative.
+ *
+ * @param {number} stateId The state ID to compute the rate for.
+ * @returns {number} The additively aggregated state rate, minimum 0.
+ */
+J.BASE.Aliased.Game_BattlerBase.set('stateRate', Game_BattlerBase.prototype.stateRate);
+Game_BattlerBase.prototype.stateRate = function(stateId)
+{
+  // additive delta stacking: sum deltas above the 1.0 baseline, then restore the baseline.
+  // floor at 0 so full immunity is reachable through trait stacking without going negative.
+  const rate = 1.0 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_STATE_RATE, stateId);
+  return Math.max(0, rate);
 };
 
 /**
@@ -12372,18 +12630,35 @@ Window_Base.prototype.drawContent = function()
 };
 
 /**
- * Extends {@link Window_Base.resetFontSettings}.<br>
- * Also resets bold and italics.
+ * Overrides {@link Window_Base.resetFontSettings}.<br>
+ * Delegates each concern to its own method so individual windows can override
+ * only what they need (e.g. a smaller font size) without re-implementing everything.
  */
 J.BASE.Aliased.Window_Base.set('resetFontSettings', Window_Base.prototype.resetFontSettings);
 Window_Base.prototype.resetFontSettings = function()
 {
-  // perform original logic.
-  J.BASE.Aliased.Window_Base.get('resetFontSettings')
-    .call(this);
-
-  // also reset the italics/bold back to false.
+  // delegate each reset to its own overrideable method.
+  this.resetFontFace();
+  this.resetFontSize();
+  this.resetTextColor();
   this.resetFontFormatting();
+};
+
+/**
+ * Resets the font face to the system default.
+ */
+Window_Base.prototype.resetFontFace = function()
+{
+  this.contents.fontFace = $gameSystem.mainFontFace();
+};
+
+/**
+ * Resets the font size to the system default.<br>
+ * Override this in subclasses to use a different base size for a specific window.
+ */
+Window_Base.prototype.resetFontSize = function()
+{
+  this.contents.fontSize = $gameSystem.mainFontSize();
 };
 
 /**
@@ -13385,6 +13660,10 @@ Window_Command.prototype.drawItem = function(index)
     this.drawIcon(commandIcon, commandNameX - 36, iconY);
   }
 
+  // when there is no icon and no face, the visual-leader indent is wasted space.
+  // collapse it to a small padding so text starts flush with the window edge.
+  if (!commandIcon && !hasFaceData) commandNameX = rectX + 4;
+
   // render the command name.
   this.drawTextEx(commandName, commandNameX, commandNameY, rectWidth);
 
@@ -13448,7 +13727,8 @@ Window_Command.prototype.drawItem = function(index)
   else if (hasMultilineText)
   {
     // calculate the x coordinate for all subtext.
-    let extraLineX = rectX + 32;
+    // align with the command name: skip visual-leader indent when no icon or face is present.
+    let extraLineX = (!commandIcon && !hasFaceData) ? rectX + 4 : rectX + 32;
 
     // if there was face data rendered, then move this over some.
     if (hasFaceData)

@@ -269,6 +269,8 @@ J.CRIT.Aliased = {
   IconManager: new Map(),
   TextManager: new Map(),
   Window_SDP_Details: new Map(),
+
+  Scene_Boot: new Map(),
 };
 
 /**
@@ -1204,5 +1206,19 @@ Game_BattlerBase.prototype.criticalDamageReduction = function()
   return 0.0;
 };
 //endregion Game_BattlerBase
+
+//region Scene_Boot
+/**
+ * Extends {@link #onDatabaseLoaded}.<br/>
+ * No initialization required for J-Crit on database load at this time;
+ * the passive detail window draws J-Crit data directly from the state note.
+ */
+J.CRIT.Aliased.Scene_Boot.set('onDatabaseLoaded', Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function()
+{
+  // perform original logic.
+  J.CRIT.Aliased.Scene_Boot.get('onDatabaseLoaded').call(this);
+};
+//endregion Scene_Boot
 
 //# sourceMappingURL=J-CriticalFactors.js.map
