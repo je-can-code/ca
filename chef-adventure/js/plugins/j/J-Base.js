@@ -6621,9 +6621,9 @@ TextManager.xparam = function(xParamId)
     case 7:
       return "HP Regen"; //J.Param.HRG_text;
     case 8:
-      return "MP Regen"; //J.Param.MRG_text;
+      return "MP Rejuv"; //J.Param.MRG_text;
     case 9:
-      return "TP Regen"; //J.Param.TRG_text;
+      return "TP Restore"; //J.Param.TRG_text;
   }
 };
 
@@ -6893,25 +6893,25 @@ class TraitManager
 
   /**
    * Returns the display name for a slip effect.
-   * Negative values are draining (poison/damage); positive values are restoring (regen).
+   * In JABS convention, negative values are healing and positive values are damage.
    * @param {'hp'|'mp'|'tp'} type The resource type the slip affects.
    * @param {number} evaluatedValue The resolved slip amount; sign determines direction.
    * @returns {string}
    */
   static slipName(type, evaluatedValue)
   {
-    const isDrain = Number(evaluatedValue) < 0;
+    const isDamage = Number(evaluatedValue) > 0;
     switch (type)
     {
       case 'hp':
-        // negative HP slip is poison; positive is regeneration.
-        return isDrain ? 'Poison' : TextManager.xparam(7);
+        // positive HP slip is damage; negative is regeneration.
+        return isDamage ? 'HP Poison' : TextManager.xparam(7);
       case 'mp':
-        // negative MP slip drains Magi; positive restores it.
-        return isDrain ? 'MP Drain' : TextManager.xparam(8);
+        // positive MP slip drains Magi; negative restores it.
+        return isDamage ? 'MP Leak' : TextManager.xparam(8);
       case 'tp':
-        // negative TP slip drains Tech; positive charges it.
-        return isDrain ? 'Tech Drain' : TextManager.xparam(9);
+        // positive TP slip drains Tech; negative charges it.
+        return isDamage ? 'TP Drain' : TextManager.xparam(9);
     }
 
     // fallback for any future slip resource types.
@@ -6920,25 +6920,25 @@ class TraitManager
 
   /**
    * Returns the icon index for a slip effect.
-   * Negative values use drain/poison icons; positive values use the stat's regen icon.
+   * In JABS convention, positive values use damage icons; negative values use the stat's regen icon.
    * @param {'hp'|'mp'|'tp'} type The resource type the slip affects.
    * @param {number} evaluatedValue The resolved slip amount; sign determines direction.
    * @returns {number}
    */
   static slipIcon(type, evaluatedValue)
   {
-    const isDrain = Number(evaluatedValue) < 0;
+    const isDamage = Number(evaluatedValue) > 0;
     switch (type)
     {
       case 'hp':
-        // poison icon for drain; hp regen xparam icon for restoration.
-        return isDrain ? 48 : IconManager.xparam(7);
+        // positive = poison/damage icon; negative = hp regen icon.
+        return isDamage ? 2 : IconManager.xparam(7);
       case 'mp':
-        // mp drain icon; mp regen xparam icon for restoration.
-        return isDrain ? 72 : IconManager.xparam(8);
+        // positive = mp drain icon; negative = mp regen icon.
+        return isDamage ? 67 : IconManager.xparam(8);
       case 'tp':
-        // tech drain icon; tp regen xparam icon for restoration.
-        return isDrain ? 73 : IconManager.xparam(9);
+        // positive = tp drain icon; negative = tp regen icon.
+        return isDamage ? 11 : IconManager.xparam(9);
     }
 
     // no icon for unknown slip types.
