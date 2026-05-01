@@ -6,19 +6,19 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
- * @base J-Drops
- * @base J-Crit
+ * @base J-DropsControl
+ * @base J-CriticalFactors
  * @base J-SDP
- * @base J-Prof
- * @base J-Natural
- * @base J-ELEM
+ * @base J-Proficiency
+ * @base J-NaturalGrowth
+ * @base J-Elementalistics
  * @orderAfter J-Base
- * @orderAfter J-Drops
- * @orderAfter J-Crit
+ * @orderAfter J-DropsControl
+ * @orderAfter J-CriticalFactors
  * @orderAfter J-SDP
- * @orderAfter J-Prof
- * @orderAfter J-Natural
- * @orderAfter J-ELEM
+ * @orderAfter J-Proficiency
+ * @orderAfter J-NaturalGrowth
+ * @orderAfter J-Elementalistics
  *
  * @help
  * ============================================================================
