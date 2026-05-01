@@ -2888,38 +2888,58 @@ class Window_PassiveDetail
 
   //region elements section
   /**
-   * Draws the Elements section in the left column.
-   * Covers RMMZ element rate traits (code 11), attack element traits (code 31),
-   * and J-ELEM boost/absorb tags.
+   * Draws the Elements section in the middle column.
+   * Element icons replace text names throughout — the icon is the identifier,
+   * keeping the display language-agnostic.
+   *
+   * Element rate traits (code 11) use invertColor because a higher incoming
+   * damage rate is a vulnerability, not a benefit.
+   * Attack element traits (code 31) show the element icon with "Atk Element".
+   * J-ELEM boost and absorb rows supply their own icon from collectElemLines.
    * Skipped when the state has no elemental content.
    * @param {RPG_State} state The state being detailed.
    */
   drawElementsSection(state)
   {
-    const elementTraits = this.filterTraits(state, [11, 31]);
-    const elemLines = this.collectElemLines(state);
+    const dmgInTraits     = this.filterTraits(state, [11]);
+    const atkElemTraits   = this.filterTraits(state, [31]);
+    const elemLines       = this.collectElemLines(state);
 
-    if (elementTraits.length === 0 && elemLines.length === 0) return;
+    if (dmgInTraits.length === 0 && atkElemTraits.length === 0 && elemLines.length === 0) return;
 
     this.drawDetailSectionHeader('Elements');
 
-    elementTraits.forEach(rawTrait =>
+    // incoming element damage rate — element icon identifies which, "Dmg In" the direction.
+    // color is inverted: + means more damage taken (bad = red), - means resistance (good = green).
+    dmgInTraits.forEach(rawTrait =>
     {
       const trait = new RPG_Trait(rawTrait);
-      this.drawDetailRow(0, trait.textName(), trait.textValue());
+      this.drawDetailRow(IconManager.element(trait._dataId), 'Dmg In', trait.textValue(), true);
     });
 
-    elemLines.forEach(({ label, value }) =>
+    // attack element — element icon identifies which element is added to basic attacks.
+    atkElemTraits.forEach(rawTrait =>
     {
-      this.drawDetailRow(0, label, value);
+      const trait = new RPG_Trait(rawTrait);
+      this.drawDetailRow(
+        IconManager.element(trait._dataId), 'Atk Element', TextManager.element(trait._dataId));
+    });
+
+    // J-ELEM boost and absorbed element rows — icon and label already resolved.
+    elemLines.forEach(({ icon, label, value }) =>
+    {
+      this.drawDetailRow(icon, label, value);
     });
   }
 
   /**
-   * Collects display lines from J-ELEM tags on the state.
+   * Collects display rows from J-ELEM tags on the state.
+   * Each row uses the element's icon as the primary identifier rather than its name.
+   * Boost rows show outgoing damage amplification per element.
+   * Absorbed elements produce one row each with no value — the icon is the payload.
    * Returns an empty array when J-ELEM is not loaded.
    * @param {RPG_State} state The state to check.
-   * @returns {Array<{label: string, value: string}>}
+   * @returns {Array<{icon: number, label: string, value: string}>}
    */
   collectElemLines(state)
   {
@@ -2927,6 +2947,7 @@ class Window_PassiveDetail
 
     const lines = [];
 
+    // boost element: one row per boosted element — icon identifies it, "Boost" the effect.
     const boostCaptures = RPGManager.getAllCapturesFromNoteByRegex(state, J.ELEM.RegExp.BoostElement);
     if (boostCaptures && boostCaptures.length > 0)
     {
@@ -2934,19 +2955,19 @@ class Window_PassiveDetail
       {
         const elementId = Number(rawId);
         const pct = Number(rawPct);
-        const name = $dataSystem.elements[elementId] ?? `Element #${elementId}`;
         const sign = pct >= 0 ? '+' : '';
-        lines.push({ label: `${name} Dmg Out`, value: `${sign}${pct}%` });
+        lines.push({ icon: IconManager.element(elementId), label: 'Boost', value: `${sign}${pct}%` });
       });
     }
 
+    // absorbed elements: one row each — icon carries the identity, no value needed.
     const absorbIds = RPGManager.getNumbersFromNoteByRegex(state, J.ELEM.RegExp.AbsorbElementIds);
     if (absorbIds && absorbIds.length > 0)
     {
-      const names = absorbIds
-        .map(id => $dataSystem.elements[id] ?? `Element #${id}`)
-        .join(', ');
-      lines.push({ label: 'Absorbs', value: names });
+      absorbIds.forEach(id =>
+      {
+        lines.push({ icon: IconManager.element(id), label: 'Absorbed', value: '' });
+      });
     }
 
     return lines;
