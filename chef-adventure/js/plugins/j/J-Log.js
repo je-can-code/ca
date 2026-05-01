@@ -2298,9 +2298,6 @@ class Window_DiaLog
 
     const { x: rectX, y: rectY, width: rectWidth } = this.itemLineRect(index);
 
-    // temporary: visualize the full row boundary for layout tuning.
-    this.contents.fillRect(rectX, rectY, rectWidth, Window_DiaLog.rowHeight, 'rgba(255,0,0,0.2)');
-
     // gather the command name and any additional dialog lines.
     const commandName = this.commandName(index);
     const extraLines  = this.commandLines(index);
@@ -2311,13 +2308,16 @@ class Window_DiaLog
     // reduce the font a couple notches so both lines sit comfortably in the row.
     const fontPrefix = `\\FS[18]`;
 
-    // distribute lines evenly within the row height, starting just below the row's top edge.
-    const lineStep = Math.floor(Window_DiaLog.rowHeight / (allLines.length + 1));
+    // center the text block vertically within the row.
+    // each line is approximately 22px tall at FS[18]; space them by that amount
+    // and offset the block so it lands in the middle of the 64px row.
+    const lineHeight  = 22;
+    const blockHeight = allLines.length * lineHeight;
+    const startY      = rectY + Math.floor((Window_DiaLog.rowHeight - blockHeight) / 2);
 
     allLines.forEach((line, i) =>
     {
-      const lineY = rectY + ((i + 1) * lineStep) - Math.floor(lineStep / 2);
-      this.drawTextEx(`${fontPrefix}${line}`, rectX + 4, lineY, rectWidth);
+      this.drawTextEx(`${fontPrefix}${line}`, rectX + 4, startY + (i * lineHeight), rectWidth);
     });
   }
 
