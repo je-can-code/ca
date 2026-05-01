@@ -9661,8 +9661,8 @@ Game_BattlerBase.isRegenLongParamId = function(longParamId)
  * code and dataId.  Each trait value is treated as `1.0 + delta`; this method isolates
  * the delta portion and sums them additively.
  *
- * Intended for use with multiplicative-baseline trait families (sparams) where the default
- * {@link Game_BattlerBase#traitsPi} produces unintuitive compound values when stacking.
+ * Intended for use with multiplicative-baseline trait families (sparams, element rates) where
+ * the default {@link Game_BattlerBase#traitsPi} produces unintuitive compound values when stacking.
  *
  * @param {number} code The trait code (e.g. {@link Game_BattlerBase.TRAIT_SPARAM}).
  * @param {number} id The dataId that further identifies the specific trait.
@@ -9694,6 +9694,30 @@ Game_BattlerBase.prototype.sparam = function(sparamId)
   // additive delta stacking: sum deltas above the 1.0 baseline, then restore the baseline.
   // replaces the default traitsPi which compounded 1.5×1.5 into 2.25 instead of 2.0.
   return 1.0 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_SPARAM, sparamId);
+};
+
+/**
+ * Overrides {@link Game_BattlerBase#elementRate}.<br>
+ * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
+ *
+ * RMMZ stores element rate trait values as multipliers (1.0 = neutral, 1.2 = +20% damage taken).
+ * The default engine multiplies them together, so two +20% traits compound to ×1.44 instead of
+ * the intuitive ×1.4. This override subtracts the 1.0 baseline from each trait value, sums the
+ * deltas, then restores the 1.0 baseline — giving linear, predictable stacking.
+ *
+ * The result is floored at 0 to prevent negative element rates from inverting damage direction.
+ * Absorption is handled separately by J.ELEM and is not affected by this override.
+ *
+ * @param {number} elementId The element ID to compute the rate for.
+ * @returns {number} The additively aggregated element rate, minimum 0.
+ */
+J.BASE.Aliased.Game_BattlerBase.set('elementRate', Game_BattlerBase.prototype.elementRate);
+Game_BattlerBase.prototype.elementRate = function(elementId)
+{
+  // additive delta stacking: sum deltas above the 1.0 baseline, then restore the baseline.
+  // floor at 0 — traits alone cannot invert damage direction; absorption lives in J.ELEM.
+  const rate = 1.0 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_ELEMENT_RATE, elementId);
+  return Math.max(0, rate);
 };
 
 /**
