@@ -9721,6 +9721,52 @@ Game_BattlerBase.prototype.elementRate = function(elementId)
 };
 
 /**
+ * Overrides {@link Game_BattlerBase#paramRate}.<br>
+ * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
+ *
+ * RMMZ stores param rate trait values as multipliers (1.0 = baseline, 1.5 = +50%).
+ * The default engine multiplies them together, so two +50% ATK traits compound to ×2.25 instead
+ * of the intuitive ×2.0. This override subtracts the 1.0 baseline from each trait value, sums
+ * the deltas, then restores the 1.0 baseline — giving linear, predictable stacking.
+ *
+ * The result is floored at 0; the engine already enforces a param floor via paramMin(),
+ * but keeping the rate non-negative avoids unexpected sign inversions from heavy reductions.
+ *
+ * @param {number} paramId The param index (0–7).
+ * @returns {number} The additively aggregated param rate, minimum 0.
+ */
+J.BASE.Aliased.Game_BattlerBase.set('paramRate', Game_BattlerBase.prototype.paramRate);
+Game_BattlerBase.prototype.paramRate = function(paramId)
+{
+  // additive delta stacking: sum deltas above the 1.0 baseline, then restore the baseline.
+  const rate = 1.0 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_PARAM, paramId);
+  return Math.max(0, rate);
+};
+
+/**
+ * Overrides {@link Game_BattlerBase#stateRate}.<br>
+ * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
+ *
+ * RMMZ stores state rate trait values as multipliers (1.0 = neutral, 0.5 = 50% less likely).
+ * The default engine multiplies them together, so two 50%-resist traits compound to ×0.25 instead
+ * of the intuitive ×0.0 (immunity). This override subtracts the 1.0 baseline from each trait
+ * value, sums the deltas, then restores the baseline — giving linear, predictable stacking.
+ *
+ * The result is floored at 0 so stacked resistances can reach full immunity without going negative.
+ *
+ * @param {number} stateId The state ID to compute the rate for.
+ * @returns {number} The additively aggregated state rate, minimum 0.
+ */
+J.BASE.Aliased.Game_BattlerBase.set('stateRate', Game_BattlerBase.prototype.stateRate);
+Game_BattlerBase.prototype.stateRate = function(stateId)
+{
+  // additive delta stacking: sum deltas above the 1.0 baseline, then restore the baseline.
+  // floor at 0 so full immunity is reachable through trait stacking without going negative.
+  const rate = 1.0 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_STATE_RATE, stateId);
+  return Math.max(0, rate);
+};
+
+/**
  * Gets the maximum tp/tech for this battler.
  */
 Object.defineProperty(Game_BattlerBase.prototype, "mtp", {
