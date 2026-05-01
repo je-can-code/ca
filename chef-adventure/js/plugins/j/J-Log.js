@@ -2235,6 +2235,8 @@ class Window_DiaLog
    */
   static rowHeight = 64;
 
+  static fontAdjustment = 4;
+
   /**
    * Constructor.
    * @param {Rectangle} rect The rectangle that represents this window.
@@ -2280,6 +2282,30 @@ class Window_DiaLog
   itemHeight()
   {
     return Window_DiaLog.rowHeight;
+  }
+
+  /**
+   * Overrides {@link Window_Command#multilineLineHeight}.<br>
+   * Increases line spacing slightly to give multi-line entries more breathing room.
+   * @returns {number}
+   * @override
+   */
+  multilineLineHeight()
+  {
+    return super.multilineLineHeight() + Math.round(Window_DiaLog.fontAdjustment * 1.5);
+  }
+
+  /**
+   * Overrides {@link Window_Base#resetFontSize}.<br>
+   * Reduces the font size slightly so multi-line entries fit comfortably
+   * within each 64px row without crowding.
+   * @override
+   */
+  resetFontSize()
+  {
+    // start from the system default then step down a couple notches.
+    super.resetFontSize();
+    this.contents.fontSize -= Window_DiaLog.fontAdjustment;
   }
 
   //endregion overwrites
