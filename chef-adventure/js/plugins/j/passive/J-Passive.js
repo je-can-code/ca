@@ -2614,10 +2614,10 @@ class Window_PassiveDetail
       this.drawDetailRow(this.paramIconForTrait(trait), trait.textName(), trait.textValue());
     });
 
-    // J-Natural formula rows — value is already evaluated or formatted by collectNaturalParamLines.
-    naturalLines.forEach(({ label, value }) =>
+    // J-Natural formula rows — icon and growth suffix supplied by collectNaturalParamLines.
+    naturalLines.forEach(({ icon, label, value }) =>
     {
-      this.drawDetailRow(0, label, value);
+      this.drawDetailRow(icon, label, value);
     });
   }
 
@@ -2643,11 +2643,12 @@ class Window_PassiveDetail
 
   /**
    * Collects J-Natural parameter formula lines for the Parameters section.
-   * Formulas are evaluated against the current actor when available; falls back
-   * to the bracketed formula string when evaluation is not possible.
+   * Each entry carries an icon from IconManager, an evaluated numeric value,
+   * and a "/lv" suffix on growth-type rows to communicate that the gain
+   * applies per level rather than immediately.
    * Returns an empty array when J-Natural is not loaded.
    * @param {RPG_State} state The state to check.
-   * @returns {Array<{label: string, value: string}>}
+   * @returns {Array<{icon: number, label: string, value: string}>}
    */
   collectNaturalParamLines(state)
   {
@@ -2655,114 +2656,123 @@ class Window_PassiveDetail
 
     const lines = [];
 
+    // each tuple: [label, regexp, iconIndex, isGrowth]
+    // iconIndex comes from IconManager so the stat is immediately recognizable.
+    // isGrowth=true means the formula contributes additional gain per level,
+    // not an immediate flat addition; we suffix the value with "/lv" to reflect that.
+    const p = IconManager.param;
+    const x = IconManager.xparam;
+    const s = IconManager.sparam;
     const checks = [
-      // bparams — buffs.
-      ['Life Buff+',       J.NATURAL.RegExp.MaxLifeBuffPlus],
-      ['Life Buff%',       J.NATURAL.RegExp.MaxLifeBuffRate],
-      ['Magi Buff+',       J.NATURAL.RegExp.MaxMagiBuffPlus],
-      ['Magi Buff%',       J.NATURAL.RegExp.MaxMagiBuffRate],
-      ['Power Buff+',      J.NATURAL.RegExp.PowerBuffPlus],
-      ['Power Buff%',      J.NATURAL.RegExp.PowerBuffRate],
-      ['Defense Buff+',    J.NATURAL.RegExp.DefenseBuffPlus],
-      ['Defense Buff%',    J.NATURAL.RegExp.DefenseBuffRate],
-      ['Force Buff+',      J.NATURAL.RegExp.ForceBuffPlus],
-      ['Force Buff%',      J.NATURAL.RegExp.ForceBuffRate],
-      ['Resist Buff+',     J.NATURAL.RegExp.ResistBuffPlus],
-      ['Resist Buff%',     J.NATURAL.RegExp.ResistBuffRate],
-      ['Speed Buff+',      J.NATURAL.RegExp.SpeedBuffPlus],
-      ['Speed Buff%',      J.NATURAL.RegExp.SpeedBuffRate],
-      ['Luck Buff+',       J.NATURAL.RegExp.LuckBuffPlus],
-      ['Luck Buff%',       J.NATURAL.RegExp.LuckBuffRate],
-      // bparams — growths.
-      ['Life Growth+',     J.NATURAL.RegExp.MaxLifeGrowthPlus],
-      ['Life Growth%',     J.NATURAL.RegExp.MaxLifeGrowthRate],
-      ['Magi Growth+',     J.NATURAL.RegExp.MaxMagiGrowthPlus],
-      ['Magi Growth%',     J.NATURAL.RegExp.MaxMagiGrowthRate],
-      ['Power Growth+',    J.NATURAL.RegExp.PowerGrowthPlus],
-      ['Power Growth%',    J.NATURAL.RegExp.PowerGrowthRate],
-      ['Defense Growth+',  J.NATURAL.RegExp.DefenseGrowthPlus],
-      ['Defense Growth%',  J.NATURAL.RegExp.DefenseGrowthRate],
-      ['Force Growth+',    J.NATURAL.RegExp.ForceGrowthPlus],
-      ['Force Growth%',    J.NATURAL.RegExp.ForceGrowthRate],
-      ['Resist Growth+',   J.NATURAL.RegExp.ResistGrowthPlus],
-      ['Resist Growth%',   J.NATURAL.RegExp.ResistGrowthRate],
-      ['Speed Growth+',    J.NATURAL.RegExp.SpeedGrowthPlus],
-      ['Speed Growth%',    J.NATURAL.RegExp.SpeedGrowthRate],
-      ['Luck Growth+',     J.NATURAL.RegExp.LuckGrowthPlus],
-      ['Luck Growth%',     J.NATURAL.RegExp.LuckGrowthRate],
+      // bparams — buffs (immediate flat/rate boost to the base stat).
+      ['Life Buff+',       J.NATURAL.RegExp.MaxLifeBuffPlus,        p.call(IconManager, 0), false],
+      ['Life Buff%',       J.NATURAL.RegExp.MaxLifeBuffRate,        p.call(IconManager, 0), false],
+      ['Magi Buff+',       J.NATURAL.RegExp.MaxMagiBuffPlus,        p.call(IconManager, 1), false],
+      ['Magi Buff%',       J.NATURAL.RegExp.MaxMagiBuffRate,        p.call(IconManager, 1), false],
+      ['Power Buff+',      J.NATURAL.RegExp.PowerBuffPlus,          p.call(IconManager, 2), false],
+      ['Power Buff%',      J.NATURAL.RegExp.PowerBuffRate,          p.call(IconManager, 2), false],
+      ['Defense Buff+',    J.NATURAL.RegExp.DefenseBuffPlus,        p.call(IconManager, 3), false],
+      ['Defense Buff%',    J.NATURAL.RegExp.DefenseBuffRate,        p.call(IconManager, 3), false],
+      ['Force Buff+',      J.NATURAL.RegExp.ForceBuffPlus,          p.call(IconManager, 4), false],
+      ['Force Buff%',      J.NATURAL.RegExp.ForceBuffRate,          p.call(IconManager, 4), false],
+      ['Resist Buff+',     J.NATURAL.RegExp.ResistBuffPlus,         p.call(IconManager, 5), false],
+      ['Resist Buff%',     J.NATURAL.RegExp.ResistBuffRate,         p.call(IconManager, 5), false],
+      ['Speed Buff+',      J.NATURAL.RegExp.SpeedBuffPlus,          p.call(IconManager, 6), false],
+      ['Speed Buff%',      J.NATURAL.RegExp.SpeedBuffRate,          p.call(IconManager, 6), false],
+      ['Luck Buff+',       J.NATURAL.RegExp.LuckBuffPlus,           p.call(IconManager, 7), false],
+      ['Luck Buff%',       J.NATURAL.RegExp.LuckBuffRate,           p.call(IconManager, 7), false],
+      // bparams — growths (additional gain applied each level-up).
+      ['Life Growth+',     J.NATURAL.RegExp.MaxLifeGrowthPlus,      p.call(IconManager, 0), true],
+      ['Life Growth%',     J.NATURAL.RegExp.MaxLifeGrowthRate,      p.call(IconManager, 0), true],
+      ['Magi Growth+',     J.NATURAL.RegExp.MaxMagiGrowthPlus,      p.call(IconManager, 1), true],
+      ['Magi Growth%',     J.NATURAL.RegExp.MaxMagiGrowthRate,      p.call(IconManager, 1), true],
+      ['Power Growth+',    J.NATURAL.RegExp.PowerGrowthPlus,        p.call(IconManager, 2), true],
+      ['Power Growth%',    J.NATURAL.RegExp.PowerGrowthRate,        p.call(IconManager, 2), true],
+      ['Defense Growth+',  J.NATURAL.RegExp.DefenseGrowthPlus,      p.call(IconManager, 3), true],
+      ['Defense Growth%',  J.NATURAL.RegExp.DefenseGrowthRate,      p.call(IconManager, 3), true],
+      ['Force Growth+',    J.NATURAL.RegExp.ForceGrowthPlus,        p.call(IconManager, 4), true],
+      ['Force Growth%',    J.NATURAL.RegExp.ForceGrowthRate,        p.call(IconManager, 4), true],
+      ['Resist Growth+',   J.NATURAL.RegExp.ResistGrowthPlus,       p.call(IconManager, 5), true],
+      ['Resist Growth%',   J.NATURAL.RegExp.ResistGrowthRate,       p.call(IconManager, 5), true],
+      ['Speed Growth+',    J.NATURAL.RegExp.SpeedGrowthPlus,        p.call(IconManager, 6), true],
+      ['Speed Growth%',    J.NATURAL.RegExp.SpeedGrowthRate,        p.call(IconManager, 6), true],
+      ['Luck Growth+',     J.NATURAL.RegExp.LuckGrowthPlus,         p.call(IconManager, 7), true],
+      ['Luck Growth%',     J.NATURAL.RegExp.LuckGrowthRate,         p.call(IconManager, 7), true],
       // xparams — buffs.
-      ['Hit Buff+',        J.NATURAL.RegExp.HitBuffPlus],
-      ['Hit Buff%',        J.NATURAL.RegExp.HitBuffRate],
-      ['Evade Buff+',      J.NATURAL.RegExp.EvadeBuffPlus],
-      ['Evade Buff%',      J.NATURAL.RegExp.EvadeBuffRate],
-      ['Crit Buff+',       J.NATURAL.RegExp.CritChanceBuffPlus],
-      ['Crit Buff%',       J.NATURAL.RegExp.CritChanceBuffRate],
-      ['Crit Evade Buff+', J.NATURAL.RegExp.CritEvadeBuffPlus],
-      ['Crit Evade Buff%', J.NATURAL.RegExp.CritEvadeBuffRate],
-      ['HP Regen Buff+',   J.NATURAL.RegExp.LifeRegenBuffPlus],
-      ['HP Regen Buff%',   J.NATURAL.RegExp.LifeRegenBuffRate],
-      ['MP Regen Buff+',   J.NATURAL.RegExp.MagiRegenBuffPlus],
-      ['MP Regen Buff%',   J.NATURAL.RegExp.MagiRegenBuffRate],
-      ['TP Regen Buff+',   J.NATURAL.RegExp.TechRegenBuffPlus],
-      ['TP Regen Buff%',   J.NATURAL.RegExp.TechRegenBuffRate],
+      ['Hit Buff+',        J.NATURAL.RegExp.HitBuffPlus,            x.call(IconManager, 0), false],
+      ['Hit Buff%',        J.NATURAL.RegExp.HitBuffRate,            x.call(IconManager, 0), false],
+      ['Evade Buff+',      J.NATURAL.RegExp.EvadeBuffPlus,          x.call(IconManager, 1), false],
+      ['Evade Buff%',      J.NATURAL.RegExp.EvadeBuffRate,          x.call(IconManager, 1), false],
+      ['Crit Buff+',       J.NATURAL.RegExp.CritChanceBuffPlus,     x.call(IconManager, 2), false],
+      ['Crit Buff%',       J.NATURAL.RegExp.CritChanceBuffRate,     x.call(IconManager, 2), false],
+      ['Crit Evade Buff+', J.NATURAL.RegExp.CritEvadeBuffPlus,      x.call(IconManager, 3), false],
+      ['Crit Evade Buff%', J.NATURAL.RegExp.CritEvadeBuffRate,      x.call(IconManager, 3), false],
+      ['HP Regen Buff+',   J.NATURAL.RegExp.LifeRegenBuffPlus,      x.call(IconManager, 7), false],
+      ['HP Regen Buff%',   J.NATURAL.RegExp.LifeRegenBuffRate,      x.call(IconManager, 7), false],
+      ['MP Regen Buff+',   J.NATURAL.RegExp.MagiRegenBuffPlus,      x.call(IconManager, 8), false],
+      ['MP Regen Buff%',   J.NATURAL.RegExp.MagiRegenBuffRate,      x.call(IconManager, 8), false],
+      ['TP Regen Buff+',   J.NATURAL.RegExp.TechRegenBuffPlus,      x.call(IconManager, 9), false],
+      ['TP Regen Buff%',   J.NATURAL.RegExp.TechRegenBuffRate,      x.call(IconManager, 9), false],
       // xparams — growths.
-      ['Hit Growth+',      J.NATURAL.RegExp.HitGrowthPlus],
-      ['Hit Growth%',      J.NATURAL.RegExp.HitGrowthRate],
-      ['Evade Growth+',    J.NATURAL.RegExp.EvadeGrowthPlus],
-      ['Evade Growth%',    J.NATURAL.RegExp.EvadeGrowthRate],
-      ['Crit Growth+',     J.NATURAL.RegExp.CritChanceGrowthPlus],
-      ['Crit Growth%',     J.NATURAL.RegExp.CritChanceGrowthRate],
-      ['HP Regen Growth+', J.NATURAL.RegExp.LifeRegenGrowthPlus],
-      ['HP Regen Growth%', J.NATURAL.RegExp.LifeRegenGrowthRate],
-      ['MP Regen Growth+', J.NATURAL.RegExp.MagiRegenGrowthPlus],
-      ['MP Regen Growth%', J.NATURAL.RegExp.MagiRegenGrowthRate],
-      ['TP Regen Growth+', J.NATURAL.RegExp.TechRegenGrowthPlus],
-      ['TP Regen Growth%', J.NATURAL.RegExp.TechRegenGrowthRate],
+      ['Hit Growth+',      J.NATURAL.RegExp.HitGrowthPlus,          x.call(IconManager, 0), true],
+      ['Hit Growth%',      J.NATURAL.RegExp.HitGrowthRate,          x.call(IconManager, 0), true],
+      ['Evade Growth+',    J.NATURAL.RegExp.EvadeGrowthPlus,        x.call(IconManager, 1), true],
+      ['Evade Growth%',    J.NATURAL.RegExp.EvadeGrowthRate,        x.call(IconManager, 1), true],
+      ['Crit Growth+',     J.NATURAL.RegExp.CritChanceGrowthPlus,   x.call(IconManager, 2), true],
+      ['Crit Growth%',     J.NATURAL.RegExp.CritChanceGrowthRate,   x.call(IconManager, 2), true],
+      ['HP Regen Growth+', J.NATURAL.RegExp.LifeRegenGrowthPlus,    x.call(IconManager, 7), true],
+      ['HP Regen Growth%', J.NATURAL.RegExp.LifeRegenGrowthRate,    x.call(IconManager, 7), true],
+      ['MP Regen Growth+', J.NATURAL.RegExp.MagiRegenGrowthPlus,    x.call(IconManager, 8), true],
+      ['MP Regen Growth%', J.NATURAL.RegExp.MagiRegenGrowthRate,    x.call(IconManager, 8), true],
+      ['TP Regen Growth+', J.NATURAL.RegExp.TechRegenGrowthPlus,    x.call(IconManager, 9), true],
+      ['TP Regen Growth%', J.NATURAL.RegExp.TechRegenGrowthRate,    x.call(IconManager, 9), true],
       // sparams — buffs.
-      ['Aggro Buff+',      J.NATURAL.RegExp.AggroBuffPlus],
-      ['Aggro Buff%',      J.NATURAL.RegExp.AggroBuffRate],
-      ['Parry Buff+',      J.NATURAL.RegExp.ParryBuffPlus],
-      ['Parry Buff%',      J.NATURAL.RegExp.ParryBuffRate],
-      ['Healing Buff+',    J.NATURAL.RegExp.HealingBuffPlus],
-      ['Healing Buff%',    J.NATURAL.RegExp.HealingBuffRate],
-      ['MP Cost Buff+',    J.NATURAL.RegExp.MagiCostRateBuffPlus],
-      ['MP Cost Buff%',    J.NATURAL.RegExp.MagiCostRateBuffRate],
-      ['TP Cost Buff+',    J.NATURAL.RegExp.TechCostRateBuffPlus],
-      ['TP Cost Buff%',    J.NATURAL.RegExp.TechCostRateBuffRate],
-      ['Phys Dmg Buff+',   J.NATURAL.RegExp.PhysDmgRateBuffPlus],
-      ['Phys Dmg Buff%',   J.NATURAL.RegExp.PhysDmgRateBuffRate],
-      ['Magi Dmg Buff+',   J.NATURAL.RegExp.MagiDmgRateBuffPlus],
-      ['Magi Dmg Buff%',   J.NATURAL.RegExp.MagiDmgRateBuffRate],
+      ['Aggro Buff+',      J.NATURAL.RegExp.AggroBuffPlus,          s.call(IconManager, 0), false],
+      ['Aggro Buff%',      J.NATURAL.RegExp.AggroBuffRate,          s.call(IconManager, 0), false],
+      ['Parry Buff+',      J.NATURAL.RegExp.ParryBuffPlus,          s.call(IconManager, 1), false],
+      ['Parry Buff%',      J.NATURAL.RegExp.ParryBuffRate,          s.call(IconManager, 1), false],
+      ['Healing Buff+',    J.NATURAL.RegExp.HealingBuffPlus,        s.call(IconManager, 2), false],
+      ['Healing Buff%',    J.NATURAL.RegExp.HealingBuffRate,        s.call(IconManager, 2), false],
+      ['MP Cost Buff+',    J.NATURAL.RegExp.MagiCostRateBuffPlus,   s.call(IconManager, 4), false],
+      ['MP Cost Buff%',    J.NATURAL.RegExp.MagiCostRateBuffRate,   s.call(IconManager, 4), false],
+      ['TP Cost Buff+',    J.NATURAL.RegExp.TechCostRateBuffPlus,   s.call(IconManager, 5), false],
+      ['TP Cost Buff%',    J.NATURAL.RegExp.TechCostRateBuffRate,   s.call(IconManager, 5), false],
+      ['Phys Dmg Buff+',   J.NATURAL.RegExp.PhysDmgRateBuffPlus,   s.call(IconManager, 6), false],
+      ['Phys Dmg Buff%',   J.NATURAL.RegExp.PhysDmgRateBuffRate,   s.call(IconManager, 6), false],
+      ['Magi Dmg Buff+',   J.NATURAL.RegExp.MagiDmgRateBuffPlus,   s.call(IconManager, 7), false],
+      ['Magi Dmg Buff%',   J.NATURAL.RegExp.MagiDmgRateBuffRate,   s.call(IconManager, 7), false],
       // sparams — growths.
-      ['Aggro Growth+',    J.NATURAL.RegExp.AggroGrowthPlus],
-      ['Aggro Growth%',    J.NATURAL.RegExp.AggroGrowthRate],
-      ['Parry Growth+',    J.NATURAL.RegExp.ParryGrowthPlus],
-      ['Parry Growth%',    J.NATURAL.RegExp.ParryGrowthRate],
-      ['Healing Growth+',  J.NATURAL.RegExp.HealingGrowthPlus],
-      ['Healing Growth%',  J.NATURAL.RegExp.HealingGrowthRate],
-      ['MP Cost Growth+',  J.NATURAL.RegExp.MagiCostRateGrowthPlus],
-      ['MP Cost Growth%',  J.NATURAL.RegExp.MagiCostRateGrowthRate],
-      ['TP Cost Growth+',  J.NATURAL.RegExp.TechCostRateGrowthPlus],
-      ['TP Cost Growth%',  J.NATURAL.RegExp.TechCostRateGrowthRate],
-      ['Phys Dmg Growth+', J.NATURAL.RegExp.PhysDmgRateGrowthPlus],
-      ['Phys Dmg Growth%', J.NATURAL.RegExp.PhysDmgRateGrowthRate],
-      ['Magi Dmg Growth+', J.NATURAL.RegExp.MagiDmgRateGrowthPlus],
-      ['Magi Dmg Growth%', J.NATURAL.RegExp.MagiDmgRateGrowthRate],
+      ['Aggro Growth+',    J.NATURAL.RegExp.AggroGrowthPlus,        s.call(IconManager, 0), true],
+      ['Aggro Growth%',    J.NATURAL.RegExp.AggroGrowthRate,        s.call(IconManager, 0), true],
+      ['Parry Growth+',    J.NATURAL.RegExp.ParryGrowthPlus,        s.call(IconManager, 1), true],
+      ['Parry Growth%',    J.NATURAL.RegExp.ParryGrowthRate,        s.call(IconManager, 1), true],
+      ['Healing Growth+',  J.NATURAL.RegExp.HealingGrowthPlus,      s.call(IconManager, 2), true],
+      ['Healing Growth%',  J.NATURAL.RegExp.HealingGrowthRate,      s.call(IconManager, 2), true],
+      ['MP Cost Growth+',  J.NATURAL.RegExp.MagiCostRateGrowthPlus, s.call(IconManager, 4), true],
+      ['MP Cost Growth%',  J.NATURAL.RegExp.MagiCostRateGrowthRate, s.call(IconManager, 4), true],
+      ['TP Cost Growth+',  J.NATURAL.RegExp.TechCostRateGrowthPlus, s.call(IconManager, 5), true],
+      ['TP Cost Growth%',  J.NATURAL.RegExp.TechCostRateGrowthRate, s.call(IconManager, 5), true],
+      ['Phys Dmg Growth+', J.NATURAL.RegExp.PhysDmgRateGrowthPlus,  s.call(IconManager, 6), true],
+      ['Phys Dmg Growth%', J.NATURAL.RegExp.PhysDmgRateGrowthRate,  s.call(IconManager, 6), true],
+      ['Magi Dmg Growth+', J.NATURAL.RegExp.MagiDmgRateGrowthPlus,  s.call(IconManager, 7), true],
+      ['Magi Dmg Growth%', J.NATURAL.RegExp.MagiDmgRateGrowthRate,  s.call(IconManager, 7), true],
       // max tech — TP cap.
-      ['Max Tech Base',    J.NATURAL.RegExp.BaseMaxTech],
-      ['Max Tech Buff+',   J.NATURAL.RegExp.MaxTechBuffPlus],
-      ['Max Tech Buff%',   J.NATURAL.RegExp.MaxTechBuffRate],
-      ['Max Tech Growth+', J.NATURAL.RegExp.MaxTechGrowthPlus],
-      ['Max Tech Growth%', J.NATURAL.RegExp.MaxTechGrowthRate],
+      ['Max Tech Base',    J.NATURAL.RegExp.BaseMaxTech,            IconManager.maxTp(),    false],
+      ['Max Tech Buff+',   J.NATURAL.RegExp.MaxTechBuffPlus,        IconManager.maxTp(),    false],
+      ['Max Tech Buff%',   J.NATURAL.RegExp.MaxTechBuffRate,        IconManager.maxTp(),    false],
+      ['Max Tech Growth+', J.NATURAL.RegExp.MaxTechGrowthPlus,      IconManager.maxTp(),    true],
+      ['Max Tech Growth%', J.NATURAL.RegExp.MaxTechGrowthRate,      IconManager.maxTp(),    true],
     ];
 
-    checks.forEach(([label, regexp]) =>
+    checks.forEach(([label, regexp, icon, isGrowth]) =>
     {
       const formula = RPGManager.getStringFromNoteByRegex(state, regexp);
       if (formula)
       {
-        const value = this.evaluateFormula(formula, this._actor);
-        lines.push({ label, value });
+        const evaluated = this.evaluateFormula(formula, this._actor);
+        // growth values communicate "per level" intent rather than an immediate flat bonus.
+        const value = isGrowth ? `${evaluated} /lv` : `${evaluated}`;
+        lines.push({ icon, label, value });
       }
     });
 
