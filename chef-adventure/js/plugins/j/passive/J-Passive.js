@@ -2657,6 +2657,12 @@ class Window_PassiveDetail
     {
       this.drawDetailRow(hcrLine.icon, hcrLine.label, hcrLine.value, true);
     }
+
+    // J-Crit rows: crit reduction and crit multiplier are combat math, not rewards.
+    this.collectCritLines(state).forEach(({ icon, label, value }) =>
+    {
+      this.drawDetailRow(icon, label, value);
+    });
   }
 
   /**
@@ -2681,6 +2687,45 @@ class Window_PassiveDetail
       label: 'HP Cost Rate',
       value: `-${Math.abs(evaluated)}%`,
     };
+  }
+
+  /**
+   * Collects J-CriticalFactors display rows for the given state.
+   * Crit Reduction reduces incoming critical damage (higher = more protection = green).
+   * Crit Multiplier increases outgoing critical damage (positive = better = green).
+   * Returns an empty array when J-CriticalFactors is not loaded.
+   * @param {RPG_State} state The state to check.
+   * @returns {Array<{icon: number, label: string, value: string}>}
+   */
+  collectCritLines(state)
+  {
+    if (!J.CRIT) return [];
+
+    const rows = [];
+
+    // crit reduction — protects the bearer from incoming critical hits; more is better.
+    const critReduce = RPGManager.getNumberFromNoteByRegex(state, J.CRIT.RegExp.CritDamageReduction);
+    if (critReduce)
+    {
+      rows.push({
+        icon:  IconManager.xparam(3),
+        label: 'Crit Reduction',
+        value: `+${critReduce}`,
+      });
+    }
+
+    // crit multiplier — amplifies the bearer's outgoing critical damage.
+    const critMult = RPGManager.getNumberFromNoteByRegex(state, J.CRIT.RegExp.CritDamageMultiplier);
+    if (critMult)
+    {
+      rows.push({
+        icon:  IconManager.xparam(2),
+        label: 'Crit Multiplier',
+        value: `${critMult > 0 ? '+' : ''}${critMult}`,
+      });
+    }
+
+    return rows;
   }
 
   /**
@@ -3068,18 +3113,6 @@ class Window_PassiveDetail
       if (goldMult)
       {
         rows.push({ icon: 0, label: 'Gold', value: `${goldMult > 0 ? '+' : ''}${goldMult}%` });
-      }
-    }
-
-    if (J.CRIT)
-    {
-      const critReduce = RPGManager.getNumberFromNoteByRegex(state, J.CRIT.RegExp.CritDamageReduction);
-      if (critReduce) rows.push({ icon: 0, label: 'Crit Reduction', value: `${critReduce}` });
-
-      const critMult = RPGManager.getNumberFromNoteByRegex(state, J.CRIT.RegExp.CritDamageMultiplier);
-      if (critMult)
-      {
-        rows.push({ icon: 0, label: 'Crit Multiplier', value: `${critMult > 0 ? '+' : ''}${critMult}` });
       }
     }
 
