@@ -2544,11 +2544,11 @@ class Window_PassiveDetail
   isInvertedTrait(trait)
   {
     // only sparam traits (code 23) can be "lower is better" in this ecosystem.
-    if (trait._code !== 23) return false;
+    if (trait.code !== 23) return false;
 
     // these sparams represent rates where lower = less cost or less damage taken = good.
     const invertedSparamIds = [4, 5, 6, 7, 8];
-    return invertedSparamIds.includes(trait._dataId);
+    return invertedSparamIds.includes(trait.dataId);
   }
 
   /**
@@ -2876,8 +2876,10 @@ class Window_PassiveDetail
       if (formula)
       {
         const evaluated = this.evaluateFormula(formula, this._actor);
+        // prepend + for non-negative values so drawDetailRow applies green color coding.
+        const sign = Number(evaluated) >= 0 ? '+' : '';
         // growth values communicate "per level" intent rather than an immediate flat bonus.
-        const value = isGrowth ? `${evaluated} /lv` : `${evaluated}`;
+        const value = isGrowth ? `${sign}${evaluated} /lv` : `${sign}${evaluated}`;
         lines.push({ icon, label, value });
       }
     });
@@ -2918,11 +2920,11 @@ class Window_PassiveDetail
     });
 
     // attack element — element icon identifies which element is added to basic attacks.
+    // no value field: the icon is the full identifier; the label describes the effect.
     atkElemTraits.forEach(rawTrait =>
     {
       const trait = new RPG_Trait(rawTrait);
-      this.drawDetailRow(
-        IconManager.element(trait.dataId), 'Atk Element', TextManager.element(trait.dataId));
+      this.drawDetailRow(IconManager.element(trait.dataId), 'Extra Attack Element', '');
     });
 
     // J-ELEM boost and absorbed element rows — icon and label already resolved.
