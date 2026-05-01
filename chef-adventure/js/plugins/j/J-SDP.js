@@ -1812,6 +1812,7 @@ J.SDP.Aliased = {
   Game_Switches: new Map(),
   Game_System: new Map(),
 
+  Scene_Boot: new Map(),
   Scene_Map: new Map(),
   Scene_Menu: new Map(),
 
@@ -3368,6 +3369,20 @@ Game_Troop.prototype.sdpTotal = function()
   return sdpPoints;
 };
 //endregion Game_Troop
+
+//region Scene_Boot
+/**
+ * Extends {@link #onDatabaseLoaded}.<br/>
+ * No initialization required for J-SDP on database load at this time;
+ * the passive detail window draws J-SDP data directly from the state note.
+ */
+J.SDP.Aliased.Scene_Boot.set('onDatabaseLoaded', Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function()
+{
+  // perform original logic.
+  J.SDP.Aliased.Scene_Boot.get('onDatabaseLoaded').call(this);
+};
+//endregion Scene_Boot
 
 //region Scene_Map
 /**

@@ -25490,6 +25490,7 @@ class JABS_Engine
     const baselineD = baselineFloor + baselinePerLevel * Math.max(0, targetBattler.level - 1);
 
     // defender pressure D (scaled by ignoreParry on the skill).
+    // grd is 1.0-based; subtract 1 before scaling to extract the flat integer delta.
     const baseGrd = baselineD + hundredX(targetBattler.grd - 1);
     const bonusGrdFromAgi = tenPercent(targetBattler.agi);
     const bonusGrdFromLuk = tenPercent(targetBattler.luk);

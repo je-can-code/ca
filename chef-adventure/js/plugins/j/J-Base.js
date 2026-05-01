@@ -316,6 +316,7 @@ J.BASE.Aliased = {
   Bitmap: new Map(),
   DataManager: new Map(),
   JsonEx: new Map(),
+  Game_BattlerBase: new Map(),
   Game_Character: {},
   Game_Actor: new Map(),
   Game_Battler: new Map(),
@@ -1369,39 +1370,45 @@ class RPG_Trait
     {
       // first tab.
       case 11:
+        // positive = resistance (takes less damage), negative = weakness (takes more).
+        // use Math.abs to prevent double-signing when the calc result is already negative.
         const calculatedElementalRate = Math.round(100 - (this.value * 100));
-        return `${calculatedElementalRate > 0
-          ? "-"
-          : "+"}${calculatedElementalRate}%`;
+        return `${calculatedElementalRate > 0 ? "-" : "+"}${Math.abs(calculatedElementalRate)}%`;
       case 12:
+        // positive = more susceptible, negative = less susceptible.
         const calculatedDebuffRate = Math.round((this.value * 100) - 100);
-        return `${calculatedDebuffRate > 0
-          ? "+"
-          : "-"}${calculatedDebuffRate}%`;
+        return `${calculatedDebuffRate >= 0 ? "+" : "-"}${Math.abs(calculatedDebuffRate)}%`;
       case 13:
+        // positive = more resistant (state less likely to land), negative = more susceptible.
         const calculatedStateRate = Math.round(100 - (this.value * 100));
-        return `${calculatedStateRate > 0
-          ? "+"
-          : "-"}${calculatedStateRate}%`;
+        return `${calculatedStateRate > 0 ? "+" : "-"}${Math.abs(calculatedStateRate)}%`;
       case 14:
         return $dataStates[this.dataId].name;
 
       // second tab.
       case 21:
         const calculatedBParam = Math.round((this.value * 100) - 100);
-        return `${calculatedBParam >= 0
-          ? "+"
-          : ""}${calculatedBParam}%`;
+        return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
       case 22:
-        const calculatedXParam = Math.round((this.value * 100));
-        return `${calculatedXParam >= 0
-          ? "+"
-          : ""}${calculatedXParam}%`;
+      {
+        const calculatedXParam = Math.round(this.value * 100);
+
+        // accuracy (hit, dataId 0): xparam base is 0, so value*100 IS the flat integer JABS reads.
+        // same math as the standard xparam formula — only the percent sign is omitted.
+        if (this.dataId === 0) return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}`;
+
+        return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
+      }
       case 23:
+      {
         const calculatedSParam = Math.round((this.value * 100) - 100);
-        return `${calculatedSParam >= 0
-          ? "+"
-          : ""}${calculatedSParam}%`;
+
+        // parry (grd, dataId 1): sparam base is 1.0, so (value*100)-100 IS the flat integer JABS reads.
+        // same math as the standard sparam formula — only the percent sign is omitted.
+        if (this.dataId === 1) return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}`;
+
+        return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
+      }
 
       // third tab.
       case 31:
@@ -1409,13 +1416,9 @@ class RPG_Trait
       case 32:
         return `${(this.value * 100)}%`;
       case 33:
-        return `${this.value > 0
-          ? "+"
-          : "-"}${this.value}`;
+        return `${this.value >= 0 ? "+" : "-"}${Math.abs(this.value)}`;
       case 34:
-        return `${this.value > 0
-          ? "+"
-          : "-"}${this.value}`;
+        return `${this.value >= 0 ? "+" : "-"}${Math.abs(this.value)}`;
       case 35:
         return `${$dataSkills[this.value].name}`;
 
@@ -6246,20 +6249,24 @@ TextManager.rewardDescription = function(paramId)
   {
     case 0:
       return [
-        "The resource required to accumulate to rise in level.", "Levels give unseen advantages." ];
+        "The resource required to accumulate to rise in level.", "Levels give unseen advantages."
+      ];
     case 1:
       return [
-        "The primary currency of the universe.", "Most vendors happily take this in exchange for goods." ];
+        "The primary currency of the universe.", "Most vendors happily take this in exchange for goods."
+      ];
     case 2:
       return [
-        "The rate at which enemies will drop loot.", "Higher rates yield more frequent drops." ];
+        "The rate at which enemies will drop loot.", "Higher rates yield more frequent drops."
+      ];
     case 3:
       return [
-        "The frequency of which the party will be engage in battles.",
-        "Lower rates result in less random encounters." ];
+        "The frequency of which the party will be engage in battles.", "Lower rates result in less random encounters."
+      ];
     case 4:
       return [
-        "The rate of SDP accumulation from any source.", "Bigger rates yield fatter stacks of them sweet SDP points." ];
+        "The rate of SDP accumulation from any source.", "Bigger rates yield fatter stacks of them sweet SDP points."
+      ];
   }
 };
 
@@ -6349,40 +6356,48 @@ TextManager.bparamDescription = function(paramId)
     // MHP (Max Hit Points)
     case 0:
       return [
-        "The base resource that defines life and death.", "Enemies and allies alike obey the rule of '0hp = dead'." ];
+        "The base resource that defines life and death.", "Enemies and allies alike obey the rule of '0hp = dead'."
+      ];
     // MMP (Max Magic Points)
     case 1:
       return [
-        "The base resource that most magic-based spells consume.", "Without this, spells typically cannot be cast." ];
+        "The base resource that most magic-based spells consume.", "Without this, spells typically cannot be cast."
+      ];
     // ATK (ATtacK)
     case 2:
       return [
-        "The base stat that influences physical damage.",
-        "Higher amounts of this yield higher physical damage output." ];
+        "The base stat that influences physical damage.", "Higher amounts of this yield higher physical damage output."
+      ];
     // DEF (DEFense)
     case 3:
       return [
-        "The base stat that reduces physical damage.", "Higher amounts of this will reduce incoming physical damage." ];
+        "The base stat that reduces physical damage.", "Higher amounts of this will reduce incoming physical damage."
+      ];
     // MAT (Magic ATtack)
     case 4:
       return [
-        "The base stat that influences magical damage.", "Higher amounts of this yield higher magical damage output." ];
+        "The base stat that influences magical damage.", "Higher amounts of this yield higher magical damage output."
+      ];
     // MDF (Magic DeFense)
     case 5:
       return [
-        "The base stat that reduces magical damage.", "Higher amounts of this will reduce incoming magical damage." ];
+        "The base stat that reduces magical damage.", "Higher amounts of this will reduce incoming magical damage."
+      ];
     // AGI (AGIlity)
     case 6:
       return [
-        "The base stat that governs movement and agility.", "The effects of this are unknown at higher levels." ];
+        "The base stat that governs movement and agility.", "The effects of this are unknown at higher levels."
+      ];
     // LUK (LUcK)
     case 7:
       return [
-        "The base stat that governs fortune and luck.", "The effects of this are wide and varied." ];
+        "The base stat that governs fortune and luck.", "The effects of this are wide and varied."
+      ];
     case 30:
       return [
         "The base resource that many weapon-based skills utilize.",
-        "Without this, techniques typically cannot be executed." ];
+        "Without this, techniques typically cannot be executed."
+      ];
   }
 };
 
@@ -6398,7 +6413,8 @@ TextManager.xparamDescription = function(paramId)
     // HIT (HIT chance)
     case 0:
       return [
-        "The stat representing one's skill of accuracy.", "Being more accurate will result in being parried less." ];
+        "The stat representing one's skill of accuracy.", "Being more accurate will result in being parried less."
+      ];
 
     // EVA (physical hit EVasion)
     case 1:
@@ -6406,54 +6422,63 @@ TextManager.xparamDescription = function(paramId)
         // "The stat representing skill in physically evading attacks.",  // original function.
         // "Having higher evasion is often seen as a form of tanking.",   // original function.
         "The stat governing one's uncanny ability to parry precisely.",
-        "An optional stat, but having more will make parrying easier." ];
+        "An optional stat, but having more will make parrying easier."
+      ];
 
     // CRI (CRItical hit chance)
     case 2:
       return [
         "A numeric value to one's chance of landing a critical hit.",
-        "Critical hits will deal percent-increased damage." ];
+        "Critical hits will deal percent-increased damage."
+      ];
 
     // CEV (Critical hit Evasion)
     case 3:
       return [
         "A numeric value to one's chance of evading a critical hit.",
-        "Enemy critical hit chance is directly reduced by this amount." ];
+        "Enemy critical hit chance is directly reduced by this amount."
+      ];
 
     // MEV (Magic attack EVasion)
     case 4:
       return [
         "A numeric value to one's chance of evading a magical hit.",
-        "Enemy magical hit chance is directly reduced by this amount." ];
+        "Enemy magical hit chance is directly reduced by this amount."
+      ];
 
     // MRF (Magic attack ReFlection)
     case 5:
       return [
         // "The chance of reflecting a magical hit back to its caster.",  // original function
         "The chance of reflecting a skill back to its caster.",
-        "Aside from it being reflected back, it is as if you casted it." ];
+        "Aside from it being reflected back, it is as if you casted it."
+      ];
 
     // CNT (CouNTer chance)
     case 6:
       return [
         // "The chance of responding with a basic attack when hit.",  // original function
         "The chance of auto-executing counter skills when struck.",
-        "Being un-reducable, 100 makes countering inevitable." ];
+        "Being un-reducable, 100 makes countering inevitable."
+      ];
 
     // HRG (Hp ReGeneration)
     case 7:
       return [
-        "The amount of Life restored over 5 seconds.", "Recovery Rate amplifies this effect." ];
+        "The amount of Life restored over 5 seconds.", "Recovery Rate amplifies this effect."
+      ];
 
     // MRG (Mp ReGeneration)
     case 8:
       return [
-        "The amount of Magi rejuvenated over 5 seconds.", "Recovery Rate amplifies this effect." ];
+        "The amount of Magi rejuvenated over 5 seconds.", "Recovery Rate amplifies this effect."
+      ];
 
     // TRG (Tp ReGeneration)
     case 9:
       return [
-        "The amount of Tech recovered over 5 seconds.", "Recovery Rate amplifies this effect." ];
+        "The amount of Tech recovered over 5 seconds.", "Recovery Rate amplifies this effect."
+      ];
   }
 };
 
@@ -6469,7 +6494,8 @@ TextManager.sparamDescription = function(paramId)
     // TGR (TarGeting Rate)
     case 0:
       return [
-        "The percentage of aggro that will be applied.", "Reduce for stealthing; increase for taunting." ];
+        "The percentage of aggro that will be applied.", "Reduce for stealthing; increase for taunting."
+      ];
 
     // GRD (GuaRD rate)
     case 1:
@@ -6477,55 +6503,63 @@ TextManager.sparamDescription = function(paramId)
         // "Improves the damage reduction when guarding.",  // original function.
         // "This stat speaks for itself.",                  // original function.
         "A numeric value representing the frequency of parrying.",
-        "More of this will result in auto-parrying faced foes." ];
+        "More of this will result in auto-parrying faced foes."
+      ];
 
     // REC (RECovery boost rate)
     case 2:
       return [
         "The percentage effectiveness of healing applied to oneself.",
-        "Higher amounts of this will make healing need less effort." ];
+        "Higher amounts of this will make healing need less effort."
+      ];
 
     // PHA (PHArmacology rate)
     case 3:
       return [
         "The percentage effectiveness of items applied to oneself.",
-        "Higher amounts of this will make items more potent." ];
+        "Higher amounts of this will make items more potent."
+      ];
 
     // MCR (Magic Cost Rate)
     case 4:
       return [
         "The percentage bonuses being applied to Magi costs.",
-        "Enemy magical hit chance is directly reduced by this amount." ];
+        "Enemy magical hit chance is directly reduced by this amount."
+      ];
 
     // TCR (Tech ChaRge rate)
     case 5:
       return [
         "The percentage bonuses being applied to Tech generation.",
-        "Taking and dealing damage in combat will earn more Tech." ];
+        "Taking and dealing damage in combat will earn more Tech."
+      ];
 
     // PDR (Physical Damage Rate)
     case 6:
       return [
         "The percentage bonuses being applied to physical damage.",
-        "-100 is immune while 100+ takes double+ physical damage." ];
+        "-100 is immune while 100+ takes double+ physical damage."
+      ];
 
     // MDR (Magic Damage Rate)
     case 7:
       return [
         "The percentage bonuses being applied to magical damage.",
-        "-100 is immune while 100+ takes double+ magical damage." ];
+        "-100 is immune while 100+ takes double+ magical damage."
+      ];
 
     // FDR (Floor Damage Rate)
     case 8:
       return [
-        "The percentage bonuses being applied to floor damage.",
-        "-100 is immune while 100+ takes double+ floor damage." ];
+        "The percentage bonuses being applied to floor damage.", "-100 is immune while 100+ takes double+ floor damage."
+      ];
 
     // EXR (EXperience Rate)
     case 9:
       return [
         "The percentage bonuses being applied to experience gain.",
-        "Higher amounts of this result in faster level growth." ];
+        "Higher amounts of this result in faster level growth."
+      ];
   }
 };
 
@@ -9518,6 +9552,46 @@ Game_BattlerBase.isRegenLongParamId = function(longParamId)
 {
   const regenParamIds = [ 7, 8, 9 ];
   return regenParamIds.includes(longParamId - 8);
+};
+
+/**
+ * Gets the sum of deltas above the 1.0 neutral baseline for all traits matching the given
+ * code and dataId.  Each trait value is treated as `1.0 + delta`; this method isolates
+ * the delta portion and sums them additively.
+ *
+ * Intended for use with multiplicative-baseline trait families (sparams) where the default
+ * {@link Game_BattlerBase#traitsPi} produces unintuitive compound values when stacking.
+ *
+ * @param {number} code The trait code (e.g. {@link Game_BattlerBase.TRAIT_SPARAM}).
+ * @param {number} id The dataId that further identifies the specific trait.
+ * @returns {number} The sum of `(value - 1.0)` for all matching traits.
+ */
+Game_BattlerBase.prototype.traitsDeltaSum = function(code, id)
+{
+  return this.traitsWithId(code, id)
+    .map(trait => trait.value - 1.0)
+    .reduce((total, delta) => total + delta, 0.0);
+};
+
+/**
+ * Overrides {@link Game_BattlerBase#sparam}.<br>
+ * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
+ *
+ * RMMZ stores sparam trait values as multipliers (1.0 = baseline, 1.5 = +50%).
+ * The default engine multiplies them together, so two +50% traits compound to ×2.25 instead
+ * of the intuitive ×2.0. This override subtracts the 1.0 baseline from each trait value,
+ * sums the deltas, then restores the 1.0 baseline — giving linear, predictable stacking
+ * while keeping the 1.0 return value that engine healing/cost/damage formulas expect.
+ *
+ * @param {number} sparamId The sparam index (0–9).
+ * @returns {number} The additively aggregated sparam value.
+ */
+J.BASE.Aliased.Game_BattlerBase.set('sparam', Game_BattlerBase.prototype.sparam);
+Game_BattlerBase.prototype.sparam = function(sparamId)
+{
+  // additive delta stacking: sum deltas above the 1.0 baseline, then restore the baseline.
+  // replaces the default traitsPi which compounded 1.5×1.5 into 2.25 instead of 2.0.
+  return 1.0 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_SPARAM, sparamId);
 };
 
 /**
