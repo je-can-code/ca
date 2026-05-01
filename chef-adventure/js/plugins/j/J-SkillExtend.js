@@ -651,12 +651,36 @@ class OverlayManager
 
   /**
    * Extends the effects section of a skill.
+   *
+   * For add-state effects (code 21), the overlay wins per state id — "last extension wins."
+   * If the overlay defines a chance for state X, any earlier add-state entries for state X
+   * are stripped from the base before concatenation.  This prevents duplicate apply-state
+   * rolls when a later extension upgrades a partial chance to a guaranteed application.
+   *
+   * All other effect types are concatenated as before.
    * @param {RPG_Skill} baseSkill The skill being extended.
    * @param {RPG_Skill} skillOverlay The skill extending the base skill.
    */
   static extendEffects(baseSkill, skillOverlay)
   {
-    // combine the effects.
+    // nothing to merge if the overlay contributes no effects.
+    if (skillOverlay.effects.length === 0) return;
+
+    // collect the add-state effects the overlay is explicitly providing.
+    const overlayAddStates = skillOverlay.effects
+      .filter(e => e.code === Game_Action.EFFECT_ADD_STATE);
+
+    if (overlayAddStates.length > 0)
+    {
+      // build the set of state ids the overlay will own going forward.
+      const replacedIds = new Set(overlayAddStates.map(e => e.dataId));
+
+      // remove any prior add-state entries for those ids so there is no duplicate roll.
+      baseSkill.effects = baseSkill.effects
+        .filter(e => e.code !== Game_Action.EFFECT_ADD_STATE || replacedIds.has(e.dataId) === false);
+    }
+
+    // concat all overlay effects — add-state entries for replaced ids now exist only once.
     baseSkill.effects = baseSkill.effects.concat(skillOverlay.effects);
   }
 
