@@ -1090,6 +1090,9 @@ Window_PassiveDetail.prototype.collectJabsCombatRows = function(state)
   // status ailments and slip damage/regen.
   rows.push(...this.collectJabsAilmentRows(state));
 
+  // on-attack and on-hit resource gains from J-Resources-ABS.
+  rows.push(...this.collectResourcesAbsRows(state));
+
   // aggro, offhand, vision, retaliation, bonus hits, speed, gap close.
   rows.push(...this.collectJabsModifierRows(state));
 
@@ -1184,6 +1187,77 @@ Window_PassiveDetail.prototype.collectJabsAilmentRows = function(state)
   }
 
   return rows;
+};
+
+/**
+ * Collects resource gain rows from J-Resources-ABS for the given state.
+ * Covers HP/MP/TP gains that fire on a successful attack and gains that fire
+ * when the bearer takes damage. Each resource type supports flat, percent, and
+ * formula variants; the first present variant wins per resource per trigger.
+ * Returns an empty array when J-Resources-ABS is not loaded.
+ * @param {RPG_State} state The state to check.
+ * @returns {Array<{icon: number, label: string, value: string}>}
+ */
+Window_PassiveDetail.prototype.collectResourcesAbsRows = function(state)
+{
+  if (!J.RESOURCES || !J.RESOURCES.EXT || !J.RESOURCES.EXT.ABS) return [];
+
+  const rows = [];
+  const rx = J.RESOURCES.EXT.ABS.RegExp;
+
+  // each entry: [flatRx, pctRx, formRx, label, icon]
+  const checks = [
+    [rx.OnAttackHpGainFlat, rx.OnAttackHpGainPercent, rx.OnAttackHpGainFormula,
+      `On-Attack ${TextManager.param(0)}`, IconManager.param(0)],
+    [rx.OnAttackMpGainFlat, rx.OnAttackMpGainPercent, rx.OnAttackMpGainFormula,
+      `On-Attack ${TextManager.param(1)}`, IconManager.param(1)],
+    [rx.OnAttackTpGainFlat, rx.OnAttackTpGainPercent, rx.OnAttackTpGainFormula,
+      `On-Attack ${TextManager.maxTp()}`, IconManager.maxTp()],
+    [rx.WhenHitHpGainFlat, rx.WhenHitHpGainPercent, rx.WhenHitHpGainFormula,
+      `On-Hit ${TextManager.param(0)}`, IconManager.param(0)],
+    [rx.WhenHitMpGainFlat, rx.WhenHitMpGainPercent, rx.WhenHitMpGainFormula,
+      `On-Hit ${TextManager.param(1)}`, IconManager.param(1)],
+    [rx.WhenHitTpGainFlat, rx.WhenHitTpGainPercent, rx.WhenHitTpGainFormula,
+      `On-Hit ${TextManager.maxTp()}`, IconManager.maxTp()],
+  ];
+
+  checks.forEach(([flatRx, pctRx, formRx, label, icon]) =>
+  {
+    const row = this.collectResourceGainRow(state, flatRx, pctRx, formRx, label, icon);
+    if (row) rows.push(row);
+  });
+
+  return rows;
+};
+
+/**
+ * Resolves a resource gain row from a flat/percent/formula tag triplet.
+ * Checks flat first, then percent, then formula; returns the first match as a
+ * display row or null when none of the three tags are present on the state.
+ * @param {RPG_State} state The state to check.
+ * @param {RegExp} flatRx Regexp for the flat gain tag.
+ * @param {RegExp} pctRx Regexp for the percent gain tag.
+ * @param {RegExp} formRx Regexp for the formula gain tag.
+ * @param {string} label The display label for this row.
+ * @param {number} icon The icon index for this row.
+ * @returns {{icon: number, label: string, value: string}|null}
+ */
+Window_PassiveDetail.prototype.collectResourceGainRow = function(state, flatRx, pctRx, formRx, label, icon)
+{
+  const flat = RPGManager.getNumberFromNoteByRegex(state, flatRx);
+  if (flat) return { icon, label, value: `+${flat}` };
+
+  const pct = RPGManager.getNumberFromNoteByRegex(state, pctRx);
+  if (pct) return { icon, label, value: `+${pct}%` };
+
+  const form = RPGManager.getStringFromNoteByRegex(state, formRx);
+  if (form)
+  {
+    const evaluated = this.evaluateFormula(form, this._actor);
+    return { icon, label, value: `+${Math.abs(Number(evaluated))}` };
+  }
+
+  return null;
 };
 
 /**

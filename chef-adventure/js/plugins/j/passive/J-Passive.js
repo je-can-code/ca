@@ -2486,13 +2486,17 @@ class Window_PassiveDetail
   /**
    * Draws a single detail row within the active column.
    * Layout: optional icon | label | right-aligned value (160px).
-   * The value is color-coded green for '+' prefix and red for '-' prefix.
+   * The value is color-coded green for beneficial and red for detrimental changes.
+   * By default '+' prefix = green and '-' prefix = red.
+   * Pass invertColor=true for parameters where lower values are better
+   * (e.g. PDR, MDR, MCR, TCR, HCR), which reverses the color assignment.
    * Advances {@link currentY} by one line height.
    * @param {number} icon Icon index; pass 0 to skip.
    * @param {string} label The row label.
    * @param {string} value The value string; pass empty string when there is none.
+   * @param {boolean} invertColor When true, '-' = green and '+' = red.
    */
-  drawDetailRow(icon, label, value)
+  drawDetailRow(icon, label, value, invertColor = false)
   {
     const y = this.currentY;
     const lh = this.lineHeight();
@@ -2511,15 +2515,40 @@ class Window_PassiveDetail
     this.drawText(label, labelX, y, labelW);
 
     // draw value right-aligned with color coding.
+    // for "lower is better" params the color assignment is inverted.
     if (value)
     {
-      if (value.startsWith('+')) this.changeTextColor(ColorManager.powerUpColor());
-      else if (value.startsWith('-')) this.changeTextColor(ColorManager.powerDownColor());
+      if (value.startsWith('+'))
+      {
+        this.changeTextColor(invertColor ? ColorManager.powerDownColor() : ColorManager.powerUpColor());
+      }
+      else if (value.startsWith('-'))
+      {
+        this.changeTextColor(invertColor ? ColorManager.powerUpColor() : ColorManager.powerDownColor());
+      }
       this.drawText(value, this.currentX + this.columnWidth - valueW, y, valueW, 'right');
       this.resetTextColor();
     }
 
     this.currentY += lh;
+  }
+
+  /**
+   * Determines whether a trait's value color should be inverted because
+   * lower values are beneficial for the associated parameter.
+   * Applies to sparams where reducing the rate is the desired effect:
+   * MCR (Magi Cost), TCR (Tech Cost), PDR (Phys Dmg), MDR (Magi Dmg), FDR (Environ Dmg).
+   * @param {RPG_Trait} trait The trait to evaluate.
+   * @returns {boolean}
+   */
+  isInvertedTrait(trait)
+  {
+    // only sparam traits (code 23) can be "lower is better" in this ecosystem.
+    if (trait._code !== 23) return false;
+
+    // these sparams represent rates where lower = less cost or less damage taken = good.
+    const invertedSparamIds = [4, 5, 6, 7, 8];
+    return invertedSparamIds.includes(trait._dataId);
   }
 
   /**
@@ -2608,10 +2637,12 @@ class Window_PassiveDetail
     this.drawDetailSectionHeader('Parameters');
 
     // standard RMMZ param/xparam/sparam rows with per-stat icons.
+    // sparams where lower values are beneficial get inverted color coding.
     paramTraits.forEach(rawTrait =>
     {
       const trait = new RPG_Trait(rawTrait);
-      this.drawDetailRow(this.paramIconForTrait(trait), trait.textName(), trait.textValue());
+      this.drawDetailRow(
+        this.paramIconForTrait(trait), trait.textName(), trait.textValue(), this.isInvertedTrait(trait));
     });
 
     // J-Natural formula rows — icon and growth suffix supplied by collectNaturalParamLines.
@@ -2619,6 +2650,37 @@ class Window_PassiveDetail
     {
       this.drawDetailRow(icon, label, value);
     });
+
+    // HCR row from J-Resources: HP cost rate reduction, displayed like MCR/TCR.
+    const hcrLine = this.collectHcrLine(state);
+    if (hcrLine)
+    {
+      this.drawDetailRow(hcrLine.icon, hcrLine.label, hcrLine.value, true);
+    }
+  }
+
+  /**
+   * Collects the HP Cost Reduction (HCR) display row from J-Resources.
+   * HCR formula evaluates to a positive reduction amount (e.g. 15 = 15% cheaper),
+   * so the value is negated for display to match the MCR/TCR visual convention,
+   * and invertColor is applied so the resulting '-' prefix renders green.
+   * Returns null when J-Resources is not loaded or the state has no HCR tag.
+   * @param {RPG_State} state The state to check.
+   * @returns {{icon: number, label: string, value: string}|null}
+   */
+  collectHcrLine(state)
+  {
+    if (!J.RESOURCES) return null;
+
+    const formula = RPGManager.getStringFromNoteByRegex(state, J.RESOURCES.RegExp.HpCostReduction);
+    if (!formula) return null;
+
+    const evaluated = Number(this.evaluateFormula(formula, this._actor));
+    return {
+      icon:  IconManager.param(0),
+      label: 'HP Cost Rate',
+      value: `-${Math.abs(evaluated)}%`,
+    };
   }
 
   /**
