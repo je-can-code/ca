@@ -2283,15 +2283,39 @@ class Window_DiaLog
   }
 
   /**
-   * Overrides {@link Window_Command#multilineLineHeight}.<br>
-   * Uses half the row height so multiline entries have even vertical spacing
-   * within the 64px row rather than compressing both lines into 16px steps.
-   * @returns {number}
+   * Overrides {@link Window_Command#drawItem}.<br>
+   * Draws all lines top-down from the row's natural y position at a reduced font size,
+   * avoiding the base class's centering-around-rectY approach which clips the first
+   * line when the entry sits near the top of the content area.
+   * Lines are spaced by the row height divided evenly among them.
+   * @param {number} index The index of the command to draw.
    * @override
    */
-  multilineLineHeight()
+  drawItem(index)
   {
-    return Math.floor(Window_DiaLog.rowHeight / 2);
+    // handle color and opacity setup.
+    this.preDrawItem(index);
+
+    const { x: rectX, y: rectY, width: rectWidth } = this.itemLineRect(index);
+
+    // gather the command name and any additional dialog lines.
+    const commandName = this.commandName(index);
+    const extraLines  = this.commandLines(index);
+    const allLines    = extraLines.length > 0
+      ? [ commandName, ...extraLines ]
+      : [ commandName ];
+
+    // reduce the font a couple notches so both lines sit comfortably in the row.
+    const fontPrefix = `\\FS[18]`;
+
+    // distribute lines evenly within the row height, starting just below the row's top edge.
+    const lineStep = Math.floor(Window_DiaLog.rowHeight / (allLines.length + 1));
+
+    allLines.forEach((line, i) =>
+    {
+      const lineY = rectY + ((i + 1) * lineStep) - Math.floor(lineStep / 2);
+      this.drawTextEx(`${fontPrefix}${line}`, rectX + 4, lineY, rectWidth);
+    });
   }
 
   //endregion overwrites
