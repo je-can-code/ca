@@ -2270,45 +2270,16 @@ class JABS_AI
     // grab the combo skill id from the last used skill slot.
     const comboSkillId = user.getComboNextActionId(user.getLastUsedSlot());
 
+    // nothing queued for this slot (or chain cleared between frames).
+    if (!comboSkillId) return false;
+
     // if the battler doesn't meet the criteria to perform the skill, then don't combo.
     if (!user.canExecuteSkill(comboSkillId)) return false;
 
-    // determine this AI's chance to perform a combo, conditions allowing.
-    const comboChance = this.determineComboChance();
+    // respect humanized pacing so AI does not mash at frame-perfect earliest legality vs human reflex.
+    if (!user.isAiComboHumanizationTimingReady()) return false;
 
-    // roll the dice and determine your fate!!
-    const comboRng = RPGManager.chanceIn100(comboChance);
-
-    // return combo rngesus's determination in life.
-    return comboRng;
-  }
-
-  /**
-   * Calculates the chance for combos based on this AI's traits.
-   * @returns {number} The integer percent chance to perform the combo skill if available.
-   */
-  determineComboChance()
-  {
-    // determine the base combo chance.
-    const baseChance = this.baseComboChance();
-
-    // determine the modifier based on this ai for comboing.
-    const modifierChance = this.aiComboChanceModifier();
-
-    // sum the two chance rates together.
-    const comboChance = (baseChance + modifierChance);
-
-    // return whether or not we will combo.
-    return comboChance;
-  }
-
-  /**
-   * Gets the base percent chance for whether or not to perform a combo skill.
-   * @returns {number}
-   */
-  baseComboChance()
-  {
-    return 50;
+    return true;
   }
 
   /**
@@ -2323,16 +2294,6 @@ class JABS_AI
 
     // return what we found.
     return comboSkillId;
-  }
-
-  /**
-   * Gets the modifier percent chance, based on the AI of this battler,
-   * as to whether or not to perform a combo skill.
-   * @returns {number}
-   */
-  aiComboChanceModifier()
-  {
-    return 0;
   }
 
   /**
@@ -3249,6 +3210,31 @@ JABS_Battler.prototype.initBattleInfo = function()
   this._lastUsedSlot = String.empty;
 
   /**
+   * First engine frame at which AI may attempt the pending combo follow-up (fair pacing).
+   * Zero means no gate is armed.
+   * @type {number}
+   */
+  this._aiComboHumanizedReadyFrame = 0;
+
+  /**
+   * Earliest frame ({@link Graphics.frameCount}) at which AI may roll another defensive dodge interrupt.
+   * @type {number}
+   */
+  this._aiDefensiveDodgeReadyFrame = 0;
+
+  /**
+   * Earliest frame ({@link Graphics.frameCount}) at which ally AI may roll another defensive guard raise.
+   * @type {number}
+   */
+  this._aiAllyDefensiveGuardReadyFrame = 0;
+
+  /**
+   * Engine frame when ally AI last raised guard (for max-hold release); zero when not tracking.
+   * @type {number}
+   */
+  this._aiAllyGuardRaiseFrame = 0;
+
+  /**
    * The current phase of AI battling that this battler is in.
    * Only utilized by AI.
    * @type {number}
@@ -4127,6 +4113,10 @@ JABS_Battler.prototype.resetPhases = function()
   this.setDecidedAction(null);
   this.setAllyTarget(null);
   this.setInPosition(false);
+  this.clearAiComboHumanizedReadyFrame();
+  this._aiDefensiveDodgeReadyFrame = 0;
+  this._aiAllyDefensiveGuardReadyFrame = 0;
+  this._aiAllyGuardRaiseFrame = 0;
 };
 
 /**
@@ -4815,6 +4805,17 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function()
   const target = this.getTarget();
   if (!target) return;
 
+  // ai steering must not stack with forced dodge tiles / dodge speed or allies rocket diagonally.
+  if (this.isDodging())
+  {
+    return;
+  }
+
+  if (this.guarding())
+  {
+    return;
+  }
+
   battler.moveAwayFromCharacter(target.getCharacter());
   if (!battler.isMovementSucceeded())
   {
@@ -4857,6 +4858,17 @@ JABS_Battler.prototype.smartMoveTowardAllyTarget = function()
  */
 JABS_Battler.prototype.smartMoveTowardCoordinates = function(x, y)
 {
+  // formation / idle / ai paths defer until endDodge clears dodge speed and forced steps finish.
+  if (this.isDodging())
+  {
+    return;
+  }
+
+  if (this.guarding())
+  {
+    return;
+  }
+
   const character = this.getCharacter();
   const nextDir = character.findDiagonalDirectionTo(x, y);
 
@@ -4988,6 +5000,37 @@ JABS_Battler.prototype.setComboNextActionId = function(cooldownKey, nextComboId)
   this.getBattler()
     .getSkillSlotManager()
     .setSlotComboId(cooldownKey, nextComboId);
+};
+
+/**
+ * Arms the first frame at which AI-controlled battlers may press the pending combo link (humanized pacing).
+ * @param {number} frameNumber Global {@link Graphics.frameCount} threshold.
+ */
+JABS_Battler.prototype.setAiComboHumanizedReadyFrame = function(frameNumber)
+{
+  this._aiComboHumanizedReadyFrame = frameNumber;
+};
+
+/**
+ * Clears AI combo timing pressure when the chain slot resets or phases reset.
+ */
+JABS_Battler.prototype.clearAiComboHumanizedReadyFrame = function()
+{
+  this._aiComboHumanizedReadyFrame = 0;
+};
+
+/**
+ * Whether AI combo humanization allows attempting the follow-up this frame.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.isAiComboHumanizationTimingReady = function()
+{
+  if (this._aiComboHumanizedReadyFrame <= 0)
+  {
+    return true;
+  }
+
+  return Graphics.frameCount >= this._aiComboHumanizedReadyFrame;
 };
 
 /**
@@ -6024,11 +6067,9 @@ JABS_Battler.prototype.updateDodging = function()
  */
 JABS_Battler.prototype.canUpdateDodge = function()
 {
-  // if we are not a player, we cannot dodge.
-  if (!this.isPlayer()) return false;
-
-  // we can dodge!
-  return true;
+  // followers/enemies run the same dodge step + endDodge cleanup as the leader once executeDodgeSkill fires.
+  // gating on isPlayer() prevented endDodge from ever running for allies, leaving dodge speed stuck on forever.
+  return this.isDodging();
 };
 
 /**
@@ -6726,9 +6767,16 @@ JABS_Battler.prototype.tryDodgeSkill = function()
 /**
  * Executes the provided dodge skill.
  * @param {RPG_Skill} skill The RPG item representing the dodge skill.
+ * @param {number} [forcedDirection8] When set, skips movement-note inference (AI rolls away from a threat vector).
  */
-JABS_Battler.prototype.executeDodgeSkill = function(skill)
+JABS_Battler.prototype.executeDodgeSkill = function(skill, forcedDirection8)
 {
+  // dodge and held guard share the body; drop guard so dodge movement and speed stack cleanly.
+  if (this.guarding())
+  {
+    this.executeGuard(false, JABS_Button.Offhand);
+  }
+
   // set up any parsed i‑frame window; not applied yet pending semantics.
   this.setDodgeIFrames(skill.jabsIFrames);
 
@@ -6743,7 +6791,16 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
   this.setDodgeSteps(skill.jabsDodgeSteps);
 
   // set the direction to be dodging in.
-  const dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);
+  let dodgeDirection;
+  if (forcedDirection8 !== undefined && forcedDirection8 !== null)
+  {
+    dodgeDirection = forcedDirection8;
+  }
+  else
+  {
+    dodgeDirection = this.determineDodgeDirection(skill.jabsMoveType);
+  }
+
   this.setDodgeDirection(dodgeDirection);
 
   // also execute the mobility skill’s action payload.
@@ -6765,40 +6822,214 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill)
 };
 
 /**
+ * AI-only: spends dodge toward open tile away from an opposing battler when interrupt logic demands it.
+ * @param {JABS_Battler} threatBattler The hostile pressure source.
+ * @returns {boolean} True when dodge map actions actually fired.
+ */
+JABS_Battler.prototype.tryExecuteAiEmergencyDodgeAwayFrom = function(threatBattler)
+{
+  const battler = this.getBattler();
+  const skillId = battler.getEquippedSkillId(JABS_Button.Dodge);
+
+  if (!skillId)
+  {
+    return false;
+  }
+
+  if (!JABS_Battler.isDodgeSkillById(skillId))
+  {
+    return false;
+  }
+
+  if (!this.canExecuteSkill(skillId))
+  {
+    return false;
+  }
+
+  const skill = this.getSkill(skillId);
+
+  if (!battler.canPaySkillCost(skill))
+  {
+    return false;
+  }
+
+  const chr = this.getCharacter();
+  const threatChr = threatBattler.getCharacter();
+  const towardThreat = chr.findDirectionTo(threatChr.x, threatChr.y);
+  const awayFromThreat = chr.reverseDir(towardThreat);
+
+  this.executeDodgeSkill(skill, awayFromThreat);
+
+  return true;
+};
+
+/**
+ * Whether one dodge step in the given eight-way direction is passable for this character.
+ * Prefers Pixelistics collision probes when present.
+ * @param {Game_Character} character The character that will step.
+ * @param {number} direction8 Eight-way direction constant.
+ * @returns {boolean}
+ */
+JABS_Battler.prototype.canDirectionalDodgeStepPass = function(character, direction8)
+{
+  if (character.isDiagonalDirection(direction8))
+  {
+    if (typeof character.canPassDiagonalByDirection === 'function')
+    {
+      return character.canPassDiagonalByDirection(direction8);
+    }
+
+    if (typeof character.getDiagonalDirections === 'function'
+      && typeof character.canPassDiagonally === 'function')
+    {
+      const pair = character.getDiagonalDirections(direction8);
+
+      return character.canPassDiagonally(character._x, character._y, pair[0], pair[1]);
+    }
+  }
+
+  if (typeof character.canPassStraight === 'function')
+  {
+    return character.canPassStraight(direction8);
+  }
+
+  return true;
+};
+
+/**
+ * Scores eight-way directions by alignment with fleeing away from a unit threat vector.
+ * @param {number} ux Unit X component away from threat (world space).
+ * @param {number} uy Unit Y component away from threat (world space).
+ * @returns {{d: number, s: number}[]} Sorted best-first for dodge preference.
+ */
+JABS_Battler.buildDirectionalDodgeScores = function(ux, uy)
+{
+  const rows = [
+    { d: J.ABS.Directions.UP, vx: 0, vy: -1 },
+    { d: J.ABS.Directions.DOWN, vx: 0, vy: 1 },
+    { d: J.ABS.Directions.LEFT, vx: -1, vy: 0 },
+    { d: J.ABS.Directions.RIGHT, vx: 1, vy: 0 },
+    { d: J.ABS.Directions.UPPERLEFT, vx: -1, vy: -1 },
+    { d: J.ABS.Directions.UPPERRIGHT, vx: 1, vy: -1 },
+    { d: J.ABS.Directions.LOWERLEFT, vx: -1, vy: 1 },
+    { d: J.ABS.Directions.LOWERRIGHT, vx: 1, vy: 1 },
+  ];
+
+  const scored = rows.map(({ d, vx, vy }) => ({
+    d,
+    s: vx * ux + vy * uy,
+  }));
+
+  scored.sort((a, b) => b.s - a.s);
+
+  return scored;
+};
+
+/**
+ * Directional dodge for non-leader battlers: flee passable directions away from the best threat,
+ * never preferring toward-negative alignment before exhausting safer options.
+ * @returns {number} Eight-way direction code.
+ */
+JABS_Battler.prototype.pickAiDirectionalDodgeDirection = function()
+{
+  const character = this.getCharacter();
+  const threat = JABS_AiManager.getClosestOpposingBattler(this)
+    || JABS_AiManager.findDefensiveThreatBattler(this);
+
+  if (!threat || threat.isDead())
+  {
+    return character.direction();
+  }
+
+  const tx = threat.getX();
+  const ty = threat.getY();
+  const dxAway = character.x - tx;
+  const dyAway = character.y - ty;
+  const magSq = dxAway * dxAway + dyAway * dyAway;
+
+  if (magSq < 0.0001)
+  {
+    return character.reverseDir(character.direction());
+  }
+
+  const mag = Math.sqrt(magSq);
+  const ux = dxAway / mag;
+  const uy = dyAway / mag;
+  const scored = JABS_Battler.buildDirectionalDodgeScores(ux, uy);
+
+  const pickWithFloor = minScore =>
+  {
+    for (let i = 0; i < scored.length; i++)
+    {
+      if (scored[i].s < minScore)
+      {
+        continue;
+      }
+
+      if (this.canDirectionalDodgeStepPass(character, scored[i].d))
+      {
+        return scored[i].d;
+      }
+    }
+
+    return 0;
+  };
+
+  let chosen = pickWithFloor(0.01);
+
+  if (chosen)
+  {
+    return chosen;
+  }
+
+  chosen = pickWithFloor(-0.2);
+
+  if (chosen)
+  {
+    return chosen;
+  }
+
+  chosen = pickWithFloor(-999);
+
+  if (chosen)
+  {
+    return chosen;
+  }
+
+  return character.direction();
+};
+
+/**
  * Translates a dodge skill type into a direction to move.
  * @param {'forward'|'backward'|'directional'} moveType The type of dodge skill the player is using.
  */
 JABS_Battler.prototype.determineDodgeDirection = function(moveType)
 {
-  // grab the player's current direction.
-  const player = this.getCharacter();
+  const character = this.getCharacter();
 
-  // pivot on move type.
   switch (moveType)
   {
-    // "forward" represents the direction the player is currently facing.
     case J.ABS.Notetags.MoveType.Forward:
-      return player.direction();
+      return character.direction();
 
-    // "backward" is the inverse of the direction the player's current direction.
     case J.ABS.Notetags.MoveType.Backward:
-      return player.reverseDir(player.direction());
+      return character.reverseDir(character.direction());
 
-    // "directional" is the direction that the player is moving.
     case J.ABS.Notetags.MoveType.Directional:
-      // check if the player is just standing there.
-      if (Input.dir8 === 0)
+      if (character.isPlayer())
       {
-        // move the player in the direction they are facing.
-        return player.direction();
+        if (Input.dir8 === 0)
+        {
+          return character.direction();
+        }
+
+        return Input.dir8;
       }
 
-      // return the direction the player is moving.
-      return Input.dir8;
+      return this.pickAiDirectionalDodgeDirection();
 
-    // other forms of dodge default to moving the way the player is facing.
     default:
-      return player.direction();
+      return character.direction();
   }
 };
 //endregion dodging
@@ -7081,6 +7312,9 @@ JABS_Battler.prototype.endGuarding = function()
 {
   // end the guarding tracker.
   this.setGuarding(false);
+
+  // reset ally ai guard timing so max-hold does not fire on the next stance.
+  this._aiAllyGuardRaiseFrame = 0;
 
   // remove any remaining parry time.
   this.setParryWindow(0);
@@ -8162,10 +8396,23 @@ JABS_Battler.prototype.getCooldownKeyBySkillId = function(skillId)
   // handle accordingly for enemies.
   if (this.isEnemy())
   {
-    // grab the skill itself.
+    // resolve semantic slots (dodge / offhand guard) before the legacy per-skill key.
+    const slot = this.getBattler()
+      .findSlotForSkillId(skillId);
+
+    if (slot)
+    {
+      return slot.key;
+    }
+
     const skill = this.getSkill(skillId);
 
-    // return the arbitrary key.
+    if (!skill)
+    {
+      return null;
+    }
+
+    // fallback: arbitrary key used for non-slot skills (see setupEnemySlots).
     return `${skill.id}-${skill.name}`;
   }
   // handle accordingly for actors.
@@ -10901,38 +11148,6 @@ class JABS_EnemyAI
     return [ basicAttackSkillId ];
   }
   //endregion follower
-
-  /**
-   * Overrides {@link #aiComboChanceModifier}.<br>
-   * Calculates the combo chance modifier based on active AI traits.
-   * @returns {number} An integer percent chance between 0-100.
-   */
-  aiComboChanceModifier()
-  {
-    let comboChanceModifier = 50;
-
-    const {
-      careful,
-      executor,
-      reckless,
-      healer,
-      cleanser,
-      buffer,
-      tactical,
-      berserker,
-    } = this;
-
-    if (careful) comboChanceModifier += 10;
-    if (executor) comboChanceModifier += 30;
-    if (reckless) comboChanceModifier -= 20;
-    if (healer) comboChanceModifier -= 30;
-    if (cleanser) comboChanceModifier -= 20;
-    if (buffer) comboChanceModifier -= 15;
-    if (tactical) comboChanceModifier += 15;
-    if (berserker) comboChanceModifier -= 25;
-
-    return comboChanceModifier;
-  }
 }
 
 //endregion JABS_EnemyAI
@@ -13100,9 +13315,48 @@ JABS_SkillSlotManager.prototype.setupEnemySlots = function(enemy)
     skillIds.push(basicAttackSkillId);
   }
 
-  // iterate over each skill.
+  // dedupe so we never register the same skill twice under different keys.
+  const uniqueSkillIds = [];
+
   skillIds.forEach(skillId =>
   {
+    if (!uniqueSkillIds.includes(skillId))
+    {
+      uniqueSkillIds.push(skillId);
+    }
+  });
+
+  // first dodge-type and guard-type skills win (matches actor slot semantics).
+  let dodgeSkillId = 0;
+  let guardSkillId = 0;
+
+  uniqueSkillIds.forEach(skillId =>
+  {
+    if (!dodgeSkillId && JABS_Battler.isDodgeSkillById(skillId))
+    {
+      dodgeSkillId = skillId;
+    }
+
+    if (!guardSkillId && JABS_Battler.isGuardSkillById(skillId))
+    {
+      guardSkillId = skillId;
+    }
+  });
+
+  // always mirror actors: dodge lives on the dodge slot (may stay empty).
+  this.addSlot(JABS_Button.Dodge, dodgeSkillId);
+
+  // guard skills mirror actors: players equip guard on offhand (performGuard / autocounter use Offhand).
+  this.addSlot(JABS_Button.Offhand, guardSkillId);
+
+  // remaining skills keep per-skill arbitrary keys for ai/cooldown isolation.
+  uniqueSkillIds.forEach(skillId =>
+  {
+    if (skillId === dodgeSkillId || skillId === guardSkillId)
+    {
+      return;
+    }
+
     // grab the skill itself.
     const skill = enemy.skill(skillId);
 
@@ -14285,7 +14539,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.9.0 JABS] Enables combat to be carried out on the map.
+ * [v4.10.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14330,6 +14584,10 @@ class JABS_Timer
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.10.0
+ *    Defensive dodge and guard: readiness on battlers, `JABS_AiManager` interrupt and non-leader dodge direction,
+ *    `Game_CharacterBase` dodge state, engine map-action gating, `JABS_SkillSlotManager` equipped-skill access for
+ *    dodge/offhand, init metadata wiring. `JABS_EnemyAI` doc alignment.
  * - 4.9.0
  *    Team rules are now data-driven via required `data/config.jabs.json`
  *    (root `{ teams: [...] }` with per-team `opposes` lists).
@@ -16737,7 +16995,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = 'data/config.jabs.json') =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.9.0';
+J.ABS.Metadata.Version = '4.10.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -16756,6 +17014,26 @@ J.ABS.Metadata.DefaultWeaponSkillTypeId = Number(J.ABS.PluginParameters['weaponS
 J.ABS.Metadata.DefaultToolCooldownTime = Number(J.ABS.PluginParameters['defaultToolCooldownTime']);
 J.ABS.Metadata.DefaultAttackAnimationId = Number(J.ABS.PluginParameters['defaultAttackAnimationId']);
 J.ABS.Metadata.DefaultLootExpiration = Number(J.ABS.PluginParameters['defaultLootExpiration']);
+
+// AI combo follow-up pacing: random percentile within the link window (combo delay .. cooldown tag).
+J.ABS.Metadata.AiComboHumanizeWindowMinPercent = 0.1;
+J.ABS.Metadata.AiComboHumanizeWindowMaxPercent = 0.3;
+
+// AI defensive dodge interrupt (MVP): threat radius in tile-ish units (see distanceToPoint), roll vs chance, cooldown frames.
+J.ABS.Metadata.AiDefensiveDodgeChancePercent = 75;
+J.ABS.Metadata.AiDefensiveDodgeCooldownFrames = 45;
+J.ABS.Metadata.AiDefensiveThreatRadiusTiles = 3;
+
+// Ally AI defensive guard (offhand guard skill): raise uses defensive threat radius; hold uses tighter distance + max hold.
+// Below this hp fraction (0–1) ally ai may roll a raise; use 1 to ignore hp (always eligible when threatened).
+J.ABS.Metadata.AiAllyDefensiveGuardHpThresholdPercent = 0.55;
+J.ABS.Metadata.AiAllyDefensiveGuardChancePercent = 40;
+// After a forced or natural guard drop, earliest frame ally AI may roll another raise (not a hold timer — guard is a toggle).
+J.ABS.Metadata.AiAllyDefensiveGuardCooldownFrames = 30;
+// Drop held guard after this many frames so allies peek out of block in crowded melee (guard has no resource cooldown).
+J.ABS.Metadata.AiAllyDefensiveGuardMaxHoldFrames = 120;
+// Hold guard only while the closest hostile is within this tile-ish distance; wider clusters no longer justify turtling.
+J.ABS.Metadata.AiAllyDefensiveGuardMaintainMaxTiles = 2.35;
 
 // enemy battler default enemy setup configurations.
 J.ABS.Metadata.DefaultEnemyPrepareTime = Number(J.ABS.PluginParameters['defaultEnemyPrepareTime']);
@@ -21491,6 +21769,9 @@ class JABS_AiManager
     // no AI is executed when waiting.
     if (battler.isWaiting()) return;
 
+    // drop ally guard when idle, missing guard skill, or threat disappeared while engaged.
+    this.releaseAllyCombatGuardIfStale(battler);
+
     // if the battler is engaged, then do AI things.
     if (battler.isEngaged())
     {
@@ -21508,6 +21789,12 @@ class JABS_AiManager
 
       // don't try to idle while engaged.
       battler.setIdle(false);
+
+      // defensive interrupt: near opposing pressure can preempt the normal phase work for this tick.
+      if (this.tryDefensiveInterrupt(battler)) return;
+
+      // raise held guard after dodge priority when pressure exists (followers only).
+      this.tryRaiseAllyCombatGuard(battler);
 
       // determine the phase and perform actions accordingly.
       const phase = battler.getPhase();
@@ -22645,6 +22932,262 @@ class JABS_AiManager
   }
 
   //endregion Phase 3 - Post-Action Cooldown Phase
+
+  //region Ally defensive guard (held offhand)
+  /**
+   * Drops ally held guard when gear/combat state is invalid, pressure eases, or max hold elapses.
+   * @param {JABS_Battler} battler The battler receiving ally AI (followers only consume raises).
+   */
+  static releaseAllyCombatGuardIfStale(battler)
+  {
+    if (!battler.isActor() || battler.isPlayer())
+    {
+      return;
+    }
+
+    const gb = battler.getBattler();
+    const guardSkillId = gb.getEquippedSkillId(JABS_Button.Offhand);
+
+    if (!guardSkillId || !JABS_Battler.isGuardSkillById(guardSkillId))
+    {
+      if (battler.guarding())
+      {
+        battler.executeGuard(false, JABS_Button.Offhand);
+      }
+
+      return;
+    }
+
+    if (!battler.guarding())
+    {
+      return;
+    }
+
+    if (battler._aiAllyGuardRaiseFrame === 0)
+    {
+      battler._aiAllyGuardRaiseFrame = Graphics.frameCount;
+    }
+
+    const heldFrames = Graphics.frameCount - battler._aiAllyGuardRaiseFrame;
+
+    if (heldFrames >= J.ABS.Metadata.AiAllyDefensiveGuardMaxHoldFrames)
+    {
+      battler.executeGuard(false, JABS_Button.Offhand);
+
+      return;
+    }
+
+    if (!battler.isEngaged())
+    {
+      battler.executeGuard(false, JABS_Button.Offhand);
+
+      return;
+    }
+
+    const closestHostile = JABS_AiManager.getClosestOpposingBattler(battler);
+
+    if (!closestHostile || closestHostile.isDead())
+    {
+      battler.executeGuard(false, JABS_Button.Offhand);
+
+      return;
+    }
+
+    const separation = battler.distanceToDesignatedTarget(closestHostile);
+
+    if (separation === null || separation > J.ABS.Metadata.AiAllyDefensiveGuardMaintainMaxTiles)
+    {
+      battler.executeGuard(false, JABS_Button.Offhand);
+
+      return;
+    }
+
+    const threat = JABS_AiManager.findDefensiveThreatBattler(battler);
+
+    if (!threat)
+    {
+      battler.executeGuard(false, JABS_Button.Offhand);
+    }
+  }
+
+  /**
+   * Raises held guard for follower actors under the same threat footprint as defensive dodge (after dodge priority).
+   * @param {JABS_Battler} battler The ally battler.
+   */
+  static tryRaiseAllyCombatGuard(battler)
+  {
+    if (!battler.isActor() || battler.isPlayer())
+    {
+      return;
+    }
+
+    if (!battler.isEngaged() || battler.guarding())
+    {
+      return;
+    }
+
+    const gb = battler.getBattler();
+    const hpGate = J.ABS.Metadata.AiAllyDefensiveGuardHpThresholdPercent;
+
+    if (hpGate < 1 && hpGate > 0 && gb.mhp > 0)
+    {
+      if (gb.hp / gb.mhp > hpGate)
+      {
+        return;
+      }
+    }
+
+    const guardSkillId = gb.getEquippedSkillId(JABS_Button.Offhand);
+
+    if (!guardSkillId || !JABS_Battler.isGuardSkillById(guardSkillId))
+    {
+      return;
+    }
+
+    const threat = JABS_AiManager.findDefensiveThreatBattler(battler);
+
+    if (!threat)
+    {
+      return;
+    }
+
+    if (Graphics.frameCount < battler._aiAllyDefensiveGuardReadyFrame)
+    {
+      return;
+    }
+
+    if (!RPGManager.chanceIn100(J.ABS.Metadata.AiAllyDefensiveGuardChancePercent))
+    {
+      return;
+    }
+
+    if (!battler.isGuardSkillByKey(JABS_Button.Offhand))
+    {
+      return;
+    }
+
+    const guardData = battler.getGuardData(JABS_Button.Offhand);
+
+    if (!guardData || !guardData.canGuard())
+    {
+      return;
+    }
+
+    battler.executeGuard(true, JABS_Button.Offhand);
+    battler._aiAllyGuardRaiseFrame = Graphics.frameCount;
+    battler._aiAllyDefensiveGuardReadyFrame = Graphics.frameCount
+      + J.ABS.Metadata.AiAllyDefensiveGuardCooldownFrames;
+  }
+
+  //endregion Ally defensive guard (held offhand)
+
+  //region Defensive interrupt (MVP — AI dodge)
+  /**
+   * Attempts a dodge away from the most urgent nearby hostile before normal AI phase logic.
+   * @param {JABS_Battler} battler The battler potentially reacting.
+   * @returns {boolean} True when dodge consumed this AI tick.
+   */
+  static tryDefensiveInterrupt(battler)
+  {
+    if (!battler.isEngaged())
+    {
+      return false;
+    }
+
+    if (battler.isCasting())
+    {
+      return false;
+    }
+
+    if (battler.isDodging())
+    {
+      return false;
+    }
+
+    if (Graphics.frameCount < battler._aiDefensiveDodgeReadyFrame)
+    {
+      return false;
+    }
+
+    const threat = JABS_AiManager.findDefensiveThreatBattler(battler);
+
+    if (!threat)
+    {
+      return false;
+    }
+
+    if (!RPGManager.chanceIn100(J.ABS.Metadata.AiDefensiveDodgeChancePercent))
+    {
+      return false;
+    }
+
+    const dodged = battler.tryExecuteAiEmergencyDodgeAwayFrom(threat);
+
+    if (!dodged)
+    {
+      return false;
+    }
+
+    battler._aiDefensiveDodgeReadyFrame = Graphics.frameCount + J.ABS.Metadata.AiDefensiveDodgeCooldownFrames;
+    battler.clearDecidedAction();
+    battler.setInPosition(false);
+
+    return true;
+  }
+
+  /**
+   * Picks the hostile battler that should drive a defensive dodge — closest opponent in threat radius,
+   * slightly biased when their map action is currently active.
+   * @param {JABS_Battler} selfBattler The defender.
+   * @returns {JABS_Battler|null}
+   */
+  static findDefensiveThreatBattler(selfBattler)
+  {
+    const radius = J.ABS.Metadata.AiDefensiveThreatRadiusTiles;
+    const candidates = JABS_AiManager.getOpposingBattlersWithinRange(selfBattler, radius);
+
+    if (!candidates.length)
+    {
+      return null;
+    }
+
+    const actions = $jabsEngine.getAllActionEvents();
+
+    let best = null;
+    let bestScore = Infinity;
+
+    for (let i = 0; i < candidates.length; i++)
+    {
+      const other = candidates[i];
+      let score = selfBattler.distanceToDesignatedTarget(other);
+
+      if (score === null)
+      {
+        continue;
+      }
+
+      for (let j = 0; j < actions.length; j++)
+      {
+        const caster = actions[j].getCaster();
+
+        if (caster === other)
+        {
+          score -= 0.35;
+          break;
+        }
+      }
+
+      if (score < bestScore)
+      {
+        bestScore = score;
+        best = other;
+      }
+    }
+
+    return best;
+  }
+
+  //endregion Defensive interrupt (MVP — AI dodge)
 }
 
 //endregion JABS_AiManager
@@ -22868,6 +23411,33 @@ class JABS_Engine
       x,
       y
     };
+  }
+
+  /**
+   * Picks when AI may attempt this combo link: random point between
+   * {@link J.ABS.Metadata.AiComboHumanizeWindowMinPercent} and
+   * {@link J.ABS.Metadata.AiComboHumanizeWindowMaxPercent} through the window from combo delay through cooldown tag.
+   * @param {RPG_Skill} skill The skill that just unlocked the next link.
+   * @returns {number} Global frame ({@link Graphics#frameCount}) when AI follow-up attempts become fair game.
+   */
+  static computeAiComboHumanizedReadyFrameForSkill(skill)
+  {
+    const delayFrames = skill.jabsComboDelay | 0;
+    const cooldownFrames = skill.jabsCooldown | 0;
+    const maxFrames = Math.max(cooldownFrames, delayFrames + 1);
+    const windowWidth = maxFrames - delayFrames;
+    const minPct = J.ABS.Metadata.AiComboHumanizeWindowMinPercent;
+    const maxPct = J.ABS.Metadata.AiComboHumanizeWindowMaxPercent;
+
+    if (windowWidth <= 0)
+    {
+      return Graphics.frameCount + delayFrames;
+    }
+
+    const pct = minPct + (Math.random() * (maxPct - minPct));
+    const offset = delayFrames + Math.round(pct * windowWidth);
+
+    return Graphics.frameCount + offset;
   }
 
   //endregion static
@@ -23886,6 +24456,19 @@ class JABS_Engine
   {
     // if we cannot execute map actions, then do not.
     if (!this.canExecuteMapActions(caster, actions)) return;
+
+    // offensive skills drop held guard so melee allies are not stuck in block while trying to strike.
+    const [ primaryStrike ] = actions;
+
+    if (primaryStrike && caster.guarding())
+    {
+      const strikeSkillId = primaryStrike.getBaseSkill().id;
+
+      if (!JABS_Battler.isGuardSkillById(strikeSkillId))
+      {
+        caster.executeGuard(false, JABS_Button.Offhand);
+      }
+    }
 
     // apply on-execution effects for this action.
     this.applyOnExecutionEffects(caster, actions[0]);
@@ -25371,11 +25954,37 @@ class JABS_Engine
    */
   checkComboSequence(caster, action)
   {
-    // check to make sure we have combo data before processing the combo.
-    if (!this.canUpdateComboSequence(caster, action)) return;
+    // advance the chain when the skill authorizes a follow-up the battler can use.
+    if (this.canUpdateComboSequence(caster, action))
+    {
+      this.updateComboSequence(caster, action);
 
-    // execute the combo action.
-    this.updateComboSequence(caster, action);
+      return;
+    }
+
+    // no `<combo>` link from this skill (finisher), or next skill not learned — still clear the queued step so the slot
+    // does not keep resolving to the finisher id forever (infinite end-hit spam).
+    this.tryClearComboWhenChainCannotAdvance(caster, action);
+  }
+
+  /**
+   * Clears pending combo state when this execution consumed the queued combo skill id but {@link #updateComboSequence}
+   * did not run — terminal hits and blocked branches both leave stale combo ids otherwise.
+   * @param {JABS_Battler} caster The caster.
+   * @param {JABS_Action} action The action that resolved.
+   */
+  tryClearComboWhenChainCannotAdvance(caster, action)
+  {
+    const cooldownKey = action.getCooldownType();
+    const executedId = action.getBaseSkill().id;
+    const pendingId = caster.getComboNextActionId(cooldownKey);
+
+    // nothing queued or this action did not spend the queued combo step — leave slot combo alone.
+    if (pendingId !== executedId) return;
+
+    // drop back to starter routing on this cooldown key; AI pacing latch dies with the chain.
+    caster.setComboNextActionId(cooldownKey, 0);
+    caster.clearAiComboHumanizedReadyFrame();
   }
 
   /**
@@ -25413,10 +26022,11 @@ class JABS_Engine
   updateComboSequence(caster, action)
   {
     // extract the combo data out of the skill.
+    const skill = action.getBaseSkill();
     const {
       jabsComboSkillId,
       jabsComboDelay
-    } = action.getBaseSkill();
+    } = skill;
 
     // determine which slot to apply cooldowns to.
     const cooldownKey = action.getCooldownType();
@@ -25436,6 +26046,9 @@ class JABS_Engine
     // update the next combo data.
     caster.setComboFrames(cooldownKey, jabsComboDelay);
     caster.setComboNextActionId(cooldownKey, jabsComboSkillId);
+
+    // arm fair pacing so AI does not mash the follow-up at the earliest legal frame every time.
+    caster.setAiComboHumanizedReadyFrame(JABS_Engine.computeAiComboHumanizedReadyFrameForSkill(skill));
   }
 
   /**
@@ -29701,11 +30314,18 @@ Game_Battler.prototype.findSlotForSkillId = function(skillIdToFind)
 /**
  * Gets the currently-equipped skill id in the specified slot.
  * @param {string} slot The slot to retrieve an equipped skill for.
- * @returns {number}
+ * @returns {number} Skill id, or 0 when the slot key does not exist on this battler (same as empty).
  */
 Game_Battler.prototype.getEquippedSkillId = function(slot)
 {
-  return this.getSkillSlot(slot).id;
+  const skillSlot = this.getSkillSlot(slot);
+
+  if (!skillSlot)
+  {
+    return 0;
+  }
+
+  return skillSlot.id;
 };
 
 /**
@@ -31082,13 +31702,22 @@ Game_CharacterBase.prototype.setDodgeModifier = function(dodgeMoveSpeed)
 };
 
 /**
- * Whether or not the player has executed a dodge skill.
+ * Whether this character’s linked {@link JABS_Battler} is currently dodging.
+ * Used by {@link Game_CharacterBase.realMoveSpeed} for dodge move-speed bonus.
  */
 Game_CharacterBase.prototype.isDodging = function()
 {
-  // TODO: update to accommodate the designated player if applicable.
-  return $jabsEngine.getPlayer1()
-    .isDodging();
+  if (typeof this.getJabsBattler === 'function')
+  {
+    const battler = this.getJabsBattler();
+
+    if (battler)
+    {
+      return battler.isDodging();
+    }
+  }
+
+  return false;
 };
 //endregion Game_CharacterBase
 

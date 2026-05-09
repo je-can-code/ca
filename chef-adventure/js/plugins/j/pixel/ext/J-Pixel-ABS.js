@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.0.3 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -26,7 +26,7 @@
  * ----------------------------------------------------------------------------
  * REQUIREMENTS
  * - J-Base  (any recent version)
- * - J-ABS   (v4.7.1+)
+ * - J-ABS   (v4.10.0+)
  * - J-Pixelistics (v1.0.0+)
  *
  * Load order in RPG Maker plugin manager:
@@ -34,6 +34,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    `JABS_AiManager` and `JABS_Battler` integration for defensive dodge with pixel movement and formation rules.
  * - 1.0.2
  *    While strafe (direction fix) is active on the leader, projectile base direction follows
  *    sprite facing instead of movement vector — avoids firing opposite the drawn facing.
@@ -141,7 +143,7 @@ J.PIXEL.EXT.ABS = {};
 /**
  * The metadata associated with this plugin.
  */
-J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata('J-ABS-Pixelistics', '1.0.1');
+J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata('J-ABS-Pixelistics', '1.0.3');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -232,6 +234,17 @@ JABS_AiManager.rubberbandAlly = function(allyBattler)
 J.PIXEL.EXT.ABS.Aliased.JABS_AiManager.set("moveTowardSlotIfNeeded", JABS_AiManager.moveTowardSlotIfNeeded);
 JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY)
 {
+  // dodge pipeline owns the ally sprite until endDodge; skip formation pull during forced dodge.
+  if (allyBattler.isDodging())
+  {
+    return;
+  }
+
+  if (allyBattler.guarding())
+  {
+    return;
+  }
+
   // acquire the character once.
   const chr = allyBattler.getCharacter();
 
@@ -651,6 +664,17 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function()
     return;
   }
 
+  // forced dodge owns movement; pixel steering here stacks dodge speed and reads as free sprint.
+  if (this.isDodging())
+  {
+    return;
+  }
+
+  if (this.guarding())
+  {
+    return;
+  }
+
   // Acquire our character.
   const chr = this.getCharacter();
 
@@ -907,6 +931,17 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function()
  */
 JABS_Battler.prototype.smartMoveTowardCoordinates = function(targetX, targetY)
 {
+  // ally ai + formations issue this every frame; while dodging it fights executeDodgeMovement and stacks dodge speed.
+  if (this.isDodging())
+  {
+    return;
+  }
+
+  if (this.guarding())
+  {
+    return;
+  }
+
   // Acquire the character for this battler.
   const chr = this.getCharacter();
 
