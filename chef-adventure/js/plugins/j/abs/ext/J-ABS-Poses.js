@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 POSES] Enable action poses for JABS.
+ * [v1.0.4 POSES] Enable action poses for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -55,6 +55,8 @@
  * This is not a highly tested feature of JABS and may not work as intended.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.4
+ *    `JABS_Battler` pose hooks aligned with J-ABS 4.10.0 dodge/guard battler updates.
  * - 1.0.3
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.2
@@ -162,7 +164,7 @@ J.ABS.EXT.POSES.EXT ||= {};
 /**
  * The metadata associated with this plugin.
  */
-J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata('J-ABS-Poses', '1.0.2');
+J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata('J-ABS-Poses', '1.0.4');
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -726,12 +728,13 @@ J.ABS.EXT.POSES.Aliased.JABS_Battler.set('executeDodgeSkill', JABS_Battler.proto
 /**
  * Executes the provided dodge skill.
  * @param {RPG_Skill} skill The RPG item representing the dodge skill.
+ * @param {number} [forcedDirection8] Core dodge passes this for AI away-vector dodges; preserve through alias.
  */
-JABS_Battler.prototype.executeDodgeSkill = function(skill)
+JABS_Battler.prototype.executeDodgeSkill = function(skill, forcedDirection8)
 {
   // perform original logic.
   J.ABS.EXT.POSES.Aliased.JABS_Battler.get('executeDodgeSkill')
-    .call(this, skill);
+    .call(this, skill, forcedDirection8);
 
   // change over to the action pose for the skill.
   this.performActionPose(skill);

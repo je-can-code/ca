@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.2 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v2.2.0 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -116,6 +116,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Raised minimum J-ABS version to 4.10.0 (defensive dodge/guard coordination).
+ *    Ally `JABS_AiManager` / battler paths updated for defensive interrupts and follower dodge behavior.
  * - 2.1.2
  *    decideAction and ally AI mode helpers now return a skill-id array, matching J-ABS 4.7.2.
  *    Raised minimum J-ABS version to 4.7.2.
@@ -295,7 +298,7 @@ var J = J || {};
   }
 
   // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.7.2';
+  const requiredJabsVersion = '4.10.0';
   const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
   if (!hasJabsRequirement)
   {
@@ -315,7 +318,7 @@ J.ABS.EXT.ALLYAI = {};
  */
 J.ABS.EXT.ALLYAI.Metadata = {};
 J.ABS.EXT.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ABS.EXT.ALLYAI.Metadata.Version = '2.1.2';
+J.ABS.EXT.ALLYAI.Metadata.Version = '2.2.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -883,31 +886,6 @@ JABS_AllyAI.prototype.decideSupport = function(usableSkills, user)
 };
 //endregion support
 
-/**
- * Overrides {@link #aiComboChanceModifier}.<br>
- * Adjusts the bonus combo chance modifier based on the selected ally AI mode.
- * @returns {number}
- */
-JABS_AllyAI.prototype.aiComboChanceModifier = function()
-{
-  // determine which AI mode the ally is assigned.
-  const currentMode = this.getMode();
-
-  // modify the combo chance based on the selected AI mode.
-  switch (currentMode)
-  {
-    case JABS_AllyAI.modes.BASIC_ATTACK.key:
-      return 30;
-    case JABS_AllyAI.modes.VARIETY.key:
-      return 20;
-    case JABS_AllyAI.modes.FULL_FORCE.key:
-      return 50;
-    case JABS_AllyAI.modes.SUPPORT.key:
-      return 10;
-    default:
-      return 0;
-  }
-};
 //endregion decide action
 //endregion JABS_AllyAI
 
@@ -1465,6 +1443,17 @@ JABS_AiManager.rotateOffsetForFacing = function(ox, oy, dir)
  */
 JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY)
 {
+  // forced dodge must win over slot chasing or dodge speed stacks with formation steering.
+  if (allyBattler.isDodging())
+  {
+    return;
+  }
+
+  if (allyBattler.guarding())
+  {
+    return;
+  }
+
   // define a small tolerance to avoid jitter.
   const tolerance = J.ABS.EXT.ALLYAI.Metadata.FormationTolerance;
 
@@ -1541,8 +1530,11 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
   // get all slots that have skills in them.
   const validSkillSlots = battler.getValidSkillSlotsForAlly();
 
-  // convert the slots into their respective skill ids.
-  const currentlyEquippedSkillIds = validSkillSlots.map(skillSlot => skillSlot.id);
+  // strip guard skills from random picks: roll-time guard still poisons slot bookkeeping; ally guard is driven by
+  // {@link JABS_AiManager.tryRaiseAllyCombatGuard} on the same threat footprint as defensive dodge.
+  const currentlyEquippedSkillIds = validSkillSlots
+    .map(skillSlot => skillSlot.id)
+    .filter(skillId => !JABS_Battler.isGuardSkillById(skillId));
 
   // decide the action based on the ally ai mode currently assigned.
   const decidedPicks = jabsBattler
@@ -1564,6 +1556,16 @@ JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
   // TODO: allow allies to use dodge skills, but code the AI to use it intelligently.
   // check if the skill id is actually a mobility skill.
   if (JABS_Battler.isDodgeSkillById(decidedSkillId))
+  {
+    // cancel the setup.
+    this.cancelActionSetup(jabsBattler);
+
+    // stop processing.
+    return;
+  }
+
+  // do not execute guard skills from phase roulette (held guard is ally-ai-driven separately).
+  if (JABS_Battler.isGuardSkillById(decidedSkillId))
   {
     // cancel the setup.
     this.cancelActionSetup(jabsBattler);
