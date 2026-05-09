@@ -3355,7 +3355,7 @@ Game_Event.prototype.meetsConditions = function(page)
 
 /**
  * Filters the comment commands to only quest conditionals- should any exist in the collection.
- * @param {rm.types.EventCommand[]} commentCommandList The comment commands to potentially convert to conditionals.
+ * @param {RPG_EventListCommand[]} commentCommandList The comment commands to potentially convert to conditionals.
  * @returns {OmniConditional[]}
  */
 Game_Event.toQuestConditionals = function(commentCommandList)
@@ -3373,7 +3373,7 @@ Game_Event.toQuestConditionals = function(commentCommandList)
 
 /**
  * Converts a known comment event command into a conditional for quest control.
- * @param {rm.types.EventCommand} commentCommand The comment command to parse into a conditional.
+ * @param {RPG_EventListCommand} commentCommand The comment command to parse into a conditional.
  * @returns {OmniConditional}
  */
 Game_Event.toQuestConditional = function(commentCommand)
@@ -3441,7 +3441,7 @@ Game_Event.toQuestConditional = function(commentCommand)
 
 /**
  * A filter function for only including comment event commands relevant to quests.
- * @param {rm.types.EventCommand} command The command being evaluated.
+ * @param {RPG_EventListCommand} command The command being evaluated.
  * @returns {boolean}
  */
 Game_Event.filterCommentCommandsByEventQuestConditional = function(command)
@@ -3463,7 +3463,7 @@ Game_Event.filterCommentCommandsByEventQuestConditional = function(command)
 
 /**
  * A filter function for only including comment event commands relevant to quests.
- * @param {rm.types.EventCommand} command The command being evaluated.
+ * @param {RPG_EventListCommand} command The command being evaluated.
  * @returns {boolean}
  */
 Game_Event.filterCommentCommandsByChoiceQuestConditional = function(command)

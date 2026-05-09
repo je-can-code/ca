@@ -694,10 +694,10 @@ class JABS_Action
 
   /**
    * Builds a synthetic multiline note from the action-map template event + active page so
-   * {@link RPGManager} can parse `<vis*>` tags (optional event-level `note` on {@link rm.types.Event},
+   * {@link RPGManager} can parse `<vis*>` tags (optional event-level `note` on {@link RPG_MapEvent},
    * parsable Comment commands on that page).
-   * @param {rm.types.Event} eventData Raw event blob from `$actionMap`.
-   * @param {rm.types.EventPage} pageData The resolved page used for this spawn.
+   * @param {RPG_MapEvent} eventData Raw event blob from `$actionMap`.
+   * @param {RPG_MapEventPage} pageData The resolved page used for this spawn.
    * @returns {string}
    */
   static collectSyntheticVisualNoteFromActionEventPage(eventData, pageData)
@@ -727,8 +727,8 @@ class JABS_Action
 
   /**
    * Stamps {@link #_actionMapVisualNoteHolder} once from the template used to spawn this action’s map event.
-   * @param {rm.types.Event} eventData Raw event blob from `$actionMap`.
-   * @param {rm.types.EventPage} pageData The resolved page used for this spawn.
+   * @param {RPG_MapEvent} eventData Raw event blob from `$actionMap`.
+   * @param {RPG_MapEventPage} pageData The resolved page used for this spawn.
    */
   stampActionMapVisualNoteFromActionEvent(eventData, pageData)
   {
@@ -22658,7 +22658,7 @@ class JABS_Engine
 {
   /**
    * The events array of the enemy cloning map.
-   * @type {rm.types.Event[]|null}
+   * @type {RPG_MapEvent[]|null}
    */
   static #enemyCloneList = null;
 
@@ -22777,7 +22777,7 @@ class JABS_Engine
   //region static
   /**
    * Gets the collection of enemy clone events currently tracked.
-   * @returns {rm.types.Event[]}
+   * @returns {RPG_MapEvent[]}
    */
   static getEnemyCloneList()
   {
@@ -22786,7 +22786,7 @@ class JABS_Engine
 
   /**
    * Sets the enemy clone collection to the given collection.
-   * @param {rm.types.Event[]} enemies The enemy events from the enemy clone map.
+   * @param {RPG_MapEvent[]} enemies The enemy events from the enemy clone map.
    */
   static setEnemyCloneList(enemies)
   {
@@ -22892,7 +22892,7 @@ class JABS_Engine
 
     /**
      * A collection of the metadata of all action-type events.
-     * @type {rm.types.Event[]}
+     * @type {RPG_MapEvent[]}
      */
     this._activeActions = isMapTransfer
       ? Array.empty
@@ -22929,7 +22929,7 @@ class JABS_Engine
    * Adds a new JABS action to this battle map for tracking.
    * The additional metadata is optional, omitted when executing direct actions.
    * @param {JABS_Action} actionEvent The JABS action to add.
-   * @param {rm.types.Event} actionEventData The event metadata, if anything.
+   * @param {RPG_MapEvent} actionEventData The event metadata, if anything.
    */
   addActionEvent(actionEvent, actionEventData)
   {
@@ -22951,7 +22951,7 @@ class JABS_Engine
    * This is used when a given event has an underlying action associated with it and
    * we want that action data.
    * @param {string} uuid The `uuid` to find.
-   * @returns {rm.types.Event} The event associated with the `uuid`.
+   * @returns {RPG_MapEvent} The event associated with the `uuid`.
    */
   event(uuid)
   {
@@ -24062,7 +24062,7 @@ class JABS_Engine
    * @param {JABS_Action} action The JABS action to execute.
    * @param {number|null} x The target's `x` coordinate, if applicable.
    * @param {number|null} y The target's `y` coordinate, if applicable.
-   * @returns {rm.types.Event}
+   * @returns {RPG_MapEvent}
    */
   buildActionEventData(caster, action, x, y)
   {
@@ -24691,7 +24691,7 @@ class JABS_Engine
 
   /**
    * Creates a new JABS action and adds it to the map and tracking.
-   * @param {rm.types.Event} actionEventData An object representing the data of a `Game_Event`.
+   * @param {RPG_MapEvent} actionEventData An object representing the data of a `Game_Event`.
    * @param {JABS_Action} action An object representing the data of a `Game_Event`.
    */
   addJabsActionToMap(actionEventData, action)
@@ -28149,7 +28149,7 @@ Game_Action.prototype.applyPercentDamageReduction = function(baseDamage, jabsBat
  * Adds a conditional check to see if adding state-related effects is allowed
  * against the target.
  * @param {Game_Battler} target The target battler potentially being afflicted.
- * @param {rm.types.Effect} effect The effect being applied to the target.
+ * @param {RPG_UsableEffect} effect The effect being applied to the target.
  */
 J.ABS.Aliased.Game_Action.set('itemEffectAddState', Game_Action.prototype.itemEffectAddState);
 Game_Action.prototype.itemEffectAddState = function(target, effect)
@@ -28169,7 +28169,7 @@ Game_Action.prototype.itemEffectAddState = function(target, effect)
  *
  * By default, if an action is parried, then its states are not applied to the target.
  * @param {Game_Battler} target The target battler potentially being afflicted.
- * @param {rm.types.Effect} effect The effect being applied to the target.
+ * @param {RPG_UsableEffect} effect The effect being applied to the target.
  */
 // eslint-disable-next-line no-unused-vars
 Game_Action.prototype.canItemEffectAddState = function(target, effect)
@@ -28192,7 +28192,7 @@ Game_Action.prototype.canItemEffectAddState = function(target, effect)
  * It was frustrating that this needed an entire replacement just to
  * inject the battler.
  * @param {Game_Battler} target The target.
- * @param {rm.types.Effect} effect The potential effect to add.
+ * @param {RPG_UsableEffect} effect The potential effect to add.
  */
 Game_Action.prototype.itemEffectAddAttackState = function(target, effect)
 {
@@ -28224,7 +28224,7 @@ Game_Action.prototype.itemEffectAddAttackState = function(target, effect)
  *
  * Passes the attacker as another data point to the application of state.
  * @param {Game_Battler} target The target.
- * @param {rm.types.Effect} effect The potential effect to add.
+ * @param {RPG_UsableEffect} effect The potential effect to add.
  */
 Game_Action.prototype.itemEffectAddNormalState = function(target, effect)
 {
@@ -32941,13 +32941,13 @@ Game_Map.prototype.expiredActionEvents = function()
 
 /**
  * Gets all action events that have reached their expiration and need removal.
- * @returns {rm.types.Event[]} All relevant action metadatas.
+ * @returns {RPG_MapEvent[]} All relevant action metadatas.
  */
 Game_Map.prototype.actionEventsFromDataMapByUuid = function(uuid)
 {
   // the filter function for retrieving action metadatas from the datamap.
   /**
-   * @param {rm.types.Event} metadata
+   * @param {RPG_MapEvent} metadata
    */
   const filtering = metadata =>
   {
@@ -33031,13 +33031,13 @@ Game_Map.prototype.expiredLootEvents = function()
 
 /**
  * Gets all loot event metadatas that bear the same `uuid` as requested.
- * @returns {rm.types.Event[]} All relevant loot metadatas.
+ * @returns {RPG_MapEvent[]} All relevant loot metadatas.
  */
 Game_Map.prototype.lootEventsFromDataMapByUuid = function(uuid)
 {
   // the filter function for retrieving loot metadatas from the datamap.
   /**
-   * @param {rm.types.Event} metadata
+   * @param {RPG_MapEvent} metadata
    */
   const filtering = metadata =>
   {
@@ -35221,6 +35221,58 @@ Scene_Map.prototype.forceCloseAbsMenu = function()
 //endregion Scene_Map
 
 //region Sprite_Animation
+/**
+ * Extends {@link Sprite_Animation.prototype.setup}.<br/>
+ * Normalizes Effekseer timing arrays before the engine iterates them; vanilla assumes both arrays exist and
+ * contain only defined timing objects, which can fail when map hits queue animations in tight succession or
+ * when database rows omit optional arrays.
+ */
+J.ABS.Aliased.Sprite_Animation.set('setup', Sprite_Animation.prototype.setup);
+Sprite_Animation.prototype.setup = function(targets, animation, mirror, delay, previous)
+{
+  // perform original logic when there is nothing to normalize.
+  if (animation === undefined || animation === null)
+  {
+    J.ABS.Aliased.Sprite_Animation.get('setup')
+      .call(this, targets, animation, mirror, delay, previous);
+    return;
+  }
+
+  const hadSoundArray = Array.isArray(animation.soundTimings);
+  const hadFlashArray = Array.isArray(animation.flashTimings);
+
+  const soundTimings = hadSoundArray
+    ? animation.soundTimings.filter(t => t !== undefined && t !== null)
+    : [];
+  const flashTimings = hadFlashArray
+    ? animation.flashTimings.filter(t => t !== undefined && t !== null)
+    : [];
+
+  const arraysAlreadyDense = hadSoundArray
+    && hadFlashArray
+    && soundTimings === animation.soundTimings
+    && flashTimings === animation.flashTimings;
+
+  if (arraysAlreadyDense === true)
+  {
+    J.ABS.Aliased.Sprite_Animation.get('setup')
+      .call(this, targets, animation, mirror, delay, previous);
+    return;
+  }
+
+  const safeAnimation = Object.assign(
+    {},
+    animation,
+    {
+      soundTimings,
+      flashTimings,
+    }
+  );
+
+  J.ABS.Aliased.Sprite_Animation.get('setup')
+    .call(this, targets, safeAnimation, mirror, delay, previous);
+};
+
 /**
  * Extends {@link Sprite_Animation.prototype.targetPosition}.<br/>
  * Adds a guard to ensure we don't attempt to calculate positions for destroyed sprites.
