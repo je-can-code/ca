@@ -232,6 +232,17 @@ JABS_AiManager.rubberbandAlly = function(allyBattler)
 J.PIXEL.EXT.ABS.Aliased.JABS_AiManager.set("moveTowardSlotIfNeeded", JABS_AiManager.moveTowardSlotIfNeeded);
 JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY)
 {
+  // dodge pipeline owns the ally sprite until endDodge; skip formation pull during forced dodge.
+  if (allyBattler.isDodging())
+  {
+    return;
+  }
+
+  if (allyBattler.guarding())
+  {
+    return;
+  }
+
   // acquire the character once.
   const chr = allyBattler.getCharacter();
 
@@ -651,6 +662,17 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function()
     return;
   }
 
+  // forced dodge owns movement; pixel steering here stacks dodge speed and reads as free sprint.
+  if (this.isDodging())
+  {
+    return;
+  }
+
+  if (this.guarding())
+  {
+    return;
+  }
+
   // Acquire our character.
   const chr = this.getCharacter();
 
@@ -907,6 +929,17 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function()
  */
 JABS_Battler.prototype.smartMoveTowardCoordinates = function(targetX, targetY)
 {
+  // ally ai + formations issue this every frame; while dodging it fights executeDodgeMovement and stacks dodge speed.
+  if (this.isDodging())
+  {
+    return;
+  }
+
+  if (this.guarding())
+  {
+    return;
+  }
+
   // Acquire the character for this battler.
   const chr = this.getCharacter();
 

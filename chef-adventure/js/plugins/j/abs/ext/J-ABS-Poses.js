@@ -726,12 +726,13 @@ J.ABS.EXT.POSES.Aliased.JABS_Battler.set('executeDodgeSkill', JABS_Battler.proto
 /**
  * Executes the provided dodge skill.
  * @param {RPG_Skill} skill The RPG item representing the dodge skill.
+ * @param {number} [forcedDirection8] Core dodge passes this for AI away-vector dodges; preserve through alias.
  */
-JABS_Battler.prototype.executeDodgeSkill = function(skill)
+JABS_Battler.prototype.executeDodgeSkill = function(skill, forcedDirection8)
 {
   // perform original logic.
   J.ABS.EXT.POSES.Aliased.JABS_Battler.get('executeDodgeSkill')
-    .call(this, skill);
+    .call(this, skill, forcedDirection8);
 
   // change over to the action pose for the skill.
   this.performActionPose(skill);
