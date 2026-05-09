@@ -1,10 +1,6 @@
 # rpg maker files
 file*.rmmzsave
 
-# Cursor session noise / deprecated rules (JMZ rules stay in rmmz-plugins or AGENTS.md)
-.cursor/debug-*.log
-.cursor/rules/context-mode.mdc
-
 # invisible OS configuration files
 .DS_Store
 desktop.ini
