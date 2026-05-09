@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 POPUPS-ABS] Combat and reward popups for JABS.
+ * [v1.2.0 POPUPS-ABS] Combat and reward popups for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -11,6 +11,11 @@
  * @orderAfter J-Base
  * @orderAfter J-Popups
  * @orderAfter J-ABS
+ * @param disableSkillUsedPopups
+ * @text Disable skill-used popups
+ * @type boolean
+ * @default false
+ * @desc When true, hides the floating skill name on the caster only; damage/healing/reward popups still show.
  * @help
  * ============================================================================
  * OVERVIEW
@@ -29,6 +34,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Plugin parameter disableSkillUsedPopups suppresses caster skill-name popups only.
  * - 1.1.0
  *    Extracted popup construction into a dedicated JABS_PopupManager class.
  *    Added ABS-specific TextPopBuilder and Map_TextPop extensions in _models/.
@@ -44,6 +51,14 @@
  * The core where all of my extensions live: in the `J` object.
  */
 J.POPUPS.EXT.ABS = {};
+
+J.POPUPS.EXT.ABS.PluginParameters = PluginManager.parameters('J-Popups-ABS');
+
+/**
+ * When true, {@link JABS_PopupManager.showSkillUsedPop} returns early (damage and other ABS popups unchanged).
+ * @type {boolean}
+ */
+J.POPUPS.EXT.ABS.DisableSkillUsedPopups = J.POPUPS.EXT.ABS.PluginParameters['disableSkillUsedPopups'] === 'true';
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -314,6 +329,11 @@ class JABS_PopupManager
    */
   static showSkillUsedPop(action)
   {
+    if (J.POPUPS.EXT.ABS.DisableSkillUsedPopups === true)
+    {
+      return;
+    }
+
     const caster = action.getCaster();
     if (caster.isInanimate())
     {

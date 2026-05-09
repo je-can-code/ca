@@ -1472,7 +1472,7 @@ Game_Item.prototype.initialize = function(item)
 
   /**
    * The underlying object associated with this item.
-   * @type {RPG_EquipItem|rm.types.UsableItem}
+   * @type {RPG_EquipItem|RPG_UsableItem}
    */
   this._item = null;
   if (item)

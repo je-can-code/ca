@@ -902,7 +902,7 @@ Game_Character.pixelRepeatableMoveCommandCodes = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 /**
  * Extends {@link processMoveCommand}.<br>
  * Ensures when move routes are being processed, that we adjust the x,y coordinates.
- * @param {rm.types.EventCommand} command The commands associated with this movement.
+ * @param {RPG_EventListCommand} command The commands associated with this movement.
  */
 J.PIXEL.Aliased.Game_Character.set('processMoveCommand', Game_Character.prototype.processMoveCommand);
 Game_Character.prototype.processMoveCommand = function(command)
@@ -1012,7 +1012,7 @@ Game_Character.prototype.handlePixelRoutineMove = function()
 
 /**
  * Determines whether a repeat cycle should be started for the given command.
- * @param {rm.types.EventCommand} command The current move route command.
+ * @param {RPG_EventListCommand} command The current move route command.
  * @returns {boolean} True if a new repeat cycle should begin.
  */
 Game_Character.prototype.canStartPixelRepeatMove = function(command)

@@ -968,7 +968,7 @@ class RPG_ClassLearning
 
   /**
    * Constructor.
-   * @param {rm.types.ClassLearning} learning The class learning to parse.
+   * @param {RPG_ClassLearning} learning The class learning to parse.
    */
   constructor(learning)
   {
@@ -1090,7 +1090,7 @@ class RPG_DropItem
 
   /**
    * Constructor.
-   * @param {rm.types.EnemyDropItem} enemyDropItem The drop item to parse.
+   * @param {RPG_DropItem} enemyDropItem The drop item to parse.
    */
   constructor({
     dataId,
@@ -1206,7 +1206,7 @@ class RPG_SkillDamage
   /**
    * Constructor.
    * Maps the skill's damage properties into this object.
-   * @param {rm.types.Damage} damage The original damage object to map.
+   * @param {RPG_SkillDamage} damage The original damage object to map.
    */
   constructor(damage)
   {
@@ -1542,7 +1542,7 @@ class RPG_UsableEffect
 
   /**
    * Constructor.
-   * @param {rm.types.Effect} effect The effect to parse.
+   * @param {RPG_UsableEffect} effect The effect to parse.
    */
   constructor(effect)
   {
@@ -1960,7 +1960,7 @@ class RPG_BaseBattler
   /**
    * Constructor.
    * Maps the base battler data to the properties on this class.
-   * @param {RPG_Enemy|rm.types.Actor} battler The battler to parse.
+   * @param {RPG_Enemy|RPG_Actor} battler The battler to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(battler, index)
@@ -2136,7 +2136,7 @@ class RPG_UsableItem
 
   /**
    * Constructor.
-   * @param {rm.types.UsableItem} usableItem The usable item to parse.
+   * @param {RPG_UsableItem} usableItem The usable item to parse.
    * @param {number} index The index of the skill in the database.
    */
   constructor(usableItem, index)
@@ -2246,7 +2246,7 @@ class RPG_Actor
 
   /**
    * Constructor.
-   * @param {rm.types.Actor} actor The actor to parse.
+   * @param {RPG_Actor} actor The actor to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(actor, index)
@@ -2260,7 +2260,7 @@ class RPG_Actor
 
   /**
    * Maps the data from the JSON to this object.
-   * @param {rm.types.Actor} actor The actor to parse.
+   * @param {RPG_Actor} actor The actor to parse.
    */
   initMembers(actor)
   {
@@ -2323,7 +2323,7 @@ class RPG_Armor
 
   /**
    * Constructor.
-   * @param {rm.types.Armor} armor The armor to parse.
+   * @param {RPG_Armor} armor The armor to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(armor, index)
@@ -2388,7 +2388,7 @@ class RPG_Class
 
   /**
    * Constructor.
-   * @param {rm.types.RPGClass} classData The class data to parse.
+   * @param {RPG_Class} classData The class data to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(classData, index)
@@ -2561,7 +2561,7 @@ class RPG_Item
 
   /**
    * Constructor.
-   * @param {rm.types.Item} item The item to parse.
+   * @param {RPG_Item} item The item to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(item, index)
@@ -2615,12 +2615,6 @@ class RPG_Skill
    * @type {string}
    */
   message2 = String.empty;
-
-  /**
-   * The type of message for this skill.
-   * @type {number}
-   */
-  messageType = 0;
 
   /**
    * The amount of MP required to execute this skill.
@@ -2678,7 +2672,6 @@ class RPG_Skill
     // map the data.
     this.message1 = skill.message1;
     this.message2 = skill.message2;
-    this.messageType = skill.messageType;
     this.mpCost = skill.mpCost;
     this.requiredWtypeId1 = skill.requiredWtypeId1;
     this.requiredWtypeId2 = skill.requiredWtypeId2;
@@ -2768,13 +2761,6 @@ class RPG_State
   message4 = String.empty;
 
   /**
-   * The type of message this is.
-   * (unsure)
-   * @type {number}
-   */
-  messageType = 1;
-
-  /**
    * The minimum number of turns this state will persist.
    * Requires `restriction` to not be 0 to be leveraged.
    * @type {number}
@@ -2847,7 +2833,7 @@ class RPG_State
   /**
    * Constructor.
    * Maps the state's properties into this object.
-   * @param {rm.types.State} state The underlying state object.
+   * @param {RPG_State} state The underlying state object.
    * @param {number} index The index of the state in the database.
    */
   constructor(state, index)
@@ -2863,7 +2849,6 @@ class RPG_State
     this.message2 = state.message2;
     this.message3 = state.message3;
     this.message4 = state.message4;
-    this.messageType = state.messageType;
     this.minTurns = state.minTurns;
     this.motion = state.motion;
     this.overlay = state.overlay;
@@ -2928,7 +2913,7 @@ class RPG_Weapon
 
   /**
    * Constructor.
-   * @param {rm.types.Weapon} weapon The weapon to parse.
+   * @param {RPG_Weapon} weapon The weapon to parse.
    * @param {number} index The index of the entry in the database.
    */
   constructor(weapon, index)
@@ -3027,9 +3012,9 @@ ColorManager.longParam = function(paramId)
 };
 
 /**
- * Gets the color index for a given element.
+ * Gets the windowskin text palette color for a given element (same sampling path as {@link ColorManager.textColor}).
  * @param {number} elementId The element id to get a color for.
- * @returns {number} The color index of the given element.
+ * @returns {string} Hex color string from the windowskin palette (see {@link Bitmap#getPixel}).
  */
 // eslint-disable-next-line
 ColorManager.elementColorHexcode = function(elementId)
@@ -3177,9 +3162,9 @@ ColorManager.elementColorIndex = function(elementId)
 };
 
 /**
- * Gets the color index of the given skill type.
+ * Gets the windowskin text palette color for the given skill type.
  * @param {number} skillTypeId The id to get the color for.
- * @returns {rm.types.Color}
+ * @returns {string} Hex color string from the windowskin palette.
  */
 // eslint-disable-next-line no-unused-vars
 ColorManager.skillType = function(skillTypeId)
@@ -3188,9 +3173,9 @@ ColorManager.skillType = function(skillTypeId)
 };
 
 /**
- * Gets the color index of the given weapon type.
+ * Gets the windowskin text palette color for the given weapon type.
  * @param {number} weaponTypeId The id to get the color for.
- * @returns {rm.types.Color}
+ * @returns {string} Hex color string from the windowskin palette.
  */
 // eslint-disable-next-line no-unused-vars
 ColorManager.weaponType = function(weaponTypeId)
@@ -3199,9 +3184,9 @@ ColorManager.weaponType = function(weaponTypeId)
 };
 
 /**
- * Gets the color index of the given armor type.
+ * Gets the windowskin text palette color for the given armor type.
  * @param {number} armorTypeId The id to get the color for.
- * @returns {rm.types.Color}
+ * @returns {string} Hex color string from the windowskin palette.
  */
 // eslint-disable-next-line no-unused-vars
 ColorManager.armorType = function(armorTypeId)
@@ -3210,9 +3195,9 @@ ColorManager.armorType = function(armorTypeId)
 };
 
 /**
- * Gets the color index of the given equip type.
+ * Gets the windowskin text palette color for the given equip type.
  * @param {number} equipTypeId The id to get the color for.
- * @returns {rm.types.Color}
+ * @returns {string} Hex color string from the windowskin palette.
  */
 // eslint-disable-next-line no-unused-vars
 ColorManager.equipType = function(equipTypeId)
@@ -3221,9 +3206,9 @@ ColorManager.equipType = function(equipTypeId)
 };
 
 /**
- * Gets the color index of the given SDP.
+ * Gets the windowskin text palette color for the given SDP rarity band.
  * @param {string} rarity The key to get the panel for.
- * @returns {rm.types.Color}
+ * @returns {string} Hex color string from the windowskin palette.
  */
 ColorManager.sdp = function(rarity)
 {
@@ -10185,7 +10170,7 @@ Game_Enemy.prototype.getBaseMaxTp = function()
 //region Game_Event
 /**
  * Gets all valid-shaped comment event commands.
- * @returns {rm.types.EventCommand[]}
+ * @returns {RPG_EventListCommand[]}
  */
 Game_Event.prototype.getValidCommentCommands = function()
 {
@@ -10199,7 +10184,7 @@ Game_Event.prototype.getValidCommentCommands = function()
 
 /**
  * Gets all valid-shaped comment event commands from a designated page.
- * @param {rm.types.Page} page The event page to parse comments from.
+ * @param {RPG_MapEventPage} page The event page to parse comments from.
  */
 Game_Event.getValidCommentCommandsFromPage = function(page)
 {
@@ -10215,7 +10200,7 @@ Game_Event.getValidCommentCommandsFromPage = function(page)
 
 /**
  * Filters out event commands that are not comments intended for regex parsing.
- * @param {rm.types.EventCommand} command The command to evaluate.
+ * @param {RPG_EventListCommand} command The command to evaluate.
  * @returns {boolean}
  */
 Game_Event.filterInvalidEventCommand = function(command)
@@ -10307,7 +10292,7 @@ Game_Event.prototype.extractValueByRegex = function(structure, defaultValue = nu
 /**
  * Extracts a value out of an event's comments based on the provided structure.
  * If there are multiple matches in the comments, only the last one will be returned.
- * @param {rm.types.EventCommand} command The command in question.
+ * @param {RPG_EventListCommand} command The command in question.
  * @param {RegExp} structure The regex to find values for.
  * @param {any=} defaultValue The default value to start with; defaults to null.
  * @param {boolean=} andParse Whether or not to parse the results; defaults to true.
@@ -10342,7 +10327,7 @@ Game_Event.prototype.getDataForCommandByRegex = function(command, structure, def
 
 /**
  * Gets the current page's event command list if it is present, or an empty array if it isn't.
- * @returns {rm.types.EventCommand[]}
+ * @returns {RPG_EventListCommand[]}
  */
 Game_Event.prototype.getEventCommandList = function()
 {
@@ -12792,7 +12777,7 @@ Window_Base.prototype.obtainEscapeCode = function(textState)
 
 /**
  * Retrieves additional escape codes that are our custom creation.
- * @param {any} textState The rolling text state.
+ * @param {RPG_TextState} textState Rolling bag from {@link Window_Base.prototype.createTextState}.
  * @returns {string} The found escape code, if any.
  */
 Window_Base.prototype.customEscapeCodes = function(textState)
