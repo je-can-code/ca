@@ -1894,7 +1894,7 @@ class Window_MapLog
    *
    * The goal of these shifts are to center the now-smaller icon inline with the text.
    * @param {number} iconIndex The index of the icon to draw.
-   * @param {rm.types.TextState} textState The rolling state of the text being drawn.
+   * @param {RPG_TextState} textState Rolling bag from {@link Window_Base.prototype.createTextState}.
    * @extends
    */
   processDrawIcon(iconIndex, textState)

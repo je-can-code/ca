@@ -253,7 +253,7 @@ J.MESSAGE.RegExp.SwitchOffChoiceConditional = /<switchOffChoiceCondition:[ ]?(\d
 //region Game_Event
 /**
  * A filter function for only including comment event commands relevant to choice conditionals.
- * @param {rm.types.EventCommand} command The command being evaluated.
+ * @param {RPG_EventListCommand} command The command being evaluated.
  * @returns {boolean}
  */
 Game_Event.filterCommentCommandsForBasicConditionals = function(command)
@@ -279,7 +279,7 @@ Game_Event.filterCommentCommandsForBasicConditionals = function(command)
 
 /**
  * Converts a known comment event command into a conditional for basic control.
- * @param {rm.types.EventCommand} commentCommand The comment command to parse into a conditional.
+ * @param {RPG_EventListCommand} commentCommand The comment command to parse into a conditional.
  * @returns {BasicChoiceConditional}
  */
 Game_Event.toBasicConditional = function(commentCommand)
@@ -346,7 +346,7 @@ Game_Interpreter.prototype.setupChoices = function(params)
 
 /**
  * A hook for evaluating visibility of choices programmatically.
- * @param {rm.types.EventCommand[]} params The choices parameters being setup.
+ * @param {RPG_EventListCommand[]} params The choices parameters being setup.
  */
 Game_Interpreter.prototype.evaluateChoicesForVisibility = function(params)
 {
@@ -356,7 +356,7 @@ Game_Interpreter.prototype.evaluateChoicesForVisibility = function(params)
 
 /**
  * Hide all the choices that don't meet the criteria.
- * @param {rm.types.EventCommand} params The event command parameters.
+ * @param {RPG_EventListCommand} params The event command parameters.
  */
 // eslint-disable-next-line no-unused-vars
 Game_Interpreter.prototype.hideSpecificChoiceBranches = function(params)
