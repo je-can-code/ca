@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.0.4 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -26,7 +26,7 @@
  * ----------------------------------------------------------------------------
  * REQUIREMENTS
  * - J-Base  (any recent version)
- * - J-ABS   (v4.10.0+)
+ * - J-ABS   (v4.11.0+)
  * - J-Pixelistics (v1.0.0+)
  *
  * Load order in RPG Maker plugin manager:
@@ -34,6 +34,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.4
+ *    `angleToDirection` folds atan2 vs `dir8ToAngle` degrees into one sector map so keyboard north and analog aim agree.
  * - 1.0.3
  *    `JABS_AiManager` and `JABS_Battler` integration for defensive dodge with pixel movement and formation rules.
  * - 1.0.2
@@ -1186,45 +1188,61 @@ JABS_Battler.prototype.calculateAngle = function(targetX, targetY)
  * ±180°= LEFT(4)
  * -90° = UP(8)
  * Sectors are 45° wide with boundaries at ±22.5°, ±67.5°, ±112.5°, ±157.5°.
- * @param {number} angle The angle in degrees from Math.atan2(dy, dx).
+ *
+ * {@link Game_Player.prototype.dir8ToAngle} uses 0..360 (UP=270°), while analog sticks use atan2
+ * in [-180,180] (UP=-90°). Normalize first so keyboard north never lands in the LEFT bucket.
+ *
+ * @param {number} angle The angle in degrees (atan2 or dir8ToAngle).
  * @returns {1|2|3|4|6|7|8|9}
  */
 JABS_Battler.prototype.angleToDirection = function(angle)
 {
+  // Fold into (-180, 180] so sector math matches both angle producers.
+  let a = angle;
+
+  if (a > 180)
+  {
+    a -= 360;
+  }
+  else if (a <= -180)
+  {
+    a += 360;
+  }
+
   // Define half-sector width (45° / 2).
   const half = 22.5;
 
   // RIGHT: -22.5 .. 22.5
   // 6.
-  const isRight = angle > -half && angle <= half;
+  const isRight = a > -half && a <= half;
 
   // DOWN-RIGHT: 22.5 .. 67.5
   // 3.
-  const isDownRight = angle > half && angle <= (half + 45);
+  const isDownRight = a > half && a <= (half + 45);
 
   // DOWN: 67.5 .. 112.5
   // 2.
-  const isDown = angle > (half + 45) && angle <= (half + 90);
+  const isDown = a > (half + 45) && a <= (half + 90);
 
   // DOWN-LEFT: 112.5 .. 157.5
   // 1.
-  const isDownLeft = angle > (half + 90) && angle <= (half + 135);
+  const isDownLeft = a > (half + 90) && a <= (half + 135);
 
   // LEFT: >157.5 or <= -157.5
   // 4.
-  const isLeft = angle > (half + 135) || angle <= -(half + 135);
+  const isLeft = a > (half + 135) || a <= -(half + 135);
 
   // UP-LEFT: -157.5 .. -112.5
   // 7.
-  const isUpLeft = angle > -(half + 135) && angle <= -(half + 90);
+  const isUpLeft = a > -(half + 135) && a <= -(half + 90);
 
   // UP: -112.5 .. -67.5
   // 8.
-  const isUp = angle > -(half + 90) && angle <= -(half + 45);
+  const isUp = a > -(half + 90) && a <= -(half + 45);
 
   // UP-RIGHT: -67.5 .. -22.5
   // 9.
-  const isUpRight = angle > -(half + 45) && angle <= -half;
+  const isUpRight = a > -(half + 45) && a <= -half;
 
   // Map the sector to the direction numbers.
   if (isRight)

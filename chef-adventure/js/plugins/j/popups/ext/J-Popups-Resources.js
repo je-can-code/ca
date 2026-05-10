@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 POPUPS-RESOURCES] Skill cost and resource gain popups.
+ * [v1.0.1 POPUPS-RESOURCES] Skill cost and resource gain popups.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -38,6 +38,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Cost and on-map resource gain popups route through strike merge when J-Popups-ABS is active (`routeStrikePop`).
  * - 1.0.0
  *    Initial release.
  *    Added HP/MP/TP cost and gain popups hooked via Game_Battler methods.
@@ -126,8 +128,13 @@ Game_Battler.prototype.paySkillHpCost = function(amount)
     .forEnemyDamageRing()
     .build();
 
-  // show the damage popup.
-  TextPopManager.show(pop, character);
+  const uuid = jabsBattler.getUuid();
+
+  JABS_PopupMergeController.routeStrikePop(pop, character, {
+    attackerUuid: uuid,
+    targetUuid: uuid,
+    amount,
+  });
 };
 
 /**
@@ -161,8 +168,13 @@ Game_Battler.prototype.gainHpFromResource = function(amount)
     .forIncomingHealRing()
     .build();
 
-  // show the damage popup.
-  TextPopManager.show(pop, character);
+  const uuid = jabsBattler.getUuid();
+
+  JABS_PopupMergeController.routeStrikePop(pop, character, {
+    attackerUuid: uuid,
+    targetUuid: uuid,
+    amount: -amount,
+  });
 };
 
 /**
@@ -196,8 +208,13 @@ Game_Battler.prototype.gainMpFromResource = function(amount)
     .forIncomingHealRing()
     .build();
 
-  // show the damage popup.
-  TextPopManager.show(pop, character);
+  const uuid = jabsBattler.getUuid();
+
+  JABS_PopupMergeController.routeStrikePop(pop, character, {
+    attackerUuid: uuid,
+    targetUuid: uuid,
+    amount: -amount,
+  });
 };
 
 /**
@@ -231,8 +248,13 @@ Game_Battler.prototype.gainTpFromResource = function(amount)
     .forIncomingHealRing()
     .build();
 
-  // show the damage popup.
-  TextPopManager.show(pop, character);
+  const uuid = jabsBattler.getUuid();
+
+  JABS_PopupMergeController.routeStrikePop(pop, character, {
+    attackerUuid: uuid,
+    targetUuid: uuid,
+    amount: -amount,
+  });
 };
 //endregion Game_Battler
 

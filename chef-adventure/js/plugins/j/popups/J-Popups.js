@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 POPUPS] Map text popups for JABS and beyond.
+ * [v2.1.0 POPUPS] Map text popups for JABS and beyond.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -40,6 +40,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    Sprite_MapDamage accumulation phase; merge helpers + PopupEmitter flush hooks.
+ *    Merge idle flush is battler-wide (any merged stream refreshes the timer); strike floats release on that idle
+ *    window only (not on unrelated combo-chain clear signals).
  * - 2.0.0
  *    Split from J-TextPops; plugin renamed J-Popups; layout rings + WeakMap
  *    stacking; addTextPop validation; J.POPUPS.EXT.* extensions for J-ABS,
@@ -69,7 +73,7 @@ J.POPUPS = {};
  */
 J.POPUPS.Metadata = {};
 J.POPUPS.Metadata.Name = `J-Popups`;
-J.POPUPS.Metadata.Version = '2.0.0';
+J.POPUPS.Metadata.Version = '2.1.0';
 
 J.POPUPS.PluginParameters = PluginManager.parameters('J-Popups');
 
@@ -92,6 +96,8 @@ J.POPUPS.EventNames = {
   SpriteSpawned: 'popups/sprite-spawned',
   SpriteFinished: 'popups/sprite-finished',
   FlushRequested: 'popups/flush-requested',
+  ComboChainCleared: 'popups/combo-chain-cleared',
+  MergeFlushAll: 'popups/merge-flush-all',
 };
 
 /**
@@ -237,6 +243,7 @@ J.POPUPS.Aliased.Game_Character = new Map();
 J.POPUPS.Aliased.Spriteset_Map = new Map();
 J.POPUPS.Aliased.Sprite_Character = new Map();
 J.POPUPS.Aliased.Sprite_Damage = new Map();
+J.POPUPS.Aliased.Scene_Map = new Map();
 
 //region J_PopupsEvents
 /**
@@ -290,6 +297,33 @@ J.POPUPS.notifyPopupSpriteFinished = function(character, popup, sprite)
     character,
     popup,
     sprite,
+  });
+};
+
+/**
+ * Emits {@link J.POPUPS.EventNames.ComboChainCleared} after JABS clears a combo id from a skill slot.
+ * Extensions may subscribe; strike merge release uses `mergeIdleFlushFrames` idle flush, not this event.
+ *
+ * @param {JABS_Battler} jabsBattler The battler who owned the chain.
+ * @param {string} cooldownKey The skill-slot cooldown key (mainhand/offhand/etc.).
+ */
+J.POPUPS.notifyComboChainCleared = function(jabsBattler, cooldownKey)
+{
+  J.POPUPS.Helpers.PopupEmitter.emit(J.POPUPS.EventNames.ComboChainCleared, {
+    jabsBattler,
+    cooldownKey,
+  });
+};
+
+/**
+ * Requests merge accumulators to flush (listeners interpret scope).
+ *
+ * @param {string} reason Diagnostic tag for subscribers.
+ */
+J.POPUPS.notifyMergeFlushAll = function(reason)
+{
+  J.POPUPS.Helpers.PopupEmitter.emit(J.POPUPS.EventNames.MergeFlushAll, {
+    reason,
   });
 };
 //endregion J_PopupsEvents
@@ -405,6 +439,7 @@ Map_TextPop.prototype.initialize = function({
   healing,
   textAccent,
   layoutRing,
+  jInstantRelease,
 })
 {
   /**
@@ -462,6 +497,13 @@ Map_TextPop.prototype.initialize = function({
    * @type {string}
    */
   this.layoutRing = layoutRing;
+
+  /**
+   * When false, {@link Sprite_MapDamage} stays in accumulation phase until merge policy releases motion.
+   * When true (default), motion plays immediately like legacy {@link Sprite_Damage} pops.
+   * @type {boolean}
+   */
+  this.jInstantRelease = jInstantRelease !== false;
 };
 //endregion Map_TextPop
 
@@ -568,6 +610,13 @@ class TextPopBuilder
    */
   #layoutRing = Map_TextPop.LayoutRings.EnemyDamage;
 
+  /**
+   * When false, merge layer keeps {@link Sprite_MapDamage} in accumulation phase until flushed.
+   * @type {boolean}
+   * @private
+   */
+  #jInstantRelease = true;
+
   //endregion properties
 
   /**
@@ -597,6 +646,7 @@ class TextPopBuilder
       healing: this.#isHealing,
       textAccent: this.#textAccent,
       layoutRing: this.#layoutRing,
+      jInstantRelease: this.#jInstantRelease,
     });
 
     // clear out the just-built popup.
@@ -624,6 +674,7 @@ class TextPopBuilder
     this.#yVariance = 0;
     this.#textAccent = null;
     this.#layoutRing = Map_TextPop.LayoutRings.EnemyDamage;
+    this.#jInstantRelease = true;
   }
 
   /**
@@ -918,6 +969,16 @@ class TextPopBuilder
     this.#layoutRing = Map_TextPop.LayoutRings.CenterFocus;
     this.setXVariance(0);
     this.setYVariance(0);
+    return this;
+  }
+
+  /**
+   * @param {boolean} instant When false, {@link Sprite_MapDamage} waits for merge flush before motion.
+   * @returns {TextPopBuilder} The builder, for fluent chaining.
+   */
+  setJInstantRelease(instant)
+  {
+    this.#jInstantRelease = instant;
     return this;
   }
 
@@ -1239,15 +1300,15 @@ class TextPopSpriteManager
   }
 
   /**
-   * Converts a `Map_TextPop` into a `Sprite_Damage`.
+   * Converts a `Map_TextPop` into a {@link Sprite_MapDamage} (extends {@link Sprite_Damage}).
    * @param {Map_TextPop} popup The popup to convert.
    * @param {{ x?: number, y?: number }} ringExtra Extra offset from {@link J.POPUPS.consumeLayoutRingOffset}.
-   * @returns {Sprite_Damage} The converted sprite.
+   * @returns {Sprite_MapDamage} The converted sprite.
    */
   static convert(popup, ringExtra = { x: 0, y: 0 })
   {
-    // start by creating a blank damage sprite.
-    const sprite = new Sprite_Damage();
+    // start by creating a blank damage sprite with accumulation-capable subclass.
+    const sprite = new Sprite_MapDamage();
 
     const rx = ringExtra.x || 0;
     const ry = ringExtra.y || 0;
@@ -1291,6 +1352,12 @@ class TextPopSpriteManager
 
     // reposition children if both icon and text exist.
     sprite.repositionChildren();
+
+    // discrete pops play motion immediately; merge-driven pops defer until flush.
+    if (popup.jInstantRelease !== false)
+    {
+      sprite.releaseAccumulatePhase();
+    }
 
     // return the constructed sprite for the popup.
     return sprite;
@@ -1548,6 +1615,92 @@ J.POPUPS.isValidTextPopForQueue = function(textPop)
   return false;
 };
 //endregion J_PopupLayoutRings
+
+//region J_PopupNumericDisplay
+/**
+ * Strips IEEE-754 dust from purely numeric popup labels immediately before bitmap draw.
+ *
+ * Floating merges (strike totals, slip ticks, …) can accumulate tiny fractional error in JS.
+ * Mitigation stacks, item names, and other letter-bearing labels must pass through untouched.
+ *
+ * @param {string|number} raw Value for {@link Sprite_Damage#createValue} or
+ * {@link Sprite_MapDamage#refreshDisplayedValue}.
+ * @param {boolean} [isHealingPopup] When true ( {@link Map_TextPop#healing} ), show regen/heal as `+N`
+ * using absolute magnitude — merge refreshes bypass {@link TextPopBuilder#makePopupValue}'s minus strip.
+ * @returns {string} Rounded integer text for numeric payloads; prose returns verbatim.
+ */
+J.POPUPS.formatNumericPopupDisplayString = function(raw, isHealingPopup)
+{
+  const text = raw === undefined || raw === null ? '' : String(raw);
+  const trimmed = text.trim();
+
+  if (trimmed.length === 0)
+  {
+    return text;
+  }
+
+  // Anything beyond a signed decimal literal is intentional prose (e.g. PARRY x3, item titles).
+  if (/^[.\d-]+$/.test(trimmed) === false)
+  {
+    return text;
+  }
+
+  const n = Number(trimmed);
+
+  if (!Number.isFinite(n))
+  {
+    return text;
+  }
+
+  const rounded = Math.round(n);
+
+  if (isHealingPopup === true)
+  {
+    return `+${Math.abs(rounded)}`;
+  }
+
+  return String(rounded);
+};
+//endregion J_PopupNumericDisplay
+
+//region J_PopupSpriteLocator
+/**
+ * Locates the {@link Sprite_Character} that renders a given {@link Game_Character} on the current map scene.
+ *
+ * @param {Game_Character} gameCharacter The logical map character.
+ * @returns {Sprite_Character|null} The sprite wrapper when present.
+ */
+J.POPUPS.findSpriteCharacterForGameCharacter = function(gameCharacter)
+{
+  const scene = SceneManager._scene;
+
+  if (!scene || scene.constructor !== Scene_Map)
+  {
+    return null;
+  }
+
+  const spriteset = scene._spriteset;
+
+  if (!spriteset || !spriteset._characterSprites)
+  {
+    return null;
+  }
+
+  const list = spriteset._characterSprites;
+
+  for (let i = 0; i < list.length; i++)
+  {
+    const spriteCharacter = list[i];
+
+    if (spriteCharacter.character() === gameCharacter)
+    {
+      return spriteCharacter;
+    }
+  }
+
+  return null;
+};
+//endregion J_PopupSpriteLocator
 
 //region TextPopManager
 /**
@@ -1852,6 +2005,27 @@ Sprite_Character.prototype.createIncomingTextPop = function(popup)
 
   this.parent.addChild(sprite);
   J.POPUPS.notifyPopupSpriteSpawned(character, popup, sprite);
+};
+
+/**
+ * Parents a converted popup sprite that bypassed the pending queue (merge accumulation path).
+ *
+ * @param {Sprite_Damage} sprite The sprite from {@link TextPopSpriteManager.convert}.
+ * @param {Map_TextPop} popup The source popup model.
+ */
+Sprite_Character.prototype.attachConvertedDamagePopupSprite = function(sprite, popup)
+{
+  if (sprite.isDamage())
+  {
+    this._j._popups._damagePopSprites.push(sprite);
+  }
+  else
+  {
+    this._j._popups._nonDamagePopSprites.push(sprite);
+  }
+
+  this.parent.addChild(sprite);
+  J.POPUPS.notifyPopupSpriteSpawned(this.character(), popup, sprite);
 };
 //endregion incoming subscription
 
@@ -2170,6 +2344,20 @@ Sprite_Damage.prototype.setupMotionData = function(sprite)
  */
 Sprite_Damage.prototype.createValue = function(value)
 {
+  let healingPopup = false;
+
+  if (this._j._popups._sourcePopup && this._j._popups._sourcePopup.healing === true)
+  {
+    healingPopup = true;
+  }
+
+  const displayValue = J.POPUPS.formatNumericPopupDisplayString(value, healingPopup);
+
+  if (this._j._popups._sourcePopup)
+  {
+    this._j._popups._sourcePopup.value = displayValue;
+  }
+
   const w = J.POPUPS.Layout.ValueBitmapWidth;
   const h = this.fontSize();
   const sprite = this.createChildSprite(w, h);
@@ -2185,7 +2373,9 @@ Sprite_Damage.prototype.createValue = function(value)
   {
     const accent = this._j._popups._textAccent;
     const accentItalic = accent === 'miss' || accent === 'evade' || accent === 'parry';
-    const legacyItalic = value.includes('Missed') || value.includes('Evaded') || value.includes('Parry');
+    const legacyItalic = displayValue.includes('Missed')
+      || displayValue.includes('Evaded')
+      || displayValue.includes('Parry');
 
     if (accentItalic || legacyItalic)
     {
@@ -2200,7 +2390,7 @@ Sprite_Damage.prototype.createValue = function(value)
   // draw the text.
   // we center the text on the bitmap, and the bitmap is centered on the parent.
   // using 0 y-offset to align with the icon's vertical center.
-  sprite.bitmap.drawText(value, 0, 0, w, h, "center");
+  sprite.bitmap.drawText(displayValue, 0, 0, w, h, "center");
 };
 
 /**
@@ -2457,5 +2647,207 @@ Sprite_Damage.prototype.setupCriticalEffect = function()
   this.addDuration(60);
 };
 //endregion Sprite_Damage
+
+//region Sprite_MapDamage
+/**
+ * Map combat popup sprite that can hold motion until accumulation finishes, then reuse {@link Sprite_Damage} motion.
+ * Extends engine {@link Sprite_Damage} so Juicy bits (critical flash, colors) stay consistent.
+ */
+function Sprite_MapDamage()
+{
+  this.initialize(...arguments);
+}
+
+Sprite_MapDamage.prototype = Object.create(Sprite_Damage.prototype);
+Sprite_MapDamage.prototype.constructor = Sprite_MapDamage;
+
+/**
+ * Runs after {@link Sprite_Damage.prototype.initialize}.
+ */
+Sprite_MapDamage.prototype.initialize = function()
+{
+  Sprite_Damage.prototype.initialize.call(this);
+
+  /**
+   * When true, child motion is frozen so totals can climb in place on the anchor.
+   * @type {boolean}
+   */
+  this._j._popups._mapAccumulatePhase = true;
+
+  /**
+   * Frame index into {@link #kickMergeCombinePulse}; {@link #_mergePulseTotalFrames} or greater means idle.
+   * @type {number}
+   */
+  this._j._popups._mergePulseFrameIndex = 10;
+
+  /**
+   * How many frames the merge tally scale pulse runs.
+   * @type {number}
+   */
+  this._j._popups._mergePulseTotalFrames = 10;
+};
+
+/**
+ * Mirrors {@link Sprite_Damage.prototype.update} but skips the duration countdown while accumulating.
+ *
+ * Vanilla damage sprites always decrement {@link Sprite_Damage#_duration}; if we only gate motion in
+ * {@link Sprite_MapDamage.prototype.updateChild}, the popup still expires, {@link Sprite_Damage.prototype.isPlaying}
+ * returns false, and {@link Sprite_Character.prototype._removeTrackedPopSprite} destroys the sprite early.
+ * {@link JABS_PopupMergeController} then keeps a dead reference and combo-flush hits {@link Sprite.prototype.destroy}
+ * twice (PIXI tears down listeners that are already null).
+ */
+Sprite_MapDamage.prototype.update = function()
+{
+  Sprite.prototype.update.call(this);
+
+  if (this._duration > 0)
+  {
+    if (this._j._popups._mapAccumulatePhase !== true)
+    {
+      this._duration--;
+    }
+
+    for (let i = 0; i < this.children.length; i++)
+    {
+      this.updateChild(this.children[i]);
+    }
+  }
+
+  this.updateFlash();
+  this.updateOpacity();
+
+  this.updateMergeCombinePulse();
+};
+
+/**
+ * Eases root scale after {@link #refreshDisplayedValue} so combined totals read as a pulse, not a silent swap.
+ */
+Sprite_MapDamage.prototype.updateMergeCombinePulse = function()
+{
+  const idx = this._j._popups._mergePulseFrameIndex;
+  const total = this._j._popups._mergePulseTotalFrames;
+
+  if (idx >= total)
+  {
+    this.scale.x = 1;
+    this.scale.y = 1;
+
+    return;
+  }
+
+  const peak = 1.13;
+  const w = Math.sin((Math.PI * (idx + 0.5)) / total);
+  const s = 1 + (peak - 1) * w;
+
+  this.scale.x = s;
+  this.scale.y = s;
+  this._j._popups._mergePulseFrameIndex = idx + 1;
+};
+
+/**
+ * Restarts the combine pulse when a merge refresh lands (stacking hits, slip ticks, mitigation counts).
+ */
+Sprite_MapDamage.prototype.kickMergeCombinePulse = function()
+{
+  this._j._popups._mergePulseFrameIndex = 0;
+};
+
+/**
+ * Ends the accumulation phase and allows normal bounce / flyaway motion to run.
+ */
+Sprite_MapDamage.prototype.releaseAccumulatePhase = function()
+{
+  this._j._popups._mapAccumulatePhase = false;
+
+  const baseDuration = J.POPUPS.Layout.BaseDuration;
+
+  if (this._duration < baseDuration)
+  {
+    this._duration = baseDuration;
+  }
+};
+
+/**
+ * Refreshes the primary value line without rebuilding icon geometry from scratch.
+ *
+ * @param {string} valueString The new display string (digits or mitigation label).
+ */
+Sprite_MapDamage.prototype.refreshDisplayedValue = function(valueString)
+{
+  let healingPopup = false;
+
+  if (this._j._popups._sourcePopup && this._j._popups._sourcePopup.healing === true)
+  {
+    healingPopup = true;
+  }
+
+  const displayString = J.POPUPS.formatNumericPopupDisplayString(valueString, healingPopup);
+
+  if (this._j._popups._sourcePopup)
+  {
+    this._j._popups._sourcePopup.value = displayString;
+  }
+
+  const iconRef = this._j._popups._iconSprite;
+
+  const textSprite = this.children.find(child =>
+    child !== iconRef && child.bitmap && child.bitmap.width === J.POPUPS.Layout.ValueBitmapWidth);
+
+  if (!textSprite || !textSprite.bitmap)
+  {
+    return;
+  }
+
+  const w = J.POPUPS.Layout.ValueBitmapWidth;
+  const h = this.fontSize();
+
+  textSprite.bitmap.clear();
+
+  let fontSize = 20;
+
+  if (this._j._popups._isCritical)
+  {
+    fontSize += 12;
+    textSprite.bitmap.fontBold = true;
+  }
+  else
+  {
+    const accent = this._j._popups._textAccent;
+    const accentItalic = accent === 'miss' || accent === 'evade' || accent === 'parry';
+    const legacyItalic = displayString.includes('Missed')
+      || displayString.includes('Evaded')
+      || displayString.includes('Parry');
+
+    if (accentItalic || legacyItalic)
+    {
+      fontSize -= 6;
+      textSprite.bitmap.fontItalic = true;
+    }
+  }
+
+  textSprite.bitmap.fontSize = fontSize;
+  textSprite.bitmap.drawText(displayString, 0, 0, w, h, 'center');
+
+  this.repositionChildren();
+  this.kickMergeCombinePulse();
+};
+
+/**
+ * Gates motion during accumulation so numbers stay readable on the target.
+ *
+ * @param {Sprite} sprite Child motion sprite from {@link Sprite_Damage#createChildSprite}.
+ */
+Sprite_MapDamage.prototype.updateChild = function(sprite)
+{
+  if (this._j._popups._mapAccumulatePhase === true)
+  {
+    sprite.setBlendColor(this._flashColor);
+
+    return;
+  }
+
+  Sprite_Damage.prototype.updateChild.call(this, sprite);
+};
+//endregion Sprite_MapDamage
 
 //# sourceMappingURL=J-Popups.js.map

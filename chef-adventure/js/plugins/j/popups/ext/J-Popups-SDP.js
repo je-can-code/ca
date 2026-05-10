@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 POPUPS-SDP] SDP point gain popups.
+ * [v1.0.2 POPUPS-SDP] SDP point gain popups.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -23,6 +23,8 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    SDP reward popups route through `JABS_PopupMergeController.routeRewardPop` when J-Popups-ABS merge is enabled.
  * - 1.0.1
  *    Renamed source file to standard JABS naming conventions.
  * - 1.0.0
@@ -53,7 +55,10 @@ JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character)
     .isSdpPoints()
     .build();
 
-  TextPopManager.show(pop, character);
+  JABS_PopupMergeController.routeRewardPop(pop, character, {
+    rewardType: Map_TextPop.Types.Sdp,
+    amount: sdpPoints,
+  });
 };
 
 /**
