@@ -98,7 +98,7 @@ var $plugins =
 {"name":"j/J-Map","status":true,"description":"[v1.0.0 MAP] Renders a passability-driven minimap on the screen.","parameters":{"BASEconfigs":"","minimapX":"-1","minimapY":"-1","startVisible":"false","respectHudHide":"true","overlapOpacityPercent":"40"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/popups/J-Popups","status":true,"description":"[v2.0.0 POPUPS] Map text popups (J.POPUPS core).","parameters":{"disablePopups":"false"}},
-{"name":"j/popups/ext/J-Popups-ABS","status":true,"description":"[v1.0.0 POPUPS] J-ABS map popup builders (requires J-Popups + J-ABS).","parameters":{}},
+{"name":"j/popups/ext/J-Popups-ABS","status":true,"description":"[v2.0.0 POPUPS-ABS] Combat and reward popups for JABS.","parameters":{"disableSkillUsedPopups":"true","enableMergeCombat":"true","enableMergeSlip":"true","enableMergeRewards":"true","enableMergeMitigation":"true","mergeIdleFlushFrames":"90"}},
 {"name":"j/popups/ext/J-Popups-APT","status":true,"description":"[v1.0.0 POPUPS] Aptitude map popups (requires J-Popups + J-Aptitude).","parameters":{}},
 {"name":"j/popups/ext/J-Popups-Resources","status":true,"description":"[v1.0.0 __TEMPLATE__] A plugin that does cool stuff.","parameters":{"parentConfig":"","menu-switch":"101"}},
 {"name":"j/popups/ext/J-Popups-SDP","status":true,"description":"[v1.0.0 POPUPS] SDP map popups (requires J-Popups + J-SDP + J-ABS).","parameters":{}},
