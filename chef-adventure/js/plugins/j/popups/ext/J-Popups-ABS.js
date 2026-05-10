@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 POPUPS-ABS] Combat and reward popups for JABS.
+ * [v1.3.0 POPUPS-ABS] Combat and reward popups for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -16,6 +16,32 @@
  * @type boolean
  * @default false
  * @desc When true, hides the floating skill name on the caster only; damage/healing/reward popups still show.
+ * @param enableMergeCombat
+ * @text Merge combat strike numbers
+ * @type boolean
+ * @default true
+ * @desc Sum incoming strikes on the target into one stream per HP/MP/TP line (who-hit-you lives in logs).
+ * @param enableMergeSlip
+ * @text Merge slip/regen ticks
+ * @type boolean
+ * @default true
+ * @desc Sum slip/regen ticks on the battler into one stream per resource line until flush.
+ * @param enableMergeRewards
+ * @text Merge reward totals (exp/gold/AP/SDP)
+ * @type boolean
+ * @default true
+ * @desc Sum numeric reward pops before releasing motion.
+ * @param enableMergeMitigation
+ * @text Stack mitigation labels (parry/dodge counts)
+ * @type boolean
+ * @default true
+ * @desc Shows PARRY xN / DODGE xN style stacks before releasing motion.
+ * @param mergeIdleFlushFrames
+ * @text Idle flush frames
+ * @type number
+ * @default 90
+ * @min 1
+ * @desc Release after this many frames with no merge **on this battler** (any stream counts).
  * @help
  * ============================================================================
  * OVERVIEW
@@ -34,6 +60,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Per-target strike/slip aggregates (no per-attacker lanes); combat slip/reward/mitigation merge buckets +
+ *    idle/combo/map flush hooks; requires J-Popups v2.1.0+ merge stack (`Sprite_MapDamage`, merge controller).
+ *    `mergeIdleFlushFrames` is one sliding window per target (all merge kinds refresh it); strike release does not
+ *    listen on `ComboChainCleared` (avoids global flush from other battlers' cooldowns).
  * - 1.2.0
  *    Plugin parameter disableSkillUsedPopups suppresses caster skill-name popups only.
  * - 1.1.0
@@ -55,6 +86,25 @@ J.POPUPS.EXT.ABS = {};
 J.POPUPS.EXT.ABS.PluginParameters = PluginManager.parameters('J-Popups-ABS');
 
 /**
+ * Parsed merge toggles and idle flush tuning for {@link JABS_PopupMergeController}.
+ *
+ * @type {{
+ *   enableCombat: boolean,
+ *   enableSlip: boolean,
+ *   enableRewards: boolean,
+ *   enableMitigation: boolean,
+ *   idleFlushFrames: number,
+ * }}
+ */
+J.POPUPS.EXT.ABS.MergeParams = {
+  enableCombat: J.POPUPS.EXT.ABS.PluginParameters['enableMergeCombat'] !== 'false',
+  enableSlip: J.POPUPS.EXT.ABS.PluginParameters['enableMergeSlip'] !== 'false',
+  enableRewards: J.POPUPS.EXT.ABS.PluginParameters['enableMergeRewards'] !== 'false',
+  enableMitigation: J.POPUPS.EXT.ABS.PluginParameters['enableMergeMitigation'] !== 'false',
+  idleFlushFrames: Number(J.POPUPS.EXT.ABS.PluginParameters['mergeIdleFlushFrames'] ?? 90),
+};
+
+/**
  * When true, {@link JABS_PopupManager.showSkillUsedPop} returns early (damage and other ABS popups unchanged).
  * @type {boolean}
  */
@@ -67,6 +117,7 @@ J.POPUPS.EXT.ABS.Aliased = {};
 J.POPUPS.EXT.ABS.Aliased.JABS_Engine = new Map();
 J.POPUPS.EXT.ABS.Aliased.JABS_Battler = new Map();
 J.POPUPS.EXT.ABS.Aliased.Game_Action = new Map();
+J.POPUPS.EXT.ABS.Aliased.JABS_SkillSlot = new Map();
 //endregion initialization
 
 //region Map_TextPop
@@ -218,7 +269,56 @@ class JABS_PopupManager
   {
     const character = target.getCharacter();
     const pop = JABS_PopupManager.buildDamagePop(action, target, engine);
-    TextPopManager.show(pop, character);
+    const caster = action.getCaster();
+    const attackerUuid = caster.getUuid();
+    const targetUuid = character.getJabsBattlerUuid();
+    const actionResult = target.getBattler()
+      .result();
+
+    if (actionResult.parried)
+    {
+      JABS_PopupMergeController.routeMitigationPop(pop, character, {
+        mitigationType: Map_TextPop.Types.Parry,
+        labelPrefix: 'PARRY',
+      });
+
+      return;
+    }
+
+    if (actionResult.evaded)
+    {
+      JABS_PopupMergeController.routeMitigationPop(pop, character, {
+        mitigationType: Map_TextPop.Types.Evade,
+        labelPrefix: 'DODGE',
+      });
+
+      return;
+    }
+
+    let amount;
+
+    if (actionResult.hpDamage !== 0)
+    {
+      amount = actionResult.hpDamage;
+    }
+    else if (actionResult.mpDamage !== 0)
+    {
+      amount = actionResult.mpDamage;
+    }
+    else if (actionResult.tpDamage !== 0)
+    {
+      amount = actionResult.tpDamage;
+    }
+    else
+    {
+      amount = actionResult.hpDamage;
+    }
+
+    JABS_PopupMergeController.routeStrikePop(pop, character, {
+      attackerUuid,
+      targetUuid,
+      amount,
+    });
   }
 
   /**
@@ -360,7 +460,10 @@ class JABS_PopupManager
       .isExperience()
       .build();
 
-    TextPopManager.show(pop, character);
+    JABS_PopupMergeController.routeRewardPop(pop, character, {
+      rewardType: Map_TextPop.Types.Experience,
+      amount: Math.round(experience),
+    });
   }
 
   /**
@@ -374,7 +477,10 @@ class JABS_PopupManager
       .isGold()
       .build();
 
-    TextPopManager.show(pop, character);
+    JABS_PopupMergeController.routeRewardPop(pop, character, {
+      rewardType: Map_TextPop.Types.Gold,
+      amount: Math.round(gold),
+    });
   }
 
   /**
@@ -404,6 +510,7 @@ class JABS_PopupManager
       .isLevelUp()
       .build();
 
+    J.POPUPS.notifyMergeFlushAll('level-up');
     TextPopManager.show(pop, character);
   }
 
@@ -418,6 +525,7 @@ class JABS_PopupManager
       .isSkillLearned(skill.iconIndex)
       .build();
 
+    J.POPUPS.notifyMergeFlushAll('skill-learn');
     TextPopManager.show(pop, character);
   }
 
@@ -509,7 +617,54 @@ class JABS_PopupManager
       .setCritical(actionResult.critical)
       .build();
 
-    TextPopManager.show(pop, character);
+    const attackerUuid = caster.getUuid();
+    const targetUuid = target.getCharacter()
+      .getJabsBattlerUuid();
+
+    if (actionResult.parried)
+    {
+      JABS_PopupMergeController.routeMitigationPop(pop, character, {
+        mitigationType: Map_TextPop.Types.Parry,
+        labelPrefix: 'PARRY',
+      });
+
+      return;
+    }
+
+    if (actionResult.evaded)
+    {
+      JABS_PopupMergeController.routeMitigationPop(pop, character, {
+        mitigationType: Map_TextPop.Types.Evade,
+        labelPrefix: 'DODGE',
+      });
+
+      return;
+    }
+
+    let amount;
+
+    if (actionResult.hpDamage !== 0)
+    {
+      amount = actionResult.hpDamage;
+    }
+    else if (actionResult.mpDamage !== 0)
+    {
+      amount = actionResult.mpDamage;
+    }
+    else if (actionResult.tpDamage !== 0)
+    {
+      amount = actionResult.tpDamage;
+    }
+    else
+    {
+      amount = actionResult.hpDamage;
+    }
+
+    JABS_PopupMergeController.routeStrikePop(pop, character, {
+      attackerUuid,
+      targetUuid,
+      amount,
+    });
   }
 
   /**
@@ -517,8 +672,9 @@ class JABS_PopupManager
    * @param {number} displayAmount The signed amount (negative = regen).
    * @param {0|1|2} type HP / MP / TP resource index.
    * @param {JABS_Battler} battler The battler showing the pop.
+   * @param {number} [stateId] Contributing state id when slip comes from {@link JABS_Battler#processStateRegens}.
    */
-  static showSlipPop(displayAmount, type, battler)
+  static showSlipPop(displayAmount, type, battler, stateId)
   {
     const character = battler.getCharacter();
     const textPopBuilder = new TextPopBuilder(displayAmount);
@@ -545,11 +701,584 @@ class JABS_PopupManager
       textPopBuilder.forSlipDamageRing();
     }
 
-    TextPopManager.show(textPopBuilder.build(), character);
+    const pop = textPopBuilder.build();
+
+    JABS_PopupMergeController.routeSlipPop(pop, character, {
+      type,
+      stateId,
+      amount: displayAmount,
+    });
   }
 }
 
 //endregion JABS_PopupManager
+
+//region JABS_PopupMergeController
+/**
+ * Central merge policy for map popups: accumulate compatible hits on a {@link Sprite_MapDamage}, then release motion.
+ */
+class JABS_PopupMergeController
+{
+  /**
+   * Weak map: {@link Game_Character} -> `{ sessions: Map<string, object> }`.
+   *
+   * @type {WeakMap<Game_Character, { sessions: Map<string, object> }>}
+   */
+  static #characterStore = new WeakMap();
+
+  /**
+   * Characters that currently own at least one open merge session (idle flush scanning).
+   *
+   * @type {Set<Game_Character>}
+   */
+  static #trackedCharacters = new Set();
+
+  /**
+   * Resolves ring offsets exactly like {@link Sprite_Character#createIncomingTextPop}.
+   *
+   * @param {Sprite_Character} spriteCharacter The anchor sprite.
+   * @param {Map_TextPop} popup The popup model.
+   * @returns {{ x: number, y: number }}
+   */
+  static #ringExtraFor(spriteCharacter, popup)
+  {
+    const character = spriteCharacter.character();
+    const isMotionType = popup.popupType === Map_TextPop.Types.HpDamage ||
+                         popup.popupType === Map_TextPop.Types.MpDamage ||
+                         popup.popupType === Map_TextPop.Types.TpDamage ||
+                         popup.healing === true;
+    const useMotion = J.POPUPS.Layout.Motion.Enabled === true && isMotionType;
+
+    if (useMotion)
+    {
+      return J.POPUPS.resolveMotionOffset(popup);
+    }
+
+    return J.POPUPS.consumeLayoutRingOffset(character, popup.layoutRing);
+  }
+
+  /**
+   * @param {Game_Character} character The anchor character.
+   * @returns {{ sessions: Map<string, object>, lastCharacterMergeFrame: number }}
+   */
+  static #ensureBucket(character)
+  {
+    let bucket = JABS_PopupMergeController.#characterStore.get(character);
+
+    if (!bucket)
+    {
+      bucket = {
+        sessions: new Map(),
+        lastCharacterMergeFrame: 0,
+      };
+      JABS_PopupMergeController.#characterStore.set(character, bucket);
+    }
+
+    return bucket;
+  }
+
+  /**
+   * Rolls the idle-release window forward for **every** merge stream on this battler — any strike, slip,
+   * mitigation stack, or reward tick counts as activity so separate buckets do not expire out of sync.
+   *
+   * @param {{ sessions: Map, lastCharacterMergeFrame: number }} bucket The character bucket.
+   */
+  static #touchCharacterMergeWindow(bucket)
+  {
+    bucket.lastCharacterMergeFrame = Graphics.frameCount;
+  }
+
+  /**
+   * @param {Game_Character} character The anchor character.
+   */
+  static #trackCharacter(character)
+  {
+    JABS_PopupMergeController.#trackedCharacters.add(character);
+  }
+
+  /**
+   * @param {Game_Character} character The anchor character.
+   */
+  static #untrackIfEmpty(character)
+  {
+    const bucket = JABS_PopupMergeController.#characterStore.get(character);
+
+    if (!bucket || bucket.sessions.size === 0)
+    {
+      JABS_PopupMergeController.#trackedCharacters.delete(character);
+    }
+  }
+
+  /**
+   * Ends accumulation and starts bounce motion on a merge sprite.
+   *
+   * @param {Sprite_MapDamage} sprite The live sprite.
+   */
+  static #releaseSprite(sprite)
+  {
+    if (sprite.releaseAccumulatePhase)
+    {
+      sprite.releaseAccumulatePhase();
+    }
+  }
+
+  /**
+   * Ends merge accumulation so {@link Sprite_Character#updateTextPops} can run vanilla motion + fadeOut teardown.
+   * Does **not** destroy the sprite — flush means “release into bounce”, same lifecycle as non-merge pops.
+   *
+   * @param {Sprite_Damage|Sprite_MapDamage} sprite The anchored popup sprite (still parented + bucket-tracked).
+   */
+  static #finishMergeSessionVisualRelease(sprite)
+  {
+    if (!sprite || sprite.destroyed === true)
+    {
+      return;
+    }
+
+    JABS_PopupMergeController.#releaseSprite(sprite);
+  }
+
+  /**
+   * @param {Map_TextPop} pop Template popup (clone fields shallowly for fresh builders).
+   * @returns {Map_TextPop}
+   */
+  static #clonePopTemplate(pop)
+  {
+    return new Map_TextPop({
+      iconIndex: pop.iconIndex,
+      textColorIndex: pop.textColorIndex,
+      popupType: pop.popupType,
+      value: pop.value,
+      critical: pop.critical,
+      coordinateVariance: pop.coordinateVariance,
+      healing: pop.healing,
+      textAccent: pop.textAccent,
+      layoutRing: pop.layoutRing,
+      jInstantRelease: false,
+    });
+  }
+
+  /**
+   * Builds the merge key for combat strikes on a target — **one aggregate stream per battler** for each
+   * resource line (popup type) and heal-vs-harm polarity. Source attribution stays in action logs; first hit
+   * carries icon/crit styling until flush.
+   *
+   * @param {Map_TextPop} pop Built popup anchored on the **target** character.
+   * @returns {string}
+   */
+  static buildStrikeMergeKey(pop)
+  {
+    const healOrHarm = pop.healing === true ? 'heal' : 'harm';
+
+    return [ 'strike', pop.popupType, healOrHarm ].join('|');
+  }
+
+  /**
+   * Slip/regen streams merge every contributor on this battler (HP/MP/TP × heal vs slip damage).
+   *
+   * @param {Map_TextPop} pop Built slip/regen popup.
+   * @returns {string}
+   */
+  static buildSlipMergeKey(pop)
+  {
+    const healOrHarm = pop.healing === true ? 'heal' : 'harm';
+
+    return [ 'slip', pop.popupType, healOrHarm ].join('|');
+  }
+
+  /**
+   * @param {Map_TextPop.Types} mitigationType Parry vs evade bucket.
+   * @returns {string}
+   */
+  static buildMitigationMergeKey(mitigationType)
+  {
+    return [ 'mitigation', mitigationType ].join('|');
+  }
+
+  /**
+   * @param {Map_TextPop.Types} rewardType Exp/gold/sdp/etc.
+   * @returns {string}
+   */
+  static buildRewardMergeKey(rewardType)
+  {
+    return [ 'reward', rewardType ].join('|');
+  }
+
+  /**
+   * Routes a combat strike popup through merge or instant dispatch.
+   *
+   * @param {Map_TextPop} pop Built popup.
+   * @param {Game_Character} character Target anchor.
+   * @param {{ attackerUuid: string, targetUuid: string, amount: number }} ctx Strike metadata (uuid fields
+   * kept for diagnostics; merge buckets no longer split by attacker).
+   */
+  static routeStrikePop(pop, character, ctx)
+  {
+    if (J.POPUPS.EXT.ABS.MergeParams.enableCombat === false)
+    {
+      TextPopManager.show(pop, character);
+
+      return;
+    }
+
+    const key = JABS_PopupMergeController.buildStrikeMergeKey(pop);
+    const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+
+    if (!spriteCharacter)
+    {
+      TextPopManager.show(pop, character);
+
+      return;
+    }
+
+    const bucket = JABS_PopupMergeController.#ensureBucket(character);
+
+    JABS_PopupMergeController.#touchCharacterMergeWindow(bucket);
+
+    let session = bucket.sessions.get(key);
+
+    if (!session)
+    {
+      const template = JABS_PopupMergeController.#clonePopTemplate(pop);
+
+      template.value = String(Math.round(ctx.amount));
+      const ringExtra = JABS_PopupMergeController.#ringExtraFor(spriteCharacter, template);
+      const sprite = TextPopSpriteManager.convert(template, ringExtra);
+
+      session = {
+        kind: 'strike',
+        sprite,
+        runningTotal: ctx.amount,
+      };
+
+      bucket.sessions.set(key, session);
+      JABS_PopupMergeController.#trackCharacter(character);
+      spriteCharacter.attachConvertedDamagePopupSprite(sprite, template);
+
+      return;
+    }
+
+    session.runningTotal += ctx.amount;
+    pop.value = String(Math.round(session.runningTotal));
+
+    if (session.sprite && session.sprite.refreshDisplayedValue)
+    {
+      session.sprite.refreshDisplayedValue(pop.value);
+      session.sprite._j._popups._sourcePopup.value = pop.value;
+    }
+  }
+
+  /**
+   * Routes slip/regen pops into per-target aggregate streams.
+   *
+   * @param {Map_TextPop} pop Built slip popup.
+   * @param {Game_Character} character Target anchor.
+   * @param {{ type: number, stateId: number, amount: number }} ctx Slip metadata (`stateId` still passed for hooks).
+   */
+  static routeSlipPop(pop, character, ctx)
+  {
+    if (J.POPUPS.EXT.ABS.MergeParams.enableSlip === false)
+    {
+      TextPopManager.show(pop, character);
+
+      return;
+    }
+
+    const key = JABS_PopupMergeController.buildSlipMergeKey(pop);
+    const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+
+    if (!spriteCharacter)
+    {
+      TextPopManager.show(pop, character);
+
+      return;
+    }
+
+    const bucket = JABS_PopupMergeController.#ensureBucket(character);
+
+    JABS_PopupMergeController.#touchCharacterMergeWindow(bucket);
+
+    let session = bucket.sessions.get(key);
+
+    if (!session)
+    {
+      const template = JABS_PopupMergeController.#clonePopTemplate(pop);
+
+      template.value = String(Math.round(ctx.amount));
+      const ringExtra = JABS_PopupMergeController.#ringExtraFor(spriteCharacter, template);
+      const sprite = TextPopSpriteManager.convert(template, ringExtra);
+
+      session = {
+        kind: 'slip',
+        sprite,
+        runningTotal: ctx.amount,
+      };
+
+      bucket.sessions.set(key, session);
+      JABS_PopupMergeController.#trackCharacter(character);
+      spriteCharacter.attachConvertedDamagePopupSprite(sprite, template);
+
+      return;
+    }
+
+    session.runningTotal += ctx.amount;
+    pop.value = String(Math.round(session.runningTotal));
+
+    if (session.sprite && session.sprite.refreshDisplayedValue)
+    {
+      session.sprite.refreshDisplayedValue(pop.value);
+      session.sprite._j._popups._sourcePopup.value = pop.value;
+    }
+  }
+
+  /**
+   * Stacks mitigation labels (parry / dodge counts).
+   *
+   * @param {Map_TextPop} pop Built mitigation popup.
+   * @param {Game_Character} character Anchor.
+   * @param {{ mitigationType: Map_TextPop.Types, labelPrefix: string }} ctx Labels.
+   */
+  static routeMitigationPop(pop, character, ctx)
+  {
+    if (J.POPUPS.EXT.ABS.MergeParams.enableMitigation === false)
+    {
+      TextPopManager.show(pop, character);
+
+      return;
+    }
+
+    const key = JABS_PopupMergeController.buildMitigationMergeKey(ctx.mitigationType);
+    const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+
+    if (!spriteCharacter)
+    {
+      TextPopManager.show(pop, character);
+
+      return;
+    }
+
+    const bucket = JABS_PopupMergeController.#ensureBucket(character);
+
+    JABS_PopupMergeController.#touchCharacterMergeWindow(bucket);
+
+    let session = bucket.sessions.get(key);
+
+    if (!session)
+    {
+      const template = JABS_PopupMergeController.#clonePopTemplate(pop);
+
+      template.value = `${ctx.labelPrefix} x1`;
+      const ringExtra = JABS_PopupMergeController.#ringExtraFor(spriteCharacter, template);
+      const sprite = TextPopSpriteManager.convert(template, ringExtra);
+
+      session = {
+        kind: 'mitigation',
+        sprite,
+        count: 1,
+        labelPrefix: ctx.labelPrefix,
+      };
+
+      bucket.sessions.set(key, session);
+      JABS_PopupMergeController.#trackCharacter(character);
+      spriteCharacter.attachConvertedDamagePopupSprite(sprite, template);
+
+      return;
+    }
+
+    session.count += 1;
+    pop.value = `${session.labelPrefix} x${session.count}`;
+
+    if (session.sprite && session.sprite.refreshDisplayedValue)
+    {
+      session.sprite.refreshDisplayedValue(pop.value);
+      session.sprite._j._popups._sourcePopup.value = pop.value;
+    }
+  }
+
+  /**
+   * Sums reward-line pops (exp/gold/sdp/apt numbers).
+   *
+   * @param {Map_TextPop} pop Built reward popup.
+   * @param {Game_Character} character Anchor.
+   * @param {{ rewardType: Map_TextPop.Types, amount: number }} ctx Reward metadata.
+   */
+  static routeRewardPop(pop, character, ctx)
+  {
+    if (J.POPUPS.EXT.ABS.MergeParams.enableRewards === false)
+    {
+      TextPopManager.show(pop, character);
+
+      return;
+    }
+
+    const key = JABS_PopupMergeController.buildRewardMergeKey(ctx.rewardType);
+    const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+
+    if (!spriteCharacter)
+    {
+      TextPopManager.show(pop, character);
+
+      return;
+    }
+
+    const bucket = JABS_PopupMergeController.#ensureBucket(character);
+
+    JABS_PopupMergeController.#touchCharacterMergeWindow(bucket);
+
+    let session = bucket.sessions.get(key);
+
+    if (!session)
+    {
+      const template = JABS_PopupMergeController.#clonePopTemplate(pop);
+
+      template.value = String(Math.round(ctx.amount));
+      const ringExtra = JABS_PopupMergeController.#ringExtraFor(spriteCharacter, template);
+      const sprite = TextPopSpriteManager.convert(template, ringExtra);
+
+      session = {
+        kind: 'reward',
+        sprite,
+        runningTotal: ctx.amount,
+      };
+
+      bucket.sessions.set(key, session);
+      JABS_PopupMergeController.#trackCharacter(character);
+      spriteCharacter.attachConvertedDamagePopupSprite(sprite, template);
+
+      return;
+    }
+
+    session.runningTotal += ctx.amount;
+    pop.value = String(Math.round(session.runningTotal));
+
+    if (session.sprite && session.sprite.refreshDisplayedValue)
+    {
+      session.sprite.refreshDisplayedValue(pop.value);
+      session.sprite._j._popups._sourcePopup.value = pop.value;
+    }
+  }
+
+  /**
+   * Flushes every open merge session on a character (releases accumulated sprites into normal bounce/fade).
+   *
+   * @param {Game_Character} character The anchor character.
+   */
+  static flushCharacter(character)
+  {
+    const bucket = JABS_PopupMergeController.#characterStore.get(character);
+
+    if (!bucket)
+    {
+      return;
+    }
+
+    const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+
+    if (!spriteCharacter)
+    {
+      bucket.sessions.clear();
+      JABS_PopupMergeController.#untrackIfEmpty(character);
+
+      return;
+    }
+
+    bucket.sessions.forEach(session =>
+    {
+      JABS_PopupMergeController.#finishMergeSessionVisualRelease(session.sprite);
+    });
+
+    bucket.sessions.clear();
+    JABS_PopupMergeController.#untrackIfEmpty(character);
+  }
+
+  /**
+   * Idle flush: releases sprites after **no** merge activity on this battler for the configured frames
+   * (strikes, slip, mitigation, and rewards all refresh the same sliding window).
+   */
+  static tickIdleFlush()
+  {
+    const idleFrames = J.POPUPS.EXT.ABS.MergeParams.idleFlushFrames;
+    const now = Graphics.frameCount;
+
+    JABS_PopupMergeController.#trackedCharacters.forEach(character =>
+    {
+      const bucket = JABS_PopupMergeController.#characterStore.get(character);
+
+      if (!bucket)
+      {
+        return;
+      }
+
+      const lastAct = bucket.lastCharacterMergeFrame ?? 0;
+
+      if (now - lastAct < idleFrames)
+      {
+        return;
+      }
+
+      const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+      const toDelete = Array.from(bucket.sessions.keys());
+
+      toDelete.forEach(key =>
+      {
+        const session = bucket.sessions.get(key);
+
+        if (!session || !spriteCharacter)
+        {
+          bucket.sessions.delete(key);
+
+          return;
+        }
+
+        JABS_PopupMergeController.#finishMergeSessionVisualRelease(session.sprite);
+        bucket.sessions.delete(key);
+      });
+
+      JABS_PopupMergeController.#untrackIfEmpty(character);
+    });
+  }
+
+  /**
+   * Hard flush used on map transfer / explicit emitter requests.
+   */
+  static flushAllCharacters()
+  {
+    const list = Array.from(JABS_PopupMergeController.#trackedCharacters);
+
+    list.forEach(character =>
+    {
+      JABS_PopupMergeController.flushCharacter(character);
+    });
+  }
+
+  /**
+   * Whether emitter subscriptions were wired (guards duplicate listener registration).
+   *
+   * @type {boolean}
+   */
+  static #emitterStarted = false;
+
+  /**
+   * Subscribes merge listeners once ABS metadata is ready.
+   */
+  static start()
+  {
+    if (JABS_PopupMergeController.#emitterStarted === true)
+    {
+      return;
+    }
+
+    JABS_PopupMergeController.#emitterStarted = true;
+
+    J.POPUPS.Helpers.PopupEmitter.on(J.POPUPS.EventNames.MergeFlushAll, () =>
+    {
+      JABS_PopupMergeController.flushAllCharacters();
+    });
+  }
+}
+
+JABS_PopupMergeController.start();
+//endregion JABS_PopupMergeController
 
 //region Game_Action
 /**
@@ -646,13 +1375,13 @@ Game_Action.prototype.onShieldBroken = function(target)
  * Also shows a slip or regen popup on the battler's character.
  */
 J.POPUPS.EXT.ABS.Aliased.JABS_Battler.set('onSlipRegenTick', JABS_Battler.prototype.onSlipRegenTick);
-JABS_Battler.prototype.onSlipRegenTick = function(displayAmount, type)
+JABS_Battler.prototype.onSlipRegenTick = function(displayAmount, type, stateId)
 {
   // perform original logic.
   J.POPUPS.EXT.ABS.Aliased.JABS_Battler.get('onSlipRegenTick')
-    .call(this, displayAmount, type);
+    .call(this, displayAmount, type, stateId);
 
-  JABS_PopupManager.showSlipPop(displayAmount, type, this);
+  JABS_PopupManager.showSlipPop(displayAmount, type, this, stateId);
 };
 
 /**
@@ -679,5 +1408,64 @@ JABS_Battler.prototype.onItemApplied = function(gameAction, itemId, target = thi
   JABS_PopupManager.showItemAppliedPop(gameAction, toolData, this, target);
 };
 //endregion JABS_Battler
+
+//region JABS_SkillSlot
+/**
+ * Emits combo-chain cleared **before** JABS resets combo ids (extensions only; idle flush handles strike release).
+ */
+J.POPUPS.EXT.ABS.Aliased.JABS_SkillSlot.set('handleComboReadiness', JABS_SkillSlot.prototype.handleComboReadiness);
+JABS_SkillSlot.prototype.handleComboReadiness = function()
+{
+  const cooldown = this.getCooldown();
+
+  if (cooldown.needsComboClear())
+  {
+    const battlers = JABS_AiManager.getAllBattlers();
+
+    for (let i = 0; i < battlers.length; i++)
+    {
+      const candidate = battlers[i];
+      const slot = candidate.getBattler()
+        .getSkillSlotManager()
+        .getSkillSlotByKey(this.key);
+
+      if (slot === this)
+      {
+        J.POPUPS.notifyComboChainCleared(candidate, this.key);
+        break;
+      }
+    }
+  }
+
+  J.POPUPS.EXT.ABS.Aliased.JABS_SkillSlot.get('handleComboReadiness')
+    .call(this);
+};
+//endregion JABS_SkillSlot
+
+//region Scene_Map
+/**
+ * Runs idle merge flush ticks while the map scene updates.
+ */
+J.POPUPS.Aliased.Scene_Map.set('update', Scene_Map.prototype.update);
+Scene_Map.prototype.update = function()
+{
+  J.POPUPS.Aliased.Scene_Map.get('update')
+    .call(this);
+
+  JABS_PopupMergeController.tickIdleFlush();
+};
+
+/**
+ * Clears merge accumulators when leaving the map so floats do not leak across transfers.
+ */
+J.POPUPS.Aliased.Scene_Map.set('stop', Scene_Map.prototype.stop);
+Scene_Map.prototype.stop = function()
+{
+  J.POPUPS.Aliased.Scene_Map.get('stop')
+    .call(this);
+
+  J.POPUPS.notifyMergeFlushAll('scene-map-stop');
+};
+//endregion Scene_Map
 
 //# sourceMappingURL=J-Popups-ABS.js.map

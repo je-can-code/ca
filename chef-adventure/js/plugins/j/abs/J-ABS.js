@@ -8514,7 +8514,24 @@ JABS_Battler.prototype.canPaySkillCost = function(skillId)
 
 //region regeneration
 /**
- * Updates all regenerations and ticks four times per second.
+ * Frames between regeneration ticks at 60fps.
+ * 30 frames = 2 ticks/sec (was 15 = 4/sec); per-tick amounts are scaled so per-second totals match legacy behavior.
+ */
+JABS_Battler.REGEN_TICK_INTERVAL_FRAMES = 30;
+
+/**
+ * Divisor converting per-five state slip tag totals into per-tick application at 2 ticks/sec.
+ * Legacy used 20 at 4 ticks/sec; halving tick rate requires halving the divisor to preserve DPS.
+ */
+JABS_Battler.STATE_SLIP_PER_TICK_DIVISOR = 10;
+
+/**
+ * Natural HRG/MRG/TRG is applied each regen tick; doubling per tick compensates for half the tick rate.
+ */
+JABS_Battler.NATURAL_REGEN_TICK_SCALE = 2;
+
+/**
+ * Updates all regenerations and ticks twice per second (60fps: every 30 frames).
  */
 JABS_Battler.prototype.updateRegen = function()
 {
@@ -8523,7 +8540,7 @@ JABS_Battler.prototype.updateRegen = function()
 
   //
   this.performRegeneration();
-  this.setRegenCounter(15);
+  this.setRegenCounter(JABS_Battler.REGEN_TICK_INTERVAL_FRAMES);
 };
 
 /**
@@ -8657,7 +8674,7 @@ JABS_Battler.prototype.isNaturalRegenReduced = function()
  */
 JABS_Battler.prototype.calculatedRegen = function(baseValue, isReduced = false)
 {
-  // calculate the amount regenerated four times per second.
+  // calculate the amount applied each regen tick; tick rate is 2/sec (see REGEN_TICK_INTERVAL_FRAMES).
   let calculatedValue = (baseValue * 100) * 0.05;
   if (isReduced)
   {
@@ -8686,8 +8703,8 @@ JABS_Battler.prototype.processNaturalHpRegen = function(isReduced)
       rec
     } = battler;
 
-    // calculate the bonus.
-    const naturalHp5 = this.calculatedRegen(hrg, isReduced) * rec;
+    // calculate the bonus (scale so per-second total matches legacy 4 ticks/sec rates).
+    const naturalHp5 = this.calculatedRegen(hrg, isReduced) * rec * JABS_Battler.NATURAL_REGEN_TICK_SCALE;
 
     // execute the gain.
     battler.gainHp(naturalHp5);
@@ -8711,8 +8728,8 @@ JABS_Battler.prototype.processNaturalMpRegen = function(isReduced)
       rec
     } = battler;
 
-    // calculate the bonus.
-    const naturalMp5 = this.calculatedRegen(mrg, isReduced) * rec;
+    // calculate the bonus (scale so per-second total matches legacy 4 ticks/sec rates).
+    const naturalMp5 = this.calculatedRegen(mrg, isReduced) * rec * JABS_Battler.NATURAL_REGEN_TICK_SCALE;
 
     // execute the gain.
     battler.gainMp(naturalMp5);
@@ -8736,8 +8753,8 @@ JABS_Battler.prototype.processNaturalTpRegen = function(isReduced)
       rec
     } = battler;
 
-    // calculate the bonus.
-    const naturalTp5 = this.calculatedRegen(trg, isReduced) * rec;
+    // calculate the bonus (scale so per-second total matches legacy 4 ticks/sec rates).
+    const naturalTp5 = this.calculatedRegen(trg, isReduced) * rec * JABS_Battler.NATURAL_REGEN_TICK_SCALE;
 
     // execute the gain.
     battler.gainTp(naturalTp5);
@@ -8746,6 +8763,8 @@ JABS_Battler.prototype.processNaturalTpRegen = function(isReduced)
 
 /**
  * Processes all regenerations derived from state tags.
+ * Applies slip per state so hooks can attribute popup metadata (state id).
+ * Per-second slip totals match legacy aggregate math (divisor 10 at 2 ticks/sec vs 20 at 4 ticks/sec).
  * @param {RPG_State[]} states The filtered list of states to parse.
  */
 JABS_Battler.prototype.processStateRegens = function(states)
@@ -8755,54 +8774,44 @@ JABS_Battler.prototype.processStateRegens = function(states)
 
   // default the regenerations to the battler's innate regens.
   const { rec } = battler;
-  const regens = [ 0, 0, 0 ];
+  const slipDivisor = JABS_Battler.STATE_SLIP_PER_TICK_DIVISOR;
 
-  // process each state for slip actions.
+  // process each state independently so popups can key by state id.
   for (const state of states)
   {
-    // add the per-five hp slip.
-    regens[0] += this.stateSlipHp(state);
+    const hpRaw = this.stateSlipHp(state);
+    const mpRaw = this.stateSlipMp(state);
+    const tpRaw = this.stateSlipTp(state);
+    const perResource = [ hpRaw, mpRaw, tpRaw ];
 
-    // add the per-five mp slip.
-    regens[1] += this.stateSlipMp(state);
-
-    // add the per-five tp slip.
-    regens[2] += this.stateSlipTp(state);
-  }
-
-  // iterate over the above regens.
-  regens.forEach((rawRegen, index) =>
-  {
-    // if it wasn't modified, don't worry about it.
-    if (!rawRegen)
+    for (let index = 0; index < 3; index++)
     {
-      return;
-    }
+      let regen = perResource[index];
 
-    // work on a local copy; the forEach value is the raw slip tick input.
-    let regen = rawRegen;
+      if (!regen)
+      {
+        continue;
+      }
 
-    // apply REC effects against all three regens.
-    if (regen > 0)
-    {
-      regen *= rec;
-    }
+      if (regen > 0)
+      {
+        regen *= rec;
+      }
 
-    // apply "per5" rate- 4 times per second, for 5 seconds, equals 20.
-    regen /= 20;
+      regen /= slipDivisor;
 
+      if (!regen)
+      {
+        continue;
+      }
 
-    // if we have a non-zero amount, generate the popup.
-    if (regen)
-    {
       this.applySlipEffect(regen, index);
 
-      // flip the sign for the regen for properly creating pops.
-      regen *= -1;
+      const displayAmount = -regen;
 
-      this.onSlipRegenTick(regen, index);
+      this.onSlipRegenTick(displayAmount, index, state.id);
     }
-  });
+  }
 };
 
 /**
@@ -9063,8 +9072,9 @@ JABS_Battler.prototype.applySlipEffect = function(amount, type)
  * Hook after slip/regen math is applied; extensions may show pops or other feedback.
  * @param {number} displayAmount Amount passed to popup builders after sign normalization.
  * @param {0|1|2} type HP / MP / TP index.
+ * @param {number} [stateId] Database state id when this tick came from {@link #processStateRegens}.
  */
-JABS_Battler.prototype.onSlipRegenTick = function(displayAmount, type)
+JABS_Battler.prototype.onSlipRegenTick = function(displayAmount, type, stateId)
 {
 };
 //endregion regeneration
@@ -14539,7 +14549,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.10.0 JABS] Enables combat to be carried out on the map.
+ * [v4.11.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14584,6 +14594,10 @@ class JABS_Timer
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.11.0
+ *    Regen ticks twice per second (interval + scaled natural regen + per-state slip application so per-second totals match
+ *    legacy math); slip/regen hooks can attribute popups per state. `JABS_Engine.implicitParryChancePercent` extracts the
+ *    implicit parry probability step from {@link JABS_Engine#checkParry} for tooling/UI parity.
  * - 4.10.0
  *    Defensive dodge and guard: readiness on battlers, `JABS_AiManager` interrupt and non-leader dodge direction,
  *    `Game_CharacterBase` dodge state, engine map-action gating, `JABS_SkillSlotManager` equipped-skill access for
@@ -16995,7 +17009,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = 'data/config.jabs.json') =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.10.0';
+J.ABS.Metadata.Version = '4.11.0';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -23440,6 +23454,80 @@ class JABS_Engine
     return Graphics.frameCount + offset;
   }
 
+  /**
+   * Implicit passive parry chance (0–100) from attacker/defender pressure vs the dominance band.
+   * Matches the probability step inside {@link #checkParry}; does not apply facing, GRD &gt; 0,
+   * or attacker ignore-parry state gates ({@link #isParryPossible}).
+   * @param {JABS_Battler} caster The attacker on the map.
+   * @param {JABS_Battler} target The defender on the map.
+   * @param {number} ignoreParryPercent Defender GRD pressure ignored (0–100); same as skill tag
+   * {@code jabsIgnoreParry}.
+   * @returns {number} Rounded percent chance the implicit parry roll succeeds (same rounding as combat).
+   */
+  static implicitParryChancePercent(caster, target, ignoreParryPercent)
+  {
+    const targetBattler = target.getBattler();
+    const casterBattler = caster.getBattler();
+
+    const ignoreRaw = ignoreParryPercent ?? 0;
+    const parryIgnoredFactor = (100 - ignoreRaw) / 100;
+
+    const hundredX = value => parseFloat((value * 100).toFixed(3));
+    const tenPercent = value => parseFloat((value * 0.1).toFixed(3));
+
+    const baselineFloor = J.ABS.Metadata.ImplicitParryBaselineFloor;
+    const baselinePerLevel = J.ABS.Metadata.ImplicitParryBaselinePerLevel;
+    const baselineA = baselineFloor + baselinePerLevel * Math.max(0, casterBattler.level - 1);
+    const baselineD = baselineFloor + baselinePerLevel * Math.max(0, targetBattler.level - 1);
+
+    // grd is 1.0-based; subtract 1 before scaling to extract the flat integer delta.
+    const baseGrd = baselineD + hundredX(targetBattler.grd - 1);
+    const bonusGrdFromAgi = tenPercent(targetBattler.agi);
+    const bonusGrdFromLuk = tenPercent(targetBattler.luk);
+    const D = (baseGrd + bonusGrdFromAgi + bonusGrdFromLuk) * parryIgnoredFactor;
+
+    const baseHit = hundredX(casterBattler.hit) + baselineA;
+    const bonusHitFromAgi = tenPercent(casterBattler.agi);
+    const bonusHitFromLuk = tenPercent(casterBattler.luk);
+    let A = baseHit + bonusHitFromAgi + bonusHitFromLuk;
+
+    if (J.LEVEL && J.LEVEL.Metadata.enabled)
+    {
+      const levelMul = LevelScaling.multiplier(
+        casterBattler.level,
+        targetBattler.level,
+        LevelScaling.Scope.COMBAT
+      );
+      A *= levelMul;
+    }
+
+    const defenderFloor = 1;
+    const ratio = A / Math.max(D, defenderFloor);
+
+    let M = J.ABS.Metadata.ImplicitParryDominanceMultiplier;
+    if (!Number.isFinite(M) || M <= 1)
+    {
+      M = 2;
+    }
+
+    const invM = 1 / M;
+
+    if (ratio >= M)
+    {
+      return 0;
+    }
+
+    if (ratio <= invM)
+    {
+      return 100;
+    }
+
+    const span = M - invM;
+    const t = (ratio - invM) / span;
+
+    return Math.round(100 * (1 - t));
+  }
+
   //endregion static
 
   //region init
@@ -26087,68 +26175,8 @@ class JABS_Engine
     // cannot parry if not facing target.
     if (!this.isParryPossible(caster, target)) return false;
 
-    // grab the caster and target battlers.
-    const targetBattler = target.getBattler();
-    const casterBattler = caster.getBattler();
-
-    // grab the amount of parry ignored.
-    const parryIgnoredFactor = (100 - (action.getBaseSkill().jabsIgnoreParry ?? 0)) / 100;
-
-    const hundredX = value => parseFloat((value * 100).toFixed(3));
-    const tenPercent = value => parseFloat((value * 0.1).toFixed(3));
-
-    const baselineFloor = J.ABS.Metadata.ImplicitParryBaselineFloor;
-    const baselinePerLevel = J.ABS.Metadata.ImplicitParryBaselinePerLevel;
-    const baselineA = baselineFloor + baselinePerLevel * Math.max(0, casterBattler.level - 1);
-    const baselineD = baselineFloor + baselinePerLevel * Math.max(0, targetBattler.level - 1);
-
-    // defender pressure D (scaled by ignoreParry on the skill).
-    // grd is 1.0-based; subtract 1 before scaling to extract the flat integer delta.
-    const baseGrd = baselineD + hundredX(targetBattler.grd - 1);
-    const bonusGrdFromAgi = tenPercent(targetBattler.agi);
-    const bonusGrdFromLuk = tenPercent(targetBattler.luk);
-    const D = (baseGrd + bonusGrdFromAgi + bonusGrdFromLuk) * parryIgnoredFactor;
-
-    // attacker pressure A (level scaling matches Game_Action: caster vs target).
-    const baseHit = hundredX(casterBattler.hit) + baselineA;
-    const bonusHitFromAgi = tenPercent(casterBattler.agi);
-    const bonusHitFromLuk = tenPercent(casterBattler.luk);
-    let A = baseHit + bonusHitFromAgi + bonusHitFromLuk;
-
-    if (J.LEVEL && J.LEVEL.Metadata.enabled)
-    {
-      const levelMul = LevelScaling.multiplier(
-        casterBattler.level,
-        targetBattler.level,
-        LevelScaling.Scope.COMBAT
-      );
-      A *= levelMul;
-    }
-
-    const defenderFloor = 1;
-    const ratio = A / Math.max(D, defenderFloor);
-
-    let M = J.ABS.Metadata.ImplicitParryDominanceMultiplier;
-    if (!Number.isFinite(M) || M <= 1)
-    {
-      M = 2;
-    }
-
-    const invM = 1 / M;
-
-    if (ratio >= M)
-    {
-      return false;
-    }
-
-    if (ratio <= invM)
-    {
-      return true;
-    }
-
-    const span = M - invM;
-    const t = (ratio - invM) / span;
-    const parryChancePercent = Math.round(100 * (1 - t));
+    const ignoreParryPercent = action.getBaseSkill().jabsIgnoreParry ?? 0;
+    const parryChancePercent = JABS_Engine.implicitParryChancePercent(caster, target, ignoreParryPercent);
 
     if (parryChancePercent >= 100)
     {
