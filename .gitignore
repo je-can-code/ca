@@ -13,3 +13,7 @@ desktop.ini
 
 # dependencies
 node_modules
+
+# editor backups / autosaves (Krita, gedit/vim tilde files, etc.)
+*-autosave.kra
+*~

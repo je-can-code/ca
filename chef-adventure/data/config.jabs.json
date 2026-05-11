@@ -18,5 +18,33 @@
       "name": "Neutral",
       "opposes": [ 0, 1 ]
     }
-  ]
+  ],
+  "juice": {
+    "target": {
+      "physicalSquishIntensity": 0.12,
+      "magicalSquishIntensity": 0.08,
+      "squishFrames": 10,
+      "healingRecipientScale": 0.65,
+      "flurryDecayPercent": 72
+    },
+    "caster": {
+      "dodgeSquishIntensity": 0.28,
+      "dodgeSquishFrames": 12,
+      "supportPulseIntensity": 0.06,
+      "supportPulseFrames": 12,
+      "strikeTiltRadians": 0.18,
+      "strikeTiltFrames": 6,
+      "weaponSwingPeakRadians": 0.65,
+      "weaponSwingFrames": 10,
+      "spriteVerticalOffsetPixels": 10,
+      "unarmedStrikeSquishIntensity": 0.14,
+      "unarmedStrikeSquishFrames": 9
+    },
+    "casting": {
+      "pulseAmplitude": 0.045
+    },
+    "profiles": {
+      "default": { "tiltMul": 1, "swingMul": 1 }
+    }
+  }
 }
