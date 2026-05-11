@@ -463,6 +463,9 @@ class JABS_Action
    */
   preCleanupHook()
   {
+    // tear down any sustained hitbox pulse tied to this uuid so the layer cannot leak across swings.
+    JABS_HitboxPulseManager.releaseSustainedPulse(this.getUuid());
+
     // handle self-targeted animations on cleanup.
     this.handleSelfAnimationOnDefeat();
   }
@@ -1003,9 +1006,9 @@ class JABS_Action
       return true;
     };
 
-    // anchor the AABB on the action sprite center in tiles.
-    const cx = actionSprite.x;
-    const cy = actionSprite.y;
+    // anchor the AABB on the action sprite’s continuous map coords (tile getters round under pixel movement).
+    const cx = actionSprite._realX;
+    const cy = actionSprite._realY;
 
     // compute inclusive bounds for the spatial index query.
     const minX = Math.floor(cx - radius);
@@ -1174,12 +1177,41 @@ class JABS_Action
   }
 
   /**
+   * Keeps direct map actions glued to the caster’s continuous map coords each frame.
+   * Direct skills use proximity targeting (not flying map shots); the bound map event is always body-anchored.
+   */
+  syncDirectActionSpriteToCaster()
+  {
+    if (!this.isDirectAction())
+    {
+      return;
+    }
+
+    const actionSprite = this.getActionSprite();
+
+    if (!actionSprite)
+    {
+      return;
+    }
+
+    const casterChar = this.getCaster()
+      .getCharacter();
+
+    actionSprite._realX = casterChar._realX;
+    actionSprite._realY = casterChar._realY;
+    actionSprite._x = casterChar._x;
+    actionSprite._y = casterChar._y;
+  }
+
+  /**
    * The main update logic for an action.
    * this includes handling the delay countdown, cleanup, the piercing, and collision.
    */
   mainUpdate()
   {
     if (!this.canMainUpdate()) return;
+
+    this.syncDirectActionSpriteToCaster();
 
     if (this.isDelayCompleted())
     {
@@ -1358,57 +1390,39 @@ class JABS_Action
   {
     // flag our first hit so we don't do this again.
     this._hitAtLeastOne = true;
-
-    // respect explicit global disable (if configured).
-    if (J.ABS.Metadata.HitboxPulse.enabled === false) return;
-
-    this.processHitboxPulse();
   }
 
   /**
-   * Performs the hitbox pulse visualization for the action.
+   * Builds the plain options object consumed by {@link Sprite_HitboxPulse} for sustained active-shape visualization.
+   * Origins intentionally mirror {@link JABS_Engine#getActionOriginPixels} so pulses agree with collision math.
+   * @returns {Object}
    */
-  processHitboxPulse()
+  composeHitboxPulsePlainOptions()
   {
-    // resolve the action event that visually anchors the pulse (if available).
+    const meta = J.ABS.Metadata.HitboxPulse;
     const actionEvent = this.getActionSprite();
 
-    // determine the origin/facing from either the action event (preferred) or the caster’s character as a fallback.
-    // this allows sprite-less actions to still render a pulse anchored to the caster.
     let originX;
     let originY;
     let facing;
 
-    // attempt to use the action event for origin and facing when present.
     if (actionEvent)
     {
-      // derive the on-screen origin in pixels (screen-space), matching tilemap parenting.
-      originX = actionEvent.screenX();
-      originY = actionEvent.screenY();
-
-      // derive facing from logical travel dir8 (map event direction may be cardinal for `$` sheet rows).
+      const o = JABS_Engine.getActionOriginPixels(actionEvent);
+      originX = o.x;
+      originY = o.y;
       facing = this.direction();
     }
     else
     {
-      // action event is unavailable; fall back to the caster’s character sprite.
-      // this ensures sprite-less actions still draw the pulse and respect overlays.
-      const caster = this.getCaster();
-      const casterCharacter = caster.getCharacter();
-
-      // derive the on-screen origin from the caster.
-      originX = casterCharacter.screenX();
-      originY = casterCharacter.screenY();
-
-      // derive facing from the caster.
+      const casterCharacter = this.getCaster()
+        .getCharacter();
+      const o = JABS_Engine.getMeleeVisualOriginPixelsFromCharacter(casterCharacter);
+      originX = o.x;
+      originY = o.y;
       facing = casterCharacter.direction();
     }
 
-    // derive geometry data directly from this action instance.
-    const shape = this.getShape();
-    const range = this.getRange();
-
-    // optional arc width and thickness from engine helpers (if applicable).
     const degrees = actionEvent
       ? ($jabsEngine.getActionDegrees(actionEvent) || 180)
       : 180;
@@ -1416,22 +1430,38 @@ class JABS_Action
       ? ($jabsEngine.getActionThicknessTiles(actionEvent) || 1)
       : 1;
 
-    // build a compact options object using the fluent API.
-    const options = JABS_HitboxPulseOptions.defaults()
-      .withOrigin(originX, originY)
-      .withShape(shape)
-      .withRange(range)
-      .withFacing(facing)
-      .withDegrees(degrees)
-      .withThickness(thickness)
-      .withFade(38, 0.42, 0.0)
-      .withScale(1.00, 1.08)
-      .withLine(0xFFFFFF, 0.85, 2)
-      .withFill(0xFFFFFF, 0.18)
-      .withBlendMode(PIXI.BLEND_MODES.ADD);
+    const useFade = meta.useFadeAnimation === true;
+    const duration = useFade
+      ? meta.duration
+      : 999999;
+    const endAlpha = useFade
+      ? meta.endAlpha
+      : meta.startAlpha;
+    const scaleEnd = useFade
+      ? meta.scaleEnd
+      : meta.scaleStart;
 
-    // spawn the pulse via the static manager (layer is set up by Spriteset_Map).
-    JABS_HitboxPulseManager.spawn(options);
+    return {
+      x: originX,
+      y: originY,
+      shape: this.getShape(),
+      range: this.getRange(),
+      facing,
+      degrees,
+      thickness,
+      duration,
+      sustained: true,
+      startAlpha: meta.startAlpha,
+      endAlpha,
+      scaleStart: meta.scaleStart,
+      scaleEnd,
+      lineColor: meta.lineColor,
+      lineAlpha: meta.lineAlpha,
+      lineWidth: meta.lineWidth,
+      fillColor: meta.fillColor,
+      fillAlpha: meta.fillAlpha,
+      blendMode: meta.blendMode,
+    };
   }
 
   /**
@@ -1451,6 +1481,9 @@ class JABS_Action
         event.setOpacity(opacity);
       }
     }
+
+    // keep the transient hitbox pulse pinned to this action for every active frame after delay (hit or miss).
+    JABS_HitboxPulseManager.syncSustainedActionPulse(this);
   }
 
   //endregion update
@@ -11386,6 +11419,7 @@ class JABS_HitboxPulseOptions
 
     // visuals/lifetime.
     o.duration = 60;
+    o.sustained = false;
     o.startAlpha = 0.20;
     o.endAlpha = 0.00;
     o.scaleStart = 1.00;
@@ -11449,6 +11483,7 @@ class JABS_HitboxPulseOptions
       degrees: this.degrees,
       thickness: this.thickness,
       duration: this.duration,
+      sustained: this.sustained,
       startAlpha: this.startAlpha,
       endAlpha: this.endAlpha,
       scaleStart: this.scaleStart,
@@ -11625,6 +11660,20 @@ class JABS_HitboxPulseOptions
   {
     // assign the blend mode.
     this.blendMode = mode;
+
+    // allow chaining.
+    return this;
+  }
+
+  /**
+   * Fluent: marks this pulse as externally driven each frame (no automatic expiry in the pool path).
+   * @param {boolean} value Whether this pulse is sustained.
+   * @returns {JABS_HitboxPulseOptions}
+   */
+  withSustained(value)
+  {
+    // assign sustained flag.
+    this.sustained = value === true;
 
     // allow chaining.
     return this;
@@ -15274,8 +15323,9 @@ class JABS_Timer
  *
  * ----------------------------------------------------------------------------
  * DIRECT:
- * With the "direct" tag, no projectile event is produced. Instead, the
- * skill immediately targets the nearest foe within the caster's proximity.
+ * With the "direct" tag, combat resolves through proximity (<proximity:N>) to
+ * the nearest valid target — not a flying map projectile. The optional map
+ * action event (hitbox visuals / collision anchor) stays body-anchored.
  * The skill still obeys CAST TIME, RADIUS, HITBOX, and other tags.
  * The most common use case is healing skills, or skills that should feel
  * instant and unblockable.
@@ -16547,6 +16597,77 @@ class JABS_Timer
  * @desc Whether or not to overlay the map with battler and action hitbox visuals- for debugging.
  * @default false
  *
+ * @param hitboxMeleeOriginOffsetPxX
+ * @parent miscConfigs
+ * @type number
+ * @decimals 0
+ * @min -999
+ * @max 999
+ * @text Melee Hitbox Origin Offset X (px)
+ * @desc Extra pixels added to the screen-space X origin shared by collision, overlays, and hitbox pulses (negative = left).
+ * @default 0
+ *
+ * @param hitboxMeleeOriginOffsetPxY
+ * @parent miscConfigs
+ * @type number
+ * @decimals 0
+ * @min -999
+ * @max 999
+ * @text Melee Hitbox Origin Offset Y (px)
+ * @desc Extra pixels added to the screen-space Y origin shared by collision, overlays, and hitbox pulses (negative = up).
+ * @default -10
+ *
+ * @param hitboxMeleeOriginExtraPxYFacingDown
+ * @parent miscConfigs
+ * @type number
+ * @decimals 0
+ * @min -999
+ * @max 999
+ * @text Melee Origin Extra Y When Facing Down (px)
+ * @desc Added on top of Offset Y when travel facing is down (2) or diagonal down (1/3); tune if down-swings read behind the actor.
+ * @default 0
+ *
+ * @param hitboxMeleeOriginExtraPxYFacingUp
+ * @parent miscConfigs
+ * @type number
+ * @decimals 0
+ * @min -999
+ * @max 999
+ * @text Melee Origin Extra Y When Facing Up (px)
+ * @desc Added on top of Offset Y when travel facing is up (8) or diagonal up (7/9); tune if up-swings read too far from the body.
+ * @default 0
+ *
+ * @param hitboxMeleeOriginLiftReductionPxFacingDown
+ * @parent miscConfigs
+ * @type number
+ * @decimals 0
+ * @min 0
+ * @max 999
+ * @text Melee Origin Lift Reduction When Facing Down (px)
+ * @desc Subtracts from the default half-tile vertical lift when facing down (2) or diagonal down (1/3). Fixes pivots that sit too high (hitbox reads behind the actor). Half strength on diagonals.
+ * @default 28
+ *
+ * @param hitboxPulseEnabled
+ * @parent miscConfigs
+ * @type boolean
+ * @text Hitbox Pulse (Active Shape)
+ * @desc When enabled, draws your attack hit shape for the full active lifetime (hit or miss). Uses the Hitbox Pulse layer.
+ * @default true
+ *
+ * @param hitboxPulseHighlightColliders
+ * @parent miscConfigs
+ * @type boolean
+ * @text Pulse: Highlight Colliding Battlers
+ * @desc While Hitbox Pulse is enabled, briefly outline battlers (enemies, pillars, etc.) whose collision box overlaps your action shape—without turning on full debug overlays.
+ * @default true
+ *
+ * @param hitboxPulseUseFadeAnimation
+ * @parent miscConfigs
+ * @type boolean
+ * @text Hitbox Pulse: Use Fade / Pop Animation
+ * @desc When false, the active hit shape holds steady alpha for the whole swing. When true, uses the legacy fade/scale pulse curve (better for very short flashes).
+ * @default false
+ *
  *
  * @param disengageConfigs
  * @text DISENGAGE SETUP
@@ -17103,6 +17224,39 @@ J.ABS.Metadata.AllyRubberbandAdjustment = Number(J.ABS.PluginParameters['allyRub
 J.ABS.Metadata.DashSpeedBoost = Number(J.ABS.PluginParameters['dashSpeedBoost']);
 J.ABS.Metadata.HitboxOverlaysInitiallyVisible = (J.ABS.PluginParameters['hitboxOverlaysInitiallyVisible'] === 'true');
 
+const hitboxMeleeOxRaw = J.ABS.PluginParameters['hitboxMeleeOriginOffsetPxX'];
+const hitboxMeleeOyRaw = J.ABS.PluginParameters['hitboxMeleeOriginOffsetPxY'];
+J.ABS.Metadata.HitboxMeleeOriginOffsetPxX = Number(hitboxMeleeOxRaw);
+if (!Number.isFinite(J.ABS.Metadata.HitboxMeleeOriginOffsetPxX))
+{
+  J.ABS.Metadata.HitboxMeleeOriginOffsetPxX = 0;
+}
+J.ABS.Metadata.HitboxMeleeOriginOffsetPxY = Number(hitboxMeleeOyRaw);
+if (!Number.isFinite(J.ABS.Metadata.HitboxMeleeOriginOffsetPxY))
+{
+  J.ABS.Metadata.HitboxMeleeOriginOffsetPxY = -10;
+}
+
+const hitboxMeleeExtraDownRaw = J.ABS.PluginParameters['hitboxMeleeOriginExtraPxYFacingDown'];
+const hitboxMeleeExtraUpRaw = J.ABS.PluginParameters['hitboxMeleeOriginExtraPxYFacingUp'];
+J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingDown = Number(hitboxMeleeExtraDownRaw);
+if (!Number.isFinite(J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingDown))
+{
+  J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingDown = 0;
+}
+J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingUp = Number(hitboxMeleeExtraUpRaw);
+if (!Number.isFinite(J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingUp))
+{
+  J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingUp = 0;
+}
+
+const hitboxMeleeLiftRedDownRaw = J.ABS.PluginParameters['hitboxMeleeOriginLiftReductionPxFacingDown'];
+J.ABS.Metadata.HitboxMeleeOriginLiftReductionPxFacingDown = Number(hitboxMeleeLiftRedDownRaw);
+if (!Number.isFinite(J.ABS.Metadata.HitboxMeleeOriginLiftReductionPxFacingDown))
+{
+  J.ABS.Metadata.HitboxMeleeOriginLiftReductionPxFacingDown = 28;
+}
+
 // disengage configurations.
 J.ABS.Metadata.ShowDisengageBalloon = (J.ABS.PluginParameters['showDisengageBalloon'] === 'true');
 J.ABS.Metadata.DisengageBalloonId = Number(J.ABS.PluginParameters['disengageBalloonId']) || 7;
@@ -17253,7 +17407,9 @@ J.ABS.Metadata.HitboxStyles = {
 };
 
 J.ABS.Metadata.HitboxPulse = {
-  enabled: true,
+  enabled: J.ABS.PluginParameters['hitboxPulseEnabled'] !== 'false',
+  highlightColliderBattlers: J.ABS.PluginParameters['hitboxPulseHighlightColliders'] !== 'false',
+  useFadeAnimation: J.ABS.PluginParameters['hitboxPulseUseFadeAnimation'] === 'true',
   maxConcurrentPulses: 8,
   duration: 18,
   startAlpha: 0.22,
@@ -23398,8 +23554,71 @@ class JABS_Engine
   }
 
   /**
-   * Computes the on-screen pixel origin for an action event, aligned to the
-   * center of the tile above the feet (the corrected physics origin).
+   * Builds screen-space melee px offsets from plugin defaults plus facing-aware vertical trims.
+   * Lateral offsets stay global; up/down cardinals (and blended diagonals) get extra Y so wedges track torso motion.
+   * @param {number} facing Logical travel dir8 from the {@link JABS_Action} (2 down … 8 up).
+   * @returns {{ ox:number, oy:number }}
+   */
+  static resolveMeleeOriginPixelOffsetsForFacing(facing)
+  {
+    const baseX = J.ABS.Metadata.HitboxMeleeOriginOffsetPxX;
+    const baseY = J.ABS.Metadata.HitboxMeleeOriginOffsetPxY;
+    const extraDown = J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingDown;
+    const extraUp = J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingUp;
+
+    let addY = 0;
+
+    if (facing === 2)
+    {
+      addY = extraDown;
+    }
+    else if (facing === 8)
+    {
+      addY = extraUp;
+    }
+    else if (facing === 1 || facing === 3)
+    {
+      addY = extraDown * 0.5;
+    }
+    else if (facing === 7 || facing === 9)
+    {
+      addY = extraUp * 0.5;
+    }
+
+    return {
+      ox: baseX,
+      oy: baseY + addY,
+    };
+  }
+
+  /**
+   * Vertical lift from {@link Game_CharacterBase#screenY} for melee origins (normally half a tile).
+   * Down-facing swings need less lift so the wedge pivot sits nearer the feet instead of above the head on-screen.
+   * @param {number} facing Logical travel dir8.
+   * @returns {number} Pixels to subtract from {@link Game_CharacterBase#screenY} before px offsets.
+   */
+  static resolveMeleeVerticalLiftPxForFacing(facing)
+  {
+    const th = $gameMap.tileHeight();
+    let liftPx = th / 2;
+    const reduction = J.ABS.Metadata.HitboxMeleeOriginLiftReductionPxFacingDown;
+
+    if (facing === 2)
+    {
+      liftPx -= reduction;
+    }
+    else if (facing === 1 || facing === 3)
+    {
+      liftPx -= reduction * 0.5;
+    }
+
+    const minLift = Math.max(8, th * 0.18);
+
+    return Math.max(minLift, liftPx);
+  }
+
+  /**
+   * Computes the on-screen pixel origin for an action event (feet anchor minus facing-aware lift plus offsets).
    * @param {Game_Event} actionEvent The action event to compute the origin for.
    * @returns {{ x:number, y:number }} The origin in screen pixels.
    */
@@ -23414,16 +23633,55 @@ class JABS_Engine
       };
     }
 
-    // tile height is needed to vertically center the origin above the feet.
-    const th = $gameMap.tileHeight();
+    let facing = 2;
 
-    // center the origin one tile above the feet position.
-    const x = actionEvent.screenX();
-    const y = actionEvent.screenY() - (th / 2);
+    if (typeof actionEvent.getJabsAction === 'function')
+    {
+      const ja = actionEvent.getJabsAction();
+
+      if (ja)
+      {
+        facing = ja.direction();
+      }
+    }
+
+    const { ox, oy } = JABS_Engine.resolveMeleeOriginPixelOffsetsForFacing(facing);
+    const liftPx = JABS_Engine.resolveMeleeVerticalLiftPxForFacing(facing);
+
+    // lift pulls the pivot off the feet anchor; down-facing uses less lift so swings stay in front of the actor.
+    const x = actionEvent.screenX() + ox;
+    const y = actionEvent.screenY() - liftPx + oy;
 
     return {
       x,
       y
+    };
+  }
+
+  /**
+   * Screen-space melee visual origin for a map character when no action event exists.
+   * Matches {@link #getActionOriginPixels} lift + offsets so pulses align with collision math.
+   * @param {Game_CharacterBase} character The caster’s character.
+   * @returns {{ x:number, y:number }}
+   */
+  static getMeleeVisualOriginPixelsFromCharacter(character)
+  {
+    // guard against missing character; return neutral origin.
+    if (!character)
+    {
+      return {
+        x: 0,
+        y: 0
+      };
+    }
+
+    const facing = character.direction();
+    const { ox, oy } = JABS_Engine.resolveMeleeOriginPixelOffsetsForFacing(facing);
+    const liftPx = JABS_Engine.resolveMeleeVerticalLiftPxForFacing(facing);
+
+    return {
+      x: character.screenX() + ox,
+      y: character.screenY() - liftPx + oy
     };
   }
 
@@ -26762,9 +27020,9 @@ class JABS_Engine
       // direct actions that have an action sprite (spatialized) use sprite position.
       if (jabsAction.isDirectAction() && actionSprite)
       {
-        // read the center tile from the action sprite.
-        const cx = actionSprite.x;
-        const cy = actionSprite.y;
+        // continuous map coords — `.x`/`.y` getters round and skew spatial queries under pixel movement.
+        const cx = actionSprite._realX;
+        const cy = actionSprite._realY;
 
         // build the inclusive bounds using the action range.
         const minX = Math.floor(cx - range);
@@ -26779,9 +27037,9 @@ class JABS_Engine
       // direct actions without a sprite use caster proximity and/or target coordinates.
       if (jabsAction.isDirectAction() && !actionSprite)
       {
-        // grab the caster location in tiles.
-        const cx = Math.floor(casterJabsBattler.getX());
-        const cy = Math.floor(casterJabsBattler.getY());
+        // grab the caster location in continuous tile coords (same units as spatial buckets).
+        const cx = casterJabsBattler.getX();
+        const cy = casterJabsBattler.getY();
 
         // use proximity radius for the AABB.
         const radius = jabsAction.getProximity();
@@ -26799,9 +27057,9 @@ class JABS_Engine
       // non-direct actions will have an action sprite; anchor on sprite.
       if (!jabsAction.isDirectAction() && actionSprite)
       {
-        // read the sprite center in tiles.
-        const cx = actionSprite.x;
-        const cy = actionSprite.y;
+        // read continuous map coords so AoE spatial queries track pixel movement.
+        const cx = actionSprite._realX;
+        const cy = actionSprite._realY;
 
         // build the bounds using the action range.
         const minX = Math.floor(cx - range);
@@ -27905,6 +28163,12 @@ class JABS_HitboxPulseManager
    * @type {JABS_HitboxPulseOptions}
    */
   static _defaults = JABS_HitboxPulseOptions.defaults();
+
+  /**
+   * Sustained pulses keyed by {@link JABS_Action#getUuid}; refreshed each frame while the action lives.
+   * @type {Record<string, Sprite_HitboxPulse>}
+   */
+  static _sustainedByUuid = {};
   //endregion static fields
 
   //region accessors
@@ -28020,6 +28284,85 @@ class JABS_HitboxPulseManager
    * Accepts either a `JABS_HitboxPulseOptions` or a plain partial literal.
    * @param {JABS_HitboxPulseOptions|Partial<JABS_HitboxPulseOptions>} data The pulse data.
    */
+  /**
+   * Keeps one sustained pulse sprite aligned with the supplied action for the entire collision window.
+   * @param {JABS_Action} jabsAction The live map action.
+   */
+  static syncSustainedActionPulse(jabsAction)
+  {
+    if (!J.ABS.Metadata.HitboxPulse.enabled)
+    {
+      JABS_HitboxPulseManager.releaseSustainedPulse(jabsAction.getUuid());
+      return;
+    }
+
+    const layer = JABS_HitboxPulseManager.getLayer();
+
+    // early-map bootstrap: skip quietly until Spriteset_Map wires the layer.
+    if (!layer)
+    {
+      return;
+    }
+
+    if (jabsAction.getNeedsRemoval())
+    {
+      JABS_HitboxPulseManager.releaseSustainedPulse(jabsAction.getUuid());
+      return;
+    }
+
+    if (jabsAction.isDelayCompleted() === false)
+    {
+      JABS_HitboxPulseManager.releaseSustainedPulse(jabsAction.getUuid());
+      return;
+    }
+
+    const uuid = jabsAction.getUuid();
+    const plain = jabsAction.composeHitboxPulsePlainOptions();
+
+    let pulse = JABS_HitboxPulseManager._sustainedByUuid[uuid];
+    const pool = JABS_HitboxPulseManager.getPool();
+
+    if (!pulse)
+    {
+      pulse = pool.length > 0
+        ? pool.pop()
+        : new Sprite_HitboxPulse();
+      JABS_HitboxPulseManager._sustainedByUuid[uuid] = pulse;
+      layer.addChild(pulse);
+    }
+
+    pulse.reset();
+    pulse.setup(plain);
+    pulse.setWorldPosition(plain.x, plain.y);
+    pulse.setRotation(JABS_HitboxPulseManager.directionToRadians(plain.facing));
+  }
+
+  /**
+   * Detaches a sustained pulse by action uuid (cleanup / disable paths).
+   * @param {string} uuid The {@link JABS_Action} uuid.
+   */
+  static releaseSustainedPulse(uuid)
+  {
+    const pulse = JABS_HitboxPulseManager._sustainedByUuid[uuid];
+
+    if (!pulse)
+    {
+      return;
+    }
+
+    delete JABS_HitboxPulseManager._sustainedByUuid[uuid];
+
+    const layer = JABS_HitboxPulseManager.getLayer();
+
+    if (layer && pulse.parent === layer)
+    {
+      layer.removeChild(pulse);
+    }
+
+    JABS_HitboxPulseManager.getPool()
+      .push(pulse);
+  }
+
   static spawn(data)
   {
     // resolve the target layer.
@@ -28118,6 +28461,13 @@ class JABS_HitboxPulseManager
    */
   static clear()
   {
+    // tear down sustained overlays before recycling ephemeral pulses.
+    Object.keys(JABS_HitboxPulseManager._sustainedByUuid)
+      .forEach(uuid =>
+      {
+        JABS_HitboxPulseManager.releaseSustainedPulse(uuid);
+      });
+
     // resolve collections and layer via accessors.
     const active = JABS_HitboxPulseManager.getActive();
     const pool = JABS_HitboxPulseManager.getPool();
@@ -33221,8 +33571,16 @@ Game_Event.prototype.existOnCaster = function()
   // if for whatever reason we have no caster, then do not follow.
   if (!caster) return;
 
-  // exist ontop of the caster.
-  this.locate(caster.getX(), caster.getY());
+  // copy the caster character’s logical + continuous coords directly.
+  // `locate()` uses `setPosition()`, which rounds `_x`/`_y`; drift vs `_realX`/`_realY` reads as a lagging hitbox.
+  const c = caster.getCharacter();
+
+  this._realX = c._realX;
+  this._realY = c._realY;
+  this._x = c._x;
+  this._y = c._y;
+  this.straighten();
+  this.refreshBushDepth();
 };
 //endregion Game_Event
 
@@ -37673,6 +38031,9 @@ class Sprite_HitboxPulse
     this._degrees = 180;     // for Arc shape
     this._thickness = 1;     // for Line/Wall width (tiles)
 
+    // sustained pulses skip pooled expiry animation; manager refreshes them each frame.
+    this._sustained = false;
+
     // snap transforms.
     this.rotation = 0;
     this.alpha = 1.0;
@@ -37712,11 +38073,21 @@ class Sprite_HitboxPulse
       ? Math.max(0, opts.thickness)
       : 1;
 
+    // sustained overlays are ticked by JABS_HitboxPulseManager.sync, not the ephemeral pool update().
+    this._sustained = opts.sustained === true;
+
     // set blend.
     this.blendMode = this._blendMode;
 
     // draw the geometry now (static path; only alpha/scale animates per frame).
     this.drawGeometry();
+
+    // snap visual curve for sustained pulses so they read as a steady outline during the swing.
+    if (this._sustained)
+    {
+      this.alpha = this._startAlpha;
+      this.scale.set(this._scaleStart, this._scaleStart);
+    }
   }
 
   //endregion lifecycle
@@ -37841,6 +38212,12 @@ class Sprite_HitboxPulse
    */
   update()
   {
+    // sustained pulses live outside the ephemeral pool timeline.
+    if (this._sustained)
+    {
+      return;
+    }
+
     // increment age.
     this._age++;
 
@@ -37862,6 +38239,12 @@ class Sprite_HitboxPulse
    */
   isExpired()
   {
+    // sustained pulses never expire through age; the manager detaches them explicitly.
+    if (this._sustained)
+    {
+      return false;
+    }
+
     // report if this pulse has reached or exceeded its lifetime.
     return this._age >= this._duration;
   }
@@ -39277,21 +39660,27 @@ Spriteset_Map.prototype.handleHitboxOverlay = function ()
     $jabsEngine.requestToggleHitboxOverlays = false;
   }
 
-  // synchronize the layer’s visibility to the engine’s desired state.
-  layer.visible = !!$jabsEngine.hitboxOverlaysVisible;
+  const showFullOverlays = !!$jabsEngine.hitboxOverlaysVisible;
+  const pulseColliderHighlight = J.ABS.Metadata.HitboxPulse.enabled === true
+    && J.ABS.Metadata.HitboxPulse.highlightColliderBattlers === true;
 
-  // if overlays are hidden, do not process any overlay work.
-  if (!layer.visible)
+  // full debug overlays on, or pulse mode requests collider outlines only.
+  layer.visible = showFullOverlays || pulseColliderHighlight;
+
+  if (layer.visible === false)
   {
-    // do not build/refresh/purge any hitbox overlays while hidden.
     return;
   }
 
-  // handle the action hitbox overlays when visible.
-  this.handleActionHitboxes();
-
-  // handle the battler hitbox overlays when visible.
-  this.handleBattlerHitboxes();
+  if (showFullOverlays)
+  {
+    this.handleActionHitboxes();
+    this.handleBattlerHitboxes('all');
+  }
+  else
+  {
+    this.handleBattlerHitboxes('colliding');
+  }
 };
 
 /**
@@ -39409,24 +39798,72 @@ Spriteset_Map.prototype.isBattlerCollidingWithAnyAction = function (item)
     // guard: no action model means nothing to collide with.
     if (!jabsAction) continue; // skip invalid action entries.
 
-    // direct actions (proximity-based) do not use a map shape; skip them for this visual.
-    if (jabsAction.isDirectAction()) continue; // only shaped actions.
-
-    // derive parameters for the shape collision.
     const shape = jabsAction.getShape();
     const range = jabsAction.getRange();
-    // logical travel dir8 on the action model (map event direction may be cardinal for `$` sheet rows).
     const facing = jabsAction.direction();
 
-    // ask the engine if the target is within this action's range according to shape logic.
-    const overlapped = $jabsEngine.isTargetWithinRange(facing, target, actionEvent, range, shape); // engine parity.
+    // mirror {@link JABS_Engine#getCollisionTargets}: direct + sprite uses the same wedge test as gameplay.
+    if (jabsAction.isDirectAction())
+    {
+      const actionSprite = jabsAction.getActionSprite();
 
-    // if overlapping, we're done.
-    if (overlapped) return true; // this battler is overlapping at least one action.
+      if (actionSprite)
+      {
+        const overlapped = $jabsEngine.isTargetWithinRange(facing, target, actionSprite, range, shape);
+
+        if (overlapped)
+        {
+          return true;
+        }
+
+        continue;
+      }
+
+      const gameAction = jabsAction.getAction();
+
+      if (gameAction.isForUser())
+      {
+        const casterChar = jabsAction.getCaster()
+          .getCharacter();
+
+        if (target === casterChar)
+        {
+          return true;
+        }
+
+        continue;
+      }
+
+      const casterJb = jabsAction.getCaster();
+      const targetJb = typeof target.getJabsBattler === 'function'
+        ? target.getJabsBattler()
+        : null;
+
+      if (!targetJb)
+      {
+        continue;
+      }
+
+      const maxDistance = jabsAction.getProximity();
+      const distance = casterJb.distanceToDesignatedTarget(targetJb);
+
+      if (distance <= maxDistance)
+      {
+        return true;
+      }
+
+      continue;
+    }
+
+    const overlapped = $jabsEngine.isTargetWithinRange(facing, target, actionEvent, range, shape);
+
+    if (overlapped)
+    {
+      return true;
+    }
   }
 
-  // if none overlapped, report no overlap.
-  return false; // not colliding with any active action.
+  return false;
 };
 
 //region action hitboxes
@@ -39871,30 +40308,49 @@ Spriteset_Map.prototype.drawSectorG = function (
 
 /**
  * Handle the overlays for all battler-based hitboxes.
+ * @param {'all'|'colliding'} itemMode Whether to draw every battler or only those overlapping an action shape.
  */
-Spriteset_Map.prototype.handleBattlerHitboxes = function ()
+Spriteset_Map.prototype.handleBattlerHitboxes = function (itemMode = 'all')
 {
   // build any missing hitbox sprites for active battlers.
-  this.buildMissingBattlerHitboxSprites();
+  this.buildMissingBattlerHitboxSprites(itemMode);
 
   // refresh positions and shapes for existing battler hitbox sprites.
-  this.refreshExistingBattlerHitboxSprites();
+  this.refreshExistingBattlerHitboxSprites(itemMode);
 
   // purge battler hitbox sprites that no longer have a corresponding battler.
-  this.purgeOrphanedBattlerHitboxSprites();
+  this.purgeOrphanedBattlerHitboxSprites(itemMode);
+};
+
+/**
+ * Collects battler overlay items, optionally filtered to those overlapping an active action.
+ * @param {'all'|'colliding'} itemMode Filter mode.
+ * @returns {{ key:string, type:string, source: Game_CharacterBase }[]}
+ */
+Spriteset_Map.prototype.collectBattlerOverlayItems = function (itemMode = 'all')
+{
+  const items = this.collectActiveBattlerOverlayItems();
+
+  if (itemMode === 'colliding')
+  {
+    return items.filter(entry => this.isBattlerCollidingWithAnyAction(entry));
+  }
+
+  return items;
 };
 
 /**
  * Builds battler hitbox sprites for any battlers that lack one.
+ * @param {'all'|'colliding'} itemMode Filter mode.
  */
-Spriteset_Map.prototype.buildMissingBattlerHitboxSprites = function ()
+Spriteset_Map.prototype.buildMissingBattlerHitboxSprites = function (itemMode = 'all')
 {
   // get the container and dict for battler hitboxes.
   const layer = this.getJabsHitboxLayer(); // parent container for hitboxes.
   const dict = this.getBattlerHitboxSprites(); // existing battler hitbox sprites.
 
   // collect all active battler keys + sources to build for.
-  const items = this.collectActiveBattlerOverlayItems(); // [{ key, type, source }]
+  const items = this.collectBattlerOverlayItems(itemMode); // [{ key, type, source }]
 
   // create any that are missing.
   items.forEach(item =>
@@ -39911,15 +40367,16 @@ Spriteset_Map.prototype.buildMissingBattlerHitboxSprites = function ()
 
 /**
  * Synchronizes position and appearance of existing battler hitbox sprites.
+ * @param {'all'|'colliding'} itemMode Filter mode.
  */
-Spriteset_Map.prototype.refreshExistingBattlerHitboxSprites = function ()
+Spriteset_Map.prototype.refreshExistingBattlerHitboxSprites = function (itemMode = 'all')
 {
   // quick access to tile size.
   const tw = $gameMap.tileWidth(); // tile width in pixels.
   const th = $gameMap.tileHeight(); // tile height in pixels.
 
   // collect all active battler keys + sources to refresh.
-  const items = this.collectActiveBattlerOverlayItems(); // [{ key, type, source }]
+  const items = this.collectBattlerOverlayItems(itemMode); // [{ key, type, source }]
 
   // refresh each active battler's sprite.
   items.forEach(item =>
@@ -39946,11 +40403,12 @@ Spriteset_Map.prototype.refreshExistingBattlerHitboxSprites = function ()
 
 /**
  * Removes battler hitbox sprites that no longer correspond to an active battler.
+ * @param {'all'|'colliding'} itemMode Filter mode.
  */
-Spriteset_Map.prototype.purgeOrphanedBattlerHitboxSprites = function ()
+Spriteset_Map.prototype.purgeOrphanedBattlerHitboxSprites = function (itemMode = 'all')
 {
   // compute the set of active keys now.
-  const active = new Set(this.collectActiveBattlerOverlayItems()
+  const active = new Set(this.collectBattlerOverlayItems(itemMode)
     .map(it => it.key)); // active keys.
 
   // walk the dict and remove any sprites whose keys aren’t active.
