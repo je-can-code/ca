@@ -584,7 +584,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  *
  * @command call-salvage
  * @text Call Salvage Scene
- * @desc Dismantle stamped gear; hub row uses same scene; ignores switch gate.
+ * @desc Opens the JAFTING salvage scene where stamped gear can be dismantled (same scene as the hub Salvage row).
  *
  * @param jaftingSalvageConfig
  * @text SALVAGE / REFINE STACKS
@@ -594,7 +594,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * @type number
  * @min -1
  * @text Material armor type id
- * @desc Ingredient armor stacks; refine skips; dismantle keeps rows.-1 off.
+ * @desc Armor atypeId treated as stack-only ingredients (refinement base list omits them; dismantle keeps bare rows). Use -1 to disable. Default 5.
  * @default 5
  *
  * @param material-weapon-type-id
@@ -602,7 +602,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * @type number
  * @min -1
  * @text Material weapon type id
- * @desc Material weapon wtypeId (-1 off). Mirrors armor stack rules in lists.
+ * @desc Weapon wtypeId treated like material armors (stack counts in refine lists; dismantle pass-through). Use -1 to disable; 0 is a valid type id.
  * @default -1
  *
  * @param jaftingHubSalvage
@@ -613,7 +613,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * @type number
  * @min 0
  * @text Salvage hub switch id
- * @desc Non-zero: switch ON enables hub Salvage row. 0 always shows Salvage.
+ * @desc When non-zero, the Salvage hub row requires this game switch ON. Use 0 to always show Salvage (ignore switches).
  * @default 0
  *
  * @param salvage-menu-name
@@ -627,7 +627,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * @parent jaftingHubSalvage
  * @type number
  * @text Salvage hub command icon
- * @desc Icon sheet index beside Salvage on the JAFTING hub list.
+ * @desc Icon index drawn beside the Salvage hub command (RPG Maker icon sheet).
  * @default 192
  *
  */
