@@ -541,8 +541,8 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * NOTE ABOUT THIS PLUGIN:
  * This is a base plugin that offers no actual crafting functionality itself.
  * It offers instead a root "JAFTING" menu that the other extensions will
- * connect to for singular JAFTING access—including a first-class Salvage row on
- * that hub (same scene as the {@code call-salvage} plugin command). Chances are, if you are using
+ * connect to for singular JAFTING access—including Salvage on that hub (same
+ * scene as {@code call-salvage}). Chances are, if you are using
  * this plugin, you probably also want to grab the "Creation" extension and/or
  * the "Refinement" extension and place them below this one.
  * ============================================================================
@@ -559,13 +559,16 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * ============================================================================
  * CHANGELOG:
  * - 2.1.2
- *    Salvage appears on the root JAFTING hub ({@link Window_JaftingList}) with configurable label, icon, and optional
- *    switch gating; {@link Scene_JaftingSalvage} exposes {@link Scene_JaftingSalvage.KEY} for extension ordering.
+ *    Salvage hub row: label, icon, optional switch gate
+ *    ({@link Window_JaftingList}).
+ *    {@link Scene_JaftingSalvage.KEY} ties the hub entry to scene routing.
  * - 2.1.1
- *    Salvage party bags initialize from {@link DataManager.createGameObjects} / {@link DataManager.extractSaveContents}
- *    (not {@link Scene_Boot#onDatabaseLoaded}, which runs before `$gameParty` exists).
+ *    Party salvage bags init from {@link DataManager.createGameObjects} and
+ *    {@link DataManager.extractSaveContents}
+ *    (not {@link Scene_Boot#onDatabaseLoaded}; runs before $gameParty exists).
  * - 2.1.0
- *    Added JAFTING salvage ledger helpers, {@link Scene_JaftingSalvage}, and {@link PluginManager} command call-salvage.
+ *    Salvage ledger helpers, {@link Scene_JaftingSalvage}, and plugin command
+ *    call-salvage.
  * - 2.0.0
  *    Removed all references to refinement logic.
  *    Extracted the crafting logic entirely into its own plugin.
@@ -581,7 +584,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  *
  * @command call-salvage
  * @text Call Salvage Scene
- * @desc Opens the JAFTING salvage scene where stamped gear can be dismantled (same scene as the hub Salvage row).
+ * @desc Dismantle stamped gear; hub row uses same scene; ignores switch gate.
  *
  * @param jaftingSalvageConfig
  * @text SALVAGE / REFINE STACKS
@@ -591,7 +594,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * @type number
  * @min -1
  * @text Material armor type id
- * @desc Armor atypeId treated as stack-only ingredients (refinement base list omits them; dismantle keeps bare rows). Use -1 to disable. Default 5.
+ * @desc Ingredient armor stacks; refine skips; dismantle keeps rows.-1 off.
  * @default 5
  *
  * @param material-weapon-type-id
@@ -599,7 +602,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * @type number
  * @min -1
  * @text Material weapon type id
- * @desc Weapon wtypeId treated like material armors (stack counts in refine lists; dismantle pass-through). Use -1 to disable; 0 is a valid type id.
+ * @desc Material weapon wtypeId (-1 off). Mirrors armor stack rules in lists.
  * @default -1
  *
  * @param jaftingHubSalvage
@@ -610,7 +613,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * @type number
  * @min 0
  * @text Salvage hub switch id
- * @desc When non-zero, the Salvage hub row requires this game switch ON. Use 0 to always show Salvage (ignore switches).
+ * @desc Non-zero: switch ON enables hub Salvage row. 0 always shows Salvage.
  * @default 0
  *
  * @param salvage-menu-name
@@ -624,7 +627,7 @@ JaftingSalvageLedger.mergeRowArrays = function(a, b)
  * @parent jaftingHubSalvage
  * @type number
  * @text Salvage hub command icon
- * @desc Icon index drawn beside the Salvage hub command (RPG Maker icon sheet).
+ * @desc Icon sheet index beside Salvage on the JAFTING hub list.
  * @default 192
  *
  */
@@ -1900,7 +1903,7 @@ class Scene_Jafting
   initPrimaryMembers()
   {
     /**
-     * The window that lists Creation, Refinement, and other registered JAFTING modes.
+     * The window that lists Salvage, Creation, Refinement, and other registered JAFTING modes.
      * @type {Window_JaftingList}
      */
     this._j._crafting._commandList = null;

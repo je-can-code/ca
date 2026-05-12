@@ -1211,7 +1211,7 @@ RecipeTracking.prototype.craftingProficiency = function()
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 JAFT-Create] An extension for JAFTING to enable recipe creation.
+ * [v1.0.4 JAFT-Create] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1343,6 +1343,9 @@ RecipeTracking.prototype.craftingProficiency = function()
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.4
+ *    Craft outputs inherit dismantle lineage from recipe ingredients (core
+ *    salvage stamping).
  * - 1.0.3
  *    Developer/debug helpers on J.JAFTING.EXT.CREATE.Debug and a plugin command to prep Creation test saves.
  * - 1.0.2
@@ -1780,7 +1783,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
  * The metadata associated with this plugin.
  */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata('J-JAFTING-Creation', '1.1.0');
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata('J-JAFTING-Creation', '1.1.1');
 
 /**
  * A collection of all aliased methods for this plugin.

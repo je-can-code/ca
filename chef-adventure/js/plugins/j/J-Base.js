@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.1 BASE] The base class for all J plugins.
+ * [v3.1.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -92,6 +92,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.1.1
+ *    RPG database wrappers expose createEmpty() on item, weapon, armor, skill,
+ *    and state classes.
+ *    Used when JAFTING reclaims dynamic refinement slots and in unit tests.
  * - 3.1.0
  *    Added TraitManager static class for centralized display of slip effects (name and icon
  *    based on value sign: damage vs regen).
@@ -198,7 +202,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '3.1.0';
+J.BASE.Metadata.Version = '3.1.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
