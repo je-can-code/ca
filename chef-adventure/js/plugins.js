@@ -46,7 +46,7 @@ var $plugins =
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
 {"name":"j/J-DropsControl","status":true,"description":"[v2.0.0 DROPS] Enables greater control over loot drops.","parameters":{}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
-{"name":"j/jafting/J-JAFTING","status":true,"description":"[v2.0.0 JAFTING-Core] Root JAFTING menu; extensions provide Creation and Refinement.","parameters":{}},
+{"name":"j/jafting/J-JAFTING","status":true,"description":"[v2.1.2 JAFTING-Core] Root JAFTING menu, salvage loop, and extension hooks.","parameters":{"jaftingSalvageConfig":"","material-armor-type-id":"5","material-weapon-type-id":"-1","jaftingHubSalvage":"","salvage-menu-switch":"0","salvage-menu-name":"Salvage","salvage-menu-icon":"192"}},
 {"name":"j/jafting/ext/J-JAFTING-Creation","status":true,"description":"[v1.0.3 JAFT-Create] An extension for JAFTING to enable recipe creation.","parameters":{"parentConfig":"","menu-switch":"105","menu-name":"Creation","menu-icon":"2565"}},
 {"name":"j/jafting/ext/J-JAFTING-Refinement","status":true,"description":"[v1.0.1 JAFT-Refine] An extension for JAFTING to enable equip refinement.","parameters":{"parentConfig":"","menu-switch":"106","menu-name":"Refinement","menu-icon":"2565"}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},

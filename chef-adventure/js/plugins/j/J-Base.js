@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.1 BASE] The base class for all J plugins.
+ * [v3.1.1 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -92,6 +92,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.1.1
+ *    RPG database wrappers expose createEmpty() on item, weapon, armor, skill,
+ *    and state classes.
+ *    Used when JAFTING reclaims dynamic refinement slots and in unit tests.
  * - 3.1.0
  *    Added TraitManager static class for centralized display of slip effects (name and icon
  *    based on value sign: damage vs regen).
@@ -198,7 +202,7 @@ J.BASE = {};
  */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = `J-Base`;
-J.BASE.Metadata.Version = '3.1.0';
+J.BASE.Metadata.Version = '3.1.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -2352,6 +2356,31 @@ class RPG_Armor
   {
     return `${super.implementationType()}:armor`;
   }
+
+  /**
+   * Hydrated blank armor row for reclaiming dynamic refinement slots (matches unused DB slot shape, not `null`).
+   *
+   * @param {number} index database id and `$dataArmors` index for this row
+   * @returns {RPG_Armor}
+   */
+  static createEmpty(index)
+  {
+    const raw = {
+      id: index,
+      atypeId: 0,
+      etypeId: 2,
+      params: [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+      price: 0,
+      traits: [],
+      description: String.empty,
+      iconIndex: 0,
+      name: String.empty,
+      note: String.empty,
+      meta: {},
+    };
+
+    return new RPG_Armor(raw, index);
+  }
 }
 
 //endregion RPG_Armor
@@ -2592,6 +2621,45 @@ class RPG_Item
   {
     return `${super.implementationType()}:item`;
   }
+
+  /**
+   * Hydrated blank consumable row—symmetry with equip `createEmpty`; useful when rebuilding `$dataItems` slots.
+   *
+   * @param {number} index database id and `$dataItems` index for this row
+   * @returns {RPG_Item}
+   */
+  static createEmpty(index)
+  {
+    const raw = {
+      id: index,
+      animationId: 0,
+      consumable: true,
+      damage: {
+        critical: false,
+        elementId: 0,
+        formula: '0',
+        type: 0,
+        variance: 20,
+      },
+      description: String.empty,
+      effects: [],
+      hitType: 0,
+      iconIndex: 0,
+      itypeId: 1,
+      name: String.empty,
+      note: String.empty,
+      occasion: 0,
+      price: 0,
+      repeats: 1,
+      scope: 7,
+      speed: 0,
+      successRate: 100,
+      tpGain: 0,
+      meta: {},
+    };
+
+    return new RPG_Item(raw, index);
+  }
 }
 
 //endregion RPG_Item
@@ -2695,6 +2763,50 @@ class RPG_Skill
   implementationType()
   {
     return `${super.implementationType()}:skill`;
+  }
+
+  /**
+   * Hydrated blank skill row—symmetry with other DB wrappers when a slot must read as "unused but valid".
+   *
+   * @param {number} index database id and `$dataSkills` index for this row
+   * @returns {RPG_Skill}
+   */
+  static createEmpty(index)
+  {
+    const raw = {
+      id: index,
+      message1: String.empty,
+      message2: String.empty,
+      messageType: 1,
+      mpCost: 0,
+      requiredWtypeId1: 0,
+      requiredWtypeId2: 0,
+      stypeId: 1,
+      tpCost: 0,
+      animationId: 0,
+      damage: {
+        critical: false,
+        elementId: 0,
+        formula: '0',
+        type: 0,
+        variance: 20,
+      },
+      effects: [],
+      hitType: 0,
+      occasion: 0,
+      repeats: 1,
+      scope: 1,
+      speed: 0,
+      successRate: 100,
+      tpGain: 0,
+      description: String.empty,
+      iconIndex: 0,
+      name: String.empty,
+      note: String.empty,
+      meta: {},
+    };
+
+    return new RPG_Skill(raw, index);
   }
 }
 
@@ -2878,6 +2990,45 @@ class RPG_State
   {
     return `${super.implementationType()}:state`;
   }
+
+  /**
+   * Hydrated blank state row—symmetry with other DB wrappers when a slot must read as "unused but valid".
+   *
+   * @param {number} index database id and `$dataStates` index for this row
+   * @returns {RPG_State}
+   */
+  static createEmpty(index)
+  {
+    const raw = {
+      id: index,
+      autoRemovalTiming: 0,
+      chanceByDamage: 100,
+      traits: [],
+      iconIndex: 0,
+      maxTurns: 1,
+      message1: String.empty,
+      message2: String.empty,
+      message3: String.empty,
+      message4: String.empty,
+      minTurns: 1,
+      motion: 0,
+      name: String.empty,
+      note: String.empty,
+      overlay: 0,
+      priority: 50,
+      removeAtBattleEnd: false,
+      removeByDamage: false,
+      removeByRestriction: false,
+      removeByWalking: false,
+      restriction: 0,
+      stepsToRemove: 100,
+      messageType: 1,
+      description: String.empty,
+      meta: {},
+    };
+
+    return new RPG_State(raw, index);
+  }
 }
 
 //endregion RPG_State
@@ -2942,6 +3093,32 @@ class RPG_Weapon
   implementationType()
   {
     return `${super.implementationType()}:weapon`;
+  }
+
+  /**
+   * Hydrated blank weapon row for reclaiming dynamic refinement slots (matches unused DB slot shape, not `null`).
+   *
+   * @param {number} index database id and `$dataWeapons` index for this row
+   * @returns {RPG_Weapon}
+   */
+  static createEmpty(index)
+  {
+    const raw = {
+      id: index,
+      animationId: 0,
+      wtypeId: 0,
+      etypeId: 1,
+      params: [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+      price: 0,
+      traits: [],
+      description: String.empty,
+      iconIndex: 0,
+      name: String.empty,
+      note: String.empty,
+      meta: {},
+    };
+
+    return new RPG_Weapon(raw, index);
   }
 }
 
