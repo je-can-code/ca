@@ -116,7 +116,8 @@
  *   Forces weapon swing overlay icon index N on the IconSet sheet (-1 behavior
  *   falls back to inferred equip icon for actors: dual-wield offhand uses weapon slot 2; offhand + one weapon
  *   resolves orb/shield armor by matching skill ids on armor rows or equip slot 1 when it is armor (body armor is
- *   not blindly armors()[0]), unless the lone weapon or a state claims the strike via offhandSkillId tags).
+ *   not blindly armors()[0]), unless the executing offhand skill currently belongs to the mainhand's
+ *   provided offhand path, including any temporary state-driven transform on that path).
  *
  * <juiceMotion:arc> | arc-reverse | bash | present | recoil | spin | spin-reverse | stab-forward
  *   Weapon overlay preset. Legacy swing-top-down / swing-bottom-up map to arc / arc-reverse.
@@ -2638,8 +2639,9 @@ class JuiceProfileResolver
 
   /**
    * Equipped weapon or armor row used for icon + multiplier inference.
-   * Offhand + exactly one weapon: orb/shield armor unless the lone weapon or a state claims the strike;
-   * armor pick prefers rows tagged for this skill id, then {@link Game_Actor#equips} slot 1 when it is armor.
+   * Offhand + exactly one weapon: orb/shield armor unless the executing offhand skill currently
+   * belongs to the mainhand's provided offhand path; armor pick prefers rows tagged for this
+   * skill id, then {@link Game_Actor#equips} slot 1 when it is armor.
    * @param {JABS_Battler} caster The caster.
    * @param {JABS_Action} action The strike action.
    * @returns {{ kind: 'weapon', item: RPG_Weapon } | { kind: 'armor', item: RPG_Armor } | null}
@@ -2672,12 +2674,9 @@ class JuiceProfileResolver
       const executingId = action.getBaseSkill().id;
       const [ w0 ] = weapons;
 
-      if (w0.jabsOffhandSkillId > 0 && executingId === w0.jabsOffhandSkillId)
-      {
-        return { kind: 'weapon', item: w0 };
-      }
-
-      if (JuiceProfileResolver.#stateClaimsOffhandSkillId(gb, executingId) === true)
+      // if the current offhand action comes from the mainhand's provided offhand path
+      // (including any temporary state transform on that path), then the weapon owns the juice.
+      if (gb.isMainhandProvidedOffhandSkill(executingId) === true)
       {
         return { kind: 'weapon', item: w0 };
       }
@@ -2735,33 +2734,6 @@ class JuiceProfileResolver
     }
 
     return null;
-  }
-
-  /**
-   * True when a current state tags this skill id as its {@link RPG_State.prototype.jabsOffhandSkillId} override.
-   * Matches the state slice of {@link Game_Actor#offhandSkillOverride} for juice ownership of the lone weapon row.
-   * @param {Game_Battler} gb The game battler (actors only call into states).
-   * @param {number} executingId Executing skill database id.
-   * @returns {boolean}
-   */
-  static #stateClaimsOffhandSkillId(gb, executingId)
-  {
-    if (gb.isActor() === false)
-    {
-      return false;
-    }
-
-    let claimed = false;
-
-    gb.states().forEach(st =>
-    {
-      if (st.jabsOffhandSkillId > 0 && st.jabsOffhandSkillId === executingId)
-      {
-        claimed = true;
-      }
-    });
-
-    return claimed;
   }
 
   /**

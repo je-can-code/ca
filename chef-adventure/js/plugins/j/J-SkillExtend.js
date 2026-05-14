@@ -14,8 +14,10 @@
  * DETAILS:
  * The new functionalities available are as follows:
  * - Skills extending skills.
- * - On-hit self-state application.
- * - On-cast self-state application.
+ * - On-hit self-state application and removal.
+ * - On-cast self-state application and removal.
+ * - On-hit target-state stack stripping and full removal.
+ * - On-cast target-state stack stripping and full removal.
  * ============================================================================
  * SKILL EXTENSION:
  * Have you ever wanted to have a single skill gain additional effects by
@@ -109,11 +111,13 @@
  * to start your extension (or another skill extension of the same skill
  * perhaps)!
  * ============================================================================
- * SELF-STATE APPLICATION:
- * Have you ever wanted a battler to be able to inflict themselves with a state
- * upon execution of a skill? Well now you can! By applying the appropriate tag
- * to the skill(s) in question, you too can have battlers that are applying
- * states of any kind to themselves!
+ * STATE REACTION EFFECTS:
+ * Have you ever wanted a battler to be able to inflict themselves with a state,
+ * lose one of their own state stacks, strip a state stack from a target, or
+ * fully remove a state from a target as part of a skill's execution? Well now
+ * you can! By applying the appropriate tag to the skill(s) in question, you too
+ * can have battlers that react to casting or landing skills with state
+ * application and removal effects.
  *
  * NOTE 1:
  * State resistance is not taken into account in regards to the CHANCE of the
@@ -126,14 +130,25 @@
  * multiple times, having a skill "repeat", or in JABS have multiple hits on
  * the skill, will both result in triggering the on-hit effect multiple times.
  *
+ * NOTE 3:
+ * On-hit effects only process on a literal hit.
+ * If the action misses, is evaded, or is parried, then the on-hit effects will
+ * not trigger.
+ *
  * TAG USAGE:
  * - Skills only.
  *
  * TAG FORMAT:
  *  <onCastSelfState:[STATE_ID,CHANCE]>
  *  <onHitSelfState:[STATE_ID,CHANCE]>
- * Where STATE_ID is the id of the state to apply.
- * Where CHANCE is the percent chance between 0 and 100 that it'll apply.
+ *  <onCastLoseState:[STATE_ID,CHANCE]>
+ *  <onHitLoseState:[STATE_ID,CHANCE]>
+ *  <onCastStripState:[STATE_ID,CHANCE]>
+ *  <onHitStripState:[STATE_ID,CHANCE]>
+ *  <onCastRemoveState:[STATE_ID,CHANCE]>
+ *  <onHitRemoveState:[STATE_ID,CHANCE]>
+ * Where STATE_ID is the id of the state to apply, strip, or remove.
+ * Where CHANCE is the percent chance between 0 and 100 that it'll trigger.
  *
  * TAG EXAMPLES:
  *  <onCastSelfState:[3,40]>
@@ -144,12 +159,37 @@
  *
  *  <onHitSelfState:[19,100]>
  * The caster has a 100% (always) chance of appling state id 19 to oneself.
- * This processes as soon as the skill is "applied" to the target.
- * When using JABS, this applies as soon as the skill/action connects with
- * a target of any kind. This will trigger multiple times if an action has
- * multiple projectiles.
- * When using non-JABS, this applies when a skill is being executed against a
- * target. This happens regardless the outcome of the skill.
+ * This processes when the action successfully hits the target.
+ * When using JABS, this applies as soon as the skill/action lands on
+ * a target. This will trigger multiple times if an action has multiple
+ * projectiles.
+ * When using non-JABS, this applies when a skill successfully hits a
+ * target. Misses, evades, and parries do not trigger this.
+ *
+ *  <onCastLoseState:[6,100]>
+ * The caster has a 100% (always) chance of losing one stack of state id 6 from oneself.
+ * This processes alongside other on-cast effects when the skill is executed.
+ *
+ *  <onHitLoseState:[7,50]>
+ * The caster has a 50% chance of losing one stack of state id 7 from oneself when the
+ * skill successfully hits a target.
+ *
+ *  <onCastStripState:[8,100]>
+ * The caster has a 100% (always) chance of stripping one stack of state id 8
+ * from the target.
+ * This processes alongside other on-cast effects when the skill is executed.
+ *
+ *  <onHitStripState:[9,40]>
+ * The caster has a 40% chance of stripping one stack of state id 9 from the
+ * target when the skill successfully hits that target.
+ *
+ *  <onCastRemoveState:[10,100]>
+ * The caster has a 100% (always) chance of fully removing state id 10 from the target.
+ * This processes alongside other on-cast effects when the skill is executed.
+ *
+ *  <onHitRemoveState:[11,40]>
+ * The caster has a 40% chance of fully removing state id 11 from the target when the
+ * skill successfully hits that target.
  * ============================================================================
  * CHANGELOG:
  * - 1.2.1
@@ -225,9 +265,161 @@ J.EXTEND.Aliased.JABS_SkillSlotManager = new Map();
  * All regular expressions used by this plugin.
  */
 J.EXTEND.RegExp = {};
+
+/**
+ * The structure of a skill extension tag.
+ *
+ * <pre>
+ * Structure:
+ *  <skillExtend:[BASE_SKILL_ID,...]>
+ *
+ * Example:
+ *  <skillExtend:[7, 8, 9]>
+ *
+ * Translation:
+ *  Extends skill id 7.
+ *  Extends skill id 8.
+ *  Extends skill id 9.
+ * </pre>
+ * @type {RegExp}
+ */
 J.EXTEND.RegExp.SkillExtend = /<skillExtend:[ ]?(\[[ ]?\d+(?:,[ ]?\d+)*[ ]?])>/i;
+
+/**
+ * The structure of an on-hit self-state application tag.
+ *
+ * <pre>
+ * Structure:
+ *  <onHitSelfState:[STATE_ID, CHANCE]>
+ *
+ * Example:
+ *  <onHitSelfState:[19, 100]>
+ *
+ * Translation:
+ *  On hit, apply state id 19 to oneself at 100% chance.
+ * </pre>
+ * @type {RegExp}
+ */
 J.EXTEND.RegExp.OnHitSelfState = /<onHitSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
+
+/**
+ * The structure of an on-hit self-state loss tag.
+ *
+ * <pre>
+ * Structure:
+ *  <onHitLoseState:[STATE_ID, CHANCE]>
+ *
+ * Example:
+ *  <onHitLoseState:[19, 100]>
+ *
+ * Translation:
+ *  On hit, lose one stack of state id 19 from oneself at 100% chance.
+ * </pre>
+ * @type {RegExp}
+ */
+J.EXTEND.RegExp.OnHitLoseState = /<onHitLoseState:[ ]?(\[\d+,[ ]?\d+])>/i;
+
+/**
+ * The structure of an on-hit target-state stripping tag.
+ *
+ * <pre>
+ * Structure:
+ *  <onHitStripState:[STATE_ID, CHANCE]>
+ *
+ * Example:
+ *  <onHitStripState:[19, 100]>
+ *
+ * Translation:
+ *  On hit, strip one stack of state id 19 from the target at 100% chance.
+ * </pre>
+ * @type {RegExp}
+ */
+J.EXTEND.RegExp.OnHitStripState = /<onHitStripState:[ ]?(\[\d+,[ ]?\d+])>/i;
+
+/**
+ * The structure of an on-hit target-state removal tag.
+ *
+ * <pre>
+ * Structure:
+ *  <onHitRemoveState:[STATE_ID, CHANCE]>
+ *
+ * Example:
+ *  <onHitRemoveState:[19, 100]>
+ *
+ * Translation:
+ *  On hit, fully remove state id 19 from the target at 100% chance.
+ * </pre>
+ * @type {RegExp}
+ */
+J.EXTEND.RegExp.OnHitRemoveState = /<onHitRemoveState:[ ]?(\[\d+,[ ]?\d+])>/i;
+
+/**
+ * The structure of an on-cast self-state application tag.
+ *
+ * <pre>
+ * Structure:
+ *  <onCastSelfState:[STATE_ID, CHANCE]>
+ *
+ * Example:
+ *  <onCastSelfState:[19, 100]>
+ *
+ * Translation:
+ *  On cast, apply state id 19 to oneself at 100% chance.
+ * </pre>
+ * @type {RegExp}
+ */
 J.EXTEND.RegExp.OnCastSelfState = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
+
+/**
+ * The structure of an on-cast self-state loss tag.
+ *
+ * <pre>
+ * Structure:
+ *  <onCastLoseState:[STATE_ID, CHANCE]>
+ *
+ * Example:
+ *  <onCastLoseState:[19, 100]>
+ *
+ * Translation:
+ *  On cast, lose one stack of state id 19 from oneself at 100% chance.
+ * </pre>
+ * @type {RegExp}
+ */
+J.EXTEND.RegExp.OnCastLoseState = /<onCastLoseState:[ ]?(\[\d+,[ ]?\d+])>/i;
+
+/**
+ * The structure of an on-cast target-state stripping tag.
+ *
+ * <pre>
+ * Structure:
+ *  <onCastStripState:[STATE_ID, CHANCE]>
+ *
+ * Example:
+ *  <onCastStripState:[19, 100]>
+ *
+ * Translation:
+ *  On cast, strip one stack of state id 19 from the target at 100% chance.
+ * </pre>
+ * @type {RegExp}
+ */
+J.EXTEND.RegExp.OnCastStripState = /<onCastStripState:[ ]?(\[\d+,[ ]?\d+])>/i;
+
+/**
+ * The structure of an on-cast target-state removal tag.
+ *
+ * <pre>
+ * Structure:
+ *  <onCastRemoveState:[STATE_ID, CHANCE]>
+ *
+ * Example:
+ *  <onCastRemoveState:[19, 100]>
+ *
+ * Translation:
+ *  On cast, fully remove state id 19 from the target at 100% chance.
+ * </pre>
+ * @type {RegExp}
+ */
+J.EXTEND.RegExp.OnCastRemoveState = /<onCastRemoveState:[ ]?(\[\d+,[ ]?\d+])>/i;
 //endregion Metadata
 
 //region RPG_Skill
@@ -1289,7 +1481,42 @@ Game_Action.prototype.apply = function(target)
     .call(this, target);
 
   // apply our on-hit self-states if we have any.
+  this.applyOnHitStateEffects(target);
+};
+
+/**
+ * Applies all on-hit state modifications, such as adding or removing states to self or the target.
+ * @param {Game_Actor|Game_Enemy} target The target being hit with the action.
+ */
+Game_Action.prototype.applyOnHitStateEffects = function(target)
+{
+  // if we cannot apply on-hit state effects, then do not.
+  if (this.canApplyOnHitStateEffects(target) === false) return;
+
+  // apply our on-hit self-states if we have any.
   this.applyOnHitSelfStates();
+
+  // apply our on-hit lose-states if we have any.
+  this.applyOnHitLoseStates();
+
+  // apply our on-hit strip-states if we have any.
+  this.applyOnHitStripStates(target);
+
+  // apply our on-hit remove-states if we have any.
+  this.applyOnHitRemoveStates(target);
+};
+
+/**
+ * Determines whether or not the on-hit state effects can apply.
+ * @param {Game_Actor|Game_Enemy}target
+ */
+Game_Action.prototype.canApplyOnHitStateEffects = function(target)
+{
+  // if the target wasn't actually hit, then we can't apply on-hit state effects.
+  if (target.result().isHit() === false) return false;
+
+  // apply the state effects!
+  return true;
 };
 
 /**
@@ -1308,10 +1535,87 @@ Game_Action.prototype.applyOnHitSelfStates = function()
 Game_Action.prototype.onHitSelfStates = function()
 {
   // grab all the self-state sources.
-  const sources = this.selfStateSources();
+  const sources = this.reactiveStateSources();
 
   // get all "skill chances" aka "chance to inflict a state" on oneself.
   const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnHitSelfState);
+
+  // return what we found.
+  return stateChances;
+};
+
+/**
+ * Removes all applicable on-hit lose states.
+ */
+Game_Action.prototype.applyOnHitLoseStates = function()
+{
+  // lose all on-hit states from oneself.
+  this.loseStates(this.subject(), this.onHitLoseStates());
+};
+
+/**
+ * Gets all possible states that could be self-lost when this skill hits a target.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Action.prototype.onHitLoseStates = function()
+{
+  // grab all the self-state sources.
+  const sources = this.reactiveStateSources();
+
+  // get all "skill chances" aka "chance to inflict a state" on oneself.
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnHitLoseState);
+
+  // return what we found.
+  return stateChances;
+};
+
+/**
+ * Applies all applicable on-hit state stripping.
+ * @param {Game_Actor|Game_Enemy} target The target being hit with the action.
+ */
+Game_Action.prototype.applyOnHitStripStates = function(target)
+{
+  // strip all on-hit states from the target.
+  this.stripStates(target, this.onHitStripStates());
+};
+
+/**
+ * Gets all possible states that could lose a single stack from the target when it hits.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Action.prototype.onHitStripStates = function()
+{
+  // grab all the sources.
+  const sources = this.reactiveStateSources();
+
+  // get all "skill chances" aka "chance to strip a state stack" on the target.
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnHitStripState);
+
+  // return what we found.
+  return stateChances;
+};
+
+/**
+ * Applies all applicable on-hit full state removals.
+ * @param {Game_Actor|Game_Enemy} target The target being hit with the action.
+ */
+Game_Action.prototype.applyOnHitRemoveStates = function(target)
+{
+  // remove all on-hit states from the target.
+  this.removeStates(target, this.onHitRemoveStates());
+};
+
+/**
+ * Gets all possible states that could be fully removed from the target when it hits.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Action.prototype.onHitRemoveStates = function()
+{
+  // grab all the sources.
+  const sources = this.reactiveStateSources();
+
+  // get all "skill chances" aka "chance to remove a state" on the target.
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnHitRemoveState);
 
   // return what we found.
   return stateChances;
@@ -1330,6 +1634,15 @@ Game_Action.prototype.applyItemUserEffect = function(target)
 
   // apply our on-cast self-states if we have any.
   this.applyOnCastSelfStates();
+
+  // apply our on-cast lose-states if we have any.
+  this.applyOnCastLoseStates();
+
+  // apply our on-cast strip-states if we have any.
+  this.applyOnCastStripStates(target);
+
+  // apply our on-cast remove-states if we have any.
+  this.applyOnCastRemoveStates(target);
 };
 
 /**
@@ -1342,13 +1655,42 @@ Game_Action.prototype.applyOnCastSelfStates = function()
 };
 
 /**
+ * Applies all applicable on-cast lose states.
+ */
+Game_Action.prototype.applyOnCastLoseStates = function()
+{
+  // lose all self-removable states from oneself.
+  this.loseStates(this.subject(), this.onCastLoseStates());
+};
+
+/**
+ * Applies all applicable on-cast state stripping.
+ * @param {Game_Actor|Game_Enemy} target The target the casted action will affect.
+ */
+Game_Action.prototype.applyOnCastStripStates = function(target)
+{
+  // strip all removable state stacks from a target.
+  this.stripStates(target, this.onCastStripStates());
+};
+
+/**
+ * Applies all applicable on-cast full state removals.
+ * @param {Game_Actor|Game_Enemy} target The target the casted action will affect.
+ */
+Game_Action.prototype.applyOnCastRemoveStates = function(target)
+{
+  // apply all removable states to a target.
+  this.removeStates(target, this.onCastRemoveStates());
+};
+
+/**
  * Gets all possible states that could be self-inflicted when casting this skill.
  * @returns {JABS_OnChanceEffect[]}
  */
 Game_Action.prototype.onCastSelfStates = function()
 {
   // grab all the self-state sources.
-  const sources = this.selfStateSources();
+  const sources = this.reactiveStateSources();
 
   // get all "skill chances" aka "chance to inflict a state" on oneself.
   const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnCastSelfState);
@@ -1358,10 +1700,58 @@ Game_Action.prototype.onCastSelfStates = function()
 };
 
 /**
+ * Gets all possible states that could be self-removed when casting this skill.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Action.prototype.onCastLoseStates = function()
+{
+  // grab all the sources.
+  const sources = this.reactiveStateSources();
+
+  // get all "skill chances" aka "chance to lose a state" on oneself.
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnCastLoseState);
+
+  // return what we found.
+  return stateChances;
+};
+
+/**
+ * Gets all possible states that could lose a single stack from the target when casting this skill.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Action.prototype.onCastStripStates = function()
+{
+  // grab all the self-state sources.
+  const sources = this.reactiveStateSources();
+
+  // get all "skill chances" aka "chance to strip a state stack" on the target.
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnCastStripState);
+
+  // return what we found.
+  return stateChances;
+};
+
+/**
+ * Gets all possible states that could be fully removed from the target when casting this skill.
+ * @returns {JABS_OnChanceEffect[]}
+ */
+Game_Action.prototype.onCastRemoveStates = function()
+{
+  // grab all the self-state sources.
+  const sources = this.reactiveStateSources();
+
+  // get all "skill chances" aka "chance to remove a state" on the target.
+  const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnCastRemoveState);
+
+  // return what we found.
+  return stateChances;
+};
+
+/**
  * All sources to derive self-applied states from.
  * @returns {(RPG_UsableItem|RPG_State)[]}
  */
-Game_Action.prototype.selfStateSources = function()
+Game_Action.prototype.reactiveStateSources = function()
 {
   // define the sources for this action.
   const sources = [
@@ -1370,7 +1760,8 @@ Game_Action.prototype.selfStateSources = function()
 
     // the caster's states also apply as a source.
     ...this.subject()
-      .allStates(), ];
+      .allStates(),
+  ];
 
   // return what we found.
   return sources;
@@ -1383,19 +1774,126 @@ Game_Action.prototype.selfStateSources = function()
  */
 Game_Action.prototype.applyStates = function(target, jabsOnChanceEffects)
 {
-  if (jabsOnChanceEffects.length)
+  // if there are no effects, don't bother.
+  if (jabsOnChanceEffects.length === 0) return;
+
+  // iterate over each of them and see if we should apply them.
+  jabsOnChanceEffects.forEach(jabsOnChanceEffect =>
   {
-    // iterate over each of them and see if we should apply them.
-    jabsOnChanceEffects.forEach(jabsOnChanceEffect =>
+    // roll the dice to see if the on-chance effect applies.
+    if (jabsOnChanceEffect.shouldTrigger())
     {
-      // roll the dice to see if the on-chance effect applies.
-      if (jabsOnChanceEffect.shouldTrigger())
-      {
-        // apply the given state to the caster, with the caster as the attacker.
-        target.addState(jabsOnChanceEffect.skillId, this.subject());
-      }
-    });
+      // apply the given state to the caster, with the caster as the attacker.
+      target.addState(jabsOnChanceEffect.skillId, this.subject());
+    }
+  });
+};
+
+/**
+ * Loses the given states from the target.
+ * This consumes a single stack in JABS, or removes the whole state outside JABS.
+ * @param target {Game_Actor|Game_Enemy} The target to lose states from.
+ * @param jabsOnChanceEffects {JABS_OnChanceEffect[]} The various states to potentially lose.
+ */
+Game_Action.prototype.loseStates = function(target, jabsOnChanceEffects)
+{
+  // if there are no effects, don't bother.
+  if (jabsOnChanceEffects.length === 0) return;
+
+  // iterate over each of them and see if we should apply them.
+  jabsOnChanceEffects.forEach(jabsOnChanceEffect =>
+  {
+    // roll the dice to see if the on-chance effect applies.
+    if (jabsOnChanceEffect.shouldTrigger())
+    {
+      // lose the given state from the target.
+      this.loseState(target, jabsOnChanceEffect.skillId);
+    }
+  });
+};
+
+/**
+ * Strips the given states from the target.
+ * This consumes a single stack in JABS, or removes the whole state outside JABS.
+ * @param target {Game_Actor|Game_Enemy} The target to strip states from.
+ * @param jabsOnChanceEffects {JABS_OnChanceEffect[]} The various states to potentially strip.
+ */
+Game_Action.prototype.stripStates = function(target, jabsOnChanceEffects)
+{
+  // if there are no effects, don't bother.
+  if (jabsOnChanceEffects.length === 0) return;
+
+  // iterate over each of them and see if we should apply them.
+  jabsOnChanceEffects.forEach(jabsOnChanceEffect =>
+  {
+    // roll the dice to see if the on-chance effect applies.
+    if (jabsOnChanceEffect.shouldTrigger())
+    {
+      // strip the given state from the target.
+      this.stripState(target, jabsOnChanceEffect.skillId);
+    }
+  });
+};
+
+/**
+ * Loses a single stack of the given state from the target.
+ * This falls back to full state removal outside JABS.
+ * @param {Game_Actor|Game_Enemy} target The target losing the state.
+ * @param {number} stateId The id of the state to lose.
+ */
+Game_Action.prototype.loseState = function(target, stateId)
+{
+  // if JABS is available, then consume only a single stack.
+  if (J.ABS)
+  {
+    target.decrementStateStacks(stateId);
+    return;
   }
+
+  // otherwise, just remove the state normally.
+  target.removeState(stateId);
+};
+
+/**
+ * Strips a single stack of the given state from the target.
+ * This falls back to full state removal outside JABS.
+ * @param {Game_Actor|Game_Enemy} target The target losing the state.
+ * @param {number} stateId The id of the state to strip.
+ */
+Game_Action.prototype.stripState = function(target, stateId)
+{
+  // if JABS is available, then consume only a single stack.
+  if (J.ABS)
+  {
+    target.decrementStateStacks(stateId);
+    return;
+  }
+
+  // otherwise, just remove the state normally.
+  target.removeState(stateId);
+};
+
+/**
+ * Removes the given states from the target.
+ * This fully strips the state instead of consuming a single stack.
+ * @param target {Game_Actor|Game_Enemy} The target to apply states to.
+ * @param jabsOnChanceEffects {JABS_OnChanceEffect[]} The various states to potentially apply.
+ */
+Game_Action.prototype.removeStates = function(target, jabsOnChanceEffects)
+{
+  // if there are no effects, don't bother.
+  if (jabsOnChanceEffects.length === 0) return;
+
+  // iterate over each of them and see if we should apply them.
+  jabsOnChanceEffects.forEach(jabsOnChanceEffect =>
+  {
+    // roll the dice to see if the on-chance effect applies.
+    if (jabsOnChanceEffect.shouldTrigger())
+    {
+      // apply the given state to the caster, with the caster as the attacker.
+      target.removeState(jabsOnChanceEffect.skillId);
+    }
+  });
 };
 //endregion Game_Action
 
