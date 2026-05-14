@@ -6992,8 +6992,8 @@ JABS_Battler.prototype.tryDodgeSkill = function()
   // grab the battler.
   const battler = this.getBattler();
 
-  // grab the skill id for the dodge slot.
-  const skillId = battler.getEquippedSkillId(JABS_Button.Dodge);
+  // grab the resolved skill id for the dodge slot, applying any active transform.
+  const skillId = battler.getResolvedSkillId(JABS_Button.Dodge);
 
   // if we have no skill id in the dodge slot, then do not dodge.
   if (!skillId) return;
@@ -7074,7 +7074,9 @@ JABS_Battler.prototype.executeDodgeSkill = function(skill, forcedDirection8)
 JABS_Battler.prototype.tryExecuteAiEmergencyDodgeAwayFrom = function(threatBattler)
 {
   const battler = this.getBattler();
-  const skillId = battler.getEquippedSkillId(JABS_Button.Dodge);
+
+  // get the resolved skill id for the dodge slot, applying any active transform.
+  const skillId = battler.getResolvedSkillId(JABS_Button.Dodge);
 
   if (!skillId)
   {
@@ -7450,8 +7452,8 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey)
   // shorthand the battler of which we're getting data for.
   const battler = this.getBattler();
 
-  // determine the skill in the given slot.
-  const skillId = battler.getEquippedSkillId(cooldownKey);
+  // determine the resolved skill in the given slot, applying any active transform.
+  const skillId = battler.getResolvedSkillId(cooldownKey);
 
   // if we have no skill to guard with, then we don't guard.
   if (!skillId) return null;
@@ -7479,9 +7481,9 @@ JABS_Battler.prototype.getGuardData = function(cooldownKey)
  */
 JABS_Battler.prototype.isGuardSkillByKey = function(cooldownKey)
 {
-  // get the equipped skill in the given slot.
+  // get the resolved skill in the given slot, applying any active transform.
   const skillId = this.getBattler()
-    .getEquippedSkillId(cooldownKey);
+    .getResolvedSkillId(cooldownKey);
 
   // if we don't hve a skill id, it isn't a guard skill.
   if (!skillId) return false;
@@ -7758,17 +7760,18 @@ JABS_Battler.prototype.getAttackData = function(cooldownKey)
   // grab the underlying battler.
   const battler = this.getBattler();
 
-  // get the skill equipped in the designated slot.
+  // get the resolved skill id to execute (transform applied if applicable, combo if queued).
   const skillId = this.getSkillIdForAction(cooldownKey);
 
   // if there isn't one, then we don't do anything.
   if (!skillId) return [];
 
-  // check to make sure we can actually use the skill.
+  // check costs against the resolved skill — that is what will actually fire.
   if (!battler.meetsSkillConditions(battler.skill(skillId))) return [];
 
-  // check to make sure we actually know the skill, too.
-  if (!battler.hasSkill(skillId)) return [];
+  // check that the battler has permission to use this slot.
+  // the raw base slot id is checked so transforms do not require learning the target skill.
+  if (!this.battlerHasPermissionForSlot(cooldownKey)) return [];
 
   // build action options with the cooldown key.
   const builder = JABS_ActionOptions.Builder()
@@ -7804,8 +7807,38 @@ JABS_Battler.prototype.getAttackData = function(cooldownKey)
 };
 
 /**
+ * Determines whether the battler has permission to initiate an action from the given slot.
+ *
+ * For combo follow-ups the combo skill was already validated when the combo was armed, so
+ * no additional check is needed here. For a base slot execution, permission is granted when
+ * the battler knows the raw equipped skill — the transform target does not need to be
+ * learned, as the transform tag itself acts as the implicit permission grant.
+ * @param {string} slot The slot key to check permission for.
+ * @returns {boolean} True when the battler may proceed to build and execute an action.
+ */
+JABS_Battler.prototype.battlerHasPermissionForSlot = function(slot)
+{
+  // combo skills are pre-validated at arm time; no extra check needed.
+  if (this.getComboNextActionId(slot) !== 0)
+  {
+    return true;
+  }
+
+  // for the base slot, check the raw equipped skill id so the transform target
+  // does not require a separate hasSkill entry to be usable.
+  const battler = this.getBattler();
+  const baseSkillId = battler.getEquippedSkillId(slot);
+  return battler.hasSkill(baseSkillId);
+};
+
+/**
  * Gets the next skill id to create an action from for the given slot.
- * Accommodates combo actions.
+ *
+ * When a combo is queued, the combo id is returned as-is — combo chains are already
+ * sourced from the resolved (transformed) skill's own notetags and should not be
+ * re-transformed. For the base slot case the skill id is passed through
+ * {@link Game_Battler#getResolvedSkillId} so that any active skill transform is applied
+ * before the action is built.
  * @param {string} slot The slot for the skill to check.
  * @returns {number}
  */
@@ -7814,24 +7847,15 @@ JABS_Battler.prototype.getSkillIdForAction = function(slot)
   // grab the underlying battler.
   const battler = this.getBattler();
 
-  // check the slot for a combo action.
-  let skillId;
-
-  // check if we have a skill id in the next combo action id slot.
+  // check if a combo follow-up is queued for this slot.
   if (this.getComboNextActionId(slot) !== 0)
   {
-    // capture the combo action id.
-    skillId = this.getComboNextActionId(slot);
-  }
-  // if no combo...
-  else
-  {
-    // then just grab the skill id in the slot.
-    skillId = battler.getEquippedSkillId(slot);
+    // return the pending combo id; combo skills are pre-resolved from the starter's notetags.
+    return this.getComboNextActionId(slot);
   }
 
-  // return whichever skill id was found.
-  return skillId;
+  // no combo pending — return the resolved skill id so transforms are applied.
+  return battler.getResolvedSkillId(slot);
 };
 
 /**
@@ -16105,8 +16129,9 @@ class JABS_Timer
  *  4. The equipped offhand item's <skillId:N> tag.
  *  5. Nothing.
  *
- * Once the base offhand skill is resolved, active states may temporarily
- * transform it into another skill via <skillTransform:[BASE, OVERRIDE]>.
+ * Once the base offhand skill is resolved, it may be further transformed
+ * via <skillTransform:[BASE, OVERRIDE]> from any note-bearing source
+ * (state, equip, class, or actor) — see SKILL TRANSFORM below.
  *
  * To designate which skill a piece of equipment grants, use:
  *    <skillId:SKILL_ID>
@@ -16387,20 +16412,34 @@ class JABS_Timer
  *
  * ----------------------------------------------------------------------------
  * SKILL TRANSFORM:
- * Temporarily transforms one already-resolved equipped skill into another.
+ * Transforms one equipped skill into another at runtime without mutating
+ * the slot's stored id. Valid on actors, enemies, classes, weapons, armors,
+ * and states. The slot's base skill id is compared against BASE; when they
+ * match, OVERRIDE is used for all execution and display purposes instead.
  *    <skillTransform:[BASE, OVERRIDE]>
- *  Where BASE is the equipped skill id being looked for.
- *  Where OVERRIDE is the skill id that should execute instead.
+ *  Where BASE is the equipped skill id to match against.
+ *  Where OVERRIDE is the skill id that executes and displays instead.
  *
- * In the current offhand implementation, this is evaluated against the
- * resolved offhand skill only. It is intentionally NOT exposed in the quick
- * menu as an equip option. If multiple states transform the same base skill,
- * the highest-priority state wins.
+ * This applies to ALL equipped skill slots (combat, dodge, offhand). The tool
+ * slot is excluded because it stores item ids rather than skill ids.
+ *
+ * PERMISSION: The battler does not need to have formally learned OVERRIDE.
+ * The transform tag itself grants implicit permission; only the BASE slot
+ * skill must be known via the normal hasSkill check.
+ *
+ * PRECEDENCE (first match wins):
+ *  1. Active states, ordered by highest priority first.
+ *  2. Equipped items (actors only), in equip-slot order.
+ *  3. Current class (actors only).
+ *  4. Actor or enemy database row.
+ *
+ * If multiple sources define a transform for the same BASE, the source
+ * highest in the precedence list wins. States always beat equips.
  *
  * Example:
  *    <skillTransform:[151, 152]>
- * If the battler's resolved offhand skill is 151, then 152 is used instead
- * for as long as this state remains applied.
+ * While this note is active on any source, any slot whose base skill id is
+ * 151 will execute and display as skill 152 instead.
  *
  * ----------------------------------------------------------------------------
  * ----------------------------------------------------------------------------
@@ -18776,6 +18815,25 @@ Object.defineProperty(RPG_BaseBattler.prototype, 'jabsBonusHitsScopeSkill', {
   },
 });
 //endregion bonusHitsScopes
+
+//region skillTransforms
+/**
+ * The collection of skill transforms defined on this battler's database entry.
+ *
+ * Each entry is a two-number array in the form:
+ * [ baseSkillId, transformedSkillId ]
+ *
+ * When active, any equipped skill whose id matches {@code baseSkillId} will execute
+ * as {@code transformedSkillId} instead, without mutating the slot's stored id.
+ * @type {number[][]}
+ */
+Object.defineProperty(RPG_BaseBattler.prototype, 'jabsSkillTransforms', {
+  get: function()
+  {
+    return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform, true);
+  },
+});
+//endregion skillTransforms
 //endregion RPG_BaseBattler
 
 //region RPG_Class
@@ -18813,6 +18871,26 @@ Object.defineProperty(RPG_Class.prototype, 'jabsBonusHitsScopeSkill', {
   },
 });
 //endregion bonusHitsScopes
+
+//region skillTransforms
+/**
+ * The collection of skill transforms defined on this class.
+ *
+ * Each entry is a two-number array in the form:
+ * [ baseSkillId, transformedSkillId ]
+ *
+ * While a battler uses this class, any equipped skill whose id matches
+ * {@code baseSkillId} will execute as {@code transformedSkillId} instead,
+ * without mutating the slot's stored id.
+ * @type {number[][]}
+ */
+Object.defineProperty(RPG_Class.prototype, 'jabsSkillTransforms', {
+  get: function()
+  {
+    return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform, true);
+  },
+});
+//endregion skillTransforms
 //endregion RPG_Class
 
 //region teamId
@@ -19403,6 +19481,26 @@ Object.defineProperty(RPG_EquipItem.prototype, 'jabsExpiration', {
   },
 });
 //endregion expiration
+
+//region skillTransforms
+/**
+ * The collection of skill transforms defined on this piece of equipment.
+ *
+ * Each entry is a two-number array in the form:
+ * [ baseSkillId, transformedSkillId ]
+ *
+ * While a battler has this equip equipped, any slot whose base skill id matches
+ * {@code baseSkillId} will execute as {@code transformedSkillId} instead,
+ * without mutating the slot's stored id.
+ * @type {number[][]}
+ */
+Object.defineProperty(RPG_EquipItem.prototype, 'jabsSkillTransforms', {
+  get: function()
+  {
+    return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform, true);
+  },
+});
+//endregion skillTransforms
 //endregion RPG_EquipItem
 
 //region RPG_Item
@@ -23632,7 +23730,9 @@ class JABS_AiManager
     }
 
     const gb = battler.getBattler();
-    const guardSkillId = gb.getEquippedSkillId(JABS_Button.Offhand);
+
+    // use the resolved skill id so guard-type classification matches the transformed skill.
+    const guardSkillId = gb.getResolvedSkillId(JABS_Button.Offhand);
 
     if (!guardSkillId || !JABS_Battler.isGuardSkillById(guardSkillId))
     {
@@ -23723,7 +23823,8 @@ class JABS_AiManager
       }
     }
 
-    const guardSkillId = gb.getEquippedSkillId(JABS_Button.Offhand);
+    // use the resolved skill id so guard-type classification matches the transformed skill.
+    const guardSkillId = gb.getResolvedSkillId(JABS_Button.Offhand);
 
     if (!guardSkillId || !JABS_Battler.isGuardSkillById(guardSkillId))
     {
@@ -26116,12 +26217,15 @@ class JABS_Engine
     }
     else
     {
-      // if the skill is not unique, then the cooldown applies to all slots it is equipped to.
-      const equippedSkills = caster.getBattler()
-        .getAllEquippedSkills();
+      // the cooldown applies to every slot whose resolved (post-transform) skill matches
+      // the executed skill. comparing raw slot ids would miss slots where a transform
+      // mapped a different base skill onto the same executed skill id.
+      const battler = caster.getBattler();
+      const equippedSkills = battler.getAllEquippedSkills();
       equippedSkills.forEach(skillSlot =>
       {
-        if (skillSlot.id === skill.id)
+        // resolve the slot's effective skill id before comparing to the executed skill.
+        if (battler.resolveEquippedSkillId(skillSlot.id) === skill.id)
         {
           caster.setCooldownCounter(skillSlot.key, cooldownValue);
         }
@@ -30421,69 +30525,45 @@ Game_Actor.prototype.buildOffhandAssignableSkillPool = function()
 };
 
 /**
- * Gets the transformed offhand skill id after evaluating active state transforms.
+ * Extends {@link Game_Battler#getSkillTransformSources}.<br/>
+ * Also includes the actor's equipped equips and current class as transform sources,
+ * inserted between states and the actor's own database row.
+ */
+J.ABS.Aliased.Game_Actor.set('getSkillTransformSources', Game_Actor.prototype.getSkillTransformSources);
+Game_Actor.prototype.getSkillTransformSources = function()
+{
+  // copy the actor's active states so sorting does not mutate the live array.
+  const sortedStates = [ ...this.states() ];
+
+  // higher-priority states take precedence; sort descending by priority field.
+  sortedStates.sort((left, right) => right.priority - left.priority);
+
+  // individual equips come after states: a worn fire ring beats a class-wide transform.
+  const equipSources = this.equippedEquips();
+
+  // class is a broader, more passive source than individual equipped items.
+  const classSources = [ this.currentClass() ];
+
+  // the actor's database row is the most passive and lowest-precedence source.
+  const actorSources = [ this.databaseData() ];
+
+  // precedence order: states > equips > class > actor db row.
+  return [ ...sortedStates, ...equipSources, ...classSources, ...actorSources ];
+};
+
+/**
+ * Gets the transformed offhand skill id after applying any active skill transforms.
  *
- * If multiple states attempt to transform the same base offhand skill, the state with
- * the highest priority wins. Equal-priority states preserve the order returned by the
- * battler's state collection.
+ * Delegates to the generic {@link Game_Battler#resolveEquippedSkillId} resolver, which
+ * searches all note sources in precedence order. The offhand-specific implementation
+ * previously lived here; it has been superseded by the generic layer.
  * @param {number} baseSkillId The base offhand skill id before transforms are applied.
  * @returns {number}
  */
 Game_Actor.prototype.getTransformedOffhandSkillId = function(baseSkillId)
 {
-  // if there is no base skill, then there is nothing to transform.
-  if (!baseSkillId) return 0;
-
-  // find the highest-priority matching transform, if one exists.
-  const matchingTransform = this.findOffhandSkillTransform(baseSkillId);
-  if (!matchingTransform)
-  {
-    return baseSkillId;
-  }
-
-  // extract the transformed skill id from the matching transform pair.
-  const [ , transformedSkillId ] = matchingTransform;
-  return transformedSkillId;
-};
-
-/**
- * Finds the highest-priority state transform for the given offhand skill id.
- * @param {number} baseSkillId The base offhand skill id to look for a transform for.
- * @returns {number[]|null}
- */
-Game_Actor.prototype.findOffhandSkillTransform = function(baseSkillId)
-{
-  // default to not having found a matching transform yet.
-  let matchingTransform = null;
-
-  // copy and sort the actor's active states so higher-priority states are inspected first.
-  const prioritizedStates = [ ...this.states() ];
-  prioritizedStates.sort((left, right) => right.priority - left.priority);
-
-  // stop on the first matching transform because the list is now priority-ordered.
-  prioritizedStates.some(state =>
-  {
-    // skip states that do not define any transforms.
-    if (!state.jabsSkillTransforms.length) return false;
-
-    // look for a transform whose base skill matches the resolved offhand skill.
-    const stateTransform = state.jabsSkillTransforms
-      .find(transform =>
-      {
-        const [ transformBaseSkillId, ] = transform;
-        return transformBaseSkillId === baseSkillId;
-      });
-
-    // keep searching if this state does not transform the requested skill.
-    if (!stateTransform) return false;
-
-    // capture the matching transform from this highest-priority state.
-    matchingTransform = stateTransform;
-    return true;
-  });
-
-  // return the best matching transform, if any were found.
-  return matchingTransform;
+  // delegate to the generic resolver that covers all note sources and all slots.
+  return this.resolveEquippedSkillId(baseSkillId);
 };
 
 /**
@@ -32246,6 +32326,101 @@ Game_Battler.prototype.ignoreAllParry = function()
   // return what we found.
   return unparryable;
 };
+
+//region skill transform resolution
+/**
+ * Gets the ordered list of note sources that should be searched for skill transform tags.
+ *
+ * Sources are returned in descending precedence: the first source in the list wins when
+ * multiple sources define a transform for the same base skill id. The base implementation
+ * covers both actors and enemies: active states (sorted highest priority first), then the
+ * battler's own database row.
+ *
+ * {@link Game_Actor} overrides this to insert equips and class between states and the DB row.
+ * @returns {RPG_Base[]}
+ */
+Game_Battler.prototype.getSkillTransformSources = function()
+{
+  // copy the active states so sorting does not mutate the live array.
+  const sortedStates = [ ...this.states() ];
+
+  // higher-priority states take precedence; sort descending by priority field.
+  sortedStates.sort((left, right) => right.priority - left.priority);
+
+  // states first, then the battler's own database row as the lowest-priority passive source.
+  return [ ...sortedStates, this.databaseData() ];
+};
+
+/**
+ * Resolves a base equipped skill id to its transformed counterpart, if any active note source
+ * defines a matching {@code <skillTransform:[BASE, OVERRIDE]>} tag.
+ *
+ * Sources are evaluated in the order returned by {@link #getSkillTransformSources}; the first
+ * matching transform wins. If no source transforms the given id, the original id is returned
+ * unchanged so callers need not special-case the no-transform path.
+ * @param {number} baseSkillId The raw skill id stored in the slot.
+ * @returns {number} The transformed skill id, or {@code baseSkillId} when no transform applies.
+ */
+Game_Battler.prototype.resolveEquippedSkillId = function(baseSkillId)
+{
+  // nothing to resolve for an empty slot.
+  if (!baseSkillId) return 0;
+
+  // grab the ordered note sources for this battler.
+  const sources = this.getSkillTransformSources();
+
+  // walk each source in precedence order and stop at the first matching transform.
+  for (const source of sources)
+  {
+    // skip sources that carry no transform tags at all.
+    if (!source || !source.jabsSkillTransforms || source.jabsSkillTransforms.length === 0)
+    {
+      continue;
+    }
+
+    // look for a transform pair whose base id matches the slot's stored skill.
+    const match = source.jabsSkillTransforms
+      .find(transform =>
+      {
+        const [ transformBaseId ] = transform;
+        return transformBaseId === baseSkillId;
+      });
+
+    // first match wins — extract the override id and return immediately.
+    if (match)
+    {
+      const [ , transformedSkillId ] = match;
+      return transformedSkillId;
+    }
+  }
+
+  // no transform was found; return the base id unchanged.
+  return baseSkillId;
+};
+
+/**
+ * Gets the effective skill id for the given slot after applying any active skill transforms.
+ *
+ * This is the primary resolution point that all execution and display paths should call instead
+ * of {@link #getEquippedSkillId} when the transformed (runtime) skill is needed. The tool slot
+ * is intentionally excluded: it stores item ids, not skill ids, and transform logic does not
+ * apply to it.
+ * @param {string} slot The slot key to resolve.
+ * @returns {number} The resolved skill id, or 0 when the slot is empty or does not exist.
+ */
+Game_Battler.prototype.getResolvedSkillId = function(slot)
+{
+  // the tool slot stores item ids; transforms do not apply to it.
+  if (slot === JABS_Button.Tool)
+  {
+    return this.getEquippedSkillId(slot);
+  }
+
+  // get the raw stored id, then pass it through the transform resolver.
+  const baseSkillId = this.getEquippedSkillId(slot);
+  return this.resolveEquippedSkillId(baseSkillId);
+};
+//endregion skill transform resolution
 
 /**
  * Disables native RMMZ regeneration.
@@ -42402,8 +42577,8 @@ class Window_AbsMenuSelect
       // check if the skillslot has something in it.
       if (skillSlot.isUsable())
       {
-        // grab the skill in the slot.
-        const equippedSkill = leader.skill(skillSlot.id);
+        // resolve through the transform layer so the menu shows the effective skill.
+        const equippedSkill = leader.skill(leader.getResolvedSkillId(skillSlot.key));
 
         // update the command variables with the equipped skill data.
         name = equippedSkill.name;
@@ -42493,10 +42668,10 @@ class Window_AbsMenuSelect
     // check if the dodge skillslot has anything in it.
     if (dodgeSkillSlot.isUsable())
     {
-      // determine the currently equipped dodge skill.
-      const equippedDodgeSkill = leader.skill(dodgeSkillSlot.id);
+      // resolve through the transform layer so the menu shows the effective dodge skill.
+      const equippedDodgeSkill = leader.skill(leader.getResolvedSkillId(dodgeSkillSlot.key));
 
-      // update the command variables with the equipped tool data.
+      // update the command variables with the equipped dodge skill data.
       name = equippedDodgeSkill.name;
       iconIndex = equippedDodgeSkill.iconIndex;
       description = equippedDodgeSkill.description;
@@ -42590,8 +42765,8 @@ class Window_AbsMenuSelect
     // check if the offhand slot has anything assigned right now.
     if (offhandSkillSlot.isUsable())
     {
-      // determine the currently resolved offhand skill (pin or equip).
-      const equippedOffhandSkill = leader.skill(offhandSkillSlot.id);
+      // resolve through the transform layer so the menu shows the effective offhand skill.
+      const equippedOffhandSkill = leader.skill(leader.getResolvedSkillId(offhandSkillSlot.key));
 
       // update the command variables with the equipped offhand skill data.
       name = equippedOffhandSkill.name;
