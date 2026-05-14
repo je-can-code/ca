@@ -1098,6 +1098,19 @@ class JuiceMotionManager
   }
 
   /**
+   * Discards all queued effects and clears all sprite locks.
+   *
+   * Call this whenever the map scene is about to be torn down so that effects referencing
+   * soon-to-be-destroyed sprites do not linger in the static queue and crash the next
+   * Scene_Map instance when frameTick runs again.
+   */
+  static clearAll()
+  {
+    JuiceMotionManager.#effects.length = 0;
+    JuiceMotionManager.#spriteLocks = new WeakMap();
+  }
+
+  /**
    * Registers an external effect (usually a {@link JuiceBaseEffect} subclass) on the global queue.
    * @param {JuiceBaseEffect} effect The effect instance.
    */
@@ -1120,6 +1133,14 @@ class JuiceMotionManager
     for (let i = 0; i < JuiceMotionManager.#effects.length; i++)
     {
       const effect = JuiceMotionManager.#effects[i];
+
+      // pixi nulls out the internal transform when a sprite is destroy()ed; writing scale or
+      // rotation through a dead sprite would throw. silently discard the effect instead.
+      if (!effect.isSpriteAlive())
+      {
+        continue;
+      }
+
       if (effect.tick())
       {
         survivors.push(effect);
@@ -1498,6 +1519,20 @@ class JuiceBaseEffect
   restore()
   {
   }
+
+  /**
+   * Returns whether the target sprite for this effect is still alive and safe to write to.
+   *
+   * The base implementation always returns {@code true} (for non-sprite effects that do not
+   * hold a sprite reference). Sprite-bound subclasses override this to check the Pixi
+   * {@code destroyed} flag on their sprite; {@link JuiceMotionManager.frameTick} uses this
+   * to skip effects whose sprite was destroyed mid-flight (e.g. during scene transitions).
+   * @returns {boolean}
+   */
+  isSpriteAlive()
+  {
+    return true;
+  }
 }
 //endregion JuiceBaseEffect
 
@@ -1525,6 +1560,19 @@ class JuiceCastingPulseMotionEffect extends JuiceBaseEffect
     // capture the baseline tone + blend so we can restore it exactly after casting ends.
     this._baseBlendColor = sprite.getBlendColor();
     this._baseColorTone = sprite.getColorTone();
+  }
+
+  /**
+   * Returns false when the target sprite's Pixi transform has been nulled out.
+   *
+   * Pixi sets {@code transform = null} when a sprite is destroyed; it does NOT reliably set
+   * a {@code destroyed} boolean in all RMMZ-bundled versions, so checking transform directly
+   * is the safe guard. A null transform means any scale or blend write would immediately throw.
+   * @returns {boolean}
+   */
+  isSpriteAlive()
+  {
+    return !!this._sprite.transform;
   }
 
   /**
@@ -1607,6 +1655,20 @@ class JuiceSquishMotionEffect extends JuiceBaseEffect
   }
 
   /**
+   * Returns false when the target sprite's Pixi transform has been nulled out.
+   *
+   * Pixi sets {@code transform = null} when a sprite is destroyed; it does NOT reliably set
+   * a {@code destroyed} boolean in all RMMZ-bundled versions, so checking transform directly
+   * is the safe guard. A null transform means any scale/rotation write would immediately
+   * throw "Cannot read properties of null (reading 'scale')".
+   * @returns {boolean}
+   */
+  isSpriteAlive()
+  {
+    return !!this._sprite.transform;
+  }
+
+  /**
    * Snaps the sprite back to the baseline captured at construction time.
    */
   restore()
@@ -1659,6 +1721,19 @@ class JuiceTiltMotionEffect extends JuiceBaseEffect
     this._durationFrames = durationFrames;
     this._frame = 0;
     this._baseRotation = sprite.rotation;
+  }
+
+  /**
+   * Returns false when the target sprite's Pixi transform has been nulled out.
+   *
+   * Pixi sets {@code transform = null} when a sprite is destroyed; it does NOT reliably set
+   * a {@code destroyed} boolean in all RMMZ-bundled versions, so checking transform directly
+   * is the safe guard. A null transform means any rotation write would immediately throw.
+   * @returns {boolean}
+   */
+  isSpriteAlive()
+  {
+    return !!this._sprite.transform;
   }
 
   /**
@@ -2204,6 +2279,20 @@ class JuiceWeaponSwingMotionEffect extends JuiceBaseEffect
       this._overlay.scale.x = this._scaleMag * (align.mirrorX ? -1 : 1);
       this._overlay.scale.y = this._scaleMag;
     }
+  }
+
+  /**
+   * Returns false when the parent character sprite's Pixi transform has been nulled out.
+   *
+   * Pixi sets {@code transform = null} when a sprite is destroyed; it does NOT reliably set
+   * a {@code destroyed} boolean in all RMMZ-bundled versions, so checking transform directly
+   * is the safe guard. The overlay is a child of the parent; a null transform on the parent
+   * means both are gone and ticking either would immediately throw.
+   * @returns {boolean}
+   */
+  isSpriteAlive()
+  {
+    return !!this._parentSprite.transform;
   }
 
   /**
@@ -2845,6 +2934,27 @@ Scene_Map.prototype.update = function()
 
   // tick procedural juice after transforms from movement / poses are applied for this frame.
   JuiceMotionManager.frameTick();
+};
+
+/**
+ * Extends {@link Scene_Map#terminate}.<br/>
+ * Flushes all queued juice effects before the scene is torn down.
+ *
+ * The JuiceMotionManager effect queue is static and outlives any single scene instance.
+ * All queued effects hold direct references to Sprite_Character objects that belong to
+ * this scene's spriteset; those sprites are destroyed along with the scene. Clearing the
+ * queue here ensures the next Scene_Map instance does not inherit stale references to
+ * dead sprites and crash on the first frameTick call.
+ */
+J.ABS.EXT.JUICE.Aliased.Scene_Map.set('terminate', Scene_Map.prototype.terminate);
+Scene_Map.prototype.terminate = function()
+{
+  // flush juice effects before sprites are destroyed so no stale references survive.
+  JuiceMotionManager.clearAll();
+
+  // perform original logic.
+  J.ABS.EXT.JUICE.Aliased.Scene_Map.get('terminate')
+    .call(this);
 };
 //endregion Scene_Map (motion tick)
 

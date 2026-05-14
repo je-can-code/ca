@@ -426,35 +426,45 @@ class Sprite_BaseSkillSlot
   }
 
   /**
-   * Gets the skill (or item) id of the assigned ability of this skill slot.
-   * Accommodates the possibility of
+   * Gets the effective skill (or item) id for this slot, accounting for active skill transforms
+   * and any queued combo follow-up.
+   *
+   * Resolution order:
+   *  1. Item slots return the raw item id unchanged — transforms do not apply to items.
+   *  2. When a combo follow-up is queued, its id is returned directly; combo chains are
+   *     sourced from the resolved (transformed) starter skill and are not re-transformed.
+   *  3. Otherwise the slot's base skill id is passed through the transform resolver so the
+   *     HUD displays the skill that will actually fire, not the raw equipped id.
    * @returns {number}
    */
   skillId()
   {
-    // the base id is of the skill slot's id.
-    const skillId = this.skillSlot().id;
-
-    // if it is an item, then the base skill id is the only id.
-    if (this.skillSlot()
-      .isItem())
+    // item slots store item ids — transforms are skills-only, so return raw.
+    if (this.skillSlot().isItem())
     {
-      return skillId;
+      return this.skillSlot().id;
     }
 
-    // grab the cooldown data for this skill.
+    // grab the cooldown data for this skill slot.
     const cooldownData = this.cooldownData();
 
-    // if there is none, then return the default.
-    if (!cooldownData) return skillId;
+    // when a combo follow-up is queued, show the combo skill as-is.
+    if (cooldownData && cooldownData.comboNextActionId > 0)
+    {
+      return cooldownData.comboNextActionId;
+    }
 
-    // see if we should be grabbing the next combo skill, or this skill.
-    const hasNextSkill = cooldownData.comboNextActionId > 0;
-    const nextSkillId = hasNextSkill
-      ? cooldownData.comboNextActionId  // return the next skill in the combo.
-      : skillId;                        // return the current skill.
+    // for the base slot, ask the battler for the resolved (post-transform) skill id.
+    const battler = this.targetBattler();
 
-    return nextSkillId;
+    // fall back to the raw slot id if there is no battler reference yet.
+    if (!battler)
+    {
+      return this.skillSlot().id;
+    }
+
+    // resolve through the transform layer so the HUD reflects the effective skill.
+    return battler.getResolvedSkillId(this.skillSlot().key);
   }
 
   /**
@@ -1835,7 +1845,10 @@ class Sprite_SkillCost
   }
 
   /**
-   * Calculates the skill cost accordingly to the type of this sprite.
+   * Calculates the skill cost according to the type of this sprite.
+   *
+   * The resolved (post-transform) skill id is used so cost display reflects the
+   * skill that will actually fire rather than the raw base skill in the slot.
    * @returns {number}
    */
   skillCostByType()
@@ -1843,8 +1856,9 @@ class Sprite_SkillCost
     const leader = $gameParty.leader();
     if (!leader) return 0;
 
-    const ability = this.skillSlot()
-      .data(leader);
+    // resolve through the transform layer so cost reflects the effective skill.
+    const resolvedId = leader.getResolvedSkillId(this.skillSlot().key);
+    const ability = this.skillSlot().data(leader, resolvedId);
     if (!ability) return 0;
 
     switch (this.skillCostType())
@@ -2100,6 +2114,9 @@ class Sprite_SkillSlotIcon
 
   /**
    * Gets the icon associated with the tracked skill slot.
+   *
+   * The resolved (post-transform) skill id is used so the icon reflects the skill that
+   * will actually fire rather than the raw equipped skill in the slot.
    * @returns {number}
    */
   skillSlotIcon()
@@ -2107,17 +2124,22 @@ class Sprite_SkillSlotIcon
     // if there is no skill slot, return whatever is currently there.
     if (!this.hasSkillSlot()) return this._j._iconIndex;
 
-    // if there is no leader, do not try to translate the slot into an icon.
-    if (!$gameParty.leader()) return this._j._iconIndex;
+    // grab the party leader; they are the source of transform resolution for the icon.
+    const leader = $gameParty.leader();
 
-    // if we are leveraging skill extensions, then grab the appropriate skill.
-    const skill = this.skillSlot()
-      .data($gameParty.leader());
+    // if there is no leader, do not try to translate the slot into an icon.
+    if (!leader) return this._j._iconIndex;
+
+    // resolve through the transform layer so the icon shows the effective skill.
+    const resolvedId = leader.getResolvedSkillId(this.skillSlot().key);
+
+    // fetch the skill data for the resolved id.
+    const skill = this.skillSlot().data(leader, resolvedId);
 
     // if nothing was in the slot, then don't draw it.
     if (!skill) return 0;
 
-    // return the skill's icon index.
+    // return the resolved skill's icon index.
     return skill.iconIndex;
   }
 
