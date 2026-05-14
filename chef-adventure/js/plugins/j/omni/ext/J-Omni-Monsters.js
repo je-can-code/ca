@@ -855,8 +855,8 @@ class Scene_Monsterpedia
       // iterate over each potential drop and add it as being observed.
       allDrops.forEach(drop => observations.addKnownDrop(drop.kind, drop.dataId), this);
 
-      // iterate over all standard elements in the context of CA.
-      [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ].forEach(id => observations.addKnownElementalistic(id), this);
+      // iterate over all standard damage-type elements in the context of CA (Cut through Typeless).
+      [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ].forEach(id => observations.addKnownElementalistic(id), this);
     };
 
     // iterate over every enemy.
@@ -1669,10 +1669,8 @@ class Window_MonsterpediaDetail
     const descriptionY = this.height - (lh * 6);
     this.drawDescription(x, descriptionY);
 
-    // draw the enemy's elementalistics.
-    const elementalisticsX = this.width - 300;
-    const elementalisticsY = this.height - (lh * 9);
-    this.drawElementalistics(elementalisticsX, elementalisticsY);
+    // draw the enemy's elementalistics: damage types in a left column, family/traits in the right column.
+    this.drawElementalistics();
   }
 
   /**
@@ -1885,8 +1883,8 @@ class Window_MonsterpediaDetail
     // shorthand the lineHeight.
     const lh = this.lineHeight() - 10;
 
-    // reduce the font size a bit for these params.
-    this.modFontSize(-4);
+    // nudge smaller than core params so the stair-stepped life/magi/tp trio still fits after global font bumps.
+    this.modFontSize(-6);
 
     // grab the id out of the current observations.
     const {
@@ -1909,21 +1907,40 @@ class Window_MonsterpediaDetail
       return parameterName.replace('Max ', String.empty);
     };
 
+    // tight name-to-value gap keeps the stepped tp row inside the window when fonts run large.
+    const resourceNameValueTighten = -14;
+
     // draw the max hp parameter.
     const maxHpName = maxRemover(TextManager.param(0));
-    this.drawEnemyParameter(x, y, IconManager.param(0), maxHpName, mhp, !knowsParameters);
+    this.drawEnemyParameter(x, y, IconManager.param(0), maxHpName, mhp, !knowsParameters, 6, resourceNameValueTighten);
 
     // draw the max mp parameter.
     const maxMpName = maxRemover(TextManager.param(1));
     const maxMpXPlus = 12;
     const maxMpYPlus = lh * 1;
-    this.drawEnemyParameter(x + maxMpXPlus, y + maxMpYPlus, IconManager.param(1), maxMpName, mmp, !knowsParameters, 6);
+    this.drawEnemyParameter(
+      x + maxMpXPlus,
+      y + maxMpYPlus,
+      IconManager.param(1),
+      maxMpName,
+      mmp,
+      !knowsParameters,
+      6,
+      resourceNameValueTighten);
 
     // draw the max tp parameter.
     const maxTpName = maxRemover(TextManager.maxTp());
     const maxTpXPlus = 24;
     const maxTpYPlus = lh * 2;
-    this.drawEnemyParameter(x + maxTpXPlus, y + maxTpYPlus, IconManager.maxTp(), maxTpName, mtp, !knowsParameters, 6);
+    this.drawEnemyParameter(
+      x + maxTpXPlus,
+      y + maxTpYPlus,
+      IconManager.maxTp(),
+      maxTpName,
+      mtp,
+      !knowsParameters,
+      6,
+      resourceNameValueTighten);
   }
 
   /**
@@ -2553,17 +2570,22 @@ class Window_MonsterpediaDetail
   }
 
   /**
-   * Draws the elementalistics of an enemy.
-   * @param {number} x The x coordinate of the point.
-   * @param {number} y The y coordinate of the point.
+   * Draws damage-type elementalistics plus prefixed taxonomy rows (`vs ` / `x ` / `tool-`).
+   * Damage types render in a column shifted left; family/traits/tools use the original right-hand x so the block
+   * does not grow upward into the parameter stack when multiple taxonomy lines exist.
+   * Both columns share the same top row so taxonomy reads downward beside Cut through Typeless.
+   * Taxonomy rows only appear when the effective rate differs from 100% (same signal as the Aptitude typed extension).
    */
-  drawElementalistics(x, y)
+  drawElementalistics()
   {
     // clear residual font modifications.
     this.resetFontSettings();
 
-    // shorthand the lineHeight.
+    // shorthand the lineHeight (kept consistent with drawDescription spacing).
     const lh = this.lineHeight() - 10;
+
+    // horizontal gap between the damage column and the taxonomy column (matches prior single-column width budget).
+    const damageColumnOffset = 280;
 
     // we'll need the entire observations object for drops.
     const observations = this.getObservations();
@@ -2577,51 +2599,302 @@ class Window_MonsterpediaDetail
     // reduce the font size for the description text.
     this.modFontSize(-4);
 
-    const validElementIds = [ 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
+    // build prefixed rows (family / traits / tools) so we know how tall the block is.
+    const taxonomy = this.#collectMonsterpediaTaxonomyRows(gameEnemy);
+    const taxonomyLineCount = this.#countMonsterpediaTaxonomyDrawLines(taxonomy);
+    const damageTypeCount = 10;
 
-    validElementIds.forEach((elementId, index) =>
+    // share one vertical budget so taxonomy width does not stack under damage and shove the grid into parameters.
+    const blockRowCount = Math.max(damageTypeCount, taxonomyLineCount);
+
+    // keep the block tucked just above the description blurb (match drawContent's descriptionY math).
+    const descriptionTop = this.height - (this.lineHeight() * 6);
+    const elemBlockBottom = descriptionTop - lh;
+    let yTop = elemBlockBottom - lh * blockRowCount;
+
+    // if the scene is short, clamp upward so we do not collide with the header region.
+    if (yTop < 48)
+    {
+      yTop = 48;
+    }
+
+    // right column stays where parameters already live; damage column shifts left to free this lane for taxonomy.
+    const taxonomyColumnX = this.width - 300;
+    const damageColumnX = taxonomyColumnX - damageColumnOffset;
+
+    // top-align both columns so family/traits read downward beside Cut..Typeless instead of hugging the bottom edge.
+    const damageStartRow = 0;
+    const taxonomyStartRow = 0;
+
+    this.#drawMonsterpediaTaxonomySections(
+      taxonomyColumnX,
+      yTop,
+      lh,
+      taxonomyStartRow,
+      observations,
+      taxonomy);
+
+    const damageElementIds = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+    damageElementIds.forEach((elementId, index) =>
+    {
+      const row = damageStartRow + index;
+      this.#drawMonsterpediaDamageElementRow(damageColumnX, yTop, lh, row, observations, elementId);
+    });
+  }
+
+  /**
+   * Collects non-neutral prefixed element rows for monsterpedia display.
+   * @param {Game_Enemy} gameEnemy The enemy instance to inspect.
+   * @returns {{
+   *   vs: {elementId: number, label: string, rate: number}[],
+   *   x: {elementId: number, label: string, rate: number}[],
+   *   tool: {elementId: number, label: string, rate: number}[]
+   * }}
+   */
+  #collectMonsterpediaTaxonomyRows(gameEnemy)
+  {
+    const names = $dataSystem.elements;
+    const vs = [];
+    const xList = [];
+    const tool = [];
+
+    for (let elementId = 1; elementId < names.length; elementId++)
+    {
+      const rawName = names[elementId];
+      if (!rawName) continue;
+
+      const trimmed = String(rawName).trim();
+      const low = trimmed.toLowerCase();
+
+      let bucket = null;
+      if (low.startsWith('vs '))
+      {
+        bucket = vs;
+      }
+      else if (low.startsWith('x '))
+      {
+        bucket = xList;
+      }
+      else if (low.startsWith('tool-'))
+      {
+        bucket = tool;
+      }
+
+      if (bucket === null) continue;
+
+      const rate = Math.round(gameEnemy.elementRate(elementId) * 100);
+      if (rate === 100) continue;
+
+      let label = trimmed;
+      if (low.startsWith('vs '))
+      {
+        label = trimmed.slice(3).trim();
+      }
+      else if (low.startsWith('x '))
+      {
+        label = trimmed.slice(2).trim();
+      }
+      else if (low.startsWith('tool-'))
+      {
+        label = trimmed.slice('tool-'.length).trim();
+      }
+
+      bucket.push({ elementId, label, rate });
+    }
+
+    const byElementId = (a, b) => a.elementId - b.elementId;
+    vs.sort(byElementId);
+    xList.sort(byElementId);
+    tool.sort(byElementId);
+
+    return { vs, x: xList, tool };
+  }
+
+  /**
+   * Counts drawable lines for taxonomy sections, including one header line per non-empty bucket.
+   * @param {{ vs: object[], x: object[], tool: object[] }} taxonomy The grouped taxonomy rows.
+   * @returns {number}
+   */
+  #countMonsterpediaTaxonomyDrawLines(taxonomy)
+  {
+    let lines = 0;
+
+    if (taxonomy.vs.length > 0)
+    {
+      lines += 1 + taxonomy.vs.length;
+    }
+
+    if (taxonomy.x.length > 0)
+    {
+      lines += 1 + taxonomy.x.length;
+    }
+
+    if (taxonomy.tool.length > 0)
+    {
+      lines += 1 + taxonomy.tool.length;
+    }
+
+    return lines;
+  }
+
+  /**
+   * Draws taxonomy headers and rows, advancing the shared row cursor.
+   * @param {number} x The x coordinate of the column.
+   * @param {number} y The top y of the whole elementalistics block.
+   * @param {number} lh The line height to use.
+   * @param {number} row The starting row index within the block.
+   * @param {MonsterpediaObservations} observations The active observations.
+   * @param {{ vs: object[], x: object[], tool: object[] }} taxonomy The grouped taxonomy rows.
+   * @returns {number} The next row index after drawing taxonomy content.
+   */
+  #drawMonsterpediaTaxonomySections(x, y, lh, row, observations, taxonomy)
+  {
+    let r = row;
+
+    r = this.#drawMonsterpediaTaxonomyBucket(
+      x, y, lh, r, observations, taxonomy.vs, 'Family');
+
+    r = this.#drawMonsterpediaTaxonomyBucket(
+      x, y, lh, r, observations, taxonomy.x, 'Traits');
+
+    r = this.#drawMonsterpediaTaxonomyBucket(
+      x, y, lh, r, observations, taxonomy.tool, 'Tools');
+
+    return r;
+  }
+
+  /**
+   * Draws one taxonomy bucket (header + rows) when it has content.
+   * @param {number} x The x coordinate of the column.
+   * @param {number} y The top y of the whole elementalistics block.
+   * @param {number} lh The line height to use.
+   * @param {number} row The starting row index within the block.
+   * @param {MonsterpediaObservations} observations The active observations.
+   * @param {{ elementId: number, label: string, rate: number }[]} rows The rows to render.
+   * @param {string} headerText The section title.
+   * @returns {number} The next row index after this bucket.
+   */
+  #drawMonsterpediaTaxonomyBucket(x, y, lh, row, observations, rows, headerText)
+  {
+    if (rows.length === 0) return row;
+
+    let cursor = row;
+
+    // section headers stay subtle so the data rows remain the hero.
+    this.resetFontSettings();
+    this.modFontSize(-8);
+    this.toggleItalics(true);
+    const headerWidth = this.textWidth(headerText);
+    this.drawText(headerText, x, y + lh * cursor, headerWidth, Window_Base.TextAlignments.Left);
+    this.toggleItalics(false);
+    cursor += 1;
+
+    rows.forEach(entry =>
+    {
+      const { elementId, label, rate } = entry;
+      this.#drawMonsterpediaTaxonomyElementRow(x, y, lh, cursor, observations, elementId, label, rate);
+      cursor += 1;
+    });
+
+    return cursor;
+  }
+
+  /**
+   * Draws a single taxonomy row with icon, shortened label, and resist text.
+   * @param {number} x The x coordinate of the column.
+   * @param {number} y The top y of the whole elementalistics block.
+   * @param {number} lh The line height to use.
+   * @param {number} row The row index within the block.
+   * @param {MonsterpediaObservations} observations The active observations.
+   * @param {number} elementId The database element id.
+   * @param {string} label The display label (prefix stripped).
+   * @param {number} rate The rounded percent rate.
+   */
+  #drawMonsterpediaTaxonomyElementRow(x, y, lh, row, observations, elementId, label, rate)
+  {
+    this.resetFontSettings();
+    this.modFontSize(-4);
+
+    const elementIcon = IconManager.element(elementId);
+    const { knowsParameters } = observations;
+    let displayRate = rate;
+
+    if (knowsParameters === false)
+    {
+      displayRate = J.BASE.Helpers.maskString(rate.padZero(4));
+    }
+    else
+    {
+      this.#applyMonsterpediaElementRateTextColor(rate);
+    }
+
+    this.drawEnemyParameter(x, y + lh * row, elementIcon, label, displayRate, false, 4);
+    this.changeTextColor(ColorManager.normalColor());
+  }
+
+  /**
+   * Draws one standard damage-type row (observed via combat hits).
+   * @param {number} x The x coordinate of the column.
+   * @param {number} y The top y of the whole elementalistics block.
+   * @param {number} lh The line height to use.
+   * @param {number} row The row index within the block.
+   * @param {MonsterpediaObservations} observations The active observations.
+   * @param {number} elementId The database element id.
+   */
+  #drawMonsterpediaDamageElementRow(x, y, lh, row, observations, elementId)
+  {
+    this.resetFontSettings();
+    this.modFontSize(-4);
+
+    this.changeTextColor(ColorManager.normalColor());
+
+    const gameEnemy = $gameEnemies.enemy(observations.id);
+    const elementIcon = IconManager.element(elementId);
+    const elementName = TextManager.element(elementId);
+    let elementRate = Math.round(gameEnemy.elementRate(elementId) * 100);
+    const knowsElementalistic = observations.isElementalisticKnown(elementId);
+
+    if (knowsElementalistic === false)
+    {
+      elementRate = J.BASE.Helpers.maskString(elementRate.padZero(4));
+    }
+    else
+    {
+      this.#applyMonsterpediaElementRateTextColor(elementRate);
+    }
+
+    this.drawEnemyParameter(x, y + lh * row, elementIcon, elementName, elementRate, false, 4);
+    this.changeTextColor(ColorManager.normalColor());
+  }
+
+  /**
+   * Applies text color styling for a known elementalistic percentage.
+   * @param {number} elementRate The rounded percent rate.
+   */
+  #applyMonsterpediaElementRateTextColor(elementRate)
+  {
+    this.changeTextColor(ColorManager.normalColor());
+
+    if (elementRate === 100)
     {
       this.changeTextColor(ColorManager.normalColor());
-
-      const elementIcon = IconManager.element(elementId);
-
-      const elementName = TextManager.element(elementId);
-
-      let elementRate = Math.round(gameEnemy.elementRate(elementId) * 100);
-
-      const knowsElementalistic = observations.isElementalisticKnown(elementId);
-
-      if (!knowsElementalistic)
-      {
-        elementRate = J.BASE.Helpers.maskString(elementRate.padZero(4));
-      }
-      else
-      {
-        if (elementRate === 100)
-        {
-          this.changeTextColor(ColorManager.normalColor());
-        }
-        else if (elementRate > 100)
-        {
-          this.changeTextColor(ColorManager.textColor(10));
-        }
-        else if (elementRate < 100 && elementRate > 0)
-        {
-          this.changeTextColor(ColorManager.textColor(17));
-        }
-        else if (elementRate === 0)
-        {
-          this.changeTextColor(ColorManager.textColor(8));
-        }
-        else if (elementRate < 0)
-        {
-          this.changeTextColor(ColorManager.textColor(23));
-        }
-      }
-
-      const elementYPlus = lh * index;
-      this.drawEnemyParameter(x, y + elementYPlus, elementIcon, elementName, elementRate, false, 4);
-    });
+    }
+    else if (elementRate > 100)
+    {
+      this.changeTextColor(ColorManager.textColor(10));
+    }
+    else if (elementRate < 100 && elementRate > 0)
+    {
+      this.changeTextColor(ColorManager.textColor(17));
+    }
+    else if (elementRate === 0)
+    {
+      this.changeTextColor(ColorManager.textColor(8));
+    }
+    else if (elementRate < 0)
+    {
+      this.changeTextColor(ColorManager.textColor(23));
+    }
   }
 
   /*

@@ -1177,26 +1177,57 @@ class JABS_Action
   }
 
   /**
-   * Keeps direct map actions glued to the caster’s continuous map coords each frame.
-   * Direct skills use proximity targeting (not flying map shots); the bound map event is always body-anchored.
+   * Keeps direct map actions anchored to the correct position each frame.
+   *
+   * When a direct skill was spatialized at decision-time (the options carry a frozen target
+   * location with valid coordinates), the action event was spawned there and must stay put -
+   * the hitbox lives at the target's tile, not the caster's.
+   *
+   * When no frozen location exists (pure proximity skills that never resolved a specific tile),
+   * fall back to the original behavior and keep the event glued to the caster so the
+   * caster-proximity collision path still works correctly.
    */
   syncDirectActionSpriteToCaster()
   {
+    // if this is not a direct action, there is nothing to sync.
     if (!this.isDirectAction())
     {
       return;
     }
 
+    // grab the action sprite to sync positions on.
     const actionSprite = this.getActionSprite();
 
+    // if there is no action sprite, there is nothing to sync.
     if (!actionSprite)
     {
       return;
     }
 
+    // read the options to check whether a frozen target location was captured at decision-time.
+    const options = this.getActionOptions();
+    const frozenLocation = options
+      ? options.getTargetLocation()
+      : null;
+    const frozenX = frozenLocation
+      ? frozenLocation.getX()
+      : null;
+    const frozenY = frozenLocation
+      ? frozenLocation.getY()
+      : null;
+
+    // if a frozen target tile exists, the event was spawned there - leave it in place.
+    if (frozenX !== null && frozenY !== null)
+    {
+      return;
+    }
+
+    // no frozen target: fall back to body-anchoring the sprite to the caster so
+    // the caster-proximity collision path still works for skills without a target tile.
     const casterChar = this.getCaster()
       .getCharacter();
 
+    // anchor the sprite to the caster's current continuous position.
     actionSprite._realX = casterChar._realX;
     actionSprite._realY = casterChar._realY;
     actionSprite._x = casterChar._x;
@@ -5482,8 +5513,45 @@ JABS_Battler.isSkillVisibleInCombatMenu = function(skill)
   // weapon skills are not visible in the combat skill menu.
   if (JABS_Battler.isWeaponSkillById(skill.id)) return false;
 
+  // skills explicitly opted into the offhand assignment list are surfaced there
+  // instead of the combat menu, to avoid a single skill bleeding across both menus.
+  if (skill.jabsOffhandEligible) return false;
+
   // show this skill!
   return true;
+};
+
+/**
+ * Determines whether or not a skill should be visible
+ * in the jabs offhand skill assignment menu.
+ *
+ * The offhand quick menu only surfaces learned skills that explicitly opt into
+ * offhand selection. Equipment-provided offhand skills are injected elsewhere
+ * by the actor, so they do not participate in this learned-skill filter.
+ *
+ * Dodge, guard, hidden, and generic weapon skills are excluded from this list.
+ * @param {RPG_Skill} skill The skill to check.
+ * @returns {boolean}
+ */
+JABS_Battler.isSkillVisibleInOffhandMenu = function(skill)
+{
+  // invalid skills are not visible in the offhand menu.
+  if (!skill) return false;
+
+  // explicitly hidden skills are not visible in the offhand menu.
+  if (skill.jabsHiddenFromMenus) return false;
+
+  // dodge skills belong to the dodge slot, not the offhand.
+  if (JABS_Battler.isDodgeSkillById(skill.id)) return false;
+
+  // guard skills are configured via equipment, not via the player-pinned offhand list.
+  if (JABS_Battler.isGuardSkillById(skill.id)) return false;
+
+  // generic weapon skills are still equipment-driven; they are not blanket-pickable.
+  if (JABS_Battler.isWeaponSkillById(skill.id)) return false;
+
+  // learned skills must opt in explicitly via the offhandEligible notetag.
+  return skill.jabsOffhandEligible === true;
 };
 
 /**
@@ -5634,6 +5702,7 @@ JABS_Battler.prototype.processQueuedActions = function()
     }
   }
 
+
   // execute the action.
   $jabsEngine.executeMapActions(this, decidedActions, targetX, targetY);
 
@@ -5782,14 +5851,20 @@ JABS_Battler.prototype.resolveDirectActionTargetCoordinatesForSkill = function(s
     return [ x, y ];
   }
 
-  // opponent/everyone scopes: prefer explicit target; fall back to last-hit.
-  let opponentTarget = this.getTarget();
-  if (!opponentTarget)
-  {
-    opponentTarget = this.getBattlerLastHit();
-  }
+  // the proximity limit governs candidate range-gating and the fallback scan radius.
+  const proximityLimit = skill.jabsProximity ?? 0;
 
-  // if we found a candidate, use that tile.
+  // read the optional state-anchor id for this skill.
+  const stateTargetId = skill.jabsDirectStateTarget;
+
+  // walk the four-tier priority chain: state-bearing target first, then
+  // non-inanimate known target, then proximity scan, then inanimate fallback.
+  const opponentTarget = this.resolveDirectTargetByState(stateTargetId, proximityLimit)
+    ?? this.resolveDirectTargetNonInanimate(proximityLimit)
+    ?? this.resolveDirectTargetViaScan(proximityLimit)
+    ?? this.resolveDirectTargetInanimateFallback(proximityLimit);
+
+  // freeze whichever target won the priority contest.
   if (opponentTarget)
   {
     x = opponentTarget.getX();
@@ -5798,6 +5873,143 @@ JABS_Battler.prototype.resolveDirectActionTargetCoordinatesForSkill = function(s
 
   // return what we got (possibly nulls).
   return [ x, y ];
+};
+
+/**
+ * Scans all battlers within proximity for the closest opponent currently afflicted
+ * with the given state. This is the highest-priority tier for direct skills that
+ * carry a <directStateTarget:N> tag, ensuring the skill snaps to the "pinned"
+ * target before considering anything else in the chain.
+ *
+ * Proximity is always respected: a state-bearing target beyond the configured
+ * range is never eligible.
+ * @param {number|null} stateId The state ID to search for; null skips the scan entirely.
+ * @param {number} proximityLimit The max tile distance allowed.
+ * @returns {JABS_Battler|null} The closest state-bearing opponent within range, or null.
+ */
+JABS_Battler.prototype.resolveDirectTargetByState = function(stateId, proximityLimit)
+{
+  // if no state id is configured, there is nothing to scan for.
+  if (!stateId) return null;
+
+  // query the spatial index for all battlers within range.
+  const nearby = JABS_AiManager.getBattlersWithinRange(this, proximityLimit);
+
+  // find the closest opponent carrying the target state.
+  let closest = null;
+  let closestDistance = Infinity;
+
+  for (const candidate of nearby)
+  {
+    // skip self and same-team battlers.
+    if (candidate === this) continue;
+    if (candidate.isEnemy() === this.isEnemy()) continue;
+
+    // skip battlers not afflicted with the target state.
+    if (!candidate.getBattler().isStateAffected(stateId)) continue;
+
+    // track the closest qualifying candidate.
+    const distance = this.distanceToDesignatedTarget(candidate);
+    if (distance < closestDistance)
+    {
+      closestDistance = distance;
+      closest = candidate;
+    }
+  }
+
+  // return the closest found, or null if none qualify.
+  return closest;
+};
+
+/**
+ * Checks the explicit target and last-hit battler, returning the first one that is
+ * non-inanimate and within the given proximity limit.
+ * @param {number} proximityLimit The max tile distance allowed; 0 means uncapped.
+ * @returns {JABS_Battler|null} The first qualifying non-inanimate known target, or null.
+ */
+JABS_Battler.prototype.resolveDirectTargetNonInanimate = function(proximityLimit)
+{
+  // evaluate getTarget() then getBattlerLastHit() in priority order.
+  const known = [ this.getTarget(), this.getBattlerLastHit() ];
+
+  for (const candidate of known)
+  {
+    // skip null slots and inanimate targets.
+    if (!candidate || candidate.isInanimate()) continue;
+
+    // skip candidates that fall outside the configured proximity cap.
+    const distance = this.distanceToDesignatedTarget(candidate);
+    if (proximityLimit !== 0 && distance > proximityLimit) continue;
+
+    // first qualifying candidate wins.
+    return candidate;
+  }
+
+  // no non-inanimate known target found within range.
+  return null;
+};
+
+/**
+ * Scans all battlers within {@link proximityLimit} tiles for the closest non-inanimate
+ * opponent. Used when known targets are inanimate or out of range, so a direct skill
+ * cannot accidentally lock onto a barrel while real enemies are nearby.
+ * @param {number} proximityLimit The scan radius in tiles; returns null immediately when 0.
+ * @returns {JABS_Battler|null} The closest qualifying opponent, or null.
+ */
+JABS_Battler.prototype.resolveDirectTargetViaScan = function(proximityLimit)
+{
+  // a limit of 0 means uncapped, which makes an exhaustive scan unsafe; skip it.
+  if (proximityLimit === 0) return null;
+
+  // query the spatial index for all battlers within range.
+  const nearby = JABS_AiManager.getBattlersWithinRange(this, proximityLimit);
+
+  // find the closest non-inanimate opponent among the candidates.
+  let closest = null;
+  let closestDistance = Infinity;
+
+  for (const candidate of nearby)
+  {
+    // skip self, inanimate targets, and same-team battlers.
+    if (candidate === this) continue;
+    if (candidate.isInanimate()) continue;
+    if (candidate.isEnemy() === this.isEnemy()) continue;
+
+    // track the closest qualifying candidate.
+    const distance = this.distanceToDesignatedTarget(candidate);
+    if (distance < closestDistance)
+    {
+      closestDistance = distance;
+      closest = candidate;
+    }
+  }
+
+  // return the closest found, or null if the area is clear.
+  return closest;
+};
+
+/**
+ * Last-resort fallback: returns the explicit target or last-hit battler even if they are
+ * inanimate, as long as they are within the proximity limit. This preserves intentional
+ * use of direct skills on inanimate objects when no live opponents are present.
+ * @param {number} proximityLimit The max tile distance allowed; 0 means uncapped.
+ * @returns {JABS_Battler|null} The first known target within range, regardless of
+ *   inanimate status, or null if none qualify.
+ */
+JABS_Battler.prototype.resolveDirectTargetInanimateFallback = function(proximityLimit)
+{
+  // prefer explicit target, then last-hit.
+  const candidate = this.getTarget() ?? this.getBattlerLastHit();
+
+  // no known candidate exists.
+  if (!candidate) return null;
+
+  // check the candidate falls within range.
+  const distance = this.distanceToDesignatedTarget(candidate);
+  if (proximityLimit !== 0 && distance > proximityLimit) return null;
+
+  // return the inanimate candidate as the last resort.
+  return candidate;
 };
 //endregion queued player actions
 
@@ -7568,6 +7780,7 @@ JABS_Battler.prototype.getAttackData = function(cooldownKey)
   {
     // resolve a stable snapshot of [x,y] at decision time.
     const [ x, y ] = this.resolveDirectActionTargetCoordinatesForSkill(skill);
+
 
     // if resolved, capture into the location on the options.
     if (x !== null && y !== null)
@@ -12594,8 +12807,15 @@ class JABS_MenuType
   static Dodge = "dodge";
 
   /**
+   * The "offhand" window is the list of offhand-eligible skills that the player can pin
+   * into the offhand slot.
+   * @type {string}
+   */
+  static Offhand = "offhand";
+
+  /**
    * The "assign" window is one of multiple types of windows where items or skills are assigned
-   * via the concept of "combat skills", "dodge skills", and "tools".
+   * via the concept of "combat skills", "dodge skills", "offhand skills", and "tools".
    * @type {string}
    */
   static Assign = "assign"
@@ -12748,6 +12968,16 @@ JABS_SkillSlot.prototype.initMembers = function()
    * @type {boolean}
    */
   this.locked = false;
+
+  /**
+   * The skill id that the player has explicitly pinned into this slot.
+   *
+   * Pinning is independent of {@link locked}: a pin is a player preference that survives
+   * equipment refreshes and wins over auto-derived skill ids during resolution. A value
+   * of 0 means no pin is set. Currently only meaningful for the offhand slot.
+   * @type {number}
+   */
+  this.pinnedSkillId = 0;
 
   // initialize the refreshes.
   this.initVisualRefreshes();
@@ -13139,6 +13369,65 @@ JABS_SkillSlot.prototype.isLocked = function()
 {
   return this.locked;
 };
+
+//region pin
+/**
+ * Gets the skill id that has been explicitly pinned to this slot.
+ *
+ * Returns 0 when no pin is set. Defensively handles legacy save data where the
+ * pin field may be undefined on a deserialized slot.
+ * @returns {number}
+ */
+JABS_SkillSlot.prototype.getPinnedSkillId = function()
+{
+  // legacy saves may not have this field; treat absence as "no pin".
+  return this.pinnedSkillId ?? 0;
+};
+
+/**
+ * Sets the skill id pinned to this slot.
+ *
+ * A value of 0 clears the pin. Triggers the slot's on-change hook only when the
+ * pin actually changes so consumers (HUD refresh, etc) are not spammed.
+ * @param {number} skillId The skill id to pin, or 0 to clear the pin.
+ * @returns {this} Returns `this` for fluent chaining.
+ */
+JABS_SkillSlot.prototype.setPinnedSkillId = function(skillId)
+{
+  // normalize falsy values so a missing legacy field reads the same as 0.
+  const previous = this.getPinnedSkillId();
+
+  // assign the new pin value.
+  this.pinnedSkillId = skillId;
+
+  // only fire the on-change hook when the pin actually changed.
+  if (previous !== skillId)
+  {
+    this.onChange();
+  }
+
+  // return this for fluent-chaining.
+  return this;
+};
+
+/**
+ * Whether or not this slot has a pinned skill id.
+ * @returns {boolean}
+ */
+JABS_SkillSlot.prototype.hasPinnedSkill = function()
+{
+  return this.getPinnedSkillId() > 0;
+};
+
+/**
+ * Clears the pinned skill id from this slot.
+ * @returns {this} Returns `this` for fluent chaining.
+ */
+JABS_SkillSlot.prototype.clearPinnedSkill = function()
+{
+  return this.setPinnedSkillId(0);
+};
+//endregion pin
 
 /**
  * Gets the underlying data for this slot.
@@ -13666,6 +13955,50 @@ JABS_SkillSlotManager.prototype.unlockAllSlots = function()
   this.getAllSlots()
     .forEach(slot => slot.unlock());
 };
+
+//region offhand pin
+/**
+ * Gets the skill id pinned to the offhand slot, or 0 when no pin is set.
+ *
+ * Convenience wrapper to keep callers (Game_Actor, plugin commands, scenes) from
+ * threading the slot key through their resolution code.
+ * @returns {number}
+ */
+JABS_SkillSlotManager.prototype.getOffhandPinnedSkillId = function()
+{
+  // grab the offhand slot directly; return 0 if it is not present yet.
+  const offhandSlot = this.getSkillSlotByKey(JABS_Button.Offhand);
+  if (!offhandSlot) return 0;
+
+  // delegate the read to the slot itself so legacy field handling is centralized.
+  return offhandSlot.getPinnedSkillId();
+};
+
+/**
+ * Sets the skill id pinned to the offhand slot.
+ *
+ * Pass 0 to clear the pin. Returns silently when the offhand slot does not yet exist
+ * (battlers initialize their slots lazily).
+ * @param {number} skillId The skill id to pin into the offhand slot, or 0 to clear.
+ */
+JABS_SkillSlotManager.prototype.setOffhandPinnedSkillId = function(skillId)
+{
+  // do nothing if the offhand slot is not yet initialized for this battler.
+  const offhandSlot = this.getSkillSlotByKey(JABS_Button.Offhand);
+  if (!offhandSlot) return;
+
+  // delegate the write to the slot, which handles change-detection and onChange.
+  offhandSlot.setPinnedSkillId(skillId);
+};
+
+/**
+ * Clears the pin on the offhand slot, if any.
+ */
+JABS_SkillSlotManager.prototype.clearOffhandPin = function()
+{
+  this.setOffhandPinnedSkillId(0);
+};
+//endregion offhand pin
 //endregion JABS_SkillSlotManager
 
 //region JABS_State
@@ -15316,19 +15649,39 @@ class JABS_Timer
  *
  * ----------------------------------------------------------------------------
  * PROXIMITY:
- * How close an AI-controlled battler must get to the target before they
- * can execute this skill.
+ * Defines the maximum tile distance between the battler and the target at which
+ * the skill can be used. This tag serves two purposes:
+ *
+ * 1. AI GATE: An AI-controlled battler will not attempt this skill unless they
+ *    are within VAL tiles of their current target.
+ *
+ * 2. DIRECT SKILL RANGE: For skills that also carry <direct>, proximity defines
+ *    the search radius for target selection at decision time. The engine will
+ *    only lock onto targets within this distance. All direct skills must have
+ *    this tag -- it is not optional.
+ *
  *    <proximity:VAL>
- *  Where VAL is the proximity value for this skill.
+ *  Where VAL is the proximity value (in tiles) for this skill.
+ *
+ * NOTE: <proximity:0> means zero range, not uncapped. A value of 0 will never
+ * match any target.
  *
  * ----------------------------------------------------------------------------
  * DIRECT:
- * With the "direct" tag, combat resolves through proximity (<proximity:N>) to
- * the nearest valid target — not a flying map projectile. The optional map
- * action event (hitbox visuals / collision anchor) stays body-anchored.
+ * With the "direct" tag, the skill locks onto the nearest valid target within
+ * <proximity:N> rather than firing a flying map projectile. The hitbox event
+ * is spawned at the resolved target's tile and stays there.
  * The skill still obeys CAST TIME, RADIUS, HITBOX, and other tags.
- * The most common use case is healing skills, or skills that should feel
- * instant and unblockable.
+ *
+ * <direct> requires <proximity:N> on the same skill. Proximity defines the
+ * maximum range at which a target can be locked onto.
+ *
+ * Target selection priority (highest to lowest):
+ *   1. Opponent carrying the <directStateTarget:N> state (if configured).
+ *   2. Non-inanimate explicit target or last-hit within range.
+ *   3. Closest non-inanimate opponent found via proximity scan.
+ *   4. Inanimate fallback (explicit target or last-hit within range).
+ *
  *    <direct>
  *
  * NOTE ABOUT PARRYING:
@@ -15354,6 +15707,26 @@ class JABS_Timer
  *
  * NOTE: <directLock> and <direct> are mutually exclusive. If both are
  * present on a skill, <directLock> takes precedence.
+ *
+ * ----------------------------------------------------------------------------
+ * DIRECT STATE TARGET:
+ * When present on a <direct> skill, the targeting system will prioritize any
+ * opponent within <proximity:N> that is currently afflicted with the specified
+ * state ID above all other targeting candidates.
+ *
+ * This is designed for combo chains where the opening hit applies a "mark"
+ * state to the target, and subsequent hits in the chain should snap to that
+ * marked target rather than the nearest foe. As long as the state is active
+ * and the target is within proximity, the chain stays locked.
+ *
+ * If the state expires, the target moves beyond proximity, or the state is
+ * cleansed, the skill falls through to the normal priority chain.
+ *
+ *    <directStateTarget:STATE_ID>
+ *  Where STATE_ID is the ID of the state that marks the priority target.
+ *
+ * NOTE: Requires <direct> and <proximity:N> on the same skill.
+ * NOTE: Proximity is always enforced. A marked target beyond range is not eligible.
  *
  * ----------------------------------------------------------------------------
  * PROJECTILE:
@@ -15719,14 +16092,29 @@ class JABS_Timer
  *
  * ----------------------------------------------------------------------------
  * MAINHAND AND OFFHAND SLOTS:
- * These slots are typically auto-assigned via equipment. The weapon slot
- * translates to mainhand; the shield fills offhand. Dual-wielding puts
- * the second weapon in the offhand slot. To designate which skill a
- * piece of equipment grants, use:
+ * The mainhand slot is auto-assigned via the weapon equip slot using its
+ * <skillId:SKILL_ID> tag. The offhand slot is resolved each refresh using
+ * the following precedence (highest first):
+ *  1. Native offhand seal: if the battler has RMMZ's "Seal Equip: Offhand"
+ *     trait active AND the mainhand does not also declare <offhandSkillId:N>,
+ *     the offhand resolves to nothing.
+ *  2. Player pin: a skill the player explicitly assigned to the offhand
+ *     via the JABS quick menu (see "ASSIGNING THE OFFHAND" below).
+ *  3. Mainhand-provided offhand skill: <offhandSkillId:N> on the
+ *     currently equipped mainhand weapon.
+ *  4. The equipped offhand item's <skillId:N> tag.
+ *  5. Nothing.
+ *
+ * Once the base offhand skill is resolved, active states may temporarily
+ * transform it into another skill via <skillTransform:[BASE, OVERRIDE]>.
+ *
+ * To designate which skill a piece of equipment grants, use:
  *    <skillId:SKILL_ID>
  *  Where SKILL_ID is the skill to assign to the equip slot.
  *
- * NOTE: Only the offhand slot can define a guard skill.
+ * NOTE: Only the offhand slot can host a guard skill. Pinning a non-guard
+ * skill into the offhand intentionally trades the guard ability for that
+ * skill until the player clears or changes the pin.
  *
  * OFFHAND SKILL OVERRIDE:
  * In some cases, you may want a weapon to specify a different skill for
@@ -15734,6 +16122,32 @@ class JABS_Timer
  * weapons that also define their own offhand behavior:
  *    <offhandSkillId:SKILL_ID>
  *  Where SKILL_ID is the skill to assign specifically to the offhand.
+ *
+ * TWO-HANDED WEAPONS:
+ * Use RMMZ's native trait instead of a notetag:
+ *    Trait -> Seal Equip -> Offhand
+ * When that trait is active anywhere on the battler, JABS treats the offhand
+ * as sealed. The seal is bypassed if the mainhand also declares
+ * <offhandSkillId:N>, which lets a "two-handed but defines its own offhand
+ * action" weapon (such as a spear) keep its offhand action.
+ *
+ * ASSIGNING THE OFFHAND (PLAYER PIN):
+ * Players may pin a learned skill into the offhand slot via the JABS
+ * quick menu. The pin survives until the player either clears it or
+ * changes the offhand equipment, at which point the pin is automatically
+ * cleared so that the newly equipped offhand's skill takes priority.
+ *
+ * Skills available in the offhand assignment list are:
+ *  - Learned skills carrying the <offhandEligible> tag.
+ *  - The skill currently granted by the equipped offhand item.
+ *  - The skill currently granted by the mainhand's <offhandSkillId:N>.
+ * Generic learned weapon skills are NOT automatically eligible.
+ *
+ *    <offhandEligible>
+ * Place this tag on any skill to opt it into the offhand assignment list
+ * regardless of skill type. This is intended for specially learned support,
+ * utility, or offensive skills that should be equippable as player-chosen
+ * offhand actions.
  *
  * KNOCKBACK RESISTANCE:
  * Equip this on a weapon or armor to reduce the tiles a battler carrying
@@ -15970,6 +16384,23 @@ class JABS_Timer
  * PARALYZED:
  * Functionally the same as being rooted, disabled, and muted all at once.
  *    <paralyzed>
+ *
+ * ----------------------------------------------------------------------------
+ * SKILL TRANSFORM:
+ * Temporarily transforms one already-resolved equipped skill into another.
+ *    <skillTransform:[BASE, OVERRIDE]>
+ *  Where BASE is the equipped skill id being looked for.
+ *  Where OVERRIDE is the skill id that should execute instead.
+ *
+ * In the current offhand implementation, this is evaluated against the
+ * resolved offhand skill only. It is intentionally NOT exposed in the quick
+ * menu as an equip option. If multiple states transform the same base skill,
+ * the highest-priority state wins.
+ *
+ * Example:
+ *    <skillTransform:[151, 152]>
+ * If the battler's resolved offhand skill is 151, then 152 is used instead
+ * for as long as this state remains applied.
  *
  * ----------------------------------------------------------------------------
  * ----------------------------------------------------------------------------
@@ -16747,6 +17178,13 @@ class JABS_Timer
  * @desc The text that shows up in the JABS quickmenu for the "equip dodge skills" command.
  * @default Equip Dodge Skills
  *
+ * @param equipOffhandText
+ * @parent quickmenuConfigs
+ * @type string
+ * @text Equip Offhand Skill Text
+ * @desc The text that shows up in the JABS quickmenu for the "equip offhand skill" command.
+ * @default Equip Offhand Skill
+ *
  * @param equipToolsText
  * @parent quickmenuConfigs
  * @type string
@@ -16857,6 +17295,7 @@ class JABS_Timer
  * @desc The slot to assign the skill to for this actor.
  * @option Tool
  * @option Dodge
+ * @option Offhand
  * @option L1A
  * @option L1B
  * @option L1X
@@ -16876,6 +17315,7 @@ class JABS_Timer
  * @type select
  * @option Tool
  * @option Dodge
+ * @option Offhand
  * @option L1A
  * @option L1B
  * @option L1X
@@ -17039,6 +17479,8 @@ J.ABS.Helpers.PluginManager.TranslateOptionToSlot = slot =>
       return JABS_Button.Tool;
     case 'Dodge':
       return JABS_Button.Dodge;
+    case 'Offhand':
+      return JABS_Button.Offhand;
     case 'L1A':
       return JABS_Button.CombatSkill1;
     case 'L1B':
@@ -17290,6 +17732,7 @@ J.ABS.Metadata.ImplicitParryBaselinePerLevel = (Number.isFinite(implicitParryBas
 // quick menu commands configurations.
 J.ABS.Metadata.EquipCombatSkillsText = J.ABS.PluginParameters['equipCombatSkillsText'];
 J.ABS.Metadata.EquipDodgeSkillsText = J.ABS.PluginParameters['equipDodgeSkillsText'];
+J.ABS.Metadata.EquipOffhandText = J.ABS.PluginParameters['equipOffhandText'];
 J.ABS.Metadata.EquipToolsText = J.ABS.PluginParameters['equipToolsText'];
 J.ABS.Metadata.MainMenuText = J.ABS.PluginParameters['mainMenuText'];
 J.ABS.Metadata.CancelText = J.ABS.PluginParameters['cancelText'];
@@ -17730,6 +18173,7 @@ J.ABS.RegExp = {
   // action-execution-related.
   Direct: /<direct>/i,
   DirectLock: /<directLock>/i,
+  DirectStateTarget: /<directStateTarget:[ ]?(\d+)>/gi,
   Proximity: /<proximity:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
   Duration: /<duration:[ ]?(\d+)>/gi,
   Knockback: /<knockback:[ ]?(\d+)>/gi,
@@ -17752,6 +18196,10 @@ J.ABS.RegExp = {
   UpgradeOverSkill: /<upgradeOverSkill:[ ]?(\d+)>/i,
   NoSkillUpgrading: /<noUpgrade>/i,
   UpgradeOnlySkill: /<onlyUpgrade>/i,
+
+  // a boolean tag that flags a skill as eligible to be assigned into the offhand slot
+  // by the player from the in-game JABS quick menu.
+  OffhandEligible: /<offhandEligible>/i,
 
   // aggro-related.
   BonusAggro: /<aggro:[ ]?(-?\d+)>/gi,
@@ -17890,6 +18338,7 @@ J.ABS.RegExp = {
   ReapplyStackMax: /<stackMax:[ ]?(\d+)>/gi,
   StateApplicationAmount: /<applyStacks:[ ]?(\d+)>/gi,
   LoseAllStacksAtOnce: /<loseAllStacksAtOnce>/gi,
+  SkillTransform: /<skillTransform:[ ]?(\[\d+,[ ]?\d+])>/gi,
 
   // jabs core ailment functionalities.
   Paralyzed: /<paralyzed>/gi,
@@ -18089,6 +18538,24 @@ PluginManager.registerCommand(J.ABS.Metadata.Name, "Set JABS Skill", args =>
 
   // determine the locked state of the skill being assigned.
   const isLocked = locked === 'true';
+
+  // offhand assignments route through the pin path so equipment refreshes do not stomp
+  // the choice; the slot's id is then locked separately if requested.
+  if (skillSlotKey === JABS_Button.Offhand)
+  {
+    // pin the skill so the offhand resolve chain returns it on the next refresh.
+    actor.pinOffhandSkill(assignedId);
+
+    // honor the lock flag using the slot's existing lock plumbing.
+    if (isLocked)
+    {
+      actor.getSkillSlotManager()
+        .getSkillSlotByKey(JABS_Button.Offhand)
+        .lock();
+    }
+
+    return;
+  }
 
   // assign the id to the slot.
   actor.setEquippedSkill(skillSlotKey, assignedId, isLocked);
@@ -18910,7 +19377,6 @@ Object.defineProperty(RPG_EquipItem.prototype, 'jabsOffhandSkillId', {
 });
 //endregion offhand skillId
 
-
 //region useOnPickup
 /**
  * Normally defines whether or not an item will be automatically used
@@ -19125,6 +19591,25 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsDirectLock', {
     return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.DirectLock, true);
   },
 });
+//region directStateTarget
+/**
+ * The state ID that must be present on a target for it to receive top priority
+ * when resolving direct-skill targeting at decision time.
+ *
+ * When set, the targeting system scans within <proximity:N> for any opponent
+ * currently afflicted with this state before falling through to the normal
+ * priority chain (explicit target -> last-hit -> proximity scan -> inanimate).
+ *
+ * Requires <direct> and <proximity:N> on the same skill.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_Skill.prototype, 'jabsDirectStateTarget', {
+  get: function()
+  {
+    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.DirectStateTarget, true);
+  },
+});
+//endregion directStateTarget
 //endregion direct targeting
 
 //region aggro
@@ -19559,6 +20044,23 @@ Object.defineProperty(RPG_Skill.prototype, 'jabsUnparryable', {
   },
 });
 //endregion unparryable
+
+//region offhandEligible
+/**
+ * Whether or not this skill may be assigned by the player into the offhand slot
+ * via the in-game JABS quick menu.
+ *
+ * Skills that are weapon-typed are implicitly offhand-eligible elsewhere; this tag is
+ * the opt-in flag for any other skill type to participate in the offhand assignment list.
+ * @type {boolean}
+ */
+Object.defineProperty(RPG_Skill.prototype, 'jabsOffhandEligible', {
+  get: function()
+  {
+    return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.OffhandEligible);
+  },
+});
+//endregion offhandEligible
 
 //region selfAnimation
 /**
@@ -20224,18 +20726,21 @@ Object.defineProperty(RPG_State.prototype, 'jabsAggroLock', {
 });
 //endregion aggroLock
 
-//region offhand skillId
+//region skillTransforms
 /**
- * The offhand skill id override from this state.
- * @type {number}
+ * The collection of skill transforms defined on this state.
+ *
+ * Each entry is expected to be a two-number array in the form:
+ * [ baseSkillId, transformedSkillId ]
+ * @type {number[][]}
  */
-Object.defineProperty(RPG_State.prototype, 'jabsOffhandSkillId', {
+Object.defineProperty(RPG_State.prototype, 'jabsSkillTransforms', {
   get: function()
   {
-    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.OffhandSkillId, true);
+    return RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.SkillTransform, true);
   },
 });
-//endregion offhand skillId
+//endregion skillTransforms
 
 //region reapplication type
 /**
@@ -20970,16 +21475,27 @@ class JABS_ActionSpawner
       // translate lateral offset into dx/dy for the given facing.
       const delta = this.offsetToDelta(projectileDirection, lateral);
 
+      // preserve the original resolved target location, if one exists.
+      const targetLocation = actionOptions.getTargetLocation();
+
       // clone/compose a new options instance per projectile, storing only the lateral delta.
       // the absolute spawn position is resolved at fire time by applying this offset to the
       // caster's current coordinates in JABS_Engine.buildActionEventData.
-      const perActionOptions = JABS_ActionOptions.Builder()
+      const optionsBuilder = JABS_ActionOptions.Builder()
         .setIsRetaliation(actionOptions.isActionRetaliation())
         .setCooldownKey(actionOptions.getCooldownKey())
         .setSpawnOffset(delta[0], delta[1])
         .setIsTerrainDamage(actionOptions.isTerrainDamage())
-        .setProjectileTravelAngleDegrees(actionOptions.getProjectileTravelAngleDegrees())
-        .build();
+        .setProjectileTravelAngleDegrees(actionOptions.getProjectileTravelAngleDegrees());
+
+      // carry forward the original target coordinates for direct skills.
+      if (targetLocation)
+      {
+        optionsBuilder.setLocation(targetLocation);
+      }
+
+      // build the per-action options.
+      const perActionOptions = optionsBuilder.build();
 
       // build and return the action bound to this projectile's setup.
       return JABS_Action.Builder()
@@ -24971,6 +25487,7 @@ class JABS_Engine
     // non-direct actions always create events; direct actions only do so if coords are provided.
     const shouldCreateEvent = (!action.isDirectAction()) || (x !== null && y !== null);
 
+
     // check if we determined we should create an event.
     if (shouldCreateEvent)
     {
@@ -27011,6 +27528,7 @@ class JABS_Engine
     const actionSprite = jabsAction.getActionSprite();
     const range = jabsAction.getRange();
     const shape = jabsAction.getShape();
+
     const targetsHit = [];
     let hitOne = false;
 
@@ -29406,6 +29924,16 @@ Game_Actor.prototype.initJabsMembers = function()
    * @type {boolean}
    */
   this._j._abs._deathEffect = false;
+
+  /**
+   * The last observed offhand equip's item id, used to detect offhand swaps so we
+   * can clear any player-pinned offhand skill the next time equipment changes.
+   *
+   * Stored as null until the first equip-change hook seeds it; reads default to 0
+   * for legacy save data via the helper accessor.
+   * @type {?number}
+   */
+  this._j._abs._lastOffhandItemId = null;
 };
 
 /**
@@ -29430,6 +29958,10 @@ Game_Actor.prototype.setup = function(actorId)
  */
 Game_Actor.prototype.jabsRefresh = function()
 {
+  // reconcile the offhand pin against the current offhand item so a swap clears it
+  // before the slot is re-resolved below.
+  this.reconcileOffhandPinAgainstEquip();
+
   // refresh the currently equipped skills to ensure they are still valid.
   this.refreshBasicAttackSkills();
 
@@ -29558,81 +30090,410 @@ Game_Actor.prototype.updateOffhandSkill = function()
 /**
  * Gets the offhand skill for this actor.
  *
- * Takes into consideration the possibility of an offhand override
- * from the mainhand or some states.
+ * Resolution precedence (highest first):
+ *  1. Native offhand equip-seal (returns 0) unless the mainhand also defines an
+ *     {@link RPG_EquipItem#jabsOffhandSkillId offhandSkillId} that bypasses it.
+ *  2. Player pin via the JABS quick menu, when the pinned skill is still assignable.
+ *  3. The mainhand's provided offhand skill via {@code <offhandSkillId:N>}.
+ *  4. The equipped offhand item's {@link RPG_EquipItem#jabsSkillId jabsSkillId}.
+ *  5. 0 (no skill).
+ *
+ * After the base skill is identified, active states may temporarily transform that
+ * offhand skill into another one via {@code <skillTransform:[BASE, OVERRIDE]>}.
  * @returns {number} The offhand skill id.
  */
 Game_Actor.prototype.getOffhandSkill = function()
 {
-  // grab the offhand skill override if one exists.
-  const offhandOverride = this.offhandSkillOverride();
-
-  // check if there is an offhand override skill to use instead.
-  if (offhandOverride)
+  // an offhand equip-seal trait anywhere on the battler seals the slot unless the
+  // same weapon also declares its own offhand skill. this preserves spear-like
+  // weapons that intentionally define a specific offhand action.
+  if (this.isTwoHanded() && !this.mainhandDeclaresOffhandSkillId())
   {
-    // return the override.
-    return offhandOverride;
+    return 0;
   }
 
-  // grab the offhand of the actor.
-  const [ , offhand ] = this.equips();
+  // determine the base offhand skill from the player's pin or equipment defaults.
+  const baseOffhandSkillId = this.getBaseOffhandSkill();
 
-  // default the offhand skill to 0.
-  let offhandSkill = 0;
-
-  // check if we have something in our offhand.
-  if (offhand)
+  // if there is no offhand skill to resolve, then return 0.
+  if (!baseOffhandSkillId)
   {
-    // assign the skill id tag from the offhand.
-    offhandSkill = offhand.jabsSkillId ?? 0;
+    return 0;
   }
 
-  // return what we found.
-  return offhandSkill;
+  // apply state-driven transforms to the resolved offhand skill, if applicable.
+  return this.getTransformedOffhandSkillId(baseOffhandSkillId);
 };
 
 /**
- * Gets the offhand skill id override if one exists from
- * any states.
+ * Gets the base offhand skill for this actor before any temporary transforms are applied.
+ *
+ * This method only decides "what the actor has equipped or pinned". Any short-lived state
+ * behavior that upgrades one offhand skill into another is layered on afterwards by
+ * {@link #getTransformedOffhandSkillId}.
  * @returns {number}
  */
-Game_Actor.prototype.offhandSkillOverride = function()
+Game_Actor.prototype.getBaseOffhandSkill = function()
 {
-  // default to override of skill id 0.
-  let overrideSkillId = 0;
-
-  // grab all states to start.
-  const objectsToCheck = [ ...this.states() ];
-
-  // grab the weapon of the actor.
-  const [ weapon, ] = this.equips();
-
-  // check if we have a weapon.
-  if (weapon)
+  // honor a player-pinned offhand skill when it is still assignable for this actor.
+  const pinnedOffhandSkillId = this.getPinnedOffhandSkillId();
+  if (pinnedOffhandSkillId && this.isOffhandSkillAssignable(pinnedOffhandSkillId))
   {
-    // add the weapon on for possible offhand overrides.
-    objectsToCheck.unshift(weapon);
+    return pinnedOffhandSkillId;
   }
 
-  // iterate over all sources.
-  objectsToCheck.forEach(obj =>
+  // when there is no pin, prefer the mainhand's provided offhand skill first.
+  const mainhandProvidedSkillId = this.getMainhandProvidedOffhandSkillId();
+  if (mainhandProvidedSkillId)
   {
-    // check if we have an offhand skill id override.
-    if (obj.jabsOffhandSkillId)
-    {
-      // assign it if we do.
-      overrideSkillId = obj.jabsOffhandSkillId;
-    }
+    return mainhandProvidedSkillId;
+  }
+
+  // otherwise, fall back to the equipped offhand item's granted skill.
+  const offhandEquippedSkillId = this.getOffhandEquippedSkillId();
+  if (offhandEquippedSkillId)
+  {
+    return offhandEquippedSkillId;
+  }
+
+  // no offhand skill source was identified.
+  return 0;
+};
+
+/**
+ * Gets the native equip-type id that represents the offhand slot.
+ *
+ * In RMMZ, "Seal Equip: Offhand" is represented by {@link Game_BattlerBase.TRAIT_EQUIP_SEAL}
+ * with this equip-type id as the {@code dataId}. We centralize the magic number here
+ * so all offhand-seal checks read consistently.
+ * @returns {number}
+ */
+Game_Actor.prototype.offhandEquipTypeId = function()
+{
+  return 2;
+};
+
+/**
+ * Whether or not this actor is currently in a two-handed state.
+ *
+ * This is driven by native battler traits, not custom notetags: if any active source
+ * on the battler applies the offhand equip-seal trait, then JABS treats the offhand
+ * slot as sealed for skill-resolution purposes.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isTwoHanded = function()
+{
+  // check the battler's active traits for the native offhand equip-seal.
+  return this.isEquipTypeSealed(this.offhandEquipTypeId());
+};
+
+/**
+ * Whether or not this actor's currently equipped mainhand is effectively two-handed.
+ *
+ * This wrapper is retained for existing callers while the underlying implementation now
+ * delegates to the battler-wide native offhand-seal trait check.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isMainhandTwoHanded = function()
+{
+  return this.isTwoHanded();
+};
+
+/**
+ * Whether or not the currently equipped mainhand explicitly declares an offhand skill id.
+ *
+ * This is the seal-bypass check: a mainhand can be marked two-handed and still grant a
+ * specific offhand action via {@code <offhandSkillId:N>} (e.g. spear-style weapons).
+ * @returns {boolean}
+ */
+Game_Actor.prototype.mainhandDeclaresOffhandSkillId = function()
+{
+  // grab the mainhand only; state-driven overrides are not considered for the seal bypass.
+  const [ mainhand, ] = this.equips();
+
+  // no mainhand means it cannot be declaring anything.
+  if (!mainhand) return false;
+
+  // a positive value indicates an explicit declaration on the equip itself.
+  return (mainhand.jabsOffhandSkillId ?? 0) > 0;
+};
+
+/**
+ * Gets the offhand skill currently provided by the mainhand weapon.
+ * @returns {number}
+ */
+Game_Actor.prototype.getMainhandProvidedOffhandSkillId = function()
+{
+  // grab only the mainhand equip.
+  const [ mainhand, ] = this.equips();
+
+  // no mainhand means there is no mainhand-provided offhand skill.
+  if (!mainhand) return 0;
+
+  // return the explicit offhand contribution from the mainhand.
+  return mainhand.jabsOffhandSkillId ?? 0;
+};
+
+/**
+ * Whether or not the given skill id currently belongs to the mainhand's provided offhand path.
+ *
+ * This returns true both for the base skill directly granted by the mainhand's
+ * {@code <offhandSkillId:N>} and for the transformed result of that skill while a
+ * state-driven offhand transform is active.
+ * @param {number} skillId The skill id to check.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isMainhandProvidedOffhandSkill = function(skillId)
+{
+  // a missing or zero id cannot belong to the mainhand's offhand path.
+  if (!skillId) return false;
+
+  // no mainhand-provided offhand skill means there is nothing to compare against.
+  const mainhandProvidedSkillId = this.getMainhandProvidedOffhandSkillId();
+  if (!mainhandProvidedSkillId) return false;
+
+  // direct match against the mainhand's provided skill.
+  if (mainhandProvidedSkillId === skillId)
+  {
+    return true;
+  }
+
+  // transformed match against the state-upgraded result of the mainhand's provided skill.
+  const transformedMainhandSkillId = this.getTransformedOffhandSkillId(mainhandProvidedSkillId);
+  return transformedMainhandSkillId === skillId;
+};
+
+/**
+ * Gets the offhand skill currently provided by the equipped offhand item.
+ * @returns {number}
+ */
+Game_Actor.prototype.getOffhandEquippedSkillId = function()
+{
+  // grab only the offhand equip.
+  const [ , offhand ] = this.equips();
+
+  // no offhand means there is no offhand-provided skill.
+  if (!offhand) return 0;
+
+  // return the offhand's granted skill id.
+  return offhand.jabsSkillId ?? 0;
+};
+
+/**
+ * Gets the skill id pinned to the offhand slot by the player, or 0 if no pin is set.
+ * @returns {number}
+ */
+Game_Actor.prototype.getPinnedOffhandSkillId = function()
+{
+  // shortcut to the slot manager's offhand pin accessor.
+  const skillSlotManager = this.getSkillSlotManager();
+  if (!skillSlotManager) return 0;
+
+  return skillSlotManager.getOffhandPinnedSkillId();
+};
+
+/**
+ * Pins the given skill id to the offhand slot for this actor and refreshes the slot.
+ *
+ * Pass 0 to clear the pin and let auto-derivation take over again. The basic-attack
+ * refresh chain is invoked so the slot's resolved id and any HUD updates stay
+ * coherent without waiting for the next data-change tick.
+ * @param {number} skillId The skill id to pin into the offhand slot, or 0 to clear.
+ */
+Game_Actor.prototype.pinOffhandSkill = function(skillId)
+{
+  // grab the slot manager; bail if the actor has not been set up yet.
+  const skillSlotManager = this.getSkillSlotManager();
+  if (!skillSlotManager) return;
+
+  // write the pin (the slot itself handles change detection and onChange).
+  skillSlotManager.setOffhandPinnedSkillId(skillId);
+
+  // re-resolve the offhand slot so consumers see the new skill id immediately.
+  this.refreshBasicAttackSkills();
+};
+
+/**
+ * Clears the player-set pin from the offhand slot, if any.
+ */
+Game_Actor.prototype.clearOffhandPin = function()
+{
+  this.pinOffhandSkill(0);
+};
+
+/**
+ * Whether or not the given skill id is currently assignable as this actor's offhand.
+ *
+ * Offhand-assignable skills are sourced explicitly, not from the actor's entire learned
+ * weapon-skill pool. A skill is assignable only if it appears in the current offhand
+ * candidate list:
+ * - learned skills carrying {@code <offhandEligible>}
+ * - the skill currently granted by the equipped offhand item
+ * - the skill currently granted by the mainhand's {@code <offhandSkillId:N>}
+ * @param {number} skillId The skill id to validate.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.isOffhandSkillAssignable = function(skillId)
+{
+  // a missing or zero id is never assignable.
+  if (!skillId) return false;
+
+  // build the current collection of assignable skill ids and see if this one is present.
+  const offhandAssignableSkillIds = this.buildOffhandAssignableSkillIds();
+  return offhandAssignableSkillIds.includes(skillId);
+};
+
+/**
+ * Builds the list of skill ids available for player pinning into the offhand slot.
+ *
+ * The candidate list intentionally does not include all learned weapon skills. Offhand
+ * choices come only from explicit skill tags or the currently equipped gear's provided
+ * offhand skills.
+ * @returns {number[]}
+ */
+Game_Actor.prototype.buildOffhandAssignableSkillIds = function()
+{
+  // initialize the current collection of assignable skill ids.
+  const assignableSkillIds = [];
+
+  // begin with learned skills that explicitly opt into offhand assignment.
+  const explicitlyEligibleSkills = this.skills()
+    .filter(JABS_Battler.isSkillVisibleInOffhandMenu);
+
+  // add each explicitly eligible learned skill to the pool.
+  explicitlyEligibleSkills.forEach(skill =>
+  {
+    // skip duplicates while preserving the original learned-skill order.
+    if (assignableSkillIds.includes(skill.id)) return;
+
+    // add the explicitly eligible skill to the pool.
+    assignableSkillIds.push(skill.id);
   });
 
-  // return the last override skill found, if any.
-  return overrideSkillId;
+  // add the currently equipped offhand-provided skill, such as guard or utility actions.
+  const offhandEquippedSkillId = this.getOffhandEquippedSkillId();
+  if (offhandEquippedSkillId && !assignableSkillIds.includes(offhandEquippedSkillId))
+  {
+    assignableSkillIds.push(offhandEquippedSkillId);
+  }
+
+  // add the mainhand's provided offhand skill, such as pistol shot or taser discharge.
+  const mainhandProvidedSkillId = this.getMainhandProvidedOffhandSkillId();
+  if (mainhandProvidedSkillId && !assignableSkillIds.includes(mainhandProvidedSkillId))
+  {
+    assignableSkillIds.push(mainhandProvidedSkillId);
+  }
+
+  // return the ordered list of candidate ids.
+  return assignableSkillIds;
+};
+
+/**
+ * Builds the list of skills available for player pinning into the offhand slot.
+ *
+ * This translates the current offhand-assignable skill id list into database skill data
+ * for the quick menu.
+ * @returns {RPG_Skill[]}
+ */
+Game_Actor.prototype.buildOffhandAssignableSkillPool = function()
+{
+  // convert the assignable id collection into actual skill database objects.
+  const skillPool = [];
+
+  // build the current collection of assignable offhand skill ids.
+  const assignableSkillIds = this.buildOffhandAssignableSkillIds();
+
+  // translate each id into its corresponding skill data.
+  assignableSkillIds.forEach(skillId =>
+  {
+    // grab the skill data from the battler's skill resolver.
+    const skillData = this.skill(skillId);
+
+    // skip any invalid skill ids that somehow slipped through.
+    if (!skillData) return;
+
+    // add the translated skill data to the final pool.
+    skillPool.push(skillData);
+  });
+
+  // return the translated pool.
+  return skillPool;
+};
+
+/**
+ * Gets the transformed offhand skill id after evaluating active state transforms.
+ *
+ * If multiple states attempt to transform the same base offhand skill, the state with
+ * the highest priority wins. Equal-priority states preserve the order returned by the
+ * battler's state collection.
+ * @param {number} baseSkillId The base offhand skill id before transforms are applied.
+ * @returns {number}
+ */
+Game_Actor.prototype.getTransformedOffhandSkillId = function(baseSkillId)
+{
+  // if there is no base skill, then there is nothing to transform.
+  if (!baseSkillId) return 0;
+
+  // find the highest-priority matching transform, if one exists.
+  const matchingTransform = this.findOffhandSkillTransform(baseSkillId);
+  if (!matchingTransform)
+  {
+    return baseSkillId;
+  }
+
+  // extract the transformed skill id from the matching transform pair.
+  const [ , transformedSkillId ] = matchingTransform;
+  return transformedSkillId;
+};
+
+/**
+ * Finds the highest-priority state transform for the given offhand skill id.
+ * @param {number} baseSkillId The base offhand skill id to look for a transform for.
+ * @returns {number[]|null}
+ */
+Game_Actor.prototype.findOffhandSkillTransform = function(baseSkillId)
+{
+  // default to not having found a matching transform yet.
+  let matchingTransform = null;
+
+  // copy and sort the actor's active states so higher-priority states are inspected first.
+  const prioritizedStates = [ ...this.states() ];
+  prioritizedStates.sort((left, right) => right.priority - left.priority);
+
+  // stop on the first matching transform because the list is now priority-ordered.
+  prioritizedStates.some(state =>
+  {
+    // skip states that do not define any transforms.
+    if (!state.jabsSkillTransforms.length) return false;
+
+    // look for a transform whose base skill matches the resolved offhand skill.
+    const stateTransform = state.jabsSkillTransforms
+      .find(transform =>
+      {
+        const [ transformBaseSkillId, ] = transform;
+        return transformBaseSkillId === baseSkillId;
+      });
+
+    // keep searching if this state does not transform the requested skill.
+    if (!stateTransform) return false;
+
+    // capture the matching transform from this highest-priority state.
+    matchingTransform = stateTransform;
+    return true;
+  });
+
+  // return the best matching transform, if any were found.
+  return matchingTransform;
 };
 
 /**
  * Automatically removes all skills that are no longer available.
  * This most commonly will occur when a skill is bound to equipment that is
  * no longer equipped to the character. Skills that are "forced" will not be removed.
+ *
+ * Additionally, if the offhand slot's pinned skill is no longer assignable to this
+ * actor (typically because the actor unlearned it and no equip grants it), the pin is
+ * cleared so it cannot resurrect a stale id during the next refresh.
  */
 Game_Actor.prototype.removeInvalidSkills = function()
 {
@@ -29650,6 +30511,85 @@ Game_Actor.prototype.removeInvalidSkills = function()
       skillSlot.autoclear();
     }
   });
+
+  // sweep the offhand pin separately: it lives independently of the slot id, so the
+  // autoclear above does not touch it. an unassignable pin must be cleared so it
+  // cannot resurrect a stale skill id the next time the slot is resolved.
+  const pinnedOffhandSkillId = this.getPinnedOffhandSkillId();
+  if (pinnedOffhandSkillId && !this.isOffhandSkillAssignable(pinnedOffhandSkillId))
+  {
+    this.getSkillSlotManager()
+      .clearOffhandPin();
+  }
+};
+
+/**
+ * Gets the cached id of the most recently observed offhand equip.
+ *
+ * Returns 0 when no offhand was previously cached (legacy save data) or when the
+ * cache slot has not yet been seeded with the actor's current equipment.
+ * @returns {number}
+ */
+Game_Actor.prototype.lastOffhandItemId = function()
+{
+  return this._j._abs._lastOffhandItemId ?? 0;
+};
+
+/**
+ * Caches the given equip item's id as the actor's last-known offhand.
+ * @param {RPG_EquipItem|null} offhand The current offhand item, or null when unequipped.
+ */
+Game_Actor.prototype.setLastOffhandItemId = function(offhand)
+{
+  // store the database id of the equip; an empty slot is recorded as 0.
+  this._j._abs._lastOffhandItemId = offhand ? offhand.id : 0;
+};
+
+/**
+ * Whether or not this actor has an existing snapshot of the offhand equip.
+ *
+ * Used to skip the "first observation" path so a freshly loaded actor does not clear
+ * an existing pin just because the cache had not been seeded yet.
+ * @returns {boolean}
+ */
+Game_Actor.prototype.hasLastOffhandSnapshot = function()
+{
+  return this._j._abs._lastOffhandItemId !== null && this._j._abs._lastOffhandItemId !== undefined;
+};
+
+/**
+ * Reconciles the offhand pin against the currently equipped offhand item.
+ *
+ * Compares the live offhand item id against the last cached snapshot and, if they
+ * differ, clears any active pin so the newly equipped offhand's skill takes priority.
+ * The first observation seeds the cache without clearing anything.
+ */
+Game_Actor.prototype.reconcileOffhandPinAgainstEquip = function()
+{
+  // resolve the current offhand once for both the comparison and the cache write.
+  const [ , offhand ] = this.equips();
+  const currentOffhandId = offhand ? offhand.id : 0;
+
+  // first observation: seed the cache without modifying any pin.
+  if (!this.hasLastOffhandSnapshot())
+  {
+    this.setLastOffhandItemId(offhand);
+    return;
+  }
+
+  // when the offhand item itself changed, clear the player's pin.
+  if (this.lastOffhandItemId() !== currentOffhandId)
+  {
+    // cache the new id before clearing so the pin removal does not loop.
+    this.setLastOffhandItemId(offhand);
+
+    // clear the pin via the manager helper; safe even if no pin is set.
+    if (this.getSkillSlotManager())
+    {
+      this.getSkillSlotManager()
+        .clearOffhandPin();
+    }
+  }
 };
 //endregion JABS basic attack skills
 
@@ -31023,6 +31963,43 @@ Game_Battler.prototype.removeState = function(stateId)
     // expire the found state if it is being removed.
     trackedState.expired = true;
   }
+};
+
+/**
+ * Decrements the stack count of a tracked state by the designated amount.
+ * If the state is not being tracked by JABS, then this falls back to normal state removal.
+ * @param {number} stateId The id of the state to decrement.
+ * @param {number} [stacksRemoved=1] The number of stacks to remove.
+ */
+Game_Battler.prototype.decrementStateStacks = function(stateId, stacksRemoved = 1)
+{
+  // if we aren't afflicted with the state, then there is nothing to decrement.
+  if (!this.isStateAffected(stateId))
+  {
+    return;
+  }
+
+  // grab the tracked state from the JABS state tracker.
+  const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(this.getUuid(), stateId);
+
+  // if the state isn't tracked by JABS, then remove it normally instead.
+  if (!trackedState)
+  {
+    this.removeState(stateId);
+    return;
+  }
+
+  // decrement the tracked state's stack count.
+  trackedState.decrementStacks(stacksRemoved);
+
+  // if there are still stacks remaining, then stop here.
+  if (trackedState.stackCount > 0)
+  {
+    return;
+  }
+
+  // remove the state now that all stacks are gone.
+  trackedState.removeFromBattler();
 };
 
 /**
@@ -34901,6 +35878,18 @@ Scene_Map.prototype.initJabsMenu = function()
    * @type {Window_AbsMenuSelect|null}
    */
   this._j._absMenu._equipDodgeWindow = null;
+
+  /**
+   * The window containing the list of offhand-eligible skills the leader knows.
+   * @type {Window_AbsMenuSelect|null}
+   */
+  this._j._absMenu._offhandWindow = null;
+
+  /**
+   * The window containing the currently resolved offhand skill row.
+   * @type {Window_AbsMenuSelect|null}
+   */
+  this._j._absMenu._equipOffhandWindow = null;
 };
 
 //region properties
@@ -35065,6 +36054,42 @@ Scene_Map.prototype.setJabsEquippedDodgeSkillWindow = function(window)
 {
   this._j._absMenu._equipDodgeWindow = window;
 };
+
+/**
+ * Gets the window containing the list of offhand-eligible skills.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsOffhandSkillListWindow = function()
+{
+  return this._j._absMenu._offhandWindow;
+};
+
+/**
+ * Sets the currently tracked JABS menu offhand skill list window to the given window.
+ * @param {Window_AbsMenuSelect} window The offhand skill list window to track.
+ */
+Scene_Map.prototype.setJabsOffhandSkillListWindow = function(window)
+{
+  this._j._absMenu._offhandWindow = window;
+};
+
+/**
+ * Gets the window containing the currently equipped offhand skill row.
+ * @returns {Window_AbsMenuSelect|null}
+ */
+Scene_Map.prototype.getJabsEquippedOffhandSkillWindow = function()
+{
+  return this._j._absMenu._equipOffhandWindow;
+};
+
+/**
+ * Sets the currently tracked JABS menu equipped offhand skill window to the given window.
+ * @param {Window_AbsMenuSelect} window The equipped offhand skill window to track.
+ */
+Scene_Map.prototype.setJabsEquippedOffhandSkillWindow = function(window)
+{
+  this._j._absMenu._equipOffhandWindow = window;
+};
 //endregion properties
 //endregion init
 
@@ -35088,18 +36113,20 @@ Scene_Map.prototype.createAllWindows = function()
  */
 Scene_Map.prototype.createJabsAbsMenu = function()
 {
-  // the main window that forks into the other three.
+  // the main window that forks into the other categories.
   this.createJabsAbsMenuMainWindow();
 
-  // the three main windows of the ABS menu.
+  // the per-category list windows of the ABS menu.
   this.createJabsAbsSkillListWindow();
   this.createJabsAbsMenuToolListWindow();
   this.createJabsAbsMenuDodgeListWindow();
+  this.createJabsAbsMenuOffhandListWindow();
 
-  // the assignment of the the windows.
+  // the per-category equipped/landing windows for assignment.
   this.createJabsAbsMenuEquipSkillWindow();
   this.createJabsAbsMenuEquipToolWindow();
   this.createJabsAbsMenuEquipDodgeWindow();
+  this.createJabsAbsMenuEquipOffhandWindow();
 };
 
 //region main menu
@@ -35137,6 +36164,7 @@ Scene_Map.prototype.buildJabsMenuMainWindow = function()
   // assign functionality for each of the commands.
   window.setHandler('skill-assign', this.commandSkill.bind(this));
   window.setHandler('dodge-assign', this.commandDodge.bind(this));
+  window.setHandler('offhand-assign', this.commandOffhand.bind(this));
   window.setHandler('item-assign', this.commandItem.bind(this));
   window.setHandler('main-menu', this.commandMenu.bind(this));
   window.setHandler('cancel', this.closeAbsWindow.bind(this, JABS_MenuType.Main));
@@ -35573,6 +36601,143 @@ Scene_Map.prototype.jabsEquippedDodgeSkillWindowRectangle = function()
   return new Rectangle(x, y, width, height);
 };
 //endregion equip dodge
+
+//region offhand list
+/**
+ * Creates the offhand-eligible skill list window of the JABS menu.
+ */
+Scene_Map.prototype.createJabsAbsMenuOffhandListWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsOffhandSkillListWindow();
+
+  // update the tracker with the new window.
+  this.setJabsOffhandSkillListWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the offhand skill list of the JABS menu.
+ * @returns {Window_AbsMenuSelect}
+ */
+Scene_Map.prototype.buildJabsOffhandSkillListWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsOffhandSkillListWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.OffhandList);
+
+  // assign functionality for each of the commands.
+  window.setHandler('cancel', this.closeAbsWindow.bind(this, JABS_MenuType.Offhand));
+  window.setHandler('offhand', this.commandEquipOffhand.bind(this));
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the offhand skill list of the JABS menu.
+ *
+ * Mirrors the dodge list dimensions for visual parity across categories.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsOffhandSkillListWindowRectangle = function()
+{
+  // define the width arbitrarily.
+  const width = Math.round(Graphics.boxWidth * 0.66);
+
+  // the general height of a command item is this many pixels.
+  const commandHeight = 72;
+
+  // the height should be 10 items tall with some padding on top and bottom.
+  const height = commandHeight * 10 + 40;
+
+  // the x coordinate should push the window against the right side.
+  const x = Graphics.boxWidth - width;
+
+  // define the y coordinate arbitrarily.
+  const y = 0;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion offhand list
+
+//region equip offhand
+/**
+ * Creates the equip offhand skill window of the JABS menu.
+ */
+Scene_Map.prototype.createJabsAbsMenuEquipOffhandWindow = function()
+{
+  // create the window.
+  const window = this.buildJabsEquippedOffhandSkillWindow();
+
+  // update the tracker with the new window.
+  this.setJabsEquippedOffhandSkillWindow(window);
+
+  // add the window to the scene manager's tracking.
+  this.addWindow(window);
+};
+
+/**
+ * Sets up and defines the equipped offhand skill window of the JABS menu.
+ * @returns {Window_AbsMenuSelect}
+ */
+Scene_Map.prototype.buildJabsEquippedOffhandSkillWindow = function()
+{
+  // define the rectangle of the window.
+  const rectangle = this.jabsEquippedOffhandSkillWindowRectangle();
+
+  // create the window with the rectangle.
+  const window = new Window_AbsMenuSelect(rectangle, Window_AbsMenuSelect.SelectionTypes.OffhandEquip);
+
+  // assign functionality for each of the commands.
+  window.setHandler('cancel', this.closeAbsWindow.bind(this, JABS_MenuType.Assign));
+  window.setHandler('slot', this.commandAssign.bind(this));
+
+  // close and hide the window by default upon creation.
+  window.close();
+  window.hide();
+
+  // return the built and configured window.
+  return window;
+};
+
+/**
+ * Get the rectangle associated with the equipped offhand skill of the JABS menu.
+ *
+ * Mirrors the equipped dodge skill dimensions: a single-row landing window beneath
+ * the matching list window.
+ * @returns {Rectangle}
+ */
+Scene_Map.prototype.jabsEquippedOffhandSkillWindowRectangle = function()
+{
+  // define the width arbitrarily.
+  const width = 400;
+
+  // the height should be just enough to fit the single offhand skill in there.
+  const height = 96;
+
+  // the x coordinate should push the window against the right side.
+  const x = Graphics.boxWidth - width;
+
+  // grab the parent rectangle for location details.
+  const parentRectangle = this.jabsOffhandSkillListWindowRectangle();
+
+  // define the y coordinate arbitrarily.
+  const y = parentRectangle.y + parentRectangle.height;
+
+  // build the rectangle to return.
+  return new Rectangle(x, y, width, height);
+};
+//endregion equip offhand
 //endregion create
 
 //region actions
@@ -35728,7 +36893,58 @@ Scene_Map.prototype.commandEquipDodge = function()
 };
 
 /**
+ * When the "equip offhand skill" option is chosen, it prioritizes this window.
+ */
+Scene_Map.prototype.commandOffhand = function()
+{
+  // adjust the focus.
+  this.setJabsMenuFocus(JABS_MenuType.Offhand);
+
+  // refresh the window.
+  this.getJabsOffhandSkillListWindow()
+    .refresh();
+
+  // show the related equipped window.
+  this.getJabsEquippedOffhandSkillWindow()
+    .refresh();
+  this.showJabsEquippedOffhandSkillWindow();
+  this.getJabsEquippedOffhandSkillWindow()
+    .deselect();
+  this.getJabsEquippedOffhandSkillWindow()
+    .deactivate();
+
+  // show the window.
+  this.showJabsOffhandSkillListWindow();
+
+  // set the assignment type to offhand skills.
+  this.setJabsMenuEquipType(JABS_MenuType.Offhand);
+};
+
+/**
+ * When a decision is made in offhand assign, prioritize the equip window.
+ */
+Scene_Map.prototype.commandEquipOffhand = function()
+{
+  // adjust the focus.
+  this.setJabsMenuFocus(JABS_MenuType.Assign);
+
+  // grab the window.
+  const window = this.getJabsEquippedOffhandSkillWindow();
+
+  // refresh the window.
+  window.refresh();
+  window.select(0);
+
+  // show the window.
+  this.showJabsEquippedOffhandSkillWindow();
+};
+
+/**
  * When assigning a slot, determine the last opened window and use that.
+ *
+ * Offhand assignments route through the actor's pin path so the choice survives
+ * the next equipment-derived refresh; non-offhand slots use the legacy direct
+ * setEquippedSkill path unchanged.
  */
 Scene_Map.prototype.commandAssign = function()
 {
@@ -35763,10 +36979,27 @@ Scene_Map.prototype.commandAssign = function()
       nextActionSkill = this.getJabsDodgeSkillListWindow()
         .currentExt();
       break;
+    case JABS_MenuType.Offhand:
+      // offhand always targets the offhand slot key from the equip window's payload.
+      equippedActionSlot = this.getJabsEquippedOffhandSkillWindow()
+        .currentExt();
+      // the list window's payload is either a skill id (number) or undefined for the
+      // clear-slot row; an undefined payload is normalized to 0 to clear the pin.
+      nextActionSkill = this.getJabsOffhandSkillListWindow()
+        .currentExt() ?? 0;
+      break;
   }
 
-  // update the leader's equipped slots with the skill.
-  actor.setEquippedSkill(equippedActionSlot, nextActionSkill);
+  // pivot writes for offhand through the pin path so equipment refreshes do not stomp it.
+  if (this.getJabsMenuEquipType() === JABS_MenuType.Offhand)
+  {
+    actor.pinOffhandSkill(nextActionSkill);
+  }
+  else
+  {
+    // update the leader's equipped slots with the skill.
+    actor.setEquippedSkill(equippedActionSlot, nextActionSkill);
+  }
 
   // automatically return back to the list.
   this.closeAbsWindow(JABS_MenuType.Assign);
@@ -35877,6 +37110,10 @@ Scene_Map.prototype.manageAbsMenu = function()
     case JABS_MenuType.Dodge:
       this.hideJabsMainWindow();
       this.showJabsDodgeSkillListWindow();
+      break;
+    case JABS_MenuType.Offhand:
+      this.hideJabsMainWindow();
+      this.showJabsOffhandSkillListWindow();
       break;
     case null:
       this.setJabsMenuFocus(JABS_MenuType.Main);
@@ -36092,6 +37329,58 @@ Scene_Map.prototype.hideJabsEquippedDodgeSkillWindow = function()
 };
 //endregion equip dodge skill
 
+//region offhand skills
+/**
+ * Shows the JABS menu offhand skill list window.
+ */
+Scene_Map.prototype.showJabsOffhandSkillListWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsOffhandSkillListWindow();
+
+  // show the window.
+  this.showJabsMenuWindow(window);
+};
+
+/**
+ * Hides the JABS menu offhand skill list window.
+ */
+Scene_Map.prototype.hideJabsOffhandSkillListWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsOffhandSkillListWindow();
+
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion offhand skills
+
+//region equip offhand skill
+/**
+ * Shows the JABS menu equip offhand skill window.
+ */
+Scene_Map.prototype.showJabsEquippedOffhandSkillWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsEquippedOffhandSkillWindow();
+
+  // show the window.
+  this.showJabsMenuWindow(window);
+};
+
+/**
+ * Hides the JABS menu equip offhand skill window.
+ */
+Scene_Map.prototype.hideJabsEquippedOffhandSkillWindow = function()
+{
+  // grab the window.
+  const window = this.getJabsEquippedOffhandSkillWindow();
+
+  // hide the window.
+  this.hideJabsMenuWindow(window);
+};
+//endregion equip offhand skill
+
 /**
  * Hides all windows of the JABS menu.
  */
@@ -36099,6 +37388,9 @@ Scene_Map.prototype.hideAllJabsWindows = function()
 {
   this.hideJabsDodgeSkillListWindow();
   this.hideJabsEquippedDodgeSkillWindow();
+
+  this.hideJabsOffhandSkillListWindow();
+  this.hideJabsEquippedOffhandSkillWindow();
 
   this.hideJabsToolListWindow();
   this.hideJabsEquippedToolWindow();
@@ -36169,6 +37461,11 @@ Scene_Map.prototype.closeAbsWindow = function(absWindow)
       this.hideJabsEquippedDodgeSkillWindow();
       this.setJabsMenuFocus(JABS_MenuType.Main);
       break;
+    case JABS_MenuType.Offhand:
+      this.hideJabsOffhandSkillListWindow();
+      this.hideJabsEquippedOffhandSkillWindow();
+      this.setJabsMenuFocus(JABS_MenuType.Main);
+      break;
     case JABS_MenuType.Assign:
       this.redirectToParentAssignMenu();
       break;
@@ -36207,6 +37504,13 @@ Scene_Map.prototype.redirectToParentAssignMenu = function()
       this.getJabsDodgeSkillListWindow()
         .activate();
       break;
+    case JABS_MenuType.Offhand:
+      const equippedOffhandSkillWindow = this.getJabsEquippedOffhandSkillWindow();
+      equippedOffhandSkillWindow.deselect();
+      equippedOffhandSkillWindow.refresh();
+      this.getJabsOffhandSkillListWindow()
+        .activate();
+      break;
   }
 };
 
@@ -36228,6 +37532,7 @@ Scene_Map.prototype.forceCloseAbsMenu = function()
   this.closeAbsWindow(JABS_MenuType.Skill);
   this.closeAbsWindow(JABS_MenuType.Tool);
   this.closeAbsWindow(JABS_MenuType.Dodge);
+  this.closeAbsWindow(JABS_MenuType.Offhand);
 
   this.setJabsMenuEquipType(String.empty);
   this.closeAbsWindow(JABS_MenuType.Main);
@@ -40688,6 +41993,15 @@ class Window_AbsMenu
       .setHelpText(this.mainMenuHelpText())
       .build();
 
+    // build the offhand assignment command.
+    const offhandSkillCommand = new WindowCommandBuilder(J.ABS.Metadata.EquipOffhandText)
+      .setSymbol('offhand-assign')
+      .setEnabled(true)
+      .setIconIndex(81)
+      .setColorIndex(4)
+      .setHelpText(this.offhandSkillHelpText())
+      .build();
+
     // build the combat skills command.
     const combatSkillsCommand = new WindowCommandBuilder(J.ABS.Metadata.EquipCombatSkillsText)
       .setSymbol('skill-assign')
@@ -40717,7 +42031,8 @@ class Window_AbsMenu
 
     // return the built commands.
     return [
-      mainMenuCommand, combatSkillsCommand, dodgeSkillCommand, toolCommand, ];
+      mainMenuCommand, offhandSkillCommand, combatSkillsCommand, dodgeSkillCommand, toolCommand,
+    ];
   }
 
   /**
@@ -40728,7 +42043,8 @@ class Window_AbsMenu
   {
     const description = [
       "The unabbreviated main menu with access to player status, descriptions, etc.",
-      "This is colloquially referred to as the 'The Main Menu™' by protagonists all across the universe." ];
+      "This is colloquially referred to as the 'The Main Menu™' by protagonists all across the universe."
+    ];
 
     return description.join("\n");
   }
@@ -40741,7 +42057,8 @@ class Window_AbsMenu
   {
     const description = [
       "The `Combat Skills` are more powerful variants of your basic attacks that may require resources to execute.",
-      "Typical things like sword techs and magic spells will show up here." ];
+      "Typical things like sword techs and magic spells will show up here."
+    ];
 
     return description.join("\n");
   }
@@ -40754,7 +42071,23 @@ class Window_AbsMenu
   {
     const description = [
       "The `Dodge Skills` are ones that grant some form of mobility.",
-      "It is encouraged to use these liberally to maneuver around the field, in and out of combat." ];
+      "It is encouraged to use these liberally to maneuver around the field, in and out of combat."
+    ];
+
+    return description.join("\n");
+  }
+
+  /**
+   * The help text for the JABS offhand skill menu.
+   * @returns {string}
+   */
+  offhandSkillHelpText()
+  {
+    const description = [
+      "Pin a learned skill into the offhand slot, overriding the offhand weapon's default.",
+      "Pinning a non-guard skill trades the ability to guard until the pin is cleared.",
+      "Equipping a different offhand item clears the pin and restores its granted skill."
+    ];
 
     return description.join("\n");
   }
@@ -40767,7 +42100,8 @@ class Window_AbsMenu
   {
     const description = [
       "Your tool list, where you can find any and all equippable items.",
-      "Not all items will show up in the list- only ones usable in combat somehow will be available." ];
+      "Not all items will show up in the list- only ones usable in combat somehow will be available."
+    ];
 
     return description.join("\n");
   }
@@ -40804,6 +42138,8 @@ class Window_AbsMenuSelect
     ToolEquip: 'equip-tool',
     DodgeList: 'dodge',
     DodgeEquip: 'equip-dodge',
+    OffhandList: 'offhand',
+    OffhandEquip: 'equip-offhand',
   };
 
   /**
@@ -40863,6 +42199,14 @@ class Window_AbsMenuSelect
         // the dodge skill equip menu, where all the dodge skills can be equipped.
         this.makeEquippedDodgeSkillList();
         break;
+      case Window_AbsMenuSelect.SelectionTypes.OffhandList:
+        // the list of all offhand-eligible skills the leader knows.
+        this.makeOffhandSkillList();
+        break;
+      case Window_AbsMenuSelect.SelectionTypes.OffhandEquip:
+        // the offhand equip menu, where the offhand pin slot is shown for assignment.
+        this.makeEquippedOffhandList();
+        break;
     }
   }
 
@@ -40885,7 +42229,7 @@ class Window_AbsMenuSelect
     const clearSlotCommand = new WindowCommandBuilder(J.ABS.Metadata.ClearSlotText)
       .setSymbol('skill')
       .setColorIndex(16)
-      .setHelpText('Remove the existing combat skill from the slot.')
+      .setTextLines([ 'Remove the existing combat skill from the slot.' ])
       .build();
 
     // add the clear slot command to the list.
@@ -40933,7 +42277,7 @@ class Window_AbsMenuSelect
     // build the clear slot command.
     const clearSlotCommand = new WindowCommandBuilder(J.ABS.Metadata.ClearSlotText)
       .setSymbol('tool')
-      .setHelpText('Remove the existing tool from the slot.')
+      .setTextLines([ 'Remove the existing tool from the slot.' ])
       .setColorIndex(16)
       .build();
 
@@ -40994,7 +42338,7 @@ class Window_AbsMenuSelect
     const clearSlotCommand = new WindowCommandBuilder(J.ABS.Metadata.ClearSlotText)
       .setSymbol('dodge')
       .setColorIndex(16)
-      .setHelpText('Remove the existing dodge skill from the slot.')
+      .setTextLines([ 'Remove the existing dodge skill from the slot.' ])
       .build();
 
     // add the clear slot command to the list.
@@ -41072,7 +42416,6 @@ class Window_AbsMenuSelect
         .setSymbol('slot')
         .setExtensionData(skillSlot.key)
         .setIconIndex(iconIndex)
-        .setHelpText(description)
         .build();
 
       // add the built command.
@@ -41124,7 +42467,6 @@ class Window_AbsMenuSelect
       .setSymbol('slot')
       .setExtensionData(toolSkillSlot.key)
       .setIconIndex(iconIndex)
-      .setHelpText(description)
       .setRightText(`x${amount}`)
       .build();
 
@@ -41165,7 +42507,103 @@ class Window_AbsMenuSelect
       .setSymbol('slot')
       .setExtensionData(dodgeSkillSlot.key)
       .setIconIndex(iconIndex)
-      .setHelpText(description)
+      .build();
+
+    // add the built command.
+    this.addBuiltCommand(command);
+  }
+
+  /**
+   * Fills the list with skills eligible for pinning into the offhand slot.
+   *
+   * Includes a leading "clear slot" entry so the player can drop the pin and fall back
+   * to the default equipment-driven offhand behavior. The remainder of the list is built
+   * from the leader's offhand-assignable skill pool, which surfaces explicitly eligible
+   * learned skills plus the current offhand/mainhand-provided offhand skills.
+   */
+  makeOffhandSkillList()
+  {
+    // initialize our blank list of skills to view.
+    const commands = Array.empty;
+
+    // build the clear slot command for clearing the offhand pin.
+    const clearSlotCommand = new WindowCommandBuilder('Use Equipment Default.')
+      .setSymbol('offhand')
+      .setColorIndex(16)
+      .setTextLines([ 'Remove the offhand pin and let the equipped offhand grant the skill again.' ])
+      .build();
+
+    // add the clear slot command to the list.
+    commands.push(clearSlotCommand);
+
+    // build the eligible skill pool for the leader (learned + equipped-granted).
+    const offhandSkills = $gameParty.leader()
+      .buildOffhandAssignableSkillPool();
+
+    // an iterator function for building offhand skill commands.
+    const forEacher = offhandSkill =>
+    {
+      // destruct the data out of the database data.
+      const {
+        name,
+        id,
+        iconIndex,
+        description
+      } = offhandSkill;
+
+      // build the command.
+      const offhandCommand = new WindowCommandBuilder(name)
+        .setSymbol('offhand')
+        .setExtensionData(id)
+        .setIconIndex(iconIndex)
+        .setTextLines(description.split(/[\r\n]+/))
+        .build();
+
+      // add the built command to the list.
+      commands.push(offhandCommand);
+    };
+
+    // iterate over each of the offhand skills and add them to the list.
+    offhandSkills.forEach(forEacher, this);
+
+    // iterate over all of the commands found and render them.
+    commands.forEach(this.addBuiltCommand, this);
+  }
+
+  /**
+   * Fills the list with the currently equipped offhand skill row, used as the
+   * single-slot landing window when assigning offhand pins.
+   */
+  makeEquippedOffhandList()
+  {
+    // grab the leader for reference data.
+    const leader = $gameParty.leader();
+
+    // grab the leader's offhand skill slot directly.
+    const offhandSkillSlot = leader.getSkillSlot(JABS_Button.Offhand);
+
+    // initialize the command variables.
+    let name = `${offhandSkillSlot.key}: ${J.ABS.Metadata.UnassignedText}`;
+    let iconIndex = 0;
+    let description = String.empty;
+
+    // check if the offhand slot has anything assigned right now.
+    if (offhandSkillSlot.isUsable())
+    {
+      // determine the currently resolved offhand skill (pin or equip).
+      const equippedOffhandSkill = leader.skill(offhandSkillSlot.id);
+
+      // update the command variables with the equipped offhand skill data.
+      name = equippedOffhandSkill.name;
+      iconIndex = equippedOffhandSkill.iconIndex;
+      description = equippedOffhandSkill.description;
+    }
+
+    // build the command.
+    const command = new WindowCommandBuilder(name)
+      .setSymbol('slot')
+      .setExtensionData(offhandSkillSlot.key)
+      .setIconIndex(iconIndex)
       .build();
 
     // add the built command.

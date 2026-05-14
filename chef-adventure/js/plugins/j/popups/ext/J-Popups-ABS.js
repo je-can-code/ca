@@ -941,9 +941,19 @@ class JABS_PopupMergeController
     {
       const template = JABS_PopupMergeController.#clonePopTemplate(pop);
 
+      // merge sessions should not permanently inherit critical styling from one hit.
+      // instead, critical contributions communicate themselves via a stronger pulse.
+      template.critical = false;
       template.value = String(Math.round(ctx.amount));
       const ringExtra = JABS_PopupMergeController.#ringExtraFor(spriteCharacter, template);
       const sprite = TextPopSpriteManager.convert(template, ringExtra);
+
+      // if the very first hit in this merged stream crits, immediately advertise it
+      // with the larger combine pulse instead of silently treating it as a normal add.
+      if (pop.critical === true && sprite.kickMergeCombinePulse)
+      {
+        sprite.kickMergeCombinePulse(true);
+      }
 
       session = {
         kind: 'strike',
@@ -963,7 +973,7 @@ class JABS_PopupMergeController
 
     if (session.sprite && session.sprite.refreshDisplayedValue)
     {
-      session.sprite.refreshDisplayedValue(pop.value);
+      session.sprite.refreshDisplayedValue(pop.value, pop.critical === true);
       session.sprite._j._popups._sourcePopup.value = pop.value;
     }
   }
