@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.4 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.0.6 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -32,8 +32,70 @@
  * Load order in RPG Maker plugin manager:
  *   J-Base → J-ABS → J-Pixelistics → J-ABS-Pixelistics
  *
+ * ----------------------------------------------------------------------------
+ * HITBOX SIZE
+ * Enemy battlers now share one rectangular hitbox model across:
+ *  - PIXEL movement/body collision
+ *  - JABS battler targeting/collision
+ *  - JABS battler hitbox overlays
+ *
+ * The hitbox is centered horizontally on the event and anchored vertically to
+ * the event's feet, meaning the feet are the bottom-center of the rectangle.
+ *
+ * Apply hitbox size in either place:
+ *  - enemy note
+ *  - event comments on the battler page
+ *
+ * If both exist, the event comment wins.
+ * If neither exists, the plugin parameter defaults are used.
+ *
+ * Tag formats:
+ *   <hitboxSize:N>
+ *    Square shorthand. N is both the width and height in tiles.
+ *
+ *   <hitboxSize:[W, H]>
+ *    Explicit rectangle. W is width in tiles, H is height in tiles.
+ *
+ * Examples:
+ *   <hitboxSize:1.0>
+ *    A 1.0 x 1.0 tile square hitbox.
+ *
+ *   <hitboxSize:[0.8, 0.5]>
+ *    A rectangle 0.8 tiles wide and 0.5 tiles tall.
+ *
+ * ----------------------------------------------------------------------------
+ * HITBOX REVEAL
+ * Enemy battlers can optionally reveal a faint hitbox outline when the player
+ * is nearby, using the same battler AABB model as combat collision.
+ *
+ * Apply reveal range in either place:
+ *  - enemy note
+ *  - event comments on the battler page
+ *
+ * If both exist, the event comment wins.
+ * If neither exists, the plugin parameter default is used.
+ *
+ * Tag format:
+ *   <hitboxReveal:N>
+ *    Reveal this battler's hitbox outline while the player is within N tiles.
+ *
+ * Example:
+ *   <hitboxReveal:4.5>
+ *    The outline is visible when the player is within 4.5 tiles.
+ *
+ * If the default range is 0, then proximity-based outlines are disabled unless
+ * the always-active plugin parameter is enabled.
+ *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.6
+ *    Added enemy `hitboxReveal` support for proximity-based hitbox outlines in `J-ABS-Pixelistics`.
+ *    Added an always-active outline option and a default reveal-range plugin parameter.
+ * - 1.0.5
+ *    Added unified enemy `hitboxSize` support across PIXEL movement, JABS battler collision,
+ *    and battler hitbox overlays.
+ *    `event > enemy > default` precedence now applies to enemy hitbox sizing.
+ *    Added default enemy hitbox width/height plugin parameters.
  * - 1.0.4
  *    `angleToDirection` folds atan2 vs `dir8ToAngle` degrees into one sector map so keyboard north and analog aim agree.
  * - 1.0.3
@@ -73,6 +135,43 @@
  * @text Idle Wander Radius
  * @desc Distance in tiles from home an enemy may wander while idle. Default 1.5 gives a 3x3-tile area.
  * @default 1.50
+ *
+ * @param enemyHitboxConfigs
+ * @text ENEMY HITBOX
+ *
+ * @param defaultEnemyHitboxWidth
+ * @parent enemyHitboxConfigs
+ * @type number
+ * @decimals 2
+ * @min 0.05
+ * @text Default Enemy Hitbox Width
+ * @desc Full enemy hitbox width in tiles when no event or enemy override exists.
+ * @default 0.80
+ *
+ * @param defaultEnemyHitboxHeight
+ * @parent enemyHitboxConfigs
+ * @type number
+ * @decimals 2
+ * @min 0.05
+ * @text Default Enemy Hitbox Height
+ * @desc Full enemy hitbox height in tiles when no event or enemy override exists.
+ * @default 0.50
+ *
+ * @param outlineAlwaysActive
+ * @parent enemyHitboxConfigs
+ * @type boolean
+ * @text Outline Always Active
+ * @desc If true, all eligible battler hitbox outlines are always visible regardless of range.
+ * @default false
+ *
+ * @param defaultHitboxRevealRange
+ * @parent enemyHitboxConfigs
+ * @type number
+ * @decimals 2
+ * @min 0
+ * @text Default Hitbox Reveal Range
+ * @desc Reveal hitbox outlines within this many tiles when no event or enemy override exists. 0 disables proximity mode.
+ * @default 6.00
  *
  */
 //endregion annotations
@@ -118,6 +217,39 @@ class JAbsPixelistics_PluginMetadata
      * @type {number}
      */
     this.IdleWanderRadius = parseFloat(this.parsedPluginParameters['idleWanderRadius']) || 1.50;
+
+    /**
+     * The default enemy hitbox width in tiles when no override is provided.
+     * This is the full width, not a half-width/radius.
+     * @type {number}
+     */
+    this.DefaultEnemyHitboxWidth = parseFloat(this.parsedPluginParameters['defaultEnemyHitboxWidth']) || 0.80;
+
+    /**
+     * The default enemy hitbox height in tiles when no override is provided.
+     * This is the full height, not a half-height/radius.
+     * @type {number}
+     */
+    this.DefaultEnemyHitboxHeight = parseFloat(this.parsedPluginParameters['defaultEnemyHitboxHeight']) || 0.50;
+
+    /**
+     * Whether or not all eligible battler hitbox outlines should always be visible.
+     * When enabled, reveal range requirements are ignored completely.
+     * @type {boolean}
+     */
+    this.EnemyHitboxOutlineAlwaysActive = this.parsedPluginParameters['outlineAlwaysActive'] === 'true';
+
+    // parse the configured reveal range once so we can distinguish missing from explicit zero.
+    const configuredRevealRange = parseFloat(this.parsedPluginParameters['defaultHitboxRevealRange']);
+
+    /**
+     * The default range in tiles for revealing enemy hitbox outlines.
+     * A value of 0 disables proximity-based outlines unless always-active mode is enabled.
+     * @type {number}
+     */
+    this.DefaultEnemyHitboxRevealRange = Number.isNaN(configuredRevealRange)
+      ? 6.00
+      : configuredRevealRange;
   }
 }
 //endregion plugin metadata
@@ -145,18 +277,126 @@ J.PIXEL.EXT.ABS = {};
 /**
  * The metadata associated with this plugin.
  */
-J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata('J-ABS-Pixelistics', '1.0.3');
+J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata('J-ABS-Pixelistics', '1.0.6');
+
+/**
+ * A collection of regex patterns for this plugin.
+ */
+J.PIXEL.EXT.ABS.RegExp = {};
+
+/**
+ * Optional per-enemy hitbox size override.
+ * Supports either a square shorthand or explicit width/height rectangle in tiles.
+ */
+J.PIXEL.EXT.ABS.RegExp.HitboxSize =
+  /<hitboxSize:[ ]?(\[[ ]?[+-]?\d+(?:\.\d+)?[ ]?,[ ]?[+-]?\d+(?:\.\d+)?[ ]?]|[+-]?\d+(?:\.\d+)?)>/i;
+
+/**
+ * Optional per-enemy hitbox reveal range override.
+ *
+ * <pre>
+ * Structure:
+ *  <hitboxReveal:RANGE>
+ *
+ * Example:
+ *  <hitboxReveal:6.5>
+ *
+ * Translation:
+ *  Reveal this battler's hitbox outline while the player is within 6.5 tiles.
+ * </pre>
+ * @type {RegExp}
+ */
+J.PIXEL.EXT.ABS.RegExp.HitboxReveal = /<hitboxReveal:[ ]?([+-]?\d+(?:\.\d+)?)>/i;
 
 /**
  * A collection of all aliased methods for this plugin.
  */
 J.PIXEL.EXT.ABS.Aliased = {
+  Game_CharacterBase: new Map(),
+  Game_Event: new Map(),
   Game_Player: new Map(),
   JABS_AiManager: new Map(),
   JABS_Battler: new Map(),
+  JABS_Engine: new Map(),
+  Spriteset_Map: new Map(),
 };
 //endregion metadata
 //endregion initialization
+
+//region RPG_Enemy
+/**
+ * Normalizes raw hitbox size note data into the canonical width/height model.
+ * @param {string|number|number[]|null} rawHitboxSize The raw hitbox size data.
+ * @returns {{widthTiles:number,heightTiles:number}|null}
+ */
+RPG_Enemy.hitboxSizeDataFromRaw = function(rawHitboxSize)
+{
+  // if no override exists, then there is nothing to normalize.
+  if (rawHitboxSize === null || rawHitboxSize === undefined) return null;
+
+  // parse the raw note payload into an engine-friendly object.
+  const parsedHitboxSize = JsonMapper.parseObject(rawHitboxSize);
+
+  // if the shorthand number was provided, then it represents a square hitbox.
+  if (typeof parsedHitboxSize === 'number')
+  {
+    // reject invalid sizes so callers can fall back cleanly.
+    if (parsedHitboxSize <= 0) return null;
+
+    // the shorthand applies equally to width and height.
+    return {
+      widthTiles: parsedHitboxSize,
+      heightTiles: parsedHitboxSize,
+    };
+  }
+
+  // if the rectangle form was provided, then normalize its dimensions.
+  if (Array.isArray(parsedHitboxSize))
+  {
+    // deconstruct the rectangle into width and height.
+    const [ widthTiles, heightTiles ] = parsedHitboxSize;
+
+    // reject invalid rectangles so callers can fall back cleanly.
+    if (widthTiles <= 0 || heightTiles <= 0) return null;
+
+    // return the normalized rectangle.
+    return {
+      widthTiles,
+      heightTiles,
+    };
+  }
+
+  // anything else is malformed and should be ignored.
+  return null;
+};
+
+/**
+ * The enemy hitbox size override from this database note, if any.
+ * @type {{widthTiles:number,heightTiles:number}|null}
+ */
+Object.defineProperty(RPG_Enemy.prototype, 'hitboxSizeData', {
+  get: function()
+  {
+    // grab the raw hitbox payload from the notes.
+    const rawHitboxSize = RPGManager.getStringFromNoteByRegex(this, J.PIXEL.EXT.ABS.RegExp.HitboxSize, true);
+
+    // normalize the found data into the shared runtime model.
+    return RPG_Enemy.hitboxSizeDataFromRaw(rawHitboxSize);
+  },
+});
+
+/**
+ * The enemy hitbox reveal range override from this database note, if any.
+ * @type {number|null}
+ */
+Object.defineProperty(RPG_Enemy.prototype, 'hitboxRevealRange', {
+  get: function()
+  {
+    // grab the configured reveal range from the notes.
+    return RPGManager.getNumberFromNoteByRegex(this, J.PIXEL.EXT.ABS.RegExp.HitboxReveal, true);
+  },
+});
+//endregion RPG_Enemy
 
 //region JABS_AiManager
 /**
@@ -353,6 +593,730 @@ JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, toler
   return dist <= tolerance;
 };
 //endregion JABS_AiManager
+
+//region JABS_Engine
+/**
+ * Extends {@link JABS_Engine.getBattlerAabbModel}.<br>
+ * Enemy battlers with PIXEL hitbox-size data provide their own feet-anchored
+ * rectangular AABB so JABS combat collision and overlays stay synchronized.
+ * @param {Game_CharacterBase} character The character whose AABB is being queried.
+ * @returns {JABS_Aabb}
+ */
+J.PIXEL.EXT.ABS.Aliased.JABS_Engine.set('getBattlerAabbModel', JABS_Engine.getBattlerAabbModel);
+JABS_Engine.getBattlerAabbModel = function(character)
+{
+  // if the character exposes a custom battler hitbox model, then use it.
+  if (character && typeof character.getPixelAbsBattlerAabbModel === 'function')
+  {
+    const customAabb = character.getPixelAbsBattlerAabbModel();
+
+    // if a custom model exists, then it is the single source of truth.
+    if (customAabb)
+    {
+      return customAabb;
+    }
+  }
+
+  // otherwise, perform original logic.
+  return J.PIXEL.EXT.ABS.Aliased.JABS_Engine.get('getBattlerAabbModel').call(this, character);
+};
+//endregion JABS_Engine
+
+//region Game_CharacterBase
+/**
+ * Extends {@link Game_CharacterBase.isOverlappingSolidTiles}.<br>
+ * Enemy battlers with rectangular hitboxes need tile overlap checks based on the
+ * full feet-anchored rectangle instead of a square radius around the center.
+ * @param {number} px The proposed pivot x in tile units.
+ * @param {number} py The proposed pivot y in tile units.
+ * @param {number} radius The compatibility radius from PIXEL core.
+ * @returns {boolean}
+ */
+J.PIXEL.EXT.ABS.Aliased.Game_CharacterBase.set(
+  'isOverlappingSolidTiles',
+  Game_CharacterBase.prototype.isOverlappingSolidTiles);
+Game_CharacterBase.prototype.isOverlappingSolidTiles = function(px, py, radius)
+{
+  // if this character does not expose a custom rectangular hitbox, then perform original logic.
+  if (typeof this.hasCustomPixelHitbox !== 'function' || this.hasCustomPixelHitbox() === false)
+  {
+    return J.PIXEL.EXT.ABS.Aliased.Game_CharacterBase.get('isOverlappingSolidTiles').call(this, px, py, radius);
+  }
+
+  // build the full tile-space rectangle from the feet-anchored PIXEL hitbox.
+  const hitbox = this._pixelHitbox(this.getEffectiveRadius());
+  const left = px + hitbox.hx;
+  const right = left + hitbox.w;
+  const top = py + hitbox.hy;
+  const bottom = top + hitbox.h;
+
+  // define tiny epsilon to bias away from seams when flooring.
+  const eps = 1e-6;
+
+  // compute the inclusive bounds of tiles overlapped by the full rectangle.
+  const minCol = Math.floor(left + eps);
+  const maxCol = Math.floor(right - eps);
+  const minRow = Math.floor(top + eps);
+  const maxRow = Math.floor(bottom - eps);
+
+  // iterate all overlapped tiles.
+  for (let ty = minRow; ty <= maxRow; ty++)
+  {
+    for (let tx = minCol; tx <= maxCol; tx++)
+    {
+      // treat out-of-bounds as solid.
+      if ($gameMap.isValid(tx, ty) === false)
+      {
+        return true;
+      }
+
+      // determine if this tile has any passable cardinal direction at all.
+      const anyPass =
+        $gameMap.isPassable(tx, ty, J.PIXEL.Directions.DOWN) ||
+        $gameMap.isPassable(tx, ty, J.PIXEL.Directions.LEFT) ||
+        $gameMap.isPassable(tx, ty, J.PIXEL.Directions.RIGHT) ||
+        $gameMap.isPassable(tx, ty, J.PIXEL.Directions.UP);
+
+      // a tile with no passable cardinals is a solid wall tile.
+      if (anyPass === false)
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Extends {@link Game_CharacterBase.isCharacterCollisionAt}.<br>
+ * Character-vs-character overlap needs one shared PIXEL AABB builder so every
+ * battler is compared in the same pivot-aware coordinate space.
+ * @param {number} px Proposed x in fractional tiles.
+ * @param {number} py Proposed y in fractional tiles.
+ * @param {number=} radius Optional collision half-size in tiles.
+ * @returns {boolean}
+ */
+J.PIXEL.EXT.ABS.Aliased.Game_CharacterBase.set(
+  'isCharacterCollisionAt',
+  Game_CharacterBase.prototype.isCharacterCollisionAt);
+Game_CharacterBase.prototype.isCharacterCollisionAt = function(px, py, radius = 0.35)
+{
+  // acquire the player reference.
+  const player = $gamePlayer;
+
+  // acquire follower references.
+  const followers = player._followers._data;
+
+  // build the party list (player + followers).
+  const party = [ player ].concat(followers);
+
+  // determine if this character is part of the party.
+  const selfIsParty = party.includes(this);
+
+  // gather all map events as initial candidates.
+  const events = $gameMap.events();
+
+  // initialize candidate collection.
+  const candidates = [];
+
+  // add events that can collide.
+  events.forEach(ev =>
+  {
+    // exclude self.
+    if (ev === this) return;
+
+    // exclude erased events.
+    if (ev.isErased()) return;
+
+    // exclude events flagged as through.
+    if (ev.isThrough()) return;
+
+    // exclude events that are not normal priority.
+    if (ev.isNormalPriority() === false) return;
+
+    // exclude JABS action sprites so they do not block physical movement.
+    if (J.ABS && ev.isJabsAction()) return;
+
+    // include this event as a candidate.
+    candidates.push(ev);
+  });
+
+  // only add the player/followers if self is not a party member.
+  if (selfIsParty === false)
+  {
+    // add the player as a candidate when not through.
+    if (player !== this && player.isThrough() === false)
+    {
+      candidates.push(player);
+    }
+
+    // add followers that can collide.
+    followers.forEach(f =>
+    {
+      // exclude self.
+      if (f === this) return;
+
+      // exclude through followers.
+      if (f.isThrough()) return;
+
+      candidates.push(f);
+    });
+  }
+
+  /**
+   * Builds a tile-space AABB for collision testing from the character's current
+   * PIXEL pivot and hitbox data.
+   * @param {Game_CharacterBase} character The character being represented.
+   * @param {number} logicalX The logical x coordinate to evaluate.
+   * @param {number} logicalY The logical y coordinate to evaluate.
+   * @param {number} halfRadius The compatibility radius for square footprints.
+   * @returns {{left:number,right:number,top:number,bottom:number}}
+   */
+  const buildCharacterAabb = function(character, logicalX, logicalY, halfRadius)
+  {
+    // build from the same pivot-aware hitbox data that PIXEL movement/overlay use.
+    const pivotX = logicalX + character.getCollisionPivotX();
+    const pivotY = logicalY + character.getCollisionPivotY();
+    const hitbox = character._pixelHitbox(halfRadius);
+    const left = pivotX + hitbox.hx;
+    const top = pivotY + hitbox.hy;
+
+    return {
+      left,
+      right: left + hitbox.w,
+      top,
+      bottom: top + hitbox.h,
+    };
+  };
+
+  /**
+   * Determines whether or not two tile-space rectangles overlap.
+   * Edge-touching is not treated as overlap, matching the legacy scalar logic.
+   * @param {{left:number,right:number,top:number,bottom:number}} a The first rect.
+   * @param {{left:number,right:number,top:number,bottom:number}} b The second rect.
+   * @returns {boolean}
+   */
+  const rectanglesOverlap = function(a, b)
+  {
+    return a.left < b.right
+      && a.right > b.left
+      && a.top < b.bottom
+      && a.bottom > b.top;
+  };
+
+  // build the self footprint at the proposed logical location.
+  const selfAabb = buildCharacterAabb(this, px, py, radius);
+
+  // probe the AABB for each candidate.
+  for (let i = 0; i < candidates.length; i++)
+  {
+    // grab the candidate.
+    const ch = candidates[i];
+
+    // extra defense: skip JABS action sprites even if accidentally included above.
+    if (J.ABS && ch.isJabsAction())
+    {
+      continue;
+    }
+
+    // the legacy footprint uses the candidate's effective radius around its logical position.
+    const candidateRadius = ch.getEffectiveRadius();
+    const candidateAabb = buildCharacterAabb(ch, ch.x, ch.y, candidateRadius);
+
+    // if the rectangles overlap, then movement would collide.
+    if (rectanglesOverlap(selfAabb, candidateAabb))
+    {
+      return true;
+    }
+  }
+
+  return false;
+};
+//endregion Game_CharacterBase
+
+//region Game_Event
+/**
+ * Extends {@link #initMembers}.<br>
+ * Also initializes the cached enemy hitbox size data.
+ */
+J.PIXEL.EXT.ABS.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers);
+Game_Event.prototype.initMembers = function()
+{
+  // perform original logic.
+  J.PIXEL.EXT.ABS.Aliased.Game_Event.get('initMembers').call(this);
+
+  // initialize our pixel-ABS hitbox cache.
+  this.initPixelAbsHitboxData();
+};
+
+/**
+ * Extends {@link #setupPageSettings}.<br>
+ * Rebuilds the cached hitbox data whenever the active page changes.
+ */
+J.PIXEL.EXT.ABS.Aliased.Game_Event.set('setupPageSettings', Game_Event.prototype.setupPageSettings);
+Game_Event.prototype.setupPageSettings = function()
+{
+  // perform original logic first so battler core data is current.
+  J.PIXEL.EXT.ABS.Aliased.Game_Event.get('setupPageSettings').call(this);
+
+  // refresh the resolved hitbox data for the new page.
+  this.refreshPixelAbsHitboxSizeData();
+
+  // refresh the resolved hitbox reveal data for the new page.
+  this.refreshPixelAbsHitboxRevealRange();
+};
+
+/**
+ * Initializes the cached pixel-ABS enemy hitbox data.
+ */
+Game_Event.prototype.initPixelAbsHitboxData = function()
+{
+  // ensure the shared extension data structure exists.
+  this._j ||= {};
+  this._j._pixel ||= {};
+  this._j._pixel._abs ||= {};
+
+  // initialize the cached hitbox size to nothing.
+  this._j._pixel._abs._hitboxSizeData = null;
+
+  // initialize the cached hitbox reveal range to nothing.
+  this._j._pixel._abs._hitboxRevealRange = null;
+};
+
+/**
+ * Gets the cached enemy hitbox size data for this event.
+ * @returns {{widthTiles:number,heightTiles:number}|null}
+ */
+Game_Event.prototype.getPixelAbsHitboxSizeData = function()
+{
+  // if our cache was somehow never initialized, then do so now.
+  if (!this._j || !this._j._pixel || !this._j._pixel._abs)
+  {
+    this.initPixelAbsHitboxData();
+  }
+
+  return this._j._pixel._abs._hitboxSizeData;
+};
+
+/**
+ * Sets the cached enemy hitbox size data for this event.
+ * @param {{widthTiles:number,heightTiles:number}|null} hitboxSizeData The resolved data.
+ */
+Game_Event.prototype.setPixelAbsHitboxSizeData = function(hitboxSizeData)
+{
+  // if our cache was somehow never initialized, then do so now.
+  if (!this._j || !this._j._pixel || !this._j._pixel._abs)
+  {
+    this.initPixelAbsHitboxData();
+  }
+
+  // null means this event should use the vanilla PIXEL footprint.
+  if (hitboxSizeData === null)
+  {
+    this._j._pixel._abs._hitboxSizeData = null;
+    return;
+  }
+
+  // store a fresh copy to avoid accidental external mutation.
+  this._j._pixel._abs._hitboxSizeData = {
+    widthTiles: hitboxSizeData.widthTiles,
+    heightTiles: hitboxSizeData.heightTiles,
+  };
+};
+
+/**
+ * Refreshes the resolved enemy hitbox size for this event.
+ */
+Game_Event.prototype.refreshPixelAbsHitboxSizeData = function()
+{
+  // only JABS enemy battlers participate in this shared hitbox model.
+  if (this.canUsePixelAbsHitboxSize() === false)
+  {
+    this.setPixelAbsHitboxSizeData(null);
+    return;
+  }
+
+  // resolve in precedence order: event > enemy > default.
+  const hitboxSizeData = this.getPixelAbsHitboxSizeCommentOverride()
+    ?? this.getPixelAbsHitboxSizeEnemyFallback()
+    ?? this.getPixelAbsDefaultHitboxSizeData();
+
+  // cache the found size for the runtime systems that need it.
+  this.setPixelAbsHitboxSizeData(hitboxSizeData);
+};
+
+/**
+ * Determines whether or not this event should use PIXEL-ABS battler hitbox data.
+ * @returns {boolean}
+ */
+Game_Event.prototype.canUsePixelAbsEnemyHitboxData = function()
+{
+  // if this event is not a JABS battler, then this feature does not apply.
+  if (typeof this.isJabsBattler !== 'function') return false;
+  if (this.isJabsBattler() === false) return false;
+
+  // only enemy battlers with a valid enemy id should use this path.
+  if (typeof this.getBattlerId !== 'function') return false;
+  if (this.getBattlerId() <= 0) return false;
+
+  return true;
+};
+
+/**
+ * Determines whether or not this event should use the unified enemy hitbox model.
+ * @returns {boolean}
+ */
+Game_Event.prototype.canUsePixelAbsHitboxSize = function()
+{
+  return this.canUsePixelAbsEnemyHitboxData();
+};
+
+/**
+ * Whether or not this event currently has a resolved custom hitbox model.
+ * @returns {boolean}
+ */
+Game_Event.prototype.hasCustomPixelHitbox = function()
+{
+  return !!this.getPixelAbsHitboxSizeData();
+};
+
+/**
+ * Gets the event comment override for hitbox size, if any.
+ * @returns {{widthTiles:number,heightTiles:number}|null}
+ */
+Game_Event.prototype.getPixelAbsHitboxSizeCommentOverride = function()
+{
+  // if the event cannot parse comments, then there can be no override.
+  if (typeof this.extractValueByRegex !== 'function') return null;
+
+  // grab the raw comment payload and normalize it into the shared model.
+  const rawHitboxSize = this.extractValueByRegex(J.PIXEL.EXT.ABS.RegExp.HitboxSize, null, false);
+  return RPG_Enemy.hitboxSizeDataFromRaw(rawHitboxSize);
+};
+
+/**
+ * Gets the cached enemy hitbox reveal range for this event.
+ * @returns {number|null}
+ */
+Game_Event.prototype.getPixelAbsHitboxRevealRange = function()
+{
+  // if our cache was somehow never initialized, then do so now.
+  if (!this._j || !this._j._pixel || !this._j._pixel._abs)
+  {
+    this.initPixelAbsHitboxData();
+  }
+
+  return this._j._pixel._abs._hitboxRevealRange;
+};
+
+/**
+ * Sets the cached enemy hitbox reveal range for this event.
+ * @param {number|null} hitboxRevealRange The resolved reveal range.
+ */
+Game_Event.prototype.setPixelAbsHitboxRevealRange = function(hitboxRevealRange)
+{
+  // if our cache was somehow never initialized, then do so now.
+  if (!this._j || !this._j._pixel || !this._j._pixel._abs)
+  {
+    this.initPixelAbsHitboxData();
+  }
+
+  // store the resolved reveal range for later visibility checks.
+  this._j._pixel._abs._hitboxRevealRange = hitboxRevealRange;
+};
+
+/**
+ * Refreshes the resolved enemy hitbox reveal range for this event.
+ */
+Game_Event.prototype.refreshPixelAbsHitboxRevealRange = function()
+{
+  // only eligible JABS battlers participate in this feature.
+  if (this.canUsePixelAbsEnemyHitboxData() === false)
+  {
+    this.setPixelAbsHitboxRevealRange(null);
+    return;
+  }
+
+  // check the event comments first for a local override.
+  const commentOverride = this.getPixelAbsHitboxRevealCommentOverride();
+  if (commentOverride !== null)
+  {
+    this.setPixelAbsHitboxRevealRange(commentOverride);
+    return;
+  }
+
+  // next, check the enemy notes for a database-level fallback.
+  const enemyFallback = this.getPixelAbsHitboxRevealEnemyFallback();
+  if (enemyFallback !== null)
+  {
+    this.setPixelAbsHitboxRevealRange(enemyFallback);
+    return;
+  }
+
+  // otherwise, use the plugin default.
+  this.setPixelAbsHitboxRevealRange(this.getPixelAbsDefaultHitboxRevealRange());
+};
+
+/**
+ * Gets the event comment override for hitbox reveal range, if any.
+ * @returns {number|null}
+ */
+Game_Event.prototype.getPixelAbsHitboxRevealCommentOverride = function()
+{
+  // if the event cannot parse comments, then there can be no override.
+  if (typeof this.extractValueByRegex !== 'function') return null;
+
+  // grab the reveal range directly from the event comments.
+  return this.extractValueByRegex(J.PIXEL.EXT.ABS.RegExp.HitboxReveal, null, true);
+};
+
+/**
+ * Gets the enemy database fallback hitbox size, if any.
+ * @returns {{widthTiles:number,heightTiles:number}|null}
+ */
+Game_Event.prototype.getPixelAbsHitboxSizeEnemyFallback = function()
+{
+  // grab the shared enemy database data.
+  const enemyData = this.getPixelAbsEnemyData();
+
+  // if the enemy data is unavailable, then skip this fallback.
+  if (!enemyData) return null;
+
+  return enemyData.hitboxSizeData;
+};
+
+/**
+ * Gets the enemy database fallback hitbox reveal range, if any.
+ * @returns {number|null}
+ */
+Game_Event.prototype.getPixelAbsHitboxRevealEnemyFallback = function()
+{
+  // grab the shared enemy database data.
+  const enemyData = this.getPixelAbsEnemyData();
+
+  // if the enemy data is unavailable, then skip this fallback.
+  if (!enemyData) return null;
+
+  return enemyData.hitboxRevealRange;
+};
+
+/**
+ * Gets the shared enemy database data for this battler event.
+ * @returns {RPG_Enemy|null}
+ */
+Game_Event.prototype.getPixelAbsEnemyData = function()
+{
+  // grab the enemy id associated with this battler event.
+  const battlerId = this.getBattlerId();
+
+  // if somehow the battler id is invalid, then there is no fallback.
+  if (battlerId <= 0) return null;
+
+  // grab the cached enemy battler wrapper.
+  const enemyBattler = $gameEnemies.enemy(battlerId);
+
+  // if the battler wrapper is unavailable, then skip the fallback.
+  if (!enemyBattler) return null;
+
+  // grab the hydrated database data behind the battler.
+  return enemyBattler.enemy();
+};
+
+/**
+ * Gets the plugin-default hitbox size for enemy battlers.
+ * @returns {{widthTiles:number,heightTiles:number}}
+ */
+Game_Event.prototype.getPixelAbsDefaultHitboxSizeData = function()
+{
+  return {
+    widthTiles: J.PIXEL.EXT.ABS.Metadata.DefaultEnemyHitboxWidth,
+    heightTiles: J.PIXEL.EXT.ABS.Metadata.DefaultEnemyHitboxHeight,
+  };
+};
+
+/**
+ * Gets the plugin-default hitbox reveal range for enemy battlers.
+ * @returns {number}
+ */
+Game_Event.prototype.getPixelAbsDefaultHitboxRevealRange = function()
+{
+  return J.PIXEL.EXT.ABS.Metadata.DefaultEnemyHitboxRevealRange;
+};
+
+/**
+ * Determines whether or not hitbox outlines should be visible for all eligible battlers.
+ * @returns {boolean}
+ */
+Game_Event.prototype.isPixelAbsHitboxRevealAlwaysActive = function()
+{
+  return J.PIXEL.EXT.ABS.Metadata.EnemyHitboxOutlineAlwaysActive;
+};
+
+/**
+ * Determines whether or not this battler's hitbox outline should currently be shown.
+ * @returns {boolean}
+ */
+Game_Event.prototype.canShowPixelAbsHitboxReveal = function()
+{
+  // only eligible JABS battlers can reveal their hitboxes.
+  if (this.canUsePixelAbsEnemyHitboxData() === false)
+  {
+    return false;
+  }
+
+  // invincible battlers cannot be struck, so they should not display the strike outline.
+  const jabsBattler = this.getJabsBattler();
+  if (!jabsBattler) return false;
+  if (jabsBattler.isInvincible())
+  {
+    return false;
+  }
+
+  // always-active mode bypasses all range checks.
+  if (this.isPixelAbsHitboxRevealAlwaysActive())
+  {
+    return true;
+  }
+
+  // zero or negative range means this feature is currently disabled for this battler.
+  const revealRange = this.getPixelAbsHitboxRevealRange();
+  if (revealRange <= 0)
+  {
+    return false;
+  }
+
+  // reveal the outline when the player is close enough.
+  return revealRange >= this.distanceFromPlayer();
+};
+
+/**
+ * Gets this event's hitbox as a PIXEL-style tile-space AABB.
+ * @param {number=} logicalX The logical map x to evaluate from.
+ * @param {number=} logicalY The logical map y to evaluate from.
+ * @returns {{left:number,top:number,right:number,bottom:number,width:number,height:number}}
+ */
+Game_Event.prototype.getPixelAbsHitboxTileAabb = function(logicalX = this.x, logicalY = this.y)
+{
+  // build the hitbox against the event's current pivoting rules.
+  const pivotX = logicalX + this.getCollisionPivotX();
+  const pivotY = logicalY + this.getCollisionPivotY();
+  const hitbox = this._pixelHitbox(this.getEffectiveRadius());
+  const left = pivotX + hitbox.hx;
+  const top = pivotY + hitbox.hy;
+
+  return {
+    left,
+    top,
+    right: left + hitbox.w,
+    bottom: top + hitbox.h,
+    width: hitbox.w,
+    height: hitbox.h,
+  };
+};
+
+/**
+ * Builds the battler AABB model for JABS using this event's resolved hitbox.
+ * @returns {JABS_Aabb|null}
+ */
+Game_Event.prototype.getPixelAbsBattlerAabbModel = function()
+{
+  // only provide a custom model when the shared enemy hitbox is active.
+  if (this.hasCustomPixelHitbox() === false) return null;
+
+  // convert the resolved tile dimensions into screen pixels.
+  const { widthTiles, heightTiles } = this.getPixelAbsHitboxSizeData();
+  const widthPixels = widthTiles * $gameMap.tileWidth();
+  const heightPixels = heightTiles * $gameMap.tileHeight();
+  const left = this.screenX() - (widthPixels / 2);
+  const top = this.screenY() - heightPixels;
+
+  return new JABS_Aabb(left, top, widthPixels, heightPixels);
+};
+
+/**
+ * Extends {@link Game_Event.getCollisionRadius}.<br>
+ * The rectangle is canonical, but PIXEL still asks for a scalar in some paths.
+ * Use the larger half-extent as the compatibility radius.
+ * @returns {number}
+ */
+J.PIXEL.EXT.ABS.Aliased.Game_Event.set('getCollisionRadius', Game_Event.prototype.getCollisionRadius);
+Game_Event.prototype.getCollisionRadius = function()
+{
+  // if this event does not use the shared model, then perform original logic.
+  if (this.hasCustomPixelHitbox() === false)
+  {
+    return J.PIXEL.EXT.ABS.Aliased.Game_Event.get('getCollisionRadius').call(this);
+  }
+
+  // use the larger half-extent as the compatibility radius.
+  const { widthTiles, heightTiles } = this.getPixelAbsHitboxSizeData();
+  return Math.max(widthTiles, heightTiles) / 2;
+};
+
+/**
+ * Extends {@link Game_Event.getEffectiveRadius}.<br>
+ * Feet-anchored rectangles are already normalized, so the compatibility radius
+ * should not be clamped by the legacy downward-bleed rule.
+ * @returns {number}
+ */
+J.PIXEL.EXT.ABS.Aliased.Game_Event.set('getEffectiveRadius', Game_Event.prototype.getEffectiveRadius);
+Game_Event.prototype.getEffectiveRadius = function()
+{
+  // if this event does not use the shared model, then perform original logic.
+  if (this.hasCustomPixelHitbox() === false)
+  {
+    return J.PIXEL.EXT.ABS.Aliased.Game_Event.get('getEffectiveRadius').call(this);
+  }
+
+  // our compatibility radius is already derived from the resolved rectangle.
+  return this.getCollisionRadius();
+};
+
+/**
+ * Extends {@link Game_Event.getCollisionPivotY}.<br>
+ * Enemy hitboxes are feet-anchored, so the pivot becomes the event feet.
+ * @returns {number}
+ */
+J.PIXEL.EXT.ABS.Aliased.Game_Event.set('getCollisionPivotY', Game_Event.prototype.getCollisionPivotY);
+Game_Event.prototype.getCollisionPivotY = function()
+{
+  // if this event does not use the shared model, then perform original logic.
+  if (this.hasCustomPixelHitbox() === false)
+  {
+    return J.PIXEL.EXT.ABS.Aliased.Game_Event.get('getCollisionPivotY').call(this);
+  }
+
+  // the feet live on the tile's bottom edge.
+  return 1.0;
+};
+
+/**
+ * Extends {@link Game_Event._pixelHitbox}.<br>
+ * Builds the rectangular, feet-anchored hitbox for PIXEL movement checks.
+ * @param {number} radius The incoming compatibility radius.
+ * @returns {{w:number,h:number,hx:number,hy:number}}
+ */
+J.PIXEL.EXT.ABS.Aliased.Game_Event.set('_pixelHitbox', Game_Event.prototype._pixelHitbox);
+Game_Event.prototype._pixelHitbox = function(radius)
+{
+  // if this event does not use the shared model, then perform original logic.
+  if (this.hasCustomPixelHitbox() === false)
+  {
+    return J.PIXEL.EXT.ABS.Aliased.Game_Event.get('_pixelHitbox').call(this, radius);
+  }
+
+  // grab the canonical rectangle dimensions.
+  const { widthTiles, heightTiles } = this.getPixelAbsHitboxSizeData();
+
+  return {
+    w: widthTiles,
+    h: heightTiles,
+    hx: -(widthTiles / 2),
+    hy: -heightTiles,
+  };
+};
+//endregion Game_Event
 
 //region Game_Player
 /**
@@ -1328,5 +2292,318 @@ JABS_Battler.prototype.getProjectileSpawnBaseDirection = function()
   return J.PIXEL.EXT.ABS.Aliased.JABS_Battler.get('getProjectileSpawnBaseDirection').call(this);
 };
 //endregion JABS_Battler
+
+//region Spriteset_Map
+/**
+ * Extends {@link #createLowerLayer}.<br>
+ * Also creates the PIXEL-ABS hitbox reveal outline layer.
+ */
+J.PIXEL.EXT.ABS.Aliased.Spriteset_Map.set('createLowerLayer', Spriteset_Map.prototype.createLowerLayer);
+Spriteset_Map.prototype.createLowerLayer = function()
+{
+  // perform original logic.
+  J.PIXEL.EXT.ABS.Aliased.Spriteset_Map.get('createLowerLayer').call(this);
+
+  // also create the PIXEL-ABS reveal outline layer.
+  this.createPixelAbsHitboxRevealLayer();
+};
+
+/**
+ * Extends {@link #updateJabsSprites}.<br>
+ * Also updates the PIXEL-ABS reveal outline overlays.
+ */
+J.PIXEL.EXT.ABS.Aliased.Spriteset_Map.set('updateJabsSprites', Spriteset_Map.prototype.updateJabsSprites);
+Spriteset_Map.prototype.updateJabsSprites = function()
+{
+  // perform original logic.
+  J.PIXEL.EXT.ABS.Aliased.Spriteset_Map.get('updateJabsSprites').call(this);
+
+  // also update the PIXEL-ABS reveal outlines.
+  this.handlePixelAbsHitboxRevealOutlines();
+};
+
+/**
+ * Creates the layer and sprite dictionary for PIXEL-ABS reveal hitboxes.
+ */
+Spriteset_Map.prototype.createPixelAbsHitboxRevealLayer = function()
+{
+  /**
+   * The shared root namespace for all of J's plugin data.
+   */
+  this._j ||= {};
+
+  /**
+   * A grouping of all properties associated with PIXEL.
+   */
+  this._j._pixel ||= {};
+
+  /**
+   * A grouping of all properties associated with PIXEL-ABS.
+   */
+  this._j._pixel._abs ||= {};
+
+  /**
+   * The container for battler hitbox reveal outlines.
+   * @type {Sprite}
+   */
+  this._j._pixel._abs._hitboxRevealLayer = new Sprite();
+
+  /**
+   * Direct tracking for reveal sprites by their stable key.
+   * @type {Record<string, Sprite>}
+   */
+  this._j._pixel._abs._hitboxRevealSprites = {};
+
+  // mount beside the existing battler overlay layers.
+  this.addChild(this._j._pixel._abs._hitboxRevealLayer);
+};
+
+/**
+ * Gets the PIXEL-ABS reveal outline layer.
+ * @returns {Sprite}
+ */
+Spriteset_Map.prototype.getPixelAbsHitboxRevealLayer = function()
+{
+  return this._j._pixel._abs._hitboxRevealLayer;
+};
+
+/**
+ * Gets the PIXEL-ABS reveal outline sprite dictionary.
+ * @returns {Record<string, Sprite>}
+ */
+Spriteset_Map.prototype.getPixelAbsHitboxRevealSprites = function()
+{
+  return this._j._pixel._abs._hitboxRevealSprites;
+};
+
+/**
+ * Updates the proximity-based hitbox reveal outlines for eligible battlers.
+ */
+Spriteset_Map.prototype.handlePixelAbsHitboxRevealOutlines = function()
+{
+  // if the full debug overlay is already visible, then skip these softer outlines.
+  if ($jabsEngine.hitboxOverlaysVisible)
+  {
+    this.getPixelAbsHitboxRevealLayer().visible = false;
+    this.purgePixelAbsHitboxRevealSprites([]);
+    return;
+  }
+
+  // collect all battlers that should reveal their hitboxes right now.
+  const items = this.collectPixelAbsHitboxRevealItems();
+
+  // show the layer only while we have something to draw.
+  const layer = this.getPixelAbsHitboxRevealLayer();
+  layer.visible = items.length > 0;
+
+  // if nothing is visible, then purge stale sprites and stop here.
+  if (layer.visible === false)
+  {
+    this.purgePixelAbsHitboxRevealSprites(items);
+    return;
+  }
+
+  // build, refresh, and purge the reveal sprites for this frame.
+  this.buildMissingPixelAbsHitboxRevealSprites(items);
+  this.refreshExistingPixelAbsHitboxRevealSprites(items);
+  this.purgePixelAbsHitboxRevealSprites(items);
+};
+
+/**
+ * Collects the battlers whose hitbox outlines should currently be revealed.
+ * @returns {{ key:string, type:'battler', source: Game_Event }[]}
+ */
+Spriteset_Map.prototype.collectPixelAbsHitboxRevealItems = function()
+{
+  return this.collectActiveBattlerOverlayItems()
+    .filter(item => item.type === 'battler')
+    .filter(item => item.source.canShowPixelAbsHitboxReveal())
+    .map(item =>
+    {
+      return {
+        key: `pixel-reveal:${item.key}`,
+        type: 'battler',
+        source: item.source,
+      };
+    });
+};
+
+/**
+ * Builds reveal sprites for any battlers that currently need one.
+ * @param {{ key:string, type:'battler', source: Game_Event }[]} items The reveal items.
+ */
+Spriteset_Map.prototype.buildMissingPixelAbsHitboxRevealSprites = function(items)
+{
+  // get the container and dict for reveal sprites.
+  const layer = this.getPixelAbsHitboxRevealLayer();
+  const dict = this.getPixelAbsHitboxRevealSprites();
+
+  // create any missing reveal sprites.
+  items.forEach(item =>
+  {
+    // skip if the sprite already exists for this battler.
+    if (dict[item.key]) return;
+
+    // create, mark, and track the reveal sprite.
+    const sprite = this.createBattlerHitboxSprite(item);
+    sprite._pixelAbsRevealOutline = true;
+    dict[item.key] = sprite;
+    layer.addChild(sprite);
+  });
+};
+
+/**
+ * Refreshes the active reveal sprites for this frame.
+ * @param {{ key:string, type:'battler', source: Game_Event }[]} items The reveal items.
+ */
+Spriteset_Map.prototype.refreshExistingPixelAbsHitboxRevealSprites = function(items)
+{
+  // quick access to tile size for the shared draw function.
+  const tw = $gameMap.tileWidth();
+  const th = $gameMap.tileHeight();
+
+  // refresh each active reveal sprite.
+  items.forEach(item =>
+  {
+    // locate or create the sprite for this battler.
+    const sprite = this.getOrCreatePixelAbsHitboxRevealSprite(item);
+
+    // place the sprite at the battler's feet.
+    sprite.x = item.source.screenX();
+    sprite.y = item.source.screenY();
+
+    // compute the battler AABB from the shared runtime model.
+    const aabb = JABS_Engine.getBattlerAabbModel(item.source);
+
+    // draw the reveal outline using the shared battler hitbox function.
+    this.drawBattlerHitboxInto(sprite, item.type, tw, th, false, aabb);
+  });
+};
+
+/**
+ * Retrieves or creates the reveal sprite for a given battler.
+ * @param {{ key:string, type:'battler', source: Game_Event }} item The reveal item.
+ * @returns {Sprite}
+ */
+Spriteset_Map.prototype.getOrCreatePixelAbsHitboxRevealSprite = function(item)
+{
+  // return the existing reveal sprite if it already exists.
+  const dict = this.getPixelAbsHitboxRevealSprites();
+  if (dict[item.key]) return dict[item.key];
+
+  // otherwise, create and mount a new reveal sprite.
+  const sprite = this.createBattlerHitboxSprite(item);
+  sprite._pixelAbsRevealOutline = true;
+  dict[item.key] = sprite;
+  this.getPixelAbsHitboxRevealLayer().addChild(sprite);
+  return sprite;
+};
+
+/**
+ * Removes reveal sprites that no longer correspond to an active battler.
+ * @param {{ key:string }[]} items The active reveal items.
+ */
+Spriteset_Map.prototype.purgePixelAbsHitboxRevealSprites = function(items)
+{
+  // compute the set of active reveal keys now.
+  const active = new Set(items.map(item => item.key));
+
+  // walk the dict and remove any reveal sprites whose keys are no longer active.
+  const dict = this.getPixelAbsHitboxRevealSprites();
+  const layer = this.getPixelAbsHitboxRevealLayer();
+
+  Object.keys(dict)
+    .forEach(key =>
+    {
+      if (active.has(key)) return;
+
+      // detach and destroy the orphaned reveal sprite.
+      const sprite = dict[key];
+      if (sprite && sprite.parent === layer)
+      {
+        layer.removeChild(sprite);
+      }
+
+      this.destroyBattlerHitboxSprite(sprite);
+      delete dict[key];
+    });
+};
+
+/**
+ * Extends {@link #drawBattlerHitboxInto}.<br>
+ * Draws a softer outline-only style for PIXEL-ABS reveal sprites.
+ * @param {Sprite} sprite The target battler hitbox sprite.
+ * @param {'player'|'follower'|'battler'} type The kind of battler.
+ * @param {number} tw Tile width in pixels.
+ * @param {number} th Tile height in pixels.
+ * @param {boolean} colliding Whether the battler overlaps any active action.
+ * @param {JABS_Aabb} aabb The model rect for this battler in screen pixels.
+ */
+J.PIXEL.EXT.ABS.Aliased.Spriteset_Map.set('drawBattlerHitboxInto', Spriteset_Map.prototype.drawBattlerHitboxInto);
+Spriteset_Map.prototype.drawBattlerHitboxInto = function(sprite, type, tw, th, colliding, aabb)
+{
+  // if this is not a reveal sprite, then perform original logic.
+  if (sprite._pixelAbsRevealOutline !== true)
+  {
+    J.PIXEL.EXT.ABS.Aliased.Spriteset_Map.get('drawBattlerHitboxInto').call(
+      this,
+      sprite,
+      type,
+      tw,
+      th,
+      colliding,
+      aabb);
+    return;
+  }
+
+  // draw the softer reveal outline instead.
+  this.drawPixelAbsRevealHitboxInto(sprite, aabb);
+};
+
+/**
+ * Draws the softer PIXEL-ABS reveal outline into the battler hitbox sprite.
+ * @param {Sprite} sprite The target reveal sprite.
+ * @param {JABS_Aabb} aabb The model rect for this battler in screen pixels.
+ */
+Spriteset_Map.prototype.drawPixelAbsRevealHitboxInto = function(sprite, aabb)
+{
+  // get the graphics used to draw.
+  /** @type {PIXI.Graphics} */
+  const g = sprite._jabsHitboxG;
+
+  // clear previous drawings for this frame.
+  g.clear();
+
+  // apply the softer outline style.
+  const style = this.getPixelAbsRevealHitboxStyle();
+  this.applyHitboxStyle(g, style);
+
+  // compute local offsets relative to the battler feet.
+  const localX = aabb.x - sprite.x;
+  const localY = aabb.y - sprite.y;
+
+  // draw the model rect exactly so visuals match physics.
+  g.drawRect(localX, localY, aabb.w, aabb.h);
+  g.endFill();
+};
+
+/**
+ * Gets the style used for PIXEL-ABS hitbox reveal outlines.
+ * @returns {{ fillColor:number, fillAlpha:number, lineColor:number, lineAlpha:number, lineWidth:number }}
+ */
+Spriteset_Map.prototype.getPixelAbsRevealHitboxStyle = function()
+{
+  // mirror the pulse highlight's soft white styling, but without any fill.
+  const pulseStyle = J.ABS.Metadata.HitboxPulse;
+
+  return {
+    fillColor: pulseStyle.fillColor,
+    fillAlpha: 0.0,
+    lineColor: pulseStyle.lineColor,
+    lineAlpha: 0.35,
+    lineWidth: pulseStyle.lineWidth,
+  };
+};
+//endregion Spriteset_Map
 
 //# sourceMappingURL=J-Pixel-ABS.js.map
