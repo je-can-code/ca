@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
+ * [v1.0.1 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -149,6 +149,18 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Fixed crash when the full menu (Scene_Menu) was opened while a juice motion was in flight.
+ *    JuiceMotionManager.#effects is a static array that outlives any single scene instance;
+ *    when SceneManager tears down Scene_Map, all Sprite_Character objects in the old spriteset
+ *    have their Pixi transform nulled, and the next frameTick call on the still-queued effects
+ *    would throw "Cannot read properties of null (reading 'scale')".
+ *    Fix: Scene_Map.terminate() now calls JuiceMotionManager.clearAll() before sprites are
+ *    destroyed, draining all pending effects and sprite locks proactively.
+ *    Secondary safeguard: all sprite-bound effect subclasses (JuiceSquishMotionEffect,
+ *    JuiceTiltMotionEffect, JuiceCastingPulseMotionEffect, JuiceWeaponSwingMotionEffect)
+ *    implement isSpriteAlive() checked in frameTick; effects targeting a sprite with a null
+ *    transform are silently discarded rather than allowed to crash.
  * - 1.0.0
  *    Initial release.
  * ============================================================================

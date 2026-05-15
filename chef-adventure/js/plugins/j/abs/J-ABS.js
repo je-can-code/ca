@@ -14955,7 +14955,7 @@ class JABS_Timer
 /*:
  * @target MZ
  * @plugindesc
- * [v4.11.0 JABS] Enables combat to be carried out on the map.
+ * [v4.12.1 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -15000,6 +15000,30 @@ class JABS_Timer
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.12.1
+ *    Arc hitbox (`<hitbox:arc>`) collision now correctly registers hits against large enemies
+ *    whose AABB center falls outside the wedge sweep but whose edge or corner overlaps it.
+ *    The angle gate now samples all four AABB corners in addition to the center; if any sample
+ *    point lies within the wedge, the hit registers.
+ * - 4.12.0
+ *    Generic skill transform: <skillTransform:[BASE, OVERRIDE]> now applies to all equipped
+ *    slots (combat, dodge, offhand) and all note-bearing sources (actor, class, weapon/armor,
+ *    state). Precedence order: active states (highest priority, sorted by priority desc) >
+ *    equipped items > class > actor/enemy DB row. The transform target does not need to be
+ *    learned via hasSkill — the tag itself is the implicit permission grant. Tool slot is
+ *    excluded (stores item ids, not skill ids).
+ *    Added Game_Battler#getSkillTransformSources, #resolveEquippedSkillId, #getResolvedSkillId.
+ *    Game_Actor extends getSkillTransformSources to include equips and class.
+ *    All execution paths (map action, guarding, dodging, AI guard decisions) use the resolved
+ *    skill id. Added battlerHasPermissionForSlot to guard hasSkill against the raw base slot id.
+ *    Fixed applyPlayerCooldowns shared-cooldown stamping to use resolveEquippedSkillId so
+ *    transformed slots correctly receive their cooldown when the executed skill id differs from
+ *    the raw stored slot id.
+ *    HUD (Sprite_BaseSkillSlot, Sprite_SkillSlotIcon, Sprite_SkillCost) and JABS quick menu
+ *    (Window_AbsMenuSelect) now display the transformed skill's icon, name, and cost.
+ *    Existing getTransformedOffhandSkillId now delegates to the generic resolver; the
+ *    offhand-only findOffhandSkillTransform helper has been removed.
+ *    Added jabsSkillTransforms getter to RPG_BaseBattler, RPG_Class, and RPG_EquipItem.
  * - 4.11.0
  *    Regen ticks twice per second (interval + scaled natural regen + per-state slip application so per-second totals match
  *    legacy math); slip/regen hooks can attribute popups per state. `JABS_Engine.implicitParryChancePercent` extracts the
@@ -17611,7 +17635,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = 'data/config.jabs.json') =>
  */
 J.ABS.Metadata = {};
 J.ABS.Metadata.Name = 'J-ABS';
-J.ABS.Metadata.Version = '4.11.0';
+J.ABS.Metadata.Version = '4.12.1';
 
 /**
  * The actual `plugin parameters` extracted from RMMZ.
@@ -25588,7 +25612,6 @@ class JABS_Engine
     // non-direct actions always create events; direct actions only do so if coords are provided.
     const shouldCreateEvent = (!action.isDirectAction()) || (x !== null && y !== null);
 
-
     // check if we determined we should create an event.
     if (shouldCreateEvent)
     {
@@ -27924,39 +27947,47 @@ class JABS_Engine
     // build a unit facing vector from the numeric direction (supports diagonals).
     const { x: fx, y: fy } = this.dir8ToUnitVector(facing);
 
-    // compute vector from origin to the target rect’s center.
-    // delta x to target center.
-    const tx = targetRect.cx - cx;
-    // delta y to target center.
-    const ty = targetRect.cy - cy;
-
-    // degenerate case: target’s center exactly at origin → accept.
-    if (tx === 0 && ty === 0)
-    {
-      // overlapping centers are inside any wedge.
-      return true;
-    }
-
-    // normalize the target vector for dot-product angle testing.
-    // euclidean length.
-    const tLen = Math.hypot(tx, ty);
-    // unit x.
-    const tnx = tx / tLen;
-    // unit y.
-    const tny = ty / tLen;
-
     // compute cosine threshold for the half-angle.
     // half-angle in radians.
     const halfAngleRad = (degrees * 0.5) * (Math.PI / 180);
     // cosine threshold.
     const cosHalf = Math.cos(halfAngleRad);
 
-    // dot-product with the facing unit vector yields cos(theta).
-    // cos(theta).
-    const dot = (fx * tnx) + (fy * tny);
+    // test all four corners and the center against the wedge angle.
+    // the circle fast-reject already bounds the range; here we check if any sample
+    // point on the AABB lies within the angular sweep. using corners + center correctly
+    // handles large enemies whose AABB center falls outside the wedge while an edge does not.
+    const samplePoints = [
+      { px: targetRect.cx, py: targetRect.cy },
+      { px: targetRect.x, py: targetRect.y },
+      { px: targetRect.x + targetRect.w, py: targetRect.y },
+      { px: targetRect.x, py: targetRect.y + targetRect.h },
+      { px: targetRect.x + targetRect.w, py: targetRect.y + targetRect.h },
+    ];
 
-    // accept if the angle is within the wedge sweep.
-    return dot >= cosHalf;
+    for (let pIdx = 0; pIdx < samplePoints.length; pIdx++)
+    {
+      const { px, py } = samplePoints[pIdx];
+      const vx = px - cx;
+      const vy = py - cy;
+
+      // degenerate: sample point at the arc origin is inside any wedge.
+      if (vx === 0 && vy === 0)
+      {
+        return true;
+      }
+
+      const vLen = Math.hypot(vx, vy);
+      const dot = (fx * (vx / vLen)) + (fy * (vy / vLen));
+
+      if (dot >= cosHalf)
+      {
+        return true;
+      }
+    }
+
+    // no sample point was inside the wedge.
+    return false;
   }
 
   /**
@@ -41244,15 +41275,21 @@ Spriteset_Map.prototype.clearAllHitboxOverlays = function ()
 /**
  * Applies the provided style to a PIXI.Graphics for drawing a hitbox.
  * @param {PIXI.Graphics} g The graphics instance to apply styles to.
- * @param {{ fillColor:number, fillAlpha:number, lineColor:number, lineAlpha:number, lineWidth:number }} style
+ * @param {{
+ *  fillColor:number, fillAlpha:number, lineColor:number, lineAlpha:number,
+ *  lineWidth:number, lineAlignment?:number
+ * }} style
  */
 Spriteset_Map.prototype.applyHitboxStyle = function (
   g,
   style
 )
 {
+  // default to an inner-aligned stroke so the visible outer edge stays honest to the real geometry.
+  const lineAlignment = style.lineAlignment ?? 0;
+
   // configure line + fill according to style.
-  g.lineStyle(style.lineWidth, style.lineColor, style.lineAlpha); // outline style.
+  g.lineStyle(style.lineWidth, style.lineColor, style.lineAlpha, lineAlignment); // outline style.
   g.beginFill(style.fillColor, style.fillAlpha); // fill style.
 };
 
