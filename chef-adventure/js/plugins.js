@@ -84,7 +84,7 @@ var $plugins =
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/J-SkillSlots","status":true,"description":"[v1.0.0 SKS] A plugin that enables skills to be equippable.","parameters":{"parentConfig":"","menu-switch":"101","equippable-skill-type-ids":"[\"12\"]"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
-{"name":"j/regions/J-RegionEffects","status":true,"description":"[v1.0.1 REGIONS] A plugin that controls passage by region ids.","parameters":{"globalAllowRegions":"[]","globalDenyRegions":"[\"10\"]"}},
+{"name":"j/regions/J-RegionEffects","status":true,"description":"[v1.1.0 REGIONS] A plugin that controls passage by region ids.","parameters":{"globalAllowRegions":"[]","globalDenyRegions":"[\"10\"]"}},
 {"name":"j/regions/ext/J-Regions-Skills","status":true,"description":"[v1.0.0 REGIONS-SKILLS] Enables execution of skills via region ids.","parameters":{"execution-delay":"60"}},
 {"name":"j/regions/ext/J-Regions-States","status":true,"description":"[v1.0.0 REGIONS-STATES] Enables application of states via region ids.","parameters":{"application-delay":"15"}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},

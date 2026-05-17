@@ -2132,6 +2132,23 @@ Game_CharacterBase.prototype.canPass = function(x, y, d)
 };
 
 /**
+ * Extends {@link Game_CharacterBase#regionId}.<br>
+ * Samples the map region at the character's collision pivot tile. With pixel movement,
+ * `_x`/`_y` are fractional; vanilla forwards them into {@link Game_Map#tileId}, which
+ * indexes `$dataMap.data` and returns wrong regions when coordinates are not integers.
+ * @returns {number} The region id at the pivot tile.
+ */
+J.PIXEL.Aliased.Game_CharacterBase.set('regionId', Game_CharacterBase.prototype.regionId);
+Game_CharacterBase.prototype.regionId = function()
+{
+  // resolve the tile under the body, not the fractional anchor corner.
+  const tileX = Math.floor(this._x + this.getCollisionPivotX());
+  const tileY = Math.floor(this._y + this.getCollisionPivotY());
+
+  return $gameMap.regionId(tileX, tileY);
+};
+
+/**
  * Moves straight in a given direction.
  * If there is an underlying diagonal direction, then move diagonally.
  * @param {number} direction The direction being moved.

@@ -1,48 +1,3 @@
-//region RegionStateData
-/**
- * A data class containing the various data points associated with a region that
- * may apply a state while standing upon it.
- */
-class RegionStateData
-{
-  /**
-   * The regionId this data class stores data for.
-   * @type {number}
-   */
-  regionId = -1;
-
-  /**
-   * The stateId that can be applied when within this regionId.
-   * @type {number}
-   */
-  stateId = 0;
-
-  /**
-   * The 1-100 integer percent chance of state application while within this regionId.
-   * @type {number}
-   */
-  chance = 0;
-
-  /**
-   * The animationId to play when the state is infact applied.
-   * @type {number}
-   */
-  animationId = 0;
-
-  /**
-   * Constructor.
-   */
-  constructor(regionId, stateId, chanceOfApplication = 100, animationId = 0)
-  {
-    this.regionId = regionId;
-    this.stateId = stateId;
-    this.chance = chanceOfApplication;
-    this.animationId = animationId;
-  }
-}
-
-//endregion RegionStateData
-
 //region annotations
 /*:
  * @target MZ
@@ -154,435 +109,330 @@ class RegionStateData
  */
 //endregion annotations
 
-//region plugin metadata
-class J_RegionStatesPluginMetadata
-  extends PluginMetadata
-{
-  /**
-   * Constructor.
-   */
-  constructor(name, version)
-  {
-    super(name, version);
-  }
+//#region src/plugins/regions/ext/states/_metadata/_pluginMetadata.js
+var J_RegionStatesPluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+	/**
+	*  Extends {@link #postInitialize}.<br>
+	*  Includes translation of plugin parameters.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		/**
+		* The number of frames between applying the state associated with the given regionId.<br>
+		* Lower this to increase frequency of state application.<br>
+		* Raise this to reduce frequency of state application.<br>
+		* This only applies while a battler is standing on a tile with a valid region state.
+		* @type {number}
+		*/
+		this.delayBetweenApplications = this.parsedPluginParameters["application-delay"] ?? 15;
+	}
+};
 
-  /**
-   *  Extends {@link #postInitialize}.<br>
-   *  Includes translation of plugin parameters.
-   */
-  postInitialize()
-  {
-    // execute original logic.
-    super.postInitialize();
+//#endregion
+//#region src/plugins/regions/ext/states/_metadata/meta.js
+var PLUGIN_NAME = "J-Region-States";
+var PLUGIN_VERSION = "1.0.0";
+var PLUGIN_DESC_TAG = "REGION-STATES";
 
-    //this.version.satisfiesPluginVersion(J_RegionPluginMetadata.version);
-
-    /**
-     * The number of frames between applying the state associated with the given regionId.<br>
-     * Lower this to increase frequency of state application.<br>
-     * Raise this to reduce frequency of state application.<br>
-     * This only applies while a battler is standing on a tile with a valid region state.
-     * @type {number}
-     */
-    this.delayBetweenApplications = this.parsedPluginParameters['application-delay'] ?? 15;
-  }
-}
-
-//endregion plugin metadata
-
+//#endregion
+//#region src/plugins/regions/ext/states/_metadata/initialization.js
 /**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
-
+* The core where all of my extensions live: in the `J` object.
+*/
+globalThis.J ||= {};
 /**
- * The plugin umbrella that governs all extensions related to the parent.
- */
+* The plugin umbrella that governs all extensions related to the parent.
+*/
 J.REGIONS.EXT ||= {};
-
 /**
- * The plugin umbrella that governs all things related to this plugin.
- */
+* The plugin umbrella that governs all things related to this plugin.
+*/
 J.REGIONS.EXT.STATES = {};
-
 /**
- * The metadata associated with this plugin, such as name and version.
- */
-J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata('J-Region-States', '1.0.0');
-
+* The metadata associated with this plugin, such as name and version.
+*/
+J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata(PLUGIN_NAME, PLUGIN_VERSION);
 /**
- * A collection of all aliased methods for this plugin.
- */
+* A collection of all aliased methods for this plugin.
+*/
 J.REGIONS.EXT.STATES.Aliased = {};
 J.REGIONS.EXT.STATES.Aliased.Game_Character = new Map();
 J.REGIONS.EXT.STATES.Aliased.Game_Map = new Map();
 J.REGIONS.EXT.STATES.Aliased.Game_System = new Map();
-
 /**
- * All regular expressions used by this plugin.
- */
+* All regular expressions used by this plugin.
+*/
 J.REGIONS.EXT.STATES.RegExp = {};
 J.REGIONS.EXT.STATES.RegExp.RegionState = /<regionAddState:[ ]?(\[\d+, ?\d+, ?\d+, ?\d+])>/gi;
 
-//region Game_Character
+//#endregion
+//#region src/plugins/regions/ext/states/models/RegionStateData.js
 /**
- * Extends {@link #initMembers}.<br>
- * Also initializes the region states members.
- */
-J.REGIONS.EXT.STATES.Aliased.Game_Character.set('initMembers', Game_Character.prototype.initMembers);
-Game_Character.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.REGIONS.EXT.STATES.Aliased.Game_Character.get('initMembers')
-    .call(this);
-
-  // initialize the additional members.
-  this.initRegionStatesMembers();
+* A data class containing the various data points associated with a region that
+* may apply a state while standing upon it.
+*/
+var RegionStateData = class {
+	/**
+	* The regionId this data class stores data for.
+	* @type {number}
+	*/
+	regionId = -1;
+	/**
+	* The stateId that can be applied when within this regionId.
+	* @type {number}
+	*/
+	stateId = 0;
+	/**
+	* The 1-100 integer percent chance of state application while within this regionId.
+	* @type {number}
+	*/
+	chance = 0;
+	/**
+	* The animationId to play when the state is infact applied.
+	* @type {number}
+	*/
+	animationId = 0;
+	/**
+	* Constructor.
+	*/
+	constructor(regionId, stateId, chanceOfApplication = 100, animationId = 0) {
+		this.regionId = regionId;
+		this.stateId = stateId;
+		this.chance = chanceOfApplication;
+		this.animationId = animationId;
+	}
 };
 
+//#endregion
+//#region src/plugins/regions/ext/states/objects/Game_Map.js
 /**
- * Initializes all members associated with region states.
- */
-Game_Character.prototype.initRegionStatesMembers = function()
-{
-  /**
-   * The shared root namespace for all of J's plugin data.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with REGIONS.
-   */
-  this._j._regions ||= {};
-
-  /**
-   * A grouping of all properties associated with the region states plugin extension.
-   */
-  this._j._regions._states = {};
-
-  /**
-   * The timer that manages the (re)application of region-derived states.
-   * @type {JABS_Timer}
-   */
-  this._j._regions._states._timer = new JABS_Timer(J.REGIONS.EXT.STATES.Metadata.delayBetweenApplications);
+* Extends {@link #initialize}.<br>
+* Also initializes the region states properties.
+*/
+J.REGIONS.EXT.STATES.Aliased.Game_Map.set("initialize", Game_Map.prototype.initialize);
+Game_Map.prototype.initialize = function() {
+	J.REGIONS.EXT.STATES.Aliased.Game_Map.get("initialize").call(this);
+	this.initRegionStatesMembers();
+};
+/**
+* Initializes all region states properties for the map.
+*/
+Game_Map.prototype.initRegionStatesMembers = function() {
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* The grouping of all properties related to region effects.
+	*/
+	this._j._regions ||= {};
+	/**
+	* The grouping of all properties related specifically to the region states extension.
+	*/
+	this._j._regions._states = {};
+	/**
+	* A map keyed by regionId of all stateIds that are applied while the character is
+	* on a tile marked by the keyed regionId.
+	* @type {Map<number,RegionStateData[]>}
+	*/
+	this._j._regions._states._map = new Map();
+};
+/**
+* Gets the dictionary currently tracking the regionId:stateId[] for the map.
+* @return {Map<number,RegionStateData[]>}
+*/
+Game_Map.prototype.getRegionStates = function() {
+	return this._j._regions._states._map;
+};
+/**
+* Gets all stateIds to be applied on characters standing on the given regionId.
+* @return {RegionStateData[]}
+*/
+Game_Map.prototype.getRegionStatesByRegionId = function(regionId) {
+	return this.getRegionStates().get(regionId) ?? Array.empty;
+};
+/**
+* Sets the stateIds to the given regionId.
+* @param {number} regionId The regionId to update with new stateIds.
+* @param {RegionStateData} regionStateData The new region state data to add to the regionId.
+*/
+Game_Map.prototype.addRegionStateDataByRegionId = function(regionId, regionStateData) {
+	const regionStates = this.getRegionStates();
+	if (!regionStates.has(regionId)) {
+		regionStates.set(regionId, [regionStateData]);
+	} else {
+		const currentRegionStateDatas = regionStates.get(regionId);
+		const newRegionStateDatas = currentRegionStateDatas.concat(regionStateData);
+		regionStates.set(regionId, newRegionStateDatas);
+	}
+};
+/**
+* Extends {@link #setup}.<br>
+* Also initializes this map's region-state data.
+*/
+J.REGIONS.EXT.STATES.Aliased.Game_Map.set("setup", Game_Map.prototype.setup);
+Game_Map.prototype.setup = function(mapId) {
+	J.REGIONS.EXT.STATES.Aliased.Game_Map.get("setup").call(this, mapId);
+	this.setupRegionStates();
+};
+/**
+* Sets up the region states based on tags for this map.
+*/
+Game_Map.prototype.setupRegionStates = function() {
+	this.clearRegionStates();
+	this.refreshRegionStates();
+};
+/**
+* Clears all region states that have been configured for this map.
+*/
+Game_Map.prototype.clearRegionStates = function() {
+	const regionStates = this.getRegionStates();
+	regionStates.clear();
+};
+/**
+* Refreshes the region states on this map.
+*/
+Game_Map.prototype.refreshRegionStates = function() {
+	if (!this.canRefreshRegionEffects()) return;
+	const regionStatesData = RPGManager.getArraysFromNotesByRegex({ note: this.note() }, J.REGIONS.EXT.STATES.RegExp.RegionState, true);
+	if (!regionStatesData || !regionStatesData.length) return;
+	regionStatesData.forEach((regionStateData) => {
+		const [regionId, stateId, chanceOfApplication, animationId] = regionStateData;
+		const newRegionStateData = new RegionStateData(regionId, stateId, chanceOfApplication, animationId);
+		this.addRegionStateDataByRegionId(regionId, newRegionStateData);
+	});
 };
 
+//#endregion
+//#region src/plugins/regions/ext/states/objects/Game_Character.js
 /**
- * Gets the region states timer for this character.
- * @return {JABS_Timer}
- */
-Game_Character.prototype.getRegionStatesTimer = function()
-{
-  return this._j._regions._states._timer;
+* Extends {@link #initMembers}.<br>
+* Also initializes the region states members.
+*/
+J.REGIONS.EXT.STATES.Aliased.Game_Character.set("initMembers", Game_Character.prototype.initMembers);
+Game_Character.prototype.initMembers = function() {
+	J.REGIONS.EXT.STATES.Aliased.Game_Character.get("initMembers").call(this);
+	this.initRegionStatesMembers();
+};
+/**
+* Initializes all members associated with region states.
+*/
+Game_Character.prototype.initRegionStatesMembers = function() {
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with REGIONS.
+	*/
+	this._j._regions ||= {};
+	/**
+	* A grouping of all properties associated with the region states plugin extension.
+	*/
+	if (!this._j._regions._states) {
+		this._j._regions._states = {};
+	}
+	/**
+	* The timer that manages the (re)application of region-derived states.
+	* @type {JABS_Timer}
+	*/
+	if (!this._j._regions._states._timer) {
+		this._j._regions._states._timer = new JABS_Timer(J.REGIONS.EXT.STATES.Metadata.delayBetweenApplications);
+	}
+};
+/**
+* Gets the region states timer for this character.
+* @return {JABS_Timer}
+*/
+Game_Character.prototype.getRegionStatesTimer = function() {
+	return this._j._regions._states._timer;
+};
+/**
+* Extends {@link #update}.<br>
+* Also handles region states updates for the character.
+*/
+J.REGIONS.EXT.STATES.Aliased.Game_Character.set("update", Game_Character.prototype.update);
+Game_Character.prototype.update = function() {
+	J.REGIONS.EXT.STATES.Aliased.Game_Character.get("update").call(this);
+	this.handleRegionStates();
+};
+/**
+* Handles processing of the region states functionality.
+*/
+Game_Character.prototype.handleRegionStates = function() {
+	if (!this.canHandleRegionStates()) return;
+	const timer = this.getRegionStatesTimer();
+	timer.update();
+	if (timer.isTimerComplete()) {
+		timer.reset();
+		this.applyRegionStates();
+	}
+};
+/**
+* Checks if this character should process their own region states.
+* @return {boolean}
+*/
+Game_Character.prototype.canHandleRegionStates = function() {
+	if (this.isVehicle()) return false;
+	if (typeof this.isVisible === "function" && this.isVisible() === false) return false;
+	if (!this.hasJabsBattler()) return false;
+	return true;
+};
+/**
+* Applies all relevant region states based on their regionId.
+*/
+Game_Character.prototype.applyRegionStates = function() {
+	const regionStateDatas = this.getRegionStatesByCurrentRegionId();
+	if (regionStateDatas.length === 0) return;
+	const battler = this.getJabsBattler().getBattler();
+	regionStateDatas.forEach((regionStateData) => {
+		const { stateId, chance, animationId } = regionStateData;
+		const calculatedChance = battler.stateRate(stateId) * chance;
+		if (!RPGManager.chanceIn100(calculatedChance)) return;
+		if (battler.isStateAffected(stateId)) {
+			battler.resetStateCounts(stateId, battler);
+		} else {
+			battler.addState(stateId, battler);
+		}
+		if (animationId > 0) {
+			this.requestAnimation(animationId);
+		}
+	});
+};
+/**
+* Gets all {@link RegionStateData}s associated with this character's current regionId.
+* @return {RegionStateData[]}
+*/
+Game_Character.prototype.getRegionStatesByCurrentRegionId = function() {
+	const regionId = this.regionId();
+	return $gameMap.getRegionStatesByRegionId(regionId);
 };
 
+//#endregion
+//#region src/plugins/regions/ext/states/objects/Game_System.js
 /**
- * Extends {@link #update}.<br>
- * Also handles region states updates for the character.
- */
-J.REGIONS.EXT.STATES.Aliased.Game_Character.set('update', Game_Character.prototype.update);
-Game_Character.prototype.update = function()
-{
-  // perform original logic.
-  J.REGIONS.EXT.STATES.Aliased.Game_Character.get('update')
-    .call(this);
-
-  // apply the various region states if applicable.
-  this.handleRegionStates();
+* Updates the region states after loading a game.
+*/
+J.REGIONS.EXT.STATES.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function() {
+	J.REGIONS.EXT.STATES.Aliased.Game_System.get("onAfterLoad").call(this);
+	this.updateRegionStatesAfterLoad();
+};
+/**
+* Re-initializes the region states for the map and characters.
+*/
+Game_System.prototype.updateRegionStatesAfterLoad = function() {
+	$gameMap.initRegionStatesMembers();
+	$gameMap.setupRegionStates();
+	$gamePlayer.initRegionStatesMembers();
+	$gamePlayer.followers().data().forEach((follower) => follower.initRegionStatesMembers());
 };
 
-/**
- * Handles processing of the region states functionality.
- */
-Game_Character.prototype.handleRegionStates = function()
-{
-  // check to make sure we can even process region states for this character.
-  if (!this.canHandleRegionStates()) return;
-
-  // grab the timer.
-  const timer = this.getRegionStatesTimer();
-
-  // first, update it.
-  timer.update();
-
-  // now check if the timer is complete.
-  if (timer.isTimerComplete())
-  {
-    // reset completed timers.
-    timer.reset();
-
-    // attempt to apply all the region states.
-    this.applyRegionStates();
-  }
-};
-
-/**
- * Checks if this character should process their own region states.
- * @return {boolean}
- */
-Game_Character.prototype.canHandleRegionStates = function()
-{
-  // if this character is a vehicle, then they cannot handle region states.
-  if (this.isVehicle()) return false;
-
-  // if this character has no battler, then they cannot handle region states.
-  if (!this.hasJabsBattler()) return false;
-
-  // they probably can have region states applied!
-  return true;
-};
-
-/**
- * Applies all relevant region states based on their regionId.
- */
-Game_Character.prototype.applyRegionStates = function()
-{
-  // grab all the current region states by this regionId.
-  const regionStateDatas = this.getRegionStatesByCurrentRegionId();
-
-  // if there are no region states to apply, then they cannot handle region states.
-  if (regionStateDatas.length === 0) return;
-
-  // grab the battler associated with this character.
-  const battler = this.getJabsBattler()
-    .getBattler();
-
-  // iterate over each of the region states to apply it.
-  regionStateDatas.forEach(regionStateData =>
-  {
-    // deconstruct the region state data.
-    const {
-      stateId,
-      chance,
-      animationId
-    } = regionStateData;
-
-    // get the calculated rate for the state being applied.
-    const calculatedChance = battler.stateRate(stateId) * chance;
-
-    // roll the dice and see if we should even apply it.
-    if (!RPGManager.chanceIn100(calculatedChance)) return;
-
-    // apply the state.
-    battler.addState(stateId);
-
-    // check if there is a valid animation to play.
-    if (animationId > 0)
-    {
-      // trigger the animation.
-      this.requestAnimation(animationId);
-    }
-  });
-};
-
-/**
- * Gets all {@link RegionStateData}s associated with this character's current regionId.
- * @return {RegionStateData[]}
- */
-Game_Character.prototype.getRegionStatesByCurrentRegionId = function()
-{
-  // grab the current regionId.
-  const regionId = this.regionId();
-
-  // return all found region states by the current regionId.
-  return $gameMap.getRegionStatesByRegionId(regionId);
-};
-//endregion Game_Character
-
-//region Game_Map
-/**
- * Extends {@link #initialize}.<br>
- * Also initializes the region states properties.
- */
-J.REGIONS.EXT.STATES.Aliased.Game_Map.set('initialize', Game_Map.prototype.initialize);
-Game_Map.prototype.initialize = function()
-{
-  // perform original logic.
-  J.REGIONS.EXT.STATES.Aliased.Game_Map.get('initialize')
-    .call(this);
-
-  // initialize the region states.
-  this.initRegionStatesMembers();
-};
-
-//region properties
-/**
- * Initializes all region states properties for the map.
- */
-Game_Map.prototype.initRegionStatesMembers = function()
-{
-  /**
-   * The shared root namespace for all of J's plugin data.
-   */
-  this._j ||= {};
-
-  /**
-   * The grouping of all properties related to region effects.
-   */
-  this._j._regions ||= {};
-
-  /**
-   * The grouping of all properties related specifically to the region states extension.
-   */
-  this._j._regions._states = {};
-
-  /**
-   * A map keyed by regionId of all stateIds that are applied while the character is
-   * on a tile marked by the keyed regionId.
-   * @type {Map<number,RegionStateData[]>}
-   */
-  this._j._regions._states._map = new Map();
-};
-
-/**
- * Gets the dictionary currently tracking the regionId:stateId[] for the map.
- * @return {Map<number,RegionStateData[]>}
- */
-Game_Map.prototype.getRegionStates = function()
-{
-  return this._j._regions._states._map;
-};
-
-/**
- * Gets all stateIds to be applied on characters standing on the given regionId.
- * @return {RegionStateData[]}
- */
-Game_Map.prototype.getRegionStatesByRegionId = function(regionId)
-{
-  return this.getRegionStates()
-    .get(regionId) ?? Array.empty;
-};
-
-/**
- * Sets the stateIds to the given regionId.
- * @param {number} regionId The regionId to update with new stateIds.
- * @param {RegionStateData} regionStateData The new region state data to add to the regionId.
- */
-Game_Map.prototype.addRegionStateDataByRegionId = function(regionId, regionStateData)
-{
-  // grab the current tracker.
-  const regionStates = this.getRegionStates();
-
-  // check if the regionId has yet to be added to the tracker.
-  if (!regionStates.has(regionId))
-  {
-    // add it with the given stateIds.
-    regionStates.set(regionId, [ regionStateData ]);
-  }
-  // the regionId is already being tracked.
-  else
-  {
-    // grab the current stateIds.
-    const currentRegionStateDatas = regionStates.get(regionId);
-
-    // add the new and the old- they stack if the dev wants them to.
-    const newRegionStateDatas = currentRegionStateDatas.concat(regionStateData);
-
-    // reassign the regionId with the added stateIds.
-    regionStates.set(regionId, newRegionStateDatas);
-  }
-};
-//endregion properties
-
-/**
- * Extends {@link #setup}.<br>
- * Also initializes this map's region-state data.
- */
-J.REGIONS.EXT.STATES.Aliased.Game_Map.set('setup', Game_Map.prototype.setup);
-Game_Map.prototype.setup = function(mapId)
-{
-  // perform original logic.
-  J.REGIONS.EXT.STATES.Aliased.Game_Map.get('setup')
-    .call(this, mapId);
-
-  // setup the region state data.
-  this.setupRegionStates();
-};
-
-/**
- * Sets up the region states based on tags for this map.
- */
-Game_Map.prototype.setupRegionStates = function()
-{
-  // clear the existing states.
-  this.clearRegionStates();
-
-  // refresh the existing states.
-  this.refreshRegionStates();
-};
-
-/**
- * Clears all region states that have been configured for this map.
- */
-Game_Map.prototype.clearRegionStates = function()
-{
-  // grab the current tracker.
-  const regionStates = this.getRegionStates();
-
-  // clear all the tracking.
-  regionStates.clear();
-};
-
-/**
- * Refreshes the region states on this map.
- */
-Game_Map.prototype.refreshRegionStates = function()
-{
-  // if we cannot refresh region effects, we cannot refresh region states, either.
-  if (!this.canRefreshRegionEffects()) return;
-
-  // grab the region data.
-  const regionStatesData = RPGManager.getArraysFromNotesByRegex(
-    { note: this.note() },
-    J.REGIONS.EXT.STATES.RegExp.RegionState,
-    true);
-
-  // stop processing if there was nothing found.
-  if (!regionStatesData || !regionStatesData.length) return;
-
-  // iterate over all the found datas for processing.
-  regionStatesData.forEach(regionStateData =>
-  {
-    // deconstruct the data.
-    const [ regionId, stateId, chanceOfApplication, animationId ] = regionStateData;
-
-    // generate the new data based on the tag.
-    const newRegionStateData = new RegionStateData(regionId, stateId, chanceOfApplication, animationId);
-
-    // add the new data.
-    this.addRegionStateDataByRegionId(regionId, newRegionStateData);
-  });
-};
-//endregion Game_Map
-
-//region Game_System
-/**
- * Updates the region states after loading a game.
- */
-J.REGIONS.EXT.STATES.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
-Game_System.prototype.onAfterLoad = function()
-{
-  // perform original logic.
-  J.REGIONS.EXT.STATES.Aliased.Game_System.get('onAfterLoad')
-    .call(this);
-
-  // update from the latest plugin metadata.
-  this.updateRegionStatesAfterLoad();
-};
-
-/**
- * Re-initializes the region states for the map and characters.
- */
-Game_System.prototype.updateRegionStatesAfterLoad = function()
-{
-  $gameMap.initRegionStatesMembers();
-  $gameMap.setupRegionStates();
-  $gamePlayer.initRegionStatesMembers();
-  $gamePlayer.followers()
-    .data()
-    .forEach(follower => follower.initRegionStatesMembers());
-};
-
-//endregion Game_System
-
+//#endregion
 //# sourceMappingURL=J-Regions-States.js.map
