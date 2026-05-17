@@ -1513,7 +1513,11 @@ Game_Action.prototype.applyOnHitStateEffects = function(target)
 Game_Action.prototype.canApplyOnHitStateEffects = function(target)
 {
   // if the target wasn't actually hit, then we can't apply on-hit state effects.
-  if (target.result().isHit() === false) return false;
+  if (target.result()
+    .isHit() === false)
+  {
+    return false;
+  }
 
   // apply the state effects!
   return true;
