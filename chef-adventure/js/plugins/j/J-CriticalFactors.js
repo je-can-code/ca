@@ -219,10 +219,28 @@
  * ============================================================================
  */
 
+//region plugin metadata
+class J_CriticalFactorsPluginMetadata extends PluginMetadata
+{
+  /**
+   * Constructor.
+   */
+  constructor(name, version)
+  {
+    super(name, version);
+  }
+}
+
+export default J_CriticalFactorsPluginMetadata;
+//endregion plugin metadata
+
+import { PLUGIN_NAME, PLUGIN_VERSION } from './meta.js';
+import J_CriticalFactorsPluginMetadata from './_pluginMetadata.js';
+
 /**
  * The core where all of my extensions live: in the `J` object.
  */
-var J = J || {};
+globalThis.J ||= {};
 
 //region version checks
 (() =>
@@ -245,17 +263,7 @@ J.CRIT = {};
 /**
  * The `metadata` associated with this plugin, such as version.
  */
-J.CRIT.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-CriticalFactors`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.2',
-};
+J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata(PLUGIN_NAME, PLUGIN_VERSION);
 
 /**
  * A collection of all aliased methods for this plugin.
@@ -301,6 +309,21 @@ J.CRIT.RegExp = {
   CritDamageMultiplierGrowthRate: /<cdmGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 };
 //endregion Introduction
+
+//region ship-meta
+export const PLUGIN_NAME = "J-CriticalFactors";
+export const PLUGIN_VERSION = "1.0.2";
+export const PLUGIN_DESC_TAG = "CRIT";
+//endregion ship-meta
+
+import './_metadata/initialization.js';
+import './managers/IconManager.js';
+import './managers/TextManager.js';
+import './objects/Game_Action.js';
+import './objects/Game_Actor.js';
+import './objects/Game_Battler.js';
+import './objects/Game_BattlerBase.js';
+import './scenes/Scene_Boot.js';
 
 //region IconManager
 /**
@@ -1220,5 +1243,24 @@ Scene_Boot.prototype.onDatabaseLoaded = function()
   J.CRIT.Aliased.Scene_Boot.get('onDatabaseLoaded').call(this);
 };
 //endregion Scene_Boot
+
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig, mergeConfig } from 'vite';
+import shared from '../../../vite.config.shared.js';
+
+const _dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const thisConfig = defineConfig({
+  build: {
+    rolldownOptions: {
+      input: {
+        'J-CriticalFactors': path.resolve(_dirname, './entry.js'),
+      },
+    },
+  }
+});
+
+export default mergeConfig(shared, thisConfig);
 
 //# sourceMappingURL=J-CriticalFactors.js.map

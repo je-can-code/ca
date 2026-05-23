@@ -2175,8 +2175,9 @@ if (J.ABS)
    * @param {Game_Character} character The character who received the reward.
    */
   // eslint-disable-next-line no-unused-vars
-  JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character) 
-  {};
+  JABS_Engine.prototype.onSdpRewardGranted = function(sdpPoints, character)
+  {
+  };
 
   /**
    * Lifecycle event: an SDP panel was unlocked for a character on the map.
@@ -2185,8 +2186,9 @@ if (J.ABS)
    * @param {Game_Character} character The character who unlocked the panel.
    */
   // eslint-disable-next-line no-unused-vars
-  JABS_Engine.prototype.onSdpPanelUnlocked = function(sdpKey, character) 
-  {};
+  JABS_Engine.prototype.onSdpPanelUnlocked = function(sdpKey, character)
+  {
+  };
 
   /**
    * Creates the log entry if using the J-LOG.
