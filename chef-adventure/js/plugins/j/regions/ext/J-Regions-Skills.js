@@ -1,8 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc
- * [v1.0.0 REGIONS-SKILLS] Enables execution of skills via region ids.
+ * @plugindesc [v1.0.0 REGION-SKILLS] Enables execution of skills via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -165,12 +164,6 @@ var J_RegionSkillsPluginMetadata = class extends PluginMetadata {
 };
 
 //#endregion
-//#region src/plugins/regions/ext/skills/_metadata/meta.js
-var PLUGIN_NAME = "J-Region-Skills";
-var PLUGIN_VERSION = "1.0.0";
-var PLUGIN_DESC_TAG = "REGION-SKILLS";
-
-//#endregion
 //#region src/plugins/regions/ext/skills/_metadata/initialization.js
 /**
 * The core where all of my extensions live: in the `J` object.
@@ -187,7 +180,7 @@ J.REGIONS.EXT.SKILLS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata(PLUGIN_NAME, PLUGIN_VERSION);
+J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata("J-Region-Skills", "1.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

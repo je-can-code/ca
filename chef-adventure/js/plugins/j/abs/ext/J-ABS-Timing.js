@@ -260,661 +260,419 @@
  *
  */
 
-//region Introduction
-/**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
+//#region src/plugins/abs/ext/timing/_metadata/_pluginMetadata.js
+var J_TimingPluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+	/**
+	* Extends {@link #postInitialize}.<br>
+	* Maps cast/cooldown tuning from plugin parameters.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		this.initializeMetadata();
+	}
+	/**
+	* Initializes the metadata associated with this plugin.
+	*/
+	initializeMetadata() {
+		/**
+		* The base cast speed modifier applied globally before notetags.
+		* @type {number}
+		*/
+		this.BaseCastSpeed = Number(this.parsedPluginParameters["baseCastSpeed"] ?? 0);
+		/**
+		* The minimum cast time in frames.
+		* @type {number}
+		*/
+		this.MinimumCastTime = Number(this.parsedPluginParameters["minimumCastTime"] ?? 0);
+		/**
+		* The base fast cooldown modifier applied globally before notetags.
+		* @type {number}
+		*/
+		this.BaseFastCooldown = Number(this.parsedPluginParameters["baseFastCooldown"] ?? 0);
+		/**
+		* The minimum cooldown in frames.
+		* @type {number}
+		*/
+		this.MinimumCooldown = Number(this.parsedPluginParameters["minimumCooldown"] ?? 0);
+	}
+};
 
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '3.0.0';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
-
-  // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.6.0';
-  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
-  if (!hasJabsRequirement)
-  {
-    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
-  }
+//#endregion
+//#region src/plugins/abs/ext/timing/_metadata/initialization.js
+globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "3.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (!hasBaseRequirement) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+	const requiredJabsVersion = "4.6.0";
+	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
+	if (!hasJabsRequirement) {
+		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
+	}
 })();
-//endregion version check
-
 /**
- * The plugin umbrella that governs all things related to this extension plugin.
- */
+* The plugin umbrella that governs all things related to this extension plugin.
+*/
 J.ABS.EXT.TIMING = {};
-
 /**
- * The `metadata` associated with this plugin, such as version.
- */
-J.ABS.EXT.TIMING.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-ABS-Timing`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.1',
-};
-
-J.ABS.EXT.TIMING.PluginParameters = PluginManager.parameters(J.ABS.EXT.TIMING.Metadata.Name);
-
-J.ABS.EXT.TIMING.Metadata = {
-  ...J.ABS.EXT.TIMING.Metadata,
-
-  /**
-   * The base cast speed modifier applied globally before notetags.
-   * @type {number}
-   */
-  BaseCastSpeed: Number(J.ABS.EXT.TIMING.PluginParameters['baseCastSpeed'] ?? 0),
-
-  /**
-   * The minimum cast time in frames.
-   * @type {number}
-   */
-  MinimumCastTime: Number(J.ABS.EXT.TIMING.PluginParameters['minimumCastTime'] ?? 0),
-
-  /**
-   * The base fast cooldown modifier applied globally before notetags.
-   * @type {number}
-   */
-  BaseFastCooldown: Number(J.ABS.EXT.TIMING.PluginParameters['baseFastCooldown'] ?? 0),
-
-  /**
-   * The minimum cooldown in frames.
-   * @type {number}
-   */
-  MinimumCooldown: Number(J.ABS.EXT.TIMING.PluginParameters['minimumCooldown'] ?? 0),
-};
-
+* The metadata associated with this plugin.
+*/
+J.ABS.EXT.TIMING.Metadata = new J_TimingPluginMetadata("J-ABS-Timing", "1.0.2");
 /**
- * A collection of all aliased methods for this plugin.
- */
+* A collection of all aliased methods for this plugin.
+*/
 J.ABS.EXT.TIMING.Aliased = {
-  Game_Actor: new Map(),
-  Game_Battler: new Map(),
-  Game_BattlerBase: new Map(),
-  Game_Enemy: new Map(),
-  JABS_Action: new Map(),
+	Game_Actor: new Map(),
+	Game_Battler: new Map(),
+	Game_BattlerBase: new Map(),
+	Game_Enemy: new Map(),
+	JABS_Action: new Map()
 };
-
 /**
- * All regular expressions used by this plugin.
- */
+* All regular expressions used by this plugin.
+*/
 J.ABS.EXT.TIMING.RegExp = {
-  BaseCastSpeed: /<baseCastTime:\[([+\-*/ ().\w]+)]>/gi,
-  CastSpeedFlat: /<castTimeFlat:\[([+\-*/ ().\w]+)]>/gi,
-  CastSpeedRate: /<castTimePercent:\[([+\-*/ ().\w]+)]>/gi,
-  BaseFastCooldown: /<baseFastCooldown:\[([+\-*/ ().\w]+)]>/gi,
-  FastCooldownFlat: /<fastCooldownFlat:\[([+\-*/ ().\w]+)]>/gi,
-  FastCooldownRate: /<fastCooldownRate:\[([+\-*/ ().\w]+)]>/gi,
+	BaseCastSpeed: /<baseCastTime:\[([+\-*/ ().\w]+)]>/gi,
+	CastSpeedFlat: /<castTimeFlat:\[([+\-*/ ().\w]+)]>/gi,
+	CastSpeedRate: /<castTimePercent:\[([+\-*/ ().\w]+)]>/gi,
+	BaseFastCooldown: /<baseFastCooldown:\[([+\-*/ ().\w]+)]>/gi,
+	FastCooldownFlat: /<fastCooldownFlat:\[([+\-*/ ().\w]+)]>/gi,
+	FastCooldownRate: /<fastCooldownRate:\[([+\-*/ ().\w]+)]>/gi
 };
-//endregion Introduction
 
-//region JABS_Action
+//#endregion
+//#region src/plugins/abs/ext/timing/_models/JABS_Action.js
 /**
- * Extends {@link JABS_Action.getCastTime}.<br>
- * Applies cast speed into the equation of determining cast time.
- */
-J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCastTime', JABS_Action.prototype.getCastTime);
-JABS_Action.prototype.getCastTime = function()
-{
-  // perform original logic to get regular cast time.
-  const skillCastTime = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCastTime')
-    .call(this);
-
-  // grab the caster.
-  const caster = this.getCaster()
-    .getBattler();
-
-  // if we have no caster, then don't try to calculate it.
-  if (!caster) return skillCastTime;
-
-  // calculate the cast time.
-  const actualCastTime = caster.applyCastSpeed(skillCastTime);
-
-  // return the actual cast time.
-  return actualCastTime;
+* Extends {@link JABS_Action.getCastTime}.<br>
+* Applies cast speed into the equation of determining cast time.
+*/
+J.ABS.EXT.TIMING.Aliased.JABS_Action.set("getCastTime", JABS_Action.prototype.getCastTime);
+JABS_Action.prototype.getCastTime = function() {
+	const skillCastTime = J.ABS.EXT.TIMING.Aliased.JABS_Action.get("getCastTime").call(this);
+	const caster = this.getCaster().getBattler();
+	if (!caster) return skillCastTime;
+	const actualCastTime = caster.applyCastSpeed(skillCastTime);
+	return actualCastTime;
 };
-
 /**
- * Extends {@link JABS_Action.getCooldown}.<br>
- * Applies fast cooldown into the equation of determining cooldown time.
- */
-J.ABS.EXT.TIMING.Aliased.JABS_Action.set('getCooldown', JABS_Action.prototype.getCooldown);
-JABS_Action.prototype.getCooldown = function()
-{
-  // perform original logic to get regular cooldown.
-  const skillCooldown = J.ABS.EXT.TIMING.Aliased.JABS_Action.get('getCooldown')
-    .call(this);
-
-  // grab the caster.
-  const caster = this.getCaster()
-    .getBattler();
-
-  // if we have no caster, then don't try to calculate it.
-  if (!caster) return skillCooldown;
-
-  // calculate the cooldown.
-  const actualCooldown = caster.applyFastCooldown(skillCooldown);
-
-  // return the actual cooldown.
-  return actualCooldown;
+* Extends {@link JABS_Action.getCooldown}.<br>
+* Applies fast cooldown into the equation of determining cooldown time.
+*/
+J.ABS.EXT.TIMING.Aliased.JABS_Action.set("getCooldown", JABS_Action.prototype.getCooldown);
+JABS_Action.prototype.getCooldown = function() {
+	const skillCooldown = J.ABS.EXT.TIMING.Aliased.JABS_Action.get("getCooldown").call(this);
+	const caster = this.getCaster().getBattler();
+	if (!caster) return skillCooldown;
+	const actualCooldown = caster.applyFastCooldown(skillCooldown);
+	return actualCooldown;
 };
-//endregion JABS_Action
 
-//region Game_Battler
+//#endregion
+//#region src/plugins/abs/ext/timing/objects/Game_Battler.js
 /**
- * Extends `initMembers()` to include initialization of our new parameters.
- */
-J.ABS.EXT.TIMING.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
-Game_Battler.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.ABS.EXT.TIMING.Aliased.Game_Battler.get('initMembers')
-    .call(this);
-
-  // initialize the extra members.
-  this.initActionUpgrades1();
+* Extends `initMembers()` to include initialization of our new parameters.
+*/
+J.ABS.EXT.TIMING.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
+Game_Battler.prototype.initMembers = function() {
+	J.ABS.EXT.TIMING.Aliased.Game_Battler.get("initMembers").call(this);
+	this.initActionUpgrades1();
 };
-
 /**
- * Initializes the extra properties for the action upgrades..
- */
-Game_Battler.prototype.initActionUpgrades1 = function()
-{
-  /**
-   * The J object where all my additional properties live.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with JABS.
-   */
-  this._j._abs ||= {};
-
-  /**
-   * A grouping of all JABS properties associated with the set-1 of action upgrades.
-   */
-  this._j._abs._timing = {};
-
-  /**
-   * The cached value for fast cooldown's base modifier.
-   * @type {number}
-   */
-  this._j._abs._timing._baseFastCooldown = 0;
-
-  /**
-   * The cached value for fast cooldown's flat modifier.
-   * @type {number}
-   */
-  this._j._abs._timing._fastCooldownFlat = 0;
-
-  /**
-   * The cached value for the fast cooldown's multiplicative modifier.
-   * @type {number}
-   */
-  this._j._abs._timing._fastCooldownRate = 0;
-
-  /**
-   * The cached value for the cast speed's base modifier.
-   * @type {number}
-   */
-  this._j._abs._timing._baseCastSpeed = 0;
-
-  /**
-   * The cached value for the cast speed's flat modifier.
-   * @type {number}
-   */
-  this._j._abs._timing._castSpeedFlat = 0;
-
-  /**
-   * The cached value for the cast speed's multiplicative modifier.
-   * @type {number}
-   */
-  this._j._abs._timing._castSpeedRate = 0;
+* Initializes the extra properties for the action upgrades..
+*/
+Game_Battler.prototype.initActionUpgrades1 = function() {
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with JABS.
+	*/
+	this._j._abs ||= {};
+	/**
+	* A grouping of all JABS properties associated with the set-1 of action upgrades.
+	*/
+	this._j._abs._timing = {};
+	/**
+	* The cached value for fast cooldown's base modifier.
+	* @type {number}
+	*/
+	this._j._abs._timing._baseFastCooldown = 0;
+	/**
+	* The cached value for fast cooldown's flat modifier.
+	* @type {number}
+	*/
+	this._j._abs._timing._fastCooldownFlat = 0;
+	/**
+	* The cached value for the fast cooldown's multiplicative modifier.
+	* @type {number}
+	*/
+	this._j._abs._timing._fastCooldownRate = 0;
+	/**
+	* The cached value for the cast speed's base modifier.
+	* @type {number}
+	*/
+	this._j._abs._timing._baseCastSpeed = 0;
+	/**
+	* The cached value for the cast speed's flat modifier.
+	* @type {number}
+	*/
+	this._j._abs._timing._castSpeedFlat = 0;
+	/**
+	* The cached value for the cast speed's multiplicative modifier.
+	* @type {number}
+	*/
+	this._j._abs._timing._castSpeedRate = 0;
 };
-
-//region getters & setters & updates
 /**
- * Gets the cached fast cooldown base value.
- * @returns {number}
- */
-Game_Battler.prototype.getBaseFastCooldown = function()
-{
-  return this._j._abs._timing._baseFastCooldown;
+* Gets the cached fast cooldown base value.
+* @returns {number}
+*/
+Game_Battler.prototype.getBaseFastCooldown = function() {
+	return this._j._abs._timing._baseFastCooldown;
 };
-
 /**
- * Sets the cached fast cooldown base value.
- * @param {number} amount The new amount.
- */
-Game_Battler.prototype.setBaseFastCooldown = function(amount)
-{
-  this._j._abs._timing._baseFastCooldown = amount;
+* Sets the cached fast cooldown base value.
+* @param {number} amount The new amount.
+*/
+Game_Battler.prototype.setBaseFastCooldown = function(amount) {
+	this._j._abs._timing._baseFastCooldown = amount;
 };
-
 /**
- * Updates the cached fast cooldown base value with the latest.
- */
-Game_Battler.prototype.updateBaseFastCooldown = function()
-{
-  // get the current fast cooldown base modifier.
-  const currentFastCooldownFlat = this.baseFastCooldown();
-
-  // update the fast cooldown base modifier.
-  this.setBaseFastCooldown(currentFastCooldownFlat);
+* Updates the cached fast cooldown base value with the latest.
+*/
+Game_Battler.prototype.updateBaseFastCooldown = function() {
+	const currentFastCooldownFlat = this.baseFastCooldown();
+	this.setBaseFastCooldown(currentFastCooldownFlat);
 };
-
-
 /**
- * Gets the cached fast cooldown flat value.
- * @returns {number}
- */
-Game_Battler.prototype.getFastCooldownFlat = function()
-{
-  return this._j._abs._timing._fastCooldownFlat;
+* Gets the cached fast cooldown flat value.
+* @returns {number}
+*/
+Game_Battler.prototype.getFastCooldownFlat = function() {
+	return this._j._abs._timing._fastCooldownFlat;
 };
-
 /**
- * Sets the cached fast cooldown flat value.
- * @param {number} amount The new amount.
- */
-Game_Battler.prototype.setFastCooldownFlat = function(amount)
-{
-  this._j._abs._timing._fastCooldownFlat = amount;
+* Sets the cached fast cooldown flat value.
+* @param {number} amount The new amount.
+*/
+Game_Battler.prototype.setFastCooldownFlat = function(amount) {
+	this._j._abs._timing._fastCooldownFlat = amount;
 };
-
 /**
- * Updates the cached fast cooldown flat value with the latest.
- */
-Game_Battler.prototype.updateFastCooldownFlat = function()
-{
-  // get the current fast cooldown flat modifier.
-  const currentFastCooldownFlat = this.fastCooldownFlat();
-
-  // update the fast cooldown flat modifier.
-  this.setFastCooldownFlat(currentFastCooldownFlat);
+* Updates the cached fast cooldown flat value with the latest.
+*/
+Game_Battler.prototype.updateFastCooldownFlat = function() {
+	const currentFastCooldownFlat = this.fastCooldownFlat();
+	this.setFastCooldownFlat(currentFastCooldownFlat);
 };
-
 /**
- * Gets the cached fast cooldown rate value.
- * @returns {number}
- */
-Game_Battler.prototype.getFastCooldownRate = function()
-{
-  return this._j._abs._timing._fastCooldownRate;
+* Gets the cached fast cooldown rate value.
+* @returns {number}
+*/
+Game_Battler.prototype.getFastCooldownRate = function() {
+	return this._j._abs._timing._fastCooldownRate;
 };
-
 /**
- * Sets the cached fast cooldown rate value.
- * @param {number} amount The new amount.
- */
-Game_Battler.prototype.setFastCooldownRate = function(amount)
-{
-  this._j._abs._timing._fastCooldownRate = amount;
+* Sets the cached fast cooldown rate value.
+* @param {number} amount The new amount.
+*/
+Game_Battler.prototype.setFastCooldownRate = function(amount) {
+	this._j._abs._timing._fastCooldownRate = amount;
 };
-
 /**
- * Updates the cached fast cooldown rate value with the latest.
- */
-Game_Battler.prototype.updateFastCooldownRate = function()
-{
-  // get the current fast cooldown rate modifier.
-  const currentFastCooldownRate = this.fastCooldownRate();
-
-  // update the fast cooldown rate modifier.
-  this.setFastCooldownRate(currentFastCooldownRate);
+* Updates the cached fast cooldown rate value with the latest.
+*/
+Game_Battler.prototype.updateFastCooldownRate = function() {
+	const currentFastCooldownRate = this.fastCooldownRate();
+	this.setFastCooldownRate(currentFastCooldownRate);
 };
-
 /**
- * Gets the cached cast speed base value.
- * @returns {number}
- */
-Game_Battler.prototype.getBaseCastSpeed = function()
-{
-  return this._j._abs._timing._baseCastSpeed;
+* Gets the cached cast speed base value.
+* @returns {number}
+*/
+Game_Battler.prototype.getBaseCastSpeed = function() {
+	return this._j._abs._timing._baseCastSpeed;
 };
-
 /**
- * Sets the cached cast speed base value.
- * @param {number} amount The new amount.
- */
-Game_Battler.prototype.setBaseCastSpeed = function(amount)
-{
-  this._j._abs._timing._baseCastSpeed = amount;
+* Sets the cached cast speed base value.
+* @param {number} amount The new amount.
+*/
+Game_Battler.prototype.setBaseCastSpeed = function(amount) {
+	this._j._abs._timing._baseCastSpeed = amount;
 };
-
 /**
- * Updates the cached cast speed base value with the latest.
- */
-Game_Battler.prototype.updateBaseCastSpeed = function()
-{
-  // get the current cast speed base modifier.
-  const currentBaseCastSpeed = this.baseCastSpeed();
-
-  // update the cast speed base modifier.
-  this.setBaseCastSpeed(currentBaseCastSpeed);
+* Updates the cached cast speed base value with the latest.
+*/
+Game_Battler.prototype.updateBaseCastSpeed = function() {
+	const currentBaseCastSpeed = this.baseCastSpeed();
+	this.setBaseCastSpeed(currentBaseCastSpeed);
 };
-
 /**
- * Gets the cached cast speed flat value.
- * @returns {number}
- */
-Game_Battler.prototype.getCastSpeedFlat = function()
-{
-  return this._j._abs._timing._castSpeedFlat;
+* Gets the cached cast speed flat value.
+* @returns {number}
+*/
+Game_Battler.prototype.getCastSpeedFlat = function() {
+	return this._j._abs._timing._castSpeedFlat;
 };
-
 /**
- * Sets the cached cast speed flat value.
- * @param {number} amount The new amount.
- */
-Game_Battler.prototype.setCastSpeedFlat = function(amount)
-{
-  this._j._abs._timing._castSpeedFlat = amount;
+* Sets the cached cast speed flat value.
+* @param {number} amount The new amount.
+*/
+Game_Battler.prototype.setCastSpeedFlat = function(amount) {
+	this._j._abs._timing._castSpeedFlat = amount;
 };
-
 /**
- * Updates the cached cast speed flat value with the latest.
- */
-Game_Battler.prototype.updateCastSpeedFlat = function()
-{
-  // get the current cast speed flat modifier.
-  const currentCastSpeedFlat = this.castSpeedFlat();
-
-  // update the cast speed flat modifier.
-  this.setCastSpeedFlat(currentCastSpeedFlat);
+* Updates the cached cast speed flat value with the latest.
+*/
+Game_Battler.prototype.updateCastSpeedFlat = function() {
+	const currentCastSpeedFlat = this.castSpeedFlat();
+	this.setCastSpeedFlat(currentCastSpeedFlat);
 };
-
 /**
- * Gets the cached cast speed rate value.
- * @returns {number}
- */
-Game_Battler.prototype.getCastSpeedRate = function()
-{
-  return this._j._abs._timing._castSpeedRate;
+* Gets the cached cast speed rate value.
+* @returns {number}
+*/
+Game_Battler.prototype.getCastSpeedRate = function() {
+	return this._j._abs._timing._castSpeedRate;
 };
-
 /**
- * Sets the cached cast speed rate value.
- * @param {number} amount The new amount.
- */
-Game_Battler.prototype.setCastSpeedRate = function(amount)
-{
-  this._j._abs._timing._castSpeedRate = amount;
+* Sets the cached cast speed rate value.
+* @param {number} amount The new amount.
+*/
+Game_Battler.prototype.setCastSpeedRate = function(amount) {
+	this._j._abs._timing._castSpeedRate = amount;
 };
-
 /**
- * Updates the cached cast speed rate value with the latest.
- */
-Game_Battler.prototype.updateCastSpeedRate = function()
-{
-  // get the current cast speed rate modifier.
-  const currentCastSpeedRate = this.castSpeedFlat();
-
-  // update the cast speed rate modifier.
-  this.setCastSpeedRate(currentCastSpeedRate);
+* Updates the cached cast speed rate value with the latest.
+*/
+Game_Battler.prototype.updateCastSpeedRate = function() {
+	const currentCastSpeedRate = this.castSpeedFlat();
+	this.setCastSpeedRate(currentCastSpeedRate);
 };
-//endregion getters & setters & updates
-
-//region cast speed
 /**
- * The base cast speed multiplier.
- * A battler's base cast speed defines the default multiplier for how long it takes to cast.
- * @returns {number} The base multiplier for this battler.
- */
-Game_Battler.prototype.baseCastSpeed = function()
-{
-  // grab everything with notes.
-  const objectsToCheck = this.getAllNotes();
-
-  const baseParam = J.ABS.EXT.TIMING.Metadata.BaseCastSpeed;
-
-  // sum together all the csp flat modifiers.
-  const baseCsp = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
-    J.ABS.EXT.TIMING.RegExp.BaseCastSpeed,
-    baseParam,
-    this);
-
-  // return the sum of base flat csp found.
-  return baseCsp;
+* The base cast speed multiplier.
+* A battler's base cast speed defines the default multiplier for how long it takes to cast.
+* @returns {number} The base multiplier for this battler.
+*/
+Game_Battler.prototype.baseCastSpeed = function() {
+	const objectsToCheck = this.getAllNotes();
+	const baseParam = J.ABS.EXT.TIMING.Metadata.BaseCastSpeed;
+	const baseCsp = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.ABS.EXT.TIMING.RegExp.BaseCastSpeed, baseParam, this);
+	return baseCsp;
 };
-
 /**
- * Gets the flat modifier for this battler's cast speed.
- * @returns {number}
- */
-Game_Battler.prototype.castSpeedFlat = function()
-{
-  // grab everything with notes.
-  const objectsToCheck = this.getAllNotes();
-
-  // grab the base parameter value.
-  const baseParam = this.baseCastSpeed();
-
-  // sum together all the csp flat modifiers.
-  const cspFlat = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
-    J.ABS.EXT.TIMING.RegExp.CastSpeedFlat,
-    baseParam,
-    this);
-
-  // return the sum of flat csp found.
-  return cspFlat;
+* Gets the flat modifier for this battler's cast speed.
+* @returns {number}
+*/
+Game_Battler.prototype.castSpeedFlat = function() {
+	const objectsToCheck = this.getAllNotes();
+	const baseParam = this.baseCastSpeed();
+	const cspFlat = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.ABS.EXT.TIMING.RegExp.CastSpeedFlat, baseParam, this);
+	return cspFlat;
 };
-
 /**
- * Gets the multiplier for this battler's cast speed.
- * @returns {number}
- */
-Game_Battler.prototype.castSpeedRate = function()
-{
-  // grab everything with notes.
-  const objectsToCheck = this.getAllNotes();
-
-  // grab the base parameter value.
-  const baseParam = this.baseCastSpeed();
-
-  // sum together all the csp rate modifiers.
-  const cspRate = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
-    J.ABS.EXT.TIMING.RegExp.CastSpeedRate,
-    baseParam,
-    this);
-
-  // return the amount.
-  return cspRate;
+* Gets the multiplier for this battler's cast speed.
+* @returns {number}
+*/
+Game_Battler.prototype.castSpeedRate = function() {
+	const objectsToCheck = this.getAllNotes();
+	const baseParam = this.baseCastSpeed();
+	const cspRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.ABS.EXT.TIMING.RegExp.CastSpeedRate, baseParam, this);
+	return cspRate;
 };
-
 /**
- * Calculates the cast speed based on the various parameters.
- * @param {number} originalCastTime The original cast time in frames.
- * @returns {number} The new amount of frames to wait.
- */
-Game_Battler.prototype.applyCastSpeed = function(originalCastTime)
-{
-  // short circuit for no cast times.
-  if (!originalCastTime) return 0;
-
-  // get the base multiplier.
-  const baseParam = this.baseCastSpeed();
-
-  // grab the flat modifier.
-  const flatModifier = this.castSpeedFlat();
-
-  // grab the multiplier from effective locations.
-  const multModifier = this.castSpeedRate();
-
-  // short circuit before calculations if we have no values.
-  if (!baseParam && !flatModifier && !multModifier) return originalCastTime;
-
-  // determine the true base value.
-  const baseCastTime = (baseParam + flatModifier);
-
-  // determine the true multiplicative value.
-  const castTimeMultiplier = ((multModifier + 100) / 100);
-
-  // perform calculation- minimum of 1 frame cooldown time.
-  const calculatedCastTime = (originalCastTime * castTimeMultiplier) + baseCastTime;
-
-  // grab the minimum cooldown value.
-  const minimumCastTime = this.minimumCastTime();
-
-  // the actual cast time considering the minimum.
-  const actualCastTime = Math.max(calculatedCastTime, minimumCastTime);
-
-  // no fractions of frames!
-  return Math.round(actualCastTime);
+* Calculates the cast speed based on the various parameters.
+* @param {number} originalCastTime The original cast time in frames.
+* @returns {number} The new amount of frames to wait.
+*/
+Game_Battler.prototype.applyCastSpeed = function(originalCastTime) {
+	if (!originalCastTime) return 0;
+	const baseParam = this.baseCastSpeed();
+	const flatModifier = this.castSpeedFlat();
+	const multModifier = this.castSpeedRate();
+	if (!baseParam && !flatModifier && !multModifier) return originalCastTime;
+	const baseCastTime = baseParam + flatModifier;
+	const castTimeMultiplier = (multModifier + 100) / 100;
+	const calculatedCastTime = originalCastTime * castTimeMultiplier + baseCastTime;
+	const minimumCastTime = this.minimumCastTime();
+	const actualCastTime = Math.max(calculatedCastTime, minimumCastTime);
+	return Math.round(actualCastTime);
 };
-
 /**
- * The minimum cast time for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.minimumCastTime = function()
-{
-  return J.ABS.EXT.TIMING.Metadata.MinimumCastTime;
+* The minimum cast time for this battler.
+* @returns {number}
+*/
+Game_Battler.prototype.minimumCastTime = function() {
+	return J.ABS.EXT.TIMING.Metadata.MinimumCastTime;
 };
-//endregion castspeed
-
-//region fast cooldown
 /**
- * The base faster cooldown flat modifier.
- * A battler's faster cooldown value will reduce the number of frames
- * required to cooldown after a skill is executed.
- *
- * The mininum number of frames is 1 for a cooldown.
- * @returns {number} The base modifier for this battler.
- */
-Game_Battler.prototype.baseFastCooldown = function()
-{
-  // grab everything with notes.
-  const objectsToCheck = this.getAllNotes();
-
-  const baseParam = J.ABS.EXT.TIMING.Metadata.BaseFastCooldown;
-
-  // sum together all the fcd flat modifiers.
-  const baseFcd = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
-    J.ABS.EXT.TIMING.RegExp.BaseFastCooldown,
-    baseParam,
-    this);
-
-  // return the sum of base flat fcd found.
-  return baseFcd;
+* The base faster cooldown flat modifier.
+* A battler's faster cooldown value will reduce the number of frames
+* required to cooldown after a skill is executed.
+*
+* The mininum number of frames is 1 for a cooldown.
+* @returns {number} The base modifier for this battler.
+*/
+Game_Battler.prototype.baseFastCooldown = function() {
+	const objectsToCheck = this.getAllNotes();
+	const baseParam = J.ABS.EXT.TIMING.Metadata.BaseFastCooldown;
+	const baseFcd = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.ABS.EXT.TIMING.RegExp.BaseFastCooldown, baseParam, this);
+	return baseFcd;
 };
-
 /**
- * Gets the flat modifier for this battler's fast cooldown.
- * @returns {number}
- */
-Game_Battler.prototype.fastCooldownFlat = function()
-{
-  // grab everything with notes.
-  const objectsToCheck = this.getAllNotes();
-
-  // grab the base parameter value.
-  const baseParam = this.baseFastCooldown();
-
-  // sum together all the fcd flat modifiers.
-  const fcdFlat = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
-    J.ABS.EXT.TIMING.RegExp.FastCooldownFlat,
-    baseParam,
-    this);
-
-  // return the sum of flat fcd found.
-  return fcdFlat;
+* Gets the flat modifier for this battler's fast cooldown.
+* @returns {number}
+*/
+Game_Battler.prototype.fastCooldownFlat = function() {
+	const objectsToCheck = this.getAllNotes();
+	const baseParam = this.baseFastCooldown();
+	const fcdFlat = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.ABS.EXT.TIMING.RegExp.FastCooldownFlat, baseParam, this);
+	return fcdFlat;
 };
-
 /**
- * Gets the multiplicative modifier for this battler's fast cooldown.
- * @returns {number}
- */
-Game_Battler.prototype.fastCooldownRate = function()
-{
-  // grab everything with notes.
-  const objectsToCheck = this.getAllNotes();
-
-  // grab the base parameter value.
-  const baseParam = this.baseFastCooldown();
-
-  // grab the base parameter value.
-  const fcdRate = RPGManager.getResultsFromAllNotesByRegex(
-    objectsToCheck,
-    J.ABS.EXT.TIMING.RegExp.FastCooldownRate,
-    baseParam,
-    this);
-
-  // return the amount.
-  return fcdRate;
+* Gets the multiplicative modifier for this battler's fast cooldown.
+* @returns {number}
+*/
+Game_Battler.prototype.fastCooldownRate = function() {
+	const objectsToCheck = this.getAllNotes();
+	const baseParam = this.baseFastCooldown();
+	const fcdRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.ABS.EXT.TIMING.RegExp.FastCooldownRate, baseParam, this);
+	return fcdRate;
 };
-
 /**
- * Calculates the cooldown time based on the various parameters.
- * @param {number} originalCooldownTime The original cooldown time in frames.
- * @returns {number} The new amount of frames to wait.
- */
-Game_Battler.prototype.applyFastCooldown = function(originalCooldownTime)
-{
-  // short circuit before parameter checks if no required cooldown value.
-  if (!originalCooldownTime) return 0;
-
-  // get the base value.
-  // this.getBaseFastCooldown();.
-  const baseParam = this.baseFastCooldown();
-
-  // grab the flat modifier.
-  // this.getFastCooldownFlat();.
-  const flatModifier = this.fastCooldownFlat();
-
-  // grab the multiplicative modifier, and add the base-100 to the value.
-  // this.getFastCooldownRate();.
-  const multModifier = this.fastCooldownRate();
-
-  // short circuit before calculations if we have no values.
-  if (!baseParam && !flatModifier && !multModifier) return originalCooldownTime;
-
-  // determine the true base value.
-  const baseFastCooldown = (baseParam + flatModifier);
-
-  // determine the true multiplicative value.
-  const cooldownMultiplier = ((multModifier + 100) / 100);
-
-  // grab the minimum cooldown value.
-  const minimumCooldown = this.minimumCooldown();
-
-  // determine the true cooldown value.
-  const calculatedCooldown = (originalCooldownTime * cooldownMultiplier) + baseFastCooldown;
-
-  // perform calculation- minimum of 1 frame cooldown time.
-  const actualCooldown = Math.max(calculatedCooldown, minimumCooldown);
-
-  // no fractions of frames!
-  return Math.round(actualCooldown);
+* Calculates the cooldown time based on the various parameters.
+* @param {number} originalCooldownTime The original cooldown time in frames.
+* @returns {number} The new amount of frames to wait.
+*/
+Game_Battler.prototype.applyFastCooldown = function(originalCooldownTime) {
+	if (!originalCooldownTime) return 0;
+	const baseParam = this.baseFastCooldown();
+	const flatModifier = this.fastCooldownFlat();
+	const multModifier = this.fastCooldownRate();
+	if (!baseParam && !flatModifier && !multModifier) return originalCooldownTime;
+	const baseFastCooldown = baseParam + flatModifier;
+	const cooldownMultiplier = (multModifier + 100) / 100;
+	const minimumCooldown = this.minimumCooldown();
+	const calculatedCooldown = originalCooldownTime * cooldownMultiplier + baseFastCooldown;
+	const actualCooldown = Math.max(calculatedCooldown, minimumCooldown);
+	return Math.round(actualCooldown);
 };
-
 /**
- * The minimum cooldown for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.minimumCooldown = function()
-{
-  return J.ABS.EXT.TIMING.Metadata.MinimumCooldown;
+* The minimum cooldown for this battler.
+* @returns {number}
+*/
+Game_Battler.prototype.minimumCooldown = function() {
+	return J.ABS.EXT.TIMING.Metadata.MinimumCooldown;
 };
-//endregion fast cooldown
-//endregion Game_Battler
 
+//#endregion
 //# sourceMappingURL=J-ABS-Timing.js.map

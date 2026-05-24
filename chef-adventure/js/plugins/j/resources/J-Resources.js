@@ -1,8 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc
- * [v1.0.0 RESOURCES] Extends skill cost/gain system to include HP, MP, and TP.
+ * @plugindesc [v1.0.0 RESOURCES] Extends skill cost/gain system to include HP, MP, and TP.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -153,780 +152,541 @@
  */
 //endregion annotations
 
-//region plugin metadata
-class JResources_PluginMetadata
-  extends PluginMetadata
-{
-  /**
-   * Constructor.
-   */
-  constructor(name, version)
-  {
-    super(name, version);
-  }
-
-  /**
-   *  Extends {@link #postInitialize}.<br>
-   *  Includes translation of plugin parameters.
-   */
-  postInitialize()
-  {
-    // execute original logic.
-    super.postInitialize();
-
-    // initialize this plugin from configuration.
-    this.initializeMetadata();
-  }
-
-  /**
-   * Initializes the metadata associated with this plugin.
-   */
-  initializeMetadata()
-  {
-    /**
-     * The id of a switch that represents whether or not this system is accessible in the menu.
-     * @type {number}
-     */
-    this.menuSwitchId = parseInt(this.parsedPluginParameters['menu-switch']);
-  }
-}
-
-//endregion plugin metadata
-
-//region initialization
+//#region src/plugins/resources/core/_metadata/_pluginMetadata.js
 /**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
+* Plugin metadata for J-Resources.
+*/
+var JResources_PluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+	/**
+	*  Extends {@link #postInitialize}.<br>
+	*  Includes translation of plugin parameters.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		this.initializeMetadata();
+	}
+	/**
+	* Initializes the metadata associated with this plugin.
+	*/
+	initializeMetadata() {
+		/**
+		* The id of a switch that represents whether or not this system is accessible in the menu.
+		* @type {number}
+		*/
+		this.menuSwitchId = parseInt(this.parsedPluginParameters["menu-switch"]);
+	}
+};
 
+//#endregion
+//#region src/plugins/resources/core/_metadata/initialization.js
 /**
- * The plugin umbrella that governs all things related to this plugin.
- */
+* The core where all of my extensions live: in the `J` object.
+*/
+globalThis.J ||= {};
+/**
+* The plugin umbrella that governs all things related to this plugin.
+*/
 J.RESOURCES = {};
-
 /**
- * The plugin umbrella that governs all extensions related to the parent.
- */
+* The plugin umbrella that governs all extensions related to the parent.
+*/
 J.RESOURCES.EXT ||= {};
-
 /**
- * The metadata associated with this plugin.
- */
-J.RESOURCES.Metadata = new JResources_PluginMetadata('J-Resources', '1.0.0');
-
+* The metadata associated with this plugin.
+*/
+J.RESOURCES.Metadata = new JResources_PluginMetadata("J-Resources", "1.0.0");
 /**
- * A collection of all aliased methods for this plugin.
- */
+* A collection of all aliased methods for this plugin.
+*/
 J.RESOURCES.Aliased = {};
 J.RESOURCES.Aliased.IconManager = new Map();
 J.RESOURCES.Aliased.TextManager = new Map();
 J.RESOURCES.Aliased.Game_BattlerBase = new Map();
 J.RESOURCES.Aliased.Game_Battler = new Map();
-
 /**
- * All regular expressions used by this plugin.
- */
+* All regular expressions used by this plugin.
+*/
 J.RESOURCES.RegExp = {};
 J.RESOURCES.RegExp.HpCostReduction = /<hrc:\[([+\-*/ ().\w]+)]>/gi;
-
 J.RESOURCES.RegExp.HpCostFlat = /<hp-cost:(\d+)>/gi;
 J.RESOURCES.RegExp.HpCostPercent = /<hp-cost:(\d+)%>/gi;
 J.RESOURCES.RegExp.HpCostFormula = /<hp-cost:\[([+\-*/ ().\w]+)]>/gi;
 J.RESOURCES.RegExp.HpCostLethal = /<hp-cost-can-kill>/i;
-
 J.RESOURCES.RegExp.HpGainFlat = /<hp-gain:(\d+)>/i;
 J.RESOURCES.RegExp.HpGainPercent = /<hp-gain:(\d+)%>/i;
 J.RESOURCES.RegExp.HpGainFormula = /<hp-gain:\[([+\-*/ ().\w]+)]>/gi;
-
 J.RESOURCES.RegExp.MpCostFlat = /<mp-cost:(\d+)>/gi;
 J.RESOURCES.RegExp.MpCostPercent = /<mp-cost:(\d+)%>/gi;
 J.RESOURCES.RegExp.MpCostFormula = /<mp-cost:\[([+\-*/ ().\w]+)]>/gi;
-
 J.RESOURCES.RegExp.MpGainFlat = /<mp-gain:(\d+)>/i;
 J.RESOURCES.RegExp.MpGainPercent = /<mp-gain:(\d+)%>/i;
 J.RESOURCES.RegExp.MpGainFormula = /<mp-gain:\[([+\-*/ ().\w]+)]>/gi;
-
 J.RESOURCES.RegExp.TpCostFlat = /<tp-cost:(\d+)>/gi;
 J.RESOURCES.RegExp.TpCostPercent = /<tp-cost:(\d+)%>/gi;
 J.RESOURCES.RegExp.TpCostFormula = /<tp-cost:\[([+\-*/ ().\w]+)]>/gi;
-
 J.RESOURCES.RegExp.TpGainFlat = /<tp-gain:(\d+)>/i;
 J.RESOURCES.RegExp.TpGainPercent = /<tp-gain:(\d+)%>/i;
 J.RESOURCES.RegExp.TpGainFormula = /<tp-gain:\[([+\-*/ ().\w]+)]>/gi;
 
-//endregion initialization
-
-//region RPG_Traited
+//#endregion
+//#region src/plugins/resources/core/database/RPG_Traited.js
 /**
- * Gets the hp cost reduction for this battler.
- * @returns {number}
- */
-RPG_Traited.prototype.hcr = function()
-{
-  return RPGManager.getResultFromNoteByRegex(this, J.RESOURCES.RegExp.HpCostReduction, 0);
-};
-//endregion RPG_Traited
-
-//region ColorManager
-/**
- * Gets the color for HP costs.
- * Mirrors the existing {@link ColorManager.mpCostColor} and {@link ColorManager.tpCostColor}.
- * @returns {string} The hex color string for HP cost text.
- */
-ColorManager.hpCostColor = function()
-{
-  return this.textColor(18);
-};
-//endregion ColorManager
-
-//region IconManager
-/**
- * Gets the icon index for the HP skill cost parameter.
- * Mirrors {@link IconManager.sparam} entries for MCR (964) and TCR (965).
- * @returns {number}
- */
-IconManager.hpCost = function()
-{
-  return 928;
+* Gets the hp cost reduction for this battler.
+* @returns {number}
+*/
+RPG_Traited.prototype.hcr = function() {
+	return RPGManager.getResultFromNoteByRegex(this, J.RESOURCES.RegExp.HpCostReduction, 0);
 };
 
+//#endregion
+//#region src/plugins/resources/core/managers/ColorManager.js
 /**
- * Extends {@link IconManager.longParam}.<br/>
- * Adds longParam ID 34 for the HP cost icon.
- * J-Resources registers ID 34 for this purpose.
- * @param {number} paramId The long parameter id.
- * @returns {number}
- */
-J.RESOURCES.Aliased.IconManager.set('longParam', IconManager.longParam);
-IconManager.longParam = function(paramId)
-{
-  // handle the hp cost longParam id.
-  if (paramId === 34)
-  {
-    return this.hpCost();
-  }
-
-  // perform original logic.
-  return J.RESOURCES.Aliased.IconManager.get('longParam')
-    .call(this, paramId);
-};
-//endregion IconManager
-
-//region ResourceCostManager
-class ResourceCostManager
-{
-  /**
-   * Determines the individual cost components for a skill's HP cost.
-   * All component values are post-HCR.
-   * @param {Game_Actor|Game_Enemy} battler The battler to check.
-   * @param {RPG_Skill} skill The skill to check.
-   * @returns {{ flat: number, percent: number, calculatedPercent: number, formula: number }}
-   */
-  static hpCostBreakdown(battler, skill)
-  {
-    const flatRaw = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostFlat);
-    const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostPercent);
-    const calculatedPercentRaw = battler.mhp * (percent / 100);
-    const formulaRaw = RPGManager.getResultFromNoteByRegex(
-      skill,
-      J.RESOURCES.RegExp.HpCostFormula,
-      (flatRaw + calculatedPercentRaw),
-      battler
-    );
-    const hcr = battler.hcrFactor();
-    return {
-      flat: flatRaw * hcr,
-      percent,
-      calculatedPercent: calculatedPercentRaw * hcr,
-      formula: formulaRaw * hcr,
-    };
-  }
-
-  /**
-   * Determines the amount of HP cost for a skill.
-   * @param {Game_Actor|Game_Enemy} battler The battler to check.
-   * @param {RPG_Skill} skill The skill to check.
-   * @returns {number}
-   */
-  static hpCostBySkill(battler, skill)
-  {
-    const {
-      flat,
-      calculatedPercent,
-      formula
-    } = ResourceCostManager.hpCostBreakdown(battler, skill);
-
-    // if there are no costs, then return 0.
-    if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
-
-    // return the total cost (all components are already post-HCR from breakdown).
-    return flat + calculatedPercent + formula;
-  }
-
-  /**
-   * Determines the individual extra-tag cost components for a skill's MP cost.
-   * All component values are post-MCR.
-   * @param {Game_Actor|Game_Enemy} battler The battler to check.
-   * @param {RPG_Skill} skill The skill to check.
-   * @returns {{ flat: number, percent: number, calculatedPercent: number, formula: number }}
-   */
-  static extraMpCostBreakdown(battler, skill)
-  {
-    const flatRaw = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.MpCostFlat);
-    const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.MpCostPercent);
-    const calculatedPercentRaw = battler.mmp * (percent / 100);
-    const formulaRaw = RPGManager.getResultFromNoteByRegex(
-      skill,
-      J.RESOURCES.RegExp.MpCostFormula,
-      (flatRaw + calculatedPercentRaw),
-      battler
-    );
-    const { mcr } = battler;
-    return {
-      flat: flatRaw * mcr,
-      percent,
-      calculatedPercent: calculatedPercentRaw * mcr,
-      formula: formulaRaw * mcr,
-    };
-  }
-
-  /**
-   * Determines the additional amount of MP cost for a skill.
-   * @param {Game_Actor|Game_Enemy} battler The battler to check.
-   * @param {RPG_Skill} skill The skill to check.
-   * @returns {number}
-   */
-  static extraMpCostBySkill(battler, skill)
-  {
-    const {
-      flat,
-      calculatedPercent,
-      formula
-    } = ResourceCostManager.extraMpCostBreakdown(battler, skill);
-
-    // if there are no costs, then return 0.
-    if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
-
-    // return the total extra cost.
-    return flat + calculatedPercent + formula;
-  }
-
-  /**
-   * Determines the individual extra-tag cost components for a skill's TP cost.
-   * All component values are post-TCR.
-   * @param {Game_Actor|Game_Enemy} battler The battler to check.
-   * @param {RPG_Skill} skill The skill to check.
-   * @returns {{ flat: number, percent: number, calculatedPercent: number, formula: number }}
-   */
-  static extraTpCostBreakdown(battler, skill)
-  {
-    const flatRaw = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostFlat);
-    const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostPercent);
-    const calculatedPercentRaw = battler.mtp * (percent / 100);
-    const formulaRaw = RPGManager.getResultFromNoteByRegex(
-      skill,
-      J.RESOURCES.RegExp.TpCostFormula,
-      (flatRaw + calculatedPercentRaw),
-      battler
-    );
-    const { tcr } = battler;
-    return {
-      flat: flatRaw * tcr,
-      percent,
-      calculatedPercent: calculatedPercentRaw * tcr,
-      formula: formulaRaw * tcr,
-    };
-  }
-
-  /**
-   * Determines the additional amount of TP cost for a skill.
-   * @param {Game_Actor|Game_Enemy} battler The battler to check.
-   * @param {RPG_Skill} skill The skill to check.
-   * @returns {number}
-   */
-  static extraTpCostBySkill(battler, skill)
-  {
-    const {
-      flat,
-      calculatedPercent,
-      formula
-    } = ResourceCostManager.extraTpCostBreakdown(battler, skill);
-
-    // if there are no costs, then return 0.
-    if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
-
-    // return the total extra cost.
-    return flat + calculatedPercent + formula;
-  }
-
-  /**
-   * Calculate the amount of HP gained from a skill.
-   * @param {Game_Actor|Game_Enemy} battler The battler to gain hp.
-   * @param {RPG_Skill} skill The skill to gain hp from.
-   * @returns {number}
-   */
-  static skillGainHp(battler, skill)
-  {
-    // identify the true form of the skill.
-    const battlerSkill = battler.skill(skill.id);
-
-    // extract the gains from the skill's note.
-    const flatGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.HpGainFlat);
-    const percentGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.HpGainPercent);
-    const calculatedPercentGain = battler.mhp * (percentGain / 100);
-    const formulaGains = RPGManager.getResultFromNoteByRegex(
-      battlerSkill,
-      J.RESOURCES.RegExp.HpGainFormula,
-      (flatGain + calculatedPercentGain),
-      battler
-    );
-
-    // if there are no gains, then return 0.
-    if (flatGain === 0 && calculatedPercentGain === 0 && formulaGains === 0) return 0;
-
-    // add all the gains together and apply REC.
-    const gains = (flatGain + calculatedPercentGain + formulaGains) * battler.rec;
-
-    // return the total gains.
-    return gains;
-  }
-
-  /**
-   * Calculate the amount of MP gained from a skill.
-   * @param {Game_Actor|Game_Enemy} battler The battler to gain mp.
-   * @param {RPG_Skill} skill The skill to gain mp from.
-   * @returns {number}
-   */
-  static skillGainMp(battler, skill)
-  {
-    // identify the true form of the skill.
-    const battlerSkill = battler.skill(skill.id);
-
-    // extract the gains from the skill's note.
-    const flatGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.MpGainFlat);
-    const percentGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.MpGainPercent);
-    const calculatedPercentGain = battler.mmp * (percentGain / 100);
-    const formulaGains = RPGManager.getResultFromNoteByRegex(
-      battlerSkill,
-      J.RESOURCES.RegExp.MpGainFormula,
-      (flatGain + calculatedPercentGain),
-      battler
-    );
-
-    // if there are no gains, then return 0.
-    if (flatGain === 0 && calculatedPercentGain === 0 && formulaGains === 0) return 0;
-
-    // add all the gains together and apply REC.
-    const gains = (flatGain + calculatedPercentGain + formulaGains) * battler.rec;
-
-    // return the total gains.
-    return gains;
-  }
-
-  /**
-   * Calculate the amount of TP gained from a skill.
-   * @param {Game_Actor|Game_Enemy} battler The battler to gain tp.
-   * @param {RPG_Skill} skill The skill to gain tp from.
-   * @returns {number}
-   */
-  static skillGainTp(battler, skill)
-  {
-    // identify the true form of the skill.
-    const battlerSkill = battler.skill(skill.id);
-
-    // extract the gains from the skill's note.
-    const flatGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.TpGainFlat);
-    const percentGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.TpGainPercent);
-    const calculatedPercentGain = battler.mtp * (percentGain / 100);
-    const formulaGains = RPGManager.getResultFromNoteByRegex(
-      battlerSkill,
-      J.RESOURCES.RegExp.TpGainFormula,
-      (flatGain + calculatedPercentGain),
-      battler
-    );
-
-    // if there are no gains, then return 0.
-    if (flatGain === 0 && calculatedPercentGain === 0 && formulaGains === 0) return 0;
-
-    // add all the gains together and apply REC.
-    const gains = (flatGain + calculatedPercentGain + formulaGains) * battler.rec;
-
-    // return the total gains.
-    return gains;
-  }
-}
-
-//endregion ResourceCostManager
-
-//region TextManager
-/**
- * Gets the name of the HP skill cost parameter.
- * Mirrors {@link TextManager.sparam} entries for MCR ("Magi Cost") and TCR ("Tech Cost").
- * @returns {string}
- */
-TextManager.hpCost = function()
-{
-  return 'Life Cost';
+* Gets the color for HP costs.
+* Mirrors the existing {@link ColorManager.mpCostColor} and {@link ColorManager.tpCostColor}.
+* @returns {string} The hex color string for HP cost text.
+*/
+ColorManager.hpCostColor = function() {
+	return this.textColor(18);
 };
 
+//#endregion
+//#region src/plugins/resources/core/managers/IconManager.js
 /**
- * Extends {@link TextManager.longParam}.<br/>
- * Adds longParam ID 34 for the HP cost label.
- * J-Resources registers ID 34 for this purpose.
- * @param {number} paramId The long parameter id.
- * @returns {string}
- */
-J.RESOURCES.Aliased.TextManager.set('longParam', TextManager.longParam);
-TextManager.longParam = function(paramId)
-{
-  // handle the hp cost longParam id.
-  if (paramId === 34)
-  {
-    return this.hpCost();
-  }
-
-  // perform original logic.
-  return J.RESOURCES.Aliased.TextManager.get('longParam')
-    .call(this, paramId);
+* Gets the icon index for the HP skill cost parameter.
+* Mirrors {@link IconManager.sparam} entries for MCR (964) and TCR (965).
+* @returns {number}
+*/
+IconManager.hpCost = function() {
+	return 928;
 };
-//endregion TextManager
-
-//region Game_Actor
 /**
- * Gets all sources that contribute to the hp cost reduction.
- * @returns {[RPG_Actor, RPG_Class, RPG_EquipItem[], RPG_State[]]}
- */
-Game_Actor.prototype.hcrSources = function()
-{
-  return [
-    this.databaseData(),
-    this.currentClass(),
-    ...this.equippedEquips(),
-    ...this.allStates(),
-  ];
-};
-//endregion Game_Actor
-
-//region Game_Battler
-/**
- * Extends {@link #initMembers}.<br/>
- * Also initializes the resources members.
- */
-J.RESOURCES.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
-Game_Battler.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.RESOURCES.Aliased.Game_Battler.get('initMembers')
-    .call(this);
-
-  // also init our resources members.
-  this.initResourcesMembers();
+* Extends {@link IconManager.longParam}.<br/>
+* Adds longParam ID 34 for the HP cost icon.
+* J-Resources registers ID 34 for this purpose.
+* @param {number} paramId The long parameter id.
+* @returns {number}
+*/
+J.RESOURCES.Aliased.IconManager.set("longParam", IconManager.longParam);
+IconManager.longParam = function(paramId) {
+	if (paramId === 34) {
+		return this.hpCost();
+	}
+	return J.RESOURCES.Aliased.IconManager.get("longParam").call(this, paramId);
 };
 
+//#endregion
+//#region src/plugins/resources/core/managers/TextManager.js
 /**
- * Initializes the resources members.
- */
-Game_Battler.prototype.initResourcesMembers = function()
-{
-  /**
-   * The J object where all my additional properties live.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with resources.
-   */
-  this._j._resources ||= {};
-
-  /**
-   * The hp cost reduction for this battler.
-   * @type {number}
-   */
-  if (typeof this._j._hcr !== 'number' || Number.isNaN(this._j._hcr))
-  {
-    this._j._hcr = 100;
-  }
+* Gets the name of the HP skill cost parameter.
+* Mirrors {@link TextManager.sparam} entries for MCR ("Magi Cost") and TCR ("Tech Cost").
+* @returns {string}
+*/
+TextManager.hpCost = function() {
+	return "Life Cost";
+};
+/**
+* Extends {@link TextManager.longParam}.<br/>
+* Adds longParam ID 34 for the HP cost label.
+* J-Resources registers ID 34 for this purpose.
+* @param {number} paramId The long parameter id.
+* @returns {string}
+*/
+J.RESOURCES.Aliased.TextManager.set("longParam", TextManager.longParam);
+TextManager.longParam = function(paramId) {
+	if (paramId === 34) {
+		return this.hpCost();
+	}
+	return J.RESOURCES.Aliased.TextManager.get("longParam").call(this, paramId);
 };
 
-/**
- * Saves from before J-Resources may omit `_hcr` on `_j`. {@link #refreshHcr} repopulates it from traits.
- */
-Game_Battler.prototype._ensureHcrInitializedForResources = function()
-{
-  this._j ||= {};
-  this._j._resources ||= {};
-  if (typeof this._j._hcr !== 'number' || Number.isNaN(this._j._hcr))
-  {
-    this.refreshHcr();
-  }
+//#endregion
+//#region src/plugins/resources/core/managers/ResourceManager.js
+var ResourceCostManager = class ResourceCostManager {
+	/**
+	* Determines the individual cost components for a skill's HP cost.
+	* All component values are post-HCR.
+	* @param {Game_Actor|Game_Enemy} battler The battler to check.
+	* @param {RPG_Skill} skill The skill to check.
+	* @returns {{ flat: number, percent: number, calculatedPercent: number, formula: number }}
+	*/
+	static hpCostBreakdown(battler, skill) {
+		const flatRaw = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostFlat);
+		const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostPercent);
+		const calculatedPercentRaw = battler.mhp * (percent / 100);
+		const formulaRaw = RPGManager.getResultFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostFormula, flatRaw + calculatedPercentRaw, battler);
+		const hcr = battler.hcrFactor();
+		return {
+			flat: flatRaw * hcr,
+			percent,
+			calculatedPercent: calculatedPercentRaw * hcr,
+			formula: formulaRaw * hcr
+		};
+	}
+	/**
+	* Determines the amount of HP cost for a skill.
+	* @param {Game_Actor|Game_Enemy} battler The battler to check.
+	* @param {RPG_Skill} skill The skill to check.
+	* @returns {number}
+	*/
+	static hpCostBySkill(battler, skill) {
+		const { flat, calculatedPercent, formula } = ResourceCostManager.hpCostBreakdown(battler, skill);
+		if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
+		return flat + calculatedPercent + formula;
+	}
+	/**
+	* Determines the individual extra-tag cost components for a skill's MP cost.
+	* All component values are post-MCR.
+	* @param {Game_Actor|Game_Enemy} battler The battler to check.
+	* @param {RPG_Skill} skill The skill to check.
+	* @returns {{ flat: number, percent: number, calculatedPercent: number, formula: number }}
+	*/
+	static extraMpCostBreakdown(battler, skill) {
+		const flatRaw = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.MpCostFlat);
+		const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.MpCostPercent);
+		const calculatedPercentRaw = battler.mmp * (percent / 100);
+		const formulaRaw = RPGManager.getResultFromNoteByRegex(skill, J.RESOURCES.RegExp.MpCostFormula, flatRaw + calculatedPercentRaw, battler);
+		const { mcr } = battler;
+		return {
+			flat: flatRaw * mcr,
+			percent,
+			calculatedPercent: calculatedPercentRaw * mcr,
+			formula: formulaRaw * mcr
+		};
+	}
+	/**
+	* Determines the additional amount of MP cost for a skill.
+	* @param {Game_Actor|Game_Enemy} battler The battler to check.
+	* @param {RPG_Skill} skill The skill to check.
+	* @returns {number}
+	*/
+	static extraMpCostBySkill(battler, skill) {
+		const { flat, calculatedPercent, formula } = ResourceCostManager.extraMpCostBreakdown(battler, skill);
+		if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
+		return flat + calculatedPercent + formula;
+	}
+	/**
+	* Determines the individual extra-tag cost components for a skill's TP cost.
+	* All component values are post-TCR.
+	* @param {Game_Actor|Game_Enemy} battler The battler to check.
+	* @param {RPG_Skill} skill The skill to check.
+	* @returns {{ flat: number, percent: number, calculatedPercent: number, formula: number }}
+	*/
+	static extraTpCostBreakdown(battler, skill) {
+		const flatRaw = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostFlat);
+		const percent = RPGManager.getNumberFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostPercent);
+		const calculatedPercentRaw = battler.mtp * (percent / 100);
+		const formulaRaw = RPGManager.getResultFromNoteByRegex(skill, J.RESOURCES.RegExp.TpCostFormula, flatRaw + calculatedPercentRaw, battler);
+		const { tcr } = battler;
+		return {
+			flat: flatRaw * tcr,
+			percent,
+			calculatedPercent: calculatedPercentRaw * tcr,
+			formula: formulaRaw * tcr
+		};
+	}
+	/**
+	* Determines the additional amount of TP cost for a skill.
+	* @param {Game_Actor|Game_Enemy} battler The battler to check.
+	* @param {RPG_Skill} skill The skill to check.
+	* @returns {number}
+	*/
+	static extraTpCostBySkill(battler, skill) {
+		const { flat, calculatedPercent, formula } = ResourceCostManager.extraTpCostBreakdown(battler, skill);
+		if (flat === 0 && calculatedPercent === 0 && formula === 0) return 0;
+		return flat + calculatedPercent + formula;
+	}
+	/**
+	* Calculate the amount of HP gained from a skill.
+	* @param {Game_Actor|Game_Enemy} battler The battler to gain hp.
+	* @param {RPG_Skill} skill The skill to gain hp from.
+	* @returns {number}
+	*/
+	static skillGainHp(battler, skill) {
+		const battlerSkill = battler.skill(skill.id);
+		const flatGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.HpGainFlat);
+		const percentGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.HpGainPercent);
+		const calculatedPercentGain = battler.mhp * (percentGain / 100);
+		const formulaGains = RPGManager.getResultFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.HpGainFormula, flatGain + calculatedPercentGain, battler);
+		if (flatGain === 0 && calculatedPercentGain === 0 && formulaGains === 0) return 0;
+		const gains = (flatGain + calculatedPercentGain + formulaGains) * battler.rec;
+		return gains;
+	}
+	/**
+	* Calculate the amount of MP gained from a skill.
+	* @param {Game_Actor|Game_Enemy} battler The battler to gain mp.
+	* @param {RPG_Skill} skill The skill to gain mp from.
+	* @returns {number}
+	*/
+	static skillGainMp(battler, skill) {
+		const battlerSkill = battler.skill(skill.id);
+		const flatGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.MpGainFlat);
+		const percentGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.MpGainPercent);
+		const calculatedPercentGain = battler.mmp * (percentGain / 100);
+		const formulaGains = RPGManager.getResultFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.MpGainFormula, flatGain + calculatedPercentGain, battler);
+		if (flatGain === 0 && calculatedPercentGain === 0 && formulaGains === 0) return 0;
+		const gains = (flatGain + calculatedPercentGain + formulaGains) * battler.rec;
+		return gains;
+	}
+	/**
+	* Calculate the amount of TP gained from a skill.
+	* @param {Game_Actor|Game_Enemy} battler The battler to gain tp.
+	* @param {RPG_Skill} skill The skill to gain tp from.
+	* @returns {number}
+	*/
+	static skillGainTp(battler, skill) {
+		const battlerSkill = battler.skill(skill.id);
+		const flatGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.TpGainFlat);
+		const percentGain = RPGManager.getNumberFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.TpGainPercent);
+		const calculatedPercentGain = battler.mtp * (percentGain / 100);
+		const formulaGains = RPGManager.getResultFromNoteByRegex(battlerSkill, J.RESOURCES.RegExp.TpGainFormula, flatGain + calculatedPercentGain, battler);
+		if (flatGain === 0 && calculatedPercentGain === 0 && formulaGains === 0) return 0;
+		const gains = (flatGain + calculatedPercentGain + formulaGains) * battler.rec;
+		return gains;
+	}
 };
 
+//#endregion
+//#region src/plugins/resources/core/objects/Game_BattlerBase.js
 /**
- * Gets the hp cost reduction for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.hcr = function()
-{
-  this._ensureHcrInitializedForResources();
-  return this._j._hcr;
-};
-
-/**
- * Gets the hp cost reduction factor for this battler.
- * This is the normalized fractional amount used in the math for hp cost reduction.
- */
-Game_Battler.prototype.hcrFactor = function()
-{
-  this._ensureHcrInitializedForResources();
-  const hrcFactor = this._j._hcr / 100;
-  return hrcFactor;
-};
-
-/**
- * Sets the hp cost reduction for this battler.
- * @param {number} value The new hp cost reduction.
- */
-Game_Battler.prototype.setHcr = function(value)
-{
-  this._j ||= {};
-  this._j._hcr = value;
-};
-
-/**
- * Extends {@link #onBattlerDataChange}.<br/>
- * Also refreshes the hp cost reduction for this battler.
- */
-J.RESOURCES.Aliased.Game_Battler.set('onBattlerDataChange', Game_Battler.prototype.onBattlerDataChange);
-Game_Battler.prototype.onBattlerDataChange = function()
-{
-  // perform original logic.
-  J.RESOURCES.Aliased.Game_Battler.get('onBattlerDataChange')
-    .call(this);
-
-  // also refresh the hrc.
-  this.refreshHcr();
-};
-
-/**
- * Refreshes the hp cost reduction for this battler.
- */
-Game_Battler.prototype.refreshHcr = function()
-{
-  // grab all the sources for hcr.
-  const sources = this.hcrSources();
-
-  // starting from 100, subtract the hcr from each source.
-  const hcr = sources.reduce((acc, source) => acc - source.hcr(), 100);
-
-  // ensure the hcr is never negative.
-  const normalizedHcr = Math.max(0, hcr);
-
-  // set the new hcr value.
-  this.setHcr(normalizedHcr);
-};
-
-/**
- * Gets all sources that contribute to the hp cost reduction.
- * @returns {[(RPG_Actor|RPG_Enemy), RPG_Class, RPG_EquipItem[], RPG_State[]]}
- */
-Game_Battler.prototype.hcrSources = function()
-{
-  return [];
-};
-
-/**
- * Extends {@link Game_Battler.prototype.canPaySkillCost}.
- * Now includes HP cost eligibility.
- * @param {RPG_Skill} skill The skill to check.
- * @returns {boolean}
- */
-J.RESOURCES.Aliased.Game_BattlerBase.set('canPaySkillCost', Game_BattlerBase.prototype.canPaySkillCost);
-Game_Battler.prototype.canPaySkillCost = function(skill)
-{
-  // Check base costs MP/TP first.
-  if (J.RESOURCES.Aliased.Game_BattlerBase.get('canPaySkillCost')
-    .call(this, skill) === false)
-  {
-    return false;
-  }
-
-  // Check HP cost (default: forbid lethal unless tag allows).
-  const hpCost = this.skillHpCost(skill);
-  if (hpCost > 0)
-  {
-    // Allow sacrifice via notetag.
-    const allowSacrifice = RPGManager.checkForBooleanFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostLethal);
-    if (allowSacrifice)
-    {
-      // Can drop to 0 or below.
-      return true;
-    }
-    else
-    {
-      // Must stay above 1 HP.
-      return this.hp > hpCost;
-    }
-  }
-
-  return true;
-};
-
-/**
- * Extends {@link Game_Battler.prototype.paySkillCost}.
- * Now deducts HP, MP, TP, and any gains.
- * @param {RPG_Skill} skill The skill being paid for.
- */
-J.RESOURCES.Aliased.Game_BattlerBase.set('paySkillCost', Game_BattlerBase.prototype.paySkillCost);
-Game_Battler.prototype.paySkillCost = function(skill)
-{
-  // Pay vanilla MP/TP first.
-  J.RESOURCES.Aliased.Game_BattlerBase.get('paySkillCost')
-    .call(this, skill);
-
-  // pay the HP cost.
-  const hpCost = this.skillHpCost(skill);
-  this.paySkillHpCost(hpCost);
-
-  // apply any gains from the skill.
-  const hpGain = ResourceCostManager.skillGainHp(this, skill);
-  const mpGain = ResourceCostManager.skillGainMp(this, skill);
-  const tpGain = ResourceCostManager.skillGainTp(this, skill);
-  this.gainHpFromResource(hpGain);
-  this.gainMpFromResource(mpGain);
-  this.gainTpFromResource(tpGain);
-};
-
-/**
- * Pays the hp cost for a skill.
- * @param {number} amount The amount of hp to pay.
- */
-Game_Battler.prototype.paySkillHpCost = function(amount)
-{
-  // pay the HP cost.
-  this.gainHp(-amount);
-};
-
-/**
- * Gains the given amount of HP from the skill.
- * @param {number} amount The amount of HP to gain.
- */
-Game_Battler.prototype.gainHpFromResource = function(amount)
-{
-  this.gainHp(amount);
-};
-
-/**
- * Gains the given amount of MP from the skill.
- * @param {number} amount The amount of MP to gain.
- */
-Game_Battler.prototype.gainMpFromResource = function(amount)
-{
-  this.gainMp(amount);
-};
-
-/**
- * Gains the given amount of TP from the skill.
- * @param {number} amount The amount of TP to gain.
- */
-Game_Battler.prototype.gainTpFromResource = function(amount)
-{
-  this.gainTp(amount);
-};
-//endregion Game_Battler
-
-//region Game_BattlerBase
-//region hcr
-/**
- * Gets the hp cost reduction for this battler.
- */
-Object.defineProperty(Game_BattlerBase.prototype, 'hcr', {
-  get: function()
-  {
-    return this.hcrFactor();
-  },
-  configurable: true
+* Gets the hp cost reduction for this battler.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "hcr", {
+	get: function() {
+		return this.hcrFactor();
+	},
+	configurable: true
 });
-
 /**
- * Gets the hp cost reduction for this battler.
- * @returns {number}
- */
-Game_BattlerBase.prototype.hcrFactor = function()
-{
-  return 1.0;
+* Gets the hp cost reduction for this battler.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.hcrFactor = function() {
+	return 1;
 };
-//endregion hcr
-
 /**
- * Determines the hp cost of a skill.
- * @param {RPG_Skill} skill The skill being calculated.
- * @returns {number}
- */
-Game_BattlerBase.prototype.skillHpCost = function(skill)
-{
-  return ResourceCostManager.hpCostBySkill(this, skill);
+* Determines the hp cost of a skill.
+* @param {RPG_Skill} skill The skill being calculated.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.skillHpCost = function(skill) {
+	return ResourceCostManager.hpCostBySkill(this, skill);
 };
-
 /**
- * Extends {@link Game_BattlerBase.prototype.skillMpCost}.<br/>
- * Includes extended MP costs from tags.
- * @param {RPG_Skill} skill The skill cost being calculated.
- * @returns {number}
- */
-J.RESOURCES.Aliased.Game_BattlerBase.set('skillMpCost', Game_BattlerBase.prototype.skillMpCost);
-Game_BattlerBase.prototype.skillMpCost = function(skill)
-{
-  // get base cost.
-  const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get('skillMpCost')
-    .call(this, skill);
-
-  // add extended cost from tags via the manager.
-  const extraCost = ResourceCostManager.extraMpCostBySkill(this, skill);
-
-  // calculate the final cost.
-  const cost = Math.max(0, (baseCost + extraCost));
-
-  // return the cost.
-  return cost;
+* Extends {@link Game_BattlerBase.prototype.skillMpCost}.<br/>
+* Includes extended MP costs from tags.
+* @param {RPG_Skill} skill The skill cost being calculated.
+* @returns {number}
+*/
+J.RESOURCES.Aliased.Game_BattlerBase.set("skillMpCost", Game_BattlerBase.prototype.skillMpCost);
+Game_BattlerBase.prototype.skillMpCost = function(skill) {
+	const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get("skillMpCost").call(this, skill);
+	const extraCost = ResourceCostManager.extraMpCostBySkill(this, skill);
+	const cost = Math.max(0, baseCost + extraCost);
+	return cost;
+};
+/**
+* Extends {@link Game_BattlerBase.prototype.skillTpCost}.<br/>
+* Includes extended TP costs from tags.
+* @param {RPG_Skill} skill The skill cost being calculated.
+* @returns {number}
+*/
+J.RESOURCES.Aliased.Game_BattlerBase.set("skillTpCost", Game_BattlerBase.prototype.skillTpCost);
+Game_BattlerBase.prototype.skillTpCost = function(skill) {
+	const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get("skillTpCost").call(this, skill);
+	const extraCost = ResourceCostManager.extraTpCostBySkill(this, skill);
+	const cost = Math.max(0, baseCost + extraCost);
+	return cost;
 };
 
+//#endregion
+//#region src/plugins/resources/core/objects/Game_Battler.js
 /**
- * Extends {@link Game_BattlerBase.prototype.skillTpCost}.<br/>
- * Includes extended TP costs from tags.
- * @param {RPG_Skill} skill The skill cost being calculated.
- * @returns {number}
- */
-J.RESOURCES.Aliased.Game_BattlerBase.set('skillTpCost', Game_BattlerBase.prototype.skillTpCost);
-Game_BattlerBase.prototype.skillTpCost = function(skill)
-{
-  // get base cost.
-  const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get('skillTpCost')
-    .call(this, skill);
-
-  // add extended cost from tags via the manager.
-  const extraCost = ResourceCostManager.extraTpCostBySkill(this, skill);
-
-  // calculate the final cost.
-  const cost = Math.max(0, (baseCost + extraCost));
-
-  // return the cost.
-  return cost;
+* Extends {@link #initMembers}.<br/>
+* Also initializes the resources members.
+*/
+J.RESOURCES.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
+Game_Battler.prototype.initMembers = function() {
+	J.RESOURCES.Aliased.Game_Battler.get("initMembers").call(this);
+	this.initResourcesMembers();
+};
+/**
+* Initializes the resources members.
+*/
+Game_Battler.prototype.initResourcesMembers = function() {
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with resources.
+	*/
+	this._j._resources ||= {};
+	/**
+	* The hp cost reduction for this battler.
+	* @type {number}
+	*/
+	if (typeof this._j._hcr !== "number" || Number.isNaN(this._j._hcr)) {
+		this._j._hcr = 100;
+	}
+};
+/**
+* Saves from before J-Resources may omit `_hcr` on `_j`. {@link #refreshHcr} repopulates it from traits.
+*/
+Game_Battler.prototype._ensureHcrInitializedForResources = function() {
+	this._j ||= {};
+	this._j._resources ||= {};
+	if (typeof this._j._hcr !== "number" || Number.isNaN(this._j._hcr)) {
+		this.refreshHcr();
+	}
+};
+/**
+* Gets the hp cost reduction for this battler.
+* @returns {number}
+*/
+Game_Battler.prototype.hcr = function() {
+	this._ensureHcrInitializedForResources();
+	return this._j._hcr;
+};
+/**
+* Gets the hp cost reduction factor for this battler.
+* This is the normalized fractional amount used in the math for hp cost reduction.
+*/
+Game_Battler.prototype.hcrFactor = function() {
+	this._ensureHcrInitializedForResources();
+	const hrcFactor = this._j._hcr / 100;
+	return hrcFactor;
+};
+/**
+* Sets the hp cost reduction for this battler.
+* @param {number} value The new hp cost reduction.
+*/
+Game_Battler.prototype.setHcr = function(value) {
+	this._j ||= {};
+	this._j._hcr = value;
+};
+/**
+* Extends {@link #onBattlerDataChange}.<br/>
+* Also refreshes the hp cost reduction for this battler.
+*/
+J.RESOURCES.Aliased.Game_Battler.set("onBattlerDataChange", Game_Battler.prototype.onBattlerDataChange);
+Game_Battler.prototype.onBattlerDataChange = function() {
+	J.RESOURCES.Aliased.Game_Battler.get("onBattlerDataChange").call(this);
+	this.refreshHcr();
+};
+/**
+* Refreshes the hp cost reduction for this battler.
+*/
+Game_Battler.prototype.refreshHcr = function() {
+	const sources = this.hcrSources();
+	const hcr = sources.reduce((acc, source) => acc - source.hcr(), 100);
+	const normalizedHcr = Math.max(0, hcr);
+	this.setHcr(normalizedHcr);
+};
+/**
+* Gets all sources that contribute to the hp cost reduction.
+* @returns {[(RPG_Actor|RPG_Enemy), RPG_Class, RPG_EquipItem[], RPG_State[]]}
+*/
+Game_Battler.prototype.hcrSources = function() {
+	return [];
+};
+/**
+* Extends {@link Game_Battler.prototype.canPaySkillCost}.
+* Now includes HP cost eligibility.
+* @param {RPG_Skill} skill The skill to check.
+* @returns {boolean}
+*/
+J.RESOURCES.Aliased.Game_BattlerBase.set("canPaySkillCost", Game_BattlerBase.prototype.canPaySkillCost);
+Game_Battler.prototype.canPaySkillCost = function(skill) {
+	if (J.RESOURCES.Aliased.Game_BattlerBase.get("canPaySkillCost").call(this, skill) === false) {
+		return false;
+	}
+	const hpCost = this.skillHpCost(skill);
+	if (hpCost > 0) {
+		const allowSacrifice = RPGManager.checkForBooleanFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostLethal);
+		if (allowSacrifice) {
+			return true;
+		} else {
+			return this.hp > hpCost;
+		}
+	}
+	return true;
+};
+/**
+* Extends {@link Game_Battler.prototype.paySkillCost}.
+* Now deducts HP, MP, TP, and any gains.
+* @param {RPG_Skill} skill The skill being paid for.
+*/
+J.RESOURCES.Aliased.Game_BattlerBase.set("paySkillCost", Game_BattlerBase.prototype.paySkillCost);
+Game_Battler.prototype.paySkillCost = function(skill) {
+	J.RESOURCES.Aliased.Game_BattlerBase.get("paySkillCost").call(this, skill);
+	const hpCost = this.skillHpCost(skill);
+	this.paySkillHpCost(hpCost);
+	const hpGain = ResourceCostManager.skillGainHp(this, skill);
+	const mpGain = ResourceCostManager.skillGainMp(this, skill);
+	const tpGain = ResourceCostManager.skillGainTp(this, skill);
+	this.gainHpFromResource(hpGain);
+	this.gainMpFromResource(mpGain);
+	this.gainTpFromResource(tpGain);
+};
+/**
+* Pays the hp cost for a skill.
+* @param {number} amount The amount of hp to pay.
+*/
+Game_Battler.prototype.paySkillHpCost = function(amount) {
+	this.gainHp(-amount);
+};
+/**
+* Gains the given amount of HP from the skill.
+* @param {number} amount The amount of HP to gain.
+*/
+Game_Battler.prototype.gainHpFromResource = function(amount) {
+	this.gainHp(amount);
+};
+/**
+* Gains the given amount of MP from the skill.
+* @param {number} amount The amount of MP to gain.
+*/
+Game_Battler.prototype.gainMpFromResource = function(amount) {
+	this.gainMp(amount);
+};
+/**
+* Gains the given amount of TP from the skill.
+* @param {number} amount The amount of TP to gain.
+*/
+Game_Battler.prototype.gainTpFromResource = function(amount) {
+	this.gainTp(amount);
 };
 
-
-//endregion Game_BattlerBase
-
-//region Game_Enemy
+//#endregion
+//#region src/plugins/resources/core/objects/Game_Actor.js
 /**
- * Gets all sources that contribute to the hp cost reduction.
- * @returns {[RPG_Enemy, RPG_State[]]}
- */
-Game_Enemy.prototype.hcrSources = function()
-{
-  return [
-    this.databaseData(), ...this.allStates(),
-  ];
+* Gets all sources that contribute to the hp cost reduction.
+* @returns {[RPG_Actor, RPG_Class, RPG_EquipItem[], RPG_State[]]}
+*/
+Game_Actor.prototype.hcrSources = function() {
+	return [
+		this.databaseData(),
+		this.currentClass(),
+		...this.equippedEquips(),
+		...this.allStates()
+	];
 };
-//endregion Game_Enemy
 
+//#endregion
+//#region src/plugins/resources/core/objects/Game_Enemy.js
+/**
+* Gets all sources that contribute to the hp cost reduction.
+* @returns {[RPG_Enemy, RPG_State[]]}
+*/
+Game_Enemy.prototype.hcrSources = function() {
+	return [this.databaseData(), ...this.allStates()];
+};
+
+//#endregion
 //# sourceMappingURL=J-Resources.js.map

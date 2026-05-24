@@ -1,8 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc
- * [v1.0.0 REGIONS-STATES] Enables application of states via region ids.
+ * @plugindesc [v1.0.0 REGION-STATES] Enables application of states via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -135,12 +134,6 @@ var J_RegionStatesPluginMetadata = class extends PluginMetadata {
 };
 
 //#endregion
-//#region src/plugins/regions/ext/states/_metadata/meta.js
-var PLUGIN_NAME = "J-Region-States";
-var PLUGIN_VERSION = "1.0.0";
-var PLUGIN_DESC_TAG = "REGION-STATES";
-
-//#endregion
 //#region src/plugins/regions/ext/states/_metadata/initialization.js
 /**
 * The core where all of my extensions live: in the `J` object.
@@ -157,7 +150,7 @@ J.REGIONS.EXT.STATES = {};
 /**
 * The metadata associated with this plugin, such as name and version.
 */
-J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata(PLUGIN_NAME, PLUGIN_VERSION);
+J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

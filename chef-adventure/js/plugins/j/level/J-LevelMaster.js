@@ -1,8 +1,7 @@
 //region initialization
 /*:
  * @target MZ
- * @plugindesc
- * [v1.3.1 LEVEL] Allows levels to have greater control and purpose.
+ * @plugindesc [v1.3.1 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -428,1445 +427,962 @@
  * @desc Disables the scaling functionality for damage/rewards.
  */
 
-//region plugin metadata
-class J_LevelPluginMetadata
-  extends PluginMetadata
-{
-  /**
-   * The maximum level definable in the level. Any level below this can be determined without extra calculations.
-   * @type {number}
-   */
-  static EditorMaxLevel = 99;
+//#region src/plugins/level/core/_metadata/_pluginMetadata.js
+var J_LevelPluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+	postInitialize() {
+		super.postInitialize();
+		this.initializeLevelMaster();
+	}
+	initializeLevelMaster() {
+		/**
+		* Whether or not the scaling functionality is enabled.
+		* @type {boolean}
+		*/
+		this.enabled = this.parsedPluginParameters["useScaling"] === "true";
+		/**
+		* The minimum multiplier that scaling can reduce to based on level difference. This should never actually be zero
+		* or lower or unexpected things can happen.
+		* @type {number}
+		*/
+		this.minimumMultiplier = Number(this.parsedPluginParameters["minMultiplier"]);
+		/**
+		* The maximum multiplier that scaling can reach based on level difference.
+		* @type {number}
+		*/
+		this.maximumMultiplier = Number(this.parsedPluginParameters["maxMultiplier"]);
+		const rewardMinRaw = this.parsedPluginParameters["rewardMinMultiplier"];
+		/**
+		* The minimum multiplier for reward scaling (EXP / gold). Falls back to combat minimum when unset.
+		* @type {number}
+		*/
+		this.rewardMinimumMultiplier = rewardMinRaw === undefined || rewardMinRaw === "" ? this.minimumMultiplier : Number(rewardMinRaw);
+		if (Number.isFinite(this.rewardMinimumMultiplier) === false) {
+			this.rewardMinimumMultiplier = this.minimumMultiplier;
+		}
+		const rewardMaxRaw = this.parsedPluginParameters["rewardMaxMultiplier"];
+		/**
+		* The maximum multiplier for reward scaling (EXP / gold). Falls back to combat maximum when unset.
+		* @type {number}
+		*/
+		this.rewardMaximumMultiplier = rewardMaxRaw === undefined || rewardMaxRaw === "" ? this.maximumMultiplier : Number(rewardMaxRaw);
+		if (Number.isFinite(this.rewardMaximumMultiplier) === false) {
+			this.rewardMaximumMultiplier = this.maximumMultiplier;
+		}
+		/**
+		* The amount per level up or down that applies. This amount stacks additively.
+		* @type {number}
+		*/
+		this.growthMultiplier = Number(this.parsedPluginParameters["growthMultiplier"]);
+		/**
+		* The upper limit from a zero level difference before scaling kicks in.
+		* @type {number}
+		*/
+		this.invariantUpperRange = Number(this.parsedPluginParameters["invariantUpperRange"]);
+		/**
+		* The lower limit from a zero level difference before scaling kicks in.
+		* @type {number}
+		*/
+		this.invariantLowerRange = Number(this.parsedPluginParameters["invariantLowerRange"]);
+		/**
+		* The variableId to set to modify the actor level balancer value. This number is directly added to all actors'
+		* levels when considering scaling.
+		* @type {number}
+		*/
+		this.actorBalanceVariable = Number(this.parsedPluginParameters["variableActorBalancer"]);
+		/**
+		* The variableId to set to modify the enemy level balancer value. This number is directly added to all enemies'
+		* levels when considering scaling.
+		* @type {number}
+		*/
+		this.enemyBalanceVariable = Number(this.parsedPluginParameters["variableEnemyBalancer"]);
+		/**
+		* The default max level beyond the max set by the database.
+		* @type {number}
+		*/
+		this.defaultBeyondMaxLevel = Number(this.parsedPluginParameters["defaultBeyondMaxLevel"]);
+		/**
+		* The true max level. No actor level can ascend beyond this. This will override actor max level if applicable.
+		* @type {number}
+		*/
+		this.trueMaxLevel = Number(this.parsedPluginParameters["trueMaxLevel"]);
+	}
+};
 
-  /**
-   * Constructor.
-   */
-  constructor(name, version)
-  {
-    super(name, version);
-  }
-
-  postInitialize()
-  {
-    super.postInitialize();
-
-    this.initializeLevelMaster();
-  }
-
-  initializeLevelMaster()
-  {
-    /**
-     * Whether or not the scaling functionality is enabled.
-     * @type {boolean}
-     */
-    this.enabled = this.parsedPluginParameters['useScaling'] === "true";
-
-    /**
-     * The minimum multiplier that scaling can reduce to based on level difference. This should never actually be zero
-     * or lower or unexpected things can happen.
-     * @type {number}
-     */
-    this.minimumMultiplier = Number(this.parsedPluginParameters['minMultiplier']);
-
-    /**
-     * The maximum multiplier that scaling can reach based on level difference.
-     * @type {number}
-     */
-    this.maximumMultiplier = Number(this.parsedPluginParameters['maxMultiplier']);
-
-    const rewardMinRaw = this.parsedPluginParameters['rewardMinMultiplier'];
-
-    /**
-     * The minimum multiplier for reward scaling (EXP / gold). Falls back to combat minimum when unset.
-     * @type {number}
-     */
-    this.rewardMinimumMultiplier = (rewardMinRaw === undefined || rewardMinRaw === '')
-      ? this.minimumMultiplier
-      : Number(rewardMinRaw);
-
-    if (Number.isFinite(this.rewardMinimumMultiplier) === false)
-    {
-      this.rewardMinimumMultiplier = this.minimumMultiplier;
-    }
-
-    const rewardMaxRaw = this.parsedPluginParameters['rewardMaxMultiplier'];
-
-    /**
-     * The maximum multiplier for reward scaling (EXP / gold). Falls back to combat maximum when unset.
-     * @type {number}
-     */
-    this.rewardMaximumMultiplier = (rewardMaxRaw === undefined || rewardMaxRaw === '')
-      ? this.maximumMultiplier
-      : Number(rewardMaxRaw);
-
-    if (Number.isFinite(this.rewardMaximumMultiplier) === false)
-    {
-      this.rewardMaximumMultiplier = this.maximumMultiplier;
-    }
-
-    /**
-     * The amount per level up or down that applies. This amount stacks additively.
-     * @type {number}
-     */
-    this.growthMultiplier = Number(this.parsedPluginParameters['growthMultiplier']);
-
-    /**
-     * The upper limit from a zero level difference before scaling kicks in.
-     * @type {number}
-     */
-    this.invariantUpperRange = Number(this.parsedPluginParameters['invariantUpperRange']);
-
-    /**
-     * The lower limit from a zero level difference before scaling kicks in.
-     * @type {number}
-     */
-    this.invariantLowerRange = Number(this.parsedPluginParameters['invariantLowerRange']);
-
-    /**
-     * The variableId to set to modify the actor level balancer value. This number is directly added to all actors'
-     * levels when considering scaling.
-     * @type {number}
-     */
-    this.actorBalanceVariable = Number(this.parsedPluginParameters['variableActorBalancer']);
-
-    /**
-     * The variableId to set to modify the enemy level balancer value. This number is directly added to all enemies'
-     * levels when considering scaling.
-     * @type {number}
-     */
-    this.enemyBalanceVariable = Number(this.parsedPluginParameters['variableEnemyBalancer']);
-
-    /**
-     * The default max level beyond the max set by the database.
-     * @type {number}
-     */
-    this.defaultBeyondMaxLevel = Number(this.parsedPluginParameters['defaultBeyondMaxLevel']);
-
-    /**
-     * The true max level. No actor level can ascend beyond this. This will override actor max level if applicable.
-     * @type {number}
-     */
-    this.trueMaxLevel = Number(this.parsedPluginParameters['trueMaxLevel']);
-  }
-}
-
-//endregion plugin metadata
-
+//#endregion
+//#region src/plugins/level/core/_metadata/initialization.js
 /**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
-
+* The core where all of my extensions live: in the `J` object.
+*/
+globalThis.J ||= {};
 /**
- * The plugin umbrella that governs all things related to this plugin.
- */
+* The plugin umbrella that governs all things related to this plugin.
+*/
 J.LEVEL = {};
-
 /**
- * The grouping for extensions of this plugin.
- */
+* The grouping for extensions of this plugin.
+*/
 J.LEVEL.EXT = {};
-
 /**
- * The `metadata` associated with this plugin, such as version.
- */
-J.LEVEL.Metadata = new J_LevelPluginMetadata(`J-LevelMaster`, '1.3.1');
-
+* The `metadata` associated with this plugin, such as version.
+*/
+J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.3.1");
 /**
- * All aliased methods for this plugin.
- */
+* The maximum level definable in the level. Any level below this can be determined without extra calculations.
+* @type {number}
+*/
+J.LEVEL.EditorMaxLevel = 99;
+/**
+* All aliased methods for this plugin.
+*/
 J.LEVEL.Aliased = {
-  Game_Action: new Map(),
-  Game_Actor: new Map(),
-  Game_Battler: new Map(),
-  Game_Enemy: new Map(),
-  Game_Event: new Map(),
-  Game_System: new Map(),
-  Game_Temp: new Map(),
-  Game_Troop: new Map(),
-
-  DataManager: new Map(),
-  JABS_AiManager: new Map(),
-
-  Sprite_Character: new Map(),
+	Game_Action: new Map(),
+	Game_Actor: new Map(),
+	Game_Battler: new Map(),
+	Game_Enemy: new Map(),
+	Game_Event: new Map(),
+	Game_System: new Map(),
+	Game_Temp: new Map(),
+	Game_Troop: new Map(),
+	DataManager: new Map(),
+	JABS_AiManager: new Map(),
+	Sprite_Character: new Map()
 };
-
 /**
- * All regular expressions used by this plugin.
- */
+* All regular expressions used by this plugin.
+*/
 J.LEVEL.RegExp = {
-  /**
-   * The regex for hiding the level display of a battler.
-   * @type {RegExp}
-   */
-  HideLevel: /<hideLevel>/i,
-
-  /**
-   * The regex for the level tag on various database objects.
-   * @type {RegExp}
-   */
-  Level: /<(?:lv|lvl|level):[ ]?(-?\+?\d+)>/i,
-
-  /**
-   * The regex for when a skill id is learned at a designated level.
-   * The array capture group is [SKILL_ID, LEVEL_LEARNED].
-   * @type {RegExp}
-   */
-  Learning: /<learning: ?(\[\d+, ?\d+])>/i,
-
-  /**
-   * The regex for granting bonuses or penalties to max level (for actors only).
-   * @type {RegExp}
-   */
-  MaxLevelBoost: /<maxLevelBoost: ?(-?\+?\d+)>/i,
+	/**
+	* The regex for hiding the level display of a battler.
+	* @type {RegExp}
+	*/
+	HideLevel: /<hideLevel>/i,
+	/**
+	* The regex for the level tag on various database objects.
+	* @type {RegExp}
+	*/
+	Level: /<(?:lv|lvl|level):[ ]?(-?\+?\d+)>/i,
+	/**
+	* The regex for when a skill id is learned at a designated level.
+	* The array capture group is [SKILL_ID, LEVEL_LEARNED].
+	* @type {RegExp}
+	*/
+	Learning: /<learning: ?(\[\d+, ?\d+])>/i,
+	/**
+	* The regex for granting bonuses or penalties to max level (for actors only).
+	* @type {RegExp}
+	*/
+	MaxLevelBoost: /<maxLevelBoost: ?(-?\+?\d+)>/i
 };
-//endregion initialization
 
-//region Plugin Command Registration
+//#endregion
+//#region src/plugins/level/core/_metadata/pluginCommands.js
 /**
- * Plugin command for enabling the level scaling functionality.
- */
-PluginManager.registerCommand(J.LEVEL.Metadata.name, "enableScaling", () =>
-{
-  J.LEVEL.Metadata.enabled = true;
-  $gameSystem.enableLevelScaling();
+* Plugin command for enabling the level scaling functionality.
+*/
+PluginManager.registerCommand(J.LEVEL.Metadata.name, "enableScaling", () => {
+	J.LEVEL.Metadata.enabled = true;
+	$gameSystem.enableLevelScaling();
+});
+/**
+* Plugin command for disabling the level scaling functionality.
+*/
+PluginManager.registerCommand(J.LEVEL.Metadata.name, "disableScaling", () => {
+	J.LEVEL.Metadata.enabled = false;
+	$gameSystem.disableLevelScaling();
 });
 
+//#endregion
+//#region src/plugins/level/core/managers/DataManager.js
 /**
- * Plugin command for disabling the level scaling functionality.
- */
-PluginManager.registerCommand(J.LEVEL.Metadata.name, "disableScaling", () =>
-{
-  J.LEVEL.Metadata.enabled = false;
-  $gameSystem.disableLevelScaling();
+* Extends {@link #setupNewGame}.<br/>
+* Also builds the beyond max data for classes.
+*/
+J.LEVEL.Aliased.DataManager.set("setupNewGame", DataManager.setupNewGame);
+DataManager.setupNewGame = function() {
+	J.LEVEL.Aliased.DataManager.get("setupNewGame").call(this);
+	$gameTemp.buildBeyondMaxData();
+};
+
+//#endregion
+//#region src/plugins/level/core/managers/JABS_AiManager.js
+/**
+* Extends {@link #postConvertMutate}.<br/>
+* Also applies the level override.
+* @param {Game_Enemy} battler The enemy battler that was converted from the event.
+* @param {JABS_Battler} jabsBattler The created JABS battler from the event.
+*/
+J.LEVEL.Aliased.JABS_AiManager.set("postConvertMutate", JABS_AiManager.postConvertMutate);
+JABS_AiManager.postConvertMutate = function(battler, jabsBattler) {
+	J.LEVEL.Aliased.JABS_AiManager.get("postConvertMutate").call(this, battler, jabsBattler);
+	const character = jabsBattler.getCharacter();
+	const levelOverride = character.getLevelOverrides();
+	if (levelOverride !== null) {
+		battler.setCachedLevelOverride(levelOverride);
+		if (J.NATURAL) {
+			battler.refreshAllParameterBuffs();
+		}
+	}
+};
+
+//#endregion
+//#region src/plugins/level/core/managers/LevelScaling.js
+/**
+* A helper class for calculating level-based scaling multipliers.
+*/
+var LevelScaling = class LevelScaling {
+	/**
+	* Which clamp profile {@link LevelScaling.multiplier} uses after the level-difference curve.
+	* @type {{ COMBAT: string, REWARD: string }}
+	*/
+	static Scope = {
+		COMBAT: "combat",
+		REWARD: "reward"
+	};
+	/**
+	* The default scaling multiplier.
+	* @type {number}
+	* @private
+	*/
+	static #defaultScalingMultiplier = 1;
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Determines the multiplier based on the target's and user's levels.
+	*
+	* This gives a multiplier in relation to the user.
+	* @param {number} userLevel The level of the user, typically the actor.
+	* @param {number} targetLevel The level of the target.
+	* @param {string} [scope] `LevelScaling.Scope.COMBAT` or `LevelScaling.Scope.REWARD`; combat when omitted.
+	* @returns {number} A decimal representing the multiplier for the scaling.
+	*/
+	static multiplier(userLevel, targetLevel, scope = LevelScaling.Scope.COMBAT) {
+		if (!$gameSystem.isLevelScalingEnabled()) return this.#defaultScalingMultiplier;
+		if (!this.#isValid(userLevel, targetLevel)) return this.#defaultScalingMultiplier;
+		const levelDifference = userLevel - targetLevel;
+		return this.calculate(levelDifference, scope);
+	}
+	/**
+	* Determines whether or not the two battler's level inputs were valid.
+	* Zero, while "valid", is handled the same as invalid: just use the default multiplier.
+	* @param {number} a One of the battler's level.
+	* @param {number} b The other battler's level.
+	* @returns {boolean} True if both battler's levels are valid, false otherwise.
+	*/
+	static #isValid(a, b) {
+		if (!a || !b) return false;
+		return true;
+	}
+	/**
+	* Resolves min/max clamps for the given scope from live plugin metadata.
+	* @param {string} scope `LevelScaling.Scope.COMBAT` or `LevelScaling.Scope.REWARD`.
+	* @returns {{ min: number, max: number }}
+	*/
+	static #clampsForScope(scope) {
+		if (scope === LevelScaling.Scope.REWARD) {
+			return {
+				min: J.LEVEL.Metadata.rewardMinimumMultiplier,
+				max: J.LEVEL.Metadata.rewardMaximumMultiplier
+			};
+		}
+		return {
+			min: J.LEVEL.Metadata.minimumMultiplier,
+			max: J.LEVEL.Metadata.maximumMultiplier
+		};
+	}
+	/**
+	* Calculates the multiplier based on the given level difference.
+	* @param {number} levelDifference The difference in levels between target and user.
+	* @param {string} [scope] `LevelScaling.Scope.COMBAT` or `LevelScaling.Scope.REWARD`; combat when omitted.
+	* @returns {number}
+	*/
+	static calculate(levelDifference, scope = LevelScaling.Scope.COMBAT) {
+		const base = this.#defaultScalingMultiplier;
+		const growth = J.LEVEL.Metadata.growthMultiplier;
+		const upper = J.LEVEL.Metadata.invariantUpperRange;
+		const lower = J.LEVEL.Metadata.invariantLowerRange;
+		if (levelDifference <= upper && levelDifference >= lower) return base;
+		const invariantDifference = levelDifference > 0 ? levelDifference - upper : levelDifference + lower;
+		const result = base + invariantDifference * growth;
+		const { min, max } = this.#clampsForScope(scope);
+		return result.clamp(min, max);
+	}
+};
+
+//#endregion
+//#region src/plugins/level/core/objects/Game_Action.js
+/**
+* Scales damaged dealt and received to be based on level differences.
+*/
+J.LEVEL.Aliased.Game_Action.set("makeDamageValue", Game_Action.prototype.makeDamageValue);
+Game_Action.prototype.makeDamageValue = function(target, critical) {
+	const baseDamage = J.LEVEL.Aliased.Game_Action.get("makeDamageValue").call(this, target, critical);
+	const multiplier = LevelScaling.multiplier(this.subject().level, target.level, LevelScaling.Scope.COMBAT);
+	return baseDamage * multiplier;
+};
+
+//#endregion
+//#region src/plugins/level/core/objects/Game_Actor.js
+/**
+* Extends {@link #initMembers}.<br>
+* Also initializes this plugin's members.
+*/
+J.LEVEL.Aliased.Game_Actor.set("initMembers", Game_Actor.prototype.initMembers);
+Game_Actor.prototype.initMembers = function() {
+	J.LEVEL.Aliased.Game_Actor.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with this plugin.
+	*/
+	this._j._level ||= {};
+	/**
+	* The calculated max level of this actor.
+	* @type {number}
+	*/
+	this._j._level._realMaxLevel = J.LEVEL.EditorMaxLevel;
+};
+Game_Actor.prototype.getRealMaxLevel = function() {
+	return this._j._level._realMaxLevel;
+};
+Game_Actor.prototype.setRealMaxLevel = function(newRealLevel) {
+	this._j._level._realMaxLevel = newRealLevel;
+};
+J.LEVEL.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function() {
+	J.LEVEL.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
+	this.updateRealMaxLevel();
+};
+Game_Actor.prototype.updateRealMaxLevel = function() {
+	const newMaxLevel = this.calculateRealMaxLevel();
+	this.setRealMaxLevel(newMaxLevel);
+};
+Game_Actor.prototype.calculateRealMaxLevel = function() {
+	const baseMaxLevel = this.baseMaxLevel();
+	const maxLevelBoosts = this.maxLevelBoost();
+	if (maxLevelBoosts === 0) return baseMaxLevel;
+	const maxLevelSum = baseMaxLevel + maxLevelBoosts;
+	const cappedMaxLevel = Math.min(maxLevelSum, J.LEVEL.Metadata.trueMaxLevel);
+	const normalizedMaxLevel = Math.max(cappedMaxLevel, 1);
+	return normalizedMaxLevel;
+};
+/**
+* Overrides {@link #maxLevel}.<br/>
+* Recalculates the max level based on the possibility of a modified max level.
+* @returns {number}
+*/
+Game_Actor.prototype.maxLevel = function() {
+	return this.getRealMaxLevel();
+};
+/**
+* Gets the max level boost from all available notes for this battler.
+* @returns {number|null}
+*/
+Game_Actor.prototype.maxLevelBoost = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.LEVEL.RegExp.MaxLevelBoost);
+};
+/**
+* The base max level for a given actor. If it is set below 99 in the database, it'll just be that value. If it is set
+* to 99, then it'll return what is defined in the plugin parameters.
+* @returns {number}
+*/
+Game_Actor.prototype.baseMaxLevel = function() {
+	if (this.actor().maxLevel < 99) return this.actor().maxLevel;
+	return J.LEVEL.Metadata.defaultBeyondMaxLevel;
+};
+/**
+* Overrides {@link #paramBase}.<br/>
+* Potentially fetches "beyond max data" for when ones level is beyond the editor max of 99.
+* @param {number} paramId The paramId to fetch the data for.
+* @returns {number}
+*/
+Game_Actor.prototype.paramBase = function(paramId) {
+	const rawLevel = Math.floor(this.getLevel());
+	const editorMax = J.LEVEL.EditorMaxLevel;
+	if (rawLevel <= editorMax) {
+		const row = this.currentClass().params[paramId];
+		const idx = Math.min(Math.max(rawLevel, 0), row.length - 1);
+		return row[idx];
+	}
+	if ($gameTemp.hasCachedBeyondMaxData() === false) {
+		$gameTemp.buildBeyondMaxData();
+	}
+	const params = $gameTemp.getBeyondMaxData(this.currentClass().id);
+	const beyondRow = params[paramId];
+	const beyondIdx = Math.min(rawLevel, beyondRow.length - 1);
+	return beyondRow[beyondIdx];
+};
+/**
+* The base or default level for this battler.
+* Actors have a level tracker, so we'll use that for the base.
+* @returns {number}
+*/
+Game_Actor.prototype.getBattlerBaseLevel = function() {
+	return this._level;
+};
+/**
+* Gets all database sources we can get levels from.
+* @returns {RPG_BaseItem[]}
+*/
+Game_Actor.prototype.getLevelSources = function() {
+	return [
+		this.databaseData(),
+		...this.equips(),
+		...this.allStates()
+	];
+};
+/**
+* The variable level modifier for this actor.
+* @returns {number}
+*/
+Game_Actor.prototype.getLevelBalancer = function() {
+	if (J.LEVEL.Metadata.actorBalanceVariable) {
+		return $gameVariables.value(J.LEVEL.Metadata.actorBalanceVariable);
+	}
+	return 0;
+};
+
+//#endregion
+//#region src/plugins/level/core/objects/Game_Battler.js
+/**
+* The level of this battler.
+*
+* This is the same as `battler.lvl`.
+* @returns {number}
+*/
+Object.defineProperty(Game_Battler.prototype, "level", {
+	get() {
+		return this.getLevel();
+	},
+	configurable: true
 });
-//endregion Plugin Command Registration
-
-//region DataManager
 /**
- * Extends {@link #setupNewGame}.<br/>
- * Also builds the beyond max data for classes.
- */
-J.LEVEL.Aliased.DataManager.set('setupNewGame', DataManager.setupNewGame);
-DataManager.setupNewGame = function()
-{
-  // perform original logic.
-  J.LEVEL.Aliased.DataManager.get('setupNewGame')
-    .call(this);
-
-  // also build the beyond max data.
-  $gameTemp.buildBeyondMaxData();
-};
-//endregion DataManager
-
-//region JABS_AiManager
-/**
- * Extends {@link #postConvertMutate}.<br/>
- * Also applies the level override.
- * @param {Game_Enemy} battler The enemy battler that was converted from the event.
- * @param {JABS_Battler} jabsBattler The created JABS battler from the event.
- */
-J.LEVEL.Aliased.JABS_AiManager.set('postConvertMutate', JABS_AiManager.postConvertMutate);
-JABS_AiManager.postConvertMutate = function(battler, jabsBattler)
-{
-  // perform original logic.
-  J.LEVEL.Aliased.JABS_AiManager.get('postConvertMutate')
-    .call(this, battler, jabsBattler);
-
-  const character = jabsBattler.getCharacter();
-
-  const levelOverride = character.getLevelOverrides();
-  if (levelOverride !== null)
-  {
-    battler.setCachedLevelOverride(levelOverride);
-
-    if (J.NATURAL)
-    {
-      battler.refreshAllParameterBuffs();
-    }
-  }
-};
-//endregion JABS_AiManager
-
-//region LevelScaling
-/**
- * A helper class for calculating level-based scaling multipliers.
- */
-// eslint-disable-next-line no-unused-vars
-class LevelScaling
-{
-  /**
-   * Which clamp profile {@link LevelScaling.multiplier} uses after the level-difference curve.
-   * @type {{ COMBAT: string, REWARD: string }}
-   */
-  static Scope =
-    {
-      COMBAT: 'combat',
-      REWARD: 'reward',
-    };
-
-  //region properties
-  /**
-   * The default scaling multiplier.
-   * @type {number}
-   * @private
-   */
-  static #defaultScalingMultiplier = 1.0;
-
-  //endregion properties
-
-  /**
-   * The constructor is not designed to be called.
-   * This is a static class.
-   */
-  constructor()
-  {
-    throw new Error('This is a static class.');
-  }
-
-  /**
-   * Determines the multiplier based on the target's and user's levels.
-   *
-   * This gives a multiplier in relation to the user.
-   * @param {number} userLevel The level of the user, typically the actor.
-   * @param {number} targetLevel The level of the target.
-   * @param {string} [scope] `LevelScaling.Scope.COMBAT` or `LevelScaling.Scope.REWARD`; combat when omitted.
-   * @returns {number} A decimal representing the multiplier for the scaling.
-   */
-  static multiplier(userLevel, targetLevel, scope = LevelScaling.Scope.COMBAT)
-  {
-    // if the scaling functionality is disabled, then just return 1x.
-    if (!$gameSystem.isLevelScalingEnabled()) return this.#defaultScalingMultiplier;
-
-    // if one of the inputs is invalid or just zero, then default to 1x.
-    if (!this.#isValid(userLevel, targetLevel)) return this.#defaultScalingMultiplier;
-
-    // determine the difference in level.
-    const levelDifference = userLevel - targetLevel;
-
-    // return the calculated multiplier based on the given level difference.
-    return this.calculate(levelDifference, scope);
-  }
-
-  /**
-   * Determines whether or not the two battler's level inputs were valid.
-   * Zero, while "valid", is handled the same as invalid: just use the default multiplier.
-   * @param {number} a One of the battler's level.
-   * @param {number} b The other battler's level.
-   * @returns {boolean} True if both battler's levels are valid, false otherwise.
-   */
-  static #isValid(a, b)
-  {
-    // if either value is falsey, then it isn't valid.
-    if (!a || !b) return false;
-
-    // valid!
-    return true;
-  }
-
-  /**
-   * Resolves min/max clamps for the given scope from live plugin metadata.
-   * @param {string} scope `LevelScaling.Scope.COMBAT` or `LevelScaling.Scope.REWARD`.
-   * @returns {{ min: number, max: number }}
-   */
-  static #clampsForScope(scope)
-  {
-    if (scope === LevelScaling.Scope.REWARD)
-    {
-      return {
-        min: J.LEVEL.Metadata.rewardMinimumMultiplier,
-        max: J.LEVEL.Metadata.rewardMaximumMultiplier,
-      };
-    }
-
-    return {
-      min: J.LEVEL.Metadata.minimumMultiplier,
-      max: J.LEVEL.Metadata.maximumMultiplier,
-    };
-  }
-
-  /**
-   * Calculates the multiplier based on the given level difference.
-   * @param {number} levelDifference The difference in levels between target and user.
-   * @param {string} [scope] `LevelScaling.Scope.COMBAT` or `LevelScaling.Scope.REWARD`; combat when omitted.
-   * @returns {number}
-   */
-  static calculate(levelDifference, scope = LevelScaling.Scope.COMBAT)
-  {
-    // grab the baseline for the multiplier.
-    const base = this.#defaultScalingMultiplier;
-
-    // grab the growth rate per level of difference.
-    const growth = J.LEVEL.Metadata.growthMultiplier;
-
-    // check if the difference is within our invariance range.
-    const upper = J.LEVEL.Metadata.invariantUpperRange;
-    const lower = J.LEVEL.Metadata.invariantLowerRange;
-
-    if (levelDifference <= upper && levelDifference >= lower) return base;
-
-    // determine the level difference lesser the invariance range.
-    const invariantDifference = levelDifference > 0
-      ? levelDifference - upper
-      : levelDifference + lower;
-
-    // calculate the multiplier.
-    const result = base + (invariantDifference * growth);
-
-    // clamp the multiplier within given thresholds, and return it.
-    const {
-      min,
-      max
-    } = this.#clampsForScope(scope);
-
-    return result.clamp(min, max);
-  }
-}
-
-//endregion LevelScaling
-
-//region Game_Action
-/**
- * Scales damaged dealt and received to be based on level differences.
- */
-J.LEVEL.Aliased.Game_Action.set('makeDamageValue', Game_Action.prototype.makeDamageValue);
-Game_Action.prototype.makeDamageValue = function(target, critical)
-{
-  // get the base damage that would've been done.
-  const baseDamage = J.LEVEL.Aliased.Game_Action.get('makeDamageValue')
-    .call(this, target, critical);
-
-  // get the multiplier based on target and user levels.
-  const multiplier = LevelScaling.multiplier(
-    this.subject().level,
-    target.level,
-    LevelScaling.Scope.COMBAT);
-
-  // return the product of these two values.
-  return (baseDamage * multiplier);
-}
-//endregion Game_Action
-
-//region Game_Actor
-/**
- * Extends {@link #initMembers}.<br>
- * Also initializes this plugin's members.
- */
-J.LEVEL.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
-Game_Actor.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.LEVEL.Aliased.Game_Actor.get('initMembers')
-    .call(this);
-
-  /**
-   * The J object where all my additional properties live.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with this plugin.
-   */
-  this._j._level ||= {};
-
-  /**
-   * The calculated max level of this actor.
-   * @type {number}
-   */
-  this._j._level._realMaxLevel = J_LevelPluginMetadata.EditorMaxLevel;
-};
-
-Game_Actor.prototype.getRealMaxLevel = function()
-{
-  return this._j._level._realMaxLevel;
-};
-
-Game_Actor.prototype.setRealMaxLevel = function(newRealLevel)
-{
-  this._j._level._realMaxLevel = newRealLevel;
-};
-
-J.LEVEL.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
-Game_Actor.prototype.onBattlerDataChange = function()
-{
-  // perform original logic.
-  J.LEVEL.Aliased.Game_Actor.get('onBattlerDataChange')
-    .call(this);
-
-  this.updateRealMaxLevel();
-};
-
-Game_Actor.prototype.updateRealMaxLevel = function()
-{
-  const newMaxLevel = this.calculateRealMaxLevel();
-  this.setRealMaxLevel(newMaxLevel);
-};
-
-Game_Actor.prototype.calculateRealMaxLevel = function()
-{
-  // grab the defined max level for this actor.
-  const baseMaxLevel = this.baseMaxLevel();
-
-  // grab the boosts to max level found across the actor.
-  const maxLevelBoosts = this.maxLevelBoost();
-
-  // if there are no boosts, then don't do any unnecessary math.
-  if (maxLevelBoosts === 0) return baseMaxLevel;
-
-  // sum the two max levels together.
-  const maxLevelSum = baseMaxLevel + maxLevelBoosts;
-
-  // can't be higher level than the defined cap.
-  const cappedMaxLevel = Math.min(maxLevelSum, J.LEVEL.Metadata.trueMaxLevel);
-
-  // have to be at least level 1.
-  const normalizedMaxLevel = Math.max(cappedMaxLevel, 1);
-
-  // return the overall normalized max level.
-  return normalizedMaxLevel;
-};
-
-/**
- * Overrides {@link #maxLevel}.<br/>
- * Recalculates the max level based on the possibility of a modified max level.
- * @returns {number}
- */
-Game_Actor.prototype.maxLevel = function()
-{
-  return this.getRealMaxLevel();
-};
-
-/**
- * Gets the max level boost from all available notes for this battler.
- * @returns {number|null}
- */
-Game_Actor.prototype.maxLevelBoost = function()
-{
-  return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.LEVEL.RegExp.MaxLevelBoost);
-};
-
-/**
- * The base max level for a given actor. If it is set below 99 in the database, it'll just be that value. If it is set
- * to 99, then it'll return what is defined in the plugin parameters.
- * @returns {number}
- */
-Game_Actor.prototype.baseMaxLevel = function()
-{
-  // if the actor has less than 99, then obey their max level settings.
-  if (this.actor().maxLevel < 99) return this.actor().maxLevel;
-
-  // return our defined beyond max level.
-  return J.LEVEL.Metadata.defaultBeyondMaxLevel;
-};
-
-/**
- * Overrides {@link #paramBase}.<br/>
- * Potentially fetches "beyond max data" for when ones level is beyond the editor max of 99.
- * @param {number} paramId The paramId to fetch the data for.
- * @returns {number}
- */
-Game_Actor.prototype.paramBase = function(paramId)
-{
-  const rawLevel = Math.floor(this.getLevel());
-  const editorMax = J_LevelPluginMetadata.EditorMaxLevel;
-
-  if (rawLevel <= editorMax)
-  {
-    const row = this.currentClass().params[paramId];
-    const idx = Math.min(Math.max(rawLevel, 0), row.length - 1);
-    return row[idx];
-  }
-
-  if ($gameTemp.hasCachedBeyondMaxData() === false)
-  {
-    $gameTemp.buildBeyondMaxData();
-  }
-
-  const params = $gameTemp.getBeyondMaxData(this.currentClass().id);
-  const beyondRow = params[paramId];
-  const beyondIdx = Math.min(rawLevel, beyondRow.length - 1);
-  return beyondRow[beyondIdx];
-};
-
-/**
- * The base or default level for this battler.
- * Actors have a level tracker, so we'll use that for the base.
- * @returns {number}
- */
-Game_Actor.prototype.getBattlerBaseLevel = function()
-{
-  return this._level;
-};
-
-/**
- * Gets all database sources we can get levels from.
- * @returns {RPG_BaseItem[]}
- */
-Game_Actor.prototype.getLevelSources = function()
-{
-  // our sources of data that a level can be retrieved from.
-  return [
-    // add the actor/enemy to the source list.
-    this.databaseData(),
-
-    // add all actor equipment to the source list.
-    ...this.equips(),
-
-    // add all currently applied states to the source list.
-    ...this.allStates(),
-  ];
-};
-
-/**
- * The variable level modifier for this actor.
- * @returns {number}
- */
-Game_Actor.prototype.getLevelBalancer = function()
-{
-  // check if we have a variable set for the fixed balancing.
-  if (J.LEVEL.Metadata.actorBalanceVariable)
-  {
-    // return the adjustment from the variable value instead.
-    return $gameVariables.value(J.LEVEL.Metadata.actorBalanceVariable);
-  }
-
-  // we don't have any balancing required.
-  return 0;
-};
-//endregion Game_Actor
-
-//region Game_Battler
-/**
- * The level of this battler.
- *
- * This is the same as `battler.lvl`.
- * @returns {number}
- */
-Object.defineProperty(Game_Battler.prototype, 'level', {
-  get()
-  {
-    // get the level from this battler.
-    return this.getLevel();
-  },
-
-  // sure, lets make this level property configurable.
-  configurable: true,
+* The level of this battler.
+*
+* This is the same as `battler.level`.
+* @returns {number}
+*/
+Object.defineProperty(Game_Battler.prototype, "lvl", {
+	get() {
+		return this.getLevel();
+	},
+	configurable: true
 });
-
 /**
- * The level of this battler.
- *
- * This is the same as `battler.level`.
- * @returns {number}
- */
-Object.defineProperty(Game_Battler.prototype, 'lvl', {
-  get()
-  {
-    // get the level from this battler.
-    return this.getLevel();
-  },
-
-  // sure, lets make this level property configurable.
-  configurable: true,
-});
-
+* Gets the level for this battler.
+* @returns {number}
+*/
+Game_Battler.prototype.getLevel = function() {
+	this._j ||= {};
+	this._j._level ||= {};
+	const levelSlot = this._j._level;
+	if (levelSlot._isComputingGetLevel === true) {
+		return this.getBattlerBaseLevel() + this.getLevelBalancer();
+	}
+	levelSlot._isComputingGetLevel = true;
+	try {
+		const sources = this.getLevelSources();
+		let level = this.getBattlerBaseLevel();
+		level += this.getLevelBalancer();
+		sources.forEach((rpgData) => {
+			level += this.extractLevel(rpgData);
+		}, this);
+		return level;
+	} finally {
+		levelSlot._isComputingGetLevel = false;
+	}
+};
 /**
- * Gets the level for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.getLevel = function()
-{
-  this._j ||= {};
-  this._j._level ||= {};
-
-  const levelSlot = this._j._level;
-
-  if (levelSlot._isComputingGetLevel === true)
-  {
-    return this.getBattlerBaseLevel() + this.getLevelBalancer();
-  }
-
-  levelSlot._isComputingGetLevel = true;
-
-  try
-  {
-    const sources = this.getLevelSources();
-    let level = this.getBattlerBaseLevel();
-    level += this.getLevelBalancer();
-
-    sources.forEach(rpgData =>
-    {
-      level += this.extractLevel(rpgData);
-    }, this);
-
-    return level;
-  }
-  finally
-  {
-    levelSlot._isComputingGetLevel = false;
-  }
+* Gets all database sources we can get levels from.
+* @returns {RPG_BaseItem[]}
+*/
+Game_Battler.prototype.getLevelSources = function() {
+	return [];
+};
+/**
+* The base or default level for this battler.
+* @returns {number}
+*/
+Game_Battler.prototype.getBattlerBaseLevel = function() {
+	return 0;
+};
+/**
+* The variable level modifier for this battler.
+* @returns {number}
+*/
+Game_Battler.prototype.getLevelBalancer = function() {
+	return 0;
+};
+/**
+* Extracts the level from a given source's note data.
+* @param {RPG_BaseItem} rpgData The database object to extract level from.
+*/
+Game_Battler.prototype.extractLevel = function(rpgData) {
+	return RPGManager.getNumberFromNoteByRegex(rpgData, J.LEVEL.RegExp.Level);
 };
 
+//#endregion
+//#region src/plugins/level/core/objects/Game_Enemy.js
 /**
- * Gets all database sources we can get levels from.
- * @returns {RPG_BaseItem[]}
- */
-Game_Battler.prototype.getLevelSources = function()
-{
-  // our sources of data that a level can be retrieved from.
-  return [];
+* Extends {@link Game_Enemy.setup}.<br>
+* Includes setting up the learned level map for skills.
+*/
+J.LEVEL.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
+Game_Enemy.prototype.initMembers = function() {
+	J.LEVEL.Aliased.Game_Enemy.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with levels.
+	*/
+	this._j._level ||= {};
+	/**
+	* All skill learnings this enemy has for it recorded as a dictionary.
+	* @type {Record<number, number>}
+	*/
+	this._j._level._skillLearnings = {};
+	/**
+	* The cached level override for this enemy if one exists.
+	* @type {number|null}
+	*/
+	this._j._level._cachedLevelOverride = null;
 };
-
 /**
- * The base or default level for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.getBattlerBaseLevel = function()
-{
-  return 0;
+* Sets a skill's learning by its skill and level.
+* @param {number} skillId The skill id to be learned.
+* @param {number} level The level the corresponding skill is learned.
+*/
+Game_Enemy.prototype.setSkillLearning = function(skillId, level) {
+	this._j._level._skillLearnings[skillId] = level;
 };
-
+Game_Enemy.prototype.getCachedLevelOverride = function() {
+	return this._j._level._cachedLevelOverride;
+};
+Game_Enemy.prototype.setCachedLevelOverride = function(level) {
+	this._j._level._cachedLevelOverride = level;
+};
 /**
- * The variable level modifier for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.getLevelBalancer = function()
-{
-  return 0;
+* Extends {@link Game_Enemy.setup}.<br>
+* Includes setting up the learned level map for skills.
+*/
+J.LEVEL.Aliased.Game_Enemy.set("setup", Game_Enemy.prototype.setup);
+Game_Enemy.prototype.setup = function(enemyId, x, y) {
+	J.LEVEL.Aliased.Game_Enemy.get("setup").call(this, enemyId, x, y);
+	this.setupSkillLearnings();
 };
-
 /**
- * Extracts the level from a given source's note data.
- * @param {RPG_BaseItem} rpgData The database object to extract level from.
- */
-Game_Battler.prototype.extractLevel = function(rpgData)
-{
-  // extract the level from the notes.
-  return RPGManager.getNumberFromNoteByRegex(rpgData, J.LEVEL.RegExp.Level);
+* Sets up the learnings defined on the enemy.
+*/
+Game_Enemy.prototype.setupSkillLearnings = function() {
+	const learnings = RPGManager.getArraysFromNotesByRegex(this.enemy(), J.LEVEL.RegExp.Learning) ?? [];
+	if (learnings.length === 0) return;
+	learnings.forEach((learning) => this.setSkillLearning(learning.at(0), learning.at(1)));
 };
-//endregion Game_Battler
-
-//region Game_Enemy
-
 /**
- * Extends {@link Game_Enemy.setup}.<br>
- * Includes setting up the learned level map for skills.
- */
-J.LEVEL.Aliased.Game_Enemy.set('initMembers', Game_Enemy.prototype.initMembers);
-Game_Enemy.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.LEVEL.Aliased.Game_Enemy.get('initMembers')
-    .call(this);
-
-  /**
-   * The J object where all my additional properties live.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with levels.
-   */
-  this._j._level ||= {};
-
-  /**
-   * All skill learnings this enemy has for it recorded as a dictionary.
-   * @type {Record<number, number>}
-   */
-  this._j._level._skillLearnings = {};
-
-  /**
-   * The cached level override for this enemy if one exists.
-   * @type {number|null}
-   */
-  this._j._level._cachedLevelOverride = null;
+* Extends {@link #canMapActionToSkill}.<br/>
+* Also factors in whether or not the skill is technically learned or not.
+* @param {RPG_EnemyAction} action The action being mapped to a skill.
+* @returns {boolean}
+*/
+J.LEVEL.Aliased.Game_Enemy.set("canMapActionToSkill", Game_Enemy.prototype.canMapActionToSkill);
+Game_Enemy.prototype.canMapActionToSkill = function(action) {
+	const baseCanMap = J.LEVEL.Aliased.Game_Enemy.get("canMapActionToSkill").call(this, action);
+	if (baseCanMap === false) return false;
+	const isLearned = this.isLearnedSkillByLevel(action);
+	return isLearned;
 };
-
 /**
- * Sets a skill's learning by its skill and level.
- * @param {number} skillId The skill id to be learned.
- * @param {number} level The level the corresponding skill is learned.
- */
-Game_Enemy.prototype.setSkillLearning = function(skillId, level)
-{
-  this._j._level._skillLearnings[skillId] = level;
+* Determines if a skill has been learned from potential level restrictions.
+* @param {RPG_EnemyAction} action The action being mapped to a skill.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.isLearnedSkillByLevel = function(action) {
+	const levelLearned = this._j._level._skillLearnings[action.skillId];
+	if (levelLearned === undefined) return true;
+	if (this.level >= levelLearned) return true;
+	return false;
 };
-
-Game_Enemy.prototype.getCachedLevelOverride = function()
-{
-  return this._j._level._cachedLevelOverride;
-};
-
-Game_Enemy.prototype.setCachedLevelOverride = function(level)
-{
-  this._j._level._cachedLevelOverride = level;
-};
-
 /**
- * Extends {@link Game_Enemy.setup}.<br>
- * Includes setting up the learned level map for skills.
- */
-J.LEVEL.Aliased.Game_Enemy.set('setup', Game_Enemy.prototype.setup);
-Game_Enemy.prototype.setup = function(enemyId, x, y)
-{
-  // perform original logic.
-  J.LEVEL.Aliased.Game_Enemy.get('setup')
-    .call(this, enemyId, x, y);
-
-  // initialize the skill learnings for this enemy.
-  this.setupSkillLearnings();
+* Overrides {@link #getBattlerBaseLevel}.<br/>
+* Instead of defaulting to zero, it will use the enemy's own note, accommodating any overrides if present.
+* @returns {number}
+*/
+J.LEVEL.Aliased.Game_Enemy.set("getBattlerBaseLevel", Game_Enemy.prototype.getBattlerBaseLevel);
+Game_Enemy.prototype.getBattlerBaseLevel = function() {
+	const defaultBaseLevel = J.LEVEL.Aliased.Game_Enemy.get("getBattlerBaseLevel").call(this);
+	const noteLevel = RPGManager.getNumberFromNoteByRegex(this.enemy(), J.LEVEL.RegExp.Level);
+	const baseLevel = defaultBaseLevel + noteLevel;
+	if (this.hasLevelOverride() === false) return baseLevel;
+	return this.getCachedLevelOverride();
+};
+/**
+* Checks if this enemy in particular has any JABS level overrides.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.hasLevelOverride = function() {
+	if (!J.ABS) return false;
+	if (this.getCachedLevelOverride() === null) return false;
+	return true;
+};
+/**
+* Determines if the level should be hidden for this enemy based on its notes.
+* @returns {boolean} True if the level should be hidden, false otherwise.
+*/
+Game_Enemy.prototype.shouldHideLevel = function() {
+	const referenceData = this.enemy();
+	const hideLevel = RPGManager.checkForBooleanFromNoteByRegex(referenceData, J.LEVEL.RegExp.HideLevel);
+	return hideLevel;
+};
+/**
+* Gets all database sources we can get levels from.
+* @returns {RPG_BaseItem[]}
+*/
+Game_Enemy.prototype.getLevelSources = function() {
+	return [...this.states()];
+};
+/**
+* The variable level modifier for this enemy.
+* @returns {number}
+*/
+Game_Enemy.prototype.getLevelBalancer = function() {
+	if (J.LEVEL.Metadata.enemyBalanceVariable) {
+		return $gameVariables.value(J.LEVEL.Metadata.enemyBalanceVariable);
+	}
+	return 0;
 };
 
+//#endregion
+//#region src/plugins/level/core/objects/Game_Event.js
 /**
- * Sets up the learnings defined on the enemy.
- */
-Game_Enemy.prototype.setupSkillLearnings = function()
-{
-  const learnings = RPGManager.getArraysFromNotesByRegex(this.enemy(), J.LEVEL.RegExp.Learning) ?? [];
-  if (learnings.length === 0) return;
-
-  learnings.forEach(learning => this.setSkillLearning(learning.at(0), learning.at(1)));
+* Extends {@link Game_Event.initMembers}.<br>
+* Initializes level-related properties.
+*/
+J.LEVEL.Aliased.Game_Event.set("initMembers", Game_Event.prototype.initMembers);
+Game_Event.prototype.initMembers = function() {
+	J.LEVEL.Aliased.Game_Event.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with levels.
+	*/
+	this._j._level ||= {};
+	/**
+	* The cached level override value.
+	* @type {number|null}
+	*/
+	this._j._level._cachedLevelOverride = null;
+	/**
+	* The cached check of whether or not to hide the level in the battler's name.
+	* @type {boolean|null}
+	*/
+	this._j._level._cachedHideLevel = null;
+};
+/**
+* Gets the cached level override.<br>
+* If there is no override, this returns null instead.
+* @returns {number|null}
+*/
+Game_Event.prototype.getCachedLevelOverride = function() {
+	return this._j._level._cachedLevelOverride;
+};
+/**
+* Gets the cached flag for whether or not the level should be hidden.<br>
+* If there is this hasn't been parsed, this returns null instead.
+* @returns {boolean|null}
+*/
+Game_Event.prototype.getCachedHideLevel = function() {
+	return this._j._level._cachedHideLevel;
+};
+/**
+* Sets the level override as a cached value.
+* @param {number|null} level The new cached value.
+*/
+Game_Event.prototype.setCachedLevelOverride = function(level) {
+	this._j._level._cachedLevelOverride = level;
+};
+/**
+* Sets the flag for hiding the level as a cached value.
+* @param {boolean|null} hideLevel The new cached value.
+*/
+Game_Event.prototype.setCachedHideLevel = function(hideLevel) {
+	this._j._level._cachedHideLevel = hideLevel;
+};
+/**
+* Extends {@link Game_Event.refresh}.<br>
+* Clears the level override cache when the event page changes.
+*/
+J.LEVEL.Aliased.Game_Event.set("refresh", Game_Event.prototype.refresh);
+Game_Event.prototype.refresh = function() {
+	J.LEVEL.Aliased.Game_Event.get("refresh").call(this);
+	this.clearLevelCache();
+};
+/**
+* Clears the cached values related to levels.
+*/
+Game_Event.prototype.clearLevelCache = function() {
+	this.setCachedLevelOverride(null);
+	this.setCachedHideLevel(null);
+};
+/**
+* Parses out the level from a list of event commands.
+* @returns {number|null} The found level, or null if not found.
+*/
+Game_Event.prototype.getLevelOverrides = function() {
+	if (this._j._level._cachedLevelOverride !== null) {
+		return this._j._level._cachedLevelOverride;
+	}
+	let level = null;
+	this.getValidCommentCommands().forEach((command) => {
+		const [comment] = command.parameters;
+		const regexResult = J.LEVEL.RegExp.Level.exec(comment);
+		if (!regexResult) return;
+		level = parseInt(regexResult[1]);
+	});
+	this._j._level._cachedLevelOverride = level;
+	return level;
+};
+/**
+* Determines if the level should be hidden for this event.
+* @returns {boolean} True if the level should be hidden, false otherwise.
+*/
+Game_Event.prototype.shouldHideLevel = function() {
+	if (this.getCachedHideLevel() !== null) {
+		return this.getCachedHideLevel();
+	}
+	let hideLevel = false;
+	this.getValidCommentCommands().forEach((command) => {
+		const [comment] = command.parameters;
+		if (J.LEVEL.RegExp.HideLevel.test(comment)) {
+			hideLevel = true;
+		}
+	});
+	this.setCachedHideLevel(hideLevel);
+	return hideLevel;
 };
 
+//#endregion
+//#region src/plugins/level/core/objects/Game_Party.js
 /**
- * Extends {@link #canMapActionToSkill}.<br/>
- * Also factors in whether or not the skill is technically learned or not.
- * @param {RPG_EnemyAction} action The action being mapped to a skill.
- * @returns {boolean}
- */
-J.LEVEL.Aliased.Game_Enemy.set('canMapActionToSkill', Game_Enemy.prototype.canMapActionToSkill);
-Game_Enemy.prototype.canMapActionToSkill = function(action)
-{
-  // perform original logic.
-  const baseCanMap = J.LEVEL.Aliased.Game_Enemy.get('canMapActionToSkill')
-    .call(this, action);
-
-  // if the skill is otherwise unmappable, then don't bother with level-related logic.
-  if (baseCanMap === false) return false;
-
-  // determine if the skill is learned according to its level.
-  const isLearned = this.isLearnedSkillByLevel(action);
-
-  // return what we found.
-  return isLearned;
+* Checks the current battle party and averages all levels.
+* @returns {number} The average battle party level (rounded).
+*/
+Game_Party.prototype.averageActorLevel = function() {
+	const allies = this.battleMembers();
+	if (!allies.length) return 0;
+	const reducer = (runningTotal, currentActor) => runningTotal + currentActor.level;
+	const levelTotal = allies.reduce(reducer, 0);
+	return Math.round(levelTotal / allies.length);
 };
 
+//#endregion
+//#region src/plugins/level/core/objects/Game_System.js
 /**
- * Determines if a skill has been learned from potential level restrictions.
- * @param {RPG_EnemyAction} action The action being mapped to a skill.
- * @returns {boolean}
- */
-Game_Enemy.prototype.isLearnedSkillByLevel = function(action)
-{
-  const levelLearned = this._j._level._skillLearnings[action.skillId];
-
-  // if the skill didn't map, then the value will be undefined.
-  if (levelLearned === undefined) return true;
-
-  // if the enemy is at or above the level learned, then the skill is learned.
-  if (this.level >= levelLearned) return true;
-
-  // otherwise, the skill is not learned and shouldn't be considered.
-  return false;
+* Extends `initialize()` to include properties for this plugin.
+*/
+J.LEVEL.Aliased.Game_System.set("initialize", Game_System.prototype.initialize);
+Game_System.prototype.initialize = function() {
+	J.LEVEL.Aliased.Game_System.get("initialize").call(this);
+	/**
+	* The overarching _j object, where all my stateful plugin data is stored.
+	*/
+	this._j ||= {};
+	/**
+	* Whether or not the level scaling is enabled.
+	* @type {boolean}
+	*/
+	this._j._levelScalingEnabled ||= J.LEVEL.Metadata.enabled;
+};
+/**
+* Gets whether or not the level scaling is enabled.
+* @returns {boolean}
+*/
+Game_System.prototype.isLevelScalingEnabled = function() {
+	return this._j._levelScalingEnabled;
+};
+/**
+* Enables level scaling functionality.
+*/
+Game_System.prototype.enableLevelScaling = function() {
+	this._j._levelScalingEnabled = true;
+};
+/**
+* Disables level scaling functionality.
+*/
+Game_System.prototype.disableLevelScaling = function() {
+	this._j._levelScalingEnabled = false;
+};
+/**
+* Rebuilds the beyond max parameter data for all actors.
+*/
+J.LEVEL.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function() {
+	J.LEVEL.Aliased.Game_System.get("onAfterLoad").call(this);
+	$gameTemp.buildBeyondMaxData();
 };
 
+//#endregion
+//#region src/plugins/level/core/objects/Game_Temp.js
 /**
- * Overrides {@link #getBattlerBaseLevel}.<br/>
- * Instead of defaulting to zero, it will use the enemy's own note, accommodating any overrides if present.
- * @returns {number}
- */
-J.LEVEL.Aliased.Game_Enemy.set('getBattlerBaseLevel', Game_Enemy.prototype.getBattlerBaseLevel);
-Game_Enemy.prototype.getBattlerBaseLevel = function()
-{
-  // calculate the original level- probably zero unless another plugin modifies this.
-  const defaultBaseLevel = J.LEVEL.Aliased.Game_Enemy.get('getBattlerBaseLevel')
-    .call(this);
-
-  // grab the level from the enemy's own note.
-  const noteLevel = RPGManager.getNumberFromNoteByRegex(this.enemy(), J.LEVEL.RegExp.Level);
-
-  // combine the default and enemy levels.
-  const baseLevel = defaultBaseLevel + noteLevel;
-
-  // if there are no overrides, then return the base level.
-  if (this.hasLevelOverride() === false) return baseLevel;
-
-  // return the level override.
-  return this.getCachedLevelOverride();
+* Intializes all additional members of this class.
+*/
+J.LEVEL.Aliased.Game_Temp.set("initMembers", Game_Temp.prototype.initMembers);
+Game_Temp.prototype.initMembers = function() {
+	J.LEVEL.Aliased.Game_Temp.get("initMembers").call(this);
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with this plugin.
+	*/
+	this._j._level ||= {};
+	/**
+	* Whether or not the beyond max data has been cached.
+	* @type {boolean}
+	*/
+	this._j._level._hasCachedBeyondMaxData = false;
+	/**
+	* All the level data for beyond the max level.
+	*/
+	this._j._level._beyondMaxData ||= {};
+};
+/**
+* Iterate over all actors and build the parameter data for all classes.
+*/
+Game_Temp.prototype.buildBeyondMaxData = function() {
+	$dataClasses.forEach((dataClass) => {
+		if (!dataClass) return;
+		this.buildBeyondMaxDataForClass(dataClass.id);
+	}, this);
+	this.flagBeyondMaxDataAsCached();
+};
+/**
+* Builds the beyond max parameter data for a given class.
+* @param {number} classId The classId to build the beyond max data for.
+*/
+Game_Temp.prototype.buildBeyondMaxDataForClass = function(classId) {
+	const classParams = $dataClasses.at(classId).params;
+	const newClassParams = Array.empty;
+	Game_BattlerBase.knownBaseParameterIds().forEach((paramId) => {
+		const parameterValues = classParams.at(paramId).toSpliced(0, 0);
+		const lastFive = parameterValues.slice(parameterValues.length - 6);
+		const growth = Array.empty;
+		lastFive.forEach((value, index) => {
+			if (index === 0) return;
+			const previousValue = lastFive[index - 1];
+			const difference = value - previousValue;
+			growth.push(difference);
+		});
+		const averageGrowth = growth.reduce((sum, value) => sum + value, 0) / growth.length;
+		for (let i = 100; i < 1e3; i++) {
+			const nextParameterValue = parameterValues.at(i - 1) + averageGrowth;
+			parameterValues[i] = Math.ceil(nextParameterValue);
+		}
+		newClassParams.push(parameterValues);
+	});
+	this.setBeyondMaxData(classId, newClassParams);
+};
+/**
+* Gets the parameter collection for the class
+* @param {number} classId The classId to build the beyond max data for.
+* @returns {number[][]} The parameter collection for a given class and its parameters.
+*/
+Game_Temp.prototype.getBeyondMaxData = function(classId) {
+	return this._j._level._beyondMaxData[classId];
+};
+/**
+* Sets the parameter data for the given class.
+* @param {number} classId The classId to set the parameter data for.
+* @param {number[][]} parameterData The array of arrays of parameter values- one for each base paramId.
+*/
+Game_Temp.prototype.setBeyondMaxData = function(classId, parameterData) {
+	this._j._level._beyondMaxData[classId] = parameterData;
+};
+/**
+* Determines whether or not the beyond max data has been cached yet.
+* @returns {boolean} True if it has been cached already, false otherwise.
+*/
+Game_Temp.prototype.hasCachedBeyondMaxData = function() {
+	return this._j._level._hasCachedBeyondMaxData;
+};
+/**
+* Flags the beyond max data as having been cached.
+*/
+Game_Temp.prototype.flagBeyondMaxDataAsCached = function() {
+	this._j._level._hasCachedBeyondMaxData = true;
 };
 
+//#endregion
+//#region src/plugins/level/core/objects/Game_Troop.js
 /**
- * Checks if this enemy in particular has any JABS level overrides.
- * @returns {boolean}
- */
-Game_Enemy.prototype.hasLevelOverride = function()
-{
-  // if JABS isn't available, then there won't be a level override.
-  if (!J.ABS) return false;
-
-  // if overrides is null, then there are none.
-  if (this.getCachedLevelOverride() === null) return false;
-
-  // there must be overrides!
-  return true;
+* Upon defeating a troop of enemies, scales the earned experience based on
+* average actor level vs each of the enemies.
+*/
+J.LEVEL.Aliased.Game_Troop.set("expTotal", Game_Troop.prototype.expTotal);
+Game_Troop.prototype.expTotal = function() {
+	if (J.LEVEL.Metadata.enabled) {
+		return this.getScaledExpResult();
+	} else {
+		return J.LEVEL.Aliased.Game_Troop.get("expTotal").call(this);
+	}
+};
+/**
+* Determines the amount of experience gained based on the average battle party compared to each defeated enemy.
+* @returns {number} The scaled amount of EXP this enemy troop yielded.
+*/
+Game_Troop.prototype.getScaledExpResult = function() {
+	const deadEnemies = this.deadMembers();
+	const averageActorLevel = $gameParty.averageActorLevel();
+	const reducer = (accumulativeExpTotal, currentEnemy) => {
+		const expFactor = LevelScaling.multiplier(averageActorLevel, currentEnemy.level, LevelScaling.Scope.REWARD);
+		const total = Math.round(expFactor * currentEnemy.exp());
+		return accumulativeExpTotal + total;
+	};
+	return Math.round(deadEnemies.reduce(reducer, 0));
 };
 
+//#endregion
+//#region src/plugins/level/core/sprites/Sprite_Character.js
 /**
- * Determines if the level should be hidden for this enemy based on its notes.
- * @returns {boolean} True if the level should be hidden, false otherwise.
- */
-Game_Enemy.prototype.shouldHideLevel = function()
-{
-  // grab the reference data for this battler.
-  const referenceData = this.enemy();
-
-  // check if the hideLevel tag exists in the enemy's notes.
-  const hideLevel = RPGManager.checkForBooleanFromNoteByRegex(referenceData, J.LEVEL.RegExp.HideLevel);
-
-  // return whether the level should be hidden.
-  return hideLevel;
+* Gets this battler's name.
+* If there is no battler, this will return an empty name.
+* @returns {JABS_BattlerName}
+*/
+J.LEVEL.Aliased.Sprite_Character.set("getBattlerName", Sprite_Character.prototype.getBattlerName);
+Sprite_Character.prototype.getBattlerName = function() {
+	/** @type {JABS_BattlerName} */
+	const originalName = J.LEVEL.Aliased.Sprite_Character.get("getBattlerName").call(this);
+	if (originalName.name === String.empty) return originalName;
+	const battler = this.getBattler();
+	if (battler.isEnemy() === false) return originalName;
+	const { level } = battler;
+	if (level === 0) return originalName;
+	let levelString = `${level.padZero(3)}`;
+	if (this._character && this._character.isEvent() && this._character.shouldHideLevel()) {
+		levelString = "???";
+	}
+	if (levelString !== "???" && battler.shouldHideLevel()) {
+		levelString = "???";
+	}
+	originalName.name = `${levelString} ${originalName.name}`;
+	return originalName;
 };
 
-/**
- * Gets all database sources we can get levels from.
- * @returns {RPG_BaseItem[]}
- */
-Game_Enemy.prototype.getLevelSources = function()
-{
-  // our sources of data that a level can be retrieved from.
-  return [
-    ...this.states(), // all states applied to this enemy are sources.
-  ];
-};
-
-/**
- * The variable level modifier for this enemy.
- * @returns {number}
- */
-Game_Enemy.prototype.getLevelBalancer = function()
-{
-  // check if we have a variable set for the fixed balancing.
-  if (J.LEVEL.Metadata.enemyBalanceVariable)
-  {
-    // return the adjustment from the variable value instead.
-    return $gameVariables.value(J.LEVEL.Metadata.enemyBalanceVariable);
-  }
-
-  // we don't have any balancing required.
-  return 0;
-};
-//endregion Game_Enemy
-
-//region Game_Event
-/**
- * Extends {@link Game_Event.initMembers}.<br>
- * Initializes level-related properties.
- */
-J.LEVEL.Aliased.Game_Event.set('initMembers', Game_Event.prototype.initMembers);
-Game_Event.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.LEVEL.Aliased.Game_Event.get('initMembers')
-    .call(this);
-
-  /**
-   * The J object where all my additional properties live.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with levels.
-   */
-  this._j._level ||= {};
-
-  /**
-   * The cached level override value.
-   * @type {number|null}
-   */
-  this._j._level._cachedLevelOverride = null;
-
-  /**
-   * The cached check of whether or not to hide the level in the battler's name.
-   * @type {boolean|null}
-   */
-  this._j._level._cachedHideLevel = null;
-};
-
-/**
- * Gets the cached level override.<br>
- * If there is no override, this returns null instead.
- * @returns {number|null}
- */
-Game_Event.prototype.getCachedLevelOverride = function()
-{
-  return this._j._level._cachedLevelOverride;
-};
-
-/**
- * Gets the cached flag for whether or not the level should be hidden.<br>
- * If there is this hasn't been parsed, this returns null instead.
- * @returns {boolean|null}
- */
-Game_Event.prototype.getCachedHideLevel = function()
-{
-  return this._j._level._cachedHideLevel;
-};
-
-/**
- * Sets the level override as a cached value.
- * @param {number|null} level The new cached value.
- */
-Game_Event.prototype.setCachedLevelOverride = function(level)
-{
-  this._j._level._cachedLevelOverride = level;
-};
-
-/**
- * Sets the flag for hiding the level as a cached value.
- * @param {boolean|null} hideLevel The new cached value.
- */
-Game_Event.prototype.setCachedHideLevel = function(hideLevel)
-{
-  this._j._level._cachedHideLevel = hideLevel;
-};
-
-/**
- * Extends {@link Game_Event.refresh}.<br>
- * Clears the level override cache when the event page changes.
- */
-J.LEVEL.Aliased.Game_Event.set('refresh', Game_Event.prototype.refresh);
-Game_Event.prototype.refresh = function()
-{
-  // perform original logic.
-  J.LEVEL.Aliased.Game_Event.get('refresh')
-    .call(this);
-
-  // clear the level override cache when the event page changes.
-  this.clearLevelCache();
-};
-
-/**
- * Clears the cached values related to levels.
- */
-Game_Event.prototype.clearLevelCache = function()
-{
-  // reset back to default.
-  this.setCachedLevelOverride(null);
-  this.setCachedHideLevel(null);
-};
-
-/**
- * Parses out the level from a list of event commands.
- * @returns {number|null} The found level, or null if not found.
- */
-Game_Event.prototype.getLevelOverrides = function()
-{
-  // check if we have a cached value
-  if (this._j._level._cachedLevelOverride !== null)
-  {
-    // return the cached value
-    return this._j._level._cachedLevelOverride;
-  }
-
-  // default to no level override
-  let level = null;
-
-  // check all the valid event commands to see if we have a level override
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
-      // shorthand the comment into a variable
-      const [ comment, ] = command.parameters;
-
-      // check if the comment matches the regex
-      const regexResult = J.LEVEL.RegExp.Level.exec(comment);
-
-      // if the comment didn't match, then don't try to parse it
-      if (!regexResult) return;
-
-      // parse the value out of the regex capture group
-      level = parseInt(regexResult[1]);
-    });
-
-  // cache the result for future use
-  this._j._level._cachedLevelOverride = level;
-
-  // return what we found
-  return level;
-};
-
-/**
- * Determines if the level should be hidden for this event.
- * @returns {boolean} True if the level should be hidden, false otherwise.
- */
-Game_Event.prototype.shouldHideLevel = function()
-{
-  // check if we have a cached value.
-  if (this.getCachedHideLevel() !== null)
-  {
-    // return the cached value.
-    return this.getCachedHideLevel();
-  }
-
-  // default to not hiding the level.
-  let hideLevel = false;
-
-  // check all the valid event commands to see if we have a hide level tag.
-  this.getValidCommentCommands()
-    .forEach(command =>
-    {
-      // shorthand the comment into a variable.
-      const [ comment, ] = command.parameters;
-
-      // check if the comment contains the hideLevel tag.
-      if (J.LEVEL.RegExp.HideLevel.test(comment))
-      {
-        hideLevel = true;
-      }
-    });
-
-  // cache the result for future use
-  this.setCachedHideLevel(hideLevel);
-
-  // return what we found
-  return hideLevel;
-};
-//endregion Game_Event
-
-//region Game_Party
-/**
- * Checks the current battle party and averages all levels.
- * @returns {number} The average battle party level (rounded).
- */
-Game_Party.prototype.averageActorLevel = function()
-{
-  // grab all allies.
-  const allies = this.battleMembers();
-
-  // if we have no party, then the average is 0.
-  if (!allies.length) return 0;
-
-  // the reducer function for summing the party's levels.
-  const reducer = (runningTotal, currentActor) => runningTotal + currentActor.level;
-
-  // the sum of the levels of the party.
-  const levelTotal = allies.reduce(reducer, 0);
-
-  // the average level of the party.
-  return Math.round(levelTotal / allies.length);
-}
-//endregion Game_Party
-
-//region Game_System
-/**
- * Extends `initialize()` to include properties for this plugin.
- */
-J.LEVEL.Aliased.Game_System.set('initialize', Game_System.prototype.initialize);
-Game_System.prototype.initialize = function()
-{
-  // perform original logic.
-  J.LEVEL.Aliased.Game_System.get('initialize')
-    .call(this);
-
-  /**
-   * The overarching _j object, where all my stateful plugin data is stored.
-   */
-  this._j ||= {};
-
-  /**
-   * Whether or not the level scaling is enabled.
-   * @type {boolean}
-   */
-  this._j._levelScalingEnabled ||= J.LEVEL.Metadata.enabled;
-};
-
-/**
- * Gets whether or not the level scaling is enabled.
- * @returns {boolean}
- */
-Game_System.prototype.isLevelScalingEnabled = function()
-{
-  return this._j._levelScalingEnabled;
-};
-
-/**
- * Enables level scaling functionality.
- */
-Game_System.prototype.enableLevelScaling = function()
-{
-  this._j._levelScalingEnabled = true;
-};
-
-/**
- * Disables level scaling functionality.
- */
-Game_System.prototype.disableLevelScaling = function()
-{
-  this._j._levelScalingEnabled = false;
-};
-
-/**
- * Rebuilds the beyond max parameter data for all actors.
- */
-J.LEVEL.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
-Game_System.prototype.onAfterLoad = function()
-{
-  // perform original logic.
-  J.LEVEL.Aliased.Game_System.get('onAfterLoad')
-    .call(this);
-
-  // build the beyond max data.
-  $gameTemp.buildBeyondMaxData();
-};
-//endregion Game_System
-
-//region Game_Temp
-/**
- * Intializes all additional members of this class.
- */
-J.LEVEL.Aliased.Game_Temp.set('initMembers', Game_Temp.prototype.initMembers);
-Game_Temp.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.LEVEL.Aliased.Game_Temp.get('initMembers')
-    .call(this);
-
-  /**
-   * The shared root namespace for all of J's plugin data.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with this plugin.
-   */
-  this._j._level ||= {};
-
-  /**
-   * Whether or not the beyond max data has been cached.
-   * @type {boolean}
-   */
-  this._j._level._hasCachedBeyondMaxData = false;
-
-  /**
-   * All the level data for beyond the max level.
-   */
-  this._j._level._beyondMaxData ||= {};
-};
-
-/**
- * Iterate over all actors and build the parameter data for all classes.
- */
-Game_Temp.prototype.buildBeyondMaxData = function()
-{
-  // iterate over each class to build the extended parameter data.
-  $dataClasses.forEach(dataClass =>
-  {
-    // the first class is always null.
-    if (!dataClass) return;
-
-    // build the data for this actor and this class.
-    this.buildBeyondMaxDataForClass(dataClass.id);
-  }, this);
-
-  this.flagBeyondMaxDataAsCached();
-};
-
-/**
- * Builds the beyond max parameter data for a given class.
- * @param {number} classId The classId to build the beyond max data for.
- */
-Game_Temp.prototype.buildBeyondMaxDataForClass = function(classId)
-{
-  // grab the parameter collections for the class.
-  const classParams = $dataClasses.at(classId).params;
-
-  // start a new array for the updated class parameters.
-  const newClassParams = Array.empty;
-
-  // iterate over each of the known base parameters to boost beyond max.
-  Game_BattlerBase.knownBaseParameterIds()
-    .forEach(paramId =>
-    {
-      // clone the class parameters.
-      const parameterValues = classParams.at(paramId)
-        .toSpliced(0, 0);
-
-      // grab the final five levels to determine the average growth to continue with.
-      const lastFive = parameterValues.slice(parameterValues.length - 6);
-      const growth = Array.empty;
-      lastFive.forEach((value, index) =>
-      {
-        if (index === 0) return;
-
-        const previousValue = lastFive[index - 1];
-        const difference = value - previousValue;
-        growth.push(difference);
-      });
-
-      // determine the average growth rate to continue beyond level 99 with.
-      const averageGrowth = growth.reduce((sum, value) => sum + value, 0) / growth.length;
-
-      // arbitrarily evaluate ten thousand levels worth of parameters upfront.
-      for (let i = 100; i < 1000; i++)
-      {
-        const nextParameterValue = parameterValues.at(i - 1) + averageGrowth;
-        parameterValues[i] = Math.ceil(nextParameterValue);
-      }
-
-      // add the data to the running collection.
-      newClassParams.push(parameterValues);
-    });
-
-  // set the data.
-  this.setBeyondMaxData(classId, newClassParams);
-};
-
-/**
- * Gets the parameter collection for the class
- * @param {number} classId The classId to build the beyond max data for.
- * @returns {number[][]} The parameter collection for a given class and its parameters.
- */
-Game_Temp.prototype.getBeyondMaxData = function(classId)
-{
-  return this._j._level._beyondMaxData[classId];
-};
-
-/**
- * Sets the parameter data for the given class.
- * @param {number} classId The classId to set the parameter data for.
- * @param {number[][]} parameterData The array of arrays of parameter values- one for each base paramId.
- */
-Game_Temp.prototype.setBeyondMaxData = function(classId, parameterData)
-{
-  this._j._level._beyondMaxData[classId] = parameterData;
-};
-
-/**
- * Determines whether or not the beyond max data has been cached yet.
- * @returns {boolean} True if it has been cached already, false otherwise.
- */
-Game_Temp.prototype.hasCachedBeyondMaxData = function()
-{
-  return this._j._level._hasCachedBeyondMaxData;
-};
-
-/**
- * Flags the beyond max data as having been cached.
- */
-Game_Temp.prototype.flagBeyondMaxDataAsCached = function()
-{
-  this._j._level._hasCachedBeyondMaxData = true;
-};
-
-//region Game_Troop
-/**
- * Upon defeating a troop of enemies, scales the earned experience based on
- * average actor level vs each of the enemies.
- */
-J.LEVEL.Aliased.Game_Troop.set('expTotal', Game_Troop.prototype.expTotal);
-Game_Troop.prototype.expTotal = function()
-{
-  // check if the level scaling functionality is enabled.
-  if (J.LEVEL.Metadata.enabled)
-  {
-    // return the scaled result instead.
-    return this.getScaledExpResult();
-  }
-  // the scaling is not enabled.
-  else
-  {
-    // return the default logic instead.
-    return J.LEVEL.Aliased.Game_Troop.get('expTotal')
-      .call(this);
-  }
-};
-
-/**
- * Determines the amount of experience gained based on the average battle party compared to each defeated enemy.
- * @returns {number} The scaled amount of EXP this enemy troop yielded.
- */
-Game_Troop.prototype.getScaledExpResult = function()
-{
-  // grab all the dead enemies of this troop.
-  const deadEnemies = this.deadMembers();
-
-  // calculate the average actor level of the party.
-  const averageActorLevel = $gameParty.averageActorLevel();
-
-  // the reducer function for adding up experience.
-  const reducer = (accumulativeExpTotal, currentEnemy) =>
-  {
-    // determine the experience factor for this defeated enemy level vs the average party level.
-    // if the enemy is higher, then the rewards will be greater.
-    // if the actor is higher, then the rewards will be lesser.
-    const expFactor = LevelScaling.multiplier(
-      averageActorLevel,
-      currentEnemy.level,
-      LevelScaling.Scope.REWARD
-    );
-
-    // multiply the factor against the experience amount to get the actual amount.
-    const total = Math.round(expFactor * currentEnemy.exp());
-
-    // add it to the running total.
-    return (accumulativeExpTotal + total);
-  };
-
-  // return the rounded sum of scaled experience.
-  return Math.round(deadEnemies.reduce(reducer, 0));
-};
-//endregion Game_Troop
-
-//region Sprite_Character
-/**
- * Gets this battler's name.
- * If there is no battler, this will return an empty name.
- * @returns {JABS_BattlerName}
- */
-J.LEVEL.Aliased.Sprite_Character.set('getBattlerName', Sprite_Character.prototype.getBattlerName);
-Sprite_Character.prototype.getBattlerName = function()
-{
-  // get the original name of the sprite.
-  /** @type {JABS_BattlerName} */
-  const originalName = J.LEVEL.Aliased.Sprite_Character.get('getBattlerName')
-    .call(this);
-
-  // if there was no battler name, then there probably isn't a battler.
-  if (originalName.name === String.empty) return originalName;
-
-  // grab the battler- we know it should exist by now.
-  const battler = this.getBattler();
-
-  // non-enemies don't get levels in their names.
-  if (battler.isEnemy() === false) return originalName;
-
-  // get the battler's level.
-  const { level } = battler;
-
-  // a zero level indicates there is no level logic associated with this battler.
-  if (level === 0) return originalName;
-
-  // capture the level as a string type for type-correct potential overriding.
-  let levelString = `${level.padZero(3)}`;
-
-  // check if this character is an event and if the level should be hidden
-  if (this._character && this._character.isEvent() && this._character.shouldHideLevel())
-  {
-    levelString = '???';
-  }
-
-  // if the level is not already hidden by event comments, check the enemy notes
-  if (levelString !== '???' && battler.shouldHideLevel())
-  {
-    levelString = '???';
-  }
-
-  // update the name with the level.
-  originalName.name = `${levelString} ${originalName.name}`;
-
-  // return the name with level.
-  return originalName;
-};
-//endregion Sprite_Character
-
+//#endregion
 //# sourceMappingURL=J-LevelMaster.js.map

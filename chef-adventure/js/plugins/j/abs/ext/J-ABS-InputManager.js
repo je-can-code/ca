@@ -59,5697 +59,3562 @@
  * ============================================================================
  */
 
-//region introduction
+//#region src/plugins/abs/ext/input/_models/JABS_Button.js
 /**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
+* A static class containing all input keys available for JABS.
+*/
+var JABS_Button = class {
+	/**
+	* The "start" key.
+	* Used for bringing up the JABS menu on the map.
+	* @type {string}
+	*/
+	static Menu = "Menu";
+	/**
+	* The "select" key.
+	* Used for party-cycling.
+	* @type {string}
+	*/
+	static Select = "Select";
+	/**
+	* The "main", "A" button, or "Z" key.
+	* Used for executing the mainhand action.
+	* @type {string}
+	*/
+	static Mainhand = "Main";
+	/**
+	* The "offhand", "B" button, or "X" key.
+	* Used for executing the offhand action.
+	* @type {string}
+	*/
+	static Offhand = "Offhand";
+	/**
+	* The "tool", "Y" button, or "C" key.
+	* Used for executing the currently selected tool skill.
+	* @type {string}
+	*/
+	static Tool = "Tool";
+	/**
+	* The "dodge", "R2" button, or "Tab" key.
+	* Used for executing the currently selected dodge skill.
+	* @type {string}
+	*/
+	static Dodge = "Dodge";
+	/**
+	* The sprint/dash input (engine-native dash replacement).
+	* While held, the player sprints if allowed.
+	* @type {string}
+	*/
+	static Sprint = "Sprint";
+	/**
+	* The "strafe", "L2" button, or "Left Ctrl" key.
+	* Used for locking the direction faced while the input is held.
+	* @type {string}
+	*/
+	static Strafe = "Strafe";
+	/**
+	* The "rotate", "R1" button, or "W" and "E" key(s).
+	* Used for locking in-place while the input is held.
+	* @type {string}
+	*/
+	static Rotate = "Rotate";
+	/**
+	* The "guard", "R1" button, or "W", and "E" key(s).
+	* Used for activating the guard function while the input is held.
+	* @type {string}
+	*/
+	static Guard = "Guard";
+	/**
+	* The combat "enabler" (commonly L1 hold on gamepads).
+	* Used as a modifier to enable Combat Skill 1–4 actions while held.
+	* @type {string}
+	*/
+	static SkillTrigger = "SkillTrigger";
+	/**
+	* The `L1 + A` or 1 key.
+	* Executes combat skill 1.
+	* @type {string}
+	*/
+	static CombatSkill1 = "CombatSkill1";
+	/**
+	* The `L1 + B` or 2 key.
+	* Executes combat skill 2.
+	* @type {string}
+	*/
+	static CombatSkill2 = "CombatSkill2";
+	/**
+	* The `L1 + X` or 3 key.
+	* Executes combat skill 3.
+	* @type {string}
+	*/
+	static CombatSkill3 = "CombatSkill3";
+	/**
+	* The `L1 + Y` or 4 key.
+	* Executes combat skill 4.
+	* @type {string}
+	*/
+	static CombatSkill4 = "CombatSkill4";
+	/**
+	* Gets all assignable buttons used for JABS.
+	* @returns {string[]} A collection of JABS-input keys' identifiers.
+	*/
+	static assignableInputs() {
+		const okInputs = [
+			this.Mainhand,
+			this.Offhand,
+			this.Tool,
+			this.SkillTrigger,
+			this.Sprint,
+			this.Strafe,
+			this.Rotate,
+			this.Menu,
+			this.Select
+		];
+		const filtering = (buttonInput) => okInputs.includes(buttonInput);
+		return this.allButtons().filter(filtering);
+	}
+	/**
+	* Gets all currently available buttons used for JABS.
+	* @returns {string[]} A collection of JABS-input key's identifiers.
+	*/
+	static allButtons() {
+		return [
+			this.Mainhand,
+			this.Offhand,
+			this.Tool,
+			this.Sprint,
+			this.SkillTrigger,
+			this.Strafe,
+			this.Rotate,
+			this.Guard,
+			this.Dodge,
+			this.CombatSkill1,
+			this.CombatSkill2,
+			this.CombatSkill3,
+			this.CombatSkill4,
+			this.Menu,
+			this.Select
+		];
+	}
+};
 
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '3.0.0';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
+//#endregion
+//#region src/plugins/abs/ext/input/_models/JABS_StandardController.js
+/**
+* The class that handles input in the context of JABS for a player.
+* A battler must be set in order for this to update.
+* It is important to note that rotate and guard are arbitrarily coupled together by this controller.
+*/
+var JABS_StandardController = class extends JABS_BaseController {
+	/**
+	* Constructor.
+	*/
+	constructor() {
+		super();
+		this.initialize();
+	}
+	/**
+	* Initializes this class.
+	*/
+	initialize() {
+		this.initMembers();
+		this.initMapping();
+	}
+	/**
+	* Initializes all members of this class.
+	*/
+	initMembers() {
+		this.battler = null;
+		/**
+		* A collection of input mappings from logical action (button) to an array of physical inputs.
+		* "Physical inputs" are `Input` symbols like `ok`, `cancel`, or custom entries registered by plugins.
+		* @type {Map<string, string[]>}
+		*/
+		this.inputMapping = new Map();
+		/**
+		* Tracks whether the last-processed frame was considered in combat.
+		* Used for treating a hold across the boundary (exploration → combat)
+		* as a single edge-press for Mobility.
+		* @type {boolean}
+		*/
+		this._lastInCombat = false;
+	}
+	/**
+	* Initialize the button-to-input mappings.
+	* Seeds from current JABS defaults.
+	*/
+	initMapping() {
+		this.inputMapping.set(JABS_Button.Menu, [J.ABS.EXT.INPUT.Symbols.Quickmenu]);
+		this.inputMapping.set(JABS_Button.Select, [J.ABS.EXT.INPUT.Symbols.PartyCycle]);
+		this.inputMapping.set(JABS_Button.Mainhand, [J.ABS.EXT.INPUT.Symbols.Mainhand]);
+		this.inputMapping.set(JABS_Button.Offhand, [J.ABS.EXT.INPUT.Symbols.Offhand]);
+		this.inputMapping.set(JABS_Button.Tool, [J.ABS.EXT.INPUT.Symbols.Tool]);
+		this.inputMapping.set(JABS_Button.Sprint, [J.ABS.EXT.INPUT.Symbols.Dash]);
+		this.inputMapping.set(JABS_Button.Strafe, [J.ABS.EXT.INPUT.Symbols.StrafeTrigger]);
+		this.inputMapping.set(JABS_Button.Rotate, [J.ABS.EXT.INPUT.Symbols.GuardTrigger]);
+		this.inputMapping.set(JABS_Button.Guard, [J.ABS.EXT.INPUT.Symbols.GuardTrigger]);
+		this.inputMapping.set(JABS_Button.SkillTrigger, [J.ABS.EXT.INPUT.Symbols.SkillTrigger]);
+		this.inputMapping.set(JABS_Button.CombatSkill1, [J.ABS.EXT.INPUT.Symbols.CombatSkill1]);
+		this.inputMapping.set(JABS_Button.CombatSkill2, [J.ABS.EXT.INPUT.Symbols.CombatSkill2]);
+		this.inputMapping.set(JABS_Button.CombatSkill3, [J.ABS.EXT.INPUT.Symbols.CombatSkill3]);
+		this.inputMapping.set(JABS_Button.CombatSkill4, [J.ABS.EXT.INPUT.Symbols.CombatSkill4]);
+	}
+	/**
+	* Builds a plain-object of the default mappings without mutating this controller.
+	* This is safe to use for "Reset to Defaults" previews in the remap scene.
+	* @returns {Object<string, string[]>} The default logical->physical mapping.
+	*/
+	buildDefaultMapping() {
+		const defaults = {};
+		defaults[JABS_Button.Menu] = [J.ABS.EXT.INPUT.Symbols.Quickmenu];
+		defaults[JABS_Button.Select] = [J.ABS.EXT.INPUT.Symbols.PartyCycle];
+		defaults[JABS_Button.Mainhand] = [J.ABS.EXT.INPUT.Symbols.Mainhand];
+		defaults[JABS_Button.Offhand] = [J.ABS.EXT.INPUT.Symbols.Offhand];
+		defaults[JABS_Button.Tool] = [J.ABS.EXT.INPUT.Symbols.Tool];
+		defaults[JABS_Button.Dodge] = [J.ABS.EXT.INPUT.Symbols.MobilitySkill];
+		defaults[JABS_Button.Sprint] = [J.ABS.EXT.INPUT.Symbols.Dash];
+		defaults[JABS_Button.Strafe] = [J.ABS.EXT.INPUT.Symbols.StrafeTrigger];
+		defaults[JABS_Button.Rotate] = [J.ABS.EXT.INPUT.Symbols.GuardTrigger];
+		defaults[JABS_Button.Guard] = [J.ABS.EXT.INPUT.Symbols.GuardTrigger];
+		defaults[JABS_Button.SkillTrigger] = [J.ABS.EXT.INPUT.Symbols.SkillTrigger];
+		defaults[JABS_Button.CombatSkill1] = [J.ABS.EXT.INPUT.Symbols.CombatSkill1];
+		defaults[JABS_Button.CombatSkill2] = [J.ABS.EXT.INPUT.Symbols.CombatSkill2];
+		defaults[JABS_Button.CombatSkill3] = [J.ABS.EXT.INPUT.Symbols.CombatSkill3];
+		defaults[JABS_Button.CombatSkill4] = [J.ABS.EXT.INPUT.Symbols.CombatSkill4];
+		return defaults;
+	}
+	/**
+	* Resets this controller’s live bindings back to the defaults.
+	* Does not touch persistence; the caller should save if desired.
+	*/
+	resetToDefaults() {
+		const defaults = this.buildDefaultMapping();
+		this.setAllInputs(defaults);
+	}
+	/**
+	* Gets the physical inputs for the given logical button.
+	* @param {string} button The logical action key.
+	* @returns {string[]} The list of physical inputs associated with this action.
+	*/
+	getInputsForButton(button) {
+		const raw = this.inputMapping.get(button);
+		if (!raw) return [];
+		if (Array.isArray(raw)) return raw.slice(0);
+		return [raw];
+	}
+	/**
+	* Gets the primary physical input for the given button (convenience).
+	* @param {string} slot The logical action key.
+	* @returns {string|undefined} The first physical input, if any.
+	*/
+	getInputForButton(slot) {
+		const inputs = this.getInputsForButton(slot);
+		return inputs.length > 0 ? inputs[0] : undefined;
+	}
+	/**
+	* Overwrites the entire mapping for this controller in one call.
+	* Accepts either a `Map<string, string|string[]>` or a plain object `{ [button]: string|string[] }`.
+	* No saving happens here; this is purely runtime state.
+	* @param {Map<string,(string|string[])>|Object<string,(string|string[])>} mapping The mapping to apply.
+	*/
+	setAllInputs(mapping) {
+		this.inputMapping.clear();
+		const toArray = (value) => {
+			if (Array.isArray(value)) return value.slice(0);
+			if (!value) return [];
+			return [value];
+		};
+		if (mapping instanceof Map) {
+			mapping.forEach((value, key) => {
+				this.inputMapping.set(key, toArray(value));
+			}, this);
+		} else {
+			Object.keys(mapping).forEach((key) => {
+				this.inputMapping.set(key, toArray(mapping[key]));
+			});
+		}
+		const rotateInputs = this.inputMapping.get(JABS_Button.Rotate) || [];
+		this.inputMapping.set(JABS_Button.Guard, rotateInputs.slice(0));
+	}
+	/**
+	* Exports the current mapping as a plain object suitable for saving.
+	* @returns {Object<string,string[]>} A shallow copy of the current mapping.
+	*/
+	exportAllInputs() {
+		const out = {};
+		this.inputMapping.forEach((value, key) => out[key] = Array.isArray(value) ? value.slice(0) : []);
+		return out;
+	}
+	/**
+	* Determines if any physical input bound to the logical action was triggered this frame.
+	* @param {string} button The logical action key.
+	* @returns {boolean}
+	*/
+	isActionTriggered(button) {
+		const inputs = this.getInputsForButton(button);
+		for (let i = 0; i < inputs.length; i++) {
+			const physical = inputs[i];
+			if (Input.isTriggered(physical)) return true;
+		}
+		return false;
+	}
+	/**
+	* Determines if any physical input bound to the logical action is currently pressed.
+	* @param {string} button The logical action key.
+	* @returns {boolean}
+	*/
+	isActionPressed(button) {
+		const inputs = this.getInputsForButton(button);
+		for (let i = 0; i < inputs.length; i++) {
+			const physical = inputs[i];
+			if (Input.isPressed(physical)) return true;
+		}
+		return false;
+	}
+	/**
+	* Updates the input loop for tracking JABS input.
+	*/
+	update() {
+		if (this.canUpdate() === false) return;
+		this.updateMenuAction();
+		this.updatePartyCycleAction();
+		this.updateMainhandAction();
+		this.updateOffhandAction();
+		this.updateToolAction();
+		this.updateSprintCommand();
+		this.updateCombatAction1();
+		this.updateCombatAction2();
+		this.updateCombatAction3();
+		this.updateCombatAction4();
+		this.updateGuardCommand();
+		this.updateStrafeCommand();
+		this.updateRotateCommand();
+	}
+	/**
+	* Checks whether or not we can update this controller's input.
+	* @returns {boolean}
+	*/
+	canUpdate() {
+		if (this.getBattler() === null) return false;
+		return true;
+	}
+	/**
+	* Monitors and takes action based on player input regarding the menu.
+	* This is `Menu` on the gamepad by default.
+	*/
+	updateMenuAction() {
+		if (this.isMenuActionTriggered()) {
+			this.performMenuAction();
+		}
+	}
+	/**
+	* Checks the inputs of the menu action (Menu default).
+	* @returns {boolean}
+	*/
+	isMenuActionTriggered() {
+		if (this.isActionTriggered(JABS_Button.Menu)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the menu action (Menu default).
+	*/
+	performMenuAction() {
+		JABS_InputAdapter.performMenuAction();
+	}
+	/**
+	* Monitors and takes action based on player input regarding party cycling.
+	* This is `Select` on the gamepad by default.
+	*/
+	updatePartyCycleAction() {
+		if (this.isPartyCycleActionTriggered()) {
+			this.performPartyCycleAction();
+		}
+	}
+	/**
+	* Checks the inputs of the party cycle action (Select default).
+	* @returns {boolean}
+	*/
+	isPartyCycleActionTriggered() {
+		if (this.isActionTriggered(JABS_Button.Select)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the party cycle action (Select default).
+	*/
+	performPartyCycleAction() {
+		JABS_InputAdapter.performPartyCycling(false);
+	}
+	/**
+	* Monitors and takes action based on player input regarding the mainhand action.
+	* This is `A` on the gamepad by default.
+	*/
+	updateMainhandAction() {
+		if (this.isMainhandActionTriggered()) {
+			this.performMainhandAction();
+		}
+	}
+	/**
+	* Checks the inputs of the mainhand action currently assigned (A default).
+	* @returns {boolean}
+	*/
+	isMainhandActionTriggered() {
+		if (this.isCombatSkillUsageEnabled()) {
+			return false;
+		}
+		if (this.isActionTriggered(JABS_Button.Mainhand)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the currently assigned mainhand action (A default).
+	*/
+	performMainhandAction() {
+		JABS_InputAdapter.performMainhandAction(this.getBattler());
+	}
+	/**
+	* Monitors and takes action based on player input regarding the offhand action.
+	* This is `B` on the gamepad by default.
+	*/
+	updateOffhandAction() {
+		if (this.isOffhandActionTriggered()) {
+			this.performOffhandAction();
+		}
+	}
+	/**
+	* Checks the inputs of the offhand action currently assigned (B default).
+	* @returns {boolean}
+	*/
+	isOffhandActionTriggered() {
+		if (this.isCombatSkillUsageEnabled()) {
+			return false;
+		}
+		if (this.isActionTriggered(JABS_Button.Offhand)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the currently assigned offhand action (B default).
+	*/
+	performOffhandAction() {
+		JABS_InputAdapter.performOffhandAction(this.getBattler());
+	}
+	updateSprintCommand() {
+		if (this.isSprintActionTriggered()) {
+			this.performSprintAction();
+		} else {
+			this.performSprintAlterAction();
+		}
+	}
+	/**
+	* Checks the inputs of the sprint action currently assigned (Shift default).
+	* Context-aware:
+	* - Out of combat: treat Sprint as a held input (classic run).
+	* - In combat: treat Sprint strictly as an edge-trigger (for Mobility/Dodge).
+	* @returns {boolean}
+	*/
+	isSprintActionTriggered() {
+		const battler = this.getBattler();
+		const inCombat = battler.isInCombat();
+		if (inCombat) {
+			this._lastInCombat = true;
+			return this.isActionTriggered(JABS_Button.Sprint);
+		}
+		this._lastInCombat = false;
+		return this.isActionPressed(JABS_Button.Sprint);
+	}
+	/**
+	* Enables sprinting for this controller's battler when out of combat.
+	* In combat, Sprint becomes the Mobility/Dodge action instead.
+	*/
+	performSprintAction() {
+		const battler = this.getBattler();
+		if (battler.isInCombat()) {
+			JABS_InputAdapter.performSprint(false, battler);
+			JABS_InputAdapter.performDodgeAction(battler);
+			return;
+		}
+		JABS_InputAdapter.performSprint(true, battler);
+	}
+	/**
+	* Disables sprinting for this controller's battler.
+	*/
+	performSprintAlterAction() {
+		const battler = this.getBattler();
+		if (battler.isInCombat()) {
+			return;
+		}
+		JABS_InputAdapter.performSprint(false, battler);
+	}
+	/**
+	* Monitors and takes action based on player input regarding the tool action.
+	* This is `Y` on the gamepad by default.
+	*/
+	updateToolAction() {
+		if (this.isToolActionTriggered()) {
+			this.performToolAction();
+		}
+	}
+	/**
+	* Checks the inputs of the tool action currently assigned (Y default).
+	* @returns {boolean}
+	*/
+	isToolActionTriggered() {
+		if (this.isCombatSkillUsageEnabled()) {
+			return false;
+		}
+		if (this.isActionTriggered(JABS_Button.Tool)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the currently assigned tool action (Y default).
+	*/
+	performToolAction() {
+		JABS_InputAdapter.performToolAction(this.getBattler());
+	}
+	/**
+	* Checks the inputs to ensure the combat action enabler is being held down (L1 default).
+	* @returns {boolean}
+	*/
+	isCombatSkillUsageEnabled() {
+		if (this.isActionPressed(JABS_Button.SkillTrigger)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the combat action in the given slot.
+	* @param {string} slot The slot to execute the combo action from.
+	*/
+	performCombatAction(slot) {
+		JABS_InputAdapter.performCombatAction(slot, this.getBattler());
+	}
+	/**
+	* Monitors and takes action based on player input regarding combat action 1.
+	* This is `L1 + Mainhand` on the gamepad by default.
+	*/
+	updateCombatAction1() {
+		if (this.isCombatAction1Triggered()) {
+			this.performCombatAction(JABS_Button.CombatSkill1);
+		}
+	}
+	/**
+	* Checks the inputs of the combat action in slot 1.
+	* Requires SkillTrigger held and CombatSkill1 triggered.
+	* @returns {boolean}
+	*/
+	isCombatAction1Triggered() {
+		if (this.isCombatSkillUsageEnabled()) {
+			if (this.isActionTriggered(JABS_Button.Mainhand)) {
+				return true;
+			}
+		}
+		if (this.isActionTriggered(JABS_Button.CombatSkill1)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Monitors and takes action based on player input regarding combat action 2.
+	* This is `L1 + Offhand` on the gamepad by default.
+	*/
+	updateCombatAction2() {
+		if (this.isCombatAction2Triggered()) {
+			this.performCombatAction(JABS_Button.CombatSkill2);
+		}
+	}
+	/**
+	* Checks the inputs of the combat action in slot 2.
+	* Requires SkillTrigger held and CombatSkill2 triggered.
+	* @returns {boolean}
+	*/
+	isCombatAction2Triggered() {
+		if (this.isCombatSkillUsageEnabled()) {
+			if (this.isActionTriggered(JABS_Button.Offhand)) {
+				return true;
+			}
+		}
+		if (this.isActionTriggered(JABS_Button.CombatSkill2)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Monitors and takes action based on player input regarding combat action 3.
+	* This is `L1 + Dash` (X) on the gamepad by default.
+	*/
+	updateCombatAction3() {
+		if (this.isCombatAction3Triggered()) {
+			this.performCombatAction(JABS_Button.CombatSkill3);
+		}
+	}
+	/**
+	* Checks the inputs of the combat action in slot 3.
+	* Requires SkillTrigger held and CombatSkill3 triggered.
+	* @returns {boolean}
+	*/
+	isCombatAction3Triggered() {
+		if (this.isCombatSkillUsageEnabled()) {
+			if (this.isActionTriggered(JABS_Button.Sprint)) {
+				return true;
+			}
+		}
+		if (this.isActionTriggered(JABS_Button.CombatSkill3)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Monitors and takes action based on player input regarding combat action 4.
+	* This is `L1 + Tool` (Y) on the gamepad by default.
+	*/
+	updateCombatAction4() {
+		if (this.isCombatAction4Triggered()) {
+			this.performCombatAction(JABS_Button.CombatSkill4);
+		}
+	}
+	/**
+	* Checks the inputs of the combat action in slot 4.
+	* Requires SkillTrigger held and CombatSkill4 triggered.
+	* @returns {boolean}
+	*/
+	isCombatAction4Triggered() {
+		if (this.isCombatSkillUsageEnabled()) {
+			if (this.isActionTriggered(JABS_Button.Tool)) {
+				return true;
+			}
+		}
+		if (this.isActionTriggered(JABS_Button.CombatSkill4)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Monitors and takes action based on player input regarding the strafe action.
+	* This is `L2` on the gamepad by default.
+	*/
+	updateStrafeCommand() {
+		if (this.isStrafeActionTriggered()) {
+			this.performStrafeAction();
+		} else {
+			this.performStrafeAlterAction();
+		}
+	}
+	/**
+	* Checks the inputs of the strafe action currently assigned (L2 default).
+	* @returns {boolean}
+	*/
+	isStrafeActionTriggered() {
+		if (this.isActionPressed(JABS_Button.Strafe)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the currently assigned strafe action (L2 default).
+	*/
+	performStrafeAction() {
+		JABS_InputAdapter.performStrafe(true, this.getBattler());
+	}
+	/**
+	* Executes the currently assigned strafe alter-action (untouched-L2 default).
+	*/
+	performStrafeAlterAction() {
+		JABS_InputAdapter.performStrafe(false, this.getBattler());
+	}
+	/**
+	* Monitors and takes action based on player input regarding the rotate action.
+	* This is `R1` on the gamepad by default.
+	*/
+	updateRotateCommand() {
+		if (this.isRotateActionTriggered()) {
+			this.performRotateAction();
+		} else {
+			this.performRotateAlterAction();
+		}
+	}
+	/**
+	* Checks the inputs of the rotate action currently assigned (R1 default).
+	* @returns {boolean}
+	*/
+	isRotateActionTriggered() {
+		if (this.isActionPressed(JABS_Button.Rotate)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the currently assigned rotate action (R1 default).
+	*/
+	performRotateAction() {
+		JABS_InputAdapter.performRotate(true, this.getBattler());
+		JABS_InputAdapter.performGuard(true, this.getBattler());
+	}
+	/**
+	* Executes the currently assigned rotate alter-action (untouched-R1 default).
+	*/
+	performRotateAlterAction() {
+		JABS_InputAdapter.performRotate(false, this.getBattler());
+		JABS_InputAdapter.performGuard(false, this.getBattler());
+	}
+	/**
+	* Monitors and takes action based on player input regarding the guard action.
+	* This is `R1` on the gamepad by default.
+	*/
+	updateGuardCommand() {
+		if (this.isGuardActionTriggered()) {
+			this.performGuardAction();
+		} else {
+			this.performGuardAlterAction();
+		}
+	}
+	/**
+	* Checks the inputs of the guard action currently assigned (R1 default).
+	* @returns {boolean}
+	*/
+	isGuardActionTriggered() {
+		if (this.isActionPressed(JABS_Button.Guard)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Activates the currently assigned guard action (R1 default).
+	*/
+	performGuardAction() {
+		JABS_InputAdapter.performGuard(true, this.getBattler());
+	}
+	/**
+	* Deactivates the currently assigned guard alter-action (untouched-R1 default).
+	*/
+	performGuardAlterAction() {
+		JABS_InputAdapter.performGuard(false, this.getBattler());
+	}
+};
 
-  // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.6.0';
-  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
-  if (!hasJabsRequirement)
-  {
-    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
-  }
+//#endregion
+//#region src/plugins/abs/ext/input/_metadata/_pluginMetadata.js
+var J_InputPluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/input/_metadata/initialization.js
+globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "3.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (!hasBaseRequirement) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+	const requiredJabsVersion = "4.6.0";
+	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
+	if (!hasJabsRequirement) {
+		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
+	}
 })();
-//endregion version check
-
-//region metadata
 /**
- * The plugin umbrella that governs all things related to this plugin.
- */
+* The plugin umbrella that governs all things related to this plugin.
+*/
 J.ABS.EXT.INPUT = {};
-
 /**
- * The `metadata` associated with this plugin, such as version.
- */
-J.ABS.EXT.INPUT = {};
-J.ABS.EXT.INPUT.Metadata = {};
-J.ABS.EXT.INPUT.Metadata.Version = '2.2.1';
-J.ABS.EXT.INPUT.Metadata.Name = `J-ABS-InputManager`;
-
+* The metadata associated with this plugin.
+*/
+J.ABS.EXT.INPUT.Metadata = new J_InputPluginMetadata("J-ABS-InputManager", "2.2.2");
 /**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.ABS.EXT.INPUT.PluginParameters = PluginManager.parameters(J.ABS.EXT.INPUT.Metadata.Name);
-
-/**
- * Extend this plugin's metadata with additional configurable data points.
- */
-J.ABS.EXT.INPUT.Metadata = {
-  // the previously defined metadata.
-  ...J.ABS.EXT.INPUT.Metadata,
-};
-
-/**
- * A collection of all aliased methods for this plugin.
- */
+* A collection of all aliased methods for this plugin.
+*/
 J.ABS.EXT.INPUT.Aliased = {
-  DataManager: new Map(),
-  Game_Player: new Map(),
-  Game_System: new Map(),
-  Input: new Map(),
-  JABS_Engine: new Map(),
-  JABS_Battler: new Map(),
-  Window_MenuCommand: new Map(),
-  Window_Selectable: new Map(),
-  Scene_Menu: new Map(),
+	DataManager: new Map(),
+	Game_Player: new Map(),
+	Game_System: new Map(),
+	Input: new Map(),
+	JABS_Engine: new Map(),
+	JABS_Battler: new Map(),
+	Window_MenuCommand: new Map(),
+	Window_Selectable: new Map(),
+	Scene_Menu: new Map()
 };
-//endregion metadata
-
 /**
- * The global reference for the player's input manager.
- * This interprets and manages incoming inputs for JABS-related functionality.
- * @type {JABS_StandardController}
- * @global
- */
-// eslint-disable-next-line no-unused-vars
-var $jabsController1 = null;
-//endregion introduction
+* The global reference for the player's input manager.
+* This interprets and manages incoming inputs for JABS-related functionality.
+* @type {JABS_StandardController}
+* @global
+*/
+globalThis.$jabsController1 = null;
 
-//region JABS_Battler
+//#endregion
+//#region src/plugins/abs/ext/input/_models/JABS_Battler.js
 /**
- * Generates a `JABS_Battler` based on the current leader of the party.
- * Also assigns the controller inputs for the player.
- */
-J.ABS.EXT.INPUT.Aliased.JABS_Battler.set('createPlayer', JABS_Battler.createPlayer);
-JABS_Battler.createPlayer = function()
-{
-  // intercept return data from original logic.
-  const playerJabsBattler = J.ABS.EXT.INPUT.Aliased.JABS_Battler.get('createPlayer')
-    .call(this);
-
-  // assign newly players are created to controller 1.
-  $jabsController1.setBattler(playerJabsBattler);
-
-  // return original logic data.
-  return playerJabsBattler;
+* Generates a `JABS_Battler` based on the current leader of the party.
+* Also assigns the controller inputs for the player.
+*/
+J.ABS.EXT.INPUT.Aliased.JABS_Battler.set("createPlayer", JABS_Battler.createPlayer);
+JABS_Battler.createPlayer = function() {
+	const playerJabsBattler = J.ABS.EXT.INPUT.Aliased.JABS_Battler.get("createPlayer").call(this);
+	$jabsController1.setBattler(playerJabsBattler);
+	return playerJabsBattler;
+};
+/**
+* Extends {@link JABS_Battler.canActionConnect}.<br/>
+* While the debug button is pressed, the player cannot be targeted.
+* @returns {boolean} True if actions can potentially connect, false otherwise.
+*/
+J.ABS.EXT.INPUT.Aliased.JABS_Battler.set("canActionConnect", JABS_Battler.prototype.canActionConnect);
+JABS_Battler.prototype.canActionConnect = function() {
+	if (this.isPlayer() && Input.isPressed(J.ABS.EXT.INPUT.Symbols.Debug)) return false;
+	return J.ABS.EXT.INPUT.Aliased.JABS_Battler.get("canActionConnect").call(this);
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/_models/JABS_InputAdapter.js
 /**
- * Extends {@link JABS_Battler.canActionConnect}.<br/>
- * While the debug button is pressed, the player cannot be targeted.
- * @returns {boolean} True if actions can potentially connect, false otherwise.
- */
-J.ABS.EXT.INPUT.Aliased.JABS_Battler.set('canActionConnect', JABS_Battler.prototype.canActionConnect);
-JABS_Battler.prototype.canActionConnect = function()
-{
-  // the player cannot be targeted while holding the DEBUG button.
-  if (this.isPlayer() && Input.isPressed(J.ABS.EXT.INPUT.Symbols.Debug)) return false;
-
-  // perform original logic.
-  return J.ABS.EXT.INPUT.Aliased.JABS_Battler.get('canActionConnect')
-    .call(this);
+* Gets all registered input controllers managed by the adapter.
+* Returns a shallow copy to prevent external mutation.
+* @returns {JABS_StandardController[]} The list of registered controllers.
+*/
+JABS_InputAdapter.getAllControllers = function() {
+	return this.controllers.slice(0);
 };
-//endregion JABS_Battler
 
-//region JABS_Button
-/**
- * A static class containing all input keys available for JABS.
- */
-class JABS_Button
-{
-  //region functionality
-  /**
-   * The "start" key.
-   * Used for bringing up the JABS menu on the map.
-   * @type {string}
-   */
-  static Menu = 'Menu';
-
-  /**
-   * The "select" key.
-   * Used for party-cycling.
-   * @type {string}
-   */
-  static Select = 'Select';
-  //endregion functionality
-
-  //region primary
-  /**
-   * The "main", "A" button, or "Z" key.
-   * Used for executing the mainhand action.
-   * @type {string}
-   */
-  static Mainhand = 'Main';
-
-  /**
-   * The "offhand", "B" button, or "X" key.
-   * Used for executing the offhand action.
-   * @type {string}
-   */
-  static Offhand = 'Offhand';
-
-  /**
-   * The "tool", "Y" button, or "C" key.
-   * Used for executing the currently selected tool skill.
-   * @type {string}
-   */
-  static Tool = 'Tool';
-
-  /**
-   * The "dodge", "R2" button, or "Tab" key.
-   * Used for executing the currently selected dodge skill.
-   * @type {string}
-   */
-  static Dodge = 'Dodge';
-  //endregion primary
-
-  //region mobility & modifiers
-  /**
-   * The sprint/dash input (engine-native dash replacement).
-   * While held, the player sprints if allowed.
-   * @type {string}
-   */
-  static Sprint = "Sprint";
-
-  /**
-   * The "strafe", "L2" button, or "Left Ctrl" key.
-   * Used for locking the direction faced while the input is held.
-   * @type {string}
-   */
-  static Strafe = 'Strafe';
-
-  /**
-   * The "rotate", "R1" button, or "W" and "E" key(s).
-   * Used for locking in-place while the input is held.
-   * @type {string}
-   */
-  static Rotate = 'Rotate';
-
-  /**
-   * The "guard", "R1" button, or "W", and "E" key(s).
-   * Used for activating the guard function while the input is held.
-   * @type {string}
-   */
-  static Guard = 'Guard';
-
-  /**
-   * The combat "enabler" (commonly L1 hold on gamepads).
-   * Used as a modifier to enable Combat Skill 1–4 actions while held.
-   * @type {string}
-   */
-  static SkillTrigger = 'SkillTrigger';
-  //endregion mobility & modifiers
-
-  //region L1 + buttons
-  /**
-   * The `L1 + A` or 1 key.
-   * Executes combat skill 1.
-   * @type {string}
-   */
-  static CombatSkill1 = 'CombatSkill1';
-
-  /**
-   * The `L1 + B` or 2 key.
-   * Executes combat skill 2.
-   * @type {string}
-   */
-  static CombatSkill2 = 'CombatSkill2';
-
-  /**
-   * The `L1 + X` or 3 key.
-   * Executes combat skill 3.
-   * @type {string}
-   */
-  static CombatSkill3 = 'CombatSkill3';
-
-  /**
-   * The `L1 + Y` or 4 key.
-   * Executes combat skill 4.
-   * @type {string}
-   */
-  static CombatSkill4 = 'CombatSkill4';
-
-  //endregion  L1 + buttons
-
-  /**
-   * Gets all assignable buttons used for JABS.
-   * @returns {string[]} A collection of JABS-input keys' identifiers.
-   */
-  static assignableInputs()
-  {
-    // the valid set of assignable inputs.
-    const okInputs = [
-      // primary
-      this.Mainhand, this.Offhand, this.Tool,
-
-      // modifiers & mobility
-      this.SkillTrigger, this.Sprint, this.Strafe, this.Rotate,
-
-      // functionality
-      this.Menu, this.Select,
-    ];
-
-    // a filter function for ensuring only the correct inputs are accepted.
-    const filtering = buttonInput => okInputs.includes(buttonInput);
-
-    // return the filtered buttons.
-    return this.allButtons()
-      .filter(filtering);
-  }
-
-  /**
-   * Gets all currently available buttons used for JABS.
-   * @returns {string[]} A collection of JABS-input key's identifiers.
-   */
-  static allButtons()
-  {
-    return [
-      // primary
-      this.Mainhand, this.Offhand, this.Tool, this.Sprint,
-
-
-      // mobility & modifiers
-      this.SkillTrigger,  this.Strafe, this.Rotate, this.Guard, this.Dodge,
-
-      // L1 + buttons
-      this.CombatSkill1, this.CombatSkill2, this.CombatSkill3, this.CombatSkill4,
-
-      // functionality
-      this.Menu, this.Select,
-    ];
-  }
-}
-
-//endregion JABS_Button
-
-//region JABS_InputAdapter.getAllControllers
-/**
- * Gets all registered input controllers managed by the adapter.
- * Returns a shallow copy to prevent external mutation.
- * @returns {JABS_StandardController[]} The list of registered controllers.
- */
-JABS_InputAdapter.getAllControllers = function()
-{
-  // return a shallow copy of the internal controllers list.
-  return this.controllers.slice(0);
+//#endregion
+//#region src/plugins/abs/ext/input/managers/DataManager.js
+J.ABS.EXT.INPUT.Aliased.DataManager.set("createGameObjects", DataManager.createGameObjects);
+DataManager.createGameObjects = function() {
+	J.ABS.EXT.INPUT.Aliased.DataManager.get("createGameObjects").call(this);
+	Input.ensureRemapBootstrapped();
+	IconManager.registerJabsIcons();
+	IconManager.registerJabsInputTexts();
+	if (!$jabsController1) {
+		$jabsController1 = new JABS_StandardController();
+	}
 };
-//endregion JABS_InputAdapter.getAllControllers
 
-//region JABS_InputController
+//#endregion
+//#region src/plugins/abs/ext/input/managers/IconManager.js
 /**
- * The class that handles input in the context of JABS for a player.
- * A battler must be set in order for this to update.
- * It is important to note that rotate and guard are arbitrarily coupled together by this controller.
- */
-class JABS_StandardController
-  extends JABS_BaseController
-{
-  /**
-   * Constructor.
-   */
-  constructor()
-  {
-    // also run superclass constructor for registration.
-    super();
-
-    // initialize this.
-    this.initialize();
-  }
-
-  /**
-   * Initializes this class.
-   */
-  initialize()
-  {
-    // initialize the other members of the class.
-    this.initMembers();
-
-    // initialize default mappings.
-    this.initMapping();
-  }
-
-  /**
-   * Initializes all members of this class.
-   */
-  initMembers()
-  {
-    // start with a null battler when initializing.
-    this.battler = null;
-
-    /**
-     * A collection of input mappings from logical action (button) to an array of physical inputs.
-     * "Physical inputs" are `Input` symbols like `ok`, `cancel`, or custom entries registered by plugins.
-     * @type {Map<string, string[]>}
-     */
-    this.inputMapping = new Map();
-
-    /**
-     * Tracks whether the last-processed frame was considered in combat.
-     * Used for treating a hold across the boundary (exploration → combat)
-     * as a single edge-press for Mobility.
-     * @type {boolean}
-     */
-    this._lastInCombat = false;
-  }
-
-  /**
-   * Initialize the button-to-input mappings.
-   * Seeds from current JABS defaults.
-   */
-  initMapping()
-  {
-    // seed defaults from current JABS input symbols using string[] per action.
-    this.inputMapping.set(JABS_Button.Menu, [ J.ABS.EXT.INPUT.Symbols.Quickmenu ]);
-    this.inputMapping.set(JABS_Button.Select, [ J.ABS.EXT.INPUT.Symbols.PartyCycle ]);
-
-    // seed primaries.
-    this.inputMapping.set(JABS_Button.Mainhand, [ J.ABS.EXT.INPUT.Symbols.Mainhand ]);
-    this.inputMapping.set(JABS_Button.Offhand, [ J.ABS.EXT.INPUT.Symbols.Offhand ]);
-    this.inputMapping.set(JABS_Button.Tool, [ J.ABS.EXT.INPUT.Symbols.Tool ]);
-
-    // NOTE: Dodge is intentionally not seeded; Sprint handles mobility contextually.
-
-    // seed mobility & modifiers.
-    this.inputMapping.set(JABS_Button.Sprint, [ J.ABS.EXT.INPUT.Symbols.Dash ]);
-    this.inputMapping.set(JABS_Button.Strafe, [ J.ABS.EXT.INPUT.Symbols.StrafeTrigger ]);
-    this.inputMapping.set(JABS_Button.Rotate, [ J.ABS.EXT.INPUT.Symbols.GuardTrigger ]);
-    this.inputMapping.set(JABS_Button.Guard, [ J.ABS.EXT.INPUT.Symbols.GuardTrigger ]);
-    this.inputMapping.set(JABS_Button.SkillTrigger, [ J.ABS.EXT.INPUT.Symbols.SkillTrigger ]);
-
-    // seed L1+ face shortcuts (keyboard direct shortcuts available separately).
-    this.inputMapping.set(JABS_Button.CombatSkill1, [ J.ABS.EXT.INPUT.Symbols.CombatSkill1 ]);
-    this.inputMapping.set(JABS_Button.CombatSkill2, [ J.ABS.EXT.INPUT.Symbols.CombatSkill2 ]);
-    this.inputMapping.set(JABS_Button.CombatSkill3, [ J.ABS.EXT.INPUT.Symbols.CombatSkill3 ]);
-    this.inputMapping.set(JABS_Button.CombatSkill4, [ J.ABS.EXT.INPUT.Symbols.CombatSkill4 ]);
-  }
-
-  /**
-   * Builds a plain-object of the default mappings without mutating this controller.
-   * This is safe to use for "Reset to Defaults" previews in the remap scene.
-   * @returns {Object<string, string[]>} The default logical->physical mapping.
-   */
-  buildDefaultMapping()
-  {
-    // create a new object to hold the default mappings.
-    const defaults = {};
-
-    // seed defaults from current JABS input symbols using string[] per action.
-    defaults[JABS_Button.Menu] = [ J.ABS.EXT.INPUT.Symbols.Quickmenu ];
-    defaults[JABS_Button.Select] = [ J.ABS.EXT.INPUT.Symbols.PartyCycle ];
-
-    // seed primaries.
-    defaults[JABS_Button.Mainhand] = [ J.ABS.EXT.INPUT.Symbols.Mainhand ];
-    defaults[JABS_Button.Offhand] = [ J.ABS.EXT.INPUT.Symbols.Offhand ];
-    defaults[JABS_Button.Tool] = [ J.ABS.EXT.INPUT.Symbols.Tool ];
-    defaults[JABS_Button.Dodge] = [ J.ABS.EXT.INPUT.Symbols.MobilitySkill ];
-
-    // seed mobility/modifiers.
-    defaults[JABS_Button.Sprint] = [ J.ABS.EXT.INPUT.Symbols.Dash ];
-    defaults[JABS_Button.Strafe] = [ J.ABS.EXT.INPUT.Symbols.StrafeTrigger ];
-    defaults[JABS_Button.Rotate] = [ J.ABS.EXT.INPUT.Symbols.GuardTrigger ];
-    defaults[JABS_Button.Guard] = [ J.ABS.EXT.INPUT.Symbols.GuardTrigger ];
-    defaults[JABS_Button.SkillTrigger] = [ J.ABS.EXT.INPUT.Symbols.SkillTrigger ];
-
-    // seed L1 + buttons (combat skills).
-    defaults[JABS_Button.CombatSkill1] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill1 ];
-    defaults[JABS_Button.CombatSkill2] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill2 ];
-    defaults[JABS_Button.CombatSkill3] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill3 ];
-    defaults[JABS_Button.CombatSkill4] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill4 ];
-
-    // return the assembled defaults.
-    return defaults;
-  }
-
-  /**
-   * Resets this controller’s live bindings back to the defaults.
-   * Does not touch persistence; the caller should save if desired.
-   */
-  resetToDefaults()
-  {
-    // rebuild the default mapping without mutating first.
-    const defaults = this.buildDefaultMapping();
-
-    // apply the defaults to this controller.
-    this.setAllInputs(defaults);
-  }
-
-  /**
-   * Gets the physical inputs for the given logical button.
-   * @param {string} button The logical action key.
-   * @returns {string[]} The list of physical inputs associated with this action.
-   */
-  getInputsForButton(button)
-  {
-    // get the configured value for this button.
-    const raw = this.inputMapping.get(button);
-
-    // return an empty array if nothing was configured.
-    if (!raw) return [];
-
-    // normalize string -> [ string ], and copy arrays for safety.
-    if (Array.isArray(raw)) return raw.slice(0);
-
-    // if the mapping is a single string, convert it into an array.
-    return [ raw ];
-  }
-
-  /**
-   * Gets the primary physical input for the given button (convenience).
-   * @param {string} slot The logical action key.
-   * @returns {string|undefined} The first physical input, if any.
-   */
-  getInputForButton(slot)
-  {
-    // grab the list of inputs for the button.
-    const inputs = this.getInputsForButton(slot);
-
-    // return the first one from the list, if available.
-    return inputs.length > 0
-      ? inputs[0]
-      : undefined;
-  }
-
-  /**
-   * Overwrites the entire mapping for this controller in one call.
-   * Accepts either a `Map<string, string|string[]>` or a plain object `{ [button]: string|string[] }`.
-   * No saving happens here; this is purely runtime state.
-   * @param {Map<string,(string|string[])>|Object<string,(string|string[])>} mapping The mapping to apply.
-   */
-  setAllInputs(mapping)
-  {
-    // clear current map before applying new one.
-    this.inputMapping.clear();
-
-    // helper to normalize a mapping entry into an array of strings.
-    const toArray = value =>
-    {
-      // return a shallow copy if the value is already an array.
-      if (Array.isArray(value)) return value.slice(0);
-
-      // return an empty array if there is no value.
-      if (!value) return [];
-
-      // otherwise, wrap the single value in an array.
-      return [ value ];
-    };
-
-    // apply based on input type.
-    if (mapping instanceof Map)
-    {
-      // copy entries from the provided map.
-      mapping.forEach((value, key) =>
-      {
-        // set the normalized entry for this key.
-        this.inputMapping.set(key, toArray(value));
-      }, this);
-    }
-    else
-    {
-      // treat it like a POJO and copy own keys.
-      Object.keys(mapping)
-        .forEach(key =>
-        {
-          // set the normalized entry for this key.
-          this.inputMapping.set(key, toArray(mapping[key]));
-        });
-    }
-
-    // read the current rotate inputs (if any) after normalization.
-    const rotateInputs = this.inputMapping.get(JABS_Button.Rotate) || [];
-
-    // overwrite Guard with a cloned copy of Rotate’s inputs.
-    this.inputMapping.set(JABS_Button.Guard, rotateInputs.slice(0));
-  }
-
-  /**
-   * Exports the current mapping as a plain object suitable for saving.
-   * @returns {Object<string,string[]>} A shallow copy of the current mapping.
-   */
-  exportAllInputs()
-  {
-    // create a plain object export of the map.
-    const out = {};
-
-    // iterate all entries and copy arrays into the object.
-    this.inputMapping.forEach((value, key) => out[key] = Array.isArray(value)
-      ? value.slice(0)
-      : []);
-
-    // return the export.
-    return out;
-  }
-
-  /**
-   * Determines if any physical input bound to the logical action was triggered this frame.
-   * @param {string} button The logical action key.
-   * @returns {boolean}
-   */
-  isActionTriggered(button)
-  {
-    // get the inputs to check.
-    const inputs = this.getInputsForButton(button);
-
-    // iterate all inputs and short-circuit on the first triggered.
-    for (let i = 0; i < inputs.length; i++)
-    {
-      // grab the physical input at this index.
-      const physical = inputs[i];
-
-      // if this physical input was triggered, then the action is triggered.
-      if (Input.isTriggered(physical)) return true;
-    }
-
-    // none of the inputs were triggered for this action.
-    return false;
-  }
-
-  /**
-   * Determines if any physical input bound to the logical action is currently pressed.
-   * @param {string} button The logical action key.
-   * @returns {boolean}
-   */
-  isActionPressed(button)
-  {
-    // get the inputs to check.
-    const inputs = this.getInputsForButton(button);
-
-    // iterate all inputs and short-circuit on the first pressed.
-    for (let i = 0; i < inputs.length; i++)
-    {
-      // grab the physical input at this index.
-      const physical = inputs[i];
-
-      // if this physical input is pressed, then the action is pressed.
-      if (Input.isPressed(physical)) return true;
-    }
-
-    // none of the inputs are pressed for this action.
-    return false;
-  }
-
-  //region update
-  /**
-   * Updates the input loop for tracking JABS input.
-   */
-  update()
-  {
-    // if updating is not available, then do not.
-    if (this.canUpdate() === false) return;
-
-    // update input for the management actions.
-    this.updateMenuAction();
-    this.updatePartyCycleAction();
-
-    // update input for the triggered-button actions.
-    this.updateMainhandAction();
-    this.updateOffhandAction();
-    this.updateToolAction();
-    this.updateSprintCommand();
-
-    // update input for multi-button actions.
-    this.updateCombatAction1();
-    this.updateCombatAction2();
-    this.updateCombatAction3();
-    this.updateCombatAction4();
-
-    // update input for the pressed(held down)-button actions.
-    this.updateGuardCommand();
-    this.updateStrafeCommand();
-    this.updateRotateCommand();
-  }
-
-  /**
-   * Checks whether or not we can update this controller's input.
-   * @returns {boolean}
-   */
-  canUpdate()
-  {
-    // if we don't have a battler, we can't update their input.
-    if (this.getBattler() === null) return false;
-
-    // update!
-    return true;
-  }
-
-  //endregion update
-
-  //region menu action
-  /**
-   * Monitors and takes action based on player input regarding the menu.
-   * This is `Menu` on the gamepad by default.
-   */
-  updateMenuAction()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isMenuActionTriggered())
-    {
-      // execute the action.
-      this.performMenuAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the menu action (Menu default).
-   * @returns {boolean}
-   */
-  isMenuActionTriggered()
-  {
-    // this action requires Menu to be triggered.
-    if (this.isActionTriggered(JABS_Button.Menu))
-    {
-      return true;
-    }
-
-    // Menu was never triggered.
-    return false;
-  }
-
-  /**
-   * Executes the menu action (Menu default).
-   */
-  performMenuAction()
-  {
-    // perform the quick menu action via the adapter.
-    JABS_InputAdapter.performMenuAction();
-  }
-
-  //endregion menu action
-
-  //region party cycle
-  /**
-   * Monitors and takes action based on player input regarding party cycling.
-   * This is `Select` on the gamepad by default.
-   */
-  updatePartyCycleAction()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isPartyCycleActionTriggered())
-    {
-      // execute the action.
-      this.performPartyCycleAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the party cycle action (Select default).
-   * @returns {boolean}
-   */
-  isPartyCycleActionTriggered()
-  {
-    // this action requires Select to be triggered.
-    if (this.isActionTriggered(JABS_Button.Select))
-    {
-      return true;
-    }
-
-    // Select was never triggered.
-    return false;
-  }
-
-  /**
-   * Executes the party cycle action (Select default).
-   */
-  performPartyCycleAction()
-  {
-    // perform party cycling via the adapter.
-    JABS_InputAdapter.performPartyCycling(false);
-  }
-
-  //endregion party cycle
-
-  //region mainhand
-  /**
-   * Monitors and takes action based on player input regarding the mainhand action.
-   * This is `A` on the gamepad by default.
-   */
-  updateMainhandAction()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isMainhandActionTriggered())
-    {
-      // execute the action.
-      this.performMainhandAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the mainhand action currently assigned (A default).
-   * @returns {boolean}
-   */
-  isMainhandActionTriggered()
-  {
-    // if the player is preparing to use a skill, don't do this as well.
-    if (this.isCombatSkillUsageEnabled())
-    {
-      return false;
-    }
-
-    // this action requires the logical Mainhand to be triggered.
-    if (this.isActionTriggered(JABS_Button.Mainhand))
-    {
-      return true;
-    }
-
-    // Mainhand is not being triggered.
-    return false;
-  }
-
-  /**
-   * Executes the currently assigned mainhand action (A default).
-   */
-  performMainhandAction()
-  {
-    // perform the mainhand action for this controller's battler.
-    JABS_InputAdapter.performMainhandAction(this.getBattler());
-  }
-
-  //endregion mainhand
-
-  //region offhand
-  /**
-   * Monitors and takes action based on player input regarding the offhand action.
-   * This is `B` on the gamepad by default.
-   */
-  updateOffhandAction()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isOffhandActionTriggered())
-    {
-      // execute the action.
-      this.performOffhandAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the offhand action currently assigned (B default).
-   * @returns {boolean}
-   */
-  isOffhandActionTriggered()
-  {
-    // if the player is preparing to use a skill, don't do this as well.
-    if (this.isCombatSkillUsageEnabled())
-    {
-      return false;
-    }
-
-    // this action requires the logical Offhand to be triggered.
-    if (this.isActionTriggered(JABS_Button.Offhand))
-    {
-      return true;
-    }
-
-    // Offhand is not being triggered.
-    return false;
-  }
-
-  /**
-   * Executes the currently assigned offhand action (B default).
-   */
-  performOffhandAction()
-  {
-    // perform the offhand action for this controller's battler.
-    JABS_InputAdapter.performOffhandAction(this.getBattler());
-  }
-
-  //endregion offhand
-
-  //region sprint
-  updateSprintCommand()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isSprintActionTriggered())
-    {
-      // execute the action.
-      this.performSprintAction();
-    }
-    // if they aren't being met.
-    else
-    {
-      // then execute the alter-action.
-      this.performSprintAlterAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the sprint action currently assigned (Shift default).
-   * Context-aware:
-   * - Out of combat: treat Sprint as a held input (classic run).
-   * - In combat: treat Sprint strictly as an edge-trigger (for Mobility/Dodge).
-   * @returns {boolean}
-   */
-  isSprintActionTriggered()
-  {
-    // grab the battler for reference.
-    const battler = this.getBattler();
-
-    // determine if the battler is in combat.
-    const inCombat = battler.isInCombat();
-
-    // if in combat, only a new press (edge) should trigger mobility.
-    if (inCombat)
-    {
-      // update last-known combat state for subsequent frames.
-      this._lastInCombat = true;
-
-      // return whether Sprint was newly triggered this frame.
-      return this.isActionTriggered(JABS_Button.Sprint);
-    }
-
-    // not in combat → classic sprint is a held input.
-    // update last-known combat state before returning.
-    this._lastInCombat = false;
-
-    // return whether Sprint is currently held.
-    return this.isActionPressed(JABS_Button.Sprint);
-  }
-
-  /**
-   * Enables sprinting for this controller's battler when out of combat.
-   * In combat, Sprint becomes the Mobility/Dodge action instead.
-   */
-  performSprintAction()
-  {
-    // grab the battler for reference.
-    const battler = this.getBattler();
-
-    // check if the battler is in combat.
-    if (battler.isInCombat())
-    {
-      // proactively disable exploration sprint when entering combat.
-      JABS_InputAdapter.performSprint(false, battler);
-
-      // perform the dodge action for this controller's battler.
-      JABS_InputAdapter.performDodgeAction(battler);
-
-      // end early; no sprint toggling while in combat.
-      return;
-    }
-
-    // not in combat → enable classic sprint while the input is held.
-    JABS_InputAdapter.performSprint(true, battler);
-  }
-
-  /**
-   * Disables sprinting for this controller's battler.
-   */
-  performSprintAlterAction()
-  {
-    // grab the battler for reference.
-    const battler = this.getBattler();
-
-    // check if the battler is in combat.
-    if (battler.isInCombat())
-    {
-      return;
-    }
-
-    // not in combat → disable sprint when the input is released.
-    JABS_InputAdapter.performSprint(false, battler);
-  }
-
-  //endregion sprint
-
-  //region tool
-  /**
-   * Monitors and takes action based on player input regarding the tool action.
-   * This is `Y` on the gamepad by default.
-   */
-  updateToolAction()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isToolActionTriggered())
-    {
-      // execute the action.
-      this.performToolAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the tool action currently assigned (Y default).
-   * @returns {boolean}
-   */
-  isToolActionTriggered()
-  {
-    // if the player is preparing to use a skill, don't do this as well.
-    if (this.isCombatSkillUsageEnabled())
-    {
-      return false;
-    }
-
-    // this action requires the logical Tool to be triggered.
-    if (this.isActionTriggered(JABS_Button.Tool))
-    {
-      return true;
-    }
-
-    // Tool is not being triggered.
-    return false;
-  }
-
-  /**
-   * Executes the currently assigned tool action (Y default).
-   */
-  performToolAction()
-  {
-    // perform the tool action for this controller's battler.
-    JABS_InputAdapter.performToolAction(this.getBattler());
-  }
-
-  //endregion tool
-
-  //region combat actions
-  /**
-   * Checks the inputs to ensure the combat action enabler is being held down (L1 default).
-   * @returns {boolean}
-   */
-  isCombatSkillUsageEnabled()
-  {
-    // this action requires the logical SkillTrigger to be held down.
-    if (this.isActionPressed(JABS_Button.SkillTrigger))
-    {
-      return true;
-    }
-
-    // SkillTrigger is not being held down.
-    return false;
-  }
-
-  /**
-   * Executes the combat action in the given slot.
-   * @param {string} slot The slot to execute the combo action from.
-   */
-  performCombatAction(slot)
-  {
-    // perform the combat action for this controller's battler and the given slot.
-    JABS_InputAdapter.performCombatAction(slot, this.getBattler());
-  }
-
-  //region combat action 1
-  /**
-   * Monitors and takes action based on player input regarding combat action 1.
-   * This is `L1 + Mainhand` on the gamepad by default.
-   */
-  updateCombatAction1()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isCombatAction1Triggered())
-    {
-      // execute the action.
-      this.performCombatAction(JABS_Button.CombatSkill1);
-    }
-  }
-
-  /**
-   * Checks the inputs of the combat action in slot 1.
-   * Requires SkillTrigger held and CombatSkill1 triggered.
-   * @returns {boolean}
-   */
-  isCombatAction1Triggered()
-  {
-    // if the SkillTrigger is being held down...
-    if (this.isCombatSkillUsageEnabled())
-    {
-      // ...and Mainhand is triggered this frame, then combat action 1 should fire.
-      if (this.isActionTriggered(JABS_Button.Mainhand))
-      {
-        return true;
-      }
-    }
-
-    // alternatively, if the keyboard shortcut for CombatSkill1 was triggered, then fire.
-    if (this.isActionTriggered(JABS_Button.CombatSkill1))
-    {
-      return true;
-    }
-
-    // neither the chord nor the keyboard shortcut were used.
-    return false;
-  }
-
-  //endregion combat action 1
-
-  //region combat action 2
-  /**
-   * Monitors and takes action based on player input regarding combat action 2.
-   * This is `L1 + Offhand` on the gamepad by default.
-   */
-  updateCombatAction2()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isCombatAction2Triggered())
-    {
-      // execute the action.
-      this.performCombatAction(JABS_Button.CombatSkill2);
-    }
-  }
-
-  /**
-   * Checks the inputs of the combat action in slot 2.
-   * Requires SkillTrigger held and CombatSkill2 triggered.
-   * @returns {boolean}
-   */
-  isCombatAction2Triggered()
-  {
-    // if the SkillTrigger is being held down...
-    if (this.isCombatSkillUsageEnabled())
-    {
-      // ...and Offhand is triggered this frame, then combat action 2 should fire.
-      if (this.isActionTriggered(JABS_Button.Offhand))
-      {
-        return true;
-      }
-    }
-
-    // alternatively, if the keyboard shortcut for CombatSkill2 was triggered, then fire.
-    if (this.isActionTriggered(JABS_Button.CombatSkill2))
-    {
-      return true;
-    }
-
-    // neither the chord nor the keyboard shortcut were used.
-    return false;
-  }
-
-  //endregion combat action 2
-
-  //region combat action 3
-  /**
-   * Monitors and takes action based on player input regarding combat action 3.
-   * This is `L1 + Dash` (X) on the gamepad by default.
-   */
-  updateCombatAction3()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isCombatAction3Triggered())
-    {
-      // execute the action.
-      this.performCombatAction(JABS_Button.CombatSkill3);
-    }
-  }
-
-  /**
-   * Checks the inputs of the combat action in slot 3.
-   * Requires SkillTrigger held and CombatSkill3 triggered.
-   * @returns {boolean}
-   */
-  isCombatAction3Triggered()
-  {
-    // if the SkillTrigger is being held down...
-    if (this.isCombatSkillUsageEnabled())
-    {
-      // ...and Dodge is triggered this frame, then combat action 3 should fire.
-      if (this.isActionTriggered(JABS_Button.Sprint))
-      {
-        return true;
-      }
-    }
-
-    // alternatively, if the keyboard shortcut for CombatSkill3 was triggered, then fire.
-    if (this.isActionTriggered(JABS_Button.CombatSkill3))
-    {
-      return true;
-    }
-
-    // neither the chord nor the keyboard shortcut were used.
-    return false;
-  }
-
-  //endregion combat action 3
-
-  //region combat action 4
-  /**
-   * Monitors and takes action based on player input regarding combat action 4.
-   * This is `L1 + Tool` (Y) on the gamepad by default.
-   */
-  updateCombatAction4()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isCombatAction4Triggered())
-    {
-      // execute the action.
-      this.performCombatAction(JABS_Button.CombatSkill4);
-    }
-  }
-
-  /**
-   * Checks the inputs of the combat action in slot 4.
-   * Requires SkillTrigger held and CombatSkill4 triggered.
-   * @returns {boolean}
-   */
-  isCombatAction4Triggered()
-  {
-    // if the SkillTrigger is being held down...
-    if (this.isCombatSkillUsageEnabled())
-    {
-      // ...and Tool is triggered this frame, then combat action 4 should fire.
-      if (this.isActionTriggered(JABS_Button.Tool))
-      {
-        return true;
-      }
-    }
-
-    // alternatively, if the keyboard shortcut for CombatSkill4 was triggered, then fire.
-    if (this.isActionTriggered(JABS_Button.CombatSkill4))
-    {
-      return true;
-    }
-
-    // neither the chord nor the keyboard shortcut were used.
-    return false;
-  }
-
-  //endregion combat action 4
-  //endregion combat actions
-
-  //region strafe
-  /**
-   * Monitors and takes action based on player input regarding the strafe action.
-   * This is `L2` on the gamepad by default.
-   */
-  updateStrafeCommand()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isStrafeActionTriggered())
-    {
-      // execute the action.
-      this.performStrafeAction();
-    }
-    // if they aren't being met.
-    else
-    {
-      // then execute the alter-action.
-      this.performStrafeAlterAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the strafe action currently assigned (L2 default).
-   * @returns {boolean}
-   */
-  isStrafeActionTriggered()
-  {
-    // this action requires Strafe to be pressed.
-    if (this.isActionPressed(JABS_Button.Strafe))
-    {
-      return true;
-    }
-
-    // Strafe is not being pressed.
-    return false;
-  }
-
-  /**
-   * Executes the currently assigned strafe action (L2 default).
-   */
-  performStrafeAction()
-  {
-    // perform strafe enable for this controller's battler.
-    JABS_InputAdapter.performStrafe(true, this.getBattler());
-  }
-
-  /**
-   * Executes the currently assigned strafe alter-action (untouched-L2 default).
-   */
-  performStrafeAlterAction()
-  {
-    // perform strafe disable for this controller's battler.
-    JABS_InputAdapter.performStrafe(false, this.getBattler());
-  }
-
-  //endregion strafe
-
-  //region rotate
-  /**
-   * Monitors and takes action based on player input regarding the rotate action.
-   * This is `R1` on the gamepad by default.
-   */
-  updateRotateCommand()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isRotateActionTriggered())
-    {
-      // execute the action.
-      this.performRotateAction();
-    }
-    // if they aren't being met.
-    else
-    {
-      // then execute the alter-action.
-      this.performRotateAlterAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the rotate action currently assigned (R1 default).
-   * @returns {boolean}
-   */
-  isRotateActionTriggered()
-  {
-    // this action requires Rotate to be pressed.
-    if (this.isActionPressed(JABS_Button.Rotate))
-    {
-      return true;
-    }
-
-    // Rotate is not being pressed.
-    return false;
-  }
-
-  /**
-   * Executes the currently assigned rotate action (R1 default).
-   */
-  performRotateAction()
-  {
-    // perform rotate enable for this controller's battler.
-    JABS_InputAdapter.performRotate(true, this.getBattler());
-
-    // also enable guarding while rotating; adapter/battler will vet eligibility.
-    JABS_InputAdapter.performGuard(true, this.getBattler());
-  }
-
-  /**
-   * Executes the currently assigned rotate alter-action (untouched-R1 default).
-   */
-  performRotateAlterAction()
-  {
-    // perform rotate disable for this controller's battler.
-    JABS_InputAdapter.performRotate(false, this.getBattler());
-
-    // also disable guarding when rotation stops; adapter/battler will vet eligibility.
-    JABS_InputAdapter.performGuard(false, this.getBattler());
-  }
-
-  //endregion rotate
-
-  //region guard
-  /**
-   * Monitors and takes action based on player input regarding the guard action.
-   * This is `R1` on the gamepad by default.
-   */
-  updateGuardCommand()
-  {
-    // check if the action's input requirements have been met.
-    if (this.isGuardActionTriggered())
-    {
-      // execute the action.
-      this.performGuardAction();
-    }
-    // if they aren't being met.
-    else
-    {
-      // then execute the alter-action.
-      this.performGuardAlterAction();
-    }
-  }
-
-  /**
-   * Checks the inputs of the guard action currently assigned (R1 default).
-   * @returns {boolean}
-   */
-  isGuardActionTriggered()
-  {
-    // this action requires Guard to be held down.
-    if (this.isActionPressed(JABS_Button.Guard))
-    {
-      return true;
-    }
-
-    // Guard is not being held down.
-    return false;
-  }
-
-  /**
-   * Activates the currently assigned guard action (R1 default).
-   */
-  performGuardAction()
-  {
-    // perform guard enable for this controller's battler.
-    JABS_InputAdapter.performGuard(true, this.getBattler());
-  }
-
-  /**
-   * Deactivates the currently assigned guard alter-action (untouched-R1 default).
-   */
-  performGuardAlterAction()
-  {
-    // perform guard disable for this controller's battler.
-    JABS_InputAdapter.performGuard(false, this.getBattler());
-  }
-
-  //endregion guard
-}
-
-//endregion JABS_InputController
-
-//region DataManager
-J.ABS.EXT.INPUT.Aliased.DataManager.set('createGameObjects', DataManager.createGameObjects);
-DataManager.createGameObjects = function()
-{
-  // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.DataManager.get('createGameObjects')
-    .call(this);
-
-  // Ensure engine-wide input remap defaults/labels are bootstrapped once per session.
-  Input.ensureRemapBootstrapped();
-
-  // register JABS icons.
-  IconManager.registerJabsIcons();
-  IconManager.registerJabsInputTexts();
-
-  // initialize controller 1 for JABS.
-  if (!$jabsController1)
-  {
-    // TODO: figure out how to prevent duplicate registration of controllers.
-    $jabsController1 = new JABS_StandardController();
-  }
-};
-//endregion DataManager
-
-//region IconManager
-//region jabs icon registry
-/**
- * A key-value mapping of physical input symbols to icon indices.
- * @type {Record<string, number>}
- */
+* A key-value mapping of physical input symbols to icon indices.
+* @type {Record<string, number>}
+*/
 IconManager._jabsActionIconRegistry = {};
-
 /**
- * Gets the icon registry for JABS input symbols.
- * @returns {Record<string, number>}
- */
-IconManager.getJabsIconRegistry = function()
-{
-  return IconManager._jabsActionIconRegistry;
+* Gets the icon registry for JABS input symbols.
+* @returns {Record<string, number>}
+*/
+IconManager.getJabsIconRegistry = function() {
+	return IconManager._jabsActionIconRegistry;
 };
-
 /**
- * Registers a custom icon for a given symbol.
- * @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
- * @param {number} iconIndex The icon index to use for the given symbol.
- */
-IconManager.registerJabsIcon = function(symbol, iconIndex)
-{
-  // validate symbol to ensure its a string.
-  const validatedSymbol = String(symbol);
-
-  // normalize the symbol to lowercase.
-  const normalizedSymbol = validatedSymbol.trim()
-    .toLowerCase();
-  if (!normalizedSymbol)
-  {
-    throw new Error(`Attempting to register an empty symbol for icon index: ${iconIndex}`);
-  }
-
-  // validate iconIndex to ensure its a number.
-  const validatedIconIndex = Number(iconIndex);
-  if (isNaN(validatedIconIndex))
-  {
-    throw new Error(`Invalid icon index for symbol '${normalizedSymbol}': ${iconIndex}`);
-  }
-
-  // grab the registry for updating.
-  const registry = this.getJabsIconRegistry();
-
-  // register the icon index for the symbol.
-  registry[normalizedSymbol] = validatedIconIndex;
+* Registers a custom icon for a given symbol.
+* @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
+* @param {number} iconIndex The icon index to use for the given symbol.
+*/
+IconManager.registerJabsIcon = function(symbol, iconIndex) {
+	const validatedSymbol = String(symbol);
+	const normalizedSymbol = validatedSymbol.trim().toLowerCase();
+	if (!normalizedSymbol) {
+		throw new Error(`Attempting to register an empty symbol for icon index: ${iconIndex}`);
+	}
+	const validatedIconIndex = Number(iconIndex);
+	if (isNaN(validatedIconIndex)) {
+		throw new Error(`Invalid icon index for symbol '${normalizedSymbol}': ${iconIndex}`);
+	}
+	const registry = this.getJabsIconRegistry();
+	registry[normalizedSymbol] = validatedIconIndex;
 };
-
 /**
- * Gets the icon index for a given physical input symbol.
- * @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
- * @returns {number} The icon index to use for the given symbol, or 0 if not mapped.
- */
-IconManager.jabsIconIndexForSymbol = function(symbol)
-{
-  // validate symbol to ensure its a string.
-  const validatedSymbol = String(symbol);
-
-  // normalize the symbol to lowercase.
-  const normalizedSymbol = validatedSymbol.trim()
-    .toLowerCase();
-
-  // bail early if the symbol is empty.
-  if (!normalizedSymbol) return 0;
-
-  // grab the registry for querying.
-  const registry = this.getJabsIconRegistry();
-
-  // return the icon index for the symbol, or 0 if not mapped.
-  return registry[normalizedSymbol] || 0;
+* Gets the icon index for a given physical input symbol.
+* @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
+* @returns {number} The icon index to use for the given symbol, or 0 if not mapped.
+*/
+IconManager.jabsIconIndexForSymbol = function(symbol) {
+	const validatedSymbol = String(symbol);
+	const normalizedSymbol = validatedSymbol.trim().toLowerCase();
+	if (!normalizedSymbol) return 0;
+	const registry = this.getJabsIconRegistry();
+	return registry[normalizedSymbol] || 0;
 };
-
 /**
- * Registers all JABS input symbols with their respective icon indices.
- */
-IconManager.registerJabsIcons = function()
-{
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Mainhand, 76);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Offhand, 77);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Tool, 176);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Dash, 140);
-
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.SkillTrigger, 86);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, 82);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.GuardTrigger, 83);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.MobilitySkill, 13);
-
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Quickmenu, 2563);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.PartyCycle, 75);
-
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill1, 79);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill2, 79);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill3, 79);
-  this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill4, 79);
+* Registers all JABS input symbols with their respective icon indices.
+*/
+IconManager.registerJabsIcons = function() {
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Mainhand, 76);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Offhand, 77);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Tool, 176);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Dash, 140);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.SkillTrigger, 86);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, 82);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.GuardTrigger, 83);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.MobilitySkill, 13);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.Quickmenu, 2563);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.PartyCycle, 75);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill1, 79);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill2, 79);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill3, 79);
+	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill4, 79);
 };
-
-//endregion jabs icon registry
-
-//region jabs text registry
 /**
- * A key-value mapping of physical input symbols to ex-text.
- * @type {Record<string, string>}
- */
+* A key-value mapping of physical input symbols to ex-text.
+* @type {Record<string, string>}
+*/
 IconManager._jabsInputTextRegistry = {};
-
 /**
- * Gets the ex-text registry for JABS input symbols.
- * @returns {Record<string, string>}
- */
-IconManager.getJabsInputTextRegistry = function()
-{
-  return IconManager._jabsInputTextRegistry;
+* Gets the ex-text registry for JABS input symbols.
+* @returns {Record<string, string>}
+*/
+IconManager.getJabsInputTextRegistry = function() {
+	return IconManager._jabsInputTextRegistry;
+};
+/**
+* Registers custom ex-text for a given symbol.
+* @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
+* @param {string} text The ex-text to use for the given symbol.
+*/
+IconManager.registerJabsInputText = function(symbol, text) {
+	const validatedSymbol = String(symbol);
+	const normalizedSymbol = validatedSymbol.trim().toLowerCase();
+	if (!normalizedSymbol) {
+		throw new Error(`Attempting to register an empty symbol for ex-text: ${text}`);
+	}
+	const validatedText = String(text).trim();
+	if (!validatedText) {
+		throw new Error(`Attempting to register an empty ex-text for symbol: ${normalizedSymbol}`);
+	}
+	const registry = this.getJabsInputTextRegistry();
+	registry[normalizedSymbol] = validatedText;
+};
+/**
+* Get the ex-text for a given physical input symbol.
+* @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
+* @returns {string} The ex-text for the given symbol, or the symbol itself if not mapped.
+*/
+IconManager.jabsInputTextForSymbol = function(symbol) {
+	const registry = this.getJabsInputTextRegistry();
+	const validatedSymbol = String(symbol);
+	const normalizedSymbol = validatedSymbol.toLowerCase();
+	return registry[normalizedSymbol] || Input.labelForSymbol(normalizedSymbol) || symbol;
+};
+/**
+* Gets the ex-text for a given physical input symbol.
+* @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
+* @returns {string} The ex-text for the given symbol, or the symbol itself if not mapped.
+*/
+IconManager.jabsIconTextForSymbol = function(symbol) {
+	if (!symbol) return "(unbound)";
+	return this.jabsInputTextForSymbol(symbol) || String(symbol);
+};
+/**
+* Registers all JABS input symbols with their respective ex-text.
+*/
+IconManager.registerJabsInputTexts = function() {
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Mainhand, "\\I[2448] / \\I[2432]");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Offhand, "\\I[2449] / \\I[2433]");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Tool, "\\I[2450] / \\I[2434]");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Dash, "\\I[2451] / \\I[2435]");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.SkillTrigger, "\\I[2452] / \\I[2436]");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, "\\I[2454] / \\I[2438]");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.GuardTrigger, "\\I[2453] / \\I[2437]");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.MobilitySkill, "\\I[2455] / \\I[2439]");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Quickmenu, "\\I[2456] / \\I[2440]");
+	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.PartyCycle, "\\I[2457] / \\I[2441]");
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/managers/Input.js
 /**
- * Registers custom ex-text for a given symbol.
- * @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
- * @param {string} text The ex-text to use for the given symbol.
- */
-IconManager.registerJabsInputText = function(symbol, text)
-{
-  // validate symbol to ensure its a string.
-  const validatedSymbol = String(symbol);
-
-  // normalize the symbol to lowercase.
-  const normalizedSymbol = validatedSymbol.trim()
-    .toLowerCase();
-  if (!normalizedSymbol)
-  {
-    throw new Error(`Attempting to register an empty symbol for ex-text: ${text}`);
-  }
-
-  // validate text to ensure its a string.
-  const validatedText = String(text).trim();
-  if (!validatedText)
-  {
-    throw new Error(`Attempting to register an empty ex-text for symbol: ${normalizedSymbol}`);
-  }
-
-  // grab the registry for updating.
-  const registry = this.getJabsInputTextRegistry();
-
-  // register the ex-text for the symbol.
-  registry[normalizedSymbol] = validatedText;
-};
-
-/**
- * Get the ex-text for a given physical input symbol.
- * @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
- * @returns {string} The ex-text for the given symbol, or the symbol itself if not mapped.
- */
-IconManager.jabsInputTextForSymbol = function(symbol)
-{
-  // grab the registry for querying.
-  const registry = this.getJabsInputTextRegistry();
-
-  // validate symbol to ensure its a string.
-  const validatedSymbol = String(symbol);
-
-  // normalize the symbol to lowercase.
-  const normalizedSymbol = validatedSymbol.toLowerCase();
-
-  // return the ex-text for the symbol, or the symbol itself if not mapped.
-  return registry[normalizedSymbol] || Input.labelForSymbol(normalizedSymbol) || symbol;
-};
-
-/**
- * Gets the ex-text for a given physical input symbol.
- * @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
- * @returns {string} The ex-text for the given symbol, or the symbol itself if not mapped.
- */
-IconManager.jabsIconTextForSymbol = function(symbol)
-{
-  // handle empty/unbound case.
-  if (!symbol) return "(unbound)";
-
-  // return the ex-text for the symbol, or the symbol itself if not mapped.
-  return this.jabsInputTextForSymbol(symbol) || String(symbol);
-};
-
-/**
- * Registers all JABS input symbols with their respective ex-text.
- */
-IconManager.registerJabsInputTexts = function()
-{
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Mainhand, "\\I[2448] / \\I[2432]");
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Offhand, "\\I[2449] / \\I[2433]");
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Tool, "\\I[2450] / \\I[2434]");
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Dash, "\\I[2451] / \\I[2435]");
-
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.SkillTrigger, "\\I[2452] / \\I[2436]");
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, "\\I[2454] / \\I[2438]");
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.GuardTrigger, "\\I[2453] / \\I[2437]");
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.MobilitySkill, "\\I[2455] / \\I[2439]");
-
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Quickmenu, "\\I[2456] / \\I[2440]");
-  this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.PartyCycle, "\\I[2457] / \\I[2441]");
-};
-//endregion jabs text registry
-//endregion IconManager
-
-//region Input
-/**
- * The mappings of the gamepad descriptions to their buttons.
- */
+* The mappings of the gamepad descriptions to their buttons.
+*/
 J.ABS.EXT.INPUT.Symbols = {};
-
-//region input definitions
-
-// this section of inputs is an attempt to align with the internal RMMZ mapping convention.
-J.ABS.EXT.INPUT.Symbols.DirUp = 'up';
-J.ABS.EXT.INPUT.Symbols.DirDown = 'down';
-J.ABS.EXT.INPUT.Symbols.DirLeft = 'left';
-J.ABS.EXT.INPUT.Symbols.DirRight = 'right';
-J.ABS.EXT.INPUT.Symbols.Mainhand = 'ok';
-J.ABS.EXT.INPUT.Symbols.Offhand = 'cancel';
-J.ABS.EXT.INPUT.Symbols.Dash = 'shift';
-J.ABS.EXT.INPUT.Symbols.Tool = 'tab';
-J.ABS.EXT.INPUT.Symbols.GuardTrigger = 'pagedown';
-J.ABS.EXT.INPUT.Symbols.SkillTrigger = 'pageup';
-
-// this section of inputs are newly implemented.
-J.ABS.EXT.INPUT.Symbols.MobilitySkill = 'r2';
-J.ABS.EXT.INPUT.Symbols.StrafeTrigger = 'l2';
-J.ABS.EXT.INPUT.Symbols.Quickmenu = 'start';
-J.ABS.EXT.INPUT.Symbols.PartyCycle = 'select';
-J.ABS.EXT.INPUT.Symbols.Debug = 'cheat';
-
-// for gamepads, these buttons are tracked, but aren't used by JABS right now.
-J.ABS.EXT.INPUT.Symbols.R3 = 'r3';
-J.ABS.EXT.INPUT.Symbols.L3 = 'l3';
-
-// for dedicated D-pad shortcuts (not movement directions).
-J.ABS.EXT.INPUT.Symbols.DPadUp = 'dpad-up';
-J.ABS.EXT.INPUT.Symbols.DPadDown = 'dpad-down';
-J.ABS.EXT.INPUT.Symbols.DPadLeft = 'dpad-left';
-J.ABS.EXT.INPUT.Symbols.DPadRight = 'dpad-right';
-
-// for keyboards, these buttons are for direct combatskill usage.
-J.ABS.EXT.INPUT.Symbols.CombatSkill1 = 'combat-skill-1';
-J.ABS.EXT.INPUT.Symbols.CombatSkill2 = 'combat-skill-2';
-J.ABS.EXT.INPUT.Symbols.CombatSkill3 = 'combat-skill-3';
-J.ABS.EXT.INPUT.Symbols.CombatSkill4 = 'combat-skill-4';
-//endregion input definitions
-
+J.ABS.EXT.INPUT.Symbols.DirUp = "up";
+J.ABS.EXT.INPUT.Symbols.DirDown = "down";
+J.ABS.EXT.INPUT.Symbols.DirLeft = "left";
+J.ABS.EXT.INPUT.Symbols.DirRight = "right";
+J.ABS.EXT.INPUT.Symbols.Mainhand = "ok";
+J.ABS.EXT.INPUT.Symbols.Offhand = "cancel";
+J.ABS.EXT.INPUT.Symbols.Dash = "shift";
+J.ABS.EXT.INPUT.Symbols.Tool = "tab";
+J.ABS.EXT.INPUT.Symbols.GuardTrigger = "pagedown";
+J.ABS.EXT.INPUT.Symbols.SkillTrigger = "pageup";
+J.ABS.EXT.INPUT.Symbols.MobilitySkill = "r2";
+J.ABS.EXT.INPUT.Symbols.StrafeTrigger = "l2";
+J.ABS.EXT.INPUT.Symbols.Quickmenu = "start";
+J.ABS.EXT.INPUT.Symbols.PartyCycle = "select";
+J.ABS.EXT.INPUT.Symbols.Debug = "cheat";
+J.ABS.EXT.INPUT.Symbols.R3 = "r3";
+J.ABS.EXT.INPUT.Symbols.L3 = "l3";
+J.ABS.EXT.INPUT.Symbols.DPadUp = "dpad-up";
+J.ABS.EXT.INPUT.Symbols.DPadDown = "dpad-down";
+J.ABS.EXT.INPUT.Symbols.DPadLeft = "dpad-left";
+J.ABS.EXT.INPUT.Symbols.DPadRight = "dpad-right";
+J.ABS.EXT.INPUT.Symbols.CombatSkill1 = "combat-skill-1";
+J.ABS.EXT.INPUT.Symbols.CombatSkill2 = "combat-skill-2";
+J.ABS.EXT.INPUT.Symbols.CombatSkill3 = "combat-skill-3";
+J.ABS.EXT.INPUT.Symbols.CombatSkill4 = "combat-skill-4";
 /**
- * Extends the existing mapper for keyboards to accommodate for the
- * additional skill inputs that are used for gamepads.
- */
+* Extends the existing mapper for keyboards to accommodate for the
+* additional skill inputs that are used for gamepads.
+*/
 Input.keyMapper = {
-  // define the original keyboard mapping.
-  ...Input.keyMapper,
-
-  // this is the new debug move-through for use with JABS.
-  // ` (backtick).
-  192: J.ABS.EXT.INPUT.Symbols.Debug,
-
-  // core buttons.
-  // z.
-  90: J.ABS.EXT.INPUT.Symbols.Mainhand,
-  // x.
-  88: J.ABS.EXT.INPUT.Symbols.Offhand,
-  // shift (already defined).
-  16: J.ABS.EXT.INPUT.Symbols.Dash,
-  // c.
-  67: J.ABS.EXT.INPUT.Symbols.Tool,
-
-  // functional buttons.
-  // q.
-  81: J.ABS.EXT.INPUT.Symbols.SkillTrigger,
-  // ctrl.
-  17: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,
-  // e.
-  69: J.ABS.EXT.INPUT.Symbols.GuardTrigger,
-  // tab.
-  9: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
-
-  // quickmenu button.
-  // enter.
-  13: J.ABS.EXT.INPUT.Symbols.Quickmenu,
-
-  // party cycling button.
-  // del.
-  46: J.ABS.EXT.INPUT.Symbols.PartyCycle,
-
-  // movement buttons.
-  // arrow up.
-  38: J.ABS.EXT.INPUT.Symbols.DirUp,
-  // arrow down.
-  40: J.ABS.EXT.INPUT.Symbols.DirDown,
-  // arrow left.
-  37: J.ABS.EXT.INPUT.Symbols.DirLeft,
-  // arrow right.
-  39: J.ABS.EXT.INPUT.Symbols.DirRight,
-
-  // keyboard alternative for the multi-button skills.
-  // 1 = L1 + cross.
-  49: J.ABS.EXT.INPUT.Symbols.CombatSkill1,
-  // 2 = L1 + circle.
-  50: J.ABS.EXT.INPUT.Symbols.CombatSkill2,
-  // 3 = L1 + square.
-  51: J.ABS.EXT.INPUT.Symbols.CombatSkill3,
-  // 4 = L1 + triangle.
-  52: J.ABS.EXT.INPUT.Symbols.CombatSkill4,
+	...Input.keyMapper,
+	192: J.ABS.EXT.INPUT.Symbols.Debug,
+	90: J.ABS.EXT.INPUT.Symbols.Mainhand,
+	88: J.ABS.EXT.INPUT.Symbols.Offhand,
+	16: J.ABS.EXT.INPUT.Symbols.Dash,
+	67: J.ABS.EXT.INPUT.Symbols.Tool,
+	81: J.ABS.EXT.INPUT.Symbols.SkillTrigger,
+	17: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,
+	69: J.ABS.EXT.INPUT.Symbols.GuardTrigger,
+	9: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
+	13: J.ABS.EXT.INPUT.Symbols.Quickmenu,
+	46: J.ABS.EXT.INPUT.Symbols.PartyCycle,
+	38: J.ABS.EXT.INPUT.Symbols.DirUp,
+	40: J.ABS.EXT.INPUT.Symbols.DirDown,
+	37: J.ABS.EXT.INPUT.Symbols.DirLeft,
+	39: J.ABS.EXT.INPUT.Symbols.DirRight,
+	49: J.ABS.EXT.INPUT.Symbols.CombatSkill1,
+	50: J.ABS.EXT.INPUT.Symbols.CombatSkill2,
+	51: J.ABS.EXT.INPUT.Symbols.CombatSkill3,
+	52: J.ABS.EXT.INPUT.Symbols.CombatSkill4
 };
-
 /**
- * Overwrites gamepad button input to instead perform the various
- * actions that are expected in this ABS.
- *
- * This includes:
- * - D-Pad up, down, left, right
- * - A/kross, B/circle, X/square, Y/triangle
- * - L1/LB, R1/RB
- * - NEW: select/options, start/menu
- * - NEW: L2/LT, R2/RT
- * - NEW: L3/LSB, R3/RSB
- * - OVERWRITE: Y now is the tool button, and start is the menu.
- */
+* Overwrites gamepad button input to instead perform the various
+* actions that are expected in this ABS.
+*
+* This includes:
+* - D-Pad up, down, left, right
+* - A/kross, B/circle, X/square, Y/triangle
+* - L1/LB, R1/RB
+* - NEW: select/options, start/menu
+* - NEW: L2/LT, R2/RT
+* - NEW: L3/LSB, R3/RSB
+* - OVERWRITE: Y now is the tool button, and start is the menu.
+*/
 Input.gamepadMapper = {
-  // action face buttons.
-  // kross.
-  0: J.ABS.EXT.INPUT.Symbols.Mainhand,
-  // circle.
-  1: J.ABS.EXT.INPUT.Symbols.Offhand,
-  // square.
-  2: J.ABS.EXT.INPUT.Symbols.Dash,
-  // triangle.
-  3: J.ABS.EXT.INPUT.Symbols.Tool,
-
-  // shoulder/trigger buttons.
-  // (L1) left bumper.
-  4: J.ABS.EXT.INPUT.Symbols.SkillTrigger,
-  // (R1) right bumper.
-  5: J.ABS.EXT.INPUT.Symbols.GuardTrigger,
-  // (L2) left trigger.
-  6: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,
-  // (R2) right trigger.
-  7: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
-
-  // meta/menu buttons.
-  // select.
-  8: J.ABS.EXT.INPUT.Symbols.PartyCycle,
-  // start.
-  9: J.ABS.EXT.INPUT.Symbols.Quickmenu,
-
-  // stick-click buttons.
-  // (L3) left stick button.
-  10: J.ABS.EXT.INPUT.Symbols.L3,
-  // (R3) right stick button.
-  11: J.ABS.EXT.INPUT.Symbols.R3,
-
-  // D-pad buttons remapped to dedicated shortcut symbols (not movement directions).
-  // d-pad up (shortcut).
-  12: J.ABS.EXT.INPUT.Symbols.DPadUp,
-  // d-pad down (shortcut).
-  13: J.ABS.EXT.INPUT.Symbols.DPadDown,
-  // d-pad left (shortcut).
-  14: J.ABS.EXT.INPUT.Symbols.DPadLeft,
-  // d-pad right (shortcut).
-  15: J.ABS.EXT.INPUT.Symbols.DPadRight,
-
-  // the analog stick should be natively supported for movement.
+	0: J.ABS.EXT.INPUT.Symbols.Mainhand,
+	1: J.ABS.EXT.INPUT.Symbols.Offhand,
+	2: J.ABS.EXT.INPUT.Symbols.Dash,
+	3: J.ABS.EXT.INPUT.Symbols.Tool,
+	4: J.ABS.EXT.INPUT.Symbols.SkillTrigger,
+	5: J.ABS.EXT.INPUT.Symbols.GuardTrigger,
+	6: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,
+	7: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
+	8: J.ABS.EXT.INPUT.Symbols.PartyCycle,
+	9: J.ABS.EXT.INPUT.Symbols.Quickmenu,
+	10: J.ABS.EXT.INPUT.Symbols.L3,
+	11: J.ABS.EXT.INPUT.Symbols.R3,
+	12: J.ABS.EXT.INPUT.Symbols.DPadUp,
+	13: J.ABS.EXT.INPUT.Symbols.DPadDown,
+	14: J.ABS.EXT.INPUT.Symbols.DPadLeft,
+	15: J.ABS.EXT.INPUT.Symbols.DPadRight
 };
-
-//region registries
-
-// Ensure a single bag for registry/bindings data on Input.
 Input._jRegistries ||= {
-  // ns -> Array<action def>.
-  actions: Object.create(null),
-  // symbol -> label.
-  symbolLabels: Object.create(null),
-  // set<string>.
-  capture: new Set(),
-  // ns -> { key: string[] }.
-  bindings: Object.create(null),
-  // ns -> { key: string[] }.
-  defaults: Object.create(null),
-  // idempotency flag.
-  bootstrapped: false,
+	actions: Object.create(null),
+	symbolLabels: Object.create(null),
+	capture: new Set(),
+	bindings: Object.create(null),
+	defaults: Object.create(null),
+	bootstrapped: false
+};
+/**
+* Registers a logical action under a namespace for remapping.
+* @param {string} ns The namespace (e.g., "JABS", "HUD", "MINIMAP").
+* @param {object} def The action definition.
+* @param {string} def.key The logical action key (unique within ns).
+* @param {string} def.label The friendly label shown in UIs.
+* @param {string[]} [def.defaults] Optional default physical symbols.
+* @param {string} [def.category] Optional category label.
+*/
+Input.registerAction = function(ns, def) {
+	if (!ns || !def || !def.key) return;
+	const bag = Input._jRegistries.actions;
+	bag[ns] = bag[ns] || [];
+	bag[ns].push({
+		key: String(def.key),
+		label: String(def.label || def.key),
+		defaults: Array.isArray(def.defaults) ? def.defaults.slice() : [],
+		category: String(def.category || "misc")
+	});
+};
+/**
+* Gets the registered logical actions for a namespace.
+* @param {string} ns The namespace.
+* @returns {Array<{key:string,label:string,defaults:string[],category:string}>}
+*/
+Input.getRegisteredActions = function(ns) {
+	const bag = Input._jRegistries.actions;
+	const list = bag[ns] || [];
+	return list.slice();
+};
+/**
+* Seeds the default physical bindings for a namespace in bulk.
+* Does not override live bindings; use resetBindingsToDefaults() to re-apply.
+* @param {string} ns The namespace.
+* @param {Object<string, string[]>} defaults Map of key -> physical symbols.
+*/
+Input.seedDefaultBindings = function(ns, defaults) {
+	if (!ns || !defaults) return;
+	const out = Object.create(null);
+	const keys = Object.keys(defaults);
+	for (let i = 0; i < keys.length; i++) {
+		const k = keys[i];
+		out[k] = Array.isArray(defaults[k]) ? defaults[k].slice() : [];
+	}
+	Input._jRegistries.defaults[ns] = out;
+};
+/**
+* Gets the live bindings (logical -> physical[]) for a namespace.
+* If empty, returns a lazily-initialized copy of the defaults.
+* @param {string} ns The namespace.
+* @returns {Object<string, string[]>}
+*/
+Input.getAllBindings = function(ns) {
+	const b = Input._jRegistries.bindings;
+	if (!b[ns]) {
+		const d = Input._jRegistries.defaults[ns] || Object.create(null);
+		const clone = Object.create(null);
+		const keys = Object.keys(d);
+		for (let i = 0; i < keys.length; i++) {
+			const k = keys[i];
+			clone[k] = d[k].slice();
+		}
+		b[ns] = clone;
+	}
+	return b[ns];
+};
+/**
+* Gets the bound physical symbols for a single logical key.
+* @param {string} ns The namespace.
+* @param {string} key The logical action key.
+* @returns {string[]} Array of physical symbols (may be empty).
+*/
+Input.getBindings = function(ns, key) {
+	const all = Input.getAllBindings(ns);
+	const arr = all[key];
+	return Array.isArray(arr) ? arr : [];
+};
+/**
+* Overwrites the bound physical symbols for a single logical key.
+* @param {string} ns The namespace.
+* @param {string} key The logical action key.
+* @param {string[]} physical Array of physical symbols.
+*/
+Input.setBindings = function(ns, key, physical) {
+	const all = Input.getAllBindings(ns);
+	all[key] = Array.isArray(physical) ? physical.slice() : [];
+};
+/**
+* Resets a namespace’s live bindings back to the seeded defaults.
+* @param {string} ns The namespace.
+*/
+Input.resetBindingsToDefaults = function(ns) {
+	const d = Input._jRegistries.defaults[ns] || Object.create(null);
+	const clone = Object.create(null);
+	const keys = Object.keys(d);
+	for (let i = 0; i < keys.length; i++) {
+		const k = keys[i];
+		clone[k] = d[k].slice();
+	}
+	Input._jRegistries.bindings[ns] = clone;
+};
+/**
+* Determines if any physical input bound to the logical action is triggered this frame.
+* @param {string} ns The namespace.
+* @param {string} key The logical action key.
+* @returns {boolean}
+*/
+Input.isActionTriggered = function(ns, key) {
+	const inputs = Input.getBindings(ns, key);
+	for (let i = 0; i < inputs.length; i++) {
+		const physical = inputs[i];
+		if (Input.isTriggered(physical)) return true;
+	}
+	return false;
+};
+/**
+* Determines if any physical input bound to the logical action is currently pressed.
+* @param {string} ns The namespace.
+* @param {string} key The logical action key.
+* @returns {boolean}
+*/
+Input.isActionPressed = function(ns, key) {
+	const inputs = Input.getBindings(ns, key);
+	for (let i = 0; i < inputs.length; i++) {
+		const physical = inputs[i];
+		if (Input.isPressed(physical)) return true;
+	}
+	return false;
+};
+/**
+* Registers a friendly label for a physical input symbol.
+* @param {string} symbol The physical symbol (e.g., 'dpad-up').
+* @param {string} label The friendly label (e.g., 'D-Pad Up').
+*/
+Input.registerSymbolLabel = function(symbol, label) {
+	Input._jRegistries.symbolLabels[String(symbol)] = String(label || symbol);
+};
+/**
+* Resolves a friendly label for a physical input symbol.
+* @param {string} symbol The physical symbol.
+* @returns {string}
+*/
+Input.labelForSymbol = function(symbol) {
+	const labels = Input._jRegistries.symbolLabels;
+	const key = String(symbol);
+	return labels[key] || key;
+};
+/**
+* Registers a physical symbol as eligible for capture by the remap prompt.
+* @param {string} symbol The symbol to allow.
+*/
+Input.registerRemapCaptureSymbol = function(symbol) {
+	Input._jRegistries.capture.add(String(symbol));
+};
+/**
+* Gets all extra capture-eligible symbols registered by plugins.
+* @returns {string[]}
+*/
+Input.getRemapCaptureSymbols = function() {
+	return Array.from(Input._jRegistries.capture);
+};
+/**
+* Idempotent bootstrap for remap defaults and symbol labels.
+* Should be called from DataManager.createGameObjects() on boot/load.
+*/
+Input.ensureRemapBootstrapped = function() {
+	if (Input._jRegistries.bootstrapped === true) {
+		return;
+	}
+	const d = {};
+	d[JABS_Button.Menu] = [J.ABS.EXT.INPUT.Symbols.Quickmenu];
+	d[JABS_Button.Select] = [J.ABS.EXT.INPUT.Symbols.PartyCycle];
+	d[JABS_Button.Mainhand] = [J.ABS.EXT.INPUT.Symbols.Mainhand];
+	d[JABS_Button.Offhand] = [J.ABS.EXT.INPUT.Symbols.Offhand];
+	d[JABS_Button.Tool] = [J.ABS.EXT.INPUT.Symbols.Tool];
+	d[JABS_Button.Sprint] = [J.ABS.EXT.INPUT.Symbols.Dash];
+	d[JABS_Button.Strafe] = [J.ABS.EXT.INPUT.Symbols.StrafeTrigger];
+	d[JABS_Button.Rotate] = [J.ABS.EXT.INPUT.Symbols.GuardTrigger];
+	d[JABS_Button.Guard] = [J.ABS.EXT.INPUT.Symbols.GuardTrigger];
+	d[JABS_Button.SkillTrigger] = [J.ABS.EXT.INPUT.Symbols.SkillTrigger];
+	d[JABS_Button.CombatSkill1] = [J.ABS.EXT.INPUT.Symbols.CombatSkill1];
+	d[JABS_Button.CombatSkill2] = [J.ABS.EXT.INPUT.Symbols.CombatSkill2];
+	d[JABS_Button.CombatSkill3] = [J.ABS.EXT.INPUT.Symbols.CombatSkill3];
+	d[JABS_Button.CombatSkill4] = [J.ABS.EXT.INPUT.Symbols.CombatSkill4];
+	Input.seedDefaultBindings("JABS", d);
+	Input.getAllBindings("JABS");
+	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.L3, "L3");
+	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.R3, "R3");
+	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.MobilitySkill, "R2");
+	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadUp, "D-Pad Up");
+	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadDown, "D-Pad Down");
+	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadLeft, "D-Pad Left");
+	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadRight, "D-Pad Right");
+	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.L3);
+	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.R3);
+	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadUp);
+	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadDown);
+	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadLeft);
+	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadRight);
+	Input.bootstrapAllKeyboardKeysForCapture();
+	Input._jRegistries.bootstrapped = true;
+};
+/**
+* Generates capture-eligible symbols for any keyboard keycodes that are not
+* already mapped to core RMMZ symbols, and registers readable labels for them.
+*/
+Input.bootstrapAllKeyboardKeysForCapture = function() {
+	const reserved = new Set([
+		"ok",
+		"cancel",
+		"menu",
+		"escape",
+		"tab",
+		"pageup",
+		"pagedown",
+		"shift",
+		"control",
+		"up",
+		"down",
+		"left",
+		"right"
+	]);
+	const existingMap = Object.assign({}, Input.keyMapper);
+	Object.keys(existingMap).forEach((code) => {
+		const sym = existingMap[code];
+		if (typeof sym === "string" && sym.length) {
+			reserved.add(sym);
+		}
+	});
+	for (let code = 8; code <= 222; code++) {
+		if (Input._isBlacklistedKeycode(code)) {
+			continue;
+		}
+		if (Object.prototype.hasOwnProperty.call(Input.keyMapper, code)) {
+			const s = Input.keyMapper[code];
+			if (s && reserved.has(s) === false) {
+				Input.registerRemapCaptureSymbol(s);
+				Input.registerSymbolLabel(s, Input._keycodeLabelFor(code, s));
+			}
+			continue;
+		}
+		const symbol = `key-${code}`;
+		Input.keyMapper[code] = symbol;
+		Input.registerRemapCaptureSymbol(symbol);
+		Input.registerSymbolLabel(symbol, Input._keycodeLabelFor(code, symbol));
+	}
+};
+/**
+* Determines if a keycode should be excluded from capture/mapping.
+* Currently blacklists Function keys to avoid conflicts with RMMZ/NW.js.
+*
+* @param {number} code The keycode to evaluate.
+* @returns {boolean} True if blacklisted; false otherwise.
+*/
+Input._isBlacklistedKeycode = function(code) {
+	if (code >= 112 && code <= 123) {
+		return true;
+	}
+	if (code >= 124 && code <= 135) {
+		return true;
+	}
+	return false;
+};
+/**
+* Resolves a display label for a given keycode.
+* Falls back to the symbol if not recognized.
+* @param {number} code The keyboard keycode (8..222 range typically).
+* @param {string} fallback The fallback label when unknown.
+* @returns {string}
+*/
+Input._keycodeLabelFor = function(code, fallback) {
+	if (code >= 65 && code <= 90) {
+		return String.fromCharCode(code);
+	}
+	if (code >= 48 && code <= 57) {
+		return String(code - 48);
+	}
+	if (code >= 96 && code <= 105) {
+		return `Num ${code - 96}`;
+	}
+	if (code >= 112 && code <= 123) {
+		return `F${code - 111}`;
+	}
+	switch (code) {
+		case 8: return "Backspace";
+		case 9: return "Tab";
+		case 13: return "Enter";
+		case 16: return "Shift";
+		case 17: return "Ctrl";
+		case 18: return "Alt";
+		case 19: return "Pause";
+		case 20: return "CapsLock";
+		case 27: return "Esc";
+		case 32: return "Space";
+		case 33: return "PageUp";
+		case 34: return "PageDown";
+		case 35: return "End";
+		case 36: return "Home";
+		case 37: return "Left";
+		case 38: return "Up";
+		case 39: return "Right";
+		case 40: return "Down";
+		case 45: return "Insert";
+		case 46: return "Delete";
+		case 91: return "Meta";
+		case 93: return "Context";
+		case 106: return "Num *";
+		case 107: return "Num +";
+		case 109: return "Num -";
+		case 110: return "Num .";
+		case 111: return "Num /";
+		case 186: return "; :";
+		case 187: return "= +";
+		case 188: return ", <";
+		case 189: return "- _";
+		case 190: return ". >";
+		case 191: return "/ ?";
+		case 192: return "` ~";
+		case 219: return "[ {";
+		case 220: return "\\ |";
+		case 221: return "] }";
+		case 222: return "' \"";
+	}
+	return String(fallback || `Key ${code}`);
+};
+/**
+* Adjustable stick axis threshold (deadzone) for converting axes → directions.
+* Lower this if your controller’s axes don’t reach ±1.0. Default 0.50.
+* @type {number}
+*/
+Input._axisThreshold = .5;
+/**
+* Sets the analog stick threshold.
+* @param {number} v The new threshold (0.05–0.90 recommended).
+*/
+Input.setAxisThreshold = function(v) {
+	const n = Number(v);
+	if (!isNaN(n) && n > 0 && n < 1) {
+		Input._axisThreshold = n;
+	}
+};
+/**
+* OVERWRITE-ALIAS Extends gamepad processing to reinforce directions from axes
+* using a configurable threshold, without disabling vanilla behavior.
+* Ensures mutual exclusivity and proper clearing when axes return to neutral.
+* Also writes results to the per-pad state, then rebuilds the merged state as
+* (keyboardApprox OR currentGamepadAxes) so keyboard arrows are preserved while
+* stick clears. Includes optional diagnostic logging when enabled.
+* @param {Gamepad} gamepad The gamepad polled from navigator.getGamepads().
+*/
+J.ABS.EXT.INPUT.Aliased.Input.set("_updateGamepadState", Input._updateGamepadState);
+Input._updateGamepadState = function(gamepad) {
+	J.ABS.EXT.INPUT.Aliased.Input.get("_updateGamepadState").call(this, gamepad);
+	if (!gamepad) {
+		return;
+	}
+	const ensured = Input._ensurePadStates(gamepad);
+	if (!ensured) {
+		return;
+	}
+	const { s } = ensured;
+	const { padState } = ensured;
+	Input._normalizeDpadFromButtons(gamepad, s, padState);
+	if (!gamepad.axes || gamepad.axes.length < 2) {
+		return;
+	}
+	const s0 = Input._snapshotMergedDirections(s);
+	const flags = Input._resolveAxesFlags(gamepad);
+	Input._applyAxesToPerPad(padState, flags);
+	const axesNow = Input._axesNowFromPadState(padState);
+	const prevAxes = Input._axesStamp || {
+		up: false,
+		down: false,
+		left: false,
+		right: false
+	};
+	const kbdApprox = Input._keyboardApproxFromSnapshot(s0, prevAxes);
+	Input._rebuildMergedDirections(s, kbdApprox, axesNow);
+	Input._axesStamp = axesNow;
+};
+/**
+* Ensures we have both the merged current state bag and the per-pad snapshot.
+* @param {Gamepad} gamepad The polled gamepad.
+* @returns {{ s: object, padState: object }|null}
+*/
+Input._ensurePadStates = function(gamepad) {
+	const s = this._currentState;
+	const padState = this._gamepadStates && typeof gamepad.index === "number" ? this._gamepadStates[gamepad.index] : null;
+	if (!s || !padState) {
+		return null;
+	}
+	return {
+		s,
+		padState
+	};
+};
+/**
+* Normalizes the four D-pad symbols strictly from raw buttons 12..15.
+* Writes into both merged current state and per-pad snapshot.
+* @param {Gamepad} gamepad The polled gamepad.
+* @param {object} s The merged current state bag.
+* @param {object} padState The per-pad snapshot for this device.
+*/
+Input._normalizeDpadFromButtons = function(gamepad, s, padState) {
+	const dpu = !!(gamepad.buttons && gamepad.buttons[12] && gamepad.buttons[12].pressed);
+	const dpd = !!(gamepad.buttons && gamepad.buttons[13] && gamepad.buttons[13].pressed);
+	const dpl = !!(gamepad.buttons && gamepad.buttons[14] && gamepad.buttons[14].pressed);
+	const dpr = !!(gamepad.buttons && gamepad.buttons[15] && gamepad.buttons[15].pressed);
+	s["dpad-up"] = dpu;
+	s["dpad-down"] = dpd;
+	s["dpad-left"] = dpl;
+	s["dpad-right"] = dpr;
+	padState["dpad-up"] = dpu;
+	padState["dpad-down"] = dpd;
+	padState["dpad-left"] = dpl;
+	padState["dpad-right"] = dpr;
+};
+/**
+* Captures the current merged cardinal directions into a plain object.
+* @param {object} s The merged current state bag.
+* @returns {{up:boolean,down:boolean,left:boolean,right:boolean}}
+*/
+Input._snapshotMergedDirections = function(s) {
+	return {
+		up: !!s.up,
+		down: !!s.down,
+		left: !!s.left,
+		right: !!s.right
+	};
+};
+/**
+* Resolves axis flags from the left stick using the configured threshold.
+* @param {Gamepad} gamepad The polled gamepad.
+*/
+Input._resolveAxesFlags = function(gamepad) {
+	const ax = gamepad.axes && gamepad.axes.length > 0 ? gamepad.axes[0] || 0 : 0;
+	const ay = gamepad.axes && gamepad.axes.length > 1 ? gamepad.axes[1] || 0 : 0;
+	const t = Input._axisThreshold;
+	const holdLeft = ax <= -t;
+	const holdRight = ax >= t;
+	const neutralX = !holdLeft && !holdRight;
+	const holdUp = ay <= -t;
+	const holdDown = ay >= t;
+	const neutralY = !holdUp && !holdDown;
+	return {
+		ax,
+		ay,
+		holdLeft,
+		holdRight,
+		holdUp,
+		holdDown,
+		neutralX,
+		neutralY
+	};
+};
+/**
+* Applies axis flags to the per-pad snapshot with mutual exclusivity and neutral clearing.
+* @param {object} padState The per-pad snapshot for this device.
+* @param {object} f The axis flags.
+*/
+Input._applyAxesToPerPad = function(padState, f) {
+	if (f.holdLeft) {
+		padState.left = true;
+		padState.right = false;
+	} else if (f.holdRight) {
+		padState.right = true;
+		padState.left = false;
+	} else if (f.neutralX) {
+		padState.left = false;
+		padState.right = false;
+	}
+	if (f.holdUp) {
+		padState.up = true;
+		padState.down = false;
+	} else if (f.holdDown) {
+		padState.down = true;
+		padState.up = false;
+	} else if (f.neutralY) {
+		padState.up = false;
+		padState.down = false;
+	}
+};
+/**
+* Extracts the current axis-derived directions from the per-pad snapshot.
+* @param {object} padState The per-pad snapshot for this device.
+* @returns {{up:boolean,down:boolean,left:boolean,right:boolean}}
+*/
+Input._axesNowFromPadState = function(padState) {
+	return {
+		up: padState.up === true,
+		down: padState.down === true,
+		left: padState.left === true,
+		right: padState.right === true
+	};
+};
+/**
+* Separates an approximate keyboard-only contribution from the previous merged snapshot.
+* Anything present in merged last frame that was NOT set by axes last frame is treated as keyboard.
+* @param {{up:boolean,down:boolean,left:boolean,right:boolean}} s0 The merged snapshot prior to axes resolution.
+* @param {{up:boolean,down:boolean,left:boolean,right:boolean}} prevAxes The last frame's axes contribution.
+* @returns {{up:boolean,down:boolean,left:boolean,right:boolean}}
+*/
+Input._keyboardApproxFromSnapshot = function(s0, prevAxes) {
+	return {
+		up: s0.up && prevAxes.up === false,
+		down: s0.down && prevAxes.down === false,
+		left: s0.left && prevAxes.left === false,
+		right: s0.right && prevAxes.right === false
+	};
+};
+/**
+* Rebuilds merged directions as (keyboardApprox OR currentGamepadAxes) for each cardinal.
+* @param {object} s The merged current state bag to write into.
+* @param {{up:boolean,down:boolean,left:boolean,right:boolean}} kbdApprox The keyboard-only approximation.
+* @param {{up:boolean,down:boolean,left:boolean,right:boolean}} axesNow The axes contribution for this frame.
+*/
+Input._rebuildMergedDirections = function(s, kbdApprox, axesNow) {
+	s.up = kbdApprox.up === true || axesNow.up === true;
+	s.down = kbdApprox.down === true || axesNow.down === true;
+	s.left = kbdApprox.left === true || axesNow.left === true;
+	s.right = kbdApprox.right === true || axesNow.right === true;
+};
+/**
+* Exports a deep-cloned snapshot of all live namespace bindings for save.
+* Shape: { [ns: string]: { [key: string]: string[] } }
+* @returns {Object<string, Object<string, string[]>>}
+*/
+Input.exportAllBindingsForSave = function() {
+	const b = Input._jRegistries.bindings || Object.create(null);
+	const out = Object.create(null);
+	const namespaces = Object.keys(b);
+	for (let i = 0; i < namespaces.length; i++) {
+		const ns = namespaces[i];
+		const map = b[ns] || Object.create(null);
+		const clone = Object.create(null);
+		const keys = Object.keys(map);
+		for (let k = 0; k < keys.length; k++) {
+			const key = keys[k];
+			const arr = map[key];
+			clone[key] = Array.isArray(arr) ? arr.slice(0) : [];
+		}
+		out[ns] = clone;
+	}
+	return out;
+};
+/**
+* Imports all namespace bindings from a saved snapshot into the live registry.
+* Any namespaces absent from the snapshot retain their current (bootstrapped) values.
+* @param {Object<string, Object<string, string[]>>} saved The snapshot to import.
+*/
+Input.importAllBindingsFromSave = function(saved) {
+	if (!saved || typeof saved !== "object") {
+		return;
+	}
+	const b = Input._jRegistries.bindings;
+	const namespaces = Object.keys(saved);
+	for (let i = 0; i < namespaces.length; i++) {
+		const ns = namespaces[i];
+		const map = saved[ns] || Object.create(null);
+		const clone = Object.create(null);
+		const keys = Object.keys(map);
+		for (let k = 0; k < keys.length; k++) {
+			const key = keys[k];
+			const arr = map[key];
+			clone[key] = Array.isArray(arr) ? arr.slice(0) : [];
+		}
+		b[ns] = clone;
+	}
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/managers/JABS_Engine.js
+J.ABS.EXT.INPUT.Aliased.JABS_Engine.set("performPartyCycling", JABS_Engine.prototype.performPartyCycling);
 /**
- * Registers a logical action under a namespace for remapping.
- * @param {string} ns The namespace (e.g., "JABS", "HUD", "MINIMAP").
- * @param {object} def The action definition.
- * @param {string} def.key The logical action key (unique within ns).
- * @param {string} def.label The friendly label shown in UIs.
- * @param {string[]} [def.defaults] Optional default physical symbols.
- * @param {string} [def.category] Optional category label.
- */
-Input.registerAction = function(ns, def)
-{
-  // Coerce shapes.
-  if (!ns || !def || !def.key) return;
-
-  // Initialize namespace list for actions.
-  const bag = Input._jRegistries.actions;
-  bag[ns] = bag[ns] || [];
-
-  // Push normalized action def.
-  bag[ns].push({
-    key: String(def.key),
-    label: String(def.label || def.key),
-    defaults: Array.isArray(def.defaults)
-      ? def.defaults.slice()
-      : [],
-    category: String(def.category || 'misc'),
-  });
+* Extends {@link #performPartyCycling}.<br/>
+* Include reassigning the controller to the player.
+*/
+JABS_Engine.prototype.performPartyCycling = function() {
+	J.ABS.EXT.INPUT.Aliased.JABS_Engine.get("performPartyCycling").call(this);
+	$jabsController1.setBattler(this.getPlayer1());
+};
+/**
+* Handles the player input.
+*/
+J.ABS.EXT.INPUT.Aliased.JABS_Engine.set("updateInput", JABS_Engine.prototype.updateInput);
+JABS_Engine.prototype.updateInput = function() {
+	J.ABS.EXT.INPUT.Aliased.JABS_Engine.get("updateInput").call(this);
+	if (!this.canUpdateInput()) return;
+	$jabsController1.update();
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/objects/Game_Player.js
 /**
- * Gets the registered logical actions for a namespace.
- * @param {string} ns The namespace.
- * @returns {Array<{key:string,label:string,defaults:string[],category:string}>}
- */
-Input.getRegisteredActions = function(ns)
-{
-  const bag = Input._jRegistries.actions;
-  const list = bag[ns] || [];
-  return list.slice();
+* Extends {@link #isDebugThrough}.<br/>
+* Allows the custom debug button to be pressed while JABS is active.
+*/
+J.ABS.EXT.INPUT.Aliased.Game_Player.set("isDebugThrough", Game_Player.prototype.isDebugThrough);
+Game_Player.prototype.isDebugThrough = function() {
+	if ($jabsEngine.absEnabled) {
+		return Input.isPressed(J.ABS.EXT.INPUT.Symbols.Debug) && $gameTemp.isPlaytest();
+	} else {
+		return J.ABS.EXT.INPUT.Aliased.Game_Player.get("isDebugThrough").call(this);
+	}
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/objects/Game_System.js
 /**
- * Seeds the default physical bindings for a namespace in bulk.
- * Does not override live bindings; use resetBindingsToDefaults() to re-apply.
- * @param {string} ns The namespace.
- * @param {Object<string, string[]>} defaults Map of key -> physical symbols.
- */
-Input.seedDefaultBindings = function(ns, defaults)
-{
-  if (!ns || !defaults) return;
-  const out = Object.create(null);
-  const keys = Object.keys(defaults);
-  for (let i = 0; i < keys.length; i++)
-  {
-    const k = keys[i];
-    out[k] = Array.isArray(defaults[k])
-      ? defaults[k].slice()
-      : [];
-  }
-  Input._jRegistries.defaults[ns] = out;
+* Extends {@link #initMembers}.<br/>
+* Initializes members used for storing JABS input mappings per controller.
+*/
+J.ABS.EXT.INPUT.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function() {
+	J.ABS.EXT.INPUT.Aliased.Game_System.get("initMembers").call(this);
+	this.initJabsInputConfigMembers();
+};
+/**
+* Initializes members used for storing JABS input mappings and controller references.
+*/
+Game_System.prototype.initJabsInputConfigMembers = function() {
+	/**
+	* Root namespace for J-related data stored on the system object.
+	*/
+	this._j ||= {};
+	/**
+	* ABS (JABS) namespace stored under the J-root on the system object.
+	*/
+	this._j._abs ||= {};
+	/**
+	* Input extension namespace stored under the ABS namespace on the system object.
+	*/
+	this._j._abs._input ||= {};
+	/**
+	* Dictionary of controllerKey -> mapping object `{ [button]: symbol }`.
+	* @type {Object<string, Object<string, string>>}
+	*/
+	this._j._abs._input._mappings ||= {};
+	/**
+	* Snapshot of the full Input registry bindings across all namespaces.
+	* @type {Object<string, Object<string, string[]>>}
+	*/
+	this._j._abs._input._bindings ||= {};
+};
+/**
+* Gets the stored mapping dictionary of controllerKey -> mapping object.
+* @returns {Object<string, Object<string,string>>}
+*/
+Game_System.prototype.getJabsInputMappings = function() {
+	return this._j._abs._input._mappings;
+};
+/**
+* Overwrites the stored mapping dictionary of controllerKey -> mapping object.
+* @param {Object<string, Object<string,string>>} mappings The new mappings dictionary.
+*/
+Game_System.prototype.setJabsInputMappings = function(mappings) {
+	this._j._abs._input._mappings = mappings;
+};
+/**
+* Stores a full mapping for the given controller key.
+* @param {string} controllerKey The key representing which controller this mapping belongs to.
+* @param {Object<string,string>} mapping The mapping object to store.
+*/
+Game_System.prototype.setJabsInputConfig = function(controllerKey, mapping) {
+	const copy = {};
+	Object.keys(mapping).forEach((key) => copy[key] = mapping[key]);
+	const mappings = this.getJabsInputMappings();
+	mappings[controllerKey] = copy;
+	this.setJabsInputMappings(mappings);
+};
+/**
+* Gets the stored mapping for the given controller key.
+* @param {string} controllerKey The key representing which controller’s mapping to retrieve.
+* @returns {Object<string,string>|null} The stored mapping, or null if none found.
+*/
+Game_System.prototype.getJabsInputConfig = function(controllerKey) {
+	const mappings = this.getJabsInputMappings();
+	const found = mappings[controllerKey];
+	if (!found) return null;
+	const copy = {};
+	Object.keys(found).forEach((key) => copy[key] = found[key]);
+	return copy;
+};
+/**
+* Gets the persisted snapshot of the Input registry bindings.
+* Shape: { [ns: string]: { [key: string]: string[] } }
+* @returns {Object<string, Object<string, string[]>>}
+*/
+Game_System.prototype.getInputBindingsSnapshot = function() {
+	if (!this._j || !this._j._abs || !this._j._abs._input || !this._j._abs._input._bindings) {
+		return {};
+	}
+	return this._j._abs._input._bindings || {};
+};
+/**
+* Overwrites the persisted Input bindings snapshot on the system object.
+* The provided object should follow the shape: { [ns]: { [key]: string[] } }.
+* @param {Object<string, Object<string, string[]>>} snapshot The snapshot to store.
+*/
+Game_System.prototype.setInputBindingsSnapshot = function(snapshot) {
+	const out = {};
+	const namespaces = Object.keys(snapshot || {});
+	for (let i = 0; i < namespaces.length; i++) {
+		const ns = namespaces[i];
+		const map = snapshot[ns] || {};
+		const copy = {};
+		const keys = Object.keys(map);
+		for (let k = 0; k < keys.length; k++) {
+			const key = keys[k];
+			const arr = map[key];
+			copy[key] = Array.isArray(arr) ? arr.slice(0) : [];
+		}
+		out[ns] = copy;
+	}
+	this._j._abs._input._bindings = out;
+};
+/**
+* Applies a stored mapping (if present) to the given controller.
+* @param {string} controllerKey The key used to look up the mapping.
+* @param {JABS_StandardController} controller The input controller to apply to.
+*/
+Game_System.prototype.applyJabsInputConfigToController = function(controllerKey, controller) {
+	const mapping = this.getJabsInputConfig(controllerKey);
+	if (!mapping) return;
+	controller.setAllInputs(mapping);
+};
+/**
+* Captures current mappings from all known controllers into system storage.
+* This should be called before save, or explicitly by the remap scene’s Save.
+*/
+Game_System.prototype.saveAllJabsInputConfigs = function() {
+	const controllers = JABS_InputAdapter.getAllControllers();
+	controllers.forEach((controller, index) => {
+		const key = this.resolveJabsControllerKey(controller, index);
+		this.setJabsInputConfig(key, controller.exportAllInputs());
+	});
+};
+/**
+* Applies stored mappings to all currently registered controllers.
+* Intended to be called after a save file loads.
+*/
+Game_System.prototype.applyAllJabsInputConfigs = function() {
+	const controllers = JABS_InputAdapter.getAllControllers();
+	controllers.forEach((controller, index) => {
+		const key = this.resolveJabsControllerKey(controller, index);
+		this.applyJabsInputConfigToController(key, controller);
+	});
+};
+/**
+* Resets a controller to defaults and persists the mapping.
+* @param {number} index The adapter index of the controller to reset.
+*/
+Game_System.prototype.resetJabsInputConfigToDefaults = function(index) {
+	const list = JABS_InputAdapter.getAllControllers();
+	const controller = list[index];
+	const key = this.resolveJabsControllerKey(controller, index);
+	const defaults = controller.buildDefaultMapping();
+	controller.setAllInputs(defaults);
+	this.setJabsInputConfig(key, defaults);
+};
+/**
+* Snapshots all live Input namespace bindings into system storage for persistence.
+*/
+Game_System.prototype.saveAllInputBindingsFromInput = function() {
+	const snapshot = Input.exportAllBindingsForSave();
+	this.setInputBindingsSnapshot(snapshot);
+};
+/**
+* Applies the persisted Input bindings snapshot back into the live Input registry.
+* Ensures Input defaults are bootstrapped before applying.
+*/
+Game_System.prototype.applyAllInputBindingsToInput = function() {
+	Input.ensureRemapBootstrapped();
+	const saved = this.getInputBindingsSnapshot();
+	Input.importAllBindingsFromSave(saved);
+};
+/**
+* Resolves a stable key for the given controller for config storage.
+* Default strategy: "player" + (index+1).
+* @param {JABS_StandardController} controller The controller to resolve a key for.
+* @param {number} index The index of this controller in the adapter list.
+* @returns {string} The resolved key.
+*/
+Game_System.prototype.resolveJabsControllerKey = function(controller, index) {
+	return `player${index + 1}`;
+};
+/**
+* Initializes JABS input data for legacy saves that predate persistence.
+* If both the stored controller mappings and Input bindings snapshot are missing,
+* this seeds defaults one time so subsequent saves/loads work normally.
+*/
+Game_System.prototype.initializeJabsInputForLegacySaveIfMissing = function() {
+	this.initJabsInputConfigMembers();
+	const mappingsDict = this._j && this._j._abs && this._j._abs._input ? this._j._abs._input._mappings : null;
+	const bindingsDict = this._j && this._j._abs && this._j._abs._input ? this._j._abs._input._bindings : null;
+	const hasMappings = mappingsDict ? Object.keys(mappingsDict).length > 0 : false;
+	const hasBindings = bindingsDict ? Object.keys(bindingsDict).length > 0 : false;
+	if (hasMappings === false && hasBindings === false) {
+		Input.ensureRemapBootstrapped();
+		const controllers = JABS_InputAdapter.getAllControllers();
+		controllers.forEach((controller, index) => {
+			const key = this.resolveJabsControllerKey(controller, index);
+			const defaults = controller.buildDefaultMapping();
+			controller.setAllInputs(defaults);
+			this.setJabsInputConfig(key, defaults);
+		});
+		const snapshot = Input.exportAllBindingsForSave();
+		this.setInputBindingsSnapshot(snapshot);
+	}
+};
+/**
+* Extends {@link #onBeforeSave}.<br/>
+* Snapshots controller mappings before saving.
+*/
+J.ABS.EXT.INPUT.Aliased.Game_System.set("onBeforeSave", Game_System.prototype.onBeforeSave);
+Game_System.prototype.onBeforeSave = function() {
+	const original = J.ABS.EXT.INPUT.Aliased.Game_System.get("onBeforeSave");
+	original.call(this);
+	this.saveAllJabsInputConfigs();
+	this.saveAllInputBindingsFromInput();
+};
+/**
+* Extends {@link #onAfterLoad}.<br/>
+* Applies stored mappings after loading.
+*/
+J.ABS.EXT.INPUT.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
+Game_System.prototype.onAfterLoad = function() {
+	J.ABS.EXT.INPUT.Aliased.Game_System.get("onAfterLoad").call(this);
+	this.initializeJabsInputForLegacySaveIfMissing();
+	this.applyAllInputBindingsToInput();
+	this.applyAllJabsInputConfigs();
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/windows/Window_JabsRemapUsageHelp.js
 /**
- * Gets the live bindings (logical -> physical[]) for a namespace.
- * If empty, returns a lazily-initialized copy of the defaults.
- * @param {string} ns The namespace.
- * @returns {Object<string, string[]>}
- */
-Input.getAllBindings = function(ns)
-{
-  const b = Input._jRegistries.bindings;
-  if (!b[ns])
-  {
-    // Lazy-init from defaults so querying works before any remaps are saved.
-    const d = Input._jRegistries.defaults[ns] || Object.create(null);
-    const clone = Object.create(null);
-    const keys = Object.keys(d);
-    for (let i = 0; i < keys.length; i++)
-    {
-      const k = keys[i];
-      clone[k] = d[k].slice();
-    }
-    b[ns] = clone;
-  }
-  return b[ns];
+* Static usage/help panel for the JABS remap scene (right side).
+*/
+var Window_JabsRemapUsageHelp = class extends Window_Base {
+	/**
+	* @param {Rectangle} rect The rectangle to draw this window within.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.refresh();
+	}
+	/**
+	* Refreshes the static help text.
+	*/
+	refresh() {
+		this.contents.clear();
+		const rebind = `${IconManager.jabsIconTextForSymbol("ok")} Rebind`;
+		const clear = `${IconManager.jabsIconTextForSymbol(J.ABS.EXT.INPUT.Symbols.GuardTrigger)} Clear Binding`;
+		this.drawTextEx(rebind, 0, this.lineHeight() * 0, this.contentsWidth());
+		this.drawTextEx(clear, 0, this.lineHeight() * 1, this.contentsWidth());
+	}
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/windows/Window_JabsRemapPrompt.js
 /**
- * Gets the bound physical symbols for a single logical key.
- * @param {string} ns The namespace.
- * @param {string} key The logical action key.
- * @returns {string[]} Array of physical symbols (may be empty).
- */
-Input.getBindings = function(ns, key)
-{
-  const all = Input.getAllBindings(ns);
-  const arr = all[key];
-  return Array.isArray(arr)
-    ? arr
-    : [];
+* Full-screen overlay that captures the next input symbol.
+*/
+var Window_JabsRemapPrompt = class Window_JabsRemapPrompt extends Window_Base {
+	/**
+	* Frames to ignore immediate UI inputs after opening the prompt.
+	* Adjusted for 60 FPS.
+	* Can be migrated to plugin parameters later.
+	* @type {number}
+	*/
+	static WarmupFrames = 20;
+	/**
+	* Maximum frames the prompt remains active before auto-closing.
+	* Adjusted for 60 FPS.
+	* Can be migrated to plugin parameters later.
+	* @type {number}
+	*/
+	static TimeoutFrames = 5 * 60;
+	/**
+	* @param {Rectangle} rect The rectangle to draw this window within.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.opacity = 192;
+		this.refresh();
+	}
+	/**
+	* Lazily ensures the root plugin namespace exists for this window's data.
+	*/
+	_root() {
+		this._j ||= {};
+		this._j._abs ||= {};
+		this._j._abs._input ||= {};
+	}
+	/**
+	* Gets the captured symbol awaiting pickup by the scene.
+	* @returns {string|null}
+	*/
+	getCapturedSymbol() {
+		this._root();
+		return this._j._abs._input._remapCaptured ?? null;
+	}
+	/**
+	* Sets the captured symbol awaiting pickup by the scene.
+	* @param {string|null} v The captured symbol.
+	*/
+	setCapturedSymbol(v) {
+		this._root();
+		this._j._abs._input._remapCaptured = v ?? null;
+	}
+	/**
+	* Gets whether or not the prompt is currently active.
+	* @returns {boolean}
+	*/
+	isActive() {
+		this._root();
+		return this._j._abs._input._remapActive === true;
+	}
+	/**
+	* Sets whether or not the prompt is currently active.
+	* @param {boolean} v The new active state.
+	*/
+	setActive(v) {
+		this._root();
+		this._j._abs._input._remapActive = v === true;
+	}
+	/**
+	* Gets the remaining warmup frames.
+	* @returns {number}
+	*/
+	getWarmupFrames() {
+		this._root();
+		return this._j._abs._input._remapWarmup | 0;
+	}
+	/**
+	* Sets the remaining warmup frames.
+	* @param {number} v The frames to set.
+	*/
+	setWarmupFrames(v) {
+		this._root();
+		this._j._abs._input._remapWarmup = Math.max(0, v | 0);
+	}
+	/**
+	* Gets the remaining timeout frames.
+	* @returns {number}
+	*/
+	getTimeoutFrames() {
+		this._root();
+		return this._j._abs._input._remapTimeout | 0;
+	}
+	/**
+	* Sets the remaining timeout frames.
+	* @param {number} v The frames to set.
+	*/
+	setTimeoutFrames(v) {
+		this._root();
+		this._j._abs._input._remapTimeout = Math.max(0, v | 0);
+	}
+	/**
+	* Gets the logical action label being captured for.
+	* @returns {string}
+	*/
+	getButtonLabel() {
+		this._root();
+		return this._j._abs._input._remapButtonLabel || String.empty;
+	}
+	/**
+	* Sets the logical action label being captured for.
+	* @param {string} v The button label.
+	*/
+	setButtonLabel(v) {
+		this._root();
+		this._j._abs._input._remapButtonLabel = String(v || String.empty);
+	}
+	/**
+	* Begins the prompt for the given logical action.
+	* @param {string} button The logical action being captured.
+	*/
+	startPrompt(button) {
+		this.setCapturedSymbol(null);
+		this.setActive(true);
+		this.setWarmupFrames(Window_JabsRemapPrompt.WarmupFrames);
+		this.setTimeoutFrames(Window_JabsRemapPrompt.TimeoutFrames);
+		this.setButtonLabel(button);
+		this.show();
+		this.refresh();
+	}
+	/**
+	* Ends the capture prompt.
+	*/
+	endPrompt() {
+		this.setActive(false);
+		this.hide();
+	}
+	/**
+	* Per-frame update for capture.
+	*/
+	update() {
+		super.update();
+		if (this.isActive() === false) {
+			return;
+		}
+		const found = this._findTriggeredSymbol();
+		this._decrementWarmup();
+		if (found) {
+			this.setCapturedSymbol(found);
+			this.endPrompt();
+			return;
+		}
+		if (this._tickTimeoutAndRedraw()) {
+			this.setCapturedSymbol(null);
+			this.endPrompt();
+		}
+	}
+	/**
+	* Attempts to find a triggered symbol from curated sets, honoring warmup.
+	* Accepts only keyboard/gamepad symbols; mouse inputs are not considered.
+	* @returns {string|null}
+	*/
+	_findTriggeredSymbol() {
+		if (this.getWarmupFrames() > 0) {
+			return null;
+		}
+		const symbols = this._curatedSymbols();
+		const allow = new Set(symbols);
+		for (let i = 0; i < symbols.length; i++) {
+			const s = symbols[i];
+			if (Input.isTriggered(s)) {
+				return s;
+			}
+		}
+		const latest = Input._latestButton;
+		if (latest && allow.has(latest) && Input.isTriggered(latest)) {
+			return latest;
+		}
+		return null;
+	}
+	/**
+	* Gets the curated list of keyboard/gamepad symbols to poll each frame.
+	* @returns {string[]}
+	*/
+	_curatedSymbols() {
+		const k = J.ABS.EXT.INPUT.Symbols;
+		const inputs = [
+			k.Mainhand,
+			k.Offhand,
+			k.Dash,
+			k.Tool,
+			k.SkillTrigger,
+			k.GuardTrigger,
+			k.StrafeTrigger,
+			k.MobilitySkill,
+			k.PartyCycle,
+			k.Quickmenu,
+			k.DPadUp,
+			k.DPadDown,
+			k.DPadLeft,
+			k.DPadRight
+		];
+		const extras = Input.getRemapCaptureSymbols();
+		return inputs.concat(extras);
+	}
+	/**
+	* Decrements the warmup countdown when active.
+	*/
+	_decrementWarmup() {
+		if (this.getWarmupFrames() > 0) {
+			this.setWarmupFrames(this.getWarmupFrames() - 1);
+		}
+	}
+	/**
+	* Decrements the timeout, redraws countdown text, and returns whether it expired.
+	* @returns {boolean} True if timeout reached zero this frame; false otherwise.
+	*/
+	_tickTimeoutAndRedraw() {
+		if (this.getTimeoutFrames() <= 0) {
+			return false;
+		}
+		this.setTimeoutFrames(this.getTimeoutFrames() - 1);
+		this.refresh();
+		if (this.getTimeoutFrames() === 0) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Redraws the prompt if active, otherwise clears contents.
+	*/
+	refresh() {
+		this.contents.clear();
+		if (this.isActive()) {
+			this.drawPrompt();
+		}
+	}
+	/**
+	* Draws the prompt text for the current button.
+	*/
+	drawPrompt() {
+		const cx = 0;
+		const cy = Math.floor(this.contentsHeight() / 2) - this.lineHeight();
+		this.drawText("Press a key or button…", cx, cy, this.contentsWidth(), "center");
+		this.drawText(`for: ${this.getButtonLabel()}`, cx, cy + this.lineHeight(), this.contentsWidth(), "center");
+		this.drawText(`Auto-cancels in ${(this.getTimeoutFrames() / 60).toFixed(1)}s`, cx, cy + this.lineHeight() * 2, this.contentsWidth(), "center");
+	}
+	/**
+	* Returns the captured symbol for one frame and clears it.
+	* @returns {string|null}
+	*/
+	pollCapturedSymbol() {
+		const out = this.getCapturedSymbol();
+		this.setCapturedSymbol(null);
+		return out;
+	}
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/windows/Window_JabsRemapCommand.js
 /**
- * Overwrites the bound physical symbols for a single logical key.
- * @param {string} ns The namespace.
- * @param {string} key The logical action key.
- * @param {string[]} physical Array of physical symbols.
- */
-Input.setBindings = function(ns, key, physical)
-{
-  const all = Input.getAllBindings(ns);
-  all[key] = Array.isArray(physical)
-    ? physical.slice()
-    : [];
+* Bottom command strip for Apply / Reset / Cancel.
+*/
+var Window_JabsRemapCommand = class extends Window_Command {
+	/**
+	* @param {Rectangle} rect The rectangle to draw this window within.
+	*/
+	constructor(rect) {
+		super(rect);
+	}
+	/**
+	* Gets the number of visible rows.
+	* @returns {number}
+	*/
+	numVisibleRows() {
+		return 4;
+	}
+	/**
+	* Defines the commands for this window.
+	*/
+	makeCommandList() {
+		const commands = this.buildCommands();
+		commands.forEach(this.addBuiltCommand, this);
+	}
+	/**
+	* Builds the commands for this window.
+	* @returns {BuiltWindowCommand[]}
+	*/
+	buildCommands() {
+		const apply = new WindowCommandBuilder("Apply current remapping").setIconIndex(91).setSymbol("apply").setEnabled(true).build();
+		const defaults = new WindowCommandBuilder("Reset to defaults").setIconIndex(207).setSymbol("defaults").setEnabled(true).build();
+		const reset = new WindowCommandBuilder("Undo changes").setIconIndex(74).setSymbol("reset").setEnabled(true).build();
+		const cancel = new WindowCommandBuilder("Exit without saving").setIconIndex(90).setSymbol("cancel").setEnabled(true).build();
+		return [
+			apply,
+			defaults,
+			reset,
+			cancel
+		];
+	}
 };
 
-/**
- * Resets a namespace’s live bindings back to the seeded defaults.
- * @param {string} ns The namespace.
- */
-Input.resetBindingsToDefaults = function(ns)
-{
-  const d = Input._jRegistries.defaults[ns] || Object.create(null);
-  const clone = Object.create(null);
-  const keys = Object.keys(d);
-  for (let i = 0; i < keys.length; i++)
-  {
-    const k = keys[i];
-    clone[k] = d[k].slice();
-  }
-  Input._jRegistries.bindings[ns] = clone;
+//#endregion
+//#region src/plugins/abs/ext/input/windows/Window_JabsRemapActions.js
+var JABS_REMAP_HEADER_HELP = {
+	"Primary Actions": "Primary actions used moment-to-moment: mainhand/offhand attacks and tools.\n" + "These are your core mapped buttons for direct, immediate use.",
+	"Secondary Actions": "Secondary and modifier inputs: Skill Trigger, Rotate, Strafe, Dodge.\n" + "Hold or tap to modify movement or enable combat skill slots.",
+	"Functional Actions": "Functional shortcuts unrelated to attacks: open the JABS menu, cycle party leader.\n" + "Useful for management between encounters or to swap leaders on the fly."
 };
-
 /**
- * Determines if any physical input bound to the logical action is triggered this frame.
- * @param {string} ns The namespace.
- * @param {string} key The logical action key.
- * @returns {boolean}
- */
-Input.isActionTriggered = function(ns, key)
-{
-  const inputs = Input.getBindings(ns, key);
-  for (let i = 0; i < inputs.length; i++)
-  {
-    const physical = inputs[i];
-    if (Input.isTriggered(physical)) return true;
-  }
-  return false;
-};
-
-/**
- * Determines if any physical input bound to the logical action is currently pressed.
- * @param {string} ns The namespace.
- * @param {string} key The logical action key.
- * @returns {boolean}
- */
-Input.isActionPressed = function(ns, key)
-{
-  const inputs = Input.getBindings(ns, key);
-  for (let i = 0; i < inputs.length; i++)
-  {
-    const physical = inputs[i];
-    if (Input.isPressed(physical)) return true;
-  }
-  return false;
-};
-
-/**
- * Registers a friendly label for a physical input symbol.
- * @param {string} symbol The physical symbol (e.g., 'dpad-up').
- * @param {string} label The friendly label (e.g., 'D-Pad Up').
- */
-Input.registerSymbolLabel = function(symbol, label)
-{
-  Input._jRegistries.symbolLabels[String(symbol)] = String(label || symbol);
-};
-
-/**
- * Resolves a friendly label for a physical input symbol.
- * @param {string} symbol The physical symbol.
- * @returns {string}
- */
-Input.labelForSymbol = function(symbol)
-{
-  const labels = Input._jRegistries.symbolLabels;
-  const key = String(symbol);
-  return labels[key] || key;
-};
-
-/**
- * Registers a physical symbol as eligible for capture by the remap prompt.
- * @param {string} symbol The symbol to allow.
- */
-Input.registerRemapCaptureSymbol = function(symbol)
-{
-  Input._jRegistries.capture.add(String(symbol));
-};
-
-/**
- * Gets all extra capture-eligible symbols registered by plugins.
- * @returns {string[]}
- */
-Input.getRemapCaptureSymbols = function()
-{
-  return Array.from(Input._jRegistries.capture);
-};
-
-/**
- * Idempotent bootstrap for remap defaults and symbol labels.
- * Should be called from DataManager.createGameObjects() on boot/load.
- */
-Input.ensureRemapBootstrapped = function()
-{
-  // if already bootstrapped for this session, do nothing.
-  if (Input._jRegistries.bootstrapped === true)
-  {
-    return;
-  }
-
-  // Seed JABS defaults (logical actions -> physical symbols).
-  const d = {};
-
-  // functionality
-  d[JABS_Button.Menu] = [ J.ABS.EXT.INPUT.Symbols.Quickmenu ];
-  d[JABS_Button.Select] = [ J.ABS.EXT.INPUT.Symbols.PartyCycle ];
-
-  // primary actions
-  d[JABS_Button.Mainhand] = [ J.ABS.EXT.INPUT.Symbols.Mainhand ];
-  d[JABS_Button.Offhand] = [ J.ABS.EXT.INPUT.Symbols.Offhand ];
-  d[JABS_Button.Tool] = [ J.ABS.EXT.INPUT.Symbols.Tool ];
-
-  // mobility & modifiers
-  // IMPORTANT: No default binding for Dodge; Sprint handles mobility contextually.
-  // d[JABS_Button.Dodge] is intentionally omitted.
-  d[JABS_Button.Sprint] = [ J.ABS.EXT.INPUT.Symbols.Dash ];
-  d[JABS_Button.Strafe] = [ J.ABS.EXT.INPUT.Symbols.StrafeTrigger ];
-  d[JABS_Button.Rotate] = [ J.ABS.EXT.INPUT.Symbols.GuardTrigger ];
-  d[JABS_Button.Guard] = [ J.ABS.EXT.INPUT.Symbols.GuardTrigger ];
-  d[JABS_Button.SkillTrigger] = [ J.ABS.EXT.INPUT.Symbols.SkillTrigger ];
-
-  // L1 + buttons (keyboard shortcuts available separately)
-  d[JABS_Button.CombatSkill1] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill1 ];
-  d[JABS_Button.CombatSkill2] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill2 ];
-  d[JABS_Button.CombatSkill3] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill3 ];
-  d[JABS_Button.CombatSkill4] = [ J.ABS.EXT.INPUT.Symbols.CombatSkill4 ];
-
-  // register the defaults and ensure live bindings are initialized.
-  Input.seedDefaultBindings('JABS', d);
-  Input.getAllBindings('JABS');
-
-  // friendly labels for some common symbols.
-  Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.L3, 'L3');
-  Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.R3, 'R3');
-  Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.MobilitySkill, 'R2');
-  Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadUp, 'D-Pad Up');
-  Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadDown, 'D-Pad Down');
-  Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadLeft, 'D-Pad Left');
-  Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadRight, 'D-Pad Right');
-
-  // allow these symbols to be captured in the prompt if desired.
-  Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.L3);
-  Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.R3);
-  Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadUp);
-  Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadDown);
-  Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadLeft);
-  Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadRight);
-
-  // expose all non-engine keyboard keys for capture/binding.
-  Input.bootstrapAllKeyboardKeysForCapture();
-
-  // mark as bootstrapped for this runtime session.
-  Input._jRegistries.bootstrapped = true;
-};
-
-/**
- * Generates capture-eligible symbols for any keyboard keycodes that are not
- * already mapped to core RMMZ symbols, and registers readable labels for them.
- */
-Input.bootstrapAllKeyboardKeysForCapture = function()
-{
-  // collect a snapshot of engine/core-reserved symbols to avoid overriding them.
-  const reserved = new Set([
-    // core engine actions and directions.
-    'ok', 'cancel', 'menu', 'escape', 'tab', 'pageup', 'pagedown', 'shift', 'control', 'up', 'down', 'left', 'right',
-  ]);
-
-  // also consider whatever the current keyMapper already resolves to.
-  const existingMap = Object.assign({}, Input.keyMapper);
-  Object.keys(existingMap)
-    .forEach(code =>
-    {
-      // read the mapped symbol for this code.
-      const sym = existingMap[code];
-
-      // if mapped to a core-like word, add to the reserved set for safety.
-      if (typeof sym === 'string' && sym.length)
-      {
-        reserved.add(sym);
-      }
-    });
-
-  // iterate a reasonable range of DOM KeyboardEvent.keyCode values.
-  for (let code = 8; code <= 222; code++)
-  {
-    // never capture or map blacklisted keycodes (Function keys, etc.).
-    if (Input._isBlacklistedKeycode(code))
-    {
-      continue;
-    }
-
-    // if the engine already has a mapping for this keycode, leave it alone.
-    if (Object.prototype.hasOwnProperty.call(Input.keyMapper, code))
-    {
-      // still allow capture if it is NOT a reserved symbol and NOT blacklisted.
-      const s = Input.keyMapper[code];
-      if (s && reserved.has(s) === false)
-      {
-        // register this existing non-engine symbol for the prompt & label.
-        Input.registerRemapCaptureSymbol(s);
-        Input.registerSymbolLabel(s, Input._keycodeLabelFor(code, s));
-      }
-      continue;
-    }
-
-    // create a stable unique symbol for this unmapped keycode.
-    const symbol = `key-${code}`;
-
-    // define a keyboard mapping so Input can detect presses for this key.
-    Input.keyMapper[code] = symbol;
-
-    // allow the capture prompt to consider this symbol.
-    Input.registerRemapCaptureSymbol(symbol);
-
-    // provide a human-friendly label for the remap UI.
-    Input.registerSymbolLabel(symbol, Input._keycodeLabelFor(code, symbol));
-  }
-};
-
-/**
- * Determines if a keycode should be excluded from capture/mapping.
- * Currently blacklists Function keys to avoid conflicts with RMMZ/NW.js.
- *
- * @param {number} code The keycode to evaluate.
- * @returns {boolean} True if blacklisted; false otherwise.
- */
-Input._isBlacklistedKeycode = function(code)
-{
-  // F1–F12 are 112–123.
-  if (code >= 112 && code <= 123)
-  {
-    return true;
-  }
-
-  // Some platforms expose F13–F24 as 124–135; exclude those as well for safety.
-  if (code >= 124 && code <= 135)
-  {
-    return true;
-  }
-
-  // allow all other keys.
-  return false;
-};
-
-/**
- * Resolves a display label for a given keycode.
- * Falls back to the symbol if not recognized.
- * @param {number} code The keyboard keycode (8..222 range typically).
- * @param {string} fallback The fallback label when unknown.
- * @returns {string}
- */
-// eslint-disable-next-line complexity
-Input._keycodeLabelFor = function(code, fallback)
-{
-  // A–Z
-  if (code >= 65 && code <= 90)
-  {
-    // convert 65->A, 66->B, etc.
-    return String.fromCharCode(code);
-  }
-
-  // 0–9 (top row)
-  if (code >= 48 && code <= 57)
-  {
-    return String(code - 48);
-  }
-
-  // Numpad 0–9
-  if (code >= 96 && code <= 105)
-  {
-    return `Num ${code - 96}`;
-  }
-
-  // Function keys F1–F12
-  if (code >= 112 && code <= 123)
-  {
-    return `F${code - 111}`;
-  }
-
-  // Common punctuation and special keys.
-  switch (code)
-  {
-    case 8:
-      return 'Backspace';
-    case 9:
-      return 'Tab';
-    case 13:
-      return 'Enter';
-    case 16:
-      return 'Shift';
-    case 17:
-      return 'Ctrl';
-    case 18:
-      return 'Alt';
-    case 19:
-      return 'Pause';
-    case 20:
-      return 'CapsLock';
-    case 27:
-      return 'Esc';
-    case 32:
-      return 'Space';
-    case 33:
-      return 'PageUp';
-    case 34:
-      return 'PageDown';
-    case 35:
-      return 'End';
-    case 36:
-      return 'Home';
-    case 37:
-      return 'Left';
-    case 38:
-      return 'Up';
-    case 39:
-      return 'Right';
-    case 40:
-      return 'Down';
-    case 45:
-      return 'Insert';
-    case 46:
-      return 'Delete';
-    case 91:
-      return 'Meta';
-    case 93:
-      return 'Context';
-    case 106:
-      return 'Num *';
-    case 107:
-      return 'Num +';
-    case 109:
-      return 'Num -';
-    case 110:
-      return 'Num .';
-    case 111:
-      return 'Num /';
-    case 186:
-      return '; :';
-    case 187:
-      return '= +';
-    case 188:
-      return ', <';
-    case 189:
-      return '- _';
-    case 190:
-      return '. >';
-    case 191:
-      return '/ ?';
-    case 192:
-      return '` ~';
-    case 219:
-      return '[ {';
-    case 220:
-      return '\\ |';
-    case 221:
-      return '] }';
-    case 222:
-      return '\' "';
-  }
-
-  // fallback to the provided symbol when unknown.
-  return String(fallback || `Key ${code}`);
-};
-
-/**
- * Adjustable stick axis threshold (deadzone) for converting axes → directions.
- * Lower this if your controller’s axes don’t reach ±1.0. Default 0.50.
- * @type {number}
- */
-Input._axisThreshold = 0.5;
-
-/**
- * Sets the analog stick threshold.
- * @param {number} v The new threshold (0.05–0.90 recommended).
- */
-Input.setAxisThreshold = function(v)
-{
-  // constrain a bit to avoid nonsense values.
-  const n = Number(v);
-  if (!isNaN(n) && n > 0 && n < 1)
-  {
-    Input._axisThreshold = n;
-  }
-};
-
-/**
- * OVERWRITE-ALIAS Extends gamepad processing to reinforce directions from axes
- * using a configurable threshold, without disabling vanilla behavior.
- * Ensures mutual exclusivity and proper clearing when axes return to neutral.
- * Also writes results to the per-pad state, then rebuilds the merged state as
- * (keyboardApprox OR currentGamepadAxes) so keyboard arrows are preserved while
- * stick clears. Includes optional diagnostic logging when enabled.
- * @param {Gamepad} gamepad The gamepad polled from navigator.getGamepads().
- */
-J.ABS.EXT.INPUT.Aliased.Input.set('_updateGamepadState', Input._updateGamepadState);
-Input._updateGamepadState = function(gamepad)
-{
-  // perform original engine logic first.
-  J.ABS.EXT.INPUT.Aliased.Input
-    .get('_updateGamepadState')
-    .call(this, gamepad);
-
-  // if there is no pad, there is nothing further to do this frame.
-  if (!gamepad)
-  {
-    return;
-  }
-
-  // ensure we have both state bags; bail if missing.
-  const ensured = Input._ensurePadStates(gamepad);
-  if (!ensured)
-  {
-    return;
-  }
-
-  // unpack the state bags for readability.
-  const { s } = ensured;
-  const { padState } = ensured;
-
-  // 1) Normalize D-pad strictly from raw buttons 12..15.
-  Input._normalizeDpadFromButtons(gamepad, s, padState);
-
-  // if there are no axes to process, stop here after D-pad normalization.
-  if (!gamepad.axes || gamepad.axes.length < 2)
-  {
-    return;
-  }
-
-  // 2) Capture the merged snapshot BEFORE axis processing (for keyboard approx).
-  const s0 = Input._snapshotMergedDirections(s);
-
-  // 3) Resolve axis flags from the left stick.
-  const flags = Input._resolveAxesFlags(gamepad);
-
-  // 4) Apply axis flags to the per-pad snapshot with mutual exclusivity + neutral clearing.
-  Input._applyAxesToPerPad(padState, flags);
-
-  // 5) Compute current axes contribution from the per-pad snapshot.
-  const axesNow = Input._axesNowFromPadState(padState);
-
-  // 6) Derive keyboard-only approximation using last merged-vs-axes stamp.
-  const prevAxes = Input._axesStamp || {
-    up: false,
-    down: false,
-    left: false,
-    right: false,
-  };
-  const kbdApprox = Input._keyboardApproxFromSnapshot(s0, prevAxes);
-
-  // 7) Rebuild merged directions as (keyboardApprox OR current axes).
-  Input._rebuildMergedDirections(s, kbdApprox, axesNow);
-
-  // 8) Update the axes stamp for next frame's separation logic.
-  Input._axesStamp = axesNow;
-};
-
-/**
- * Ensures we have both the merged current state bag and the per-pad snapshot.
- * @param {Gamepad} gamepad The polled gamepad.
- * @returns {{ s: object, padState: object }|null}
- */
-Input._ensurePadStates = function(gamepad)
-{
-  // read the merged state for this frame.
-  const s = this._currentState;
-
-  // resolve the per-pad state snapshot for this index.
-  const padState = this._gamepadStates && typeof gamepad.index === 'number'
-    ? this._gamepadStates[gamepad.index]
-    : null;
-
-  // if either is missing, we cannot proceed.
-  if (!s || !padState)
-  {
-    return null;
-  }
-
-  // provide both state bags to the caller.
-  return {
-    s,
-    padState
-  };
-};
-
-/**
- * Normalizes the four D-pad symbols strictly from raw buttons 12..15.
- * Writes into both merged current state and per-pad snapshot.
- * @param {Gamepad} gamepad The polled gamepad.
- * @param {object} s The merged current state bag.
- * @param {object} padState The per-pad snapshot for this device.
- */
-Input._normalizeDpadFromButtons = function(gamepad, s, padState)
-{
-  // coerce D-pad buttons to booleans from the raw Gamepad API.
-  const dpu = !!(gamepad.buttons && gamepad.buttons[12] && gamepad.buttons[12].pressed);
-  const dpd = !!(gamepad.buttons && gamepad.buttons[13] && gamepad.buttons[13].pressed);
-  const dpl = !!(gamepad.buttons && gamepad.buttons[14] && gamepad.buttons[14].pressed);
-  const dpr = !!(gamepad.buttons && gamepad.buttons[15] && gamepad.buttons[15].pressed);
-
-  // write merged state for D-pad symbols.
-  s['dpad-up'] = dpu;
-  s['dpad-down'] = dpd;
-  s['dpad-left'] = dpl;
-  s['dpad-right'] = dpr;
-
-  // mirror into per-pad snapshot for edge/trigger bookkeeping.
-  padState['dpad-up'] = dpu;
-  padState['dpad-down'] = dpd;
-  padState['dpad-left'] = dpl;
-  padState['dpad-right'] = dpr;
-};
-
-/**
- * Captures the current merged cardinal directions into a plain object.
- * @param {object} s The merged current state bag.
- * @returns {{up:boolean,down:boolean,left:boolean,right:boolean}}
- */
-Input._snapshotMergedDirections = function(s)
-{
-  // build a simple snapshot of current merged directions.
-  return {
-    up: !!s.up,
-    down: !!s.down,
-    left: !!s.left,
-    right: !!s.right,
-  };
-};
-
-/**
- * Resolves axis flags from the left stick using the configured threshold.
- * @param {Gamepad} gamepad The polled gamepad.
- */
-Input._resolveAxesFlags = function(gamepad)
-{
-  // read the two primary axes.
-  const ax = gamepad.axes && gamepad.axes.length > 0
-    ? (gamepad.axes[0] || 0)
-    : 0;
-  const ay = gamepad.axes && gamepad.axes.length > 1
-    ? (gamepad.axes[1] || 0)
-    : 0;
-
-  // apply the configured threshold to derive flags.
-  const t = Input._axisThreshold;
-  const holdLeft = ax <= -t;
-  const holdRight = ax >= t;
-  const neutralX = !holdLeft && !holdRight;
-  const holdUp = ay <= -t;
-  const holdDown = ay >= t;
-  const neutralY = !holdUp && !holdDown;
-
-  // return all computed values to the caller.
-  return {
-    ax,
-    ay,
-    holdLeft,
-    holdRight,
-    holdUp,
-    holdDown,
-    neutralX,
-    neutralY
-  };
-};
-
-/**
- * Applies axis flags to the per-pad snapshot with mutual exclusivity and neutral clearing.
- * @param {object} padState The per-pad snapshot for this device.
- * @param {object} f The axis flags.
- */
-Input._applyAxesToPerPad = function(padState, f)
-{
-  // resolve horizontal contribution.
-  if (f.holdLeft)
-  {
-    padState.left = true;
-    padState.right = false;
-  }
-  else if (f.holdRight)
-  {
-    padState.right = true;
-    padState.left = false;
-  }
-  else if (f.neutralX)
-  {
-    padState.left = false;
-    padState.right = false;
-  }
-
-  // resolve vertical contribution.
-  if (f.holdUp)
-  {
-    padState.up = true;
-    padState.down = false;
-  }
-  else if (f.holdDown)
-  {
-    padState.down = true;
-    padState.up = false;
-  }
-  else if (f.neutralY)
-  {
-    padState.up = false;
-    padState.down = false;
-  }
-};
-
-/**
- * Extracts the current axis-derived directions from the per-pad snapshot.
- * @param {object} padState The per-pad snapshot for this device.
- * @returns {{up:boolean,down:boolean,left:boolean,right:boolean}}
- */
-Input._axesNowFromPadState = function(padState)
-{
-  // interpret the per-pad snapshot booleans as the axes contribution for this frame.
-  return {
-    up: padState.up === true,
-    down: padState.down === true,
-    left: padState.left === true,
-    right: padState.right === true,
-  };
-};
-
-/**
- * Separates an approximate keyboard-only contribution from the previous merged snapshot.
- * Anything present in merged last frame that was NOT set by axes last frame is treated as keyboard.
- * @param {{up:boolean,down:boolean,left:boolean,right:boolean}} s0 The merged snapshot prior to axes resolution.
- * @param {{up:boolean,down:boolean,left:boolean,right:boolean}} prevAxes The last frame's axes contribution.
- * @returns {{up:boolean,down:boolean,left:boolean,right:boolean}}
- */
-Input._keyboardApproxFromSnapshot = function(s0, prevAxes)
-{
-  // derive a keyboard-only approximation by subtracting prior axes contribution.
-  return {
-    up: s0.up && (prevAxes.up === false),
-    down: s0.down && (prevAxes.down === false),
-    left: s0.left && (prevAxes.left === false),
-    right: s0.right && (prevAxes.right === false),
-  };
-};
-
-/**
- * Rebuilds merged directions as (keyboardApprox OR currentGamepadAxes) for each cardinal.
- * @param {object} s The merged current state bag to write into.
- * @param {{up:boolean,down:boolean,left:boolean,right:boolean}} kbdApprox The keyboard-only approximation.
- * @param {{up:boolean,down:boolean,left:boolean,right:boolean}} axesNow The axes contribution for this frame.
- */
-Input._rebuildMergedDirections = function(s, kbdApprox, axesNow)
-{
-  // combine keyboard approximation with current axes for each direction.
-  s.up = (kbdApprox.up === true) || (axesNow.up === true);
-  s.down = (kbdApprox.down === true) || (axesNow.down === true);
-  s.left = (kbdApprox.left === true) || (axesNow.left === true);
-  s.right = (kbdApprox.right === true) || (axesNow.right === true);
-};
-
-/**
- * Exports a deep-cloned snapshot of all live namespace bindings for save.
- * Shape: { [ns: string]: { [key: string]: string[] } }
- * @returns {Object<string, Object<string, string[]>>}
- */
-Input.exportAllBindingsForSave = function()
-{
-  // read the live bindings bag.
-  const b = Input._jRegistries.bindings || Object.create(null);
-
-  // deep clone to avoid save-time mutation risks.
-  const out = Object.create(null);
-  const namespaces = Object.keys(b);
-  for (let i = 0; i < namespaces.length; i++)
-  {
-    // clone each namespace mapping.
-    const ns = namespaces[i];
-    const map = b[ns] || Object.create(null);
-    const clone = Object.create(null);
-    const keys = Object.keys(map);
-    for (let k = 0; k < keys.length; k++)
-    {
-      const key = keys[k];
-      const arr = map[key];
-      clone[key] = Array.isArray(arr)
-        ? arr.slice(0)
-        : [];
-    }
-    out[ns] = clone;
-  }
-
-  // return the cloned snapshot.
-  return out;
-};
-
-/**
- * Imports all namespace bindings from a saved snapshot into the live registry.
- * Any namespaces absent from the snapshot retain their current (bootstrapped) values.
- * @param {Object<string, Object<string, string[]>>} saved The snapshot to import.
- */
-Input.importAllBindingsFromSave = function(saved)
-{
-  // ignore invalid inputs.
-  if (!saved || typeof saved !== 'object')
-  {
-    return;
-  }
-
-  // ensure the bindings bag exists.
-  const b = Input._jRegistries.bindings;
-
-  // apply each namespace from the save.
-  const namespaces = Object.keys(saved);
-  for (let i = 0; i < namespaces.length; i++)
-  {
-    // read the namespace and its map.
-    const ns = namespaces[i];
-    const map = saved[ns] || Object.create(null);
-
-    // build a safe clone of the map for assignment.
-    const clone = Object.create(null);
-    const keys = Object.keys(map);
-    for (let k = 0; k < keys.length; k++)
-    {
-      const key = keys[k];
-      const arr = map[key];
-      clone[key] = Array.isArray(arr)
-        ? arr.slice(0)
-        : [];
-    }
-
-    // replace the live namespace mapping with the cloned one.
-    b[ns] = clone;
-  }
-};
-
-//endregion registries
-//endregion Input
-
-//region JABS_Engine
-J.ABS.EXT.INPUT.Aliased.JABS_Engine.set('performPartyCycling', JABS_Engine.prototype.performPartyCycling);
-/**
- * Extends {@link #performPartyCycling}.<br/>
- * Include reassigning the controller to the player.
- */
-JABS_Engine.prototype.performPartyCycling = function()
-{
-  // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.JABS_Engine.get('performPartyCycling')
-    .call(this);
-
-  // when the player party cycles, update their controls to the updated battler.
-  $jabsController1.setBattler(this.getPlayer1());
-};
-
-/**
- * Handles the player input.
- */
-J.ABS.EXT.INPUT.Aliased.JABS_Engine.set('updateInput', JABS_Engine.prototype.updateInput);
-JABS_Engine.prototype.updateInput = function()
-{
-  // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.JABS_Engine.get('updateInput')
-    .call(this);
-
-  // don't update if we aren't allowed to update.
-  if (!this.canUpdateInput()) return;
-
-  // update the input.
-  $jabsController1.update();
-};
-//endregion JABS_Engine
-
-//region Game_Player
-/**
- * Extends {@link #isDebugThrough}.<br/>
- * Allows the custom debug button to be pressed while JABS is active.
- */
-J.ABS.EXT.INPUT.Aliased.Game_Player.set('isDebugThrough', Game_Player.prototype.isDebugThrough);
-Game_Player.prototype.isDebugThrough = function()
-{
-  // check if JABS is enabled.
-  if ($jabsEngine.absEnabled)
-  {
-    // the debug button is changed while JABS is active.
-    return Input.isPressed(J.ABS.EXT.INPUT.Symbols.Debug) && $gameTemp.isPlaytest();
-  }
-  // JABS is not enabled.
-  else
-  {
-    // perform original logic.
-    return J.ABS.EXT.INPUT.Aliased.Game_Player.get('isDebugThrough')
-      .call(this);
-  }
-};
-//endregion Game_Player
-
-//region Game_System
-/**
- * Extends {@link #initMembers}.<br/>
- * Initializes members used for storing JABS input mappings per controller.
- */
-J.ABS.EXT.INPUT.Aliased.Game_System.set('initMembers', Game_System.prototype.initMembers);
-Game_System.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.Game_System.get('initMembers')
-    .call(this);
-
-  // initialize extension members for JABS input configurations.
-  this.initJabsInputConfigMembers();
-};
-
-/**
- * Initializes members used for storing JABS input mappings and controller references.
- */
-Game_System.prototype.initJabsInputConfigMembers = function()
-{
-  /**
-   * Root namespace for J-related data stored on the system object.
-   */
-  this._j ||= {};
-
-  /**
-   * ABS (JABS) namespace stored under the J-root on the system object.
-   */
-  this._j._abs ||= {};
-
-  /**
-   * Input extension namespace stored under the ABS namespace on the system object.
-   */
-  this._j._abs._input ||= {};
-
-  /**
-   * Dictionary of controllerKey -> mapping object `{ [button]: symbol }`.
-   * @type {Object<string, Object<string, string>>}
-   */
-  this._j._abs._input._mappings ||= {};
-
-  /**
-   * Snapshot of the full Input registry bindings across all namespaces.
-   * @type {Object<string, Object<string, string[]>>}
-   */
-  this._j._abs._input._bindings ||= {};
-};
-
-/**
- * Gets the stored mapping dictionary of controllerKey -> mapping object.
- * @returns {Object<string, Object<string,string>>}
- */
-Game_System.prototype.getJabsInputMappings = function()
-{
-  // return the full mappings dictionary.
-  return this._j._abs._input._mappings;
-};
-
-/**
- * Overwrites the stored mapping dictionary of controllerKey -> mapping object.
- * @param {Object<string, Object<string,string>>} mappings The new mappings dictionary.
- */
-Game_System.prototype.setJabsInputMappings = function(mappings)
-{
-  // assign the provided mappings dictionary.
-  this._j._abs._input._mappings = mappings;
-};
-
-/**
- * Stores a full mapping for the given controller key.
- * @param {string} controllerKey The key representing which controller this mapping belongs to.
- * @param {Object<string,string>} mapping The mapping object to store.
- */
-Game_System.prototype.setJabsInputConfig = function(controllerKey, mapping)
-{
-  // create a shallow copy to avoid external mutation.
-  const copy = {};
-
-  // copy each mapping entry by key.
-  Object.keys(mapping)
-    .forEach(key => copy[key] = mapping[key]);
-
-  // set the new value into the mappings dictionary via the setter.
-  const mappings = this.getJabsInputMappings();
-  mappings[controllerKey] = copy;
-  this.setJabsInputMappings(mappings);
-};
-
-/**
- * Gets the stored mapping for the given controller key.
- * @param {string} controllerKey The key representing which controller’s mapping to retrieve.
- * @returns {Object<string,string>|null} The stored mapping, or null if none found.
- */
-Game_System.prototype.getJabsInputConfig = function(controllerKey)
-{
-  // read the mappings dictionary.
-  const mappings = this.getJabsInputMappings();
-
-  // grab the mapping bucket for this key.
-  const found = mappings[controllerKey];
-
-  // return null if not found.
-  if (!found) return null;
-
-  // return a shallow copy for safety.
-  const copy = {};
-  Object.keys(found)
-    .forEach(key => copy[key] = found[key]);
-  return copy;
-};
-
-/**
- * Gets the persisted snapshot of the Input registry bindings.
- * Shape: { [ns: string]: { [key: string]: string[] } }
- * @returns {Object<string, Object<string, string[]>>}
- */
-Game_System.prototype.getInputBindingsSnapshot = function()
-{
-  // in case this save file was created ahead of the remap update, handle it.
-  if (!this._j || !this._j._abs || !this._j._abs._input || !this._j._abs._input._bindings)
-  {
-    return {};
-  }
-
-  // return the stored snapshot bag (may be empty object).
-  return this._j._abs._input._bindings || {};
-};
-
-/**
- * Overwrites the persisted Input bindings snapshot on the system object.
- * The provided object should follow the shape: { [ns]: { [key]: string[] } }.
- * @param {Object<string, Object<string, string[]>>} snapshot The snapshot to store.
- */
-Game_System.prototype.setInputBindingsSnapshot = function(snapshot)
-{
-  // assign a defensive deep clone to avoid mutation via shared references.
-  const out = {};
-  const namespaces = Object.keys(snapshot || {});
-  for (let i = 0; i < namespaces.length; i++)
-  {
-    const ns = namespaces[i];
-    const map = snapshot[ns] || {};
-    const copy = {};
-    const keys = Object.keys(map);
-    for (let k = 0; k < keys.length; k++)
-    {
-      const key = keys[k];
-      const arr = map[key];
-      copy[key] = Array.isArray(arr)
-        ? arr.slice(0)
-        : [];
-    }
-    out[ns] = copy;
-  }
-  this._j._abs._input._bindings = out;
-};
-
-/**
- * Applies a stored mapping (if present) to the given controller.
- * @param {string} controllerKey The key used to look up the mapping.
- * @param {JABS_StandardController} controller The input controller to apply to.
- */
-Game_System.prototype.applyJabsInputConfigToController = function(controllerKey, controller)
-{
-  // fetch any stored mapping for this key.
-  const mapping = this.getJabsInputConfig(controllerKey);
-
-  // if nothing was found, there is nothing to apply.
-  if (!mapping) return;
-
-  // push the full mapping to the controller in one call.
-  controller.setAllInputs(mapping);
-};
-
-/**
- * Captures current mappings from all known controllers into system storage.
- * This should be called before save, or explicitly by the remap scene’s Save.
- */
-Game_System.prototype.saveAllJabsInputConfigs = function()
-{
-  // get all currently registered controllers from the adapter.
-  const controllers = JABS_InputAdapter.getAllControllers();
-
-  // iterate each controller and snapshot its mapping.
-  controllers.forEach((controller, index) =>
-  {
-    // resolve a key for this controller.
-    const key = this.resolveJabsControllerKey(controller, index);
-
-    // export and store the controller’s mapping.
-    this.setJabsInputConfig(key, controller.exportAllInputs());
-  });
-};
-
-/**
- * Applies stored mappings to all currently registered controllers.
- * Intended to be called after a save file loads.
- */
-Game_System.prototype.applyAllJabsInputConfigs = function()
-{
-  // get all currently registered controllers from the adapter.
-  const controllers = JABS_InputAdapter.getAllControllers();
-
-  // apply per resolved key.
-  controllers.forEach((controller, index) =>
-  {
-    const key = this.resolveJabsControllerKey(controller, index);
-    this.applyJabsInputConfigToController(key, controller);
-  });
-};
-
-/**
- * Resets a controller to defaults and persists the mapping.
- * @param {number} index The adapter index of the controller to reset.
- */
-Game_System.prototype.resetJabsInputConfigToDefaults = function(index)
-{
-  // get controllers from adapter.
-  const list = JABS_InputAdapter.getAllControllers();
-
-  // get the controller and its key.
-  const controller = list[index];
-  const key = this.resolveJabsControllerKey(controller, index);
-
-  // build and apply defaults.
-  const defaults = controller.buildDefaultMapping();
-  controller.setAllInputs(defaults);
-
-  // persist the defaults for future loads.
-  this.setJabsInputConfig(key, defaults);
-};
-
-/**
- * Snapshots all live Input namespace bindings into system storage for persistence.
- */
-Game_System.prototype.saveAllInputBindingsFromInput = function()
-{
-  // delegate to the Input manager to export all namespaces.
-  const snapshot = Input.exportAllBindingsForSave();
-
-  // persist the snapshot on the system object.
-  this.setInputBindingsSnapshot(snapshot);
-};
-
-/**
- * Applies the persisted Input bindings snapshot back into the live Input registry.
- * Ensures Input defaults are bootstrapped before applying.
- */
-Game_System.prototype.applyAllInputBindingsToInput = function()
-{
-  // ensure live registries have defaults before overlaying saved data.
-  Input.ensureRemapBootstrapped();
-
-  // import from the system-stored snapshot across all namespaces.
-  const saved = this.getInputBindingsSnapshot();
-  Input.importAllBindingsFromSave(saved);
-};
-
-/**
- * Resolves a stable key for the given controller for config storage.
- * Default strategy: "player" + (index+1).
- * @param {JABS_StandardController} controller The controller to resolve a key for.
- * @param {number} index The index of this controller in the adapter list.
- * @returns {string} The resolved key.
- */
-Game_System.prototype.resolveJabsControllerKey = function(controller, index)
-{
-  // basic, stable default: player1, player2, ...
-  return `player${index + 1}`;
-};
-
-/**
- * Initializes JABS input data for legacy saves that predate persistence.
- * If both the stored controller mappings and Input bindings snapshot are missing,
- * this seeds defaults one time so subsequent saves/loads work normally.
- */
-Game_System.prototype.initializeJabsInputForLegacySaveIfMissing = function()
-{
-  // Ensure the JABS input scaffolding exists on loaded saves.
-  this.initJabsInputConfigMembers();
-
-  // Read the mappings dictionary if available, otherwise null.
-  const mappingsDict = (this._j && this._j._abs && this._j._abs._input)
-    ? this._j._abs._input._mappings
-    : null;
-
-  // Read the bindings dictionary if available, otherwise null.
-  const bindingsDict = (this._j && this._j._abs && this._j._abs._input)
-    ? this._j._abs._input._bindings
-    : null;
-
-  // Determine if any mappings exist in the save.
-  const hasMappings = mappingsDict
-    ? Object.keys(mappingsDict).length > 0
-    : false;
-
-  // Determine if any bindings exist in the save.
-  const hasBindings = bindingsDict
-    ? Object.keys(bindingsDict).length > 0
-    : false;
-
-  // If neither mappings nor bindings exist, initialize defaults for old saves.
-  if (hasMappings === false && hasBindings === false)
-  {
-    // Ensure the live Input registry is bootstrapped with defaults.
-    Input.ensureRemapBootstrapped();
-
-    // For any currently-registered controllers, apply and persist defaults.
-    const controllers = JABS_InputAdapter.getAllControllers();
-    controllers.forEach((controller, index) =>
-    {
-      // Resolve a stable key for this controller.
-      const key = this.resolveJabsControllerKey(controller, index);
-
-      // Build defaults and apply to the live controller.
-      const defaults = controller.buildDefaultMapping();
-      controller.setAllInputs(defaults);
-
-      // Persist defaults into the system store so it exists next save.
-      this.setJabsInputConfig(key, defaults);
-    });
-
-    // Snapshot the default Input registry across all namespaces for persistence.
-    const snapshot = Input.exportAllBindingsForSave();
-    this.setInputBindingsSnapshot(snapshot);
-  }
-};
-
-/**
- * Extends {@link #onBeforeSave}.<br/>
- * Snapshots controller mappings before saving.
- */
-J.ABS.EXT.INPUT.Aliased.Game_System.set('onBeforeSave', Game_System.prototype.onBeforeSave);
-Game_System.prototype.onBeforeSave = function()
-{
-  // perform original logic.
-  const original = J.ABS.EXT.INPUT.Aliased.Game_System.get('onBeforeSave');
-  original.call(this);
-
-  // snapshot all current controller mappings into system storage.
-  this.saveAllJabsInputConfigs();
-
-  // snapshot the full Input registry (all namespaces) into system storage.
-  this.saveAllInputBindingsFromInput();
-};
-
-/**
- * Extends {@link #onAfterLoad}.<br/>
- * Applies stored mappings after loading.
- */
-J.ABS.EXT.INPUT.Aliased.Game_System.set('onAfterLoad', Game_System.prototype.onAfterLoad);
-Game_System.prototype.onAfterLoad = function()
-{
-  // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.Game_System.get('onAfterLoad')
-    .call(this);
-
-  // Perform one-time initialization for legacy saves if required.
-  this.initializeJabsInputForLegacySaveIfMissing();
-
-  // apply the persisted Input bindings back into the live registry.
-  this.applyAllInputBindingsToInput();
-
-  // attempt to apply stored configs to any currently registered controllers.
-  this.applyAllJabsInputConfigs();
-};
-
-//endregion Game_System
-
-//region Scene_JabsRemap
-/**
- * The scene for remapping JABS inputs.
- * Owns layout, capture flow, and applying/saving mappings.
- */
-class Scene_JabsRemap
-  extends Scene_MenuBase
-{
-  /**
-   * Constructor.
-   */
-  constructor()
-  {
-    // call super when having extended constructors.
-    super();
-
-    // jumpstart initialization on creation.
-    this.initialize();
-  }
-
-  /**
-   * Pushes this current scene onto the stack, forcing it into action.
-   */
-  static callScene()
-  {
-    SceneManager.push(this);
-  }
-
-  //region init
-  /**
-   * Initializes this scene and members.
-   */
-  initialize()
-  {
-    // perform original logic.
-    super.initialize();
-
-    // also initialize our scene properties.
-    this.initMembers();
-  }
-
-  /**
-   * Initialize all properties required by the scene.
-   */
-  initMembers()
-  {
-    // initialize the root-namespace definition members.
-    this.initCoreMembers();
-
-    // initialize the primary members for the remap scene.
-    this.initPrimaryMembers();
-  }
-
-  /**
-   * Initializes the shared root namespace for this plugin branch.
-   */
-  initCoreMembers()
-  {
-    /**
-     * The shared root namespace for all of J's plugin data.
-     */
-    this._j ||= {};
-
-    /**
-     * A grouping of all properties associated with JABS.
-     */
-    this._j._abs ||= {};
-
-    /**
-     * A grouping of all properties associated with JABS input.
-     */
-    this._j._abs._input ||= {};
-  }
-
-  /**
-   * Initializes windows and state tracking for the remap scene.
-   */
-  initPrimaryMembers()
-  {
-    /**
-     * The collection of windows owned by this scene.
-     */
-    this._j._abs._input._windows = {
-      _topHelp: null,
-      _actions: null,
-      _usageHelp: null,
-      _command: null,
-      _prompt: null,
-    };
-
-    /**
-     * The state data for this scene.
-     */
-    this._j._abs._input._state = {
-      _controllerIndex: 0,
-      _controllers: [],
-      _pendingByKey: {},
-      _isCapturing: false,
-      _capturingButton: null,
-    };
-  }
-
-  //endregion init
-
-  //region create
-  /**
-   * Creates all display objects for this scene.
-   */
-  create()
-  {
-    // perform original logic.
-    super.create();
-
-    // build the initial controller list and pending maps.
-    this.buildControllerList();
-
-    // create the various display objects on the screen.
-    this.createDisplayObjects();
-
-    // refresh layout with the current controller.
-    this.refreshAll();
-  }
-
-  /**
-   * Creates the display objects for this scene.
-   */
-  createDisplayObjects()
-  {
-    // create all our windows.
-    this.createAllWindows();
-  }
-
-  /**
-   * Creates all remap-related windows.
-   */
-  createAllWindows()
-  {
-    // create the top action help (conventional help window).
-    this.createTopHelpWindow();
-
-    // create the actions window (middle-left region).
-    this.createActionsWindow();
-
-    // create the right-side usage/help panel (middle-right region).
-    this.createUsageHelpWindow();
-
-    // create the bottom command window (bottom region).
-    this.createCommandWindow();
-
-    // create the capture overlay (fullscreen overlay, hidden by default).
-    this.createPromptWindow();
-  }
-
-  //endregion create
-
-  //region windows
-  //region top help window
-  /**
-   * Creates the top help window that describes the selected logical action.
-   */
-  createTopHelpWindow()
-  {
-    // create the window.
-    const window = this.buildTopHelpWindow();
-
-    // update the tracker with the new window.
-    this.setTopHelpWindow(window);
-
-    // add the window to the scene manager's tracking.
-    this.addWindow(window);
-  }
-
-  /**
-   * Sets up and defines the top help window.
-   * @returns {Window_Help}
-   */
-  buildTopHelpWindow()
-  {
-    // define the rectangle of the window.
-    const rectangle = this.topHelpWindowRectangle();
-
-    // create the window with the rectangle.
-    const window = new Window_Help(rectangle);
-
-    // return the built and configured help window.
-    return window;
-  }
-
-  /**
-   * Gets the rectangle associated with the top help window.
-   * @returns {Rectangle}
-   */
-  topHelpWindowRectangle()
-  {
-    // determine the height for the top help window (single row).
-    const wh = this.calcWindowHeight(1.6, true);
-
-    // compute the total width for the centered middle group.
-    const ww = Math.floor(Graphics.boxWidth * 0.60);
-
-    // compute the starting x so the band is centered on-screen.
-    const wx = Math.floor((Graphics.boxWidth - ww) / 2);
-
-    // position the window at the top of the screen.
-    const wy = 0;
-
-    // build the rectangle to return.
-    return new Rectangle(wx, wy, ww, wh);
-  }
-
-  /**
-   * Gets the currently tracked top help window.
-   * @returns {Window_Help}
-   */
-  getTopHelpWindow()
-  {
-    return this._j._abs._input._windows._topHelp;
-  }
-
-  /**
-   * Set the currently tracked top help window to the given window.
-   * @param {Window_Help} helpWindow The help window to track.
-   */
-  setTopHelpWindow(helpWindow)
-  {
-    this._j._abs._input._windows._topHelp = helpWindow;
-  }
-
-  //endregion top help window
-
-  //region actions window
-  /**
-   * Creates the actions list window (middle-left region).
-   */
-  createActionsWindow()
-  {
-    // create the window.
-    const window = this.buildActionsWindow();
-
-    // update the tracker with the new window.
-    this.setActionsWindow(window);
-
-    // add the window to the scene manager's tracking.
-    this.addWindow(window);
-  }
-
-  /**
-   * Sets up and defines the actions window.
-   * @returns {Window_JabsRemapActions}
-   */
-  buildActionsWindow()
-  {
-    // define the rectangle of the window.
-    const rectangle = this.actionsWindowRectangle();
-
-    // create the window with the rectangle.
-    const window = new Window_JabsRemapActions(rectangle);
-
-    // bind handlers for interactions.
-    window.setHandler('ok', this.onRemapRequested.bind(this));
-    window.setHandler('clear', this.onClearBinding.bind(this));
-    window.setHandler('cancel', this.onActionsCancel.bind(this));
-
-    // attach the top help so selection changes update descriptions.
-    window.setHelpWindow(this.getTopHelpWindow());
-
-    // return the built and configured actions window.
-    return window;
-  }
-
-  /**
-   * Gets the rectangle associated with the actions window (middle-left region).
-   * @returns {Rectangle}
-   */
-  actionsWindowRectangle()
-  {
-    // compute heights of top and bottom bands.
-    const topH = this.topHelpWindowRectangle().height;
-    const cmdH = this.commandWindowRectangle().height;
-
-    // determine the height for the actions window (middle-left band).
-    const wy = topH;
-    const wh = Graphics.boxHeight - topH - cmdH;
-
-    // compute the total width for the centered middle group (actions + usage help).
-    const groupW = Math.floor(Graphics.boxWidth * 0.60);
-
-    // compute the starting x so the group is centered on-screen.
-    const groupX = Math.floor((Graphics.boxWidth - groupW) / 2);
-
-    // compute the actions window width as 70% of the group.
-    const actionsW = Math.floor(groupW * 0.70);
-
-    // place the actions window at the left of the centered group.
-    const wx = groupX;
-
-    // build the rectangle to return.
-    return new Rectangle(wx, wy, actionsW, wh);
-  }
-
-  /**
-   * Gets the currently tracked actions window.
-   * @returns {Window_JabsRemapActions}
-   */
-  getActionsWindow()
-  {
-    return this._j._abs._input._windows._actions;
-  }
-
-  /**
-   * Set the currently tracked actions window to the given window.
-   * @param {Window_JabsRemapActions} actionsWindow The actions window to track.
-   */
-  setActionsWindow(actionsWindow)
-  {
-    this._j._abs._input._windows._actions = actionsWindow;
-  }
-
-  //endregion actions window
-
-  //region usage help window
-  /**
-   * Creates the right-side usage/help panel that lists scene controls.
-   */
-  createUsageHelpWindow()
-  {
-    // create the window.
-    const window = this.buildUsageHelpWindow();
-
-    // update the tracker with the new window.
-    this.setUsageHelpWindow(window);
-
-    // add the window to the scene manager's tracking.
-    this.addWindow(window);
-  }
-
-  /**
-   * Sets up and defines the usage/help window.
-   * @returns {Window_JabsRemapUsageHelp}
-   */
-  buildUsageHelpWindow()
-  {
-    // define the rectangle of the window.
-    const rectangle = this.usageHelpWindowRectangle();
-
-    // create the window with the rectangle.
-    const window = new Window_JabsRemapUsageHelp(rectangle);
-
-    // return the built and configured usage/help window.
-    return window;
-  }
-
-  /**
-   * Gets the rectangle associated with the right-side usage/help window.
-   * @returns {Rectangle}
-   */
-  usageHelpWindowRectangle()
-  {
-    // compute heights of top and bottom bands.
-    const topH = this.topHelpWindowRectangle().height;
-    const cmdH = this.commandWindowRectangle().height;
-
-    // determine the height for the usage/help window (middle-right band).
-    const wy = topH;
-    const wh = Graphics.boxHeight - topH - cmdH;
-
-    // compute the total width for the centered middle group (actions + usage help).
-    const groupW = Math.floor(Graphics.boxWidth * 0.60);
-
-    // compute the starting x so the group is centered on-screen.
-    const groupX = Math.floor((Graphics.boxWidth - groupW) / 2);
-
-    // compute the actions window width as 70% of the group.
-    const actionsW = Math.floor(groupW * 0.70);
-
-    // compute the usage/help window width as the remaining 30% of the group.
-    const usageW = groupW - actionsW;
-
-    // place the usage/help window immediately to the right of the actions window.
-    const wx = groupX + actionsW;
-
-    // build the rectangle to return.
-    return new Rectangle(wx, wy, usageW, wh);
-  }
-
-  /**
-   * Gets the currently tracked usage/help window.
-   * @returns {Window_JabsRemapUsageHelp}
-   */
-  getUsageHelpWindow()
-  {
-    return this._j._abs._input._windows._usageHelp;
-  }
-
-  /**
-   * Set the currently tracked usage/help window to the given window.
-   * @param {Window_JabsRemapUsageHelp} helpWindow The usage/help window to track.
-   */
-  setUsageHelpWindow(helpWindow)
-  {
-    this._j._abs._input._windows._usageHelp = helpWindow;
-  }
-
-  //endregion usage help window
-
-  //region command window
-  /**
-   * Creates the bottom command window (Apply/Reset/Cancel).
-   */
-  createCommandWindow()
-  {
-    // create the window.
-    const window = this.buildCommandWindow();
-
-    // update the tracker with the new window.
-    this.setCommandWindow(window);
-
-    // add the window to the scene manager's tracking.
-    this.addWindow(window);
-
-    // keep actions as the primary interaction by default.
-    window.deselect();
-    window.deactivate();
-  }
-
-  /**
-   * Sets up and defines the command window.
-   * @returns {Window_JabsRemapCommand}
-   */
-  buildCommandWindow()
-  {
-    // define the rectangle of the window.
-    const rectangle = this.commandWindowRectangle();
-
-    // create the window with the rectangle.
-    const window = new Window_JabsRemapCommand(rectangle);
-
-    // set the handlers for command selections.
-    window.setHandler('apply', this.onApply.bind(this));
-    window.setHandler('defaults', this.onDefaults.bind(this));
-    window.setHandler('reset', this.onReset.bind(this));
-    window.setHandler('cancel', this.popScene.bind(this));
-
-    // return the built and configured command window.
-    return window;
-  }
-
-  /**
-   * Gets the rectangle associated with the command window.
-   * @returns {Rectangle}
-   */
-  commandWindowRectangle()
-  {
-    // determine the height for the command window (bottom strip).
-    const wh = this.calcWindowHeight(4, true);
-
-    // determine the width as 75% of the screen.
-    const ww = Math.floor(Graphics.boxWidth * 0.25);
-
-    // center the window horizontally.
-    const wx = Math.floor((Graphics.boxWidth - ww) / 2);
-
-    // position the window at the bottom of the screen.
-    const wy = Graphics.boxHeight - wh;
-
-    // build the rectangle to return.
-    return new Rectangle(wx, wy, ww, wh);
-  }
-
-  /**
-   * Gets the currently tracked command window.
-   * @returns {Window_JabsRemapCommand}
-   */
-  getCommandWindow()
-  {
-    return this._j._abs._input._windows._command;
-  }
-
-  /**
-   * Set the currently tracked command window to the given window.
-   * @param {Window_JabsRemapCommand} commandWindow The command window to track.
-   */
-  setCommandWindow(commandWindow)
-  {
-    this._j._abs._input._windows._command = commandWindow;
-  }
-
-  //endregion command window
-
-  //region prompt window
-  /**
-   * Creates the capture prompt overlay window.
-   */
-  createPromptWindow()
-  {
-    // create the window.
-    const window = this.buildPromptWindow();
-
-    // update the tracker with the new window.
-    this.setPromptWindow(window);
-
-    // add the window to the scene manager's tracking.
-    this.addWindow(window);
-  }
-
-  /**
-   * Sets up and defines the prompt overlay window.
-   * @returns {Window_JabsRemapPrompt}
-   */
-  buildPromptWindow()
-  {
-    // define the rectangle of the window.
-    const rectangle = this.promptWindowRectangle();
-
-    // instantiate the prompt.
-    const window = new Window_JabsRemapPrompt(rectangle);
-
-    // start hidden by default.
-    window.hide();
-
-    // return the built and configured prompt window.
-    return window;
-  }
-
-  /**
-   * Gets the rectangle associated with the prompt overlay window.
-   * @returns {Rectangle}
-   */
-  promptWindowRectangle()
-  {
-    // define a fullscreen rectangle.
-    return new Rectangle(0, 0, Graphics.boxWidth, Graphics.boxHeight);
-  }
-
-  /**
-   * Gets the currently tracked prompt overlay window.
-   * @returns {Window_JabsRemapPrompt}
-   */
-  getPromptWindow()
-  {
-    return this._j._abs._input._windows._prompt;
-  }
-
-  /**
-   * Set the currently tracked prompt overlay window to the given window.
-   * @param {Window_JabsRemapPrompt} promptWindow The prompt window to track.
-   */
-  setPromptWindow(promptWindow)
-  {
-    this._j._abs._input._windows._prompt = promptWindow;
-  }
-
-  //endregion prompt window
-  //endregion windows
-
-  //region actions
-  /**
-   * Builds the controller list from the adapter and snapshots as pending.
-   */
-  buildControllerList()
-  {
-    // get all controllers from the adapter.
-    const all = JABS_InputAdapter.getAllControllers();
-
-    // constrain to the first controller only for the current UX.
-    const controllers = all.length > 0
-      ? [ all[0] ]
-      : [];
-    this.setControllers(controllers);
-
-    // build pending maps keyed to playerN using the resolver.
-    for (let i = 0; i < controllers.length; i++)
-    {
-      // resolve the key for this index.
-      const key = this.resolveControllerKey(i);
-
-      // export the live mapping from the controller.
-      const exportMap = controllers[i].exportAllInputs();
-
-      // ensure arrays for each binding (normalization).
-      const normalized = {};
-
-      // iterate over each exported mapping key.
-      Object.keys(exportMap)
-        .forEach(k =>
-        {
-          // read the value for this key.
-          const v = exportMap[k];
-
-          // if the value is already an array, clone it.
-          if (Array.isArray(v))
-          {
-            normalized[k] = v.slice(0);
-          }
-          // if a single value exists, wrap it in an array.
-          else if (v)
-          {
-            normalized[k] = [ v ];
-          }
-          // otherwise, use an empty array for no binding.
-          else
-          {
-            normalized[k] = [];
-          }
-        });
-
-      // store the mapping as the initial pending state.
-      this._state()._pendingByKey[key] = normalized;
-    }
-  }
-
-  /**
-   * Resolves the stored-key for a controller index.
-   * @param {number} index The adapter index for the controller.
-   * @returns {string} The key in the form of player{n}.
-   */
-  resolveControllerKey(index)
-  {
-    // return the playerN key for this index.
-    return `player${index + 1}`;
-  }
-
-  /**
-   * Refreshes all windows for the current controller.
-   */
-  refreshAll()
-  {
-    // Build a combined display mapping (controller pending + external staged tokens).
-    const combined = this.buildDisplayMapping();
-
-    // Set the combined mapping and ensure it is the active focus.
-    this.getActionsWindow()
-      .setMapping(combined);
-
-    // Activate the actions window by default.
-    this.getActionsWindow()
-      .activate();
-
-    // Ensure the bottom command strip is not active by default.
-    this.getCommandWindow()
-      .deactivate();
-  }
-
-  /**
-   * Builds a combined display mapping for the actions window.
-   * Combines the current controller’s pending JABS mapping with staged external rows.
-   * External rows are keyed as tokens: "__ext__<ns>:<key>" → string[].
-   * @returns {Object<string, string[]>}
-   */
-  buildDisplayMapping()
-  {
-    // Start with a shallow clone of the controller’s pending mapping.
-    const base = this.currentPendingMapping() || {};
-    const combined = {};
-
-    // clone base logical mappings (first binding shown by UI is at [0]).
-    Object.keys(base)
-      .forEach(button =>
-      {
-        const list = base[button];
-        combined[button] = Array.isArray(list)
-          ? list.slice(0)
-          : [];
-      });
-
-    // Overlay staged external bindings as tokenized keys.
-    const ext = this.getPendingExternal();
-    const extKeys = Object.keys(ext);
-    for (let i = 0; i < extKeys.length; i++)
-    {
-      // in the form ns:key.
-      const compound = extKeys[i];
-      const arr = ext[compound];
-      combined[`__ext__${compound}`] = Array.isArray(arr)
-        ? arr.slice(0)
-        : [];
-    }
-
-    // Return the merged bag used purely for display in the window.
-    return combined;
-  }
-
-  /**
-   * Gets the pending mapping object for the current controller.
-   * @returns {Object<string, string[]>}
-   */
-  currentPendingMapping()
-  {
-    // resolve the key for this controller index.
-    const key = this.resolveControllerKey(this._state()._controllerIndex);
-
-    // return the mapping for this key.
-    return this._state()._pendingByKey[key];
-  }
-
-  /**
-   * Ensures at most one logical action holds a given symbol across the mapping.
-   * The first key visited in {@link JABS_Button.assignableInputs} / {@link JABS_Button.allButtons}
-   * order keeps the symbol; later duplicates are cleared.
-   * @param {Object<string, string[]>} mapping The mapping to sanitize.
-   */
-  sanitizeMappingUnique(mapping)
-  {
-    const ownerBySymbol = {};
-    const visit = button =>
-    {
-      const list = mapping[button] || [];
-      if (list.length === 0)
-      {
-        return;
-      }
-      const [ symbol ] = list;
-      if (!ownerBySymbol[symbol])
-      {
-        ownerBySymbol[symbol] = button;
-        return;
-      }
-      mapping[button] = [];
-    };
-
-    const seen = new Set();
-    const assignable = JABS_Button.assignableInputs();
-    for (let i = 0; i < assignable.length; i++)
-    {
-      const button = assignable[i];
-      if (Object.prototype.hasOwnProperty.call(mapping, button))
-      {
-        visit(button);
-        seen.add(button);
-      }
-    }
-
-    const all = JABS_Button.allButtons();
-    for (let i = 0; i < all.length; i++)
-    {
-      const button = all[i];
-      if (seen.has(button))
-      {
-        continue;
-      }
-      if (Object.prototype.hasOwnProperty.call(mapping, button))
-      {
-        visit(button);
-        seen.add(button);
-      }
-    }
-
-    const keys = Object.keys(mapping);
-    for (let i = 0; i < keys.length; i++)
-    {
-      const button = keys[i];
-      if (seen.has(button))
-      {
-        continue;
-      }
-      visit(button);
-    }
-  }
-
-  /**
-   * Copies a controller-style mapping into {@link Input} namespace `JABS` so saves and registry UIs match gameplay.
-   * @param {Object<string, string|string[]>} mapping Logical JABS keys to physical symbol(s).
-   */
-  syncJabsInputRegistryFromControllerMapping(mapping)
-  {
-    const keys = Object.keys(mapping);
-    for (let i = 0; i < keys.length; i++)
-    {
-      const logicalKey = keys[i];
-      const raw = mapping[logicalKey];
-      let arr;
-      if (Array.isArray(raw))
-      {
-        arr = raw.slice(0);
-      }
-      else if (raw)
-      {
-        arr = [ raw ];
-      }
-      else
-      {
-        arr = [];
-      }
-      Input.setBindings('JABS', logicalKey, arr);
-    }
-  }
-
-  /**
-   * Handler when Apply is chosen.
-   */
-  onApply()
-  {
-    // iterate all controllers to apply their pending JABS mappings.
-    const controllers = this._state()._controllers;
-    for (let i = 0; i < controllers.length; i++)
-    {
-      // get controller and key.
-      const controller = controllers[i];
-      const key = this.resolveControllerKey(i);
-
-      // get the pending mapping for this controller.
-      const mapping = this._state()._pendingByKey[key];
-
-      // enforce uniqueness as a final pass before applying.
-      this.sanitizeMappingUnique(mapping);
-
-      // set the live mapping on the controller.
-      controller.setAllInputs(mapping);
-
-      // persist the mapping into the system for saves.
-      $gameSystem.setJabsInputConfig(key, mapping);
-
-      // keep the Input 'JABS' namespace aligned with the controller (snapshots + any registry readers).
-      this.syncJabsInputRegistryFromControllerMapping(mapping);
-    }
-
-    // commit any staged external (registry-backed) edits now that Apply was chosen.
-    this.flushPendingExternalBindings();
-
-    // exit the scene after applying.
-    SceneManager.pop();
-  }
-
-  /**
-   * Replaces the pending map with the controller’s defaults (preview),
-   * without applying to the live controller or saving.
-   */
-  onDefaults()
-  {
-    // get the working controller index and key.
-    const idx = this._state()._controllerIndex;
-    const key = this.resolveControllerKey(idx);
-
-    // get the controller being edited.
-    const controller = this._state()._controllers[idx];
-
-    // build a fresh default mapping.
-    const defaults = controller.buildDefaultMapping();
-
-    // replace the pending mapping with defaults.
-    this._state()._pendingByKey[key] = defaults;
-
-    // refresh the actions list with pending JABS + staged external rows.
-    this.getActionsWindow()
-      .setMapping(this.buildDisplayMapping());
-
-    // flip back to the remap window.
-    this.onActionsCancel();
-    this.getCommandWindow()
-      .deactivate();
-    this.getActionsWindow()
-      .activate();
-  }
-
-  /**
-   * Handler when Reset is chosen.
-   */
-  onReset()
-  {
-    // rebuild pending based on current live controller mappings.
-    this.buildControllerList();
-
-    // refresh everything.
-    this.refreshAll();
-  }
-
-  /**
-   * Handler when the action list cancels.
-   * Switch focus to the bottom command strip.
-   */
-  onActionsCancel()
-  {
-    // deactivate the actions window.
-    this.getActionsWindow()
-      .deactivate();
-
-    // select the first command and activate the command window.
-    this.getCommandWindow()
-      .select(0);
-    this.getCommandWindow()
-      .activate();
-  }
-
-  /**
-   * Begins a capture for the currently selected logical action.
-   */
-  onRemapRequested()
-  {
-    // read the current command row.
-    const cmd = this.getActionsWindow()
-      .currentData();
-
-    // external row: start capture with a stable token and friendly label.
-    if (cmd && cmd.ext && cmd.ext.kind === 'ext-action')
-    {
-      // store a token we will parse on apply: __ext__<ns>:<key>
-      const token = `__ext__${cmd.ext.ns}:${cmd.ext.key}`;
-
-      // begin capture with friendly label.
-      this._state()._capturingButton = token;
-      this._state()._isCapturing = true;
-      this.getPromptWindow()
-        .startPrompt(String(cmd.ext.label || String.empty));
-
-      // deactivate normal windows while capturing.
-      this.getCommandWindow()
-        .deactivate();
-      this.getActionsWindow()
-        .deactivate();
-      return;
-    }
-
-    // JABS logical action path (original behavior).
-    const button = this.getActionsWindow()
-      .currentButton();
-    this.beginCapture(button);
-  }
-
-  /**
-   * Clears the binding for the selected logical action.
-   */
-  onClearBinding()
-  {
-    // read the current command row.
-    const cmd = this.getActionsWindow()
-      .currentData();
-
-    // if this row represents an external registry-backed action, clear the staged value only.
-    if (cmd && cmd.ext && cmd.ext.kind === 'ext-action')
-    {
-      // stage an empty binding array for this external action.
-      this.setPendingExternalBinding(cmd.ext.ns, cmd.ext.key, []);
-
-      this.getActionsWindow()
-        .setMapping(this.buildDisplayMapping());
-      return;
-    }
-
-    // JABS logical action path (original behavior).
-    const button = this.getActionsWindow()
-      .currentButton();
-    const pending = this.currentPendingMapping();
-    pending[button] = [];
-    this.getActionsWindow()
-      .setMapping(this.buildDisplayMapping());
-  }
-
-  /**
-   * Begins the capture overlay for a logical action.
-   * @param {string} button The logical action to capture for.
-   */
-  beginCapture(button)
-  {
-    // record which logical action we are capturing for.
-    this._state()._capturingButton = button;
-
-    // set the capture flag.
-    this._state()._isCapturing = true;
-
-    // show the capture prompt overlay (humanized label for JABS logical keys).
-    const promptLabel = this.getActionsWindow()
-      .humanizeButton(button);
-    this.getPromptWindow()
-      .startPrompt(promptLabel);
-
-    // deactivate normal windows while capturing.
-    this.getCommandWindow()
-      .deactivate();
-    this.getActionsWindow()
-      .deactivate();
-  }
-
-  /**
-   * Ends the capture overlay.
-   */
-  endCapture()
-  {
-    // clear the capture flag and button.
-    this._state()._isCapturing = false;
-    this._state()._capturingButton = null;
-
-    // hide the capture prompt overlay.
-    this.getPromptWindow()
-      .endPrompt();
-
-    // reactivate actions window.
-    this.getActionsWindow()
-      .activate();
-  }
-
-  /**
-   * Removes a symbol from all actions in the provided mapping, except for one.
-   * @param {Object<string, string[]>} mapping The mapping to sanitize.
-   * @param {string} symbol The physical input symbol to remove.
-   * @param {string} exceptButton The logical action to exclude from removal.
-   */
-  unbindSymbolFromMapping(mapping, symbol, exceptButton)
-  {
-    // iterate all logical actions in the mapping.
-    Object.keys(mapping)
-      .forEach(key =>
-      {
-        // skip the action that is intended to receive this symbol.
-        if (key === exceptButton) return;
-
-        // read the current list for this action.
-        const list = mapping[key] || [];
-
-        // if there is nothing to remove, continue.
-        if (!list.length) return;
-
-        // filter out the symbol.
-        const filtered = list.filter(s => s !== symbol);
-
-        // if changed, write back the filtered list.
-        if (filtered.length !== list.length)
-        {
-          mapping[key] = filtered;
-        }
-      });
-  }
-
-  /**
-   * Assigns a symbol to the given logical action while enforcing uniqueness.
-   * If external, writes into the scene’s pending external map (not live Input).
-   * Live Input registry is only updated on Apply.
-   * @param {string} button The logical action receiving the new binding, or an external token.
-   * @param {string} symbol The physical input symbol to assign.
-   */
-  assignWithConflictResolution(button, symbol)
-  {
-    // check if this is an external capture token.
-    if (typeof button === 'string' && button.indexOf('__ext__') === 0)
-    {
-      // extract the namespace and key from the token format: __ext__<ns>:<key>
-      const without = button.substring('__ext__'.length);
-      const splitAt = without.indexOf(':');
-
-      // if the token was parseable, stage the change into pending-external.
-      if (splitAt > 0)
-      {
-        // resolve the namespace and key within that namespace.
-        const ns = without.substring(0, splitAt);
-        const key = without.substring(splitAt + 1);
-
-        // stage the binding into the scene-stored pending-external map.
-        this.setPendingExternalBinding(ns, key, [ symbol ]);
-
-        // reflect the updated mapping in the actions window immediately.
-        this.getActionsWindow()
-          .setMapping(this.buildDisplayMapping());
-
-        // do not write to Input registry here; Apply will commit it.
-        return;
-      }
-    }
-
-    // otherwise, original JABS behavior for the pending map.
-    const pending = this.currentPendingMapping();
-
-    // remove this symbol from all other actions before assigning.
-    this.unbindSymbolFromMapping(pending, symbol, button);
-
-    // assign the symbol to the given logical action.
-    pending[button] = [ symbol ];
-
-    // reflect logical mapping updates, too.
-    this.getActionsWindow()
-      .setMapping(this.buildDisplayMapping());
-  }
-
-  /**
-   * Gets (and initializes) the pending external bindings map for this scene.
-   * Map shape: { 'ns:key': string[] }
-   * @returns {Object<string, string[]>}
-   */
-  getPendingExternal()
-  {
-    // ensure the state bag exists.
-    const state = this._state();
-
-    // lazily add the pending external map if not present.
-    state._pendingExternal ||= {};
-
-    // return the map reference.
-    return state._pendingExternal;
-  }
-
-  /**
-   * Reads a staged binding array for an external action if present; otherwise null.
-   * @param {string} ns The namespace, such as 'J.MAP'.
-   * @param {string} key The logical key within that namespace.
-   * @returns {string[]|null}
-   */
-  getPendingExternalBinding(ns, key)
-  {
-    // compute the compound key for this external binding.
-    const compound = `${ns}:${key}`;
-
-    // read the map of staged external bindings.
-    const map = this.getPendingExternal();
-
-    // return the staged array or null when absent.
-    return Object.prototype.hasOwnProperty.call(map, compound)
-      ? map[compound]
-      : null;
-  }
-
-  /**
-   * Stages a binding array for an external logical action.
-   * @param {string} ns The namespace, such as 'J.MAP'.
-   * @param {string} key The logical key within that namespace.
-   * @param {string[]} physical The array of physical symbols to stage.
-   */
-  setPendingExternalBinding(ns, key, physical)
-  {
-    // compute the compound external key.
-    const compound = `${ns}:${key}`;
-
-    // write a defensive copy of the array into the staged map.
-    this.getPendingExternal()[compound] = Array.isArray(physical)
-      ? physical.slice(0)
-      : [];
-  }
-
-  /**
-   * Writes all staged external bindings into the live Input registry and clears the stage.
-   */
-  flushPendingExternalBindings()
-  {
-    // read the staged external binds map.
-    const map = this.getPendingExternal();
-
-    // iterate all staged keys and commit them to the Input registry.
-    Object.keys(map)
-      .forEach(compound =>
-      {
-        // split the compound key to extract ns and key.
-        const splitAt = compound.indexOf(':');
-
-        // skip malformed keys (should not happen).
-        if (splitAt <= 0)
-        {
-          return;
-        }
-
-        // extract parts.
-        const ns = compound.substring(0, splitAt);
-        const key = compound.substring(splitAt + 1);
-
-        // read the staged physical symbols.
-        const physical = map[compound] || [];
-
-        // commit to the engine-owned Input registry.
-        Input.setBindings(ns, key, physical);
-      });
-
-    // persist the now-updated Input registry snapshot into $gameSystem.
-    $gameSystem.saveAllInputBindingsFromInput();
-
-    // clear the staged map so future edits start fresh.
-    this._state()._pendingExternal = {};
-
-    // after clearing, reflect the (now-committed) state in the window.
-    this.getActionsWindow()
-      .setMapping(this.buildDisplayMapping());
-  }
-
-  //endregion actions
-
-  //region update
-  /**
-   * Standard per-frame update.
-   */
-  update()
-  {
-    // perform original logic.
-    super.update();
-
-    // if we are not capturing, do nothing.
-    if (this._state()._isCapturing === false)
-    {
-      return;
-    }
-
-    // attempt to read a captured symbol from the prompt overlay.
-    const captured = this.getPromptWindow()
-      .pollCapturedSymbol();
-
-    // if nothing has been captured yet, determine if the prompt has auto-closed.
-    if (!captured)
-    {
-      // if the prompt is no longer active (timed out or otherwise closed),
-      // then end the capture flow without applying a binding.
-      if (this.getPromptWindow()
-        .isActive() === false)
-      {
-        // end the capture flow and reactivate the actions window.
-        this.endCapture();
-      }
-
-      // continue waiting if still active.
-      return;
-    }
-
-    // resolve and assign with conflict handling (also refreshes the actions window mapping).
-    this.assignWithConflictResolution(this._state()._capturingButton, captured);
-
-    // end the capture flow.
-    this.endCapture();
-  }
-
-  //endregion update
-
-  //region helpers
-  /**
-   * Convenience accessor for the scene state object.
-   */
-  _state()
-  {
-    return this._j._abs._input._state;
-  }
-
-  /**
-   * Sets the controller collection being edited.
-   * @param {Object[]} controllers The list of controllers.
-   */
-  setControllers(controllers)
-  {
-    this._state()._controllers = controllers;
-  }
-
-  //endregion helpers
+* Cached labels + help text for logical JABS buttons (built once; keys use {@link JABS_Button}).
+* @returns {{ labels: Object<string, string>, help: Object<string, string> }}
+*/
+function jabsRemapActionLookupMaps() {
+	if (jabsRemapActionLookupMaps._cached) {
+		return jabsRemapActionLookupMaps._cached;
+	}
+	const labels = {};
+	labels[JABS_Button.Mainhand] = "Mainhand";
+	labels[JABS_Button.Offhand] = "Offhand";
+	labels[JABS_Button.Tool] = "Tool";
+	labels[JABS_Button.Dodge] = "Dodge";
+	labels[JABS_Button.CombatSkill1] = "Skill Trigger + Mainhand";
+	labels[JABS_Button.CombatSkill2] = "Skill Trigger + Offhand";
+	labels[JABS_Button.CombatSkill3] = "Skill Trigger + Dodge";
+	labels[JABS_Button.CombatSkill4] = "Skill Trigger + Tool";
+	labels[JABS_Button.Sprint] = "Sprint";
+	labels[JABS_Button.SkillTrigger] = "Skill Trigger";
+	labels[JABS_Button.Strafe] = "Strafe";
+	labels[JABS_Button.Rotate] = "Rotate";
+	labels[JABS_Button.Guard] = "Guard";
+	labels[JABS_Button.Menu] = "Menu";
+	labels[JABS_Button.Select] = "Party Cycle";
+	const help = {};
+	help[JABS_Button.Menu] = "Open the JABS quick menu.\nAccess actions, tools, and options.";
+	help[JABS_Button.Select] = "Cycle the party leader.\nRotate the front actor with the next in line.";
+	help[JABS_Button.Mainhand] = "Use the mainhand action.\nTypically your basic weapon attack.";
+	help[JABS_Button.Offhand] = "Use the offhand action.\nTypically your secondary skill, or the guard-ready indicator.";
+	help[JABS_Button.Tool] = "Use the selected tool.\nExecutes the currently equipped tool skill.";
+	help[JABS_Button.Sprint] = "Sprint while held.\nMove faster when conditions allow.";
+	help[JABS_Button.Dodge] = "Execute the mobility skill.\nLunge, backstep, tumble, or similar move.";
+	help[JABS_Button.Strafe] = "Hold facing while moving.\nLocks direction for circle-strafing.";
+	help[JABS_Button.Rotate] = "Rotate in place while held.\nIf you are guard-ready, you will also raise your guard.";
+	help[JABS_Button.SkillTrigger] = "Enable combat skills while held.\nPrimary actions become Combat skills 1-4.";
+	help[JABS_Button.Guard] = "Hold to raise guard (if guard skill is available).\nRaises guard skill when available.";
+	help[JABS_Button.CombatSkill1] = "Trigger Combat Skill 1.\nUsed with the Skill Trigger modifier.";
+	help[JABS_Button.CombatSkill2] = "Trigger Combat Skill 2.\nUsed with the Skill Trigger modifier.";
+	help[JABS_Button.CombatSkill3] = "Trigger Combat Skill 3.\nUsed with the Skill Trigger modifier.";
+	help[JABS_Button.CombatSkill4] = "Trigger Combat Skill 4.\nUsed with the Skill Trigger modifier.";
+	jabsRemapActionLookupMaps._cached = {
+		labels,
+		help
+	};
+	return jabsRemapActionLookupMaps._cached;
 }
-
-//endregion Scene_JabsRemap
-
-//region Scene_Menu
 /**
- * Extends {@link #createCommandWindow}.<br/>
- * Also wires the handler for opening the JABS input remapping scene.
- */
-J.ABS.EXT.INPUT.Aliased.Scene_Menu.set('createCommandWindow', Scene_Menu.prototype.createCommandWindow);
-Scene_Menu.prototype.createCommandWindow = function()
-{
-  // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.Scene_Menu.get('createCommandWindow')
-    .call(this);
-
-  // wire the handler for our custom command symbol.
-  this._commandWindow.setHandler('jabsRemap', () =>
-  {
-    // open the JABS remapping scene.
-    SceneManager.push(Scene_JabsRemap);
-  });
-};
-//endregion Scene_Menu
-
-//region Window_JabsRemapActions
-
-const JABS_REMAP_HEADER_HELP = {
-  'Primary Actions':
-    'Primary actions used moment-to-moment: mainhand/offhand attacks and tools.\n'
-    + 'These are your core mapped buttons for direct, immediate use.',
-  'Secondary Actions':
-    'Secondary and modifier inputs: Skill Trigger, Rotate, Strafe, Dodge.\n'
-    + 'Hold or tap to modify movement or enable combat skill slots.',
-  'Functional Actions':
-    'Functional shortcuts unrelated to attacks: open the JABS menu, cycle party leader.\n'
-    + 'Useful for management between encounters or to swap leaders on the fly.',
-};
-
-/**
- * Cached labels + help text for logical JABS buttons (built once; keys use {@link JABS_Button}).
- * @returns {{ labels: Object<string, string>, help: Object<string, string> }}
- */
-function jabsRemapActionLookupMaps()
-{
-  if (jabsRemapActionLookupMaps._cached)
-  {
-    return jabsRemapActionLookupMaps._cached;
-  }
-
-  const labels = {};
-  labels[JABS_Button.Mainhand] = 'Mainhand';
-  labels[JABS_Button.Offhand] = 'Offhand';
-  labels[JABS_Button.Tool] = 'Tool';
-  labels[JABS_Button.Dodge] = 'Dodge';
-  labels[JABS_Button.CombatSkill1] = 'Skill Trigger + Mainhand';
-  labels[JABS_Button.CombatSkill2] = 'Skill Trigger + Offhand';
-  labels[JABS_Button.CombatSkill3] = 'Skill Trigger + Dodge';
-  labels[JABS_Button.CombatSkill4] = 'Skill Trigger + Tool';
-  labels[JABS_Button.Sprint] = 'Sprint';
-  labels[JABS_Button.SkillTrigger] = 'Skill Trigger';
-  labels[JABS_Button.Strafe] = 'Strafe';
-  labels[JABS_Button.Rotate] = 'Rotate';
-  labels[JABS_Button.Guard] = 'Guard';
-  labels[JABS_Button.Menu] = 'Menu';
-  labels[JABS_Button.Select] = 'Party Cycle';
-
-  const help = {};
-  help[JABS_Button.Menu] = 'Open the JABS quick menu.\nAccess actions, tools, and options.';
-  help[JABS_Button.Select] = 'Cycle the party leader.\nRotate the front actor with the next in line.';
-  help[JABS_Button.Mainhand] = 'Use the mainhand action.\nTypically your basic weapon attack.';
-  help[JABS_Button.Offhand] = 'Use the offhand action.\nTypically your secondary skill, or the guard-ready indicator.';
-  help[JABS_Button.Tool] = 'Use the selected tool.\nExecutes the currently equipped tool skill.';
-  help[JABS_Button.Sprint] = 'Sprint while held.\nMove faster when conditions allow.';
-  help[JABS_Button.Dodge] = 'Execute the mobility skill.\nLunge, backstep, tumble, or similar move.';
-  help[JABS_Button.Strafe] = 'Hold facing while moving.\nLocks direction for circle-strafing.';
-  help[JABS_Button.Rotate] =
-    'Rotate in place while held.\nIf you are guard-ready, you will also raise your guard.';
-  help[JABS_Button.SkillTrigger] =
-    'Enable combat skills while held.\nPrimary actions become Combat skills 1-4.';
-  // Not directly mappable; shares input with rotation in practice.
-  help[JABS_Button.Guard] =
-    'Hold to raise guard (if guard skill is available).\nRaises guard skill when available.';
-  help[JABS_Button.CombatSkill1] = 'Trigger Combat Skill 1.\nUsed with the Skill Trigger modifier.';
-  help[JABS_Button.CombatSkill2] = 'Trigger Combat Skill 2.\nUsed with the Skill Trigger modifier.';
-  help[JABS_Button.CombatSkill3] = 'Trigger Combat Skill 3.\nUsed with the Skill Trigger modifier.';
-  help[JABS_Button.CombatSkill4] = 'Trigger Combat Skill 4.\nUsed with the Skill Trigger modifier.';
-
-  jabsRemapActionLookupMaps._cached = { labels, help };
-  return jabsRemapActionLookupMaps._cached;
-}
-
-/**
- * The list window that shows logical actions and current bindings.
- * Extends {@link Window_Command} with builder-style rows and namespaced state under
- * {@link this._j._abs._input._actions}.
- */
-class Window_JabsRemapActions
-  extends Window_Command
-{
-  /**
-   * Constructor.
-   * @param {Rectangle} rect The rectangle to draw this window within.
-   */
-  constructor(rect)
-  {
-    super(rect);
-    this.initMembers();
-    this.select(this.firstActionIndex());
-  }
-
-  //region init
-  /**
-   * Ensures `this._j._abs._input._actions` exists and seeds state/view bags.
-   * Also hydrates the assignable button list when empty.
-   */
-  initMembers()
-  {
-    this._j ||= {};
-    this._j._abs ||= {};
-    this._j._abs._input ||= {};
-    this._j._abs._input._actions ||= {};
-
-    const actions = this._j._abs._input._actions;
-    actions._state = {
-      _mapping: {},
-      _externalMapping: {},
-      _buttons: [],
-    };
-    actions._view = { _helpWindow: null };
-
-    if (this.getButtons().length === 0)
-    {
-      this.setButtons(this.buildButtonList());
-    }
-  }
-
-  //endregion init
-
-  //region accessors
-  /**
-   * Gets the current mapping being displayed.
-   * @returns {Object<string, string[]>}
-   */
-  getMapping()
-  {
-    return this._state()._mapping || {};
-  }
-
-  /**
-   * Sets the mapping to display and refreshes.
-   * @param {Object<string, string[]>} mapping The mapping to show and edit.
-   */
-  setMapping(mapping)
-  {
-    this._state()._mapping = mapping || {};
-    this.refresh();
-  }
-
-  /**
-   * Gets the external mapping reference for rows from {@link buildExternalActionCommand}.
-   * Shape: `{ [`${ns}:${key}`]: string[] }` (scene-owned; optional).
-   * @returns {Object<string, string[]>}
-   */
-  getExternalMapping()
-  {
-    return this._state()._externalMapping || {};
-  }
-
-  /**
-   * Sets the external mapping reference; scene owns lifecycle.
-   * @param {Object<string, string[]>} externalMapping The external mapping.
-   */
-  setExternalMapping(externalMapping)
-  {
-    this._state()._externalMapping = externalMapping || {};
-    this.refresh();
-  }
-
-  /**
-   * Gets the ordered list of logical action keys.
-   * @returns {string[]}
-   */
-  getButtons()
-  {
-    const state = this._state();
-    if (state._buttons && state._buttons.length > 0)
-    {
-      return state._buttons;
-    }
-    return this.buildButtonList();
-  }
-
-  /**
-   * Sets the ordered list of logical action keys.
-   * @param {string[]} buttons The ordered list of buttons.
-   */
-  setButtons(buttons)
-  {
-    this._state()._buttons = Array.isArray(buttons)
-      ? buttons.slice(0)
-      : [];
-    this.refresh();
-  }
-
-  /**
-   * Gets the currently bound help window.
-   * @returns {Window_Help|null}
-   */
-  getHelpWindow()
-  {
-    return this._view()._helpWindow;
-  }
-
-  /**
-   * Sets the help window and forwards to the base implementation for linkage.
-   * @param {Window_Help} helpWindow The help window to bind.
-   */
-  setHelpWindow(helpWindow)
-  {
-    this._view()._helpWindow = helpWindow;
-    super.setHelpWindow(helpWindow);
-  }
-
-  /**
-   * Returns the current logical button at the cursor (or section / external label for headers).
-   * @returns {string}
-   */
-  currentButton()
-  {
-    const cmd = this.currentData();
-    if (!cmd)
-    {
-      return String.empty;
-    }
-    if (cmd.ext && cmd.ext.kind === 'header')
-    {
-      return String(cmd.ext.label || String.empty);
-    }
-    if (cmd.ext && cmd.ext.kind === 'ext-action')
-    {
-      return String(cmd.ext.label || String.empty);
-    }
-    if (cmd.ext && cmd.ext.kind === 'action')
-    {
-      return String(cmd.ext.button || cmd.symbol || String.empty);
-    }
-    return String(cmd.symbol || String.empty);
-  }
-
-  /**
-   * Ensures the `_j._abs._input._actions` chain exists.
-   * Lazily mirrors ctor init so accessors stay valid when this window is touched without a full
-   * new-game init path (continued saves, aliased entry, or future scene wiring).
-   */
-  _root()
-  {
-    this._j ||= {};
-    this._j._abs ||= {};
-    this._j._abs._input ||= {};
-    this._j._abs._input._actions ||= {};
-  }
-
-  /**
-   * Lazily ensures and returns the window-local state bag.
-   * @returns {{_mapping:Object<string,string[]>, _externalMapping:Object<string, string[]>, _buttons:string[]}}
-   */
-  _state()
-  {
-    this._root();
-    const actions = this._j._abs._input._actions;
-    actions._state ||= {
-      _mapping: {},
-      _externalMapping: {},
-      _buttons: [],
-    };
-    return actions._state;
-  }
-
-  /**
-   * Lazily ensures and returns the window-local view bag.
-   * @returns {{_helpWindow:Window_Help|null}}
-   */
-  _view()
-  {
-    this._root();
-    const actions = this._j._abs._input._actions;
-    actions._view ||= { _helpWindow: null };
-    return actions._view;
-  }
-
-  //endregion accessors
-
-  //region builders
-  /**
-   * Built-in section specs (title + logical keys). Override to reorder or replace default sections.
-   * @returns {{ title: string, buttons: string[] }[]}
-   */
-  _builtinSectionSpecs()
-  {
-    return [
-      {
-        title: 'Primary Actions',
-        buttons: [
-          JABS_Button.Mainhand,
-          JABS_Button.Offhand,
-          JABS_Button.Tool,
-          JABS_Button.Sprint,
-        ],
-      },
-      {
-        title: 'Secondary Actions',
-        buttons: [
-          JABS_Button.SkillTrigger,
-          JABS_Button.Rotate,
-          JABS_Button.Strafe,
-          JABS_Button.Dodge,
-        ],
-      },
-      {
-        title: 'Functional Actions',
-        buttons: [
-          JABS_Button.Menu,
-          JABS_Button.Select,
-        ],
-      },
-    ];
-  }
-
-  /**
-   * Appends built-in header + action rows between pre/post extension hooks.
-   * @param {BuiltWindowCommand[]} rows Accumulated rows.
-   * @param {Set<string>} can Assignable logical keys for this window.
-   */
-  buildBuiltinActionSections(rows, can)
-  {
-    const specs = this._builtinSectionSpecs();
-    for (let i = 0; i < specs.length; i++)
-    {
-      const spec = specs[i];
-      rows.push(this.buildHeaderCommand(spec.title));
-      for (let j = 0; j < spec.buttons.length; j++)
-      {
-        this._addIf(rows, can, spec.buttons[j]);
-      }
-    }
-  }
-
-  /**
-   * Builds the ordered list of logical actions to show.
-   * @returns {string[]}
-   */
-  buildButtonList()
-  {
-    return JABS_Button.assignableInputs();
-  }
-
-  /**
-   * Implements {@link Window_Command.prototype.makeCommandList}.
-   */
-  makeCommandList()
-  {
-    const commands = this.buildCommands();
-    commands.forEach(this.addBuiltCommand, this);
-  }
-
-  /**
-   * Builds all commands (headers + actions) for this window.
-   * @returns {BuiltWindowCommand[]}
-   */
-  buildCommands()
-  {
-    const can = new Set(this.getButtons());
-    const rows = [];
-    this.buildPreExtensionGroups(rows, can);
-    this.buildBuiltinActionSections(rows, can);
-    this.buildPostExtensionGroups(rows, can);
-    return rows;
-  }
-
-  /**
-   * Adds an action row when the logical key is assignable in this context.
-   * @param {BuiltWindowCommand[]} rows Rows being built.
-   * @param {Set<string>} can Assignable logical keys.
-   * @param {string} button Logical key.
-   */
-  _addIf(rows, can, button)
-  {
-    if (can.has(button))
-    {
-      rows.push(this.buildActionCommand(button));
-    }
-  }
-
-  /**
-   * Prepend custom sections before built-in groups.
-   * @param {BuiltWindowCommand[]} rows Rows being built.
-   * @param {Set<string>} can Assignable logical keys.
-   */
-  // eslint-disable-next-line no-unused-vars
-  buildPreExtensionGroups(rows, can)
-  {
-  }
-
-  /**
-   * Append custom sections after built-in groups.
-   * @param {BuiltWindowCommand[]} rows Rows being built.
-   * @param {Set<string>} can Assignable logical keys.
-   */
-  // eslint-disable-next-line no-unused-vars
-  buildPostExtensionGroups(rows, can)
-  {
-  }
-
-  /**
-   * Builds a non-interactive section header.
-   * @param {string} label Header label.
-   * @returns {BuiltWindowCommand}
-   */
-  buildHeaderCommand(label)
-  {
-    return new WindowCommandBuilder(label)
-      .setSymbol(`__header__${label}`)
-      .setExtensionData({
-        kind: 'header',
-        label,
-      })
-      .setEnabled(false)
-      .build();
-  }
-
-  /**
-   * Builds a remappable JABS logical action row.
-   * @param {string} button Logical action key.
-   * @returns {BuiltWindowCommand}
-   */
-  buildActionCommand(button)
-  {
-    return new WindowCommandBuilder(this.humanizeButton(button))
-      .setSymbol(button)
-      .setExtensionData({
-        kind: 'action',
-        button,
-      })
-      .setEnabled(true)
-      .build();
-  }
-
-  /**
-   * Builds a row backed by {@link Input} registry keys (external namespace).
-   * @param {string} ns Namespace (e.g. `"J.MAP"`).
-   * @param {string} key Logical key within `ns`.
-   * @param {string} label Row label.
-   * @param {number} [iconIndex=0] Optional fixed left icon; 0 = derive from binding.
-   * @returns {BuiltWindowCommand}
-   */
-  buildExternalActionCommand(ns, key, label, iconIndex)
-  {
-    return new WindowCommandBuilder(label)
-      .setSymbol(`__ext__${ns}:${key}`)
-      .setExtensionData({
-        kind: 'ext-action',
-        ns,
-        key,
-        label,
-        icon: Number(iconIndex) || 0,
-      })
-      .setEnabled(true)
-      .build();
-  }
-
-  //endregion builders
-
-  //region drawing
-  /**
-   * @param {number} index Row index.
-   */
-  drawItem(index)
-  {
-    const rect = this.itemRectWithPadding(index);
-    const cmd = this._list[index];
-    if (!cmd)
-    {
-      return;
-    }
-    if (cmd.ext && cmd.ext.kind === 'header')
-    {
-      this._drawHeaderItem(rect, cmd);
-      return;
-    }
-    if (cmd.ext && cmd.ext.kind === 'ext-action')
-    {
-      this._drawExternalActionItem(rect, cmd);
-      return;
-    }
-    this._drawJabsActionItem(rect, cmd);
-  }
-
-  /**
-   * @param {Rectangle} rect Row rect.
-   * @param {{name:string, ext:object}} cmd Command data.
-   */
-  _drawHeaderItem(rect, cmd)
-  {
-    const name = cmd.name || String.empty;
-    this.changeTextColor(ColorManager.systemColor());
-    this.contents.fontBold = true;
-    this.drawText(name, rect.x, rect.y, rect.width, 'center');
-    this.resetTextColor();
-    this.contents.fontBold = false;
-  }
-
-  /**
-   * @param {Rectangle} rect Row rect.
-   * @param {{ name:string, symbol:string, ext:object }} cmd Command data.
-   */
-  _drawExternalActionItem(rect, cmd)
-  {
-    const displayLabel = String(cmd.ext.label || '');
-    const combined = this.getMapping();
-    const token = String(cmd.symbol || '');
-    const hasStaged = Object.prototype.hasOwnProperty.call(combined, token);
-    const staged = hasStaged ? combined[token] : null;
-    let boundList;
-    if (staged !== null)
-    {
-      boundList = Array.isArray(staged) ? staged : [];
-    }
-    else
-    {
-      boundList = Input.getBindings(cmd.ext.ns, cmd.ext.key) || [];
-    }
-    const bound = boundList.length > 0
-      ? boundList[0]
-      : String.empty;
-    let leftIcon = 0;
-    if (cmd.ext.icon && cmd.ext.icon > 0)
-    {
-      leftIcon = cmd.ext.icon;
-    }
-    this._drawActionBindingRow(rect, displayLabel, bound, leftIcon);
-  }
-
-  /**
-   * @param {Rectangle} rect Row rect.
-   * @param {{symbol:string}} cmd Command data.
-   */
-  _drawJabsActionItem(rect, cmd)
-  {
-    const button = String(cmd.symbol);
-    const mapping = this.getMapping();
-    const boundList = mapping[button] || [];
-    const bound = boundList.length > 0
-      ? boundList[0]
-      : String.empty;
-    const label = this.humanizeButton(button);
-    this._drawActionBindingRow(rect, label, bound, 0);
-  }
-
-  /**
-   * @param {Rectangle} rect Row rect.
-   * @returns {number} Icon Y.
-   */
-  _iconYForRect(rect)
-  {
-    const ih = ImageManager.iconHeight;
-    return rect.y + Math.max(0, Math.floor((this.lineHeight() - ih) / 2));
-  }
-
-  /**
-   * @param {number} leftX Left column X.
-   * @param {number} iconY Icon Y.
-   * @param {number} iconIndex Icon index; 0 = skip icon.
-   * @param {string} label Text after optional icon.
-   * @param {Rectangle} rect Row rect.
-   * @param {number} midX Column split.
-   */
-  _drawLeftLabelWithOptionalIcon(leftX, iconY, iconIndex, label, rect, midX)
-  {
-    let labelX = leftX;
-    if (iconIndex > 0)
-    {
-      this.drawIcon(iconIndex, leftX, iconY);
-      labelX += ImageManager.iconWidth + 6;
-    }
-    const leftW = Math.max(0, midX - rect.x);
-    this.drawText(label, labelX, rect.y, leftW);
-  }
-
-  /**
-   * Two-column row: optional fixed left icon, label, arrow, binding (with icon escapes).
-   * @param {Rectangle} rect Row rect.
-   * @param {string} label Left column label.
-   * @param {string} bound Primary physical symbol for the right column.
-   * @param {number} leftIconOverride Fixed left icon index; 0 = use {@link iconIndexForSymbol} on `bound`.
-   */
-  _drawActionBindingRow(rect, label, bound, leftIconOverride)
-  {
-    let iconIndex = leftIconOverride;
-    if (!(iconIndex > 0))
-    {
-      iconIndex = this.iconIndexForSymbol(bound);
-    }
-    const iconY = this._iconYForRect(rect);
-    const midX = rect.x + Math.floor(rect.width / 2);
-    this._drawLeftLabelWithOptionalIcon(rect.x, iconY, iconIndex, label, rect, midX);
-    this._drawArrowBetweenColumns(rect, midX);
-    const rightText = IconManager.jabsIconTextForSymbol(bound);
-    this._drawRightBindingText(rect, midX, rightText);
-  }
-
-  /**
-   * @param {Rectangle} rect Row rect.
-   * @param {number} midX Column split.
-   */
-  _drawArrowBetweenColumns(rect, midX)
-  {
-    const arrow = '→';
-    this.drawText(arrow, midX - this.textWidth(arrow), rect.y, Math.floor(rect.width / 2));
-  }
-
-  /**
-   * @param {Rectangle} rect Row rect.
-   * @param {number} midX Column split.
-   * @param {string} rightText Text for {@link Window_Base.prototype.drawTextEx}.
-   */
-  _drawRightBindingText(rect, midX, rightText)
-  {
-    const rightWidth = this.textSizeEx(rightText).width;
-    const rightX = midX + Math.floor(rect.width / 2) - rightWidth;
-    this.drawTextEx(rightText, rightX, rect.y, Math.floor(rect.width / 2));
-  }
-
-  //endregion drawing
-
-  //region help
-  /**
-   * Updates the linked help window from the current selection.
-   */
-  updateHelp()
-  {
-    const help = this.getHelpWindow();
-    if (!help)
-    {
-      return;
-    }
-    const button = this.currentButton();
-    help.setText(this.describeButton(button));
-  }
-
-  //endregion help
-
-  //region handling
-  /**
-   * Blocks OK on header rows only.
-   */
-  processOk()
-  {
-    const cmd = this.currentData();
-    if (!cmd)
-    {
-      SoundManager.playBuzzer();
-      return;
-    }
-    if (cmd.ext && cmd.ext.kind === 'header')
-    {
-      SoundManager.playBuzzer();
-      return;
-    }
-    super.processOk();
-  }
-
-  /**
-   * Forwards to base handling and maps PageDown to the `clear` handler.
-   */
-  processHandling()
-  {
-    super.processHandling();
-    if (this.isOpenAndActive() && Input.isTriggered('pagedown'))
-    {
-      this.callHandler('clear');
-    }
-  }
-
-  //endregion handling
-
-  //region utils
-  /**
-   * First enabled command index (skips disabled headers).
-   * @returns {number}
-   */
-  firstActionIndex()
-  {
-    for (let i = 0; i < this._list.length; i++)
-    {
-      const cmd = this._list[i];
-      if (cmd && cmd.enabled !== false)
-      {
-        return i;
-      }
-    }
-    return 0;
-  }
-
-  /**
-   * @param {string} button Logical key.
-   * @returns {string}
-   */
-  humanizeButton(button)
-  {
-    const { labels } = jabsRemapActionLookupMaps();
-    return labels[button] || button;
-  }
-
-  /**
-   * @param {string} symbol Physical symbol.
-   * @returns {number} Icon index, or 0.
-   */
-  iconIndexForSymbol(symbol)
-  {
-    return IconManager.jabsIconIndexForSymbol(symbol);
-  }
-
-  /**
-   * Help text for a header label, logical key, or external row label.
-   * @param {string} button Value from {@link currentButton}.
-   * @returns {string}
-   */
-  describeButton(button)
-  {
-    const header = JABS_REMAP_HEADER_HELP[button];
-    if (header)
-    {
-      return header;
-    }
-    const { help } = jabsRemapActionLookupMaps();
-    if (help[button])
-    {
-      return help[button];
-    }
-    return String(button);
-  }
-
-  //endregion utils
-}
-
-//endregion Window_JabsRemapActions
-
-//region Window_JabsRemapCommand
-/**
- * Bottom command strip for Apply / Reset / Cancel.
- */
-class Window_JabsRemapCommand
-  extends Window_Command
-{
-  /**
-   * @param {Rectangle} rect The rectangle to draw this window within.
-   */
-  constructor(rect)
-  {
-    // perform super initialize.
-    super(rect);
-  }
-
-  /**
-   * Gets the number of visible rows.
-   * @returns {number}
-   */
-  numVisibleRows()
-  {
-    // render a single row.
-    return 4;
-  }
-
-  /**
-   * Defines the commands for this window.
-   */
-  makeCommandList()
-  {
-    // build the commands.
-    const commands = this.buildCommands();
-
-    // add the built commands.
-    commands.forEach(this.addBuiltCommand, this);
-  }
-
-  /**
-   * Builds the commands for this window.
-   * @returns {BuiltWindowCommand[]}
-   */
-  buildCommands()
-  {
-    // build the "Apply" command.
-    const apply = new WindowCommandBuilder('Apply current remapping')
-      .setIconIndex(91)
-      .setSymbol('apply')
-      .setEnabled(true)
-      .build();
-
-    // build the "Reset to Defaults" command.
-    const defaults = new WindowCommandBuilder('Reset to defaults')
-      .setIconIndex(207)
-      .setSymbol('defaults')
-      .setEnabled(true)
-      .build();
-
-    // build the "Undo changes" command.
-    const reset = new WindowCommandBuilder('Undo changes')
-      .setIconIndex(74)
-      .setSymbol('reset')
-      .setEnabled(true)
-      .build();
-
-    // build the "Exit without saving" command.
-    const cancel = new WindowCommandBuilder('Exit without saving')
-      .setIconIndex(90)
-      .setSymbol('cancel')
-      .setEnabled(true)
-      .build();
-
-    return [ apply, defaults, reset, cancel ];
-  }
-}
-
-//endregion Window_JabsRemapCommand
-
-//region Window_JabsRemapPrompt
-/**
- * Full-screen overlay that captures the next input symbol.
- */
-class Window_JabsRemapPrompt
-  extends Window_Base
-{
-  //region static
-  /**
-   * Frames to ignore immediate UI inputs after opening the prompt.
-   * Adjusted for 60 FPS.
-   * Can be migrated to plugin parameters later.
-   * @type {number}
-   */
-  // ~0.33s.
-  static WarmupFrames = 20;
-
-  /**
-   * Maximum frames the prompt remains active before auto-closing.
-   * Adjusted for 60 FPS.
-   * Can be migrated to plugin parameters later.
-   * @type {number}
-   */
-  // 5s.
-  static TimeoutFrames = 5 * 60;
-  //endregion static
-
-  /**
-   * @param {Rectangle} rect The rectangle to draw this window within.
-   */
-  constructor(rect)
-  {
-    // perform super initialize.
-    super(rect);
-
-    // make background darker for overlay effect.
-    this.opacity = 192;
-
-    // initial draw.
-    this.refresh();
-  }
-
-  //region init
-  /**
-   * Lazily ensures the root plugin namespace exists for this window's data.
-   */
-  _root()
-  {
-    // ensure root namespaces.
-    this._j ||= {};
-    this._j._abs ||= {};
-    this._j._abs._input ||= {};
-  }
-
-  //endregion init
-
-  //region accessors
-  /**
-   * Gets the captured symbol awaiting pickup by the scene.
-   * @returns {string|null}
-   */
-  getCapturedSymbol()
-  {
-    this._root();
-    return this._j._abs._input._remapCaptured ?? null;
-  }
-
-  /**
-   * Sets the captured symbol awaiting pickup by the scene.
-   * @param {string|null} v The captured symbol.
-   */
-  setCapturedSymbol(v)
-  {
-    this._root();
-    this._j._abs._input._remapCaptured = v ?? null;
-  }
-
-  /**
-   * Gets whether or not the prompt is currently active.
-   * @returns {boolean}
-   */
-  isActive()
-  {
-    this._root();
-    return this._j._abs._input._remapActive === true;
-  }
-
-  /**
-   * Sets whether or not the prompt is currently active.
-   * @param {boolean} v The new active state.
-   */
-  setActive(v)
-  {
-    this._root();
-    this._j._abs._input._remapActive = v === true;
-  }
-
-  /**
-   * Gets the remaining warmup frames.
-   * @returns {number}
-   */
-  getWarmupFrames()
-  {
-    this._root();
-    return this._j._abs._input._remapWarmup | 0;
-  }
-
-  /**
-   * Sets the remaining warmup frames.
-   * @param {number} v The frames to set.
-   */
-  setWarmupFrames(v)
-  {
-    this._root();
-    this._j._abs._input._remapWarmup = Math.max(0, v | 0);
-  }
-
-  /**
-   * Gets the remaining timeout frames.
-   * @returns {number}
-   */
-  getTimeoutFrames()
-  {
-    this._root();
-    return this._j._abs._input._remapTimeout | 0;
-  }
-
-  /**
-   * Sets the remaining timeout frames.
-   * @param {number} v The frames to set.
-   */
-  setTimeoutFrames(v)
-  {
-    this._root();
-    this._j._abs._input._remapTimeout = Math.max(0, v | 0);
-  }
-
-  /**
-   * Gets the logical action label being captured for.
-   * @returns {string}
-   */
-  getButtonLabel()
-  {
-    this._root();
-    return this._j._abs._input._remapButtonLabel || String.empty;
-  }
-
-  /**
-   * Sets the logical action label being captured for.
-   * @param {string} v The button label.
-   */
-  setButtonLabel(v)
-  {
-    this._root();
-    this._j._abs._input._remapButtonLabel = String(v || String.empty);
-  }
-
-  //endregion accessors
-
-  //region lifecycle
-  /**
-   * Begins the prompt for the given logical action.
-   * @param {string} button The logical action being captured.
-   */
-  startPrompt(button)
-  {
-    // reset the captured symbol.
-    this.setCapturedSymbol(null);
-
-    // set the active flag.
-    this.setActive(true);
-
-    // set a short warmup to avoid immediately capturing UI inputs.
-    this.setWarmupFrames(Window_JabsRemapPrompt.WarmupFrames);
-
-    // set the timeout duration.
-    this.setTimeoutFrames(Window_JabsRemapPrompt.TimeoutFrames);
-
-    // store the label for redraws each frame.
-    this.setButtonLabel(button);
-
-    // show the window.
-    this.show();
-
-    // draw prompt text.
-    this.refresh();
-  }
-
-  /**
-   * Ends the capture prompt.
-   */
-  endPrompt()
-  {
-    // clear the active flag.
-    this.setActive(false);
-
-    // hide the window.
-    this.hide();
-  }
-
-  //endregion lifecycle
-
-  //region update/capture
-  /**
-   * Per-frame update for capture.
-   */
-  update()
-  {
-    // perform original logic.
-    super.update();
-
-    // if not active, do nothing.
-    if (this.isActive() === false)
-    {
-      return;
-    }
-
-    // attempt to find a triggered symbol using curated lists and warmup rules.
-    const found = this._findTriggeredSymbol();
-
-    // decrement warmup if active.
-    this._decrementWarmup();
-
-    // if we captured something, store it and end the prompt.
-    if (found)
-    {
-      // set the captured symbol.
-      this.setCapturedSymbol(found);
-
-      // end the prompt.
-      this.endPrompt();
-      return;
-    }
-
-    // tick timeout, redraw countdown, and auto-cancel if time elapsed.
-    if (this._tickTimeoutAndRedraw())
-    {
-      // timed out; end the prompt without capturing.
-      this.setCapturedSymbol(null);
-      this.endPrompt();
-    }
-  }
-
-  /**
-   * Attempts to find a triggered symbol from curated sets, honoring warmup.
-   * Accepts only keyboard/gamepad symbols; mouse inputs are not considered.
-   * @returns {string|null}
-   */
-  _findTriggeredSymbol()
-  {
-    // if in warmup, block all input to avoid accidental captures.
-    if (this.getWarmupFrames() > 0)
-    {
-      return null;
-    }
-
-    // get curated symbols to poll.
-    const symbols = this._curatedSymbols();
-
-    // build a membership set for fast checks (also used for latest fallback).
-    const allow = new Set(symbols);
-
-    // check the curated list first (edge-triggered only).
-    for (let i = 0; i < symbols.length; i++)
-    {
-      // get the symbol at this index.
-      const s = symbols[i];
-
-      // if this symbol was triggered, capture it.
-      if (Input.isTriggered(s))
-      {
-        return s;
-      }
-    }
-
-    // guarded fallback: allow latest only if it is curated AND edge-triggered.
-    const latest = Input._latestButton;
-    if (latest && allow.has(latest) && Input.isTriggered(latest))
-    {
-      return latest;
-    }
-
-    // nothing was captured this frame.
-    return null;
-  }
-
-  /**
-   * Gets the curated list of keyboard/gamepad symbols to poll each frame.
-   * @returns {string[]}
-   */
-  _curatedSymbols()
-  {
-    // collect core input constants from the JABS input adapter constants.
-    // These should reflect only keyboard/gamepad bindings.
-    const k = J.ABS.EXT.INPUT.Symbols;
-
-    // build the list using adapter constants.
-    const inputs = [
-      // face/core actions.
-      k.Mainhand, k.Offhand, k.Dash, k.Tool,
-
-      // modifier/shoulder/trigger style.
-      k.SkillTrigger, k.GuardTrigger, k.StrafeTrigger, k.MobilitySkill,
-
-      // utility.
-      k.PartyCycle, k.Quickmenu,
-
-      // controller d-pad inputs.
-      k.DPadUp, k.DPadDown, k.DPadLeft, k.DPadRight,
-    ];
-
-    // merge in engine-wide capture symbols registered by other plugins.
-    const extras = Input.getRemapCaptureSymbols();
-
-    // return the curated symbol list.
-    return inputs.concat(extras);
-  }
-
-  /**
-   * Decrements the warmup countdown when active.
-   */
-  _decrementWarmup()
-  {
-    // reduce warmup frames if still active.
-    if (this.getWarmupFrames() > 0)
-    {
-      this.setWarmupFrames(this.getWarmupFrames() - 1);
-    }
-  }
-
-  /**
-   * Decrements the timeout, redraws countdown text, and returns whether it expired.
-   * @returns {boolean} True if timeout reached zero this frame; false otherwise.
-   */
-  _tickTimeoutAndRedraw()
-  {
-    // if there is no timeout active, nothing to tick.
-    if (this.getTimeoutFrames() <= 0)
-    {
-      return false;
-    }
-
-    // decrement remaining frames until timeout.
-    this.setTimeoutFrames(this.getTimeoutFrames() - 1);
-
-    // redraw the prompt text with updated countdown.
-    this.refresh();
-
-    // if the timeout reached zero, report expiry.
-    if (this.getTimeoutFrames() === 0)
-    {
-      return true;
-    }
-
-    // timeout still active.
-    return false;
-  }
-
-  //endregion update/capture
-
-  //region drawing
-  /**
-   * Redraws the prompt if active, otherwise clears contents.
-   */
-  refresh()
-  {
-    // clear then draw if active.
-    this.contents.clear();
-
-    // only draw the prompt when active.
-    if (this.isActive())
-    {
-      this.drawPrompt();
-    }
-  }
-
-  /**
-   * Draws the prompt text for the current button.
-   */
-  drawPrompt()
-  {
-    // compute center coordinates.
-    const cx = 0;
-    const cy = Math.floor(this.contentsHeight() / 2) - this.lineHeight();
-
-    // draw title.
-    this.drawText('Press a key or button…', cx, cy, this.contentsWidth(), 'center');
-
-    // draw the logical button label.
-    this.drawText(`for: ${this.getButtonLabel()}`, cx, cy + this.lineHeight(), this.contentsWidth(), 'center');
-
-    // draw the countdown using inline math (60 FPS assumed).
-    this.drawText(
-      `Auto-cancels in ${(this.getTimeoutFrames() / 60).toFixed(1)}s`,
-      cx,
-      cy + this.lineHeight() * 2,
-      this.contentsWidth(),
-      'center',
-    );
-  }
-
-  //endregion drawing
-
-  //region api
-  /**
-   * Returns the captured symbol for one frame and clears it.
-   * @returns {string|null}
-   */
-  pollCapturedSymbol()
-  {
-    // take the captured symbol into a temp.
-    const out = this.getCapturedSymbol();
-
-    // clear the captured symbol.
-    this.setCapturedSymbol(null);
-
-    // return the symbol.
-    return out;
-  }
-
-  //endregion api
-}
-
-//endregion Window_JabsRemapPrompt
-
-//region Window_JabsRemapUsageHelp
-/**
- * Static usage/help panel for the JABS remap scene (right side).
- */
-class Window_JabsRemapUsageHelp
-  extends Window_Base
-{
-  /**
-   * @param {Rectangle} rect The rectangle to draw this window within.
-   */
-  constructor(rect)
-  {
-    // perform super initialize.
-    super(rect);
-
-    // refresh immediately.
-    this.refresh();
-  }
-
-  /**
-   * Refreshes the static help text.
-   */
-  refresh()
-  {
-    // clear the contents.
-    this.contents.clear();
-
-    // build the ex-text with icons for each hint line.
-    const rebind = `${IconManager.jabsIconTextForSymbol('ok')} Rebind`;
-    const clear = `${IconManager.jabsIconTextForSymbol(J.ABS.EXT.INPUT.Symbols.GuardTrigger)} Clear Binding`;
-
-    // draw each line using drawTextEx so icons render.
-    this.drawTextEx(rebind, 0, this.lineHeight() * 0, this.contentsWidth());
-    this.drawTextEx(clear, 0, this.lineHeight() * 1, this.contentsWidth());
-  }
-}
-
-//endregion Window_JabsRemapUsageHelp
-
-//region Window_MenuCommand
-/**
- * Extends {@link #addOriginalCommands}.<br/>
- * Also adds a command to open the JABS input remapping scene from the main menu.
- */
-J.ABS.EXT.INPUT.Aliased.Window_MenuCommand.set('addOriginalCommands', Window_MenuCommand.prototype.addOriginalCommands);
-Window_MenuCommand.prototype.addOriginalCommands = function()
-{
-  // perform original logic.
-  J.ABS.EXT.INPUT.Aliased.Window_MenuCommand.get('addOriginalCommands')
-    .call(this);
-
-  // if we cannot add the command, then do not.
-  if (this.canAddJabsRemapCommand() === false) return;
-
-  this.addJabsRemapCommand();
+* The list window that shows logical actions and current bindings.
+* Extends {@link Window_Command} with builder-style rows and namespaced state under
+* {@link this._j._abs._input._actions}.
+*/
+var Window_JabsRemapActions = class extends Window_Command {
+	/**
+	* Constructor.
+	* @param {Rectangle} rect The rectangle to draw this window within.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.initMembers();
+		this.select(this.firstActionIndex());
+	}
+	/**
+	* Ensures `this._j._abs._input._actions` exists and seeds state/view bags.
+	* Also hydrates the assignable button list when empty.
+	*/
+	initMembers() {
+		this._j ||= {};
+		this._j._abs ||= {};
+		this._j._abs._input ||= {};
+		this._j._abs._input._actions ||= {};
+		const actions = this._j._abs._input._actions;
+		actions._state = {
+			_mapping: {},
+			_externalMapping: {},
+			_buttons: []
+		};
+		actions._view = { _helpWindow: null };
+		if (this.getButtons().length === 0) {
+			this.setButtons(this.buildButtonList());
+		}
+	}
+	/**
+	* Gets the current mapping being displayed.
+	* @returns {Object<string, string[]>}
+	*/
+	getMapping() {
+		return this._state()._mapping || {};
+	}
+	/**
+	* Sets the mapping to display and refreshes.
+	* @param {Object<string, string[]>} mapping The mapping to show and edit.
+	*/
+	setMapping(mapping) {
+		this._state()._mapping = mapping || {};
+		this.refresh();
+	}
+	/**
+	* Gets the external mapping reference for rows from {@link buildExternalActionCommand}.
+	* Shape: `{ [`${ns}:${key}`]: string[] }` (scene-owned; optional).
+	* @returns {Object<string, string[]>}
+	*/
+	getExternalMapping() {
+		return this._state()._externalMapping || {};
+	}
+	/**
+	* Sets the external mapping reference; scene owns lifecycle.
+	* @param {Object<string, string[]>} externalMapping The external mapping.
+	*/
+	setExternalMapping(externalMapping) {
+		this._state()._externalMapping = externalMapping || {};
+		this.refresh();
+	}
+	/**
+	* Gets the ordered list of logical action keys.
+	* @returns {string[]}
+	*/
+	getButtons() {
+		const state = this._state();
+		if (state._buttons && state._buttons.length > 0) {
+			return state._buttons;
+		}
+		return this.buildButtonList();
+	}
+	/**
+	* Sets the ordered list of logical action keys.
+	* @param {string[]} buttons The ordered list of buttons.
+	*/
+	setButtons(buttons) {
+		this._state()._buttons = Array.isArray(buttons) ? buttons.slice(0) : [];
+		this.refresh();
+	}
+	/**
+	* Gets the currently bound help window.
+	* @returns {Window_Help|null}
+	*/
+	getHelpWindow() {
+		return this._view()._helpWindow;
+	}
+	/**
+	* Sets the help window and forwards to the base implementation for linkage.
+	* @param {Window_Help} helpWindow The help window to bind.
+	*/
+	setHelpWindow(helpWindow) {
+		this._view()._helpWindow = helpWindow;
+		super.setHelpWindow(helpWindow);
+	}
+	/**
+	* Returns the current logical button at the cursor (or section / external label for headers).
+	* @returns {string}
+	*/
+	currentButton() {
+		const cmd = this.currentData();
+		if (!cmd) {
+			return String.empty;
+		}
+		if (cmd.ext && cmd.ext.kind === "header") {
+			return String(cmd.ext.label || String.empty);
+		}
+		if (cmd.ext && cmd.ext.kind === "ext-action") {
+			return String(cmd.ext.label || String.empty);
+		}
+		if (cmd.ext && cmd.ext.kind === "action") {
+			return String(cmd.ext.button || cmd.symbol || String.empty);
+		}
+		return String(cmd.symbol || String.empty);
+	}
+	/**
+	* Ensures the `_j._abs._input._actions` chain exists.
+	* Lazily mirrors ctor init so accessors stay valid when this window is touched without a full
+	* new-game init path (continued saves, aliased entry, or future scene wiring).
+	*/
+	_root() {
+		this._j ||= {};
+		this._j._abs ||= {};
+		this._j._abs._input ||= {};
+		this._j._abs._input._actions ||= {};
+	}
+	/**
+	* Lazily ensures and returns the window-local state bag.
+	* @returns {{_mapping:Object<string,string[]>, _externalMapping:Object<string, string[]>, _buttons:string[]}}
+	*/
+	_state() {
+		this._root();
+		const actions = this._j._abs._input._actions;
+		actions._state ||= {
+			_mapping: {},
+			_externalMapping: {},
+			_buttons: []
+		};
+		return actions._state;
+	}
+	/**
+	* Lazily ensures and returns the window-local view bag.
+	* @returns {{_helpWindow:Window_Help|null}}
+	*/
+	_view() {
+		this._root();
+		const actions = this._j._abs._input._actions;
+		actions._view ||= { _helpWindow: null };
+		return actions._view;
+	}
+	/**
+	* Built-in section specs (title + logical keys). Override to reorder or replace default sections.
+	* @returns {{ title: string, buttons: string[] }[]}
+	*/
+	_builtinSectionSpecs() {
+		return [
+			{
+				title: "Primary Actions",
+				buttons: [
+					JABS_Button.Mainhand,
+					JABS_Button.Offhand,
+					JABS_Button.Tool,
+					JABS_Button.Sprint
+				]
+			},
+			{
+				title: "Secondary Actions",
+				buttons: [
+					JABS_Button.SkillTrigger,
+					JABS_Button.Rotate,
+					JABS_Button.Strafe,
+					JABS_Button.Dodge
+				]
+			},
+			{
+				title: "Functional Actions",
+				buttons: [JABS_Button.Menu, JABS_Button.Select]
+			}
+		];
+	}
+	/**
+	* Appends built-in header + action rows between pre/post extension hooks.
+	* @param {BuiltWindowCommand[]} rows Accumulated rows.
+	* @param {Set<string>} can Assignable logical keys for this window.
+	*/
+	buildBuiltinActionSections(rows, can) {
+		const specs = this._builtinSectionSpecs();
+		for (let i = 0; i < specs.length; i++) {
+			const spec = specs[i];
+			rows.push(this.buildHeaderCommand(spec.title));
+			for (let j = 0; j < spec.buttons.length; j++) {
+				this._addIf(rows, can, spec.buttons[j]);
+			}
+		}
+	}
+	/**
+	* Builds the ordered list of logical actions to show.
+	* @returns {string[]}
+	*/
+	buildButtonList() {
+		return JABS_Button.assignableInputs();
+	}
+	/**
+	* Implements {@link Window_Command.prototype.makeCommandList}.
+	*/
+	makeCommandList() {
+		const commands = this.buildCommands();
+		commands.forEach(this.addBuiltCommand, this);
+	}
+	/**
+	* Builds all commands (headers + actions) for this window.
+	* @returns {BuiltWindowCommand[]}
+	*/
+	buildCommands() {
+		const can = new Set(this.getButtons());
+		const rows = [];
+		this.buildPreExtensionGroups(rows, can);
+		this.buildBuiltinActionSections(rows, can);
+		this.buildPostExtensionGroups(rows, can);
+		return rows;
+	}
+	/**
+	* Adds an action row when the logical key is assignable in this context.
+	* @param {BuiltWindowCommand[]} rows Rows being built.
+	* @param {Set<string>} can Assignable logical keys.
+	* @param {string} button Logical key.
+	*/
+	_addIf(rows, can, button) {
+		if (can.has(button)) {
+			rows.push(this.buildActionCommand(button));
+		}
+	}
+	/**
+	* Prepend custom sections before built-in groups.
+	* @param {BuiltWindowCommand[]} rows Rows being built.
+	* @param {Set<string>} can Assignable logical keys.
+	*/
+	buildPreExtensionGroups(rows, can) {}
+	/**
+	* Append custom sections after built-in groups.
+	* @param {BuiltWindowCommand[]} rows Rows being built.
+	* @param {Set<string>} can Assignable logical keys.
+	*/
+	buildPostExtensionGroups(rows, can) {}
+	/**
+	* Builds a non-interactive section header.
+	* @param {string} label Header label.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildHeaderCommand(label) {
+		return new WindowCommandBuilder(label).setSymbol(`__header__${label}`).setExtensionData({
+			kind: "header",
+			label
+		}).setEnabled(false).build();
+	}
+	/**
+	* Builds a remappable JABS logical action row.
+	* @param {string} button Logical action key.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildActionCommand(button) {
+		return new WindowCommandBuilder(this.humanizeButton(button)).setSymbol(button).setExtensionData({
+			kind: "action",
+			button
+		}).setEnabled(true).build();
+	}
+	/**
+	* Builds a row backed by {@link Input} registry keys (external namespace).
+	* @param {string} ns Namespace (e.g. `"J.MAP"`).
+	* @param {string} key Logical key within `ns`.
+	* @param {string} label Row label.
+	* @param {number} [iconIndex=0] Optional fixed left icon; 0 = derive from binding.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildExternalActionCommand(ns, key, label, iconIndex) {
+		return new WindowCommandBuilder(label).setSymbol(`__ext__${ns}:${key}`).setExtensionData({
+			kind: "ext-action",
+			ns,
+			key,
+			label,
+			icon: Number(iconIndex) || 0
+		}).setEnabled(true).build();
+	}
+	/**
+	* @param {number} index Row index.
+	*/
+	drawItem(index) {
+		const rect = this.itemRectWithPadding(index);
+		const cmd = this._list[index];
+		if (!cmd) {
+			return;
+		}
+		if (cmd.ext && cmd.ext.kind === "header") {
+			this._drawHeaderItem(rect, cmd);
+			return;
+		}
+		if (cmd.ext && cmd.ext.kind === "ext-action") {
+			this._drawExternalActionItem(rect, cmd);
+			return;
+		}
+		this._drawJabsActionItem(rect, cmd);
+	}
+	/**
+	* @param {Rectangle} rect Row rect.
+	* @param {{name:string, ext:object}} cmd Command data.
+	*/
+	_drawHeaderItem(rect, cmd) {
+		const name = cmd.name || String.empty;
+		this.changeTextColor(ColorManager.systemColor());
+		this.contents.fontBold = true;
+		this.drawText(name, rect.x, rect.y, rect.width, "center");
+		this.resetTextColor();
+		this.contents.fontBold = false;
+	}
+	/**
+	* @param {Rectangle} rect Row rect.
+	* @param {{ name:string, symbol:string, ext:object }} cmd Command data.
+	*/
+	_drawExternalActionItem(rect, cmd) {
+		const displayLabel = String(cmd.ext.label || "");
+		const combined = this.getMapping();
+		const token = String(cmd.symbol || "");
+		const hasStaged = Object.prototype.hasOwnProperty.call(combined, token);
+		const staged = hasStaged ? combined[token] : null;
+		let boundList;
+		if (staged !== null) {
+			boundList = Array.isArray(staged) ? staged : [];
+		} else {
+			boundList = Input.getBindings(cmd.ext.ns, cmd.ext.key) || [];
+		}
+		const bound = boundList.length > 0 ? boundList[0] : String.empty;
+		let leftIcon = 0;
+		if (cmd.ext.icon && cmd.ext.icon > 0) {
+			leftIcon = cmd.ext.icon;
+		}
+		this._drawActionBindingRow(rect, displayLabel, bound, leftIcon);
+	}
+	/**
+	* @param {Rectangle} rect Row rect.
+	* @param {{symbol:string}} cmd Command data.
+	*/
+	_drawJabsActionItem(rect, cmd) {
+		const button = String(cmd.symbol);
+		const mapping = this.getMapping();
+		const boundList = mapping[button] || [];
+		const bound = boundList.length > 0 ? boundList[0] : String.empty;
+		const label = this.humanizeButton(button);
+		this._drawActionBindingRow(rect, label, bound, 0);
+	}
+	/**
+	* @param {Rectangle} rect Row rect.
+	* @returns {number} Icon Y.
+	*/
+	_iconYForRect(rect) {
+		const ih = ImageManager.iconHeight;
+		return rect.y + Math.max(0, Math.floor((this.lineHeight() - ih) / 2));
+	}
+	/**
+	* @param {number} leftX Left column X.
+	* @param {number} iconY Icon Y.
+	* @param {number} iconIndex Icon index; 0 = skip icon.
+	* @param {string} label Text after optional icon.
+	* @param {Rectangle} rect Row rect.
+	* @param {number} midX Column split.
+	*/
+	_drawLeftLabelWithOptionalIcon(leftX, iconY, iconIndex, label, rect, midX) {
+		let labelX = leftX;
+		if (iconIndex > 0) {
+			this.drawIcon(iconIndex, leftX, iconY);
+			labelX += ImageManager.iconWidth + 6;
+		}
+		const leftW = Math.max(0, midX - rect.x);
+		this.drawText(label, labelX, rect.y, leftW);
+	}
+	/**
+	* Two-column row: optional fixed left icon, label, arrow, binding (with icon escapes).
+	* @param {Rectangle} rect Row rect.
+	* @param {string} label Left column label.
+	* @param {string} bound Primary physical symbol for the right column.
+	* @param {number} leftIconOverride Fixed left icon index; 0 = use {@link iconIndexForSymbol} on `bound`.
+	*/
+	_drawActionBindingRow(rect, label, bound, leftIconOverride) {
+		let iconIndex = leftIconOverride;
+		if (!(iconIndex > 0)) {
+			iconIndex = this.iconIndexForSymbol(bound);
+		}
+		const iconY = this._iconYForRect(rect);
+		const midX = rect.x + Math.floor(rect.width / 2);
+		this._drawLeftLabelWithOptionalIcon(rect.x, iconY, iconIndex, label, rect, midX);
+		this._drawArrowBetweenColumns(rect, midX);
+		const rightText = IconManager.jabsIconTextForSymbol(bound);
+		this._drawRightBindingText(rect, midX, rightText);
+	}
+	/**
+	* @param {Rectangle} rect Row rect.
+	* @param {number} midX Column split.
+	*/
+	_drawArrowBetweenColumns(rect, midX) {
+		const arrow = "→";
+		this.drawText(arrow, midX - this.textWidth(arrow), rect.y, Math.floor(rect.width / 2));
+	}
+	/**
+	* @param {Rectangle} rect Row rect.
+	* @param {number} midX Column split.
+	* @param {string} rightText Text for {@link Window_Base.prototype.drawTextEx}.
+	*/
+	_drawRightBindingText(rect, midX, rightText) {
+		const rightWidth = this.textSizeEx(rightText).width;
+		const rightX = midX + Math.floor(rect.width / 2) - rightWidth;
+		this.drawTextEx(rightText, rightX, rect.y, Math.floor(rect.width / 2));
+	}
+	/**
+	* Updates the linked help window from the current selection.
+	*/
+	updateHelp() {
+		const help = this.getHelpWindow();
+		if (!help) {
+			return;
+		}
+		const button = this.currentButton();
+		help.setText(this.describeButton(button));
+	}
+	/**
+	* Blocks OK on header rows only.
+	*/
+	processOk() {
+		const cmd = this.currentData();
+		if (!cmd) {
+			SoundManager.playBuzzer();
+			return;
+		}
+		if (cmd.ext && cmd.ext.kind === "header") {
+			SoundManager.playBuzzer();
+			return;
+		}
+		super.processOk();
+	}
+	/**
+	* Forwards to base handling and maps PageDown to the `clear` handler.
+	*/
+	processHandling() {
+		super.processHandling();
+		if (this.isOpenAndActive() && Input.isTriggered("pagedown")) {
+			this.callHandler("clear");
+		}
+	}
+	/**
+	* First enabled command index (skips disabled headers).
+	* @returns {number}
+	*/
+	firstActionIndex() {
+		for (let i = 0; i < this._list.length; i++) {
+			const cmd = this._list[i];
+			if (cmd && cmd.enabled !== false) {
+				return i;
+			}
+		}
+		return 0;
+	}
+	/**
+	* @param {string} button Logical key.
+	* @returns {string}
+	*/
+	humanizeButton(button) {
+		const { labels } = jabsRemapActionLookupMaps();
+		return labels[button] || button;
+	}
+	/**
+	* @param {string} symbol Physical symbol.
+	* @returns {number} Icon index, or 0.
+	*/
+	iconIndexForSymbol(symbol) {
+		return IconManager.jabsIconIndexForSymbol(symbol);
+	}
+	/**
+	* Help text for a header label, logical key, or external row label.
+	* @param {string} button Value from {@link currentButton}.
+	* @returns {string}
+	*/
+	describeButton(button) {
+		const header = JABS_REMAP_HEADER_HELP[button];
+		if (header) {
+			return header;
+		}
+		const { help } = jabsRemapActionLookupMaps();
+		if (help[button]) {
+			return help[button];
+		}
+		return String(button);
+	}
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/scenes/Scene_JabsRemap.js
 /**
- * Adds the JABS Controls command to the main menu.
- */
-Window_MenuCommand.prototype.addJabsRemapCommand = function()
-{
-  // build the JABS remap command.
-  const command = new WindowCommandBuilder('JABS Controls')
-    .setSymbol('jabsRemap')
-    .setIconIndex(2569)
-    .setEnabled(true)
-    .build();
-
-  // determine what the last command is.
-  const lastCommand = this._list.at(-1);
-
-  // check if the last command is the "End Game" command.
-  if (lastCommand.symbol === "gameEnd")
-  {
-    // add it before the "End Game" command.
-    this._list.splice(this._list.length - 2, 0, command);
-  }
-  // the last command is something else.
-  else
-  {
-    // just add it to the end.
-    this.addBuiltCommand(command);
-  }
+* The scene for remapping JABS inputs.
+* Owns layout, capture flow, and applying/saving mappings.
+*/
+var Scene_JabsRemap = class extends Scene_MenuBase {
+	/**
+	* Constructor.
+	*/
+	constructor() {
+		super();
+		this.initialize();
+	}
+	/**
+	* Pushes this current scene onto the stack, forcing it into action.
+	*/
+	static callScene() {
+		SceneManager.push(this);
+	}
+	/**
+	* Initializes this scene and members.
+	*/
+	initialize() {
+		super.initialize();
+		this.initMembers();
+	}
+	/**
+	* Initialize all properties required by the scene.
+	*/
+	initMembers() {
+		this.initCoreMembers();
+		this.initPrimaryMembers();
+	}
+	/**
+	* Initializes the shared root namespace for this plugin branch.
+	*/
+	initCoreMembers() {
+		/**
+		* The shared root namespace for all of J's plugin data.
+		*/
+		this._j ||= {};
+		/**
+		* A grouping of all properties associated with JABS.
+		*/
+		this._j._abs ||= {};
+		/**
+		* A grouping of all properties associated with JABS input.
+		*/
+		this._j._abs._input ||= {};
+	}
+	/**
+	* Initializes windows and state tracking for the remap scene.
+	*/
+	initPrimaryMembers() {
+		/**
+		* The collection of windows owned by this scene.
+		*/
+		this._j._abs._input._windows = {
+			_topHelp: null,
+			_actions: null,
+			_usageHelp: null,
+			_command: null,
+			_prompt: null
+		};
+		/**
+		* The state data for this scene.
+		*/
+		this._j._abs._input._state = {
+			_controllerIndex: 0,
+			_controllers: [],
+			_pendingByKey: {},
+			_isCapturing: false,
+			_capturingButton: null
+		};
+	}
+	/**
+	* Creates all display objects for this scene.
+	*/
+	create() {
+		super.create();
+		this.buildControllerList();
+		this.createDisplayObjects();
+		this.refreshAll();
+	}
+	/**
+	* Creates the display objects for this scene.
+	*/
+	createDisplayObjects() {
+		this.createAllWindows();
+	}
+	/**
+	* Creates all remap-related windows.
+	*/
+	createAllWindows() {
+		this.createTopHelpWindow();
+		this.createActionsWindow();
+		this.createUsageHelpWindow();
+		this.createCommandWindow();
+		this.createPromptWindow();
+	}
+	/**
+	* Creates the top help window that describes the selected logical action.
+	*/
+	createTopHelpWindow() {
+		const window = this.buildTopHelpWindow();
+		this.setTopHelpWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Sets up and defines the top help window.
+	* @returns {Window_Help}
+	*/
+	buildTopHelpWindow() {
+		const rectangle = this.topHelpWindowRectangle();
+		const window = new Window_Help(rectangle);
+		return window;
+	}
+	/**
+	* Gets the rectangle associated with the top help window.
+	* @returns {Rectangle}
+	*/
+	topHelpWindowRectangle() {
+		const wh = this.calcWindowHeight(1.6, true);
+		const ww = Math.floor(Graphics.boxWidth * .6);
+		const wx = Math.floor((Graphics.boxWidth - ww) / 2);
+		const wy = 0;
+		return new Rectangle(wx, wy, ww, wh);
+	}
+	/**
+	* Gets the currently tracked top help window.
+	* @returns {Window_Help}
+	*/
+	getTopHelpWindow() {
+		return this._j._abs._input._windows._topHelp;
+	}
+	/**
+	* Set the currently tracked top help window to the given window.
+	* @param {Window_Help} helpWindow The help window to track.
+	*/
+	setTopHelpWindow(helpWindow) {
+		this._j._abs._input._windows._topHelp = helpWindow;
+	}
+	/**
+	* Creates the actions list window (middle-left region).
+	*/
+	createActionsWindow() {
+		const window = this.buildActionsWindow();
+		this.setActionsWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Sets up and defines the actions window.
+	* @returns {Window_JabsRemapActions}
+	*/
+	buildActionsWindow() {
+		const rectangle = this.actionsWindowRectangle();
+		const window = new Window_JabsRemapActions(rectangle);
+		window.setHandler("ok", this.onRemapRequested.bind(this));
+		window.setHandler("clear", this.onClearBinding.bind(this));
+		window.setHandler("cancel", this.onActionsCancel.bind(this));
+		window.setHelpWindow(this.getTopHelpWindow());
+		return window;
+	}
+	/**
+	* Gets the rectangle associated with the actions window (middle-left region).
+	* @returns {Rectangle}
+	*/
+	actionsWindowRectangle() {
+		const topH = this.topHelpWindowRectangle().height;
+		const cmdH = this.commandWindowRectangle().height;
+		const wy = topH;
+		const wh = Graphics.boxHeight - topH - cmdH;
+		const groupW = Math.floor(Graphics.boxWidth * .6);
+		const groupX = Math.floor((Graphics.boxWidth - groupW) / 2);
+		const actionsW = Math.floor(groupW * .7);
+		const wx = groupX;
+		return new Rectangle(wx, wy, actionsW, wh);
+	}
+	/**
+	* Gets the currently tracked actions window.
+	* @returns {Window_JabsRemapActions}
+	*/
+	getActionsWindow() {
+		return this._j._abs._input._windows._actions;
+	}
+	/**
+	* Set the currently tracked actions window to the given window.
+	* @param {Window_JabsRemapActions} actionsWindow The actions window to track.
+	*/
+	setActionsWindow(actionsWindow) {
+		this._j._abs._input._windows._actions = actionsWindow;
+	}
+	/**
+	* Creates the right-side usage/help panel that lists scene controls.
+	*/
+	createUsageHelpWindow() {
+		const window = this.buildUsageHelpWindow();
+		this.setUsageHelpWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Sets up and defines the usage/help window.
+	* @returns {Window_JabsRemapUsageHelp}
+	*/
+	buildUsageHelpWindow() {
+		const rectangle = this.usageHelpWindowRectangle();
+		const window = new Window_JabsRemapUsageHelp(rectangle);
+		return window;
+	}
+	/**
+	* Gets the rectangle associated with the right-side usage/help window.
+	* @returns {Rectangle}
+	*/
+	usageHelpWindowRectangle() {
+		const topH = this.topHelpWindowRectangle().height;
+		const cmdH = this.commandWindowRectangle().height;
+		const wy = topH;
+		const wh = Graphics.boxHeight - topH - cmdH;
+		const groupW = Math.floor(Graphics.boxWidth * .6);
+		const groupX = Math.floor((Graphics.boxWidth - groupW) / 2);
+		const actionsW = Math.floor(groupW * .7);
+		const usageW = groupW - actionsW;
+		const wx = groupX + actionsW;
+		return new Rectangle(wx, wy, usageW, wh);
+	}
+	/**
+	* Gets the currently tracked usage/help window.
+	* @returns {Window_JabsRemapUsageHelp}
+	*/
+	getUsageHelpWindow() {
+		return this._j._abs._input._windows._usageHelp;
+	}
+	/**
+	* Set the currently tracked usage/help window to the given window.
+	* @param {Window_JabsRemapUsageHelp} helpWindow The usage/help window to track.
+	*/
+	setUsageHelpWindow(helpWindow) {
+		this._j._abs._input._windows._usageHelp = helpWindow;
+	}
+	/**
+	* Creates the bottom command window (Apply/Reset/Cancel).
+	*/
+	createCommandWindow() {
+		const window = this.buildCommandWindow();
+		this.setCommandWindow(window);
+		this.addWindow(window);
+		window.deselect();
+		window.deactivate();
+	}
+	/**
+	* Sets up and defines the command window.
+	* @returns {Window_JabsRemapCommand}
+	*/
+	buildCommandWindow() {
+		const rectangle = this.commandWindowRectangle();
+		const window = new Window_JabsRemapCommand(rectangle);
+		window.setHandler("apply", this.onApply.bind(this));
+		window.setHandler("defaults", this.onDefaults.bind(this));
+		window.setHandler("reset", this.onReset.bind(this));
+		window.setHandler("cancel", this.popScene.bind(this));
+		return window;
+	}
+	/**
+	* Gets the rectangle associated with the command window.
+	* @returns {Rectangle}
+	*/
+	commandWindowRectangle() {
+		const wh = this.calcWindowHeight(4, true);
+		const ww = Math.floor(Graphics.boxWidth * .25);
+		const wx = Math.floor((Graphics.boxWidth - ww) / 2);
+		const wy = Graphics.boxHeight - wh;
+		return new Rectangle(wx, wy, ww, wh);
+	}
+	/**
+	* Gets the currently tracked command window.
+	* @returns {Window_JabsRemapCommand}
+	*/
+	getCommandWindow() {
+		return this._j._abs._input._windows._command;
+	}
+	/**
+	* Set the currently tracked command window to the given window.
+	* @param {Window_JabsRemapCommand} commandWindow The command window to track.
+	*/
+	setCommandWindow(commandWindow) {
+		this._j._abs._input._windows._command = commandWindow;
+	}
+	/**
+	* Creates the capture prompt overlay window.
+	*/
+	createPromptWindow() {
+		const window = this.buildPromptWindow();
+		this.setPromptWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Sets up and defines the prompt overlay window.
+	* @returns {Window_JabsRemapPrompt}
+	*/
+	buildPromptWindow() {
+		const rectangle = this.promptWindowRectangle();
+		const window = new Window_JabsRemapPrompt(rectangle);
+		window.hide();
+		return window;
+	}
+	/**
+	* Gets the rectangle associated with the prompt overlay window.
+	* @returns {Rectangle}
+	*/
+	promptWindowRectangle() {
+		return new Rectangle(0, 0, Graphics.boxWidth, Graphics.boxHeight);
+	}
+	/**
+	* Gets the currently tracked prompt overlay window.
+	* @returns {Window_JabsRemapPrompt}
+	*/
+	getPromptWindow() {
+		return this._j._abs._input._windows._prompt;
+	}
+	/**
+	* Set the currently tracked prompt overlay window to the given window.
+	* @param {Window_JabsRemapPrompt} promptWindow The prompt window to track.
+	*/
+	setPromptWindow(promptWindow) {
+		this._j._abs._input._windows._prompt = promptWindow;
+	}
+	/**
+	* Builds the controller list from the adapter and snapshots as pending.
+	*/
+	buildControllerList() {
+		const all = JABS_InputAdapter.getAllControllers();
+		const controllers = all.length > 0 ? [all[0]] : [];
+		this.setControllers(controllers);
+		for (let i = 0; i < controllers.length; i++) {
+			const key = this.resolveControllerKey(i);
+			const exportMap = controllers[i].exportAllInputs();
+			const normalized = {};
+			Object.keys(exportMap).forEach((k) => {
+				const v = exportMap[k];
+				if (Array.isArray(v)) {
+					normalized[k] = v.slice(0);
+				} else if (v) {
+					normalized[k] = [v];
+				} else {
+					normalized[k] = [];
+				}
+			});
+			this._state()._pendingByKey[key] = normalized;
+		}
+	}
+	/**
+	* Resolves the stored-key for a controller index.
+	* @param {number} index The adapter index for the controller.
+	* @returns {string} The key in the form of player{n}.
+	*/
+	resolveControllerKey(index) {
+		return `player${index + 1}`;
+	}
+	/**
+	* Refreshes all windows for the current controller.
+	*/
+	refreshAll() {
+		const combined = this.buildDisplayMapping();
+		this.getActionsWindow().setMapping(combined);
+		this.getActionsWindow().activate();
+		this.getCommandWindow().deactivate();
+	}
+	/**
+	* Builds a combined display mapping for the actions window.
+	* Combines the current controller’s pending JABS mapping with staged external rows.
+	* External rows are keyed as tokens: "__ext__<ns>:<key>" → string[].
+	* @returns {Object<string, string[]>}
+	*/
+	buildDisplayMapping() {
+		const base = this.currentPendingMapping() || {};
+		const combined = {};
+		Object.keys(base).forEach((button) => {
+			const list = base[button];
+			combined[button] = Array.isArray(list) ? list.slice(0) : [];
+		});
+		const ext = this.getPendingExternal();
+		const extKeys = Object.keys(ext);
+		for (let i = 0; i < extKeys.length; i++) {
+			const compound = extKeys[i];
+			const arr = ext[compound];
+			combined[`__ext__${compound}`] = Array.isArray(arr) ? arr.slice(0) : [];
+		}
+		return combined;
+	}
+	/**
+	* Gets the pending mapping object for the current controller.
+	* @returns {Object<string, string[]>}
+	*/
+	currentPendingMapping() {
+		const key = this.resolveControllerKey(this._state()._controllerIndex);
+		return this._state()._pendingByKey[key];
+	}
+	/**
+	* Ensures at most one logical action holds a given symbol across the mapping.
+	* The first key visited in {@link JABS_Button.assignableInputs} / {@link JABS_Button.allButtons}
+	* order keeps the symbol; later duplicates are cleared.
+	* @param {Object<string, string[]>} mapping The mapping to sanitize.
+	*/
+	sanitizeMappingUnique(mapping) {
+		const ownerBySymbol = {};
+		const visit = (button) => {
+			const list = mapping[button] || [];
+			if (list.length === 0) {
+				return;
+			}
+			const [symbol] = list;
+			if (!ownerBySymbol[symbol]) {
+				ownerBySymbol[symbol] = button;
+				return;
+			}
+			mapping[button] = [];
+		};
+		const seen = new Set();
+		const assignable = JABS_Button.assignableInputs();
+		for (let i = 0; i < assignable.length; i++) {
+			const button = assignable[i];
+			if (Object.prototype.hasOwnProperty.call(mapping, button)) {
+				visit(button);
+				seen.add(button);
+			}
+		}
+		const all = JABS_Button.allButtons();
+		for (let i = 0; i < all.length; i++) {
+			const button = all[i];
+			if (seen.has(button)) {
+				continue;
+			}
+			if (Object.prototype.hasOwnProperty.call(mapping, button)) {
+				visit(button);
+				seen.add(button);
+			}
+		}
+		const keys = Object.keys(mapping);
+		for (let i = 0; i < keys.length; i++) {
+			const button = keys[i];
+			if (seen.has(button)) {
+				continue;
+			}
+			visit(button);
+		}
+	}
+	/**
+	* Copies a controller-style mapping into {@link Input} namespace `JABS` so saves and registry UIs match gameplay.
+	* @param {Object<string, string|string[]>} mapping Logical JABS keys to physical symbol(s).
+	*/
+	syncJabsInputRegistryFromControllerMapping(mapping) {
+		const keys = Object.keys(mapping);
+		for (let i = 0; i < keys.length; i++) {
+			const logicalKey = keys[i];
+			const raw = mapping[logicalKey];
+			let arr;
+			if (Array.isArray(raw)) {
+				arr = raw.slice(0);
+			} else if (raw) {
+				arr = [raw];
+			} else {
+				arr = [];
+			}
+			Input.setBindings("JABS", logicalKey, arr);
+		}
+	}
+	/**
+	* Handler when Apply is chosen.
+	*/
+	onApply() {
+		const controllers = this._state()._controllers;
+		for (let i = 0; i < controllers.length; i++) {
+			const controller = controllers[i];
+			const key = this.resolveControllerKey(i);
+			const mapping = this._state()._pendingByKey[key];
+			this.sanitizeMappingUnique(mapping);
+			controller.setAllInputs(mapping);
+			$gameSystem.setJabsInputConfig(key, mapping);
+			this.syncJabsInputRegistryFromControllerMapping(mapping);
+		}
+		this.flushPendingExternalBindings();
+		SceneManager.pop();
+	}
+	/**
+	* Replaces the pending map with the controller’s defaults (preview),
+	* without applying to the live controller or saving.
+	*/
+	onDefaults() {
+		const idx = this._state()._controllerIndex;
+		const key = this.resolveControllerKey(idx);
+		const controller = this._state()._controllers[idx];
+		const defaults = controller.buildDefaultMapping();
+		this._state()._pendingByKey[key] = defaults;
+		this.getActionsWindow().setMapping(this.buildDisplayMapping());
+		this.onActionsCancel();
+		this.getCommandWindow().deactivate();
+		this.getActionsWindow().activate();
+	}
+	/**
+	* Handler when Reset is chosen.
+	*/
+	onReset() {
+		this.buildControllerList();
+		this.refreshAll();
+	}
+	/**
+	* Handler when the action list cancels.
+	* Switch focus to the bottom command strip.
+	*/
+	onActionsCancel() {
+		this.getActionsWindow().deactivate();
+		this.getCommandWindow().select(0);
+		this.getCommandWindow().activate();
+	}
+	/**
+	* Begins a capture for the currently selected logical action.
+	*/
+	onRemapRequested() {
+		const cmd = this.getActionsWindow().currentData();
+		if (cmd && cmd.ext && cmd.ext.kind === "ext-action") {
+			const token = `__ext__${cmd.ext.ns}:${cmd.ext.key}`;
+			this._state()._capturingButton = token;
+			this._state()._isCapturing = true;
+			this.getPromptWindow().startPrompt(String(cmd.ext.label || String.empty));
+			this.getCommandWindow().deactivate();
+			this.getActionsWindow().deactivate();
+			return;
+		}
+		const button = this.getActionsWindow().currentButton();
+		this.beginCapture(button);
+	}
+	/**
+	* Clears the binding for the selected logical action.
+	*/
+	onClearBinding() {
+		const cmd = this.getActionsWindow().currentData();
+		if (cmd && cmd.ext && cmd.ext.kind === "ext-action") {
+			this.setPendingExternalBinding(cmd.ext.ns, cmd.ext.key, []);
+			this.getActionsWindow().setMapping(this.buildDisplayMapping());
+			return;
+		}
+		const button = this.getActionsWindow().currentButton();
+		const pending = this.currentPendingMapping();
+		pending[button] = [];
+		this.getActionsWindow().setMapping(this.buildDisplayMapping());
+	}
+	/**
+	* Begins the capture overlay for a logical action.
+	* @param {string} button The logical action to capture for.
+	*/
+	beginCapture(button) {
+		this._state()._capturingButton = button;
+		this._state()._isCapturing = true;
+		const promptLabel = this.getActionsWindow().humanizeButton(button);
+		this.getPromptWindow().startPrompt(promptLabel);
+		this.getCommandWindow().deactivate();
+		this.getActionsWindow().deactivate();
+	}
+	/**
+	* Ends the capture overlay.
+	*/
+	endCapture() {
+		this._state()._isCapturing = false;
+		this._state()._capturingButton = null;
+		this.getPromptWindow().endPrompt();
+		this.getActionsWindow().activate();
+	}
+	/**
+	* Removes a symbol from all actions in the provided mapping, except for one.
+	* @param {Object<string, string[]>} mapping The mapping to sanitize.
+	* @param {string} symbol The physical input symbol to remove.
+	* @param {string} exceptButton The logical action to exclude from removal.
+	*/
+	unbindSymbolFromMapping(mapping, symbol, exceptButton) {
+		Object.keys(mapping).forEach((key) => {
+			if (key === exceptButton) return;
+			const list = mapping[key] || [];
+			if (!list.length) return;
+			const filtered = list.filter((s) => s !== symbol);
+			if (filtered.length !== list.length) {
+				mapping[key] = filtered;
+			}
+		});
+	}
+	/**
+	* Assigns a symbol to the given logical action while enforcing uniqueness.
+	* If external, writes into the scene’s pending external map (not live Input).
+	* Live Input registry is only updated on Apply.
+	* @param {string} button The logical action receiving the new binding, or an external token.
+	* @param {string} symbol The physical input symbol to assign.
+	*/
+	assignWithConflictResolution(button, symbol) {
+		if (typeof button === "string" && button.indexOf("__ext__") === 0) {
+			const without = button.substring("__ext__".length);
+			const splitAt = without.indexOf(":");
+			if (splitAt > 0) {
+				const ns = without.substring(0, splitAt);
+				const key = without.substring(splitAt + 1);
+				this.setPendingExternalBinding(ns, key, [symbol]);
+				this.getActionsWindow().setMapping(this.buildDisplayMapping());
+				return;
+			}
+		}
+		const pending = this.currentPendingMapping();
+		this.unbindSymbolFromMapping(pending, symbol, button);
+		pending[button] = [symbol];
+		this.getActionsWindow().setMapping(this.buildDisplayMapping());
+	}
+	/**
+	* Gets (and initializes) the pending external bindings map for this scene.
+	* Map shape: { 'ns:key': string[] }
+	* @returns {Object<string, string[]>}
+	*/
+	getPendingExternal() {
+		const state = this._state();
+		state._pendingExternal ||= {};
+		return state._pendingExternal;
+	}
+	/**
+	* Reads a staged binding array for an external action if present; otherwise null.
+	* @param {string} ns The namespace, such as 'J.MAP'.
+	* @param {string} key The logical key within that namespace.
+	* @returns {string[]|null}
+	*/
+	getPendingExternalBinding(ns, key) {
+		const compound = `${ns}:${key}`;
+		const map = this.getPendingExternal();
+		return Object.prototype.hasOwnProperty.call(map, compound) ? map[compound] : null;
+	}
+	/**
+	* Stages a binding array for an external logical action.
+	* @param {string} ns The namespace, such as 'J.MAP'.
+	* @param {string} key The logical key within that namespace.
+	* @param {string[]} physical The array of physical symbols to stage.
+	*/
+	setPendingExternalBinding(ns, key, physical) {
+		const compound = `${ns}:${key}`;
+		this.getPendingExternal()[compound] = Array.isArray(physical) ? physical.slice(0) : [];
+	}
+	/**
+	* Writes all staged external bindings into the live Input registry and clears the stage.
+	*/
+	flushPendingExternalBindings() {
+		const map = this.getPendingExternal();
+		Object.keys(map).forEach((compound) => {
+			const splitAt = compound.indexOf(":");
+			if (splitAt <= 0) {
+				return;
+			}
+			const ns = compound.substring(0, splitAt);
+			const key = compound.substring(splitAt + 1);
+			const physical = map[compound] || [];
+			Input.setBindings(ns, key, physical);
+		});
+		$gameSystem.saveAllInputBindingsFromInput();
+		this._state()._pendingExternal = {};
+		this.getActionsWindow().setMapping(this.buildDisplayMapping());
+	}
+	/**
+	* Standard per-frame update.
+	*/
+	update() {
+		super.update();
+		if (this._state()._isCapturing === false) {
+			return;
+		}
+		const captured = this.getPromptWindow().pollCapturedSymbol();
+		if (!captured) {
+			if (this.getPromptWindow().isActive() === false) {
+				this.endCapture();
+			}
+			return;
+		}
+		this.assignWithConflictResolution(this._state()._capturingButton, captured);
+		this.endCapture();
+	}
+	/**
+	* Convenience accessor for the scene state object.
+	*/
+	_state() {
+		return this._j._abs._input._state;
+	}
+	/**
+	* Sets the controller collection being edited.
+	* @param {Object[]} controllers The list of controllers.
+	*/
+	setControllers(controllers) {
+		this._state()._controllers = controllers;
+	}
 };
 
+//#endregion
+//#region src/plugins/abs/ext/input/scenes/Scene_Menu.js
 /**
- * Determines whether or not the JABS Controls command can be added to the main menu.
- * @returns {boolean} True if the command should be added, false otherwise.
- */
-Window_MenuCommand.prototype.canAddJabsRemapCommand = function()
-{
-  // if JABS is not present, then do not render this command.
-  if (!J.ABS) return false;
-
-  // render the command!
-  return true;
+* Extends {@link #createCommandWindow}.<br/>
+* Also wires the handler for opening the JABS input remapping scene.
+*/
+J.ABS.EXT.INPUT.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
+Scene_Menu.prototype.createCommandWindow = function() {
+	J.ABS.EXT.INPUT.Aliased.Scene_Menu.get("createCommandWindow").call(this);
+	this._commandWindow.setHandler("jabsRemap", () => {
+		SceneManager.push(Scene_JabsRemap);
+	});
 };
-//endregion Window_MenuCommand
 
-//region Window_Selectable
+//#endregion
+//#region src/plugins/abs/ext/input/windows/Window_MenuCommand.js
 /**
- * Extends {@link #processCursorMove}.<br/>
- * Also recognizes custom D-Pad symbols for menu navigation.
- */
-J.ABS.EXT.INPUT.Aliased.Window_Selectable.set('processCursorMove', Window_Selectable.prototype.processCursorMove,);
-Window_Selectable.prototype.processCursorMove = function()
-{
-  // preserve the current index before movement.
-  const lastIndex = this.index();
-
-  // perform the original logic (stock up/down/left/right + analog, etc.).
-  J.ABS.EXT.INPUT.Aliased.Window_Selectable.get("processCursorMove").call(this);
-
-  // if the index changed, the original already handled input; exit.
-  if (this.index() !== lastIndex)
-  {
-    return;
-  }
-
-  // if this window cannot move the cursor, then do nothing further.
-  if (this.isCursorMovable() === false)
-  {
-    return;
-  }
-
-  // check repeat state for each direction using the custom D-Pad symbols.
-  const repDown = Input.isRepeated(J.ABS.EXT.INPUT.Symbols.DPadDown);
-  const repUp = Input.isRepeated(J.ABS.EXT.INPUT.Symbols.DPadUp);
-  const repRight = Input.isRepeated(J.ABS.EXT.INPUT.Symbols.DPadRight);
-  const repLeft = Input.isRepeated(J.ABS.EXT.INPUT.Symbols.DPadLeft);
-
-  // if none are repeating, then there is nothing to do.
-  if (repDown === false && repUp === false && repRight === false && repLeft === false)
-  {
-    return;
-  }
-
-  // check triggered state to maintain wrap behavior parity with stock logic.
-  const trgDown = Input.isTriggered(J.ABS.EXT.INPUT.Symbols.DPadDown);
-  const trgUp = Input.isTriggered(J.ABS.EXT.INPUT.Symbols.DPadUp);
-  const trgRight = Input.isTriggered(J.ABS.EXT.INPUT.Symbols.DPadRight);
-  const trgLeft = Input.isTriggered(J.ABS.EXT.INPUT.Symbols.DPadLeft);
-
-  // process movement using the same directional ordering as the engine.
-  if (repDown)
-  {
-    // move down; wrap if freshly triggered.
-    this.cursorDown(trgDown);
-  }
-  else if (repUp)
-  {
-    // move up; wrap if freshly triggered.
-    this.cursorUp(trgUp);
-  }
-  else if (repRight)
-  {
-    // move right; wrap if freshly triggered.
-    this.cursorRight(trgRight);
-  }
-  else if (repLeft)
-  {
-    // move left; wrap if freshly triggered.
-    this.cursorLeft(trgLeft);
-  }
-
-  // if movement occurred, play the cursor sound to mirror stock behavior.
-  if (this.index() !== lastIndex)
-  {
-    SoundManager.playCursor();
-  }
+* Extends {@link #addOriginalCommands}.<br/>
+* Also adds a command to open the JABS input remapping scene from the main menu.
+*/
+J.ABS.EXT.INPUT.Aliased.Window_MenuCommand.set("addOriginalCommands", Window_MenuCommand.prototype.addOriginalCommands);
+Window_MenuCommand.prototype.addOriginalCommands = function() {
+	J.ABS.EXT.INPUT.Aliased.Window_MenuCommand.get("addOriginalCommands").call(this);
+	if (this.canAddJabsRemapCommand() === false) return;
+	this.addJabsRemapCommand();
 };
-//endregion Window_Selectable
+/**
+* Adds the JABS Controls command to the main menu.
+*/
+Window_MenuCommand.prototype.addJabsRemapCommand = function() {
+	const command = new WindowCommandBuilder("JABS Controls").setSymbol("jabsRemap").setIconIndex(2569).setEnabled(true).build();
+	const lastCommand = this._list.at(-1);
+	if (lastCommand.symbol === "gameEnd") {
+		this._list.splice(this._list.length - 2, 0, command);
+	} else {
+		this.addBuiltCommand(command);
+	}
+};
+/**
+* Determines whether or not the JABS Controls command can be added to the main menu.
+* @returns {boolean} True if the command should be added, false otherwise.
+*/
+Window_MenuCommand.prototype.canAddJabsRemapCommand = function() {
+	if (!J.ABS) return false;
+	return true;
+};
 
+//#endregion
+//#region src/plugins/abs/ext/input/windows/Window_Selectable.js
+/**
+* Extends {@link #processCursorMove}.<br/>
+* Also recognizes custom D-Pad symbols for menu navigation.
+*/
+J.ABS.EXT.INPUT.Aliased.Window_Selectable.set("processCursorMove", Window_Selectable.prototype.processCursorMove);
+Window_Selectable.prototype.processCursorMove = function() {
+	const lastIndex = this.index();
+	J.ABS.EXT.INPUT.Aliased.Window_Selectable.get("processCursorMove").call(this);
+	if (this.index() !== lastIndex) {
+		return;
+	}
+	if (this.isCursorMovable() === false) {
+		return;
+	}
+	const repDown = Input.isRepeated(J.ABS.EXT.INPUT.Symbols.DPadDown);
+	const repUp = Input.isRepeated(J.ABS.EXT.INPUT.Symbols.DPadUp);
+	const repRight = Input.isRepeated(J.ABS.EXT.INPUT.Symbols.DPadRight);
+	const repLeft = Input.isRepeated(J.ABS.EXT.INPUT.Symbols.DPadLeft);
+	if (repDown === false && repUp === false && repRight === false && repLeft === false) {
+		return;
+	}
+	const trgDown = Input.isTriggered(J.ABS.EXT.INPUT.Symbols.DPadDown);
+	const trgUp = Input.isTriggered(J.ABS.EXT.INPUT.Symbols.DPadUp);
+	const trgRight = Input.isTriggered(J.ABS.EXT.INPUT.Symbols.DPadRight);
+	const trgLeft = Input.isTriggered(J.ABS.EXT.INPUT.Symbols.DPadLeft);
+	if (repDown) {
+		this.cursorDown(trgDown);
+	} else if (repUp) {
+		this.cursorUp(trgUp);
+	} else if (repRight) {
+		this.cursorRight(trgRight);
+	} else if (repLeft) {
+		this.cursorLeft(trgLeft);
+	}
+	if (this.index() !== lastIndex) {
+		SoundManager.playCursor();
+	}
+};
+
+//#endregion
 //# sourceMappingURL=J-ABS-InputManager.js.map
