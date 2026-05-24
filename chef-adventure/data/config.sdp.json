@@ -154,19 +154,19 @@
       ],
       "panelRewards": [
         {
-          "rewardName": "get munny 💰",
+          "rewardName": "+123456 Gold",
           "rankRequired": -1,
-          "effect": "$gameParty.gainGold(123456);\r\n"
+          "effect": "$gameParty.gainGold(123456)"
         },
         {
-          "rewardName": "Find: \\Weapon[98]x1",
+          "rewardName": "Gain Weapon: \\weapon[98]",
           "rankRequired": 5,
-          "effect": "$gameParty.gainItem($dataWeapons.at(98), 1, true);"
+          "effect": "$gameParty.gainItem($dataWeapons[98], 1)"
         },
         {
-          "rewardName": "Unlock: \\sdp[DRG_1]",
+          "rewardName": "Unlock SDP: \\sdp[DRG_1]",
           "rankRequired": 0,
-          "effect": "a.unlockSdpByKey(\"DRG_1\");"
+          "effect": "a.unlockSdpByKey('DRG_1')"
         }
       ],
       "rarity": 1
@@ -1921,8 +1921,8 @@
       "rarity": 5
     },
     {
-      "key": "REB___",
       "name": "==REBORN==",
+      "key": "REB___",
       "iconIndex": -1,
       "unlockedByDefault": false,
       "description": "The best panel ever, hands down. You only need to acquire it somehow!",
@@ -2053,9 +2053,9 @@
         },
         {
           "parameterId": 1,
-          "isCore": false,
+          "perRank": 30,
           "isFlat": true,
-          "perRank": 30
+          "isCore": false
         },
         {
           "parameterId": 5,
@@ -2071,9 +2071,9 @@
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3,
           "isFlat": true,
-          "perRank": 3
+          "isCore": false
         },
         {
           "parameterId": 24,
@@ -2111,9 +2111,9 @@
         },
         {
           "parameterId": 1,
-          "isCore": false,
+          "perRank": 31.8,
           "isFlat": true,
-          "perRank": 31.8
+          "isCore": false
         },
         {
           "parameterId": 5,
@@ -2129,9 +2129,9 @@
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.18,
           "isFlat": true,
-          "perRank": 3.18
+          "isCore": false
         },
         {
           "parameterId": 24,
@@ -2169,9 +2169,9 @@
         },
         {
           "parameterId": 1,
-          "isCore": false,
+          "perRank": 33.6,
           "isFlat": true,
-          "perRank": 33.6
+          "isCore": false
         },
         {
           "parameterId": 5,
@@ -2187,9 +2187,9 @@
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.36,
           "isFlat": true,
-          "perRank": 3.36
+          "isCore": false
         },
         {
           "parameterId": 24,
@@ -2227,9 +2227,9 @@
         },
         {
           "parameterId": 1,
-          "isCore": false,
+          "perRank": 35.28,
           "isFlat": true,
-          "perRank": 35.28
+          "isCore": false
         },
         {
           "parameterId": 5,
@@ -2245,9 +2245,9 @@
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.53,
           "isFlat": true,
-          "perRank": 3.53
+          "isCore": false
         },
         {
           "parameterId": 24,
@@ -2285,9 +2285,9 @@
         },
         {
           "parameterId": 1,
-          "isCore": false,
+          "perRank": 37.04,
           "isFlat": true,
-          "perRank": 37.04
+          "isCore": false
         },
         {
           "parameterId": 5,
@@ -2303,9 +2303,9 @@
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.71,
           "isFlat": true,
-          "perRank": 3.71
+          "isCore": false
         },
         {
           "parameterId": 24,
@@ -2343,9 +2343,9 @@
         },
         {
           "parameterId": 1,
-          "isCore": false,
+          "perRank": 38.89,
           "isFlat": true,
-          "perRank": 38.89
+          "isCore": false
         },
         {
           "parameterId": 5,
@@ -2361,9 +2361,9 @@
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.9,
           "isFlat": true,
-          "perRank": 3.9
+          "isCore": false
         },
         {
           "parameterId": 24,
@@ -2401,9 +2401,9 @@
         },
         {
           "parameterId": 1,
-          "isCore": false,
+          "perRank": 40.83,
           "isFlat": true,
-          "perRank": 40.83
+          "isCore": false
         },
         {
           "parameterId": 5,
@@ -2419,9 +2419,9 @@
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 4.1,
           "isFlat": true,
-          "perRank": 4.1
+          "isCore": false
         },
         {
           "parameterId": 24,
@@ -2459,9 +2459,9 @@
         },
         {
           "parameterId": 1,
-          "isCore": false,
+          "perRank": 42.87,
           "isFlat": true,
-          "perRank": 42.87
+          "isCore": false
         },
         {
           "parameterId": 5,
@@ -2477,9 +2477,9 @@
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 4.31,
           "isFlat": true,
-          "perRank": 4.31
+          "isCore": false
         },
         {
           "parameterId": 24,
@@ -3070,7 +3070,7 @@
       "rarity": 2
     },
     {
-      "name": "Acting Marrow Merger & Acquisition",
+      "name": "Acting Marrow Merger \u0026 Acquisition",
       "key": "BON_5",
       "iconIndex": 298,
       "unlockedByDefault": false,
@@ -3300,7 +3300,7 @@
       "rarity": 2
     },
     {
-      "name": "Marrow Merger & Acquisition",
+      "name": "Marrow Merger \u0026 Acquisition",
       "key": "BON_10",
       "iconIndex": 298,
       "unlockedByDefault": false,
@@ -4621,33 +4621,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 4,
           "isFlat": true,
-          "perRank": 4
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 2,
           "isFlat": true,
-          "perRank": 2
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 30,
           "isFlat": true,
-          "perRank": 30
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 2.5,
           "isFlat": true,
-          "perRank": 2.5
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 1.5,
           "isFlat": true,
-          "perRank": 1.5
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -4667,33 +4667,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 4.24,
           "isFlat": true,
-          "perRank": 4.24
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 2.12,
           "isFlat": true,
-          "perRank": 2.12
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 31.8,
           "isFlat": true,
-          "perRank": 31.8
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 2.65,
           "isFlat": true,
-          "perRank": 2.65
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 1.59,
           "isFlat": true,
-          "perRank": 1.59
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -4713,33 +4713,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 4.48,
           "isFlat": true,
-          "perRank": 4.48
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 2.24,
           "isFlat": true,
-          "perRank": 2.24
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 33.6,
           "isFlat": true,
-          "perRank": 33.6
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 2.8,
           "isFlat": true,
-          "perRank": 2.8
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 1.68,
           "isFlat": true,
-          "perRank": 1.68
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -4759,33 +4759,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 4.72,
           "isFlat": true,
-          "perRank": 4.72
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 2.36,
           "isFlat": true,
-          "perRank": 2.36
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 35.4,
           "isFlat": true,
-          "perRank": 35.4
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 2.95,
           "isFlat": true,
-          "perRank": 2.95
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 1.77,
           "isFlat": true,
-          "perRank": 1.77
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -4805,33 +4805,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 4.96,
           "isFlat": true,
-          "perRank": 4.96
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 2.48,
           "isFlat": true,
-          "perRank": 2.48
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 37.2,
           "isFlat": true,
-          "perRank": 37.2
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.1,
           "isFlat": true,
-          "perRank": 3.1
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 1.86,
           "isFlat": true,
-          "perRank": 1.86
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -4851,33 +4851,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 5.21,
           "isFlat": true,
-          "perRank": 5.21
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 2.6,
           "isFlat": true,
-          "perRank": 2.6
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 39.06,
           "isFlat": true,
-          "perRank": 39.06
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.26,
           "isFlat": true,
-          "perRank": 3.26
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 1.95,
           "isFlat": true,
-          "perRank": 1.95
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -4897,33 +4897,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 5.47,
           "isFlat": true,
-          "perRank": 5.47
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 2.73,
           "isFlat": true,
-          "perRank": 2.73
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 41.01,
           "isFlat": true,
-          "perRank": 41.01
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.42,
           "isFlat": true,
-          "perRank": 3.42
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 2.05,
           "isFlat": true,
-          "perRank": 2.05
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -4943,33 +4943,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 5.74,
           "isFlat": true,
-          "perRank": 5.74
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 2.87,
           "isFlat": true,
-          "perRank": 2.87
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 43.06,
           "isFlat": true,
-          "perRank": 43.06
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.59,
           "isFlat": true,
-          "perRank": 3.59
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 2.15,
           "isFlat": true,
-          "perRank": 2.15
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -4989,33 +4989,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 6.03,
           "isFlat": true,
-          "perRank": 6.03
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 3.01,
           "isFlat": true,
-          "perRank": 3.01
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 45.21,
           "isFlat": true,
-          "perRank": 45.21
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.77,
           "isFlat": true,
-          "perRank": 3.77
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 2.26,
           "isFlat": true,
-          "perRank": 2.26
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -5035,33 +5035,33 @@
       "panelParameters": [
         {
           "parameterId": 3,
-          "isCore": true,
+          "perRank": 6.33,
           "isFlat": true,
-          "perRank": 6.33
+          "isCore": true
         },
         {
           "parameterId": 18,
-          "isCore": true,
+          "perRank": 3.16,
           "isFlat": true,
-          "perRank": 3.16
+          "isCore": true
         },
         {
           "parameterId": 0,
-          "isCore": false,
+          "perRank": 47.47,
           "isFlat": true,
-          "perRank": 47.47
+          "isCore": false
         },
         {
           "parameterId": 19,
-          "isCore": false,
+          "perRank": 3.96,
           "isFlat": true,
-          "perRank": 3.96
+          "isCore": false
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 2.37,
           "isFlat": true,
-          "perRank": 2.37
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -9560,7 +9560,7 @@
       "rarity": 4
     },
     {
-      "name": "Field Cap & Trade Spores",
+      "name": "Field Cap \u0026 Trade Spores",
       "key": "FUN_3",
       "iconIndex": 2320,
       "unlockedByDefault": false,
@@ -9850,7 +9850,7 @@
       "rarity": 4
     },
     {
-      "name": "Cap & Trade Spores",
+      "name": "Cap \u0026 Trade Spores",
       "key": "FUN_8",
       "iconIndex": 2320,
       "unlockedByDefault": false,
@@ -10122,15 +10122,15 @@
         },
         {
           "parameterId": 18,
-          "isCore": false,
+          "perRank": -0.5,
           "isFlat": true,
-          "perRank": -0.5
+          "isCore": false
         },
         {
           "parameterId": 25,
-          "isCore": false,
+          "perRank": -0.5,
           "isFlat": true,
-          "perRank": -0.5
+          "isCore": false
         }
       ],
       "panelRewards": [
@@ -10180,15 +10180,15 @@
         },
         {
           "parameterId": 18,
-          "isCore": false,
+          "perRank": -0.5,
           "isFlat": true,
-          "perRank": -0.5
+          "isCore": false
         },
         {
           "parameterId": 25,
-          "isCore": false,
+          "perRank": -0.5,
           "isFlat": true,
-          "perRank": -0.5
+          "isCore": false
         }
       ],
       "panelRewards": [
@@ -10238,15 +10238,15 @@
         },
         {
           "parameterId": 18,
-          "isCore": false,
+          "perRank": -0.53,
           "isFlat": true,
-          "perRank": -0.53
+          "isCore": false
         },
         {
           "parameterId": 25,
-          "isCore": false,
+          "perRank": -0.53,
           "isFlat": true,
-          "perRank": -0.53
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -10290,15 +10290,15 @@
         },
         {
           "parameterId": 18,
-          "isCore": false,
+          "perRank": -0.56,
           "isFlat": true,
-          "perRank": -0.56
+          "isCore": false
         },
         {
           "parameterId": 25,
-          "isCore": false,
+          "perRank": -0.56,
           "isFlat": true,
-          "perRank": -0.56
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -10342,15 +10342,15 @@
         },
         {
           "parameterId": 18,
-          "isCore": false,
+          "perRank": -0.59,
           "isFlat": true,
-          "perRank": -0.59
+          "isCore": false
         },
         {
           "parameterId": 25,
-          "isCore": false,
+          "perRank": -0.59,
           "isFlat": true,
-          "perRank": -0.59
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -10394,15 +10394,15 @@
         },
         {
           "parameterId": 18,
-          "isCore": false,
+          "perRank": -0.62,
           "isFlat": true,
-          "perRank": -0.62
+          "isCore": false
         },
         {
           "parameterId": 25,
-          "isCore": false,
+          "perRank": -0.62,
           "isFlat": true,
-          "perRank": -0.62
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -10446,15 +10446,15 @@
         },
         {
           "parameterId": 18,
-          "isCore": false,
+          "perRank": -0.65,
           "isFlat": true,
-          "perRank": -0.65
+          "isCore": false
         },
         {
           "parameterId": 25,
-          "isCore": false,
+          "perRank": -0.65,
           "isFlat": true,
-          "perRank": -0.65
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -10498,15 +10498,15 @@
         },
         {
           "parameterId": 18,
-          "isCore": false,
+          "perRank": -0.68,
           "isFlat": true,
-          "perRank": -0.68
+          "isCore": false
         },
         {
           "parameterId": 25,
-          "isCore": false,
+          "perRank": -0.68,
           "isFlat": true,
-          "perRank": -0.68
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -10550,15 +10550,15 @@
         },
         {
           "parameterId": 18,
-          "isCore": false,
+          "perRank": -0.71,
           "isFlat": true,
-          "perRank": -0.71
+          "isCore": false
         },
         {
           "parameterId": 25,
-          "isCore": false,
+          "perRank": -0.71,
           "isFlat": true,
-          "perRank": -0.71
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -12007,7 +12007,7 @@
       "rarity": 1
     },
     {
-      "name": "Talons & Conditions",
+      "name": "Talons \u0026 Conditions",
       "key": "BEK_6",
       "iconIndex": 0,
       "unlockedByDefault": false,
@@ -15066,9 +15066,9 @@
         },
         {
           "parameterId": 26,
-          "isCore": false,
+          "perRank": -0.5,
           "isFlat": true,
-          "perRank": -0.5
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -15283,7 +15283,7 @@
       "rarity": 3
     },
     {
-      "name": "Fence & Finance",
+      "name": "Fence \u0026 Finance",
       "key": "THF_8",
       "iconIndex": 191,
       "unlockedByDefault": false,
@@ -16332,21 +16332,21 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 0.6,
           "isFlat": true,
-          "perRank": 0.6
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 1,
           "isFlat": true,
-          "perRank": 1
+          "isCore": true
         },
         {
           "parameterId": 29,
-          "isCore": false,
+          "perRank": 0.6,
           "isFlat": true,
-          "perRank": 0.6
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -16366,39 +16366,39 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 1.2,
           "isFlat": true,
-          "perRank": 1.2
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 0.5,
           "isFlat": true,
-          "perRank": 0.5
+          "isCore": true
         },
         {
           "parameterId": 2,
-          "isCore": false,
+          "perRank": 6,
           "isFlat": true,
-          "perRank": 6
+          "isCore": false
         },
         {
           "parameterId": 8,
-          "isCore": false,
+          "perRank": 4,
           "isFlat": true,
-          "perRank": 4
+          "isCore": false
         },
         {
           "parameterId": 11,
-          "isCore": false,
+          "perRank": 2,
           "isFlat": true,
-          "perRank": 2
+          "isCore": false
         },
         {
           "parameterId": 28,
-          "isCore": false,
+          "perRank": 3,
           "isFlat": true,
-          "perRank": 3
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -16418,27 +16418,27 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 0.8,
           "isFlat": true,
-          "perRank": 0.8
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 0.8,
           "isFlat": true,
-          "perRank": 0.8
+          "isCore": true
         },
         {
           "parameterId": 7,
-          "isCore": false,
+          "perRank": 4,
           "isFlat": true,
-          "perRank": 4
+          "isCore": false
         },
         {
           "parameterId": 10,
-          "isCore": false,
+          "perRank": 2,
           "isFlat": true,
-          "perRank": 2
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -16458,27 +16458,27 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 0.85,
           "isFlat": true,
-          "perRank": 0.85
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 0.85,
           "isFlat": true,
-          "perRank": 0.85
+          "isCore": true
         },
         {
           "parameterId": 7,
-          "isCore": false,
+          "perRank": 4.24,
           "isFlat": true,
-          "perRank": 4.24
+          "isCore": false
         },
         {
           "parameterId": 10,
-          "isCore": false,
+          "perRank": 2.12,
           "isFlat": true,
-          "perRank": 2.12
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -16498,27 +16498,27 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 0.9,
           "isFlat": true,
-          "perRank": 0.9
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 0.9,
           "isFlat": true,
-          "perRank": 0.9
+          "isCore": true
         },
         {
           "parameterId": 7,
-          "isCore": false,
+          "perRank": 4.48,
           "isFlat": true,
-          "perRank": 4.48
+          "isCore": false
         },
         {
           "parameterId": 10,
-          "isCore": false,
+          "perRank": 2.24,
           "isFlat": true,
-          "perRank": 2.24
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -16538,27 +16538,27 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 0.95,
           "isFlat": true,
-          "perRank": 0.95
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 0.95,
           "isFlat": true,
-          "perRank": 0.95
+          "isCore": true
         },
         {
           "parameterId": 7,
-          "isCore": false,
+          "perRank": 4.7,
           "isFlat": true,
-          "perRank": 4.7
+          "isCore": false
         },
         {
           "parameterId": 10,
-          "isCore": false,
+          "perRank": 2.35,
           "isFlat": true,
-          "perRank": 2.35
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -16578,27 +16578,27 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 1,
           "isFlat": true,
-          "perRank": 1
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 1,
           "isFlat": true,
-          "perRank": 1
+          "isCore": true
         },
         {
           "parameterId": 7,
-          "isCore": false,
+          "perRank": 4.94,
           "isFlat": true,
-          "perRank": 4.94
+          "isCore": false
         },
         {
           "parameterId": 10,
-          "isCore": false,
+          "perRank": 2.47,
           "isFlat": true,
-          "perRank": 2.47
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -16618,27 +16618,27 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 1.05,
           "isFlat": true,
-          "perRank": 1.05
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 1.05,
           "isFlat": true,
-          "perRank": 1.05
+          "isCore": true
         },
         {
           "parameterId": 7,
-          "isCore": false,
+          "perRank": 5.19,
           "isFlat": true,
-          "perRank": 5.19
+          "isCore": false
         },
         {
           "parameterId": 10,
-          "isCore": false,
+          "perRank": 2.59,
           "isFlat": true,
-          "perRank": 2.59
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -16658,27 +16658,27 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 1.1,
           "isFlat": true,
-          "perRank": 1.1
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 1.1,
           "isFlat": true,
-          "perRank": 1.1
+          "isCore": true
         },
         {
           "parameterId": 7,
-          "isCore": false,
+          "perRank": 5.45,
           "isFlat": true,
-          "perRank": 5.45
+          "isCore": false
         },
         {
           "parameterId": 10,
-          "isCore": false,
+          "perRank": 2.72,
           "isFlat": true,
-          "perRank": 2.72
+          "isCore": false
         }
       ],
       "panelRewards": [],
@@ -16698,27 +16698,27 @@
       "panelParameters": [
         {
           "parameterId": 14,
-          "isCore": true,
+          "perRank": 1.16,
           "isFlat": true,
-          "perRank": 1.16
+          "isCore": true
         },
         {
           "parameterId": 26,
-          "isCore": true,
+          "perRank": 1.16,
           "isFlat": true,
-          "perRank": 1.16
+          "isCore": true
         },
         {
           "parameterId": 7,
-          "isCore": false,
+          "perRank": 5.72,
           "isFlat": true,
-          "perRank": 5.72
+          "isCore": false
         },
         {
           "parameterId": 10,
-          "isCore": false,
+          "perRank": 2.86,
           "isFlat": true,
-          "perRank": 2.86
+          "isCore": false
         }
       ],
       "panelRewards": [],

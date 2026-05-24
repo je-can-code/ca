@@ -232,3097 +232,2013 @@
  *
  */
 
-//region Introduction
-/* eslint-disable max-len */
-/**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
-
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '3.0.0';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
-
-  // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.10.0';
-  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
-  if (!hasJabsRequirement)
-  {
-    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
-  }
-})();
-//endregion version check
-
-//region plugin setup and configuration
-/**
- * The plugin umbrella that governs all things related to this plugin.
- */
-J.ABS.EXT.ALLYAI = {};
-
-/**
- * The `metadata` associated with this plugin, such as version.
- */
-J.ABS.EXT.ALLYAI.Metadata = {};
-J.ABS.EXT.ALLYAI.Metadata.Name = `J-ABS-AllyAI`;
-J.ABS.EXT.ALLYAI.Metadata.Version = '3.0.0';
-
-/**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.ABS.EXT.ALLYAI.PluginParameters = PluginManager.parameters(J.ABS.EXT.ALLYAI.Metadata.Name);
-
-// configuration for the main JABS quick menu command for ally AI.
-J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandName = J.ABS.EXT.ALLYAI.PluginParameters['jabsMenuAllyAiCommandName'];
-J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['jabsMenuAllyAiCommandIconIndex']);
-J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandSwitchId = Number(J.ABS.EXT.ALLYAI.PluginParameters['jabsMenuAllyAiCommandSwitchId']);
-
-// configuration for party-wide commands.
-J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText = J.ABS.EXT.ALLYAI.PluginParameters['partyWidePassiveText'];
-J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['partyWidePassiveIconIndex']);
-J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText = J.ABS.EXT.ALLYAI.PluginParameters['partyWideAggressiveText'];
-J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['partyWideAggressiveIconIndex']);
-
-// configuration for the various ai modes.
-J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['aiModeEquipped']);
-J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['aiModeNotEquipped']);
-J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandName = J.ABS.EXT.ALLYAI.PluginParameters['allyFormationsCommandName'] || 'Ally Formations';
-J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandIconIndex = Number(J.ABS.EXT.ALLYAI.PluginParameters['allyFormationsCommandIconIndex'] || 289);
-
-
-J.ABS.EXT.ALLYAI.Metadata.FormationTolerance = 0.5;
-
-/**
- * All available formations that a party can take.
- * @type {JABS_Formation[]}
- */
-J.ABS.EXT.ALLYAI.Metadata.FormationTypes = [
-  {
-    key: "fan-behind",
-    name: "Rear Support",
-    description: "The rear-wedge formation.\nAllies will fan out behind you for support.",
-    formation:
-      [
-        // 1 back-left (behind is negative Y when facing DOWN).
-        [ -1, -1 ],
-        // 2 back-right.
-        [  1, -1 ],
-        // 3 two tiles behind.
-        [  0, -2 ],
-        // 4 farther back-left.
-        [ -1, -2 ],
-        // 5 farther back-right.
-        [  1, -2 ],
-        // 6 three tiles behind.
-        [  0, -4 ],
-      ],
-    effects: [],
-  },
-  {
-    key: "flank-sides",
-    name: "Wings",
-    description: "A side- flank formation.\nAllies will flank you at either side to look extra menacing.",
-    formation:
-      [
-        // 1 left.
-        [ -1,  0 ],
-        // 2 right.
-        [  1,  0 ],
-        // 3 far-left.
-        [ -2,  0 ],
-        // 4 far-right.
-        [  2,  0 ],
-        // 5 farther-left.
-        [ -3,  0 ],
-        // 6 farther-right.
-        [  3,  0 ],
-      ],
-    effects: [],
-  },
-  {
-    key: "close-circle",
-    name: "Body Barricade",
-    description: "The tight circle formation.\nNo one will get to most delicate squishy innard!",
-    formation:
-      [
-        // 1 below.
-        [  0,  1 ],
-        // 2 right.
-        [  1,  0 ],
-        // 3 above.
-        [  0, -1 ],
-        // 4 left.
-        [ -1,  0 ],
-        // 5 lower-right.
-        [  1,  1 ],
-        // 6 lower-left.
-        [ -1,  1 ],
-        // 7 upper-right.
-        [  1, -1 ],
-        // 8 upper-left.
-        [ -1, -1 ],
-      ],
-    effects: [],
-  },
-];
-
-/**
- * The default formation type if none is selected.
- * @type {string}
- */
-J.ABS.EXT.ALLYAI.Metadata.DefaultFormationType = J.ABS.EXT.ALLYAI.Metadata.FormationTypes[0].key;
-
-/**
- * A collection of all aliased methods for this plugin.
- */
-J.ABS.EXT.ALLYAI.Aliased = {
-  Game_Actor: new Map(),
-  Game_Battler: new Map(),
-  Game_Follower: new Map(),
-  Game_Followers: new Map(),
-  Game_Interpreter: new Map(),
-  Game_Map: new Map(),
-  Game_Party: new Map(),
-  Game_Player: new Map(),
-
-  JABS_AiManager: new Map(),
-  JABS_Battler: new Map(),
-  JABS_Engine: new Map(),
-
-  Scene_Map: new Map(),
-
-  Spriteset_Map: new Map(),
-
-  Window_AbsMenu: new Map(),
-  Window_AbsMenuSelect: new Map(),
+//#region src/plugins/abs/ext/allyai/_metadata/_pluginMetadata.js
+var J_AllyAiPluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+	/**
+	* Extends {@link #postInitialize}.<br>
+	* Maps ally AI menu commands and formation defaults from plugin parameters.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		this.initializeMetadata();
+	}
+	/**
+	* Initializes the metadata associated with this plugin.
+	*/
+	initializeMetadata() {
+		this.AllyAiCommandName = this.parsedPluginParameters["jabsMenuAllyAiCommandName"];
+		this.AllyAiCommandIconIndex = Number(this.parsedPluginParameters["jabsMenuAllyAiCommandIconIndex"]);
+		this.AllyAiCommandSwitchId = Number(this.parsedPluginParameters["jabsMenuAllyAiCommandSwitchId"]);
+		this.PartyAiPassiveText = this.parsedPluginParameters["partyWidePassiveText"];
+		this.PartyAiPassiveIconIndex = Number(this.parsedPluginParameters["partyWidePassiveIconIndex"]);
+		this.PartyAiAggressiveText = this.parsedPluginParameters["partyWideAggressiveText"];
+		this.PartyAiAggressiveIconIndex = Number(this.parsedPluginParameters["partyWideAggressiveIconIndex"]);
+		this.AiModeEquippedIconIndex = Number(this.parsedPluginParameters["aiModeEquipped"]);
+		this.AiModeNotEquippedIconIndex = Number(this.parsedPluginParameters["aiModeNotEquipped"]);
+		this.AllyFormationsCommandName = this.parsedPluginParameters["allyFormationsCommandName"] || "Ally Formations";
+		this.AllyFormationsCommandIconIndex = Number(this.parsedPluginParameters["allyFormationsCommandIconIndex"] || 289);
+		this.FormationTolerance = .5;
+		/**
+		* All available formations that a party can take.
+		* @type {JABS_Formation[]}
+		*/
+		this.FormationTypes = [
+			{
+				key: "fan-behind",
+				name: "Rear Support",
+				description: "The rear-wedge formation.\nAllies will fan out behind you for support.",
+				formation: [
+					[-1, -1],
+					[1, -1],
+					[0, -2],
+					[-1, -2],
+					[1, -2],
+					[0, -4]
+				],
+				effects: []
+			},
+			{
+				key: "flank-sides",
+				name: "Wings",
+				description: "A side- flank formation.\nAllies will flank you at either side to look extra menacing.",
+				formation: [
+					[-1, 0],
+					[1, 0],
+					[-2, 0],
+					[2, 0],
+					[-3, 0],
+					[3, 0]
+				],
+				effects: []
+			},
+			{
+				key: "close-circle",
+				name: "Body Barricade",
+				description: "The tight circle formation.\nNo one will get to most delicate squishy innard!",
+				formation: [
+					[0, 1],
+					[1, 0],
+					[0, -1],
+					[-1, 0],
+					[1, 1],
+					[-1, 1],
+					[1, -1],
+					[-1, -1]
+				],
+				effects: []
+			}
+		];
+		/**
+		* The default formation type if none is selected.
+		* @type {string}
+		*/
+		this.DefaultFormationType = this.FormationTypes[0].key;
+	}
 };
 
+//#endregion
+//#region src/plugins/abs/ext/allyai/_metadata/initialization.js
+globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "3.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (!hasBaseRequirement) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+	const requiredJabsVersion = "4.10.0";
+	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
+	if (!hasJabsRequirement) {
+		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
+	}
+})();
 /**
- * All regular expressions used by this plugin.
- */
+* The plugin umbrella that governs all things related to this plugin.
+*/
+J.ABS.EXT.ALLYAI = {};
+/**
+* The metadata associated with this plugin.
+*/
+J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.0");
+/**
+* A collection of all aliased methods for this plugin.
+*/
+J.ABS.EXT.ALLYAI.Aliased = {
+	Game_Actor: new Map(),
+	Game_Battler: new Map(),
+	Game_Follower: new Map(),
+	Game_Followers: new Map(),
+	Game_Interpreter: new Map(),
+	Game_Map: new Map(),
+	Game_Party: new Map(),
+	Game_Player: new Map(),
+	JABS_AiManager: new Map(),
+	JABS_Battler: new Map(),
+	JABS_Engine: new Map(),
+	Scene_Map: new Map(),
+	Spriteset_Map: new Map(),
+	Window_AbsMenu: new Map(),
+	Window_AbsMenuSelect: new Map()
+};
+/**
+* All regular expressions used by this plugin.
+*/
 J.ABS.EXT.ALLYAI.RegExp = {};
-J.ABS.EXT.ALLYAI.RegExp.DefaultAi =
-  /<defaultAi:(berserker|guardian|vanguard|war-priest|skirmisher|generalist|cleric|artillery|wizard|medic)>/i;
-//endregion plugin setup and configuration
-//endregion Introduction
+J.ABS.EXT.ALLYAI.RegExp.DefaultAi = /<defaultAi:(berserker|guardian|vanguard|war-priest|skirmisher|generalist|cleric|artillery|wizard|medic)>/i;
 
-//region JABS_AllyAI
+//#endregion
+//#region src/plugins/abs/ext/allyai/_models/JABS_AllyAI.js
 /**
- * A class representing the AI-decision-making functionality for allies.
- */
-function JABS_AllyAI()
-{
-  this.initialize(...arguments);
+* A class representing the AI-decision-making functionality for allies.
+*/
+function JABS_AllyAI() {
+	this.initialize(...arguments);
 }
-
 JABS_AllyAI.prototype = Object.create(JABS_AI.prototype);
 JABS_AllyAI.prototype.constructor = JABS_AllyAI;
-
-//region statics
 /**
- * The risk axis controls how aggressively the ally selects offensive skills.
- */
+* The risk axis controls how aggressively the ally selects offensive skills.
+*/
 JABS_AllyAI.Risk = {
-  /** Relies on known-effective skills; conservative fallback to random. */
-  CAREFUL: 0,
-  /** Balances memory-driven and random skill selection. */
-  BALANCED: 1,
-  /** Always presses the strongest available skill. */
-  RECKLESS: 2,
+	/** Relies on known-effective skills; conservative fallback to random. */
+	CAREFUL: 0,
+	/** Balances memory-driven and random skill selection. */
+	BALANCED: 1,
+	/** Always presses the strongest available skill. */
+	RECKLESS: 2
 };
-
 /**
- * The support axis controls how the ally weighs healing/buffing against offense.
- */
+* The support axis controls how the ally weighs healing/buffing against offense.
+*/
 JABS_AllyAI.Support = {
-  /** Never deviates toward support skills. */
-  OFFENSE: 0,
-  /** Conditionally supports when allies are in danger. */
-  BALANCED: 1,
-  /** Prioritizes cleansing, healing, and buffing before offense. */
-  SUPPORT: 2,
+	/** Never deviates toward support skills. */
+	OFFENSE: 0,
+	/** Conditionally supports when allies are in danger. */
+	BALANCED: 1,
+	/** Prioritizes cleansing, healing, and buffing before offense. */
+	SUPPORT: 2
 };
-
 /**
- * The spacing axis controls how close the ally positions itself relative to its target.
- */
+* The spacing axis controls how close the ally positions itself relative to its target.
+*/
 JABS_AllyAI.Spacing = {
-  /** Closes to melee range; chases targets aggressively. */
-  FRONTLINE: 0,
-  /** Maintains a moderate distance from targets. */
-  MIDLINE: 1,
-  /** Stays at maximum skill range; avoids close combat. */
-  BACKLINE: 2,
+	/** Closes to melee range; chases targets aggressively. */
+	FRONTLINE: 0,
+	/** Maintains a moderate distance from targets. */
+	MIDLINE: 1,
+	/** Stays at maximum skill range; avoids close combat. */
+	BACKLINE: 2
 };
-
 /**
- * The close-distance threshold (in tiles) for each spacing axis value.
- * Allies back away from their target when inside this range.
- */
+* The close-distance threshold (in tiles) for each spacing axis value.
+* Allies back away from their target when inside this range.
+*/
 JABS_AllyAI.CloseDistances = {
-  [JABS_AllyAI.Spacing.FRONTLINE]: 1.0,
-  [JABS_AllyAI.Spacing.MIDLINE]:   3.0,
-  [JABS_AllyAI.Spacing.BACKLINE]:  5.0,
+	[JABS_AllyAI.Spacing.FRONTLINE]: 1,
+	[JABS_AllyAI.Spacing.MIDLINE]: 3,
+	[JABS_AllyAI.Spacing.BACKLINE]: 5
 };
-
 /**
- * The far-distance threshold (in tiles) for each spacing axis value.
- * Allies move toward their target when beyond this range.
- */
+* The far-distance threshold (in tiles) for each spacing axis value.
+* Allies move toward their target when beyond this range.
+*/
 JABS_AllyAI.FarDistances = {
-  [JABS_AllyAI.Spacing.FRONTLINE]: 2.0,
-  [JABS_AllyAI.Spacing.MIDLINE]:   5.0,
-  [JABS_AllyAI.Spacing.BACKLINE]:  7.0,
+	[JABS_AllyAI.Spacing.FRONTLINE]: 2,
+	[JABS_AllyAI.Spacing.MIDLINE]: 5,
+	[JABS_AllyAI.Spacing.BACKLINE]: 7
 };
-
 /**
- * The leash multiplier for each spacing axis value.
- * Applied to {@link JABS_Battler.allyRubberbandRange} to derive per-ally leash distance.
- */
+* The leash multiplier for each spacing axis value.
+* Applied to {@link JABS_Battler.allyRubberbandRange} to derive per-ally leash distance.
+*/
 JABS_AllyAI.LeashMultipliers = {
-  [JABS_AllyAI.Spacing.FRONTLINE]: 1.5,
-  [JABS_AllyAI.Spacing.MIDLINE]:   1.0,
-  [JABS_AllyAI.Spacing.BACKLINE]:  0.6,
+	[JABS_AllyAI.Spacing.FRONTLINE]: 1.5,
+	[JABS_AllyAI.Spacing.MIDLINE]: 1,
+	[JABS_AllyAI.Spacing.BACKLINE]: .6
 };
-
 /**
- * The close-distance threshold when do-nothing is active (very large so the ally always backs away).
- * @type {number}
- */
-JABS_AllyAI.DoNothingCloseDistance = 8.0;
-
+* The close-distance threshold when do-nothing is active (very large so the ally always backs away).
+* @type {number}
+*/
+JABS_AllyAI.DoNothingCloseDistance = 8;
 /**
- * The far-distance threshold when do-nothing is active.
- * @type {number}
- */
-JABS_AllyAI.DoNothingFarDistance = 10.0;
-
+* The far-distance threshold when do-nothing is active.
+* @type {number}
+*/
+JABS_AllyAI.DoNothingFarDistance = 10;
 /**
- * The leash multiplier when do-nothing is active (small so the ally stays near the leader).
- * @type {number}
- */
-JABS_AllyAI.DoNothingLeashMultiplier = 0.5;
-
+* The leash multiplier when do-nothing is active (small so the ally stays near the leader).
+* @type {number}
+*/
+JABS_AllyAI.DoNothingLeashMultiplier = .5;
 /**
- * All ten named presets available for ally AI configuration.
- * Each preset maps to a combination of risk, support, and spacing axis values.
- */
+* All ten named presets available for ally AI configuration.
+* Each preset maps to a combination of risk, support, and spacing axis values.
+*/
 JABS_AllyAI.presets = {
-  BERSERKER: {
-    key: 'berserker',
-    name: 'Berserker',
-    description: "Reckless melee aggressor.\nCharges in and hits as hard as possible at all times.",
-    risk: JABS_AllyAI.Risk.RECKLESS,
-    support: JABS_AllyAI.Support.OFFENSE,
-    spacing: JABS_AllyAI.Spacing.FRONTLINE,
-  },
-  GUARDIAN: {
-    key: 'guardian',
-    name: 'Guardian',
-    description: "Careful frontline protector.\nStays in the thick of it but won't overextend.",
-    risk: JABS_AllyAI.Risk.CAREFUL,
-    support: JABS_AllyAI.Support.OFFENSE,
-    spacing: JABS_AllyAI.Spacing.FRONTLINE,
-  },
-  VANGUARD: {
-    key: 'vanguard',
-    name: 'Vanguard',
-    description: "Balanced frontline fighter.\nA dependable melee ally who adapts to the situation.",
-    risk: JABS_AllyAI.Risk.BALANCED,
-    support: JABS_AllyAI.Support.BALANCED,
-    spacing: JABS_AllyAI.Spacing.FRONTLINE,
-  },
-  WAR_PRIEST: {
-    key: 'war-priest',
-    name: 'War Priest',
-    description: "Frontline support hybrid.\nFights up close but keeps an eye on ally health.",
-    risk: JABS_AllyAI.Risk.BALANCED,
-    support: JABS_AllyAI.Support.SUPPORT,
-    spacing: JABS_AllyAI.Spacing.FRONTLINE,
-  },
-  SKIRMISHER: {
-    key: 'skirmisher',
-    name: 'Skirmisher',
-    description: "Mobile midline attacker.\nFlexible and opportunistic; adapts to whatever is needed.",
-    risk: JABS_AllyAI.Risk.BALANCED,
-    support: JABS_AllyAI.Support.OFFENSE,
-    spacing: JABS_AllyAI.Spacing.MIDLINE,
-  },
-  GENERALIST: {
-    key: 'generalist',
-    name: 'Generalist',
-    description: "Balanced all-rounder.\nA sensible default for allies without a defined specialty.",
-    risk: JABS_AllyAI.Risk.BALANCED,
-    support: JABS_AllyAI.Support.BALANCED,
-    spacing: JABS_AllyAI.Spacing.MIDLINE,
-  },
-  CLERIC: {
-    key: 'cleric',
-    name: 'Cleric',
-    description: "Careful midline supporter.\nKeeps allies healthy from a moderate distance.",
-    risk: JABS_AllyAI.Risk.CAREFUL,
-    support: JABS_AllyAI.Support.SUPPORT,
-    spacing: JABS_AllyAI.Spacing.MIDLINE,
-  },
-  ARTILLERY: {
-    key: 'artillery',
-    name: 'Artillery',
-    description: "Careful backline attacker.\nHangs back and fires from safety; never rushes in.",
-    risk: JABS_AllyAI.Risk.CAREFUL,
-    support: JABS_AllyAI.Support.OFFENSE,
-    spacing: JABS_AllyAI.Spacing.BACKLINE,
-  },
-  WIZARD: {
-    key: 'wizard',
-    name: 'Wizard',
-    description: "Balanced backline attacker.\nDeals damage from range and pushes up when needed.",
-    risk: JABS_AllyAI.Risk.BALANCED,
-    support: JABS_AllyAI.Support.OFFENSE,
-    spacing: JABS_AllyAI.Spacing.BACKLINE,
-  },
-  MEDIC: {
-    key: 'medic',
-    name: 'Medic',
-    description: "Careful backline support.\nStays well back and focuses on keeping the party alive.",
-    risk: JABS_AllyAI.Risk.CAREFUL,
-    support: JABS_AllyAI.Support.SUPPORT,
-    spacing: JABS_AllyAI.Spacing.BACKLINE,
-  },
+	BERSERKER: {
+		key: "berserker",
+		name: "Berserker",
+		description: "Reckless melee aggressor.\nCharges in and hits as hard as possible at all times.",
+		risk: JABS_AllyAI.Risk.RECKLESS,
+		support: JABS_AllyAI.Support.OFFENSE,
+		spacing: JABS_AllyAI.Spacing.FRONTLINE
+	},
+	GUARDIAN: {
+		key: "guardian",
+		name: "Guardian",
+		description: "Careful frontline protector.\nStays in the thick of it but won't overextend.",
+		risk: JABS_AllyAI.Risk.CAREFUL,
+		support: JABS_AllyAI.Support.OFFENSE,
+		spacing: JABS_AllyAI.Spacing.FRONTLINE
+	},
+	VANGUARD: {
+		key: "vanguard",
+		name: "Vanguard",
+		description: "Balanced frontline fighter.\nA dependable melee ally who adapts to the situation.",
+		risk: JABS_AllyAI.Risk.BALANCED,
+		support: JABS_AllyAI.Support.BALANCED,
+		spacing: JABS_AllyAI.Spacing.FRONTLINE
+	},
+	WAR_PRIEST: {
+		key: "war-priest",
+		name: "War Priest",
+		description: "Frontline support hybrid.\nFights up close but keeps an eye on ally health.",
+		risk: JABS_AllyAI.Risk.BALANCED,
+		support: JABS_AllyAI.Support.SUPPORT,
+		spacing: JABS_AllyAI.Spacing.FRONTLINE
+	},
+	SKIRMISHER: {
+		key: "skirmisher",
+		name: "Skirmisher",
+		description: "Mobile midline attacker.\nFlexible and opportunistic; adapts to whatever is needed.",
+		risk: JABS_AllyAI.Risk.BALANCED,
+		support: JABS_AllyAI.Support.OFFENSE,
+		spacing: JABS_AllyAI.Spacing.MIDLINE
+	},
+	GENERALIST: {
+		key: "generalist",
+		name: "Generalist",
+		description: "Balanced all-rounder.\nA sensible default for allies without a defined specialty.",
+		risk: JABS_AllyAI.Risk.BALANCED,
+		support: JABS_AllyAI.Support.BALANCED,
+		spacing: JABS_AllyAI.Spacing.MIDLINE
+	},
+	CLERIC: {
+		key: "cleric",
+		name: "Cleric",
+		description: "Careful midline supporter.\nKeeps allies healthy from a moderate distance.",
+		risk: JABS_AllyAI.Risk.CAREFUL,
+		support: JABS_AllyAI.Support.SUPPORT,
+		spacing: JABS_AllyAI.Spacing.MIDLINE
+	},
+	ARTILLERY: {
+		key: "artillery",
+		name: "Artillery",
+		description: "Careful backline attacker.\nHangs back and fires from safety; never rushes in.",
+		risk: JABS_AllyAI.Risk.CAREFUL,
+		support: JABS_AllyAI.Support.OFFENSE,
+		spacing: JABS_AllyAI.Spacing.BACKLINE
+	},
+	WIZARD: {
+		key: "wizard",
+		name: "Wizard",
+		description: "Balanced backline attacker.\nDeals damage from range and pushes up when needed.",
+		risk: JABS_AllyAI.Risk.BALANCED,
+		support: JABS_AllyAI.Support.OFFENSE,
+		spacing: JABS_AllyAI.Spacing.BACKLINE
+	},
+	MEDIC: {
+		key: "medic",
+		name: "Medic",
+		description: "Careful backline support.\nStays well back and focuses on keeping the party alive.",
+		risk: JABS_AllyAI.Risk.CAREFUL,
+		support: JABS_AllyAI.Support.SUPPORT,
+		spacing: JABS_AllyAI.Spacing.BACKLINE
+	}
+};
+/**
+* Gets all valid preset objects.
+* @returns {object[]}
+*/
+JABS_AllyAI.getPresets = () => Object.keys(JABS_AllyAI.presets).map((key) => JABS_AllyAI.presets[key]);
+/**
+* Finds a preset object by its key string.
+* @param {string} key The preset key to look up.
+* @returns {object|null}
+*/
+JABS_AllyAI.getPresetByKey = (key) => JABS_AllyAI.getPresets().find((preset) => preset.key === key) ?? null;
+/**
+* Validates that the given key corresponds to a known preset.
+* @param {string} key The key to validate.
+* @returns {boolean}
+*/
+JABS_AllyAI.validatePreset = (key) => JABS_AllyAI.getPresetByKey(key) !== null;
+/**
+* Initializes this ally AI with an optional starting preset.
+* @param {string} [presetKey] The preset key to apply on construction.
+*/
+JABS_AllyAI.prototype.initialize = function(presetKey) {
+	this.initMembers();
+	if (presetKey) {
+		this.applyPreset(presetKey);
+	}
+};
+/**
+* Initializes all default members of this class.
+*/
+JABS_AllyAI.prototype.initMembers = function() {
+	/**
+	* When true this ally takes no actions and backs away from all targets.
+	* Overrides all axis behavior.
+	* @type {boolean}
+	*/
+	this._doNothing = false;
+	/**
+	* The risk axis: how aggressively this ally picks offensive skills.
+	* @type {number}
+	*/
+	this._risk = JABS_AllyAI.Risk.BALANCED;
+	/**
+	* The support axis: how much this ally weighs healing/buffing vs offense.
+	* @type {number}
+	*/
+	this._support = JABS_AllyAI.Support.BALANCED;
+	/**
+	* The spacing axis: how close this ally positions itself relative to its target.
+	* @type {number}
+	*/
+	this._spacing = JABS_AllyAI.Spacing.MIDLINE;
+	/**
+	* The key of the last applied preset, or the default preset key.
+	* @type {string}
+	*/
+	this._presetKey = JABS_AllyAI.presets.GENERALIST.key;
+	/**
+	* The collection of memories this ally AI possesses.
+	* @type {JABS_BattleMemory[]}
+	*/
+	this.memory = [];
+};
+/**
+* Gets whether this ally is in do-nothing mode.
+* @returns {boolean}
+*/
+JABS_AllyAI.prototype.isDoNothing = function() {
+	return this._doNothing;
+};
+/**
+* Sets the do-nothing flag for this ally.
+* @param {boolean} doNothing True to enable do-nothing mode, false to disable.
+*/
+JABS_AllyAI.prototype.setDoNothing = function(doNothing) {
+	this._doNothing = doNothing;
+};
+/**
+* Gets the current risk axis value.
+* @returns {number}
+*/
+JABS_AllyAI.prototype.getRisk = function() {
+	return this._risk;
+};
+/**
+* Gets the current support axis value.
+* @returns {number}
+*/
+JABS_AllyAI.prototype.getSupport = function() {
+	return this._support;
+};
+/**
+* Gets the current spacing axis value.
+* @returns {number}
+*/
+JABS_AllyAI.prototype.getSpacing = function() {
+	return this._spacing;
+};
+/**
+* Gets the key of the currently applied preset.
+* @returns {string}
+*/
+JABS_AllyAI.prototype.getPresetKey = function() {
+	return this._presetKey;
+};
+/**
+* Applies a preset by key, updating all three axes and the stored preset key.
+* @param {string} presetKey The key of the preset to apply.
+*/
+JABS_AllyAI.prototype.applyPreset = function(presetKey) {
+	const preset = JABS_AllyAI.getPresetByKey(presetKey);
+	if (!preset) {
+		console.error(`Attempted to apply ally AI preset: [${presetKey}], but it is not a valid preset.`);
+		return;
+	}
+	this._risk = preset.risk;
+	this._support = preset.support;
+	this._spacing = preset.spacing;
+	this._presetKey = preset.key;
+};
+/**
+* Gets the close-distance threshold in tiles for this ally's current spacing.
+* The ally backs away from its target when within this range.
+* @returns {number}
+*/
+JABS_AllyAI.prototype.getCloseDistance = function() {
+	if (this._doNothing) return JABS_AllyAI.DoNothingCloseDistance;
+	return JABS_AllyAI.CloseDistances[this._spacing] ?? JABS_Battler.closeDistance;
+};
+/**
+* Gets the far-distance threshold in tiles for this ally's current spacing.
+* The ally moves toward its target when beyond this range.
+* @returns {number}
+*/
+JABS_AllyAI.prototype.getFarDistance = function() {
+	if (this._doNothing) return JABS_AllyAI.DoNothingFarDistance;
+	return JABS_AllyAI.FarDistances[this._spacing] ?? JABS_Battler.farDistance;
+};
+/**
+* Gets the leash multiplier for this ally's current spacing.
+* Applied to the base rubber-band range to derive the per-ally leash distance.
+* @returns {number}
+*/
+JABS_AllyAI.prototype.getLeashMultiplier = function() {
+	if (this._doNothing) return JABS_AllyAI.DoNothingLeashMultiplier;
+	return JABS_AllyAI.LeashMultipliers[this._spacing] ?? 1;
+};
+/**
+* Wraps a base support helper result (0 means none) as a uniform skill-id list.
+* @param {number} skillId
+* @returns {number[]}
+*/
+JABS_AllyAI.prototype.wrapSupportSkillId = function(skillId) {
+	if (!skillId) return [];
+	return [skillId];
+};
+/**
+* Decides an action based on this battler's axes, the target, and the available skills.
+* @param {JABS_Battler} user The battler of the AI deciding a skill.
+* @param {JABS_Battler} target The target battler to decide an action against.
+* @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
+* @returns {number[]} Exactly one skill id, or empty when no valid choice exists.
+*/
+JABS_AllyAI.prototype.decideAction = function(user, target, availableSkills) {
+	if (this._doNothing) return this.decideDoNothing(user);
+	const usableSkills = this.filterUncastableSkills(user, availableSkills);
+	if (this.shouldFollowWithCombo(user)) return [this.followWithCombo(user)];
+	switch (this._support) {
+		case JABS_AllyAI.Support.SUPPORT: return this.decideSupportFirst(usableSkills, user, target);
+		case JABS_AllyAI.Support.BALANCED: return this.decideBalancedSupport(usableSkills, user, target);
+		case JABS_AllyAI.Support.OFFENSE:
+		default: return this.decideOffense(usableSkills, user, target);
+	}
+};
+/**
+* Decides to do nothing and waits briefly before reconsidering.
+* @param {JABS_Battler} user The battler doing nothing.
+* @returns {number[]}
+*/
+JABS_AllyAI.prototype.decideDoNothing = function(user) {
+	user.setWaitCountdown(20);
+	return [];
+};
+/**
+* Prioritizes cleansing, healing, and buffing allies before falling through to cautious offense.
+* Used when the support axis is {@link JABS_AllyAI.Support.SUPPORT}.
+* @param {number[]} usableSkills The skill ids available to choose from.
+* @param {JABS_Battler} user The battler choosing the skill.
+* @param {JABS_Battler} target The targeted battler.
+* @returns {number[]}
+*/
+JABS_AllyAI.prototype.decideSupportFirst = function(usableSkills, user, target) {
+	const cleansePick = this.wrapSupportSkillId(this.decideCleansing(user, usableSkills));
+	if (cleansePick.length) return cleansePick;
+	const healPick = this.wrapSupportSkillId(this.decideHealing(user, usableSkills));
+	if (healPick.length) return healPick;
+	const buffPick = this.wrapSupportSkillId(this.decideBuffing(user, usableSkills));
+	if (buffPick.length) return buffPick;
+	return this.decideCautiousOffense(usableSkills, user, target);
+};
+/**
+* Conditionally supports allies when in danger, otherwise proceeds to offense.
+* Used when the support axis is {@link JABS_AllyAI.Support.BALANCED}.
+* @param {number[]} usableSkills The skill ids available to choose from.
+* @param {JABS_Battler} user The battler choosing the skill.
+* @param {JABS_Battler} target The targeted battler.
+* @returns {number[]}
+*/
+JABS_AllyAI.prototype.decideBalancedSupport = function(usableSkills, user, target) {
+	const nearbyAllies = user.getAllNearbyAllies();
+	const anyInDanger = nearbyAllies.some((ally) => ally.getBattler().currentHpPercent() < .6);
+	if (anyInDanger && Math.randomInt(2) === 0) {
+		const supportPick = this.decideSupportFirst(usableSkills, user, target);
+		if (supportPick.length) return supportPick;
+	}
+	return this.decideOffense(usableSkills, user, target);
+};
+/**
+* Dispatches to the appropriate offense behavior based on the risk axis.
+* @param {number[]} usableSkills The skill ids available to choose from.
+* @param {JABS_Battler} user The battler choosing the skill.
+* @param {JABS_Battler} target The targeted battler.
+* @returns {number[]}
+*/
+JABS_AllyAI.prototype.decideOffense = function(usableSkills, user, target) {
+	if (!usableSkills.length) return [];
+	switch (this._risk) {
+		case JABS_AllyAI.Risk.RECKLESS: return this.decideRecklessOffense(usableSkills, user, target);
+		case JABS_AllyAI.Risk.CAREFUL: return this.decideCautiousOffense(usableSkills, user, target);
+		case JABS_AllyAI.Risk.BALANCED:
+		default: return this.decideBalancedOffense(usableSkills, user, target);
+	}
+};
+/**
+* Always presses the strongest available skill, using battle memories as a secondary signal.
+* Used when the risk axis is {@link JABS_AllyAI.Risk.RECKLESS}.
+* @param {number[]} usableSkills The skill ids available to choose from.
+* @param {JABS_Battler} user The battler choosing the skill.
+* @param {JABS_Battler} target The targeted battler.
+* @returns {number[]}
+*/
+JABS_AllyAI.prototype.decideRecklessOffense = function(usableSkills, user, target) {
+	const strongestSkillId = this.determineStrongestSkill(usableSkills, user, target);
+	const memoriesOfTarget = this.memory.filter((mem) => mem.battlerId === target.getBattlerId());
+	if (memoriesOfTarget.length) {
+		const effectiveSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
+		if (effectiveSkills.length === 1 && effectiveSkills[0] !== strongestSkillId) {
+			const chosen = RPGManager.chanceIn100(50) ? strongestSkillId : effectiveSkills[0];
+			return this.isSkillIdValid(chosen) ? [chosen] : [];
+		}
+		if (effectiveSkills.length > 1) {
+			const chosen = effectiveSkills[Math.randomInt(effectiveSkills.length)];
+			return this.isSkillIdValid(chosen) ? [chosen] : [];
+		}
+	}
+	return this.isSkillIdValid(strongestSkillId) ? [strongestSkillId] : [];
+};
+/**
+* Balances memory-driven skill choices with randomness.
+* Used when the risk axis is {@link JABS_AllyAI.Risk.BALANCED}.
+* @param {number[]} usableSkills The skill ids available to choose from.
+* @param {JABS_Battler} user The battler choosing the skill.
+* @param {JABS_Battler} target The targeted battler.
+* @returns {number[]}
+*/
+JABS_AllyAI.prototype.decideBalancedOffense = function(usableSkills, user, target) {
+	const memoriesOfTarget = this.memory.filter((mem) => mem.battlerId === target.getBattlerId());
+	let tempSkills = usableSkills;
+	if (memoriesOfTarget.length) {
+		tempSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
+	}
+	let chosenSkillId;
+	if (tempSkills.length === 0) {
+		chosenSkillId = usableSkills[Math.randomInt(usableSkills.length)];
+	} else if (tempSkills.length === 1) {
+		chosenSkillId = Math.randomInt(2) === 0 ? tempSkills[0] : usableSkills[Math.randomInt(usableSkills.length)];
+	} else {
+		chosenSkillId = tempSkills[Math.randomInt(tempSkills.length)];
+	}
+	return this.isSkillIdValid(chosenSkillId) ? [chosenSkillId] : [];
+};
+/**
+* Relies heavily on battle memories, falling back to random only when none exist.
+* Used when the risk axis is {@link JABS_AllyAI.Risk.CAREFUL}.
+* @param {number[]} usableSkills The skill ids available to choose from.
+* @param {JABS_Battler} user The battler choosing the skill.
+* @param {JABS_Battler} target The targeted battler.
+* @returns {number[]}
+*/
+JABS_AllyAI.prototype.decideCautiousOffense = function(usableSkills, user, target) {
+	if (!usableSkills.length) return [];
+	const memoriesOfTarget = this.memory.filter((mem) => mem.battlerId === target.getBattlerId());
+	if (memoriesOfTarget.length) {
+		const effectiveSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
+		if (effectiveSkills.length) {
+			const chosen = effectiveSkills[Math.randomInt(effectiveSkills.length)];
+			return this.isSkillIdValid(chosen) ? [chosen] : [];
+		}
+	}
+	const chosen = usableSkills[Math.randomInt(usableSkills.length)];
+	return this.isSkillIdValid(chosen) ? [chosen] : [];
 };
 
+//#endregion
+//#region src/plugins/abs/ext/allyai/_models/JABS_Battler.js
 /**
- * Gets all valid preset objects.
- * @returns {object[]}
- */
-JABS_AllyAI.getPresets = () => Object
-  .keys(JABS_AllyAI.presets)
-  .map(key => JABS_AllyAI.presets[key]);
-
+* Generates a `JABS_Battler` for an actor ally bound to a follower character.
+* Uses the actor's own core configuration.
+* @param {Game_Follower} follower The follower character representing this ally on the map.
+* @param {Game_Actor} actor The underlying actor battler.
+* @returns {JABS_Battler} The built ally battler.
+*/
+JABS_Battler.createAlly = function(follower, actor) {
+	if (!follower || !actor) return null;
+	const coreData = JABS_BattlerCoreData.Builder().setBattler(actor).build();
+	return new JABS_Battler(follower, actor, coreData);
+};
 /**
- * Finds a preset object by its key string.
- * @param {string} key The preset key to look up.
- * @returns {object|null}
- */
-JABS_AllyAI.getPresetByKey = key => JABS_AllyAI
-  .getPresets()
-  .find(preset => preset.key === key) ?? null;
-
+* Extends the engagement determination to handle aggro/passive party toggling.
+* @param {JABS_Battler} target The target to see if we should engage with.
+* @returns {boolean}
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.set("shouldEngage", JABS_Battler.prototype.shouldEngage);
+JABS_Battler.prototype.shouldEngage = function(target, distance) {
+	if (this.isEnemy()) {
+		return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get("shouldEngage").call(this, target, distance);
+	}
+	if ($gameParty.isAggro() && !target.isInanimate()) {
+		return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get("shouldEngage").call(this, target, distance);
+	}
+	return this.shouldAllyEngage(target, distance);
+};
 /**
- * Validates that the given key corresponds to a known preset.
- * @param {string} key The key to validate.
- * @returns {boolean}
- */
-JABS_AllyAI.validatePreset = key => JABS_AllyAI.getPresetByKey(key) !== null;
-//endregion statics
-
-//region initialize
+* Determines whether or not the ally should engage in combat with the target.
+* @param {JABS_Battler} target The target to potentially engage with.
+* @param {number} distance The distance from this battler to the nearest potential target.
+* @returns {boolean} True if this ally should engage in combat, false otherwise.
+*/
+JABS_Battler.prototype.shouldAllyEngage = function(target, distance) {
+	const allyAI = this.getAllyAiMode();
+	if (allyAI && allyAI.isDoNothing()) return false;
+	if (target.isInanimate()) return false;
+	if (!this.inSightRange(target, distance)) return false;
+	const isAlerted = this.isAlerted();
+	const playerHitSomething = $jabsEngine.getPlayer1().hasBattlerLastHit();
+	const shouldEngage = isAlerted || playerHitSomething;
+	return shouldEngage;
+};
 /**
- * Initializes this ally AI with an optional starting preset.
- * @param {string} [presetKey] The preset key to apply on construction.
- */
-JABS_AllyAI.prototype.initialize = function(presetKey)
-{
-  this.initMembers();
-  if (presetKey)
-  {
-    this.applyPreset(presetKey);
-  }
+* Gets all allies to this battler within a large range.
+* (Not map-wide because that could result in unexpected behavior)
+* @returns {JABS_Battler[]}
+*/
+JABS_Battler.prototype.getAllNearbyAllies = function() {
+	return JABS_AiManager.getAlliedBattlersWithinRange(this, JABS_Battler.allyRubberbandRange());
+};
+/**
+* Gets the ally ai associated with this battler.
+* @returns {JABS_AllyAI}
+*/
+JABS_Battler.prototype.getAllyAiMode = function() {
+	if (this.isEnemy()) return null;
+	return this.getBattler().getAllyAI();
+};
+/**
+* Gets the close-distance threshold in tiles for this battler.
+* Enemies use the global default; allies delegate to their spacing axis.
+* @returns {number}
+*/
+JABS_Battler.prototype.getCloseDistance = function() {
+	if (this.isEnemy()) return JABS_Battler.closeDistance;
+	const allyAI = this.getAllyAiMode();
+	if (!allyAI) return JABS_Battler.closeDistance;
+	return allyAI.getCloseDistance();
+};
+/**
+* Gets the far-distance threshold in tiles for this battler.
+* Enemies use the global default; allies delegate to their spacing axis.
+* @returns {number}
+*/
+JABS_Battler.prototype.getFarDistance = function() {
+	if (this.isEnemy()) return JABS_Battler.farDistance;
+	const allyAI = this.getAllyAiMode();
+	if (!allyAI) return JABS_Battler.farDistance;
+	return allyAI.getFarDistance();
+};
+/**
+* Gets the leash range for this ally battler.
+* Applies the spacing-axis leash multiplier to the base rubber-band range.
+* @returns {number}
+*/
+JABS_Battler.prototype.getAllyLeashRange = function() {
+	const allyAI = this.getAllyAiMode();
+	if (!allyAI) return JABS_Battler.allyRubberbandRange();
+	return JABS_Battler.allyRubberbandRange() * allyAI.getLeashMultiplier();
+};
+/**
+* Applies the battle memory to the battler.
+* Only applicable to allies (for now).
+* @param {JABS_BattleMemory} newMemory The new memory to apply to this battler.
+*/
+JABS_Battler.prototype.applyBattleMemories = function(newMemory) {
+	if (this.isEnemy()) return;
+	return this.getBattler().getAllyAI().applyMemory(newMemory);
 };
 
+//#endregion
+//#region src/plugins/abs/ext/allyai/_models/JABS_Formation.js
 /**
- * Initializes all default members of this class.
- */
-JABS_AllyAI.prototype.initMembers = function()
-{
-  /**
-   * When true this ally takes no actions and backs away from all targets.
-   * Overrides all axis behavior.
-   * @type {boolean}
-   */
-  this._doNothing = false;
-
-  /**
-   * The risk axis: how aggressively this ally picks offensive skills.
-   * @type {number}
-   */
-  this._risk = JABS_AllyAI.Risk.BALANCED;
-
-  /**
-   * The support axis: how much this ally weighs healing/buffing vs offense.
-   * @type {number}
-   */
-  this._support = JABS_AllyAI.Support.BALANCED;
-
-  /**
-   * The spacing axis: how close this ally positions itself relative to its target.
-   * @type {number}
-   */
-  this._spacing = JABS_AllyAI.Spacing.MIDLINE;
-
-  /**
-   * The key of the last applied preset, or the default preset key.
-   * @type {string}
-   */
-  this._presetKey = JABS_AllyAI.presets.GENERALIST.key;
-
-  /**
-   * The collection of memories this ally AI possesses.
-   * @type {JABS_BattleMemory[]}
-   */
-  this.memory = [];
-};
-//endregion initialize
-
-//region do-nothing
-/**
- * Gets whether this ally is in do-nothing mode.
- * @returns {boolean}
- */
-JABS_AllyAI.prototype.isDoNothing = function()
-{
-  return this._doNothing;
+* The structure of a party formation in JABS.
+*/
+var JABS_Formation = class {
+	/**
+	* The name of the formation.
+	* @type {string}
+	*/
+	name = String.empty;
+	/**
+	* The description of the formation for use when reviewing formations.
+	* @type {string}
+	*/
+	description = String.empty;
+	/**
+	* A collection of the x,y coordinates of each ally relative to the leader and their facing.
+	* @type {[number[]]}
+	*/
+	formation = [];
+	/**
+	* A collection of the effects applied to the party while this formation is active.
+	* @type {any[]}
+	*/
+	effects = [];
+	/**
+	* Constructor.
+	* @param {string} name The name of this formation.
+	* @param {string} description The description of this formation to display to the player.
+	* @param {[number[]]} formation The array of positions for allies representing the formation.
+	* @param {any[]=} effects The additional effects applied when this formation is active.
+	*/
+	constructor(name, description, formation, effects = []) {
+		this.name = name;
+		this.description = description;
+		this.formation = formation;
+		this.effects = effects;
+	}
 };
 
+//#endregion
+//#region src/plugins/abs/ext/allyai/managers/JABS_AiManager.js
 /**
- * Sets the do-nothing flag for this ally.
- * @param {boolean} doNothing True to enable do-nothing mode, false to disable.
- */
-JABS_AllyAI.prototype.setDoNothing = function(doNothing)
-{
-  this._doNothing = doNothing;
+* Extends {@link #executeAi}.<br/>
+* Enforces a functional leash for keeping ally battlers close in the execute loop.
+* @param {JABS_Battler} battler The battler executing on the AI mode.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set("executeAi", JABS_AiManager.executeAi);
+JABS_AiManager.executeAi = function(battler) {
+	if (battler.isActor()) {
+		const leader = $jabsEngine.getPlayer1();
+		if (this.maintainLeashAndEngagement(battler, leader)) return;
+	}
+	J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get("executeAi").call(this, battler);
 };
-//endregion do-nothing
-
-//region axes
 /**
- * Gets the current risk axis value.
- * @returns {number}
- */
-JABS_AllyAI.prototype.getRisk = function()
-{
-  return this._risk;
+* Extends {@link #aiPhase0}.<br/>
+* Also accommodates the possibility of actors having an idle phase.
+* @param {JABS_Battler} battler The batter to decide for.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set("aiPhase0", JABS_AiManager.aiPhase0);
+JABS_AiManager.aiPhase0 = function(battler) {
+	if (battler.isEnemy()) {
+		J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get("aiPhase0").call(this, battler);
+	} else {
+		this.allyAiPhase0(battler);
+	}
 };
-
 /**
- * Gets the current support axis value.
- * @returns {number}
- */
-JABS_AllyAI.prototype.getSupport = function()
-{
-  return this._support;
+* Decides what to do for allies in their idle phase.
+* When not alerted/engaged, allies follow the leader in a loose formation.
+* @param {JABS_Battler} allyBattler The ally battler.
+*/
+JABS_AiManager.allyAiPhase0 = function(allyBattler) {
+	this.enforceFollowerThroughPolicy(allyBattler);
+	if (!this.canPerformAllyPhase0(allyBattler)) return;
+	const allyAI = allyBattler.getAllyAiMode();
+	const isDoNothing = allyAI && allyAI.isDoNothing();
+	if (!isDoNothing && allyBattler.isAlerted()) {
+		this.seekForAlerter(allyBattler);
+		return;
+	}
+	this.allyFollowLeader(allyBattler);
 };
-
 /**
- * Gets the current spacing axis value.
- * @returns {number}
- */
-JABS_AllyAI.prototype.getSpacing = function()
-{
-  return this._spacing;
+* Enforces the passability policy for JABS-controlled followers.
+* While gathering, allow through (vanilla regroup). Otherwise, disable through so
+* AI-driven movement respects terrain.
+* @param {JABS_Battler} allyBattler The follower battler.
+*/
+JABS_AiManager.enforceFollowerThroughPolicy = function(allyBattler) {
+	const chr = allyBattler.getCharacter();
+	if (!chr || !chr.isFollower()) return;
+	const followers = $gamePlayer.followers();
+	const isGathering = followers && followers.areGathering();
+	if (isGathering) {
+		chr.setThrough(true);
+		return;
+	}
+	chr.setThrough(false);
 };
-
 /**
- * Gets the key of the currently applied preset.
- * @returns {string}
- */
-JABS_AllyAI.prototype.getPresetKey = function()
-{
-  return this._presetKey;
+* Determines whether or not the ally can do phase 0 things.
+* @param {JABS_Battler} allyBattler The ally battler.
+* @returns {boolean} True if this ally can do phase 0 things, false otherwise.
+*/
+JABS_AiManager.canPerformAllyPhase0 = function(allyBattler) {
+	if (allyBattler.isCasting()) return false;
+	if (allyBattler.isEngaged()) return false;
+	return true;
 };
-
 /**
- * Applies a preset by key, updating all three axes and the stored preset key.
- * @param {string} presetKey The key of the preset to apply.
- */
-JABS_AllyAI.prototype.applyPreset = function(presetKey)
-{
-  const preset = JABS_AllyAI.getPresetByKey(presetKey);
-  if (!preset)
-  {
-    console.error(`Attempted to apply ally AI preset: [${presetKey}], but it is not a valid preset.`);
-    return;
-  }
-
-  this._risk = preset.risk;
-  this._support = preset.support;
-  this._spacing = preset.spacing;
-  this._presetKey = preset.key;
+* Causes an ally to follow their leader (player1) intelligently while idle.
+* Uses a small formation offset per follower index, a leash, and keeps spacing.
+* @param {JABS_Battler} allyBattler The ally battler to reposition.
+*/
+JABS_AiManager.allyFollowLeader = function(allyBattler) {
+	const leader = $jabsEngine.getPlayer1();
+	if (!leader) return;
+	if (this.maintainLeashAndEngagement(allyBattler, leader)) return;
+	if (!allyBattler.canBattlerMove()) return;
+	const followerIndex = this.getFollowerIndexFromBattler(allyBattler);
+	const formationType = $gameParty.getPartyFormation();
+	const coords = this.computeFormationTarget(leader, followerIndex, formationType);
+	const [desiredX, desiredY] = coords;
+	this.moveTowardSlotIfNeeded(allyBattler, desiredX, desiredY);
 };
-//endregion axes
-
-//region spacing helpers
 /**
- * Gets the close-distance threshold in tiles for this ally's current spacing.
- * The ally backs away from its target when within this range.
- * @returns {number}
- */
-JABS_AllyAI.prototype.getCloseDistance = function()
-{
-  if (this._doNothing) return JABS_AllyAI.DoNothingCloseDistance;
-  return JABS_AllyAI.CloseDistances[this._spacing] ?? JABS_Battler.closeDistance;
+* Applies leash rules to keep allies reasonably near the leader.
+* Returns true if a corrective action (like jump) occurred this frame.
+* @param {JABS_Battler} allyBattler The ally battler.
+* @param {JABS_Battler} leaderBattler The leader battler.
+* @returns {boolean} True if a corrective action occurred, false otherwise.
+*/
+JABS_AiManager.maintainLeashAndEngagement = function(allyBattler, leaderBattler) {
+	const distanceToLeader = $gameMap.distance(allyBattler.getCharacter()._realX, allyBattler.getCharacter()._realY, leaderBattler.getCharacter()._realX, leaderBattler.getCharacter()._realY);
+	const leash = allyBattler.getAllyLeashRange();
+	if (distanceToLeader > leash) {
+		this.rubberbandAlly(allyBattler);
+		return true;
+	}
+	if (distanceToLeader <= Math.round(leash / 2)) {
+		allyBattler.unlockEngagement();
+	}
+	return false;
 };
-
 /**
- * Gets the far-distance threshold in tiles for this ally's current spacing.
- * The ally moves toward its target when beyond this range.
- * @returns {number}
- */
-JABS_AllyAI.prototype.getFarDistance = function()
-{
-  if (this._doNothing) return JABS_AllyAI.DoNothingFarDistance;
-  return JABS_AllyAI.FarDistances[this._spacing] ?? JABS_Battler.farDistance;
+* Rubber bands the ally back to the leader/player.
+* @param {JABS_Battler} allyBattler The ally battler to rubber band.
+*/
+JABS_AiManager.rubberbandAlly = function(allyBattler) {
+	allyBattler.lockEngagement();
+	allyBattler.disengageTarget();
+	allyBattler.resetAllAggro(null, true);
+	const allyCharacter = allyBattler.getCharacter();
+	const leader = $jabsEngine.getPlayer1();
+	const lx = Math.floor(leader.getX());
+	const ly = Math.floor(leader.getY());
+	allyCharacter.locate(lx, ly);
 };
-
 /**
- * Gets the leash multiplier for this ally's current spacing.
- * Applied to the base rubber-band range to derive the per-ally leash distance.
- * @returns {number}
- */
-JABS_AllyAI.prototype.getLeashMultiplier = function()
-{
-  if (this._doNothing) return JABS_AllyAI.DoNothingLeashMultiplier;
-  return JABS_AllyAI.LeashMultipliers[this._spacing] ?? 1.0;
+* Resolves the follower index for a battler bound to a Game_Follower.
+* @param {JABS_Battler} allyBattler The ally battler to resolve index for.
+* @returns {number} The zero-based follower index; -1 if not found.
+*/
+JABS_AiManager.getFollowerIndexFromBattler = function(allyBattler) {
+	const character = allyBattler.getCharacter();
+	if (!character || !character.isFollower()) return -1;
+	const followers = $gamePlayer.followers().data();
+	return followers.indexOf(character);
 };
-//endregion spacing helpers
-
-//region decide action
 /**
- * Wraps a base support helper result (0 means none) as a uniform skill-id list.
- * @param {number} skillId
- * @returns {number[]}
- */
-JABS_AllyAI.prototype.wrapSupportSkillId = function(skillId)
-{
-  if (!skillId) return [];
-  return [ skillId ];
+* Computes the absolute map tile for a follower’s formation slot.
+* Offsets are defined assuming the leader faces DOWN (2); they will be rotated to match current facing.
+* @param {JABS_Battler} leaderBattler The leader battler.
+* @param {number} followerIndex The index of the follower (0-based).
+* @param {string} formationType The formation type key.
+* @returns {[number, number]} The [x, y] tile target for this follower.
+*/
+JABS_AiManager.computeFormationTarget = function(leaderBattler, followerIndex, formationType) {
+	const idx = Math.max(0, followerIndex);
+	const offsets = this.getFormationOffsets(formationType);
+	const chosen = offsets[idx % offsets.length];
+	const [ox, oy] = chosen;
+	const dir = leaderBattler.getCharacter().direction();
+	const rotated = this.rotateOffsetForFacing(ox, oy, dir);
+	const [rx, ry] = rotated;
+	const lx = Math.floor(leaderBattler.getX());
+	const ly = Math.floor(leaderBattler.getY());
+	return this.calculateFormationSlotCoordinates(lx, rx, ly, ry);
 };
-
 /**
- * Decides an action based on this battler's axes, the target, and the available skills.
- * @param {JABS_Battler} user The battler of the AI deciding a skill.
- * @param {JABS_Battler} target The target battler to decide an action against.
- * @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
- * @returns {number[]} Exactly one skill id, or empty when no valid choice exists.
- */
-JABS_AllyAI.prototype.decideAction = function(user, target, availableSkills)
-{
-  // do-nothing overrides all axis behavior.
-  if (this._doNothing) return this.decideDoNothing(user);
-
-  // filter out unusable skills before any decision.
-  const usableSkills = this.filterUncastableSkills(user, availableSkills);
-
-  // always follow a pending combo chain first.
-  if (this.shouldFollowWithCombo(user)) return [ this.followWithCombo(user) ];
-
-  // support axis drives the top-level branch.
-  switch (this._support)
-  {
-    case JABS_AllyAI.Support.SUPPORT:
-      return this.decideSupportFirst(usableSkills, user, target);
-    case JABS_AllyAI.Support.BALANCED:
-      return this.decideBalancedSupport(usableSkills, user, target);
-    case JABS_AllyAI.Support.OFFENSE:
-    default:
-      return this.decideOffense(usableSkills, user, target);
-  }
+* Gets the array of [x,y] tile offsets for the requested formation type.
+* Offsets are relative to the leader's current tile.
+* @param {string} formationKey The formation type key.
+* @returns {number[][]} The list of offsets.
+*/
+JABS_AiManager.getFormationOffsets = function(formationKey) {
+	const foundFormation = J.ABS.EXT.ALLYAI.Metadata.FormationTypes.find((formation) => formation.key === formationKey) ?? J.ABS.EXT.ALLYAI.Metadata.FormationTypes[0];
+	return foundFormation.formation;
 };
-
-//region do-nothing
 /**
- * Decides to do nothing and waits briefly before reconsidering.
- * @param {JABS_Battler} user The battler doing nothing.
- * @returns {number[]}
- */
-JABS_AllyAI.prototype.decideDoNothing = function(user)
-{
-  user.setWaitCountdown(20);
-  return [];
+* Calculates the formation slot's coordinates based on the given parameters.
+* @param {number} lx The leader's x coordinate.
+* @param {number} rx The rotated x.
+* @param {number} ly The leader's y coordinate.
+* @param {number} ry The rotated y.
+* @returns {[number, number]}
+*/
+JABS_AiManager.calculateFormationSlotCoordinates = function(lx, rx, ly, ry) {
+	const sx = lx + rx;
+	const sy = ly + ry;
+	return [sx, sy];
 };
-//endregion do-nothing
-
-//region support-first
 /**
- * Prioritizes cleansing, healing, and buffing allies before falling through to cautious offense.
- * Used when the support axis is {@link JABS_AllyAI.Support.SUPPORT}.
- * @param {number[]} usableSkills The skill ids available to choose from.
- * @param {JABS_Battler} user The battler choosing the skill.
- * @param {JABS_Battler} target The targeted battler.
- * @returns {number[]}
- */
-JABS_AllyAI.prototype.decideSupportFirst = function(usableSkills, user, target)
-{
-  const cleansePick = this.wrapSupportSkillId(this.decideCleansing(user, usableSkills));
-  if (cleansePick.length) return cleansePick;
-
-  const healPick = this.wrapSupportSkillId(this.decideHealing(user, usableSkills));
-  if (healPick.length) return healPick;
-
-  const buffPick = this.wrapSupportSkillId(this.decideBuffing(user, usableSkills));
-  if (buffPick.length) return buffPick;
-
-  // nothing to support; fall through to cautious offense.
-  return this.decideCautiousOffense(usableSkills, user, target);
+* Rotates a baseline offset [ox, oy] (assumed for leader facing DOWN) into the space of the given facing.
+* Directions follow RMMZ standard: 2=down, 4=left, 6=right, 8=up.
+* @param {number} ox The baseline x-offset (facing DOWN).
+* @param {number} oy The baseline y-offset (facing DOWN).
+* @param {2|4|6|8} dir The leader's current facing direction.
+* @returns {[number, number]} The rotated offset [x, y].
+*/
+JABS_AiManager.rotateOffsetForFacing = function(ox, oy, dir) {
+	switch (dir) {
+		case 2: return [ox, oy];
+		case 4: return [-oy, ox];
+		case 6: return [oy, -ox];
+		case 8: return [-ox, -oy];
+		default: return [ox, oy];
+	}
 };
-//endregion support-first
-
-//region balanced support
 /**
- * Conditionally supports allies when in danger, otherwise proceeds to offense.
- * Used when the support axis is {@link JABS_AllyAI.Support.BALANCED}.
- * @param {number[]} usableSkills The skill ids available to choose from.
- * @param {JABS_Battler} user The battler choosing the skill.
- * @param {JABS_Battler} target The targeted battler.
- * @returns {number[]}
- */
-JABS_AllyAI.prototype.decideBalancedSupport = function(usableSkills, user, target)
-{
-  const nearbyAllies = user.getAllNearbyAllies();
-  const anyInDanger = nearbyAllies.some(ally => ally.getBattler().currentHpPercent() < 0.6);
-
-  if (anyInDanger && Math.randomInt(2) === 0)
-  {
-    const supportPick = this.decideSupportFirst(usableSkills, user, target);
-    if (supportPick.length) return supportPick;
-  }
-
-  return this.decideOffense(usableSkills, user, target);
+* Issues a smart move toward the designated slot if outside tolerance and able to move.
+* @param {JABS_Battler} allyBattler The ally battler.
+* @param {number} desiredX The desired slot x.
+* @param {number} desiredY The desired slot y.
+*/
+JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY) {
+	if (allyBattler.isDodging()) {
+		return;
+	}
+	if (allyBattler.guarding()) {
+		return;
+	}
+	const tolerance = J.ABS.EXT.ALLYAI.Metadata.FormationTolerance;
+	if (this.isWithinTolerance(allyBattler, desiredX, desiredY, tolerance)) return;
+	const character = allyBattler.getCharacter();
+	if (character.isMoving()) return;
+	if (allyBattler.canBattlerMove()) {
+		allyBattler.smartMoveTowardCoordinates(desiredX, desiredY);
+	}
 };
-//endregion balanced support
-
-//region offense
 /**
- * Dispatches to the appropriate offense behavior based on the risk axis.
- * @param {number[]} usableSkills The skill ids available to choose from.
- * @param {JABS_Battler} user The battler choosing the skill.
- * @param {JABS_Battler} target The targeted battler.
- * @returns {number[]}
- */
-JABS_AllyAI.prototype.decideOffense = function(usableSkills, user, target)
-{
-  if (!usableSkills.length) return [];
-
-  switch (this._risk)
-  {
-    case JABS_AllyAI.Risk.RECKLESS:
-      return this.decideRecklessOffense(usableSkills, user, target);
-    case JABS_AllyAI.Risk.CAREFUL:
-      return this.decideCautiousOffense(usableSkills, user, target);
-    case JABS_AllyAI.Risk.BALANCED:
-    default:
-      return this.decideBalancedOffense(usableSkills, user, target);
-  }
+* Checks if a battler is within a Manhattan tolerance of the target tile.
+* @param {JABS_Battler} allyBattler The ally battler.
+* @param {number} targetX The target x tile.
+* @param {number} targetY The target y tile.
+* @param {number} tolerance The allowed range before moving.
+* @returns {boolean} True if within tolerance, false otherwise.
+*/
+JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, tolerance) {
+	const chr = allyBattler.getCharacter();
+	const dx = chr.x - targetX;
+	const dy = chr.y - targetY;
+	const dist = Math.sqrt(dx * dx + dy * dy);
+	return dist <= tolerance;
 };
-
 /**
- * Always presses the strongest available skill, using battle memories as a secondary signal.
- * Used when the risk axis is {@link JABS_AllyAI.Risk.RECKLESS}.
- * @param {number[]} usableSkills The skill ids available to choose from.
- * @param {JABS_Battler} user The battler choosing the skill.
- * @param {JABS_Battler} target The targeted battler.
- * @returns {number[]}
- */
-JABS_AllyAI.prototype.decideRecklessOffense = function(usableSkills, user, target)
-{
-  const strongestSkillId = this.determineStrongestSkill(usableSkills, user, target);
-  const memoriesOfTarget = this.memory.filter(mem => mem.battlerId === target.getBattlerId());
-
-  if (memoriesOfTarget.length)
-  {
-    const effectiveSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
-
-    if (effectiveSkills.length === 1 && effectiveSkills[0] !== strongestSkillId)
-    {
-      const chosen = RPGManager.chanceIn100(50) ? strongestSkillId : effectiveSkills[0];
-      return this.isSkillIdValid(chosen) ? [ chosen ] : [];
-    }
-
-    if (effectiveSkills.length > 1)
-    {
-      const chosen = effectiveSkills[Math.randomInt(effectiveSkills.length)];
-      return this.isSkillIdValid(chosen) ? [ chosen ] : [];
-    }
-  }
-
-  return this.isSkillIdValid(strongestSkillId) ? [ strongestSkillId ] : [];
+* Extends {@link #maintainSafeDistance}.<br>
+* Allies use spacing-axis-driven close/far thresholds instead of the global constants.
+* @param {JABS_Battler} battler The battler to reposition.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set("maintainSafeDistance", JABS_AiManager.maintainSafeDistance);
+JABS_AiManager.maintainSafeDistance = function(battler) {
+	if (battler.isEnemy()) {
+		J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get("maintainSafeDistance").call(this, battler);
+		return;
+	}
+	const distance = battler.distanceToCurrentTarget();
+	const closeDistance = battler.getCloseDistance();
+	const farDistance = battler.getFarDistance();
+	if (distance > closeDistance && distance <= farDistance) return;
+	if (distance <= closeDistance) {
+		battler.smartMoveAwayFromTarget();
+	} else if (distance > farDistance) {
+		battler.smartMoveTowardTarget();
+	}
 };
-
 /**
- * Balances memory-driven skill choices with randomness.
- * Used when the risk axis is {@link JABS_AllyAI.Risk.BALANCED}.
- * @param {number[]} usableSkills The skill ids available to choose from.
- * @param {JABS_Battler} user The battler choosing the skill.
- * @param {JABS_Battler} target The targeted battler.
- * @returns {number[]}
- */
-JABS_AllyAI.prototype.decideBalancedOffense = function(usableSkills, user, target)
-{
-  const memoriesOfTarget = this.memory.filter(mem => mem.battlerId === target.getBattlerId());
-  let tempSkills = usableSkills;
-
-  if (memoriesOfTarget.length)
-  {
-    tempSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
-  }
-
-  let chosenSkillId;
-
-  if (tempSkills.length === 0)
-  {
-    chosenSkillId = usableSkills[Math.randomInt(usableSkills.length)];
-  }
-  else if (tempSkills.length === 1)
-  {
-    chosenSkillId = Math.randomInt(2) === 0
-      ? tempSkills[0]
-      : usableSkills[Math.randomInt(usableSkills.length)];
-  }
-  else
-  {
-    chosenSkillId = tempSkills[Math.randomInt(tempSkills.length)];
-  }
-
-  return this.isSkillIdValid(chosenSkillId) ? [ chosenSkillId ] : [];
+* Extends {@link #decideAiPhase2Action}.<br>
+* Includes handling ally AI as well as enemy.
+* @param {JABS_Battler} battler The battler deciding the action.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set("decideAiPhase2Action", JABS_AiManager.decideAiPhase2Action);
+JABS_AiManager.decideAiPhase2Action = function(battler) {
+	if (battler.isEnemy()) {
+		J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get("decideAiPhase2Action").call(this, battler);
+	} else {
+		this.decideAllyAiPhase2Action(battler);
+	}
+};
+/**
+* The ally battler decides what action to take.
+* Based on it's AI traits, it will make a decision on an action to take.
+* @param {JABS_Battler} jabsBattler The ally battler deciding the action.
+*/
+JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler) {
+	const battler = jabsBattler.getBattler();
+	const validSkillSlots = battler.getValidSkillSlotsForAlly();
+	const currentlyEquippedSkillIds = validSkillSlots.map((skillSlot) => skillSlot.id).filter((skillId) => !JABS_Battler.isGuardSkillById(skillId));
+	const decidedPicks = jabsBattler.getAllyAiMode().decideAction(jabsBattler, jabsBattler.getTarget(), currentlyEquippedSkillIds);
+	if (decidedPicks.length === 0 || !this.isSkillIdValid(decidedPicks[0])) {
+		this.cancelActionSetup(jabsBattler);
+		return;
+	}
+	const [decidedSkillId] = decidedPicks;
+	if (JABS_Battler.isDodgeSkillById(decidedSkillId)) {
+		this.cancelActionSetup(jabsBattler);
+		return;
+	}
+	if (JABS_Battler.isGuardSkillById(decidedSkillId)) {
+		this.cancelActionSetup(jabsBattler);
+		return;
+	}
+	const decidedSkillSlot = battler.findSlotForSkillId(decidedSkillId);
+	const cooldownKey = decidedSkillSlot.key;
+	this.setupActionForNextPhase(jabsBattler, decidedSkillId, cooldownKey);
 };
 
+//#endregion
+//#region src/plugins/abs/ext/allyai/managers/JABS_Engine.js
 /**
- * Relies heavily on battle memories, falling back to random only when none exist.
- * Used when the risk axis is {@link JABS_AllyAI.Risk.CAREFUL}.
- * @param {number[]} usableSkills The skill ids available to choose from.
- * @param {JABS_Battler} user The battler choosing the skill.
- * @param {JABS_Battler} target The targeted battler.
- * @returns {number[]}
- */
-JABS_AllyAI.prototype.decideCautiousOffense = function(usableSkills, user, target)
-{
-  if (!usableSkills.length) return [];
-
-  const memoriesOfTarget = this.memory.filter(mem => mem.battlerId === target.getBattlerId());
-
-  if (memoriesOfTarget.length)
-  {
-    const effectiveSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
-    if (effectiveSkills.length)
-    {
-      const chosen = effectiveSkills[Math.randomInt(effectiveSkills.length)];
-      return this.isSkillIdValid(chosen) ? [ chosen ] : [];
-    }
-  }
-
-  // no memories: random fallback.
-  const chosen = usableSkills[Math.randomInt(usableSkills.length)];
-  return this.isSkillIdValid(chosen) ? [ chosen ] : [];
-};
-//endregion offense
-
-//endregion decide action
-//endregion JABS_AllyAI
-
-//region JABS_Battler
-/**
- * Generates a `JABS_Battler` for an actor ally bound to a follower character.
- * Uses the actor's own core configuration.
- * @param {Game_Follower} follower The follower character representing this ally on the map.
- * @param {Game_Actor} actor The underlying actor battler.
- * @returns {JABS_Battler} The built ally battler.
- */
-JABS_Battler.createAlly = function(follower, actor)
-{
-  // if either input is missing, we cannot build an ally battler.
-  if (!follower || !actor) return null;
-
-  // build core data from the actor's own database-driven properties.
-  const coreData = JABS_BattlerCoreData.Builder()
-    .setBattler(actor)
-    .build();
-
-  // create and return the ally battler bound to this follower.
-  return new JABS_Battler(follower, actor, coreData);
-};
-
-/**
- * Extends the engagement determination to handle aggro/passive party toggling.
- * @param {JABS_Battler} target The target to see if we should engage with.
- * @returns {boolean}
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.set('shouldEngage', JABS_Battler.prototype.shouldEngage);
-JABS_Battler.prototype.shouldEngage = function(target, distance)
-{
-  // enemies follow standard behavior.
-  if (this.isEnemy())
-  {
-    // perform original logic.
-    return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get('shouldEngage')
-      .call(this, target, distance);
-  }
-
-  // aggro allies against non-inanimate targets also follow standard behavior.
-  if ($gameParty.isAggro() && !target.isInanimate())
-  {
-    // perform original logic.
-    return J.ABS.EXT.ALLYAI.Aliased.JABS_Battler.get('shouldEngage')
-      .call(this, target, distance);
-  }
-
-  // determine if the ally should engage the foe.
-  return this.shouldAllyEngage(target, distance);
-};
-
-/**
- * Determines whether or not the ally should engage in combat with the target.
- * @param {JABS_Battler} target The target to potentially engage with.
- * @param {number} distance The distance from this battler to the nearest potential target.
- * @returns {boolean} True if this ally should engage in combat, false otherwise.
- */
-JABS_Battler.prototype.shouldAllyEngage = function(target, distance)
-{
-  // do-nothing allies never engage targets on their own.
-  const allyAI = this.getAllyAiMode();
-  if (allyAI && allyAI.isDoNothing()) return false;
-
-  // allies cannot engage against inanimate targets.
-  if (target.isInanimate()) return false;
-
-  // check if the target is visible to this ally.
-  if (!this.inSightRange(target, distance)) return false;
-
-  // check if this ally is alerted.
-  const isAlerted = this.isAlerted();
-
-  // check if the player has a "last hit" target.
-  const playerHitSomething = $jabsEngine.getPlayer1()
-    .hasBattlerLastHit();
-
-  // if we are alerted or the player is attacking something, lets fight.
-  const shouldEngage = (isAlerted || playerHitSomething);
-
-  // return the determination.
-  return shouldEngage;
-};
-
-/**
- * Gets all allies to this battler within a large range.
- * (Not map-wide because that could result in unexpected behavior)
- * @returns {JABS_Battler[]}
- */
-JABS_Battler.prototype.getAllNearbyAllies = function()
-{
-  return JABS_AiManager.getAlliedBattlersWithinRange(this, JABS_Battler.allyRubberbandRange());
-};
-
-/**
- * Gets the ally ai associated with this battler.
- * @returns {JABS_AllyAI}
- */
-JABS_Battler.prototype.getAllyAiMode = function()
-{
-  // enemies do not have ally ai.
-  if (this.isEnemy()) return null;
-
-  return this.getBattler()
-    .getAllyAI();
-};
-
-/**
- * Gets the close-distance threshold in tiles for this battler.
- * Enemies use the global default; allies delegate to their spacing axis.
- * @returns {number}
- */
-JABS_Battler.prototype.getCloseDistance = function()
-{
-  if (this.isEnemy()) return JABS_Battler.closeDistance;
-  const allyAI = this.getAllyAiMode();
-  if (!allyAI) return JABS_Battler.closeDistance;
-  return allyAI.getCloseDistance();
-};
-
-/**
- * Gets the far-distance threshold in tiles for this battler.
- * Enemies use the global default; allies delegate to their spacing axis.
- * @returns {number}
- */
-JABS_Battler.prototype.getFarDistance = function()
-{
-  if (this.isEnemy()) return JABS_Battler.farDistance;
-  const allyAI = this.getAllyAiMode();
-  if (!allyAI) return JABS_Battler.farDistance;
-  return allyAI.getFarDistance();
-};
-
-/**
- * Gets the leash range for this ally battler.
- * Applies the spacing-axis leash multiplier to the base rubber-band range.
- * @returns {number}
- */
-JABS_Battler.prototype.getAllyLeashRange = function()
-{
-  const allyAI = this.getAllyAiMode();
-  if (!allyAI) return JABS_Battler.allyRubberbandRange();
-  return JABS_Battler.allyRubberbandRange() * allyAI.getLeashMultiplier();
-};
-
-/**
- * Applies the battle memory to the battler.
- * Only applicable to allies (for now).
- * @param {JABS_BattleMemory} newMemory The new memory to apply to this battler.
- */
-JABS_Battler.prototype.applyBattleMemories = function(newMemory)
-{
-  // enemies do not (yet) track battle memories.
-  if (this.isEnemy()) return;
-
-  return this.getBattler()
-    .getAllyAI()
-    .applyMemory(newMemory);
-};
-//endregion JABS_Battler
-
-//region JABS_Formation
-/**
- * The structure of a party formation in JABS.
- */
-class JABS_Formation
-{
-  /**
-   * The name of the formation.
-   * @type {string}
-   */
-  name = String.empty;
-
-  /**
-   * The description of the formation for use when reviewing formations.
-   * @type {string}
-   */
-  description = String.empty;
-
-  /**
-   * A collection of the x,y coordinates of each ally relative to the leader and their facing.
-   * @type {[number[]]}
-   */
-  formation = [];
-
-
-  /**
-   * A collection of the effects applied to the party while this formation is active.
-   * @type {any[]}
-   */
-  effects = [];
-
-  /**
-   * Constructor.
-   * @param {string} name The name of this formation.
-   * @param {string} description The description of this formation to display to the player.
-   * @param {[number[]]} formation The array of positions for allies representing the formation.
-   * @param {any[]=} effects The additional effects applied when this formation is active.
-   */
-  constructor(name, description, formation, effects = [])
-  {
-    this.name = name;
-    this.description = description;
-    this.formation = formation;
-    this.effects = effects;
-  }
-}
-
-//endregion JABS_Formation
-
-//region JABS_AiManager
-
-/**
- * Extends {@link #executeAi}.<br/>
- * Enforces a functional leash for keeping ally battlers close in the execute loop.
- * @param {JABS_Battler} battler The battler executing on the AI mode.
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('executeAi', JABS_AiManager.executeAi);
-JABS_AiManager.executeAi = function(battler)
-{
-  // check if this is an ally.
-  if (battler.isActor())
-  {
-    // resolve the current leader battler; player1 is the leader in JABS.
-    const leader = $jabsEngine.getPlayer1();
-
-    // apply leash/rubberband rules relative to the leader; exit on corrective action.
-    if (this.maintainLeashAndEngagement(battler, leader)) return;
-  }
-
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get('executeAi')
-    .call(this, battler);
-};
-
-/**
- * Extends {@link #aiPhase0}.<br/>
- * Also accommodates the possibility of actors having an idle phase.
- * @param {JABS_Battler} battler The batter to decide for.
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('aiPhase0', JABS_AiManager.aiPhase0);
-JABS_AiManager.aiPhase0 = function(battler)
-{
-  // check if this is an enemy's ai being managed.
-  if (battler.isEnemy())
-  {
-    // perform original logic for enemies.
-    J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get('aiPhase0')
-      .call(this, battler);
-  }
-  // it must be an ally.
-  else
-  {
-    // process ally idle phase.
-    this.allyAiPhase0(battler);
-  }
-};
-
-/**
- * Decides what to do for allies in their idle phase.
- * When not alerted/engaged, allies follow the leader in a loose formation.
- * @param {JABS_Battler} allyBattler The ally battler.
- */
-JABS_AiManager.allyAiPhase0 = function(allyBattler)
-{
-  // always enforce follower passability policy while Ally AI controls the follower.
-  this.enforceFollowerThroughPolicy(allyBattler);
-
-  // check if we can perform phase 0 logic for allies.
-  if (!this.canPerformAllyPhase0(allyBattler)) return;
-
-  // do-nothing allies ignore alert state entirely and stay in formation.
-  const allyAI = allyBattler.getAllyAiMode();
-  const isDoNothing = allyAI && allyAI.isDoNothing();
-
-  // if alerted (and not in do-nothing mode), seek toward the alerter location first.
-  if (!isDoNothing && allyBattler.isAlerted())
-  {
-    // move toward the alert coordinates.
-    this.seekForAlerter(allyBattler);
-
-    // stop processing.
-    return;
-  }
-
-  // otherwise, perform intelligent follow behavior when idle.
-  this.allyFollowLeader(allyBattler);
-};
-
-/**
- * Enforces the passability policy for JABS-controlled followers.
- * While gathering, allow through (vanilla regroup). Otherwise, disable through so
- * AI-driven movement respects terrain.
- * @param {JABS_Battler} allyBattler The follower battler.
- */
-JABS_AiManager.enforceFollowerThroughPolicy = function(allyBattler)
-{
-  // acquire the character and sanity-check it is a follower.
-  const chr = allyBattler.getCharacter();
-  if (!chr || !chr.isFollower()) return;
-
-  // detect gather/regroup state from the followers wrapper.
-  const followers = $gamePlayer.followers();
-  const isGathering = followers && followers.areGathering();
-
-  // while gathering, allow through for quick regroup.
-  if (isGathering)
-  {
-    chr.setThrough(true);
-    return;
-  }
-
-  // not gathering: disable through so terrain passability is enforced.
-  chr.setThrough(false);
-};
-
-/**
- * Determines whether or not the ally can do phase 0 things.
- * @param {JABS_Battler} allyBattler The ally battler.
- * @returns {boolean} True if this ally can do phase 0 things, false otherwise.
- */
-JABS_AiManager.canPerformAllyPhase0 = function(allyBattler)
-{
-  // we do not idle while casting.
-  if (allyBattler.isCasting()) return false;
-
-  // we do not idle while engaged in combat.
-  if (allyBattler.isEngaged()) return false;
-
-  // perform!
-  return true;
-};
-
-/**
- * Causes an ally to follow their leader (player1) intelligently while idle.
- * Uses a small formation offset per follower index, a leash, and keeps spacing.
- * @param {JABS_Battler} allyBattler The ally battler to reposition.
- */
-JABS_AiManager.allyFollowLeader = function(allyBattler)
-{
-  // resolve the current leader battler; player1 is the leader in JABS.
-  const leader = $jabsEngine.getPlayer1();
-
-  // if we lack a leader or cannot move, do not attempt to follow.
-  if (!leader) return;
-
-  // apply leash/rubberband rules relative to the leader; exit on corrective action.
-  if (this.maintainLeashAndEngagement(allyBattler, leader)) return;
-
-  // if the ally cannot move, do not follow.
-  if (!allyBattler.canBattlerMove()) return;
-
-  // determine follower index to choose a formation slot.
-  const followerIndex = this.getFollowerIndexFromBattler(allyBattler);
-
-  // resolve the current formation type.
-  // TODO: resolve this from persisted game_system or maybe game_party?
-  const formationType = $gameParty.getPartyFormation();
-
-  // compute the desired slot tile for this follower based on formation.
-  const coords = this.computeFormationTarget(leader, followerIndex, formationType);
-  const [ desiredX, desiredY ] = coords;
-
-  // attempt to move toward the desired formation slot if needed.
-  this.moveTowardSlotIfNeeded(allyBattler, desiredX, desiredY);
-};
-
-/**
- * Applies leash rules to keep allies reasonably near the leader.
- * Returns true if a corrective action (like jump) occurred this frame.
- * @param {JABS_Battler} allyBattler The ally battler.
- * @param {JABS_Battler} leaderBattler The leader battler.
- * @returns {boolean} True if a corrective action occurred, false otherwise.
- */
-JABS_AiManager.maintainLeashAndEngagement = function(allyBattler, leaderBattler)
-{
-  // compute distance from ally to leader using real coords.
-  const distanceToLeader = $gameMap.distance(
-    allyBattler.getCharacter()._realX,
-    allyBattler.getCharacter()._realY,
-    leaderBattler.getCharacter()._realX,
-    leaderBattler.getCharacter()._realY);
-
-  // determine leash threshold (spacing-axis-scaled per ally).
-  const leash = allyBattler.getAllyLeashRange();
-
-  // if the ally is too far, disengage and rubberband back to the leader.
-  if (distanceToLeader > leash)
-  {
-    // Jump to the leader instantly and disengage
-    this.rubberbandAlly(allyBattler);
-
-    // signal we executed a corrective action.
-    return true;
-  }
-
-  // if back within half the leash, allow normal engagement again.
-  if (distanceToLeader <= Math.round(leash / 2))
-  {
-    // re-enable engaging.
-    allyBattler.unlockEngagement();
-  }
-
-  // no corrective action occurred.
-  return false;
-};
-
-/**
- * Rubber bands the ally back to the leader/player.
- * @param {JABS_Battler} allyBattler The ally battler to rubber band.
- */
-JABS_AiManager.rubberbandAlly = function(allyBattler)
-{
-  // prevent accidental far-away engagements.
-  allyBattler.lockEngagement();
-  allyBattler.disengageTarget();
-  allyBattler.resetAllAggro(null, true);
-
-  // Jump to the leader instantly.
-  const allyCharacter = allyBattler.getCharacter();
-  const leader = $jabsEngine.getPlayer1();
-  const lx = Math.floor(leader.getX());
-  const ly = Math.floor(leader.getY());
-
-  // relocate directly to the leader's tile to guarantee a successful rubberband.
-  allyCharacter.locate(lx, ly);
-};
-
-/**
- * Resolves the follower index for a battler bound to a Game_Follower.
- * @param {JABS_Battler} allyBattler The ally battler to resolve index for.
- * @returns {number} The zero-based follower index; -1 if not found.
- */
-JABS_AiManager.getFollowerIndexFromBattler = function(allyBattler)
-{
-  // grab the character for this battler.
-  const character = allyBattler.getCharacter();
-
-  // if this is not a follower, there is no index.
-  if (!character || !character.isFollower()) return -1;
-
-  // gather the current followers list.
-  const followers = $gamePlayer.followers()
-    .data();
-
-  // return the index (may be -1 if unexpected).
-  return followers.indexOf(character);
-};
-
-/**
- * Computes the absolute map tile for a follower’s formation slot.
- * Offsets are defined assuming the leader faces DOWN (2); they will be rotated to match current facing.
- * @param {JABS_Battler} leaderBattler The leader battler.
- * @param {number} followerIndex The index of the follower (0-based).
- * @param {string} formationType The formation type key.
- * @returns {[number, number]} The [x, y] tile target for this follower.
- */
-JABS_AiManager.computeFormationTarget = function(leaderBattler, followerIndex, formationType)
-{
-  // cycle index through available slots.
-  const idx = Math.max(0, followerIndex);
-
-  // get offsets for the selected formation type (baseline: leader facing DOWN).
-  const offsets = this.getFormationOffsets(formationType);
-
-  // choose offset for this follower.
-  const chosen = offsets[idx % offsets.length];
-  const [ ox, oy ] = chosen;
-
-  // derive the leader's current facing.
-  const dir = leaderBattler.getCharacter()
-    .direction();
-
-  // rotate the baseline offset to the leader's current facing.
-  const rotated = this.rotateOffsetForFacing(ox, oy, dir);
-  const [ rx, ry ] = rotated;
-
-  // leader tile coords.
-  const lx = Math.floor(leaderBattler.getX());
-  const ly = Math.floor(leaderBattler.getY());
-
-  // return slot coords.
-  return this.calculateFormationSlotCoordinates(lx, rx, ly, ry);
-};
-
-/**
- * Gets the array of [x,y] tile offsets for the requested formation type.
- * Offsets are relative to the leader's current tile.
- * @param {string} formationKey The formation type key.
- * @returns {number[][]} The list of offsets.
- */
-JABS_AiManager.getFormationOffsets = function(formationKey)
-{
-  // identify the formation in question.
-  const foundFormation = J.ABS.EXT.ALLYAI.Metadata.FormationTypes
-    .find(formation => formation.key === formationKey) ?? J.ABS.EXT.ALLYAI.Metadata.FormationTypes[0];
-
-  // resolve and return offsets.
-  return foundFormation.formation;
-};
-
-/**
- * Calculates the formation slot's coordinates based on the given parameters.
- * @param {number} lx The leader's x coordinate.
- * @param {number} rx The rotated x.
- * @param {number} ly The leader's y coordinate.
- * @param {number} ry The rotated y.
- * @returns {[number, number]}
- */
-JABS_AiManager.calculateFormationSlotCoordinates = function(lx, rx, ly, ry)
-{
-  // compute absolute slot tile by applying the rotated offset.
-  const sx = lx + rx;
-  const sy = ly + ry;
-
-  // return slot coords.
-  return [ sx, sy ];
-};
-
-/**
- * Rotates a baseline offset [ox, oy] (assumed for leader facing DOWN) into the space of the given facing.
- * Directions follow RMMZ standard: 2=down, 4=left, 6=right, 8=up.
- * @param {number} ox The baseline x-offset (facing DOWN).
- * @param {number} oy The baseline y-offset (facing DOWN).
- * @param {2|4|6|8} dir The leader's current facing direction.
- * @returns {[number, number]} The rotated offset [x, y].
- */
-JABS_AiManager.rotateOffsetForFacing = function(ox, oy, dir)
-{
-  // switch on the current facing to rotate the baseline-down offset.
-  switch (dir)
-  {
-    // facing DOWN: identity transform.
-    case 2:
-      return [ ox, oy ];
-
-    // facing LEFT: rotate +90 degrees (CCW): (x, y) -> (-y, x).
-    case 4:
-      return [ -oy, ox ];
-
-    // facing RIGHT: rotate -90 degrees (CW): (x, y) -> (y, -x).
-    case 6:
-      return [ oy, -ox ];
-
-    // facing UP: rotate 180 degrees: (x, y) -> (-x, -y).
-    case 8:
-      return [ -ox, -oy ];
-
-    // unsupported/unknown direction: default to identity.
-    default:
-      return [ ox, oy ];
-  }
-};
-
-/**
- * Issues a smart move toward the designated slot if outside tolerance and able to move.
- * @param {JABS_Battler} allyBattler The ally battler.
- * @param {number} desiredX The desired slot x.
- * @param {number} desiredY The desired slot y.
- */
-JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY)
-{
-  // forced dodge must win over slot chasing or dodge speed stacks with formation steering.
-  if (allyBattler.isDodging())
-  {
-    return;
-  }
-
-  if (allyBattler.guarding())
-  {
-    return;
-  }
-
-  // define a small tolerance to avoid jitter.
-  const tolerance = J.ABS.EXT.ALLYAI.Metadata.FormationTolerance;
-
-  // if within tolerance, do not micro-adjust.
-  if (this.isWithinTolerance(allyBattler, desiredX, desiredY, tolerance)) return;
-
-  // acquire the character once.
-  const character = allyBattler.getCharacter();
-
-  // don't re-issue move commands if already moving.
-  if (character.isMoving()) return;
-
-  // only issue a new move if able to move.
-  if (allyBattler.canBattlerMove())
-  {
-    // move intelligently toward the desired formation slot point (centered).
-    allyBattler.smartMoveTowardCoordinates(desiredX, desiredY);
-  }
-};
-
-/**
- * Checks if a battler is within a Manhattan tolerance of the target tile.
- * @param {JABS_Battler} allyBattler The ally battler.
- * @param {number} targetX The target x tile.
- * @param {number} targetY The target y tile.
- * @param {number} tolerance The allowed range before moving.
- * @returns {boolean} True if within tolerance, false otherwise.
- */
-JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, tolerance)
-{
-  // compute Euclidean distance to the target point using fractional coords.
-  const chr = allyBattler.getCharacter();
-  const dx = chr.x - targetX;
-  const dy = chr.y - targetY;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-
-  // return whether or not we are close enough.
-  return dist <= tolerance;
-};
-
-/**
- * Extends {@link #maintainSafeDistance}.<br>
- * Allies use spacing-axis-driven close/far thresholds instead of the global constants.
- * @param {JABS_Battler} battler The battler to reposition.
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('maintainSafeDistance', JABS_AiManager.maintainSafeDistance);
-JABS_AiManager.maintainSafeDistance = function(battler)
-{
-  // enemies use the original global-constant logic unchanged.
-  if (battler.isEnemy())
-  {
-    J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get('maintainSafeDistance')
-      .call(this, battler);
-    return;
-  }
-
-  // allies use spacing-axis distances.
-  const distance = battler.distanceToCurrentTarget();
-  const closeDistance = battler.getCloseDistance();
-  const farDistance = battler.getFarDistance();
-
-  // within the safe band: hold position.
-  if (distance > closeDistance && distance <= farDistance) return;
-
-  if (distance <= closeDistance)
-  {
-    battler.smartMoveAwayFromTarget();
-  }
-  else if (distance > farDistance)
-  {
-    battler.smartMoveTowardTarget();
-  }
-};
-
-/**
- * Extends {@link #decideAiPhase2Action}.<br>
- * Includes handling ally AI as well as enemy.
- * @param {JABS_Battler} battler The battler deciding the action.
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.set('decideAiPhase2Action', JABS_AiManager.decideAiPhase2Action);
-JABS_AiManager.decideAiPhase2Action = function(battler)
-{
-  // check if the battler is literally an Game_Enemy battler.
-  if (battler.isEnemy())
-  {
-    // perform original logic for enemies.
-    J.ABS.EXT.ALLYAI.Aliased.JABS_AiManager.get('decideAiPhase2Action')
-      .call(this, battler);
-  }
-  // it is a Game_Actor battler, so it gets different treatment.
-  else
-  {
-    // perform ally AI instead.
-    this.decideAllyAiPhase2Action(battler);
-  }
-};
-
-/**
- * The ally battler decides what action to take.
- * Based on it's AI traits, it will make a decision on an action to take.
- * @param {JABS_Battler} jabsBattler The ally battler deciding the action.
- */
-JABS_AiManager.decideAllyAiPhase2Action = function(jabsBattler)
-{
-  // grab the underlying battler deciding the action.
-  const battler = jabsBattler.getBattler();
-
-  // get all slots that have skills in them.
-  const validSkillSlots = battler.getValidSkillSlotsForAlly();
-
-  // strip guard skills from random picks: roll-time guard still poisons slot bookkeeping; ally guard is driven by
-  // {@link JABS_AiManager.tryRaiseAllyCombatGuard} on the same threat footprint as defensive dodge.
-  const currentlyEquippedSkillIds = validSkillSlots
-    .map(skillSlot => skillSlot.id)
-    .filter(skillId => !JABS_Battler.isGuardSkillById(skillId));
-
-  // decide the action based on the ally ai mode currently assigned.
-  const decidedPicks = jabsBattler
-    .getAllyAiMode()
-    .decideAction(jabsBattler, jabsBattler.getTarget(), currentlyEquippedSkillIds);
-
-  // validate the skill chosen.
-  if (decidedPicks.length === 0 || !this.isSkillIdValid(decidedPicks[0]))
-  {
-    // cancel the setup.
-    this.cancelActionSetup(jabsBattler);
-
-    // stop processing.
-    return;
-  }
-
-  const [decidedSkillId] = decidedPicks;
-
-  // TODO: allow allies to use dodge skills, but code the AI to use it intelligently.
-  // check if the skill id is actually a mobility skill.
-  if (JABS_Battler.isDodgeSkillById(decidedSkillId))
-  {
-    // cancel the setup.
-    this.cancelActionSetup(jabsBattler);
-
-    // stop processing.
-    return;
-  }
-
-  // do not execute guard skills from phase roulette (held guard is ally-ai-driven separately).
-  if (JABS_Battler.isGuardSkillById(decidedSkillId))
-  {
-    // cancel the setup.
-    this.cancelActionSetup(jabsBattler);
-
-    // stop processing.
-    return;
-  }
-
-  // determine the slot to apply the cooldown to.
-  const decidedSkillSlot = battler.findSlotForSkillId(decidedSkillId);
-
-  // build the cooldown from the skill.
-  const cooldownKey = decidedSkillSlot.key;
-
-  // setup the action for use!
-  this.setupActionForNextPhase(jabsBattler, decidedSkillId, cooldownKey);
-};
-//endregion JABS_AiManager
-
-//region JABS_Engine
-/**
- * Whether or not there is a request issued for rendering refreshed allies.
- * @type {boolean}
- */
+* Whether or not there is a request issued for rendering refreshed allies.
+* @type {boolean}
+*/
 Object.defineProperty(JABS_Engine.prototype, "requestAlliesRefresh", {
-  value: false,
-  writeable: true,
+	value: false,
+	writeable: true
 });
-
-/**
- * Extends {@link JABS_Engine.prePartyCycling}.<br>
- * Jumps all followers to the player upon party cycling.
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set('prePartyCycling', JABS_Engine.prototype.prePartyCycling);
-JABS_Engine.prototype.prePartyCycling = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get('prePartyCycling')
-    .call(this);
-
-  // when cycling, jump all followers to the player.
-  $gamePlayer.jumpFollowersToMe();
-};
-
-/**
- * Overrides {@link JABS_Engine.handlePartyCycleMemberChanges}.<br>
- * Jumps all followers to the player upon party cycling.
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set(
-  'handlePartyCycleMemberChanges',
-  JABS_Engine.prototype.handlePartyCycleMemberChanges);
-JABS_Engine.prototype.handlePartyCycleMemberChanges = function()
-{
-  // grab the current data for removing after to prevent duplicate players.
-  const formerLeader = $gameParty.leaderJabsBattler();
-
-  // check to make sure we have a leader.
-  if (formerLeader)
-  {
-    // remove the former leader to make room for them as a follower!
-    JABS_AiManager.removeBattler(formerLeader);
-  }
-
-  // perform original logic, updating the player to the latest.
-  J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get('handlePartyCycleMemberChanges')
-    .call(this);
-
-  // Defer ally rebuild to after sprite rebind; let the sprite layer trigger it.
-  $jabsEngine.requestAlliesRefresh = true;
-};
-
-/**
- * Extends {@link JABS_Engine.continuedPrimaryBattleEffects}.<br>
- * Also applies battle memories as-necessary.
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set(
-  'continuedPrimaryBattleEffects',
-  JABS_Engine.prototype.continuedPrimaryBattleEffects);
-JABS_Engine.prototype.continuedPrimaryBattleEffects = function(action, target)
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get('continuedPrimaryBattleEffects')
-    .call(this, action, target);
-
-  // apply the battle memories to the target.
-  const result = target.getBattler()
-    .result();
-  this.applyBattleMemories(result, action, target);
-};
-
-/**
- * Applies battle memories against the target based on the action being impacted.
- * @param result
- * @param action
- * @param target
- */
-JABS_Engine.prototype.applyBattleMemories = function(result, action, target)
-{
-  // only apply if allowed.
-  if (this.canApplyBattleMemories(target)) return;
-
-  // generate the new battle memory of the action and its result for the target.
-  const newMemory = new JABS_BattleMemory(target.getBattlerId(), action.getBaseSkill().id, action.getAction()
-    .calculateRawElementRate(target.getBattler()), result.hpDamage);
-
-  // determine the one who who executed the action.
-  const attacker = action.getCaster();
-
-  // save the memory of the action execution to the caster.
-  attacker.applyBattleMemories(newMemory);
-};
-
-/**
- * Determines whether or not battle memories should be applied to the target.
- * @param {JABS_Battler} target The target battler to potentially apply abttle memories to.
- * @returns {boolean}
- */
-JABS_Engine.prototype.canApplyBattleMemories = function(target)
-{
-  // enemies do not use battle memories like ally AI does.
-  if (target.isEnemy()) return false;
-
-  // apply the memories!
-  return true;
-};
-
-/**
- * Rebuilds all actor allies bound to followers after party cycling.
- * Ensures ex-leaders (now followers) regain proper ally core (sight/pursuit) and
- * are bound to their follower characters for correct isPlayer/isFollower state.
- */
-JABS_Engine.prototype.rebuildActorAllies = function()
-{
-  // grab all followers in order; follower index aligns to party members beyond leader.
-  const followers = $gamePlayer.followers()
-    .data();
-
-  // convert the followers into JABS battlers using the canonical helper.
-  const allyBattlers = JABS_AiManager.convertFollowersToBattlers(followers);
-
-  // register or update all ally battlers in the AI manager.
-  JABS_AiManager.addOrUpdateBattlers(allyBattlers);
-};
-
-/**
- * Extends {@link #postPartyCycling}.<br/>
- * Also rebuilds allies so they can be correctly aligned with the proper battler data.
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set('postPartyCycling', JABS_Engine.prototype.postPartyCycling);
-JABS_Engine.prototype.postPartyCycling = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get('postPartyCycling').call(this);
-
-  // rebuild all actor allies (followers) so they have proper ally core and character binding.
-  this.rebuildActorAllies();
-};
-/**
- * Extends {@link JABS_Engine#canBeAlerted}.<br>
- * Do-nothing allies cannot be alerted; they ignore attacks passively.
- */
-J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set('canBeAlerted', JABS_Engine.prototype.canBeAlerted);
-JABS_Engine.prototype.canBeAlerted = function(attacker, battler)
-{
-  // perform original logic.
-  if (!J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get('canBeAlerted').call(this, attacker, battler)) return false;
-
-  // do-nothing allies should not be alerted.
-  if (battler.isActor())
-  {
-    const allyAI = battler.getAllyAiMode();
-    if (allyAI && allyAI.isDoNothing()) return false;
-  }
-
-  return true;
-};
-//endregion JABS_Engine
-
-//region JABS_SkillSlotManager
-/**
- * Gets all skill slots that have a skill assigned.
- * @returns {JABS_SkillSlot[]}
- */
-JABS_SkillSlotManager.prototype.getEquippedAllySlots = function()
-{
-  // define the invalid skill slots that allies shouldn't use skills from.
-  const invalidAllySlots = [ JABS_Button.Tool, JABS_Button.Dodge ];
-
-  // return the filtered list of slots with skills that aren't invalid.
-  return this.getEquippedSlots()
-    // exclude the invalid skill slots.
-    .filter(skillSlot => !invalidAllySlots.includes(skillSlot.key));
-};
-//endregion JABS_SkillSlotManager
-
-//region Game_Actor
-/**
- * Extends {@link #initMembers}.<br>
- * Also tracks JABS ally AI.
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set('initMembers', Game_Actor.prototype.initMembers);
-Game_Actor.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Game_Actor.get('initMembers')
-    .call(this);
-
-  // init the additional members.
-  this.initAllyAiMembers();
-};
-
-/**
- * Initializes all members associated with the JABS extension of Ally AI.
- */
-Game_Actor.prototype.initAllyAiMembers = function()
-{
-  /**
-   * The shared root namespace for all of J's plugin data.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with JABS.
-   */
-  this._j._abs ||= {};
-
-  /**
-   * A grouping of all properties associated with the ally AI extension.
-   */
-  this._j._abs._allyAi ||= {};
-
-  /**
-   * The currently selected Ally AI mode.
-   * @type {JABS_AllyAI|null}
-   */
-  this._j._abs._allyAi._mode = new JABS_AllyAI(JABS_AllyAI.presets.GENERALIST.key);
-};
-
-/**
- * Extends {@link #setup}.<br>
- * Also initializes ally AI.
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set('setup', Game_Actor.prototype.setup);
-Game_Actor.prototype.setup = function(actorId)
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Game_Actor.get('setup')
-    .call(this, actorId);
-
-  // also initialize the ally's AI.
-  this.initAllyAI();
-};
-
-/**
- * Initializes the ally ai for this battler.
- */
-Game_Actor.prototype.initAllyAI = function()
-{
-  // grab the default ally AI mode for this actor.
-  const defaultAllyAiMode = this.getDefaultAllyAI();
-
-  // apply the default preset to this ally's AI.
-  this.setAllyAIPreset(defaultAllyAiMode);
-};
-
-/**
- * Get the current ally AI mode for this ally.
- * @returns {JABS_AllyAI}
- */
-Game_Actor.prototype.getAllyAI = function()
-{
-  if (!this._j._abs._allyAi)
-  {
-    this.initAllyAiMembers();
-  }
-
-  return this._j._abs._allyAi._mode;
-}
-
-/**
- * Applies an ally AI preset to this ally by preset key.
- * @param {string} presetKey The key of the preset to apply.
- */
-Game_Actor.prototype.setAllyAIPreset = function(presetKey)
-{
-  this._j._abs._allyAi._mode.applyPreset(presetKey);
-};
-
-/**
- * Gets the default ally AI mode associated with an actor.
- * The priority for the AI mode is class > actor > default.
- * @returns {string}
- */
-Game_Actor.prototype.getDefaultAllyAI = function()
-{
-  // if there is no actor id, then don't try this yet.
-  if (!this._actorId) return null;
-
-  // extract the ally ai mode from the actor.
-  const actorMode = RPGManager.getStringFromNoteByRegex(
-    this.actor(),
-    J.ABS.EXT.ALLYAI.RegExp.DefaultAi,
-    true);
-
-  // extract the ally ai mode from the class.
-  const classMode = RPGManager.getStringFromNoteByRegex(
-    this.currentClass(),
-    J.ABS.EXT.ALLYAI.RegExp.DefaultAi,
-    true);
-
-  // priority is class > actor > default, for ally ai mode.
-  const allyAiMode = classMode ?? actorMode;
-
-  // validate the preset provided.
-  if (JABS_AllyAI.validatePreset(allyAiMode))
-  {
-    // if validation succeeds, then return what was in the notes.
-    return allyAiMode;
-  }
-
-  // return the default of "generalist" for ally ai.
-  return JABS_AllyAI.presets.GENERALIST.key;
-};
-
-/**
- * Gets all skill slots that have skills assigned to them- excluding the tool slot.
- * @returns {JABS_SkillSlot[]}
- */
-Game_Actor.prototype.getValidSkillSlotsForAlly = function()
-{
-  return this.getSkillSlotManager()
-    .getEquippedAllySlots();
-};
-//endregion Game_Actor
-
-//region Game_Follower
-/**
- * OVERWRITE Adjust the chaseCharacter function to prevent chasing the player
- * while this follower is engaged.
- * @param {Game_Character} character The character this follower is following.
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set('chaseCharacter', Game_Follower.prototype.chaseCharacter);
-Game_Follower.prototype.chaseCharacter = function(character)
-{
-  // if this isn't a valid battler or followers aren't being shown, then don't control them.
-  if (!this.canObeyJabsAi())
-  {
-    // perform original logic.
-    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('chaseCharacter')
-      .call(this, character);
-  }
-};
-
-/**
- * Determines whether or not this follower should be controlled by the {@link JABS_AiManager}.<br>
- * @returns {boolean} True if this follower should be controlled, false otherwise.
- */
-Game_Follower.prototype.canObeyJabsAi = function()
-{
-  // if we are not visible, then we should not be controlled by JABS AI.
-  if (!this.isVisible()) return false;
-
-  // if we do not have a JABS battler, then we should not be controlled by JABS AI.
-  if (!this.getJabsBattler()) return false;
-
-  // lets get controlled!
-  return true;
-};
-
-/**
- * Extends {@link #setDirectionFix}.<br/>
- * Allows JABS to prevent the direction fix from applying as-needed.
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set('setDirectionFix', Game_Follower.prototype.setDirectionFix);
-Game_Follower.prototype.setDirectionFix = function(isDirectionFixed)
-{
-  // grab the follower's battler.
-  const battler = this.getJabsBattler();
-  if (!battler)
-  {
-    // perform original logic if we are not.
-    J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('setDirectionFix')
-      .call(this, isDirectionFixed);
-
-    // do no further processing.
-    return;
-  }
-
-  // only lock direction if the battler isn't engaged, and there is no event running.
-  if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) return;
-
-  // perform original logic if we are not.
-  J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get('setDirectionFix')
-    .call(this, isDirectionFixed);
-};
-
-/**
- * Jump to the player from wherever you are.
- */
-Game_Follower.prototype.jumpToPlayer = function()
-{
-  const sx = $gamePlayer.deltaXFrom(this.x);
-  const sy = $gamePlayer.deltaYFrom(this.y);
-  this.jump(sx, sy);
-};
-
-//endregion Game_Follower
-
-//region Game_Followers
-/**
- * OVERWRITE If you're using this, the followers always show up!
- * @returns {boolean}
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set('show', Game_Followers.prototype.show);
-Game_Followers.prototype.show = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get('show')
-    .call(this);
-
-  // update all allies when choosing "show" as an event command.
-  $gameMap.updateAllies();
-
-  // refresh the JABS menu.
-  $jabsEngine.requestJabsMenuRefresh = true;
-};
-
-/**
- * OVERWRITE If you're using this, the followers always show up!
- * @returns {boolean}
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set('hide', Game_Followers.prototype.hide);
-Game_Followers.prototype.hide = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get('hide')
-    .call(this);
-
-  // update all allies when choosing "hide" as an event command.
-  $gameMap.updateAllies();
-
-  // refresh the JABS menu.
-  $jabsEngine.requestJabsMenuRefresh = true;
-};
-
-/**
- * OVERWRITE Adjust the jumpAll function to prevent jumping to the player
- * when the player is hit.
- */
-Game_Followers.prototype.jumpAll = function()
-{
-  // don't make all the followers jump if the player isn't jumping.
-  if (!$gamePlayer.isJumping()) return;
-
-  const playerBattler = $gamePlayer.getJabsBattler();
-
-  // iterate over each follower to make them jump as-needed.
-  for (const follower of this._data)
-  {
-    // skip followers that don't exist.
-    if (!follower || !follower.isVisible()) return;
-
-    // grab the follower's battler.
-    const battler = follower.getJabsBattler();
-
-    // only jump if the battler isn't engaged, and there is no event running.
-    if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) return;
-
-    // determine coordinates to jump to.
-    const sx = $gamePlayer.deltaXFrom(follower.x);
-    const sy = $gamePlayer.deltaYFrom(follower.y);
-
-    // jump!
-    follower.jump(sx, sy);
-  }
-};
-
-/**
- * Sets whether or not all followers are direction-fixed.
- * @param {boolean} isFixed Whether or not the direction should be fixed.
- */
-Game_Followers.prototype.setDirectionFixAll = function(isFixed)
-{
-  this._data.forEach(follower =>
-  {
-    // skip followers that don't exist.
-    if (!follower) return;
-
-    // grab the follower's battler.
-    const battler = follower.getJabsBattler();
-
-    // if the follower doesn't have a battler, then don't check anything.
-    if (!battler) return;
-
-    // only lock direction if the battler isn't engaged, and there is no event running.
-    if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) return;
-
-    // set their direction to be whatever the player's is.
-    follower.setDirection(isFixed);
-  });
-};
-//endregion Game_Followers
-
-//region Game_Interpreter
-/**
- * Extends the "Set Moveroute" event command.
- * Sets all follower's direction-fix to be whatever the player's is after a moveroute.
- * This accommodates the other adjustment regarding the player direction locking and allowing
- * the allies to stay agnostic to that input.
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Interpreter.set('command205', Game_Interpreter.prototype.command205);
-Game_Interpreter.prototype.command205 = function(params)
-{
-  // if param[0] is -1, that is the player!
-  // TODO: only jump to player if the player moves!
-  // execute the move route command.
-  const result = J.ABS.EXT.ALLYAI.Aliased.Game_Interpreter.get('command205').call(this, params);
-
-  // check if we have a result and also the target is to move the character.
-  if (result && params[0] === -1)
-  {
-    // then check the player's lock status and set all followers to be the same.
-    $gamePlayer.followers()
-      .setDirectionFixAll($gamePlayer.isDirectionFixed());
-    $gamePlayer.jumpFollowersToMe();
-  }
-
-  // return the outcome.
-  return result;
-};
-//endregion Game_Interpreter
-
-//region Game_Map
-/**
- * Extends {@link Game_Map.parseBattlers}.<br>
- * Also parses ally battlers as well as events.
- * @returns {JABS_Battler[]}
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Map.set('parseBattlers', Game_Map.prototype.parseBattlers);
-Game_Map.prototype.parseBattlers = function()
-{
-  // perform original logic.
-  const originalParsedBattlers = J.ABS.EXT.ALLYAI.Aliased.Game_Map.get('parseBattlers')
-    .call(this);
-
-  // also parse ally battlers.
-  const parsedAllyBattlers = this.parseAllyBattlers();
-
-  // combine all battlers.
-  const parsedBattlers = originalParsedBattlers.concat(parsedAllyBattlers);
-
-  // return the combined conversion.
-  return parsedBattlers;
-};
-
-/**
- * Parses all followers that are active into their battler form.
- * @returns {JABS_Battler[]}
- */
-Game_Map.prototype.parseAllyBattlers = function()
-{
-  return JABS_AiManager
-    .convertFollowersToBattlers($gamePlayer.followers()
-      .data());
-};
-
-/**
- * Gets all ally battlers out of the collection of battlers.
- * This does not include the player.
- * @returns {JABS_Battler[]}
- */
-Game_Map.prototype.getFollowerBattlers = function()
-{
-  return JABS_AiManager.getAllBattlers()
-    .filter(battler => battler.isFollower());
-};
-
-/**
- * Updates all ally battlers in-place.
- * For use with party-cycling.
- */
-Game_Map.prototype.updateAllies = function()
-{
-  // get all the ally battlers from the current collection.
-  const allyJabsBattlers = this.getFollowerBattlers();
-
-  // first remove all battlers.
-  this.removeBattlers(allyJabsBattlers);
-
-  // then re-add the updated ones.
-  const allies = this.parseAllyBattlers();
-
-  // check to make sure we have allies.
-  if (allies.length)
-  {
-    // add any parsed allies.
-    JABS_AiManager.addOrUpdateBattlers(allies);
-  }
-};
-
-/**
- * Removes all provided battlers from the battler tracking.
- * @param {JABS_Battler[]} battlers The battlers to be removed.
- */
-Game_Map.prototype.removeBattlers = function(battlers)
-{
-  // disengage all battlers.
-  battlers.forEach(battler => battler.disengageTarget());
-
-  // remove them from tracking.
-  JABS_AiManager.removeBattlers(battlers);
-};
-//endregion Game_Map
-
-//region Game_Party
-/**
- * Extends initialization to include the ally AI configurations.
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('initialize', Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Game_Party.get('initialize')
-    .call(this);
-
-  // initialize our ally ai members.
-  this.initAllyAi();
-};
-
-/**
- * Initializes additional properties associated with ally ai.
- */
-Game_Party.prototype.initAllyAi = function()
-{
-  /**
-   * All encompassing object for storing my custom properties.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with JABS.
-   */
-  this._j._abs ||= {};
-
-  /**
-   * A grouping of all properties associated with the ally ai JABS extension.
-   */
-  this._j._abs._allyAI ||= {};
-
-  /**
-   * Whether or not the party will engage without the player's engagement.
-   * @type {boolean}
-   */
-  this._j._abs._allyAI._aggroPassiveToggle ||= false;
-
-  /**
-   * The name of the current formation the party is leveraging.
-   * @type {string}
-   */
-  this._j._abs._allyAI._partyFormation = J.ABS.EXT.ALLYAI.Metadata.DefaultFormationType;
-};
-
-/**
- * Gets whether or not the party is allowed to actively engage enemies.
- * @returns {boolean}
- */
-Game_Party.prototype.isAggro = function()
-{
-  return this._j._abs._allyAI._aggroPassiveToggle;
-};
-
-/**
- * Sets the party ally AI to be aggro.
- * Aggro party ally AI will have their own sight ranges and engage any enemies nearby.
- */
-Game_Party.prototype.becomeAggro = function()
-{
-  this._j._abs._allyAI._aggroPassiveToggle = true;
-};
-
-/**
- * Sets the party ally AI to be passive.
- * Passive party ally AI will only fight if hit first or when the leader engages.
- */
-Game_Party.prototype.becomePassive = function()
-{
-  this._j._abs._allyAI._aggroPassiveToggle = false;
-};
-
-/**
- * Gets the key of the current party formation.
- * @returns {string}
- */
-Game_Party.prototype.getPartyFormation = function()
-{
-  return this._j._abs._allyAI._partyFormation;
-};
-
-/**
- * Sets the key of the current party formation to the given formation.
- * @param formation
- */
-Game_Party.prototype.setPartyFormation = function(formation)
-{
-  this._j._abs._allyAI._partyFormation = formation;
-};
-
-/**
- * Extends {@link Game_Party.addActor}.<br>
- * Also updates allies to accommodate the addition of the actor.
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('addActor', Game_Party.prototype.addActor);
-Game_Party.prototype.addActor = function(actorId)
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Game_Party.get('addActor')
-    .call(this, actorId);
-
-  // update all allies when adding an actor to the party.
-  $gameMap.updateAllies();
-};
-
-/**
- * Extends {@link Game_Party.removeActor}.<br>
- * Also updates allies to accommodate the removal of the actor.
- */
-J.ABS.EXT.ALLYAI.Aliased.Game_Party.set('removeActor', Game_Party.prototype.removeActor);
-Game_Party.prototype.removeActor = function(actorId)
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Game_Party.get('removeActor')
-    .call(this, actorId);
-
-  // update all allies when removing an actor from the party.
-  $gameMap.updateAllies();
-};
-//endregion Game_Party
-
-//region Game_Player
-/**
- * Jumps all followers of the player back to the player.
- */
-Game_Player.prototype.jumpFollowersToMe = function()
-{
-  this.followers()
-    .data()
-    .forEach(follower => follower.jumpToPlayer());
-};
-//endregion Game_Player
-
-//region Scene_Map
-//region init
-/**
- * Extends the JABS menu initialization to include the new ally ai management selection.
- */
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set('initJabsMembers', Scene_Map.prototype.initJabsMembers);
-Scene_Map.prototype.initJabsMembers = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get('initJabsMembers')
-    .call(this);
-
-  // init ally ai members.
-  this.initAllyAiMembers();
-};
-
-/**
- * Initializes the new windows for ally ai management.
- */
-Scene_Map.prototype.initAllyAiMembers = function()
-{
-  /**
-   * The window containing the list of party members to adjust the AI for.
-   * @type {Window_AbsMenuSelect|null}
-   */
-  this._j._absMenu._allyAiPartyWindow = null;
-
-  /**
-   * The window containing the list of AI strategies for use.
-   * @type {Window_AbsMenuSelect|null}
-   */
-  this._j._absMenu._allyAiEquipWindow = null;
-
-  /**
-   * The window containing the list of ally formations available.
-   * @type {Window_Formations|null}
-   */
-  this._j._absMenu._allyAiFormationWindow = null;
-
-  /**
-   * The currently-selected ally actorId.
-   * @type {number}
-   */
-  this._j._absMenu._allyAiActorId = 0;
-};
-//endregion init
-
-//region getter/setter
-/**
- * Sets the chosen actor id to the provided id.
- * @param {number} chosenActorId The id of the chosen actor.
- */
-Scene_Map.prototype.setAllyAiActorId = function(chosenActorId)
-{
-  this._j._absMenu._allyAiActorId = chosenActorId;
-};
-
-/**
- * Gets the chosen actor id.
- */
-Scene_Map.prototype.getAllyAiActorId = function()
-{
-  return this._j._absMenu._allyAiActorId;
-};
-
-/**
- * Gets the ally formation window.
- * @returns {Window_Formations}
- */
-Scene_Map.prototype.getAllyFormationWindow = function()
-{
-  return this._j._absMenu._allyAiFormationWindow;
-};
-
-/**
- * Sets the ally formation window.
- * @param {Window_Formations} window The new window.
- */
-Scene_Map.prototype.setAllyFormationWindow = function(window)
-{
-  this._j._absMenu._allyAiFormationWindow = window;
-};
-//endregion getter/setter
-
-//region create
-/**
- * Extends the JABS menu creation to include the new windows for ally ai management.
- */
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set('createJabsAbsMenu', Scene_Map.prototype.createJabsAbsMenu);
-Scene_Map.prototype.createJabsAbsMenu = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get('createJabsAbsMenu')
-    .call(this);
-
-  // also create the new ally AI windows..
-  this.createAllyAiPartyWindow();
-  this.createAllyAiEquipWindow();
-  this.createAllyAiFormationWindow();
-};
-
-/**
- * Extends the JABS menu creation to include a new command handler for ally ai.
- */
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set('createJabsAbsMenuMainWindow', Scene_Map.prototype.createJabsAbsMenuMainWindow);
-Scene_Map.prototype.createJabsAbsMenuMainWindow = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get('createJabsAbsMenuMainWindow')
-    .call(this);
-
-  // also associate the ally AI handler with the appropriate symbol.
-  this._j._absMenu._mainWindow.setHandler("ally-ai", this.commandManagePartyAi.bind(this));
-};
-
-/**
- * Creates the window that lists all active members of the party.
- */
-Scene_Map.prototype.createAllyAiPartyWindow = function()
-{
-  // identify the shape of the window.
-  const rect = this.allyAiPartyRectangle();
-
-  // build the window with the rectangle and its type.
-  const aiPartyMenu = new Window_AbsMenuSelect(rect, "ai-party-list");
-
-  // setup the handlers.
-  aiPartyMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "ai-party-list"));
-  aiPartyMenu.setHandler("party-member", this.commandSelectMemberAi.bind(this));
-  aiPartyMenu.setHandler("aggro-passive-toggle", this.commandAggroPassiveToggle.bind(this));
-  aiPartyMenu.setHandler("ally-formations", this.commandAllyFormations.bind(this));
-
-  // set the window for tracking.
-  this._j._absMenu._allyAiPartyWindow = aiPartyMenu;
-  this.addWindow(this._j._absMenu._allyAiPartyWindow);
-
-  // manage the initial state of the window.
-  this._j._absMenu._allyAiPartyWindow.close();
-  this._j._absMenu._allyAiPartyWindow.hide();
-};
-
-/**
- * Creates the rectangle representing the window for selecting which ally to manage AI for.
- * @returns {Rectangle}
- */
-Scene_Map.prototype.allyAiPartyRectangle = function()
-{
-  // define the width of the window.
-  const w = 600;
-
-  // define the height of the window.
-  const h = 600;
-
-  // define the origin x of the window.
-  const x = Graphics.boxWidth - w;
-
-  // define the origin y of the window.
-  const y = 200;
-
-  // return the built rectangle.
-  return new Rectangle(x, y, w, h);
-};
-
-/**
- * Creates a window that lists all available ai modes that the chosen ally can use.
- */
-Scene_Map.prototype.createAllyAiEquipWindow = function()
-{
-  // identify the shape of the window.
-  const rect = this.allyAiEquipRectangle();
-
-  // build the window with the rectangle and its type.
-  const aiMemberMenu = new Window_AbsMenuSelect(rect, "select-ai");
-
-  // setup the handlers.
-  aiMemberMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "select-ai"));
-  aiMemberMenu.setHandler("select-ai", this.commandEquipMemberAi.bind(this));
-  aiMemberMenu.setHandler("do-nothing-toggle", this.commandToggleDoNothing.bind(this));
-
-  // set the window for tracking.
-  this._j._absMenu._allyAiEquipWindow = aiMemberMenu;
-  this.addWindow(this._j._absMenu._allyAiEquipWindow);
-
-  // manage the initial state of the window.
-  this._j._absMenu._allyAiEquipWindow.close();
-  this._j._absMenu._allyAiEquipWindow.hide();
-};
-
-/**
- * Creates the rectangle representing the window for selecting which AI mode to apply to a given ally.
- * @returns {Rectangle}
- */
-Scene_Map.prototype.allyAiEquipRectangle = function()
-{
-  // define the width to match the skill/tool list windows.
-  const width = Math.round(Graphics.boxWidth * 0.4);
-
-  // the general height of a command item (2 lines at font size 24).
-  const commandHeight = 72;
-
-  // 11 items: 1 do-nothing toggle + 10 presets, with standard padding.
-  const height = commandHeight * 11 + 40;
-
-  // push against the right edge.
-  const x = Graphics.boxWidth - width;
-
-  // start at the top.
-  const y = 0;
-
-  // return the built rectangle.
-  return new Rectangle(x, y, width, height);
-};
-
-/**
- * Creates the ally formations window.
- */
-Scene_Map.prototype.createAllyAiFormationWindow = function()
-{
-  // identify the shape of the window.
-  const rect = this.allyAiFormationRectangle();
-
-  // build the window with the rectangle.
-  const window = new Window_Formations(rect);
-
-  // setup the handlers.
-  window.setHandler("cancel", this.closeAbsWindow.bind(this, "ally-formations"));
-  window.setHandler("select-formation", this.commandSelectAllyFormation.bind(this));
-
-  // set the window for tracking.
-  this.setAllyFormationWindow(window);
-  this.addWindow(window);
-
-  // manage the initial state of the window.
-  window.close();
-  window.hide();
-};
-
-/**
- * Creates the rectangle representing the window for the formations.
- * @returns {Rectangle}
- */
-Scene_Map.prototype.allyAiFormationRectangle = function()
-{
-  // define the width of the window.
-  const width = 600;
-
-  // define the height of the window.
-  const height = 400;
-
-  // define the origin x of the window.
-  const x = Graphics.boxWidth - width;
-
-  // define the origin y of the window.
-  const y = 200;
-
-  // return the built rectangle.
-  return new Rectangle(x, y, width, height);
-};
-//endregion create
-
-//region commands
-/**
- * When the "manage ally ai" option is chosen, it prioritizes this window.
- */
-Scene_Map.prototype.commandManagePartyAi = function()
-{
-  this.setJabsMenuFocus("ai-party-list");
-};
-
-/**
- * When an individual party member is chosen, it prioritizes the AI mode selection window.
- */
-Scene_Map.prototype.commandSelectMemberAi = function()
-{
-  // change focus to the ally AI selection window.
-  this.setJabsMenuFocus("select-ai");
-
-  // set the actorId into the AI selection window and refresh.
-  const actorId = this._j._absMenu._allyAiPartyWindow.currentExt();
-  this.setAllyAiActorId(actorId);
-  this._j._absMenu._allyAiEquipWindow.setActorId(actorId);
-  this._j._absMenu._allyAiEquipWindow.refresh();
-};
-
-/**
- * Toggles the party-wide aggro/passive switch.
- * Passive switch will only target the leader's current target.
- * Aggro switch will enable full sight range and auto-engaging abilities.
- */
-Scene_Map.prototype.commandAggroPassiveToggle = function()
-{
-  // play a fun sound when changing party aggro mode.
-  SoundManager.playRecovery();
-
-  // toggle the party aggro mode.
-  $gameParty.isAggro()
-    ? $gameParty.becomePassive()
-    : $gameParty.becomeAggro();
-
-  // refresh the window to pick up the new state.
-  this._j._absMenu._allyAiPartyWindow.refresh();
-};
-
-/**
- * When a preset is chosen, applies it to the actor's ally AI.
- */
-Scene_Map.prototype.commandEquipMemberAi = function()
-{
-  const newPreset = this._j._absMenu._allyAiEquipWindow.currentExt();
-  const allyAi = $gameActors.actor(this.getAllyAiActorId()).getAllyAI();
-  allyAi.applyPreset(newPreset.key);
-  this._j._absMenu._allyAiEquipWindow.refresh();
-};
-
-/**
- * Toggles the do-nothing flag for the currently selected ally.
- */
-Scene_Map.prototype.commandToggleDoNothing = function()
-{
-  SoundManager.playRecovery();
-  const allyAi = $gameActors.actor(this.getAllyAiActorId()).getAllyAI();
-  allyAi.setDoNothing(!allyAi.isDoNothing());
-  this._j._absMenu._allyAiEquipWindow.refresh();
-};
-
-Scene_Map.prototype.commandAllyFormations = function()
-{
-  this.setJabsMenuFocus("ally-formations");
-};
-
-Scene_Map.prototype.commandSelectAllyFormation = function()
-{
-  const window = this.getAllyFormationWindow();
-
-  /**
-   * @type {JABS_Formation}
-   */
-  const selectedFormation = window.currentExt();
-  $gameParty.setPartyFormation(selectedFormation.key);
-  window.refresh();
-};
-//endregion commands
-
-//region manage menu
-/**
- * Manages the ABS main menu's interactivity.
- */
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set('manageAbsMenu', Scene_Map.prototype.manageAbsMenu);
-Scene_Map.prototype.manageAbsMenu = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get('manageAbsMenu')
-    .call(this);
-
-  // pivot on the window focus to manage which should be open and which should be closed.
-  switch (this._j._absMenu._windowFocus)
-  {
-    case "ai-party-list":
-      this._j._absMenu._mainWindow.hide();
-      this._j._absMenu._mainWindow.close();
-      this._j._absMenu._mainWindow.deactivate();
-      this._j._absMenu._allyAiPartyWindow.show();
-      this._j._absMenu._allyAiPartyWindow.open();
-      this._j._absMenu._allyAiPartyWindow.activate();
-      break;
-    case "select-ai":
-      this._j._absMenu._allyAiPartyWindow.hide();
-      this._j._absMenu._allyAiPartyWindow.close();
-      this._j._absMenu._allyAiPartyWindow.deactivate();
-      this._j._absMenu._allyAiEquipWindow.show();
-      this._j._absMenu._allyAiEquipWindow.open();
-      this._j._absMenu._allyAiEquipWindow.activate();
-      break;
-    case "ally-formations":
-    {
-      this._j._absMenu._allyAiPartyWindow.hide();
-      this._j._absMenu._allyAiPartyWindow.close();
-      this._j._absMenu._allyAiPartyWindow.deactivate();
-
-      const window = this.getAllyFormationWindow();
-      window.show();
-      window.open();
-      window.activate();
-      break;
-    }
-  }
-};
-
-/**
- * Closes a given Abs menu window.
- * @param {string} absWindow The type of abs window being closed.
- */
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set('closeAbsWindow', Scene_Map.prototype.closeAbsWindow);
-Scene_Map.prototype.closeAbsWindow = function(absWindow)
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get('closeAbsWindow')
-    .call(this, absWindow);
-
-  // allow possibly closing ally AI windows as well.
-  switch (absWindow)
-  {
-    case "ai-party-list":
-      this._j._absMenu._allyAiPartyWindow.hide();
-      this._j._absMenu._allyAiPartyWindow.close();
-      this._j._absMenu._allyAiPartyWindow.deactivate();
-      this._j._absMenu._mainWindow.activate();
-      this._j._absMenu._mainWindow.open();
-      this._j._absMenu._mainWindow.show();
-      this.setJabsMenuFocus("main");
-      break;
-    case "select-ai":
-      this._j._absMenu._allyAiEquipWindow.hide();
-      this._j._absMenu._allyAiEquipWindow.close();
-      this._j._absMenu._allyAiEquipWindow.deactivate();
-      this._j._absMenu._allyAiPartyWindow.activate();
-      this._j._absMenu._allyAiPartyWindow.open();
-      this._j._absMenu._allyAiPartyWindow.show();
-      this.setJabsMenuFocus("ai-party-list");
-      break;
-    case "ally-formations":
-    {
-      const window = this.getAllyFormationWindow();
-      window.hide();
-      window.close();
-      window.deactivate();
-
-      this._j._absMenu._allyAiPartyWindow.activate();
-      this._j._absMenu._allyAiPartyWindow.open();
-      this._j._absMenu._allyAiPartyWindow.show();
-      this.setJabsMenuFocus("ai-party-list");
-      break;
-    }
-  }
-};
-//endregion manage menu
-//endregion Scene_Map
-
-//region Spriteset_Map
-/**
- * Extends {@link #refreshAllCharacterSprites}.<br/>
- * Also refreshes follower ally battlers after sprites have been refreshed.
- */
-J.ABS.EXT.ALLYAI.Aliased.Spriteset_Map.set(
-  'refreshAllCharacterSprites',
-  Spriteset_Map.prototype.refreshAllCharacterSprites);
-Spriteset_Map.prototype.refreshAllCharacterSprites = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Spriteset_Map.get('refreshAllCharacterSprites').call(this);
-
-  // After rebinds, rebuild the ally battlers (once per refresh request).
-  if ($jabsEngine.requestAlliesRefresh)
-  {
-    // Re-parse followers into JABS_Battlers now that follower <-> actor links are current.
-    $gameMap.updateAllies();
-
-    // reset the allies refresh request flag.
-    $jabsEngine.requestAlliesRefresh = false;
-  }
-};
-
-//endregion Spriteset_Map
-
-//region Window_AbsMenu
-/**
- * Extends {@link #buildCommands}.<br>
- * Adds the ally ai management command at the end of the list.
- * @returns {BuiltWindowCommand[]}
- */
-J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.set('buildCommands', Window_AbsMenu.prototype.buildCommands);
-Window_AbsMenu.prototype.buildCommands = function()
-{
-  // perform original logic to get base commands.
-  const originalCommands = J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.get('buildCommands')
-    .call(this);
-
-  // if the switch is disabled, then the command won't even appear in the menu.
-  if (!this.canAddAllyAiCommand()) return originalCommands;
-
-  // if followers aren't being used, then this command will be disabled.
-  const enabled = $gamePlayer.followers()
-    .isVisible();
-
-  // build the command.
-  const allyAiCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandName)
-    .setSymbol('ally-ai')
-    .setEnabled(enabled)
-    .setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex)
-    .setColorIndex(27)
-    .setHelpText(this.allyAiHelpText())
-    .build();
-
-  // add the new command.
-  originalCommands.push(allyAiCommand);
-
-  // return the updated command list.
-  return originalCommands;
-};
-
-/**
- * Determines whether or not the ally ai management command can be added to the JABS menu.
- * @returns {boolean} True if the command should be added, false otherwise.
- */
-Window_AbsMenu.prototype.canAddAllyAiCommand = function()
-{
-  // if the necessary switch isn't ON, don't render the command at all.
-  if (!$gameSwitches.value(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandSwitchId)) return false;
-
-  // render the command!
-  return true;
-};
-
-/**
- * The help text for the JABS ally AI menu.
- * @returns {string}
- */
-Window_AbsMenu.prototype.allyAiHelpText = function()
-{
-  const description = [
-    "Your ally management selection menu.",
-    "A general direction or theme of guidance can be assigned to your allies from here." ];
-
-  return description.join("\n");
-};
-
-/**
- * Overwrites {@link #itemHeight}.<br/>
- * Increases the height so subtext can be added.
- * @returns {number}
- */
-Window_AbsMenuSelect.prototype.itemHeight = function()
-{
-  return this.lineHeight() * 2;
-};
-//endregion Window_AbsMenu
-
-//region Window_AbsMenuSelect
-/**
- * Extends {@link Window_AbsMenuSelect#initialize}.<br/>
- * Also initializes the ally AI members.
- */
-J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set('initialize', Window_AbsMenuSelect.prototype.initialize);
-Window_AbsMenuSelect.prototype.initialize = function(rect, type)
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get('initialize')
-    .call(this, rect, type);
-
-  // initialize ally AI-specific members.
-  this.initJabsAllyAiMenuMembers();
-};
-
-/**
- * Initializes the ally AI members for this window.
- */
-Window_AbsMenuSelect.prototype.initJabsAllyAiMenuMembers = function()
-{
-  /**
-   * The actor id of the ally currently being managed via this window.
-   * @type {number}
-   */
-  this._j._chosenActorId = 0;
-};
-
-/**
- * Sets the actor id assigned to this window.
- * @param {number} actorId The new actor id for this window.
- */
-Window_AbsMenuSelect.prototype.setActorId = function(actorId)
-{
-  this._j._chosenActorId = actorId;
-};
-
-/**
- * Gets the actor id assigned to this window, if any.
- * @returns {number}
- */
-Window_AbsMenuSelect.prototype.getActorId = function()
-{
-  return this._j._chosenActorId;
-};
-
-/**
- * Extends the JABS quick menu select to also handle ai management.
- */
-J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set('makeCommandList', Window_AbsMenuSelect.prototype.makeCommandList);
-Window_AbsMenuSelect.prototype.makeCommandList = function()
-{
-  // perform original logic.
-  J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get('makeCommandList')
-    .call(this);
-
-  // pivot on the menu type.
-  switch (this._j._menuType)
-  {
-    case "ai-party-list":
-      this.addAggroPassiveToggleCommand();
-      this.makeAllyList();
-      this.addAllyFormationCommand();
-      break;
-    case "select-ai":
-      this.makeAllyAiDoNothingToggle();
-      this.makeAllyAiPresetList();
-      break;
-  }
-};
-
-/**
- * Draws the list of available AI modes that an ally can use.
- */
-Window_AbsMenuSelect.prototype.makeAllyList = function()
-{
-  // an iterator function for building all the actor commands for changing ally AI.
-  const forEacher = member =>
-  {
-    // build the command for this member of the party.
-    const command = new WindowCommandBuilder(member.name())
-      .setSymbol("party-member")
-      .setExtensionData(member.actorId())
-      .build();
-
-    // add the built command to the list.
-    this.addBuiltCommand(command);
-  };
-
-  // build all the commands.
-  $gameParty.allMembers()
-    .forEach(forEacher, this);
-};
-
-/**
- * Injects the aggro-passive toggle command into the menu.
- */
-Window_AbsMenuSelect.prototype.addAggroPassiveToggleCommand = function()
-{
-  // define the icons for passive/aggressive ally AI aggro settings.
-  const aggroPassiveCommandName = $gameParty.isAggro()
-    ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText
-    : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText;
-  const aggroPassiveCommandIcon = $gameParty.isAggro()
-    ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex
-    : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex;
-
-  const description = $gameParty.isAggro()
-    ? "The party is currently 'aggro'.\nAllies will engage in any enemy that comes within their range."
-    : "The party is currently 'passive'.\nAllies will not engage until the leader strikes or is struck.";
-
-  const textColor = $gameParty.isAggro()
-    ? 2
-    : 3;
-
-  // build the command for toggling ally AI aggro.
-  const command = new WindowCommandBuilder(aggroPassiveCommandName)
-    .setSymbol("aggro-passive-toggle")
-    .setTextLines(description.split(/[\r\n]/i))
-    .flagAsSubText()
-    .setColorIndex(textColor)
-    .setIconIndex(aggroPassiveCommandIcon)
-    .build();
-
-  // add the aggro toggle command.
-  this.addBuiltCommand(command);
-};
-
-/**
- * Injects the party formations command into the menu.
- */
-Window_AbsMenuSelect.prototype.addAllyFormationCommand = function()
-{
-  const allyFormationsCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandName)
-    .setSymbol('ally-formations')
-    .setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandIconIndex)
-    .setColorIndex(23)
-    .build();
-
-  // add the aggro toggle command.
-  this.addBuiltCommand(allyFormationsCommand);
-};
-
-/**
- * Adds a do-nothing toggle command at the top of the ally AI selection window.
- * Mirrors the aggro/passive toggle pattern from the party list window.
- */
-Window_AbsMenuSelect.prototype.makeAllyAiDoNothingToggle = function()
-{
-  const currentActor = $gameActors.actor(this.getActorId());
-  if (!currentActor) return;
-
-  const allyAI = currentActor.getAllyAI();
-  const isDoNothing = allyAI.isDoNothing();
-
-  const commandName = isDoNothing
-    ? 'Do Nothing: ON'
-    : 'Do Nothing: OFF';
-
-  const description = isDoNothing
-    ? 'This ally hangs back and takes no actions.\nToggle off to restore their preset behavior.'
-    : 'This ally acts according to their preset.\nToggle on to make them stand down entirely.';
-
-  const colorIndex = isDoNothing ? 3 : 2;
-
-  const iconIndex = isDoNothing
-    ? J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex
-    : J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex;
-
-  const command = new WindowCommandBuilder(commandName)
-    .setSymbol('do-nothing-toggle')
-    .setTextLines(description.split(/[\r\n]/i))
-    .flagAsSubText()
-    .setColorIndex(colorIndex)
-    .setIconIndex(iconIndex)
-    .build();
-
-  this.addBuiltCommand(command);
-};
-
-/**
- * Draws the list of available AI presets that an ally can use.
- */
-Window_AbsMenuSelect.prototype.makeAllyAiPresetList = function()
-{
-  const currentActor = $gameActors.actor(this.getActorId());
-  if (!currentActor) return;
-
-  const presets = JABS_AllyAI.getPresets();
-  const currentAi = currentActor.getAllyAI();
-
-  const forEacher = preset =>
-  {
-    const { key, name, description } = preset;
-
-    const isEquipped = currentAi.getPresetKey() === key;
-
-    const iconIndex = isEquipped
-      ? J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex
-      : J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
-
-    const command = new WindowCommandBuilder(name)
-      .setSymbol('select-ai')
-      .setTextLines(description.split(/[\r\n]/i))
-      .flagAsSubText()
-      .setIconIndex(iconIndex)
-      .setEnabled(true)
-      .setExtensionData(preset)
-      .build();
-
-    this.addBuiltCommand(command);
-  };
-
-  presets.forEach(forEacher, this);
-};
-
 /**
- * Overwrites {@link #itemHeight}.<br/>
- * Increases the height so subtext can be added.
- * @returns {number}
- */
-Window_AbsMenuSelect.prototype.itemHeight = function()
-{
-  return this.lineHeight() * 2;
-};
-//endregion Window_AbsMenuSelect
-
-//region Window_Formations
-/**
- * A window that allows selection from a list of ally AI formations.
- */
-class Window_Formations
-  extends Window_Command
-{
-  constructor(rect)
-  {
-    super(rect);
-  }
-
-  /**
-   * Generates the command list for the JABS menu.
-   */
-  makeCommandList()
-  {
-    // build all the commands.
-    const commands = this.buildCommands();
-
-    // add the built commands.
-    commands.forEach(this.addBuiltCommand, this);
-  }
-
-  buildCommands()
-  {
-    // iterate over each of the commands.
-    return J.ABS.EXT.ALLYAI.Metadata.FormationTypes.map(this.buildCommand, this);
-  }
-
-  buildCommand(formation)
-  {
-    // extract some data from the formation.
-    const {
-      key,
-      name,
-      description
-    } = formation;
-
-    // check if the currently selected formation is what this is.
-    const isEquipped = $gameParty.getPartyFormation() === key;
-
-    // build the icon based on whether or not its assigned.
-    const iconIndex = isEquipped
-      ? J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex
-      : J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
-
-    // build the new "command".
-    return new WindowCommandBuilder(name)
-      .setSymbol("select-formation")
-      .setTextLines(description.split(/[\r\n]/i))
-      .flagAsSubText()
-      .setIconIndex(iconIndex)
-      .setEnabled(true)
-      .setExtensionData(formation)
-      .build();
-  }
-
-  /**
-   * Overrides {@link #itemHeight}.<br>
-   * Makes the command rows bigger so there can be additional lines.
-   * @returns {number}
-   */
-  itemHeight()
-  {
-    return this.lineHeight() * 2;
-  }
-}
-//endregion Window_Formations
-
+* Extends {@link JABS_Engine.prePartyCycling}.<br>
+* Jumps all followers to the player upon party cycling.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("prePartyCycling", JABS_Engine.prototype.prePartyCycling);
+JABS_Engine.prototype.prePartyCycling = function() {
+	J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get("prePartyCycling").call(this);
+	$gamePlayer.jumpFollowersToMe();
+};
+/**
+* Overrides {@link JABS_Engine.handlePartyCycleMemberChanges}.<br>
+* Jumps all followers to the player upon party cycling.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("handlePartyCycleMemberChanges", JABS_Engine.prototype.handlePartyCycleMemberChanges);
+JABS_Engine.prototype.handlePartyCycleMemberChanges = function() {
+	const formerLeader = $gameParty.leaderJabsBattler();
+	if (formerLeader) {
+		JABS_AiManager.removeBattler(formerLeader);
+	}
+	J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get("handlePartyCycleMemberChanges").call(this);
+	$jabsEngine.requestAlliesRefresh = true;
+};
+/**
+* Extends {@link JABS_Engine.continuedPrimaryBattleEffects}.<br>
+* Also applies battle memories as-necessary.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("continuedPrimaryBattleEffects", JABS_Engine.prototype.continuedPrimaryBattleEffects);
+JABS_Engine.prototype.continuedPrimaryBattleEffects = function(action, target) {
+	J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get("continuedPrimaryBattleEffects").call(this, action, target);
+	const result = target.getBattler().result();
+	this.applyBattleMemories(result, action, target);
+};
+/**
+* Applies battle memories against the target based on the action being impacted.
+* @param result
+* @param action
+* @param target
+*/
+JABS_Engine.prototype.applyBattleMemories = function(result, action, target) {
+	if (this.canApplyBattleMemories(target)) return;
+	const newMemory = new JABS_BattleMemory(target.getBattlerId(), action.getBaseSkill().id, action.getAction().calculateRawElementRate(target.getBattler()), result.hpDamage);
+	const attacker = action.getCaster();
+	attacker.applyBattleMemories(newMemory);
+};
+/**
+* Determines whether or not battle memories should be applied to the target.
+* @param {JABS_Battler} target The target battler to potentially apply abttle memories to.
+* @returns {boolean}
+*/
+JABS_Engine.prototype.canApplyBattleMemories = function(target) {
+	if (target.isEnemy()) return false;
+	return true;
+};
+/**
+* Rebuilds all actor allies bound to followers after party cycling.
+* Ensures ex-leaders (now followers) regain proper ally core (sight/pursuit) and
+* are bound to their follower characters for correct isPlayer/isFollower state.
+*/
+JABS_Engine.prototype.rebuildActorAllies = function() {
+	const followers = $gamePlayer.followers().data();
+	const allyBattlers = JABS_AiManager.convertFollowersToBattlers(followers);
+	JABS_AiManager.addOrUpdateBattlers(allyBattlers);
+};
+/**
+* Extends {@link #postPartyCycling}.<br/>
+* Also rebuilds allies so they can be correctly aligned with the proper battler data.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("postPartyCycling", JABS_Engine.prototype.postPartyCycling);
+JABS_Engine.prototype.postPartyCycling = function() {
+	J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get("postPartyCycling").call(this);
+	this.rebuildActorAllies();
+};
+/**
+* Extends {@link JABS_Engine#canBeAlerted}.<br>
+* Do-nothing allies cannot be alerted; they ignore attacks passively.
+*/
+J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("canBeAlerted", JABS_Engine.prototype.canBeAlerted);
+JABS_Engine.prototype.canBeAlerted = function(attacker, battler) {
+	if (!J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.get("canBeAlerted").call(this, attacker, battler)) return false;
+	if (battler.isActor()) {
+		const allyAI = battler.getAllyAiMode();
+		if (allyAI && allyAI.isDoNothing()) return false;
+	}
+	return true;
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/managers/JABS_SkillSlotManager.js
+/**
+* Gets all skill slots that have a skill assigned.
+* @returns {JABS_SkillSlot[]}
+*/
+JABS_SkillSlotManager.prototype.getEquippedAllySlots = function() {
+	const invalidAllySlots = [JABS_Button.Tool, JABS_Button.Dodge];
+	return this.getEquippedSlots().filter((skillSlot) => !invalidAllySlots.includes(skillSlot.key));
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/objects/Game_Actor.js
+/**
+* Extends {@link #initMembers}.<br>
+* Also tracks JABS ally AI.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set("initMembers", Game_Actor.prototype.initMembers);
+Game_Actor.prototype.initMembers = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Game_Actor.get("initMembers").call(this);
+	this.initAllyAiMembers();
+};
+/**
+* Initializes all members associated with the JABS extension of Ally AI.
+*/
+Game_Actor.prototype.initAllyAiMembers = function() {
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with JABS.
+	*/
+	this._j._abs ||= {};
+	/**
+	* A grouping of all properties associated with the ally AI extension.
+	*/
+	this._j._abs._allyAi ||= {};
+	/**
+	* The currently selected Ally AI mode.
+	* @type {JABS_AllyAI|null}
+	*/
+	this._j._abs._allyAi._mode = new JABS_AllyAI(JABS_AllyAI.presets.GENERALIST.key);
+};
+/**
+* Extends {@link #setup}.<br>
+* Also initializes ally AI.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set("setup", Game_Actor.prototype.setup);
+Game_Actor.prototype.setup = function(actorId) {
+	J.ABS.EXT.ALLYAI.Aliased.Game_Actor.get("setup").call(this, actorId);
+	this.initAllyAI();
+};
+/**
+* Initializes the ally ai for this battler.
+*/
+Game_Actor.prototype.initAllyAI = function() {
+	const defaultAllyAiMode = this.getDefaultAllyAI();
+	this.setAllyAIPreset(defaultAllyAiMode);
+};
+/**
+* Get the current ally AI mode for this ally.
+* @returns {JABS_AllyAI}
+*/
+Game_Actor.prototype.getAllyAI = function() {
+	if (!this._j._abs._allyAi) {
+		this.initAllyAiMembers();
+	}
+	return this._j._abs._allyAi._mode;
+};
+/**
+* Applies an ally AI preset to this ally by preset key.
+* @param {string} presetKey The key of the preset to apply.
+*/
+Game_Actor.prototype.setAllyAIPreset = function(presetKey) {
+	this._j._abs._allyAi._mode.applyPreset(presetKey);
+};
+/**
+* Gets the default ally AI mode associated with an actor.
+* The priority for the AI mode is class > actor > default.
+* @returns {string}
+*/
+Game_Actor.prototype.getDefaultAllyAI = function() {
+	if (!this._actorId) return null;
+	const actorMode = RPGManager.getStringFromNoteByRegex(this.actor(), J.ABS.EXT.ALLYAI.RegExp.DefaultAi, true);
+	const classMode = RPGManager.getStringFromNoteByRegex(this.currentClass(), J.ABS.EXT.ALLYAI.RegExp.DefaultAi, true);
+	const allyAiMode = classMode ?? actorMode;
+	if (JABS_AllyAI.validatePreset(allyAiMode)) {
+		return allyAiMode;
+	}
+	return JABS_AllyAI.presets.GENERALIST.key;
+};
+/**
+* Gets all skill slots that have skills assigned to them- excluding the tool slot.
+* @returns {JABS_SkillSlot[]}
+*/
+Game_Actor.prototype.getValidSkillSlotsForAlly = function() {
+	return this.getSkillSlotManager().getEquippedAllySlots();
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/objects/Game_Follower.js
+/**
+* OVERWRITE Adjust the chaseCharacter function to prevent chasing the player
+* while this follower is engaged.
+* @param {Game_Character} character The character this follower is following.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set("chaseCharacter", Game_Follower.prototype.chaseCharacter);
+Game_Follower.prototype.chaseCharacter = function(character) {
+	if (!this.canObeyJabsAi()) {
+		J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get("chaseCharacter").call(this, character);
+	}
+};
+/**
+* Determines whether or not this follower should be controlled by the {@link JABS_AiManager}.<br>
+* @returns {boolean} True if this follower should be controlled, false otherwise.
+*/
+Game_Follower.prototype.canObeyJabsAi = function() {
+	if (!this.isVisible()) return false;
+	if (!this.getJabsBattler()) return false;
+	return true;
+};
+/**
+* Extends {@link #setDirectionFix}.<br/>
+* Allows JABS to prevent the direction fix from applying as-needed.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Follower.set("setDirectionFix", Game_Follower.prototype.setDirectionFix);
+Game_Follower.prototype.setDirectionFix = function(isDirectionFixed) {
+	const battler = this.getJabsBattler();
+	if (!battler) {
+		J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get("setDirectionFix").call(this, isDirectionFixed);
+		return;
+	}
+	if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) return;
+	J.ABS.EXT.ALLYAI.Aliased.Game_Follower.get("setDirectionFix").call(this, isDirectionFixed);
+};
+/**
+* Jump to the player from wherever you are.
+*/
+Game_Follower.prototype.jumpToPlayer = function() {
+	const sx = $gamePlayer.deltaXFrom(this.x);
+	const sy = $gamePlayer.deltaYFrom(this.y);
+	this.jump(sx, sy);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/objects/Game_Followers.js
+/**
+* OVERWRITE If you're using this, the followers always show up!
+* @returns {boolean}
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set("show", Game_Followers.prototype.show);
+Game_Followers.prototype.show = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get("show").call(this);
+	$gameMap.updateAllies();
+	$jabsEngine.requestJabsMenuRefresh = true;
+};
+/**
+* OVERWRITE If you're using this, the followers always show up!
+* @returns {boolean}
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set("hide", Game_Followers.prototype.hide);
+Game_Followers.prototype.hide = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get("hide").call(this);
+	$gameMap.updateAllies();
+	$jabsEngine.requestJabsMenuRefresh = true;
+};
+/**
+* OVERWRITE Adjust the jumpAll function to prevent jumping to the player
+* when the player is hit.
+*/
+Game_Followers.prototype.jumpAll = function() {
+	if (!$gamePlayer.isJumping()) return;
+	const playerBattler = $gamePlayer.getJabsBattler();
+	for (const follower of this._data) {
+		if (!follower || !follower.isVisible()) return;
+		const battler = follower.getJabsBattler();
+		if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) return;
+		const sx = $gamePlayer.deltaXFrom(follower.x);
+		const sy = $gamePlayer.deltaYFrom(follower.y);
+		follower.jump(sx, sy);
+	}
+};
+/**
+* Sets whether or not all followers are direction-fixed.
+* @param {boolean} isFixed Whether or not the direction should be fixed.
+*/
+Game_Followers.prototype.setDirectionFixAll = function(isFixed) {
+	this._data.forEach((follower) => {
+		if (!follower) return;
+		const battler = follower.getJabsBattler();
+		if (!battler) return;
+		if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) return;
+		follower.setDirection(isFixed);
+	});
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/objects/Game_Interpreter.js
+/**
+* Extends the "Set Moveroute" event command.
+* Sets all follower's direction-fix to be whatever the player's is after a moveroute.
+* This accommodates the other adjustment regarding the player direction locking and allowing
+* the allies to stay agnostic to that input.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Interpreter.set("command205", Game_Interpreter.prototype.command205);
+Game_Interpreter.prototype.command205 = function(params) {
+	const result = J.ABS.EXT.ALLYAI.Aliased.Game_Interpreter.get("command205").call(this, params);
+	if (result && params[0] === -1) {
+		$gamePlayer.followers().setDirectionFixAll($gamePlayer.isDirectionFixed());
+		$gamePlayer.jumpFollowersToMe();
+	}
+	return result;
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/objects/Game_Map.js
+/**
+* Extends {@link Game_Map.parseBattlers}.<br>
+* Also parses ally battlers as well as events.
+* @returns {JABS_Battler[]}
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Map.set("parseBattlers", Game_Map.prototype.parseBattlers);
+Game_Map.prototype.parseBattlers = function() {
+	const originalParsedBattlers = J.ABS.EXT.ALLYAI.Aliased.Game_Map.get("parseBattlers").call(this);
+	const parsedAllyBattlers = this.parseAllyBattlers();
+	const parsedBattlers = originalParsedBattlers.concat(parsedAllyBattlers);
+	return parsedBattlers;
+};
+/**
+* Parses all followers that are active into their battler form.
+* @returns {JABS_Battler[]}
+*/
+Game_Map.prototype.parseAllyBattlers = function() {
+	return JABS_AiManager.convertFollowersToBattlers($gamePlayer.followers().data());
+};
+/**
+* Gets all ally battlers out of the collection of battlers.
+* This does not include the player.
+* @returns {JABS_Battler[]}
+*/
+Game_Map.prototype.getFollowerBattlers = function() {
+	return JABS_AiManager.getAllBattlers().filter((battler) => battler.isFollower());
+};
+/**
+* Updates all ally battlers in-place.
+* For use with party-cycling.
+*/
+Game_Map.prototype.updateAllies = function() {
+	const allyJabsBattlers = this.getFollowerBattlers();
+	this.removeBattlers(allyJabsBattlers);
+	const allies = this.parseAllyBattlers();
+	if (allies.length) {
+		JABS_AiManager.addOrUpdateBattlers(allies);
+	}
+};
+/**
+* Removes all provided battlers from the battler tracking.
+* @param {JABS_Battler[]} battlers The battlers to be removed.
+*/
+Game_Map.prototype.removeBattlers = function(battlers) {
+	battlers.forEach((battler) => battler.disengageTarget());
+	JABS_AiManager.removeBattlers(battlers);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/objects/Game_Party.js
+/**
+* Extends initialization to include the ally AI configurations.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
+Game_Party.prototype.initialize = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Game_Party.get("initialize").call(this);
+	this.initAllyAi();
+};
+/**
+* Initializes additional properties associated with ally ai.
+*/
+Game_Party.prototype.initAllyAi = function() {
+	/**
+	* All encompassing object for storing my custom properties.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with JABS.
+	*/
+	this._j._abs ||= {};
+	/**
+	* A grouping of all properties associated with the ally ai JABS extension.
+	*/
+	this._j._abs._allyAI ||= {};
+	/**
+	* Whether or not the party will engage without the player's engagement.
+	* @type {boolean}
+	*/
+	this._j._abs._allyAI._aggroPassiveToggle ||= false;
+	/**
+	* The name of the current formation the party is leveraging.
+	* @type {string}
+	*/
+	this._j._abs._allyAI._partyFormation = J.ABS.EXT.ALLYAI.Metadata.DefaultFormationType;
+};
+/**
+* Gets whether or not the party is allowed to actively engage enemies.
+* @returns {boolean}
+*/
+Game_Party.prototype.isAggro = function() {
+	return this._j._abs._allyAI._aggroPassiveToggle;
+};
+/**
+* Sets the party ally AI to be aggro.
+* Aggro party ally AI will have their own sight ranges and engage any enemies nearby.
+*/
+Game_Party.prototype.becomeAggro = function() {
+	this._j._abs._allyAI._aggroPassiveToggle = true;
+};
+/**
+* Sets the party ally AI to be passive.
+* Passive party ally AI will only fight if hit first or when the leader engages.
+*/
+Game_Party.prototype.becomePassive = function() {
+	this._j._abs._allyAI._aggroPassiveToggle = false;
+};
+/**
+* Gets the key of the current party formation.
+* @returns {string}
+*/
+Game_Party.prototype.getPartyFormation = function() {
+	return this._j._abs._allyAI._partyFormation;
+};
+/**
+* Sets the key of the current party formation to the given formation.
+* @param formation
+*/
+Game_Party.prototype.setPartyFormation = function(formation) {
+	this._j._abs._allyAI._partyFormation = formation;
+};
+/**
+* Extends {@link Game_Party.addActor}.<br>
+* Also updates allies to accommodate the addition of the actor.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set("addActor", Game_Party.prototype.addActor);
+Game_Party.prototype.addActor = function(actorId) {
+	J.ABS.EXT.ALLYAI.Aliased.Game_Party.get("addActor").call(this, actorId);
+	$gameMap.updateAllies();
+};
+/**
+* Extends {@link Game_Party.removeActor}.<br>
+* Also updates allies to accommodate the removal of the actor.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set("removeActor", Game_Party.prototype.removeActor);
+Game_Party.prototype.removeActor = function(actorId) {
+	J.ABS.EXT.ALLYAI.Aliased.Game_Party.get("removeActor").call(this, actorId);
+	$gameMap.updateAllies();
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/objects/Game_Player.js
+/**
+* Jumps all followers of the player back to the player.
+*/
+Game_Player.prototype.jumpFollowersToMe = function() {
+	this.followers().data().forEach((follower) => follower.jumpToPlayer());
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/windows/Window_Formations.js
+/**
+* A window that allows selection from a list of ally AI formations.
+*/
+var Window_Formations = class extends Window_Command {
+	constructor(rect) {
+		super(rect);
+	}
+	/**
+	* Generates the command list for the JABS menu.
+	*/
+	makeCommandList() {
+		const commands = this.buildCommands();
+		commands.forEach(this.addBuiltCommand, this);
+	}
+	buildCommands() {
+		return J.ABS.EXT.ALLYAI.Metadata.FormationTypes.map(this.buildCommand, this);
+	}
+	buildCommand(formation) {
+		const { key, name, description } = formation;
+		const isEquipped = $gameParty.getPartyFormation() === key;
+		const iconIndex = isEquipped ? J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex : J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
+		return new WindowCommandBuilder(name).setSymbol("select-formation").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setIconIndex(iconIndex).setEnabled(true).setExtensionData(formation).build();
+	}
+	/**
+	* Overrides {@link #itemHeight}.<br>
+	* Makes the command rows bigger so there can be additional lines.
+	* @returns {number}
+	*/
+	itemHeight() {
+		return this.lineHeight() * 2;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/scenes/Scene_Map.js
+/**
+* Extends the JABS menu initialization to include the new ally ai management selection.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("initJabsMembers", Scene_Map.prototype.initJabsMembers);
+Scene_Map.prototype.initJabsMembers = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("initJabsMembers").call(this);
+	this.initAllyAiMembers();
+};
+/**
+* Initializes the new windows for ally ai management.
+*/
+Scene_Map.prototype.initAllyAiMembers = function() {
+	/**
+	* The window containing the list of party members to adjust the AI for.
+	* @type {Window_AbsMenuSelect|null}
+	*/
+	this._j._absMenu._allyAiPartyWindow = null;
+	/**
+	* The window containing the list of AI strategies for use.
+	* @type {Window_AbsMenuSelect|null}
+	*/
+	this._j._absMenu._allyAiEquipWindow = null;
+	/**
+	* The window containing the list of ally formations available.
+	* @type {Window_Formations|null}
+	*/
+	this._j._absMenu._allyAiFormationWindow = null;
+	/**
+	* The currently-selected ally actorId.
+	* @type {number}
+	*/
+	this._j._absMenu._allyAiActorId = 0;
+};
+/**
+* Sets the chosen actor id to the provided id.
+* @param {number} chosenActorId The id of the chosen actor.
+*/
+Scene_Map.prototype.setAllyAiActorId = function(chosenActorId) {
+	this._j._absMenu._allyAiActorId = chosenActorId;
+};
+/**
+* Gets the chosen actor id.
+*/
+Scene_Map.prototype.getAllyAiActorId = function() {
+	return this._j._absMenu._allyAiActorId;
+};
+/**
+* Gets the ally formation window.
+* @returns {Window_Formations}
+*/
+Scene_Map.prototype.getAllyFormationWindow = function() {
+	return this._j._absMenu._allyAiFormationWindow;
+};
+/**
+* Sets the ally formation window.
+* @param {Window_Formations} window The new window.
+*/
+Scene_Map.prototype.setAllyFormationWindow = function(window) {
+	this._j._absMenu._allyAiFormationWindow = window;
+};
+/**
+* Extends the JABS menu creation to include the new windows for ally ai management.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("createJabsAbsMenu", Scene_Map.prototype.createJabsAbsMenu);
+Scene_Map.prototype.createJabsAbsMenu = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("createJabsAbsMenu").call(this);
+	this.createAllyAiPartyWindow();
+	this.createAllyAiEquipWindow();
+	this.createAllyAiFormationWindow();
+};
+/**
+* Extends the JABS menu creation to include a new command handler for ally ai.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("createJabsAbsMenuMainWindow", Scene_Map.prototype.createJabsAbsMenuMainWindow);
+Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("createJabsAbsMenuMainWindow").call(this);
+	this._j._absMenu._mainWindow.setHandler("ally-ai", this.commandManagePartyAi.bind(this));
+};
+/**
+* Creates the window that lists all active members of the party.
+*/
+Scene_Map.prototype.createAllyAiPartyWindow = function() {
+	const rect = this.allyAiPartyRectangle();
+	const aiPartyMenu = new Window_AbsMenuSelect(rect, "ai-party-list");
+	aiPartyMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "ai-party-list"));
+	aiPartyMenu.setHandler("party-member", this.commandSelectMemberAi.bind(this));
+	aiPartyMenu.setHandler("aggro-passive-toggle", this.commandAggroPassiveToggle.bind(this));
+	aiPartyMenu.setHandler("ally-formations", this.commandAllyFormations.bind(this));
+	this._j._absMenu._allyAiPartyWindow = aiPartyMenu;
+	this.addWindow(this._j._absMenu._allyAiPartyWindow);
+	this._j._absMenu._allyAiPartyWindow.close();
+	this._j._absMenu._allyAiPartyWindow.hide();
+};
+/**
+* Creates the rectangle representing the window for selecting which ally to manage AI for.
+* @returns {Rectangle}
+*/
+Scene_Map.prototype.allyAiPartyRectangle = function() {
+	const w = 600;
+	const h = 600;
+	const x = Graphics.boxWidth - w;
+	const y = 200;
+	return new Rectangle(x, y, w, h);
+};
+/**
+* Creates a window that lists all available ai modes that the chosen ally can use.
+*/
+Scene_Map.prototype.createAllyAiEquipWindow = function() {
+	const rect = this.allyAiEquipRectangle();
+	const aiMemberMenu = new Window_AbsMenuSelect(rect, "select-ai");
+	aiMemberMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "select-ai"));
+	aiMemberMenu.setHandler("select-ai", this.commandEquipMemberAi.bind(this));
+	aiMemberMenu.setHandler("do-nothing-toggle", this.commandToggleDoNothing.bind(this));
+	this._j._absMenu._allyAiEquipWindow = aiMemberMenu;
+	this.addWindow(this._j._absMenu._allyAiEquipWindow);
+	this._j._absMenu._allyAiEquipWindow.close();
+	this._j._absMenu._allyAiEquipWindow.hide();
+};
+/**
+* Creates the rectangle representing the window for selecting which AI mode to apply to a given ally.
+* @returns {Rectangle}
+*/
+Scene_Map.prototype.allyAiEquipRectangle = function() {
+	const width = Math.round(Graphics.boxWidth * .4);
+	const commandHeight = 72;
+	const height = commandHeight * 11 + 40;
+	const x = Graphics.boxWidth - width;
+	const y = 0;
+	return new Rectangle(x, y, width, height);
+};
+/**
+* Creates the ally formations window.
+*/
+Scene_Map.prototype.createAllyAiFormationWindow = function() {
+	const rect = this.allyAiFormationRectangle();
+	const window = new Window_Formations(rect);
+	window.setHandler("cancel", this.closeAbsWindow.bind(this, "ally-formations"));
+	window.setHandler("select-formation", this.commandSelectAllyFormation.bind(this));
+	this.setAllyFormationWindow(window);
+	this.addWindow(window);
+	window.close();
+	window.hide();
+};
+/**
+* Creates the rectangle representing the window for the formations.
+* @returns {Rectangle}
+*/
+Scene_Map.prototype.allyAiFormationRectangle = function() {
+	const width = 600;
+	const height = 400;
+	const x = Graphics.boxWidth - width;
+	const y = 200;
+	return new Rectangle(x, y, width, height);
+};
+/**
+* When the "manage ally ai" option is chosen, it prioritizes this window.
+*/
+Scene_Map.prototype.commandManagePartyAi = function() {
+	this.setJabsMenuFocus("ai-party-list");
+};
+/**
+* When an individual party member is chosen, it prioritizes the AI mode selection window.
+*/
+Scene_Map.prototype.commandSelectMemberAi = function() {
+	this.setJabsMenuFocus("select-ai");
+	const actorId = this._j._absMenu._allyAiPartyWindow.currentExt();
+	this.setAllyAiActorId(actorId);
+	this._j._absMenu._allyAiEquipWindow.setActorId(actorId);
+	this._j._absMenu._allyAiEquipWindow.refresh();
+};
+/**
+* Toggles the party-wide aggro/passive switch.
+* Passive switch will only target the leader's current target.
+* Aggro switch will enable full sight range and auto-engaging abilities.
+*/
+Scene_Map.prototype.commandAggroPassiveToggle = function() {
+	SoundManager.playRecovery();
+	$gameParty.isAggro() ? $gameParty.becomePassive() : $gameParty.becomeAggro();
+	this._j._absMenu._allyAiPartyWindow.refresh();
+};
+/**
+* When a preset is chosen, applies it to the actor's ally AI.
+*/
+Scene_Map.prototype.commandEquipMemberAi = function() {
+	const newPreset = this._j._absMenu._allyAiEquipWindow.currentExt();
+	const allyAi = $gameActors.actor(this.getAllyAiActorId()).getAllyAI();
+	allyAi.applyPreset(newPreset.key);
+	this._j._absMenu._allyAiEquipWindow.refresh();
+};
+/**
+* Toggles the do-nothing flag for the currently selected ally.
+*/
+Scene_Map.prototype.commandToggleDoNothing = function() {
+	SoundManager.playRecovery();
+	const allyAi = $gameActors.actor(this.getAllyAiActorId()).getAllyAI();
+	allyAi.setDoNothing(!allyAi.isDoNothing());
+	this._j._absMenu._allyAiEquipWindow.refresh();
+};
+Scene_Map.prototype.commandAllyFormations = function() {
+	this.setJabsMenuFocus("ally-formations");
+};
+Scene_Map.prototype.commandSelectAllyFormation = function() {
+	const window = this.getAllyFormationWindow();
+	/**
+	* @type {JABS_Formation}
+	*/
+	const selectedFormation = window.currentExt();
+	$gameParty.setPartyFormation(selectedFormation.key);
+	window.refresh();
+};
+/**
+* Manages the ABS main menu's interactivity.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("manageAbsMenu", Scene_Map.prototype.manageAbsMenu);
+Scene_Map.prototype.manageAbsMenu = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("manageAbsMenu").call(this);
+	switch (this._j._absMenu._windowFocus) {
+		case "ai-party-list":
+			this._j._absMenu._mainWindow.hide();
+			this._j._absMenu._mainWindow.close();
+			this._j._absMenu._mainWindow.deactivate();
+			this._j._absMenu._allyAiPartyWindow.show();
+			this._j._absMenu._allyAiPartyWindow.open();
+			this._j._absMenu._allyAiPartyWindow.activate();
+			break;
+		case "select-ai":
+			this._j._absMenu._allyAiPartyWindow.hide();
+			this._j._absMenu._allyAiPartyWindow.close();
+			this._j._absMenu._allyAiPartyWindow.deactivate();
+			this._j._absMenu._allyAiEquipWindow.show();
+			this._j._absMenu._allyAiEquipWindow.open();
+			this._j._absMenu._allyAiEquipWindow.activate();
+			break;
+		case "ally-formations": {
+			this._j._absMenu._allyAiPartyWindow.hide();
+			this._j._absMenu._allyAiPartyWindow.close();
+			this._j._absMenu._allyAiPartyWindow.deactivate();
+			const window = this.getAllyFormationWindow();
+			window.show();
+			window.open();
+			window.activate();
+			break;
+		}
+	}
+};
+/**
+* Closes a given Abs menu window.
+* @param {string} absWindow The type of abs window being closed.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("closeAbsWindow", Scene_Map.prototype.closeAbsWindow);
+Scene_Map.prototype.closeAbsWindow = function(absWindow) {
+	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("closeAbsWindow").call(this, absWindow);
+	switch (absWindow) {
+		case "ai-party-list":
+			this._j._absMenu._allyAiPartyWindow.hide();
+			this._j._absMenu._allyAiPartyWindow.close();
+			this._j._absMenu._allyAiPartyWindow.deactivate();
+			this._j._absMenu._mainWindow.activate();
+			this._j._absMenu._mainWindow.open();
+			this._j._absMenu._mainWindow.show();
+			this.setJabsMenuFocus("main");
+			break;
+		case "select-ai":
+			this._j._absMenu._allyAiEquipWindow.hide();
+			this._j._absMenu._allyAiEquipWindow.close();
+			this._j._absMenu._allyAiEquipWindow.deactivate();
+			this._j._absMenu._allyAiPartyWindow.activate();
+			this._j._absMenu._allyAiPartyWindow.open();
+			this._j._absMenu._allyAiPartyWindow.show();
+			this.setJabsMenuFocus("ai-party-list");
+			break;
+		case "ally-formations": {
+			const window = this.getAllyFormationWindow();
+			window.hide();
+			window.close();
+			window.deactivate();
+			this._j._absMenu._allyAiPartyWindow.activate();
+			this._j._absMenu._allyAiPartyWindow.open();
+			this._j._absMenu._allyAiPartyWindow.show();
+			this.setJabsMenuFocus("ai-party-list");
+			break;
+		}
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/sprites/Spriteset_Map.js
+/**
+* Extends {@link #refreshAllCharacterSprites}.<br/>
+* Also refreshes follower ally battlers after sprites have been refreshed.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Spriteset_Map.set("refreshAllCharacterSprites", Spriteset_Map.prototype.refreshAllCharacterSprites);
+Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Spriteset_Map.get("refreshAllCharacterSprites").call(this);
+	if ($jabsEngine.requestAlliesRefresh) {
+		$gameMap.updateAllies();
+		$jabsEngine.requestAlliesRefresh = false;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/windows/Window_AbsMenu.js
+/**
+* Extends {@link #buildCommands}.<br>
+* Adds the ally ai management command at the end of the list.
+* @returns {BuiltWindowCommand[]}
+*/
+J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.set("buildCommands", Window_AbsMenu.prototype.buildCommands);
+Window_AbsMenu.prototype.buildCommands = function() {
+	const originalCommands = J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.get("buildCommands").call(this);
+	if (!this.canAddAllyAiCommand()) return originalCommands;
+	const enabled = $gamePlayer.followers().isVisible();
+	const allyAiCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandName).setSymbol("ally-ai").setEnabled(enabled).setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex).setColorIndex(27).setHelpText(this.allyAiHelpText()).build();
+	originalCommands.push(allyAiCommand);
+	return originalCommands;
+};
+/**
+* Determines whether or not the ally ai management command can be added to the JABS menu.
+* @returns {boolean} True if the command should be added, false otherwise.
+*/
+Window_AbsMenu.prototype.canAddAllyAiCommand = function() {
+	if (!$gameSwitches.value(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandSwitchId)) return false;
+	return true;
+};
+/**
+* The help text for the JABS ally AI menu.
+* @returns {string}
+*/
+Window_AbsMenu.prototype.allyAiHelpText = function() {
+	const description = ["Your ally management selection menu.", "A general direction or theme of guidance can be assigned to your allies from here."];
+	return description.join("\n");
+};
+/**
+* Overwrites {@link #itemHeight}.<br/>
+* Increases the height so subtext can be added.
+* @returns {number}
+*/
+Window_AbsMenuSelect.prototype.itemHeight = function() {
+	return this.lineHeight() * 2;
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/windows/Window_AbsMenuSelect.js
+/**
+* Extends {@link Window_AbsMenuSelect#initialize}.<br/>
+* Also initializes the ally AI members.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set("initialize", Window_AbsMenuSelect.prototype.initialize);
+Window_AbsMenuSelect.prototype.initialize = function(rect, type) {
+	J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get("initialize").call(this, rect, type);
+	this.initJabsAllyAiMenuMembers();
+};
+/**
+* Initializes the ally AI members for this window.
+*/
+Window_AbsMenuSelect.prototype.initJabsAllyAiMenuMembers = function() {
+	/**
+	* The actor id of the ally currently being managed via this window.
+	* @type {number}
+	*/
+	this._j._chosenActorId = 0;
+};
+/**
+* Sets the actor id assigned to this window.
+* @param {number} actorId The new actor id for this window.
+*/
+Window_AbsMenuSelect.prototype.setActorId = function(actorId) {
+	this._j._chosenActorId = actorId;
+};
+/**
+* Gets the actor id assigned to this window, if any.
+* @returns {number}
+*/
+Window_AbsMenuSelect.prototype.getActorId = function() {
+	return this._j._chosenActorId;
+};
+/**
+* Extends the JABS quick menu select to also handle ai management.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set("makeCommandList", Window_AbsMenuSelect.prototype.makeCommandList);
+Window_AbsMenuSelect.prototype.makeCommandList = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get("makeCommandList").call(this);
+	switch (this._j._menuType) {
+		case "ai-party-list":
+			this.addAggroPassiveToggleCommand();
+			this.makeAllyList();
+			this.addAllyFormationCommand();
+			break;
+		case "select-ai":
+			this.makeAllyAiDoNothingToggle();
+			this.makeAllyAiPresetList();
+			break;
+	}
+};
+/**
+* Draws the list of available AI modes that an ally can use.
+*/
+Window_AbsMenuSelect.prototype.makeAllyList = function() {
+	const forEacher = (member) => {
+		const command = new WindowCommandBuilder(member.name()).setSymbol("party-member").setExtensionData(member.actorId()).build();
+		this.addBuiltCommand(command);
+	};
+	$gameParty.allMembers().forEach(forEacher, this);
+};
+/**
+* Injects the aggro-passive toggle command into the menu.
+*/
+Window_AbsMenuSelect.prototype.addAggroPassiveToggleCommand = function() {
+	const aggroPassiveCommandName = $gameParty.isAggro() ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText;
+	const aggroPassiveCommandIcon = $gameParty.isAggro() ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex;
+	const description = $gameParty.isAggro() ? "The party is currently 'aggro'.\nAllies will engage in any enemy that comes within their range." : "The party is currently 'passive'.\nAllies will not engage until the leader strikes or is struck.";
+	const textColor = $gameParty.isAggro() ? 2 : 3;
+	const command = new WindowCommandBuilder(aggroPassiveCommandName).setSymbol("aggro-passive-toggle").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setColorIndex(textColor).setIconIndex(aggroPassiveCommandIcon).build();
+	this.addBuiltCommand(command);
+};
+/**
+* Injects the party formations command into the menu.
+*/
+Window_AbsMenuSelect.prototype.addAllyFormationCommand = function() {
+	const allyFormationsCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandName).setSymbol("ally-formations").setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandIconIndex).setColorIndex(23).build();
+	this.addBuiltCommand(allyFormationsCommand);
+};
+/**
+* Adds a do-nothing toggle command at the top of the ally AI selection window.
+* Mirrors the aggro/passive toggle pattern from the party list window.
+*/
+Window_AbsMenuSelect.prototype.makeAllyAiDoNothingToggle = function() {
+	const currentActor = $gameActors.actor(this.getActorId());
+	if (!currentActor) return;
+	const allyAI = currentActor.getAllyAI();
+	const isDoNothing = allyAI.isDoNothing();
+	const commandName = isDoNothing ? "Do Nothing: ON" : "Do Nothing: OFF";
+	const description = isDoNothing ? "This ally hangs back and takes no actions.\nToggle off to restore their preset behavior." : "This ally acts according to their preset.\nToggle on to make them stand down entirely.";
+	const colorIndex = isDoNothing ? 3 : 2;
+	const iconIndex = isDoNothing ? J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex : J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex;
+	const command = new WindowCommandBuilder(commandName).setSymbol("do-nothing-toggle").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setColorIndex(colorIndex).setIconIndex(iconIndex).build();
+	this.addBuiltCommand(command);
+};
+/**
+* Draws the list of available AI presets that an ally can use.
+*/
+Window_AbsMenuSelect.prototype.makeAllyAiPresetList = function() {
+	const currentActor = $gameActors.actor(this.getActorId());
+	if (!currentActor) return;
+	const presets = JABS_AllyAI.getPresets();
+	const currentAi = currentActor.getAllyAI();
+	const forEacher = (preset) => {
+		const { key, name, description } = preset;
+		const isEquipped = currentAi.getPresetKey() === key;
+		const iconIndex = isEquipped ? J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex : J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
+		const command = new WindowCommandBuilder(name).setSymbol("select-ai").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setIconIndex(iconIndex).setEnabled(true).setExtensionData(preset).build();
+		this.addBuiltCommand(command);
+	};
+	presets.forEach(forEacher, this);
+};
+/**
+* Overwrites {@link #itemHeight}.<br/>
+* Increases the height so subtext can be added.
+* @returns {number}
+*/
+Window_AbsMenuSelect.prototype.itemHeight = function() {
+	return this.lineHeight() * 2;
+};
+
+//#endregion
 //# sourceMappingURL=J-ABS-AllyAI.js.map

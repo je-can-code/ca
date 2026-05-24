@@ -109,12 +109,6 @@ var J_RegionEffectsPluginMetadata = class extends PluginMetadata {
 };
 
 //#endregion
-//#region src/plugins/regions/core/_metadata/meta.js
-var PLUGIN_NAME = "J-RegionEffects";
-var PLUGIN_VERSION = "1.1.0";
-var PLUGIN_DESC_TAG = "REGIONS";
-
-//#endregion
 //#region src/plugins/regions/core/_metadata/initialization.js
 /**
 * The core where all of my extensions live = in the `J` object.
@@ -144,7 +138,7 @@ J.REGIONS.Helpers.translateRegionIds = (regionsBlob) => {
 /**
 * The `metadata` associated with this plugin; such as version.
 */
-J.REGIONS.Metadata = new J_RegionEffectsPluginMetadata(PLUGIN_NAME, PLUGIN_VERSION);
+J.REGIONS.Metadata = new J_RegionEffectsPluginMetadata("J-RegionEffects", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

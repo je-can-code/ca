@@ -390,2853 +390,1928 @@
  *    Initial release.
  */
 
+//#region src/plugins/hud/ext/target/_metadata/_pluginMetadata.js
+var JHudTarget_PluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	* @param {string} name The plugin name.
+	* @param {string} version The plugin version.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+	/**
+	* Extends {@link #postInitialize}.<br>
+	* Includes translation of plugin parameters.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		this.initializeMetadata();
+	}
+	/**
+	* Initializes the metadata associated with this plugin.
+	*/
+	initializeMetadata() {
+		/**
+		* The x coordinate of the target frame window.
+		* @type {number}
+		*/
+		this.TargetFrameX = Number(this.parsedPluginParameters["targetFrameX"]);
+		/**
+		* The y coordinate of the target frame window.
+		* @type {number}
+		*/
+		this.TargetFrameY = Number(this.parsedPluginParameters["targetFrameY"]);
+		/**
+		* The width of the target frame window.
+		* @type {number}
+		*/
+		this.TargetFrameWidth = Number(this.parsedPluginParameters["targetFrameWidth"]);
+		/**
+		* The height of the target frame window.
+		* @type {number}
+		*/
+		this.TargetFrameHeight = Number(this.parsedPluginParameters["targetFrameHeight"]);
+		/**
+		* The x coordinate of the background gauge image.
+		* @type {number}
+		*/
+		this.BackgroundGaugeImageX = Number(this.parsedPluginParameters["backgroundGaugeImageX"]);
+		/**
+		* The y coordinate of the background gauge image.
+		* @type {number}
+		*/
+		this.BackgroundGaugeImageY = Number(this.parsedPluginParameters["backgroundGaugeImageY"]);
+		/**
+		* The x coordinate of the middleground gauge image.
+		* @type {number}
+		*/
+		this.MiddlegroundGaugeImageX = Number(this.parsedPluginParameters["middlegroundGaugeImageX"]);
+		/**
+		* The y coordinate of the middleground gauge image.
+		* @type {number}
+		*/
+		this.MiddlegroundGaugeImageY = Number(this.parsedPluginParameters["middlegroundGaugeImageY"]);
+		/**
+		* The x coordinate of the foreground gauge image.
+		* @type {number}
+		*/
+		this.ForegroundGaugeImageX = Number(this.parsedPluginParameters["foregroundGaugeImageX"]);
+		/**
+		* The y coordinate of the foreground gauge image.
+		* @type {number}
+		*/
+		this.ForegroundGaugeImageY = Number(this.parsedPluginParameters["foregroundGaugeImageY"]);
+		/**
+		* The filename of the background gauge image.
+		* @type {string}
+		*/
+		this.BackgroundFilename = this.parsedPluginParameters["backgroundImageFilename"];
+		/**
+		* The filename of the foreground gauge image.
+		* @type {string}
+		*/
+		this.ForegroundFilename = this.parsedPluginParameters["foregroundImageFilename"];
+		/**
+		* Whether or not the hp gauge is enabled by default.
+		* @type {boolean}
+		*/
+		this.EnableHP = this.parsedPluginParameters["enableHp"] === "true";
+		/**
+		* Whether or not the mp gauge is enabled by default.
+		* @type {boolean}
+		*/
+		this.EnableMP = this.parsedPluginParameters["enableMp"] === "true";
+		/**
+		* Whether or not the tp gauge is enabled by default.
+		* @type {boolean}
+		*/
+		this.EnableTP = this.parsedPluginParameters["enableTp"] === "true";
+		/**
+		* The x scale of the hp gauge sprite.
+		* @type {number}
+		*/
+		this.HpGaugeScaleX = Number(this.parsedPluginParameters["hpGaugeScaleX"]);
+		/**
+		* The y scale of the hp gauge sprite.
+		* @type {number}
+		*/
+		this.HpGaugeScaleY = Number(this.parsedPluginParameters["hpGaugeScaleY"]);
+		/**
+		* The rotation of the hp gauge sprite in degrees.
+		* @type {number}
+		*/
+		this.HpGaugeRotation = Number(this.parsedPluginParameters["hpGaugeRotation"]);
+		/**
+		* The x scale of the mp gauge sprite.
+		* @type {number}
+		*/
+		this.MpGaugeScaleX = Number(this.parsedPluginParameters["mpGaugeScaleX"]);
+		/**
+		* The y scale of the mp gauge sprite.
+		* @type {number}
+		*/
+		this.MpGaugeScaleY = Number(this.parsedPluginParameters["mpGaugeScaleY"]);
+		/**
+		* The rotation of the mp gauge sprite in degrees.
+		* @type {number}
+		*/
+		this.MpGaugeRotation = Number(this.parsedPluginParameters["mpGaugeRotation"]);
+		/**
+		* The x scale of the tp gauge sprite.
+		* @type {number}
+		*/
+		this.TpGaugeScaleX = Number(this.parsedPluginParameters["tpGaugeScaleX"]);
+		/**
+		* The y scale of the tp gauge sprite.
+		* @type {number}
+		*/
+		this.TpGaugeScaleY = Number(this.parsedPluginParameters["tpGaugeScaleY"]);
+		/**
+		* The rotation of the tp gauge sprite in degrees.
+		* @type {number}
+		*/
+		this.TpGaugeRotation = Number(this.parsedPluginParameters["tpGaugeRotation"]);
+	}
+};
+
+//#endregion
+//#region src/plugins/hud/ext/target/_metadata/initialization.js
 /**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
-
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '2.1.2';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
-
-  // Check to ensure we have the minimum required version of the J-HUD plugin.
-  const requiredHudVersion = '2.0.0';
-  const hasHudRequirement = J.BASE.Helpers.satisfies(J.HUD.Metadata.Version, requiredHudVersion);
-  if (!hasHudRequirement)
-  {
-    throw new Error(`Either missing J-HUD or has a lower version than the required: ${requiredHudVersion}`);
-  }
+* The core where all of my extensions live: in the `J` object.
+*/
+globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "2.1.2";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (hasBaseRequirement === false) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+	const requiredHudVersion = "2.0.0";
+	const hasHudRequirement = J.BASE.Helpers.satisfies(J.HUD.Metadata.version.version(), requiredHudVersion);
+	if (hasHudRequirement === false) {
+		throw new Error(`Either missing J-HUD or has a lower version than the required: ${requiredHudVersion}`);
+	}
 })();
-//endregion version check
-
 /**
- * The plugin umbrella that governs all things related to this extension plugin.
- */
+* The plugin umbrella that governs all things related to this extension plugin.
+*/
 J.HUD.EXT.TARGET = {};
-
 /**
- * The `metadata` associated with this plugin, such as version.
- */
-J.HUD.EXT.TARGET.Metadata = {};
-J.HUD.EXT.TARGET.Metadata.Version = '1.0.1';
-J.HUD.EXT.TARGET.Metadata.Name = `J-HUD-TargetFrame`;
-
+* The `metadata` associated with this plugin, such as version.
+* @type {JHudTarget_PluginMetadata}
+*/
+J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "1.0.1");
 /**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.HUD.EXT.TARGET.PluginParameters = PluginManager.parameters(J.HUD.EXT.TARGET.Metadata.Name);
-
-/**
- * Extend this plugin's metadata with additional configurable data points.
- */
-J.HUD.EXT.TARGET.Metadata = {
-  // the previously defined metadata.
-  ...J.HUD.EXT.TARGET.Metadata,
-
-  // our configurable data points.
-  TargetFrameX: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameX']),
-  TargetFrameY: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameY']),
-  TargetFrameWidth: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameWidth']),
-  TargetFrameHeight: Number(J.HUD.EXT.TARGET.PluginParameters['targetFrameHeight']),
-  BackgroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['backgroundGaugeImageX']),
-  BackgroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['backgroundGaugeImageY']),
-  MiddlegroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['middlegroundGaugeImageX']),
-  MiddlegroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['middlegroundGaugeImageY']),
-  ForegroundGaugeImageX: Number(J.HUD.EXT.TARGET.PluginParameters['foregroundGaugeImageX']),
-  ForegroundGaugeImageY: Number(J.HUD.EXT.TARGET.PluginParameters['foregroundGaugeImageY']),
-  BackgroundFilename: J.HUD.EXT.TARGET.PluginParameters['backgroundImageFilename'],
-  ForegroundFilename: J.HUD.EXT.TARGET.PluginParameters['foregroundImageFilename'],
-  EnableHP: J.HUD.EXT.TARGET.PluginParameters['enableHp'] === "true",
-  EnableMP: J.HUD.EXT.TARGET.PluginParameters['enableMp'] === "true",
-  EnableTP: J.HUD.EXT.TARGET.PluginParameters['enableTp'] === "true",
-  HpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeScaleX']),
-  HpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeScaleY']),
-  HpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['hpGaugeRotation']),
-  MpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeScaleX']),
-  MpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeScaleY']),
-  MpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['mpGaugeRotation']),
-  TpGaugeScaleX: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeScaleX']),
-  TpGaugeScaleY: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeScaleY']),
-  TpGaugeRotation: Number(J.HUD.EXT.TARGET.PluginParameters['tpGaugeRotation']),
-};
-
-/**
- * A collection of all aliased methods for this plugin.
- */
+* A collection of all aliased methods for this plugin.
+*/
 J.HUD.EXT.TARGET.Aliased = {
-  Game_System: new Map(),
-  Hud_Manager: new Map(),
-  JABS_Battler: new Map(),
-  Scene_Map: new Map(),
+	Game_System: new Map(),
+	Hud_Manager: new Map(),
+	JABS_Battler: new Map(),
+	Scene_Map: new Map()
 };
-
 /**
- * All regular expressions used by this plugin.
- */
+* All regular expressions used by this plugin.
+*/
 J.HUD.EXT.TARGET.RegExp = {
-  TargetFrameText: /<targetFrameText:([\w :"'.!+\-*/\\]*)>/i,
-  TargetFrameIcon: /<targetFrameIcon:(\d+)>/i,
-  HideTargetFrame: /<hideTargetFrame>/i,
-  HideTargetText: /<hideTargetFrameText>/i,
-  HideTargetHP: /<hideTargetHpBar>/i,
-  HideTargetMP: /<hideTargetMpBar>/i,
-  HideTargetTP: /<hideTargetTpBar>/i,
-};
-//endregion introduction
-
-//region FramedTarget
-/**
- * The shape of a target for the target frame.
- */
-class FramedTarget
-{
-  /**
-   * The name of the target.
-   * @type {string|String.empty}
-   */
-  name = String.empty;
-
-  /**
-   * The additional text of the target.
-   * @type {string|String.empty}
-   */
-  text = String.empty;
-
-  /**
-   * The icon to place on the target.
-   * @type {number}
-   */
-  icon = 0;
-
-  /**
-   * The battler data of the target.
-   * @type {Game_Enemy|null}
-   */
-  battler = null;
-
-  /**
-   * The configuration of this target.
-   * @type {FramedTargetConfiguration|null}
-   */
-  configuration = null;
-
-  /**
-   * Optional `#RRGGBB` for the name row when tier stripe hex should also tint the HUD (Passive-ABS + J-Passive-ABS).
-   * Empty means use the window default text color.
-   * @type {string|String.empty}
-   */
-  nameColorHex = String.empty;
-
-  /**
-   * Constructor.
-   * @param {string} name The name of the target.
-   * @param {string=} text The additional text for the target; defaults to an empty string.
-   * @param {number=} icon The icon to place on this target; defaults to 0.
-   * @param {Game_Enemy=} battler The battler data of the target; defaults to null.
-   * @param {FramedTargetConfiguration=} configuration The configuration of this target; defaults to null.
-   * @param {string=} nameColorHex Optional hex tint for {@link #drawTargetName}; defaults to empty (no override).
-   */
-  constructor(name, text = String.empty, icon = 0, battler = null, configuration = null, nameColorHex = String.empty)
-  {
-    this.name = name;
-    this.text = text;
-    this.icon = icon;
-    this.battler = battler;
-    this.configuration = configuration;
-    this.nameColorHex = nameColorHex;
-  }
-}
-
-//endregion FramedTarget
-
-//region FramedTargetConfiguration
-/**
- * A configuration object for whether to show/hide various target data points.
- */
-class FramedTargetConfiguration
-{
-  /**
-   * Whether or not to show the target's name.
-   * @type {boolean}
-   */
-  showName = true;
-
-  /**
-   * Whether or not to show the target's HP.
-   * @type {boolean}
-   */
-  showHp = true;
-
-  /**
-   * Whether or not to show the target's MP.
-   * @type {boolean}
-   */
-  showMp = true;
-
-  /**
-   * Whether or not to show the target's TP.
-   * @type {boolean}
-   */
-  showTp = true;
-
-  /**
-   * Whether or not to show the target text.
-   * @type {boolean}
-   */
-  showText = true;
-
-  /**
-   * Constructor.
-   * @param {boolean} showName Whether or not to show the name.
-   * @param {boolean} showText Whether or not to show the name.
-   * @param {boolean} showHp Whether or not to show the name.
-   * @param {boolean} showMp Whether or not to show the name.
-   * @param {boolean} showTp Whether or not to show the name.
-   */
-  constructor(
-    showName = true,
-    showText = true,
-    showHp = J.HUD.EXT.TARGET.Metadata.EnableHP,
-    showMp = J.HUD.EXT.TARGET.Metadata.EnableMP,
-    showTp = J.HUD.EXT.TARGET.Metadata.EnableTP)
-  {
-    this.showName = showName;
-    this.showText = showText;
-    this.showHp = showHp;
-    this.showMp = showMp;
-    this.showTp = showTp;
-  }
-}
-
-//endregion FramedTargetConfiguration
-
-//region JABS_Battler
-/**
- * Sets the last battler struck by this battler.
- * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
- */
-J.HUD.EXT.TARGET.Aliased.JABS_Battler.set('setBattlerLastHit', JABS_Battler.prototype.setBattlerLastHit);
-JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit)
-{
-  // check if we can update the target frame based on the provided data.
-  if (this.canUpdateTargetFrame(battlerLastHit))
-  {
-    // create the target frame data.
-    const framedTarget = this.buildFramedTarget(battlerLastHit);
-
-    // set the new target to be picked up by the hud manager.
-    $hudManager.setNewTarget(framedTarget);
-  }
-
-  // perform original logic.
-  J.HUD.EXT.TARGET.Aliased.JABS_Battler.get('setBattlerLastHit')
-    .call(this, battlerLastHit);
+	TargetFrameText: /<targetFrameText:([\w :"'.!+\-*/\\]*)>/i,
+	TargetFrameIcon: /<targetFrameIcon:(\d+)>/i,
+	HideTargetFrame: /<hideTargetFrame>/i,
+	HideTargetText: /<hideTargetFrameText>/i,
+	HideTargetHP: /<hideTargetHpBar>/i,
+	HideTargetMP: /<hideTargetMpBar>/i,
+	HideTargetTP: /<hideTargetTpBar>/i
 };
 
+//#endregion
+//#region src/plugins/hud/ext/target/_models/FramedTargetConfiguration.js
 /**
- * Determines whether or not the target frame should be updated.
- * @param {JABS_Battler} potentialTarget The battler that is being set as last struck.
- * @returns {boolean} True if we should update the target frame, false otherwise.
- */
-JABS_Battler.prototype.canUpdateTargetFrame = function(potentialTarget)
-{
-  // if this battler is not the player, then do not update the target frame.
-  if (!this.isPlayer()) return false;
-
-  // if the potential target is invalid, do not update the target frame.
-  if (!potentialTarget) return false;
-
-  // if this target does not permit showing the target frame, then do not.
-  if (!potentialTarget.canShowTargetFrame()) return false;
-
-  // at this point, if we're considering it seriously, refresh the window.
-  $hudManager.requestTargetFrameRefresh();
-
-  // always update the target frame if we didn't have a last-hit before.
-  if (!this.getTarget())
-  {
-    return true;
-  }
-
-  // don't re-update the last hit if they haven't changed.
-  if (this.getTarget()
-    .getUuid() === potentialTarget.getUuid())
-  {
-    return false;
-  }
-
-  // time to update target frame!
-  return true;
+* A configuration object for whether to show/hide various target data points.
+*/
+var FramedTargetConfiguration = class {
+	/**
+	* Whether or not to show the target's name.
+	* @type {boolean}
+	*/
+	showName = true;
+	/**
+	* Whether or not to show the target's HP.
+	* @type {boolean}
+	*/
+	showHp = true;
+	/**
+	* Whether or not to show the target's MP.
+	* @type {boolean}
+	*/
+	showMp = true;
+	/**
+	* Whether or not to show the target's TP.
+	* @type {boolean}
+	*/
+	showTp = true;
+	/**
+	* Whether or not to show the target text.
+	* @type {boolean}
+	*/
+	showText = true;
+	/**
+	* Constructor.
+	* @param {boolean} showName Whether or not to show the name.
+	* @param {boolean} showText Whether or not to show the name.
+	* @param {boolean} showHp Whether or not to show the name.
+	* @param {boolean} showMp Whether or not to show the name.
+	* @param {boolean} showTp Whether or not to show the name.
+	*/
+	constructor(showName = true, showText = true, showHp = J.HUD.EXT.TARGET.Metadata.EnableHP, showMp = J.HUD.EXT.TARGET.Metadata.EnableMP, showTp = J.HUD.EXT.TARGET.Metadata.EnableTP) {
+		this.showName = showName;
+		this.showText = showText;
+		this.showHp = showHp;
+		this.showMp = showMp;
+		this.showTp = showTp;
+	}
 };
 
+//#endregion
+//#region src/plugins/hud/ext/target/_models/FramedTarget.js
 /**
- * Checks the last hit battler to build the target frame.
- * @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
- * @returns {FramedTarget}
- */
-JABS_Battler.prototype.buildFramedTarget = function(battlerLastHit)
-{
-  // determine the name of the battler.
-  const battlerName = battlerLastHit.battlerName();
-
-  // extract the target frame text.
-  const targetFrameText = battlerLastHit.getTargetFrameText();
-
-  // extract the target frame icon.
-  const targetFrameIcon = battlerLastHit.getTargetFrameIcon();
-
-  // extract the target configuration.
-  const targetConfiguration = battlerLastHit.buildFramedTargetConfiguration();
-
-  // create the new framed target for this battler (tier name tint is layered by J-Passive-ABS when present).
-  return new FramedTarget(
-    battlerName,
-    targetFrameText,
-    targetFrameIcon,
-    battlerLastHit.getBattler(),
-    targetConfiguration,
-    String.empty);
+* The shape of a target for the target frame.
+*/
+var FramedTarget = class {
+	/**
+	* The name of the target.
+	* @type {string|String.empty}
+	*/
+	name = String.empty;
+	/**
+	* The additional text of the target.
+	* @type {string|String.empty}
+	*/
+	text = String.empty;
+	/**
+	* The icon to place on the target.
+	* @type {number}
+	*/
+	icon = 0;
+	/**
+	* The battler data of the target.
+	* @type {Game_Enemy|null}
+	*/
+	battler = null;
+	/**
+	* The configuration of this target.
+	* @type {FramedTargetConfiguration|null}
+	*/
+	configuration = null;
+	/**
+	* Optional `#RRGGBB` for the name row when tier stripe hex should also tint the HUD (Passive-ABS + J-Passive-ABS).
+	* Empty means use the window default text color.
+	* @type {string|String.empty}
+	*/
+	nameColorHex = String.empty;
+	/**
+	* Constructor.
+	* @param {string} name The name of the target.
+	* @param {string=} text The additional text for the target; defaults to an empty string.
+	* @param {number=} icon The icon to place on this target; defaults to 0.
+	* @param {Game_Enemy=} battler The battler data of the target; defaults to null.
+	* @param {FramedTargetConfiguration=} configuration The configuration of this target; defaults to null.
+	* @param {string=} nameColorHex Optional hex tint for {@link #drawTargetName}; defaults to empty (no override).
+	*/
+	constructor(name, text = String.empty, icon = 0, battler = null, configuration = null, nameColorHex = String.empty) {
+		this.name = name;
+		this.text = text;
+		this.icon = icon;
+		this.battler = battler;
+		this.configuration = configuration;
+		this.nameColorHex = nameColorHex;
+	}
 };
 
+//#endregion
+//#region src/plugins/hud/ext/target/sprites/Sprite_FlowingGauge.js
 /**
- * Determines whether or not the target frame will show for the given target.
- * @returns {boolean} True if we should show the target frame, false otherwise.
- */
-JABS_Battler.prototype.canShowTargetFrame = function()
-{
-  // if this isn't an enemy, then they don't show the target frame.
-  if (!this.isEnemy()) return false;
-
-  // if there isn't an event or character remaining, don't bother.
-  if (!this.getCharacter() || this.getCharacter()
-    .isErased())
-  {
-    return false;
-  }
-
-  // check the event to see if we can show the target frame.
-  const hiddenByEvent = !this.getCharacter()
-    .canShowTargetFrame();
-
-  // if the event prevents showing the target frame, then don't show it.
-  if (hiddenByEvent) return false;
-
-  // check the enemy to see if the enemy in the database prevents showing.
-  const hiddenByDatabase = !this.getBattler()
-    .showTargetFrame();
-
-  // if one or the other are indicating not to show, then don't.
-  if (hiddenByDatabase) return false;
-
-  // show the target frame!
-  return true;
+* A gauge that acts like a regular `Sprite_Gauge` that is instead based
+* on images and also "flows".
+*/
+var Sprite_FlowingGauge = class Sprite_FlowingGauge extends Sprite {
+	static Types = {
+		HP: "hp",
+		MP: "mp",
+		TP: "tp"
+	};
+	/**
+	* The bitmap for the background sprite.
+	* @type {Bitmap|null}
+	* @private
+	*/
+	_backgroundBitmap = null;
+	/**
+	* The sprite background of this gauge.
+	* @type {Sprite}
+	*/
+	_gaugeBackground = null;
+	/**
+	* The bitmap of the file that makes up this gauge.
+	* It is expected to be a pair of horizontal gauges equal in height.
+	* @type {Bitmap|null}
+	*/
+	_gaugeBitmap = null;
+	/**
+	* The sprite representing the "current" value of this gauge.
+	* It slides gradually over a couple seconds to the target value.
+	* @type {Sprite}
+	*/
+	_gaugeCurrentSprite = null;
+	/**
+	* The sprite representing the "actual" value of this gauge.
+	* It does not slide, it is instantly changed.
+	* @type {Sprite}
+	*/
+	_gaugeActualSprite = null;
+	/**
+	* The battler this gauge is representing when in use.
+	* @type {Game_Enemy|null}
+	*/
+	_battler = null;
+	/**
+	* The "current" value of the gauge in numeric form.
+	* @type {number}
+	*/
+	_gaugeCurrent = 0;
+	/**
+	* The "target" value of the gauge in numeric form.
+	* @type {number}
+	*/
+	_gaugeTarget = 0;
+	/**
+	* The "max" value of the gauge in numeric form.
+	* @type {number}
+	*/
+	_gaugeMax = 0;
+	/**
+	* The type of gauge this is, such as HP, MP, or TP.
+	* @type {Sprite_FlowingGauge.Types}
+	*/
+	_gaugeType = String.empty;
+	/**
+	* Whether or not this gauge is setup and ready to be drawn.
+	* @type {boolean}
+	*/
+	_isReady = false;
+	/**
+	* Left edge (in texture pixels) of the painted fill inside one gauge slice.
+	* @type {number}
+	*/
+	_gaugeSliceFillMinX = 0;
+	/**
+	* Width (in texture pixels) of the painted fill inside one gauge slice.
+	* @type {number}
+	*/
+	_gaugeSliceFillInnerWidth = 0;
+	/**
+	* Left edge (in texture pixels) of the background track interior.
+	* @type {number}
+	*/
+	_gaugeBackgroundTrackMinX = 0;
+	/**
+	* Width (in texture pixels) of the background track interior.
+	* @type {number}
+	*/
+	_gaugeBackgroundTrackInnerWidth = 0;
+	/**
+	* Initializes all properties of this class.
+	*/
+	initialize(bitmap) {
+		super.initialize(bitmap);
+		this.initializeGauges();
+	}
+	/**
+	* Initializes the gauges based on bitmaps loaded from file.
+	*/
+	initializeGauges() {
+		this.resetValues();
+		const backgroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.BackgroundFilename);
+		const backgroundPromise = ImageManager.loadHudBitmap(backgroundFilename);
+		backgroundPromise.then((bitmap) => this.setBackgroundBitmap(bitmap)).catch(() => {
+			throw new Error("background bitmap failed to load.");
+		});
+		const foregroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.ForegroundFilename);
+		const foregroundPromise = ImageManager.loadHudBitmap(foregroundFilename);
+		foregroundPromise.then((bitmap) => this.setForegroundBitmap(bitmap)).catch(() => {
+			throw new Error("background bitmap failed to load.");
+		});
+		Promise.all([backgroundPromise, foregroundPromise]).then(() => this.onReady());
+	}
+	/**
+	* Extracts the filename out of the extended path.
+	* @param {string} longFileName The filename with the path in it.
+	* @returns {string} Just the filename.
+	*/
+	extractFileName(longFileName) {
+		const lastSlash = longFileName.lastIndexOf("/") + 1;
+		return longFileName.substring(lastSlash);
+	}
+	/**
+	* Sets the background bitmap to the given value.
+	* @param {Bitmap} bitmap The bitmap to set to the background.
+	*/
+	setBackgroundBitmap(bitmap) {
+		this._backgroundBitmap = bitmap;
+	}
+	/**
+	* Sets the foreground bitmap to the given value.
+	* @param {Bitmap} bitmap The bitmap to set to the foreground.
+	*/
+	setForegroundBitmap(bitmap) {
+		this._gaugeBitmap = bitmap;
+	}
+	/**
+	* Creates gauge's background sprite.
+	*/
+	createGaugeBackground() {
+		this._gaugeBackground = new Sprite(this._backgroundBitmap);
+		this._gaugeBackground.x = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageX;
+		this._gaugeBackground.y = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageY;
+		this.addChild(this._gaugeBackground);
+	}
+	/**
+	* Creates gauge's foreground sprite.
+	*/
+	createGaugeForeground() {
+		this._gaugeCurrentSprite = new Sprite(this._gaugeBitmap);
+		this._gaugeCurrentSprite.x = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageX;
+		this._gaugeCurrentSprite.y = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageY;
+		this.addChild(this._gaugeCurrentSprite);
+		this._gaugeActualSprite = new Sprite(this._gaugeBitmap);
+		this._gaugeActualSprite.x = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageX;
+		this._gaugeActualSprite.y = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageY;
+		this.addChild(this._gaugeActualSprite);
+	}
+	/**
+	* Resets all gauge values to 0.
+	*/
+	resetValues() {
+		this._gaugeCurrent = 0;
+		this._gaugeTarget = 0;
+		this._gaugeMax = 0;
+	}
+	/**
+	* Clears the battler of this gauge.
+	*/
+	clearBattler() {
+		this._battler = null;
+	}
+	/**
+	* The "current" value of the gauge.
+	* This is spends a lot of time in flux due to gradual change for visual enjoyment.
+	* If you need the real current value, use `.target()`.
+	* @returns {number}
+	*/
+	current() {
+		return this._gaugeCurrent;
+	}
+	/**
+	* The "target" value of the gauge.
+	* This is what the "current" is striving to reach.
+	* @returns {number}
+	*/
+	target() {
+		if (this._battler) {
+			return this.#targetByType();
+		} else {
+			return 0;
+		}
+	}
+	/**
+	* Gets the target value for this gauge by its gauge type.
+	* @returns {number}
+	*/
+	#targetByType() {
+		switch (this._gaugeType) {
+			case Sprite_FlowingGauge.Types.HP: return this._battler.hp;
+			case Sprite_FlowingGauge.Types.MP: return this._battler.mp;
+			case Sprite_FlowingGauge.Types.TP: return this._battler.tp;
+			default: return 0;
+		}
+	}
+	/**
+	* The "max" value of the gauge.
+	* This is simply the maximum amount that the gauge represents when full.
+	* @returns {number}
+	*/
+	max() {
+		if (this._battler) {
+			return this.#maxByType();
+		} else {
+			return 0;
+		}
+	}
+	/**
+	* Gets the max value for this gauge by its gauge type.
+	* @returns {number}
+	*/
+	#maxByType() {
+		switch (this._gaugeType) {
+			case Sprite_FlowingGauge.Types.HP: return this._battler.mhp;
+			case Sprite_FlowingGauge.Types.MP: return this._battler.mmp;
+			case Sprite_FlowingGauge.Types.TP: return this._battler.maxTp();
+			default: return 0;
+		}
+	}
+	/**
+	* Sets up this gauge with the given enemy battler.
+	* @param {Game_Enemy} battler The enemy battler.
+	* @param {Sprite_FlowingGauge.Types} gaugeType The type of gauge this is.
+	*/
+	setup(battler, gaugeType = Sprite_FlowingGauge.Types.HP) {
+		this._battler = battler;
+		this._gaugeType = gaugeType;
+		this.setupGaugeByType();
+		this.show();
+	}
+	/**
+	* Sets up the gauge based on the gauge type.
+	*/
+	setupGaugeByType() {
+		this._gaugeCurrentSprite.setColorTone(this.greyTone());
+		switch (this._gaugeType) {
+			case Sprite_FlowingGauge.Types.HP:
+				this.setupGaugeAsHp();
+				break;
+			case Sprite_FlowingGauge.Types.MP:
+				this.setupGaugeAsMp();
+				break;
+			case Sprite_FlowingGauge.Types.TP:
+				this.setupGaugeAsTp();
+				break;
+		}
+	}
+	/**
+	* Sets up the gauge as an hp gauge.
+	*/
+	setupGaugeAsHp() {
+		this._gaugeCurrent = this._battler.hp;
+		this._gaugeTarget = this._battler.hp;
+		this._gaugeMax = this._battler.mhp;
+		this._gaugeActualSprite.setHue(this.hpGaugeHue());
+	}
+	hpGaugeHue() {
+		return 0;
+	}
+	/**
+	* Sets up the gauge as an mp gauge.
+	*/
+	setupGaugeAsMp() {
+		this._gaugeCurrent = this._battler.mp;
+		this._gaugeTarget = this._battler.mp;
+		this._gaugeMax = this._battler.mmp;
+		this._gaugeActualSprite.setHue(this.mpGaugeHue());
+	}
+	mpGaugeHue() {
+		return -180;
+	}
+	/**
+	* Sets up the gauge as a tp gauge.
+	*/
+	setupGaugeAsTp() {
+		this._gaugeCurrent = this._battler.tp;
+		this._gaugeTarget = this._battler.tp;
+		this._gaugeMax = this._battler.maxTp();
+		this._gaugeActualSprite.setHue(this.tpGaugeHue());
+	}
+	tpGaugeHue() {
+		return 80;
+	}
+	/**
+	* Refresh this gauge by redrawing it.
+	*/
+	refresh() {
+		this.drawGauge();
+	}
+	/**
+	* The update loop of this gauge.
+	*/
+	update() {
+		super.update();
+		if (!this.isReady()) return;
+		this.updateCurrent();
+		this.updateFlow();
+		this.drawGauge();
+	}
+	/**
+	* Checks if this gauge is ready for drawing.
+	* If it is not, then updating will not take place.
+	* @returns {boolean} True if this gauge is ready, false otherwise.
+	*/
+	isReady() {
+		return this._isReady;
+	}
+	/**
+	* Executes one-time actions once the gauge is ready.
+	*/
+	onReady() {
+		this.createGaugeBackground();
+		this.createGaugeForeground();
+		this.measureGaugeArtExtents();
+		this.alignGaugeForegroundToBackgroundTrack();
+		this.updateFlowMax();
+		this._isReady = true;
+	}
+	/**
+	* Updates the current and max values of the flow effect.
+	*/
+	updateFlowMax() {
+		const sliceW = this.gaugeWidth();
+		const maxFlow = sliceW - this._gaugeSliceFillMinX - this._gaugeSliceFillInnerWidth;
+		this._gaugeActualFlowLimit = Math.max(1, maxFlow);
+		this._gaugeActualFlowCurrent = Math.floor(Math.random() * this._gaugeActualFlowLimit);
+	}
+	/**
+	* Updates the current value of the fore-most gauge.
+	* This is the background gauge that is a bit slower.
+	*/
+	updateCurrent() {
+		if (!this.canUpdateCurrent()) return;
+		if (this.isHpGaugeEmpty()) {
+			this.onDefeat();
+			return;
+		}
+		if (this.current() !== this.target()) {
+			this.handleCurrentValueUpdate();
+		} else {
+			this.handleCurrentValueUnchanged();
+		}
+	}
+	/**
+	* Handles the update to the "current" value while it is changing either up or down.
+	*/
+	handleCurrentValueUpdate() {
+		const changeRate = this.changeRate();
+		if (this.target() < this.current()) {
+			this.processCurrentValueIncrease(changeRate);
+		} else if (this.target() > this.current()) {
+			this.processCurrentValueDecrease(changeRate);
+		}
+	}
+	/**
+	* Processes the decrease of the current value and changes the tone.
+	*/
+	processCurrentValueIncrease(changeRate) {
+		this._gaugeCurrent -= changeRate;
+		if (this.current() < this.target()) {
+			this._gaugeCurrent = this._gaugeTarget;
+		}
+		this._gaugeCurrentSprite.setColorTone(this.downTone());
+	}
+	/**
+	* Processes the increase of the current value and changes the tone.
+	*/
+	processCurrentValueDecrease(changeRate) {
+		this._gaugeCurrent += changeRate;
+		if (this.current() > this.target()) {
+			this._gaugeCurrent = this._gaugeTarget;
+		}
+		this._gaugeCurrentSprite.setColorTone(this.upTone());
+	}
+	/**
+	* Handles the update to the "current" value while it is unchanging.
+	*/
+	handleCurrentValueUnchanged() {
+		this._gaugeCurrentSprite.setColorTone(this.greyTone());
+	}
+	/**
+	* Whether or not we can update the
+	* @returns {boolean}
+	*/
+	canUpdateCurrent() {
+		if (!this._battler) return false;
+		return true;
+	}
+	/**
+	* Whether or not this HP gauge is empty.
+	* Not applicable to non-HP gauges.
+	* @returns {boolean} True if the HP gauge target is 0, false if not HP gauge or not 0.
+	*/
+	isHpGaugeEmpty() {
+		if (this._gaugeType !== Sprite_FlowingGauge.Types.HP) return false;
+		if (this.target() !== 0) return false;
+		return true;
+	}
+	/**
+	* Logic to execute when this target is defeated.
+	*/
+	onDefeat() {
+		this.clearBattler();
+		this.resetValues();
+	}
+	/**
+	* The hue to alter the image by when the middleground gauge is going up.
+	* The gauge goes up when you're healing, so this defaults to green.
+	* @returns {[number, number, number, number]} The color tone: [red, green, blue, grey].
+	*/
+	upTone() {
+		return [
+			0,
+			255,
+			0,
+			128
+		];
+	}
+	/**
+	* The hue to alter the image by when the middleground gauge is going down.
+	* @returns {[number, number, number, number]} The color tone: [red, green, blue, grey].
+	*/
+	downTone() {
+		return [
+			255,
+			0,
+			0,
+			0
+		];
+	}
+	/**
+	* The color tone to turn the sprite greyscale.
+	* @returns {[number, number, number, number]} The color tone: [red, green, blue, grey].
+	*/
+	greyTone() {
+		return [
+			0,
+			0,
+			0,
+			255
+		];
+	}
+	/**
+	* Calculates the rate of which to increment/decrement the current gauge.
+	* The gauge goes down when they are hurting, so this defaults to red.
+	* @returns {number}
+	*/
+	changeRate() {
+		const divisor = 10;
+		const rate = Math.abs((this.target() - this.current()) / divisor);
+		return rate;
+	}
+	/**
+	* Update the flow meter to give the flowy aesthetic.
+	*/
+	updateFlow() {
+		this._gaugeActualFlowCurrent += .3;
+		if (this._gaugeActualFlowCurrent > this._gaugeActualFlowLimit) {
+			this._gaugeActualFlowCurrent = 0;
+		}
+	}
+	/**
+	* Draws this gauge.
+	*/
+	drawGauge() {
+		this.drawCurrentGauge();
+		this.drawActualGauge();
+	}
+	/**
+	* Draws the "current" gauge, the gauge drawn in the middleground that
+	* represents the amount that the enemy looks like they have. This extra
+	* bar is drawn mostly for effect, and will spend a lot of time in-flux.
+	*/
+	drawCurrentGauge() {
+		const gaugeHeight = this.gaugeHeight();
+		const factor = this.current() / this.max() * this._gaugeSliceFillInnerWidth;
+		const frameX = this._gaugeActualFlowCurrent + this._gaugeSliceFillMinX;
+		this._gaugeCurrentSprite.setFrame(frameX, gaugeHeight, factor, gaugeHeight);
+	}
+	/**
+	* Draws the "actual" gauge, the gauge drawn in the foremost-ground that
+	* represents the amount that the enemy currently has.
+	*/
+	drawActualGauge() {
+		const gaugeHeight = this.gaugeHeight();
+		const factor = this.target() / this.max() * this._gaugeSliceFillInnerWidth;
+		const frameX = this._gaugeActualFlowCurrent + this._gaugeSliceFillMinX;
+		this._gaugeActualSprite.setFrame(frameX, 0, factor, gaugeHeight);
+	}
+	/**
+	* The width of the gauge.
+	* @returns {number}
+	*/
+	gaugeWidth() {
+		return Math.floor(this._gaugeBitmap.width / 3);
+	}
+	/**
+	* The height of the gauge.
+	* @returns {number}
+	*/
+	gaugeHeight() {
+		return Math.floor(this._gaugeBitmap.height / 2);
+	}
+	/**
+	* Measures the interior track on the background and the interior fill band on the foreground slice.
+	* This keeps HP/MP bars inside the frame art when `scale.x` is cranked up.
+	*/
+	measureGaugeArtExtents() {
+		this._gaugeSliceFillMinX = 0;
+		this._gaugeSliceFillInnerWidth = 1;
+		this._gaugeBackgroundTrackMinX = 0;
+		this._gaugeBackgroundTrackInnerWidth = 1;
+		if (!this._gaugeBitmap) return;
+		const sliceW = this.gaugeWidth();
+		const sliceH = this.gaugeHeight();
+		if (sliceW === 0 || sliceH === 0) return;
+		this._gaugeSliceFillInnerWidth = sliceW;
+		this._gaugeBackgroundTrackInnerWidth = this._backgroundBitmap ? this._backgroundBitmap.width : sliceW;
+		if (!this._backgroundBitmap) return;
+		const bgTrack = this.measureLongestOpaqueDarkHorizontalRun(this._backgroundBitmap, 0, 0, this._backgroundBitmap.width, this._backgroundBitmap.height, 80);
+		const topTrack = this.measureBrightHorizontalExtent(this._gaugeBitmap, 0, 0, sliceW, sliceH, 24);
+		const bottomTrack = this.measureBrightHorizontalExtent(this._gaugeBitmap, 0, sliceH, sliceW, sliceH, 24);
+		const fillMinX = Math.min(topTrack.minX, bottomTrack.minX);
+		const fillMaxX = Math.max(topTrack.maxX, bottomTrack.maxX);
+		const fillInnerW = Math.max(1, fillMaxX - fillMinX + 1);
+		const trackInnerW = Math.max(1, bgTrack.maxX - bgTrack.minX + 1);
+		this._gaugeSliceFillMinX = fillMinX;
+		this._gaugeSliceFillInnerWidth = fillInnerW;
+		this._gaugeBackgroundTrackMinX = bgTrack.minX;
+		this._gaugeBackgroundTrackInnerWidth = trackInnerW;
+	}
+	/**
+	* Positions and scales the bar sprites so the measured fill maps onto the measured background track.
+	*/
+	alignGaugeForegroundToBackgroundTrack() {
+		if (!this._gaugeCurrentSprite || !this._gaugeActualSprite) return;
+		if (this._gaugeSliceFillInnerWidth <= 0 || this._gaugeBackgroundTrackInnerWidth <= 0) return;
+		const bgX = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageX;
+		const fillLeftX = bgX + this._gaugeBackgroundTrackMinX;
+		const troughRightExclusive = bgX + this._gaugeBackgroundTrackMinX + this._gaugeBackgroundTrackInnerWidth;
+		const effectiveBarWidth = Math.max(1, Math.min(this._gaugeBackgroundTrackInnerWidth, troughRightExclusive - fillLeftX));
+		const ratio = effectiveBarWidth / this._gaugeSliceFillInnerWidth;
+		this._gaugeCurrentSprite.scale.x = ratio;
+		this._gaugeActualSprite.scale.x = ratio;
+		this._gaugeCurrentSprite.x = fillLeftX;
+		this._gaugeActualSprite.x = fillLeftX;
+	}
+	/**
+	* Finds the horizontal span of "bright enough" pixels inside a bitmap rectangle.
+	* Used to ignore near-black border pixels that are still opaque.
+	* @param {Bitmap} bitmap The bitmap to scan.
+	* @param {number} rectX The left of the scan rectangle.
+	* @param {number} rectY The top of the scan rectangle.
+	* @param {number} rectW The width of the scan rectangle.
+	* @param {number} rectH The height of the scan rectangle.
+	* @param {number} minBrightSum Minimum r+g+b sum to count as interior content.
+	* @returns {{minX:number,maxX:number}}
+	*/
+	measureBrightHorizontalExtent(bitmap, rectX, rectY, rectW, rectH, minBrightSum) {
+		let minX = rectW;
+		let maxX = -1;
+		for (let y = 0; y < rectH; y++) {
+			for (let x = 0; x < rectW; x++) {
+				const px = rectX + x;
+				const py = rectY + y;
+				if (bitmap.getAlphaPixel(px, py) < 8) continue;
+				const hex = bitmap.getPixel(px, py);
+				const bright = this.sumRgbFromHexString(hex);
+				if (bright <= minBrightSum) continue;
+				minX = Math.min(minX, x);
+				maxX = Math.max(maxX, x);
+			}
+		}
+		if (maxX < 0) {
+			return {
+				minX: 0,
+				maxX: rectW - 1
+			};
+		}
+		return {
+			minX,
+			maxX
+		};
+	}
+	/**
+	* Finds the longest horizontal run of opaque "dark" pixels in a rectangle (row by row).
+	* Used for capsule-style gauge frames where the playable trough is darker than the end caps.
+	* @param {Bitmap} bitmap The bitmap to scan.
+	* @param {number} rectX The left of the scan rectangle.
+	* @param {number} rectY The top of the scan rectangle.
+	* @param {number} rectW The width of the scan rectangle.
+	* @param {number} rectH The height of the scan rectangle.
+	* @param {number} maxDarkSum Inclusive ceiling on r+g+b for a pixel to count as trough (caps sit above this).
+	* @returns {{minX:number,maxX:number}} Inclusive span of the best run in the same local x space as
+	* {@link measureBrightHorizontalExtent}.
+	*/
+	measureLongestOpaqueDarkHorizontalRun(bitmap, rectX, rectY, rectW, rectH, maxDarkSum) {
+		let bestMinX = 0;
+		let bestMaxX = rectW - 1;
+		let bestLen = 0;
+		for (let y = 0; y < rectH; y++) {
+			const py = rectY + y;
+			let runStart = -1;
+			for (let x = 0; x <= rectW; x++) {
+				const atEnd = x === rectW;
+				let isDark = false;
+				if (atEnd === false) {
+					const px = rectX + x;
+					if (bitmap.getAlphaPixel(px, py) < 8) {
+						isDark = false;
+					} else {
+						const sum = this.sumRgbFromHexString(bitmap.getPixel(px, py));
+						isDark = sum <= maxDarkSum;
+					}
+				}
+				if (isDark && runStart < 0) {
+					runStart = x;
+				}
+				if ((isDark === false || atEnd) && runStart >= 0) {
+					const runEnd = x - 1;
+					const len = runEnd - runStart + 1;
+					if (len > bestLen) {
+						bestLen = len;
+						bestMinX = runStart;
+						bestMaxX = runEnd;
+					}
+					runStart = -1;
+				}
+			}
+		}
+		if (bestLen === 0) {
+			return {
+				minX: 0,
+				maxX: rectW - 1
+			};
+		}
+		return {
+			minX: bestMinX,
+			maxX: bestMaxX
+		};
+	}
+	/**
+	* Parses `#RRGGBB` from {@link Bitmap#getPixel} and sums the channels.
+	* @param {string} hex The color string.
+	* @returns {number}
+	*/
+	sumRgbFromHexString(hex) {
+		if (!hex || hex.length < 7) return 0;
+		const r = parseInt(hex.slice(1, 3), 16);
+		const g = parseInt(hex.slice(3, 5), 16);
+		const b = parseInt(hex.slice(5, 7), 16);
+		return r + g + b;
+	}
 };
 
+//#endregion
+//#region src/plugins/hud/ext/target/managers/ImageManager.js
 /**
- * Builds the configuration for the target frame based on this battler.
- * @returns {FramedTargetConfiguration}
- */
-JABS_Battler.prototype.buildFramedTargetConfiguration = function()
-{
-  // showing the target's name reuses existing logic to check.
-  const showName = this.showBattlerName();
-
-  // check to see if we should show the target text.
-  const showText = this.canShowTargetText();
-
-  // check to see if we should show HP.
-  const showHpGauge = this.canShowTargetHp();
-
-  // check to see if we should show MP.
-  const showMpGauge = this.canShowTargetMp();
-
-  // check to see if we should show TP.
-  const showTpGauge = this.canShowTargetTp();
-
-  // return the built configuration.
-  return new FramedTargetConfiguration(showName, showText, showHpGauge, showMpGauge, showTpGauge);
+* Generates a promise based on the resolution of the bitmap.<br/>
+* If the promise resolves successfully, it'll contain the bitmap.<br/>
+* If the promise rejects, then it is up to the handler how to deal with that.<br/>
+* @param {string} filename The name of the file without the file extension.
+* @returns {Promise}
+*/
+ImageManager.loadHudBitmap = function(filename) {
+	return this.loadBitmapPromise(filename, "img/hud/");
 };
 
+//#endregion
+//#region src/plugins/hud/ext/target/objects/Game_Enemy.js
 /**
- * Gets whether or not this battler can show their HP in the target frame window.
- * @returns {boolean} True if it can show, false otherwise.
- */
-JABS_Battler.prototype.canShowTargetHp = function()
-{
-  // if the defaults hide the HP, then don't show it.
-  if (!J.HUD.EXT.TARGET.Metadata.EnableHP) return false;
-
-  // we do not show hp bars for non-enemies.
-  if (!this.isEnemy()) return false;
-
-  // if the event says don't show it, then don't show it.
-  if (!this.getCharacter()
-    .showTargetHpBar())
-  {
-    return false;
-  }
-
-  // if the enemy in the database says don't show it, then don't show it.
-  if (!this.getBattler()
-    .showTargetHpBar())
-  {
-    return false;
-  }
-
-  // show what the defaults are.
-  return true;
+* Gets the extra text from this enemy for the target frame.
+* @returns {string}
+*/
+Game_Enemy.prototype.targetFrameText = function() {
+	return RPGManager.getStringFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameText);
+};
+/**
+* Gets the icon index of the target frame icon.
+* If none are present or valid, then the default will be 0 (no icon).
+* @returns {number}
+*/
+Game_Enemy.prototype.targetFrameIcon = function() {
+	return RPGManager.getNumberFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameText);
+};
+/**
+* Gets whether or not the battler can show the target frame.
+* The default is to show.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.showTargetFrame = function() {
+	return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetFrame);
+};
+/**
+* Gets whether or not the battler can show its mp bar.
+* The default is to show.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.showTargetHpBar = function() {
+	return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetHP);
+};
+/**
+* Gets whether or not the battler can show its mp bar.
+* The default is to show.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.showTargetMpBar = function() {
+	return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetMP);
+};
+/**
+* Gets whether or not the battler can show its tp bar.
+* The default is to show.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.showTargetTpBar = function() {
+	return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetTP);
+};
+/**
+* Gets whether or not the battler can show its target text.
+* The default is to show.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.showTargetText = function() {
+	return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetText);
 };
 
+//#endregion
+//#region src/plugins/hud/ext/target/objects/Game_Event.js
 /**
- * Gets whether or not this battler can show their MP in the target frame window.
- * @returns {boolean} True if it can show, false otherwise.
- */
-JABS_Battler.prototype.canShowTargetMp = function()
-{
-  // if the defaults hide the MP, then don't show it.
-  if (!J.HUD.EXT.TARGET.Metadata.EnableMP) return false;
-
-  // we do not show hp bars for non-enemies.
-  if (!this.isEnemy()) return false;
-
-  // if the event says don't show it, then don't show it.
-  if (!this.getCharacter()
-    .showTargetMpBar())
-  {
-    return false;
-  }
-
-  // if the enemy in the database says don't show it, then don't show it.
-  if (!this.getBattler()
-    .showTargetMpBar())
-  {
-    return false;
-  }
-
-  // TODO: should we hide the bar if the max value is 0?
-  if (this.getBattler()
-    .param(1) === 0)
-  {
-    return false;
-  }
-
-  // show what the defaults are.
-  return true;
+* Gets the icon index of the target frame icon.
+* If none are present or valid, then the default will be 0 (no icon).
+* @returns {string|String.empty}
+*/
+Game_Event.prototype.getTargetFrameText = function() {
+	let targetFrameText = String.empty;
+	const commentCommands = this.getValidCommentCommands();
+	if (!commentCommands.length) return targetFrameText;
+	const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameText;
+	commentCommands.forEach((command) => {
+		const [comment] = command.parameters;
+		if (structure.test(comment)) {
+			targetFrameText = RegExp.$1;
+		}
+	});
+	return targetFrameText;
+};
+/**
+* Gets the icon index of the target frame icon.
+* If none are present or valid, then the default will be 0 (no icon).
+* @returns {number}
+*/
+Game_Event.prototype.getTargetFrameIcon = function() {
+	let targetFrameIcon = 0;
+	const commentCommands = this.getValidCommentCommands();
+	if (!commentCommands.length) return targetFrameIcon;
+	const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameIcon;
+	commentCommands.forEach((command) => {
+		const [comment] = command.parameters;
+		if (structure.test(comment)) {
+			targetFrameIcon = parseInt(RegExp.$1);
+		}
+	});
+	return targetFrameIcon;
+};
+/**
+* Gets whether or not this event is explicitly hiding the target frame.
+* The default is to show the frame.
+* @returns {boolean} True if we should show the target frame, false otherwise.
+*/
+Game_Event.prototype.canShowTargetFrame = function() {
+	let showTargetFrame = true;
+	const commentCommands = this.getValidCommentCommands();
+	if (!commentCommands.length) return showTargetFrame;
+	const structure = J.HUD.EXT.TARGET.RegExp.HideTargetFrame;
+	commentCommands.forEach((command) => {
+		const [line] = command.parameters;
+		if (structure.test(line)) {
+			showTargetFrame = false;
+		}
+	});
+	return showTargetFrame;
+};
+/**
+* Gets whether or not this event is explicitly hiding the hp bar.
+* The default is to show the bar.
+* @returns {boolean} True if we should show the bar, false otherwise.
+*/
+Game_Event.prototype.showTargetHpBar = function() {
+	let showHpBar = J.HUD.EXT.TARGET.Metadata.EnableHP;
+	const commentCommands = this.getValidCommentCommands();
+	if (!commentCommands.length) return showHpBar;
+	const structure = J.HUD.EXT.TARGET.RegExp.HideTargetHP;
+	commentCommands.forEach((command) => {
+		const [line] = command.parameters;
+		if (structure.test(line)) {
+			showHpBar = false;
+		}
+	});
+	return showHpBar;
+};
+/**
+* Gets whether or not this event is explicitly hiding the mp bar.
+* The default is to show the bar.
+* @returns {boolean} True if we should show the bar, false otherwise.
+*/
+Game_Event.prototype.showTargetMpBar = function() {
+	let showMpBar = J.HUD.EXT.TARGET.Metadata.EnableMP;
+	const commentCommands = this.getValidCommentCommands();
+	if (!commentCommands.length) return showMpBar;
+	const structure = J.HUD.EXT.TARGET.RegExp.HideTargetMP;
+	commentCommands.forEach((command) => {
+		const [line] = command.parameters;
+		if (structure.test(line)) {
+			showMpBar = false;
+		}
+	});
+	return showMpBar;
+};
+/**
+* Gets whether or not this event is explicitly hiding the tp bar.
+* The default is to show the bar.
+* @returns {boolean} True if we should show the bar, false otherwise.
+*/
+Game_Event.prototype.showTargetTpBar = function() {
+	let showTpBar = J.HUD.EXT.TARGET.Metadata.EnableTP;
+	const commentCommands = this.getValidCommentCommands();
+	if (!commentCommands.length) return showTpBar;
+	const structure = J.HUD.EXT.TARGET.RegExp.HideTargetTP;
+	commentCommands.forEach((command) => {
+		const [line] = command.parameters;
+		if (structure.test(line)) {
+			showTpBar = false;
+		}
+	});
+	return showTpBar;
+};
+/**
+* Gets whether or not this event is explicitly hiding the target text.
+* The default is to show the text.
+* @returns {boolean} True if we should show the text, false otherwise.
+*/
+Game_Event.prototype.showTargetText = function() {
+	let showText = true;
+	const commentCommands = this.getValidCommentCommands();
+	if (!commentCommands.length) return showText;
+	const structure = J.HUD.EXT.TARGET.RegExp.HideTargetText;
+	commentCommands.forEach((command) => {
+		const [line] = command.parameters;
+		if (structure.test(line)) {
+			showText = false;
+		}
+	});
+	return showText;
 };
 
+//#endregion
+//#region src/plugins/hud/ext/target/_models/JABS_Battler.js
 /**
- * Gets whether or not this battler can show their TP in the target frame window.
- * @returns {boolean} True if it can show, false otherwise.
- */
-JABS_Battler.prototype.canShowTargetTp = function()
-{
-  // if the defaults hide the TP, then don't show it.
-  if (!J.HUD.EXT.TARGET.Metadata.EnableTP) return false;
-
-  // we do not show hp bars for non-enemies.
-  if (!this.isEnemy()) return false;
-
-  // if the event says don't show it, then don't show it.
-  if (!this.getCharacter()
-    .showTargetTpBar())
-  {
-    return false;
-  }
-
-  // if the enemy in the database says don't show it, then don't show it.
-  if (!this.getBattler()
-    .showTargetTpBar())
-  {
-    return false;
-  }
-
-  // TODO: should we hide the bar if the max value is 0?
-  if (this.getBattler()
-    .maxTp() === 0 || this.isInanimate())
-  {
-    return false;
-  }
-
-  // show what the defaults are.
-  return true;
+* Sets the last battler struck by this battler.
+* @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
+*/
+J.HUD.EXT.TARGET.Aliased.JABS_Battler.set("setBattlerLastHit", JABS_Battler.prototype.setBattlerLastHit);
+JABS_Battler.prototype.setBattlerLastHit = function(battlerLastHit) {
+	if (this.canUpdateTargetFrame(battlerLastHit)) {
+		const framedTarget = this.buildFramedTarget(battlerLastHit);
+		$hudManager.setNewTarget(framedTarget);
+	}
+	J.HUD.EXT.TARGET.Aliased.JABS_Battler.get("setBattlerLastHit").call(this, battlerLastHit);
+};
+/**
+* Determines whether or not the target frame should be updated.
+* @param {JABS_Battler} potentialTarget The battler that is being set as last struck.
+* @returns {boolean} True if we should update the target frame, false otherwise.
+*/
+JABS_Battler.prototype.canUpdateTargetFrame = function(potentialTarget) {
+	if (!this.isPlayer()) return false;
+	if (!potentialTarget) return false;
+	if (!potentialTarget.canShowTargetFrame()) return false;
+	$hudManager.requestTargetFrameRefresh();
+	if (!this.getTarget()) {
+		return true;
+	}
+	if (this.getTarget().getUuid() === potentialTarget.getUuid()) {
+		return false;
+	}
+	return true;
+};
+/**
+* Checks the last hit battler to build the target frame.
+* @param {JABS_Battler} battlerLastHit The battler that is being set as last struck.
+* @returns {FramedTarget}
+*/
+JABS_Battler.prototype.buildFramedTarget = function(battlerLastHit) {
+	const battlerName = battlerLastHit.battlerName();
+	const targetFrameText = battlerLastHit.getTargetFrameText();
+	const targetFrameIcon = battlerLastHit.getTargetFrameIcon();
+	const targetConfiguration = battlerLastHit.buildFramedTargetConfiguration();
+	return new FramedTarget(battlerName, targetFrameText, targetFrameIcon, battlerLastHit.getBattler(), targetConfiguration, String.empty);
+};
+/**
+* Determines whether or not the target frame will show for the given target.
+* @returns {boolean} True if we should show the target frame, false otherwise.
+*/
+JABS_Battler.prototype.canShowTargetFrame = function() {
+	if (!this.isEnemy()) return false;
+	if (!this.getCharacter() || this.getCharacter().isErased()) {
+		return false;
+	}
+	const hiddenByEvent = !this.getCharacter().canShowTargetFrame();
+	if (hiddenByEvent) return false;
+	const hiddenByDatabase = !this.getBattler().showTargetFrame();
+	if (hiddenByDatabase) return false;
+	return true;
+};
+/**
+* Builds the configuration for the target frame based on this battler.
+* @returns {FramedTargetConfiguration}
+*/
+JABS_Battler.prototype.buildFramedTargetConfiguration = function() {
+	const showName = this.showBattlerName();
+	const showText = this.canShowTargetText();
+	const showHpGauge = this.canShowTargetHp();
+	const showMpGauge = this.canShowTargetMp();
+	const showTpGauge = this.canShowTargetTp();
+	return new FramedTargetConfiguration(showName, showText, showHpGauge, showMpGauge, showTpGauge);
+};
+/**
+* Gets whether or not this battler can show their HP in the target frame window.
+* @returns {boolean} True if it can show, false otherwise.
+*/
+JABS_Battler.prototype.canShowTargetHp = function() {
+	if (!J.HUD.EXT.TARGET.Metadata.EnableHP) return false;
+	if (!this.isEnemy()) return false;
+	if (!this.getCharacter().showTargetHpBar()) {
+		return false;
+	}
+	if (!this.getBattler().showTargetHpBar()) {
+		return false;
+	}
+	return true;
+};
+/**
+* Gets whether or not this battler can show their MP in the target frame window.
+* @returns {boolean} True if it can show, false otherwise.
+*/
+JABS_Battler.prototype.canShowTargetMp = function() {
+	if (!J.HUD.EXT.TARGET.Metadata.EnableMP) return false;
+	if (!this.isEnemy()) return false;
+	if (!this.getCharacter().showTargetMpBar()) {
+		return false;
+	}
+	if (!this.getBattler().showTargetMpBar()) {
+		return false;
+	}
+	if (this.getBattler().param(1) === 0) {
+		return false;
+	}
+	return true;
+};
+/**
+* Gets whether or not this battler can show their TP in the target frame window.
+* @returns {boolean} True if it can show, false otherwise.
+*/
+JABS_Battler.prototype.canShowTargetTp = function() {
+	if (!J.HUD.EXT.TARGET.Metadata.EnableTP) return false;
+	if (!this.isEnemy()) return false;
+	if (!this.getCharacter().showTargetTpBar()) {
+		return false;
+	}
+	if (!this.getBattler().showTargetTpBar()) {
+		return false;
+	}
+	if (this.getBattler().maxTp() === 0 || this.isInanimate()) {
+		return false;
+	}
+	return true;
+};
+/**
+* Gets whether or not this battler can show extra text in the target frame window.
+* @returns {boolean} True if it can show, false otherwise.
+*/
+JABS_Battler.prototype.canShowTargetText = function() {
+	if (!this.isEnemy()) return false;
+	if (!this.getCharacter().showTargetText()) {
+		return false;
+	}
+	if (!this.getBattler().showTargetText()) {
+		return false;
+	}
+	return true;
+};
+/**
+* Gets the target frame text for this enemy.
+* @returns {string}
+*/
+JABS_Battler.prototype.getTargetFrameText = function() {
+	if (!this.isEnemy()) return String.empty;
+	let targetFrameText = this.getCharacter().getTargetFrameText();
+	if (!targetFrameText) {
+		targetFrameText = this.getBattler().targetFrameText();
+	}
+	return targetFrameText;
+};
+/**
+* Gets the target frame icon from the underlying character.
+* @returns {number}
+*/
+JABS_Battler.prototype.getTargetFrameIcon = function() {
+	if (!this.isEnemy()) return 0;
+	let targetFrameIcon = this.getCharacter().getTargetFrameIcon();
+	if (!targetFrameIcon) {
+		targetFrameIcon = this.getBattler().targetFrameIcon();
+	}
+	return targetFrameIcon;
 };
 
+//#endregion
+//#region src/plugins/hud/ext/target/windows/Window_TargetFrame.js
 /**
- * Gets whether or not this battler can show extra text in the target frame window.
- * @returns {boolean} True if it can show, false otherwise.
- */
-JABS_Battler.prototype.canShowTargetText = function()
-{
-  // we do not show hp bars for non-enemies.
-  if (!this.isEnemy()) return false;
-
-  // if the event says don't show it, then don't show it.
-  if (!this.getCharacter()
-    .showTargetText())
-  {
-    return false;
-  }
-
-  // if the enemy in the database says don't show it, then don't show it.
-  if (!this.getBattler()
-    .showTargetText())
-  {
-    return false;
-  }
-
-  // show it.
-  return true;
+* A window that displays a target and their relevant information.
+*/
+var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
+	/**
+	* The maximum possible duration in frames.
+	* @type {number}
+	*/
+	static MaxDuration = 180;
+	/**
+	* Constructor.
+	* @param {Rectangle} rect The shape of this window.
+	*/
+	constructor(rect) {
+		super(rect);
+	}
+	/**
+	* Initializes the properties of this class.
+	* @param {Rectangle} rect The rectangle representing this window.
+	*/
+	initialize(rect) {
+		super.initialize(rect);
+		this.initMembers();
+		this.configure();
+	}
+	/**
+	* Initializes all members of this class.
+	*/
+	initMembers() {
+		/**
+		* The over-arching object that contains all properties for this plugin.
+		*/
+		this._j ||= {};
+		/**
+		* The cached collection of sprites.
+		* @type {Map<string, Sprite_Icon|Sprite>}
+		*/
+		this._j._spriteCache = new Map();
+		/**
+		* The name to display in the name field.
+		*
+		* NOTE:
+		* This is separated out from the battler data itself so that it can be
+		* separately assigned to something different if the dev wanted to.
+		* @type {string}
+		*/
+		this._j._name = String.empty;
+		/**
+		* When set, {@link #drawTargetName} tints the line with this `#RRGGBB` before `drawTextEx` (Passive-ABS tier stripe
+		* hex).
+		* @type {string|String.empty}
+		*/
+		this._j._nameColorHex = String.empty;
+		/**
+		* The second line associated with the target.
+		* Optional.
+		* @type {string}
+		*/
+		this._j._text = String.empty;
+		/**
+		* The icon that this target has.
+		* @type {number}
+		*/
+		this._j._icon = 0;
+		/**
+		* The battler of the target.
+		* @type {Game_Actor|Game_Enemy}
+		*/
+		this._j._battler = null;
+		/**
+		* Whether or not this window requires a target update.
+		* @type {boolean}
+		*/
+		this._j._requestTargetRefresh = true;
+		/**
+		* The duration until this window is deemed inactive.
+		* @type {number}
+		*/
+		this._j._inactivityTimer = 0;
+	}
+	/**
+	* Executes any one-time configuration required for this window.
+	*/
+	configure() {
+		this.opacity = 0;
+		this.refreshCache();
+	}
+	/**
+	* Empties and recreates the entire cache of sprites.
+	*/
+	refreshCache() {
+		this.emptyCache();
+		this.createCache();
+	}
+	/**
+	* Empties the cache of all sprites.
+	*/
+	emptyCache() {
+		this._j._spriteCache.forEach((value, _) => value.destroy());
+		this._j._spriteCache.clear();
+	}
+	/**
+	* Ensures all sprites are created and available for use.
+	*/
+	createCache() {
+		this.getOrCreateTargetHpGaugeSprite();
+		this.getOrCreateTargetMpGaugeSprite();
+		this.getOrCreateTargetTpGaugeSprite();
+	}
+	/**
+	* Creates an target gauge sprite for this window and caches it.
+	* @returns {Sprite_FlowingGauge} The gauge sprite of the target.
+	*/
+	getOrCreateTargetHpGaugeSprite() {
+		const key = `targetframe-enemy-hp-gauge`;
+		if (this._j._spriteCache.has(key)) {
+			return this._j._spriteCache.get(key);
+		}
+		const sprite = new Sprite_FlowingGauge();
+		this._j._spriteCache.set(key, sprite);
+		sprite.hide();
+		sprite.scale.x = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleX;
+		sprite.scale.y = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleY;
+		this.addChild(sprite);
+		return sprite;
+	}
+	/**
+	* Creates an target gauge sprite for this window and caches it.
+	* @returns {Sprite_FlowingGauge} The gauge sprite of the target.
+	*/
+	getOrCreateTargetMpGaugeSprite() {
+		const key = `targetframe-enemy-mp-gauge`;
+		if (this._j._spriteCache.has(key)) {
+			return this._j._spriteCache.get(key);
+		}
+		const sprite = new Sprite_FlowingGauge();
+		this._j._spriteCache.set(key, sprite);
+		sprite.hide();
+		sprite.scale.x = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleX;
+		sprite.scale.y = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleY;
+		this.addChild(sprite);
+		return sprite;
+	}
+	/**
+	* Creates an target gauge sprite for this window and caches it.
+	* @returns {Sprite_FlowingGauge} The gauge sprite of the target.
+	*/
+	getOrCreateTargetTpGaugeSprite() {
+		const key = `targetframe-enemy-tp-gauge`;
+		if (this._j._spriteCache.has(key)) {
+			return this._j._spriteCache.get(key);
+		}
+		const sprite = new Sprite_FlowingGauge();
+		this._j._spriteCache.set(key, sprite);
+		sprite.hide();
+		sprite.rotation = J.HUD.EXT.TARGET.Metadata.TpGaugeRotation * (Math.PI / 180);
+		sprite.scale.x = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleX;
+		sprite.scale.y = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleY;
+		this.addChild(sprite);
+		return sprite;
+	}
+	/**
+	* Sets the target that this window should be tracking.
+	* @param {FramedTarget} target The name of the target.
+	*/
+	setTarget(target) {
+		this._j._name = target.name;
+		this._j._nameColorHex = target.nameColorHex;
+		this._j._text = target.text;
+		this._j._icon = target.icon;
+		this._j._battler = target.battler;
+		this._j._configuration = target.configuration;
+		this.refresh();
+	}
+	/**
+	* Sets whether or not this window needs to refresh its target.
+	*/
+	requestTargetRefresh() {
+		this._j._requestTargetRefresh = true;
+	}
+	/**
+	* Gets whether or not this window needs to refresh its target.
+	* @returns {boolean}
+	*/
+	hasRequestTargetRefresh() {
+		return this._j._requestTargetRefresh;
+	}
+	/**
+	* Acknowledges the request to refresh the target of this window.
+	*/
+	acknowledgeTargetRefresh() {
+		this._j._requestTargetRefresh = false;
+	}
+	/**
+	* Gets the name of the current target of this window.
+	* @returns {string}
+	*/
+	targetName() {
+		return this._j._name;
+	}
+	/**
+	* Gets the extra line of information for the current target of this window.
+	* @returns {string|String.empty}
+	*/
+	targetText() {
+		return this._j._text;
+	}
+	/**
+	* Gets the icon of the current target of this window.
+	* @returns {number}
+	*/
+	targetIcon() {
+		return this._j._icon;
+	}
+	/**
+	* Gets the configuration of the current target.
+	* @returns {FramedTargetConfiguration|null}
+	*/
+	targetConfiguration() {
+		return this._j._configuration;
+	}
+	/**
+	* Refreshes the contents of this window.
+	*/
+	refresh() {
+		this.contents.clear();
+		this.resetInactivityTimer();
+		this.requestTargetRefresh();
+		this.updateTarget();
+	}
+	/**
+	* Resets the inactivity timer back to max.
+	*/
+	resetInactivityTimer() {
+		this._j._inactivityTimer = Window_TargetFrame.MaxDuration;
+	}
+	/**
+	* Hooks into the update cycle for updating this window.
+	*/
+	update() {
+		super.update();
+		this.updateTarget();
+	}
+	/**
+	* Updates the target of this window as-necessary.
+	*/
+	updateTarget() {
+		if ($hudManager.hasRequestTargetFrameRefreshInactivityTimer()) {
+			this.resetInactivityTimer();
+			$hudManager.acknowledgeTargetFrameInactivityTimerRefresh();
+		}
+		this.handleInactivity();
+		if (this.needsTargetUpdate()) {
+			const x = 0;
+			const y = 0;
+			this.drawContent(x, y);
+			this.acknowledgeTargetRefresh();
+		}
+	}
+	/**
+	* Pixel width reserved for the level column (Lv.xxx).
+	* @returns {number}
+	*/
+	targetFrameLevelColumnWidth() {
+		return 96;
+	}
+	/**
+	* Max draw width for the name row so the level column does not overlap long tier names.
+	* @returns {number}
+	*/
+	targetFrameNameLineInnerWidth() {
+		const gap = 8;
+		const w = this.contentsWidth() - this.targetFrameLevelColumnWidth() - gap;
+		return Math.max(200, w);
+	}
+	/**
+	* X offset for the level text (right-hand column after the name).
+	* @param {number} baseX Content-relative base x.
+	* @returns {number}
+	*/
+	targetFrameLevelDrawX(baseX) {
+		return baseX + this.targetFrameNameLineInnerWidth() + 4;
+	}
+	/**
+	* Max width for subtext lines that span the window body.
+	* @returns {number}
+	*/
+	targetFrameBodyTextWidth() {
+		return Math.max(200, this.contentsWidth() - 8);
+	}
+	drawContent(x, y) {
+		this.drawTargetName(x, y);
+		this.drawTargetLevel(this.targetFrameLevelDrawX(x), y);
+		this.drawTargetExtra(x, y + 24);
+		this.drawTargetIcon(x, y + 48);
+		this.drawTargetBattlerInfo(x + 32, y);
+	}
+	/**
+	* Handles inactivity of this window.
+	* Counts down the inactivity timer and manages visibility as-necessary.
+	*/
+	handleInactivity() {
+		this._j._inactivityTimer--;
+		if (this._j._inactivityTimer < 60) {
+			this.fadeOutWindow();
+		} else {
+			this.fadeInWindow();
+		}
+	}
+	/**
+	* Fades out the target frame window along with all sprites and content.
+	*/
+	fadeOutWindow() {
+		this.opacity -= 10;
+		this.backOpacity -= 10;
+		this.contentsOpacity -= 10;
+		this._j._spriteCache.forEach((sprite, _) => sprite.opacity -= 10);
+	}
+	/**
+	* Fades in the target frame window along with all sprites and content.
+	*/
+	fadeInWindow() {
+		this.opacity += 40;
+		this.backOpacity += 40;
+		this.contentsOpacity += 40;
+		this._j._spriteCache.forEach((sprite, _) => sprite.opacity += 40);
+	}
+	/**
+	* Determines whether or not the target data should be updated.
+	* @returns {boolean} True if it needs an update, false otherwise.
+	*/
+	needsTargetUpdate() {
+		if (!this.hasRequestTargetRefresh()) return false;
+		return true;
+	}
+	/**
+	* Draws the target's name in the window.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	drawTargetName(x, y) {
+		let name = `\\FS[24]${this.targetName()}`;
+		if (J.MESSAGE) {
+			name = `\\*` + name;
+		}
+		const hex = this._j._nameColorHex;
+		const useHex = hex !== String.empty && hex.length > 0;
+		const w = this.targetFrameNameLineInnerWidth();
+		this.contents.fontFace = $gameSystem.mainFontFace();
+		this.contents.fontSize = $gameSystem.mainFontSize();
+		if (useHex) {
+			this.changeTextColor(hex);
+			this.changeOutlineColor(ColorManager.outlineColor());
+		} else {
+			this.resetFontSettings();
+		}
+		const textState = this.createTextState(name, x, y, w);
+		this.processAllText(textState);
+		this.resetTextColor();
+	}
+	/**
+	* Draws the target's level in the window.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	drawTargetLevel(x, y) {
+		if (!this.canDrawTargetLevel()) return;
+		const { level } = this._j._battler;
+		if (level) {
+			const levelString = `\\FS[14]Lv.${level.padZero(3)}`;
+			this.drawTextEx(levelString, x, y, this.targetFrameLevelColumnWidth());
+		}
+	}
+	/**
+	* Determines whether or not we can draw the level of the target.
+	* @returns {boolean} True if we can draw levels, false otherwise.
+	*/
+	canDrawTargetLevel() {
+		if (!J.LEVEL) return false;
+		if (!this._j._battler) return false;
+		return true;
+	}
+	/**
+	* Draws the target's extra information in the window.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	drawTargetExtra(x, y) {
+		if (!this.hasTargetText()) return;
+		this.drawTextEx(`\\FS[14]${this.targetText()}`, x, y, this.targetFrameBodyTextWidth());
+	}
+	/**
+	* Determine whether or not we have extra text to draw for the current target.
+	* @returns {boolean}
+	*/
+	hasTargetText() {
+		if (!this.targetText()) return false;
+		return true;
+	}
+	/**
+	* Draws the target's icon in the window.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	drawTargetIcon(x, y) {
+		if (!this.hasTargetIcon()) return;
+		this.drawIcon(this.targetIcon(), x, y + 4);
+	}
+	/**
+	* Determines whether or not we have an icon to draw for the current target.
+	* @returns {boolean}
+	*/
+	hasTargetIcon() {
+		if (!this.targetIcon()) return false;
+		return true;
+	}
+	/**
+	* Draws the target's battler data- if present- in the window.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	drawTargetBattlerInfo(x, y) {
+		if (this._j._battler) {
+			const currentX = x + this.targetBattlerGaugesX();
+			const currentY = y + this.targetBattlerGaugesY();
+			this.drawTargetBattlerGauges(currentX, currentY);
+		} else {
+			this._j._spriteCache.forEach((value) => value.hide());
+		}
+	}
+	/**
+	* Calculate the X coordinate for gauges.
+	* @returns {number}
+	*/
+	targetBattlerGaugesX() {
+		if (this.hasTargetIcon()) {
+			return ImageManager.iconWidth;
+		}
+		return -8;
+	}
+	/**
+	* Calculate the Y coordinate for gauges.
+	* @returns {number}
+	*/
+	targetBattlerGaugesY() {
+		if (this.hasTargetText()) {
+			return 64;
+		}
+		return 44;
+	}
+	/**
+	* Draws the target's various gauges.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	drawTargetBattlerGauges(x, y) {
+		this.drawTargetHpGauge(x, y);
+		this.drawTargetMpGauge(x, y + 22);
+		this.drawTargetTpGauge(x - 10, y + 32);
+	}
+	/**
+	* Draws the hp gauge of the target.
+	*/
+	drawTargetHpGauge(x, y) {
+		const gauge = this.getOrCreateTargetHpGaugeSprite();
+		if (!this.targetConfiguration().showHp) {
+			gauge.hide();
+			return;
+		}
+		gauge.setup(this._j._battler, Sprite_FlowingGauge.Types.HP);
+		gauge.move(x, y);
+	}
+	/**
+	* Draws the mp gauge of the target.
+	*/
+	drawTargetMpGauge(x, y) {
+		const gauge = this.getOrCreateTargetMpGaugeSprite();
+		if (!this.targetConfiguration().showMp) {
+			gauge.hide();
+			return;
+		}
+		gauge.setup(this._j._battler, Sprite_FlowingGauge.Types.MP);
+		gauge.move(x, y);
+	}
+	/**
+	* Draws the tp gauge of the target.
+	*/
+	drawTargetTpGauge(x, y) {
+		const gauge = this.getOrCreateTargetTpGaugeSprite();
+		if (!this.targetConfiguration().showTp) {
+			gauge.hide();
+			return;
+		}
+		gauge.setup(this._j._battler, Sprite_FlowingGauge.Types.TP);
+		gauge.move(x, y);
+	}
 };
 
+//#endregion
+//#region src/plugins/hud/ext/target/scenes/Scene_Map.js
 /**
- * Gets the target frame text for this enemy.
- * @returns {string}
- */
-JABS_Battler.prototype.getTargetFrameText = function()
-{
-  // if this isn't an enemy, then they don't get target frame extra text.
-  if (!this.isEnemy()) return String.empty;
-
-  // extract the text from the event.
-  let targetFrameText = this.getCharacter()
-    .getTargetFrameText();
-
-  // if there wasn't any on the event, check the enemy.
-  if (!targetFrameText)
-  {
-    // extract the icon index from the enemy.
-    targetFrameText = this.getBattler()
-      .targetFrameText();
-  }
-
-  // and return it.
-  return targetFrameText;
+* Extends {@link #initHudMembers}.<br>
+* Includes initialization of the target frame members.
+*/
+J.HUD.EXT.TARGET.Aliased.Scene_Map.set("initHudMembers", Scene_Map.prototype.initHudMembers);
+Scene_Map.prototype.initHudMembers = function() {
+	J.HUD.EXT.TARGET.Aliased.Scene_Map.get("initHudMembers").call(this);
+	/**
+	* A grouping of all properties that belong to target extension
+	* of the HUD.
+	*/
+	this._j._hud._target = {};
+	/**
+	* The target frame showing enemy data.
+	* @type {Window_TargetFrame}
+	*/
+	this._j._hud._target._targetFrame = null;
+	/**
+	* The target frame showing boss data.
+	* This is much bigger than the regular target frame.
+	* @type {Window_TargetFrame}
+	* @private
+	*/
+	this._j._hud._target._bossFrame = null;
+};
+/**
+* Extends {@link #createAllWindows}.<br>
+* Includes creation of the target frame window.
+*/
+J.HUD.EXT.TARGET.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);
+Scene_Map.prototype.createAllWindows = function() {
+	J.HUD.EXT.TARGET.Aliased.Scene_Map.get("createAllWindows").call(this);
+	this.createTargetFrameWindow();
+};
+/**
+* Creates the target frame window and adds it to tracking.
+*/
+Scene_Map.prototype.createTargetFrameWindow = function() {
+	const window = this.buildTargetFrameWindow();
+	this.setTargetFrameWindow(window);
+	this.addWindow(window);
+};
+/**
+* Sets up and defines the target frame window.
+* @returns {Window_TargetFrame}
+*/
+Scene_Map.prototype.buildTargetFrameWindow = function() {
+	const rectangle = this.targetFrameWindowRect();
+	const window = new Window_TargetFrame(rectangle);
+	return window;
+};
+/**
+* Creates the rectangle representing the window for the target frame.
+* @returns {Rectangle}
+*/
+Scene_Map.prototype.targetFrameWindowRect = function() {
+	const width = J.HUD.EXT.TARGET.Metadata.TargetFrameWidth;
+	const height = J.HUD.EXT.TARGET.Metadata.TargetFrameHeight;
+	const x = J.HUD.EXT.TARGET.Metadata.TargetFrameX;
+	const y = J.HUD.EXT.TARGET.Metadata.TargetFrameY;
+	return new Rectangle(x, y, width, height);
+};
+/**
+* Gets the currently tracked target frame window.
+* @returns {Window_TargetFrame}
+*/
+Scene_Map.prototype.getTargetFrameWindow = function() {
+	return this._j._hud._target._targetFrame;
+};
+/**
+* Set the currently tracked target frame window to the given window.
+* @param {Window_TargetFrame} window The window to track.
+*/
+Scene_Map.prototype.setTargetFrameWindow = function(window) {
+	this._j._hud._target._targetFrame = window;
+};
+/**
+* Extends {@link #updateHudFrames}.<br>
+* Includes updating the target frame.
+*/
+J.HUD.EXT.TARGET.Aliased.Scene_Map.set("updateHudFrames", Scene_Map.prototype.updateHudFrames);
+Scene_Map.prototype.updateHudFrames = function() {
+	J.HUD.EXT.TARGET.Aliased.Scene_Map.get("updateHudFrames").call(this);
+	this.handleAssignTarget();
+};
+/**
+* Handles incoming requests to assign a target to the target frame.
+*/
+Scene_Map.prototype.handleAssignTarget = function() {
+	if (!$hudManager.hasRequestAssignTarget()) return;
+	const newTarget = $hudManager.getNewTarget();
+	this.getTargetFrameWindow().setTarget(newTarget);
+	$hudManager.acknowledgeAssignedTarget();
 };
 
-/**
- * Gets the target frame icon from the underlying character.
- * @returns {number}
- */
-JABS_Battler.prototype.getTargetFrameIcon = function()
-{
-  // if this isn't an enemy, then they don't get target frame icons.
-  if (!this.isEnemy()) return 0;
-
-  // extract the icon index from the event.
-  let targetFrameIcon = this.getCharacter()
-    .getTargetFrameIcon();
-
-  // if there wasn't one on the event, check the enemy.
-  if (!targetFrameIcon)
-  {
-    // extract the icon index from the enemy.
-    targetFrameIcon = this.getBattler()
-      .targetFrameIcon();
-  }
-
-  // and return it.
-  return targetFrameIcon;
-};
-//endregion JABS_Battler
-
-//region ImageManager
-/**
- * Generates a promise based on the resolution of the bitmap.<br/>
- * If the promise resolves successfully, it'll contain the bitmap.<br/>
- * If the promise rejects, then it is up to the handler how to deal with that.<br/>
- * @param {string} filename The name of the file without the file extension.
- * @returns {Promise}
- */
-ImageManager.loadHudBitmap = function(filename)
-{
-  // return the created promise.
-  return this.loadBitmapPromise(filename, 'img/hud/');
-};
-//endregion ImageManager
-
-//region Game_Enemy
-/**
- * Gets the extra text from this enemy for the target frame.
- * @returns {string}
- */
-Game_Enemy.prototype.targetFrameText = function()
-{
-  // return the extracted the target frame extra text from this enemy.
-  return RPGManager.getStringFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameText);
-};
-
-/**
- * Gets the icon index of the target frame icon.
- * If none are present or valid, then the default will be 0 (no icon).
- * @returns {number}
- */
-Game_Enemy.prototype.targetFrameIcon = function()
-{
-  // extract the target icon from this enemy.
-  return RPGManager.getNumberFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameText);
-};
-
-/**
- * Gets whether or not the battler can show the target frame.
- * The default is to show.
- * @returns {boolean}
- */
-Game_Enemy.prototype.showTargetFrame = function()
-{
-  // extract whether or not the target frame for this enemy is hidden.
-  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetFrame);
-};
-
-/**
- * Gets whether or not the battler can show its mp bar.
- * The default is to show.
- * @returns {boolean}
- */
-Game_Enemy.prototype.showTargetHpBar = function()
-{
-  // extract whether or not to show the target HP for this enemy.
-  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetHP);
-};
-
-/**
- * Gets whether or not the battler can show its mp bar.
- * The default is to show.
- * @returns {boolean}
- */
-Game_Enemy.prototype.showTargetMpBar = function()
-{
-  // extract whether or not to show the target MP for this enemy.
-  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetMP);
-};
-
-/**
- * Gets whether or not the battler can show its tp bar.
- * The default is to show.
- * @returns {boolean}
- */
-Game_Enemy.prototype.showTargetTpBar = function()
-{
-  // extract whether or not to show the target TP for this enemy.
-  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetTP);
-};
-
-/**
- * Gets whether or not the battler can show its target text.
- * The default is to show.
- * @returns {boolean}
- */
-Game_Enemy.prototype.showTargetText = function()
-{
-  // extract whether or not to show the target text from this enemy.
-  return !RPGManager.checkForBooleanFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.HideTargetText);
-};
-//endregion Game_Enemy
-
-//region Game_Event
-/**
- * Gets the icon index of the target frame icon.
- * If none are present or valid, then the default will be 0 (no icon).
- * @returns {string|String.empty}
- */
-Game_Event.prototype.getTargetFrameText = function()
-{
-  // start with the default empty string.
-  let targetFrameText = String.empty;
-
-  // get the list of valid event commands that are comments.
-  const commentCommands = this.getValidCommentCommands();
-
-  // if there are none, then we show no text.
-  if (!commentCommands.length) return targetFrameText;
-
-  // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameText;
-
-  // check all the valid event commands to see if we have a reason to hide it.
-  commentCommands.forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [comment] = command.parameters;
-
-    // check if any comment matches the structure.
-    if (structure.test(comment))
-    {
-      // parse the found tag.
-      targetFrameText = RegExp.$1;
-    }
-  });
-
-  // return the found text.
-  return targetFrameText;
-};
-
-/**
- * Gets the icon index of the target frame icon.
- * If none are present or valid, then the default will be 0 (no icon).
- * @returns {number}
- */
-Game_Event.prototype.getTargetFrameIcon = function()
-{
-  // start with the default icon index of 0.
-  let targetFrameIcon = 0;
-
-  // get the list of valid event commands that are comments.
-  const commentCommands = this.getValidCommentCommands();
-
-  // if there are none, then we show no icon.
-  if (!commentCommands.length) return targetFrameIcon;
-
-  // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT.TARGET.RegExp.TargetFrameIcon;
-
-  // check all the valid event commands to see if we have a reason to hide it.
-  commentCommands.forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [comment] = command.parameters;
-
-    // check if any comment matches the structure.
-    if (structure.test(comment))
-    {
-      // parse the found tag.
-      targetFrameIcon = parseInt(RegExp.$1);
-    }
-  });
-
-  // return the found icon.
-  return targetFrameIcon;
-};
-
-/**
- * Gets whether or not this event is explicitly hiding the target frame.
- * The default is to show the frame.
- * @returns {boolean} True if we should show the target frame, false otherwise.
- */
-Game_Event.prototype.canShowTargetFrame = function()
-{
-  // start with the default of true.
-  let showTargetFrame = true;
-
-  // get the list of valid event commands that are comments.
-  const commentCommands = this.getValidCommentCommands();
-
-  // if there are none, then we show no icon.
-  if (!commentCommands.length) return showTargetFrame;
-
-  // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetFrame;
-
-  // check all the valid event commands to see if we have a reason to hide it.
-  commentCommands.forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [line] = command.parameters;
-
-    // check if any line matches the structure.
-    if (structure.test(line))
-    {
-      // if this tag exists, then hide the target frame.
-      showTargetFrame = false;
-    }
-  });
-
-  // return the truth.
-  return showTargetFrame;
-};
-
-/**
- * Gets whether or not this event is explicitly hiding the hp bar.
- * The default is to show the bar.
- * @returns {boolean} True if we should show the bar, false otherwise.
- */
-Game_Event.prototype.showTargetHpBar = function()
-{
-  // start with the default of true.
-  let showHpBar = J.HUD.EXT.TARGET.Metadata.EnableHP;
-
-  // get the list of valid event commands that are comments.
-  const commentCommands = this.getValidCommentCommands();
-
-  // if there are none, then we show no icon.
-  if (!commentCommands.length) return showHpBar;
-
-  // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetHP;
-
-  // check all the valid event commands to see if we have a reason to hide it.
-  commentCommands.forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [line] = command.parameters;
-
-    // check if any line matches the structure.
-    if (structure.test(line))
-    {
-      // if this tag exists, then hide it.
-      showHpBar = false;
-    }
-  });
-
-  // return the truth.
-  return showHpBar;
-};
-
-/**
- * Gets whether or not this event is explicitly hiding the mp bar.
- * The default is to show the bar.
- * @returns {boolean} True if we should show the bar, false otherwise.
- */
-Game_Event.prototype.showTargetMpBar = function()
-{
-  // start with the default of true.
-  let showMpBar = J.HUD.EXT.TARGET.Metadata.EnableMP;
-
-  // get the list of valid event commands that are comments.
-  const commentCommands = this.getValidCommentCommands();
-
-  // if there are none, then we show no icon.
-  if (!commentCommands.length) return showMpBar;
-
-  // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetMP;
-
-  // check all the valid event commands to see if we have a reason to hide it.
-  commentCommands.forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [line] = command.parameters;
-
-    // check if any line matches the structure.
-    if (structure.test(line))
-    {
-      // if this tag exists, then hide it.
-      showMpBar = false;
-    }
-  });
-
-  // return the truth.
-  return showMpBar;
-};
-
-/**
- * Gets whether or not this event is explicitly hiding the tp bar.
- * The default is to show the bar.
- * @returns {boolean} True if we should show the bar, false otherwise.
- */
-Game_Event.prototype.showTargetTpBar = function()
-{
-  // start with the default of true.
-  let showTpBar = J.HUD.EXT.TARGET.Metadata.EnableTP;
-
-  // get the list of valid event commands that are comments.
-  const commentCommands = this.getValidCommentCommands();
-
-  // if there are none, then we show no icon.
-  if (!commentCommands.length) return showTpBar;
-
-  // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetTP;
-
-  // check all the valid event commands to see if we have a reason to hide it.
-  commentCommands.forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [line] = command.parameters;
-
-    // check if any line matches the structure.
-    if (structure.test(line))
-    {
-      // if this tag exists, then hide it.
-      showTpBar = false;
-    }
-  });
-
-  // return the truth.
-  return showTpBar;
-};
-
-/**
- * Gets whether or not this event is explicitly hiding the target text.
- * The default is to show the text.
- * @returns {boolean} True if we should show the text, false otherwise.
- */
-Game_Event.prototype.showTargetText = function()
-{
-  // start with the default of true.
-  let showText = true;
-
-  // get the list of valid event commands that are comments.
-  const commentCommands = this.getValidCommentCommands();
-
-  // if there are none, then we show no icon.
-  if (!commentCommands.length) return showText;
-
-  // encapsulate the RegExp structure to match.
-  const structure = J.HUD.EXT.TARGET.RegExp.HideTargetText;
-
-  // check all the valid event commands to see if we have a reason to hide it.
-  commentCommands.forEach(command =>
-  {
-    // shorthand the comment into a variable.
-    const [line] = command.parameters;
-
-    // check if any line matches the structure.
-    if (structure.test(line))
-    {
-      // if this tag exists, then hide it.
-      showText = false;
-    }
-  });
-
-  // return the truth.
-  return showText;
-};
-//endregion Game_Event
-
-//region Scene_Map
-/**
- * Extends {@link #initHudMembers}.<br>
- * Includes initialization of the target frame members.
- */
-J.HUD.EXT.TARGET.Aliased.Scene_Map.set('initHudMembers', Scene_Map.prototype.initHudMembers);
-Scene_Map.prototype.initHudMembers = function()
-{
-  // perform original logic.
-  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('initHudMembers')
-    .call(this);
-
-  /**
-   * A grouping of all properties that belong to target extension
-   * of the HUD.
-   */
-  this._j._hud._target = {};
-
-  /**
-   * The target frame showing enemy data.
-   * @type {Window_TargetFrame}
-   */
-  this._j._hud._target._targetFrame = null;
-
-  /**
-   * The target frame showing boss data.
-   * This is much bigger than the regular target frame.
-   * @type {Window_TargetFrame}
-   * @private
-   */
-  this._j._hud._target._bossFrame = null;
-};
-
-/**
- * Extends {@link #createAllWindows}.<br>
- * Includes creation of the target frame window.
- */
-J.HUD.EXT.TARGET.Aliased.Scene_Map.set('createAllWindows', Scene_Map.prototype.createAllWindows);
-Scene_Map.prototype.createAllWindows = function()
-{
-  // perform original logic.
-  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('createAllWindows')
-    .call(this);
-
-  // create the target frame.
-  this.createTargetFrameWindow();
-};
-
-//region target frame
-/**
- * Creates the target frame window and adds it to tracking.
- */
-Scene_Map.prototype.createTargetFrameWindow = function()
-{
-  // create the window.
-  const window = this.buildTargetFrameWindow();
-
-  // update the tracker with the new window.
-  this.setTargetFrameWindow(window);
-
-  // add the window to the scene manager's tracking.
-  this.addWindow(window);
-};
-
-/**
- * Sets up and defines the target frame window.
- * @returns {Window_TargetFrame}
- */
-Scene_Map.prototype.buildTargetFrameWindow = function()
-{
-  // define the rectangle of the window.
-  const rectangle = this.targetFrameWindowRect();
-
-  // create the window with the rectangle.
-  const window = new Window_TargetFrame(rectangle);
-
-  // return the built and configured window.
-  return window;
-}
-
-/**
- * Creates the rectangle representing the window for the target frame.
- * @returns {Rectangle}
- */
-Scene_Map.prototype.targetFrameWindowRect = function()
-{
-  // define the width of the window.
-  const width = J.HUD.EXT.TARGET.Metadata.TargetFrameWidth;
-
-  // define the height of the window.
-  const height = J.HUD.EXT.TARGET.Metadata.TargetFrameHeight;
-
-  // define the origin x of the window.
-  const x = J.HUD.EXT.TARGET.Metadata.TargetFrameX;
-
-  // define the origin y of the window.
-  const y = J.HUD.EXT.TARGET.Metadata.TargetFrameY;
-
-  // return the built rectangle.
-  return new Rectangle(x, y, width, height);
-};
-
-/**
- * Gets the currently tracked target frame window.
- * @returns {Window_TargetFrame}
- */
-Scene_Map.prototype.getTargetFrameWindow = function()
-{
-  return this._j._hud._target._targetFrame;
-}
-
-/**
- * Set the currently tracked target frame window to the given window.
- * @param {Window_TargetFrame} window The window to track.
- */
-Scene_Map.prototype.setTargetFrameWindow = function(window)
-{
-  this._j._hud._target._targetFrame = window;
-}
-//endregion target frame
-
-/**
- * Extends {@link #updateHudFrames}.<br>
- * Includes updating the target frame.
- */
-J.HUD.EXT.TARGET.Aliased.Scene_Map.set('updateHudFrames', Scene_Map.prototype.updateHudFrames);
-Scene_Map.prototype.updateHudFrames = function()
-{
-  // perform original logic.
-  J.HUD.EXT.TARGET.Aliased.Scene_Map.get('updateHudFrames')
-    .call(this);
-
-  // manages target frame assignments.
-  this.handleAssignTarget();
-};
-
-/**
- * Handles incoming requests to assign a target to the target frame.
- */
-Scene_Map.prototype.handleAssignTarget = function()
-{
-  // if there is no request, then don't process.
-  if (!$hudManager.hasRequestAssignTarget()) return;
-
-  // grab the new target.
-  const newTarget = $hudManager.getNewTarget();
-
-  // set the target frame's target to this new target.
-  this.getTargetFrameWindow()
-    .setTarget(newTarget);
-
-  // let the hud manager know we've done the deed.
-  $hudManager.acknowledgeAssignedTarget();
-};
-//endregion Scene_Map
-
-// TODO: move this to J-Base.
-//region Sprite_FlowingGauge
-/**
- * A gauge that acts like a regular `Sprite_Gauge` that is instead based
- * on images and also "flows".
- */
-class Sprite_FlowingGauge
-  extends Sprite
-{
-  //region properties
-  static Types = {
-    HP: "hp",
-    MP: "mp",
-    TP: "tp",
-  };
-
-  /**
-   * The bitmap for the background sprite.
-   * @type {Bitmap|null}
-   * @private
-   */
-  _backgroundBitmap = null;
-
-  /**
-   * The sprite background of this gauge.
-   * @type {Sprite}
-   */
-  _gaugeBackground = null;
-
-  /**
-   * The bitmap of the file that makes up this gauge.
-   * It is expected to be a pair of horizontal gauges equal in height.
-   * @type {Bitmap|null}
-   */
-  _gaugeBitmap = null;
-
-  /**
-   * The sprite representing the "current" value of this gauge.
-   * It slides gradually over a couple seconds to the target value.
-   * @type {Sprite}
-   */
-  _gaugeCurrentSprite = null;
-
-  /**
-   * The sprite representing the "actual" value of this gauge.
-   * It does not slide, it is instantly changed.
-   * @type {Sprite}
-   */
-  _gaugeActualSprite = null;
-
-  /**
-   * The battler this gauge is representing when in use.
-   * @type {Game_Enemy|null}
-   */
-  _battler = null;
-
-  /**
-   * The "current" value of the gauge in numeric form.
-   * @type {number}
-   */
-  _gaugeCurrent = 0;
-
-  /**
-   * The "target" value of the gauge in numeric form.
-   * @type {number}
-   */
-  _gaugeTarget = 0;
-
-  /**
-   * The "max" value of the gauge in numeric form.
-   * @type {number}
-   */
-  _gaugeMax = 0;
-
-  /**
-   * The type of gauge this is, such as HP, MP, or TP.
-   * @type {Sprite_FlowingGauge.Types}
-   */
-  _gaugeType = String.empty;
-
-  /**
-   * Whether or not this gauge is setup and ready to be drawn.
-   * @type {boolean}
-   */
-  _isReady = false;
-
-  /**
-   * Left edge (in texture pixels) of the painted fill inside one gauge slice.
-   * @type {number}
-   */
-  _gaugeSliceFillMinX = 0;
-
-  /**
-   * Width (in texture pixels) of the painted fill inside one gauge slice.
-   * @type {number}
-   */
-  _gaugeSliceFillInnerWidth = 0;
-
-  /**
-   * Left edge (in texture pixels) of the background track interior.
-   * @type {number}
-   */
-  _gaugeBackgroundTrackMinX = 0;
-
-  /**
-   * Width (in texture pixels) of the background track interior.
-   * @type {number}
-   */
-  _gaugeBackgroundTrackInnerWidth = 0;
-
-  //endregion properties
-
-  /**
-   * Initializes all properties of this class.
-   */
-  initialize(bitmap)
-  {
-    // perform original logic; we don't need the underlying sprite to have a bitmap.
-    super.initialize(bitmap);
-
-    // initialize the gauge sprites from file.
-    this.initializeGauges();
-  }
-
-  /**
-   * Initializes the gauges based on bitmaps loaded from file.
-   */
-  initializeGauges()
-  {
-    // reset all gauges to baseline/defaults.
-    this.resetValues();
-
-    // establish a promise for loading the gauge background into memory.
-    const backgroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.BackgroundFilename);
-    const backgroundPromise = ImageManager.loadHudBitmap(backgroundFilename);
-
-    // manage the completion and error handling of the bitmap loading.
-    backgroundPromise
-      .then(bitmap => this.setBackgroundBitmap(bitmap))
-      .catch(() =>
-      {
-        throw new Error('background bitmap failed to load.');
-      });
-
-    // establish a promise for loading the gauge foreground into memory.
-    const foregroundFilename = this.extractFileName(J.HUD.EXT.TARGET.Metadata.ForegroundFilename);
-    const foregroundPromise = ImageManager.loadHudBitmap(foregroundFilename);
-
-    // manage the completion and error handling of the bitmap loading.
-    foregroundPromise
-      .then(bitmap => this.setForegroundBitmap(bitmap))
-      .catch(() =>
-      {
-        throw new Error('background bitmap failed to load.');
-      });
-
-    // when both back and foreground are done loading, let this gauge know we're ready.
-    Promise
-      .all([ backgroundPromise, foregroundPromise ])
-      .then(() => this.onReady());
-  }
-
-  /**
-   * Extracts the filename out of the extended path.
-   * @param {string} longFileName The filename with the path in it.
-   * @returns {string} Just the filename.
-   */
-  extractFileName(longFileName)
-  {
-    // get the character after the last slash.
-    const lastSlash = longFileName.lastIndexOf('/') + 1;
-
-    // return only the filename.
-    return longFileName.substring(lastSlash);
-  }
-
-  /**
-   * Sets the background bitmap to the given value.
-   * @param {Bitmap} bitmap The bitmap to set to the background.
-   */
-  setBackgroundBitmap(bitmap)
-  {
-    // assign the bitmap for re-use.
-    this._backgroundBitmap = bitmap;
-  }
-
-  /**
-   * Sets the foreground bitmap to the given value.
-   * @param {Bitmap} bitmap The bitmap to set to the foreground.
-   */
-  setForegroundBitmap(bitmap)
-  {
-    // assign the bitmap for re-use.
-    this._gaugeBitmap = bitmap;
-  }
-
-  /**
-   * Creates gauge's background sprite.
-   */
-  createGaugeBackground()
-  {
-    // establish the new sprite based on the given bitmap.
-    this._gaugeBackground = new Sprite(this._backgroundBitmap);
-    this._gaugeBackground.x = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageX;
-    this._gaugeBackground.y = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageY;
-    this.addChild(this._gaugeBackground);
-  }
-
-  /**
-   * Creates gauge's foreground sprite.
-   */
-  createGaugeForeground()
-  {
-    // generate the middleground of the gauge.
-    this._gaugeCurrentSprite = new Sprite(this._gaugeBitmap);
-    this._gaugeCurrentSprite.x = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageX;
-    this._gaugeCurrentSprite.y = J.HUD.EXT.TARGET.Metadata.MiddlegroundGaugeImageY;
-    this.addChild(this._gaugeCurrentSprite);
-
-    // generate the foreground of the gauge
-    this._gaugeActualSprite = new Sprite(this._gaugeBitmap);
-    this._gaugeActualSprite.x = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageX;
-    this._gaugeActualSprite.y = J.HUD.EXT.TARGET.Metadata.ForegroundGaugeImageY;
-    this.addChild(this._gaugeActualSprite);
-  }
-
-  /**
-   * Resets all gauge values to 0.
-   */
-  resetValues()
-  {
-    this._gaugeCurrent = 0;
-    this._gaugeTarget = 0;
-    this._gaugeMax = 0;
-  }
-
-  /**
-   * Clears the battler of this gauge.
-   */
-  clearBattler()
-  {
-    this._battler = null;
-  }
-
-  /**
-   * The "current" value of the gauge.
-   * This is spends a lot of time in flux due to gradual change for visual enjoyment.
-   * If you need the real current value, use `.target()`.
-   * @returns {number}
-   */
-  current()
-  {
-    return this._gaugeCurrent;
-  }
-
-  /**
-   * The "target" value of the gauge.
-   * This is what the "current" is striving to reach.
-   * @returns {number}
-   */
-  target()
-  {
-    if (this._battler)
-    {
-      return this.#targetByType();
-    }
-    else
-    {
-      return 0;
-    }
-  }
-
-  /**
-   * Gets the target value for this gauge by its gauge type.
-   * @returns {number}
-   */
-  #targetByType()
-  {
-    switch (this._gaugeType)
-    {
-      case Sprite_FlowingGauge.Types.HP:
-        return this._battler.hp;
-      case Sprite_FlowingGauge.Types.MP:
-        return this._battler.mp;
-      case Sprite_FlowingGauge.Types.TP:
-        return this._battler.tp;
-      default:
-        return 0;
-    }
-  }
-
-  /**
-   * The "max" value of the gauge.
-   * This is simply the maximum amount that the gauge represents when full.
-   * @returns {number}
-   */
-  max()
-  {
-    if (this._battler)
-    {
-      return this.#maxByType();
-    }
-    else
-    {
-      return 0;
-    }
-  }
-
-  /**
-   * Gets the max value for this gauge by its gauge type.
-   * @returns {number}
-   */
-  #maxByType()
-  {
-    switch (this._gaugeType)
-    {
-      case Sprite_FlowingGauge.Types.HP:
-        return this._battler.mhp;
-      case Sprite_FlowingGauge.Types.MP:
-        return this._battler.mmp;
-      case Sprite_FlowingGauge.Types.TP:
-        return this._battler.maxTp();
-      default:
-        return 0;
-    }
-  }
-
-  /**
-   * Sets up this gauge with the given enemy battler.
-   * @param {Game_Enemy} battler The enemy battler.
-   * @param {Sprite_FlowingGauge.Types} gaugeType The type of gauge this is.
-   */
-  setup(battler, gaugeType = Sprite_FlowingGauge.Types.HP)
-  {
-    // assign the battler.
-    this._battler = battler;
-
-    // assign the gauge type and setup accordingly.
-    this._gaugeType = gaugeType;
-    this.setupGaugeByType();
-
-    // show the gauge when it is setup for battle.
-    this.show();
-  }
-
-  /**
-   * Sets up the gauge based on the gauge type.
-   */
-  setupGaugeByType()
-  {
-    this._gaugeCurrentSprite.setColorTone(this.greyTone());
-
-    switch (this._gaugeType)
-    {
-      case Sprite_FlowingGauge.Types.HP:
-        this.setupGaugeAsHp();
-        break;
-      case Sprite_FlowingGauge.Types.MP:
-        this.setupGaugeAsMp();
-        break;
-      case Sprite_FlowingGauge.Types.TP:
-        this.setupGaugeAsTp();
-        break;
-    }
-  }
-
-  /**
-   * Sets up the gauge as an hp gauge.
-   */
-  setupGaugeAsHp()
-  {
-    this._gaugeCurrent = this._battler.hp;
-    this._gaugeTarget = this._battler.hp;
-    this._gaugeMax = this._battler.mhp;
-    this._gaugeActualSprite.setHue(this.hpGaugeHue());
-  }
-
-  hpGaugeHue()
-  {
-    return 0;
-  }
-
-  /**
-   * Sets up the gauge as an mp gauge.
-   */
-  setupGaugeAsMp()
-  {
-    this._gaugeCurrent = this._battler.mp;
-    this._gaugeTarget = this._battler.mp;
-    this._gaugeMax = this._battler.mmp;
-    this._gaugeActualSprite.setHue(this.mpGaugeHue());
-  }
-
-  mpGaugeHue()
-  {
-    return -180;
-  }
-
-  /**
-   * Sets up the gauge as a tp gauge.
-   */
-  setupGaugeAsTp()
-  {
-    this._gaugeCurrent = this._battler.tp;
-    this._gaugeTarget = this._battler.tp;
-    this._gaugeMax = this._battler.maxTp();
-    this._gaugeActualSprite.setHue(this.tpGaugeHue());
-  }
-
-  tpGaugeHue()
-  {
-    return 80;
-  }
-
-  /**
-   * Refresh this gauge by redrawing it.
-   */
-  refresh()
-  {
-    this.drawGauge();
-  }
-
-  /**
-   * The update loop of this gauge.
-   */
-  update()
-  {
-    // perform original logic.
-    super.update();
-
-    if (!this.isReady()) return;
-
-    // update the current value for this.
-    this.updateCurrent();
-
-    // update the visual flow.
-    this.updateFlow();
-
-    // redraw the gauge.
-    this.drawGauge();
-  }
-
-  /**
-   * Checks if this gauge is ready for drawing.
-   * If it is not, then updating will not take place.
-   * @returns {boolean} True if this gauge is ready, false otherwise.
-   */
-  isReady()
-  {
-    // if we are already ready, then just carry on.
-    return this._isReady;
-  }
-
-  /**
-   * Executes one-time actions once the gauge is ready.
-   */
-  onReady()
-  {
-    // create the background of the gauge.
-    this.createGaugeBackground();
-
-    // create the foreground of the gauge ("two" bars).
-    this.createGaugeForeground();
-
-    // measure the real track vs fill extents so scaled gauges don't gap or spill past the frame art.
-    this.measureGaugeArtExtents();
-
-    // snap the bar sprites to the background track using those measurements.
-    this.alignGaugeForegroundToBackgroundTrack();
-
-    // update the flow now that we have all our gauges.
-    this.updateFlowMax();
-
-    // and now we are ready to draw gauges.
-    this._isReady = true;
-  }
-
-  /**
-   * Updates the current and max values of the flow effect.
-   */
-  updateFlowMax()
-  {
-    // keep the flowing frame inside the bitmap slice while respecting the measured fill inset.
-    const sliceW = this.gaugeWidth();
-    const maxFlow = sliceW - this._gaugeSliceFillMinX - this._gaugeSliceFillInnerWidth;
-
-    this._gaugeActualFlowLimit = Math.max(1, maxFlow);
-    this._gaugeActualFlowCurrent = Math.floor(Math.random() * this._gaugeActualFlowLimit);
-  }
-
-  /**
-   * Updates the current value of the fore-most gauge.
-   * This is the background gauge that is a bit slower.
-   */
-  updateCurrent()
-  {
-    // if we have no battler, then don't update.
-    if (!this.canUpdateCurrent()) return;
-
-    // check if the target died.
-    if (this.isHpGaugeEmpty())
-    {
-      // run on-defeat logic.
-      this.onDefeat();
-      return;
-    }
-
-    // check if there is a different between the current and target values.
-    if (this.current() !== this.target())
-    {
-      // if something has changed, then update the current value.
-      this.handleCurrentValueUpdate();
-    }
-    // if no difference, then it isn't changing.
-    else
-    {
-      // handle what happens when the value isn't changing.
-      this.handleCurrentValueUnchanged();
-    }
-  }
-
-  /**
-   * Handles the update to the "current" value while it is changing either up or down.
-   */
-  handleCurrentValueUpdate()
-  {
-    // calculate a rate of change for the gauge.
-    const changeRate = this.changeRate();
-
-    // check if the target amount is less than the current.
-    if (this.target() < this.current())
-    {
-      this.processCurrentValueIncrease(changeRate);
-    }
-    // check if the target amount is greater than the current.
-    else if (this.target() > this.current())
-    {
-      this.processCurrentValueDecrease(changeRate);
-    }
-  }
-
-  /**
-   * Processes the decrease of the current value and changes the tone.
-   */
-  processCurrentValueIncrease(changeRate)
-  {
-    // if so, reduce the current by the change rate until we hit the target.
-    this._gaugeCurrent -= changeRate;
-
-    // check to make sure we didn't pass the target with the incremental change rate.
-    if (this.current() < this.target())
-    {
-      // if we did, just re-assign that.
-      this._gaugeCurrent = this._gaugeTarget;
-    }
-
-    // if the gauge is going down, set the tone to be red.
-    this._gaugeCurrentSprite.setColorTone(this.downTone());
-  }
-
-  /**
-   * Processes the increase of the current value and changes the tone.
-   */
-  processCurrentValueDecrease(changeRate)
-  {
-    // if so, increase the current by the change rate until we hit the target.
-    this._gaugeCurrent += changeRate;
-
-    // check to make sure we didn't pass the target with the incremental change rate.
-    if (this.current() > this.target())
-    {
-      // if we did, just re-assign that.
-      this._gaugeCurrent = this._gaugeTarget;
-    }
-
-    // if the gauge is going up, set the tone to be green.
-    this._gaugeCurrentSprite.setColorTone(this.upTone());
-  }
-
-  /**
-   * Handles the update to the "current" value while it is unchanging.
-   */
-  handleCurrentValueUnchanged()
-  {
-    // if the gauge isn't going anywhere, then set it to grey.
-    this._gaugeCurrentSprite.setColorTone(this.greyTone());
-  }
-
-  /**
-   * Whether or not we can update the
-   * @returns {boolean}
-   */
-  canUpdateCurrent()
-  {
-    if (!this._battler) return false;
-
-    return true;
-  }
-
-  /**
-   * Whether or not this HP gauge is empty.
-   * Not applicable to non-HP gauges.
-   * @returns {boolean} True if the HP gauge target is 0, false if not HP gauge or not 0.
-   */
-  isHpGaugeEmpty()
-  {
-    if (this._gaugeType !== Sprite_FlowingGauge.Types.HP) return false;
-
-    if (this.target() !== 0) return false;
-
-    return true;
-  }
-
-  /**
-   * Logic to execute when this target is defeated.
-   */
-  onDefeat()
-  {
-    // remove the battler from tracking.
-    this.clearBattler();
-
-    // reset the gauge values.
-    this.resetValues();
-  }
-
-  /**
-   * The hue to alter the image by when the middleground gauge is going up.
-   * The gauge goes up when you're healing, so this defaults to green.
-   * @returns {[number, number, number, number]} The color tone: [red, green, blue, grey].
-   */
-  upTone()
-  {
-    // [red, green, blue, grey].
-    return [ 0, 255, 0, 128 ];
-  }
-
-  /**
-   * The hue to alter the image by when the middleground gauge is going down.
-   * @returns {[number, number, number, number]} The color tone: [red, green, blue, grey].
-   */
-  downTone()
-  {
-    // [red, green, blue, grey].
-    return [ 255, 0, 0, 0 ];
-  }
-
-  /**
-   * The color tone to turn the sprite greyscale.
-   * @returns {[number, number, number, number]} The color tone: [red, green, blue, grey].
-   */
-  greyTone()
-  {
-    // [red, green, blue, grey].
-    return [ 0, 0, 0, 255 ];
-  }
-
-  /**
-   * Calculates the rate of which to increment/decrement the current gauge.
-   * The gauge goes down when they are hurting, so this defaults to red.
-   * @returns {number}
-   */
-  changeRate()
-  {
-    const divisor = 10;
-    const rate = Math.abs((this.target() - this.current()) / divisor);
-    return rate;
-  }
-
-  /**
-   * Update the flow meter to give the flowy aesthetic.
-   */
-  updateFlow()
-  {
-    // update the x coordinate of where to set the frame to emulate "flowing" gauges.
-    this._gaugeActualFlowCurrent += 0.3;
-
-    // if the current flow exceeds the limit, reset it.
-    if (this._gaugeActualFlowCurrent > this._gaugeActualFlowLimit)
-    {
-      // reset the current flow to 0.
-      this._gaugeActualFlowCurrent = 0;
-    }
-  }
-
-  /**
-   * Draws this gauge.
-   */
-  drawGauge()
-  {
-    // draw the in-flux "current" gauge.
-    this.drawCurrentGauge();
-
-    // draw the accurate "actual" gauge.
-    this.drawActualGauge();
-  }
-
-  /**
-   * Draws the "current" gauge, the gauge drawn in the middleground that
-   * represents the amount that the enemy looks like they have. This extra
-   * bar is drawn mostly for effect, and will spend a lot of time in-flux.
-   */
-  drawCurrentGauge()
-  {
-    // get the height of the gauge.
-    const gaugeHeight = this.gaugeHeight();
-
-    // determine the actual width to draw inside the measured fill band.
-    const factor = (this.current() / this.max()) * this._gaugeSliceFillInnerWidth;
-
-    // set the flowed-frame of the gauge.
-    const frameX = this._gaugeActualFlowCurrent + this._gaugeSliceFillMinX;
-    this._gaugeCurrentSprite.setFrame(frameX, gaugeHeight, factor, gaugeHeight);
-  }
-
-  /**
-   * Draws the "actual" gauge, the gauge drawn in the foremost-ground that
-   * represents the amount that the enemy currently has.
-   */
-  drawActualGauge()
-  {
-    // get the height of the gauge.
-    const gaugeHeight = this.gaugeHeight();
-
-    // determine the actual width to draw inside the measured fill band.
-    const factor = (this.target() / this.max()) * this._gaugeSliceFillInnerWidth;
-
-    // set the flowed-frame of the gauge.
-    const frameX = this._gaugeActualFlowCurrent + this._gaugeSliceFillMinX;
-    this._gaugeActualSprite.setFrame(frameX, 0, factor, gaugeHeight);
-  }
-
-  /**
-   * The width of the gauge.
-   * @returns {number}
-   */
-  gaugeWidth()
-  {
-    return Math.floor(this._gaugeBitmap.width / 3);
-  }
-
-  /**
-   * The height of the gauge.
-   * @returns {number}
-   */
-  gaugeHeight()
-  {
-    return Math.floor(this._gaugeBitmap.height / 2);
-  }
-
-  /**
-   * Measures the interior track on the background and the interior fill band on the foreground slice.
-   * This keeps HP/MP bars inside the frame art when `scale.x` is cranked up.
-   */
-  measureGaugeArtExtents()
-  {
-    // default to full-slice behavior if anything is missing or measurement fails.
-    this._gaugeSliceFillMinX = 0;
-    this._gaugeSliceFillInnerWidth = 1;
-    this._gaugeBackgroundTrackMinX = 0;
-    this._gaugeBackgroundTrackInnerWidth = 1;
-
-    if (!this._gaugeBitmap) return;
-
-    const sliceW = this.gaugeWidth();
-    const sliceH = this.gaugeHeight();
-
-    if (sliceW === 0 || sliceH === 0) return;
-
-    this._gaugeSliceFillInnerWidth = sliceW;
-    this._gaugeBackgroundTrackInnerWidth = this._backgroundBitmap
-      ? this._backgroundBitmap.width
-      : sliceW;
-
-    if (!this._backgroundBitmap) return;
-
-    // Caps on the frame art read as "bright" while the trough reads as near-black; a naive bright min/max would span
-    // cap-to-cap and pretend the gutter is part of the interior (wrong width + wrong left edge).
-    const bgTrack = this.measureLongestOpaqueDarkHorizontalRun(
-      this._backgroundBitmap,
-      0,
-      0,
-      this._backgroundBitmap.width,
-      this._backgroundBitmap.height,
-      80
-    );
-
-    const topTrack = this.measureBrightHorizontalExtent(
-      this._gaugeBitmap,
-      0,
-      0,
-      sliceW,
-      sliceH,
-      24
-    );
-
-    const bottomTrack = this.measureBrightHorizontalExtent(
-      this._gaugeBitmap,
-      0,
-      sliceH,
-      sliceW,
-      sliceH,
-      24
-    );
-
-    const fillMinX = Math.min(topTrack.minX, bottomTrack.minX);
-    const fillMaxX = Math.max(topTrack.maxX, bottomTrack.maxX);
-    const fillInnerW = Math.max(1, fillMaxX - fillMinX + 1);
-
-    const trackInnerW = Math.max(1, bgTrack.maxX - bgTrack.minX + 1);
-
-    this._gaugeSliceFillMinX = fillMinX;
-    this._gaugeSliceFillInnerWidth = fillInnerW;
-    this._gaugeBackgroundTrackMinX = bgTrack.minX;
-    this._gaugeBackgroundTrackInnerWidth = trackInnerW;
-  }
-
-  /**
-   * Positions and scales the bar sprites so the measured fill maps onto the measured background track.
-   */
-  alignGaugeForegroundToBackgroundTrack()
-  {
-    if (!this._gaugeCurrentSprite || !this._gaugeActualSprite) return;
-
-    if (this._gaugeSliceFillInnerWidth <= 0 || this._gaugeBackgroundTrackInnerWidth <= 0) return;
-
-    const bgX = J.HUD.EXT.TARGET.Metadata.BackgroundGaugeImageX;
-
-    // Left edge of the fill must share the same origin as the measured trough (`bgX + troughMinX`). Using the plugin
-    // middle/foreground ImageX values here while also clamping width from `troughRight - ImageX` split the problem:
-    // the right clamp assumed one coordinate system and the hand-tuned X another — e.g. trough starts at column 1 but
-    // defaults put the fill at 2, so a green underlay shows in that column and HP vs MP could disagree if anything
-    // differed between layers. One `fillLeftX` and one `ratio` keeps both strips locked.
-    const fillLeftX = bgX + this._gaugeBackgroundTrackMinX;
-
-    const troughRightExclusive = bgX + this._gaugeBackgroundTrackMinX + this._gaugeBackgroundTrackInnerWidth;
-
-    const effectiveBarWidth = Math.max(
-      1,
-      Math.min(this._gaugeBackgroundTrackInnerWidth, troughRightExclusive - fillLeftX)
-    );
-
-    const ratio = effectiveBarWidth / this._gaugeSliceFillInnerWidth;
-
-    this._gaugeCurrentSprite.scale.x = ratio;
-    this._gaugeActualSprite.scale.x = ratio;
-
-    this._gaugeCurrentSprite.x = fillLeftX;
-    this._gaugeActualSprite.x = fillLeftX;
-  }
-
-  /**
-   * Finds the horizontal span of "bright enough" pixels inside a bitmap rectangle.
-   * Used to ignore near-black border pixels that are still opaque.
-   * @param {Bitmap} bitmap The bitmap to scan.
-   * @param {number} rectX The left of the scan rectangle.
-   * @param {number} rectY The top of the scan rectangle.
-   * @param {number} rectW The width of the scan rectangle.
-   * @param {number} rectH The height of the scan rectangle.
-   * @param {number} minBrightSum Minimum r+g+b sum to count as interior content.
-   * @returns {{minX:number,maxX:number}}
-   */
-  measureBrightHorizontalExtent(bitmap, rectX, rectY, rectW, rectH, minBrightSum)
-  {
-    let minX = rectW;
-    let maxX = -1;
-
-    for (let y = 0; y < rectH; y++)
-    {
-      for (let x = 0; x < rectW; x++)
-      {
-        const px = rectX + x;
-        const py = rectY + y;
-
-        if (bitmap.getAlphaPixel(px, py) < 8) continue;
-
-        const hex = bitmap.getPixel(px, py);
-        const bright = this.sumRgbFromHexString(hex);
-
-        if (bright <= minBrightSum) continue;
-
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-      }
-    }
-
-    if (maxX < 0)
-    {
-      return { minX: 0, maxX: rectW - 1 };
-    }
-
-    return { minX, maxX };
-  }
-
-  /**
-   * Finds the longest horizontal run of opaque "dark" pixels in a rectangle (row by row).
-   * Used for capsule-style gauge frames where the playable trough is darker than the end caps.
-   * @param {Bitmap} bitmap The bitmap to scan.
-   * @param {number} rectX The left of the scan rectangle.
-   * @param {number} rectY The top of the scan rectangle.
-   * @param {number} rectW The width of the scan rectangle.
-   * @param {number} rectH The height of the scan rectangle.
-   * @param {number} maxDarkSum Inclusive ceiling on r+g+b for a pixel to count as trough (caps sit above this).
-   * @returns {{minX:number,maxX:number}} Inclusive span of the best run in the same local x space as
-   * {@link measureBrightHorizontalExtent}.
-   */
-  measureLongestOpaqueDarkHorizontalRun(bitmap, rectX, rectY, rectW, rectH, maxDarkSum)
-  {
-    let bestMinX = 0;
-    let bestMaxX = rectW - 1;
-    let bestLen = 0;
-
-    for (let y = 0; y < rectH; y++)
-    {
-      const py = rectY + y;
-      let runStart = -1;
-
-      for (let x = 0; x <= rectW; x++)
-      {
-        const atEnd = x === rectW;
-        let isDark = false;
-
-        if (atEnd === false)
-        {
-          const px = rectX + x;
-
-          if (bitmap.getAlphaPixel(px, py) < 8)
-          {
-            isDark = false;
-          }
-          else
-          {
-            const sum = this.sumRgbFromHexString(bitmap.getPixel(px, py));
-
-            isDark = sum <= maxDarkSum;
-          }
-        }
-
-        if (isDark && runStart < 0)
-        {
-          runStart = x;
-        }
-
-        if ((isDark === false || atEnd) && runStart >= 0)
-        {
-          const runEnd = x - 1;
-          const len = runEnd - runStart + 1;
-
-          if (len > bestLen)
-          {
-            bestLen = len;
-            bestMinX = runStart;
-            bestMaxX = runEnd;
-          }
-
-          runStart = -1;
-        }
-      }
-    }
-
-    if (bestLen === 0)
-    {
-      return { minX: 0, maxX: rectW - 1 };
-    }
-
-    return { minX: bestMinX, maxX: bestMaxX };
-  }
-
-  /**
-   * Parses `#RRGGBB` from {@link Bitmap#getPixel} and sums the channels.
-   * @param {string} hex The color string.
-   * @returns {number}
-   */
-  sumRgbFromHexString(hex)
-  {
-    if (!hex || hex.length < 7) return 0;
-
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-
-    return r + g + b;
-  }
-}
-
-//endregion Sprite_FlowingGauge
-
-//region Window_TargetFrame
-/**
- * A window that displays a target and their relevant information.
- */
-class Window_TargetFrame
-  extends Window_Base
-{
-  /**
-   * The maximum possible duration in frames.
-   * @type {number}
-   */
-  static MaxDuration = 180;
-
-  /**
-   * Constructor.
-   * @param {Rectangle} rect The shape of this window.
-   */
-  constructor(rect)
-  {
-    super(rect);
-  }
-
-  /**
-   * Initializes the properties of this class.
-   * @param {Rectangle} rect The rectangle representing this window.
-   */
-  initialize(rect)
-  {
-    // perform original logic.
-    super.initialize(rect);
-
-    // add our extra data points to track.
-    this.initMembers();
-
-    // run any one-time configuration changes.
-    this.configure();
-  }
-
-  /**
-   * Initializes all members of this class.
-   */
-  initMembers()
-  {
-    /**
-     * The over-arching object that contains all properties for this plugin.
-     */
-    this._j ||= {};
-
-    /**
-     * The cached collection of sprites.
-     * @type {Map<string, Sprite_Icon|Sprite>}
-     */
-    this._j._spriteCache = new Map();
-
-    /**
-     * The name to display in the name field.
-     *
-     * NOTE:
-     * This is separated out from the battler data itself so that it can be
-     * separately assigned to something different if the dev wanted to.
-     * @type {string}
-     */
-    this._j._name = String.empty;
-
-    /**
-     * When set, {@link #drawTargetName} tints the line with this `#RRGGBB` before `drawTextEx` (Passive-ABS tier stripe
-     * hex).
-     * @type {string|String.empty}
-     */
-    this._j._nameColorHex = String.empty;
-
-    /**
-     * The second line associated with the target.
-     * Optional.
-     * @type {string}
-     */
-    this._j._text = String.empty;
-
-    /**
-     * The icon that this target has.
-     * @type {number}
-     */
-    this._j._icon = 0;
-
-    /**
-     * The battler of the target.
-     * @type {Game_Actor|Game_Enemy}
-     */
-    this._j._battler = null;
-
-    /**
-     * Whether or not this window requires a target update.
-     * @type {boolean}
-     */
-    this._j._requestTargetRefresh = true;
-
-    /**
-     * The duration until this window is deemed inactive.
-     * @type {number}
-     */
-    this._j._inactivityTimer = 0;
-  }
-
-  /**
-   * Executes any one-time configuration required for this window.
-   */
-  configure()
-  {
-    // make the window's background opacity transparent.
-    this.opacity = 0;
-
-    // build the image cache for the first time.
-    this.refreshCache();
-  }
-
-  //region caching
-  /**
-   * Empties and recreates the entire cache of sprites.
-   */
-  refreshCache()
-  {
-    // destroy and empty all sprites within the cache.
-    this.emptyCache();
-
-    // recreate all sprites for the cache.
-    this.createCache();
-  }
-
-  /**
-   * Empties the cache of all sprites.
-   */
-  emptyCache()
-  {
-    // iterate over each sprite and destroy it properly.
-    this._j._spriteCache.forEach((value, _) => value.destroy());
-
-    // empty the collection of all references.
-    this._j._spriteCache.clear();
-  }
-
-  /**
-   * Ensures all sprites are created and available for use.
-   */
-  createCache()
-  {
-    // cache the target hp gauge.
-    this.getOrCreateTargetHpGaugeSprite();
-
-    // cache the target mp gauge.
-    this.getOrCreateTargetMpGaugeSprite();
-
-    // cache the target tp gauge.
-    this.getOrCreateTargetTpGaugeSprite();
-  }
-
-  /**
-   * Creates an target gauge sprite for this window and caches it.
-   * @returns {Sprite_FlowingGauge} The gauge sprite of the target.
-   */
-  getOrCreateTargetHpGaugeSprite()
-  {
-    // the key for this actor's full face sprite.
-    const key = `targetframe-enemy-hp-gauge`;
-
-    // check if the key already maps to a cached sprite.
-    if (this._j._spriteCache.has(key))
-    {
-      // if it does, just return that.
-      return this._j._spriteCache.get(key);
-    }
-
-    // create a new enemy gauge sprite.
-    const sprite = new Sprite_FlowingGauge();
-
-    // cache the sprite.
-    this._j._spriteCache.set(key, sprite);
-
-    // hide the sprite for now.
-    sprite.hide();
-    sprite.scale.x = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleX;
-    sprite.scale.y = J.HUD.EXT.TARGET.Metadata.HpGaugeScaleY;
-
-    // add the sprite to tracking.
-    this.addChild(sprite);
-
-    // return the created sprite.
-    return sprite;
-  }
-
-  /**
-   * Creates an target gauge sprite for this window and caches it.
-   * @returns {Sprite_FlowingGauge} The gauge sprite of the target.
-   */
-  getOrCreateTargetMpGaugeSprite()
-  {
-    // the key for this actor's full face sprite.
-    const key = `targetframe-enemy-mp-gauge`;
-
-    // check if the key already maps to a cached sprite.
-    if (this._j._spriteCache.has(key))
-    {
-      // if it does, just return that.
-      return this._j._spriteCache.get(key);
-    }
-
-    // create a new enemy gauge sprite.
-    const sprite = new Sprite_FlowingGauge();
-
-    // cache the sprite.
-    this._j._spriteCache.set(key, sprite);
-
-    // hide the sprite for now.
-    sprite.hide();
-    sprite.scale.x = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleX;
-    sprite.scale.y = J.HUD.EXT.TARGET.Metadata.MpGaugeScaleY;
-
-    // add the sprite to tracking.
-    this.addChild(sprite);
-
-    // return the created sprite.
-    return sprite;
-  }
-
-  /**
-   * Creates an target gauge sprite for this window and caches it.
-   * @returns {Sprite_FlowingGauge} The gauge sprite of the target.
-   */
-  getOrCreateTargetTpGaugeSprite()
-  {
-    // the key for this actor's full face sprite.
-    const key = `targetframe-enemy-tp-gauge`;
-
-    // check if the key already maps to a cached sprite.
-    if (this._j._spriteCache.has(key))
-    {
-      // if it does, just return that.
-      return this._j._spriteCache.get(key);
-    }
-
-    // create a new enemy gauge sprite.
-    const sprite = new Sprite_FlowingGauge();
-
-    // cache the sprite.
-    this._j._spriteCache.set(key, sprite);
-
-    // hide the sprite for now.
-    sprite.hide();
-    sprite.rotation = J.HUD.EXT.TARGET.Metadata.TpGaugeRotation * (Math.PI / 180);
-    sprite.scale.x = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleX;
-    sprite.scale.y = J.HUD.EXT.TARGET.Metadata.TpGaugeScaleY;
-
-    // add the sprite to tracking.
-    this.addChild(sprite);
-
-    // return the created sprite.
-    return sprite;
-  }
-
-  //endregion caching
-
-  /**
-   * Sets the target that this window should be tracking.
-   * @param {FramedTarget} target The name of the target.
-   */
-  setTarget(target)
-  {
-    // assign the newly provided data.
-    this._j._name = target.name;
-    this._j._nameColorHex = target.nameColorHex;
-    this._j._text = target.text;
-    this._j._icon = target.icon;
-    this._j._battler = target.battler;
-    this._j._configuration = target.configuration;
-
-    // refresh the contents of the window to reflect the changes.
-    this.refresh();
-  }
-
-  /**
-   * Sets whether or not this window needs to refresh its target.
-   */
-  requestTargetRefresh()
-  {
-    this._j._requestTargetRefresh = true;
-  }
-
-  /**
-   * Gets whether or not this window needs to refresh its target.
-   * @returns {boolean}
-   */
-  hasRequestTargetRefresh()
-  {
-    return this._j._requestTargetRefresh;
-  }
-
-  /**
-   * Acknowledges the request to refresh the target of this window.
-   */
-  acknowledgeTargetRefresh()
-  {
-    this._j._requestTargetRefresh = false;
-  }
-
-  /**
-   * Gets the name of the current target of this window.
-   * @returns {string}
-   */
-  targetName()
-  {
-    return this._j._name;
-  }
-
-  /**
-   * Gets the extra line of information for the current target of this window.
-   * @returns {string|String.empty}
-   */
-  targetText()
-  {
-    return this._j._text;
-  }
-
-  /**
-   * Gets the icon of the current target of this window.
-   * @returns {number}
-   */
-  targetIcon()
-  {
-    return this._j._icon;
-  }
-
-  /**
-   * Gets the configuration of the current target.
-   * @returns {FramedTargetConfiguration|null}
-   */
-  targetConfiguration()
-  {
-    return this._j._configuration;
-  }
-
-  /**
-   * Refreshes the contents of this window.
-   */
-  refresh()
-  {
-    // clear out the window contents.
-    this.contents.clear();
-
-    // reset the timer for fading.
-    this.resetInactivityTimer();
-
-    // request a refresh of the target of this window.
-    this.requestTargetRefresh();
-
-    // rebuilds the contents of the window.
-    this.updateTarget();
-  }
-
-  /**
-   * Resets the inactivity timer back to max.
-   */
-  resetInactivityTimer()
-  {
-    this._j._inactivityTimer = Window_TargetFrame.MaxDuration;
-  }
-
-  /**
-   * Hooks into the update cycle for updating this window.
-   */
-  update()
-  {
-    // perform original logic.
-    super.update();
-
-    // update the window logic.
-    this.updateTarget();
-  }
-
-  /**
-   * Updates the target of this window as-necessary.
-   */
-  updateTarget()
-  {
-    // check if we have a request to refresh this target frame inactivity timer.
-    if ($hudManager.hasRequestTargetFrameRefreshInactivityTimer())
-    {
-      // reset it if we do.
-      this.resetInactivityTimer();
-
-      // acknowledge the request.
-      $hudManager.acknowledgeTargetFrameInactivityTimerRefresh();
-    }
-
-    // manage inactivity timers and visibility.
-    this.handleInactivity();
-
-    // check if the target this window is tracking needs updating.
-    if (this.needsTargetUpdate())
-    {
-      // determine base coordinates.
-      const x = 0;
-      const y = 0;
-
-      // draw the target data.
-      this.drawContent(x, y);
-
-      // acknowledge the request to refresh the target.
-      this.acknowledgeTargetRefresh();
-    }
-  }
-
-  /**
-   * Pixel width reserved for the level column (Lv.xxx).
-   * @returns {number}
-   */
-  targetFrameLevelColumnWidth()
-  {
-    return 96;
-  }
-
-  /**
-   * Max draw width for the name row so the level column does not overlap long tier names.
-   * @returns {number}
-   */
-  targetFrameNameLineInnerWidth()
-  {
-    const gap = 8;
-
-    const w = this.contentsWidth() - this.targetFrameLevelColumnWidth() - gap;
-
-    return Math.max(200, w);
-  }
-
-  /**
-   * X offset for the level text (right-hand column after the name).
-   * @param {number} baseX Content-relative base x.
-   * @returns {number}
-   */
-  targetFrameLevelDrawX(baseX)
-  {
-    return baseX + this.targetFrameNameLineInnerWidth() + 4;
-  }
-
-  /**
-   * Max width for subtext lines that span the window body.
-   * @returns {number}
-   */
-  targetFrameBodyTextWidth()
-  {
-    return Math.max(200, this.contentsWidth() - 8);
-  }
-
-  drawContent(x, y)
-  {
-    // draw the name of the target.
-    this.drawTargetName(x, y);
-
-    // draw the level of the target.
-    this.drawTargetLevel(this.targetFrameLevelDrawX(x), y);
-
-    // draw the extra data for the target.
-    this.drawTargetExtra(x, y + 24);
-
-    // draw the relation of the target.
-    this.drawTargetIcon(x, y + 48);
-
-    // draw the battler data of the target- if available.
-    this.drawTargetBattlerInfo(x + 32, y);
-  }
-
-  /**
-   * Handles inactivity of this window.
-   * Counts down the inactivity timer and manages visibility as-necessary.
-   */
-  handleInactivity()
-  {
-    // countdown the timer.
-    this._j._inactivityTimer--;
-
-    // check if we have <1 second left before this goes inactive.
-    if (this._j._inactivityTimer < 60)
-    {
-      this.fadeOutWindow();
-    }
-    else
-    {
-      this.fadeInWindow();
-    }
-  }
-
-  /**
-   * Fades out the target frame window along with all sprites and content.
-   */
-  fadeOutWindow()
-  {
-    this.opacity -= 10;
-    this.backOpacity -= 10;
-    this.contentsOpacity -= 10;
-    this._j._spriteCache.forEach((sprite, _) => sprite.opacity -= 10);
-  }
-
-  /**
-   * Fades in the target frame window along with all sprites and content.
-   */
-  fadeInWindow()
-  {
-    this.opacity += 40;
-    this.backOpacity += 40;
-    this.contentsOpacity += 40;
-    this._j._spriteCache.forEach((sprite, _) => sprite.opacity += 40);
-  }
-
-  /**
-   * Determines whether or not the target data should be updated.
-   * @returns {boolean} True if it needs an update, false otherwise.
-   */
-  needsTargetUpdate()
-  {
-    if (!this.hasRequestTargetRefresh()) return false;
-
-    return true;
-  }
-
-  /**
-   * Draws the target's name in the window.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   */
-  drawTargetName(x, y)
-  {
-    let name = `\\FS[24]${this.targetName()}`;
-    if (J.MESSAGE)
-    {
-      name = `\\*` + name;
-    }
-
-    const hex = this._j._nameColorHex;
-    const useHex = hex !== String.empty && hex.length > 0;
-
-    const w = this.targetFrameNameLineInnerWidth();
-
-    // `Window_Base#drawTextEx` begins with `resetFontSettings()`, which calls `resetTextColor()` and would wipe a
-    // tier tint applied before the call. Mirror the engine path but keep Passive-ABS `nameColorHex` after font setup.
-    this.contents.fontFace = $gameSystem.mainFontFace();
-    this.contents.fontSize = $gameSystem.mainFontSize();
-
-    if (useHex)
-    {
-      this.changeTextColor(hex);
-      this.changeOutlineColor(ColorManager.outlineColor());
-    }
-    else
-    {
-      this.resetFontSettings();
-    }
-
-    const textState = this.createTextState(name, x, y, w);
-    this.processAllText(textState);
-    this.resetTextColor();
-  }
-
-  /**
-   * Draws the target's level in the window.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   */
-  drawTargetLevel(x, y)
-  {
-    // don't draw level if we can't.
-    if (!this.canDrawTargetLevel()) return;
-
-    // get the level from the battler.
-    const { level } = this._j._battler;
-
-    // check to see if the enemy is leveled.
-    if (level)
-    {
-      // build the level string.
-      const levelString = `\\FS[14]Lv.${level.padZero(3)}`;
-
-      // and draw it to the window.
-      this.drawTextEx(levelString, x, y, this.targetFrameLevelColumnWidth());
-    }
-  }
-
-  /**
-   * Determines whether or not we can draw the level of the target.
-   * @returns {boolean} True if we can draw levels, false otherwise.
-   */
-  canDrawTargetLevel()
-  {
-    // if we don't have our level system, then don't draw levels.
-    if (!J.LEVEL) return false;
-
-    // if we don't have a battler as the target, then don't draw levels.
-    if (!this._j._battler) return false;
-
-    // draw levels!
-    return true;
-  }
-
-  /**
-   * Draws the target's extra information in the window.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   */
-  drawTargetExtra(x, y)
-  {
-    // if there is no text to draw, don't try to draw it.
-    if (!this.hasTargetText()) return;
-
-    // draw the extra text.
-    this.drawTextEx(`\\FS[14]${this.targetText()}`, x, y, this.targetFrameBodyTextWidth());
-  }
-
-  /**
-   * Determine whether or not we have extra text to draw for the current target.
-   * @returns {boolean}
-   */
-  hasTargetText()
-  {
-    // if we have an empty string for the text, then lets not draw it.
-    if (!this.targetText()) return false;
-
-    // return the truth.
-    return true;
-  }
-
-  /**
-   * Draws the target's icon in the window.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   */
-  drawTargetIcon(x, y)
-  {
-    // check if we have an icon to draw.
-    if (!this.hasTargetIcon()) return;
-
-    // draw the target's icon.
-    this.drawIcon(this.targetIcon(), x, y + 4);
-  }
-
-  /**
-   * Determines whether or not we have an icon to draw for the current target.
-   * @returns {boolean}
-   */
-  hasTargetIcon()
-  {
-    // if we have 0 icon index, then lets not draw one.
-    if (!this.targetIcon()) return false;
-
-    // return the truth.
-    return true;
-  }
-
-  /**
-   * Draws the target's battler data- if present- in the window.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   */
-  drawTargetBattlerInfo(x, y)
-  {
-    // validate that we have a battler to draw data for.
-    if (this._j._battler)
-    {
-      // determine the corrected X coordinate.
-      const currentX = x + this.targetBattlerGaugesX();
-
-      // determine the corrected Y coordinate.
-      const currentY = y + this.targetBattlerGaugesY();
-
-      // draw the gauges at the desginated coordinates.
-      this.drawTargetBattlerGauges(currentX, currentY);
-    }
-    // if we do not have a battler, then hide everything.
-    else
-    {
-      // clear/hide the gauge data.
-      this._j._spriteCache.forEach(value => value.hide());
-    }
-  }
-
-  /**
-   * Calculate the X coordinate for gauges.
-   * @returns {number}
-   */
-  targetBattlerGaugesX()
-  {
-    // if there is an icon in the way, then move the gauges out.
-    if (this.hasTargetIcon())
-    {
-      // move it respectively to the icon width.
-      return ImageManager.iconWidth;
-    }
-
-    // otherwise, we have no modifiers.
-    return -8;
-  }
-
-  /**
-   * Calculate the Y coordinate for gauges.
-   * @returns {number}
-   */
-  targetBattlerGaugesY()
-  {
-    // if this target had extra text, then move the gauges down
-    if (this.hasTargetText())
-    {
-      // move it down a bit more than usual.
-      return 64;
-    }
-
-    // don't move it down as much..
-    return 44;
-  }
-
-  /**
-   * Draws the target's various gauges.
-   * @param {number} x The x coordinate.
-   * @param {number} y The y coordinate.
-   */
-  drawTargetBattlerGauges(x, y)
-  {
-    // draw all three of the primary gauges.
-    this.drawTargetHpGauge(x, y);
-    this.drawTargetMpGauge(x, y + 22);
-    this.drawTargetTpGauge(x - 10, y + 32);
-  }
-
-  /**
-   * Draws the hp gauge of the target.
-   */
-  drawTargetHpGauge(x, y)
-  {
-    // grab the gauge to draw.
-    const gauge = this.getOrCreateTargetHpGaugeSprite();
-
-    // don't draw the gauge if its disabled.
-    if (!this.targetConfiguration().showHp)
-    {
-      gauge.hide();
-      return;
-    }
-
-    // setup the gauge with the battler.
-    gauge.setup(this._j._battler, Sprite_FlowingGauge.Types.HP);
-
-    // relocate the gauge sprite.
-    gauge.move(x, y);
-  }
-
-  /**
-   * Draws the mp gauge of the target.
-   */
-  drawTargetMpGauge(x, y)
-  {
-    // grab the gauge to draw.
-    const gauge = this.getOrCreateTargetMpGaugeSprite();
-
-    // don't draw the gauge if its disabled.
-    if (!this.targetConfiguration().showMp)
-    {
-      gauge.hide();
-      return;
-    }
-
-    // setup the gauge with the battler.
-    gauge.setup(this._j._battler, Sprite_FlowingGauge.Types.MP);
-
-    // relocate the gauge sprite.
-    gauge.move(x, y);
-  }
-
-  /**
-   * Draws the tp gauge of the target.
-   */
-  drawTargetTpGauge(x, y)
-  {
-    // grab the gauge to draw.
-    const gauge = this.getOrCreateTargetTpGaugeSprite();
-
-    // don't draw the gauge if its disabled.
-    if (!this.targetConfiguration().showTp)
-    {
-      gauge.hide();
-      return;
-    }
-
-    // setup the gauge with the battler.
-    gauge.setup(this._j._battler, Sprite_FlowingGauge.Types.TP);
-
-    // relocate the gauge sprite.
-    gauge.move(x, y);
-  }
-}
-
-//endregion Window_TargetFrame
-
+//#endregion
 //# sourceMappingURL=J-HUD-TargetFrame.js.map

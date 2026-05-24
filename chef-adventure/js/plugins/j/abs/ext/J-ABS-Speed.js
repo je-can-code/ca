@@ -77,376 +77,245 @@
  * ============================================================================
  */
 
-//region Introduction
-/**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
+//#region src/plugins/abs/ext/speed/_metadata/_pluginMetadata.js
+var J_SpeedPluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+};
 
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '3.0.0';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
-
-  // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.6.0';
-  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
-  if (!hasJabsRequirement)
-  {
-    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
-  }
+//#endregion
+//#region src/plugins/abs/ext/speed/_metadata/initialization.js
+globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "3.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (!hasBaseRequirement) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+	const requiredJabsVersion = "4.6.0";
+	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
+	if (!hasJabsRequirement) {
+		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
+	}
 })();
-//endregion version check
-
 /**
- * The plugin umbrella that governs all things related to this extension plugin.
- */
+* The plugin umbrella that governs all things related to this extension plugin.
+*/
 J.ABS.EXT.SPEED = {};
-
 /**
- * The `metadata` associated with this plugin, such as version.
- */
-J.ABS.EXT.SPEED.Metadata = {
-  /**
-   * The name of this plugin.
-   */
-  Name: `J-ABS-SpeedBoosts`,
-
-  /**
-   * The version of this plugin.
-   */
-  Version: '1.0.2',
-};
-
+* The metadata associated with this plugin.
+*/
+J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-SpeedBoosts", "1.0.3");
 /**
- * The actual `plugin parameters` extracted from RMMZ.
- */
-J.ABS.EXT.SPEED.PluginParameters = PluginManager.parameters(J.ABS.EXT.SPEED.Metadata.Name);
-
-/**
- * A collection of all aliased methods for this plugin.
- */
+* A collection of all aliased methods for this plugin.
+*/
 J.ABS.EXT.SPEED.Aliased = {
-  Game_Actor: new Map(),
-  Game_Character: new Map(),
-  Game_Battler: new Map(),
-  Game_Enemy: new Map(),
-
-  TextManager: new Map(),
-  IconManager: new Map(),
+	Game_Actor: new Map(),
+	Game_Character: new Map(),
+	Game_Battler: new Map(),
+	Game_Enemy: new Map(),
+	TextManager: new Map(),
+	IconManager: new Map()
 };
-
 /**
- * All regular expressions used by this plugin.
- */
-J.ABS.EXT.SPEED.RegExp = {
-  WalkSpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi,
-};
-//endregion Introduction
+* All regular expressions used by this plugin.
+*/
+J.ABS.EXT.SPEED.RegExp = { WalkSpeedBoost: /<speedBoost:[ ]?([-]?\d+)>/gi };
 
-//region RPG_Base
+//#endregion
+//#region src/plugins/abs/ext/speed/database/RPG_Base.js
 /**
- * The movement speed modifier from this from database object.
- * @type {number|null}
- */
-Object.defineProperty(RPG_Base.prototype, "jabsSpeedBoost", {
-  get: function()
-  {
-    return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.SPEED.RegExp.WalkSpeedBoost, true);
-  },
-});
-//endregion RPG_Base
+* The movement speed modifier from this from database object.
+* @type {number|null}
+*/
+Object.defineProperty(RPG_Base.prototype, "jabsSpeedBoost", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.SPEED.RegExp.WalkSpeedBoost, true);
+} });
 
-//region IconManager
+//#endregion
+//#region src/plugins/abs/ext/speed/managers/IconManager.js
 /**
- * Extend {@link #longParam}.<br>
- * First checks if the paramId was the move speed boost, then checks others.
- */
-J.ABS.EXT.SPEED.Aliased.IconManager.set('longParam', IconManager.longParam)
-IconManager.longParam = function(paramId)
-{
-  switch (paramId)
-  {
-    case 31:
-      // move.
-      return this.movespeed();
-    default:
-      return J.ABS.EXT.SPEED.Aliased.IconManager.get('longParam')
-        .call(this, paramId);
-  }
+* Extend {@link #longParam}.<br>
+* First checks if the paramId was the move speed boost, then checks others.
+*/
+J.ABS.EXT.SPEED.Aliased.IconManager.set("longParam", IconManager.longParam);
+IconManager.longParam = function(paramId) {
+	switch (paramId) {
+		case 31: return this.movespeed();
+		default: return J.ABS.EXT.SPEED.Aliased.IconManager.get("longParam").call(this, paramId);
+	}
 };
-
 /**
- * Gets the icon index for the move speed boost.
- * @returns {number}
- */
-IconManager.movespeed = function()
-{
-  return 978;
+* Gets the icon index for the move speed boost.
+* @returns {number}
+*/
+IconManager.movespeed = function() {
+	return 978;
 };
-//endregion IconManager
 
-//region TextManager
+//#endregion
+//#region src/plugins/abs/ext/speed/managers/TextManager.js
 /**
- * Extends {@link #longParam}.<br>
- * First checks if this is the move speed parameter, then checks others.
- */
-J.ABS.EXT.SPEED.Aliased.TextManager.set('longParam', TextManager.longParam);
-TextManager.longParam = function(paramId)
-{
-  switch (paramId)
-  {
-    case 31:
-      // move speed boost.
-      return this.movespeed();
-    default:
-      // perform original logic.
-      return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParam')
-        .call(this, paramId);
-  }
+* Extends {@link #longParam}.<br>
+* First checks if this is the move speed parameter, then checks others.
+*/
+J.ABS.EXT.SPEED.Aliased.TextManager.set("longParam", TextManager.longParam);
+TextManager.longParam = function(paramId) {
+	switch (paramId) {
+		case 31: return this.movespeed();
+		default: return J.ABS.EXT.SPEED.Aliased.TextManager.get("longParam").call(this, paramId);
+	}
 };
-
 /**
- * Gets the proper name of "move speed boost".
- * @returns {string}
- */
-TextManager.movespeed = function()
-{
-  return "Move Boost";
+* Gets the proper name of "move speed boost".
+* @returns {string}
+*/
+TextManager.movespeed = function() {
+	return "Move Boost";
 };
-
 /**
- * Extends {@link #longParamDescription}.<br>
- * First checks if this is the move speed parameter, then checks others.
- */
-J.ABS.EXT.SPEED.Aliased.TextManager.set('longParamDescription', TextManager.longParamDescription);
-TextManager.longParamDescription = function(paramId)
-{
-  switch (paramId)
-  {
-    case 31:
-      // move speed boost.
-      return this.moveSpeedDescription();
-    default:
-      // perform original logic.
-      return J.ABS.EXT.SPEED.Aliased.TextManager.get('longParamDescription')
-        .call(this, paramId);
-  }
+* Extends {@link #longParamDescription}.<br>
+* First checks if this is the move speed parameter, then checks others.
+*/
+J.ABS.EXT.SPEED.Aliased.TextManager.set("longParamDescription", TextManager.longParamDescription);
+TextManager.longParamDescription = function(paramId) {
+	switch (paramId) {
+		case 31: return this.moveSpeedDescription();
+		default: return J.ABS.EXT.SPEED.Aliased.TextManager.get("longParamDescription").call(this, paramId);
+	}
 };
-
 /**
- * Gets the description text for the move speed boost.
- * @returns {string[]}
- */
-TextManager.moveSpeedDescription = function()
-{
-  return [
-    "The percentage modifier against this character's base movespeed.",
-    "Higher amounts of this result in faster walk and run speeds." ];
+* Gets the description text for the move speed boost.
+* @returns {string[]}
+*/
+TextManager.moveSpeedDescription = function() {
+	return ["The percentage modifier against this character's base movespeed.", "Higher amounts of this result in faster walk and run speeds."];
 };
-//endregion TextManager
 
-//region Game_Actor
+//#endregion
+//#region src/plugins/abs/ext/speed/objects/Game_Actor.js
 /**
- * Extends {@link #onBattlerDataChange}.<br>
- * Refreshes movement speed boosts when the battler's data changes.
- */
-J.ABS.EXT.SPEED.Aliased.Game_Actor.set('onBattlerDataChange', Game_Actor.prototype.onBattlerDataChange);
-Game_Actor.prototype.onBattlerDataChange = function()
-{
-  // perform original logic.
-  J.ABS.EXT.SPEED.Aliased.Game_Actor.get('onBattlerDataChange')
-    .call(this);
-
-  // update JABS-related things.
-  this.refreshSpeedBoosts();
+* Extends {@link #onBattlerDataChange}.<br>
+* Refreshes movement speed boosts when the battler's data changes.
+*/
+J.ABS.EXT.SPEED.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function() {
+	J.ABS.EXT.SPEED.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
+	this.refreshSpeedBoosts();
 };
-//endregion Game_Actor
 
-//region Game_Battler
+//#endregion
+//#region src/plugins/abs/ext/speed/objects/Game_Battler.js
 /**
- * Extends {@link Game_Battler.initMembers}.<br>
- */
-J.ABS.EXT.SPEED.Aliased.Game_Battler.set('initMembers', Game_Battler.prototype.initMembers);
-Game_Battler.prototype.initMembers = function()
-{
-  // perform original logic.
-  J.ABS.EXT.SPEED.Aliased.Game_Battler.get('initMembers')
-    .call(this);
-
-  // initialize the extra members.
-  this.initSpeedBoosts();
+* Extends {@link Game_Battler.initMembers}.<br>
+*/
+J.ABS.EXT.SPEED.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
+Game_Battler.prototype.initMembers = function() {
+	J.ABS.EXT.SPEED.Aliased.Game_Battler.get("initMembers").call(this);
+	this.initSpeedBoosts();
 };
-
 /**
- * Initializes the members for movement speed boosts.
- */
-Game_Battler.prototype.initSpeedBoosts = function()
-{
-  /**
-   * The J object where all my additional properties live.
-   */
-  this._j ||= {};
-
-  /**
-   * A grouping of all properties associated with JABS.
-   */
-  this._j._abs ||= {};
-
-  /**
-   * A grouping of all JABS properties associated with the speed boosts.
-   */
-  this._j._abs._speed = {};
-
-  /**
-   * The cached value for speed boosts modifier.
-   * @type {number}
-   */
-  this._j._abs._speed._walkBoost = 0;
-
-  // TODO: add dashing speed boost too?
+* Initializes the members for movement speed boosts.
+*/
+Game_Battler.prototype.initSpeedBoosts = function() {
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with JABS.
+	*/
+	this._j._abs ||= {};
+	/**
+	* A grouping of all JABS properties associated with the speed boosts.
+	*/
+	this._j._abs._speed = {};
+	/**
+	* The cached value for speed boosts modifier.
+	* @type {number}
+	*/
+	this._j._abs._speed._walkBoost = 0;
 };
-
 /**
- * Gets the current walking speed boost scale for this battler.
- * @returns {number}
- */
-Game_Battler.prototype.getWalkSpeedBoosts = function()
-{
-  return this._j._abs._speed._walkBoost;
+* Gets the current walking speed boost scale for this battler.
+* @returns {number}
+*/
+Game_Battler.prototype.getWalkSpeedBoosts = function() {
+	return this._j._abs._speed._walkBoost;
 };
-
 /**
- * Sets the current speed bost scale for this battler.
- * @param {number} amount The new walking speed boost amount.
- */
-Game_Battler.prototype.setWalkSpeedBoost = function(amount)
-{
-  this._j._abs._speed._walkBoost = amount;
+* Sets the current speed bost scale for this battler.
+* @param {number} amount The new walking speed boost amount.
+*/
+Game_Battler.prototype.setWalkSpeedBoost = function(amount) {
+	this._j._abs._speed._walkBoost = amount;
 };
-
 /**
- * Updates the speed boost scale for this battler based on available notes.
- */
-Game_Battler.prototype.refreshSpeedBoosts = function()
-{
-  // default to 0 of speed boost.
-  let speedBoosts = 0;
-
-  // get all things that have notes.
-  const objectsToCheck = this.getAllNotes();
-
-  // iterate over all valid note objects this battler has.
-  objectsToCheck
-    .filter(obj => obj.jabsSpeedBoost)
-    .forEach(obj => speedBoosts += obj.jabsSpeedBoost);
-
-  // update the speed boost value with the latest.
-  this.setWalkSpeedBoost(speedBoosts);
+* Updates the speed boost scale for this battler based on available notes.
+*/
+Game_Battler.prototype.refreshSpeedBoosts = function() {
+	let speedBoosts = 0;
+	const objectsToCheck = this.getAllNotes();
+	objectsToCheck.filter((obj) => obj.jabsSpeedBoost).forEach((obj) => speedBoosts += obj.jabsSpeedBoost);
+	this.setWalkSpeedBoost(speedBoosts);
 };
-//endregion Game_Battler
 
-//region Game_Character
+//#endregion
+//#region src/plugins/abs/ext/speed/objects/Game_Character.js
 /**
- * Extends {@link Game_Character.distancePerFrame}.<br>
- * Enables modification of the character's movement speed on the map.
- * @return {number} The modified distance per frame to move.
- */
-J.ABS.EXT.SPEED.Aliased.Game_Character.set('distancePerFrame', Game_Character.prototype.distancePerFrame);
-Game_Character.prototype.distancePerFrame = function()
-{
-  // determine base distance per frame.
-  const base = J.ABS.EXT.SPEED.Aliased.Game_Character.get('distancePerFrame')
-    .call(this);
-
-  // calculate the speed boost bonus based on the base.
-  const bonus = this.calculateSpeedBoostBonus(base);
-
-  // determine the sum of base + bonus.
-  const total = (base + bonus);
-
-  // make sure the total is within our minimum threshold so we don't moonwalk.
-  // seriously, disable this line and get the result to be negative and see what happens.
-  const constrainedTotal = Math.max(total, this.minimumDistancePerFrame());
-
-  // return the sum.
-  return constrainedTotal;
+* Extends {@link Game_Character.distancePerFrame}.<br>
+* Enables modification of the character's movement speed on the map.
+* @return {number} The modified distance per frame to move.
+*/
+J.ABS.EXT.SPEED.Aliased.Game_Character.set("distancePerFrame", Game_Character.prototype.distancePerFrame);
+Game_Character.prototype.distancePerFrame = function() {
+	const base = J.ABS.EXT.SPEED.Aliased.Game_Character.get("distancePerFrame").call(this);
+	const bonus = this.calculateSpeedBoostBonus(base);
+	const total = base + bonus;
+	const constrainedTotal = Math.max(total, this.minimumDistancePerFrame());
+	return constrainedTotal;
 };
-
 /**
- * Determines the bonus (or penalty) move speed for the player based on equipment.
- * @param {number} baseMoveSpeed The base distance per frame.
- */
-Game_Character.prototype.calculateSpeedBoostBonus = function(baseMoveSpeed)
-{
-  // grab the battler that is moving.
-  const battler = this.getJabsBattler();
-
-  // if we have no player, then do not move
-  if (!battler) return 0;
-
-  // get the current speed boosts associated with the battler.
-  const scale = battler.getBattler()
-    .getWalkSpeedBoosts();
-
-  // if we have no boosts, then don't process.
-  if (scale === 0) return 0;
-
-  // constrained scale, to prevent going into moonwalk mode; defaults to minimum -90% penalty.
-  const constrainedScale = Math.max(this.minimumWalkSpeedBoost(), scale);
-
-  // get the multiplier.
-  const multiplier = (constrainedScale / 100);
-
-  // calculate the move speed.
-  const calculatedMoveSpeed = baseMoveSpeed * multiplier;
-
-  // return the product.
-  return calculatedMoveSpeed;
+* Determines the bonus (or penalty) move speed for the player based on equipment.
+* @param {number} baseMoveSpeed The base distance per frame.
+*/
+Game_Character.prototype.calculateSpeedBoostBonus = function(baseMoveSpeed) {
+	const battler = this.getJabsBattler();
+	if (!battler) return 0;
+	const scale = battler.getBattler().getWalkSpeedBoosts();
+	if (scale === 0) return 0;
+	const constrainedScale = Math.max(this.minimumWalkSpeedBoost(), scale);
+	const multiplier = constrainedScale / 100;
+	const calculatedMoveSpeed = baseMoveSpeed * multiplier;
+	return calculatedMoveSpeed;
 };
-
-Game_Character.prototype.minimumWalkSpeedBoost = function()
-{
-  return -90;
+Game_Character.prototype.minimumWalkSpeedBoost = function() {
+	return -90;
 };
-
 /**
- * Gets the minimum distance to move per frame.
- * @returns {number}
- */
-Game_Character.prototype.minimumDistancePerFrame = function()
-{
-  // the minimum speed is "2" aka "4x slower" according to events.
-  // remove comment to let it go lower, but be careful, thats really low!
-  // / 2;.
-  const minimumDistance = 0.015625;
-
-  // return the calculated amount.
-  return minimumDistance;
+* Gets the minimum distance to move per frame.
+* @returns {number}
+*/
+Game_Character.prototype.minimumDistancePerFrame = function() {
+	const minimumDistance = .015625;
+	return minimumDistance;
 };
-//endregion Game_Character
 
-//region Game_Enemy
+//#endregion
+//#region src/plugins/abs/ext/speed/objects/Game_Enemy.js
 /**
- * Extends {@link #onBattlerDataChange}.<br>
- * Refreshes movement speed boosts when the battler's data changes.
- */
-J.ABS.EXT.SPEED.Aliased.Game_Enemy.set('onBattlerDataChange', Game_Enemy.prototype.onBattlerDataChange);
-Game_Enemy.prototype.onBattlerDataChange = function()
-{
-  // perform original logic.
-  J.ABS.EXT.SPEED.Aliased.Game_Enemy.get('onBattlerDataChange')
-    .call(this);
-
-  // update JABS-related things.
-  this.refreshSpeedBoosts();
+* Extends {@link #onBattlerDataChange}.<br>
+* Refreshes movement speed boosts when the battler's data changes.
+*/
+J.ABS.EXT.SPEED.Aliased.Game_Enemy.set("onBattlerDataChange", Game_Enemy.prototype.onBattlerDataChange);
+Game_Enemy.prototype.onBattlerDataChange = function() {
+	J.ABS.EXT.SPEED.Aliased.Game_Enemy.get("onBattlerDataChange").call(this);
+	this.refreshSpeedBoosts();
 };
-//endregion Game_Enemy
 
+//#endregion
 //# sourceMappingURL=J-ABS-Speed.js.map

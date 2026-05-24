@@ -79,669 +79,474 @@
  */
 //endregion annotations
 
-//region plugin metadata
-class J_PosesPluginMetadata
-  extends PluginMetadata
-{
-  /**
-   * Constructor.
-   */
-  constructor(name, version)
-  {
-    super(name, version);
-  }
+//#region \0rolldown/runtime.js
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, { get: (a, b) => (typeof require !== "undefined" ? require : a)[b] }) : x)(function(x) {
+	if (typeof require !== "undefined") return require.apply(this, arguments);
+	throw Error("Calling `require` for \"" + x + "\" in an environment that doesn't expose the `require` function. See https://rolldown.rs/in-depth/bundling-cjs#require-external-modules for more details.");
+});
 
-  /**
-   *  Extends {@link #postInitialize}.<br>
-   *  Includes translation of plugin parameters.
-   */
-  postInitialize()
-  {
-    // execute original logic.
-    super.postInitialize();
+//#endregion
+//#region src/plugins/abs/ext/poses/_metadata/_pluginMetadata.js
+var J_PosesPluginMetadata = class extends PluginMetadata {
+	/**
+	* Constructor.
+	*/
+	constructor(name, version) {
+		super(name, version);
+	}
+	/**
+	*  Extends {@link #postInitialize}.<br>
+	*  Includes translation of plugin parameters.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		this.initializeMetadata();
+	}
+	/**
+	* Initializes the metadata associated with this plugin.
+	*/
+	initializeMetadata() {
+		/**
+		* The id of a switch that represents whether or not this system is accessible in the menu.
+		* @type {number}
+		*/
+		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
+	}
+};
 
-    // ensure the user has the required dependencies.
-    // TODO: re-add this after JABS uses plugin metadata as well.
-    // this.validateHasJabsAtCorrectVersion();
-
-    // initialize this plugin from configuration.
-    this.initializeMetadata();
-  }
-
-  /**
-   * Initializes the metadata associated with this plugin.
-   */
-  initializeMetadata()
-  {
-    /**
-     * The id of a switch that represents whether or not this system is accessible in the menu.
-     * @type {number}
-     */
-    this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters['menu-switch'], 0);
-  }
-
-}
-
-//endregion plugin metadata
-
-//region initialization
-/**
- * The core where all of my extensions live: in the `J` object.
- */
-var J = J || {};
-
-//region version checks
-(() =>
-{
-  // Check to ensure we have the minimum required version of the J-Base plugin.
-  const requiredBaseVersion = '3.0.0';
-  const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
-  if (!hasBaseRequirement)
-  {
-    throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
-  }
-
-  // Check to ensure we have the minimum required version of the J-ABS plugin.
-  const requiredJabsVersion = '4.6.0';
-  const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.Version, requiredJabsVersion);
-  if (!hasJabsRequirement)
-  {
-    throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
-  }
+//#endregion
+//#region src/plugins/abs/ext/poses/_metadata/initialization.js
+globalThis.J ||= {};
+(() => {
+	const requiredBaseVersion = "3.0.0";
+	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
+	if (!hasBaseRequirement) {
+		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
+	}
+	const requiredJabsVersion = "4.6.0";
+	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
+	if (!hasJabsRequirement) {
+		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
+	}
 })();
-//endregion version check
-
 /**
- * The plugin umbrella that governs all things related to this plugin.
- */
+
+* The plugin umbrella that governs all things related to this plugin.
+
+*/
 J.ABS.EXT.POSES = {};
-
 /**
- * The plugin umbrella that governs all extensions related to the parent.
- */
+
+* The plugin umbrella that governs all extensions related to the parent.
+
+*/
 J.ABS.EXT.POSES.EXT ||= {};
-
 /**
- * The metadata associated with this plugin.
- */
-J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata('J-ABS-Poses', '1.0.4');
 
+* The metadata associated with this plugin.
+
+*/
+J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.4");
 /**
- * A collection of all aliased methods for this plugin.
- */
+
+* A collection of all aliased methods for this plugin.
+
+*/
 J.ABS.EXT.POSES.Aliased = {};
 J.ABS.EXT.POSES.Aliased.JABS_Battler = new Map();
 J.ABS.EXT.POSES.Aliased.JABS_Engine = new Map();
-
 /**
- * All regular expressions used by this plugin.
- */
+
+* All regular expressions used by this plugin.
+
+*/
 J.ABS.EXT.POSES.RegExp = {};
 J.ABS.EXT.POSES.RegExp.PoseSuffix = /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+])>/gi;
-//endregion initialization
-
-//region plugin commands
-// NO PLUGIN COMMANDS FOR THIS PLUGIN.
-//endregion plugin commands
-
-//region RPG_Skill
 /**
- * Gets the JABS pose suffix data for this skill.
- *
- * The zeroth index is the string suffix itself (no quotes needed).
- * The first index is the index on the suffixed character sheet.
- * The second index is the number of frames to spend in this pose.
- * @type {[string, number, number]|null}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseData", {
-  get: function()
-  {
-    return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.POSES.RegExp.PoseSuffix, true);
-  },
-});
 
-/**
- * Gets the JABS pose suffix for this skill.
- * @type {string}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseSuffix", {
-  get: function()
-  {
-    return this.jabsPoseData[0];
-  },
-});
+* Helpers that are only used by this extension (kept out of J-Base on purpose).
 
-/**
- * Gets the JABS pose index for this skill.
- * @type {number}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseIndex", {
-  get: function()
-  {
-    return this.jabsPoseData[1];
-  },
-});
+*/
+J.ABS.EXT.POSES.Helpers = {};
 
+//#endregion
+//#region src/plugins/abs/ext/poses/database/RPG_Skill.js
 /**
- * Gets the JABS pose duration for this skill.
- * @type {number}
- */
-Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration", {
-  get: function()
-  {
-    return this.jabsPoseData[2];
-  },
-});
-//endregion RPG_Skill
+* Gets the JABS pose suffix data for this skill.
+*
+* The zeroth index is the string suffix itself (no quotes needed).
+* The first index is the index on the suffixed character sheet.
+* The second index is the number of frames to spend in this pose.
+* @type {[string, number, number]|null}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseData", { get: function() {
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.POSES.RegExp.PoseSuffix, true);
+} });
+/**
+* Gets the JABS pose suffix for this skill.
+* @type {string}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseSuffix", { get: function() {
+	return this.jabsPoseData[0];
+} });
+/**
+* Gets the JABS pose index for this skill.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseIndex", { get: function() {
+	return this.jabsPoseData[1];
+} });
+/**
+* Gets the JABS pose duration for this skill.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration", { get: function() {
+	return this.jabsPoseData[2];
+} });
 
-//region JABS_Engine
+//#endregion
+//#region src/plugins/abs/ext/poses/helpers/PoseAssetPaths.js
 /**
- * Handles the pose functionality behind this action.
- * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
- * @param {JABS_Action} action The JABS action to execute.
- */
-JABS_Engine.prototype.handleActionPose = function(caster, action)
-{
-  // perform the action's corresponding pose.
-  caster.performActionPose(action.getBaseSkill());
+* Whether a project-relative file exists under the game folder (desktop / NW.js).
+*
+* RMMZ's {@link StorageManager.localFileExists} only checks save slots (`save/name.rmmzsave`),
+* not arbitrary assets like `img/characters/...`. Engine {@link StorageManager} fs helpers
+* are save-oriented too. Poses is the sole consumer, so the check lives here — not in J-Base —
+* so the J-Base Vite ship does not bundle Node `fs` / Rolldown's `__commonJSMin` runtime.
+*
+* Incompatible with web-deployed builds (no local filesystem layout).
+*
+* @param {string} projectRelativePath Path from the game project root, e.g. `img/characters/Actor1.png`.
+* @returns {boolean} True when the file is present on disk.
+*/
+J.ABS.EXT.POSES.Helpers.gameAssetExists = function(projectRelativePath) {
+	const path = __require("path");
+	const fs = __require("fs");
+	const gameRoot = path.dirname(process.mainModule.filename);
+	const absolutePath = path.join(gameRoot, projectRelativePath);
+	return fs.existsSync(absolutePath);
 };
 
-J.ABS.EXT.POSES.Aliased.JABS_Engine.set('executeMapAction', JABS_Engine.prototype.executeMapAction);
+//#endregion
+//#region src/plugins/abs/ext/poses/managers/JABS_Engine.js
 /**
- * Executes the provided JABS action.
- * It generates a copy of an event from the "ActionMap" and fires it off
- * based on it's move route.
- * @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
- * @param {JABS_Action} action The JABS action to execute.
- * @param {number?} targetX The target's `x` coordinate, if applicable.
- * @param {number?} targetY The target's `y` coordinate, if applicable.
- */
-JABS_Engine.prototype.executeMapAction = function(caster, action, targetX, targetY)
-{
-  // perform original logic.
-  J.ABS.EXT.POSES.Aliased.JABS_Engine.get('executeMapAction')
-    .call(this, caster, action, targetX, targetY);
-
-  // handle the pose for this forced action.
-  this.handleActionPose(caster, action);
+* Handles the pose functionality behind this action.
+* @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
+* @param {JABS_Action} action The JABS action to execute.
+*/
+JABS_Engine.prototype.handleActionPose = function(caster, action) {
+	caster.performActionPose(action.getBaseSkill());
 };
-//endregion JABS_Engine
-
-//region JABS_Battler
-//region getters/setters
-J.ABS.EXT.POSES.Aliased.JABS_Battler.set('initialize', JABS_Battler.prototype.initialize);
+J.ABS.EXT.POSES.Aliased.JABS_Engine.set("executeMapAction", JABS_Engine.prototype.executeMapAction);
 /**
- * Extends {@link #initialize}.<br>
- * Also intializes the pose information.
- * @param {Game_Event} event The event the battler is bound to.
- * @param {Game_Actor|Game_Enemy} battler The battler data itself.
- * @param {JABS_BattlerCoreData} battlerCoreData The core data for the battler.
- */
-JABS_Battler.prototype.initialize = function(event, battler, battlerCoreData)
-{
-  // perform original logic.
-  J.ABS.EXT.POSES.Aliased.JABS_Battler.get('initialize')
-    .call(this, event, battler, battlerCoreData);
-
-  // also initialize the action poses.
-  this.initPoseInfo();
+* Executes the provided JABS action.
+* It generates a copy of an event from the "ActionMap" and fires it off
+* based on it's move route.
+* @param {JABS_Battler} caster The `JABS_Battler` executing the JABS action.
+* @param {JABS_Action} action The JABS action to execute.
+* @param {number?} targetX The target's `x` coordinate, if applicable.
+* @param {number?} targetY The target's `y` coordinate, if applicable.
+*/
+JABS_Engine.prototype.executeMapAction = function(caster, action, targetX, targetY) {
+	J.ABS.EXT.POSES.Aliased.JABS_Engine.get("executeMapAction").call(this, caster, action, targetX, targetY);
+	this.handleActionPose(caster, action);
 };
 
+//#endregion
+//#region src/plugins/abs/ext/poses/objects/JABS_Battler.js
+J.ABS.EXT.POSES.Aliased.JABS_Battler.set("initialize", JABS_Battler.prototype.initialize);
 /**
- * Initializes the properties of this battler that are related to the character posing.
- */
-JABS_Battler.prototype.initPoseInfo = function()
-{
-  /**
-   * The number of frames to pose for.
-   * @type {number}
-   */
-  this._poseFrames = 0;
-
-  /**
-   * Whether or not this battler is currently posing.
-   * @type {boolean}
-   */
-  this._posing = false;
-
-  /**
-   * The name of the file that contains this battler's character sprite (without extension).
-   * @type {string}
-   */
-  this._baseSpriteImage = String.empty;
-
-  /**
-   * The index of this battler's character sprite in the `_baseSpriteImage`.
-   * @type {number}
-   */
-  this._baseSpriteIndex = 0;
-
-  // capture the default/base/original information of this battler upon initialization.
-  this.captureBaseSpriteInfo();
+* Extends {@link #initialize}.<br>
+* Also intializes the pose information.
+* @param {Game_Event} event The event the battler is bound to.
+* @param {Game_Actor|Game_Enemy} battler The battler data itself.
+* @param {JABS_BattlerCoreData} battlerCoreData The core data for the battler.
+*/
+JABS_Battler.prototype.initialize = function(event, battler, battlerCoreData) {
+	J.ABS.EXT.POSES.Aliased.JABS_Battler.get("initialize").call(this, event, battler, battlerCoreData);
+	this.initPoseInfo();
+};
+/**
+* Initializes the properties of this battler that are related to the character posing.
+*/
+JABS_Battler.prototype.initPoseInfo = function() {
+	/**
+	* The number of frames to pose for.
+	* @type {number}
+	*/
+	this._poseFrames = 0;
+	/**
+	* Whether or not this battler is currently posing.
+	* @type {boolean}
+	*/
+	this._posing = false;
+	/**
+	* The name of the file that contains this battler's character sprite (without extension).
+	* @type {string}
+	*/
+	this._baseSpriteImage = String.empty;
+	/**
+	* The index of this battler's character sprite in the `_baseSpriteImage`.
+	* @type {number}
+	*/
+	this._baseSpriteIndex = 0;
+	this.captureBaseSpriteInfo();
+};
+/**
+* Gets the current number of remaining frames left to be posing.
+*/
+JABS_Battler.prototype.getPoseFrames = function() {
+	return this._poseFrames;
+};
+/**
+* Checks whether or not this battler has active pose frames remaining.
+* @returns {boolean}
+*/
+JABS_Battler.prototype.hasPoseFrames = function() {
+	return this._poseFrames > 0;
+};
+/**
+* Sets the current number of posing frames to the given amount.<br>
+* Also returns this amount.
+* @param {number} poseFrames The number of frames to pose for.
+*/
+JABS_Battler.prototype.setPoseFrames = function(poseFrames) {
+	this._poseFrames = poseFrames;
+	return this._poseFrames;
+};
+/**
+* Adds the given amount of frames to the current number of pose frames.<br>
+* Use negative numbers to reduce the frame count by a given amount.
+* @param {number} modPoseFrames The number of frames to modify this amount by.
+*/
+JABS_Battler.prototype.modPoseFrames = function(modPoseFrames) {
+	this._poseFrames += modPoseFrames;
+	return this._poseFrames;
+};
+/**
+* Gets the original character sprite's image name.
+*/
+JABS_Battler.prototype.getBaseSpriteImage = function() {
+	return this._baseSpriteImage;
+};
+/**
+* Sets the name of this battler's original character sprite.
+* @param {string} name The name to set.
+*/
+JABS_Battler.prototype.setBaseSpriteImage = function(name) {
+	this._baseSpriteImage = name;
+};
+/**
+* Gets this battler's original character sprite index.
+*/
+JABS_Battler.prototype.getBaseSpriteIndex = function() {
+	return this._baseSpriteIndex;
+};
+/**
+* Sets the index of this battler's original character sprite.
+* @param {number} index The index to set.
+*/
+JABS_Battler.prototype.setBaseSpriteIndex = function(index) {
+	this._baseSpriteIndex = index;
+};
+/**
+* Gets whether or not this battler is currently posing.
+* @returns {boolean}
+*/
+JABS_Battler.prototype.isPosing = function() {
+	return this._posing;
+};
+/**
+* Flags the battler to start posing.
+*/
+JABS_Battler.prototype.startPosing = function() {
+	this._posing = true;
+};
+/**
+* Ends the battler's posing status.
+*/
+JABS_Battler.prototype.endPosing = function() {
+	this._posing = false;
+};
+/**
+* Initializes the sprite info for this battler.
+*/
+JABS_Battler.prototype.captureBaseSpriteInfo = function() {
+	this.setBaseSpriteImage(this.getCharacterSpriteName());
+	this.setBaseSpriteIndex(this.getCharacterSpriteIndex());
+};
+/**
+* Gets the name of this battler's current character sprite.
+* @returns {string}
+*/
+JABS_Battler.prototype.getCharacterSpriteName = function() {
+	return this.getCharacter()._characterName;
+};
+/**
+* Gets the index of this battler's current character sprite.
+* @returns {number}
+*/
+JABS_Battler.prototype.getCharacterSpriteIndex = function() {
+	return this.getCharacter()._characterIndex;
+};
+/**
+* Sets this battler's underlying character's pose pattern.
+* @param {number} pattern The pattern to set for this character.
+*/
+JABS_Battler.prototype.setPosePattern = function(pattern) {
+	this.getCharacter()._pattern = pattern;
+};
+/**
+* Executes an action pose.
+* Will silently fail if the asset is missing.
+* @param {RPG_Skill} skill The skill to pose for.
+*/
+JABS_Battler.prototype.performActionPose = function(skill) {
+	if (this._posing) {
+		this.endAnimation();
+	}
+	if (skill.jabsPoseData) {
+		this.tryStartPose(skill);
+	}
+};
+/**
+* Executes the change of character sprite based on the action pose data
+* from within a skill's notes.
+* @param {RPG_Skill} skill The skill to pose for.
+*/
+JABS_Battler.prototype.tryStartPose = function(skill) {
+	const baseSpriteName = this.getCharacterSpriteName();
+	this.captureBaseSpriteInfo();
+	this.setPoseDuration(skill.jabsPoseDuration);
+	const newCharacterSprite = `${baseSpriteName}${skill.jabsPoseSuffix}`;
+	const spritePath = `img/characters/${Utils.encodeURI(newCharacterSprite)}.png`;
+	const spriteExists = J.ABS.EXT.POSES.Helpers.gameAssetExists(spritePath);
+	if (spriteExists) {
+		ImageManager.loadCharacter(newCharacterSprite);
+		this.getCharacter().setImage(newCharacterSprite, skill.jabsPoseIndex);
+	} else {}
+};
+/**
+* Forcefully ends the pose animation.
+*/
+JABS_Battler.prototype.endAnimation = function() {
+	this.setPoseDuration(0);
+	this.resetPose();
+};
+/**
+* Sets the pose animation count to a given amount.
+* @param {number} frames The number of frames to animate for.
+*/
+JABS_Battler.prototype.setPoseDuration = function(frames) {
+	this.setPoseFrames(frames);
+	this.normalizePosing();
+};
+/**
+* Handles the state of posing for this battler based on the current pose frames.
+*/
+JABS_Battler.prototype.normalizePosing = function() {
+	if (this.getPoseFrames() > 0) {
+		this.startPosing();
+	} else {
+		this.endPosing();
+		this.setPoseFrames(0);
+	}
+};
+/**
+* Resets the pose animation for this battler.
+*/
+JABS_Battler.prototype.resetPose = function() {
+	if (!this.getBaseSpriteImage() && !this.getBaseSpriteIndex()) return;
+	if (this.isPosing()) {
+		this.endAnimation();
+	}
+	const originalImage = this.getBaseSpriteImage();
+	const originalIndex = this.getBaseSpriteIndex();
+	const currentImage = this.getCharacterSpriteName();
+	const currentIndex = this.getCharacterSpriteIndex();
+	const character = this.getCharacter();
+	if (originalImage !== currentImage || originalIndex !== currentIndex) {
+		character.setImage(originalImage, originalIndex);
+	}
+};
+J.ABS.EXT.POSES.Aliased.JABS_Battler.set("update", JABS_Battler.prototype.update);
+/**
+* Things that are battler-respective and should be updated on their own.
+*/
+JABS_Battler.prototype.update = function() {
+	J.ABS.EXT.POSES.Aliased.JABS_Battler.get("update").call(this);
+	this.updatePoses();
+};
+/**
+* Update all character sprite animations executing on this battler.
+*/
+JABS_Battler.prototype.updatePoses = function() {
+	if (!this.canUpdatePoses()) return;
+	this.countdownPoseTimer();
+	this.handlePosePattern();
+};
+/**
+* Determines whether or not this battler can update its own pose effects.
+* @returns {boolean}
+*/
+JABS_Battler.prototype.canUpdatePoses = function() {
+	if (!$jabsEngine.absEnabled) return false;
+	if (!this.isPosing()) return false;
+	return true;
+};
+/**
+* Counts down the pose animation frames and manages the pose pattern.
+*/
+JABS_Battler.prototype.countdownPoseTimer = function() {
+	if (this.guarding()) return;
+	if (this.hasPoseFrames()) {
+		this.modPoseFrames(-1);
+	}
+};
+/**
+* Manages whether or not this battler is posing based on pose frames.
+*/
+JABS_Battler.prototype.handlePosePattern = function() {
+	if (this.hasPoseFrames()) {
+		this.managePosePattern();
+	} else {
+		this.resetPose();
+	}
+};
+/**
+* Watches the current pose frames and adjusts the pose pattern accordingly.
+*/
+JABS_Battler.prototype.managePosePattern = function() {
+	if (this.getPoseFrames() < 4) {
+		this.setPosePattern(0);
+	} else if (this.getPoseFrames() > 10) {
+		this.setPosePattern(2);
+	} else {
+		this.setPosePattern(1);
+	}
+};
+J.ABS.EXT.POSES.Aliased.JABS_Battler.set("startGuarding", JABS_Battler.prototype.startGuarding);
+/**
+* Extends {@link #startGuarding}.
+* Executes an action pose when guarding.
+* @param {string} skillSlot The skill slot containing the guard data.
+*/
+JABS_Battler.prototype.startGuarding = function(skillSlot) {
+	J.ABS.EXT.POSES.Aliased.JABS_Battler.get("startGuarding").call(this, skillSlot);
+	const skillId = this.getBattler().getEquippedSkillId(skillSlot);
+	const skill = this.getSkill(skillId);
+	this.performActionPose(skill);
+};
+J.ABS.EXT.POSES.Aliased.JABS_Battler.set("executeDodgeSkill", JABS_Battler.prototype.executeDodgeSkill);
+/**
+* Executes the provided dodge skill.
+* @param {RPG_Skill} skill The RPG item representing the dodge skill.
+* @param {number} [forcedDirection8] Core dodge passes this for AI away-vector dodges; preserve through alias.
+*/
+JABS_Battler.prototype.executeDodgeSkill = function(skill, forcedDirection8) {
+	J.ABS.EXT.POSES.Aliased.JABS_Battler.get("executeDodgeSkill").call(this, skill, forcedDirection8);
+	this.performActionPose(skill);
 };
 
-/**
- * Gets the current number of remaining frames left to be posing.
- */
-JABS_Battler.prototype.getPoseFrames = function()
-{
-  return this._poseFrames;
-};
-
-/**
- * Checks whether or not this battler has active pose frames remaining.
- * @returns {boolean}
- */
-JABS_Battler.prototype.hasPoseFrames = function()
-{
-  return this._poseFrames > 0;
-};
-
-/**
- * Sets the current number of posing frames to the given amount.<br>
- * Also returns this amount.
- * @param {number} poseFrames The number of frames to pose for.
- */
-JABS_Battler.prototype.setPoseFrames = function(poseFrames)
-{
-  this._poseFrames = poseFrames;
-  return this._poseFrames;
-};
-
-/**
- * Adds the given amount of frames to the current number of pose frames.<br>
- * Use negative numbers to reduce the frame count by a given amount.
- * @param {number} modPoseFrames The number of frames to modify this amount by.
- */
-JABS_Battler.prototype.modPoseFrames = function(modPoseFrames)
-{
-  this._poseFrames += modPoseFrames;
-  return this._poseFrames;
-};
-
-/**
- * Gets the original character sprite's image name.
- */
-JABS_Battler.prototype.getBaseSpriteImage = function()
-{
-  return this._baseSpriteImage;
-};
-
-/**
- * Sets the name of this battler's original character sprite.
- * @param {string} name The name to set.
- */
-JABS_Battler.prototype.setBaseSpriteImage = function(name)
-{
-  this._baseSpriteImage = name;
-};
-
-/**
- * Gets this battler's original character sprite index.
- */
-JABS_Battler.prototype.getBaseSpriteIndex = function()
-{
-  return this._baseSpriteIndex;
-};
-
-/**
- * Sets the index of this battler's original character sprite.
- * @param {number} index The index to set.
- */
-JABS_Battler.prototype.setBaseSpriteIndex = function(index)
-{
-  this._baseSpriteIndex = index;
-};
-
-/**
- * Gets whether or not this battler is currently posing.
- * @returns {boolean}
- */
-JABS_Battler.prototype.isPosing = function()
-{
-  return this._posing;
-};
-
-/**
- * Flags the battler to start posing.
- */
-JABS_Battler.prototype.startPosing = function()
-{
-  this._posing = true;
-};
-
-/**
- * Ends the battler's posing status.
- */
-JABS_Battler.prototype.endPosing = function()
-{
-  this._posing = false;
-};
-
-/**
- * Initializes the sprite info for this battler.
- */
-JABS_Battler.prototype.captureBaseSpriteInfo = function()
-{
-  this.setBaseSpriteImage(this.getCharacterSpriteName());
-  this.setBaseSpriteIndex(this.getCharacterSpriteIndex());
-};
-
-/**
- * Gets the name of this battler's current character sprite.
- * @returns {string}
- */
-JABS_Battler.prototype.getCharacterSpriteName = function()
-{
-  return this.getCharacter()._characterName;
-};
-
-/**
- * Gets the index of this battler's current character sprite.
- * @returns {number}
- */
-JABS_Battler.prototype.getCharacterSpriteIndex = function()
-{
-  return this.getCharacter()._characterIndex;
-};
-
-/**
- * Sets this battler's underlying character's pose pattern.
- * @param {number} pattern The pattern to set for this character.
- */
-JABS_Battler.prototype.setPosePattern = function(pattern)
-{
-  this.getCharacter()._pattern = pattern;
-};
-//endregion getters/setters
-
-//region execution
-/**
- * Executes an action pose.
- * Will silently fail if the asset is missing.
- * @param {RPG_Skill} skill The skill to pose for.
- */
-JABS_Battler.prototype.performActionPose = function(skill)
-{
-  // if we are still animating from a previous skill, prematurely end it.
-  if (this._posing)
-  {
-    this.endAnimation();
-  }
-
-  // if we have a pose suffix for this skill, then try to perform the pose.
-  if (skill.jabsPoseData)
-  {
-    this.tryStartPose(skill);
-  }
-};
-
-/**
- * Executes the change of character sprite based on the action pose data
- * from within a skill's notes.
- * @param {RPG_Skill} skill The skill to pose for.
- */
-JABS_Battler.prototype.tryStartPose = function(skill)
-{
-  // establish the base sprite data.
-  const baseSpriteName = this.getCharacterSpriteName();
-  this.captureBaseSpriteInfo();
-
-  // define the duration for this pose.
-  this.setPoseDuration(skill.jabsPoseDuration);
-
-  // determine the new action pose sprite name.
-  const newCharacterSprite = `${baseSpriteName}${skill.jabsPoseSuffix}`;
-
-  // stitch the file path together with the sprite url.
-  const spritePath = `img/characters/${Utils.encodeURI(newCharacterSprite)}.png`;
-
-  // check if the sprite exists.
-  const spriteExists = StorageManager.fileExists(spritePath);
-
-  // only actually switch to the other character sprite if it exists.
-  if (spriteExists)
-  {
-    // load the character into cache.
-    ImageManager.loadCharacter(newCharacterSprite);
-
-    // actually set the character.
-    this.getCharacter()
-      .setImage(newCharacterSprite, skill.jabsPoseIndex);
-  }
-  else
-  {
-    // console.warn('Skill executed that declared pose data, but no matching sprite was found.');
-    // console.warn(`Skill of id [ ${skill.id} ]; consider cross-checking the database with your assets.`);
-    // console.warn('Parsed JABS pose data:');
-    // console.warn(skill.jabsPoseData);
-  }
-};
-
-/**
- * Forcefully ends the pose animation.
- */
-JABS_Battler.prototype.endAnimation = function()
-{
-  // immediately end the animation counter.
-  this.setPoseDuration(0);
-
-  // force-reset the pose back to the original one.
-  this.resetPose();
-};
-
-/**
- * Sets the pose animation count to a given amount.
- * @param {number} frames The number of frames to animate for.
- */
-JABS_Battler.prototype.setPoseDuration = function(frames)
-{
-  // sets the frames to a new amount.
-  this.setPoseFrames(frames);
-
-  // updates the posing state by the potentially new state.
-  this.normalizePosing();
-};
-
-/**
- * Handles the state of posing for this battler based on the current pose frames.
- */
-JABS_Battler.prototype.normalizePosing = function()
-{
-  // validate our animation count is above zero- just in case and start posing.
-  if (this.getPoseFrames() > 0)
-  {
-    this.startPosing();
-  }
-  // if the animation count not above zero, then stop posing and cleanse the count.
-  else
-  {
-    this.endPosing();
-    this.setPoseFrames(0);
-  }
-};
-
-/**
- * Resets the pose animation for this battler.
- */
-JABS_Battler.prototype.resetPose = function()
-{
-  // don't reset the animation if there is nothing to reset to.
-  if (!this.getBaseSpriteImage() && !this.getBaseSpriteIndex()) return;
-
-  // check if we are currently posing.
-  if (this.isPosing())
-  {
-    // stop that.
-    this.endAnimation();
-  }
-
-  // use variable names to better describe the validation we're about to perform.
-  const originalImage = this.getBaseSpriteImage();
-  const originalIndex = this.getBaseSpriteIndex();
-  const currentImage = this.getCharacterSpriteName();
-  const currentIndex = this.getCharacterSpriteIndex();
-  const character = this.getCharacter();
-
-  // check if the character image and index are the same as the original.
-  if (originalImage !== currentImage || originalIndex !== currentIndex)
-  {
-    // we are done posing- time to set the image back to the original.
-    character.setImage(originalImage, originalIndex);
-  }
-};
-//endregion execution
-
-//region updates
-J.ABS.EXT.POSES.Aliased.JABS_Battler.set('update', JABS_Battler.prototype.update);
-/**
- * Things that are battler-respective and should be updated on their own.
- */
-JABS_Battler.prototype.update = function()
-{
-  // perform original logic.
-  J.ABS.EXT.POSES.Aliased.JABS_Battler.get('update')
-    .call(this);
-
-  // also update the pose effects.
-  this.updatePoses();
-};
-
-/**
- * Update all character sprite animations executing on this battler.
- */
-JABS_Battler.prototype.updatePoses = function()
-{
-  // if we cannot update pose effects, then do not.
-  if (!this.canUpdatePoses()) return;
-
-  // countdown the timer for posing.
-  this.countdownPoseTimer();
-
-  // manage the actual adjustments to the character's pose pattern.
-  this.handlePosePattern();
-};
-
-/**
- * Determines whether or not this battler can update its own pose effects.
- * @returns {boolean}
- */
-JABS_Battler.prototype.canUpdatePoses = function()
-{
-  // don't do JABS things if JABS isn't enabled.
-  if (!$jabsEngine.absEnabled) return false;
-
-  // we need to be currently animating in order to update animations.
-  if (!this.isPosing()) return false;
-
-  // update animations!
-  return true;
-};
-
-/**
- * Counts down the pose animation frames and manages the pose pattern.
- */
-JABS_Battler.prototype.countdownPoseTimer = function()
-{
-  // if guarding, then do not countdown the pose frames.
-  if (this.guarding()) return;
-
-  // check if we are still posing.
-  if (this.hasPoseFrames())
-  {
-    // decrement the pose frames.
-    this.modPoseFrames(-1);
-  }
-};
-
-/**
- * Manages whether or not this battler is posing based on pose frames.
- */
-JABS_Battler.prototype.handlePosePattern = function()
-{
-  // check if we are still posing.
-  if (this.hasPoseFrames())
-  {
-    // manage the current pose pattern based on the animation frame count.
-    this.managePosePattern();
-  }
-  // we are done posing now.
-  else
-  {
-    // reset the pose back to default.
-    this.resetPose();
-  }
-};
-
-/**
- * Watches the current pose frames and adjusts the pose pattern accordingly.
- */
-JABS_Battler.prototype.managePosePattern = function()
-{
-
-  // TODO: this should be probably optimized in some way?
-  // TODO: direction should be dynamically determined based on current facing.
-
-
-  // if the battler has 4 or less frames left.
-  if (this.getPoseFrames() < 4)
-  {
-    // set the pose pattern to 0, the left side.
-    this.setPosePattern(0);
-  }
-  // check ii the battler has more than 10 frames left.
-  else if (this.getPoseFrames() > 10)
-  {
-    // set the pose pattern to 2, the right side.
-    this.setPosePattern(2);
-  }
-  // the battler is between 5-9 pose frames.
-  else
-  {
-    // set the pose pattern to 1, the middle.
-    this.setPosePattern(1);
-  }
-};
-//endregion updates
-
-//region action poses
-J.ABS.EXT.POSES.Aliased.JABS_Battler.set('startGuarding', JABS_Battler.prototype.startGuarding);
-/**
- * Extends {@link #startGuarding}.
- * Executes an action pose when guarding.
- * @param {string} skillSlot The skill slot containing the guard data.
- */
-JABS_Battler.prototype.startGuarding = function(skillSlot)
-{
-  // perform original logic.
-  J.ABS.EXT.POSES.Aliased.JABS_Battler.get('startGuarding')
-    .call(this, skillSlot);
-
-  // set the pose!
-  const skillId = this.getBattler()
-    .getEquippedSkillId(skillSlot);
-  const skill = this.getSkill(skillId);
-  this.performActionPose(skill);
-};
-
-J.ABS.EXT.POSES.Aliased.JABS_Battler.set('executeDodgeSkill', JABS_Battler.prototype.executeDodgeSkill);
-/**
- * Executes the provided dodge skill.
- * @param {RPG_Skill} skill The RPG item representing the dodge skill.
- * @param {number} [forcedDirection8] Core dodge passes this for AI away-vector dodges; preserve through alias.
- */
-JABS_Battler.prototype.executeDodgeSkill = function(skill, forcedDirection8)
-{
-  // perform original logic.
-  J.ABS.EXT.POSES.Aliased.JABS_Battler.get('executeDodgeSkill')
-    .call(this, skill, forcedDirection8);
-
-  // change over to the action pose for the skill.
-  this.performActionPose(skill);
-
-  // TODO: should the function go before or after initial logic?
-};
-//endregion action poses
-//endregion JABS_Battler
-
+//#endregion
 //# sourceMappingURL=J-ABS-Poses.js.map
