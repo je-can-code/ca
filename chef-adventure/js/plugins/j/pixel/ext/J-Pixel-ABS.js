@@ -190,7 +190,7 @@ var JAbsPixelistics_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {
@@ -340,7 +340,7 @@ Object.defineProperty(RPG_Enemy.prototype, "hitboxRevealRange", { get: function(
 //#endregion
 //#region src/plugins/pixel/ext/abs/managers/JABS_AiManager.js
 /**
-* Overrides {@link #canMoveIdly}.<br/>
+* Overwrites {@link #canMoveIdly}.<br/>
 * With pixel-idle wander the timing is managed entirely by the destination/wait
 * state machine on the battler. The external frame-gate and random roll are not needed.
 * @param {JABS_Battler} battler The battler checking idle movement readiness.
@@ -351,7 +351,7 @@ JABS_AiManager.canMoveIdly = function(battler) {
 	return true;
 };
 /**
-* Overrides {@link #moveIdly}.<br/>
+* Overwrites {@link #moveIdly}.<br/>
 * Delegates to the battler's pixel-aware idle wander state machine rather than
 * calling the tile-step moveRandom, which only advances a single distancePerFrame pixel.
 * @param {JABS_Battler} battler The battler moving idly.
@@ -361,7 +361,7 @@ JABS_AiManager.moveIdly = function(battler) {
 	battler.updatePixelIdleWander();
 };
 /**
-* Overrides {@link #goHome}.<br/>
+* Overwrites {@link #goHome}.<br/>
 * Uses pixel-aware smart movement toward the home coordinates so the battler glides
 * home smoothly instead of shuffling one distancePerFrame pixel at a time via moveStraight.
 * @param {JABS_Battler} battler The battler returning to its home point.
@@ -433,7 +433,7 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
 	}
 };
 /**
-* Overrides {@link #calculateFormationSlotCoordinates}.<br/>
+* Overwrites {@link #calculateFormationSlotCoordinates}.<br/>
 * Calculates considering the tile center.
 * @param {number} lx The leader's x coordinate.
 * @param {number} rx The rotated x.
@@ -447,7 +447,7 @@ JABS_AiManager.calculateFormationSlotCoordinates = function(lx, rx, ly, ry) {
 	return [sx, sy];
 };
 /**
-* Overrides {@link #isWithinTolerance}.<br/>
+* Overwrites {@link #isWithinTolerance}.<br/>
 * Checks if a battler is within a Euclidean tolerance of the target point.
 * @param {JABS_Battler} allyBattler The ally battler.
 * @param {number} targetX The target x (fractional center).
@@ -466,7 +466,7 @@ JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, toler
 //#endregion
 //#region src/plugins/pixel/ext/abs/managers/JABS_Engine.js
 /**
-* Extends {@link JABS_Engine.getBattlerAabbModel}.<br>
+* Extends {@link JABS_Engine.getBattlerAabbModel}.<br/>
 * Enemy battlers with PIXEL hitbox-size data provide their own feet-anchored
 * rectangular AABB so JABS combat collision and overlays stay synchronized.
 * @param {Game_CharacterBase} character The character whose AABB is being queried.
@@ -486,7 +486,7 @@ JABS_Engine.getBattlerAabbModel = function(character) {
 //#endregion
 //#region src/plugins/pixel/ext/abs/objects/Game_CharacterBase.js
 /**
-* Extends {@link Game_CharacterBase.isOverlappingSolidTiles}.<br>
+* Extends {@link Game_CharacterBase.isOverlappingSolidTiles}.<br/>
 * Enemy battlers with rectangular hitboxes need tile overlap checks based on the
 * full feet-anchored rectangle instead of a square radius around the center.
 * @param {number} px The proposed pivot x in tile units.
@@ -523,7 +523,7 @@ Game_CharacterBase.prototype.isOverlappingSolidTiles = function(px, py, radius) 
 	return false;
 };
 /**
-* Extends {@link Game_CharacterBase.isCharacterCollisionAt}.<br>
+* Extends {@link Game_CharacterBase.isCharacterCollisionAt}.<br/>
 * Character-vs-character overlap needs one shared PIXEL AABB builder so every
 * battler is compared in the same pivot-aware coordinate space.
 * @param {number} px Proposed x in fractional tiles.
@@ -607,7 +607,7 @@ Game_CharacterBase.prototype.isCharacterCollisionAt = function(px, py, radius = 
 //#endregion
 //#region src/plugins/pixel/ext/abs/objects/Game_Event.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the cached enemy hitbox size data.
 */
 J.PIXEL.EXT.ABS.Aliased.Game_Event.set("initMembers", Game_Event.prototype.initMembers);
@@ -616,7 +616,7 @@ Game_Event.prototype.initMembers = function() {
 	this.initPixelAbsHitboxData();
 };
 /**
-* Extends {@link #setupPageSettings}.<br>
+* Extends {@link #setupPageSettings}.<br/>
 * Rebuilds the cached hitbox data whenever the active page changes.
 */
 J.PIXEL.EXT.ABS.Aliased.Game_Event.set("setupPageSettings", Game_Event.prototype.setupPageSettings);
@@ -865,7 +865,7 @@ Game_Event.prototype.getPixelAbsBattlerAabbModel = function() {
 	return new JABS_Aabb(left, top, widthPixels, heightPixels);
 };
 /**
-* Extends {@link Game_Event.getCollisionRadius}.<br>
+* Extends {@link Game_Event.getCollisionRadius}.<br/>
 * The rectangle is canonical, but PIXEL still asks for a scalar in some paths.
 * Use the larger half-extent as the compatibility radius.
 * @returns {number}
@@ -879,7 +879,7 @@ Game_Event.prototype.getCollisionRadius = function() {
 	return Math.max(widthTiles, heightTiles) / 2;
 };
 /**
-* Extends {@link Game_Event.getEffectiveRadius}.<br>
+* Extends {@link Game_Event.getEffectiveRadius}.<br/>
 * Feet-anchored rectangles are already normalized, so the compatibility radius
 * should not be clamped by the legacy downward-bleed rule.
 * @returns {number}
@@ -892,7 +892,7 @@ Game_Event.prototype.getEffectiveRadius = function() {
 	return this.getCollisionRadius();
 };
 /**
-* Extends {@link Game_Event.getCollisionPivotY}.<br>
+* Extends {@link Game_Event.getCollisionPivotY}.<br/>
 * Enemy hitboxes are feet-anchored, so the pivot becomes the event feet.
 * @returns {number}
 */
@@ -904,7 +904,7 @@ Game_Event.prototype.getCollisionPivotY = function() {
 	return 1;
 };
 /**
-* Extends {@link Game_Event._pixelHitbox}.<br>
+* Extends {@link Game_Event._pixelHitbox}.<br/>
 * Builds the rectangular, feet-anchored hitbox for PIXEL movement checks.
 * @param {number} radius The incoming compatibility radius.
 * @returns {{w:number,h:number,hx:number,hy:number}}
@@ -1000,7 +1000,7 @@ JABS_Battler.prototype.initIdleInfo = function() {
 	this._pixelIdleStuckFrames ??= 0;
 };
 /**
-* Overrides {@link #isHome}.<br/>
+* Overwrites {@link #isHome}.<br/>
 * Uses a distance-based check instead of integer tile equality, since pixel
 * movement coordinates are fractional and exact equality is never satisfied.
 * @returns {boolean} True if within half a tile of home, false otherwise.
@@ -1461,7 +1461,7 @@ JABS_Battler.prototype.getProjectileSpawnBaseDirection = function() {
 //#endregion
 //#region src/plugins/pixel/ext/abs/sprites/Spriteset_Map.js
 /**
-* Extends {@link #createLowerLayer}.<br>
+* Extends {@link #createLowerLayer}.<br/>
 * Also creates the PIXEL-ABS hitbox reveal outline layer.
 */
 J.PIXEL.EXT.ABS.Aliased.Spriteset_Map.set("createLowerLayer", Spriteset_Map.prototype.createLowerLayer);
@@ -1470,7 +1470,7 @@ Spriteset_Map.prototype.createLowerLayer = function() {
 	this.createPixelAbsHitboxRevealLayer();
 };
 /**
-* Extends {@link #updateJabsSprites}.<br>
+* Extends {@link #updateJabsSprites}.<br/>
 * Also updates the PIXEL-ABS reveal outline overlays.
 */
 J.PIXEL.EXT.ABS.Aliased.Spriteset_Map.set("updateJabsSprites", Spriteset_Map.prototype.updateJabsSprites);
@@ -1616,7 +1616,7 @@ Spriteset_Map.prototype.purgePixelAbsHitboxRevealSprites = function(items) {
 	});
 };
 /**
-* Extends {@link #drawBattlerHitboxInto}.<br>
+* Extends {@link #drawBattlerHitboxInto}.<br/>
 * Draws a softer outline-only style for PIXEL-ABS reveal sprites.
 * @param {Sprite} sprite The target battler hitbox sprite.
 * @param {'player'|'follower'|'battler'} type The kind of battler.

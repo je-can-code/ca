@@ -269,7 +269,7 @@ var J_TimingPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps cast/cooldown tuning from plugin parameters.
 	*/
 	postInitialize() {
@@ -351,7 +351,7 @@ J.ABS.EXT.TIMING.RegExp = {
 //#endregion
 //#region src/plugins/abs/ext/timing/_models/JABS_Action.js
 /**
-* Extends {@link JABS_Action.getCastTime}.<br>
+* Extends {@link JABS_Action.getCastTime}.<br/>
 * Applies cast speed into the equation of determining cast time.
 */
 J.ABS.EXT.TIMING.Aliased.JABS_Action.set("getCastTime", JABS_Action.prototype.getCastTime);
@@ -363,7 +363,7 @@ JABS_Action.prototype.getCastTime = function() {
 	return actualCastTime;
 };
 /**
-* Extends {@link JABS_Action.getCooldown}.<br>
+* Extends {@link JABS_Action.getCooldown}.<br/>
 * Applies fast cooldown into the equation of determining cooldown time.
 */
 J.ABS.EXT.TIMING.Aliased.JABS_Action.set("getCooldown", JABS_Action.prototype.getCooldown);

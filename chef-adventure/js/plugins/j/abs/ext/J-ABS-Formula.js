@@ -186,7 +186,7 @@ var JFORMULA_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {

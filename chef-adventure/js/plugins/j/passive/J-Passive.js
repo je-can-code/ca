@@ -220,7 +220,7 @@ var JPassive_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {
@@ -393,7 +393,7 @@ Object.defineProperty(RPG_Class.prototype, "uniqueEquippedPassiveStateIds", { ge
 //#endregion
 //#region src/plugins/passive/core/objects/Game_Actor.js
 /**
-* Extends {@link #onSetup}.<br>
+* Extends {@link #onSetup}.<br/>
 * Also refreshes the passive states on this battler for the first time.
 * @param {number} actorId The battler's id.
 */
@@ -416,7 +416,7 @@ Game_Actor.prototype.getPassiveStateSources = function() {
 	return combinedSources;
 };
 /**
-* Extends {@link #traitObjects}.<br>
+* Extends {@link #traitObjects}.<br/>
 * When considering traits, also include the actor's and party's passive states.
 */
 J.PASSIVE.Aliased.Game_Actor.set("traitObjects", Game_Actor.prototype.traitObjects);
@@ -427,7 +427,7 @@ Game_Actor.prototype.traitObjects = function() {
 	return originalObjects;
 };
 /**
-* Extends {@link #onLearnNewSkill}.<br>
+* Extends {@link #onLearnNewSkill}.<br/>
 * Triggers a refresh of passive states when learning a new skill.
 */
 J.PASSIVE.Aliased.Game_Actor.set("onLearnNewSkill", Game_Actor.prototype.onLearnNewSkill);
@@ -436,7 +436,7 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId) {
 	this.refreshPassiveStates();
 };
 /**
-* Extends {@link #onForgetSkill}.<br>
+* Extends {@link #onForgetSkill}.<br/>
 * Triggers a refresh of passive states when forgetting a skill.
 */
 J.PASSIVE.Aliased.Game_Actor.set("onForgetSkill", Game_Actor.prototype.onForgetSkill);
@@ -445,7 +445,7 @@ Game_Actor.prototype.onForgetSkill = function(skillId) {
 	this.refreshPassiveStates();
 };
 /**
-* Extends {@link #onEquipChange}.<br>
+* Extends {@link #onEquipChange}.<br/>
 * Triggers a refresh of passive states when equipment changes.
 */
 J.PASSIVE.Aliased.Game_Actor.set("onEquipChange", Game_Actor.prototype.onEquipChange);
@@ -454,7 +454,7 @@ Game_Actor.prototype.onEquipChange = function() {
 	this.refreshPassiveStates();
 };
 /**
-* Extends {@link #onClassChange}.<br>
+* Extends {@link #onClassChange}.<br/>
 * Triggers a refresh of passive states when the class changes.
 */
 J.PASSIVE.Aliased.Game_Actor.set("onClassChange", Game_Actor.prototype.onClassChange);
@@ -463,7 +463,7 @@ Game_Actor.prototype.onClassChange = function(classId, keepExp) {
 	this.refreshPassiveStates();
 };
 /**
-* Extends {@link #getNotesSources}.<br>
+* Extends {@link #getNotesSources}.<br/>
 * Includes passive skill states from this actor and also the party.
 * @returns {RPG_BaseItem[]}
 */
@@ -478,7 +478,7 @@ Game_Actor.prototype.getNotesSources = function() {
 //#endregion
 //#region src/plugins/passive/core/objects/Game_Battler.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the passive states properties for this battler.
 */
 J.PASSIVE.Aliased.Game_BattlerBase.set("initMembers", Game_Battler.prototype.initMembers);
@@ -690,7 +690,7 @@ Game_Battler.prototype.isPassiveState = function(stateId) {
 	return this._j._passive._stateIds.includes(stateId);
 };
 /**
-* Extends {@link #allStates}.<br>
+* Extends {@link #allStates}.<br/>
 * Includes states from passive skills as well.
 * @returns {RPG_State[]}
 */
@@ -701,7 +701,7 @@ Game_Battler.prototype.allStates = function() {
 	return states;
 };
 /**
-* Extends {@link #isStateAddable}.<br>
+* Extends {@link #isStateAddable}.<br/>
 * Prevents adding states if they are identified as passive.
 */
 J.PASSIVE.Aliased.Game_Battler.set("isStateAddable", Game_Battler.prototype.isStateAddable);
@@ -710,7 +710,7 @@ Game_Battler.prototype.isStateAddable = function(stateId) {
 	return J.PASSIVE.Aliased.Game_Battler.get("isStateAddable").call(this, stateId);
 };
 /**
-* Extends {@link #onStateAdded}.<br>
+* Extends {@link #onStateAdded}.<br/>
 * Triggers a refresh of passive states when a state is added.
 * @param {number} stateId The state id being added.
 */
@@ -720,7 +720,7 @@ Game_Battler.prototype.onStateAdded = function(stateId) {
 	this.refreshPassiveStates();
 };
 /**
-* Extends {@link #removeState}.<br>
+* Extends {@link #removeState}.<br/>
 * Prevent removal of states if they are identified as passive.
 */
 J.PASSIVE.Aliased.Game_Battler.set("removeState", Game_Battler.prototype.removeState);
@@ -729,7 +729,7 @@ Game_Battler.prototype.removeState = function(stateId) {
 	J.PASSIVE.Aliased.Game_Battler.get("removeState").call(this, stateId);
 };
 /**
-* Extends {@link #onStateRemoval}.<br>
+* Extends {@link #onStateRemoval}.<br/>
 * Triggers a refresh of passive states when a state is removed.
 * @param {number} stateId The state id being removed.
 */
@@ -742,7 +742,7 @@ Game_Battler.prototype.onStateRemoval = function(stateId) {
 //#endregion
 //#region src/plugins/passive/core/objects/Game_Enemy.js
 /**
-* Extends {@link #onSetup}.<br>
+* Extends {@link #onSetup}.<br/>
 * Also refreshes the passive states on this battler for the first time.
 * @param {number} enemyId The battler's id.
 */
@@ -752,7 +752,7 @@ Game_Enemy.prototype.onSetup = function(enemyId) {
 	this.refreshPassiveStates();
 };
 /**
-* Extends {@link #traitObjects}.<br>
+* Extends {@link #traitObjects}.<br/>
 * When considering traits, also include the enemy's passive states.
 */
 J.PASSIVE.Aliased.Game_Enemy.set("traitObjects", Game_Enemy.prototype.traitObjects);
@@ -762,7 +762,7 @@ Game_Enemy.prototype.traitObjects = function() {
 	return originalObjects;
 };
 /**
-* Extends {@link #getNotesSources}.<br>
+* Extends {@link #getNotesSources}.<br/>
 * Includes passive states from this enemy.
 * @returns {RPG_BaseItem[]}
 */
@@ -796,7 +796,7 @@ Game_Event.prototype.getPassiveStateIds = function() {
 //#endregion
 //#region src/plugins/passive/core/objects/Game_Party.js
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Includes our custom members as well.
 */
 J.PASSIVE.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
@@ -920,7 +920,7 @@ Game_Party.prototype.getAllStackablePassiveStateIds = function() {
 	return stackablePassiveStateIds;
 };
 /**
-* Extends {@link #gainItem}.<br>
+* Extends {@link #gainItem}.<br/>
 * Also refreshes the passive states for the party.
 * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
 * @param {number} amount The amount to modify the quantity by.
@@ -991,7 +991,7 @@ var Window_PassiveActorRibbon = class extends Window_ActorRibbon {
 		this.initialize(rect);
 	}
 	/**
-	* Extends {@link Window_ActorRibbon#drawContent}.<br>
+	* Extends {@link Window_ActorRibbon#drawContent}.<br/>
 	* Also draws the actor name and level beside the face.
 	*/
 	drawContent() {
@@ -1016,8 +1016,7 @@ var Window_PassiveActorRibbon = class extends Window_ActorRibbon {
 * A scrollable list of passive states currently applied to the viewed actor.
 * The list is filtered by the active tab's filter function; null means show all.
 *
-* Left/right cursor inputs are forwarded as 'tabLeft'/'tabRight' handler calls
-* so the parent scene can cycle tabs in response.
+* Tab cycling is handled via L2/R2 content handlers wired by {@link Scene_Passive}.
 */
 var Window_PassiveList = class extends Window_Selectable {
 	/**
@@ -1122,18 +1121,6 @@ var Window_PassiveList = class extends Window_Selectable {
 		}
 		this.drawIcon(state.iconIndex, rect.x, rect.y);
 		this.drawText(state.name, rect.x + ImageManager.iconWidth + 4, rect.y, rect.width - ImageManager.iconWidth - 4);
-	}
-	/**
-	* Overrides left cursor to forward the input as a tab-cycle event instead.
-	*/
-	cursorLeft() {
-		this.callHandler("tabLeft");
-	}
-	/**
-	* Overrides right cursor to forward the input as a tab-cycle event instead.
-	*/
-	cursorRight() {
-		this.callHandler("tabRight");
 	}
 };
 
@@ -1472,7 +1459,7 @@ var Window_PassiveDetail = class extends Window_Base {
 		});
 	}
 	/**
-	* Collects the HP Cost Reduction (HCR) display row from J-Resources.
+	* Collects the Life Cost (HCR) display row from J-Resources.
 	* HCR formula evaluates to a positive reduction amount (e.g. 15 = 15% cheaper),
 	* so the value is negated for display to match the MCR/TCR visual convention,
 	* and invertColor is applied so the resulting '-' prefix renders green.
@@ -1487,7 +1474,7 @@ var Window_PassiveDetail = class extends Window_Base {
 		const evaluated = Number(this.evaluateFormula(formula, this._actor));
 		return {
 			icon: IconManager.param(0),
-			label: "HP Cost Rate",
+			label: "Life Cost",
 			value: `-${Math.abs(evaluated)}%`
 		};
 	}
@@ -2475,7 +2462,7 @@ var Scene_Passive = class extends Scene_MenuBase {
 		this.createAllWindows();
 	}
 	/**
-	* Overrides {@link #createButtons}.<br>
+	* Overwrites {@link #createButtons}.<br/>
 	* Removes the rendering of buttons from this scene.
 	*/
 	createButtons() {}
@@ -2618,10 +2605,10 @@ var Scene_Passive = class extends Scene_MenuBase {
 		const rectangle = this.passiveListRectangle();
 		const window = new Window_PassiveList(rectangle);
 		window.setHandler("cancel", this.popScene.bind(this));
-		window.setHandler("tabLeft", this.cycleTabLeft.bind(this));
-		window.setHandler("tabRight", this.cycleTabRight.bind(this));
-		window.setHandler("pagedown", this.nextActor.bind(this));
-		window.setHandler("pageup", this.previousActor.bind(this));
+		window.setHandler("content-prev", this.cycleTabLeft.bind(this));
+		window.setHandler("content-next", this.cycleTabRight.bind(this));
+		window.setHandler("actor-next", this.nextActor.bind(this));
+		window.setHandler("actor-prev", this.previousActor.bind(this));
 		window.onIndexChange = this.onPassiveHoveredChange.bind(this);
 		window.setActor($gameParty.menuActor());
 		return window;
@@ -2740,7 +2727,7 @@ var Scene_Passive = class extends Scene_MenuBase {
 		this.getPassiveDetailWindow().setState(state);
 	}
 	/**
-	* Extends {@link #onActorChange}.<br>
+	* Extends {@link #onActorChange}.<br/>
 	* Refreshes all actor-driven windows whenever the party's menu actor changes.
 	*/
 	onActorChange() {
@@ -2758,7 +2745,7 @@ var Scene_Passive = class extends Scene_MenuBase {
 //#endregion
 //#region src/plugins/passive/core/scenes/Scene_Menu.js
 /**
-* Extends {@link #createCommandWindow}.<br>
+* Extends {@link #createCommandWindow}.<br/>
 * Wires the passive-menu symbol to the Passives viewer scene.
 */
 J.PASSIVE.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
@@ -2776,7 +2763,7 @@ Scene_Menu.prototype.commandPassive = function() {
 //#endregion
 //#region src/plugins/passive/core/windows/Window_MenuCommand.js
 /**
-* Extends {@link #makeCommandList}.<br>
+* Extends {@link #makeCommandList}.<br/>
 * Adds the Passives viewer command to the main menu command list.
 */
 J.PASSIVE.Aliased.Window_MenuCommand.set("makeCommandList", Window_MenuCommand.prototype.makeCommandList);
@@ -2802,7 +2789,7 @@ Window_MenuCommand.prototype.canAddPassivesCommand = function() {
 //#endregion
 //#region src/plugins/passive/core/windows/Window_MoreEquipData.js
 /**
-* Extends {@link #addJabsEquipmentData}.<br>
+* Extends {@link #addJabsEquipmentData}.<br/>
 * Includes additional entries about passive states provided by the equipment.
 */
 J.PASSIVE.Aliased.Window_MoreEquipData.set("addJabsEquipmentData", Window_MoreEquipData.prototype.addJabsEquipmentData);

@@ -170,7 +170,7 @@ var J_MAP__PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps plugin parameters into instance fields used by the minimap.
 	*/
 	postInitialize() {
@@ -423,7 +423,7 @@ var MinimapEventType = class MinimapEventType {
 //#endregion
 //#region src/plugins/map/core/objects/Game_Event.js
 /**
-* Extends {@link Game_Event.initMembers}.<br>
+* Extends {@link Game_Event.initMembers}.<br/>
 * Initializes minimap-related properties.
 */
 J.MAP.Aliased.Game_Event.set("initMembers", Game_Event.prototype.initMembers);
@@ -1657,7 +1657,7 @@ var Sprite_MiniMap = class extends Sprite {
 //#endregion
 //#region src/plugins/map/core/managers/DataManager.js
 /**
-* Extends/Overrides {@link #createGameObjects}.<br/>
+* Extends {@link #createGameObjects}.<br/>
 * Also registers J.MAP minimap input actions and defaults.
 */
 J.MAP.Aliased.DataManager.set("createGameObjects", DataManager.createGameObjects);
@@ -1757,7 +1757,7 @@ if (J.ABS) {
 //#region src/plugins/map/core/objects/JABS_InputController.js
 if (J.ABS) {
 	/**
-	* Extends/Overrides {@link #initMembers}.<br/>
+	* Extends {@link #initMembers}.<br/>
 	* Also initializes the minimap controller-local state without lazy init.
 	*/
 	J.MAP.Aliased.JABS_StandardController.set("initMembers", JABS_StandardController.prototype.initMembers);
@@ -1857,7 +1857,7 @@ if (J.ABS) {
 //#endregion
 //#region src/plugins/map/core/windows/Window_JabsRemapActions.js
 /**
-* Extends/Overrides {@link #buildPostExtensionGroups}.<br/>
+* Extends {@link #buildPostExtensionGroups}.<br/>
 * Also appends a "Map Actions" section for external (J.MAP) actions.
 * @param {BuiltWindowCommand[]} rows The rows being built.
 * @param {Set<string>} can The set of assignable logical action keys.
@@ -1900,7 +1900,7 @@ Scene_Map.prototype.initMiniMapMembers = function() {
 	this._j._map._miniMap = null;
 };
 /**
-* Extends {@link #createAllWindows}.<br>
+* Extends {@link #createAllWindows}.<br/>
 * Also creates the minimap sprite.
 */
 J.MAP.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);

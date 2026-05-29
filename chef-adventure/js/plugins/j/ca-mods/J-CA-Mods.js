@@ -112,7 +112,7 @@ J.CAMods.Aliased.Scene_Boot = new Map();
 //#endregion
 //#region src/plugins/__ca-mods/core/_models/JABS_Battler.js
 /**
-* Extends {@link #getTargetFrameText}.<br>
+* Extends {@link #getTargetFrameText}.<br/>
 * If no text was provided for the target, instead autogenerate some text based on their traits.
 * The "traits" are defined by arbitrary CA-specific elements, so this can't live in the
 * target frame plugin, or the monsterpedia plugin.
@@ -154,7 +154,7 @@ JABS_Battler.prototype.getTargetFrameText = function() {
 //#endregion
 //#region src/plugins/__ca-mods/core/objects/Game_Action.js
 /**
-* Implements {@link #getAntiNullElementIds}.<br>
+* Implements {@link #getAntiNullElementIds}.<br/>
 * In CA, these elementIds define tools, which should be considered regardless.
 */
 Game_Action.prototype.getAntiNullElementIds = function() {
@@ -169,7 +169,7 @@ Game_Action.prototype.getAntiNullElementIds = function() {
 //#endregion
 //#region src/plugins/__ca-mods/core/objects/Game_Actor.js
 /**
-* Extends {@link #equipSlots}.<br>
+* Extends {@link #equipSlots}.<br/>
 * Adds a duplicate of the 5th type (accessory).
 */
 J.CAMods.Aliased.Game_Actor.set("equipSlots", Game_Actor.prototype.equipSlots);
@@ -179,7 +179,7 @@ Game_Actor.prototype.equipSlots = function() {
 	return baseSlots;
 };
 /**
-* Overrides {@link #performMapDamage}.<br>
+* Overwrites {@link #performMapDamage}.<br/>
 * Forces the map damage flash to always happen because JABS is always in-battle.
 * Also shows an animation on the player when they take damage.
 */
@@ -188,7 +188,7 @@ Game_Actor.prototype.performMapDamage = function() {
 	$gamePlayer.requestAnimation(59);
 };
 /**
-* Extends {@link #basicFloorDamage}.<br>
+* Extends {@link #basicFloorDamage}.<br/>
 * Replaces logic if there is a $dataMap available with calculated damage instead.
 */
 J.CAMods.Aliased.Game_Actor.set("basicFloorDamage", Game_Actor.prototype.basicFloorDamage);
@@ -246,7 +246,7 @@ Game_Actor.prototype.refreshAutoEquippedSkills = function() {
 //#endregion
 //#region src/plugins/__ca-mods/core/objects/Game_BattlerBase.js
 /**
-* Extends {@link #recoverAll}.<br>
+* Extends {@link #recoverAll}.<br/>
 * Using the event command for "Recover All" also restores all TP to the battler.
 */
 J.CAMods.Aliased.Game_BattlerBase.set("recoverAll", Game_BattlerBase.prototype.recoverAll);
@@ -273,7 +273,7 @@ Game_Enemy.prototype.dropSources = function() {
 //#endregion
 //#region src/plugins/__ca-mods/core/objects/Game_Map.js
 /**
-* Overrides {@link #checkPassage}.<br>
+* Overwrites {@link #checkPassage}.<br/>
 * Disables the ability to walk over tiles with the terrain ID of 1.
 * In practice, this prevents battlers from getting knocked into otherwise
 * unreachable locations, like what is supposed to be ceiling tiles.
@@ -303,7 +303,7 @@ Game_Map.prototype.checkPassage = function(x, y, bit) {
 	return false;
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Upon map initialization, assigns a random integer between 1-100 to an arbitrary variable.
 * In CA, this value is used to determine the presence of "rare/named" monsters on the map.
 */
@@ -366,6 +366,21 @@ Game_Party.prototype.isLeaderActor = function(actorId) {
 //#endregion
 //#region src/plugins/__ca-mods/core/managers/JABS_Engine.js
 /**
+* Extends {@link #canGainReward}.<br/>
+* Inanimate enemies (trees, shrubs, ore deposits, destructibles) do not grant any rewards in CA.
+* Their levels are intentionally high to gate resource access — not to serve as experience farms.
+* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
+* @returns {boolean} False if the defeated enemy is inanimate, otherwise defers to the base check.
+*/
+J.CAMods.Aliased.JABS_Engine.set("canGainReward", JABS_Engine.prototype.canGainReward);
+JABS_Engine.prototype.canGainReward = function(defeatedEnemy, victoriousActor) {
+	if (defeatedEnemy.isInanimate() === true) {
+		return false;
+	}
+	return J.CAMods.Aliased.JABS_Engine.get("canGainReward").call(this, defeatedEnemy, victoriousActor);
+};
+/**
 * Fixes the weird problem where CA uniquely seems to want to move character sprites up
 * by 1 when generating loot.
 * @param {number} targetX The `x` coordiante where the loot will be dropped/placed.
@@ -391,7 +406,7 @@ JABS_Engine.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) {
 	}
 };
 /**
-* Extends {@link #handleDefeatedPlayer}.<br>
+* Extends {@link #handleDefeatedPlayer}.<br/>
 * Also tracks player defeated count.
 */
 J.CAMods.Aliased.JABS_Engine.set("handleDefeatedPlayer", JABS_Engine.prototype.handleDefeatedPlayer);
@@ -400,7 +415,7 @@ JABS_Engine.prototype.handleDefeatedPlayer = function() {
 	J.CAMods.Aliased.JABS_Engine.get("handleDefeatedPlayer").call(this);
 };
 /**
-* Extends {@link #postExecuteSkillEffects}.<br>
+* Extends {@link #postExecuteSkillEffects}.<br/>
 * Also tracks our combat data in variables.
 * @param {JABS_Action} action The action being executed.
 * @param {JABS_Battler} target The target to apply skill effects against.
@@ -464,7 +479,7 @@ JABS_Engine.prototype.trackDefensiveData = function(target) {
 	}
 };
 /**
-* Extends {@link #executeMapAction}.<br>
+* Extends {@link #executeMapAction}.<br/>
 * Also tracks action execution data.
 * @param {JABS_Battler} caster The battler executing the action.
 * @param {JABS_Action} action The action being executed.
@@ -510,7 +525,7 @@ JABS_Engine.prototype.handlePartyCycleMemberChanges = function() {
 //#endregion
 //#region src/plugins/__ca-mods/core/scenes/Scene_Base.js
 /**
-* Overrides {@link #buttonAreaHeight}.<br>
+* Overwrites {@link #buttonAreaHeight}.<br/>
 * Sets the button height to 0- they are not used in CA.
 * @returns {number}
 */
@@ -518,7 +533,7 @@ Scene_Base.prototype.buttonAreaHeight = function() {
 	return 0;
 };
 /**
-* Overrides {@link #createButtons}.<br>
+* Overwrites {@link #createButtons}.<br/>
 * Removes logic for button creation- they are not used in CA.
 */
 Scene_Base.prototype.createButtons = function() {};
@@ -526,7 +541,7 @@ Scene_Base.prototype.createButtons = function() {};
 //#endregion
 //#region src/plugins/__ca-mods/core/scenes/Scene_Map.js
 /**
-* Overrides {@link #createButtons}.<br>
+* Overwrites {@link #createButtons}.<br/>
 * Removes logic for button creation- they are not used in CA.
 */
 Scene_Map.prototype.createButtons = function() {};
@@ -534,7 +549,7 @@ Scene_Map.prototype.createButtons = function() {};
 //#endregion
 //#region src/plugins/__ca-mods/core/scenes/Scene_MenuBase.js
 /**
-* Overrides {@link #createButtons}.<br>
+* Overwrites {@link #createButtons}.<br/>
 * Removes logic for button creation- those are not allowed here.
 */
 Scene_MenuBase.prototype.createButtons = function() {};

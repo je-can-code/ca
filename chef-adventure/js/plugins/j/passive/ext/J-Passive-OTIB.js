@@ -71,7 +71,7 @@ var JPassiveOTIB_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {
@@ -166,7 +166,7 @@ SerializableRegistry.register(OtibUnlockRecord);
 //#endregion
 //#region src/plugins/passive/ext/otib/objects/Game_Actor.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the OTIB unlock storage for this actor.
 */
 J.PASSIVE.EXT.OTIB.Aliased.Game_Actor.set("initMembers", Game_Actor.prototype.initMembers);
@@ -221,7 +221,8 @@ Game_Actor.prototype.isOtibUnlocked = function(itemId) {
 	return this.otibUnlocks().some((unlock) => unlock.itemId === itemId);
 };
 /**
-* Overrides {@link Game_Battler#handleOtibUnlock} with the real actor implementation.<br>
+* Overwrites {@link Game_Battler#handleOtibUnlock}.<br/>
+* Provides the real actor implementation.
 * Checks whether this item has an OTIB notetag and, if so, persists the unlock record
 * and refreshes the passive pipeline so the granted states take effect immediately.
 * When J-Log is present, fires a DiaLog message for each newly unlocked state.
@@ -250,7 +251,7 @@ Game_Actor.prototype.notifyOtibUnlock = function(item, stateIds) {
 	});
 };
 /**
-* Extends {@link #getPassiveStateSources}.<br>
+* Extends {@link #getPassiveStateSources}.<br/>
 * Injects OTIB-derived synthetic passive sources so the pipeline picks them up
 * on every refresh without needing to persist RPG_BaseItem instances.
 * @returns {(RPG_Actor|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State|RPG_BaseItem)[]}
@@ -280,7 +281,7 @@ Game_Actor.prototype.buildOtibPassiveSources = function() {
 */
 Game_Battler.prototype.handleOtibUnlock = function(item) {};
 /**
-* Extends {@link #consumeItem}.<br>
+* Extends {@link #consumeItem}.<br/>
 * After the item is consumed, gives this battler a chance to handle any OTIB unlock.
 * Actors override {@link #handleOtibUnlock} with the real unlock logic; all others no-op.
 * @param {RPG_Item} item The item being consumed.
@@ -294,7 +295,7 @@ Game_Battler.prototype.consumeItem = function(item) {
 //#endregion
 //#region src/plugins/passive/ext/otib/scenes/Scene_Boot.js
 /**
-* Extends {@link #onDatabaseLoaded}.<br>
+* Extends {@link #onDatabaseLoaded}.<br/>
 * Registers the OTIB tab with the passive viewer once the database is available.
 */
 J.PASSIVE.EXT.OTIB.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);

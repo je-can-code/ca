@@ -1107,9 +1107,9 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		win.setActor(this.actor());
 		win.setHandler("ok", this.onSlotOk.bind(this));
 		win.setHandler("cancel", this.onSlotCancel.bind(this));
-		win.setHandler("more", this.onSlotUnequip.bind(this));
-		win.setHandler("pageup", this.onCycleActorLeft.bind(this));
-		win.setHandler("pagedown", this.onCycleActorRight.bind(this));
+		win.setHandler("context", this.onSlotUnequip.bind(this));
+		win.setHandler("actor-prev", this.onCycleActorLeft.bind(this));
+		win.setHandler("actor-next", this.onCycleActorRight.bind(this));
 		this._j._sks._windows._slots = win;
 		this.addWindow(win);
 	}
@@ -1256,7 +1256,7 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		this.popScene();
 	}
 	/**
-	* Handles the "more" action from the slot selection.
+	* Handles the "context" action from the slot selection.
 	* Unequips the skill in the currently focused slot, if one is equipped.
 	*/
 	onSlotUnequip() {

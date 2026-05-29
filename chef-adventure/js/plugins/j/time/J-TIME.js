@@ -528,7 +528,7 @@ var J_TIME_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps plugin parameters into instance fields used by {@link Game_Time}.
 	*/
 	postInitialize() {
@@ -2247,7 +2247,7 @@ Scene_Base._noTimeScenes = [
 	Scene_Gameover
 ];
 /**
-* Extends {@link #update}.<br>
+* Extends {@link #update}.<br/>
 * Also updates artificial time if it should be updated.
 */
 J.TIME.Aliased.Scene_Base.set("update", Scene_Base.prototype.update);
@@ -2516,7 +2516,7 @@ Scene_Map.prototype.handleTimeBlock = function() {
 //#endregion
 //#region src/plugins/time/core/windows/Window_Base.js
 /**
-* Extends {@link #convertEscapeCharacters}.<br>
+* Extends {@link #convertEscapeCharacters}.<br/>
 * Adds handling for new text codes for TIME data.
 */
 J.TIME.Aliased.Window_Base.set("convertEscapeCharacters", Window_Base.prototype.convertEscapeCharacters);

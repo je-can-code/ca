@@ -241,7 +241,7 @@ var RegionSkillData = class {
 //#endregion
 //#region src/plugins/regions/ext/skills/objects/Game_Map.js
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Also initializes the region skills properties.
 */
 J.REGIONS.EXT.SKILLS.Aliased.Game_Map.set("initialize", Game_Map.prototype.initialize);
@@ -302,7 +302,7 @@ Game_Map.prototype.addRegionSkillDataByRegionId = function(regionId, regionSkill
 	}
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Also initializes this map's region-skill data.
 */
 J.REGIONS.EXT.SKILLS.Aliased.Game_Map.set("setup", Game_Map.prototype.setup);
@@ -341,7 +341,7 @@ Game_Map.prototype.refreshRegionSkills = function() {
 //#endregion
 //#region src/plugins/regions/ext/skills/objects/Game_Character.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the region skills members.
 */
 J.REGIONS.EXT.SKILLS.Aliased.Game_Character.set("initMembers", Game_Character.prototype.initMembers);
@@ -379,7 +379,7 @@ Game_Character.prototype.getRegionSkillsTimer = function() {
 	return this._j._regions._skills._timer;
 };
 /**
-* Extends {@link #update}.<br>
+* Extends {@link #update}.<br/>
 * Also handles region skills updates for the character.
 */
 J.REGIONS.EXT.SKILLS.Aliased.Game_Character.set("update", Game_Character.prototype.update);

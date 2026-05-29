@@ -416,6 +416,15 @@ J.PROF.RegExp.ProficiencyGainingBlock = /<proficiencyGainingBlock>/i;
 //#endregion
 //#region src/plugins/prof/core/objects/Game_Battler.js
 /**
+* Bonus proficiency gained when earning skill proficiency.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "prof", {
+	get: function() {
+		return 0;
+	},
+	configurable: true
+});
+/**
 * Gets all skill proficiencies for this battler.
 * @returns {SkillProficiency[]}
 */
@@ -436,7 +445,7 @@ Game_Battler.prototype.skillProficiencyBySkillId = function(skillId) {
 */
 Game_Battler.prototype.skillProficiencyAmount = function() {
 	const base = this.baseSkillProficiencyAmount();
-	const bonuses = this.bonusSkillProficiencyGains();
+	const bonuses = this.prof;
 	return base + bonuses;
 };
 /**
@@ -445,13 +454,6 @@ Game_Battler.prototype.skillProficiencyAmount = function() {
 */
 Game_Battler.prototype.baseSkillProficiencyAmount = function() {
 	return 1;
-};
-/**
-* Gets the base amount of proficiency gained from an action for this battler.
-* @returns {number}
-*/
-Game_Battler.prototype.bonusSkillProficiencyGains = function() {
-	return 0;
 };
 /**
 * Whether or not a battler can gain proficiency by using skills against this battler.
@@ -707,12 +709,14 @@ Game_Actor.prototype.updateBonusSkillProficiencyGains = function() {
 	this._j._proficiency._bonusSkillProficiencyGains = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyBonus);
 };
 /**
-* Calculates total amount of bonus proficiency gain when gaining skill proficiency.
-* @returns {number}
+* Bonus proficiency gained when earning skill proficiency.
 */
-Game_Actor.prototype.bonusSkillProficiencyGains = function() {
-	return this._j._proficiency._bonusSkillProficiencyGains;
-};
+Object.defineProperty(Game_Actor.prototype, "prof", {
+	get: function() {
+		return this._j._proficiency._bonusSkillProficiencyGains;
+	},
+	configurable: true
+});
 
 //#endregion
 //#region src/plugins/prof/core/objects/Game_Enemy.js
@@ -847,7 +851,7 @@ Game_Action.prototype.skillProficiency = function() {
 };
 if (J.ABS) {
 	/**
-	* Extends {@link Game_Action.onParry}.<br>
+	* Extends {@link Game_Action.onParry}.<br/>
 	* Also gains proficiency for the parry if possible.
 	* @param {JABS_Battler} jabsBattler The battler that is parrying.
 	*/
@@ -857,7 +861,7 @@ if (J.ABS) {
 		this.gainProficiencyFromGuarding(jabsBattler);
 	};
 	/**
-	* Extends {@link Game_Action.onGuard}.<br>
+	* Extends {@link Game_Action.onGuard}.<br/>
 	* Also gains proficiency for the guard if possible.
 	* @param {JABS_Battler} jabsBattler The battler that is guarding.
 	*/
@@ -912,35 +916,11 @@ Game_System.prototype.updateProficienciesFromPluginMetadata = function() {
 //#endregion
 //#region src/plugins/prof/core/managers/TextManager.js
 /**
-* Extends {@link #longParam}.<br>
-* First checks if it is the proficiency paramId before searching for others.
-* @returns {string}
-*/
-J.PROF.Aliased.TextManager.set("longParam", TextManager.longParam);
-TextManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 32: return this.proficiencyBonus();
-		default: return J.PROF.Aliased.TextManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the proper name of "proficiency bonus", which is quite long, really.
 * @returns {string}
 */
 TextManager.proficiencyBonus = function() {
 	return "Proficiency+";
-};
-/**
-* Extends {@link #longParamDescription}.<br>
-* First checks if it is the proficiency paramId before searching for others.
-* @returns {string[]}
-*/
-J.PROF.Aliased.TextManager.set("longParamDescription", TextManager.longParamDescription);
-TextManager.longParamDescription = function(paramId) {
-	switch (paramId) {
-		case 32: return this.proficiencyDescription();
-		default: return J.PROF.Aliased.TextManager.get("longParamDescription").call(this, paramId);
-	}
 };
 /**
 * Gets the description text for the proficiency boost.
@@ -953,23 +933,22 @@ TextManager.proficiencyDescription = function() {
 //#endregion
 //#region src/plugins/prof/core/managers/IconManager.js
 /**
-* Extend {@link #longParam}.<br>
-* First checks if the paramId was the proficiency boost before checking others.
-*/
-J.PROF.Aliased.IconManager.set("longParam", IconManager.longParam);
-IconManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 32: return this.proficiencyBoost();
-		default: return J.PROF.Aliased.IconManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the icon index for the proficiency boost.
 * @return {number}
 */
 IconManager.proficiencyBoost = function() {
 	return 979;
 };
+
+//#endregion
+//#region src/plugins/prof/core/core/registerProfParameters.js
+/**
+* Registers proficiency bonus with the parameter catalog.
+*/
+function registerProfParameters() {
+	ParameterRegistry.register(ParameterDefinition.Builder().key("prof").group(ParameterGroups.FATE).sortOrder(4).label(() => TextManager.proficiencyBonus()).description(() => TextManager.proficiencyDescription()).iconIndex(() => IconManager.proficiencyBoost()).format(ParameterFormat.FLAT).getValue((battler) => battler.prof).sdpBinding(SdpParameterBinding.byKey("prof", (actor) => actor.baseSkillProficiencyAmount())).build());
+}
+registerProfParameters();
 
 //#endregion
 //#region src/plugins/prof/core/scenes/Scene_Boot.js

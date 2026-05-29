@@ -128,7 +128,7 @@ var JPixelistics_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {
@@ -581,7 +581,7 @@ Game_Character.pixelRepeatableMoveCommandCodes = [
 	13
 ];
 /**
-* Extends {@link processMoveCommand}.<br>
+* Extends {@link processMoveCommand}.<br/>
 * Ensures when move routes are being processed, that we adjust the x,y coordinates.
 * @param {RPG_EventListCommand} command The commands associated with this movement.
 */
@@ -654,7 +654,7 @@ Game_Character.prototype.canStartPixelRepeatMove = function(command) {
 //#endregion
 //#region src/plugins/pixel/core/objects/Game_CharacterBase.js
 /**
-* Extends {@link Game_CharacterBase.initMembers}.<br>
+* Extends {@link Game_CharacterBase.initMembers}.<br/>
 * Includes this plugin's extra properties as well.
 */
 J.PIXEL.Aliased.Game_CharacterBase.set("initMembers", Game_CharacterBase.prototype.initMembers);
@@ -940,13 +940,13 @@ Game_CharacterBase.prototype.mostRecentPositionalRecord = function() {
 	return null;
 };
 /**
-* Extends {@link Game_CharacterBase.update}.<br>
+* Extends {@link Game_CharacterBase.update}.<br/>
 * Ensures render coordinates match logical coordinates and clears per-frame flags.
 */
 J.PIXEL.Aliased.Game_CharacterBase.set("update", Game_CharacterBase.prototype.update);
 Game_CharacterBase.prototype.update = function() {
 	J.PIXEL.Aliased.Game_CharacterBase.get("update").call(this);
-	if (this._realX !== this._x || this._realY !== this._y) {
+	if ((this._realX !== this._x || this._realY !== this._y) && !this.isJumping()) {
 		this._realX = this._x;
 		this._realY = this._y;
 	}
@@ -1341,7 +1341,7 @@ Game_CharacterBase.prototype.isOverlappingSolidTiles = function(px, py, radius) 
 	return false;
 };
 /**
-* Extends {@link Game_CharacterBase.canPass}.<br>
+* Extends {@link Game_CharacterBase.canPass}.<br/>
 * Rounds fractional pixel coordinates to the nearest tile integer before delegating
 * to the tile-based passability check. With pixel movement, `_x`/`_y` are fractional;
 * the base RMMZ method uses them as array indices, so non-integer inputs produce
@@ -1356,7 +1356,7 @@ Game_CharacterBase.prototype.canPass = function(x, y, d) {
 	return J.PIXEL.Aliased.Game_CharacterBase.get("canPass").call(this, Math.round(x), Math.round(y), d);
 };
 /**
-* Extends {@link Game_CharacterBase#regionId}.<br>
+* Extends {@link Game_CharacterBase#regionId}.<br/>
 * Samples the map region at the character's collision pivot tile. With pixel movement,
 * `_x`/`_y` are fractional; vanilla forwards them into {@link Game_Map#tileId}, which
 * indexes `$dataMap.data` and returns wrong regions when coordinates are not integers.
@@ -1384,7 +1384,7 @@ Game_CharacterBase.prototype.moveStraight = function(direction) {
 	}
 };
 /**
-* Extends {@link Game_CharacterBase.moveDiagonally}.<br>
+* Extends {@link Game_CharacterBase.moveDiagonally}.<br/>
 * Evaluates pixel-aware diagonal passability and executes pixel-distance movement.
 * Direction is updated unconditionally (matching rmmz default behavior) so that
 * a blocked diagonal step still rotates the character away from a wall.
@@ -2297,7 +2297,7 @@ Game_Event.prototype.isCollidedWithEvents = function(x, y) {
 	return colliders.length > 0;
 };
 /**
-* Overrides {@link Game_CharacterBase.getCollisionPivotY}.<br>
+* Overwrites {@link Game_CharacterBase.getCollisionPivotY}.<br/>
 * Anchors NPC and enemy event collision near their feet for natural depth feel.
 * JABS action events (projectiles) are flagged as through and bypass tile collision
 * entirely, so this override does not affect them.
@@ -2404,7 +2404,7 @@ Game_Follower.prototype.moveDiagonally = function(horz, vert) {
 	J.PIXEL.Aliased.Game_Follower.get("moveDiagonally").call(this, horz, vert);
 };
 /**
-* Overrides {@link Game_CharacterBase.getCollisionPivotY}.<br>
+* Overwrites {@link Game_CharacterBase.getCollisionPivotY}.<br/>
 * Anchors the follower's collision center near their feet to match the player's
 * depth-biased collision feel. Keeps the follower train visually consistent.
 * @returns {number} The Y pivot offset in tile units.
@@ -2416,7 +2416,7 @@ Game_Follower.prototype.getCollisionPivotY = function() {
 //#endregion
 //#region src/plugins/pixel/core/objects/Game_Map.js
 /**
-* Extends {@link Game_Map.setup}.<br>
+* Extends {@link Game_Map.setup}.<br/>
 * Builds the PIXEL subcell collision table when a new map loads.
 * @param {number} mapId The id of the map to setup.
 */
@@ -2430,7 +2430,7 @@ Game_Map.prototype.setup = function(mapId) {
 //#endregion
 //#region src/plugins/pixel/core/objects/Game_Player.js
 /**
-* Overrides {@link Game_Player.checkEventTriggerHere}.<br>
+* Overwrites {@link Game_Player.checkEventTriggerHere}.<br/>
 * Includes the rounding of the x,y coordinates when checking event triggers for things beneath you.
 * @param {number[]} triggers The numeric triggers for this event.
 */
@@ -2449,7 +2449,7 @@ Game_Player.prototype.checkEventTriggerHere = function(triggers) {
 	}
 };
 /**
-* Extends {@link Game_Player.update}.<br>
+* Extends {@link Game_Player.update}.<br/>
 * Ticks down the foot-touch trigger cooldown after all movement and trigger logic for the frame.
 */
 J.PIXEL.Aliased.Game_Player.set("update", Game_Player.prototype.update);
@@ -2460,7 +2460,7 @@ Game_Player.prototype.update = function(sceneActive) {
 	}
 };
 /**
-* Overrides {@link Game_Player.checkEventTriggerThere}.<br/>
+* Overwrites {@link Game_Player.checkEventTriggerThere}.<br/>
 * Computes the front tile from the current facing using rounded base coordinates,
 * then starts map events there; if that tile is a counter, also checks one tile beyond.
 * @param {number[]} triggers The triggers associated with checking the event at the location.
@@ -2481,7 +2481,7 @@ Game_Player.prototype.checkEventTriggerThere = function(triggers) {
 	}
 };
 /**
-* Extends {@link checkEventTriggerTouch}.<br>
+* Extends {@link checkEventTriggerTouch}.<br/>
 * Handles the triggering of events by using a threshold-type formula to determine if actually touched.
 */
 J.PIXEL.Aliased.Game_Player.set("checkEventTriggerTouch", Game_Player.prototype.checkEventTriggerTouch);
@@ -2495,7 +2495,7 @@ Game_Player.prototype.checkEventTriggerTouch = function(x, y) {
 	return false;
 };
 /**
-* Overrides {@link Game_Player.checkEventTriggerTouchFront}.<br/>
+* Overwrites {@link Game_Player.checkEventTriggerTouchFront}.<br/>
 * Computes the front tile from the current facing using rounded base coordinates,
 * checks for touch triggers there via PIXEL threshold logic, and if the front tile
 * is a counter, also checks the tile beyond.
@@ -2606,7 +2606,7 @@ Game_Player.prototype.dir8ToAngle = function(dir8) {
 	}
 };
 /**
-* Overrides {@link Game_Player.moveByInput}.<br>
+* Overwrites {@link Game_Player.moveByInput}.<br/>
 * The meat and potatoes for pixel movement of the player.
 * Handles keyboard/gamepad directional input and click-to-move via destination coordinates.
 */
@@ -2693,7 +2693,7 @@ Game_Player.prototype.pixelMoveTowardDestination = function() {
 	}
 };
 /**
-* Extends {@link #onStep}.<br>
+* Extends {@link #onStep}.<br/>
 * Also processes on-step effects for the player.
 */
 J.PIXEL.Aliased.Game_Player.set("onStep", Game_Player.prototype.onStep);
@@ -2735,7 +2735,7 @@ Game_Player.prototype.stopFollowersPixelMoving = function() {
 	});
 };
 /**
-* Overrides {@link Game_CharacterBase.getCollisionPivotY}.<br>
+* Overwrites {@link Game_CharacterBase.getCollisionPivotY}.<br/>
 * Anchors the player's collision center near their feet rather than the tile center.
 * This gives the implied top-down perspective its natural depth feel: the player can
 * slide closer to objects from below (approaching northward) and is gently blocked

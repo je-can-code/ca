@@ -1227,7 +1227,7 @@ DataManager.extractSaveContents = function(contents) {
 //#endregion
 //#region src/plugins/jafting/core/objects/Game_Party.js
 /**
-* Extends {@link Game_Party.prototype.gainItem}.<br>
+* Extends {@link Game_Party.prototype.gainItem}.<br/>
 * Keeps per-slot salvage ledgers aligned when static-template stacks grow outside crafting stamps.
 */
 J.JAFTING.Aliased.Game_Party.set("gainItem", Game_Party.prototype.gainItem);
@@ -1236,7 +1236,7 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
 	JaftingSalvageManager.afterPartyGainedItem(item, amount);
 };
 /**
-* Extends {@link Game_Party.prototype.loseItem}.<br>
+* Extends {@link Game_Party.prototype.loseItem}.<br/>
 * Reclaims refinement datastore slots once dynamic equipment leaves inventory entirely.
 */
 J.JAFTING.Aliased.Game_Party.set("loseItem", Game_Party.prototype.loseItem);
@@ -1256,7 +1256,7 @@ var Window_JaftingListHeader = class extends Window_Base {
 		super(rect);
 	}
 	/**
-	* Implements {@link Window_Base.drawContent}.<br>
+	* Implements {@link Window_Base.drawContent}.<br/>
 	* Draws the JAFTING hub title and short description.
 	*/
 	drawContent() {
@@ -1946,7 +1946,7 @@ var Window_JaftingList = class extends Window_Command {
 		super(rect);
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Builds the hub command list from {@link #buildCommands}.
 	*/
 	makeCommandList() {
@@ -1968,7 +1968,7 @@ var Window_JaftingList = class extends Window_Command {
 		return new WindowCommandBuilder(J.JAFTING.Metadata.salvageCommandName).setSymbol(Scene_JaftingSalvage.KEY).setEnabled(Scene_JaftingSalvage.isSalvageHubCommandEnabled()).addTextLine("Break down stamped equipment toward its ingredient history.").addTextLine("Vendor-only shells never list here—only gear carrying dismantle lineage.").setIconIndex(J.JAFTING.Metadata.salvageMenuIconIndex).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/

@@ -89,14 +89,14 @@ var JABS_Button = class {
 	*/
 	static Offhand = "Offhand";
 	/**
-	* The "tool", "Y" button, or "C" key.
+	* The "tool", Triangle button, or Tab key (native symbol: tab).
 	* Used for executing the currently selected tool skill.
 	* @type {string}
 	*/
 	static Tool = "Tool";
 	/**
-	* The "dodge", "R2" button, or "Tab" key.
-	* Used for executing the currently selected dodge skill.
+	* Optional dodge / mobility skill input (R2 by default when remapped).
+	* In combat, {@link JABS_Button.Sprint} (Square) handles mobility contextually.
 	* @type {string}
 	*/
 	static Dodge = "Dodge";
@@ -1072,11 +1072,11 @@ Input.keyMapper = {
 	90: J.ABS.EXT.INPUT.Symbols.Mainhand,
 	88: J.ABS.EXT.INPUT.Symbols.Offhand,
 	16: J.ABS.EXT.INPUT.Symbols.Dash,
-	67: J.ABS.EXT.INPUT.Symbols.Tool,
+	9: J.ABS.EXT.INPUT.Symbols.Tool,
 	81: J.ABS.EXT.INPUT.Symbols.SkillTrigger,
 	17: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,
 	69: J.ABS.EXT.INPUT.Symbols.GuardTrigger,
-	9: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
+	18: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
 	13: J.ABS.EXT.INPUT.Symbols.Quickmenu,
 	46: J.ABS.EXT.INPUT.Symbols.PartyCycle,
 	38: J.ABS.EXT.INPUT.Symbols.DirUp,
@@ -1099,7 +1099,7 @@ Input.keyMapper = {
 * - NEW: select/options, start/menu
 * - NEW: L2/LT, R2/RT
 * - NEW: L3/LSB, R3/RSB
-* - OVERWRITE: Y now is the tool button, and start is the menu.
+* - remapped: Y is now the tool button, and start is the menu.
 */
 Input.gamepadMapper = {
 	0: J.ABS.EXT.INPUT.Symbols.Mainhand,
@@ -1315,6 +1315,8 @@ Input.ensureRemapBootstrapped = function() {
 	Input.getAllBindings("JABS");
 	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.L3, "L3");
 	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.R3, "R3");
+	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.Tool, "Triangle");
+	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, "L2");
 	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.MobilitySkill, "R2");
 	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadUp, "D-Pad Up");
 	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadDown, "D-Pad Down");
@@ -1347,7 +1349,9 @@ Input.bootstrapAllKeyboardKeysForCapture = function() {
 		"up",
 		"down",
 		"left",
-		"right"
+		"right",
+		"l2",
+		"r2"
 	]);
 	const existingMap = Object.assign({}, Input.keyMapper);
 	Object.keys(existingMap).forEach((code) => {
@@ -1469,7 +1473,8 @@ Input.setAxisThreshold = function(v) {
 	}
 };
 /**
-* OVERWRITE-ALIAS Extends gamepad processing to reinforce directions from axes
+* Extends {@link Input._updateGamepadState}.<br/>
+* Extends gamepad processing to reinforce directions from axes
 * using a configurable threshold, without disabling vanilla behavior.
 * Ensures mutual exclusivity and proper clearing when axes return to neutral.
 * Also writes results to the per-pad state, then rebuilds the merged state as
@@ -1979,7 +1984,7 @@ var Window_JabsRemapUsageHelp = class extends Window_Base {
 	refresh() {
 		this.contents.clear();
 		const rebind = `${IconManager.jabsIconTextForSymbol("ok")} Rebind`;
-		const clear = `${IconManager.jabsIconTextForSymbol(J.ABS.EXT.INPUT.Symbols.GuardTrigger)} Clear Binding`;
+		const clear = `${IconManager.jabsIconTextForSymbol(J.ABS.EXT.INPUT.Symbols.Tool)} Clear Binding`;
 		this.drawTextEx(rebind, 0, this.lineHeight() * 0, this.contentsWidth());
 		this.drawTextEx(clear, 0, this.lineHeight() * 1, this.contentsWidth());
 	}
@@ -2782,15 +2787,6 @@ var Window_JabsRemapActions = class extends Window_Command {
 		super.processOk();
 	}
 	/**
-	* Forwards to base handling and maps PageDown to the `clear` handler.
-	*/
-	processHandling() {
-		super.processHandling();
-		if (this.isOpenAndActive() && Input.isTriggered("pagedown")) {
-			this.callHandler("clear");
-		}
-	}
-	/**
 	* First enabled command index (skips disabled headers).
 	* @returns {number}
 	*/
@@ -2995,7 +2991,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 		const rectangle = this.actionsWindowRectangle();
 		const window = new Window_JabsRemapActions(rectangle);
 		window.setHandler("ok", this.onRemapRequested.bind(this));
-		window.setHandler("clear", this.onClearBinding.bind(this));
+		window.setHandler("context", this.onClearBinding.bind(this));
 		window.setHandler("cancel", this.onActionsCancel.bind(this));
 		window.setHelpWindow(this.getTopHelpWindow());
 		return window;

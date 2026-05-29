@@ -412,7 +412,16 @@ J.ABS.EXT.SHIELD.RegExp = {
 	/**
 	* Represents one or many skills to fire when this state’s shield breaks.
 	*/
-	Break: /<shieldBreak:[ ]?(\[[\d, ]+])>/i
+	Break: /<shieldBreak:[ ]?(\[[\d, ]+])>/i,
+	/** Outgoing shield point amplification (`<sar:25>` = +25%). */
+	ShieldAmplification: /<sar:(-?\d+)>/gi,
+	/** Incoming shield effectiveness (`<ser:25>` = +25%). */
+	ShieldEffectiveness: /<ser:(-?\d+)>/gi
+};
+/** Legacy SDP panel parameter ids for shield stats. */
+J.ABS.EXT.SHIELD.SdpParamId = {
+	SAR: 38,
+	SER: 39
 };
 
 //#endregion
@@ -447,7 +456,13 @@ var JABS_Shield = class JABS_Shield {
 				return total;
 			}
 		};
-		const totalPoints = pointFormulas.reduce(safeReduce, 0);
+		let totalPoints = pointFormulas.reduce(safeReduce, 0);
+		if (attacker && attacker.sar) {
+			totalPoints *= attacker.sar;
+		}
+		if (target && target.ser) {
+			totalPoints *= target.ser;
+		}
 		if (totalPoints === 0) return null;
 		const capFormulas = RPGManager.getStringsFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.ShieldCapFormula);
 		const totalCap = capFormulas.reduce(safeReduce, 0);
@@ -798,6 +813,30 @@ ColorManager.shieldGauge2 = function() {
 };
 
 //#endregion
+//#region src/plugins/abs/ext/shield/managers/TextManager.js
+TextManager.sar = function() {
+	return "Shield Amp";
+};
+TextManager.sarDescription = function() {
+	return ["Multiplier on shield points this battler applies to allies.", "Higher values create stronger outgoing shields."];
+};
+TextManager.ser = function() {
+	return "Shield Eff";
+};
+TextManager.serDescription = function() {
+	return ["Multiplier on shield points received on this battler.", "Higher values strengthen incoming shields."];
+};
+
+//#endregion
+//#region src/plugins/abs/ext/shield/managers/IconManager.js
+IconManager.sar = function() {
+	return 967;
+};
+IconManager.ser = function() {
+	return 968;
+};
+
+//#endregion
 //#region src/plugins/abs/ext/shield/managers/JABS_Engine.js
 /**
 * Extends {@link #refreshJabsState}.<br/>
@@ -818,6 +857,65 @@ JABS_Engine.prototype.extendJabsState = function(jabsState, newJabsState) {
 	jabsState.recalculateShield();
 	jabsState.refreshShield();
 	J.ABS.EXT.SHIELD.Aliased.JABS_Engine.get("extendJabsState").call(this, jabsState, newJabsState);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/shield/objects/Game_Battler.js
+Object.defineProperties(Game_BattlerBase.prototype, {
+	/**
+	* Outgoing shield amplification (1.0 = baseline).
+	*/
+	sar: {
+		get: function() {
+			return 1;
+		},
+		configurable: true
+	},
+	/**
+	* Incoming shield effectiveness (1.0 = baseline).
+	*/
+	ser: {
+		get: function() {
+			return 1;
+		},
+		configurable: true
+	}
+});
+Object.defineProperty(Game_Battler.prototype, "sar", {
+	get: function() {
+		let factor = this.baseSarFactor();
+		if (this.getSdpBonusForParameterKey) {
+			factor += this.getSdpBonusForParameterKey("sar", 1);
+		}
+		return factor;
+	},
+	configurable: true
+});
+Object.defineProperty(Game_Battler.prototype, "ser", {
+	get: function() {
+		let factor = this.baseSerFactor();
+		if (this.getSdpBonusForParameterKey) {
+			factor += this.getSdpBonusForParameterKey("ser", 1);
+		}
+		return factor;
+	},
+	configurable: true
+});
+/**
+* Sums `<sar:X>` notetags into a multiplier factor.
+* @returns {number}
+*/
+Game_Battler.prototype.baseSarFactor = function() {
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.EXT.SHIELD.RegExp.ShieldAmplification);
+	return (100 + bonus) / 100;
+};
+/**
+* Sums `<ser:X>` notetags into a multiplier factor.
+* @returns {number}
+*/
+Game_Battler.prototype.baseSerFactor = function() {
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.EXT.SHIELD.RegExp.ShieldEffectiveness);
+	return (100 + bonus) / 100;
 };
 
 //#endregion
@@ -1285,7 +1383,7 @@ var Sprite_ShieldMapGauge = class extends Sprite_MapGauge {
 		return capShieldValue;
 	}
 	/**
-	* Overrides {@link #gaugeColor1}.<br/>
+	* Overwrites {@link #gaugeColor1}.<br/>
 	* Returns the shield gauge color gradient 1.
 	* @returns {string}
 	*/
@@ -1293,7 +1391,7 @@ var Sprite_ShieldMapGauge = class extends Sprite_MapGauge {
 		return ColorManager.shieldGauge1();
 	}
 	/**
-	* Overrides {@link #gaugeColor2}.<br/>
+	* Overwrites {@link #gaugeColor2}.<br/>
 	* Returns the shield gauge color gradient 2.
 	* @returns {string}
 	*/
@@ -1413,6 +1511,17 @@ Sprite_Character.prototype.hideShieldGauge = function() {
 		gauge.hide();
 	}
 };
+
+//#endregion
+//#region src/plugins/abs/ext/shield/core/registerShieldParameters.js
+/**
+* Registers shield amplification and effectiveness with the parameter catalog.
+*/
+function registerShieldParameters() {
+	ParameterRegistry.register(ParameterDefinition.Builder().key("sar").group(ParameterGroups.SUPPORT).sortOrder(0).label(() => TextManager.sar()).description(() => TextManager.sarDescription()).iconIndex(() => IconManager.sar()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.sar).sdpBinding(SdpParameterBinding.byKey("sar", () => 1)).build());
+	ParameterRegistry.register(ParameterDefinition.Builder().key("ser").group(ParameterGroups.SUPPORT).sortOrder(1).label(() => TextManager.ser()).description(() => TextManager.serDescription()).iconIndex(() => IconManager.ser()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.ser).sdpBinding(SdpParameterBinding.byKey("ser", () => 1)).build());
+}
+registerShieldParameters();
 
 //#endregion
 //#region src/plugins/abs/ext/shield/windows/Window_PartyFrame.js
@@ -1543,7 +1652,7 @@ if (J.HUD && J.HUD.EXT.PARTY) {
 		shieldValues.show();
 	};
 	/**
-	* Extends/Overrides {@link #drawAllyGauges}.<br/>
+	* Extends {@link #drawAllyGauges}.<br/>
 	* Calls original, then overlays the composite shield gauge on the ally HP gauge.
 	* @param {Game_Actor} ally The ally to draw the gauges for.
 	* @param {number} x The x coordinate.

@@ -734,7 +734,7 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
 //#endregion
 //#region src/plugins/level/core/objects/Game_Actor.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes this plugin's members.
 */
 J.LEVEL.Aliased.Game_Actor.set("initMembers", Game_Actor.prototype.initMembers);
@@ -779,7 +779,7 @@ Game_Actor.prototype.calculateRealMaxLevel = function() {
 	return normalizedMaxLevel;
 };
 /**
-* Overrides {@link #maxLevel}.<br/>
+* Overwrites {@link #maxLevel}.<br/>
 * Recalculates the max level based on the possibility of a modified max level.
 * @returns {number}
 */
@@ -803,7 +803,7 @@ Game_Actor.prototype.baseMaxLevel = function() {
 	return J.LEVEL.Metadata.defaultBeyondMaxLevel;
 };
 /**
-* Overrides {@link #paramBase}.<br/>
+* Overwrites {@link #paramBase}.<br/>
 * Potentially fetches "beyond max data" for when ones level is beyond the editor max of 99.
 * @param {number} paramId The paramId to fetch the data for.
 * @returns {number}
@@ -936,7 +936,7 @@ Game_Battler.prototype.extractLevel = function(rpgData) {
 //#endregion
 //#region src/plugins/level/core/objects/Game_Enemy.js
 /**
-* Extends {@link Game_Enemy.setup}.<br>
+* Extends {@link Game_Enemy.setup}.<br/>
 * Includes setting up the learned level map for skills.
 */
 J.LEVEL.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
@@ -976,7 +976,7 @@ Game_Enemy.prototype.setCachedLevelOverride = function(level) {
 	this._j._level._cachedLevelOverride = level;
 };
 /**
-* Extends {@link Game_Enemy.setup}.<br>
+* Extends {@link Game_Enemy.setup}.<br/>
 * Includes setting up the learned level map for skills.
 */
 J.LEVEL.Aliased.Game_Enemy.set("setup", Game_Enemy.prototype.setup);
@@ -1017,7 +1017,7 @@ Game_Enemy.prototype.isLearnedSkillByLevel = function(action) {
 	return false;
 };
 /**
-* Overrides {@link #getBattlerBaseLevel}.<br/>
+* Overwrites {@link #getBattlerBaseLevel}.<br/>
 * Instead of defaulting to zero, it will use the enemy's own note, accommodating any overrides if present.
 * @returns {number}
 */
@@ -1068,7 +1068,7 @@ Game_Enemy.prototype.getLevelBalancer = function() {
 //#endregion
 //#region src/plugins/level/core/objects/Game_Event.js
 /**
-* Extends {@link Game_Event.initMembers}.<br>
+* Extends {@link Game_Event.initMembers}.<br/>
 * Initializes level-related properties.
 */
 J.LEVEL.Aliased.Game_Event.set("initMembers", Game_Event.prototype.initMembers);
@@ -1124,7 +1124,7 @@ Game_Event.prototype.setCachedHideLevel = function(hideLevel) {
 	this._j._level._cachedHideLevel = hideLevel;
 };
 /**
-* Extends {@link Game_Event.refresh}.<br>
+* Extends {@link Game_Event.refresh}.<br/>
 * Clears the level override cache when the event page changes.
 */
 J.LEVEL.Aliased.Game_Event.set("refresh", Game_Event.prototype.refresh);

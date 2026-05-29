@@ -278,7 +278,7 @@ var J_ChargePluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps charging animation and sound defaults from plugin parameters.
 	*/
 	postInitialize() {
@@ -459,7 +459,7 @@ var JABS_ChargingTier = class JABS_ChargingTier {
 //#endregion
 //#region src/plugins/abs/ext/charge/_models/JABS_Battler.js
 /**
-* Extends {@link JABS_Battler.initBattleInfo}.<br>
+* Extends {@link JABS_Battler.initBattleInfo}.<br/>
 * Also initializes the charge-related data.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set("initBattleInfo", JABS_Battler.prototype.initBattleInfo);
@@ -734,7 +734,7 @@ JABS_Battler.prototype.normalizeChargeTierData = function(chargeTierData) {
 	return sortedTiers;
 };
 /**
-* Extends {@link JABS_Battler.update}.<br>
+* Extends {@link JABS_Battler.update}.<br/>
 * Also updates charging as-needed.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set("update", JABS_Battler.prototype.update);
@@ -981,7 +981,7 @@ JABS_StandardController.prototype.isTimerCompleteBySlot = function(slot) {
 	return this.getChargeInputDelayBySlot(slot).isTimerComplete();
 };
 /**
-* Extends {@link JABS_StandardController.updateMainhandAction}.<br>
+* Extends {@link JABS_StandardController.updateMainhandAction}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateMainhandAction", JABS_StandardController.prototype.updateMainhandAction);
@@ -1043,7 +1043,7 @@ JABS_StandardController.prototype.performMainhandChargeAlterAction = function() 
 	this.resetChargeInputDelayBySlot(JABS_Button.Mainhand);
 };
 /**
-* Extends {@link JABS_StandardController.updateOffhandAction}.<br>
+* Extends {@link JABS_StandardController.updateOffhandAction}.<br/>
 * Handles charging capability to the offhand.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateOffhandAction", JABS_StandardController.prototype.updateOffhandAction);
@@ -1131,7 +1131,7 @@ JABS_StandardController.prototype.performCombatSkillChargeAlterAction = function
 	this.resetChargeInputDelayBySlot(slot);
 };
 /**
-* Extends {@link JABS_StandardController.updateCombatAction1}.<br>
+* Extends {@link JABS_StandardController.updateCombatAction1}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateCombatAction1", JABS_StandardController.prototype.updateCombatAction1);
@@ -1170,7 +1170,7 @@ JABS_StandardController.prototype.canChargeCombatAction1 = function() {
 	return true;
 };
 /**
-* Extends {@link JABS_StandardController.updateCombatAction2}.<br>
+* Extends {@link JABS_StandardController.updateCombatAction2}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateCombatAction2", JABS_StandardController.prototype.updateCombatAction2);
@@ -1209,7 +1209,7 @@ JABS_StandardController.prototype.canChargeCombatAction2 = function() {
 	return true;
 };
 /**
-* Extends {@link JABS_StandardController.updateCombatAction3}.<br>
+* Extends {@link JABS_StandardController.updateCombatAction3}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateCombatAction3", JABS_StandardController.prototype.updateCombatAction3);
@@ -1248,7 +1248,7 @@ JABS_StandardController.prototype.canChargeCombatAction3 = function() {
 	return true;
 };
 /**
-* Extends {@link JABS_StandardController.updateCombatAction4}.<br>
+* Extends {@link JABS_StandardController.updateCombatAction4}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateCombatAction4", JABS_StandardController.prototype.updateCombatAction4);
@@ -1300,7 +1300,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsChargeData", { get: function() {
 //#endregion
 //#region src/plugins/abs/ext/charge/managers/SoundManager.js
 /**
-* Extends {@link SoundManager.preloadImportantSounds}.<br>
+* Extends {@link SoundManager.preloadImportantSounds}.<br/>
 * Also preloads the charging-related sound effects.
 */
 J.ABS.EXT.CHARGE.Aliased.SoundManager.set("preloadImportantSounds", SoundManager.preloadImportantSounds);

@@ -892,6 +892,309 @@ var SerializableRegistry = class {
 };
 
 //#endregion
+//#region src/plugins/_base/core/ParameterFormat.js
+/**
+* Display formatting policy for a {@link ParameterDefinition}.
+*/
+var ParameterFormat = class {
+	/**
+	* Whole-number base parameter (ATK, DEF, HIT, etc.).
+	* @type {string}
+	*/
+	static FLAT = "flat";
+	/**
+	* Large pool base parameter (MHP, MMP).
+	* @type {string}
+	*/
+	static FLAT_LARGE = "flatLarge";
+	/**
+	* Ex-parameter rate shown in percent space (multiply by 100).
+	* @type {string}
+	*/
+	static PERCENT = "percent";
+	/**
+	* S-parameter rate centered around zero (multiply by 100, subtract 100).
+	* @type {string}
+	*/
+	static PERCENT_CENTERED = "percentCentered";
+	/**
+	* Regeneration rate shown as per-second (divide engine tick by 5).
+	* @type {string}
+	*/
+	static REGEN_PER_SECOND = "regenPerSecond";
+	/**
+	* Percent stat with explicit suffix (CDM, CDR, CNT, MRF, etc.).
+	* @type {string}
+	*/
+	static PERCENT_SUFFIX = "percentSuffix";
+	/**
+	* Ex/sp value shown as a whole-number score (×100, no % suffix).
+	* Used for HIT-style params that scale into the hundreds/thousands.
+	* @type {string}
+	*/
+	static SCALED_POINTS = "scaledPoints";
+	/**
+	* S-param value shown as a centered whole-number score (×100 − 100, no % suffix).
+	* Used for GRD-style params where 1.0 is the neutral baseline.
+	* @type {string}
+	*/
+	static SCALED_OFFSET = "scaledOffset";
+	/**
+	* Multiplier shown in percent space without centering (GDR, DOR, shield rates, etc.).
+	* Raw {@code 0} is neutral; tag bonuses arrive as signed factors (e.g. {@code 0.25} → {@code +025%}).
+	* @type {string}
+	*/
+	static MULTIPLIER_PERCENT = "multiplierPercent";
+};
+
+//#endregion
+//#region src/plugins/_base/core/ParameterDisplayPolicy.js
+/**
+* Value-aware display policy for {@link ParameterDefinition} entries.
+* Drives sign-column padding, dynamic status colors, and clamped sentinel labels.
+*/
+var ParameterDisplayPolicy = class {
+	/**
+	* Default catalog display — static color only, no extra sign rules.
+	* @type {string}
+	*/
+	static NONE = "none";
+	/**
+	* Damage intake rates (PDR, MDR, FDR): lower is better; {@code -100%} → {@link ParameterDisplaySentinel.IMMUNE}.
+	* @type {string}
+	*/
+	static DAMAGE_RATE = "damageRate";
+	/**
+	* Reward gain rates (EXP, gold, drops, SDP, APT, REC, PHA): higher is better; {@code -100%} → {@link ParameterDisplaySentinel.NONE}.
+	* @type {string}
+	*/
+	static REWARD_RATE = "rewardRate";
+	/**
+	* Skill cost rates (HCR, MCR, TCR): lower is better; {@code -100%} → {@link ParameterDisplaySentinel.FREE}.
+	* @type {string}
+	*/
+	static COST_RATE = "costRate";
+	/**
+	* Signed centered percent with no dynamic color (aggro); {@code -100%} → {@link ParameterDisplaySentinel.NONE}.
+	* @type {string}
+	*/
+	static SIGNED = "signed";
+};
+
+//#endregion
+//#region src/plugins/_base/core/ParameterDisplaySentinel.js
+/**
+* Fixed status-screen labels for clamped rate parameters.
+*/
+var ParameterDisplaySentinel = class {
+	/** @type {string} */
+	static FREE = "FREE";
+	/** @type {string} */
+	static IMMUNE = "IMMUNE";
+	/** @type {string} */
+	static NONE = "NONE";
+};
+
+//#endregion
+//#region src/plugins/_base/core/ParameterGroups.js
+/**
+* Status-screen and catalog grouping ids for {@link ParameterDefinition}.
+*/
+var ParameterGroups = class ParameterGroups {
+	/** @type {string} */
+	static VITALITY = "vitality";
+	/** @type {string} */
+	static COMBAT = "combat";
+	/** @type {string} */
+	static PRECISION = "precision";
+	/** @type {string} */
+	static DEFENSIVE = "defensive";
+	/** @type {string} */
+	static MOBILITY = "mobility";
+	/** @type {string} */
+	static FATE = "fate";
+	/** @type {string} */
+	static SUPPORT = "support";
+	/**
+	* All groups in default status-screen iteration order.
+	* @type {string[]}
+	*/
+	static ALL = [
+		ParameterGroups.VITALITY,
+		ParameterGroups.COMBAT,
+		ParameterGroups.PRECISION,
+		ParameterGroups.DEFENSIVE,
+		ParameterGroups.MOBILITY,
+		ParameterGroups.FATE,
+		ParameterGroups.SUPPORT
+	];
+};
+
+//#endregion
+//#region src/plugins/_base/core/ParameterKeys.js
+/**
+* String keys for vanilla engine parameters and legacy long-param id translation.
+*/
+var ParameterKeys = class ParameterKeys {
+	/**
+	* b-param registry keys indexed by engine param id (0–7).
+	* @type {string[]}
+	*/
+	static BPARAM_KEYS = [
+		"mhp",
+		"mmp",
+		"atk",
+		"def",
+		"mat",
+		"mdf",
+		"agi",
+		"luk"
+	];
+	/**
+	* x-param registry keys indexed by engine xparam id (0–9).
+	* @type {string[]}
+	*/
+	static XPARAM_KEYS = [
+		"hit",
+		"eva",
+		"cri",
+		"cev",
+		"mev",
+		"mrf",
+		"cnt",
+		"hrg",
+		"mrg",
+		"trg"
+	];
+	/**
+	* s-param registry keys indexed by engine sparam id (0–9).
+	* @type {string[]}
+	*/
+	static SPARAM_KEYS = [
+		"tgr",
+		"grd",
+		"rec",
+		"pha",
+		"mcr",
+		"tcr",
+		"pdr",
+		"mdr",
+		"fdr",
+		"exr"
+	];
+	/**
+	* Legacy SDP panel long-param id → registry key.
+	* @type {Object<number, string>}
+	*/
+	static LEGACY_LONG_PARAM_TO_KEY = {
+		0: "mhp",
+		1: "mmp",
+		2: "atk",
+		3: "def",
+		4: "mat",
+		5: "mdf",
+		6: "agi",
+		7: "luk",
+		8: "hit",
+		9: "eva",
+		10: "cri",
+		11: "cev",
+		12: "mev",
+		13: "mrf",
+		14: "cnt",
+		15: "hrg",
+		16: "mrg",
+		17: "trg",
+		18: "tgr",
+		19: "grd",
+		20: "rec",
+		21: "pha",
+		22: "mcr",
+		23: "tcr",
+		24: "pdr",
+		25: "mdr",
+		26: "fdr",
+		27: "exr",
+		28: "cdm",
+		29: "cdr",
+		30: "mtp",
+		31: "msb",
+		32: "prof",
+		33: "sdr",
+		35: "lst",
+		36: "mst",
+		37: "tst",
+		38: "sar",
+		39: "ser",
+		40: "apr",
+		41: "gdr",
+		42: "dor",
+		43: "hcr"
+	};
+	/**
+	* Parameters where a panel decrease is beneficial in the SDP preview UI.
+	* @type {string[]}
+	*/
+	static SDP_SMALLER_IS_BETTER = [
+		"tgr",
+		"mcr",
+		"tcr",
+		"pdr",
+		"mdr",
+		"fdr"
+	];
+	/**
+	* @param {number} paramId Engine b-param id (0–7).
+	* @returns {string|null}
+	*/
+	static bparamKey(paramId) {
+		return ParameterKeys.BPARAM_KEYS[paramId] ?? null;
+	}
+	/**
+	* @param {number} xparamId Engine x-param id (0–9).
+	* @returns {string|null}
+	*/
+	static xparamKey(xparamId) {
+		return ParameterKeys.XPARAM_KEYS[xparamId] ?? null;
+	}
+	/**
+	* @param {number} sparamId Engine s-param id (0–9).
+	* @returns {string|null}
+	*/
+	static sparamKey(sparamId) {
+		return ParameterKeys.SPARAM_KEYS[sparamId] ?? null;
+	}
+	/**
+	* @param {string} key Registry parameter key.
+	* @returns {number} Engine b-param id, or -1 when unknown.
+	*/
+	static bparamId(key) {
+		return ParameterKeys.BPARAM_KEYS.indexOf(key);
+	}
+	/**
+	* @param {string} key Registry parameter key.
+	* @returns {number} Engine x-param id, or -1 when unknown.
+	*/
+	static xparamId(key) {
+		return ParameterKeys.XPARAM_KEYS.indexOf(key);
+	}
+	/**
+	* @param {string} key Registry parameter key.
+	* @returns {number} Engine s-param id, or -1 when unknown.
+	*/
+	static sparamId(key) {
+		return ParameterKeys.SPARAM_KEYS.indexOf(key);
+	}
+	/**
+	* @param {number} longParamId Legacy unified panel parameter id.
+	* @returns {string|null}
+	*/
+	static legacyLongParamKey(longParamId) {
+		return ParameterKeys.LEGACY_LONG_PARAM_TO_KEY[longParamId] ?? null;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/core/JsonEx.js
 /**
 * Extends {@link JsonEx._decode}.<br/>
@@ -2227,19 +2530,524 @@ var WindowCommandBuilder = class {
 };
 
 //#endregion
+//#region src/plugins/_base/models/SdpParameterBinding.js
+/**
+* Describes how SDP panel rank bonuses attach to a {@link ParameterDefinition}.
+*/
+var SdpParameterBinding = class SdpParameterBinding {
+	/**
+	* @param {function(Game_Actor, number): number} getPanelBonus
+	* @param {function(Game_Actor): number=} getBaseForSdp
+	*/
+	constructor(getPanelBonus, getBaseForSdp = undefined) {
+		/**
+		* Returns the bonus amount SDP panels contribute for this parameter.
+		* @type {function(Game_Actor, number): number}
+		*/
+		this.getPanelBonus = getPanelBonus;
+		/**
+		* Optional base used when calculating percent-based panel growth.
+		* @type {function(Game_Actor): number|undefined}
+		*/
+		this.getBaseForSdp = getBaseForSdp;
+	}
+	/**
+	* Panel bonuses are not applied through the registry for this parameter.
+	* @returns {SdpParameterBinding}
+	*/
+	static none() {
+		return new SdpParameterBinding((_actor, _base) => 0);
+	}
+	/**
+	* SDP bonus resolves panel entries by registry key.
+	* @param {string} parameterKey
+	* @param {function(Game_Actor): number=} getBaseForSdp
+	* @returns {SdpParameterBinding}
+	*/
+	static byKey(parameterKey, getBaseForSdp = undefined) {
+		return new SdpParameterBinding((actor, base) => {
+			if (!J.SDP) return 0;
+			return actor.getSdpBonusForParameterKey(parameterKey, base);
+		}, getBaseForSdp);
+	}
+	/**
+	* SDP bonus follows the core b-param hook path.
+	* @param {number} paramId
+	* @returns {SdpParameterBinding}
+	*/
+	static bparam(paramId) {
+		const parameterKey = ParameterKeys.bparamKey(paramId);
+		return SdpParameterBinding.byKey(parameterKey);
+	}
+	/**
+	* SDP bonus follows the ex-param hook path.
+	* @param {number} xparamId
+	* @returns {SdpParameterBinding}
+	*/
+	static xparam(xparamId) {
+		return new SdpParameterBinding((actor, base) => {
+			if (!J.SDP) return 0;
+			return actor.getSdpBonusForNonCoreParam(xparamId, base, 8);
+		});
+	}
+	/**
+	* SDP bonus follows the sp-param hook path.
+	* @param {number} sparamId
+	* @returns {SdpParameterBinding}
+	*/
+	static sparam(sparamId) {
+		return new SdpParameterBinding((actor, base) => {
+			if (!J.SDP) return 0;
+			return actor.getSdpBonusForNonCoreParam(sparamId, base, 18);
+		});
+	}
+	/**
+	* Owner-defined SDP bonus logic (CDM, LST, SDR, etc.).
+	* @param {function(Game_Actor, number): number} getPanelBonus
+	* @param {function(Game_Actor): number=} getBaseForSdp
+	* @returns {SdpParameterBinding}
+	*/
+	static custom(getPanelBonus, getBaseForSdp = undefined) {
+		return new SdpParameterBinding(getPanelBonus, getBaseForSdp);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/models/ParameterDefinitionBuilder.js
+/**
+* Fluent builder for {@link ParameterDefinition}.
+*/
+var ParameterDefinitionBuilder = class {
+	#key = String.empty;
+	#group = String.empty;
+	#sortOrder = 0;
+	#label = () => String.empty;
+	#description = () => [String.empty];
+	#iconIndex = () => 0;
+	#colorIndex = () => 0;
+	#format = ParameterFormat.FLAT;
+	#displayPolicy = ParameterDisplayPolicy.NONE;
+	#getValue = (_battler) => 0;
+	#sdpBinding = SdpParameterBinding.none();
+	/**
+	* @param {string} key
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	key(key) {
+		this.#key = key;
+		return this;
+	}
+	/**
+	* @param {string} group
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	group(group) {
+		this.#group = group;
+		return this;
+	}
+	/**
+	* @param {number} sortOrder
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	sortOrder(sortOrder) {
+		this.#sortOrder = sortOrder;
+		return this;
+	}
+	/**
+	* @param {function(): string} label
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	label(label) {
+		this.#label = label;
+		return this;
+	}
+	/**
+	* @param {function(): string[]} description
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	description(description) {
+		this.#description = description;
+		return this;
+	}
+	/**
+	* @param {function(): number} iconIndex
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	iconIndex(iconIndex) {
+		this.#iconIndex = iconIndex;
+		return this;
+	}
+	/**
+	* @param {function(): number} colorIndex
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	colorIndex(colorIndex) {
+		this.#colorIndex = colorIndex;
+		return this;
+	}
+	/**
+	* @param {string} format
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	format(format) {
+		this.#format = format;
+		return this;
+	}
+	/**
+	* @param {string} displayPolicy
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	displayPolicy(displayPolicy) {
+		this.#displayPolicy = displayPolicy;
+		return this;
+	}
+	/**
+	* @param {function(Game_Battler): number} getValue
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	getValue(getValue) {
+		this.#getValue = getValue;
+		return this;
+	}
+	/**
+	* @param {SdpParameterBinding} sdpBinding
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	sdpBinding(sdpBinding) {
+		this.#sdpBinding = sdpBinding;
+		return this;
+	}
+	/**
+	* @returns {ParameterDefinition}
+	*/
+	build() {
+		return new ParameterDefinition(this.#key, this.#group, this.#sortOrder, this.#label, this.#description, this.#iconIndex, this.#colorIndex, this.#format, this.#displayPolicy, this.#getValue, this.#sdpBinding);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/models/ParameterDefinition.js
+/**
+* Immutable catalog entry for a battler parameter.
+*/
+var ParameterDefinition = class ParameterDefinition {
+	/**
+	* @param {string} key
+	* @param {string} group
+	* @param {number} sortOrder
+	* @param {function(): string} label
+	* @param {function(): string[]} description
+	* @param {function(): number} iconIndex
+	* @param {function(): number} colorIndex
+	* @param {string} format
+	* @param {string} displayPolicy
+	* @param {function(Game_Battler): number} getValue
+	* @param {SdpParameterBinding} sdpBinding
+	*/
+	constructor(key, group, sortOrder, label, description, iconIndex, colorIndex, format, displayPolicy, getValue, sdpBinding) {
+		this.key = key;
+		this.group = group;
+		this.sortOrder = sortOrder;
+		this.label = label;
+		this.description = description;
+		this.iconIndex = iconIndex;
+		this.colorIndex = colorIndex;
+		this.format = format;
+		this.displayPolicy = displayPolicy;
+		this.getValue = getValue;
+		this.sdpBinding = sdpBinding;
+	}
+	/**
+	* Resolves the live value for the given battler.
+	* @param {Game_Battler} battler
+	* @returns {number}
+	*/
+	resolveValue(battler) {
+		return this.getValue(battler);
+	}
+	/**
+	* Pads a signed magnitude for styled numeric display.
+	* @param {number} num The rounded display magnitude.
+	* @param {number} digits Minimum digit width after padding.
+	* @param {boolean=} reserveSignColumn When true, zero uses a leading space so values align with signed rows.
+	* @param {boolean=} showPlusForPositive When true, positive values render with a leading {@code +}.
+	* @returns {string}
+	*/
+	static padSignedMagnitude(num, digits, reserveSignColumn = false, showPlusForPositive = false) {
+		const rounded = Math.round(num);
+		const padded = Math.abs(rounded).padZero(digits);
+		if (rounded < 0) {
+			return `-${padded}`;
+		}
+		if (showPlusForPositive && rounded > 0) {
+			return `+${padded}`;
+		}
+		if (reserveSignColumn && rounded === 0) {
+			return ` ${padded}`;
+		}
+		return padded;
+	}
+	/**
+	* Transforms a raw battler value into the numeric magnitude shown in the UI.
+	* @param {number} value
+	* @returns {number}
+	*/
+	displayMagnitude(value) {
+		let num = value;
+		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET || this.format === ParameterFormat.REGEN_PER_SECOND) {
+			num *= 100;
+		}
+		if (this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.SCALED_OFFSET) {
+			num -= 100;
+		}
+		return num;
+	}
+	/**
+	* Whether this parameter reserves a sign column when padded on the status screen.
+	* @returns {boolean}
+	*/
+	usesSignColumn() {
+		return this.displayPolicy === ParameterDisplayPolicy.COST_RATE || this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE || this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED;
+	}
+	/**
+	* Whether positive magnitudes should show a leading plus in the sign column.
+	* @returns {boolean}
+	*/
+	usesPlusOnPositive() {
+		return this.displayPolicy === ParameterDisplayPolicy.COST_RATE || this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED;
+	}
+	/**
+	* Whether display magnitude should be clamped at {@code -100%} before formatting.
+	* @returns {boolean}
+	*/
+	clampsDisplayAtMinus100() {
+		return this.usesSignColumn();
+	}
+	/**
+	* Clamps the UI magnitude according to this definition's display policy.
+	* @param {number} num
+	* @returns {number}
+	*/
+	clampDisplayMagnitude(num) {
+		if (this.clampsDisplayAtMinus100()) {
+			return Math.max(num, -100);
+		}
+		return num;
+	}
+	/**
+	* Resolves a fixed sentinel label when a rate hits its display floor.
+	* @param {number} value
+	* @returns {string|null}
+	*/
+	resolveDisplaySentinel(value) {
+		const num = this.displayMagnitude(value);
+		if (num > -100) {
+			return null;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.COST_RATE) {
+			return ParameterDisplaySentinel.FREE;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE) {
+			return ParameterDisplaySentinel.IMMUNE;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED) {
+			return ParameterDisplaySentinel.NONE;
+		}
+		return null;
+	}
+	/**
+	* Resolves the text color index for a live value on the status screen.
+	* @param {number} value
+	* @returns {number}
+	*/
+	resolveDisplayColorIndex(value) {
+		const sentinel = this.resolveDisplaySentinel(value);
+		if (sentinel === ParameterDisplaySentinel.FREE) {
+			return 3;
+		}
+		if (sentinel === ParameterDisplaySentinel.IMMUNE) {
+			return 7;
+		}
+		if (sentinel === ParameterDisplaySentinel.NONE) {
+			return 10;
+		}
+		const num = this.clampDisplayMagnitude(this.displayMagnitude(value));
+		if (this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE || this.displayPolicy === ParameterDisplayPolicy.COST_RATE) {
+			if (num < 0) {
+				return 3;
+			}
+			if (num > 0) {
+				return 10;
+			}
+			return 0;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE) {
+			if (num > 0) {
+				return 3;
+			}
+			if (num < 0) {
+				return 10;
+			}
+			return 0;
+		}
+		return this.colorIndex();
+	}
+	/**
+	* Formats a numeric value for UI display.
+	* @param {number} value
+	* @param {boolean=} withPadding
+	* @returns {string}
+	*/
+	prettyValue(value, withPadding = false) {
+		const sentinel = this.resolveDisplaySentinel(value);
+		if (sentinel) {
+			return sentinel;
+		}
+		const num = this.clampDisplayMagnitude(this.displayMagnitude(value));
+		if (this.format === ParameterFormat.REGEN_PER_SECOND) {
+			const perSecond = num / 5;
+			return `${perSecond.toFixed(1)}/s`;
+		}
+		let base = Number.isInteger(num) ? num.toString() : num.toFixed(1);
+		if (base.endsWith(".0")) {
+			base = base.slice(0, base.length - 2);
+		}
+		if (withPadding) {
+			base = this.applyPaddedDisplay(base, num);
+		}
+		if (this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.PERCENT) {
+			base = `${base}%`;
+		}
+		return base;
+	}
+	/**
+	* Applies zero-padding rules for styled stat values on the status screen.
+	* @param {string} base The un-padded display string.
+	* @param {number} num The transformed numeric magnitude used for padding.
+	* @returns {string}
+	*/
+	applyPaddedDisplay(base, num) {
+		if (this.format === ParameterFormat.FLAT_LARGE) {
+			return String(base).padZero(6);
+		}
+		if (this.format === ParameterFormat.FLAT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET) {
+			return ParameterDefinition.padSignedMagnitude(num, 4, false, false);
+		}
+		if (this.format === ParameterFormat.PERCENT_CENTERED) {
+			return ParameterDefinition.padSignedMagnitude(num, 3, this.usesSignColumn(), this.usesPlusOnPositive());
+		}
+		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT) {
+			if (this.usesSignColumn()) {
+				return ParameterDefinition.padSignedMagnitude(num, 3, true, this.usesPlusOnPositive());
+			}
+			return Math.abs(Math.round(num)).padZero(3);
+		}
+		return base;
+	}
+};
+ParameterDefinition.Builder = () => new ParameterDefinitionBuilder();
+
+//#endregion
+//#region src/plugins/_base/core/ParameterRegistry.js
+/**
+* Central registry of {@link ParameterDefinition} entries keyed by string id.
+*/
+var ParameterRegistry = class {
+	/**
+	* @type {Map<string, ParameterDefinition>}
+	*/
+	static _definitions = new Map();
+	/**
+	* @type {Map<string, ParameterDefinition[]>}
+	*/
+	static _groupCache = new Map();
+	/**
+	* Registers a parameter definition. Duplicate keys throw.
+	* @param {ParameterDefinition} definition
+	*/
+	static register(definition) {
+		if (!(definition instanceof ParameterDefinition)) {
+			throw new Error("ParameterRegistry.register requires a ParameterDefinition instance.");
+		}
+		if (this._definitions.has(definition.key)) {
+			throw new Error(`ParameterRegistry: duplicate key "${definition.key}".`);
+		}
+		this._definitions.set(definition.key, definition);
+		this._groupCache.clear();
+	}
+	/**
+	* @param {string} key
+	* @returns {ParameterDefinition|null}
+	*/
+	static get(key) {
+		if (this._definitions.has(key)) {
+			return this._definitions.get(key);
+		}
+		return null;
+	}
+	/**
+	* @param {string} key
+	* @returns {boolean}
+	*/
+	static has(key) {
+		return this._definitions.has(key);
+	}
+	/**
+	* @returns {ParameterDefinition[]}
+	*/
+	static all() {
+		return [...this._definitions.values()];
+	}
+	/**
+	* @param {string} group
+	* @returns {ParameterDefinition[]}
+	*/
+	static byGroup(group) {
+		if (this._groupCache.has(group)) {
+			return this._groupCache.get(group);
+		}
+		const definitions = this.all().filter((definition) => definition.group === group).sort((left, right) => left.sortOrder - right.sortOrder);
+		this._groupCache.set(group, definitions);
+		return definitions;
+	}
+	/**
+	* Resolves a live battler value for the given parameter key.
+	* @param {Game_Battler} battler
+	* @param {string} key
+	* @returns {number}
+	*/
+	static resolveValue(battler, key) {
+		const definition = this.get(key);
+		if (!definition) return 0;
+		return definition.resolveValue(battler);
+	}
+	/**
+	* Resolves SDP panel bonus for the given key.
+	* @param {Game_Actor} actor
+	* @param {string} key
+	* @returns {number}
+	*/
+	static resolveSdpPanelBonus(actor, key) {
+		const definition = this.get(key);
+		if (!definition) return 0;
+		const base = definition.sdpBinding.getBaseForSdp ? definition.sdpBinding.getBaseForSdp(actor) : definition.resolveValue(actor);
+		return definition.sdpBinding.getPanelBonus(actor, base);
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/managers/ColorManager.js
 /**
-* Gets the color index from the "long" parameter id.
-*
-* "Long" parameter ids are used in the context of 0-27, rather than
-* 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
-* @param {number} paramId The "long" parameter id.
-* @returns {number} The color index of the given parameter.
+* Gets the color index for a catalog parameter key.
+* @param {string} parameterKey The registry key.
+* @returns {number}
 */
-ColorManager.longParam = function(paramId) {
-	switch (paramId) {
-		default: return 0;
+ColorManager.parameterColor = function(parameterKey) {
+	const definition = ParameterRegistry.get(parameterKey);
+	if (!definition) {
+		return 0;
 	}
+	return definition.colorIndex();
 };
 /**
 * Gets the windowskin text palette color for a given element (same sampling path as {@link ColorManager.textColor}).
@@ -3531,7 +4339,7 @@ var RPG_State = class RPG_State extends RPG_Traited {
 	*/
 	chanceByDamage = 100;
 	/**
-	* OVERWRITE States do not normally have descriptions.
+	* States do not normally have descriptions.
 	* Rather than leaving it as `undefined`, lets be nice and keep it
 	* an empty string.
 	* @type {String.empty}
@@ -5077,7 +5885,7 @@ var IconManager = class {
 	* This is a static class.
 	*/
 	constructor() {
-		throw new Error("This is a static class.");
+		throw new Error("The IconManager is a static class.");
 	}
 	/**
 	* Gets the iconIndex for levels.
@@ -5171,48 +5979,16 @@ var IconManager = class {
 		}
 	}
 	/**
-	* Gets the `iconIndex` based on the "long" parameter id.
-	*
-	* "Long" parameter ids are used in the context of 0-27, rather than
-	* 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
-	* @param {number} paramId The "long" parameter id.
-	* @returns {number} The `iconIndex`.
+	* Gets the icon index for a catalog parameter key.
+	* @param {string} parameterKey The registry key.
+	* @returns {number}
 	*/
-	static longParam(paramId) {
-		switch (paramId) {
-			case 0: return this.param(paramId);
-			case 1: return this.param(paramId);
-			case 2: return this.param(paramId);
-			case 3: return this.param(paramId);
-			case 4: return this.param(paramId);
-			case 5: return this.param(paramId);
-			case 6: return this.param(paramId);
-			case 7: return this.param(paramId);
-			case 8: return this.xparam(paramId - 8);
-			case 9: return this.xparam(paramId - 8);
-			case 10: return this.xparam(paramId - 8);
-			case 11: return this.xparam(paramId - 8);
-			case 12: return this.xparam(paramId - 8);
-			case 13: return this.xparam(paramId - 8);
-			case 14: return this.xparam(paramId - 8);
-			case 15: return this.xparam(paramId - 8);
-			case 16: return this.xparam(paramId - 8);
-			case 17: return this.xparam(paramId - 8);
-			case 18: return this.sparam(paramId - 18);
-			case 19: return this.sparam(paramId - 18);
-			case 20: return this.sparam(paramId - 18);
-			case 21: return this.sparam(paramId - 18);
-			case 22: return this.sparam(paramId - 18);
-			case 23: return this.sparam(paramId - 18);
-			case 24: return this.sparam(paramId - 18);
-			case 25: return this.sparam(paramId - 18);
-			case 26: return this.sparam(paramId - 18);
-			case 27: return this.sparam(paramId - 18);
-			case 30: return this.maxTp();
-			default:
-				console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-				return 0;
+	static parameterIcon(parameterKey) {
+		const definition = ParameterRegistry.get(parameterKey);
+		if (!definition) {
+			return 0;
 		}
+		return definition.iconIndex();
 	}
 	/**
 	* Gets the corresponding `iconIndex` for the element based on their id.
@@ -5373,7 +6149,7 @@ var IconManager = class {
 			case 62: return this.specialFlag(trait._dataId);
 			case 64: return this.partyAbility(trait._dataId);
 			default:
-				console.error(`all traits are accounted for- is this a custom trait code: [${jaftingTrait._code}]?`);
+				console.error(`all traits are accounted for- is this a custom trait code: [${trait._code}]?`);
 				return false;
 		}
 	}
@@ -5575,45 +6351,28 @@ TextManager.rewardDescription = function(paramId) {
 	}
 };
 /**
-* Gets the double-line description for parameters by their long parameter id.
-* @param {number} paramId The long parameter id.
+* Gets the display label for a catalog parameter key.
+* @param {string} parameterKey The registry key.
+* @returns {string}
+*/
+TextManager.parameterLabel = function(parameterKey) {
+	const definition = ParameterRegistry.get(parameterKey);
+	if (!definition) {
+		return parameterKey;
+	}
+	return definition.label();
+};
+/**
+* Gets the double-line description for a catalog parameter key.
+* @param {string} parameterKey The registry key.
 * @returns {string[]}
 */
-TextManager.longParamDescription = function(paramId) {
-	switch (paramId) {
-		case 0: return this.bparamDescription(paramId);
-		case 1: return this.bparamDescription(paramId);
-		case 30: return this.bparamDescription(paramId);
-		case 2: return this.bparamDescription(paramId);
-		case 3: return this.bparamDescription(paramId);
-		case 4: return this.bparamDescription(paramId);
-		case 5: return this.bparamDescription(paramId);
-		case 6: return this.bparamDescription(paramId);
-		case 7: return this.bparamDescription(paramId);
-		case 8: return this.xparamDescription(paramId - 8);
-		case 9: return this.xparamDescription(paramId - 8);
-		case 10: return this.xparamDescription(paramId - 8);
-		case 11: return this.xparamDescription(paramId - 8);
-		case 12: return this.xparamDescription(paramId - 8);
-		case 13: return this.xparamDescription(paramId - 8);
-		case 14: return this.xparamDescription(paramId - 8);
-		case 15: return this.xparamDescription(paramId - 8);
-		case 16: return this.xparamDescription(paramId - 8);
-		case 17: return this.xparamDescription(paramId - 8);
-		case 18: return this.sparamDescription(paramId - 18);
-		case 19: return this.sparamDescription(paramId - 18);
-		case 20: return this.sparamDescription(paramId - 18);
-		case 21: return this.sparamDescription(paramId - 18);
-		case 22: return this.sparamDescription(paramId - 18);
-		case 23: return this.sparamDescription(paramId - 18);
-		case 24: return this.sparamDescription(paramId - 18);
-		case 25: return this.sparamDescription(paramId - 18);
-		case 26: return this.sparamDescription(paramId - 18);
-		case 27: return this.sparamDescription(paramId - 18);
-		default:
-			console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-			return String.empty;
+TextManager.parameterDescription = function(parameterKey) {
+	const definition = ParameterRegistry.get(parameterKey);
+	if (!definition) {
+		return [String.empty];
 	}
+	return definition.description();
 };
 /**
 * The double-line descriptions for the b-parameters.
@@ -5686,7 +6445,7 @@ TextManager.sparam = function(sParamId) {
 		case 5: return "Tech Cost";
 		case 6: return "Phys Dmg Rate";
 		case 7: return "Magi Dmg Rate";
-		case 8: return "Environ Dmg Rate";
+		case 8: return "Env Dmg Rate";
 		case 9: return "Experience UP";
 	}
 };
@@ -5707,50 +6466,6 @@ TextManager.xparam = function(xParamId) {
 		case 7: return "HP Regen";
 		case 8: return "MP Rejuv";
 		case 9: return "TP Restore";
-	}
-};
-/**
-* Gets the `parameter name` based on the "long" parameter id.
-*
-* "Long" parameter ids are used in the context of 0-27, rather than
-* 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
-* @param {number} paramId The "long" parameter id.
-* @returns {string} The `name`.
-*/
-TextManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 0: return this.param(paramId);
-		case 1: return this.param(paramId);
-		case 2: return this.param(paramId);
-		case 3: return this.param(paramId);
-		case 4: return this.param(paramId);
-		case 5: return this.param(paramId);
-		case 6: return this.param(paramId);
-		case 7: return this.param(paramId);
-		case 8: return this.xparam(paramId - 8);
-		case 9: return this.xparam(paramId - 8);
-		case 10: return this.xparam(paramId - 8);
-		case 11: return this.xparam(paramId - 8);
-		case 12: return this.xparam(paramId - 8);
-		case 13: return this.xparam(paramId - 8);
-		case 14: return this.xparam(paramId - 8);
-		case 15: return this.xparam(paramId - 8);
-		case 16: return this.xparam(paramId - 8);
-		case 17: return this.xparam(paramId - 8);
-		case 18: return this.sparam(paramId - 18);
-		case 19: return this.sparam(paramId - 18);
-		case 20: return this.sparam(paramId - 18);
-		case 21: return this.sparam(paramId - 18);
-		case 22: return this.sparam(paramId - 18);
-		case 23: return this.sparam(paramId - 18);
-		case 24: return this.sparam(paramId - 18);
-		case 25: return this.sparam(paramId - 18);
-		case 26: return this.sparam(paramId - 18);
-		case 27: return this.sparam(paramId - 18);
-		case 30: return this.maxTp();
-		default:
-			console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-			return String.empty;
 	}
 };
 /**
@@ -5921,54 +6636,169 @@ var TraitManager = class {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Actor.js
+//#region src/plugins/_base/core/registerVanillaParameters.js
 /**
-* Gets the parameter value from the "long" parameter id.
-*
-* "Long" parameter ids are used in the context of 0-27, rather than
-* 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
-* @param {number} paramId The "long" parameter id.
-* @returns {number} The value of the given parameter.
+* Registers a core b-parameter with the catalog.
+* @param {string} key
+* @param {number} paramId
+* @param {string} group
+* @param {number} sortOrder
+* @param {string} format
 */
-Game_Actor.prototype.longParam = function(paramId) {
-	switch (paramId) {
-		case 0: return this.param(paramId);
-		case 1: return this.param(paramId);
-		case 2: return this.param(paramId);
-		case 3: return this.param(paramId);
-		case 4: return this.param(paramId);
-		case 5: return this.param(paramId);
-		case 6: return this.param(paramId);
-		case 7: return this.param(paramId);
-		case 8: return this.xparam(paramId - 8);
-		case 9: return this.xparam(paramId - 8);
-		case 10: return this.xparam(paramId - 8);
-		case 11: return this.xparam(paramId - 8);
-		case 12: return this.xparam(paramId - 8);
-		case 13: return this.xparam(paramId - 8);
-		case 14: return this.xparam(paramId - 8);
-		case 15: return this.xparam(paramId - 8);
-		case 16: return this.xparam(paramId - 8);
-		case 17: return this.xparam(paramId - 8);
-		case 18: return this.sparam(paramId - 18);
-		case 19: return this.sparam(paramId - 18);
-		case 20: return this.sparam(paramId - 18);
-		case 21: return this.sparam(paramId - 18);
-		case 22: return this.sparam(paramId - 18);
-		case 23: return this.sparam(paramId - 18);
-		case 24: return this.sparam(paramId - 18);
-		case 25: return this.sparam(paramId - 18);
-		case 26: return this.sparam(paramId - 18);
-		case 27: return this.sparam(paramId - 18);
-		case 30: return this.maxTp();
-		case 31: return this.getWalkSpeedBoosts();
-		case 32: return this.bonusSkillProficiencyGains();
-		case 33: return this.sdpMultiplier();
-		default:
-			console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-			return 0;
+function registerBparam(key, paramId, group, sortOrder, format = ParameterFormat.FLAT) {
+	ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.param(paramId)).description(() => TextManager.bparamDescription(paramId)).iconIndex(() => IconManager.param(paramId)).format(format).getValue((battler) => battler.param(paramId)).sdpBinding(SdpParameterBinding.bparam(paramId)).build());
+}
+/**
+* Registers a core ex-parameter with the catalog.
+* @param {string} key
+* @param {number} xparamId
+* @param {string} group
+* @param {number} sortOrder
+* @param {string} format
+*/
+function registerXparam(key, xparamId, group, sortOrder, format = ParameterFormat.PERCENT) {
+	ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.xparam(xparamId)).description(() => TextManager.xparamDescription(xparamId)).iconIndex(() => IconManager.xparam(xparamId)).format(format).getValue((battler) => battler.xparam(xparamId)).sdpBinding(SdpParameterBinding.xparam(xparamId)).build());
+}
+/**
+* Registers a core sp-parameter with the catalog.
+* @param {string} key
+* @param {number} sparamId
+* @param {string} group
+* @param {number} sortOrder
+* @param {string} format
+* @param {string} displayPolicy
+*/
+function registerSparam(key, sparamId, group, sortOrder, format = ParameterFormat.PERCENT_CENTERED, displayPolicy = ParameterDisplayPolicy.NONE) {
+	ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.sparam(sparamId)).description(() => TextManager.sparamDescription(sparamId)).iconIndex(() => IconManager.sparam(sparamId)).format(format).displayPolicy(displayPolicy).getValue((battler) => battler.sparam(sparamId)).sdpBinding(SdpParameterBinding.sparam(sparamId)).build());
+}
+/**
+* Registers all vanilla engine parameters with the catalog.
+*/
+function registerVanillaParameters() {
+	registerBparam("mhp", 0, ParameterGroups.VITALITY, 0, ParameterFormat.FLAT_LARGE);
+	registerXparam("hrg", 7, ParameterGroups.VITALITY, 1, ParameterFormat.REGEN_PER_SECOND);
+	registerBparam("mmp", 1, ParameterGroups.VITALITY, 2, ParameterFormat.FLAT_LARGE);
+	registerXparam("mrg", 8, ParameterGroups.VITALITY, 3, ParameterFormat.REGEN_PER_SECOND);
+	ParameterRegistry.register(ParameterDefinition.Builder().key("mtp").group(ParameterGroups.VITALITY).sortOrder(4).label(() => TextManager.maxTp()).description(() => TextManager.bparamDescription(30)).iconIndex(() => IconManager.maxTp()).format(ParameterFormat.FLAT).getValue((battler) => battler.maxTp()).sdpBinding(SdpParameterBinding.custom((actor, base) => {
+		if (!J.SDP) return 0;
+		if (!actor.maxTpSdpBonuses) return 0;
+		return actor.maxTpSdpBonuses(base);
+	}, (actor) => actor.getBaseMaxTp())).build());
+	registerXparam("trg", 9, ParameterGroups.VITALITY, 5, ParameterFormat.REGEN_PER_SECOND);
+	registerSparam("rec", 2, ParameterGroups.VITALITY, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+	registerSparam("pha", 3, ParameterGroups.VITALITY, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+	registerBparam("atk", 2, ParameterGroups.COMBAT, 0);
+	registerBparam("mat", 4, ParameterGroups.COMBAT, 1);
+	ParameterRegistry.register(ParameterDefinition.Builder().key("cnt").group(ParameterGroups.COMBAT).sortOrder(2).label(() => TextManager.xparam(6)).description(() => TextManager.xparamDescription(6)).iconIndex(() => IconManager.xparam(6)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.cnt).sdpBinding(SdpParameterBinding.xparam(6)).build());
+	ParameterRegistry.register(ParameterDefinition.Builder().key("mrf").group(ParameterGroups.COMBAT).sortOrder(3).label(() => TextManager.xparam(5)).description(() => TextManager.xparamDescription(5)).iconIndex(() => IconManager.xparam(5)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mrf).sdpBinding(SdpParameterBinding.xparam(5)).build());
+	registerSparam("mcr", 4, ParameterGroups.COMBAT, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
+	registerSparam("tcr", 5, ParameterGroups.COMBAT, 9, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
+	registerXparam("hit", 0, ParameterGroups.PRECISION, 0, ParameterFormat.SCALED_POINTS);
+	registerSparam("grd", 1, ParameterGroups.PRECISION, 1, ParameterFormat.SCALED_OFFSET);
+	registerBparam("agi", 6, ParameterGroups.PRECISION, 2);
+	registerXparam("eva", 1, ParameterGroups.PRECISION, 3);
+	registerXparam("cri", 2, ParameterGroups.PRECISION, 4);
+	registerXparam("cev", 3, ParameterGroups.PRECISION, 5);
+	registerBparam("def", 3, ParameterGroups.DEFENSIVE, 0);
+	registerBparam("mdf", 5, ParameterGroups.DEFENSIVE, 1);
+	registerSparam("pdr", 6, ParameterGroups.DEFENSIVE, 2, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+	registerSparam("mdr", 7, ParameterGroups.DEFENSIVE, 3, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+	registerSparam("fdr", 8, ParameterGroups.DEFENSIVE, 4, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+	registerXparam("mev", 4, ParameterGroups.DEFENSIVE, 5);
+	registerSparam("tgr", 0, ParameterGroups.FATE, 0, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.SIGNED);
+	registerBparam("luk", 7, ParameterGroups.FATE, 2);
+	registerSparam("exr", 9, ParameterGroups.FATE, 1, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+}
+registerVanillaParameters();
+
+//#endregion
+//#region src/plugins/_base/core/AffiliationDisplay.js
+/**
+* Formats an affiliation rate as a relative delta or special label.
+* Shared by CMS status affiliations and Monsterpedia elementalistics.
+* @param {number} ratePercent The effective rate on a 0–100+ scale (positive magnitude).
+* @param {{ absorbed?: boolean, immune?: boolean }} flags Display modifiers.
+* @returns {{ value: string, colorIndex: number }|null} Null when the rate is unmodified baseline.
+*/
+function formatAffiliationDelta(ratePercent, flags = {}) {
+	const absorbed = flags.absorbed === true;
+	const immune = flags.immune === true;
+	if (absorbed) {
+		const magnitude = Math.round(ratePercent);
+		const diff = magnitude - 100;
+		if (diff === 0) {
+			return {
+				value: "ABSORB",
+				colorIndex: 5
+			};
+		}
+		return {
+			value: `ABSORB (${ParameterDefinition.padSignedMagnitude(diff, AFFILIATION_PAD_DIGITS, true, true)}%)`,
+			colorIndex: 5
+		};
 	}
+	if (immune || ratePercent <= 0) {
+		return {
+			value: "IMMUNE",
+			colorIndex: 7
+		};
+	}
+	const diff = Math.round(ratePercent) - 100;
+	if (diff === 0) {
+		return null;
+	}
+	if (diff <= -100) {
+		return {
+			value: "IMMUNE",
+			colorIndex: 7
+		};
+	}
+	let colorIndex = 0;
+	if (diff > 0) {
+		colorIndex = 10;
+	} else {
+		colorIndex = 3;
+	}
+	return {
+		value: `${ParameterDefinition.padSignedMagnitude(diff, AFFILIATION_PAD_DIGITS, true, true)}%`,
+		colorIndex
+	};
+}
+/**
+* Resolves affiliation display text, using {@code 000%} when the rate matches baseline.
+* @param {number} ratePercent The effective rate on a 0–100+ scale (positive magnitude).
+* @param {{ absorbed?: boolean, immune?: boolean }} flags Display modifiers.
+* @returns {{ value: string, colorIndex: number }}
+*/
+function resolveAffiliationDisplay(ratePercent, flags = {}) {
+	const formatted = formatAffiliationDelta(ratePercent, flags);
+	if (formatted) {
+		return formatted;
+	}
+	return {
+		value: `${ParameterDefinition.padSignedMagnitude(0, AFFILIATION_PAD_DIGITS, true, true)}%`,
+		colorIndex: 0
+	};
+}
+/**
+* Digit width for styled affiliation deltas ({@code +0200%}, {@code -0050%}).
+* @type {number}
+*/
+var AFFILIATION_PAD_DIGITS = 4;
+/**
+* Mask template for unknown affiliation deltas — keeps column width stable while scouting.
+* @type {string}
+*/
+var AFFILIATION_MASK_TEMPLATE = "+0000%";
+var AffiliationDisplay = {
+	padDigits: AFFILIATION_PAD_DIGITS,
+	maskTemplate: AFFILIATION_MASK_TEMPLATE,
+	formatDelta: formatAffiliationDelta,
+	resolveDisplay: resolveAffiliationDisplay
 };
+
+//#endregion
+//#region src/plugins/_base/objects/Game_Actor.js
 /**
 * The underlying database data for this battler.
 *
@@ -6011,7 +6841,7 @@ Game_Actor.prototype.getNotesSources = function() {
 	return combinedNoteSources;
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Adds a hook for performing actions when an actor is setup.
 */
 J.BASE.Aliased.Game_Actor.set("setup", Game_Actor.prototype.setup);
@@ -6027,7 +6857,7 @@ Game_Actor.prototype.onSetup = function(actorId) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #learnSkill}.<br>
+* Extends {@link #learnSkill}.<br/>
 * Adds a hook for performing actions when a new skill is learned.
 * If the skill is already known, it will not trigger any on-skill-learned effects.
 */
@@ -6046,7 +6876,7 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #learnSkill}.<br>
+* Extends {@link #learnSkill}.<br/>
 * Adds a hook for performing actions when a new skill is learned.
 * If the skill is already known, it will not trigger any on-skill-learned effects.
 */
@@ -6065,7 +6895,7 @@ Game_Actor.prototype.onForgetSkill = function(skillId) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #die}.<br>
+* Extends {@link #die}.<br/>
 * Adds a toggle of the death effects.
 */
 J.BASE.Aliased.Game_Actor.set("die", Game_Actor.prototype.die);
@@ -6080,7 +6910,7 @@ Game_Actor.prototype.onDeath = function() {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #revive}.<br>
+* Extends {@link #revive}.<br/>
 * Handles on-revive effects at the actor-level.
 */
 J.BASE.Aliased.Game_Actor.set("revive", Game_Actor.prototype.revive);
@@ -6116,7 +6946,7 @@ Game_Actor.prototype.onClassChange = function(classId, keepExp) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #changeEquip}.<br>
+* Extends {@link #changeEquip}.<br/>
 * Adds a hook for performing actions when equipment on the actor has changed state.
 */
 J.BASE.Aliased.Game_Actor.set("changeEquip", Game_Actor.prototype.changeEquip);
@@ -6129,7 +6959,7 @@ Game_Actor.prototype.changeEquip = function(slotId, item) {
 	}
 };
 /**
-* Extends {@link #discardEquip}.<br>
+* Extends {@link #discardEquip}.<br/>
 * Adds a hook for performing actions when equipment on the actor has been discarded.
 */
 J.BASE.Aliased.Game_Actor.set("discardEquip", Game_Actor.prototype.discardEquip);
@@ -6142,7 +6972,7 @@ Game_Actor.prototype.discardEquip = function(item) {
 	}
 };
 /**
-* Extends {@link #forceChangeEquip}.<br>
+* Extends {@link #forceChangeEquip}.<br/>
 * Adds a hook for performing actions when equipment on the actor has been forcefully changed.
 */
 J.BASE.Aliased.Game_Actor.set("forceChangeEquip", Game_Actor.prototype.forceChangeEquip);
@@ -6155,7 +6985,7 @@ Game_Actor.prototype.forceChangeEquip = function(slotId, item) {
 	}
 };
 /**
-* Extends {@link #releaseUnequippableItems}.<br>
+* Extends {@link #releaseUnequippableItems}.<br/>
 * Adds a hook for performing actions when equipment on the actor has been released due to internal change.
 */
 J.BASE.Aliased.Game_Actor.set("releaseUnequippableItems", Game_Actor.prototype.releaseUnequippableItems);
@@ -6223,7 +7053,7 @@ Game_Actor.prototype.onLevelDown = function() {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #levelDown}.<br>
+* Extends {@link #levelDown}.<br/>
 * Adds a hook for performing actions when an the actor levels down.
 */
 J.BASE.Aliased.Game_Actor.set("levelDown", Game_Actor.prototype.levelDown);
@@ -6311,7 +7141,7 @@ Game_Battler.prototype.class = function(classId) {
 	return $dataClasses.at(classId);
 };
 /**
-* Overrides {@link #maxTp}.<br/>
+* Overwrites {@link #maxTp}.<br/>
 * Replaces the default of 100 for all battlers with a tag-based calculation that reviews all available notes to sum
 * together all maxTp values for a custom value.
 * @returns {number}
@@ -6375,7 +7205,7 @@ Game_Battler.prototype.state = function(stateId) {
 	return $dataStates[stateId];
 };
 /**
-* Overrides {@link #states}.<br>
+* Overwrites {@link #states}.<br/>
 * Returns all states from the view of this battler.
 * @returns {RPG_State[]}
 */
@@ -6383,7 +7213,7 @@ Game_Battler.prototype.states = function() {
 	return this._states.map((stateId) => this.state(stateId), this);
 };
 /**
-* Extends {@link #eraseState}.<br>
+* Extends {@link #eraseState}.<br/>
 * Adds a hook for performing actions when a state is removed from the battler.
 */
 J.BASE.Aliased.Game_Battler.set("eraseState", Game_Battler.prototype.eraseState);
@@ -6403,7 +7233,7 @@ Game_Battler.prototype.onStateRemoval = function(stateId) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #addNewState}.<br>
+* Extends {@link #addNewState}.<br/>
 * Adds a hook for performing actions when a state is added on the battler.
 */
 J.BASE.Aliased.Game_Battler.set("addNewState", Game_Battler.prototype.addNewState);
@@ -6445,6 +7275,15 @@ Game_Battler.prototype.currentHpPercent = function() {
 */
 Game_Battler.prototype.currentHpPercent100 = function() {
 	return Math.round(this.currentHpPercent() * 100);
+};
+/**
+* Resolves a catalog parameter value by string key.
+* Delegates to {@link ParameterRegistry} — does not bypass param/xparam/sparam alias chains.
+* @param {string} key The parameter key (e.g. `'atk'`).
+* @returns {number}
+*/
+Game_Battler.prototype.parameter = function(key) {
+	return ParameterRegistry.resolveValue(this, key);
 };
 
 //#endregion
@@ -6502,58 +7341,6 @@ Game_BattlerBase.knownSpParameterIds = function() {
 	];
 };
 /**
-* Whether or not the given long-parameter id is a known base parameter.
-* @param {number} longParameterId The long-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isBaseParam = function(longParameterId) {
-	return this.knownBaseParameterIds().includes(longParameterId);
-};
-/**
-* Whether or not the given long-parameter id is a known ex parameter.
-* @param {number} longParameterId The long-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isExParam = function(longParameterId) {
-	return this.knownExParameterIds().includes(longParameterId - 8);
-};
-/**
-* Whether or not the given long-parameter id is a known sp parameter.
-* @param {number} longParameterId The long-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isSpParam = function(longParameterId) {
-	return this.knownSpParameterIds().includes(longParameterId - 18);
-};
-/**
-* Whether or not the given ex-parameter id is a known parameter.
-* Use {@link #isRegenLongParamId} for long-parameter ids.
-* @param {number} paramId The ex-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isRegenParamId = function(paramId) {
-	const regenParamIds = [
-		7,
-		8,
-		9
-	];
-	return regenParamIds.includes(paramId);
-};
-/**
-* Whether or not the given long-parameter id is a known parameter.
-* Use {@link #isRegenParamId} for ex-parameter ids.
-* @param {number} longParamId The long-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isRegenLongParamId = function(longParamId) {
-	const regenParamIds = [
-		7,
-		8,
-		9
-	];
-	return regenParamIds.includes(longParamId - 8);
-};
-/**
 * Gets the sum of deltas above the 1.0 neutral baseline for all traits matching the given
 * code and dataId.  Each trait value is treated as `1.0 + delta`; this method isolates
 * the delta portion and sums them additively.
@@ -6569,7 +7356,7 @@ Game_BattlerBase.prototype.traitsDeltaSum = function(code, id) {
 	return this.traitsWithId(code, id).map((trait) => trait.value - 1).reduce((total, delta) => total + delta, 0);
 };
 /**
-* Overrides {@link Game_BattlerBase#sparam}.<br>
+* Overwrites {@link Game_BattlerBase#sparam}.<br/>
 * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
 *
 * RMMZ stores sparam trait values as multipliers (1.0 = baseline, 1.5 = +50%).
@@ -6586,7 +7373,7 @@ Game_BattlerBase.prototype.sparam = function(sparamId) {
 	return 1 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_SPARAM, sparamId);
 };
 /**
-* Overrides {@link Game_BattlerBase#elementRate}.<br>
+* Overwrites {@link Game_BattlerBase#elementRate}.<br/>
 * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
 *
 * RMMZ stores element rate trait values as multipliers (1.0 = neutral, 1.2 = +20% damage taken).
@@ -6606,7 +7393,7 @@ Game_BattlerBase.prototype.elementRate = function(elementId) {
 	return Math.max(0, rate);
 };
 /**
-* Overrides {@link Game_BattlerBase#paramRate}.<br>
+* Overwrites {@link Game_BattlerBase#paramRate}.<br/>
 * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
 *
 * RMMZ stores param rate trait values as multipliers (1.0 = baseline, 1.5 = +50%).
@@ -6626,7 +7413,7 @@ Game_BattlerBase.prototype.paramRate = function(paramId) {
 	return Math.max(0, rate);
 };
 /**
-* Overrides {@link Game_BattlerBase#stateRate}.<br>
+* Overwrites {@link Game_BattlerBase#stateRate}.<br/>
 * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
 *
 * RMMZ stores state rate trait values as multipliers (1.0 = neutral, 0.5 = 50% less likely).
@@ -6650,6 +7437,24 @@ Game_BattlerBase.prototype.stateRate = function(stateId) {
 Object.defineProperty(Game_BattlerBase.prototype, "mtp", {
 	get: function() {
 		return this.maxTp();
+	},
+	configurable: true
+});
+/**
+* Magic reflect rate — negative values are meaningless, so floor at zero for combat and UI.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "mrf", {
+	get: function() {
+		return Math.max(0, this.xparam(5));
+	},
+	configurable: true
+});
+/**
+* Counter rate — negative values are meaningless, so floor at zero for combat and UI.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "cnt", {
+	get: function() {
+		return Math.max(0, this.xparam(6));
 	},
 	configurable: true
 });
@@ -6857,7 +7662,7 @@ Game_Enemy.prototype.getEnemyNotes = function() {
 	return [enemy];
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Adds a hook for performing actions when an enemy is setup.
 */
 J.BASE.Aliased.Game_Enemy.set("setup", Game_Enemy.prototype.setup);
@@ -6917,7 +7722,7 @@ Game_Enemy.prototype.learnSkill = function(skillId) {
 	return true;
 };
 /**
-* Extends {@link #die}.<br>
+* Extends {@link #die}.<br/>
 * Adds a toggle of the death effects.
 */
 J.BASE.Aliased.Game_Enemy.set("die", Game_Enemy.prototype.die);
@@ -7098,7 +7903,7 @@ Game_Map.prototype.note = function() {
 //#endregion
 //#region src/plugins/_base/objects/Game_Party.js
 /**
-* Overrides {@link #gainItem}.<br>
+* Overwrites {@link #gainItem}.<br/>
 * Replaces item gain and management with index-based management instead.
 * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
 * @param {number} amount The amount to modify the quantity by.
@@ -7147,7 +7952,7 @@ Game_Party.prototype.processContainerlessItemGain = function(item, amount, inclu
 	console.error(item, amount, includeEquip);
 };
 /**
-* Extends {@link #maxItems}.<br>
+* Extends {@link #maxItems}.<br/>
 * Adds more handling regarding maximum quantities for your inventory.
 */
 J.BASE.Aliased.Game_Party.set("maxItems", Game_Party.prototype.maxItems);
@@ -7168,7 +7973,8 @@ Game_Party.prototype.defaultMaxItems = function() {
 	return 999;
 };
 /**
-* OVERWRITE Retrieves the item based on its index.
+* Overwrites {@link #numItems}.<br/>
+* Retrieves the item based on its index.
 * @param {RPG_BaseItem} item The item to check the quantity of.
 * @returns {number}
 */
@@ -7199,7 +8005,7 @@ Game_Party.prototype.recoverAllMembers = function() {
 	this.members().forEach((member) => member.recoverAll());
 };
 /**
-* Overrides {@link #maxBattleMembers}.<br/>
+* Overwrites {@link #maxBattleMembers}.<br/>
 * Sets the maximum number of battle members to 8.
 * @returns {number}
 */
@@ -7230,7 +8036,7 @@ Game_Player.prototype.isPlayer = function() {
 //#endregion
 //#region src/plugins/_base/objects/Game_System.js
 /**
-* Extends {@link Game_System.initialize}.<br>
+* Extends {@link Game_System.initialize}.<br/>
 * Initializes all members of this class and adds our custom members.
 */
 J.BASE.Aliased.Game_System.set("initialize", Game_System.prototype.initialize);
@@ -7274,7 +8080,7 @@ Game_System.prototype.canGainEntry = function(entry) {
 //#endregion
 //#region src/plugins/_base/objects/Game_Temp.js
 /**
-* Extends {@link Game_Temp.initialize}.<br>
+* Extends {@link Game_Temp.initialize}.<br/>
 * Initializes all members of this class and adds our custom members.
 */
 J.BASE.Aliased.Game_Temp.set("initialize", Game_Temp.prototype.initialize);
@@ -7380,7 +8186,7 @@ var Window_Dimmer = class extends Window_Base {
 */
 Scene_Base.MODAL_DIMMER_CONTENTS_OPACITY_DEFAULT = 200;
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Adds extension for initializing custom members for scenes.
 */
 J.BASE.Aliased.Scene_Base.set("initialize", Scene_Base.prototype.initialize);
@@ -8199,7 +9005,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		this._statusType = statusType;
 	}
 	/**
-	* Overrides {@link #bitmapWidth}.<br/>
+	* Overwrites {@link #bitmapWidth}.<br/>
 	* Gets the width of our custom bitmap.
 	* @returns {number}
 	*/
@@ -8207,7 +9013,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this._gauge._bitmapWidth;
 	}
 	/**
-	* Overrides {@link #bitmapHeight}.<br/>
+	* Overwrites {@link #bitmapHeight}.<br/>
 	* Gets the height of our custom bitmap.
 	* @returns {number}
 	*/
@@ -8215,7 +9021,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this._gauge._bitmapHeight;
 	}
 	/**
-	* Overrides {@link #gaugeHeight}.<br/>
+	* Overwrites {@link #gaugeHeight}.<br/>
 	* Gets the height of our custom gauge.
 	* @returns {number}
 	*/
@@ -8223,7 +9029,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this._gauge._gaugeHeight;
 	}
 	/**
-	* Overrides {@link #label}.<br/>
+	* Overwrites {@link #label}.<br/>
 	* Gets our custom label for the gauge.
 	* @returns {string}
 	*/
@@ -8291,7 +9097,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this._gauge._activated;
 	}
 	/**
-	* Overrides {@link #currentValue}.<br/>
+	* Overwrites {@link #currentValue}.<br/>
 	* Returns the current value of the gauge based on custom values.
 	* @returns {number|NaN}
 	*/
@@ -8306,7 +9112,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		}
 	}
 	/**
-	* Overrides {@link #currentMaxValue}.<br/>
+	* Overwrites {@link #currentMaxValue}.<br/>
 	* Returns the maximum value of the gauge based on custom values.
 	* @returns {number|NaN}
 	*/
@@ -8350,7 +9156,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		}
 	}
 	/**
-	* Overrides {@link #drawLabel}.<br/>
+	* Overwrites {@link #drawLabel}.<br/>
 	* Draws our custom label on the gauge.
 	*/
 	drawLabel() {
@@ -8361,12 +9167,12 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		this.bitmap.drawText(this._gauge._label, x, y, this.bitmapWidth(), this.bitmapHeight(), "left");
 	}
 	/**
-	* Overrides {@link #drawValue}.<br/>
+	* Overwrites {@link #drawValue}.<br/>
 	* Does nothing by design (no values for map gauges).
 	*/
 	drawValue() {}
 	/**
-	* Overrides {@link #redraw}.<br/>
+	* Overwrites {@link #redraw}.<br/>
 	* Redraws the gauge with our custom values.
 	*/
 	redraw() {
@@ -8386,7 +9192,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		}
 	}
 	/**
-	* Overrides {@link #measureLabelWidth}.<br/>
+	* Overwrites {@link #measureLabelWidth}.<br/>
 	* Measure the actual custom label for this map gauge. If no label is set,
 	* return 0 so HUD gauges (which are unlabeled) render with the same width.
 	* @returns {number}
@@ -8400,7 +9206,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this.bitmap.measureTextWidth(label);
 	}
 	/**
-	* Overrides {@link #textHeight}.<br/>
+	* Overwrites {@link #textHeight}.<br/>
 	* Return the bitmap height as the text height for map gauges to ensure borders are correctly drawn.
 	* @returns {number}
 	*/
@@ -8412,7 +9218,8 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 //#endregion
 //#region src/plugins/_base/windows/TileMap.js
 /**
-* OVERWRITE Fuck those autoshadows.
+* Overwrites {@link #_addShadow}.<br/>
+* Fuck those autoshadows.
 */
 Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) {};
 
@@ -8648,7 +9455,7 @@ Window_Base.prototype.refresh = function() {
 */
 Window_Base.prototype.drawContent = function() {};
 /**
-* Overrides {@link Window_Base.resetFontSettings}.<br>
+* Overwrites {@link Window_Base.resetFontSettings}.<br/>
 * Delegates each concern to its own method so individual windows can override
 * only what they need (e.g. a smaller font size) without re-implementing everything.
 */
@@ -8893,11 +9700,17 @@ Window_Base.prototype.buildLeadingPadZeroMask = function(value) {
 * @param {number} width The width to work within.
 * @param {number=} zeroColorIndex Palette index for leading zeros; defaults to 8.
 * @param {number=} valueColorIndex Palette index for significant digits; defaults to 0.
+* @param {'left'|'right'|'center'} align Horizontal alignment within {@code width}; defaults to {@code right}.
 */
-Window_Base.prototype.drawStyledPaddedValue = function(x, y, value, width, zeroColorIndex = 8, valueColorIndex = 0) {
+Window_Base.prototype.drawStyledPaddedValue = function(x, y, value, width, zeroColorIndex = 8, valueColorIndex = 0, align = "right") {
 	const charWidth = this.textWidth("0");
 	const totalCharWidth = value.length * charWidth;
-	const startX = x + width - totalCharWidth;
+	let startX = x;
+	if (align === "right") {
+		startX = x + width - totalCharWidth;
+	} else if (align === "center") {
+		startX = x + Math.floor((width - totalCharWidth) / 2);
+	}
 	const leadingPadZeroMask = this.buildLeadingPadZeroMask(value);
 	[...value].forEach((char, index) => {
 		const isDigit = char >= "0" && char <= "9";
@@ -9276,7 +10089,7 @@ Window_Command.prototype.preDrawItem = function(index) {
 	this.changePaintOpacity(this.isCommandEnabled(index));
 };
 /**
-* Overrides {@link #drawItem}.<br>
+* Overwrites {@link #drawItem}.<br/>
 * Renders the text along with any additional data that is available to the command.
 */
 Window_Command.prototype.drawItem = function(index) {
@@ -9487,7 +10300,7 @@ Window_Command.prototype.commandFaceData = function(index) {
 	return command.faceData ?? [String.empty, -1];
 };
 /**
-* Overrides {@link #addCommand}.<br>
+* Overwrites {@link #addCommand}.<br/>
 * Adds additional metadata to a command.
 * @param {string} name The visible name of this command.
 * @param {string} symbol The symbol for this command.
@@ -9547,7 +10360,7 @@ Window_Command.prototype.prependBuiltCommand = function(command) {
 //#endregion
 //#region src/plugins/_base/windows/Window_EquipItem.js
 /**
-* Overrides {@link #updateHelp}.<br>
+* Overwrites {@link #updateHelp}.<br/>
 * Enables extension of the method's logic for various menu needs.
 */
 Window_EquipItem.prototype.updateHelp = function() {
@@ -9646,7 +10459,7 @@ Window_Help.prototype.getSecondaryNewline = function() {
 	return "|";
 };
 /**
-* Overrides {@link #refresh}.<br>
+* Overwrites {@link #refresh}.<br/>
 * Extracts the text rendering out into its own function, but this function
 * still does the same thing: clears and redraws the contents of the window.
 */
@@ -9836,6 +10649,21 @@ Window_Selectable.prototype.processHandling = function() {
 		if (this.isMoreEnabled() && this.isMoreTriggered()) {
 			return this.processMore();
 		}
+		if (this.isContextEnabled() && this.isContextTriggered()) {
+			return this.processContext();
+		}
+		if (this.isContentPrevEnabled() && this.isContentPrevTriggered()) {
+			return this.processContentPrev();
+		}
+		if (this.isContentNextEnabled() && this.isContentNextTriggered()) {
+			return this.processContentNext();
+		}
+		if (this.isActorPrevEnabled() && this.isActorPrevTriggered()) {
+			return this.processActorPrev();
+		}
+		if (this.isActorNextEnabled() && this.isActorNextTriggered()) {
+			return this.processActorNext();
+		}
 	}
 	return J.BASE.Aliased.Window_Selectable.processHandling.call(this);
 };
@@ -9868,6 +10696,146 @@ Window_Selectable.prototype.callMoreHandler = function() {
 	this.callHandler("more");
 };
 /**
+* Gets whether a contextual scene action handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContextEnabled = function() {
+	return this.isHandled("context");
+};
+/**
+* Gets whether triangle / tab fired this frame (or repeat when allowed).
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContextTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("tab") : Input.isTriggered("tab");
+};
+/**
+* Processes the contextual scene action.
+*/
+Window_Selectable.prototype.processContext = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callContextHandler();
+};
+/**
+* Calls the handler registered for contextual scene actions.
+*/
+Window_Selectable.prototype.callContextHandler = function() {
+	this.callHandler("context");
+};
+/**
+* Gets whether a content-tab previous handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContentPrevEnabled = function() {
+	return this.isHandled("content-prev");
+};
+/**
+* Gets whether L2 / ctrl fired for content cycling.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContentPrevTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("l2") : Input.isTriggered("l2");
+};
+/**
+* Processes content-tab cycle toward the previous entry.
+*/
+Window_Selectable.prototype.processContentPrev = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callContentPrevHandler();
+};
+/**
+* Calls the handler registered for content-tab previous.
+*/
+Window_Selectable.prototype.callContentPrevHandler = function() {
+	this.callHandler("content-prev");
+};
+/**
+* Gets whether a content-tab next handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContentNextEnabled = function() {
+	return this.isHandled("content-next");
+};
+/**
+* Gets whether R2 / alt fired for content cycling.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContentNextTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("r2") : Input.isTriggered("r2");
+};
+/**
+* Processes content-tab cycle toward the next entry.
+*/
+Window_Selectable.prototype.processContentNext = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callContentNextHandler();
+};
+/**
+* Calls the handler registered for content-tab next.
+*/
+Window_Selectable.prototype.callContentNextHandler = function() {
+	this.callHandler("content-next");
+};
+/**
+* Gets whether an actor-previous handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isActorPrevEnabled = function() {
+	return this.isHandled("actor-prev");
+};
+/**
+* Gets whether L1 / pageup fired for actor cycling.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isActorPrevTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("pageup") : Input.isTriggered("pageup");
+};
+/**
+* Processes actor cycle toward the previous party member.
+*/
+Window_Selectable.prototype.processActorPrev = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callActorPrevHandler();
+};
+/**
+* Calls the handler registered for actor-previous.
+*/
+Window_Selectable.prototype.callActorPrevHandler = function() {
+	this.callHandler("actor-prev");
+};
+/**
+* Gets whether an actor-next handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isActorNextEnabled = function() {
+	return this.isHandled("actor-next");
+};
+/**
+* Gets whether R1 / pagedown fired for actor cycling.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isActorNextTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("pagedown") : Input.isTriggered("pagedown");
+};
+/**
+* Processes actor cycle toward the next party member.
+*/
+Window_Selectable.prototype.processActorNext = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callActorNextHandler();
+};
+/**
+* Calls the handler registered for actor-next.
+*/
+Window_Selectable.prototype.callActorNextHandler = function() {
+	this.callHandler("actor-next");
+};
+/**
 * Extends the `.select()` to include a hook for executing logic onIndexChange.
 */
 J.BASE.Aliased.Window_Selectable.select = Window_Selectable.prototype.select;
@@ -9888,7 +10856,8 @@ Window_Selectable.prototype.onIndexChange = function() {};
 //#endregion
 //#region src/plugins/_base/windows/WindowLayer.js
 /**
-* OVERWRITE Renders windows, but WITH the ability to overlay.
+* Overwrites {@link #render}.<br/>
+* Renders windows, but WITH the ability to overlay.
 *
 * @param {PIXI.Renderer} renderer - The renderer.
 */

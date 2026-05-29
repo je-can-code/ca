@@ -139,17 +139,6 @@ Object.defineProperty(RPG_Base.prototype, "jabsSpeedBoost", { get: function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/managers/IconManager.js
 /**
-* Extend {@link #longParam}.<br>
-* First checks if the paramId was the move speed boost, then checks others.
-*/
-J.ABS.EXT.SPEED.Aliased.IconManager.set("longParam", IconManager.longParam);
-IconManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 31: return this.movespeed();
-		default: return J.ABS.EXT.SPEED.Aliased.IconManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the icon index for the move speed boost.
 * @returns {number}
 */
@@ -160,33 +149,11 @@ IconManager.movespeed = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/managers/TextManager.js
 /**
-* Extends {@link #longParam}.<br>
-* First checks if this is the move speed parameter, then checks others.
-*/
-J.ABS.EXT.SPEED.Aliased.TextManager.set("longParam", TextManager.longParam);
-TextManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 31: return this.movespeed();
-		default: return J.ABS.EXT.SPEED.Aliased.TextManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the proper name of "move speed boost".
 * @returns {string}
 */
 TextManager.movespeed = function() {
 	return "Move Boost";
-};
-/**
-* Extends {@link #longParamDescription}.<br>
-* First checks if this is the move speed parameter, then checks others.
-*/
-J.ABS.EXT.SPEED.Aliased.TextManager.set("longParamDescription", TextManager.longParamDescription);
-TextManager.longParamDescription = function(paramId) {
-	switch (paramId) {
-		case 31: return this.moveSpeedDescription();
-		default: return J.ABS.EXT.SPEED.Aliased.TextManager.get("longParamDescription").call(this, paramId);
-	}
 };
 /**
 * Gets the description text for the move speed boost.
@@ -199,7 +166,7 @@ TextManager.moveSpeedDescription = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/objects/Game_Actor.js
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Refreshes movement speed boosts when the battler's data changes.
 */
 J.ABS.EXT.SPEED.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
@@ -211,7 +178,7 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/objects/Game_Battler.js
 /**
-* Extends {@link Game_Battler.initMembers}.<br>
+* Extends {@link Game_Battler.initMembers}.<br/>
 */
 J.ABS.EXT.SPEED.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function() {
@@ -241,12 +208,20 @@ Game_Battler.prototype.initSpeedBoosts = function() {
 	this._j._abs._speed._walkBoost = 0;
 };
 /**
-* Gets the current walking speed boost scale for this battler.
-* @returns {number}
+* Move speed boost from notes and SDP panels.
 */
-Game_Battler.prototype.getWalkSpeedBoosts = function() {
-	return this._j._abs._speed._walkBoost;
-};
+Object.defineProperty(Game_BattlerBase.prototype, "msb", {
+	get: function() {
+		return 0;
+	},
+	configurable: true
+});
+Object.defineProperty(Game_Battler.prototype, "msb", {
+	get: function() {
+		return this._j._abs._speed._walkBoost;
+	},
+	configurable: true
+});
 /**
 * Sets the current speed bost scale for this battler.
 * @param {number} amount The new walking speed boost amount.
@@ -267,7 +242,7 @@ Game_Battler.prototype.refreshSpeedBoosts = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/objects/Game_Character.js
 /**
-* Extends {@link Game_Character.distancePerFrame}.<br>
+* Extends {@link Game_Character.distancePerFrame}.<br/>
 * Enables modification of the character's movement speed on the map.
 * @return {number} The modified distance per frame to move.
 */
@@ -286,7 +261,7 @@ Game_Character.prototype.distancePerFrame = function() {
 Game_Character.prototype.calculateSpeedBoostBonus = function(baseMoveSpeed) {
 	const battler = this.getJabsBattler();
 	if (!battler) return 0;
-	const scale = battler.getBattler().getWalkSpeedBoosts();
+	const scale = battler.getBattler().msb;
 	if (scale === 0) return 0;
 	const constrainedScale = Math.max(this.minimumWalkSpeedBoost(), scale);
 	const multiplier = constrainedScale / 100;
@@ -308,7 +283,7 @@ Game_Character.prototype.minimumDistancePerFrame = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/objects/Game_Enemy.js
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Refreshes movement speed boosts when the battler's data changes.
 */
 J.ABS.EXT.SPEED.Aliased.Game_Enemy.set("onBattlerDataChange", Game_Enemy.prototype.onBattlerDataChange);
@@ -316,6 +291,16 @@ Game_Enemy.prototype.onBattlerDataChange = function() {
 	J.ABS.EXT.SPEED.Aliased.Game_Enemy.get("onBattlerDataChange").call(this);
 	this.refreshSpeedBoosts();
 };
+
+//#endregion
+//#region src/plugins/abs/ext/speed/core/registerSpeedParameters.js
+/**
+* Registers move speed boost with the parameter catalog.
+*/
+function registerSpeedParameters() {
+	ParameterRegistry.register(ParameterDefinition.Builder().key("msb").group(ParameterGroups.MOBILITY).sortOrder(0).label(() => TextManager.movespeed()).description(() => TextManager.moveSpeedDescription()).iconIndex(() => IconManager.movespeed()).format(ParameterFormat.FLAT).getValue((battler) => battler.msb).sdpBinding(SdpParameterBinding.byKey("msb", () => 0)).build());
+}
+registerSpeedParameters();
 
 //#endregion
 //# sourceMappingURL=J-ABS-Speed.js.map

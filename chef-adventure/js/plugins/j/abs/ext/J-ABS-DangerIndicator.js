@@ -91,7 +91,7 @@ var J_DangerPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps danger indicator defaults from plugin parameters.
 	*/
 	postInitialize() {

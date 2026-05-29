@@ -456,7 +456,8 @@ Game_Enemy.prototype.elementRateBoost = function(elementId) {
 //#endregion
 //#region src/plugins/elem/core/objects/Game_Action.js
 /**
-* OVERWRITE Calculates the elemental rates of this action against the designated target.
+* Overwrites {@link #calcElementRate}.<br/>
+* Calculates the elemental rates of this action against the designated target.
 * @param {Game_Actor|Game_Enemy} target The target of this action.
 * @returns {number} The multiplier from elemental affiliation.
 */
@@ -641,7 +642,8 @@ Game_Action.prototype.getAntiNullElementIds = function() {
 	return [];
 };
 /**
-* OVERWRITE Evaluates the damage formula provided by the dev to determine the damage.
+* Overwrites {@link #evalDamageFormula}.<br/>
+* Evaluates the damage formula provided by the dev to determine the damage.
 * This now also factors in how to handle elemental absorption.
 * @param {Game_Actor|Game_Enemy} target The `b` of the formula.
 * @returns

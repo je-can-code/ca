@@ -401,7 +401,7 @@ var JHudTarget_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {
@@ -2219,7 +2219,7 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 //#endregion
 //#region src/plugins/hud/ext/target/scenes/Scene_Map.js
 /**
-* Extends {@link #initHudMembers}.<br>
+* Extends {@link #initHudMembers}.<br/>
 * Includes initialization of the target frame members.
 */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set("initHudMembers", Scene_Map.prototype.initHudMembers);
@@ -2244,7 +2244,7 @@ Scene_Map.prototype.initHudMembers = function() {
 	this._j._hud._target._bossFrame = null;
 };
 /**
-* Extends {@link #createAllWindows}.<br>
+* Extends {@link #createAllWindows}.<br/>
 * Includes creation of the target frame window.
 */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);
@@ -2295,7 +2295,7 @@ Scene_Map.prototype.setTargetFrameWindow = function(window) {
 	this._j._hud._target._targetFrame = window;
 };
 /**
-* Extends {@link #updateHudFrames}.<br>
+* Extends {@link #updateHudFrames}.<br/>
 * Includes updating the target frame.
 */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set("updateHudFrames", Scene_Map.prototype.updateHudFrames);

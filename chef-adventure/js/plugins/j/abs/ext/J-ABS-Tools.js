@@ -119,7 +119,7 @@ var J_ToolsPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps gap-close and grab/throw defaults from plugin parameters.
 	*/
 	postInitialize() {
@@ -308,7 +308,7 @@ JABS_Battler.prototype.clearGapCloseDestination = function() {
 	this._gapCloseDestination = [0, 0];
 };
 /**
-* Extends {@link JABS_Battler.update}.<br>
+* Extends {@link JABS_Battler.update}.<br/>
 * Also updates the gap closing process.
 */
 J.ABS.EXT.TOOLS.Aliased.JABS_Battler.set("update", JABS_Battler.prototype.update);
@@ -491,7 +491,7 @@ Game_Battler.prototype.isGapClosable = function() {
 //#endregion
 //#region src/plugins/abs/ext/tools/objects/Game_CharacterBase.js
 /**
-* Extends {@link Game_CharacterBase.initMembers}.<br>
+* Extends {@link Game_CharacterBase.initMembers}.<br/>
 * Also initializes our new members.
 */
 J.ABS.EXT.TOOLS.Aliased.Game_CharacterBase.set("initMembers", Game_CharacterBase.prototype.initMembers);
@@ -545,7 +545,7 @@ Game_Event.prototype.isGapClosable = function() {
 //#endregion
 //#region src/plugins/abs/ext/tools/objects/Game_System.js
 /**
-* Extends {@link Game_System.initMembers}.<br>
+* Extends {@link Game_System.initMembers}.<br/>
 * Also initializes our new members.
 */
 J.ABS.EXT.TOOLS.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);

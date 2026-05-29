@@ -195,6 +195,134 @@ J.RESOURCES.EXT.ABS.RegExp.WhenHitMpGainFormula = /<when-hit-mp-gain:\[([+\-*/ (
 J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainFlat = /<when-hit-tp-gain:(\d+)>/gi;
 J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainPercent = /<when-hit-tp-gain:(\d+)%>/gi;
 J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainFormula = /<when-hit-tp-gain:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.EXT.ABS.RegExp.Lifesteal = /<lst:(-?\d+)>/gi;
+J.RESOURCES.EXT.ABS.RegExp.Manasteal = /<mst:(-?\d+)>/gi;
+J.RESOURCES.EXT.ABS.RegExp.Techsteal = /<tst:(-?\d+)>/gi;
+/** Legacy SDP panel parameter ids for on-attack drain stats. */
+J.RESOURCES.EXT.ABS.SdpParamId = {
+	LST: 35,
+	MST: 36,
+	TST: 37
+};
+
+//#endregion
+//#region src/plugins/resources/ext/abs/managers/TextManager.js
+TextManager.lst = function() {
+	return "Lifesteal";
+};
+TextManager.lstDescription = function() {
+	return ["Percent of HP damage dealt recovered as HP on a successful hit.", "Stacks additively with on-hit resource gain."];
+};
+TextManager.mst = function() {
+	return "Manasteal";
+};
+TextManager.mstDescription = function() {
+	return ["Percent of HP damage dealt recovered as MP on a successful hit.", "Stacks additively with on-hit resource gain."];
+};
+TextManager.tst = function() {
+	return "Techsteal";
+};
+TextManager.tstDescription = function() {
+	return ["Percent of HP damage dealt recovered as TP on a successful hit.", "Stacks additively with on-hit resource gain."];
+};
+
+//#endregion
+//#region src/plugins/resources/ext/abs/managers/IconManager.js
+IconManager.lst = function() {
+	return 928;
+};
+IconManager.mst = function() {
+	return 929;
+};
+IconManager.tst = function() {
+	return 930;
+};
+
+//#endregion
+//#region src/plugins/resources/ext/abs/objects/Game_Battler.js
+Object.defineProperties(Game_BattlerBase.prototype, {
+	/**
+	* Lifesteal rate (% of HP damage dealt recovered as HP).
+	*/
+	lst: {
+		get: function() {
+			return 0;
+		},
+		configurable: true
+	},
+	/**
+	* Manasteal rate (% of HP damage dealt recovered as MP).
+	*/
+	mst: {
+		get: function() {
+			return 0;
+		},
+		configurable: true
+	},
+	/**
+	* Techsteal rate (% of HP damage dealt recovered as TP).
+	*/
+	tst: {
+		get: function() {
+			return 0;
+		},
+		configurable: true
+	}
+});
+Object.defineProperty(Game_Battler.prototype, "lst", {
+	get: function() {
+		let rate = this.baseLstRate();
+		if (this.getSdpBonusForParameterKey) {
+			rate += this.getSdpBonusForParameterKey("lst", 1);
+		}
+		return Math.max(0, rate);
+	},
+	configurable: true
+});
+Object.defineProperty(Game_Battler.prototype, "mst", {
+	get: function() {
+		let rate = this.baseMstRate();
+		if (this.getSdpBonusForParameterKey) {
+			rate += this.getSdpBonusForParameterKey("mst", 1);
+		}
+		return Math.max(0, rate);
+	},
+	configurable: true
+});
+Object.defineProperty(Game_Battler.prototype, "tst", {
+	get: function() {
+		let rate = this.baseTstRate();
+		if (this.getSdpBonusForParameterKey) {
+			rate += this.getSdpBonusForParameterKey("tst", 1);
+		}
+		return Math.max(0, rate);
+	},
+	configurable: true
+});
+/**
+* Sums lifesteal notetags into a decimal rate (5 → 0.05).
+* @returns {number}
+*/
+Game_Battler.prototype.baseLstRate = function() {
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.RESOURCES.EXT.ABS.RegExp.Lifesteal);
+	return bonus / 100;
+};
+/**
+* Sums manasteal notetags into a decimal rate.
+* @returns {number}
+*/
+Game_Battler.prototype.baseMstRate = function() {
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.RESOURCES.EXT.ABS.RegExp.Manasteal);
+	return bonus / 100;
+};
+/**
+* Sums techsteal notetags into a decimal rate.
+* @returns {number}
+*/
+Game_Battler.prototype.baseTstRate = function() {
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.RESOURCES.EXT.ABS.RegExp.Techsteal);
+	return bonus / 100;
+};
 
 //#endregion
 //#region src/plugins/resources/ext/abs/managers/ResourceHitManager.js
@@ -216,9 +344,17 @@ var ResourceHitManager = class ResourceHitManager {
 	static applyOnAttackEffects(action, target) {
 		const caster = action.getCaster().getBattler();
 		const skill = action.getBaseSkill();
-		const hpGain = ResourceHitManager.onAttackHpGain(caster, skill);
-		const mpGain = ResourceHitManager.onAttackMpGain(caster, skill);
-		const tpGain = ResourceHitManager.onAttackTpGain(caster, skill);
+		const targetBattler = target.getBattler();
+		const result = targetBattler.result();
+		let hpGain = ResourceHitManager.onAttackHpGain(caster, skill);
+		let mpGain = ResourceHitManager.onAttackMpGain(caster, skill);
+		let tpGain = ResourceHitManager.onAttackTpGain(caster, skill);
+		if (result.hpDamage > 0) {
+			const damage = result.hpDamage;
+			hpGain += Math.floor(damage * caster.lst);
+			mpGain += Math.floor(damage * caster.mst);
+			tpGain += Math.floor(damage * caster.tst);
+		}
 		if (hpGain !== 0) caster.gainHpFromResource(hpGain);
 		if (mpGain !== 0) caster.gainMpFromResource(mpGain);
 		if (tpGain !== 0) caster.gainTpFromResource(tpGain);
@@ -339,6 +475,18 @@ var ResourceHitManager = class ResourceHitManager {
 		return total * targetBattler.rec;
 	}
 };
+
+//#endregion
+//#region src/plugins/resources/ext/abs/core/registerResourcesAbsParameters.js
+/**
+* Registers on-attack drain stats with the parameter catalog.
+*/
+function registerResourcesAbsParameters() {
+	ParameterRegistry.register(ParameterDefinition.Builder().key("lst").group(ParameterGroups.COMBAT).sortOrder(4).label(() => TextManager.lst()).description(() => TextManager.lstDescription()).iconIndex(() => IconManager.lst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.lst).sdpBinding(SdpParameterBinding.byKey("lst", () => 1)).build());
+	ParameterRegistry.register(ParameterDefinition.Builder().key("mst").group(ParameterGroups.COMBAT).sortOrder(6).label(() => TextManager.mst()).description(() => TextManager.mstDescription()).iconIndex(() => IconManager.mst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mst).sdpBinding(SdpParameterBinding.byKey("mst", () => 1)).build());
+	ParameterRegistry.register(ParameterDefinition.Builder().key("tst").group(ParameterGroups.COMBAT).sortOrder(8).label(() => TextManager.tst()).description(() => TextManager.tstDescription()).iconIndex(() => IconManager.tst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.tst).sdpBinding(SdpParameterBinding.byKey("tst", () => 1)).build());
+}
+registerResourcesAbsParameters();
 
 //#endregion
 //#region src/plugins/resources/ext/abs/managers/JABS_Engine.js

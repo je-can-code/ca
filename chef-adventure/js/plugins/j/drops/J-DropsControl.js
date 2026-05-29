@@ -430,6 +430,38 @@ var DropsPartyStrategy = class {
 
 //#endregion
 //#region src/plugins/drops/core/objects/Game_Actor.js
+Object.defineProperties(Game_BattlerBase.prototype, {
+	/**
+	* Gold drop rate multiplier bonus.
+	*/
+	gdr: {
+		get: function() {
+			return 0;
+		},
+		configurable: true
+	},
+	/**
+	* Item drop rate multiplier bonus.
+	*/
+	dor: {
+		get: function() {
+			return 0;
+		},
+		configurable: true
+	}
+});
+Object.defineProperty(Game_Actor.prototype, "gdr", {
+	get: function() {
+		return this.getGoldMultiplier();
+	},
+	configurable: true
+});
+Object.defineProperty(Game_Actor.prototype, "dor", {
+	get: function() {
+		return this.getDropMultiplierBonus();
+	},
+	configurable: true
+});
 /**
 * Gets this actor's bonus drop multiplier.
 * @returns {number}
@@ -476,7 +508,7 @@ Game_Enemy.prototype.getBaseGoldRate = function() {
 	return 1;
 };
 /**
-* Overrides {@link #makeDropItems}.<br/>
+* Overwrites {@link #makeDropItems}.<br/>
 * Modifies the drop chance algorithm to treat the number entered in the database as a percent chance instead of some
 * weird fractional shit. Also applies any applicable multipliers against the discovery rate of loot.
 * @returns {RPG_BaseItem[]} The array of loot successfully found.
@@ -659,6 +691,41 @@ Game_Party.prototype.dropMultiplierMembers = function(strategy = DropsPartyStrat
 	}
 	return membersToConsider;
 };
+
+//#endregion
+//#region src/plugins/drops/core/managers/TextManager.js
+TextManager.goldRate = function() {
+	return "Gold Rate";
+};
+TextManager.goldRateDescription = function() {
+	return ["Bonus multiplier applied to gold rewards.", "Higher values yield more gold from battles and chests."];
+};
+TextManager.dropRate = function() {
+	return "Drop Rate";
+};
+TextManager.dropRateDescription = function() {
+	return ["Bonus multiplier applied to item drop chances.", "Higher values improve the odds of extra loot."];
+};
+
+//#endregion
+//#region src/plugins/drops/core/managers/IconManager.js
+IconManager.goldRate = function() {
+	return 314;
+};
+IconManager.dropRate = function() {
+	return 210;
+};
+
+//#endregion
+//#region src/plugins/drops/core/core/registerDropsParameters.js
+/**
+* Registers gold and drop rate multipliers with the parameter catalog.
+*/
+function registerDropsParameters() {
+	ParameterRegistry.register(ParameterDefinition.Builder().key("gdr").group(ParameterGroups.FATE).sortOrder(3).label(() => TextManager.goldRate()).description(() => TextManager.goldRateDescription()).iconIndex(() => IconManager.goldRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.gdr).sdpBinding(SdpParameterBinding.byKey("gdr", () => 1)).build());
+	ParameterRegistry.register(ParameterDefinition.Builder().key("dor").group(ParameterGroups.FATE).sortOrder(6).label(() => TextManager.dropRate()).description(() => TextManager.dropRateDescription()).iconIndex(() => IconManager.dropRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.dor).sdpBinding(SdpParameterBinding.byKey("dor", () => 1)).build());
+}
+registerDropsParameters();
 
 //#endregion
 //#region src/plugins/drops/core/scenes/Scene_Boot.js

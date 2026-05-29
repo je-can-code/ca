@@ -160,7 +160,7 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	* Performs the one-time setup and configuration per instantiation.
 	*/
 	configure() {
-		this.opacity = 32;
+		this.opacity = 0;
 		this.refreshCache();
 	}
 	/**
@@ -1197,7 +1197,8 @@ Scene_Map.prototype.partyFrameWindowRectangle = function() {
 	return new Rectangle(x, y, width, height);
 };
 /**
-* OVERWRITE Relocates the map display name window to not overlap the hud.
+* Overwrites {@link #mapNameWindowRect}.<br/>
+* Relocates the map display name window to not overlap the hud.
 */
 Scene_Map.prototype.mapNameWindowRect = function() {
 	const wx = 400;

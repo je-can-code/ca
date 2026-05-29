@@ -403,7 +403,7 @@ var Window_BossFrame = class extends Window_TargetFrame {
 //#endregion
 //#region src/plugins/hud/ext/boss/scenes/Scene_Map.js
 /**
-* Extends {@link #initHudMembers}.<br>
+* Extends {@link #initHudMembers}.<br/>
 * Includes initialization of the boss frame members.
 */
 J.HUD.EXT.BOSS.Aliased.Scene_Map.set("initHudMembers", Scene_Map.prototype.initHudMembers);
@@ -422,7 +422,7 @@ Scene_Map.prototype.initHudMembers = function() {
 	this._j._hud._boss._frame = null;
 };
 /**
-* Extends {@link #createAllWindows}.<br>
+* Extends {@link #createAllWindows}.<br/>
 * Includes creation of the boss frame window.
 */
 J.HUD.EXT.BOSS.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);
@@ -473,7 +473,7 @@ Scene_Map.prototype.setBossFrameWindow = function(window) {
 	this._j._hud._boss._frame = window;
 };
 /**
-* Extends {@link #updateHudFrames}.<br>
+* Extends {@link #updateHudFrames}.<br/>
 * Includes updating the target frame.
 */
 J.HUD.EXT.BOSS.Aliased.Scene_Map.set("updateHudFrames", Scene_Map.prototype.updateHudFrames);

@@ -664,7 +664,7 @@ Game_Temp.prototype.setAptTypedInferredEnemyTypes = function(enemyId, ids) {
 //#endregion
 //#region src/plugins/apt/ext/typed/managers/ApManager.js
 /**
-* Overrides {@link #gainAp}.<br/>
+* Overwrites {@link #gainAp}.<br/>
 * Routes untyped AP through `gainApUntypedOnly` so typed tracks are not fueled by it.
 * @param {Game_Actor} actor The actor gaining AP.
 * @param {number} amount The amount of AP awarded.

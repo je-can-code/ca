@@ -23,7 +23,7 @@
  * This plugin adds HP cost and gain support, as well as tag-based flat,
  * percentage, and formula costs for MP and TP as well.
  *
- * longParam ID 34 is reserved by this plugin for the HP cost parameter.
+ * HP cost reduction is registered in the parameter catalog as `hcr`.
  *
  * ============================================================================
  * HP COST
@@ -136,7 +136,7 @@
  *    Added HP/MP/TP costs and gains via flat, percent, and formula notetags.
  *    Added HCR (HP Cost Reduction) as an additive stat sourced from traits.
  *    Added sacrifice tag to allow lethal HP costs.
- *    Registered longParam ID 34 for Life Cost.
+ *    Registered {@code hcr} (HP Cost Reduction) in the parameter catalog.
  * ============================================================================
  *
  * @param parentConfig
@@ -257,52 +257,20 @@ ColorManager.hpCostColor = function() {
 
 //#endregion
 //#region src/plugins/resources/core/managers/IconManager.js
-/**
-* Gets the icon index for the HP skill cost parameter.
-* Mirrors {@link IconManager.sparam} entries for MCR (964) and TCR (965).
-* @returns {number}
-*/
-IconManager.hpCost = function() {
-	return 928;
-};
-/**
-* Extends {@link IconManager.longParam}.<br/>
-* Adds longParam ID 34 for the HP cost icon.
-* J-Resources registers ID 34 for this purpose.
-* @param {number} paramId The long parameter id.
-* @returns {number}
-*/
-J.RESOURCES.Aliased.IconManager.set("longParam", IconManager.longParam);
-IconManager.longParam = function(paramId) {
-	if (paramId === 34) {
-		return this.hpCost();
-	}
-	return J.RESOURCES.Aliased.IconManager.get("longParam").call(this, paramId);
+IconManager.hcr = function() {
+	return 964;
 };
 
 //#endregion
 //#region src/plugins/resources/core/managers/TextManager.js
-/**
-* Gets the name of the HP skill cost parameter.
-* Mirrors {@link TextManager.sparam} entries for MCR ("Magi Cost") and TCR ("Tech Cost").
-* @returns {string}
-*/
-TextManager.hpCost = function() {
+TextManager.hcr = function() {
 	return "Life Cost";
 };
 /**
-* Extends {@link TextManager.longParam}.<br/>
-* Adds longParam ID 34 for the HP cost label.
-* J-Resources registers ID 34 for this purpose.
-* @param {number} paramId The long parameter id.
-* @returns {string}
+* @returns {string[]}
 */
-J.RESOURCES.Aliased.TextManager.set("longParam", TextManager.longParam);
-TextManager.longParam = function(paramId) {
-	if (paramId === 34) {
-		return this.hpCost();
-	}
-	return J.RESOURCES.Aliased.TextManager.get("longParam").call(this, paramId);
+TextManager.hcrDescription = function() {
+	return ["Percent reduction applied to life-cost skill prices.", "Higher values make life-cost skills cheaper to use."];
 };
 
 //#endregion
@@ -454,21 +422,21 @@ var ResourceCostManager = class ResourceCostManager {
 //#endregion
 //#region src/plugins/resources/core/objects/Game_BattlerBase.js
 /**
-* Gets the hp cost reduction for this battler.
-*/
-Object.defineProperty(Game_BattlerBase.prototype, "hcr", {
-	get: function() {
-		return this.hcrFactor();
-	},
-	configurable: true
-});
-/**
-* Gets the hp cost reduction for this battler.
+* Gets the hp cost reduction factor for this battler.
 * @returns {number}
 */
 Game_BattlerBase.prototype.hcrFactor = function() {
 	return 1;
 };
+/**
+* HP cost reduction in decimal percent space (0 = none).
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "hcr", {
+	get: function() {
+		return 0;
+	},
+	configurable: true
+});
 /**
 * Determines the hp cost of a skill.
 * @param {RPG_Skill} skill The skill being calculated.
@@ -546,13 +514,15 @@ Game_Battler.prototype._ensureHcrInitializedForResources = function() {
 	}
 };
 /**
-* Gets the hp cost reduction for this battler.
-* @returns {number}
+* HP cost reduction in decimal percent space (0 = none).
 */
-Game_Battler.prototype.hcr = function() {
-	this._ensureHcrInitializedForResources();
-	return this._j._hcr;
-};
+Object.defineProperty(Game_Battler.prototype, "hcr", {
+	get: function() {
+		this._ensureHcrInitializedForResources();
+		return Math.max(0, (100 - this._j._hcr) / 100);
+	},
+	configurable: true
+});
 /**
 * Gets the hp cost reduction factor for this battler.
 * This is the normalized fractional amount used in the math for hp cost reduction.
@@ -687,6 +657,16 @@ Game_Actor.prototype.hcrSources = function() {
 Game_Enemy.prototype.hcrSources = function() {
 	return [this.databaseData(), ...this.allStates()];
 };
+
+//#endregion
+//#region src/plugins/resources/core/core/registerResourcesParameters.js
+/**
+* Registers Life Cost (HCR) with the parameter catalog.
+*/
+function registerResourcesParameters() {
+	ParameterRegistry.register(ParameterDefinition.Builder().key("hcr").group(ParameterGroups.COMBAT).sortOrder(5).label(() => TextManager.hcr()).description(() => TextManager.hcrDescription()).iconIndex(() => IconManager.hcr()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.COST_RATE).getValue((battler) => battler.hcrFactor()).sdpBinding(SdpParameterBinding.byKey("hcr", () => 100)).build());
+}
+registerResourcesParameters();
 
 //#endregion
 //# sourceMappingURL=J-Resources.js.map

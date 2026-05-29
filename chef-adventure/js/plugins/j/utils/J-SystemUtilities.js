@@ -175,7 +175,7 @@ J.UTILS.GamepadLog.logFreshPresses = function(pad, prev, next) {
 //#endregion
 //#region src/plugins/utils/core/Bitmap.js
 /**
-* Overrides {@link Bitmap#_createCanvas}.<br>
+* Overwrites {@link Bitmap#_createCanvas}.<br/>
 * Adds an additional "willReadFrequently" attribute set to true on the canvas.
 * This forces software-based rendering, which is supposedly optimal based
 * on the way this code is written, according to Chromium's warning.
@@ -222,7 +222,7 @@ Input.keyMapper = {
 	117: "volumeToggle"
 };
 /**
-* Extends/Overrides {@link #_updateGamepadState}.<br/>
+* Extends {@link #_updateGamepadState}.<br/>
 * Also logs only freshly pressed gamepad buttons/directions.
 */
 J.UTILS.Aliased.Input.set("_updateGamepadState", Input._updateGamepadState);
@@ -236,7 +236,7 @@ Input._updateGamepadState = function(gamepad) {
 //#endregion
 //#region src/plugins/utils/core/objects/Game_Actor.js
 /**
-* Extends {@link Game_Actor.onLearnNewSkill}.<br>
+* Extends {@link Game_Actor.onLearnNewSkill}.<br/>
 * Wraps the function so that if a new skill is learned, it'll echo to the console.
 */
 J.UTILS.Aliased.Game_Actor.set("onLearnNewSkill", Game_Actor.prototype.onLearnNewSkill);
@@ -245,7 +245,7 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId) {
 	return `[${skillId}] {${this.skill(skillId).name}} was learned.`;
 };
 /**
-* Extends {@link Game_Actor.onForgetSkill}.<br>
+* Extends {@link Game_Actor.onForgetSkill}.<br/>
 * Wraps the function so that if a skill is forgotten, it'll echo back to the console.
 */
 J.UTILS.Aliased.Game_Actor.set("onForgetSkill", Game_Actor.prototype.onForgetSkill);
@@ -335,7 +335,7 @@ Game_Player.prototype.battler = function() {
 //#endregion
 //#region src/plugins/utils/core/objects/Game_Temp.js
 /**
-* Extends {@link Game_Temp.prototype.initMembers}.<br>
+* Extends {@link Game_Temp.prototype.initMembers}.<br/>
 * Intializes all additional members of this class.
 */
 J.UTILS.Aliased.Game_Temp.set("initMembers", Game_Temp.prototype.initMembers);
@@ -446,7 +446,7 @@ Scene_Boot.prototype.startNormalGame = function() {
 	}
 };
 /**
-* Extends {@link #start}.<br>
+* Extends {@link #start}.<br/>
 * Also shows the devtools window because I need that to do dev things.
 */
 J.UTILS.Aliased.Scene_Boot.set("start", Scene_Boot.prototype.start);
@@ -461,7 +461,7 @@ Scene_Boot.prototype.start = function() {
 //#endregion
 //#region src/plugins/utils/core/scenes/Scene_Map.js
 /**
-* Overrides {@link Scene_Map.onMapTouch}.<br>
+* Overwrites {@link Scene_Map.onMapTouch}.<br/>
 * Disables auto-movement when clicking a tile on the map.
 * Logs event data of clicked events.
 */
@@ -510,7 +510,8 @@ Scene_Map.prototype.extractAndLogBattlerData = function(target, x, y) {
 //#endregion
 //#region src/plugins/utils/core/windows/Tilemap.js
 /**
-* OVERWRITE Fuck those autoshadows.
+* Overwrites {@link #_addShadow}.<br/>
+* Fuck those autoshadows.
 */
 Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) {};
 

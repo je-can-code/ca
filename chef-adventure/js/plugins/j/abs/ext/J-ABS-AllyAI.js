@@ -241,7 +241,7 @@ var J_AllyAiPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps ally AI menu commands and formation defaults from plugin parameters.
 	*/
 	postInitialize() {
@@ -1217,7 +1217,7 @@ JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, toler
 	return dist <= tolerance;
 };
 /**
-* Extends {@link #maintainSafeDistance}.<br>
+* Extends {@link #maintainSafeDistance}.<br/>
 * Allies use spacing-axis-driven close/far thresholds instead of the global constants.
 * @param {JABS_Battler} battler The battler to reposition.
 */
@@ -1238,7 +1238,7 @@ JABS_AiManager.maintainSafeDistance = function(battler) {
 	}
 };
 /**
-* Extends {@link #decideAiPhase2Action}.<br>
+* Extends {@link #decideAiPhase2Action}.<br/>
 * Includes handling ally AI as well as enemy.
 * @param {JABS_Battler} battler The battler deciding the action.
 */
@@ -1289,7 +1289,7 @@ Object.defineProperty(JABS_Engine.prototype, "requestAlliesRefresh", {
 	writeable: true
 });
 /**
-* Extends {@link JABS_Engine.prePartyCycling}.<br>
+* Extends {@link JABS_Engine.prePartyCycling}.<br/>
 * Jumps all followers to the player upon party cycling.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("prePartyCycling", JABS_Engine.prototype.prePartyCycling);
@@ -1298,7 +1298,7 @@ JABS_Engine.prototype.prePartyCycling = function() {
 	$gamePlayer.jumpFollowersToMe();
 };
 /**
-* Overrides {@link JABS_Engine.handlePartyCycleMemberChanges}.<br>
+* Overwrites {@link JABS_Engine.handlePartyCycleMemberChanges}.<br/>
 * Jumps all followers to the player upon party cycling.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("handlePartyCycleMemberChanges", JABS_Engine.prototype.handlePartyCycleMemberChanges);
@@ -1311,7 +1311,7 @@ JABS_Engine.prototype.handlePartyCycleMemberChanges = function() {
 	$jabsEngine.requestAlliesRefresh = true;
 };
 /**
-* Extends {@link JABS_Engine.continuedPrimaryBattleEffects}.<br>
+* Extends {@link JABS_Engine.continuedPrimaryBattleEffects}.<br/>
 * Also applies battle memories as-necessary.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("continuedPrimaryBattleEffects", JABS_Engine.prototype.continuedPrimaryBattleEffects);
@@ -1361,7 +1361,7 @@ JABS_Engine.prototype.postPartyCycling = function() {
 	this.rebuildActorAllies();
 };
 /**
-* Extends {@link JABS_Engine#canBeAlerted}.<br>
+* Extends {@link JABS_Engine#canBeAlerted}.<br/>
 * Do-nothing allies cannot be alerted; they ignore attacks passively.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("canBeAlerted", JABS_Engine.prototype.canBeAlerted);
@@ -1388,7 +1388,7 @@ JABS_SkillSlotManager.prototype.getEquippedAllySlots = function() {
 //#endregion
 //#region src/plugins/abs/ext/allyai/objects/Game_Actor.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also tracks JABS ally AI.
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set("initMembers", Game_Actor.prototype.initMembers);
@@ -1419,7 +1419,7 @@ Game_Actor.prototype.initAllyAiMembers = function() {
 	this._j._abs._allyAi._mode = new JABS_AllyAI(JABS_AllyAI.presets.GENERALIST.key);
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Also initializes ally AI.
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set("setup", Game_Actor.prototype.setup);
@@ -1477,7 +1477,8 @@ Game_Actor.prototype.getValidSkillSlotsForAlly = function() {
 //#endregion
 //#region src/plugins/abs/ext/allyai/objects/Game_Follower.js
 /**
-* OVERWRITE Adjust the chaseCharacter function to prevent chasing the player
+* Extends {@link #chaseCharacter}.<br/>
+* Adjust the chaseCharacter function to prevent chasing the player
 * while this follower is engaged.
 * @param {Game_Character} character The character this follower is following.
 */
@@ -1522,7 +1523,8 @@ Game_Follower.prototype.jumpToPlayer = function() {
 //#endregion
 //#region src/plugins/abs/ext/allyai/objects/Game_Followers.js
 /**
-* OVERWRITE If you're using this, the followers always show up!
+* Extends {@link #show}.<br/>
+* If you're using this, the followers always show up!
 * @returns {boolean}
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set("show", Game_Followers.prototype.show);
@@ -1532,7 +1534,8 @@ Game_Followers.prototype.show = function() {
 	$jabsEngine.requestJabsMenuRefresh = true;
 };
 /**
-* OVERWRITE If you're using this, the followers always show up!
+* Extends {@link #hide}.<br/>
+* If you're using this, the followers always show up!
 * @returns {boolean}
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set("hide", Game_Followers.prototype.hide);
@@ -1542,7 +1545,8 @@ Game_Followers.prototype.hide = function() {
 	$jabsEngine.requestJabsMenuRefresh = true;
 };
 /**
-* OVERWRITE Adjust the jumpAll function to prevent jumping to the player
+* Overwrites {@link #jumpAll}.<br/>
+* Adjust the jumpAll function to prevent jumping to the player
 * when the player is hit.
 */
 Game_Followers.prototype.jumpAll = function() {
@@ -1592,7 +1596,7 @@ Game_Interpreter.prototype.command205 = function(params) {
 //#endregion
 //#region src/plugins/abs/ext/allyai/objects/Game_Map.js
 /**
-* Extends {@link Game_Map.parseBattlers}.<br>
+* Extends {@link Game_Map.parseBattlers}.<br/>
 * Also parses ally battlers as well as events.
 * @returns {JABS_Battler[]}
 */
@@ -1712,7 +1716,7 @@ Game_Party.prototype.setPartyFormation = function(formation) {
 	this._j._abs._allyAI._partyFormation = formation;
 };
 /**
-* Extends {@link Game_Party.addActor}.<br>
+* Extends {@link Game_Party.addActor}.<br/>
 * Also updates allies to accommodate the addition of the actor.
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Party.set("addActor", Game_Party.prototype.addActor);
@@ -1721,7 +1725,7 @@ Game_Party.prototype.addActor = function(actorId) {
 	$gameMap.updateAllies();
 };
 /**
-* Extends {@link Game_Party.removeActor}.<br>
+* Extends {@link Game_Party.removeActor}.<br/>
 * Also updates allies to accommodate the removal of the actor.
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Party.set("removeActor", Game_Party.prototype.removeActor);
@@ -1765,7 +1769,7 @@ var Window_Formations = class extends Window_Command {
 		return new WindowCommandBuilder(name).setSymbol("select-formation").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setIconIndex(iconIndex).setEnabled(true).setExtensionData(formation).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2079,7 +2083,7 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
 //#endregion
 //#region src/plugins/abs/ext/allyai/windows/Window_AbsMenu.js
 /**
-* Extends {@link #buildCommands}.<br>
+* Extends {@link #buildCommands}.<br/>
 * Adds the ally ai management command at the end of the list.
 * @returns {BuiltWindowCommand[]}
 */

@@ -264,7 +264,7 @@ var J_NaturalGrowthPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps plugin parameters into instance fields used by battler TP logic.
 	*/
 	postInitialize() {
@@ -1242,7 +1242,7 @@ Game_Battler.prototype.calculatePlusRate = function(baseValue, paramPlus, paramR
 	return paramBase * paramFactor - baseValue;
 };
 /**
-* Overrides {@link #maxTp}.<br/>
+* Overwrites {@link #maxTp}.<br/>
 * Combines base max TP with formula-based values derived from tags.
 * @returns {number}
 */
@@ -1304,7 +1304,7 @@ Game_Battler.prototype.getMaxTpBuff = function(baseParam) {
 //#endregion
 //#region src/plugins/natural/core/objects/Game_Actor.js
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Includes parameter buff initialization.
 */
 J.NATURAL.Aliased.Game_Actor.set("setup", Game_Actor.prototype.setup);
@@ -1313,7 +1313,7 @@ Game_Actor.prototype.setup = function(actorId) {
 	this.refreshAllParameterBuffs();
 };
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Also refreshes all natural parameter buff values on the battler.
 */
 J.NATURAL.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
@@ -1322,7 +1322,8 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 	this.refreshAllParameterBuffs();
 };
 /**
-* OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
+* Overwrites {@link #maxTp}.<br/>
+* Replaces the `maxTp()` function with our custom one that will respect
 * formulas and apply rates from tags, etc.
 * @returns {number}
 */
@@ -1620,7 +1621,7 @@ Game_Actor.prototype.applyNaturalCustomGrowths = function() {};
 //#endregion
 //#region src/plugins/natural/core/objects/Game_Enemy.js
 /**
-* Extends {@link Game_Enemy.setup}.<br>
+* Extends {@link Game_Enemy.setup}.<br/>
 * Includes parameter buff initialization.
 */
 J.NATURAL.Aliased.Game_Enemy.set("setup", Game_Enemy.prototype.setup);
@@ -1629,7 +1630,7 @@ Game_Enemy.prototype.setup = function(enemyId, x, y) {
 	this.refreshAllParameterBuffs();
 };
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Also refreshes all natural parameter buff values on the battler.
 */
 J.NATURAL.Aliased.Game_Enemy.set("onBattlerDataChange", Game_Enemy.prototype.onBattlerDataChange);
@@ -1638,7 +1639,8 @@ Game_Enemy.prototype.onBattlerDataChange = function() {
 	this.refreshAllParameterBuffs();
 };
 /**
-* OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
+* Overwrites {@link #maxTp}.<br/>
+* Replaces the `maxTp()` function with our custom one that will respect
 * formulas and apply rates from tags, etc.
 * @returns {number}
 */
@@ -1736,7 +1738,7 @@ Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, baseParam) {
 	return this.calculateSpParamBuff(sparamId, baseParam);
 };
 /**
-* Overrides {@link #refreshRewardBonuses}.<br>
+* Overwrites {@link #refreshRewardBonuses}.<br/>
 * Implements the refresh for battle reward bonuses for the enemy.
 */
 Game_Enemy.prototype.refreshRewardBonuses = function() {
@@ -1767,7 +1769,7 @@ Game_Enemy.prototype.refreshSdpRewardBonuses = function() {
 	this.setSdpsPlus(sdpsBonus);
 };
 /**
-* Extends {@link #exp}.<br>
+* Extends {@link #exp}.<br/>
 * Also adds on any natural bonuses of experience.
 * @returns {number}
 */
@@ -1778,7 +1780,7 @@ Game_Enemy.prototype.exp = function() {
 	return baseReward + bonus;
 };
 /**
-* Extends {@link #gold}.<br>
+* Extends {@link #gold}.<br/>
 * Also adds on any natural bonuses of gold.
 * @returns {number}
 */
@@ -1802,7 +1804,7 @@ Game_Enemy.prototype.sdpPoints = function() {
 //#endregion
 //#region src/plugins/natural/core/objects/Game_Party.js
 /**
-* Extends {@link #gainItem}.<br>
+* Extends {@link #gainItem}.<br/>
 * Also refreshes the passive states for the party.
 * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
 * @param {number} amount The amount to modify the quantity by.
@@ -1823,7 +1825,7 @@ Game_Party.prototype.refreshAllParameterBuffsForAll = function() {
 //#endregion
 //#region src/plugins/natural/core/scenes/Scene_Equip.js
 /**
-* Extends {@link #executeEquipChange}.<br>
+* Extends {@link #executeEquipChange}.<br/>
 * Also refreshes all natural parameter data.
 */
 J.NATURAL.Aliased.Scene_Equip.set("executeEquipChange", Scene_Equip.prototype.executeEquipChange);
@@ -1835,7 +1837,7 @@ Scene_Equip.prototype.executeEquipChange = function() {
 //#endregion
 //#region src/plugins/natural/core/windows/Window_EquipItem.js
 /**
-* Extends {@link #postEquipSetupActorClone}.<br>
+* Extends {@link #postEquipSetupActorClone}.<br/>
 * Updates the buffs associated with the cloned actor so that it reflects in the
 * status window comparison.
 * @param {Game_Actor} actorClone The clone of the actor.

@@ -2270,6 +2270,39 @@
  * @desc Extra baseline per level: caster level on A, target level on D (Lv1 adds 0).
  * @default 0.25
  *
+ * @param implicitParryScaleFactor
+ * @parent implicitParryConfigs
+ * @type number
+ * @decimals 2
+ * @min 0
+ * @max 1
+ * @text Full Parry Scale Factor
+ * @desc Multiplies the raw parry formula output to produce the actual full-negate chance. 0.2 = 20% of formula.
+ * @default 0.2
+ *
+ *
+ * @param glancingBlowConfigs
+ * @text GLANCING BLOW (PARTIAL HIT)
+ *
+ * @param glancingBlowDominanceMultiplier
+ * @parent glancingBlowConfigs
+ * @type number
+ * @decimals 2
+ * @min 1.01
+ * @text Glancing Dominance Multiplier (M)
+ * @desc Band width for the glancing roll; uses the same A/D formula as parry but an independent M. Default 2.
+ * @default 2
+ *
+ * @param glancingBlowDamageFactor
+ * @parent glancingBlowConfigs
+ * @type number
+ * @decimals 2
+ * @min 0
+ * @max 1
+ * @text Glancing Blow Damage Factor
+ * @desc Fraction of normal damage dealt on a glancing blow. 0.3 = 30% of calculated damage.
+ * @default 0.3
+ *
  *
  * @param quickmenuConfigs
  * @text QUICKMENU SETUP
@@ -2970,7 +3003,7 @@ var J_AbsPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps plugin parameters and external config into metadata fields.
 	*/
 	postInitialize() {
@@ -3161,6 +3194,24 @@ var J_AbsPluginMetadata = class extends PluginMetadata {
 		this.ImplicitParryBaselinePerLevel = .25;
 		if (Number.isFinite(implicitParryBaselinePerLevelParsed) === true && implicitParryBaselinePerLevelParsed >= 0) {
 			this.ImplicitParryBaselinePerLevel = implicitParryBaselinePerLevelParsed;
+		}
+		const implicitParryScaleFactorRaw = this.parsedPluginParameters["implicitParryScaleFactor"];
+		const implicitParryScaleFactorParsed = Number(implicitParryScaleFactorRaw);
+		this.ImplicitParryScaleFactor = .2;
+		if (Number.isFinite(implicitParryScaleFactorParsed) === true && implicitParryScaleFactorParsed >= 0 && implicitParryScaleFactorParsed <= 1) {
+			this.ImplicitParryScaleFactor = implicitParryScaleFactorParsed;
+		}
+		const glancingBlowDomRaw = this.parsedPluginParameters["glancingBlowDominanceMultiplier"];
+		const glancingBlowDomParsed = Number(glancingBlowDomRaw);
+		this.GlancingBlowDominanceMultiplier = 2;
+		if (Number.isFinite(glancingBlowDomParsed) === true && glancingBlowDomParsed > 1) {
+			this.GlancingBlowDominanceMultiplier = glancingBlowDomParsed;
+		}
+		const glancingBlowDamageFactorRaw = this.parsedPluginParameters["glancingBlowDamageFactor"];
+		const glancingBlowDamageFactorParsed = Number(glancingBlowDamageFactorRaw);
+		this.GlancingBlowDamageFactor = .3;
+		if (Number.isFinite(glancingBlowDamageFactorParsed) === true && glancingBlowDamageFactorParsed >= 0 && glancingBlowDamageFactorParsed <= 1) {
+			this.GlancingBlowDamageFactor = glancingBlowDamageFactorParsed;
 		}
 	}
 	/**
@@ -6530,6 +6581,7 @@ var JABS_AiManager = class JABS_AiManager {
 	static #filterBattlersByOpposingTeam(battlers, selectedBattler) {
 		const filtering = (battler) => {
 			if (battler.getTeam() === JABS_Battler.neutralTeamId()) return false;
+			if (battler.isFollower() && battler.getCharacter().isVisible() === false) return false;
 			const isOpposingTeam = JABS_TeamRules.isOpposed(selectedBattler.getTeam(), battler.getTeam());
 			return isOpposingTeam;
 		};
@@ -6825,6 +6877,7 @@ var JABS_AiManager = class JABS_AiManager {
 		if (battler.isDead()) return false;
 		if (battler.isPlayer()) return false;
 		if (battler.isInanimate()) return false;
+		if (battler.isFollower() && battler.getCharacter().isVisible() === false) return false;
 		return true;
 	}
 	/**
@@ -9581,16 +9634,15 @@ var JABS_Engine = class JABS_Engine {
 		return Graphics.frameCount + offset;
 	}
 	/**
-	* Implicit passive parry chance (0–100) from attacker/defender pressure vs the dominance band.
-	* Matches the probability step inside {@link #checkParry}; does not apply facing, GRD &gt; 0,
-	* or attacker ignore-parry state gates ({@link #isParryPossible}).
+	* Builds the attacker pressure (A) and defender pressure (D) used by all defensive-event formulas.
+	* Both values incorporate the baseline floor, per-level ramp, stat contributions, and the
+	* ignore-parry factor that skills can apply to weaken the defender's guard rating.
 	* @param {JABS_Battler} caster The attacker on the map.
 	* @param {JABS_Battler} target The defender on the map.
-	* @param {number} ignoreParryPercent Defender GRD pressure ignored (0–100); same as skill tag
-	* {@code jabsIgnoreParry}.
-	* @returns {number} Rounded percent chance the implicit parry roll succeeds (same rounding as combat).
+	* @param {number} ignoreParryPercent Defender GRD pressure ignored (0–100).
+	* @returns {{ A: number, D: number }} The resolved attacker and defender pressure values.
 	*/
-	static implicitParryChancePercent(caster, target, ignoreParryPercent) {
+	static #defensivePressure(caster, target, ignoreParryPercent) {
 		const targetBattler = target.getBattler();
 		const casterBattler = caster.getBattler();
 		const ignoreRaw = ignoreParryPercent ?? 0;
@@ -9613,22 +9665,65 @@ var JABS_Engine = class JABS_Engine {
 			const levelMul = LevelScaling.multiplier(casterBattler.level, targetBattler.level, LevelScaling.Scope.COMBAT);
 			A *= levelMul;
 		}
+		return {
+			A,
+			D
+		};
+	}
+	/**
+	* Converts a resolved A/D pressure pair and a dominance multiplier M into a 0–100 percent chance.
+	* The band is [1/M, M]: at or below 1/M the defender fully dominates (100%); at or above M
+	* the attacker fully dominates (0%); between them the chance interpolates linearly.
+	* @param {number} A The attacker pressure value.
+	* @param {number} D The defender pressure value.
+	* @param {number} M The dominance multiplier (must be > 1; clamped to 2 if invalid).
+	* @returns {number} Rounded percent chance (0–100).
+	*/
+	static #dominanceBandChance(A, D, M) {
+		const safeM = Number.isFinite(M) && M > 1 ? M : 2;
 		const defenderFloor = 1;
 		const ratio = A / Math.max(D, defenderFloor);
-		let M = J.ABS.Metadata.ImplicitParryDominanceMultiplier;
-		if (!Number.isFinite(M) || M <= 1) {
-			M = 2;
-		}
-		const invM = 1 / M;
-		if (ratio >= M) {
+		const invM = 1 / safeM;
+		if (ratio >= safeM) {
 			return 0;
 		}
 		if (ratio <= invM) {
 			return 100;
 		}
-		const span = M - invM;
+		const span = safeM - invM;
 		const t = (ratio - invM) / span;
 		return Math.round(100 * (1 - t));
+	}
+	/**
+	* Implicit passive parry chance (0–100) from attacker/defender pressure vs the dominance band.
+	* Does not apply facing, GRD &gt; 0, or attacker ignore-parry state gates ({@link #isParryPossible}).
+	* Multiply the result by {@link J.ABS.Metadata.ImplicitParryScaleFactor} before rolling to get
+	* the effective full-negate chance used in {@link #checkImplicitFullParry}.
+	* @param {JABS_Battler} caster The attacker on the map.
+	* @param {JABS_Battler} target The defender on the map.
+	* @param {number} ignoreParryPercent Defender GRD pressure ignored (0–100); same as skill tag
+	* {@code jabsIgnoreParry}.
+	* @returns {number} Rounded percent chance the implicit parry roll succeeds (same rounding as combat).
+	*/
+	static implicitParryChancePercent(caster, target, ignoreParryPercent) {
+		const { A, D } = JABS_Engine.#defensivePressure(caster, target, ignoreParryPercent);
+		const M = J.ABS.Metadata.ImplicitParryDominanceMultiplier;
+		return JABS_Engine.#dominanceBandChance(A, D, M);
+	}
+	/**
+	* Glancing blow chance (0–100) from attacker/defender pressure vs the glancing dominance band.
+	* Uses the same baseline pressure as {@link #implicitParryChancePercent} but reads
+	* {@link J.ABS.Metadata.GlancingBlowDominanceMultiplier} for its band width, allowing the two
+	* systems to be tuned independently.
+	* @param {JABS_Battler} caster The attacker on the map.
+	* @param {JABS_Battler} target The defender on the map.
+	* @param {number} ignoreParryPercent Defender GRD pressure ignored (0–100).
+	* @returns {number} Rounded percent chance a glancing blow occurs (0–100).
+	*/
+	static glancingBlowChancePercent(caster, target, ignoreParryPercent) {
+		const { A, D } = JABS_Engine.#defensivePressure(caster, target, ignoreParryPercent);
+		const M = J.ABS.Metadata.GlancingBlowDominanceMultiplier;
+		return JABS_Engine.#dominanceBandChance(A, D, M);
 	}
 	/**
 	* Creates all members available in this class.
@@ -10893,13 +10988,17 @@ var JABS_Engine = class JABS_Engine {
 			isUnparryable = true;
 		}
 		const caster = action.getCaster();
-		let willParry = false;
 		if (isUnparryable === false && this.canAttemptImplicitParry(target)) {
-			willParry = this.checkParry(caster, target, action);
-		}
-		if (willParry) {
-			result.clear();
-			result.parried = true;
+			const willFullParry = this.checkImplicitFullParry(caster, target, action);
+			if (willFullParry) {
+				result.clear();
+				result.parried = true;
+			} else {
+				const willGlance = this.checkGlancingBlow(caster, target, action);
+				if (willGlance) {
+					result.glancing = true;
+				}
+			}
 		}
 		if (target.guarding()) {
 			const nextResult = targetBattler.result();
@@ -11167,20 +11266,24 @@ var JABS_Engine = class JABS_Engine {
 	}
 	/**
 	* Calculates whether or not the attack was parried by implicit (passive) parry.
-	* Uses ratio of attacker pressure A to defender pressure D with dominance
-	* multiplier M from plugin metadata. Baseline pressure uses floor + per-level on each
-	* side: attacker from caster level, defender from target level. Caller must use
-	* {@link #canAttemptImplicitParry} first; timed parry while guarding is handled in
-	* {@link Game_Action.handleGuardEffects}.
+	* Calculates whether the implicit parry roll succeeds as a full negate.
+	* Uses the standard A/D pressure formula scaled down by {@link J.ABS.Metadata.ImplicitParryScaleFactor},
+	* so full negation is rarer than the broad defensive-event chance. Prerequisites are checked
+	* via {@link #isParryPossible} first; active timed parry while guarding is separate
+	* ({@link Game_Action.handleGuardEffects}).
 	* @param {JABS_Battler} caster The battler performing the action.
 	* @param {JABS_Battler} target The target the action is against.
 	* @param {JABS_Action} action The action being executed.
-	* @returns {boolean} True if the action was parried, false otherwise.
+	* @returns {boolean} True if the action was fully parried (complete negate), false otherwise.
 	*/
-	checkParry(caster, target, action) {
-		if (!this.isParryPossible(caster, target)) return false;
+	checkImplicitFullParry(caster, target, action) {
+		if (this.isParryPossible(caster, target) === false) {
+			return false;
+		}
 		const ignoreParryPercent = action.getBaseSkill().jabsIgnoreParry ?? 0;
-		const parryChancePercent = JABS_Engine.implicitParryChancePercent(caster, target, ignoreParryPercent);
+		const rawChance = JABS_Engine.implicitParryChancePercent(caster, target, ignoreParryPercent);
+		const scaleFactor = J.ABS.Metadata.ImplicitParryScaleFactor;
+		const parryChancePercent = Math.round(rawChance * scaleFactor);
 		if (parryChancePercent >= 100) {
 			return true;
 		}
@@ -11191,7 +11294,32 @@ var JABS_Engine = class JABS_Engine {
 		return rng <= parryChancePercent;
 	}
 	/**
-	* Prerequisites for implicit {@link #checkParry} (facing, GRD, attacker ignore-parry states).
+	* Calculates whether the implicit parry roll succeeds as a glancing blow.
+	* Uses the glancing blow dominance band (separate M from full parry) so the two checks
+	* can be tuned independently. Only called when {@link #checkImplicitFullParry} did not fire.
+	* @param {JABS_Battler} caster The battler performing the action.
+	* @param {JABS_Battler} target The target the action is against.
+	* @param {JABS_Action} action The action being executed.
+	* @returns {boolean} True if the hit is a glancing blow, false otherwise.
+	*/
+	checkGlancingBlow(caster, target, action) {
+		if (this.isParryPossible(caster, target) === false) {
+			return false;
+		}
+		const ignoreParryPercent = action.getBaseSkill().jabsIgnoreParry ?? 0;
+		const glancingChancePercent = JABS_Engine.glancingBlowChancePercent(caster, target, ignoreParryPercent);
+		if (glancingChancePercent >= 100) {
+			return true;
+		}
+		if (glancingChancePercent <= 0) {
+			return false;
+		}
+		const rng = Math.randomInt(100) + 1;
+		return rng <= glancingChancePercent;
+	}
+	/**
+	* Prerequisites for implicit defensive events: {@link #checkImplicitFullParry} and
+	* {@link #checkGlancingBlow} (facing, GRD > 0, attacker ignore-parry states).
 	* @param {JABS_Battler} caster The one executing the skill against the target.
 	* @param {JABS_Battler} target The one being attacked by the caster.
 	*/
@@ -11973,11 +12101,24 @@ var JABS_Engine = class JABS_Engine {
 		this.createRewardsLog(experience, gold, actor);
 	}
 	/**
+	* Determines whether the victorious actor is eligible to gain rewards from the defeated enemy.
+	* This is the central policy gate for all four reward types (EXP, gold, SDP, AP).
+	* Returns true by default — all defeated enemies grant rewards. Alias this method to introduce
+	* game-specific exclusion conditions (e.g. inanimate objects, zero-yield flags, kill-type filters).
+	* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+	* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
+	* @returns {boolean} True if rewards should be granted, false to skip all reward calculation.
+	*/
+	canGainReward(defeatedEnemy, victoriousActor) {
+		return true;
+	}
+	/**
 	* Determines how much experience the defeated enemy yielded.
 	* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
 	* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
 	*/
 	determineExperienceGained(defeatedEnemy, victoriousActor) {
+		if (this.canGainReward(defeatedEnemy, victoriousActor) === false) return 0;
 		const experience = defeatedEnemy.exp();
 		const rewardScalingMultiplier = this.getRewardScalingMultiplier(defeatedEnemy, victoriousActor);
 		const scaledExperience = Math.ceil(experience * rewardScalingMultiplier);
@@ -11990,6 +12131,7 @@ var JABS_Engine = class JABS_Engine {
 	* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
 	*/
 	determineGoldGained(defeatedEnemy, victoriousActor) {
+		if (this.canGainReward(defeatedEnemy, victoriousActor) === false) return 0;
 		const gold = defeatedEnemy.gold();
 		const rewardScalingMultiplier = this.getRewardScalingMultiplier(defeatedEnemy, victoriousActor);
 		const scaledGold = Math.ceil(gold * rewardScalingMultiplier);
@@ -16134,6 +16276,7 @@ JABS_Battler.prototype.canActionConnect = function() {
 	if (this.getCharacter().isJabsAction()) {
 		return false;
 	}
+	if (this.isFollower() && this.getCharacter().isVisible() === false) return false;
 	return true;
 };
 /**
@@ -20004,7 +20147,7 @@ globalThis.$gameEnemies = null;
 */
 globalThis.$actionMap = null;
 /**
-* Extends {@link DataManager.createGameObjects}.<br>
+* Extends {@link DataManager.createGameObjects}.<br/>
 * Includes creation of our global game objects.
 */
 J.ABS.Aliased.DataManager.set("createGameObjects", DataManager.createGameObjects);
@@ -20086,7 +20229,7 @@ DataManager.makeSaveContents = function() {
 //#endregion
 //#region src/plugins/abs/core/objects/Game_Action.js
 /**
-* Overrides {@link #subject}.<br>
+* Overwrites {@link #subject}.<br/>
 * On the map there is no context of a $gameTroop. This means that an
 * action must accommodate both enemy and actor alike. In order to handle
 * this, we check to see which id was set and respond accordingly.
@@ -20104,7 +20247,7 @@ Game_Action.prototype.subject = function() {
 	return subject;
 };
 /**
-* Overrides {@link #setSubject}.<br>
+* Overwrites {@link #setSubject}.<br/>
 * On the map there is no context of a $gameTroop. This means that an
 * action must accommodate both enemy and actor alike. In order to handle
 * this, we check to see which id was set and respond accordingly.
@@ -20124,7 +20267,7 @@ Game_Action.prototype.setSubject = function(subject) {
 	}
 };
 /**
-* Overrides {@link #apply}.<br>
+* Overwrites {@link #apply}.<br/>
 * Adjusts how a skill is applied to a target in the context of JABS.
 */
 J.ABS.Aliased.Game_Action.set("apply", Game_Action.prototype.apply);
@@ -20174,8 +20317,11 @@ Game_Action.prototype.preApplyAction = function(target) {
 Game_Action.prototype.executeJabsAction = function(target) {
 	const result = target.result();
 	if (this.item().damage.type > 0) {
-		result.critical = this.isHitCritical(target);
-		const value = this.makeDamageValue(target, result.critical);
+		result.critical = result.glancing ? false : this.isHitCritical(target);
+		let value = this.makeDamageValue(target, result.critical);
+		if (result.glancing) {
+			value = this.applyGlancingDamageReduction(value);
+		}
 		this.executeDamage(target, value);
 	}
 	this.item().effects.forEach((effect) => this.applyItemEffect(target, effect));
@@ -20202,7 +20348,7 @@ Game_Action.prototype.isHitCritical = function(target) {
 	return Math.random() < this.itemCri(target);
 };
 /**
-* Overrides {@link #itemHit}.<br>
+* Overwrites {@link #itemHit}.<br/>
 * This overwrite converts the success rate of a skill into the value
 * representing what percent of your hit is used in the hit chance formula.
 * @returns {number}
@@ -20213,7 +20359,7 @@ Game_Action.prototype.itemHit = function() {
 	return hitRate;
 };
 /**
-* Extends {@link #makeDamageValue}.<br>
+* Extends {@link #makeDamageValue}.<br/>
 * Includes consideration of guard effects of the target.
 */
 J.ABS.Aliased.Game_Action.set("makeDamageValue", Game_Action.prototype.makeDamageValue);
@@ -20281,12 +20427,23 @@ Game_Action.prototype.onParry = function(jabsBattler) {
 };
 /**
 * Calculates the damage reduction from parrying.
+* Active (timed, skill-driven) parry retains full negation as the mastery-layer reward.
 * @param {JABS_Battler} jabsBattler The battler that is parrying.
 * @param {number} originalDamage The original amount of damage.
 * @returns {number} The damage after reduction.
 */
 Game_Action.prototype.calculateParryDamageReduction = function(jabsBattler, originalDamage) {
 	return 0;
+};
+/**
+* Scales the given damage value down to the glancing blow fraction defined by plugin parameters.
+* Glancing blows always deal at least 1 damage so the hit registers visibly.
+* @param {number} originalDamage The calculated damage before the glancing reduction.
+* @returns {number} The reduced damage, floored at 1.
+*/
+Game_Action.prototype.applyGlancingDamageReduction = function(originalDamage) {
+	const damageFactor = J.ABS.Metadata.GlancingBlowDamageFactor;
+	return Math.max(1, Math.round(originalDamage * damageFactor));
 };
 /**
 * Processes the action as a guard, reducing damage along with any
@@ -20354,7 +20511,7 @@ Game_Action.prototype.applyPercentDamageReduction = function(baseDamage, jabsBat
 	return percentReducedDamage;
 };
 /**
-* Extends {@link #itemEffectAddState}.<br>
+* Extends {@link #itemEffectAddState}.<br/>
 * Adds a conditional check to see if adding state-related effects is allowed
 * against the target.
 * @param {Game_Battler} target The target battler potentially being afflicted.
@@ -20380,7 +20537,7 @@ Game_Action.prototype.canItemEffectAddState = function(target, effect) {
 	return true;
 };
 /**
-* Overrides {@link #itemEffectAddAttackState}.<br>
+* Overwrites {@link #itemEffectAddAttackState}.<br/>
 * When a "Normal Attack" effect is used and a state is applied, then
 * all of the battler's attack states have an opportunity to be applied
 * based on all the various rates and calculations.
@@ -20401,7 +20558,7 @@ Game_Action.prototype.itemEffectAddAttackState = function(target, effect) {
 	attackerStateIds.forEach(forEacher, this);
 };
 /**
-* Overrides {@link #itemEffectAddNormalState}.<br>
+* Overwrites {@link #itemEffectAddNormalState}.<br/>
 * Updates the method to be more modifyable, and considers attackers
 * when applying states.
 *
@@ -20472,7 +20629,7 @@ Game_Action.prototype.applyStateEffect = function(target, stateId) {
 //#endregion
 //#region src/plugins/abs/core/objects/Game_ActionResult.js
 /**
-* Extends {@link Game_ActionResult.initialize}.<br>
+* Extends {@link Game_ActionResult.initialize}.<br/>
 * Initializes additional members.
 */
 J.ABS.Aliased.Game_ActionResult.set("initialize", Game_ActionResult.prototype.initialize);
@@ -20488,6 +20645,11 @@ Game_ActionResult.prototype.initialize = function() {
 	*/
 	this.parried = false;
 	/**
+	* Whether or not the result was a glancing blow (implicit parry that still lands but deals reduced damage).
+	* @type {boolean}
+	*/
+	this.glancing = false;
+	/**
 	* The amount of damage reduced by guarding.
 	* @type {number}
 	*/
@@ -20502,10 +20664,12 @@ Game_ActionResult.prototype.clear = function() {
 	J.ABS.Aliased.Game_ActionResult.get("clear").call(this);
 	this.guarded = false;
 	this.parried = false;
+	this.glancing = false;
 	this.reduced = 0;
 };
 /**
-* OVERWRITE Removes the check for "hit vs rng", and adds in parry instead.
+* Overwrites {@link #isHit}.<br/>
+* Removes the check for "hit vs rng", and adds in parry instead.
 */
 Game_ActionResult.prototype.isHit = function() {
 	return this.used && !this.parried && !this.evaded;
@@ -20514,7 +20678,7 @@ Game_ActionResult.prototype.isHit = function() {
 //#endregion
 //#region src/plugins/abs/core/objects/Game_Actor.js
 /**
-* Extends {@link #initJabsMembers}.<br>
+* Extends {@link #initJabsMembers}.<br/>
 * Includes additional actor-specific members.
 */
 J.ABS.Aliased.Game_Actor.set("initJabsMembers", Game_Actor.prototype.initJabsMembers);
@@ -20562,7 +20726,7 @@ Game_Actor.prototype.jabsRefresh = function() {
 	this.refreshBonusHits();
 };
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Adds a hook for performing actions when the battler's data hase changed.
 */
 J.ABS.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
@@ -21177,7 +21341,8 @@ Game_Actor.prototype.getUpgradableSkillSlots = function() {
 	return upgradableSkillSlots;
 };
 /**
-* OVERWRITE Replaces the levelup display on the map to not display a message.
+* Overwrites {@link #shouldDisplayLevelUp}.<br/>
+* Replaces the levelup display on the map to not display a message.
 */
 Game_Actor.prototype.shouldDisplayLevelUp = function() {
 	return false;
@@ -21198,7 +21363,7 @@ Game_Actor.prototype.jabsLevelUp = function() {
 	$jabsEngine.battlerLevelup(this.getUuid());
 };
 /**
-* Extends {@link #onLevelDown}.<br>
+* Extends {@link #onLevelDown}.<br/>
 * Also refresh sprites' danger indicator.
 */
 J.ABS.Aliased.Game_Actor.set("onLevelDown", Game_Actor.prototype.onLevelDown);
@@ -21366,7 +21531,7 @@ Game_Actor.prototype.turnEndOnMap = function() {
 //#endregion
 //#region src/plugins/abs/core/objects/Game_Battler.js
 /**
-* Extends {@link Game_Battler.initMembers}.<br>
+* Extends {@link Game_Battler.initMembers}.<br/>
 * Includes JABS parameter initialization.
 */
 J.ABS.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
@@ -21705,8 +21870,8 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function() {
 };
 J.ABS.Aliased.Game_Battler.set("states", Game_Battler.prototype.states);
 /**
-* Overrides {@link #states}.<br/>
-* Returns the proper states for all that are afflicted on this battler.<br/>
+* Overwrites {@link #states}.<br/>
+* Returns the proper states for all that are afflicted on this battler.
 * Accommodates stacking.
 * @returns {RPG_State[]}
 */
@@ -21730,7 +21895,8 @@ Game_Battler.prototype.states = function() {
 	return originalStates.concat(stackedStates);
 };
 /**
-* OVERWRITE Rewrites the handling for state application. The attacker is
+* Extends {@link #addState}.<br/>
+* Rewrites the handling for state application. The attacker is
 * now relevant to the state being applied.
 * @param {number} stateId The state id to potentially apply.
 * @param {Game_Battler} attacker The battler who is applying this state.
@@ -22302,7 +22468,7 @@ Game_Character.prototype.requestAnimation = function(animationId) {
 	$gameTemp.requestAnimation([this], animationId);
 };
 /**
-* Extends {@link Game_Character.isMovementSucceeded}.<br>
+* Extends {@link Game_Character.isMovementSucceeded}.<br/>
 * Includes handling for battlers being move-locked by JABS.
 * @returns {boolean}
 */
@@ -22503,7 +22669,7 @@ Game_CharacterBase.prototype.getRealMoveSpeed = function() {
 	return this._j._abs._realMoveSpeed;
 };
 /**
-* Overrides {@link Game_CharacterBase.realMoveSpeed}.<br>
+* Overwrites {@link Game_CharacterBase.realMoveSpeed}.<br/>
 * Replaces the value to return our custom real move speed instead, along with dash boosts.
 * @returns {number}
 */
@@ -22538,7 +22704,7 @@ Game_CharacterBase.prototype.dashSpeed = function() {
 	return J.ABS.Metadata.DashSpeedBoost;
 };
 /**
-* Extends {@link Game_CharacterBase.setMoveSpeed}.<br>
+* Extends {@link Game_CharacterBase.setMoveSpeed}.<br/>
 * Also modifies custom move speeds.
 */
 J.ABS.Aliased.Game_CharacterBase.set("setMoveSpeed", Game_CharacterBase.prototype.setMoveSpeed);
@@ -22577,7 +22743,7 @@ Game_CharacterBase.prototype.isDodging = function() {
 //#endregion
 //#region src/plugins/abs/core/objects/Game_Enemy.js
 /**
-* Extends {@link Game_Enemy.setup}.<br>
+* Extends {@link Game_Enemy.setup}.<br/>
 * Includes JABS skill initialization.
 */
 J.ABS.Aliased.Game_Enemy.set("setup", Game_Enemy.prototype.setup);
@@ -22599,7 +22765,7 @@ Game_Enemy.prototype.jabsRefresh = function() {
 	this.refreshBonusHits();
 };
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Adds a hook for performing actions when the battler's data hase changed.
 */
 J.ABS.Aliased.Game_Enemy.set("onBattlerDataChange", Game_Enemy.prototype.onBattlerDataChange);
@@ -22893,7 +23059,8 @@ Game_Event.prototype.findProperPageIndex = function() {
 	}
 };
 /**
-* OVERWRITE When an map battler is hidden by something like a switch or some
+* Extends {@link #refresh}.<br/>
+* When an map battler is hidden by something like a switch or some
 * other condition, unveil it upon meeting such conditions.
 */
 J.ABS.Aliased.Game_Event.set("refresh", Game_Event.prototype.refresh);
@@ -22905,7 +23072,7 @@ Game_Event.prototype.refresh = function() {
 	}
 };
 /**
-* Overrides {@link Game_Event.refresh}.<br>
+* Overwrites {@link Game_Event.refresh}.<br/>
 * Safely handles battler transformation and page index reassignment.
 *
 * Sometimes the page index reassignment can get out of hand and requires guardrails.
@@ -23961,7 +24128,7 @@ Game_Player.prototype.canMove = function() {
 	}
 };
 /**
-* Extends/Overrides {@link #isDashing}.<br/>
+* Extends {@link #isDashing}.<br/>
 * Disables engine dash while the player is in JABS combat.
 */
 J.ABS.Aliased.Game_Player.set("isDashing", Game_Player.prototype.isDashing);
@@ -24088,7 +24255,7 @@ Game_Player.prototype.removeLoot = function(lootEvent) {
 //#endregion
 //#region src/plugins/abs/core/objects/Game_Switches.js
 /**
-* Extends {@link #onChange}.<br>
+* Extends {@link #onChange}.<br/>
 * Also refreshes the JABS menu when a switch is toggled.
 */
 J.ABS.Aliased.Game_Switches.set("onChange", Game_Switches.prototype.onChange);
@@ -24100,7 +24267,7 @@ Game_Switches.prototype.onChange = function() {
 //#endregion
 //#region src/plugins/abs/core/objects/Game_Unit.js
 /**
-* Overrides {@link Game_Unit.inBattle}.<br>
+* Overwrites {@link Game_Unit.inBattle}.<br/>
 * If JABS is enabled, combat is always active.
 *
 * TODO: update this to be on a timer based on last hit target + any engaged enemies?
@@ -24113,7 +24280,7 @@ Game_Unit.prototype.inBattle = function() {
 //#endregion
 //#region src/plugins/abs/core/scenes/Scene_Load.js
 /**
-* Overrides {@link Scene_Load.reloadMapIfUpdated}.<br>
+* Overwrites {@link Scene_Load.reloadMapIfUpdated}.<br/>
 * When loading, the map needs to be refreshed to load the enemies properly.
 */
 J.ABS.Aliased.Scene_Load.set("reloadMapIfUpdated", Scene_Load.prototype.reloadMapIfUpdated);
@@ -24449,7 +24616,7 @@ var Window_AbsMenuSelect = class Window_AbsMenuSelect extends Window_Command {
 //#endregion
 //#region src/plugins/abs/core/scenes/Scene_Map.js
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Also initializes all additional properties for JABS.
 */
 J.ABS.Aliased.Scene_Map.set("initialize", Scene_Map.prototype.initialize);
@@ -24462,7 +24629,7 @@ Scene_Map.prototype.initialize = function() {
 	this.initJabsMembers();
 };
 /**
-* Extends {@link #onMapLoaded}.<br>
+* Extends {@link #onMapLoaded}.<br/>
 * Safety net for ensuring the player's battler is initialized with the map load.
 */
 J.ABS.Aliased.Scene_Map.set("onMapLoaded", Scene_Map.prototype.onMapLoaded);
@@ -25162,7 +25329,7 @@ Scene_Map.prototype.commandAssign = function() {
 	this.closeAbsWindow(JABS_MenuType.Assign);
 };
 /**
-* Extends {@link #update}.<br>
+* Extends {@link #update}.<br/>
 * Also updates JABS.
 */
 J.ABS.Aliased.Scene_Map.set("update", Scene_Map.prototype.update);
@@ -25236,7 +25403,7 @@ Scene_Map.prototype.manageAbsMenu = function() {
 	}
 };
 /**
-* Extends {@link #callMenu}.<br>
+* Extends {@link #callMenu}.<br/>
 * Disables the ability to directly call the menu by pressing the given key.
 */
 J.ABS.Aliased.Scene_Map.set("callMenu", Scene_Map.prototype.callMenu);
@@ -25550,7 +25717,7 @@ Sprite_Animation.prototype.targetPosition = function(renderer) {
 	return pos;
 };
 /**
-* Extends/Overrides {@link Sprite_Animation.prototype.targetSpritePosition}.<br/>
+* Extends {@link Sprite_Animation.prototype.targetSpritePosition}.<br/>
 * Adds a definitive guard against null or destroyed sprites to prevent crashes during transformation updates.
 * @param {Sprite} sprite The sprite to get the position of.
 * @returns {Point}
@@ -25574,7 +25741,7 @@ Sprite_Animation.prototype.targetSpritePosition = function(sprite) {
 //#endregion
 //#region src/plugins/abs/core/sprites/Sprite_AnimationMV.js
 /**
-* Extends/Overrides {@link Sprite_AnimationMV.prototype.updatePosition}.<br/>
+* Extends {@link Sprite_AnimationMV.prototype.updatePosition}.<br/>
 * Adds a guard to ensure we don't attempt to follow destroyed or removed sprites.
 */
 J.ABS.Aliased.Sprite_AnimationMV.set("updatePosition", Sprite_AnimationMV.prototype.updatePosition);
@@ -25767,7 +25934,7 @@ Sprite_MapCastGauge.prototype.drawLabel = function() {
 	this.bitmap.drawText(this._gauge._label, Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h), "left");
 };
 /**
-* Overrides {@link Sprite_Gauge.gaugeX}.<br/>
+* Overwrites {@link Sprite_Gauge.gaugeX}.<br/>
 * Returns 0 so the fill track occupies the full bitmap width.
 * The skill name label and icon are drawn overlaid on the fill, not to its left,
 * so the track must not be shortened by the label text width.
@@ -26056,7 +26223,7 @@ Sprite_Character.prototype.setupMapSprite = function() {
 	this.finalizeJabsBattlerSetup();
 };
 /**
-* Extends/Overrides {@link Sprite_Character.prototype.updatePosition}.<br/>
+* Extends {@link Sprite_Character.prototype.updatePosition}.<br/>
 * Also applies per-skill visual metadata (offset, anchor, z, rotation, scale) to JABS action sprites.
 */
 J.ABS.Aliased.Sprite_Character.set("updatePosition", Sprite_Character.prototype.updatePosition);

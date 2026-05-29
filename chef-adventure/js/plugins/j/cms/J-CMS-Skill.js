@@ -532,7 +532,7 @@ var Window_SkillDetail = class extends Window_Base {
 	* @returns {JCMS_ParameterKvp}
 	*/
 	makeHpCostParam(skill, actor) {
-		const hpName = TextManager.longParam(34);
+		const hpName = TextManager.parameterLabel("hcr");
 		const { flat, percent, calculatedPercent, formula } = ResourceCostManager.hpCostBreakdown(actor, skill);
 		const hasAnyCost = flat !== 0 || percent !== 0 || formula !== 0;
 		const hpColor = hasAnyCost ? ColorManager.hpCostColor() : ColorManager.damageColor();
@@ -546,7 +546,7 @@ var Window_SkillDetail = class extends Window_Base {
 	* @returns {JCMS_ParameterKvp}
 	*/
 	makeMpCostParam(skill, actor) {
-		const mpName = TextManager.longParam(22);
+		const mpName = TextManager.parameterLabel("mcr");
 		if (J.RESOURCES) {
 			const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get("skillMpCost").call(actor, skill);
 			const { flat: extraFlat, percent, calculatedPercent, formula } = ResourceCostManager.extraMpCostBreakdown(actor, skill);
@@ -567,7 +567,7 @@ var Window_SkillDetail = class extends Window_Base {
 	* @returns {JCMS_ParameterKvp}
 	*/
 	makeTpCostParam(skill, actor) {
-		const tpName = TextManager.longParam(23);
+		const tpName = TextManager.parameterLabel("tcr");
 		if (J.RESOURCES) {
 			const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get("skillTpCost").call(actor, skill);
 			const { flat: extraFlat, percent, calculatedPercent, formula } = ResourceCostManager.extraTpCostBreakdown(actor, skill);
@@ -618,11 +618,13 @@ Scene_Skill.prototype.skillDetailRect = function() {
 };
 Scene_Skill.prototype.mainCommandWidth = () => 400;
 /**
-* OVERWRITE Removes the buttons because fuck the buttons.
+* Overwrites {@link #createButtons}.<br/>
+* Removes the buttons because fuck the buttons.
 */
 Scene_Skill.prototype.createButtons = function() {};
 /**
-* OVERWRITE Replaces the button area height with 0 because fuck buttons.
+* Overwrites {@link #buttonAreaHeight}.<br/>
+* Replaces the button area height with 0 because fuck buttons.
 * @returns {number}
 */
 Scene_Skill.prototype.buttonAreaHeight = () => 0;
@@ -712,7 +714,8 @@ Window_SkillList.prototype.includes = function(skill) {
 //#endregion
 //#region src/plugins/cms/skill/windows/Window_SkillType.js
 /**
-* OVERWRITE Fixes the maximum columns for this screen to be 1.
+* Overwrites {@link #maxCols}.<br/>
+* Fixes the maximum columns for this screen to be 1.
 * @returns {number}
 */
 Window_SkillType.prototype.maxCols = function() {

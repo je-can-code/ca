@@ -1316,7 +1316,7 @@ J.JAFTING.EXT.CREATE.RegExp = {};
 //#endregion
 //#region src/plugins/jafting/ext/create/objects/Game_Party.js
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Also initializes our jafting members.
 */
 J.JAFTING.EXT.CREATE.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
@@ -1621,7 +1621,7 @@ Game_Party.prototype.updateVariableWithCraftedCountByCategories = function(varia
 //#endregion
 //#region src/plugins/jafting/ext/create/objects/Game_System.js
 /**
-* Extends {@link #onAfterLoad}.<br>
+* Extends {@link #onAfterLoad}.<br/>
 * Updates the database with the tracked refined equips.
 */
 J.JAFTING.EXT.CREATE.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
@@ -1700,7 +1700,7 @@ var Window_CategoryList = class extends Window_Command {
 		super(rect);
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting categories.
 	*/
 	makeCommandList() {
@@ -1727,7 +1727,7 @@ var Window_CategoryList = class extends Window_Command {
 		return new WindowCommandBuilder(category.name).setSymbol(category.key).setExtensionData(category).setIconIndex(category.iconIndex).setHelpText(category.description).setEnabled(category.hasAnyRecipes()).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -1770,7 +1770,7 @@ var Window_RecipeList = class extends Window_Command {
 		return this.currentCategory;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting recipes.
 	*/
 	makeCommandList() {
@@ -1799,7 +1799,7 @@ var Window_RecipeList = class extends Window_Command {
 		return new WindowCommandBuilder(recipe.getRecipeName()).setSymbol(recipe.key).setExtensionData(recipe).setHelpText(recipe.getRecipeDescription()).setIconIndex(recipe.getRecipeIcon()).setEnabled(recipe.canCraft()).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows smaller so there can be additional recipeeeees.
 	* @returns {number}
 	*/
@@ -1807,7 +1807,7 @@ var Window_RecipeList = class extends Window_Command {
 		return this.lineHeight();
 	}
 	/**
-	* Overrides {@link #drawBackgroundRect}.<br>
+	* Overwrites {@link #drawBackgroundRect}.<br/>
 	* Prevents the rendering of the backdrop of each line in the window.
 	* @param {Rectangle} _ The rectangle to draw the background for.
 	* @override
@@ -2076,7 +2076,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 		return Math.max(56, this.detailsFourthBandWidth() - 10);
 	}
 	/**
-	* Implements {@link Window_Base.drawContent}.<br>
+	* Implements {@link Window_Base.drawContent}.<br/>
 	* Draws the recipe details header bands and the primary output column.
 	*/
 	drawContent() {
@@ -2355,7 +2355,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 		this.opacity = 0;
 	}
 	/**
-	* Extends {@link #initialize}.<br>
+	* Extends {@link #initialize}.<br/>
 	* Initializes some additional window properies.
 	*/
 	initialize(rect) {
@@ -2370,7 +2370,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 		this._components = components;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting categories.
 	*/
 	makeCommandList() {
@@ -2407,7 +2407,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 		return new WindowCommandBuilder(component.getName()).setSymbol(`${component.getName()}-${this.index()}`).setExtensionData(component).setIconIndex(component.getIconIndex()).setHelpText(component.getName()).setRightText(needQuantity).setRightColorIndex(haveTextColor).setTextLines(subtexts).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2438,7 +2438,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 		return rect;
 	}
 	/**
-	* Overrides {@link #drawBackgroundRect}.<br>
+	* Overwrites {@link #drawBackgroundRect}.<br/>
 	* Prevents the rendering of the backdrop of each line in the window.
 	* @param {Rectangle} _ The rectangle to draw the background for.
 	* @override
@@ -2458,7 +2458,7 @@ var Window_RecipeToolList = class extends Window_Command {
 		this.opacity = 0;
 	}
 	/**
-	* Extends {@link #initialize}.<br>
+	* Extends {@link #initialize}.<br/>
 	* Initializes some additional window properies.
 	*/
 	initialize(rect) {
@@ -2473,7 +2473,7 @@ var Window_RecipeToolList = class extends Window_Command {
 		this._components = components;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting categories.
 	*/
 	makeCommandList() {
@@ -2510,7 +2510,7 @@ var Window_RecipeToolList = class extends Window_Command {
 		return new WindowCommandBuilder(component.getName()).setSymbol(`${component.getName()}-${this.index()}`).setExtensionData(component).setIconIndex(component.getIconIndex()).setHelpText(component.getName()).setRightText(needQuantity).setRightColorIndex(haveTextColor).setTextLines(subtexts).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2533,14 +2533,14 @@ var Window_RecipeToolList = class extends Window_Command {
 		return rect;
 	}
 	/**
-	* Overrides {@link #drawBackgroundRect}.<br>
+	* Overwrites {@link #drawBackgroundRect}.<br/>
 	* Prevents the rendering of the backdrop of each line in the window.
 	* @param {Rectangle} _ The rectangle to draw the background for.
 	* @override
 	*/
 	drawBackgroundRect(_) {}
 	/**
-	* Overrides {@link Window_Selectable.prototype.drawAllItems}.<br>
+	* Overwrites {@link Window_Selectable.prototype.drawAllItems}.<br/>
 	* Explains an empty TOOLS column instead of leaving it ambiguous.
 	* @override
 	*/
@@ -2573,7 +2573,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 		this.opacity = 0;
 	}
 	/**
-	* Extends {@link #initialize}.<br>
+	* Extends {@link #initialize}.<br/>
 	* Initializes some additional window properies.
 	*/
 	initialize(rect) {
@@ -2591,7 +2591,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 		this.needsMasking = needsMasking;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting categories.
 	*/
 	makeCommandList() {
@@ -2622,7 +2622,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 		return command;
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2645,7 +2645,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 		return rect;
 	}
 	/**
-	* Overrides {@link #drawBackgroundRect}.<br>
+	* Overwrites {@link #drawBackgroundRect}.<br/>
 	* Prevents the rendering of the backdrop of each line in the window.
 	* @param {Rectangle} _ The rectangle to draw the background for.
 	* @override
@@ -2824,7 +2824,7 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 		this.getCreationDescriptionWindow().setText(this.getCategoryListWindow().currentHelpText() ?? String.empty);
 	}
 	/**
-	* Overrides {@link Scene_MenuBase.prototype.createBackground}.<br>
+	* Overwrites {@link Scene_MenuBase.prototype.createBackground}.<br/>
 	* Changes the filter to a different type from {@link PIXI.filters}.<br>
 	*/
 	createBackground() {
@@ -2835,7 +2835,7 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 		this.addChild(this._backgroundSprite);
 	}
 	/**
-	* Overrides {@link #createButtons}.<br>
+	* Overwrites {@link #createButtons}.<br/>
 	* Disables the creation of the buttons.
 	* @override
 	*/
@@ -3305,7 +3305,7 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 //#endregion
 //#region src/plugins/jafting/ext/create/scenes/Scene_Jafting.js
 /**
-* Extends {@link #onRootJaftingSelection}.<br>
+* Extends {@link #onRootJaftingSelection}.<br/>
 * When Creation is chosen on the JAFTING hub, opens the Creation scene.
 */
 J.JAFTING.EXT.CREATE.Aliased.Scene_Jafting.set("onRootJaftingSelection", Scene_Jafting.prototype.onRootJaftingSelection);
@@ -3328,7 +3328,7 @@ Scene_Jafting.prototype.jaftingCreationSelected = function() {
 //#endregion
 //#region src/plugins/jafting/ext/create/windows/Window_JaftingList.js
 /**
-* Extends {@link #buildCommands}.<br>
+* Extends {@link #buildCommands}.<br/>
 * Includes the creation command as well as the rest.
 */
 J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList.set("buildCommands", Window_JaftingList.prototype.buildCommands);

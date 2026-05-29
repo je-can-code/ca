@@ -51,7 +51,7 @@
  * TAG USAGE:
  * - States (prefix/suffix pool membership + weights)
  * - Enemies (block RNG and/or override chances)
- * - Events (Comment commands on the page that spawns the enemy)
+ * - Events (Comment commands on the pfage that spawns the enemy)
  *
  * POLICY / PRECEDENCE:
  *  (1) If the event has an explicit `<passive:[...]>` list that contains any
@@ -165,6 +165,39 @@
  *  <tier-color-hex:#FF0000>
  *    Uses a bright red stripe tint when this prefix is the selected tier
  *    prefix.
+ *
+ * ============================================================================
+ * REWARD MULTIPLIERS
+ * Have you ever wanted affixed enemies to yield better rewards for the extra
+ * challenge they pose? Well now you can! By applying the following tag to
+ * states and/or enemy notes, you too can multiplicatively scale any reward
+ * type when the enemy is defeated.
+ *
+ * TAG USAGE:
+ * - States (affix states or any other state on the enemy)
+ * - Enemies
+ *
+ * TAG FORMAT:
+ *  <rewardMultiplier:[TYPE, VALUE]>
+ *    Where TYPE is one of: exp, gold, sdp, ap, drops
+ *    Where VALUE is a decimal multiplier (e.g. 2.0 = double).
+ *
+ * TAG NOTES:
+ * - Multiple tags per note are supported (one per reward type).
+ * - When an enemy has multipliers from both its note and its states,
+ *   they stack multiplicatively (e.g. 1.5x from note * 2.0x from
+ *   prefix state = 3.0x total).
+ * - The "drops" type multiplies the drop chance percentage, not the
+ *   number of items.
+ *
+ * TAG EXAMPLES:
+ *  <rewardMultiplier:[exp, 2.0]>
+ *    Enemies defeated with this tag yield double experience.
+ *
+ *  <rewardMultiplier:[gold, 1.5]>
+ *  <rewardMultiplier:[drops, 1.25]>
+ *    These two tags on the same state would grant 1.5x gold and
+ *    1.25x drop chance when the enemy is defeated.
  *
  * ============================================================================
  * PLUGIN PARAMETERS
@@ -298,8 +331,10 @@ J.PASSIVE.EXT.ABS.Metadata = new JPassiveAbs_PluginMetadata("J-Passive-ABS", "1.
 * A collection of all aliased methods for this plugin.
 */
 J.PASSIVE.EXT.ABS.Aliased = {};
+J.PASSIVE.EXT.ABS.Aliased.Game_Enemy = new Map();
 J.PASSIVE.EXT.ABS.Aliased.JABS_AiManager = new Map();
 J.PASSIVE.EXT.ABS.Aliased.JABS_Battler = new Map();
+J.PASSIVE.EXT.ABS.Aliased.JABS_Engine = new Map();
 J.PASSIVE.EXT.ABS.Aliased.Scene_Boot = new Map();
 J.PASSIVE.EXT.ABS.Aliased.Sprite_Character = new Map();
 J.PASSIVE.EXT.ABS.Aliased.Window_PassiveDetail = new Map();
@@ -316,10 +351,33 @@ J.PASSIVE.EXT.ABS.RegExp.NoRngPassivePrefixes = /<no-rng-passive-prefixes>/i;
 J.PASSIVE.EXT.ABS.RegExp.NoRngPassiveSuffixes = /<no-rng-passive-suffixes>/i;
 J.PASSIVE.EXT.ABS.RegExp.PassiveAffixPrefixChance = /<passive-affix-prefix-chance:[ ]?([+-]?\d+(?:\.\d+)?)>/i;
 J.PASSIVE.EXT.ABS.RegExp.PassiveAffixSuffixChance = /<passive-affix-suffix-chance:[ ]?([+-]?\d+(?:\.\d+)?)>/i;
+J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier = /<rewardMultiplier:\[[ ]?(exp|gold|sdp|ap|drops),[ ]?(\d+(?:\.\d+)?)[ ]?]>/gi;
 /**
 * A collection of helper methods for this plugin.
 */
 J.PASSIVE.EXT.ABS.Helpers = {};
+/**
+* Parses all {@link J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier} tags from a database object's note.
+* Returns a map of reward type key to multiplier value. Each type appears at most once; if
+* duplicated, the last tag on the note wins.
+* @param {RPG_BaseItem} databaseData The database object whose note to scan.
+* @returns {Map<string, number>} Reward type → multiplier pairs found.
+*/
+J.PASSIVE.EXT.ABS.Helpers.parseRewardMultipliers = function(databaseData) {
+	const results = new Map();
+	if (!databaseData || !databaseData.note) return results;
+	const regex = J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier;
+	const lines = databaseData.note.split(/[\r\n]+/);
+	const scan = new RegExp(regex.source, regex.flags.replace("g", "").replace("y", ""));
+	lines.forEach((line) => {
+		const match = scan.exec(line);
+		if (match === null) return;
+		const rewardType = match[1].toLowerCase();
+		const multiplier = parseFloat(match[2]);
+		results.set(rewardType, multiplier);
+	});
+	return results;
+};
 /**
 * Resolves map/HUD tier stripe tint from the first enemy-prefix passive state on the battler.
 * Callers assign the result to {@link JABS_BattlerName#colorHex} (or HUD fields) when non-empty.
@@ -379,6 +437,14 @@ Object.defineProperty(RPG_Enemy.prototype, "passiveAffixPrefixChance", { get() {
 Object.defineProperty(RPG_Enemy.prototype, "passiveAffixSuffixChance", { get() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.PassiveAffixSuffixChance, true);
 } });
+/**
+* All reward multipliers defined on this enemy via {@link J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier}.
+* Returns a map of reward type key to its multiplier value.
+* @type {Map<string, number>}
+*/
+Object.defineProperty(RPG_Enemy.prototype, "rewardMultipliers", { get() {
+	return J.PASSIVE.EXT.ABS.Helpers.parseRewardMultipliers(this);
+} });
 
 //#endregion
 //#region src/plugins/passive/ext/abs/database/RPG_State.js
@@ -410,6 +476,14 @@ Object.defineProperty(RPG_State.prototype, "affixWeight", { get() {
 */
 Object.defineProperty(RPG_State.prototype, "tierColorHex", { get() {
 	return RPGManager.getStringFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.TierColorHex, true);
+} });
+/**
+* All reward multipliers defined on this state via {@link J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier}.
+* Returns a map of reward type key to its multiplier value.
+* @type {Map<string, number>}
+*/
+Object.defineProperty(RPG_State.prototype, "rewardMultipliers", { get() {
+	return J.PASSIVE.EXT.ABS.Helpers.parseRewardMultipliers(this);
 } });
 
 //#endregion
@@ -553,6 +627,95 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 }
 
 //#endregion
+//#region src/plugins/passive/ext/abs/managers/JABS_Engine.js
+/**
+* Extends {@link JABS_Engine.prototype.determineExperienceGained}.<br/>
+* Applies reward multipliers from the defeated enemy's note and states.
+* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
+* @returns {number} The multiplied experience gained.
+*/
+J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.set("determineExperienceGained", JABS_Engine.prototype.determineExperienceGained);
+JABS_Engine.prototype.determineExperienceGained = function(defeatedEnemy, victoriousActor) {
+	const base = J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.get("determineExperienceGained").call(this, defeatedEnemy, victoriousActor);
+	const rewardMultiplier = defeatedEnemy.getRewardMultiplierByType("exp");
+	return Math.ceil(base * rewardMultiplier);
+};
+/**
+* Extends {@link JABS_Engine.prototype.determineGoldGained}.<br/>
+* Applies reward multipliers from the defeated enemy's note and states.
+* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
+* @returns {number} The multiplied gold gained.
+*/
+J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.set("determineGoldGained", JABS_Engine.prototype.determineGoldGained);
+JABS_Engine.prototype.determineGoldGained = function(defeatedEnemy, victoriousActor) {
+	const base = J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.get("determineGoldGained").call(this, defeatedEnemy, victoriousActor);
+	const rewardMultiplier = defeatedEnemy.getRewardMultiplierByType("gold");
+	return Math.ceil(base * rewardMultiplier);
+};
+/**
+* Extends {@link JABS_Engine.prototype.determineSdpGained}.<br/>
+* Applies reward multipliers from the defeated enemy's note and states.
+* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+* @param {JABS_Battler} actor The map battler that defeated the target.
+* @returns {number} The multiplied SDP points gained.
+*/
+J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.set("determineSdpGained", JABS_Engine.prototype.determineSdpGained);
+JABS_Engine.prototype.determineSdpGained = function(defeatedEnemy, actor) {
+	const base = J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.get("determineSdpGained").call(this, defeatedEnemy, actor);
+	const rewardMultiplier = defeatedEnemy.getRewardMultiplierByType("sdp");
+	return Math.ceil(base * rewardMultiplier);
+};
+/**
+* Extends {@link JABS_Engine.prototype.determineApGained}.<br/>
+* Applies reward multipliers from the defeated enemy's note and states.
+* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+* @returns {number} The multiplied AP gained.
+*/
+J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.set("determineApGained", JABS_Engine.prototype.determineApGained);
+JABS_Engine.prototype.determineApGained = function(defeatedEnemy) {
+	const base = J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.get("determineApGained").call(this, defeatedEnemy);
+	const rewardMultiplier = defeatedEnemy.getRewardMultiplierByType("ap");
+	return Math.ceil(base * rewardMultiplier);
+};
+
+//#endregion
+//#region src/plugins/passive/ext/abs/objects/Game_Enemy.js
+/**
+* Computes the combined reward multiplier for a given reward type by scanning
+* both the enemy's database note and all currently applied states.
+* Multiple sources stack multiplicatively.
+* @param {string} rewardType The reward type key: exp, gold, sdp, ap, or drops.
+* @returns {number} The combined multiplier (1.0 when no tags are present).
+*/
+Game_Enemy.prototype.getRewardMultiplierByType = function(rewardType) {
+	let multiplier = 1;
+	const enemyMultipliers = this.enemy().rewardMultipliers;
+	if (enemyMultipliers.has(rewardType)) {
+		multiplier *= enemyMultipliers.get(rewardType);
+	}
+	this.allStates().forEach((state) => {
+		const stateMultipliers = state.rewardMultipliers;
+		if (stateMultipliers.has(rewardType)) {
+			multiplier *= stateMultipliers.get(rewardType);
+		}
+	});
+	return multiplier;
+};
+/**
+* Extends {@link Game_Enemy.prototype.getDropMultiplierBonus}.<br/>
+* Folds in any reward multipliers for the "drops" type from this enemy's note and states.
+* @returns {number} The adjusted drop multiplier.
+*/
+J.PASSIVE.EXT.ABS.Aliased.Game_Enemy.set("getDropMultiplierBonus", Game_Enemy.prototype.getDropMultiplierBonus);
+Game_Enemy.prototype.getDropMultiplierBonus = function() {
+	const base = J.PASSIVE.EXT.ABS.Aliased.Game_Enemy.get("getDropMultiplierBonus").call(this);
+	const rewardMultiplier = this.getRewardMultiplierByType("drops");
+	return base * rewardMultiplier;
+};
+
+//#endregion
 //#region src/plugins/passive/ext/abs/objects/Game_Event.js
 /**
 * Reads the last {@link J.PASSIVE.EXT.ABS.RegExp.PassiveAffixPrefixChance} tag from this page's comment commands.
@@ -594,6 +757,9 @@ Game_Event.prototype.eventCommentsDisablePassiveAffixPrefixRng = function() {
 	let blocks = false;
 	this.getValidCommentCommands().forEach((command) => {
 		const [comment] = command.parameters;
+		if (J.PASSIVE.EXT.ABS.RegExp.NoRngPassives.test(comment)) {
+			blocks = true;
+		}
 		if (J.PASSIVE.EXT.ABS.RegExp.NoRngPassivePrefixes.test(comment)) {
 			blocks = true;
 		}
@@ -608,6 +774,9 @@ Game_Event.prototype.eventCommentsDisablePassiveAffixSuffixRng = function() {
 	let blocks = false;
 	this.getValidCommentCommands().forEach((command) => {
 		const [comment] = command.parameters;
+		if (J.PASSIVE.EXT.ABS.RegExp.NoRngPassives.test(comment)) {
+			blocks = true;
+		}
 		if (J.PASSIVE.EXT.ABS.RegExp.NoRngPassiveSuffixes.test(comment)) {
 			blocks = true;
 		}

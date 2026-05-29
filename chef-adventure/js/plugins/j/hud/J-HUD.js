@@ -746,7 +746,7 @@ var Window_Frame = class extends Window_Base {
 //#endregion
 //#region src/plugins/hud/core/scenes/Scene_Map.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the HUD members.
 */
 J.HUD.Aliased.Scene_Map.set("initMembers", Scene_Map.prototype.initMembers);
@@ -782,7 +782,7 @@ Scene_Map.prototype.updateHudFrames = function() {
 	$hudManager.update();
 };
 /**
-* Extends {@link #onPartyRotate}.<br>
+* Extends {@link #onPartyRotate}.<br/>
 * Refreshes the HUD on party rotation.
 */
 J.HUD.Aliased.Scene_Map.set("onPartyRotate", Scene_Map.prototype.onPartyRotate);

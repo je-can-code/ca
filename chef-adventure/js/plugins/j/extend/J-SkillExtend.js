@@ -975,7 +975,7 @@ DataManager.setupBattleTest = function() {
 //#endregion
 //#region src/plugins/extend/core/objects/Game_Action.js
 /**
-* Overrides {@link #setSkill}.<br>
+* Overwrites {@link #setSkill}.<br/>
 * If a caster is available to this action, then update the udnerlying skill with
 * the overlayed skill instead.
 */
@@ -989,7 +989,7 @@ Game_Action.prototype.setSkill = function(skillId) {
 	this._item.setObject(skillToSet);
 };
 /**
-* Overrides {@link #setItemObject}.<br>
+* Overwrites {@link #setItemObject}.<br/>
 * If a caster is available to this action, then update the underlying item with the data.
 */
 J.EXTEND.Aliased.Game_Action.set("setItemObject", Game_Action.prototype.setItemObject);
@@ -1001,7 +1001,7 @@ Game_Action.prototype.setItemObject = function(itemObject) {
 	this._item.setObject(itemObject);
 };
 /**
-* Extends {@link #apply}.<br>
+* Extends {@link #apply}.<br/>
 * Also applies on-hit states.
 */
 J.EXTEND.Aliased.Game_Action.set("apply", Game_Action.prototype.apply);
@@ -1093,7 +1093,7 @@ Game_Action.prototype.onHitRemoveStates = function() {
 	return stateChances;
 };
 /**
-* Extends {@link #applyItemUserEffect}.<br>
+* Extends {@link #applyItemUserEffect}.<br/>
 * Also applies on-cast states.
 */
 J.EXTEND.Aliased.Game_Action.set("applyItemUserEffect", Game_Action.prototype.applyItemUserEffect);
@@ -1259,7 +1259,7 @@ Game_Action.prototype.removeStates = function(target, jabsOnChanceEffects) {
 //#endregion
 //#region src/plugins/extend/core/objects/Game_Actor.js
 /**
-* Overrides {@link #skill}<br/>.
+* Overwrites {@link #skill}.<br/>
 * Overlays the skill with any skill extensions.
 * @param {number} skillId The skill id to get the skill for.
 * @returns {RPG_Skill} The potentially extended skill.

@@ -330,7 +330,7 @@ Game_Event.prototype.parseEscriptionIconProximityValue = function() {
 	return iconProximity;
 };
 /**
-* Extends {@link Game_Event.update}.<br>
+* Extends {@link Game_Event.update}.<br/>
 * Also updates the describe proximity information of the player for the describe data.
 */
 J.ESCRIBE.Aliased.Game_Event.set("update", Game_Event.prototype.update);
@@ -625,7 +625,7 @@ Sprite_Character.prototype.characterCanSeeIcon = function() {
 	return character.getPlayerNearbyForIcon();
 };
 /**
-* Extends {@link Sprite_Character.isEmptyCharacter}.<br>
+* Extends {@link Sprite_Character.isEmptyCharacter}.<br/>
 * If the character has describe data, don't make it invisible for the time being.
 * @returns {boolean} True if the character should be drawn, false otherwise.
 */
@@ -644,7 +644,7 @@ Sprite_Character.prototype.refreshCharacterEscription = function() {
 	character.refreshEscription();
 };
 /**
-* Extends {@link Sprite_Character.setCharacterBitmap}.<br>
+* Extends {@link Sprite_Character.setCharacterBitmap}.<br/>
 * Sets up the initial escription sprites and renders them as applicable.
 */
 J.ESCRIBE.Aliased.Sprite_Character.set("setCharacterBitmap", Sprite_Character.prototype.setCharacterBitmap);

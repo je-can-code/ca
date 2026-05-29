@@ -481,7 +481,7 @@ var ExperienceManager = class {
 //#endregion
 //#region src/plugins/level/ext/flat/objects/Game_Actor.js
 /**
-* Overrides {@link #expForLevel}.<br/>
+* Overwrites {@link #expForLevel}.<br/>
 * Uses the flat-experience formula.
 * @param {number} level The level to calculate the experience for.
 * @returns {number}
@@ -526,12 +526,13 @@ Game_Troop.prototype.getFlatExpResult = function() {
 //#region src/plugins/level/ext/flat/managers/JABS_Engine.js
 if (J.ABS) {
 	/**
-	* Overrides {@link #determineExperienceGained}.<br/>
+	* Overwrites {@link #determineExperienceGained}.<br/>
 	* Replaces with the flat-experience logic.
 	* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
 	* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
 	*/
 	JABS_Engine.prototype.determineExperienceGained = function(defeatedEnemy, victoriousActor) {
+		if (this.canGainReward(defeatedEnemy, victoriousActor) === false) return 0;
 		const baseExperience = ExperienceManager.calculateRewardFromLevelDifference(victoriousActor.level, defeatedEnemy.level);
 		const withBonusExperience = defeatedEnemy.exp() + baseExperience;
 		return withBonusExperience;

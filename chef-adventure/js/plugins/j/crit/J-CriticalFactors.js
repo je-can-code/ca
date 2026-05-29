@@ -287,18 +287,6 @@ J.CRIT.RegExp = {
 //#endregion
 //#region src/plugins/crit/core/managers/IconManager.js
 /**
-* Extend {@link #longParam}.<br>
-* First checks if the paramId was a critical param before checking others.
-*/
-J.CRIT.Aliased.IconManager.set("longParam", IconManager.longParam);
-IconManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 28: return this.critParam(0);
-		case 29: return this.critParam(1);
-		default: return J.CRIT.Aliased.IconManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the icon index for the critical damage parameters.
 * @param {number} paramId The id of the crit param to get an icon index for.
 * @returns {number}
@@ -313,18 +301,6 @@ IconManager.critParam = function(paramId) {
 //#endregion
 //#region src/plugins/crit/core/managers/TextManager.js
 /**
-* Extends {@link #longParam}.<br>
-* First searches for our critical damage text ids before searching for others.
-*/
-J.CRIT.Aliased.TextManager.set("longParam", TextManager.longParam);
-TextManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 28: return this.critParam(0);
-		case 29: return this.critParam(1);
-		default: return J.CRIT.Aliased.TextManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the text for the critical damage parameters from "J-CriticalFactors".
 * @param {number} paramId The id of the crit param to get a name for.
 * @returns {string} The name of the parameter.
@@ -333,18 +309,6 @@ TextManager.critParam = function(paramId) {
 	switch (paramId) {
 		case 0: return "Crit Amp";
 		case 1: return "Crit Block";
-	}
-};
-/**
-* Extends {@link #longParamDescription}.<br>
-* First searches for our critical damage text ids before searching for others.
-*/
-J.CRIT.Aliased.TextManager.set("longParamDescription", TextManager.longParamDescription);
-TextManager.longParamDescription = function(paramId) {
-	switch (paramId) {
-		case 28: return this.critParamDescription(0);
-		case 29: return this.critParamDescription(1);
-		default: return J.CRIT.Aliased.TextManager.get("longParamDescription").call(this, paramId);
 	}
 };
 /**
@@ -402,7 +366,7 @@ Game_Action.prototype.apply = function(target) {
 	J.CRIT.Aliased.Game_Action.get("apply").call(this, target);
 };
 /**
-* Overrides {@link #applyCritical}.<br/>
+* Overwrites {@link #applyCritical}.<br/>
 * Replaces the way critical damage is calculated by
 * adding multiplier and reduction modifiers for actors and enemies alike.
 * @param {number} baseDamage The base damage before crit modification.
@@ -438,7 +402,7 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage) {
 	return criticalDamage * criticalReductionRate;
 };
 /**
-* Overrides {@link #itemCri}.<br/>
+* Overwrites {@link #itemCri}.<br/>
 * Includes the addition of potential action-based crit rate boosts.
 * @param {Game_Battler} target The target being struck with the critical.
 * @returns {number} The calculated critical chance of this action.
@@ -486,17 +450,6 @@ Game_Actor.prototype.applyNaturalCustomGrowths = function() {
 	this.applyNaturalCdrGrowths();
 };
 /**
-* Extend `.longParam()` to first check for our crit params.
-*/
-J.CRIT.Aliased.Game_Actor.set("longParam", Game_Actor.prototype.longParam);
-Game_Actor.prototype.longParam = function(longParamId) {
-	switch (longParamId) {
-		case 28: return this.cdm;
-		case 29: return this.cdr;
-		default: return J.CRIT.Aliased.Game_Actor.get("longParam").call(this, longParamId);
-	}
-};
-/**
 * Applies the natural CDM growths to this battler.
 */
 Game_Actor.prototype.applyNaturalCdmGrowths = function() {
@@ -537,18 +490,20 @@ Game_Actor.prototype.getNaturalGrowthsRegexForCrit = function() {
 * @returns {number}
 */
 Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam) {
-	if (!J.SDP) return 0;
-	const panelRankings = this.getAllSdpRankings();
-	if (!panelRankings.length) return 0;
-	const actualCritParamId = 28 + critParamId;
-	let val = 0;
-	panelRankings.forEach((panelRanking) => {
-		const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
-		if (!panel) return;
-		val += panel.calculateBonusByRank(actualCritParamId, panelRanking.currentRank, baseParam, false);
-	});
-	return val;
+	const parameterKey = critParamId === 0 ? "cdm" : "cdr";
+	return this.getSdpBonusForParameterKey(parameterKey, baseParam);
 };
+
+//#endregion
+//#region src/plugins/crit/core/core/registerCritParameters.js
+/**
+* Registers CDM and CDR with the parameter catalog.
+*/
+function registerCritParameters() {
+	ParameterRegistry.register(ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier())).build());
+	ParameterRegistry.register(ParameterDefinition.Builder().key("cdr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).sdpBinding(SdpParameterBinding.byKey("cdr", (actor) => actor.baseCriticalReduction())).build());
+}
+registerCritParameters();
 
 //#endregion
 //#region src/plugins/crit/core/objects/Game_Battler.js

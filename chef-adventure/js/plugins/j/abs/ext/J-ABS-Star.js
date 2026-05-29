@@ -322,7 +322,7 @@ BattleManager.origin = function() {
 //#endregion
 //#region src/plugins/abs/ext/star/managers/DataManager.js
 /**
-* Extends {@link DataManager.createGameObjects}.<br>
+* Extends {@link DataManager.createGameObjects}.<br/>
 * Includes fetching the enemy map and storing it memory.
 */
 J.ABS.EXT.STAR.Aliased.DataManager.set("createGameObjects", DataManager.createGameObjects);
@@ -375,7 +375,7 @@ DataManager.onEnemyMapGet = function(xhr, name, src, url) {
 //#endregion
 //#region src/plugins/abs/ext/star/objects/Game_Interpreter.js
 /**
-* Overrides {@link Game_Interpreter.command301}.<br>
+* Overwrites {@link Game_Interpreter.command301}.<br/>
 * Alters the event command handler of "Battle Processing".
 * Replaces the default battle setup with our star battle setup instead.
 * @param {any} params The parameters from the event command.
@@ -412,7 +412,7 @@ Game_Interpreter.prototype.command301convertToTroopId = function(designationType
 //#endregion
 //#region src/plugins/abs/ext/star/objects/Game_Map.js
 /**
-* Extends {@link Game_Map.update}.<br>
+* Extends {@link Game_Map.update}.<br/>
 * Also update the flow of star battle.
 */
 J.ABS.EXT.STAR.Aliased.Game_Map.set("update", Game_Map.prototype.update);
@@ -544,7 +544,7 @@ Game_Map.prototype.returnPlayerToOrigin = function() {
 //#endregion
 //#region src/plugins/abs/ext/star/objects/Game_Player.js
 /**
-* Extends {@link Game_Player.clearTransferInfo}.<br>
+* Extends {@link Game_Player.clearTransferInfo}.<br/>
 * Parse out enemy data from the troop and convert them into JABS battlers.
 */
 J.ABS.EXT.STAR.Aliased.Game_Player.set("clearTransferInfo", Game_Player.prototype.clearTransferInfo);
@@ -553,7 +553,7 @@ Game_Player.prototype.clearTransferInfo = function() {
 	$gameMap.postTransferEnemyParsing();
 };
 /**
-* Extends {@link Game_Player.executeEncounter}.<br>
+* Extends {@link Game_Player.executeEncounter}.<br/>
 * Includes preparation for the stars of battle.
 */
 J.ABS.EXT.STAR.Aliased.Game_Player.set("executeEncounter", Game_Player.prototype.executeEncounter);
@@ -572,7 +572,7 @@ Game_Player.prototype.reserveOriginTransfer = function() {
 //#endregion
 //#region src/plugins/abs/ext/star/objects/Game_Troop.js
 /**
-* Extends {@link Game_Troop.initialize}.<br>
+* Extends {@link Game_Troop.initialize}.<br/>
 * Initializes our additional members for STABS.
 */
 J.ABS.EXT.STAR.Aliased.Game_Troop.set("initialize", Game_Troop.prototype.initialize);
@@ -621,7 +621,7 @@ Game_Troop.prototype.areEnemiesAlive = function() {
 //#endregion
 //#region src/plugins/abs/ext/star/scenes/Scene_Map.js
 /**
-* Overrides {@link Scene_Map.updateEncounter}.<br>
+* Overwrites {@link Scene_Map.updateEncounter}.<br/>
 * Disables base encounter scene management.
 */
 Scene_Map.prototype.updateEncounter = function() {

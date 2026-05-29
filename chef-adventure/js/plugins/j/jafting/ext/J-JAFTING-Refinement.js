@@ -1136,7 +1136,7 @@ J.JAFTING.EXT.REFINE.RegExp.MaxTraitCount = /<maxTraitCount:[ ]?(\d+)>/i;
 //#endregion
 //#region src/plugins/jafting/ext/refine/database/RPG_Base.js
 /**
-* Extends {@link RPG_Base._generate}.<br>
+* Extends {@link RPG_Base._generate}.<br/>
 *
 * Also mirrors additional JAFTING-related values to the new object.
 * @param {RPG_Base} overrides The overriding object.
@@ -1342,7 +1342,7 @@ Game_Party.prototype.incrementRefinementCounter = function(refinementType) {
 //#endregion
 //#region src/plugins/jafting/ext/refine/objects/Game_System.js
 /**
-* Extends {@link #onAfterLoad}.<br>
+* Extends {@link #onAfterLoad}.<br/>
 * Updates the database with the tracked refined equips.
 */
 J.JAFTING.EXT.REFINE.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
@@ -1536,7 +1536,8 @@ var Window_RefinableList = class extends Window_Command {
 		this._primarySelection = equip;
 	}
 	/**
-	* OVERWRITE Sets the alignment for this command window to be left-aligned.
+	* Overwrites {@link #itemTextAlign}.<br/>
+	* Sets the alignment for this command window to be left-aligned.
 	*/
 	itemTextAlign() {
 		return "left";
@@ -1928,7 +1929,8 @@ var Window_RefinementConfirmation = class extends Window_Command {
 		this.initialize(rect);
 	}
 	/**
-	* OVERWRITE Creates the command list for this window.
+	* Overwrites {@link #makeCommandList}.<br/>
+	* Creates the command list for this window.
 	*/
 	makeCommandList() {
 		this.addCommand(`${J.JAFTING.EXT.REFINE.Messages.ExecuteRefinementCommandName}`, `ok`, true, null, 91);
@@ -2138,7 +2140,7 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		this.refreshRefinementStepHint();
 	}
 	/**
-	* Overrides {@link Scene_MenuBase.prototype.createBackground}.<br>
+	* Overwrites {@link Scene_MenuBase.prototype.createBackground}.<br/>
 	* Changes the filter to a different type from {@link PIXI.filters}.<br>
 	*/
 	createBackground() {
@@ -2149,7 +2151,7 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		this.addChild(this._backgroundSprite);
 	}
 	/**
-	* Overrides {@link #createButtons}.<br>
+	* Overwrites {@link #createButtons}.<br/>
 	* Disables the creation of the buttons.
 	* @override
 	*/
@@ -2526,7 +2528,7 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 //#endregion
 //#region src/plugins/jafting/ext/refine/scenes/Scene_Jafting.js
 /**
-* Extends {@link #onRootJaftingSelection}.<br>
+* Extends {@link #onRootJaftingSelection}.<br/>
 * When Refinement is chosen on the JAFTING hub, opens the Refinement scene.
 */
 J.JAFTING.EXT.REFINE.Aliased.Scene_Jafting.set("onRootJaftingSelection", Scene_Jafting.prototype.onRootJaftingSelection);
@@ -2549,7 +2551,7 @@ Scene_Jafting.prototype.jaftingRefinementSelected = function() {
 //#endregion
 //#region src/plugins/jafting/ext/refine/windows/Window_JaftingList.js
 /**
-* Extends {@link #buildCommands}.<br>
+* Extends {@link #buildCommands}.<br/>
 * Includes the refinement command as well as the rest.
 */
 J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList.set("buildCommands", Window_JaftingList.prototype.buildCommands);

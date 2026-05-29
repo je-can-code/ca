@@ -70,7 +70,7 @@ var J_PopupsPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps plugin parameters onto fields used by map popup dispatch.
 	*/
 	postInitialize() {
@@ -1160,10 +1160,13 @@ Sprite_MapDamage.prototype.refreshDisplayedValue = function(valueString, largePu
 		textSprite.bitmap.fontBold = true;
 	} else {
 		const accent = this._j._popups._textAccent;
-		const accentItalic = accent === "miss" || accent === "evade" || accent === "parry";
+		const accentSmallItalic = accent === "miss" || accent === "evade" || accent === "parry";
 		const legacyItalic = displayString.includes("Missed") || displayString.includes("Evaded") || displayString.includes("Parry");
-		if (accentItalic || legacyItalic) {
+		if (accentSmallItalic || legacyItalic) {
 			fontSize -= 6;
+			textSprite.bitmap.fontItalic = true;
+		}
+		if (accent === "glance") {
 			textSprite.bitmap.fontItalic = true;
 		}
 	}
@@ -1255,9 +1258,9 @@ var TextPopSpriteManager = class {
 			case Map_TextPop.Types.Experience:
 			case Map_TextPop.Types.Gold:
 			case Map_TextPop.Types.Sdp:
-			case Map_TextPop.Types.Item: return 120;
-			case Map_TextPop.Types.Learn: return 120;
-			case Map_TextPop.Types.Levelup: return 180;
+			case Map_TextPop.Types.Item: return 30;
+			case Map_TextPop.Types.Learn: return 60;
+			case Map_TextPop.Types.Levelup: return 90;
 			case Map_TextPop.Types.Parry:
 			case Map_TextPop.Types.SkillUsage:
 			case Map_TextPop.Types.Slip: return 0;
@@ -1718,10 +1721,13 @@ Sprite_Damage.prototype.createValue = function(value) {
 		sprite.bitmap.fontBold = true;
 	} else {
 		const accent = this._j._popups._textAccent;
-		const accentItalic = accent === "miss" || accent === "evade" || accent === "parry";
+		const accentSmallItalic = accent === "miss" || accent === "evade" || accent === "parry";
 		const legacyItalic = displayValue.includes("Missed") || displayValue.includes("Evaded") || displayValue.includes("Parry");
-		if (accentItalic || legacyItalic) {
+		if (accentSmallItalic || legacyItalic) {
 			fontSize -= 6;
+			sprite.bitmap.fontItalic = true;
+		}
+		if (accent === "glance") {
 			sprite.bitmap.fontItalic = true;
 		}
 	}
@@ -1771,7 +1777,8 @@ Sprite_Damage.prototype.addDuration = function(extraDuration) {
 	this._duration += extraDuration;
 };
 /**
-* OVERWRITE Replaces the damage updating with our own motion management.
+* Overwrites {@link #updateChild}.<br/>
+* Replaces the damage updating with our own motion management.
 * @param {Sprite} sprite The sprite to udpate.
 */
 Sprite_Damage.prototype.updateChild = function(sprite) {
@@ -1855,7 +1862,8 @@ Sprite_Damage.prototype.flyawayDamageSpriteMotion = function(sprite) {
 	}
 };
 /**
-* OVERWRITE Updates the duration to start fading later, and for longer.
+* Overwrites {@link #updateOpacity}.<br/>
+* Updates the duration to start fading later, and for longer.
 */
 Sprite_Damage.prototype.updateOpacity = function() {
 	const baseDuration = J.POPUPS.Layout.BaseDuration;
@@ -1871,7 +1879,8 @@ Sprite_Damage.prototype.setDamageColor = function(damageColor) {
 	this._j._popups._damageColor = damageColor;
 };
 /**
-* OVERWRITE Replaces the color with a designated color on-creation.
+* Overwrites {@link #damageColor}.<br/>
+* Replaces the color with a designated color on-creation.
 */
 Sprite_Damage.prototype.damageColor = function() {
 	return ColorManager.textColor(this._j._popups._damageColor);

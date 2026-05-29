@@ -11,6 +11,8 @@ hack-n-slash & grindy & loot-and-crafty & laughable-story RPG ⚔️👾🔥📊
 > **It is probably needless to say, but many of the below links will contain various kinds of spoilers for this game!**
 
 As such, while the plugins living in my [other repository can be found over here][1], this documentation will include:
+- [**design contract** (fantasy, pillars, balance, onboarding tiers)][19]
+- [onboarding & tutorial backlog (implementation checklist)][20]
 - [a high-level game walkthrough accompanied by general area details][10]
 - [some additional area detail, separate from the actual story walk through][11]
 - [some weapon type information][12]
@@ -33,3 +35,5 @@ And of course, a list of unlockables and their details:
 [16]: ./unlockables/recipe-journals.md
 [17]: ./unlockables/blueprint-scraps.md
 [18]: ./unlockables/alchemy-pages.md
+[19]: ./design-contract.md
+[20]: ./tutorials/onboarding-backlog.md

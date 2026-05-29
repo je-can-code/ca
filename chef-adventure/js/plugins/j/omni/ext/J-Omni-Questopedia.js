@@ -2208,7 +2208,7 @@ J.OMNI.EXT.QUEST.RegExp.ChoiceQuestObjectiveForState = /<choiceQuestCondition:[ 
 //#endregion
 //#region src/plugins/omni/ext/quest/managers/DataManager.js
 /**
-* Extends/Overrides {@link #createGameObjects}.<br/>
+* Extends {@link #createGameObjects}.<br/>
 * Also registers J.OMNI.QUEST input actions and defaults.
 */
 J.OMNI.EXT.QUEST.Aliased.DataManager.set("createGameObjects", DataManager.createGameObjects);
@@ -2238,7 +2238,7 @@ var Window_QuestopediaCategories = class extends Window_HorzCommand {
 		super(rect);
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of all known quests in this window.
 	*/
 	makeCommandList() {
@@ -2263,7 +2263,7 @@ var Window_QuestopediaCategories = class extends Window_HorzCommand {
 		return new WindowCommandBuilder(omniCategory.name).setSymbol(omniCategory.key).setExtensionData(omniCategory).setIconIndex(omniCategory.iconIndex).build();
 	}
 	/**
-	* Overrides {@link maxCols}.<br/>
+	* Overwrites {@link maxCols}.<br/>
 	* Sets the column count to be the number of categories there are.
 	* @returns {number}
 	*/
@@ -2302,7 +2302,7 @@ var Window_QuestopediaList = class extends Window_Command {
 		this._currentCategoryKey = categoryKey;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of all known quests in this window.
 	*/
 	makeCommandList() {
@@ -2543,7 +2543,7 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 		super(rect);
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2565,7 +2565,7 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 		this._currentObjectives = questObjectives ?? [];
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of all known quests in this window.
 	*/
 	makeCommandList() {
@@ -2597,6 +2597,41 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 	}
 	buildNoObjectivesCommand() {
 		return new WindowCommandBuilder(String.empty).setSymbol(0).setExtensionData(null).addTextLine("No known objectives for this quest.").flagAsSubText().build();
+	}
+};
+
+//#endregion
+//#region src/plugins/omni/ext/quest/windows/Window_QuestopediaControlsHint.js
+/**
+* A single-line controller hint for the Questopedia scene.
+*/
+var Window_QuestopediaControlsHint = class extends Window_Base {
+	/**
+	* @param {Rectangle} rect The dimensions of the window.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.initialize(rect);
+	}
+	/**
+	* Re-renders the static controller hint.
+	*/
+	refresh() {
+		this.contents.clear();
+		this.drawControllerHint();
+	}
+	/**
+	* Draws the controller-first legend for quest category cycling.
+	*/
+	drawControllerHint() {
+		const padX = 12;
+		this.resetFontSettings();
+		this.modFontSize(-4);
+		this.changeTextColor(ColorManager.normalColor());
+		const text = "L2/R2: category";
+		const y = Math.max(0, Math.floor((this.innerHeight - this.lineHeight()) / 2));
+		this.drawText(text, padX, y, this.innerWidth - padX * 2, "left");
+		this.resetFontSettings();
 	}
 };
 
@@ -2677,6 +2712,11 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		* @type {Window_QuestopediaObjectives}
 		*/
 		this._j._omni._quest._pediaObjectives = null;
+		/**
+		* The controller hint strip for category cycling.
+		* @type {Window_QuestopediaControlsHint}
+		*/
+		this._j._omni._quest._pediaControlsHint = null;
 	}
 	/**
 	* Initialize all resources required for this scene.
@@ -2698,14 +2738,15 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		this.createQuestopediaCategoriesWindow();
 		this.createQuestopediaListWindow();
 		this.createQuestopediaDescriptionWindow();
+		this.createQuestopediaControlsHintWindow();
 		const categoriesWindow = this.getQuestopediaCategoriesWindow();
 		categoriesWindow.onIndexChange();
 		const listWindow = this.getQuestopediaListWindow();
 		listWindow.onIndexChange();
 	}
 	/**
-	* Overrides {@link Scene_MenuBase.prototype.createBackground}.<br>
-	* Changes the filter to a different type from {@link PIXI.filters}.<br>
+	* Overwrites {@link Scene_MenuBase.prototype.createBackground}.<br/>
+	* Changes the filter to a different type from {@link PIXI.filters}.
 	*/
 	createBackground() {
 		this._backgroundFilter = new PIXI.filters.AlphaFilter(.1);
@@ -2775,8 +2816,8 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		window.setHandler("cancel", this.onCancelQuestopedia.bind(this));
 		window.setHandler("ok", this.onQuestopediaListSelection.bind(this));
 		window.onIndexChange = this.onQuestopediaIndexChange.bind(this);
-		window.setHandler("pagedown", this.cycleQuestCategories.bind(this, true));
-		window.setHandler("pageup", this.cycleQuestCategories.bind(this, false));
+		window.setHandler("content-next", this.cycleQuestCategories.bind(this, true));
+		window.setHandler("content-prev", this.cycleQuestCategories.bind(this, false));
 		return window;
 	}
 	/**
@@ -2788,7 +2829,8 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		const { x } = categoriesRectangle;
 		const y = categoriesRectangle.height + Graphics.verticalPadding;
 		const { width } = categoriesRectangle;
-		const height = Graphics.boxHeight - Graphics.verticalPadding - y;
+		const hintH = this.questopediaControlsHintHeight();
+		const height = Graphics.boxHeight - Graphics.verticalPadding - y - hintH;
 		return new Rectangle(x, y, width, height);
 	}
 	/**
@@ -2804,6 +2846,52 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 	*/
 	setQuestopediaListWindow(listWindow) {
 		this._j._omni._quest._pediaList = listWindow;
+	}
+	/**
+	* Height reserved for the controller hint strip beneath the quest list.
+	* @returns {number}
+	*/
+	questopediaControlsHintHeight() {
+		return 28;
+	}
+	/**
+	* Creates the controller hint strip beneath the quest list.
+	*/
+	createQuestopediaControlsHintWindow() {
+		const window = this.buildQuestopediaControlsHintWindow();
+		this.setQuestopediaControlsHintWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Builds the questopedia controller hint window.
+	* @returns {Window_QuestopediaControlsHint}
+	*/
+	buildQuestopediaControlsHintWindow() {
+		return new Window_QuestopediaControlsHint(this.questopediaControlsHintRectangle());
+	}
+	/**
+	* Gets the rectangle for the controller hint strip.
+	* @returns {Rectangle}
+	*/
+	questopediaControlsHintRectangle() {
+		const listRectangle = this.questopediaListRectangle();
+		const hintH = this.questopediaControlsHintHeight();
+		const y = listRectangle.y + listRectangle.height;
+		return new Rectangle(listRectangle.x, y, listRectangle.width, hintH);
+	}
+	/**
+	* Gets the tracked controller hint window.
+	* @returns {Window_QuestopediaControlsHint}
+	*/
+	getQuestopediaControlsHintWindow() {
+		return this._j._omni._quest._pediaControlsHint;
+	}
+	/**
+	* Sets the tracked controller hint window.
+	* @param {Window_QuestopediaControlsHint} hintWindow The hint window to track.
+	*/
+	setQuestopediaControlsHintWindow(hintWindow) {
+		this._j._omni._quest._pediaControlsHint = hintWindow;
 	}
 	/**
 	* Creates the description of a single quest the player has discovered.
@@ -2993,7 +3081,7 @@ if (J.ABS) {
 //#endregion
 //#region src/plugins/omni/ext/quest/objects/Game_Party.js
 /**
-* Extends {@link #initOmnipediaMembers}.<br>
+* Extends {@link #initOmnipediaMembers}.<br/>
 * Includes monsterpedia members.
 */
 J.OMNI.EXT.QUEST.Aliased.Game_Party.set("initOmnipediaMembers", Game_Party.prototype.initOmnipediaMembers);
@@ -3220,7 +3308,7 @@ Game_System.prototype.onBeforeSave = function() {
 	$gameParty.synchronizeQuestopediaDataBeforeSave();
 };
 /**
-* Extends {@link #onAfterLoad}.<br>
+* Extends {@link #onAfterLoad}.<br/>
 * Updates the database with the tracked refined equips.
 */
 J.OMNI.EXT.QUEST.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
@@ -3526,7 +3614,7 @@ Window_JabsRemapActions.prototype.buildPostExtensionGroups = function(rows, can)
 //#endregion
 //#region src/plugins/omni/ext/quest/windows/Window_OmnipediaList.js
 /**
-* Extends {@link #buildCommands}.<br>
+* Extends {@link #buildCommands}.<br/>
 * Adds the questopedia command to the list of commands in the omnipedia.
 */
 J.OMNI.EXT.QUEST.Aliased.Window_OmnipediaList.set("buildCommands", Window_OmnipediaList.prototype.buildCommands);
@@ -3550,7 +3638,7 @@ Window_OmnipediaList.prototype.canAddMonsterpediaCommand = function() {
 //#endregion
 //#region src/plugins/omni/ext/quest/scenes/Scene_Omnipedia.js
 /**
-* Extends {@link #onRootPediaSelection}.<br>
+* Extends {@link #onRootPediaSelection}.<br/>
 * When the monsterpedia is selected, open the monsterpedia.
 */
 J.OMNI.EXT.QUEST.Aliased.Scene_Omnipedia.set("onRootPediaSelection", Scene_Omnipedia.prototype.onRootPediaSelection);

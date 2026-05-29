@@ -696,6 +696,7 @@ J.APT.RegExp.AptitudeTeachable = /<aptitude:[ ]?(\[\d+,[ ]?\d+])>/gi;
 * @type {RegExp}
 */
 J.APT.RegExp.ApReward = /<ap: ?(\d+)>/i;
+J.APT.RegExp.AptMultiplier = /<aptMultiplier:(-?\d+)>/i;
 
 //#endregion
 //#region src/plugins/apt/core/database/RPG_Base.js
@@ -725,6 +726,32 @@ RPG_Base.prototype.buildAptitudeTeachings = function() {
 Object.defineProperty(RPG_Enemy.prototype, "apPoints", { get() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.APT.RegExp.ApReward);
 } });
+
+//#endregion
+//#region src/plugins/apt/core/objects/Game_BattlerBase.js
+Object.defineProperties(Game_BattlerBase.prototype, { 
+/**
+* Aptitude point gain multiplier.
+*/
+apr: {
+	get: function() {
+		return 1;
+	},
+	configurable: true
+} });
+Object.defineProperty(Game_Actor.prototype, "apr", {
+	get: function() {
+		const multiplier = 100;
+		const objectsToCheck = this.getAllNotes();
+		const bonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.APT.RegExp.AptMultiplier);
+		let factor = (multiplier + bonus) / 100;
+		if (this.getSdpBonusForParameterKey) {
+			factor += this.getSdpBonusForParameterKey("apr", 1);
+		}
+		return factor;
+	},
+	configurable: true
+});
 
 //#endregion
 //#region src/plugins/apt/core/objects/Game_Battler.js
@@ -962,10 +989,15 @@ var ApManager = class {
 	*/
 	static gainAp(actor, amount, cause = "victory") {
 		if (this.canGainAp(actor, amount) === false) return;
+		let scaledAmount = amount;
+		if (actor.apr) {
+			scaledAmount = Math.round(amount * actor.apr);
+		}
+		if (scaledAmount === 0) return;
 		const teachableSources = this.activeTeachables(actor);
 		teachableSources.forEach((source) => {
 			const { key, teachables } = source;
-			this.applyApToSource(actor, key, teachables, amount, cause);
+			this.applyApToSource(actor, key, teachables, scaledAmount, cause);
 		});
 	}
 	/**
@@ -1156,6 +1188,31 @@ var ApManager = class {
 };
 
 //#endregion
+//#region src/plugins/apt/core/managers/TextManager.js
+TextManager.aptRate = function() {
+	return "APT Rate";
+};
+TextManager.aptRateDescription = function() {
+	return ["Bonus multiplier applied to aptitude point gains.", "Higher values accelerate skill mastery through aptitude tracks."];
+};
+
+//#endregion
+//#region src/plugins/apt/core/managers/IconManager.js
+IconManager.aptRate = function() {
+	return 79;
+};
+
+//#endregion
+//#region src/plugins/apt/core/core/registerAptParameters.js
+/**
+* Registers aptitude point gain multiplier with the parameter catalog.
+*/
+function registerAptParameters() {
+	ParameterRegistry.register(ParameterDefinition.Builder().key("apr").group(ParameterGroups.FATE).sortOrder(7).label(() => TextManager.aptRate()).description(() => TextManager.aptRateDescription()).iconIndex(() => IconManager.aptRate()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.apr).sdpBinding(SdpParameterBinding.byKey("apr", () => 1)).build());
+}
+registerAptParameters();
+
+//#endregion
 //#region src/plugins/apt/core/managers/BattleManager.js
 /**
 * Extends {@link #makeRewards}.<br/>
@@ -1217,8 +1274,17 @@ if (J.ABS) {
 	J.APT.Aliased.JABS_Engine.set("gainBasicRewards", JABS_Engine.prototype.gainBasicRewards);
 	JABS_Engine.prototype.gainBasicRewards = function(enemy, actor) {
 		J.APT.Aliased.JABS_Engine.get("gainBasicRewards").call(this, enemy, actor);
-		const ap = enemy.apPoints();
+		const ap = this.determineApGained(enemy);
 		this.gainAptitudeReward(ap, actor, enemy);
+	};
+	/**
+	* Determines how many AP the defeated enemy yielded before per-member level scaling.
+	* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+	* @returns {number} The base AP gained.
+	*/
+	JABS_Engine.prototype.determineApGained = function(defeatedEnemy) {
+		if (this.canGainReward(defeatedEnemy, null) === false) return 0;
+		return defeatedEnemy.apPoints();
 	};
 	/**
 	* Gains AP from battle rewards.
@@ -2383,9 +2449,9 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		win.setAggregates(this.aggregates());
 		win.setHandler("ok", this.onListOk.bind(this));
 		win.setHandler("cancel", this.popScene.bind(this));
-		win.setHandler("more", this.toggleViewMode.bind(this));
-		win.setHandler("pageup", this.onCycleActorLeft.bind(this));
-		win.setHandler("pagedown", this.onCycleActorRight.bind(this));
+		win.setHandler("context", this.toggleViewMode.bind(this));
+		win.setHandler("actor-prev", this.onCycleActorLeft.bind(this));
+		win.setHandler("actor-next", this.onCycleActorRight.bind(this));
 		this._j._aptitude._windows._aggregateList = win;
 		this.addWindow(win);
 	}
@@ -2419,9 +2485,9 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		win.setSources(this.sources());
 		win.setHandler("ok", this.onListOk.bind(this));
 		win.setHandler("cancel", this.popScene.bind(this));
-		win.setHandler("more", this.toggleViewMode.bind(this));
-		win.setHandler("pageup", this.onCycleActorLeft.bind(this));
-		win.setHandler("pagedown", this.onCycleActorRight.bind(this));
+		win.setHandler("context", this.toggleViewMode.bind(this));
+		win.setHandler("actor-prev", this.onCycleActorLeft.bind(this));
+		win.setHandler("actor-next", this.onCycleActorRight.bind(this));
 		win.hide();
 		win.deactivate();
 		this._j._aptitude._windows._sourceList = win;

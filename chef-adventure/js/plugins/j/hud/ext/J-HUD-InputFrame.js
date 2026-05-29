@@ -444,7 +444,7 @@ var Sprite_CooldownGauge = class extends Sprite {
 		this.bitmap.paintOpacity = 255;
 	}
 	/**
-	* Extends {@link Sprite.update}.<br>
+	* Extends {@link Sprite.update}.<br/>
 	* Also updates the drawing of this gauge.
 	*/
 	update() {
@@ -674,7 +674,8 @@ var Sprite_SkillCost = class Sprite_SkillCost extends Sprite_BaseSkillSlot {
 		}
 	}
 	/**
-	* OVERWRITE Gets the color of the text for this sprite based on the
+	* Overwrites {@link #color}.<br/>
+	* Gets the color of the text for this sprite based on the
 	* type of skill cost for this sprite, instead of the assigned color.
 	* @returns {string}
 	*/
@@ -694,7 +695,8 @@ var Sprite_SkillCost = class Sprite_SkillCost extends Sprite_BaseSkillSlot {
 		}
 	}
 	/**
-	* OVERWRITE Gets the font size for this sprite's text.
+	* Overwrites {@link #fontSize}.<br/>
+	* Gets the font size for this sprite's text.
 	* Skill costs are hard-coded to be a fixed size, 12.
 	* @returns {number}
 	*/
@@ -1528,7 +1530,7 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	*/
 	configure() {
 		super.configure();
-		this.opacity = 32;
+		this.opacity = 0;
 	}
 	/**
 	* Ensures all sprites are created and available for use.

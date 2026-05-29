@@ -498,7 +498,7 @@ JABS_Engine.prototype.tryApplyHitstop = function(action, target) {
 //#endregion
 //#region src/plugins/abs/ext/hitstop/objects/Game_Character.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes hitstop members.
 */
 J.ABS.EXT.HITSTOP.Aliased.Game_Character.set("initMembers", Game_Character.prototype.initMembers);
@@ -546,7 +546,7 @@ Game_Character.prototype.isHitstopped = function() {
 	return this.getHitstopData().isActive();
 };
 /**
-* Extends {@link #update}.<br>
+* Extends {@link #update}.<br/>
 * Also pauses this character while hitstopped.
 */
 J.ABS.EXT.HITSTOP.Aliased.Game_Character.set("update", Game_Character.prototype.update);

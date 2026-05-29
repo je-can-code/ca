@@ -382,7 +382,7 @@ var J_LogPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps plugin parameters into instance fields used by map log windows.
 	*/
 	postInitialize() {
@@ -1006,7 +1006,7 @@ var Window_MapLog = class Window_MapLog extends Window_Command {
 		this.upArrowVisible = false;
 	}
 	/**
-	* Extends {@link #isScrollEnabled}.<br>
+	* Extends {@link #isScrollEnabled}.<br/>
 	* Also requires the this window to not be hidden for scrolling to be enabled.
 	* @returns {boolean}
 	* @extends
@@ -1016,13 +1016,13 @@ var Window_MapLog = class Window_MapLog extends Window_Command {
 		return super.isScrollEnabled();
 	}
 	/**
-	* Overrides {@link #updateArrows}
+	* Overwrites {@link #updateArrows}.<br/>
 	* Forces the arrows that appear in scrollable windows to not be visible.
 	* @override
 	*/
 	updateArrows() {}
 	/**
-	* Extends {@link #smoothScrollTo}.<br>
+	* Extends {@link #smoothScrollTo}.<br/>
 	* Also refreshes the timer to prevent this window from going invisible
 	* while scrolling around through the logs.
 	* @param {number} x The x coordinate to scroll to.
@@ -1036,7 +1036,7 @@ var Window_MapLog = class Window_MapLog extends Window_Command {
 		}
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Reduces the item height further to allow for more rows to be visible at once
 	* within a smaller window.
 	* @returns {number} The adjusted height of each row.
@@ -1046,14 +1046,14 @@ var Window_MapLog = class Window_MapLog extends Window_Command {
 		return Window_MapLog.rowHeight;
 	}
 	/**
-	* Overrides {@link #drawBackgroundRect}.<br>
+	* Overwrites {@link #drawBackgroundRect}.<br/>
 	* Prevents the rendering of the backdrop of each line in the window.
 	* @param {Rectangle} _ The rectangle to draw the background for.
 	* @override
 	*/
 	drawBackgroundRect(_) {}
 	/**
-	* Extends {@link #itemRectWithPadding}.<br>
+	* Extends {@link #itemRectWithPadding}.<br/>
 	* Shifts the rect slightly to the left to give a cleaner look.
 	* @param {number} index The index of the item in the window.
 	* @returns {Rectangle}
@@ -1065,7 +1065,7 @@ var Window_MapLog = class Window_MapLog extends Window_Command {
 		return rect;
 	}
 	/**
-	* Overrides {@link #drawIcon}.<br>
+	* Overwrites {@link #drawIcon}.<br/>
 	* Reduces the size of the icons being drawn in the log window.
 	* @param {number} iconIndex The index of the icon to draw.
 	* @param {number} x The x coordinate to draw the icon at.
@@ -1081,7 +1081,7 @@ var Window_MapLog = class Window_MapLog extends Window_Command {
 		this.contents.blt(bitmap, sx, sy, pw, ph, x, y, 16, 16);
 	}
 	/**
-	* Extends {@link #processDrawIcon}.<br>
+	* Extends {@link #processDrawIcon}.<br/>
 	* Accommodates the other icon-related adjustments by manually shifting the
 	* {@link textState} around before and after executing the super method execution.
 	*
@@ -1289,7 +1289,7 @@ var Window_DiaLog = class Window_DiaLog extends Window_MapLog {
 		super(rect, logManager);
 	}
 	/**
-	* Overrides {@link drawFace}.<br/>
+	* Overwrites {@link drawFace}.<br/>
 	* Blits the face image at a size fitted to each row instead of the full image size.
 	*/
 	drawFace(faceName, faceIndex, x, y, width, height) {
@@ -1308,7 +1308,7 @@ var Window_DiaLog = class Window_DiaLog extends Window_MapLog {
 		this.contents.blt(bitmap, sx, sy, sw, sh, dx, dy, widthHeight, widthHeight);
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Reduces the item height further to allow for more rows to be visible at once
 	* within a smaller window.
 	* @returns {number} The adjusted height of each row.
@@ -1318,7 +1318,7 @@ var Window_DiaLog = class Window_DiaLog extends Window_MapLog {
 		return Window_DiaLog.rowHeight;
 	}
 	/**
-	* Overrides {@link Window_Command#multilineLineHeight}.<br>
+	* Overwrites {@link Window_Command#multilineLineHeight}.<br/>
 	* Increases line spacing slightly to give multi-line entries more breathing room.
 	* @returns {number}
 	* @override
@@ -1327,7 +1327,7 @@ var Window_DiaLog = class Window_DiaLog extends Window_MapLog {
 		return super.multilineLineHeight() + Math.round(Window_DiaLog.fontAdjustment * 1.5);
 	}
 	/**
-	* Overrides {@link Window_Base#resetFontSize}.<br>
+	* Overwrites {@link Window_Base#resetFontSize}.<br/>
 	* Reduces the font size slightly so multi-line entries fit comfortably
 	* within each 64px row without crowding.
 	* @override
@@ -1408,7 +1408,7 @@ Scene_Map.prototype.initialize = function() {
 	this._j._log._diaLog = null;
 };
 /**
-* Extends {@link #createAllWindows}.<br>
+* Extends {@link #createAllWindows}.<br/>
 * Creates the action log as well.
 */
 J.LOG.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);

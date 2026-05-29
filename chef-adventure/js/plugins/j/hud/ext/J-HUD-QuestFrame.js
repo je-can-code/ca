@@ -371,7 +371,7 @@ var Window_QuestFrame = class extends Window_Base {
 		this.drawTextEx(objectiveText, objectiveX, y, objectiveTextWidth);
 	}
 	/**
-	* Overrides {@link lineHeight}.<br/>
+	* Overwrites {@link lineHeight}.<br/>
 	* This window's default lineheight will be 10 less than the default.
 	* @returns {number}
 	*/
@@ -383,7 +383,7 @@ var Window_QuestFrame = class extends Window_Base {
 //#endregion
 //#region src/plugins/hud/ext/quest/scenes/Scene_Map.js
 /**
-* Extends {@link #initHudMembers}.<br>
+* Extends {@link #initHudMembers}.<br/>
 * Includes initialization of the target frame members.
 */
 J.HUD.EXT.QUEST.Aliased.Scene_Map.set("initHudMembers", Scene_Map.prototype.initHudMembers);
@@ -400,7 +400,7 @@ Scene_Map.prototype.initHudMembers = function() {
 	this._j._hud._quest._questFrame = null;
 };
 /**
-* Extends {@link #createAllWindows}.<br>
+* Extends {@link #createAllWindows}.<br/>
 * Includes creation of the target frame window.
 */
 J.HUD.EXT.QUEST.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);
@@ -451,7 +451,7 @@ Scene_Map.prototype.setQuestFrameWindow = function(window) {
 	this._j._hud._quest._questFrame = window;
 };
 /**
-* Extends {@link #updateHudFrames}.<br>
+* Extends {@link #updateHudFrames}.<br/>
 * Includes updating the target frame.
 */
 J.HUD.EXT.QUEST.Aliased.Scene_Map.set("updateHudFrames", Scene_Map.prototype.updateHudFrames);

@@ -414,7 +414,7 @@ Game_Event.toBasicConditional = function(commentCommand) {
 //#endregion
 //#region src/plugins/message/core/windows/Window_Base.js
 /**
-* Extends {@link #convertEscapeCharacters}.<br>
+* Extends {@link #convertEscapeCharacters}.<br/>
 * Adds handling for new text codes for various database objects.
 */
 J.MESSAGE.Aliased.Window_Base.set("convertEscapeCharacters", Window_Base.prototype.convertEscapeCharacters);
