@@ -17,7 +17,10 @@ As such, while the plugins living in my [other repository can be found over here
 - [some additional area detail, separate from the actual story walk through][11]
 - [some weapon type information][12]
 - [some enemy family information][13]
-- [some SDP information][14]
+- [SDP node / panel overview][14]
+- [SDP implementation status (living tracker)][21]
+- [SDP backlog & work items][22]
+- [SDP archetype mapping (design)][23]
 
 And of course, a list of unlockables and their details:
 - [Flux Drive locations][15]
@@ -37,3 +40,6 @@ And of course, a list of unlockables and their details:
 [18]: ./unlockables/alchemy-pages.md
 [19]: ./design-contract.md
 [20]: ./tutorials/onboarding-backlog.md
+[21]: ./sdp/implementation-status.md
+[22]: ./sdp/work-items.md
+[23]: ./sdp/archetype-mapping.md

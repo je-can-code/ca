@@ -664,7 +664,7 @@ var FramedTarget = class {
 	*/
 	configuration = null;
 	/**
-	* Optional `#RRGGBB` for the name row when tier stripe hex should also tint the HUD (Passive-ABS + J-Passive-ABS).
+	* Optional `#RRGGBB` for the name row; a passive extension may set this so the HUD tints the target name.
 	* Empty means use the window default text color.
 	* @type {string|String.empty}
 	*/
@@ -1766,8 +1766,8 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		*/
 		this._j._name = String.empty;
 		/**
-		* When set, {@link #drawTargetName} tints the line with this `#RRGGBB` before `drawTextEx` (Passive-ABS tier stripe
-		* hex).
+		* When set, {@link #drawTargetName} tints the line with this `#RRGGBB` before `drawTextEx`.
+		* Populated when a passive extension is active and supplies a name color for the target.
 		* @type {string|String.empty}
 		*/
 		this._j._nameColorHex = String.empty;

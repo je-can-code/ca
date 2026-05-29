@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 PASSIVE-ABS] Random passive affixes + tier presentation for JABS enemies.
+ * [v1.0.0 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -211,11 +211,11 @@
  *    Initial release.
  * ============================================================================
  *
- * @param parentConfigPassiveAbs
- * @text PASSIVE ABS
+ * @param parentConfigPassiveAffix
+ * @text PASSIVE AFFIX
  *
  * @param default-prefix-chance
- * @parent parentConfigPassiveAbs
+ * @parent parentConfigPassiveAffix
  * @type number
  * @decimals 2
  * @min 0
@@ -225,7 +225,7 @@
  * @default 8
  *
  * @param default-suffix-chance
- * @parent parentConfigPassiveAbs
+ * @parent parentConfigPassiveAffix
  * @type number
  * @decimals 2
  * @min 0
@@ -236,8 +236,8 @@
  */
 //endregion annotations
 
-//#region src/plugins/passive/ext/abs/_metadata/_pluginMetadata.js
-var JPassiveAbs_PluginMetadata = class extends PluginMetadata {
+//#region src/plugins/passive/ext/affix/_metadata/_pluginMetadata.js
+var JPassiveAffix_PluginMetadata = class extends PluginMetadata {
 	/**
 	* Constructor.
 	*/
@@ -314,7 +314,7 @@ var JPassiveAbs_PluginMetadata = class extends PluginMetadata {
 };
 
 //#endregion
-//#region src/plugins/passive/ext/abs/_metadata/initialization.js
+//#region src/plugins/passive/ext/affix/_metadata/initialization.js
 /**
 * The core where all of my extensions live: in the `J` object.
 */
@@ -322,51 +322,51 @@ globalThis.J ||= {};
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
-J.PASSIVE.EXT.ABS = {};
+J.PASSIVE.EXT.AFFIX = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.ABS.Metadata = new JPassiveAbs_PluginMetadata("J-Passive-ABS", "1.0.0");
+J.PASSIVE.EXT.AFFIX.Metadata = new JPassiveAffix_PluginMetadata("J-Passive-Affix", "1.0.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
-J.PASSIVE.EXT.ABS.Aliased = {};
-J.PASSIVE.EXT.ABS.Aliased.Game_Enemy = new Map();
-J.PASSIVE.EXT.ABS.Aliased.JABS_AiManager = new Map();
-J.PASSIVE.EXT.ABS.Aliased.JABS_Battler = new Map();
-J.PASSIVE.EXT.ABS.Aliased.JABS_Engine = new Map();
-J.PASSIVE.EXT.ABS.Aliased.Scene_Boot = new Map();
-J.PASSIVE.EXT.ABS.Aliased.Sprite_Character = new Map();
-J.PASSIVE.EXT.ABS.Aliased.Window_PassiveDetail = new Map();
+J.PASSIVE.EXT.AFFIX.Aliased = {};
+J.PASSIVE.EXT.AFFIX.Aliased.Game_Enemy = new Map();
+J.PASSIVE.EXT.AFFIX.Aliased.JABS_AiManager = new Map();
+J.PASSIVE.EXT.AFFIX.Aliased.JABS_Battler = new Map();
+J.PASSIVE.EXT.AFFIX.Aliased.JABS_Engine = new Map();
+J.PASSIVE.EXT.AFFIX.Aliased.Scene_Boot = new Map();
+J.PASSIVE.EXT.AFFIX.Aliased.Sprite_Character = new Map();
+J.PASSIVE.EXT.AFFIX.Aliased.Window_PassiveDetail = new Map();
 /**
 * All regular expressions used by this plugin.
 */
-J.PASSIVE.EXT.ABS.RegExp = {};
-J.PASSIVE.EXT.ABS.RegExp.Prefix = /<enemy-prefix>/i;
-J.PASSIVE.EXT.ABS.RegExp.Suffix = /<enemy-suffix>/i;
-J.PASSIVE.EXT.ABS.RegExp.Weight = /<affix-weight:([1-9]\d*)>/i;
-J.PASSIVE.EXT.ABS.RegExp.TierColorHex = /<tier-color-hex:(#[0-9A-F]{6})>/i;
-J.PASSIVE.EXT.ABS.RegExp.NoRngPassives = /<no-rng-passives>/i;
-J.PASSIVE.EXT.ABS.RegExp.NoRngPassivePrefixes = /<no-rng-passive-prefixes>/i;
-J.PASSIVE.EXT.ABS.RegExp.NoRngPassiveSuffixes = /<no-rng-passive-suffixes>/i;
-J.PASSIVE.EXT.ABS.RegExp.PassiveAffixPrefixChance = /<passive-affix-prefix-chance:[ ]?([+-]?\d+(?:\.\d+)?)>/i;
-J.PASSIVE.EXT.ABS.RegExp.PassiveAffixSuffixChance = /<passive-affix-suffix-chance:[ ]?([+-]?\d+(?:\.\d+)?)>/i;
-J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier = /<rewardMultiplier:\[[ ]?(exp|gold|sdp|ap|drops),[ ]?(\d+(?:\.\d+)?)[ ]?]>/gi;
+J.PASSIVE.EXT.AFFIX.RegExp = {};
+J.PASSIVE.EXT.AFFIX.RegExp.Prefix = /<enemy-prefix>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.Suffix = /<enemy-suffix>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.Weight = /<affix-weight:([1-9]\d*)>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.TierColorHex = /<tier-color-hex:(#[0-9A-F]{6})>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassives = /<no-rng-passives>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassivePrefixes = /<no-rng-passive-prefixes>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassiveSuffixes = /<no-rng-passive-suffixes>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixPrefixChance = /<passive-affix-prefix-chance:[ ]?([+-]?\d+(?:\.\d+)?)>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixSuffixChance = /<passive-affix-suffix-chance:[ ]?([+-]?\d+(?:\.\d+)?)>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.RewardMultiplier = /<rewardMultiplier:\[[ ]?(exp|gold|sdp|ap|drops),[ ]?(\d+(?:\.\d+)?)[ ]?]>/gi;
 /**
 * A collection of helper methods for this plugin.
 */
-J.PASSIVE.EXT.ABS.Helpers = {};
+J.PASSIVE.EXT.AFFIX.Helpers = {};
 /**
-* Parses all {@link J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier} tags from a database object's note.
+* Parses all {@link J.PASSIVE.EXT.AFFIX.RegExp.RewardMultiplier} tags from a database object's note.
 * Returns a map of reward type key to multiplier value. Each type appears at most once; if
 * duplicated, the last tag on the note wins.
 * @param {RPG_BaseItem} databaseData The database object whose note to scan.
 * @returns {Map<string, number>} Reward type → multiplier pairs found.
 */
-J.PASSIVE.EXT.ABS.Helpers.parseRewardMultipliers = function(databaseData) {
+J.PASSIVE.EXT.AFFIX.Helpers.parseRewardMultipliers = function(databaseData) {
 	const results = new Map();
 	if (!databaseData || !databaseData.note) return results;
-	const regex = J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier;
+	const regex = J.PASSIVE.EXT.AFFIX.RegExp.RewardMultiplier;
 	const lines = databaseData.note.split(/[\r\n]+/);
 	const scan = new RegExp(regex.source, regex.flags.replace("g", "").replace("y", ""));
 	lines.forEach((line) => {
@@ -384,7 +384,7 @@ J.PASSIVE.EXT.ABS.Helpers.parseRewardMultipliers = function(databaseData) {
 * @param {Game_Battler} battler Source battler; only enemies participate.
 * @returns {string} Stripe hex, or {@link String.empty} when none applies.
 */
-J.PASSIVE.EXT.ABS.Helpers.resolvePassiveTierStripeColorHex = function(battler) {
+J.PASSIVE.EXT.AFFIX.Helpers.resolvePassiveTierStripeColorHex = function(battler) {
 	if (!battler || battler.isEnemy() === false) return String.empty;
 	const passiveStatesIds = battler.getPassiveStateIds();
 	if (passiveStatesIds.length === 0) return String.empty;
@@ -401,66 +401,66 @@ J.PASSIVE.EXT.ABS.Helpers.resolvePassiveTierStripeColorHex = function(battler) {
 };
 
 //#endregion
-//#region src/plugins/passive/ext/abs/database/RPG_Enemy.js
+//#region src/plugins/passive/ext/affix/database/RPG_Enemy.js
 /**
 * Whether or not this enemy is blocked from having passive prefixes.
 * @type {boolean}
 */
 Object.defineProperty(RPG_Enemy.prototype, "noRngPrefixes", { get() {
-	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.NoRngPassivePrefixes);
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassivePrefixes);
 } });
 /**
 * Whether or not this enemy is blocked from having passive suffixes.
 * @type {boolean}
 */
 Object.defineProperty(RPG_Enemy.prototype, "noRngSuffixes", { get() {
-	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.NoRngPassiveSuffixes);
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassiveSuffixes);
 } });
 /**
 * Whether or not this enemy is blocked from random passive affix rolls on both slots.
 * @type {boolean}
 */
 Object.defineProperty(RPG_Enemy.prototype, "noRngPassives", { get() {
-	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.NoRngPassives);
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassives);
 } });
 /**
 * Optional override for the passive prefix affix roll percent ({@code 0}–{@code 100}) from this enemy's note.
 * @type {number|null}
 */
 Object.defineProperty(RPG_Enemy.prototype, "passiveAffixPrefixChance", { get() {
-	return RPGManager.getNumberFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.PassiveAffixPrefixChance, true);
+	return RPGManager.getNumberFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixPrefixChance, true);
 } });
 /**
 * Optional override for the passive suffix affix roll percent ({@code 0}–{@code 100}) from this enemy's note.
 * @type {number|null}
 */
 Object.defineProperty(RPG_Enemy.prototype, "passiveAffixSuffixChance", { get() {
-	return RPGManager.getNumberFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.PassiveAffixSuffixChance, true);
+	return RPGManager.getNumberFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixSuffixChance, true);
 } });
 /**
-* All reward multipliers defined on this enemy via {@link J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier}.
+* All reward multipliers defined on this enemy via {@link J.PASSIVE.EXT.AFFIX.RegExp.RewardMultiplier}.
 * Returns a map of reward type key to its multiplier value.
 * @type {Map<string, number>}
 */
 Object.defineProperty(RPG_Enemy.prototype, "rewardMultipliers", { get() {
-	return J.PASSIVE.EXT.ABS.Helpers.parseRewardMultipliers(this);
+	return J.PASSIVE.EXT.AFFIX.Helpers.parseRewardMultipliers(this);
 } });
 
 //#endregion
-//#region src/plugins/passive/ext/abs/database/RPG_State.js
+//#region src/plugins/passive/ext/affix/database/RPG_State.js
 /**
 * Whether or not this state is flagged as an enemy prefix state.
 * @type {boolean}
 */
 Object.defineProperty(RPG_State.prototype, "isEnemyPrefix", { get() {
-	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.Prefix);
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.Prefix);
 } });
 /**
 * Whether or not this state is flagged as an enemy suffix state.
 * @type {boolean}
 */
 Object.defineProperty(RPG_State.prototype, "isEnemySuffix", { get() {
-	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.Suffix);
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.Suffix);
 } });
 /**
 * The weight of this state for enemy affixes.
@@ -468,26 +468,26 @@ Object.defineProperty(RPG_State.prototype, "isEnemySuffix", { get() {
 * @type {number}
 */
 Object.defineProperty(RPG_State.prototype, "affixWeight", { get() {
-	return RPGManager.getNumberFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.Weight, true) ?? 100;
+	return RPGManager.getNumberFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.Weight, true) ?? 100;
 } });
 /**
-* Optional tier stripe / HUD tint hex from {@link J.PASSIVE.EXT.ABS.RegExp.TierColorHex}; absent tag means no color.
+* Optional tier stripe / HUD tint hex from {@link J.PASSIVE.EXT.AFFIX.RegExp.TierColorHex}; absent tag means no color.
 * @type {string|null}
 */
 Object.defineProperty(RPG_State.prototype, "tierColorHex", { get() {
-	return RPGManager.getStringFromNoteByRegex(this, J.PASSIVE.EXT.ABS.RegExp.TierColorHex, true);
+	return RPGManager.getStringFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.TierColorHex, true);
 } });
 /**
-* All reward multipliers defined on this state via {@link J.PASSIVE.EXT.ABS.RegExp.RewardMultiplier}.
+* All reward multipliers defined on this state via {@link J.PASSIVE.EXT.AFFIX.RegExp.RewardMultiplier}.
 * Returns a map of reward type key to its multiplier value.
 * @type {Map<string, number>}
 */
 Object.defineProperty(RPG_State.prototype, "rewardMultipliers", { get() {
-	return J.PASSIVE.EXT.ABS.Helpers.parseRewardMultipliers(this);
+	return J.PASSIVE.EXT.AFFIX.Helpers.parseRewardMultipliers(this);
 } });
 
 //#endregion
-//#region src/plugins/passive/ext/abs/managers/JABS_AiManager.js
+//#region src/plugins/passive/ext/affix/managers/JABS_AiManager.js
 /**
 * True when prefix affix RNG is blocked for this spawn (enemy note or event comments).
 * @param {Game_Event} character Spawning map event.
@@ -518,13 +518,13 @@ JABS_AiManager.shouldBlockPassiveSuffixRng = function(character, enemyData) {
 * @param {Game_Enemy} battler The enemy battler that was converted from the event.
 * @param {JABS_Battler} jabsBattler The created JABS battler from the event.
 */
-J.PASSIVE.EXT.ABS.Aliased.JABS_AiManager.set("postConvertMutate", JABS_AiManager.postConvertMutate);
+J.PASSIVE.EXT.AFFIX.Aliased.JABS_AiManager.set("postConvertMutate", JABS_AiManager.postConvertMutate);
 JABS_AiManager.postConvertMutate = function(battler, jabsBattler) {
-	J.PASSIVE.EXT.ABS.Aliased.JABS_AiManager.get("postConvertMutate").call(this, battler, jabsBattler);
+	J.PASSIVE.EXT.AFFIX.Aliased.JABS_AiManager.get("postConvertMutate").call(this, battler, jabsBattler);
 	const character = jabsBattler.getCharacter();
 	const passiveStateIds = character.getPassiveStateIds();
 	const hasExplicitPassives = passiveStateIds.length > 0;
-	const hasExplicitAffixes = hasExplicitPassives && passiveStateIds.some((id) => J.PASSIVE.EXT.ABS.Metadata.isAffixStateId(id));
+	const hasExplicitAffixes = hasExplicitPassives && passiveStateIds.some((id) => J.PASSIVE.EXT.AFFIX.Metadata.isAffixStateId(id));
 	if (hasExplicitAffixes) {
 		battler.addPassiveStateExternalSourceByStateIds(passiveStateIds);
 		return;
@@ -535,13 +535,13 @@ JABS_AiManager.postConvertMutate = function(battler, jabsBattler) {
 	const canApplyPrefix = JABS_AiManager.shouldBlockPassivePrefixRng(character, enemyData) === false && Math.random() * 100 < prefixChance;
 	const canApplySuffix = JABS_AiManager.shouldBlockPassiveSuffixRng(character, enemyData) === false && Math.random() * 100 < suffixChance;
 	if (canApplyPrefix) {
-		const prefixStateId = RPGManager.weightedMapChoice(J.PASSIVE.EXT.ABS.Metadata.prefixMap, J.PASSIVE.EXT.ABS.Metadata.totalPrefixWeight);
+		const prefixStateId = RPGManager.weightedMapChoice(J.PASSIVE.EXT.AFFIX.Metadata.prefixMap, J.PASSIVE.EXT.AFFIX.Metadata.totalPrefixWeight);
 		if (prefixStateId !== null) {
 			passiveStateIds.push(prefixStateId);
 		}
 	}
 	if (canApplySuffix) {
-		const suffixStateId = RPGManager.weightedMapChoice(J.PASSIVE.EXT.ABS.Metadata.suffixMap, J.PASSIVE.EXT.ABS.Metadata.totalSuffixWeight);
+		const suffixStateId = RPGManager.weightedMapChoice(J.PASSIVE.EXT.AFFIX.Metadata.suffixMap, J.PASSIVE.EXT.AFFIX.Metadata.totalSuffixWeight);
 		if (suffixStateId !== null) {
 			passiveStateIds.push(suffixStateId);
 		}
@@ -550,7 +550,7 @@ JABS_AiManager.postConvertMutate = function(battler, jabsBattler) {
 };
 
 //#endregion
-//#region src/plugins/passive/ext/abs/managers/JABS_Battler.js
+//#region src/plugins/passive/ext/affix/managers/JABS_Battler.js
 /**
 * With {@link J.HUD.EXT.TARGET}, wraps {@link JABS_Battler#buildFramedTarget}: tier prefix/suffix text, icons,
 * optional {@link Window_Base#colorizeText} (same passive id bands as the map stripe).
@@ -561,11 +561,11 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 	* @param {JABS_Battler} battlerLastHit Last-hit target for this frame.
 	* @returns {FramedTarget}
 	*/
-	J.PASSIVE.EXT.ABS.Aliased.JABS_Battler.set("buildFramedTarget", JABS_Battler.prototype.buildFramedTarget);
+	J.PASSIVE.EXT.AFFIX.Aliased.JABS_Battler.set("buildFramedTarget", JABS_Battler.prototype.buildFramedTarget);
 	JABS_Battler.prototype.buildFramedTarget = function(battlerLastHit) {
-		const framedTarget = J.PASSIVE.EXT.ABS.Aliased.JABS_Battler.get("buildFramedTarget").call(this, battlerLastHit);
+		const framedTarget = J.PASSIVE.EXT.AFFIX.Aliased.JABS_Battler.get("buildFramedTarget").call(this, battlerLastHit);
 		this.applyPassiveTierTargetFrameDecoration(framedTarget, battlerLastHit);
-		const tierStripeHex = J.PASSIVE.EXT.ABS.Helpers.resolvePassiveTierStripeColorHex(battlerLastHit.getBattler());
+		const tierStripeHex = J.PASSIVE.EXT.AFFIX.Helpers.resolvePassiveTierStripeColorHex(battlerLastHit.getBattler());
 		if (ColorManager.isValidHexColor(tierStripeHex)) {
 			framedTarget.nameColorHex = tierStripeHex;
 		}
@@ -627,7 +627,7 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 }
 
 //#endregion
-//#region src/plugins/passive/ext/abs/managers/JABS_Engine.js
+//#region src/plugins/passive/ext/affix/managers/JABS_Engine.js
 /**
 * Extends {@link JABS_Engine.prototype.determineExperienceGained}.<br/>
 * Applies reward multipliers from the defeated enemy's note and states.
@@ -635,9 +635,9 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 * @param {Game_Actor} victoriousActor The actor that defeated the enemy.
 * @returns {number} The multiplied experience gained.
 */
-J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.set("determineExperienceGained", JABS_Engine.prototype.determineExperienceGained);
+J.PASSIVE.EXT.AFFIX.Aliased.JABS_Engine.set("determineExperienceGained", JABS_Engine.prototype.determineExperienceGained);
 JABS_Engine.prototype.determineExperienceGained = function(defeatedEnemy, victoriousActor) {
-	const base = J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.get("determineExperienceGained").call(this, defeatedEnemy, victoriousActor);
+	const base = J.PASSIVE.EXT.AFFIX.Aliased.JABS_Engine.get("determineExperienceGained").call(this, defeatedEnemy, victoriousActor);
 	const rewardMultiplier = defeatedEnemy.getRewardMultiplierByType("exp");
 	return Math.ceil(base * rewardMultiplier);
 };
@@ -648,9 +648,9 @@ JABS_Engine.prototype.determineExperienceGained = function(defeatedEnemy, victor
 * @param {Game_Actor} victoriousActor The actor that defeated the enemy.
 * @returns {number} The multiplied gold gained.
 */
-J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.set("determineGoldGained", JABS_Engine.prototype.determineGoldGained);
+J.PASSIVE.EXT.AFFIX.Aliased.JABS_Engine.set("determineGoldGained", JABS_Engine.prototype.determineGoldGained);
 JABS_Engine.prototype.determineGoldGained = function(defeatedEnemy, victoriousActor) {
-	const base = J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.get("determineGoldGained").call(this, defeatedEnemy, victoriousActor);
+	const base = J.PASSIVE.EXT.AFFIX.Aliased.JABS_Engine.get("determineGoldGained").call(this, defeatedEnemy, victoriousActor);
 	const rewardMultiplier = defeatedEnemy.getRewardMultiplierByType("gold");
 	return Math.ceil(base * rewardMultiplier);
 };
@@ -661,9 +661,9 @@ JABS_Engine.prototype.determineGoldGained = function(defeatedEnemy, victoriousAc
 * @param {JABS_Battler} actor The map battler that defeated the target.
 * @returns {number} The multiplied SDP points gained.
 */
-J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.set("determineSdpGained", JABS_Engine.prototype.determineSdpGained);
+J.PASSIVE.EXT.AFFIX.Aliased.JABS_Engine.set("determineSdpGained", JABS_Engine.prototype.determineSdpGained);
 JABS_Engine.prototype.determineSdpGained = function(defeatedEnemy, actor) {
-	const base = J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.get("determineSdpGained").call(this, defeatedEnemy, actor);
+	const base = J.PASSIVE.EXT.AFFIX.Aliased.JABS_Engine.get("determineSdpGained").call(this, defeatedEnemy, actor);
 	const rewardMultiplier = defeatedEnemy.getRewardMultiplierByType("sdp");
 	return Math.ceil(base * rewardMultiplier);
 };
@@ -673,15 +673,15 @@ JABS_Engine.prototype.determineSdpGained = function(defeatedEnemy, actor) {
 * @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
 * @returns {number} The multiplied AP gained.
 */
-J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.set("determineApGained", JABS_Engine.prototype.determineApGained);
+J.PASSIVE.EXT.AFFIX.Aliased.JABS_Engine.set("determineApGained", JABS_Engine.prototype.determineApGained);
 JABS_Engine.prototype.determineApGained = function(defeatedEnemy) {
-	const base = J.PASSIVE.EXT.ABS.Aliased.JABS_Engine.get("determineApGained").call(this, defeatedEnemy);
+	const base = J.PASSIVE.EXT.AFFIX.Aliased.JABS_Engine.get("determineApGained").call(this, defeatedEnemy);
 	const rewardMultiplier = defeatedEnemy.getRewardMultiplierByType("ap");
 	return Math.ceil(base * rewardMultiplier);
 };
 
 //#endregion
-//#region src/plugins/passive/ext/abs/objects/Game_Enemy.js
+//#region src/plugins/passive/ext/affix/objects/Game_Enemy.js
 /**
 * Computes the combined reward multiplier for a given reward type by scanning
 * both the enemy's database note and all currently applied states.
@@ -708,22 +708,22 @@ Game_Enemy.prototype.getRewardMultiplierByType = function(rewardType) {
 * Folds in any reward multipliers for the "drops" type from this enemy's note and states.
 * @returns {number} The adjusted drop multiplier.
 */
-J.PASSIVE.EXT.ABS.Aliased.Game_Enemy.set("getDropMultiplierBonus", Game_Enemy.prototype.getDropMultiplierBonus);
+J.PASSIVE.EXT.AFFIX.Aliased.Game_Enemy.set("getDropMultiplierBonus", Game_Enemy.prototype.getDropMultiplierBonus);
 Game_Enemy.prototype.getDropMultiplierBonus = function() {
-	const base = J.PASSIVE.EXT.ABS.Aliased.Game_Enemy.get("getDropMultiplierBonus").call(this);
+	const base = J.PASSIVE.EXT.AFFIX.Aliased.Game_Enemy.get("getDropMultiplierBonus").call(this);
 	const rewardMultiplier = this.getRewardMultiplierByType("drops");
 	return base * rewardMultiplier;
 };
 
 //#endregion
-//#region src/plugins/passive/ext/abs/objects/Game_Event.js
+//#region src/plugins/passive/ext/affix/objects/Game_Event.js
 /**
-* Reads the last {@link J.PASSIVE.EXT.ABS.RegExp.PassiveAffixPrefixChance} tag from this page's comment commands.
+* Reads the last {@link J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixPrefixChance} tag from this page's comment commands.
 * @returns {number|null} Parsed chance, or null when no tag is present.
 */
 Game_Event.prototype.getPassiveAffixPrefixChanceFromEventComments = function() {
 	let chance = null;
-	const regex = J.PASSIVE.EXT.ABS.RegExp.PassiveAffixPrefixChance;
+	const regex = J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixPrefixChance;
 	this.getValidCommentCommands().forEach((command) => {
 		const [comment] = command.parameters;
 		regex.lastIndex = 0;
@@ -734,12 +734,12 @@ Game_Event.prototype.getPassiveAffixPrefixChanceFromEventComments = function() {
 	return chance;
 };
 /**
-* Reads the last {@link J.PASSIVE.EXT.ABS.RegExp.PassiveAffixSuffixChance} tag from this page's comment commands.
+* Reads the last {@link J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixSuffixChance} tag from this page's comment commands.
 * @returns {number|null} Parsed chance, or null when no tag is present.
 */
 Game_Event.prototype.getPassiveAffixSuffixChanceFromEventComments = function() {
 	let chance = null;
-	const regex = J.PASSIVE.EXT.ABS.RegExp.PassiveAffixSuffixChance;
+	const regex = J.PASSIVE.EXT.AFFIX.RegExp.PassiveAffixSuffixChance;
 	this.getValidCommentCommands().forEach((command) => {
 		const [comment] = command.parameters;
 		regex.lastIndex = 0;
@@ -750,34 +750,34 @@ Game_Event.prototype.getPassiveAffixSuffixChanceFromEventComments = function() {
 	return chance;
 };
 /**
-* True when any comment on this page contains {@link J.PASSIVE.EXT.ABS.RegExp.NoRngPassivePrefixes}.
+* True when any comment on this page contains {@link J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassivePrefixes}.
 * @returns {boolean}
 */
 Game_Event.prototype.eventCommentsDisablePassiveAffixPrefixRng = function() {
 	let blocks = false;
 	this.getValidCommentCommands().forEach((command) => {
 		const [comment] = command.parameters;
-		if (J.PASSIVE.EXT.ABS.RegExp.NoRngPassives.test(comment)) {
+		if (J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassives.test(comment)) {
 			blocks = true;
 		}
-		if (J.PASSIVE.EXT.ABS.RegExp.NoRngPassivePrefixes.test(comment)) {
+		if (J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassivePrefixes.test(comment)) {
 			blocks = true;
 		}
 	});
 	return blocks;
 };
 /**
-* True when any comment on this page contains {@link J.PASSIVE.EXT.ABS.RegExp.NoRngPassiveSuffixes}.
+* True when any comment on this page contains {@link J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassiveSuffixes}.
 * @returns {boolean}
 */
 Game_Event.prototype.eventCommentsDisablePassiveAffixSuffixRng = function() {
 	let blocks = false;
 	this.getValidCommentCommands().forEach((command) => {
 		const [comment] = command.parameters;
-		if (J.PASSIVE.EXT.ABS.RegExp.NoRngPassives.test(comment)) {
+		if (J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassives.test(comment)) {
 			blocks = true;
 		}
-		if (J.PASSIVE.EXT.ABS.RegExp.NoRngPassiveSuffixes.test(comment)) {
+		if (J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassiveSuffixes.test(comment)) {
 			blocks = true;
 		}
 	});
@@ -797,7 +797,7 @@ Game_Event.prototype.getResolvedPassiveAffixPrefixChance = function(enemyData) {
 	if (enemyOverride !== null) {
 		return parseFloat(enemyOverride).clamp(0, 100);
 	}
-	return J.PASSIVE.EXT.ABS.Metadata.defaultPrefixChance;
+	return J.PASSIVE.EXT.AFFIX.Metadata.defaultPrefixChance;
 };
 /**
 * Effective suffix affix roll gate for this spawn: event comment overrides enemy note, then plugin default.
@@ -813,35 +813,35 @@ Game_Event.prototype.getResolvedPassiveAffixSuffixChance = function(enemyData) {
 	if (enemyOverride !== null) {
 		return parseFloat(enemyOverride).clamp(0, 100);
 	}
-	return J.PASSIVE.EXT.ABS.Metadata.defaultSuffixChance;
+	return J.PASSIVE.EXT.AFFIX.Metadata.defaultSuffixChance;
 };
 
 //#endregion
-//#region src/plugins/passive/ext/abs/scenes/Scene_Boot.js
+//#region src/plugins/passive/ext/affix/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
 * Initializes the passive state affix weights for JABS map enemies.
 * The passive detail window's JABS sections are provided directly by
 * Window_PassiveDetail in this extension — no contributor registration needed.
 */
-J.PASSIVE.EXT.ABS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+J.PASSIVE.EXT.AFFIX.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
-	J.PASSIVE.EXT.ABS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
-	J.PASSIVE.EXT.ABS.Metadata.initializeStateAffixWeights();
+	J.PASSIVE.EXT.AFFIX.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	J.PASSIVE.EXT.AFFIX.Metadata.initializeStateAffixWeights();
 };
 
 //#endregion
-//#region src/plugins/passive/ext/abs/sprites/Sprite_Character.js
+//#region src/plugins/passive/ext/affix/sprites/Sprite_Character.js
 /**
 * Extends {@link #getBattlerName}.<br/>
 * Considers passive tier states for {@link JABS_BattlerName#colorHex} (map stripe).
 * Tier label copy is composed in the HUD target frame.
 * @returns {JABS_BattlerName}
 */
-J.PASSIVE.EXT.ABS.Aliased.Sprite_Character.set("getBattlerName", Sprite_Character.prototype.getBattlerName);
+J.PASSIVE.EXT.AFFIX.Aliased.Sprite_Character.set("getBattlerName", Sprite_Character.prototype.getBattlerName);
 Sprite_Character.prototype.getBattlerName = function() {
 	/** @type {JABS_BattlerName} */
-	const battlerName = J.PASSIVE.EXT.ABS.Aliased.Sprite_Character.get("getBattlerName").call(this);
+	const battlerName = J.PASSIVE.EXT.AFFIX.Aliased.Sprite_Character.get("getBattlerName").call(this);
 	this.applyPassiveMapTierAccent(battlerName);
 	return battlerName;
 };
@@ -853,7 +853,7 @@ Sprite_Character.prototype.getBattlerName = function() {
 Sprite_Character.prototype.applyPassiveMapTierAccent = function(battlerName) {
 	if (this.canApplyPassiveMapTierAccent() === false) return;
 	const battler = this.getBattler();
-	const tierStripeHex = J.PASSIVE.EXT.ABS.Helpers.resolvePassiveTierStripeColorHex(battler);
+	const tierStripeHex = J.PASSIVE.EXT.AFFIX.Helpers.resolvePassiveTierStripeColorHex(battler);
 	if (tierStripeHex !== String.empty) {
 		battlerName.colorHex = tierStripeHex;
 	}
@@ -870,7 +870,7 @@ Sprite_Character.prototype.canApplyPassiveMapTierAccent = function() {
 };
 
 //#endregion
-//#region src/plugins/passive/ext/abs/windows/Window_PassiveDetail.js
+//#region src/plugins/passive/ext/affix/windows/Window_PassiveDetail.js
 /**
 * Extends {@link Window_PassiveDetail#drawCombatSection}.<br/>
 * Injects JABS combat, shield, and stacking sections into the passive detail
@@ -878,9 +878,9 @@ Sprite_Character.prototype.canApplyPassiveMapTierAccent = function() {
 * All methods read and advance {@link Window_PassiveDetail#currentY} directly —
 * no y threading through method signatures.
 */
-J.PASSIVE.EXT.ABS.Aliased.Window_PassiveDetail.set("drawCombatSection", Window_PassiveDetail.prototype.drawCombatSection);
+J.PASSIVE.EXT.AFFIX.Aliased.Window_PassiveDetail.set("drawCombatSection", Window_PassiveDetail.prototype.drawCombatSection);
 Window_PassiveDetail.prototype.drawCombatSection = function(state) {
-	J.PASSIVE.EXT.ABS.Aliased.Window_PassiveDetail.get("drawCombatSection").call(this, state);
+	J.PASSIVE.EXT.AFFIX.Aliased.Window_PassiveDetail.get("drawCombatSection").call(this, state);
 	this.drawJabsCombatSection(state);
 	this.drawJabsShieldSection(state);
 	this.drawJabsStackingSection(state);
@@ -1300,4 +1300,4 @@ Window_PassiveDetail.prototype.drawJabsStackingSection = function(state) {
 };
 
 //#endregion
-//# sourceMappingURL=J-Passive-ABS.js.map
+//# sourceMappingURL=J-Passive-Affix.js.map

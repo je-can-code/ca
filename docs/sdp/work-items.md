@@ -1,56 +1,72 @@
 # SDP archetype restructure — work items
 
 > Derived from the archetype mapping session. Organized by dependency order.
-> See `archetype-mapping.md` for full design context.
+> See [`archetype-mapping.md`](./archetype-mapping.md) for full design context.
+>
+> **For what is already built, see [`implementation-status.md`](./implementation-status.md).**
+> That doc is the source of truth for shipped vs pending; this file is the backlog.
+
+Last updated: **2026-05-29**
 
 ---
 
-## Phase 0: New parameters (must come first — everything else depends on these)
+## Phase 0: Registry parameters
 
-### P0-1: LST (Lifesteal) parameter
-- **What:** new longParamId. After dealing damage, attacker recovers `damage * LST%` as HP.
-- **Where:** damage pipeline hook in JABS (post-damage-apply).
-- **Also:** TextManager, IconManager entries. SDP integration is automatic (just another param ID).
-- **Consumers:** War Priest (high), Berserker (moderate), Treant/Vanguard (moderate).
+Most Phase 0 **machinery is shipped**. Remaining **plugin** work is P1–P3 below; **content** (P4) waits until plugins are done.
 
-### P0-2: SHA (Shield Amplification) parameter
-- **What:** new longParamId. Multiplier on shields the caster APPLIES (outgoing).
-- **Where:** hook into existing Shield plugin at shield-creation time.
-- **Consumers:** Medic (high), War Priest (small).
+> **Policy (2026-05-29):** finish all plugin/engine work before P4 panel rework or mastery DB authoring.
 
-### P0-3: SHE (Shield Effectiveness) parameter
-- **What:** new longParamId. Multiplier on shields applied TO the target (incoming).
-- **Where:** hook into existing Shield plugin at shield-application time.
-- **Consumers:** Cleric (positive), Berserker (penalty), Skirmisher (penalty), Artillery (penalty).
+### P0-1: LST / MST / TST — ✅ DONE (validated 2026-05-29)
 
-### P0-4: AP Multiplier parameter
-- **What:** new longParamId + `aptMultiplier()` on `Game_Actor`.
-- **Pattern:** mirror `sdpMultiplier()` — notetag-based additive percent, applied in `ApManager.gainAp()`.
-- **Currently:** APT has NO multiplier on AP gains. `gainAp()` takes raw amount with zero modifier.
-- **Consumers:** Generalist.
+- **Keys:** `lst` (35), `mst` (36), `tst` (37) in `J-Resources-ABS`.
+- **Combat:** after ABS hit with `hpDamage > 0`, attacker gains `floor(damage × rate)` HP/MP/TP.
+- **Sources:** notetags `<lst:N>` etc. on `getAllNotes()` sources + SDP panel rows (actors only).
+- **Consumers (content, not code):** War Priest (high LST), Berserker (mod), Treant/Vanguard (mod).
 
-### P0-5: Gold Rate parameter
-- **What:** convert `goldMultiplier` from notetag-only (Drops plugin) to longParamId.
-- **Currently:** `<goldMultiplier:X>` notetag on equipment/states, summed by `Game_Party`.
-- **Options:** (a) new longParam that feeds into existing goldMultiplier sum, or (b) SDP panels grant
-  a passive state carrying the notetag. Option (a) is cleaner.
-- **Consumers:** Generalist (Rot Rat subgroup).
+### P0-2: Shield amplification — ✅ DONE (as `sar`)
+
+- **Key:** `sar` (38). Design name SHA → runtime **Shield Amplification Rate**.
+- **Where:** `JABS_Shield` multiplies outgoing shield points by attacker `sar`.
+- **Consumers (content):** Medic (high), War Priest (small).
+
+### P0-3: Shield effectiveness — ✅ DONE (as `ser`)
+
+- **Key:** `ser` (39). Design name SHE → runtime **Shield Effectiveness Rate**.
+- **Where:** `JABS_Shield` multiplies incoming shield on target by `ser`.
+- **Consumers (content):** Cleric (+), Berserker/Skirmisher/Artillery (penalties).
+
+### P0-4: AP multiplier — ✅ DONE (as `apr`)
+
+- **Key:** `apr` (40).
+- **Where:** `ApManager.gainAp()` scales award by `actor.apr` (notetag `<aptMultiplier:X>` + SDP).
+- **Consumers (content):** Generalist.
+
+### P0-5: Gold / drop rate — ✅ DONE (as `gdr` / `dor`)
+
+- **Keys:** `gdr` (41), `dor` (42).
+- **Where:** `Game_Actor.getGoldMultiplier()` / `getDropMultiplierBonus()` — notetags + SDP panel bonus; party sums for drops.
+- **Consumers (content):** Generalist (Rot Rat subgroup).
 
 ---
 
 ## Phase 1: Mastery model (enables the reward system)
 
-### P1-1: Per-panel mastery with intra-subgroup replacement
-- **What:** every panel has a mastery passive (state) that activates when the panel is maxed.
-  Within a subgroup, only the highest-tier mastery is active (replacement). Across subgroups, all
-  masteries stack.
-- **Requires:** new tracking on `Game_Actor` — which panels are mastered, which mastery state is
-  active per subgroup. Subgroup metadata on panels (which subgroup does this panel belong to?).
-- **UI:** mastery indicator in the SDP menu. "Mastered" label + passive description.
-- **Scale:** ~50 unique passive concepts (one per subgroup), each with tier-scaled potency.
-  Only need to author passives for IMPLEMENTED enemies initially.
+### P1-1: Per-panel mastery with intra-subgroup replacement — ⚠️ PARTIAL
+
+**Shipped:**
+
+- Panel `mastery.subgroupKey`, `subgroupTier`, optional `masterySkillId`.
+- `enrolledInSubgroup()` vs `grantsMasterySkill()` split.
+- Highest tier **mastery skill** within a subgroup wins; lower-tier skills forgotten.
+- `Window_SdpMastery` + subgroup display in SDP scene.
+
+**Not shipped:**
+
+- Mastery **passive state** granted on max rank (still design / P4-2).
+- Full “mastered” UX polish; no-op feedback when tier contest is a no-op (deferred).
 
 ### P1-2: Panel respec system
+
 - **What:** allow players to undo panel investments. Full respec or per-panel.
 - **Cost model:** TBD (gold sink? free with cooldown? item-gated?).
 - **Critical for:** encouraging experimentation. If respec is too punishing, players default to
@@ -61,6 +77,7 @@
 ## Phase 2: Conditional stat modifier plugin (enables most mastery passives)
 
 ### P2-1: Core conditional stat modifier system
+
 - **What:** a single tag-driven plugin that applies trait modifications based on runtime conditions.
   Build ONCE, reuse across all archetypes.
 - **Trigger types needed (from mastery passives):**
@@ -142,10 +159,10 @@
 ## Phase 4: Panel data authoring (the big grind)
 
 ### P4-1: Rework all existing panel stat distributions
-- **What:** update every existing panel in `Enemies.json` (via SDP panel data) to match its
+- **What:** update every existing panel in `config.sdp.json` to match its
   archetype's stat profile — correct core stats, correct penalties, correct magnitudes.
 - **Scale:** all currently implemented enemies (~100+ panels).
-- **Depends on:** P0 (new params exist), P1-1 (mastery model works).
+- **Depends on:** Phase 0 content (registry keys exist); families/subgroups authored.
 
 ### P4-2: Author mastery passives as states
 - **What:** create the passive states in the database for each implemented subgroup's mastery.
@@ -163,19 +180,20 @@
 
 ---
 
-## Dependency graph
+## Dependency graph (updated — plugins before content)
 
 ```
-P0 (new params) ──┬──→ P4-1 (panel data rework)
-                   │
-P1 (mastery model) ┤
-                   │
-P2 (conditionals) ─┴──→ P4-2 (mastery states)
-                   │
-P3 (plugin extensions) ─→ P4-2 (mastery states that need those plugins)
-                   │
-P4-3 (enemy placement) ── independent, can happen anytime
+Phase 0 (registry params) ── DONE
+         │
+P1 respec + mastery UX ── plugin
+         │
+P2 (conditionals) ──────→ enables conditional mastery states (P4-2 content later)
+         │
+P3 (plugin extensions) ─→ enables bespoke masteries (P4-2 content later)
+         │
+         ▼
+P4 (panels, states, maps) ── CONTENT — after A/B tiers above
 ```
 
-P0 and P1 can be built in parallel. P2 and P3 can also be built in parallel.
-P4 (data authoring) is the final pass once systems are in place.
+Infrastructure **already landed**: parameter registry, SDP families strip,
+editor Families/Subgroups tabs — see [`implementation-status.md`](./implementation-status.md).

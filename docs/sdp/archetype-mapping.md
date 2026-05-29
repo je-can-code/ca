@@ -3,6 +3,8 @@
 > Mapping each enemy subgroup to one of the ten combat archetypes.
 > Archetypes mirror the ally AI presets from `JABS_AllyAI`.
 > See [`design-contract.md`](../design-contract.md) for pillar context.
+>
+> **Runtime status:** [`implementation-status.md`](./implementation-status.md) — registry keys, combat hooks, playtest notes.
 
 ---
 
@@ -257,16 +259,17 @@ MDF, REC, PHA, and LST all affect survival. Each support/sustain archetype claim
 | **Berserker** | LST (moderate) | "Rage sustains you" — aggression is the only lifeline |
 | **Treant** (Vanguard) | HRG + LST (moderate) | "Regenerative wall" — absorbs life passively and through contact |
 
-**LST (Lifesteal)** is a new parameter (longParamId TBD). After dealing damage, the attacker
-recovers `damage * LST%` as HP. War Priest is the primary owner; Berserker and Treant get
-moderate amounts as cross-archetype bleed. All other archetypes get zero.
+**LST (Lifesteal)** — registry key **`lst`** (id 35). After a hit with HP damage, the attacker
+recovers `floor(damage × lst)` as HP (`mst` / `tst` mirror for MP/TP). War Priest is the primary
+owner; Berserker and Treant get moderate amounts as cross-archetype bleed. All other archetypes
+get zero. **Playtest validated 2026-05-29.** See [`implementation-status.md`](./implementation-status.md).
 
 ### Shield system (two knobs — mirrors CDM/CDR pattern)
 
 | Parameter | What it does | Primary Archetype | Secondary |
 |---|---|---|---|
-| **SHA** (Shield Amplification) | Shields you APPLY are stronger | **Medic** (high) | — |
-| **SHE** (Shield Effectiveness) | Shields applied TO you are stronger | **Cleric** (high) | — |
+| **SHA** → **`sar`** (Shield Amplification) | Shields you APPLY are stronger | **Medic** (high) | — |
+| **SHE** → **`ser`** (Shield Effectiveness) | Shields applied TO you are stronger | **Cleric** (high) | — |
 
 SHE also appears as a **penalty** on aggro/speed archetypes:
 - **Berserker** — SHE↓ (don't shield me, I lifesteal)
@@ -554,16 +557,17 @@ barriers. Jelly refuels MP-hungry Orb users. ATK↓ from both = zero damage, pur
 |---|---|---|---|---|
 | Kappa | Lucky jack-of-all-trades, fast + support | +LUK, +EXR | **Trickster's Luck**: X% chance to negate incoming attack (pseudo-EVA) | Passive state — on-hit chance |
 | Hard Syrup | Elemental variants, reactive defense | +FDR, +small HRG, elemental variety | **Adaptive Slime**: resist to last element that hit you +X% for 5s | Conditional modifier (element tracker) |
-| Rot Rat | Resourceful swarm, compounding investor | +SDP Mult, +gold rate | **Resourceful Rodent**: SDP Mult +X% (stacks with per-rank gains) | **Works now** — SDP Multiplier is longParam 33 |
+| Rot Rat | Resourceful swarm, compounding investor | +SDP Mult, +gold rate | **Resourceful Rodent**: SDP Mult +X% (stacks with per-rank gains) | **`sdr` (33) + `gdr` (41) work now** |
 | Orc | Hierarchical, versatile commander | Broadest flat spread, +MCR (small) | **Warchief's Command**: nearby allies +X% to their highest base stat | Proximity conditional (ally buff) |
 | Devil | Alluring gambler, double-edged | +LUK (heavy), +EXR | **Devil's Bargain**: all damage dealt AND received +X% | Implementable via traits |
 
 **Meta-progression stats housed in Generalist:**
 - EXR (experience rate) — Kappa, Devil
-- Gold rate — Rot Rat (needs longParam or SDP-grantable hook — currently notetag-only in Drops plugin)
-- SDP Multiplier — Rot Rat (longParam 33)
-- PROF (proficiency+) — spread across subgroups (longParam 32, learn skills faster)
-- AP Multiplier — spread across subgroups (**needs to be built** — mirror `sdpMultiplier` pattern in APT plugin)
+- Gold rate — Rot Rat (`gdr` / id 41 — notetag + SDP panels)
+- Drop rate — same pattern (`dor` / id 42)
+- SDP Multiplier — Rot Rat (`sdr` / id 33)
+- PROF (proficiency+) — spread across subgroups (id 32)
+- AP Multiplier — spread across subgroups (`apr` / id 40 — **shipped** in `ApManager.gainAp()`)
 - PHA (pharmacology, moderate) — food/items work better, the "prepared" archetype
 - FDR (floor damage rate) — Hard Syrup subgroup flavor
 - MCR (mana cost rate, small) — Orc (Wizard also uses MCR as core stat)
@@ -577,32 +581,18 @@ Players need a way to undo panel investments. Nobody should feel locked into bad
 Options: full respec (gold sink?), per-panel respec, or free respec with cooldown. TBD on cost model.
 Critical for encouraging experimentation — if respec is too punishing, players default to "safe" builds.
 
-### Required plugin systems (future)
+### Required plugin systems
 
-**LST (Lifesteal) Parameter** — new custom parameter for the sustain ecosystem:
-- New longParamId (next available after current max, likely 34)
-- Damage pipeline hook: after damage is dealt, attacker recovers `damage * LST%` as HP
-- TextManager + IconManager entries
-- SDP integration (just another param ID in panel data — no special handling)
-- War Priest panels grant high LST, Berserker panels grant moderate LST, Treant (Vanguard) grants moderate LST
-- All other archetypes grant zero LST
+**Shipped (Phase 0 — see [`implementation-status.md`](./implementation-status.md)):**
 
-**SHA/SHE (Shield Amplification / Shield Effectiveness)** — paired parameters for the shield ecosystem:
-- SHA: multiplier on shields the caster applies (outgoing). Medic = primary.
-- SHE: multiplier on shields received by the target (incoming). Cleric = primary (positive), Berserker/Skirmisher = penalty (negative).
-- Mirrors the CDM/CDR pattern for crits.
-- HP shield system already exists — these are multiplier hooks into it.
+| Design name | Registry key | Status |
+|---|---|---|
+| LST / MST / TST | `lst`, `mst`, `tst` | ✅ Combat hook + SDP panels; LST/TST playtested |
+| SHA / SHE | `sar`, `ser` | ✅ `JABS_Shield` multipliers |
+| AP Mult | `apr` | ✅ `ApManager.gainAp()` |
+| Gold / drop rate | `gdr`, `dor` | ✅ Notetags + SDP panels |
 
-**AP Multiplier** — mirror `sdpMultiplier` pattern in the APT plugin:
-- APT currently has NO multiplier on AP gains (`ApManager.gainAp()` takes raw amount, no modifier applied)
-- Build `aptMultiplier()` on `Game_Actor` mirroring `sdpMultiplier()` — notetag-based additive percent
-- New longParamId for SDP integration so panels can grant AP Mult
-- Generalist archetype is the primary consumer (meta-progression stat)
-
-**Gold Rate as Parameter** — currently notetag-only (`<goldMultiplier:X>` in Drops plugin):
-- Either create a new longParamId so SDP panels can grant it directly, OR
-- Have SDP panels apply a passive state that carries the `goldMultiplier` notetag
-- Generalist (Rot Rat subgroup) is the primary consumer
+**Still future:**
 
 **Conditional Stat Modifiers** — a single plugin/system to handle mastery passives:
 - HP threshold triggers (below X% → apply trait)
@@ -673,7 +663,7 @@ but not placed. Default level ≠ encounter order for all cases.
 - **EVA/MRF:** Currently unused. Re-adding would create new build axes (dodge tank, spell reflector).
 - **Guard/Parry builds:** Jeremy wants these buildable. Need stats that make guard/parry investment meaningful.
   Dual Sword + GRD trait and Dual-Ender with GRD are natural weapon homes for this.
-- **LST (Lifesteal):** ✅ Decided — implement as a new parameter (see Required plugin systems). Cross-archetype: War Priest (high), Berserker (moderate), Treant/Vanguard (moderate).
+- **LST (Lifesteal):** ✅ **Shipped** (`lst`). Cross-archetype: War Priest (high), Berserker (moderate), Treant/Vanguard (moderate). Panel authoring still pending.
 - **Status effects:** Become relevant around level 20+. Debuffer builds need enough enemies that are vulnerable.
 - **Diminishing returns:** Should stacking the same archetype have diminishing returns to prevent hyper-specialization?
 
@@ -724,20 +714,24 @@ but not placed. Default level ≠ encounter order for all cases.
 | FDR | Hard Syrup twist | — |
 | EXR | Generalist (Kappa, Devil) | — |
 
-### Custom Parameters (longParam 28+)
+### Registry parameters (catalog keys — was longParam 28+)
 
-| Stat | UP | DOWN |
+| Key (id) | UP | DOWN |
 |---|---|---|
 | CDM (28) | Berserker, Artillery, Needler twist | Vanguard, Cleric, Medic |
 | CDR (29) | Guardian, War Priest (mod) | Skirmisher, Artillery, Wizard |
 | MSB (31) | Fish twist, subgroup flavors | Guardian, Crawler twist |
 | PROF (32) | Generalist | — |
-| SDP Mult (33) | Generalist (Rot Rat) | — |
-| LST (NEW) | War Priest (high), Berserker (mod), Treant twist | — |
-| SHA (NEW) | Medic, War Priest (small) | — |
-| SHE (NEW) | Cleric | Berserker, Skirmisher, Artillery |
-| AP Mult (NEW) | Generalist | — |
-| Gold Rate (NEW) | Generalist (Rot Rat) | — |
+| SDP Mult / `sdr` (33) | Generalist (Rot Rat) | — |
+| **`lst` (35)** | War Priest (high), Berserker (mod), Treant twist | — |
+| **`mst` (36)** | (content TBD) | — |
+| **`tst` (37)** | (content TBD) | — |
+| **`sar` / SHA (38)** | Medic, War Priest (small) | — |
+| **`ser` / SHE (39)** | Cleric | Berserker, Skirmisher, Artillery |
+| **`apr` (40)** | Generalist | — |
+| **`gdr` (41)** | Generalist (Rot Rat) | — |
+| **`dor` (42)** | (content TBD) | — |
+| **`hcr` (43)** | (content TBD) | — |
 
 ### Stat touch count per archetype
 

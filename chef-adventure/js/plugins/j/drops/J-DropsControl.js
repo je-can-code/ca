@@ -470,7 +470,10 @@ Game_Actor.prototype.getDropMultiplierBonus = function() {
 	const baseMultiplier = 0;
 	const objectsToCheck = this.getAllNotes();
 	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropMultiplier);
-	const factor = (multiplierBonus + baseMultiplier) / 100;
+	let factor = (multiplierBonus + baseMultiplier) / 100;
+	if (this.getSdpBonusForParameterKey) {
+		factor += this.getSdpBonusForParameterKey("dor", 1);
+	}
 	return factor;
 };
 /**
@@ -481,7 +484,10 @@ Game_Actor.prototype.getGoldMultiplier = function() {
 	const baseMultiplier = 0;
 	const objectsToCheck = this.getAllNotes();
 	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.GoldMultiplier);
-	const factor = (multiplierBonus + baseMultiplier) / 100;
+	let factor = (multiplierBonus + baseMultiplier) / 100;
+	if (this.getSdpBonusForParameterKey) {
+		factor += this.getSdpBonusForParameterKey("gdr", 1);
+	}
 	return factor;
 };
 

@@ -74,7 +74,7 @@ var $plugins =
 {"name":"j/crit/J-CriticalFactors","status":true,"description":"[v1.0.2 CRIT] Manages critical damage multiplier/reduction of battlers.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/passive/J-Passive","status":true,"description":"[v2.1.0 PASSIVE] Grants passive states from various database objects.","parameters":{"menuSettings":"","menuSwitch":"108","menuCommandName":"Passives","menuCommandIcon":"191"}},
-{"name":"j/passive/ext/J-Passive-ABS","status":true,"description":"[v1.0.0 PASSIVE-ABS] Random passive affixes + tier presentation for JABS enemies.","parameters":{"parentConfigPassiveAbs":"","default-prefix-chance":"8","default-suffix-chance":"8"}},
+{"name":"j/passive/ext/J-Passive-Affix","status":true,"description":"[v1.0.0 PASSIVE-AFFIX] Random passive affixes + tier presentation for JABS enemies.","parameters":{"parentConfigPassiveAffix":"","default-prefix-chance":"8","default-suffix-chance":"8"}},
 {"name":"j/passive/ext/J-Passive-OTIB","status":true,"description":"[v1.0.0 PASSIVE-OTIB] One-Time Item Boosts as permanent passive states.","parameters":{}},
 {"name":"--------------------------","status":false,"description":"----------------------------------------------------------------","parameters":{}},
 {"name":"j/diff/J-Difficulty","status":true,"description":"[v2.0.1 DIFFICULTY] A layered difficulty system.","parameters":{"difficultyConfigs":"","initialPoints":"10","defaultDifficulty":"000_default"}},

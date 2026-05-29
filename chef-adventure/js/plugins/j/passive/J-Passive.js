@@ -168,7 +168,7 @@
  *    Added Passives command to the main menu with configurable name, icon, and switch.
  *    Added J.PASSIVE.EXT.OTIB — item-to-state passive unlock system with optional DiaLog
  *    integration.
- *    Added J.PASSIVE.EXT.ABS — aliases detail window sections to inject JABS-specific
+ *    Added J.PASSIVE.EXT.AFFIX — aliases detail window sections to inject JABS-specific
  *    content: slip effects, shield, stacking, resource gains (J-Resources-ABS), and JABS
  *    modifier/timing rows.
  * - 2.0.2
@@ -1135,7 +1135,7 @@ var Window_PassiveList = class extends Window_Selectable {
 * share state through {@link currentX} and {@link currentY}, both reset at the
 * start of each repaint — no y threading through method signatures.
 *
-* Left column:   Combat (stub, filled by passive/ext/abs) + Ailments
+* Left column:   Combat (stub, filled by a passive extension) + Ailments
 * Middle column: Parameters + Elements
 * Right column:  Skills + Equip + Properties + Rewards
 *
@@ -1269,7 +1269,7 @@ var Window_PassiveDetail = class extends Window_Base {
 	* Top-level orchestrator — draws the full-width header, then populates the
 	* left and right columns with their respective sections.
 	*
-	* Left column: Combat (stub, filled by passive/ext/abs), Parameters, Elements.
+	* Left column: Combat (stub, filled by a passive extension), Parameters, Elements.
 	* Right column: Ailments, Skills, Equip, Properties, Rewards.
 	*
 	* Extensions may alias either this method or any individual section method.
@@ -1291,7 +1291,7 @@ var Window_PassiveDetail = class extends Window_Base {
 	}
 	/**
 	* Stub for the combat section — occupies no space when unoverridden.
-	* J.PASSIVE.EXT.ABS overrides this to draw JABS combat, shield, and stacking.
+	* A passive affix extension overrides this to draw JABS combat, shield, and stacking.
 	* @param {RPG_State} state The state being detailed.
 	*/
 	drawCombatSection(state) {}
