@@ -497,13 +497,17 @@ Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam) {
 //#endregion
 //#region src/plugins/crit/core/core/registerCritParameters.js
 /**
-* Registers CDM and CDR with the parameter catalog.
+* Boot-time registration for J-Crit parameters in {@link ParameterRegistry}.
 */
-function registerCritParameters() {
-	ParameterRegistry.register(ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier())).build());
-	ParameterRegistry.register(ParameterDefinition.Builder().key("cdr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).sdpBinding(SdpParameterBinding.byKey("cdr", (actor) => actor.baseCriticalReduction())).build());
-}
-registerCritParameters();
+var CritParameterRegistration = class {
+	/**
+	* Registers CDM and CDR with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier())).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("cdr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).sdpBinding(SdpParameterBinding.byKey("cdr", (actor) => actor.baseCriticalReduction())).build());
+	}
+};
 
 //#endregion
 //#region src/plugins/crit/core/objects/Game_Battler.js
@@ -792,12 +796,12 @@ Game_BattlerBase.prototype.criticalDamageReduction = function() {
 //#region src/plugins/crit/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* No initialization required for J-Crit on database load at this time;
-* the passive detail window draws J-Crit data directly from the state note.
+* Registers J-Crit stats with the parameter catalog after vanilla seeding.
 */
 J.CRIT.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.CRIT.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	CritParameterRegistration.registerAll();
 };
 
 //#endregion

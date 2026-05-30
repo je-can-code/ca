@@ -198,69 +198,57 @@
 * The only JAFTING-specific responsibility this class retains is the divider
 * factory and the {@link convertToRmTrait} bridge back to a plain RPG_Trait.
 */
-function JAFTING_Trait() {
-	this.initialize(...arguments);
-}
-JAFTING_Trait.prototype = {};
-JAFTING_Trait.prototype.constructor = JAFTING_Trait;
-/**
-* Initializes the members of this class.
-* @param {number} code The code of the trait.
-* @param {number} dataId The dataId of the trait.
-* @param {number} value The value of the trait.
-*/
-JAFTING_Trait.prototype.initialize = function(code, dataId, value) {
-	this._code = code;
-	this._dataId = dataId;
-	this._value = value;
-};
-/**
-* The defacto of what JAFTING considers a "divider" trait.
-* All traits defined AFTER this trait are considered transferable.
-* @returns {RPG_Trait}
-*/
-JAFTING_Trait.divider = function() {
-	return RPG_Trait.fromValues(J.BASE.Traits.NO_DISAPPEAR, 3, 1);
-};
-/**
-* Gets a standardized concatenation of the name and value for this trait.
-* Delegates to {@link RPG_Trait#textNameAndValue} in J-Base.
-* @returns {string}
-*/
-Object.defineProperty(JAFTING_Trait.prototype, "nameAndValue", {
-	get() {
+var JAFTING_Trait = class {
+	/**
+	* Initializes the members of this class.
+	* @param {number} code The code of the trait.
+	* @param {number} dataId The dataId of the trait.
+	* @param {number} value The value of the trait.
+	*/
+	constructor(code, dataId, value) {
+		this._code = code;
+		this._dataId = dataId;
+		this._value = value;
+	}
+	/**
+	* The defacto of what JAFTING considers a "divider" trait.
+	* All traits defined AFTER this trait are considered transferable.
+	* @returns {RPG_Trait}
+	*/
+	static divider() {
+		return RPG_Trait.fromValues(J.BASE.Traits.NO_DISAPPEAR, 3, 1);
+	}
+	/**
+	* Gets a standardized concatenation of the name and value for this trait.
+	* Delegates to {@link RPG_Trait#textNameAndValue} in J-Base.
+	* @returns {string}
+	*/
+	get nameAndValue() {
 		return this.convertToRmTrait().textNameAndValue();
-	},
-	configurable: true
-});
-/**
-* Gets the friendly name of the trait based on the trait code.
-* Delegates to {@link RPG_Trait#textName} in J-Base.
-* @returns {string}
-*/
-Object.defineProperty(JAFTING_Trait.prototype, "name", {
-	get() {
+	}
+	/**
+	* Gets the friendly name of the trait based on the trait code.
+	* Delegates to {@link RPG_Trait#textName} in J-Base.
+	* @returns {string}
+	*/
+	get name() {
 		return this.convertToRmTrait().textName();
-	},
-	configurable: true
-});
-/**
-* Gets the friendly value of the trait based on the trait code and value.
-* Delegates to {@link RPG_Trait#textValue} in J-Base.
-* @returns {string}
-*/
-Object.defineProperty(JAFTING_Trait.prototype, "value", {
-	get() {
+	}
+	/**
+	* Gets the friendly value of the trait based on the trait code and value.
+	* Delegates to {@link RPG_Trait#textValue} in J-Base.
+	* @returns {string}
+	*/
+	get value() {
 		return this.convertToRmTrait().textValue();
-	},
-	configurable: true
-});
-/**
-* Gets the original RM trait associated with this JAFTING trait.
-* @returns {RPG_Trait}
-*/
-JAFTING_Trait.prototype.convertToRmTrait = function() {
-	return RPG_Trait.fromValues(this._code, this._dataId, this._value);
+	}
+	/**
+	* Gets the original RM trait associated with this JAFTING trait.
+	* @returns {RPG_Trait}
+	*/
+	convertToRmTrait() {
+		return RPG_Trait.fromValues(this._code, this._dataId, this._value);
+	}
 };
 
 //#endregion
@@ -895,7 +883,7 @@ var RefinementWorkflowSession = class RefinementWorkflowSession {
 	/**
 	* Refinement lists hand {@link Scene_JaftingRefine} raw RPG datums; menus may still wrap rows in {@link Game_Item}.
 	*
-	* @param {Game_Item|RPG_Base|null|undefined} partyItem
+	* @param {Game_Item|RPG_Base|null|undefined} partyItem The party item driving this step.
 	* @returns {RPG_Base|null}
 	*/
 	static datumFromPartyItem(partyItem) {
@@ -913,9 +901,9 @@ var RefinementWorkflowSession = class RefinementWorkflowSession {
 	* Callers pass {@link Game_Item} wrappers from list windows; tests may pass bare datums—{@link
 	* RefinementWorkflowSession.datumFromPartyItem} normalizes once here.
 	*
-	* @param {Game_Item|null|undefined} baseItem
-	* @param {Game_Item|null|undefined} materialItem
-	* @param {RPG_EquipItem|null|undefined} outputEquip
+	* @param {Game_Item|null|undefined} baseItem The base item driving this step.
+	* @param {Game_Item|null|undefined} materialItem The material item driving this step.
+	* @param {RPG_EquipItem|null|undefined} outputEquip The output equip driving this step.
 	* @returns {{ ok: boolean, reason: string|null }}
 	*/
 	commitRefinement(baseItem, materialItem, outputEquip) {
@@ -980,12 +968,14 @@ var J_CraftingRefinePluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible
 		* in the menu.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 		/**
 		* The name used for the command when visible in a menu.
 		* @type {string}
+		// policy step inside initialize metadata.
 		*/
 		this.commandName = this.parsedPluginParameters["menu-name"] ?? "Refinement";
 		/**
@@ -1417,7 +1407,7 @@ var Window_RefinementDescription = class extends Window_Help {
 /**
 * True when this row should sort with stamped-lineage priority (salvage bag, dynamic ledger, or any refine +N).
 *
-* @param {RPG_EquipItem} equip
+* @param {RPG_EquipItem} equip The equip driving this step.
 * @returns {boolean}
 */
 function refinableEquipTemplateSortHasSalvageLineage(equip) {
@@ -1436,8 +1426,8 @@ function refinableEquipTemplateSortHasSalvageLineage(equip) {
 /**
 * True when this row should show dismantle lineage styling (per stack slot when expanded).
 *
-* @param {RPG_EquipItem} equip
-* @param {number|undefined|null} unitOrdinal
+* @param {RPG_EquipItem} equip The equip driving this step.
+* @param {number|undefined|null} unitOrdinal The unit ordinal driving this step.
 * @returns {boolean}
 */
 function refinableEquipHasSalvageStamp(equip, unitOrdinal) {
@@ -1471,11 +1461,13 @@ var Window_RefinableList = class extends Window_Command {
 		/**
 		* The currently selected index of this equip selection window.
 		* @type {number}
+		// policy step inside init members.
 		*/
 		this._currentIndex = null;
 		/**
 		* Whether or not this equip list window is the primary equip or not.
 		* @type {boolean}
+		// policy step inside init members.
 		*/
 		this._isPrimaryEquipWindow = false;
 		/**
@@ -1595,7 +1587,7 @@ var Window_RefinableList = class extends Window_Command {
 	/**
 	* Builds and appends refinable rows (enable rules, icons, salvage stamp label, optional stack counts).
 	*
-	* @param {RPG_EquipItem} equip
+	* @param {RPG_EquipItem} equip The equip driving this step.
 	* @param {{ unitOrdinal: number, unitsTotal: number }|null} unitSlot Pass null for stack-counted material rows.
 	*/
 	addRefinableEquipCommand(equip, unitSlot) {
@@ -1727,12 +1719,14 @@ var Window_RefinementDetails = class extends Window_Base {
 		/**
 		* The primary equip that is the refinement target.
 		* Traits from the secondary equip will be transfered to this equip.
+		// policy step inside init members.
 		* @type {RPG_EquipItem}
 		*/
 		this._primaryEquip = null;
 		/**
 		* The secondary equip that is the refinement material.
 		* The transferable traits on this equip will be transfered to the target.
+		// policy step inside init members.
 		* @type {RPG_EquipItem}
 		*/
 		this._secondaryEquip = null;
@@ -2011,21 +2005,25 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		/**
 		* A grouping of all properties associated with the jafting type of refinement.
 		* Refinement is a subcategory of the jafting system.
+		// policy step inside init primary members.
 		*/
 		this._j._crafting._refine = {};
 		/**
 		* Phase tracking and atomic refine commit (keeps confirmation handler thin).
 		* @type {RefinementWorkflowSession}
+		// policy step inside init primary members.
 		*/
 		this._j._crafting._refine._session = new RefinementWorkflowSession();
 		/**
 		* Explains the current refinement step above the left-hand lists.
 		* @type {Window_RefinementStepHint}
+		// policy step inside init primary members.
 		*/
 		this._j._crafting._refine._refinementStepHint = null;
 		/**
 		* The window that shows the tertiary information about a refinable.
 		* @type {Window_RefinementDescription}
+		// policy step inside init primary members.
 		*/
 		this._j._crafting._refine._refinementDescription = null;
 		/**
@@ -2219,7 +2217,7 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		return this._j._crafting._refine._refinementStepHint;
 	}
 	/**
-	* @param {Window_RefinementStepHint} someWindow
+	* @param {Window_RefinementStepHint} someWindow The some window driving this step.
 	*/
 	setRefinementStepHintWindow(someWindow) {
 		this._j._crafting._refine._refinementStepHint = someWindow;

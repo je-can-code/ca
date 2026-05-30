@@ -210,6 +210,7 @@ BattleManager.initMembers = function() {
 	/**
 	* The origin location that the player came from.
 	* This doubles as a return location, too.
+	// policy step inside init members.
 	* @type {StarOrigin}
 	*/
 	this._originLocation = null;

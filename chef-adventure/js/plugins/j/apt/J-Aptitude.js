@@ -152,222 +152,206 @@
 //#region src/plugins/apt/core/_models/AptitudeLearning.js
 /**
 * The current state of a skill being learned.
-* @param {number} skillId The skill id to learn.
-* @param {number} requiredAp The required AP to achieve this learning.
-* @param {number} currentAp The current AP towards achieving this learning.
-* @constructor
 */
-function AptitudeLearning(skillId, requiredAp, currentAp) {
-	this.initialize(skillId, requiredAp, currentAp);
-}
-AptitudeLearning.prototype = {};
-AptitudeLearning.prototype.constructor = AptitudeLearning;
-/**
-* Initializes the learning.
-* @param {number} skillId The skill id to learn.
-* @param {number} requiredAp The required AP to achieve this learning.
-* @param {number} currentAp The current AP towards achieving this learning.
-*/
-AptitudeLearning.prototype.initialize = function(skillId, requiredAp, currentAp) {
+var AptitudeLearning = class {
 	/**
-	* The id of the skill learned when achieving this learning.
-	* @type {number}
+	* Constructor.
+	* @param {number} skillId The skill id to learn.
+	* @param {number} requiredAp The required AP to achieve this learning.
+	* @param {number} currentAp The current AP towards achieving this learning.
 	*/
-	this.skillId = skillId;
+	constructor(skillId, requiredAp, currentAp) {
+		/**
+		* The id of the skill learned when achieving this learning.
+		* @type {number}
+		// policy step inside initialize.
+		*/
+		this.skillId = skillId;
+		/**
+		* The current AP towards achieving this learning.
+		* @type {number}
+		// policy step inside initialize.
+		*/
+		this.currentAp = currentAp;
+		/**
+		* The required amount of AP to achieve this learning.
+		* @type {number}
+		*/
+		this.requiredAp = requiredAp;
+	}
 	/**
-	* The current AP towards achieving this learning.
-	* @type {number}
+	* Gains AP towards achieving this learning.
+	* @param {number} ap The amount of AP to gain.
 	*/
-	this.currentAp = currentAp;
+	gainAp(ap) {
+		this.currentAp += ap;
+	}
 	/**
-	* The required amount of AP to achieve this learning.
-	* @type {number}
+	* Sets the current AP towards achieving this learning.
+	* @param {number} ap The amount of AP to set.
 	*/
-	this.requiredAp = requiredAp;
+	setAp(ap) {
+		this.currentAp = ap;
+	}
+	/**
+	* Whether or not this learning is achieved.
+	* @returns {boolean} True if the learning is achieved, false otherwise.
+	*/
+	isLearned() {
+		return this.currentAp >= this.requiredAp;
+	}
 };
-/**
-* Gains AP towards achieving this learning.
-* @param {number} ap The amount of AP to gain.
-*/
-AptitudeLearning.prototype.gainAp = function(ap) {
-	this.currentAp += ap;
-};
-/**
-* Sets the current AP towards achieving this learning.
-* @param {number} ap The amount of AP to set.
-*/
-AptitudeLearning.prototype.setAp = function(ap) {
-	this.currentAp = ap;
-};
-/**
-* Whether or not this learning is achieved.
-* @returns {boolean} True if the learning is achieved, false otherwise.
-*/
-AptitudeLearning.prototype.isLearned = function() {
-	return this.currentAp >= this.requiredAp;
-};
+SerializableRegistry.register(AptitudeLearning);
 
 //#endregion
 //#region src/plugins/apt/core/_models/AptitudeTeachable.js
 /**
 * The runtime shape of a learnable skill and its requirements.
-* @param {number} skillId The skill id to learn.
-* @param {number} requiredAp The required AP to learn the skill.
-* @constructor
 */
-function AptitudeTeachable(skillId, requiredAp) {
-	this.initialize(skillId, requiredAp);
-}
-AptitudeTeachable.prototype = {};
-AptitudeTeachable.prototype.constructor = AptitudeTeachable;
-/**
-* Initializes the learning.
-* @param {number} skillId The skill id to learn.
-* @param {number} requiredAp The required AP to learn the skill.
-*/
-AptitudeTeachable.prototype.initialize = function(skillId, requiredAp) {
+var AptitudeTeachable = class {
 	/**
-	* The id of the skill to learn.
-	* @type {number}
+	* Constructor.
+	* @param {number} skillId The skill id to learn.
+	* @param {number} requiredAp The required AP to learn the skill.
 	*/
-	this.skillId = skillId;
-	/**
-	* The required AP to learn the skill.
-	* @type {number}
-	*/
-	this.requiredAp = requiredAp;
+	constructor(skillId, requiredAp) {
+		/**
+		* The id of the skill to learn.
+		* @type {number}
+		// policy step inside initialize.
+		*/
+		this.skillId = skillId;
+		/**
+		* The required AP to learn the skill.
+		* @type {number}
+		*/
+		this.requiredAp = requiredAp;
+	}
 };
 
 //#endregion
 //#region src/plugins/apt/core/_models/AptitudeProgress.js
 /**
 * The structure of an object and its potential {@link AptitudeLearning}s.
-* @param {string} key "type:id" unique key of the aptitude being learned.
-* @param {Record<number, AptitudeLearning>} aptitudeLearnings The current state of learnings.
-* @constructor
 */
-function AptitudeProgress(key, aptitudeLearnings) {
-	this.initialize(key, aptitudeLearnings);
-}
-AptitudeProgress.prototype = {};
-AptitudeProgress.prototype.constructor = AptitudeProgress;
-/**
-* Initializes the learning.
-* @param {string} key "type:id" unique key of the aptitude being learned.
-* @param {Record<number, AptitudeLearning>} [aptitudeLearnings] The current state of learnings; defaults to nothing.
-*/
-AptitudeProgress.prototype.initialize = function(key, aptitudeLearnings = {}) {
+var AptitudeProgress = class {
 	/**
-	* The "type:id" unique key of the aptitude being learned.
-	* @type {string}
+	* Constructor.
+	* @param {string} key "type:id" unique key of the aptitude being learned.
+	* @param {Record<number, AptitudeLearning>} [aptitudeLearnings] The current state of learnings; defaults to nothing.
 	*/
-	this.key = key;
+	constructor(key, aptitudeLearnings = {}) {
+		/**
+		* The "type:id" unique key of the aptitude being learned.
+		* @type {string}
+		// policy step inside initialize.
+		*/
+		this.key = key;
+		/**
+		* The current state of learnings.
+		* @type {Record<number, AptitudeLearning>}
+		*/
+		this._learnings = aptitudeLearnings;
+	}
 	/**
-	* The current state of learnings.
-	* @type {Record<number, AptitudeLearning>}
+	* Gets the current progress for a skill.
+	* @param {number} skillId The skill id to learn.
+	* @returns {AptitudeLearning|null} The current learning for the skill, or null if it doesn't exist.
 	*/
-	this._learnings = aptitudeLearnings;
+	learningBySkillId(skillId) {
+		return this._learnings[skillId] ?? null;
+	}
+	/**
+	* Determines whether or not this aptitude progress has a learning for the given skill.
+	* @param {number} skillId The skill id to check for.
+	* @returns {boolean} True if the skill exists on this progress, false otherwise.
+	*/
+	hasLearning(skillId) {
+		return this._learnings[skillId] !== undefined;
+	}
+	/**
+	* Adds or updates a learning for this aptitude progress.
+	* @param {number} skillId The skill id to learn.
+	* @param {number} [amount] The current amount of AP for the learning; defaults to 0.
+	*/
+	setLearning(skillId, amount = 0) {
+		if (this.hasLearning(skillId) === false) return;
+		const learning = this.learningBySkillId(skillId);
+		learning.setAp(amount);
+	}
+	/**
+	* Creates a new learning for this aptitude progress.
+	* @param {number} skillId The id of the skill for the learning.
+	* @param {number} requiredAp The amount of AP required for the learning.
+	* @param {number} [amount] The current amount of AP for the learning; defaults to 0.
+	*/
+	initializeLearning(skillId, requiredAp, amount = 0) {
+		this._learnings[skillId] = new AptitudeLearning(skillId, requiredAp, amount);
+	}
+	/**
+	* Gets the current state of learnings for this aptitude progress tracker.
+	* @returns {Record<number, AptitudeLearning>}
+	*/
+	learnings() {
+		return this._learnings;
+	}
 };
-/**
-* Gets the current progress for a skill.
-* @param {number} skillId The skill id to learn.
-* @returns {AptitudeLearning|null} The current learning for the skill, or null if it doesn't exist.
-*/
-AptitudeProgress.prototype.learningBySkillId = function(skillId) {
-	return this._learnings[skillId] ?? null;
-};
-/**
-* Determines whether or not this aptitude progress has a learning for the given skill.
-* @param {number} skillId The skill id to check for.
-* @returns {boolean} True if the skill exists on this progress, false otherwise.
-*/
-AptitudeProgress.prototype.hasLearning = function(skillId) {
-	return this._learnings[skillId] !== undefined;
-};
-/**
-* Adds or updates a learning for this aptitude progress.
-* @param {number} skillId The skill id to learn.
-* @param {number} [amount] The current amount of AP for the learning; defaults to 0.
-*/
-AptitudeProgress.prototype.setLearning = function(skillId, amount = 0) {
-	if (this.hasLearning(skillId) === false) return;
-	const learning = this.learningBySkillId(skillId);
-	learning.setAp(amount);
-};
-/**
-* Creates a new learning for this aptitude progress.
-* @param {number} skillId The id of the skill for the learning.
-* @param {number} requiredAp The amount of AP required for the learning.
-* @param {number} [amount] The current amount of AP for the learning; defaults to 0.
-*/
-AptitudeProgress.prototype.initializeLearning = function(skillId, requiredAp, amount = 0) {
-	this._learnings[skillId] = new AptitudeLearning(skillId, requiredAp, amount);
-};
-/**
-* Gets the current state of learnings for this aptitude progress tracker.
-* @returns {Record<number, AptitudeLearning>}
-*/
-AptitudeProgress.prototype.learnings = function() {
-	return this._learnings;
-};
+SerializableRegistry.register(AptitudeProgress);
 
 //#endregion
 //#region src/plugins/apt/core/_models/AptitudeSkill.js
 /**
 * The structure of an object and the skill that was learned.
-* @param {skillId} skillId The skill id that was learned.
-* @param {boolean} [learned] Whether or not the skill was learned; defaults to false.
-* @constructor
 */
-function AptitudeSkill(skillId, learned = false) {
-	this.initialize(skillId, learned);
-}
-AptitudeSkill.prototype = {};
-AptitudeSkill.prototype.constructor = AptitudeSkill;
-/**
-* Initializes the learning.
-* @param {skillId} skillId The skill id that was learned.
-* @param {boolean} [learned] Whether or not the skill was learned; defaults to false.
-*/
-AptitudeSkill.prototype.initialize = function(skillId, learned = false) {
+var AptitudeSkill = class {
 	/**
-	* The skill id that was learned.
-	* @type {number}
+	* Constructor.
+	* @param {skillId} skillId The skill id that was learned.
+	* @param {boolean} [learned] Whether or not the skill was learned; defaults to false.
 	*/
-	this.skillId = skillId;
+	constructor(skillId, learned = false) {
+		/**
+		* The skill id that was learned.
+		* @type {number}
+		// policy step inside initialize.
+		*/
+		this.skillId = skillId;
+		/**
+		* Whether or not this aptitude skill is learned.
+		* @type {boolean}
+		// policy step inside initialize.
+		*/
+		this.learned = learned;
+		/**
+		* The "type:id" key of the aptitude that this skill was learned from.
+		* @type {string}
+		*/
+		this._learnedFrom = String.empty;
+	}
 	/**
-	* Whether or not this aptitude skill is learned.
-	* @type {boolean}
+	* Learns the skill.
+	* @param {AptitudeProgress} learnedFrom The aptitude from which this skill was learned.
 	*/
-	this.learned = learned;
+	learnSkill(learnedFrom) {
+		this.learned = true;
+		this._learnedFrom = learnedFrom.key;
+	}
 	/**
-	* The "type:id" key of the aptitude that this skill was learned from.
-	* @type {string}
+	* Forgets the skill.
 	*/
-	this._learnedFrom = String.empty;
+	forgetSkill() {
+		this.learned = false;
+		this._learnedFrom = String.empty;
+	}
+	/**
+	* Gets the key of the aptitude that this skill was learned from.
+	* @returns {string}
+	*/
+	learnedFrom() {
+		return this._learnedFrom;
+	}
 };
-/**
-* Learns the skill.
-* @param {AptitudeProgress} learnedFrom The aptitude from which this skill was learned.
-*/
-AptitudeSkill.prototype.learnSkill = function(learnedFrom) {
-	this.learned = true;
-	this._learnedFrom = learnedFrom.key;
-};
-/**
-* Forgets the skill.
-*/
-AptitudeSkill.prototype.forgetSkill = function() {
-	this.learned = false;
-	this._learnedFrom = String.empty;
-};
-/**
-* Gets the key of the aptitude that this skill was learned from.
-* @returns {string}
-*/
-AptitudeSkill.prototype.learnedFrom = function() {
-	return this._learnedFrom;
-};
+SerializableRegistry.register(AptitudeSkill);
 
 //#endregion
 //#region src/plugins/apt/core/_models/AptitudeSkillSourceProgress.js
@@ -603,11 +587,13 @@ var JAptitude_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible in the menu.
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 		/**
 		* The maximum level difference between actor and enemy that allows AP gain.
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.maxLevelThreshold = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["max-level-threshold"], NaN);
 		/**
@@ -1050,7 +1036,7 @@ var ApManager = class {
 	}
 	/**
 	* Resolves a `sourceKey` into a database object (ignores actor state).
-	* @param {string} sourceKey
+	* @param {string} sourceKey The source key driving this step.
 	* @returns {RPG_Actor|RPG_Class|RPG_Skill|RPG_Weapon|RPG_Armor|RPG_State|RPG_Item|null}
 	*/
 	static resolveStaticSourceByKey(sourceKey) {
@@ -1189,15 +1175,27 @@ var ApManager = class {
 
 //#endregion
 //#region src/plugins/apt/core/managers/TextManager.js
+/**
+* Display label for aptitude rate — bonus multiplier on aptitude point gains.
+* @returns {string}
+*/
 TextManager.aptRate = function() {
 	return "APT Rate";
 };
+/**
+* Help text explaining how aptitude rate accelerates skill mastery tracks.
+* @returns {string[]}
+*/
 TextManager.aptRateDescription = function() {
 	return ["Bonus multiplier applied to aptitude point gains.", "Higher values accelerate skill mastery through aptitude tracks."];
 };
 
 //#endregion
 //#region src/plugins/apt/core/managers/IconManager.js
+/**
+* Icon index for aptitude rate bonus in parameter and CMS displays.
+* @returns {number}
+*/
 IconManager.aptRate = function() {
 	return 79;
 };
@@ -1205,12 +1203,16 @@ IconManager.aptRate = function() {
 //#endregion
 //#region src/plugins/apt/core/core/registerAptParameters.js
 /**
-* Registers aptitude point gain multiplier with the parameter catalog.
+* Boot-time registration for J-Aptitude parameters in {@link ParameterRegistry}.
 */
-function registerAptParameters() {
-	ParameterRegistry.register(ParameterDefinition.Builder().key("apr").group(ParameterGroups.FATE).sortOrder(7).label(() => TextManager.aptRate()).description(() => TextManager.aptRateDescription()).iconIndex(() => IconManager.aptRate()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.apr).sdpBinding(SdpParameterBinding.byKey("apr", () => 1)).build());
-}
-registerAptParameters();
+var AptParameterRegistration = class {
+	/**
+	* Registers aptitude point gain multiplier with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("apr").group(ParameterGroups.FATE).sortOrder(7).label(() => TextManager.aptRate()).description(() => TextManager.aptRateDescription()).iconIndex(() => IconManager.aptRate()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.apr).sdpBinding(SdpParameterBinding.byKey("apr", () => 1)).build());
+	}
+};
 
 //#endregion
 //#region src/plugins/apt/core/managers/BattleManager.js
@@ -1310,7 +1312,7 @@ if (J.ABS) {
 	* @returns {boolean} True if the actor can gain AP, false otherwise.
 	*/
 	JABS_Engine.prototype.canGainAptitudeReward = function(actor, enemy) {
-		if (J.LEVEL && J.LEVEL.Metadata.enabled && J.APT.Metadata.usingLevelThresholdLimit === true) {
+		if (J.LEVEL && $gameSystem.isLevelScalingEnabled() && J.APT.Metadata.usingLevelThresholdLimit === true) {
 			const levelDifference = actor.level - enemy.level;
 			if (levelDifference > J.APT.Metadata.maxLevelThreshold) return false;
 		}
@@ -2155,24 +2157,28 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		/**
 		* The last index tracked in the aggregate list window, per-actor.
 		* Keyed by actorId → number.
+		// policy step inside init primary members.
 		* @type {{[actorId:number]: number}}
 		*/
 		this._j._aptitude._lastAggregateIndexByActor = {};
 		/**
 		* The last index tracked in the source list window, per-actor.
 		* Keyed by actorId → number.
+		// policy step inside init primary members.
 		* @type {{[actorId:number]: number}}
 		*/
 		this._j._aptitude._lastSourceIndexByActor = {};
 		/**
 		* The current view mode for the aptitude windows.
 		* Toggle between "aggregate" and "source" views.
+		// policy step inside init primary members.
 		* @type {string}
 		*/
 		this._j._aptitude._viewMode = Scene_Aptitude.viewMode.AGGREGATE;
 		/**
 		* The aptitude aggregates for the current actor.
 		* @type {AptitudeSkillAggregate[]}
+		// policy step inside init primary members.
 		*/
 		this._j._aptitude._aggregates = [];
 		/**

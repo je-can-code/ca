@@ -292,43 +292,44 @@ var ProficiencyConditional = class {
 /**
 * A data model for saving skill usage/proficiency for battlers.
 */
-function SkillProficiency() {
-	this.initialize(...arguments);
-}
-SkillProficiency.prototype = {};
-SkillProficiency.prototype.constructor = SkillProficiency;
-/**
-* Initializes this class with the given parameters.
-*/
-SkillProficiency.prototype.initialize = function(skillId, initialProficiency = 0) {
+var SkillProficiency = class {
 	/**
-	* The skill id of the skill for this prof.
-	* @type {number}
+	* Initializes this class with the given parameters.
+	* @param {number} skillId The skill id of the skill for this prof.
+	* @param {number} [initialProficiency] The prof the owning battler bears with this skill; defaults to 0.
 	*/
-	this.skillId = skillId;
+	constructor(skillId, initialProficiency = 0) {
+		/**
+		* The skill id of the skill for this prof.
+		* @type {number}
+		// policy step inside initialize.
+		*/
+		this.skillId = skillId;
+		/**
+		* The prof the owning battler bears with this skill.
+		* @type {number}
+		*/
+		this.proficiency = initialProficiency;
+	}
 	/**
-	* The prof the owning battler bears with this skill.
-	* @type {number}
+	* Gets the underlying skill of this prof.
+	* @returns {RPG_Skill}
 	*/
-	this.proficiency = initialProficiency;
-};
-/**
-* Gets the underlying skill of this prof.
-* @returns {RPG_Skill}
-*/
-SkillProficiency.prototype.skill = function() {
-	return $dataSkills[this.skillId];
-};
-/**
-* Adds a given amount of prof to the skill's current prof.
-* @param {number} value The amount of prof to add.
-*/
-SkillProficiency.prototype.improve = function(value) {
-	this.proficiency += value;
-	if (this.proficiency < 0) {
-		this.proficiency = 0;
+	skill() {
+		return $dataSkills[this.skillId];
+	}
+	/**
+	* Adds a given amount of prof to the skill's current prof.
+	* @param {number} value The amount of prof to add.
+	*/
+	improve(value) {
+		this.proficiency += value;
+		if (this.proficiency < 0) {
+			this.proficiency = 0;
+		}
 	}
 };
+SerializableRegistry.register(SkillProficiency);
 
 //#endregion
 //#region src/plugins/prof/core/_metadata/_pluginMetadata.js
@@ -720,6 +721,10 @@ Object.defineProperty(Game_Actor.prototype, "prof", {
 
 //#endregion
 //#region src/plugins/prof/core/objects/Game_Enemy.js
+/**
+* Extends {@link Game_Enemy.initMembers}.<br/>
+* Initializes skill proficiency storage for map enemies.
+*/
 J.PROF.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
 Game_Enemy.prototype.initMembers = function() {
 	J.PROF.Aliased.Game_Enemy.get("initMembers").call(this);
@@ -943,12 +948,16 @@ IconManager.proficiencyBoost = function() {
 //#endregion
 //#region src/plugins/prof/core/core/registerProfParameters.js
 /**
-* Registers proficiency bonus with the parameter catalog.
+* Boot-time registration for J-Prof parameters in {@link ParameterRegistry}.
 */
-function registerProfParameters() {
-	ParameterRegistry.register(ParameterDefinition.Builder().key("prof").group(ParameterGroups.FATE).sortOrder(4).label(() => TextManager.proficiencyBonus()).description(() => TextManager.proficiencyDescription()).iconIndex(() => IconManager.proficiencyBoost()).format(ParameterFormat.FLAT).getValue((battler) => battler.prof).sdpBinding(SdpParameterBinding.byKey("prof", (actor) => actor.baseSkillProficiencyAmount())).build());
-}
-registerProfParameters();
+var ProfParameterRegistration = class {
+	/**
+	* Registers proficiency bonus with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("prof").group(ParameterGroups.FATE).sortOrder(4).label(() => TextManager.proficiencyBonus()).description(() => TextManager.proficiencyDescription()).iconIndex(() => IconManager.proficiencyBoost()).format(ParameterFormat.FLAT).getValue((battler) => battler.prof).sdpBinding(SdpParameterBinding.byKey("prof", (actor) => actor.baseSkillProficiencyAmount())).build());
+	}
+};
 
 //#endregion
 //#region src/plugins/prof/core/scenes/Scene_Boot.js

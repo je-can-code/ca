@@ -631,7 +631,7 @@ Window_ChoiceList.prototype.makeCommandList = function() {
 	this.clearChoiceMap();
 	J.MESSAGE.Aliased.Window_ChoiceList.get("makeCommandList").call(this);
 	let needsUpdate = false;
-	for (var i = this._list.length; i > -1; i--) {
+	for (let i = this._list.length; i > -1; i--) {
 		if ($gameMessage.isChoiceHidden(i)) {
 			this._list.splice(i, 1);
 			$gameMessage._choices.splice(i, 1);

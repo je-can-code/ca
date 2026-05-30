@@ -1326,7 +1326,7 @@ Game_Item.prototype.underlyingObject = function() {
 };
 /**
 * Extends `setObject()` to enable setting custom skills and items.
-* @param {RPG_UsableItem|RPG_EquipItem}
+* @param {RPG_UsableItem|RPG_EquipItem} obj The database row or custom object being bound.
 */
 J.EXTEND.Aliased.Game_Item.set("setObject", Game_Item.prototype.setObject);
 Game_Item.prototype.setObject = function(obj) {
@@ -1354,6 +1354,10 @@ Game_Item.prototype.object = function() {
 
 //#endregion
 //#region src/plugins/extend/core/objects/Game_Party.js
+/**
+* Passive skill states from battle party members that can trigger on-hit self effects.
+* @returns {RPG_State[]}
+*/
 Game_Party.prototype.extraOnHitSelfStateSources = function() {
 	const extraSources = [];
 	if (J.PASSIVE) {
@@ -1364,6 +1368,10 @@ Game_Party.prototype.extraOnHitSelfStateSources = function() {
 	}
 	return extraSources;
 };
+/**
+* Passive skill states from battle party members that can trigger on-cast self effects.
+* @returns {RPG_State[]}
+*/
 Game_Party.prototype.extraOnCastSelfStateSources = function() {
 	const extraSources = [];
 	if (J.PASSIVE) {

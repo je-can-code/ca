@@ -48,8 +48,8 @@
 var J_CaModsPluginMetadata = class extends PluginMetadata {
 	/**
 	* Constructor.
-	* @param {string} name
-	* @param {string} version
+	* @param {string} name The name driving this step.
+	* @param {string} version The version driving this step.
 	*/
 	constructor(name, version) {
 		super(name, version);
@@ -495,7 +495,7 @@ JABS_Engine.prototype.executeMapAction = function(caster, action, targetX, targe
 };
 /**
 * Tracks mainhand/offhand/skill usage data points and assigns them to variables.
-* @param {JABS_Action} action
+* @param {JABS_Action} action The action driving this step.
 */
 JABS_Engine.prototype.trackActionData = function(action) {
 	const cooldownType = action.getCooldownType();

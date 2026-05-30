@@ -207,33 +207,69 @@ J.RESOURCES.EXT.ABS.SdpParamId = {
 
 //#endregion
 //#region src/plugins/resources/ext/abs/managers/TextManager.js
+/**
+* Display label for lifesteal — HP recovered from HP damage dealt.
+* @returns {string}
+*/
 TextManager.lst = function() {
 	return "Lifesteal";
 };
+/**
+* Help text explaining lifesteal recovery on successful ABS hits.
+* @returns {string[]}
+*/
 TextManager.lstDescription = function() {
-	return ["Percent of HP damage dealt recovered as HP on a successful hit.", "Stacks additively with on-hit resource gain."];
+	return ["Percent of HP damage dealt recovered as HP on a successful hit.", "Stacks with on-attack skill resource tags."];
 };
+/**
+* Display label for manasteal — MP recovered from HP damage dealt.
+* @returns {string}
+*/
 TextManager.mst = function() {
 	return "Manasteal";
 };
+/**
+* Help text explaining manasteal recovery on successful ABS hits.
+* @returns {string[]}
+*/
 TextManager.mstDescription = function() {
-	return ["Percent of HP damage dealt recovered as MP on a successful hit.", "Stacks additively with on-hit resource gain."];
+	return ["Percent of HP damage dealt recovered as MP on a successful hit.", "Stacks with on-attack skill resource tags."];
 };
+/**
+* Display label for techsteal — TP recovered from HP damage dealt.
+* @returns {string}
+*/
 TextManager.tst = function() {
 	return "Techsteal";
 };
+/**
+* Help text explaining techsteal recovery on successful ABS hits.
+* @returns {string[]}
+*/
 TextManager.tstDescription = function() {
-	return ["Percent of HP damage dealt recovered as TP on a successful hit.", "Stacks additively with on-hit resource gain."];
+	return ["Percent of HP damage dealt recovered as TP on a successful hit.", "Stacks with on-attack skill resource tags."];
 };
 
 //#endregion
 //#region src/plugins/resources/ext/abs/managers/IconManager.js
+/**
+* Icon index for lifesteal on-hit resource recovery in ABS parameter UI.
+* @returns {number}
+*/
 IconManager.lst = function() {
 	return 928;
 };
+/**
+* Icon index for manasteal on-hit resource recovery in ABS parameter UI.
+* @returns {number}
+*/
 IconManager.mst = function() {
 	return 929;
 };
+/**
+* Icon index for techsteal on-hit resource recovery in ABS parameter UI.
+* @returns {number}
+*/
 IconManager.tst = function() {
 	return 930;
 };
@@ -275,7 +311,7 @@ Object.defineProperty(Game_Battler.prototype, "lst", {
 		if (this.getSdpBonusForParameterKey) {
 			rate += this.getSdpBonusForParameterKey("lst", 1);
 		}
-		return Math.max(0, rate);
+		return rate;
 	},
 	configurable: true
 });
@@ -285,7 +321,7 @@ Object.defineProperty(Game_Battler.prototype, "mst", {
 		if (this.getSdpBonusForParameterKey) {
 			rate += this.getSdpBonusForParameterKey("mst", 1);
 		}
-		return Math.max(0, rate);
+		return rate;
 	},
 	configurable: true
 });
@@ -295,7 +331,7 @@ Object.defineProperty(Game_Battler.prototype, "tst", {
 		if (this.getSdpBonusForParameterKey) {
 			rate += this.getSdpBonusForParameterKey("tst", 1);
 		}
-		return Math.max(0, rate);
+		return rate;
 	},
 	configurable: true
 });
@@ -433,11 +469,11 @@ var ResourceHitManager = class ResourceHitManager {
 	* Calculates a resource gain from tags on a single skill (on-attack path).
 	* The formula receives `a` = caster and `b` = (flat + calculatedPercent).
 	* REC is applied to the total before returning.
-	* @param {Game_Actor|Game_Enemy} caster
-	* @param {RPG_Skill} skill
-	* @param {RegExp} flatRegex
-	* @param {RegExp} percentRegex
-	* @param {RegExp} formulaRegex
+	* @param {Game_Actor|Game_Enemy} caster The caster driving this step.
+	* @param {RPG_Skill} skill The skill driving this step.
+	* @param {RegExp} flatRegex The flat regex driving this step.
+	* @param {RegExp} percentRegex The percent regex driving this step.
+	* @param {RegExp} formulaRegex The formula regex driving this step.
 	* @param {number} maxStat The battler's maximum for the relevant resource (mhp/mmp/mtp).
 	* @returns {number}
 	*/
@@ -456,10 +492,10 @@ var ResourceHitManager = class ResourceHitManager {
 	* enemy data/states for enemies).
 	* The formula receives `a` = targetBattler and `b` = damage dealt.
 	* REC is applied to the total before returning.
-	* @param {Game_Actor|Game_Enemy} targetBattler
-	* @param {RegExp} flatRegex
-	* @param {RegExp} percentRegex
-	* @param {RegExp} formulaRegex
+	* @param {Game_Actor|Game_Enemy} targetBattler The target battler driving this step.
+	* @param {RegExp} flatRegex The flat regex driving this step.
+	* @param {RegExp} percentRegex The percent regex driving this step.
+	* @param {RegExp} formulaRegex The formula regex driving this step.
 	* @param {number} maxStat The battler's maximum for the relevant resource (mhp/mmp/mtp).
 	* @param {number} damage The raw HP damage from the action result.
 	* @returns {number}
@@ -479,14 +515,18 @@ var ResourceHitManager = class ResourceHitManager {
 //#endregion
 //#region src/plugins/resources/ext/abs/core/registerResourcesAbsParameters.js
 /**
-* Registers on-attack drain stats with the parameter catalog.
+* Boot-time registration for J-Resources-ABS drain stats in {@link ParameterRegistry}.
 */
-function registerResourcesAbsParameters() {
-	ParameterRegistry.register(ParameterDefinition.Builder().key("lst").group(ParameterGroups.COMBAT).sortOrder(4).label(() => TextManager.lst()).description(() => TextManager.lstDescription()).iconIndex(() => IconManager.lst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.lst).sdpBinding(SdpParameterBinding.byKey("lst", () => 1)).build());
-	ParameterRegistry.register(ParameterDefinition.Builder().key("mst").group(ParameterGroups.COMBAT).sortOrder(6).label(() => TextManager.mst()).description(() => TextManager.mstDescription()).iconIndex(() => IconManager.mst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mst).sdpBinding(SdpParameterBinding.byKey("mst", () => 1)).build());
-	ParameterRegistry.register(ParameterDefinition.Builder().key("tst").group(ParameterGroups.COMBAT).sortOrder(8).label(() => TextManager.tst()).description(() => TextManager.tstDescription()).iconIndex(() => IconManager.tst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.tst).sdpBinding(SdpParameterBinding.byKey("tst", () => 1)).build());
-}
-registerResourcesAbsParameters();
+var ResourcesAbsParameterRegistration = class {
+	/**
+	* Registers on-attack drain stats with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("lst").group(ParameterGroups.COMBAT).sortOrder(4).label(() => TextManager.lst()).description(() => TextManager.lstDescription()).iconIndex(() => IconManager.lst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.lst).sdpBinding(SdpParameterBinding.byKey("lst", () => 1)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("mst").group(ParameterGroups.COMBAT).sortOrder(6).label(() => TextManager.mst()).description(() => TextManager.mstDescription()).iconIndex(() => IconManager.mst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mst).sdpBinding(SdpParameterBinding.byKey("mst", () => 1)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("tst").group(ParameterGroups.COMBAT).sortOrder(8).label(() => TextManager.tst()).description(() => TextManager.tstDescription()).iconIndex(() => IconManager.tst()).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.tst).sdpBinding(SdpParameterBinding.byKey("tst", () => 1)).build());
+	}
+};
 
 //#endregion
 //#region src/plugins/resources/ext/abs/managers/JABS_Engine.js

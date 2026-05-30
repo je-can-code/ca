@@ -155,9 +155,11 @@ var J_RegionSkillsPluginMetadata = class extends PluginMetadata {
 		/**
 		* The number of frames between executing while standing on the given regionId.<br>
 		* Lower this to increase frequency of skill execution.<br>
+		// policy step inside initialize metadata.
 		* Raise this to reduce frequency of skill execution.<br>
 		* This only applies while a battler is standing on a tile with a valid region skill.
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.delayBetweenExecutions = this.parsedPluginParameters["execution-delay"] ?? 60;
 	}

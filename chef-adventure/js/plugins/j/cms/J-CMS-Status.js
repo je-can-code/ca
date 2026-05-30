@@ -134,21 +134,7 @@ var StatusParameter = class {
 		}
 		this.name = definition.label();
 		this.iconIndex = definition.iconIndex();
-		this.colorIndex = definition.resolveDisplayColorIndex(this.value);
-	}
-	/**
-	* Whether this parameter should use styled zero-padding on the status screen.
-	* @returns {boolean}
-	*/
-	usesStyledValue() {
-		const definition = ParameterRegistry.get(this.parameterKey);
-		if (!definition) {
-			return false;
-		}
-		if (definition.resolveDisplaySentinel(this.value)) {
-			return false;
-		}
-		return definition.format !== ParameterFormat.REGEN_PER_SECOND;
+		this.colorIndex = definition.colorIndex();
 	}
 	/**
 	* Get the pretty value of this parameter.
@@ -846,6 +832,7 @@ var Window_StatusStatList = class extends Window_Selectable {
 		this._j._cms_s._status._list ||= {
 			/**
 			* The actor whose stats are shown by this list.
+			// policy step inside  root.
 			* @type {Game_Actor|null}
 			*/
 			_actor: null,
@@ -1153,11 +1140,11 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Draws the b-param breakdown.
-	* @param {Game_Actor} actor
-	* @param {number} longId
-	* @param {number} x
-	* @param {number} y
-	* @param {number} w
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} longId The long id driving this step.
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
+	* @param {number} w The w driving this step.
 	* @returns {number}
 	*/
 	drawBParamBreakdown(actor, longId, x, y, w) {
@@ -1258,11 +1245,11 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Draws the x-param breakdown.
-	* @param {Game_Actor} actor
-	* @param {number} xId
-	* @param {number} x
-	* @param {number} y
-	* @param {number} w
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} xId The x id driving this step.
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
+	* @param {number} w The w driving this step.
 	* @returns {number}
 	*/
 	drawXParamBreakdown(actor, xId, x, y, w) {
@@ -1438,11 +1425,11 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Draws the s-param breakdown.
-	* @param {Game_Actor} actor
-	* @param {number} sId
-	* @param {number} x
-	* @param {number} y
-	* @param {number} w
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} sId The s id driving this step.
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
+	* @param {number} w The w driving this step.
 	* @returns {number}
 	*/
 	drawSParamBreakdown(actor, sId, x, y, w) {
@@ -1513,10 +1500,10 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Draws the max tp breakdown.
-	* @param {Game_Actor} actor
-	* @param {number} x
-	* @param {number} y
-	* @param {number} w
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
+	* @param {number} w The w driving this step.
 	* @returns {number}
 	*/
 	drawMtpBreakdown(actor, x, y, w) {
@@ -2164,10 +2151,10 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Calculates the amount to add to a parameter.
-	* @param {Game_Actor} actor
-	* @param {number} base
-	* @param {number} plus
-	* @param {number} rate
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} base The base driving this step.
+	* @param {number} plus The plus driving this step.
+	* @param {number} rate The rate driving this step.
 	* @returns {number}
 	*/
 	calcPlusRate(actor, base, plus, rate) {
@@ -2176,9 +2163,9 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Formats the plus and rate into a readable string.
-	* @param {number} plus
-	* @param {number} rate
-	* @param {number} delta
+	* @param {number} plus The plus driving this step.
+	* @param {number} rate The rate driving this step.
+	* @param {number} delta The delta driving this step.
 	* @returns {string}
 	*/
 	formatPlusRate(plus, rate, delta) {
@@ -2189,8 +2176,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Sums the flat bonus parameter from equips.
-	* @param {Game_Actor} actor
-	* @param {number} paramId
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} paramId The param id driving this step.
 	* @returns {number}
 	*/
 	sumEquipBParamFlat(actor, paramId) {
@@ -2204,8 +2191,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Sums the flat bonus parameter from states.
-	* @param {Game_Actor} actor
-	* @param {number} paramId
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} paramId The param id driving this step.
 	* @returns {number}
 	*/
 	sumStateBParamFlat(actor, paramId) {
@@ -2219,8 +2206,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Determines the b-param bonuses from traits.
-	* @param {RPG_Traited[]} objs
-	* @param {number} paramId
+	* @param {RPG_Traited[]} objs The objs driving this step.
+	* @param {number} paramId The param id driving this step.
 	* @returns {number}
 	*/
 	paramRateFromTraits(objs, paramId) {
@@ -2238,8 +2225,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Determines the x-param bonuses from traits.
-	* @param {RPG_Traited[]} objs
-	* @param {number} xId
+	* @param {RPG_Traited[]} objs The objs driving this step.
+	* @param {number} xId The x id driving this step.
 	* @returns {number}
 	*/
 	xparamAddFromTraits(objs, xId) {
@@ -2257,8 +2244,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Determines the s-param bonuses from traits.
-	* @param {RPG_Traited[]} objs
-	* @param {number} sId
+	* @param {RPG_Traited[]} objs The objs driving this step.
+	* @param {number} sId The s id driving this step.
 	* @returns {number}
 	*/
 	sparamRateFromTraits(objs, sId) {

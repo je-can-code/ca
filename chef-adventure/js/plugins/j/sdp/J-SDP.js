@@ -523,11 +523,11 @@ var PanelFamily = class {
 	subgroupKeys = [];
 	/**
 	* Constructor.
-	* @param {string} name
-	* @param {string} key
-	* @param {number} iconIndex
-	* @param {string} description
-	* @param {string[]} subgroupKeys
+	* @param {string} name The name driving this step.
+	* @param {string} key The key driving this step.
+	* @param {number} iconIndex The icon index driving this step.
+	* @param {string} description The description driving this step.
+	* @param {string[]} subgroupKeys The subgroup keys driving this step.
 	*/
 	constructor(name, key, iconIndex, description, subgroupKeys) {
 		this.name = name;
@@ -549,19 +549,21 @@ var PanelFamily = class {
 */
 var PanelMastery = class PanelMastery {
 	/**
-	* @param {string} subgroupKey
-	* @param {number} subgroupTier
-	* @param {number} masterySkillId
+	* @param {string} subgroupKey The subgroup key driving this step.
+	* @param {number} subgroupTier The subgroup tier driving this step.
+	* @param {number} masterySkillId The mastery skill id driving this step.
 	*/
 	constructor(subgroupKey, subgroupTier, masterySkillId) {
 		/**
 		* Subgroup key from the SDP configuration registry (empty when not enrolled).
 		* @type {string}
+		// policy step inside constructor.
 		*/
 		this.subgroupKey = subgroupKey;
 		/**
 		* Tier within the subgroup used for intra-subgroup mastery replacement.
 		* @type {number}
+		// policy step inside constructor.
 		*/
 		this.subgroupTier = subgroupTier;
 		/**
@@ -621,9 +623,9 @@ var PanelMastery = class PanelMastery {
 	}
 	/**
 	* Builds mastery metadata from flat configuration json fields.
-	* @param {string} subgroupKey
-	* @param {number} subgroupTier
-	* @param {number} masterySkillId
+	* @param {string} subgroupKey The subgroup key driving this step.
+	* @param {number} subgroupTier The subgroup tier driving this step.
+	* @param {number} masterySkillId The mastery skill id driving this step.
 	* @returns {PanelMastery}
 	*/
 	static fromFlat(subgroupKey, subgroupTier, masterySkillId) {
@@ -632,7 +634,7 @@ var PanelMastery = class PanelMastery {
 	/**
 	* Hydrates mastery metadata from a parsed config.sdp.json panel row.
 	* Accepts nested `mastery` (canonical) or legacy flat root fields during migration.
-	* @param {object} parsedPanel
+	* @param {object} parsedPanel The parsed panel driving this step.
 	* @returns {PanelMastery}
 	*/
 	static fromConfigPanel(parsedPanel) {
@@ -643,8 +645,8 @@ var PanelMastery = class PanelMastery {
 		return PanelMastery.fromFlat(parsedPanel.subgroupKey ?? String.empty, PanelMastery.#parseIntField(parsedPanel.subgroupTier, 0), PanelMastery.#parseIntField(parsedPanel.masterySkillId, 0));
 	}
 	/**
-	* @param {string|number|null|undefined} value
-	* @param {number} defaultValue
+	* @param {string|number|null|undefined} value The value driving this step.
+	* @param {number} defaultValue The default value driving this step.
 	* @returns {number}
 	*/
 	static #parseIntField(value, defaultValue) {
@@ -687,11 +689,13 @@ var PanelParameter = class {
 		/**
 		* The registry key of the parameter this class represents.
 		* @type {string}
+		// policy step inside constructor.
 		*/
 		this.parameterKey = parameterKey;
 		/**
 		* The amount per rank this parameter gives.
 		* @type {number}
+		// policy step inside constructor.
 		*/
 		this.perRank = perRank;
 		/**
@@ -724,11 +728,13 @@ var PanelRankupReward = class {
 		/**
 		* The name of this reward that shows up in the SDP scene.
 		* @type {string}
+		// policy step inside constructor.
 		*/
 		this.rewardName = rewardName;
 		/**
 		* The rank required for this panel rankup reward to be executed.
 		* @type {number}
+		// policy step inside constructor.
 		*/
 		this.rankRequired = rankRequired;
 		/**
@@ -749,21 +755,23 @@ var PanelRankupReward = class {
 */
 var PanelIdentity = class PanelIdentity {
 	/**
-	* @param {string} name
-	* @param {number} iconIndex
-	* @param {boolean} unlockedByDefault
-	* @param {string} description
-	* @param {string} topFlavorText
+	* @param {string} name The name driving this step.
+	* @param {number} iconIndex The icon index driving this step.
+	* @param {boolean} unlockedByDefault The unlocked by default driving this step.
+	* @param {string} description The description driving this step.
+	* @param {string} topFlavorText The top flavor text driving this step.
 	*/
 	constructor(name, iconIndex, unlockedByDefault, description, topFlavorText) {
 		/**
 		* Friendly name for this SDP.
 		* @type {string}
+		// policy step inside constructor.
 		*/
 		this.name = name;
 		/**
 		* Icon index for this SDP.
 		* @type {number}
+		// policy step inside constructor.
 		*/
 		this.iconIndex = iconIndex;
 		/**
@@ -792,7 +800,7 @@ var PanelIdentity = class PanelIdentity {
 	/**
 	* Hydrates identity metadata from a parsed config.sdp.json panel row.
 	* Accepts nested `identity` (canonical) or legacy flat root fields during migration.
-	* @param {object} parsedPanel
+	* @param {object} parsedPanel The parsed panel driving this step.
 	* @returns {PanelIdentity}
 	*/
 	static fromConfigPanel(parsedPanel) {
@@ -803,8 +811,8 @@ var PanelIdentity = class PanelIdentity {
 		return new PanelIdentity(parsedPanel.name ?? String.empty, PanelIdentity.#parseIntField(parsedPanel.iconIndex, 0), parsedPanel.unlockedByDefault === true, parsedPanel.description ?? String.empty, parsedPanel.topFlavorText ?? String.empty);
 	}
 	/**
-	* @param {string|number|null|undefined} value
-	* @param {number} defaultValue
+	* @param {string|number|null|undefined} value The value driving this step.
+	* @param {number} defaultValue The default value driving this step.
 	* @returns {number}
 	*/
 	static #parseIntField(value, defaultValue) {
@@ -846,21 +854,23 @@ var PanelIdentity = class PanelIdentity {
 */
 var PanelProgression = class PanelProgression {
 	/**
-	* @param {number} maxRank
-	* @param {number} rarity
-	* @param {number} baseCost
-	* @param {number} flatGrowthCost
-	* @param {number} multGrowthCost
+	* @param {number} maxRank The max rank driving this step.
+	* @param {number} rarity The rarity driving this step.
+	* @param {number} baseCost The base cost driving this step.
+	* @param {number} flatGrowthCost The flat growth cost driving this step.
+	* @param {number} multGrowthCost The mult growth cost driving this step.
 	*/
 	constructor(maxRank, rarity, baseCost, flatGrowthCost, multGrowthCost) {
 		/**
 		* Maximum rank for this SDP.
 		* @type {number}
+		// policy step inside constructor.
 		*/
 		this.maxRank = maxRank;
 		/**
 		* Panel rarity (**0–5**, Common..Godlike).
 		* @type {number}
+		// policy step inside constructor.
 		*/
 		this.rarity = rarity;
 		/**
@@ -889,7 +899,7 @@ var PanelProgression = class PanelProgression {
 	/**
 	* Hydrates progression metadata from a parsed config.sdp.json panel row.
 	* Accepts nested `progression` (canonical) or legacy flat root fields during migration.
-	* @param {object} parsedPanel
+	* @param {object} parsedPanel The parsed panel driving this step.
 	* @returns {PanelProgression}
 	*/
 	static fromConfigPanel(parsedPanel) {
@@ -900,8 +910,8 @@ var PanelProgression = class PanelProgression {
 		return new PanelProgression(PanelProgression.#parseIntField(parsedPanel.maxRank, 1), PanelRarity.normalizeRarityFromJson(parsedPanel.rarity), PanelProgression.#parseIntField(parsedPanel.baseCost, 0), PanelProgression.#parseIntField(parsedPanel.flatGrowthCost, 0), PanelProgression.#parseFloatField(parsedPanel.multGrowthCost, 1));
 	}
 	/**
-	* @param {string|number|null|undefined} value
-	* @param {number} defaultValue
+	* @param {string|number|null|undefined} value The value driving this step.
+	* @param {number} defaultValue The default value driving this step.
 	* @returns {number}
 	*/
 	static #parseIntField(value, defaultValue) {
@@ -915,8 +925,8 @@ var PanelProgression = class PanelProgression {
 		return parsed;
 	}
 	/**
-	* @param {string|number|null|undefined} value
-	* @param {number} defaultValue
+	* @param {string|number|null|undefined} value The value driving this step.
+	* @param {number} defaultValue The default value driving this step.
 	* @returns {number}
 	*/
 	static #parseFloatField(value, defaultValue) {
@@ -1023,7 +1033,7 @@ var StatDistributionPanelBuilder = class {
 	}
 	/**
 	* Sets presentation and unlock metadata for this panel.
-	* @param {PanelIdentity} identity
+	* @param {PanelIdentity} identity The identity driving this step.
 	* @returns {StatDistributionPanelBuilder}
 	*/
 	identity(identity) {
@@ -1032,7 +1042,7 @@ var StatDistributionPanelBuilder = class {
 	}
 	/**
 	* Sets rank cap, rarity tier, and rank-up cost offsets for this panel.
-	* @param {PanelProgression} progression
+	* @param {PanelProgression} progression The progression driving this step.
 	* @returns {StatDistributionPanelBuilder}
 	*/
 	progression(progression) {
@@ -1041,7 +1051,7 @@ var StatDistributionPanelBuilder = class {
 	}
 	/**
 	* Sets subgroup mastery enrollment for this panel.
-	* @param {PanelMastery} mastery
+	* @param {PanelMastery} mastery The mastery driving this step.
 	* @returns {StatDistributionPanelBuilder}
 	*/
 	mastery(mastery) {
@@ -1058,22 +1068,24 @@ var StatDistributionPanelBuilder = class {
 */
 var StatDistributionPanel = class {
 	/**
-	* @param {string} key
-	* @param {PanelIdentity} identity
-	* @param {PanelProgression} progression
-	* @param {PanelParameter[]} panelParameters
-	* @param {PanelRankupReward[]} panelRewards
-	* @param {PanelMastery} mastery
+	* @param {string} key The key driving this step.
+	* @param {PanelIdentity} identity The identity driving this step.
+	* @param {PanelProgression} progression The progression driving this step.
+	* @param {PanelParameter[]} panelParameters The panel parameters driving this step.
+	* @param {PanelRankupReward[]} panelRewards The panel rewards driving this step.
+	* @param {PanelMastery} mastery The mastery driving this step.
 	*/
 	constructor(key, identity, progression, panelParameters, panelRewards, mastery) {
 		/**
 		* Unique identifier key that represents this SDP (root-level in config.sdp.json).
 		* @type {string}
+		// policy step inside constructor.
 		*/
 		this.key = key;
 		/**
 		* Presentation and unlock metadata for this panel.
 		* @type {PanelIdentity}
+		// policy step inside constructor.
 		*/
 		this.identity = identity;
 		/**
@@ -1168,18 +1180,11 @@ var StatDistributionPanel = class {
 		return this.progression.multGrowthCost;
 	}
 	/**
-	* Whether this panel is placed in the subgroup hierarchy.
-	* @returns {boolean}
-	*/
-	enrolledInSubgroup() {
-		return this.mastery.enrolledInSubgroup();
-	}
-	/**
-	* Whether maxing this panel grants a subgroup mastery wrapper skill.
+	* Whether this panel participates in the subgroup mastery program.
 	* @returns {boolean}
 	*/
 	participatesInMasteryProgram() {
-		return this.mastery.grantsMasterySkill();
+		return this.mastery.participates();
 	}
 	/**
 	* Calculates the cost of SDP points to rank this panel up.
@@ -1445,7 +1450,6 @@ var PanelRarity = class PanelRarity {
 /**
 * Authoring metadata for a panel subgroup (mirrors crafting categories).
 * Subgroups group tiered panels whose masteries replace one another.
-* Panels reference a subgroup by key; the registry lives in config.sdp.json `subgroups`.
 */
 var PanelSubgroup = class {
 	/**
@@ -1454,7 +1458,7 @@ var PanelSubgroup = class {
 	*/
 	name = String.empty;
 	/**
-	* Unique key referenced by panels via {@link PanelMastery#subgroupKey}.
+	* Unique key referenced by panels via {@link StatDistributionPanel#subgroupKey}.
 	* @type {string}
 	*/
 	key = String.empty;
@@ -1470,10 +1474,10 @@ var PanelSubgroup = class {
 	description = String.empty;
 	/**
 	* Constructor.
-	* @param {string} name
-	* @param {string} key
-	* @param {number} iconIndex
-	* @param {string} description
+	* @param {string} name The name driving this step.
+	* @param {string} key The key driving this step.
+	* @param {number} iconIndex The icon index driving this step.
+	* @param {string} description The description driving this step.
 	*/
 	constructor(name, key, iconIndex, description) {
 		this.name = name;
@@ -1526,13 +1530,13 @@ var SdpConfiguration = class SdpConfiguration {
 	#panelsBySubgroupKey = new Map();
 	/**
 	* Constructor.
-	* @param {StatDistributionPanel[]} panels
-	* @param {PanelSubgroup[]} subgroups
-	* @param {PanelFamily[]} families
-	* @param {Map<string, PanelSubgroup>} subgroupsMap
-	* @param {Map<string, PanelFamily>} familiesMap
-	* @param {Map<string, string>} familyKeyBySubgroupKey
-	* @param {Map<string, StatDistributionPanel[]>} panelsBySubgroupKey
+	* @param {StatDistributionPanel[]} panels The panels driving this step.
+	* @param {PanelSubgroup[]} subgroups The subgroups driving this step.
+	* @param {PanelFamily[]} families The families driving this step.
+	* @param {Map<string, PanelSubgroup>} subgroupsMap The subgroups map driving this step.
+	* @param {Map<string, PanelFamily>} familiesMap The families map driving this step.
+	* @param {Map<string, string>} familyKeyBySubgroupKey The family key by subgroup key driving this step.
+	* @param {Map<string, StatDistributionPanel[]>} panelsBySubgroupKey The panels by subgroup key driving this step.
 	*/
 	constructor(panels, subgroups, families, subgroupsMap, familiesMap, familyKeyBySubgroupKey, panelsBySubgroupKey) {
 		this.#panels = panels;
@@ -1682,7 +1686,7 @@ var SdpConfiguration = class SdpConfiguration {
 		}
 		/**
 		* Sets the subgroup map for the builder.
-		* @param {Map<string, PanelSubgroup>} subgroupsMap
+		* @param {Map<string, PanelSubgroup>} subgroupsMap The subgroups map driving this step.
 		* @returns {SdpConfigurationBuilder}
 		*/
 		subgroupsMap(subgroupsMap) {
@@ -1691,7 +1695,7 @@ var SdpConfiguration = class SdpConfiguration {
 		}
 		/**
 		* Sets the family map for the builder.
-		* @param {Map<string, PanelFamily>} familiesMap
+		* @param {Map<string, PanelFamily>} familiesMap The families map driving this step.
 		* @returns {SdpConfigurationBuilder}
 		*/
 		familiesMap(familiesMap) {
@@ -1700,7 +1704,7 @@ var SdpConfiguration = class SdpConfiguration {
 		}
 		/**
 		* Sets the subgroup-to-family reverse lookup for the builder.
-		* @param {Map<string, string>} familyKeyBySubgroupKey
+		* @param {Map<string, string>} familyKeyBySubgroupKey The family key by subgroup key driving this step.
 		* @returns {SdpConfigurationBuilder}
 		*/
 		familyKeyBySubgroupKey(familyKeyBySubgroupKey) {
@@ -1709,7 +1713,7 @@ var SdpConfiguration = class SdpConfiguration {
 		}
 		/**
 		* Sets the subgroup panel groupings for the builder.
-		* @param {Map<string, StatDistributionPanel[]>} panelsBySubgroupKey
+		* @param {Map<string, StatDistributionPanel[]>} panelsBySubgroupKey The panels by subgroup key driving this step.
 		* @returns {SdpConfigurationBuilder}
 		*/
 		panelsBySubgroupKey(panelsBySubgroupKey) {
@@ -1753,8 +1757,8 @@ var SdpMasteryManager = class SdpMasteryManager {
 	}
 	/**
 	* Finds the highest-tier maxed mastery panel for a subgroup on an actor.
-	* @param {Game_Actor} actor
-	* @param {string} subgroupKey
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {string} subgroupKey The subgroup key driving this step.
 	* @returns {StatDistributionPanel|null}
 	*/
 	static #resolveWinningMasteryPanel(actor, subgroupKey) {
@@ -1764,7 +1768,7 @@ var SdpMasteryManager = class SdpMasteryManager {
 			if (!panel) return;
 			const { mastery } = panel;
 			if (mastery.subgroupKey !== subgroupKey) return;
-			if (mastery.grantsMasterySkill() === false) return;
+			if (mastery.masterySkillId <= 0) return;
 			if (winningPanel === null || mastery.subgroupTier > winningPanel.mastery.subgroupTier) {
 				winningPanel = panel;
 			}
@@ -1804,6 +1808,7 @@ var PanelRanking = class {
 		/**
 		* The current rank for this panel ranking.
 		* @type {number}
+		// policy step inside init members.
 		*/
 		this.currentRank = 0;
 		/**
@@ -1915,7 +1920,7 @@ var PanelRanking = class {
 	*/
 	applySubgroupMastery() {
 		const panel = J.SDP.Metadata.panelsMap.get(this.key);
-		if (!panel || panel.mastery.enrolledInSubgroup() === false) return;
+		if (!panel || panel.mastery.participates() === false) return;
 		const actor = $gameActors.actor(this.actorId);
 		SdpMasteryManager.reconcileSubgroupMastery(actor, panel.mastery.subgroupKey);
 	}
@@ -1937,6 +1942,7 @@ var PanelTracking = class {
 		/**
 		* The key of this panel that is being tracked.
 		* @type {string}
+		// policy step inside constructor.
 		*/
 		this.key = panelKey;
 		/**
@@ -1970,111 +1976,6 @@ var PanelTracking = class {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/managers/SdpFamilyFilter.js
-/**
-* Family-filter symbols and helpers for the SDP panel list.
-* Cycle order is built per actor: All → Unsorted → families with unlocked panels.
-*/
-var SdpFamilyFilter = class SdpFamilyFilter {
-	/**
-	* Shows every unlocked panel regardless of subgroup/family enrollment.
-	* @type {string}
-	*/
-	static ALL = "__all__";
-	/**
-	* Panels with no subgroup enrollment, or whose subgroup is not assigned to a family.
-	* @type {string}
-	*/
-	static UNKNOWN = "__unknown__";
-	/**
-	* Resolves which family-filter bucket a panel belongs in.
-	* @param {StatDistributionPanel} panel
-	* @returns {string} {@link SdpFamilyFilter.ALL} is never returned here — only UNKNOWN or a family key.
-	*/
-	static resolvePanelFamilyFilterKey(panel) {
-		if (panel.mastery.enrolledInSubgroup() === false) {
-			return SdpFamilyFilter.UNKNOWN;
-		}
-		const familyKey = J.SDP.Metadata.familyKeyBySubgroupKey.get(panel.mastery.subgroupKey);
-		if (!familyKey) {
-			return SdpFamilyFilter.UNKNOWN;
-		}
-		return familyKey;
-	}
-	/**
-	* Whether a panel should appear under the active family filter.
-	* @param {StatDistributionPanel} panel
-	* @param {string} filterKey
-	* @returns {boolean}
-	*/
-	static panelMatchesFilter(panel, filterKey) {
-		if (filterKey === SdpFamilyFilter.ALL) {
-			return true;
-		}
-		return SdpFamilyFilter.resolvePanelFamilyFilterKey(panel) === filterKey;
-	}
-	/**
-	* Builds the L2/R2 cycle for the current actor.
-	* Families with no unlocked panels for this actor are omitted.
-	* @param {Game_Actor} actor
-	* @returns {string[]}
-	*/
-	static buildCycleForActor(actor) {
-		const cycle = [SdpFamilyFilter.ALL, SdpFamilyFilter.UNKNOWN];
-		const familiesWithUnlockedPanels = new Set();
-		actor.getAllUnlockedSdps().forEach((panelRanking) => {
-			const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
-			if (!panel) {
-				return;
-			}
-			const filterKey = SdpFamilyFilter.resolvePanelFamilyFilterKey(panel);
-			if (filterKey !== SdpFamilyFilter.UNKNOWN) {
-				familiesWithUnlockedPanels.add(filterKey);
-			}
-		});
-		J.SDP.Metadata.families.forEach((family) => {
-			if (familiesWithUnlockedPanels.has(family.key)) {
-				cycle.push(family.key);
-			}
-		});
-		return cycle;
-	}
-	/**
-	* Display label for a family-filter key in the menu strip.
-	* @param {string} filterKey
-	* @returns {string}
-	*/
-	static displayNameForFilterKey(filterKey) {
-		if (filterKey === SdpFamilyFilter.ALL) {
-			return "All families";
-		}
-		if (filterKey === SdpFamilyFilter.UNKNOWN) {
-			return "Unsorted";
-		}
-		const family = J.SDP.Metadata.familiesMap.get(filterKey);
-		return family ? family.name : filterKey;
-	}
-	/**
-	* Icon index for a family-filter key in the menu strip.
-	* @param {string} filterKey
-	* @returns {number}
-	*/
-	static iconIndexForFilterKey(filterKey) {
-		if (filterKey === SdpFamilyFilter.ALL) {
-			return J.SDP.Metadata.sdpIconIndex;
-		}
-		if (filterKey === SdpFamilyFilter.UNKNOWN) {
-			return 8;
-		}
-		const family = J.SDP.Metadata.familiesMap.get(filterKey);
-		if (family && family.iconIndex >= 0) {
-			return family.iconIndex;
-		}
-		return J.SDP.Metadata.sdpIconIndex;
-	}
-};
-
-//#endregion
 //#region src/plugins/sdp/core/_metadata/_pluginMetadata.js
 var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	/**
@@ -2084,7 +1985,7 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	static CONFIG_PATH = "data/config.sdp.json";
 	/**
 	* Classifies the anonymous object from the parsed json into panels and subgroups.
-	* @param {any} parsedJson
+	* @param {any} parsedJson The parsed json driving this step.
 	* @returns {SdpConfiguration}
 	*/
 	static classifyConfiguration(parsedJson) {
@@ -2100,7 +2001,7 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	}
 	/**
 	* Converts the JSON-parsed blob into classified {@link PanelSubgroup}s.
-	* @param {any[]|undefined|null} parsedSubgroupsBlob
+	* @param {any[]|undefined|null} parsedSubgroupsBlob The parsed subgroups blob driving this step.
 	* @returns {PanelSubgroup[]}
 	*/
 	static parseSubgroups(parsedSubgroupsBlob) {
@@ -2120,7 +2021,7 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	}
 	/**
 	* Converts the JSON-parsed blob into classified {@link PanelFamily}s.
-	* @param {any[]|undefined|null} parsedFamiliesBlob
+	* @param {any[]|undefined|null} parsedFamiliesBlob The parsed families blob driving this step.
 	* @returns {PanelFamily[]}
 	*/
 	static parseFamilies(parsedFamiliesBlob) {
@@ -2141,8 +2042,8 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	}
 	/**
 	* Validates family metadata and builds subgroup → family reverse lookup.
-	* @param {PanelFamily[]} families
-	* @param {Map<string, PanelSubgroup>} subgroupsMap
+	* @param {PanelFamily[]} families The families driving this step.
+	* @param {Map<string, PanelSubgroup>} subgroupsMap The subgroups map driving this step.
 	* @returns {{ familiesMap: Map<string, PanelFamily>, familyKeyBySubgroupKey: Map<string, string> }}
 	*/
 	static validateFamilyMetadata(families, subgroupsMap) {
@@ -2174,8 +2075,8 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	}
 	/**
 	* Validates mastery metadata and builds subgroup panel groupings for reverse lookup.
-	* @param {PanelSubgroup[]} subgroups
-	* @param {StatDistributionPanel[]} panels
+	* @param {PanelSubgroup[]} subgroups The subgroups driving this step.
+	* @param {StatDistributionPanel[]} panels The panels driving this step.
 	* @returns {{ subgroupsMap: Map<string, PanelSubgroup>, panelsBySubgroupKey: Map<string, StatDistributionPanel[]> }}
 	*/
 	static validateMasteryMetadata(subgroups, panels) {
@@ -2279,6 +2180,7 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		/**
 		* One rarity tier: base SDP, exponential coefficient, and growth base (**mult**).
 		* @type {{ baseCost: number, flatGrowthCost: number, multGrowthCost: number }}
+		// policy step inside initialize panel cost defaults by rarity.
 		*/
 		const row = (baseKey, flatKey, multKey, fbBase, fbFlat, fbMult) => {
 			return {
@@ -2290,6 +2192,7 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		/**
 		* Indexed **0–5** matching {@link PanelRarity} Common..Godlike.
 		* @type {Array<{ baseCost: number, flatGrowthCost: number, multGrowthCost: number }>}
+		// policy step inside initialize panel cost defaults by rarity.
 		*/
 		this.panelCostDefaultsByRarity = [
 			row("sdpDefaultCommonBase", "sdpDefaultCommonFlat", "sdpDefaultCommonMult", 0, 70, 1.06),
@@ -2301,8 +2204,8 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		];
 	}
 	/**
-	* @param {string|number|undefined|null} value
-	* @param {number} fallback
+	* @param {string|number|undefined|null} value The value driving this step.
+	* @param {number} fallback The fallback driving this step.
 	* @returns {number}
 	*/
 	static #parsePositiveFloatOr(value, fallback) {
@@ -2318,7 +2221,7 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	/**
 	* Effective rank-up cost knobs after combining rarity defaults with per-panel overrides from `config.sdp.json`.
 	*
-	* @param {StatDistributionPanel} panel
+	* @param {StatDistributionPanel} panel The panel driving this step.
 	* @returns {{ baseCost: number, flatGrowthCost: number, multGrowthCost: number }}
 	*/
 	resolveEffectiveRankUpCostParts(panel) {
@@ -2390,12 +2293,14 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible
 		* in the menu.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menuSwitch"], 0);
 		/**
 		* The icon index that represents the system itself.
 		* Used as the icon for costs and currency.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.sdpIconIndex = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["sdpIcon"], 0);
@@ -2406,6 +2311,7 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		/**
 		* The name used for the command when visible in a menu.
 		* @type {string}
+		// policy step inside initialize metadata.
 		*/
 		this.commandName = this.parsedPluginParameters["menuCommandName"] ?? "Distribute";
 		/**
@@ -3467,7 +3373,7 @@ TextManager.sdpPoints = function() {
 * @returns {string}
 */
 TextManager.sdpMultiplier = function() {
-	return "SDP Rate";
+	return "SDP Multiplier";
 };
 /**
 * Gets the description text for the SDP multiplier.
@@ -3480,12 +3386,16 @@ TextManager.sdpMultiplierDescription = function() {
 //#endregion
 //#region src/plugins/sdp/core/core/registerSdpParameters.js
 /**
-* Registers the SDP reward multiplier with the parameter catalog.
+* Boot-time registration for J-SDP parameters in {@link ParameterRegistry}.
 */
-function registerSdpParameters() {
-	ParameterRegistry.register(ParameterDefinition.Builder().key("sdr").group(ParameterGroups.FATE).sortOrder(5).label(() => TextManager.sdpMultiplier()).description(() => TextManager.sdpMultiplierDescription()).iconIndex(() => IconManager.sdpMultiplier()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.sdpMultiplier).sdpBinding(SdpParameterBinding.byKey("sdr", () => 1)).build());
-}
-registerSdpParameters();
+var SdpParameterRegistration = class {
+	/**
+	* Registers the SDP reward multiplier with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("sdr").group(ParameterGroups.FATE).sortOrder(5).label(() => TextManager.sdpMultiplier()).description(() => TextManager.sdpMultiplierDescription()).iconIndex(() => IconManager.sdpMultiplier()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.sdpMultiplier).sdpBinding(SdpParameterBinding.byKey("sdr", () => 1)).build());
+	}
+};
 
 //#endregion
 //#region src/plugins/sdp/core/windows/Window_MenuCommand.js
@@ -3549,6 +3459,111 @@ if (J.ABS) {
 }
 
 //#endregion
+//#region src/plugins/sdp/core/managers/SdpFamilyFilter.js
+/**
+* Family-filter symbols and helpers for the SDP panel list.
+* Cycle order is built per actor: All → Unsorted → families with unlocked panels.
+*/
+var SdpFamilyFilter = class SdpFamilyFilter {
+	/**
+	* Shows every unlocked panel regardless of subgroup/family enrollment.
+	* @type {string}
+	*/
+	static ALL = "__all__";
+	/**
+	* Panels with no subgroup enrollment, or whose subgroup is not assigned to a family.
+	* @type {string}
+	*/
+	static UNKNOWN = "__unknown__";
+	/**
+	* Resolves which family-filter bucket a panel belongs in.
+	* @param {StatDistributionPanel} panel The panel driving this step.
+	* @returns {string} {@link SdpFamilyFilter.ALL} is never returned here — only UNKNOWN or a family key.
+	*/
+	static resolvePanelFamilyFilterKey(panel) {
+		if (panel.mastery.enrolledInSubgroup() === false) {
+			return SdpFamilyFilter.UNKNOWN;
+		}
+		const familyKey = J.SDP.Metadata.familyKeyBySubgroupKey.get(panel.mastery.subgroupKey);
+		if (!familyKey) {
+			return SdpFamilyFilter.UNKNOWN;
+		}
+		return familyKey;
+	}
+	/**
+	* Whether a panel should appear under the active family filter.
+	* @param {StatDistributionPanel} panel The panel driving this step.
+	* @param {string} filterKey The filter key driving this step.
+	* @returns {boolean}
+	*/
+	static panelMatchesFilter(panel, filterKey) {
+		if (filterKey === SdpFamilyFilter.ALL) {
+			return true;
+		}
+		return SdpFamilyFilter.resolvePanelFamilyFilterKey(panel) === filterKey;
+	}
+	/**
+	* Builds the L2/R2 cycle for the current actor.
+	* Families with no unlocked panels for this actor are omitted.
+	* @param {Game_Actor} actor The actor driving this step.
+	* @returns {string[]}
+	*/
+	static buildCycleForActor(actor) {
+		const cycle = [SdpFamilyFilter.ALL, SdpFamilyFilter.UNKNOWN];
+		const familiesWithUnlockedPanels = new Set();
+		actor.getAllUnlockedSdps().forEach((panelRanking) => {
+			const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
+			if (!panel) {
+				return;
+			}
+			const filterKey = SdpFamilyFilter.resolvePanelFamilyFilterKey(panel);
+			if (filterKey !== SdpFamilyFilter.UNKNOWN) {
+				familiesWithUnlockedPanels.add(filterKey);
+			}
+		});
+		J.SDP.Metadata.families.forEach((family) => {
+			if (familiesWithUnlockedPanels.has(family.key)) {
+				cycle.push(family.key);
+			}
+		});
+		return cycle;
+	}
+	/**
+	* Display label for a family-filter key in the menu strip.
+	* @param {string} filterKey The filter key driving this step.
+	* @returns {string}
+	*/
+	static displayNameForFilterKey(filterKey) {
+		if (filterKey === SdpFamilyFilter.ALL) {
+			return "All families";
+		}
+		if (filterKey === SdpFamilyFilter.UNKNOWN) {
+			return "Unsorted";
+		}
+		const family = J.SDP.Metadata.familiesMap.get(filterKey);
+		return family ? family.name : filterKey;
+	}
+	/**
+	* Icon index for a family-filter key in the menu strip.
+	* @param {string} filterKey The filter key driving this step.
+	* @returns {number}
+	*/
+	static iconIndexForFilterKey(filterKey) {
+		if (filterKey === SdpFamilyFilter.ALL) {
+			return J.SDP.Metadata.sdpIconIndex;
+		}
+		if (filterKey === SdpFamilyFilter.UNKNOWN) {
+			return 8;
+		}
+		const family = J.SDP.Metadata.familiesMap.get(filterKey);
+		if (family && family.iconIndex >= 0) {
+			return family.iconIndex;
+		}
+		return J.SDP.Metadata.sdpIconIndex;
+	}
+};
+
+//#endregion
 //#region src/plugins/sdp/core/windows/Window_SdpList.js
 /**
 * The SDP window containing the list of all unlocked panels.
@@ -3608,7 +3623,7 @@ var Window_SdpList = class extends Window_Command {
 	}
 	/**
 	* Sets the active family filter and refreshes the list.
-	* @param {string} familyFilterKey
+	* @param {string} familyFilterKey The family filter key driving this step.
 	*/
 	setFamilyFilterKey(familyFilterKey) {
 		this.familyFilterKey = familyFilterKey;
@@ -4044,7 +4059,7 @@ var Window_SdpMastery = class extends Window_Base {
 		this.#panel = panel;
 	}
 	/**
-	* Implements {@link Window_Base.drawContent}.<br/>
+	* Implements {@link Window_Base.drawContent}.<br>
 	* Renders subgroup mastery enrollment for the hovered panel.
 	*/
 	drawContent() {
@@ -4053,9 +4068,9 @@ var Window_SdpMastery = class extends Window_Base {
 			return;
 		}
 		const { mastery } = panel;
-		if (mastery.enrolledInSubgroup() === false) {
+		if (mastery.participates() === false) {
 			this.changeTextColor(ColorManager.textColor(8));
-			this.drawText("No subgroup.", 0, 0, this.innerWidth, Window_Base.TextAlignments.Left);
+			this.drawText("No mastery.", 0, 0, this.innerWidth, Window_Base.TextAlignments.Left);
 			this.resetTextColor();
 			return;
 		}
@@ -4063,22 +4078,15 @@ var Window_SdpMastery = class extends Window_Base {
 		const subgroupName = subgroup ? subgroup.name : mastery.subgroupKey;
 		const subgroupIcon = subgroup && subgroup.iconIndex >= 0 ? subgroup.iconIndex : J.SDP.Metadata.sdpIconIndex;
 		const iconPad = 4;
-		const textX = subgroupIcon >= 0 ? ImageManager.iconWidth + iconPad : 0;
+		const textX = subgroupIcon >= 0 ? Window_Base._iconWidth + iconPad : 0;
 		if (subgroupIcon >= 0) {
 			this.drawIcon(subgroupIcon, iconPad, 0);
 		}
 		this.resetFontSettings();
 		const tintedSubgroup = this.colorizeText(14, subgroupName);
-		const subgroupLine = `${tintedSubgroup} \\C[8]· Tier ${mastery.subgroupTier}\\C[0]`;
-		this.drawTextEx(subgroupLine, textX, 0, this.innerWidth - textX);
+		this.drawTextEx(tintedSubgroup, textX, 0, this.innerWidth - textX);
 		this.resetFontSettings();
-		if (mastery.grantsMasterySkill() === false) {
-			this.changeTextColor(ColorManager.textColor(8));
-			this.drawText("No mastery skill.", 0, this.lineHeight(), this.innerWidth, Window_Base.TextAlignments.Left);
-			this.resetTextColor();
-			return;
-		}
-		const skillLine = `\\Skill[${mastery.masterySkillId}]`;
+		const skillLine = `\\Skill[${mastery.masterySkillId}] \\C[8]· Tier ${mastery.subgroupTier} · Rank MAX\\C[0]`;
 		this.drawTextEx(skillLine, 0, this.lineHeight(), this.innerWidth);
 		this.resetFontSettings();
 	}
@@ -4297,6 +4305,7 @@ var Window_SdpConfirmation = class extends Window_Command {
 		/**
 		* The current mode of this confirmation window.
 		* - single: upgrade hovered panel once.
+		// policy step inside init members.
 		* - cart: checkout the queued cart.
 		* @type {string}
 		*/
@@ -4304,9 +4313,11 @@ var Window_SdpConfirmation = class extends Window_Command {
 		/**
 		* The summary of the current cart checkout, if applicable.
 		* @type {{
+		// policy step inside init members.
 		*   panelCount: number,
 		*   levelCount: number,
 		*   totalCost: number,
+		// policy step inside init members.
 		*   wallet: number,
 		*   remaining: number,
 		*   canAfford: boolean,
@@ -4640,7 +4651,7 @@ var Window_SdpFamilyStrip = class extends Window_Base {
 	}
 	/**
 	* Sets the active family filter and redraws.
-	* @param {string} filterKey
+	* @param {string} filterKey The filter key driving this step.
 	*/
 	setFilterKey(filterKey) {
 		this.#filterKey = filterKey;
@@ -4873,10 +4884,10 @@ var Scene_SDP = class extends Scene_MenuBase {
 	*/
 	sdpFamilyStripRectangle() {
 		const pointsRect = this.sdpPointsRectangle();
-		const width = pointsRect.width;
+		const { width, height: pointsHeight } = pointsRect;
 		const height = this.sdpFamilyStripHeight();
 		const x = 0;
-		const y = pointsRect.height;
+		const y = pointsHeight;
 		return new Rectangle(x, y, width, height);
 	}
 	/**
@@ -4888,7 +4899,7 @@ var Scene_SDP = class extends Scene_MenuBase {
 	}
 	/**
 	* Sets the tracked family strip window.
-	* @param {Window_SdpFamilyStrip} familyStripWindow
+	* @param {Window_SdpFamilyStrip} familyStripWindow The family strip window driving this step.
 	*/
 	setSdpFamilyStripWindow(familyStripWindow) {
 		this._j._sdp._windows._sdpFamilyStrip = familyStripWindow;
@@ -4948,7 +4959,7 @@ var Scene_SDP = class extends Scene_MenuBase {
 	}
 	/**
 	* Cycles the family filter forward or backward.
-	* @param {boolean} isForward
+	* @param {boolean} isForward The is forward driving this step.
 	*/
 	cycleFamilyFilters(isForward = true) {
 		const cycle = this._j._sdp._familyFilterCycle;
@@ -5745,12 +5756,12 @@ var Scene_SDP = class extends Scene_MenuBase {
 //#region src/plugins/sdp/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* No initialization required for J-SDP on database load at this time;
-* the passive detail window draws J-SDP data directly from the state note.
+* Registers J-SDP stats with the parameter catalog after vanilla seeding.
 */
 J.SDP.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.SDP.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	SdpParameterRegistration.registerAll();
 };
 
 //#endregion

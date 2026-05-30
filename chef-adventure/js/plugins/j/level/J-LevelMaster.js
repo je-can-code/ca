@@ -443,17 +443,20 @@ var J_LevelPluginMetadata = class extends PluginMetadata {
 		/**
 		* Whether or not the scaling functionality is enabled.
 		* @type {boolean}
+		// policy step inside initialize level master.
 		*/
 		this.enabled = this.parsedPluginParameters["useScaling"] === "true";
 		/**
 		* The minimum multiplier that scaling can reduce to based on level difference. This should never actually be zero
 		* or lower or unexpected things can happen.
+		// policy step inside initialize level master.
 		* @type {number}
 		*/
 		this.minimumMultiplier = Number(this.parsedPluginParameters["minMultiplier"]);
 		/**
 		* The maximum multiplier that scaling can reach based on level difference.
 		* @type {number}
+		// policy step inside initialize level master.
 		*/
 		this.maximumMultiplier = Number(this.parsedPluginParameters["maxMultiplier"]);
 		const rewardMinRaw = this.parsedPluginParameters["rewardMinMultiplier"];
@@ -586,14 +589,12 @@ J.LEVEL.RegExp = {
 * Plugin command for enabling the level scaling functionality.
 */
 PluginManager.registerCommand(J.LEVEL.Metadata.name, "enableScaling", () => {
-	J.LEVEL.Metadata.enabled = true;
 	$gameSystem.enableLevelScaling();
 });
 /**
 * Plugin command for disabling the level scaling functionality.
 */
 PluginManager.registerCommand(J.LEVEL.Metadata.name, "disableScaling", () => {
-	J.LEVEL.Metadata.enabled = false;
 	$gameSystem.disableLevelScaling();
 });
 
@@ -1336,7 +1337,7 @@ Game_Temp.prototype.flagBeyondMaxDataAsCached = function() {
 */
 J.LEVEL.Aliased.Game_Troop.set("expTotal", Game_Troop.prototype.expTotal);
 Game_Troop.prototype.expTotal = function() {
-	if (J.LEVEL.Metadata.enabled) {
+	if ($gameSystem.isLevelScalingEnabled()) {
 		return this.getScaledExpResult();
 	} else {
 		return J.LEVEL.Aliased.Game_Troop.get("expTotal").call(this);

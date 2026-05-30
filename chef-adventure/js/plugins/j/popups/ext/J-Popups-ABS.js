@@ -104,14 +104,17 @@ var J_PopupsAbs_PluginMetadata = class extends PluginMetadata {
 		/**
 		* When true, {@link JABS_PopupManager.showSkillUsedPop} returns early.
 		* @type {boolean}
+		// policy step inside initialize metadata.
 		*/
 		this.disableSkillUsedPopups = params["disableSkillUsedPopups"] === "true";
 		/**
 		* Parsed merge toggles and idle flush tuning for {@link JABS_PopupMergeController}.
 		* @type {{
+		// policy step inside initialize metadata.
 		*   enableCombat: boolean,
 		*   enableSlip: boolean,
 		*   enableRewards: boolean,
+		// policy step inside initialize metadata.
 		*   enableMitigation: boolean,
 		*   idleFlushFrames: number,
 		* }}
@@ -214,9 +217,9 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 		const isMotionType = popup.popupType === Map_TextPop.Types.HpDamage || popup.popupType === Map_TextPop.Types.MpDamage || popup.popupType === Map_TextPop.Types.TpDamage || popup.healing === true;
 		const useMotion = J.POPUPS.Layout.Motion.Enabled === true && isMotionType;
 		if (useMotion) {
-			return J.POPUPS.resolveMotionOffset(popup);
+			return PopupLayoutHelper.resolveMotionOffset(popup);
 		}
-		return J.POPUPS.consumeLayoutRingOffset(character, popup.layoutRing);
+		return PopupLayoutHelper.consumeLayoutRingOffset(character, popup.layoutRing);
 	}
 	/**
 	* @param {Game_Character} character The anchor character.
@@ -352,7 +355,7 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 			return;
 		}
 		const key = JABS_PopupMergeController.buildStrikeMergeKey(pop);
-		const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+		const spriteCharacter = PopupSpriteLocator.findSpriteCharacterForGameCharacter(character);
 		if (!spriteCharacter) {
 			TextPopManager.show(pop, character);
 			return;
@@ -400,7 +403,7 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 			return;
 		}
 		const key = JABS_PopupMergeController.buildSlipMergeKey(pop);
-		const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+		const spriteCharacter = PopupSpriteLocator.findSpriteCharacterForGameCharacter(character);
 		if (!spriteCharacter) {
 			TextPopManager.show(pop, character);
 			return;
@@ -444,7 +447,7 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 			return;
 		}
 		const key = JABS_PopupMergeController.buildMitigationMergeKey(ctx.mitigationType);
-		const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+		const spriteCharacter = PopupSpriteLocator.findSpriteCharacterForGameCharacter(character);
 		if (!spriteCharacter) {
 			TextPopManager.show(pop, character);
 			return;
@@ -489,7 +492,7 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 			return;
 		}
 		const key = JABS_PopupMergeController.buildRewardMergeKey(ctx.rewardType);
-		const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+		const spriteCharacter = PopupSpriteLocator.findSpriteCharacterForGameCharacter(character);
 		if (!spriteCharacter) {
 			TextPopManager.show(pop, character);
 			return;
@@ -530,7 +533,7 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 		if (!bucket) {
 			return;
 		}
-		const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+		const spriteCharacter = PopupSpriteLocator.findSpriteCharacterForGameCharacter(character);
 		if (!spriteCharacter) {
 			bucket.sessions.clear();
 			JABS_PopupMergeController.#untrackIfEmpty(character);
@@ -554,7 +557,7 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 			if (!bucket) {
 				return;
 			}
-			const spriteCharacter = J.POPUPS.findSpriteCharacterForGameCharacter(character);
+			const spriteCharacter = PopupSpriteLocator.findSpriteCharacterForGameCharacter(character);
 			const keys = Array.from(bucket.sessions.keys());
 			keys.forEach((key) => {
 				const session = bucket.sessions.get(key);

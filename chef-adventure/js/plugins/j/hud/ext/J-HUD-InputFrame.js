@@ -244,17 +244,20 @@ var Sprite_CooldownGauge = class extends Sprite {
 		this._j = {
 			/**
 			* The cooldown data this gauge is associated with.
+			// policy step inside init members.
 			* @type {JABS_Cooldown|null}
 			*/
 			_cooldownData: null,
 			/**
 			* The current value of the gauge.
 			* @type {number}
+			// policy step inside init members.
 			*/
 			_valueCurrent: 0,
 			/**
 			* The maximum value of the gauge.
 			* @type {number}
+			// policy step inside init members.
 			*/
 			_valueMax: 0,
 			/**
@@ -524,73 +527,84 @@ var Sprite_CooldownGauge = class extends Sprite {
 /**
 * A sprite that displays a timer representing the cooldown time for a JABS action.
 */
-function Sprite_CooldownTimer() {
-	this.initialize(...arguments);
-}
-Sprite_CooldownTimer.prototype = Object.create(Sprite.prototype);
-Sprite_CooldownTimer.prototype.constructor = Sprite_CooldownTimer;
-Sprite_CooldownTimer.prototype.initialize = function(skillType, cooldownData, isItem = false) {
-	Sprite.prototype.initialize.call(this);
-	this.initMembers(skillType, cooldownData, isItem);
-	this.loadBitmap();
-};
-/**
-* Initializes the properties associated with this sprite.
-* @param {string} skillType The slot that this skill maps to.
-* @param {object} cooldownData The cooldown data associated with this cooldown sprite.
-* @param {boolean} isItem Whether or not this cooldown timer is for an item.
-*/
-Sprite_CooldownTimer.prototype.initMembers = function(skillType, cooldownData, isItem) {
-	this._j = {};
-	this._j._skillType = skillType;
-	this._j._cooldownData = cooldownData;
-	this._j._isItem = isItem;
-};
-/**
-* Loads the bitmap into the sprite.
-*/
-Sprite_CooldownTimer.prototype.loadBitmap = function() {
-	this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
-	this.bitmap.fontFace = this.fontFace();
-	this.bitmap.fontSize = this.fontSize();
-	this.bitmap.drawText(this._j._text, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
-};
-Sprite_CooldownTimer.prototype.update = function() {
-	Sprite.prototype.update.call(this);
-	this.updateCooldownText();
-};
-Sprite_CooldownTimer.prototype.updateCooldownText = function() {
-	this.bitmap.clear();
-	let baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
-	if (typeof baseCooldown === "undefined") {
-		baseCooldown = 0;
+var Sprite_CooldownTimer = class extends Sprite {
+	/**
+	* Constructor.
+	* @param {...*} args Forwarded to {@link #initialize}.
+	*/
+	constructor(...args) {
+		super();
+		this.initialize(...args);
 	}
-	const cooldownBaseText = baseCooldown > 0 ? baseCooldown : String.empty;
-	this.bitmap.drawText(cooldownBaseText, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
-};
-/**
-* Determines the width of the bitmap accordingly to the length of the string.
-*/
-Sprite_CooldownTimer.prototype.bitmapWidth = function() {
-	return 40;
-};
-/**
-* Determines the width of the bitmap accordingly to the length of the string.
-*/
-Sprite_CooldownTimer.prototype.bitmapHeight = function() {
-	return this.fontSize() * 3;
-};
-/**
-* Determines the font size for text in this sprite.
-*/
-Sprite_CooldownTimer.prototype.fontSize = function() {
-	return $gameSystem.mainFontSize() - 10;
-};
-/**
-* determines the font face for text in this sprite.
-*/
-Sprite_CooldownTimer.prototype.fontFace = function() {
-	return $gameSystem.numberFontFace();
+	/**
+	* Initializes this cooldown timer sprite.
+	* @param {string} skillType The slot that this skill maps to.
+	* @param {object} cooldownData The cooldown data associated with this cooldown sprite.
+	* @param {boolean} isItem Whether or not this cooldown timer is for an item.
+	*/
+	initialize(skillType, cooldownData, isItem = false) {
+		super.initialize();
+		this.initMembers(skillType, cooldownData, isItem);
+		this.loadBitmap();
+	}
+	/**
+	* Initializes the properties associated with this sprite.
+	* @param {string} skillType The slot that this skill maps to.
+	* @param {object} cooldownData The cooldown data associated with this cooldown sprite.
+	* @param {boolean} isItem Whether or not this cooldown timer is for an item.
+	*/
+	initMembers(skillType, cooldownData, isItem) {
+		this._j = {};
+		this._j._skillType = skillType;
+		this._j._cooldownData = cooldownData;
+		this._j._isItem = isItem;
+	}
+	/**
+	* Loads the bitmap into the sprite.
+	*/
+	loadBitmap() {
+		this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
+		this.bitmap.fontFace = this.fontFace();
+		this.bitmap.fontSize = this.fontSize();
+		this.bitmap.drawText(this._j._text, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
+	}
+	update() {
+		super.update();
+		this.updateCooldownText();
+	}
+	updateCooldownText() {
+		this.bitmap.clear();
+		let baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
+		if (typeof baseCooldown === "undefined") {
+			baseCooldown = 0;
+		}
+		const cooldownBaseText = baseCooldown > 0 ? baseCooldown : String.empty;
+		this.bitmap.drawText(cooldownBaseText, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
+	}
+	/**
+	* Determines the width of the bitmap accordingly to the length of the string.
+	*/
+	bitmapWidth() {
+		return 40;
+	}
+	/**
+	* Determines the width of the bitmap accordingly to the length of the string.
+	*/
+	bitmapHeight() {
+		return this.fontSize() * 3;
+	}
+	/**
+	* Determines the font size for text in this sprite.
+	*/
+	fontSize() {
+		return $gameSystem.mainFontSize() - 10;
+	}
+	/**
+	* determines the font face for text in this sprite.
+	*/
+	fontFace() {
+		return $gameSystem.numberFontFace();
+	}
 };
 
 //#endregion
@@ -912,6 +926,7 @@ var Sprite_InputKeySlot = class extends Sprite {
 		/**
 		* The skill slot associated with this sprite.
 		* @type {JABS_SkillSlot|null}
+		// policy step inside init members.
 		*/
 		this._j._skillSlot = null;
 		/**
@@ -1400,11 +1415,13 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 		/**
 		* The battler of which to track inputs for.
 		* @type {Game_Actor}
+		// policy step inside init members.
 		*/
 		this._j._battler = null;
 		/**
 		* Whether or not the window needs a refresh internally.
 		* This is toggled after all draws are executed and tracked to
+		// policy step inside init members.
 		* prevent unnecessary redraws.
 		* @type {boolean}
 		*/

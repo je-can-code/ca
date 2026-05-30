@@ -470,10 +470,7 @@ Game_Actor.prototype.getDropMultiplierBonus = function() {
 	const baseMultiplier = 0;
 	const objectsToCheck = this.getAllNotes();
 	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropMultiplier);
-	let factor = (multiplierBonus + baseMultiplier) / 100;
-	if (this.getSdpBonusForParameterKey) {
-		factor += this.getSdpBonusForParameterKey("dor", 1);
-	}
+	const factor = (multiplierBonus + baseMultiplier) / 100;
 	return factor;
 };
 /**
@@ -484,10 +481,7 @@ Game_Actor.prototype.getGoldMultiplier = function() {
 	const baseMultiplier = 0;
 	const objectsToCheck = this.getAllNotes();
 	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.GoldMultiplier);
-	let factor = (multiplierBonus + baseMultiplier) / 100;
-	if (this.getSdpBonusForParameterKey) {
-		factor += this.getSdpBonusForParameterKey("gdr", 1);
-	}
+	const factor = (multiplierBonus + baseMultiplier) / 100;
 	return factor;
 };
 
@@ -700,24 +694,48 @@ Game_Party.prototype.dropMultiplierMembers = function(strategy = DropsPartyStrat
 
 //#endregion
 //#region src/plugins/drops/core/managers/TextManager.js
+/**
+* Display label for gold rate — bonus multiplier on gold rewards.
+* @returns {string}
+*/
 TextManager.goldRate = function() {
 	return "Gold Rate";
 };
+/**
+* Help text explaining how gold rate improves battle and chest payouts.
+* @returns {string[]}
+*/
 TextManager.goldRateDescription = function() {
 	return ["Bonus multiplier applied to gold rewards.", "Higher values yield more gold from battles and chests."];
 };
+/**
+* Display label for drop rate — bonus multiplier on item drop chances.
+* @returns {string}
+*/
 TextManager.dropRate = function() {
 	return "Drop Rate";
 };
+/**
+* Help text explaining how drop rate improves extra loot odds.
+* @returns {string[]}
+*/
 TextManager.dropRateDescription = function() {
 	return ["Bonus multiplier applied to item drop chances.", "Higher values improve the odds of extra loot."];
 };
 
 //#endregion
 //#region src/plugins/drops/core/managers/IconManager.js
+/**
+* Icon index for gold rate bonus in fate parameter UI.
+* @returns {number}
+*/
 IconManager.goldRate = function() {
 	return 314;
 };
+/**
+* Icon index for item drop rate bonus in fate parameter UI.
+* @returns {number}
+*/
 IconManager.dropRate = function() {
 	return 210;
 };
@@ -725,24 +743,28 @@ IconManager.dropRate = function() {
 //#endregion
 //#region src/plugins/drops/core/core/registerDropsParameters.js
 /**
-* Registers gold and drop rate multipliers with the parameter catalog.
+* Boot-time registration for J-Drops parameters in {@link ParameterRegistry}.
 */
-function registerDropsParameters() {
-	ParameterRegistry.register(ParameterDefinition.Builder().key("gdr").group(ParameterGroups.FATE).sortOrder(3).label(() => TextManager.goldRate()).description(() => TextManager.goldRateDescription()).iconIndex(() => IconManager.goldRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.gdr).sdpBinding(SdpParameterBinding.byKey("gdr", () => 1)).build());
-	ParameterRegistry.register(ParameterDefinition.Builder().key("dor").group(ParameterGroups.FATE).sortOrder(6).label(() => TextManager.dropRate()).description(() => TextManager.dropRateDescription()).iconIndex(() => IconManager.dropRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.dor).sdpBinding(SdpParameterBinding.byKey("dor", () => 1)).build());
-}
-registerDropsParameters();
+var DropsParameterRegistration = class {
+	/**
+	* Registers gold and drop rate multipliers with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("gdr").group(ParameterGroups.FATE).sortOrder(3).label(() => TextManager.goldRate()).description(() => TextManager.goldRateDescription()).iconIndex(() => IconManager.goldRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.gdr).sdpBinding(SdpParameterBinding.byKey("gdr", () => 1)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("dor").group(ParameterGroups.FATE).sortOrder(6).label(() => TextManager.dropRate()).description(() => TextManager.dropRateDescription()).iconIndex(() => IconManager.dropRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.dor).sdpBinding(SdpParameterBinding.byKey("dor", () => 1)).build());
+	}
+};
 
 //#endregion
 //#region src/plugins/drops/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* No initialization required for J-Drops on database load at this time;
-* the passive detail window draws J-Drops data directly from the state note.
+* Registers J-Drops stats with the parameter catalog after vanilla seeding.
 */
 J.DROPS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.DROPS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	DropsParameterRegistration.registerAll();
 };
 
 //#endregion

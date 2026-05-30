@@ -234,6 +234,7 @@ var JPassive_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that controls whether the Passives command is visible in the menu.
 		* A value of 0 means always show, regardless of switch state.
+		// policy step inside initialize metadata.
 		* Configured via plugin parameter "menuSwitch".
 		* @type {number}
 		*/

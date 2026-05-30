@@ -131,111 +131,113 @@ J.OMNI.EXT.MONSTER.RegExp.MonsterpediaRegion = /<region:[ ]?([\w\s.?!,'"]+)>/i;
 /**
 * A monsterpedia entry of observations about a particular monster.
 * This data drives the visibility of data within a given monsterpedia entry.
-* @param {number} enemyId The id of the enemy these observations are for.
+* Serialized into party save data via {@link JsonEx}; registered so bundled restores keep prototype methods.
 */
-function MonsterpediaObservations(enemyId) {
-	this.initialize(enemyId);
-}
-MonsterpediaObservations.prototype = {};
-MonsterpediaObservations.prototype.constructor = MonsterpediaObservations;
-/**
-* Initialize a set of observations for a new enemy.
-* @param {number} enemyId The id of the enemy these observations are for.
-*/
-MonsterpediaObservations.prototype.initialize = function(enemyId) {
+var MonsterpediaObservations = class {
 	/**
-	* The id of the monster in the monsterpedia.
-	* @type {number}
+	* Initialize a set of observations for a new enemy.
+	* @param {number} enemyId The id of the enemy these observations are for.
 	*/
-	this.id = enemyId;
-	this.initMembers();
+	constructor(enemyId) {
+		/**
+		* The id of the monster in the monsterpedia.
+		* @type {number}
+		*/
+		this.id = enemyId;
+		this.initMembers();
+	}
+	/**
+	* Initialize other observations that cannot be initialized with parameters.
+	*/
+	initMembers() {
+		/**
+		* The number of this monster that has been defeated by the player.
+		* @type {number}
+		// policy step inside init members.
+		*/
+		this.numberDefeated = 0;
+		/**
+		* Whether or not the player knows the name of this monster.
+		* When the name is unknown, it'll be masked.
+		// policy step inside init members.
+		* @type {boolean}
+		*/
+		this.knowsName = false;
+		/**
+		* Whether or not the player knows the family this monster belongs to.
+		* When the family is unknown, the icon will be omitted from the list and
+		// policy step inside init members.
+		* the family will be masked in the detail.
+		* @type {boolean}
+		*/
+		this.knowsFamily = true;
+		/**
+		* Whether or not the player knows the description of this monster.
+		* When the description is unknown, it'll be masked.
+		// policy step inside init members.
+		* @type {boolean}
+		*/
+		this.knowsDescription = false;
+		/**
+		* Whether or not the player knows the regions this monster is found in.
+		* When the regions are unknown, it'll simply be blank.
+		* @type {boolean}
+		*/
+		this.knowsRegions = false;
+		/**
+		* Whether or not the player knows the parameters of this monster.
+		* When the parameters are unknown, they will be masked.
+		* @type {boolean}
+		*/
+		this.knowsParameters = false;
+		/**
+		* Whether or not the player knows the ailmentalistics of this monster.
+		* When the ailmentalistics are unknown, they will be masked.
+		* @type {boolean}
+		*/
+		this.knowsAilmentalistics = false;
+		/**
+		* All drops observed to be lootable from this enemy.
+		* @type {['i'|'w'|'a', number][]}
+		*/
+		this.knownDrops = [];
+		/**
+		* All element ids that have been observed in-action against this enemy.
+		* @type {number[]}
+		*/
+		this.knownElementalistics = [];
+	}
+	/**
+	* Adds an observed drop to this monster's observations.
+	* @param {'i'|'w'|'a'} dropType The type of loot drop observed.
+	* @param {number} dropId The id of the drop.
+	*/
+	addKnownDrop(dropType, dropId) {
+		this.knownDrops.push([dropType, dropId]);
+	}
+	/**
+	* Determines whether or not a given drop is known.
+	* @param {'i'|'w'|'a'} dropType The type of drop this is.
+	* @param {number} dropId The id of the drop.
+	* @returns {boolean} True if the drop is known, false otherwise.
+	*/
+	isDropKnown(dropType, dropId) {
+		const finder = (drop) => {
+			const [type, id] = drop;
+			if (type === dropType && id === dropId) return true;
+			return false;
+		};
+		const found = this.knownDrops.find(finder, this);
+		return !!found;
+	}
+	addKnownElementalistic(elementId) {
+		this.knownElementalistics.push(elementId);
+	}
+	isElementalisticKnown(elementId) {
+		return this.knownElementalistics.includes(elementId);
+	}
 };
-/**
-* Initialize other observations that cannot be initialized with parameters.
-*/
-MonsterpediaObservations.prototype.initMembers = function() {
-	/**
-	* The number of this monster that has been defeated by the player.
-	* @type {number}
-	*/
-	this.numberDefeated = 0;
-	/**
-	* Whether or not the player knows the name of this monster.
-	* When the name is unknown, it'll be masked.
-	* @type {boolean}
-	*/
-	this.knowsName = false;
-	/**
-	* Whether or not the player knows the family this monster belongs to.
-	* When the family is unknown, the icon will be omitted from the list and
-	* the family will be masked in the detail.
-	* @type {boolean}
-	*/
-	this.knowsFamily = true;
-	/**
-	* Whether or not the player knows the description of this monster.
-	* When the description is unknown, it'll be masked.
-	* @type {boolean}
-	*/
-	this.knowsDescription = false;
-	/**
-	* Whether or not the player knows the regions this monster is found in.
-	* When the regions are unknown, it'll simply be blank.
-	* @type {boolean}
-	*/
-	this.knowsRegions = false;
-	/**
-	* Whether or not the player knows the parameters of this monster.
-	* When the parameters are unknown, they will be masked.
-	* @type {boolean}
-	*/
-	this.knowsParameters = false;
-	/**
-	* Whether or not the player knows the ailmentalistics of this monster.
-	* When the ailmentalistics are unknown, they will be masked.
-	* @type {boolean}
-	*/
-	this.knowsAilmentalistics = false;
-	/**
-	* All drops observed to be lootable from this enemy.
-	* @type {['i'|'w'|'a', number][]}
-	*/
-	this.knownDrops = [];
-	/**
-	* All element ids that have been observed in-action against this enemy.
-	* @type {number[]}
-	*/
-	this.knownElementalistics = [];
-};
-/**
-* Adds an observed drop to this monster's observations.
-* @param {'i'|'w'|'a'} dropType The type of loot drop observed.
-* @param {number} dropId The id of the drop.
-*/
-MonsterpediaObservations.prototype.addKnownDrop = function(dropType, dropId) {
-	this.knownDrops.push([dropType, dropId]);
-};
-/**
-* Determines whether or not a given drop is known.
-* @param {'i'|'w'|'a'} dropType The type of drop this is.
-* @param {number} dropId The id of the drop.
-* @returns {boolean} True if the drop is known, false otherwise.
-*/
-MonsterpediaObservations.prototype.isDropKnown = function(dropType, dropId) {
-	const finder = (drop) => {
-		const [type, id] = drop;
-		if (type === dropType && id === dropId) return true;
-		return false;
-	};
-	const found = this.knownDrops.find(finder, this);
-	return !!found;
-};
-MonsterpediaObservations.prototype.addKnownElementalistic = function(elementId) {
-	this.knownElementalistics.push(elementId);
-};
-MonsterpediaObservations.prototype.isElementalisticKnown = function(elementId) {
-	return this.knownElementalistics.includes(elementId);
-};
+SerializableRegistry.register(MonsterpediaObservations);
 
 //#endregion
 //#region src/plugins/omni/ext/monster/database/RPG_Enemy.js
@@ -666,7 +668,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	}
 	/**
 	* Sets the current enemy observations for this window.
-	* @param {MonsterpediaObservations} observations
+	* @param {MonsterpediaObservations} observations The observations driving this step.
 	*/
 	setObservations(observations) {
 		this.#currentObservations = observations;
@@ -1561,11 +1563,13 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		/**
 		* A grouping of all properties associated with the monsterpedia.
 		* The monsterpedia is a subcategory of the omnipedia..
+		// policy step inside init primary members.
 		*/
 		this._j._omni._monster = {};
 		/**
 		* The window that shows the list of percieved monsters.
 		* @type {Window_MonsterpediaList}
+		// policy step inside init primary members.
 		*/
 		this._j._omni._monster._pediaList = null;
 		/**

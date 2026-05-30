@@ -403,16 +403,19 @@ var JAptitudeTyped_PluginMetadata = class extends PluginMetadata {
 		/**
 		* Integer percent applied to inferred enemy element types per kill (0-100).
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.ImplicitEnemyElementPercent = JsonMapper.parseObject(this.parsedPluginParameters["implicitEnemyElementPercent"]);
 		/**
 		* The strict resistance threshold (elements with rate < this are alignments).
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.ResistThreshold = JsonMapper.parseObject(this.parsedPluginParameters["resistThreshold"]);
 		/**
 		* The strict slayer/attribute threshold (elements with rate > this qualify).
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.SlayerWeaknessThreshold = JsonMapper.parseObject(this.parsedPluginParameters["slayerWeaknessThreshold"]);
 		/**

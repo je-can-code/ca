@@ -63,6 +63,7 @@ var J_Omnipedia_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of the switch that will represent whether or not the command
 		* should be visible in the JABS menu.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.InJabsMenuSwitch = 102;
@@ -242,6 +243,7 @@ var Scene_Omnipedia = class extends Scene_MenuBase {
 		/**
 		* The window that shows the list of available pedias.
 		* @type {Window_OmnipediaList}
+		// policy step inside init primary members.
 		*/
 		this._j._omni._pediaList = null;
 		/**

@@ -204,18 +204,21 @@ var JAbsPixelistics_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The radius in tiles from home that an idle enemy may wander.
 		* A value of 1.5 produces a 3x3-tile wander area centered on the home point.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.IdleWanderRadius = parseFloat(this.parsedPluginParameters["idleWanderRadius"]) || 1.5;
 		/**
 		* The default enemy hitbox width in tiles when no override is provided.
 		* This is the full width, not a half-width/radius.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.DefaultEnemyHitboxWidth = parseFloat(this.parsedPluginParameters["defaultEnemyHitboxWidth"]) || .8;
 		/**
 		* The default enemy hitbox height in tiles when no override is provided.
 		* This is the full height, not a half-height/radius.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.DefaultEnemyHitboxHeight = parseFloat(this.parsedPluginParameters["defaultEnemyHitboxHeight"]) || .5;

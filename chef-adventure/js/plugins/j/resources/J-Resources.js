@@ -178,6 +178,7 @@ var JResources_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible in the menu.
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.menuSwitchId = parseInt(this.parsedPluginParameters["menu-switch"]);
 	}
@@ -257,20 +258,29 @@ ColorManager.hpCostColor = function() {
 
 //#endregion
 //#region src/plugins/resources/core/managers/IconManager.js
+/**
+* Icon index for HP cost rate reduction in resource parameter UI.
+* @returns {number}
+*/
 IconManager.hcr = function() {
 	return 964;
 };
 
 //#endregion
 //#region src/plugins/resources/core/managers/TextManager.js
+/**
+* Display label for HP cost rate — percent reduction on life-cost skills.
+* @returns {string}
+*/
 TextManager.hcr = function() {
-	return "Life Cost";
+	return "HP Cost Rate";
 };
 /**
+* Help text explaining how HP cost rate makes life-cost skills cheaper.
 * @returns {string[]}
 */
 TextManager.hcrDescription = function() {
-	return ["Percent reduction applied to life-cost skill prices.", "Higher values make life-cost skills cheaper to use."];
+	return ["Percent reduction applied to HP skill costs.", "Higher values make life-cost skills cheaper to use."];
 };
 
 //#endregion
@@ -661,12 +671,16 @@ Game_Enemy.prototype.hcrSources = function() {
 //#endregion
 //#region src/plugins/resources/core/core/registerResourcesParameters.js
 /**
-* Registers Life Cost (HCR) with the parameter catalog.
+* Boot-time registration for J-Resources parameters in {@link ParameterRegistry}.
 */
-function registerResourcesParameters() {
-	ParameterRegistry.register(ParameterDefinition.Builder().key("hcr").group(ParameterGroups.COMBAT).sortOrder(5).label(() => TextManager.hcr()).description(() => TextManager.hcrDescription()).iconIndex(() => IconManager.hcr()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.COST_RATE).getValue((battler) => battler.hcrFactor()).sdpBinding(SdpParameterBinding.byKey("hcr", () => 100)).build());
-}
-registerResourcesParameters();
+var ResourcesParameterRegistration = class {
+	/**
+	* Registers Life Cost (HCR) with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("hcr").group(ParameterGroups.COMBAT).sortOrder(5).label(() => TextManager.hcr()).description(() => TextManager.hcrDescription()).iconIndex(() => IconManager.hcr()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.COST_RATE).getValue((battler) => battler.hcrFactor()).sdpBinding(SdpParameterBinding.byKey("hcr", () => 100)).build());
+	}
+};
 
 //#endregion
 //# sourceMappingURL=J-Resources.js.map

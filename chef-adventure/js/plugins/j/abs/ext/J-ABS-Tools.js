@@ -133,6 +133,7 @@ var J_ToolsPluginMetadata = class extends PluginMetadata {
 		/**
 		* The behavior for whether or not the player can gap close to anything they hit, or if they
 		* can only gap close to targets bearing the "gap close target" tag.
+		// policy step inside initialize metadata.
 		*/
 		this.CanGapCloseByDefault = this.parsedPluginParameters["canGapCloseByDefault"] === "true";
 		/**
@@ -577,7 +578,7 @@ Game_System.prototype.isGrabThrowEnabled = function() {
 };
 /**
 * Sets whether or not grab and throw functionality is enabled.
-* @param {boolean} isEnabled
+* @param {boolean} isEnabled The is enabled driving this step.
 */
 Game_System.prototype.setGrabThrowEnabled = function(isEnabled) {
 	this._j._tools._grabThrowEnabled = isEnabled;

@@ -526,8 +526,8 @@ J.BASE.Aliased = {
 	Scene_MenuBase: new Map(),
 	SoundManager: new Map(),
 	Window_Base: new Map(),
-	Window_Command: {},
-	Window_Selectable: {}
+	Window_Command: new Map(),
+	Window_Selectable: new Map()
 };
 /**
 * The helper functions used commonly throughout my plugins.
@@ -672,7 +672,7 @@ Object.defineProperty(Array, "empty", {
 /**
 * Executes a given function a given number of `times`.
 * This uses `.forEach()` under the covers, so build your functions accordingly.
-* @param {number} times
+* @param {number} times The times driving this step.
 * @param {Function} func The function
 * @param {undefined|any=} thisArg What represents "this" in the `.forEach()`; defaults to undefined.
 */
@@ -685,7 +685,7 @@ Array.iterate = function(times, func, thisArg = undefined) {
 * @returns {Date} The updated date with the designated days.
 */
 Date.prototype.addDays = function(days) {
-	var result = new Date(this.valueOf());
+	const result = new Date(this.valueOf());
 	result.setDate(result.getDate() + days);
 	return result;
 };
@@ -928,20 +928,7 @@ var ParameterFormat = class {
 	*/
 	static PERCENT_SUFFIX = "percentSuffix";
 	/**
-	* Ex/sp value shown as a whole-number score (×100, no % suffix).
-	* Used for HIT-style params that scale into the hundreds/thousands.
-	* @type {string}
-	*/
-	static SCALED_POINTS = "scaledPoints";
-	/**
-	* S-param value shown as a centered whole-number score (×100 − 100, no % suffix).
-	* Used for GRD-style params where 1.0 is the neutral baseline.
-	* @type {string}
-	*/
-	static SCALED_OFFSET = "scaledOffset";
-	/**
-	* Multiplier shown in percent space without centering (GDR, DOR, shield rates, etc.).
-	* Raw {@code 0} is neutral; tag bonuses arrive as signed factors (e.g. {@code 0.25} → {@code +025%}).
+	* Multiplier shown in percent space without centering (SDR, APR, etc.).
 	* @type {string}
 	*/
 	static MULTIPLIER_PERCENT = "multiplierPercent";
@@ -951,7 +938,7 @@ var ParameterFormat = class {
 //#region src/plugins/_base/core/ParameterDisplayPolicy.js
 /**
 * Value-aware display policy for {@link ParameterDefinition} entries.
-* Drives sign-column padding, dynamic status colors, and clamped sentinel labels.
+* Drives signed padding and dynamic status colors without changing raw battler math.
 */
 var ParameterDisplayPolicy = class {
 	/**
@@ -960,22 +947,17 @@ var ParameterDisplayPolicy = class {
 	*/
 	static NONE = "none";
 	/**
-	* Damage intake rates (PDR, MDR, FDR): lower is better; {@code -100%} → {@link ParameterDisplaySentinel.IMMUNE}.
+	* Damage intake rates (PDR, MDR, FDR): lower is better, negative is protective.
 	* @type {string}
 	*/
 	static DAMAGE_RATE = "damageRate";
 	/**
-	* Reward gain rates (EXP, gold, drops, SDP, APT, REC, PHA): higher is better; {@code -100%} → {@link ParameterDisplaySentinel.NONE}.
+	* Reward gain rates (EXP, gold, drops, SDP, APT): higher is better, centered at zero.
 	* @type {string}
 	*/
 	static REWARD_RATE = "rewardRate";
 	/**
-	* Skill cost rates (HCR, MCR, TCR): lower is better; {@code -100%} → {@link ParameterDisplaySentinel.FREE}.
-	* @type {string}
-	*/
-	static COST_RATE = "costRate";
-	/**
-	* Signed centered percent with no dynamic color (aggro); {@code -100%} → {@link ParameterDisplaySentinel.NONE}.
+	* Signed centered percent with no dynamic color (aggro).
 	* @type {string}
 	*/
 	static SIGNED = "signed";
@@ -1165,27 +1147,6 @@ var ParameterKeys = class ParameterKeys {
 		return ParameterKeys.SPARAM_KEYS[sparamId] ?? null;
 	}
 	/**
-	* @param {string} key Registry parameter key.
-	* @returns {number} Engine b-param id, or -1 when unknown.
-	*/
-	static bparamId(key) {
-		return ParameterKeys.BPARAM_KEYS.indexOf(key);
-	}
-	/**
-	* @param {string} key Registry parameter key.
-	* @returns {number} Engine x-param id, or -1 when unknown.
-	*/
-	static xparamId(key) {
-		return ParameterKeys.XPARAM_KEYS.indexOf(key);
-	}
-	/**
-	* @param {string} key Registry parameter key.
-	* @returns {number} Engine s-param id, or -1 when unknown.
-	*/
-	static sparamId(key) {
-		return ParameterKeys.SPARAM_KEYS.indexOf(key);
-	}
-	/**
 	* @param {number} longParamId Legacy unified panel parameter id.
 	* @returns {string|null}
 	*/
@@ -1261,7 +1222,7 @@ var PluginVersion = class PluginVersion {
 	* Constructor.
 	* It is strongly recommended to use the {@link PluginVersion.builder} to
 	* create these classes due to their string-parsing sensitivity.
-	* @param {string} version
+	* @param {string} version The version driving this step.
 	*/
 	constructor(version) {
 		const semverParts = version.split(".").map((part) => parseInt(part));
@@ -2101,197 +2062,200 @@ var J_EventEmitter = class extends PIXI.utils.EventEmitter {};
 /**
 * A reusable timer with some nifty functions.
 */
-function J_Timer(timerMax) {
-	this.initialize(timerMax);
-}
-J_Timer.prototype = {};
-J_Timer.prototype.constructor = J_Timer;
-/**
-* Constructor.
-*
-* NOTE: A key is not required, but can be set with setters.
-* @param {number=} [timerMax=0] The max duration of this timer.
-* @param {boolean=} [stopCounting=true] Whether or not to stop counting after completing; defaults to true.
-* @param {?Function} callback EXPERIMENTAL. A callback function for completion of this timer.
-*/
-J_Timer.prototype.initialize = function(timerMax = 0, stopCounting = true, callback = null) {
+var J_Timer = class {
 	/**
-	* The maximum count this timer can reach.
-	* @type {number}
+	* Constructor.
+	*
+	* NOTE: A key is not required, but can be set with setters.
+	* @param {number=} [timerMax=0] The max duration of this timer.
+	* @param {boolean=} [stopCounting=true] Whether or not to stop counting after completing; defaults to true.
+	* @param {?Function} callback EXPERIMENTAL. A callback function for completion of this timer.
 	*/
-	this._timerMax = timerMax;
+	constructor(timerMax = 0, stopCounting = true, callback = null) {
+		/**
+		* The maximum count this timer can reach.
+		* @type {number}
+		// policy step inside constructor.
+		*/
+		this._timerMax = timerMax;
+		/**
+		* Whether or not to stop counting after we've reached the max.
+		* @type {boolean}
+		*/
+		this._stopCounting = stopCounting;
+		/**
+		* The callback function to execute when the timer completes.
+		* If none is provided, nothing will happen, though the {@link #onComplete} will still execute
+		* in case you would prefer to handle it in code yourself.
+		* @type {Function|null}
+		*/
+		this._callback = callback;
+		this.initMembers();
+	}
 	/**
-	* Whether or not to stop counting after we've reached the max.
-	* @type {boolean}
+	* Initializes the default members for the timer.
 	*/
-	this._stopCounting = stopCounting;
+	initMembers() {
+		/**
+		* A key or name for this timer.
+		* This is not strictly enforced by the timer, so this is for
+		// policy step inside init members.
+		* developer convenience if needed.
+		* @type {string}
+		*/
+		this._key = String.empty;
+		/**
+		* The counter on this timer that ticks up to the max.
+		* @type {number}
+		*/
+		this._timer = 0;
+		/**
+		* The maximum count this timer can reach.
+		* @type {number}
+		*/
+		this._timerMax = 0;
+	}
 	/**
-	* The callback function to execute when the timer completes.
-	* If none is provided, nothing will happen, though the {@link #onComplete} will still execute
-	* in case you would prefer to handle it in code yourself.
-	* @type {Function|null}
+	* Gets the key of this timer, if one was set.
+	* @returns {string|String.empty}
 	*/
-	this._callback = callback;
-	this.initMembers();
-};
-/**
-* Initializes the default members for the timer.
-*/
-J_Timer.prototype.initMembers = function() {
+	getKey() {
+		return this._key;
+	}
 	/**
-	* A key or name for this timer.
-	* This is not strictly enforced by the timer, so this is for
-	* developer convenience if needed.
-	* @type {string}
+	* Sets the key of this timer to the given value.
+	* @param {string} key The new key or name for this timer.
 	*/
-	this._key = String.empty;
+	setKey(key) {
+		this._key = key;
+	}
 	/**
-	* The counter on this timer that ticks up to the max.
-	* @type {number}
+	* Gets the current time on this timer.
+	* @returns {number}
 	*/
-	this._timer = 0;
+	getCurrentTime() {
+		return this._timer;
+	}
 	/**
-	* The maximum count this timer can reach.
-	* @type {number}
+	* Sets the current time of this timer to a given amount.
+	* Reducing below max time will remove completion if applicable.
+	* Setting at or above max time will apply completion if applicable.
+	* @param {number} time The new time for this timer.
 	*/
-	this._timerMax = 0;
-};
-/**
-* Gets the key of this timer, if one was set.
-* @returns {string|String.empty}
-*/
-J_Timer.prototype.getKey = function() {
-	return this._key;
-};
-/**
-* Sets the key of this timer to the given value.
-* @param {string} key The new key or name for this timer.
-*/
-J_Timer.prototype.setKey = function(key) {
-	this._key = key;
-};
-/**
-* Gets the current time on this timer.
-* @returns {number}
-*/
-J_Timer.prototype.getCurrentTime = function() {
-	return this._timer;
-};
-/**
-* Sets the current time of this timer to a given amount.
-* Reducing below max time will remove completion if applicable.
-* Setting at or above max time will apply completion if applicable.
-* @param {number} time The new time for this timer.
-*/
-J_Timer.prototype.setCurrentTime = function(time) {
-	this._timer = time;
-	this._handleIfIncomplete();
-	this._handleIfComplete();
-};
-/**
-* Modify the current time of this timer by the given amount.
-* Reducing below max time will remove completion if applicable.
-* Setting at or above max time will apply completion if applicable.
-* @param {number} time The amount to modify by.
-* @returns {number} The new total after modification.
-*/
-J_Timer.prototype.modCurrentTime = function(time) {
-	this._timer += time;
-	this._handleIfIncomplete();
-	this._handleIfComplete();
-	return this._timer;
-};
-/**
-* Gets the total time set to run on this timer.
-* @returns {number}
-*/
-J_Timer.prototype.getMaxTime = function() {
-	return this._timerMax;
-};
-/**
-* Sets the max time for this timer to the given amount.
-* @param {number} maxTime The new max time for this timer.
-*/
-J_Timer.prototype.setMaxTime = function(maxTime) {
-	this._timerMax = maxTime;
-};
-/**
-* Whether or not we should stop counting beyond max when updating.
-* @returns {boolean}
-*/
-J_Timer.prototype.shouldStopCounting = function() {
-	return this._stopCounting;
-};
-/**
-* Normalize time that is above bounds while the "stop counting" flag is set.
-*/
-J_Timer.prototype.normalizeTime = function() {
-	if (!this.isTimerComplete()) return;
-	if (!this.shouldStopCounting()) return;
-	this._timer = this.getMaxTime();
-};
-/**
-* Checks whether or not this timer is completed.
-* @returns {boolean} True if it is completed, false otherwise.
-*/
-J_Timer.prototype.isTimerComplete = function() {
-	return this._timerComplete;
-};
-/**
-* Resets the timer back to initial state.
-*/
-J_Timer.prototype.reset = function() {
-	this._timer = 0;
-	this._timerComplete = false;
-};
-/**
-* The main update method of this timer.
-*/
-J_Timer.prototype.update = function() {
-	this.tick();
-	this.tock();
-};
-/**
-* Processes the incrementing of the time.
-*/
-J_Timer.prototype.tick = function() {
-	if (this.isTimerComplete()) return;
-	this._timer++;
-};
-/**
-* Processes the management of state of this timer.
-*/
-J_Timer.prototype.tock = function() {
-	this._handleIfComplete();
-};
-/**
-* Handles the possibility of this timer becoming incomplete.
-*/
-J_Timer.prototype._handleIfIncomplete = function() {
-	if (this._timer < this._timerMax) {
+	setCurrentTime(time) {
+		this._timer = time;
+		this._handleIfIncomplete();
+		this._handleIfComplete();
+	}
+	/**
+	* Modify the current time of this timer by the given amount.
+	* Reducing below max time will remove completion if applicable.
+	* Setting at or above max time will apply completion if applicable.
+	* @param {number} time The amount to modify by.
+	* @returns {number} The new total after modification.
+	*/
+	modCurrentTime(time) {
+		this._timer += time;
+		this._handleIfIncomplete();
+		this._handleIfComplete();
+		return this._timer;
+	}
+	/**
+	* Gets the total time set to run on this timer.
+	* @returns {number}
+	*/
+	getMaxTime() {
+		return this._timerMax;
+	}
+	/**
+	* Sets the max time for this timer to the given amount.
+	* @param {number} maxTime The new max time for this timer.
+	*/
+	setMaxTime(maxTime) {
+		this._timerMax = maxTime;
+	}
+	/**
+	* Whether or not we should stop counting beyond max when updating.
+	* @returns {boolean}
+	*/
+	shouldStopCounting() {
+		return this._stopCounting;
+	}
+	/**
+	* Normalize time that is above bounds while the "stop counting" flag is set.
+	*/
+	normalizeTime() {
+		if (!this.isTimerComplete()) return;
+		if (!this.shouldStopCounting()) return;
+		this._timer = this.getMaxTime();
+	}
+	/**
+	* Checks whether or not this timer is completed.
+	* @returns {boolean} True if it is completed, false otherwise.
+	*/
+	isTimerComplete() {
+		return this._timerComplete;
+	}
+	/**
+	* Resets the timer back to initial state.
+	*/
+	reset() {
+		this._timer = 0;
 		this._timerComplete = false;
 	}
-	this.normalizeTime();
-};
-/**
-* Handles the possibility of this timer becoming complete.
-*/
-J_Timer.prototype._handleIfComplete = function() {
-	if (this.isTimerComplete()) return;
-	if (this._timer >= this._timerMax) {
-		this._timerComplete = true;
-		this.normalizeTime();
-		this.onComplete();
+	/**
+	* The main update method of this timer.
+	*/
+	update() {
+		this.tick();
+		this.tock();
 	}
+	/**
+	* Processes the incrementing of the time.
+	*/
+	tick() {
+		if (this.isTimerComplete()) return;
+		this._timer++;
+	}
+	/**
+	* Processes the management of state of this timer.
+	*/
+	tock() {
+		this._handleIfComplete();
+	}
+	/**
+	* Handles the possibility of this timer becoming incomplete.
+	*/
+	_handleIfIncomplete() {
+		if (this._timer < this._timerMax) {
+			this._timerComplete = false;
+		}
+		this.normalizeTime();
+	}
+	/**
+	* Handles the possibility of this timer becoming complete.
+	*/
+	_handleIfComplete() {
+		if (this.isTimerComplete()) return;
+		if (this._timer >= this._timerMax) {
+			this._timerComplete = true;
+			this.normalizeTime();
+			this.onComplete();
+		}
+	}
+	/**
+	* Forcefully completes this timer.
+	*/
+	forceComplete() {
+		this.setCurrentTime(this.getMaxTime());
+		this._handleIfComplete();
+	}
+	onComplete() {}
 };
-/**
-* Forcefully completes this timer.
-*/
-J_Timer.prototype.forceComplete = function() {
-	this.setCurrentTime(this.getMaxTime());
-	this._handleIfComplete();
-};
-J_Timer.prototype.onComplete = function() {};
+
+//#endregion
+//#region src/plugins/_base/core/registerJBaseSerializableModels.js
+SerializableRegistry.register(J_Timer);
 
 //#endregion
 //#region src/plugins/_base/models/WindowCommandBuilder.js
@@ -2536,13 +2500,14 @@ var WindowCommandBuilder = class {
 */
 var SdpParameterBinding = class SdpParameterBinding {
 	/**
-	* @param {function(Game_Actor, number): number} getPanelBonus
-	* @param {function(Game_Actor): number=} getBaseForSdp
+	* @param {function(Game_Actor, number): number} getPanelBonus The get panel bonus driving this step.
+	* @param {function(Game_Actor): number=} getBaseForSdp The get base for sdp driving this step.
 	*/
 	constructor(getPanelBonus, getBaseForSdp = undefined) {
 		/**
 		* Returns the bonus amount SDP panels contribute for this parameter.
 		* @type {function(Game_Actor, number): number}
+		// policy step inside constructor.
 		*/
 		this.getPanelBonus = getPanelBonus;
 		/**
@@ -2560,8 +2525,8 @@ var SdpParameterBinding = class SdpParameterBinding {
 	}
 	/**
 	* SDP bonus resolves panel entries by registry key.
-	* @param {string} parameterKey
-	* @param {function(Game_Actor): number=} getBaseForSdp
+	* @param {string} parameterKey The parameter key driving this step.
+	* @param {function(Game_Actor): number=} getBaseForSdp The get base for sdp driving this step.
 	* @returns {SdpParameterBinding}
 	*/
 	static byKey(parameterKey, getBaseForSdp = undefined) {
@@ -2572,19 +2537,20 @@ var SdpParameterBinding = class SdpParameterBinding {
 	}
 	/**
 	* SDP bonus follows the core b-param hook path.
-	* @param {number} paramId
+	* @param {number} paramId The param id driving this step.
 	* @returns {SdpParameterBinding}
 	*/
 	static bparam(paramId) {
-		const parameterKey = ParameterKeys.bparamKey(paramId);
+		const parameterKey = J.BASE.ParameterKeys.bparamKey(paramId);
 		return SdpParameterBinding.byKey(parameterKey);
 	}
 	/**
 	* SDP bonus follows the ex-param hook path.
-	* @param {number} xparamId
+	* @param {number} xparamId The xparam id driving this step.
 	* @returns {SdpParameterBinding}
 	*/
 	static xparam(xparamId) {
+		const parameterKey = J.BASE.ParameterKeys.xparamKey(xparamId);
 		return new SdpParameterBinding((actor, base) => {
 			if (!J.SDP) return 0;
 			return actor.getSdpBonusForNonCoreParam(xparamId, base, 8);
@@ -2592,10 +2558,11 @@ var SdpParameterBinding = class SdpParameterBinding {
 	}
 	/**
 	* SDP bonus follows the sp-param hook path.
-	* @param {number} sparamId
+	* @param {number} sparamId The sparam id driving this step.
 	* @returns {SdpParameterBinding}
 	*/
 	static sparam(sparamId) {
+		const parameterKey = J.BASE.ParameterKeys.sparamKey(sparamId);
 		return new SdpParameterBinding((actor, base) => {
 			if (!J.SDP) return 0;
 			return actor.getSdpBonusForNonCoreParam(sparamId, base, 18);
@@ -2603,8 +2570,8 @@ var SdpParameterBinding = class SdpParameterBinding {
 	}
 	/**
 	* Owner-defined SDP bonus logic (CDM, LST, SDR, etc.).
-	* @param {function(Game_Actor, number): number} getPanelBonus
-	* @param {function(Game_Actor): number=} getBaseForSdp
+	* @param {function(Game_Actor, number): number} getPanelBonus The get panel bonus driving this step.
+	* @param {function(Game_Actor): number=} getBaseForSdp The get base for sdp driving this step.
 	* @returns {SdpParameterBinding}
 	*/
 	static custom(getPanelBonus, getBaseForSdp = undefined) {
@@ -2626,11 +2593,10 @@ var ParameterDefinitionBuilder = class {
 	#iconIndex = () => 0;
 	#colorIndex = () => 0;
 	#format = ParameterFormat.FLAT;
-	#displayPolicy = ParameterDisplayPolicy.NONE;
 	#getValue = (_battler) => 0;
 	#sdpBinding = SdpParameterBinding.none();
 	/**
-	* @param {string} key
+	* @param {string} key The key driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	key(key) {
@@ -2638,7 +2604,7 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
-	* @param {string} group
+	* @param {string} group The group driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	group(group) {
@@ -2646,7 +2612,7 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
-	* @param {number} sortOrder
+	* @param {number} sortOrder The sort order driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	sortOrder(sortOrder) {
@@ -2654,7 +2620,7 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
-	* @param {function(): string} label
+	* @param {function(): string} label The label driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	label(label) {
@@ -2662,7 +2628,7 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
-	* @param {function(): string[]} description
+	* @param {function(): string[]} description The description driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	description(description) {
@@ -2670,7 +2636,7 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
-	* @param {function(): number} iconIndex
+	* @param {function(): number} iconIndex The icon index driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	iconIndex(iconIndex) {
@@ -2678,7 +2644,7 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
-	* @param {function(): number} colorIndex
+	* @param {function(): number} colorIndex The color index driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	colorIndex(colorIndex) {
@@ -2686,7 +2652,7 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
-	* @param {string} format
+	* @param {string} format The format driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	format(format) {
@@ -2694,15 +2660,7 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
-	* @param {string} displayPolicy
-	* @returns {ParameterDefinitionBuilder}
-	*/
-	displayPolicy(displayPolicy) {
-		this.#displayPolicy = displayPolicy;
-		return this;
-	}
-	/**
-	* @param {function(Game_Battler): number} getValue
+	* @param {function(Game_Battler): number} getValue The get value driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	getValue(getValue) {
@@ -2710,7 +2668,7 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
-	* @param {SdpParameterBinding} sdpBinding
+	* @param {SdpParameterBinding} sdpBinding The sdp binding driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
 	sdpBinding(sdpBinding) {
@@ -2721,7 +2679,7 @@ var ParameterDefinitionBuilder = class {
 	* @returns {ParameterDefinition}
 	*/
 	build() {
-		return new ParameterDefinition(this.#key, this.#group, this.#sortOrder, this.#label, this.#description, this.#iconIndex, this.#colorIndex, this.#format, this.#displayPolicy, this.#getValue, this.#sdpBinding);
+		return new ParameterDefinition(this.#key, this.#group, this.#sortOrder, this.#label, this.#description, this.#iconIndex, this.#colorIndex, this.#format, this.#getValue, this.#sdpBinding);
 	}
 };
 
@@ -2730,21 +2688,20 @@ var ParameterDefinitionBuilder = class {
 /**
 * Immutable catalog entry for a battler parameter.
 */
-var ParameterDefinition = class ParameterDefinition {
+var ParameterDefinition = class {
 	/**
-	* @param {string} key
-	* @param {string} group
-	* @param {number} sortOrder
-	* @param {function(): string} label
-	* @param {function(): string[]} description
-	* @param {function(): number} iconIndex
-	* @param {function(): number} colorIndex
-	* @param {string} format
-	* @param {string} displayPolicy
-	* @param {function(Game_Battler): number} getValue
-	* @param {SdpParameterBinding} sdpBinding
+	* @param {string} key The key driving this step.
+	* @param {string} group The group driving this step.
+	* @param {number} sortOrder The sort order driving this step.
+	* @param {function(): string} label The label driving this step.
+	* @param {function(): string[]} description The description driving this step.
+	* @param {function(): number} iconIndex The icon index driving this step.
+	* @param {function(): number} colorIndex The color index driving this step.
+	* @param {string} format The format driving this step.
+	* @param {function(Game_Battler): number} getValue The get value driving this step.
+	* @param {SdpParameterBinding} sdpBinding The sdp binding driving this step.
 	*/
-	constructor(key, group, sortOrder, label, description, iconIndex, colorIndex, format, displayPolicy, getValue, sdpBinding) {
+	constructor(key, group, sortOrder, label, description, iconIndex, colorIndex, format, getValue, sdpBinding) {
 		this.key = key;
 		this.group = group;
 		this.sortOrder = sortOrder;
@@ -2753,194 +2710,51 @@ var ParameterDefinition = class ParameterDefinition {
 		this.iconIndex = iconIndex;
 		this.colorIndex = colorIndex;
 		this.format = format;
-		this.displayPolicy = displayPolicy;
 		this.getValue = getValue;
 		this.sdpBinding = sdpBinding;
 	}
 	/**
 	* Resolves the live value for the given battler.
-	* @param {Game_Battler} battler
+	* @param {Game_Battler} battler The battler driving this step.
 	* @returns {number}
 	*/
 	resolveValue(battler) {
 		return this.getValue(battler);
 	}
 	/**
-	* Pads a signed magnitude for styled numeric display.
-	* @param {number} num The rounded display magnitude.
-	* @param {number} digits Minimum digit width after padding.
-	* @param {boolean=} reserveSignColumn When true, zero uses a leading space so values align with signed rows.
-	* @param {boolean=} showPlusForPositive When true, positive values render with a leading {@code +}.
-	* @returns {string}
-	*/
-	static padSignedMagnitude(num, digits, reserveSignColumn = false, showPlusForPositive = false) {
-		const rounded = Math.round(num);
-		const padded = Math.abs(rounded).padZero(digits);
-		if (rounded < 0) {
-			return `-${padded}`;
-		}
-		if (showPlusForPositive && rounded > 0) {
-			return `+${padded}`;
-		}
-		if (reserveSignColumn && rounded === 0) {
-			return ` ${padded}`;
-		}
-		return padded;
-	}
-	/**
-	* Transforms a raw battler value into the numeric magnitude shown in the UI.
-	* @param {number} value
-	* @returns {number}
-	*/
-	displayMagnitude(value) {
-		let num = value;
-		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET || this.format === ParameterFormat.REGEN_PER_SECOND) {
-			num *= 100;
-		}
-		if (this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.SCALED_OFFSET) {
-			num -= 100;
-		}
-		return num;
-	}
-	/**
-	* Whether this parameter reserves a sign column when padded on the status screen.
-	* @returns {boolean}
-	*/
-	usesSignColumn() {
-		return this.displayPolicy === ParameterDisplayPolicy.COST_RATE || this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE || this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED;
-	}
-	/**
-	* Whether positive magnitudes should show a leading plus in the sign column.
-	* @returns {boolean}
-	*/
-	usesPlusOnPositive() {
-		return this.displayPolicy === ParameterDisplayPolicy.COST_RATE || this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED;
-	}
-	/**
-	* Whether display magnitude should be clamped at {@code -100%} before formatting.
-	* @returns {boolean}
-	*/
-	clampsDisplayAtMinus100() {
-		return this.usesSignColumn();
-	}
-	/**
-	* Clamps the UI magnitude according to this definition's display policy.
-	* @param {number} num
-	* @returns {number}
-	*/
-	clampDisplayMagnitude(num) {
-		if (this.clampsDisplayAtMinus100()) {
-			return Math.max(num, -100);
-		}
-		return num;
-	}
-	/**
-	* Resolves a fixed sentinel label when a rate hits its display floor.
-	* @param {number} value
-	* @returns {string|null}
-	*/
-	resolveDisplaySentinel(value) {
-		const num = this.displayMagnitude(value);
-		if (num > -100) {
-			return null;
-		}
-		if (this.displayPolicy === ParameterDisplayPolicy.COST_RATE) {
-			return ParameterDisplaySentinel.FREE;
-		}
-		if (this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE) {
-			return ParameterDisplaySentinel.IMMUNE;
-		}
-		if (this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED) {
-			return ParameterDisplaySentinel.NONE;
-		}
-		return null;
-	}
-	/**
-	* Resolves the text color index for a live value on the status screen.
-	* @param {number} value
-	* @returns {number}
-	*/
-	resolveDisplayColorIndex(value) {
-		const sentinel = this.resolveDisplaySentinel(value);
-		if (sentinel === ParameterDisplaySentinel.FREE) {
-			return 3;
-		}
-		if (sentinel === ParameterDisplaySentinel.IMMUNE) {
-			return 7;
-		}
-		if (sentinel === ParameterDisplaySentinel.NONE) {
-			return 10;
-		}
-		const num = this.clampDisplayMagnitude(this.displayMagnitude(value));
-		if (this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE || this.displayPolicy === ParameterDisplayPolicy.COST_RATE) {
-			if (num < 0) {
-				return 3;
-			}
-			if (num > 0) {
-				return 10;
-			}
-			return 0;
-		}
-		if (this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE) {
-			if (num > 0) {
-				return 3;
-			}
-			if (num < 0) {
-				return 10;
-			}
-			return 0;
-		}
-		return this.colorIndex();
-	}
-	/**
 	* Formats a numeric value for UI display.
-	* @param {number} value
-	* @param {boolean=} withPadding
+	* @param {number} value The value driving this step.
+	* @param {boolean=} withPadding The with padding driving this step.
 	* @returns {string}
 	*/
 	prettyValue(value, withPadding = false) {
-		const sentinel = this.resolveDisplaySentinel(value);
-		if (sentinel) {
-			return sentinel;
+		let num = value;
+		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT) {
+			num *= 100;
 		}
-		const num = this.clampDisplayMagnitude(this.displayMagnitude(value));
+		if (this.format === ParameterFormat.PERCENT_CENTERED) {
+			num -= 100;
+		}
 		if (this.format === ParameterFormat.REGEN_PER_SECOND) {
 			const perSecond = num / 5;
-			return `${perSecond.toFixed(1)}/s`;
+			const regenStr = Number.isInteger(perSecond) ? perSecond.toString() : perSecond.toFixed(1);
+			return `${regenStr}/s`;
 		}
 		let base = Number.isInteger(num) ? num.toString() : num.toFixed(1);
 		if (base.endsWith(".0")) {
 			base = base.slice(0, base.length - 2);
 		}
-		if (withPadding) {
-			base = this.applyPaddedDisplay(base, num);
-		}
-		if (this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.PERCENT) {
-			base = `${base}%`;
-		}
-		return base;
-	}
-	/**
-	* Applies zero-padding rules for styled stat values on the status screen.
-	* @param {string} base The un-padded display string.
-	* @param {number} num The transformed numeric magnitude used for padding.
-	* @returns {string}
-	*/
-	applyPaddedDisplay(base, num) {
-		if (this.format === ParameterFormat.FLAT_LARGE) {
-			return String(base).padZero(6);
-		}
-		if (this.format === ParameterFormat.FLAT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET) {
-			return ParameterDefinition.padSignedMagnitude(num, 4, false, false);
-		}
-		if (this.format === ParameterFormat.PERCENT_CENTERED) {
-			return ParameterDefinition.padSignedMagnitude(num, 3, this.usesSignColumn(), this.usesPlusOnPositive());
-		}
-		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT) {
-			if (this.usesSignColumn()) {
-				return ParameterDefinition.padSignedMagnitude(num, 3, true, this.usesPlusOnPositive());
+		if (withPadding && value) {
+			if (this.format === ParameterFormat.FLAT_LARGE) {
+				base = String(base).padZero(6);
+			} else if (this.format === ParameterFormat.FLAT) {
+				base = String(base).padZero(4);
+			} else if (this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX) {
+				base = String(base).padZero(3);
 			}
-			return Math.abs(Math.round(num)).padZero(3);
+		}
+		if (this.format === ParameterFormat.PERCENT_SUFFIX) {
+			base = `${base}%`;
 		}
 		return base;
 	}
@@ -2963,7 +2777,7 @@ var ParameterRegistry = class {
 	static _groupCache = new Map();
 	/**
 	* Registers a parameter definition. Duplicate keys throw.
-	* @param {ParameterDefinition} definition
+	* @param {ParameterDefinition} definition The definition driving this step.
 	*/
 	static register(definition) {
 		if (!(definition instanceof ParameterDefinition)) {
@@ -2976,7 +2790,7 @@ var ParameterRegistry = class {
 		this._groupCache.clear();
 	}
 	/**
-	* @param {string} key
+	* @param {string} key The key driving this step.
 	* @returns {ParameterDefinition|null}
 	*/
 	static get(key) {
@@ -2986,7 +2800,7 @@ var ParameterRegistry = class {
 		return null;
 	}
 	/**
-	* @param {string} key
+	* @param {string} key The key driving this step.
 	* @returns {boolean}
 	*/
 	static has(key) {
@@ -2999,7 +2813,7 @@ var ParameterRegistry = class {
 		return [...this._definitions.values()];
 	}
 	/**
-	* @param {string} group
+	* @param {string} group The group driving this step.
 	* @returns {ParameterDefinition[]}
 	*/
 	static byGroup(group) {
@@ -3012,8 +2826,8 @@ var ParameterRegistry = class {
 	}
 	/**
 	* Resolves a live battler value for the given parameter key.
-	* @param {Game_Battler} battler
-	* @param {string} key
+	* @param {Game_Battler} battler The battler driving this step.
+	* @param {string} key The key driving this step.
 	* @returns {number}
 	*/
 	static resolveValue(battler, key) {
@@ -3023,8 +2837,8 @@ var ParameterRegistry = class {
 	}
 	/**
 	* Resolves SDP panel bonus for the given key.
-	* @param {Game_Actor} actor
-	* @param {string} key
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {string} key The key driving this step.
 	* @returns {number}
 	*/
 	static resolveSdpPanelBonus(actor, key) {
@@ -5878,6 +5692,7 @@ Object.defineProperty(Graphics, "boxOrigin", { get: function() {
 //#region src/plugins/_base/managers/IconManager.js
 /**
 * A static class that manages the icon to X correlation, such as stats and elements.
+* IconManager is a J-Base global — not part of the RMMZ engine (unlike TextManager).
 */
 var IconManager = class {
 	/**
@@ -6638,163 +6453,166 @@ var TraitManager = class {
 //#endregion
 //#region src/plugins/_base/core/registerVanillaParameters.js
 /**
-* Registers a core b-parameter with the catalog.
-* @param {string} key
-* @param {number} paramId
-* @param {string} group
-* @param {number} sortOrder
-* @param {string} format
+* Boot-time registration for vanilla engine parameters in {@link ParameterRegistry}.
 */
-function registerBparam(key, paramId, group, sortOrder, format = ParameterFormat.FLAT) {
-	ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.param(paramId)).description(() => TextManager.bparamDescription(paramId)).iconIndex(() => IconManager.param(paramId)).format(format).getValue((battler) => battler.param(paramId)).sdpBinding(SdpParameterBinding.bparam(paramId)).build());
-}
-/**
-* Registers a core ex-parameter with the catalog.
-* @param {string} key
-* @param {number} xparamId
-* @param {string} group
-* @param {number} sortOrder
-* @param {string} format
-*/
-function registerXparam(key, xparamId, group, sortOrder, format = ParameterFormat.PERCENT) {
-	ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.xparam(xparamId)).description(() => TextManager.xparamDescription(xparamId)).iconIndex(() => IconManager.xparam(xparamId)).format(format).getValue((battler) => battler.xparam(xparamId)).sdpBinding(SdpParameterBinding.xparam(xparamId)).build());
-}
-/**
-* Registers a core sp-parameter with the catalog.
-* @param {string} key
-* @param {number} sparamId
-* @param {string} group
-* @param {number} sortOrder
-* @param {string} format
-* @param {string} displayPolicy
-*/
-function registerSparam(key, sparamId, group, sortOrder, format = ParameterFormat.PERCENT_CENTERED, displayPolicy = ParameterDisplayPolicy.NONE) {
-	ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.sparam(sparamId)).description(() => TextManager.sparamDescription(sparamId)).iconIndex(() => IconManager.sparam(sparamId)).format(format).displayPolicy(displayPolicy).getValue((battler) => battler.sparam(sparamId)).sdpBinding(SdpParameterBinding.sparam(sparamId)).build());
-}
-/**
-* Registers all vanilla engine parameters with the catalog.
-*/
-function registerVanillaParameters() {
-	registerBparam("mhp", 0, ParameterGroups.VITALITY, 0, ParameterFormat.FLAT_LARGE);
-	registerXparam("hrg", 7, ParameterGroups.VITALITY, 1, ParameterFormat.REGEN_PER_SECOND);
-	registerBparam("mmp", 1, ParameterGroups.VITALITY, 2, ParameterFormat.FLAT_LARGE);
-	registerXparam("mrg", 8, ParameterGroups.VITALITY, 3, ParameterFormat.REGEN_PER_SECOND);
-	ParameterRegistry.register(ParameterDefinition.Builder().key("mtp").group(ParameterGroups.VITALITY).sortOrder(4).label(() => TextManager.maxTp()).description(() => TextManager.bparamDescription(30)).iconIndex(() => IconManager.maxTp()).format(ParameterFormat.FLAT).getValue((battler) => battler.maxTp()).sdpBinding(SdpParameterBinding.custom((actor, base) => {
-		if (!J.SDP) return 0;
-		if (!actor.maxTpSdpBonuses) return 0;
-		return actor.maxTpSdpBonuses(base);
-	}, (actor) => actor.getBaseMaxTp())).build());
-	registerXparam("trg", 9, ParameterGroups.VITALITY, 5, ParameterFormat.REGEN_PER_SECOND);
-	registerSparam("rec", 2, ParameterGroups.VITALITY, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
-	registerSparam("pha", 3, ParameterGroups.VITALITY, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
-	registerBparam("atk", 2, ParameterGroups.COMBAT, 0);
-	registerBparam("mat", 4, ParameterGroups.COMBAT, 1);
-	ParameterRegistry.register(ParameterDefinition.Builder().key("cnt").group(ParameterGroups.COMBAT).sortOrder(2).label(() => TextManager.xparam(6)).description(() => TextManager.xparamDescription(6)).iconIndex(() => IconManager.xparam(6)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.cnt).sdpBinding(SdpParameterBinding.xparam(6)).build());
-	ParameterRegistry.register(ParameterDefinition.Builder().key("mrf").group(ParameterGroups.COMBAT).sortOrder(3).label(() => TextManager.xparam(5)).description(() => TextManager.xparamDescription(5)).iconIndex(() => IconManager.xparam(5)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mrf).sdpBinding(SdpParameterBinding.xparam(5)).build());
-	registerSparam("mcr", 4, ParameterGroups.COMBAT, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
-	registerSparam("tcr", 5, ParameterGroups.COMBAT, 9, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
-	registerXparam("hit", 0, ParameterGroups.PRECISION, 0, ParameterFormat.SCALED_POINTS);
-	registerSparam("grd", 1, ParameterGroups.PRECISION, 1, ParameterFormat.SCALED_OFFSET);
-	registerBparam("agi", 6, ParameterGroups.PRECISION, 2);
-	registerXparam("eva", 1, ParameterGroups.PRECISION, 3);
-	registerXparam("cri", 2, ParameterGroups.PRECISION, 4);
-	registerXparam("cev", 3, ParameterGroups.PRECISION, 5);
-	registerBparam("def", 3, ParameterGroups.DEFENSIVE, 0);
-	registerBparam("mdf", 5, ParameterGroups.DEFENSIVE, 1);
-	registerSparam("pdr", 6, ParameterGroups.DEFENSIVE, 2, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
-	registerSparam("mdr", 7, ParameterGroups.DEFENSIVE, 3, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
-	registerSparam("fdr", 8, ParameterGroups.DEFENSIVE, 4, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
-	registerXparam("mev", 4, ParameterGroups.DEFENSIVE, 5);
-	registerSparam("tgr", 0, ParameterGroups.FATE, 0, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.SIGNED);
-	registerBparam("luk", 7, ParameterGroups.FATE, 2);
-	registerSparam("exr", 9, ParameterGroups.FATE, 1, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
-}
-registerVanillaParameters();
+var VanillaParameterRegistration = class VanillaParameterRegistration {
+	/**
+	* Registers a core b-parameter with the catalog.
+	* @param {string} key The key driving this step.
+	* @param {number} paramId The param id driving this step.
+	* @param {string} group The group driving this step.
+	* @param {number} sortOrder The sort order driving this step.
+	* @param {string} format The format driving this step.
+	*/
+	static registerBparam(key, paramId, group, sortOrder, format = ParameterFormat.FLAT) {
+		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.param(paramId)).description(() => TextManager.bparamDescription(paramId)).iconIndex(() => IconManager.param(paramId)).format(format).getValue((battler) => battler.param(paramId)).sdpBinding(SdpParameterBinding.bparam(paramId)).build());
+	}
+	/**
+	* Registers a core ex-parameter with the catalog.
+	* @param {string} key The key driving this step.
+	* @param {number} xparamId The xparam id driving this step.
+	* @param {string} group The group driving this step.
+	* @param {number} sortOrder The sort order driving this step.
+	* @param {string} format The format driving this step.
+	*/
+	static registerXparam(key, xparamId, group, sortOrder, format = ParameterFormat.PERCENT) {
+		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.xparam(xparamId)).description(() => TextManager.xparamDescription(xparamId)).iconIndex(() => IconManager.xparam(xparamId)).format(format).getValue((battler) => battler.xparam(xparamId)).sdpBinding(SdpParameterBinding.xparam(xparamId)).build());
+	}
+	/**
+	* Registers a core sp-parameter with the catalog.
+	* @param {string} key The key driving this step.
+	* @param {number} sparamId The sparam id driving this step.
+	* @param {string} group The group driving this step.
+	* @param {number} sortOrder The sort order driving this step.
+	* @param {string} format The format driving this step.
+	* @param {string} displayPolicy The display policy driving this step.
+	*/
+	static registerSparam(key, sparamId, group, sortOrder, format = ParameterFormat.PERCENT_CENTERED, displayPolicy = ParameterDisplayPolicy.NONE) {
+		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.sparam(sparamId)).description(() => TextManager.sparamDescription(sparamId)).iconIndex(() => IconManager.sparam(sparamId)).format(format).displayPolicy(displayPolicy).getValue((battler) => battler.sparam(sparamId)).sdpBinding(SdpParameterBinding.sparam(sparamId)).build());
+	}
+	/**
+	* Registers all vanilla engine parameters with the catalog.
+	*/
+	static registerAll() {
+		VanillaParameterRegistration.registerBparam("mhp", 0, ParameterGroups.VITALITY, 0, ParameterFormat.FLAT_LARGE);
+		VanillaParameterRegistration.registerXparam("hrg", 7, ParameterGroups.VITALITY, 1, ParameterFormat.REGEN_PER_SECOND);
+		VanillaParameterRegistration.registerBparam("mmp", 1, ParameterGroups.VITALITY, 2, ParameterFormat.FLAT_LARGE);
+		VanillaParameterRegistration.registerXparam("mrg", 8, ParameterGroups.VITALITY, 3, ParameterFormat.REGEN_PER_SECOND);
+		ParameterRegistry.register(ParameterDefinition.Builder().key("mtp").group(ParameterGroups.VITALITY).sortOrder(4).label(() => TextManager.maxTp()).description(() => TextManager.bparamDescription(30)).iconIndex(() => IconManager.maxTp()).format(ParameterFormat.FLAT).getValue((battler) => battler.maxTp()).sdpBinding(SdpParameterBinding.custom((actor, base) => {
+			if (!J.SDP) return 0;
+			if (!actor.maxTpSdpBonuses) return 0;
+			return actor.maxTpSdpBonuses(base);
+		}, (actor) => actor.getBaseMaxTp())).build());
+		VanillaParameterRegistration.registerXparam("trg", 9, ParameterGroups.VITALITY, 5, ParameterFormat.REGEN_PER_SECOND);
+		VanillaParameterRegistration.registerSparam("rec", 2, ParameterGroups.VITALITY, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+		VanillaParameterRegistration.registerSparam("pha", 3, ParameterGroups.VITALITY, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+		VanillaParameterRegistration.registerBparam("atk", 2, ParameterGroups.COMBAT, 0);
+		VanillaParameterRegistration.registerBparam("mat", 4, ParameterGroups.COMBAT, 1);
+		ParameterRegistry.register(ParameterDefinition.Builder().key("cnt").group(ParameterGroups.COMBAT).sortOrder(2).label(() => TextManager.xparam(6)).description(() => TextManager.xparamDescription(6)).iconIndex(() => IconManager.xparam(6)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.cnt).sdpBinding(SdpParameterBinding.xparam(6)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("mrf").group(ParameterGroups.COMBAT).sortOrder(3).label(() => TextManager.xparam(5)).description(() => TextManager.xparamDescription(5)).iconIndex(() => IconManager.xparam(5)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mrf).sdpBinding(SdpParameterBinding.xparam(5)).build());
+		VanillaParameterRegistration.registerSparam("mcr", 4, ParameterGroups.COMBAT, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
+		VanillaParameterRegistration.registerSparam("tcr", 5, ParameterGroups.COMBAT, 9, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
+		VanillaParameterRegistration.registerXparam("hit", 0, ParameterGroups.PRECISION, 0, ParameterFormat.SCALED_POINTS);
+		VanillaParameterRegistration.registerSparam("grd", 1, ParameterGroups.PRECISION, 1, ParameterFormat.SCALED_OFFSET);
+		VanillaParameterRegistration.registerBparam("agi", 6, ParameterGroups.PRECISION, 2);
+		VanillaParameterRegistration.registerXparam("eva", 1, ParameterGroups.PRECISION, 3);
+		VanillaParameterRegistration.registerXparam("cri", 2, ParameterGroups.PRECISION, 4);
+		VanillaParameterRegistration.registerXparam("cev", 3, ParameterGroups.PRECISION, 5);
+		VanillaParameterRegistration.registerBparam("def", 3, ParameterGroups.DEFENSIVE, 0);
+		VanillaParameterRegistration.registerBparam("mdf", 5, ParameterGroups.DEFENSIVE, 1);
+		VanillaParameterRegistration.registerSparam("pdr", 6, ParameterGroups.DEFENSIVE, 2, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+		VanillaParameterRegistration.registerSparam("mdr", 7, ParameterGroups.DEFENSIVE, 3, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+		VanillaParameterRegistration.registerSparam("fdr", 8, ParameterGroups.DEFENSIVE, 4, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+		VanillaParameterRegistration.registerXparam("mev", 4, ParameterGroups.DEFENSIVE, 5);
+		VanillaParameterRegistration.registerSparam("tgr", 0, ParameterGroups.FATE, 0, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.SIGNED);
+		VanillaParameterRegistration.registerBparam("luk", 7, ParameterGroups.FATE, 2);
+		VanillaParameterRegistration.registerSparam("exr", 9, ParameterGroups.FATE, 1, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+	}
+};
 
 //#endregion
 //#region src/plugins/_base/core/AffiliationDisplay.js
 /**
-* Formats an affiliation rate as a relative delta or special label.
-* Shared by CMS status affiliations and Monsterpedia elementalistics.
-* @param {number} ratePercent The effective rate on a 0–100+ scale (positive magnitude).
-* @param {{ absorbed?: boolean, immune?: boolean }} flags Display modifiers.
-* @returns {{ value: string, colorIndex: number }|null} Null when the rate is unmodified baseline.
+* Formats affiliation rates for CMS status and Monsterpedia elementalistics.
 */
-function formatAffiliationDelta(ratePercent, flags = {}) {
-	const absorbed = flags.absorbed === true;
-	const immune = flags.immune === true;
-	if (absorbed) {
-		const magnitude = Math.round(ratePercent);
-		const diff = magnitude - 100;
-		if (diff === 0) {
+var AffiliationDisplay = class AffiliationDisplay {
+	/**
+	* Digit width for styled affiliation deltas ({@code +0200%}, {@code -0050%}).
+	* @type {number}
+	*/
+	static padDigits = 4;
+	/**
+	* Mask template for unknown affiliation deltas — keeps column width stable while scouting.
+	* @type {string}
+	*/
+	static maskTemplate = "+0000%";
+	/**
+	* Formats an affiliation rate as a relative delta or special label.
+	* Shared by CMS status affiliations and Monsterpedia elementalistics.
+	* @param {number} ratePercent The effective rate on a 0–100+ scale (positive magnitude).
+	* @param {{ absorbed?: boolean, immune?: boolean }} flags Display modifiers.
+	* @returns {{ value: string, colorIndex: number }|null} Null when the rate is unmodified baseline.
+	*/
+	static formatDelta(ratePercent, flags = {}) {
+		const absorbed = flags.absorbed === true;
+		const immune = flags.immune === true;
+		if (absorbed) {
+			const magnitude = Math.round(ratePercent);
+			const diff = magnitude - 100;
+			if (diff === 0) {
+				return {
+					value: "ABSORB",
+					colorIndex: 5
+				};
+			}
 			return {
-				value: "ABSORB",
+				value: `ABSORB (${ParameterDefinition.padSignedMagnitude(diff, AffiliationDisplay.padDigits, true, true)}%)`,
 				colorIndex: 5
 			};
 		}
+		if (immune || ratePercent <= 0) {
+			return {
+				value: "IMMUNE",
+				colorIndex: 7
+			};
+		}
+		const diff = Math.round(ratePercent) - 100;
+		if (diff === 0) {
+			return null;
+		}
+		if (diff <= -100) {
+			return {
+				value: "IMMUNE",
+				colorIndex: 7
+			};
+		}
+		let colorIndex = 0;
+		if (diff > 0) {
+			colorIndex = 10;
+		} else {
+			colorIndex = 3;
+		}
 		return {
-			value: `ABSORB (${ParameterDefinition.padSignedMagnitude(diff, AFFILIATION_PAD_DIGITS, true, true)}%)`,
-			colorIndex: 5
+			value: `${ParameterDefinition.padSignedMagnitude(diff, AffiliationDisplay.padDigits, true, true)}%`,
+			colorIndex
 		};
 	}
-	if (immune || ratePercent <= 0) {
+	/**
+	* Resolves affiliation display text, using {@code 000%} when the rate matches baseline.
+	* @param {number} ratePercent The effective rate on a 0–100+ scale (positive magnitude).
+	* @param {{ absorbed?: boolean, immune?: boolean }} flags Display modifiers.
+	* @returns {{ value: string, colorIndex: number }}
+	*/
+	static resolveDisplay(ratePercent, flags = {}) {
+		const formatted = AffiliationDisplay.formatDelta(ratePercent, flags);
+		if (formatted) {
+			return formatted;
+		}
 		return {
-			value: "IMMUNE",
-			colorIndex: 7
+			value: `${ParameterDefinition.padSignedMagnitude(0, AffiliationDisplay.padDigits, true, true)}%`,
+			colorIndex: 0
 		};
 	}
-	const diff = Math.round(ratePercent) - 100;
-	if (diff === 0) {
-		return null;
-	}
-	if (diff <= -100) {
-		return {
-			value: "IMMUNE",
-			colorIndex: 7
-		};
-	}
-	let colorIndex = 0;
-	if (diff > 0) {
-		colorIndex = 10;
-	} else {
-		colorIndex = 3;
-	}
-	return {
-		value: `${ParameterDefinition.padSignedMagnitude(diff, AFFILIATION_PAD_DIGITS, true, true)}%`,
-		colorIndex
-	};
-}
-/**
-* Resolves affiliation display text, using {@code 000%} when the rate matches baseline.
-* @param {number} ratePercent The effective rate on a 0–100+ scale (positive magnitude).
-* @param {{ absorbed?: boolean, immune?: boolean }} flags Display modifiers.
-* @returns {{ value: string, colorIndex: number }}
-*/
-function resolveAffiliationDisplay(ratePercent, flags = {}) {
-	const formatted = formatAffiliationDelta(ratePercent, flags);
-	if (formatted) {
-		return formatted;
-	}
-	return {
-		value: `${ParameterDefinition.padSignedMagnitude(0, AFFILIATION_PAD_DIGITS, true, true)}%`,
-		colorIndex: 0
-	};
-}
-/**
-* Digit width for styled affiliation deltas ({@code +0200%}, {@code -0050%}).
-* @type {number}
-*/
-var AFFILIATION_PAD_DIGITS = 4;
-/**
-* Mask template for unknown affiliation deltas — keeps column width stable while scouting.
-* @type {string}
-*/
-var AFFILIATION_MASK_TEMPLATE = "+0000%";
-var AffiliationDisplay = {
-	padDigits: AFFILIATION_PAD_DIGITS,
-	maskTemplate: AFFILIATION_MASK_TEMPLATE,
-	formatDelta: formatAffiliationDelta,
-	resolveDisplay: resolveAffiliationDisplay
 };
 
 //#endregion
@@ -8203,6 +8021,7 @@ Scene_Base.prototype.initMembers = function() {
 	/**
 	* Lazy-built on first {@link #getModalDimmerWindow}; {@link Scene_Boot} runs {@link #initMembers} before
 	* {@link $gameSystem} exists, so constructing {@link Window_Base} during init would crash in
+	// policy step inside init members.
 	* {@link Window_Base#resetFontSettings}.
 	* @type {Window_Dimmer|null}
 	*/
@@ -8313,16 +8132,19 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 		/**
 		* A test bitmap for measuring text width upon.
 		* @type {Bitmap}
+		// policy step inside init members.
 		*/
 		this._j._testBitmap = new Bitmap(512, 128);
 		/**
 		* The text to render in this sprite.
 		* @type {string}
+		// policy step inside init members.
 		*/
 		this._j._text = String.empty;
 		/**
 		* The text color index of this sprite.
 		* This should be a hexcode.
+		// policy step inside init members.
 		* @type {string}
 		*/
 		this._j._color = "#ffffff";
@@ -8665,41 +8487,51 @@ Sprite_Character.prototype.isErased = function() {
 /**
 * A sprite that displays a single face.
 */
-function Sprite_Face() {
-	this.initialize(...arguments);
-}
-Sprite_Face.prototype = Object.create(Sprite.prototype);
-Sprite_Face.prototype.constructor = Sprite_Face;
-Sprite_Face.prototype.initialize = function(faceName, faceIndex) {
-	Sprite.prototype.initialize.call(this);
-	this.initMembers(faceName, faceIndex);
-	this.loadBitmap();
-};
-/**
-* Initializes the properties associated with this sprite.
-* @param {string} faceName The name of the face file.
-* @param {number} faceIndex The index of the face.
-*/
-Sprite_Face.prototype.initMembers = function(faceName, faceIndex) {
-	this._j = {
-		_faceName: faceName,
-		_faceIndex: faceIndex
-	};
-};
-/**
-* Loads the bitmap into the sprite.
-*/
-Sprite_Face.prototype.loadBitmap = function() {
-	this.bitmap = ImageManager.loadFace(this._j._faceName);
-	const pw = ImageManager.faceWidth;
-	const ph = ImageManager.faceHeight;
-	const width = pw;
-	const height = ph;
-	const sw = Math.min(width, pw);
-	const sh = Math.min(height, ph);
-	const sx = Math.floor(this._j._faceIndex % 4 * pw + (pw - sw) / 2);
-	const sy = Math.floor(Math.floor(this._j._faceIndex / 4) * ph + (ph - sh) / 2);
-	this.setFrame(sx, sy, pw, ph);
+var Sprite_Face = class extends Sprite {
+	/**
+	* Constructor.
+	* @param {...*} args Forwarded to {@link #initialize}.
+	*/
+	constructor(...args) {
+		super();
+		this.initialize(...args);
+	}
+	/**
+	* Runs after {@link Sprite.prototype.initialize}.
+	* @param {string} faceName The name of the face file.
+	* @param {number} faceIndex The index of the face.
+	*/
+	initialize(faceName, faceIndex) {
+		super.initialize();
+		this.initMembers(faceName, faceIndex);
+		this.loadBitmap();
+	}
+	/**
+	* Initializes the properties associated with this sprite.
+	* @param {string} faceName The name of the face file.
+	* @param {number} faceIndex The index of the face.
+	*/
+	initMembers(faceName, faceIndex) {
+		this._j = {
+			_faceName: faceName,
+			_faceIndex: faceIndex
+		};
+	}
+	/**
+	* Loads the bitmap into the sprite.
+	*/
+	loadBitmap() {
+		this.bitmap = ImageManager.loadFace(this._j._faceName);
+		const pw = ImageManager.faceWidth;
+		const ph = ImageManager.faceHeight;
+		const width = pw;
+		const height = ph;
+		const sw = Math.min(width, pw);
+		const sh = Math.min(height, ph);
+		const sx = Math.floor(this._j._faceIndex % 4 * pw + (pw - sw) / 2);
+		const sy = Math.floor(Math.floor(this._j._faceIndex / 4) * ph + (ph - sh) / 2);
+		this.setFrame(sx, sy, pw, ph);
+	}
 };
 
 //#endregion
@@ -8732,11 +8564,13 @@ var Sprite_Icon = class extends Sprite {
 		/**
 		* Whether or not the sprite is ready to be drawn yet.
 		* @type {boolean}
+		// policy step inside init members.
 		*/
 		this._j._isReady = false;
 		/**
 		* The icon index that this sprite represents.
 		* @type {number}
+		// policy step inside init members.
 		*/
 		this._j._iconIndex = 0;
 		/**
@@ -8945,11 +8779,13 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		/**
 		* The width of the gauge bitmap.
 		* @type {number}
+		// policy step inside init gauge members.
 		*/
 		this._gauge._bitmapWidth = bitmapWidth;
 		/**
 		* The height of the gauge bitmap.
 		* @type {number}
+		// policy step inside init gauge members.
 		*/
 		this._gauge._bitmapHeight = bitmapHeight;
 		/**
@@ -9245,11 +9081,13 @@ var Window_ActorRibbon = class extends Window_Base {
 		/**
 		* The actor in this window.
 		* @type {Game_Actor|null}
+		// policy step inside init members.
 		*/
 		this._actor = null;
 		/**
 		* The width of the actor face in the ribbon.
 		* @type {number}
+		// policy step inside init members.
 		*/
 		this._faceWidth = 128;
 		/**
@@ -10061,7 +9899,7 @@ Window_Command.prototype.hasCommands = function() {
 /**
 * Command row at {@link index}, or null when out of range (empty list, stale index, pre-refresh).
 *
-* @param {number} index
+* @param {number} index The index driving this step.
 * @returns {object|null}
 */
 Window_Command.prototype.commandEntryAt = function(index) {
@@ -10515,6 +10353,7 @@ var Window_MoreData = class Window_MoreData extends Window_Command {
 		/**
 		* The item we're displaying more data for.
 		* @type {RPG_EquipItem|RPG_UsableItem|null}
+		// policy step inside init members.
 		*/
 		this.item = null;
 		/**
@@ -10633,17 +10472,18 @@ var Window_MoreData = class Window_MoreData extends Window_Command {
 *
 * It can be added to any window that extends this or its subclasses.
 */
-J.BASE.Aliased.Window_Selectable.initialize = Window_Selectable.prototype.initialize;
+J.BASE.Aliased.Window_Selectable.set("initialize", Window_Selectable.prototype.initialize);
 Window_Selectable.prototype.initialize = function(rect) {
-	J.BASE.Aliased.Window_Selectable.initialize.call(this, rect);
+	J.BASE.Aliased.Window_Selectable.get("initialize").call(this, rect);
 	/**
 	* The "more data" window. Used for further elaborating on a particular selection.
+	// policy step inside initialize.
 	*
 	* @type {Window_MoreData}
 	*/
 	this._moreDataWindow = null;
 };
-J.BASE.Aliased.Window_Selectable.processHandling = Window_Selectable.prototype.processHandling;
+J.BASE.Aliased.Window_Selectable.set("processHandling", Window_Selectable.prototype.processHandling);
 Window_Selectable.prototype.processHandling = function() {
 	if (this.isOpenAndActive()) {
 		if (this.isMoreEnabled() && this.isMoreTriggered()) {
@@ -10665,7 +10505,7 @@ Window_Selectable.prototype.processHandling = function() {
 			return this.processActorNext();
 		}
 	}
-	return J.BASE.Aliased.Window_Selectable.processHandling.call(this);
+	return J.BASE.Aliased.Window_Selectable.get("processHandling").call(this);
 };
 /**
 * Gets whether or not "more" data has been provided.
@@ -10838,10 +10678,10 @@ Window_Selectable.prototype.callActorNextHandler = function() {
 /**
 * Extends the `.select()` to include a hook for executing logic onIndexChange.
 */
-J.BASE.Aliased.Window_Selectable.select = Window_Selectable.prototype.select;
+J.BASE.Aliased.Window_Selectable.set("select", Window_Selectable.prototype.select);
 Window_Selectable.prototype.select = function(index) {
 	const previousIndex = this._index;
-	J.BASE.Aliased.Window_Selectable.select.call(this, index);
+	J.BASE.Aliased.Window_Selectable.get("select").call(this, index);
 	if (previousIndex !== this._index) {
 		this.onIndexChange();
 	}

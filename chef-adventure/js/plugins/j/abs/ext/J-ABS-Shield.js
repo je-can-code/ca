@@ -735,16 +735,10 @@ Object.defineProperties(RPG_UsableItem.prototype, {
 			if (this.hasShieldBypass === false) {
 				return null;
 			}
-			J.ABS.EXT.SHIELD.RegExp.Bypass.lastIndex = 0;
-			const match = J.ABS.EXT.SHIELD.RegExp.Bypass.exec(this.note);
-			if (!match) {
+			if (this.isShieldBypassUniversal) {
 				return null;
 			}
-			if (!match[1] || String(match[1]).trim().length === 0) {
-				return null;
-			}
-			const list = RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass, true);
-			return list;
+			return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass, true);
 		},
 		configurable: true
 	},
@@ -755,8 +749,7 @@ Object.defineProperties(RPG_UsableItem.prototype, {
 	*/
 	hasShieldBypass: {
 		get: function() {
-			J.ABS.EXT.SHIELD.RegExp.Bypass.lastIndex = 0;
-			return J.ABS.EXT.SHIELD.RegExp.Bypass.test(this.note);
+			return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass);
 		},
 		configurable: true
 	},
@@ -770,12 +763,8 @@ Object.defineProperties(RPG_UsableItem.prototype, {
 			if (this.hasShieldBypass === false) {
 				return false;
 			}
-			J.ABS.EXT.SHIELD.RegExp.Bypass.lastIndex = 0;
-			const match = J.ABS.EXT.SHIELD.RegExp.Bypass.exec(this.note);
-			if (match && (!match[1] || String(match[1]).trim().length === 0)) {
-				return true;
-			}
-			return false;
+			const list = RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass, true, true);
+			return list === null;
 		},
 		configurable: true
 	},
@@ -787,7 +776,6 @@ Object.defineProperties(RPG_UsableItem.prototype, {
 	*/
 	shieldBonusFormulas: {
 		get: function() {
-			J.ABS.EXT.SHIELD.RegExp.ShieldDamage.lastIndex = 0;
 			const formulas = RPGManager.getStringsFromNoteByRegex(this, J.ABS.EXT.SHIELD.RegExp.ShieldDamage);
 			return Array.isArray(formulas) ? formulas : [];
 		},
@@ -814,24 +802,48 @@ ColorManager.shieldGauge2 = function() {
 
 //#endregion
 //#region src/plugins/abs/ext/shield/managers/TextManager.js
+/**
+* Display label for shield amplification — scales shield points applied to allies.
+* @returns {string}
+*/
 TextManager.sar = function() {
 	return "Shield Amp";
 };
+/**
+* Help text explaining how shield amplification strengthens outgoing shields.
+* @returns {string[]}
+*/
 TextManager.sarDescription = function() {
 	return ["Multiplier on shield points this battler applies to allies.", "Higher values create stronger outgoing shields."];
 };
+/**
+* Display label for shield efficiency — scales shield points received on self.
+* @returns {string}
+*/
 TextManager.ser = function() {
 	return "Shield Eff";
 };
+/**
+* Help text explaining how shield efficiency strengthens incoming shields.
+* @returns {string[]}
+*/
 TextManager.serDescription = function() {
 	return ["Multiplier on shield points received on this battler.", "Higher values strengthen incoming shields."];
 };
 
 //#endregion
 //#region src/plugins/abs/ext/shield/managers/IconManager.js
+/**
+* Icon index for shield amplification (outgoing shield multiplier) in parameter UI.
+* @returns {number}
+*/
 IconManager.sar = function() {
 	return 967;
 };
+/**
+* Icon index for shield efficiency (incoming shield multiplier) in parameter UI.
+* @returns {number}
+*/
 IconManager.ser = function() {
 	return 968;
 };
@@ -1515,13 +1527,17 @@ Sprite_Character.prototype.hideShieldGauge = function() {
 //#endregion
 //#region src/plugins/abs/ext/shield/core/registerShieldParameters.js
 /**
-* Registers shield amplification and effectiveness with the parameter catalog.
+* Boot-time registration for J-ABS-Shield parameters in {@link ParameterRegistry}.
 */
-function registerShieldParameters() {
-	ParameterRegistry.register(ParameterDefinition.Builder().key("sar").group(ParameterGroups.SUPPORT).sortOrder(0).label(() => TextManager.sar()).description(() => TextManager.sarDescription()).iconIndex(() => IconManager.sar()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.sar).sdpBinding(SdpParameterBinding.byKey("sar", () => 1)).build());
-	ParameterRegistry.register(ParameterDefinition.Builder().key("ser").group(ParameterGroups.SUPPORT).sortOrder(1).label(() => TextManager.ser()).description(() => TextManager.serDescription()).iconIndex(() => IconManager.ser()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.ser).sdpBinding(SdpParameterBinding.byKey("ser", () => 1)).build());
-}
-registerShieldParameters();
+var ShieldParameterRegistration = class {
+	/**
+	* Registers shield amplification and effectiveness with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("sar").group(ParameterGroups.SUPPORT).sortOrder(0).label(() => TextManager.sar()).description(() => TextManager.sarDescription()).iconIndex(() => IconManager.sar()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.sar).sdpBinding(SdpParameterBinding.byKey("sar", () => 1)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("ser").group(ParameterGroups.SUPPORT).sortOrder(1).label(() => TextManager.ser()).description(() => TextManager.serDescription()).iconIndex(() => IconManager.ser()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.ser).sdpBinding(SdpParameterBinding.byKey("ser", () => 1)).build());
+	}
+};
 
 //#endregion
 //#region src/plugins/abs/ext/shield/windows/Window_PartyFrame.js

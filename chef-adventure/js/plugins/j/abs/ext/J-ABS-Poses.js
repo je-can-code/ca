@@ -109,6 +109,7 @@ var J_PosesPluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible in the menu.
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 	}
@@ -168,6 +169,26 @@ J.ABS.EXT.POSES.RegExp.PoseSuffix = /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+
 
 */
 J.ABS.EXT.POSES.Helpers = {};
+/**
+* Whether a project-relative file exists under the game folder (desktop / NW.js).
+*
+* RMMZ's {@link StorageManager.localFileExists} only checks save slots (`save/name.rmmzsave`),
+* not arbitrary assets like `img/characters/...`. Engine {@link StorageManager} fs helpers
+* are save-oriented too. Poses is the sole consumer, so the check lives here — not in J-Base —
+* so the J-Base Vite ship does not bundle Node `fs` / Rolldown's `__commonJSMin` runtime.
+*
+* Incompatible with web-deployed builds (no local filesystem layout).
+*
+* @param {string} projectRelativePath Path from the game project root, e.g. `img/characters/Actor1.png`.
+* @returns {boolean} True when the file is present on disk.
+*/
+J.ABS.EXT.POSES.Helpers.gameAssetExists = function(projectRelativePath) {
+	const path = __require("path");
+	const fs = __require("fs");
+	const gameRoot = path.dirname(process.mainModule.filename);
+	const absolutePath = path.join(gameRoot, projectRelativePath);
+	return fs.existsSync(absolutePath);
+};
 
 //#endregion
 //#region src/plugins/abs/ext/poses/database/RPG_Skill.js
@@ -203,29 +224,6 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPoseIndex", { get: function() {
 Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration", { get: function() {
 	return this.jabsPoseData[2];
 } });
-
-//#endregion
-//#region src/plugins/abs/ext/poses/helpers/PoseAssetPaths.js
-/**
-* Whether a project-relative file exists under the game folder (desktop / NW.js).
-*
-* RMMZ's {@link StorageManager.localFileExists} only checks save slots (`save/name.rmmzsave`),
-* not arbitrary assets like `img/characters/...`. Engine {@link StorageManager} fs helpers
-* are save-oriented too. Poses is the sole consumer, so the check lives here — not in J-Base —
-* so the J-Base Vite ship does not bundle Node `fs` / Rolldown's `__commonJSMin` runtime.
-*
-* Incompatible with web-deployed builds (no local filesystem layout).
-*
-* @param {string} projectRelativePath Path from the game project root, e.g. `img/characters/Actor1.png`.
-* @returns {boolean} True when the file is present on disk.
-*/
-J.ABS.EXT.POSES.Helpers.gameAssetExists = function(projectRelativePath) {
-	const path = __require("path");
-	const fs = __require("fs");
-	const gameRoot = path.dirname(process.mainModule.filename);
-	const absolutePath = path.join(gameRoot, projectRelativePath);
-	return fs.existsSync(absolutePath);
-};
 
 //#endregion
 //#region src/plugins/abs/ext/poses/managers/JABS_Engine.js
@@ -273,6 +271,7 @@ JABS_Battler.prototype.initPoseInfo = function() {
 	/**
 	* The number of frames to pose for.
 	* @type {number}
+	// policy step inside init pose info.
 	*/
 	this._poseFrames = 0;
 	/**

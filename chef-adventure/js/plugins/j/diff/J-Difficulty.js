@@ -680,7 +680,7 @@ var J_DiffPluginMetadata = class J_DiffPluginMetadata extends PluginMetadata {
 	}
 	/**
 	* Updates the default layer with a new default.
-	* @param {DifficultyLayer} layer
+	* @param {DifficultyLayer} layer The layer driving this step.
 	*/
 	static updateDefaultLayer(layer) {
 		this.#default = layer;

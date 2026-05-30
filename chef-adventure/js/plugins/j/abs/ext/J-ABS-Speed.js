@@ -295,12 +295,16 @@ Game_Enemy.prototype.onBattlerDataChange = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/core/registerSpeedParameters.js
 /**
-* Registers move speed boost with the parameter catalog.
+* Boot-time registration for J-ABS-Speed parameters in {@link ParameterRegistry}.
 */
-function registerSpeedParameters() {
-	ParameterRegistry.register(ParameterDefinition.Builder().key("msb").group(ParameterGroups.MOBILITY).sortOrder(0).label(() => TextManager.movespeed()).description(() => TextManager.moveSpeedDescription()).iconIndex(() => IconManager.movespeed()).format(ParameterFormat.FLAT).getValue((battler) => battler.msb).sdpBinding(SdpParameterBinding.byKey("msb", () => 0)).build());
-}
-registerSpeedParameters();
+var SpeedParameterRegistration = class {
+	/**
+	* Registers move speed boost with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("msb").group(ParameterGroups.MOBILITY).sortOrder(0).label(() => TextManager.movespeed()).description(() => TextManager.moveSpeedDescription()).iconIndex(() => IconManager.movespeed()).format(ParameterFormat.FLAT).getValue((battler) => battler.msb).sdpBinding(SdpParameterBinding.byKey("msb", () => 0)).build());
+	}
+};
 
 //#endregion
 //# sourceMappingURL=J-ABS-Speed.js.map

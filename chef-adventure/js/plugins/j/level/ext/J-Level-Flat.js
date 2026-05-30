@@ -257,6 +257,7 @@ var JLevelMasterFlat_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The flat experience required to level up.
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.expPerLevel = Number(this.parsedPluginParameters["exp-per-level"]) || 1e3;
 		/**
@@ -500,7 +501,7 @@ Game_Actor.prototype.expForLevel = function(level) {
 */
 J.LEVEL.EXT.FLAT.Aliased.Game_Troop.set("expTotal", Game_Troop.prototype.expTotal);
 Game_Troop.prototype.expTotal = function() {
-	if (J.LEVEL.Metadata.enabled) {
+	if ($gameSystem.isLevelScalingEnabled()) {
 		return this.getFlatExpResult();
 	} else {
 		return J.LEVEL.EXT.FLAT.Aliased.Game_Troop.get("expTotal").call(this);

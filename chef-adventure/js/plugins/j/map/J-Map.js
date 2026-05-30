@@ -732,6 +732,7 @@ var Sprite_MiniMap = class extends Sprite {
 		/**
 		* The number of padding tiles applied on each side of the cached map.
 		* This is equal to MAP_RANGE and allows player-centered scrolling near edges.
+		// policy step inside init core data.
 		* @type {number}
 		*/
 		this._cacheOffsetTiles = 0;
@@ -775,6 +776,7 @@ var Sprite_MiniMap = class extends Sprite {
 		/**
 		* Full-map cached bitmap (map + padding around it), rebuilt per-map.
 		* @type {Bitmap}
+		// policy step inside init cache data.
 		*/
 		this._cacheBitmap = new Bitmap(1, 1);
 		/**
@@ -794,11 +796,13 @@ var Sprite_MiniMap = class extends Sprite {
 		/**
 		* Dynamic overlay bitmap drawn every frame (enemies, followers, etc.).
 		* @type {Bitmap}
+		// policy step inside init overlay layer.
 		*/
 		this._overlay = new Bitmap(this._width, this._height);
 		/**
 		* Sprite child for the overlay bitmap.
 		* @type {Sprite}
+		// policy step inside init overlay layer.
 		*/
 		this._overlaySprite = new Sprite(this._overlay);
 		this._overlaySprite.anchor.set(.5, .5);
@@ -815,6 +819,7 @@ var Sprite_MiniMap = class extends Sprite {
 		/**
 		* The minimap's frame sprite.
 		* @type {Sprite}
+		// policy step inside init frame layer.
 		*/
 		this._minimapFrameSprite = new Sprite(new Bitmap(this._width, this._height));
 		this._minimapFrameSprite.anchor.set(.5, .5);
@@ -1106,8 +1111,8 @@ var Sprite_MiniMap = class extends Sprite {
 	/**
 	* Draws one full map copy into the cache, offset by whole-tile origins.
 	* originTileX/Y are in cache tile space, relative to the cache’s (0,0).
-	* @param {number} originTileX
-	* @param {number} originTileY
+	* @param {number} originTileX The origin tile x driving this step.
+	* @param {number} originTileY The origin tile y driving this step.
 	* @param {number[]} flags - tileset flags (pre-fetched)
 	*/
 	drawMapCopyAt(originTileX, originTileY, flags) {
@@ -1408,7 +1413,7 @@ var Sprite_MiniMap = class extends Sprite {
 	* player's facing direction. The line sits near the tip of the faced arm
 	* and stays within the inner marker box to avoid clipping.
 	*
-	* @param {Bitmap} targetBitmap
+	* @param {Bitmap} targetBitmap The target bitmap driving this step.
 	* @param {number} lx - tile top-left x in pixels
 	* @param {number} ly - tile top-left y in pixels
 	* @param {number} sizePx - desired marker size in pixels
@@ -1691,6 +1696,10 @@ DataManager.registerMinimapInputActions = function() {
 
 //#endregion
 //#region src/plugins/map/core/managers/JABS_Engine.js
+/**
+* Extends {@link JABS_Engine.addLootDropToMap}.<br/>
+* Injects a minimap loot comment tag into freshly spawned loot events.
+*/
 J.MAP.Aliased.JABS_Engine.set("addLootDropToMap", JABS_Engine.prototype.addLootDropToMap);
 JABS_Engine.prototype.addLootDropToMap = function(x, y, item) {
 	const lootEvent = J.MAP.Aliased.JABS_Engine.get("addLootDropToMap").call(this, x, y, item);

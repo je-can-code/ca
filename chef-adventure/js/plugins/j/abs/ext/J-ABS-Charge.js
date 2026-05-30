@@ -292,18 +292,21 @@ var J_ChargePluginMetadata = class extends PluginMetadata {
 		/**
 		* The default charging animation id.
 		* 0 will yield no default animation.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.DefaultChargingAnimationId = parseInt(this.parsedPluginParameters["defaultChargingAnimId"]);
 		/**
 		* The default tier complete animation id.
 		* 0 will yield no default animation.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.DefaultTierCompleteAnimationId = parseInt(this.parsedPluginParameters["defaultTierCompleteAnimId"]);
 		/**
 		* The default fully charged animation id.
 		* 0 will yield no default animation.
+		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.DefaultFullyChargedAnimationId = parseInt(this.parsedPluginParameters["defaultFullyChargedAnimId"]);
@@ -474,11 +477,13 @@ JABS_Battler.prototype.initChargeData = function() {
 	/**
 	* Whether or not this battler is charging up a skill for use.
 	* @type {boolean}
+	// policy step inside init charge data.
 	*/
 	this._charging = false;
 	/**
 	* The slot associated with the current charging.
 	* @type {null|string}
+	// policy step inside init charge data.
 	*/
 	this._chargeSlot = null;
 	/**
@@ -642,7 +647,7 @@ JABS_Battler.prototype.canChargeSlot = function(slot) {
 	return true;
 };
 /**
-*
+* Begins charging the given slot after seeding tier data and guards.
 * @param {string} slot The slot to be charged.
 * @param {JABS_ChargingTier[]} chargingTiers The charging tier data.
 */
@@ -916,6 +921,10 @@ JABS_InputAdapter.canPerformCombatSkillCharging = function(jabsBattler) {
 
 //#endregion
 //#region src/plugins/abs/ext/charge/_models/JABS_InputController.js
+/**
+* Extends {@link JABS_StandardController.initMembers}.<br/>
+* Adds per-slot charge input delay timers for hold-to-charge skills.
+*/
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("initMembers", JABS_StandardController.prototype.initMembers);
 JABS_StandardController.prototype.initMembers = function() {
 	J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.get("initMembers").call(this);

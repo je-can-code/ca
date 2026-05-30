@@ -146,11 +146,13 @@ var JSkillSlots_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible in the menu.
 		* @type {number}
+		// policy step inside initialize metadata.
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 		/**
 		* The skill type IDs whose skills are eligible for equipping into slots.
 		* Skills of types not in this list are implicitly unslotted.
+		// policy step inside initialize metadata.
 		* When empty, all skills are eligible regardless of type.
 		* @type {number[]}
 		*/
@@ -202,23 +204,30 @@ J.SKS.RegExp.SlotCostModifier = /<slotCostModifier:[ ]?(-?\d+)>/i;
 //#endregion
 //#region src/plugins/sks/core/_models/SkillEquipSlot.js
 /**
-* Represents a single skill equipped in a slot for an actor.
-* Serialized into save data; uses a prototype constructor to remain JSON-safe.
-* @param {number} index - The index of the slot this entry occupies.
-* @param {number} skillId - The id of the skill equipped in this slot.
+* One equipped skill occupying a slot on an actor's skill-equip bar.
+* Serialized into save data via {@link JsonEx}; registered so bundled restores keep prototype methods.
 */
-function SkillEquipSlot(index, skillId) {
+var SkillEquipSlot = class {
 	/**
-	* The index of the slot this entry occupies.
-	* @type {number}
+	* Constructor.
+	* @param {number} index The index of the slot this entry occupies.
+	* @param {number} skillId The id of the skill equipped in this slot.
 	*/
-	this.index = index;
-	/**
-	* The id of the skill equipped in this slot.
-	* @type {number}
-	*/
-	this.skillId = skillId;
-}
+	constructor(index, skillId) {
+		/**
+		* The index of the slot this entry occupies.
+		* @type {number}
+		// policy step inside constructor.
+		*/
+		this.index = index;
+		/**
+		* The id of the skill equipped in this slot.
+		* @type {number}
+		*/
+		this.skillId = skillId;
+	}
+};
+SerializableRegistry.register(SkillEquipSlot);
 
 //#endregion
 //#region src/plugins/sks/core/database/RPG_Skill.js
@@ -967,11 +976,13 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		/**
 		* The currently highlighted slot index in the slots list.
 		* @type {number}
+		// policy step inside init primary members.
 		*/
 		this._j._sks._focusedSlotIndex = 0;
 		/**
 		* The last-known slot index, used for change detection.
 		* @type {number}
+		// policy step inside init primary members.
 		*/
 		this._j._sks._lastSlotIndex = -1;
 		/**
