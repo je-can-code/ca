@@ -645,6 +645,13 @@ Game_Battler.prototype.initPassiveRuleMembers = function() {
 	*/
 	this._j._passive._conditional._collectionFingerprint = String.empty;
 	/**
+	* Fingerprint computed by the current drift check, held briefly so the post-refresh
+	* alias can apply it directly instead of re-running both collectors a third time.
+	* Null outside of an active reconcilePassiveRules call.
+	* @type {string|null}
+	*/
+	this._j._passive._conditional._pendingFingerprint = null;
+	/**
 	* Throttled reconcile timer for map-side rule drift.
 	* @type {JABS_Timer}
 	*/
@@ -810,9 +817,17 @@ Game_Battler.prototype.buildPassiveCollectionFingerprint = function() {
 };
 /**
 * Stores the latest passive collection fingerprint after a refresh pass.<br/>
-* Becomes the baseline for subsequent drift checks on the map.
+* When called from within a {@link reconcilePassiveRules} cycle the pending fingerprint is
+* reused directly — the drift check already ran both collectors, so running them a third
+* time would be redundant.  Outside that cycle (e.g. equip/unequip) both collectors run
+* fresh to produce an accurate baseline.
 */
 Game_Battler.prototype.updatePassiveRuleCollectionFingerprint = function() {
+	const pending = this._j._passive._conditional._pendingFingerprint;
+	if (pending !== null) {
+		this._j._passive._conditional._collectionFingerprint = pending;
+		return;
+	}
 	this._j._passive._conditional._collectionFingerprint = this.buildPassiveCollectionFingerprint();
 };
 /**
@@ -823,7 +838,9 @@ Game_Battler.prototype.reconcilePassiveRules = function() {
 	const nextFingerprint = this.buildPassiveCollectionFingerprint();
 	const previousFingerprint = this._j._passive._conditional._collectionFingerprint;
 	if (nextFingerprint === previousFingerprint) return;
+	this._j._passive._conditional._pendingFingerprint = nextFingerprint;
 	this.refreshPassiveStates();
+	this._j._passive._conditional._pendingFingerprint = null;
 };
 /**
 * Returns the throttled reconcile timer used while this battler is active on the map.<br/>
