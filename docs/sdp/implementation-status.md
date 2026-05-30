@@ -4,7 +4,7 @@
 > do not rely on stale chat memory. Pair with [`work-items.md`](./work-items.md) (backlog)
 > and [`archetype-mapping.md`](./archetype-mapping.md) (design).
 
-Last updated: **2026-05-29** — policy: **finish all plugin/engine work before P4 content authoring.**
+Last updated: **2026-05-30** — policy: **finish all plugin/engine work before P4 content authoring.**
 
 ---
 
@@ -17,7 +17,7 @@ Last updated: **2026-05-29** — policy: **finish all plugin/engine work before 
 | **Subgroups** | ✅ | `config.sdp.json` → `subgroups[]`; panel `mastery.subgroupKey` + `subgroupTier`. |
 | **Families** | ✅ | `families[]` group `subgroupKeys[]`; panel family **derived** (not stored on panel). In-game **family strip**; L2/R2 cycle (All → Unknown → families with unlocked panels). |
 | **Passive affix ext** | ✅ | Renamed from `J-Passive-ABS` → **`J-Passive-Affix`** (`J.PASSIVE.EXT.AFFIX`); enemy prefix/suffix RNG + tier presentation. |
-| **Passive conditional ext** | ✅ scaffold | `J-Passive-Conditional` — HP threshold rules + passive refresh hook (v1.0.0). |
+| **Passive conditional ext** | ✅ | `J-Passive-Conditional` — three tag families (`passiveSourceRule`, `passiveStateRule`, `passiveStateCount`), full gate/stack evaluators wired into passive core via `canIncludePassiveStateFromSource` + `getPassiveStackContributionFromSource` hooks. Throttled map reconcile + movement/hit/attack timestamps. |
 | **Mastery enrollment vs skill** | ✅ | `enrolledInSubgroup()` vs `grantsMasterySkill()`. Tier contest only among panels with `masterySkillId > 0`. Org-only higher tiers do not strip lower mastery skills. |
 | **Family boot policy** | ⏳ | Unassigned subgroup → **Unknown** at runtime. **TODO:** throw at boot when CA hits **1.0.0** if any registered subgroup lacks a family. |
 
