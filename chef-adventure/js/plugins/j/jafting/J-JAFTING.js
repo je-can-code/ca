@@ -292,14 +292,12 @@ var JaftingSalvagePartyLedgerBag = class JaftingSalvagePartyLedgerBag {
 		/**
 		* Per stack slot lineage (null when that copy has no stamp).
 		*
-		// policy step inside constructor.
 		* @type {(JaftingSalvageLedgerSnapshot|null)[]}
 		*/
 		this.unitLedgers = [];
 		/**
 		* Merged dismantle rows (union of every non-empty {@link #unitLedgers} slot).
 		*
-		// policy step inside constructor.
 		* @type {JaftingSalvageLedgerRow[]}
 		*/
 		this.rows = [];
@@ -2021,7 +2019,6 @@ var Scene_Jafting = class extends Scene_MenuBase {
 		/**
 		* The window that lists Salvage, Creation, Refinement, and other registered JAFTING modes.
 		* @type {Window_JaftingList}
-		// policy step inside init primary members.
 		*/
 		this._j._crafting._commandList = null;
 		/**

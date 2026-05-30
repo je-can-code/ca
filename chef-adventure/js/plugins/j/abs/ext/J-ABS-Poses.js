@@ -109,7 +109,6 @@ var J_PosesPluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible in the menu.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 	}
@@ -271,7 +270,6 @@ JABS_Battler.prototype.initPoseInfo = function() {
 	/**
 	* The number of frames to pose for.
 	* @type {number}
-	// policy step inside init pose info.
 	*/
 	this._poseFrames = 0;
 	/**

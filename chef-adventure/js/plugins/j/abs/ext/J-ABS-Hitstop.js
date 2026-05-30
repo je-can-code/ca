@@ -95,26 +95,22 @@ var JHitstop_PluginMetadata = class extends PluginMetadata {
 		/**
 		* Default frames to use when a skill lacks `<hitstop:N>`.
 		* Typical values: 0–10. Keep subtle by default.
-		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.defaultHitstopFrames = 5;
 		/**
 		* Frames to add when the hit is a critical. Small bump keeps readability without camera FX.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.critBonusFrames = 15;
 		/**
 		* Guarded hits scale by this percent (e.g., 50 means half duration on guard).
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.guardScalePercent = 50;
 		/**
 		* Global maximum cap on frames to prevent long freezes.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.maxFrames = 60;
 		/**
@@ -287,7 +283,6 @@ var JABS_HitstopData = class {
 		/**
 		* The remaining hitstop frames for this entity.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._frames = 0;
 		/**

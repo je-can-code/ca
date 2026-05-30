@@ -257,7 +257,6 @@ var JLevelMasterFlat_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The flat experience required to level up.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.expPerLevel = Number(this.parsedPluginParameters["exp-per-level"]) || 1e3;
 		/**

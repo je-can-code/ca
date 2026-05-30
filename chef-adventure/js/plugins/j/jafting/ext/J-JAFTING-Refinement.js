@@ -968,14 +968,12 @@ var J_CraftingRefinePluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible
 		* in the menu.
-		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 		/**
 		* The name used for the command when visible in a menu.
 		* @type {string}
-		// policy step inside initialize metadata.
 		*/
 		this.commandName = this.parsedPluginParameters["menu-name"] ?? "Refinement";
 		/**
@@ -1461,13 +1459,11 @@ var Window_RefinableList = class extends Window_Command {
 		/**
 		* The currently selected index of this equip selection window.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._currentIndex = null;
 		/**
 		* Whether or not this equip list window is the primary equip or not.
 		* @type {boolean}
-		// policy step inside init members.
 		*/
 		this._isPrimaryEquipWindow = false;
 		/**
@@ -1719,14 +1715,12 @@ var Window_RefinementDetails = class extends Window_Base {
 		/**
 		* The primary equip that is the refinement target.
 		* Traits from the secondary equip will be transfered to this equip.
-		// policy step inside init members.
 		* @type {RPG_EquipItem}
 		*/
 		this._primaryEquip = null;
 		/**
 		* The secondary equip that is the refinement material.
 		* The transferable traits on this equip will be transfered to the target.
-		// policy step inside init members.
 		* @type {RPG_EquipItem}
 		*/
 		this._secondaryEquip = null;
@@ -2005,25 +1999,21 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		/**
 		* A grouping of all properties associated with the jafting type of refinement.
 		* Refinement is a subcategory of the jafting system.
-		// policy step inside init primary members.
 		*/
 		this._j._crafting._refine = {};
 		/**
 		* Phase tracking and atomic refine commit (keeps confirmation handler thin).
 		* @type {RefinementWorkflowSession}
-		// policy step inside init primary members.
 		*/
 		this._j._crafting._refine._session = new RefinementWorkflowSession();
 		/**
 		* Explains the current refinement step above the left-hand lists.
 		* @type {Window_RefinementStepHint}
-		// policy step inside init primary members.
 		*/
 		this._j._crafting._refine._refinementStepHint = null;
 		/**
 		* The window that shows the tertiary information about a refinable.
 		* @type {Window_RefinementDescription}
-		// policy step inside init primary members.
 		*/
 		this._j._crafting._refine._refinementDescription = null;
 		/**

@@ -557,13 +557,11 @@ var PanelMastery = class PanelMastery {
 		/**
 		* Subgroup key from the SDP configuration registry (empty when not enrolled).
 		* @type {string}
-		// policy step inside constructor.
 		*/
 		this.subgroupKey = subgroupKey;
 		/**
 		* Tier within the subgroup used for intra-subgroup mastery replacement.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.subgroupTier = subgroupTier;
 		/**
@@ -689,13 +687,11 @@ var PanelParameter = class {
 		/**
 		* The registry key of the parameter this class represents.
 		* @type {string}
-		// policy step inside constructor.
 		*/
 		this.parameterKey = parameterKey;
 		/**
 		* The amount per rank this parameter gives.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.perRank = perRank;
 		/**
@@ -728,13 +724,11 @@ var PanelRankupReward = class {
 		/**
 		* The name of this reward that shows up in the SDP scene.
 		* @type {string}
-		// policy step inside constructor.
 		*/
 		this.rewardName = rewardName;
 		/**
 		* The rank required for this panel rankup reward to be executed.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.rankRequired = rankRequired;
 		/**
@@ -765,13 +759,11 @@ var PanelIdentity = class PanelIdentity {
 		/**
 		* Friendly name for this SDP.
 		* @type {string}
-		// policy step inside constructor.
 		*/
 		this.name = name;
 		/**
 		* Icon index for this SDP.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.iconIndex = iconIndex;
 		/**
@@ -864,13 +856,11 @@ var PanelProgression = class PanelProgression {
 		/**
 		* Maximum rank for this SDP.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.maxRank = maxRank;
 		/**
 		* Panel rarity (**0–5**, Common..Godlike).
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.rarity = rarity;
 		/**
@@ -1079,13 +1069,11 @@ var StatDistributionPanel = class {
 		/**
 		* Unique identifier key that represents this SDP (root-level in config.sdp.json).
 		* @type {string}
-		// policy step inside constructor.
 		*/
 		this.key = key;
 		/**
 		* Presentation and unlock metadata for this panel.
 		* @type {PanelIdentity}
-		// policy step inside constructor.
 		*/
 		this.identity = identity;
 		/**
@@ -1808,7 +1796,6 @@ var PanelRanking = class {
 		/**
 		* The current rank for this panel ranking.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this.currentRank = 0;
 		/**
@@ -1942,7 +1929,6 @@ var PanelTracking = class {
 		/**
 		* The key of this panel that is being tracked.
 		* @type {string}
-		// policy step inside constructor.
 		*/
 		this.key = panelKey;
 		/**
@@ -2180,7 +2166,6 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		/**
 		* One rarity tier: base SDP, exponential coefficient, and growth base (**mult**).
 		* @type {{ baseCost: number, flatGrowthCost: number, multGrowthCost: number }}
-		// policy step inside initialize panel cost defaults by rarity.
 		*/
 		const row = (baseKey, flatKey, multKey, fbBase, fbFlat, fbMult) => {
 			return {
@@ -2192,7 +2177,6 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		/**
 		* Indexed **0–5** matching {@link PanelRarity} Common..Godlike.
 		* @type {Array<{ baseCost: number, flatGrowthCost: number, multGrowthCost: number }>}
-		// policy step inside initialize panel cost defaults by rarity.
 		*/
 		this.panelCostDefaultsByRarity = [
 			row("sdpDefaultCommonBase", "sdpDefaultCommonFlat", "sdpDefaultCommonMult", 0, 70, 1.06),
@@ -2293,14 +2277,12 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible
 		* in the menu.
-		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menuSwitch"], 0);
 		/**
 		* The icon index that represents the system itself.
 		* Used as the icon for costs and currency.
-		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.sdpIconIndex = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["sdpIcon"], 0);
@@ -2311,7 +2293,6 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		/**
 		* The name used for the command when visible in a menu.
 		* @type {string}
-		// policy step inside initialize metadata.
 		*/
 		this.commandName = this.parsedPluginParameters["menuCommandName"] ?? "Distribute";
 		/**
@@ -4305,7 +4286,6 @@ var Window_SdpConfirmation = class extends Window_Command {
 		/**
 		* The current mode of this confirmation window.
 		* - single: upgrade hovered panel once.
-		// policy step inside init members.
 		* - cart: checkout the queued cart.
 		* @type {string}
 		*/
@@ -4313,11 +4293,9 @@ var Window_SdpConfirmation = class extends Window_Command {
 		/**
 		* The summary of the current cart checkout, if applicable.
 		* @type {{
-		// policy step inside init members.
 		*   panelCount: number,
 		*   levelCount: number,
 		*   totalCost: number,
-		// policy step inside init members.
 		*   wallet: number,
 		*   remaining: number,
 		*   canAfford: boolean,

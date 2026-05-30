@@ -2075,7 +2075,6 @@ var J_Timer = class {
 		/**
 		* The maximum count this timer can reach.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this._timerMax = timerMax;
 		/**
@@ -2099,7 +2098,6 @@ var J_Timer = class {
 		/**
 		* A key or name for this timer.
 		* This is not strictly enforced by the timer, so this is for
-		// policy step inside init members.
 		* developer convenience if needed.
 		* @type {string}
 		*/
@@ -2507,7 +2505,6 @@ var SdpParameterBinding = class SdpParameterBinding {
 		/**
 		* Returns the bonus amount SDP panels contribute for this parameter.
 		* @type {function(Game_Actor, number): number}
-		// policy step inside constructor.
 		*/
 		this.getPanelBonus = getPanelBonus;
 		/**
@@ -8021,7 +8018,6 @@ Scene_Base.prototype.initMembers = function() {
 	/**
 	* Lazy-built on first {@link #getModalDimmerWindow}; {@link Scene_Boot} runs {@link #initMembers} before
 	* {@link $gameSystem} exists, so constructing {@link Window_Base} during init would crash in
-	// policy step inside init members.
 	* {@link Window_Base#resetFontSettings}.
 	* @type {Window_Dimmer|null}
 	*/
@@ -8132,19 +8128,16 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 		/**
 		* A test bitmap for measuring text width upon.
 		* @type {Bitmap}
-		// policy step inside init members.
 		*/
 		this._j._testBitmap = new Bitmap(512, 128);
 		/**
 		* The text to render in this sprite.
 		* @type {string}
-		// policy step inside init members.
 		*/
 		this._j._text = String.empty;
 		/**
 		* The text color index of this sprite.
 		* This should be a hexcode.
-		// policy step inside init members.
 		* @type {string}
 		*/
 		this._j._color = "#ffffff";
@@ -8564,13 +8557,11 @@ var Sprite_Icon = class extends Sprite {
 		/**
 		* Whether or not the sprite is ready to be drawn yet.
 		* @type {boolean}
-		// policy step inside init members.
 		*/
 		this._j._isReady = false;
 		/**
 		* The icon index that this sprite represents.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._j._iconIndex = 0;
 		/**
@@ -8779,13 +8770,11 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		/**
 		* The width of the gauge bitmap.
 		* @type {number}
-		// policy step inside init gauge members.
 		*/
 		this._gauge._bitmapWidth = bitmapWidth;
 		/**
 		* The height of the gauge bitmap.
 		* @type {number}
-		// policy step inside init gauge members.
 		*/
 		this._gauge._bitmapHeight = bitmapHeight;
 		/**
@@ -9081,13 +9070,11 @@ var Window_ActorRibbon = class extends Window_Base {
 		/**
 		* The actor in this window.
 		* @type {Game_Actor|null}
-		// policy step inside init members.
 		*/
 		this._actor = null;
 		/**
 		* The width of the actor face in the ribbon.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._faceWidth = 128;
 		/**
@@ -10353,7 +10340,6 @@ var Window_MoreData = class Window_MoreData extends Window_Command {
 		/**
 		* The item we're displaying more data for.
 		* @type {RPG_EquipItem|RPG_UsableItem|null}
-		// policy step inside init members.
 		*/
 		this.item = null;
 		/**
@@ -10477,7 +10463,6 @@ Window_Selectable.prototype.initialize = function(rect) {
 	J.BASE.Aliased.Window_Selectable.get("initialize").call(this, rect);
 	/**
 	* The "more data" window. Used for further elaborating on a particular selection.
-	// policy step inside initialize.
 	*
 	* @type {Window_MoreData}
 	*/

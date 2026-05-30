@@ -283,13 +283,11 @@ var J_TimingPluginMetadata = class extends PluginMetadata {
 		/**
 		* The base cast speed modifier applied globally before notetags.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.BaseCastSpeed = Number(this.parsedPluginParameters["baseCastSpeed"] ?? 0);
 		/**
 		* The minimum cast time in frames.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.MinimumCastTime = Number(this.parsedPluginParameters["minimumCastTime"] ?? 0);
 		/**

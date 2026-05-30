@@ -85,7 +85,6 @@ var JPassiveOTIB_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this scene is accessible in the menu.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.menuSwitchId = parseInt(this.parsedPluginParameters["menu-switch"]);
 	}
@@ -152,7 +151,6 @@ var OtibUnlockRecord = class {
 		/**
 		* The id of the database item that triggered this unlock.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.itemId = itemId;
 		/**

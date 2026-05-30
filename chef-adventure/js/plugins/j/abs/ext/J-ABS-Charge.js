@@ -292,21 +292,18 @@ var J_ChargePluginMetadata = class extends PluginMetadata {
 		/**
 		* The default charging animation id.
 		* 0 will yield no default animation.
-		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.DefaultChargingAnimationId = parseInt(this.parsedPluginParameters["defaultChargingAnimId"]);
 		/**
 		* The default tier complete animation id.
 		* 0 will yield no default animation.
-		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.DefaultTierCompleteAnimationId = parseInt(this.parsedPluginParameters["defaultTierCompleteAnimId"]);
 		/**
 		* The default fully charged animation id.
 		* 0 will yield no default animation.
-		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.DefaultFullyChargedAnimationId = parseInt(this.parsedPluginParameters["defaultFullyChargedAnimId"]);
@@ -477,13 +474,11 @@ JABS_Battler.prototype.initChargeData = function() {
 	/**
 	* Whether or not this battler is charging up a skill for use.
 	* @type {boolean}
-	// policy step inside init charge data.
 	*/
 	this._charging = false;
 	/**
 	* The slot associated with the current charging.
 	* @type {null|string}
-	// policy step inside init charge data.
 	*/
 	this._chargeSlot = null;
 	/**

@@ -259,7 +259,6 @@ var JPassiveAffix_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The default chance for a prefix to be applied.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.defaultPrefixChance = parseFloat(this.parsedPluginParameters["default-prefix-chance"]);
 		/**

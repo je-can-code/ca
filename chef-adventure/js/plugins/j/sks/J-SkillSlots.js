@@ -146,13 +146,11 @@ var JSkillSlots_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible in the menu.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 		/**
 		* The skill type IDs whose skills are eligible for equipping into slots.
 		* Skills of types not in this list are implicitly unslotted.
-		// policy step inside initialize metadata.
 		* When empty, all skills are eligible regardless of type.
 		* @type {number[]}
 		*/
@@ -217,7 +215,6 @@ var SkillEquipSlot = class {
 		/**
 		* The index of the slot this entry occupies.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.index = index;
 		/**
@@ -976,13 +973,11 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		/**
 		* The currently highlighted slot index in the slots list.
 		* @type {number}
-		// policy step inside init primary members.
 		*/
 		this._j._sks._focusedSlotIndex = 0;
 		/**
 		* The last-known slot index, used for change detection.
 		* @type {number}
-		// policy step inside init primary members.
 		*/
 		this._j._sks._lastSlotIndex = -1;
 		/**

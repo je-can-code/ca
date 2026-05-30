@@ -302,7 +302,6 @@ var SkillProficiency = class {
 		/**
 		* The skill id of the skill for this prof.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.skillId = skillId;
 		/**

@@ -411,11 +411,9 @@ Sprite_Character.prototype.initMembers = function() {
 	this._j._event = {
 		/**
 		* A grouping of all properties associated with text-based escriptions.
-		// policy step inside init members.
 		*/
 		_textDescribe: {
 			/**
-			// policy step inside init members.
 			* The text.
 			* @type {string}
 			*/
@@ -423,7 +421,6 @@ Sprite_Character.prototype.initMembers = function() {
 			/**
 			* The text sprite.
 			* @type {Sprite_BaseText}
-			// policy step inside init members.
 			*/
 			_sprite: null,
 			/**

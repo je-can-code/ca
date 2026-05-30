@@ -142,14 +142,12 @@ var JPixelistics_PluginMetadata = class extends PluginMetadata {
 		/**
 		* Whether or not 360-degree vector movement is enabled.
 		* When false, movement snaps to the standard 8 directions.
-		// policy step inside initialize metadata.
 		* @type {boolean}
 		*/
 		this.VectorMovementEnabled = this.parsedPluginParameters["vectorMovementEnabled"] === "true";
 		/**
 		* Frames after map setup during which player/event touch triggers underfoot are ignored.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.FootTouchEventDelayFrames = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["footTouchEventDelayFrames"], 15);
 		/**
@@ -681,26 +679,22 @@ Game_CharacterBase.prototype.initPixelMovementMembers = function() {
 	/**
 	* The pixel movement namespace, scoped under _j to avoid collisions
 	* with properties introduced by other plugins.
-	// policy step inside init pixel movement members.
 	*/
 	this._j._pixel ||= {};
 	/**
 	* The collection for tracking the {@link Point} coordinates for all members.
 	* This is managed in a first-in-first-out (FIFO) style.
-	// policy step inside init pixel movement members.
 	* @type {Point[]}
 	*/
 	this._j._pixel._positionalRecords ??= [];
 	/**
 	* Whether or not one of the directional inputs are being held down.
 	* @type {boolean} True if at least one direction is being held, false otherwise.
-	// policy step inside init pixel movement members.
 	*/
 	this._j._pixel._movePressing ??= false;
 	/**
 	* The move distance for tracking steps.
 	* @type {number}
-	// policy step inside init pixel movement members.
 	*/
 	this._j._pixel._moveDistance ??= 0;
 	/**

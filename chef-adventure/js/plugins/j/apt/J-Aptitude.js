@@ -164,13 +164,11 @@ var AptitudeLearning = class {
 		/**
 		* The id of the skill learned when achieving this learning.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.skillId = skillId;
 		/**
 		* The current AP towards achieving this learning.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.currentAp = currentAp;
 		/**
@@ -218,7 +216,6 @@ var AptitudeTeachable = class {
 		/**
 		* The id of the skill to learn.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.skillId = skillId;
 		/**
@@ -244,7 +241,6 @@ var AptitudeProgress = class {
 		/**
 		* The "type:id" unique key of the aptitude being learned.
 		* @type {string}
-		// policy step inside initialize.
 		*/
 		this.key = key;
 		/**
@@ -313,13 +309,11 @@ var AptitudeSkill = class {
 		/**
 		* The skill id that was learned.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.skillId = skillId;
 		/**
 		* Whether or not this aptitude skill is learned.
 		* @type {boolean}
-		// policy step inside initialize.
 		*/
 		this.learned = learned;
 		/**
@@ -587,13 +581,11 @@ var JAptitude_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that represents whether or not this system is accessible in the menu.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 		/**
 		* The maximum level difference between actor and enemy that allows AP gain.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.maxLevelThreshold = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["max-level-threshold"], NaN);
 		/**
@@ -2157,28 +2149,24 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		/**
 		* The last index tracked in the aggregate list window, per-actor.
 		* Keyed by actorId → number.
-		// policy step inside init primary members.
 		* @type {{[actorId:number]: number}}
 		*/
 		this._j._aptitude._lastAggregateIndexByActor = {};
 		/**
 		* The last index tracked in the source list window, per-actor.
 		* Keyed by actorId → number.
-		// policy step inside init primary members.
 		* @type {{[actorId:number]: number}}
 		*/
 		this._j._aptitude._lastSourceIndexByActor = {};
 		/**
 		* The current view mode for the aptitude windows.
 		* Toggle between "aggregate" and "source" views.
-		// policy step inside init primary members.
 		* @type {string}
 		*/
 		this._j._aptitude._viewMode = Scene_Aptitude.viewMode.AGGREGATE;
 		/**
 		* The aptitude aggregates for the current actor.
 		* @type {AptitudeSkillAggregate[]}
-		// policy step inside init primary members.
 		*/
 		this._j._aptitude._aggregates = [];
 		/**

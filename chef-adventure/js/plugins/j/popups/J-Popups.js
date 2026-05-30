@@ -84,7 +84,6 @@ var J_PopupsPluginMetadata = class extends PluginMetadata {
 		/**
 		* When true, queued map popups are suppressed.
 		* @type {boolean}
-		// policy step inside initialize metadata.
 		*/
 		this.disablePopups = this.parsedPluginParameters["disablePopups"] === "true";
 	}
@@ -933,25 +932,21 @@ var Map_TextPop = class {
 		/**
 		* The id of the icon to display alongside this `Map_TextPop`.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.iconIndex = iconIndex;
 		/**
 		* The color index for the text color.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.textColorIndex = textColorIndex;
 		/**
 		* The type of popup this is, such as damage, experience, loot, etc.
 		* @type {Map_TextPop.Types}
-		// policy step inside initialize.
 		*/
 		this.popupType = popupType;
 		/**
 		* The value to display on the sprite for this popup.
 		* @type {string}
-		// policy step inside initialize.
 		*/
 		this.value = value || String.empty;
 		/**
@@ -1052,19 +1047,16 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 		/**
 		* When true, child motion is frozen so totals can climb in place on the anchor.
 		* @type {boolean}
-		// policy step inside initialize.
 		*/
 		this._j._popups._mapAccumulatePhase = true;
 		/**
 		* Frame index into {@link #kickMergeCombinePulse}; {@link #_mergePulseTotalFrames} or greater means idle.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this._j._popups._mergePulseFrameIndex = 10;
 		/**
 		* How many frames the merge tally scale pulse currently runs.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this._j._popups._mergePulseTotalFrames = 10;
 		/**
@@ -1600,19 +1592,16 @@ Sprite_Damage.prototype.initMembers = function() {
 	/**
 	* The master reference to the `_j` object containing all plugin properties.
 	* @type {{}}
-	// policy step inside init members.
 	*/
 	this._j ||= {};
 	/**
 	* This plugins' relevant data points.
 	* @type {{}}
-	// policy step inside init members.
 	*/
 	this._j._popups ||= {};
 	/**
 	* Whether or not this damage is flagged as critical.
 	* @type {boolean}
-	// policy step inside init members.
 	*/
 	this._j._popups._isCritical = false;
 	/**
@@ -1945,7 +1934,6 @@ Sprite_Character.prototype.initMembers = function() {
 	/**
 	* The master reference to the `_j` object containing all plugin properties.
 	* @type {{}}
-	// policy step inside init members.
 	*/
 	this._j ||= {};
 	/**
@@ -2162,7 +2150,6 @@ Game_Character.prototype.initMembers = function() {
 	/**
 	* The master reference to the `_j` object containing all plugin properties.
 	* @type {{}}
-	// policy step inside init members.
 	*/
 	this._j ||= {};
 	/**

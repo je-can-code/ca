@@ -153,7 +153,6 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 		/**
 		* The cached collection of hud sprites.
 		* @type {Map<string, Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon|Sprite_BaseText>}
-		// policy step inside init members.
 		*/
 		this._hudSprites = new Map();
 	}
@@ -896,7 +895,6 @@ var Sprite_ActorValue = class extends Sprite {
 		/**
 		* The parameter being tracked by this sprite.
 		* @type {string}
-		// policy step inside init members.
 		*/
 		this._j._parameter = parameter;
 		/**

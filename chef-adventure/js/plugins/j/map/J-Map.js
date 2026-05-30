@@ -732,7 +732,6 @@ var Sprite_MiniMap = class extends Sprite {
 		/**
 		* The number of padding tiles applied on each side of the cached map.
 		* This is equal to MAP_RANGE and allows player-centered scrolling near edges.
-		// policy step inside init core data.
 		* @type {number}
 		*/
 		this._cacheOffsetTiles = 0;
@@ -776,7 +775,6 @@ var Sprite_MiniMap = class extends Sprite {
 		/**
 		* Full-map cached bitmap (map + padding around it), rebuilt per-map.
 		* @type {Bitmap}
-		// policy step inside init cache data.
 		*/
 		this._cacheBitmap = new Bitmap(1, 1);
 		/**
@@ -796,13 +794,11 @@ var Sprite_MiniMap = class extends Sprite {
 		/**
 		* Dynamic overlay bitmap drawn every frame (enemies, followers, etc.).
 		* @type {Bitmap}
-		// policy step inside init overlay layer.
 		*/
 		this._overlay = new Bitmap(this._width, this._height);
 		/**
 		* Sprite child for the overlay bitmap.
 		* @type {Sprite}
-		// policy step inside init overlay layer.
 		*/
 		this._overlaySprite = new Sprite(this._overlay);
 		this._overlaySprite.anchor.set(.5, .5);
@@ -819,7 +815,6 @@ var Sprite_MiniMap = class extends Sprite {
 		/**
 		* The minimap's frame sprite.
 		* @type {Sprite}
-		// policy step inside init frame layer.
 		*/
 		this._minimapFrameSprite = new Sprite(new Bitmap(this._width, this._height));
 		this._minimapFrameSprite.anchor.set(.5, .5);

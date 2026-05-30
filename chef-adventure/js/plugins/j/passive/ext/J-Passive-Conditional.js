@@ -666,6 +666,16 @@ Game_Battler.prototype.initPassiveRuleMembers = function() {
 	* @type {number}
 	*/
 	this._j._passive._conditional._lastAttackedFrame = 0;
+	/**
+	* Last known real X coordinate of the map character; seeded on first JABS update.
+	* @type {number|null}
+	*/
+	this._j._passive._conditional._lastTrackedX = null;
+	/**
+	* Last known real Y coordinate of the map character; seeded on first JABS update.
+	* @type {number|null}
+	*/
+	this._j._passive._conditional._lastTrackedY = null;
 };
 /**
 * Returns the last map frame this battler moved.<br/>
@@ -889,7 +899,7 @@ JABS_Battler.prototype.updatePassiveRuleMovementTracking = function() {
 	const tracker = battler._j._passive._conditional;
 	const currentX = character._realX;
 	const currentY = character._realY;
-	if (tracker._lastTrackedX === undefined) {
+	if (tracker._lastTrackedX === null) {
 		tracker._lastTrackedX = currentX;
 		tracker._lastTrackedY = currentY;
 		return;

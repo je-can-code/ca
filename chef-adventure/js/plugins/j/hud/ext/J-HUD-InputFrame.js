@@ -244,20 +244,17 @@ var Sprite_CooldownGauge = class extends Sprite {
 		this._j = {
 			/**
 			* The cooldown data this gauge is associated with.
-			// policy step inside init members.
 			* @type {JABS_Cooldown|null}
 			*/
 			_cooldownData: null,
 			/**
 			* The current value of the gauge.
 			* @type {number}
-			// policy step inside init members.
 			*/
 			_valueCurrent: 0,
 			/**
 			* The maximum value of the gauge.
 			* @type {number}
-			// policy step inside init members.
 			*/
 			_valueMax: 0,
 			/**
@@ -926,7 +923,6 @@ var Sprite_InputKeySlot = class extends Sprite {
 		/**
 		* The skill slot associated with this sprite.
 		* @type {JABS_SkillSlot|null}
-		// policy step inside init members.
 		*/
 		this._j._skillSlot = null;
 		/**
@@ -1415,13 +1411,11 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 		/**
 		* The battler of which to track inputs for.
 		* @type {Game_Actor}
-		// policy step inside init members.
 		*/
 		this._j._battler = null;
 		/**
 		* Whether or not the window needs a refresh internally.
 		* This is toggled after all draws are executed and tracked to
-		// policy step inside init members.
 		* prevent unnecessary redraws.
 		* @type {boolean}
 		*/

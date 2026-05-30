@@ -98,7 +98,6 @@ var J_RegionEffectsPluginMetadata = class extends PluginMetadata {
 		/**
 		* The global region ids that allow passage on all maps.
 		* @type {number[]}
-		// policy step inside initialize metadata.
 		*/
 		this.globalAllowRegions = J.REGIONS.Helpers.translateRegionIds(this.parsedPluginParameters["globalAllowRegions"]);
 		/**

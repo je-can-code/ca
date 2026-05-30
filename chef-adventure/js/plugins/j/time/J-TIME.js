@@ -680,19 +680,16 @@ var Time_Snapshot = class Time_Snapshot {
 		/**
 		* The seconds of the current time.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.seconds = seconds;
 		/**
 		* The minutes of the current time.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.minutes = minutes;
 		/**
 		* The hours of the current time.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.hours = hours;
 		/**
@@ -1171,37 +1168,31 @@ var Game_Time = class Game_Time {
 		/**
 		* The number of frames that must pass before we execute a tick.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._tickFrames ??= J.TIME.Metadata.FramesPerTick;
 		/**
 		* The number of seconds per tick.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._secondsPerTick ??= J.TIME.Metadata.SecondsPerIncrement;
 		/**
 		* The number of minutes per tick.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._minutesPerTick ??= J.TIME.Metadata.MinutesPerIncrement;
 		/**
 		* The number of hours per tick.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._hoursPerTick ??= J.TIME.Metadata.HoursPerIncrement;
 		/**
 		* The number of days per tick.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._daysPerTick ??= J.TIME.Metadata.DaysPerIncrement;
 		/**
 		* The number of months per tick.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._monthsPerTick ??= J.TIME.Metadata.MonthsPerIncrement;
 		/**
@@ -2322,7 +2313,6 @@ var Window_Time = class extends Window_Base {
 		/**
 		* The TIME rendered by this window.
 		* @type {Time_Snapshot}
-		// policy step inside init members.
 		*/
 		this.time = null;
 		/**

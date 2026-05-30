@@ -415,43 +415,36 @@ var JHudTarget_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The x coordinate of the target frame window.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.TargetFrameX = Number(this.parsedPluginParameters["targetFrameX"]);
 		/**
 		* The y coordinate of the target frame window.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.TargetFrameY = Number(this.parsedPluginParameters["targetFrameY"]);
 		/**
 		* The width of the target frame window.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.TargetFrameWidth = Number(this.parsedPluginParameters["targetFrameWidth"]);
 		/**
 		* The height of the target frame window.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.TargetFrameHeight = Number(this.parsedPluginParameters["targetFrameHeight"]);
 		/**
 		* The x coordinate of the background gauge image.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.BackgroundGaugeImageX = Number(this.parsedPluginParameters["backgroundGaugeImageX"]);
 		/**
 		* The y coordinate of the background gauge image.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.BackgroundGaugeImageY = Number(this.parsedPluginParameters["backgroundGaugeImageY"]);
 		/**
 		* The x coordinate of the middleground gauge image.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.MiddlegroundGaugeImageX = Number(this.parsedPluginParameters["middlegroundGaugeImageX"]);
 		/**
@@ -1761,17 +1754,14 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		/**
 		* The cached collection of sprites.
 		* @type {Map<string, Sprite_Icon|Sprite>}
-		// policy step inside init members.
 		*/
 		this._j._spriteCache = new Map();
 		/**
 		* The name to display in the name field.
 		*
-		// policy step inside init members.
 		* NOTE:
 		* This is separated out from the battler data itself so that it can be
 		* separately assigned to something different if the dev wanted to.
-		// policy step inside init members.
 		* @type {string}
 		*/
 		this._j._name = String.empty;
@@ -2238,7 +2228,6 @@ Scene_Map.prototype.initHudMembers = function() {
 	/**
 	* A grouping of all properties that belong to target extension
 	* of the HUD.
-	// policy step inside init hud members.
 	*/
 	this._j._hud._target = {};
 	/**

@@ -832,7 +832,6 @@ var Window_StatusStatList = class extends Window_Selectable {
 		this._j._cms_s._status._list ||= {
 			/**
 			* The actor whose stats are shown by this list.
-			// policy step inside  root.
 			* @type {Game_Actor|null}
 			*/
 			_actor: null,

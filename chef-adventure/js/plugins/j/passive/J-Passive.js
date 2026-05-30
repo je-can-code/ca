@@ -234,7 +234,6 @@ var JPassive_PluginMetadata = class extends PluginMetadata {
 		/**
 		* The id of a switch that controls whether the Passives command is visible in the menu.
 		* A value of 0 means always show, regardless of switch state.
-		// policy step inside initialize metadata.
 		* Configured via plugin parameter "menuSwitch".
 		* @type {number}
 		*/
@@ -625,6 +624,27 @@ Game_Battler.prototype.refreshPassiveStates = function() {
 	});
 };
 /**
+* Determines whether a passive state from a specific source may be included
+* in this battler's passive collection right now.<br/>
+* Returns true unconditionally in the base; extension plugins override to apply gate rules.
+* @param {RPG_BaseItem} baseItem Database row that declares the passive state id.
+* @param {number} stateId Passive state id being evaluated for inclusion.
+* @returns {boolean} Whether this source/state pair passes all gate conditions.
+*/
+Game_Battler.prototype.canIncludePassiveStateFromSource = function(_baseItem, _stateId) {
+	return true;
+};
+/**
+* Returns how many stacks one source contributes for a given passive state id.<br/>
+* Returns 1 unconditionally in the base; extension plugins override to scale by runtime context.
+* @param {RPG_BaseItem} baseItem Database row that declares the passive state id.
+* @param {number} stateId Passive state id being evaluated for stack contribution.
+* @returns {number} Stack contribution from this source (0 excludes it from the stack map).
+*/
+Game_Battler.prototype.getPassiveStackContributionFromSource = function(_baseItem, _stateId) {
+	return 1;
+};
+/**
 * Gets all unique passive state ids that are present across all sources this
 * battler owns.
 * @returns {Set<number>}
@@ -637,7 +657,10 @@ Game_Battler.prototype.getAllUniquePassiveStateIds = function() {
 		if (baseItem instanceof RPG_EquipItem) {
 			uniqueIds.push(...baseItem.uniqueEquippedPassiveStateIds);
 		}
-		uniqueIds.forEach((id) => uniquePassiveStateIds.add(id));
+		uniqueIds.forEach((id) => {
+			if (this.canIncludePassiveStateFromSource(baseItem, id) === false) return;
+			uniquePassiveStateIds.add(id);
+		}, this);
 	});
 	return uniquePassiveStateIds;
 };
@@ -656,13 +679,16 @@ Game_Battler.prototype.getAllStackablePassiveStateIds = function() {
 			stackableIds.push(...baseItem.equippedPassiveStateIds);
 		}
 		stackableIds.forEach((id) => {
+			if (this.canIncludePassiveStateFromSource(baseItem, id) === false) return;
+			const contribution = this.getPassiveStackContributionFromSource(baseItem, id);
+			if (contribution <= 0) return;
 			if (stackablePassiveStateIds.has(id)) {
 				const stack = stackablePassiveStateIds.get(id);
-				stackablePassiveStateIds.set(id, stack + 1);
+				stackablePassiveStateIds.set(id, stack + contribution);
 			} else {
-				stackablePassiveStateIds.set(id, 1);
+				stackablePassiveStateIds.set(id, contribution);
 			}
-		});
+		}, this);
 	});
 	return stackablePassiveStateIds;
 };

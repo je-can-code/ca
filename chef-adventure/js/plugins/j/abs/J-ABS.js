@@ -3234,7 +3234,6 @@ var J_AbsPluginMetadata = class extends PluginMetadata {
 		/**
 		* Global cooldown (GCD) plugin state: master switch, default duration in frames, and whitelist of skill {@code stypeId} values.
 		* {@link this.GlobalCooldownSkillTypeSet} is built from {@code globalCooldownSkillTypes} as JSON array or comma-separated legacy text.
-		// policy step inside initialize global cooldown metadata.
 		*/
 		this.EnableGlobalCooldown = this.parsedPluginParameters["enableGlobalCooldown"] === "true";
 		this.GlobalCooldownFrames = Number(this.parsedPluginParameters["globalCooldownFrames"]) || 30;
@@ -3895,13 +3894,11 @@ var JABS_Aabb = class JABS_Aabb {
 		/**
 		* The top-left x coordinate in pixels.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.x = x;
 		/**
 		* The top-left y coordinate in pixels.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.y = y;
 		/**
@@ -5375,20 +5372,17 @@ var JABS_BattlerRole = class {
 		/**
 		* Whether this battler coordinates nearby followers and decides their skills.
 		* @type {boolean}
-		// policy step inside initialize.
 		*/
 		this.leader = leader;
 		/**
 		* Whether this battler defers skill selection to a nearby leader.
 		* Idles on basic attacks when no leader is present on the map.
-		// policy step inside initialize.
 		* @type {boolean}
 		*/
 		this.follower = follower;
 		/**
 		* Whether this battler redirects aggro to protect a nearby ward.
 		* @type {boolean}
-		// policy step inside initialize.
 		*/
 		this.guardian = guardian;
 		/**
@@ -5448,13 +5442,11 @@ var JABS_BattleMemory = class {
 		/**
 		* The id of the battler targeted.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.battlerId = battlerId;
 		/**
 		* The id of the skill executed.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.skillId = skillId;
 		/**
@@ -6752,31 +6744,26 @@ var JABS_BattlerCoreData = class {
 		/**
 		* The id of the enemy that this battler represents.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this._battlerId = battlerId;
 		/**
 		* The id of the team this battler belongs to.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this._teamId = teamId;
 		/**
 		* The converted-from-binary AI of this battler.
 		* @type {JABS_EnemyAI}
-		// policy step inside initialize.
 		*/
 		this._battlerAI = battlerAI;
 		/**
 		* The structural coordination role of this battler.
 		* @type {JABS_BattlerRole}
-		// policy step inside initialize.
 		*/
 		this._battlerRole = battlerRole ?? new JABS_BattlerRole();
 		/**
 		* The base range that this enemy can and engage targets within.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this._sightRange = sightRange;
 		/**
@@ -8362,13 +8349,11 @@ var JABS_Aggro = class {
 		/**
 		* The unique identifier of the battler this aggro is tracked for.
 		* @type {string}
-		// policy step inside initialize.
 		*/
 		this.battlerUuid = uuid;
 		/**
 		* The numeric measurement of aggro from this battler.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.aggro = 0;
 		/**
@@ -8473,19 +8458,16 @@ var JABS_Cooldown = class {
 		/**
 		* The frames of the cooldown.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this.frames = 0;
 		/**
 		* Whether or not the base cooldown is ready.
 		* @type {boolean}
-		// policy step inside init members.
 		*/
 		this.ready = false;
 		/**
 		* The number of frames in which the combo action can be executed instead.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this.comboFrames = 0;
 		/**
@@ -8821,13 +8803,11 @@ var JABS_GuardData = class {
 		/**
 		* The skill this guard data is associated with.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.skillId = skillId;
 		/**
 		* The flat amount of damage reduced when guarding, if any.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.flatGuardReduction = flatGuardReduction;
 		/**
@@ -8896,7 +8876,6 @@ var JABS_SkillSlot = class {
 		/**
 		* The key of this skill slot.
 		*
-		// policy step inside initialize.
 		* Maps 1:1 to one of the possible skill slot button combinations.
 		* @type {string}
 		*/
@@ -8917,19 +8896,16 @@ var JABS_SkillSlot = class {
 		/**
 		* The combo id that comes after the current id; default is 0.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this.comboId = 0;
 		/**
 		* The cooldown associated with this slot.
 		* @type {JABS_Cooldown}
-		// policy step inside init members.
 		*/
 		this.cooldown = new JABS_Cooldown(this.key);
 		/**
 		* Whether or not this skill slot is locked.
 		*
-		// policy step inside init members.
 		* Locked slots cannot be changed until unlocked.
 		* @type {boolean}
 		*/
@@ -8952,13 +8928,11 @@ var JABS_SkillSlot = class {
 		/**
 		* Whether or not this skill slot's name needs refreshing.
 		* @type {boolean}
-		// policy step inside init visual refreshes.
 		*/
 		this.needsNameRefresh = true;
 		/**
 		* Whether or not this skill slot's item cost needs refreshing.
 		* @type {boolean}
-		// policy step inside init visual refreshes.
 		*/
 		this.needsItemCostRefresh = true;
 		/**
@@ -9353,19 +9327,16 @@ var JABS_Battler = class JABS_Battler {
 		/**
 		* The character/sprite that represents this battler on the map.
 		* @type {Game_Event|Game_Player|Game_Follower}
-		// policy step inside initialize.
 		*/
 		this._event = event;
 		/**
 		* The battler data that represents this battler's stats and information.
 		* @type {Game_Actor|Game_Enemy}
-		// policy step inside initialize.
 		*/
 		this._battler = battler;
 		/**
 		* Whether or not the battler is hidden.
 		* Hidden AI-controlled battlers (like enemies) will not take action, nor will they
-		// policy step inside initialize.
 		* be targetable.
 		* @type {boolean}
 		*/
@@ -9387,31 +9358,26 @@ var JABS_Battler = class JABS_Battler {
 		/**
 		* The id of the battler in the database.
 		* @type {number}
-		// policy step inside init core data.
 		*/
 		this._battlerId = battlerCoreData.battlerId();
 		/**
 		* The team that this battler fights for.
 		* @type {number}
-		// policy step inside init core data.
 		*/
 		this._team = battlerCoreData.team();
 		/**
 		* The distance this battler requires before it will engage with a non-allied target.
 		* @type {number}
-		// policy step inside init core data.
 		*/
 		this._sightRadius = battlerCoreData.sightRange();
 		/**
 		* The boost this battler gains to their sight range while alerted.
 		* @type {number}
-		// policy step inside init core data.
 		*/
 		this._alertedSightBoost = battlerCoreData.alertedSightBoost();
 		/**
 		* The distance this battler will allow for its target to be from itself before it disengages.
 		* @type {number}
-		// policy step inside init core data.
 		*/
 		this._pursuitRadius = battlerCoreData.pursuitRange();
 		/**
@@ -9481,7 +9447,6 @@ var JABS_Battler = class JABS_Battler {
 		/**
 		* The number of frames to fulfill the "prepare" phase of a battler's engagement.
 		* Only utilized by AI.
-		// policy step inside init from notes.
 		* @type {number}
 		*/
 		this._prepareMax = this.getPrepareTime();
@@ -9493,13 +9458,11 @@ var JABS_Battler = class JABS_Battler {
 		/**
 		* Whether or not the movement for this battler is locked.
 		* @type {boolean}
-		// policy step inside init general info.
 		*/
 		this._movementLock = false;
 		/**
 		* The timer that designates the "wait" for this battler.
 		* While this timer is active, this battler will "wait" until it completes
-		// policy step inside init general info.
 		* before taking any action.
 		* @type {JABS_Timer}
 		*/
@@ -9522,13 +9485,11 @@ var JABS_Battler = class JABS_Battler {
 		/**
 		* The distance in steps/tiles/squares that the dodge will move the battler.
 		* @type {number}
-		// policy step inside init dodge info.
 		*/
 		this._dodgeSteps = 0;
 		/**
 		* Whether or not this battler is dodging.
 		* @type {boolean}
-		// policy step inside init dodge info.
 		*/
 		this._dodging = false;
 		/**
@@ -9555,86 +9516,73 @@ var JABS_Battler = class JABS_Battler {
 		/**
 		* The id of the last skill that was executed by this battler.
 		* @type {number}
-		// policy step inside init battle info.
 		*/
 		this._lastUsedSkillId = 0;
 		/**
 		* The key of the slot that was last performed.
 		* @type {string}
-		// policy step inside init battle info.
 		*/
 		this._lastUsedSlot = String.empty;
 		/**
 		* First engine frame at which AI may attempt the pending combo follow-up (fair pacing).
 		* Zero means no gate is armed.
-		// policy step inside init battle info.
 		* @type {number}
 		*/
 		this._aiComboHumanizedReadyFrame = 0;
 		/**
 		* Earliest frame ({@link Graphics.frameCount}) at which AI may roll another defensive dodge interrupt.
 		* @type {number}
-		// policy step inside init battle info.
 		*/
 		this._aiDefensiveDodgeReadyFrame = 0;
 		/**
 		* Earliest frame ({@link Graphics.frameCount}) at which ally AI may roll another defensive guard raise.
 		* @type {number}
-		// policy step inside init battle info.
 		*/
 		this._aiAllyDefensiveGuardReadyFrame = 0;
 		/**
 		* Engine frame when ally AI last raised guard (for max-hold release); zero when not tracking.
 		* @type {number}
-		// policy step inside init battle info.
 		*/
 		this._aiAllyGuardRaiseFrame = 0;
 		/**
 		* The current phase of AI battling that this battler is in.
 		* Only utilized by AI.
-		// policy step inside init battle info.
 		* @type {number}
 		*/
 		this._phase = 1;
 		/**
 		* The counter for preparing an action to execute for the AI.
 		* Only utilized by AI.
-		// policy step inside init battle info.
 		* @type {number}
 		*/
 		this._prepareCounter = 0;
 		/**
 		* Whether or not this battler is finished with its "prepare" time and ready to
 		* advance to phase 2 of combat.
-		// policy step inside init battle info.
 		* @type {boolean}
 		*/
 		this._prepareReady = false;
 		/**
 		* The counter for after a battler's action is executed.
 		* Only utilized by AI.
-		// policy step inside init battle info.
 		* @type {number}
 		*/
 		this._postActionCooldown = 0;
 		/**
 		* The number of frames a skill requires as cooldown when executed by AI.
 		* Only utilized by AI.
-		// policy step inside init battle info.
 		* @type {number}
 		*/
 		this._postActionCooldownMax = 0;
 		/**
 		* Whether or not this battler is ready to return to it's prepare phase.
 		* Only utilized by AI.
-		// policy step inside init battle info.
 		* @type {boolean}
 		*/
 		this._postActionCooldownComplete = true;
 		/**
 		* The number of frames a skill requires prior to execution.
 		* @type {number}
-		// policy step inside init battle info.
 		*/
 		this._castTimeCountdown = 0;
 		/**
@@ -9783,7 +9731,6 @@ var JABS_Battler = class JABS_Battler {
 		/**
 		* The initial `x` coordinate of where this battler was placed in the RMMZ editor or
 		* was when the map was recreated (in the instance the RM user is leveraging a plugin that persists
-		// policy step inside init idle info.
 		* event location after a map transfer).
 		* @type {number}
 		*/
@@ -9791,7 +9738,6 @@ var JABS_Battler = class JABS_Battler {
 		/**
 		* The initial `y` coordinate of where this battler was placed in the RMMZ editor or
 		* was when the map was recreated (in the instance the RM user is leveraging a plugin that persists
-		// policy step inside init idle info.
 		* event location after a map transfer).
 		* @type {number}
 		*/
@@ -9799,7 +9745,6 @@ var JABS_Battler = class JABS_Battler {
 		/**
 		* Whether or not this battler is identified as idle. Idle battlers are not
 		* currently engaged, but instead executing their phase 0 movement pattern based on AI.
-		// policy step inside init idle info.
 		* Only utilized by AI.
 		* @type {boolean}
 		*/
@@ -14380,13 +14325,11 @@ var JABS_Engine = class JABS_Engine {
 		/**
 		* The `JABS_Battler` representing the player.
 		* @type {JABS_Battler}
-		// policy step inside initialize.
 		*/
 		this._player1 = null;
 		/**
 		* A collection to manage all JABS actions on this battle map.
 		* @type {JABS_Action[]}
-		// policy step inside initialize.
 		*/
 		this._actionEvents = [];
 		/**
@@ -17072,13 +17015,11 @@ var JABS_Action = class JABS_Action {
 		/**
 		* The `Game_Action` to bind to the `Game_Event` and `JABS_Battler`.
 		* @type {Game_Action}
-		// policy step inside constructor.
 		*/
 		this._gameAction = gameAction;
 		/**
 		* The base skill object, in case needed for something.
 		* @type {RPG_Skill}
-		// policy step inside constructor.
 		*/
 		this._baseSkill = gameAction.item();
 		/**
@@ -17137,7 +17078,6 @@ var JABS_Action = class JABS_Action {
 		/**
 		* The `Game_Event` this JABS action is bound to. Represents the visual aspect on the map.
 		* @type {Game_Event}
-		// policy step inside init visuals.
 		*/
 		Object.defineProperty(this, "_actionSprite", {
 			value: null,
@@ -17148,7 +17088,6 @@ var JABS_Action = class JABS_Action {
 		/**
 		* The animation id to be performed on the action itself upon execution.
 		* @type {number}
-		// policy step inside init visuals.
 		*/
 		this._selfAnimationId = this._baseSkill.jabsSelfAnimationId ?? 0;
 		/**
@@ -17180,13 +17119,11 @@ var JABS_Action = class JABS_Action {
 		/**
 		* The current timer on this particular action.
 		* @type {number}
-		// policy step inside init duration.
 		*/
 		this._currentDuration = 0;
 		/**
 		* Whether or not the visual of this map action needs removing.
 		* @type {boolean}
-		// policy step inside init duration.
 		*/
 		this._needsRemoval = false;
 		/**
@@ -17221,7 +17158,6 @@ var JABS_Action = class JABS_Action {
 		/**
 		* The duration remaining before this will action will autotrigger.
 		* @type {JABS_Timer}
-		// policy step inside init delay.
 		*/
 		this._delay._delayDuration = new JABS_Timer(this._baseSkill.jabsDelayDuration ?? 0);
 		/**
@@ -18281,7 +18217,6 @@ var JABS_SkillSlotManager = class {
 		/**
 		* All skill slots that a battler possesses.
 		*
-		// policy step inside init members.
 		* These are in a fixed order.
 		* @type {JABS_SkillSlot[]}
 		*/
@@ -20699,7 +20634,6 @@ Game_ActionResult.prototype.initialize = function() {
 	/**
 	* Whether or not the result was guarded.
 	* @type {boolean}
-	// policy step inside initialize.
 	*/
 	this.guarded = false;
 	/**
@@ -21617,7 +21551,6 @@ Game_Battler.prototype.initJabsMembers = function() {
 	/**
 	* The unique identifier of this battler.
 	* This is typically 6 characters long, including two pairs of 3 characters.
-	// policy step inside init jabs members.
 	* The characters used are one of the 16 available hexadecimal characters.
 	* This includes `0-9` and `A-F`.
 	* An example might be something like `a40-1f7`.
@@ -22291,7 +22224,6 @@ Game_Character.prototype.initJabsActionMembers = function() {
 	/**
 	* The actual action for this character.
 	* @type {JABS_Action|null}
-	// policy step inside init jabs action members.
 	*/
 	this._j._abs._action.actionData = null;
 	/**
@@ -22317,7 +22249,6 @@ Game_Character.prototype.initJabsBattlerMembers = function() {
 	/**
 	* The block of all battler-related data associated with this character.
 	* This is not combat battler data, but map battler data.
-	// policy step inside init jabs battler members.
 	*/
 	this._j._abs._battler = {};
 	/**
@@ -22337,7 +22268,6 @@ Game_Character.prototype.initJabsLootMembers = function() {
 	/**
 	* Whether or not this loot needs to be added to the map visually.
 	* @type {boolean}
-	// policy step inside init jabs loot members.
 	*/
 	this._j._abs._loot._needsAdding = false;
 	/**
@@ -24106,7 +24036,6 @@ Game_Party.prototype.initJabsPartyData = function() {
 	/**
 	* The master reference to the `_j` object containing all plugin properties.
 	* @type {{}}
-	// policy step inside init jabs party data.
 	*/
 	this._j ||= {};
 	/**
@@ -24728,19 +24657,16 @@ Scene_Map.prototype.initJabsMenu = function() {
 	/**
 	* The current focus that represents which submenu is selected.
 	* @type {string|null}
-	// policy step inside init jabs menu.
 	*/
 	this._j._absMenu._windowFocus = null;
 	/**
 	* The type of equip that is being equipped.
 	* @type {string|null}
-	// policy step inside init jabs menu.
 	*/
 	this._j._absMenu._equipType = null;
 	/**
 	* The primary list window of commands within the JABS menu.
 	* @type {Window_AbsMenu|null}
-	// policy step inside init jabs menu.
 	*/
 	this._j._absMenu._mainWindow = null;
 	/**
@@ -26099,13 +26025,11 @@ Sprite_Character.prototype.initCombatMembers = function() {
 	/**
 	* Whether or not the map sprite setup has been completed.
 	* @type {boolean}
-	// policy step inside init combat members.
 	*/
 	this._j._abs._jabsBattlerSetupComplete = false;
 	/**
 	* The state overlay sprite associated with this character's battler.
 	* @type {Sprite_StateOverlay|null}
-	// policy step inside init combat members.
 	*/
 	this._j._abs._stateOverlaySprite = null;
 	/**
@@ -26130,7 +26054,6 @@ Sprite_Character.prototype.initLootMembers = function() {
 	/**
 	* Whether or not the loot sprite setup has been completed.
 	* @type {boolean}
-	// policy step inside init loot members.
 	*/
 	this._j._abs._loot._lootSetupComplete = false;
 	/**

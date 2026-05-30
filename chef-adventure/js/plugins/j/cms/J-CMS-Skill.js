@@ -73,7 +73,6 @@ var JCMS_ParameterKvp = class {
 		/**
 		* The name of the parameter.
 		* @type {string}
-		// policy step inside constructor.
 		*/
 		this._name = name;
 		/**
@@ -124,7 +123,6 @@ var Window_SkillDetail = class extends Window_Base {
 		/**
 		* The skill id this window is currently presenting data for.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._skillId = null;
 		/**

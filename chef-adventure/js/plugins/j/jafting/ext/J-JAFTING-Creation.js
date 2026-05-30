@@ -278,7 +278,6 @@ var CraftingComponent = class CraftingComponent {
 		/**
 		* How many of this component is required.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this.#count = count;
 		/**
@@ -859,13 +858,11 @@ var RecipeTracking = class {
 		/**
 		* The key of this recipe that is being tracked.
 		* @type {string}
-		// policy step inside initialize.
 		*/
 		this.key = recipeKey;
 		/**
 		* True if the recipe associated with this key is unlocked,
 		* false otherwise.
-		// policy step inside initialize.
 		* @type {boolean}
 		*/
 		this.unlocked = unlocked;
@@ -936,13 +933,11 @@ var CategoryTracking = class {
 		/**
 		* The key of this category that is being tracked.
 		* @type {string}
-		// policy step inside initialize.
 		*/
 		this.key = key;
 		/**
 		* True if the category associated with this key is unlocked,
 		* false otherwise.
-		// policy step inside initialize.
 		* @type {boolean}
 		*/
 		this.unlocked = unlocked;
@@ -1203,14 +1198,12 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 		/**
 		* The id of a switch that represents whether or not this system is accessible
 		* in the menu.
-		// policy step inside initialize metadata.
 		* @type {number}
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 		/**
 		* The name used for the command when visible in a menu.
 		* @type {string}
-		// policy step inside initialize metadata.
 		*/
 		this.commandName = this.parsedPluginParameters["menu-name"] ?? "Creation";
 		/**
@@ -2829,19 +2822,16 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 		/**
 		* A grouping of all properties associated with the jafting type of creation.
 		* Creation is a subcategory of the jafting system.
-		// policy step inside init primary members.
 		*/
 		this._j._crafting._create = {};
 		/**
 		* Workflow state and craft attempts for this scene (keeps UI handlers thin).
 		* @type {CraftingCreationSession}
-		// policy step inside init primary members.
 		*/
 		this._j._crafting._create._session = new CraftingCreationSession();
 		/**
 		* The window that shows the tertiary information about a recipe or category.
 		* @type {Window_CreationDescription}
-		// policy step inside init primary members.
 		*/
 		this._j._crafting._create._creationDescription = null;
 		/**

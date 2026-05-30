@@ -267,7 +267,6 @@ var J_AllyAiPluginMetadata = class extends PluginMetadata {
 		/**
 		* All available formations that a party can take.
 		* @type {JABS_Formation[]}
-		// policy step inside initialize metadata.
 		*/
 		this.FormationTypes = [
 			{
@@ -588,14 +587,12 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 		/**
 		* When true this ally takes no actions and backs away from all targets.
 		* Overrides all axis behavior.
-		// policy step inside init members.
 		* @type {boolean}
 		*/
 		this._doNothing = false;
 		/**
 		* The risk axis: how aggressively this ally picks offensive skills.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this._risk = JABS_AllyAI.Risk.BALANCED;
 		/**
@@ -1811,13 +1808,11 @@ Scene_Map.prototype.initAllyAiMembers = function() {
 	/**
 	* The window containing the list of party members to adjust the AI for.
 	* @type {Window_AbsMenuSelect|null}
-	// policy step inside init ally ai members.
 	*/
 	this._j._absMenu._allyAiPartyWindow = null;
 	/**
 	* The window containing the list of AI strategies for use.
 	* @type {Window_AbsMenuSelect|null}
-	// policy step inside init ally ai members.
 	*/
 	this._j._absMenu._allyAiEquipWindow = null;
 	/**
@@ -2157,7 +2152,6 @@ Window_AbsMenuSelect.prototype.initJabsAllyAiMenuMembers = function() {
 	/**
 	* The actor id of the ally currently being managed via this window.
 	* @type {number}
-	// policy step inside init jabs ally ai menu members.
 	*/
 	this._j._chosenActorId = 0;
 };

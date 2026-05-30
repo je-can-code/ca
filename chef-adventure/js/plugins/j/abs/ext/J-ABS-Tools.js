@@ -133,7 +133,6 @@ var J_ToolsPluginMetadata = class extends PluginMetadata {
 		/**
 		* The behavior for whether or not the player can gap close to anything they hit, or if they
 		* can only gap close to targets bearing the "gap close target" tag.
-		// policy step inside initialize metadata.
 		*/
 		this.CanGapCloseByDefault = this.parsedPluginParameters["canGapCloseByDefault"] === "true";
 		/**

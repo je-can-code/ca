@@ -278,7 +278,6 @@ var J_NaturalGrowthPluginMetadata = class extends PluginMetadata {
 		/**
 		* The default base max TP for actors when notetag does not override.
 		* @type {number}
-		// policy step inside initialize natural growth.
 		*/
 		this.BaseTpMaxActors = Number(this.parsedPluginParameters["actorBaseTp"]);
 		/**
@@ -465,19 +464,16 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	/**
 	* The permanent flat bonus for max tp.
 	* @type {number}
-	// policy step inside init natural growth parameters.
 	*/
 	this._j._natural._maxTpGrowthPlus = 0;
 	/**
 	* The permanent multiplier bonus for max tp.
 	* @type {number}
-	// policy step inside init natural growth parameters.
 	*/
 	this._j._natural._maxTpGrowthRate = 0;
 	/**
 	* The cache of the temporary flat bonus for max tp.
 	* @type {number}
-	// policy step inside init natural growth parameters.
 	*/
 	this._j._natural._maxTpBuffPlus = 0;
 	/**

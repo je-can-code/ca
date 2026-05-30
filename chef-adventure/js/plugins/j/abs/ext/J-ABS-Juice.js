@@ -308,43 +308,36 @@ var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 		/**
 		* Target squish intensity scale for physical impacts (dimensionless scale delta).
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.targetPhysicalSquishIntensity = JabsJuiceConfigValidation.requireFloat(target.physicalSquishIntensity, "juice.target.physicalSquishIntensity");
 		/**
 		* Target squish intensity scale for magical impacts.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.targetMagicalSquishIntensity = JabsJuiceConfigValidation.requireFloat(target.magicalSquishIntensity, "juice.target.magicalSquishIntensity");
 		/**
 		* Frames to spend easing the target squish envelope.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.targetSquishFrames = JabsJuiceConfigValidation.requireInt(target.squishFrames, "juice.target.squishFrames");
 		/**
 		* Scalar applied to recipient squish when the incoming action is healing.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.healingRecipientSquishScale = JabsJuiceConfigValidation.requireFloat(target.healingRecipientScale, "juice.target.healingRecipientScale");
 		/**
 		* Percent (0–100) describing how strongly repeated hits decay juice amplitude within the flurry window.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.flurryDecayPercent = JabsJuiceConfigValidation.requireInt(target.flurryDecayPercent, "juice.target.flurryDecayPercent");
 		/**
 		* Dodge-only caster squish intensity (cooldown key matches dodge skill).
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.dodgeSquishIntensity = JabsJuiceConfigValidation.requireFloat(caster.dodgeSquishIntensity, "juice.caster.dodgeSquishIntensity");
 		/**
 		* Frames for dodge squish easing.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.dodgeSquishFrames = JabsJuiceConfigValidation.requireInt(caster.dodgeSquishFrames, "juice.caster.dodgeSquishFrames");
 		/**
@@ -973,13 +966,11 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 		/**
 		* Facing used for orbit / stab / spin geometry for this swing only (not live {@link Game_Character#direction}).
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this._swingDirection = swingDirection;
 		/**
 		* Stab tip axis (radians); ignored except stab-forward.
 		* @type {number}
-		// policy step inside constructor.
 		*/
 		this._stabTipAngleRadians = stabTipAngleRadians !== undefined && stabTipAngleRadians !== null && Number.isFinite(stabTipAngleRadians) ? stabTipAngleRadians : JuiceWeaponSwingMotionEffect.StabIconTipAngleRadians;
 		if (neutralBaseX !== undefined && neutralBaseX !== null && Number.isFinite(neutralBaseX) && neutralBaseY !== undefined && neutralBaseY !== null && Number.isFinite(neutralBaseY)) {

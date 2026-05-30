@@ -153,20 +153,17 @@ var MonsterpediaObservations = class {
 		/**
 		* The number of this monster that has been defeated by the player.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this.numberDefeated = 0;
 		/**
 		* Whether or not the player knows the name of this monster.
 		* When the name is unknown, it'll be masked.
-		// policy step inside init members.
 		* @type {boolean}
 		*/
 		this.knowsName = false;
 		/**
 		* Whether or not the player knows the family this monster belongs to.
 		* When the family is unknown, the icon will be omitted from the list and
-		// policy step inside init members.
 		* the family will be masked in the detail.
 		* @type {boolean}
 		*/
@@ -174,7 +171,6 @@ var MonsterpediaObservations = class {
 		/**
 		* Whether or not the player knows the description of this monster.
 		* When the description is unknown, it'll be masked.
-		// policy step inside init members.
 		* @type {boolean}
 		*/
 		this.knowsDescription = false;
@@ -1563,13 +1559,11 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		/**
 		* A grouping of all properties associated with the monsterpedia.
 		* The monsterpedia is a subcategory of the omnipedia..
-		// policy step inside init primary members.
 		*/
 		this._j._omni._monster = {};
 		/**
 		* The window that shows the list of percieved monsters.
 		* @type {Window_MonsterpediaList}
-		// policy step inside init primary members.
 		*/
 		this._j._omni._monster._pediaList = null;
 		/**

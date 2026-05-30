@@ -1027,13 +1027,11 @@ var TrackedOmniObjective = class {
 		/**
 		* The key of the quest that owns this objective. This is mostly used for metadata lookup.
 		* @type {string}
-		// policy step inside initialize.
 		*/
 		this.questKey = questKey;
 		/**
 		* The id of this objective. This is typically used to indicate order between objectives within a single quest.
 		* @type {number}
-		// policy step inside initialize.
 		*/
 		this.id = id;
 		/**
@@ -1062,19 +1060,16 @@ var TrackedOmniObjective = class {
 		/**
 		* The indiscriminate detail for completing this objective.
 		* @type {string}
-		// policy step inside initialize fulfillment data.
 		*/
 		this._indiscriminateTargetData = String.empty;
 		/**
 		* The target mapId that the target coordinates reside for a destination-type objective.
 		* @type {number}
-		// policy step inside initialize fulfillment data.
 		*/
 		this._targetMapId = -1;
 		/**
 		* The target coordinate range this objective requires the player to reach in order to fulfill the objective. This is
 		* designed to be a pair of coordinates that the player must reach within- and will be calculated as a rectangle
-		// policy step inside initialize fulfillment data.
 		* which means if the player is anywhere within the coordinate range, then the objective will be considered fulfilled.
 		* @type {[[number, number],[number, number]]}
 		*/
@@ -1082,7 +1077,6 @@ var TrackedOmniObjective = class {
 		/**
 		* The target item type that the player must acquire {@link _targetItemFetchQuantity} quantity of in order to fulfill
 		* the objective.
-		// policy step inside initialize fulfillment data.
 		* @type {number}
 		*/
 		this._targetItemType = -1;
@@ -1504,7 +1498,6 @@ var TrackedOmniQuest = class {
 		/**
 		* The primary key of the quest. This is a unique representation used for managing the quest.
 		* @type {string}
-		// policy step inside initialize.
 		*/
 		this.key = key;
 		/**
@@ -1527,7 +1520,6 @@ var TrackedOmniQuest = class {
 		/**
 		* The current state of this quest.
 		* @type {number}
-		// policy step inside init members.
 		*/
 		this.state = OmniQuest.States.Inactive;
 		/**
@@ -2110,13 +2102,11 @@ var J_QUEST_PluginMetadata = class J_QUEST_PluginMetadata extends PluginMetadata
 		/**
 		* The id of a switch that represents whether or not this system is accessible in the menu.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
 		/**
 		* When this switch is enabled, the command will be rendered into the command list as well.
 		* @type {number}
-		// policy step inside initialize metadata.
 		*/
 		this.enabledSwitchId = 104;
 		/**
@@ -2698,13 +2688,11 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		/**
 		* A grouping of all properties associated with the questopedia.
 		* The questopedia is a subcategory of the omnipedia.
-		// policy step inside init primary members.
 		*/
 		this._j._omni._quest = {};
 		/**
 		* The window that shows the categories a quest can be associated with.
 		* @type {Window_QuestopediaCategories}
-		// policy step inside init primary members.
 		*/
 		this._j._omni._quest._pediaCategories = null;
 		/**

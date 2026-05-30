@@ -220,7 +220,6 @@ JABS_Battler.prototype.initCoreData = function(battlerCoreData) {
 	/**
 	* Whether or not this battler's danger indicator is visible.
 	* Inanimate battlers do not show by default.
-	// policy step inside init core data.
 	* @type {boolean}
 	*/
 	this._showDangerIndicator = battlerCoreData.isInanimate() ? false : battlerCoreData.showDangerIndicator();
