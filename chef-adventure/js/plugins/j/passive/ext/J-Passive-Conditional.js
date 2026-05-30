@@ -8,7 +8,6 @@
  * @base J-Base
  * @base J-ABS
  * @base J-Passive
- * @base J-Passive-Affix
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @orderAfter J-Passive
