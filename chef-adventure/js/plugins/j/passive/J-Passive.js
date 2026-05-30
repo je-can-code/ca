@@ -508,6 +508,13 @@ Game_Battler.prototype.initPassiveStatesMembers = function() {
 	* @type {RPG_BaseItem[]}
 	*/
 	this._j._passive._externalStateSources = [];
+	/**
+	* Pre-filtered subset of passive sources rebuilt after each {@link #refreshPassiveStates}.
+	* Contains only sources that declare at least one passive state id; sources like weapon
+	* combat skills that carry no passive tags are excluded so drift checks skip them.
+	* @type {RPG_BaseItem[]}
+	*/
+	this._j._passive._passiveSources = [];
 };
 /**
 * Get all currently known passive state ids this battler has.
@@ -522,6 +529,39 @@ Game_Battler.prototype.getPassiveStateIds = function() {
 */
 Game_Battler.prototype.passiveExternalStateSources = function() {
 	return this._j._passive._externalStateSources;
+};
+/**
+* Returns the pre-filtered list of passive-capable sources from the last refresh.<br/>
+* Contains only sources that declared at least one passive state id.
+* @returns {RPG_BaseItem[]}
+*/
+Game_Battler.prototype.passiveCapableSources = function() {
+	return this._j._passive._passiveSources;
+};
+/**
+* Rebuilds the filtered list of passive-capable sources from the full source list.<br/>
+* Called at the end of {@link #refreshPassiveStates} so the conditional ext's drift
+* fingerprint builder has a short list to iterate instead of the full source roster.
+*/
+Game_Battler.prototype.cachePassiveCapableSources = function() {
+	const allSources = this.getPassiveStateSources();
+	this._j._passive._passiveSources = allSources.filter((source) => this.sourceHasAnyPassiveIds(source));
+};
+/**
+* Whether a source has any passive state ids on any passive tag variant.<br/>
+* Accounts for unique vs stackable and for equip-specific passive id properties.
+* All reads hit the {@link RPGManager} WeakMap cache so no regex work occurs here.
+* @param {RPG_BaseItem} source The source to inspect.
+* @returns {boolean} True when this source carries at least one passive state id.
+*/
+Game_Battler.prototype.sourceHasAnyPassiveIds = function(source) {
+	if (source.passiveStateIds && source.passiveStateIds.length > 0) return true;
+	if (source.uniquePassiveStateIds && source.uniquePassiveStateIds.length > 0) return true;
+	if (source instanceof RPG_EquipItem) {
+		if (source.equippedPassiveStateIds && source.equippedPassiveStateIds.length > 0) return true;
+		if (source.uniqueEquippedPassiveStateIds && source.uniqueEquippedPassiveStateIds.length > 0) return true;
+	}
+	return false;
 };
 /**
 * Adds a collection of state ids to the external passive state ids list.
@@ -622,6 +662,7 @@ Game_Battler.prototype.refreshPassiveStates = function() {
 			times--;
 		}
 	});
+	this.cachePassiveCapableSources();
 };
 /**
 * Determines whether a passive state from a specific source may be included
