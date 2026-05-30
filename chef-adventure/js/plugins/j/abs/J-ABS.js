@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.12.1 JABS] Enables combat to be carried out on the map.
+ * [v4.12.2 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -47,6 +47,11 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.12.2
+ *    Fixed a bug where `JABS_SkillSlot.canBeAutocleared` was missing Mainhand and
+ *    Offhand from its protected-slots list, causing those slots to be wiped by
+ *    `removeInvalidSkills` any time a proficiency conditional taught the actor a new
+ *    skill (or any other mid-refresh skill-learn path).
  * - 4.12.1
  *    Arc hitbox (`<hitbox:arc>`) collision now correctly registers hits against large enemies
  *    whose AABB center falls outside the wedge sweep but whose edge or corner overlaps it.
@@ -3412,7 +3417,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.12.1");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.12.2");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -9295,7 +9300,11 @@ var JABS_SkillSlot = class {
 	* @returns {boolean}
 	*/
 	canBeAutocleared() {
-		const noAutoclearSlots = [JABS_Button.Tool];
+		const noAutoclearSlots = [
+			JABS_Button.Mainhand,
+			JABS_Button.Offhand,
+			JABS_Button.Tool
+		];
 		return !noAutoclearSlots.includes(this.key);
 	}
 };
@@ -13280,7 +13289,7 @@ var JABS_Battler = class JABS_Battler {
 		const s = state;
 		let result;
 		try {
-			result = eval(formula) * -1;
+			result = new Function("a", "b", "v", "s", `return (${formula})`)(a, b, v, s) * -1;
 			if (!Number.isFinite(result)) {
 				console.warn("result was: ", result);
 				throw new Error("Invalid formula.");
@@ -18514,7 +18523,7 @@ SerializableRegistry.register(JABS_SkillSlotManager);
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.12.1";
+var PLUGIN_VERSION = "4.12.2";
 var PLUGIN_DESC_TAG = "JABS";
 
 //#endregion

@@ -331,7 +331,7 @@ var Window_SkillDetail = class extends Window_Base {
 			}
 		}
 		const sign = [3, 4].includes(skill.damage.type) ? -1 : 1;
-		const value = Math.round(Math.max(eval(skill.damage.formula), 0));
+		const value = Math.round(Math.max(new Function("a", "b", "v", "p", `return (${skill.damage.formula})`)(a, b, v, p), 0));
 		const potential = isNaN(value) ? 0 : value;
 		const color = sign > 0 ? 10 : 24;
 		return new JCMS_ParameterKvp(`\\C[${color}]Raw Damage\\C[0]`, potential);

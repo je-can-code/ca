@@ -6,6 +6,8 @@
 
 Last updated: **2026-05-30** — policy: **finish all plugin/engine work before P4 content authoring.**
 
+> See **Tag authoring reference** at the bottom of this file for full notetag cookbook.
+
 ---
 
 ## Shipped (runtime — `rmmz-plugins`)
@@ -17,7 +19,7 @@ Last updated: **2026-05-30** — policy: **finish all plugin/engine work before 
 | **Subgroups** | ✅ | `config.sdp.json` → `subgroups[]`; panel `mastery.subgroupKey` + `subgroupTier`. |
 | **Families** | ✅ | `families[]` group `subgroupKeys[]`; panel family **derived** (not stored on panel). In-game **family strip**; L2/R2 cycle (All → Unknown → families with unlocked panels). |
 | **Passive affix ext** | ✅ | Renamed from `J-Passive-ABS` → **`J-Passive-Affix`** (`J.PASSIVE.EXT.AFFIX`); enemy prefix/suffix RNG + tier presentation. |
-| **Passive conditional ext** | ✅ | `J-Passive-Conditional` — three tag families (`passiveSourceRule`, `passiveStateRule`, `passiveStateCount`), full gate/stack evaluators wired into passive core via `canIncludePassiveStateFromSource` + `getPassiveStackContributionFromSource` hooks. Throttled map reconcile + movement/hit/attack timestamps. |
+| **Passive conditional ext** | ✅ | `J-Passive-Conditional` — three tag families (`passiveSourceRule`, `passiveStateRule`, `passiveStateCount`), full gate/stack evaluators wired into passive core via `canIncludePassiveStateFromSource` + `getPassiveStackContributionFromSource` hooks. Throttled map reconcile + movement/hit/attack/heal timestamps. `onHealHp/Mp/Tp` gate kinds added in 1.1.0. |
 | **Mastery enrollment vs skill** | ✅ | `enrolledInSubgroup()` vs `grantsMasterySkill()`. Tier contest only among panels with `masterySkillId > 0`. Org-only higher tiers do not strip lower mastery skills. |
 | **Family boot policy** | ⏳ | Unassigned subgroup → **Unknown** at runtime. **TODO:** throw at boot when CA hits **1.0.0** if any registered subgroup lacks a family. |
 
@@ -113,9 +115,11 @@ Requires **`isHit()`** and **`hpDamage > 0`**. Steal applies to the **attacker**
 
 Survey [`work-items.md`](./work-items.md) P3-1…P3-12. Build when a planned mastery passive needs it; suggested batch:
 
-1. **P3-10 heal-event hooks** — Cleric/Medic/Emotion/Jelly masteries
-2. **P3-1 on-crit state apply** — Cobra Venom Strike
-3. **P3-5 resistance piercing** — Elemental Saturation
+| # | Item | Status |
+|---|---|---|
+| P3-1 | **On-crit state application** (`J-CriticalFactors` 1.1.0) | ✅ — `onCritApply/Self`, `thisCritApply/Self` |
+| P3-10 | **Heal-event hooks** (`J-Resources-ABS` 1.1.0 + `J-Base` 3.3.0) | ✅ — `onSelf*Heal*`, `onAlly*Heal*`, `onHealHp/Mp/Tp` passive gates |
+| P3-5 | **Resistance piercing** (`J-Elementalistics` 1.1.0) | ✅ — `pierceElement`, `thisPierceElement` |
 4. **P3-9 shield-break explosion** — Runic Orb (hook may exist)
 5. Remaining P3 as masteries are scoped (skill history, viral debuff, AoE scale, pixel movement-to-damage, cast-time scale, MP shield, item splash, single-target hit inference)
 
@@ -142,6 +146,195 @@ Survey [`work-items.md`](./work-items.md) P3-1…P3-12. Build when a planned mas
 3. **CMS breakdown** for registry keys (lst, gdr, …).
 4. **P3 hooks** — batch per mastery dependency list above.
 5. **Then** P4 content (`config.sdp.json`, States.json, maps).
+
+---
+
+## Tag authoring reference
+
+> Cookbook for mastery state / skill authoring. All tags below are live and built.
+> Put them on a **state** (or any notetag source) and they work.
+
+---
+
+### Passive conditional gates — J-Passive-Conditional
+
+A passive state only contributes its traits while ALL its `passiveSourceRule` gates pass.
+
+**Tag:** `<passiveSourceRule:[KIND, PARAM]>` on the passive state.
+
+| Gate kind | Behavior |
+|---|---|
+| `hpAbove:X` | HP% ≥ X |
+| `hpBelow:X` | HP% ≤ X |
+| `mpAbove:X` / `mpBelow:X` | same for MP |
+| `tpAbove:X` / `tpBelow:X` | same for TP |
+| `stateApplied:ID` | battler has state ID active |
+| `noStateApplied:ID` | battler does NOT have state ID |
+| `allOffCooldown` | no skill slots are cooling down |
+| `sinceLastMoved:F` | hasn't moved in ≥ F frames |
+| `movedWithin:F` | moved within the last F frames |
+| `sinceLastHit:F` | hasn't taken damage in ≥ F frames |
+| `hitWithin:F` | took damage within the last F frames |
+| `sinceLastAttacked:F` | hasn't used a skill in ≥ F frames |
+| `attackedWithin:F` | used a skill within the last F frames |
+| `onHealHp:F` | received HP healing within the last F frames |
+| `onHealMp:F` | received MP healing within the last F frames |
+| `onHealTp:F` | received TP healing within the last F frames |
+| `enemiesNearby:N` | ≥ N enemies within pursuit range |
+| `alliesNearby:N` | ≥ N allies within pursuit range |
+
+Multiple rules on the same state are **AND**-ed. Examples:
+
+```
+// active only while below 30% HP and having taken damage in the last 2 seconds (120f)
+<passiveSourceRule:[hpBelow, 30]>
+<passiveSourceRule:[hitWithin, 120]>
+
+// active only while standing still for at least 3 seconds (180f) — Polliwog Rooted Barrage
+<passiveSourceRule:[sinceLastMoved, 180]>
+
+// active for 1 second after receiving any HP heal — post-heal buff
+<passiveSourceRule:[onHealHp, 60]>
+```
+
+Passive **stack count** modifier: `<passiveStateCount:[FORMULA_USING_STACKS]>` — scales traits by stack multiplier.  
+Passive **state rule**: `<passiveStateRule:[STATE_ID, KIND, PARAM]>` — applies a secondary state when the gate passes.
+
+---
+
+### On-crit state application — J-CriticalFactors
+
+Tags apply to **any notetag source** (actor, class, equip, skill, state). Two scopes:
+
+- **`onCrit*`** — fires whenever this battler lands any crit; reads all `getAllNotes()` sources.
+- **`thisCrit*`** — fires only when this specific **skill** crits; put on the skill itself.
+
+| Tag | Target | When fires |
+|---|---|---|
+| `<onCritApply:[STATE_ID, CHANCE]>` | the enemy being hit | any crit from this battler |
+| `<onCritSelf:[STATE_ID, CHANCE]>` | the battler critting | any crit from this battler |
+| `<thisCritApply:[STATE_ID, CHANCE]>` | the enemy being hit | only when this skill crits |
+| `<thisCritSelf:[STATE_ID, CHANCE]>` | the battler critting | only when this skill crits |
+
+`CHANCE` is an integer 1–100 (percent). `STATE_ID` is the database state ID.
+
+Examples:
+
+```
+// Cobra Venom Strike — any crit has 40% to apply Poison (state 14) to the target
+<onCritApply:[14, 40]>
+
+// Cobra passive — wearing this armor, all crits have 15% to also apply Blind (state 22)
+// (on the armor's notetag — reads via getAllNotes())
+<onCritApply:[22, 15]>
+
+// This specific skill — on crit, 100% apply Burning (state 7) to target
+<thisCritApply:[7, 100]>
+
+// On crit, this battler gains Adrenaline (state 55) for the rush
+<onCritSelf:[55, 60]>
+```
+
+---
+
+### Heal event cascades — J-Resources-ABS
+
+Tags apply to **any notetag source** (actor, class, equip, skill, state).  
+Format: `[PERCENT, RANGE]` where PERCENT is an integer (50 = 50% of the triggering heal) and RANGE is tile radius (0 = self only).
+
+**`onSelf` family** — when THIS battler's trigger resource is healed:
+
+| Tag | What happens |
+|---|---|
+| `<onSelfHpHealHp:[PCT, R]>` | HP heal → also heal self (+ allies in R tiles) for PCT% as HP |
+| `<onSelfHpHealMp:[PCT, R]>` | HP heal → also restore PCT% as MP |
+| `<onSelfHpHealTp:[PCT, R]>` | HP heal → also restore PCT% as TP |
+| `<onSelfMpHealHp/Mp/Tp:[PCT, R]>` | same, triggered by MP healing |
+| `<onSelfTpHealHp/Mp/Tp:[PCT, R]>` | same, triggered by TP healing |
+| `<onSelfAnyHealHp/Mp/Tp:[PCT, R]>` | triggers on ANY resource healing |
+
+**`onAlly` family** — when an ALLY within RANGE tiles is healed, the bearer receives secondary:
+
+| Tag | What happens |
+|---|---|
+| `<onAllyHpHealHp:[PCT, R]>` | ally within R tiles gets HP healed → this battler also gains PCT% of that as HP |
+| `<onAllyHpHealMp:[PCT, R]>` | ally healed → restore PCT% of their heal as MP to self |
+| `<onAllyAnyHealHp:[PCT, R]>` | ally healed for anything → gain PCT% as HP |
+| *(etc — 12 total onAlly variants)* | |
+
+Cascades chain naturally and stop at `healChainDepth` (default 5, plugin parameter).
+
+Examples:
+
+```
+// Jelly Mana Transfusion — HP heals also restore 50% as MP, self only
+<onSelfHpHealMp:[50, 0]>
+
+// Jelly splash — HP heals also splash 25% HP to allies within 3 tiles
+<onSelfHpHealHp:[25, 3]>
+
+// Emotion Empathic Bond — when an ally within 4 tiles is HP healed, I also gain 30% of it
+<onAllyHpHealHp:[30, 4]>
+
+// Momentum healing — any heal (HP, MP, or TP) restores 10% of its value as TP (charge through recovery)
+<onSelfAnyHealTp:[10, 0]>
+
+// Conditional passive: "I become more powerful for 1 second after any HP heal"
+// Put on the passive state's notetag:
+<passiveSourceRule:[onHealHp, 60]>
+```
+
+---
+
+### Resistance piercing — J-Elementalistics
+
+Tags reduce a target's effective elemental resistance, nudging it toward neutral (1.0×) damage.  
+Pierce **never** turns a resistance into a weakness, and it has no effect on weaknesses or absorbed elements.
+
+Two scopes are available:
+
+- **`pierceElement`** — reads from the attacker's full `getAllNotes()` (actor, class, equip, states, learned skills).  
+  If placed on a **skill**, the attacker passively benefits from the pierce on all casts for as long as they know that skill.
+- **`thisPierceElement`** — reads from the **current skill only**. Only affects the one cast; no passive benefit.
+
+**Tag format:**
+```
+<pierceElement:[ELEMENT_ID, PIERCE_PERCENT]>
+<thisPierceElement:[ELEMENT_ID, PIERCE_PERCENT]>
+```
+`ELEMENT_ID` is the numeric ID from the Types tab. `PIERCE_PERCENT` is an integer (30 = raise effective rate by 0.30).
+
+Multiple pierce tags on the same element are summed.
+
+**Valid sources:**
+- `pierceElement` — Actors, Enemies, Classes, Skills, Weapons, Armors, States
+- `thisPierceElement` — Skills only
+
+**Examples:**
+
+```
+// Pyroclasm — passive: fully immune target takes 50% fire damage while this state is active
+// (on a mastery state, reads via getAllNotes())
+<pierceElement:[4, 50]>
+
+// Lava Geyser — this specific skill penetrates 40% of the target's fire resistance
+<thisPierceElement:[4, 40]>
+
+// Combo: state grants 30 pierce, skill adds 40 more → 70 total fire pierce on this cast
+// (state) <pierceElement:[4, 30]>
+// (skill) <thisPierceElement:[4, 40]>
+
+// Ice Shatter ring — wearer's ice attacks ignore 25% of any target's cold resistance
+<pierceElement:[6, 25]>
+```
+
+**Math example:**  
+Target has 0% fire rate (immune). Attacker has 50 total fire pierce.  
+Effective rate = min(1.0, 0.0 + 0.50) = **0.50** → target takes 50% fire damage.
+
+**What pierce does NOT do:**
+- Does not push weaknesses higher (target already at 200% fire stays 200%).
+- Does not strip absorption (if target absorbs fire, they still absorb it regardless of pierce).
 
 ---
 

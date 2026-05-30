@@ -6,7 +6,7 @@
 > **For what is already built, see [`implementation-status.md`](./implementation-status.md).**
 > That doc is the source of truth for shipped vs pending; this file is the backlog.
 
-Last updated: **2026-05-29**
+Last updated: **2026-05-30**
 
 ---
 
@@ -100,9 +100,12 @@ Most Phase 0 **machinery is shipped**. Remaining **plugin** work is P1–P3 belo
 
 ## Phase 3: Archetype-specific plugin extensions
 
-### P3-1: J-CriticalFactors — on-crit trigger
+### P3-1: J-CriticalFactors — on-crit trigger ✅ DONE (2026-05-30)
 - **For:** Cobra (Venom Strike) — crits apply/extend poison.
 - **What:** hook into crit resolution to apply a state on critical hit.
+- **Tags:** `<onCritApply:[STATE_ID, CHANCE]>` / `<onCritSelf:[STATE_ID, CHANCE]>` on any notetag source.
+  `<thisCritApply:[…]>` / `<thisCritSelf:[…]>` on a specific skill.
+- **Source:** `J-CriticalFactors` 1.1.0 — reads `getAllNotes()` for `onCrit*`; skill note for `thisCrit*`.
 
 ### P3-2: Skill execution history tracker
 - **For:** Ghosty (Spectral Cascade) — damage +X% per unique skill used in last 10s.
@@ -139,11 +142,16 @@ Most Phase 0 **machinery is shipped**. Remaining **plugin** work is P1–P3 belo
 - **For:** Runic Orb (Overcharge) — on-shield-break, explode for X% of shield value as AoE.
 - **What:** on-shield-break hook already exists. Wire in AoE damage event at shield break location.
 
-### P3-10: Heal-event hooks
+### P3-10: Heal-event hooks ✅ DONE (2026-05-30)
 - **For:** Jelly (Mana Transfusion — heals restore MP to target), Emotion (Empathic Bond — nearby
   ally healed → you receive X% of that heal).
-- **What:** hook into HP recovery resolution to dispatch heal events. Listeners can apply secondary
-  effects (MP restore, proximity splash).
+- **What:** `onHeal(resource, amount)` broadcast hook in J-Base fires after any positive recovery.
+  `J-Resources-ABS` dispatches `HealEventManager` for tag-driven cascades; `J-Passive-Conditional`
+  stamps heal timestamps for new gate conditions.
+- **Tags:** `<onSelf{Trigger}Heal{Output}:[PCT, RANGE]>` and `<onAlly{Trigger}Heal{Output}:[PCT, RANGE]>`.
+  Trigger/Output each one of `Hp | Mp | Tp | Any`. RANGE=0 = self only.
+- **Passive gate:** `<passiveSourceRule:[onHealHp, FRAMES]>` (also onHealMp, onHealTp).
+- **Chain depth:** `healChainDepth` plugin parameter on `J-Resources-ABS` (default 5).
 
 ### P3-11: Item-use splash
 - **For:** Kobold (Field Medic) — items used have X% chance to also affect nearest ally.

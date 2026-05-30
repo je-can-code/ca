@@ -114,6 +114,7 @@ J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-SpeedBoosts", "1.0.3
 * A collection of all aliased methods for this plugin.
 */
 J.ABS.EXT.SPEED.Aliased = {
+	Scene_Boot: new Map(),
 	Game_Actor: new Map(),
 	Game_Character: new Map(),
 	Game_Battler: new Map(),
@@ -304,6 +305,18 @@ var SpeedParameterRegistration = class {
 	static registerAll() {
 		ParameterRegistry.register(ParameterDefinition.Builder().key("msb").group(ParameterGroups.MOBILITY).sortOrder(0).label(() => TextManager.movespeed()).description(() => TextManager.moveSpeedDescription()).iconIndex(() => IconManager.movespeed()).format(ParameterFormat.FLAT).getValue((battler) => battler.msb).sdpBinding(SdpParameterBinding.byKey("msb", () => 0)).build());
 	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/speed/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers J-ABS-Speed stats with the parameter catalog after vanilla seeding.
+*/
+J.ABS.EXT.SPEED.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.ABS.EXT.SPEED.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	SpeedParameterRegistration.registerAll();
 };
 
 //#endregion

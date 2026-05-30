@@ -301,6 +301,13 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    JABS_State.onShieldBreak now passes the broken shield's cap to Game_Battler.onShieldBreak.
+ *    Game_Battler.onShieldBreak stores the value as lastShieldBreakValue before firing break
+ *    skills, then clears it immediately after. This value is exposed as the formula variable
+ *    's' via Game_Action.registerFormulaContext, so a skill authored with <shieldBreak:[ID]>
+ *    can write its damage formula as e.g. "s * 0.30" to deal 30% of the broken shield's cap.
+ *    's' is 0 for all non-shield-break actions; it never persists across frames.
  * - 1.0.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
@@ -359,11 +366,12 @@ J.ABS.EXT.SHIELD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.0.2");
+J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.ABS.EXT.SHIELD.Aliased = {
+	Scene_Boot: new Map(),
 	Game_Action: new Map(),
 	Game_Actor: new Map(),
 	Game_Battler: new Map(),
@@ -423,6 +431,7 @@ J.ABS.EXT.SHIELD.SdpParamId = {
 	SAR: 38,
 	SER: 39
 };
+Game_Action.registerFormulaContext("s", (_action, a) => a.lastShieldBreakValue);
 
 //#endregion
 //#region src/plugins/abs/ext/shield/_models/JABS_Shield.js
@@ -450,7 +459,7 @@ var JABS_Shield = class JABS_Shield {
 		*/
 		const safeReduce = (total, formula) => {
 			try {
-				return total + eval(formula);
+				return total + new Function("a", "b", `return (${formula})`)(a, b);
 			} catch (e) {
 				console.error(`Error evaluating shield formula: ${formula}`, target, attacker, e);
 				return total;
@@ -637,7 +646,8 @@ JABS_State.prototype.removeFromBattler = function() {
 * An event hook fired when a shield is broken.
 */
 JABS_State.prototype.onShieldBreak = function() {
-	this.battler.onShieldBreak();
+	const shieldCap = this.shield ? this.shield.getCap() : 0;
+	this.battler.onShieldBreak(shieldCap);
 	this.decrementStacks(1);
 	if (this.stackCount === 0) {
 		this.removeFromBattler();
@@ -1014,10 +1024,17 @@ Game_Battler.prototype.currentShieldStacks = function() {
 };
 /**
 * An event hook fired when a shield is broken.
+* Stores the broken shield's cap on the battler so that break skills can
+* reference it as `s` inside their damage formulas.
+* @param {number} shieldBreakValue The cap of the shield that just broke.
 */
-Game_Battler.prototype.onShieldBreak = function() {
+Game_Battler.prototype.onShieldBreak = function(shieldBreakValue = 0) {
+	this.lastShieldBreakValue = shieldBreakValue;
 	const caster = JABS_AiManager.getBattlerByUuid(this.getUuid());
-	if (!caster) return;
+	if (!caster) {
+		this.lastShieldBreakValue = 0;
+		return;
+	}
 	const sources = this.shieldBreakSources().filter((source) => !!source);
 	/**
 	* A reducer function to grab all the shield break skills.
@@ -1029,8 +1046,12 @@ Game_Battler.prototype.onShieldBreak = function() {
 		return accumulator.concat(...skillIds);
 	};
 	const breakSkillIds = sources.reduce(reducer, []);
-	if (breakSkillIds.length === 0) return;
+	if (breakSkillIds.length === 0) {
+		this.lastShieldBreakValue = 0;
+		return;
+	}
 	breakSkillIds.forEach((skillId) => $jabsEngine.forceMapAction(caster, skillId, true));
+	this.lastShieldBreakValue = 0;
 };
 /**
 * Gets all the sources from which shield break skills can be pulled from.
@@ -1146,7 +1167,7 @@ Game_Action.prototype.calculateShieldBonusDamage = function(target, baseDamage) 
 	const b = target;
 	const o = baseDamage;
 	const sum = formulas.reduce((total, f) => {
-		const result = eval(f);
+		const result = new Function("a", "b", "o", `return (${f})`)(a, b, o);
 		const n = Number(result) || 0;
 		return total + Math.max(0, Math.round(n));
 	}, 0);
@@ -1537,6 +1558,18 @@ var ShieldParameterRegistration = class {
 		ParameterRegistry.register(ParameterDefinition.Builder().key("sar").group(ParameterGroups.SUPPORT).sortOrder(0).label(() => TextManager.sar()).description(() => TextManager.sarDescription()).iconIndex(() => IconManager.sar()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.sar).sdpBinding(SdpParameterBinding.byKey("sar", () => 1)).build());
 		ParameterRegistry.register(ParameterDefinition.Builder().key("ser").group(ParameterGroups.SUPPORT).sortOrder(1).label(() => TextManager.ser()).description(() => TextManager.serDescription()).iconIndex(() => IconManager.ser()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.ser).sdpBinding(SdpParameterBinding.byKey("ser", () => 1)).build());
 	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/shield/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers J-ABS-Shield stats with the parameter catalog after vanilla seeding.
+*/
+J.ABS.EXT.SHIELD.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.ABS.EXT.SHIELD.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	ShieldParameterRegistration.registerAll();
 };
 
 //#endregion

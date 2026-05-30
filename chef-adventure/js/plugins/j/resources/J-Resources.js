@@ -207,6 +207,7 @@ J.RESOURCES.Metadata = new JResources_PluginMetadata("J-Resources", "1.0.0");
 J.RESOURCES.Aliased = {};
 J.RESOURCES.Aliased.IconManager = new Map();
 J.RESOURCES.Aliased.TextManager = new Map();
+J.RESOURCES.Aliased.Scene_Boot = new Map();
 J.RESOURCES.Aliased.Game_BattlerBase = new Map();
 J.RESOURCES.Aliased.Game_Battler = new Map();
 /**
@@ -272,7 +273,7 @@ IconManager.hcr = function() {
 * @returns {string}
 */
 TextManager.hcr = function() {
-	return "HP Cost Rate";
+	return "Life Cost";
 };
 /**
 * Help text explaining how HP cost rate makes life-cost skills cheaper.
@@ -679,6 +680,18 @@ var ResourcesParameterRegistration = class {
 	static registerAll() {
 		ParameterRegistry.register(ParameterDefinition.Builder().key("hcr").group(ParameterGroups.COMBAT).sortOrder(5).label(() => TextManager.hcr()).description(() => TextManager.hcrDescription()).iconIndex(() => IconManager.hcr()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.COST_RATE).getValue((battler) => battler.hcrFactor()).sdpBinding(SdpParameterBinding.byKey("hcr", () => 100)).build());
 	}
+};
+
+//#endregion
+//#region src/plugins/resources/core/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers J-Resources stats with the parameter catalog after vanilla seeding.
+*/
+J.RESOURCES.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.RESOURCES.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	ResourcesParameterRegistration.registerAll();
 };
 
 //#endregion

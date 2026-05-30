@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.0.2 CRIT] Manages critical damage multiplier/reduction of battlers.
+ * @plugindesc [v1.1.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -207,7 +207,82 @@
  *
  * Please refer to the other plugin's documentation for more details.
  * ============================================================================
+ * ON-CRIT STATE APPLICATION:
+ * Have you ever wanted a critical hit to do more than just deal extra damage?
+ * Well now you can! By applying the appropriate tags to the relevant database
+ * objects, you can configure states to be applied to the target or to the
+ * attacker themselves whenever a critical hit lands — each with its own
+ * independent chance to trigger.
+ *
+ * Two families of tags are available:
+ *
+ * "thisCrit" tags live on a specific skill or item and only fire when THAT
+ * skill or item lands a critical hit. Think of these as per-skill effects.
+ *
+ * "onCrit" tags live on any note source attached to the attacker (states,
+ * weapons, armors, class, actor, enemy) and fire whenever ANY of their
+ * actions lands a critical hit. Think of these as passive crit behaviors —
+ * ideal for mastery passive states that grant a character-wide on-crit effect.
+ *
+ * Both families are processed independently on every critical hit, so a
+ * battler can carry both simultaneously without conflict.
+ *
+ * NOTE:
+ * These effects require J-ABS to be loaded. The tags will be silently ignored
+ * in non-JABS combat contexts.
+ *
+ * NOTE:
+ * CHANCE is a whole-number percent from 0 to 100.
+ * A CHANCE of 100 means the state is always applied on crit.
+ * Multiple tags for the same state are each rolled independently.
+ *
+ * TAG USAGE:
+ * "thisCrit" tags:
+ * - Skills
+ * - Items
+ *
+ * "onCrit" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritApply:[STATE_ID, CHANCE]>
+ *  <thisCritSelf:[STATE_ID, CHANCE]>
+ *  <onCritApply:[STATE_ID, CHANCE]>
+ *  <onCritSelf:[STATE_ID, CHANCE]>
+ * Where STATE_ID is the id of the state to apply.
+ * Where CHANCE is the percent chance (0–100) that the state applies on a crit.
+ * "Apply" variants apply the state to the TARGET that was critically hit.
+ * "Self" variants apply the state to the ATTACKER who landed the critical hit.
+ *
+ * TAG EXAMPLES:
+ *  <thisCritApply:[5, 30]>
+ * This skill has a 30% chance to apply state id 5 to the target when it crits.
+ *
+ *  <thisCritSelf:[12, 100]>
+ * This skill always applies state id 12 to the attacker when it crits.
+ *
+ *  <onCritApply:[5, 25]>
+ * Whenever this battler (or whatever carries this note) lands any critical hit,
+ * there is a 25% chance to apply state id 5 to the target.
+ * A passive mastery state with this tag would grant the effect for as long as
+ * the state is active.
+ *
+ *  <onCritSelf:[20, 50]>
+ * Whenever this battler lands any critical hit, there is a 50% chance to apply
+ * state id 20 to themselves.
+ *
+ * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added on-crit state application tags:
+ *    <thisCritApply>, <thisCritSelf> (skill-scoped) and
+ *    <onCritApply>, <onCritSelf> (attacker-global, any note source).
  * - 1.0.2
  *    Added dependency note about NaturalGrowth.
  *    Added ordering annotation for coming after J-NaturalGrowth.
@@ -248,7 +323,7 @@ J.CRIT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.0.2");
+J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -270,6 +345,10 @@ J.CRIT.RegExp = {
 	ThisCritDamageChance: /<thisCritChance:\[([+\-*/ ().\w]+)]>/gi,
 	ThisCritDamageMultiplier: /<thisCritMultiplier:\[([+\-*/ ().\w]+)]>/gi,
 	ThisCritsAlways: /<thisCritsAlways>/gi,
+	ThisCritApply: /<thisCritApply:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	ThisCritSelf: /<thisCritSelf:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	OnCritApply: /<onCritApply:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	OnCritSelf: /<onCritSelf:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	CritDamageReductionBase: /<critReductionBase: ?(\d+)>/gi,
 	CritDamageReduction: /<critReduction: ?(\d+)>/gi,
 	CritDamageMultiplierBase: /<critMultiplierBase: ?(\d+)>/gi,
@@ -358,12 +437,92 @@ Game_Action.prototype.targetBattler = function() {
 	return this._targetBattler;
 };
 /**
-* Extends `apply()` to also set the target for more universal use throughout the calculations.
+* Extends {@link #apply}.<br/>
+* Tracks the target for use in critical calculations, then fires any on-crit state effects
+* when the result confirms a critical hit landed.
 */
 J.CRIT.Aliased.Game_Action.set("apply", Game_Action.prototype.apply);
 Game_Action.prototype.apply = function(target) {
 	this.setTargetBattler(target);
 	J.CRIT.Aliased.Game_Action.get("apply").call(this, target);
+	if (target.result().critical) {
+		this.applyOnCriticalStateEffects(target);
+	}
+};
+/**
+* Applies all on-crit state effects — states to the target and states to self — from both
+* the executing skill and any global crit tags present anywhere on the attacker.
+* Guarded by J-ABS availability since on-chance effects depend on {@link JABS_OnChanceEffect}.
+* @param {Game_Actor|Game_Enemy} target The target that received the critical hit.
+*/
+Game_Action.prototype.applyOnCriticalStateEffects = function(target) {
+	if (!J.ABS) return;
+	this.applyOnCriticalTargetStates(target);
+	this.applyOnCriticalSelfStates();
+};
+/**
+* Rolls and applies all on-crit states that target the enemy that was just critically hit.
+* Checks both the executing skill ({@link thisCritApply}) and all attacker notes ({@link onCritApply}).
+* @param {Game_Actor|Game_Enemy} target The target to apply states to.
+*/
+Game_Action.prototype.applyOnCriticalTargetStates = function(target) {
+	this.rollAndApplyCritStates(target, this.thisCritTargetStates());
+	this.rollAndApplyCritStates(target, this.onCritTargetStates());
+};
+/**
+* Rolls and applies all on-crit states that target the attacker themselves.
+* Checks both the executing skill ({@link thisCritSelf}) and all attacker notes ({@link onCritSelf}).
+*/
+Game_Action.prototype.applyOnCriticalSelfStates = function() {
+	const attacker = this.subject();
+	this.rollAndApplyCritStates(attacker, this.thisCritSelfStates());
+	this.rollAndApplyCritStates(attacker, this.onCritSelfStates());
+};
+/**
+* Iterates a list of on-chance effects and applies any that pass their roll to the recipient.
+* @param {Game_Actor|Game_Enemy} recipient The battler receiving the state applications.
+* @param {JABS_OnChanceEffect[]} onChanceEffects The effects to roll and apply.
+*/
+Game_Action.prototype.rollAndApplyCritStates = function(recipient, onChanceEffects) {
+	if (onChanceEffects.length === 0) return;
+	const attacker = this.subject();
+	onChanceEffects.forEach((effect) => {
+		if (effect.shouldTrigger()) {
+			recipient.addState(effect.skillId, attacker);
+		}
+	});
+};
+/**
+* Gets all on-crit target states sourced from the executing skill only.
+* Uses the {@link thisCritApply} tag — independent of what the attacker has globally.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Action.prototype.thisCritTargetStates = function() {
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects([this.item()], J.CRIT.RegExp.ThisCritApply);
+};
+/**
+* Gets all on-crit self states sourced from the executing skill only.
+* Uses the {@link thisCritSelf} tag — independent of what the attacker has globally.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Action.prototype.thisCritSelfStates = function() {
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects([this.item()], J.CRIT.RegExp.ThisCritSelf);
+};
+/**
+* Gets all on-crit target states sourced from anywhere on the attacker.
+* Uses the {@link onCritApply} tag — fires whenever any crit lands, regardless of the skill used.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Action.prototype.onCritTargetStates = function() {
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects(this.subject().getAllNotes(), J.CRIT.RegExp.OnCritApply);
+};
+/**
+* Gets all on-crit self states sourced from anywhere on the attacker.
+* Uses the {@link onCritSelf} tag — fires whenever any crit lands, regardless of the skill used.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Action.prototype.onCritSelfStates = function() {
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects(this.subject().getAllNotes(), J.CRIT.RegExp.OnCritSelf);
 };
 /**
 * Overwrites {@link #applyCritical}.<br/>

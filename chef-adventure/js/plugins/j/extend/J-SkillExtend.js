@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.2.1 EXTEND] Extends the capabilities of skills/actions.
+ * @plugindesc [v1.4.1 EXTEND] Extends the capabilities of skills/actions.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -193,6 +193,28 @@
  * skill successfully hits that target.
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.1
+ *    Fixed Game_Actor#hasSkill to compare by skill id rather than object reference.
+ *    Vanilla uses includes($dataSkills[id]) which breaks the moment the overlay system
+ *    returns a clone instead of the original database entry — hasSkill would always
+ *    return false for any overlaid skill, silently blocking JABS action execution.
+ *    Optimized OverlayManager#getExtendedSkill hot path: the per-caster cache is now
+ *    checked before any array allocation, filter, sort, or string construction. Cache
+ *    hits are O(1); the skillId alone is a stable key because the whole per-caster
+ *    cache is invalidated wholesale on every learnSkill / forgetSkill call.
+ * - 1.4.0
+ *    Structural refactor of OverlayManager#getExtendedSkill: overlay candidates are now
+ *    collected via caster.skillIds() (raw IDs, no skill()/skills() involvement) instead of
+ *    caster.skills(). Removed the WeakSet re-entrancy guard. Each overlay id is now
+ *    recursively resolved through getExtendedSkill before being applied, so chained
+ *    extensions (A extends B extends C) produce a fully merged result at every level.
+ *    A per-skillId WeakMap/Set circular-extension guard replaces the old caster-level guard;
+ *    it throws a clear error on circular data rather than silently falling back.
+ * - 1.3.0
+ *    Lifted skill() override from Game_Actor to Game_Battler so enemies also
+ *    receive overlay-merged skills when J-SkillExtend is loaded. Aliased
+ *    Game_Actor#skills to map through this.skill(), making the plural form
+ *    consistent with the singular for all consumers including the passive system.
  * - 1.2.1
  *    Fixed extendEffects to deduplicate addState effects by state ID when merging overlays.
  *    When an extension defines a state application, any prior entry for that state ID is
@@ -241,7 +263,7 @@ J.EXTEND = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-SkillExtend", "1.2.1");
+J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-SkillExtend", "1.4.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -436,6 +458,14 @@ var OverlayManager = class OverlayManager {
 	*/
 	static _casterExtendCache = new WeakMap();
 	/**
+	* Tracks skill ids currently mid-resolution per caster to detect circular extension data
+	* (e.g. skill 2 extends skill 1 AND skill 1 extends skill 2, direct or indirect).
+	* Unlike the old caster-level re-entrancy guard, this is scoped per-skillId so legitimate
+	* recursive chains (A extends B extends C) proceed normally — only actual cycles throw.
+	* @type {WeakMap<Game_Actor|Game_Enemy, Set<number>>}
+	*/
+	static #resolving = new WeakMap();
+	/**
 	* The metrics for this manager.
 	* @type {{ hits: number, misses: number }}
 	*/
@@ -498,12 +528,35 @@ var OverlayManager = class OverlayManager {
 	static getExtendedSkill(caster, skillId) {
 		if (skillId <= 0) throw new Error("Invalid skill extension id.");
 		if (!caster) return $dataSkills[skillId];
-		const overlaySkills = caster.skills().filter((skill) => this.#isOverlayForBase(skill, skillId));
-		if (overlaySkills.length > 0) {
-			overlaySkills.sort((a, b) => a.id - b.id);
+		const perCaster = this.getOrCreateCacheForCaster(caster);
+		if (perCaster.has(skillId)) {
+			this._metrics.hits++;
+			return perCaster.get(skillId);
 		}
-		const overlayKey = `${skillId}|${overlaySkills.map((s) => s.id).join(",")}`;
-		return this.cached(caster, overlayKey, () => this.#getExtendedSkill(overlaySkills, skillId));
+		const knownIds = caster.skillIds();
+		const overlayIds = knownIds.filter((id) => {
+			const skill = $dataSkills[id];
+			return skill && this.#isOverlayForBase(skill, skillId);
+		}).sort((a, b) => a - b);
+		let inProgress = this.#resolving.get(caster);
+		if (!inProgress) {
+			inProgress = new Set();
+			this.#resolving.set(caster, inProgress);
+		}
+		if (inProgress.has(skillId)) {
+			throw new Error(`Circular skill extension detected on skill ${skillId}! Please stop recursing the universe 💢`);
+		}
+		inProgress.add(skillId);
+		try {
+			const resolvedOverlays = overlayIds.map((id) => this.getExtendedSkill(caster, id));
+			const value = this.#getExtendedSkill(resolvedOverlays, skillId);
+			perCaster.set(skillId, value);
+			this._metrics.misses++;
+			return value;
+		} finally {
+			inProgress.delete(skillId);
+			if (inProgress.size === 0) this.#resolving.delete(caster);
+		}
 	}
 	/**
 	* Checks if a given skill is an extension skill that can overlay the given base skill.
@@ -1257,15 +1310,46 @@ Game_Action.prototype.removeStates = function(target, jabsOnChanceEffects) {
 };
 
 //#endregion
-//#region src/plugins/extend/core/objects/Game_Actor.js
+//#region src/plugins/extend/core/objects/Game_Battler.js
 /**
 * Overwrites {@link #skill}.<br/>
-* Overlays the skill with any skill extensions.
-* @param {number} skillId The skill id to get the skill for.
+* Routes skill resolution through OverlayManager so any active extension overlays
+* for this battler are folded into the returned skill before callers inspect it.
+* Both actors and enemies benefit here: Game_Enemy#skills already calls this.skill()
+* per action, so enemies transparently receive overlay-merged skills when applicable.
+* @param {number} skillId The skill id to resolve.
 * @returns {RPG_Skill} The potentially extended skill.
 */
-Game_Actor.prototype.skill = function(skillId) {
+Game_Battler.prototype.skill = function(skillId) {
 	return OverlayManager.getExtendedSkill(this, skillId);
+};
+
+//#endregion
+//#region src/plugins/extend/core/objects/Game_Actor.js
+/**
+* Extends {@link #skills}.<br/>
+* Routes each skill through the extended skill resolver so that overlay
+* contributions from learned extension skills are reflected in the returned list.
+* Vanilla logic handles deduplication and addedSkills; we simply remap the result.
+* @returns {RPG_Skill[]} The (potentially extended) full skill list.
+*/
+J.EXTEND.Aliased.Game_Actor.set("skills", Game_Actor.prototype.skills);
+Game_Actor.prototype.skills = function() {
+	const baseSkills = J.EXTEND.Aliased.Game_Actor.get("skills").call(this);
+	return baseSkills.map((skill) => this.skill(skill.id));
+};
+/**
+* Extends {@link #hasSkill}.<br/>
+* Vanilla compares by object reference (`skills().includes($dataSkills[id])`), which
+* breaks as soon as the overlay system returns a clone instead of the original database
+* entry.  Compare by id so the result is correct regardless of whether an overlay
+* is currently active for this skill.
+* @param {number} skillId The skill id to check for.
+* @returns {boolean}
+*/
+J.EXTEND.Aliased.Game_Actor.set("hasSkill", Game_Actor.prototype.hasSkill);
+Game_Actor.prototype.hasSkill = function(skillId) {
+	return this.skills().some((skill) => skill.id === skillId);
 };
 /**
 * Extends {@link #learnSkill}.<br/>

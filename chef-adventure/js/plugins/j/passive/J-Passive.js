@@ -1462,7 +1462,7 @@ var Window_PassiveDetail = class extends Window_Base {
 		try {
 			const a = actor;
 			const b = actor;
-			const result = eval(formula);
+			const result = new Function("a", "b", `return (${formula})`)(a, b);
 			if (typeof result === "number") return `${Math.round(result)}`;
 			return `${result}`;
 		} catch {

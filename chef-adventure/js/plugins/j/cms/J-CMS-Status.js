@@ -134,7 +134,23 @@ var StatusParameter = class {
 		}
 		this.name = definition.label();
 		this.iconIndex = definition.iconIndex();
-		this.colorIndex = definition.colorIndex();
+		this.colorIndex = definition.resolveDisplayColorIndex(this.value);
+	}
+	/**
+	* Whether this parameter should use styled zero-padding on the status screen.
+	* Returns false when a sentinel label replaces the numeric value, or for regen stats
+	* that already format themselves with a unit suffix.
+	* @returns {boolean}
+	*/
+	usesStyledValue() {
+		const definition = ParameterRegistry.get(this.parameterKey);
+		if (!definition) {
+			return false;
+		}
+		if (definition.resolveDisplaySentinel(this.value)) {
+			return false;
+		}
+		return definition.format !== ParameterFormat.REGEN_PER_SECOND;
 	}
 	/**
 	* Get the pretty value of this parameter.

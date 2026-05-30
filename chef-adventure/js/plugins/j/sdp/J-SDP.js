@@ -1872,7 +1872,7 @@ var PanelRanking = class {
 		const a = $gameActors.actor(this.actorId);
 		rewardEffects.forEach((rewardEffect) => {
 			try {
-				eval(rewardEffect.effect);
+				new Function("a", rewardEffect.effect)(a);
 			} catch (err) {
 				console.error(`
         An error occurred while trying to execute the rank-${this.currentRank} 

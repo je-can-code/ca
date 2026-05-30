@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 RESOURCES-ABS] Damage-linked HP, MP, and TP resource effects.
+ * [v1.1.0 RESOURCES-ABS] Damage-linked HP, MP, and TP resource effects.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -11,6 +11,16 @@
  * @orderAfter J-Base
  * @orderAfter J-Resources
  * @orderAfter J-ABS
+ *
+ * @param healChainDepth
+ * @text Heal Chain Depth
+ * @type number
+ * @min 0
+ * @max 20
+ * @default 5
+ * @desc Maximum number of cascade rounds a single heal event can trigger.
+ * 0 disables all cascades. Higher values allow deeper empathy-bond chains.
+ *
  * @help
  * ============================================================================
  * OVERVIEW
@@ -126,7 +136,68 @@
  *    Gain TP equal to 5% of the damage taken- scales with how hard the hit was.
  *
  * ============================================================================
+ * ============================================================================
+ * HEAL EVENTS
+ * When a battler receives positive HP, MP, or TP recovery, a cascade of
+ * secondary heals can be triggered based on notetags placed on any traited
+ * source (actor, class, equip, state, skill).
+ *
+ * Two families:
+ *
+ *   onSelf tags — when THIS battler's trigger resource is healed, also heal
+ *   PERCENT% of the heal amount as the output resource. Self always receives
+ *   it; if RANGE > 0, allies within RANGE tiles also receive it.
+ *
+ *   onAlly tags — when an ally within RANGE tiles has their trigger resource
+ *   healed, this battler (the observer) receives PERCENT% of that heal amount
+ *   as the output resource.
+ *
+ * Cascades are limited by the healChainDepth plugin parameter (default 5).
+ * Secondary heals themselves fire onHeal again, so chains of empathy bonds and
+ * jelly transfusions can propagate naturally up to the depth limit.
+ *
+ * TAG USAGE:
+ * - Actors, Enemies, Classes, Equips, States, Skills
+ *
+ * TAG FORMAT (onSelf):
+ *  <onSelf{Trigger}Heal{Output}:[PERCENT, RANGE]>
+ *    Trigger: Hp | Mp | Tp | Any
+ *    Output:  Hp | Mp | Tp
+ *    PERCENT: integer percentage of the heal amount to apply as secondary
+ *    RANGE:   tile radius; 0 = self only, >0 includes allies within radius
+ *
+ * TAG FORMAT (onAlly):
+ *  <onAlly{Trigger}Heal{Output}:[PERCENT, RANGE]>
+ *    Trigger: Hp | Mp | Tp | Any
+ *    Output:  Hp | Mp | Tp
+ *    PERCENT: integer percentage of the ally's heal to apply to self
+ *    RANGE:   tile radius; observer only reacts if healed ally is within range
+ *
+ * TAG EXAMPLES:
+ *  <onSelfHpHealMp:[50, 0]>
+ *    When this battler receives HP healing, also recover 50% of that amount as
+ *    MP. Self only (Jelly Mana Transfusion).
+ *
+ *  <onSelfHpHealHp:[25, 3]>
+ *    When this battler is healed for HP, also heal self and allies within
+ *    3 tiles for 25% of the same amount (Empathic Splash).
+ *
+ *  <onAllyHpHealHp:[30, 4]>
+ *    Whenever an ally within 4 tiles receives HP healing, this battler also
+ *    gains 30% of that heal amount as HP (Emotion Empathic Bond).
+ *
+ *  <onSelfAnyHealTp:[10, 0]>
+ *    Any resource recovery on this battler also grants 10% as TP
+ *    (Momentum from healing).
+ *
+ * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added HEAL EVENTS system with onSelf and onAlly resource cascade tags.
+ *    24 notetag variants (4 triggers × 3 outputs × 2 families).
+ *    New plugin parameter: healChainDepth (default 5) caps cascade depth.
+ *    Fixed: Scene_Boot import was missing from entry.js, so parameter
+ *    registration was never called. Now fixed.
  * - 1.0.0
  *    Initial release.
  *    Added on-attack HP/MP/TP gains via flat, percent, and formula skill tags.
@@ -149,6 +220,7 @@ var JResourcesAbs_PluginMetadata = class extends PluginMetadata {
 	*/
 	postInitialize() {
 		super.postInitialize();
+		this.healChainDepth = parseInt(this.parsedPluginParameters["healChainDepth"]) || 5;
 	}
 };
 
@@ -167,12 +239,14 @@ J.RESOURCES.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.RESOURCES.EXT.ABS.Metadata = new JResourcesAbs_PluginMetadata("J-Resources-ABS", "1.0.0");
+J.RESOURCES.EXT.ABS.Metadata = new JResourcesAbs_PluginMetadata("J-Resources-ABS", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.RESOURCES.EXT.ABS.Aliased = {};
 J.RESOURCES.EXT.ABS.Aliased.JABS_Engine = new Map();
+J.RESOURCES.EXT.ABS.Aliased.Game_Battler = new Map();
+J.RESOURCES.EXT.ABS.Aliased.Scene_Boot = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -198,6 +272,30 @@ J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainFormula = /<when-hit-tp-gain:\[([+\-*/ (
 J.RESOURCES.EXT.ABS.RegExp.Lifesteal = /<lst:(-?\d+)>/gi;
 J.RESOURCES.EXT.ABS.RegExp.Manasteal = /<mst:(-?\d+)>/gi;
 J.RESOURCES.EXT.ABS.RegExp.Techsteal = /<tst:(-?\d+)>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealHp = /<onSelfHpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealMp = /<onSelfHpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealTp = /<onSelfHpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealHp = /<onSelfMpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealMp = /<onSelfMpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealTp = /<onSelfMpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealHp = /<onSelfTpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealMp = /<onSelfTpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealTp = /<onSelfTpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealHp = /<onSelfAnyHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealMp = /<onSelfAnyHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealTp = /<onSelfAnyHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealHp = /<onAllyHpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealMp = /<onAllyHpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealTp = /<onAllyHpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealHp = /<onAllyMpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealMp = /<onAllyMpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealTp = /<onAllyMpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealHp = /<onAllyTpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealMp = /<onAllyTpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealTp = /<onAllyTpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealHp = /<onAllyAnyHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealMp = /<onAllyAnyHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealTp = /<onAllyAnyHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
 /** Legacy SDP panel parameter ids for on-attack drain stats. */
 J.RESOURCES.EXT.ABS.SdpParamId = {
 	LST: 35,
@@ -226,7 +324,7 @@ TextManager.lstDescription = function() {
 * @returns {string}
 */
 TextManager.mst = function() {
-	return "Manasteal";
+	return "Magisteal";
 };
 /**
 * Help text explaining manasteal recovery on successful ABS hits.
@@ -272,6 +370,169 @@ IconManager.mst = function() {
 */
 IconManager.tst = function() {
 	return 930;
+};
+
+//#endregion
+//#region src/plugins/resources/ext/abs/managers/HealEventManager.js
+/**
+* Manages the dispatch of secondary resource cascades triggered by healing events.
+*
+* When a battler is healed (via the onHeal hook in J-Base), this manager reads
+* onSelf and onAlly tags from the relevant battlers' notes and applies proportional
+* secondary resource gains. Cascades are capped by the healChainDepth plugin parameter
+* to prevent runaway chains.
+*/
+var HealEventManager = class {
+	/**
+	* Tracks how many cascade rounds are currently in flight.
+	* Incremented at the start of each dispatch round and decremented on exit.
+	* @type {number}
+	*/
+	static _currentDepth = 0;
+	/**
+	* The three output resource keys used for looping over possible output resources.
+	* @type {string[]}
+	*/
+	static #outputKeys = [
+		"Hp",
+		"Mp",
+		"Tp"
+	];
+	/**
+	* Entry point from the onHeal alias in Game_Battler.js.
+	* Converts the J.BASE.Resource string into a PascalCase trigger key and starts dispatch.
+	* @param {Game_Battler} recipient The battler that received the heal.
+	* @param {string} resource One of J.BASE.Resource.HP / MP / TP.
+	* @param {number} amount The positive amount that was recovered.
+	*/
+	static dispatch(recipient, resource, amount) {
+		this.#dispatch(recipient, this.#resourceToKey(resource), amount);
+	}
+	/**
+	* Internal dispatch entry; enforces the chain depth cap.
+	* @param {Game_Battler} recipient The battler that received the heal.
+	* @param {string} triggerKey PascalCase resource key ('Hp', 'Mp', 'Tp').
+	* @param {number} amount The positive amount that was recovered.
+	*/
+	static #dispatch(recipient, triggerKey, amount) {
+		if (this._currentDepth >= J.RESOURCES.EXT.ABS.Metadata.healChainDepth) return;
+		this._currentDepth++;
+		try {
+			this.#dispatchOnSelf(recipient, triggerKey, amount);
+			this.#dispatchOnAlly(recipient, triggerKey, amount);
+		} finally {
+			this._currentDepth--;
+		}
+	}
+	/**
+	* Converts a J.BASE.Resource string to the PascalCase suffix used in RegExp key lookups.
+	* @param {string} resource One of J.BASE.Resource.HP / MP / TP.
+	* @returns {string} 'Hp', 'Mp', or 'Tp'.
+	*/
+	static #resourceToKey(resource) {
+		if (resource === J.BASE.Resource.HP) return "Hp";
+		if (resource === J.BASE.Resource.MP) return "Mp";
+		return "Tp";
+	}
+	/**
+	* Reads onSelf tags from the recipient's notes and applies secondary heals.
+	* Self always receives the secondary heal; allies within the tag's range also receive it.
+	* @param {Game_Battler} recipient The battler whose onSelf tags are evaluated.
+	* @param {string} triggerKey PascalCase trigger resource ('Hp', 'Mp', 'Tp').
+	* @param {number} amount The amount that triggered this event.
+	*/
+	static #dispatchOnSelf(recipient, triggerKey, amount) {
+		const notes = recipient.getAllNotes();
+		for (const outputKey of this.#outputKeys) {
+			const tuples = this.#getTuples(notes, false, triggerKey, outputKey);
+			for (const [percent, range] of tuples) {
+				const secondary = Math.floor(amount * percent / 100);
+				if (secondary <= 0) continue;
+				this.#applySecondaryHeal(recipient, outputKey, secondary);
+				if (range > 0) {
+					const jabsBattler = JABS_AiManager.getBattlerByUuid(recipient.getUuid());
+					if (jabsBattler === undefined) continue;
+					const nearbyAllies = JABS_AiManager.getAlliedBattlersWithinRange(jabsBattler, range);
+					for (const allyJabs of nearbyAllies) {
+						const ally = allyJabs.getBattler();
+						if (ally === recipient) continue;
+						this.#applySecondaryHeal(ally, outputKey, secondary);
+					}
+				}
+			}
+		}
+	}
+	/**
+	* Reads onAlly tags from all allied observers and applies secondary heals to observers
+	* whose tag range includes the healed battler.
+	* @param {Game_Battler} healTarget The battler that received the original heal.
+	* @param {string} triggerKey PascalCase trigger resource ('Hp', 'Mp', 'Tp').
+	* @param {number} amount The amount that triggered this event.
+	*/
+	static #dispatchOnAlly(healTarget, triggerKey, amount) {
+		const jabsTarget = JABS_AiManager.getBattlerByUuid(healTarget.getUuid());
+		if (jabsTarget === undefined) return;
+		const alliedBattlers = JABS_AiManager.getAlliedBattlers(jabsTarget);
+		for (const observerJabs of alliedBattlers) {
+			const observer = observerJabs.getBattler();
+			if (observer === healTarget) continue;
+			const distance = jabsTarget.distanceToDesignatedTarget(observerJabs);
+			const notes = observer.getAllNotes();
+			for (const outputKey of this.#outputKeys) {
+				const tuples = this.#getTuples(notes, true, triggerKey, outputKey);
+				for (const [percent, range] of tuples) {
+					if (distance > range) continue;
+					const secondary = Math.floor(amount * percent / 100);
+					if (secondary <= 0) continue;
+					this.#applySecondaryHeal(observer, outputKey, secondary);
+				}
+			}
+		}
+	}
+	/**
+	* Routes a secondary heal to the appropriate gain method on the battler.
+	* Fires onHeal again, allowing cascades to propagate naturally up to the depth cap.
+	* @param {Game_Battler} battler The battler receiving the secondary heal.
+	* @param {string} outputKey PascalCase output resource ('Hp', 'Mp', 'Tp').
+	* @param {number} amount The positive amount to recover.
+	*/
+	static #applySecondaryHeal(battler, outputKey, amount) {
+		if (outputKey === "Hp") battler.gainHp(amount);
+		else if (outputKey === "Mp") battler.gainMp(amount);
+		else battler.gainTp(amount);
+	}
+	/**
+	* Collects all [percent, range] tuples from notes for a given family/trigger/output combination.
+	* Checks both the specific trigger regexp and the "Any" trigger variant.
+	* @param {RPG_BaseItem[]} notes The array of database objects to scan.
+	* @param {boolean} isAlly True when looking for onAlly tags; false for onSelf tags.
+	* @param {string} triggerKey PascalCase trigger resource ('Hp', 'Mp', 'Tp').
+	* @param {string} outputKey PascalCase output resource ('Hp', 'Mp', 'Tp').
+	* @returns {Array<[number, number]>} Array of [percent, range] pairs.
+	*/
+	static #getTuples(notes, isAlly, triggerKey, outputKey) {
+		const family = isAlly ? "Ally" : "Self";
+		const specificKey = `On${family}${triggerKey}Heal${outputKey}`;
+		const anyKey = `On${family}AnyHeal${outputKey}`;
+		const specificRegexp = J.RESOURCES.EXT.ABS.RegExp[specificKey];
+		const anyRegexp = J.RESOURCES.EXT.ABS.RegExp[anyKey];
+		const tuples = [];
+		for (const databaseData of notes) {
+			if (specificRegexp) {
+				const results = RPGManager.getArraysFromNotesByRegex(databaseData, specificRegexp);
+				for (const result of results) {
+					if (Array.isArray(result) && result.length === 2) tuples.push([Number(result[0]), Number(result[1])]);
+				}
+			}
+			if (anyRegexp) {
+				const results = RPGManager.getArraysFromNotesByRegex(databaseData, anyRegexp);
+				for (const result of results) {
+					if (Array.isArray(result) && result.length === 2) tuples.push([Number(result[0]), Number(result[1])]);
+				}
+			}
+		}
+		return tuples;
+	}
 };
 
 //#endregion
@@ -358,6 +619,16 @@ Game_Battler.prototype.baseMstRate = function() {
 Game_Battler.prototype.baseTstRate = function() {
 	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.RESOURCES.EXT.ABS.RegExp.Techsteal);
 	return bonus / 100;
+};
+/**
+* Extends {@link #onHeal}.<br/>
+* Dispatches resource cascade effects tagged on this battler and its allies
+* whenever positive resource recovery is applied.
+*/
+J.RESOURCES.EXT.ABS.Aliased.Game_Battler.set("onHeal", Game_Battler.prototype.onHeal);
+Game_Battler.prototype.onHeal = function(resource, amount) {
+	J.RESOURCES.EXT.ABS.Aliased.Game_Battler.get("onHeal").call(this, resource, amount);
+	HealEventManager.dispatch(this, resource, amount);
 };
 
 //#endregion
@@ -543,6 +814,18 @@ JABS_Engine.prototype.postPrimaryBattleEffects = function(action, target) {
 	ResourceHitManager.applyOnAttackEffects(action, target);
 	if (result.hpDamage <= 0) return;
 	ResourceHitManager.applyWhenHitEffects(action, target);
+};
+
+//#endregion
+//#region src/plugins/resources/ext/abs/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers J-Resources-ABS drain stats with the parameter catalog after vanilla seeding.
+*/
+J.RESOURCES.EXT.ABS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.RESOURCES.EXT.ABS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	ResourcesAbsParameterRegistration.registerAll();
 };
 
 //#endregion

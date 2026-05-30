@@ -224,7 +224,7 @@ J.ABS.EXT.FORMULA = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.0.2");
+J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -727,10 +727,10 @@ Game_Action.prototype.evaluateFormula = function(formula, source, recipient, ite
 	const i = item;
 	let result;
 	try {
-		result = eval(formula);
+		result = new Function("a", "b", "v", "i", `return (${formula})`)(a, b, v, i);
 		if (!Number.isFinite(result)) throw new Error("Invalid formula output.");
 	} catch (err) {
-		console.warn(`J.FORMULA eval failed: [ ${formula} ]`);
+		console.warn(`J.FORMULA formula failed: [ ${formula} ]`);
 		console.trace();
 		throw err;
 	}

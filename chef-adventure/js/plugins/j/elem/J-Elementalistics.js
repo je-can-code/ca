@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.0.1 ELEM] Enables greater control over elements.
+ * @plugindesc [v1.2.0 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -202,7 +202,96 @@
  * This battler now can only receive damage from skills that include the
  * element id of 1, 2, 3, 4, 5, 6, or 8.
  * ============================================================================
+ * PIERCE ELEMENTS:
+ * Have you ever wanted a battler to partially ignore an enemy's elemental
+ * resistance — punching through fire immunity to deal real damage? Well now
+ * you can! By applying the appropriate tag(s) to any notetag source, you can
+ * reduce the target's effective element rate for one or more elements,
+ * nudging it toward neutral (1.0x) damage.
+ *
+ * DETAILS:
+ * When a skill's elemental calculation is performed, all relevant pierce tags
+ * are summed for the element being used. The target's effective rate is then
+ * raised by that sum, capped at 1.0 (neutral). Pierce never turns a resistance
+ * into a weakness, and it never affects elements the target is already weak to
+ * or absorbs.
+ *
+ * Two scopes are available:
+ *
+ *   pierceElement tags are read from the ATTACKER's full getAllNotes() sources
+ *   (actor, class, equips, states, and learned skills). If placed on a skill,
+ *   the attacker passively benefits from the pierce on ALL skills they cast for
+ *   as long as they know that skill.
+ *
+ *   thisPierceElement tags are read from the SKILL being cast RIGHT NOW only.
+ *   This is the right tag when the pierce should only apply to one specific
+ *   attack rather than granting a global passive benefit.
+ *
+ * EXAMPLE 1:
+ * Target has 0% fire rate (immune). Attacker has 50 total fire pierce.
+ * Effective rate = min(1.0, 0.0 + 0.50) = 0.50 → target takes 50% fire damage.
+ *
+ * EXAMPLE 2:
+ * Target has 50% fire rate (resistant). Attacker has 30 fire pierce.
+ * Effective rate = min(1.0, 0.50 + 0.30) = 0.80 → target takes 80% fire damage.
+ *
+ * EXAMPLE 3:
+ * Target has 200% fire rate (weak). Pierce is irrelevant — weakness unchanged.
+ *
+ * EXAMPLE 4:
+ * Target absorbs fire. Pierce is irrelevant — absorption unchanged.
+ *
+ * NOTE:
+ * Multiple pierce tags on the same element are summed together. A state with
+ * <pierceElement:[4, 30]> and an armor with <pierceElement:[4, 20]> together
+ * give 50 total pierce on element 4.
+ *
+ * TAG USAGE (pierceElement — global, any skill):
+ * - Actors
+ * - Enemies
+ * - Classes
+ * - Skills (knowing the skill passively grants the pierce to all casts)
+ * - Weapons
+ * - Armors
+ * - States
+ *
+ * TAG USAGE (thisPierceElement — this skill only):
+ * - Skills only
+ *
+ * TAG FORMAT:
+ *  <pierceElement:[ELEMENT_ID, PIERCE_PERCENT]>
+ *  <thisPierceElement:[ELEMENT_ID, PIERCE_PERCENT]>
+ * Where ELEMENT_ID is the numeric element id from the Types tab,
+ * and PIERCE_PERCENT is an integer (30 = 30 pierce, raising effective rate by 0.30).
+ *
+ * TAG EXAMPLES:
+ *  <pierceElement:[4, 30]>
+ * The attacker pierces 30% of the target's fire (element 4) resistance on all skills.
+ * If placed on a passive mastery state, it is always active while the state is applied.
+ *
+ *  <pierceElement:[4, 50]> on actor, <pierceElement:[4, 20]> on equipped ring:
+ * Combined 70 fire pierce. A fully immune target takes 70% fire damage.
+ *
+ *  <thisPierceElement:[4, 100]>
+ * Only when casting THIS specific skill does it fully pierce fire immunity.
+ * Other skills the caster uses are unaffected.
+ *
+ *  <thisPierceElement:[4, 40]> combined with <pierceElement:[4, 30]> from a state:
+ * 70 total fire pierce on this skill (40 skill-specific + 30 passive global).
+ *
+ * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    evalDamageFormula now delegates formula evaluation to Game_Action#evalFormulaWithContext.
+ *    The hardcoded p (proficiency) setup and J.PROF conditional block have been removed;
+ *    J-Proficiency registers p independently via Game_Action.registerFormulaContext.
+ *    All registered context variables (p, s, and any future additions) are automatically
+ *    available in damage formulas without J-Elementalistics needing to know about them.
+ * - 1.1.0
+ *    Added resistance piercing via pierceElement and thisPierceElement tags.
+ *    Pierce applies to the target's base element rate before the attacker's
+ *    boost multiplier, nudging resistances toward neutral (1.0). Weaknesses
+ *    and absorbed elements are never affected.
  * - 1.0.1
  *    Consumed `RPGManager` updates.
  * - 1.0.0
@@ -240,7 +329,7 @@ J.ELEM = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.0.1");
+J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -254,6 +343,8 @@ J.ELEM.RegExp.AttackElementIds = /<attackElements:[ ]?(\[[\d, ]+])>/i;
 J.ELEM.RegExp.AbsorbElementIds = /<absorbElements:[ ]?(\[[\d, ]+])>/i;
 J.ELEM.RegExp.StrictElementIds = /<strictElements:[ ]?(\[[\d, ]+])>/i;
 J.ELEM.RegExp.BoostElement = /<boostElement:(\d+):(-?\+?[\d]+)>/i;
+J.ELEM.RegExp.PierceElement = /<pierceElement:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.ELEM.RegExp.ThisPierceElement = /<thisPierceElement:[ ]?(\[\d+,[ ]?\d+])>/gi;
 
 //#endregion
 //#region src/plugins/elem/core/objects/Game_Battler.js
@@ -596,20 +687,64 @@ Game_Action.prototype.calculateMultipleRawElementalRate = function(target, attac
 	return attackElements.map((attackElementId) => target.elementRate(attackElementId), this).reduce((previousRate, currentRate) => previousRate * currentRate, 1);
 };
 /**
-* Calculates the element's rate including applicable boosts.
+* Calculates the element's rate including applicable boosts and resistance piercing.
 *
 * This is effectively a wrapper around `target.elementRate(elementId)` that
 * also includes all of our elemental boosts from various notes around the
-* battlers.
+* battlers, and now also applies resistance piercing before the boost multiplication.
 * @param {number} attackElementId The element id.
-* @param {Game_Actor|Game_Enemy} target The element id.
+* @param {Game_Actor|Game_Enemy} target The target being hit.
 * @returns {number}
 */
 Game_Action.prototype.calculateBoostRate = function(attackElementId, target) {
 	const attacker = this.subject();
 	const baseRate = target.elementRate(attackElementId);
+	const piercedRate = this.applyElementPierce(attackElementId, target, baseRate);
 	const elementBoostRate = attacker.elementRateBoost(attackElementId);
-	return baseRate * elementBoostRate;
+	return piercedRate * elementBoostRate;
+};
+/**
+* Applies resistance piercing to a target's base element rate for a given element.
+*
+* Pierce nudges the rate toward 1.0 (neutral damage), hard-capped there.
+* Weaknesses (rate >= 1.0) and absorbed elements are never affected.
+* @param {number} attackElementId The element id being checked.
+* @param {Game_Actor|Game_Enemy} target The target whose resistance may be pierced.
+* @param {number} baseRate The raw element rate from the target's traits.
+* @returns {number} The pierced element rate, or the original if pierce does not apply.
+*/
+Game_Action.prototype.applyElementPierce = function(attackElementId, target, baseRate) {
+	if (baseRate >= 1) return baseRate;
+	if (target.elementsAbsorbed().includes(attackElementId)) return baseRate;
+	const totalPierce = this.getTotalElementPierce(attackElementId);
+	if (totalPierce <= 0) return baseRate;
+	return Math.min(1, baseRate + totalPierce);
+};
+/**
+* Sums all element pierce contributions for the given element from two sources:
+*  - {@code pierceElement} tags on the attacker's full getAllNotes() collection (global/passive).
+*  - {@code thisPierceElement} tags on the specific skill being cast right now (skill-only).
+* @param {number} attackElementId The element id to sum pierce for.
+* @returns {number} Total pierce as a decimal rate (e.g. 0.30 for 30 pierce percent).
+*/
+Game_Action.prototype.getTotalElementPierce = function(attackElementId) {
+	const attacker = this.subject();
+	let totalPercent = 0;
+	for (const source of attacker.getAllNotes()) {
+		const pairs = RPGManager.getArraysFromNotesByRegex(source, J.ELEM.RegExp.PierceElement);
+		for (const pair of pairs) {
+			if (Array.isArray(pair) && pair.length === 2 && Number(pair[0]) === attackElementId) {
+				totalPercent += Number(pair[1]);
+			}
+		}
+	}
+	const skillPairs = RPGManager.getArraysFromNotesByRegex(this.item(), J.ELEM.RegExp.ThisPierceElement);
+	for (const pair of skillPairs) {
+		if (Array.isArray(pair) && pair.length === 2 && Number(pair[0]) === attackElementId) {
+			totalPercent += Number(pair[1]);
+		}
+	}
+	return totalPercent / 100;
 };
 /**
 * Calculates the absorb rate for the target in relation to a set of elements.
@@ -644,9 +779,11 @@ Game_Action.prototype.getAntiNullElementIds = function() {
 /**
 * Overwrites {@link #evalDamageFormula}.<br/>
 * Evaluates the damage formula provided by the dev to determine the damage.
-* This now also factors in how to handle elemental absorption.
-* @param {Game_Actor|Game_Enemy} target The `b` of the formula.
-* @returns
+* This also factors in elemental absorption for sign and floor handling.
+* Formula evaluation is delegated to {@link Game_Action#evalFormulaWithContext}
+* so all registered context variables (p, s, …) are available automatically.
+* @param {Game_Actor|Game_Enemy} target The target battler; the `b` of the formula.
+* @returns {number} The calculated damage value.
 */
 Game_Action.prototype.evalDamageFormula = function(target) {
 	const item = this.item();
@@ -655,18 +792,14 @@ Game_Action.prototype.evalDamageFormula = function(target) {
 	const targetAbsorbs = attackElements.some((elementId) => absorbedElements.includes(elementId));
 	const a = this.subject();
 	const b = target;
-	const v = $gameVariables._data;
-	let p = 0;
-	if (J.PROF) {
-		p = this.skillProficiency();
-	}
 	const sign = this.healingFactor(targetAbsorbs);
 	try {
+		const raw = this.evalFormulaWithContext(item.damage.formula, a, b);
 		let value = 0;
 		if (targetAbsorbs) {
-			value = eval(item.damage.formula) * sign;
+			value = raw * sign;
 		} else {
-			value = Math.max(eval(item.damage.formula), 0) * sign;
+			value = Math.max(raw, 0) * sign;
 		}
 		return isNaN(value) ? 0 : value;
 	} catch (e) {

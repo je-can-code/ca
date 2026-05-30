@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.1.1 BASE] The base class for all J plugins.
+ * [v3.4.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -92,6 +92,26 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.4.0
+ *    Added Game_Action.formulaContextProviders registry and Game_Action.registerFormulaContext
+ *    static method. Any plugin can now inject a named variable into damage formula evaluation
+ *    by registering a getter; the variable is available in every formula evaluated by
+ *    evalFormulaWithContext without any plugin needing to patch another plugin's code.
+ *    Added Game_Action.prototype.evalFormulaWithContext(formula, a, b) — evaluates a formula
+ *    string via new Function with the base context (a, b, v) plus all registered providers.
+ *    This replaces all eval() usage in damage/formula paths; see each consumer's changelog.
+ * - 3.3.0
+ *    Added J.BASE.Resource enum (HP/MP/TP string keys).
+ *    Added Game_Battler.prototype.onHeal(resource, amount) stub — a broadcast hook
+ *    fired after any positive resource recovery. Extensions alias onHeal instead of
+ *    the three gainHp/gainMp/gainTp methods individually.
+ *    Aliased gainHp, gainMp, gainTp on Game_Battler to fire onHeal for positive values.
+ * - 3.2.0
+ *    Added skillIds() to Game_Battler (stub returning empty), Game_Actor (learned skills
+ *    plus trait-granted ids, deduplicated), and Game_Enemy (action skill ids plus
+ *    trait-granted ids, deduplicated). This gives the skill-extension resolver a raw-id
+ *    source that is completely outside the skill()/skills() call path, eliminating the
+ *    need for a re-entrancy guard and enabling intentional recursive overlay chains.
  * - 3.1.1
  *    RPG database wrappers expose createEmpty() on item, weapon, armor, skill,
  *    and state classes.
@@ -403,7 +423,7 @@ J.BASE = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.1.1";
+J.BASE.Metadata.Version = "3.4.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -481,6 +501,25 @@ J.BASE.Traits = {
 	NO_DISAPPEAR: 63
 };
 /**
+* String keys representing the three core battler resources.
+* Passed as the first argument to {@link Game_Battler#onHeal} so listeners
+* can branch without comparing magic strings themselves.
+*/
+J.BASE.Resource = {
+	/**
+	* Hit points — the primary health resource.
+	*/
+	HP: "hp",
+	/**
+	* Magic points — the mana / skill cost resource.
+	*/
+	MP: "mp",
+	/**
+	* Tech points — the limit / combo resource.
+	*/
+	TP: "tp"
+};
+/**
 * All regular expressions used by this plugin.
 */
 J.BASE.RegExp = {};
@@ -523,6 +562,7 @@ J.BASE.Aliased = {
 	Game_Timer: new Map(),
 	Game_System: new Map(),
 	Scene_Base: new Map(),
+	Scene_Boot: new Map(),
 	Scene_MenuBase: new Map(),
 	SoundManager: new Map(),
 	Window_Base: new Map(),
@@ -961,6 +1001,11 @@ var ParameterDisplayPolicy = class {
 	* @type {string}
 	*/
 	static SIGNED = "signed";
+	/**
+	* Skill cost reduction rates (HCR, etc.): lower is better, reducing what the battler pays.
+	* @type {string}
+	*/
+	static COST_RATE = "costRate";
 };
 
 //#endregion
@@ -1152,6 +1197,33 @@ var ParameterKeys = class ParameterKeys {
 	*/
 	static legacyLongParamKey(longParamId) {
 		return ParameterKeys.LEGACY_LONG_PARAM_TO_KEY[longParamId] ?? null;
+	}
+	/**
+	* Reverse lookup: returns the engine b-param id (0–7) for the given registry key,
+	* or -1 if the key does not correspond to any b-param.
+	* @param {string} parameterKey The registry key to look up.
+	* @returns {number}
+	*/
+	static bparamId(parameterKey) {
+		return ParameterKeys.BPARAM_KEYS.indexOf(parameterKey);
+	}
+	/**
+	* Reverse lookup: returns the engine x-param id (0–9) for the given registry key,
+	* or -1 if the key does not correspond to any x-param.
+	* @param {string} parameterKey The registry key to look up.
+	* @returns {number}
+	*/
+	static xparamId(parameterKey) {
+		return ParameterKeys.XPARAM_KEYS.indexOf(parameterKey);
+	}
+	/**
+	* Reverse lookup: returns the engine s-param id (0–9) for the given registry key,
+	* or -1 if the key does not correspond to any s-param.
+	* @param {string} parameterKey The registry key to look up.
+	* @returns {number}
+	*/
+	static sparamId(parameterKey) {
+		return ParameterKeys.SPARAM_KEYS.indexOf(parameterKey);
 	}
 };
 
@@ -2538,7 +2610,7 @@ var SdpParameterBinding = class SdpParameterBinding {
 	* @returns {SdpParameterBinding}
 	*/
 	static bparam(paramId) {
-		const parameterKey = J.BASE.ParameterKeys.bparamKey(paramId);
+		const parameterKey = ParameterKeys.bparamKey(paramId);
 		return SdpParameterBinding.byKey(parameterKey);
 	}
 	/**
@@ -2547,7 +2619,6 @@ var SdpParameterBinding = class SdpParameterBinding {
 	* @returns {SdpParameterBinding}
 	*/
 	static xparam(xparamId) {
-		const parameterKey = J.BASE.ParameterKeys.xparamKey(xparamId);
 		return new SdpParameterBinding((actor, base) => {
 			if (!J.SDP) return 0;
 			return actor.getSdpBonusForNonCoreParam(xparamId, base, 8);
@@ -2559,7 +2630,6 @@ var SdpParameterBinding = class SdpParameterBinding {
 	* @returns {SdpParameterBinding}
 	*/
 	static sparam(sparamId) {
-		const parameterKey = J.BASE.ParameterKeys.sparamKey(sparamId);
 		return new SdpParameterBinding((actor, base) => {
 			if (!J.SDP) return 0;
 			return actor.getSdpBonusForNonCoreParam(sparamId, base, 18);
@@ -2590,6 +2660,7 @@ var ParameterDefinitionBuilder = class {
 	#iconIndex = () => 0;
 	#colorIndex = () => 0;
 	#format = ParameterFormat.FLAT;
+	#displayPolicy = ParameterDisplayPolicy.NONE;
 	#getValue = (_battler) => 0;
 	#sdpBinding = SdpParameterBinding.none();
 	/**
@@ -2657,6 +2728,14 @@ var ParameterDefinitionBuilder = class {
 		return this;
 	}
 	/**
+	* @param {string} displayPolicy The display policy driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	displayPolicy(displayPolicy) {
+		this.#displayPolicy = displayPolicy;
+		return this;
+	}
+	/**
 	* @param {function(Game_Battler): number} getValue The get value driving this step.
 	* @returns {ParameterDefinitionBuilder}
 	*/
@@ -2676,7 +2755,7 @@ var ParameterDefinitionBuilder = class {
 	* @returns {ParameterDefinition}
 	*/
 	build() {
-		return new ParameterDefinition(this.#key, this.#group, this.#sortOrder, this.#label, this.#description, this.#iconIndex, this.#colorIndex, this.#format, this.#getValue, this.#sdpBinding);
+		return new ParameterDefinition(this.#key, this.#group, this.#sortOrder, this.#label, this.#description, this.#iconIndex, this.#colorIndex, this.#format, this.#displayPolicy, this.#getValue, this.#sdpBinding);
 	}
 };
 
@@ -2685,20 +2764,21 @@ var ParameterDefinitionBuilder = class {
 /**
 * Immutable catalog entry for a battler parameter.
 */
-var ParameterDefinition = class {
+var ParameterDefinition = class ParameterDefinition {
 	/**
-	* @param {string} key The key driving this step.
-	* @param {string} group The group driving this step.
-	* @param {number} sortOrder The sort order driving this step.
-	* @param {function(): string} label The label driving this step.
-	* @param {function(): string[]} description The description driving this step.
-	* @param {function(): number} iconIndex The icon index driving this step.
-	* @param {function(): number} colorIndex The color index driving this step.
-	* @param {string} format The format driving this step.
-	* @param {function(Game_Battler): number} getValue The get value driving this step.
-	* @param {SdpParameterBinding} sdpBinding The sdp binding driving this step.
+	* @param {string} key The registry key for this parameter.
+	* @param {string} group The display group this parameter belongs to.
+	* @param {number} sortOrder The sort order within the group.
+	* @param {function(): string} label Getter that returns the display label.
+	* @param {function(): string[]} description Getter that returns the description lines.
+	* @param {function(): number} iconIndex Getter that returns the icon index.
+	* @param {function(): number} colorIndex Getter that returns the base color index.
+	* @param {string} format The display format constant from ParameterFormat.
+	* @param {string} displayPolicy The display policy constant from ParameterDisplayPolicy.
+	* @param {function(Game_Battler): number} getValue Live-value resolver for a battler.
+	* @param {SdpParameterBinding} sdpBinding The SDP panel binding for this parameter.
 	*/
-	constructor(key, group, sortOrder, label, description, iconIndex, colorIndex, format, getValue, sdpBinding) {
+	constructor(key, group, sortOrder, label, description, iconIndex, colorIndex, format, displayPolicy, getValue, sdpBinding) {
 		this.key = key;
 		this.group = group;
 		this.sortOrder = sortOrder;
@@ -2707,6 +2787,7 @@ var ParameterDefinition = class {
 		this.iconIndex = iconIndex;
 		this.colorIndex = colorIndex;
 		this.format = format;
+		this.displayPolicy = displayPolicy;
 		this.getValue = getValue;
 		this.sdpBinding = sdpBinding;
 	}
@@ -2719,39 +2800,191 @@ var ParameterDefinition = class {
 		return this.getValue(battler);
 	}
 	/**
-	* Formats a numeric value for UI display.
-	* @param {number} value The value driving this step.
-	* @param {boolean=} withPadding The with padding driving this step.
+	* Pads a signed magnitude for styled numeric display, optionally reserving a sign column so
+	* signed and unsigned rows align when drawn next to each other.
+	* @param {number} num The rounded display magnitude.
+	* @param {number} digits Minimum digit width after padding.
+	* @param {boolean=} reserveSignColumn When true, zero uses a leading space so values align with signed rows.
+	* @param {boolean=} showPlusForPositive When true, positive values render with a leading {@code +}.
+	* @returns {string}
+	*/
+	static padSignedMagnitude(num, digits, reserveSignColumn = false, showPlusForPositive = false) {
+		const rounded = Math.round(num);
+		const padded = Math.abs(rounded).padZero(digits);
+		if (rounded < 0) {
+			return `-${padded}`;
+		}
+		if (showPlusForPositive && rounded > 0) {
+			return `+${padded}`;
+		}
+		if (reserveSignColumn && rounded === 0) {
+			return ` ${padded}`;
+		}
+		return padded;
+	}
+	/**
+	* Transforms a raw battler value into the numeric magnitude shown in the UI.
+	* Percent and regen formats are multiplied by 100; centered formats also subtract 100 for the delta.
+	* @param {number} value The raw battler value.
+	* @returns {number}
+	*/
+	displayMagnitude(value) {
+		let num = value;
+		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET || this.format === ParameterFormat.REGEN_PER_SECOND) {
+			num *= 100;
+		}
+		if (this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.SCALED_OFFSET) {
+			num -= 100;
+		}
+		return num;
+	}
+	/**
+	* Whether this parameter reserves a sign column when padded on the status screen.
+	* Rate-based display policies all use a sign column so values align visually.
+	* @returns {boolean}
+	*/
+	usesSignColumn() {
+		return this.displayPolicy === ParameterDisplayPolicy.COST_RATE || this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE || this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED;
+	}
+	/**
+	* Whether positive magnitudes should show a leading plus in the sign column.
+	* Reward-rate and signed policies use the plus to make gains visually distinct.
+	* @returns {boolean}
+	*/
+	usesPlusOnPositive() {
+		return this.displayPolicy === ParameterDisplayPolicy.COST_RATE || this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED;
+	}
+	/**
+	* Whether display magnitude should be clamped at {@code -100%} before formatting.
+	* Clamping applies to any policy that uses a sign column.
+	* @returns {boolean}
+	*/
+	clampsDisplayAtMinus100() {
+		return this.usesSignColumn();
+	}
+	/**
+	* Clamps the UI magnitude according to this definition's display policy.
+	* Rate-based policies cannot go below -100 (100% reduction = floor).
+	* @param {number} num The unclamped display magnitude.
+	* @returns {number}
+	*/
+	clampDisplayMagnitude(num) {
+		if (this.clampsDisplayAtMinus100()) {
+			return Math.max(num, -100);
+		}
+		return num;
+	}
+	/**
+	* Resolves a fixed sentinel label when a rate hits its display floor (-100%).
+	* Returns {@code null} when the value is above the floor and no sentinel applies.
+	* @param {number} value The raw battler value to evaluate.
+	* @returns {string|null}
+	*/
+	resolveDisplaySentinel(value) {
+		const num = this.displayMagnitude(value);
+		if (num > -100) {
+			return null;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.COST_RATE) {
+			return ParameterDisplaySentinel.FREE;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE) {
+			return ParameterDisplaySentinel.IMMUNE;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED) {
+			return ParameterDisplaySentinel.NONE;
+		}
+		return null;
+	}
+	/**
+	* Resolves the text color index for a live value on the status screen.
+	* Sentinel states and rate-direction policies each map to distinct palette entries.
+	* @param {number} value The raw battler value to evaluate.
+	* @returns {number}
+	*/
+	resolveDisplayColorIndex(value) {
+		const sentinel = this.resolveDisplaySentinel(value);
+		if (sentinel === ParameterDisplaySentinel.FREE) {
+			return 3;
+		}
+		if (sentinel === ParameterDisplaySentinel.IMMUNE) {
+			return 7;
+		}
+		if (sentinel === ParameterDisplaySentinel.NONE) {
+			return 10;
+		}
+		const num = this.clampDisplayMagnitude(this.displayMagnitude(value));
+		if (this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE || this.displayPolicy === ParameterDisplayPolicy.COST_RATE) {
+			if (num < 0) {
+				return 3;
+			}
+			if (num > 0) {
+				return 10;
+			}
+			return 0;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE) {
+			if (num > 0) {
+				return 3;
+			}
+			if (num < 0) {
+				return 10;
+			}
+			return 0;
+		}
+		return this.colorIndex();
+	}
+	/**
+	* Formats a numeric value for UI display, applying sentinel labels, regen formatting,
+	* padding, and percent suffixes as dictated by the format and display policy.
+	* @param {number} value The raw battler value to format.
+	* @param {boolean=} withPadding True to apply zero-padding for styled stat columns; defaults to false.
 	* @returns {string}
 	*/
 	prettyValue(value, withPadding = false) {
-		let num = value;
-		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT) {
-			num *= 100;
+		const sentinel = this.resolveDisplaySentinel(value);
+		if (sentinel) {
+			return sentinel;
 		}
-		if (this.format === ParameterFormat.PERCENT_CENTERED) {
-			num -= 100;
-		}
+		const num = this.clampDisplayMagnitude(this.displayMagnitude(value));
 		if (this.format === ParameterFormat.REGEN_PER_SECOND) {
 			const perSecond = num / 5;
-			const regenStr = Number.isInteger(perSecond) ? perSecond.toString() : perSecond.toFixed(1);
-			return `${regenStr}/s`;
+			return `${perSecond.toFixed(1)}/s`;
 		}
 		let base = Number.isInteger(num) ? num.toString() : num.toFixed(1);
 		if (base.endsWith(".0")) {
 			base = base.slice(0, base.length - 2);
 		}
-		if (withPadding && value) {
-			if (this.format === ParameterFormat.FLAT_LARGE) {
-				base = String(base).padZero(6);
-			} else if (this.format === ParameterFormat.FLAT) {
-				base = String(base).padZero(4);
-			} else if (this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX) {
-				base = String(base).padZero(3);
-			}
+		if (withPadding) {
+			base = this.applyPaddedDisplay(base, num);
 		}
-		if (this.format === ParameterFormat.PERCENT_SUFFIX) {
+		if (this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.PERCENT) {
 			base = `${base}%`;
+		}
+		return base;
+	}
+	/**
+	* Applies zero-padding rules for styled stat values on the status screen.
+	* Each format family has its own digit width and sign-column rules.
+	* @param {string} base The un-padded display string.
+	* @param {number} num The transformed numeric magnitude used for padding decisions.
+	* @returns {string}
+	*/
+	applyPaddedDisplay(base, num) {
+		if (this.format === ParameterFormat.FLAT_LARGE) {
+			return String(base).padZero(6);
+		}
+		if (this.format === ParameterFormat.FLAT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET) {
+			return ParameterDefinition.padSignedMagnitude(num, 4, false, false);
+		}
+		if (this.format === ParameterFormat.PERCENT_CENTERED) {
+			return ParameterDefinition.padSignedMagnitude(num, 3, this.usesSignColumn(), this.usesPlusOnPositive());
+		}
+		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT) {
+			if (this.usesSignColumn()) {
+				return ParameterDefinition.padSignedMagnitude(num, 3, true, this.usesPlusOnPositive());
+			}
+			return Math.abs(Math.round(num)).padZero(3);
 		}
 		return base;
 	}
@@ -3644,7 +3877,7 @@ var RPGManager = class {
 			if (result === null) return;
 			const [, formula] = result;
 			try {
-				const evalResult = eval(formula).toFixed(3);
+				const evalResult = new Function("a", "b", "v", `return (${formula})`)(a, b, v).toFixed(3);
 				val += parseFloat(evalResult);
 			} catch (error) {
 				console.error(`An error occurred while evaluating the formula: [${formula}].`);
@@ -6613,6 +6846,59 @@ var AffiliationDisplay = class AffiliationDisplay {
 };
 
 //#endregion
+//#region src/plugins/_base/objects/Game_Action.js
+/**
+* A collection of registered formula context providers.
+* Each provider contributes a named variable to every `evalFormulaWithContext` call.
+* Plugins append entries here via {@link Game_Action.registerFormulaContext}; the order
+* of registration determines the order of arguments passed to the generated function.
+* @type {Array<{name: string, getter: function}>}
+*/
+Game_Action.formulaContextProviders = [];
+/**
+* Registers a named formula context variable provided by a plugin.
+* The getter receives `(action, a, b)` where `action` is the {@link Game_Action} instance,
+* `a` is the attacker, and `b` is the target. Arrow functions are fully supported.
+* The return value of the getter becomes the value of `name` inside every
+* formula evaluated by {@link Game_Action#evalFormulaWithContext}.
+* @param {string} name The variable name exposed inside the formula (e.g. `'p'`, `'s'`).
+* @param {function(Game_Action, Game_Battler, Game_Battler): *} getter A function returning the value.
+*/
+Game_Action.registerFormulaContext = function(name, getter) {
+	Game_Action.formulaContextProviders.push({
+		name,
+		getter
+	});
+};
+/**
+* Evaluates a formula string using the base context (`a`, `b`, `v`) plus all
+* variables registered via {@link Game_Action.registerFormulaContext}.
+*
+* Uses `new Function` rather than `eval` so that each plugin owns its own
+* injected variable — no plugin needs to patch another's formula function.
+* @param {string} formula The formula string to evaluate.
+* @param {Game_Actor|Game_Enemy} a The attacker / subject of this action.
+* @param {Game_Actor|Game_Enemy} b The target of this action.
+* @returns {number} The result of the formula.
+*/
+Game_Action.prototype.evalFormulaWithContext = function(formula, a, b) {
+	const v = $gameVariables._data;
+	const names = [
+		"a",
+		"b",
+		"v",
+		...Game_Action.formulaContextProviders.map((provider) => provider.name)
+	];
+	const values = [
+		a,
+		b,
+		v,
+		...Game_Action.formulaContextProviders.map((provider) => provider.getter(this, a, b))
+	];
+	return new Function(...names, `return (${formula})`)(...values);
+};
+
+//#endregion
 //#region src/plugins/_base/objects/Game_Actor.js
 /**
 * The underlying database data for this battler.
@@ -6629,6 +6915,15 @@ Game_Actor.prototype.battlerId = function() {
 */
 Game_Actor.prototype.databaseData = function() {
 	return this.actor();
+};
+/**
+* Gets the raw skill ids known to this actor.
+* Combines the actor's learned skill list with any bonus skill ids granted by traits,
+* then deduplicates so each id appears at most once.
+* @returns {number[]}
+*/
+Game_Actor.prototype.skillIds = function() {
+	return [...new Set(this._skills.concat(this.addedSkills()))];
 };
 /**
 * Determines whether or not this actor is the leader.
@@ -6929,6 +7224,14 @@ Game_Battler.prototype.skills = function() {
 	return Array.empty;
 };
 /**
+* Gets the raw skill ids available to this battler.
+* Returns an empty array by default; actor and enemy override this for their respective data sources.
+* @returns {number[]}
+*/
+Game_Battler.prototype.skillIds = function() {
+	return Array.empty;
+};
+/**
 * The underlying database data for this battler.
 *
 * This allows operations to be performed against both actor and enemy indifferently.
@@ -7099,6 +7402,41 @@ Game_Battler.prototype.currentHpPercent100 = function() {
 */
 Game_Battler.prototype.parameter = function(key) {
 	return ParameterRegistry.resolveValue(this, key);
+};
+/**
+* Hook fired after any positive resource recovery on this battler.
+* Extensions alias this instead of gainHp/gainMp/gainTp to react to healing events
+* without duplicating three separate aliases per plugin.
+* @param {string} _resource One of {@link J.BASE.Resource}.HP / .MP / .TP.
+* @param {number} _amount The positive amount that was recovered.
+*/
+Game_Battler.prototype.onHeal = function(_resource, _amount) {};
+/**
+* Extends {@link #gainHp}.<br/>
+* Fires {@link #onHeal} after any positive HP recovery so listeners can react.
+*/
+J.BASE.Aliased.Game_Battler.set("gainHp", Game_Battler.prototype.gainHp);
+Game_Battler.prototype.gainHp = function(value) {
+	J.BASE.Aliased.Game_Battler.get("gainHp").call(this, value);
+	if (value > 0) this.onHeal(J.BASE.Resource.HP, value);
+};
+/**
+* Extends {@link #gainMp}.<br/>
+* Fires {@link #onHeal} after any positive MP recovery so listeners can react.
+*/
+J.BASE.Aliased.Game_Battler.set("gainMp", Game_Battler.prototype.gainMp);
+Game_Battler.prototype.gainMp = function(value) {
+	J.BASE.Aliased.Game_Battler.get("gainMp").call(this, value);
+	if (value > 0) this.onHeal(J.BASE.Resource.MP, value);
+};
+/**
+* Extends {@link #gainTp}.<br/>
+* Fires {@link #onHeal} after any positive TP recovery so listeners can react.
+*/
+J.BASE.Aliased.Game_Battler.set("gainTp", Game_Battler.prototype.gainTp);
+Game_Battler.prototype.gainTp = function(value) {
+	J.BASE.Aliased.Game_Battler.get("gainTp").call(this, value);
+	if (value > 0) this.onHeal(J.BASE.Resource.TP, value);
 };
 
 //#endregion
@@ -7501,6 +7839,19 @@ Game_Enemy.prototype.skills = function() {
 	const actions = this.enemy().actions.filter(this.canMapActionToSkill, this).map((action) => this.skill(action.skillId), this);
 	const skillTraits = this.traitObjects().filter((trait) => trait.code === J.BASE.Traits.ADD_SKILL).map((skillTrait) => this.skill(skillTrait.dataId), this);
 	return actions.concat(skillTraits).sort();
+};
+/**
+* Gets the raw skill ids available to this enemy.
+* Combines action skill ids with any bonus skill ids granted by traits,
+* then deduplicates so each id appears at most once.
+* Mirrors the logic of {@link #skills} but returns ids instead of resolved skill objects,
+* making it safe to call from inside the skill extension resolver.
+* @returns {number[]}
+*/
+Game_Enemy.prototype.skillIds = function() {
+	const actionIds = this.enemy().actions.filter(this.canMapActionToSkill, this).map((action) => action.skillId);
+	const traitIds = this.traitObjects().filter((trait) => trait.code === J.BASE.Traits.ADD_SKILL).map((trait) => trait.dataId);
+	return [...new Set(actionIds.concat(traitIds))];
 };
 /**
 * Determines whether or not the action can be mapped to a skill.
@@ -8091,6 +8442,18 @@ Scene_Base.prototype.hideModalDimmer = function() {
 */
 Scene_Base.prototype.callScene = function() {
 	SceneManager.push(this);
+};
+
+//#endregion
+//#region src/plugins/_base/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Seeds vanilla engine parameters before downstream plugins extend the catalog.
+*/
+J.BASE.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	VanillaParameterRegistration.registerAll();
+	J.BASE.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
 };
 
 //#endregion

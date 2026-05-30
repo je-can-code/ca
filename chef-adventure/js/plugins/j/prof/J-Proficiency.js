@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.0.1 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.1.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -146,6 +146,11 @@
  * - Decreasing the proficiency will NOT undo rewards gained.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    Registers 'p' as a formula context variable via Game_Action.registerFormulaContext.
+ *    Damage formulas can now use 'p' for skill proficiency without J-Elementalistics
+ *    needing to hardcode a J.PROF conditional block. The registration calls
+ *    this.skillProficiency() on the Game_Action instance at formula evaluation time.
  * - 2.0.1
  *    Added flag for showing external file load info.
  *    Removed dead plugin parameters for conditionals.
@@ -394,7 +399,7 @@ J.PROF = {};
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.0.1");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.1.0");
 /**
 * The various aliases associated with this plugin.
 */
@@ -412,6 +417,7 @@ J.PROF.RegExp = {};
 J.PROF.RegExp.ProficiencyBonus = /<proficiencyBonus:[ ]?(\d+)>/i;
 J.PROF.RegExp.ProficiencyGivingBlock = /<proficiencyGivingBlock>/i;
 J.PROF.RegExp.ProficiencyGainingBlock = /<proficiencyGainingBlock>/i;
+Game_Action.registerFormulaContext("p", (action) => action.skillProficiency());
 
 //#endregion
 //#region src/plugins/prof/core/objects/Game_Battler.js
@@ -597,7 +603,7 @@ Game_Actor.prototype.executeJsRewards = function(conditional) {
 	const c = conditional;
 	const { jsRewards } = c;
 	try {
-		eval(jsRewards);
+		new Function("a", "c", jsRewards)(a, c);
 	} catch (error) {
 		console.error(`there was an error executing the reward for: ${c.key}.<br>`);
 		console.log(error);
