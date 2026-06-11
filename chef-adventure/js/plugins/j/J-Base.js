@@ -407,6 +407,22 @@ var RPG_BaseItem = class extends RPG_Base {
 		this.iconIndex = baseItem.iconIndex;
 	}
 };
+/**
+* A frozen sentinel representing an empty or unoccupied database item slot.
+* Use in place of null when a slot may have no item equipped so that callers
+* can read {@code .name}, {@code .iconIndex}, and {@code .description} without
+* null-guarding. Distinguish a real entry from this sentinel via {@code entry.id > 0}.
+* @type {Readonly<{id: number, index: number, name: string, note: string, meta: {}, description: string, iconIndex: number}>}
+*/
+RPG_BaseItem.Empty = Object.freeze({
+	id: 0,
+	index: 0,
+	name: "",
+	note: "",
+	meta: {},
+	description: "",
+	iconIndex: 0
+});
 
 //#endregion
 //#region src/plugins/_base/_metadata/initialization.js
@@ -3531,7 +3547,7 @@ var RPG_BaseBattler = class extends RPG_Traited {
 /**
 * A utility class for handling common database-related translations.
 */
-var RPGManager = class {
+var RPGManager = class RPGManager {
 	/**
 	* The cache for storing parsed note data.
 	* @type {WeakMap<object, Map<string, any>>}
@@ -4114,11 +4130,28 @@ var RPGManager = class {
 		if (!foundDatas) return [];
 		const key = J.BASE.Helpers.getKeyFromRegexp(structure);
 		const mapper = (data) => {
-			const [skillId, chance] = data;
-			return new JABS_OnChanceEffect(skillId, chance ?? 100, key);
+			const [skillId, chance, hitTypeString] = data;
+			const hitType = RPGManager.resolveHitTypeString(hitTypeString);
+			return new JABS_OnChanceEffect(skillId, chance ?? 100, key, hitType);
 		};
 		const mappedOnChanceEffects = foundDatas.map(mapper, this);
 		return mappedOnChanceEffects;
+	}
+	/**
+	* Resolves an optional hit type string from a notetag into its numeric constant.
+	* Accepts "physical", "magical", or "certain" (case-insensitive).
+	* Returns null when the string is absent or unrecognised, meaning any hit type matches.
+	* @param {string|undefined} str The raw string from the parsed notetag array.
+	* @returns {number|null}
+	*/
+	static resolveHitTypeString(str) {
+		if (!str || typeof str !== "string") return null;
+		switch (str.toLowerCase()) {
+			case "physical": return Game_Action.HITTYPE_PHYSICAL;
+			case "magical": return Game_Action.HITTYPE_MAGICAL;
+			case "certain": return Game_Action.HITTYPE_CERTAIN;
+			default: return null;
+		}
 	}
 	/**
 	* Collects all {@link JABS_OnChanceEffect}s from the list of database objects.
@@ -6897,6 +6930,43 @@ Game_Action.prototype.evalFormulaWithContext = function(formula, a, b) {
 	];
 	return new Function(...names, `return (${formula})`)(...values);
 };
+/**
+* Sets the triggering damage values that caused this action to fire (e.g. a retaliation).
+* These are exposed as `d` (HP), `m` (MP), and `t` (TP) inside damage formulas via
+* {@link Game_Action.registerFormulaContext}.
+* @param {number} hpDamage The HP damage that triggered this action.
+* @param {number} mpDamage The MP damage that triggered this action.
+* @param {number} tpDamage The TP damage that triggered this action.
+*/
+Game_Action.prototype.setTriggerDamage = function(hpDamage, mpDamage, tpDamage) {
+	this._triggerHpDamage = hpDamage;
+	this._triggerMpDamage = mpDamage;
+	this._triggerTpDamage = tpDamage;
+};
+/**
+* Gets the triggering HP damage stamped onto this action, defaulting to 0.
+* @returns {number}
+*/
+Game_Action.prototype.getTriggerHpDamage = function() {
+	return this._triggerHpDamage ?? 0;
+};
+/**
+* Gets the triggering MP damage stamped onto this action, defaulting to 0.
+* @returns {number}
+*/
+Game_Action.prototype.getTriggerMpDamage = function() {
+	return this._triggerMpDamage ?? 0;
+};
+/**
+* Gets the triggering TP damage stamped onto this action, defaulting to 0.
+* @returns {number}
+*/
+Game_Action.prototype.getTriggerTpDamage = function() {
+	return this._triggerTpDamage ?? 0;
+};
+Game_Action.registerFormulaContext("d", (action) => action.getTriggerHpDamage());
+Game_Action.registerFormulaContext("m", (action) => action.getTriggerMpDamage());
+Game_Action.registerFormulaContext("t", (action) => action.getTriggerTpDamage());
 
 //#endregion
 //#region src/plugins/_base/objects/Game_Actor.js

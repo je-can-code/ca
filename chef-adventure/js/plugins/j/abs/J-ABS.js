@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.12.2 JABS] Enables combat to be carried out on the map.
+ * [v4.12.4 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -47,6 +47,18 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.12.4
+ *    State spread: `<spread:[CHANCE, RANGE]>`, `<viral>`, `<spreadTick:N>`, `<spreadPerTick:N>`,
+ *    `<spreadPreferUnafflicted>`, `<spreadSkipAfflicted>`. Each tracked JABS_State ticks a spread
+ *    counter (plugin param `defaultStateSpreadTickInterval`, default 30 frames). Independent chance
+ *    per target in range; applies via addState with original source battler. Not tied to slip/regen.
+ *    Startup: `_pluginMetadata` no longer imports `JABS_State` (default reapply type `'refresh'`).
+ * - 4.12.3
+ *    Cast-time direct damage scaling: `<castTimeDamageBonus:N>` on any getAllNotes() source and
+ *    `<thisCastTimeDamageBonus:N>` on a specific skill. Bonus percent = sum(N per sec) × resolved
+ *    cast seconds (frames ÷ 60). Resolved cast duration is stamped on the shared Game_Action when
+ *    JABS actions are built (includes J-ABS-Timing cast speed). Applies to HP/MP damage skills
+ *    only; not healing, recovery, or slip DoT ticks.
  * - 4.12.2
  *    Fixed a bug where `JABS_SkillSlot.canBeAutocleared` was missing Mainhand and
  *    Offhand from its protected-slots list, causing those slots to be wiped by
@@ -591,6 +603,13 @@
  *    <jabsConfig:showHpBar>
  *
  * ----------------------------------------------------------------------------
+ * STATE STRIP:
+ * Enemies show active affliction icons beneath their hp bar by default.
+ * To hide or force the strip to show:
+ *    <jabsConfig:hideStates>
+ *    <jabsConfig:showStates>
+ *
+ * ----------------------------------------------------------------------------
  * BATTLER NAME:
  * The name of the enemy is shown beneath their character sprite. To
  * conceal or reveal it:
@@ -923,17 +942,6 @@
  * NOTE: This tag only affects LINE and WALL hitboxes.
  *
  * ----------------------------------------------------------------------------
- * SIZE:
- * Overrides the collision radius for this skill in pixels rather than
- * tiles. Useful for fine-tuning hitboxes that feel too small or too large
- * at standard tile resolution.
- *    <size:VAL>
- *  Where VAL is the collision radius in pixels.
- *
- * NOTE: Most skills will not need this. Use <radius> for tile-based
- * sizing and only reach for <size> when pixel precision matters.
- *
- * ----------------------------------------------------------------------------
  * CAST TIME:
  * The number of frames the battler must wait before the skill fires.
  * While casting, the "cast animation" will loop if one is defined.
@@ -1132,12 +1140,27 @@
  * RETALIATE:
  * When this battler is struck, they have a chance to fire a skill in
  * immediate retaliation.
- *    <retaliate:[SKILL_ID,CHANCE]>
+ *    <retaliate:[SKILL_ID, CHANCE]>
+ *    <retaliate:[SKILL_ID, CHANCE, TYPE]>
  *  Where SKILL_ID is the skill to fire.
  *  Where CHANCE is the integer percent chance to fire it (0-100).
+ *  Where TYPE is an optional hit type filter: physical, magical, or certain.
+ *    When TYPE is omitted the skill fires regardless of the incoming hit type.
+ *    When TYPE is set the skill only fires if the incoming hit matches that type.
  *
- * Place this tag on a state or on a piece of equipment. A battler under
- * a "thorns" state is a classic example of how to use this.
+ * Inside the payload skill's damage formula, three extra variables are available:
+ *    d  — the HP damage dealt by the hit that triggered this retaliation
+ *    m  — the MP damage dealt by the triggering hit
+ *    t  — the TP damage dealt by the triggering hit
+ * All three default to 0 in non-retaliation formulas, so referencing them is safe
+ * on any skill.
+ *
+ * Thorns authoring example — reflect 30% of physical HP damage back:
+ *    <retaliate:[THORNS_SKILL_ID, 100, physical]>
+ *    Payload skill formula: d * 0.3
+ *    Payload skill: <unparryable>
+ *
+ * Place this tag on a state, piece of equipment, skill, class, or actor note.
  *
  * ----------------------------------------------------------------------------
  * ON OWN DEFEAT:
@@ -1167,6 +1190,228 @@
  * Without this flag, the onTargetDefeat skill spawns at the caster.
  * With this flag, the visual effect appears where the target fell.
  * Use this to create effects like "on kill: play animation on corpse".
+ *
+ * ============================================================================
+ * SKILL HISTORY BONUS:
+ * These tags apply a damage multiplier based on a battler's recent skill
+ * execution history. Both tags scale damage by: 1 + (PCT * COUNT / 100).
+ *
+ * COUNT_MODE controls what is counted from the history window:
+ *   all           — total executions matching the type/skill filter
+ *   unique        — distinct skill ids matching the filter
+ *   streak        — consecutive executions from the most recent entry
+ *                   backward, stopping at the first non-matching entry
+ *   distinct_types — distinct skill type ids in the window (most useful
+ *                   with TYPE_ID = 0 for any type)
+ *
+ * ----------------------------------------------------------------------------
+ * SKILL HISTORY BONUS (passive / equipment / state):
+ * Reads from getAllNotes() sources. Fires on every attack by the bearer.
+ * TYPE_ID = 0 matches any skill type (the "no filter" sentinel).
+ *    <skillHistoryBonus:[TYPE_ID, WINDOW, PCT, COUNT_MODE]>
+ *  Where TYPE_ID is the stypeId to filter on (0 = any type).
+ *  Where WINDOW is the lookback in seconds (must be <= plugin max window).
+ *  Where PCT is the integer percent bonus per unit of COUNT.
+ *  Where COUNT_MODE is: all | unique | streak | distinct_types
+ *
+ * Examples:
+ *  Ghosty mastery — 5% per unique skill used in last 10 seconds:
+ *    <skillHistoryBonus:[0, 10, 5, unique]>
+ *
+ *  Berserker mastery — 5% per consecutive weapon-type execution (type 7):
+ *    <skillHistoryBonus:[7, 5, 5, streak]>
+ *
+ * ----------------------------------------------------------------------------
+ * THIS-SKILL HISTORY BONUS (on a specific skill):
+ * Reads from this.item() only. Fires exclusively when this skill is the
+ * action being resolved. History scope is limited to this skill's own id.
+ *    <thisSkillHistoryBonus:[WINDOW, PCT, COUNT_MODE]>
+ *  Where WINDOW is the lookback in seconds (must be <= plugin max window).
+ *  Where PCT is the integer percent bonus per unit of COUNT.
+ *  Where COUNT_MODE is: all | unique | streak | distinct_types
+ *
+ * Examples:
+ *  Taser — 8% more damage per consecutive cast of this skill in 3 seconds:
+ *    <thisSkillHistoryBonus:[3, 8, streak]>
+ *
+ * ============================================================================
+ * CAST TIME DAMAGE BONUS:
+ * Scales direct HP/MP damage from skills that have a resolved cast time greater than zero.
+ * Read at damage resolution from the cast duration stamped on the shared Game_Action when
+ * the JABS action volley was created (same value as JABS_Action#getCastTime after cast speed).
+ *
+ * Does NOT affect healing/recovery, slip DoT ticks, or state-only skills. DoT amplification
+ * belongs in a future DoT pipeline revamp (see backlog abs-dot-slip-revamp).
+ *
+ * Formula:
+ *   bonusPct = sum(all N per sec tags) × (castFrames / 60)
+ *   finalDamage = round(baseDamage × (1 + bonusPct / 100))
+ *
+ * No cap. Faster cast speed (J-ABS-Timing) reduces wait time and therefore reduces bonus.
+ *
+ * ----------------------------------------------------------------------------
+ * CAST TIME DAMAGE BONUS (passive / equipment / state):
+ * Reads from getAllNotes() sources. Fires on every qualifying direct-damage skill hit.
+ *    <castTimeDamageBonus:N>
+ *  Where N is integer percent bonus per second of resolved cast time.
+ *
+ * Example — Lamia Focusing Beam mastery passive (+12% per second of cast):
+ *    <castTimeDamageBonus:12>
+ *
+ * ----------------------------------------------------------------------------
+ * THIS-SKILL CAST TIME DAMAGE BONUS (on a specific skill):
+ * Reads from this.item() only. Stacks additively with castTimeDamageBonus sources.
+ *    <thisCastTimeDamageBonus:N>
+ *
+ * Example — signature laser (+20% per second on this skill alone):
+ *    <castTime:180>
+ *    <thisCastTimeDamageBonus:20>
+ *  A 3-second cast → +60% from this tag alone (+36% more if mastery also has 12/sec).
+ *
+ * ============================================================================
+ * RANGE SIZE MODIFIERS:
+ * These tags scale the effective reach of every JABS action launched by the
+ * bearer. They apply to three dimensions simultaneously:
+ *   radius    — the hitbox extent used for circle/rhombus/square/line/wall/cross
+ *   proximity — how close a direct-target skill must be to its target to fire
+ *   thickness — the perpendicular width of LINE and WALL hitboxes
+ *
+ * Read from getAllNotes() on the caster (passives, equips, states, class,
+ * actor, etc.). Tags on the skill itself work too but will affect ALL of
+ * the bearer's outgoing actions, not just that skill.
+ *
+ * Both buff and rate are optional; if neither is present the base value is
+ * used unchanged. Modifiers are skipped entirely when the skill has no
+ * explicit tag for that dimension (e.g. a skill with no <proximity:N> is
+ * not affected by rangeBuff/rangeRate on the proximity axis).
+ *
+ * STACKING FORMULA:
+ *   finalValue = max(0, (base + totalBuff) * totalRate)
+ *
+ * Where totalBuff is the sum of every <rangeBuff:N> value and
+ * totalRate accumulates as: 1.0 + sum(each rateTag - 1.0).
+ *   <rangeRate:1.5> alone → 1.5x
+ *   <rangeRate:1.5> + <rangeRate:1.5> → 2.0x  (each contributes +0.5)
+ *   <rangeRate:0.8> → 0.8x  (contributes -0.2, acts as a range penalty)
+ *
+ * ----------------------------------------------------------------------------
+ * RANGE BUFF (flat additive, applied before rate):
+ * Adds N tiles to the base value before the rate multiplier is applied.
+ * Negative values reduce reach (range penalty).
+ *    <rangeBuff:N>
+ *  Where N is a signed decimal tile count (e.g. 1.5, -0.5).
+ *
+ * Example:
+ *  Hazard mastery — +2 tiles on every outgoing action:
+ *    <rangeBuff:2>
+ *
+ * ----------------------------------------------------------------------------
+ * RANGE RATE (multiplicative, base-1.0 delta model):
+ * Multiplies the buffed value. The tag value IS the rate, not the delta;
+ * each tag contributes (N - 1.0) to the rate accumulator so that stacking
+ * multiple rates behaves additively rather than compounding exponentially.
+ *    <rangeRate:N>
+ *  Where N is a non-negative decimal multiplier (1.0 = no change).
+ *
+ * Example:
+ *  Hazard mastery — 1.5x reach on all actions:
+ *    <rangeRate:1.5>
+ *
+ * ============================================================================
+ * STATE DAMAGE MULTIPLIERS:
+ * These tags apply damage bonuses based on the current states of the target
+ * at the moment the action resolves. Both tags are read from getAllNotes() on
+ * the caster (passives, equips, states, class, actor, etc.).
+ *
+ * Bonuses are applied BEFORE guard reduction so that a target's heavily-guarded
+ * stance cannot fully negate the caster's state-exploitation advantage. Guard
+ * still reduces the amplified value — it is simply less effective at canceling
+ * the bonus outright than it would be if the bonus were applied afterward.
+ *
+ * Combined formula:
+ *   totalPct = perDebuffBonusPct + specificStateBonusPct
+ *   finalDamage = round(baseDamage * (1 + totalPct / 100))
+ *
+ * ----------------------------------------------------------------------------
+ * PER-DEBUFF BONUS:
+ * Adds N% bonus damage for every negative state (jabsNegative tagged) currently
+ * active on the target. Multiple <perDebuffBuff:N> tags have their N values
+ * summed, then the total is multiplied by the debuff count.
+ *    <perDebuffBuff:N>
+ *  Where N is a signed decimal percent-per-debuff (5 = +5% per debuff).
+ *  Negative N acts as a damage penalty against debuffed targets.
+ *
+ * Example:
+ *  Puppet mastery — +5% damage per debuff on the target:
+ *    <perDebuffBuff:5>
+ *
+ * With three debuffs active (e.g. Paralyzed + Rooted + Poisoned):
+ *    totalPct from this tag = 5 * 3 = 15%
+ *
+ * NOTE: Only states tagged with <negative> in their note box are counted.
+ * Buffs, temp power-ups, and untagged states do not increment the count.
+ *
+ * ----------------------------------------------------------------------------
+ * BONUS DAMAGE IF STATE:
+ * Adds PCT% bonus damage if the target currently has a specific state active.
+ * Multiple tags for the same state id stack additively. Multiple tags for
+ * different state ids each contribute independently.
+ *    <bonusDamageIfState:[STATE_ID, PCT]>
+ *  Where STATE_ID is the database id of the state to check.
+ *  Where PCT is the integer percent bonus to add when the state is present.
+ *
+ * Example:
+ *  Puppet mastery — +25% if paralyzed, +25% if rooted, +25% if disabled:
+ *    <bonusDamageIfState:[STATE_ID_PARALYZED, 25]>
+ *    <bonusDamageIfState:[STATE_ID_ROOTED, 25]>
+ *    <bonusDamageIfState:[STATE_ID_DISABLED, 25]>
+ *
+ * If the target has all three, specificStateBonusPct = 75 (each fires independently).
+ *
+ * ============================================================================
+ * APPLY STATE ON EXPIRE:
+ * When a state expires by its natural frame-counter reaching zero, this tag
+ * causes a follow-up state to be applied to the same battler at a given
+ * percent chance. This is the backbone of any "chain" state system.
+ *
+ * IMPORTANT: This tag fires ONLY on natural expiry. Forced removal — via
+ * dispel, script calls, KO, or the food-chain strip routine — does NOT
+ * trigger it. This distinction is intentional so that removing a chain
+ * early does not cascade the chain forward.
+ *
+ * Tag format:
+ *    <applyStateOnExpire:[STATE_ID, CHANCE]>
+ *  Where STATE_ID is the integer database id of the state to apply next.
+ *  Where CHANCE is an integer percent chance (0–100) of the follow-up firing.
+ *
+ * Examples:
+ *  A "Well Fed (Protein)" state that always transitions into "Pumped":
+ *    <applyStateOnExpire:[STATE_PUMPED_ID, 100]>
+ *
+ *  A "Burning" state that has a 50% chance to leave a "Scorched" debuff:
+ *    <applyStateOnExpire:[STATE_SCORCHED_ID, 50]>
+ *
+ * Only one <applyStateOnExpire> tag per state is read (the first match).
+ * The follow-up state inherits the same source battler as the expiring state.
+ *
+ * ============================================================================
+ * STATE SPREADING:
+ * Tracked combat states can spread to nearby battlers on a cadence independent of slip/regen.
+ * Buffs and debuffs both qualify; spreading is not limited to negative states.
+ *
+ * Tag format:
+ *    <spread:[CHANCE, RANGE]>
+ *  CHANCE = percent (1–100) rolled independently per candidate each spread pulse.
+ *  RANGE = tile distance (same as AI proximity helpers).
+ *
+ * Optional tags (state row only):
+ *    <viral> — candidates are all battlers in range, not only same-side allies.
+ *    <spreadTick:FRAME_COUNT> — frames between spread pulses (default: plugin param, usually 30).
+ *    <spreadPerTick:N> — max successful spreads per pulse (failed rolls do not count).
+ *    <spreadPreferUnafflicted> — try battlers without this state id first (closest-first within each group).
+ *    <spreadSkipAfflicted> — never spread to battlers who already have this state id (no spread refresh).
+ *
+ * Spread uses the original source battler from when the state was first applied (JABS_State#source).
  *
  * ============================================================================
  * USING SKILLS:
@@ -1575,10 +1820,20 @@
  * Multiples of 20 are a handy mental shortcut: val 20 = 1 per tick,
  * val 40 = 2 per tick, and so on.
  *
- * STATE DURATIONS:
- * State duration is controlled by the "Remove by Walking" number box in
- * the database editor. That value is the number of frames the state
- * persists. At ~60 FPS, 300 frames ≈ 5 seconds.
+ * STATE DURATIONS (map / ABS):
+ * J-ABS does not use MZ "Remove by Walking" for map timers. That checkbox only
+ * unlocked the stepsToRemove field in the database editor. Use note tags instead.
+ *
+ * FINITE TIMER (expires on the map):
+ *    <stateDuration:FRAMES>
+ *    <stateDurationSec:SECONDS>   (optional; SECONDS * 60 = frames)
+ *
+ * INDEFINITE (never expires on the map):
+ *    <indefiniteState>
+ *
+ * RPG Maker MZ caps stepsToRemove at 9999 in the UI (~2.8 min at 60 fps).
+ * You may leave stepsToRemove as a placeholder; J-ABS reads the tags above.
+ * Food chain HUD segments use the same duration getter.
  *
  * NOTE: RMMZ targets 60 FPS but may run lower under heavy load, so
  * actual duration may exceed what the math suggests.
@@ -1916,6 +2171,42 @@
  * @desc The default number of frames before an item expires from the map. Set to -1 for no expiration.
  * @default 900
  *
+ * @param mapAfflictionConfigs
+ * @text MAP AFFLICTION STRIP
+ *
+ * @param mapAfflictionIconScale
+ * @parent mapAfflictionConfigs
+ * @type number
+ * @decimals 2
+ * @text Map Affliction Icon Scale
+ * @desc Scale applied to map affliction icons (1 = full icon size).
+ * @default 0.5
+ *
+ * @param mapAfflictionGaugeHeight
+ * @parent mapAfflictionConfigs
+ * @type number
+ * @min 1
+ * @text Map Affliction Gauge Height
+ * @desc Height in pixels of each map affliction drain gauge.
+ * @default 3
+ *
+ * @param mapAfflictionGapBelowHpBar
+ * @parent mapAfflictionConfigs
+ * @type number
+ * @min 0
+ * @text Gap Below HP Bar
+ * @desc Pixels between the hp gauge bottom and the affliction icon row.
+ * @default 2
+ *
+ * @param mapAfflictionMaxSlots
+ * @parent mapAfflictionConfigs
+ * @type number
+ * @min 1
+ * @max 16
+ * @text Map Affliction Max Slots
+ * @desc Maximum number of affliction icons shown per row below a map battler.
+ * @default 8
+ *
  * @param defaultAttackAnimationId
  * @parent defaultConfigs
  * @type number
@@ -2062,6 +2353,13 @@
  * @text Diminishment Reset
  * @desc After this many frames, the diminishing returns on a state being "refreshed" will reset. (60 frames = 1 second)
  * @default 900
+ *
+ * @param defaultStateSpreadTickInterval
+ * @parent refreshConfigs
+ * @type number
+ * @text Default Spread Tick Interval
+ * @desc Frames between state spread pulses when a state row omits <spreadTick:N>. (60 frames = 1 second)
+ * @default 30
  *
  *
  * @param defaultStateExtendAmount
@@ -2396,6 +2694,27 @@
  *
  *
  *
+ * @param skillHistoryConfigs
+ * @text SKILL HISTORY
+ *
+ * @param skillExecutionMaxWindowSeconds
+ * @parent skillHistoryConfigs
+ * @type number
+ * @min 1
+ * @text Skill History Max Window (Seconds)
+ * @desc How many seconds a skill execution entry is kept before being pruned. Individual tag windows must be <= this value.
+ * @default 15
+ *
+ * @param skillExecutionExcludedSkillTypes
+ * @parent skillHistoryConfigs
+ * @type number[]
+ * @text Skill History Excluded Skill Types
+ * @desc Skill type ids (stypeId) that are never recorded in the skill history log. Useful for excluding weapon combo types.
+ * @default []
+ *
+ *
+ *
+ *
  * @command Enable JABS
  * @text Enable JABS
  * @desc Enables the JABS engine allowing battles on the map to take place.
@@ -2572,435 +2891,8 @@
 //=================================================================================================
 /* eslint-enable max-len */
 
-//#region src/plugins/abs/core/__models/JABS_StateBuilder.js
-/**
-* A fluent builder/factory for constructing {@link JABS_State} instances.
-*
-* Required parameters are provided at construction to prevent half-baked builders.
-* Optional parameters can be configured via fluent setters before calling {@link build}.
-*
-* Usage example:
-*
-* const built = new JABS_StateBuilder(target, stateId, iconIndex, duration)
-*   .setStartingStacks(2)
-*   .setSource(attacker)
-*   .build();
-*/
-var JABS_StateBuilder = class {
-	/**
-	* The battler that will receive the state when built.
-	* @type {Game_Battler}
-	*/
-	#battler = null;
-	/**
-	* The database id of the state to apply.
-	* @type {number}
-	*/
-	#stateId = null;
-	/**
-	* The icon index for the state (visual reference only).
-	* @type {number}
-	*/
-	#iconIndex = 0;
-	/**
-	* The duration in frames for the state instance.
-	* @type {number}
-	*/
-	#duration = 0;
-	/**
-	* The number of stacks the state should start with.
-	* Defaults to 1 if not overridden via {@link setStartingStacks}.
-	* @type {number}
-	*/
-	#startingStacks = 1;
-	/**
-	* The battler that applied the state (source/assailant).
-	* If not provided, it defaults to the afflicted battler at build time.
-	* @type {Game_Battler|null}
-	*/
-	#source = null;
-	/**
-	* Constructor.
-	* @param {Game_Battler} battler The battler afflicted by the state.
-	* @param {number} stateId The database id of the state being applied.
-	*/
-	constructor(battler, stateId) {
-		this.#battler = battler;
-		this.#stateId = stateId;
-	}
-	/**
-	* Builds a {@link JABS_State} with the configured parameters.
-	* @returns {JABS_State} The constructed state instance.
-	*/
-	build() {
-		const state = new JABS_State(this.#battler, this.#stateId, this.#iconIndex, this.#duration, this.#startingStacks, this.#source);
-		return state;
-	}
-	/**
-	* Sets the icon index for the state.
-	* @param {number} iconIndex The icon index.
-	* @returns {JABS_StateBuilder}
-	*/
-	setIconIndex(iconIndex) {
-		this.#iconIndex = iconIndex;
-		return this;
-	}
-	/**
-	* Sets the duration of the state in frames.
-	* @param {number} duration The number of frames the state lasts.
-	*/
-	setDuration(duration) {
-		this.#duration = duration;
-		return this;
-	}
-	/**
-	* Sets the starting stack count for the state (defaults to 1 if not set).
-	* @param {number} stacks The starting stack count.
-	* @returns {JABS_StateBuilder} This builder for chaining.
-	*/
-	setStartingStacks(stacks) {
-		this.#startingStacks = stacks;
-		return this;
-	}
-	/**
-	* Sets the source battler who applied the state.
-	* If not provided, it defaults to the afflicted battler during {@link build}.
-	* @param {Game_Battler} source The applying battler.
-	* @returns {JABS_StateBuilder} This builder for chaining.
-	*/
-	setSource(source) {
-		this.#source = source;
-		return this;
-	}
-};
-
-//#endregion
-//#region src/plugins/abs/core/__models/JABS_State.js
-/**
-* A class for handling the state data in the context of JABS.
-*/
-var JABS_State = class {
-	/**
-	* The list of rulesets available for how to handle reapplication of a state.
-	*/
-	static reapplicationType = {
-		/**
-		* "Refresh" will refresh the duration of a state when reapplied.
-		* @type {'refresh'}
-		*/
-		Refresh: "refresh",
-		/**
-		* "Extend" will add the remaining duration onto the new duration when reapplied.
-		* @type {'extend'}
-		*/
-		Extend: "extend",
-		/**
-		* "Stack" will add an additional stack of the state when reapplied.
-		* @type {'stack'}
-		*/
-		Stack: "stack"
-	};
-	/**
-	* The battler being afflicted with this state.
-	* @type {Game_Battler}
-	*/
-	battler = null;
-	/**
-	* The id of the state being tracked.
-	* @type {number}
-	*/
-	stateId = 0;
-	/**
-	* The icon index of the state being tracked (for visual purposes).
-	* @type {number}
-	*/
-	iconIndex = 0;
-	/**
-	* The current duration of the state being tracked. Decrements over time.
-	* @type {number}
-	*/
-	duration = 0;
-	/**
-	* The base duration.
-	* Used for reapplication and stacking purposes.
-	* @type {number}
-	*/
-	#baseDuration = 0;
-	/**
-	* The number of frames that defines "recently applied".
-	* @type {number}
-	*/
-	#recentlyAppliedCounter = 0;
-	/**
-	* Whether or not this tracked state is identified as `expired`.
-	* Expired states do not apply to the battler, but are kept in the tracking collection
-	* to grant the ability to refresh the state duration or whatever we choose to do.
-	* @type {boolean}
-	*/
-	expired = true;
-	/**
-	* The source that caused this state. Usually this is an opposing battler. If no source is specified,
-	* then the afflicted battler is the source.
-	* @type {Game_Battler}
-	*/
-	source = null;
-	/**
-	* The number of stacks of this state applied to the tracker.
-	* @type {number}
-	*/
-	stackCount = 0;
-	/**
-	* The number of times this state has been refreshed.<br/>
-	* This only matters when the reapplication type is {@link JABS_State.reapplicationType.Refresh}.
-	* @type {number}
-	*/
-	timesRefreshed = 0;
-	/**
-	* The number of frames until
-	* @type {number}
-	*/
-	#refreshResetCounter = 0;
-	/**
-	* Constructor.
-	* @param {Game_Battler} battler The battler afflicted.
-	* @param {number} stateId The id of the state being applied to the battler.
-	* @param {number} iconIndex The icon index associated with the state.
-	* @param {number} duration The duration in frames that this state will remain.
-	* @param {number=} startingStacks The number of stacks to start out with; defaults to 1.
-	* @param {Game_Battler=} source The battler who afflicted the state; defaults to self.
-	*/
-	constructor(battler, stateId, iconIndex, duration, startingStacks = 1, source = battler) {
-		this.battler = battler;
-		this.stateId = stateId;
-		this.iconIndex = iconIndex;
-		this.duration = duration;
-		this.stackCount = startingStacks;
-		this.source = source;
-		this.setBaseDuration(duration);
-		this.refreshRecentlyAppliedCounter();
-		this.expired = false;
-	}
-	/**
-	* Updates the base duration to a new value.
-	* @param {number} newBaseDuration The new base duration value.
-	*/
-	setBaseDuration(newBaseDuration) {
-		this.#baseDuration = newBaseDuration;
-	}
-	/**
-	* Determines whether or not the state should not expire by duration.
-	* @returns {boolean} True if this state should last until removed, false otherwise.
-	*/
-	hasEternalDuration() {
-		if (this.#baseDuration !== -1) return false;
-		return true;
-	}
-	/**
-	* Whether or not this state has been refreshed recently enough that the refresh effects are diminished due to
-	* repetition of being reapplied over and over again in a short amount of time.
-	* @returns {boolean}
-	*/
-	hasDiminishingRefresh() {
-		return this.#refreshResetCounter > 0;
-	}
-	/**
-	* Refresh the recently applied counter.
-	*/
-	refreshRecentlyAppliedCounter() {
-		this.#recentlyAppliedCounter = 6;
-	}
-	/**
-	* Refresh the refresh reset counter.
-	* @param {number=} newRefreshResetAmount The count to refresh the refresh reset counter to.
-	*/
-	refreshRefreshResetCounter(newRefreshResetAmount = J.ABS.Metadata.DefaultStateRefreshReset) {
-		this.#refreshResetCounter = newRefreshResetAmount;
-	}
-	/**
-	* The update loop for this tracked state.
-	* Handles decrementing the counter and removing the state as applicable.
-	*/
-	update() {
-		this.handleCounters();
-		this.handleStackLossFromDuration();
-		this.handleExpiration();
-		this.handleDiminishedRefresh();
-	}
-	/**
-	* Handle all the counters that countdown on this state, like the recently applied counter, the refresh reset counter,
-	* and the actual duration counter.
-	*/
-	handleCounters() {
-		this.decrementRecentlyAppliedCounter();
-		this.decrementRefreshResetCounter();
-		this.decrementDuration();
-	}
-	/**
-	* Decrements the recently applied counter as-needed.
-	*/
-	decrementRecentlyAppliedCounter() {
-		if (this.#recentlyAppliedCounter > 0) {
-			this.#recentlyAppliedCounter--;
-		}
-	}
-	/**
-	* Decrements the refresh reset counter as-needed.
-	*/
-	decrementRefreshResetCounter() {
-		if (this.#refreshResetCounter > 0) {
-			this.#refreshResetCounter--;
-		}
-	}
-	/**
-	* Decrements the duration as-needed.
-	*/
-	decrementDuration() {
-		if (this.duration > 0) {
-			this.duration--;
-		}
-	}
-	/**
-	* Decrement the stack counter as-needed.
-	* @param {number=} stacksToRemove The number of stacks to decrement; defaults to 1.
-	*/
-	decrementStacks(stacksToRemove = 1) {
-		this.stackCount -= stacksToRemove;
-		if (this.stackCount > 0) {
-			this.refreshDuration();
-		}
-		if (this.stackCount < 0) {
-			this.stackCount = 0;
-		}
-	}
-	/**
-	* Handles stack loss from duration.
-	*/
-	handleStackLossFromDuration() {
-		if (this.canLoseStackFromDuration() === false) return;
-		const loseAllStacksAtOnce = this.source.state(this.stateId).jabsLoseAllStacksAtOnce;
-		const stacksLossCount = loseAllStacksAtOnce === true ? this.stackCount : 1;
-		this.decrementStacks(stacksLossCount);
-	}
-	/**
-	* Determines whether or not this state can lose stacks from duration.
-	* @returns {boolean} True if it can, false otherwise.
-	*/
-	canLoseStackFromDuration() {
-		if (this.stackCount <= 0) return false;
-		if (this.duration > 0) return false;
-		if (this.hasEternalDuration()) return false;
-		return true;
-	}
-	/**
-	* Refreshes the duration of the state based on its original duration.
-	* This does not refresh the recently applied counter.
-	*/
-	refreshDuration(newDuration = this.#baseDuration) {
-		if (newDuration === 0) return;
-		this.duration = newDuration;
-		this.expired = false;
-		this.refreshRecentlyAppliedCounter();
-		this.refreshRefreshResetCounter();
-		if (this.stackCount === 0) {
-			this.stackCount = 1;
-		}
-	}
-	/**
-	* Handles the removal of the state from the afflicted battler if applicable.
-	*/
-	handleExpiration() {
-		if (this.canRemoveFromBattler() && this.shouldRemoveFromBattler()) {
-			this.removeFromBattler();
-		}
-	}
-	/**
-	* Handle reset circumstances for the refresh reset counter and times refreshed counter.
-	*/
-	handleDiminishedRefresh() {
-		if (this.timesRefreshed > 0 && this.#refreshResetCounter === 0) {
-			this.timesRefreshed = 0;
-		}
-	}
-	/**
-	* Increments the stack counter as high as the limit allows.
-	* @param {number} stackIncrease The number of stacks to increase; defaults to 1.
-	*/
-	incrementStacks(stackIncrease = 1) {
-		const maxStacks = this.battler.state(this.stateId).jabsStateStackMax;
-		if (this.stackCount < maxStacks) {
-			const projectedStackCount = this.stackCount + stackIncrease;
-			this.stackCount = Math.min(maxStacks, projectedStackCount);
-		}
-	}
-	/**
-	* Removes this tracked state from the afflicted battler.
-	*/
-	removeFromBattler() {
-		this.battler.removeState(this.stateId);
-		this.expired = true;
-	}
-	/**
-	* Determine if removing this state is even possible.
-	* @returns {boolean} True if it is removable, false otherwise.
-	*/
-	canRemoveFromBattler() {
-		if (this.canHoldBecauseStateType()) return false;
-		if (!this.battler.isStateAffected(this.stateId)) return false;
-		return true;
-	}
-	/**
-	* Determines whether or not this state should be removed because of its type.
-	* @returns {boolean}
-	*/
-	canHoldBecauseStateType() {
-		if (this.stateId === this.battler.deathStateId()) return true;
-		return false;
-	}
-	/**
-	* Determines whether or not we should remove this state from the battler.
-	* @returns {boolean} True if it should be removed, false otherwise.
-	*/
-	shouldRemoveFromBattler() {
-		if (this.stackCount > 0) return false;
-		if (!this.shouldRemoveByDuration()) return false;
-		return true;
-	}
-	/**
-	* Determines whether or not this state should be removed because of its duration.
-	* @returns {boolean} True if the state should be removed, false otherwise.
-	*/
-	shouldRemoveByDuration() {
-		if (this.duration > 0) return false;
-		if (this.duration <= 0 && this.hasEternalDuration()) return false;
-		return true;
-	}
-	/**
-	* Determines whether or not this state is about to expire.
-	* @returns {boolean} True if it is about to expire, false otherwise.
-	*/
-	isAboutToExpire() {
-		const aboutToExpireThreshold = Math.round(this.#baseDuration / 5);
-		return this.duration <= aboutToExpireThreshold && !this.hasEternalDuration();
-	}
-	/**
-	* Determines whether or not this state was recently applied.
-	* @returns {boolean} True if it was recently applied, false otherwise.
-	*/
-	wasRecentlyApplied() {
-		return this.#recentlyAppliedCounter > 0;
-	}
-};
-/**
-* Fluent entry point for constructing a {@link JABS_State} (see {@link JABS_StateBuilder}).
-* @param {Game_Battler} target The afflicted battler.
-* @param {number} stateId The database state id.
-* @returns {JABS_StateBuilder}
-*/
-JABS_State.Builder = (target, stateId) => new JABS_StateBuilder(target, stateId);
-
-//#endregion
 //#region src/plugins/abs/core/_metadata/_pluginMetadata.js
-var J_AbsPluginMetadata = class extends PluginMetadata {
+var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 	/**
 	* Constructor.
 	*/
@@ -3033,7 +2925,9 @@ var J_AbsPluginMetadata = class extends PluginMetadata {
 		this.initializeParryMetadata();
 		this.initializeQuickMenuTextMetadata();
 		this.initializeGlobalCooldownMetadata();
+		this.initializeSkillExecutionMetadata();
 		this.initializeHitboxOverlayStyleMetadata();
+		this.initializeMapAfflictionMetadata();
 	}
 	/**
 	* Maps the AI update range cap from plugin parameters.
@@ -3117,9 +3011,10 @@ var J_AbsPluginMetadata = class extends PluginMetadata {
 	* Maps default state reapplication and stacking rules from plugin parameters.
 	*/
 	initializeStateMetadata() {
-		this.DefaultStateReapplyType = this.parsedPluginParameters["defaultStateReapplyType"] || JABS_State.reapplicationType.Refresh;
+		this.DefaultStateReapplyType = this.parsedPluginParameters["defaultStateReapplyType"] || "refresh";
 		this.DefaultStateRefreshDiminish = Number(this.parsedPluginParameters["defaultStateRefreshDiminish"]) || 120;
 		this.DefaultStateRefreshReset = Number(this.parsedPluginParameters["defaultStateRefreshReset"]) || 900;
+		this.DefaultStateSpreadTickInterval = Number(this.parsedPluginParameters["defaultStateSpreadTickInterval"]) || 30;
 		this.DefaultStateExtendAmount = Number(this.parsedPluginParameters["defaultStateExtendAmount"]) || 180;
 		this.DefaultStateExtendMax = Number(this.parsedPluginParameters["defaultStateExtendMax"]) || 216e3;
 		this.DefaultStateStackMax = Number(this.parsedPluginParameters["defaultStateStackMax"]) || 5;
@@ -3266,6 +3161,30 @@ var J_AbsPluginMetadata = class extends PluginMetadata {
 		this.GlobalCooldownSkillTypeSet = set;
 	}
 	/**
+	* Maps skill execution history tracking configuration from plugin parameters.
+	* The max window is the global prune threshold; individual tag windows must be <= this value.
+	* The excluded skill type set contains stypeIds never recorded in the skill history log.
+	*/
+	initializeSkillExecutionMetadata() {
+		this.SkillExecutionMaxWindowSeconds = Number(this.parsedPluginParameters["skillExecutionMaxWindowSeconds"]) || 15;
+		const rawExcluded = this.parsedPluginParameters["skillExecutionExcludedSkillTypes"] ?? "[]";
+		const excludedSet = new Set();
+		try {
+			const arr = JSON.parse(rawExcluded);
+			if (Array.isArray(arr)) {
+				arr.forEach((v) => {
+					const n = parseInt(String(v), 10);
+					if (Number.isFinite(n)) {
+						excludedSet.add(n);
+					}
+				});
+			}
+		} catch (e) {
+			console.warn("J-ABS: skillExecutionExcludedSkillTypes JSON parse failed.", e);
+		}
+		this.SkillExecutionExcludedSkillTypeSet = excludedSet;
+	}
+	/**
 	* Maps hitbox overlay style and pulse defaults used by debug overlays.
 	*/
 	initializeHitboxOverlayStyleMetadata() {
@@ -3319,6 +3238,27 @@ var J_AbsPluginMetadata = class extends PluginMetadata {
 			fillAlpha: .18,
 			blendMode: PIXI.BLEND_MODES.ADD
 		};
+	}
+	/**
+	* Parses the map affliction max slot parameter, ignoring corrupted export noise.
+	* @param {string|number|undefined} rawValue The plugin parameter value.
+	* @returns {number}
+	*/
+	static parseMapAfflictionMaxSlots(rawValue) {
+		const parsedValue = Number.parseInt(String(rawValue).trim(), 10);
+		if (Number.isFinite(parsedValue) === false || parsedValue < 1) {
+			return 8;
+		}
+		return Math.min(parsedValue, 16);
+	}
+	/**
+	* Maps map affliction strip layout parameters from plugin parameters.
+	*/
+	initializeMapAfflictionMetadata() {
+		this.mapAfflictionIconScale = Number(this.parsedPluginParameters["mapAfflictionIconScale"] ?? .5);
+		this.mapAfflictionGaugeHeight = Number(this.parsedPluginParameters["mapAfflictionGaugeHeight"] ?? 3);
+		this.mapAfflictionGapBelowHpBar = Number(this.parsedPluginParameters["mapAfflictionGapBelowHpBar"] ?? 2);
+		this.mapAfflictionMaxSlots = J_AbsPluginMetadata.parseMapAfflictionMaxSlots(this.parsedPluginParameters["mapAfflictionMaxSlots"]);
 	}
 };
 
@@ -3417,7 +3357,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.12.2");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.12.4");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -3657,7 +3597,6 @@ J.ABS.RegExp = {
 	UniqueCooldown: /<uniqueCooldown>/gi,
 	Ogcd: /<ogcd>/gi,
 	GlobalCooldownFrames: /<gcd:[ ]?(\d+)>/gi,
-	SizeInPixels: /<size:[ ]?(\d+)>/gi,
 	Degrees: /<degrees:[ ]?(\d+)>/gi,
 	Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
 	Shape: /<hitbox:[ ]?(circle|rhombus|square|line|arc|wall|cross)>/gi,
@@ -3800,6 +3739,9 @@ J.ABS.RegExp = {
 	SlipHpFormula: /<hpFormula:\[([+\-*/ ().\w]+)]>/gi,
 	SlipMpFormula: /<mpFormula:\[([+\-*/ ().\w]+)]>/gi,
 	SlipTpFormula: /<tpFormula:\[([+\-*/ ().\w]+)]>/gi,
+	StateDuration: /<stateDuration:[ ]?(\d+)>/i,
+	StateDurationSec: /<stateDurationSec:[ ]?(\d+)>/i,
+	IndefiniteState: /<indefiniteState>/i,
 	StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
 	StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
 	StateDurationFormulaPlus: /<stateDurationFormula:\[([+\-*/ ().\w]+)]>/gi,
@@ -3834,6 +3776,8 @@ J.ABS.RegExp = {
 	ConfigCanIdle: /<jabsConfig:[ ]?canIdle>/i,
 	ConfigNoHpBar: /<jabsConfig:[ ]?noHpBar>/i,
 	ConfigShowHpBar: /<jabsConfig:[ ]?showHpBar>/i,
+	ConfigShowStates: /<jabsConfig:[ ]?showStates>/i,
+	ConfigHideStates: /<jabsConfig:[ ]?hideStates>/i,
 	ConfigInanimate: /<jabsConfig:[ ]?inanimate>/i,
 	ConfigNotInanimate: /<jabsConfig[ ]?:notInanimate>/i,
 	ConfigInvincible: /<jabsConfig:[ ]?invincible>/i,
@@ -3843,7 +3787,157 @@ J.ABS.RegExp = {
 	NoCastPreviewsBattler: /<noCastPreviews>/gi,
 	OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
 	OnTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
-	Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+	/**
+	* Percent damage bonus per negative state (jabsNegative) currently active on the target.
+	* All PerDebuffBuff values from getAllNotes() are summed, then multiplied by the debuff count.
+	* Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <perDebuffBuff:N>
+	*
+	* Example:
+	*  <perDebuffBuff:5>
+	*
+	* Translation:
+	*  +5% damage for every negative state active on the target.
+	* </pre>
+	* @type {RegExp}
+	*/
+	PerDebuffBuff: /<perDebuffBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Flat percent damage bonus applied when the target has a specific state active.
+	* Reads from getAllNotes(). Multiple tags for different state ids each fire independently.
+	* Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <bonusDamageIfState:[STATE_ID, PCT]>
+	*
+	* Example:
+	*  <bonusDamageIfState:[14, 25]>
+	*
+	* Translation:
+	*  +25% damage if the target currently has state 14 active.
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusDamageIfState: /<bonusDamageIfState:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	/**
+	* Flat tile addition applied to radius, proximity, and thickness before the rate multiplier.
+	* Signed decimal; negative values shrink reach. Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <rangeBuff:N>
+	*
+	* Example:
+	*  <rangeBuff:2>
+	*
+	* Translation:
+	*  Adds 2 tiles flat to every outgoing action's radius, proximity, and thickness.
+	* </pre>
+	* @type {RegExp}
+	*/
+	RangeBuff: /<rangeBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Multiplicative rate applied to radius, proximity, and thickness after the buff step.
+	* Base-1.0 delta model: each tag contributes (N - 1.0) to the accumulator.
+	* Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <rangeRate:N>
+	*
+	* Example:
+	*  <rangeRate:1.5>
+	*
+	* Translation:
+	*  All outgoing actions have 1.5x radius, proximity, and thickness.
+	*  A second <rangeRate:1.5> stacks to 2.0x (each contributes +0.5 to the accumulator).
+	* </pre>
+	* @type {RegExp}
+	*/
+	RangeRate: /<rangeRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	/**
+	* Passive/state/equip skill history damage bonus.
+	* Reads from getAllNotes(); applies to every attack by the bearer.
+	* TYPE_ID = 0 is the sentinel for "any skill type".
+	*
+	* <pre>
+	* Structure:
+	*  <skillHistoryBonus:[TYPE_ID, WINDOW, PCT, COUNT_MODE]>
+	*
+	* Example:
+	*  <skillHistoryBonus:[0, 10, 5, unique]>
+	*
+	* Translation:
+	*  +5% damage per unique skill used in the last 10 seconds (any type).
+	*  COUNT_MODE values: all | unique | streak | distinct_types
+	* </pre>
+	* @type {RegExp}
+	*/
+	SkillHistoryBonus: /<skillHistoryBonus:[ ]?(\[\d+,[ ]?\d+,[ ]?\d+,[ ]?[a-z_]+])>/gi,
+	/**
+	* Per-skill history damage bonus; only fires when this specific skill is the action.
+	* Reads from this.item(). History scope is limited to this skill's own id.
+	*
+	* <pre>
+	* Structure:
+	*  <thisSkillHistoryBonus:[WINDOW, PCT, COUNT_MODE]>
+	*
+	* Example:
+	*  <thisSkillHistoryBonus:[3, 8, streak]>
+	*
+	* Translation:
+	*  +8% damage per consecutive cast of this skill in the last 3 seconds.
+	*  COUNT_MODE values: all | unique | streak | distinct_types
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisSkillHistoryBonus: /<thisSkillHistoryBonus:[ ]?(\[\d+,[ ]?\d+,[ ]?[a-z_]+])>/gi,
+	/**
+	* Percent direct damage bonus per second of resolved cast time on the action.
+	* Reads from getAllNotes() on the caster. Stacks additively with thisCastTimeDamageBonus.
+	*
+	* <pre>
+	* Structure:
+	*  <castTimeDamageBonus:N>
+	*
+	* Example:
+	*  <castTimeDamageBonus:12>
+	*
+	* Translation:
+	*  +12% direct damage per second spent casting (e.g. 3s cast → +36%).
+	* </pre>
+	* @type {RegExp}
+	*/
+	CastTimeDamageBonus: /<castTimeDamageBonus:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Per-skill cast-time direct damage bonus; only fires when this specific skill resolves.
+	* Reads from this.item() note. Stacks additively with castTimeDamageBonus sources.
+	*
+	* <pre>
+	* Structure:
+	*  <thisCastTimeDamageBonus:N>
+	*
+	* Example:
+	*  <thisCastTimeDamageBonus:20>
+	*
+	* Translation:
+	*  +20% direct damage per second of this skill's resolved cast time.
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisCastTimeDamageBonus: /<thisCastTimeDamageBonus:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	ApplyStateOnExpire: /<applyStateOnExpire:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	Spread: /<spread:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	Viral: /<viral>/gi,
+	SpreadTick: /<spreadTick:(\d+)>/gi,
+	SpreadPerTick: /<spreadPerTick:(\d+)>/gi,
+	SpreadPreferUnafflicted: /<spreadPreferUnafflicted>/gi,
+	SpreadSkipAfflicted: /<spreadSkipAfflicted>/gi,
+	Retaliate: /<retaliate:[ ]?(\[\d+,?[ ]?\d+?(?:,?[ ]?\w+)?])>/gi,
 	ConfigNoSwitch: /<noSwitch>/i,
 	ConfigAutoAssignSkills: /<autoAssignSkills>/gi,
 	ConfigAutoUpgradeSkills: /<autoUpgradeSkills>/gi,
@@ -3882,7 +3976,7 @@ J.ABS.Aliased = {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_Aabb.js
+//#region src/plugins/abs/core/models/JABS_Aabb.js
 /**
 * Axis-Aligned Bounding Box for battlers/actions in screen pixels.
 * Provides common geometry helpers used by collision and overlays.
@@ -3985,7 +4079,7 @@ var JABS_Aabb = class JABS_Aabb {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_Timer.js
+//#region src/plugins/abs/core/models/JABS_Timer.js
 /**
 * A reusable timer with some nifty functions.
 */
@@ -4176,7 +4270,7 @@ var JABS_Timer = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_HitboxPulseOptions.js
+//#region src/plugins/abs/core/models/JABS_HitboxPulseOptions.js
 /**
 * Encapsulates all parameters for a transient hitbox pulse visualization.
 * Provides defaults, fluent setters, cloning, and normalization.
@@ -4805,7 +4899,7 @@ var JABS_HitboxPulseManager = class JABS_HitboxPulseManager {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_LocationBuilder.js
+//#region src/plugins/abs/core/models/JABS_LocationBuilder.js
 /**
 * A builder for creating {@link JABS_Location}s.
 */
@@ -4896,7 +4990,7 @@ var JABS_LocationBuilder = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_Location.js
+//#region src/plugins/abs/core/models/JABS_Location.js
 /**
 * A class representing the location of a JABS entity.
 */
@@ -4944,7 +5038,7 @@ var JABS_Location = class JABS_Location {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_ActionOptionsBuilder.js
+//#region src/plugins/abs/core/models/JABS_ActionOptionsBuilder.js
 /**
 * A builder for creating {@link JABS_ActionOptions}.
 */
@@ -5068,7 +5162,7 @@ var JABS_ActionOptionsBuilder = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_ActionOptions.js
+//#region src/plugins/abs/core/models/JABS_ActionOptions.js
 /**
 * Options associated with a set of {@link JABS_Action}s.
 */
@@ -5346,7 +5440,7 @@ var JABS_ActionSpawner = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_BattlerRole.js
+//#region src/plugins/abs/core/models/JABS_BattlerRole.js
 /**
 * A class representing a battler's structural role on the battlefield.
 * Roles define how a battler relates to and coordinates with other battlers,
@@ -5418,7 +5512,7 @@ var JABS_BattlerRole = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_BattleMemory.js
+//#region src/plugins/abs/core/models/JABS_BattleMemory.js
 /**
 * A class representing a single battle memory.
 * Battle memories are simply a mapping of the battler targeted, the skill used, and
@@ -5475,7 +5569,7 @@ var JABS_BattleMemory = class {
 SerializableRegistry.register(JABS_BattleMemory);
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_AI.js
+//#region src/plugins/abs/core/models/JABS_AI.js
 /**
 * A base class containing the commonalities between all AI governed by {@link JABS_AiManager}.
 */
@@ -5892,7 +5986,7 @@ var JABS_AI = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_EnemyAI.js
+//#region src/plugins/abs/core/models/JABS_EnemyAI.js
 /**
 * An object representing the AI decision-making logic for an enemy {@link JABS_Battler}.
 * Coordination roles (leader/follower/guardian/ward/solo/sentinel) are handled by
@@ -6380,7 +6474,7 @@ var JABS_EnemyAI = class extends JABS_AI {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_BattlerCoreDataBuilder.js
+//#region src/plugins/abs/core/models/JABS_BattlerCoreDataBuilder.js
 /**
 * A builder for creating {@link JABS_BattlerCoreData}s.
 */
@@ -6458,7 +6552,13 @@ var JABS_BattlerCoreDataBuilder = class {
 	*/
 	#showHpBar = J.ABS.Metadata.DefaultEnemyShowHpBar;
 	/**
-	* Whether or not this battler has a visible hp bar.
+	* Whether or not this battler has a visible map affliction strip.
+	* @type {boolean}
+	* @private
+	*/
+	#showStates = true;
+	/**
+	* Whether or not this battler has a visible danger indicator.
 	* @type {boolean}
 	* @private
 	*/
@@ -6506,6 +6606,7 @@ var JABS_BattlerCoreDataBuilder = class {
 			guardRange: this.#guardRange,
 			canIdle: this.#canIdle,
 			showHpBar: this.#showHpBar,
+			showStates: this.#showStates,
 			showBattlerName: this.#showBattlerName,
 			isInvincible: this.#isInvincible,
 			isInanimate: this.#isInanimate
@@ -6531,6 +6632,7 @@ var JABS_BattlerCoreDataBuilder = class {
 		this.#alertDuration = battler.alertDuration();
 		this.#canIdle = battler.canIdle();
 		this.#showHpBar = battler.showHpBar();
+		this.#showStates = battler.showStates();
 		this.#showDangerIndicator = battler.showDangerIndicator();
 		this.#showBattlerName = battler.showBattlerName();
 		this.#isInvincible = battler.isInvincible();
@@ -6676,6 +6778,15 @@ var JABS_BattlerCoreDataBuilder = class {
 		return this;
 	}
 	/**
+	* Sets whether or not this battler's map affliction strip is visible.
+	* @param {boolean} showStates Whether or not the affliction strip is visible.
+	* @returns {this} This builder for fluent-building.
+	*/
+	setShowStates(showStates) {
+		this.#showStates = showStates;
+		return this;
+	}
+	/**
 	* Sets whether or not this battler's danger indicator is visible.
 	* @param {boolean} showDangerIndicator Whether or not the danger indicator is visible.
 	* @returns {this} This builder for fluent-building.
@@ -6714,7 +6825,7 @@ var JABS_BattlerCoreDataBuilder = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_BattlerCoreData.js
+//#region src/plugins/abs/core/models/JABS_BattlerCoreData.js
 /**
 * A class containing all the data extracted from the comments of an event's
 * comments and contained with friendly methods to access and manipulate.
@@ -6741,11 +6852,12 @@ var JABS_BattlerCoreData = class {
 	* @param {number|null} guardRange The explicit guardian engagement range, or null to use the ward-pursuit fallback.
 	* @param {boolean} canIdle Whether or not this battler can idle.
 	* @param {boolean} showHpBar Whether or not to show the hp bar.
+	* @param {boolean} showStates Whether or not to show the map affliction strip.
 	* @param {boolean} showBattlerName Whether or not to show the battler's name.
 	* @param {boolean} isInvincible Whether or not this battler is invincible.
 	* @param {boolean} isInanimate Whether or not this battler is inanimate.
 	*/
-	initialize({ battlerId, teamId, battlerAI, battlerRole, sightRange, alertedSightBoost, pursuitRange, alertedPursuitBoost, alertDuration, guardRange, canIdle, showHpBar, showBattlerName, isInvincible, isInanimate }) {
+	initialize({ battlerId, teamId, battlerAI, battlerRole, sightRange, alertedSightBoost, pursuitRange, alertedPursuitBoost, alertDuration, guardRange, canIdle, showHpBar, showStates, showBattlerName, isInvincible, isInanimate }) {
 		/**
 		* The id of the enemy that this battler represents.
 		* @type {number}
@@ -6807,6 +6919,11 @@ var JABS_BattlerCoreData = class {
 		* @type {boolean} True if the battler's hp bar should show, false otherwise.
 		*/
 		this._showHpBar = showHpBar;
+		/**
+		* Whether or not this battler's map affliction strip will be visible.
+		* @type {boolean}
+		*/
+		this._showStates = showStates;
 		/**
 		* Whether or not this battler's name will be visible.
 		* @type {boolean} True if the battler's name should show, false otherwise.
@@ -6917,6 +7034,13 @@ var JABS_BattlerCoreData = class {
 	*/
 	showHpBar() {
 		return this._showHpBar;
+	}
+	/**
+	* Gets whether or not this battler's map affliction strip will be visible.
+	* @returns {boolean}
+	*/
+	showStates() {
+		return this._showStates;
 	}
 	/**
 	* Gets whether or not this battler's name will be visible.
@@ -7524,7 +7648,7 @@ var JABS_AiManager = class JABS_AiManager {
 	static canManageAi(battler) {
 		if (battler.isDead()) return false;
 		if (battler.isPlayer()) return false;
-		if (battler.isInanimate()) return false;
+		if (battler.isInanimate() && battler.canIdle() === false) return false;
 		if (battler.isFollower() && battler.getCharacter().isVisible() === false) return false;
 		return true;
 	}
@@ -7534,6 +7658,10 @@ var JABS_AiManager = class JABS_AiManager {
 	*/
 	static executeAi(battler) {
 		if (battler.isWaiting()) return;
+		if (battler.isInanimate()) {
+			this.aiPhase0(battler);
+			return;
+		}
 		this.releaseAllyCombatGuardIfStale(battler);
 		if (battler.isEngaged()) {
 			battler.adjustTargetByAggro();
@@ -8334,7 +8462,7 @@ var JABS_AiManager = class JABS_AiManager {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_Aggro.js
+//#region src/plugins/abs/core/models/JABS_Aggro.js
 /**
 * A tracker for managing the aggro for this particular battler and its owner.
 */
@@ -8431,7 +8559,7 @@ var JABS_Aggro = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_Cooldown.js
+//#region src/plugins/abs/core/models/JABS_Cooldown.js
 /**
 * A class representing a skill or item's cooldown data.
 */
@@ -8697,7 +8825,7 @@ var JABS_Cooldown = class {
 SerializableRegistry.register(JABS_Cooldown);
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_GlobalCooldown.js
+//#region src/plugins/abs/core/models/JABS_GlobalCooldown.js
 /**
 * Stateless helpers for the optional battler-wide global cooldown (GCD), similar to MMO-style GCD.
 * Whitelisted skill types share one countdown on the {@link JABS_Battler}; while it runs, other GCD-subject skills are
@@ -8790,7 +8918,7 @@ var JABS_GlobalCooldown = class JABS_GlobalCooldown {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_GuardData.js
+//#region src/plugins/abs/core/models/JABS_GuardData.js
 /**
 * A class responsible for managing the data revolving around guarding and parrying.
 */
@@ -8861,7 +8989,7 @@ var JABS_GuardData = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_SkillSlot.js
+//#region src/plugins/abs/core/models/JABS_SkillSlot.js
 /**
 * This class represents a single skill slot handled by the skill slot manager.
 */
@@ -9110,18 +9238,19 @@ var JABS_SkillSlot = class {
 		return this.id === 0;
 	}
 	/**
-	* Gets whether or not this slot belongs to the tool slot.
+	* Gets whether or not this slot stores an item id rather than a skill id.
+	* Both {@link JABS_Button.Tool} and {@link JABS_Button.UsableItem} equip items from $dataItems.
 	* @returns {boolean}
 	*/
 	isItem() {
-		return this.key === JABS_Button.Tool;
+		return this.key === JABS_Button.Tool || this.key === JABS_Button.UsableItem;
 	}
 	/**
 	* Gets whether or not this slot belongs to a skill slot.
 	* @returns {boolean}
 	*/
 	isSkill() {
-		return this.key !== JABS_Button.Tool;
+		return this.isItem() === false;
 	}
 	/**
 	* Checks whether or not this is a "primary" slot making up the base functions
@@ -9133,6 +9262,7 @@ var JABS_SkillSlot = class {
 			JABS_Button.Mainhand,
 			JABS_Button.Offhand,
 			JABS_Button.Tool,
+			JABS_Button.UsableItem,
 			JABS_Button.Dodge
 		];
 		return slots.includes(this.key);
@@ -9303,7 +9433,8 @@ var JABS_SkillSlot = class {
 		const noAutoclearSlots = [
 			JABS_Button.Mainhand,
 			JABS_Button.Offhand,
-			JABS_Button.Tool
+			JABS_Button.Tool,
+			JABS_Button.UsableItem
 		];
 		return !noAutoclearSlots.includes(this.key);
 	}
@@ -9311,7 +9442,7 @@ var JABS_SkillSlot = class {
 SerializableRegistry.register(JABS_SkillSlot);
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_Battler.js
+//#region src/plugins/abs/core/models/JABS_Battler.js
 /**
 * An object that represents the binding of a `Game_Event` to a `Game_Battler`.
 * This can be for either the player, an ally, or an enemy.
@@ -9415,19 +9546,22 @@ var JABS_Battler = class JABS_Battler {
 		* Whether or not this battler is allowed to move around while idle.
 		* @type {boolean}
 		*/
-		this._canIdle = battlerCoreData.isInanimate() ? false : battlerCoreData.canIdle();
+		this._canIdle = battlerCoreData.canIdle();
 		/**
 		* Whether or not this battler's hp bar is visible.
-		* Inanimate battlers do not show their hp bar by default.
 		* @type {boolean}
 		*/
-		this._showHpBar = battlerCoreData.isInanimate() ? false : battlerCoreData.showHpBar();
+		this._showHpBar = battlerCoreData.showHpBar();
+		/**
+		* Whether or not this battler's map affliction strip is visible.
+		* @type {boolean}
+		*/
+		this._showStates = battlerCoreData.showStates();
 		/**
 		* Whether or not this battler's name is visible.
-		* Inanimate battlers do not show their name by default.
 		* @type {boolean}
 		*/
-		this._showBattlerName = battlerCoreData.isInanimate() ? false : battlerCoreData.showBattlerName();
+		this._showBattlerName = battlerCoreData.showBattlerName();
 		/**
 		* Whether or not this battler is invincible, rendering them unable
 		* to be collided with by map actions.
@@ -10556,6 +10690,13 @@ var JABS_Battler = class JABS_Battler {
 		return this._showHpBar;
 	}
 	/**
+	* Gets whether or not this battler should show its map affliction strip.
+	* @returns {boolean}
+	*/
+	showStates() {
+		return this._showStates;
+	}
+	/**
 	* Gets whether or not this battler should show its name.
 	* @returns {boolean}
 	*/
@@ -11126,20 +11267,6 @@ var JABS_Battler = class JABS_Battler {
 		if (!skill) return false;
 		if (skill.jabsHiddenFromMenus) return false;
 		if (!JABS_Battler.isDodgeSkillById(skill.id)) return false;
-		return true;
-	}
-	/**
-	* Determines whether or not an item should be visible
-	* in the JABS tool assignment menu.
-	* @param {RPG_Item} item The item to check if should be visible.
-	* @returns {boolean}
-	*/
-	static isItemVisibleInToolMenu(item) {
-		if (!item) return false;
-		if (item.jabsHiddenFromMenus) return false;
-		const isItem = DataManager.isItem(item) && item.itypeId === 1;
-		const isUsable = isItem && item.occasion === 0;
-		if (!isItem || !isUsable) return false;
 		return true;
 	}
 	/**
@@ -12402,6 +12529,8 @@ var JABS_Battler = class JABS_Battler {
 		const facing = this.getProjectileSpawnBaseDirection();
 		const projectileDirections = $jabsEngine.determineActionDirections(facing, formation, projectileCount);
 		const actions = this.convertProjectileDirectionsToActions(projectileDirections, action, actionOptions);
+		const castFrames = actions.length > 0 ? actions[0].getCastTime() : 0;
+		action.setResolvedCastTimeFrames(castFrames);
 		return actions;
 	}
 	/**
@@ -12541,6 +12670,68 @@ var JABS_Battler = class JABS_Battler {
 			}
 			if (!itemCooldown && !itemSkillId && !isLoot) {
 				this.modCooldownCounter(JABS_Button.Tool, J.ABS.DefaultValues.CooldownlessItems);
+			}
+		}
+	}
+	/**
+	* Consumes an item from the usable-item slot and performs its effects.
+	* Mirrors {@link applyToolEffects} exactly but operates on {@link JABS_Button.UsableItem}
+	* instead of {@link JABS_Button.Tool}.
+	* @param {number} itemId The id of the item to be used.
+	* @param {boolean} isLoot Whether or not this is a loot pickup.
+	*/
+	applyUsableItemEffects(itemId, isLoot = false) {
+		const item = $dataItems.at(itemId);
+		const battler = this.getBattler();
+		battler.consumeItem(item);
+		battler.getSkillSlotManager().getUsableItemSlot().flagSkillSlotForRefresh();
+		const gameAction = new Game_Action(battler, false);
+		gameAction.setItem(itemId);
+		const scopeNone = gameAction.item().scope === 0;
+		const scopeSelf = gameAction.isForUser();
+		const scopeAlly = gameAction.isForFriend();
+		const scopeOpponent = gameAction.isForOpponent();
+		const scopeSingle = gameAction.isForOne();
+		const scopeAll = gameAction.isForAll();
+		const scopeEverything = gameAction.isForEveryone();
+		const scopeAllAllies = scopeEverything || scopeAll && scopeAlly;
+		const scopeAllOpponents = scopeEverything || scopeAll && scopeOpponent;
+		const scopeOneAlly = scopeSingle && scopeAlly;
+		const scopeOneOpponent = scopeSingle && scopeOpponent;
+		if (scopeSelf || scopeOneAlly) {
+			this.applyToolToPlayer(itemId);
+		} else if (scopeEverything) {
+			this.applyToolForAllAllies(itemId);
+			this.applyToolForAllOpponents(itemId);
+		} else if (scopeOneOpponent) {
+			this.applyToolForOneOpponent(itemId);
+		} else if (scopeAllAllies) {
+			this.applyToolForAllAllies(itemId);
+		} else if (scopeAllOpponents) {
+			this.applyToolForAllOpponents(itemId);
+		} else if (scopeNone) {} else {
+			console.warn(`unhandled scope for usable item: [ ${gameAction.item().scope} ]!`);
+		}
+		gameAction.applyGlobal();
+		this.createToolLog(item);
+		const { jabsCooldown: itemCooldown, jabsSkillId: itemSkillId } = item;
+		if (itemSkillId) {
+			const mapAction = this.createJabsActionFromSkill(itemSkillId);
+			mapAction.forEach((action) => {
+				action.setCooldownType(JABS_Button.UsableItem);
+				$jabsEngine.executeMapAction(this, action);
+			});
+		}
+		if (!isLoot && !$gameParty.items().includes(item)) {
+			battler.getSkillSlotManager().clearSlot(JABS_Button.UsableItem);
+			const lastUsedItemLog = new LootLogBuilder().setupUsedLastItem(item.id).build();
+			$lootLogManager.addLog(lastUsedItemLog);
+		} else {
+			if (itemCooldown) {
+				if (!isLoot) this.modCooldownCounter(JABS_Button.UsableItem, itemCooldown);
+			}
+			if (!itemCooldown && !itemSkillId && !isLoot) {
+				this.modCooldownCounter(JABS_Button.UsableItem, J.ABS.DefaultValues.CooldownlessItems);
 			}
 		}
 	}
@@ -13518,7 +13709,651 @@ var JABS_TeamRules = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_LootDrop.js
+//#region src/plugins/abs/core/models/JABS_SkillExecution.js
+/**
+* A model representing a single skill execution recorded in a battler's skill history log.
+* Entries age up by one second per engine tick and are pruned by the engine when they expire.
+* The log itself lives on {@link JABS_Engine} and survives map transfers.
+*
+* Not serialized into save data — no {@link SerializableRegistry} registration needed.
+*/
+var JABS_SkillExecution = class {
+	/**
+	* The id of the skill that was executed.
+	* @type {number}
+	*/
+	skillId = 0;
+	/**
+	* The skill type id of the executed skill, cached at push time to avoid live database lookups.
+	* A value of 0 means the skill belongs to no type (matches RMMZ's own "None" stypeId convention).
+	* @type {number}
+	*/
+	skillTypeId = 0;
+	/**
+	* How many seconds have elapsed since this skill was executed.
+	* Incremented once per second by the engine's skill log update tick.
+	* @type {number}
+	*/
+	age = 0;
+	/**
+	* Constructor.
+	* @param {number} skillId The id of the skill executed.
+	* @param {number} skillTypeId The skill type id of the executed skill.
+	*/
+	constructor(skillId, skillTypeId) {
+		this.skillId = skillId;
+		this.skillTypeId = skillTypeId;
+	}
+	/**
+	* Increments the age of this entry by one second.
+	* Called once per second by the engine's skill log update tick.
+	*/
+	tick() {
+		this.age++;
+	}
+	/**
+	* Determines whether this entry has aged past the given maximum window.
+	* @param {number} maxWindowSeconds The maximum number of seconds to retain this entry.
+	* @returns {boolean} True if this entry should be pruned, false if it is still valid.
+	*/
+	isExpired(maxWindowSeconds) {
+		return this.age > maxWindowSeconds;
+	}
+	/**
+	* Determines whether this entry falls within the given time window.
+	* @param {number} windowSeconds The number of seconds to look back.
+	* @returns {boolean} True if this entry was executed within the window, false otherwise.
+	*/
+	isWithinWindow(windowSeconds) {
+		return this.age <= windowSeconds;
+	}
+	/**
+	* Determines whether this entry matches a given skill id filter.
+	* A filter value of 0 is the sentinel for "any skill" and always returns true.
+	* @param {number} skillId The skill id to match against, or 0 for no filter.
+	* @returns {boolean} True if this entry matches the filter, false otherwise.
+	*/
+	matchesSkillId(skillId) {
+		if (skillId === 0) return true;
+		return this.skillId === skillId;
+	}
+	/**
+	* Determines whether this entry matches a given skill type id filter.
+	* A filter value of 0 matches any type, consistent with RMMZ's own "None" stypeId convention.
+	* @param {number} typeId The skill type id to match against, or 0 for no filter.
+	* @returns {boolean} True if this entry matches the filter, false otherwise.
+	*/
+	matchesTypeId(typeId) {
+		if (typeId === 0) return true;
+		return this.skillTypeId === typeId;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/JABS_StateBuilder.js
+/**
+* A fluent builder/factory for constructing {@link JABS_State} instances.
+*
+* Required parameters are provided at construction to prevent half-baked builders.
+* Optional parameters can be configured via fluent setters before calling {@link build}.
+*
+* Usage example:
+*
+* const built = new JABS_StateBuilder(target, stateId, iconIndex, duration)
+*   .setStartingStacks(2)
+*   .setSource(attacker)
+*   .build();
+*/
+var JABS_StateBuilder = class {
+	/**
+	* The battler that will receive the state when built.
+	* @type {Game_Battler}
+	*/
+	#battler = null;
+	/**
+	* The database id of the state to apply.
+	* @type {number}
+	*/
+	#stateId = null;
+	/**
+	* The icon index for the state (visual reference only).
+	* @type {number}
+	*/
+	#iconIndex = 0;
+	/**
+	* The duration in frames for the state instance.
+	* @type {number}
+	*/
+	#duration = 0;
+	/**
+	* The number of stacks the state should start with.
+	* Defaults to 1 if not overridden via {@link setStartingStacks}.
+	* @type {number}
+	*/
+	#startingStacks = 1;
+	/**
+	* The battler that applied the state (source/assailant).
+	* If not provided, it defaults to the afflicted battler at build time.
+	* @type {Game_Battler|null}
+	*/
+	#source = null;
+	/**
+	* Constructor.
+	* @param {Game_Battler} battler The battler afflicted by the state.
+	* @param {number} stateId The database id of the state being applied.
+	*/
+	constructor(battler, stateId) {
+		this.#battler = battler;
+		this.#stateId = stateId;
+	}
+	/**
+	* Builds a {@link JABS_State} with the configured parameters.
+	* @returns {JABS_State} The constructed state instance.
+	*/
+	build() {
+		const state = new JABS_State(this.#battler, this.#stateId, this.#iconIndex, this.#duration, this.#startingStacks, this.#source);
+		return state;
+	}
+	/**
+	* Sets the icon index for the state.
+	* @param {number} iconIndex The icon index.
+	* @returns {JABS_StateBuilder}
+	*/
+	setIconIndex(iconIndex) {
+		this.#iconIndex = iconIndex;
+		return this;
+	}
+	/**
+	* Sets the duration of the state in frames.
+	* @param {number} duration The number of frames the state lasts.
+	*/
+	setDuration(duration) {
+		this.#duration = duration;
+		return this;
+	}
+	/**
+	* Sets the starting stack count for the state (defaults to 1 if not set).
+	* @param {number} stacks The starting stack count.
+	* @returns {JABS_StateBuilder} This builder for chaining.
+	*/
+	setStartingStacks(stacks) {
+		this.#startingStacks = stacks;
+		return this;
+	}
+	/**
+	* Sets the source battler who applied the state.
+	* If not provided, it defaults to the afflicted battler during {@link build}.
+	* @param {Game_Battler} source The applying battler.
+	* @returns {JABS_StateBuilder} This builder for chaining.
+	*/
+	setSource(source) {
+		this.#source = source;
+		return this;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/JABS_State.js
+/**
+* A class for handling the state data in the context of JABS.
+*/
+var JABS_State = class {
+	/**
+	* The list of rulesets available for how to handle reapplication of a state.
+	*/
+	static reapplicationType = {
+		/**
+		* "Refresh" will refresh the duration of a state when reapplied.
+		* @type {'refresh'}
+		*/
+		Refresh: "refresh",
+		/**
+		* "Extend" will add the remaining duration onto the new duration when reapplied.
+		* @type {'extend'}
+		*/
+		Extend: "extend",
+		/**
+		* "Stack" will add an additional stack of the state when reapplied.
+		* @type {'stack'}
+		*/
+		Stack: "stack"
+	};
+	/**
+	* The battler being afflicted with this state.
+	* @type {Game_Battler}
+	*/
+	battler = null;
+	/**
+	* The id of the state being tracked.
+	* @type {number}
+	*/
+	stateId = 0;
+	/**
+	* The icon index of the state being tracked (for visual purposes).
+	* @type {number}
+	*/
+	iconIndex = 0;
+	/**
+	* The current duration of the state being tracked. Decrements over time.
+	* @type {number}
+	*/
+	duration = 0;
+	/**
+	* The base duration.
+	* Used for reapplication and stacking purposes.
+	* @type {number}
+	*/
+	#baseDuration = 0;
+	/**
+	* The number of frames that defines "recently applied".
+	* @type {number}
+	*/
+	#recentlyAppliedCounter = 0;
+	/**
+	* Whether or not this tracked state is identified as `expired`.
+	* Expired states do not apply to the battler, but are kept in the tracking collection
+	* to grant the ability to refresh the state duration or whatever we choose to do.
+	* @type {boolean}
+	*/
+	expired = true;
+	/**
+	* The source that caused this state. Usually this is an opposing battler. If no source is specified,
+	* then the afflicted battler is the source.
+	* @type {Game_Battler}
+	*/
+	source = null;
+	/**
+	* The number of stacks of this state applied to the tracker.
+	* @type {number}
+	*/
+	stackCount = 0;
+	/**
+	* The number of times this state has been refreshed.<br/>
+	* This only matters when the reapplication type is {@link JABS_State.reapplicationType.Refresh}.
+	* @type {number}
+	*/
+	timesRefreshed = 0;
+	/**
+	* The number of frames until
+	* @type {number}
+	*/
+	#refreshResetCounter = 0;
+	/**
+	* Frames until the next spread pulse for this tracked state.
+	* @type {number}
+	*/
+	#spreadTickCounter = 0;
+	/**
+	* Constructor.
+	* @param {Game_Battler} battler The battler afflicted.
+	* @param {number} stateId The id of the state being applied to the battler.
+	* @param {number} iconIndex The icon index associated with the state.
+	* @param {number} duration The duration in frames that this state will remain.
+	* @param {number=} startingStacks The number of stacks to start out with; defaults to 1.
+	* @param {Game_Battler=} source The battler who afflicted the state; defaults to self.
+	*/
+	constructor(battler, stateId, iconIndex, duration, startingStacks = 1, source = battler) {
+		this.battler = battler;
+		this.stateId = stateId;
+		this.iconIndex = iconIndex;
+		this.duration = duration;
+		this.stackCount = startingStacks;
+		this.source = source;
+		this.setBaseDuration(duration);
+		this.refreshRecentlyAppliedCounter();
+		this.#spreadTickCounter = this.getSpreadTickInterval();
+		this.expired = false;
+	}
+	/**
+	* Updates the base duration to a new value.
+	* @param {number} newBaseDuration The new base duration value.
+	*/
+	setBaseDuration(newBaseDuration) {
+		this.#baseDuration = newBaseDuration;
+	}
+	/**
+	* The original applied duration in frames (denominator for HUD/map drain ratios).
+	* @returns {number}
+	*/
+	get baseDurationFrames() {
+		return this.#baseDuration;
+	}
+	/**
+	* Determines whether or not the state should not expire by duration.
+	* @returns {boolean} True if this state should last until removed, false otherwise.
+	*/
+	hasEternalDuration() {
+		if (this.#baseDuration !== -1) return false;
+		return true;
+	}
+	/**
+	* Whether or not this state has been refreshed recently enough that the refresh effects are diminished due to
+	* repetition of being reapplied over and over again in a short amount of time.
+	* @returns {boolean}
+	*/
+	hasDiminishingRefresh() {
+		return this.#refreshResetCounter > 0;
+	}
+	/**
+	* Refresh the recently applied counter.
+	*/
+	refreshRecentlyAppliedCounter() {
+		this.#recentlyAppliedCounter = 6;
+	}
+	/**
+	* Refresh the refresh reset counter.
+	* @param {number=} newRefreshResetAmount The count to refresh the refresh reset counter to.
+	*/
+	refreshRefreshResetCounter(newRefreshResetAmount = J.ABS.Metadata.DefaultStateRefreshReset) {
+		this.#refreshResetCounter = newRefreshResetAmount;
+	}
+	/**
+	* The update loop for this tracked state.
+	* Handles decrementing the counter and removing the state as applicable.
+	*/
+	update() {
+		this.handleCounters();
+		this.handleStackLossFromDuration();
+		this.handleExpiration();
+		this.handleDiminishedRefresh();
+	}
+	/**
+	* Handle all the counters that countdown on this state, like the recently applied counter, the refresh reset counter,
+	* and the actual duration counter.
+	*/
+	handleCounters() {
+		this.decrementRecentlyAppliedCounter();
+		this.decrementRefreshResetCounter();
+		this.decrementDuration();
+		this.decrementSpreadTickCounter();
+	}
+	/**
+	* Decrements the recently applied counter as-needed.
+	*/
+	decrementRecentlyAppliedCounter() {
+		if (this.#recentlyAppliedCounter > 0) {
+			this.#recentlyAppliedCounter--;
+		}
+	}
+	/**
+	* Decrements the refresh reset counter as-needed.
+	*/
+	decrementRefreshResetCounter() {
+		if (this.#refreshResetCounter > 0) {
+			this.#refreshResetCounter--;
+		}
+	}
+	/**
+	* Decrements the duration as-needed.
+	*/
+	decrementDuration() {
+		if (this.duration > 0) {
+			this.duration--;
+		}
+	}
+	/**
+	* Decrement the stack counter as-needed.
+	* @param {number=} stacksToRemove The number of stacks to decrement; defaults to 1.
+	*/
+	decrementStacks(stacksToRemove = 1) {
+		this.stackCount -= stacksToRemove;
+		if (this.stackCount > 0) {
+			this.refreshDuration();
+		}
+		if (this.stackCount < 0) {
+			this.stackCount = 0;
+		}
+	}
+	/**
+	* Handles stack loss from duration.
+	*/
+	handleStackLossFromDuration() {
+		if (this.canLoseStackFromDuration() === false) return;
+		const loseAllStacksAtOnce = this.source.state(this.stateId).jabsLoseAllStacksAtOnce;
+		const stacksLossCount = loseAllStacksAtOnce === true ? this.stackCount : 1;
+		this.decrementStacks(stacksLossCount);
+	}
+	/**
+	* Determines whether or not this state can lose stacks from duration.
+	* @returns {boolean} True if it can, false otherwise.
+	*/
+	canLoseStackFromDuration() {
+		if (this.stackCount <= 0) return false;
+		if (this.duration > 0) return false;
+		if (this.hasEternalDuration()) return false;
+		return true;
+	}
+	/**
+	* Refreshes the duration of the state based on its original duration.
+	* This does not refresh the recently applied counter.
+	*/
+	refreshDuration(newDuration = this.#baseDuration) {
+		if (newDuration === 0) return;
+		this.duration = newDuration;
+		this.expired = false;
+		this.refreshRecentlyAppliedCounter();
+		this.refreshRefreshResetCounter();
+		if (this.stackCount === 0) {
+			this.stackCount = 1;
+		}
+	}
+	/**
+	* Handles the removal of the state from the afflicted battler if applicable.
+	* When the state expires naturally, fires the applyStateOnExpire follow-up
+	* before the removal takes place so that the source reference is still valid.
+	*/
+	handleExpiration() {
+		if (this.canRemoveFromBattler() && this.shouldRemoveFromBattler()) {
+			this.handleApplyStateOnExpire();
+			this.removeFromBattler();
+		}
+	}
+	/**
+	* When this state has reached the end of its natural duration, checks for an
+	* {@link jabsApplyStateOnExpire} tag on the database state and rolls the
+	* configured percent chance to apply the follow-up state to the same battler.<br/>
+	* This method does NOT run when a state is removed by force (dispel, script, KO).
+	*/
+	handleApplyStateOnExpire() {
+		const expireData = $dataStates[this.stateId].jabsApplyStateOnExpire;
+		if (expireData === null) return;
+		const { stateId: nextStateId, chance } = expireData;
+		if (!RPGManager.chanceIn100(chance)) return;
+		this.battler.addNewState(nextStateId, this.source);
+	}
+	/**
+	* Handle reset circumstances for the refresh reset counter and times refreshed counter.
+	*/
+	handleDiminishedRefresh() {
+		if (this.timesRefreshed > 0 && this.#refreshResetCounter === 0) {
+			this.timesRefreshed = 0;
+		}
+	}
+	/**
+	* Increments the stack counter as high as the limit allows.
+	* @param {number} stackIncrease The number of stacks to increase; defaults to 1.
+	*/
+	incrementStacks(stackIncrease = 1) {
+		const maxStacks = this.battler.state(this.stateId).jabsStateStackMax;
+		if (this.stackCount < maxStacks) {
+			const projectedStackCount = this.stackCount + stackIncrease;
+			this.stackCount = Math.min(maxStacks, projectedStackCount);
+		}
+	}
+	/**
+	* Removes this tracked state from the afflicted battler.
+	*/
+	removeFromBattler() {
+		this.battler.removeState(this.stateId);
+		this.expired = true;
+	}
+	/**
+	* Determine if removing this state is even possible.
+	* @returns {boolean} True if it is removable, false otherwise.
+	*/
+	canRemoveFromBattler() {
+		if (this.canHoldBecauseStateType()) return false;
+		if (!this.battler.isStateAffected(this.stateId)) return false;
+		return true;
+	}
+	/**
+	* Determines whether or not this state should be removed because of its type.
+	* @returns {boolean}
+	*/
+	canHoldBecauseStateType() {
+		if (this.stateId === this.battler.deathStateId()) return true;
+		return false;
+	}
+	/**
+	* Determines whether or not we should remove this state from the battler.
+	* @returns {boolean} True if it should be removed, false otherwise.
+	*/
+	shouldRemoveFromBattler() {
+		if (this.stackCount > 0) return false;
+		if (!this.shouldRemoveByDuration()) return false;
+		return true;
+	}
+	/**
+	* Determines whether or not this state should be removed because of its duration.
+	* @returns {boolean} True if the state should be removed, false otherwise.
+	*/
+	shouldRemoveByDuration() {
+		if (this.duration > 0) return false;
+		if (this.duration <= 0 && this.hasEternalDuration()) return false;
+		return true;
+	}
+	/**
+	* Determines whether or not this state is about to expire.
+	* @returns {boolean} True if it is about to expire, false otherwise.
+	*/
+	isAboutToExpire() {
+		const aboutToExpireThreshold = Math.round(this.#baseDuration / 5);
+		return this.duration <= aboutToExpireThreshold && !this.hasEternalDuration();
+	}
+	/**
+	* Determines whether or not this state was recently applied.
+	* @returns {boolean} True if it was recently applied, false otherwise.
+	*/
+	wasRecentlyApplied() {
+		return this.#recentlyAppliedCounter > 0;
+	}
+	/**
+	* Decrements the spread tick counter and fires a spread pulse when it reaches zero.
+	*/
+	decrementSpreadTickCounter() {
+		if (this.#spreadTickCounter > 0) {
+			this.#spreadTickCounter--;
+		}
+		if (this.#spreadTickCounter === 0) {
+			this.resetSpreadTickCounter();
+			this.handleSpreading();
+		}
+	}
+	/**
+	* Resets the spread tick counter to the resolved interval for this state row.
+	*/
+	resetSpreadTickCounter() {
+		this.#spreadTickCounter = this.getSpreadTickInterval();
+	}
+	/**
+	* Resolves how many frames elapse between spread pulses for this tracked state.
+	* @returns {number}
+	*/
+	getSpreadTickInterval() {
+		const stateRow = $dataStates[this.stateId];
+		if (stateRow && stateRow.jabsSpreadTickFrames > 0) {
+			return stateRow.jabsSpreadTickFrames;
+		}
+		return J.ABS.Metadata.DefaultStateSpreadTickInterval;
+	}
+	/**
+	* Attempts to spread this state to nearby battlers when the state row defines a spread rule.
+	*/
+	handleSpreading() {
+		if (this.expired === true) return;
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		if (!this.battler || !this.source) return;
+		const stateRow = $dataStates[this.stateId];
+		if (!stateRow || !stateRow.jabsSpreadRule) return;
+		const { chance, range } = stateRow.jabsSpreadRule;
+		if (chance <= 0 || range <= 0) return;
+		const carrier = JABS_AiManager.getBattlerByUuid(this.battler.getUuid());
+		if (!carrier) return;
+		let candidates = this.#buildSpreadCandidates(carrier, range, stateRow.jabsViral);
+		candidates = candidates.filter((jabsBattler) => {
+			const targetBattler = jabsBattler.getBattler();
+			if (!targetBattler) return false;
+			if (targetBattler === this.battler) return false;
+			if (targetBattler.isStateAddable(this.stateId) === false) return false;
+			if (stateRow.jabsSpreadSkipAfflicted === true && targetBattler.isStateAffected(this.stateId) === true) {
+				return false;
+			}
+			return true;
+		});
+		const orderedCandidates = this.#orderSpreadCandidates(candidates, stateRow.jabsSpreadPreferUnafflicted);
+		let successCount = 0;
+		const maxPerTick = stateRow.jabsSpreadPerTick;
+		for (const jabsBattler of orderedCandidates) {
+			if (maxPerTick > 0 && successCount >= maxPerTick) break;
+			const targetBattler = jabsBattler.getBattler();
+			if (RPGManager.chanceIn100(chance) === false) continue;
+			targetBattler.addState(this.stateId, this.source);
+			successCount++;
+		}
+	}
+	/**
+	* Builds the spread candidate list for this pulse, sorted closest to farthest.
+	* @param {JABS_Battler} carrierJabs The map battler carrying this affliction.
+	* @param {number} range Maximum tile distance from the carrier.
+	* @param {boolean} viral When true, all battlers in range qualify; otherwise allies only.
+	* @returns {JABS_Battler[]}
+	*/
+	#buildSpreadCandidates(carrierJabs, range, viral) {
+		if (viral === true) {
+			return JABS_AiManager.getAllBattlersWithinRangeSortedByDistance(carrierJabs, range);
+		}
+		const allied = JABS_AiManager.getAlliedBattlersWithinRange(carrierJabs, range);
+		allied.sort((a, b) => {
+			const distA = carrierJabs.distanceToDesignatedTarget(a);
+			const distB = carrierJabs.distanceToDesignatedTarget(b);
+			return distA - distB;
+		});
+		return allied;
+	}
+	/**
+	* Optionally partitions candidates so unafflicted battlers are tried before carriers of this state id.
+	* @param {JABS_Battler[]} candidates Distance-sorted spread targets.
+	* @param {boolean} preferUnafflicted When true, reorder by affliction of this state id only.
+	* @returns {JABS_Battler[]}
+	*/
+	#orderSpreadCandidates(candidates, preferUnafflicted) {
+		if (preferUnafflicted === false) {
+			return candidates;
+		}
+		const unafflicted = [];
+		const afflicted = [];
+		for (const jabsBattler of candidates) {
+			const targetBattler = jabsBattler.getBattler();
+			if (!targetBattler) continue;
+			if (targetBattler.isStateAffected(this.stateId) === false) {
+				unafflicted.push(jabsBattler);
+			} else {
+				afflicted.push(jabsBattler);
+			}
+		}
+		return unafflicted.concat(afflicted);
+	}
+};
+/**
+* Fluent entry point for constructing a {@link JABS_State} (see {@link JABS_StateBuilder}).
+* @param {Game_Battler} target The afflicted battler.
+* @param {number} stateId The database state id.
+* @returns {JABS_StateBuilder}
+*/
+JABS_State.Builder = (target, stateId) => new JABS_StateBuilder(target, stateId);
+
+//#endregion
+//#region src/plugins/abs/core/models/JABS_LootDrop.js
 /**
 * An object that represents the binding of a `Game_Event` to an item/weapon/armor.
 */
@@ -13643,7 +14478,7 @@ var JABS_LootDrop = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_BaseController.js
+//#region src/plugins/abs/core/models/JABS_BaseController.js
 /**
 * Base class for all JABS input controllers.
 */
@@ -13685,7 +14520,7 @@ var JABS_BaseController = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_InputAdapter.js
+//#region src/plugins/abs/core/models/JABS_InputAdapter.js
 /**
 * This static class governs the instructions of what to do regarding input.
 * Inputs are received by the JABS_InputController.
@@ -13807,6 +14642,28 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	static #canPerformToolAction(jabsBattler) {
 		if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.Tool)) return false;
 		if (!jabsBattler.getBattler().getEquippedSkillId(JABS_Button.Tool)) {
+			return false;
+		}
+		return true;
+	}
+	/**
+	* Begins the execution of the usable-item slot.
+	* Uses the item currently equipped in the UsableItem slot and applies its effects.
+	* @param {JABS_Battler} jabsBattler The battler performing the action.
+	*/
+	static performUsableItemAction(jabsBattler) {
+		if (!this.#canPerformUsableItemAction(jabsBattler)) return;
+		const itemId = jabsBattler.getBattler().getEquippedSkillId(JABS_Button.UsableItem);
+		jabsBattler.applyUsableItemEffects(itemId);
+	}
+	/**
+	* Determines whether or not the player can execute the usable-item action.
+	* @param {JABS_Battler} jabsBattler The battler performing the action.
+	* @returns {boolean} True if they can, false otherwise.
+	*/
+	static #canPerformUsableItemAction(jabsBattler) {
+		if (!jabsBattler.isSkillTypeCooldownReady(JABS_Button.UsableItem)) return false;
+		if (!jabsBattler.getBattler().getEquippedSkillId(JABS_Button.UsableItem)) {
 			return false;
 		}
 		return true;
@@ -14351,6 +15208,17 @@ var JABS_Engine = class JABS_Engine {
 		* @type {Map<string, Map<number, JABS_State>>}
 		*/
 		this._jabsStates = isMapTransfer ? this._jabsStates ?? new Map() : new Map();
+		/**
+		* A log of recent skill executions per battler, keyed by battler uuid.
+		* Survives map transfer so that cooldown-asymmetric history rewards are not lost mid-transition.
+		* @type {Map<string, JABS_SkillExecution[]>}
+		*/
+		this._skillExecutionLog = isMapTransfer ? this._skillExecutionLog ?? new Map() : new Map();
+		/**
+		* The once-per-second throttle timer for aging and pruning skill execution log entries.
+		* @type {JABS_Timer}
+		*/
+		this._skillExecutionTimer = this._skillExecutionTimer ?? new JABS_Timer(60);
 		this.hitboxOverlaysVisible = isMapTransfer ? this.hitboxOverlaysVisible ?? J.ABS.Metadata.HitboxOverlaysInitiallyVisible : J.ABS.Metadata.HitboxOverlaysInitiallyVisible;
 	}
 	/**
@@ -14479,6 +15347,7 @@ var JABS_Engine = class JABS_Engine {
 		JABS_AiManager.rebuildSpatialIndex();
 		this.updateActions();
 		this.updateJabsStates();
+		this.updateSkillExecutionLog();
 		this.updateInput();
 	}
 	/**
@@ -14699,6 +15568,105 @@ var JABS_Engine = class JABS_Engine {
 			const jabsStates = Array.from(battlerAndStates.values());
 			jabsStates.forEach((jabsState) => jabsState.update());
 		});
+	}
+	/**
+	* Gets the full skill execution log for all battlers.
+	* @returns {Map<string, JABS_SkillExecution[]>}
+	*/
+	getSkillExecutionLog() {
+		return this._skillExecutionLog;
+	}
+	/**
+	* Gets the skill execution log entries for a specific battler by uuid.
+	* Lazily initializes the entry array if the battler has no log yet.
+	* @param {string} uuid The uuid of the battler to retrieve the log for.
+	* @returns {JABS_SkillExecution[]}
+	*/
+	getSkillExecutionLogByUuid(uuid) {
+		const log = this.getSkillExecutionLog();
+		if (!log.has(uuid)) {
+			log.set(uuid, []);
+		}
+		return log.get(uuid);
+	}
+	/**
+	* Records a skill execution in the given battler's history log.
+	* Skills whose type id is in the excluded set are silently ignored.
+	* @param {string} uuid The uuid of the battler that executed the skill.
+	* @param {number} skillId The id of the skill executed.
+	* @param {number} skillTypeId The skill type id of the executed skill.
+	*/
+	logSkillExecution(uuid, skillId, skillTypeId) {
+		if (J.ABS.Metadata.SkillExecutionExcludedSkillTypeSet.has(skillTypeId)) return;
+		const log = this.getSkillExecutionLogByUuid(uuid);
+		log.push(new JABS_SkillExecution(skillId, skillTypeId));
+	}
+	/**
+	* Queries the skill execution log for a battler and returns a count based on
+	* the given filters and count mode.
+	*
+	* COUNT_MODE values:
+	*  'all'            — total entries matching the scope filter within the window.
+	*  'unique'         — distinct skill ids matching the filter within the window.
+	*  'streak'         — consecutive matching entries from the tail of the log backward.
+	*  'distinct_types' — distinct skill type ids matching the filter within the window.
+	*
+	* @param {string} uuid The uuid of the battler to query.
+	* @param {number} skillId The skill id scope filter (0 = any skill).
+	* @param {number} typeId The skill type id filter (0 = any type).
+	* @param {number} windowSeconds The number of seconds to look back.
+	* @param {string} countMode One of: all | unique | streak | distinct_types
+	* @returns {number} The count result for the given parameters.
+	*/
+	querySkillExecutionLog(uuid, skillId, typeId, windowSeconds, countMode) {
+		const log = this.getSkillExecutionLogByUuid(uuid);
+		if (countMode === "streak") {
+			return this.#countSkillExecutionStreak(log, skillId, typeId, windowSeconds);
+		}
+		const workingSet = log.filter((entry) => entry.isWithinWindow(windowSeconds) && entry.matchesSkillId(skillId) && entry.matchesTypeId(typeId));
+		switch (countMode) {
+			case "unique": return new Set(workingSet.map((entry) => entry.skillId)).size;
+			case "distinct_types": return new Set(workingSet.map((entry) => entry.skillTypeId)).size;
+			case "all":
+			default: return workingSet.length;
+		}
+	}
+	/**
+	* Counts consecutive matching entries from the tail of the log backward.
+	* Iteration stops at the first entry that does not match all filters or
+	* falls outside the window.
+	* @param {JABS_SkillExecution[]} log The full execution log for this battler.
+	* @param {number} skillId The skill id scope filter (0 = any skill).
+	* @param {number} typeId The skill type id filter (0 = any type).
+	* @param {number} windowSeconds The number of seconds to look back.
+	* @returns {number} The length of the consecutive matching streak.
+	*/
+	#countSkillExecutionStreak(log, skillId, typeId, windowSeconds) {
+		let streak = 0;
+		for (let i = log.length - 1; i >= 0; i--) {
+			const entry = log[i];
+			if (entry.isWithinWindow(windowSeconds) === false) break;
+			if (entry.matchesSkillId(skillId) === false) break;
+			if (entry.matchesTypeId(typeId) === false) break;
+			streak++;
+		}
+		return streak;
+	}
+	/**
+	* Ages all skill execution log entries by one second and prunes expired ones.
+	* Gated by a once-per-second throttle timer to avoid per-frame overhead.
+	*/
+	updateSkillExecutionLog() {
+		this._skillExecutionTimer.update();
+		if (this._skillExecutionTimer.isTimerComplete() === false) return;
+		const maxWindow = J.ABS.Metadata.SkillExecutionMaxWindowSeconds;
+		const log = this.getSkillExecutionLog();
+		log.forEach((entries, uuid) => {
+			entries.forEach((entry) => entry.tick());
+			const pruned = entries.filter((entry) => entry.isExpired(maxWindow) === false);
+			log.set(uuid, pruned);
+		});
+		this._skillExecutionTimer.reset();
 	}
 	/**
 	* Updates all battler's
@@ -14925,6 +15893,7 @@ var JABS_Engine = class JABS_Engine {
 	}
 	/**
 	* Applies any on-execution effects to the caster based on the actions.
+	* Also records the skill in the caster's execution history log for skill history bonuses.
 	* @param {JABS_Battler} caster The battler executing the skill.
 	* @param {JABS_Action} primaryAction The 0th index action.
 	*/
@@ -14932,6 +15901,8 @@ var JABS_Engine = class JABS_Engine {
 		if (primaryAction.isRetaliation()) return;
 		this.paySkillCosts(caster, primaryAction);
 		this.applyCooldownCounters(caster, primaryAction);
+		const skill = primaryAction.getBaseSkill();
+		this.logSkillExecution(caster.getUuid(), skill.id, skill.stypeId);
 	}
 	/**
 	* Executes the provided JABS action.
@@ -15983,16 +16954,17 @@ var JABS_Engine = class JABS_Engine {
 			return;
 		}
 		if (targetBattler.isActor()) {
-			this.handleActorRetaliation(targetBattler);
+			this.handleActorRetaliation(targetBattler, action);
 		} else {
-			this.handleEnemyRetaliation(targetBattler);
+			this.handleEnemyRetaliation(targetBattler, action);
 		}
 	}
 	/**
 	* Executes any retaliation the player may have when receiving a hit.
 	* @param {JABS_Battler} battler The battler doing the retaliating.
+	* @param {JABS_Action} triggeringAction The action that struck the battler.
 	*/
-	handleActorRetaliation(battler) {
+	handleActorRetaliation(battler, triggeringAction) {
 		const actionResult = battler.getBattler().result();
 		let didCounterParry = false;
 		if (actionResult.parried || battler.parrying()) {
@@ -16004,11 +16976,7 @@ var JABS_Engine = class JABS_Engine {
 		}
 		const retaliationSkills = battler.getBattler().retaliationSkills();
 		if (retaliationSkills.length) {
-			retaliationSkills.forEach((skillChance) => {
-				if (skillChance.shouldTrigger()) {
-					this.forceMapAction(battler, skillChance.skillId, true);
-				}
-			});
+			this.executeRetaliationSkills(battler, retaliationSkills, triggeringAction);
 		}
 	}
 	/**
@@ -16098,15 +17066,47 @@ var JABS_Engine = class JABS_Engine {
 	* Executes any retaliation the enemy may have when receiving a hit at any time.
 	* @param {JABS_Battler} enemy The enemy's `JABS_Battler`.
 	*/
-	handleEnemyRetaliation(enemy) {
+	/**
+	* Executes any retaliation an enemy may have when receiving a hit.
+	* @param {JABS_Battler} enemy The enemy doing the retaliating.
+	* @param {JABS_Action} triggeringAction The action that struck the enemy.
+	*/
+	handleEnemyRetaliation(enemy, triggeringAction) {
 		const retaliationSkills = enemy.getBattler().retaliationSkills();
 		if (retaliationSkills.length) {
-			retaliationSkills.forEach((skillChance) => {
-				if (skillChance.shouldTrigger()) {
-					this.forceMapAction(enemy, skillChance.skillId, true);
-				}
-			});
+			this.executeRetaliationSkills(enemy, retaliationSkills, triggeringAction);
 		}
+	}
+	/**
+	* Fires all retaliation skills that pass their chance roll and hit type filter,
+	* stamping the triggering damage onto each outgoing action so payload formulas
+	* can reference `d` (HP), `m` (MP), and `t` (TP).
+	* @param {JABS_Battler} retaliator The battler firing the retaliation skills.
+	* @param {JABS_OnChanceEffect[]} retaliationSkills The retaliation skill candidates.
+	* @param {JABS_Action} triggeringAction The action that struck the retaliator.
+	*/
+	executeRetaliationSkills(retaliator, retaliationSkills, triggeringAction) {
+		const incomingHitType = triggeringAction.getBaseSkill().hitType;
+		const { hpDamage, mpDamage, tpDamage } = retaliator.getBattler().result();
+		retaliationSkills.forEach((skillChance) => {
+			if (!skillChance.matchesHitType(incomingHitType)) return;
+			if (!skillChance.shouldTrigger()) return;
+			const retaliationActions = retaliator.createJabsActionFromSkill(skillChance.skillId, JABS_ActionOptions.Builder().setIsRetaliation(true).build());
+			retaliationActions.forEach((retaliationAction) => retaliationAction.getAction().setTriggerDamage(hpDamage, mpDamage, tpDamage));
+			const isAnyDirect = retaliationActions.some((a) => a.isDirectAction());
+			if (isAnyDirect) {
+				const attackerX = triggeringAction.getCaster().getX();
+				const attackerY = triggeringAction.getCaster().getY();
+				const frozenLocation = JABS_Location.Builder().setX(attackerX).setY(attackerY).build();
+				const frozenOptions = JABS_ActionOptions.Builder().setIsRetaliation(true).setLocation(frozenLocation).build();
+				retaliationActions.forEach((a) => a.setActionOptions(frozenOptions));
+			}
+			const targetX = isAnyDirect ? triggeringAction.getCaster().getX() : null;
+			const targetY = isAnyDirect ? triggeringAction.getCaster().getY() : null;
+			if (this.canExecuteMapActions(retaliator, retaliationActions)) {
+				retaliationActions.forEach((retaliationAction) => this.executeMapAction(retaliator, retaliationAction, targetX, targetY));
+			}
+		});
 	}
 	/**
 	* Executes a retalation if necessary on receiving a hit.
@@ -16223,7 +17223,7 @@ var JABS_Engine = class JABS_Engine {
 			return true;
 		};
 		const actionSprite = jabsAction.getActionSprite();
-		const range = jabsAction.getRange();
+		const range = jabsAction.getRange() ?? (jabsAction.isDirectAction() ? jabsAction.getProximity() : null);
 		const shape = jabsAction.getShape();
 		const targetsHit = [];
 		let hitOne = false;
@@ -16316,7 +17316,7 @@ var JABS_Engine = class JABS_Engine {
 				return this.collisionSector(targetCharacter, actionEvent, range, facing, degrees);
 			}
 			case J.ABS.Shapes.Wall: return this.collisionWall(targetCharacter, actionEvent, range, facing);
-			default: return false;
+			default: return this.collisionCircle(targetCharacter, actionEvent, range);
 		}
 	}
 	/**
@@ -16339,11 +17339,7 @@ var JABS_Engine = class JABS_Engine {
 	* @returns {number|null} The thickness in tiles; null if not specified.
 	*/
 	getActionThicknessTiles(actionEvent) {
-		const jabsAction = actionEvent.getJabsAction();
-		const baseSkill = jabsAction.getBaseSkill();
-		const found = RPGManager.getNumberFromNoteByRegex(baseSkill, J.ABS.RegExp.Thickness, true);
-		if (found === null) return null;
-		return Math.max(0, found);
+		return actionEvent.getJabsAction().getThicknessTiles();
 	}
 	/**
 	* Performs Euclidean sector (wedge) collision.
@@ -16896,7 +17892,7 @@ var JABS_Engine = class JABS_Engine {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_ActionBuilder.js
+//#region src/plugins/abs/core/models/JABS_ActionBuilder.js
 /**
 * A builder for creating {@link JABS_Action}s.
 * @returns {JABS_ActionBuilder}
@@ -16997,7 +17993,7 @@ var JABS_ActionBuilder = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_Action.js
+//#region src/plugins/abs/core/models/JABS_Action.js
 /**
 * An object that binds a `Game_Action` to a `Game_Event` on the map.
 */
@@ -17980,10 +18976,14 @@ var JABS_Action = class JABS_Action {
 	}
 	/**
 	* Gets the range of which this JABS action will reach.
-	* @returns {number} The range of this action.
+	* Applies range modifiers from the caster's notes if the skill has an explicit radius tag.
+	* @returns {number|null} The range of this action, or null if no radius is defined.
 	*/
 	getRange() {
-		return this.getBaseSkill().jabsRadius;
+		const base = this.getBaseSkill().jabsRadius;
+		if (base === null) return null;
+		const notes = this.getAction().subject().getAllNotes();
+		return this.applyRangeModifiers(base, notes);
 	}
 	/**
 	* Gets the cast time for this skill.
@@ -17994,13 +18994,17 @@ var JABS_Action = class JABS_Action {
 	}
 	/**
 	* Gets the proximity to the target in order to use this JABS action.
+	* Applies range modifiers from the caster's notes if the skill has an explicit proximity tag.
 	* @returns {number} The proximity required for this action.
 	*/
 	getProximity() {
 		if (this.isForSelf()) {
 			return 9999;
 		}
-		return this.getBaseSkill().jabsProximity ?? 0;
+		const base = this.getBaseSkill().jabsProximity;
+		if (base === null) return 0;
+		const notes = this.getAction().subject().getAllNotes();
+		return this.applyRangeModifiers(base, notes);
 	}
 	/**
 	* Whether or not the scope of this action is "User" or not.
@@ -18019,10 +19023,29 @@ var JABS_Action = class JABS_Action {
 	/**
 	* Gets the hitbox thickness in tiles for this JABS action.
 	* Applies to {@link J.ABS.Shapes.Line} and {@link J.ABS.Shapes.Wall} shapes.
+	* Applies range modifiers only when an explicit <thickness:N> tag exists on the skill.
 	* @returns {number} The thickness in tiles; defaults to 1 if not tagged.
 	*/
 	getThicknessTiles() {
-		return RPGManager.getNumberFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.Thickness, true) ?? 1;
+		const base = RPGManager.getNumberFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.Thickness, true);
+		if (base === null) return 1;
+		const notes = this.getAction().subject().getAllNotes();
+		return this.applyRangeModifiers(base, notes);
+	}
+	/**
+	* Applies the caster's rangeBuff (flat, before rate) and rangeRate (base-1.0 multiplicative) tags
+	* to a base tile value. Each rangeRate tag contributes (N - 1.0) to the rate accumulator so that
+	* multiple rate tags stack additively rather than compounding exponentially.
+	* Result is floored at 0 to prevent negative values from breaking collision geometry.
+	* @param {number} base The unmodified tile value to scale.
+	* @param {RPG_Base[]} notes The collection of note-bearing objects from the caster's getAllNotes().
+	* @returns {number} The scaled tile value.
+	*/
+	applyRangeModifiers(base, notes) {
+		const totalBuff = RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.RangeBuff) ?? 0;
+		const rateCaptures = RPGManager.getAllCapturesFromAllNotesByRegex(notes, J.ABS.RegExp.RangeRate);
+		const totalRate = rateCaptures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 1);
+		return Math.max(0, (base + totalBuff) * totalRate);
 	}
 	/**
 	* Gets the arc sweep in degrees for this JABS action.
@@ -18077,7 +19100,7 @@ var JABS_Action = class JABS_Action {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_BattlerName.js
+//#region src/plugins/abs/core/models/JABS_BattlerName.js
 /**
 * A class representing the name of a JABS battler.
 */
@@ -18087,7 +19110,7 @@ var JABS_BattlerName = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_MenuFocus.js
+//#region src/plugins/abs/core/models/JABS_MenuFocus.js
 /**
 * The keys of the window focuses that the JABS menu can choose from.
 */
@@ -18138,7 +19161,7 @@ var JABS_MenuType = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_OnChanceEffect.js
+//#region src/plugins/abs/core/models/JABS_OnChanceEffect.js
 /**
 * A class defining the structure of an on-death skill, either for ally or enemy.
 */
@@ -18159,15 +19182,34 @@ var JABS_OnChanceEffect = class {
 	*/
 	key = String.empty;
 	/**
+	* The hit type filter for this on-chance effect.
+	* When null the effect fires regardless of hit type.
+	* When set to a value from {@link Game_Action.HIT_TYPE}, only matching hit types trigger it.
+	* @type {number|null}
+	*/
+	hitType = null;
+	/**
 	* Constructor.
 	* @param {number} skillId The id of the skill associated with this on-chance effect.
 	* @param {number} chance A number between 1-100 representing the percent chance of success.
 	* @param {string} key The key associated with this on-chance effect.
+	* @param {number|null} hitType Optional hit type filter; null means any hit type.
 	*/
-	constructor(skillId, chance, key) {
+	constructor(skillId, chance, key, hitType = null) {
 		this.skillId = skillId;
 		this.chance = chance;
 		this.key = key;
+		this.hitType = hitType;
+	}
+	/**
+	* Checks whether this effect should fire given the hit type of the incoming action.
+	* If no hit type filter is set, always returns true.
+	* @param {number} incomingHitType The hit type of the action that struck the bearer.
+	* @returns {boolean}
+	*/
+	matchesHitType(incomingHitType) {
+		if (this.hitType === null) return true;
+		return this.hitType === incomingHitType;
 	}
 	/**
 	* Gets the underlying skill for this on-chance effect.
@@ -18202,7 +19244,7 @@ var JABS_OnChanceEffect = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/__models/JABS_SkillSlotManager.js
+//#region src/plugins/abs/core/models/JABS_SkillSlotManager.js
 /**
 * A class responsible for managing the skill slots on an actor.
 */
@@ -18289,6 +19331,7 @@ var JABS_SkillSlotManager = class {
 		this._slots.push(new JABS_SkillSlot(JABS_Button.Mainhand, 0));
 		this._slots.push(new JABS_SkillSlot(JABS_Button.Offhand, 0));
 		this._slots.push(new JABS_SkillSlot(JABS_Button.Tool, 0));
+		this._slots.push(new JABS_SkillSlot(JABS_Button.UsableItem, 0));
 		this._slots.push(new JABS_SkillSlot(JABS_Button.Dodge, 0));
 		this._slots.push(new JABS_SkillSlot(JABS_Button.CombatSkill1, 0));
 		this._slots.push(new JABS_SkillSlot(JABS_Button.CombatSkill2, 0));
@@ -18379,6 +19422,13 @@ var JABS_SkillSlotManager = class {
 	*/
 	getToolSlot() {
 		return this.getSkillSlotByKey(JABS_Button.Tool);
+	}
+	/**
+	* Gets the skill slot dedicated to the usable-item slot.
+	* @returns {JABS_SkillSlot}
+	*/
+	getUsableItemSlot() {
+		return this.getSkillSlotByKey(JABS_Button.UsableItem);
 	}
 	/**
 	* Gets the skill dedicated to the dodge slot.
@@ -18521,9 +19571,477 @@ var JABS_SkillSlotManager = class {
 SerializableRegistry.register(JABS_SkillSlotManager);
 
 //#endregion
+//#region src/plugins/abs/core/models/JABS_StateExpireData.js
+/**
+* Represents the natural-expiry chain data attached to a JABS state.
+* Returned by {@link RPG_State#jabsApplyStateOnExpire} when the state database entry
+* carries the {@code <applyStateOnExpire:[STATE_ID, CHANCE]>} notetag.
+*
+* Instances are read-only after construction; callers should treat them as value objects.
+*/
+var JABS_StateExpireData = class {
+	/**
+	* The database id of the state to apply when the parent state expires naturally.
+	* @type {number}
+	*/
+	stateId = 0;
+	/**
+	* The integer percent chance (0–100) that the follow-up state fires on expiry.
+	* A value of 100 means the follow-up always fires; 0 means it never fires.
+	* @type {number}
+	*/
+	chance = 0;
+	/**
+	* Constructor.
+	* @param {number} stateId The database id of the follow-up state.
+	* @param {number} chance The percent chance (0–100) the follow-up fires on natural expiry.
+	*/
+	constructor(stateId, chance) {
+		this.stateId = stateId;
+		this.chance = chance;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/SkillHistoryBonusDisplay.js
+/**
+* Player-facing prose for {@link J.ABS.RegExp.SkillHistoryBonus} bracket tuples.<br/>
+* Shared by passive detail, CMS, and any future skill/state inspectors.
+*/
+var SkillHistoryBonusDisplay = class SkillHistoryBonusDisplay {
+	/**
+	* Parses the bracket string from a skillHistoryBonus tag.
+	* Expected format: [TYPE_ID, WINDOW, PCT, COUNT_MODE]
+	* @param {string} bracket The captured bracket string, e.g. "[0, 6, 4, unique]".
+	* @returns {{typeId:number, window:number, pct:number, countMode:string}|null}
+	*/
+	static parseGeneralBracket(bracket) {
+		const parts = bracket.replace(/[[\]]/g, "").split(",").map((part) => part.trim());
+		if (parts.length !== 4) return null;
+		const typeId = Number(parts[0]);
+		const window = Number(parts[1]);
+		const pct = Number(parts[2]);
+		const countMode = parts[3].toLowerCase();
+		if (Number.isNaN(typeId) || Number.isNaN(window) || Number.isNaN(pct)) return null;
+		return {
+			typeId,
+			window,
+			pct,
+			countMode
+		};
+	}
+	/**
+	* Maps a COUNT_MODE token to the player-facing pattern phrase.
+	* @param {string} countMode One of all | unique | streak | distinct_types.
+	* @returns {string}
+	*/
+	static countModePhrase(countMode) {
+		switch (countMode) {
+			case "unique": return "unique skill";
+			case "all": return "any skill";
+			case "streak": return "repeated skill";
+			case "distinct_types": return "distinct typed skill";
+			default: return countMode;
+		}
+	}
+	/**
+	* Maps a skill-type filter id to the player-facing type scope phrase.
+	* @param {number} typeId Skill type id from the tag; 0 means any type.
+	* @returns {string}
+	*/
+	static typeScopePhrase(typeId) {
+		if (typeId === 0) return "of any type";
+		const typeName = $dataSystem.skillTypes[typeId];
+		if (typeName) return `of ${typeName} type`;
+		return `of type ${typeId}`;
+	}
+	/**
+	* Formats a signed percent magnitude for drawTextEx highlight slots.
+	* @param {number} pct Per-count damage bonus percent from the tag.
+	* @returns {string}
+	*/
+	static percentPhrase(pct) {
+		const sign = pct >= 0 ? "+" : String.empty;
+		return `${sign}${pct}%`;
+	}
+	/**
+	* Formats the history window length as a player-facing duration phrase.
+	* @param {number} windowSeconds Seconds looked back in the execution log.
+	* @returns {string}
+	*/
+	static durationPhrase(windowSeconds) {
+		return `${windowSeconds} seconds`;
+	}
+	/**
+	* Wraps one highlight fragment with italic, bold, and color for drawTextEx.
+	* @param {Window_Base} window Host window supplying text style helpers.
+	* @param {number} colorIndex Palette index for {@link Window_Base#colorizeText}.
+	* @param {string} text Inner phrase to emphasize.
+	* @returns {string}
+	*/
+	static highlightPhrase(window, colorIndex, text) {
+		return window.colorizeText(colorIndex, window.boldenText(window.italicizeText(text)));
+	}
+	/**
+	* Formats one parsed general skillHistoryBonus tuple as drawTextEx prose.
+	* Highlight colors: pattern \\C[1], type \\C[2], duration \\C[6], percent \\C[3].
+	* Each highlight is italicized and bolded via {@link Window_Base} text helpers.
+	* @param {{typeId:number, window:number, pct:number, countMode:string}} parsed Parsed bracket tuple.
+	* @param {Window_Base} window Host window supplying bold/color text helpers.
+	* @returns {string}
+	*/
+	static formatGeneralProse(parsed, window) {
+		const pattern = SkillHistoryBonusDisplay.highlightPhrase(window, 1, SkillHistoryBonusDisplay.countModePhrase(parsed.countMode));
+		const type = SkillHistoryBonusDisplay.highlightPhrase(window, 2, SkillHistoryBonusDisplay.typeScopePhrase(parsed.typeId));
+		const duration = SkillHistoryBonusDisplay.highlightPhrase(window, 6, SkillHistoryBonusDisplay.durationPhrase(parsed.window));
+		const percent = SkillHistoryBonusDisplay.highlightPhrase(window, 3, SkillHistoryBonusDisplay.percentPhrase(parsed.pct));
+		return `For each ${pattern} ${type} executed in the last ${duration}, gain ${percent} damage.`;
+	}
+	/**
+	* Builds drawTextEx prose lines for every skillHistoryBonus tag on a database row.
+	* @param {RPG_BaseItem} dataRow State, skill, or equip row bearing notes.
+	* @param {Window_Base} window Host window supplying bold/color text helpers.
+	* @returns {string[]}
+	*/
+	static collectGeneralProseLines(dataRow, window) {
+		if (!J.ABS) return [];
+		const captures = RPGManager.getAllCapturesFromNoteByRegex(dataRow, J.ABS.RegExp.SkillHistoryBonus);
+		const lines = [];
+		captures.forEach((captureGroup) => {
+			const [rawTag] = captureGroup;
+			const parsed = SkillHistoryBonusDisplay.parseGeneralBracket(rawTag);
+			if (parsed === null) return;
+			lines.push(SkillHistoryBonusDisplay.formatGeneralProse(parsed, window));
+		});
+		return lines;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/StateAfflictionViewModel.js
+/**
+* A single row of affliction data for HUD or map presenters.
+*/
+var StateAfflictionViewModel = class StateAfflictionViewModel {
+	/**
+	* The JABS tracked state instance.
+	* @type {JABS_State}
+	*/
+	trackedState = null;
+	/**
+	* The hydrated database state from the afflicted battler's perspective.
+	* @type {RPG_State|null}
+	*/
+	state = null;
+	/**
+	* The database state id.
+	* @type {number}
+	*/
+	stateId = 0;
+	/**
+	* The icon index to display for this affliction.
+	* @type {number}
+	*/
+	iconIndex = 0;
+	/**
+	* The current stack count on the tracked state.
+	* @type {number}
+	*/
+	stackCount = 1;
+	/**
+	* Remaining duration in frames.
+	* @type {number}
+	*/
+	durationFrames = 0;
+	/**
+	* Base duration in frames when the state was applied.
+	* @type {number}
+	*/
+	baseDurationFrames = 0;
+	/**
+	* Whether this affliction never expires by duration.
+	* @type {boolean}
+	*/
+	isEternal = false;
+	/**
+	* Normalized remaining-time ratio for map gauges; null when eternal or unknown.
+	* @type {number|null}
+	*/
+	fillRatio = null;
+	/**
+	* Whether this row belongs to the negative or positive collection.
+	* @type {'negative'|'positive'}
+	*/
+	polarity = "negative";
+	/**
+	* Builds a view model from a tracked JABS state and afflicted battler.
+	* @param {JABS_State} trackedState The tracked state data.
+	* @param {Game_Battler} battler The afflicted battler.
+	* @param {'negative'|'positive'} polarity The polarity bucket for this row.
+	* @returns {StateAfflictionViewModel}
+	*/
+	static fromTrackedState(trackedState, battler, polarity) {
+		const viewModel = new StateAfflictionViewModel();
+		viewModel.trackedState = trackedState;
+		viewModel.stateId = trackedState.stateId;
+		viewModel.state = battler.state(trackedState.stateId);
+		viewModel.iconIndex = viewModel.state ? viewModel.state.iconIndex : 0;
+		viewModel.stackCount = trackedState.stackCount;
+		viewModel.durationFrames = trackedState.duration;
+		viewModel.baseDurationFrames = trackedState.baseDurationFrames;
+		viewModel.isEternal = trackedState.hasEternalDuration();
+		viewModel.fillRatio = StateAfflictionViewModel.resolveFillRatio(viewModel.durationFrames, viewModel.baseDurationFrames, viewModel.isEternal);
+		viewModel.polarity = polarity;
+		return viewModel;
+	}
+	/**
+	* Resolves the normalized remaining-time ratio for map gauges.
+	* @param {number} durationFrames Remaining duration in frames.
+	* @param {number} baseDurationFrames Base duration in frames.
+	* @param {boolean} isEternal Whether the state is eternal.
+	* @returns {number|null}
+	*/
+	static resolveFillRatio(durationFrames, baseDurationFrames, isEternal) {
+		if (isEternal === true) {
+			return null;
+		}
+		if (baseDurationFrames <= 0) {
+			return null;
+		}
+		const ratio = durationFrames / baseDurationFrames;
+		return Math.max(0, Math.min(1, ratio));
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/StateAfflictionCollection.js
+/**
+* A typed collection of negative and positive affliction view models.
+*/
+var StateAfflictionCollection = class {
+	/**
+	* Negative affliction rows.
+	* @type {StateAfflictionViewModel[]}
+	*/
+	negative = [];
+	/**
+	* Positive affliction rows.
+	* @type {StateAfflictionViewModel[]}
+	*/
+	positive = [];
+	/**
+	* Returns every active affliction row in polarity order.
+	* @returns {StateAfflictionViewModel[]}
+	*/
+	allActive() {
+		return [...this.negative, ...this.positive];
+	}
+	/**
+	* Whether this collection has no rows to render.
+	* @returns {boolean}
+	*/
+	isEmpty() {
+		if (this.negative.length > 0) {
+			return false;
+		}
+		if (this.positive.length > 0) {
+			return false;
+		}
+		return true;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/StateAfflictionBattlerIdentity.js
+/**
+* Stable sprite-cache identity for any afflicted battler.
+*/
+var StateAfflictionBattlerIdentity = class StateAfflictionBattlerIdentity {
+	/**
+	* The battler uuid used for cache keys.
+	* @type {string}
+	*/
+	uuid = String.empty;
+	/**
+	* Builds an identity from a battler.
+	* @param {Game_Battler} battler The afflicted battler.
+	* @returns {StateAfflictionBattlerIdentity}
+	*/
+	static fromBattler(battler) {
+		const identity = new StateAfflictionBattlerIdentity();
+		identity.uuid = battler.getUuid();
+		return identity;
+	}
+	/**
+	* Builds the icon sprite cache key for a state id.
+	* @param {number} stateId The database state id.
+	* @returns {string}
+	*/
+	buildIconKey(stateId) {
+		return `affliction-icon-${stateId}-${this.uuid}`;
+	}
+	/**
+	* Builds the timer sprite cache key for a state id.
+	* @param {number} stateId The database state id.
+	* @returns {string}
+	*/
+	buildTimerKey(stateId) {
+		return `affliction-timer-${stateId}-${this.uuid}`;
+	}
+	/**
+	* Builds the stack sprite cache key for a state id.
+	* @param {number} stateId The database state id.
+	* @returns {string}
+	*/
+	buildStackKey(stateId) {
+		return `affliction-stack-${stateId}-${this.uuid}`;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/StateAfflictionMapLayoutConfig.js
+/**
+* Layout tuning for the map affliction strip.
+*/
+var StateAfflictionMapLayoutConfig = class StateAfflictionMapLayoutConfig {
+	/**
+	* Multiplier applied to the standard icon width and height at render time.
+	* @type {number}
+	*/
+	iconScale = .5;
+	/**
+	* Gauge bar height in pixels.
+	* @type {number}
+	*/
+	gaugeHeight = 3;
+	/**
+	* Gap in pixels between the hp gauge bottom and the affliction icon row.
+	* @type {number}
+	*/
+	gapBelowHpBar = 2;
+	/**
+	* Vertical gap in pixels between negative and positive affliction rows.
+	* @type {number}
+	*/
+	rowGap = 4;
+	/**
+	* Maximum number of affliction slots rendered per row on the map.
+	* @type {number}
+	*/
+	maxSlots = 8;
+	/**
+	* Horizontal distance between map slots.
+	* @type {number}
+	*/
+	slotPitch = 18;
+	/**
+	* Builds layout config from J-ABS metadata.
+	* @returns {StateAfflictionMapLayoutConfig}
+	*/
+	static fromMetadata() {
+		const config = new StateAfflictionMapLayoutConfig();
+		config.iconScale = J.ABS.Metadata.mapAfflictionIconScale;
+		config.gaugeHeight = J.ABS.Metadata.mapAfflictionGaugeHeight;
+		config.gapBelowHpBar = J.ABS.Metadata.mapAfflictionGapBelowHpBar;
+		config.maxSlots = J.ABS.Metadata.mapAfflictionMaxSlots;
+		return config;
+	}
+	/**
+	* Scaled icon width for map slots.
+	* @returns {number}
+	*/
+	iconWidth() {
+		return Math.floor(ImageManager.iconWidth * this.iconScale);
+	}
+	/**
+	* Scaled icon height for map slots.
+	* @returns {number}
+	*/
+	iconHeight() {
+		return Math.floor(ImageManager.iconHeight * this.iconScale);
+	}
+	/**
+	* Vertical distance from one affliction row to the next.
+	* @returns {number}
+	*/
+	rowPitchY() {
+		return this.iconHeight() + this.gaugeHeight + 1 + this.rowGap;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/StateAfflictionProvider.js
+/**
+* Resolves affliction rows for HUD and map presenters.
+*/
+var StateAfflictionProvider = class StateAfflictionProvider {
+	/**
+	* Collects negative and positive affliction rows for a battler.
+	* @param {Game_Battler} battler The afflicted battler.
+	* @returns {StateAfflictionCollection}
+	*/
+	static collectForBattler(battler) {
+		const collection = new StateAfflictionCollection();
+		if (StateAfflictionProvider.canCollect() === false) {
+			return collection;
+		}
+		if (!battler || typeof battler.getUuid !== "function") {
+			return collection;
+		}
+		const uuid = battler.getUuid();
+		const negativeTracked = $jabsEngine.getNegativeJabsStatesByUuid(uuid);
+		const positiveTracked = $jabsEngine.getPositiveJabsStatesByUuid(uuid);
+		for (const trackedState of negativeTracked) {
+			if (StateAfflictionProvider.qualifies(trackedState, battler) === false) {
+				continue;
+			}
+			collection.negative.push(StateAfflictionViewModel.fromTrackedState(trackedState, battler, "negative"));
+		}
+		for (const trackedState of positiveTracked) {
+			if (StateAfflictionProvider.qualifies(trackedState, battler) === false) {
+				continue;
+			}
+			collection.positive.push(StateAfflictionViewModel.fromTrackedState(trackedState, battler, "positive"));
+		}
+		return collection;
+	}
+	/**
+	* Whether provider dependencies are available.
+	* @returns {boolean}
+	*/
+	static canCollect() {
+		if (!J.ABS) {
+			return false;
+		}
+		if (!$jabsEngine) {
+			return false;
+		}
+		return true;
+	}
+	/**
+	* Whether a tracked state should be shown as an affliction row.
+	* @param {JABS_State} trackedState The tracked state to evaluate.
+	* @param {Game_Battler} battler The afflicted battler.
+	* @returns {boolean}
+	*/
+	static qualifies(trackedState, battler) {
+		if (trackedState.expired === true) {
+			return false;
+		}
+		if (trackedState.stateId === battler.deathStateId()) {
+			return false;
+		}
+		if (J.PASSIVE && battler.isPassiveState(trackedState.stateId) === true) {
+			return false;
+		}
+		return true;
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.12.2";
+var PLUGIN_VERSION = "4.12.4";
 var PLUGIN_DESC_TAG = "JABS";
 
 //#endregion
@@ -18554,7 +20072,7 @@ PluginManager.registerCommand(J.ABS.Metadata.name, "Set JABS Skill", (args) => {
 	const skillSlotKey = J.ABS.Helpers.PluginManager.TranslateOptionToSlot(slot);
 	const actor = $gameActors.actor(parseInt(actorId));
 	let assignedId = parseInt(skillId);
-	if (itemId !== 0 && skillSlotKey === JABS_Button.Tool) {
+	if (itemId !== 0 && (skillSlotKey === JABS_Button.Tool || skillSlotKey === JABS_Button.UsableItem)) {
 		assignedId = parseInt(itemId);
 	}
 	if (assignedId === 0) return;
@@ -19014,6 +20532,20 @@ Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigNoIdle", { get: func
 */
 Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigShowHpBar", { get: function() {
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.ConfigShowHpBar, true);
+} });
+/**
+* The JABS config option for enabling showing the map affliction strip.
+* @type {boolean|null}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigShowStates", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.ConfigShowStates, true);
+} });
+/**
+* The JABS config option for disabling the map affliction strip.
+* @type {boolean|null}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "jabsConfigHideStates", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.ConfigHideStates, true);
 } });
 /**
 * The JABS config option for disabling showing the hp bar.
@@ -19993,6 +21525,71 @@ Object.defineProperty(RPG_State.prototype, "jabsLoseAllStacksAtOnce", { get: fun
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.LoseAllStacksAtOnce, true) ?? J.ABS.Metadata.DefaultStateLoseAllStacksAtOnce;
 } });
 /**
+* The follow-up state to apply when this state expires naturally by frame counter.<br/>
+* Returns a {@link JABS_StateExpireData} describing the follow-up, or null when no
+* tag is present. Does NOT fire on forced removal or dispel.
+* @type {JABS_StateExpireData|null}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsApplyStateOnExpire", { get: function() {
+	const arrays = RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.ApplyStateOnExpire, true);
+	if (!arrays || arrays.length === 0) return null;
+	const [stateId, chance] = arrays.at(0);
+	return new JABS_StateExpireData(stateId, chance);
+} });
+/**
+* Spread rule for this state row: chance and range in tiles.<br/>
+* Returns null when no {@code <spread:[CHANCE, RANGE]>} tag is present.
+* @type {{ chance: number, range: number }|null}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsSpreadRule", { get: function() {
+	const arrays = RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.Spread, true);
+	if (!arrays || arrays.length === 0) return null;
+	const tuple = arrays.at(0);
+	const chance = Number(tuple[0]);
+	const range = Number(tuple[1]);
+	if (Number.isNaN(chance) || chance <= 0) return null;
+	if (Number.isNaN(range) || range <= 0) return null;
+	return {
+		chance,
+		range
+	};
+} });
+/**
+* When true, spread candidates include all battlers in range, not only same-side allies.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsViral", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.Viral, true) === true;
+} });
+/**
+* Per-state spread pulse interval in frames when {@code <spreadTick:N>} is present.
+* @type {number}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsSpreadTickFrames", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.SpreadTick, true) || 0;
+} });
+/**
+* Max successful spreads per pulse when {@code <spreadPerTick:N>} is present.
+* @type {number}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsSpreadPerTick", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.SpreadPerTick, true) || 0;
+} });
+/**
+* When true, spread tries battlers not already afflicted with this state id before others.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsSpreadPreferUnafflicted", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.SpreadPreferUnafflicted, true) === true;
+} });
+/**
+* When true, spread pulses skip battlers who already have this state id (no spread reapplication).
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsSpreadSkipAfflicted", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.SpreadSkipAfflicted, true) === true;
+} });
+/**
 * The flat slip hp amount- per 5 seconds.
 * @type {number}
 */
@@ -20060,6 +21657,54 @@ Object.defineProperty(RPG_State.prototype, "jabsSlipTpPercentPerFive", { get: fu
 */
 Object.defineProperty(RPG_State.prototype, "jabsSlipTpFormulaPerFive", { get: function() {
 	return RPGManager.getStringFromNoteByRegex(this, J.ABS.RegExp.SlipTpFormula);
+} });
+/**
+* When true, this state never expires on the map (J-ABS duration {@code -1}).<br/>
+* Authors use {@code <indefiniteState>} instead of MZ {@code removeByWalking}, which
+* only existed to unlock the {@code stepsToRemove} field in the database editor.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsIndefiniteState", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.IndefiniteState, true);
+} });
+/**
+* Whether J-ABS should run a finite map timer when this state is applied.<br/>
+* True when {@code <stateDuration>} or {@code <stateDurationSec>} is present with a
+* positive value and {@link #jabsIndefiniteState} is false.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsStateHasMapTimer", { get: function() {
+	if (this.jabsIndefiniteState) {
+		return false;
+	}
+	const framesFromTag = RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.StateDuration, true);
+	if (framesFromTag !== null && framesFromTag > 0) {
+		return true;
+	}
+	const secondsFromTag = RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.StateDurationSec, true);
+	if (secondsFromTag !== null && secondsFromTag > 0) {
+		return true;
+	}
+	return false;
+} });
+/**
+* Effective map-state duration in frames for this database row.<br/>
+* Authors use {@code <stateDuration:FRAMES>} or {@code <stateDurationSec:SECONDS>}
+* when {@code stepsToRemove} must exceed the RPG Maker MZ editor cap (9999).
+* When no tag is present, falls back to {@code stepsToRemove} for display/legacy only;
+* {@link #jabsStateHasMapTimer} does not treat {@code stepsToRemove} alone as a timer.
+* @type {number}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsStateDurationFrames", { get: function() {
+	const framesFromTag = RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.StateDuration, true);
+	if (framesFromTag !== null && framesFromTag > 0) {
+		return framesFromTag;
+	}
+	const secondsFromTag = RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.StateDurationSec, true);
+	if (secondsFromTag !== null && secondsFromTag > 0) {
+		return secondsFromTag * 60;
+	}
+	return this.stepsToRemove;
 } });
 
 //#endregion
@@ -20367,14 +22012,19 @@ Game_Action.prototype.itemHit = function() {
 /**
 * Extends {@link #makeDamageValue}.<br/>
 * Includes consideration of guard effects of the target.
+* Also applies state damage multipliers and cast-time direct damage bonuses before guard,
+* then skill history bonuses from both thisSkillHistoryBonus and skillHistoryBonus tags.
 */
 J.ABS.Aliased.Game_Action.set("makeDamageValue", Game_Action.prototype.makeDamageValue);
 Game_Action.prototype.makeDamageValue = function(target, critical) {
 	let base = J.ABS.Aliased.Game_Action.get("makeDamageValue").call(this, target, critical);
+	base = this.applyStateDamageMultipliers(base, target);
+	base = this.applyCastTimeDamageBonus(base);
 	if (this.canHandleGuardEffects(target)) {
 		const guardingJabsBattler = JABS_AiManager.getBattlerByUuid(target.getUuid());
 		base = this.handleGuardEffects(base, guardingJabsBattler);
 	}
+	base = this.applySkillHistoryBonus(base);
 	return base;
 };
 /**
@@ -20630,6 +22280,201 @@ Game_Action.prototype.shouldTargetApplyResistances = function() {
 Game_Action.prototype.applyStateEffect = function(target, stateId) {
 	target.addState(stateId, this.subject());
 	this.makeSuccess(target);
+};
+/**
+* Applies damage multipliers derived from the current states of the target.
+* Combines perDebuffBuff (per-negative-state bonus) and bonusDamageIfState (specific-state bonus).
+* Applied before guard effects so flat guard reduction cannot fully cancel the state-exploitation bonus.
+* @param {number} baseDamage The damage value before state multipliers.
+* @param {Game_Battler} target The target whose states are evaluated.
+* @returns {number} The damage value after state multipliers have been applied.
+*/
+Game_Action.prototype.applyStateDamageMultipliers = function(baseDamage, target) {
+	if (baseDamage <= 0) return baseDamage;
+	const debuffPct = this.calculatePerDebuffBonusPct(target);
+	const specificPct = this.calculateBonusIfStatePct(target);
+	const combinedPct = debuffPct + specificPct;
+	if (combinedPct === 0) return baseDamage;
+	return Math.round(baseDamage * (1 + combinedPct / 100));
+};
+/**
+* Calculates the total damage bonus percent from perDebuffBuff tags on the caster's notes.
+* Counts every active state on the target that is tagged with jabsNegative and multiplies
+* the summed N value by that count.
+* @param {Game_Battler} target The target whose negative states are counted.
+* @returns {number} The total bonus percent from this tag type.
+*/
+Game_Action.prototype.calculatePerDebuffBonusPct = function(target) {
+	const totalN = RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.PerDebuffBuff) ?? 0;
+	if (totalN === 0) return 0;
+	const debuffCount = target.states().filter((s) => s.jabsNegative).length;
+	return totalN * debuffCount;
+};
+/**
+* Calculates the total damage bonus percent from bonusDamageIfState tags on the caster's notes.
+* Each tag contributes its PCT value if the target currently has the specified state active.
+* Multiple tags for different state ids each fire independently and stack additively.
+* @param {Game_Battler} target The target whose active states are checked.
+* @returns {number} The total bonus percent from all matching state tags.
+*/
+Game_Action.prototype.calculateBonusIfStatePct = function(target) {
+	const allPairs = this.subject().getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.BonusDamageIfState));
+	if (!allPairs.length) return 0;
+	let totalPct = 0;
+	allPairs.forEach(([stateId, percent]) => {
+		if (target.isStateAffected(stateId)) {
+			totalPct += percent;
+		}
+	});
+	return totalPct;
+};
+/**
+* Applies any skill history bonuses to the given base damage amount.
+* Reads from two sources: thisSkillHistoryBonus on this.item() (skill-specific)
+* and skillHistoryBonus from getAllNotes() (passive/equipment/state sources).
+* If neither source yields a bonus the base damage is returned unchanged.
+* @param {number} baseDamage The damage value before history bonuses.
+* @returns {number} The damage value after history bonuses have been applied.
+*/
+Game_Action.prototype.applySkillHistoryBonus = function(baseDamage) {
+	if (baseDamage <= 0) return baseDamage;
+	const uuid = this.subject().getUuid();
+	if (!uuid) return baseDamage;
+	const thisPct = this.calculateThisSkillHistoryBonusPct(uuid);
+	const generalPct = this.calculateGeneralSkillHistoryBonusPct(uuid);
+	const combinedPct = thisPct + generalPct;
+	if (combinedPct === 0) return baseDamage;
+	const multiplier = 1 + combinedPct / 100;
+	return Math.round(baseDamage * multiplier);
+};
+/**
+* Calculates the total bonus percent from the thisSkillHistoryBonus tag on this action's item.
+* Only fires when this specific skill is the action being resolved.
+* History scope is limited to this skill's own id.
+* @param {string} uuid The caster's uuid for log queries.
+* @returns {number} The total bonus percent contribution from this tag.
+*/
+Game_Action.prototype.calculateThisSkillHistoryBonusPct = function(uuid) {
+	const item = this.item();
+	const rawTag = RPGManager.getStringFromNoteByRegex(item, J.ABS.RegExp.ThisSkillHistoryBonus, true);
+	if (!rawTag) return 0;
+	const parsed = this.parseSkillHistoryBracket(rawTag);
+	if (!parsed) return 0;
+	const { window, pct, countMode } = parsed;
+	const count = $jabsEngine.querySkillExecutionLog(uuid, item.id, 0, window, countMode);
+	return pct * count;
+};
+/**
+* Calculates the total bonus percent from all skillHistoryBonus tags on the subject's notes.
+* Reads from getAllNotes() and sums contributions from every matching tag.
+* @param {string} uuid The caster's uuid for log queries.
+* @returns {number} The summed bonus percent from all passive sources.
+*/
+Game_Action.prototype.calculateGeneralSkillHistoryBonusPct = function(uuid) {
+	let totalPct = 0;
+	const allCaptures = RPGManager.getAllCapturesFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.SkillHistoryBonus);
+	if (!allCaptures.length) return 0;
+	allCaptures.forEach((captureGroup) => {
+		const [rawTag] = captureGroup;
+		const parsed = this.parseGeneralSkillHistoryBracket(rawTag);
+		if (!parsed) return;
+		const { typeId, window, pct, countMode } = parsed;
+		const count = $jabsEngine.querySkillExecutionLog(uuid, 0, typeId, window, countMode);
+		totalPct += pct * count;
+	});
+	return totalPct;
+};
+/**
+* Parses the bracket string from a thisSkillHistoryBonus tag into its component values.
+* Expected format: [WINDOW, PCT, COUNT_MODE]
+* @param {string} bracket The captured bracket string, e.g. "[3, 8, streak]".
+* @returns {{window:number, pct:number, countMode:string}|null} Parsed values, or null if malformed.
+*/
+Game_Action.prototype.parseSkillHistoryBracket = function(bracket) {
+	const parts = bracket.replace(/[[\]]/g, "").split(",").map((p) => p.trim());
+	if (parts.length !== 3) return null;
+	const window = Number(parts[0]);
+	const pct = Number(parts[1]);
+	const countMode = parts[2].toLowerCase();
+	return {
+		window,
+		pct,
+		countMode
+	};
+};
+/**
+* Parses the bracket string from a skillHistoryBonus tag into its component values.
+* Expected format: [TYPE_ID, WINDOW, PCT, COUNT_MODE]
+* @param {string} bracket The captured bracket string, e.g. "[7, 5, 5, streak]".
+* @returns {{typeId:number, window:number, pct:number, countMode:string}|null} Parsed values, or null if malformed.
+*/
+Game_Action.prototype.parseGeneralSkillHistoryBracket = function(bracket) {
+	const parts = bracket.replace(/[[\]]/g, "").split(",").map((p) => p.trim());
+	if (parts.length !== 4) return null;
+	const typeId = Number(parts[0]);
+	const window = Number(parts[1]);
+	const pct = Number(parts[2]);
+	const countMode = parts[3].toLowerCase();
+	return {
+		typeId,
+		window,
+		pct,
+		countMode
+	};
+};
+/**
+* Stores the resolved cast duration in frames on this action payload.
+* Stamped once when the parent JABS action is created; shared by volley spokes
+* and every hit tick from the same skill execution.
+* @param {number} frames The cast duration in frames (0 when the skill is instant).
+*/
+Game_Action.prototype.setResolvedCastTimeFrames = function(frames) {
+	this._resolvedCastTimeFrames = Math.max(0, Math.round(frames));
+};
+/**
+* Returns the resolved cast duration stamped on this action payload.
+* @returns {number} Cast frames, or 0 when unstamped or instant.
+*/
+Game_Action.prototype.getResolvedCastTimeFrames = function() {
+	if (this._resolvedCastTimeFrames === undefined) return 0;
+	return this._resolvedCastTimeFrames;
+};
+/**
+* Applies direct damage scaling from cast-time bonus tags on the caster and skill.
+* Uses the stamped resolved cast duration; does not affect healing, recovery, or slip DoT.
+* @param {number} baseDamage The damage value before cast-time scaling.
+* @returns {number} The damage value after cast-time scaling has been applied.
+*/
+Game_Action.prototype.applyCastTimeDamageBonus = function(baseDamage) {
+	if (baseDamage <= 0) return baseDamage;
+	if (!this.isSkill()) return baseDamage;
+	const damageType = this.item().damage.type;
+	if (damageType !== 1 && damageType !== 2) return baseDamage;
+	const castFrames = this.getResolvedCastTimeFrames();
+	if (castFrames <= 0) return baseDamage;
+	const thisPctPerSec = this.calculateThisCastTimeDamageBonusPctPerSec();
+	const generalPctPerSec = this.calculateGeneralCastTimeDamageBonusPctPerSec();
+	const combinedPctPerSec = thisPctPerSec + generalPctPerSec;
+	if (combinedPctPerSec === 0) return baseDamage;
+	const castSeconds = castFrames / 60;
+	const totalBonusPct = combinedPctPerSec * castSeconds;
+	const multiplier = 1 + totalBonusPct / 100;
+	return Math.round(baseDamage * multiplier);
+};
+/**
+* Calculates the percent-per-second bonus from thisCastTimeDamageBonus on this skill only.
+* @returns {number} The summed percent-per-second rate from the skill note.
+*/
+Game_Action.prototype.calculateThisCastTimeDamageBonusPctPerSec = function() {
+	const item = this.item();
+	return RPGManager.getSumFromAllNotesByRegex([item], J.ABS.RegExp.ThisCastTimeDamageBonus) ?? 0;
+};
+/**
+* Calculates the percent-per-second bonus from castTimeDamageBonus on all note sources.
+* @returns {number} The summed percent-per-second rate from passive/equipment/state sources.
+*/
+Game_Action.prototype.calculateGeneralCastTimeDamageBonusPctPerSec = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.CastTimeDamageBonus) ?? 0;
 };
 
 //#endregion
@@ -21221,6 +23066,13 @@ Game_Actor.prototype.showHpBar = function() {
 	return true;
 };
 /**
+* Actors always show their map affliction strip when states are active.
+* @returns {boolean}
+*/
+Game_Actor.prototype.showStates = function() {
+	return true;
+};
+/**
 * Gets whether or not the actor's name will show below their character.
 * Actors never show their name.
 * @returns {boolean}
@@ -21711,6 +23563,13 @@ Game_Battler.prototype.showHpBar = function() {
 	return true;
 };
 /**
+* All battlers show their map affliction strip by default.
+* @returns {boolean}
+*/
+Game_Battler.prototype.showStates = function() {
+	return true;
+};
+/**
 * All battlers will show their danger indicator by default.
 * @returns {boolean}
 */
@@ -21993,12 +23852,10 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker) {
 		assailant = this;
 	}
 	const state = assailant.state(stateId);
-	const { removeByWalking, stepsToRemove: baseDuration, iconIndex } = state;
-	let totalDuration = baseDuration;
-	if (removeByWalking) {
-		totalDuration += assailant.getStateDurationBoost(baseDuration);
-	} else {
-		totalDuration = -1;
+	const { iconIndex, jabsStateHasMapTimer: hasMapTimer, jabsStateDurationFrames: baseDuration } = state;
+	let totalDuration = -1;
+	if (hasMapTimer) {
+		totalDuration = baseDuration + assailant.getStateDurationBoost(baseDuration);
 	}
 	const stacks = state.jabsStateStacksApplied;
 	const builder = this.createJabsState(this, stateId, iconIndex, totalDuration, stacks, assailant);
@@ -22185,7 +24042,7 @@ Game_Battler.prototype.resolveEquippedSkillId = function(baseSkillId) {
 * @returns {number} The resolved skill id, or 0 when the slot is empty or does not exist.
 */
 Game_Battler.prototype.getResolvedSkillId = function(slot) {
-	if (slot === JABS_Button.Tool) {
+	if (slot === JABS_Button.Tool || slot === JABS_Button.UsableItem) {
 		return this.getEquippedSkillId(slot);
 	}
 	const baseSkillId = this.getEquippedSkillId(slot);
@@ -22926,6 +24783,7 @@ Game_Enemy.prototype.canIdle = function() {
 	if (canIdle !== null) return canIdle;
 	const cannotIdle = referenceData.jabsConfigNoIdle;
 	if (cannotIdle !== null) return !cannotIdle;
+	if (this.isInanimate()) return false;
 	return J.ABS.Metadata.DefaultEnemyCanIdle;
 };
 /**
@@ -22939,7 +24797,25 @@ Game_Enemy.prototype.showHpBar = function() {
 	if (showHpBar !== null) return showHpBar;
 	const noHpBar = referenceData.jabsConfigNoHpBar;
 	if (noHpBar !== null) return !noHpBar;
+	if (this.isInanimate()) return false;
 	return J.ABS.Metadata.DefaultEnemyShowHpBar;
+};
+/**
+* Gets whether or not an enemy shows the map affliction strip from their notes.
+* This will be overwritten by values provided from an event.
+* @returns {boolean}
+*/
+Game_Enemy.prototype.showStates = function() {
+	const referenceData = this.databaseData();
+	const showStates = referenceData.jabsConfigShowStates;
+	if (showStates !== null) {
+		return showStates;
+	}
+	const hideStates = referenceData.jabsConfigHideStates;
+	if (hideStates !== null) {
+		return !hideStates;
+	}
+	return true;
 };
 /**
 * Gets whether or not an enemy has a visible battler name from their notes.
@@ -22952,6 +24828,7 @@ Game_Enemy.prototype.showBattlerName = function() {
 	if (showName !== null) return showName;
 	const noName = referenceData.jabsConfigNoName;
 	if (noName !== null) return !noName;
+	if (this.isInanimate()) return false;
 	return J.ABS.Metadata.DefaultEnemyShowBattlerName;
 };
 /**
@@ -23163,16 +25040,17 @@ Game_Event.prototype.parseEnemyComments = function() {
 	const guardRange = this.getGuardRangeOverrides() ?? enemyBattler.guardRange();
 	let canIdle = this.getCanIdleOverrides() ?? enemyBattler.canIdle();
 	let showHpBar = this.getShowHpBarOverrides() ?? enemyBattler.showHpBar();
+	const showStates = this.getShowStatesOverrides() ?? enemyBattler.showStates();
 	let showBattlerName = this.getShowBattlerNameOverrides() ?? enemyBattler.showBattlerName();
 	const isInvincible = this.getInvincibleOverrides() ?? enemyBattler.isInvincible();
 	const isInanimate = this.getInanimateOverrides() ?? enemyBattler.isInanimate();
 	if (isInanimate) {
 		teamId = JABS_Battler.neutralTeamId();
-		canIdle = false;
-		showHpBar = false;
-		showBattlerName = false;
+		if (this.getCanIdleOverrides() === null) canIdle = false;
+		if (this.getShowHpBarOverrides() === null) showHpBar = false;
+		if (this.getShowBattlerNameOverrides() === null) showBattlerName = false;
 	}
-	const battlerCoreData = JABS_BattlerCoreData.Builder().setBattlerId(battlerId).setBattlerAi(ai).setBattlerRole(battlerRole).setTeamId(teamId).setSightRange(sightRange).setAlertedSightBoost(alertedSightBoost).setPursuitRange(pursuitRange).setAlertedPursuitBoost(alertedPursuitBoost).setAlertDuration(alertDuration).setGuardRange(guardRange).setCanIdle(canIdle).setShowHpBar(showHpBar).setShowBattlerName(showBattlerName).setIsInvincible(isInvincible).setIsInanimate(isInanimate).build();
+	const battlerCoreData = JABS_BattlerCoreData.Builder().setBattlerId(battlerId).setBattlerAi(ai).setBattlerRole(battlerRole).setTeamId(teamId).setSightRange(sightRange).setAlertedSightBoost(alertedSightBoost).setPursuitRange(pursuitRange).setAlertedPursuitBoost(alertedPursuitBoost).setAlertDuration(alertDuration).setGuardRange(guardRange).setCanIdle(canIdle).setShowHpBar(showHpBar).setShowStates(showStates).setShowBattlerName(showBattlerName).setIsInvincible(isInvincible).setIsInanimate(isInanimate).build();
 	this.initializeCoreData(battlerCoreData);
 };
 /**
@@ -23379,6 +25257,23 @@ Game_Event.prototype.getShowHpBarOverrides = function() {
 		}
 	});
 	return showHpBar;
+};
+/**
+* Parses out the override for whether or not this battler can show its affliction strip.
+* @returns {boolean|null} True if we force-allow showing, false if we force-disallow, null if no overrides.
+*/
+Game_Event.prototype.getShowStatesOverrides = function() {
+	let showStates = null;
+	this.getValidCommentCommands().forEach((command) => {
+		const [comment] = command.parameters;
+		if (J.ABS.RegExp.ConfigHideStates.test(comment)) {
+			showStates = false;
+		}
+		if (J.ABS.RegExp.ConfigShowStates.test(comment)) {
+			showStates = true;
+		}
+	});
+	return showStates;
 };
 /**
 * Parses out the override for whether or not this battler is inanimate.
@@ -24500,7 +26395,7 @@ var Window_AbsMenuSelect = class Window_AbsMenuSelect extends Window_Command {
 			const toolCommand = new WindowCommandBuilder(name).setSymbol("tool").setExtensionData(id).setIconIndex(iconIndex).setHelpText(description).setRightText(`x${amount}`).setTextLines(description.split(/[\r\n]+/)).build();
 			commands.push(toolCommand);
 		};
-		const tools = $gameParty.allItems().filter(JABS_Battler.isItemVisibleInToolMenu);
+		const tools = $gameParty.allItems().filter((item) => this.isItemVisibleInToolMenu(item));
 		tools.forEach(forEacher, this);
 		commands.forEach(this.addBuiltCommand, this);
 	}
@@ -24621,6 +26516,22 @@ var Window_AbsMenuSelect = class Window_AbsMenuSelect extends Window_Command {
 		const command = new WindowCommandBuilder(name).setSymbol("slot").setExtensionData(offhandSkillSlot.key).setIconIndex(iconIndex).build();
 		this.addBuiltCommand(command);
 	}
+};
+/**
+* Determines whether or not an item should be visible
+* in the JABS tool assignment menu.
+*
+* Other plugins may alias this method to add additional conditions.
+* @param {RPG_Item} item The item to evaluate.
+* @returns {boolean} True if the item belongs in the tool list; false otherwise.
+*/
+Window_AbsMenuSelect.prototype.isItemVisibleInToolMenu = function(item) {
+	if (!item) return false;
+	if (item.jabsHiddenFromMenus) return false;
+	const isItem = DataManager.isItem(item) && item.itypeId === 1;
+	const isUsable = isItem && item.occasion === 0;
+	if (!isItem || !isUsable) return false;
+	return true;
 };
 
 //#endregion
@@ -26001,6 +27912,249 @@ var Sprite_MapHpGauge = class extends Sprite_MapGauge {
 };
 
 //#endregion
+//#region src/plugins/abs/core/sprites/Sprite_MapAfflictionSlot.js
+/**
+* One compact affliction slot for the map strip.
+*/
+var Sprite_MapAfflictionSlot = class extends Sprite {
+	/**
+	* The view model bound to this slot.
+	* @type {StateAfflictionViewModel|null}
+	*/
+	viewModel = null;
+	/**
+	* The icon child sprite.
+	* @type {Sprite_Icon}
+	*/
+	#iconSprite = null;
+	/**
+	* The gauge child sprite.
+	* @type {Sprite}
+	*/
+	#gaugeSprite = null;
+	/**
+	* The gauge bitmap width.
+	* @type {number}
+	*/
+	#gaugeWidth = 0;
+	/**
+	* The gauge bitmap height.
+	* @type {number}
+	*/
+	#gaugeHeight = 0;
+	/**
+	* Constructor.
+	*/
+	constructor() {
+		super();
+		this.#iconSprite = new Sprite_Icon(0);
+		this.#gaugeSprite = new Sprite();
+		this.addChild(this.#iconSprite);
+		this.addChild(this.#gaugeSprite);
+	}
+	/**
+	* Binds a view model and layout config to this slot.
+	* @param {StateAfflictionViewModel} viewModel The row to display.
+	* @param {StateAfflictionMapLayoutConfig} layoutConfig The map layout config.
+	*/
+	setup(viewModel, layoutConfig) {
+		this.viewModel = viewModel;
+		this.#gaugeWidth = layoutConfig.slotPitch - 2;
+		this.#gaugeHeight = layoutConfig.gaugeHeight;
+		const iconWidth = layoutConfig.iconWidth();
+		const iconHeight = layoutConfig.iconHeight();
+		this.#iconSprite.setIconWidth(ImageManager.iconWidth);
+		this.#iconSprite.setIconHeight(ImageManager.iconHeight);
+		this.#iconSprite.setIconIndex(viewModel.iconIndex);
+		this.#iconSprite.scale.x = layoutConfig.iconScale;
+		this.#iconSprite.scale.y = layoutConfig.iconScale;
+		this.#iconSprite.move(0, 0);
+		const gaugeX = Math.floor((iconWidth - this.#gaugeWidth) / 2);
+		const gaugeY = iconHeight + 1;
+		this.#gaugeSprite.bitmap = new Bitmap(this.#gaugeWidth, this.#gaugeHeight);
+		this.#gaugeSprite.move(gaugeX, gaugeY);
+		this.refreshGauge();
+	}
+	/**
+	* Places the slot origin within the strip.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	*/
+	placeAt(x, y) {
+		this.move(x, y);
+	}
+	/**
+	* Redraws the gauge fill from the bound view model.
+	*/
+	refreshGauge() {
+		if (!this.viewModel || !this.#gaugeSprite.bitmap) {
+			return;
+		}
+		const { bitmap } = this.#gaugeSprite;
+		const trackColor = "#222222";
+		bitmap.clear();
+		bitmap.fillRect(0, 0, this.#gaugeWidth, this.#gaugeHeight, trackColor);
+		if (this.viewModel.fillRatio === null) {
+			bitmap.strokeRect(0, 0, this.#gaugeWidth, this.#gaugeHeight, "#666666");
+			return;
+		}
+		const fillColor = this.viewModel.polarity === "negative" ? "#cc4466" : "#44aa66";
+		const fillWidth = Math.floor(this.#gaugeWidth * this.viewModel.fillRatio);
+		if (fillWidth > 0) {
+			bitmap.fillRect(0, 0, fillWidth, this.#gaugeHeight, fillColor);
+		}
+		this.refreshStackTicks();
+	}
+	/**
+	* Draws stack tick marks across the gauge.
+	*/
+	refreshStackTicks() {
+		if (!this.viewModel || !this.#gaugeSprite.bitmap) {
+			return;
+		}
+		if (this.viewModel.stackCount <= 1) {
+			return;
+		}
+		const { bitmap } = this.#gaugeSprite;
+		const segmentCount = Math.min(this.viewModel.stackCount, 6);
+		const segmentWidth = this.#gaugeWidth / segmentCount;
+		for (let index = 1; index < segmentCount; index++) {
+			const x = Math.floor(segmentWidth * index);
+			bitmap.fillRect(x, 0, 1, this.#gaugeHeight, "#ffffff");
+		}
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/sprites/Sprite_MapAfflictionStrip.js
+/**
+* Dual-row affliction icons and gauges below a map battler hp gauge.
+*/
+var Sprite_MapAfflictionStrip = class extends Sprite {
+	/**
+	* The battler this strip tracks.
+	* @type {Game_Battler|null}
+	*/
+	#battler = null;
+	/**
+	* Negative-row slot sprites.
+	* @type {Sprite_MapAfflictionSlot[]}
+	*/
+	#negativeSlots = [];
+	/**
+	* Positive-row slot sprites.
+	* @type {Sprite_MapAfflictionSlot[]}
+	*/
+	#positiveSlots = [];
+	/**
+	* The active layout config.
+	* @type {StateAfflictionMapLayoutConfig|null}
+	*/
+	#layoutConfig = null;
+	/**
+	* Binds this strip to a battler.
+	* @param {Game_Battler} battler The afflicted battler.
+	*/
+	setupBattler(battler) {
+		this.#battler = battler;
+		this.#layoutConfig = StateAfflictionMapLayoutConfig.fromMetadata();
+	}
+	/**
+	* Refreshes slot data from the provider and lays out visible rows.
+	*/
+	updateStrip() {
+		if (!this.#battler) {
+			this.hide();
+			return;
+		}
+		const collection = StateAfflictionProvider.collectForBattler(this.#battler);
+		if (collection.isEmpty() === true) {
+			this.hideAllSlots(this.#negativeSlots);
+			this.hideAllSlots(this.#positiveSlots);
+			this.hide();
+			return;
+		}
+		const maxSlots = this.resolveMaxSlots();
+		const negativeRows = collection.negative.slice(0, maxSlots);
+		const positiveRows = collection.positive.slice(0, maxSlots);
+		const hasNegative = negativeRows.length > 0;
+		const hasPositive = positiveRows.length > 0;
+		const rowPitch = this.#layoutConfig.rowPitchY();
+		const negativeY = 0;
+		const positiveY = hasNegative === true ? rowPitch : 0;
+		if (hasNegative === true) {
+			this.layoutRow(negativeRows, this.#negativeSlots, negativeY);
+		} else {
+			this.hideAllSlots(this.#negativeSlots);
+		}
+		if (hasPositive === true) {
+			this.layoutRow(positiveRows, this.#positiveSlots, positiveY);
+		} else {
+			this.hideAllSlots(this.#positiveSlots);
+		}
+		this.show();
+	}
+	/**
+	* Ensures the slot pool matches the requested visible count.
+	* @param {Sprite_MapAfflictionSlot[]} pool The row slot pool.
+	* @param {number} visibleCount The number of visible slots required.
+	*/
+	reconcileSlots(pool, visibleCount) {
+		while (pool.length < visibleCount) {
+			const slot = new Sprite_MapAfflictionSlot();
+			pool.push(slot);
+			this.addChild(slot);
+		}
+		for (let index = 0; index < pool.length; index++) {
+			const slot = pool[index];
+			if (index < visibleCount) {
+				slot.show();
+			} else {
+				slot.hide();
+			}
+		}
+	}
+	/**
+	* Binds view models and positions each visible slot left-to-right.
+	* @param {StateAfflictionViewModel[]} rows The active affliction rows.
+	* @param {Sprite_MapAfflictionSlot[]} pool The row slot pool.
+	* @param {number} rowY The y coordinate for this row.
+	*/
+	layoutRow(rows, pool, rowY) {
+		const layoutConfig = this.#layoutConfig;
+		let cursorX = 0;
+		this.reconcileSlots(pool, rows.length);
+		for (let index = 0; index < rows.length; index++) {
+			const row = rows[index];
+			const slot = pool[index];
+			slot.setup(row, layoutConfig);
+			slot.placeAt(cursorX, rowY);
+			cursorX += layoutConfig.slotPitch;
+		}
+	}
+	/**
+	* Resolves a safe per-row slot cap even when metadata parsing produced a bad number.
+	* @returns {number}
+	*/
+	resolveMaxSlots() {
+		const { maxSlots } = this.#layoutConfig;
+		if (Number.isFinite(maxSlots) === false || maxSlots < 1) {
+			return 8;
+		}
+		return maxSlots;
+	}
+	/**
+	* Hides every slot in a row pool.
+	* @param {Sprite_MapAfflictionSlot[]} pool The row slot pool.
+	*/
+	hideAllSlots(pool) {
+		for (const slot of pool) {
+			slot.hide();
+		}
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/core/sprites/Sprite_Character.js
 /**
 * Hooks into `Sprite_Character.initMembers` and adds our initiation for damage sprites.
@@ -26103,6 +28257,11 @@ Sprite_Character.prototype.initGaugeMembers = function() {
 	* The cast gauge for this sprite.
 	*/
 	this._j._abs._gauges._castGauge = null;
+	/**
+	* The affliction strip for this sprite.
+	* @type {Sprite_MapAfflictionStrip|null}
+	*/
+	this._j._abs._gauges._afflictionStrip = null;
 };
 /**
 * Hooks into the `Sprite_Character.update` and adds our ABS updates.
@@ -26235,6 +28394,7 @@ Sprite_Character.prototype.setupMapSprite = function() {
 	this.setupHpGauge();
 	this.setupCastGauge();
 	this.setupBattlerName();
+	this.setupAfflictionStrip();
 	this.finalizeJabsBattlerSetup();
 };
 /**
@@ -26497,6 +28657,91 @@ Sprite_Character.prototype.updateGauges = function() {
 	} else {
 		this.hideCastGauge();
 	}
+	if (this.canUpdateAfflictionStrip() === true) {
+		this.updateAfflictionStrip();
+	} else {
+		this.hideAfflictionStrip();
+	}
+};
+/**
+* Sets up the affliction strip beneath the hp gauge when applicable.
+*/
+Sprite_Character.prototype.setupAfflictionStrip = function() {
+	if (!this._j._abs._gauges._afflictionStrip) {
+		const strip = new Sprite_MapAfflictionStrip();
+		this._j._abs._gauges._afflictionStrip = strip;
+		this.addChild(strip);
+	}
+	this._j._abs._gauges._afflictionStrip.setupBattler(this.getBattler());
+	this.repositionAfflictionStrip();
+};
+/**
+* Updates the affliction strip for this battler.
+*/
+Sprite_Character.prototype.updateAfflictionStrip = function() {
+	const { _afflictionStrip: strip } = this._j._abs._gauges;
+	strip.updateStrip();
+	this.repositionAfflictionStrip();
+};
+/**
+* Repositions the affliction strip below the hp gauge, left-aligned to the hp bar.
+*/
+Sprite_Character.prototype.repositionAfflictionStrip = function() {
+	const { _afflictionStrip: strip, _hpGauge: hpGauge } = this._j._abs._gauges;
+	if (!strip) {
+		return;
+	}
+	let x = 0;
+	if (hpGauge) {
+		x = hpGauge.x;
+	}
+	const y = this.mapAfflictionStripY();
+	strip.move(x, y);
+};
+/**
+* Resolves the y coordinate for the affliction strip beneath the hp gauge.
+* @returns {number}
+*/
+Sprite_Character.prototype.mapAfflictionStripY = function() {
+	const layoutConfig = StateAfflictionMapLayoutConfig.fromMetadata();
+	const { gapBelowHpBar } = layoutConfig;
+	const hpGauge = this._j._abs._gauges._hpGauge;
+	if (this.canUpdateHpGauge() === true && hpGauge) {
+		return hpGauge.y + hpGauge.bitmapHeight() + gapBelowHpBar;
+	}
+	return gapBelowHpBar;
+};
+/**
+* Whether the affliction strip can update for this sprite.
+* @returns {boolean}
+*/
+Sprite_Character.prototype.canUpdateAfflictionStrip = function() {
+	if (this.canUpdate() === false) {
+		return false;
+	}
+	if (this.isJabsBattler() === false) {
+		return false;
+	}
+	if (!this._j._abs._gauges._afflictionStrip) {
+		return false;
+	}
+	const jabsBattler = this._character.getJabsBattler();
+	if (!jabsBattler) {
+		return false;
+	}
+	if (jabsBattler.showStates() === false) {
+		return false;
+	}
+	return true;
+};
+/**
+* Hides the affliction strip when it cannot update.
+*/
+Sprite_Character.prototype.hideAfflictionStrip = function() {
+	if (!this._j._abs._gauges._afflictionStrip) {
+		return;
+	}
+	this._j._abs._gauges._afflictionStrip.hide();
 };
 /**
 * Determines whether or not we can update the hp gauge.

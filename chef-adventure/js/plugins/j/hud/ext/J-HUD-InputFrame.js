@@ -287,7 +287,7 @@ var Sprite_CooldownGauge = class extends Sprite {
 		this._j._gcdMergeSkillId = 0;
 		if (!jabsBattler || !skillSlot) return;
 		const { key } = skillSlot;
-		if (key === JABS_Button.Tool || key === JABS_Button.Dodge) return;
+		if (key === JABS_Button.Tool || key === JABS_Button.UsableItem || key === JABS_Button.Dodge) return;
 		if (skillSlot.isItem()) return;
 		this._j._gcdMergeBattler = jabsBattler;
 		this._j._gcdMergeSkillId = skillSlot.id;
@@ -1128,7 +1128,7 @@ var Sprite_InputKeySlot = class extends Sprite {
 	* @returns {Sprite_CooldownTimer}
 	*/
 	getOrCreateInputKeyCooldownTimerSprite(cooldownData, inputType) {
-		const isItem = inputType === JABS_Button.Tool;
+		const isItem = this.hasSkillSlot() && this.skillSlot().isItem();
 		const key = this.makeInputKeyCooldownTimerSpriteKey(cooldownData, inputType, isItem);
 		if (this._j._spriteCache.has(key)) {
 			return this._j._spriteCache.get(key);
@@ -1758,6 +1758,7 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 			this.drawDiamond(Window_InputFrame.Modes.Skills, alphaSkills);
 		}
 		this.contents.paintOpacity = 255;
+		this.drawUsableItemSlot();
 		this.drawModeLabels(alphaBase, alphaSkills);
 		this.acknowledgeInternalRefresh();
 	}
@@ -2015,6 +2016,79 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 		this.contents.outlineColor = originalOutlineC;
 	}
 	/**
+	* Draws the usable-item slot to the right of the diamond's rightmost node.
+	* Uses the same coordinate geometry as {@link drawDiamond} to stay in sync.
+	* The panel is always visible; an empty slot shows a placeholder icon and label.
+	*/
+	drawUsableItemSlot() {
+		const ikw = this.inputKeyWidth();
+		const ikh = this.inputKeyHeight();
+		const desiredGap = Window_InputFrame.DiamondGap;
+		const cx = Math.floor(this.width / 2) + 4;
+		const cy = Math.floor(this.height / 2) - 10;
+		const halfIkw = Math.floor(ikw / 2);
+		const halfIkh = Math.floor(ikh / 2);
+		const rightCenterX = cx + (ikw + desiredGap);
+		const usableItemX = rightCenterX + halfIkw + desiredGap;
+		const sideY = cy - halfIkh - 20;
+		const panelWidth = ikw - 10;
+		const panelHeight = ikh;
+		const panelX = usableItemX - 10;
+		const panelY = sideY + 20;
+		this.drawHudPanelFancy(panelX, panelY, panelWidth, panelHeight, {
+			tint: null,
+			tintAlpha: 0
+		});
+		const leader = $gameParty.leader();
+		if (!leader) {
+			this.drawEmptyUsableItemSlotContent(panelX, panelY, panelWidth, panelHeight);
+			return;
+		}
+		const skillSlot = leader.getUsableItemSkillSlot();
+		if (!skillSlot) {
+			this.drawEmptyUsableItemSlotContent(panelX, panelY, panelWidth, panelHeight);
+			return;
+		}
+		const sprite = this.getOrCreateInputKeySlotSprite(skillSlot, JABS_Button.UsableItem);
+		if (skillSlot.isEmpty()) {
+			sprite.hide();
+			this.drawEmptyUsableItemSlotContent(panelX, panelY, panelWidth, panelHeight);
+			return;
+		}
+		this.drawInputKeySlotSprite(skillSlot, JABS_Button.UsableItem, usableItemX, sideY, 255, true);
+	}
+	/**
+	* Draws placeholder contents inside an empty usable-item slot panel.
+	* @param {number} panelX The panel left edge in contents space.
+	* @param {number} panelY The panel top edge in contents space.
+	* @param {number} panelWidth The panel width.
+	* @param {number} panelHeight The panel height.
+	*/
+	drawEmptyUsableItemSlotContent(panelX, panelY, panelWidth, panelHeight) {
+		const iconW = ImageManager.iconWidth;
+		const iconH = ImageManager.iconHeight;
+		const labelReserve = 18;
+		const iconX = panelX + Math.floor((panelWidth - iconW) / 2);
+		const iconY = panelY + Math.max(0, Math.floor((panelHeight - labelReserve - iconH) / 2));
+		this.drawIcon(0, iconX, iconY);
+		const originalSize = this.contents.fontSize;
+		const originalOutlineW = this.contents.outlineWidth;
+		const originalOutlineC = this.contents.outlineColor;
+		this.setFontSize(originalSize - 10);
+		this.contents.outlineWidth = 4;
+		this.contents.outlineColor = "rgba(0, 0, 0, 0.85)";
+		this.changeTextColor(ColorManager.dimColor1());
+		const text = "Item";
+		const tw = this.textSizeEx(text).width;
+		const labelX = panelX + Math.floor((panelWidth - tw) / 2) - 5;
+		const labelY = panelY + panelHeight - labelReserve - 16;
+		this.drawText(text, labelX, labelY, tw, "left");
+		this.resetTextColor();
+		this.setFontSize(originalSize);
+		this.contents.outlineWidth = originalOutlineW;
+		this.contents.outlineColor = originalOutlineC;
+	}
+	/**
 	* Draws a single input key of the input frame.
 	* @param {string} inputType The type of input key this is.
 	* @param {number} x The x coordinate.
@@ -2035,10 +2109,11 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	* @param {number} x The x coordinate (CONTENTS space).
 	* @param {number} y The y coordinate (CONTENTS space).
 	* @param {number} opacity The per-pass opacity (0..255) for the slot sprite.
+	* @param {boolean} skipPanel When true, the caller already drew the HUD panel (usable-item slot).
 	*/
-	drawInputKeySlotSprite(skillSlot, inputType, x, y, opacity) {
+	drawInputKeySlotSprite(skillSlot, inputType, x, y, opacity, skipPanel = false) {
 		const sprite = this.getOrCreateInputKeySlotSprite(skillSlot, inputType);
-		if (!skillSlot.isEmpty()) {
+		if (skipPanel === false && !skillSlot.isEmpty()) {
 			const width = this.inputKeyWidth() - 10;
 			const height = this.inputKeyHeight();
 			this.drawHudPanelFancy(x - 10, y + 20, width, height, {
@@ -2106,7 +2181,8 @@ Scene_Map.prototype.inputFrameWindowRect = function() {
 	const labelReserveEachSide = 48;
 	const marginX = 24;
 	const marginY = 24;
-	const width = Math.ceil(diamondBodyWidth + labelReserveEachSide * 2 + marginX);
+	const usableItemSlotReserve = ikw + 16;
+	const width = Math.ceil(diamondBodyWidth + labelReserveEachSide * 2 + marginX + usableItemSlotReserve);
 	const height = Math.ceil(diamondBodyHeight + marginY);
 	const x = Math.floor((Graphics.boxWidth - width) / 2);
 	const y = Graphics.boxHeight - height;

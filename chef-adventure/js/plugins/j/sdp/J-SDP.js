@@ -490,7 +490,7 @@
  */
  
 
-//#region src/plugins/sdp/core/__models/PanelFamily.js
+//#region src/plugins/sdp/core/models/PanelFamily.js
 /**
 * Authoring metadata for a panel family — groups related subgroups for SDP menu browsing.
 * Subgroups are assigned here; panels reference subgroups via {@link PanelMastery#subgroupKey}.
@@ -539,7 +539,7 @@ var PanelFamily = class {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/PanelMastery.js
+//#region src/plugins/sdp/core/models/PanelMastery.js
 /**
 * Subgroup enrollment and optional mastery-skill metadata for a single {@link StatDistributionPanel}.
 * Serialized on each panel row in config.sdp.json as a nested `mastery` object.
@@ -671,7 +671,7 @@ var PanelMastery = class PanelMastery {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/PanelParameter.js
+//#region src/plugins/sdp/core/models/PanelParameter.js
 /**
 * A class that represents a single parameter and its growth for a SDP.
 */
@@ -709,7 +709,7 @@ var PanelParameter = class {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/PanelRankupReward.js
+//#region src/plugins/sdp/core/models/PanelRankupReward.js
 /**
 * A class that represents a single reward for achieving a particular rank in a panel.
 */
@@ -741,7 +741,7 @@ var PanelRankupReward = class {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/PanelIdentity.js
+//#region src/plugins/sdp/core/models/PanelIdentity.js
 /**
 * Presentation and unlock metadata for a single {@link StatDistributionPanel}.
 * Serialized on each panel row in config.sdp.json as a nested `identity` object.
@@ -839,7 +839,7 @@ var PanelIdentity = class PanelIdentity {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/PanelProgression.js
+//#region src/plugins/sdp/core/models/PanelProgression.js
 /**
 * Rank cap, rarity tier, and rank-up cost offsets for a single {@link StatDistributionPanel}.
 * Serialized on each panel row in config.sdp.json as a nested `progression` object.
@@ -951,7 +951,7 @@ var PanelProgression = class PanelProgression {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/StatDistributionPanelBuilder.js
+//#region src/plugins/sdp/core/models/StatDistributionPanelBuilder.js
 /**
 * A builder for creating {@link StatDistributionPanel}.
 */
@@ -1051,7 +1051,7 @@ var StatDistributionPanelBuilder = class {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/StatDistributionPanel.js
+//#region src/plugins/sdp/core/models/StatDistributionPanel.js
 /**
 * The class that governs the details of a single SDP.
 * Use the {@link StatDistributionPanelBuilder} to fluently build these.
@@ -1277,7 +1277,7 @@ var StatDistributionPanel = class {
 StatDistributionPanel.Builder = () => new StatDistributionPanelBuilder();
 
 //#endregion
-//#region src/plugins/sdp/core/__models/PanelRarity.js
+//#region src/plugins/sdp/core/models/PanelRarity.js
 /**
 * Panel rarity indices (**0–5**) and helpers for SDP UI drawing.
 */
@@ -1434,7 +1434,7 @@ var PanelRarity = class PanelRarity {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/PanelSubgroup.js
+//#region src/plugins/sdp/core/models/PanelSubgroup.js
 /**
 * Authoring metadata for a panel subgroup (mirrors crafting categories).
 * Subgroups group tiered panels whose masteries replace one another.
@@ -1476,7 +1476,7 @@ var PanelSubgroup = class {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/SdpConfiguration.js
+//#region src/plugins/sdp/core/models/SdpConfiguration.js
 /**
 * Top-level SDP configuration model (panels + subgroup + family registries).
 */
@@ -1719,6 +1719,30 @@ var SdpConfiguration = class SdpConfiguration {
 */
 var SdpMasteryManager = class SdpMasteryManager {
 	/**
+	* Reconciles mastery wrapper skills for every subgroup this actor has maxed.
+	* Idempotent — safe when content or plugin wiring changes mid dev save.
+	* @param {Game_Actor} actor The actor whose mastery skills are being reconciled.
+	*/
+	static reconcileAllForActor(actor) {
+		if (!actor) return;
+		const subgroupKeys = new Set();
+		actor.getAllSdpRankings().filter((panelRanking) => panelRanking.isPanelMaxed()).forEach((panelRanking) => {
+			const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
+			if (!panel) return;
+			if (panel.mastery.subgroupKey === String.empty) return;
+			subgroupKeys.add(panel.mastery.subgroupKey);
+		});
+		subgroupKeys.forEach((subgroupKey) => {
+			SdpMasteryManager.reconcileSubgroupMastery(actor, subgroupKey);
+		});
+	}
+	/**
+	* Reconciles mastery wrapper skills for every party member.
+	*/
+	static reconcileAllForParty() {
+		$gameParty.members().forEach((actor) => SdpMasteryManager.reconcileAllForActor(actor));
+	}
+	/**
 	* Reconciles which mastery skill should be active for a subgroup on an actor.
 	* Forgets every lower-tier mastery skill in the subgroup, then learns the winner.
 	* @param {Game_Actor} actor The actor whose mastery skills are being reconciled.
@@ -1766,7 +1790,7 @@ var SdpMasteryManager = class SdpMasteryManager {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/__models/PanelRanking.js
+//#region src/plugins/sdp/core/models/PanelRanking.js
 /**
 * A class for tracking an actor's ranking in a particular panel.
 */
@@ -1915,7 +1939,7 @@ var PanelRanking = class {
 SerializableRegistry.register(PanelRanking);
 
 //#endregion
-//#region src/plugins/sdp/core/__models/PanelTracking.js
+//#region src/plugins/sdp/core/models/PanelTracking.js
 /**
 * A class that represents a single tracking of a panel being unlocked.
 */
@@ -1969,6 +1993,16 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	* @type {string}
 	*/
 	static CONFIG_PATH = "data/config.sdp.json";
+	/**
+	* Minimum Max HP after SDP panel downs (0 MHP bricks the actor).
+	* @type {number}
+	*/
+	static PanelStatFloorMhp = 1;
+	/**
+	* Minimum value for every other stat after SDP panel downs.
+	* @type {number}
+	*/
+	static PanelStatFloorDefault = 0;
 	/**
 	* Classifies the anonymous object from the parsed json into panels and subgroups.
 	* @param {any} parsedJson The parsed json driving this step.
@@ -2118,7 +2152,6 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		const foreacher = (parsedPanel) => {
 			const panelName = parsedPanel.identity?.name ?? parsedPanel.name ?? String.empty;
 			if (panelName.startsWith("__")) return;
-			if (panelName.startsWith("==")) return;
 			if (panelName.startsWith("--")) return;
 			const { panelParameters, panelRewards } = parsedPanel;
 			const parsedPanelParameters = [];
@@ -2324,6 +2357,16 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		* @type {string}
 		*/
 		this.sdpPointsDisplayName = this.parsedPluginParameters["sdpPointsDisplayName"] ?? "SDP";
+		/**
+		* Minimum Max HP after SDP panel downs (0 MHP bricks the actor).
+		* @type {number}
+		*/
+		this.panelStatFloorMhp = J_SdpPluginMetadata.PanelStatFloorMhp;
+		/**
+		* Minimum value for every other stat after SDP panel downs.
+		* @type {number}
+		*/
+		this.panelStatFloorDefault = J_SdpPluginMetadata.PanelStatFloorDefault;
 	}
 	/**
 	* Checks if the BASE plugin meets the minimum version requirement for this plugin.
@@ -2777,14 +2820,28 @@ Game_Actor.prototype.getSdpBonusForNonCoreParam = function(sparamId, baseParam, 
 	return panelModifications;
 };
 /**
+* Combines pre-SDP base with panel delta and enforces stat floors after downs.
+* @param {number} baseParam Pre-SDP base.
+* @param {number} panelModifications Net SDP panel delta.
+* @param {number} minResult Minimum allowed total (MHP uses {@link J.SDP.Metadata#panelStatFloorMhp}).
+* @returns {number}
+*/
+Game_Actor.prototype.applySdpPanelStatFloor = function(baseParam, panelModifications, minResult) {
+	const raw = baseParam + panelModifications;
+	if (raw >= minResult) {
+		return raw;
+	}
+	return minResult;
+};
+/**
 * Extends the base parameters with the SDP bonuses.
 */
 J.SDP.Aliased.Game_Actor.set("param", Game_Actor.prototype.param);
 Game_Actor.prototype.param = function(paramId) {
 	const baseParam = J.SDP.Aliased.Game_Actor.get("param").call(this, paramId);
 	const panelModifications = this.getSdpBonusForCoreParam(paramId, baseParam);
-	const result = baseParam + panelModifications;
-	return result;
+	const minResult = paramId === 0 ? J.SDP.Metadata.panelStatFloorMhp : J.SDP.Metadata.panelStatFloorDefault;
+	return this.applySdpPanelStatFloor(baseParam, panelModifications, minResult);
 };
 /**
 * Extends the ex-parameters with the SDP bonuses.
@@ -2793,8 +2850,7 @@ J.SDP.Aliased.Game_Actor.set("xparam", Game_Actor.prototype.xparam);
 Game_Actor.prototype.xparam = function(xparamId) {
 	const baseParam = J.SDP.Aliased.Game_Actor.get("xparam").call(this, xparamId);
 	const panelModifications = this.getSdpBonusForNonCoreParam(xparamId, baseParam, 8);
-	const result = baseParam + panelModifications;
-	return result;
+	return this.applySdpPanelStatFloor(baseParam, panelModifications, J.SDP.Metadata.panelStatFloorDefault);
 };
 /**
 * Extends the sp-parameters with the SDP bonuses.
@@ -2803,8 +2859,7 @@ J.SDP.Aliased.Game_Actor.set("sparam", Game_Actor.prototype.sparam);
 Game_Actor.prototype.sparam = function(sparamId) {
 	const baseParam = J.SDP.Aliased.Game_Actor.get("sparam").call(this, sparamId);
 	const panelModifications = this.getSdpBonusForNonCoreParam(sparamId, baseParam, 18);
-	const result = baseParam + panelModifications;
-	return result;
+	return this.applySdpPanelStatFloor(baseParam, panelModifications, J.SDP.Metadata.panelStatFloorDefault);
 };
 /**
 * Extends {@link #maxTp}.<br/>
@@ -2815,8 +2870,7 @@ J.SDP.Aliased.Game_Actor.set("maxTp", Game_Actor.prototype.maxTp);
 Game_Actor.prototype.maxTp = function() {
 	const baseMaxTp = J.SDP.Aliased.Game_Actor.get("maxTp").call(this);
 	const bonusMaxTpFromSdp = this.maxTpSdpBonuses(baseMaxTp);
-	const result = bonusMaxTpFromSdp + baseMaxTp;
-	return result;
+	return this.applySdpPanelStatFloor(baseMaxTp, bonusMaxTpFromSdp, J.SDP.Metadata.panelStatFloorDefault);
 };
 /**
 * Calculates the bonuses for Max TP from the actor's currently ranked SDPs.
@@ -3443,7 +3497,7 @@ if (J.ABS) {
 //#region src/plugins/sdp/core/managers/SdpFamilyFilter.js
 /**
 * Family-filter symbols and helpers for the SDP panel list.
-* Cycle order is built per actor: All → Unsorted → families with unlocked panels.
+* Cycle order is built per actor: All → Unsorted (when non-empty) → families with unlocked panels.
 */
 var SdpFamilyFilter = class SdpFamilyFilter {
 	/**
@@ -3485,23 +3539,29 @@ var SdpFamilyFilter = class SdpFamilyFilter {
 	}
 	/**
 	* Builds the L2/R2 cycle for the current actor.
-	* Families with no unlocked panels for this actor are omitted.
+	* Unsorted and family tabs with no unlocked panels for this actor are omitted.
 	* @param {Game_Actor} actor The actor driving this step.
 	* @returns {string[]}
 	*/
 	static buildCycleForActor(actor) {
-		const cycle = [SdpFamilyFilter.ALL, SdpFamilyFilter.UNKNOWN];
+		const cycle = [SdpFamilyFilter.ALL];
 		const familiesWithUnlockedPanels = new Set();
+		let hasUnknownPanels = false;
 		actor.getAllUnlockedSdps().forEach((panelRanking) => {
 			const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
 			if (!panel) {
 				return;
 			}
 			const filterKey = SdpFamilyFilter.resolvePanelFamilyFilterKey(panel);
-			if (filterKey !== SdpFamilyFilter.UNKNOWN) {
-				familiesWithUnlockedPanels.add(filterKey);
+			if (filterKey === SdpFamilyFilter.UNKNOWN) {
+				hasUnknownPanels = true;
+				return;
 			}
+			familiesWithUnlockedPanels.add(filterKey);
 		});
+		if (hasUnknownPanels) {
+			cycle.push(SdpFamilyFilter.UNKNOWN);
+		}
 		J.SDP.Metadata.families.forEach((family) => {
 			if (familiesWithUnlockedPanels.has(family.key)) {
 				cycle.push(family.key);
@@ -4931,8 +4991,9 @@ var Scene_SDP = class extends Scene_MenuBase {
 			listWindow.deselect();
 			return;
 		}
-		if (listWindow.index() >= commandCount) {
-			listWindow.select(commandCount - 1);
+		const index = listWindow.index();
+		if (index < 0 || index >= commandCount) {
+			listWindow.select(Math.max(0, Math.min(index, commandCount - 1)));
 		}
 	}
 	/**
@@ -5641,19 +5702,36 @@ var Scene_SDP = class extends Scene_MenuBase {
 		};
 	}
 	/**
+	* Clears the detail strip when the filter list is empty or nothing is selected.
+	*/
+	clearPanelDetailWindows() {
+		this.getSdpHeaderWindow().setPanel(null);
+		this.getSdpHeaderWindow().refresh();
+		this.getSdpMasteryWindow().setPanel(null);
+		this.getSdpMasteryWindow().refresh();
+		const parameterListWindow = this.getSdpParameterListWindow();
+		parameterListWindow.setParameters(null);
+		parameterListWindow.refresh();
+		const rewardListWindow = this.getSdpRewardListWindow();
+		rewardListWindow.setRewards(null);
+		rewardListWindow.refresh();
+		this.getSdpHelpWindow().setText(String.empty);
+	}
+	/**
 	* Refreshes all windows in this scene on change of index in the list.
 	*/
 	onPanelHoveredChange() {
 		const hasPanels = this.getSdpListWindow().hasCommands();
 		if (!hasPanels) {
-			this.getSdpHeaderWindow().setPanel(null);
-			this.getSdpHeaderWindow().refresh();
-			this.getSdpMasteryWindow().setPanel(null);
-			this.getSdpMasteryWindow().refresh();
+			this.clearPanelDetailWindows();
 			return;
 		}
 		/** @type {StatDistributionPanel} */
 		const currentPanel = this.getSdpListWindow().currentExt();
+		if (currentPanel === null) {
+			this.clearPanelDetailWindows();
+			return;
+		}
 		const currentActor = $gameParty.menuActor();
 		this.getSdpListWindow().setActor(currentActor);
 		this.getSdpListWindow().setCart(this._j._sdp._cart);
@@ -5744,6 +5822,15 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 
 //#endregion
 //#region src/plugins/sdp/core/scenes/Scene_Map.js
+/**
+* Reconciles subgroup mastery wrapper skills on map entry.<br/>
+* Idempotent safety net when panel content or plugin wiring changes mid dev save.
+*/
+J.SDP.Aliased.Scene_Map.set("start", Scene_Map.prototype.start);
+Scene_Map.prototype.start = function() {
+	J.SDP.Aliased.Scene_Map.get("start").call(this);
+	SdpMasteryManager.reconcileAllForParty();
+};
 /**
 * Adds the functionality for calling the SDP menu from the JABS quick menu.
 */

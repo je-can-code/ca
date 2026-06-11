@@ -155,6 +155,11 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 		* @type {Map<string, Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon|Sprite_BaseText>}
 		*/
 		this._hudSprites = new Map();
+		/**
+		* Shared affliction presenter for the leader row.
+		* @type {StateAfflictionHudPresenter}
+		*/
+		this._afflictionPresenter = new StateAfflictionHudPresenter(this, this._hudSprites);
 	}
 	/**
 	* Performs the one-time setup and configuration per instantiation.
@@ -352,93 +357,6 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 		return sprite;
 	}
 	/**
-	* Creates the key for an actor's state affliction.
-	* @param {Game_Actor} actor The actor to draw a actor value sprite for.
-	* @param {number} stateId The id of the state to generate a key for.
-	* @returns {string} The key for this actor value sprite.
-	*/
-	makeStateIconSpriteKey(actor, stateId) {
-		return `state-${stateId}-${actor.name()}-${actor.actorId()}`;
-	}
-	/**
-	* Creates an icon sprite for a given state.
-	* @param {Game_Actor} actor The actor to draw a actor value sprite for.
-	* @param {number} stateId The id of the state to generate a key for.
-	* @returns {Sprite_Icon} The state icon sprite.
-	*/
-	getOrCreateStateIcon(actor, stateId) {
-		const key = this.makeStateIconSpriteKey(actor, stateId);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
-		}
-		const stateIconIndex = actor.state(stateId).iconIndex;
-		const sprite = new Sprite_Icon(stateIconIndex);
-		this._hudSprites.set(key, sprite);
-		sprite.hide();
-		this.addChild(sprite);
-		return sprite;
-	}
-	/**
-	* Creates the key for an actor's state affliction.
-	* @param {Game_Actor} actor The actor to draw a actor value sprite for.
-	* @param {number} stateId The id of the state to generate a key for.
-	* @returns {string} The key for this actor value sprite.
-	*/
-	makeStateTimerSpriteKey(actor, stateId) {
-		return `timer-${stateId}-${actor.name()}-${actor.actorId()}`;
-	}
-	/**
-	* Creates the timer sprite for a given state.
-	* @param {Game_Actor} actor The actor to draw the state data for.
-	* @param {JABS_State} trackedState The tracked state data for this state.
-	* @returns {Sprite_BaseText} The state timer sprite.
-	*/
-	getOrCreateStateTimer(actor, trackedState) {
-		const key = this.makeStateTimerSpriteKey(actor, trackedState.stateId);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
-		}
-		const spriteText = new Sprite_BaseText();
-		spriteText.setFontFace($gameSystem.numberFontFace());
-		spriteText.setFontSize($gameSystem.mainFontSize() - 6);
-		spriteText.setAlignment(Sprite_BaseText.Alignments.Center);
-		spriteText.setMinWidth(ImageManager.iconWidth);
-		this._hudSprites.set(key, spriteText);
-		spriteText.hide();
-		this.addChild(spriteText);
-		return spriteText;
-	}
-	/**
-	* Creates the key for an actor's state affliction.
-	* @param {Game_Actor} actor The actor to draw a actor value sprite for.
-	* @param {number} stateId The id of the state to generate a key for.
-	* @returns {string} The key for this actor value sprite.
-	*/
-	makeStateStackCountSpriteKey(actor, stateId) {
-		return `stacks-${stateId}-${actor.name()}-${actor.actorId()}`;
-	}
-	/**
-	* Creates the timer sprite for a given state.
-	* @param {Game_Actor} actor The actor to draw the state data for.
-	* @param {JABS_State} trackedState The tracked state data for this state.
-	* @returns {Sprite_BaseText} The state timer sprite.
-	*/
-	getOrCreateStateStackCount(actor, trackedState) {
-		const key = this.makeStateStackCountSpriteKey(actor, trackedState.stateId);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
-		}
-		const spriteText = new Sprite_BaseText();
-		spriteText.setFontFace($gameSystem.numberFontFace());
-		spriteText.setFontSize($gameSystem.mainFontSize() - 4);
-		spriteText.setAlignment(Sprite_BaseText.Alignments.Center);
-		spriteText.setMinWidth(ImageManager.iconWidth);
-		this._hudSprites.set(key, spriteText);
-		spriteText.hide();
-		this.addChild(spriteText);
-		return spriteText;
-	}
-	/**
 	* Creates or retrieves the combat icon sprite for the given actor.
 	* @param {Game_Actor} actor The actor this icon represents.
 	* @returns {Sprite_Icon} The combat icon sprite.
@@ -600,9 +518,10 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 		const extraneousX = x + 12;
 		const extraneousY = faceY;
 		this.drawLeaderExtraneousGauges(extraneousX, extraneousY);
-		const statesX = gaugesX;
-		const statesY = gaugesY - ImageManager.iconHeight * 2 - 48;
-		this.drawStates(statesX, statesY);
+		const layout = new StateAfflictionHudLayoutSpec();
+		layout.originX = gaugesX;
+		layout.originY = gaugesY - ImageManager.iconHeight * 2 - 48;
+		this._afflictionPresenter.render($gameParty.leader(), layout);
 		this.drawLeaderCombatIndicator(gaugesX, gaugesY);
 	}
 	/**
@@ -668,29 +587,6 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 		levelNumbers.show();
 	}
 	/**
-	* Draw all states for the leader of the party.
-	*/
-	drawStates(x, y) {
-		const leader = $gameParty.leader();
-		this.hideExpiredStates(leader);
-		if (!leader.states().length) return;
-		if (J.ABS) {
-			const uuid = leader.getUuid();
-			const positiveStates = $jabsEngine.getPositiveJabsStatesByUuid(uuid);
-			const negativeStates = $jabsEngine.getNegativeJabsStatesByUuid(uuid);
-			negativeStates.forEach((negativeTrackedState, index) => {
-				const negativeX = x + index * (ImageManager.iconWidth + 2);
-				const negativeY = y;
-				this.drawState(leader, negativeTrackedState, negativeX, negativeY);
-			});
-			positiveStates.forEach((positiveTrackedState, index) => {
-				const positiveX = x + index * (ImageManager.iconWidth + 2);
-				const positiveY = y + (ImageManager.iconHeight + 8);
-				this.drawState(leader, positiveTrackedState, positiveX, positiveY);
-			});
-		}
-	}
-	/**
 	* Draws the leader's "in‑combat" indicator to the right of the gauges.
 	* @param {number} gaugesX The x coordinate where gauges start.
 	* @param {number} gaugesY The y coordinate where gauges start.
@@ -746,68 +642,6 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 			label.show();
 			label.opacity = 255;
 		}
-	}
-	/**
-	* Hides all expired states on the leader.
-	* @param {Game_Actor} leader The actor to hide states for.
-	*/
-	hideExpiredStates(leader) {
-		if (J.ABS) {
-			const jabsStates = $jabsEngine.getJabsStatesByUuid(leader.getUuid());
-			const states = Array.from(jabsStates.values());
-			states.forEach((state) => {
-				if (!state.expired) return;
-				const iconKey = this.makeStateIconSpriteKey(leader, state.stateId);
-				const timerKey = this.makeStateTimerSpriteKey(leader, state.stateId);
-				const stackKey = this.makeStateStackCountSpriteKey(leader, state.stateId);
-				if (this._hudSprites.has(iconKey)) {
-					const iconSprite = this._hudSprites.get(iconKey);
-					iconSprite.hide();
-				}
-				if (this._hudSprites.has(timerKey)) {
-					const timerSprite = this._hudSprites.get(timerKey);
-					timerSprite.setText(String.empty);
-					timerSprite.hide();
-				}
-				if (this._hudSprites.has(stackKey)) {
-					const stackSprite = this._hudSprites.get(stackKey);
-					stackSprite.setText(String.empty);
-					stackSprite.hide();
-				}
-			});
-		}
-	}
-	/**
-	* Draws a single state onto the hud.
-	* @param {Game_Actor} actor The actor to draw the state for.
-	* @param {JABS_State} trackedState The state afflicted on the character to draw.
-	* @param {number} ox The origin x coordinate.
-	* @param {number} y The y coordinate.
-	*/
-	drawState(actor, trackedState, ox, y) {
-		if (trackedState.hasEternalDuration() === false) {
-			const seconds = (trackedState.duration / 60).toFixed(1);
-			const timerSprite = this.getOrCreateStateTimer(actor, trackedState);
-			timerSprite.setText(seconds);
-			timerSprite.move(ox, y + 20);
-			timerSprite.show();
-		}
-		const iconSprite = this.getOrCreateStateIcon(actor, trackedState.stateId);
-		iconSprite.move(ox, y);
-		iconSprite.show();
-		this.modFontSize(-4);
-		this.toggleBold();
-		this.toggleItalics();
-		const stackSprite = this.getOrCreateStateStackCount(actor, trackedState);
-		if (trackedState.stackCount > 1) {
-			stackSprite.setText(`x${trackedState.stackCount}`);
-			stackSprite.move(ox, y - ImageManager.iconHeight);
-			stackSprite.show();
-		} else {
-			stackSprite.setText(String.empty);
-			stackSprite.hide();
-		}
-		this.resetFontSettings();
 	}
 	/**
 	* Draw all allies data for the hud.

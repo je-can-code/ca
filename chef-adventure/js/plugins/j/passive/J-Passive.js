@@ -155,6 +155,17 @@
  * along with 11 and 12 being applied once, too.
  *
  * ============================================================================
+ * HIDE FROM PASSIVES LIST:
+ * Stack amplifiers and other implementation-only passive duplicates can stay
+ * out of the Passives menu while still contributing traits in combat.
+ *
+ * TAG USAGE:
+ * - States only.
+ *
+ * TAG FORMAT:
+ *  <hideFromPassiveList>
+ *
+ * ============================================================================
  * CHANGELOG:
  * - 2.1.0
  *    Added Scene_Passive viewer scene with actor ribbon, state list, and semantic detail window.
@@ -280,6 +291,7 @@ J.PASSIVE.RegExp.EquippedPassiveStateIds = /<equippedPassive:[ ]?(\[[\d, ]+])>/g
 J.PASSIVE.RegExp.UniqueEquippedPassiveStateIds = /<uniqueEquippedPassive:[ ]?(\[[\d, ]+])>/gi;
 J.PASSIVE.RegExp.PassiveStateIds = /<passive:[ ]?(\[[\d, ]+])>/gi;
 J.PASSIVE.RegExp.UniquePassiveStateIds = /<uniquePassive:[ ]?(\[[\d, ]+])>/gi;
+J.PASSIVE.RegExp.HideFromPassiveList = /<hideFromPassiveList>/gi;
 /**
 * The collection of all aliased classes for extending.
 */
@@ -391,6 +403,17 @@ Object.defineProperty(RPG_Class.prototype, "uniqueEquippedPassiveStateIds", { ge
 } });
 
 //#endregion
+//#region src/plugins/passive/core/database/RPG_State.js
+/**
+* Whether this state row should be omitted from the Passives menu list.<br/>
+* Stack amplifiers and other implementation-only passive duplicates stay combat-active via {@link #allStates}.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "hideFromPassiveList", { get() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.PASSIVE.RegExp.HideFromPassiveList);
+} });
+
+//#endregion
 //#region src/plugins/passive/core/objects/Game_Actor.js
 /**
 * Extends {@link #onSetup}.<br/>
@@ -427,22 +450,30 @@ Game_Actor.prototype.traitObjects = function() {
 	return originalObjects;
 };
 /**
-* Extends {@link #onLearnNewSkill}.<br/>
-* Triggers a refresh of passive states when learning a new skill.
+* Extends {@link #learnSkill}.<br/>
+* Refreshes passive states after the skill is committed to the actor's skill list.<br/>
+* J-Base dispatches {@link #onLearnNewSkill} before the skill is added — too early for skill passives.
 */
-J.PASSIVE.Aliased.Game_Actor.set("onLearnNewSkill", Game_Actor.prototype.onLearnNewSkill);
-Game_Actor.prototype.onLearnNewSkill = function(skillId) {
-	J.PASSIVE.Aliased.Game_Actor.get("onLearnNewSkill").call(this, skillId);
-	this.refreshPassiveStates();
+J.PASSIVE.Aliased.Game_Actor.set("learnSkill", Game_Actor.prototype.learnSkill);
+Game_Actor.prototype.learnSkill = function(skillId) {
+	const wasKnown = this.isLearnedSkill(skillId);
+	J.PASSIVE.Aliased.Game_Actor.get("learnSkill").call(this, skillId);
+	if (wasKnown === false) {
+		this.refreshPassiveStates();
+	}
 };
 /**
-* Extends {@link #onForgetSkill}.<br/>
-* Triggers a refresh of passive states when forgetting a skill.
+* Extends {@link #forgetSkill}.<br/>
+* Refreshes passive states after the skill is removed from the actor's skill list.<br/>
+* J-Base dispatches {@link #onForgetSkill} before the skill is dropped — too early for skill passives.
 */
-J.PASSIVE.Aliased.Game_Actor.set("onForgetSkill", Game_Actor.prototype.onForgetSkill);
-Game_Actor.prototype.onForgetSkill = function(skillId) {
-	J.PASSIVE.Aliased.Game_Actor.get("onForgetSkill").call(this, skillId);
-	this.refreshPassiveStates();
+J.PASSIVE.Aliased.Game_Actor.set("forgetSkill", Game_Actor.prototype.forgetSkill);
+Game_Actor.prototype.forgetSkill = function(skillId) {
+	const wasKnown = this.isLearnedSkill(skillId);
+	J.PASSIVE.Aliased.Game_Actor.get("forgetSkill").call(this, skillId);
+	if (wasKnown) {
+		this.refreshPassiveStates();
+	}
 };
 /**
 * Extends {@link #onEquipChange}.<br/>
@@ -555,6 +586,7 @@ Game_Battler.prototype.cachePassiveCapableSources = function() {
 * @returns {boolean} True when this source carries at least one passive state id.
 */
 Game_Battler.prototype.sourceHasAnyPassiveIds = function(source) {
+	if (!source) return false;
 	if (source.passiveStateIds && source.passiveStateIds.length > 0) return true;
 	if (source.uniquePassiveStateIds && source.uniquePassiveStateIds.length > 0) return true;
 	if (source instanceof RPG_EquipItem) {
@@ -652,8 +684,8 @@ Game_Battler.prototype.clearPassiveStates = function() {
 Game_Battler.prototype.refreshPassiveStates = function() {
 	this.clearPassiveStates();
 	const uniqueIds = this.getAllUniquePassiveStateIds();
-	const stackableIds = this.getAllStackablePassiveStateIds();
 	uniqueIds.forEach((stateId) => this.addPassiveStateId(stateId, false), this);
+	const stackableIds = this.getAllStackablePassiveStateIds();
 	stackableIds.forEach((stackCount, stateId) => {
 		if (uniqueIds.has(stateId)) return;
 		let times = stackCount;
@@ -940,8 +972,8 @@ Game_Party.prototype.addPassiveStateId = function(stateId, allowDuplicates = tru
 Game_Party.prototype.refreshPassiveStates = function() {
 	this.clearPassiveStates();
 	const uniqueIds = this.getAllUniquePassiveStateIds();
-	const stackableIds = this.getAllStackablePassiveStateIds();
 	uniqueIds.forEach((stateId) => this.addPassiveStateId(stateId, false), this);
+	const stackableIds = this.getAllStackablePassiveStateIds();
 	stackableIds.forEach((stackCount, stateId) => {
 		if (uniqueIds.has(stateId)) return;
 		let times = stackCount;
@@ -1150,11 +1182,12 @@ var Window_PassiveList = class extends Window_Selectable {
 			return;
 		}
 		const all = this._actor.getPassiveStates();
+		const visible = all.filter((state) => state.hideFromPassiveList === false);
 		if (this._tabFilter === null) {
-			this._data = all;
+			this._data = visible;
 			return;
 		}
-		this._data = all.filter((state) => this._tabFilter(state.id, this._actor));
+		this._data = visible.filter((state) => this._tabFilter(state.id, this._actor));
 		if (this._data.length === 0) {
 			this._data.push(null);
 		}

@@ -1207,6 +1207,9 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 			}
 		}
 		textSprite.bitmap.fontSize = fontSize;
+		textSprite.bitmap.textColor = this.damageColor();
+		textSprite.bitmap.outlineColor = this.outlineColor();
+		textSprite.bitmap.outlineWidth = this.outlineWidth();
 		textSprite.bitmap.drawText(displayString, 0, 0, w, h, "center");
 		this.repositionChildren();
 		this.kickMergeCombinePulse(largePulse);
@@ -1478,9 +1481,7 @@ var PopupLayoutHelper = class PopupLayoutHelper {
 				case Map_TextPop.Types.HpDamage:
 					y -= 16;
 					break;
-				case Map_TextPop.Types.MpDamage:
-					y += 0;
-					break;
+				case Map_TextPop.Types.MpDamage: break;
 				case Map_TextPop.Types.TpDamage:
 					y += 16;
 					break;

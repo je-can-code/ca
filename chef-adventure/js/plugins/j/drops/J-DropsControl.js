@@ -205,10 +205,16 @@ J.DROPS.RegExp = {};
 J.DROPS.RegExp.ExtraDrop = /<drops:[ ]?(\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)])>/i;
 J.DROPS.RegExp.DropMultiplier = /<dropMultiplier:[ ]?(-?\d+)>/i;
 J.DROPS.RegExp.GoldMultiplier = /<goldMultiplier:[ ]?(-?\d+)>/i;
+J.DROPS.RegExp.DropRateBuffPlus = /<dorBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.DropRateBuffRate = /<dorBuffRate:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.DropRateGrowthPlus = /<dorGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.DropRateGrowthRate = /<dorGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
 /**
 * The collection of all aliased classes for extending.
 */
 J.DROPS.Aliased = {
+	Game_Actor: new Map(),
+	Game_Battler: new Map(),
 	Game_Enemy: new Map(),
 	RPG_Enemy: new Map(),
 	Scene_Boot: new Map()
@@ -429,6 +435,96 @@ var DropsPartyStrategy = class {
 };
 
 //#endregion
+//#region src/plugins/drops/core/objects/Game_Battler.js
+/**
+* Extends `.initNaturalGrowthParameters()` to include dor as growth-ready.
+*/
+J.DROPS.Aliased.Game_Battler.set("initNaturalGrowthParameters", Game_Battler.prototype.initNaturalGrowthParameters);
+Game_Battler.prototype.initNaturalGrowthParameters = function() {
+	if (!J.NATURAL) return;
+	J.DROPS.Aliased.Game_Battler.get("initNaturalGrowthParameters").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with natural growth.
+	*/
+	this._j._natural ||= {};
+	/**
+	* The permanent flat bonus for drop rate.
+	* @type {number}
+	*/
+	this._j._natural._dorPlus = 0;
+	/**
+	* The permanent multiplier bonus for drop rate.
+	* @type {number}
+	*/
+	this._j._natural._dorRate = 0;
+};
+/**
+* Gets the permanent flat bonus for drop rate.
+* @returns {number}
+*/
+Game_Battler.prototype.dorPlus = function() {
+	return this._j._natural._dorPlus;
+};
+/**
+* Modifies the permanent flat bonus for drop rate.
+* @param {number} amount The amount to modify the bonus by.
+*/
+Game_Battler.prototype.modDorPlus = function(amount) {
+	this._j._natural._dorPlus += amount;
+};
+/**
+* Gets the permanent multiplicative bonus for drop rate.
+* @returns {number}
+*/
+Game_Battler.prototype.dorRate = function() {
+	return this._j._natural._dorRate;
+};
+/**
+* Modifies the permanent multiplicative bonus for drop rate.
+* @param {number} amount The amount to modify the bonus by.
+*/
+Game_Battler.prototype.modDorRate = function(amount) {
+	this._j._natural._dorRate += amount;
+};
+/**
+* Gets all natural bonuses for dor.
+* @returns {number}
+*/
+Game_Battler.prototype.dorNaturalBonuses = function() {
+	if (!J.NATURAL) return 0;
+	const dorBuffs = this.dorNaturalBuffs();
+	const dorGrowths = this.dorNaturalGrowths();
+	return dorBuffs + dorGrowths;
+};
+/**
+* Calculates the buffs for drop rate.
+* @returns {number}
+*/
+Game_Battler.prototype.dorNaturalBuffs = function() {
+	const objectsToCheck = this.getAllNotes();
+	const baseParam = 0;
+	const dorBuffPlus = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropRateBuffPlus, baseParam, this);
+	const dorBuffRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropRateBuffRate, baseParam, this);
+	if (!dorBuffPlus && !dorBuffRate) return 0;
+	return this.calculatePlusRate(baseParam, dorBuffPlus, dorBuffRate);
+};
+/**
+* Calculates the growths associated with drop rate.
+* @returns {number}
+*/
+Game_Battler.prototype.dorNaturalGrowths = function() {
+	const baseParam = 0;
+	const growthPlus = this.dorPlus();
+	const growthRate = this.dorRate();
+	if (!growthPlus && !growthRate) return 0;
+	return this.calculatePlusRate(baseParam, growthPlus, growthRate);
+};
+
+//#endregion
 //#region src/plugins/drops/core/objects/Game_Actor.js
 Object.defineProperties(Game_BattlerBase.prototype, {
 	/**
@@ -471,7 +567,27 @@ Game_Actor.prototype.getDropMultiplierBonus = function() {
 	const objectsToCheck = this.getAllNotes();
 	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropMultiplier);
 	const factor = (multiplierBonus + baseMultiplier) / 100;
-	return factor;
+	const naturalBonus = this.dorNaturalBonuses();
+	return factor + naturalBonus;
+};
+/**
+* Extends `.applyNaturalCustomGrowths()` to include dor growths.
+*/
+J.DROPS.Aliased.Game_Actor.set("applyNaturalCustomGrowths", Game_Actor.prototype.applyNaturalCustomGrowths);
+Game_Actor.prototype.applyNaturalCustomGrowths = function() {
+	J.DROPS.Aliased.Game_Actor.get("applyNaturalCustomGrowths").call(this);
+	if (!J.NATURAL) return;
+	this.applyNaturalDorGrowths();
+};
+/**
+* Applies the natural drop rate growths to this battler.
+*/
+Game_Actor.prototype.applyNaturalDorGrowths = function() {
+	const baseParam = 0;
+	const growthPlus = this.naturalParamBuff(J.DROPS.RegExp.DropRateGrowthPlus, baseParam);
+	this.modDorPlus(growthPlus);
+	const growthRate = this.naturalParamBuff(J.DROPS.RegExp.DropRateGrowthRate, baseParam);
+	this.modDorRate(growthRate);
 };
 /**
 * Gets this actor's bonus gold multiplier.

@@ -872,18 +872,53 @@ Sprite_Character.prototype.canApplyPassiveMapTierAccent = function() {
 //#endregion
 //#region src/plugins/passive/ext/affix/windows/Window_PassiveDetail.js
 /**
-* Extends {@link Window_PassiveDetail#drawCombatSection}.<br/>
-* Injects JABS combat, shield, and stacking sections into the passive detail
-* window. These draw before the core sections so combat effects appear first.
+* Extends {@link Window_PassiveDetail#drawStateHeader} and {@link Window_PassiveDetail#drawCombatSection}.<br/>
+* Injects skill-history prose under the header and JABS combat sections in the left column.
 * All methods read and advance {@link Window_PassiveDetail#currentY} directly —
 * no y threading through method signatures.
 */
+J.PASSIVE.EXT.AFFIX.Aliased.Window_PassiveDetail.set("drawStateHeader", Window_PassiveDetail.prototype.drawStateHeader);
+Window_PassiveDetail.prototype.drawStateHeader = function(state) {
+	J.PASSIVE.EXT.AFFIX.Aliased.Window_PassiveDetail.get("drawStateHeader").call(this, state);
+	this.drawSkillHistoryBonusProse(state);
+	this.drawAutoApplyStateProse(state);
+};
 J.PASSIVE.EXT.AFFIX.Aliased.Window_PassiveDetail.set("drawCombatSection", Window_PassiveDetail.prototype.drawCombatSection);
 Window_PassiveDetail.prototype.drawCombatSection = function(state) {
 	J.PASSIVE.EXT.AFFIX.Aliased.Window_PassiveDetail.get("drawCombatSection").call(this, state);
 	this.drawJabsCombatSection(state);
 	this.drawJabsShieldSection(state);
 	this.drawJabsStackingSection(state);
+};
+/**
+* Draws player-facing prose for each {@link J.ABS.RegExp.SkillHistoryBonus} tag on this state.
+* Skipped when J-ABS is absent or the state carries no rotation bonus tags.
+* @param {RPG_State} state The state being detailed.
+*/
+Window_PassiveDetail.prototype.drawSkillHistoryBonusProse = function(state) {
+	if (!J.ABS) return;
+	const lines = SkillHistoryBonusDisplay.collectGeneralProseLines(state, this);
+	if (lines.length === 0) return;
+	const width = this.innerWidth - 4;
+	lines.forEach((text) => {
+		this.drawTextEx(text, 4, this.currentY, width);
+		this.currentY += this.textSizeEx(text).height + 4;
+	});
+};
+/**
+* Draws player-facing prose for each time {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState} tag on this state.
+* Skipped when J-Passive-Conditional is absent or the state carries no time auto-apply rules.
+* @param {RPG_State} state The state being detailed.
+*/
+Window_PassiveDetail.prototype.drawAutoApplyStateProse = function(state) {
+	if (!J.PASSIVE.EXT.CONDITIONAL) return;
+	const lines = AutoApplyStateDisplay.collectTimeProseLines(state, this);
+	if (lines.length === 0) return;
+	const width = this.innerWidth - 4;
+	lines.forEach((text) => {
+		this.drawTextEx(text, 4, this.currentY, width);
+		this.currentY += this.textSizeEx(text).height + 4;
+	});
 };
 /**
 * Draws the JABS Combat section.

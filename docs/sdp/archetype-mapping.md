@@ -6,6 +6,8 @@
 >
 > **Runtime status:** [`implementation-status.md`](./implementation-status.md) — registry keys, combat hooks, playtest notes.
 
+Last updated: **2026-06-02** — Food chain states authored (251–278, 281–282); `<stateDuration>` in J-ABS core.
+
 ---
 
 ## Archetypes reference
@@ -22,6 +24,42 @@
 | **Artillery** | One big shot from range | ATK/MAT, CRI, CDM, HIT (mod) | MHP↓, DEF↓, GRD↓, CEV↓, SHE↓, CDR↓ |
 | **Wizard** | Magic damage | MAT, MMP, MCR | MHP↓, DEF↓, GRD↓, TGR↓, CEV↓, CDR↓ |
 | **Medic** | Pure support/sustain | MDF, MRG, HRG, SHA, PHA | ATK↓, CRI↓, CDM↓ |
+
+---
+
+## Food group chains (CA gameplay)
+
+> Runtime: [`implementation-status.md`](./implementation-status.md) — food cookbook.  
+> **Durations & colors (authoring):** [`../food/food-chain-durations.md`](../food/food-chain-durations.md).  
+> Historical design notes: `rmmz-plugins/.backlog/unstarted/ca-food-group-chain-system.md`.
+
+Each recipe belongs to a **food group** (`protein`, `vegetable`, `fruit`, `carb`, `dairy`, `sweet` in
+CA data — design docs sometimes say grain/confection). Eating via the **R2 food slot** starts a
+deterministic **Well Fed → peak → tail** arc on the **party leader**; item heals/cures still apply to
+the whole party (scope TBD: may move to user-only + buffet accessory). Re-feeding during Well Fed or
+peak without Field Medic immunity triggers **Overstuffed → Bloated**; tail-phase eat always rescues
+into the new group's Well Fed.
+
+**Phase length:** each chain state row carries **`<stateDuration:FRAMES>`** (`J-ABS` core). That tag
+**overrides** `stepsToRemove` when present (keep `stepsToRemove: 9999` in MZ as a placeholder). See
+the food durations doc for per-state frame tables.
+
+| Group | Well Fed (~) | Peak (~) | Tail (~) | Chain total (~) |
+|---|---|---|---|---|
+| Protein | 5 min | Pumped 2 min | Hangry 3 min | **10 min** |
+| Vegetable | 3 min | Refreshed 3 min | Light-headed 3 min | **10 min** |
+| Fruit | 1 min | Energized 8 min | Crashing 1 min | **~9.2 min** |
+| Carb | 3 min | Fortified 5 min | Carb Coma 1 min | **10 min** |
+| Dairy | 3 min | Focused 3 min | Foggy 3 min | **10 min** |
+| Sweet | 30 s | Hyper 2 min | Gassy 1 min | **~4 min** |
+| Overstuffed | 3 min | — | Bloated 2 min | **5 min** |
+
+**Kobold Field Medic mastery** (Cleric subgroup): `<overstuffedImpervious>` — pace meals freely
+mid-arc. **Cleric PHA** still amplifies food/item potency; Field Medic is the **timing/rhythm** identity.
+
+**Content status (P4-0):** ✅ All six meal arcs + overstuffed/bloated **states** (251–278, 281–282) —
+traits, colors, `<foodChain>`, `<stateDuration>`. ⏳ Food **items** 151–182 still mostly legacy 7-dice
+RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group item heals next.
 
 ---
 
@@ -117,14 +155,15 @@
 
 ## Family 10: Deity (551–600)
 
-> Kaiju subgroup sacked — slots merged into Sins for 7 bosses + 7 helpers.
+> Kaiju subgroup sacked — Sin owns the final **two** enemy decades (581–600). Ten `SIN_*` panels; votary helpers (591–600) drop panels.
 
-| IDs | Subgroup | Description | Archetype |
-|---|---|---|---|
-| 551–560 | **Elemental** | Bosses you fight then recruit as party members, elemental mastery incarnate | **Wizard** |
-| 561–580 | **Sin** (expanded, 20 slots) | Seven deadly sins, each boss + helper pair; helpers drop sin-themed panels | **Multi** (see below) |
-| 581–590 | **Emotion** (TBD) | Embodied emotions — Joy heals, Hope rekindles, Sorrow debuffs; emotional sustain | **Cleric** |
-| 591–600 | **Devil** (TBD) | Imps, devils, alluring tricksters; too clever to commit to one strategy | **Generalist** |
+| Enemy IDs | Slot | Subgroup | Description | Archetype |
+|---|---|---|---|---|
+| 551–560 | 1 | **Elemental** | Bosses you fight then recruit as party members, elemental mastery incarnate | **Wizard** |
+| 561–570 | 2 | **Aspect** | Embodied emotions — Joy heals, Hope rekindles, Sorrow debuffs; emotional sustain | **Cleric** |
+| 571–580 | 3 | **Sovereign** | Imps, devils, alluring tricksters; too clever to commit to one strategy | **Generalist** |
+| 581–590 | 4 | **Sin** (boss decade) | Seven deadly sin bosses + padding tiers | **Multi** (see below) |
+| 591–600 | 5 | **Sin Votary** (helper decade) | Sin helpers; drop sin-themed panels | **Multi** (see below) |
 
 ### Sin archetype breakdown
 
@@ -342,11 +381,11 @@ This gives all three gun subgroups (Pistol, Taser, Shotgun) natural panel partne
 
 | Subgroup | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|
-| Skeletor | +HRG (small undead sustain) | **Undying Rage**: below 25% HP, ATK +15% | Needs conditional stat modifier |
-| Roper | MAT replaces ATK (magic berserker) | **Eldritch Fury**: CRI +10% vs debuffed enemies | Needs target-state conditional |
-| Fungrowth | +ATK (extra heavy), MCR↑/TCR↑ (skills costly) | **Primal Instinct**: ATK +X% while no skills on cooldown | Needs cooldown-state conditional |
-| Bearcat | +MAT at higher tiers (void evolution) | **Void Resonance**: 15% of ATK adds to MAT | **Implementable now** |
-| Heated Titan | +MHP (survive one mistake) | **Unstoppable**: knockback resist +50%, ATK +5% per debuff on self | Needs state-count conditional |
+| Skeletor | +HRG (small undead sustain) | **Undying Rage**: below 25% HP, ATK +15% | ✅ `passiveSourceRule:[hpBelow, …]` (J-Passive-Conditional); P4-2 mastery state |
+| Roper | MAT replaces ATK (magic berserker) | **Eldritch Fury**: CRI +10% vs debuffed enemies | ⏳ target-state **trait** hook (P2 gap); damage variant ✅ `bonusDamageIfState` |
+| Fungrowth | +ATK (extra heavy), MCR↑/TCR↑ (skills costly) | **Primal Instinct**: ATK +X% while no skills on cooldown | ✅ `passiveSourceRule:[allOffCooldown]`; P4-2 mastery state |
+| Bearcat | +MAT at higher tiers (void evolution) | **Void Resonance**: 15% of ATK adds to MAT | ✅ traits on passive state; P4-2 |
+| Heated Titan | +MHP (survive one mistake) | **Unstoppable**: knockback resist +50%, ATK +5% per debuff on self | ✅ `passiveStateCount` + traits; P4-2 |
 
 **Mastery reward philosophy:** Always-on passive traits that reinforce the subgroup fantasy.
 Never active skills (compete with player kit). Occasional cross-system unlocks for non-combat archetypes.
@@ -361,10 +400,10 @@ Never active skills (compete with player kit). Occasional cross-system unlocks f
 
 | Subgroup | Flavor Twist | Weapon Affinity | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Wraith | +MDF heavy, mana shield | Book (MMP battery) | **Spectral Ward**: magic dmg drains MP before HP | Extend existing Shield plugin |
-| Draconite | +DEF heavy, positional tank | 1H Axe (MHP) | **Stone Scales**: DEF +X% while standing still | Needs conditional stat modifier |
-| Crimson Vice | +GRD, anti-physical wall | Mech Arm (ATK+DEF) | **Iron Shell**: reflect X% phys damage to attacker | Experiment with retaliate system |
-| Quadruped | +TGR, pack leader aura | Weapon-agnostic (aggro) | **Alpha Presence**: nearby allies +X% DEF | **Current ecosystem** |
+| Wraith | +MDF heavy, MMP-weighted ward | Book (MMP battery) | **Ghastly Ward**: pulsed shield scales from **MHP + MMP**; reapplies on a timer | ✅ `autoApplyState` + ward states **1001–1010** (P4-2 authored); optional P3-8 MP-before-HP (`J-ABS-Shield`) |
+| Draconite | +DEF heavy, positional tank | 1H Axe (MHP) | **Stone Scales**: DEF +X% while standing still | ✅ `passiveSourceRule:[sinceLastMoved, …]`; P4-2 |
+| Crimson Vice | +GRD, anti-physical wall | Mech Arm (ATK+DEF) | **Iron Shell**: reflect X% phys damage to attacker | ⏳ retaliate / counter hook (experiment) |
+| Quadruped | +TGR, pack leader aura | Weapon-agnostic (aggro) | **Alpha Presence**: nearby allies +X% DEF | ✅ `passiveSourceRule:[alliesNearby, N]` + aura traits; P4-2 |
 
 ### Archetype prototype: Vanguard (approved)
 
@@ -377,12 +416,12 @@ Never active skills (compete with player kit). Occasional cross-system unlocks f
 
 | Subgroup | Reliable How? | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Rust Bucket | Absurd DEF, paper HP | DEF spike, MHP↓ | **Hollow Armor**: DEF doubles, MHP halved | Conditional stat modifier |
-| Dargin | Harder to kill when hurt | PDR↓ + MDR↓ | **Dragonheart**: PDR/MDR improve +X% below 50% HP | Conditional stat modifier |
-| Cube | Giant HP, area denial | MHP spike + small TGR | **Living Obstacle**: enemies in melee range have -X% movespeed | JABS passive state aura |
-| Treant | Recovery between exchanges | DEF + HRG + LST (moderate) | **Ironbark**: first hit after 3s of no damage deals X% less | New plugin (damage gap timer) |
-| Scorplite | Hits back with debuffs | ATK + DEF + CNT | **Chitin Barbs**: counterattacks apply slow debuff | Retaliate system |
-| Cyclops | Simple, untrickable | Raw flat stats, no rates | **Thick Skull**: immune to disable and mute | Passive state immunity |
+| Rust Bucket | Absurd DEF, paper HP | DEF spike, MHP↓ | **Hollow Armor**: DEF doubles, MHP halved | ✅ traits on passive state; P4-2 |
+| Dargin | Harder to kill when hurt | PDR↓ + MDR↓ | **Dragonheart**: PDR/MDR improve +X% below 50% HP | ✅ `passiveSourceRule:[hpBelow, …]`; P4-2 |
+| Cube | Giant HP, area denial | MHP spike + small TGR | **Living Obstacle**: enemies in melee range have -X% movespeed | ✅ JABS passive state aura; P4-2 |
+| Treant | Recovery between exchanges | DEF + HRG + LST (moderate) | **Ironbark**: first hit after 3s of no damage deals X% less | ✅ `passiveSourceRule:[sinceLastHit, …]`; P4-2 |
+| Scorplite | Hits back with debuffs | ATK + DEF + CNT | **Chitin Barbs**: counterattacks apply slow debuff | ⏳ retaliate / counter hook (experiment) |
+| Cyclops | Simple, untrickable | Raw flat stats, no rates | **Thick Skull**: immune to disable and mute | ✅ passive state immunities; P4-2 |
 
 ### Archetype prototype: War Priest (approved)
 
@@ -396,11 +435,11 @@ Never active skills (compete with player kit). Occasional cross-system unlocks f
 
 | Subgroup | Sustain Lean | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Salamander | Balanced (HRG/REC/LST even) + AGI | Fast sustainer, elemental | **Elemental Infusion**: attacks deal X% bonus damage matching weapon element | Needs elemental bonus system (passive state w/ element traits?) |
-| Cephalopod | REC-heavy + MHP | Beefy, benefits most from ally/item healing | **Ink Shroud**: enemies you've recently hit deal X% less damage to you | Needs "recently hit" tracking + conditional DR |
-| Parasite | LST-heavy | Almost entirely self-sufficient through damage | **Siphon Aura**: lifesteal splashes X% of recovered HP to nearby allies | JABS passive state aura |
-| Bot | HRG-heavy + DEF | Mechanical durability, tick-based self-repair | **Self-Repair Subroutine**: auto-recover X% MHP every Y seconds | Passive state with periodic heal trigger |
-| Crawler | HRG + LST, MSB↓ | Territorial area denier, immobile regen fortress | **Spire Network**: HRG and LST +X% while enemies are within melee range | Needs proximity conditional |
+| Salamander | Balanced (HRG/REC/LST even) + AGI | Fast sustainer, elemental | **Elemental Infusion**: attacks deal X% bonus damage matching weapon element | ✅ element traits on passive state; P4-2 |
+| Cephalopod | REC-heavy + MHP | Beefy, benefits most from ally/item healing | **Ink Shroud**: enemies you've recently hit deal X% less damage to you | ⏳ P2 gap — attacker-side debuff aura / recent-hit stamp |
+| Parasite | LST-heavy | Almost entirely self-sufficient through damage | **Siphon Aura**: lifesteal splashes X% of recovered HP to nearby allies | ✅ JABS passive state aura; P4-2 |
+| Bot | HRG-heavy + DEF | Mechanical durability, tick-based self-repair | **Self-Repair Subroutine**: auto-recover X% MHP every Y seconds | ✅ passive state periodic heal; P4-2 |
+| Crawler | HRG + LST, MSB↓ | Territorial area denier, immobile regen fortress | **Spire Network**: HRG and LST +X% while enemies are within melee range | ✅ `passiveSourceRule:[enemiesNearby, N]`; P4-2 |
 
 **Sustain spectrum within War Priest:**
 - Salamander: agile — sustains evenly while moving fast, elemental damage rider
@@ -431,11 +470,11 @@ This creates meaningful cross-archetype build tension:
 
 | Subgroup | Speed Fantasy | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Cobra | Poison + burst assassin | +CRI (heavy), poison synergy | **Venom Strike**: crits apply/extend poison | J-CriticalFactors extension (on-crit trigger) |
-| Fish | Kiter, never in range | +AGI (heavy), +MSB | **Slippery**: MSB +X% for 2s after dealing damage | Conditional stat modifier (post-damage) |
-| Cave Bat | Swarm, quantity over quality | +HIT, +AGI, tiny flat boosts | **Swarm Instinct**: HIT +X% per ally within range | Proximity conditional (ally count — new) |
-| Needler | Raw crit devastation | +CRI, +CDM (crit monster) | **Drilling Sting**: CDM +X% against debuffed targets | Target-state conditional (same as Roper) |
-| Bandit | Dirty tricks, saboteur | +LUK (heavy), debuff chance | **Pocket Sand**: attacks X% chance to blind (HIT↓) | **Works now** — RMMZ native state-on-hit via passive state |
+| Cobra | Poison + burst assassin | +CRI (heavy), poison synergy | **Venom Strike**: crits apply/extend poison | ✅ `onCritApply` / `thisCritApply` (`J-CriticalFactors` 1.1.0) |
+| Fish | Kiter, never in range | +AGI (heavy), +MSB | **Slippery**: MSB +X% for 2s after dealing damage | ✅ `passiveSourceRule:[attackedWithin, …]`; P4-2 |
+| Cave Bat | Swarm, quantity over quality | +HIT, +AGI, tiny flat boosts | **Swarm Instinct**: HIT +X% per ally within range | ✅ `passiveSourceRule:[alliesNearby, N]`; P4-2 |
+| Needler | Raw crit devastation | +CRI, +CDM (crit monster) | **Drilling Sting**: CDM +X% against debuffed targets | ⏳ target-state **trait** hook (P2 gap); damage variant ✅ `bonusDamageIfState` |
+| Bandit | Dirty tricks, saboteur | +LUK (heavy), debuff chance | **Pocket Sand**: attacks X% chance to blind (HIT↓) | ✅ RMMZ state-on-hit via passive state; P4-2 |
 
 **Weapon affinities:**
 
@@ -465,12 +504,12 @@ This creates meaningful cross-archetype build tension:
 
 | Subgroup | Artillery Fantasy | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Wisp | Fragile counter-aura, kill at range | +MAT, aura punisher | **Blistering Aura**: enemies in melee range take X% MHP fire damage/sec | JABS passive damage aura |
-| Lamia | Devastating laser, patient destruction | +MAT (heavy), charge-up | **Focusing Beam**: skill damage +X% per second of cast time | Existing cast time plugin + scaling modifier |
-| Polliwog | Stationary turret, commit to firing | +ATK or MAT | **Rooted Barrage**: consecutive attacks without moving deal +X% escalating damage (resets on movement) | Conditional modifier (movement-reset counter) |
-| Garuda | Mobile artillery, fire and reposition | +ATK, +AGI | **Tailwind**: MSB +X% for 3s after using a skill (reposition window) | Conditional stat modifier (post-skill) |
-| Minotaur | Wind-up charger, momentum = devastation | +ATK (heavy), knockback | **Momentum**: damage +X% based on distance traveled before attacking | Pixelistics extension (movement→damage) |
-| Hazard | Zone denial turret, area saturation | +MAT, area damage | **Blast Radius**: AoE skills have +X% increased area size | Needs AoE scaling modifier |
+| Wisp | Fragile counter-aura, kill at range | +MAT, aura punisher | **Blistering Aura**: enemies in melee range take X% MHP fire damage/sec | ✅ JABS passive damage aura; P4-2 |
+| Lamia | Devastating laser, patient destruction | +MAT (heavy), cast-time wind-up | **Focusing Beam**: direct skill damage +X% per second of cast time | ✅ `castTimeDamageBonus` / `thisCastTimeDamageBonus` (`J-ABS` 4.12.3) |
+| Polliwog | Stationary turret, commit to firing | +ATK or MAT | **Rooted Barrage**: consecutive attacks without moving deal +X% escalating damage (resets on movement) | ⏳ P2 gap — movement-reset hit counter (`sinceLastMoved` partial) |
+| Garuda | Mobile artillery, fire and reposition | +ATK, +AGI | **Tailwind**: MSB +X% for 3s after using a skill (reposition window) | ✅ `passiveSourceRule:[attackedWithin, …]`; P4-2 |
+| Minotaur | Wind-up charger, momentum = devastation | +ATK (heavy), knockback | **Momentum**: stack ATK while moving; cash out on charge skill | ✅ toolkit (`autoApplyState` `move` + `removeOnSkillExecution`); **P4-2** state/traits |
+| Hazard | Zone denial turret, area saturation | +MAT, area damage | **Blast Radius**: AoE skills have +X% increased area size | ✅ `rangeBuff` / `rangeRate` (`J-ABS` 4.12.3+) |
 
 **Cross-archetype synergies:**
 - Artillery + Berserker = disgusting burst (CRI/CDM from both) but MHP↓ + DEF↓ + PDR↑ = tissue paper
@@ -490,11 +529,11 @@ This creates meaningful cross-archetype build tension:
 
 | Subgroup | Wizard Fantasy | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Ghosty | Sloppy mid-range, escalating spells, first enemy in game | +MAT (steady) | **Spectral Cascade**: damage +X% per unique skill used in last 10s (reward rotation) | New plugin — skill execution history tracker |
-| Wolftrap | Root + dissolve, debuff DOTs | +MAT, debuff affinity | **Entangling Curse**: debuffs you apply last X% longer | **Works now** — existing state duration modifier plugin |
-| Brood | Swarm debuffer, poke and afflict | +ATK (physical poker), debuff spread | **Plague Swarm**: debuffs have X% per-tick chance to spread to nearby enemies (viral) | New — on-tick hook + viral propagation system |
-| Puppet | Marionette dark magic, single-target | +MAT (heavy), focused | **Soul Thread**: +X% damage when attack hits exactly one target (inferred at runtime via hit count) | Damage hook — check actual targets hit |
-| Elemental | Bosses you recruit, elemental mastery | +MAT, elemental | **Elemental Saturation**: elemental damage ignores X% of target's resist (cap at full damage, never bonus: `Math.max(0, resist - pierce)`) | Resistance-piercing modifier |
+| Ghosty | Sloppy mid-range, escalating spells, first enemy in game | +MAT (steady) | **Spectral Cascade**: damage +X% per unique skill used in last 10s (reward rotation) | ✅ `skillHistoryBonus` / `thisSkillHistoryBonus` (`J-ABS` 4.12.2+) |
+| Wolftrap | Root + dissolve, debuff DOTs | +MAT, debuff affinity | **Entangling Curse**: debuffs you apply last X% longer | ✅ existing state duration modifier; P4-2 |
+| Brood | Swarm debuffer, poke and afflict | +ATK (physical poker), debuff spread | **Plague Swarm**: debuffs have X% per-tick chance to spread to nearby enemies (viral) | ✅ **P3-3** verified — `J-ABS` 4.12.4 (P4-2 plague states at scale) |
+| Puppet | Marionette dark magic, single-target | +MAT (heavy), focused | **Soul Thread**: bonus damage vs debuffed/controlled targets | ✅ `perDebuffBuff` / `bonusDamageIfState` (`J-ABS` 4.12.3+); redesigned from single-target hit count |
+| Elemental | Bosses you recruit, elemental mastery | +MAT, elemental | **Elemental Saturation**: elemental damage ignores X% of target's resist (cap at full damage, never bonus: `Math.max(0, resist - pierce)`) | ✅ `pierceElement` / `thisPierceElement` (`J-Elementalistics` 1.1.0) |
 
 **Weapon affinities:**
 
@@ -518,10 +557,10 @@ This creates meaningful cross-archetype build tension:
 
 | Subgroup | Cleric Fantasy | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Goo Bat | Regen king, must Seal or one-shot | +MRG (heavy), regen aura | **Regeneration Aura**: nearby allies gain +X% HRG | JABS passive state aura |
-| Flower | Graveyard flower, cleanses debuffs | +MDF, debuff resistance | **Purifying Bloom**: X% chance per tick to auto-cleanse one debuff on self | On-tick self-cleanse (passive state) |
-| Kobold | Swarm trash evolved into field medic | +PHA (heavy), item focus | **Field Medic**: items used have X% chance to also affect nearest ally | Needs item-use splash system |
-| Emotion | Embodied emotions, emotional sustain | +REC (heavy), empathic | **Empathic Bond**: when an ally within range is healed, you receive X% of that heal | Needs heal-event listener + proximity check |
+| Goo Bat | Regen king, must Seal or one-shot | +MRG (heavy), regen aura | **Regeneration Aura**: nearby allies gain +X% HRG | ✅ JABS passive state aura; P4-2 |
+| Flower | Graveyard flower, cleanses debuffs | +MDF, debuff resistance | **Purifying Bloom**: X% chance per tick to auto-cleanse one debuff on self | ✅ on-tick self-cleanse passive state; P4-2 |
+| Kobold | Swarm trash evolved into field medic | +PHA (heavy), food rhythm | **Field Medic**: re-feed mid-chain without Overstuffed; tail eat always rescues into new Well Fed | ✅ `<overstuffedImpervious>` (`J-ABS-FOOD`); mastery state = P4-2 content |
+| Emotion | Embodied emotions, emotional sustain | +REC (heavy), empathic | **Empathic Bond**: when an ally within range is healed, you receive X% of that heal | ✅ heal-event tags (`J-Resources-ABS` 1.1.0) |
 
 ### Archetype prototype: Medic (approved)
 
@@ -535,9 +574,9 @@ This creates meaningful cross-archetype build tension:
 
 | Subgroup | Medic Fantasy | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Jelly | Pure ranged healer, mana battery, adorable | +MRG (heavy), mana sustain | **Mana Transfusion**: heals restore X% of heal value as MP to target | Needs heal-event hook + MP restore |
-| Dryad | Backline healer, offense when idle | +MDF (heavy), flex offense | **Nature's Wrath**: MAT +X% when all allies above 75% HP | Conditional stat modifier (party HP threshold) |
-| Runic Orb | Aura/buff battery, mana-hungry engine | +SHA (heavy), +MMP, MP-hungry skills | **Overcharge**: on-shield-break, explode for X% of shield value as AoE damage | On-shield-break hook exists — wire in explosion |
+| Jelly | Pure ranged healer, mana battery, adorable | +MRG (heavy), mana sustain | **Mana Transfusion**: heals restore X% of heal value as MP to target | ✅ `<onSelfHpHealMp:[PCT, R]>` etc. (`J-Resources-ABS` 1.1.0) |
+| Dryad | Backline healer, offense when idle | +MDF (heavy), flex offense | **Nature's Wrath**: MAT +X% when all allies above 75% HP | ⏳ P2 gap — party HP threshold |
+| Runic Orb | Aura/buff battery, mana-hungry engine | +SHA (heavy), +MMP, MP-hungry skills | **Overcharge**: on-shield-break, explode for X% of shield value as AoE damage | ✅ shield-break explosion (`J-ABS-Shield` P3-9) |
 
 **Medic + Cleric synergy:** Medic casts SHA-boosted shields → lands on SHE-boosted Cleric = massive
 barriers. Jelly refuels MP-hungry Orb users. ATK↓ from both = zero damage, pure support duo.
@@ -555,11 +594,11 @@ barriers. Jelly refuels MP-hungry Orb users. ATK↓ from both = zero damage, pur
 
 | Subgroup | Generalist Flavor | Meta Stat Focus | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Kappa | Lucky jack-of-all-trades, fast + support | +LUK, +EXR | **Trickster's Luck**: X% chance to negate incoming attack (pseudo-EVA) | Passive state — on-hit chance |
-| Hard Syrup | Elemental variants, reactive defense | +FDR, +small HRG, elemental variety | **Adaptive Slime**: resist to last element that hit you +X% for 5s | Conditional modifier (element tracker) |
-| Rot Rat | Resourceful swarm, compounding investor | +SDP Mult, +gold rate | **Resourceful Rodent**: SDP Mult +X% (stacks with per-rank gains) | **`sdr` (33) + `gdr` (41) work now** |
-| Orc | Hierarchical, versatile commander | Broadest flat spread, +MCR (small) | **Warchief's Command**: nearby allies +X% to their highest base stat | Proximity conditional (ally buff) |
-| Devil | Alluring gambler, double-edged | +LUK (heavy), +EXR | **Devil's Bargain**: all damage dealt AND received +X% | Implementable via traits |
+| Kappa | Lucky jack-of-all-trades, fast + support | +LUK, +EXR | **Trickster's Luck**: X% chance to negate incoming attack (pseudo-EVA) | ✅ passive state on-hit chance; P4-2 |
+| Hard Syrup | Elemental variants, reactive defense | +FDR, +small HRG, elemental variety | **Adaptive Slime**: resist to last element that hit you +X% for 5s | ⏳ P2 gap — last-element resist tracker |
+| Rot Rat | Resourceful swarm, compounding investor | +SDP Mult, +gold rate | **Resourceful Rodent**: SDP Mult +X% (stacks with per-rank gains) | ✅ `sdr` (33) + `gdr` (41) — notetag + SDP panels |
+| Orc | Hierarchical, versatile commander | Broadest flat spread, +MCR (small) | **Warchief's Command**: nearby allies +X% to their highest base stat | ✅ `passiveSourceRule:[alliesNearby, N]` + ally buff traits; P4-2 |
+| Devil | Alluring gambler, double-edged | +LUK (heavy), +EXR | **Devil's Bargain**: all damage dealt AND received +X% | ✅ traits on passive state; P4-2 |
 
 **Meta-progression stats housed in Generalist:**
 - EXR (experience rate) — Kappa, Devil
@@ -583,28 +622,43 @@ Critical for encouraging experimentation — if respec is too punishing, players
 
 ### Required plugin systems
 
-**Shipped (Phase 0 — see [`implementation-status.md`](./implementation-status.md)):**
+**Shipped (Phase 0 + P2/P3 — see [`implementation-status.md`](./implementation-status.md)):**
 
-| Design name | Registry key | Status |
+| Design name | Registry key / plugin | Status |
 |---|---|---|
 | LST / MST / TST | `lst`, `mst`, `tst` | ✅ Combat hook + SDP panels; LST/TST playtested |
 | SHA / SHE | `sar`, `ser` | ✅ `JABS_Shield` multipliers |
 | AP Mult | `apr` | ✅ `ApManager.gainAp()` |
 | Gold / drop rate | `gdr`, `dor` | ✅ Notetags + SDP panels |
+| Conditional mastery gates | `J-Passive-Conditional` | ✅ `passiveSourceRule`, `passiveStateRule`, `passiveStateCount` |
+| Auto-apply combat states | `J-Passive-Conditional` 1.0.0 | ✅ `autoApplyState` (`time`, `hpDmg`, `mpDmg`, `tpDmg`, `whenCrit`, `negaStateAdded`) |
+| On-crit apply | `J-CriticalFactors` | ✅ `onCritApply`, `thisCritApply` |
+| Pierce element | `J-Elementalistics` | ✅ `pierceElement`, `thisPierceElement` |
+| Skill history bonus | `J-ABS` core | ✅ `skillHistoryBonus`, `thisSkillHistoryBonus` |
+| Range scaling | `J-ABS` core | ✅ `rangeBuff`, `rangeRate` |
+| State damage mult | `J-ABS` core | ✅ `perDebuffBuff`, `bonusDamageIfState` |
+| Cast-time damage | `J-ABS` core | ✅ `castTimeDamageBonus`, `thisCastTimeDamageBonus` |
+| Heal cascades | `J-Resources-ABS` | ✅ `onSelf*Heal*`, `onAlly*Heal*` |
+| Shield-break explosion | `J-ABS-Shield` | ✅ P3-9 |
+| Food chains + Field Medic | `J-ABS-FOOD` | ✅ `<food:TYPE>`, `<overstuffedImpervious>` |
 
-**Still future:**
+**Still future (plugin work):**
 
-**Conditional Stat Modifiers** — a single plugin/system to handle mastery passives:
-- HP threshold triggers (below X% → apply trait)
-- Self state count triggers (per debuff on me → apply trait per stack)
-- Cooldown state triggers (no skills cooling down → apply trait)
-- Target state triggers (attacking debuffed enemy → apply trait)
-- Proximity triggers (enemies within melee range → apply trait)
-- Damage gap triggers (X seconds since last damage taken → apply trait)
+| Need | Example masteries | Status |
+|---|---|---|
+| Ghastly Ward pulse shield | Wraith | ✅ `autoApplyState` + shield state (P4-2) |
+| MP barrier (optional) | Wraith | ✅ **J-ABS-Shield** (P3-8) |
+| Momentum charge / skill cash-out | Minotaur Momentum | ✅ **J-Passive-Conditional** 1.0.0 (`move`, `removeOnSkillExecution`); P4-2 DB |
+| Viral debuff spread | Brood Plague Swarm | ✅ **P3-3** verified (`J-ABS` 4.12.4 — P4-2 DB at scale) |
+| Party HP threshold | Dryad Nature's Wrath | ⏳ P2 gap |
+| Last-element tracker | Hard Syrup Adaptive Slime | ⏳ P2 gap |
+| Movement-reset hit counter | Polliwog Rooted Barrage | ⏳ P2 gap |
+| Target-state CRI/CDM trait | Roper, Needler | ⏳ P2 gap (damage hooks shipped) |
+| Attacker-side recent-hit DR | Cephalopod Ink Shroud | ⏳ P2 gap |
+| Retaliate / reflect | Crimson Vice, Scorplite | ⏳ experiment |
 
-Many archetypes need this across Berserker, Guardian, Vanguard, and War Priest.
-Build once, tag-driven, reuse everywhere.
-Review ALL mastery passives across all 10 archetypes before building.
+Most other mastery passives are **P4-2 content** — author passive states/skills using shipped tags above.
+Review ALL mastery passives across all 10 archetypes before the P4-2 DB pass.
 
 ### Mastery model (decided)
 

@@ -1,0 +1,37 @@
+---
+description: Decode Chef Adventure database JSON (traits, ids) from live data — never guess from trait codes alone.
+globs:
+  - chef-adventure/data/**
+  - docs/**
+  - docs/sdp/**
+---
+
+# Chef Adventure database decode
+
+When reading or discussing **raw CA database JSON** (`chef-adventure/data/*.json`) — traits, effects, element/state/skill ids — **do not infer meaning from numbers alone**.
+
+## Required workflow
+
+1. Read **`docs/database-decode-cheatsheet.md`** for trait `code` → meaning and `value` scaling.
+2. Resolve **names from live data** (id → name):
+   - **Elements / skill types / equip types:** `chef-adventure/data/System.json` arrays (**index = id**).
+   - **States / skills / items:** respective `data/*.json` row `id` → `name`.
+3. When describing a trait row, run the decoder CLI (from `ca/` repo root):
+
+```bash
+bun chef-adventure/tools/decode-db-trait.mjs state <ID>
+bun chef-adventure/tools/decode-db-trait.mjs trait '{"code":32,"dataId":14,"value":0.15}'
+```
+
+Use CLI output (or the cheatsheet tables) in chat — **never** guess that `code: 32` is CEV or any ex-param.
+
+## Quick reminders
+
+| code | Meaning | `value` for proc traits |
+|---:|---|---|
+| **22** + dataId **3** | Crit Dodge (**cev**) | multiplier |
+| **32** + state dataId | **On-hit state proc** | **chance** (`0.15` = 15%) |
+
+Mastery **notetags** (`<skillHistoryBonus>`, `<passiveSourceRule>`, …) are **not** traits — see `docs/sdp/implementation-status.md`.
+
+Editor parity: `jmz-data-editor/app/src/presentation/hooks/useTraitMapping.ts`.

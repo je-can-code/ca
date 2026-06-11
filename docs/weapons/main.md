@@ -1,5 +1,8 @@
 # Weapons and their Types
 
+> **Family identity & subgroup design:** [`families.md`](./families.md) (index) · [`families/blade.md`](./families/blade.md) (**blade lots planned** — [`skill-lots.md`](./skill-lots.md)).
+> This file stays the **named weapon location** index.
+
 ## Named Weapons
 
 ### Swords

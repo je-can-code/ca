@@ -101,6 +101,13 @@ var JABS_Button = class {
 	*/
 	static Dodge = "Dodge";
 	/**
+	* The usable-item slot input (R2 by default).
+	* Executes whatever consumable item is currently equipped in the usable-item slot.
+	* This slot is agnostic to item type — tools are excluded, everything else is fair game.
+	* @type {string}
+	*/
+	static UsableItem = "UsableItem";
+	/**
 	* The sprint/dash input (engine-native dash replacement).
 	* While held, the player sprints if allowed.
 	* @type {string}
@@ -163,6 +170,7 @@ var JABS_Button = class {
 			this.Mainhand,
 			this.Offhand,
 			this.Tool,
+			this.UsableItem,
 			this.SkillTrigger,
 			this.Sprint,
 			this.Strafe,
@@ -182,6 +190,7 @@ var JABS_Button = class {
 			this.Mainhand,
 			this.Offhand,
 			this.Tool,
+			this.UsableItem,
 			this.Sprint,
 			this.SkillTrigger,
 			this.Strafe,
@@ -249,6 +258,7 @@ var JABS_StandardController = class extends JABS_BaseController {
 		this.inputMapping.set(JABS_Button.Mainhand, [J.ABS.EXT.INPUT.Symbols.Mainhand]);
 		this.inputMapping.set(JABS_Button.Offhand, [J.ABS.EXT.INPUT.Symbols.Offhand]);
 		this.inputMapping.set(JABS_Button.Tool, [J.ABS.EXT.INPUT.Symbols.Tool]);
+		this.inputMapping.set(JABS_Button.UsableItem, [J.ABS.EXT.INPUT.Symbols.MobilitySkill]);
 		this.inputMapping.set(JABS_Button.Sprint, [J.ABS.EXT.INPUT.Symbols.Dash]);
 		this.inputMapping.set(JABS_Button.Strafe, [J.ABS.EXT.INPUT.Symbols.StrafeTrigger]);
 		this.inputMapping.set(JABS_Button.Rotate, [J.ABS.EXT.INPUT.Symbols.GuardTrigger]);
@@ -272,6 +282,7 @@ var JABS_StandardController = class extends JABS_BaseController {
 		defaults[JABS_Button.Offhand] = [J.ABS.EXT.INPUT.Symbols.Offhand];
 		defaults[JABS_Button.Tool] = [J.ABS.EXT.INPUT.Symbols.Tool];
 		defaults[JABS_Button.Dodge] = [J.ABS.EXT.INPUT.Symbols.MobilitySkill];
+		defaults[JABS_Button.UsableItem] = [J.ABS.EXT.INPUT.Symbols.MobilitySkill];
 		defaults[JABS_Button.Sprint] = [J.ABS.EXT.INPUT.Symbols.Dash];
 		defaults[JABS_Button.Strafe] = [J.ABS.EXT.INPUT.Symbols.StrafeTrigger];
 		defaults[JABS_Button.Rotate] = [J.ABS.EXT.INPUT.Symbols.GuardTrigger];
@@ -381,6 +392,7 @@ var JABS_StandardController = class extends JABS_BaseController {
 		this.updateMainhandAction();
 		this.updateOffhandAction();
 		this.updateToolAction();
+		this.updateUsableItemAction();
 		this.updateSprintCommand();
 		this.updateCombatAction1();
 		this.updateCombatAction2();
@@ -578,6 +590,34 @@ var JABS_StandardController = class extends JABS_BaseController {
 	*/
 	performToolAction() {
 		JABS_InputAdapter.performToolAction(this.getBattler());
+	}
+	/**
+	* Monitors and takes action based on player input regarding the usable-item action.
+	* This is R2 on the gamepad by default.
+	*/
+	updateUsableItemAction() {
+		if (this.isUsableItemActionTriggered()) {
+			this.performUsableItemAction();
+		}
+	}
+	/**
+	* Checks the inputs of the usable-item action currently assigned (R2 default).
+	* @returns {boolean}
+	*/
+	isUsableItemActionTriggered() {
+		if (this.isCombatSkillUsageEnabled()) {
+			return false;
+		}
+		if (this.isActionTriggered(JABS_Button.UsableItem)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the currently assigned usable-item action (R2 default).
+	*/
+	performUsableItemAction() {
+		JABS_InputAdapter.performUsableItemAction(this.getBattler());
 	}
 	/**
 	* Checks the inputs to ensure the combat action enabler is being held down (L1 default).

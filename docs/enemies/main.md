@@ -79,9 +79,12 @@ to execute if letting them stay together.
 - (22) [131]Skeletor
 - (20) [132]Skeledoggo
 
-### Necro
+### Armor (Rust Bucket)
 
-- (??) [??]Necromancer
+Haunted armor — tsukumogami vibes. Absurd defense, paper HP, otherwise dull until you respect the plating.
+
+- (10) [141]Rust Bucket
+- (15) [142]!Haunted Cuirass
 
 ---
 
@@ -323,30 +326,35 @@ are paired with a high level of recklessness due to their ego.
 
 - (??) [??]Faker
 
-## Deity (2/5)
+## Deity (551–600)
 
-### Elemental Allies
+Five subgroup slots. Mastery skill/state ID = enemy ID + 1000. See [Deity family](../sdp/mastery-cheatsheet.md#family-10-deity-551600).
 
-- (??) [??]Earthie
+### 1 — Elemental (551–560)
+
+- (??) [551]Earthie
 - (30) [552]Aqualock
 - (45) [553]Cynder
 - (70) [554]Skye
 
-### Sin
+### 2 — Aspect (561–570)
 
-- (15) [561]#Gluttonwolf Mayor (gluttony)
-  - (17) [562]Gluttonwolf
-- (70) [563]Vampire King (wrath)
-  - (72) [564]Vampire Shade
+- (15) [561]Emotion
+- (??) [562–570]TBD Aspect
 
-### Deity-3
+### 3 — Sovereign (571–580)
 
-- (??) [??]???
+- (??) [571]Kaiju (rename TBD)
+- (??) [572–580]TBD Sovereign
 
-### Deity-4
+### 4 — Sin bosses (581–590)
 
-- (??) [??]???
+- (15) [581]Gluttonwolf Mayor (gluttony)
+  - (17) [582]Gluttonwolf
+- (70) [583]Vampire King (wrath)
+  - (72) [584]Vampire Shade
+- (??) [585–590]TBD Sin
 
-### Deity-5
+### 5 — Sin votaries (591–600)
 
-- (??) [??]???
+- (??) [591–600]TBD Sin Votary — respawning helpers; ~1% drop for matching `SIN_*` panel (no mastery IDs wired yet)
