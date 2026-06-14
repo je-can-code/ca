@@ -439,15 +439,21 @@ Game_Actor.prototype.getPassiveStateSources = function() {
 	return combinedSources;
 };
 /**
-* Extends {@link #traitObjects}.<br/>
+* Extends {@link #buildTraitObjects}.<br/>
 * When considering traits, also include the actor's and party's passive states.
+*
+* Returns a fresh array by spreading the base result and appending passives — never
+* mutates the base result so the {@link #traitObjects} cache stays safe.
+* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_State)[]}
 */
-J.PASSIVE.Aliased.Game_Actor.set("traitObjects", Game_Actor.prototype.traitObjects);
-Game_Actor.prototype.traitObjects = function() {
-	const originalObjects = J.PASSIVE.Aliased.Game_Actor.get("traitObjects").call(this);
-	originalObjects.push(...this.getPassiveStates());
-	originalObjects.push(...$gameParty.passiveStates());
-	return originalObjects;
+J.PASSIVE.Aliased.Game_Actor.set("buildTraitObjects", Game_Actor.prototype.buildTraitObjects);
+Game_Actor.prototype.buildTraitObjects = function() {
+	const baseObjects = J.PASSIVE.Aliased.Game_Actor.get("buildTraitObjects").call(this);
+	return [
+		...baseObjects,
+		...this.getPassiveStates(),
+		...$gameParty.passiveStates()
+	];
 };
 /**
 * Extends {@link #learnSkill}.<br/>
@@ -695,6 +701,7 @@ Game_Battler.prototype.refreshPassiveStates = function() {
 		}
 	});
 	this.cachePassiveCapableSources();
+	this.onBattlerDataChange();
 };
 /**
 * Determines whether a passive state from a specific source may be included
@@ -801,6 +808,15 @@ Game_Battler.prototype.allStates = function() {
 	return states;
 };
 /**
+* Overrides {@link #getPurgeableStates}.<br/>
+* Excludes passive states from the pool so forced removal via {@code removeStatesByPriority}
+* can never strip states that are granted by passive skills.
+* @returns {RPG_State[]}
+*/
+Game_Battler.prototype.getPurgeableStates = function() {
+	return this.allStates().filter((state) => this.isPassiveState(state.id) === false);
+};
+/**
 * Extends {@link #isStateAddable}.<br/>
 * Prevents adding states if they are identified as passive.
 */
@@ -852,14 +868,17 @@ Game_Enemy.prototype.onSetup = function(enemyId) {
 	this.refreshPassiveStates();
 };
 /**
-* Extends {@link #traitObjects}.<br/>
+* Extends {@link #buildTraitObjects}.<br/>
 * When considering traits, also include the enemy's passive states.
+*
+* Returns a fresh array by spreading the base result and appending passives — never
+* mutates the base result so the {@link #traitObjects} cache stays safe.
+* @returns {(RPG_Enemy|RPG_State)[]}
 */
-J.PASSIVE.Aliased.Game_Enemy.set("traitObjects", Game_Enemy.prototype.traitObjects);
-Game_Enemy.prototype.traitObjects = function() {
-	const originalObjects = J.PASSIVE.Aliased.Game_Enemy.get("traitObjects").call(this);
-	originalObjects.push(...this.getPassiveStates());
-	return originalObjects;
+J.PASSIVE.Aliased.Game_Enemy.set("buildTraitObjects", Game_Enemy.prototype.buildTraitObjects);
+Game_Enemy.prototype.buildTraitObjects = function() {
+	const baseObjects = J.PASSIVE.Aliased.Game_Enemy.get("buildTraitObjects").call(this);
+	return [...baseObjects, ...this.getPassiveStates()];
 };
 /**
 * Extends {@link #getNotesSources}.<br/>

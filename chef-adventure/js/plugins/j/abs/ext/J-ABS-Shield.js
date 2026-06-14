@@ -883,6 +883,76 @@ JABS_Engine.prototype.extendJabsState = function(jabsState, newJabsState) {
 
 //#endregion
 //#region src/plugins/abs/ext/shield/objects/Game_Battler.js
+/**
+* Extends {@link #initMembers}.<br/>
+* Initializes shield parameter caches.
+*/
+J.ABS.EXT.SHIELD.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
+Game_Battler.prototype.initMembers = function() {
+	J.ABS.EXT.SHIELD.Aliased.Game_Battler.get("initMembers").call(this);
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with JABS.
+	*/
+	this._j._abs ||= {};
+	/**
+	* A grouping of all JABS shield extension properties.
+	*/
+	this._j._abs._shield ||= {};
+	/**
+	* The cached result of {@link #baseSarFactor}.
+	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._abs._shield._cachedSarFactor = null;
+	/**
+	* The cached result of {@link #baseSerFactor}.
+	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._abs._shield._cachedSerFactor = null;
+};
+/**
+* Gets the cached SAR factor for this battler, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Battler.prototype.getCachedSarFactor = function() {
+	return this._j._abs._shield._cachedSarFactor;
+};
+/**
+* Sets the cached SAR factor for this battler.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedSarFactor = function(value) {
+	this._j._abs._shield._cachedSarFactor = value;
+};
+/**
+* Gets the cached SER factor for this battler, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Battler.prototype.getCachedSerFactor = function() {
+	return this._j._abs._shield._cachedSerFactor;
+};
+/**
+* Sets the cached SER factor for this battler.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedSerFactor = function(value) {
+	this._j._abs._shield._cachedSerFactor = value;
+};
+/**
+* Extends {@link #onBattlerDataChange}.<br/>
+* Invalidates the SAR and SER factor caches.
+*/
+J.ABS.EXT.SHIELD.Aliased.Game_Battler.set("onBattlerDataChange", Game_Battler.prototype.onBattlerDataChange);
+Game_Battler.prototype.onBattlerDataChange = function() {
+	J.ABS.EXT.SHIELD.Aliased.Game_Battler.get("onBattlerDataChange").call(this);
+	this.setCachedSarFactor(null);
+	this.setCachedSerFactor(null);
+};
 Object.defineProperties(Game_BattlerBase.prototype, {
 	/**
 	* Outgoing shield amplification (1.0 = baseline).
@@ -925,19 +995,29 @@ Object.defineProperty(Game_Battler.prototype, "ser", {
 });
 /**
 * Sums `<sar:X>` notetags into a multiplier factor.
+* Result is cached and invalidated by {@link #onBattlerDataChange}.
 * @returns {number}
 */
 Game_Battler.prototype.baseSarFactor = function() {
+	if (this.getCachedSarFactor() !== null) {
+		return this.getCachedSarFactor();
+	}
 	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.EXT.SHIELD.RegExp.ShieldAmplification);
-	return (100 + bonus) / 100;
+	this.setCachedSarFactor((100 + bonus) / 100);
+	return this.getCachedSarFactor();
 };
 /**
 * Sums `<ser:X>` notetags into a multiplier factor.
+* Result is cached and invalidated by {@link #onBattlerDataChange}.
 * @returns {number}
 */
 Game_Battler.prototype.baseSerFactor = function() {
+	if (this.getCachedSerFactor() !== null) {
+		return this.getCachedSerFactor();
+	}
 	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.EXT.SHIELD.RegExp.ShieldEffectiveness);
-	return (100 + bonus) / 100;
+	this.setCachedSerFactor((100 + bonus) / 100);
+	return this.getCachedSerFactor();
 };
 
 //#endregion

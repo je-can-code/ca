@@ -1195,11 +1195,15 @@ var Sprite_InputKeySlot = class extends Sprite {
 	}
 	/**
 	* Creates the key for the input key skill name sprite based on the parameters.
+	* The offhand slot includes the equipped skill id so that swapping between a guard
+	* skill and an action skill produces a fresh sprite with the correct label.
+	* @param {JABS_SkillSlot} skillSlot The slot being labelled.
 	* @param {string} inputType The type of input for this key.
 	* @returns {string}
 	*/
-	makeInputKeySlotNameSpriteKey(inputType) {
-		return `slotname-${this.battler().name()}-${this.battler().battlerId()}-${inputType}`;
+	makeInputKeySlotNameSpriteKey(skillSlot, inputType) {
+		const slotId = inputType === JABS_Button.Offhand ? skillSlot.id : 0;
+		return `slotname-${this.battler().name()}-${this.battler().battlerId()}-${inputType}-${slotId}`;
 	}
 	/**
 	* Creates a slot name sprite for the given input key and caches it.
@@ -1208,13 +1212,16 @@ var Sprite_InputKeySlot = class extends Sprite {
 	* @returns {Sprite_BaseText}
 	*/
 	getOrCreateInputKeySlotNameSprite(skillSlot, inputType) {
-		const key = this.makeInputKeySlotNameSpriteKey(inputType);
+		const key = this.makeInputKeySlotNameSpriteKey(skillSlot, inputType);
 		if (this._j._spriteCache.has(key)) {
 			return this._j._spriteCache.get(key);
 		}
 		let labelText = inputType.toUpperCase();
 		if (skillSlot.isSecondarySlot()) {
 			labelText = labelText.replace("COMBAT", String.empty);
+		}
+		if (inputType === JABS_Button.Offhand && skillSlot.id && JABS_Battler.isGuardSkillById(skillSlot.id)) {
+			labelText = "GUARD";
 		}
 		const sprite = new Sprite_BaseText(labelText).setFontSize(12).setAlignment(Sprite_BaseText.Alignments.Center).setBold(true);
 		this._j._spriteCache.set(key, sprite);

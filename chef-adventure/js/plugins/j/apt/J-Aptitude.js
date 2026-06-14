@@ -720,14 +720,17 @@ apr: {
 } });
 Object.defineProperty(Game_Actor.prototype, "apr", {
 	get: function() {
+		if (this.getCachedApr() !== null) {
+			return this.getCachedApr();
+		}
 		const multiplier = 100;
-		const objectsToCheck = this.getAllNotes();
-		const bonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.APT.RegExp.AptMultiplier);
+		const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.APT.RegExp.AptMultiplier);
 		let factor = (multiplier + bonus) / 100;
 		if (this.getSdpBonusForParameterKey) {
 			factor += this.getSdpBonusForParameterKey("apr", 1);
 		}
-		return factor;
+		this.setCachedApr(factor);
+		return this.getCachedApr();
 	},
 	configurable: true
 });
@@ -775,6 +778,35 @@ Game_Actor.prototype.initAptitudeMembers = function() {
 	* @type {Record<number, AptitudeSkill>}
 	*/
 	this._j._aptitude._learned = {};
+	/**
+	* The cached result of the {@link #apr} property getter.
+	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._aptitude._cachedApr = null;
+};
+/**
+* Gets the cached APR factor for this actor, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Actor.prototype.getCachedApr = function() {
+	return this._j._aptitude._cachedApr;
+};
+/**
+* Sets the cached APR factor for this actor.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Actor.prototype.setCachedApr = function(value) {
+	this._j._aptitude._cachedApr = value;
+};
+/**
+* Extends {@link #onBattlerDataChange}.<br/>
+* Invalidates the APR factor cache.
+*/
+J.APT.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function() {
+	J.APT.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
+	this.setCachedApr(null);
 };
 /**
 * Gets all aptitude progress for this actor.

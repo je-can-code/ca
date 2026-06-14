@@ -497,9 +497,9 @@ var HealEventManager = class {
 	* @param {number} amount The positive amount to recover.
 	*/
 	static #applySecondaryHeal(battler, outputKey, amount) {
-		if (outputKey === "Hp") battler.gainHp(amount);
-		else if (outputKey === "Mp") battler.gainMp(amount);
-		else battler.gainTp(amount);
+		if (outputKey === "Hp") battler.gainHpFromResource(amount);
+		else if (outputKey === "Mp") battler.gainMpFromResource(amount);
+		else battler.gainTpFromResource(amount);
 	}
 	/**
 	* Collects all [percent, range] tuples from notes for a given family/trigger/output combination.

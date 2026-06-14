@@ -3567,10 +3567,11 @@ var RPGManager = class RPGManager {
 	* @returns {Map<string, any>} The cache for the object.
 	*/
 	static getOrCreateCacheForObject(object) {
-		const cacheHit = this._cache.get(object);
+		const cacheTarget = object instanceof RPG_Base ? object._original() : object;
+		const cacheHit = this._cache.get(cacheTarget);
 		if (cacheHit) return cacheHit;
 		const newCache = new Map();
-		this._cache.set(object, newCache);
+		this._cache.set(cacheTarget, newCache);
 		return newCache;
 	}
 	/**
@@ -7195,6 +7196,33 @@ Game_Actor.prototype.haveEquipsChanged = function(oldEquips) {
 	return hasDifferentEquips;
 };
 /**
+* Overwrites the vanilla {@link #traitObjects} defined on {@link Game_Actor}.<br/>
+* Routes all calls through the cache wrapper on {@link Game_BattlerBase} so the
+* vanilla implementation — which pushes directly into the returned array — can never
+* shadow our cache layer or cause accidental mutation.
+* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_State)[]}
+*/
+Game_Actor.prototype.traitObjects = function() {
+	return Game_BattlerBase.prototype.traitObjects.call(this);
+};
+/**
+* Overwrites {@link #buildTraitObjects}.<br/>
+* Actors have additional trait-bearing sources beyond states: their actor data,
+* current class, and all currently equipped items.
+*
+* Returns a fresh array — never mutates the result of any super call — so the
+* cache in {@link #traitObjects} remains safe.
+* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_State)[]}
+*/
+Game_Actor.prototype.buildTraitObjects = function() {
+	return [
+		...this.states(),
+		this.actor(),
+		this.currentClass(),
+		...this.equippedEquips()
+	];
+};
+/**
 * Gets all currently-equipped equips for this actor.
 * Normally, {@link #equips} includes `null`s where there may be empty equipment slots,
 * but this filters those out for you.
@@ -7348,22 +7376,93 @@ Game_Battler.prototype.getBaseMaxTp = function() {
 };
 /**
 * The base bonus to max tech on this battler.
+* Result is cached and invalidated by {@link #onBattlerDataChange}.
 * @returns {number}
 */
 Game_Battler.prototype.getBaseMaxTpBonuses = function() {
-	const objectsToCheck = this.getAllNotes();
-	return RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.BASE.RegExp.MaxTp);
+	if (this.getCachedMaxTpBonuses() !== null) {
+		return this.getCachedMaxTpBonuses();
+	}
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.BASE.RegExp.MaxTp);
+	this.setCachedMaxTpBonuses(bonus);
+	return this.getCachedMaxTpBonuses();
+};
+/**
+* Extends {@link #initMembers}.<br/>
+* Initializes the notes cache for this battler.
+*/
+J.BASE.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
+Game_Battler.prototype.initMembers = function() {
+	J.BASE.Aliased.Game_Battler.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with the base plugin.
+	*/
+	this._j._base ||= {};
+	/**
+	* The cached result of {@link #getNotesSources} for this battler.
+	* Null when the cache is cold; populated on the first {@link #getAllNotes} call after
+	* construction or after {@link #onBattlerDataChange} invalidates it.
+	* @type {RPG_BaseItem[]|null}
+	*/
+	this._j._base._cachedAllNotes = null;
+	/**
+	* The cached result of {@link #getBaseMaxTpBonuses} for this battler.
+	* Null when the cache is cold; populated on the first call and invalidated by
+	* {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._base._cachedMaxTpBonuses = null;
+};
+/**
+* Gets the cached max-tp-bonuses value for this battler, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Battler.prototype.getCachedMaxTpBonuses = function() {
+	return this._j._base._cachedMaxTpBonuses;
+};
+/**
+* Sets the cached max-tp-bonuses value for this battler.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedMaxTpBonuses = function(value) {
+	this._j._base._cachedMaxTpBonuses = value;
+};
+/**
+* Gets the cached all-notes collection for this battler, or null if the cache is cold.
+* @returns {RPG_BaseItem[]|null}
+*/
+Game_Battler.prototype.getCachedAllNotes = function() {
+	return this._j._base._cachedAllNotes;
+};
+/**
+* Sets the cached all-notes collection for this battler.
+* @param {RPG_BaseItem[]|null} notes The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedAllNotes = function(notes) {
+	this._j._base._cachedAllNotes = notes;
 };
 /**
 * Gets everything that this battler has with notes on it.
+*
+* The result is cached and shared across all callers within a single data-change cycle.
+* The cache is invalidated by {@link #onBattlerDataChange}, which fires whenever states,
+* equipment, skills, or any other note-bearing data changes on this battler.
+*
 * All battlers have their own database data, along with all their states.
 * Actors also get their class, skills, and equips added.
 * Enemies also get their skills added.
 * @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
 */
 Game_Battler.prototype.getAllNotes = function() {
-	const objectsWithNotes = this.getNotesSources();
-	return objectsWithNotes;
+	if (this.getCachedAllNotes() !== null) {
+		return this.getCachedAllNotes();
+	}
+	this.setCachedAllNotes(this.getNotesSources());
+	return this.getCachedAllNotes();
 };
 /**
 * Gets all database objects from which notes can be derived for this battler.
@@ -7382,7 +7481,12 @@ Game_Battler.prototype.getNotesSources = function() {
 *
 * Unlike {@link Game_Battler.refresh}, this does not trigger when hp/mp/tp changes.
 */
-Game_Battler.prototype.onBattlerDataChange = function() {};
+Game_Battler.prototype.onBattlerDataChange = function() {
+	this.setCachedAllNotes(null);
+	this.setCachedTraitObjects(null);
+	this.setCachedAllTraits(null);
+	this.setCachedMaxTpBonuses(null);
+};
 /**
 * Gets the state associated with the given state id.
 * By abstracting this, we can modify the underlying state before it reaches its destination.
@@ -7511,6 +7615,113 @@ Game_Battler.prototype.gainTp = function(value) {
 
 //#endregion
 //#region src/plugins/_base/objects/Game_BattlerBase.js
+/**
+* Extends {@link #initMembers}.<br/>
+* Initializes the trait objects cache for this battler.
+*/
+J.BASE.Aliased.Game_BattlerBase.set("initMembers", Game_BattlerBase.prototype.initMembers);
+Game_BattlerBase.prototype.initMembers = function() {
+	J.BASE.Aliased.Game_BattlerBase.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with the base plugin.
+	*/
+	this._j._base ||= {};
+	/**
+	* The cached result of {@link #buildTraitObjects} for this battler.
+	* Null when the cache is cold; populated on the first {@link #traitObjects} call after
+	* construction or after {@link #onBattlerDataChange} invalidates it.
+	* @type {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]|null}
+	*/
+	this._j._base._cachedTraitObjects = null;
+	/**
+	* The cached result of {@link #allTraits} for this battler.
+	* Null when the cache is cold; populated on the first {@link #allTraits} call after
+	* construction or after {@link #onBattlerDataChange} invalidates it.
+	* Every downstream trait query ({@link #traits}, {@link #traitsWithId}, {@link #traitsPi},
+	* {@link #traitsDeltaSum}, {@link #traitsSum}) benefits automatically.
+	* @type {MV.Trait[]|null}
+	*/
+	this._j._base._cachedAllTraits = null;
+};
+/**
+* Gets the cached trait objects for this battler, or null if the cache is cold.
+* @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]|null}
+*/
+Game_BattlerBase.prototype.getCachedTraitObjects = function() {
+	return this._j._base._cachedTraitObjects;
+};
+/**
+* Sets the cached trait objects for this battler.
+* @param {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]|null} traitObjects The new cached value, or null to invalidate.
+*/
+Game_BattlerBase.prototype.setCachedTraitObjects = function(traitObjects) {
+	this._j._base._cachedTraitObjects = traitObjects;
+};
+/**
+* Gets all objects that bear traits for this battler.
+*
+* The result is cached and shared across all callers within a single data-change cycle.
+* The cache is invalidated by {@link #onBattlerDataChange}, which fires whenever states,
+* equipment, skills, or any other trait-bearing data changes on this battler.
+*
+* Subclasses define their full trait object list via {@link #buildTraitObjects} rather than
+* pushing into the returned array — this keeps the cache safe from accidental mutation.
+* @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
+*/
+Game_BattlerBase.prototype.traitObjects = function() {
+	if (this.getCachedTraitObjects() !== null) {
+		return this.getCachedTraitObjects();
+	}
+	this.setCachedTraitObjects(this.buildTraitObjects());
+	return this.getCachedTraitObjects();
+};
+/**
+* Builds the complete list of objects that bear traits for this battler.
+*
+* This is the extension point for subclasses — override this instead of {@link #traitObjects}
+* so the cache layer in {@link #traitObjects} remains intact. Return a fresh array each call;
+* never mutate the result of a super call.
+* @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
+*/
+Game_BattlerBase.prototype.buildTraitObjects = function() {
+	return [...this.states()];
+};
+/**
+* Gets the cached flat trait list for this battler, or null if the cache is cold.
+* @returns {MV.Trait[]|null}
+*/
+Game_BattlerBase.prototype.getCachedAllTraits = function() {
+	return this._j._base._cachedAllTraits;
+};
+/**
+* Sets the cached flat trait list for this battler.
+* @param {MV.Trait[]|null} allTraits The new cached value, or null to invalidate.
+*/
+Game_BattlerBase.prototype.setCachedAllTraits = function(allTraits) {
+	this._j._base._cachedAllTraits = allTraits;
+};
+/**
+* Gets the flat list of all traits from all trait-bearing objects for this battler.
+*
+* The result is cached and shared across all callers within a single data-change cycle.
+* Every downstream trait query — {@link #traits}, {@link #traitsWithId}, {@link #traitsPi},
+* {@link #traitsDeltaSum}, {@link #traitsSum} — benefits automatically since they all
+* call this method first.
+*
+* The cache is invalidated by {@link #onBattlerDataChange}.
+* @returns {MV.Trait[]}
+*/
+Game_BattlerBase.prototype.allTraits = function() {
+	if (this.getCachedAllTraits() !== null) {
+		return this.getCachedAllTraits();
+	}
+	this.setCachedAllTraits(this.traitObjects().reduce((r, obj) => r.concat(obj.traits), []));
+	return this.getCachedAllTraits();
+};
 /**
 * Returns a list of known base parameter ids.
 * @returns {number[]}
@@ -7899,6 +8110,27 @@ Game_Enemy.prototype.setup = function(enemyId) {
 */
 Game_Enemy.prototype.onSetup = function(enemyId) {
 	this.onBattlerDataChange();
+};
+/**
+* Overwrites the vanilla {@link #traitObjects} defined on {@link Game_Enemy}.<br/>
+* Routes all calls through the cache wrapper on {@link Game_BattlerBase} so the
+* vanilla implementation — which concatenates directly onto the returned array — can never
+* shadow our cache layer or cause accidental mutation.
+* @returns {(RPG_Enemy|RPG_State)[]}
+*/
+Game_Enemy.prototype.traitObjects = function() {
+	return Game_BattlerBase.prototype.traitObjects.call(this);
+};
+/**
+* Overwrites {@link #buildTraitObjects}.<br/>
+* Enemies have one additional trait-bearing source beyond states: their own enemy database entry.
+*
+* Returns a fresh array — never mutates the result of any super call — so the
+* cache in {@link #traitObjects} remains safe.
+* @returns {(RPG_Enemy|RPG_State)[]}
+*/
+Game_Enemy.prototype.buildTraitObjects = function() {
+	return [...this.states(), this.enemy()];
 };
 /**
 * Converts all "actions" from an enemy into their collection of known skills.

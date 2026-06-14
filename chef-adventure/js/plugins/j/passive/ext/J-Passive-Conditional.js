@@ -302,6 +302,23 @@ J.PASSIVE.EXT.CONDITIONAL.RegExp.PassiveStateCount = /<passiveStateCount:[ ]?(\[
 */
 J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState = /<autoApplyState:[ ]?(\[[^\]]+])>/gi;
 /**
+* Captures {@code autoApplyStateOnNearby} bracket tuples from database notes.<br/>
+* Parsed by {@link RPGManager.getArraysFromNotesByRegex} (Path 1: outer tag + inner bracket capture).<br/>
+* Each match schedules a real JABS state application onto nearby battlers (aura-style).
+* <p>
+* Unlike {@code autoApplyState} which applies to the rule bearer, this tag applies the state to
+* every enemy or ally within proximity on each pulse. Only {@code enemiesNearby} and
+* {@code alliesNearby} conditions are meaningful here.
+* </p>
+* <ul>
+*   <li>{@code [1061, 'enemiesNearby', 1, 60]} — apply to all nearby enemies every 60 frames</li>
+*   <li>{@code [1062, 'alliesNearby', 1, 120]} — apply to all nearby allies every 120 frames</li>
+*   <li>{@code [1063, 'enemiesNearby', 2, 60, 3]} — apply when 2+ enemies within 3 tiles, every 60 frames</li>
+* </ul>
+* @type {RegExp}
+*/
+J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby = /<autoApplyStateOnNearby:[ ]?(\[[^\]]+])>/gi;
+/**
 * Captures {@code autoExecuteSkill} bracket tuples from database notes.<br/>
 * Parsed by {@link RPGManager.getArraysFromNotesByRegex} (Path 1: outer tag + inner bracket capture).<br/>
 * Each match schedules a map skill via {@link AutoExecuteSkillManager} and {@link JABS_Engine#forceMapAction}.
@@ -383,6 +400,16 @@ Object.defineProperty(RPG_BaseBattler.prototype, "autoApplyStateRules", { get() 
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState, true);
 } });
 /**
+* Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby} tuples from this row.<br/>
+* Each tuple schedules a real state application onto nearby battlers via
+* {@link AutoApplyStateOnNearbyManager} — aura-style, targeting enemies or allies in proximity
+* rather than the rule bearer itself.
+* @type {any[][]}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "autoApplyStateOnNearbyRules", { get() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby, true);
+} });
+/**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill} tuples from this row.<br/>
 * Each tuple schedules a map skill via {@link AutoExecuteSkillManager}.
 * @type {any[][]}
@@ -424,6 +451,16 @@ Object.defineProperty(RPG_BaseItem.prototype, "passiveStateCounts", { get() {
 */
 Object.defineProperty(RPG_BaseItem.prototype, "autoApplyStateRules", { get() {
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState, true);
+} });
+/**
+* Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby} tuples from this row.<br/>
+* Each tuple schedules a real state application onto nearby battlers via
+* {@link AutoApplyStateOnNearbyManager} — aura-style, targeting enemies or allies in proximity
+* rather than the rule bearer itself.
+* @type {any[][]}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "autoApplyStateOnNearbyRules", { get() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby, true);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill} tuples from this row.<br/>
@@ -659,6 +696,30 @@ var PassiveRuleJabsAccess = class {
 		return allies;
 	}
 	/**
+	* Allied JABS battlers within an explicit tile radius, excluding self.<br/>
+	* Used by scoped resource threshold gates ({@code anyAlly}, {@code allAllies} scope).
+	* @param {Game_Battler} battler The evaluating battler.
+	* @param {number} range Tile radius.
+	* @returns {JABS_Battler[]} Allied JABS battlers in range, never including the evaluator.
+	*/
+	static alliedBattlersWithinRange(battler, range) {
+		const jabsBattler = this.getJabsBattler(battler);
+		if (!jabsBattler) return [];
+		return JABS_AiManager.getAlliedBattlersWithinRange(jabsBattler, range).filter((ally) => ally.getUuid() !== jabsBattler.getUuid());
+	}
+	/**
+	* Opposing JABS battlers within an explicit tile radius.<br/>
+	* Used by scoped resource threshold gates ({@code anyEnemy}, {@code allEnemies} scope).
+	* @param {Game_Battler} battler The evaluating battler.
+	* @param {number} range Tile radius.
+	* @returns {JABS_Battler[]} Opposing JABS battlers within range.
+	*/
+	static opposingBattlersWithinRange(battler, range) {
+		const jabsBattler = this.getJabsBattler(battler);
+		if (!jabsBattler) return [];
+		return JABS_AiManager.getOpposingBattlersWithinRange(jabsBattler, range);
+	}
+	/**
 	* Maps author-facing slot names to {@link JABS_Button} keys.<br/>
 	* Accepts shorthand like {@code mainhand} / {@code skill1} as well as raw button keys.
 	* @param {string|number} slotParam Author tag value for a skill slot.
@@ -686,62 +747,144 @@ var PassiveRuleJabsAccess = class {
 };
 
 //#endregion
-//#region src/plugins/passive/ext/conditional/managers/AutoApplyStateManager.js
+//#region src/plugins/passive/ext/conditional/managers/AutoRuleManager.js
 /**
-* Schedules real JABS state applications from {@link RPG_BaseItem#autoApplyStateRules} /
-* {@link RPG_BaseBattler#autoApplyStateRules} tuples.<br/>
-* Separate from the passive grant pipeline — uses {@link Game_Battler#addState} on the map.
+* Base class for managers that schedule automatic effects from passive-capable source tuples.
+*
+* Owns every condition branch — time, proximity, damage, state, movement, heal — and delegates
+* only the terminal dispatch (apply a state vs execute a skill) to the subclass.
+*
+* Subclasses must implement:
+*  - {@link rulesProperty}  — name of the source property holding authored tuples
+*  - {@link dispatch}       — terminal action (addState / forceMapAction)
 */
-var AutoApplyStateManager = class {
+var AutoRuleManager = class {
 	/**
-	* Evaluates every {@code time} rule on this battler while they are active on the ABS map.
-	* @param {Game_Actor|Game_Enemy} battler The battler receiving scheduled states.
+	* The name of the property on each source object that holds the authored rule tuples.
+	*
+	* Examples: {@code 'autoApplyStateRules'} or {@code 'autoExecuteSkillRules'}.
+	* @returns {string} - The property name holding rule tuples on source objects.
+	*/
+	static get rulesProperty() {
+		throw new Error(`${this.name} must implement static get rulesProperty()`);
+	}
+	/**
+	* The terminal action for one resolved rule.
+	*
+	* Called after all condition and cooldown gates pass. Subclasses implement
+	* the actual effect — applying a state, firing a skill, etc.
+	* @param {Game_Battler} _battler - The battler that owns the rule.
+	* @param {number} _id - State id or skill id, depending on the subclass.
+	* @returns {boolean} - True when the effect was successfully dispatched.
+	*/
+	static dispatch(_battler, _id) {
+		throw new Error(`${this.name} must implement static dispatch()`);
+	}
+	/**
+	* Evaluates every {@code time} rule on this battler while active on the ABS map.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules may fire.
 	*/
 	static processTimeRules(battler) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
-		this.tryApply(battler, "time");
+		this.tryDispatch(battler, "time");
 	}
 	/**
-	* Evaluates {@code stand} rules while this battler is idle on the ABS map.
-	* @param {Game_Actor|Game_Enemy} battler The battler receiving scheduled states.
+	* Evaluates every {@code stand} rule while this battler is idle on the ABS map.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules may fire.
 	*/
 	static processStandRules(battler) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		const lastMovedFrame = battler.getPassiveRuleLastMovedFrame();
 		const framesSinceMoved = Graphics.frameCount - lastMovedFrame;
 		if (framesSinceMoved === 0) return;
-		this.tryApply(battler, "stand");
+		this.tryDispatch(battler, "stand");
 	}
 	/**
-	* Credits one whole tile of travel toward {@code move} auto-apply rules.<br/>
-	* Called from {@link Game_CharacterBase#updatePixelStepping} after Pixelistics tile stepping.
-	* @param {Game_Actor|Game_Enemy} battler The battler that took a map tile step.
+	* Evaluates every {@code enemiesNearby} rule on this battler while on the ABS map.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules may fire.
+	*/
+	static processEnemiesNearbyRules(battler) {
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		this.tryDispatch(battler, "enemiesNearby");
+	}
+	/**
+	* Evaluates every {@code alliesNearby} rule on this battler while on the ABS map.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules may fire.
+	*/
+	static processAlliesNearbyRules(battler) {
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		this.tryDispatch(battler, "alliesNearby");
+	}
+	/**
+	* Fires resource-specific and {@code anyDmg} rules after damage is applied to one pool.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that took damage.
+	* @param {'hpDmg'|'mpDmg'|'tpDmg'} resourceKind - Which resource pool decreased.
+	*/
+	static scheduleDamageTriggers(battler, resourceKind) {
+		this.tryDispatch(battler, resourceKind);
+		this.tryDispatch(battler, "anyDmg");
+	}
+	/**
+	* Fires {@code whenCrit} rules after this battler is struck by a critical hit.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that was critically hit.
+	*/
+	static scheduleCritTriggers(battler) {
+		this.tryDispatch(battler, "whenCrit");
+	}
+	/**
+	* Fires state-polarity and {@code anyStateAdded} rules after a combat state lands on this battler.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that received the state.
+	* @param {number} stateId - The database id of the state that was added.
+	*/
+	static scheduleStateAddedTriggers(battler, stateId) {
+		this.tryDispatch(battler, "anyStateAdded");
+		const state = $dataStates[stateId];
+		if (!state) return;
+		if (state.jabsNegative === true) {
+			this.tryDispatch(battler, "negaStateAdded");
+		} else {
+			this.tryDispatch(battler, "posiStateAdded");
+		}
+	}
+	/**
+	* Fires heal-receive rules after one resource pool is restored on this battler.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that was healed.
+	* @param {'onHealHp'|'onHealMp'|'onHealTp'} healKind - Which resource pool was restored.
+	*/
+	static scheduleHealTriggers(battler, healKind) {
+		this.tryDispatch(battler, healKind);
+	}
+	/**
+	* Credits one whole tile of travel toward {@code move} rules on this battler.
+	*
+	* Called from {@link Game_CharacterBase#updatePixelStepping} after a Pixelistics tile step completes.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that completed a whole map tile step.
 	*/
 	static creditTileStep(battler) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		const rules = this.collectRules(battler);
 		for (const entry of rules) {
 			const { source, tuple, tupleIndex } = entry;
-			const stateId = Number(tuple[0]);
+			const id = Number(tuple[0]);
 			const kind = String(tuple[1]);
-			const tilesPerApply = Number(tuple[2]);
-			if (Number.isNaN(stateId) || stateId <= 0) continue;
+			const tilesPerDispatch = Number(tuple[2]);
+			if (Number.isNaN(id) || id <= 0) continue;
 			if (kind !== "move") continue;
-			if (Number.isNaN(tilesPerApply) || tilesPerApply <= 0) continue;
-			const ruleKey = this.buildRuleKey(source, tupleIndex, stateId, kind);
-			const priorCredit = battler.getAutoApplyTileCredit(ruleKey);
+			if (Number.isNaN(tilesPerDispatch) || tilesPerDispatch <= 0) continue;
+			const ruleKey = this.buildRuleKey(source, tupleIndex, id, kind);
+			const priorCredit = battler.getAutoRuleTileCredit(ruleKey);
 			const nextCredit = priorCredit + 1;
-			if (nextCredit < tilesPerApply) {
-				battler.setAutoApplyTileCredit(ruleKey, nextCredit);
+			if (nextCredit < tilesPerDispatch) {
+				battler.setAutoRuleTileCredit(ruleKey, nextCredit);
 				continue;
 			}
-			this.#applyState(battler, stateId);
-			battler.setAutoApplyTileCredit(ruleKey, 0);
+			this.dispatch(battler, id);
+			battler.setAutoRuleTileCredit(ruleKey, 0);
 		}
 	}
 	/**
 	* Forwards one Pixelistics tile step from a map character to its underlying battler.
-	* @param {Game_Character} character The character that just completed a whole-tile step.
+	* @param {Game_Character} character - The character that just completed a whole-tile step.
 	*/
 	static processTileStepFromCharacter(character) {
 		const jabsBattler = character.getJabsBattler();
@@ -751,59 +894,39 @@ var AutoApplyStateManager = class {
 		this.creditTileStep(battler);
 	}
 	/**
-	* Fires resource-specific and {@code anyDmg} auto-apply rules after damage to one pool.
-	* @param {Game_Actor|Game_Enemy} battler The battler that took damage.
-	* @param {'hpDmg'|'mpDmg'|'tpDmg'} resourceKind Which resource decreased.
+	* Walks every authored tuple on this battler and dispatches when the condition kind matches.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules are evaluated.
+	* @param {string} conditionKind - The condition kind to match against authored tuples.
 	*/
-	static scheduleDamageTriggers(battler, resourceKind) {
-		battler.tryAutoApplyStates(resourceKind);
-		battler.tryAutoApplyStates("anyDmg");
-	}
-	/**
-	* Fires state-polarity and {@code anyStateAdded} auto-apply after a combat state lands.
-	* @param {Game_Actor|Game_Enemy} battler The battler that received the state.
-	* @param {number} stateId The database state id that was added.
-	*/
-	static scheduleStateAddedTriggers(battler, stateId) {
-		battler.tryAutoApplyStates("anyStateAdded");
-		const state = $dataStates[stateId];
-		if (!state) return;
-		if (state.jabsNegative === true) {
-			battler.tryAutoApplyStates("negaStateAdded");
-		} else {
-			battler.tryAutoApplyStates("posiStateAdded");
-		}
-	}
-	/**
-	* Tries to apply states for every rule on this battler that matches the given condition kind.
-	* @param {Game_Actor|Game_Enemy} battler The battler receiving scheduled states.
-	* @param {string} conditionKind The condition kind to match (time, hpDmg, whenCrit, etc.).
-	*/
-	static tryApply(battler, conditionKind) {
+	static tryDispatch(battler, conditionKind) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		const rules = this.collectRules(battler);
 		for (const entry of rules) {
 			const { source, tuple, tupleIndex } = entry;
-			const stateId = Number(tuple[0]);
+			const id = Number(tuple[0]);
 			const kind = String(tuple[1]);
-			const param = Number(tuple[2]);
-			if (Number.isNaN(stateId) || stateId <= 0) continue;
+			if (Number.isNaN(id) || id <= 0) continue;
 			if (kind !== conditionKind) continue;
-			if (Number.isNaN(param) || param < 0) continue;
 			if (kind === "move") continue;
-			this.#tryApplyRule(battler, source, tupleIndex, stateId, kind, param);
+			if (kind === "enemiesNearby" || kind === "alliesNearby") {
+				this._tryDispatchProximityRule(battler, source, tupleIndex, id, kind, tuple);
+				continue;
+			}
+			const param = Number(tuple[2]);
+			if (Number.isNaN(param) || param < 0) continue;
+			this._tryDispatchRule(battler, source, tupleIndex, id, kind, param);
 		}
 	}
 	/**
-	* Gathers auto-apply tuples from every passive-capable source on this battler.
-	* @param {Game_Actor|Game_Enemy} battler The battler whose sources should be scanned.
-	* @returns {{ source: RPG_BaseItem, tuple: any[], tupleIndex: number }[]} Rules with their originating database row.
+	* Gathers rule tuples from every passive-capable source on this battler.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose sources should be scanned.
+	* @returns {{ source: RPG_BaseItem, tuple: any[], tupleIndex: number }[]} - Rules with their originating source row.
 	*/
 	static collectRules(battler) {
 		const collected = [];
 		const sources = battler.getPassiveStateSources();
 		for (const source of sources) {
-			const tuples = source.autoApplyStateRules || [];
+			const tuples = source[this.rulesProperty] || [];
 			for (let tupleIndex = 0; tupleIndex < tuples.length; tupleIndex++) {
 				collected.push({
 					source,
@@ -815,47 +938,87 @@ var AutoApplyStateManager = class {
 		return collected;
 	}
 	/**
-	* Builds a stable cooldown key for one authored rule on one source row.<br/>
-	* {@link tupleIndex} is the tag's position in {@link RPG_BaseItem#autoApplyStateRules} so duplicate
-	* state/condition pairs on the same row stay independent.
-	* @param {RPG_BaseItem} source The database row carrying the tag.
-	* @param {number} tupleIndex Zero-based index of this tuple on {@code source}.
-	* @param {number} stateId The state id to apply.
-	* @param {string} condition The condition kind string.
-	* @returns {string} Unique key for last-apply frame tracking.
+	* Builds a stable cooldown key for one authored rule on one source row.
+	*
+	* The tuple index is included so duplicate id/condition pairs on the same row stay independent.
+	* @param {RPG_BaseItem} source - The database row carrying the tag.
+	* @param {number} tupleIndex - Zero-based index of this tuple on the source row.
+	* @param {number} id - State id or skill id for this rule.
+	* @param {string} condition - The condition kind string.
+	* @returns {string} - A unique key used for last-dispatch frame tracking on the battler.
 	*/
-	static buildRuleKey(source, tupleIndex, stateId, condition) {
+	static buildRuleKey(source, tupleIndex, id, condition) {
 		const sourceLabel = source.constructor.name || "Unknown";
 		const sourceId = source.id;
-		return `${sourceLabel}:${sourceId}:${tupleIndex}:${stateId}:${condition}`;
+		return `${sourceLabel}:${sourceId}:${tupleIndex}:${id}:${condition}`;
 	}
 	/**
-	* Applies one rule when its per-key frame cooldown has elapsed.
-	* @param {Game_Actor|Game_Enemy} battler The battler receiving the state.
-	* @param {RPG_BaseItem} source The database row that declared the rule.
-	* @param {number} tupleIndex Zero-based index of this tuple on {@code source}.
-	* @param {number} stateId The state id to apply.
-	* @param {string} condition The condition kind string.
-	* @param {number} cooldownFrames Minimum frames between applications for this key.
+	* Handles the 4/5-tuple proximity branch for {@code enemiesNearby} and {@code alliesNearby} conditions.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose proximity is evaluated.
+	* @param {RPG_BaseItem} source - The database row that declared the rule.
+	* @param {number} tupleIndex - Zero-based index of this tuple on the source row.
+	* @param {number} id - State id or skill id for this rule.
+	* @param {string} kind - The proximity condition kind (enemiesNearby or alliesNearby).
+	* @param {any[]} tuple - The full parsed tuple array from the authored tag.
 	*/
-	static #tryApplyRule(battler, source, tupleIndex, stateId, condition, cooldownFrames) {
-		const ruleKey = this.buildRuleKey(source, tupleIndex, stateId, condition);
+	static _tryDispatchProximityRule(battler, source, tupleIndex, id, kind, tuple) {
+		const minCount = Number(tuple[2]);
+		const cooldownFrames = Number(tuple[3]);
+		const triggerTilesRaw = tuple.length >= 5 ? Number(tuple[4]) : null;
+		const triggerTiles = triggerTilesRaw !== null && !Number.isNaN(triggerTilesRaw) ? triggerTilesRaw : null;
+		if (Number.isNaN(minCount) || minCount < 1) return;
+		if (Number.isNaN(cooldownFrames) || cooldownFrames < 0) return;
+		const nearbyCount = kind === "enemiesNearby" ? PassiveRuleJabsAccess.nearbyEnemies(battler, triggerTiles).length : PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler).length;
+		if (nearbyCount < minCount) return;
+		this._tryDispatchRule(battler, source, tupleIndex, id, kind, cooldownFrames);
+	}
+	/**
+	* Dispatches one rule when its per-key frame cooldown has elapsed.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that owns the rule.
+	* @param {RPG_BaseItem} source - The database row that declared the rule.
+	* @param {number} tupleIndex - Zero-based index of this tuple on the source row.
+	* @param {number} id - State id or skill id for this rule.
+	* @param {string} condition - The condition kind string.
+	* @param {number} cooldownFrames - Minimum frames that must elapse between dispatches for this key.
+	*/
+	static _tryDispatchRule(battler, source, tupleIndex, id, condition, cooldownFrames) {
+		const ruleKey = this.buildRuleKey(source, tupleIndex, id, condition);
 		const now = Graphics.frameCount;
-		const lastFrame = battler.getAutoApplyLastFrame(ruleKey);
+		const lastFrame = battler.getAutoRuleLastFrame(ruleKey);
 		const elapsed = now - lastFrame;
 		if (lastFrame > 0 && elapsed < cooldownFrames) return;
-		const applied = this.#applyState(battler, stateId);
-		if (applied === true) {
-			battler.setAutoApplyLastFrame(ruleKey, now);
+		const dispatched = this.dispatch(battler, id);
+		if (dispatched === true) {
+			battler.setAutoRuleLastFrame(ruleKey, now);
 		}
+	}
+};
+
+//#endregion
+//#region src/plugins/passive/ext/conditional/managers/AutoApplyStateManager.js
+/**
+* Schedules real JABS state applications from {@link RPG_BaseItem#autoApplyStateRules} tuples.
+*
+* Uses {@link Game_Battler#addState} as the terminal dispatch — separate from the passive grant
+* pipeline so states applied here behave as live combat states with durations and removal.
+* The state is always applied to the rule bearer (self). For aura-style application to nearby
+* battlers, see {@link AutoApplyStateOnNearbyManager}.
+*/
+var AutoApplyStateManager = class extends AutoRuleManager {
+	/**
+	* The name of the source property that holds auto-apply-state rule tuples.
+	* @returns {string} - The property name holding rule tuples on source objects.
+	*/
+	static get rulesProperty() {
+		return "autoApplyStateRules";
 	}
 	/**
 	* Pushes a real combat state onto the battler through the JABS addState path.
-	* @param {Game_Actor|Game_Enemy} battler The battler receiving the state.
-	* @param {number} stateId The database state id to apply.
-	* @returns {boolean} True when addState was attempted and the state is addable.
+	* @param {Game_Actor|Game_Enemy} battler - The battler receiving the state.
+	* @param {number} stateId - The database id of the state to apply.
+	* @returns {boolean} - True when addState was called and the state was addable.
 	*/
-	static #applyState(battler, stateId) {
+	static dispatch(battler, stateId) {
 		if (battler.isStateAddable(stateId) === false) return false;
 		battler.addState(stateId, battler);
 		return true;
@@ -863,214 +1026,118 @@ var AutoApplyStateManager = class {
 };
 
 //#endregion
+//#region src/plugins/passive/ext/conditional/managers/AutoApplyStateOnNearbyManager.js
+/**
+* Schedules real JABS state applications onto nearby battlers from
+* {@link RPG_BaseItem#autoApplyStateOnNearbyRules} tuples.
+*
+* Unlike {@link AutoApplyStateManager}, which always applies the state to the rule bearer,
+* this manager redirects dispatch to the battlers in proximity — enemies or allies depending
+* on the condition kind. This enables aura-style effects where the bearer passively afflicts
+* surrounding targets on a pulse timer.
+*
+* Only {@code enemiesNearby} and {@code alliesNearby} conditions are meaningful here; other
+* condition kinds have no proximity target set to iterate and will not fire.
+*/
+var AutoApplyStateOnNearbyManager = class extends AutoRuleManager {
+	/**
+	* The name of the source property that holds auto-apply-state-on-nearby rule tuples.
+	* @returns {string} - The property name holding rule tuples on source objects.
+	*/
+	static get rulesProperty() {
+		return "autoApplyStateOnNearbyRules";
+	}
+	/**
+	* Pushes a real combat state onto the target battler through the JABS addState path.
+	*
+	* The battler parameter here is the nearby target, not the rule bearer — the bearer's
+	* cooldown is managed separately in {@link _tryDispatchProximityRule}.
+	* @param {Game_Actor|Game_Enemy} battler - The nearby battler receiving the state.
+	* @param {number} stateId - The database id of the state to apply.
+	* @returns {boolean} - True when addState was called and the state was addable.
+	*/
+	static dispatch(battler, stateId) {
+		if (battler.isStateAddable(stateId) === false) return false;
+		battler.addState(stateId, battler);
+		return true;
+	}
+	/**
+	* Overrides the base proximity handler to redirect state application onto nearby battlers.
+	*
+	* The cooldown is tracked on the rule bearer so the pulse cadence is consistent regardless
+	* of how many targets are in range. The state is applied to every nearby battler in the
+	* resolved set each time the cooldown elapses.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose proximity is evaluated.
+	* @param {RPG_BaseItem} source - The database row that declared the rule.
+	* @param {number} tupleIndex - Zero-based index of this tuple on the source row.
+	* @param {number} id - The state id to apply to nearby battlers.
+	* @param {string} kind - The proximity condition kind (enemiesNearby or alliesNearby).
+	* @param {any[]} tuple - The full parsed tuple array from the authored tag.
+	*/
+	static _tryDispatchProximityRule(battler, source, tupleIndex, id, kind, tuple) {
+		const minCount = Number(tuple[2]);
+		const cooldownFrames = Number(tuple[3]);
+		const triggerTilesRaw = tuple.length >= 5 ? Number(tuple[4]) : null;
+		const triggerTiles = triggerTilesRaw !== null && !Number.isNaN(triggerTilesRaw) ? triggerTilesRaw : null;
+		if (Number.isNaN(minCount) || minCount < 1) return;
+		if (Number.isNaN(cooldownFrames) || cooldownFrames < 0) return;
+		const nearbyJabsBattlers = kind === "enemiesNearby" ? PassiveRuleJabsAccess.nearbyEnemies(battler, triggerTiles) : PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler);
+		if (nearbyJabsBattlers.length < minCount) return;
+		const ruleKey = this.buildRuleKey(source, tupleIndex, id, kind);
+		const now = Graphics.frameCount;
+		const lastFrame = battler.getAutoRuleLastFrame(ruleKey);
+		if (lastFrame > 0 && now - lastFrame < cooldownFrames) return;
+		let anyDispatched = false;
+		nearbyJabsBattlers.forEach((jabsTarget) => {
+			const target = jabsTarget.getBattler();
+			if (!target) return;
+			if (this.dispatch(target, id) === true) anyDispatched = true;
+		});
+		if (anyDispatched === true) {
+			battler.setAutoRuleLastFrame(ruleKey, now);
+		}
+	}
+};
+
+//#endregion
 //#region src/plugins/passive/ext/conditional/managers/AutoExecuteSkillManager.js
 /**
-* Schedules map skill executions from {@link RPG_BaseItem#autoExecuteSkillRules} /
-* {@link RPG_BaseBattler#autoExecuteSkillRules} tuples.<br/>
-* Separate from the passive grant pipeline — uses {@link JABS_Engine#forceMapAction}.
+* Schedules map skill executions from {@link RPG_BaseItem#autoExecuteSkillRules} tuples.
+*
+* Uses {@link JABS_Engine#forceMapAction} as the terminal dispatch — skills fired here are real
+* map actions with hitboxes, elements, and effects, and are subject to JABS parry and retaliation.
 */
-var AutoExecuteSkillManager = class AutoExecuteSkillManager {
+var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleManager {
 	/**
-	* Nested auto-execute depth for the synchronous call stack guard.
+	* The name of the source property that holds auto-execute-skill rule tuples.
+	* @returns {string} - The property name holding rule tuples on source objects.
+	*/
+	static get rulesProperty() {
+		return "autoExecuteSkillRules";
+	}
+	/**
+	* Tracks the current nesting depth of in-flight forced skill executions.
+	*
+	* Used to prevent synchronous re-entry when a forced skill triggers another auto-execute rule.
 	* @type {number}
 	*/
 	static #executionDepth = 0;
 	/**
-	* Evaluates every {@code time} rule on this battler while they are active on the ABS map.
-	* @param {Game_Actor|Game_Enemy} battler The battler whose skills may fire.
+	* Forces one map skill through JABS without applying cost or cooldown to the payload skill row.
+	*
+	* Depth-guarded to prevent infinite re-entry — if a forced skill triggers another auto-execute
+	* rule during its own execution, the nested dispatch is silently skipped.
+	* @param {Game_Actor|Game_Enemy} battler - The battler firing the skill.
+	* @param {number} skillId - The database id of the skill to execute.
+	* @returns {boolean} - True when forceMapAction was successfully invoked.
 	*/
-	static processTimeRules(battler) {
-		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
-		this.tryExecute(battler, "time");
-	}
-	/**
-	* Evaluates every {@code enemiesNearby} rule on this battler while on the ABS map.
-	* @param {Game_Actor|Game_Enemy} battler The battler whose skills may fire.
-	*/
-	static processEnemiesNearbyRules(battler) {
-		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
-		this.tryExecute(battler, "enemiesNearby");
-	}
-	/**
-	* Evaluates {@code stand} rules while this battler is idle on the ABS map.
-	* @param {Game_Actor|Game_Enemy} battler The battler whose skills may fire.
-	*/
-	static processStandRules(battler) {
-		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
-		const lastMovedFrame = battler.getPassiveRuleLastMovedFrame();
-		const framesSinceMoved = Graphics.frameCount - lastMovedFrame;
-		if (framesSinceMoved === 0) return;
-		this.tryExecute(battler, "stand");
-	}
-	/**
-	* Credits one whole tile of travel toward {@code move} auto-execute rules.<br/>
-	* Called from {@link Game_CharacterBase#updatePixelStepping} after Pixelistics tile stepping.
-	* @param {Game_Actor|Game_Enemy} battler The battler that took a map tile step.
-	*/
-	static creditTileStep(battler) {
-		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
-		const rules = this.collectRules(battler);
-		for (const entry of rules) {
-			const { source, tuple, tupleIndex } = entry;
-			const skillId = Number(tuple[0]);
-			const kind = String(tuple[1]);
-			const tilesPerExecute = Number(tuple[2]);
-			if (Number.isNaN(skillId) || skillId <= 0) continue;
-			if (kind !== "move") continue;
-			if (Number.isNaN(tilesPerExecute) || tilesPerExecute <= 0) continue;
-			const ruleKey = this.buildRuleKey(source, tupleIndex, skillId, kind);
-			const priorCredit = battler.getAutoExecuteSkillTileCredit(ruleKey);
-			const nextCredit = priorCredit + 1;
-			if (nextCredit < tilesPerExecute) {
-				battler.setAutoExecuteSkillTileCredit(ruleKey, nextCredit);
-				continue;
-			}
-			this.#executeSkill(battler, skillId);
-			battler.setAutoExecuteSkillTileCredit(ruleKey, 0);
-		}
-	}
-	/**
-	* Forwards one Pixelistics tile step from a map character to its underlying battler.
-	* @param {Game_Character} character The character that just completed a whole-tile step.
-	*/
-	static processTileStepFromCharacter(character) {
-		const jabsBattler = character.getJabsBattler();
-		if (!jabsBattler) return;
-		const battler = jabsBattler.getBattler();
-		if (!battler) return;
-		this.creditTileStep(battler);
-	}
-	/**
-	* Fires resource-specific and {@code anyDmg} auto-execute rules after damage to one pool.
-	* @param {Game_Actor|Game_Enemy} battler The battler that took damage.
-	* @param {'hpDmg'|'mpDmg'|'tpDmg'} resourceKind Which resource decreased.
-	*/
-	static scheduleDamageTriggers(battler, resourceKind) {
-		battler.tryAutoExecuteSkills(resourceKind);
-		battler.tryAutoExecuteSkills("anyDmg");
-	}
-	/**
-	* Fires state-polarity and {@code anyStateAdded} auto-execute after a combat state lands.
-	* @param {Game_Actor|Game_Enemy} battler The battler that received the state.
-	* @param {number} stateId The database state id that was added.
-	*/
-	static scheduleStateAddedTriggers(battler, stateId) {
-		battler.tryAutoExecuteSkills("anyStateAdded");
-		const state = $dataStates[stateId];
-		if (!state) return;
-		if (state.jabsNegative === true) {
-			battler.tryAutoExecuteSkills("negaStateAdded");
-		} else {
-			battler.tryAutoExecuteSkills("posiStateAdded");
-		}
-	}
-	/**
-	* Tries to execute skills for every rule on this battler that matches the given condition kind.
-	* @param {Game_Actor|Game_Enemy} battler The battler whose skills may fire.
-	* @param {string} conditionKind The condition kind to match (time, hpDmg, whenCrit, etc.).
-	*/
-	static tryExecute(battler, conditionKind) {
-		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
-		const rules = this.collectRules(battler);
-		for (const entry of rules) {
-			const { source, tuple, tupleIndex } = entry;
-			const skillId = Number(tuple[0]);
-			const kind = String(tuple[1]);
-			if (Number.isNaN(skillId) || skillId <= 0) continue;
-			if (kind !== conditionKind) continue;
-			if (kind === "move") continue;
-			if (kind === "enemiesNearby") {
-				const minCount = Number(tuple[2]);
-				const cooldownFrames = Number(tuple[3]);
-				const triggerTilesRaw = tuple.length >= 5 ? Number(tuple[4]) : null;
-				const triggerTiles = triggerTilesRaw !== null && Number.isNaN(triggerTilesRaw) === false ? triggerTilesRaw : null;
-				if (Number.isNaN(minCount) || minCount < 1) continue;
-				if (Number.isNaN(cooldownFrames) || cooldownFrames < 0) continue;
-				const nearbyCount = PassiveRuleJabsAccess.nearbyEnemies(battler, triggerTiles).length;
-				if (nearbyCount < minCount) continue;
-				this.#tryExecuteRule(battler, source, tupleIndex, skillId, kind, cooldownFrames);
-				continue;
-			}
-			const param = Number(tuple[2]);
-			if (Number.isNaN(param) || param < 0) continue;
-			this.#tryExecuteRule(battler, source, tupleIndex, skillId, kind, param);
-		}
-	}
-	/**
-	* Gathers auto-execute tuples from every passive-capable source on this battler.
-	* @param {Game_Actor|Game_Enemy} battler The battler whose sources should be scanned.
-	* @returns {{ source: RPG_BaseItem, tuple: any[], tupleIndex: number }[]} Rules with their originating database row.
-	*/
-	static collectRules(battler) {
-		const collected = [];
-		const sources = battler.getPassiveStateSources();
-		for (const source of sources) {
-			const tuples = source.autoExecuteSkillRules || [];
-			for (let tupleIndex = 0; tupleIndex < tuples.length; tupleIndex++) {
-				collected.push({
-					source,
-					tuple: tuples[tupleIndex],
-					tupleIndex
-				});
-			}
-		}
-		return collected;
-	}
-	/**
-	* Builds a stable cooldown key for one authored rule on one source row.<br/>
-	* {@link tupleIndex} is the tag's position in {@link RPG_BaseItem#autoExecuteSkillRules} so duplicate
-	* skill/condition pairs on the same row stay independent.
-	* @param {RPG_BaseItem} source The database row carrying the tag.
-	* @param {number} tupleIndex Zero-based index of this tuple on {@code source}.
-	* @param {number} skillId The skill id to execute.
-	* @param {string} condition The condition kind string.
-	* @returns {string} Unique key for last-execute frame tracking.
-	*/
-	static buildRuleKey(source, tupleIndex, skillId, condition) {
-		const sourceLabel = source.constructor.name || "Unknown";
-		const sourceId = source.id;
-		return `${sourceLabel}:${sourceId}:${tupleIndex}:${skillId}:${condition}`;
-	}
-	/**
-	* Whether nested auto-execute is blocked by the configured max depth.
-	* @returns {boolean}
-	*/
-	static #isDepthBlocked() {
+	static dispatch(battler, skillId) {
 		const maxDepth = J.PASSIVE.EXT.CONDITIONAL.Metadata.autoExecuteSkillMaxDepth || 1;
-		return AutoExecuteSkillManager.#executionDepth >= maxDepth;
-	}
-	/**
-	* Executes one rule when its per-key frame cooldown has elapsed.
-	* @param {Game_Actor|Game_Enemy} battler The battler firing the skill.
-	* @param {RPG_BaseItem} source The database row that declared the rule.
-	* @param {number} tupleIndex Zero-based index of this tuple on {@code source}.
-	* @param {number} skillId The skill id to execute.
-	* @param {string} condition The condition kind string.
-	* @param {number} cooldownFrames Minimum frames between executions for this key.
-	*/
-	static #tryExecuteRule(battler, source, tupleIndex, skillId, condition, cooldownFrames) {
-		if (this.#isDepthBlocked()) return;
-		const ruleKey = this.buildRuleKey(source, tupleIndex, skillId, condition);
-		const now = Graphics.frameCount;
-		const lastFrame = battler.getAutoExecuteSkillLastFrame(ruleKey);
-		const elapsed = now - lastFrame;
-		if (lastFrame > 0 && elapsed < cooldownFrames) return;
-		const executed = this.#executeSkill(battler, skillId);
-		if (executed === true) {
-			battler.setAutoExecuteSkillLastFrame(ruleKey, now);
-		}
-	}
-	/**
-	* Forces one map skill through JABS without cost or cooldown on the payload row.
-	* @param {Game_Actor|Game_Enemy} battler The battler firing the skill.
-	* @param {number} skillId The database skill id to execute.
-	* @returns {boolean} True when forceMapAction was invoked.
-	*/
-	static #executeSkill(battler, skillId) {
+		if (AutoExecuteSkillManager.#executionDepth >= maxDepth) return false;
 		const jabsBattler = PassiveRuleJabsAccess.getJabsBattler(battler);
 		if (!jabsBattler) return false;
 		if (Number.isNaN(skillId) || skillId <= 0) return false;
-		if (!$dataSkills[skillId]) return false;
+		if (!battler.skill(skillId)) return false;
 		AutoExecuteSkillManager.#executionDepth += 1;
 		try {
 			const preview = jabsBattler.createJabsActionFromSkill(skillId);
@@ -1212,21 +1279,34 @@ var PassiveGateEvaluator = class {
 	/**
 	* Evaluates one gate rule kind against the battler's current map context.<br/>
 	* Discrete kinds dispatch in the switch; threshold kinds fall through to {@link #evaluateThresholdKind}.
+	* Variadic params mirror the tag tuple slots after the kind: [threshold, scope?, range?] for
+	* resource gates; a single scalar for most other gates.
 	* @param {Game_Battler} battler The battler whose context we evaluate.
 	* @param {string} kind Rule kind from a parsed note tuple.
-	* @param {number|string|null} param Optional tag parameter (count, threshold, slot name, frame count).
+	* @param {...(number|string)} params Remaining tuple slots after the kind.
 	* @returns {boolean} Whether this single tuple passes right now.
 	*/
-	static evaluate(battler, kind, param) {
+	static evaluate(battler, kind, ...params) {
+		const [param, scope, range] = params;
 		switch (kind) {
 			case "alliesNearby": return PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler).length >= Number(param);
 			case "enemiesNearby": return PassiveRuleJabsAccess.nearbyEnemies(battler).length >= Number(param);
+			case "hpAbove": return this.#evaluateResourceThreshold(battler, "hp", "above", Number(param), scope, range);
+			case "hpBelow": return this.#evaluateResourceThreshold(battler, "hp", "below", Number(param), scope, range);
+			case "mpAbove": return this.#evaluateResourceThreshold(battler, "mp", "above", Number(param), scope, range);
+			case "mpBelow": return this.#evaluateResourceThreshold(battler, "mp", "below", Number(param), scope, range);
+			case "tpAbove": return this.#evaluateResourceThreshold(battler, "tp", "above", Number(param), scope, range);
+			case "tpBelow": return this.#evaluateResourceThreshold(battler, "tp", "below", Number(param), scope, range);
+			case "anyAbove": return this.#evaluateAnyResourceThreshold(battler, "above", Number(param), scope, range);
+			case "anyBelow": return this.#evaluateAnyResourceThreshold(battler, "below", Number(param), scope, range);
+			case "allAbove": return this.#evaluateAllResourcesThreshold(battler, "above", Number(param), scope, range);
+			case "allBelow": return this.#evaluateAllResourcesThreshold(battler, "below", Number(param), scope, range);
 			case "hasState": return battler.isStateAffected(Number(param));
 			case "negativeStateCount": return this.countNegativeStates(battler) >= Number(param);
 			case "slotOnCooldown": return this.#isSlotOnCooldown(battler, param) === true;
 			case "slotOffCooldown": return this.#isSlotOnCooldown(battler, param) === false;
-			case "allOnCooldown": return this.#areAllSlotsOnCooldown(battler) === true;
-			case "allOffCooldown": return this.#areAllSlotsOnCooldown(battler) === false;
+			case "allOnCooldown": return this.#areAllCombatSlotsOnCooldown(battler) === true;
+			case "allOffCooldown": return this.#areAllCombatSlotsReady(battler) === true;
 			case "sinceLastMoved": return this.#framesSince(battler.getPassiveRuleLastMovedFrame()) >= Number(param);
 			case "sinceLastHit": return this.#framesSince(battler.getPassiveRuleLastHitFrame()) >= Number(param);
 			case "sinceLastAttacked": return this.#framesSince(battler.getPassiveRuleLastAttackedFrame()) >= Number(param);
@@ -1279,17 +1359,113 @@ var PassiveGateEvaluator = class {
 		return jabsBattler.isSkillTypeCooldownReady(slotKey) === false;
 	}
 	/**
-	* Whether every registered JABS skill slot is on cooldown simultaneously.<br/>
-	* Used by {@code allOnCooldown} / {@code allOffCooldown} source-wide gate kinds.
+	* Whether every assigned combat skill slot is on cooldown simultaneously.<br/>
+	* Only secondary slots (CombatSkill1–4) with an assigned skill are checked —
+	* mainhand, offhand, tool, and dodge have no meaningful player-managed cooldowns
+	* and must not pollute the result. Empty secondary slots are skipped for the same reason.<br/>
+	* Used by {@code allOnCooldown} source-wide gate kind.
 	* @param {Game_Battler} battler The battler whose slot manager we inspect.
-	* @returns {boolean} True only when every slot reports not-ready.
+	* @returns {boolean} True only when every assigned combat slot is still cooling down.
 	*/
-	static #areAllSlotsOnCooldown(battler) {
+	static #areAllCombatSlotsOnCooldown(battler) {
 		const jabsBattler = PassiveRuleJabsAccess.getJabsBattler(battler);
 		if (!jabsBattler) return false;
 		const slotManager = jabsBattler.getBattler().getSkillSlotManager();
 		if (!slotManager) return false;
-		return slotManager.getAllSlots().every((slot) => jabsBattler.isSkillTypeCooldownReady(slot.key) === false);
+		const assignedCombatSlots = slotManager.getAllSecondarySlots().filter((slot) => slot.isEmpty() === false);
+		if (assignedCombatSlots.length === 0) return false;
+		return assignedCombatSlots.every((slot) => jabsBattler.isSkillTypeCooldownReady(slot.key) === false);
+	}
+	/**
+	* Whether every assigned combat skill slot is ready (off cooldown).<br/>
+	* Only secondary slots (CombatSkill1–4) with an assigned skill are checked —
+	* mainhand, offhand, tool, and dodge are excluded for the same reason as
+	* {@link #areAllCombatSlotsOnCooldown}. Empty secondary slots are skipped.<br/>
+	* Used by {@code allOffCooldown} source-wide gate kind.
+	* @param {Game_Battler} battler The battler whose slot manager we inspect.
+	* @returns {boolean} True only when every assigned combat slot is ready to fire.
+	*/
+	static #areAllCombatSlotsReady(battler) {
+		const jabsBattler = PassiveRuleJabsAccess.getJabsBattler(battler);
+		if (!jabsBattler) return false;
+		const slotManager = jabsBattler.getBattler().getSkillSlotManager();
+		if (!slotManager) return false;
+		const assignedCombatSlots = slotManager.getAllSecondarySlots().filter((slot) => slot.isEmpty() === false);
+		if (assignedCombatSlots.length === 0) return true;
+		return assignedCombatSlots.every((slot) => jabsBattler.isSkillTypeCooldownReady(slot.key) === true);
+	}
+	/**
+	* Evaluates a single-resource threshold gate ({@code hpAbove}, {@code mpBelow}, etc.)
+	* against the resolved scope of battlers.<br/>
+	* Scope {@code anyAlly}/{@code anyEnemy} passes when at least one battler in range satisfies
+	* the threshold; {@code allAllies}/{@code allEnemies} requires every battler to satisfy it.
+	* Self scope (default) evaluates the evaluating battler only.
+	* @param {Game_Battler} battler The evaluating battler.
+	* @param {string} resource One of {@code hp}, {@code mp}, {@code tp}.
+	* @param {string} direction {@code 'above'} or {@code 'below'}.
+	* @param {number} threshold Tag threshold integer (0–100 percent).
+	* @param {string} [scope] {@code self} (default), {@code anyAlly}, {@code allAllies}, {@code anyEnemy}, {@code allEnemies}.
+	* @param {number|string} [range] Tile radius for ally/enemy scopes; defaults to plugin proximity param.
+	* @returns {boolean} Whether the gate passes.
+	*/
+	static #evaluateResourceThreshold(battler, resource, direction, threshold, scope, range) {
+		const resolvedScope = scope ?? "self";
+		const resolvedRange = range !== undefined ? Number(range) : PassiveRuleJabsAccess.defaultProximity();
+		const targets = this.#resolveScopedBattlers(battler, resolvedScope, resolvedRange);
+		if (resolvedScope === "anyAlly" || resolvedScope === "anyEnemy") {
+			return targets.some((target) => PassiveRuleThreshold.compare(target, resource, direction, threshold));
+		}
+		return targets.every((target) => PassiveRuleThreshold.compare(target, resource, direction, threshold));
+	}
+	/**
+	* Evaluates {@code anyAbove}/{@code anyBelow} — passes when any of HP, MP, or TP
+	* satisfies the threshold across the resolved scope.
+	* @param {Game_Battler} battler The evaluating battler.
+	* @param {string} direction {@code 'above'} or {@code 'below'}.
+	* @param {number} threshold Threshold percent (0–100).
+	* @param {string} [scope] Scope string; defaults to {@code self}.
+	* @param {number|string} [range] Tile radius; defaults to plugin proximity param.
+	* @returns {boolean} Whether at least one resource on any in-scope target satisfies the threshold.
+	*/
+	static #evaluateAnyResourceThreshold(battler, direction, threshold, scope, range) {
+		const resolvedScope = scope ?? "self";
+		const resolvedRange = range !== undefined ? Number(range) : PassiveRuleJabsAccess.defaultProximity();
+		const targets = this.#resolveScopedBattlers(battler, resolvedScope, resolvedRange);
+		return targets.some((target) => PassiveRuleThreshold.CURRENT_RESOURCE_KEYS.some((key) => PassiveRuleThreshold.compare(target, key, direction, threshold)));
+	}
+	/**
+	* Evaluates {@code allAbove}/{@code allBelow} — passes when all of HP, MP, and TP
+	* satisfy the threshold across the resolved scope.
+	* @param {Game_Battler} battler The evaluating battler.
+	* @param {string} direction {@code 'above'} or {@code 'below'}.
+	* @param {number} threshold Threshold percent (0–100).
+	* @param {string} [scope] Scope string; defaults to {@code self}.
+	* @param {number|string} [range] Tile radius; defaults to plugin proximity param.
+	* @returns {boolean} Whether every resource on every in-scope target satisfies the threshold.
+	*/
+	static #evaluateAllResourcesThreshold(battler, direction, threshold, scope, range) {
+		const resolvedScope = scope ?? "self";
+		const resolvedRange = range !== undefined ? Number(range) : PassiveRuleJabsAccess.defaultProximity();
+		const targets = this.#resolveScopedBattlers(battler, resolvedScope, resolvedRange);
+		return targets.every((target) => PassiveRuleThreshold.CURRENT_RESOURCE_KEYS.every((key) => PassiveRuleThreshold.compare(target, key, direction, threshold)));
+	}
+	/**
+	* Resolves the set of battlers to test for a scoped resource threshold gate.<br/>
+	* Scope controls who is evaluated; range limits the neighbourhood for ally/enemy scopes.
+	* @param {Game_Battler} battler The evaluating battler.
+	* @param {string} scope One of {@code self}, {@code anyAlly}, {@code allAllies}, {@code anyEnemy}, {@code allEnemies}.
+	* @param {number} range Tile radius for ally/enemy scopes.
+	* @returns {Game_Battler[]} The battlers to test against the threshold.
+	*/
+	static #resolveScopedBattlers(battler, scope, range) {
+		switch (scope) {
+			case "anyAlly":
+			case "allAllies": return PassiveRuleJabsAccess.alliedBattlersWithinRange(battler, range).map((jabs) => jabs.getBattler()).filter((b) => !!b);
+			case "anyEnemy":
+			case "allEnemies": return PassiveRuleJabsAccess.opposingBattlersWithinRange(battler, range).map((jabs) => jabs.getBattler()).filter((b) => !!b);
+			case "self":
+			default: return [battler];
+		}
 	}
 	/**
 	* Frames elapsed since a passive-rule timestamp was stamped.<br/>
@@ -1450,131 +1626,47 @@ Game_Battler.prototype.initPassiveRuleMembers = function() {
 	*/
 	this._j._passive._conditional._lastTpHealFrame = 0;
 	/**
-	* Per-rule cooldown stamps for {@link AutoApplyStateManager} (rule key → frame).
+	* Per-rule cooldown stamps shared across all {@link AutoRuleManager} subclasses (rule key → frame).
 	* @type {Map<string, number>}
 	*/
-	this._j._passive._conditional._autoApplyLastFrame = new Map();
+	this._j._passive._conditional._autoRuleLastFrame = new Map();
 	/**
-	* Per-rule whole-tile credit toward {@code move} auto-apply rules (rule key → tiles).
+	* Per-rule whole-tile credit shared across all {@link AutoRuleManager} subclasses (rule key → tiles).
 	* @type {Map<string, number>}
 	*/
-	this._j._passive._conditional._autoApplyTileCredit = new Map();
-	/**
-	* Per-rule cooldown stamps for {@link AutoExecuteSkillManager} (rule key → frame).
-	* @type {Map<string, number>}
-	*/
-	this._j._passive._conditional._autoExecuteSkillLastFrame = new Map();
-	/**
-	* Per-rule whole-tile credit toward {@code move} auto-execute rules (rule key → tiles).
-	* @type {Map<string, number>}
-	*/
-	this._j._passive._conditional._autoExecuteSkillTileCredit = new Map();
+	this._j._passive._conditional._autoRuleTileCredit = new Map();
 };
 /**
-* Returns per-rule whole-tile credit toward {@code move} auto-apply rules.
-* @returns {Map<string, number>}
-*/
-Game_Battler.prototype.getAutoApplyTileCreditMap = function() {
-	return this._j._passive._conditional._autoApplyTileCredit;
-};
-/**
-* Reads accumulated whole-tile credit for one {@code move} rule key.
-* @param {string} ruleKey Stable key from {@link AutoApplyStateManager.buildRuleKey}.
+* Reads the last map frame an auto rule key fired.
+* @param {string} ruleKey Stable key from {@link AutoRuleManager.buildRuleKey}.
 * @returns {number}
 */
-Game_Battler.prototype.getAutoApplyTileCredit = function(ruleKey) {
-	return this.getAutoApplyTileCreditMap().get(ruleKey) || 0;
+Game_Battler.prototype.getAutoRuleLastFrame = function(ruleKey) {
+	return this._j._passive._conditional._autoRuleLastFrame.get(ruleKey) || 0;
 };
 /**
-* Stores accumulated whole-tile credit for one {@code move} rule key.
-* @param {string} ruleKey Stable key from {@link AutoApplyStateManager.buildRuleKey}.
-* @param {number} tiles Whole tiles credited toward the next apply.
+* Stamps the last map frame an auto rule key fired.
+* @param {string} ruleKey Stable key from {@link AutoRuleManager.buildRuleKey}.
+* @param {number} frame {@link Graphics.frameCount} when the rule last fired.
 */
-Game_Battler.prototype.setAutoApplyTileCredit = function(ruleKey, tiles) {
-	this.getAutoApplyTileCreditMap().set(ruleKey, tiles);
+Game_Battler.prototype.setAutoRuleLastFrame = function(ruleKey, frame) {
+	this._j._passive._conditional._autoRuleLastFrame.set(ruleKey, frame);
 };
 /**
-* Returns per-rule frame cooldown stamps for auto-apply rules.
-* @returns {Map<string, number>}
-*/
-Game_Battler.prototype.getAutoApplyLastFrameMap = function() {
-	return this._j._passive._conditional._autoApplyLastFrame;
-};
-/**
-* Reads the last map frame an auto-apply rule key fired.
-* @param {string} ruleKey Stable key from {@link AutoApplyStateManager.buildRuleKey}.
+* Reads accumulated whole-tile credit for one {@code move} auto rule key.
+* @param {string} ruleKey Stable key from {@link AutoRuleManager.buildRuleKey}.
 * @returns {number}
 */
-Game_Battler.prototype.getAutoApplyLastFrame = function(ruleKey) {
-	return this.getAutoApplyLastFrameMap().get(ruleKey) || 0;
+Game_Battler.prototype.getAutoRuleTileCredit = function(ruleKey) {
+	return this._j._passive._conditional._autoRuleTileCredit.get(ruleKey) || 0;
 };
 /**
-* Stamps the last map frame an auto-apply rule key fired.
-* @param {string} ruleKey Stable key from {@link AutoApplyStateManager.buildRuleKey}.
-* @param {number} frame {@link Graphics.frameCount} when the rule last applied.
+* Stores accumulated whole-tile credit for one {@code move} auto rule key.
+* @param {string} ruleKey Stable key from {@link AutoRuleManager.buildRuleKey}.
+* @param {number} tiles Whole tiles credited toward the next dispatch.
 */
-Game_Battler.prototype.setAutoApplyLastFrame = function(ruleKey, frame) {
-	this.getAutoApplyLastFrameMap().set(ruleKey, frame);
-};
-/**
-* Delegates auto-apply scheduling for one condition kind to {@link AutoApplyStateManager}.
-* @param {string} conditionKind The condition kind to evaluate (time, hpDmg, whenCrit, etc.).
-*/
-Game_Battler.prototype.tryAutoApplyStates = function(conditionKind) {
-	AutoApplyStateManager.tryApply(this, conditionKind);
-};
-/**
-* Returns per-rule whole-tile credit toward {@code move} auto-execute rules.
-* @returns {Map<string, number>}
-*/
-Game_Battler.prototype.getAutoExecuteSkillTileCreditMap = function() {
-	return this._j._passive._conditional._autoExecuteSkillTileCredit;
-};
-/**
-* Reads accumulated whole-tile credit for one {@code move} auto-execute rule key.
-* @param {string} ruleKey Stable key from {@link AutoExecuteSkillManager.buildRuleKey}.
-* @returns {number}
-*/
-Game_Battler.prototype.getAutoExecuteSkillTileCredit = function(ruleKey) {
-	return this.getAutoExecuteSkillTileCreditMap().get(ruleKey) || 0;
-};
-/**
-* Stores accumulated whole-tile credit for one {@code move} auto-execute rule key.
-* @param {string} ruleKey Stable key from {@link AutoExecuteSkillManager.buildRuleKey}.
-* @param {number} tiles Whole tiles credited toward the next execution.
-*/
-Game_Battler.prototype.setAutoExecuteSkillTileCredit = function(ruleKey, tiles) {
-	this.getAutoExecuteSkillTileCreditMap().set(ruleKey, tiles);
-};
-/**
-* Returns per-rule frame cooldown stamps for auto-execute rules.
-* @returns {Map<string, number>}
-*/
-Game_Battler.prototype.getAutoExecuteSkillLastFrameMap = function() {
-	return this._j._passive._conditional._autoExecuteSkillLastFrame;
-};
-/**
-* Reads the last map frame an auto-execute rule key fired.
-* @param {string} ruleKey Stable key from {@link AutoExecuteSkillManager.buildRuleKey}.
-* @returns {number}
-*/
-Game_Battler.prototype.getAutoExecuteSkillLastFrame = function(ruleKey) {
-	return this.getAutoExecuteSkillLastFrameMap().get(ruleKey) || 0;
-};
-/**
-* Stamps the last map frame an auto-execute rule key fired.
-* @param {string} ruleKey Stable key from {@link AutoExecuteSkillManager.buildRuleKey}.
-* @param {number} frame {@link Graphics.frameCount} when the rule last executed.
-*/
-Game_Battler.prototype.setAutoExecuteSkillLastFrame = function(ruleKey, frame) {
-	this.getAutoExecuteSkillLastFrameMap().set(ruleKey, frame);
-};
-/**
-* Delegates auto-execute scheduling for one condition kind to {@link AutoExecuteSkillManager}.
-* @param {string} conditionKind The condition kind to evaluate (time, hpDmg, whenCrit, etc.).
-*/
-Game_Battler.prototype.tryAutoExecuteSkills = function(conditionKind) {
-	AutoExecuteSkillManager.tryExecute(this, conditionKind);
+Game_Battler.prototype.setAutoRuleTileCredit = function(ruleKey, tiles) {
+	this._j._passive._conditional._autoRuleTileCredit.set(ruleKey, tiles);
 };
 /**
 * Returns the last map frame this battler moved.<br/>
@@ -1712,10 +1804,16 @@ Game_Battler.prototype.onHeal = function(resource, amount) {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Battler.get("onHeal").call(this, resource, amount);
 	if (resource === J.BASE.Resource.HP) {
 		this.stampPassiveRuleHpHealFrame();
+		AutoApplyStateManager.scheduleHealTriggers(this, "onHealHp");
+		AutoExecuteSkillManager.scheduleHealTriggers(this, "onHealHp");
 	} else if (resource === J.BASE.Resource.MP) {
 		this.stampPassiveRuleMpHealFrame();
+		AutoApplyStateManager.scheduleHealTriggers(this, "onHealMp");
+		AutoExecuteSkillManager.scheduleHealTriggers(this, "onHealMp");
 	} else if (resource === J.BASE.Resource.TP) {
 		this.stampPassiveRuleTpHealFrame();
+		AutoApplyStateManager.scheduleHealTriggers(this, "onHealTp");
+		AutoExecuteSkillManager.scheduleHealTriggers(this, "onHealTp");
 	}
 };
 /**
@@ -1743,31 +1841,20 @@ Game_Battler.prototype.getPassiveStackContributionFromSource = function(baseItem
 };
 /**
 * Evaluates every gate rule on a source that applies to the given passive state id.<br/>
-* Returns true when no rules apply (unconditional passive) or when every tuple passes.
+* Source rules ({@code [kind, param?]}) and state rules ({@code [stateId, kind, param?]}) are
+* evaluated separately with explicit destructuring — no length heuristics.<br/>
+* All rules AND together; any failure short-circuits and excludes the passive.
 * @param {RPG_BaseItem} baseItem Database row carrying passive and rule tags.
-* @param {number} stateId Passive state id being collected from this source.
+* @param {number} stateId Passive state id being evaluated for this source.
 * @returns {boolean} Whether this source may contribute the given passive state right now.
 */
 Game_Battler.prototype.evaluatePassiveGateRulesForSource = function(baseItem, stateId) {
-	const rules = this.collectPassiveGateRuleTuples(baseItem, stateId);
-	if (rules.length === 0) return true;
-	return rules.every((tuple) => {
-		const kind = tuple.length === 2 ? tuple[0] : tuple[1];
-		const param = tuple.length === 2 ? tuple[1] : tuple[2];
-		return PassiveGateEvaluator.evaluate(this, kind, param);
-	});
-};
-/**
-* Collects source-wide and state-specific gate tuples for one passive state id.<br/>
-* Source rules always apply; state rules are filtered to the requested state id.
-* @param {RPG_BaseItem} baseItem Database row carrying passive and rule tags.
-* @param {number} stateId Passive state id being collected from this source.
-* @returns {any[][]} Combined gate tuples in evaluation order.
-*/
-Game_Battler.prototype.collectPassiveGateRuleTuples = function(baseItem, stateId) {
 	const sourceRules = baseItem.passiveSourceRules || [];
-	const stateRules = (baseItem.passiveStateRules || []).filter((tuple) => Number(tuple[0]) === stateId);
-	return sourceRules.concat(stateRules);
+	const passesSourceRules = sourceRules.every(([kind, ...params]) => PassiveGateEvaluator.evaluate(this, kind, ...params));
+	if (passesSourceRules === false) return false;
+	const stateRules = (baseItem.passiveStateRules || []).filter(([ruleStateId]) => Number(ruleStateId) === stateId);
+	const passesStateRules = stateRules.every(([, kind, ...params]) => PassiveGateEvaluator.evaluate(this, kind, ...params));
+	return passesStateRules;
 };
 /**
 * Finds the first passiveStateCount tuple targeting a passive state id on this source.<br/>
@@ -1898,8 +1985,8 @@ J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Action.set("apply", Game_Action.prototype
 Game_Action.prototype.apply = function(target) {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Action.get("apply").call(this, target);
 	if (target.result().critical === false) return;
-	target.tryAutoApplyStates("whenCrit");
-	target.tryAutoExecuteSkills("whenCrit");
+	AutoApplyStateManager.scheduleCritTriggers(target);
+	AutoExecuteSkillManager.scheduleCritTriggers(target);
 };
 
 //#endregion
@@ -1952,8 +2039,13 @@ JABS_Battler.prototype.updatePassiveRuleReconcile = function() {
 	if (!battler) return;
 	battler.updatePassiveRuleReconcileTimer();
 	AutoApplyStateManager.processTimeRules(battler);
+	AutoApplyStateManager.processEnemiesNearbyRules(battler);
+	AutoApplyStateManager.processAlliesNearbyRules(battler);
+	AutoApplyStateOnNearbyManager.processEnemiesNearbyRules(battler);
+	AutoApplyStateOnNearbyManager.processAlliesNearbyRules(battler);
 	AutoExecuteSkillManager.processTimeRules(battler);
 	AutoExecuteSkillManager.processEnemiesNearbyRules(battler);
+	AutoExecuteSkillManager.processAlliesNearbyRules(battler);
 	AutoApplyStateManager.processStandRules(battler);
 	AutoExecuteSkillManager.processStandRules(battler);
 };
@@ -1982,7 +2074,7 @@ JABS_Battler.prototype.updatePassiveRuleMovementTracking = function() {
 };
 
 //#endregion
-//#region src/plugins/passive/ext/conditional/__models/AutoApplyStateDisplay.js
+//#region src/plugins/passive/ext/conditional/models/AutoApplyStateDisplay.js
 /**
 * Player-facing prose for {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState} tuples.<br/>
 * Handles {@code time} and {@code stand} conditions; other kinds are skipped until a passive needs them.
@@ -2081,7 +2173,7 @@ var AutoApplyStateDisplay = class AutoApplyStateDisplay {
 };
 
 //#endregion
-//#region src/plugins/passive/ext/conditional/__models/RemoveStateOnMoveDisplay.js
+//#region src/plugins/passive/ext/conditional/models/RemoveStateOnMoveDisplay.js
 /**
 * Player-facing prose for {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove} tuples.
 */

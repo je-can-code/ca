@@ -544,6 +544,7 @@ J.LEVEL.Aliased = {
 	Game_Action: new Map(),
 	Game_Actor: new Map(),
 	Game_Battler: new Map(),
+	Game_BattlerBase: new Map(),
 	Game_Enemy: new Map(),
 	Game_Event: new Map(),
 	Game_System: new Map(),
@@ -762,6 +763,7 @@ J.LEVEL.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBat
 Game_Actor.prototype.onBattlerDataChange = function() {
 	J.LEVEL.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
 	this.updateRealMaxLevel();
+	this.refreshLevel();
 };
 Game_Actor.prototype.updateRealMaxLevel = function() {
 	const newMaxLevel = this.calculateRealMaxLevel();
@@ -832,14 +834,15 @@ Game_Actor.prototype.getBattlerBaseLevel = function() {
 };
 /**
 * Gets all database sources we can get levels from.
+*
+* Uses {@link #getAllNotes} so the result benefits from the notes cache and
+* includes all note-bearing sources — database data, class, skills, equips,
+* and all states (including passives). This also opens the door for skills
+* to grant level bonuses via the level tag, which is intentional.
 * @returns {RPG_BaseItem[]}
 */
 Game_Actor.prototype.getLevelSources = function() {
-	return [
-		this.databaseData(),
-		...this.equips(),
-		...this.allStates()
-	];
+	return this.getAllNotes();
 };
 /**
 * The variable level modifier for this actor.
@@ -880,16 +883,33 @@ Object.defineProperty(Game_Battler.prototype, "lvl", {
 });
 /**
 * Gets the level for this battler.
+*
+* Returns the cached value when available; computes and caches on the first call or after
+* {@link #refreshLevel} invalidates the cache via {@link #onBattlerDataChange}.
 * @returns {number}
 */
 Game_Battler.prototype.getLevel = function() {
-	this._j ||= {};
-	this._j._level ||= {};
-	const levelSlot = this._j._level;
-	if (levelSlot._isComputingGetLevel === true) {
+	if (this._j._level._cachedLevel !== null) {
+		return this._j._level._cachedLevel;
+	}
+	const computed = this.computeLevel();
+	this._j._level._cachedLevel = computed;
+	return computed;
+};
+/**
+* Computes the level for this battler from all registered sources.
+*
+* Separated from {@link #getLevel} so the cache layer stays clean.
+* Includes a re-entrancy guard for cases where computing the level would
+* otherwise trigger another level computation (e.g. a state whose note
+* calls back into level logic).
+* @returns {number}
+*/
+Game_Battler.prototype.computeLevel = function() {
+	if (this._j._level._isComputingGetLevel === true) {
 		return this.getBattlerBaseLevel() + this.getLevelBalancer();
 	}
-	levelSlot._isComputingGetLevel = true;
+	this._j._level._isComputingGetLevel = true;
 	try {
 		const sources = this.getLevelSources();
 		let level = this.getBattlerBaseLevel();
@@ -899,8 +919,18 @@ Game_Battler.prototype.getLevel = function() {
 		}, this);
 		return level;
 	} finally {
-		levelSlot._isComputingGetLevel = false;
+		this._j._level._isComputingGetLevel = false;
 	}
+};
+/**
+* Invalidates the cached level and immediately re-primes it.
+*
+* Called by {@link #onBattlerDataChange} hooks in both {@link Game_Actor} and
+* {@link Game_Enemy} so that the HUD's per-frame reads of {@link #level} remain O(1).
+*/
+Game_Battler.prototype.refreshLevel = function() {
+	this._j._level._cachedLevel = null;
+	this.getLevel();
 };
 /**
 * Gets all database sources we can get levels from.
@@ -929,6 +959,38 @@ Game_Battler.prototype.getLevelBalancer = function() {
 */
 Game_Battler.prototype.extractLevel = function(rpgData) {
 	return RPGManager.getNumberFromNoteByRegex(rpgData, J.LEVEL.RegExp.Level);
+};
+
+//#endregion
+//#region src/plugins/level/core/objects/Game_BattlerBase.js
+/**
+* Extends {@link #initMembers}.<br/>
+* Initializes the level cache members for this battler.
+*/
+J.LEVEL.Aliased.Game_BattlerBase.set("initMembers", Game_BattlerBase.prototype.initMembers);
+Game_BattlerBase.prototype.initMembers = function() {
+	J.LEVEL.Aliased.Game_BattlerBase.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with levels.
+	*/
+	this._j._level ||= {};
+	/**
+	* The cached computed level for this battler.
+	* Null when the cache is cold and must be recomputed via {@link #getLevel}.
+	* Invalidated by {@link #refreshLevel} whenever battler data changes.
+	* @type {number|null}
+	*/
+	this._j._level._cachedLevel = null;
+	/**
+	* Re-entrancy guard for {@link #computeLevel}.
+	* Prevents infinite recursion when level sources themselves reference level.
+	* @type {boolean}
+	*/
+	this._j._level._isComputingGetLevel = false;
 };
 
 //#endregion
@@ -972,6 +1034,15 @@ Game_Enemy.prototype.getCachedLevelOverride = function() {
 };
 Game_Enemy.prototype.setCachedLevelOverride = function(level) {
 	this._j._level._cachedLevelOverride = level;
+};
+/**
+* Extends {@link #onBattlerDataChange}.<br/>
+* Refreshes the cached level when this enemy's battler data changes.
+*/
+J.LEVEL.Aliased.Game_Enemy.set("onBattlerDataChange", Game_Enemy.prototype.onBattlerDataChange);
+Game_Enemy.prototype.onBattlerDataChange = function() {
+	J.LEVEL.Aliased.Game_Enemy.get("onBattlerDataChange").call(this);
+	this.refreshLevel();
 };
 /**
 * Extends {@link Game_Enemy.setup}.<br/>
@@ -1047,10 +1118,15 @@ Game_Enemy.prototype.shouldHideLevel = function() {
 };
 /**
 * Gets all database sources we can get levels from.
+*
+* Uses {@link #getAllNotes} so the result benefits from the notes cache and
+* includes all note-bearing sources — database data, skills, and all states
+* (including passives). This also opens the door for skills to grant level
+* bonuses via the level tag, which is intentional.
 * @returns {RPG_BaseItem[]}
 */
 Game_Enemy.prototype.getLevelSources = function() {
-	return [...this.states()];
+	return this.getAllNotes();
 };
 /**
 * The variable level modifier for this enemy.

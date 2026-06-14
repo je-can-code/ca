@@ -752,6 +752,18 @@ var ActionLogBuilder = class {
 		this.setMessage(message);
 		return this;
 	}
+	/**
+	* Sets up a message based on the context of a state being purged from a battler.
+	* @param {string} targetName The name of the battler having the state removed.
+	* @param {number} stateId The state id of the state being purged.
+	* @returns {this} This builder, for fluent chaining.
+	*/
+	setupStatePurged(targetName, stateId) {
+		const defender = this.#wrapName(targetName, 16);
+		const message = `${defender} was purged of \\State[${stateId}].`;
+		this.setMessage(message);
+		return this;
+	}
 };
 
 //#endregion

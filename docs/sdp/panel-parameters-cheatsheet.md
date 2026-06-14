@@ -283,7 +283,7 @@ Quick reference — full prose in [`archetype-mapping.md`](./archetype-mapping.m
 
 | Subgroup | `subgroupKey` | Archetype | Flavor twist |
 |---|---|---|---|
-| Hard Syrup | `slime-hard-syrup` | Generalist | **`fdr`**, small **`hrg`** |
+| Hard Syrup | `slime-puddle` | Generalist | **`fdr`**, small **`hrg`** |
 | Roper | `slime-roper` | Berserker | **`mat`** replaces **`atk`** lean |
 | Jelly | `slime-jelly` | Medic | **`mrg`** heavy |
 | Goo Bat | `slime-goo-bat` | Cleric | **`mrg`** heavy, regen |

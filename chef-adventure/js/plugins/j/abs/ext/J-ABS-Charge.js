@@ -634,10 +634,14 @@ JABS_Battler.prototype.executeChargeAction = function(slot, charging) {
 */
 JABS_Battler.prototype.canChargeSlot = function(slot) {
 	if (!slot) return false;
-	const skillSlot = this.getBattler().getSkillSlotManager().getSkillSlotByKey(slot);
+	const battler = this.getBattler();
+	const skillSlot = battler.getSkillSlotManager().getSkillSlotByKey(slot);
 	if (!skillSlot) return false;
-	if (!this.getBattler().hasSkill(skillSlot.id)) {
-		return false;
+	if (!battler.hasSkill(skillSlot.id)) return false;
+	const chargingTiers = this.getChargingTiers(slot);
+	if (chargingTiers) {
+		const anyTierAffordable = chargingTiers.some((tier) => tier.skillId && battler.meetsSkillConditions(battler.skill(tier.skillId)));
+		if (!anyTierAffordable) return false;
 	}
 	return true;
 };

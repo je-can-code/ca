@@ -3,7 +3,7 @@
 > **Purpose:** Step-1 reference for the family → subgroup pass (masteries before panel rewrite).
 > Sources: [`archetype-mapping.md`](./archetype-mapping.md), [`implementation-status.md`](./implementation-status.md) tag cookbook.
 >
-> Last updated: **2026-06-11** — Crimson Vice verified; thorns system shipped.
+> Last updated: **2026-06-13** — `slime-cube` (Cube) verified after bug fixes; `plant-trap` (Wolftrap) verified (tamed from original inception). **Last verified prefix: `TRP`**
 >
 > **Progress:** [Authoring progress](#authoring-progress-one-subgroup-at-a-time) — assistant updates when a subgroup pass is done.
 
@@ -13,7 +13,11 @@
 
 > **Workflow:** author mastery rows (+ panels when ready) → tell the assistant the subgroup is done → table advances here.
 
-**13 / 48 verified** · **current:** Fish (`aquatic-fish`) · **Family 1 Undead, Family 2 Reptile complete; Aquatic 3/5**
+**26 / 48 verified** · **current:** Bearcat (`beast-bearcat`) · **Family 1 Undead, Family 2 Reptile, Family 3 Aquatic, Family 4 Slime, Family 5 Plant complete**
+
+> **Payload bands are per-database — Skills.json and States.json IDs are independent.**
+> **Skills.json bands:** 1001–1010 Wraith ward pulse · 1011–1020 Crimson Vice thorns · 1021–1030 Goo Bat aura pulse · 1031–1040 Frog MAT stacks · 1041–1050 Cephalopod ink cloud. Next free: **1071+**.
+> **States.json bands:** 1001–1010 Wraith ward · 1011–1020 Crimson Vice thorns · 1021–1030 Snake venom · 1031–1040 Frog MAT stacks · 1041–1050 Cephalopod ink cloud · 1051–1060 Hard Syrup elemental gel · 1061–1070 Cube slow (Gooped/Enmired/Subsumed). Next free: **1071+**.
 
 | # | Family | Subgroup | `subgroupKey` | Panels | Mastery IDs | Status |
 |---:|---|---|---|---|---|---|
@@ -30,19 +34,19 @@
 | 11 | Aquatic | Kappa | `aquatic-kappa` | `KAP_*` | 1201–1210 | ✅ Verified |
 | 12 | Aquatic | Frog | `aquatic-frog` | `FRG_*` | 1211–1220 | ✅ Verified — payload states **1031–1040** + `removeStateOnMove` hook |
 | 13 | Aquatic | Crimson Vice | `aquatic-crab` | `CRB_*` | 1221–1230 | ✅ Verified — thorns payloads **1011–1020** + panel params; `<retaliate:[ID, 100, physical]>` |
-| 14 | Aquatic | Fish | `aquatic-fish` | `FSH_*` | 1231–1240 | 🔄 **Current** |
-| 15 | Aquatic | Cephalopod | `aquatic-cephalopod` | `CPH_*` | 1241–1250 | 🔲 Todo |
-| 16 | Slime | Puddle | `slime-puddle` | `SLI_*` | 1251–1260 | 🔲 Todo |
-| 17 | Slime | Roper | `slime-roper` | `TNT_*` | 1261–1270 | 🔲 Todo |
-| 18 | Slime | Jelly | `slime-jelly` | `JEL_*` | 1271–1280 | 🔲 Todo |
-| 19 | Slime | Glob | `slime-glob` | `AER_*` | 1281–1290 | 🔲 Todo |
-| 20 | Slime | Cube | `slime-cube` | `CUB_*` | 1291–1300 | 🔲 Todo |
-| 21 | Plant | Trap | `plant-trap` | `TRP_*` | 1301–1310 | 🔲 Todo |
-| 22 | Plant | Fungus | `plant-fungus` | `FUN_*` | 1311–1320 | 🔲 Todo |
-| 23 | Plant | Dryad | `plant-dryad` | `FAE_*` | 1321–1330 | 🔲 Todo |
-| 24 | Plant | Treant | `plant-treant` | `TRE_*` | 1331–1340 | 🔲 Todo |
-| 25 | Plant | Flower | `plant-flower` | `FLW_*` | 1341–1350 | 🔲 Todo |
-| 26 | Beast | Bearcat | `beast-bearcat` | `HBR_*` | 1351–1360 | 🔲 Todo |
+| 14 | Aquatic | Fish | `aquatic-fish` | `FSH_*` | 1231–1240 | ✅ Verified |
+| 15 | Aquatic | Cephalopod | `aquatic-cephalopod` | `CPH_*` | 1241–1250 | ✅ Verified — ink cloud payloads **1041–1050** + panel params |
+| 16 | Slime | Hard Syrup | `slime-puddle` | `SLI_*` | 1251–1260 | ✅ Verified — elemental gel payloads **1051–1060** + panel params |
+| 17 | Slime | Roper | `slime-roper` | `TNT_*` | 1261–1270 | ✅ Verified — `<perDebuffBuff:N>` + Roper Goop on-hit trait (state 70); capstone 5× goop |
+| 18 | Slime | Jelly | `slime-jelly` | `JEL_*` | 1271–1280 | ✅ Verified — `<onSelfHpHealMp:[PCT, R]>` / `<onSelfAnyHealMp:[PCT, R]>` mana transfusion; panel params authored |
+| 19 | Slime | Goo Bat | `slime-aerial` | `AER_*` | 1281–1290 | ✅ Verified — Cleric aura pulse payloads **1021–1030**; capstone `<hpPercent:5>` regen |
+| 20 | Slime | Cube | `slime-cube` | `CUB_*` | 1291–1300 | ✅ Verified — slow payloads **1061–1070** |
+| 21 | Plant | Trap | `plant-trap` | `TRP_*` | 1301–1310 | ✅ Verified |
+| 22 | Plant | Fungus | `plant-fungus` | `FUN_*` | 1311–1320 | ✅ Verified |
+| 23 | Plant | Dryad | `plant-dryad` | `FAE_*` | 1321–1330 | ✅ Verified |
+| 24 | Plant | Treant | `plant-treant` | `TRE_*` | 1331–1340 | ✅ Verified |
+| 25 | Plant | Flower | `plant-flower` | `FLW_*` | 1341–1350 | ✅ Verified |
+| 26 | Beast | Bearcat | `beast-bearcat` | `HBR_*` | 1351–1360 | 🔄 **Current** |
 | 27 | Beast | Bat | `beast-bat` | `WNG_*` | 1361–1370 | 🔲 Todo |
 | 28 | Beast | Garuda | `beast-garuda` | `BEK_*` | 1371–1380 | 🔲 Todo |
 | 29 | Beast | Rat | `beast-rat` | `ROD_*` | 1381–1390 | 🔲 Todo |
@@ -215,7 +219,7 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 | Frog | `aquatic-frog` | Artillery | Rooted Barrage | Rooted Tempest | Rooted Cataclysm | 1211–1220 | MAT stacks while still, reset on move. | ✅ `<autoApplyState:[103X, stand, F]>` + `<removeStateOnMove:[103X]>` · payloads **1031–1040** |
 | Crimson Vice | `aquatic-crab` | Guardian | Iron Shell | Iron Rebuke | Shellbreaker Retort | 1221–1230 | Reflect X% physical damage (thorns). | ✅ `<retaliate:[ID, 100, physical]>` · payloads **1011–1020** |
 | Fish | `aquatic-fish` | Skirmisher | Slippery | Swift Current | Slipstream | 1231–1240 | +X% MSB after dealing damage. | ✅ `<passiveSourceRule:[attackedWithin, 120]>` |
-| Cephalopod | `aquatic-cephalopod` | War Priest | Ink Shroud | Murky Pall | Abyssal Veil | 1241–1250 | Recent attackers deal less to you. | ⏳ recent-hit DR |
+| Cephalopod | `aquatic-cephalopod` | War Priest | Ink Shroud | Murky Pall | Abyssal Veil | 1241–1250 | Taking damage triggers short DR cloud (payloads **1041–1050**); capstone uses `anyDmg` + permanent −10% PDR/MDR. | ✅ `<autoApplyState:[104X, hpDmg/anyDmg, 480]>` |
 
 ---
 
@@ -223,10 +227,10 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 
 | Subgroup | `subgroupKey` | Archetype | **1–3** | **4–9** | **10** | IDs | What it does | Tag recipe |
 |---|---|---|---|---|---|---:|---|---|
-| Hard Syrup | `slime-hard-syrup` | Generalist | Adaptive Slime | Reactive Gel | Elemental Osmosis | 1251–1260 | +X% resist to last element (5s). | ⏳ last-element tracker |
+| Hard Syrup | `slime-puddle` | Generalist | Adaptive Slime | Reactive Gel | Elemental Osmosis | 1251–1260 | On HP damage: apply Elemental Gel (−25% all elem rates per stack) with escalating duration/stacks/cooldown. Payloads **1051–1060**. | ✅ `<autoApplyState:[105X, hpDmg, CD]>` |
 | Roper | `slime-roper` | Berserker | Eldritch Fury | Eldritch Tempest | Eldritch Maelstrom | 1261–1270 | +X% crit or damage vs debuffed. | ⏳ / interim `bonusDamageIfState` |
 | Jelly | `slime-jelly` | Medic | Mana Transfusion | Mana Weave | Arcane Transfusion | 1271–1280 | Heals restore X% as MP. | ✅ `<onSelfHpHealMp:[PCT, 0]>` |
-| Goo Bat | `slime-goo-bat` | Cleric | Regeneration Aura | Miasma of Life | Spore Bloom | 1281–1290 | Allies +X% HRG. | ✅ HRG% aura |
+| Goo Bat | `slime-aerial` | Cleric | Regeneration Aura | Miasma of Life | Spore Bloom | 1281–1290 | Periodic AoE heal pulse (payloads **1021–1030**); capstone `<hpPercent:5>` personal regen. | ✅ `<autoExecuteSkill:[102X, time, FRAMES]>` |
 | Cube | `slime-cube` | Vanguard | Living Obstacle | Living Bulwark | Immovable Bulk | 1291–1300 | Melee enemies slowed. | ✅ Movespeed debuff aura |
 
 ---
@@ -237,8 +241,8 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 |---|---|---|---|---|---|---:|---|---|
 | Wolftrap | `plant-wolftrap` | Wizard | Entangling Curse | Thorned Curse | Stranglethorn Curse | 1301–1310 | Your debuffs last X% longer. | ✅ Duration extension |
 | Fungrowth | `plant-fungrowth` | Berserker | Primal Instinct | Primal Surge | Primal Apex | 1311–1320 | +X% ATK while all skills off CD. | ✅ `<passiveSourceRule:[allOffCooldown]>` |
-| Dryad | `plant-dryad` | Medic | Nature's Wrath | Nature's Ire | Nature's Judgment | 1321–1330 | +X% MAT when party healthy. | ⏳ party HP threshold |
-| Treant | `plant-treant` | Vanguard | Ironbark | Tempered Ironbark | Ancient Ironbark | 1331–1340 | First hit after 3s no damage is reduced. | ✅ `<passiveSourceRule:[sinceLastHit, 180]>` |
+| Dryad | `plant-dryad` | Medic | Nature's Wrath | Nature's Ire | Nature's Judgment | 1321–1330 | +X% MAT (+MDF tier 4+) while all allies ≥75% HP (≥50% at apex). | ✅ `<passiveSourceRule:[hpAbove, 75, allAllies, 8]>` |
+| Treant | `plant-treant` | Vanguard | Ironbark | Tempered Ironbark | Ancient Ironbark | 1331–1340 | PDR reduction + DEF% after N seconds without taking damage. T1–3: −5/10/15% PDR after 8s. T4–9: −20…70% PDR + 10…35% DEF after 5s. T10: −90% PDR + 50% DEF after 2s. | ✅ `<passiveSourceRule:[sinceLastHit, 480]>` (T1–3) / `[sinceLastHit, 300]` (T4–9) / `[sinceLastHit, 120]` (T10) |
 | Flower | `plant-flower` | Cleric | Purifying Bloom | Cleansing Petals | Sacred Bloom | 1341–1350 | X% chance/tick cleanse one debuff. | ✅ Periodic cleanse |
 
 ---
@@ -408,6 +412,7 @@ Five subgroup slots (Kaiju sacked — Sin owns the last **two** enemy decades). 
 | Move momentum | `<autoApplyState:[MOM, move, TILES]>` + `<removeOnSkillExecution:[STYPE, 100]>` |
 | Stationary stack counter | `<autoApplyState:[PAYLOAD, stand, FRAMES]>` + `<removeStateOnMove:[PAYLOAD]>` on mastery; `<stackMax:N>` + `<loseAllStacksAtOnce>` on payload |
 | Food medic | `<overstuffedImpervious>` |
+| Suppress slip/regen popup | `<noHpPopup>` / `<noMpPopup>` / `<noTpPopup>` / `<noSlipPopup>` on state — use on permanent regen states to avoid eternal pop spam |
 | Meta rates | `<goldMultiplier:N>` + `gdr`/`dor`/`sdr` |
 
 ---
