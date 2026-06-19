@@ -129,7 +129,7 @@ Totals = sum of `perRank × maxRank` across the entire strip. Rate params show `
 
 ## Reptile
 
-### Reptile - Cobra (`reptile-cobra`)
+### Reptile - Snake (`reptile-snake`)
 
 **Core (every panel):** `cri`, `def`
 **Cycling pool:** `mhp` (5/10), `hit` (4/10), `cdr` (5/10), `trg` (3/10), `luk` (2/10), `agi` (2/10), `ser` (1/10)
@@ -231,7 +231,7 @@ Totals = sum of `perRank × maxRank` across the entire strip. Rate params show `
 | `gdr` | — | — | — | — | — | +3% | — | +3.5% | — | — | **+6.5%** | ⬆️ Weak |
 | `grd` | — | — | +3% | — | +3.5% | — | +4% | — | +4.5% | +10% | **+25%** | ⬆️ Gentle |
 
-### Aquatic - Polliwog (`aquatic-polliwog`)
+### Aquatic - Frog (`aquatic-frog`)
 
 **Core (every panel):** `mat`, `def`
 **Cycling pool:** `mdf` (4/10), `cdm` (4/10), `mmp` (4/10), `agi` (5/10), `mhp` (5/10)
@@ -246,7 +246,7 @@ Totals = sum of `perRank × maxRank` across the entire strip. Rate params show `
 | `mhp` | — | — | — | -4% | — | -4% | — | -4% | -4% | -8% | **-24%** | 🔽 Middling |
 | `mmp` | — | — | +3% | — | — | +3% | — | — | +3% | +6% | **+15%** | ⬆️ Gentle |
 
-### Aquatic - Crimson Vice (`aquatic-crab`)
+### Aquatic - Crab (`aquatic-crab`)
 
 **Core (every panel):** `grd`, `atk`
 **Cycling pool:** `cri` (3/10), `def` (5/10), `mhp` (4/10), `cev` (1/10), `agi` (3/10), `cnt` (1/10), `mdf` (1/10)
@@ -481,7 +481,7 @@ Totals = sum of `perRank × maxRank` across the entire strip. Rate params show `
 | `mdr` | — | — | — | +5 | +6 | — | +7 | — | +8 | — | **+26** | 🔽 Middling |
 | `trg` | — | — | — | — | — | — | — | +5 | — | — | **+5** | ⬆️ Weak |
 
-### Beast - Cave Bat (`beast-bat`)
+### Beast - Bat (`beast-bat`)
 
 **Core (every panel):** `hit`, `cdr`
 **Cycling pool:** `agi` (4/10), `cri` (6/10), `mhp` (3/10), `trg` (5/10), `def` (2/10), `luk` (3/10), `ser` (2/10)
@@ -498,7 +498,7 @@ Totals = sum of `perRank × maxRank` across the entire strip. Rate params show `
 | `ser` | — | — | — | — | — | — | -0.5 | — | — | -0.5 | **-1** | 🔽 Itchy |
 | `trg` | — | — | +4 | — | +6 | — | +7 | +7 | — | +16 | **+40** | ⬆️ Moderate |
 
-### Beast - Rot Rat (`beast-rat`)
+### Beast - Rat (`beast-rat`)
 
 **Core (every panel):** `sdr`, `gdr`, `dor`
 **Cycling pool:** `exr` (5/10), `luk` (5/10), `prof` (6/10)
@@ -531,7 +531,7 @@ Totals = sum of `perRank × maxRank` across the entire strip. Rate params show `
 | `tgr` | +10 | +11 | — | +13 | — | +16 | — | +18 | — | +40 | **+108** | ⬆️ High |
 | `trg` | — | — | — | — | — | — | — | — | -5 | — | **-5** | 🔽 Itchy |
 
-### Beast - Garuda (`beast-beaker`)
+### Beast - Beaker (`beast-beaker`)
 
 **Core (every panel):** `atk`, `mdf`
 **Cycling pool:** `cdm` (6/10), `cri` (5/10), `mhp` (3/10), `grd` (3/10), `hit` (3/10), `cev` (3/10), `cdr` (2/10), `agi` (1/10)
@@ -767,7 +767,7 @@ Totals = sum of `perRank × maxRank` across the entire strip. Rate params show `
 | `mhp` | — | -3% | — | -4% | — | -5% | — | -6% | — | -16% | **-34%** | 🔽 Middling |
 | `mrf` | — | — | — | — | +3 | — | +4 | — | +5 | +10 | **+22** | ⬆️ Gentle |
 
-### Construct - Runic Orb (`construct-orb`)
+### Construct - Orb (`construct-orb`)
 
 **Core (every panel):** `sar`, `atk`
 **Cycling pool:** `mdf` (5/10), `mmp` (5/10), `cri` (4/10)
@@ -797,7 +797,7 @@ Totals = sum of `perRank × maxRank` across the entire strip. Rate params show `
 | `mhp` | — | — | -4% | — | -5% | — | -6% | — | -7% | -16% | **-38%** | 🔽 Bad |
 | `mmp` | — | +6% | — | +7% | — | +9% | — | +10% | — | +24% | **+56%** | ⬆️ Moderate |
 
-### Deity - Aspect (`deity-emotion`)
+### Deity - Emotion (`deity-emotion`)
 
 **Core (every panel):** `rec`, `atk`
 **Cycling pool:** `mdf` (5/10), `ser` (4/10), `tgr` (6/10), `mrg` (5/10), `mhp` (1/10)
@@ -812,7 +812,7 @@ Totals = sum of `perRank × maxRank` across the entire strip. Rate params show `
 | `ser` | — | +4% | — | — | +6% | — | — | +8% | +8% | — | **+26%** | ⬆️ Gentle |
 | `tgr` | — | — | -3 | — | -5 | — | -5 | -5 | -5 | -12 | **-35** | 🔽 Bad |
 
-### Deity - Sovereign (`deity-devil`)
+### Deity - Devil (`deity-devil`)
 
 **Core (every panel):** `luk`, `apr`, `gdr`
 **Cycling pool:** `dor` (6/10), `exr` (3/10), `sdr` (3/10), `prof` (2/10)

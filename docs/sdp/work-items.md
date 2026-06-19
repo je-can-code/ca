@@ -61,7 +61,7 @@ Most Phase 0 **machinery is shipped**.
 
 - **Keys:** `gdr` (41), `dor` (42).
 - **Where:** `Game_Actor.getGoldMultiplier()` / `getDropMultiplierBonus()` — notetags + SDP panel bonus; party sums for drops.
-- **Consumers (content):** Generalist (Rot Rat subgroup).
+- **Consumers (content):** Generalist (Rat subgroup).
 
 ---
 
@@ -100,17 +100,17 @@ Covers most mastery passives below via passive states or auto-apply (P4-2).
 
 | Trigger | Example mastery | Gate / plugin |
 |---|---|---|
-| HP threshold | Skeletor, Dargin | ✅ `passiveSourceRule:[hpBelow/hpAbove, …]` |
-| Self state count | Heated Titan | ✅ `passiveStateCount` |
-| Cooldown state | Fungrowth | ✅ `passiveSourceRule:[allOffCooldown]` |
+| HP threshold | Skeleton, Dargin | ✅ `passiveSourceRule:[hpBelow/hpAbove, …]` |
+| Self state count | Titan | ✅ `passiveStateCount` |
+| Cooldown state | Fungus | ✅ `passiveSourceRule:[allOffCooldown]` |
 | Proximity (enemies) | Crawler, Wisp aura | ✅ `passiveSourceRule:[enemiesNearby, N]` for trait gates; Wisp burn = ⏳ [`autoExecuteSkill`](./implementation-status.md#auto-execute-skill-auras--j-passive-conditional-next-release-merge-pending) (merge pending) |
-| Proximity (allies) | Cave Bat, Orc, Quadruped | ✅ `passiveSourceRule:[alliesNearby, N]` |
+| Proximity (allies) | Bat, Orc, Quadruped | ✅ `passiveSourceRule:[alliesNearby, N]` |
 | Damage gap | Treant Ironbark | ✅ `passiveSourceRule:[sinceLastHit, FRAMES]` |
-| Post-skill / post-attack window | Garuda, Fish | ✅ `passiveSourceRule:[attackedWithin, FRAMES]` |
-| Standing still | Draconite, Polliwog (partial) | ✅ `passiveSourceRule:[sinceLastMoved, FRAMES]` |
+| Post-skill / post-attack window | Beaker, Fish | ✅ `passiveSourceRule:[attackedWithin, FRAMES]` |
+| Standing still | Draconite, Frog (partial) | ✅ `passiveSourceRule:[sinceLastMoved, FRAMES]` |
 | Target debuff → **damage** | Puppet, Roper (damage variant) | ✅ `perDebuffBuff`, `bonusDamageIfState` (`J-ABS` 4.12.3+) |
 | Target state-type → **damage** | Needler (vs poison-type) | ✅ `bonusDamageIfStateType`, `bonusDamagePerStateType` + `<type:CLASSIFIER>` on states (`J-Base` / `J-ABS` core) — see [`implementation-status.md` § State type classifiers](./implementation-status.md#state-type-classifiers--j-base--j-abs-core) |
-| On-crit state apply | Cobra | ✅ `onCritApply` (`J-CriticalFactors` 1.1.0) |
+| On-crit state apply | Snake | ✅ `onCritApply` (`J-CriticalFactors` 1.1.0) |
 | Heal cascades | Jelly, Emotion | ✅ heal-event tags (`J-Resources-ABS` 1.1.0) |
 
 **Still unshipped (P2 gaps or P3):**
@@ -119,13 +119,13 @@ Covers most mastery passives below via passive states or auto-apply (P4-2).
 |---|---|---|
 | Target debuff → **CRI/CDM trait** | Roper | ⏳ true trait hook (stat-level CRI/CDM modifier) on target state still unbuilt; Needler routed around this via the type-classifier **damage** tags instead (see shipped table above) — no longer blocking Needler authoring |
 | Party HP threshold | Dryad | ⏳ P2 gap |
-| Last-element resist tracker | Hard Syrup | ⏳ P2 gap |
-| Hit count without moving (escalating) | Polliwog | ⏳ P2 gap (movement + consecutive-hit counter) |
+| Last-element resist tracker | Puddle | ⏳ P2 gap |
+| Hit count without moving (escalating) | Frog | ⏳ P2 gap (movement + consecutive-hit counter) |
 | Movement charge / cash-out (stacked state) | Minotaur | ✅ **J-Passive-Conditional** 1.0.0 (`move` + `removeOnSkillExecution`; P4-2 content) |
 | Viral debuff spread | Brood | ✅ **P3-3** verified (`J-ABS` 4.12.4) |
-| Periodic / reactive state apply | Wraith (Ghastly Ward pulse) | ✅ `autoApplyState` (`J-Passive-Conditional` 1.0.0) |
-| MP-before-HP magic barrier | Wraith (optional layer) | ✅ **J-ABS-Shield** (P3-8) |
-| Retaliate / reflect | Crimson Vice, Scorplite | ⏳ experiment with existing counter hooks |
+| Periodic / reactive state apply | Reborn (Ghastly Ward pulse) | ✅ `autoApplyState` (`J-Passive-Conditional` 1.0.0) |
+| MP-before-HP magic barrier | Reborn (optional layer) | ✅ **J-ABS-Shield** (P3-8) |
+| Retaliate / reflect | Crab, Scorpion | ⏳ experiment with existing counter hooks |
 | "Recently hit by enemy" DR | Cephalopod | ⏳ P2 gap (attacker-side debuff aura or new stamp) |
 
 ---
@@ -135,7 +135,7 @@ Covers most mastery passives below via passive states or auto-apply (P4-2).
 > Items are ordered easiest → hardest to implement. **12/12 done** — P3-3 state spread verified (`J-ABS` 4.12.4). P3-8 MP barrier shipped; P3-6 superseded by Conditional 1.0.0.
 
 ### P3-1: J-CriticalFactors — on-crit trigger ✅ DONE (2026-05-30)
-- **For:** Cobra (Venom Strike) — crits apply/extend poison.
+- **For:** Snake (Venom Strike) — crits apply/extend poison.
 - **What:** hook into crit resolution to apply a state on critical hit.
 - **Tags:** `<onCritApply:[STATE_ID, CHANCE]>` / `<onCritSelf:[STATE_ID, CHANCE]>` on any notetag source.
   `<thisCritApply:[…]>` / `<thisCritSelf:[…]>` on a specific skill.
@@ -149,7 +149,7 @@ Covers most mastery passives below via passive states or auto-apply (P4-2).
 - **Source:** `J-Elementalistics` 1.1.0.
 
 ### P3-9: Shield-break explosion ✅ DONE (2026-05-30)
-- **For:** Runic Orb (Overcharge) — on-shield-break, explode for X% of shield value as AoE.
+- **For:** Orb (Overcharge) — on-shield-break, explode for X% of shield value as AoE.
 - **What:** on-shield-break hook already exists. Wire in AoE damage event at shield break location.
 - **Source:** `J-ABS-Shield`.
 
@@ -223,11 +223,11 @@ state row; overrides MZ-capped `stepsToRemove` for map timers.
 Design source: `rmmz-plugins/.backlog/unstarted/ca-food-group-chain-system.md`.
 
 ### P3-13: autoApplyState scheduler — ✅ DONE (2026-06-01)
-- **For:** Wraith (Ghastly Ward) and any mastery that needs timed or reactive **combat** states without a skill slot.
+- **For:** Reborn (Ghastly Ward) and any mastery that needs timed or reactive **combat** states without a skill slot.
 - **What:** **`J-Passive-Conditional` 1.0.0** (initial release) — `<autoApplyState:[STATE_ID, CONDITION, COOLDOWN_FRAMES]>`.
   Conditions: `time`, `hpDmg`, `mpDmg`, `tpDmg`, `whenCrit` (victim), `negaStateAdded`.
   Scans `getPassiveStateSources()` (mastery skills included). Cooldowns in **frames**.
-- **Wraith authoring:** mastery state **1111–1120** → `<autoApplyState:[1001–1010, time, FRAMES]>`; ward rows → `<shield:[…]>` (+ optional cap/stack). MP-weighted formulas; pulse **3600→900** frames by tier — see [`mastery-cheatsheet.md` § Wraith reference](../sdp/mastery-cheatsheet.md#reference-wraith--ghastly-ward-undead-reborn).
+- **Reborn authoring:** mastery state **1111–1120** → `<autoApplyState:[1001–1010, time, FRAMES]>`; ward rows → `<shield:[…]>` (+ optional cap/stack). MP-weighted formulas; pulse **3600→900** frames by tier — see [`mastery-cheatsheet.md` § Reborn reference](../sdp/mastery-cheatsheet.md#reference-reborn--ghastly-ward-undead-reborn).
 
 ### P3-14: autoExecuteSkill scheduler — ⏳ IMPLEMENTED (merge pending; version bump on main)
 - **For:** Wisp (Blistering Aura), inanimate hazards, gear tread/heal auras, stomp-on-move, and any “skill on cadence” identity.
@@ -244,8 +244,8 @@ Design source: `rmmz-plugins/.backlog/unstarted/ca-food-group-chain-system.md`.
 - **Formula:** `bonusPct = sum(N/sec) × (castFrames / 60)`; no cap.
 
 ### P3-8: Shield plugin — mana barrier extension — ✅ DONE (2026-06-02)
-- **For:** optional Wraith layer — magic damage drains MP before HP (orthogonal to pulsed shield via P3-13).
-- **What:** **`J-ABS-Shield`** — MP absorbs magic damage before HP (state/notetag-driven; P4-2 Wraith authoring optional).
+- **For:** optional Reborn layer — magic damage drains MP before HP (orthogonal to pulsed shield via P3-13).
+- **What:** **`J-ABS-Shield`** — MP absorbs magic damage before HP (state/notetag-driven; P4-2 Reborn authoring optional).
 
 ### P3-6: Movement momentum toolkit — ✅ SUPERSEDED (2026-06-02) by `J-Passive-Conditional` 1.0.0
 
@@ -304,10 +304,10 @@ Design source: `rmmz-plugins/.backlog/unstarted/ca-food-group-chain-system.md`.
 
 ### P4-3: Place unplaced enemies on maps
 - **Where:**
-  - Rust Bucket → Pearl Salt Mines (~lv7-12)
+  - Armor → Pearl Salt Mines (~lv7-12)
   - Kobold → outside Raevula hub town
   - Cyclops → cliffsides (~lv20+ area)
-  - Bot, Runic Orb, Puppet → TBD map placements
+  - Bot, Orb, Puppet → TBD map placements
 - **Why:** ensures all 10 archetypes are accessible by mid-game.
 
 ---

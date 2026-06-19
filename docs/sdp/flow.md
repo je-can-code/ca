@@ -12,7 +12,7 @@
 
 ## Hard-learned rules (read these first)
 
-- **Identity is the `subgroupKey`, not the display name.** Say `slime-puddle`, not "Hard Syrup".
+- **Identity is the `subgroupKey`, not the display name.** Say `slime-puddle`, not "Puddle".
 - **Before writing any JSON, read a verified neighbor entry first.** Confirm trait codes, field names, and shape. Do not guess trait codes — `11` is element rate, `23` is SP param rate; they are not interchangeable.
 - **Let scripts do all arithmetic.** No mental math on accumulation totals. Write a bun inline script and trust the output.
 - **Rate params (`fdr`, `pdr`, `mdr`, `cev`, etc.) use `isFlat: true`.** Percent-style `isFlat: false` is for unbounded stats that amplify a base value. Fixed-scale 0–100 params are flat.
@@ -86,11 +86,10 @@ Discuss the mastery mechanic with JE — clarify intent, hook availability, and 
 
 Get agreement, then write the mastery effect tags into the mastery states in `States.json`.
 
-**Pre-authored:** All mastery wrapper skills (with `<hideFromJabsMenu>` + `<passive:[N]>`) and all mastery state shells (with `<indefiniteState>`) are already authored for every subgroup. Step 3 is purely filling in the custom effect tags on the states — never creating skills or state shells from scratch.
+**Pre-authored:** All mastery wrapper skills (with `<hideFromJabsMenu>` + `<passive:[N]>`) and all mastery state shells are already authored for every subgroup. Step 3 is purely filling in the custom effect tags on the states — never creating skills or state shells from scratch.
 
 **Rules:**
 - Skill `N` = State `N` (same ID). All effect tags go on the state, not the skill.
-- `<indefiniteState>` is already present — do not remove or duplicate it.
 - Act names come from the three-act name index in mastery-cheatsheet — don't invent new ones.
 - If a payload band is needed (e.g. ward states, venom states), claim the next free range and note it in the cheatsheet.
 

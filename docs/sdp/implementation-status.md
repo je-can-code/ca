@@ -20,7 +20,7 @@ Last updated: **2026-06-06** — P4 content **active**. Food chain states 251–
 | **Families** | ✅ | `families[]` group `subgroupKeys[]`; panel family **derived** (not stored on panel). In-game **family strip**; L2/R2 cycle (All → Unknown → families with unlocked panels). |
 | **Passive affix ext** | ✅ | Renamed from `J-Passive-ABS` → **`J-Passive-Affix`** (`J.PASSIVE.EXT.AFFIX`); enemy prefix/suffix RNG + tier presentation. |
 | **Passive conditional ext** | ✅ | **`J-Passive-Conditional` 1.0.0** (unreleased) — passive gates + **`autoApplyState`** (`move`/`stand` via Pixel `updatePixelStepping`) + **`removeOnSkillExecution`** on states; map reconcile + combat timestamps. |
-| **MP barrier (Shield ext)** | ✅ | **`J-ABS-Shield`** — magic damage drains MP before HP (Wraith optional layer; orthogonal to pulsed ward via Conditional `time`). |
+| **MP barrier (Shield ext)** | ✅ | **`J-ABS-Shield`** — magic damage drains MP before HP (Reborn optional layer; orthogonal to pulsed ward via Conditional `time`). |
 | **Mastery enrollment vs skill** | ✅ | `enrolledInSubgroup()` vs `grantsMasterySkill()`. Tier contest only among panels with `masterySkillId > 0`. Org-only higher tiers do not strip lower mastery skills. Wrapper skill on max-rank rankUp; optional idempotent `reconcileAllForParty()` on map start for dev ([`mastery-cheatsheet.md` § Save policy](./mastery-cheatsheet.md#save-policy-no-player-migration-obligation)). |
 | **State expire chains** | ✅ | `JABS_StateExpireData` + `<applyStateOnExpire:[STATE_ID, CHANCE]>` in **J-ABS** core — natural expiry only; forced strip does not advance chains. |
 | **Map state duration override** | ✅ | **J-ABS** core — `<stateDuration:FRAMES>` / optional `<stateDurationSec:SECONDS>` on state row; `jabsStateDurationFrames` overrides MZ-capped `stepsToRemove` when tag present. |
@@ -155,7 +155,7 @@ Survey [`work-items.md`](./work-items.md) P3-1…P3-12. Build when a planned mas
 | **P4-0** food | ⚠️ in progress | **States** 251–282 ✅ (traits, `<stateDuration>`, colors). **Items** 151–182 ⏳ (RNG → `<food:TYPE>`). See [`../food/food-chain-durations.md`](../food/food-chain-durations.md). |
 | **P4-1** panel stat rework | ⏳ | ~100+ panels — see [`panel-parameters-cheatsheet.md`](./panel-parameters-cheatsheet.md) |
 | **P4-2** mastery states/skills | ⚠️ in progress (7/48) | Sequential subgroup pass — tracker: [`mastery-cheatsheet.md` § Authoring progress](./mastery-cheatsheet.md#authoring-progress-one-subgroup-at-a-time) |
-| **P4-3** map placement | ⏳ | Rust Bucket, Kobold, Cyclops, Bot/Orb/Puppet |
+| **P4-3** map placement | ⏳ | Armor, Kobold, Cyclops, Bot/Orb/Puppet |
 
 ---
 
@@ -164,7 +164,7 @@ Survey [`work-items.md`](./work-items.md) P3-1…P3-12. Build when a planned mas
 1. **P4-0 finish** — food items 151–182: `<food:TYPE>`, drop 7-dice RNG, per-group item heals; recipe audit; scarcity; in-map playtest (one arc per group).
 2. **P4-0 decision** — food item scope: keep party-wide heals vs user-only + future buffet accessory.
 3. **P4-1** (or one archetype vertical slice) — panel tradeoff magnitudes before bulk rework; litmus test: no “all offense + HRG on six chars” wins everything.
-4. **Parallel (non-blocking):** P1-2 respec (after cost model), CMS registry breakdowns, P2 gaps only when P4-2 hits Dryad / Hard Syrup / Polliwog / Roper-Needler.
+4. **Parallel (non-blocking):** P1-2 respec (after cost model), CMS registry breakdowns, P2 gaps only when P4-2 hits Dryad / Puddle / Frog / Roper-Needler.
 5. **P4-2** mastery DB pass — wrapper skills + passive states using shipped tag cookbook.
 6. **P4-3** placements — fill archetype gaps on maps (Kobold near hub, etc.).
 
@@ -226,7 +226,7 @@ Multiple rules on the same state are **AND**-ed. Examples:
 <passiveSourceRule:[hpBelow, 30]>
 <passiveSourceRule:[hitWithin, 120]>
 
-// active only while standing still for at least 3 seconds (180f) — Polliwog Rooted Barrage
+// active only while standing still for at least 3 seconds (180f) — Frog Rooted Barrage
 <passiveSourceRule:[sinceLastMoved, 180]>
 
 // active for 1 second after receiving any HP heal — post-heal buff
@@ -259,7 +259,7 @@ Schedules **real JABS states** (shields, buffs, momentum stacks, etc.) from the 
 
 **vs on-crit tags:** `onCritApply` (J-CriticalFactors) runs when **you land** a crit. `whenCrit` runs when **you are crit**.
 
-**Wraith Ghastly Ward (P4-2):** two-layer authoring — mastery **1111–1120** carry `<autoApplyState:[WARD_ID, time, FRAMES]>`; ward payloads **1001–1010** carry shield notetags. See [`mastery-cheatsheet.md` § Wraith reference](./mastery-cheatsheet.md#reference-wraith--ghastly-ward-undead-reborn) for CA timer table and MP-weighted formulas.
+**Reborn Ghastly Ward (P4-2):** two-layer authoring — mastery **1111–1120** carry `<autoApplyState:[WARD_ID, time, FRAMES]>`; ward payloads **1001–1010** carry shield notetags. See [`mastery-cheatsheet.md` § Reborn reference](./mastery-cheatsheet.md#reference-reborn--ghastly-ward-undead-reborn) for CA timer table and MP-weighted formulas.
 
 **Minotaur Momentum (P4-2):** `<autoApplyState:[MOMENTUM_ID, move, N]>` on wrapper; momentum state (`stackMax`, additive ATK% traits); `<removeOnSkillExecution:[CHARGE_STYPE, 100]>` on that state.
 
@@ -274,7 +274,7 @@ Schedules **real JABS states** (shields, buffs, momentum stacks, etc.) from the 
 - **Scheduler** (tag on grant row): when to call `forceMapAction`
 - **Payload** (skill row): radius, proximity, hitbox, element, formula, heal/damage, effects
 
-Same two-layer split as Wraith (`autoApplyState` → ward state); payload is always a **skill**. Executions are normal map skills — **parryable**; victims **can retaliate**.
+Same two-layer split as Reborn (`autoApplyState` → ward state); payload is always a **skill**. Executions are normal map skills — **parryable**; victims **can retaliate**.
 
 **vs `autoApplyState`:**
 
@@ -282,7 +282,7 @@ Same two-layer split as Wraith (`autoApplyState` → ward state); payload is alw
 |---|---|
 | Shield, stack, trait buff, slip DoT **on bearer** | **`autoApplyState`** → state row |
 | Spatial hitbox, damage/heal formula, **map skill identity** | **`autoExecuteSkill`** → skill row |
-| Ward pulse (Wraith) | **`autoApplyState`** → ward state with `<shield>` |
+| Ward pulse (Reborn) | **`autoApplyState`** → ward state with `<shield>` |
 | Burn bubble (Wisp) | **`autoExecuteSkill`** → burn skill |
 
 **Two radii (trigger vs effect):**
@@ -330,7 +330,6 @@ Heal auras use **`time`** — no enemy gate.
 
 ```text
 <!-- Wisp mastery 1121–1130 (P4-2) -->
-<indefiniteState>
 <autoExecuteSkill:[1021, enemiesNearby, 1, 60]>
 
 <!-- Hazard turret — replaces move-route forceMapAction loops -->
@@ -359,11 +358,11 @@ Ideas that **compete or combine** with current [`archetype-mapping.md`](./archet
 |---|---|---|
 | **Wisp** | Burn aura (planned) | Primary — `enemiesNearby` + fire payload |
 | **Construct Hazard** | Blast Radius (cast AoE size) | Enemy **`time`** turret; player **`time`** zone pulse |
-| **Goo Bat / Flower** | HRG / cleanse (traits) | **`time`** heal or cleanse skill pulse |
+| **Aerial / Flower** | HRG / cleanse (traits) | **`time`** heal or cleanse skill pulse |
 | **Cube** | Slow melee (movespeed debuff) | **`time`** / **`enemiesNearby`** slow via payload skill |
 | **Minotaur** | Momentum (`autoApplyState` move + cash-out) | **`move, 1`** stomp tread — simpler identity |
 | **Brood** | Viral spread | **`time`** plague cloud skill |
-| **Heated Titan** | KB + debuff stacks | **`anyDmg`** reactive shockwave |
+| **Titan** | KB + debuff stacks | **`anyDmg`** reactive shockwave |
 | **Kobold Field Medic** | Food chain | **`time`** small party heal (orthogonal to food) |
 
 #### Gear & accessory ideas (non-mastery)
@@ -400,10 +399,10 @@ Tags apply to **any notetag source** (actor, class, equip, skill, state). Two sc
 Examples:
 
 ```
-// Cobra Venom Strike — any crit has 40% to apply Poison (state 14) to the target
+// Snake Venom Strike — any crit has 40% to apply Poison (state 14) to the target
 <onCritApply:[14, 40]>
 
-// Cobra passive — wearing this armor, all crits have 15% to also apply Blind (state 22)
+// Snake passive — wearing this armor, all crits have 15% to also apply Blind (state 22)
 // (on the armor's notetag — reads via getAllNotes())
 <onCritApply:[22, 15]>
 

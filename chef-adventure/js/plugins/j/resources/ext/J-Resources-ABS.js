@@ -161,17 +161,22 @@
  *
  * TAG FORMAT (onSelf):
  *  <onSelf{Trigger}Heal{Output}:[PERCENT, RANGE]>
- *    Trigger: Hp | Mp | Tp | Any
- *    Output:  Hp | Mp | Tp
- *    PERCENT: integer percentage of the heal amount to apply as secondary
- *    RANGE:   tile radius; 0 = self only, >0 includes allies within radius
+ *  <onSelf{Trigger}Heal{Output}:[PERCENT, RANGE, MAX_DEPTH]>
+ *    Trigger:   Hp | Mp | Tp | Any
+ *    Output:    Hp | Mp | Tp
+ *    PERCENT:   integer percentage of the heal amount to apply as secondary
+ *    RANGE:     tile radius; 0 = self only, >0 includes allies within radius
+ *    MAX_DEPTH: max cross-battler cascade hops (default: healChainDepth plugin param).
+ *               The tag never echoes itself on the same battler regardless of this value.
  *
  * TAG FORMAT (onAlly):
  *  <onAlly{Trigger}Heal{Output}:[PERCENT, RANGE]>
- *    Trigger: Hp | Mp | Tp | Any
- *    Output:  Hp | Mp | Tp
- *    PERCENT: integer percentage of the ally's heal to apply to self
- *    RANGE:   tile radius; observer only reacts if healed ally is within range
+ *  <onAlly{Trigger}Heal{Output}:[PERCENT, RANGE, MAX_DEPTH]>
+ *    Trigger:   Hp | Mp | Tp | Any
+ *    Output:    Hp | Mp | Tp
+ *    PERCENT:   integer percentage of the ally's heal to apply to self
+ *    RANGE:     tile radius; observer only reacts if healed ally is within range
+ *    MAX_DEPTH: max cross-battler cascade hops (default: healChainDepth plugin param)
  *
  * TAG EXAMPLES:
  *  <onSelfHpHealMp:[50, 0]>
@@ -272,30 +277,30 @@ J.RESOURCES.EXT.ABS.RegExp.WhenHitTpGainFormula = /<when-hit-tp-gain:\[([+\-*/ (
 J.RESOURCES.EXT.ABS.RegExp.Lifesteal = /<lst:(-?\d+)>/gi;
 J.RESOURCES.EXT.ABS.RegExp.Manasteal = /<mst:(-?\d+)>/gi;
 J.RESOURCES.EXT.ABS.RegExp.Techsteal = /<tst:(-?\d+)>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealHp = /<onSelfHpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealMp = /<onSelfHpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealTp = /<onSelfHpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealHp = /<onSelfMpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealMp = /<onSelfMpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealTp = /<onSelfMpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealHp = /<onSelfTpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealMp = /<onSelfTpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealTp = /<onSelfTpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealHp = /<onSelfAnyHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealMp = /<onSelfAnyHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealTp = /<onSelfAnyHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealHp = /<onAllyHpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealMp = /<onAllyHpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealTp = /<onAllyHpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealHp = /<onAllyMpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealMp = /<onAllyMpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealTp = /<onAllyMpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealHp = /<onAllyTpHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealMp = /<onAllyTpHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealTp = /<onAllyTpHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealHp = /<onAllyAnyHealHp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealMp = /<onAllyAnyHealMp:[ ]?(\[\d+,[ ]?\d+])>/gi;
-J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealTp = /<onAllyAnyHealTp:[ ]?(\[\d+,[ ]?\d+])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealHp = /<onSelfHpHealHp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealMp = /<onSelfHpHealMp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfHpHealTp = /<onSelfHpHealTp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealHp = /<onSelfMpHealHp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealMp = /<onSelfMpHealMp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfMpHealTp = /<onSelfMpHealTp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealHp = /<onSelfTpHealHp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealMp = /<onSelfTpHealMp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfTpHealTp = /<onSelfTpHealTp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealHp = /<onSelfAnyHealHp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealMp = /<onSelfAnyHealMp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnSelfAnyHealTp = /<onSelfAnyHealTp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealHp = /<onAllyHpHealHp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealMp = /<onAllyHpHealMp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyHpHealTp = /<onAllyHpHealTp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealHp = /<onAllyMpHealHp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealMp = /<onAllyMpHealMp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyMpHealTp = /<onAllyMpHealTp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealHp = /<onAllyTpHealHp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealMp = /<onAllyTpHealMp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyTpHealTp = /<onAllyTpHealTp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealHp = /<onAllyAnyHealHp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealMp = /<onAllyAnyHealMp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
+J.RESOURCES.EXT.ABS.RegExp.OnAllyAnyHealTp = /<onAllyAnyHealTp:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)?])>/gi;
 /** Legacy SDP panel parameter ids for on-attack drain stats. */
 J.RESOURCES.EXT.ABS.SdpParamId = {
 	LST: 35,
@@ -390,6 +395,13 @@ var HealEventManager = class {
 	*/
 	static _currentDepth = 0;
 	/**
+	* Tracks which (outputKey + battler uuid) combinations are currently mid-dispatch
+	* for their own secondary self-heal, preventing a tag from echoing itself.
+	* Key format: "${outputKey}:${uuid}" — e.g. "Hp:abc123".
+	* @type {Set<string>}
+	*/
+	static _selfBlockedTags = new Set();
+	/**
 	* The three output resource keys used for looping over possible output resources.
 	* @type {string[]}
 	*/
@@ -437,6 +449,13 @@ var HealEventManager = class {
 	/**
 	* Reads onSelf tags from the recipient's notes and applies secondary heals.
 	* Self always receives the secondary heal; allies within the tag's range also receive it.
+	*
+	* Self-echo prevention: the secondary self-heal is applied under a block keyed by
+	* "${outputKey}:${uuid}". If that key is already blocked when we try to apply the
+	* self-heal, we skip it — preventing a tag from infinitely echoing itself. The block
+	* is cleared before ally-heals are applied so cross-battler ping-pong is still allowed
+	* up to the per-tag MAX_DEPTH limit.
+	*
 	* @param {Game_Battler} recipient The battler whose onSelf tags are evaluated.
 	* @param {string} triggerKey PascalCase trigger resource ('Hp', 'Mp', 'Tp').
 	* @param {number} amount The amount that triggered this event.
@@ -445,10 +464,19 @@ var HealEventManager = class {
 		const notes = recipient.getAllNotes();
 		for (const outputKey of this.#outputKeys) {
 			const tuples = this.#getTuples(notes, false, triggerKey, outputKey);
-			for (const [percent, range] of tuples) {
+			for (const [percent, range, maxDepth] of tuples) {
+				if (this._currentDepth > maxDepth) continue;
 				const secondary = Math.floor(amount * percent / 100);
 				if (secondary <= 0) continue;
-				this.#applySecondaryHeal(recipient, outputKey, secondary);
+				const selfBlockKey = `${outputKey}:${recipient.getUuid()}`;
+				if (!this._selfBlockedTags.has(selfBlockKey)) {
+					this._selfBlockedTags.add(selfBlockKey);
+					try {
+						this.#applySecondaryHeal(recipient, outputKey, secondary);
+					} finally {
+						this._selfBlockedTags.delete(selfBlockKey);
+					}
+				}
 				if (range > 0) {
 					const jabsBattler = JABS_AiManager.getBattlerByUuid(recipient.getUuid());
 					if (jabsBattler === undefined) continue;
@@ -480,7 +508,8 @@ var HealEventManager = class {
 			const notes = observer.getAllNotes();
 			for (const outputKey of this.#outputKeys) {
 				const tuples = this.#getTuples(notes, true, triggerKey, outputKey);
-				for (const [percent, range] of tuples) {
+				for (const [percent, range, maxDepth] of tuples) {
+					if (this._currentDepth > maxDepth) continue;
 					if (distance > range) continue;
 					const secondary = Math.floor(amount * percent / 100);
 					if (secondary <= 0) continue;
@@ -502,13 +531,14 @@ var HealEventManager = class {
 		else battler.gainTpFromResource(amount);
 	}
 	/**
-	* Collects all [percent, range] tuples from notes for a given family/trigger/output combination.
+	* Collects all [percent, range, maxDepth] tuples from notes for a given family/trigger/output combination.
 	* Checks both the specific trigger regexp and the "Any" trigger variant.
+	* maxDepth defaults to the healChainDepth plugin parameter when the tag omits the third value.
 	* @param {RPG_BaseItem[]} notes The array of database objects to scan.
 	* @param {boolean} isAlly True when looking for onAlly tags; false for onSelf tags.
 	* @param {string} triggerKey PascalCase trigger resource ('Hp', 'Mp', 'Tp').
 	* @param {string} outputKey PascalCase output resource ('Hp', 'Mp', 'Tp').
-	* @returns {Array<[number, number]>} Array of [percent, range] pairs.
+	* @returns {Array<[number, number, number]>} Array of [percent, range, maxDepth] triples.
 	*/
 	static #getTuples(notes, isAlly, triggerKey, outputKey) {
 		const family = isAlly ? "Ally" : "Self";
@@ -516,18 +546,33 @@ var HealEventManager = class {
 		const anyKey = `On${family}AnyHeal${outputKey}`;
 		const specificRegexp = J.RESOURCES.EXT.ABS.RegExp[specificKey];
 		const anyRegexp = J.RESOURCES.EXT.ABS.RegExp[anyKey];
+		const globalMaxDepth = J.RESOURCES.EXT.ABS.Metadata.healChainDepth;
 		const tuples = [];
 		for (const databaseData of notes) {
 			if (specificRegexp) {
 				const results = RPGManager.getArraysFromNotesByRegex(databaseData, specificRegexp);
 				for (const result of results) {
-					if (Array.isArray(result) && result.length === 2) tuples.push([Number(result[0]), Number(result[1])]);
+					if (Array.isArray(result) && result.length >= 2) {
+						const maxDepth = result.length >= 3 ? Number(result[2]) : globalMaxDepth;
+						tuples.push([
+							Number(result[0]),
+							Number(result[1]),
+							maxDepth
+						]);
+					}
 				}
 			}
 			if (anyRegexp) {
 				const results = RPGManager.getArraysFromNotesByRegex(databaseData, anyRegexp);
 				for (const result of results) {
-					if (Array.isArray(result) && result.length === 2) tuples.push([Number(result[0]), Number(result[1])]);
+					if (Array.isArray(result) && result.length >= 2) {
+						const maxDepth = result.length >= 3 ? Number(result[2]) : globalMaxDepth;
+						tuples.push([
+							Number(result[0]),
+							Number(result[1]),
+							maxDepth
+						]);
+					}
 				}
 			}
 		}

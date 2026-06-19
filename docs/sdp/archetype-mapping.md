@@ -68,16 +68,16 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 | IDs | Subgroup | Description | Archetype |
 |---|---|---|---|
 | 101–110 | **Ghosty** | Sloppy mid-range caster, mascot enemy, escalating spell danger | **Wizard** |
-| 111–120 | **Wraith** | Beefy, high elemental resists, drain-touch melee, annoying tank | **Guardian** |
+| 111–120 | **Reborn** | Beefy, high elemental resists, drain-touch melee, annoying tank | **Guardian** |
 | 121–130 | **Wisp** | Fragile, passive counter-aura (burns on contact), must kill at range | **Artillery** |
-| 131–140 | **Skeletor** | Leader/follower pairs (Skeletor + Skeledoggo), aggressive melee | **Berserker** |
-| 141–150 | **Rust Bucket** | Haunted armor (tsukumogami), low HP but absurd defense, otherwise dull | **Vanguard** |
+| 131–140 | **Skeleton** | Leader/follower pairs (Skeleton + Skeledoggo), aggressive melee | **Berserker** |
+| 141–150 | **Armor** | Haunted armor (tsukumogami), low HP but absurd defense, otherwise dull | **Vanguard** |
 
 ## Family 2: Reptile (151–200)
 
 | IDs | Subgroup | Description | Archetype |
 |---|---|---|---|
-| 151–160 | **Cobra** | High speed dive-and-bite, poison, crit-heavy, mean and relentless | **Skirmisher** |
+| 151–160 | **Snake** | High speed dive-and-bite, poison, crit-heavy, mean and relentless | **Skirmisher** |
 | 161–170 | **Dargin** | Classic dragon, durable front-mid, elemental breath, strong all around, high PDEF+EDEF | **Vanguard** |
 | 171–180 | **Draconite** | Slower, more durable, less offensive Dargin cousin — gargoyle vibes | **Guardian** |
 | 181–190 | **Lamia** | Huge sprite, tons of HP, melee, devastating scaling laser ("live long enough to hadouken") | **Artillery** |
@@ -88,8 +88,8 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 | IDs | Subgroup | Description | Archetype |
 |---|---|---|---|
 | 201–210 | **Kappa** | Insanely fast, lucky, support spells + melee slaps, total douchebag jack-of-all-trades | **Generalist** |
-| 211–220 | **Polliwog** | Stationary turret, ribbits at you for damage, basically a living trap | **Artillery** |
-| 221–230 | **Crimson Vice** | Crab, recursive combo chains, strictly melee, anti-physical wall, melts to magic | **Guardian** |
+| 211–220 | **Frog** | Stationary turret, ribbits at you for damage, basically a living trap | **Artillery** |
+| 221–230 | **Crab** | Recursive combo chains, strictly melee, anti-physical wall, melts to magic | **Guardian** |
 | 231–240 | **Fish** (TBD) | Annoying mid-range poker, fast, kites you endlessly, opportunistic | **Skirmisher** |
 | 241–250 | **Cephalopod** (TBD) | Beefy squid, long range, large hitbox, drowns you in ink/debuffs | **War Priest** |
 
@@ -97,18 +97,18 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 
 | IDs | Subgroup | Description | Archetype |
 |---|---|---|---|
-| 251–260 | **Hard Syrup** | Elemental variants (not tiered), wildly varied offense/defense, no parry, all have HRG | **Generalist** |
+| 251–260 | **Puddle** | Elemental variants (not tiered), wildly varied offense/defense, no parry, all have HRG | **Generalist** |
 | 261–270 | **Roper** | Deadly magical melee, hits insanely hard, all magic damage, in-your-face aggression | **Berserker** |
 | 271–280 | **Jelly** | Pure ranged support, heals allies, buffs friends, slurps your magi, adorable sprite | **Medic** |
-| 281–290 | **Goo Bat** | Unchallenged king of regeneration, must Seal or one-shot, negligible damage | **Cleric** |
+| 281–290 | **Aerial** | Unchallenged king of regeneration, must Seal or one-shot, negligible damage | **Cleric** |
 | 291–300 | **Cube** (TBD) | Big chonky blob, extra large hitbox, just... in the way | **Vanguard** |
 
 ## Family 5: Plant (301–350)
 
 | IDs | Subgroup | Description | Archetype |
 |---|---|---|---|
-| 301–310 | **Wolftrap** | Venus fly trap, roots you, barely moves, dissolves you while stuck, escalating debuffs | **Wizard** |
-| 311–320 | **Fungrowth** | Dumb, locks out skills but buffs offense, forces pure basic attack berserker mode | **Berserker** |
+| 301–310 | **Trap** | Venus fly trap, roots you, barely moves, dissolves you while stuck, escalating debuffs | **Wizard** |
+| 311–320 | **Fungus** | Dumb, locks out skills but buffs offense, forces pure basic attack berserker mode | **Berserker** |
 | 321–330 | **Dryad** | Backline healer, rains rocks when allies healthy, buffs friends, makes acorn pie | **Medic** |
 | 331–340 | **Treant** (TBD) | Chonky frontliner, chonky tree things, wooden Cube energy | **Vanguard** |
 | 341–350 | **Flower** (TBD) | Graveyard flower, passive sustain aura, cleanses debuffs, eerie Cleric | **Cleric** |
@@ -118,9 +118,9 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 | IDs | Subgroup | Description | Archetype |
 |---|---|---|---|
 | 351–360 | **Bearcat** | Brutal slaps, massive knockback, bleed, physical/HP/DEF core that evolves into void magic | **Berserker** |
-| 361–370 | **Cave Bat** (`beast-bat`) | Classic trash mob, fast annoying peckers, dies in 1–2 hits, sheer pest energy | **Skirmisher** |
-| 371–380 | **Garuda** (`beast-beaker`) | Level 70+ boss bird, prefers backline razor winds, big and angry, can frontline if pressed | **Artillery** |
-| 381–390 | **Rot Rat** (`beast-rat`) | "Resourceful rodent," not scary alone, dangerous in numbers, stacking poison/chip damage | **Generalist** |
+| 361–370 | **Bat** (`beast-bat`) | Classic trash mob, fast annoying peckers, dies in 1–2 hits, sheer pest energy | **Skirmisher** |
+| 371–380 | **Beaker** (`beast-beaker`) | Level 70+ boss bird, prefers backline razor winds, big and angry, can frontline if pressed | **Artillery** |
+| 381–390 | **Rat** (`beast-rat`) | "Resourceful rodent," not scary alone, dangerous in numbers, stacking poison/chip damage | **Generalist** |
 | 391–400 | **Quadruped** (TBD) | Hippogryph/chimera pack alpha, roars to buff allies, body-blocks, leader of the pack | **Guardian** |
 
 ## Family 7: Insect (401–450)
@@ -130,7 +130,7 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 | 401–410 | **Needler** | Fast, poisonous bees, annoying→deadly pipeline, outrageous crits, melee→ranged evolution | **Skirmisher** |
 | 411–420 | **Crawler** | Wall-lurking ambushers, elemental debuff spires, beefy with regen, low mobility area denial | **War Priest** |
 | 421–430 | **Brood** (TBD) | Swarm debuffers, rain disabilities, never alone, force multiplier for accompanying enemies | **Wizard** |
-| 431–440 | **Scorplite** (TBD) | Armored scorpions, stab and shrug, symbiotic bodyguards for Brood, chitin wall | **Vanguard** |
+| 431–440 | **Scorpion** (TBD) | Armored scorpions, stab and shrug, symbiotic bodyguards for Brood, chitin wall | **Vanguard** |
 | 441–450 | **Parasite** (TBD) | Loner drain kings, every attack self-sustains, higher tiers disperse drain auras to allies | **War Priest** |
 
 ## Family 8: Humanoid (451–500)
@@ -147,11 +147,11 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 
 | IDs | Subgroup | Description | Archetype |
 |---|---|---|---|
-| 501–510 | **Heated Titan** | Level 69 golem joke, massive unkillable brute, pure walk-forward-and-kill aggression | **Berserker** |
+| 501–510 | **Titan** | Level 69 golem joke, massive unkillable brute, pure walk-forward-and-kill aggression | **Berserker** |
 | 511–520 | **Hazard** | Stationary traps, no AI, move-route skill spam, zone denial turrets | **Artillery** |
 | 521–530 | **Bot** (TBD) | Robot killing machine with self-repair subroutines, relentless offense + mechanical sustain | **War Priest** |
 | 531–540 | **Puppet** (TBD) | Marionette channels dark misery magic through puppet conduit, kill controller to disable | **Wizard** |
-| 541–550 | **Runic Orb** (TBD) | Aura/buff battery, follows allies, regen support; death-explosion shorts nearby constructs | **Medic** |
+| 541–550 | **Orb** (TBD) | Aura/buff battery, follows allies, regen support; death-explosion shorts nearby constructs | **Medic** |
 
 ## Family 10: Deity (551–600)
 
@@ -160,8 +160,8 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 | Enemy IDs | Slot | Subgroup | Description | Archetype |
 |---|---|---|---|---|
 | 551–560 | 1 | **Elemental** | Bosses you fight then recruit as party members, elemental mastery incarnate | **Wizard** |
-| 561–570 | 2 | **Aspect** | Embodied emotions — Joy heals, Hope rekindles, Sorrow debuffs; emotional sustain | **Cleric** |
-| 571–580 | 3 | **Sovereign** | Imps, devils, alluring tricksters; too clever to commit to one strategy | **Generalist** |
+| 561–570 | 2 | **Emotion** | Embodied emotions — Joy heals, Hope rekindles, Sorrow debuffs; emotional sustain | **Cleric** |
+| 571–580 | 3 | **Devil** | Imps, devils, alluring tricksters; too clever to commit to one strategy | **Generalist** |
 | 581–590 | 4 | **Sin** (boss decade) | Seven deadly sin bosses + padding tiers | **Multi** (see below) |
 | 591–600 | 5 | **Sin Votary** (helper decade) | Sin helpers; drop sin-themed panels | **Multi** (see below) |
 
@@ -183,16 +183,16 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 
 | Archetype | Count | Subgroups |
 |---|---|---|
-| Berserker | 5 | Skeletor, Roper, Fungrowth, Bearcat, Heated Titan |
-| Guardian | 4 | Wraith, Draconite, Crimson Vice, Quadruped |
-| Vanguard | 6 | Rust Bucket, Dargin, Cube, Treant, Scorplite, Cyclops |
+| Berserker | 5 | Skeleton, Roper, Fungus, Bearcat, Titan |
+| Guardian | 4 | Reborn, Draconite, Crab, Quadruped |
+| Vanguard | 6 | Armor, Dargin, Cube, Treant, Scorpion, Cyclops |
 | War Priest | 5 | Salamander, Cephalopod, Parasite, Bot, Crawler |
-| Skirmisher | 5 | Cobra, Fish, Cave Bat, Needler, Bandit |
-| Generalist | 5 | Kappa, Hard Syrup, Rot Rat, Orc, Devil |
-| Cleric | 4 | Goo Bat, Flower, Kobold, Emotion |
-| Artillery | 6 | Wisp, Lamia, Polliwog, Garuda, Minotaur, Hazard |
-| Wizard | 5 | Ghosty, Brood, Puppet, Elemental, Wolftrap |
-| Medic | 3 | Jelly, Dryad, Runic Orb |
+| Skirmisher | 5 | Snake, Fish, Bat, Needler, Bandit |
+| Generalist | 5 | Kappa, Puddle, Rat, Orc, Devil |
+| Cleric | 4 | Aerial, Flower, Kobold, Emotion |
+| Artillery | 6 | Wisp, Lamia, Frog, Beaker, Minotaur, Hazard |
+| Wizard | 5 | Ghosty, Brood, Puppet, Elemental, Trap |
+| Medic | 3 | Jelly, Dryad, Orb |
 
 > Sin helpers add +1 each to: Berserker, War Priest, Guardian, Vanguard, Skirmisher, Wizard, Generalist.
 
@@ -381,11 +381,11 @@ This gives all three gun subgroups (Pistol, Taser, Shotgun) natural panel partne
 
 | Subgroup | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|
-| Skeletor | +HRG (small undead sustain) | **Undying Rage**: below 25% HP, ATK +15% | ✅ `passiveSourceRule:[hpBelow, …]` (J-Passive-Conditional); P4-2 mastery state |
+| Skeleton | +HRG (small undead sustain) | **Undying Rage**: below 25% HP, ATK +15% | ✅ `passiveSourceRule:[hpBelow, …]` (J-Passive-Conditional); P4-2 mastery state |
 | Roper | MAT replaces ATK (magic berserker) | **Eldritch Fury**: CRI +10% vs debuffed enemies | ⏳ target-state **trait** hook (P2 gap); damage variant ✅ `bonusDamageIfState` |
-| Fungrowth | +ATK (extra heavy), MCR↑/TCR↑ (skills costly) | **Primal Instinct**: ATK +X% while no skills on cooldown | ✅ `passiveSourceRule:[allOffCooldown]`; P4-2 mastery state |
+| Fungus | +ATK (extra heavy), MCR↑/TCR↑ (skills costly) | **Primal Instinct**: ATK +X% while no skills on cooldown | ✅ `passiveSourceRule:[allOffCooldown]`; P4-2 mastery state |
 | Bearcat | +MAT at higher tiers (void evolution) | **Void Resonance**: 15% of ATK adds to MAT | ✅ traits on passive state; P4-2 |
-| Heated Titan | +MHP (survive one mistake) | **Unstoppable**: knockback resist +50%, ATK +5% per debuff on self | ✅ `passiveStateCount` + traits; P4-2 |
+| Titan | +MHP (survive one mistake) | **Unstoppable**: knockback resist +50%, ATK +5% per debuff on self | ✅ `passiveStateCount` + traits; P4-2 |
 
 **Mastery reward philosophy:** Always-on passive traits that reinforce the subgroup fantasy.
 Never active skills (compete with player kit). Occasional cross-system unlocks for non-combat archetypes.
@@ -400,9 +400,9 @@ Never active skills (compete with player kit). Occasional cross-system unlocks f
 
 | Subgroup | Flavor Twist | Weapon Affinity | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Wraith | +MDF heavy, MMP-weighted ward | Book (MMP battery) | **Ghastly Ward**: pulsed shield scales from **MHP + MMP**; reapplies on a timer | ✅ `autoApplyState` + ward states **1001–1010** (P4-2 authored); optional P3-8 MP-before-HP (`J-ABS-Shield`) |
+| Reborn | +MDF heavy, MMP-weighted ward | Book (MMP battery) | **Ghastly Ward**: pulsed shield scales from **MHP + MMP**; reapplies on a timer | ✅ `autoApplyState` + ward states **1001–1010** (P4-2 authored); optional P3-8 MP-before-HP (`J-ABS-Shield`) |
 | Draconite | +DEF heavy, positional tank | 1H Axe (MHP) | **Stone Scales**: DEF +X% while standing still | ✅ `passiveSourceRule:[sinceLastMoved, …]`; P4-2 |
-| Crimson Vice | +GRD, anti-physical wall | Mech Arm (ATK+DEF) | **Iron Shell**: reflect X% phys damage to attacker | ⏳ retaliate / counter hook (experiment) |
+| Crab | +GRD, anti-physical wall | Mech Arm (ATK+DEF) | **Iron Shell**: reflect X% phys damage to attacker | ⏳ retaliate / counter hook (experiment) |
 | Quadruped | +TGR, pack leader aura | Weapon-agnostic (aggro) | **Alpha Presence**: nearby allies +X% DEF | ✅ `passiveSourceRule:[alliesNearby, N]` + aura traits; P4-2 |
 
 ### Archetype prototype: Vanguard (approved)
@@ -416,11 +416,11 @@ Never active skills (compete with player kit). Occasional cross-system unlocks f
 
 | Subgroup | Reliable How? | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Rust Bucket | Absurd DEF, paper HP | DEF spike, MHP↓ | **Hollow Armor**: DEF doubles, MHP halved | ✅ traits on passive state; P4-2 |
+| Armor | Absurd DEF, paper HP | DEF spike, MHP↓ | **Hollow Armor**: DEF doubles, MHP halved | ✅ traits on passive state; P4-2 |
 | Dargin | Harder to kill when hurt | PDR↓ + MDR↓ | **Dragonheart**: PDR/MDR improve +X% below 50% HP | ✅ `passiveSourceRule:[hpBelow, …]`; P4-2 |
 | Cube | Giant HP, area denial | MHP spike + small TGR | **Living Obstacle**: enemies in melee range have -X% movespeed | ✅ JABS passive state aura; P4-2 |
 | Treant | Recovery between exchanges | DEF + HRG + LST (moderate) | **Ironbark**: first hit after 3s of no damage deals X% less | ✅ `passiveSourceRule:[sinceLastHit, …]`; P4-2 |
-| Scorplite | Hits back with debuffs | ATK + DEF + CNT | **Chitin Barbs**: counterattacks apply slow debuff | ⏳ retaliate / counter hook (experiment) |
+| Scorpion | Hits back with debuffs | ATK + DEF + CNT | **Chitin Barbs**: counterattacks apply slow debuff | ⏳ retaliate / counter hook (experiment) |
 | Cyclops | Simple, untrickable | Raw flat stats, no rates | **Thick Skull**: immune to disable and mute | ✅ passive state immunities; P4-2 |
 
 ### Archetype prototype: War Priest (approved)
@@ -463,16 +463,16 @@ This creates meaningful cross-archetype build tension:
 **Shared core (all Skirmisher panels):**
 - UP: AGI, LUK, HIT, CRI, TRG (fast hits = fast TP = more skill rotations)
 - DOWN: MHP↓, DEF↓, SHE↓ (shields are weak on you — dodge, not barriers), CDR↓ (crits devastate you — don't get caught)
-- MSB is a subgroup flavor (Fish, Cobra) rather than shared core — not all skirmishers are movers.
+- MSB is a subgroup flavor (Fish, Snake) rather than shared core — not all skirmishers are movers.
 - Philosophy: survive by physically dodging in the ARPG, not stat-based evasion. If caught, you crumble.
 
 **Subgroup flavors:**
 
 | Subgroup | Speed Fantasy | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Cobra | Poison + burst assassin | +CRI (heavy), poison synergy | **Venom Strike**: crits apply/extend poison | ✅ `onCritApply` / `thisCritApply` (`J-CriticalFactors` 1.1.0) |
+| Snake | Poison + burst assassin | +CRI (heavy), poison synergy | **Venom Strike**: crits apply/extend poison | ✅ `onCritApply` / `thisCritApply` (`J-CriticalFactors` 1.1.0) |
 | Fish | Kiter, never in range | +AGI (heavy), +MSB | **Slippery**: MSB +X% for 2s after dealing damage | ✅ `passiveSourceRule:[attackedWithin, …]`; P4-2 |
-| Cave Bat | Swarm, quantity over quality | +HIT, +AGI, tiny flat boosts | **Swarm Instinct**: HIT +X% per ally within range | ✅ `passiveSourceRule:[alliesNearby, N]`; P4-2 |
+| Bat | Swarm, quantity over quality | +HIT, +AGI, tiny flat boosts | **Swarm Instinct**: HIT +X% per ally within range | ✅ `passiveSourceRule:[alliesNearby, N]`; P4-2 |
 | Needler | Raw crit devastation | +CRI, +CDM (crit monster) | **Drilling Sting**: on-crit poison proc + bonus damage vs poison-type targets | ✅ `<onCritApply:[16, CHANCE]>` + `<bonusDamageIfStateType:[poison, PCT]>` — Snake applies the poison ladder, Needler punishes it (executioner synergy, not overlap) |
 | Bandit | Dirty tricks, saboteur | +LUK (heavy), debuff chance | **Pocket Sand**: attacks X% chance to blind (HIT↓) | ✅ RMMZ state-on-hit via passive state; P4-2 |
 
@@ -480,9 +480,9 @@ This creates meaningful cross-archetype build tension:
 
 | Subgroup | Natural Weapons | Why |
 |---|---|---|
-| Cobra | Claw (fast + ignore parry), Thrust Spear (CDM) | Poison delivery + crit multiplication |
+| Snake | Claw (fast + ignore parry), Thrust Spear (CDM) | Poison delivery + crit multiplication |
 | Fish | Javelin (ranged hybrid), Pistol (LUK + ranged) | Stay at range, kite forever |
-| Cave Bat | Dual Sword (fast), Wand (fast) | Rapid hits, quantity over quality |
+| Bat | Dual Sword (fast), Wand (fast) | Rapid hits, quantity over quality |
 | Needler | Thrust Spear (CDM monster), Claw (fast + CRI) | Maximum crit damage per hit |
 | Bandit | Pistol (LUK), Dual Sword (fast + GRD) | Dirty fighter, lucky shots |
 
@@ -506,14 +506,14 @@ This creates meaningful cross-archetype build tension:
 |---|---|---|---|---|
 | Wisp | Fragile counter-aura, kill at range | +MAT, aura punisher | **Blistering Aura**: enemies in melee range take X% MHP fire damage/sec | ✅ JABS passive damage aura; P4-2 |
 | Lamia | Devastating laser, patient destruction | +MAT (heavy), cast-time wind-up | **Focusing Beam**: direct skill damage +X% per second of cast time | ✅ `castTimeDamageBonus` / `thisCastTimeDamageBonus` (`J-ABS` 4.12.3) |
-| Polliwog | Stationary turret, commit to firing | +ATK or MAT | **Rooted Barrage**: consecutive attacks without moving deal +X% escalating damage (resets on movement) | ⏳ P2 gap — movement-reset hit counter (`sinceLastMoved` partial) |
-| Garuda | Mobile artillery, fire and reposition | +ATK, +AGI | **Tailwind**: MSB +X% for 3s after using a skill (reposition window) | ✅ `passiveSourceRule:[attackedWithin, …]`; P4-2 |
+| Frog | Stationary turret, commit to firing | +ATK or MAT | **Rooted Barrage**: consecutive attacks without moving deal +X% escalating damage (resets on movement) | ⏳ P2 gap — movement-reset hit counter (`sinceLastMoved` partial) |
+| Beaker | Mobile artillery, fire and reposition | +ATK, +AGI | **Tailwind**: MSB +X% for 3s after using a skill (reposition window) | ✅ `passiveSourceRule:[attackedWithin, …]`; P4-2 |
 | Minotaur | Wind-up charger, momentum = devastation | +ATK (heavy), knockback | **Momentum**: stack ATK while moving; cash out on charge skill | ✅ toolkit (`autoApplyState` `move` + `removeOnSkillExecution`); **P4-2** state/traits |
 | Hazard | Zone denial turret, area saturation | +MAT, area damage | **Blast Radius**: AoE skills have +X% increased area size | ✅ `rangeBuff` / `rangeRate` (`J-ABS` 4.12.3+) |
 
 **Cross-archetype synergies:**
 - Artillery + Berserker = disgusting burst (CRI/CDM from both) but MHP↓ + DEF↓ + PDR↑ = tissue paper
-- Polliwog's Rooted Barrage + Berserker = stand and mash for escalating damage — filthy combo
+- Frog's Rooted Barrage + Berserker = stand and mash for escalating damage — filthy combo
 - Artillery + Skirmisher = crit monster, but double MHP↓/DEF↓ penalties = instant death on contact
 - Artillery + Guardian = offset the squishiness, but ATK↓/AGI↓ from Guardian hurts damage output
 
@@ -530,7 +530,7 @@ This creates meaningful cross-archetype build tension:
 | Subgroup | Wizard Fantasy | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
 | Ghosty | Sloppy mid-range, escalating spells, first enemy in game | +MAT (steady) | **Spectral Cascade**: damage +X% per unique skill used in last 10s (reward rotation) | ✅ `skillHistoryBonus` / `thisSkillHistoryBonus` (`J-ABS` 4.12.2+) |
-| Wolftrap | Root + dissolve, debuff DOTs | +MAT, debuff affinity | **Entangling Curse**: debuffs you apply last X% longer | ✅ existing state duration modifier; P4-2 |
+| Trap | Root + dissolve, debuff DOTs | +MAT, debuff affinity | **Entangling Curse**: debuffs you apply last X% longer | ✅ existing state duration modifier; P4-2 |
 | Brood | Swarm debuffer, poke and afflict | +ATK (physical poker), debuff spread | **Plague Swarm**: debuffs have X% per-tick chance to spread to nearby enemies (viral) | ✅ **P3-3** verified — `J-ABS` 4.12.4 (P4-2 plague states at scale) |
 | Puppet | Marionette dark magic, single-target | +MAT (heavy), focused | **Soul Thread**: bonus damage vs debuffed/controlled targets | ✅ `perDebuffBuff` / `bonusDamageIfState` (`J-ABS` 4.12.3+); redesigned from single-target hit count |
 | Elemental | Bosses you recruit, elemental mastery | +MAT, elemental | **Elemental Saturation**: elemental damage ignores X% of target's resist (cap at full damage, never bonus: `Math.max(0, resist - pierce)`) | ✅ `pierceElement` / `thisPierceElement` (`J-Elementalistics` 1.1.0) |
@@ -540,7 +540,7 @@ This creates meaningful cross-archetype build tension:
 | Subgroup | Natural Weapons | Why |
 |---|---|---|
 | Ghosty | Wand (pure MAT, fast), Staff (tanky mage) | Classic caster weapons |
-| Wolftrap | Wand (MAT), Taser (single-target magic DOT) | Debuff delivery |
+| Trap | Wand (MAT), Taser (single-target magic DOT) | Debuff delivery |
 | Brood | Staff (AoE area), Book (MMP battery) | Physical pokes + deep pool for debuff casting |
 | Puppet | Wand (pure MAT), Taser (single-target magic) | Single-target focus |
 | Elemental | Book (elemental variety), Javelin (MAT+ATK hybrid) | Element matching |
@@ -557,7 +557,7 @@ This creates meaningful cross-archetype build tension:
 
 | Subgroup | Cleric Fantasy | Flavor Twist | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
-| Goo Bat | Regen king, must Seal or one-shot | +MRG (heavy), regen aura | **Regeneration Aura**: nearby allies gain +X% HRG | ✅ JABS passive state aura; P4-2 |
+| Aerial | Regen king, must Seal or one-shot | +MRG (heavy), regen aura | **Regeneration Aura**: nearby allies gain +X% HRG | ✅ JABS passive state aura; P4-2 |
 | Flower | Graveyard flower, cleanses debuffs | +MDF, debuff resistance | **Purifying Bloom**: X% chance per tick to auto-cleanse one debuff on self | ✅ on-tick self-cleanse passive state; P4-2 |
 | Kobold | Swarm trash evolved into field medic | +PHA (heavy), food rhythm | **Field Medic**: re-feed mid-chain without Overstuffed; tail eat always rescues into new Well Fed | ✅ `<overstuffedImpervious>` (`J-ABS-FOOD`); mastery state = P4-2 content |
 | Emotion | Embodied emotions, emotional sustain | +REC (heavy), empathic | **Empathic Bond**: when an ally within range is healed, you receive X% of that heal | ✅ heal-event tags (`J-Resources-ABS` 1.1.0) |
@@ -576,7 +576,7 @@ This creates meaningful cross-archetype build tension:
 |---|---|---|---|---|
 | Jelly | Pure ranged healer, mana battery, adorable | +MRG (heavy), mana sustain | **Mana Transfusion**: heals restore X% of heal value as MP to target | ✅ `<onSelfHpHealMp:[PCT, R]>` etc. (`J-Resources-ABS` 1.1.0) |
 | Dryad | Backline healer, offense when idle | +MDF (heavy), flex offense | **Nature's Wrath**: MAT +X% when all allies above 75% HP | ⏳ P2 gap — party HP threshold |
-| Runic Orb | Aura/buff battery, mana-hungry engine | +SHA (heavy), +MMP, MP-hungry skills | **Overcharge**: on-shield-break, explode for X% of shield value as AoE damage | ✅ shield-break explosion (`J-ABS-Shield` P3-9) |
+| Orb | Aura/buff battery, mana-hungry engine | +SHA (heavy), +MMP, MP-hungry skills | **Overcharge**: on-shield-break, explode for X% of shield value as AoE damage | ✅ shield-break explosion (`J-ABS-Shield` P3-9) |
 
 **Medic + Cleric synergy:** Medic casts SHA-boosted shields → lands on SHE-boosted Cleric = massive
 barriers. Jelly refuels MP-hungry Orb users. ATK↓ from both = zero damage, pure support duo.
@@ -595,24 +595,24 @@ barriers. Jelly refuels MP-hungry Orb users. ATK↓ from both = zero damage, pur
 | Subgroup | Generalist Flavor | Meta Stat Focus | Mastery Passive | Plugin Status |
 |---|---|---|---|---|
 | Kappa | Lucky jack-of-all-trades, fast + support | +LUK, +EXR | **Trickster's Luck**: X% chance to negate incoming attack (pseudo-EVA) | ✅ passive state on-hit chance; P4-2 |
-| Hard Syrup | Elemental variants, reactive defense | +FDR, +small HRG, elemental variety | **Adaptive Slime**: resist to last element that hit you +X% for 5s | ⏳ P2 gap — last-element resist tracker |
-| Rot Rat | Resourceful swarm, compounding investor | +SDP Mult, +gold rate | **Resourceful Rodent**: SDP Mult +X% (stacks with per-rank gains) | ✅ `sdr` (33) + `gdr` (41) — notetag + SDP panels |
+| Puddle | Elemental variants, reactive defense | +FDR, +small HRG, elemental variety | **Adaptive Slime**: resist to last element that hit you +X% for 5s | ⏳ P2 gap — last-element resist tracker |
+| Rat | Resourceful swarm, compounding investor | +SDP Mult, +gold rate | **Resourceful Rodent**: SDP Mult +X% (stacks with per-rank gains) | ✅ `sdr` (33) + `gdr` (41) — notetag + SDP panels |
 | Orc | Hierarchical, versatile commander | Broadest flat spread, +MCR (small) | **Warchief's Command**: nearby allies +X% to their highest base stat | ✅ `passiveSourceRule:[alliesNearby, N]` + ally buff traits; P4-2 |
 | Devil | Alluring gambler, double-edged | +LUK (heavy), +EXR | **Devil's Bargain**: all damage dealt AND received +X% | ✅ traits on passive state; P4-2 |
 
 **Meta-progression stats housed in Generalist:**
 - EXR (experience rate) — Kappa, Devil
-- Gold rate — Rot Rat (`gdr` / id 41 — notetag + SDP panels)
+- Gold rate — Rat (`gdr` / id 41 — notetag + SDP panels)
 - Drop rate — same pattern (`dor` / id 42)
-- SDP Multiplier — Rot Rat (`sdr` / id 33)
+- SDP Multiplier — Rat (`sdr` / id 33)
 - PROF (proficiency+) — spread across subgroups (id 32)
 - AP Multiplier — spread across subgroups (`apr` / id 40 — **shipped** in `ApManager.gainAp()`)
 - PHA (pharmacology, moderate) — food/items work better, the "prepared" archetype
-- FDR (floor damage rate) — Hard Syrup subgroup flavor
+- FDR (floor damage rate) — Puddle subgroup flavor
 - MCR (mana cost rate, small) — Orc (Wizard also uses MCR as core stat)
 
-**Rot Rat = "invest first" panel:** per-rank SDP Mult + gold rate means every panel ranked AFTER
-Rot Rat is cheaper in time. The compounding interest play — invest in rats early, benefit all game.
+**Rat = "invest first" panel:** per-rank SDP Mult + gold rate means every panel ranked AFTER
+Rat is cheaper in time. The compounding interest play — invest in rats early, benefit all game.
 
 ### Panel respec (must implement)
 
@@ -646,16 +646,16 @@ Critical for encouraging experimentation — if respec is too punishing, players
 
 | Need | Example masteries | Status |
 |---|---|---|
-| Ghastly Ward pulse shield | Wraith | ✅ `autoApplyState` + shield state (P4-2) |
-| MP barrier (optional) | Wraith | ✅ **J-ABS-Shield** (P3-8) |
+| Ghastly Ward pulse shield | Reborn | ✅ `autoApplyState` + shield state (P4-2) |
+| MP barrier (optional) | Reborn | ✅ **J-ABS-Shield** (P3-8) |
 | Momentum charge / skill cash-out | Minotaur Momentum | ✅ **J-Passive-Conditional** 1.0.0 (`move`, `removeOnSkillExecution`); P4-2 DB |
 | Viral debuff spread | Brood Plague Swarm | ✅ **P3-3** verified (`J-ABS` 4.12.4 — P4-2 DB at scale) |
 | Party HP threshold | Dryad Nature's Wrath | ⏳ P2 gap |
-| Last-element tracker | Hard Syrup Adaptive Slime | ⏳ P2 gap |
-| Movement-reset hit counter | Polliwog Rooted Barrage | ⏳ P2 gap |
+| Last-element tracker | Puddle Adaptive Slime | ⏳ P2 gap |
+| Movement-reset hit counter | Frog Rooted Barrage | ⏳ P2 gap |
 | Target-state CRI/CDM trait | Roper | ⏳ P2 gap — true stat-level trait still unbuilt; Needler unblocked via type-classifier damage tags instead (`bonusDamageIfStateType` / `bonusDamagePerStateType`) |
 | Attacker-side recent-hit DR | Cephalopod Ink Shroud | ⏳ P2 gap |
-| Retaliate / reflect | Crimson Vice, Scorplite | ⏳ experiment |
+| Retaliate / reflect | Crab, Scorpion | ⏳ experiment |
 
 Most other mastery passives are **P4-2 content** — author passive states/skills using shipped tags above.
 Review ALL mastery passives across all 10 archetypes before the P4-2 DB pass.
@@ -683,33 +683,33 @@ Based on `Enemies.json` default levels + actual map placement:
 | Level | Enemy | Archetype | Location |
 |---|---|---|---|
 | 1 | Ghosty | **Wizard** | Starting area |
-| 3 | Hard Syrup | **Generalist** | Starting area (lost until ~lv20+ after intro boss) |
+| 3 | Puddle | **Generalist** | Starting area (lost until ~lv20+ after intro boss) |
 | 3 | Needler | **Skirmisher** | Starting area |
 | 6 | Bearcat | **Berserker** | Early |
-| 7 | Polliwog | **Artillery** | Early |
-| ~7–12 | Rust Bucket | **Vanguard** | Pearl Salt Mines (planned placement) |
-| 10 | Wraith | **Guardian** | |
+| 7 | Frog | **Artillery** | Early |
+| ~7–12 | Armor | **Vanguard** | Pearl Salt Mines (planned placement) |
+| 10 | Reborn | **Guardian** | |
 | 11 | Dryad | **Medic** | Forest of Dreams |
 | 17 | Crawler | **War Priest** | Basin |
-| 19 | Goo Bat | **Cleric** | Basin |
+| 19 | Aerial | **Cleric** | Basin |
 
 All 10 archetypes available by ~lv19 (Basin). Seven available by lv11.
 
 **Planned early placements to fill gaps:**
 - Kobold (Cleric) → outside Raevula hub town (would make Cleric accessible earlier)
 - Cyclops (Vanguard) → cliffsides, ~lv20+ area (replacing Minitaurs?)
-- Bot/Runic Orb/Puppet → need map placements TBD
+- Bot/Orb/Puppet → need map placements TBD
 
 **Progression arc:** discover → collect broadly → upgrade deeply.
 Early game builds are shaped by geography. Mid game opens archetype variety. Late game enables deep specialization.
 
-**Hard Syrup note:** encountered at lv3 but access is lost after the intro boss.
+**Puddle note:** encountered at lv3 but access is lost after the intro boss.
 Player doesn't see it again until ~lv20+ in Raevula. Generalist panel access is
 temporarily gapped — could be filled by Kappa (lv8) or Orcling (lv9) if placed.
 
 **Database vs placed:** many enemies exist in `Enemies.json` with stats and notes
 but are NOT on any map yet. The `=== TBD` prefix indicates unimplemented enemies.
-Some non-TBD enemies (Runic Orb, Cyclops, Kobold, Puppet, Bot) are in the database
+Some non-TBD enemies (Orb, Cyclops, Kobold, Puppet, Bot) are in the database
 but not placed. Default level ≠ encounter order for all cases.
 
 ### Mechanical questions to resolve
@@ -730,12 +730,12 @@ but not placed. Default level ≠ encounter order for all cases.
 | Stat | UP | DOWN |
 |---|---|---|
 | MHP | Guardian, Vanguard (mod), subgroup twists | Skirmisher, Artillery, Wizard |
-| MMP | Wizard, Runic Orb twist | — |
+| MMP | Wizard, Orb twist | — |
 | ATK | Berserker, Vanguard (mod), War Priest, Artillery (phys subs), Brood twist | Guardian, Cleric, Medic |
-| DEF | Guardian, Vanguard (mod), Bot/Scorplite twists | Skirmisher, Artillery, Wizard |
+| DEF | Guardian, Vanguard (mod), Bot/Scorpion twists | Skirmisher, Artillery, Wizard |
 | MAT | Wizard, Artillery (magic subs), Roper twist | Vanguard, War Priest |
 | MDF | Guardian, Cleric, Medic, Dryad twist | Vanguard |
-| AGI | Skirmisher, subgroup twists (Salamander, Garuda) | Guardian |
+| AGI | Skirmisher, subgroup twists (Salamander, Beaker) | Guardian |
 | LUK | Skirmisher (secondary), Generalist | — |
 
 ### X-Parameters (xparams)
@@ -748,8 +748,8 @@ but not placed. Default level ≠ encounter order for all cases.
 | CEV | Guardian, Cleric, Vanguard (mod) | Artillery, Wizard |
 | MEV | — (unused, pending) | — |
 | MRF | — (unused, pending) | — |
-| CNT | Guardian (mod), Scorplite twist | — |
-| HRG | War Priest, Medic, Treant/Hard Syrup twists | — |
+| CNT | Guardian (mod), Scorpion twist | — |
+| HRG | War Priest, Medic, Treant/Puddle twists | — |
 | MRG | Cleric, Medic | — |
 | TRG | Skirmisher, Berserker (mod) | — |
 
@@ -761,11 +761,11 @@ but not placed. Default level ≠ encounter order for all cases.
 | GRD | Guardian | Berserker, Artillery, Wizard |
 | REC | War Priest, Cleric | — |
 | PHA | Cleric, Medic, Generalist (mod) | — |
-| MCR | Wizard, Orc twist (small) | Fungrowth twist (penalty) |
-| TCR | Berserker | Fungrowth twist (penalty) |
+| MCR | Wizard, Orc twist (small) | Fungus twist (penalty) |
+| TCR | Berserker | Fungus twist (penalty) |
 | PDR | — | Berserker (penalty = ↑ = MORE phys damage taken) |
 | MDR | — | Berserker (penalty = ↑ = MORE magic damage taken) |
-| FDR | Hard Syrup twist | — |
+| FDR | Puddle twist | — |
 | EXR | Generalist (Kappa, Devil) | — |
 
 ### Registry parameters (catalog keys — was longParam 28+)
@@ -776,14 +776,14 @@ but not placed. Default level ≠ encounter order for all cases.
 | CDR (29) | Guardian, War Priest (mod) | Skirmisher, Artillery, Wizard |
 | MSB (31) | Fish twist, subgroup flavors | Guardian, Crawler twist |
 | PROF (32) | Generalist | — |
-| SDP Mult / `sdr` (33) | Generalist (Rot Rat) | — |
+| SDP Mult / `sdr` (33) | Generalist (Rat) | — |
 | **`lst` (35)** | War Priest (high), Berserker (mod), Treant twist | — |
 | **`mst` (36)** | (content TBD) | — |
 | **`tst` (37)** | (content TBD) | — |
 | **`sar` / SHA (38)** | Medic, War Priest (small) | — |
 | **`ser` / SHE (39)** | Cleric | Berserker, Skirmisher, Artillery |
 | **`apr` (40)** | Generalist | — |
-| **`gdr` (41)** | Generalist (Rot Rat) | — |
+| **`gdr` (41)** | Generalist (Rat) | — |
 | **`dor` (42)** | (content TBD) | — |
 | **`hcr` (43)** | (content TBD) | — |
 

@@ -74,17 +74,17 @@ function jaggedCycle(sgKey, key, keepTiers) {
   }
 }
 
-// ─── aquatic-polliwog: mat UP + def DOWN; mhp cycles; agi DOWN cycling ─────────
+// ─── aquatic-frog: mat UP + def DOWN; mhp cycles; agi DOWN cycling ─────────
 // mhp cycles: keep T4,T6,T8,T9,T10
 // agi DOWN cycling: add T3,T5,T7,T9,T10 (immobile frog)
 // existing cycling mdf/cdm/mmp — keep as-is
 {
-  setCoreSg('aquatic-polliwog', 'mat', true);
-  setCoreSg('aquatic-polliwog', 'def', true);
-  jaggedCycle('aquatic-polliwog', 'mhp', new Set([4, 6, 8, 9, 10]));
+  setCoreSg('aquatic-frog', 'mat', true);
+  setCoreSg('aquatic-frog', 'def', true);
+  jaggedCycle('aquatic-frog', 'mhp', new Set([4, 6, 8, 9, 10]));
 
   const agiVals = { 3:-0.2, 5:-0.25, 7:-0.3, 9:-0.35, 10:-0.5 };
-  for (const [t, v] of Object.entries(agiVals)) add(panel('aquatic-polliwog', Number(t)), 'agi', v, false, false);
+  for (const [t, v] of Object.entries(agiVals)) add(panel('aquatic-frog', Number(t)), 'agi', v, false, false);
 }
 
 // ─── plant-trap: mat UP + agi DOWN; mhp + def cycle ────────────────────────────

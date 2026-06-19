@@ -5165,12 +5165,17 @@ var JABS_ActionOptionsBuilder = class {
 	*/
 	#projectileTravelAngleDegrees = null;
 	/**
+	* The specific battler who triggered the retaliation, if any.
+	* @type {JABS_Battler|null}
+	*/
+	#retaliationTarget = null;
+	/**
 	* Builds a new instance of the options based on the built parameters.
 	* @returns {JABS_ActionOptions}
 	*/
 	build() {
 		const locationToClone = this.#sourceLocation ?? JABS_Location.Builder().build();
-		const newJabsActionOptions = new JABS_ActionOptions(this.#isRetaliation, this.#cooldownKey, JABS_Location.Clone(locationToClone), this.#isTerrainDamage, this.#spawnOffsetX, this.#spawnOffsetY, this.#projectileTravelAngleDegrees);
+		const newJabsActionOptions = new JABS_ActionOptions(this.#isRetaliation, this.#cooldownKey, JABS_Location.Clone(locationToClone), this.#isTerrainDamage, this.#spawnOffsetX, this.#spawnOffsetY, this.#projectileTravelAngleDegrees, this.#retaliationTarget);
 		this.clear();
 		return newJabsActionOptions;
 	}
@@ -5186,6 +5191,7 @@ var JABS_ActionOptionsBuilder = class {
 		this.#spawnOffsetX = 0;
 		this.#spawnOffsetY = 0;
 		this.#projectileTravelAngleDegrees = null;
+		this.#retaliationTarget = null;
 	}
 	/**
 	* Sets whether or not the action is a retaliation of another battler.
@@ -5245,6 +5251,16 @@ var JABS_ActionOptionsBuilder = class {
 		this.#projectileTravelAngleDegrees = degrees;
 		return this;
 	}
+	/**
+	* Sets the specific battler who triggered the retaliation.<br/>
+	* When set, one-enemy direct retaliations bypass spatial sorting and hit this battler directly.
+	* @param {JABS_Battler} battler The battler to lock as the retaliation target.
+	* @returns {JABS_ActionOptionsBuilder}
+	*/
+	setRetaliationTarget(battler) {
+		this.#retaliationTarget = battler;
+		return this;
+	}
 };
 
 //#endregion
@@ -5298,6 +5314,13 @@ var JABS_ActionOptions = class {
 	*/
 	#projectileTravelAngleDegrees = null;
 	/**
+	* The specific battler that triggered this retaliation action.<br/>
+	* When set on a one-enemy direct retaliation, collision bypasses spatial sorting and
+	* returns this battler directly — guaranteeing the counter lands on who hit you.
+	* @type {JABS_Battler|null}
+	*/
+	#retaliationTarget = null;
+	/**
 	* Constructor.<br/>
 	* Use the {@link JABS_ActionOptionsBuilder} to fluently and properly build these.
 	* @param {boolean} isRetaliation Whether or not the action is a retaliation of another battler.
@@ -5307,8 +5330,9 @@ var JABS_ActionOptions = class {
 	* @param {number} spawnOffsetX The X spawn offset in tiles relative to caster fire-time position.
 	* @param {number} spawnOffsetY The Y spawn offset in tiles relative to caster fire-time position.
 	* @param {number|null} projectileTravelAngleDegrees Optional vector angle for projectile motion.
+	* @param {JABS_Battler|null} retaliationTarget The specific battler who triggered this retaliation.
 	*/
-	constructor(isRetaliation, cooldownKey, location, terrainDamage, spawnOffsetX = 0, spawnOffsetY = 0, projectileTravelAngleDegrees = null) {
+	constructor(isRetaliation, cooldownKey, location, terrainDamage, spawnOffsetX = 0, spawnOffsetY = 0, projectileTravelAngleDegrees = null, retaliationTarget = null) {
 		this.#isRetaliation = isRetaliation;
 		this.#cooldownKey = cooldownKey;
 		this.#location = location;
@@ -5316,6 +5340,7 @@ var JABS_ActionOptions = class {
 		this.#spawnOffsetX = spawnOffsetX;
 		this.#spawnOffsetY = spawnOffsetY;
 		this.#projectileTravelAngleDegrees = projectileTravelAngleDegrees;
+		this.#retaliationTarget = retaliationTarget;
 	}
 	/**
 	* Whether or not the action is a retaliation of another battler.<br/>
@@ -5373,6 +5398,15 @@ var JABS_ActionOptions = class {
 	*/
 	getProjectileTravelAngleDegrees() {
 		return this.#projectileTravelAngleDegrees;
+	}
+	/**
+	* The specific battler that triggered this retaliation action, if any.<br/>
+	* When present on a one-enemy direct retaliation, collision bypasses spatial sorting and
+	* returns this battler directly.
+	* @returns {JABS_Battler|null}
+	*/
+	getRetaliationTarget() {
+		return this.#retaliationTarget;
 	}
 	/**
 	* A factory that generates {@link JABS_ActionOptions} with all default values.
@@ -17275,12 +17309,17 @@ var JABS_Engine = class JABS_Engine {
 			if (!skillChance.shouldTrigger()) return;
 			const retaliationActions = retaliator.createJabsActionFromSkill(skillChance.skillId, JABS_ActionOptions.Builder().setIsRetaliation(true).build());
 			retaliationActions.forEach((retaliationAction) => retaliationAction.getAction().setTriggerDamage(hpDamage, mpDamage, tpDamage));
+			const attackerBattler = triggeringAction.getCaster();
+			const attackerDistance = retaliator.distanceToDesignatedTarget(attackerBattler);
+			const directRetaliationActions = retaliationActions.filter((a) => a.isDirectAction());
+			const blockedByProximity = directRetaliationActions.some((a) => attackerDistance > a.getProximity());
+			if (blockedByProximity) return;
 			const isAnyDirect = retaliationActions.some((a) => a.isDirectAction());
 			if (isAnyDirect) {
 				const attackerX = triggeringAction.getCaster().getX();
 				const attackerY = triggeringAction.getCaster().getY();
 				const frozenLocation = JABS_Location.Builder().setX(attackerX).setY(attackerY).build();
-				const frozenOptions = JABS_ActionOptions.Builder().setIsRetaliation(true).setLocation(frozenLocation).build();
+				const frozenOptions = JABS_ActionOptions.Builder().setIsRetaliation(true).setLocation(frozenLocation).setRetaliationTarget(triggeringAction.getCaster()).build();
 				retaliationActions.forEach((a) => a.setActionOptions(frozenOptions));
 			}
 			const targetX = isAnyDirect ? triggeringAction.getCaster().getX() : null;
@@ -17439,6 +17478,12 @@ var JABS_Engine = class JABS_Engine {
 		if (allyTarget && gameAction.isForOne()) {
 			if (allyTarget.canActionConnect() && allyTarget.isWithinScope(jabsAction, allyTarget, false)) {
 				return [allyTarget];
+			}
+		}
+		const retaliationTarget = jabsAction.getActionOptions()?.getRetaliationTarget() ?? null;
+		if (retaliationTarget !== null && gameAction.isForOne()) {
+			if (retaliationTarget.canActionConnect() && retaliationTarget.isWithinScope(jabsAction, retaliationTarget, false)) {
+				return [retaliationTarget];
 			}
 		}
 		const canActionConnectWithBattler = (battler) => {

@@ -271,7 +271,7 @@ Quick reference — full prose in [`archetype-mapping.md`](./archetype-mapping.m
 
 | Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
 |---|---|---|---|---|
-| Cobra | `reptile-cobra` | `cri` | `def` | Glass-cannon striker; fragile body |
+| Snake | `reptile-snake` | `cri` | `def` | Glass-cannon striker; fragile body |
 | Dargin | `reptile-dargin` | `mhp` | `mat` | Beefy physical wall; can't cast |
 | Draconite | `reptile-draconite` | `def` | `agi` | Heavy armored; slow to act |
 | Lamia | `reptile-lamia` | `mat` | `agi` | Slow deliberate caster; cast wind-up identity |
@@ -282,8 +282,8 @@ Quick reference — full prose in [`archetype-mapping.md`](./archetype-mapping.m
 | Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
 |---|---|---|---|---|
 | Kappa | `aquatic-kappa` | `luk`, `exr` | — | Generalist annoyance; cycling evasion/guard pool |
-| Polliwog | `aquatic-polliwog` | `mat` | `def` | Stationary frog caster; immobile |
-| Crimson Vice | `aquatic-crab` | `grd` | `atk` | Defensive shell; no offensive output |
+| Frog | `aquatic-frog` | `mat` | `def` | Stationary frog caster; immobile |
+| Crab | `aquatic-crab` | `grd` | `atk` | Defensive shell; no offensive output |
 | Fish | `aquatic-fish` | `agi` | `mhp` | Fast but frail; speed identity |
 | Cephalopod | `aquatic-cephalopod` | `rec` | `agi` | Slow ambush; sustain-heavy |
 
@@ -312,9 +312,9 @@ Quick reference — full prose in [`archetype-mapping.md`](./archetype-mapping.m
 | Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
 |---|---|---|---|---|
 | Bearcat | `beast-bearcat` | `atk` | `pdr` | Berserker; takes more physical damage |
-| Cave Bat | `beast-bat` | `hit` | `cdr` | Accurate striker; can't mitigate crits |
-| Garuda | `beast-beaker` | `atk` | `mdf` | Physical brute; poor magic defense |
-| Rot Rat | `beast-rat` | `sdr`, `gdr`, `dor` | — | Generalist; meta-progression identity |
+| Bat | `beast-bat` | `hit` | `cdr` | Accurate striker; can't mitigate crits |
+| Beaker | `beast-beaker` | `atk` | `mdf` | Physical brute; poor magic defense |
+| Rat | `beast-rat` | `sdr`, `gdr`, `dor` | — | Generalist; meta-progression identity |
 | Quadruped | `beast-quadruped` | `def` | `atk` | Defensive pack animal; no offense |
 
 ### Family 7: Insect
@@ -345,15 +345,15 @@ Quick reference — full prose in [`archetype-mapping.md`](./archetype-mapping.m
 | Hazard | `construct-hazard` | `mat` | `def` | Area threat; physically fragile |
 | Bot | `construct-bot` | `hrg` | `mat` | Support construct; no spellcasting |
 | Puppet | `construct-puppet` | `mmp` | `mdf` | MP-sustain caster; poor magic defense |
-| Runic Orb | `construct-orb` | `sar` | `atk` | Shield amplifier; no offense |
+| Orb | `construct-orb` | `sar` | `atk` | Shield amplifier; no offense |
 
 ### Family 10: Deity
 
 | Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
 |---|---|---|---|---|
 | Elemental | `deity-elemental` | `mat`, `mrg` | `mcr` | Pure caster; skills cost more MP |
-| Aspect | `deity-emotion` | `rec` | `atk` | Healing deity; no offense |
-| Sovereign | `deity-devil` | `luk`, `apr`, `gdr` | — | Generalist; meta-progression deity |
+| Emotion | `deity-emotion` | `rec` | `atk` | Healing deity; no offense |
+| Devil | `deity-devil` | `luk`, `apr`, `gdr` | — | Generalist; meta-progression deity |
 | Sin | `deity-sin` | (per-sin) | (per-sin) | Hand-tuned; not three-act |
 
 ---
