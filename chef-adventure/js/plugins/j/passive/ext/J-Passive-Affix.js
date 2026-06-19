@@ -12,7 +12,7 @@
  * @base J-ABS-Tools
  * @base J-ABS-Timing
  * @base J-ABS-Shield
- * @base J-SkillExtend
+ * @base J-Extend
  * @orderAfter J-Base
  * @orderAfter J-ABS
  * @orderAfter J-Passive
@@ -20,7 +20,7 @@
  * @orderAfter J-ABS-Tools
  * @orderAfter J-ABS-Timing
  * @orderAfter J-ABS-Shield
- * @orderAfter J-SkillExtend
+ * @orderAfter J-Extend
  * @orderAfter J-HUD-TargetFrame
  * @orderAfter J-MessageTextCodes
  * @help

@@ -507,7 +507,7 @@ Game_Actor.prototype.onClassChange = function(classId, keepExp) {
 J.PASSIVE.Aliased.Game_Actor.set("getNotesSources", Game_Actor.prototype.getNotesSources);
 Game_Actor.prototype.getNotesSources = function() {
 	const originalSources = J.PASSIVE.Aliased.Game_Actor.get("getNotesSources").call(this);
-	const passiveSources = [...this.getPassiveStates(), ...$gameParty.passiveStates()];
+	const passiveSources = [...$gameParty.passiveStates()];
 	const combinedSources = originalSources.concat(passiveSources);
 	return combinedSources;
 };
@@ -808,6 +808,17 @@ Game_Battler.prototype.allStates = function() {
 	return states;
 };
 /**
+* Extends {@link #allStateIds}.<br/>
+* Includes state ids from passive skills as well.
+* @returns {number[]}
+*/
+J.PASSIVE.Aliased.Game_Battler.set("allStateIds", Game_Battler.prototype.allStateIds);
+Game_Battler.prototype.allStateIds = function() {
+	const ids = J.PASSIVE.Aliased.Game_Battler.get("allStateIds").call(this);
+	ids.push(...this.getPassiveStateIds());
+	return ids;
+};
+/**
 * Overrides {@link #getPurgeableStates}.<br/>
 * Excludes passive states from the pool so forced removal via {@code removeStatesByPriority}
 * can never strip states that are granted by passive skills.
@@ -888,7 +899,7 @@ Game_Enemy.prototype.buildTraitObjects = function() {
 J.PASSIVE.Aliased.Game_Enemy.set("getNotesSources", Game_Enemy.prototype.getNotesSources);
 Game_Enemy.prototype.getNotesSources = function() {
 	const originalSources = J.PASSIVE.Aliased.Game_Enemy.get("getNotesSources").call(this);
-	const passiveSources = [...this.getPassiveStates(), ...this.passiveExternalStateSources()];
+	const passiveSources = [...this.passiveExternalStateSources()];
 	const combinedSources = originalSources.concat(passiveSources);
 	return combinedSources;
 };
@@ -1164,13 +1175,21 @@ var Window_PassiveList = class extends Window_Selectable {
 		*/
 		this._tabFilter = null;
 		/**
-		* The working list of passive states matching the current filter.
-		* @type {RPG_State[]}
+		* The working list of deduplicated passive state entries matching the current filter.
+		* Each entry is { state: RPG_State, count: number }, or null for the empty sentinel.
+		* @type {Array<{state: RPG_State, count: number}|null>}
 		*/
 		this._data = [];
 	}
 	/**
-	* Updates the actor and rebuilds the list.
+	* Gets the actor whose passives are being displayed.
+	* @returns {Game_Actor|null}
+	*/
+	getActor() {
+		return this._actor;
+	}
+	/**
+	* Sets the actor and rebuilds the list.
 	* @param {Game_Actor} actor The actor whose passives to display.
 	*/
 	setActor(actor) {
@@ -1178,7 +1197,14 @@ var Window_PassiveList = class extends Window_Selectable {
 		this.refresh();
 	}
 	/**
-	* Updates the active tab filter and rebuilds the list.
+	* Gets the active tab filter function.
+	* @returns {Function|null}
+	*/
+	getTabFilter() {
+		return this._tabFilter;
+	}
+	/**
+	* Sets the active tab filter and rebuilds the list.
 	* @param {Function|null} filter A function(stateId, actor) => boolean, or null for no filter.
 	*/
 	setTabFilter(filter) {
@@ -1186,37 +1212,67 @@ var Window_PassiveList = class extends Window_Selectable {
 		this.refresh();
 	}
 	/**
+	* Gets the working data list.
+	* @returns {Array<{state: RPG_State, count: number}|null>}
+	*/
+	getData() {
+		return this._data;
+	}
+	/**
+	* Replaces the working data list.
+	* @param {Array<{state: RPG_State, count: number}|null>} data
+	*/
+	setData(data) {
+		this._data = data;
+	}
+	/**
 	* Gets the total number of items in the filtered list.
 	* @returns {number}
 	*/
 	maxItems() {
-		return this._data.length;
+		return this.getData().length;
 	}
 	/**
 	* Rebuilds the filtered working list from the actor's current passive states.
 	*/
 	makeItemList() {
-		if (!this._actor) {
-			this._data = [];
+		if (this.getActor() === null) {
+			this.setData([]);
 			return;
 		}
-		const all = this._actor.getPassiveStates();
-		const visible = all.filter((state) => state.hideFromPassiveList === false);
-		if (this._tabFilter === null) {
-			this._data = visible;
-			return;
+		const all = this.getActor().getPassiveStates();
+		let visible = all.filter((state) => state.hideFromPassiveList === false);
+		if (this.getTabFilter() !== null) {
+			visible = visible.filter((state) => this.getTabFilter()(state.id, this.getActor()));
 		}
-		this._data = visible.filter((state) => this._tabFilter(state.id, this._actor));
-		if (this._data.length === 0) {
-			this._data.push(null);
+		const countById = new Map();
+		for (const state of visible) {
+			const existing = countById.get(state.id);
+			countById.set(state.id, (existing === undefined ? 0 : existing) + 1);
 		}
+		const seen = new Set();
+		const data = [];
+		for (const state of visible) {
+			if (seen.has(state.id) === true) continue;
+			seen.add(state.id);
+			data.push({
+				state,
+				count: countById.get(state.id)
+			});
+		}
+		if (data.length === 0) {
+			data.push(null);
+		}
+		this.setData(data);
 	}
 	/**
 	* Gets the passive state at the current index.
 	* @returns {RPG_State|null}
 	*/
 	currentPassiveState() {
-		return this._data[this.index()] ?? null;
+		const entry = this.getData()[this.index()];
+		if (entry === null) return null;
+		return entry.state;
 	}
 	/**
 	* Rebuilds the item list and repaints all rows.
@@ -1231,16 +1287,24 @@ var Window_PassiveList = class extends Window_Selectable {
 	* @param {number} index The row index to draw.
 	*/
 	drawItem(index) {
-		const state = this._data[index];
+		const entry = this.getData()[index];
 		const rect = this.itemLineRect(index);
-		if (!state) {
+		if (entry === null) {
 			this.changeTextColor(ColorManager.textColor(8));
 			this.drawText("No passives.", rect.x, rect.y, rect.width);
 			this.resetTextColor();
 			return;
 		}
+		const { state, count } = entry;
 		this.drawIcon(state.iconIndex, rect.x, rect.y);
-		this.drawText(state.name, rect.x + ImageManager.iconWidth + 4, rect.y, rect.width - ImageManager.iconWidth - 4);
+		const nameX = rect.x + ImageManager.iconWidth + 4;
+		const nameWidth = rect.width - ImageManager.iconWidth - 4;
+		this.drawText(state.name, nameX, rect.y, nameWidth);
+		if (count > 1) {
+			this.changeTextColor(ColorManager.textColor(6));
+			this.drawText(`×${count}`, nameX, rect.y, nameWidth, "right");
+			this.resetTextColor();
+		}
 	}
 };
 
@@ -2408,7 +2472,7 @@ var Window_PassiveDetail = class extends Window_Base {
 			const dropMult = RPGManager.getNumberFromNoteByRegex(state, J.DROPS.RegExp.DropMultiplier);
 			if (dropMult) {
 				rows.push({
-					icon: 0,
+					icon: IconManager.parameterIcon("dor"),
 					label: "Drop Rate",
 					value: `${dropMult > 0 ? "+" : ""}${dropMult}%`
 				});
@@ -2416,7 +2480,7 @@ var Window_PassiveDetail = class extends Window_Base {
 			const goldMult = RPGManager.getNumberFromNoteByRegex(state, J.DROPS.RegExp.GoldMultiplier);
 			if (goldMult) {
 				rows.push({
-					icon: 0,
+					icon: IconManager.parameterIcon("gdr"),
 					label: "Gold",
 					value: `${goldMult > 0 ? "+" : ""}${goldMult}%`
 				});
@@ -2426,16 +2490,26 @@ var Window_PassiveDetail = class extends Window_Base {
 			const sdpMult = RPGManager.getNumberFromNoteByRegex(state, J.SDP.RegExp.SdpMultiplier);
 			if (sdpMult) {
 				rows.push({
-					icon: 0,
+					icon: IconManager.parameterIcon("sdr"),
 					label: "SDP Points",
 					value: `${sdpMult > 0 ? "+" : ""}${sdpMult}%`
+				});
+			}
+		}
+		if (J.APT) {
+			const aptMult = RPGManager.getNumberFromNoteByRegex(state, J.APT.RegExp.AptMultiplier);
+			if (aptMult) {
+				rows.push({
+					icon: IconManager.parameterIcon("apr"),
+					label: "APT Rate",
+					value: `${aptMult > 0 ? "+" : ""}${aptMult}%`
 				});
 			}
 		}
 		if (J.PROF) {
 			const profBonus = RPGManager.getNumberFromNoteByRegex(state, J.PROF.RegExp.ProficiencyBonus);
 			if (profBonus) rows.push({
-				icon: 0,
+				icon: IconManager.parameterIcon("prof"),
 				label: "Proficiency Bonus",
 				value: `+${profBonus}`
 			});

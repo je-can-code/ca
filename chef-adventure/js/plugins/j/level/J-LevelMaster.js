@@ -1119,14 +1119,14 @@ Game_Enemy.prototype.shouldHideLevel = function() {
 /**
 * Gets all database sources we can get levels from.
 *
-* Uses {@link #getAllNotes} so the result benefits from the notes cache and
-* includes all note-bearing sources — database data, skills, and all states
-* (including passives). This also opens the door for skills to grant level
-* bonuses via the level tag, which is intentional.
+* Excludes the enemy's own database entry because {@link #getBattlerBaseLevel} already
+* reads the base `<level:N>` tag directly from the enemy note. Including it here would
+* cause that tag to be counted twice. Skills and states may still carry `<level:+N>` bonus
+* tags, which is intentional.
 * @returns {RPG_BaseItem[]}
 */
 Game_Enemy.prototype.getLevelSources = function() {
-	return this.getAllNotes();
+	return [...this.skills(), ...this.allStates()];
 };
 /**
 * The variable level modifier for this enemy.

@@ -133,7 +133,7 @@ Survey [`work-items.md`](./work-items.md) P3-1…P3-12. Build when a planned mas
 | P3-9 | **Shield-break explosion** (`J-ABS-Shield`) | ✅ — on-break AoE hook |
 | P3-2 | **Skill history bonus** (`J-ABS` core 4.12.2+) | ✅ — `skillHistoryBonus`, `thisSkillHistoryBonus`; COUNT_MODE: `all/unique/streak/distinct_types` |
 | P3-4 | **Range scaling** (`J-ABS` core 4.12.3+) | ✅ — `rangeBuff`, `rangeRate`; applies to radius + proximity + thickness |
-| P3-12 | **State damage multipliers** (`J-ABS` core 4.12.3+) | ✅ — `perDebuffBuff`, `bonusDamageIfState`; applied before guard |
+| P3-12 | **State damage multipliers** (`J-ABS` core 4.12.3+) | ✅ — `perDebuffBuff`, `bonusDamageIfState`, `bonusDamageIfStateType`, `bonusDamagePerStateType` (+ `<type:CLASSIFIER>` on states, `J-Base`); applied before guard |
 | P3-11 | **Food chain + Field Medic** (was item-use splash) | ✅ — superseded; see food cookbook below |
 | P3-7 | **Cast time damage scaling** (`J-ABS` core 4.12.3+) | ✅ — `castTimeDamageBonus`, `thisCastTimeDamageBonus`; direct HP/MP damage only |
 | P3-8 | **MP barrier (Shield ext)** | ✅ — MP before HP on magic damage (`J-ABS-Shield`) |
@@ -590,9 +590,9 @@ Examples:
 
 ### State damage multipliers — J-ABS core
 
-Applies damage bonuses based on the current states of the target at resolution time. Both tags read the caster's `getAllNotes()`. Applied **before** guard reduction so flat guard values cannot fully negate the bonus.
+Applies damage bonuses based on the current states of the target at resolution time. All four tags read the caster's `getAllNotes()`. Applied **before** guard reduction so flat guard values cannot fully negate the bonus.
 
-**Formula:** `finalDamage = round(baseDamage × (1 + (perDebuffTotal + specificStateTotal) / 100))`
+**Formula:** `finalDamage = round(baseDamage × (1 + (perDebuffTotal + specificStateTotal + typePresenceTotal + typeCountTotal) / 100))`
 
 **Per-debuff bonus** — adds N% per negative state (`<negative>` tagged) active on the target:
 ```
@@ -620,6 +620,44 @@ Examples:
 // Combined: target has Paralyzed + Rooted + Poisoned (3 debuffs)
 // totalPct = (5 × 3) + 25 + 25 = 65% bonus damage (before guard eats it)
 ```
+
+---
+
+### State type classifiers — J-Base / J-ABS core
+
+A lightweight tagging layer so masteries can react to a *category* of state (e.g. "any poison-ish state") instead of enumerating specific state ids. Lets independent subgroups compose without one hardcoding the other's payload ids — e.g. Snake's venom ladder (1021–1030) and Needler's own on-crit poison both just carry `<type:poison>`, and Needler's mastery reacts to the category.
+
+**Classifier tag** — on any state's notebox, marks it as belonging to a named category. Multiple tags on the same state are allowed (a state can belong to more than one type):
+```
+<type:CLASSIFIER>
+```
+Read via `RPG_State.stateTypes()` (`J.BASE.RegExp.StateType`); comparison is case-insensitive at consumption time.
+
+**Type presence bonus** — adds PCT% if the target has **at least one** active state carrying `TYPE` (boolean check, does not scale with count):
+```
+<bonusDamageIfStateType:[TYPE, PCT]>
+```
+Multiple tags for different types each fire independently and stack additively. Mirrors `bonusDamageIfState` but keyed on classifier instead of a specific state id.
+
+**Type count bonus** — multiplies PCT% by the number of **distinct** active states on the target carrying `TYPE`:
+```
+<bonusDamagePerStateType:[TYPE, PCT]>
+```
+Mirrors `perDebuffBuff` but keyed on classifier instead of the `<negative>` tag. Counts distinct matching states, not stacks on a single state.
+
+Examples:
+```
+// State notebox — classify as poison-type
+<type:poison>
+
+// Needler mastery state — +30% damage if target carries any poison-type state
+<bonusDamageIfStateType:[poison, 30]>
+
+// Hypothetical "venom executioner" build — +10% per distinct poison-type state on target
+<bonusDamagePerStateType:[poison, 10]>
+```
+
+Both type-aware tags sum into the same multiplier bucket as `perDebuffBuff` / `bonusDamageIfState` — see combined formula above.
 
 ---
 

@@ -72,6 +72,33 @@
  * it would reduce to 50100.
  *
  * ============================================================================
+ * STATE TYPE CLASSIFIER:
+ * Have you ever wanted to group states into named categories, like "poison" or
+ * "bleed", so other plugins/tags can react to "any state of this category" instead
+ * of a single hardcoded state id? Well now you can! By applying this tag to a
+ * state's notebox, that state is classified under one or more named types.
+ *
+ * NOTE ABOUT MULTIPLE TAGS:
+ * A single state may carry more than one <type:CLASSIFIER> tag, and will
+ * belong to every classifier listed across all of its tags.
+ *
+ * NOTE ABOUT CASING:
+ * Classifier strings are intended to be compared case-insensitively by
+ * consumers of this tag (such as J-ABS's type-based damage bonus tags).
+ *
+ * TAG USAGE:
+ * - States
+ *
+ * TAG FORMAT:
+ *  <type:CLASSIFIER>
+ *    Where CLASSIFIER is the name of the category this state belongs to.
+ *
+ * TAG EXAMPLES:
+ *  <type:poison>
+ *  <type:bleed>
+ * This state is classified as both "poison" and "bleed".
+ *
+ * ============================================================================
  *
  * DEV DETAILS:
  * I would encourage you peruse the added functions to the various classes.
@@ -215,12 +242,15 @@
 * and additionally a means to access the original database object directly in case
 * there are other things that aren't supported by this class that need accessing.
 */
-var RPG_Base = class {
+var RPG_Base = class RPG_Base {
 	/**
-	* The original object that this data was built from.
-	* @type {any}
+	* Stores the original underlying data per-instance, keyed by the instance.
+	* Using a static WeakMap instead of a private instance field makes _original()
+	* safe to call on objects created via Object.create(RPG_Base.prototype) (which
+	* never run the constructor and therefore cannot initialize private fields).
+	* @type {WeakMap<RPG_Base, any>}
 	*/
-	#original = null;
+	static #originals = new WeakMap();
 	/**
 	* The index of this entry in the database.
 	* @type {number}
@@ -253,7 +283,7 @@ var RPG_Base = class {
 	* @param {number} index The index of the entry in the database.
 	*/
 	constructor(baseItem, index) {
-		this.#original = baseItem;
+		RPG_Base.#originals.set(this, baseItem);
 		this.index = index;
 		this.id = baseItem.id;
 		this.meta = baseItem.meta;
@@ -291,7 +321,7 @@ var RPG_Base = class {
 	* @returns {any}
 	*/
 	_original() {
-		return this.#original;
+		return RPG_Base.#originals.get(this) ?? this;
 	}
 	/**
 	* Creates a new instance of this wrapper class with all the same
@@ -560,6 +590,23 @@ J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\]+>$/i;
 * The basic structure for retrieving summable max tech values.
 */
 J.BASE.RegExp.MaxTp = /<maxTp: ?(-?\d+)>/i;
+/**
+* One or more type classifiers assigned to a state.
+* Multiple tags on the same state are all collected.
+*
+* <pre>
+* Structure:
+*  <type:CLASSIFIER>
+*
+* Example:
+*  <type:poison>
+*
+* Translation:
+*  This state belongs to the "poison" classifier category.
+* </pre>
+* @type {RegExp}
+*/
+J.BASE.RegExp.StateType = /<type:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>/gi;
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3324,225 +3371,6 @@ ColorManager.colorIndexFromHex = function(hexString) {
 };
 
 //#endregion
-//#region src/plugins/_base/database/_data/RPG_Trait.js
-/**
-* A class representing a single trait living on one of the many types
-* of database classes that leverage traits.
-*/
-var RPG_Trait = class RPG_Trait {
-	/**
-	* Constructs a new {@link RPG_Trait} from only its triad of base values.
-	* @param {number} code The code that designates what kind of trait this is.
-	* @param {number} dataId The identifier that further defines the trait.
-	* @param {number} value The value of the trait, for traits that have numeric values.
-	* @returns {RPG_Trait}
-	*/
-	static fromValues(code, dataId, value) {
-		return new RPG_Trait({
-			code,
-			dataId,
-			value
-		});
-	}
-	/**
-	* The code that designates what kind of trait this is.
-	* @type {number}
-	*/
-	code = 0;
-	/**
-	* The identifier that further defines the trait.
-	* Data type and usage depends on the code.
-	* @type {number}
-	*/
-	dataId = 0;
-	/**
-	* The value of the trait, for traits that have numeric values.
-	* Often is a floating point number to represent a percent multiplier.
-	* @type {number}
-	*/
-	value = 1;
-	/**
-	* Constructor.
-	* @param {RPG_Trait} trait The trait to parse.
-	*/
-	constructor(trait) {
-		this.code = trait.code;
-		this.dataId = trait.dataId;
-		this.value = trait.value;
-	}
-	/**
-	* Gets a combined textual name and value of this trait.
-	* @return {string}
-	*/
-	textNameAndValue() {
-		return `${this.textName()} ${this.textValue()}`;
-	}
-	/**
-	* Gets the underlying name of the trait as text.
-	* @return {string}
-	*/
-	textName() {
-		switch (this.code) {
-			case 11: return `${$dataSystem.elements[this.dataId]} dmg`;
-			case 12: return `${TextManager.param(this.dataId)} debuff rate`;
-			case 13: return `${$dataStates[this.dataId].name} resist`;
-			case 14: return "Immune to";
-			case 21: return `${TextManager.param(this.dataId)}`;
-			case 22: return `${TextManager.xparam(this.dataId)}`;
-			case 23: return `${TextManager.sparam(this.dataId)}`;
-			case 31: return "Element:";
-			case 32: return `${$dataStates[this.dataId].name} on-hit`;
-			case 33: return "Skill Speed";
-			case 34: return "Times";
-			case 35: return "Basic Attack w/";
-			case 41: return `Unlock:`;
-			case 42: return `Lock:`;
-			case 43: return `Learn:`;
-			case 44: return `Seal:`;
-			case 51: return `${$dataSystem.weaponTypes[this.dataId]}`;
-			case 52: return `${$dataSystem.armorTypes[this.dataId]}`;
-			case 53: return `${$dataSystem.equipTypes[this.dataId]}`;
-			case 54: return `${$dataSystem.equipTypes[this.dataId]}`;
-			case 55: return `${this.dataId ? "Enable" : "Disable"}`;
-			case 61: return "Another turn chance:";
-			case 62: return `${this.translateSpecialFlag()}`;
-			case 64: return `${this.translatePartyAbility()}`;
-			case 63: return "TRANSFERABLE TRAITS";
-			default: return "Is this a custom trait?";
-		}
-	}
-	/**
-	* Gets the underlying value of the trait as text.
-	* @return {*|string}
-	*/
-	textValue() {
-		switch (this.code) {
-			case 11:
-				const calculatedElementalRate = Math.round(100 - this.value * 100);
-				return `${calculatedElementalRate > 0 ? "-" : "+"}${Math.abs(calculatedElementalRate)}%`;
-			case 12:
-				const calculatedDebuffRate = Math.round(this.value * 100 - 100);
-				return `${calculatedDebuffRate >= 0 ? "+" : "-"}${Math.abs(calculatedDebuffRate)}%`;
-			case 13:
-				const calculatedStateRate = Math.round(100 - this.value * 100);
-				return `${calculatedStateRate > 0 ? "+" : "-"}${Math.abs(calculatedStateRate)}%`;
-			case 14: return $dataStates[this.dataId].name;
-			case 21:
-				const calculatedBParam = Math.round(this.value * 100 - 100);
-				return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
-			case 22: {
-				const calculatedXParam = Math.round(this.value * 100);
-				if (this.dataId === 0) return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}`;
-				return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
-			}
-			case 23: {
-				const calculatedSParam = Math.round(this.value * 100 - 100);
-				if (this.dataId === 1) return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}`;
-				return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
-			}
-			case 31: return `${$dataSystem.elements.at(this.dataId)}`;
-			case 32: return `${this.value * 100}%`;
-			case 33: return `${this.value >= 0 ? "+" : "-"}${Math.abs(this.value)}`;
-			case 34: return `${this.value >= 0 ? "+" : "-"}${Math.abs(this.value)}`;
-			case 35: return `${$dataSkills[this.dataId].name}`;
-			case 41: return `${$dataSystem.skillTypes[this.dataId]}`;
-			case 42: return `${$dataSystem.skillTypes[this.dataId]}`;
-			case 43: return `${$dataSkills[this.dataId].name}`;
-			case 44: return `${$dataSkills[this.dataId].name}`;
-			case 51: return "proficiency";
-			case 52: return "proficiency";
-			case 53: return "is locked";
-			case 54: return "is sealed";
-			case 55: return "Dual-wield";
-			case 61: return `${Math.round(this.value * 100)}%`;
-			case 62: return String.empty;
-			case 64: return String.empty;
-			case 63: return String.empty;
-			default: return "is this a custom trait?";
-		}
-	}
-	translateSpecialFlag() {
-		switch (this.dataId) {
-			case 0: return "Autobattle";
-			case 1: return "Empowered Guard";
-			case 2: return "Cover/Substitute";
-			case 3: return "Preserve TP";
-		}
-	}
-	translatePartyAbility() {
-		switch (this.dataId) {
-			case 0: return "Encounter Half";
-			case 1: return "Encounter None";
-			case 2: return "Prevent Surprise";
-			case 3: return "Frequent Pre-emptive";
-			case 4: return "Gold Dropped 2x";
-			case 5: return "Loot Drop Chance 2x";
-		}
-	}
-};
-
-//#endregion
-//#region src/plugins/_base/database/base/RPG_Traited.js
-/**
-* A class representing a BaseItem from the database, but with traits.
-*/
-var RPG_Traited = class extends RPG_BaseItem {
-	/**
-	* A collection of all traits this item possesses.
-	* @type {RPG_Trait[]}
-	*/
-	traits = [];
-	/**
-	* Constructor.
-	* Maps the base item's traits into this object.
-	* @param {RPG_BaseItem} baseItem The underlying database object.
-	* @param {number} index The index of the entry in the database.
-	*/
-	constructor(baseItem, index) {
-		super(baseItem, index);
-		this.traits = baseItem.traits.map((trait) => new RPG_Trait(trait));
-	}
-	/**
-	* Gets the type of implementation this database entry is.
-	* @returns {string}
-	*/
-	implementationType() {
-		return `${super.implementationType()}:traited`;
-	}
-};
-
-//#endregion
-//#region src/plugins/_base/database/core/RPG_BaseBattler.js
-/**
-* A class representing the groundwork for what all battlers
-* database data look like.
-*/
-var RPG_BaseBattler = class extends RPG_Traited {
-	/**
-	* The name of the battler while in battle.
-	* @type {string}
-	*/
-	battlerName = String.empty;
-	/**
-	* Constructor.
-	* Maps the base battler data to the properties on this class.
-	* @param {RPG_Enemy|RPG_Actor} battler The battler to parse.
-	* @param {number} index The index of the entry in the database.
-	*/
-	constructor(battler, index) {
-		super(battler, index);
-		this.battlerName = battler.battlerName;
-	}
-	/**
-	* Gets the type of implementation this database entry is.
-	* @returns {string}
-	*/
-	implementationType() {
-		return `${super.implementationType()}:battler`;
-	}
-};
-
-//#endregion
 //#region src/plugins/_base/managers/RPGManager.js
 /**
 * A utility class for handling common database-related translations.
@@ -4251,6 +4079,194 @@ var RPGManager = class RPGManager {
 };
 
 //#endregion
+//#region src/plugins/_base/database/_data/RPG_Trait.js
+/**
+* A class representing a single trait living on one of the many types
+* of database classes that leverage traits.
+*/
+var RPG_Trait = class RPG_Trait {
+	/**
+	* Constructs a new {@link RPG_Trait} from only its triad of base values.
+	* @param {number} code The code that designates what kind of trait this is.
+	* @param {number} dataId The identifier that further defines the trait.
+	* @param {number} value The value of the trait, for traits that have numeric values.
+	* @returns {RPG_Trait}
+	*/
+	static fromValues(code, dataId, value) {
+		return new RPG_Trait({
+			code,
+			dataId,
+			value
+		});
+	}
+	/**
+	* The code that designates what kind of trait this is.
+	* @type {number}
+	*/
+	code = 0;
+	/**
+	* The identifier that further defines the trait.
+	* Data type and usage depends on the code.
+	* @type {number}
+	*/
+	dataId = 0;
+	/**
+	* The value of the trait, for traits that have numeric values.
+	* Often is a floating point number to represent a percent multiplier.
+	* @type {number}
+	*/
+	value = 1;
+	/**
+	* Constructor.
+	* @param {RPG_Trait} trait The trait to parse.
+	*/
+	constructor(trait) {
+		this.code = trait.code;
+		this.dataId = trait.dataId;
+		this.value = trait.value;
+	}
+	/**
+	* Gets a combined textual name and value of this trait.
+	* @return {string}
+	*/
+	textNameAndValue() {
+		return `${this.textName()} ${this.textValue()}`;
+	}
+	/**
+	* Gets the underlying name of the trait as text.
+	* @return {string}
+	*/
+	textName() {
+		switch (this.code) {
+			case 11: return `${$dataSystem.elements[this.dataId]} dmg`;
+			case 12: return `${TextManager.param(this.dataId)} debuff rate`;
+			case 13: return `${$dataStates[this.dataId].name} resist`;
+			case 14: return "Immune to";
+			case 21: return `${TextManager.param(this.dataId)}`;
+			case 22: return `${TextManager.xparam(this.dataId)}`;
+			case 23: return `${TextManager.sparam(this.dataId)}`;
+			case 31: return "Element:";
+			case 32: return `${$dataStates[this.dataId].name} on-hit`;
+			case 33: return "Skill Speed";
+			case 34: return "Times";
+			case 35: return "Basic Attack w/";
+			case 41: return `Unlock:`;
+			case 42: return `Lock:`;
+			case 43: return `Learn:`;
+			case 44: return `Seal:`;
+			case 51: return `${$dataSystem.weaponTypes[this.dataId]}`;
+			case 52: return `${$dataSystem.armorTypes[this.dataId]}`;
+			case 53: return `${$dataSystem.equipTypes[this.dataId]}`;
+			case 54: return `${$dataSystem.equipTypes[this.dataId]}`;
+			case 55: return `${this.dataId ? "Enable" : "Disable"}`;
+			case 61: return "Another turn chance:";
+			case 62: return `${this.translateSpecialFlag()}`;
+			case 64: return `${this.translatePartyAbility()}`;
+			case 63: return "TRANSFERABLE TRAITS";
+			default: return "Is this a custom trait?";
+		}
+	}
+	/**
+	* Gets the underlying value of the trait as text.
+	* @return {*|string}
+	*/
+	textValue() {
+		switch (this.code) {
+			case 11:
+				const calculatedElementalRate = Math.round(100 - this.value * 100);
+				return `${calculatedElementalRate > 0 ? "-" : "+"}${Math.abs(calculatedElementalRate)}%`;
+			case 12:
+				const calculatedDebuffRate = Math.round(this.value * 100 - 100);
+				return `${calculatedDebuffRate >= 0 ? "+" : "-"}${Math.abs(calculatedDebuffRate)}%`;
+			case 13:
+				const calculatedStateRate = Math.round(100 - this.value * 100);
+				return `${calculatedStateRate > 0 ? "+" : "-"}${Math.abs(calculatedStateRate)}%`;
+			case 14: return $dataStates[this.dataId].name;
+			case 21:
+				const calculatedBParam = Math.round(this.value * 100 - 100);
+				return `${calculatedBParam >= 0 ? "+" : ""}${calculatedBParam}%`;
+			case 22: {
+				const calculatedXParam = Math.round(this.value * 100);
+				if (this.dataId === 0) return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}`;
+				return `${calculatedXParam >= 0 ? "+" : ""}${calculatedXParam}%`;
+			}
+			case 23: {
+				const calculatedSParam = Math.round(this.value * 100 - 100);
+				if (this.dataId === 1) return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}`;
+				return `${calculatedSParam >= 0 ? "+" : ""}${calculatedSParam}%`;
+			}
+			case 31: return `${$dataSystem.elements.at(this.dataId)}`;
+			case 32: return `${this.value * 100}%`;
+			case 33: return `${this.value >= 0 ? "+" : "-"}${Math.abs(this.value)}`;
+			case 34: return `${this.value >= 0 ? "+" : "-"}${Math.abs(this.value)}`;
+			case 35: return `${$dataSkills[this.dataId].name}`;
+			case 41: return `${$dataSystem.skillTypes[this.dataId]}`;
+			case 42: return `${$dataSystem.skillTypes[this.dataId]}`;
+			case 43: return `${$dataSkills[this.dataId].name}`;
+			case 44: return `${$dataSkills[this.dataId].name}`;
+			case 51: return "proficiency";
+			case 52: return "proficiency";
+			case 53: return "is locked";
+			case 54: return "is sealed";
+			case 55: return "Dual-wield";
+			case 61: return `${Math.round(this.value * 100)}%`;
+			case 62: return String.empty;
+			case 64: return String.empty;
+			case 63: return String.empty;
+			default: return "is this a custom trait?";
+		}
+	}
+	translateSpecialFlag() {
+		switch (this.dataId) {
+			case 0: return "Autobattle";
+			case 1: return "Empowered Guard";
+			case 2: return "Cover/Substitute";
+			case 3: return "Preserve TP";
+		}
+	}
+	translatePartyAbility() {
+		switch (this.dataId) {
+			case 0: return "Encounter Half";
+			case 1: return "Encounter None";
+			case 2: return "Prevent Surprise";
+			case 3: return "Frequent Pre-emptive";
+			case 4: return "Gold Dropped 2x";
+			case 5: return "Loot Drop Chance 2x";
+		}
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/database/base/RPG_Traited.js
+/**
+* A class representing a BaseItem from the database, but with traits.
+*/
+var RPG_Traited = class extends RPG_BaseItem {
+	/**
+	* A collection of all traits this item possesses.
+	* @type {RPG_Trait[]}
+	*/
+	traits = [];
+	/**
+	* Constructor.
+	* Maps the base item's traits into this object.
+	* @param {RPG_BaseItem} baseItem The underlying database object.
+	* @param {number} index The index of the entry in the database.
+	*/
+	constructor(baseItem, index) {
+		super(baseItem, index);
+		this.traits = baseItem.traits.map((trait) => new RPG_Trait(trait));
+	}
+	/**
+	* Gets the type of implementation this database entry is.
+	* @returns {string}
+	*/
+	implementationType() {
+		return `${super.implementationType()}:traited`;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/database/core/RPG_EquipItem.js
 /**
 * A base class representing containing common properties found in both
@@ -4546,6 +4562,15 @@ var RPG_State = class RPG_State extends RPG_Traited {
 	*/
 	implementationType() {
 		return `${super.implementationType()}:state`;
+	}
+	/**
+	* Gets all type classifiers assigned to this state via notetag.
+	* Returns every value matched by a {@code <type:CLASSIFIER>} tag in the notebox.
+	* Multiple tags on the same state are all collected and returned together.
+	* @returns {string[]} The array of classifier strings, or an empty array if none are defined.
+	*/
+	stateTypes() {
+		return RPGManager.getStringsFromNoteByRegex(this, J.BASE.RegExp.StateType);
 	}
 	/**
 	* Hydrated blank state row—symmetry with other DB wrappers when a slot must read as "unused but valid".
@@ -5133,6 +5158,37 @@ var RPG_EnemyAction = class {
 		this.conditionType = enemyAction.conditionType;
 		this.rating = enemyAction.rating;
 		this.skillId = enemyAction.skillId;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/database/core/RPG_BaseBattler.js
+/**
+* A class representing the groundwork for what all battlers
+* database data look like.
+*/
+var RPG_BaseBattler = class extends RPG_Traited {
+	/**
+	* The name of the battler while in battle.
+	* @type {string}
+	*/
+	battlerName = String.empty;
+	/**
+	* Constructor.
+	* Maps the base battler data to the properties on this class.
+	* @param {RPG_Enemy|RPG_Actor} battler The battler to parse.
+	* @param {number} index The index of the entry in the database.
+	*/
+	constructor(battler, index) {
+		super(battler, index);
+		this.battlerName = battler.battlerName;
+	}
+	/**
+	* Gets the type of implementation this database entry is.
+	* @returns {string}
+	*/
+	implementationType() {
+		return `${super.implementationType()}:battler`;
 	}
 };
 
@@ -6715,6 +6771,320 @@ var TraitManager = class {
 };
 
 //#endregion
+//#region src/plugins/_base/managers/TraitResolver.js
+/**
+* A static class that centralizes trait-merging operations shared across the ecosystem.
+*
+* Two distinct merge strategies are exposed:
+*  - {@link overlayTraits}  "last wins per code+dataId" — used by state extension.
+*  - {@link refineTraits}   "keep better per code+dataId" — used by JAFTING refinement.
+*
+* Both strategies share the same underlying sub-operations (opposing-pair cancellation,
+* no-duplicate filtering, parameter-trait additive combining) but differ in how they
+* resolve conflicts between traits that share the same code and dataId.
+*/
+var TraitResolver = class {
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Pairs of trait codes that are semantically opposed.
+	* When one side is present in the overlay and the other is present in the base,
+	* both are cancelled (for refinement) or the base entry is removed (for overlay).
+	* @type {[number, number][]}
+	*/
+	static #OpposingPairs = [[41, 42], [43, 44]];
+	/**
+	* Trait codes where having more than one entry with the same dataId is meaningless.
+	* Duplicates are stripped from the incoming overlay/material list during merging.
+	* @type {number[]}
+	*/
+	static #NoDuplicateCodes = [
+		14,
+		31,
+		51,
+		52,
+		53,
+		54,
+		62,
+		64
+	];
+	/**
+	* Trait codes where a higher value is the "better" one (used by {@link refineTraits}).
+	* @type {number[]}
+	*/
+	static #HigherIsBetterCodes = [
+		32,
+		33,
+		34,
+		61
+	];
+	/**
+	* Trait codes where a lower value is the "better" one (used by {@link refineTraits}).
+	* @type {number[]}
+	*/
+	static #LowerIsBetterCodes = [
+		11,
+		12,
+		13
+	];
+	/**
+	* Trait codes that have exactly one meaningful instance; the overlay/material version
+	* always replaces the base version when both are present (used by {@link refineTraits}).
+	* @type {number[]}
+	*/
+	static #AlwaysReplaceCodes = [35, 55];
+	/**
+	* Merges {@link overlayTraits} onto {@link baseTraits} using "last wins per code+dataId" semantics.
+	*
+	* For every trait in the overlay:
+	*  - Any base trait sharing the same code+dataId is removed (the overlay wins).
+	*  - If the overlay trait belongs to an opposing pair, the opposing code with the same
+	*    dataId is also removed from the base (e.g. overlay "seal skill type 3" strips
+	*    base "unlock skill type 3").
+	*
+	* All overlay traits are then appended to the surviving base traits.
+	* @param {RPG_Trait[]} baseTraits The traits of the object being extended.
+	* @param {RPG_Trait[]} overlayTraits The traits of the extension object.
+	* @returns {RPG_Trait[]} The merged trait array.
+	*/
+	static overlayTraits(baseTraits, overlayTraits) {
+		let result = baseTraits.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value));
+		overlayTraits.forEach((overlay) => {
+			result = result.filter((t) => !(t.code === overlay.code && t.dataId === overlay.dataId));
+			const opposing = this.#opposingCode(overlay.code);
+			if (opposing !== null) {
+				result = result.filter((t) => !(t.code === opposing && t.dataId === overlay.dataId));
+			}
+		});
+		overlayTraits.forEach((t) => result.push(RPG_Trait.fromValues(t.code, t.dataId, t.value)));
+		return result;
+	}
+	/**
+	* Merges {@link materialTraits} onto {@link baseTraits} using "keep better per code+dataId" semantics.
+	*
+	* Steps applied in order:
+	*  1. Additive combining of parameter traits (codes 21/22/23) within each list.
+	*  2. Opposing-pair cancellation — conflicting pairs are removed from both lists.
+	*  3. No-duplicate filtering — material entries are dropped if base already has them.
+	*  4. Always-replace codes (35, 55) — base entry is removed when material has the same code.
+	*  5. Keep-better resolution for rate/stackable codes — the lower-value or higher-value
+	*     winner stays; the loser is removed from its list before the final concat.
+	*  6. All surviving base traits are returned first, followed by remaining material traits.
+	* @param {RPG_Trait[]} baseTraits The traits of the base equip being refined.
+	* @param {RPG_Trait[]} materialTraits The traits of the material being consumed.
+	* @returns {RPG_Trait[]} The merged trait array.
+	*/
+	/**
+	* Folds all same-dataId traits within a single trait list into one combined entry per
+	* dataId using additive math, for every code where additive stacking is meaningful.
+	*
+	* This covers the full display-relevant set:
+	*  - Codes 11/12/13  (element/debuff/state rates)      — neutral 1.0, delta formula
+	*  - Codes 21/22/23  (base/ex/sp parameter rates)      — neutral 1.0 or 0.0
+	*  - Code  32        (attack state chance)              — neutral 0.0, straight additive
+	*
+	* Used by display and count consumers (e.g. JAFTING's {@link JaftingManager.parseTraits})
+	* that need a clean, consolidated view of an equip's traits rather than raw separate entries.
+	* Not used during merging — {@link refineTraits} and {@link overlayTraits} have their own
+	* resolution semantics for these codes.
+	* @param {RPG_Trait[]} traits The trait list to consolidate.
+	* @returns {RPG_Trait[]} A new array with stackable traits combined per code+dataId.
+	*/
+	static consolidate(traits) {
+		let result = traits.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value));
+		result = this.#combineParameterTraitsForCode(result, 11, 1);
+		result = this.#combineParameterTraitsForCode(result, 12, 1);
+		result = this.#combineParameterTraitsForCode(result, 13, 1);
+		result = this.#combineParameterTraitsForCode(result, 21, 1);
+		result = this.#combineParameterTraitsForCode(result, 22, 0);
+		result = this.#combineParameterTraitsForCode(result, 23, 1);
+		result = this.#combineParameterTraitsForCode(result, 32, 0);
+		return result;
+	}
+	static refineTraits(baseTraits, materialTraits) {
+		let base = this.#combineAllParameterTraits(baseTraits.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value)));
+		let material = this.#combineAllParameterTraits(materialTraits.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value)));
+		[base, material] = this.#cancelOpposingPairs(base, material);
+		[base, material] = this.#filterNoDuplicates(base, material);
+		for (const code of this.#AlwaysReplaceCodes) {
+			[base, material] = this.#replaceCode(base, material, code);
+		}
+		[base, material] = this.#keepBetterAll(base, material);
+		return [...base, ...material.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value))];
+	}
+	/**
+	* Returns the opposing code for a given trait code, or null if it has none.
+	* @param {number} code The trait code to look up.
+	* @returns {number|null}
+	*/
+	static #opposingCode(code) {
+		for (const [a, b] of this.#OpposingPairs) {
+			if (code === a) return b;
+			if (code === b) return a;
+		}
+		return null;
+	}
+	/**
+	* Runs additive parameter combining for codes 21, 22, and 23 on a single trait list.
+	* Multiple entries with the same code+dataId are folded into one with a summed value.
+	* @param {RPG_Trait[]} traits The trait list to process in place.
+	* @returns {RPG_Trait[]}
+	*/
+	static #combineAllParameterTraits(traits) {
+		traits = this.#combineParameterTraitsForCode(traits, 21, 1);
+		traits = this.#combineParameterTraitsForCode(traits, 22, 0);
+		traits = this.#combineParameterTraitsForCode(traits, 23, 1);
+		return traits;
+	}
+	/**
+	* Folds all traits of a single code in the list into one per dataId using additive math.
+	* @param {RPG_Trait[]} traits The trait list to process.
+	* @param {number} code The trait code to combine.
+	* @param {number} neutral The neutral value for this code (1 for rate traits, 0 for additive traits).
+	* @returns {RPG_Trait[]}
+	*/
+	static #combineParameterTraitsForCode(traits, code, neutral) {
+		const tracker = {};
+		const toRemove = new Set();
+		traits.forEach((trait, index) => {
+			if (trait.code !== code) return;
+			if (tracker[trait.dataId] === undefined) {
+				tracker[trait.dataId] = trait.value - neutral;
+			} else {
+				tracker[trait.dataId] += trait.value - neutral;
+			}
+			toRemove.add(index);
+		});
+		if (Object.keys(tracker).length === 0) return traits;
+		const result = traits.filter((_, i) => !toRemove.has(i));
+		for (const dataId in tracker) {
+			const value = parseFloat((tracker[dataId] + neutral).toFixed(2));
+			if (value === neutral) continue;
+			result.push(RPG_Trait.fromValues(code, parseInt(dataId), value));
+		}
+		return result;
+	}
+	/**
+	* Cancels opposing trait pairs across and within both lists.
+	* Any dataId that appears as both code A and code B (across or within either list) is
+	* removed entirely from both lists.
+	* @param {RPG_Trait[]} baseTraits
+	* @param {RPG_Trait[]} materialTraits
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #cancelOpposingPairs(baseTraits, materialTraits) {
+		let base = baseTraits;
+		let material = materialTraits;
+		for (const [codeA, codeB] of this.#OpposingPairs) {
+			[base, material] = this.#cancelPair(base, material, codeA, codeB);
+		}
+		return [base, material];
+	}
+	/**
+	* Cancels one opposing pair across and within both lists.
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @param {number} codeA
+	* @param {number} codeB
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #cancelPair(base, material, codeA, codeB) {
+		const conflicts = new Set();
+		const baseA = base.filter((t) => t.code === codeA);
+		const baseB = base.filter((t) => t.code === codeB);
+		const matA = material.filter((t) => t.code === codeA);
+		const matB = material.filter((t) => t.code === codeB);
+		baseA.forEach((a) => {
+			if (matB.some((b) => b.dataId === a.dataId)) conflicts.add(a.dataId);
+		});
+		baseB.forEach((b) => {
+			if (matA.some((a) => a.dataId === b.dataId)) conflicts.add(b.dataId);
+		});
+		baseA.forEach((a) => {
+			if (baseB.some((b) => b.dataId === a.dataId)) conflicts.add(a.dataId);
+		});
+		matA.forEach((a) => {
+			if (matB.some((b) => b.dataId === a.dataId)) conflicts.add(a.dataId);
+		});
+		if (conflicts.size === 0) return [base, material];
+		const strip = (traits) => traits.filter((t) => {
+			if (t.code !== codeA && t.code !== codeB) return true;
+			return !conflicts.has(t.dataId);
+		});
+		return [strip(base), strip(material)];
+	}
+	/**
+	* Strips material traits that the base already owns for no-duplicate codes.
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #filterNoDuplicates(base, material) {
+		const noDupes = this.#NoDuplicateCodes;
+		const filteredMaterial = material.filter((mat) => {
+			if (!noDupes.includes(mat.code)) return true;
+			return !base.some((b) => b.code === mat.code && b.dataId === mat.dataId);
+		});
+		return [base, filteredMaterial];
+	}
+	/**
+	* Removes the base entry for a given code when the material also has that code.
+	* This gives the material ("last applied") effective replacement behavior for
+	* codes like 35 (basic attack skill) and 55 (dual-wield toggle).
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @param {number} code The code to apply replacement to.
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #replaceCode(base, material, code) {
+		if (!material.some((t) => t.code === code)) return [base, material];
+		return [base.filter((t) => t.code !== code), material];
+	}
+	/**
+	* Runs keep-better resolution for all higher-is-better and lower-is-better codes.
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #keepBetterAll(base, material) {
+		for (const code of this.#HigherIsBetterCodes) {
+			[base, material] = this.#keepBetter(base, material, code, true);
+		}
+		for (const code of this.#LowerIsBetterCodes) {
+			[base, material] = this.#keepBetter(base, material, code, false);
+		}
+		return [base, material];
+	}
+	/**
+	* For each shared code+dataId pair between the two lists, removes the "worse" entry
+	* from its list so only the winner survives into the final concat.
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @param {number} code The trait code to process.
+	* @param {boolean} higherIsBetter True if higher values are preferred; false if lower is.
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #keepBetter(base, material, code, higherIsBetter) {
+		const baseToRemove = new Set();
+		const matToRemove = new Set();
+		base.forEach((baseTrait, bi) => {
+			if (baseTrait.code !== code) return;
+			const mi = material.findIndex((t) => t.code === code && t.dataId === baseTrait.dataId);
+			if (mi === -1) return;
+			const matTrait = material[mi];
+			const baseWins = higherIsBetter ? baseTrait.value >= matTrait.value : baseTrait.value <= matTrait.value;
+			if (baseWins) {
+				matToRemove.add(mi);
+			} else {
+				baseToRemove.add(bi);
+			}
+		});
+		return [base.filter((_, i) => !baseToRemove.has(i)), material.filter((_, i) => !matToRemove.has(i))];
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/core/registerVanillaParameters.js
 /**
 * Boot-time registration for vanilla engine parameters in {@link ParameterRegistry}.
@@ -7458,6 +7828,9 @@ Game_Battler.prototype.setCachedAllNotes = function(notes) {
 * @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
 */
 Game_Battler.prototype.getAllNotes = function() {
+	if (this.__testNoteSources !== undefined) {
+		return this.__testNoteSources;
+	}
 	if (this.getCachedAllNotes() !== null) {
 		return this.getCachedAllNotes();
 	}
@@ -7553,6 +7926,14 @@ Game_Battler.prototype.allStates = function() {
 	const states = [];
 	states.push(...this.states());
 	return states;
+};
+/**
+* Gets the ids of all states on the battler as raw numbers.
+* This can include other state ids from other plugins, too.
+* @returns {number[]}
+*/
+Game_Battler.prototype.allStateIds = function() {
+	return [...this._states];
 };
 /**
 * Gets the current health percent of this battler.

@@ -3,7 +3,7 @@
 > **Purpose:** Step-1 reference for the family → subgroup pass (masteries before panel rewrite).
 > Sources: [`archetype-mapping.md`](./archetype-mapping.md), [`implementation-status.md`](./implementation-status.md) tag cookbook.
 >
-> Last updated: **2026-06-13** — `slime-cube` (Cube) verified after bug fixes; `plant-trap` (Wolftrap) verified (tamed from original inception). **Last verified prefix: `TRP`**
+> Last updated: **2026-06-19** — `insect-brood` (Brood) verified. Shipped state extension via `OverlayManager.getExtendedState` + `<extendStateType:TYPE>` / `<extend:[IDs]>` tags; spread system updated to route through progenitor's `state()` view. **Last verified prefix: `HIV`**
 >
 > **Progress:** [Authoring progress](#authoring-progress-one-subgroup-at-a-time) — assistant updates when a subgroup pass is done.
 
@@ -13,11 +13,11 @@
 
 > **Workflow:** author mastery rows (+ panels when ready) → tell the assistant the subgroup is done → table advances here.
 
-**26 / 48 verified** · **current:** Bearcat (`beast-bearcat`) · **Family 1 Undead, Family 2 Reptile, Family 3 Aquatic, Family 4 Slime, Family 5 Plant complete**
+**34 / 48 verified** · **current:** Scorpion (`insect-scorpion`) · **Family 1 Undead, Family 2 Reptile, Family 3 Aquatic, Family 4 Slime, Family 5 Plant complete**
 
 > **Payload bands are per-database — Skills.json and States.json IDs are independent.**
-> **Skills.json bands:** 1001–1010 Wraith ward pulse · 1011–1020 Crimson Vice thorns · 1021–1030 Goo Bat aura pulse · 1031–1040 Frog MAT stacks · 1041–1050 Cephalopod ink cloud. Next free: **1071+**.
-> **States.json bands:** 1001–1010 Wraith ward · 1011–1020 Crimson Vice thorns · 1021–1030 Snake venom · 1031–1040 Frog MAT stacks · 1041–1050 Cephalopod ink cloud · 1051–1060 Hard Syrup elemental gel · 1061–1070 Cube slow (Gooped/Enmired/Subsumed). Next free: **1071+**.
+> **Skills.json bands:** 1001–1010 Wraith ward pulse · 1011–1020 Crimson Vice thorns · 1021–1030 Goo Bat aura pulse · 1031–1040 Quadruped pack aura. Next free: **1041+**.
+> **States.json bands:** 1001–1010 Wraith ward · 1011–1020 Skeletor rage · 1021–1030 Snake venom · 1031–1040 Frog MAT stacks · 1041–1050 Cephalopod ink cloud · 1051–1060 Hard Syrup elemental gel · 1061–1070 Cube slow (Gooped/Enmired/Subsumed) · 1071–1080 Garuda speed/evasion buff · 1081–1090 Quadruped pack DEF buff. Next free: **1091+**. *(Crawler uses no payload band — tags live directly on mastery states 1411–1420.)*
 
 | # | Family | Subgroup | `subgroupKey` | Panels | Mastery IDs | Status |
 |---:|---|---|---|---|---|---|
@@ -46,26 +46,26 @@
 | 23 | Plant | Dryad | `plant-dryad` | `FAE_*` | 1321–1330 | ✅ Verified |
 | 24 | Plant | Treant | `plant-treant` | `TRE_*` | 1331–1340 | ✅ Verified |
 | 25 | Plant | Flower | `plant-flower` | `FLW_*` | 1341–1350 | ✅ Verified |
-| 26 | Beast | Bearcat | `beast-bearcat` | `HBR_*` | 1351–1360 | 🔄 **Current** |
-| 27 | Beast | Bat | `beast-bat` | `WNG_*` | 1361–1370 | 🔲 Todo |
-| 28 | Beast | Garuda | `beast-garuda` | `BEK_*` | 1371–1380 | 🔲 Todo |
-| 29 | Beast | Rat | `beast-rat` | `ROD_*` | 1381–1390 | 🔲 Todo |
-| 30 | Beast | Quadruped | `beast-quadruped` | `QUA_*` | 1391–1400 | 🔲 Todo |
-| 31 | Insect | Needler | `insect-needler` | `LON_*` | 1401–1410 | 🔲 Todo |
-| 32 | Insect | Crawler | `insect-crawler` | `WRM_*` | 1411–1420 | 🔲 Todo |
-| 33 | Insect | Brood | `insect-brood` | `HIV_*` | 1421–1430 | 🔲 Todo |
-| 34 | Insect | Scorpion | `insect-scorpion` | `JMP_*` | 1431–1440 | 🔲 Todo |
-| 35 | Insect | Parasite | `insect-parasite` | `PAR_*` | 1441–1450 | 🔲 Todo |
+| 26 | Beast | Bearcat | `beast-bearcat` | `HBR_*` | 1351–1360 | ✅ Verified |
+| 27 | Beast | Bat | `beast-bat` | `WNG_*` | 1361–1370 | ✅ Verified |
+| 28 | Beast | Garuda | `beast-beaker` | `BEK_*` | 1371–1380 | ✅ Verified |
+| 29 | Beast | Rot Rat | `beast-rat` | `ROD_*` | 1381–1390 | ✅ Verified |
+| 30 | Beast | Quadruped | `beast-quadruped` | `QUA_*` | 1391–1400 | ✅ Verified — pack aura payloads **1031–1040** (skills) + **1081–1090** (states); `<mdfBuffPlus:[a.def * 0.5]>` capstone |
+| 31 | Insect | Needler | `insect-needler` | `STG_*` | 1401–1410 | ✅ Verified |
+| 32 | Insect | Crawler | `insect-crawler` | `WRM_*` | 1411–1420 | ✅ Verified |
+| 33 | Insect | Brood | `insect-brood` | `HIV_*` | 1421–1430 | ✅ Verified — `<extendStateType:poison>` + spread masteries; state extension shipped |
+| 34 | Insect | Scorpion | `insect-scorpion` | `JMP_*` | 1431–1440 | 🔄 Current |
+| 35 | Insect | Parasite | `insect-parasite` | `PAR_*` | 1441–1450 | 🟡 Panels done — masteries needed |
 | 36 | Humanoid | Minotaur | `humanoid-minotaur` | `BUL_*` | 1451–1460 | 🔲 Todo |
 | 37 | Humanoid | Orc | `humanoid-orc` | `ORC_*` | 1461–1470 | 🔲 Todo |
 | 38 | Humanoid | Bandit | `humanoid-bandit` | `THF_*` | 1471–1480 | 🔲 Todo |
 | 39 | Humanoid | Cyclops | `humanoid-cyclops` | `WLK_*` | 1481–1490 | 🔲 Todo |
 | 40 | Humanoid | Kobold | `humanoid-kobold` | `CLN_*` | 1491–1500 | 🔲 Todo |
-| 41 | Construct | Titan | `construct-titan` | `GOL_*` | 1501–1510 | 🔲 Todo |
-| 42 | Construct | Hazard | `construct-hazard` | `HAZ_*` | 1511–1520 | 🔲 Todo |
-| 43 | Construct | Bot | `construct-bot` | `RBT_*` | 1521–1530 | 🔲 Todo |
-| 44 | Construct | Puppet | `construct-puppet` | `HOM_*` | 1531–1540 | 🔲 Todo |
-| 45 | Construct | Orb | `construct-orb` | `RUN_*` | 1541–1550 | 🔲 Todo |
+| 41 | Construct | Titan | `construct-titan` | `GOL_*` | 1501–1510 | 🟡 Panels done — masteries needed |
+| 42 | Construct | Hazard | `construct-hazard` | `HAZ_*` | 1511–1520 | 🟡 Panels done — masteries needed |
+| 43 | Construct | Bot | `construct-bot` | `RBT_*` | 1521–1530 | 🟡 Panels done — masteries needed |
+| 44 | Construct | Puppet | `construct-puppet` | `HOM_*` | 1531–1540 | 🟡 Panels done — masteries needed |
+| 45 | Construct | Orb | `construct-orb` | `RUN_*` | 1541–1550 | 🟡 Panels done — masteries needed |
 | 46 | Deity | Elemental | `deity-elemental` | `ELE_*` | 1551–1560 | 🔲 Todo |
 | 47 | Deity | Aspect | `deity-emotion` | `ASP_*` | 1561–1570 | 🔲 Todo |
 | 48 | Deity | Sovereign | `deity-devil` | `SOV_*` | 1571–1580 | 🔲 Todo |
@@ -76,6 +76,8 @@
 |---|---|
 | ✅ **Verified** | Authored + in-map playtest pass. |
 | 🔄 **Current** | Active strip — author and playtest this one next. |
+| 🟡 **Panels done** | Panel parameters authored; masteries still needed. |
+| 🟠 **Authored — playtest pending** | Tags/traits written; not yet tested in-map. |
 | 🔲 **Todo** | Not verified yet (may still be scaffold shells in DB). |
 
 One Cursor thread per subgroup works well — open with the row above (subgroup key + mastery ID band).
@@ -191,11 +193,11 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 
 | Subgroup | `subgroupKey` | Panel keys | Archetype | **1–3 Beginning** | **4–9 Middle** | **10 End** | IDs | What it does | Tag recipe |
 |---|---|---|---|---|---|---|---:|---|---|
-| Ghosty | `undead-ghosty` | `GHO_1`…`10` | Wizard | Spectral Cascade | Spectral Torrent | Spectral Avalanche | 1101–1110 | +X% damage per distinct skill in last 10s. | ✅ `<skillHistoryBonus:[0, 10, PCT, unique]>` |
-| Wraith | `undead-reborn` | `REB_1`…`10` | Guardian | Ghastly Ward | Pale Bulwark | Wraithwall Eternal | 1111–1120 | Timed shield pulse (MP-weighted). | ✅ two-layer — [Wraith reference](#reference-wraith--ghastly-ward-undead-reborn) |
-| Wisp | `undead-wisp` | `WIL_1`…`10` | Artillery | Blistering Aura | Searing Mantle | Scorched Halo | 1121–1130 | Melee enemies take fire % MHP/sec. | ⏳ [`autoExecuteSkill`](./implementation-status.md#auto-execute-skill-auras--j-passive-conditional-next-release-merge-pending) (merge pending) |
-| Skeletor | `undead-skeleton` | `SKL_1`…`10` | Berserker | Undying Rage | Graveborn Fury | Deathless Fury | 1131–1140 | Below 25% HP, +X% ATK. | ✅ `<passiveSourceRule:[hpBelow, 25]>` + ATK% |
-| Rust Bucket | `undead-armor` | `ARM_1`…`10` | Vanguard | Hollow Armor | Brittle Bastion | Paper Fortress | 1141–1150 | High DEF, low effective MHP. | ✅ DEF↑ / MHP↓ traits |
+| Ghosty | `undead-ghosty` | `GHO_1`…`10` | Wizard | Spectral Cascade | Spectral Torrent | Spectral Avalanche | 1101–1110 | +X% damage per distinct skill used in a rolling window (6→30 skills tracked). Beginning: 4/7/10% per unique. Middle: 10% per unique, window grows 9→24. Capstone: 15% per unique, window 30. | ✅ `<skillHistoryBonus:[0, WINDOW, PCT, unique]>` |
+| Wraith | `undead-reborn` | `REB_1`…`10` | Guardian | Ghastly Ward | Pale Bulwark | Wraithwall Eternal | 1111–1120 | Timed MP-weighted shield pulse. Beginning: pulse every 60s (wards 1001–1003). Middle: pulse accelerates 55s→30s (wards 1004–1009). Capstone: pulse every 15s, 3-stack `shieldProtect` ward. | ✅ two-layer — [Wraith reference](#reference-wraith--ghastly-ward-undead-reborn) |
+| Wisp | `undead-wisp` | `WIL_1`…`10` | Artillery | Blistering Aura | Searing Mantle | Scorched Halo | 1121–1130 | Fire aura: pulses on enemies nearby every 3s, also triggers on taking HP damage. Middle tiers add proximity threshold (4 tiles). Capstone: also triggers at 2- and 4-enemy proximity thresholds + instant pulse on HP damage. | ✅ `<autoExecuteSkill:[ID, enemiesNearby, N, 180]>` + `<autoExecuteSkill:[ID, hpDmg, 30]>` |
+| Skeletor | `undead-skeleton` | `BON_1`…`10` | Berserker | Undying Rage | Graveborn Fury | Deathless Fury | 1131–1140 | Below low HP threshold, grants ATK+MAT via payload states (1011–1020). Beginning: +1/2/3% at ≤20% HP. Middle: +3% ATK/MAT, threshold stays 20%, payload scales. Capstone: +5% ATK/MAT/−50% PDR/MDR, all debuff immunity. | ✅ `<passiveStateCount:[ID, lessIsMoreHp, MULT]>` + payload ATK/MAT buff tags |
+| Rust Bucket | `undead-armor` | `ARM_1`…`10` | Vanguard | Hollow Armor | Brittle Bastion | Paper Fortress | 1141–1150 | High DEF, lower effective MHP. Beginning: +6/9/12% DEF, −2/4/6% MHP (traits). Middle: +28→30% DEF, −15% MHP + `<grdBuffRate>` scaling 10→30%. Capstone: +100% DEF, −50% MHP, `<grdBuffRate:50>` + `<critReduction:30>` + `<cdrBuffRate:50>`. | ✅ DEF↑ / MHP↓ traits + `<grdBuffRate>` |
 
 ---
 
@@ -203,11 +205,11 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 
 | Subgroup | `subgroupKey` | Archetype | **1–3** | **4–9** | **10** | IDs | What it does | Tag recipe |
 |---|---|---|---|---|---|---:|---|---|
-| Snake | `reptile-snake` | Skirmisher | Venom Strike | Venom Surge | Venom Deluge | 1151–1160 | Crit → **one** tier venom (**1021–1030**); Surge stacks. | ✅ `<onCritApply:[…]>` · payloads **1021–1030** |
-| Dargin | `reptile-dargin` | Vanguard | Dragonheart | Dragonheart Stirring | Dragonheart Aflame | 1161–1170 | Below 50% HP, +X% PDR/MDR. | ✅ `<passiveSourceRule:[hpBelow, 50]>` |
-| Draconite | `reptile-draconite` | Guardian | Stone Scales | Stone Mantle | Granite Bastion | 1171–1180 | +X% DEF while standing still. | ✅ `<passiveSourceRule:[sinceLastMoved, …]>` |
-| Lamia | `reptile-lamia` | Artillery | Focusing Beam | Converging Beam | Coalesced Annihilation | 1181–1190 | Direct damage +X% per cast second. | ✅ `<castTimeDamageBonus:N>` |
-| Salamander | `reptile-salamander` | War Priest | Elemental Infusion | Elemental Attunement | Primal Conduit | 1191–1200 | Bonus elemental attack damage. | ✅ Element % traits |
+| Snake | `reptile-snake` | Skirmisher | Venom Strike | Venom Surge | Venom Deluge | 1151–1160 | Crit applies one tier of venom (payloads 1021–1030). Beginning: 50/75/100% proc, extend-style. Middle: 100% proc, stacking up to 6. Capstone: 100% proc, %MHP slip + extend. | ✅ `<onCritApply:[ID, CHANCE]>` · payloads **1021–1030** |
+| Dargin | `reptile-dargin` | Vanguard | Dragonheart | Dragonheart Stirring | Dragonheart Aflame | 1161–1170 | Below HP threshold, −X% PDR/MDR. Beginning: −10/15/20% PDR+MDR at ≤20% HP. Middle: −30→60% PDR+MDR at ≤30% HP + all-element resist 33%. Capstone: −80% PDR+MDR at ≤40% HP + all-element resist 33% + full debuff immunity. | ✅ `<passiveSourceRule:[hpBelow, N]>` + PDR/MDR traits + element/debuff immunity traits |
+| Draconite | `reptile-draconite` | Guardian | Stone Scales | Stone Mantle | Granite Bastion | 1171–1180 | +X% DEF while not moving. Beginning: +50% DEF after 5/4/3s still. Middle: +50→200% DEF after 3s still. Capstone: +300% DEF after 3s still + `<grdBuffPlus:1000>`. | ✅ `<passiveSourceRule:[sinceLastMoved, N]>` + DEF% traits |
+| Lamia | `reptile-lamia` | Artillery | Focusing Beam | Converging Beam | Coalesced Annihilation | 1181–1190 | Bonus damage scales with cast time. Beginning: +8/12/16% per cast second. Middle: +25→50% per cast second + 5→30% cast time reduction. Capstone: +100% per cast second + 50% cast time reduction. | ✅ `<castTimeDamageBonus:N>` + `<castTimePercent:[N]>` |
+| Salamander | `reptile-salamander` | War Priest | Elemental Infusion | Elemental Attunement | Primal Conduit | 1191–1200 | Bonus elemental attack damage. Beginning: +11/22/33% fire+ice only. Middle: +5→30% all elements + 50% fire+ice stacked. Capstone: +25% neutral/all elements, +50% all non-neutral, +100% fire+ice. | ✅ `<boostElement:ID:PCT>` traits |
 
 ---
 
@@ -215,11 +217,11 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 
 | Subgroup | `subgroupKey` | Archetype | **1–3** | **4–9** | **10** | IDs | What it does | Tag recipe |
 |---|---|---|---|---|---|---:|---|---|
-| Kappa | `aquatic-kappa` | Generalist | Trickster's Luck | Trickster's Favor | Trickster's Gambit | 1201–1210 | X% negate incoming hit. | ✅ Pseudo-EVA |
-| Frog | `aquatic-frog` | Artillery | Rooted Barrage | Rooted Tempest | Rooted Cataclysm | 1211–1220 | MAT stacks while still, reset on move. | ✅ `<autoApplyState:[103X, stand, F]>` + `<removeStateOnMove:[103X]>` · payloads **1031–1040** |
-| Crimson Vice | `aquatic-crab` | Guardian | Iron Shell | Iron Rebuke | Shellbreaker Retort | 1221–1230 | Reflect X% physical damage (thorns). | ✅ `<retaliate:[ID, 100, physical]>` · payloads **1011–1020** |
-| Fish | `aquatic-fish` | Skirmisher | Slippery | Swift Current | Slipstream | 1231–1240 | +X% MSB after dealing damage. | ✅ `<passiveSourceRule:[attackedWithin, 120]>` |
-| Cephalopod | `aquatic-cephalopod` | War Priest | Ink Shroud | Murky Pall | Abyssal Veil | 1241–1250 | Taking damage triggers short DR cloud (payloads **1041–1050**); capstone uses `anyDmg` + permanent −10% PDR/MDR. | ✅ `<autoApplyState:[104X, hpDmg/anyDmg, 480]>` |
+| Kappa | `aquatic-kappa` | Generalist | Trickster's Luck | Trickster's Favor | Trickster's Gambit | 1201–1210 | Beginning: bonus drop rate only (+4/7/10%). Middle: drop rate escalates + flat EVA bonus (+25→50 EVA). Capstone: EVA, LUK, and drop rate all scale with actor level. | ✅ `<dropMultiplier:N>` + `<evaBuffPlus:[N]>` + `<lukBuffPlus:[a.level]>` |
+| Frog | `aquatic-frog` | Artillery | Rooted Barrage | Rooted Tempest | Rooted Cataclysm | 1211–1220 | MAT stacks while standing still, reset on move. Beginning: stack after 3s still. Middle: stack after 2s still. Capstone: stack after 1s still. Payloads 1031–1040. | ✅ `<autoApplyState:[103X, stand, F]>` + `<removeStateOnMove:[103X]>` |
+| Crimson Vice | `aquatic-crab` | Guardian | Iron Shell | Iron Rebuke | Shellbreaker Retort | 1221–1230 | Physical retaliate on every hit (100% proc). Tiers escalate payload damage (1011–1020). | ✅ `<retaliate:[ID, 100, physical]>` · payloads **1011–1020** |
+| Fish | `aquatic-fish` | Skirmisher | Slippery | Swift Current | Slipstream | 1231–1240 | +X move speed after being attacked (window grows each tier). Beginning: +5/10/15 speed, 1s window. Middle: +20 speed, window grows 1.25s→2.5s. Capstone: +30 speed, 3s window + 25% crit rate bonus. | ✅ `<passiveSourceRule:[attackedWithin, N]>` + `<speedBoost:N>` + `<criBuffRate>` |
+| Cephalopod | `aquatic-cephalopod` | War Priest | Ink Shroud | Murky Pall | Abyssal Veil | 1241–1250 | Taking HP damage triggers a DR cloud (8s cooldown, payloads 1041–1049). Capstone: triggers on any damage type + 8s cooldown. | ✅ `<autoApplyState:[104X, hpDmg, 480]>` / capstone `anyDmg` |
 
 ---
 
@@ -227,11 +229,11 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 
 | Subgroup | `subgroupKey` | Archetype | **1–3** | **4–9** | **10** | IDs | What it does | Tag recipe |
 |---|---|---|---|---|---|---:|---|---|
-| Hard Syrup | `slime-puddle` | Generalist | Adaptive Slime | Reactive Gel | Elemental Osmosis | 1251–1260 | On HP damage: apply Elemental Gel (−25% all elem rates per stack) with escalating duration/stacks/cooldown. Payloads **1051–1060**. | ✅ `<autoApplyState:[105X, hpDmg, CD]>` |
-| Roper | `slime-roper` | Berserker | Eldritch Fury | Eldritch Tempest | Eldritch Maelstrom | 1261–1270 | +X% crit or damage vs debuffed. | ⏳ / interim `bonusDamageIfState` |
-| Jelly | `slime-jelly` | Medic | Mana Transfusion | Mana Weave | Arcane Transfusion | 1271–1280 | Heals restore X% as MP. | ✅ `<onSelfHpHealMp:[PCT, 0]>` |
-| Goo Bat | `slime-aerial` | Cleric | Regeneration Aura | Miasma of Life | Spore Bloom | 1281–1290 | Periodic AoE heal pulse (payloads **1021–1030**); capstone `<hpPercent:5>` personal regen. | ✅ `<autoExecuteSkill:[102X, time, FRAMES]>` |
-| Cube | `slime-cube` | Vanguard | Living Obstacle | Living Bulwark | Immovable Bulk | 1291–1300 | Melee enemies slowed. | ✅ Movespeed debuff aura |
+| Hard Syrup | `slime-puddle` | Generalist | Adaptive Slime | Reactive Gel | Elemental Osmosis | 1251–1260 | On HP damage, apply Elemental Gel debuff (payloads 1051–1060). Beginning: 3s cooldown. Middle: 2s cooldown. Capstone: 1s cooldown. | ✅ `<autoApplyState:[105X, hpDmg, CD]>` |
+| Roper | `slime-roper` | Berserker | Eldritch Fury | Eldritch Tempest | Eldritch Maelstrom | 1261–1270 | +X% damage per debuff on target. Beginning: +5/10/15%. Middle: +20→45%. Capstone: +50%. | ✅ `<perDebuffBuff:N>` |
+| Jelly | `slime-jelly` | Medic | Mana Transfusion | Mana Weave | Arcane Transfusion | 1271–1280 | HP heals also restore MP. Beginning: 10/20/30% of HP heal as MP, self only. Middle: 50% of HP heal as MP + radius grows 1→6 tiles. Capstone: 50% of any heal (HP or MP) as MP, radius 6. | ✅ `<onSelfHpHealMp:[PCT, R]>` / capstone `<onSelfAnyHealMp:[PCT, R]>` |
+| Goo Bat | `slime-aerial` | Cleric | Regeneration Aura | Miasma of Life | Spore Bloom | 1281–1290 | Periodic AoE heal pulse on nearby allies (payloads 1021–1030). Beginning: every 8s. Middle: every 7s→3s. Capstone: every 2s + personal 5% MHP regen per tick. | ✅ `<autoExecuteSkill:[102X, time, FRAMES]>` + `<hpPercent:5>` |
+| Cube | `slime-cube` | Vanguard | Living Obstacle | Living Bulwark | Immovable Bulk | 1291–1300 | Nearby enemies are slowed (payloads 1061–1070), checked every 1s. All tiers check for 1+ enemy nearby. | ✅ `<autoApplyStateOnNearby:[106X, enemiesNearby, 1, 60]>` |
 
 ---
 
@@ -239,11 +241,11 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 
 | Subgroup | `subgroupKey` | Archetype | **1–3** | **4–9** | **10** | IDs | What it does | Tag recipe |
 |---|---|---|---|---|---|---:|---|---|
-| Wolftrap | `plant-wolftrap` | Wizard | Entangling Curse | Thorned Curse | Stranglethorn Curse | 1301–1310 | Your debuffs last X% longer. | ✅ Duration extension |
-| Fungrowth | `plant-fungrowth` | Berserker | Primal Instinct | Primal Surge | Primal Apex | 1311–1320 | +X% ATK while all skills off CD. | ✅ `<passiveSourceRule:[allOffCooldown]>` |
-| Dryad | `plant-dryad` | Medic | Nature's Wrath | Nature's Ire | Nature's Judgment | 1321–1330 | +X% MAT (+MDF tier 4+) while all allies ≥75% HP (≥50% at apex). | ✅ `<passiveSourceRule:[hpAbove, 75, allAllies, 8]>` |
-| Treant | `plant-treant` | Vanguard | Ironbark | Tempered Ironbark | Ancient Ironbark | 1331–1340 | PDR reduction + DEF% after N seconds without taking damage. T1–3: −5/10/15% PDR after 8s. T4–9: −20…70% PDR + 10…35% DEF after 5s. T10: −90% PDR + 50% DEF after 2s. | ✅ `<passiveSourceRule:[sinceLastHit, 480]>` (T1–3) / `[sinceLastHit, 300]` (T4–9) / `[sinceLastHit, 120]` (T10) |
-| Flower | `plant-flower` | Cleric | Purifying Bloom | Cleansing Petals | Sacred Bloom | 1341–1350 | X% chance/tick cleanse one debuff. | ✅ Periodic cleanse |
+| Wolftrap | `plant-wolftrap` | Wizard | Entangling Curse | Thorned Curse | Stranglethorn Curse | 1301–1310 | Your debuffs last X% longer. Beginning: +10/20/30%. Middle: +50→100%. Capstone: +200% duration + +100% damage to poisoned targets. | ✅ `<stateDurationPerc:N>` / capstone + `<bonusDamageIfState:[5, 100]>` |
+| Fungrowth | `plant-fungrowth` | Berserker | Primal Instinct | Primal Surge | Primal Apex | 1311–1320 | +X% ATK while all skills are off cooldown. Beginning: +10/20/30% ATK. Middle: +50% ATK + escalating flat ATK bonus (20→100%). Capstone: +255% ATK + 255% flat ATK bonus + 2 bonus basic hits. | ✅ `<passiveSourceRule:[allOffCooldown]>` + ATK x-param + ATK b-param traits |
+| Dryad | `plant-dryad` | Medic | Nature's Wrath | Nature's Ire | Nature's Judgment | 1321–1330 | +X% MAT while all allies above HP threshold. Beginning: +10/20/30% MAT at ≥75% HP. Middle: +50→100% MAT + +50% MDF (fixed) at ≥75% HP. Capstone: +200% MAT + +100% MDF at ≥50% HP. | ✅ `<passiveSourceRule:[hpAbove, N, allAllies, 8]>` + MAT/MDF traits |
+| Treant | `plant-treant` | Vanguard | Ironbark | Tempered Ironbark | Ancient Ironbark | 1331–1340 | −X% PDR (+DEF% from tier 4) after N seconds without being hit. Beginning: −5/10/15% PDR after 8s. Middle: −20→70% PDR + 10→35% DEF after 5s. Capstone: −90% PDR + 50% DEF after 2s. | ✅ `<passiveSourceRule:[sinceLastHit, N]>` + PDR trait + DEF% trait |
+| Flower | `plant-flower` | Cleric | Purifying Bloom | Cleansing Petals | Sacred Bloom | 1341–1350 | Periodic AoE cleanse of negative states on nearby allies. Beginning: 1 state, radius 2→4, every 6s. Middle: 1→6 states, radius 5, every 5s. Capstone: all negative states, radius 8, every 4s. | ✅ `<autoExecuteSkill:[ID, time, FRAMES]>` + `<purgeStates:[negative, false, N]>` |
 
 ---
 
@@ -252,9 +254,9 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 | Subgroup | `subgroupKey` | Archetype | **1–3** | **4–9** | **10** | IDs | What it does | Tag recipe |
 |---|---|---|---|---|---|---:|---|---|
 | Bearcat | `beast-bearcat` | Berserker | Void Resonance | Void Chord | Void Harmonics | 1351–1360 | X% ATK adds to MAT. | ✅ ATK→MAT % |
-| Cave Bat | `beast-cave-bat` | Skirmisher | Swarm Instinct | Chittering Frenzy | Wingbeat Chorus | 1361–1370 | +X% HIT per nearby ally. | ✅ `<passiveSourceRule:[alliesNearby, N]>` |
-| Garuda | `beast-garuda` | Artillery | Tailwind | Rising Gust | Gale Force | 1371–1380 | +X% MSB after using a skill. | ✅ `<passiveSourceRule:[attackedWithin, 180]>` |
-| Rot Rat | `beast-rot-rat` | Generalist | Resourceful Rodent | Nest Egg | Compound Interest | 1381–1390 | More SDP and gold. | ✅ `sdr` + `gdr` |
+| Cave Bat | `beast-bat` | Skirmisher | Cauldron Instinct | Chittering Frenzy | Wingbeat Chorus | 1361–1370 | +X% HIT per nearby ally. | ✅ `<passiveSourceRule:[alliesNearby, N]>` |
+| Garuda | `beast-beaker` | Artillery | Tailwind | Rising Gust | Gale Force | 1371–1380 | +X% MSB after using a skill. | ✅ `<passiveSourceRule:[attackedWithin, 180]>` |
+| Rot Rat | `beast-rat` | Generalist | Resourceful Rodent | Nest Egg | Compound Interest | 1381–1390 | More SDP and gold. | ✅ `sdr` + `gdr` |
 | Quadruped | `beast-quadruped` | Guardian | Alpha Presence | Alpha Howl | Pack Sovereignty | 1391–1400 | Allies +X% DEF. | ✅ `<passiveSourceRule:[alliesNearby, N]>` |
 
 ---
@@ -263,7 +265,7 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 
 | Subgroup | `subgroupKey` | Archetype | **1–3** | **4–9** | **10** | IDs | What it does | Tag recipe |
 |---|---|---|---|---|---|---:|---|---|
-| Needler | `insect-needler` | Skirmisher | Drilling Sting | Hive Puncture | Lance of the Hive | 1401–1410 | +X% CDM vs debuffed. | ⏳ / interim `bonusDamageIfState` |
+| Needler | `insect-needler` | Skirmisher | Drilling Sting | Hive Puncture | Lance of the Hive | 1401–1410 | On-crit poison proc + bonus damage vs poison-type targets. | ✅ `<onCritApply:[16, CHANCE]>` + `<bonusDamageIfStateType:[poison, PCT]>` |
 | Crawler | `insect-crawler` | War Priest | Spire Network | Spire Synapse | Spire Dominion | 1411–1420 | +X% HRG/LST with enemies in melee. | ✅ `<passiveSourceRule:[enemiesNearby, N]>` |
 | Brood | `insect-brood` | Wizard | Plague Swarm | Endemic Swarm | Pandemic | 1421–1430 | Debuffs spread virally. | ✅ spread tags |
 | Scorpion | `insect-scorpion` | Vanguard | Chitin Barbs | Chitin Lash | Barbed Retribution | 1431–1440 | Counters apply slow. | ⏳ counter hook |
@@ -287,11 +289,11 @@ Capstone **20** at Godlike is intentionally a large share of the subgroup wallet
 
 | Subgroup | `subgroupKey` | Archetype | **1–3** | **4–9** | **10** | IDs | What it does | Tag recipe |
 |---|---|---|---|---|---|---:|---|---|
-| Heated Titan | `construct-heated-titan` | Berserker | Unstoppable | Relentless March | Juggernaut | 1501–1510 | KB resist; +ATK per self-debuff. | ✅ KB + `passiveStateCount` |
+| Heated Titan | `construct-titan` | Berserker | Unstoppable | Relentless March | Juggernaut | 1501–1510 | KB resist; +ATK per self-debuff. | ✅ KB + `passiveStateCount` |
 | Hazard | `construct-hazard` | Artillery | Blast Radius | Blast Front | Ground Zero | 1511–1520 | Larger AoE tiles. | ✅ `<rangeRate>` / `<rangeBuff>` |
 | Bot | `construct-bot` | War Priest | Self-Repair Subroutine | Maintenance Cycle | Autonomic Overdrive | 1521–1530 | Auto-heal % MHP on interval. | ✅ Periodic heal |
 | Puppet | `construct-puppet` | Wizard | Soul Thread | Soul Bind | Soul Rend | 1531–1540 | Bonus vs debuffed/controlled. | ✅ `perDebuffBuff` + `bonusDamageIfState` |
-| Runic Orb | `construct-runic-orb` | Medic | Overcharge | Capacitor Surge | Meltdown | 1541–1550 | Shield break → AoE blast. | ✅ Shield-break explosion |
+| Runic Orb | `construct-orb` | Medic | Overcharge | Capacitor Surge | Meltdown | 1541–1550 | Shield break → AoE blast. | ✅ Shield-break explosion |
 
 ---
 
@@ -356,7 +358,7 @@ Five subgroup slots (Kaiju sacked — Sin owns the last **two** enemy decades). 
 | Treant | Ironbark | Tempered Ironbark | Ancient Ironbark |
 | Flower | Purifying Bloom | Cleansing Petals | Sacred Bloom |
 | Bearcat | Void Resonance | Void Chord | Void Harmonics |
-| Cave Bat | Swarm Instinct | Chittering Frenzy | Wingbeat Chorus |
+| Cave Bat | Cauldron Instinct | Chittering Frenzy | Wingbeat Chorus |
 | Garuda | Tailwind | Rising Gust | Gale Force |
 | Rot Rat | Resourceful Rodent | Nest Egg | Compound Interest |
 | Quadruped | Alpha Presence | Alpha Howl | Pack Sovereignty |
@@ -403,6 +405,7 @@ Five subgroup slots (Kaiju sacked — Sin owns the last **two** enemy decades). 
 | Skill history damage | `<skillHistoryBonus:[TYPE, WINDOW, PCT, unique]>` |
 | Cast time damage | `<castTimeDamageBonus:N>` |
 | Debuff damage amp | `<perDebuffBuff:N>` / `<bonusDamageIfState:[ID, PCT]>` |
+| State-type damage amp | `<type:CLASSIFIER>` on state + `<bonusDamageIfStateType:[TYPE, PCT]>` (presence) / `<bonusDamagePerStateType:[TYPE, PCT]>` (count) — see [`implementation-status.md` § State type classifiers](./implementation-status.md#state-type-classifiers--j-base--j-abs-core) |
 | AoE size | `<rangeRate:1.X>` / `<rangeBuff:N>` |
 | Resist pierce | `<pierceElement:[ELEM, PCT]>` |
 | Heal cascade | `<onSelfHpHealMp:[PCT, R]>` / `<onAllyHpHealHp:[PCT, R]>` |

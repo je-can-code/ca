@@ -1320,7 +1320,7 @@
  * ============================================================================
  * STATE DAMAGE MULTIPLIERS:
  * These tags apply damage bonuses based on the current states of the target
- * at the moment the action resolves. Both tags are read from getAllNotes() on
+ * at the moment the action resolves. All tags are read from getAllNotes() on
  * the caster (passives, equips, states, class, actor, etc.).
  *
  * Bonuses are applied BEFORE guard reduction so that a target's heavily-guarded
@@ -1329,7 +1329,7 @@
  * the bonus outright than it would be if the bonus were applied afterward.
  *
  * Combined formula:
- *   totalPct = perDebuffBonusPct + specificStateBonusPct
+ *   totalPct = perDebuffBonusPct + specificStateBonusPct + typePresenceBonusPct + typeCountBonusPct
  *   finalDamage = round(baseDamage * (1 + totalPct / 100))
  *
  * ----------------------------------------------------------------------------
@@ -1367,6 +1367,41 @@
  *    <bonusDamageIfState:[STATE_ID_DISABLED, 25]>
  *
  * If the target has all three, specificStateBonusPct = 75 (each fires independently).
+ *
+ * ----------------------------------------------------------------------------
+ * BONUS DAMAGE IF STATE TYPE:
+ * Adds PCT% bonus damage if the target currently has at least one active state
+ * carrying the given type classifier (see the <type:CLASSIFIER> notetag on
+ * states). Multiple tags for different types each contribute independently.
+ * Having more than one matching state of the same type does not add the
+ * bonus more than once — this tag is a presence check, not a count.
+ *    <bonusDamageIfStateType:[TYPE, PCT]>
+ *  Where TYPE is the classifier string to check for (matched case-insensitively).
+ *  Where PCT is the integer percent bonus to add when any matching state is present.
+ *
+ * Example:
+ *  Venom mastery — +25% damage if the target has any "poison"-typed state:
+ *    <bonusDamageIfStateType:[poison, 25]>
+ *
+ * If the target has two different poison-typed states active simultaneously,
+ * typePresenceBonusPct is still only 25 (presence, not count).
+ *
+ * ----------------------------------------------------------------------------
+ * BONUS DAMAGE PER STATE TYPE:
+ * Adds PCT% bonus damage for every distinct active state on the target that
+ * carries the given type classifier. Unlike PER-DEBUFF BONUS, this tag is
+ * scoped to a single named type per tag rather than counting all negative
+ * states; multiple tags for different types each contribute independently.
+ *    <bonusDamagePerStateType:[TYPE, PCT]>
+ *  Where TYPE is the classifier string to check for (matched case-insensitively).
+ *  Where PCT is the integer percent bonus to add per matching active state.
+ *
+ * Example:
+ *  Venom mastery — +10% damage per "poison"-typed state active on the target:
+ *    <bonusDamagePerStateType:[poison, 10]>
+ *
+ * If the target has two different poison-typed states active simultaneously,
+ * typeCountBonusPct from this tag = 10 * 2 = 20%.
  *
  * ============================================================================
  * APPLY STATE ON EXPIRE:
@@ -3836,6 +3871,44 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	BonusDamageIfState: /<bonusDamageIfState:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	/**
+	* Flat percent damage bonus applied when the target has at least one active state
+	* carrying the given type classifier (see RPG_State's stateTypes()).
+	* Reads from getAllNotes(). Multiple tags for different types each fire independently.
+	* Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <bonusDamageIfStateType:[TYPE, PCT]>
+	*
+	* Example:
+	*  <bonusDamageIfStateType:[poison, 25]>
+	*
+	* Translation:
+	*  +25% damage if the target has any active state classified as "poison".
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusDamageIfStateType: /<bonusDamageIfStateType:[ ]?(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
+	/**
+	* Percent damage bonus per active state carrying the given type classifier
+	* (see RPG_State's stateTypes()). Each tag's PCT is multiplied by the count of
+	* distinct active states on the target bearing that type, then summed across tags.
+	* Reads from getAllNotes(). Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <bonusDamagePerStateType:[TYPE, PCT]>
+	*
+	* Example:
+	*  <bonusDamagePerStateType:[poison, 10]>
+	*
+	* Translation:
+	*  +10% damage for every active state classified as "poison" on the target.
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusDamagePerStateType: /<bonusDamagePerStateType:[ ]?(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
 	/**
 	* Flat tile addition applied to radius, proximity, and thickness before the rate multiplier.
 	* Signed decimal; negative values shrink reach. Reads from getAllNotes().
@@ -11038,9 +11111,8 @@ var JABS_Battler = class JABS_Battler {
 	* @returns {boolean} True if the skill is chooseable by the AI "at random", false otherwise.
 	*/
 	aiSkillFilter(skill) {
-		const { jabsComboAction, jabsComboStarter, jabsAiSkillExclusion, isSkillExtender } = skill;
+		const { jabsComboAction, jabsComboStarter, jabsAiSkillExclusion } = skill;
 		if (jabsAiSkillExclusion) return false;
-		if (isSkillExtender) return false;
 		const isCombo = !!jabsComboAction;
 		const isComboStarter = !!jabsComboStarter;
 		const isNonComboStarterSkill = isCombo && !isComboStarter;
@@ -14276,7 +14348,7 @@ var JABS_State = class {
 	* @returns {number}
 	*/
 	getSpreadTickInterval() {
-		const stateRow = $dataStates[this.stateId];
+		const stateRow = this.source.state(this.stateId);
 		if (stateRow && stateRow.jabsSpreadTickFrames > 0) {
 			return stateRow.jabsSpreadTickFrames;
 		}
@@ -14289,7 +14361,7 @@ var JABS_State = class {
 		if (this.expired === true) return;
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		if (!this.battler || !this.source) return;
-		const stateRow = $dataStates[this.stateId];
+		const stateRow = this.source.state(this.stateId);
 		if (!stateRow || !stateRow.jabsSpreadRule) return;
 		const { chance, range } = stateRow.jabsSpreadRule;
 		if (chance <= 0 || range <= 0) return;
@@ -21072,14 +21144,6 @@ Object.defineProperty(RPG_Skill.prototype, "jabsComboStarter", { get: function()
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.ComboStarter);
 } });
 /**
-* Whether or not this skill is a "skill extend" skill.
-* @returns {boolean} True if this is a "skill extend" skill, false otherwise.
-*/
-Object.defineProperty(RPG_Skill.prototype, "isSkillExtender", { get: function() {
-	if (!J.EXTEND) return false;
-	return J.EXTEND.RegExp.SkillExtend.test(this.note);
-} });
-/**
 * Whether or not this skill can be chosen at all by the JABS AI.
 * Combo skills can still be executed as they are chosen by different means.
 */
@@ -22470,7 +22534,9 @@ Game_Action.prototype.applyStateEffect = function(target, stateId) {
 };
 /**
 * Applies damage multipliers derived from the current states of the target.
-* Combines perDebuffBuff (per-negative-state bonus) and bonusDamageIfState (specific-state bonus).
+* Combines perDebuffBuff (per-negative-state bonus), bonusDamageIfState (specific-state bonus),
+* bonusDamageIfStateType (type-classifier presence bonus), and bonusDamagePerStateType
+* (type-classifier count bonus).
 * Applied before guard effects so flat guard reduction cannot fully cancel the state-exploitation bonus.
 * @param {number} baseDamage The damage value before state multipliers.
 * @param {Game_Battler} target The target whose states are evaluated.
@@ -22480,7 +22546,9 @@ Game_Action.prototype.applyStateDamageMultipliers = function(baseDamage, target)
 	if (baseDamage <= 0) return baseDamage;
 	const debuffPct = this.calculatePerDebuffBonusPct(target);
 	const specificPct = this.calculateBonusIfStatePct(target);
-	const combinedPct = debuffPct + specificPct;
+	const typePresencePct = this.calculateBonusIfStateTypePct(target);
+	const typeCountPct = this.calculatePerStateTypePct(target);
+	const combinedPct = debuffPct + specificPct + typePresencePct + typeCountPct;
 	if (combinedPct === 0) return baseDamage;
 	return Math.round(baseDamage * (1 + combinedPct / 100));
 };
@@ -22512,6 +22580,52 @@ Game_Action.prototype.calculateBonusIfStatePct = function(target) {
 		if (target.isStateAffected(stateId)) {
 			totalPct += percent;
 		}
+	});
+	return totalPct;
+};
+/**
+* Checks whether the target has at least one active state carrying the given type
+* classifier. The comparison is case-insensitive.
+* @param {Game_Battler} target The target whose active states are checked.
+* @param {string} type The type classifier to look for.
+* @returns {boolean} True if any active state on the target carries this type.
+*/
+Game_Action.prototype.targetHasActiveStateType = function(target, type) {
+	return target.states().some((state) => state.stateTypes().some((stateType) => stateType.toLowerCase() === type.toLowerCase()));
+};
+/**
+* Calculates the total damage bonus percent from bonusDamageIfStateType tags on the caster's notes.
+* Each tag contributes its PCT value if the target has at least one active state carrying the
+* specified type classifier. Multiple tags for different types each fire independently and stack
+* additively.
+* @param {Game_Battler} target The target whose active states are checked.
+* @returns {number} The total bonus percent from all matching type classifier tags.
+*/
+Game_Action.prototype.calculateBonusIfStateTypePct = function(target) {
+	const allPairs = this.subject().getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.BonusDamageIfStateType));
+	if (!allPairs.length) return 0;
+	let totalPct = 0;
+	allPairs.forEach(([type, percent]) => {
+		if (this.targetHasActiveStateType(target, type)) {
+			totalPct += percent;
+		}
+	});
+	return totalPct;
+};
+/**
+* Calculates the total damage bonus percent from bonusDamagePerStateType tags on the caster's notes.
+* Each tag's PCT is multiplied by the count of distinct active states on the target carrying the
+* specified type classifier, then summed across all tags.
+* @param {Game_Battler} target The target whose active states are counted.
+* @returns {number} The total bonus percent from all type classifier tags.
+*/
+Game_Action.prototype.calculatePerStateTypePct = function(target) {
+	const allPairs = this.subject().getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.BonusDamagePerStateType));
+	if (!allPairs.length) return 0;
+	let totalPct = 0;
+	allPairs.forEach(([type, percent]) => {
+		const matchingStateCount = target.states().filter((state) => state.stateTypes().some((stateType) => stateType.toLowerCase() === type.toLowerCase())).length;
+		totalPct += percent * matchingStateCount;
 	});
 	return totalPct;
 };

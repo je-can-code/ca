@@ -725,10 +725,8 @@ Object.defineProperty(Game_Actor.prototype, "apr", {
 		}
 		const multiplier = 100;
 		const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.APT.RegExp.AptMultiplier);
-		let factor = (multiplier + bonus) / 100;
-		if (this.getSdpBonusForParameterKey) {
-			factor += this.getSdpBonusForParameterKey("apr", 1);
-		}
+		const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("apr", 1) : 0;
+		const factor = (multiplier + bonus + sdpBonus) / 100;
 		this.setCachedApr(factor);
 		return this.getCachedApr();
 	},
@@ -1205,7 +1203,7 @@ var ApManager = class {
 * @returns {string}
 */
 TextManager.aptRate = function() {
-	return "APT Rate";
+	return "Aptitude UP";
 };
 /**
 * Help text explaining how aptitude rate accelerates skill mastery tracks.

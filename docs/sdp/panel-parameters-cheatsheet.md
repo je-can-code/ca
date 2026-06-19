@@ -8,7 +8,7 @@
 >
 > **Not covered here:** mastery passives / notetags → mastery cheatsheet + [`implementation-status.md`](./implementation-status.md) tag cookbook.
 >
-> Last updated: **2026-06-06** — **%-only panel policy** locked; Ghosty reference strip; class/job prerequisite noted.
+> Last updated: **2026-06-15** — Parameter pass complete; all subgroup core identities finalized; band vocabulary added; subgroup stat index updated to live keys and cores.
 
 ---
 
@@ -19,7 +19,7 @@
 | Subgroup → **archetype** | Exact **`perRank`** per panel tier (magnitude tune) |
 | Archetype **UP / DOWN** stat pools | Which **subset** of pool rows on a given tier (within recipe) |
 | Subgroup **flavor twist** (weighting) | Playtest retune after first family strip |
-| **All panel rows `%` only** (`isFlat: false`) | — |
+| **`isFlat: false`** for base params; **`isFlat: true`** for rate/fixed-scale params | — |
 | **Base stat identity** from class / gear / level — not panels | Class/job tree (**required** — see [§11](#11--only-panels-base-growth-elsewhere)) |
 
 **Formula:** `Panel identity = Archetype core × Subgroup flavor × Tier magnitude`
@@ -43,7 +43,7 @@ Each entry in `chef-adventure/data/config.sdp.json` → `panelParameters[]`:
 |---|---|
 | `parameterKey` | Registry key (`mat`, `mhp`, `lst`, `gdr`, …) — see [Parameter keys](#parameter-keys-quick-reference) |
 | `perRank` | Added **per panel rank** invested (see [Math](#math-how-perrank-applies)) |
-| `isFlat` | **`false` always** — see [§11](#11--only-panels-base-growth-elsewhere). Legacy flat rows are obsolete. |
+| `isFlat` | **`false`** for base params; **`true`** for rate/fixed-scale params. See [§5](#5-isflat-by-parameter-type). |
 | `isCore` | **`true`** = gold highlight in SDP UI — identity ups + main downs only (2–4 rows typical) |
 
 **Do not** duplicate the same `parameterKey` on one panel unless intentionally stacking (rare; avoid).
@@ -87,15 +87,21 @@ See [Progression: rarity & maxRank](#progression-rarity--maxrank) below for the 
 | Primary downs (survival / defense tax) | 1–2 | yes |
 | Secondary downs or flavor UP | 0–2 | no |
 
-### 5. `%` rows only (`isFlat: false`)
+### 5. `isFlat` by parameter type
 
-**Every** panel row uses **`isFlat: false`**. Panels **amplify** existing capability; they do not grant flat stat chunks.
+**Base params** (`mhp`, `atk`, `def`, `mat`, `mdf`, `agi`, `luk`, `mmp`) — `isFlat: false`. These amplify a base value that grows with level/gear, so `%` scaling makes sense.
 
-- **Ups:** positive `perRank` on `%` growth (e.g. `mat +1.0`/rank).
-- **Downs:** negative `perRank` on `%` growth (e.g. `mhp −0.6`/rank).
-- **Low-base actors** (e.g. Vanguard body ranking Wizard panels) gain little absolute value until **base** moves — class/job change, gear, level, other systems. That is intentional.
+**Rate and fixed-scale params** — `isFlat: true`. Adding a percentage modifier to a rate is double-indirection (scaling a scale factor). Flat additive is what players expect and what the math requires.
 
-**COST_RATE params** (`mcr`, `tcr`): lower rate = cheaper skills. Beneficial “cost reduction” rows use **negative** `perRank` (see [`ParameterDefinition` COST_RATE policy](../../../rmmz-plugins/src/plugins/_base/models/ParameterDefinition.js)).
+Rate params that use `isFlat: true`:
+- x-params: `cnt`, `mrg`, `trg`
+- s-params: `tgr`, `grd` (when used as DOWN — parry frequency), `rec`, `pha`, `mcr`, `tcr`, `pdr`, `mdr`, `fdr`, `exr`
+- Registry: `cdm`, `cdr`, `msb`, `lst`, `mst`, `tst`, `sar`, `ser`, `sdr`, `gdr`, `dor`, `prof`, `apr`, `hcr`
+
+Rate params that use `isFlat: false` (amplify a meaningful base value):
+- x-params: `hit`, `eva`, `cri`, `cev`, `mev`, `mrf`, `hrg`, `grd` (when used as UP)
+
+**COST_RATE params** (`mcr`, `tcr`): lower rate = cheaper skills. Beneficial “cost reduction” rows use **negative** `perRank`.
 
 ### 6. Penalty stats that confuse authors
 
@@ -114,8 +120,8 @@ See [Progression: rarity & maxRank](#progression-rarity--maxrank) below for the 
 
 ### 8. Generalist panels
 
-- **UP:** meta keys (`exr`, `gdr`, `sdr`, `prof`, `apr`, `luk`, …) — all **`%`** rows, same as combat archetypes.
-- Optional: tiny **`%`** sprinkles across several combat params (Orc-style breadth), never flat additive.
+- **All rows `isFlat: true`** — Generalist builds the foundation that rate archetypes multiply against. Flat LUK, flat SDR, flat GDR, etc. Other archetypes then amplify that base.
+- Optional: flat sprinkles across several combat params (Orc-style breadth).
 - **DOWN:** no classic combat tax — opportunity cost is “you didn’t take a real archetype.”
 
 ### 9. Mastery vs panels
@@ -249,105 +255,106 @@ Quick reference — full prose in [`archetype-mapping.md`](./archetype-mapping.m
 
 `subgroupKey` → archetype → **flavor** (weight these keys heavier / `isCore`).
 
+> Core identity = the 1–2 UP params and 1 DOWN param present on **every** panel. Cycling params rotate through subsets of tiers. See `data-sheet.md` for full per-tier breakdown and band classifications.
+
 ### Family 1: Undead
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist (panel weight) |
-|---|---|---|---|
-| Ghosty | `undead-ghosty` | Wizard | **`mat`** steady |
-| Wraith | `undead-reborn` | Guardian | **`mdf`** heavy |
-| Wisp | `undead-wisp` | Artillery | **`mat`**, aura punisher |
-| Skeletor | `undead-skeleton` | Berserker | **`hrg`** small |
-| Rust Bucket | `undead-armor` | Vanguard | **`def`** spike, **`mhp`** down |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Ghosty | `undead-ghosty` | `mat` | `mhp` | Frail ghost mage; mhp cycling reinforces glass-cannon |
+| Reborn | `undead-reborn` | `mdf` | `atk` | Tanky undead; physically weak offensive output |
+| Wisp | `undead-wisp` | `mat` | `pdr` | Ethereal — high spell power, physically vulnerable |
+| Skeleton | `undead-skeleton` | `atk` | `grd` | Reckless attacker; can't parry |
+| Armor | `undead-armor` | `def` | `mat` | Iron wall; no spellcasting |
 
 ### Family 2: Reptile
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist |
-|---|---|---|---|
-| Snake | `reptile-snake` | Skirmisher | **`cri`** heavy |
-| Dargin | `reptile-dargin` | Vanguard | **`def`/`mrf`** rotate, **`mhp`** up, **`mat`** down; 4 rows/tier |
-| Draconite | `reptile-draconite` | Guardian | **`def`** heavy, positional |
-| Lamia | `reptile-lamia` | Artillery | **`mat`** heavy, cast wind-up |
-| Salamander | `reptile-salamander` | War Priest | balanced sustain + **`agi`** |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Cobra | `reptile-cobra` | `cri` | `def` | Glass-cannon striker; fragile body |
+| Dargin | `reptile-dargin` | `mhp` | `mat` | Beefy physical wall; can't cast |
+| Draconite | `reptile-draconite` | `def` | `agi` | Heavy armored; slow to act |
+| Lamia | `reptile-lamia` | `mat` | `agi` | Slow deliberate caster; cast wind-up identity |
+| Salamander | `reptile-salamander` | `hrg` | `mat` | Sustain fighter; no spellcasting |
 
 ### Family 3: Aquatic
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist |
-|---|---|---|---|
-| Kappa | `aquatic-kappa` | Generalist | **`luk`**, **`exr`** |
-| Frog | `aquatic-frog` | Artillery | **`mat`** heavy, stationary |
-| Crimson Vice | `aquatic-crimson-vice` | Guardian | **`grd`**, anti-physical |
-| Fish | `aquatic-fish` | Skirmisher | **`agi`**, **`msb`** |
-| Cephalopod | `aquatic-cephalopod` | War Priest | **`rec`** heavy, **`mhp`** |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Kappa | `aquatic-kappa` | `luk`, `exr` | — | Generalist annoyance; cycling evasion/guard pool |
+| Polliwog | `aquatic-polliwog` | `mat` | `def` | Stationary frog caster; immobile |
+| Crimson Vice | `aquatic-crab` | `grd` | `atk` | Defensive shell; no offensive output |
+| Fish | `aquatic-fish` | `agi` | `mhp` | Fast but frail; speed identity |
+| Cephalopod | `aquatic-cephalopod` | `rec` | `agi` | Slow ambush; sustain-heavy |
 
 ### Family 4: Slime
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist |
-|---|---|---|---|
-| Hard Syrup | `slime-puddle` | Generalist | **`fdr`**, small **`hrg`** |
-| Roper | `slime-roper` | Berserker | **`mat`** replaces **`atk`** lean |
-| Jelly | `slime-jelly` | Medic | **`mrg`** heavy |
-| Goo Bat | `slime-goo-bat` | Cleric | **`mrg`** heavy, regen |
-| Cube | `slime-cube` | Vanguard | **`mhp`** spike, small **`tgr`** |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Puddle | `slime-puddle` | `fdr`, `hrg` | — | Generalist; environmental + regen identity |
+| Roper | `slime-roper` | `mat` | `mdr` | Magic-offensive; takes more magic damage |
+| Jelly | `slime-jelly` | `mrg` | `cdm` | Regen-focused; crits deal less bonus damage |
+| Aerial | `slime-aerial` | `mst` | `atk` | MP-sustain identity; physically weak |
+| Cube | `slime-cube` | `mhp` | `atk` | HP wall; no offensive output |
 
 ### Family 5: Plant
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist |
-|---|---|---|---|
-| Wolftrap | `plant-wolftrap` | Wizard | **`mat`**, debuff affinity |
-| Fungrowth | `plant-fungrowth` | Berserker | **`atk`** heavy; **`mcr`/`tcr`** up (costly skills) |
-| Dryad | `plant-dryad` | Medic | **`mdf`** heavy |
-| Treant | `plant-treant` | Vanguard | **`def`**, **`hrg`**, **`lst`** mod |
-| Flower | `plant-flower` | Cleric | **`mdf`**, debuff resist |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Trap | `plant-trap` | `mat` | `agi` | Immobile caster; stationary identity |
+| Fungus | `plant-fungus` | `atk` | `pdr` | Berserker; takes more physical damage |
+| Dryad | `plant-dryad` | `mdf` | `mev` | Magic-resistant; poor magic evasion |
+| Treant | `plant-treant` | `def` | `cri` | Armored tank; no crit potential |
+| Flower | `plant-flower` | `mdf` | `atk` | Support/cleric; physically weak |
 
 ### Family 6: Beast
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist |
-|---|---|---|---|
-| Bearcat | `beast-bearcat` | Berserker | **`mat`** at higher tiers |
-| Cave Bat | `beast-cave-bat` | Skirmisher | **`hit`**, **`agi`** |
-| Garuda | `beast-garuda` | Artillery | **`atk`**, **`agi`** |
-| Rot Rat | `beast-rot-rat` | Generalist | **`sdr`**, **`gdr`** |
-| Quadruped | `beast-quadruped` | Guardian | **`tgr`**, pack aura |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Bearcat | `beast-bearcat` | `atk` | `pdr` | Berserker; takes more physical damage |
+| Cave Bat | `beast-bat` | `hit` | `cdr` | Accurate striker; can't mitigate crits |
+| Garuda | `beast-beaker` | `atk` | `mdf` | Physical brute; poor magic defense |
+| Rot Rat | `beast-rat` | `sdr`, `gdr`, `dor` | — | Generalist; meta-progression identity |
+| Quadruped | `beast-quadruped` | `def` | `atk` | Defensive pack animal; no offense |
 
 ### Family 7: Insect
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist |
-|---|---|---|---|
-| Needler | `insect-needler` | Skirmisher | **`cri`**, **`cdm`** |
-| Crawler | `insect-crawler` | War Priest | **`hrg`**, **`lst`**; **`msb`** down |
-| Brood | `insect-brood` | Wizard | **`atk`** physical poker |
-| Scorpion | `insect-scorpion` | Vanguard | **`atk`**, **`def`**, **`cnt`** |
-| Parasite | `insect-parasite` | War Priest | **`lst`** heavy |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Needler | `insect-needler` | `cri` | `grd` | Precision striker; can't parry |
+| Crawler | `insect-crawler` | `hrg` | `mat` | Sustain brawler; no spellcasting |
+| Brood | `insect-brood` | `atk` | `grd` | Swarmer; reckless, can't parry |
+| Scorpion | `insect-scorpion` | `cnt` | `cri` | Counter-attacker; sacrifices crit potential |
+| Parasite | `insect-parasite` | `lst` | `pdr` | Lifesteal sustain; takes more physical damage |
 
 ### Family 8: Humanoid
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist |
-|---|---|---|---|
-| Minotaur | `humanoid-minotaur` | Artillery | **`atk`** heavy, momentum |
-| Orc | `humanoid-orc` | Generalist | broad **`%`** spread, small **`mcr`** |
-| Bandit | `humanoid-bandit` | Skirmisher | **`luk`** heavy |
-| Cyclops | `humanoid-cyclops` | Vanguard | **`%`** raw stats, minimal rate stacking |
-| Kobold | `humanoid-kobold` | Cleric | **`pha`** heavy |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Minotaur | `humanoid-minotaur` | `atk` | `cev` | Heavy hitter; can't mitigate crits |
+| Orc | `humanoid-orc` | `luk`, `exr` | — | Generalist; broad spread |
+| Bandit | `humanoid-bandit` | `luk` | `mhp` | Glass-cannon gambler; low HP |
+| Cyclops | `humanoid-cyclops` | `atk` | `hit` | Powerful but inaccurate; one-eyed identity |
+| Kobold | `humanoid-kobold` | `pha` | `atk` | Item-focused support; physically weak |
 
-### Family 9: Construct / Arcane
+### Family 9: Construct
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist |
-|---|---|---|---|
-| Heated Titan | `construct-heated-titan` | Berserker | **`mhp`** (one mistake buffer) |
-| Hazard | `construct-hazard` | Artillery | **`mat`**, area |
-| Bot | `construct-bot` | War Priest | **`hrg`** heavy, **`def`** |
-| Puppet | `construct-puppet` | Wizard | **`mat`** heavy |
-| Runic Orb | `construct-runic-orb` | Medic | **`sar`**, **`mmp`** |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Titan | `construct-titan` | `atk`, `pdr` | — | Physical tank + striker; PDR bonus is flat |
+| Hazard | `construct-hazard` | `mat` | `def` | Area threat; physically fragile |
+| Bot | `construct-bot` | `hrg` | `mat` | Support construct; no spellcasting |
+| Puppet | `construct-puppet` | `mmp` | `mdf` | MP-sustain caster; poor magic defense |
+| Runic Orb | `construct-orb` | `sar` | `atk` | Shield amplifier; no offense |
 
 ### Family 10: Deity
 
-| Subgroup | `subgroupKey` | Archetype | Flavor twist |
-|---|---|---|---|
-| Elemental | `deity-elemental` | Wizard | **`mat`**, elemental |
-| Aspect | `deity-emotion` | Cleric | **`rec`** heavy |
-| Sovereign | `deity-devil` | Generalist | **`luk`**, **`exr`** (Devil bargain mastery) |
-| Sin | `deity-sin` | Multi | per-sin panel recipe — not three-act |
-| Sin Votary | `deity-sin-votary` | Multi | no panel strip |
+| Subgroup | `subgroupKey` | Core UP | Core DOWN | Flavor notes |
+|---|---|---|---|---|
+| Elemental | `deity-elemental` | `mat`, `mrg` | `mcr` | Pure caster; skills cost more MP |
+| Aspect | `deity-emotion` | `rec` | `atk` | Healing deity; no offense |
+| Sovereign | `deity-devil` | `luk`, `apr`, `gdr` | — | Generalist; meta-progression deity |
+| Sin | `deity-sin` | (per-sin) | (per-sin) | Hand-tuned; not three-act |
 
 ---
 

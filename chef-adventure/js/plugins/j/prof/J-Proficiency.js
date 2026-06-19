@@ -719,7 +719,8 @@ Game_Actor.prototype.updateBonusSkillProficiencyGains = function() {
 */
 Object.defineProperty(Game_Actor.prototype, "prof", {
 	get: function() {
-		return this._j._proficiency._bonusSkillProficiencyGains;
+		const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("prof", 1) : 0;
+		return this._j._proficiency._bonusSkillProficiencyGains + sdpBonus;
 	},
 	configurable: true
 });
@@ -968,12 +969,12 @@ var ProfParameterRegistration = class {
 //#region src/plugins/prof/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* Initializes the proficiency data. The passive detail window draws
-* J-Prof data directly from the state note — no contributor registration needed.
+* Registers J-Prof stats with the parameter catalog and initializes proficiency data.
 */
 J.PROF.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.PROF.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	ProfParameterRegistration.registerAll();
 	J.PROF.Metadata.initializeProficiencies();
 };
 

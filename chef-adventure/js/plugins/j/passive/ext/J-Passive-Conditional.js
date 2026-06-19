@@ -656,15 +656,16 @@ var PassiveRuleJabsAccess = class {
 		return J.PASSIVE.EXT.CONDITIONAL.Metadata.defaultProximityTiles;
 	}
 	/**
-	* Allied battlers within default proximity, excluding self.<br/>
+	* Allied battlers within proximity, excluding self.<br/>
 	* Used by {@code alliesNearby} gates and stack counts — self never counts toward the tally.
 	* @param {Game_Battler} battler The battler whose neighborhood we measure.
+	* @param {number|null} proximityTiles Optional tile radius; defaults to plugin param.
 	* @returns {JABS_Battler[]} Allied JABS battlers in range, never including the evaluator.
 	*/
-	static nearbyAlliesExcludingSelf(battler) {
+	static nearbyAlliesExcludingSelf(battler, proximityTiles = null) {
 		const jabsBattler = this.getJabsBattler(battler);
 		if (!jabsBattler) return [];
-		const proximity = this.defaultProximity();
+		const proximity = proximityTiles ?? this.defaultProximity();
 		return JABS_AiManager.getAlliedBattlersWithinRange(jabsBattler, proximity).filter((ally) => ally.getUuid() !== jabsBattler.getUuid());
 	}
 	/**
@@ -1013,6 +1014,16 @@ var AutoApplyStateManager = class extends AutoRuleManager {
 		return "autoApplyStateRules";
 	}
 	/**
+	* Evaluates every rule matching the given condition kind — delegates to {@link tryDispatch}.
+	* Exposed as a named method so callers can invoke condition-scoped evaluations without
+	* knowing the base class method name.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules are evaluated.
+	* @param {string} conditionKind - The condition kind to evaluate (e.g. 'move', 'time').
+	*/
+	static tryApply(battler, conditionKind) {
+		return this.tryDispatch(battler, conditionKind);
+	}
+	/**
 	* Pushes a real combat state onto the battler through the JABS addState path.
 	* @param {Game_Actor|Game_Enemy} battler - The battler receiving the state.
 	* @param {number} stateId - The database id of the state to apply.
@@ -1289,8 +1300,8 @@ var PassiveGateEvaluator = class {
 	static evaluate(battler, kind, ...params) {
 		const [param, scope, range] = params;
 		switch (kind) {
-			case "alliesNearby": return PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler).length >= Number(param);
-			case "enemiesNearby": return PassiveRuleJabsAccess.nearbyEnemies(battler).length >= Number(param);
+			case "alliesNearby": return PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler, scope ? Number(scope) : null).length >= Number(param);
+			case "enemiesNearby": return PassiveRuleJabsAccess.nearbyEnemies(battler, scope ? Number(scope) : null).length >= Number(param);
 			case "hpAbove": return this.#evaluateResourceThreshold(battler, "hp", "above", Number(param), scope, range);
 			case "hpBelow": return this.#evaluateResourceThreshold(battler, "hp", "below", Number(param), scope, range);
 			case "mpAbove": return this.#evaluateResourceThreshold(battler, "mp", "above", Number(param), scope, range);
@@ -1494,8 +1505,8 @@ var PassiveStackCountEvaluator = class {
 	* @returns {number} Stack contribution from this source (0 is valid).
 	*/
 	static evaluateTuple(battler, tuple) {
-		const [, kind, param] = tuple;
-		return this.evaluate(battler, kind, param);
+		const [, kind, param, scope] = tuple;
+		return this.evaluate(battler, kind, param, scope);
 	}
 	/**
 	* Resolves a stack-count kind into an integer contribution for one source.<br/>
@@ -1503,15 +1514,18 @@ var PassiveStackCountEvaluator = class {
 	* @param {Game_Battler} battler The battler whose live context drives the count.
 	* @param {string} kind Stack scaler kind from the note tuple.
 	* @param {number|string|null} param Divisor or points-per-stack from the note tuple.
+	* @param {number|string|null} [scope] Optional tile radius for proximity kinds; defaults to plugin default-proximity-tiles.
 	* @returns {number} Stack contribution from this source (0 when kind is unknown).
 	*/
-	static evaluate(battler, kind, param) {
+	static evaluate(battler, kind, param, scope = null) {
 		if (kind.startsWith("per-")) {
 			return this.#evaluatePerParam(battler, kind.slice(4), Number(param));
 		}
+		const proximityTiles = scope ? Number(scope) : null;
 		switch (kind) {
 			case "negativeStateCount": return Math.floor(PassiveGateEvaluator.countNegativeStates(battler) / Number(param));
-			case "alliesNearby": return Math.floor(PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler).length / Number(param));
+			case "alliesNearby": return Math.floor(PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler, proximityTiles).length / Number(param));
+			case "enemiesNearby": return Math.floor(PassiveRuleJabsAccess.nearbyEnemies(battler, proximityTiles).length / Number(param));
 			case "lessIsMoreHp": return Math.floor(this.#missingResourcePercent(battler, "hp") / Number(param));
 			case "lessIsMoreMp": return Math.floor(this.#missingResourcePercent(battler, "mp") / Number(param));
 			case "lessIsMoreTp": return Math.floor(this.#missingResourcePercent(battler, "tp") / Number(param));
@@ -1963,6 +1977,15 @@ J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Battler.set("refreshPassiveStates", Game_
 Game_Battler.prototype.refreshPassiveStates = function() {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Battler.get("refreshPassiveStates").call(this);
 	this.updatePassiveRuleCollectionFingerprint();
+};
+/**
+* Manually triggers auto-execute skill rules for the given condition kind on this battler.<br/>
+* Delegates to {@link AutoExecuteSkillManager.tryDispatch}, which applies the depth guard to
+* prevent infinite re-entry when a forced skill itself triggers further auto-executes.
+* @param {string} conditionKind - The condition kind to evaluate (e.g. 'time', 'stand').
+*/
+Game_Battler.prototype.tryAutoExecuteSkills = function(conditionKind) {
+	AutoExecuteSkillManager.tryDispatch(this, conditionKind);
 };
 /**
 * Extends {@link #onStateAdded}.<br/>

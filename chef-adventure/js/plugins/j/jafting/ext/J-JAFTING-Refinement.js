@@ -343,381 +343,34 @@ var JaftingManager = class JaftingManager {
 		if (divider === -1) return Array.empty;
 		const availableTraits = allTraits.splice(divider + 1);
 		if (availableTraits.length === 0) return Array.empty;
-		let jaftingTraits = availableTraits.map((t) => new JAFTING_Trait(t.code, t.dataId, t.value));
-		jaftingTraits = this.combineAllParameterTraits(jaftingTraits);
-		return jaftingTraits;
-	}
-	/**
-	* Combines all parameter-related traits where applicable.
-	* @param {JAFTING_Trait[]} traitList The list of traits.
-	* @returns {JAFTING_Trait[]}
-	*/
-	static combineAllParameterTraits(traitList) {
-		return this.combineSpParameterTraits(this.combineExParameterTraits(this.combineBaseParameterTraits(traitList)));
-	}
-	/**
-	* Combines all b-parameter-traits that are applicable.
-	* @param {JAFTING_Trait[]} traitList The list of traits.
-	* @returns {JAFTING_Trait[]}
-	*/
-	static combineBaseParameterTraits(traitList) {
-		const canCombineCode = 21;
-		let tempTraitList = JsonEx.makeDeepCopy(traitList);
-		const traitTracker = {};
-		const indices = [];
-		traitList.forEach((trait, index) => {
-			if (trait._code !== canCombineCode) return;
-			if (!traitTracker[trait._dataId]) {
-				traitTracker[trait._dataId] = trait._value;
-			} else {
-				traitTracker[trait._dataId] += trait._value - 1;
-			}
-			indices.push(index);
-		});
-		if (!indices.length) {
-			return traitList;
-		}
-		indices.forEach((i) => tempTraitList.splice(i, 1, null));
-		tempTraitList = tempTraitList.filter((element) => !!element);
-		for (const dataId in traitTracker) {
-			const value = parseFloat(traitTracker[dataId].toFixed(2));
-			const newTrait = new JAFTING_Trait(canCombineCode, parseInt(dataId), value);
-			tempTraitList.push(newTrait);
-		}
-		return tempTraitList;
-	}
-	/**
-	* Combines all ex-parameter-traits that are applicable.
-	* @param {JAFTING_Trait[]} traitList The list of traits.
-	* @returns {JAFTING_Trait[]}
-	*/
-	static combineExParameterTraits(traitList) {
-		const canCombineCode = 22;
-		let tempTraitList = JsonEx.makeDeepCopy(traitList);
-		const traitTracker = {};
-		const indices = [];
-		traitList.forEach((trait, index) => {
-			if (trait._code !== canCombineCode) return;
-			if (!traitTracker[trait._dataId]) {
-				traitTracker[trait._dataId] = trait._value;
-			} else {
-				traitTracker[trait._dataId] += trait._value;
-			}
-			indices.push(index);
-		});
-		if (!indices.length) {
-			return traitList;
-		}
-		indices.forEach((i) => tempTraitList.splice(i, 1, null));
-		tempTraitList = tempTraitList.filter((element) => !!element);
-		for (const dataId in traitTracker) {
-			const value = parseFloat(traitTracker[dataId].toFixed(2));
-			const newTrait = new JAFTING_Trait(canCombineCode, parseInt(dataId), value);
-			tempTraitList.push(newTrait);
-		}
-		return tempTraitList;
-	}
-	/**
-	* Combines all sp-parameter-traits that are applicable.
-	* @param {JAFTING_Trait[]} traitList The list of traits.
-	* @returns {JAFTING_Trait[]}
-	*/
-	static combineSpParameterTraits(traitList) {
-		const canCombineCode = 23;
-		let tempTraitList = JsonEx.makeDeepCopy(traitList);
-		const traitTracker = {};
-		const indices = [];
-		traitList.forEach((trait, index) => {
-			if (trait._code !== canCombineCode) return;
-			if (!traitTracker[trait._dataId]) {
-				traitTracker[trait._dataId] = trait._value - 1;
-			} else {
-				traitTracker[trait._dataId] += trait._value - 1;
-			}
-			indices.push(index);
-		});
-		if (!indices.length) {
-			return traitList;
-		}
-		indices.forEach((i) => tempTraitList.splice(i, 1, null));
-		tempTraitList = tempTraitList.filter((element) => !!element);
-		for (const dataId in traitTracker) {
-			const value = parseFloat(traitTracker[dataId].toFixed(2)) + 1;
-			const newTrait = new JAFTING_Trait(canCombineCode, parseInt(dataId), value);
-			tempTraitList.push(newTrait);
-		}
-		return tempTraitList;
+		const consolidated = TraitResolver.consolidate(availableTraits);
+		return consolidated.map((t) => new JAFTING_Trait(t.code, t.dataId, t.value));
 	}
 	/**
 	* Determines the result of refining a given base with a given material.
-	* @param {RPG_EquipItem} base An equip to parse traits off of.
-	* @param {RPG_EquipItem} material An equip to parse traits off of.
+	* Trait merging is delegated to {@link TraitResolver.refineTraits}.
+	* @param {RPG_EquipItem} base An equip to refine.
+	* @param {RPG_EquipItem} material An equip to consume as the refinement material.
 	* @returns {RPG_EquipItem}
 	*/
 	static determineRefinementOutput(base, material) {
 		if (!base || !material) return null;
-		let baseTraits = this.parseTraits(base);
-		let materialTraits = this.parseTraits(material);
-		[baseTraits, materialTraits] = this.removeIncompatibleTraits(baseTraits, materialTraits);
-		[baseTraits, materialTraits] = this.#overwriteAllOverwritableTraits(baseTraits, materialTraits);
+		const baseRpgTraits = this.parseTraits(base).map((t) => RPG_Trait.fromValues(t._code, t._dataId, t._value));
+		const materialRpgTraits = this.parseTraits(material).map((t) => RPG_Trait.fromValues(t._code, t._dataId, t._value));
+		let mergedTraits = TraitResolver.refineTraits(baseRpgTraits, materialRpgTraits);
+		mergedTraits = mergedTraits.filter((t) => !(t.code === 54 && t.dataId === base.etypeId));
 		const output = base._generate(base, base._index());
-		if (!baseTraits.length) {
+		const dividerIndex = output.traits.findIndex((trait) => trait.code === 63);
+		if (dividerIndex === -1) {
 			output.traits.push(JAFTING_Trait.divider());
 		} else {
-			const index = output.traits.findIndex((trait) => trait.code === 63);
-			if (index > -1 && !!output.traits[index]) {
-				output.traits.splice(index + 1);
-			}
-			baseTraits.forEach((trait) => output.traits.push(trait.convertToRmTrait()));
+			output.traits.splice(dividerIndex + 1);
 		}
-		materialTraits.forEach((trait) => {
-			if (!this.#isTransferableTrait(output, trait)) return;
-			const newTrait = RPG_Trait.fromValues(trait._code, trait._dataId, trait._value);
-			output.traits.push(newTrait);
-		});
+		mergedTraits.forEach((t) => output.traits.push(t));
 		if (material.jaftingRefinedCount > 0) {
 			output.jaftingRefinedCount += material.jaftingRefinedCount - 1;
 		}
 		return output;
-	}
-	/**
-	* Compares traits on the base item against those on the material, and purges
-	* all conflicting traits from the result.
-	* @param {JAFTING_Trait[]} baseTraits The traits from the base item.
-	* @param {JAFTING_Trait[]} materialTraits The traits from the material.
-	* @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
-	*/
-	static removeIncompatibleTraits(baseTraits, materialTraits) {
-		const noDuplicateTraitCodes = [
-			14,
-			31,
-			41,
-			42,
-			43,
-			44,
-			51,
-			52,
-			53,
-			54,
-			55,
-			62,
-			64
-		];
-		baseTraits.forEach((jaftingTrait) => {
-			if (noDuplicateTraitCodes.includes(jaftingTrait._code)) {
-				this.purgeDuplicateTrait(jaftingTrait, materialTraits, jaftingTrait._code);
-			}
-		});
-		let a = baseTraits;
-		let b = materialTraits;
-		[a, b] = this.removeOppositeTrait(a, b, 41, 42);
-		[a, b] = this.removeOppositeTrait(a, b, 43, 44);
-		[a, b] = this.replaceTrait(a, b, 35);
-		[a, b] = this.replaceTrait(a, b, 55);
-		return [a, b];
-	}
-	/**
-	* Compare one trait with a rolling trait list to see if the list has any conflicting
-	* traits with it. If so, remove them.
-	* @param {JAFTING_Trait} potentialJaftingTrait The trait potentially to add if it doesn't already exist.
-	* @param {JAFTING_Trait[]} rollingJaftingTraitList The trait list to compare against.
-	*/
-	static purgeDuplicateTrait(potentialJaftingTrait, rollingJaftingTraitList) {
-		let donePurging = false;
-		while (!donePurging) {
-			const index = rollingJaftingTraitList.findIndex((trait) => trait._code === potentialJaftingTrait._code);
-			if (index > -1 && rollingJaftingTraitList[index]._dataId === potentialJaftingTrait._dataId) {
-				rollingJaftingTraitList.splice(index, 1);
-			} else {
-				donePurging = true;
-			}
-		}
-	}
-	/**
-	* Compares two lists of traits and looks for a pair of codes that could possibly be
-	* opposing one another. If one code is found in one list, and the opposing code is found
-	* in the other list, the traits are removed from their respective lists. This will look
-	* in both lists for both codes, so repeating this function for both orders is not necessary.
-	* This will also retroactively remove both codes if they somehow live in the same list.
-	* @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
-	* @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
-	* @param {number} code One of the codes to compare.
-	* @param {number} opposingCode The opposing code to compare.
-	* @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
-	*/
-	static removeOppositeTrait(baseTraitList, materialTraitList, code, opposingCode) {
-		const hasTraitCode = (trait) => trait._code === code;
-		const baseHasCode = baseTraitList.findIndex(hasTraitCode);
-		const materialHasCode = materialTraitList.findIndex(hasTraitCode);
-		const hasOpposingTraitCode = (trait) => trait._code === opposingCode;
-		const baseHasOpposingCode = baseTraitList.findIndex(hasOpposingTraitCode);
-		const materialHasOpposingCode = materialTraitList.findIndex(hasOpposingTraitCode);
-		const hasBothCodes = (leftIndex, rightIndex) => leftIndex > -1 && rightIndex > -1;
-		if (hasBothCodes(baseHasCode, materialHasOpposingCode)) {
-			if (baseTraitList[baseHasCode]._dataId === materialTraitList[materialHasOpposingCode]._dataId) {
-				baseTraitList.splice(baseHasCode, 1, null);
-				materialTraitList.splice(materialHasOpposingCode, 1, null);
-			}
-		}
-		if (hasBothCodes(materialHasCode, baseHasOpposingCode)) {
-			if (baseTraitList[baseHasOpposingCode]._dataId === materialTraitList[materialHasCode]._dataId) {
-				baseTraitList.splice(baseHasOpposingCode, 1, null);
-				materialTraitList.splice(materialHasCode, 1, null);
-			}
-		}
-		if (hasBothCodes(baseHasCode, baseHasOpposingCode)) {
-			if (baseTraitList[baseHasCode]._dataId === baseTraitList[baseHasOpposingCode]._dataId) {
-				baseTraitList.splice(baseHasCode, 1, null);
-				baseTraitList.splice(baseHasOpposingCode, 1, null);
-			}
-		}
-		if (hasBothCodes(materialHasCode, materialHasOpposingCode)) {
-			if (materialTraitList[materialHasCode]._dataId === materialTraitList[materialHasOpposingCode]._dataId) {
-				materialTraitList.splice(materialHasCode, 1, null);
-				materialTraitList.splice(materialHasOpposingCode, 1, null);
-			}
-		}
-		const prunedBase = baseTraitList.filter((trait) => !!trait);
-		const prunedMaterial = materialTraitList.filter((trait) => !!trait);
-		return [prunedBase, prunedMaterial];
-	}
-	/**
-	* Removes a trait from the primary list if the same trait also lives on the secondary
-	* list. This gives the illusion of overwriting the trait with the new one.
-	* @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
-	* @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
-	* @param {number} code The code to overwrite if it exists in both lists.
-	* @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
-	*/
-	static replaceTrait(baseTraitList, materialTraitList, code) {
-		const hasTraitCode = (trait) => trait._code === code;
-		const baseHasCode = baseTraitList.findIndex(hasTraitCode);
-		const materialHasCode = materialTraitList.findIndex(hasTraitCode);
-		const hasBothCodes = (leftIndex, rightIndex) => leftIndex > -1 && rightIndex > -1;
-		if (hasBothCodes(baseHasCode, materialHasCode)) {
-			baseTraitList.splice(baseHasCode, 1, null);
-		}
-		const prunedBase = baseTraitList.filter((trait) => !!trait);
-		return [prunedBase, materialTraitList];
-	}
-	/**
-	* Overwrites all traits from the two lists depending on which is better as applicable.
-	* @param {JAFTING_Trait[]} baseTraits The primary list of traits.
-	* @param {JAFTING_Trait[]} materialTraits The secondary list of traits.
-	* @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
-	*/
-	static #overwriteAllOverwritableTraits(baseTraits, materialTraits) {
-		const overwritableCodes = [
-			11,
-			12,
-			13,
-			32,
-			33,
-			34,
-			61
-		];
-		let a = baseTraits;
-		let b = materialTraits;
-		overwritableCodes.forEach((code) => {
-			[a, b] = this.#overwriteIfBetter(a, b, code);
-		});
-		return [a, b];
-	}
-	/**
-	* Checks the material trait list to see if better versions of the traits in the base
-	* trait list are already there. If so, purges them from the base to allow for "overwriting"
-	* from the material.
-	* @param {JAFTING_Trait[]} baseTraitList The primary list of traits.
-	* @param {JAFTING_Trait[]} materialTraitList The secondary list of traits.
-	* @param {number} code The code to overwrite if it exists in both lists.
-	* @returns {[JAFTING_Trait[], JAFTING_Trait[]]}
-	*/
-	static #overwriteIfBetter(baseTraitList, materialTraitList, code) {
-		const hasTraitCodeAndDataIdWithBetterValue = (trait) => {
-			if (trait._code !== code) return false;
-			const index = materialTraitList.findIndex((jaftingTrait) => jaftingTrait._code === code && jaftingTrait._dataId === trait._dataId);
-			return index > -1;
-		};
-		const sameIndices = [];
-		baseTraitList.forEach((jaftingTrait, index) => {
-			if (hasTraitCodeAndDataIdWithBetterValue(jaftingTrait)) {
-				sameIndices.push(index);
-			}
-		});
-		if (!sameIndices.length) return [baseTraitList, materialTraitList];
-		let tempBaseList = JsonEx.makeDeepCopy(baseTraitList);
-		let tempMaterialList = JsonEx.makeDeepCopy(materialTraitList);
-		const higherIsBetterCodes = [
-			32,
-			33,
-			34,
-			61
-		];
-		const lowerIsBetterCodes = [
-			11,
-			12,
-			13
-		];
-		sameIndices.forEach((i) => {
-			const baseTrait = baseTraitList[i];
-			const materialTraitIndex = materialTraitList.findIndex((t) => t._code === baseTrait._code && t._dataId === baseTrait._dataId);
-			const materialTrait = materialTraitList[materialTraitIndex];
-			if (higherIsBetterCodes.includes(baseTrait._code)) {
-				if (baseTrait._value > materialTrait._value) {
-					tempMaterialList.splice(materialTraitIndex, 1, null);
-				} else {
-					tempBaseList.splice(i, 1, null);
-				}
-			} else if (lowerIsBetterCodes.includes(baseTrait._code)) {
-				if (baseTrait._value < materialTrait._value) {
-					tempMaterialList.splice(materialTraitIndex, 1, null);
-				} else {
-					tempBaseList.splice(i, 1, null);
-				}
-			}
-		});
-		tempBaseList = tempBaseList.filter((t) => !!t).map((t) => new JAFTING_Trait(t._code, t._dataId, t._value));
-		tempMaterialList = tempMaterialList.filter((t) => !!t).map((t) => new JAFTING_Trait(t._code, t._dataId, t._value));
-		return [tempBaseList, tempMaterialList];
-	}
-	/**
-	* Determines whether or not a trait should be transfered to the refined base equip.
-	* @param {RPG_EquipItem} output The to-be refined base equip.
-	* @param {JAFTING_Trait} jaftingTrait The new trait to be potentially transferred.
-	* @returns {boolean}
-	*/
-	static #isTransferableTrait(output, jaftingTrait) {
-		switch (jaftingTrait._code) {
-			case 11:
-			case 12:
-			case 13:
-			case 14:
-			case 21:
-			case 22:
-			case 23:
-			case 31:
-			case 32:
-			case 33:
-			case 34:
-			case 35:
-			case 41:
-			case 42:
-			case 43:
-			case 44:
-			case 51:
-			case 52:
-			case 53:
-			case 55:
-			case 61:
-			case 62:
-			case 64: return true;
-			case 54:
-				const sealingOwnEquipType = jaftingTrait._dataId === output.etypeId;
-				return !sealingOwnEquipType;
-			default:
-				console.error(`all traits are accounted for- is this a custom trait code: [${jaftingTrait._code}]?`);
-				return false;
-		}
 	}
 	/**
 	* Takes the refinement result equip and creates it in the appropriate datastore, and adds it to
@@ -727,7 +380,7 @@ var JaftingManager = class JaftingManager {
 	static createRefinedOutput(outputEquip) {
 		if (outputEquip.wtypeId) {
 			this.generateRefinedEquip($dataWeapons, outputEquip, this.RefinementTypes.Weapon);
-		} else if (outputEquip.atypeId) {
+		} else if (equip.atypeId) {
 			this.generateRefinedEquip($dataArmors, outputEquip, this.RefinementTypes.Armor);
 		}
 	}

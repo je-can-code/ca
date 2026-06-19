@@ -2241,7 +2241,10 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 	Window_TargetFrame.prototype.targetAfflictionLayoutSpec = function() {
 		const layout = new StateAfflictionHudLayoutSpec();
 		layout.originX = 32;
-		layout.originY = this.targetBattlerGaugesY() + ImageManager.iconHeight;
+		if (this.hasTargetIcon()) {
+			layout.originX += ImageManager.iconWidth;
+		}
+		layout.originY = this.targetBattlerGaugesY() + 44;
 		layout.rowGap = 24;
 		return layout;
 	};

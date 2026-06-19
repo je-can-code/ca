@@ -566,7 +566,8 @@ Game_Actor.prototype.getDropMultiplierBonus = function() {
 	const baseMultiplier = 0;
 	const objectsToCheck = this.getAllNotes();
 	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropMultiplier);
-	const factor = (multiplierBonus + baseMultiplier) / 100;
+	const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("dor", 1) : 0;
+	const factor = (multiplierBonus + baseMultiplier + sdpBonus) / 100;
 	const naturalBonus = this.dorNaturalBonuses();
 	return factor + naturalBonus;
 };
@@ -597,8 +598,8 @@ Game_Actor.prototype.getGoldMultiplier = function() {
 	const baseMultiplier = 0;
 	const objectsToCheck = this.getAllNotes();
 	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.GoldMultiplier);
-	const factor = (multiplierBonus + baseMultiplier) / 100;
-	return factor;
+	const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("gdr", 1) : 0;
+	return (multiplierBonus + baseMultiplier + sdpBonus) / 100;
 };
 
 //#endregion
@@ -815,7 +816,7 @@ Game_Party.prototype.dropMultiplierMembers = function(strategy = DropsPartyStrat
 * @returns {string}
 */
 TextManager.goldRate = function() {
-	return "Gold Rate";
+	return "Gold UP";
 };
 /**
 * Help text explaining how gold rate improves battle and chest payouts.
@@ -829,7 +830,7 @@ TextManager.goldRateDescription = function() {
 * @returns {string}
 */
 TextManager.dropRate = function() {
-	return "Drop Rate";
+	return "Drops UP";
 };
 /**
 * Help text explaining how drop rate improves extra loot odds.

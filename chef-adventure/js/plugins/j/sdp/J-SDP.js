@@ -2715,8 +2715,8 @@ Object.defineProperty(Game_Actor.prototype, "sdpMultiplier", {
 		const multiplier = 100;
 		const objectsToCheck = this.getAllNotes();
 		const sdpMultiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.SDP.RegExp.SdpMultiplier);
-		const sdpMultiplier = multiplier + sdpMultiplierBonus;
-		return sdpMultiplier / 100;
+		const sdpPanelBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("sdr", 1) : 0;
+		return (multiplier + sdpMultiplierBonus + sdpPanelBonus) / 100;
 	},
 	configurable: true
 });
@@ -3408,7 +3408,7 @@ TextManager.sdpPoints = function() {
 * @returns {string}
 */
 TextManager.sdpMultiplier = function() {
-	return "SDP Multiplier";
+	return "Node Points UP";
 };
 /**
 * Gets the description text for the SDP multiplier.

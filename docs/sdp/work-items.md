@@ -109,6 +109,7 @@ Covers most mastery passives below via passive states or auto-apply (P4-2).
 | Post-skill / post-attack window | Garuda, Fish | ✅ `passiveSourceRule:[attackedWithin, FRAMES]` |
 | Standing still | Draconite, Polliwog (partial) | ✅ `passiveSourceRule:[sinceLastMoved, FRAMES]` |
 | Target debuff → **damage** | Puppet, Roper (damage variant) | ✅ `perDebuffBuff`, `bonusDamageIfState` (`J-ABS` 4.12.3+) |
+| Target state-type → **damage** | Needler (vs poison-type) | ✅ `bonusDamageIfStateType`, `bonusDamagePerStateType` + `<type:CLASSIFIER>` on states (`J-Base` / `J-ABS` core) — see [`implementation-status.md` § State type classifiers](./implementation-status.md#state-type-classifiers--j-base--j-abs-core) |
 | On-crit state apply | Cobra | ✅ `onCritApply` (`J-CriticalFactors` 1.1.0) |
 | Heal cascades | Jelly, Emotion | ✅ heal-event tags (`J-Resources-ABS` 1.1.0) |
 
@@ -116,7 +117,7 @@ Covers most mastery passives below via passive states or auto-apply (P4-2).
 
 | Trigger | Example mastery | Status |
 |---|---|---|
-| Target debuff → **CRI/CDM trait** | Roper, Needler | ⏳ trait hook on target state (damage variant shipped) |
+| Target debuff → **CRI/CDM trait** | Roper | ⏳ true trait hook (stat-level CRI/CDM modifier) on target state still unbuilt; Needler routed around this via the type-classifier **damage** tags instead (see shipped table above) — no longer blocking Needler authoring |
 | Party HP threshold | Dryad | ⏳ P2 gap |
 | Last-element resist tracker | Hard Syrup | ⏳ P2 gap |
 | Hit count without moving (escalating) | Polliwog | ⏳ P2 gap (movement + consecutive-hit counter) |

@@ -1061,7 +1061,7 @@ Game_Battler.prototype.refreshMaxTpBuffs = function() {
 	const baseParam = this.getBaseMaxTp();
 	const [plusStructure, rateStructure, ,] = this.getRegexForMaxTp();
 	const buffPlus = this.naturalParamBuff(plusStructure, baseParam);
-	const buffRate = this.naturalParamBuff(rateStructure, baseParam) / 100;
+	const buffRate = this.naturalParamBuff(rateStructure, baseParam);
 	this.setMaxTpBuffPlus(buffPlus);
 	this.setMaxTpBuffRate(buffRate);
 };
@@ -1090,7 +1090,7 @@ Game_Battler.prototype.refreshXParamBuffs = function() {
 		const baseParam = J.NATURAL.Aliased.Game_Battler.get("xparam").call(this, paramId);
 		const [plusStructure, rateStructure] = this.getRegexByExParamId(paramId);
 		const buffPlus = this.naturalParamBuff(plusStructure, baseParam) / 100;
-		const buffRate = this.naturalParamBuff(rateStructure, baseParam) / 100;
+		const buffRate = this.naturalParamBuff(rateStructure, baseParam);
 		this.setXparamBuffPlus(paramId, buffPlus);
 		this.setXparamBuffRate(paramId, buffRate);
 	}, this);
@@ -1105,7 +1105,7 @@ Game_Battler.prototype.refreshSParamBuffs = function() {
 		const baseParam = J.NATURAL.Aliased.Game_Battler.get("sparam").call(this, paramId);
 		const [plusStructure, rateStructure] = this.getRegexBySpParamId(paramId);
 		const buffPlus = this.naturalParamBuff(plusStructure, baseParam) / 100;
-		const buffRate = this.naturalParamBuff(rateStructure, baseParam) / 100;
+		const buffRate = this.naturalParamBuff(rateStructure, baseParam);
 		this.setSparamBuffPlus(paramId, buffPlus);
 		this.setSparamBuffRate(paramId, buffRate);
 	}, this);
@@ -1201,7 +1201,7 @@ Game_Battler.prototype.getParamBaseNaturalBonuses = function(paramId, baseParam)
 */
 Game_Battler.prototype.calculateBParamBuff = function(paramId, baseParam) {
 	const buffPlus = this.bParamBuffPlus(paramId);
-	const buffRate = this.bParamBuffRate(paramId) / 100;
+	const buffRate = this.bParamBuffRate(paramId);
 	return baseParam * buffRate + buffPlus;
 };
 /**

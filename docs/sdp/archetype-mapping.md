@@ -118,9 +118,9 @@ RNG (one protein-tagged recipe: Erocian Pudding). Recipe group audit + per-group
 | IDs | Subgroup | Description | Archetype |
 |---|---|---|---|
 | 351–360 | **Bearcat** | Brutal slaps, massive knockback, bleed, physical/HP/DEF core that evolves into void magic | **Berserker** |
-| 361–370 | **Cave Bat** | Classic trash mob, fast annoying peckers, dies in 1–2 hits, sheer pest energy | **Skirmisher** |
-| 371–380 | **Garuda** | Level 70+ boss bird, prefers backline razor winds, big and angry, can frontline if pressed | **Artillery** |
-| 381–390 | **Rot Rat** | "Resourceful rodent," not scary alone, dangerous in numbers, stacking poison/chip damage | **Generalist** |
+| 361–370 | **Cave Bat** (`beast-bat`) | Classic trash mob, fast annoying peckers, dies in 1–2 hits, sheer pest energy | **Skirmisher** |
+| 371–380 | **Garuda** (`beast-beaker`) | Level 70+ boss bird, prefers backline razor winds, big and angry, can frontline if pressed | **Artillery** |
+| 381–390 | **Rot Rat** (`beast-rat`) | "Resourceful rodent," not scary alone, dangerous in numbers, stacking poison/chip damage | **Generalist** |
 | 391–400 | **Quadruped** (TBD) | Hippogryph/chimera pack alpha, roars to buff allies, body-blocks, leader of the pack | **Guardian** |
 
 ## Family 7: Insect (401–450)
@@ -473,7 +473,7 @@ This creates meaningful cross-archetype build tension:
 | Cobra | Poison + burst assassin | +CRI (heavy), poison synergy | **Venom Strike**: crits apply/extend poison | ✅ `onCritApply` / `thisCritApply` (`J-CriticalFactors` 1.1.0) |
 | Fish | Kiter, never in range | +AGI (heavy), +MSB | **Slippery**: MSB +X% for 2s after dealing damage | ✅ `passiveSourceRule:[attackedWithin, …]`; P4-2 |
 | Cave Bat | Swarm, quantity over quality | +HIT, +AGI, tiny flat boosts | **Swarm Instinct**: HIT +X% per ally within range | ✅ `passiveSourceRule:[alliesNearby, N]`; P4-2 |
-| Needler | Raw crit devastation | +CRI, +CDM (crit monster) | **Drilling Sting**: CDM +X% against debuffed targets | ⏳ target-state **trait** hook (P2 gap); damage variant ✅ `bonusDamageIfState` |
+| Needler | Raw crit devastation | +CRI, +CDM (crit monster) | **Drilling Sting**: on-crit poison proc + bonus damage vs poison-type targets | ✅ `<onCritApply:[16, CHANCE]>` + `<bonusDamageIfStateType:[poison, PCT]>` — Snake applies the poison ladder, Needler punishes it (executioner synergy, not overlap) |
 | Bandit | Dirty tricks, saboteur | +LUK (heavy), debuff chance | **Pocket Sand**: attacks X% chance to blind (HIT↓) | ✅ RMMZ state-on-hit via passive state; P4-2 |
 
 **Weapon affinities:**
@@ -653,7 +653,7 @@ Critical for encouraging experimentation — if respec is too punishing, players
 | Party HP threshold | Dryad Nature's Wrath | ⏳ P2 gap |
 | Last-element tracker | Hard Syrup Adaptive Slime | ⏳ P2 gap |
 | Movement-reset hit counter | Polliwog Rooted Barrage | ⏳ P2 gap |
-| Target-state CRI/CDM trait | Roper, Needler | ⏳ P2 gap (damage hooks shipped) |
+| Target-state CRI/CDM trait | Roper | ⏳ P2 gap — true stat-level trait still unbuilt; Needler unblocked via type-classifier damage tags instead (`bonusDamageIfStateType` / `bonusDamagePerStateType`) |
 | Attacker-side recent-hit DR | Cephalopod Ink Shroud | ⏳ P2 gap |
 | Retaliate / reflect | Crimson Vice, Scorplite | ⏳ experiment |
 
