@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import { FAMILIES } from './sdp-family-registry.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dataDir = path.join(__dirname, '../data');
+const dataDir = path.join(__dirname, '../../../chef-adventure/data');
 
 
 /**

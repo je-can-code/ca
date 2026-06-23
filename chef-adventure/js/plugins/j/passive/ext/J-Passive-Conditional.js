@@ -110,6 +110,23 @@
  *  <removeOnSkillExecution:[7, 100]>
  *  <removeOnSkillExecution:[0, 25]>
  * ============================================================================
+ * REMOVE ON SKILL RESOLUTION (state note only)
+ *  <removeOnSkillResolution:[STYPE_ID, CHANCE]>
+ *
+ * When the action fired by this battler fully expires — after its last hit lands,
+ * or after it travels its full duration without contacting any target — rolls CHANCE
+ * (1–100). STYPE_ID 0 = any type. On success, peels stacks via decrementStateStacks
+ * (respects loseAllStacksAtOnce on this state row). Tag lives on the state that may
+ * be removed — not on skills/equip.
+ *
+ * Unlike removeOnSkillExecution, removal fires at action expiry (after damage is
+ * already resolved), so state traits such as ATK bonuses are still present during
+ * damage calculation.
+ *
+ * EXAMPLES:
+ *  <removeOnSkillResolution:[7, 100]>
+ *  <removeOnSkillResolution:[0, 25]>
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.0
  *    Initial release. Passive gates (passiveSourceRule, passiveStateRule,
@@ -118,7 +135,9 @@
  *    hpDmg/mpDmg/tpDmg/anyDmg (combat gain* loss only, not skill pay), whenCrit
  *    (victim), negaStateAdded/posiStateAdded/anyStateAdded, move (whole tiles via
  *    Pixelistics updatePixelStepping), and stand (idle on map). removeOnSkillExecution on state
- *    rows (stype filter, chance, stack-aware decrementStateStacks).
+ *    rows (stype filter, chance, stack-aware decrementStateStacks). removeOnSkillResolution on
+ *    state rows — same shape as removeOnSkillExecution but fires at action expiry so state
+ *    traits are active during damage calculation.
  * ============================================================================
  *
  * @param parentConfigPassiveConditional
@@ -216,6 +235,8 @@ J.PASSIVE.EXT.CONDITIONAL.Aliased = {};
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Battler = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Action = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Battler = new Map();
+J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Action = new Map();
+J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_CharacterBase = new Map();
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Window_PassiveDetail = new Map();
 /**
@@ -346,6 +367,18 @@ J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill = /<autoExecuteSkill:[ ]?(\[[^
 * @type {RegExp}
 */
 J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillExecution = /<removeOnSkillExecution:[ ]?(\[[^\]]+])>/gi;
+/**
+* Captures {@code removeOnSkillResolution} bracket tuples from <strong>state</strong> notes only.<br/>
+* When the owning battler's action resolves against a target, rolls chance and may peel stacks
+* via {@link Game_Battler#decrementStateStacks}. Fires after {@link Game_Action#apply} so that
+* state traits are still active during damage calculation.
+* <p>
+* Author shape: {@code <removeOnSkillResolution:[stypeId, chance]>}.<br/>
+* {@code stypeId} 0 matches any skill type. {@code chance} is 1–100 for {@link RPGManager.chanceIn100}.
+* </p>
+* @type {RegExp}
+*/
+J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillResolution = /<removeOnSkillResolution:[ ]?(\[[^\]]+])>/gi;
 /**
 * Captures {@code removeStateOnMove} bracket tuples from <strong>state</strong> notes only.<br/>
 * When the owning battler moves, strips the target state via {@link Game_Battler#decrementStateStacks}.
@@ -480,6 +513,15 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoExecuteSkillRules", { get() {
 */
 Object.defineProperty(RPG_State.prototype, "removeOnSkillExecutionRules", { get() {
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillExecution, true);
+} });
+/**
+* Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillResolution} tuples from this state row.<br/>
+* Each tuple is {@code [stypeId, chance]}; {@code stypeId} 0 matches any skill type.
+* Fires after {@link Game_Action#apply} so state traits are active during damage calculation.
+* @type {any[][]}
+*/
+Object.defineProperty(RPG_State.prototype, "removeOnSkillResolutionRules", { get() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveOnSkillResolution, true);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove} tuples from this state row.<br/>
@@ -1199,6 +1241,60 @@ var SkillExecutionStateRemovalManager = class {
 	* @param {Game_Actor|Game_Enemy} battler The battler losing stacks.
 	* @param {number} stateId The database state id to peel.
 	* @returns {number} How many stacks to remove in one proc.
+	*/
+	static #resolveStacksLossCount(battler, stateId) {
+		const stateRow = $dataStates[stateId];
+		if (!stateRow) return 1;
+		const loseAllStacksAtOnce = stateRow.jabsLoseAllStacksAtOnce === true;
+		const tracked = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), stateId);
+		if (loseAllStacksAtOnce === true && tracked) {
+			return tracked.stackCount;
+		}
+		return 1;
+	}
+};
+
+//#endregion
+//#region src/plugins/passive/ext/conditional/managers/SkillResolutionStateRemovalManager.js
+/**
+* Processes {@link RPG_State#removeOnSkillResolutionRules} when a map battler's action resolves
+* against a target.<br/>
+* Fires after {@link Game_Action#apply} so that state traits (such as ATK bonuses) are still
+* active during damage calculation before the stacks are peeled.<br/>
+* Peels stacks via {@link Game_Battler#decrementStateStacks} using {@code loseAllStacksAtOnce} policy.
+*/
+var SkillResolutionStateRemovalManager = class {
+	/**
+	* Rolls removal rules on every combat state this battler currently carries.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose action just resolved.
+	* @param {number} skillId - The database skill id that resolved against the target.
+	*/
+	static process(battler, skillId) {
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		const skill = $dataSkills[skillId];
+		if (!skill) return;
+		const executedStype = skill.stypeId;
+		const activeStates = battler.states();
+		for (const state of activeStates) {
+			if (!state) continue;
+			const rules = state.removeOnSkillResolutionRules || [];
+			for (const tuple of rules) {
+				const stypeId = Number(tuple[0]);
+				const chance = Number(tuple[1]);
+				if (Number.isNaN(chance) || chance <= 0) continue;
+				if (stypeId !== 0 && stypeId !== executedStype) continue;
+				if (RPGManager.chanceIn100(chance) === false) continue;
+				const stateId = state.id;
+				const stacksLossCount = this.#resolveStacksLossCount(battler, stateId);
+				battler.decrementStateStacks(stateId, stacksLossCount);
+			}
+		}
+	}
+	/**
+	* Mirrors {@link JABS_State#handleStackLossFromDuration} stack peel amount for one state id.
+	* @param {Game_Actor|Game_Enemy} battler - The battler losing stacks.
+	* @param {number} stateId - The database state id to peel.
+	* @returns {number} - How many stacks to remove in one proc.
 	*/
 	static #resolveStacksLossCount(battler, stateId) {
 		const stateRow = $dataStates[stateId];
@@ -2094,6 +2190,21 @@ JABS_Battler.prototype.updatePassiveRuleMovementTracking = function() {
 	tracker._lastTrackedY = currentY;
 	battler.stampPassiveRuleMovedFrame();
 	MoveStateRemovalManager.process(battler);
+};
+
+//#endregion
+//#region src/plugins/passive/ext/conditional/models/JABS_Action.js
+/**
+* Extends {@link #preCleanupHook}.<br/>
+* Also processes {@code removeOnSkillResolution} rules when this action expires.
+* Fires regardless of whether the action hit any targets, covering both
+* hit-until-exhausted and whiff-and-expire cases.
+*/
+J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Action.set("preCleanupHook", JABS_Action.prototype.preCleanupHook);
+JABS_Action.prototype.preCleanupHook = function() {
+	J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Action.get("preCleanupHook").call(this);
+	const casterBattler = this.getCaster().getBattler();
+	SkillResolutionStateRemovalManager.process(casterBattler, this.getBaseSkill().id);
 };
 
 //#endregion

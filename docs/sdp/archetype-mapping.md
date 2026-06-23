@@ -421,7 +421,7 @@ Never active skills (compete with player kit). Occasional cross-system unlocks f
 | Cube | Giant HP, area denial | MHP spike + small TGR | **Living Obstacle**: enemies in melee range have -X% movespeed | ✅ JABS passive state aura; P4-2 |
 | Treant | Recovery between exchanges | DEF + HRG + LST (moderate) | **Ironbark**: first hit after 3s of no damage deals X% less | ✅ `passiveSourceRule:[sinceLastHit, …]`; P4-2 |
 | Scorpion | Hits back with debuffs | ATK + DEF + CNT | **Chitin Barbs**: counterattacks apply slow debuff | ⏳ retaliate / counter hook (experiment) |
-| Cyclops | Simple, untrickable | Raw flat stats, no rates | **Thick Skull**: immune to disable and mute | ✅ passive state immunities; P4-2 |
+| Cyclops | Simple, untrickable | Raw flat stats, no rates | **Thick Skull**: immune to rooted and disarmed (forever walks, forever swings) | ✅ passive state immunities; P4-2 |
 
 ### Archetype prototype: War Priest (approved)
 
@@ -533,7 +533,7 @@ This creates meaningful cross-archetype build tension:
 | Trap | Root + dissolve, debuff DOTs | +MAT, debuff affinity | **Entangling Curse**: debuffs you apply last X% longer | ✅ existing state duration modifier; P4-2 |
 | Brood | Swarm debuffer, poke and afflict | +ATK (physical poker), debuff spread | **Plague Swarm**: debuffs have X% per-tick chance to spread to nearby enemies (viral) | ✅ **P3-3** verified — `J-ABS` 4.12.4 (P4-2 plague states at scale) |
 | Puppet | Marionette dark magic, single-target | +MAT (heavy), focused | **Soul Thread**: bonus damage vs debuffed/controlled targets | ✅ `perDebuffBuff` / `bonusDamageIfState` (`J-ABS` 4.12.3+); redesigned from single-target hit count |
-| Elemental | Bosses you recruit, elemental mastery | +MAT, elemental | **Elemental Saturation**: elemental damage ignores X% of target's resist (cap at full damage, never bonus: `Math.max(0, resist - pierce)`) | ✅ `pierceElement` / `thisPierceElement` (`J-Elementalistics` 1.1.0) |
+| Elemental | Bosses you recruit, elemental mastery | +MAT, elemental | **Elemental Saturation**: elemental damage ignores X% of target's resist (cap at full damage, never bonus: `Math.max(0, resist - pierce)`) | ✅ `<pierceElement:[ELEMENT_ID, PCT]>` (global) / `<thisPierceElement:[ELEMENT_ID, PCT]>` (skill-only) — `J-Elementalistics` 1.1.0 |
 
 **Weapon affinities:**
 

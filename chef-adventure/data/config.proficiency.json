@@ -1,7 +1,7 @@
 {
   "conditionals": [
     {
-      "key": "JR-1H-SWD_COMBO-5-6",
+      "key": "blade-1h-01",
       "actorIds": [
         1,
         2
@@ -9,33 +9,104 @@
       "requirements": [
         {
           "skillId": 1,
-          "proficiency": 800,
+          "proficiency": 100,
           "secondarySkillIds": [
             2,
             3,
-            4
+            4,
+            5
           ]
         }
       ],
       "skillRewards": [
-        5,
         6
       ],
       "jsRewards": ""
     },
     {
-      "key": "JR-2H-SWD_COMBO-4",
+      "key": "blade-1h-02",
       "actorIds": [
         1,
         2
       ],
       "requirements": [
         {
-          "skillId": 7,
-          "proficiency": 500,
+          "skillId": 1,
+          "proficiency": 400,
           "secondarySkillIds": [
-            8,
-            9
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "skillRewards": [
+        7
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-1h-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 1,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "skillRewards": [
+        8
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-1h-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 1,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      "skillRewards": [
+        9
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-1h-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 1,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            2,
+            3,
+            4,
+            5
           ]
         }
       ],
@@ -45,7 +116,7 @@
       "jsRewards": ""
     },
     {
-      "key": "JR-DUAL-SWD_COMBO-5",
+      "key": "blade-2h-01",
       "actorIds": [
         1,
         2
@@ -53,16 +124,241 @@
       "requirements": [
         {
           "skillId": 11,
-          "proficiency": 500,
+          "proficiency": 100,
           "secondarySkillIds": [
             12,
             13,
-            14
+            14,
+            15
           ]
         }
       ],
       "skillRewards": [
-        15
+        16
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-2h-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 11,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      ],
+      "skillRewards": [
+        17
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-2h-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 11,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      ],
+      "skillRewards": [
+        18
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-2h-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 11,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      ],
+      "skillRewards": [
+        19
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-2h-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 11,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            12,
+            13,
+            14,
+            15
+          ]
+        }
+      ],
+      "skillRewards": [
+        20
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-dual-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 21,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            22,
+            23,
+            24
+          ]
+        }
+      ],
+      "skillRewards": [
+        25
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-dual-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 21,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            22,
+            23,
+            24
+          ]
+        }
+      ],
+      "skillRewards": [
+        26
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-dual-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 21,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            22,
+            23,
+            24
+          ]
+        }
+      ],
+      "skillRewards": [
+        27
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-dual-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 21,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            22,
+            23,
+            24
+          ]
+        }
+      ],
+      "skillRewards": [
+        28
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-dual-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 21,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            22,
+            23,
+            24
+          ]
+        }
+      ],
+      "skillRewards": [
+        29
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "blade-dual-06",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 21,
+          "proficiency": 9000,
+          "secondarySkillIds": [
+            22,
+            23,
+            24
+          ]
+        }
+      ],
+      "skillRewards": [
+        30
       ],
       "jsRewards": ""
     },

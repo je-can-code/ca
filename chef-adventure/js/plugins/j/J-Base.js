@@ -1206,7 +1206,7 @@ var ParameterKeys = class ParameterKeys {
 		26: "fdr",
 		27: "exr",
 		28: "cdm",
-		29: "cdr",
+		29: "ctr",
 		30: "mtp",
 		31: "msb",
 		32: "prof",
@@ -1219,7 +1219,9 @@ var ParameterKeys = class ParameterKeys {
 		40: "apr",
 		41: "gdr",
 		42: "dor",
-		43: "hcr"
+		43: "hcr",
+		44: "cdr",
+		45: "per"
 	};
 	/**
 	* Parameters where a panel decrease is beneficial in the SDP preview UI.
@@ -6535,7 +6537,7 @@ TextManager.bparamDescription = function(paramId) {
 TextManager.xparamDescription = function(paramId) {
 	switch (paramId) {
 		case 0: return ["The stat representing one's skill of accuracy.", "Being more accurate will result in being parried less."];
-		case 1: return ["The stat governing one's uncanny ability to parry precisely.", "An optional stat, but having more will make parrying easier."];
+		case 1: return ["The stat representing skill in physically evading attacks.", "Having higher evasion will cause incoming hits to be dodged."];
 		case 2: return ["A numeric value to one's chance of landing a critical hit.", "Critical hits will deal percent-increased damage."];
 		case 3: return ["A numeric value to one's chance of evading a critical hit.", "Enemy critical hit chance is directly reduced by this amount."];
 		case 4: return ["A numeric value to one's chance of evading a magical hit.", "Enemy magical hit chance is directly reduced by this amount."];
@@ -6592,7 +6594,7 @@ TextManager.sparam = function(sParamId) {
 TextManager.xparam = function(xParamId) {
 	switch (xParamId) {
 		case 0: return "Accuracy";
-		case 1: return "Parry Extend";
+		case 1: return "Phys Evade";
 		case 2: return "Crit Rate";
 		case 3: return "Crit Dodge";
 		case 4: return "Magic Evade";
@@ -6932,10 +6934,10 @@ var TraitResolver = class {
 	* @returns {RPG_Trait[]}
 	*/
 	static #combineAllParameterTraits(traits) {
-		traits = this.#combineParameterTraitsForCode(traits, 21, 1);
-		traits = this.#combineParameterTraitsForCode(traits, 22, 0);
-		traits = this.#combineParameterTraitsForCode(traits, 23, 1);
-		return traits;
+		let combined = this.#combineParameterTraitsForCode(traits, 21, 1);
+		combined = this.#combineParameterTraitsForCode(combined, 22, 0);
+		combined = this.#combineParameterTraitsForCode(combined, 23, 1);
+		return combined;
 	}
 	/**
 	* Folds all traits of a single code in the list into one per dataId using additive math.
@@ -7048,13 +7050,15 @@ var TraitResolver = class {
 	* @returns {[RPG_Trait[], RPG_Trait[]]}
 	*/
 	static #keepBetterAll(base, material) {
+		let resultBase = base;
+		let resultMaterial = material;
 		for (const code of this.#HigherIsBetterCodes) {
-			[base, material] = this.#keepBetter(base, material, code, true);
+			[resultBase, resultMaterial] = this.#keepBetter(resultBase, resultMaterial, code, true);
 		}
 		for (const code of this.#LowerIsBetterCodes) {
-			[base, material] = this.#keepBetter(base, material, code, false);
+			[resultBase, resultMaterial] = this.#keepBetter(resultBase, resultMaterial, code, false);
 		}
-		return [base, material];
+		return [resultBase, resultMaterial];
 	}
 	/**
 	* For each shared code+dataId pair between the two lists, removes the "worse" entry
@@ -7149,15 +7153,15 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 		VanillaParameterRegistration.registerXparam("hit", 0, ParameterGroups.PRECISION, 0, ParameterFormat.SCALED_POINTS);
 		VanillaParameterRegistration.registerSparam("grd", 1, ParameterGroups.PRECISION, 1, ParameterFormat.SCALED_OFFSET);
 		VanillaParameterRegistration.registerBparam("agi", 6, ParameterGroups.PRECISION, 2);
-		VanillaParameterRegistration.registerXparam("eva", 1, ParameterGroups.PRECISION, 3);
 		VanillaParameterRegistration.registerXparam("cri", 2, ParameterGroups.PRECISION, 4);
 		VanillaParameterRegistration.registerXparam("cev", 3, ParameterGroups.PRECISION, 5);
 		VanillaParameterRegistration.registerBparam("def", 3, ParameterGroups.DEFENSIVE, 0);
 		VanillaParameterRegistration.registerBparam("mdf", 5, ParameterGroups.DEFENSIVE, 1);
 		VanillaParameterRegistration.registerSparam("pdr", 6, ParameterGroups.DEFENSIVE, 2, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
 		VanillaParameterRegistration.registerSparam("mdr", 7, ParameterGroups.DEFENSIVE, 3, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
-		VanillaParameterRegistration.registerSparam("fdr", 8, ParameterGroups.DEFENSIVE, 4, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+		VanillaParameterRegistration.registerXparam("eva", 1, ParameterGroups.DEFENSIVE, 4);
 		VanillaParameterRegistration.registerXparam("mev", 4, ParameterGroups.DEFENSIVE, 5);
+		VanillaParameterRegistration.registerSparam("fdr", 8, ParameterGroups.DEFENSIVE, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
 		VanillaParameterRegistration.registerSparam("tgr", 0, ParameterGroups.FATE, 0, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.SIGNED);
 		VanillaParameterRegistration.registerBparam("luk", 7, ParameterGroups.FATE, 2);
 		VanillaParameterRegistration.registerSparam("exr", 9, ParameterGroups.FATE, 1, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);

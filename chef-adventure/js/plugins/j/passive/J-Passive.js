@@ -1641,6 +1641,10 @@ var Window_PassiveDetail = class extends Window_Base {
 		this.collectCritLines(state).forEach(({ icon, label, value }) => {
 			this.drawDetailRow(icon, label, value);
 		});
+		const cdrLine = this.collectCdrLine(state);
+		if (cdrLine) {
+			this.drawDetailRow(cdrLine.icon, cdrLine.label, cdrLine.value);
+		}
 	}
 	/**
 	* Collects the Life Cost (HCR) display row from J-Resources.
@@ -1690,6 +1694,24 @@ var Window_PassiveDetail = class extends Window_Base {
 			});
 		}
 		return rows;
+	}
+	/**
+	* Collects the CDR (global cooldown rate reduction) display row from J-ABS.
+	* Positive values shorten GCD (green); negative lengthen it.
+	* Returns null when J-ABS is not loaded or the state has no CDR tag.
+	* @param {RPG_State} state The state to check.
+	* @returns {{icon: number, label: string, value: string}|null}
+	*/
+	collectCdrLine(state) {
+		if (!J.ABS) return null;
+		const formula = RPGManager.getStringFromNoteByRegex(state, J.ABS.RegExp.GlobalCooldownReduction);
+		if (!formula) return null;
+		const evaluated = Number(this.evaluateFormula(formula, this._actor));
+		return {
+			icon: IconManager.cdr(),
+			label: "Cooldown Rate",
+			value: `${evaluated > 0 ? "+" : ""}${evaluated}%`
+		};
 	}
 	/**
 	* Returns the icon index for a param/xparam/sparam trait using IconManager.

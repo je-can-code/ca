@@ -145,7 +145,7 @@ Covers most mastery passives below via passive states or auto-apply (P4-2).
 - **For:** Elemental (Elemental Saturation) — elemental damage ignores X% of target's resist.
 - **What:** in damage formula or element rate calculation, reduce effective resistance by pierce amount.
   `effectiveResist = Math.max(0, targetResist - pierceAmount)`. Never goes negative (no bonus damage).
-- **Tags:** `<pierceElement:PCT>` on `getAllNotes()` sources; `<thisPierceElement:PCT>` on a specific skill.
+- **Tags:** `<pierceElement:[ELEMENT_ID, PCT]>` on `getAllNotes()` sources (global — applies to all skills); `<thisPierceElement:[ELEMENT_ID, PCT]>` on a specific skill (that skill only). Multiple tags on the same element are summed.
 - **Source:** `J-Elementalistics` 1.1.0.
 
 ### P3-9: Shield-break explosion ✅ DONE (2026-05-30)

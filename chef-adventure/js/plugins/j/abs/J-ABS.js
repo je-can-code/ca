@@ -1028,19 +1028,34 @@
  * ----------------------------------------------------------------------------
  * COMBOS:
  * COMBO ACTION:
- * Defines what skill can be followed up after using this skill, and how
- * long until that follow-up becomes available.
- *    <combo:[COMBO_SKILL_ID,LINK_TIME]>
+ * Defines what skill can be followed up after using this skill, how long
+ * until that follow-up becomes available, and optionally how long the window
+ * stays open before the combo is auto-cleared.
+ *    <combo:[COMBO_SKILL_ID]>
+ *    <combo:[COMBO_SKILL_ID, LINK_TIME]>
+ *    <combo:[COMBO_SKILL_ID, LINK_TIME, EXPIRE_FRAMES]>
  *  Where COMBO_SKILL_ID is the skill ID that will be combo'd into.
- *  Where LINK_TIME is the number of frames until the combo is available.
+ *  Where LINK_TIME is frames until the combo becomes pressable (default 0).
+ *  Where EXPIRE_FRAMES is the total frames from skill fire until the combo
+ *  auto-clears if unused (default 0 = no expiry; window stays open until
+ *  the slot's base cooldown resets).
  *
  * The combo-starter's cooldown must be longer than the LINK_TIME, or
  * the combo will never be reachable. Each executed combo action extends
  * the remaining cooldown by LINK_TIME, keeping the chain going.
  *
+ * EXPIRE_FRAMES counts from the moment the opener fires — not from when
+ * the combo becomes pressable. For a tight follow-up window on a slow skill,
+ * set EXPIRE_FRAMES close to LINK_TIME so the player must press quickly
+ * once the combo opens.
+ *
  * EXAMPLE:
  *      <combo:[2,10]>
- * Using this skill makes skill ID 2 available after 10 frames.
+ * Using this skill makes skill ID 2 available after 10 frames (no expiry).
+ *
+ *      <combo:[5,8,60]>
+ * Makes skill ID 5 available after 8 frames; auto-clears after 60 frames
+ * total if the player has not pressed it.
  *
  * COMBO STARTER:
  * AI-controlled battlers ignore skills with combo tags by default.
@@ -1191,6 +1206,39 @@
  * With this flag, the visual effect appears where the target fell.
  * Use this to create effects like "on kill: play animation on corpse".
  *
+ * ----------------------------------------------------------------------------
+ * ON EVADE APPLY:
+ * When this battler evades an incoming attack, they may inflict a state on
+ * the attacker who missed them.
+ *    <onEvadeApply:[STATE_ID, CHANCE]>
+ *  Where STATE_ID is the id of the state to apply to the attacker.
+ *  Where CHANCE is the integer percent chance to apply it (0-100).
+ *
+ * Use this for retributive effects — punishing the attacker for missing.
+ *
+ * ----------------------------------------------------------------------------
+ * ON EVADE APPLY SELF:
+ * When this battler evades an incoming attack, they may apply a state to
+ * themselves (the one who evaded).
+ *    <onEvadeApplySelf:[STATE_ID, CHANCE]>
+ *  Where STATE_ID is the id of the state to apply to the evader.
+ *  Where CHANCE is the integer percent chance to apply it (0-100).
+ *
+ * Use this for self-buff effects — rewarding the evader for successfully
+ * dodging an attack.
+ *
+ * ----------------------------------------------------------------------------
+ * ON EVADE EXECUTE:
+ * When this battler evades an incoming attack, they may fire a skill.
+ * The attacker is used as the seed target; the skill's own scope determines
+ * actual targeting (an AoE or self-targeting skill ignores the seed target).
+ *    <onEvadeExecute:[SKILL_ID, CHANCE]>
+ *  Where SKILL_ID is the id of the skill to execute on evasion.
+ *  Where CHANCE is the integer percent chance to execute it (0-100).
+ *
+ * Use this for counter-attacks, gap-closers, or any skill that should
+ * trigger automatically when the battler successfully evades.
+ *
  * ============================================================================
  * SKILL HISTORY BONUS:
  * These tags apply a damage multiplier based on a battler's recent skill
@@ -1285,28 +1333,30 @@
  * explicit tag for that dimension (e.g. a skill with no <proximity:N> is
  * not affected by rangeBuff/rangeRate on the proximity axis).
  *
- * STACKING FORMULA:
- *   finalValue = max(0, (base + totalBuff) * totalRate)
+ * STACKING FORMULA (shared, per-axis, and combined):
+ *   finalValue = max(0, (base + sharedBuff + axisBuff) * (sharedRate + axisRateDelta))
  *
- * Where totalBuff is the sum of every <rangeBuff:N> value and
- * totalRate accumulates as: 1.0 + sum(each rateTag - 1.0).
+ * Where sharedBuff = sum of every <rangeBuff:N>, axisBuff = sum of every axis-specific buff,
+ * sharedRate accumulates as: 1.0 + sum(each rangeRate - 1.0),
+ * and axisRateDelta = sum(each axis-specific rate - 1.0) added on top.
  *   <rangeRate:1.5> alone → 1.5x
  *   <rangeRate:1.5> + <rangeRate:1.5> → 2.0x  (each contributes +0.5)
+ *   <rangeRate:1.5> + <radiusRate:1.2> on radius → (1.0 + 0.5 + 0.2) = 1.7x
  *   <rangeRate:0.8> → 0.8x  (contributes -0.2, acts as a range penalty)
  *
  * ----------------------------------------------------------------------------
- * RANGE BUFF (flat additive, applied before rate):
+ * RANGE BUFF (flat additive, applied before rate — affects ALL dimensions):
  * Adds N tiles to the base value before the rate multiplier is applied.
  * Negative values reduce reach (range penalty).
  *    <rangeBuff:N>
  *  Where N is a signed decimal tile count (e.g. 1.5, -0.5).
  *
  * Example:
- *  Hazard mastery — +2 tiles on every outgoing action:
+ *  +2 tiles on every outgoing action's radius, proximity, and thickness:
  *    <rangeBuff:2>
  *
  * ----------------------------------------------------------------------------
- * RANGE RATE (multiplicative, base-1.0 delta model):
+ * RANGE RATE (multiplicative, base-1.0 delta model — affects ALL dimensions):
  * Multiplies the buffed value. The tag value IS the rate, not the delta;
  * each tag contributes (N - 1.0) to the rate accumulator so that stacking
  * multiple rates behaves additively rather than compounding exponentially.
@@ -1314,8 +1364,68 @@
  *  Where N is a non-negative decimal multiplier (1.0 = no change).
  *
  * Example:
- *  Hazard mastery — 1.5x reach on all actions:
+ *  1.5x reach on all actions (radius, proximity, and thickness):
  *    <rangeRate:1.5>
+ *
+ * ----------------------------------------------------------------------------
+ * RADIUS BUFF (flat additive, radius only — stacks with rangeBuff):
+ * Adds N tiles to the radius (AoE splash zone) only; does not affect proximity or thickness.
+ *    <radiusBuff:N>
+ *  Where N is a signed decimal tile count.
+ *
+ * Example:
+ *  Hazard mastery — +2 tiles to AoE splash zone only:
+ *    <radiusBuff:2>
+ *
+ * ----------------------------------------------------------------------------
+ * RADIUS RATE (multiplicative, radius only — stacks with rangeRate):
+ * Adds (N - 1.0) to the rate accumulator for radius only.
+ *    <radiusRate:N>
+ *  Where N is a non-negative decimal multiplier (1.0 = no change).
+ *
+ * Example:
+ *  Hazard mastery — 1.5x AoE splash zone, targeting reach unchanged:
+ *    <radiusRate:1.5>
+ *
+ * ----------------------------------------------------------------------------
+ * PROXIMITY BUFF (flat additive, proximity only — stacks with rangeBuff):
+ * Adds N tiles to proximity (targeting reach) only; does not affect radius or thickness.
+ *    <proximityBuff:N>
+ *  Where N is a signed decimal tile count.
+ *
+ * Example:
+ *  +2 tiles of targeting reach, splash zone unchanged:
+ *    <proximityBuff:2>
+ *
+ * ----------------------------------------------------------------------------
+ * PROXIMITY RATE (multiplicative, proximity only — stacks with rangeRate):
+ * Adds (N - 1.0) to the rate accumulator for proximity only.
+ *    <proximityRate:N>
+ *  Where N is a non-negative decimal multiplier (1.0 = no change).
+ *
+ * Example:
+ *  1.5x targeting reach, splash zone unchanged:
+ *    <proximityRate:1.5>
+ *
+ * ----------------------------------------------------------------------------
+ * THICKNESS BUFF (flat additive, thickness only — stacks with rangeBuff):
+ * Adds N tiles to thickness (LINE/WALL hitbox width) only; does not affect radius or proximity.
+ *    <thicknessBuff:N>
+ *  Where N is a signed decimal tile count.
+ *
+ * Example:
+ *  +1 tile of LINE/WALL width, radius and proximity unchanged:
+ *    <thicknessBuff:1>
+ *
+ * ----------------------------------------------------------------------------
+ * THICKNESS RATE (multiplicative, thickness only — stacks with rangeRate):
+ * Adds (N - 1.0) to the rate accumulator for thickness only.
+ *    <thicknessRate:N>
+ *  Where N is a non-negative decimal multiplier (1.0 = no change).
+ *
+ * Example:
+ *  1.5x LINE/WALL width, radius and proximity unchanged:
+ *    <thicknessRate:1.5>
  *
  * ============================================================================
  * STATE DAMAGE MULTIPLIERS:
@@ -1367,6 +1477,39 @@
  *    <bonusDamageIfState:[STATE_ID_DISABLED, 25]>
  *
  * If the target has all three, specificStateBonusPct = 75 (each fires independently).
+ *
+ * ----------------------------------------------------------------------------
+ * THIS BONUS DAMAGE:
+ * Skill-scoped unconditional flat percent damage bonus. Fires whenever THIS skill
+ * is the action being resolved, with no target state requirement. Useful for
+ * prof extend rows that need to boost a specific skill's damage without touching
+ * its formula or leaking the bonus to the rest of the caster's kit.
+ * Multiple tags on the same skill stack additively.
+ *    <thisBonusDamage:PCT>
+ *  Where PCT is the integer (or decimal) percent bonus to add unconditionally.
+ *
+ * Example:
+ *  Blade of the Mouse row 6 — +20% damage on mainchain skills:
+ *    placed on the extend skill targeting [11,12,13]:
+ *    <thisBonusDamage:20>
+ *
+ * ----------------------------------------------------------------------------
+ * THIS BONUS DAMAGE IF STATE:
+ * Skill-scoped variant of BONUS DAMAGE IF STATE. Adds PCT% bonus damage if the
+ * target currently has a specific state active, but only when THIS skill is the
+ * action being resolved. Put on a specific skill to avoid bleeding the bonus
+ * across the entire kit (unlike the caster-wide bonusDamageIfState tag).
+ * Multiple tags for different state ids each contribute independently.
+ *    <thisBonusDamageIfState:[STATE_ID, PCT]>
+ *  Where STATE_ID is the database id of the state to check.
+ *  Where PCT is the integer percent bonus to add when the state is present.
+ *
+ * Example:
+ *  Blade of the Dragon row 9 — +100% damage from this skill vs stunned enemies:
+ *    <thisBonusDamageIfState:[STATE_ID_STUN, 100]>
+ *
+ * If this tag appears multiple times on the same skill (different state ids),
+ * each matching state adds PCT independently to the total.
  *
  * ----------------------------------------------------------------------------
  * BONUS DAMAGE IF STATE TYPE:
@@ -3643,6 +3786,8 @@ J.ABS.RegExp = {
 	UniqueCooldown: /<uniqueCooldown>/gi,
 	Ogcd: /<ogcd>/gi,
 	GlobalCooldownFrames: /<gcd:[ ]?(\d+)>/gi,
+	GlobalCooldownReduction: /<cdr:\[([+\-*/ ().\w]+)]>/gi,
+	ParryExtensionRate: /<per:\[([+\-*/ ().\w]+)]>/gi,
 	Degrees: /<degrees:[ ]?(\d+)>/gi,
 	Range: /<radius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
 	Shape: /<hitbox:[ ]?(circle|rhombus|square|line|arc|wall|cross)>/gi,
@@ -3660,7 +3805,7 @@ J.ABS.RegExp = {
 	OnDefeatedTarget: /<onDefeatedTarget>/gi,
 	SelfAnimationId: /<selfAnimationId:[ ]?(\d+)>/gi,
 	OnCastAnimationId: /<onCastAnimationId:[ ]?(\d+)>/gi,
-	ComboAction: /<combo:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	ComboAction: /<combo:[ ]?(\[\d+(?:,[ ]?\d+){0,2}])>/gi,
 	ComboStarter: /<comboStarter>/gi,
 	AiSkillExclusion: /<aiSkillExclusion>/gi,
 	FreeCombo: /<freeCombo>/gi,
@@ -3835,6 +3980,9 @@ J.ABS.RegExp = {
 	NoCastPreviewsBattler: /<noCastPreviews>/gi,
 	OnOwnDefeat: /<onOwnDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
 	OnTargetDefeat: /<onTargetDefeat:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+	OnEvadeApply: /<onEvadeApply:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+	OnEvadeApplySelf: /<onEvadeApplySelf:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
+	OnEvadeExecute: /<onEvadeExecute:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
 	/**
 	* Percent damage bonus per negative state (jabsNegative) currently active on the target.
 	* All PerDebuffBuff values from getAllNotes() are summed, then multiplied by the debuff count.
@@ -3871,6 +4019,43 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	BonusDamageIfState: /<bonusDamageIfState:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	/**
+	* Flat percent damage bonus applied when the target has a specific state active.
+	* Reads from this.item() only — fires only when THIS skill is the action being resolved.
+	* Multiple tags for different state ids each fire independently and stack additively.
+	* Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <thisBonusDamageIfState:[STATE_ID, PCT]>
+	*
+	* Example:
+	*  <thisBonusDamageIfState:[14, 100]>
+	*
+	* Translation:
+	*  +100% damage from this skill if the target currently has state 14 active.
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisBonusDamageIfState: /<thisBonusDamageIfState:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	/**
+	* Unconditional flat percent damage bonus applied when THIS skill is the action being resolved.
+	* Reads from this.item() only — does not read from getAllNotes() and does not affect other skills.
+	* Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <thisBonusDamage:PCT>
+	*
+	* Example:
+	*  <thisBonusDamage:20>
+	*
+	* Translation:
+	*  This skill always deals +20% damage, regardless of target state.
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisBonusDamage: /<thisBonusDamage:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
 	/**
 	* Flat percent damage bonus applied when the target has at least one active state
 	* carrying the given type classifier (see RPG_State's stateTypes()).
@@ -3945,6 +4130,117 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	RangeRate: /<rangeRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	/**
+	* Flat tile addition applied only to radius (AoE splash zone), after rangeBuff but before rate.
+	* Negative values shrink the splash zone.
+	* Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <radiusBuff:N>
+	*
+	* Example:
+	*  <radiusBuff:2>
+	*
+	* Translation:
+	*  Adds 2 tiles flat to every outgoing action's radius only (not proximity or thickness).
+	* </pre>
+	* @type {RegExp}
+	*/
+	RadiusBuff: /<radiusBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Multiplicative rate applied only to radius (AoE splash zone), after all buffs.
+	* Base-1.0 delta model: each tag contributes (N - 1.0) to the accumulator.
+	* Stacks with rangeRate.
+	* Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <radiusRate:N>
+	*
+	* Example:
+	*  <radiusRate:1.5>
+	*
+	* Translation:
+	*  All outgoing actions have 1.5x radius only (not proximity or thickness).
+	* </pre>
+	* @type {RegExp}
+	*/
+	RadiusRate: /<radiusRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	/**
+	* Flat tile addition applied only to proximity (targeting reach), after rangeBuff but before rate.
+	* Negative values shorten targeting reach.
+	* Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <proximityBuff:N>
+	*
+	* Example:
+	*  <proximityBuff:2>
+	*
+	* Translation:
+	*  Adds 2 tiles flat to every outgoing action's proximity only (not radius or thickness).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ProximityBuff: /<proximityBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Multiplicative rate applied only to proximity (targeting reach), after all buffs.
+	* Base-1.0 delta model: each tag contributes (N - 1.0) to the accumulator.
+	* Stacks with rangeRate.
+	* Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <proximityRate:N>
+	*
+	* Example:
+	*  <proximityRate:1.5>
+	*
+	* Translation:
+	*  All outgoing actions have 1.5x proximity only (not radius or thickness).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ProximityRate: /<proximityRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	/**
+	* Flat tile addition applied only to thickness (LINE/WALL hitbox width), after rangeBuff but before rate.
+	* Negative values narrow the hitbox.
+	* Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <thicknessBuff:N>
+	*
+	* Example:
+	*  <thicknessBuff:1>
+	*
+	* Translation:
+	*  Adds 1 tile flat to every outgoing action's thickness only (not radius or proximity).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThicknessBuff: /<thicknessBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Multiplicative rate applied only to thickness (LINE/WALL hitbox width), after all buffs.
+	* Base-1.0 delta model: each tag contributes (N - 1.0) to the accumulator.
+	* Stacks with rangeRate.
+	* Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <thicknessRate:N>
+	*
+	* Example:
+	*  <thicknessRate:1.5>
+	*
+	* Translation:
+	*  All outgoing actions have 1.5x thickness only (not radius or proximity).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThicknessRate: /<thicknessRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
 	/**
 	* Passive/state/equip skill history damage bonus.
 	* Reads from getAllNotes(); applies to every attack by the bearer.
@@ -4052,6 +4348,7 @@ J.ABS.Aliased = {
 	RPG_Actor: new Map(),
 	RPG_Enemy: new Map(),
 	RPG_Skill: new Map(),
+	Scene_Boot: new Map(),
 	Scene_Load: new Map(),
 	Scene_Map: new Map(),
 	Sprite_Animation: new Map(),
@@ -8731,6 +9028,30 @@ var JABS_Cooldown = class {
 		*/
 		this.comboReady = false;
 		/**
+		* Frames remaining in the combo expiry window, counted from when the skill fired.
+		* Zero means no expiry is set; when it counts down to zero from a positive value,
+		* the combo is cleared even if the player has not pressed the follow-up.
+		* @type {number}
+		*/
+		this.comboExpireFrames = 0;
+		/**
+		* The original expiry window size set when the skill fired.
+		* Stored alongside {@link comboExpireFrames} so the HUD gauge can compute a fill rate.
+		* Reset to zero when the window closes or the combo is cleared.
+		* @type {number}
+		*/
+		this.comboExpireFramesMax = 0;
+		/**
+		* Describes how the HUD should display the cooldown-overlay icon for this slot.
+		* Set at skill-fire time from the executed skill's authored combo data:
+		*   'none'     — no combo link; show the overlay immediately.
+		*   'expiring' — combo with an authored expire window; show the overlay once the window closes.
+		*   'infinite' — combo with no expire window; never show the overlay (the whole CD is the window).
+		* Reset to 'none' when the base cooldown finishes.
+		* @type {'none'|'expiring'|'infinite'}
+		*/
+		this.comboMode = "none";
+		/**
 		* Whether or not this cooldown is locked from changing.
 		* @type {boolean}
 		*/
@@ -8750,6 +9071,9 @@ var JABS_Cooldown = class {
 		this.ready = false;
 		this.comboFrames = 0;
 		this.comboReady = false;
+		this.comboExpireFrames = 0;
+		this.comboExpireFramesMax = 0;
+		this.comboMode = "none";
 		this.locked = false;
 		this.mustComboClear = false;
 	}
@@ -8805,12 +9129,21 @@ var JABS_Cooldown = class {
 		this.handleIfBaseReady();
 	}
 	/**
+	* Sets how the HUD overlay icon behaves for this cooldown cycle.
+	* Called by the engine at skill-fire time from the executed skill's authored combo data.
+	* @param {'none'|'expiring'|'infinite'} mode The overlay mode.
+	*/
+	setComboMode(mode) {
+		this.comboMode = mode;
+	}
+	/**
 	* Enables the flag to indicate the base skill is ready for this cooldown.
 	* This also clears the combo data, as they both cannot be available at the same time.
 	*/
 	enableBase() {
 		this.frames = 0;
 		this.ready = true;
+		this.comboMode = "none";
 	}
 	/**
 	* Gets whether or not the base skill is off cooldown.
@@ -8827,6 +9160,9 @@ var JABS_Cooldown = class {
 		this.frames = frames;
 		this.handleIfBaseReady();
 		this.handleIfBaseUnready();
+		if (frames > 0) {
+			this.setComboExpireFrames(0);
+		}
 	}
 	/**
 	* Adds a value to the combo frames to extend the combo countdown.
@@ -8860,11 +9196,35 @@ var JABS_Cooldown = class {
 	* Updates the combo data for this cooldown.
 	*/
 	updateComboCooldown() {
-		if (this.comboReady) return;
-		if (this.comboFrames > 0) {
-			this.comboFrames--;
+		if (!this.comboReady) {
+			if (this.comboFrames > 0) {
+				this.comboFrames--;
+			}
+			this.handleIfComboReady();
 		}
-		this.handleIfComboReady();
+		if (this.comboReady) {
+			this.updateComboExpire();
+		}
+	}
+	/**
+	* Ticks the combo expiry countdown and clears the combo when the window closes.
+	* Has no effect when no expiry was set ({@link comboExpireFrames} is zero).
+	*/
+	updateComboExpire() {
+		if (this.comboExpireFrames <= 0) return;
+		this.comboExpireFrames--;
+		if (this.comboExpireFrames <= 0) {
+			this.resetCombo();
+		}
+	}
+	/**
+	* Sets the combo expiry window in frames, counted from the moment the skill fires.
+	* Pass zero to remove any active expiry (no deadline).
+	* @param {number} frames Frames until the combo is auto-cleared.
+	*/
+	setComboExpireFrames(frames) {
+		this.comboExpireFrames = frames;
+		this.comboExpireFramesMax = frames;
 	}
 	/**
 	* Enables the flag to indicate a combo is ready for this cooldown.
@@ -8915,6 +9275,8 @@ var JABS_Cooldown = class {
 	resetCombo() {
 		this.comboFrames = 0;
 		this.comboReady = false;
+		this.comboExpireFrames = 0;
+		this.comboExpireFramesMax = 0;
 		this.requestComboClear();
 	}
 	/**
@@ -9036,6 +9398,18 @@ var JABS_GlobalCooldown = class JABS_GlobalCooldown {
 			}
 		}
 		return null;
+	}
+	/**
+	* Applies the caster's CDR to a base GCD frame count and returns the reduced value.
+	* CDR is in percent-point space: 15 CDR → GCD runs at 85% of base; 100 CDR → 0 frames (no GCD).
+	* Negative CDR lengthens the GCD. Result is clamped to a minimum of 0 frames.
+	* @param {JABS_Battler} jabsBattler The battler whose CDR is applied.
+	* @param {number} baseFrames The unmodified GCD frame count.
+	* @returns {number} The frame count after CDR is applied.
+	*/
+	static reducedFramesForCaster(jabsBattler, baseFrames) {
+		const { cdr } = jabsBattler.getBattler();
+		return Math.max(0, Math.round(baseFrames * (1 - cdr)));
 	}
 };
 
@@ -12575,7 +12949,7 @@ var JABS_Battler = class JABS_Battler {
 	* @returns {number}
 	*/
 	getBonusParryFrames(guardData) {
-		return Math.floor(this.getBattler().eva * guardData.parryDuration);
+		return Math.floor((1 + this.getBattler().per) * guardData.parryDuration);
 	}
 	/**
 	* Counts down the parry window that occurs when guarding is first activated.
@@ -13009,6 +13383,26 @@ var JABS_Battler = class JABS_Battler {
 		onTargetDefeatSkills.forEach(forEacher, this);
 	}
 	/**
+	* Handles the execution of any on-evade skills this battler may possess.
+	* The attacker who was evaded is used as the seed target; the skill's own scope
+	* determines actual targeting, so AoE or self-targeting skills ignore the seed.
+	* @param {JABS_Battler|null} jabsAttacker The battler whose attack was evaded, or null.
+	*/
+	handleOnEvadeSkills(jabsAttacker) {
+		const executeEffects = this.getBattler().onEvadeExecuteEffects();
+		if (executeEffects.length === 0) return;
+		const forEacher = (executeEffect) => {
+			const { skillId } = executeEffect;
+			if (executeEffect.shouldTrigger() === false) return;
+			if (jabsAttacker) {
+				$jabsEngine.forceMapAction(this, skillId, false, jabsAttacker.getX(), jabsAttacker.getY());
+			} else {
+				$jabsEngine.forceMapAction(this, skillId, false);
+			}
+		};
+		executeEffects.forEach(forEacher, this);
+	}
+	/**
 	* Executes the post-defeat processing for a defeated battler.
 	* @param {JABS_Battler} victor The battler that defeated this battler.
 	*/
@@ -13182,6 +13576,16 @@ var JABS_Battler = class JABS_Battler {
 	*/
 	setComboFrames(cooldownKey, duration) {
 		this.getCooldown(cooldownKey).setComboFrames(duration);
+	}
+	/**
+	* Sets the combo expiry window on the cooldown for the given slot.
+	* The countdown begins immediately — from the moment the skill fires — regardless of the combo delay.
+	* Pass zero to set no deadline.
+	* @param {string} cooldownKey The slot key.
+	* @param {number} frames Frames until the combo auto-clears if unused.
+	*/
+	setComboExpireFrames(cooldownKey, frames) {
+		this.getCooldown(cooldownKey).setComboExpireFrames(frames);
 	}
 	/**
 	* Whether or not this battler is ready to take action of any kind.
@@ -14066,11 +14470,6 @@ var JABS_State = class {
 	*/
 	#baseDuration = 0;
 	/**
-	* The number of frames that defines "recently applied".
-	* @type {number}
-	*/
-	#recentlyAppliedCounter = 0;
-	/**
 	* Whether or not this tracked state is identified as `expired`.
 	* Expired states do not apply to the battler, but are kept in the tracking collection
 	* to grant the ability to refresh the state duration or whatever we choose to do.
@@ -14121,7 +14520,6 @@ var JABS_State = class {
 		this.stackCount = startingStacks;
 		this.source = source;
 		this.setBaseDuration(duration);
-		this.refreshRecentlyAppliedCounter();
 		this.#spreadTickCounter = this.getSpreadTickInterval();
 		this.expired = false;
 	}
@@ -14156,12 +14554,6 @@ var JABS_State = class {
 		return this.#refreshResetCounter > 0;
 	}
 	/**
-	* Refresh the recently applied counter.
-	*/
-	refreshRecentlyAppliedCounter() {
-		this.#recentlyAppliedCounter = 6;
-	}
-	/**
 	* Refresh the refresh reset counter.
 	* @param {number=} newRefreshResetAmount The count to refresh the refresh reset counter to.
 	*/
@@ -14179,22 +14571,13 @@ var JABS_State = class {
 		this.handleDiminishedRefresh();
 	}
 	/**
-	* Handle all the counters that countdown on this state, like the recently applied counter, the refresh reset counter,
+	* Handle all the counters that countdown on this state, like the refresh reset counter
 	* and the actual duration counter.
 	*/
 	handleCounters() {
-		this.decrementRecentlyAppliedCounter();
 		this.decrementRefreshResetCounter();
 		this.decrementDuration();
 		this.decrementSpreadTickCounter();
-	}
-	/**
-	* Decrements the recently applied counter as-needed.
-	*/
-	decrementRecentlyAppliedCounter() {
-		if (this.#recentlyAppliedCounter > 0) {
-			this.#recentlyAppliedCounter--;
-		}
 	}
 	/**
 	* Decrements the refresh reset counter as-needed.
@@ -14252,7 +14635,6 @@ var JABS_State = class {
 		if (newDuration === 0) return;
 		this.duration = newDuration;
 		this.expired = false;
-		this.refreshRecentlyAppliedCounter();
 		this.refreshRefreshResetCounter();
 		if (this.stackCount === 0) {
 			this.stackCount = 1;
@@ -14280,7 +14662,7 @@ var JABS_State = class {
 		if (expireData === null) return;
 		const { stateId: nextStateId, chance } = expireData;
 		if (!RPGManager.chanceIn100(chance)) return;
-		this.battler.addNewState(nextStateId, this.source);
+		this.battler.addState(nextStateId, this.source);
 	}
 	/**
 	* Handle reset circumstances for the refresh reset counter and times refreshed counter.
@@ -14351,13 +14733,6 @@ var JABS_State = class {
 	isAboutToExpire() {
 		const aboutToExpireThreshold = Math.round(this.#baseDuration / 5);
 		return this.duration <= aboutToExpireThreshold && !this.hasEternalDuration();
-	}
-	/**
-	* Determines whether or not this state was recently applied.
-	* @returns {boolean} True if it was recently applied, false otherwise.
-	*/
-	wasRecentlyApplied() {
-		return this.#recentlyAppliedCounter > 0;
 	}
 	/**
 	* Decrements the spread tick counter and fires a spread pulse when it reaches zero.
@@ -15721,7 +16096,6 @@ var JABS_Engine = class JABS_Engine {
 	* @param {JABS_State} newJabsState The new tracked state data.
 	*/
 	refreshJabsState(jabsState, newJabsState) {
-		if (jabsState.wasRecentlyApplied()) return;
 		const state = jabsState.battler.state(jabsState.stateId);
 		const diminishmentAmount = jabsState.timesRefreshed * state.jabsStateRefreshDiminish;
 		const refreshAmount = newJabsState.duration - diminishmentAmount;
@@ -15736,7 +16110,6 @@ var JABS_Engine = class JABS_Engine {
 	* @param {JABS_State} newJabsState The new tracked state data.
 	*/
 	extendJabsState(jabsState, newJabsState) {
-		if (jabsState.wasRecentlyApplied()) return;
 		const state = jabsState.battler.state(newJabsState.stateId);
 		const amountToExtend = state.jabsStateExtendAmount;
 		const newDuration = jabsState.duration + amountToExtend;
@@ -15750,7 +16123,6 @@ var JABS_Engine = class JABS_Engine {
 	* @param {JABS_State} newJabsState The new tracked state data.
 	*/
 	stackJabsState(jabsState, newJabsState) {
-		if (jabsState.wasRecentlyApplied()) return;
 		const addedStackAmount = newJabsState.battler.state(newJabsState.stateId).jabsStateStacksApplied;
 		jabsState.incrementStacks(addedStackAmount);
 		jabsState.setBaseDuration(newJabsState.duration);
@@ -16602,18 +16974,48 @@ var JABS_Engine = class JABS_Engine {
 		const skill = action.getBaseSkill();
 		if (skill.jabsUniqueCooldown || this.isBasicAttack(cooldownType)) {
 			caster.setCooldownCounter(cooldownType, cooldownValue);
+			this.applyComboModeForSkill(caster, cooldownType, skill);
 		} else {
 			const battler = caster.getBattler();
 			const equippedSkills = battler.getAllEquippedSkills();
 			equippedSkills.forEach((skillSlot) => {
 				if (battler.resolveEquippedSkillId(skillSlot.id) === skill.id) {
 					caster.setCooldownCounter(skillSlot.key, cooldownValue);
+					this.applyComboModeForSkill(caster, skillSlot.key, skill);
 				}
 			});
 		}
 		if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(skill)) {
 			const gcdFrames = JABS_GlobalCooldown.framesForSkill(skill);
-			caster.setCooldownCounter(J.ABS.Globals.GlobalCooldownKey, gcdFrames);
+			const reducedFrames = JABS_GlobalCooldown.reducedFramesForCaster(caster, gcdFrames);
+			caster.setCooldownCounter(J.ABS.Globals.GlobalCooldownKey, reducedFrames);
+		}
+	}
+	/**
+	* Stamps the HUD overlay combo mode on a cooldown from the skill that just fired.
+	* Called once per affected slot key immediately after the slot's cooldown counter is set.
+	*
+	* Modes (written to {@link JABS_Cooldown.comboMode}):
+	*   'none'     — skill has no combo link; the lock icon shows immediately.
+	*   'expiring' — skill has a combo link with an authored expire window; lock shows after the window closes.
+	*   'infinite' — skill has a combo link with no expire window; lock never shows (the whole CD is the window).
+	*
+	* @param {JABS_Battler} caster The battler whose cooldown to stamp.
+	* @param {string} cooldownKey The slot key of the cooldown to stamp.
+	* @param {RPG_Skill} skill The skill that was just executed.
+	*/
+	applyComboModeForSkill(caster, cooldownKey, skill) {
+		const cooldown = caster.getCooldown(cooldownKey);
+		if (!cooldown) return;
+		if (!skill.jabsComboAction) {
+			cooldown.setComboMode("none");
+		} else if (skill.jabsComboExpire > 0) {
+			cooldown.setComboMode("expiring");
+			cooldown.setComboFrames(skill.jabsComboDelay);
+			cooldown.setComboExpireFrames(skill.jabsComboExpire);
+		} else {
+			cooldown.setComboMode("infinite");
+			cooldown.setComboFrames(skill.jabsComboDelay);
 		}
 	}
 	/**
@@ -17004,6 +17406,7 @@ var JABS_Engine = class JABS_Engine {
 		if (pendingId !== executedId) return;
 		caster.setComboNextActionId(cooldownKey, 0);
 		caster.clearAiComboHumanizedReadyFrame();
+		caster.setComboExpireFrames(cooldownKey, 0);
 	}
 	/**
 	* Determines whether or not the caster can update their combo data based on
@@ -17028,15 +17431,14 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	updateComboSequence(caster, action) {
 		const skill = action.getBaseSkill();
-		const { jabsComboSkillId, jabsComboDelay } = skill;
+		const { jabsComboSkillId, jabsComboDelay, jabsComboExpire } = skill;
 		const cooldownKey = action.getCooldownType();
-		const isComboAction = caster.getComboNextActionId(cooldownKey) !== jabsComboSkillId;
-		if (isComboAction) {
-			caster.modCooldownCounter(cooldownKey, jabsComboDelay);
+		if (caster.getComboNextActionId(cooldownKey) !== jabsComboSkillId) {
 			caster.setPhase(2);
 		}
 		caster.setComboFrames(cooldownKey, jabsComboDelay);
 		caster.setComboNextActionId(cooldownKey, jabsComboSkillId);
+		caster.setComboExpireFrames(cooldownKey, jabsComboExpire);
 		caster.setAiComboHumanizedReadyFrame(JABS_Engine.computeAiComboHumanizedReadyFrameForSkill(skill));
 	}
 	/**
@@ -19249,8 +19651,7 @@ var JABS_Action = class JABS_Action {
 	getRange() {
 		const base = this.getBaseSkill().jabsRadius;
 		if (base === null) return null;
-		const notes = this.getAction().subject().getAllNotes();
-		return this.applyRangeModifiers(base, notes);
+		return this.applyRadiusModifiers(base);
 	}
 	/**
 	* Gets the cast time for this skill.
@@ -19270,8 +19671,7 @@ var JABS_Action = class JABS_Action {
 		}
 		const base = this.getBaseSkill().jabsProximity;
 		if (base === null) return 0;
-		const notes = this.getAction().subject().getAllNotes();
-		return this.applyRangeModifiers(base, notes);
+		return this.applyProximityModifiers(base);
 	}
 	/**
 	* Whether or not the scope of this action is "User" or not.
@@ -19296,22 +19696,39 @@ var JABS_Action = class JABS_Action {
 	getThicknessTiles() {
 		const base = RPGManager.getNumberFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.Thickness, true);
 		if (base === null) return 1;
-		const notes = this.getAction().subject().getAllNotes();
-		return this.applyRangeModifiers(base, notes);
+		return this.applyThicknessModifiers(base);
 	}
 	/**
-	* Applies the caster's rangeBuff (flat, before rate) and rangeRate (base-1.0 multiplicative) tags
-	* to a base tile value. Each rangeRate tag contributes (N - 1.0) to the rate accumulator so that
-	* multiple rate tags stack additively rather than compounding exponentially.
-	* Result is floored at 0 to prevent negative values from breaking collision geometry.
-	* @param {number} base The unmodified tile value to scale.
-	* @param {RPG_Base[]} notes The collection of note-bearing objects from the caster's getAllNotes().
-	* @returns {number} The scaled tile value.
+	* Applies the caster's shared and radius-specific range modifiers to a base radius tile value.
+	* @param {number} base The unmodified radius tile value.
+	* @returns {number} The scaled radius tile value, floored at 0.
 	*/
-	applyRangeModifiers(base, notes) {
-		const totalBuff = RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.RangeBuff) ?? 0;
-		const rateCaptures = RPGManager.getAllCapturesFromAllNotesByRegex(notes, J.ABS.RegExp.RangeRate);
-		const totalRate = rateCaptures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 1);
+	applyRadiusModifiers(base) {
+		const caster = this.getAction().subject();
+		const totalBuff = caster.getRangeBuff() + caster.getRadiusBuff();
+		const totalRate = caster.getRangeRate() + caster.getRadiusRate();
+		return Math.max(0, (base + totalBuff) * totalRate);
+	}
+	/**
+	* Applies the caster's shared and proximity-specific range modifiers to a base proximity tile value.
+	* @param {number} base The unmodified proximity tile value.
+	* @returns {number} The scaled proximity tile value, floored at 0.
+	*/
+	applyProximityModifiers(base) {
+		const caster = this.getAction().subject();
+		const totalBuff = caster.getRangeBuff() + caster.getProximityBuff();
+		const totalRate = caster.getRangeRate() + caster.getProximityRate();
+		return Math.max(0, (base + totalBuff) * totalRate);
+	}
+	/**
+	* Applies the caster's shared and thickness-specific range modifiers to a base thickness tile value.
+	* @param {number} base The unmodified thickness tile value.
+	* @returns {number} The scaled thickness tile value, floored at 0.
+	*/
+	applyThicknessModifiers(base) {
+		const caster = this.getAction().subject();
+		const totalBuff = caster.getRangeBuff() + caster.getThicknessBuff();
+		const totalRate = caster.getRangeRate() + caster.getThicknessRate();
 		return Math.max(0, (base + totalBuff) * totalRate);
 	}
 	/**
@@ -19600,7 +20017,9 @@ var JABS_SkillSlotManager = class {
 	* All actors have the same set of slots.
 	*/
 	setupActorSlots() {
-		this._slots.push(new JABS_SkillSlot(J.ABS.Globals.GlobalCooldownKey, 0));
+		const gcdSlot = new JABS_SkillSlot(J.ABS.Globals.GlobalCooldownKey, 0);
+		gcdSlot.getCooldown().enableBase();
+		this._slots.push(gcdSlot);
 		this._slots.push(new JABS_SkillSlot(JABS_Button.Mainhand, 0));
 		this._slots.push(new JABS_SkillSlot(JABS_Button.Offhand, 0));
 		this._slots.push(new JABS_SkillSlot(JABS_Button.Tool, 0));
@@ -19781,6 +20200,8 @@ var JABS_SkillSlotManager = class {
 	*/
 	updateCooldowns() {
 		this.getEquippedSlots().forEach((slot) => slot.updateCooldown());
+		const gcdSlot = this.getSkillSlotByKey(J.ABS.Globals.GlobalCooldownKey);
+		if (gcdSlot) gcdSlot.updateCooldown();
 	}
 	/**
 	* Determines if either cooldown is available for the given slot.
@@ -19872,6 +20293,41 @@ var JABS_StateExpireData = class {
 	constructor(stateId, chance) {
 		this.stateId = stateId;
 		this.chance = chance;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/core/models/JABS_StateOverrides.js
+/**
+* A value object carrying skill-authored overrides for state application.
+*
+* Passed to {@link Game_Battler#addStateWithOverrides} when a skill's notetag specifies
+* a custom duration or starting stack count. Only the properties that are explicitly set
+* take effect; a {@code null} property defers to the state's own database value.
+*
+* Instances are read-only after construction; callers should treat them as value objects.
+*/
+var JABS_StateOverrides = class {
+	/**
+	* The override duration in frames for the applied state.
+	* When {@code null}, the state's own {@code jabsStateDurationFrames} value is used instead.
+	* @type {number|null}
+	*/
+	duration = null;
+	/**
+	* The override starting stack count for the applied state.
+	* When {@code null}, the state's own {@code jabsStateStacksApplied} value is used instead.
+	* @type {number|null}
+	*/
+	stacks = null;
+	/**
+	* Constructor.
+	* @param {number|null} duration Override duration in frames; pass {@code null} to use the state's default.
+	* @param {number|null} stacks Override starting stack count; pass {@code null} to use the state's default.
+	*/
+	constructor(duration = null, stacks = null) {
+		this.duration = duration;
+		this.stacks = stacks;
 	}
 };
 
@@ -21205,10 +21661,21 @@ Object.defineProperty(RPG_Skill.prototype, "jabsComboSkillId", { get: function()
 } });
 /**
 * The JABS combo delay in frames before the combo skill can be triggered.
-* @type {number|null}
+* Defaults to 0 when the second parameter is omitted from the combo tag.
+* @type {number}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsComboDelay", { get: function() {
-	return this.jabsComboAction[1];
+	return this.jabsComboAction[1] ?? 0;
+} });
+/**
+* The JABS combo expire window in frames, counted from the moment the skill fires.
+* When non-zero, the combo skill is cleared from the slot if it has not been used
+* before this many frames elapse — even if the combo delay has not yet completed.
+* Defaults to 0 (no expiry) when the third parameter is omitted from the combo tag.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsComboExpire", { get: function() {
+	return this.jabsComboAction[2] ?? 0;
 } });
 /**
 * Gets the list of skill ids in order that this skill going forward can
@@ -22174,6 +22641,95 @@ DataManager.makeSaveContents = function() {
 };
 
 //#endregion
+//#region src/plugins/abs/core/managers/IconManager.js
+/**
+* Gets the icon index for the cooldown rate reduction parameter.
+* @returns {number}
+*/
+IconManager.cdr = function() {
+	return 962;
+};
+/**
+* Gets the icon index for the parry extension rate parameter.
+* @returns {number}
+*/
+IconManager.per = function() {
+	return 962;
+};
+
+//#endregion
+//#region src/plugins/abs/core/managers/TextManager.js
+/**
+* Gets the display name for the cooldown rate reduction parameter.
+* @returns {string}
+*/
+TextManager.cdr = function() {
+	return "Cooldown Rate";
+};
+/**
+* Gets the description text for the cooldown rate reduction parameter.
+* @returns {string[]}
+*/
+TextManager.cdrDescription = function() {
+	return ["Reduces the duration of the global cooldown triggered after skill use.", "At 100, the global cooldown is eliminated entirely."];
+};
+/**
+* Gets the display name for the parry extension rate parameter.
+* @returns {string}
+*/
+TextManager.per = function() {
+	return "Parry Extension";
+};
+/**
+* Gets the description text for the parry extension rate parameter.
+* @returns {string[]}
+*/
+TextManager.perDescription = function() {
+	return ["Extends the duration of the precise-parry window when raising guard.", "At 100, the parry window is doubled; stacks additively."];
+};
+
+//#endregion
+//#region src/plugins/abs/core/objects/Game_BattlerBase.js
+/**
+* The battler's cooldown reduction rate in percent-point space.
+* A value of 15 means GCD is reduced to 85% of its base duration.
+* Baseline is 0 (no reduction); reaching 100 eliminates the GCD entirely.
+* @type {number}
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "cdr", {
+	get: function() {
+		return this.globalCooldownReduction();
+	},
+	configurable: true
+});
+/**
+* Gets this battler's global cooldown reduction in percent-point space.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.globalCooldownReduction = function() {
+	return 0;
+};
+/**
+* The battler's parry extension rate in percent-point space.
+* A value of 50 means the precise-parry window is extended to 150% of its base duration.
+* Baseline is 0 (no extension).
+* @type {number}
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "per", {
+	get: function() {
+		return this.parryExtensionRate();
+	},
+	configurable: true
+});
+/**
+* Gets this battler's parry extension rate in percent-point space.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.parryExtensionRate = function() {
+	return 0;
+};
+
+//#endregion
 //#region src/plugins/abs/core/objects/Game_Action.js
 /**
 * Overwrites {@link #subject}.<br/>
@@ -22238,8 +22794,11 @@ Game_Action.prototype.applyJabsAction = function(target) {
 */
 Game_Action.prototype.applyVirtualJabsAction = function(target) {
 	this.preApplyAction(target);
-	if (target.result().isHit()) {
+	const result = target.result();
+	if (result.isHit()) {
 		this.executeJabsAction(target);
+	} else if (result.isEvaded()) {
+		target.onEvade(this.subject(), this);
 	}
 	this.updateLastTarget(target);
 };
@@ -22389,13 +22948,12 @@ Game_Action.prototype.calculateParryDamageReduction = function(jabsBattler, orig
 };
 /**
 * Scales the given damage value down to the glancing blow fraction defined by plugin parameters.
-* Glancing blows always deal at least 1 damage so the hit registers visibly.
 * @param {number} originalDamage The calculated damage before the glancing reduction.
-* @returns {number} The reduced damage, floored at 1.
+* @returns {number} The reduced damage, rounded to the nearest integer.
 */
 Game_Action.prototype.applyGlancingDamageReduction = function(originalDamage) {
 	const damageFactor = J.ABS.Metadata.GlancingBlowDamageFactor;
-	return Math.max(1, Math.round(originalDamage * damageFactor));
+	return Math.round(originalDamage * damageFactor);
 };
 /**
 * Processes the action as a guard, reducing damage along with any
@@ -22591,9 +23149,11 @@ Game_Action.prototype.applyStateDamageMultipliers = function(baseDamage, target)
 	if (baseDamage <= 0) return baseDamage;
 	const debuffPct = this.calculatePerDebuffBonusPct(target);
 	const specificPct = this.calculateBonusIfStatePct(target);
+	const thisSpecificPct = this.calculateThisBonusDamageIfStatePct(target);
+	const thisFlatPct = this.calculateThisBonusDamagePct();
 	const typePresencePct = this.calculateBonusIfStateTypePct(target);
 	const typeCountPct = this.calculatePerStateTypePct(target);
-	const combinedPct = debuffPct + specificPct + typePresencePct + typeCountPct;
+	const combinedPct = debuffPct + specificPct + thisSpecificPct + thisFlatPct + typePresencePct + typeCountPct;
 	if (combinedPct === 0) return baseDamage;
 	return Math.round(baseDamage * (1 + combinedPct / 100));
 };
@@ -22627,6 +23187,35 @@ Game_Action.prototype.calculateBonusIfStatePct = function(target) {
 		}
 	});
 	return totalPct;
+};
+/**
+* Calculates the total damage bonus percent from thisBonusDamageIfState tags on this action's skill.
+* Reads from this.item() only — fires only when this specific skill is the action being resolved.
+* Multiple tags for different state ids each fire independently and stack additively.
+* @param {Game_Battler} target The target whose active states are checked.
+* @returns {number} The total bonus percent from all matching state tags on this skill.
+*/
+Game_Action.prototype.calculateThisBonusDamageIfStatePct = function(target) {
+	const allPairs = RPGManager.getArraysFromNotesByRegex(this.item(), J.ABS.RegExp.ThisBonusDamageIfState);
+	if (!allPairs.length) return 0;
+	let totalPct = 0;
+	allPairs.forEach(([stateId, percent]) => {
+		if (target.isStateAffected(stateId)) {
+			totalPct += percent;
+		}
+	});
+	return totalPct;
+};
+/**
+* Calculates the unconditional flat percent damage bonus from the thisBonusDamage tag on this
+* action's skill. Fires whenever this skill is the action being resolved, with no state check.
+* Reads from this.item() only — does not affect any other skill in the caster's kit.
+* @returns {number} The bonus percent, or 0 if the tag is absent.
+*/
+Game_Action.prototype.calculateThisBonusDamagePct = function() {
+	const pct = RPGManager.getNumberFromNoteByRegex(this.item(), J.ABS.RegExp.ThisBonusDamage, true);
+	if (pct === null) return 0;
+	return pct;
 };
 /**
 * Checks whether the target has at least one active state carrying the given type
@@ -22869,7 +23458,14 @@ Game_ActionResult.prototype.clear = function() {
 * Removes the check for "hit vs rng", and adds in parry instead.
 */
 Game_ActionResult.prototype.isHit = function() {
-	return this.used && !this.parried && !this.evaded;
+	return this.used && this.parried === false && this.isEvaded() === false;
+};
+/**
+* Whether or not the action was evaded.
+* @returns {boolean}
+*/
+Game_ActionResult.prototype.isEvaded = function() {
+	return this.evaded;
 };
 
 //#endregion
@@ -22930,6 +23526,8 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 	J.ABS.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
 	this.setCachedVisionModifier(null);
 	this.refreshBonusHits();
+	this.refreshCdr();
+	this.refreshPer();
 	this.jabsRefresh();
 };
 /**
@@ -23105,7 +23703,13 @@ Game_Actor.prototype.isMainhandProvidedOffhandSkill = function(skillId) {
 		return true;
 	}
 	const transformedMainhandSkillId = this.getTransformedOffhandSkillId(mainhandProvidedSkillId);
-	return transformedMainhandSkillId === skillId;
+	if (transformedMainhandSkillId === skillId) return true;
+	const rootSkill = $dataSkills.at(mainhandProvidedSkillId);
+	if (rootSkill) {
+		const comboChain = rootSkill.getComboSkillIdList();
+		if (comboChain.includes(skillId)) return true;
+	}
+	return false;
 };
 /**
 * Gets the offhand skill currently provided by the equipped offhand item.
@@ -23798,6 +24402,76 @@ Game_Battler.prototype.initJabsMembers = function() {
 	* @type {number|null}
 	*/
 	this._j._abs._cachedVisionModifier = null;
+	/**
+	* The cached sum of all CDR (global cooldown reduction) percent-points from note sources.
+	* Refreshed by {@link #refreshCdr} on {@link #onBattlerDataChange}.
+	* @type {number}
+	*/
+	this._j._abs._cdr = 0;
+	/**
+	* The cached sum of all PER (parry extension rate) percent-points from note sources.
+	* Refreshed by {@link #refreshPer} on {@link #onBattlerDataChange}.
+	* @type {number}
+	*/
+	this._j._abs._per = 0;
+};
+/**
+* The battler's CDR in percent-point space; sourced from all active note sources.
+* @type {number}
+*/
+Object.defineProperty(Game_Battler.prototype, "cdr", {
+	get: function() {
+		return this.globalCooldownReduction();
+	},
+	configurable: true
+});
+/**
+* Gets this battler's cached global cooldown reduction in percent-point space.
+* @returns {number}
+*/
+Game_Battler.prototype.globalCooldownReduction = function() {
+	return this._j._abs._cdr;
+};
+Game_Battler.prototype.setGlobalCooldownReduction = function(cooldownReduction) {
+	this._j._abs._cdr = cooldownReduction;
+};
+/**
+* Recomputes and caches the sum of all CDR percent-points from this battler's note sources.
+* Called from {@link Game_Actor#onBattlerDataChange} and {@link Game_Enemy#onBattlerDataChange}.
+*/
+Game_Battler.prototype.refreshCdr = function() {
+	const objectsToCheck = this.getAllNotes();
+	const newCooldownReduction = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.ABS.RegExp.GlobalCooldownReduction, 0, this);
+	this.setGlobalCooldownReduction(newCooldownReduction / 100);
+};
+/**
+* The battler's PER in percent-point space; sourced from all active note sources.
+* @type {number}
+*/
+Object.defineProperty(Game_Battler.prototype, "per", {
+	get: function() {
+		return this.parryExtensionRate();
+	},
+	configurable: true
+});
+/**
+* Gets this battler's cached parry extension rate in percent-point space.
+* @returns {number}
+*/
+Game_Battler.prototype.parryExtensionRate = function() {
+	return this._j._abs._per;
+};
+Game_Battler.prototype.setParryExtensionRate = function(parryExtensionRate) {
+	this._j._abs._per = parryExtensionRate;
+};
+/**
+* Recomputes and caches the sum of all PER percent-points from this battler's note sources.
+* Called from {@link Game_Actor#onBattlerDataChange} and {@link Game_Enemy#onBattlerDataChange}.
+*/
+Game_Battler.prototype.refreshPer = function() {
+	const objectsToCheck = this.getAllNotes();
+	const newParryExtensionRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.ABS.RegExp.ParryExtensionRate, 0, this);
+	this.setParryExtensionRate(newParryExtensionRate / 100);
 };
 /**
 * Gets the `uuid` of this battler.
@@ -24130,17 +24804,80 @@ Game_Battler.prototype.onTargetDefeatSkillIds = function() {
 	const onTargetKills = RPGManager.getOnChanceEffectsFromDatabaseObjects(objectsToCheck, J.ABS.RegExp.OnTargetDefeat);
 	return onTargetKills;
 };
-J.ABS.Aliased.Game_Battler.set("states", Game_Battler.prototype.states);
+/**
+* Gets all on-evade-apply-self effects associated with this battler.
+* These are states to apply to the evader themselves when an evasion occurs.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Battler.prototype.onEvadeApplySelfEffects = function() {
+	const objectsToCheck = this.getAllNotes();
+	const selfStateEffects = RPGManager.getOnChanceEffectsFromDatabaseObjects(objectsToCheck, J.ABS.RegExp.OnEvadeApplySelf);
+	return selfStateEffects;
+};
+/**
+* Gets all on-evade-apply-attacker effects associated with this battler.
+* These are states to apply to the attacker who was evaded.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Battler.prototype.onEvadeApplyAttackerEffects = function() {
+	const objectsToCheck = this.getAllNotes();
+	const attackerStateEffects = RPGManager.getOnChanceEffectsFromDatabaseObjects(objectsToCheck, J.ABS.RegExp.OnEvadeApply);
+	return attackerStateEffects;
+};
+/**
+* Gets all on-evade-execute effects associated with this battler.
+* These are skills to fire when an evasion occurs.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Battler.prototype.onEvadeExecuteEffects = function() {
+	const objectsToCheck = this.getAllNotes();
+	const executeEffects = RPGManager.getOnChanceEffectsFromDatabaseObjects(objectsToCheck, J.ABS.RegExp.OnEvadeExecute);
+	return executeEffects;
+};
+/**
+* Processes the on-evasion state effects targeting the evader themselves.
+*/
+Game_Battler.prototype.processOnEvadeStateSelf = function() {
+	const selfEffects = this.onEvadeApplySelfEffects();
+	if (selfEffects.length === 0) return;
+	selfEffects.forEach((stateEffect) => {
+		if (stateEffect.shouldTrigger() === false) return;
+		this.addState(stateEffect.skillId);
+	});
+};
+/**
+* Processes the on-evasion state effects targeting the attacker who was evaded.
+* @param {Game_Actor|Game_Enemy} attacker The battler whose attack was evaded.
+*/
+Game_Battler.prototype.processOnEvadeStateAttacker = function(attacker) {
+	const attackerEffects = this.onEvadeApplyAttackerEffects();
+	if (attackerEffects.length === 0) return;
+	attackerEffects.forEach((stateEffect) => {
+		if (stateEffect.shouldTrigger() === false) return;
+		attacker.addState(stateEffect.skillId);
+	});
+};
+/**
+* Processes all on-evasion reactionary effects.
+* @param {Game_Actor|Game_Enemy} attacker The attacker whom this battler evaded.
+* @param {Game_Action} _action The action that was evaded.
+*/
+Game_Battler.prototype.onEvade = function(attacker, _action) {
+	this.processOnEvadeStateSelf();
+	this.processOnEvadeStateAttacker(attacker);
+	const jabsEvader = JABS_AiManager.getBattlerByUuid(this.getUuid());
+	if (!jabsEvader) return;
+	const jabsAttacker = JABS_AiManager.getBattlerByUuid(attacker.getUuid());
+	jabsEvader.handleOnEvadeSkills(jabsAttacker);
+};
 /**
 * Overwrites {@link #states}.<br/>
 * Returns the proper states for all that are afflicted on this battler.
 * Accommodates stacking.
 * @returns {RPG_State[]}
 */
+J.ABS.Aliased.Game_Battler.set("states", Game_Battler.prototype.states);
 Game_Battler.prototype.states = function() {
-	/**
-	* @type {RPG_State[]}
-	*/
 	const originalStates = J.ABS.Aliased.Game_Battler.get("states").call(this);
 	const currentAfflictedStates = $jabsEngine.getJabsStatesByUuid(this.getUuid());
 	const stackedStates = [];
@@ -24175,35 +24912,18 @@ Game_Battler.prototype.addState = function(stateId, attacker) {
 * Handles logic surrounding state application in regards to JABS.
 * @param {number} stateId The state being applied.
 * @param {Game_Actor|Game_Enemy|Game_Battler} attacker The assailant applying the state.
+* @param {JABS_StateOverrides|null} overrides Optional skill-authored overrides for duration and stacks.
+* When null, the state's own database values are used.
 */
-Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker) {
+Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker, overrides = null) {
 	if (!this.isStateAddable(stateId)) return;
 	if (!this.isStateAffected(stateId)) {
 		this.addNewState(stateId, attacker);
 		this.refresh();
 	}
 	this.resetStateCounts(stateId, attacker);
+	this.addJabsState(stateId, attacker, overrides);
 	this._result.pushAddedState(stateId);
-};
-/**
-* Extends this function to add the state to the JABS state tracker.
-* @param {number} stateId The state id to track.
-* @param {Game_Battler} attacker The battler who is applying this state.
-*/
-J.ABS.Aliased.Game_Battler.set("addNewState", Game_Battler.prototype.addNewState);
-Game_Battler.prototype.addNewState = function(stateId, attacker) {
-	J.ABS.Aliased.Game_Battler.get("addNewState").call(this, stateId);
-	this.addJabsState(stateId, attacker);
-};
-/**
-* Refreshes the battler's state that is being re-applied.
-* @param {number} stateId The state id to track.
-* @param {Game_Battler} attacker The battler who is applying this state.
-*/
-J.ABS.Aliased.Game_Battler.set("resetStateCounts", Game_Battler.prototype.resetStateCounts);
-Game_Battler.prototype.resetStateCounts = function(stateId, attacker) {
-	J.ABS.Aliased.Game_Battler.get("resetStateCounts").call(this, stateId);
-	this.addJabsState(stateId, attacker);
 };
 /**
 * Extends `removeState()` to also expire the state in the JABS state tracker.
@@ -24293,22 +25013,55 @@ Game_Battler.prototype.isRemovableCandidate = function(state, type, allowDeath) 
 * Adds a particular state to become tracked by the tracker for this battler.
 * @param {number} stateId The state id to track.
 * @param {Game_Battler|Game_Actor|Game_Enemy} attacker The battler who is applying this state.
+* @param {JABS_StateOverrides|null} overrides Optional skill-authored overrides for duration and stacks.
+* When null, the state's own database values are used for both.
 */
-Game_Battler.prototype.addJabsState = function(stateId, attacker) {
+Game_Battler.prototype.addJabsState = function(stateId, attacker, overrides = null) {
 	let assailant = attacker;
 	if (!attacker) {
 		assailant = this;
 	}
 	const state = assailant.state(stateId);
 	const { iconIndex, jabsStateHasMapTimer: hasMapTimer, jabsStateDurationFrames: baseDuration } = state;
+	let stateDuration = baseDuration;
+	let stateStacks = state.jabsStateStacksApplied;
+	if (overrides) {
+		const { duration, stacks } = overrides;
+		stateDuration = duration ?? baseDuration;
+		stateStacks = stacks ?? state.jabsStateStacksApplied;
+	}
 	let totalDuration = -1;
 	if (hasMapTimer) {
-		totalDuration = baseDuration + assailant.getStateDurationBoost(baseDuration);
+		totalDuration = stateDuration + assailant.getStateDurationBoost(stateDuration);
 	}
-	const stacks = state.jabsStateStacksApplied;
-	const builder = this.createJabsState(this, stateId, iconIndex, totalDuration, stacks, assailant);
+	const builder = this.createJabsState(this, stateId, iconIndex, totalDuration, stateStacks, assailant);
 	const jabsState = builder.build();
-	$jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
+	if (overrides) {
+		$jabsEngine.addJabsStateByUuid(this.getUuid(), jabsState);
+	} else {
+		$jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
+	}
+};
+/**
+* Applies a state to this battler with skill-authored duration and/or stack overrides.
+*
+* Use this instead of {@link addState} when a skill notetag specifies a custom duration
+* or starting stack count that should replace the state's own database defaults.
+* The attacker's duration-boost tags ({@code stateDurationFlat}, {@code stateDurationPerc},
+* {@code stateDurationFormula}) still apply on top of the overridden base duration.
+*
+* Falls back to vanilla state application without overrides if JABS is disabled.
+*
+* @param {number} stateId The id of the state to apply.
+* @param {Game_Battler} attacker The battler applying the state.
+* @param {JABS_StateOverrides} overrides The skill-authored duration and/or stack overrides.
+*/
+Game_Battler.prototype.addStateWithOverrides = function(stateId, attacker, overrides) {
+	if (!$jabsEngine.absEnabled) {
+		this.addState(stateId);
+		return;
+	}
+	this.handleAddingJabsState(stateId, attacker, overrides);
 };
 /**
 * An abstraction for creating a new {@link JABS_State} with the given parameters.
@@ -24429,6 +25182,73 @@ Game_Battler.prototype.getBonusHitsFromSources = function(sources) {
 	};
 	sources.forEach(collectFromSource);
 	return totals;
+};
+/**
+* Gets the flat tile bonus applied to all outgoing action dimensions (radius, proximity, thickness).
+* @returns {number}
+*/
+Game_Battler.prototype.getRangeBuff = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RangeBuff) ?? 0;
+};
+/**
+* Gets the multiplicative rate applied to all outgoing action dimensions.
+* Accumulates as 1.0 + sum(each tag value - 1.0) so multiple tags stack additively.
+* @returns {number}
+*/
+Game_Battler.prototype.getRangeRate = function() {
+	const captures = RPGManager.getAllCapturesFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RangeRate);
+	return captures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 1);
+};
+/**
+* Gets the flat tile bonus applied only to outgoing action radius (AoE splash zone).
+* Stacks with {@link #getRangeBuff}.
+* @returns {number}
+*/
+Game_Battler.prototype.getRadiusBuff = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RadiusBuff) ?? 0;
+};
+/**
+* Gets the multiplicative rate applied only to outgoing action radius.
+* Contributes (N - 1.0) deltas on top of {@link #getRangeRate}.
+* @returns {number}
+*/
+Game_Battler.prototype.getRadiusRate = function() {
+	const captures = RPGManager.getAllCapturesFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RadiusRate);
+	return captures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+};
+/**
+* Gets the flat tile bonus applied only to outgoing action proximity (targeting reach).
+* Stacks with {@link #getRangeBuff}.
+* @returns {number}
+*/
+Game_Battler.prototype.getProximityBuff = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ProximityBuff) ?? 0;
+};
+/**
+* Gets the multiplicative rate applied only to outgoing action proximity.
+* Contributes (N - 1.0) deltas on top of {@link #getRangeRate}.
+* @returns {number}
+*/
+Game_Battler.prototype.getProximityRate = function() {
+	const captures = RPGManager.getAllCapturesFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ProximityRate);
+	return captures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+};
+/**
+* Gets the flat tile bonus applied only to outgoing action thickness (LINE/WALL hitbox width).
+* Stacks with {@link #getRangeBuff}.
+* @returns {number}
+*/
+Game_Battler.prototype.getThicknessBuff = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ThicknessBuff) ?? 0;
+};
+/**
+* Gets the multiplicative rate applied only to outgoing action thickness.
+* Contributes (N - 1.0) deltas on top of {@link #getRangeRate}.
+* @returns {number}
+*/
+Game_Battler.prototype.getThicknessRate = function() {
+	const captures = RPGManager.getAllCapturesFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ThicknessRate);
+	return captures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
 };
 /**
 * Checks all states to see if we have anything that grants parry ignore.
@@ -25085,6 +25905,8 @@ J.ABS.Aliased.Game_Enemy.set("onBattlerDataChange", Game_Enemy.prototype.onBattl
 Game_Enemy.prototype.onBattlerDataChange = function() {
 	J.ABS.Aliased.Game_Enemy.get("onBattlerDataChange").call(this);
 	this.refreshBonusHits();
+	this.refreshCdr();
+	this.refreshPer();
 	this.jabsRefresh();
 };
 /**
@@ -26631,6 +27453,19 @@ Game_Switches.prototype.onChange = function() {
 J.ABS.Aliased.Game_Unit.set("inBattle", Game_Unit.prototype.inBattle);
 Game_Unit.prototype.inBattle = function() {
 	return $jabsEngine.absEnabled ? true : J.ABS.Aliased.Game_Unit.get("inBattle").call(this);
+};
+
+//#endregion
+//#region src/plugins/abs/core/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers CDR and PER with the parameter catalog after vanilla seeding.
+*/
+J.ABS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.ABS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	ParameterRegistry.register(ParameterDefinition.Builder().key("cdr").group(ParameterGroups.MOBILITY).sortOrder(1).label(() => TextManager.cdr()).description(() => TextManager.cdrDescription()).iconIndex(() => IconManager.cdr()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).build());
+	ParameterRegistry.register(ParameterDefinition.Builder().key("per").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.per()).description(() => TextManager.perDescription()).iconIndex(() => IconManager.per()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.per).build());
 };
 
 //#endregion

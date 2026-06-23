@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 HUD-INPUT] A HUD frame that displays your leader's buttons data.
+ * [v1.2.0 HUD-INPUT] A HUD frame that displays your leader's buttons data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -21,7 +21,7 @@
  *
  * This plugin requires JABS.
  * This plugin requires the base HUD.
- * This plugin has no additional configuration required.
+ * See plugin parameters below for configuration options.
  * ----------------------------------------------------------------------------
  * DETAILS:
  * This includes the following data points for the currently selected leader:
@@ -31,6 +31,14 @@
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 1.2.0
+ *    Cooldown overlay icon: a configurable icon renders over skill slots that
+ *    are currently on cooldown, making unavailability obvious at a glance.
+ *    Pulse animation: a brief scale pop fires whenever a slot becomes newly
+ *    available (base cooldown finished or combo window opens).
+ *    Combo expire gauge: the cooldown gauge switches to a warm orange-to-yellow
+ *    color and counts down the combo expiry window while a follow-up is live,
+ *    then returns to the base cooldown display after the window closes.
  * - 1.1.2
  *    Combo cooldown gauge merges J-ABS global cooldown (GCD) for GCD-subject
  *    skill slots (not tool/dodge).
@@ -43,6 +51,12 @@
  * - 1.0.0
  *    Initial release.
  * ============================================================================
+ *
+ * @param cooldownOverlayIconIndex
+ * @type number
+ * @text Cooldown Overlay Icon
+ * @desc Icon index to overlay on skill slots that are currently on cooldown.
+ * @default 90
  */
 
 //#region src/plugins/hud/ext/input/_metadata/_pluginMetadata.js
@@ -54,6 +68,13 @@ var JHudInput_PluginMetadata = class extends PluginMetadata {
 	*/
 	constructor(name, version) {
 		super(name, version);
+	}
+	/**
+	* Extends {@link PluginMetadata.postInitialize}.<br/>
+	* Reads plugin parameters and stores them as typed metadata properties.
+	*/
+	postInitialize() {
+		this.CooldownOverlayIconIndex = Number(this.parsedPluginParameters["cooldownOverlayIconIndex"]) || 90;
 	}
 };
 
@@ -83,7 +104,7 @@ J.HUD.EXT.INPUT = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudInput_PluginMetadata}
 */
-J.HUD.EXT.INPUT.Metadata = new JHudInput_PluginMetadata("J-HUD-InputFrame", "1.1.2");
+J.HUD.EXT.INPUT.Metadata = new JHudInput_PluginMetadata("J-HUD-InputFrame", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -310,10 +331,20 @@ var Sprite_CooldownGauge = class extends Sprite {
 		return globalCd.frames;
 	}
 	/**
+	* Gets whether or not this gauge is currently showing the combo expiry countdown.
+	* While true, the gauge reflects the shrinking follow-up window rather than the base cooldown.
+	* @returns {boolean}
+	*/
+	isInComboExpireMode() {
+		return this.cooldownData().comboExpireFrames > 0;
+	}
+	/**
 	* Gets whether or not this gauge has a max value currently.
+	* In combo expire mode the max is always the original window size, so we never treat it as unassigned.
 	* @returns {boolean}
 	*/
 	isMaxUnassigned() {
+		if (this.isInComboExpireMode()) return false;
 		return this._j._valueMax === 0;
 	}
 	/**
@@ -332,18 +363,23 @@ var Sprite_CooldownGauge = class extends Sprite {
 	}
 	/**
 	* Gets the current value for this gauge.
+	* During the combo expiry window this is the remaining frames of that window rather than the base cooldown,
+	* so the gauge reads as "time left to press the follow-up."
 	* @returns {number}
 	*/
 	currentValue() {
+		if (this.isInComboExpireMode()) return this.cooldownData().comboExpireFrames;
 		const cd = this.cooldownData();
 		const g = this.globalHudFrames();
 		return Math.max(cd.frames, g);
 	}
 	/**
 	* Gets the max value for this gauge.
+	* During the combo expiry window this is the original window size rather than the base cooldown peak.
 	* @returns {number}
 	*/
 	maxValue() {
+		if (this.isInComboExpireMode()) return this.cooldownData().comboExpireFramesMax;
 		return this._j._valueMax;
 	}
 	/**
@@ -373,18 +409,20 @@ var Sprite_CooldownGauge = class extends Sprite {
 	}
 	/**
 	* The color to gradient from.
-	* Defaults to blue.
+	* Defaults to blue; switches to orange during the combo expiry window.
 	* @returns {string}
 	*/
 	gaugeColor1() {
+		if (this.isInComboExpireMode()) return "rgba(255, 165, 0, 1)";
 		return "rgba(0, 0, 255, 1)";
 	}
 	/**
 	* The color to gradient into.
-	* Defaults to green.
+	* Defaults to green; switches to yellow during the combo expiry window.
 	* @returns {string}
 	*/
 	gaugeColor2() {
+		if (this.isInComboExpireMode()) return "rgba(255, 255, 0, 1)";
 		return "rgba(0, 255, 0, 1)";
 	}
 	/**
@@ -465,11 +503,20 @@ var Sprite_CooldownGauge = class extends Sprite {
 	* Shows or hides the gauge and updates its max from slot cooldown and optional merged GCD.
 	* Hides only when both the slot base cooldown and merged GCD are finished; otherwise keeps the peak max for a smooth
 	* drain.
+	* During a combo expiry window the gauge stays visible in expire-mode colors; the peak is still tracked so the
+	* base-cooldown display resumes correctly once the window closes.
 	*/
 	handleActionReadiness() {
 		const cooldown = this.cooldownData();
 		const g = this.globalHudFrames();
 		const eff = Math.max(cooldown.frames, g);
+		if (eff > this._j._gcdHudPeak) {
+			this._j._gcdHudPeak = eff;
+		}
+		if (this.isInComboExpireMode()) {
+			this.bitmap.paintOpacity = 255;
+			return;
+		}
 		if (cooldown.isComboReady() && this.isMaxUnassigned()) {
 			this.enableGauge();
 		}
@@ -478,9 +525,6 @@ var Sprite_CooldownGauge = class extends Sprite {
 			return;
 		}
 		if (cooldown.isBaseReady() === false || g > 0) {
-			if (this._j._gcdHudPeak < eff) {
-				this._j._gcdHudPeak = eff;
-			}
 			this.setMaxValue(this._j._gcdHudPeak);
 			this.bitmap.paintOpacity = 255;
 		}
@@ -812,6 +856,29 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 		* @type {JABS_SkillSlot|null}
 		*/
 		this._j._skillSlot = null;
+		/**
+		* The icon sprite rendered over the skill icon while the slot is on cooldown.
+		* Created lazily on first use and then cached here.
+		* @type {Sprite_Icon|null}
+		*/
+		this._j._cooldownOverlaySprite = null;
+		/**
+		* Whether the base cooldown was ready on the previous frame.
+		* Initialized to true so no pulse fires on HUD setup before any skill is used.
+		* @type {boolean}
+		*/
+		this._j._prevBaseReady = true;
+		/**
+		* Whether the combo window was ready (open) on the previous frame.
+		* @type {boolean}
+		*/
+		this._j._prevComboReady = false;
+		/**
+		* Remaining frames of the ready-pulse scale animation.
+		* Zero means no pulse is currently active.
+		* @type {number}
+		*/
+		this._j._pulseFrames = 0;
 	}
 	/**
 	* Sets the skill slot for this sprite's icon.
@@ -858,12 +925,93 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 		return this._j._skillSlot.key;
 	}
 	/**
-	* Extends the `update()` to monitor the icon index in case it changes.
+	* Extends the `update()` to monitor the icon index in case it changes,
+	* and to drive the cooldown overlay and ready-pulse animations.
 	*/
 	update() {
 		super.update();
 		if (this.needsSynchronization()) {
 			this.synchronizeIconIndex();
+		}
+		if (!this.hasSkillSlot()) return;
+		const jabsBattler = $jabsEngine?.getPlayer1();
+		if (!jabsBattler) return;
+		const cooldown = jabsBattler.getCooldown(this.skillSlotKey());
+		if (!cooldown) return;
+		this.updateCooldownOverlay(cooldown);
+		this.updateReadyPulse(cooldown);
+	}
+	/**
+	* Returns the cached cooldown overlay sprite, creating and attaching it on first call.
+	* @returns {Sprite_Icon}
+	*/
+	getOrCreateCooldownOverlaySprite() {
+		if (this._j._cooldownOverlaySprite) return this._j._cooldownOverlaySprite;
+		const overlay = new Sprite_Icon(J.HUD.EXT.INPUT.Metadata.CooldownOverlayIconIndex);
+		overlay.opacity = 160;
+		overlay.hide();
+		this.addChild(overlay);
+		this._j._cooldownOverlaySprite = overlay;
+		return overlay;
+	}
+	/**
+	* Synchronizes the cooldown overlay icon's visibility with the slot's base-ready state.
+	*
+	* Visibility is driven by {@link JABS_Cooldown.comboMode}, stamped at skill-fire time:
+	*   'none'     — no combo link; overlay shows immediately while the slot is on cooldown.
+	*   'expiring' — combo with an authored expire window; overlay hidden while the window is live,
+	*                then shown for the remaining base cooldown once the window closes.
+	*   'infinite' — combo with no expire window; overlay never shown (the entire CD is the window).
+	*
+	* @param {JABS_Cooldown} cooldown The cooldown data for this slot.
+	*/
+	updateCooldownOverlay(cooldown) {
+		const overlay = this.getOrCreateCooldownOverlaySprite();
+		if (cooldown.isBaseReady() === true) {
+			overlay.hide();
+			return;
+		}
+		switch (cooldown.comboMode) {
+			case "infinite":
+				overlay.hide();
+				break;
+			case "expiring":
+				if (cooldown.comboExpireFrames > 0) {
+					overlay.hide();
+				} else {
+					overlay.show();
+				}
+				break;
+			default:
+				overlay.show();
+				break;
+		}
+	}
+	/**
+	* Detects when the base cooldown or combo window becomes newly available and triggers a brief
+	* scale pop to signal "new skill ready" to the player.
+	* @param {JABS_Cooldown} cooldown The cooldown data for this slot.
+	*/
+	updateReadyPulse(cooldown) {
+		const baseReady = cooldown.isBaseReady();
+		const comboReady = cooldown.isComboReady();
+		if (!this._j._prevBaseReady && baseReady) {
+			this._j._pulseFrames = 12;
+		}
+		if (!this._j._prevComboReady && comboReady) {
+			this._j._pulseFrames = 12;
+		}
+		this._j._prevBaseReady = baseReady;
+		this._j._prevComboReady = comboReady;
+		if (this._j._pulseFrames > 0) {
+			const t = this._j._pulseFrames / 12;
+			const s = 1 + Math.sin(t * Math.PI) * .25;
+			this.scale.x = s;
+			this.scale.y = s;
+			this._j._pulseFrames--;
+		} else {
+			this.scale.x = 1;
+			this.scale.y = 1;
 		}
 	}
 	/**

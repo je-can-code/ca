@@ -353,10 +353,10 @@ J.CRIT.RegExp = {
 	CritDamageReduction: /<critReduction: ?(\d+)>/gi,
 	CritDamageMultiplierBase: /<critMultiplierBase: ?(\d+)>/gi,
 	CritDamageMultiplier: /<critMultiplier: ?(\d+)>/gi,
-	CritDamageReductionBuffPlus: /<cdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
-	CritDamageReductionBuffRate: /<cdrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
-	CritDamageReductionGrowthPlus: /<cdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
-	CritDamageReductionGrowthRate: /<cdrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+	CritTakenRateBuffPlus: /<ctrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+	CritTakenRateBuffRate: /<ctrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+	CritTakenRateGrowthPlus: /<ctrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+	CritTakenRateGrowthRate: /<ctrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 	CritDamageMultiplierBuffPlus: /<cdmBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
 	CritDamageMultiplierBuffRate: /<cdmBuffRate:\[([+\-*/ ().\w]+)]>/gi,
 	CritDamageMultiplierGrowthPlus: /<cdmGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
@@ -556,7 +556,7 @@ Game_Action.prototype.applyCriticalDamageMultiplier = function(baseDamage) {
 Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage) {
 	const defender = this.targetBattler();
 	if (!defender) return criticalDamage;
-	const baseCriticalReductionRate = 1 - defender.cdr;
+	const baseCriticalReductionRate = 1 - defender.ctr;
 	const criticalReductionRate = Math.max(baseCriticalReductionRate, 0);
 	return criticalDamage * criticalReductionRate;
 };
@@ -599,14 +599,14 @@ Game_Action.prototype.ownCriticalChanceBonus = function() {
 //#endregion
 //#region src/plugins/crit/core/objects/Game_Actor.js
 /**
-* Extend `.applyNaturalCustomGrowths()` to include our cdm/cdr growths.
+* Extend `.applyNaturalCustomGrowths()` to include our cdm/ctr growths.
 */
 J.CRIT.Aliased.Game_Actor.set("applyNaturalCustomGrowths", Game_Actor.prototype.applyNaturalCustomGrowths);
 Game_Actor.prototype.applyNaturalCustomGrowths = function() {
 	J.CRIT.Aliased.Game_Actor.get("applyNaturalCustomGrowths").call(this);
 	if (!J.NATURAL) return;
 	this.applyNaturalCdmGrowths();
-	this.applyNaturalCdrGrowths();
+	this.applyNaturalCtrGrowths();
 };
 /**
 * Applies the natural CDM growths to this battler.
@@ -620,24 +620,24 @@ Game_Actor.prototype.applyNaturalCdmGrowths = function() {
 	this.modCdmRate(growthRate);
 };
 /**
-* Applies the natural CDR growths to this battler.
+* Applies the natural CTR growths to this battler.
 */
-Game_Actor.prototype.applyNaturalCdrGrowths = function() {
+Game_Actor.prototype.applyNaturalCtrGrowths = function() {
 	const [growthPlusStructure, growthRateStructure, ,] = this.getNaturalGrowthsRegexForCrit();
-	const baseCdr = this.baseCriticalReduction();
-	const growthPlus = this.naturalParamBuff(growthPlusStructure, baseCdr);
-	this.modCdrPlus(growthPlus);
-	const growthRate = this.naturalParamBuff(growthRateStructure, baseCdr);
-	this.modCdrRate(growthRate);
+	const baseCtr = this.baseCriticalReduction();
+	const growthPlus = this.naturalParamBuff(growthPlusStructure, baseCtr);
+	this.modCtrPlus(growthPlus);
+	const growthRate = this.naturalParamBuff(growthRateStructure, baseCtr);
+	this.modCtrRate(growthRate);
 };
 /**
-* Gets the various regular expressions used for getting CDM/CDR growth values.
+* Gets the various regular expressions used for getting CDM/CTR growth values.
 * @returns {[RegExp,RegExp,RegExp,RegExp]}
 */
 Game_Actor.prototype.getNaturalGrowthsRegexForCrit = function() {
 	return [
-		J.CRIT.RegExp.CritDamageReductionGrowthPlus,
-		J.CRIT.RegExp.CritDamageReductionGrowthRate,
+		J.CRIT.RegExp.CritTakenRateGrowthPlus,
+		J.CRIT.RegExp.CritTakenRateGrowthRate,
 		J.CRIT.RegExp.CritDamageMultiplierGrowthPlus,
 		J.CRIT.RegExp.CritDamageMultiplierGrowthRate
 	];
@@ -649,7 +649,7 @@ Game_Actor.prototype.getNaturalGrowthsRegexForCrit = function() {
 * @returns {number}
 */
 Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam) {
-	const parameterKey = critParamId === 0 ? "cdm" : "cdr";
+	const parameterKey = critParamId === 0 ? "cdm" : "ctr";
 	return this.getSdpBonusForParameterKey(parameterKey, baseParam);
 };
 
@@ -660,11 +660,11 @@ Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam) {
 */
 var CritParameterRegistration = class {
 	/**
-	* Registers CDM and CDR with the parameter catalog.
+	* Registers CDM and CTR with the parameter catalog.
 	*/
 	static registerAll() {
 		ParameterRegistry.register(ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier())).build());
-		ParameterRegistry.register(ParameterDefinition.Builder().key("cdr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).sdpBinding(SdpParameterBinding.byKey("cdr", (actor) => actor.baseCriticalReduction())).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("ctr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.ctr).sdpBinding(SdpParameterBinding.byKey("ctr", (actor) => actor.baseCriticalReduction())).build());
 	}
 };
 
@@ -696,15 +696,15 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	*/
 	this._j._natural._cdmRate = 0;
 	/**
-	* The permanent flat bonus for CDM.
+	* The permanent flat bonus for CTR.
 	* @type {number}
 	*/
-	this._j._natural._cdrPlus = 0;
+	this._j._natural._ctrPlus = 0;
 	/**
-	* The permanent multiplier bonus for CDR.
+	* The permanent multiplier bonus for CTR.
 	* @type {number}
 	*/
-	this._j._natural._cdrRate = 0;
+	this._j._natural._ctrRate = 0;
 };
 /**
 * Gets the permanent flat bonus for CDM.
@@ -735,32 +735,32 @@ Game_Battler.prototype.modCdmRate = function(amount) {
 	this._j._natural._cdmRate += amount;
 };
 /**
-* Gets the current growths applied to CDR plus.
+* Gets the current growths applied to CTR plus.
 * @returns {number}
 */
-Game_Battler.prototype.cdrPlus = function() {
-	return this._j._natural._cdrPlus;
+Game_Battler.prototype.ctrPlus = function() {
+	return this._j._natural._ctrPlus;
 };
 /**
-* Modifies the permanent flat bonus for CDR.
+* Modifies the permanent flat bonus for CTR.
 * @param {number} amount The amount to modify the bonus by.
 */
-Game_Battler.prototype.modCdrPlus = function(amount) {
-	this._j._natural._cdrPlus += amount;
+Game_Battler.prototype.modCtrPlus = function(amount) {
+	this._j._natural._ctrPlus += amount;
 };
 /**
-* Gets the current growths applied to CDR rate.
+* Gets the current growths applied to CTR rate.
 * @returns {number}
 */
-Game_Battler.prototype.cdrRate = function() {
-	return this._j._natural._cdrRate;
+Game_Battler.prototype.ctrRate = function() {
+	return this._j._natural._ctrRate;
 };
 /**
-* Modifies the permanent multiplicative bonus for CDR.
+* Modifies the permanent multiplicative bonus for CTR.
 * @param {number} amount The amount to modify the bonus by.
 */
-Game_Battler.prototype.modCdrRate = function(amount) {
-	this._j._natural._cdrRate += amount;
+Game_Battler.prototype.modCtrRate = function(amount) {
+	this._j._natural._ctrRate += amount;
 };
 /**
 * Gets the base multiplier for this battler's critical hits.
@@ -840,11 +840,11 @@ Game_Battler.prototype.baseCriticalReduction = function() {
 * @returns {number} The CDR factor for this battler.
 */
 Game_Battler.prototype.criticalDamageReduction = function() {
-	const cdrBonuses = this.getCriticalDamageReduction();
-	const cdrNaturalBonuses = this.cdrNaturalBonuses();
-	const cdrSdpBonuses = this.critSdpBonuses(1, this.baseCriticalReduction());
-	const cdrFactor = (cdrBonuses + cdrNaturalBonuses + cdrSdpBonuses) / 100;
-	return cdrFactor;
+	const ctrBonuses = this.getCriticalDamageReduction();
+	const ctrNaturalBonuses = this.ctrNaturalBonuses();
+	const ctrSdpBonuses = this.critSdpBonuses(1, this.baseCriticalReduction());
+	const ctrFactor = (ctrBonuses + ctrNaturalBonuses + ctrSdpBonuses) / 100;
+	return ctrFactor;
 };
 /**
 * Gets the sum of all critical damage reductions from all notes.
@@ -852,42 +852,42 @@ Game_Battler.prototype.criticalDamageReduction = function() {
 */
 Game_Battler.prototype.getCriticalDamageReduction = function() {
 	const objectsToCheck = this.getAllNotes();
-	const cdrBonuses = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReduction);
-	return cdrBonuses;
+	const ctrBonuses = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReduction);
+	return ctrBonuses;
 };
 /**
-* Gets all natural bonuses for cdr, excluding the base cdr itself.
+* Gets all natural bonuses for ctr, excluding the base ctr itself.
 * @returns {number}
 */
-Game_Battler.prototype.cdrNaturalBonuses = function() {
+Game_Battler.prototype.ctrNaturalBonuses = function() {
 	if (!J.NATURAL) return 0;
-	const cdmBuffs = this.cdrNaturalBuffs();
-	const cdmGrowths = this.cdrNaturalGrowths();
-	return cdmBuffs + cdmGrowths;
+	const ctrBuffs = this.ctrNaturalBuffs();
+	const ctrGrowths = this.ctrNaturalGrowths();
+	return ctrBuffs + ctrGrowths;
 };
 /**
-* Calculates the buffs for critical damage reductions.
+* Calculates the buffs for critical taken rate.
 * @returns {number}
 */
-Game_Battler.prototype.cdrNaturalBuffs = function() {
+Game_Battler.prototype.ctrNaturalBuffs = function() {
 	const objectsToCheck = this.getAllNotes();
 	const baseParam = this.baseCriticalReduction();
-	const cdrBuffPlus = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReductionBuffPlus, baseParam, this);
-	const cdrBuffRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReductionBuffRate, baseParam, this);
-	if (!cdrBuffPlus && !cdrBuffRate) return 0;
-	const baseCdr = this.baseCriticalReduction();
-	return this.calculatePlusRate(baseCdr, cdrBuffPlus, cdrBuffRate);
+	const ctrBuffPlus = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritTakenRateBuffPlus, baseParam, this);
+	const ctrBuffRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritTakenRateBuffRate, baseParam, this);
+	if (!ctrBuffPlus && !ctrBuffRate) return 0;
+	const baseCtr = this.baseCriticalReduction();
+	return this.calculatePlusRate(baseCtr, ctrBuffPlus, ctrBuffRate);
 };
 /**
-* Calculates the growths associated with critical damage reductions.
+* Calculates the growths associated with critical taken rate.
 * @returns {number}
 */
-Game_Battler.prototype.cdrNaturalGrowths = function() {
-	const baseCdr = this.baseCriticalReduction();
-	const growthPlus = this.cdrPlus();
-	const growthRate = this.cdrRate();
+Game_Battler.prototype.ctrNaturalGrowths = function() {
+	const baseCtr = this.baseCriticalReduction();
+	const growthPlus = this.ctrPlus();
+	const growthRate = this.ctrRate();
 	if (!growthPlus && !growthRate) return 0;
-	return this.calculatePlusRate(baseCdr, growthPlus, growthRate);
+	return this.calculatePlusRate(baseCtr, growthPlus, growthRate);
 };
 
 //#endregion
@@ -905,11 +905,11 @@ Object.defineProperties(Game_BattlerBase.prototype, {
 		configurable: true
 	},
 	/**
-	* The battler's critical damage reduction.
+	* The battler's critical taken rate.
 	* Critical hit damage is reduced by this percent before being applied.
 	* @type {number}
 	*/
-	cdr: {
+	ctr: {
 		get: function() {
 			return this.criticalDamageReduction();
 		},
@@ -934,9 +934,9 @@ Game_BattlerBase.prototype.criticalDamageMultiplier = function() {
 	return 0;
 };
 /**
-* The base critical damage reduction.
-* A battler's critical damage reduction acts as the base crit reduction for all incoming
-* critical hits. The individual battler's `cdr` is added to this amount to calculate
+* The base critical taken rate.
+* A battler's critical taken rate acts as the base crit reduction for all incoming
+* critical hits. The individual battler's `ctr` is added to this amount to calculate
 * the damage a critical hit can potentially deal.
 * @returns {number} The base reduction for this battler.
 */

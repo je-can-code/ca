@@ -3,9 +3,11 @@
 > **Purpose:** Step-1 reference for the family → subgroup pass (masteries before panel rewrite).
 > Sources: [`archetype-mapping.md`](./archetype-mapping.md), [`implementation-status.md`](./implementation-status.md) tag cookbook.
 >
-> Last updated: **2026-06-19** — `insect-parasite` (Parasite) verified ✅. `<onSelfHpHealHp/MpHealMp/TpHealTp:[PCT, R, 1]>` splash chain playtested. HealEventManager: per-tag MAX_DEPTH third param + self-echo block. **Rate-param authoring rule:** LST/MST/TST panel rows must be `isFlat: true` with `perRank` in rate units (e.g. `0.0025` = +0.25% steal per rank) — NOT percent-scale values. **Last verified prefix: `PAR`**
+> Last updated: **2026-06-22** — `deity-devil` (Devil) authored ✅. Mastery: `<sdpMultiplier:X>` on states 1571–1580; Beginning +3/7/10% SDR, Middle +15/17/20/22/25/27% SDR, End +33% SDR + `<sdpBonusFormula:[a.getMasteryCount() * 0.01]>`. New hooks: `sdpBonusFormula` tag + `Game_Actor#getMasteryCount()` (maxed panel count). Popup fixed to show true post-formula amount. **Playtest pending (weapons redesign first). Last verified prefix: `ASP`**
 >
 > **Progress:** [Authoring progress](#authoring-progress-one-subgroup-at-a-time) — assistant updates when a subgroup pass is done.
+>
+> **Test SDP map:** Map ID **357** — flip subgroup here to playtest the current strip.
 
 ---
 
@@ -13,11 +15,11 @@
 
 > **Workflow:** author mastery rows (+ panels when ready) → tell the assistant the subgroup is done → table advances here.
 
-**36 / 48 verified** · **current:** Minotaur (`humanoid-minotaur`) · **Family 1 Undead, Family 2 Reptile, Family 3 Aquatic, Family 4 Slime, Family 5 Plant, Family 7 Insect complete**
+**Redesign complete** · Devil playtest pending · Sin authored per-boss (no sequential mastery pass) · All other families verified · Future work: tweaks, playtest retunes, Sin boss authoring
 
 > **Payload bands are per-database — Skills.json and States.json IDs are independent.**
-> **Skills.json bands:** 1001–1010 Reborn ward pulse · 1011–1020 Crab thorns · 1021–1030 Aerial aura pulse · 1031–1040 Quadruped pack aura · 1041–1050 Scorpion retaliation. Next free: **1051+**.
-> **States.json bands:** 1001–1010 Reborn ward · 1011–1020 Skeleton rage · 1021–1030 Snake venom · 1031–1040 Frog MAT stacks · 1041–1050 Cephalopod ink cloud · 1051–1060 Puddle elemental gel · 1061–1070 Cube slow (Gooped/Enmired/Subsumed) · 1071–1080 Beaker speed/evasion buff · 1081–1090 Quadruped pack DEF buff. Next free: **1091+**. *(Crawler uses no payload band — tags live directly on mastery states 1411–1420.)*
+> **Skills.json bands:** 1001–1010 Reborn ward pulse · 1011–1020 Crab thorns · 1021–1030 Aerial aura pulse · 1031–1040 Quadruped pack aura · 1041–1050 Scorpion retaliation · 1051–1060 Bot self-repair · 1061–1070 Orb shield-break explosion. Next free: **1071+**.
+> **States.json bands:** 1001–1010 Reborn ward · 1011–1020 Skeleton rage · 1021–1030 Snake venom · 1031–1040 Frog MAT stacks · 1041–1050 Cephalopod ink cloud · 1051–1060 Puddle elemental gel · 1061–1070 Cube slow (Gooped/Enmired/Subsumed) · 1071–1080 Beaker speed/evasion buff · 1081–1090 Quadruped pack DEF buff · 1091–1100 Minotaur momentum stacks. Next free: **1101+**. *(Crawler uses no payload band — tags live directly on mastery states 1411–1420.)*
 
 | # | Family | Subgroup | `subgroupKey` | Panels | Mastery IDs | Status |
 |---:|---|---|---|---|---|---|
@@ -56,19 +58,19 @@
 | 33 | Insect | Brood | `insect-brood` | `HIV_*` | 1421–1430 | ✅ Verified — `<extendStateType:poison>` + spread masteries; state extension shipped |
 | 34 | Insect | Scorpion | `insect-scorpion` | `JMP_*` | 1431–1440 | ✅ Verified — retaliation payloads **1041–1050**; capstone double-fires at 8-tile proximity |
 | 35 | Insect | Parasite | `insect-parasite` | `PAR_*` | 1441–1450 | ✅ Verified |
-| 36 | Humanoid | Minotaur | `humanoid-minotaur` | `BUL_*` | 1451–1460 | 🔄 Current |
-| 37 | Humanoid | Orc | `humanoid-orc` | `ORC_*` | 1461–1470 | 🔲 Todo |
-| 38 | Humanoid | Bandit | `humanoid-bandit` | `THF_*` | 1471–1480 | 🔲 Todo |
-| 39 | Humanoid | Cyclops | `humanoid-cyclops` | `WLK_*` | 1481–1490 | 🔲 Todo |
-| 40 | Humanoid | Kobold | `humanoid-kobold` | `CLN_*` | 1491–1500 | 🔲 Todo |
-| 41 | Construct | Titan | `construct-titan` | `GOL_*` | 1501–1510 | 🟡 Panels done — masteries needed |
-| 42 | Construct | Hazard | `construct-hazard` | `HAZ_*` | 1511–1520 | 🟡 Panels done — masteries needed |
-| 43 | Construct | Bot | `construct-bot` | `RBT_*` | 1521–1530 | 🟡 Panels done — masteries needed |
-| 44 | Construct | Puppet | `construct-puppet` | `HOM_*` | 1531–1540 | 🟡 Panels done — masteries needed |
-| 45 | Construct | Orb | `construct-orb` | `RUN_*` | 1541–1550 | 🟡 Panels done — masteries needed |
-| 46 | Deity | Elemental | `deity-elemental` | `ELE_*` | 1551–1560 | 🔲 Todo |
-| 47 | Deity | Emotion | `deity-emotion` | `ASP_*` | 1561–1570 | 🔲 Todo |
-| 48 | Deity | Devil | `deity-devil` | `SOV_*` | 1571–1580 | 🔲 Todo |
+| 36 | Humanoid | Minotaur | `humanoid-minotaur` | `BUL_*` | 1451–1460 | ✅ Verified — momentum payloads **1091–1100** |
+| 37 | Humanoid | Orc | `humanoid-orc` | `ORC_*` | 1461–1470 | ✅ Verified — CDR: +3/7/10/12/15/17/20/22/25/30% |
+| 38 | Humanoid | Bandit | `humanoid-bandit` | `THF_*` | 1471–1480 | ✅ Verified — Pocket Sand: stacking blind (state 18) 10/20/30/50/60/70/80/90/100/100% proc; tiers 4–10 add 5/10/15/20/25/30/50% EVA |
+| 39 | Humanoid | Cyclops | `humanoid-cyclops` | `WLK_*` | 1481–1490 | ✅ Verified — rooted resist→immunity (1–3); disarmed resist→immunity (4–9); knockback resist +50% (10) |
+| 40 | Humanoid | Kobold | `humanoid-kobold` | `CLN_*` | 1491–1500 | ✅ Verified |
+| 41 | Construct | Titan | `construct-titan` | `GOL_*` | 1501–1510 | ✅ Verified — `negativeStateCount` stacks ATK/MAT (×1.1→×3.0); PDR/MDR/FDR reduction (0.98→0.90); capstone `<lst:10>` per stack |
+| 42 | Construct | Hazard | `construct-hazard` | `HAZ_*` | 1511–1520 | ✅ Verified — `radiusRate` 1.05→1.50; `thicknessRate` 1.25→1.50 (tiers 4+); capstone adds `radiusBuff:0.5` + `thicknessBuff:0.5` |
+| 43 | Construct | Bot | `construct-bot` | `RBT_*` | 1521–1530 | ✅ Verified — self-repair payloads **1051–1060**; `autoExecuteSkill` every 5s; capstone + proficiency |
+| 44 | Construct | Puppet | `construct-puppet` | `HOM_*` | 1531–1540 | ✅ Verified — `<perDebuffBuff>` 3→33%; Attack State: Disabled @ 1–10% (tiers 4–10); capstone + Muted @ 10% |
+| 45 | Construct | Orb | `construct-orb` | `RUN_*` | 1541–1550 | ✅ Verified — `<shieldBreak:[SKILL_ID]>` tiers 1–3 radius 2 (`s*0.10–0.20`), tiers 4–9 radius 3 (`s*0.30–0.80`), tier 10 radius 4 (`(s*a.sar)*1.50`); payload skills 1061–1070 |
+| 46 | Deity | Elemental | `deity-elemental` | `ELE_*` | 1551–1560 | ✅ Verified — `<pierceElement:[ID, PCT]>` T1–3: 4 elements (4–7) 5/10/15%; T4–9: 6 elements (4–9) 25–50%; T10: 9 elements (1–9) 75% |
+| 47 | Deity | Emotion | `deity-emotion` | `ASP_*` | 1561–1570 | ✅ Verified — `<onAllyHpHealHp/Mp/Tp>` tiers 1–3 HP only radius 2 (5–15%), tiers 4–9 HP+MP radius 3 (25–50%), tier 10 HP+MP+TP radius 4 (50%) |
+| 48 | Deity | Devil | `deity-devil` | `SOV_*` | 1571–1580 | 🟠 Authored — playtest pending |
 | 49 | Deity | Sin | `deity-sin` | `SIN_*` | 1581–1590 | 🔲 Todo |
 | 50 | Deity | Sin Votary | `deity-sin-votary` | — | 1591–1600 | — (enemy decade only; no mastery pass) |
 

@@ -256,7 +256,7 @@ var Window_StatusParameters = class Window_StatusParameters extends Window_Base 
 			colorIndex: 26
 		},
 		mobility: {
-			title: "Mobility",
+			title: "Haste",
 			iconIndex: 82,
 			colorIndex: 20
 		},
@@ -1147,7 +1147,7 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	*/
 	resolveKind(parameterKey) {
 		if (parameterKey === "mtp") return Window_StatusStatBreakdown.KINDS.Mtp;
-		if (parameterKey === "cdm" || parameterKey === "cdr") return Window_StatusStatBreakdown.KINDS.Crit;
+		if (parameterKey === "cdm" || parameterKey === "ctr") return Window_StatusStatBreakdown.KINDS.Crit;
 		if (ParameterKeys.bparamId(parameterKey) >= 0) return Window_StatusStatBreakdown.KINDS.Base;
 		if (ParameterKeys.xparamId(parameterKey) >= 0) return Window_StatusStatBreakdown.KINDS.Ex;
 		if (ParameterKeys.sparamId(parameterKey) >= 0) return Window_StatusStatBreakdown.KINDS.Special;
@@ -1423,7 +1423,7 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	_gatherXparamCommon(actor, xId) {
 		const addActor = this.xparamAddFromTraits([actor.actor()], xId);
 		const addClass = this.xparamAddFromTraits([actor.currentClass()], xId);
-		const addEquips = this.xparamAddFromTraits(actor.equips().filter((e) => !!e), xId);
+		const addEquips = this.xparamAddFromTraits(actor.equips(), xId);
 		const addStates = this.xparamAddFromTraits(actor.states(), xId);
 		const natGrowthDelta = this.calcPlusRate(actor, 0, actor.xParamGrowthPlus(xId), actor.xParamGrowthRate(xId));
 		const totalWithSdp = actor.xparam(xId);
@@ -1594,9 +1594,9 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 			cursorY += this.lineHeight() + 6;
 		}
 		const notesSources = actor.getAllNotes();
-		const buffPlusRegex = isAmp ? J.CRIT.RegExp.CritDamageMultiplierBuffPlus : J.CRIT.RegExp.CritDamageReductionBuffPlus;
+		const buffPlusRegex = isAmp ? J.CRIT.RegExp.CritDamageMultiplierBuffPlus : J.CRIT.RegExp.CritTakenRateBuffPlus;
 		const buffPlusSum = RPGManager.getSumFromAllNotesByRegex(notesSources, buffPlusRegex);
-		const buffRateRegex = isAmp ? J.CRIT.RegExp.CritDamageMultiplierBuffRate : J.CRIT.RegExp.CritDamageReductionBuffRate;
+		const buffRateRegex = isAmp ? J.CRIT.RegExp.CritDamageMultiplierBuffRate : J.CRIT.RegExp.CritTakenRateBuffRate;
 		const buffRateSum = RPGManager.getSumFromAllNotesByRegex(notesSources, buffRateRegex);
 		const buffDelta = actor.calculatePlusRate(base, buffPlusSum, buffRateSum);
 		if (buffPlusSum !== 0 || buffRateSum !== 0 || buffDelta !== 0) {
@@ -1616,11 +1616,13 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		return cursorY + 10;
 	}
 	/**
-	* Draws a breakdown for custom long parameters that don’t fit the base/x/s/crit/mtp families.
+	* Draws a breakdown for custom long parameters that don't fit the base/x/s/crit/mtp families.
 	* Currently supported custom params:
 	* - 31: Move Speed Boost (MSB)
 	* - 32: Skill Proficiency Boost (SPB)
 	* - 33: SDP Multiplier Bonus (SMB)
+	* - 44: Cooldown Rate Reduction (CDR)
+	* - 45: Parry Extension Rate (PER)
 	* @param {Game_Actor} actor The actor whose stat is being explained.
 	* @param {string} parameterKey The registry key to render.
 	* @param {number} x The x coordinate to start drawing.
@@ -1629,19 +1631,17 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	* @returns {number} The next y position after finishing this section.
 	*/
 	drawCustomBreakdown(actor, parameterKey, x, y, w) {
-		if (parameterKey === "msb") {
-			return this._drawMsbBreakdown(actor, x, y, w);
+		switch (parameterKey) {
+			case "msb": return this._drawMsbBreakdown(actor, x, y, w);
+			case "prof": return this._drawSpbBreakdown(actor, x, y, w);
+			case "sdr": return this._drawSmbBreakdown(actor, x, y, w);
+			case "cdr": return this._drawCdrBreakdown(actor, x, y, w);
+			case "per": return this._drawPerBreakdown(actor, x, y, w);
+			default: return this.drawSectionWithRows(x, y, w, "Details", [{
+				key: "Info",
+				value: "No breakdown available for this custom stat."
+			}]);
 		}
-		if (parameterKey === "prof") {
-			return this._drawSpbBreakdown(actor, x, y, w);
-		}
-		if (parameterKey === "sdr") {
-			return this._drawSmbBreakdown(actor, x, y, w);
-		}
-		return this.drawSectionWithRows(x, y, w, "Details", [{
-			key: "Info",
-			value: "No breakdown available for this custom stat."
-		}]);
 	}
 	/**
 	* Builds SDP percent (k) and flat (c) coefficients for core params (incl. MTP=30),
@@ -1699,7 +1699,7 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Computes each core panel's exact delta against the pre‑SDP base.
-	* Floors percent pieces to match J.SDP’s behavior for core params.
+	* Floors percent pieces to match J.SDP's behavior for core params.
 	* Carries icon/rarity for rendering.
 	* @param {number} basePreSdp The pre-SDP base value.
 	* @param {Array} rows The rows from _sdpCoreCoefficients().
@@ -2053,8 +2053,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	* @returns {number} The next y position after finishing this section.
 	*/
 	_drawMsbBreakdown(actor, x, y, w) {
-		const equipTotal = (actor.equippedEquips() || []).filter((e) => !!e).reduce((n, e) => n + (e.jabsSpeedBoost | 0), 0);
-		const stateTotal = (actor.states() || []).filter((s) => !!s).reduce((n, s) => n + (s.jabsSpeedBoost | 0), 0);
+		const equipTotal = actor.equippedEquips().reduce((n, e) => n + (e.jabsSpeedBoost | 0), 0);
+		const stateTotal = actor.states().reduce((n, s) => n + (s.jabsSpeedBoost | 0), 0);
 		const total = equipTotal + stateTotal;
 		const rows = [];
 		rows.push({
@@ -2086,8 +2086,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	* @returns {number} The next y position after finishing this section.
 	*/
 	_drawSpbBreakdown(actor, x, y, w) {
-		const eq = RPGManager.getSumFromAllNotesByRegex(actor.equippedEquips().filter((e) => !!e), J.PROF.RegExp.ProficiencyBonus);
-		const st = RPGManager.getSumFromAllNotesByRegex(actor.states().filter((s) => !!s), J.PROF.RegExp.ProficiencyBonus);
+		const eq = RPGManager.getSumFromAllNotesByRegex(actor.equippedEquips(), J.PROF.RegExp.ProficiencyBonus);
+		const st = RPGManager.getSumFromAllNotesByRegex(actor.states(), J.PROF.RegExp.ProficiencyBonus);
 		const total = eq + st;
 		const rows = [];
 		rows.push({
@@ -2119,8 +2119,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	* @returns {number} The next y position after finishing this section.
 	*/
 	_drawSmbBreakdown(actor, x, y, w) {
-		const eqPct = RPGManager.getSumFromAllNotesByRegex(actor.equippedEquips().filter((e) => !!e), J.SDP.RegExp.SdpMultiplier);
-		const stPct = RPGManager.getSumFromAllNotesByRegex(actor.states().filter((s) => !!s), J.SDP.RegExp.SdpMultiplier);
+		const eqPct = RPGManager.getSumFromAllNotesByRegex(actor.equippedEquips(), J.SDP.RegExp.SdpMultiplier);
+		const stPct = RPGManager.getSumFromAllNotesByRegex(actor.states(), J.SDP.RegExp.SdpMultiplier);
 		const basePct = 100;
 		const totalPct = basePct + eqPct + stPct;
 		const formatFactor = (n) => {
@@ -2163,6 +2163,74 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 			value: formatFactor(totalFactor)
 		});
 		return this.drawSectionWithRows(x, y, w, "Sources (Equips/States)", rows);
+	}
+	/**
+	* Renders the breakdown for Cooldown Rate Reduction (CDR).
+	* Sources are any note-bearing objects that carry `<cdr:[FORMULA]>` tags.
+	* Values are signed percent-points (positive = GCD shortened, negative = lengthened).
+	* @param {Game_Actor} actor The actor whose stat is being explained.
+	* @param {number} x The x coordinate to start drawing.
+	* @param {number} y The y coordinate to start drawing.
+	* @param {number} w The width available to draw within.
+	* @returns {number} The next y position after finishing this section.
+	*/
+	_drawCdrBreakdown(actor, x, y, w) {
+		const regex = J.ABS.RegExp.GlobalCooldownReduction;
+		const stateTotal = RPGManager.getResultsFromAllNotesByRegex(actor.allStates(), regex, 0, actor);
+		const equipTotal = RPGManager.getResultsFromAllNotesByRegex(actor.equippedEquips(), regex, 0, actor);
+		const actorClassTotal = RPGManager.getResultsFromAllNotesByRegex([actor.databaseData(), actor.currentClass()], regex, 0, actor);
+		const total = stateTotal + equipTotal + actorClassTotal;
+		const rows = [];
+		rows.push({
+			key: "Baseline",
+			value: "0%"
+		});
+		if (stateTotal !== 0) rows.push({
+			key: "+ States",
+			value: `${stateTotal > 0 ? "+" : ""}${stateTotal}%`
+		});
+		if (equipTotal !== 0) rows.push({
+			key: "+ Equips",
+			value: `${equipTotal > 0 ? "+" : ""}${equipTotal}%`
+		});
+		if (actorClassTotal !== 0) rows.push({
+			key: "+ Actor/Class",
+			value: `${actorClassTotal > 0 ? "+" : ""}${actorClassTotal}%`
+		});
+		rows.push({
+			key: "= Total",
+			value: `${total}%`
+		});
+		return this.drawSectionWithRows(x, y, w, "Sources", rows);
+	}
+	_drawPerBreakdown(actor, x, y, w) {
+		const regex = J.ABS.RegExp.ParryExtensionRate;
+		const stateTotal = RPGManager.getResultsFromAllNotesByRegex(actor.allStates(), regex, 0, actor);
+		const equipTotal = RPGManager.getResultsFromAllNotesByRegex(actor.equippedEquips(), regex, 0, actor);
+		const actorClassTotal = RPGManager.getResultsFromAllNotesByRegex([actor.databaseData(), actor.currentClass()], regex, 0, actor);
+		const total = stateTotal + equipTotal + actorClassTotal;
+		const rows = [];
+		rows.push({
+			key: "Baseline",
+			value: "0%"
+		});
+		if (stateTotal !== 0) rows.push({
+			key: "+ States",
+			value: `${stateTotal > 0 ? "+" : ""}${stateTotal}%`
+		});
+		if (equipTotal !== 0) rows.push({
+			key: "+ Equips",
+			value: `${equipTotal > 0 ? "+" : ""}${equipTotal}%`
+		});
+		if (actorClassTotal !== 0) rows.push({
+			key: "+ Actor/Class",
+			value: `${actorClassTotal > 0 ? "+" : ""}${actorClassTotal}%`
+		});
+		rows.push({
+			key: "= Total",
+			value: `${total}%`
+		});
+		return this.drawSectionWithRows(x, y, w, "Sources", rows);
 	}
 	/**
 	* Calculates the amount to add to a parameter.

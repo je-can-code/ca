@@ -192,6 +192,92 @@
  * The caster has a 40% chance of fully removing state id 11 from the target when the
  * skill successfully hits that target.
  * ============================================================================
+ * ON-HIT APPLY STATE (SKILL-SCOPED):
+ * Have you ever wanted a specific skill to apply a state to its target with a
+ * custom duration or stack count, rather than whatever the state's defaults are?
+ * Well now you can! By applying the appropriate tag directly to the skill, you
+ * can author exactly how long or how many stacks a state lands with on a
+ * per-skill basis.
+ *
+ * NOTE 1:
+ * CHANCE is an integer between 0 and 100. Target state resistances are still
+ * respected — if the target cannot receive the state, it will not be applied
+ * regardless of the chance roll.
+ *
+ * NOTE 2:
+ * DURATION is in frames (60 frames = 1 second at 60fps). It replaces the state's
+ * own jabsStateDurationFrames value as the BASE duration. Attacker duration-boost
+ * tags (stateDurationFlat, stateDurationPerc, stateDurationFormula) still apply
+ * on top of this overridden base, so passive gear and traits remain relevant.
+ *
+ * NOTE 3:
+ * DURATION and STACKS are both optional. Omitting DURATION uses the state's own
+ * default duration. Omitting STACKS uses the state's own default stack count.
+ *
+ * NOTE 4:
+ * A skill may carry multiple <thisApplyState> tags to apply different states on
+ * the same hit. Each entry is evaluated independently.
+ *
+ * NOTE 5:
+ * If both <thisApplyState> and <applyState> target the same state id on the same
+ * hit, <thisApplyState> fires last and wins.
+ *
+ * TAG USAGE:
+ * - Skills only.
+ *
+ * TAG FORMAT:
+ *  <thisApplyState:[STATE_ID, CHANCE]>
+ *  <thisApplyState:[STATE_ID, CHANCE, DURATION]>
+ *  <thisApplyState:[STATE_ID, CHANCE, DURATION, STACKS]>
+ * Where STATE_ID is the id of the state to apply to the target.
+ * Where CHANCE is the percent chance between 0 and 100 that it triggers.
+ * Where DURATION is the duration in frames; omit to use the state's default.
+ * Where STACKS is the starting stack count; omit to use the state's default.
+ *
+ * TAG EXAMPLES:
+ *  <thisApplyState:[8, 100, 240]>
+ * On hit, always apply state id 8 for 240 frames (4 seconds at 60fps).
+ *
+ *  <thisApplyState:[8, 25]>
+ * On hit, 25% chance to apply state id 8 using the state's own default duration.
+ *
+ *  <thisApplyState:[8, 50, 120, 2]>
+ * On hit, 50% chance to apply state id 8 for 120 frames with 2 starting stacks.
+ * ============================================================================
+ * ON-HIT APPLY STATE (CASTER-WIDE):
+ * Have you ever wanted a passive state, equipped item, or actor data to make
+ * your attacks apply a state with custom duration or stacks on every hit?
+ * Well now you can! The caster-wide variant reads from all of the attacker's
+ * notes, so it can live anywhere — a poisoned-blade state, a cursed accessory,
+ * or a base actor trait — and will fire whenever that battler lands a hit.
+ *
+ * NOTE 1:
+ * All notes from the same section above apply here as well (CHANCE, DURATION,
+ * STACKS behavior, resistances, etc.).
+ *
+ * NOTE 2:
+ * If both <applyState> and <thisApplyState> target the same state id on the same
+ * hit, <thisApplyState> fires last and wins.
+ *
+ * TAG USAGE:
+ * - Skills, states, weapons, armors, actors, enemies, classes.
+ *
+ * TAG FORMAT:
+ *  <applyState:[STATE_ID, CHANCE]>
+ *  <applyState:[STATE_ID, CHANCE, DURATION]>
+ *  <applyState:[STATE_ID, CHANCE, DURATION, STACKS]>
+ * Where STATE_ID is the id of the state to apply to the target.
+ * Where CHANCE is the percent chance between 0 and 100 that it triggers.
+ * Where DURATION is the duration in frames; omit to use the state's default.
+ * Where STACKS is the starting stack count; omit to use the state's default.
+ *
+ * TAG EXAMPLES:
+ *  <applyState:[12, 100, 600]>
+ * On every hit, always apply state id 12 for 600 frames (10 seconds at 60fps).
+ *
+ *  <applyState:[12, 30]>
+ * On every hit, 30% chance to apply state id 12 with the state's default duration.
+ * ============================================================================
  * CHANGELOG:
  * - 1.4.1
  *    Fixed Game_Actor#hasSkill to compare by skill id rather than object reference.
@@ -444,6 +530,49 @@ J.EXTEND.RegExp.OnCastStripState = /<onCastStripState:[ ]?(\[\d+,[ ]?\d+])>/i;
 * @type {RegExp}
 */
 J.EXTEND.RegExp.OnCastRemoveState = /<onCastRemoveState:[ ]?(\[\d+,[ ]?\d+])>/i;
+/**
+* The structure of a skill-scoped on-hit apply-state tag with optional duration and stack overrides.
+* Reads from the executing skill only ({@code this.item()}).
+*
+* <pre>
+* Structure:
+*  <thisApplyState:[STATE_ID, CHANCE]>
+*  <thisApplyState:[STATE_ID, CHANCE, DURATION]>
+*  <thisApplyState:[STATE_ID, CHANCE, DURATION, STACKS]>
+*
+* Example (duration override only):
+*  <thisApplyState:[8, 25, 240]>
+*
+* Translation:
+*  On hit, 25% chance to apply state id 8 for 240 frames (4 seconds at 60fps).
+*  When DURATION is omitted, the state's own jabsStateDurationFrames value is used.
+*  When STACKS is omitted, the state's own jabsStateStacksApplied value is used.
+* </pre>
+* @type {RegExp}
+*/
+J.EXTEND.RegExp.ThisApplyState = /<thisApplyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+){0,2}])>/gi;
+/**
+* The structure of a caster-wide on-hit apply-state tag with optional duration and stack overrides.
+* Reads from all of the caster's notes ({@code getAllNotes()}), so it can live on states, equips,
+* actor data, or skills — wherever the caster's notes are sourced from.
+*
+* <pre>
+* Structure:
+*  <applyState:[STATE_ID, CHANCE]>
+*  <applyState:[STATE_ID, CHANCE, DURATION]>
+*  <applyState:[STATE_ID, CHANCE, DURATION, STACKS]>
+*
+* Example (passive state that applies poison for 10 seconds on hit):
+*  <applyState:[12, 100, 600]>
+*
+* Translation:
+*  On hit, always apply state id 12 for 600 frames (10 seconds at 60fps).
+*  When DURATION is omitted, the state's own jabsStateDurationFrames value is used.
+*  When STACKS is omitted, the state's own jabsStateStacksApplied value is used.
+* </pre>
+* @type {RegExp}
+*/
+J.EXTEND.RegExp.ApplyState = /<applyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+){0,2}])>/gi;
 
 //#endregion
 //#region src/plugins/extend/core/managers/OverlayManager.js
@@ -1312,6 +1441,7 @@ Game_Action.prototype.applyOnHitStateEffects = function(target) {
 	if (this.canApplyOnHitStateEffects(target) === false) return;
 	this.applyOnHitSelfStates();
 	this.applyOnHitLoseStates();
+	this.applyOnHitApplyStates(target);
 	this.applyOnHitStripStates(target);
 	this.applyOnHitRemoveStates(target);
 };
@@ -1386,6 +1516,30 @@ Game_Action.prototype.onHitRemoveStates = function() {
 	const sources = this.reactiveStateSources();
 	const stateChances = RPGManager.getOnChanceEffectsFromDatabaseObjects(sources, J.EXTEND.RegExp.OnHitRemoveState);
 	return stateChances;
+};
+/**
+* Applies all on-hit apply-states to the target, drawing from two sources:
+* the executing skill ({@code <thisApplyState>}) and the caster's full notes
+* ({@code <applyState>}). Caster-wide entries fire first; skill-scoped entries
+* fire second and win on any same-state conflict via force-replace semantics.
+*
+* Each entry is evaluated independently: the chance is rolled, and on success a
+* {@link JABS_StateOverrides} is constructed and passed to
+* {@link Game_Battler#addStateWithOverrides}.
+* Target state resistance is still respected inside {@link Game_Battler#handleAddingJabsState}.
+* @param {Game_Actor|Game_Enemy} target The target being hit with the action.
+*/
+Game_Action.prototype.applyOnHitApplyStates = function(target) {
+	const casterEntries = RPGManager.getAllCapturesFromAllNotesByRegex(this.subject().getAllNotes(), J.EXTEND.RegExp.ApplyState);
+	const skillEntries = RPGManager.getArraysFromNotesByRegex(this.item(), J.EXTEND.RegExp.ThisApplyState);
+	const allEntries = [...casterEntries, ...skillEntries];
+	if (!allEntries.length) return;
+	const attacker = this.subject();
+	allEntries.forEach(([stateId, chance, duration = null, stacks = null]) => {
+		if (!RPGManager.chanceIn100(chance)) return;
+		const overrides = new JABS_StateOverrides(duration, stacks);
+		target.addStateWithOverrides(stateId, attacker, overrides);
+	});
 };
 /**
 * Extends {@link #applyItemUserEffect}.<br/>

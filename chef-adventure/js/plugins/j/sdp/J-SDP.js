@@ -196,6 +196,44 @@
  * will now gain 50% increased SDP points (80 - 30 = 50).
  *
  * ============================================================================
+ * SDP BONUS FORMULA:
+ * Need to scale the SDP points an actor gains from a JS formula rather than
+ * a flat percentage? Apply the sdpBonusFormula tag to any valid notetag source.
+ * The formula is evaluated after the sdpMultiplier (SDR) step and its result
+ * is treated as a bonus fraction — so a result of 0.20 means +20% more points.
+ * Multiple tags across different sources sum their bonus fractions together
+ * before the final multiply, consistent with how other formula tags work here.
+ *
+ * Formula context:
+ *   a = the actor gaining SDP points
+ *   b = 0 (unused; present for formula consistency)
+ *   v = $gameVariables._data
+ *
+ * Useful formula helpers:
+ *   a.getMasteryCount()   — number of subgroups the actor has currently mastered
+ *   a.level               — actor level
+ *   a.getTotalSdpRanks()  — sum of all ranked panel investments
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - States
+ *
+ * TAG FORMAT:
+ *  <sdpBonusFormula:[FORMULA]>
+ *
+ * TAG EXAMPLES:
+ *  <sdpBonusFormula:[a.getMasteryCount() * 0.01]>
+ * An actor with 20 mastered subgroups gains an extra 20% SDP points on top of
+ * whatever the sdpMultiplier (SDR) already provided.
+ *
+ *  <sdpBonusFormula:[a.level * 0.005]>
+ * An actor at level 50 gains an extra 25% SDP points from this source.
+ *
+ * ============================================================================
  * CHANGELOG:
  * - 3.0.0
  *    BREAKING: Rank-up cost spine is defined per **rarity** in plugin parameters; each panel’s `baseCost`,
@@ -2430,6 +2468,7 @@ J.SDP.Aliased = {
 J.SDP.RegExp = {
 	SdpPoints: /<sdpPoints: ?-?([0-9]+)>/i,
 	SdpMultiplier: /<sdpMultiplier: ?([-.\d]+)>/i,
+	SdpBonusFormula: /<sdpBonusFormula:\[(.+?)]>/i,
 	SdpDropData: /<sdpDropData: ?(\[[-\w]+,[ ]?\d+])>/i,
 	SdpUnlockKey: /<sdpUnlock: ?(.+)>/i
 };
@@ -2614,6 +2653,13 @@ Game_Actor.prototype.getTotalSdpRanks = function() {
 	return this.getAllSdpRankings().reduce((total, panelRanking) => total + panelRanking.currentRank, 0);
 };
 /**
+* The number of panels this actor has reached max rank on.
+* @returns {number}
+*/
+Game_Actor.prototype.getMasteryCount = function() {
+	return this.getAllSdpRankings().filter((panelRanking) => panelRanking.isPanelMaxed() === true).length;
+};
+/**
 * Gets all unlocked panels for this actor.
 * @returns {PanelRanking[]}
 */
@@ -2700,12 +2746,17 @@ Game_Actor.prototype.modSdpPoints = function(points) {
 	let gainedSdpPoints = points;
 	if (gainedSdpPoints > 0) {
 		gainedSdpPoints = Math.round(gainedSdpPoints * this.sdpMultiplier);
+		const formulaBonus = RPGManager.getResultsFromAllNotesByRegex(this.getAllNotes(), J.SDP.RegExp.SdpBonusFormula, 0, this);
+		if (formulaBonus !== 0) {
+			gainedSdpPoints = Math.round(gainedSdpPoints * (1 + formulaBonus));
+		}
 		this.modAccumulatedTotalSdpPoints(gainedSdpPoints);
 	}
 	this._j._sdp._points += gainedSdpPoints;
 	if (this._j._sdp._points < 0) {
 		this._j._sdp._points = 0;
 	}
+	return gainedSdpPoints;
 };
 /**
 * SDP points multiplier for this actor.
@@ -3343,10 +3394,12 @@ if (J.ABS) {
 	*/
 	JABS_Engine.prototype.gainSdpReward = function(sdpPoints, actor) {
 		if (!sdpPoints) return;
-		$gameParty.members().forEach((member) => member.modSdpPoints(sdpPoints));
 		const battler = actor.getBattler();
-		const { sdpMultiplier } = battler;
-		const multipliedSdpPoints = Math.round(sdpMultiplier * sdpPoints);
+		let multipliedSdpPoints = 0;
+		$gameParty.members().forEach((member) => {
+			const gained = member.modSdpPoints(sdpPoints);
+			if (member === battler) multipliedSdpPoints = gained;
+		});
 		this.onSdpRewardGranted(multipliedSdpPoints, actor.getCharacter());
 	};
 	/**
