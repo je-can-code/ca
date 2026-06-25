@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 TOOLS] Enable new tool-like tags for use with skills.
+ * [v1.1.0 TOOLS] Enable new tool-like tags for use with skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -47,35 +47,38 @@
  * - States
  *
  * TAG FORMAT:
- *  <gapClose>
+ *  <gapClose:key>
  * This tag is required on skills that you want to be "gap closing skills".
+ * The key must match the key on the target for gap closing to occur.
  *
- *  <gapCloseTarget>
+ *  <gapCloseTarget:key>
  * This tag is required on the things you want to be "gap closable", such as
  * enemies or on events representing enemies. This tag can also be applied to
  * things that a battler can be affected by, such as equipment or states.
+ * The key must match the key on the skill for gap closing to occur.
  *
- * GAP CLOSE TARGET vs PLUGIN PARAMETER "Gap Close Default":
- * The <gapCloseTarget> tag is not required if you enable flip the plugin
- * parameter of "Gap Close Default" to true. Anything you hit while that is
- * true will result in gap closing if the skill permits.
+ * KEYS:
+ * Keys are arbitrary strings (word characters only). They act as a namespace
+ * so that different gap-close mechanics cannot accidentally cross-trigger.
+ * For example, a hookshot skill with <gapClose:hookshot> will never warp the
+ * player to an enemy bearing <gapCloseTarget:pierce>, and vice versa.
  *
  * EXAMPLE:
- *  <gapClose> on skill ID 25.
- *  <gapCloseTarget> on enemy ID 33.
- * Using skill 25 against enemy 33 will pull the player to the enemy.
+ *  <gapClose:hookshot> on skill ID 25.
+ *  <gapCloseTarget:hookshot> on an event representing a grapple anchor.
+ * Using skill 25 against that event will pull the player to it.
  *
- *  <gapClose> on skill ID 25.
- *  <gapCloseTarget> on state ID 4.
- * An enemy afflicts the player/battler with state 4.
- * If the enemy then used skill 25 against the player with the state, they
- * would be pulled to the player.
- *
- *  <gapClose> on skill ID 25.
- *  <gapCloseTarget> on some event that is an inanimate battler.
- * Using skill 25 against the event will pull the player to the event.
+ *  <gapClose:pierce> on skill ID 34 (spear pin).
+ *  <gapCloseTarget:pierce> on state ID 4 (pinned state).
+ * An enemy hit by skill 34 receives state 4.
+ * Using skill 34 again against that pinned enemy will pull the player to it.
+ * Hookshot anchors are unaffected because their key does not match.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Gap close tags now require a key: <gapClose:key> / <gapCloseTarget:key>.
+ *    Keys must match for gap closing to occur — no cross-mechanic bypass.
+ *    Removed canGapCloseByDefault plugin parameter.
  * - 1.0.3
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.2
@@ -85,12 +88,6 @@
  * - 1.0.0
  *    Initial release.
  * ============================================================================
- * @param canGapCloseByDefault
- * @type boolean
- * @text Gap Close Default
- * @desc True if you can gap close to anything hittable, false if only specific targets.
- * @default false
- *
  * @param grabThrowConfigs
  * @text GRAB AND THROW DEFAULTS
  *
@@ -130,11 +127,6 @@ var J_ToolsPluginMetadata = class extends PluginMetadata {
 	* Initializes the metadata associated with this plugin.
 	*/
 	initializeMetadata() {
-		/**
-		* The behavior for whether or not the player can gap close to anything they hit, or if they
-		* can only gap close to targets bearing the "gap close target" tag.
-		*/
-		this.CanGapCloseByDefault = this.parsedPluginParameters["canGapCloseByDefault"] === "true";
 		/**
 		* Whether or not grab and throw functionality is enabled globally by default.
 		* @type {boolean}
@@ -188,10 +180,12 @@ J.ABS.EXT.TOOLS.Aliased = {
 * All regular expressions used by this plugin.
 */
 J.ABS.EXT.TOOLS.RegExp = {
-	GapClose: /<gapClose>/i,
-	GapCloseTarget: /<gapCloseTarget>/i,
+	GapClose: /<gapClose:(\w+)>/i,
+	GapCloseTarget: /<gapCloseTarget:(\w+)>/i,
 	GapCloseMode: /<gapCloseMode:(blink|jump|travel)>/i,
 	GapClosePosition: /<gapClosePosition:(infront|behind|same)>/i,
+	GapCloseEndThis: /<thisOnGapCloseEnd:[ ]?(\[[\d, ]+])>/i,
+	GapCloseEnd: /<onGapCloseEnd:[ ]?(\[[\d, ]+])>/i,
 	BlockGapClose: /<blockGapClose>/i
 };
 /**
@@ -258,6 +252,12 @@ JABS_Battler.prototype.initGeneralInfo = function() {
 	* @type {[number, number]}
 	*/
 	this._gapCloseDestination = [0, 0];
+	/**
+	* The ID of the skill that initiated the current gap close.
+	* Used at landing to read <thisOnGapCloseEnd> from that skill.
+	* @type {number}
+	*/
+	this._gapCloseSourceSkillId = 0;
 };
 /**
 * Begins the process of gap closing.
@@ -324,6 +324,7 @@ JABS_Battler.prototype.updateGapClosing = function() {
 		if (this.hasGapCloseDestination()) {
 			if (this.hasReachedGapCloseDestination()) {
 				this.clearGapCloseDestination();
+				this.onGapCloseFinished();
 				this.endGapClosing();
 			}
 		} else {
@@ -333,19 +334,19 @@ JABS_Battler.prototype.updateGapClosing = function() {
 	}
 };
 /**
-* Determines whether or not this battler can be gap closed to.
-* @returns {boolean} True if the battler can be gap closed to, false otherwise.
+* Gets the gap close target key for this battler, or null if it cannot be gap closed to.
+* Checks the underlying battler's notes first, then the character's event comments if applicable.
+* @returns {string|null} The gap close target key, or null if not present.
 */
 JABS_Battler.prototype.isGapClosable = function() {
 	const battler = this.getBattler();
-	const battlerGapClosable = battler.isGapClosable();
-	let characterGapClosable = false;
+	const battlerKey = battler.gapCloseKey();
+	if (battlerKey !== null) return battlerKey;
 	if (this.isEvent()) {
 		const character = this.getCharacter();
-		characterGapClosable = character.isGapClosable();
+		return character.gapCloseKey();
 	}
-	if (battlerGapClosable || characterGapClosable) return true;
-	return false;
+	return null;
 };
 /**
 * Executes a gap close to the target based on the provided action.
@@ -355,10 +356,11 @@ JABS_Battler.prototype.isGapClosable = function() {
 JABS_Battler.prototype.gapCloseToTarget = function(action, target) {
 	if (this.isGapClosing()) return;
 	this.beginGapClosing();
-	this.setGapCloseDestination([target.getX(), target.getY()]);
+	this._gapCloseSourceSkillId = action.getBaseSkill().id;
 	let { jabsGapCloseMode, jabsGapClosePosition } = action.getBaseSkill();
 	jabsGapClosePosition ??= J.ABS.EXT.TOOLS.GapClosePositions.Same;
 	const [x, y] = this.determineGapCloseCoordinates(target, jabsGapClosePosition);
+	this.setGapCloseDestination([this.getX() + x, this.getY() + y]);
 	jabsGapCloseMode ??= J.ABS.EXT.TOOLS.GapCloseModes.Jump;
 	const casterCharacter = this.getCharacter();
 	switch (jabsGapCloseMode) {
@@ -374,22 +376,49 @@ JABS_Battler.prototype.gapCloseToTarget = function(action, target) {
 	}
 };
 /**
-* Determines where the precise coordinates are that we're attempting to gap close to.
-* Note that this doesn't return the x:y of the target, it returns the delta so that
-* @param {JABS_Battler} target The target having the action applied against.
-* @param {J.ABS.EXT.TOOLS.GapCloseModes} position The position post-gap-closing.
-* @returns {[x: number, y: number]}
+* Fires when this battler has arrived at its gap close destination.
+* Executes all skills collected by {@link resolveGapCloseEndSkillIds} as forced map actions.
+*/
+JABS_Battler.prototype.onGapCloseFinished = function() {
+	const skillIds = this.resolveGapCloseEndSkillIds();
+	if (skillIds.length === 0) return;
+	skillIds.forEach((id) => $jabsEngine.forceMapAction(this, id));
+};
+/**
+* Collects all skill IDs that should fire when this battler's gap close lands.
+* Merges IDs from <thisOnGapCloseEnd> on the initiating skill with IDs from
+* <onGapCloseEnd> across all of the caster's note sources.
+* @returns {number[]} The merged list of skill IDs to execute on landing.
+*/
+JABS_Battler.prototype.resolveGapCloseEndSkillIds = function() {
+	const sourceSkill = $dataSkills[this._gapCloseSourceSkillId];
+	const thisIds = sourceSkill ? sourceSkill.jabsThisOnGapCloseEnd : [];
+	const battlerIds = this.getBattler().gapCloseEndSkillIds();
+	return [...thisIds, ...battlerIds];
+};
+/**
+* Determines the jump delta coordinates for the gap close based on the desired landing position.
+* Returns a delta (not absolute coordinates) suitable for passing to {@link Game_Character.jump}.
+* Axis convention: +X = right, -X = left, +Y = down, -Y = up.
+* @param {JABS_Battler} target The target being gap closed to.
+* @param {J.ABS.EXT.TOOLS.GapClosePositions} position The desired landing position relative to the target.
+* @returns {[number, number]} The [dx, dy] delta to jump.
 */
 JABS_Battler.prototype.determineGapCloseCoordinates = function(target, position) {
 	const targetCharacter = target.getCharacter();
 	const [x, y] = [this.getX(), this.getY()];
 	const goalX = targetCharacter.deltaXFrom(x);
 	const goalY = targetCharacter.deltaYFrom(y);
-	if (position === J.ABS.EXT.TOOLS.GapClosePositions.Behind) {
-		return [goalX, goalY];
-	}
+	const magnitude = Math.sqrt(goalX * goalX + goalY * goalY);
+	const unitX = magnitude > 0 ? goalX / magnitude : 0;
+	const unitY = magnitude > 0 ? goalY / magnitude : 0;
+	const casterCharacter = this.getCharacter();
+	const edgeOffset = targetCharacter.getEffectiveRadius() + casterCharacter.getEffectiveRadius() + .05;
 	if (position === J.ABS.EXT.TOOLS.GapClosePositions.Infront) {
-		return [goalX, goalY];
+		return [goalX - unitX * edgeOffset, goalY - unitY * edgeOffset];
+	}
+	if (position === J.ABS.EXT.TOOLS.GapClosePositions.Behind) {
+		return [goalX + unitX * edgeOffset, goalY + unitY * edgeOffset];
 	}
 	return [goalX, goalY];
 };
@@ -423,12 +452,12 @@ JABS_Battler.gapCloseWiggleRoom = function() {
 //#endregion
 //#region src/plugins/abs/ext/tools/database/RPG_Skill.js
 /**
-* Whether or not this skill is designed to gap close.
-* Gap-closing will pull the player to wherever the skill connected.
-* @type {boolean}
+* The gap close key for this skill, or null if this skill does not gap close.
+* A skill gap closes only when its key matches the target's gap close target key.
+* @type {string|null}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsGapClose", { get: function() {
-	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapClose);
+	return RPGManager.getStringFromNoteByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapClose, true);
 } });
 /**
 * The type of gap close mode this skill uses.
@@ -445,6 +474,14 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGapCloseMode", { get: function()
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsGapClosePosition", { get: function() {
 	return RPGManager.getStringFromNoteByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapClosePosition, true);
+} });
+/**
+* The skill IDs to force-execute when this skill's gap close lands, sourced only from this skill's note.
+* Returns an empty array if the tag is absent.
+* @type {number[]}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsThisOnGapCloseEnd", { get: function() {
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapCloseEndThis, true) ?? [];
 } });
 
 //#endregion
@@ -466,26 +503,47 @@ JABS_Engine.prototype.handleGapClose = function(action, target) {
 };
 /**
 * Determine whether or not the target can be gap closed to.
+* Both the skill and the target must carry matching gap close keys for this to succeed.
 * @param {JABS_Action} action The JABS action containing the action data.
 * @param {JABS_Battler} target The target having the action applied against.
-* @returns {boolean} True if the target can be gap closed to, false otherwise.
+* @returns {boolean} True if the skill and target keys match, false otherwise.
 */
 JABS_Engine.prototype.canGapClose = function(action, target) {
-	const skill = action.getBaseSkill();
-	if (!skill.jabsGapClose) return false;
-	if (J.ABS.EXT.TOOLS.Metadata.CanGapCloseByDefault) return true;
-	if (!target.isGapClosable(action, target)) return false;
+	const skillKey = action.getBaseSkill().jabsGapClose;
+	if (skillKey === null) return false;
+	const targetKey = target.isGapClosable();
+	if (targetKey === null) return false;
+	if (skillKey !== targetKey) return false;
 	return true;
 };
 
 //#endregion
 //#region src/plugins/abs/ext/tools/objects/Game_Battler.js
 /**
-* Determines whether or not this battler is a gap close target.
-* @returns {boolean} True if this battler is a gap close target, false otherwise.
+* Gets the gap close target key from this battler's notes, or null if not a gap close target.
+* Searches all note sources (actor/enemy, equipment, states) and returns the first key found.
+* @returns {string|null} The gap close target key, or null if not present.
 */
-Game_Battler.prototype.isGapClosable = function() {
-	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.EXT.TOOLS.RegExp.GapCloseTarget);
+Game_Battler.prototype.gapCloseKey = function() {
+	for (const note of this.getAllNotes()) {
+		const key = RPGManager.getStringFromNoteByRegex(note, J.ABS.EXT.TOOLS.RegExp.GapCloseTarget, true);
+		if (key !== null) return key;
+	}
+	return null;
+};
+/**
+* Collects all skill IDs from the <onGapCloseEnd> tag across all of this battler's note sources.
+* Unlike {@link jabsThisOnGapCloseEnd}, this aggregates across actor/enemy, equipment, and states.
+* @returns {number[]} All gap-close-end skill IDs sourced from notes, or an empty array if none.
+*/
+Game_Battler.prototype.gapCloseEndSkillIds = function() {
+	const ids = [];
+	for (const note of this.getAllNotes()) {
+		const found = RPGManager.getArrayFromNotesByRegex(note, J.ABS.EXT.TOOLS.RegExp.GapCloseEnd, true, true);
+		if (found === null) continue;
+		ids.push(...found);
+	}
+	return ids;
 };
 
 //#endregion
@@ -528,18 +586,18 @@ Game_CharacterBase.prototype.initToolsMembers = function() {
 //#endregion
 //#region src/plugins/abs/ext/tools/objects/Game_Event.js
 /**
-* Determines whether or not this event has any gap close target overrides.
-* @returns {boolean} True if this event has a gap close override, false otherwise.
+* Gets the gap close target key from this event's comment commands, or null if not a gap close target.
+* @returns {string|null} The gap close target key, or null if not present.
 */
-Game_Event.prototype.isGapClosable = function() {
-	let gapCloseTarget = false;
+Game_Event.prototype.gapCloseKey = function() {
+	let foundKey = null;
 	this.getValidCommentCommands().forEach((command) => {
 		const [comment] = command.parameters;
-		if (J.ABS.EXT.TOOLS.RegExp.GapCloseTarget.test(comment)) {
-			gapCloseTarget = true;
-		}
+		const result = J.ABS.EXT.TOOLS.RegExp.GapCloseTarget.exec(comment);
+		if (!result) return;
+		[, foundKey] = result;
 	});
-	return gapCloseTarget;
+	return foundKey;
 };
 
 //#endregion

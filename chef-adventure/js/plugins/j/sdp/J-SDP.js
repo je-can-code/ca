@@ -675,7 +675,7 @@ var PanelMastery = class PanelMastery {
 	*/
 	static fromConfigPanel(parsedPanel) {
 		const nested = parsedPanel.mastery;
-		if (nested && typeof nested === "object") {
+		if (nested) {
 			return PanelMastery.fromFlat(nested.subgroupKey ?? String.empty, PanelMastery.#parseIntField(nested.subgroupTier, 0), PanelMastery.#parseIntField(nested.masterySkillId, 0));
 		}
 		return PanelMastery.fromFlat(parsedPanel.subgroupKey ?? String.empty, PanelMastery.#parseIntField(parsedPanel.subgroupTier, 0), PanelMastery.#parseIntField(parsedPanel.masterySkillId, 0));
@@ -835,7 +835,7 @@ var PanelIdentity = class PanelIdentity {
 	*/
 	static fromConfigPanel(parsedPanel) {
 		const nested = parsedPanel.identity;
-		if (nested && typeof nested === "object") {
+		if (nested) {
 			return new PanelIdentity(nested.name ?? String.empty, PanelIdentity.#parseIntField(nested.iconIndex, 0), nested.unlockedByDefault === true, nested.description ?? String.empty, nested.topFlavorText ?? String.empty);
 		}
 		return new PanelIdentity(parsedPanel.name ?? String.empty, PanelIdentity.#parseIntField(parsedPanel.iconIndex, 0), parsedPanel.unlockedByDefault === true, parsedPanel.description ?? String.empty, parsedPanel.topFlavorText ?? String.empty);
@@ -932,7 +932,7 @@ var PanelProgression = class PanelProgression {
 	*/
 	static fromConfigPanel(parsedPanel) {
 		const nested = parsedPanel.progression;
-		if (nested && typeof nested === "object") {
+		if (nested) {
 			return new PanelProgression(PanelProgression.#parseIntField(nested.maxRank, 1), PanelRarity.normalizeRarityFromJson(nested.rarity), PanelProgression.#parseIntField(nested.baseCost, 0), PanelProgression.#parseIntField(nested.flatGrowthCost, 0), PanelProgression.#parseFloatField(nested.multGrowthCost, 1));
 		}
 		return new PanelProgression(PanelProgression.#parseIntField(parsedPanel.maxRank, 1), PanelRarity.normalizeRarityFromJson(parsedPanel.rarity), PanelProgression.#parseIntField(parsedPanel.baseCost, 0), PanelProgression.#parseIntField(parsedPanel.flatGrowthCost, 0), PanelProgression.#parseFloatField(parsedPanel.multGrowthCost, 1));
@@ -1415,48 +1415,24 @@ var PanelRarity = class PanelRarity {
 		}
 	}
 	/**
-	* Coerces parsed JSON into {@link PanelRarity.RARITY_COMMON} .. {@link PanelRarity.RARITY_GODLIKE}.
+	* Coerces a numeric rarity value from config.sdp.json into {@link PanelRarity.RARITY_COMMON} .. {@link PanelRarity.RARITY_GODLIKE}.
+	* The editor always writes rarity as a number; string inputs are not a supported format.
 	*
-	* @param {string|number} raw Labels, integers **0–5**, or alternate integer encodings accepted by the loader.
+	* @param {number} raw Integer from parsed JSON; 0–5 canonical or legacy window-color codes.
 	* @returns {number}
 	*/
 	static normalizeRarityFromJson(raw) {
-		if (typeof raw === "string") {
-			const trimmed = raw.trim();
-			if (trimmed === "") {
-				return PanelRarity.RARITY_COMMON;
-			}
-			switch (trimmed) {
-				case PanelRarity.Common: return PanelRarity.RARITY_COMMON;
-				case PanelRarity.Magical: return PanelRarity.RARITY_MAGICAL;
-				case PanelRarity.Rare: return PanelRarity.RARITY_RARE;
-				case PanelRarity.Epic: return PanelRarity.RARITY_EPIC;
-				case PanelRarity.Legendary: return PanelRarity.RARITY_LEGENDARY;
-				case PanelRarity.Godlike: return PanelRarity.RARITY_GODLIKE;
-				default: break;
-			}
-			const parsedFromString = parseInt(trimmed, 10);
-			if (!Number.isNaN(parsedFromString)) {
-				return PanelRarity.normalizeRarityFromJson(parsedFromString);
-			}
-			console.warn(`PanelRarity.normalizeRarityFromJson: unrecognized string [ ${trimmed} ].`);
-			return PanelRarity.RARITY_COMMON;
-		}
-		const n = parseInt(raw, 10);
-		if (Number.isNaN(n)) {
-			return PanelRarity.RARITY_COMMON;
-		}
-		switch (n) {
+		switch (raw) {
 			case PanelRarity.WindowColorRare: return PanelRarity.RARITY_RARE;
 			case PanelRarity.WindowColorEpic: return PanelRarity.RARITY_EPIC;
 			case PanelRarity.WindowColorLegendary: return PanelRarity.RARITY_LEGENDARY;
 			case PanelRarity.WindowColorGodlike: return PanelRarity.RARITY_GODLIKE;
 			default: break;
 		}
-		if (n >= PanelRarity.RARITY_COMMON && n <= PanelRarity.RARITY_MAX) {
-			return n;
+		if (raw >= PanelRarity.RARITY_COMMON && raw <= PanelRarity.RARITY_MAX) {
+			return raw;
 		}
-		console.warn(`PanelRarity.normalizeRarityFromJson: out-of-range rarity [ ${n} ]; clamped to Common.`);
+		console.warn(`PanelRarity.normalizeRarityFromJson: out-of-range rarity [ ${raw} ]; clamped to Common.`);
 		return PanelRarity.RARITY_COMMON;
 	}
 	/**
@@ -2092,7 +2068,7 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 			if (familyName.startsWith("==")) return;
 			if (familyName.startsWith("--")) return;
 			if (familyName.startsWith("__")) return;
-			const subgroupKeys = Array.isArray(parsedFamily.subgroupKeys) ? parsedFamily.subgroupKeys.filter((key) => typeof key === "string" && key !== String.empty) : [];
+			const subgroupKeys = Array.isArray(parsedFamily.subgroupKeys) ? parsedFamily.subgroupKeys.filter((key) => key !== String.empty) : [];
 			const family = new PanelFamily(familyName, parsedFamily.key ?? String.empty, J.BASE.Helpers.parsePluginInt(parsedFamily.iconIndex, -1), parsedFamily.description ?? String.empty, subgroupKeys);
 			parsedFamilies.push(family);
 		});

@@ -390,7 +390,7 @@ var PopupResourceDisplayColor = class PopupResourceDisplayColor {
 	* @returns {{ r: number, g: number, b: number }}
 	*/
 	static parseCssColor(color) {
-		if (typeof color === "string" && color.startsWith("#") && color.length >= 7) {
+		if (color.startsWith("#") && color.length >= 7) {
 			return {
 				r: parseInt(color.slice(1, 3), 16),
 				g: parseInt(color.slice(3, 5), 16),

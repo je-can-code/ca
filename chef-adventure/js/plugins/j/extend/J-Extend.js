@@ -322,10 +322,33 @@
 //#region src/plugins/extend/core/_metadata/_pluginMetadata.js
 var J_SkillExtendPluginMetadata = class extends PluginMetadata {
 	/**
+	* The set of tag keys whose note lines are appended across extensions rather than replaced.
+	* Plugins opt in by calling {@link registerNonCombiningKey} during Scene_Boot.
+	* @type {Set<string>}
+	*/
+	#nonCombiningKeys = new Set();
+	/**
 	* Constructor.
 	*/
 	constructor(name, version) {
 		super(name, version);
+	}
+	/**
+	* Registers a tag key as non-combining for note merging.
+	* When two extensions both carry this tag, their lines are appended rather than the overlay replacing the base.
+	* The key is derived automatically from the provided regexp via {@link J.BASE.Helpers.getKeyFromRegexp}.
+	* @param {RegExp} regexp The regexp whose tag key should be registered as non-combining.
+	* @param {boolean} [asBoolean=false] Pass true for boolean tags (no colon) so the key is derived correctly.
+	*/
+	registerNonCombiningKey(regexp, asBoolean = false) {
+		this.#nonCombiningKeys.add(J.BASE.Helpers.getKeyFromRegexp(regexp, asBoolean).toLowerCase());
+	}
+	/**
+	* Gets all registered non-combining tag keys as an array.
+	* @returns {string[]} The registered keys, all lowercase.
+	*/
+	getNonCombiningKeys() {
+		return [...this.#nonCombiningKeys];
 	}
 };
 
@@ -1085,42 +1108,20 @@ var OverlayManager = class OverlayManager {
 		RPGManager.invalidate(baseState);
 	}
 	/**
-	* The list of keys on notes that should never get merged/overridden, but instead appended.
-	* @type {string[]}
-	*/
-	static _nonCombiningKeys = ["drop"];
-	/**
-	* Gets the keys that should never be combined- they will effectively be treated as unsupported.
-	* @returns {string[]}
-	*/
-	static getNonCombiningKeys() {
-		return this._nonCombiningKeys;
-	}
-	/**
-	* Sets the global list of tag keys that should NOT be replaced when merging, but instead combined.
-	* This allows multi-instance tags like `drop` to append additional lines from the overlay note.
-	* @param {string[]} keys The array of keys that should be non-combining (case-insensitive).
-	*/
-	static setNonCombiningKeys(keys) {
-		this._nonCombiningKeys = Array.isArray(keys) ? keys.map((k) => String(k).toLowerCase()) : [];
-	}
-	/**
 	* Merges the overlay note into the base note with key-aware behavior.
-	* - For keys not in the exclusions set: replace base lines with overlay lines if overlay provides any.
-	* - For keys in the exclusions set: append unique overlay lines after base lines (multi-instance tags like "drop").
+	* - For keys not registered as non-combining: replace base lines with overlay lines if overlay provides any.
+	* - For keys registered as non-combining: append unique overlay lines after base lines.
 	* - Unsupported lines (non-tag text) are preserved from both notes with deduplication; base lines keep priority.
-	*
+	* Non-combining keys are registered via {@link J.EXTEND.Metadata.registerNonCombiningKey}.
 	* Keys are case-insensitive. Tags are those enclosed with angle brackets (e.g., `<key:value>` or `<key>`).
-	*
 	* @param {string} baseNote The base note content.
 	* @param {string} overlayNote The overlay note content.
-	* @param {string[]=} nonCombiningKeys Optional keys to merge instead of replace; defaults to configured static list.
 	* @returns {string} The merged note text, joined with newlines.
 	*/
-	static overwriteNote(baseNote, overlayNote, nonCombiningKeys) {
+	static overwriteNote(baseNote, overlayNote) {
 		const oldNote = baseNote || String.empty;
 		const newNote = overlayNote || String.empty;
-		const exclusions = this._normalizeExclusions(nonCombiningKeys);
+		const exclusions = J.EXTEND.Metadata.getNonCombiningKeys();
 		const oldTokens = this._tokenizeNote(oldNote);
 		const newTokens = this._tokenizeNote(newNote);
 		const oldBuckets = this._toKeyBuckets(oldTokens.tags);
@@ -1129,15 +1130,6 @@ var OverlayManager = class OverlayManager {
 		const mergedUnsupported = this._mergeUnsupported(oldTokens.unsupported, newTokens.unsupported);
 		const result = this._reconstructNote(mergedUnsupported, merged);
 		return result;
-	}
-	/**
-	* Normalizes the incoming exclusions array, or falls back to the static configuration.
-	* @param {string[]|null|undefined} exclusions The caller-provided keys that should merge instead of replace.
-	* @returns {string[]} A lowercase array of keys to treat as non-replacing during merges.
-	*/
-	static _normalizeExclusions(exclusions) {
-		const provided = Array.isArray(exclusions) ? exclusions : this.getNonCombiningKeys();
-		return provided.map((k) => String(k).toLowerCase());
 	}
 	/**
 	* Tokenizes a note text into angle-bracketed tags and unsupported lines.

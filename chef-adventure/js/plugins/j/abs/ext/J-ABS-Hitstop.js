@@ -209,6 +209,7 @@ J.ABS.EXT.HITSTOP.Metadata = new JHitstop_PluginMetadata("J-ABS-Hitstop", "1.0.2
 * A collection of all aliased methods for this plugin.
 */
 J.ABS.EXT.HITSTOP.Aliased = {};
+J.ABS.EXT.HITSTOP.Aliased.DataManager = new Map();
 J.ABS.EXT.HITSTOP.Aliased.Game_Character = new Map();
 J.ABS.EXT.HITSTOP.Aliased.JABS_Engine = new Map();
 J.ABS.EXT.HITSTOP.Aliased.JABS_Action = new Map();
@@ -293,25 +294,6 @@ var JABS_HitstopData = class {
 		this._flurryWindows = new Map();
 	}
 	/**
-	* JsonEx restores `_flurryWindows` as a plain object; `Map` is not JSON-native.
-	*/
-	normalizeFlurryWindowsMap() {
-		if (this._flurryWindows instanceof Map) {
-			return;
-		}
-		const raw = this._flurryWindows;
-		const map = new Map();
-		if (raw !== undefined && raw !== null && typeof raw === "object") {
-			Object.keys(raw).forEach((k) => {
-				const v = raw[k];
-				if (typeof v === "number" && Number.isNaN(v) === false) {
-					map.set(k, v);
-				}
-			});
-		}
-		this._flurryWindows = map;
-	}
-	/**
 	* Sets hitstop frames.
 	* @param {number} frames The frames to set.
 	*/
@@ -329,7 +311,6 @@ var JABS_HitstopData = class {
 	* Decrements hitstop frames by one frame.
 	*/
 	tick() {
-		this.normalizeFlurryWindowsMap();
 		if (this._frames > 0) this._frames--;
 		this._flurryWindows.forEach((remaining, key) => {
 			const next = remaining - 1;
@@ -353,8 +334,15 @@ var JABS_HitstopData = class {
 	* @param {number} windowFrames The window in frames.
 	*/
 	flagFlurryWindow(actionUuid, windowFrames) {
-		this.normalizeFlurryWindowsMap();
 		this._flurryWindows.set(actionUuid, Math.max(0, Math.floor(windowFrames)));
+	}
+	/**
+	* Restores {@link _flurryWindows} from a plain object after {@link JsonEx.makeDeepCopy}.
+	* JsonEx serializes Maps as plain objects; call this after deep-copy to convert back.
+	*/
+	normalizeFlurryWindowsMap() {
+		if (this._flurryWindows instanceof Map) return;
+		this._flurryWindows = new Map(Object.entries(this._flurryWindows));
 	}
 	/**
 	* Determines whether or not the provided action uuid is inside the flurry window.
@@ -362,11 +350,30 @@ var JABS_HitstopData = class {
 	* @returns {boolean} True if in the window, false otherwise.
 	*/
 	isInFlurryWindow(actionUuid) {
-		this.normalizeFlurryWindowsMap();
 		return this._flurryWindows.has(actionUuid);
 	}
 };
 SerializableRegistry.register(JABS_HitstopData);
+
+//#endregion
+//#region src/plugins/abs/ext/hitstop/managers/DataManager.js
+/**
+* Extends {@link DataManager.extractSaveContents}.<br/>
+* Reinitializes hitstop data on all characters after a save is loaded so no
+* stale combat state (frozen frames, active flurry windows) carries over.
+*/
+J.ABS.EXT.HITSTOP.Aliased.DataManager.set("extractSaveContents", DataManager.extractSaveContents);
+DataManager.extractSaveContents = function(contents) {
+	J.ABS.EXT.HITSTOP.Aliased.DataManager.get("extractSaveContents").call(this, contents);
+	const characters = [
+		$gamePlayer,
+		...$gamePlayer.followers().data(),
+		...$gameMap.events()
+	];
+	for (const character of characters) {
+		character.initHitstopMembers();
+	}
+};
 
 //#endregion
 //#region src/plugins/abs/ext/hitstop/managers/JABS_HitstopManager.js

@@ -1501,9 +1501,6 @@ var PopupLayoutHelper = class PopupLayoutHelper {
 		if (!textPop || textPop.constructor !== Map_TextPop) {
 			return false;
 		}
-		if (typeof textPop.layoutRing !== "string") {
-			return false;
-		}
 		const known = Object.values(Map_TextPop.LayoutRings);
 		for (let i = 0; i < known.length; i++) {
 			if (known[i] === textPop.layoutRing) {

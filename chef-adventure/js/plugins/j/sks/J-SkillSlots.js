@@ -886,9 +886,6 @@ var Window_SkillEquipDetail = class extends Window_Base {
 	*/
 	skill() {
 		if (!this._skillId) return null;
-		if (typeof J !== "undefined" && J.EXTEND && this._actor) {
-			return OverlayManager.getExtendedSkill(this._actor, this._skillId);
-		}
 		return $dataSkills[this._skillId];
 	}
 	/**

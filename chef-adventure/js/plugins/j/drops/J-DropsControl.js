@@ -882,6 +882,7 @@ J.DROPS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDataba
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.DROPS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
 	DropsParameterRegistration.registerAll();
+	J.EXTEND.Metadata.registerNonCombiningKey(J.DROPS.RegExp.ExtraDrop);
 };
 
 //#endregion

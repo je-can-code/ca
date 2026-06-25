@@ -304,7 +304,7 @@ J.PIXEL.EXT.ABS.Aliased = {
 RPG_Enemy.hitboxSizeDataFromRaw = function(rawHitboxSize) {
 	if (rawHitboxSize === null || rawHitboxSize === undefined) return null;
 	const parsedHitboxSize = JsonMapper.parseObject(rawHitboxSize);
-	if (typeof parsedHitboxSize === "number") {
+	if (Number.isFinite(parsedHitboxSize)) {
 		if (parsedHitboxSize <= 0) return null;
 		return {
 			widthTiles: parsedHitboxSize,
@@ -474,7 +474,7 @@ JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, toler
 */
 J.PIXEL.EXT.ABS.Aliased.JABS_Engine.set("getBattlerAabbModel", JABS_Engine.getBattlerAabbModel);
 JABS_Engine.getBattlerAabbModel = function(character) {
-	if (character && typeof character.getPixelAbsBattlerAabbModel === "function") {
+	if (character) {
 		const customAabb = character.getPixelAbsBattlerAabbModel();
 		if (customAabb) {
 			return customAabb;
@@ -496,7 +496,7 @@ JABS_Engine.getBattlerAabbModel = function(character) {
 */
 J.PIXEL.EXT.ABS.Aliased.Game_CharacterBase.set("isOverlappingSolidTiles", Game_CharacterBase.prototype.isOverlappingSolidTiles);
 Game_CharacterBase.prototype.isOverlappingSolidTiles = function(px, py, radius) {
-	if (typeof this.hasCustomPixelHitbox !== "function" || this.hasCustomPixelHitbox() === false) {
+	if (this.hasCustomPixelHitbox() === false) {
 		return J.PIXEL.EXT.ABS.Aliased.Game_CharacterBase.get("isOverlappingSolidTiles").call(this, px, py, radius);
 	}
 	const hitbox = this._pixelHitbox(this.getEffectiveRadius());
@@ -603,6 +603,23 @@ Game_CharacterBase.prototype.isCharacterCollisionAt = function(px, py, radius = 
 	}
 	return false;
 };
+/**
+* Whether this character has a custom rectangular pixel hitbox.
+* Only {@link Game_Event} overrides this to check for a hitbox tag.
+* All other character types (player, followers, enemies as characters) have no custom hitbox.
+* @returns {boolean}
+*/
+Game_CharacterBase.prototype.hasCustomPixelHitbox = function() {
+	return false;
+};
+/**
+* Provides the battler AABB model for JABS collision and overlay queries.
+* Only {@link Game_Event} overrides this to return a rectangular model when a hitbox tag is present.
+* @returns {JABS_Aabb|null}
+*/
+Game_CharacterBase.prototype.getPixelAbsBattlerAabbModel = function() {
+	return null;
+};
 
 //#endregion
 //#region src/plugins/pixel/ext/abs/objects/Game_Event.js
@@ -678,9 +695,7 @@ Game_Event.prototype.refreshPixelAbsHitboxSizeData = function() {
 * @returns {boolean}
 */
 Game_Event.prototype.canUsePixelAbsEnemyHitboxData = function() {
-	if (typeof this.isJabsBattler !== "function") return false;
 	if (this.isJabsBattler() === false) return false;
-	if (typeof this.getBattlerId !== "function") return false;
 	if (this.getBattlerId() <= 0) return false;
 	return true;
 };
@@ -703,7 +718,6 @@ Game_Event.prototype.hasCustomPixelHitbox = function() {
 * @returns {{widthTiles:number,heightTiles:number}|null}
 */
 Game_Event.prototype.getPixelAbsHitboxSizeCommentOverride = function() {
-	if (typeof this.extractValueByRegex !== "function") return null;
 	const rawHitboxSize = this.extractValueByRegex(J.PIXEL.EXT.ABS.RegExp.HitboxSize, null, false);
 	return RPG_Enemy.hitboxSizeDataFromRaw(rawHitboxSize);
 };
@@ -752,7 +766,6 @@ Game_Event.prototype.refreshPixelAbsHitboxRevealRange = function() {
 * @returns {number|null}
 */
 Game_Event.prototype.getPixelAbsHitboxRevealCommentOverride = function() {
-	if (typeof this.extractValueByRegex !== "function") return null;
 	return this.extractValueByRegex(J.PIXEL.EXT.ABS.RegExp.HitboxReveal, null, true);
 };
 /**
@@ -1446,8 +1459,8 @@ JABS_Battler.prototype.angleToDirection = function(angle) {
 J.PIXEL.EXT.ABS.Aliased.JABS_Battler.set("getProjectileSpawnBaseDirection", JABS_Battler.prototype.getProjectileSpawnBaseDirection);
 JABS_Battler.prototype.getProjectileSpawnBaseDirection = function() {
 	const chr = this.getCharacter();
-	if (chr === $gamePlayer && typeof chr.getVectorInputAngle === "function") {
-		if (typeof chr.isDirectionFixed === "function" && chr.isDirectionFixed()) {
+	if (chr === $gamePlayer) {
+		if (chr.isDirectionFixed()) {
 			return J.PIXEL.EXT.ABS.Aliased.JABS_Battler.get("getProjectileSpawnBaseDirection").call(this);
 		}
 		const vectorAngle = chr.getVectorInputAngle();
@@ -1456,6 +1469,18 @@ JABS_Battler.prototype.getProjectileSpawnBaseDirection = function() {
 		}
 	}
 	return J.PIXEL.EXT.ABS.Aliased.JABS_Battler.get("getProjectileSpawnBaseDirection").call(this);
+};
+/**
+* Extends {@link JABS_Battler#canDirectionalDodgeStepPass}.<br/>
+* Uses Pixelistics passability probes instead of vanilla tile checks so dodge
+* collision matches pixel-movement collision in all directions.
+*/
+J.PIXEL.EXT.ABS.Aliased.JABS_Battler.set("canDirectionalDodgeStepPass", JABS_Battler.prototype.canDirectionalDodgeStepPass);
+JABS_Battler.prototype.canDirectionalDodgeStepPass = function(character, direction8) {
+	if (character.isDiagonalDirection(direction8)) {
+		return character.canPassDiagonalByDirection(direction8);
+	}
+	return character.canPassStraight(direction8);
 };
 
 //#endregion

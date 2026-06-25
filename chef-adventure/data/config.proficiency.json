@@ -363,89 +363,215 @@
       "jsRewards": ""
     },
     {
-      "key": "JR-SPEAR_COMBO-4",
+      "key": "spear-pierce-01",
       "actorIds": [
         1,
         2
       ],
       "requirements": [
         {
-          "skillId": 16,
-          "proficiency": 1000,
+          "skillId": 31,
+          "proficiency": 100,
           "secondarySkillIds": [
-            17,
-            18
+            32,
+            33,
+            34,
+            35,
+            36
           ]
         }
       ],
       "skillRewards": [
-        19
+        37
       ],
       "jsRewards": ""
     },
     {
-      "key": "JR-BASHER_EXTEND-5",
+      "key": "spear-pierce-02",
       "actorIds": [
         1,
         2
       ],
       "requirements": [
         {
-          "skillId": 20,
+          "skillId": 31,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            32,
+            33,
+            34,
+            35,
+            36
+          ]
+        }
+      ],
+      "skillRewards": [
+        38
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-pierce-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 31,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            32,
+            33,
+            34,
+            35,
+            36
+          ]
+        }
+      ],
+      "skillRewards": [
+        39
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-pierce-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 31,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            32,
+            33,
+            34,
+            35,
+            36
+          ]
+        }
+      ],
+      "skillRewards": [
+        40
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-bash-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 41,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            42,
+            43,
+            44,
+            45
+          ]
+        }
+      ],
+      "skillRewards": [
+        46
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-bash-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 41,
           "proficiency": 250,
           "secondarySkillIds": [
-            21,
-            22,
-            23
+            42,
+            43,
+            44,
+            45
           ]
         }
       ],
       "skillRewards": [
-        24
+        47
       ],
       "jsRewards": ""
     },
     {
-      "key": "JR-BASHER_EXTEND-6",
+      "key": "spear-bash-03",
       "actorIds": [
         1,
         2
       ],
       "requirements": [
         {
-          "skillId": 20,
-          "proficiency": 500,
-          "secondarySkillIds": [
-            21,
-            22,
-            23
-          ]
-        }
-      ],
-      "skillRewards": [
-        25
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-BASHER_EXTEND-7",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 20,
+          "skillId": 41,
           "proficiency": 1000,
           "secondarySkillIds": [
-            21,
-            22,
-            23
+            42,
+            43,
+            44,
+            45
           ]
         }
       ],
       "skillRewards": [
-        26
+        48,
+        181
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-bash-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 41,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            42,
+            43,
+            44,
+            45
+          ]
+        }
+      ],
+      "skillRewards": [
+        49
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-bash-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 41,
+          "proficiency": 4000,
+          "secondarySkillIds": [
+            42,
+            43,
+            44,
+            45
+          ]
+        }
+      ],
+      "skillRewards": [
+        50,
+        182
       ],
       "jsRewards": ""
     },

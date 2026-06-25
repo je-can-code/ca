@@ -1054,12 +1054,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 			this.toggleBold(false);
 			parameterValueX += nameValueSpace;
 		}
-		let displayValue = parameterValue;
-		if (typeof parameterValue === "number") {
-			displayValue = maskValue ? J.BASE.Helpers.maskString(parameterValue.padZero(padZeroCount)) : parameterValue.padZero(padZeroCount);
-		} else if (maskValue) {
-			displayValue = J.BASE.Helpers.maskString(parameterValue);
-		}
+		const displayValue = maskValue ? J.BASE.Helpers.maskString(parameterValue.padZero(padZeroCount)) : parameterValue.padZero(padZeroCount);
 		const parameterValueWidth = parameterName !== String.empty ? 128 : this.textWidth(displayValue);
 		this.drawEnemyParameterValue(parameterValueX, y, displayValue, parameterValueWidth, valueColorIndex);
 	}

@@ -364,7 +364,9 @@ J.ABS.EXT.CHARGE.Aliased = {
 	JABS_Action: new Map(),
 	JABS_Battler: new Map(),
 	JABS_StandardController: new Map(),
-	SoundManager: new Map()
+	Scene_Boot: new Map(),
+	SoundManager: new Map(),
+	Sprite_Character: new Map()
 };
 /**
 * All regular expressions used by this plugin.
@@ -1352,6 +1354,337 @@ SoundManager.chargeTierCompleteSE = function() {
 */
 SoundManager.maxChargeReadySE = function() {
 	return J.ABS.EXT.CHARGE.Metadata.ChargeReadySE ?? new RPG_SoundEffect("Item3", 50, 110, 0);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/charge/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers the chargeTier tag as non-combining with J-Extend so that multiple
+* <chargeTier> lines from separate extension skills are appended rather than overwritten.
+*/
+J.ABS.EXT.CHARGE.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.ABS.EXT.CHARGE.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.ABS.EXT.CHARGE.RegExp.ChargeData);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/charge/sprites/Sprite_MapChargeGauge.js
+/**
+* A dedicated segmented charge gauge for JABS battlers.
+* Extends {@link Sprite_MapGauge} and binds to a {@link JABS_Battler}.
+* Each segment represents one charge tier; segments fill left-to-right as tiers complete.
+*/
+var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
+	/**
+	* Constructor.
+	* @param {...*} args Forwarded to {@link #initialize}.
+	*/
+	constructor(...args) {
+		super();
+		this.initialize(...args);
+	}
+	/**
+	* Initializes this charge gauge with the given parameters.
+	* @param {number=} bitmapWidth The bitmap width of this gauge.
+	* @param {number=} bitmapHeight The bitmap height of this gauge.
+	* @param {number=} gaugeHeight The height of the filled strip.
+	*/
+	initialize(bitmapWidth = 128, bitmapHeight = 24, gaugeHeight = 10) {
+		super.initialize(bitmapWidth, bitmapHeight, gaugeHeight);
+		/**
+		* The JABS battler providing charge state.
+		* @type {JABS_Battler|null}
+		*/
+		this._jabsBattler = null;
+		this._statusType = "charge";
+		this.visible = false;
+	}
+	/**
+	* Gets the {@link JABS_Battler} this gauge is associated with.
+	* @returns {JABS_Battler|null}
+	*/
+	getJabsBattler() {
+		return this._jabsBattler;
+	}
+	/**
+	* Binds this gauge to a JABS battler and the expected character host.
+	* @param {JABS_Battler} jabsBattler The JABS battler.
+	* @param {Game_Character} expectedCharacter The character this sprite represents.
+	*/
+	setupJabs(jabsBattler, expectedCharacter) {
+		this._jabsBattler = jabsBattler;
+		/**
+		* The character this gauge expects the JABS battler to be bound to.
+		* @type {Game_Character|null}
+		*/
+		this._expectedCharacter = expectedCharacter ?? null;
+		/**
+		* The UUID we expect this gauge to track.
+		* @type {string}
+		*/
+		this._expectedUuid = jabsBattler ? jabsBattler.getUuid() : null;
+		this.setup(jabsBattler.getBattler(), this._statusType);
+	}
+	/**
+	* Whether the gauge should be considered valid for fill-rate.
+	* Valid only while the battler is actively charging with at least one incomplete tier.
+	* @returns {boolean}
+	*/
+	isValid() {
+		const jabsBattler = this.getJabsBattler();
+		const expectedUuid = this._expectedUuid;
+		const expectedCharacter = this._expectedCharacter;
+		if (!jabsBattler || !expectedUuid) return false;
+		if (jabsBattler.getUuid() !== expectedUuid) return false;
+		if (expectedCharacter && jabsBattler.getCharacter() !== expectedCharacter) return false;
+		if (!jabsBattler.isCharging()) return false;
+		if (!jabsBattler.getCurrentChargingTier()) return false;
+		return true;
+	}
+	/**
+	* The elapsed frames in the current charge tier.
+	* @returns {number|NaN}
+	*/
+	currentValue() {
+		const jabsBattler = this.getJabsBattler();
+		if (!jabsBattler) return NaN;
+		if (!jabsBattler.isCharging()) return NaN;
+		const currentTier = jabsBattler.getCurrentChargingTier();
+		if (!currentTier) return NaN;
+		return currentTier.duration;
+	}
+	/**
+	* The total frames required to complete the current charge tier.
+	* @returns {number|NaN}
+	*/
+	currentMaxValue() {
+		const jabsBattler = this.getJabsBattler();
+		if (!jabsBattler) return NaN;
+		if (!jabsBattler.isCharging()) return NaN;
+		const currentTier = jabsBattler.getCurrentChargingTier();
+		if (!currentTier) return NaN;
+		return currentTier.maxDuration;
+	}
+	/**
+	* Updates this gauge.
+	* Shows the gauge while charging and updates label/icon to reflect the current tier.
+	* Hides and clears adornments when not valid.
+	*/
+	update() {
+		if (this.getJabsBattler()) {
+			this._battler = this.getJabsBattler().getBattler();
+		}
+		const valid = this.isValid();
+		if (valid === false) {
+			this.visible = false;
+			if (this._gauge._label) {
+				this.setLabel(String.empty);
+			}
+			if (this._gauge._iconIndex !== -1) {
+				this.setIcon(-1);
+			}
+			return;
+		}
+		this.visible = true;
+		const currentTier = this.getJabsBattler().getCurrentChargingTier();
+		if (currentTier) {
+			const totalTiers = this.getJabsBattler().getChargingTierData().length;
+			this.setLabel(`T${currentTier.tier}/${totalTiers}`);
+			const releaseSkill = currentTier.skillId ? $dataSkills[currentTier.skillId] : null;
+			this.setIcon(releaseSkill ? releaseSkill.iconIndex : -1);
+		}
+		super.update();
+	}
+	/**
+	* Overwrites {@link Sprite_Gauge.drawGauge}.<br/>
+	* Draws one segment per charge tier instead of a single continuous bar.
+	* Completed tiers render full; the current tier renders at its elapsed fraction;
+	* future tiers render as empty background only.
+	*/
+	drawGauge() {
+		const jabsBattler = this.getJabsBattler();
+		if (!jabsBattler) return;
+		const tiers = jabsBattler.getChargingTierData();
+		const currentTier = jabsBattler.getCurrentChargingTier();
+		if (!tiers.length) return;
+		const totalTiers = tiers.length;
+		const gapWidth = 2;
+		const totalGaps = (totalTiers - 1) * gapWidth;
+		const availableWidth = this.bitmapWidth() - totalGaps;
+		const totalDuration = tiers.reduce((sum, tier) => sum + tier.maxDuration, 0);
+		const gaugeY = this.bitmapHeight() - this.gaugeHeight();
+		let cursorX = 0;
+		for (let i = 0; i < totalTiers; i++) {
+			const tier = tiers[i];
+			const segmentWidth = Math.floor(tier.maxDuration / totalDuration * availableWidth);
+			const segX = cursorX;
+			this.bitmap.fillRect(segX, gaugeY, segmentWidth, this.gaugeHeight(), this.gaugeBackColor());
+			let fillRate = 0;
+			if (tier.completed) {
+				fillRate = 1;
+			} else if (currentTier && tier.tier === currentTier.tier) {
+				fillRate = currentTier.maxDuration > 0 ? Math.min(1, currentTier.duration / currentTier.maxDuration) : 0;
+			}
+			if (fillRate > 0) {
+				const fillWidth = Math.floor(segmentWidth * fillRate);
+				this.bitmap.gradientFillRect(segX, gaugeY, fillWidth, this.gaugeHeight(), this.gaugeColor1(), this.gaugeColor2());
+			}
+			cursorX += segmentWidth + (i < totalTiers - 1 ? gapWidth : 0);
+		}
+	}
+	/**
+	* Overwrites {@link Sprite_MapCastGauge.drawLabel}.<br/>
+	* Draws the tier label with crisp, integer-aligned text.
+	*/
+	drawLabel() {
+		if (!this._gauge._label) return;
+		this.bitmap.fontFace = $gameSystem.mainFontFace();
+		this.bitmap.fontSize = 12;
+		this.bitmap.outlineWidth = 2;
+		this.bitmap.outlineColor = "rgba(0, 0, 0, 1)";
+		this.bitmap.textColor = "#ffffff";
+		const x = 32;
+		const y = 0;
+		const w = this.bitmapWidth() - x;
+		const h = this.bitmapHeight();
+		this.bitmap.drawText(this._gauge._label, Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h), "left");
+	}
+	/**
+	* Overwrites {@link Sprite_MapGauge.gaugeX}.<br/>
+	* Returns 0 so the segmented fill occupies the full bitmap width.
+	* @returns {number}
+	*/
+	gaugeX() {
+		return 0;
+	}
+	/**
+	* The background color for each empty segment.
+	* @returns {string}
+	*/
+	gaugeBackColor() {
+		return "rgba(32, 32, 32, 0.85)";
+	}
+	/**
+	* The left gradient color for the fill strip.
+	* @returns {string}
+	*/
+	gaugeColor1() {
+		return "#FF8C00";
+	}
+	/**
+	* The right gradient color for the fill strip.
+	* @returns {string}
+	*/
+	gaugeColor2() {
+		return "#FFD700";
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/charge/sprites/Sprite_Character.js
+/**
+* Extends {@link #initGaugeMembers}.<br/>
+* Also initializes the charge gauge member.
+*/
+J.ABS.EXT.CHARGE.Aliased.Sprite_Character.set("initGaugeMembers", Sprite_Character.prototype.initGaugeMembers);
+Sprite_Character.prototype.initGaugeMembers = function() {
+	J.ABS.EXT.CHARGE.Aliased.Sprite_Character.get("initGaugeMembers").call(this);
+	/**
+	* The charge gauge for this sprite.
+	* @type {Sprite_MapChargeGauge|null}
+	*/
+	this._j._abs._gauges._chargeGauge = null;
+};
+/**
+* Extends {@link #setupMapSprite}.<br/>
+* Also sets up the charge gauge.
+*/
+J.ABS.EXT.CHARGE.Aliased.Sprite_Character.set("setupMapSprite", Sprite_Character.prototype.setupMapSprite);
+Sprite_Character.prototype.setupMapSprite = function() {
+	J.ABS.EXT.CHARGE.Aliased.Sprite_Character.get("setupMapSprite").call(this);
+	this.setupChargeGauge();
+};
+/**
+* Sets up this character's charge gauge, which shows tier progress while charging.
+*/
+Sprite_Character.prototype.setupChargeGauge = function() {
+	const jabsBattler = this._character.getJabsBattler();
+	const expectedCharacter = this._character;
+	if (this._j._abs._gauges._chargeGauge) {
+		this._j._abs._gauges._chargeGauge.setupJabs(jabsBattler, expectedCharacter);
+		this._j._abs._gauges._chargeGauge.activateGauge();
+		const sprite = this._j._abs._gauges._chargeGauge;
+		sprite.move(-Math.round(sprite.bitmapWidth() / 2), -28);
+		return;
+	}
+	const sprite = new Sprite_MapChargeGauge();
+	sprite.setupJabs(jabsBattler, expectedCharacter);
+	sprite.activateGauge();
+	this._j._abs._gauges._chargeGauge = sprite;
+	sprite.move(-Math.round(sprite.bitmapWidth() / 2), -28);
+	this.addChild(sprite);
+};
+/**
+* Extends {@link #updateGauges}.<br/>
+* Also updates the charge gauge.
+*/
+J.ABS.EXT.CHARGE.Aliased.Sprite_Character.set("updateGauges", Sprite_Character.prototype.updateGauges);
+Sprite_Character.prototype.updateGauges = function() {
+	J.ABS.EXT.CHARGE.Aliased.Sprite_Character.get("updateGauges").call(this);
+	if (this.canUpdateChargeGauge()) {
+		this.updateChargeGauge();
+	} else {
+		this.hideChargeGauge();
+	}
+};
+/**
+* Determines whether or not we can update the charge gauge.
+* @returns {boolean} True if we can update the charge gauge, false otherwise.
+*/
+Sprite_Character.prototype.canUpdateChargeGauge = function() {
+	if (!this.canUpdate()) return false;
+	if (!this.isJabsBattler()) return false;
+	if (!this._j._abs._gauges._chargeGauge) return false;
+	const jabs = this._character.getJabsBattler();
+	if (!jabs) return false;
+	if (!jabs.isCharging()) return false;
+	return true;
+};
+/**
+* Updates the charge gauge sprite.
+*/
+Sprite_Character.prototype.updateChargeGauge = function() {
+	this.showChargeGauge();
+	const gauge = this._j._abs._gauges._chargeGauge;
+	if (gauge) {
+		const currentJabs = this._character.getJabsBattler();
+		const needsRebind = gauge._jabsBattler !== currentJabs || gauge._expectedCharacter !== this._character || gauge._expectedUuid !== (currentJabs ? currentJabs.getUuid() : null);
+		if (needsRebind) {
+			gauge.setupJabs(currentJabs, this._character);
+		}
+		gauge._battler = this.getBattler();
+	}
+};
+/**
+* Shows the charge gauge if it exists.
+*/
+Sprite_Character.prototype.showChargeGauge = function() {
+	const gauge = this._j._abs._gauges._chargeGauge;
+	if (gauge) {
+		gauge.activateGauge();
+		gauge.show();
+	}
+};
+/**
+* Hides the charge gauge if it exists.
+*/
+Sprite_Character.prototype.hideChargeGauge = function() {
+	const gauge = this._j._abs._gauges._chargeGauge;
+	if (gauge) {
+		gauge.hide();
+	}
 };
 
 //#endregion

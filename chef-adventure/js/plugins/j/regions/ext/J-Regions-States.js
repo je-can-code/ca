@@ -373,7 +373,7 @@ Game_Character.prototype.handleRegionStates = function() {
 */
 Game_Character.prototype.canHandleRegionStates = function() {
 	if (this.isVehicle()) return false;
-	if (typeof this.isVisible === "function" && this.isVisible() === false) return false;
+	if (!this.isVisible()) return false;
 	if (!this.hasJabsBattler()) return false;
 	return true;
 };

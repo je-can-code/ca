@@ -900,9 +900,8 @@ Game_Action.prototype.onFormulaResourceDelta = function(recipient, amount, resou
 * @param {number} amount The signed amount (positive => damage/loss, negative => heal/gain).
 * @param {"hp"|"mp"|"tp"} resource Which resource this packet targeted.
 * @param {number} skillId The skill id attributed to this packet (parent or child).
-* @param {number=} reduced Optional reduced magnitude (HP typically) when known.
 */
-Game_Action.prototype.generateFormulaActionLogIfAvailable = function(recipient, amount, resource, skillId, reduced) {
+Game_Action.prototype.generateFormulaActionLogIfAvailable = function(recipient, amount, resource, skillId) {
 	if (!J.LOG) return;
 	const signed = Math.round(amount);
 	const magnitude = Math.abs(signed);
@@ -910,14 +909,10 @@ Game_Action.prototype.generateFormulaActionLogIfAvailable = function(recipient, 
 	const caster = this.subject();
 	const casterName = caster ? caster.name() : "Unknown";
 	const targetName = recipient ? recipient.name() : "Unknown";
-	let reducedAmount = String.empty;
-	if (typeof reduced === "number" && reduced !== 0) {
-		reducedAmount = `(${Math.round(Math.abs(reduced))})`;
-	}
 	const isHeal = signed < 0;
 	const recipientResult = recipient.result();
 	const wasCrit = recipientResult ? recipientResult.critical === true : false;
-	const log = new ActionLogBuilder().setupExecution(targetName, casterName, skillId || 0, magnitude, reducedAmount, isHeal, wasCrit).build();
+	const log = new ActionLogBuilder().setupExecution(targetName, casterName, skillId || 0, magnitude, String.empty, isHeal, wasCrit).build();
 	$actionLogManager.addLog(log);
 };
 /**

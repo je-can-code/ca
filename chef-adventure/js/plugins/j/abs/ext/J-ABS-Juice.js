@@ -113,27 +113,42 @@
  * ============================================================================
  * SKILL TAGS (notes):
  * <jabsJuiceIcon:N>
- *   Forces weapon swing overlay icon index N on the IconSet sheet (-1 behavior
- *   falls back to inferred equip icon for actors: dual-wield offhand uses weapon slot 2; offhand + one weapon
- *   resolves orb/shield armor by matching skill ids on armor rows or equip slot 1 when it is armor (body armor is
- *   not blindly armors()[0]), unless the executing offhand skill currently belongs to the mainhand's
- *   provided offhand path, including any temporary state-driven transform on that path).
+ *   Forces weapon swing overlay icon index N on the IconSet sheet. When absent,
+ *   the icon is inferred from the actor's equipped gear: dual-wield offhand uses
+ *   weapon slot 2; a single offhand resolves the orb/shield armor icon by matching
+ *   skill ids on armor rows or the equip slot when it is armor.
  *
- * <juiceMotion:arc> | arc-reverse | bash | present | recoil | spin | spin-reverse | stab-forward
- *   Weapon overlay preset. Legacy swing-top-down / swing-bottom-up map to arc / arc-reverse.
- *   Legacy spin keys: spin-360 → spin; spin-720 → spin (see juiceSpinCount); spin-360-reverse → spin-reverse.
- *   present lifts the icon upward on screen (screen-stable "brandish" read; placement uses facing-up card).
- *   On healing skills, omitting juiceMotion keeps caster-only support squish; any juiceMotion tag opts into full strike juice.
+ * <noJuice>
+ *   Suppresses all juice motion on the caster when this skill executes.
+ *   Equivalent to <juiceMotion:none>.
+ *
+ * <juiceMotion:NAME>
+ *   Selects a preset weapon/caster motion. Valid values:
+ *   Weapon overlay:  arc | arc-reverse | bash | present | recoil | spin | spin-reverse | stab-forward
+ *   Caster-body:     squish | pulse | flip | flip-reverse
+ *   Suppress:        none  (equivalent to <noJuice>)
+ *   Legacy keys: swing-top-down → arc; swing-bottom-up → arc-reverse; spin-360 → spin;
+ *   spin-720 → spin; spin-360-reverse → spin-reverse.
+ *   present lifts the icon upward on screen (screen-stable "brandish"; uses facing-up card).
+ *   On healing skills, omitting juiceMotion keeps caster-only support squish; any juiceMotion
+ *   tag opts into full strike juice.
  *
  * <juiceSpan:N>
  *   Arc span in degrees for arc / arc-reverse (default 120; typical range 30–300).
  *
- * <juiceSpinCount:N>
- *   Full rotations for spin / spin-reverse (default 1; clamped 1–8). Legacy juiceMotion:spin-720 implies 2 when omitted.
+ * <juiceRepeatCount:N>
+ *   Number of times to repeat the motion within the juice duration (default 1).
+ *   For spin / spin-reverse: full rotations.
+ *   For arc-oscillate: number of arc sweeps, alternating direction.
+ *   For all other motions: full replays within the duration window.
+ *
+ * <juiceDuration:N>
+ *   Overrides the swing animation duration in frames. When omitted, the global
+ *   `weaponSwingFrames * 2` value from config.jabs.json is used.
  *
  * <juiceStabTipDegrees:N>
  *   Degrees from Pixi +x to bore/tip at rotation 0. Stab defaults to sword diagonal;
- *   bash / recoil default to barrel toward −x unless you override.
+ *   bash / recoil default to barrel toward −x unless overridden. Accepts negative values.
  *
  * <juiceProfileGun>
  *   Side-profile firearm icon: mirror east/west instead of ~180° rotation (keeps the grip
@@ -141,11 +156,12 @@
  *   pure side-view art cannot read as true top-down aim; use a separate sprite or tune degrees.
  *
  * <jabsJuiceWeaponStyle:key>
- *   Selects a multiplier row from the `profiles` map in `config.jabs.json` -> `juice`.
+ *   Selects a multiplier row from the `profiles` map in `config.jabs.json` → `juice`.
  *   Keys are arbitrary identifiers (letters, digits, underscore, dash) and must already
  *   exist in the `profiles` map.
- *   When omitted, inferred keys match the swing icon row: weapon rows use string weapon type ids; armor rows use
- *   a + armor type id (example type 4 → "a4") so armor buckets never collide with weapon type ids.
+ *   When omitted, inferred keys match the swing icon row: weapon rows use the string weapon
+ *   type id (e.g. wtypeId 1 → "1"); armor rows use "a" + armor type id (e.g. atypeId 4 → "a4")
+ *   so armor buckets never collide with weapon type ids.
  *
  * ============================================================================
  * CHANGELOG:
@@ -167,120 +183,6 @@
  */
 //endregion annotations
 
-//#region src/plugins/abs/ext/juice/_metadata/juiceConfigValidation.js
-/**
-* Validates external juice config leaves for {@link JAbsJuice_PluginMetadata}.
-* Lives outside the metadata class so it is safe while {@link PluginMetadata#initializePlugin}
-* runs {@link JAbsJuice_PluginMetadata#postInitialize} during {@code super()} (subclass private slots are not
-* usable yet).
-*/
-var JabsJuiceConfigValidation = class JabsJuiceConfigValidation {
-	/**
-	* Regex used to validate weapon-style profile keys. Matches the plugin's note tag capture: letters, digits,
-	* underscore, and hyphen. Kept here so the data editor can mirror it without duplicating constants.
-	* @type {RegExp}
-	*/
-	static profileKeyPattern = /^[a-zA-Z0-9_-]+$/;
-	/**
-	* Validates a finite float value loaded from the external juice config, throwing on absence / non-finite values.
-	*
-	* @param {*} raw Raw config value read at a leaf path.
-	* @param {string} path Dotted path used in the thrown error (e.g. {@code juice.target.physicalSquishIntensity}).
-	* @returns {number}
-	*/
-	static requireFloat(raw, path) {
-		if (raw === undefined || raw === null) {
-			throw new Error(`[J-ABS-Juice] missing required number at config.jabs.json -> ${path}`);
-		}
-		const parsed = typeof raw === "number" ? raw : Number.parseFloat(String(raw));
-		if (Number.isFinite(parsed) === false) {
-			throw new Error(`[J-ABS-Juice] non-finite number at config.jabs.json -> ${path} (got: ${String(raw)})`);
-		}
-		return parsed;
-	}
-	/**
-	* Validates a finite integer value loaded from the external juice config, throwing on absence / non-finite values.
-	* Truncates any fractional component the same way RMMZ frame counts do.
-	*
-	* @param {*} raw Raw config value read at a leaf path.
-	* @param {string} path Dotted path used in the thrown error (e.g. {@code juice.target.squishFrames}).
-	* @returns {number}
-	*/
-	static requireInt(raw, path) {
-		const f = JabsJuiceConfigValidation.requireFloat(raw, path);
-		return Math.trunc(f);
-	}
-	/**
-	* Validates a single weapon-style multiplier row loaded from the external juice config.
-	*
-	* @param {*} row Unknown JSON row content.
-	* @param {string} path Dotted path used in the thrown error (e.g. {@code juice.profiles.default}).
-	* @returns {{ tiltMul: number, swingMul: number }}
-	*/
-	static requireStyleRow(row, path) {
-		if (row === undefined || row === null || typeof row !== "object") {
-			throw new Error(`[J-ABS-Juice] missing or invalid profile row at config.jabs.json -> ${path}`);
-		}
-		const tiltMul = JabsJuiceConfigValidation.requireFloat(row.tiltMul, `${path}.tiltMul`);
-		const swingMul = JabsJuiceConfigValidation.requireFloat(row.swingMul, `${path}.swingMul`);
-		return {
-			tiltMul,
-			swingMul
-		};
-	}
-	/**
-	* Validates the `juice.profiles` map, normalizes its rows, and guarantees a `default` row is present.
-	*
-	* @param {*} profiles Raw `juice.profiles` blob from the external config.
-	* @returns {Object<string, { tiltMul: number, swingMul: number }>}
-	*/
-	static requireProfiles(profiles) {
-		if (profiles === undefined || profiles === null || typeof profiles !== "object") {
-			throw new Error("[J-ABS-Juice] missing required map at config.jabs.json -> juice.profiles");
-		}
-		const table = {};
-		const keys = Object.keys(profiles);
-		for (let i = 0; i < keys.length; i++) {
-			const key = keys[i];
-			if (JabsJuiceConfigValidation.profileKeyPattern.test(key) === false) {
-				throw new Error(`[J-ABS-Juice] invalid profile key "${key}" at config.jabs.json -> juice.profiles ` + `(allowed: ${JabsJuiceConfigValidation.profileKeyPattern.source})`);
-			}
-			table[key] = JabsJuiceConfigValidation.requireStyleRow(profiles[key], `juice.profiles.${key}`);
-		}
-		if (Object.prototype.hasOwnProperty.call(table, "default") === false) {
-			throw new Error("[J-ABS-Juice] missing required row at config.jabs.json -> juice.profiles.default");
-		}
-		return table;
-	}
-	/**
-	* Validates the entire `juice` block from the external JABS config, throwing on absence or shape problems.
-	* Returns the raw block so the caller can extract sub-sections by name without re-walking.
-	*
-	* @param {*} root The parsed `config.jabs.json` root blob (already loaded by J-ABS).
-	* @returns {object}
-	*/
-	static requireBlock(root) {
-		if (root === undefined || root === null || typeof root !== "object") {
-			throw new Error("[J-ABS-Juice] config.jabs.json is missing or unreadable; the juice block cannot be loaded.");
-		}
-		const { juice } = root;
-		if (juice === undefined || juice === null || typeof juice !== "object") {
-			throw new Error("[J-ABS-Juice] config.jabs.json is missing the required \"juice\" block " + "(see plugin help for the expected shape).");
-		}
-		if (typeof juice.target !== "object" || juice.target === null) {
-			throw new Error("[J-ABS-Juice] config.jabs.json -> juice is missing the required \"target\" section.");
-		}
-		if (typeof juice.caster !== "object" || juice.caster === null) {
-			throw new Error("[J-ABS-Juice] config.jabs.json -> juice is missing the required \"caster\" section.");
-		}
-		if (typeof juice.casting !== "object" || juice.casting === null) {
-			throw new Error("[J-ABS-Juice] config.jabs.json -> juice is missing the required \"casting\" section.");
-		}
-		return juice;
-	}
-};
-
-//#endregion
 //#region src/plugins/abs/ext/juice/_metadata/_pluginMetadata.js
 var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 	/**
@@ -290,8 +192,8 @@ var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	*  Extends {@link #postInitialize}.<br>
-	*  Loads the juice block from the external JABS config.
+	* Extends {@link #postInitialize}.<br>
+	* Loads the juice block from the external JABS config.
 	*/
 	postInitialize() {
 		super.postInitialize();
@@ -299,103 +201,104 @@ var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 	}
 	/**
 	* Initializes the metadata associated with this plugin by reading the `juice` block from `config.jabs.json`.
-	* Throws if the block (or any required sub-key) is missing — this is intentional and documented in the plugin
-	* help. Disabling juice is "remove the plugin from the manifest", not "leave the block out".
+	* The JMZ data editor guarantees all fields are present and numeric; no shape validation is needed here.
 	*/
 	initializeMetadata() {
-		const juice = JabsJuiceConfigValidation.requireBlock(J.ABS.Metadata.ExternalConfig);
-		const { target, caster, casting } = juice;
+		const { target, caster, casting, profiles } = J.ABS.Metadata.ExternalConfig.juice;
 		/**
 		* Target squish intensity scale for physical impacts (dimensionless scale delta).
 		* @type {number}
 		*/
-		this.targetPhysicalSquishIntensity = JabsJuiceConfigValidation.requireFloat(target.physicalSquishIntensity, "juice.target.physicalSquishIntensity");
+		this.targetPhysicalSquishIntensity = target.physicalSquishIntensity;
 		/**
 		* Target squish intensity scale for magical impacts.
 		* @type {number}
 		*/
-		this.targetMagicalSquishIntensity = JabsJuiceConfigValidation.requireFloat(target.magicalSquishIntensity, "juice.target.magicalSquishIntensity");
+		this.targetMagicalSquishIntensity = target.magicalSquishIntensity;
 		/**
 		* Frames to spend easing the target squish envelope.
 		* @type {number}
 		*/
-		this.targetSquishFrames = JabsJuiceConfigValidation.requireInt(target.squishFrames, "juice.target.squishFrames");
+		this.targetSquishFrames = Math.trunc(target.squishFrames);
 		/**
 		* Scalar applied to recipient squish when the incoming action is healing.
 		* @type {number}
 		*/
-		this.healingRecipientSquishScale = JabsJuiceConfigValidation.requireFloat(target.healingRecipientScale, "juice.target.healingRecipientScale");
+		this.healingRecipientSquishScale = target.healingRecipientScale;
 		/**
 		* Percent (0–100) describing how strongly repeated hits decay juice amplitude within the flurry window.
 		* @type {number}
 		*/
-		this.flurryDecayPercent = JabsJuiceConfigValidation.requireInt(target.flurryDecayPercent, "juice.target.flurryDecayPercent");
+		this.flurryDecayPercent = Math.trunc(target.flurryDecayPercent);
 		/**
 		* Dodge-only caster squish intensity (cooldown key matches dodge skill).
 		* @type {number}
 		*/
-		this.dodgeSquishIntensity = JabsJuiceConfigValidation.requireFloat(caster.dodgeSquishIntensity, "juice.caster.dodgeSquishIntensity");
+		this.dodgeSquishIntensity = caster.dodgeSquishIntensity;
 		/**
 		* Frames for dodge squish easing.
 		* @type {number}
 		*/
-		this.dodgeSquishFrames = JabsJuiceConfigValidation.requireInt(caster.dodgeSquishFrames, "juice.caster.dodgeSquishFrames");
+		this.dodgeSquishFrames = Math.trunc(caster.dodgeSquishFrames);
 		/**
 		* Support/healing caster pulse intensity.
 		* @type {number}
 		*/
-		this.supportCasterPulseIntensity = JabsJuiceConfigValidation.requireFloat(caster.supportPulseIntensity, "juice.caster.supportPulseIntensity");
+		this.supportCasterPulseIntensity = caster.supportPulseIntensity;
 		/**
 		* Frames for support caster easing.
 		* @type {number}
 		*/
-		this.supportCasterPulseFrames = JabsJuiceConfigValidation.requireInt(caster.supportPulseFrames, "juice.caster.supportPulseFrames");
+		this.supportCasterPulseFrames = Math.trunc(caster.supportPulseFrames);
 		/**
 		* Peak body tilt (radians) applied to strikers at execution time (before style multipliers).
 		* @type {number}
 		*/
-		this.casterStrikeTiltRadians = JabsJuiceConfigValidation.requireFloat(caster.strikeTiltRadians, "juice.caster.strikeTiltRadians");
+		this.casterStrikeTiltRadians = caster.strikeTiltRadians;
 		/**
 		* Frames spent tilting the striker.
 		* @type {number}
 		*/
-		this.casterStrikeTiltFrames = JabsJuiceConfigValidation.requireInt(caster.strikeTiltFrames, "juice.caster.strikeTiltFrames");
+		this.casterStrikeTiltFrames = Math.trunc(caster.strikeTiltFrames);
 		/**
 		* Peak weapon-overlay swing rotation (radians) before style multipliers.
 		* @type {number}
 		*/
-		this.weaponSwingPeakRadians = JabsJuiceConfigValidation.requireFloat(caster.weaponSwingPeakRadians, "juice.caster.weaponSwingPeakRadians");
+		this.weaponSwingPeakRadians = caster.weaponSwingPeakRadians;
 		/**
 		* Frames for the weapon swing overlay arc.
 		* @type {number}
 		*/
-		this.weaponSwingFrames = JabsJuiceConfigValidation.requireInt(caster.weaponSwingFrames, "juice.caster.weaponSwingFrames");
+		this.weaponSwingFrames = Math.trunc(caster.weaponSwingFrames);
 		/**
 		* Extra downward shift for IconSet juice overlays (pixels; positive moves toward feet).
 		* @type {number}
 		*/
-		this.spriteJuiceVerticalOffsetPixels = JabsJuiceConfigValidation.requireInt(caster.spriteVerticalOffsetPixels, "juice.caster.spriteVerticalOffsetPixels");
+		this.spriteJuiceVerticalOffsetPixels = Math.trunc(caster.spriteVerticalOffsetPixels);
 		/**
 		* Body squish intensity when no weapon icon overlay plays (unarmed / enemies without icons).
 		* @type {number}
 		*/
-		this.unarmedStrikeSquishIntensity = JabsJuiceConfigValidation.requireFloat(caster.unarmedStrikeSquishIntensity, "juice.caster.unarmedStrikeSquishIntensity");
+		this.unarmedStrikeSquishIntensity = caster.unarmedStrikeSquishIntensity;
 		/**
 		* Frames for unarmed strike easing.
 		* @type {number}
 		*/
-		this.unarmedStrikeSquishFrames = JabsJuiceConfigValidation.requireInt(caster.unarmedStrikeSquishFrames, "juice.caster.unarmedStrikeSquishFrames");
+		this.unarmedStrikeSquishFrames = Math.trunc(caster.unarmedStrikeSquishFrames);
 		/**
 		* Casting pulse amplitude while {@link JABS_Battler.isCasting} remains true.
 		* @type {number}
 		*/
-		this.castingPulseAmplitude = JabsJuiceConfigValidation.requireFloat(casting.pulseAmplitude, "juice.casting.pulseAmplitude");
+		this.castingPulseAmplitude = casting.pulseAmplitude;
 		/**
-		* Named multiplier buckets keyed by skill tags or weapon type ids (parsed `juice.profiles` map).
-		* `default` is guaranteed to exist (validator throws if not).
+		* Named multiplier buckets keyed by weapon style tag (parsed `juice.profiles` map).
+		* `default` is guaranteed to exist by the editor.
 		* @type {Object<string, { tiltMul: number, swingMul: number }>}
 		*/
-		this.weaponStyleMultipliers = JabsJuiceConfigValidation.requireProfiles(juice.profiles);
+		this.weaponStyleMultipliers = Object.fromEntries(Object.keys(profiles).map((key) => [key, {
+			tiltMul: profiles[key].tiltMul,
+			swingMul: profiles[key].swingMul
+		}]));
 	}
 };
 
@@ -2224,7 +2127,7 @@ var JuiceHookManager = class JuiceHookManager {
 	static onExecuteMapAction(caster, action) {
 		const skill = action.getBaseSkill();
 		const cooldownKey = action.getCooldownType();
-		const dodgeKey = typeof JABS_Button !== "undefined" ? JABS_Button.Dodge : "Dodge";
+		const dodgeKey = JABS_Button.Dodge;
 		if (cooldownKey === dodgeKey) {
 			JuiceHookManager.#applyDodgeJuice(caster);
 			return;

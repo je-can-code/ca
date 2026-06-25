@@ -3691,16 +3691,8 @@ var RPGManager = class RPGManager {
 	* @returns {string} Suffix to append to eval cache keys, or empty when there is no context.
 	*/
 	static #getEvalCacheContextSuffix(context) {
-		if (context === null || context === undefined) {
-			return "";
-		}
-		if (typeof context.getLevel === "function") {
-			return `::ctxLvl=${context.getLevel()}`;
-		}
-		if (typeof context.level === "number") {
-			return `::ctxLvl=${context.level}`;
-		}
-		return "";
+		if (!context) return "";
+		return `::ctxLvl=${context.getLevel()}`;
 	}
 	/**
 	* Get the eval'd formula of all matching values from the notes of a single database object.
@@ -3976,7 +3968,7 @@ var RPGManager = class RPGManager {
 	* @returns {number|null}
 	*/
 	static resolveHitTypeString(str) {
-		if (!str || typeof str !== "string") return null;
+		if (!str) return null;
 		switch (str.toLowerCase()) {
 			case "physical": return Game_Action.HITTYPE_PHYSICAL;
 			case "magical": return Game_Action.HITTYPE_MAGICAL;
@@ -8333,6 +8325,15 @@ Game_Character.prototype.distanceFromCharacter = function(character) {
 	const distance = $gameMap.distance(character.x, character.y, this.x, this.y);
 	const constrainedDistance = parseFloat(distance.toFixed(3));
 	return constrainedDistance;
+};
+/**
+* Characters are visible by default.
+* The base engine only defines {@code isVisible} on {@link Game_Follower} and {@link Game_Vehicle};
+* subclasses that have their own visibility logic (followers, vehicles) override this.
+* @returns {boolean}
+*/
+Game_Character.prototype.isVisible = function() {
+	return true;
 };
 
 //#endregion

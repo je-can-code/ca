@@ -322,7 +322,6 @@ var Sprite_CooldownGauge = class extends Sprite {
 	*/
 	globalHudFrames() {
 		if (!this._j._gcdMergeBattler || !this._j._gcdMergeSkillId) return 0;
-		if (typeof J.ABS === "undefined" || typeof JABS_GlobalCooldown === "undefined") return 0;
 		const sk = $dataSkills[this._j._gcdMergeSkillId];
 		if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(sk) === false) return 0;
 		const globalCd = this._j._gcdMergeBattler.getCooldown(J.ABS.Globals.GlobalCooldownKey);
@@ -615,10 +614,7 @@ var Sprite_CooldownTimer = class extends Sprite {
 	}
 	updateCooldownText() {
 		this.bitmap.clear();
-		let baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
-		if (typeof baseCooldown === "undefined") {
-			baseCooldown = 0;
-		}
+		const baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
 		const cooldownBaseText = baseCooldown > 0 ? baseCooldown : String.empty;
 		this.bitmap.drawText(cooldownBaseText, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
 	}

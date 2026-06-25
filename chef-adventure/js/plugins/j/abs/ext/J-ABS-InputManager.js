@@ -1433,7 +1433,7 @@ Input.bootstrapAllKeyboardKeysForCapture = function() {
 	const existingMap = Object.assign({}, Input.keyMapper);
 	Object.keys(existingMap).forEach((code) => {
 		const sym = existingMap[code];
-		if (typeof sym === "string" && sym.length) {
+		if (sym) {
 			reserved.add(sym);
 		}
 	});
@@ -1596,7 +1596,7 @@ Input._updateGamepadState = function(gamepad) {
 */
 Input._ensurePadStates = function(gamepad) {
 	const s = this._currentState;
-	const padState = this._gamepadStates && typeof gamepad.index === "number" ? this._gamepadStates[gamepad.index] : null;
+	const padState = this._gamepadStates ? this._gamepadStates[gamepad.index] : null;
 	if (!s || !padState) {
 		return null;
 	}
@@ -1760,9 +1760,6 @@ Input.exportAllBindingsForSave = function() {
 * @param {Object<string, Object<string, string[]>>} saved The snapshot to import.
 */
 Input.importAllBindingsFromSave = function(saved) {
-	if (!saved || typeof saved !== "object") {
-		return;
-	}
 	const b = Input._jRegistries.bindings;
 	const namespaces = Object.keys(saved);
 	for (let i = 0; i < namespaces.length; i++) {
@@ -1898,10 +1895,7 @@ Game_System.prototype.getJabsInputConfig = function(controllerKey) {
 * @returns {Object<string, Object<string, string[]>>}
 */
 Game_System.prototype.getInputBindingsSnapshot = function() {
-	if (!this._j || !this._j._abs || !this._j._abs._input || !this._j._abs._input._bindings) {
-		return {};
-	}
-	return this._j._abs._input._bindings || {};
+	return this._j._abs._input._bindings;
 };
 /**
 * Overwrites the persisted Input bindings snapshot on the system object.
@@ -3502,7 +3496,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 	* @param {string} symbol The physical input symbol to assign.
 	*/
 	assignWithConflictResolution(button, symbol) {
-		if (typeof button === "string" && button.indexOf("__ext__") === 0) {
+		if (button.startsWith("__ext__")) {
 			const without = button.substring("__ext__".length);
 			const splitAt = without.indexOf(":");
 			if (splitAt > 0) {

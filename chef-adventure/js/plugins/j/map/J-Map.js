@@ -1488,7 +1488,6 @@ var Sprite_MiniMap = class extends Sprite {
 	* @returns {string} CSS color string.
 	*/
 	toCss(hex) {
-		if (typeof hex !== "string") return "#ff00ff";
 		const clean = hex.replace(/\s+/g, String.empty);
 		if (!clean.startsWith("#")) return "#ff00ff";
 		if (clean.length === 7) return clean;

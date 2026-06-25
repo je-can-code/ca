@@ -3525,16 +3525,7 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = (obj) => {
 * @returns {object} The parsed root blob.
 */
 J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
-	const validate = (parsedConfig) => {
-		if (parsedConfig === null || typeof parsedConfig !== "object") {
-			throw new Error("config root must be an object.");
-		}
-		const { teams } = parsedConfig;
-		if (Array.isArray(teams) === false) {
-			throw new Error("config root must contain a \"teams\" array.");
-		}
-	};
-	const parsedConfig = ExternalJsonConfigLoader.load(configPath, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-ABS").configName("external configuration").validator(validate).build());
+	const parsedConfig = ExternalJsonConfigLoader.load(configPath, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-ABS").configName("external configuration").build());
 	const metadata = J.ABS.Metadata;
 	if (metadata === undefined) {
 		throw new Error("J.ABS.Metadata must be assigned before J.ABS.Helpers.loadExternalConfig().");
@@ -5130,7 +5121,7 @@ var JABS_HitboxPulseManager = class JABS_HitboxPulseManager {
 	static configure(opts) {
 		if (!opts) return;
 		JABS_HitboxPulseManager._defaults.apply(opts);
-		if (typeof opts.maxConcurrentPulses === "number") {
+		if (opts.maxConcurrentPulses !== undefined) {
 			JABS_HitboxPulseManager.setCap(opts.maxConcurrentPulses);
 		}
 	}
@@ -12621,18 +12612,10 @@ var JABS_Battler = class JABS_Battler {
 	*/
 	canDirectionalDodgeStepPass(character, direction8) {
 		if (character.isDiagonalDirection(direction8)) {
-			if (typeof character.canPassDiagonalByDirection === "function") {
-				return character.canPassDiagonalByDirection(direction8);
-			}
-			if (typeof character.getDiagonalDirections === "function" && typeof character.canPassDiagonally === "function") {
-				const pair = character.getDiagonalDirections(direction8);
-				return character.canPassDiagonally(character._x, character._y, pair[0], pair[1]);
-			}
+			const [horz, vert] = character.getDiagonalDirections(direction8);
+			return character.canPassDiagonally(character._x, character._y, horz, vert);
 		}
-		if (typeof character.canPassStraight === "function") {
-			return character.canPassStraight(direction8);
-		}
-		return true;
+		return character.canPass(character._x, character._y, direction8);
 	}
 	/**
 	* Scores eight-way directions by alignment with fleeing away from a unit threat vector.
@@ -15562,6 +15545,9 @@ var JABS_Engine = class JABS_Engine {
 	/**
 	* Builds screen-space melee px offsets from plugin defaults plus facing-aware vertical trims.
 	* Lateral offsets stay global; up/down cardinals (and blended diagonals) get extra Y so wedges track torso motion.
+	* Left/right facings (4 and 6) bypass the base Y offset entirely: for those directions the perpendicular
+	* axis of the line hitbox is Y, so any global oy would skew the vertical hit window off-center. Keeping
+	* oy = 0 for L/R pins the breadth band symmetrically to the character's visual center (th/2 lift only).
 	* @param {number} facing Logical travel dir8 from the {@link JABS_Action} (2 down … 8 up).
 	* @returns {{ ox:number, oy:number }}
 	*/
@@ -15570,6 +15556,12 @@ var JABS_Engine = class JABS_Engine {
 		const baseY = J.ABS.Metadata.HitboxMeleeOriginOffsetPxY;
 		const extraDown = J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingDown;
 		const extraUp = J.ABS.Metadata.HitboxMeleeOriginExtraPxYFacingUp;
+		if (facing === 4 || facing === 6) {
+			return {
+				ox: baseX,
+				oy: 0
+			};
+		}
 		let addY = 0;
 		if (facing === 2) {
 			addY = extraDown;
@@ -15616,11 +15608,9 @@ var JABS_Engine = class JABS_Engine {
 			};
 		}
 		let facing = 2;
-		if (typeof actionEvent.getJabsAction === "function") {
-			const ja = actionEvent.getJabsAction();
-			if (ja) {
-				facing = ja.direction();
-			}
+		const ja = actionEvent.getJabsAction();
+		if (ja) {
+			facing = ja.direction();
 		}
 		const { ox, oy } = JABS_Engine.resolveMeleeOriginPixelOffsetsForFacing(facing);
 		const liftPx = JABS_Engine.resolveMeleeVerticalLiftPxForFacing(facing);
@@ -20714,7 +20704,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 		if (StateAfflictionProvider.canCollect() === false) {
 			return collection;
 		}
-		if (!battler || typeof battler.getUuid !== "function") {
+		if (!battler) {
 			return collection;
 		}
 		const uuid = battler.getUuid();
@@ -25866,13 +25856,9 @@ Game_CharacterBase.prototype.setDodgeModifier = function(dodgeMoveSpeed) {
 * Used by {@link Game_CharacterBase.realMoveSpeed} for dodge move-speed bonus.
 */
 Game_CharacterBase.prototype.isDodging = function() {
-	if (typeof this.getJabsBattler === "function") {
-		const battler = this.getJabsBattler();
-		if (battler) {
-			return battler.isDodging();
-		}
-	}
-	return false;
+	const battler = this.getJabsBattler();
+	if (!battler) return false;
+	return battler.isDodging();
 };
 
 //#endregion
@@ -31456,7 +31442,7 @@ Spriteset_Map.prototype.isBattlerCollidingWithAnyAction = function(item) {
 				continue;
 			}
 			const casterJb = jabsAction.getCaster();
-			const targetJb = typeof target.getJabsBattler === "function" ? target.getJabsBattler() : null;
+			const targetJb = target.getJabsBattler();
 			if (!targetJb) {
 				continue;
 			}

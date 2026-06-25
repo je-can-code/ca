@@ -385,13 +385,7 @@ JaftingSalvageLedger.MaterialArmorTypeId = 5;
 * @returns {number}
 */
 JaftingSalvageLedger.getMaterialArmorTypeId = function() {
-	if (typeof J !== "undefined" && J.JAFTING !== undefined && J.JAFTING.Metadata !== undefined) {
-		const v = J.JAFTING.Metadata.materialArmorTypeId;
-		if (typeof v === "number" && !Number.isNaN(v)) {
-			return v;
-		}
-	}
-	return JaftingSalvageLedger.MaterialArmorTypeId;
+	return J.JAFTING.Metadata.materialArmorTypeId;
 };
 /**
 * Weapon type id for stack-only ingredient weapons (JAFTING core plugin parameter).<br>
@@ -400,13 +394,7 @@ JaftingSalvageLedger.getMaterialArmorTypeId = function() {
 * @returns {number}
 */
 JaftingSalvageLedger.getMaterialWeaponTypeId = function() {
-	if (typeof J !== "undefined" && J.JAFTING !== undefined && J.JAFTING.Metadata !== undefined) {
-		const v = J.JAFTING.Metadata.materialWeaponTypeId;
-		if (typeof v === "number" && !Number.isNaN(v)) {
-			return v;
-		}
-	}
-	return -1;
+	return J.JAFTING.Metadata.materialWeaponTypeId;
 };
 /**
 * True when this armor row uses the configured material armor type (refine primary filter, dismantle pass-through).
