@@ -534,52 +534,18 @@ var RefinementWorkflowSession = class RefinementWorkflowSession {
 		this.#phase = RefinementWorkflowSession.Phase.PickingBase;
 	}
 	/**
-	* Refinement lists hand {@link Scene_JaftingRefine} raw RPG datums; menus may still wrap rows in {@link Game_Item}.
-	*
-	* @param {Game_Item|RPG_Base|null|undefined} partyItem The party item driving this step.
-	* @returns {RPG_Base|null}
-	*/
-	static datumFromPartyItem(partyItem) {
-		if (partyItem === null || partyItem === undefined) {
-			return null;
-		}
-		if (partyItem instanceof Game_Item) {
-			return partyItem.object();
-		}
-		return partyItem;
-	}
 	/**
 	* Performs the refinement transaction: remove inputs, stamp the hydrated output row, then register it through
-	* {@link JaftingManager.createRefinedOutput} (dynamic id allocation + party gain).<br>
-	* Callers pass {@link Game_Item} wrappers from list windows; tests may pass bare datums—{@link
-	* RefinementWorkflowSession.datumFromPartyItem} normalizes once here.
+	* {@link JaftingManager.createRefinedOutput} (dynamic id allocation + party gain).
 	*
-	* @param {Game_Item|null|undefined} baseItem The base item driving this step.
-	* @param {Game_Item|null|undefined} materialItem The material item driving this step.
-	* @param {RPG_EquipItem|null|undefined} outputEquip The output equip driving this step.
+	* @param {Game_Item} baseItem The base item driving this step.
+	* @param {Game_Item} materialItem The material item driving this step.
+	* @param {RPG_EquipItem} outputEquip The output equip driving this step.
 	* @returns {{ ok: boolean, reason: string|null }}
 	*/
 	commitRefinement(baseItem, materialItem, outputEquip) {
-		if (baseItem === null || baseItem === undefined) {
-			return {
-				ok: false,
-				reason: "missing_base"
-			};
-		}
-		if (materialItem === null || materialItem === undefined) {
-			return {
-				ok: false,
-				reason: "missing_material"
-			};
-		}
-		if (outputEquip === null || outputEquip === undefined) {
-			return {
-				ok: false,
-				reason: "missing_output"
-			};
-		}
-		const baseDatum = RefinementWorkflowSession.datumFromPartyItem(baseItem);
-		const materialDatum = RefinementWorkflowSession.datumFromPartyItem(materialItem);
+		const baseDatum = baseItem.object();
+		const materialDatum = materialItem.object();
 		const mergedLedger = JaftingSalvageManager.buildRefinementOutputLedger(baseDatum, materialDatum);
 		$gameParty.gainItem(baseItem, -1);
 		$gameParty.gainItem(materialItem, -1);
@@ -761,6 +727,7 @@ J.JAFTING.EXT.REFINE.Aliased.Game_Item = new Map();
 J.JAFTING.EXT.REFINE.Aliased.Game_Party = new Map();
 J.JAFTING.EXT.REFINE.Aliased.Game_System = new Map();
 J.JAFTING.EXT.REFINE.Aliased.RPG_Base = new Map();
+J.JAFTING.EXT.REFINE.Aliased.RPG_EquipItem = new Map();
 J.JAFTING.EXT.REFINE.Aliased.Scene_Jafting = new Map();
 J.JAFTING.EXT.REFINE.Aliased.Window_JaftingList = new Map();
 /**
@@ -793,6 +760,19 @@ RPG_Base.prototype._generate = function(overrides, index) {
 
 //#endregion
 //#region src/plugins/jafting/ext/refine/database/RPG_EquipItem.js
+/**
+* Copies the salvage ledger from the source object so refinement lineage survives save/load.
+* The base schema does not include `_jaftingSalvageLedger`, so without this hook the property is silently dropped
+* when {@link Game_Party#refreshDatabaseWeapons} and {@link Game_Party#refreshDatabaseArmors} reconstruct refined
+* entries via `new RPG_Weapon(raw, index)`.
+*
+* @param {RPG_EquipItem & { _jaftingSalvageLedger?: JaftingSalvageLedgerSnapshot|null }} baseItem
+*/
+J.JAFTING.EXT.REFINE.Aliased.RPG_EquipItem.set("initMembers", RPG_EquipItem.prototype.initMembers);
+RPG_EquipItem.prototype.initMembers = function(baseItem) {
+	J.JAFTING.EXT.REFINE.Aliased.RPG_EquipItem.get("initMembers").call(this, baseItem);
+	this._jaftingSalvageLedger = baseItem._jaftingSalvageLedger ?? null;
+};
 /**
 * The number of times this equip has been refined.
 * @type {number}

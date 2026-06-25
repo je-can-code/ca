@@ -10718,7 +10718,7 @@ var JABS_Battler = class JABS_Battler {
 	* @returns {boolean}
 	*/
 	isActor() {
-		return this.isPlayer() || this.getBattler() instanceof Game_Actor;
+		return this.isPlayer() || this.getBattler().isActor();
 	}
 	/**
 	* Whether or not this battler is based on a follower.
@@ -10732,7 +10732,7 @@ var JABS_Battler = class JABS_Battler {
 	* @returns {boolean}
 	*/
 	isEnemy() {
-		return this.getBattler() instanceof Game_Enemy;
+		return this.getBattler().isEnemy();
 	}
 	/**
 	* Whether or not this battler is based on an event.
@@ -10896,7 +10896,7 @@ var JABS_Battler = class JABS_Battler {
 	*/
 	isEventReady() {
 		const character = this.getCharacter();
-		if (character instanceof Game_Player) {
+		if (character.isPlayer()) {
 			return false;
 		}
 		return !!character.event();
@@ -29008,9 +29008,7 @@ Scene_Map.prototype.showJabsMenuWindow = function(window) {
 * @param {Window_AbsMenu|Window_AbsMenuSelect} window The window to hide.
 */
 Scene_Map.prototype.hideJabsMenuWindow = function(window) {
-	if (window instanceof Window_Selectable) {
-		window.deselect();
-	}
+	window.deselect();
 	window.close();
 	window.deactivate();
 	window.hide();
@@ -29837,7 +29835,7 @@ Sprite_Character.prototype.getBattler = function() {
 * @returns {boolean} True if this sprite belongs to a battler, false otherwise.
 */
 Sprite_Character.prototype.isJabsBattler = function() {
-	if (!this.character() || this.character() instanceof Game_Vehicle) return false;
+	if (!this.character() || this.character().isVehicle()) return false;
 	return !!this.character().hasJabsBattler();
 };
 /**

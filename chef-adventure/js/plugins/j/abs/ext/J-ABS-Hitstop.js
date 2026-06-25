@@ -337,14 +337,6 @@ var JABS_HitstopData = class {
 		this._flurryWindows.set(actionUuid, Math.max(0, Math.floor(windowFrames)));
 	}
 	/**
-	* Restores {@link _flurryWindows} from a plain object after {@link JsonEx.makeDeepCopy}.
-	* JsonEx serializes Maps as plain objects; call this after deep-copy to convert back.
-	*/
-	normalizeFlurryWindowsMap() {
-		if (this._flurryWindows instanceof Map) return;
-		this._flurryWindows = new Map(Object.entries(this._flurryWindows));
-	}
-	/**
 	* Determines whether or not the provided action uuid is inside the flurry window.
 	* @param {string} actionUuid The action uuid.
 	* @returns {boolean} True if in the window, false otherwise.

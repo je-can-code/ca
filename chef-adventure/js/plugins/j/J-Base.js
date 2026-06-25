@@ -289,7 +289,14 @@ var RPG_Base = class RPG_Base {
 		this.meta = baseItem.meta;
 		this.name = baseItem.name;
 		this.note = baseItem.note;
+		this.initMembers(baseItem);
 	}
+	/**
+	* Extension seam: called at the end of construction with the raw source object so plugins can copy extra
+	* properties that are not part of the base schema.
+	* @param {any} _baseItem The underlying database object.
+	*/
+	initMembers(_baseItem) {}
 	/**
 	* Retrieves the index of this entry in the database.
 	* @returns {number}
@@ -383,6 +390,14 @@ var RPG_Base = class RPG_Base {
 	* @returns {boolean}
 	*/
 	isArmor() {
+		return false;
+	}
+	/**
+	* Whether or not this database entry is an equip item (weapon or armor).
+	* {@link RPG_EquipItem} overrides this to return true.
+	* @returns {boolean}
+	*/
+	isEquipItem() {
 		return false;
 	}
 	/**
@@ -4321,6 +4336,13 @@ var RPG_EquipItem = class extends RPG_Traited {
 		return this.etypeId > 1;
 	}
 	/**
+	* Whether or not this database entry is an equip item.
+	* @returns {boolean}
+	*/
+	isEquipItem() {
+		return true;
+	}
+	/**
 	* Gets the type of implementation this database entry is.
 	* @returns {string}
 	*/
@@ -4366,6 +4388,13 @@ var RPG_Weapon = class RPG_Weapon extends RPG_EquipItem {
 	* @returns {boolean}
 	*/
 	isWeapon() {
+		return true;
+	}
+	/**
+	* Whether or not this database entry is an equip item.
+	* @returns {boolean}
+	*/
+	isEquipItem() {
 		return true;
 	}
 	/**
@@ -5397,6 +5426,13 @@ var RPG_Armor = class RPG_Armor extends RPG_EquipItem {
 	* @returns {boolean}
 	*/
 	isArmor() {
+		return true;
+	}
+	/**
+	* Whether or not this database entry is an equip item.
+	* @returns {boolean}
+	*/
+	isEquipItem() {
 		return true;
 	}
 	/**
@@ -9131,6 +9167,21 @@ Scene_Base.prototype.hideModalDimmer = function() {
 Scene_Base.prototype.callScene = function() {
 	SceneManager.push(this);
 };
+/**
+* Whether this scene is the map scene.
+* All scenes return false; {@link Scene_Map} overrides to return true.
+* @returns {boolean}
+*/
+Scene_Base.prototype.isMapScene = function() {
+	return false;
+};
+/**
+* Identifies this scene as the map scene.
+* @returns {boolean}
+*/
+Scene_Map.prototype.isMapScene = function() {
+	return true;
+};
 
 //#endregion
 //#region src/plugins/_base/scenes/Scene_Boot.js
@@ -9142,6 +9193,18 @@ J.BASE.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabas
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	VanillaParameterRegistration.registerAll();
 	J.BASE.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+};
+
+//#endregion
+//#region src/plugins/_base/sprites/Sprite.js
+/**
+* Whether this sprite manages its own opacity independently of the HUD system.
+* {@link Sprite_Icon} and {@link Sprite_BaseText} override this when flagged with
+* {@code _disableManagedOpacity}; all other sprites defer to external management.
+* @returns {boolean}
+*/
+Sprite.prototype.hasSelfManagedOpacity = function() {
+	return false;
 };
 
 //#endregion
@@ -9958,6 +10021,14 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	*/
 	activateGauge() {
 		this._gauge._activated = true;
+	}
+	/**
+	* Extends {@link Sprite#hide}.<br/>
+	* Also deactivates the gauge so it does not tick or render while hidden.
+	*/
+	hide() {
+		super.hide();
+		this.deactivateGauge();
 	}
 	/**
 	* Deactivates the gauge.

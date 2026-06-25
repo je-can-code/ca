@@ -584,7 +584,6 @@ Sprite_Character.prototype.needsEscribeAdding = function() {
 	const character = this.character();
 	if (!character) return false;
 	if (!character.isEvent()) return false;
-	if (!(character instanceof Game_Event)) return false;
 	return character.needsEscribeAdding();
 };
 Sprite_Character.prototype.needsEscribeRemoval = function() {

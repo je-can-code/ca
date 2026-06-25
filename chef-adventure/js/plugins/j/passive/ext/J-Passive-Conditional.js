@@ -1992,7 +1992,7 @@ Game_Battler.prototype.buildPassiveCollectionFingerprint = function() {
 	const stackMap = new Map();
 	sources.forEach((source) => {
 		let uniqueSourceIds = source.uniquePassiveStateIds || [];
-		if (source instanceof RPG_EquipItem) {
+		if (source.isEquipItem()) {
 			uniqueSourceIds = uniqueSourceIds.concat(source.uniqueEquippedPassiveStateIds || []);
 		}
 		uniqueSourceIds.forEach((id) => {
@@ -2001,7 +2001,7 @@ Game_Battler.prototype.buildPassiveCollectionFingerprint = function() {
 			}
 		});
 		let stackableSourceIds = source.passiveStateIds || [];
-		if (source instanceof RPG_EquipItem) {
+		if (source.isEquipItem()) {
 			stackableSourceIds = stackableSourceIds.concat(source.equippedPassiveStateIds || []);
 		}
 		stackableSourceIds.forEach((id) => {

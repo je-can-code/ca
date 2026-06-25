@@ -182,9 +182,6 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	hideSprites() {
 		this._hudSprites.forEach((sprite, _) => {
 			sprite.hide();
-			if (sprite instanceof Sprite_MapGauge) {
-				sprite.deactivateGauge();
-			}
 		});
 	}
 	/**
@@ -484,9 +481,7 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	* @returns {boolean}
 	*/
 	canHandleSpriteInterference(sprite) {
-		if (sprite instanceof Sprite_BaseText || sprite instanceof Sprite_Icon) {
-			if (sprite.hasSelfManagedOpacity() === true) return false;
-		}
+		if (sprite.hasSelfManagedOpacity() === true) return false;
 		return true;
 	}
 	/**

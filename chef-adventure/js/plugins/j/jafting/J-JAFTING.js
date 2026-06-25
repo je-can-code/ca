@@ -189,18 +189,6 @@ var JaftingSalvageLedgerRow = class JaftingSalvageLedgerRow {
 		}
 	}
 	/**
-	* Normalizes save data or hand-built literals into a row instance.
-	*
-	* @param {JaftingSalvageLedgerRow|{ t: string, id: number, n: number, banned?: boolean }} row
-	* @returns {JaftingSalvageLedgerRow}
-	*/
-	static coerce(row) {
-		if (row instanceof JaftingSalvageLedgerRow) {
-			return row;
-		}
-		return new JaftingSalvageLedgerRow(row.t, row.id, row.n, row.banned === true);
-	}
-	/**
 	* Deep-copies this row so merges never share mutable references.
 	*
 	* @returns {JaftingSalvageLedgerRow}
@@ -219,64 +207,31 @@ var JaftingSalvageLedgerRow = class JaftingSalvageLedgerRow {
 */
 var JaftingSalvageLedgerSnapshot = class JaftingSalvageLedgerSnapshot {
 	/**
-	* @param {JaftingSalvageLedgerRow[]|JaftingSalvageLedgerSnapshot|{ rows?: JaftingSalvageLedgerRow[] }|null|
-	*   undefined} rowsSource
+	* @param {JaftingSalvageLedgerRow[]|null|undefined} rows
 	*/
-	constructor(rowsSource) {
-		if (rowsSource instanceof JaftingSalvageLedgerSnapshot) {
-			this.rows = rowsSource.rows.map((r) => JaftingSalvageLedgerRow.coerce(r).clone());
-			return;
-		}
-		if (rowsSource && Array.isArray(rowsSource.rows)) {
-			this.rows = JaftingSalvageLedgerSnapshot.coerceRows(rowsSource.rows);
-			return;
-		}
-		if (Array.isArray(rowsSource)) {
-			this.rows = JaftingSalvageLedgerSnapshot.coerceRows(rowsSource);
-			return;
-		}
-		this.rows = [];
+	constructor(rows) {
+		this.rows = Array.isArray(rows) ? rows : [];
 	}
 	/**
-	* Normalizes every entry to {@link JaftingSalvageLedgerRow} (handles post-load plain objects).
+	* Returns `.rows` from a snapshot, or an empty array when the snapshot is absent.
 	*
-	* @param {unknown[]} rows The rows driving this step.
+	* @param {JaftingSalvageLedgerSnapshot|null|undefined} ledger
 	* @returns {JaftingSalvageLedgerRow[]}
 	*/
-	static coerceRows(rows) {
-		if (Array.isArray(rows) === false) {
+	static rowsFrom(ledger) {
+		if (!ledger) {
 			return [];
 		}
-		const out = [];
-		for (let i = 0; i < rows.length; i++) {
-			out.push(JaftingSalvageLedgerRow.coerce(rows[i]));
-		}
-		return out;
-	}
-	/**
-	* Reads `.rows` from a snapshot instance or a duck-typed interim object.
-	*
-	* @param {JaftingSalvageLedgerSnapshot|{ rows?: unknown[] }|null|undefined} ledger
-	* @returns {JaftingSalvageLedgerRow[]}
-	*/
-	static rowsFromUnknown(ledger) {
-		if (!ledger || !ledger.rows) {
-			return [];
-		}
-		return JaftingSalvageLedgerSnapshot.coerceRows(ledger.rows);
+		return ledger.rows;
 	}
 	/**
 	* Clones every row into a fresh snapshot (used when stamping multiple outputs from the same recipe shell).
 	*
-	* @param {JaftingSalvageLedgerSnapshot|{ rows?: JaftingSalvageLedgerRow[] }} ledger
+	* @param {JaftingSalvageLedgerSnapshot} ledger
 	* @returns {JaftingSalvageLedgerSnapshot}
 	*/
-	static cloneFromLedgerLike(ledger) {
-		const rows = JaftingSalvageLedgerSnapshot.rowsFromUnknown(ledger);
-		const clones = [];
-		for (let i = 0; i < rows.length; i++) {
-			clones.push(rows[i].clone());
-		}
+	static cloneFromLedger(ledger) {
+		const clones = ledger.rows.map((r) => r.clone());
 		return new JaftingSalvageLedgerSnapshot(clones);
 	}
 };
@@ -303,53 +258,16 @@ var JaftingSalvagePartyLedgerBag = class JaftingSalvagePartyLedgerBag {
 		this.rows = [];
 	}
 	/**
-	* Normalizes unit slots that survived save/load as plain `{ rows }` objects.
+	* Returns the bag as-is, or a fresh empty bag when the map slot is absent.
 	*
-	* @param {JaftingSalvagePartyLedgerBag} bag The bag driving this step.
-	*/
-	static coerceUnitLedgerSlots(bag) {
-		for (let i = 0; i < bag.unitLedgers.length; i++) {
-			const u = bag.unitLedgers[i];
-			if (u === null || u === undefined) {
-				continue;
-			}
-			if (u instanceof JaftingSalvageLedgerSnapshot === false) {
-				bag.unitLedgers[i] = new JaftingSalvageLedgerSnapshot(u.rows || []);
-			} else {
-				u.rows = JaftingSalvageLedgerSnapshot.coerceRows(u.rows);
-			}
-		}
-	}
-	/**
-	* Upgrades interim literals to class instances while preserving bag identity when already typed.
-	*
-	* @param {JaftingSalvagePartyLedgerBag|{ unitLedgers?: unknown[], rows?: unknown[] }|null|undefined} raw
+	* @param {JaftingSalvagePartyLedgerBag|null|undefined} raw
 	* @returns {JaftingSalvagePartyLedgerBag}
 	*/
 	static coerce(raw) {
-		if (raw instanceof JaftingSalvagePartyLedgerBag) {
-			raw.rows = JaftingSalvageLedgerSnapshot.coerceRows(raw.rows);
-			JaftingSalvagePartyLedgerBag.coerceUnitLedgerSlots(raw);
-			return raw;
-		}
-		const bag = new JaftingSalvagePartyLedgerBag();
 		if (!raw) {
-			return bag;
+			return new JaftingSalvagePartyLedgerBag();
 		}
-		if (Array.isArray(raw.unitLedgers)) {
-			for (let i = 0; i < raw.unitLedgers.length; i++) {
-				const u = raw.unitLedgers[i];
-				if (u === null || u === undefined) {
-					bag.unitLedgers.push(null);
-				} else if (u instanceof JaftingSalvageLedgerSnapshot === true) {
-					bag.unitLedgers.push(new JaftingSalvageLedgerSnapshot(u));
-				} else {
-					bag.unitLedgers.push(new JaftingSalvageLedgerSnapshot(u.rows || []));
-				}
-			}
-		}
-		bag.rows = JaftingSalvageLedgerSnapshot.coerceRows(raw.rows || []);
-		return bag;
+		return raw;
 	}
 };
 
@@ -443,16 +361,11 @@ JaftingSalvageLedger.rowMergeKey = function(row) {
 /**
 * Clones row objects for safe merging without sharing references.
 *
-* @param {JaftingSalvageLedgerRow[]|{ t: string, id: number, n: number, banned?: boolean }[]} rows
+* @param {JaftingSalvageLedgerRow[]} rows The rows to clone.
 * @returns {JaftingSalvageLedgerRow[]}
 */
 JaftingSalvageLedger.cloneRows = function(rows) {
-	const list = JaftingSalvageLedgerSnapshot.coerceRows(rows);
-	const out = [];
-	for (let i = 0; i < list.length; i++) {
-		out.push(list[i].clone());
-	}
-	return out;
+	return rows.map((r) => r.clone());
 };
 /**
 * Merges duplicate rows by summing counts when {@link rowMergeKey} matches.<br>
@@ -465,9 +378,8 @@ JaftingSalvageLedger.cloneRows = function(rows) {
 */
 JaftingSalvageLedger.mergeDuplicateRows = function(rows) {
 	const bucket = {};
-	const list = JaftingSalvageLedgerSnapshot.coerceRows(rows);
-	for (let i = 0; i < list.length; i++) {
-		const row = list[i];
+	for (let i = 0; i < rows.length; i++) {
+		const row = rows[i];
 		const key = JaftingSalvageLedger.rowMergeKey(row);
 		if (!bucket[key]) {
 			bucket[key] = row.clone();
@@ -648,9 +560,6 @@ var JaftingSalvageManager = class JaftingSalvageManager {
 			return;
 		}
 		bag = JaftingSalvagePartyLedgerBag.coerce(bag);
-		if (bag !== $gameParty._j._jafting._salvageLedgers[key]) {
-			$gameParty._j._jafting._salvageLedgers[key] = bag;
-		}
 		let anyUnitRows = false;
 		if (Array.isArray(bag.unitLedgers)) {
 			for (let i = 0; i < bag.unitLedgers.length; i++) {
@@ -676,10 +585,7 @@ var JaftingSalvageManager = class JaftingSalvageManager {
 		if (datum === null || datum === undefined) {
 			return null;
 		}
-		if (datum._jaftingSalvageLedger && datum._jaftingSalvageLedger.rows) {
-			if (datum._jaftingSalvageLedger instanceof JaftingSalvageLedgerSnapshot === false) {
-				datum._jaftingSalvageLedger = new JaftingSalvageLedgerSnapshot(datum._jaftingSalvageLedger);
-			}
+		if (datum._jaftingSalvageLedger) {
 			return datum._jaftingSalvageLedger;
 		}
 		const key = JaftingSalvageManager.containerKeyFromDatum(datum);
@@ -777,7 +683,7 @@ var JaftingSalvageManager = class JaftingSalvageManager {
 			const component = recipe.outputs[i];
 			if (component.isDatabaseEntry()) {
 				const datum = component.getItem();
-				const snapshot = JaftingSalvageLedgerSnapshot.cloneFromLedgerLike(shell);
+				const snapshot = JaftingSalvageLedgerSnapshot.cloneFromLedger(shell);
 				JaftingSalvageManager.appendStampedUnitsToPartyStack(datum, snapshot, component.quantity());
 			}
 		}
@@ -790,8 +696,8 @@ var JaftingSalvageManager = class JaftingSalvageManager {
 	*/
 	static mergeLedgerIntoPartyOrDatum(datum, incomingLedger) {
 		if (datum.id >= JaftingSalvageManager.DynamicEquipIndexMin) {
-			const existingRows = JaftingSalvageLedgerSnapshot.rowsFromUnknown(datum._jaftingSalvageLedger);
-			const incomingRows = JaftingSalvageLedgerSnapshot.rowsFromUnknown(incomingLedger);
+			const existingRows = JaftingSalvageLedgerSnapshot.rowsFrom(datum._jaftingSalvageLedger);
+			const incomingRows = JaftingSalvageLedgerSnapshot.rowsFrom(incomingLedger);
 			datum._jaftingSalvageLedger = new JaftingSalvageLedgerSnapshot(JaftingSalvageLedger.mergeRowArrays(existingRows, incomingRows));
 			return;
 		}
@@ -828,7 +734,7 @@ var JaftingSalvageManager = class JaftingSalvageManager {
 		const n = $gameParty.numItems(datum);
 		const start = Math.max(0, n - stampedCount);
 		for (let i = start; i < n; i++) {
-			bag.unitLedgers[i] = JaftingSalvageLedgerSnapshot.cloneFromLedgerLike(incomingLedger);
+			bag.unitLedgers[i] = JaftingSalvageLedgerSnapshot.cloneFromLedger(incomingLedger);
 		}
 		JaftingSalvageManager.recomputeMergedRowsFromPartyLedgerBag(bag);
 	}

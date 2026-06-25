@@ -3063,7 +3063,7 @@ if (J.ABS) {
 	* @private
 	*/
 	JABS_InputAdapter._canPerformQuestopediaAction = function() {
-		if (!(SceneManager._scene instanceof Scene_Map)) {
+		if (!SceneManager._scene.isMapScene()) {
 			return false;
 		}
 		if ($gameMessage.isBusy()) {

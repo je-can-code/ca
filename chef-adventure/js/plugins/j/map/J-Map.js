@@ -1740,7 +1740,7 @@ if (J.ABS) {
 	*/
 	JABS_InputAdapter.performMinimapFocusStart = function() {
 		if ($gameMap.isMinimapBlocked()) return;
-		if (!(SceneManager._scene instanceof Scene_Map)) return;
+		if (!SceneManager._scene.isMapScene()) return;
 		const mini = SceneManager._scene.getMiniMap();
 		if (!mini) return;
 		mini.enterFocusMode();
@@ -1749,7 +1749,7 @@ if (J.ABS) {
 	* Ends the temporary minimap focus mode and restores prior size/position.
 	*/
 	JABS_InputAdapter.performMinimapFocusEnd = function() {
-		if (!(SceneManager._scene instanceof Scene_Map)) return;
+		if (!SceneManager._scene.isMapScene()) return;
 		const mini = SceneManager._scene.getMiniMap();
 		if (!mini) return;
 		mini.exitFocusMode();
@@ -2002,7 +2002,7 @@ PluginManager.registerCommand(J.MAP.Metadata.name, "toggle-minimap", (args) => {
 	const shouldShow = `${args.action}` === "true";
 	if ($gameMap.isMinimapBlocked()) {
 		$gameSystem.hideMinimap();
-		if (SceneManager._scene instanceof Scene_Map) {
+		if (SceneManager._scene.isMapScene()) {
 			const miniMap = SceneManager._scene.getMiniMap();
 			if (miniMap) {
 				miniMap.visible = false;
@@ -2015,7 +2015,7 @@ PluginManager.registerCommand(J.MAP.Metadata.name, "toggle-minimap", (args) => {
 	} else {
 		$gameSystem.hideMinimap();
 	}
-	if (SceneManager._scene instanceof Scene_Map) {
+	if (SceneManager._scene.isMapScene()) {
 		const miniMap = SceneManager._scene.getMiniMap();
 		if (miniMap) {
 			miniMap.visible = shouldShow;

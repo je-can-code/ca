@@ -3233,7 +3233,7 @@ Game_Action.prototype.applySdpUnlock = function(target) {
 Game_Action.prototype.canUnlockSdp = function() {
 	const item = this.item();
 	if (!item) return false;
-	if (item instanceof RPG_Skill) return false;
+	if (item.isSkill()) return false;
 	if (!item.sdpKey) return false;
 	return true;
 };
@@ -3270,7 +3270,7 @@ Game_Action.prototype.applySdpPointMod = function(target) {
 Game_Action.prototype.isSdpPointMod = function(target) {
 	const item = this.item();
 	if (!item) return false;
-	if (item instanceof RPG_Skill) return false;
+	if (item.isSkill()) return false;
 	if (target.isEnemy()) return false;
 	if (RPGManager.getNumberFromNoteByRegex(item, J.SDP.RegExp.SdpPoints) === 0) return false;
 	return true;

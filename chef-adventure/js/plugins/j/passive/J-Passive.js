@@ -595,7 +595,7 @@ Game_Battler.prototype.sourceHasAnyPassiveIds = function(source) {
 	if (!source) return false;
 	if (source.passiveStateIds && source.passiveStateIds.length > 0) return true;
 	if (source.uniquePassiveStateIds && source.uniquePassiveStateIds.length > 0) return true;
-	if (source instanceof RPG_EquipItem) {
+	if (source.isEquipItem()) {
 		if (source.equippedPassiveStateIds && source.equippedPassiveStateIds.length > 0) return true;
 		if (source.uniqueEquippedPassiveStateIds && source.uniqueEquippedPassiveStateIds.length > 0) return true;
 	}
@@ -734,7 +734,7 @@ Game_Battler.prototype.getAllUniquePassiveStateIds = function() {
 	const everything = this.getPassiveStateSources();
 	everything.forEach((baseItem) => {
 		const uniqueIds = baseItem.uniquePassiveStateIds;
-		if (baseItem instanceof RPG_EquipItem) {
+		if (baseItem.isEquipItem()) {
 			uniqueIds.push(...baseItem.uniqueEquippedPassiveStateIds);
 		}
 		uniqueIds.forEach((id) => {
@@ -755,7 +755,7 @@ Game_Battler.prototype.getAllStackablePassiveStateIds = function() {
 	const everything = this.getPassiveStateSources();
 	everything.forEach((baseItem) => {
 		const stackableIds = baseItem.passiveStateIds;
-		if (baseItem instanceof RPG_EquipItem) {
+		if (baseItem.isEquipItem()) {
 			stackableIds.push(...baseItem.equippedPassiveStateIds);
 		}
 		stackableIds.forEach((id) => {
