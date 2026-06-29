@@ -278,6 +278,194 @@
  * state id 20 to themselves.
  *
  * ============================================================================
+ * CONDITIONAL CRITICAL CHANCE BY TARGET STATE:
+ * Have you ever wanted a skill to crit more reliably — or guaranteed — when the
+ * target is already afflicted with a specific state? Well now you can! By
+ * applying the appropriate tags, you can add bonus crit chance that only applies
+ * when the target has a specific state active.
+ *
+ * Two families of tags are available, mirroring the "thisCrit"/"onCrit" split:
+ *
+ * "thisCritChanceIfState" lives on a specific skill or item and only contributes
+ * its bonus when THAT skill is the one being executed.
+ *
+ * "critChanceIfState" lives on any note source attached to the attacker (states,
+ * weapons, armors, class, actor, enemy) and contributes its bonus whenever ANY
+ * of their actions is executed against a matching target.
+ *
+ * NOTE:
+ * BONUS_CHANCE is a whole-number percent from 0 to 100 (or higher for guaranteed).
+ * A BONUS_CHANCE of 100 effectively guarantees a crit when the state is present,
+ * though the target's crit evasion (cev) still applies.
+ *
+ * NOTE:
+ * Multiple tags stack additively. If a skill carries two tags for different states,
+ * and the target has both states, both bonuses are added to the crit chance.
+ *
+ * TAG USAGE:
+ * "thisCritChanceIfState" tags:
+ * - Skills
+ * - Items
+ *
+ * "critChanceIfState" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritChanceIfState:[STATE_ID, BONUS_CHANCE]>
+ *  <critChanceIfState:[STATE_ID, BONUS_CHANCE]>
+ * Where STATE_ID is the id of the state the target must have.
+ * Where BONUS_CHANCE is the percent crit chance bonus (0–100+) to add.
+ *
+ * TAG EXAMPLES:
+ *  <thisCritChanceIfState:[14, 100]>
+ * This skill has guaranteed crit chance against targets afflicted with state 14.
+ *
+ *  <thisCritChanceIfState:[14, 50]>
+ *  <thisCritChanceIfState:[7, 50]>
+ * This skill gains +50% crit chance if the target has state 14, another +50%
+ * if the target has state 7. If both are present, the bonus totals +100%.
+ *
+ *  <critChanceIfState:[14, 30]>
+ * While this note source is active on the attacker, all of their actions gain
+ * +30% crit chance against targets afflicted with state 14. Useful on passive
+ * mastery states to reward building into a specific debuff.
+ *
+ * ============================================================================
+ * CONDITIONAL CRITICAL CHANCE BY TARGET STATE TYPE:
+ * The same as the state-id variants above, but matching by type classifier
+ * (the <type:TYPE> tag on states) rather than a specific state id. This lets
+ * you say "any bleed" instead of "specifically state 15."
+ *
+ * NOTE:
+ * The type comparison is case-insensitive.
+ *
+ * TAG USAGE:
+ * "thisCritChanceIfStateType" tags:
+ * - Skills
+ * - Items
+ *
+ * "critChanceIfStateType" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritChanceIfStateType:[TYPE, BONUS_CHANCE]>
+ *  <critChanceIfStateType:[TYPE, BONUS_CHANCE]>
+ * Where TYPE is the state type classifier string (case-insensitive).
+ * Where BONUS_CHANCE is the percent crit chance bonus (0–100+) to add.
+ *
+ * TAG EXAMPLES:
+ *  <thisCritChanceIfStateType:[bleed, 100]>
+ * This skill has guaranteed crit chance against targets with any state typed "bleed".
+ *
+ *  <critChanceIfStateType:[bleed, 50]>
+ * While this note source is active, all actions gain +50% crit chance against
+ * targets with any state typed "bleed".
+ *
+ * ============================================================================
+ * GUARANTEED CRITICAL HIT BY TARGET STATE:
+ * Have you ever wanted a skill to always crit against a target that has a
+ * specific state — without needing to route through the chance system? Well
+ * now you can! By applying the appropriate tags, you can guarantee a critical
+ * hit when the target has any one of the listed states active.
+ *
+ * Two families of tags are available, mirroring the "thisCrit"/"crit" split:
+ *
+ * "thisCritsAlwaysIfState" lives on a specific skill or item and only triggers
+ * for THAT skill's execution.
+ *
+ * "critAlwaysIfState" lives on any note source attached to the attacker and
+ * triggers for ALL of their actions.
+ *
+ * NOTE:
+ * Each tag accepts one or more state IDs. The crit is guaranteed if the target
+ * has ANY of the listed states active — you do not need all of them.
+ *
+ * NOTE:
+ * Multiple tags stack via OR — if any tag's state list contains a state the
+ * target has, the crit is guaranteed.
+ *
+ * NOTE:
+ * A guaranteed crit from these tags bypasses the target's crit evasion (cev),
+ * exactly like {@link thisCritsAlways}.
+ *
+ * TAG USAGE:
+ * "thisCritsAlwaysIfState" tags:
+ * - Skills
+ * - Items
+ *
+ * "critAlwaysIfState" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritsAlwaysIfState:[STATE_ID, ...]>
+ *  <critAlwaysIfState:[STATE_ID, ...]>
+ * Where STATE_ID is one or more state ids (comma-separated) to check on the target.
+ *
+ * TAG EXAMPLES:
+ *  <thisCritsAlwaysIfState:[14]>
+ * This skill always crits against targets afflicted with state 14.
+ *
+ *  <thisCritsAlwaysIfState:[14, 7]>
+ * This skill always crits against targets afflicted with state 14 OR state 7.
+ *
+ *  <critAlwaysIfState:[14]>
+ * While this note source is active on the attacker, all of their actions always
+ * crit against targets afflicted with state 14.
+ *
+ * ============================================================================
+ * GUARANTEED CRITICAL HIT BY TARGET STATE TYPE:
+ * The same as the state-id guaranteed-crit variants above, but matching by
+ * type classifier rather than a specific state id.
+ *
+ * NOTE:
+ * The type comparison is case-insensitive.
+ *
+ * TAG USAGE:
+ * "thisCritsAlwaysIfStateType" tags:
+ * - Skills
+ * - Items
+ *
+ * "critAlwaysIfStateType" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritsAlwaysIfStateType:TYPE>
+ *  <critAlwaysIfStateType:TYPE>
+ * Where TYPE is the state type classifier string (case-insensitive).
+ *
+ * TAG EXAMPLES:
+ *  <thisCritsAlwaysIfStateType:bleed>
+ * This skill always crits against targets with any state typed "bleed".
+ *
+ *  <critAlwaysIfStateType:bleed>
+ * While this note source is active, all actions always crit against targets
+ * with any state typed "bleed".
+ *
+ * ============================================================================
  * CHANGELOG:
  * - 1.1.0
  *    Added on-crit state application tags:
@@ -345,8 +533,16 @@ J.CRIT.RegExp = {
 	ThisCritDamageChance: /<thisCritChance:\[([+\-*/ ().\w]+)]>/gi,
 	ThisCritDamageMultiplier: /<thisCritMultiplier:\[([+\-*/ ().\w]+)]>/gi,
 	ThisCritsAlways: /<thisCritsAlways>/gi,
+	ThisCritChanceIfState: /<thisCritChanceIfState:(\[\d+,[ ]?\d+])>/gi,
+	ThisCritChanceIfStateType: /<thisCritChanceIfStateType:(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?\d+])>/gi,
+	ThisCritsAlwaysIfState: /<thisCritsAlwaysIfState:(\[\d+(?:,[ ]?\d+)*])>/gi,
+	ThisCritsAlwaysIfStateType: /<thisCritsAlwaysIfStateType:([a-zA-Z][a-zA-Z0-9_-]*)>/gi,
 	ThisCritApply: /<thisCritApply:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	ThisCritSelf: /<thisCritSelf:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	CritChanceIfState: /<critChanceIfState:(\[\d+,[ ]?\d+])>/gi,
+	CritChanceIfStateType: /<critChanceIfStateType:(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?\d+])>/gi,
+	CritAlwaysIfState: /<critAlwaysIfState:(\[\d+(?:,[ ]?\d+)*])>/gi,
+	CritAlwaysIfStateType: /<critAlwaysIfStateType:([a-zA-Z][a-zA-Z0-9_-]*)>/gi,
 	OnCritApply: /<onCritApply:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	OnCritSelf: /<onCritSelf:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	CritDamageReductionBase: /<critReductionBase: ?(\d+)>/gi,
@@ -362,6 +558,82 @@ J.CRIT.RegExp = {
 	CritDamageMultiplierGrowthPlus: /<cdmGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
 	CritDamageMultiplierGrowthRate: /<cdmGrowthRate:\[([+\-*/ ().\w]+)]>/gi
 };
+
+//#endregion
+//#region src/plugins/crit/core/database/RPG_BaseItem.js
+/**
+* The conditional crit chance bonuses on this note source, keyed by target state id.
+* Each entry is a [stateId, bonusChance] pair — the bonus applies to all actions executed
+* by the attacker when the target has the specified state active.
+* Covers actors, classes, skills, weapons, armors, enemies, and states.
+* @type {[number, number][]|null}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "critChanceIfStates", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.CritChanceIfState);
+} });
+/**
+* The conditional crit chance bonuses on this note source, keyed by state type classifier.
+* Each entry is a [type, bonusChance] pair — the bonus applies to all actions executed by
+* the attacker when the target has any active state carrying the specified type classifier.
+* @type {[string, number][]}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "critChanceIfStateTypes", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.CritChanceIfStateType);
+} });
+/**
+* The flat list of state ids that guarantee a critical hit for all actions while this note
+* source is active on the attacker, when the target has any one of them active.
+* Aggregated across all <critAlwaysIfState> tags on this note source.
+* @type {number[]}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "critAlwaysIfStates", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.CritAlwaysIfState).flat();
+} });
+/**
+* The list of state type classifiers that guarantee a critical hit for all actions while this
+* note source is active on the attacker, when the target has any active state carrying one of them.
+* @type {string[]}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "critAlwaysIfStateTypes", { get: function() {
+	return RPGManager.getStringsFromNoteByRegex(this, J.CRIT.RegExp.CritAlwaysIfStateType);
+} });
+
+//#endregion
+//#region src/plugins/crit/core/database/RPG_Skill.js
+/**
+* The conditional crit chance bonuses for this skill, keyed by target state id.
+* Each entry is a [stateId, bonusChance] pair — the bonus applies only when the
+* target has the specified state active at the time this skill is executed.
+* @type {[number, number][]|null}
+*/
+Object.defineProperty(RPG_Skill.prototype, "thisCritChanceIfStates", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.ThisCritChanceIfState);
+} });
+/**
+* The conditional crit chance bonuses for this skill, keyed by state type classifier.
+* Each entry is a [type, bonusChance] pair — the bonus applies when the target has any
+* active state carrying the specified type classifier.
+* @type {[string, number][]|null}
+*/
+Object.defineProperty(RPG_Skill.prototype, "thisCritChanceIfStateTypes", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.ThisCritChanceIfStateType);
+} });
+/**
+* The flat list of state ids that guarantee a critical hit for this skill when the target
+* has any one of them active. Aggregated across all <thisCritsAlwaysIfState> tags on this skill.
+* @type {number[]}
+*/
+Object.defineProperty(RPG_Skill.prototype, "thisCritsAlwaysIfStates", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.ThisCritsAlwaysIfState).flat();
+} });
+/**
+* The list of state type classifiers that guarantee a critical hit for this skill when the
+* target has any active state carrying one of them.
+* @type {string[]}
+*/
+Object.defineProperty(RPG_Skill.prototype, "thisCritsAlwaysIfStateTypes", { get: function() {
+	return RPGManager.getStringsFromNoteByRegex(this, J.CRIT.RegExp.ThisCritsAlwaysIfStateType);
+} });
 
 //#endregion
 //#region src/plugins/crit/core/managers/IconManager.js
@@ -569,8 +841,11 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage) {
 Game_Action.prototype.itemCri = function(target) {
 	if (!this.item().damage.critical) return 0;
 	if (this.isGuaranteedCrit()) return 9999;
+	if (this.isGuaranteedCritVsTarget(target)) return 9999;
 	let critChance = this.subject().cri;
 	critChance += this.ownCriticalChanceBonus();
+	critChance += this.thisCritChanceIfStateBonus(target);
+	critChance += this.critChanceIfStateBonus(target);
 	critChance -= target.cev;
 	return Math.max(critChance, 0);
 };
@@ -582,11 +857,28 @@ Game_Action.prototype.ownCriticalDamageMultiplier = function() {
 	return RPGManager.getSumFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageMultiplier) / 100;
 };
 /**
-* Checks if this action is a guaranteed critical hit.
+* Checks if this action is an unconditional guaranteed critical hit.
 * @returns {boolean}
 */
 Game_Action.prototype.isGuaranteedCrit = function() {
 	return RPGManager.checkForBooleanFromNoteByRegex(this.item(), J.CRIT.RegExp.ThisCritsAlways);
+};
+/**
+* Checks if the target's current states trigger a guaranteed critical hit for this action.
+* Checks both the skill's own {@link thisCritsAlwaysIfState} tags and the attacker's global
+* {@link critAlwaysIfState} tags across all note sources.
+* @param {Game_Battler} target The target being struck.
+* @returns {boolean} True if the target has any state that guarantees a crit, false otherwise.
+*/
+Game_Action.prototype.isGuaranteedCritVsTarget = function(target) {
+	const skillStateIds = this.item().thisCritsAlwaysIfStates;
+	if (skillStateIds.some((stateId) => target.isStateAffected(stateId))) return true;
+	const skillStateTypes = this.item().thisCritsAlwaysIfStateTypes;
+	if (skillStateTypes.some((type) => this.targetHasActiveStateType(target, type))) return true;
+	const globalStateIds = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critAlwaysIfStates);
+	if (globalStateIds.some((stateId) => target.isStateAffected(stateId))) return true;
+	const globalStateTypes = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critAlwaysIfStateTypes);
+	return globalStateTypes.some((type) => this.targetHasActiveStateType(target, type));
 };
 /**
 * Calculates this action's own bonus to crit chance.
@@ -594,6 +886,54 @@ Game_Action.prototype.isGuaranteedCrit = function() {
 */
 Game_Action.prototype.ownCriticalChanceBonus = function() {
 	return RPGManager.getSumFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageChance) / 100;
+};
+/**
+* Calculates the conditional crit chance bonus from this skill's own state-gated tags.
+* Reads all {@link thisCritChanceIfState} pairs on the executing skill and sums the bonus
+* for each pair whose state the target currently has active.
+* @param {Game_Battler} target The target being struck.
+* @returns {number} The total conditional bonus as a 0–1 rate addend.
+*/
+Game_Action.prototype.thisCritChanceIfStateBonus = function(target) {
+	const pairs = this.item().thisCritChanceIfStates;
+	if (!pairs.length) return 0;
+	const stateIdBonus = pairs.reduce((total, [stateId, bonusChance]) => {
+		return total + (target.isStateAffected(stateId) ? bonusChance / 100 : 0);
+	}, 0);
+	const typePairs = this.item().thisCritChanceIfStateTypes;
+	const stateTypeBonus = typePairs.reduce((total, [type, bonusChance]) => {
+		return total + (this.targetHasActiveStateType(target, type) ? bonusChance / 100 : 0);
+	}, 0);
+	return stateIdBonus + stateTypeBonus;
+};
+/**
+* Calculates the conditional crit chance bonus from the attacker's global state-gated tags.
+* Reads all {@link critChanceIfState} pairs from every note source on the attacker and sums
+* the bonus for each pair whose state the target currently has active.
+* @param {Game_Battler} target The target being struck.
+* @returns {number} The total conditional bonus as a 0–1 rate addend.
+*/
+Game_Action.prototype.critChanceIfStateBonus = function(target) {
+	const allPairs = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critChanceIfStates);
+	if (!allPairs.length) return 0;
+	const stateIdBonus = allPairs.reduce((total, [stateId, bonusChance]) => {
+		return total + (target.isStateAffected(stateId) ? bonusChance / 100 : 0);
+	}, 0);
+	const allTypePairs = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critChanceIfStateTypes);
+	const stateTypeBonus = allTypePairs.reduce((total, [type, bonusChance]) => {
+		return total + (this.targetHasActiveStateType(target, type) ? bonusChance / 100 : 0);
+	}, 0);
+	return stateIdBonus + stateTypeBonus;
+};
+/**
+* Checks whether the target has any active state carrying the specified type classifier.
+* The comparison is case-insensitive.
+* @param {Game_Battler} target The target whose active states are checked.
+* @param {string} type The type classifier to look for.
+* @returns {boolean} True if any active state on the target carries this type.
+*/
+Game_Action.prototype.targetHasActiveStateType = function(target, type) {
+	return target.states().some((state) => state.stateTypes().some((stateType) => stateType.toLowerCase() === type.toLowerCase()));
 };
 
 //#endregion
@@ -961,6 +1301,14 @@ J.CRIT.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabas
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.CRIT.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
 	CritParameterRegistration.registerAll();
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritChanceIfState);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritChanceIfStateType);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.CritChanceIfState);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.CritChanceIfStateType);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritsAlwaysIfState);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritsAlwaysIfStateType);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.CritAlwaysIfState);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.CritAlwaysIfStateType);
 };
 
 //#endregion

@@ -36,10 +36,12 @@ Last updated: **2026-06-03**
 
 | Row | Hitbox (draft) | Job |
 |---|---|---|
-| 4 | Charge **~2s** → release arc **90°**, **3.5** radius | Narrow-ish power chop — offchain starter |
-| 5 | Arc **90°**, **3.5** radius | **Follow-up** — only after row **4** **charge release connects** |
+| 4 | Arc **90°**, **3.5** radius | Quick power chop — tap to fire |
+| 5 | Arc **90°**, **3.5** radius | Charged heavy chop — hold row **4** to charge |
 
-**Prof row 10 (Calamity buffer):** row **4** gains **tier‑2** charge (**+~3s**) → **75°**, **5** radius — **long CD**, **big** damage/reach (capstone “atmosphere cleave”).
+**Charge:** hold on row **4**; **does not require landing row 4**. Charge CD is separate (self-limiting).
+
+**Prof row 10 (Calamity buffer):** row **4** gains **tier‑2** charge → **75°**, **5** radius — **long CD**, **big** damage/reach (capstone “atmosphere cleave”).
 
 ## Prof rows (6–10)
 

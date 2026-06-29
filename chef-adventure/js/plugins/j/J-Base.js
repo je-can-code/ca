@@ -3443,7 +3443,8 @@ var RPGManager = class RPGManager {
 	* @returns {boolean} True if the cache was invalidated, false otherwise.
 	*/
 	static invalidate(object) {
-		return this._cache.delete(object);
+		const cacheTarget = object instanceof RPG_Base ? object._original() : object;
+		return this._cache.delete(cacheTarget);
 	}
 	/**
 	* Clears the cache for all objects.
@@ -7966,6 +7967,17 @@ Game_Battler.prototype.allStates = function() {
 */
 Game_Battler.prototype.allStateIds = function() {
 	return [...this._states];
+};
+/**
+* Overwrites {@link Game_BattlerBase#isStateAffected}.<br/>
+* Uses {@link #allStateIds} instead of the raw `_states` array so that passives injected
+* by J.PASSIVE (and any other plugin that extends allStateIds) are included in the check.
+* @param {number} stateId The state id to check.
+* @returns {boolean}
+*/
+J.BASE.Aliased.Game_Battler.set("isStateAffected", Game_BattlerBase.prototype.isStateAffected);
+Game_Battler.prototype.isStateAffected = function(stateId) {
+	return this.allStateIds().includes(stateId);
 };
 /**
 * Gets the current health percent of this battler.

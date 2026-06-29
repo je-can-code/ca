@@ -74,18 +74,19 @@
  * TAG FORMAT:
  *  <shield:[FORMULA]>
  *    Where FORMULA represents a damage-like formula calculating the amount to
- *    absorb. The variables 'a' and 'b' can be used in the formulas like you
- *    would in a damage formula, where 'a' represents the target afflicted
- *    with the shield state, and 'b' represents the RPG_State object.
+ *    absorb. The variables 'a', 'b', and 's' can be used in the formulas like
+ *    you would in a damage formula, where 'a' represents the battler applying
+ *    the shield state, 'b' represents the battler receiving the shield state,
+ *    and 's' represents the RPG_State object of the shield state itself.
  *
  * TAG EXAMPLES:
  *  <shield:[100]>
- * A shield to protect against 100 daamge will be supplied when afflicted with
+ * A shield to protect against 100 damage will be supplied when afflicted with
  * the state bearing this tag.
  *
- *  <shield:[(a.atk * 3) + b.stepsToRemove]>
- * A shield to protect against damage based on triple the afflicted's attack
- * parameter as well as the value in the "steps to remove" field on the state.
+ *  <shield:[(a.mat * 3) + s.stepsToRemove]>
+ * A shield based on triple the caster's magic attack parameter as well as the
+ * value in the "steps to remove" field on the shield state.
  *
  * ============================================================================
  * SHIELD CAPS:
@@ -105,18 +106,19 @@
  * TAG FORMAT:
  *  <shieldCap:[FORMULA]>
  *    Where FORMULA represents a damage-like formula calculating the cap shield
- *    amount. The variables 'a' and 'b' can be used in the formulas like you
- *    would in a damage formula, where 'a' represents the target afflicted
- *    with the shield state, and 'b' represents the RPG_State object.
+ *    amount. The variables 'a', 'b', and 's' can be used in the formulas like
+ *    you would in a damage formula, where 'a' represents the battler applying
+ *    the shield state, 'b' represents the battler receiving the shield state,
+ *    and 's' represents the RPG_State object of the shield state itself.
  *
  * TAG EXAMPLES:
  *  <shieldCap:[100]>
  * A shield cap of 100 will be applied when afflicted with the state bearing this
  * tag.
  *
- *  <shieldCap:[(a.atk * 3) + b.stepsToRemove]>
- * A shield cap of (target's attack * 3) + (number of steps to remove) will be
- * applied when afflicted with the state bearing this tag.
+ *  <shieldCap:[(a.mat * 3) + s.stepsToRemove]>
+ * A shield cap of (caster's magic attack * 3) + (number of steps to remove) will
+ * be applied when afflicted with the state bearing this tag.
  *
  * ============================================================================
  * SHIELD PRIORITY:
@@ -449,8 +451,9 @@ var JABS_Shield = class JABS_Shield {
 	static fromStateId(stateId, target, attacker) {
 		const state = target.state(stateId);
 		const pointFormulas = RPGManager.getStringsFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.ShieldPointsFormula);
-		const a = attacker ?? target;
+		const a = attacker;
 		const b = target;
+		const s = state;
 		/**
 		* A safe reduce function that wears a diaper during evaluation.
 		* @param {number} total The current total value.
@@ -459,7 +462,7 @@ var JABS_Shield = class JABS_Shield {
 		*/
 		const safeReduce = (total, formula) => {
 			try {
-				return total + new Function("a", "b", `return (${formula})`)(a, b);
+				return total + new Function("a", "b", "s", `return (${formula})`)(a, b, s);
 			} catch (e) {
 				console.error(`Error evaluating shield formula: ${formula}`, target, attacker, e);
 				return total;

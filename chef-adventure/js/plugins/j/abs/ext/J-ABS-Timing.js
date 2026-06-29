@@ -342,7 +342,7 @@ J.ABS.EXT.TIMING.Aliased = {
 J.ABS.EXT.TIMING.RegExp = {
 	BaseCastSpeed: /<baseCastTime:\[([+\-*/ ().\w]+)]>/gi,
 	CastSpeedFlat: /<castTimeFlat:\[([+\-*/ ().\w]+)]>/gi,
-	CastSpeedRate: /<castTimePercent:\[([+\-*/ ().\w]+)]>/gi,
+	CastSpeedRate: /<castSpeedRate:\[([+\-*/ ().\w]+)]>/gi,
 	BaseFastCooldown: /<baseFastCooldown:\[([+\-*/ ().\w]+)]>/gi,
 	FastCooldownFlat: /<fastCooldownFlat:\[([+\-*/ ().\w]+)]>/gi,
 	FastCooldownRate: /<fastCooldownRate:\[([+\-*/ ().\w]+)]>/gi

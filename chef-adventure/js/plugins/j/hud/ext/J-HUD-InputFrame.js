@@ -709,8 +709,8 @@ var Sprite_SkillCost = class Sprite_SkillCost extends Sprite_BaseSkillSlot {
 		if (!ability) return 0;
 		switch (this.skillCostType()) {
 			case Sprite_SkillCost.Types.HP: return leader.skillHpCost(ability);
-			case Sprite_SkillCost.Types.MP: return ability.mpCost * leader.mcr;
-			case Sprite_SkillCost.Types.TP: return ability.tpCost * leader.tcr;
+			case Sprite_SkillCost.Types.MP: return leader.skillMpCost(ability);
+			case Sprite_SkillCost.Types.TP: return leader.skillTpCost(ability);
 			case Sprite_SkillCost.Types.Item: return $gameParty.numItems(ability);
 		}
 	}

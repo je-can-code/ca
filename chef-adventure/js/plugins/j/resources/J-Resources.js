@@ -478,7 +478,7 @@ J.RESOURCES.Aliased.Game_BattlerBase.set("skillTpCost", Game_BattlerBase.prototy
 Game_BattlerBase.prototype.skillTpCost = function(skill) {
 	const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get("skillTpCost").call(this, skill);
 	const extraCost = ResourceCostManager.extraTpCostBySkill(this, skill);
-	const cost = Math.max(0, baseCost + extraCost);
+	const cost = Math.max(0, (baseCost + extraCost) * this.tcr);
 	return cost;
 };
 

@@ -576,112 +576,1597 @@
       "jsRewards": ""
     },
     {
-      "key": "JR-JAVELIN_EXTEND-3-4",
+      "key": "spear-javelin-01",
       "actorIds": [
         1,
         2
       ],
       "requirements": [
         {
-          "skillId": 27,
+          "skillId": 51,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            52,
+            53
+          ]
+        }
+      ],
+      "skillRewards": [
+        54
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-javelin-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 51,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            52,
+            53
+          ]
+        }
+      ],
+      "skillRewards": [
+        55
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-javelin-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 51,
           "proficiency": 1000,
           "secondarySkillIds": [
-            28
+            52,
+            53
           ]
         }
       ],
       "skillRewards": [
-        29,
-        30
+        56
       ],
       "jsRewards": ""
     },
     {
-      "key": "JR-PISTOL_MELEE-4",
+      "key": "spear-javelin-04",
       "actorIds": [
         1,
         2
       ],
       "requirements": [
         {
-          "skillId": 31,
-          "proficiency": 250,
+          "skillId": 51,
+          "proficiency": 2500,
           "secondarySkillIds": [
-            32,
-            33
+            52,
+            53
           ]
-        },
-        {
-          "skillId": 35,
-          "proficiency": 400,
-          "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        34
+        57
       ],
       "jsRewards": ""
     },
     {
-      "key": "JR-TASER_EXTEND-4",
+      "key": "spear-javelin-05",
       "actorIds": [
         1,
         2
       ],
       "requirements": [
         {
-          "skillId": 40,
+          "skillId": 51,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            52,
+            53
+          ]
+        }
+      ],
+      "skillRewards": [
+        58
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-javelin-06",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 51,
+          "proficiency": 9000,
+          "secondarySkillIds": [
+            52,
+            53
+          ]
+        }
+      ],
+      "skillRewards": [
+        59
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "spear-javelin-07",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 51,
+          "proficiency": 15000,
+          "secondarySkillIds": [
+            52,
+            53
+          ]
+        }
+      ],
+      "skillRewards": [
+        60
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-pistol-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 61,
           "proficiency": 100,
-          "secondarySkillIds": []
+          "secondarySkillIds": [
+            62,
+            63,
+            64,
+            65
+          ]
         }
       ],
       "skillRewards": [
-        41
+        66
       ],
       "jsRewards": ""
     },
     {
-      "key": "JR-TASER_EXTEND-5",
+      "key": "gun-pistol-02",
       "actorIds": [
         1,
         2
       ],
       "requirements": [
         {
-          "skillId": 40,
-          "proficiency": 250,
+          "skillId": 61,
+          "proficiency": 400,
           "secondarySkillIds": [
-            41
+            62,
+            63,
+            64,
+            65
           ]
         }
       ],
       "skillRewards": [
-        42
+        67
       ],
       "jsRewards": ""
     },
     {
-      "key": "JR-SHOTGUN_EXTEND-3",
+      "key": "gun-pistol-03",
       "actorIds": [
         1,
         2
       ],
       "requirements": [
         {
-          "skillId": 43,
-          "proficiency": 500,
+          "skillId": 61,
+          "proficiency": 1000,
           "secondarySkillIds": [
-            44
+            62,
+            63,
+            64,
+            65
           ]
         }
       ],
       "skillRewards": [
-        45
+        68
       ],
       "jsRewards": ""
     },
     {
-      "key": "JR-1H-AXE_EXTEND-4",
+      "key": "gun-pistol-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 61,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            62,
+            63,
+            64,
+            65
+          ]
+        }
+      ],
+      "skillRewards": [
+        69
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-pistol-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 61,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            62,
+            63,
+            64,
+            65
+          ]
+        }
+      ],
+      "skillRewards": [
+        70,
+        183
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-taser-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 71,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            72,
+            73,
+            74
+          ]
+        }
+      ],
+      "skillRewards": [
+        75
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-taser-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 71,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            72,
+            73,
+            74
+          ]
+        }
+      ],
+      "skillRewards": [
+        76
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-taser-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 71,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            72,
+            73,
+            74
+          ]
+        }
+      ],
+      "skillRewards": [
+        77
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-taser-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 71,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            72,
+            73,
+            74
+          ]
+        }
+      ],
+      "skillRewards": [
+        78
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-taser-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 71,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            72,
+            73,
+            74
+          ]
+        }
+      ],
+      "skillRewards": [
+        79
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-taser-06",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 71,
+          "proficiency": 9000,
+          "secondarySkillIds": [
+            72,
+            73,
+            74
+          ]
+        }
+      ],
+      "skillRewards": [
+        80
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-shotgun-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 81,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            82,
+            83
+          ]
+        }
+      ],
+      "skillRewards": [
+        84
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-shotgun-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 81,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            82,
+            83
+          ]
+        }
+      ],
+      "skillRewards": [
+        85
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-shotgun-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 81,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            82,
+            83
+          ]
+        }
+      ],
+      "skillRewards": [
+        86
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-shotgun-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 81,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            82,
+            83
+          ]
+        }
+      ],
+      "skillRewards": [
+        87
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-shotgun-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 81,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            82,
+            83
+          ]
+        }
+      ],
+      "skillRewards": [
+        88
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-shotgun-06",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 81,
+          "proficiency": 9000,
+          "secondarySkillIds": [
+            82,
+            83
+          ]
+        }
+      ],
+      "skillRewards": [
+        89
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "gun-shotgun-07",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 81,
+          "proficiency": 15000,
+          "secondarySkillIds": [
+            82,
+            83
+          ]
+        }
+      ],
+      "skillRewards": [
+        90
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-1h-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 91,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            92,
+            93,
+            94,
+            95
+          ]
+        }
+      ],
+      "skillRewards": [
+        96
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-1h-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 91,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            92,
+            93,
+            94,
+            95
+          ]
+        }
+      ],
+      "skillRewards": [
+        97
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-1h-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 91,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            92,
+            93,
+            94,
+            95
+          ]
+        }
+      ],
+      "skillRewards": [
+        98
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-1h-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 91,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            92,
+            93,
+            94,
+            95
+          ]
+        }
+      ],
+      "skillRewards": [
+        99
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-1h-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 91,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            92,
+            93,
+            94,
+            95
+          ]
+        }
+      ],
+      "skillRewards": [
+        100
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-2h-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 101,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            102,
+            103,
+            104,
+            105
+          ]
+        }
+      ],
+      "skillRewards": [
+        106
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-2h-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 101,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            102,
+            103,
+            104,
+            105
+          ]
+        }
+      ],
+      "skillRewards": [
+        107
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-2h-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 101,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            102,
+            103,
+            104,
+            105
+          ]
+        }
+      ],
+      "skillRewards": [
+        108
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-2h-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 101,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            102,
+            103,
+            104,
+            105
+          ]
+        }
+      ],
+      "skillRewards": [
+        109
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-2h-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 101,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            102,
+            103,
+            104,
+            105
+          ]
+        }
+      ],
+      "skillRewards": [
+        110
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-dual-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 111,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            112,
+            113,
+            114,
+            115
+          ]
+        }
+      ],
+      "skillRewards": [
+        116
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-dual-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 111,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            112,
+            113,
+            114,
+            115
+          ]
+        }
+      ],
+      "skillRewards": [
+        117
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-dual-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 111,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            112,
+            113,
+            114,
+            115
+          ]
+        }
+      ],
+      "skillRewards": [
+        118
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-dual-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 111,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            112,
+            113,
+            114,
+            115
+          ]
+        }
+      ],
+      "skillRewards": [
+        119
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "axe-dual-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 111,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            112,
+            113,
+            114,
+            115
+          ]
+        }
+      ],
+      "skillRewards": [
+        120
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-2h-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 121,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            122,
+            123,
+            124,
+            125
+          ]
+        }
+      ],
+      "skillRewards": [
+        126
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-2h-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 121,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            122,
+            123,
+            124,
+            125
+          ]
+        }
+      ],
+      "skillRewards": [
+        127
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-2h-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 121,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            122,
+            123,
+            124,
+            125
+          ]
+        }
+      ],
+      "skillRewards": [
+        128
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-2h-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 121,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            122,
+            123,
+            124,
+            125
+          ]
+        }
+      ],
+      "skillRewards": [
+        129
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-2h-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 121,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            122,
+            123,
+            124,
+            125
+          ]
+        }
+      ],
+      "skillRewards": [
+        130
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-1h-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 131,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            132,
+            133,
+            134
+          ]
+        }
+      ],
+      "skillRewards": [
+        135
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-1h-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 131,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            132,
+            133,
+            134
+          ]
+        }
+      ],
+      "skillRewards": [
+        136
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-1h-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 131,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            132,
+            133,
+            134
+          ]
+        }
+      ],
+      "skillRewards": [
+        137
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-1h-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 131,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            132,
+            133,
+            134
+          ]
+        }
+      ],
+      "skillRewards": [
+        138
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-1h-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 131,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            132,
+            133,
+            134
+          ]
+        }
+      ],
+      "skillRewards": [
+        139
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-1h-06",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 131,
+          "proficiency": 9000,
+          "secondarySkillIds": [
+            132,
+            133,
+            134
+          ]
+        }
+      ],
+      "skillRewards": [
+        140
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-tome-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 141,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            142,
+            143
+          ]
+        }
+      ],
+      "skillRewards": [
+        144
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-tome-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 141,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            142,
+            143
+          ]
+        }
+      ],
+      "skillRewards": [
+        145
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-tome-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 141,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            142,
+            143
+          ]
+        }
+      ],
+      "skillRewards": [
+        146,
+        185
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-tome-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 141,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            142,
+            143
+          ]
+        }
+      ],
+      "skillRewards": [
+        147
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-tome-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 141,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            142,
+            143
+          ]
+        }
+      ],
+      "skillRewards": [
+        148
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-tome-06",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 141,
+          "proficiency": 9000,
+          "secondarySkillIds": [
+            142,
+            143
+          ]
+        }
+      ],
+      "skillRewards": [
+        149
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "wand-tome-07",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 141,
+          "proficiency": 15000,
+          "secondarySkillIds": [
+            142,
+            143
+          ]
+        }
+      ],
+      "skillRewards": [
+        150
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-fists-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 151,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            152,
+            153,
+            154,
+            155,
+            156
+          ]
+        }
+      ],
+      "skillRewards": [
+        157
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-fists-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 151,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            152,
+            153,
+            154,
+            155,
+            156
+          ]
+        }
+      ],
+      "skillRewards": [
+        158
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-fists-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 151,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            152,
+            153,
+            154,
+            155,
+            156
+          ]
+        }
+      ],
+      "skillRewards": [
+        159
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-fists-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 151,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            152,
+            153,
+            154,
+            155,
+            156
+          ]
+        }
+      ],
+      "skillRewards": [
+        160
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-claw-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 161,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            162,
+            163,
+            164,
+            165,
+            166
+          ]
+        }
+      ],
+      "skillRewards": [
+        167
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-claw-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 161,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            162,
+            163,
+            164,
+            165,
+            166
+          ]
+        }
+      ],
+      "skillRewards": [
+        168
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-claw-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 161,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            162,
+            163,
+            164,
+            165,
+            166
+          ]
+        }
+      ],
+      "skillRewards": [
+        169
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-claw-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 161,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            162,
+            163,
+            164,
+            165,
+            166
+          ]
+        }
+      ],
+      "skillRewards": [
+        170
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-beat-01",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 171,
+          "proficiency": 100,
+          "secondarySkillIds": [
+            172,
+            173,
+            174,
+            175
+          ]
+        }
+      ],
+      "skillRewards": [
+        176
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-beat-02",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 171,
+          "proficiency": 400,
+          "secondarySkillIds": [
+            172,
+            173,
+            174,
+            175
+          ]
+        }
+      ],
+      "skillRewards": [
+        177
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-beat-03",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 171,
+          "proficiency": 1000,
+          "secondarySkillIds": [
+            172,
+            173,
+            174,
+            175
+          ]
+        }
+      ],
+      "skillRewards": [
+        178
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-beat-04",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 171,
+          "proficiency": 2500,
+          "secondarySkillIds": [
+            172,
+            173,
+            174,
+            175
+          ]
+        }
+      ],
+      "skillRewards": [
+        179
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "melee-beat-05",
+      "actorIds": [
+        1,
+        2
+      ],
+      "requirements": [
+        {
+          "skillId": 171,
+          "proficiency": 5000,
+          "secondarySkillIds": [
+            172,
+            173,
+            174,
+            175
+          ]
+        }
+      ],
+      "skillRewards": [
+        180,
+        186
+      ],
+      "jsRewards": ""
+    },
+    {
+      "key": "=",
       "actorIds": [
         1,
         2
@@ -698,386 +2183,6 @@
       ],
       "skillRewards": [
         49
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-2H-AXE_EXTEND-5",
-      "actorIds": [
-        1
-      ],
-      "requirements": [
-        {
-          "skillId": 50,
-          "proficiency": 500,
-          "secondarySkillIds": [
-            51,
-            52,
-            53,
-            54
-          ]
-        }
-      ],
-      "skillRewards": [
-        55
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-2H-AXE_EXTEND-6",
-      "actorIds": [
-        1
-      ],
-      "requirements": [
-        {
-          "skillId": 50,
-          "proficiency": 1500,
-          "secondarySkillIds": [
-            51,
-            52,
-            53,
-            54
-          ]
-        }
-      ],
-      "skillRewards": [
-        56
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-TWIN-AXE_COMBO-4",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 57,
-          "proficiency": 500,
-          "secondarySkillIds": [
-            58,
-            59
-          ]
-        }
-      ],
-      "skillRewards": [
-        60
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-STAFF_EXTEND-3",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 61,
-          "proficiency": 500,
-          "secondarySkillIds": [
-            62
-          ]
-        }
-      ],
-      "skillRewards": [
-        63
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-STAFF_EXTEND-4",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 61,
-          "proficiency": 1500,
-          "secondarySkillIds": [
-            62
-          ]
-        }
-      ],
-      "skillRewards": [
-        64,
-        65
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-WAND_EXTEND-4",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 66,
-          "proficiency": 750,
-          "secondarySkillIds": [
-            67,
-            68
-          ]
-        }
-      ],
-      "skillRewards": [
-        69,
-        70
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-TOME_EXTEND-3",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 71,
-          "proficiency": 250,
-          "secondarySkillIds": [
-            72
-          ]
-        }
-      ],
-      "skillRewards": [
-        73
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-TOME_EXTEND-4",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 71,
-          "proficiency": 1000,
-          "secondarySkillIds": [
-            72
-          ]
-        }
-      ],
-      "skillRewards": [
-        74,
-        75
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-FIST_COMBO-4",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 76,
-          "proficiency": 100,
-          "secondarySkillIds": [
-            77,
-            78
-          ]
-        }
-      ],
-      "skillRewards": [
-        79
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-FIST_EXTEND-5",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 79,
-          "proficiency": 1000,
-          "secondarySkillIds": []
-        }
-      ],
-      "skillRewards": [
-        80
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-CLAW_EXTEND-4",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 81,
-          "proficiency": 400,
-          "secondarySkillIds": [
-            82,
-            83
-          ]
-        }
-      ],
-      "skillRewards": [
-        84
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-CLAW_EXTEND-5",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 81,
-          "proficiency": 1000,
-          "secondarySkillIds": [
-            82,
-            83
-          ]
-        }
-      ],
-      "skillRewards": [
-        85,
-        86
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-BEAT_EXTEND-3-4",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 87,
-          "proficiency": 500,
-          "secondarySkillIds": [
-            88
-          ]
-        }
-      ],
-      "skillRewards": [
-        89,
-        90
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-LIQUID_OFFHAND_EXTEND-1",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 191,
-          "proficiency": 100,
-          "secondarySkillIds": []
-        }
-      ],
-      "skillRewards": [
-        192
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-LIQUID_OFFHAND_EXTEND-2",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 191,
-          "proficiency": 500,
-          "secondarySkillIds": []
-        }
-      ],
-      "skillRewards": [
-        193
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-ENERGY_OFFHAND_EXTEND-1",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 194,
-          "proficiency": 100,
-          "secondarySkillIds": []
-        }
-      ],
-      "skillRewards": [
-        195
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-ENERGY_OFFHAND_EXTEND-2",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 194,
-          "proficiency": 500,
-          "secondarySkillIds": []
-        }
-      ],
-      "skillRewards": [
-        196
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-VOID_OFFHAND_EXTEND-1",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 197,
-          "proficiency": 100,
-          "secondarySkillIds": []
-        }
-      ],
-      "skillRewards": [
-        198
-      ],
-      "jsRewards": ""
-    },
-    {
-      "key": "JR-VOID_OFFHAND_EXTEND-2",
-      "actorIds": [
-        1,
-        2
-      ],
-      "requirements": [
-        {
-          "skillId": 197,
-          "proficiency": 500,
-          "secondarySkillIds": []
-        }
-      ],
-      "skillRewards": [
-        199
       ],
       "jsRewards": ""
     },

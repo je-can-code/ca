@@ -546,12 +546,12 @@ after:  ((a.atk*2 + b.mhp*0.01) - b.def*1)
 | 1 | mainchain1 | Arc **135°**, **2.5** | Regular chop |
 | 2 | mainchain2 | **360°**, **2.5** | Circle slash |
 | 3 | mainchain3 | Arc **75°**, **2.5** | Strong narrow finisher |
-| 4 | offchain1 | Charge **~2s** → arc **90°**, **3.5** | Power chop — starter |
-| 5 | offchain2 | Arc **90°**, **3.5** | Follow-up after row **4** release **connects** |
+| 4 | offchain1 | Arc **90°**, **3.5** | Quick power chop — tap to fire |
+| 5 | offchain2 | Arc **90°**, **3.5** | Charged heavy chop — hold row **4** to charge |
 
 **Main:** **connect** `1→2→3`. **Slow** inter-hit CD + **end-of-string** pause.
 
-**Offchain:** row **5** gated on charged row **4** hit. **Calamity** (row **10**) adds tier‑2 charge on row **4** (**+~3s**, **75°**, **5** radius, **long CD**).
+**Offchain:** hold on row **4**; **does not require landing row 4**. Charge CD is separate. **Calamity** (row **10**) adds tier‑2 charge on row **4** (**75°**, **5** radius, **long CD**).
 
 ### Prof rows (extends)
 

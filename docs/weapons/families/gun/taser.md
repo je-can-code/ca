@@ -68,8 +68,13 @@ Last updated: **2026-06-03**
 - [ ] Execution history stack cap (if any) at extreme mash rates
 - [ ] Boss paralyze immunity vs **Sizzling Static**
 
+## Design note — mash-to-reduce-nuke-CD (deferred)
+
+During javelin/rend design (2026-06-25), the idea surfaced of a notetag like `<thisReduceCooldown:[OTHER_SKILL_ID, AMOUNT_PER_USE]>` — "each use of this skill reduces another skill's cooldown." Taser was identified as a natural fit: **mashing row 3 reduces the offhand nuke CD**, rewarding sustained mash commitment with faster nuke access. Not designed or specced; flagging for when this lot gets implemented.
+
 ## Revision log
 
 | Date | Note |
 |---|---|
 | 2026-06-03 | **Conduit lot locked:** pin→flip→mash + independent nuke. |
+| 2026-06-25 | Added design note: mash-to-reduce-nuke-CD concept deferred from javelin discussion. |

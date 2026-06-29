@@ -141,6 +141,7 @@
  *
  * TAG FORMAT:
  *  <onCastSelfState:[STATE_ID,CHANCE]>
+ *  <onCastSelfStateIfAfflicted:[STATE_TO_APPLY,CHANCE,STATE_REQUIREMENT]>
  *  <onHitSelfState:[STATE_ID,CHANCE]>
  *  <onCastLoseState:[STATE_ID,CHANCE]>
  *  <onHitLoseState:[STATE_ID,CHANCE]>
@@ -521,6 +522,23 @@ J.EXTEND.RegExp.OnCastSelfState = /<onCastSelfState:[ ]?(\[\d+,[ ]?\d+])>/i;
 * @type {RegExp}
 */
 J.EXTEND.RegExp.OnCastLoseState = /<onCastLoseState:[ ]?(\[\d+,[ ]?\d+])>/i;
+/**
+* The structure of a conditional on-cast self-state tag.
+* Applies a state to oneself only if the caster already has a required state active.
+*
+* <pre>
+* Structure:
+*  <onCastSelfStateIfAfflicted:[STATE_TO_APPLY, CHANCE, STATE_REQUIREMENT]>
+*
+* Example:
+*  <onCastSelfStateIfAfflicted:[42, 100, 19]>
+*
+* Translation:
+*  On cast, if the caster has state id 19 active, apply state id 42 to oneself at 100% chance.
+* </pre>
+* @type {RegExp}
+*/
+J.EXTEND.RegExp.OnCastSelfStateIfAfflicted = /<onCastSelfStateIfAfflicted:[ ]?(\[\d+,[ ]?\d+,[ ]?\d+])>/gi;
 /**
 * The structure of an on-cast target-state stripping tag.
 *
@@ -1535,13 +1553,12 @@ Game_Action.prototype.applyOnHitApplyStates = function(target) {
 };
 /**
 * Extends {@link #applyItemUserEffect}.<br/>
-* Also applies on-cast states.
+* Also applies on-cast target-affecting states (strip/remove).
+* On-cast self states (self/lose) fire once at press-time via {@link JABS_Engine#handleOnCastStateEffects} instead.
 */
 J.EXTEND.Aliased.Game_Action.set("applyItemUserEffect", Game_Action.prototype.applyItemUserEffect);
 Game_Action.prototype.applyItemUserEffect = function(target) {
 	J.EXTEND.Aliased.Game_Action.get("applyItemUserEffect").call(this, target);
-	this.applyOnCastSelfStates();
-	this.applyOnCastLoseStates();
 	this.applyOnCastStripStates(target);
 	this.applyOnCastRemoveStates(target);
 };
@@ -1556,6 +1573,20 @@ Game_Action.prototype.applyOnCastSelfStates = function() {
 */
 Game_Action.prototype.applyOnCastLoseStates = function() {
 	this.loseStates(this.subject(), this.onCastLoseStates());
+};
+/**
+* Applies conditional on-cast self-states that require the caster to already have a specific state.
+* Reads from the skill note and the caster's active states.
+* Each tag is [STATE_TO_APPLY, CHANCE, STATE_REQUIREMENT]; the state is applied only when the
+* caster is currently afflicted with STATE_REQUIREMENT.
+*/
+Game_Action.prototype.applyOnCastSelfStatesIfAfflicted = function() {
+	const caster = this.subject();
+	const sources = this.reactiveStateSources();
+	const allArrays = sources.flatMap((source) => RPGManager.getArraysFromNotesByRegex(source, J.EXTEND.RegExp.OnCastSelfStateIfAfflicted) ?? []);
+	if (allArrays.length === 0) return;
+	const effects = allArrays.filter(([, , stateRequirement]) => caster.isStateAffected(stateRequirement)).map(([stateToApply, chance]) => new JABS_OnChanceEffect(stateToApply, chance, J.EXTEND.RegExp.OnCastSelfStateIfAfflicted.toString()));
+	this.applyStates(caster, effects);
 };
 /**
 * Applies all applicable on-cast state stripping.

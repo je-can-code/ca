@@ -2076,6 +2076,32 @@
  *  If present, all stacks are lost at once upon expiration rather
  *  than losing one stack and refreshing.
  *
+ *    <stacksConvertToState:[NEW_STATE_ID, STACKS_REQUIRED]>
+ *  When this state's stack count reaches STACKS_REQUIRED (checked on every
+ *  stack application, using >= so overshooting is safe), the state identified
+ *  by NEW_STATE_ID is applied to the afflicted battler as a fresh application.
+ *  The converted state starts at 1 stack regardless of the source state's count.
+ *  If the converted state is already active on the battler, the re-application
+ *  is intentional — the converted state will be refreshed/stacked/extended
+ *  per its own reapplication type on each subsequent source stack application.
+ *  Only the first tag is read.
+ *
+ *    <removeOnConvert>
+ *  If present alongside <stacksConvertToState>, the source state is fully
+ *  removed from the battler when the conversion fires. Without this tag the
+ *  source state remains active (both states coexist), which is the intended
+ *  behavior for escalation patterns where the lesser effect persists alongside
+ *  the greater one (e.g. base poison stays while lethal dose is also applied).
+ *
+ *    <convertUsesCaster>
+ *  By default, conversion data (<stacksConvertToState> and <removeOnConvert>)
+ *  is read from the TARGET's perceived version of the state. Add this tag to
+ *  the base state to instead read conversion data from the CASTER's perceived
+ *  version of the state. This is required when the conversion tag is added via
+ *  a caster-side extension passive (e.g. a prof unlock that extends Tenderizing
+ *  with <stacksConvertToState:[EXPOSED_ID, 20]>) — without it, the enemy target
+ *  would not see the extension and the conversion would never fire.
+ *
  * ============================================================================
  * ACTOR/CLASS TAGS:
  * These tags are placed on actors or classes in the database.
@@ -3898,6 +3924,7 @@ J.ABS.RegExp = {
 	Expires: /<expires:[ ]?(\d+)>/gi,
 	JabsTool: /<jabsTool>/i,
 	Negative: /<negative>/gi,
+	NoLogs: /<noLogs>/i,
 	ReapplyType: /<stackType:[ ]?(refresh|extend|stack)>/gi,
 	ReapplyRefreshDiminish: /<stateRefreshDiminish:[ ]?(-?\d+)>/gi,
 	ReapplyRefreshReset: /<stateRefreshReset:[ ]?(\d+)>/gi,
@@ -3906,6 +3933,9 @@ J.ABS.RegExp = {
 	ReapplyStackMax: /<stackMax:[ ]?(\d+)>/gi,
 	StateApplicationAmount: /<applyStacks:[ ]?(\d+)>/gi,
 	LoseAllStacksAtOnce: /<loseAllStacksAtOnce>/gi,
+	StacksConvertToState: /<stacksConvertToState:(\[\d+,[ ]?\d+])>/gi,
+	RemoveOnConvert: /<removeOnConvert>/gi,
+	ConvertUsesCaster: /<convertUsesCaster>/gi,
 	SkillTransform: /<skillTransform:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	Paralyzed: /<paralyzed>/gi,
 	Rooted: /<rooted>/gi,
@@ -4029,6 +4059,44 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	ThisBonusDamageIfState: /<thisBonusDamageIfState:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	/**
+	* Flat percent damage bonus applied when the CASTER currently has a specific state active.
+	* Reads from the caster's getAllNotes() sources (actor, class, equips, states).
+	* Multiple tags for different state ids each fire independently and stack additively.
+	* Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <bonusDamageIfSelfState:[STATE_ID, PCT]>
+	*
+	* Example:
+	*  <bonusDamageIfSelfState:[29, 50]>
+	*
+	* Translation:
+	*  +50% damage if the caster currently has state 29 active.
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusDamageIfSelfState: /<bonusDamageIfSelfState:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	/**
+	* Flat percent damage bonus applied when the CASTER currently has a specific state active.
+	* Reads from this.item() only — fires only when THIS skill is the action being resolved.
+	* Multiple tags for different state ids each fire independently and stack additively.
+	* Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <thisBonusDamageIfSelfState:[STATE_ID, PCT]>
+	*
+	* Example:
+	*  <thisBonusDamageIfSelfState:[29, 50]>
+	*
+	* Translation:
+	*  +50% damage from this skill if the caster currently has state 29 active.
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisBonusDamageIfSelfState: /<thisBonusDamageIfSelfState:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	/**
 	* Unconditional flat percent damage bonus applied when THIS skill is the action being resolved.
 	* Reads from this.item() only — does not read from getAllNotes() and does not affect other skills.
@@ -9090,9 +9158,9 @@ var JABS_Cooldown = class {
 	/**
 	* Manages the update cycle for this cooldown.
 	*/
-	update() {
+	update(isCasting = false) {
 		if (!this.canUpdate()) return;
-		this.updateCooldownData();
+		this.updateCooldownData(isCasting);
 	}
 	/**
 	* Determines whether or not this cooldown can be updated.
@@ -9105,9 +9173,9 @@ var JABS_Cooldown = class {
 	/**
 	* Updates the base and combo cooldowns.
 	*/
-	updateCooldownData() {
+	updateCooldownData(isCasting = false) {
 		this.updateBaseCooldown();
-		this.updateComboCooldown();
+		this.updateComboCooldown(isCasting);
 	}
 	/**
 	* Updates the base skill data for this cooldown.
@@ -9186,14 +9254,14 @@ var JABS_Cooldown = class {
 	/**
 	* Updates the combo data for this cooldown.
 	*/
-	updateComboCooldown() {
+	updateComboCooldown(isCasting = false) {
 		if (!this.comboReady) {
 			if (this.comboFrames > 0) {
 				this.comboFrames--;
 			}
 			this.handleIfComboReady();
 		}
-		if (this.comboReady) {
+		if (this.comboReady && !isCasting) {
 			this.updateComboExpire();
 		}
 	}
@@ -9660,8 +9728,8 @@ var JABS_SkillSlot = class {
 	/**
 	* Updates the cooldown for this skill slot.
 	*/
-	updateCooldown() {
-		this.getCooldown().update();
+	updateCooldown(isCasting = false) {
+		this.getCooldown().update(isCasting);
 		this.handleComboReadiness();
 	}
 	/**
@@ -11857,10 +11925,7 @@ var JABS_Battler = class JABS_Battler {
 				return [x, y];
 			}
 		}
-		let opponentTarget = this.getTarget();
-		if (!opponentTarget) {
-			opponentTarget = this.getBattlerLastHit();
-		}
+		const opponentTarget = this.resolveDirectOpponentTarget(primaryAction.getBaseSkill());
 		if (opponentTarget) {
 			x = opponentTarget.getX();
 			y = opponentTarget.getY();
@@ -11893,9 +11958,7 @@ var JABS_Battler = class JABS_Battler {
 			}
 			return [x, y];
 		}
-		const proximityLimit = skill.jabsProximity ?? 0;
-		const stateTargetId = skill.jabsDirectStateTarget;
-		const opponentTarget = this.resolveDirectTargetByState(stateTargetId, proximityLimit) ?? this.resolveDirectTargetNonInanimate(proximityLimit) ?? this.resolveDirectTargetViaScan(proximityLimit) ?? this.resolveDirectTargetInanimateFallback(proximityLimit);
+		const opponentTarget = this.resolveDirectOpponentTarget(skill);
 		if (opponentTarget) {
 			x = opponentTarget.getX();
 			y = opponentTarget.getY();
@@ -11903,23 +11966,41 @@ var JABS_Battler = class JABS_Battler {
 		return [x, y];
 	}
 	/**
-	* Scans all battlers within proximity for the closest opponent currently afflicted
-	* with the given state. This is the highest-priority tier for direct skills that
-	* carry a <directStateTarget:N> tag, ensuring the skill snaps to the "pinned"
-	* target before considering anything else in the chain.
+	* Resolves the best opponent target for a direct skill using the five-tier priority chain.
+	* Performs a single spatial scan upfront; all scan-based tiers filter that shared list
+	* rather than re-querying the spatial index independently.
 	*
-	* Proximity is always respected: a state-bearing target beyond the configured
-	* range is never eligible.
-	* @param {number|null} stateId The state ID to search for; null skips the scan entirely.
-	* @param {number} proximityLimit The max tile distance allowed.
+	* Priority order:
+	*   1. Closest state-bearing opponent (requires {@link jabsDirectStateTarget}).
+	*   2. Known non-inanimate target (getTarget / getBattlerLastHit, within range).
+	*   3. Closest non-inanimate opponent from the proximity scan.
+	*   4. Known inanimate target (getTarget / getBattlerLastHit, within range).
+	*   5. Closest inanimate opponent from the proximity scan (covers training dummies etc.).
+	*
+	* Returns null only when absolutely no candidate exists within range.
+	* @param {RPG_Skill} skill The direct skill being resolved.
+	* @returns {JABS_Battler|null} The winning target, or null if none found.
+	*/
+	resolveDirectOpponentTarget(skill) {
+		const proximityLimit = skill.jabsProximity ?? 0;
+		const stateTargetId = skill.jabsDirectStateTarget;
+		const candidates = proximityLimit > 0 ? JABS_AiManager.getBattlersWithinRange(this, proximityLimit) : [];
+		return this.resolveDirectTargetByState(stateTargetId, candidates) ?? this.resolveDirectTargetNonInanimate(proximityLimit) ?? this.resolveDirectTargetViaScan(candidates) ?? this.resolveDirectTargetInanimateFallback(proximityLimit) ?? this.resolveDirectTargetInanimateScan(candidates);
+	}
+	/**
+	* Filters the pre-built candidate list for the closest opponent currently afflicted
+	* with the given state. This is the highest-priority tier for direct skills that
+	* carry a {@link jabsDirectStateTarget} tag, ensuring the skill snaps to the "pinned"
+	* target before considering anything else in the chain.
+	* @param {number|null} stateId The state ID to search for; null skips this tier entirely.
+	* @param {JABS_Battler[]} candidates The pre-scanned battlers within proximity.
 	* @returns {JABS_Battler|null} The closest state-bearing opponent within range, or null.
 	*/
-	resolveDirectTargetByState(stateId, proximityLimit) {
+	resolveDirectTargetByState(stateId, candidates) {
 		if (!stateId) return null;
-		const nearby = JABS_AiManager.getBattlersWithinRange(this, proximityLimit);
 		let closest = null;
 		let closestDistance = Infinity;
-		for (const candidate of nearby) {
+		for (const candidate of candidates) {
 			if (candidate === this) continue;
 			if (candidate.isEnemy() === this.isEnemy()) continue;
 			if (!candidate.getBattler().isStateAffected(stateId)) continue;
@@ -11948,20 +12029,41 @@ var JABS_Battler = class JABS_Battler {
 		return null;
 	}
 	/**
-	* Scans all battlers within {@link proximityLimit} tiles for the closest non-inanimate
-	* opponent. Used when known targets are inanimate or out of range, so a direct skill
+	* Filters the pre-built candidate list for the closest non-inanimate opponent.
+	* Used when known targets are inanimate or out of range, so a direct skill
 	* cannot accidentally lock onto a barrel while real enemies are nearby.
-	* @param {number} proximityLimit The scan radius in tiles; returns null immediately when 0.
-	* @returns {JABS_Battler|null} The closest qualifying opponent, or null.
+	* @param {JABS_Battler[]} candidates The pre-scanned battlers within proximity.
+	* @returns {JABS_Battler|null} The closest qualifying non-inanimate opponent, or null.
 	*/
-	resolveDirectTargetViaScan(proximityLimit) {
-		if (proximityLimit === 0) return null;
-		const nearby = JABS_AiManager.getBattlersWithinRange(this, proximityLimit);
+	resolveDirectTargetViaScan(candidates) {
 		let closest = null;
 		let closestDistance = Infinity;
-		for (const candidate of nearby) {
+		for (const candidate of candidates) {
 			if (candidate === this) continue;
 			if (candidate.isInanimate()) continue;
+			if (candidate.isEnemy() === this.isEnemy()) continue;
+			const distance = this.distanceToDesignatedTarget(candidate);
+			if (distance < closestDistance) {
+				closestDistance = distance;
+				closest = candidate;
+			}
+		}
+		return closest;
+	}
+	/**
+	* Filters the pre-built candidate list for the closest inanimate opponent.
+	* This is the last resort when all non-inanimate tiers have come up empty —
+	* covers training dummies, barrels, and other inanimate targets that are
+	* genuinely the only thing in range.
+	* @param {JABS_Battler[]} candidates The pre-scanned battlers within proximity.
+	* @returns {JABS_Battler|null} The closest inanimate opponent, or null.
+	*/
+	resolveDirectTargetInanimateScan(candidates) {
+		let closest = null;
+		let closestDistance = Infinity;
+		for (const candidate of candidates) {
+			if (candidate === this) continue;
+			if (!candidate.isInanimate()) continue;
 			if (candidate.isEnemy() === this.isEnemy()) continue;
 			const distance = this.distanceToDesignatedTarget(candidate);
 			if (distance < closestDistance) {
@@ -11990,7 +12092,7 @@ var JABS_Battler = class JABS_Battler {
 	* Updates all cooldowns for this battler.
 	*/
 	updateCooldowns() {
-		this.getBattler().getSkillSlotManager().updateCooldowns();
+		this.getBattler().getSkillSlotManager().updateCooldowns(this.isCasting());
 	}
 	/**
 	* Updates all timers for this battler.
@@ -16113,10 +16215,29 @@ var JABS_Engine = class JABS_Engine {
 	* @param {JABS_State} newJabsState The new tracked state data.
 	*/
 	stackJabsState(jabsState, newJabsState) {
-		const addedStackAmount = newJabsState.battler.state(newJabsState.stateId).jabsStateStacksApplied;
+		const addedStackAmount = newJabsState.stackCount;
 		jabsState.incrementStacks(addedStackAmount);
+		this.checkStackConversion(jabsState);
 		jabsState.setBaseDuration(newJabsState.duration);
 		this.refreshJabsState(jabsState, newJabsState);
+	}
+	/**
+	* Checks whether the current stack count on a state triggers a conversion to a new state.
+	* Fires when the stack count meets or exceeds the threshold defined by
+	* {@code <stacksConvertToState:[NEW_STATE_ID, STACKS_REQUIRED]>} on the source state.
+	* If {@code <removeOnConvert>} is also present, the source state is removed after conversion.
+	* @param {JABS_State} jabsState The state whose stack count was just updated.
+	*/
+	checkStackConversion(jabsState) {
+		const casterPerceivedState = jabsState.source.state(jabsState.stateId);
+		const conversionPerceivedState = casterPerceivedState.jabsConvertUsesCaster ? casterPerceivedState : jabsState.battler.state(jabsState.stateId);
+		const conversionData = conversionPerceivedState.jabsStacksConvertToState;
+		if (!conversionData) return;
+		if (jabsState.stackCount < conversionData.stacksRequired) return;
+		jabsState.battler.addState(conversionData.stateId, jabsState.battler);
+		if (conversionPerceivedState.jabsRemoveOnConvert) {
+			jabsState.removeFromBattler();
+		}
 	}
 	/**
 	* Adds the state tracker anew of a given state on the given battler.
@@ -16126,6 +16247,17 @@ var JABS_Engine = class JABS_Engine {
 	addJabsStateByUuid(uuid, jabsState) {
 		const jabsStates = this.getJabsStatesByUuid(uuid);
 		jabsStates.set(jabsState.stateId, jabsState);
+	}
+	/**
+	* Removes the tracker for a given state from a given battler's JABS state map.
+	* Called on forced removal so expired entries do not pollute the map and
+	* cause reapplication to go through the update path instead of the add path.
+	* @param {string} uuid The uuid of the battler.
+	* @param {number} stateId The id of the state to remove from the tracker.
+	*/
+	removeJabsStateByUuid(uuid, stateId) {
+		const jabsStates = this.getJabsStatesByUuid(uuid);
+		jabsStates.delete(stateId);
 	}
 	/**
 	* Updates all JABS states for all battlers that are afflicted.
@@ -16483,8 +16615,7 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	executeMapAction(caster, action, targetX, targetY) {
 		this.handleActionCombo(caster, action);
-		this.handleActionCastAnimation(caster, action);
-		this.handleActionOnCastAnimation(caster, action);
+		this.onExecuteMapAction(caster, action);
 		this.handleActionGeneration(caster, action, targetX, targetY);
 	}
 	/**
@@ -16496,6 +16627,16 @@ var JABS_Engine = class JABS_Engine {
 		if (action.getBaseSkill().jabsFreeCombo) {
 			this.checkComboSequence(caster, action);
 		}
+	}
+	/**
+	* Handles actions that happen as a side effect of executing an action.
+	* @param {JABS_Battler} caster The JABS_Battler executing the JABS action.
+	* @param {JABS_Action} action The JABS action to execute.
+	*/
+	onExecuteMapAction(caster, action) {
+		this.handleActionCastAnimation(caster, action);
+		this.handleActionOnCastAnimation(caster, action);
+		this.handleOnCastStateEffects(caster, action);
 	}
 	/**
 	* Handles the cast animation functionality behind this action.
@@ -16517,6 +16658,18 @@ var JABS_Engine = class JABS_Engine {
 		if (action.hasOnCastAnimationId()) {
 			action.performOnCastAnimation(caster);
 		}
+	}
+	/**
+	* Handles the on-cast state effects for a JABS action, firing once at press-time
+	* rather than once per target hit.
+	* @param {JABS_Battler} caster The JABS_Battler executing the JABS action.
+	* @param {JABS_Action} action The JABS action being executed.
+	*/
+	handleOnCastStateEffects(caster, action) {
+		const gameAction = action.getAction();
+		gameAction.applyOnCastSelfStates();
+		gameAction.applyOnCastSelfStatesIfAfflicted();
+		gameAction.applyOnCastLoseStates();
 	}
 	/**
 	* Handles adding this action to the map if applicable.
@@ -17767,6 +17920,7 @@ var JABS_Engine = class JABS_Engine {
 		if (purged.length === 0) return;
 		const targetName = target.getBattlerDatabaseData().name;
 		purged.forEach((state) => {
+			if (state.jabsNoLogs === true) return;
 			const log = new ActionLogBuilder().setupStatePurged(targetName, state.id).build();
 			$actionLogManager.addLog(log);
 		});
@@ -17779,7 +17933,8 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	createAttackLog(action, target) {
 		if (!J.LOG) return;
-		const result = target.getBattler().result();
+		const targetBattler = target.getBattler();
+		const result = targetBattler.result();
 		const caster = action.getCaster();
 		const skill = action.getBaseSkill();
 		const casterName = caster.getBattlerDatabaseData().name;
@@ -17820,11 +17975,13 @@ var JABS_Engine = class JABS_Engine {
 		}
 		if (result.addedStates.length) {
 			result.addedStates.forEach((stateId) => {
-				if (stateId === target.getBattler().deathStateId()) {
+				if (stateId === targetBattler.deathStateId()) {
 					const targetDefeatedLog = new ActionLogBuilder().setupTargetDefeated(targetName).build();
 					$actionLogManager.addLog(targetDefeatedLog);
 					return;
 				}
+				const targetAfflictedState = targetBattler.state(stateId);
+				if (targetAfflictedState.jabsNoLogs === true) return;
 				const stateAfflictedLog = new ActionLogBuilder().setupStateAfflicted(targetName, stateId).build();
 				$actionLogManager.addLog(stateAfflictedLog);
 			});
@@ -17885,7 +18042,7 @@ var JABS_Engine = class JABS_Engine {
 			return true;
 		};
 		const actionSprite = jabsAction.getActionSprite();
-		const range = jabsAction.getRange() ?? (jabsAction.isDirectAction() ? jabsAction.getProximity() : null);
+		const range = jabsAction.getRange() ?? (jabsAction.isDirectAction() ? 1 : null);
 		const shape = jabsAction.getShape();
 		const targetsHit = [];
 		let hitOne = false;
@@ -19180,7 +19337,8 @@ var JABS_Action = class JABS_Action {
 	/**
 	* Gets the `Game_Event` this JABS action is bound to.
 	* The `Game_Event` represents the visual aspect of this action.
-	* @returns {Game_Event}
+	* Returns null for direct actions that were never spatialized (no coordinates provided).
+	* @returns {Game_Event|null}
 	*/
 	getActionSprite() {
 		return this._actionSprite;
@@ -19340,8 +19498,13 @@ var JABS_Action = class JABS_Action {
 	}
 	/**
 	* Counts down the pierce delay timer for this action.
+	* Skips the tick while the action sprite is hitstopped so that hitstop and
+	* pierce delay stay in sync — the projectile freezes, moves, then freezes
+	* again rather than expiring the delay mid-freeze and cascading unpredictably.
 	*/
 	countdownPierceDelay() {
+		const actionSprite = this.getActionSprite();
+		if (actionSprite !== null && actionSprite.isHitstopped()) return;
 		this._pierceDelay.update();
 	}
 	/**
@@ -20061,8 +20224,8 @@ var JABS_SkillSlotManager = class {
 	}
 	/**
 	* A filter function for whether or not a skill should be included in the skill slot manager for enemies.
-	* @param {Game_Enemy} enemy The enemy to check.
-	* @param {RPG_EnemyAction} action The action to check.
+	* @param {Game_Enemy} _enemy The enemy to check.
+	* @param {RPG_EnemyAction} _action The action to check.
 	*/
 	filterActionSkills(_enemy, _action) {
 		return true;
@@ -20188,10 +20351,10 @@ var JABS_SkillSlotManager = class {
 	/**
 	* Updates the cooldowns of all slots with a skill in them.
 	*/
-	updateCooldowns() {
-		this.getEquippedSlots().forEach((slot) => slot.updateCooldown());
+	updateCooldowns(isCasting = false) {
+		this.getEquippedSlots().forEach((slot) => slot.updateCooldown(isCasting));
 		const gcdSlot = this.getSkillSlotByKey(J.ABS.Globals.GlobalCooldownKey);
-		if (gcdSlot) gcdSlot.updateCooldown();
+		if (gcdSlot) gcdSlot.updateCooldown(isCasting);
 	}
 	/**
 	* Determines if either cooldown is available for the given slot.
@@ -21688,6 +21851,7 @@ RPG_Skill.prototype.recursivelyFindAllComboSkillIds = function(skillId, list = A
 	const skill = battler ? battler.skill(skillId) : $dataSkills.at(skillId);
 	if (this.shouldRecurseForComboSkills(skill, skillId)) {
 		const { jabsComboSkillId } = skill;
+		if (skillIdList.includes(jabsComboSkillId)) return skillIdList;
 		skillIdList.push(jabsComboSkillId);
 		return this.recursivelyFindAllComboSkillIds(jabsComboSkillId, skillIdList, battler);
 	} else {
@@ -22278,6 +22442,41 @@ Object.defineProperty(RPG_State.prototype, "jabsLoseAllStacksAtOnce", { get: fun
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.LoseAllStacksAtOnce, true) ?? J.ABS.Metadata.DefaultStateLoseAllStacksAtOnce;
 } });
 /**
+* The state conversion data for this state.<br/>
+* When the stack count reaches the required threshold, the specified state is applied
+* to the afflicted battler as a fresh application.<br/>
+* Returns null when no {@code <stacksConvertToState:[NEW_STATE_ID, STACKS_REQUIRED]>} tag is present.
+* Only the first tag is read.
+* @type {{ stateId: number, stacksRequired: number }|null}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsStacksConvertToState", { get: function() {
+	const arrays = RPGManager.getArraysFromNotesByRegex(this, J.ABS.RegExp.StacksConvertToState, true);
+	if (!arrays || arrays.length === 0) return null;
+	const [stateId, stacksRequired] = arrays.at(0);
+	return {
+		stateId,
+		stacksRequired
+	};
+} });
+/**
+* Whether the source state should be removed from the battler when a stack conversion fires.<br/>
+* Without this tag, the source state remains active alongside the converted state.<br/>
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsRemoveOnConvert", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.RemoveOnConvert);
+} });
+/**
+* Whether this state's conversion data should be read from the caster's perceived version
+* of the state rather than the target's.<br/>
+* Use this when <stacksConvertToState> is added via a caster-side extension passive so that
+* the enemy target's lack of the passive doesn't suppress the conversion.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsConvertUsesCaster", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.ConvertUsesCaster);
+} });
+/**
 * The follow-up state to apply when this state expires naturally by frame counter.<br/>
 * Returns a {@link JABS_StateExpireData} describing the follow-up, or null when no
 * tag is present. Does NOT fire on forced removal or dispel.
@@ -22410,6 +22609,13 @@ Object.defineProperty(RPG_State.prototype, "jabsSlipTpPercentPerFive", { get: fu
 */
 Object.defineProperty(RPG_State.prototype, "jabsSlipTpFormulaPerFive", { get: function() {
 	return RPGManager.getStringFromNoteByRegex(this, J.ABS.RegExp.SlipTpFormula);
+} });
+/**
+* Whether the logs for adding this state show up in the action logs.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsNoLogs", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.NoLogs);
 } });
 /**
 * When true, this state never expires on the map (J-ABS duration {@code -1}).<br/>
@@ -23140,10 +23346,12 @@ Game_Action.prototype.applyStateDamageMultipliers = function(baseDamage, target)
 	const debuffPct = this.calculatePerDebuffBonusPct(target);
 	const specificPct = this.calculateBonusIfStatePct(target);
 	const thisSpecificPct = this.calculateThisBonusDamageIfStatePct(target);
+	const selfStatePct = this.calculateBonusIfSelfStatePct();
+	const thisSelfStatePct = this.calculateThisBonusDamageIfSelfStatePct();
 	const thisFlatPct = this.calculateThisBonusDamagePct();
 	const typePresencePct = this.calculateBonusIfStateTypePct(target);
 	const typeCountPct = this.calculatePerStateTypePct(target);
-	const combinedPct = debuffPct + specificPct + thisSpecificPct + thisFlatPct + typePresencePct + typeCountPct;
+	const combinedPct = debuffPct + specificPct + thisSpecificPct + selfStatePct + thisSelfStatePct + thisFlatPct + typePresencePct + typeCountPct;
 	if (combinedPct === 0) return baseDamage;
 	return Math.round(baseDamage * (1 + combinedPct / 100));
 };
@@ -23191,6 +23399,41 @@ Game_Action.prototype.calculateThisBonusDamageIfStatePct = function(target) {
 	let totalPct = 0;
 	allPairs.forEach(([stateId, percent]) => {
 		if (target.isStateAffected(stateId)) {
+			totalPct += percent;
+		}
+	});
+	return totalPct;
+};
+/**
+* Calculates the total damage bonus percent from bonusDamageIfSelfState tags on the caster's notes.
+* Each tag contributes its PCT value if the CASTER currently has the specified state active.
+* Multiple tags for different state ids each fire independently and stack additively.
+* @returns {number} The total bonus percent from all matching self-state tags.
+*/
+Game_Action.prototype.calculateBonusIfSelfStatePct = function() {
+	const allPairs = this.subject().getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.BonusDamageIfSelfState));
+	if (!allPairs.length) return 0;
+	let totalPct = 0;
+	allPairs.forEach(([stateId, percent]) => {
+		if (this.subject().isStateAffected(stateId)) {
+			totalPct += percent;
+		}
+	});
+	return totalPct;
+};
+/**
+* Calculates the total damage bonus percent from thisBonusDamageIfSelfState tags on this action's skill.
+* Reads from this.item() only — fires only when this specific skill is the action being resolved.
+* Each tag contributes its PCT value if the CASTER currently has the specified state active.
+* Multiple tags for different state ids each fire independently and stack additively.
+* @returns {number} The total bonus percent from all matching self-state tags on this skill.
+*/
+Game_Action.prototype.calculateThisBonusDamageIfSelfStatePct = function() {
+	const allPairs = RPGManager.getArraysFromNotesByRegex(this.item(), J.ABS.RegExp.ThisBonusDamageIfSelfState);
+	if (!allPairs.length) return 0;
+	let totalPct = 0;
+	allPairs.forEach(([stateId, percent]) => {
+		if (this.subject().isStateAffected(stateId)) {
 			totalPct += percent;
 		}
 	});
@@ -24884,6 +25127,16 @@ Game_Battler.prototype.states = function() {
 	return originalStates.concat(stackedStates);
 };
 /**
+* Gets the number of stacks of a given state currently applied to this battler.
+* @param {number} stateId The id of the state to check.
+* @returns {number} The number of stacks applied of the given state.
+*/
+Game_Battler.prototype.stackCount = function(stateId) {
+	const state = $jabsEngine.getJabsStateByUuidAndStateId(this.getUuid(), stateId);
+	if (state === undefined) return 0;
+	return state.stackCount;
+};
+/**
 * Extends {@link #addState}.<br/>
 * Rewrites the handling for state application. The attacker is
 * now relevant to the state being applied.
@@ -24924,7 +25177,7 @@ Game_Battler.prototype.removeState = function(stateId) {
 	J.ABS.Aliased.Game_Battler.get("removeState").call(this, stateId);
 	const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(this.getUuid(), stateId);
 	if (trackedState) {
-		trackedState.expired = true;
+		$jabsEngine.removeJabsStateByUuid(this.getUuid(), stateId);
 	}
 };
 /**
@@ -25026,11 +25279,7 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker, overrides = nu
 	}
 	const builder = this.createJabsState(this, stateId, iconIndex, totalDuration, stateStacks, assailant);
 	const jabsState = builder.build();
-	if (overrides) {
-		$jabsEngine.addJabsStateByUuid(this.getUuid(), jabsState);
-	} else {
-		$jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
-	}
+	$jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
 };
 /**
 * Applies a state to this battler with skill-authored duration and/or stack overrides.
@@ -25615,8 +25864,11 @@ Game_Character.prototype.isMovementSucceeded = function() {
 * @returns {1|2|3|4|6|7|8|9|0} The direction decided.
 */
 Game_Character.prototype.findDiagonalDirectionToHeuristic = function(goalX, goalY) {
-	const deltaX2 = this.deltaXFrom(goalX);
-	const deltaY2 = this.deltaYFrom(goalY);
+	const rawDX = this.deltaXFrom(goalX);
+	const rawDY = this.deltaYFrom(goalY);
+	const AXIS_SNAP = .3;
+	const deltaX2 = Math.abs(rawDX) < AXIS_SNAP ? 0 : rawDX;
+	const deltaY2 = Math.abs(rawDY) < AXIS_SNAP ? 0 : rawDY;
 	if (deltaX2 === 0 && deltaY2 === 0) {
 		return 0;
 	}
