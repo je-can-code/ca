@@ -6,7 +6,7 @@
 >
 > **Natural weapons:** blade (1H sharp, 2H beast, dual twist), fist (glove flow, claw gore, arm dirty), axe (1H hatchet, 2H battleaxe)
 >
-> **SDP affinities:** Berserker, Skirmisher, Vanguard
+> **SDP affinities:** Berserker, Vanguard
 
 **Block size:** 10 (3 combat + 5 passive target, 2 spare)
 

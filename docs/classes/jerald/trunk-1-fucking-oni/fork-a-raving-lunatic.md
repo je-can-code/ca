@@ -7,7 +7,7 @@
 >
 > **Natural weapons:** dual blade (twist), fist glove (flow), 2H axe (battleaxe/cleave)
 >
-> **SDP affinities:** Berserker, Skirmisher, Artillery
+> **SDP affinities:** Berserker, Skirmisher
 
 **Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 

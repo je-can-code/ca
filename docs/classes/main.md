@@ -73,7 +73,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** blade (1H sharp, 2H beast, dual twist), fist (glove flow, claw gore, arm dirty), axe (1H hatchet, 2H battleaxe)
 
-**SDP archetype affinities:** Berserker, Skirmisher, Vanguard
+**SDP archetype affinities:** Berserker, Vanguard
 
 #### Fork A — Raving Lunatic
 
@@ -83,7 +83,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** dual blade (twist), fist glove (flow), 2H axe (battleaxe/cleave)
 
-**SDP archetype affinities:** Berserker, Skirmisher, Artillery
+**SDP archetype affinities:** Berserker, Skirmisher
 
 #### Fork B — Painbringer
 
@@ -93,7 +93,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** 1H axe (hatchet/buffer), 2H blade (beast/stun-execute), fist arm (dirty), fist claw (gore/bleed)
 
-**SDP archetype affinities:** Skirmisher, War Priest, Vanguard
+**SDP archetype affinities:** Wizard, Vanguard
 
 ---
 
@@ -103,7 +103,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** javelin (rend), taser (conduit), shotgun (boomstick)
 
-**SDP archetype affinities:** Artillery, Skirmisher, Berserker
+**SDP archetype affinities:** Artillery, Skirmisher
 
 #### Fork A — Spear Chucker
 
@@ -121,7 +121,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** taser (conduit — pin→flip→mash)
 
-**SDP archetype affinities:** Skirmisher, Berserker
+**SDP archetype affinities:** Berserker, Skirmisher
 
 #### Fork C — Splattershot
 
@@ -129,7 +129,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** shotgun (boomstick — freeCombo spread, bleed, reload-to-clap)
 
-**SDP archetype affinities:** Artillery, Vanguard, Guardian
+**SDP archetype affinities:** Guardian, Artillery
 
 ---
 
@@ -141,7 +141,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** axe breaker (breaker), spear basher (mortar), 1H axe (hatchet/buffer)
 
-**SDP archetype affinities:** War Priest, Cleric, Medic, Vanguard, Guardian
+**SDP archetype affinities:** War Priest, Vanguard
 
 #### Fork A — Orbiter
 
@@ -151,15 +151,18 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** spear basher (mortar — wide circle/denial), 1H axe (hatchet/buffer — self-buffs on execution)
 
-**SDP archetype affinities:** Vanguard, Guardian, War Priest
+**SDP archetype affinities:** Guardian, Vanguard
 
-#### Fork B — Tenderizer
+#### Fork B — Malpractician
 
-> **Expression:** soften the target for the party. Not about Jerald's own damage — it's about making sure this fight ends faster so they can leave. Shred enemy PDR, stack Tenderizing, set up Exposed so everyone hits harder. Almost support-flavored, expressed entirely through controlled aggression.
+> Aggressive debuffer who incidentally heals because he technically has to. Shared Suffering plants the setup; potions pop in the air every few hits like sad firecrackers, healing everyone nearby as a byproduct of him punching things. He is not paying attention to it. It just happens.
+> "Here's a potion. Share it. I'm busy."
+>
+> **Expression:** apply Doomganosis, apply Shared Suffering, let Collateral Care handle the rest. SHIELD Rupert when needed. The heals are a side effect.
 
-**Natural weapons:** axe breaker (breaker — LLRL→SHATTER, Tenderizing→Exposed, party −PDR)
+**Natural weapons:** axe breaker (breaker — LLRL→SHATTER, party −PDR), 1H axe (hatchet/buffer — self-buffs on execution)
 
-**SDP archetype affinities:** Medic, Cleric, War Priest, Generalist
+**SDP archetype affinities:** Medic, Wizard
 
 ---
 
@@ -181,7 +184,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > Rupert has assessed the situation and determined that the optimal move is annihilation. He is executing on that.
 
-**SDP archetype affinities:** Berserker, Artillery, Wizard, Skirmisher
+**SDP archetype affinities:** Wizard, Skirmisher
 
 #### Fork A — Lavos
 
@@ -191,7 +194,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** 1H wand (saturation — bullet hell MAT ramp), tome (lexicon — direct sentences + curse), taser (conduit — MAT+LUK, pin→mash)
 
-**SDP archetype affinities:** Wizard, Artillery, Berserker
+**SDP archetype affinities:** Wizard, Artillery
 
 #### Fork B — Melufa
 
@@ -201,17 +204,18 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** dual blade (twist — widening arcs, two buttons, elemental; MAT support to be added on revamp)
 
-**SDP archetype affinities:** Skirmisher, Wizard, Berserker
+**SDP archetype affinities:** Wizard, Berserker
 
-#### Fork C — Methodical Dismantler
+#### Fork C — The Architect
 
-> Too many syllables. Overly specific. Uncomfortable when you think about what it implies. Filed as a clinical report after the incident. Nobody wanted to write it but someone had to describe what happened.
+> Master of space. Every enemy is exactly where Rupert needs them — because he put them there.
+> Self-assigned title. Completely unironic.
 >
-> **Expression:** slow, deliberate, calculated dismantling. The fist arm lot — over-arm slam, lariat, cross-arm slam, Grab Ready!, Violation at capstone. Every hit is a step in a flowchart Rupert is executing in real time. "I have determined that the optimal move is to grab you and do something unspeakable to you. This was always the plan."
+> **Expression:** Converge to pull them in for the melee window, Repel to send them to the shooting gallery, Compression to lock them in place, Meteor for applied astrophysics. The Architect decides where you are. You are there now.
 
-**Natural weapons:** fist arm (dirty — connect slams, Grab Ready! → Violation)
+**Natural weapons:** pistol (hybrid — mid-range, empowered ammo via melee combo, pow pow)
 
-**SDP archetype affinities:** Vanguard, Guardian, Berserker
+**SDP archetype affinities:** Skirmisher, Artillery
 
 ---
 
@@ -221,17 +225,18 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > This enemy is more valuable to Rupert temporarily disabled than immediately dead. Also sometimes "this ally is more valuable to Rupert not dead yet." Same mental process, different target.
 
-**SDP archetype affinities:** Wizard, Cleric, Medic, War Priest, Guardian
+**SDP archetype affinities:** Wizard, Cleric
 
-#### Fork A — Kore Avenger
+#### Fork A — Methodical Dismantler
 
-> "Kore" — romaji for "this" in Japanese. Also the name of a cat character Robert had in the previous game who wielded a massive hammer. Rupert took the hammer after he died. RIP Kore. Every stun-into-execute is dedicated to him.
+> Too many syllables. Overly specific. Uncomfortable when you think about what it implies. Filed as a clinical report after the incident. Nobody wanted to write it but someone had to describe what happened.
+> A tribute to Kore — a cat-humanoid who fought with claws. Rupert learned to fight like him. Honors him by doing it efficiently. RIP Kore.
 >
-> **Expression:** stun everything, then do unspeakable things to the stunned target. The 2H blade beast lot is purpose-built for this: Meat Tenderizer into charged Fat Melter, guaranteed crits vs stunned, 2× damage vs stunned, Blade of the Lotus removing offchain cooldown at capstone. The numbers are genuinely terrible for the target.
+> **Expression:** systematic, efficient stat stripping. Wing Clipper locks them down, Shell Cracker stuns and shreds DEF, Aura Burst evaporates MDF party-wide, and Avenge applies all three debuffs simultaneously in a single hit. By the time Avenge lands, there is nothing left to protect them.
 
-**Natural weapons:** 2H blade (beast — stun lord, charge execute, prof stun ladder)
+**Natural weapons:** fist claw (gore — fast, baseline bleed, pounce gap-closer)
 
-**SDP archetype affinities:** Berserker, Artillery, Vanguard
+**SDP archetype affinities:** Skirmisher, War Priest
 
 #### Fork B — Equilibrium
 
@@ -241,7 +246,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** 2H staff (aura — spray mains + charge→aura offchain, MRG/HRG/party AOE/prism shield)
 
-**SDP archetype affinities:** Cleric, Medic, War Priest, Generalist
+**SDP archetype affinities:** Medic, War Priest
 
 ---
 
@@ -255,7 +260,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > Also carries echoes of his ex-hero days — he used to believe in destiny and heroism. Now he just uses the *aesthetic* of it because it makes people cooperate faster.
 
-**SDP archetype affinities:** Generalist, Cleric, Medic, Skirmisher
+**SDP archetype affinities:** Generalist, Wizard
 
 #### Fork A — RNGesus
 
@@ -267,7 +272,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** tome (lexicon — healing grimoire expression, MDF/REC/PHA), 2H staff (aura — party buffs)
 
-**SDP archetype affinities:** Cleric, Generalist, Medic
+**SDP archetype affinities:** Cleric, Generalist
 
 #### Fork B — Hexagonal
 
@@ -277,7 +282,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 **Natural weapons:** spear basher (mortar — wide circle denial, Disarm, Mute, charge waves, prism shield via staff aura crossover)
 
-**SDP archetype affinities:** Wizard, Skirmisher, Guardian
+**SDP archetype affinities:** Wizard, Guardian
 
 ---
 

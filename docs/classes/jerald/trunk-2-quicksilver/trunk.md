@@ -6,7 +6,7 @@
 >
 > **Natural weapons:** javelin (rend), taser (conduit), shotgun (boomstick)
 >
-> **SDP affinities:** Artillery, Skirmisher, Berserker
+> **SDP affinities:** Artillery, Skirmisher
 
 **Block size:** 10 (3 combat + 5 passive target, 2 spare)
 
@@ -14,7 +14,11 @@
 
 ## Combat skills (3)
 
-> TBD
+| # | Name | Description |
+|---|---|---|
+| 1 | Triple Backflip Swan-dive | Dashes backward, creating distance. The gap reset. |
+| 2 | Mah Lazer | Long line beam with inner dead zone — cannot fire point-blank. The Quicksilver bread and butter. |
+| 3 | Quick Exit | Toggle. +MSB, +CDR. Incoming melee damage increased. Commit to range or eat the punishment. |
 
 ---
 
