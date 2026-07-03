@@ -23,7 +23,7 @@
 | 1 | Heated Enchant | Infuses blades with heat. Basic attacks trigger a heat-element MAT-scaled follow-up hit. |
 | 2 | Liquid Enchant | Infuses blades with liquid. Basic attacks trigger a liquid-element MAT-scaled follow-up hit. |
 | 3 | Enchanted Whip | Short-range whirl. Executes the active enchant's effect as a burst AoE rather than a single follow-up hit. |
-| 4 | Mince | Charge-based. Each activation swings a 270-degree oscillating arc — up to 3 hits per swing — and each hit procs the active enchant. No charge cap. Charges accumulate from enchant follow-up procs. One hit is a papercut. There is no ceiling on how many charges you can have. |
+| 4 | Mince | **Signature.** Charge-based. Each activation swings a 270-degree oscillating arc — up to 3 hits per swing — and each hit procs the active enchant. No charge cap. Charges accumulate from enchant follow-up procs. One hit is a papercut. There is no ceiling on how many charges you can have. |
 
 ---
 
@@ -41,3 +41,5 @@
 | P8 | EVA +33% | +33% evasion. |
 | P9 | Untouchable | On evade, briefly apply `<invincible>` — removes Rupert from collision detection entirely, causing skills that would clip him post-dodge to also miss. |
 | P10 | Death Rattle | Bonus hits on all skills +1. Every enchant follow-up lands one more time. Every Mince arc swings one more time. The loop accelerates. |
+| P11 | Equip Glaive | Unlock. Grants access to the Glaive weapon subgroup. |
+| P12 | Equip Gloves | Unlock. Grants access to the Gloves weapon subgroup. |

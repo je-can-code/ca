@@ -35,3 +35,4 @@
 | P3 | State Duration +25% | Every state Rupert applies lasts 25% longer. Debuffs, ailments, drains — whatever it is, it overstays. |
 | P4 | Erode | Debuffs Rupert applies that reduce PDR/MDR carry an additional −15% on top. |
 | P5 | Decompose | `<bonusDamageForMyStateCount:PCT>`. Bonus damage per state Rupert currently has active on the target — the more he's stripped away, the worse the next hit lands. |
+| P6 | Equip Hatchet | Unlock. Grants access to the Hatchet weapon subgroup. |

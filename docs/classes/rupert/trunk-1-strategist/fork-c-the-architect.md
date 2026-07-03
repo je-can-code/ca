@@ -23,7 +23,7 @@
 | 1 | Converge | Drags a target toward Rupert. The opener. Sets up the melee window. |
 | 2 | Repel | Knocks a target away from Rupert. Sends them to the shooting gallery. The cooldown gate. |
 | 3 | Compression | Targeted. Slowly compresses the target, locking them in place while it happens. Because the Architect decided you'd be smaller now. |
-| 4 | Meteor | Targeted. Yanks a passing rock from orbit and craters it into the target and nearby vicinity. Not moving the enemy. Not moving Rupert. Just applied astrophysics. |
+| 4 | Meteor | **Signature.** Targeted. Yanks a passing rock from orbit and craters it into the target and nearby vicinity. Not moving the enemy. Not moving Rupert. Just applied astrophysics. |
 
 ---
 
@@ -39,3 +39,5 @@
 | P6 | Projectile Duration +25% | Projectiles remain active 25% longer. |
 | P7 | Time Collapse | After casting a skill, the next skill cast is instant and costs no MP. The Architect has collapsed the interval between two moments. Requires new engine support — see engine-requirements. |
 | P8 | Infinite Canvas | All skill AoE radii and ranges +50%. (`<rangeRate:1.5>`) |
+| P9 | Equip Spear | Unlock. Grants access to the Spear weapon subgroup. The Architect decides reach is also his domain. |
+| P10 | Equip Javelin | Unlock. Grants access to the Javelin weapon subgroup. |

@@ -257,10 +257,13 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 ---
 
+## Resolved questions
+
+- **Trunk naming:** trunks are shown to players as legit classes, same as forks — they're just "before" the forks in the tree, not hidden intermediate steps.
+- **Unlock criteria:** the first trunk unlocks via the innkeeper main-scenario quest (killing bearcats), pre-dating the "veterans acknowledge the system" story beat. Every subsequent branch (remaining trunks, all forks) unlocks via NPC trainers scattered through Raevula.
+- **Skill ID bands:** class skills start at **301** and run through however many bands are needed to cover all trunk + fork actives — placed after the weapon lots (1–180) and clear of existing character kit bands.
+- **Respec:** none. No respec of classes — you learn what you learn, permanently, per the mastery/cross-pollination model. Class-changing (which class is "active") is a separate mechanic from unlocking/mastering.
+
 ## Open questions
 
-- Do trunks have names before the fork, or do players just see the fork choices?
-- Unlock criteria per branch — NPC trainers, story beats, or both?
-- Skill ID bands for class skills (must not overlap weapon lots 1–180 or character kit bands)
-- Does respec cost anything or is it purely free?
-- Elementals — separate class trees or fixed role kits? (see backlog item)
+- Elementals — separate class trees or fixed role kits? Deferred to its own dedicated conversation (see backlog item) — Jerald/Rupert design is not a template for how elementals will work.

@@ -34,3 +34,4 @@
 | P3 | CDR −10%            | −10% cooldowns.                                                                                                         |
 | P4 | Crit Chance +10%    | CRI+10%.                                                                                                                |
 | P5 | Handle Without Care | Hits apply stacking CEV−10 and `<critReduction:−10>`. The more they get hit, the more susceptible to crits they become. |
+| P6 | Equip Taser | Unlock. Grants access to the Taser weapon subgroup. |

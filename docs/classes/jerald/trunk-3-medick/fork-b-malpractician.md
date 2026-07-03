@@ -25,7 +25,7 @@
 | 1 | Collateral Care | Toggle stance. Slower CDR/cast time. Auto-executes a potion AoE heal on a timer via `<autoExecuteSkill>` — a byproduct of Jerald doing literally anything else. He is not paying attention to it. |
 | 2 | Look its Confetti! | Targeted. +5% DEF/MDF to one ally. Sad party poppers. Deeply underwhelming. Scales through Medick tree investment exactly like Fine. |
 | 3 | Doomganosis | Applies a silent debuff to a target. Does nothing for 10 seconds. On expiry, triggers a catastrophic second state. Diagnosis → doom. |
-| 4 | SHIELD | Targeted. Applies an outrageous 5x max HP shield to one ally. "Rupert, just take this SHIELD and stop dying." |
+| 4 | SHIELD | **Signature.** Targeted. Applies an outrageous 5x max HP shield to one ally. "Rupert, just take this SHIELD and stop dying." |
 
 ---
 
@@ -43,3 +43,5 @@
 | P8 | State Duration −50% | All states expire in half the time. Sounds bad. Doomganosis now triggers in 5 seconds instead of 10. |
 | P9 | HAR +50% | +50% outgoing heal potency. Collateral Care's sad firecrackers land a little less sadly. |
 | P10 | Malpractice | On skill hit, apply one stack of Malpracticed to the target — all stats −1% per stack, stacks to 100. Malpractician barely notices. Try Hard and Raving Lunatic will. |
+| P11 | Equip Cane | Unlock. Grants access to the Cane weapon subgroup. |
+| P12 | Equip Rod | Unlock. Grants access to the Rod weapon subgroup. |

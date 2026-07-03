@@ -22,7 +22,7 @@
 | 1 | March | Toggle. −30 MSB, +30% DEF/MDF, knockback immunity. You cannot be stopped. Getting close means consequences. |
 | 2 | Shrapnel | Active. Applies a self-state; that state carries `<applyState:[BLEED_ID, CHANCE, DURATION, 20]>` and is consumed by the next skill used — delivering 20 bleed stacks to whatever you just hit. Fuck you. |
 | 3 | Avalanche | Active. 150° cone, radius 3, knockback 3. The BLAM. Nobody uses the shotgun's version after learning this. |
-| 4 | Entire Clip | Active. Unload everything into a massive forward cone. Glorious for you, not for them. |
+| 4 | Entire Clip | **Signature.** Active. Unload everything into a massive forward cone. Glorious for you, not for them. |
 
 ---
 
@@ -40,3 +40,4 @@
 | P8 | Knockback +50% | +50% knockback distance. Fewer trips.                                                                                                |
 | P9 | Exsanguination | Bleed states tick 50% more often. Requires state-type-specific tick rate modifier — see engine-requirements.                         |
 | P10 | Hemorrhaging | Once bleed is applied, it self-generates stacks autonomously. Uses self-accumulating state stack mechanic — see engine-requirements. |
+| P11 | Equip Claws | Unlock. Grants access to the Claws weapon subgroup. |

@@ -42,3 +42,5 @@
 | P9 | Violence First | Heal 3% MHP per kill. |
 | P10 | Diabolical | On crit, gain **Angy Amplified** — the next skill execution hits +2 additional times. |
 | P11 | Equip Edge | Unlock. Grants access to the Edge weapon subgroup. |
+| P12 | Equip Blade | Unlock. Grants access to the Blade weapon subgroup. Dual-Wield makes this the literal twin-blades expression. |
+| P13 | Equip Gloves | Unlock. Grants access to the Gloves weapon subgroup. |

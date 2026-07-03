@@ -52,3 +52,4 @@
 | P9 | Immovable | DEF +5% per nearby enemy. The more that pile on, the less he moves. |
 | P10 | Pandemic | Any poison state Jerald applies spreads autonomously to nearby enemies. On Painbringer, this distributes the prerequisite for the entire debuff chain. |
 | P11 | Melting 🫠🫠🫠 | `<bonusDamageForMyStateCount:PCT>`. Bonus damage per state Jerald currently has active on the target. Null Acid, Tangling Shadows, Corroding Resistance — they're all his. |
+| P12 | Equip Tome | Unlock. Grants access to the Tome weapon subgroup. |

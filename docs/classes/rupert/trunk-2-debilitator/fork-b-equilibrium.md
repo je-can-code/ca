@@ -41,6 +41,7 @@
 | P8 | Overclock | MP costs +50%, cast time −50%. |
 | P9 | Overcharge | MP costs +50%, damage +50%. |
 | P10 | Equalize | Whenever Rupert heals himself, a nearby enemy takes a proportional hit of damage. Whenever Rupert deals damage, he heals himself for a proportional amount. Always active — doesn't care what class he's currently wearing. |
+| P11 | Equip Breaker | Unlock. Grants access to the Breaker weapon subgroup. Unwrapping them for the party is the whole point of the equation. |
 
 Medium armor is not unlocked here — Rupert already has it via Melufa.
 
