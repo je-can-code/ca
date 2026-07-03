@@ -5,15 +5,18 @@
 >
 > **Trunk:** [Strategist](./trunk.md)
 >
-> **Natural weapons:** pistol (hybrid — mid-range, empowered ammo via melee combo, pow pow)
->
 > **SDP affinities:** Skirmisher, Artillery
-
-**Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 
 ---
 
-## Combat skills (4)
+## Native Equipment
+
+- **Weapons:** tome
+- **Armor:** light armor, relic
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -26,4 +29,13 @@
 
 ## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
+| # | Name | Description |
+|---|---|---|
+| P1 | MMP +20% | +20% max MP. |
+| P2 | MMP +30% | +30% max MP. |
+| P3 | MCR −10% | −10% skill cost. |
+| P4 | MCR −20% | −20% skill cost. |
+| P5 | Deliberate Position | Rooted or paralyzed targets have PDR and MDR reduced to 0. |
+| P6 | Projectile Duration +25% | Projectiles remain active 25% longer. |
+| P7 | Time Collapse | After casting a skill, the next skill cast is instant and costs no MP. The Architect has collapsed the interval between two moments. Requires new engine support — see engine-requirements. |
+| P8 | Infinite Canvas | All skill AoE radii and ranges +50%. (`<rangeRate:1.5>`) |

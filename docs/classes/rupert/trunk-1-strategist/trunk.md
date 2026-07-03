@@ -6,11 +6,16 @@
 >
 > **SDP affinities:** Wizard, Skirmisher
 
-**Block size:** 10 (3 combat + 5 passive target, 2 spare)
+---
+
+## Native Equipment
+
+- **Weapons:** rod, tome, edge
+- **Armor:** light armor, medium armor, relic, gauntlet
 
 ---
 
-## Combat skills (3)
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -20,6 +25,12 @@
 
 ---
 
-## Passives (5)
+## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
+| # | Name                | Description                                                                                                             |
+|---|---------------------|-------------------------------------------------------------------------------------------------------------------------|
+| P1 | MAT +10%           | +10% magic attack.                                                                                                      |
+| P2 | MCR −10%            | −10% skill cost.                                                                                                        |
+| P3 | CDR −10%            | −10% cooldowns.                                                                                                         |
+| P4 | Crit Chance +10%    | CRI+10%.                                                                                                                |
+| P5 | Handle Without Care | Hits apply stacking CEV−10 and `<critReduction:−10>`. The more they get hit, the more susceptible to crits they become. |

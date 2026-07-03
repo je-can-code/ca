@@ -5,15 +5,18 @@
 >
 > **Trunk:** [Strategist](./trunk.md)
 >
-> **Natural weapons:** dual blade (twist — widening arcs, two buttons, elemental; MAT support)
->
 > **SDP affinities:** Wizard, Berserker
-
-**Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 
 ---
 
-## Combat skills (4)
+## Native Equipment
+
+- **Weapons:** edge
+- **Armor:** medium armor, gauntlet
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -26,10 +29,15 @@
 
 ## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
-
-### Passives uncovered during combat design
-
 | # | Name | Description |
 |---|---|---|
-| P1 | Untouchable | On evade, briefly apply `<invincible>` — removes Rupert from collision detection entirely, causing skills that would clip him post-dodge to also miss. |
+| P1 | Equip Edge | Unlock. Grants access to the Edge weapon subgroup. |
+| P2 | Equip Medium Armor | Unlock. Grants access to medium armor. |
+| P3 | Equip Gauntlet | Unlock. Grants access to gauntlets. |
+| P4 | Dual-Wielding | Unlock. Offhand slot becomes a second mainhand — equip a second Edge weapon for double weapon stats and a second mainhand combo. Forfeits offhand skill and shield access. |
+| P5 | CDR −20% | −20% cooldowns. |
+| P6 | CDR −30% | −30% cooldowns. |
+| P7 | ATK +10% | +10% attack. |
+| P8 | EVA +33% | +33% evasion. |
+| P9 | Untouchable | On evade, briefly apply `<invincible>` — removes Rupert from collision detection entirely, causing skills that would clip him post-dodge to also miss. |
+| P10 | Death Rattle | Bonus hits on all skills +1. Every enchant follow-up lands one more time. Every Mince arc swings one more time. The loop accelerates. |

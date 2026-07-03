@@ -4,15 +4,20 @@
 >
 > **Forks:** [Fork A — Raving Lunatic](./fork-a-raving-lunatic.md) · [Fork B — Painbringer](./fork-b-painbringer.md)
 >
-> **Natural weapons:** blade (1H sharp, 2H beast, dual twist), fist (glove flow, claw gore, arm dirty), axe (1H hatchet, 2H battleaxe)
->
 > **SDP affinities:** Berserker, Vanguard
-
-**Block size:** 10 (3 combat + 5 passive target, 2 spare)
 
 ---
 
-## Combat skills (3)
+## Native Equipment
+
+> Unlocks nothing — equipment access comes from fork passives.
+
+- **Weapons (union of forks):** Edge, Glaive, Claymore
+- **Armor (union of forks):** medium, heavy
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -22,6 +27,11 @@
 
 ---
 
-## Passives (5)
+## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
+| # | Name | Description |
+|---|---|---|
+| P1 | HP +10% | +10% max HP. |
+| P2 | LST +5 | +5 lifesteal. Damage dealt recovers a portion of HP. |
+| P3 | Oni Instinct | +5% ATK per nearby enemy. The worse the odds, the harder the hits. |
+| P4 | HP +20% | +20% max HP. |

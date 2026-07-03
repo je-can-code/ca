@@ -4,19 +4,22 @@
 >
 > **Trunk:** [Quicksilver](./trunk.md)
 >
-> **Natural weapons:** taser (conduit — pin→flip→mash)
->
 > **SDP affinities:** Berserker, Skirmisher
-
-**Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 
 ---
 
-## Combat skills (4)
+## Native Equipment
+
+- **Weapons:** Taser
+- **Armor:** light
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
-| 1 | Button Mash | Hits ~50 times in rapid succession. Damage almost irrelevant — exists to proc weapon on-hit states 50 times in 2 seconds. |
+| 1 | Button Mash | Hits `LUK/10` times in rapid succession. Damage almost irrelevant — exists to proc weapon on-hit states as many times as your LUK allows. Requires formula-driven hit count — see engine-requirements. |
 | 2 | Lock-On | Toggle. While active, each hit applies a stacking debuff to the current target — the longer you commit, the more of a noob they become. Switching targets resets the stacks on a fresh target. |
 | 3 | Roar of All Time | Jerald screams. Self and all nearby allies receive a morale buff. The nearby slime did not ask for this. |
 | 4 | The Big Red Button | Execute. Scales dramatically with target's missing HP — meaningful at 70%, war crime at 30% or lower. |
@@ -25,4 +28,14 @@
 
 ## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
+| # | Name | Description |
+|---|---|---|
+| P1 | MAT +10% | +10% magic attack. |
+| P2 | MAT +20% | +20% magic attack. |
+| P3 | LUK +X | +X luck. Scales Button Mash hits, basic attack bonus hits, and all proc odds simultaneously. |
+| P4 | CDR +20% | −20% cooldown duration. |
+| P5 | Equip Taser | Unlock. Grants access to the Taser weapon subgroup. |
+| P6 | Equip Light Armor | Unlock. Grants access to light armor. Cross-class source for Just Enough players. |
+| P7 | Bonus Damage vs Low HP | Bonus damage to targets below 50% HP. Scales harder the lower they go. |
+| P8 | +1 Skill Hits | All skills hit one additional time. |
+| P9 | Fully Committed | Basic attack bonus hits = `floor(1 + LUK/250 + AGI/250)`. The longer he's decided you're the problem, the more that decision shows. Requires formula-driven basic attack bonus hits — see engine-requirements. |

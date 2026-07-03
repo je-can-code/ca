@@ -6,11 +6,16 @@
 >
 > **SDP affinities:** Generalist, Wizard
 
-**Block size:** 10 (3 combat + 5 passive target, 2 spare)
+---
+
+## Native Equipment
+
+- **Weapons:** tome, pistol, blade, boomstick
+- **Armor:** light armor, medium armor, relic, shield
 
 ---
 
-## Combat skills (3)
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -20,6 +25,12 @@
 
 ---
 
-## Passives (5)
+## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
+| # | Name | Description |
+|---|---|---|
+| P1 | Equip Pistol | Unlock. Grants access to the Pistol weapon subgroup. |
+| P2 | LUK +10% | +10% luck. |
+| P3 | DEF +10% | +10% defense. |
+| P4 | Crit Damage +25% | +25% critical damage. |
+| P5 | Aftershocks | On crit, applies Court Disaster's negative rolls to the target. After critting, yet more disaster befalls you. |

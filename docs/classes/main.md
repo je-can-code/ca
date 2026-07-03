@@ -14,8 +14,11 @@
 - **Positioning is a consequence of build**, not a hard constraint. "Frontliner" and "backliner" describe where a character *tends to end up*, not where they're locked.
 - **Jerald = physical person. Rupert = magical person.** Their core identity never changes — only the *expression* of it does.
 - Each protagonist has **3 trunk classes**. Trunks fork into **final expressions** (2–3 per trunk). Final expressions are where archetype coverage happens — no need for a distinct class per archetype.
+- **Classes are weapon-agnostic.** Any skill in your library can theoretically be used with any weapon in hand. Classes are complete identities, not extensions of a specific weapon.
+- **Equipment access comes from fork passives**, not trunks. Trunks have a union view of their forks' equipment for reference, but unlock nothing themselves. Taking an Equip passive cross-class is how gear access travels to other builds.
 - **System unlock:** story-gated. Fourth-wall moment where the two veterans acknowledge they "didn't have this in the old days." Specific branches unlocked via NPC trainers / story beats in Raevula and surrounding regions.
 - **Respec:** free or low-cost via menu after unlock. Discovery is gated; experimentation is not.
+- **Block sizes:** trunks get 10 slots (3 actives, 5 passives, 2 wiggle room); forks get 20 slots (4 actives, 10 passives, 6 wiggle room).
 
 ---
 
@@ -36,7 +39,7 @@ This makes the "veteran protagonists who can do anything" narrative feel **earne
 
 Mastering a class fork unlocks capabilities that **carry over permanently** into any other class. Almost everything is cross-pollinate-able (with a few intentional exceptions TBD). This includes:
 
-- **Equip unlocks** — e.g. master Lavos → unlock "equip 1H wand/tome" on any class
+- **Equip unlocks** — e.g. master a fork with Equip Taser → that equip passive is now portable into any other class
 - **Passive traits** — permanent always-on bonuses from that fork's identity
 - **Skills** — specific skills usable regardless of current class
 - **Stat bonuses** — flat permanent gains that follow you everywhere
@@ -71,17 +74,13 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > Pure melee aggressor. Gets in your face. The problem ceases to exist.
 
-**Natural weapons:** blade (1H sharp, 2H beast, dual twist), fist (glove flow, claw gore, arm dirty), axe (1H hatchet, 2H battleaxe)
-
 **SDP archetype affinities:** Berserker, Vanguard
 
 #### Fork A — Raving Lunatic
 
 > The alter ego. In the original game, Raving Lunatic was a post-game enemy Jerald could transform into — a separate entity with its own animations, including a 99-frame hand-drawn art piece of Jeremy jumping, hack-and-slashing with a massive axe, triple backfliping, and literally peeing on the enemy for ridiculous damage. CA lore: Jeremy and Raving Lunatic fused into one entity between games. That explains a lot about Jerald.
 >
-> **Expression:** blender cranked to 11. Fast, flurry, quantity of hits. Doesn't stop until everything is dead or he is.
-
-**Natural weapons:** dual blade (twist), fist glove (flow), 2H axe (battleaxe/cleave)
+> **Expression:** blender cranked to 11. Fast, flurry, quantity of hits. Doesn't stop until everything is dead or he is. A living wood chipper that is outrageously mobile.
 
 **SDP archetype affinities:** Berserker, Skirmisher
 
@@ -89,9 +88,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 > No backstory. Just misery incarnate. Deliberate, slow, methodical suffering on his schedule.
 >
-> **Expression:** slow and hard. Quality of suffering over quantity of hits. The null acid comes out. Bleed, attrition, make it last.
-
-**Natural weapons:** 1H axe (hatchet/buffer), 2H blade (beast/stun-execute), fist arm (dirty), fist claw (gore/bleed)
+> **Expression:** slow and hard. Quality of suffering over quantity of hits. The null acid comes out. Compounding void-acid debuffs that self-stack without falling off — a team force multiplier the longer a fight goes.
 
 **SDP archetype affinities:** Wizard, Vanguard
 
@@ -101,15 +98,13 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 > Nickname. Quoted because shotguns are only fast in *finishing* the job, not necessarily drawing the weapon. Jerald solving the problem from the doorway so they can leave faster.
 
-**Natural weapons:** javelin (rend), taser (conduit), shotgun (boomstick)
-
 **SDP archetype affinities:** Artillery, Skirmisher
 
-#### Fork A — Spear Chucker
+#### Fork A — Just Enough
 
-> **Expression:** maximum range. Stay away, build stacks, step in only for the Kalista-style RIP that detonates 100 javelins at once. Precise. The problem was solved before it knew Jerald was there.
-
-**Natural weapons:** javelin (rend — stack ledger + RIP)
+> That javelin was thrown at exactly that speed on purpose. Throwing again would be unnecessary, and unnecessary is unacceptable.
+>
+> **Expression:** bare minimum executed with disgusting precision. Deliberate velocity control. One throw, calculated, handled. He's already thinking about leaving.
 
 **SDP archetype affinities:** Artillery, Skirmisher
 
@@ -119,15 +114,11 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > **Expression:** hyperfocus. Pin one thing, flip the switch, mash the button. Playing chicken with the target while executing Saiki K-style 16-button-presses-per-second technique. It's 1v1 and Jerald takes it personally.
 
-**Natural weapons:** taser (conduit — pin→flip→mash)
-
 **SDP archetype affinities:** Berserker, Skirmisher
 
-#### Fork C — Splattershot
+#### Fork C — Contemptuous
 
 > **Expression:** lazy contempt. Move in, BLAM them back. Step closer. BLAM. Step. BLAM — oh, they were dead that last shot. Oh well. BLAM for good measure. Methodical, AFK energy, deeply unimpressed with whatever it's shooting.
-
-**Natural weapons:** shotgun (boomstick — freeCombo spread, bleed, reload-to-clap)
 
 **SDP archetype affinities:** Guardian, Artillery
 
@@ -139,8 +130,6 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > "I keep us both standing long enough to finish this. I guess. If I have to." Not a healer. A guy who learned enough to make sure Rupert doesn't go down again, and adapted a few things to make fights end faster for everyone.
 
-**Natural weapons:** axe breaker (breaker), spear basher (mortar), 1H axe (hatchet/buffer)
-
 **SDP archetype affinities:** War Priest, Vanguard
 
 #### Fork A — Orbiter
@@ -149,8 +138,6 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > **Expression:** aggressive space control. Deeply offended that enemies keep approaching. Maintains a fixed perimeter — not to protect anyone noble, just because proximity is personally offensive. Everything revolves around him at a safe distance and god help you if you breach it.
 
-**Natural weapons:** spear basher (mortar — wide circle/denial), 1H axe (hatchet/buffer — self-buffs on execution)
-
 **SDP archetype affinities:** Guardian, Vanguard
 
 #### Fork B — Malpractician
@@ -158,9 +145,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 > Aggressive debuffer who incidentally heals because he technically has to. Shared Suffering plants the setup; potions pop in the air every few hits like sad firecrackers, healing everyone nearby as a byproduct of him punching things. He is not paying attention to it. It just happens.
 > "Here's a potion. Share it. I'm busy."
 >
-> **Expression:** apply Doomganosis, apply Shared Suffering, let Collateral Care handle the rest. SHIELD Rupert when needed. The heals are a side effect.
-
-**Natural weapons:** axe breaker (breaker — LLRL→SHATTER, party −PDR), 1H axe (hatchet/buffer — self-buffs on execution)
+> **Expression:** apply Doomganosis, apply Shared Suffering, let Collateral Care handle the rest. SHIELD Rupert when needed. The heals are a side effect. Malpractice stacks are someone else's problem to take advantage of.
 
 **SDP archetype affinities:** Medic, Wizard
 
@@ -190,9 +175,7 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 
 > Self-proclaimed. Completely unironic. Rupert has decided he is the final boss of this situation and is conducting himself accordingly. Named after the Chrono Trigger final boss — a planet parasite that rains death from above. Rupert sees no reason this is not an accurate self-description.
 >
-> **Expression:** debuff you into oblivion first, *then* the rain of fire and lava and other horrible things. The 1H wand machine gun bolts are almost insulting — you're already dying from seventeen other things and he's still shooting. MELTIMA lives here.
-
-**Natural weapons:** 1H wand (saturation — bullet hell MAT ramp), tome (lexicon — direct sentences + curse), taser (conduit — MAT+LUK, pin→mash)
+> **Expression:** debuff you into oblivion first, *then* the rain of fire and lava and other horrible things. The wand machine gun bolts are almost insulting — you're already dying from seventeen other things and he's still shooting. MELTIMA lives here.
 
 **SDP archetype affinities:** Wizard, Artillery
 
@@ -202,8 +185,6 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > **Expression:** death by a thousand cuts. Up close with dual swords, elemental and MAT-infused. The blades are delivery mechanisms for whatever horrible elemental calculation he's currently running. Getting in melee range turns out to be somehow *worse* for the enemy than staying at range.
 
-**Natural weapons:** dual blade (twist — widening arcs, two buttons, elemental; MAT support to be added on revamp)
-
 **SDP archetype affinities:** Wizard, Berserker
 
 #### Fork C — The Architect
@@ -212,8 +193,6 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 > Self-assigned title. Completely unironic.
 >
 > **Expression:** Converge to pull them in for the melee window, Repel to send them to the shooting gallery, Compression to lock them in place, Meteor for applied astrophysics. The Architect decides where you are. You are there now.
-
-**Natural weapons:** pistol (hybrid — mid-range, empowered ammo via melee combo, pow pow)
 
 **SDP archetype affinities:** Skirmisher, Artillery
 
@@ -234,17 +213,13 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > **Expression:** systematic, efficient stat stripping. Wing Clipper locks them down, Shell Cracker stuns and shreds DEF, Aura Burst evaporates MDF party-wide, and Avenge applies all three debuffs simultaneously in a single hit. By the time Avenge lands, there is nothing left to protect them.
 
-**Natural weapons:** fist claw (gore — fast, baseline bleed, pounce gap-closer)
-
 **SDP archetype affinities:** Skirmisher, War Priest
 
 #### Fork B — Equilibrium
 
-> **Expression:** the battlefield is a closed system and Rupert is the accountant making sure the numbers balance — always in his favor. Healing an ally damages a nearby enemy. Killing an enemy heals a nearby ally. Debuffs and buffs as two sides of the same ledger. Not a healer, not a debuffer — a force that enforces the state he wants the battlefield to be in.
+> **Expression:** the battlefield is a closed system and Rupert is the force that keeps it balanced — always in his favor. Healing an ally damages a nearby enemy. Killing an enemy heals a nearby ally. Debuffs and buffs as two sides of the same ledger. Not a healer, not a debuffer — the thing that enforces the state he wants the battlefield to be in.
 >
 > Pairs naturally with the extensive heal-event tag library (`onSelf*Heal*`, `onAlly*Heal*`, etc.).
-
-**Natural weapons:** 2H staff (aura — spray mains + charge→aura offchain, MRG/HRG/party AOE/prism shield)
 
 **SDP archetype affinities:** Medic, War Priest
 
@@ -270,17 +245,13 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 >
 > **Expression:** eliminate variance. Guaranteed outcomes. Proc manipulation. Shield on Jerald before the tankbuster lands. Regen ticking before the bleed stacks. The outcome was never in question. Also bestows blessings — buffs, prosperity, favorable conditions. "I have blessed this encounter. You're welcome."
 
-**Natural weapons:** tome (lexicon — healing grimoire expression, MDF/REC/PHA), 2H staff (aura — party buffs)
-
 **SDP archetype affinities:** Cleric, Generalist
 
 #### Fork B — Hexagonal
 
 > The shape of a curse.
 >
-> **Expression:** engineer their misfortune. Shove the spear basher somewhere they don't appreciate, apply debuffs they don't want, stand behind a prism shield and do it freely because fuck you. Disarm, Mute, denial charge waves, wide circle control. RNGesus blesses your allies — Hexagonal specifically and deliberately makes things worse for the enemy. Same trunk, opposite direction. Fate controls the outcome either way.
-
-**Natural weapons:** spear basher (mortar — wide circle denial, Disarm, Mute, charge waves, prism shield via staff aura crossover)
+> **Expression:** engineer their misfortune. Stand behind a prism shield and do it freely because fuck you. Disarm, Mute, denial charge waves, wide circle control. RNGesus blesses your allies — Hexagonal specifically and deliberately makes things worse for the enemy. Same trunk, opposite direction. Fate controls the outcome either way.
 
 **SDP archetype affinities:** Wizard, Guardian
 
@@ -293,4 +264,3 @@ The magic is not in any one class. It's in what you **combine**. Mastering class
 - Skill ID bands for class skills (must not overlap weapon lots 1–180 or character kit bands)
 - Does respec cost anything or is it purely free?
 - Elementals — separate class trees or fixed role kits? (see backlog item)
-- Taser — no class home by design; fits Lavos naturally as a weapon choice without being trunk-locked

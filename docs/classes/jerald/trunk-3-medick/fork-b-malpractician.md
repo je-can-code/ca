@@ -6,20 +6,24 @@
 >
 > **Trunk:** [Medick](./trunk.md)
 >
-> **Natural weapons:** axe breaker (breaker — LLRL→SHATTER, party −PDR), 1H axe (hatchet/buffer — self-buffs on execution)
->
 > **SDP affinities:** Medic, Wizard
-
-**Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 
 ---
 
-## Combat skills (4)
+## Native Equipment
+
+- **Weapons:** Warstaff, Breaker
+- **Armor:** light
+- **Offhand:** relic
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
 | 1 | Collateral Care | Toggle stance. Slower CDR/cast time. Auto-executes a potion AoE heal on a timer via `<autoExecuteSkill>` — a byproduct of Jerald doing literally anything else. He is not paying attention to it. |
-| 2 | Look its Confetti! | AoE burst. +5% DEF/MDF to all nearby allies. Sad party poppers. Deeply underwhelming. Scales through Medick tree investment exactly like Fine. |
+| 2 | Look its Confetti! | Targeted. +5% DEF/MDF to one ally. Sad party poppers. Deeply underwhelming. Scales through Medick tree investment exactly like Fine. |
 | 3 | Doomganosis | Applies a silent debuff to a target. Does nothing for 10 seconds. On expiry, triggers a catastrophic second state. Diagnosis → doom. |
 | 4 | SHIELD | Targeted. Applies an outrageous 5x max HP shield to one ally. "Rupert, just take this SHIELD and stop dying." |
 
@@ -27,10 +31,15 @@
 
 ## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
-
-### Passives uncovered during combat design
-
-- **Collateral Care amplifier** — increase heal potency and/or frequency of the auto-potion proc.
-- **Confetti upgrade** — same treatment as Fine.: passives make "Look its Confetti!" progressively less embarrassing to cast. Higher DEF/MDF, longer duration, wider radius.
-- **Doom acceleration** — reduce Doomganosis countdown, increase severity of the triggered second state, or both.
+| # | Name | Description |
+|---|---|---|
+| P1 | Low-effort Splash | Fine., Confetti, and Dismiss each gain a radius 3 splash — nearby allies to the target also receive the effect. He cast it once. Everyone nearby just got caught in it. |
+| P2 | Low-effort Aggression | Fine., Confetti, and Dismiss also grant +20% ATK, MAT, CRI, and CDM to the target. The buffs are getting less embarrassing. |
+| P3 | Low-effort Recovery | Fine., Confetti, and Dismiss also grant 1% HP/MP/TP regen per second to the target. A little of everything. |
+| P4 | Equip Breaker | Unlock. Grants access to the Breaker weapon subgroup (LLRL→SHATTER, party −PDR). |
+| P5 | Equip Light Armor | Unlock. Grants access to light armor. Cross-class source for Orbiter players. |
+| P6 | Equip Relic | Unlock. Grants access to relics (light offhand — spell-like offhand abilities). |
+| P7 | SAR +100% | +100% shield amplification rate. SHIELD goes from 5× to 10× max HP. "Rupert, just take this SHIELD." |
+| P8 | State Duration −50% | All states expire in half the time. Sounds bad. Doomganosis now triggers in 5 seconds instead of 10. |
+| P9 | HAR +50% | +50% outgoing heal potency. Collateral Care's sad firecrackers land a little less sadly. |
+| P10 | Malpractice | On skill hit, apply one stack of Malpracticed to the target — all stats −1% per stack, stacks to 100. Malpractician barely notices. Try Hard and Raving Lunatic will. |

@@ -5,15 +5,18 @@
 >
 > **Trunk:** [Fate](./trunk.md)
 >
-> **Natural weapons:** tome (lexicon — healing grimoire expression, MDF/REC/PHA), 2H staff (aura — party buffs)
->
 > **SDP affinities:** Cleric, Generalist
-
-**Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 
 ---
 
-## Combat skills (4)
+## Native Equipment
+
+- **Weapons:** pistol, blade
+- **Armor:** light armor, medium armor, relic
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -26,10 +29,15 @@
 
 ## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
-
-### Passives uncovered during combat design
-
 | # | Name | Description |
 |---|---|---|
-| P1 | ??? | **Multiple application (accumulate mode):** positive rolls count every success instead of stopping at the first. One hit stacks bleed three deep, lands burn twice, applies a state multiple times from a single proc. |
+| P1 | Equip Blade | Unlock. Grants access to the Blade weapon subgroup. |
+| P2 | Equip Relic | Unlock. Grants access to relic armor. |
+| P3 | LUK +20% | +20% luck. |
+| P4 | LUK +30% | +30% luck. |
+| P5 | ATK +20% | +20% attack. |
+| P6 | EVA +50% | +50% evasion. |
+| P7 | TGR −30% | −30% aggro. |
+| P8 | Extra Chance | Permanent +1 positive rolls. No trigger, no window — just always on. |
+| P9 | Every Chance | **Accumulate mode.** Positive rolls count every success instead of stopping at the first. One hit stacks bleed three deep, lands burn twice, applies a state multiple times from a single proc. |
+| P10 | Zero Chance | Critical hits always apply their on-hit effects, regardless of chance. Stacks with Every Chance. |

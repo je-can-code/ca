@@ -5,11 +5,7 @@
 >
 > **Trunk:** [Fucking Oni](./trunk.md)
 >
-> **Natural weapons:** 1H axe (hatchet/buffer), 2H blade (beast/stun-execute), fist arm (dirty), fist claw (gore/bleed)
->
 > **SDP affinities:** Wizard, Vanguard
-
-**Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 
 ---
 
@@ -23,7 +19,14 @@
 
 ---
 
-## Combat skills (4)
+## Native Equipment
+
+- **Weapons:** Claymore
+- **Armor:** heavy
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -36,8 +39,16 @@
 
 ## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
-
-### Passives uncovered during combat design
-
-> TBD — none surfaced yet.
+| # | Name | Description |
+|---|---|---|
+| P1 | DEF +10% | +10% defense. |
+| P2 | DEF +20% | +20% defense. |
+| P3 | MHP +20% | +20% max HP. |
+| P4 | Festering | State tick speed +50%. The debuffs don't wait. |
+| P5 | Virulent | Slip damage +25%. The acid eats faster. |
+| P6 | Two-Handed | Unlock. Deathgrip your weapon — seals the offhand slot, keeps the offhand skill, grants an ATK bonus. |
+| P7 | Equip Heavy Armor | Unlock. Grants access to heavy armor and shields. |
+| P8 | Equip Claymore | Unlock. Grants access to the Claymore weapon subgroup. Wield with a shield, or deathgrip it with Two-Handed. |
+| P9 | Immovable | DEF +5% per nearby enemy. The more that pile on, the less he moves. |
+| P10 | Pandemic | Any poison state Jerald applies spreads autonomously to nearby enemies. On Painbringer, this distributes the prerequisite for the entire debuff chain. |
+| P11 | Melting 🫠🫠🫠 | `<bonusDamageForMyStateCount:PCT>`. Bonus damage per state Jerald currently has active on the target. Null Acid, Tangling Shadows, Corroding Resistance — they're all his. |

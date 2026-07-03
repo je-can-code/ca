@@ -5,15 +5,18 @@
 >
 > **Trunk:** [Fucking Oni](./trunk.md)
 >
-> **Natural weapons:** dual blade (twist), fist glove (flow), 2H axe (battleaxe/cleave)
->
 > **SDP affinities:** Berserker, Skirmisher
-
-**Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 
 ---
 
-## Combat skills (4)
+## Native Equipment
+
+- **Weapons:** Edge, Glaive
+- **Armor:** medium
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -24,10 +27,18 @@
 
 ---
 
-## Passives (partial — uncovered during combat design)
+## Passives
 
 | # | Name | Description |
 |---|---|---|
-| P1 | Insatiable | Each kill stacks MSB. Decays without kills. The kill-chain speed ramp. |
+| P1 | Insatiable | Each kill stacks MSB for a short duration. Decays without kills. The kill-chain speed ramp. |
 | P2 | Numbness | Damage taken halved. Each hit received adds a stack of Suffering — unmitigatable % max HP damage. |
-| P3–P12 | TBD | — |
+| P3 | Dual-Wield | Unlock. Offhand slot becomes a second mainhand — equip a second 1H weapon for double weapon stats and a second mainhand combo. Forfeits offhand skill and shield access. |
+| P4 | Equip Glaive | Unlock. Grants access to the Glaive weapon subgroup. |
+| P5 | Phys. Evasion +25% | EVA+25%. A crimson blur of metal and gore is hard to hit. |
+| P6 | Skill Hits +1 | All non-basic-attack skills hit one additional time. |
+| P7 | Crit Chance +20% | CRI+20%. |
+| P8 | Attack +30% | ATK+30%. He is angy. |
+| P9 | Violence First | Heal 3% MHP per kill. |
+| P10 | Diabolical | On crit, gain **Angy Amplified** — the next skill execution hits +2 additional times. |
+| P11 | Equip Edge | Unlock. Grants access to the Edge weapon subgroup. |

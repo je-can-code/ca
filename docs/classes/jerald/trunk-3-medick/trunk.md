@@ -5,24 +5,35 @@
 >
 > **Forks:** [Fork A — Orbiter](./fork-a-orbiter.md) · [Fork B — Malpractician](./fork-b-malpractician.md)
 >
-> **Natural weapons:** axe breaker (breaker), spear basher (mortar), 1H axe (hatchet/buffer)
->
 > **SDP affinities:** War Priest, Vanguard
-
-**Block size:** 10 (3 combat + 5 passive target, 2 spare)
 
 ---
 
-## Combat skills (3)
+## Native Equipment
+
+- **Weapons (union of forks):** Warstaff, Hatchet (Orbiter), Breaker (Malpractician)
+- **Armor (union of forks):** light
+- **Offhand (union of forks):** Gauntlets, Shields (Orbiter), Relic (Malpractician)
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
 | 1 | Shared Suffering | Applies a debuff to a target enemy. All damage dealt to them by Jerald or nearby allies heals all nearby allies. Their suffering is our joy. |
 | 2 | Earthen Armor | Defense up, retaliation loaded. Hit Jerald and pay for it. A returning classic. |
-| 3 | Fine. | +5% ATK to all nearby allies. Delivered with zero enthusiasm. Expandable significantly through Medick tree investment. |
+| 3 | Fine. | +5% ATK and +5% MAT to all nearby allies. Delivered with zero enthusiasm. Expandable significantly through Medick tree investment. |
 
 ---
 
-## Passives (5)
+## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
+| # | Name | Description |
+|---|---|---|
+| P1 | HRG +25% | +25% heal rate growth. He heals faster whether he likes it or not. |
+| P2 | Adequate Care | HAR +100%. His outgoing heals land with twice the potency. He is appalled that this is necessary. Requires HAR parameter — see engine-requirements. |
+| P3 | SAR +25% | +25% shield amplification rate. Shields he casts land harder. |
+| P4 | Equip Warstaff | Unlock. Grants access to the Warstaff weapon subgroup. |
+| P5 | Prolonged Suffering | "Low effort" type states last twice as long. Both parties are suffering — Jerald from having to cast them, everyone else from how long he's making them endure it. |
+| P6 | Fine, All of You | "Low effort" type states affect twice the radius. He is covering more ground. He resents every tile of it. |

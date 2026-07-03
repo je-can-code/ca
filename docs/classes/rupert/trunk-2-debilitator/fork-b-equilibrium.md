@@ -5,15 +5,18 @@
 >
 > **Trunk:** [The Debilitator](./trunk.md)
 >
-> **Natural weapons:** 2H staff (aura — spray mains + charge→aura offchain, MRG/HRG/party AOE/prism shield)
->
 > **SDP affinities:** Medic, War Priest
-
-**Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 
 ---
 
-## Combat skills (4)
+## Native Equipment
+
+- **Weapons:** cane, warstaff
+- **Armor:** medium armor
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -26,12 +29,28 @@
 
 ## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
-
-### Passive equations (pending engine requirements — see engine-requirements.md)
-
-| # | Trigger | Effect |
+| # | Name | Description |
 |---|---|---|
-| P-eq1 | `onAllyHeal` | Auto-execute a damage skill on a nearby enemy. Active in Mode A and during Equilibrium. |
-| P-eq2 | `onDamageDealt` | Auto-execute a heal skill on a nearby ally. Active in Mode B and during Equilibrium. |
-| P-eq3 | `onKill` | Auto-execute a heal skill on a nearby ally. A kill pays a dividend. Active always. |
+| P1 | Equip Cane | Unlock. Grants access to the Cane weapon subgroup. |
+| P2 | Equip Warstaff | Unlock. Grants access to the Warstaff weapon subgroup. |
+| P3 | MDF +20% | +20% magic defense. |
+| P4 | MDF +30% | +30% magic defense. |
+| P5 | TGR +20% | +20% aggro. |
+| P6 | MHP +10% | +10% max HP. |
+| P7 | Reallocate | Killing a foe heals nearby allies. A kill pays a dividend. |
+| P8 | Overclock | MP costs +50%, cast time −50%. |
+| P9 | Overcharge | MP costs +50%, damage +50%. |
+| P10 | Equalize | Whenever Rupert heals himself, a nearby enemy takes a proportional hit of damage. Whenever Rupert deals damage, he heals himself for a proportional amount. Always active — doesn't care what class he's currently wearing. |
+
+Medium armor is not unlocked here — Rupert already has it via Melufa.
+
+---
+
+## Rebalance mechanics (engine-gated — see engine-requirements.md)
+
+Not equippable passives. Background toggle states that make Rebalance itself function — active only while a mode is selected or Equilibrium's window is open.
+
+| Trigger | Effect |
+|---|---|
+| `onAllyHeal` | Auto-execute a damage skill on a nearby enemy. Active in Mode A and during Equilibrium. |
+| `onDamageDealt` | Auto-execute a heal skill on a nearby ally. Active in Mode B and during Equilibrium. |

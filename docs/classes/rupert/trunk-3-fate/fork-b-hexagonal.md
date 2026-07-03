@@ -6,15 +6,18 @@
 >
 > **Trunk:** [Fate](./trunk.md)
 >
-> **Natural weapons:** spear basher (mortar — wide circle denial, Disarm, Mute, charge waves, prism shield via staff aura crossover)
->
 > **SDP affinities:** Wizard, Guardian
-
-**Block size:** 20 (4 combat + 8–12 passive target, remainder spare)
 
 ---
 
-## Combat skills (4)
+## Native Equipment
+
+- **Weapons:** tome, boomstick
+- **Armor:** medium armor, shield
+
+---
+
+## Combat skills
 
 | # | Name | Description |
 |---|---|---|
@@ -27,4 +30,15 @@
 
 ## Passives
 
-> TBD — second pass after all combat skills are defined across all trunks and forks.
+| # | Name | Description |
+|---|---|---|
+| P1 | Equip Tome | Unlock. Grants access to the Tome weapon subgroup. |
+| P2 | Equip Boomstick | Unlock. Grants access to the Boomstick weapon subgroup. |
+| P3 | Equip Shield | Unlock. Grants access to shields. |
+| P4 | DEF +20% | +20% defense. |
+| P5 | MHP +30% | +30% max HP. |
+| P6 | MRG +25% | +25% MP regen. |
+| P7 | REC +50% | +50% recovery effectiveness. |
+| P8 | State Duration +100% | Every state Rupert applies lasts twice as long. |
+| P9 | Rupert's Retinas | Lesser, perpetual version of Eyes of the Rupert. Every hit landed on Rupert applies a weaker, permanent stack of the same MHP-cost curse — no cast required, always live. |
+| P10 | Devastated | **Signature.** Enemies afflicted with a Rupert-authored state take +10% damage from anyone, per stack. Misery doesn't need to be delivered personally to be collected on. |

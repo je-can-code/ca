@@ -17774,7 +17774,8 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	handleAutoCounter(battler) {
 		if (!this.canAutoCounter(battler)) return;
-		const shouldAutoCounter = battler.getBattler().cnt > Math.random();
+		const autoCounterChance = battler.getBattler().cnt * 100;
+		const shouldAutoCounter = RPGManager.chanceIn100(autoCounterChance);
 		if (shouldAutoCounter) {
 			this.doAutoCounter(battler, JABS_Button.Offhand);
 		}
