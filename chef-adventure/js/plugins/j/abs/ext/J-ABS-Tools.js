@@ -186,7 +186,9 @@ J.ABS.EXT.TOOLS.RegExp = {
 	GapClosePosition: /<gapClosePosition:(infront|behind|same)>/i,
 	GapCloseEndThis: /<thisOnGapCloseEnd:[ ]?(\[[\d, ]+])>/i,
 	GapCloseEnd: /<onGapCloseEnd:[ ]?(\[[\d, ]+])>/i,
-	BlockGapClose: /<blockGapClose>/i
+	BlockGapClose: /<blockGapClose>/i,
+	RespectTerrain: /<respectTerrain>/i,
+	PullForward: /<pullForward:[ ]?(\d+)>/i
 };
 /**
 * All types of gap close modes that are available to pick from.
@@ -358,11 +360,23 @@ JABS_Battler.prototype.gapCloseToTarget = function(action, target) {
 	this.beginGapClosing();
 	this._gapCloseSourceSkillId = action.getBaseSkill().id;
 	let { jabsGapCloseMode, jabsGapClosePosition } = action.getBaseSkill();
+	const { jabsRespectTerrain } = action.getBaseSkill();
 	jabsGapClosePosition ??= J.ABS.EXT.TOOLS.GapClosePositions.Same;
-	const [x, y] = this.determineGapCloseCoordinates(target, jabsGapClosePosition);
+	let [x, y] = this.determineGapCloseCoordinates(target, jabsGapClosePosition);
+	const casterCharacter = this.getCharacter();
+	if (jabsRespectTerrain) {
+		const horizontalDominant = Math.abs(x) >= Math.abs(y);
+		let direction;
+		if (horizontalDominant) {
+			direction = x >= 0 ? J.ABS.Directions.RIGHT : J.ABS.Directions.LEFT;
+		} else {
+			direction = y >= 0 ? J.ABS.Directions.DOWN : J.ABS.Directions.UP;
+		}
+		const rawDistance = Math.max(Math.abs(x), Math.abs(y));
+		[x, y] = casterCharacter.walkInDirectionClamped(direction, rawDistance);
+	}
 	this.setGapCloseDestination([this.getX() + x, this.getY() + y]);
 	jabsGapCloseMode ??= J.ABS.EXT.TOOLS.GapCloseModes.Jump;
-	const casterCharacter = this.getCharacter();
 	switch (jabsGapCloseMode) {
 		case J.ABS.EXT.TOOLS.GapCloseModes.Jump:
 			casterCharacter.jump(x, y);
@@ -383,6 +397,64 @@ JABS_Battler.prototype.onGapCloseFinished = function() {
 	const skillIds = this.resolveGapCloseEndSkillIds();
 	if (skillIds.length === 0) return;
 	skillIds.forEach((id) => $jabsEngine.forceMapAction(this, id));
+};
+/**
+* Pulls this battler toward the caster- the inverse of gap close (the caster travels to the
+* target) and the inverse of knockback (the target is shoved away from the caster). Called on
+* the afflicted target, not the caster, since this battler is the one being displaced.
+* @param {JABS_Action} action The JABS action containing the action data.
+* @param {JABS_Battler} caster The battler being pulled toward.
+*/
+JABS_Battler.prototype.pullToCaster = function(action, caster) {
+	if (this.getCharacter().isJumping()) return;
+	const pullMagnitude = action.getBaseSkill().jabsPullForward;
+	if (pullMagnitude === null) return;
+	const resist = RPGManager.getSumFromAllNotesByRegex(this.getBattler().getAllNotes(), J.ABS.RegExp.KnockbackResist);
+	if (resist >= 100) return;
+	const effectiveMagnitude = pullMagnitude * ((100 - resist) / 100);
+	const { unitX, unitY, maxPullDistance } = this.resolvePullVector(caster);
+	const distance = Math.min(effectiveMagnitude, maxPullDistance);
+	if (distance <= 0) return;
+	const rawX = unitX * distance;
+	const rawY = unitY * distance;
+	const targetCharacter = this.getCharacter();
+	let finalX = rawX;
+	let finalY = rawY;
+	if (!action.getBaseSkill().jabsIgnoreTerrain) {
+		const horizontalDominant = Math.abs(rawX) >= Math.abs(rawY);
+		let direction;
+		if (horizontalDominant) {
+			direction = rawX >= 0 ? J.ABS.Directions.RIGHT : J.ABS.Directions.LEFT;
+		} else {
+			direction = rawY >= 0 ? J.ABS.Directions.DOWN : J.ABS.Directions.UP;
+		}
+		const roundedDistance = Math.max(Math.abs(rawX), Math.abs(rawY));
+		[finalX, finalY] = targetCharacter.walkInDirectionClamped(direction, roundedDistance);
+	}
+	targetCharacter.jump(finalX, finalY);
+};
+/**
+* Resolves the unit vector and maximum safe travel distance for pulling this battler toward
+* the caster. Mirrors the vector math in {@link determineGapCloseCoordinates}, but the roles
+* are reversed- this battler is the mover, and the caster is the fixed goal point.
+* @param {JABS_Battler} caster The battler being pulled toward.
+* @returns {{unitX: number, unitY: number, maxPullDistance: number}}
+*/
+JABS_Battler.prototype.resolvePullVector = function(caster) {
+	const casterCharacter = caster.getCharacter();
+	const [x, y] = [this.getX(), this.getY()];
+	const goalX = casterCharacter.deltaXFrom(x);
+	const goalY = casterCharacter.deltaYFrom(y);
+	const magnitude = Math.sqrt(goalX * goalX + goalY * goalY);
+	const unitX = magnitude > 0 ? goalX / magnitude : 0;
+	const unitY = magnitude > 0 ? goalY / magnitude : 0;
+	const edgeOffset = casterCharacter.getEffectiveRadius() + this.getCharacter().getEffectiveRadius() + .05;
+	const maxPullDistance = Math.max(0, magnitude - edgeOffset);
+	return {
+		unitX,
+		unitY,
+		maxPullDistance
+	};
 };
 /**
 * Collects all skill IDs that should fire when this battler's gap close lands.
@@ -483,6 +555,24 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGapClosePosition", { get: functi
 Object.defineProperty(RPG_Skill.prototype, "jabsThisOnGapCloseEnd", { get: function() {
 	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapCloseEndThis, true) ?? [];
 } });
+/**
+* Whether this skill's gap close should respect terrain passability instead of its default
+* unconditional bypass- when true, the caster stops at the last passable tile along the way
+* instead of blinking/jumping straight through walls.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsRespectTerrain", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.EXT.TOOLS.RegExp.RespectTerrain);
+} });
+/**
+* The number of tiles this skill pulls its target toward the caster, or null if this skill
+* does not pull-forward. The inverse of knockback- the target is dragged toward the caster
+* instead of shoved away, clamped so it can never travel past the caster's own position.
+* @type {number|null}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsPullForward", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.TOOLS.RegExp.PullForward, true);
+} });
 
 //#endregion
 //#region src/plugins/abs/ext/tools/managers/JABS_Engine.js
@@ -494,12 +584,26 @@ Object.defineProperty(RPG_Skill.prototype, "jabsThisOnGapCloseEnd", { get: funct
 J.ABS.EXT.TOOLS.Aliased.JABS_Engine.set("processOnHitEffects", JABS_Engine.prototype.processOnHitEffects);
 JABS_Engine.prototype.processOnHitEffects = function(action, target) {
 	J.ABS.EXT.TOOLS.Aliased.JABS_Engine.get("processOnHitEffects").call(this, action, target);
+	this.handlePullForward(action, target);
 	this.handleGapClose(action, target);
 };
 JABS_Engine.prototype.handleGapClose = function(action, target) {
 	if (!this.canGapClose(action, target)) return;
 	const caster = action.getCaster();
 	caster.gapCloseToTarget(action, target);
+};
+/**
+* Handles pull-forward logic against the target- the inverse of gap close (the caster travels
+* to the target). Universal like knockback rather than key-gated like gap close: any target
+* without enough knockbackResist to fully negate it gets pulled.
+* @param {JABS_Action} action The JABS action containing the action data.
+* @param {JABS_Battler} target The target having the action applied against.
+*/
+JABS_Engine.prototype.handlePullForward = function(action, target) {
+	if (!this.canBeKnockedBack(action, target)) return;
+	if (action.getBaseSkill().jabsPullForward === null) return;
+	const caster = action.getCaster();
+	target.pullToCaster(action, caster);
 };
 /**
 * Determine whether or not the target can be gap closed to.

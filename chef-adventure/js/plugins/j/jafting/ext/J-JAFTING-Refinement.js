@@ -380,7 +380,7 @@ var JaftingManager = class JaftingManager {
 	static createRefinedOutput(outputEquip) {
 		if (outputEquip.wtypeId) {
 			this.generateRefinedEquip($dataWeapons, outputEquip, this.RefinementTypes.Weapon);
-		} else if (equip.atypeId) {
+		} else if (outputEquip.atypeId) {
 			this.generateRefinedEquip($dataArmors, outputEquip, this.RefinementTypes.Armor);
 		}
 	}

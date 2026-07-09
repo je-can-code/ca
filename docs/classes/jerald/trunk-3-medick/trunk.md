@@ -27,6 +27,14 @@
 
 ---
 
+## Mobility
+
+| Name | Description |
+|---|---|
+| Begrudging Save | Dashes to whichever nearby ally has the lowest HP%, leaving a small incidental heal pulse in its wake. Not his choice of direction — someone has to keep them upright and apparently it's him. |
+
+---
+
 ## Passives
 
 | # | Name | Description |

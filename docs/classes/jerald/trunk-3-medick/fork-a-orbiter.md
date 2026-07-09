@@ -39,7 +39,7 @@
 | P6 | TGR +50% | +50% threat generation. Everything notices Jerald faster. |
 | P7 | HRG +25% | +25% HP regen rate. He stays standing. |
 | P8 | Equip Hatchet | Unlock. Grants access to the Hatchet weapon subgroup. Self-buffs on execution. |
-| P9 | Offended by Proximity | Knockback +25% per nearby battler (enemy or ally). The more crowded it gets, the further everyone flies. Requires dynamic knockback multiplier — see engine-requirements. |
+| P9 | Offended by Proximity | Knockback +25% per nearby enemy. The more crowded it gets, the further everyone flies. Uses `<proximityKnockback:[RADIUS, 25]>`. |
 | P10 | REC +50% | +50% incoming heal rate. When someone does bother to heal him, it lands properly. |
 | P11 | I Am Your Only God | Incoming damage reduced by X% per enemy currently targeting Jerald. The more everything hates him, the harder he is to kill. |
 | P12 | Equip Spear | Unlock. Grants access to the Spear weapon subgroup. The perimeter he defends has reach now. |

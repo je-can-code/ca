@@ -26,6 +26,7 @@
  *  passiveStateCount  — stack contribution for one state id from this source
  *  autoApplyState     — applies a real combat state on a timer or combat event
  *  autoExecuteSkill   — executes a map skill on a timer or combat event
+ *  autoInflictState   — applies a real combat state onto whoever this battler just inflicted a state upon
  *
  * Map battlers re-check on a throttled timer; any passive refresh re-evaluates.
  * ============================================================================
@@ -68,6 +69,10 @@
  *  negaStateAdded  — when a <negative> (jabsNegative) state is added
  *  posiStateAdded  — when a non-negative state is added
  *  anyStateAdded   — when any combat state is added
+ *  onHealHp/Mp/Tp  — when this battler's own HP/MP/TP is restored (onSelfHeal)
+ *  onAllyHeal      — when a battler within proximity of THIS battler is healed (any resource)
+ *  onKill          — when this battler defeats an enemy (JABS_Engine#handleDefeatedEnemy)
+ *  onDamageDealt   — when this battler lands damage on an opposing battler (JABS_Engine#postExecuteSkillEffects)
  *  move            — PARAM = whole TILES per apply (Pixelistics updatePixelStepping; requires J-Pixelistics)
  *  stand           — PARAM = frames between applies while standing still on the map
  *
@@ -79,6 +84,9 @@
  *  <autoApplyState:[54, negaStateAdded, 180]>
  *  <autoApplyState:[55, posiStateAdded, 180]>
  *  <autoApplyState:[56, anyStateAdded, 60]>
+ *  <autoApplyState:[57, onKill, 0]>
+ *  <autoApplyState:[58, onDamageDealt, 0]>
+ *  <autoApplyState:[59, onAllyHeal, 0]>
  *  <autoApplyState:[MOMENTUM_ID, move, 2]>
  *  <autoApplyState:[BUFF_ID, stand, 120]>
  * ============================================================================
@@ -98,6 +106,29 @@
  *  <autoExecuteSkill:[1022, enemiesNearby, 1, 60]>
  *  <autoExecuteSkill:[1023, move, 1]>
  *  <autoExecuteSkill:[1024, stand, 120]>
+ * ============================================================================
+ * AUTO-INFLICT STATE TAG
+ *  <autoInflictState:[STATE_ID, CONDITION, COOLDOWN_FRAMES]>
+ *
+ * Unlike autoApplyState (applies to the rule bearer) and its OnNearby sibling (applies to
+ * proximity), this fires from an event involving an external battler- the rule bearer doing
+ * something to someone else- and applies STATE_ID onto that same someone else. The bearer's own
+ * state tracking credits the bearer as the inflictor of STATE_ID, matching who really did it.
+ * COOLDOWN_FRAMES is the minimum frames between dispatches for this rule; 0 means every time.
+ * Depth-guarded (auto-inflict-state-max-depth) in case STATE_ID is itself negative-tagged and
+ * would otherwise re-trigger this same tag on application.
+ *
+ * CONDITIONS:
+ *  negaStateInflicted — this battler inflicts a <negative> (jabsNegative) state on someone
+ *  posiStateInflicted — this battler inflicts a non-negative state on someone
+ *  anyStateInflicted  — this battler inflicts any state on someone
+ *  onKnockback        — this battler knocks an enemy back (JABS_Engine#checkKnockback)
+ *
+ * EXAMPLES:
+ *  <autoInflictState:[70, negaStateInflicted, 0]>
+ *  <autoInflictState:[71, posiStateInflicted, 60]>
+ *  <autoInflictState:[72, anyStateInflicted, 0]>
+ *  <autoInflictState:[73, onKnockback, 0]>
  * ============================================================================
  * REMOVE ON SKILL EXECUTION (state note only)
  *  <removeOnSkillExecution:[STYPE_ID, CHANCE]>
@@ -169,6 +200,15 @@
  * @text Auto-Execute Max Depth
  * @desc Max nested autoExecuteSkill firings per synchronous call stack.
  * @default 1
+ *
+ * @param auto-inflict-state-max-depth
+ * @parent parentConfigPassiveConditional
+ * @type number
+ * @min 1
+ * @max 8
+ * @text Auto-Inflict Max Depth
+ * @desc Max nested autoInflictState firings per synchronous call stack.
+ * @default 1
  */
 //endregion annotations
 
@@ -211,6 +251,12 @@ var JPassiveConditional_PluginMetadata = class extends PluginMetadata {
 		* @type {number}
 		*/
 		this.autoExecuteSkillMaxDepth = Number.isNaN(depthParsed) ? 1 : depthParsed;
+		const inflictDepthParsed = parseInt(this.parsedPluginParameters["auto-inflict-state-max-depth"], 10);
+		/**
+		* Maximum nested {@link AutoInflictStateManager} dispatches per synchronous call stack.
+		* @type {number}
+		*/
+		this.autoInflictStateMaxDepth = Number.isNaN(inflictDepthParsed) ? 1 : inflictDepthParsed;
 	}
 };
 
@@ -358,6 +404,29 @@ J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby = /<autoApplyStateOnNear
 */
 J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill = /<autoExecuteSkill:[ ]?(\[[^\]]+])>/gi;
 /**
+* Captures {@code autoInflictState} bracket tuples from database notes.<br/>
+* Parsed by {@link RPGManager.getArraysFromNotesByRegex} (Path 1: outer tag + inner bracket capture).<br/>
+* Each match schedules a real JABS state application via {@link AutoInflictStateManager} onto
+* whichever external battler was just affected by the rule bearer's event.
+* <p>
+* Unlike {@code autoApplyState} (applies to the rule bearer) and {@code autoApplyStateOnNearby}
+* (applies to proximity), this tag fires from an event involving an external battler- the rule
+* bearer doing something to someone else- and applies the payload state to that same someone else.
+* </p>
+* <p>
+* Author shape: {@code <autoInflictState:[stateId, condition, cooldownFrames]>}.<br/>
+* After parsing, tuples look like:
+* </p>
+* <ul>
+*   <li>{@code [1071, 'negaStateInflicted', 0]} — every time this battler inflicts any negative state</li>
+*   <li>{@code [1072, 'posiStateInflicted', 60]} — on inflicting a positive state, at most once per 60 frames</li>
+*   <li>{@code [1073, 'anyStateInflicted', 0]} — every time this battler inflicts any state at all</li>
+*   <li>{@code [1074, 'onKnockback', 0]} — every time this battler knocks an enemy back</li>
+* </ul>
+* @type {RegExp}
+*/
+J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState = /<autoInflictState:[ ]?(\[[^\]]+])>/gi;
+/**
 * Captures {@code removeOnSkillExecution} bracket tuples from <strong>state</strong> notes only.<br/>
 * On skill execution, rolls chance and may peel stacks via {@link Game_Battler#decrementStateStacks}.
 * <p>
@@ -450,6 +519,15 @@ Object.defineProperty(RPG_BaseBattler.prototype, "autoApplyStateOnNearbyRules", 
 Object.defineProperty(RPG_BaseBattler.prototype, "autoExecuteSkillRules", { get() {
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill, true);
 } });
+/**
+* Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tuples from this row.<br/>
+* Each tuple schedules a real state application via {@link AutoInflictStateManager} onto whichever
+* external battler this row's bearer just inflicted a state upon- not the bearer, and not nearby.
+* @type {any[][]}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "autoInflictStateRules", { get() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState, true);
+} });
 
 //#endregion
 //#region src/plugins/passive/ext/conditional/database/RPG_BaseItem.js
@@ -502,6 +580,15 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoApplyStateOnNearbyRules", { g
 */
 Object.defineProperty(RPG_BaseItem.prototype, "autoExecuteSkillRules", { get() {
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill, true);
+} });
+/**
+* Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tuples from this row.<br/>
+* Each tuple schedules a real state application via {@link AutoInflictStateManager} onto whichever
+* external battler this row's bearer just inflicted a state upon- not the bearer, and not nearby.
+* @type {any[][]}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "autoInflictStateRules", { get() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState, true);
 } });
 
 //#endregion
@@ -898,6 +985,24 @@ var AutoRuleManager = class {
 		this.tryDispatch(battler, healKind);
 	}
 	/**
+	* Fires {@code onKill} rules on the battler that just landed a kill.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that defeated an enemy.
+	*/
+	static scheduleKillTriggers(battler) {
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		if (!battler) return;
+		this.tryDispatch(battler, "onKill");
+	}
+	/**
+	* Fires {@code onDamageDealt} rules on the battler that just landed damage on an opponent.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that dealt the damage.
+	*/
+	static scheduleDamageDealtTriggers(battler) {
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		if (!battler) return;
+		this.tryDispatch(battler, "onDamageDealt");
+	}
+	/**
 	* Credits one whole tile of travel toward {@code move} rules on this battler.
 	*
 	* Called from {@link Game_CharacterBase#updatePixelStepping} after a Pixelistics tile step completes.
@@ -1204,6 +1309,116 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 };
 
 //#endregion
+//#region src/plugins/passive/ext/conditional/managers/AutoInflictStateManager.js
+/**
+* Schedules real JABS state applications from {@link RPG_BaseItem#autoInflictStateRules} tuples.
+*
+* Unlike {@link AutoApplyStateManager} (self-targeted) and {@link AutoApplyStateOnNearbyManager}
+* (proximity-targeted), this manager reads rules from the battler who just did something to an
+* external battler- inflicted a state, or knocked them back- and applies the configured payload
+* state onto that same external target, not onto the rule bearer, and not onto anything nearby.
+*/
+var AutoInflictStateManager = class AutoInflictStateManager extends AutoRuleManager {
+	/**
+	* The name of the source property that holds auto-inflict-state rule tuples.
+	* @returns {string} - The property name holding rule tuples on source objects.
+	*/
+	static get rulesProperty() {
+		return "autoInflictStateRules";
+	}
+	/**
+	* Tracks the current nesting depth of in-flight auto-inflict dispatches.
+	*
+	* Used to prevent synchronous re-entry when a dispatched state is itself negative-tagged and
+	* would otherwise immediately re-trigger this same manager via {@link #scheduleInflictedStateTriggers}.
+	* @type {number}
+	*/
+	static #inflictDepth = 0;
+	/**
+	* Pushes a real combat state onto the target battler through the JABS addState path.
+	*
+	* Depth-guarded to prevent infinite re-entry- if the dispatched state is itself negative-tagged,
+	* applying it fires {@link Game_Battler#onJabsStateInflicted} again, which could otherwise chain
+	* indefinitely.
+	* @param {Game_Actor|Game_Enemy} battler - The target battler receiving the state.
+	* @param {number} stateId - The database id of the state to apply.
+	* @param {Game_Actor|Game_Enemy} inflictor - The battler who actually inflicted this state- the
+	* bearer of the {@code autoInflictState} rule, credited as the source for JABS state tracking.
+	* @returns {boolean} - True when addState was called and the state was addable.
+	*/
+	static dispatch(battler, stateId, inflictor) {
+		const maxDepth = J.PASSIVE.EXT.CONDITIONAL.Metadata.autoInflictStateMaxDepth || 1;
+		if (AutoInflictStateManager.#inflictDepth >= maxDepth) return false;
+		if (battler.isStateAddable(stateId) === false) return false;
+		AutoInflictStateManager.#inflictDepth += 1;
+		try {
+			battler.addState(stateId, inflictor);
+			return true;
+		} finally {
+			AutoInflictStateManager.#inflictDepth -= 1;
+		}
+	}
+	/**
+	* Evaluates every {@code autoInflictState} rule on the inflicting battler and applies matching
+	* payload states onto the battler that was just afflicted.
+	* @param {Game_Actor|Game_Enemy} applier - The battler whose rules are evaluated (the inflictor).
+	* @param {Game_Actor|Game_Enemy} target - The battler who was just afflicted by {@code applier}.
+	* @param {number} inflictedStateId - The database id of the state that was just inflicted.
+	*/
+	static scheduleInflictedStateTriggers(applier, target, inflictedStateId) {
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		if (!applier || !target) return;
+		const inflictedState = $dataStates[inflictedStateId];
+		if (!inflictedState) return;
+		const polarityKind = inflictedState.jabsNegative === true ? "negaStateInflicted" : "posiStateInflicted";
+		this._dispatchMatchingRules(applier, target, (kind) => kind === "anyStateInflicted" || kind === polarityKind);
+	}
+	/**
+	* Evaluates every {@code autoInflictState} rule on the knocking-back battler and applies matching
+	* payload states onto the battler that was just knocked back.
+	* @param {Game_Actor|Game_Enemy} applier - The battler whose rules are evaluated (who knocked back).
+	* @param {Game_Actor|Game_Enemy} target - The battler who was just knocked back by {@code applier}.
+	*/
+	static scheduleKnockbackTriggers(applier, target) {
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		if (!applier || !target) return;
+		this._dispatchMatchingRules(applier, target, (kind) => kind === "onKnockback");
+	}
+	/**
+	* Shared dispatch loop for every {@code autoInflictState} condition kind.
+	*
+	* Cannot reuse the base {@link AutoRuleManager.tryDispatch} loop because that assumes one battler
+	* plays both roles (rule owner and dispatch recipient)- here the rules live on {@code applier}
+	* but the payload state lands on {@code target}. Cooldown is tracked on {@code applier} since
+	* the rule itself belongs to them, regardless of which target it most recently fired against.
+	* @param {Game_Actor|Game_Enemy} applier - The battler whose rules are evaluated.
+	* @param {Game_Actor|Game_Enemy} target - The battler the payload state should land on.
+	* @param {(kind: string) => boolean} kindMatches - Predicate deciding whether a tuple's condition
+	* kind applies to the event currently being scheduled.
+	*/
+	static _dispatchMatchingRules(applier, target, kindMatches) {
+		const rules = this.collectRules(applier);
+		for (const entry of rules) {
+			const { source, tuple, tupleIndex } = entry;
+			const id = Number(tuple[0]);
+			const kind = String(tuple[1]);
+			const cooldownFrames = Number(tuple[2]);
+			if (Number.isNaN(id) || id <= 0) continue;
+			if (kindMatches(kind) === false) continue;
+			if (Number.isNaN(cooldownFrames) || cooldownFrames < 0) continue;
+			const ruleKey = this.buildRuleKey(source, tupleIndex, id, kind);
+			const now = Graphics.frameCount;
+			const lastFrame = applier.getAutoRuleLastFrame(ruleKey);
+			if (lastFrame > 0 && now - lastFrame < cooldownFrames) continue;
+			const dispatched = this.dispatch(target, id, applier);
+			if (dispatched === true) {
+				applier.setAutoRuleLastFrame(ruleKey, now);
+			}
+		}
+	}
+};
+
+//#endregion
 //#region src/plugins/passive/ext/conditional/managers/SkillExecutionStateRemovalManager.js
 /**
 * Processes {@link RPG_State#removeOnSkillExecutionRules} when a map battler executes a skill.<br/>
@@ -1229,7 +1444,9 @@ var SkillExecutionStateRemovalManager = class {
 				const chance = Number(tuple[1]);
 				if (Number.isNaN(chance) || chance <= 0) continue;
 				if (stypeId !== 0 && stypeId !== executedStype) continue;
-				if (RPGManager.chanceIn100(chance) === false) continue;
+				const positiveRolls = 1 + battler.getPositiveRollsForSkill(state);
+				const negativeRolls = battler.getNegativeRollsForSkill(state);
+				if (RPGManager.fateOf100(battler, chance, positiveRolls, negativeRolls) === false) continue;
 				const stateId = state.id;
 				const stacksLossCount = this.#resolveStacksLossCount(battler, stateId);
 				battler.decrementStateStacks(stateId, stacksLossCount);
@@ -1237,7 +1454,7 @@ var SkillExecutionStateRemovalManager = class {
 		}
 	}
 	/**
-	* Mirrors {@link JABS_State#handleStackLossFromDuration} stack peel amount for one state id.
+	* Mirrors {@link JABS_State#handleStackChangeFromDuration} stack peel amount for one state id.
 	* @param {Game_Actor|Game_Enemy} battler The battler losing stacks.
 	* @param {number} stateId The database state id to peel.
 	* @returns {number} How many stacks to remove in one proc.
@@ -1283,7 +1500,9 @@ var SkillResolutionStateRemovalManager = class {
 				const chance = Number(tuple[1]);
 				if (Number.isNaN(chance) || chance <= 0) continue;
 				if (stypeId !== 0 && stypeId !== executedStype) continue;
-				if (RPGManager.chanceIn100(chance) === false) continue;
+				const positiveRolls = 1 + battler.getPositiveRollsForSkill(state);
+				const negativeRolls = battler.getNegativeRollsForSkill(state);
+				if (RPGManager.fateOf100(battler, chance, positiveRolls, negativeRolls) === false) continue;
 				const stateId = state.id;
 				const stacksLossCount = this.#resolveStacksLossCount(battler, stateId);
 				battler.decrementStateStacks(stateId, stacksLossCount);
@@ -1291,7 +1510,7 @@ var SkillResolutionStateRemovalManager = class {
 		}
 	}
 	/**
-	* Mirrors {@link JABS_State#handleStackLossFromDuration} stack peel amount for one state id.
+	* Mirrors {@link JABS_State#handleStackChangeFromDuration} stack peel amount for one state id.
 	* @param {Game_Actor|Game_Enemy} battler - The battler losing stacks.
 	* @param {number} stateId - The database state id to peel.
 	* @returns {number} - How many stacks to remove in one proc.
@@ -1359,7 +1578,7 @@ var MoveStateRemovalManager = class {
 		}
 	}
 	/**
-	* Mirrors {@link JABS_State#handleStackLossFromDuration} stack peel amount for one state id.
+	* Mirrors {@link JABS_State#handleStackChangeFromDuration} stack peel amount for one state id.
 	* @param {Game_Actor|Game_Enemy} battler The battler losing stacks.
 	* @param {number} stateId The database state id to peel.
 	* @returns {number} How many stacks to remove in one proc.
@@ -1925,6 +2144,12 @@ Game_Battler.prototype.onHeal = function(resource, amount) {
 		AutoApplyStateManager.scheduleHealTriggers(this, "onHealTp");
 		AutoExecuteSkillManager.scheduleHealTriggers(this, "onHealTp");
 	}
+	PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(this).forEach((jabsAlly) => {
+		const allyBattler = jabsAlly.getBattler();
+		if (!allyBattler) return;
+		AutoApplyStateManager.scheduleHealTriggers(allyBattler, "onAllyHeal");
+		AutoExecuteSkillManager.scheduleHealTriggers(allyBattler, "onAllyHeal");
+	});
 };
 /**
 * Extends {@link #canIncludePassiveStateFromSource}.<br/>
@@ -2093,6 +2318,16 @@ Game_Battler.prototype.onStateAdded = function(stateId) {
 	AutoApplyStateManager.scheduleStateAddedTriggers(this, stateId);
 	AutoExecuteSkillManager.scheduleStateAddedTriggers(this, stateId);
 };
+/**
+* Extends {@link #onJabsStateInflicted}.<br/>
+* Fires autoInflictState rules on the inflicting battler, applying the configured payload state
+* onto this battler (the one just afflicted)- not the inflictor, and not anything nearby.
+*/
+J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Battler.set("onJabsStateInflicted", Game_Battler.prototype.onJabsStateInflicted);
+Game_Battler.prototype.onJabsStateInflicted = function(stateId, attacker) {
+	J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Battler.get("onJabsStateInflicted").call(this, stateId, attacker);
+	AutoInflictStateManager.scheduleInflictedStateTriggers(attacker, this, stateId);
+};
 
 //#endregion
 //#region src/plugins/passive/ext/conditional/objects/Game_Action.js
@@ -2190,6 +2425,53 @@ JABS_Battler.prototype.updatePassiveRuleMovementTracking = function() {
 	tracker._lastTrackedY = currentY;
 	battler.stampPassiveRuleMovedFrame();
 	MoveStateRemovalManager.process(battler);
+};
+
+//#endregion
+//#region src/plugins/passive/ext/conditional/managers/JABS_Engine.js
+/**
+* Extends {@link JABS_Engine#handleDefeatedEnemy}.<br/>
+* Fires {@code onKill} rules on the battler that defeated the enemy.
+*/
+J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.set("handleDefeatedEnemy", JABS_Engine.prototype.handleDefeatedEnemy);
+JABS_Engine.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) {
+	J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.get("handleDefeatedEnemy").call(this, defeatedTarget, caster);
+	if (!caster) return;
+	const casterBattler = caster.getBattler();
+	if (!casterBattler) return;
+	AutoApplyStateManager.scheduleKillTriggers(casterBattler);
+	AutoExecuteSkillManager.scheduleKillTriggers(casterBattler);
+};
+/**
+* Extends {@link JABS_Engine#checkKnockback}.<br/>
+* Fires {@code onKnockback} autoInflictState rules on the battler that knocked the target back,
+* applying the configured payload state onto the knocked-back target.
+*/
+J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.set("checkKnockback", JABS_Engine.prototype.checkKnockback);
+JABS_Engine.prototype.checkKnockback = function(action, target) {
+	J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.get("checkKnockback").call(this, action, target);
+	const casterBattler = action.getCaster().getBattler();
+	const targetBattler = target.getBattler();
+	if (!casterBattler || !targetBattler) return;
+	AutoInflictStateManager.scheduleKnockbackTriggers(casterBattler, targetBattler);
+};
+/**
+* Extends {@link JABS_Engine#postExecuteSkillEffects}.<br/>
+* Fires {@code onDamageDealt} rules on the caster after landing damage on an opposing battler.
+* Reuses the same result-field check {@link JABS_Engine#applyAggroEffects} already performs here.
+*/
+J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.set("postExecuteSkillEffects", JABS_Engine.prototype.postExecuteSkillEffects);
+JABS_Engine.prototype.postExecuteSkillEffects = function(action, target) {
+	J.PASSIVE.EXT.CONDITIONAL.Aliased.JABS_Engine.get("postExecuteSkillEffects").call(this, action, target);
+	const caster = action.getCaster();
+	if (!JABS_TeamRules.isOpposed(caster.getTeam(), target.getTeam())) return;
+	const result = target.getBattler().result();
+	const dealtDamage = result.hpDamage > 0 || result.mpDamage > 0 || result.tpDamage > 0;
+	if (!dealtDamage) return;
+	const casterBattler = caster.getBattler();
+	if (!casterBattler) return;
+	AutoApplyStateManager.scheduleDamageDealtTriggers(casterBattler);
+	AutoExecuteSkillManager.scheduleDamageDealtTriggers(casterBattler);
 };
 
 //#endregion
@@ -2307,6 +2589,97 @@ var AutoApplyStateDisplay = class AutoApplyStateDisplay {
 };
 
 //#endregion
+//#region src/plugins/passive/ext/conditional/models/AutoInflictStateDisplay.js
+/**
+* Player-facing prose for {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tuples.<br/>
+* Reuses {@link AutoApplyStateDisplay}'s generic interval/highlight formatting helpers- those are
+* plain text utilities, not specific to the self-apply tag they were originally written for.
+*/
+var AutoInflictStateDisplay = class AutoInflictStateDisplay {
+	/**
+	* Formats one parsed negaStateInflicted autoInflictState tuple as drawTextEx prose.
+	* @param {number} stateId Database state id from the parsed tuple (the payload to apply).
+	* @param {number} cooldownFrames Minimum frames between dispatches from the parsed tuple.
+	* @param {Window_Base} window Host window supplying bold/color text helpers.
+	* @returns {string}
+	*/
+	static formatNegativeInflictProse(stateId, cooldownFrames, window) {
+		const payload = AutoInflictStateDisplay.#highlightState(window, stateId);
+		return `Whenever this battler inflicts a negative state on a foe, also inflict ${payload}` + AutoInflictStateDisplay.#cooldownClause(cooldownFrames, window);
+	}
+	/**
+	* Formats one parsed posiStateInflicted autoInflictState tuple as drawTextEx prose.
+	* @param {number} stateId Database state id from the parsed tuple (the payload to apply).
+	* @param {number} cooldownFrames Minimum frames between dispatches from the parsed tuple.
+	* @param {Window_Base} window Host window supplying bold/color text helpers.
+	* @returns {string}
+	*/
+	static formatPositiveInflictProse(stateId, cooldownFrames, window) {
+		const payload = AutoInflictStateDisplay.#highlightState(window, stateId);
+		return `Whenever this battler inflicts a positive state on someone, also inflict ${payload}` + AutoInflictStateDisplay.#cooldownClause(cooldownFrames, window);
+	}
+	/**
+	* Formats one parsed anyStateInflicted autoInflictState tuple as drawTextEx prose.
+	* @param {number} stateId Database state id from the parsed tuple (the payload to apply).
+	* @param {number} cooldownFrames Minimum frames between dispatches from the parsed tuple.
+	* @param {Window_Base} window Host window supplying bold/color text helpers.
+	* @returns {string}
+	*/
+	static formatAnyInflictProse(stateId, cooldownFrames, window) {
+		const payload = AutoInflictStateDisplay.#highlightState(window, stateId);
+		return `Whenever this battler inflicts any state on someone, also inflict ${payload}` + AutoInflictStateDisplay.#cooldownClause(cooldownFrames, window);
+	}
+	/**
+	* Wraps the payload state's inline \\state[ID] fragment in the same highlight styling used
+	* elsewhere, so inflict-state prose visually matches auto-apply-state prose.
+	* @param {Window_Base} window Host window supplying bold/color text helpers.
+	* @param {number} stateId Database state id to render inline.
+	* @returns {string}
+	*/
+	static #highlightState(window, stateId) {
+		return AutoApplyStateDisplay.highlightPhrase(window, 6, `\\state[${stateId}]`);
+	}
+	/**
+	* Builds the trailing cooldown clause for prose, or an empty string when the rule has no
+	* throttle (cooldownFrames of 0 means "every time").
+	* @param {number} cooldownFrames Minimum frames between dispatches.
+	* @param {Window_Base} window Host window supplying bold/color text helpers.
+	* @returns {string}
+	*/
+	static #cooldownClause(cooldownFrames, window) {
+		if (cooldownFrames <= 0) return ".";
+		const interval = AutoApplyStateDisplay.highlightPhrase(window, 6, AutoApplyStateDisplay.intervalPhrase(cooldownFrames));
+		return ` (at most once every ${interval}).`;
+	}
+	/**
+	* Builds drawTextEx prose lines for every autoInflictState tag on a database row, regardless
+	* of which inflict condition each tuple uses.
+	* @param {RPG_BaseItem} dataRow State, skill, or equip row bearing notes.
+	* @param {Window_Base} window Host window supplying bold/color text helpers.
+	* @returns {string[]}
+	*/
+	static collectProseLines(dataRow, window) {
+		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState, true);
+		const lines = [];
+		for (const tuple of tuples) {
+			const stateId = Number(tuple[0]);
+			const condition = String(tuple[1]).toLowerCase();
+			const cooldownFrames = Number(tuple[2]);
+			if (Number.isNaN(stateId) || stateId < 1) continue;
+			if (Number.isNaN(cooldownFrames) || cooldownFrames < 0) continue;
+			if (condition === "negastateinflicted") {
+				lines.push(AutoInflictStateDisplay.formatNegativeInflictProse(stateId, cooldownFrames, window));
+			} else if (condition === "posistateinflicted") {
+				lines.push(AutoInflictStateDisplay.formatPositiveInflictProse(stateId, cooldownFrames, window));
+			} else if (condition === "anystateinflicted") {
+				lines.push(AutoInflictStateDisplay.formatAnyInflictProse(stateId, cooldownFrames, window));
+			}
+		}
+		return lines;
+	}
+};
+
+//#endregion
 //#region src/plugins/passive/ext/conditional/models/RemoveStateOnMoveDisplay.js
 /**
 * Player-facing prose for {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.RemoveStateOnMove} tuples.
@@ -2345,12 +2718,14 @@ var RemoveStateOnMoveDisplay = class RemoveStateOnMoveDisplay {
 //#region src/plugins/passive/ext/conditional/windows/Window_PassiveDetail.js
 /**
 * Extends {@link Window_PassiveDetail#drawStateHeader}.<br/>
-* Injects autoApplyState (stand condition) and removeStateOnMove prose under the header.
+* Injects autoApplyState (stand condition), autoInflictState, and removeStateOnMove prose
+* under the header.
 */
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Window_PassiveDetail.set("drawStateHeader", Window_PassiveDetail.prototype.drawStateHeader);
 Window_PassiveDetail.prototype.drawStateHeader = function(state) {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.Window_PassiveDetail.get("drawStateHeader").call(this, state);
 	this.drawAutoApplyStandProse(state);
+	this.drawAutoInflictStateProse(state);
 	this.drawRemoveStateOnMoveProse(state);
 };
 /**
@@ -2360,6 +2735,20 @@ Window_PassiveDetail.prototype.drawStateHeader = function(state) {
 */
 Window_PassiveDetail.prototype.drawAutoApplyStandProse = function(state) {
 	const lines = AutoApplyStateDisplay.collectStandProseLines(state, this);
+	if (lines.length === 0) return;
+	const width = this.innerWidth - 4;
+	lines.forEach((text) => {
+		this.drawTextEx(text, 4, this.currentY, width);
+		this.currentY += this.textSizeEx(text).height + 4;
+	});
+};
+/**
+* Draws player-facing prose for each {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tag.
+* Skipped when the state carries no auto-inflict rules.
+* @param {RPG_State} state The state being detailed.
+*/
+Window_PassiveDetail.prototype.drawAutoInflictStateProse = function(state) {
+	const lines = AutoInflictStateDisplay.collectProseLines(state, this);
 	if (lines.length === 0) return;
 	const width = this.innerWidth - 4;
 	lines.forEach((text) => {

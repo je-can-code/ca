@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.4.0 BASE] The base class for all J plugins.
+ * [v3.5.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -99,6 +99,44 @@
  * This state is classified as both "poison" and "bleed".
  *
  * ============================================================================
+ * HAR (HEALING RATE):
+ * Have you ever wanted a battler to be better (or worse) at healing others,
+ * separately from how well a battler receives healing (REC)? Well now you
+ * can! HAR is the sender-side counterpart to REC — it multiplies the potency
+ * of healing this battler deals out, rather than healing this battler
+ * receives.
+ *
+ * NOTE ABOUT COMBINING TAGS:
+ * This is additive across the board, so if a single battler has multiple
+ * tags from various equipment and/or states, all amounts of HAR will be
+ * summed together before being applied as a single percent multiplier.
+ *
+ * NOTE ABOUT WHERE THIS APPLIES:
+ * HAR is applied everywhere REC already is on the giving side: Damage-tab
+ * "HP/MP Recover" skills, Effects-tab "Recover HP/MP" entries, and J-ABS-
+ * Formula's custom heal pipeline (if that plugin is installed).
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <har:VALUE>
+ *    Where VALUE represents the percent bonus/penalty to outgoing healing.
+ *
+ * TAG EXAMPLES:
+ *  <har:25>    (on actor)
+ * This battler's outgoing healing is now 125% effective.
+ *
+ *  <har:-50>   (on state)
+ * While afflicted, this battler's outgoing healing is only 50% effective.
+ *
+ * ============================================================================
  *
  * DEV DETAILS:
  * I would encourage you peruse the added functions to the various classes.
@@ -119,6 +157,16 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.5.0
+ *    Added HAR (Healing Rate) — the sender-side counterpart to REC. New `har`
+ *    getter on Game_Battler/Game_BattlerBase, summed from `<har:VALUE>` tags
+ *    plus any SDP panel bonus. Registered in the parameter catalog (VITALITY
+ *    group, longParamId 46).
+ *    Aliased Game_Action.prototype.makeDamageValue to apply the caster's HAR
+ *    to Damage-tab "HP/MP Recover" results, alongside vanilla's own REC
+ *    multiplication for the same branch.
+ *    Overwrote Game_Action.prototype.itemEffectRecoverHp/itemEffectRecoverMp
+ *    to apply the caster's HAR to Effects-tab "Recover HP/MP" results.
  * - 3.4.0
  *    Added Game_Action.formulaContextProviders registry and Game_Action.registerFormulaContext
  *    static method. Any plugin can now inject a named variable into damage formula evaluation
@@ -484,7 +532,7 @@ J.BASE = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.4.0";
+J.BASE.Metadata.Version = "3.5.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -589,6 +637,10 @@ J.BASE.RegExp = {};
 */
 J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
 /**
+* Outgoing heal potency multiplier — the sender-side counterpart to REC (`<har:25>` = +25%).
+*/
+J.BASE.RegExp.HealAmplification = /<har:(-?\d+)>/gi;
+/**
 * The definition of what a parsable comment in an event looks like.
 * This enforces a structure that enables the following tags to be valid:
 *  <pre>
@@ -630,6 +682,7 @@ J.BASE.Aliased = {
 	Bitmap: new Map(),
 	DataManager: new Map(),
 	JsonEx: new Map(),
+	Game_Action: new Map(),
 	Game_BattlerBase: new Map(),
 	Game_Character: {},
 	Game_Actor: new Map(),
@@ -1236,7 +1289,8 @@ var ParameterKeys = class ParameterKeys {
 		42: "dor",
 		43: "hcr",
 		44: "cdr",
-		45: "per"
+		45: "per",
+		46: "har"
 	};
 	/**
 	* Parameters where a panel decrease is beneficial in the SDP preview UI.
@@ -3484,6 +3538,83 @@ var RPGManager = class RPGManager {
 			}
 		}
 		return success;
+	}
+	/**
+	* Same as {@link #chanceIn100}, but first checks the positive-roller's own fate-override
+	* flags- `isVeryLucky()` short-circuits straight to guaranteed success, `isVeryCursed()`
+	* short-circuits straight to guaranteed failure, both bypassing the roll entirely rather than
+	* stacking an absurd reroll count. Only when neither flag is set does an actual roll occur.
+	* @param {Game_Battler} positiveRoller The battler whose success this roll is for- the one
+	* whose `positiveRolls`/fate-override flags apply.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
+	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
+	* @returns {boolean} True if success, false otherwise.
+	*/
+	static fateOf100(positiveRoller, percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
+		if (positiveRoller.isVeryLucky()) return true;
+		if (positiveRoller.isVeryCursed()) return false;
+		return this.chanceIn100(percentOfSuccess, rollForPositive, rollForNegative);
+	}
+	/**
+	* Accumulate Mode's counting roll: instead of stopping at the first successful positive roll,
+	* rolls all `rollForPositive` attempts unconditionally and counts how many landed. Negative
+	* rerolls have no counting-mode equivalent (Accumulate Mode is scoped to positive rolls only)
+	* and are intentionally not accepted here.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to attempt; defaults to 1.
+	* @returns {number} How many of the attempted rolls succeeded.
+	*/
+	static countSuccessesIn100(percentOfSuccess, rollForPositive = 1) {
+		if (percentOfSuccess <= 0) return 0;
+		let successCount = 0;
+		let attemptsRemaining = rollForPositive;
+		while (attemptsRemaining) {
+			const chance = Math.randomInt(100) + 1;
+			if (chance <= percentOfSuccess) {
+				successCount++;
+			}
+			attemptsRemaining--;
+		}
+		return successCount;
+	}
+	/**
+	* Same as {@link #countSuccessesIn100}, but first checks the positive-roller's own
+	* fate-override flags- `isVeryLucky()` counts every attempt as a success, `isVeryCursed()`
+	* counts none, both bypassing the roll entirely.
+	* @param {Game_Battler} positiveRoller The battler whose success this roll is for.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to attempt; defaults to 1.
+	* @returns {number} How many of the attempted rolls succeeded.
+	*/
+	static countSuccessesFateOf100(positiveRoller, percentOfSuccess, rollForPositive = 1) {
+		if (positiveRoller.isVeryLucky()) return rollForPositive;
+		if (positiveRoller.isVeryCursed()) return 0;
+		return this.countSuccessesIn100(percentOfSuccess, rollForPositive);
+	}
+	/**
+	* Resolves how many times a repeatable-action proc's action should actually execute, folding
+	* in Accumulate Mode and Encore repeats from the positive-roller's own perspective. This is the
+	* one entry point sites with a repeatable action (add a state, force-execute a skill) should
+	* use instead of {@link #fateOf100}- sites whose success is consumed as a single boolean
+	* outcome (hit/evade, crit, parry) should keep using {@link #fateOf100} directly, since there is
+	* no repeatable action there for Accumulate/Encore to multiply.
+	* @param {Game_Battler} positiveRoller The battler whose success this roll is for.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
+	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
+	* @returns {number} How many times the proc's action should execute; 0 means it did not proc.
+	*/
+	static resolveProcCount(positiveRoller, percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
+		let successCount;
+		if (positiveRoller.isAccumulating()) {
+			successCount = this.countSuccessesFateOf100(positiveRoller, percentOfSuccess, rollForPositive);
+		} else {
+			const singleSuccess = this.fateOf100(positiveRoller, percentOfSuccess, rollForPositive, rollForNegative);
+			successCount = singleSuccess ? 1 : 0;
+		}
+		const repeatsPerSuccess = 1 + positiveRoller.getEncoreRepeats();
+		return successCount * repeatsPerSuccess;
 	}
 	/**
 	* A quick and re-usable means of rolling for chance using a weighted model against a map of (key=id,val=weight).
@@ -6068,6 +6199,13 @@ var IconManager = class {
 		return 930;
 	}
 	/**
+	* Gets the `iconIndex` for HAR (Healing Rate).
+	* @returns {number} The `iconIndex`.
+	*/
+	static har() {
+		return 7;
+	}
+	/**
 	* Gets the iconIndex for a given reward parameter.<br>
 	* Reward Param mapping:<br>
 	* <pre>
@@ -6467,6 +6605,20 @@ TextManager.maxTp = function() {
 	return "Max Tech";
 };
 /**
+* Display label for HAR — the sender-side counterpart to REC.
+* @returns {string}
+*/
+TextManager.har = function() {
+	return "Healing Rate";
+};
+/**
+* Help text explaining what HAR does.
+* @returns {string[]}
+*/
+TextManager.harDescription = function() {
+	return ["The percentage effectiveness of outgoing healing.", "Higher amounts of this will make healing others need less effort."];
+};
+/**
 * Gets the "current resource" name for a given parameter id.
 * This is the shorter, in-world name for the living resource itself
 * as opposed to the stat-cap name (e.g. "Life" vs "Max Life").
@@ -6586,7 +6738,7 @@ TextManager.sparamDescription = function(paramId) {
 	switch (paramId) {
 		case 0: return ["The percentage of aggro that will be applied.", "Reduce for stealthing; increase for taunting."];
 		case 1: return ["A numeric value representing the frequency of parrying.", "More of this will result in auto-parrying faced foes."];
-		case 2: return ["The percentage effectiveness of healing applied to oneself.", "Higher amounts of this will make healing need less effort."];
+		case 2: return ["The percentage effectiveness of incoming healing.", "Higher amounts of this will make healing you need less effort."];
 		case 3: return ["The percentage effectiveness of items applied to oneself.", "Higher amounts of this will make items more potent."];
 		case 4: return ["The percentage bonuses being applied to Magi costs.", "Enemy magical hit chance is directly reduced by this amount."];
 		case 5: return ["The percentage bonuses being applied to Tech generation.", "Taking and dealing damage in combat will earn more Tech."];
@@ -6605,7 +6757,7 @@ TextManager.sparam = function(sParamId) {
 	switch (sParamId) {
 		case 0: return "Aggro";
 		case 1: return "Parry";
-		case 2: return "Healing Rate";
+		case 2: return "Recovery Rate";
 		case 3: return "Item Effects";
 		case 4: return "Magi Cost";
 		case 5: return "Tech Cost";
@@ -7158,6 +7310,14 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.sparam(sparamId)).description(() => TextManager.sparamDescription(sparamId)).iconIndex(() => IconManager.sparam(sparamId)).format(format).displayPolicy(displayPolicy).getValue((battler) => battler.sparam(sparamId)).sdpBinding(SdpParameterBinding.sparam(sparamId)).build());
 	}
 	/**
+	* Registers HAR — the sender-side counterpart to REC — with the catalog.
+	* Not a native engine param, so it needs its own custom builder rather than
+	* the registerBparam/Xparam/Sparam helpers, which wrap native param ids.
+	*/
+	static registerHar() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("har").group(ParameterGroups.VITALITY).sortOrder(8).label(() => TextManager.har()).description(() => TextManager.harDescription()).iconIndex(() => IconManager.har()).format(ParameterFormat.PERCENT_CENTERED).getValue((battler) => battler.har).sdpBinding(SdpParameterBinding.byKey("har", () => 1)).build());
+	}
+	/**
 	* Registers all vanilla engine parameters with the catalog.
 	*/
 	static registerAll() {
@@ -7173,6 +7333,7 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 		VanillaParameterRegistration.registerXparam("trg", 9, ParameterGroups.VITALITY, 5, ParameterFormat.REGEN_PER_SECOND);
 		VanillaParameterRegistration.registerSparam("rec", 2, ParameterGroups.VITALITY, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
 		VanillaParameterRegistration.registerSparam("pha", 3, ParameterGroups.VITALITY, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+		VanillaParameterRegistration.registerHar();
 		VanillaParameterRegistration.registerBparam("atk", 2, ParameterGroups.COMBAT, 0);
 		VanillaParameterRegistration.registerBparam("mat", 4, ParameterGroups.COMBAT, 1);
 		ParameterRegistry.register(ParameterDefinition.Builder().key("cnt").group(ParameterGroups.COMBAT).sortOrder(2).label(() => TextManager.xparam(6)).description(() => TextManager.xparamDescription(6)).iconIndex(() => IconManager.xparam(6)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.cnt).sdpBinding(SdpParameterBinding.xparam(6)).build());
@@ -7371,6 +7532,55 @@ Game_Action.prototype.getTriggerTpDamage = function() {
 Game_Action.registerFormulaContext("d", (action) => action.getTriggerHpDamage());
 Game_Action.registerFormulaContext("m", (action) => action.getTriggerMpDamage());
 Game_Action.registerFormulaContext("t", (action) => action.getTriggerTpDamage());
+/**
+* Extends {@link #makeDamageValue}.<br/>
+* Applies the caster's HAR to the Damage-tab "HP/MP Recover" result, mirroring
+* vanilla's own `value *= target.rec` for the same negative-value (heal) branch.
+* A negative return value here always means a heal; guard/variance/critical all
+* preserve sign, so checking the final value is equivalent to checking baseValue.
+*/
+J.BASE.Aliased.Game_Action.set("makeDamageValue", Game_Action.prototype.makeDamageValue);
+Game_Action.prototype.makeDamageValue = function(target, critical) {
+	let value = J.BASE.Aliased.Game_Action.get("makeDamageValue").call(this, target, critical);
+	if (value < 0) {
+		value *= this.subject().har;
+	}
+	return value;
+};
+/**
+* Overwrites {@link #itemEffectRecoverHp}.<br/>
+* Identical to vanilla except for the added `this.subject().har` multiplier;
+* the method mutates `target` directly rather than returning a value, so there's
+* no return value to post-multiply the way {@link #makeDamageValue} allows.
+*/
+Game_Action.prototype.itemEffectRecoverHp = function(target, effect) {
+	let value = (target.mhp * effect.value1 + effect.value2) * target.rec * this.subject().har;
+	if (this.isItem()) {
+		value *= this.subject().pha;
+	}
+	value = Math.floor(value);
+	if (value !== 0) {
+		target.gainHp(value);
+		this.makeSuccess(target);
+	}
+};
+/**
+* Overwrites {@link #itemEffectRecoverMp}.<br/>
+* Identical to vanilla except for the added `this.subject().har` multiplier;
+* the method mutates `target` directly rather than returning a value, so there's
+* no return value to post-multiply the way {@link #makeDamageValue} allows.
+*/
+Game_Action.prototype.itemEffectRecoverMp = function(target, effect) {
+	let value = (target.mmp * effect.value1 + effect.value2) * target.rec * this.subject().har;
+	if (this.isItem()) {
+		value *= this.subject().pha;
+	}
+	value = Math.floor(value);
+	if (value !== 0) {
+		target.gainMp(value);
+		this.makeSuccess(target);
+	}
+};
 
 //#endregion
 //#region src/plugins/_base/objects/Game_Actor.js
@@ -7819,6 +8029,12 @@ Game_Battler.prototype.initMembers = function() {
 	* @type {number|null}
 	*/
 	this._j._base._cachedMaxTpBonuses = null;
+	/**
+	* The cached result of {@link #baseHarFactor} for this battler.
+	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._base._cachedHarFactor = null;
 };
 /**
 * Gets the cached max-tp-bonuses value for this battler, or null if the cache is cold.
@@ -7892,6 +8108,7 @@ Game_Battler.prototype.onBattlerDataChange = function() {
 	this.setCachedTraitObjects(null);
 	this.setCachedAllTraits(null);
 	this.setCachedMaxTpBonuses(null);
+	this.setCachedHarFactor(null);
 };
 /**
 * Gets the state associated with the given state id.
@@ -8036,6 +8253,53 @@ J.BASE.Aliased.Game_Battler.set("gainTp", Game_Battler.prototype.gainTp);
 Game_Battler.prototype.gainTp = function(value) {
 	J.BASE.Aliased.Game_Battler.get("gainTp").call(this, value);
 	if (value > 0) this.onHeal(J.BASE.Resource.TP, value);
+};
+Object.defineProperties(Game_BattlerBase.prototype, { 
+/**
+* Outgoing heal amplification (1.0 = baseline). The sender-side counterpart to REC.
+*/
+har: {
+	get: function() {
+		return 1;
+	},
+	configurable: true
+} });
+Object.defineProperty(Game_Battler.prototype, "har", {
+	get: function() {
+		let factor = this.baseHarFactor();
+		if (this.getSdpBonusForParameterKey) {
+			factor += this.getSdpBonusForParameterKey("har", 1);
+		}
+		return factor;
+	},
+	configurable: true
+});
+/**
+* Sums `<har:X>` notetags into a multiplier factor.
+* Result is cached and invalidated by {@link #onBattlerDataChange}.
+* @returns {number}
+*/
+Game_Battler.prototype.baseHarFactor = function() {
+	if (this.getCachedHarFactor() !== null) {
+		return this.getCachedHarFactor();
+	}
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.BASE.RegExp.HealAmplification);
+	this.setCachedHarFactor((100 + bonus) / 100);
+	return this.getCachedHarFactor();
+};
+/**
+* Gets the cached HAR factor for this battler, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Battler.prototype.getCachedHarFactor = function() {
+	return this._j._base._cachedHarFactor;
+};
+/**
+* Sets the cached HAR factor for this battler.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedHarFactor = function(value) {
+	this._j._base._cachedHarFactor = value;
 };
 
 //#endregion

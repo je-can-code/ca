@@ -47,7 +47,7 @@ Medium armor is not unlocked here — Rupert already has it via Melufa.
 
 ---
 
-## Rebalance mechanics (engine-gated — see engine-requirements.md)
+## Rebalance mechanics
 
 Not equippable passives. Background toggle states that make Rebalance itself function — active only while a mode is selected or Equilibrium's window is open.
 

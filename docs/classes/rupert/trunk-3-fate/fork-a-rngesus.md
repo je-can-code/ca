@@ -20,10 +20,10 @@
 
 | # | Name | Description |
 |---|---|---|
-| 1 | Miracle | Party-wide buff. All on-chance effects become guaranteed for the duration. No rolls. Everything lands. |
+| 1 | Miracle | Party-wide buff. All on-chance effects become guaranteed for the duration. No rolls. Everything lands. Applied state uses `<veryLucky>` — a true bypass, not a reroll count. |
 | 2 | Blessed | Party-wide buff. LUK ×50. Dominates `lukEffectRate` — their states land on everything, enemy states bounce back. Also a raw damage multiplier for pistol and taser users. Cross-class contamination fully intended. |
 | 3 | Benediction | Party-wide blessing. Slow trickle regen of HP, MP, and TP for approximately one minute. Not a heal. A blessing. The party is going to be fine. |
-| 4 | Encore | **Signature.** State applied to all allies. Every proc that lands fires again. Combined with Miracle: every proc guaranteed AND doubled. Combined with the multi-apply passive: each success stacks and then echoes. |
+| 4 | Encore | **Signature.** State applied to all allies. Every proc that lands fires again. Combined with Miracle: every proc guaranteed AND doubled. Combined with the multi-apply passive: each success stacks and then echoes. Applied state uses `<encoreRepeats:[1]>`. |
 
 ---
 
@@ -38,7 +38,7 @@
 | P5 | ATK +20% | +20% attack. |
 | P6 | EVA +50% | +50% evasion. |
 | P7 | TGR −30% | −30% aggro. |
-| P8 | Extra Chance | Permanent +1 positive rolls. No trigger, no window — just always on. |
-| P9 | Every Chance | **Accumulate mode.** Positive rolls count every success instead of stopping at the first. One hit stacks bleed three deep, lands burn twice, applies a state multiple times from a single proc. |
-| P10 | Zero Chance | Critical hits always apply their on-hit effects, regardless of chance. Stacks with Every Chance. |
+| P8 | Extra Chance | Permanent +1 positive rolls. No trigger, no window — just always on. Uses `<luckyRolls:[1]>`. |
+| P9 | Every Chance | **Accumulate mode.** Positive rolls count every success instead of stopping at the first. One hit stacks bleed three deep, lands burn twice, applies a state multiple times from a single proc. Uses `<accumulate>`. |
+| P10 | Zero Chance | Critical hits always apply their on-hit effects, regardless of chance. Stacks with Every Chance. Applied state uses `<forceCritProcs>` — scoped to on-crit state applications only, unlike the battler-wide `<veryLucky>`. |
 | P11 | Equip Claws | Unlock. Grants access to the Claws weapon subgroup. |

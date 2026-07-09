@@ -38,6 +38,6 @@
 | P6 | Overloaded | Self stack maximum +3. Tune at playtesting — the number may become outrageous.                                                       |
 | P7 | I Prefer Violence | +50% damage vs bleeding targets. He has a preference.                                                                                |
 | P8 | Knockback +50% | +50% knockback distance. Fewer trips.                                                                                                |
-| P9 | Exsanguination | Bleed states tick 50% more often. Requires state-type-specific tick rate modifier — see engine-requirements.                         |
-| P10 | Hemorrhaging | Once bleed is applied, it self-generates stacks autonomously. Uses self-accumulating state stack mechanic — see engine-requirements. |
+| P9 | Exsanguination | Bleed states tick 50% more often.                         |
+| P10 | Hemorrhaging | Once bleed is applied, it self-generates stacks autonomously. |
 | P11 | Equip Claws | Unlock. Grants access to the Claws weapon subgroup. |

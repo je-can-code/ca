@@ -27,6 +27,14 @@
 
 ---
 
+## Mobility
+
+| Name | Description |
+|---|---|
+| Barrel In | Forced, unstoppable short lurch straight ahead. Hyperarmor for its duration — can't be interrupted, can't be knocked off course. The problem is between him and where he's going. |
+
+---
+
 ## Passives
 
 | # | Name | Description |

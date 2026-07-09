@@ -417,14 +417,21 @@ Game_Character.prototype.executeRegionSkills = function() {
 	const targetJabsBattler = this.getJabsBattler();
 	regionSkillDatas.forEach((regionSkillData) => {
 		const { skillId, chance, casterId, isFriendly } = regionSkillData;
-		if (!RPGManager.chanceIn100(chance)) return;
+		const walkerBattler = targetJabsBattler.getBattler();
+		const skill = $dataSkills.at(skillId);
+		const positiveRolls = 1 + walkerBattler.getPositiveRollsForSkill(skill);
+		const negativeRolls = walkerBattler.getNegativeRollsForSkill(skill);
+		const procCount = RPGManager.resolveProcCount(walkerBattler, chance, positiveRolls, negativeRolls);
+		if (procCount === 0) return;
 		const currentDummyCaster = $jabsEngine.getMapDamageBattler();
 		const correctCaster = currentDummyCaster?.getBattlerId() === casterId;
 		const correctTeam = currentDummyCaster?.isFriendlyTeam(targetJabsBattler.getTeam()) === isFriendly;
 		if (!correctCaster || !correctTeam) {
 			$jabsEngine.setMapDamageBattler(casterId, isFriendly);
 		}
-		$jabsEngine.forceMapAction($jabsEngine.getMapDamageBattler(), skillId, false, targetJabsBattler.getX(), targetJabsBattler.getY(), true);
+		for (let i = 0; i < procCount; i++) {
+			$jabsEngine.forceMapAction($jabsEngine.getMapDamageBattler(), skillId, false, targetJabsBattler.getX(), targetJabsBattler.getY(), true);
+		}
 	});
 };
 /**

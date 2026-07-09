@@ -37,7 +37,7 @@
 | P4 | MCR −20% | −20% skill cost. |
 | P5 | Deliberate Position | Rooted or paralyzed targets have PDR and MDR reduced to 0. |
 | P6 | Projectile Duration +25% | Projectiles remain active 25% longer. |
-| P7 | Time Collapse | After casting a skill, the next skill cast is instant and costs no MP. The Architect has collapsed the interval between two moments. Requires new engine support — see engine-requirements. |
+| P7 | Time Collapse | After casting a skill, the next skill cast is instant and costs no MP. The Architect has collapsed the interval between two moments. A self-state carrying `<castSpeedRate:[-100]>` + `<removeOnSkillExecution:[0,100]>` + a deeply negative MCR trait, consumed on the next skill cast. |
 | P8 | Infinite Canvas | All skill AoE radii and ranges +50%. (`<rangeRate:1.5>`) |
 | P9 | Equip Spear | Unlock. Grants access to the Spear weapon subgroup. The Architect decides reach is also his domain. |
 | P10 | Equip Javelin | Unlock. Grants access to the Javelin weapon subgroup. |

@@ -19,9 +19,16 @@
 
 | # | Name | Description |
 |---|---|---|
-| 1 | Triple Backflip Swan-dive | Dashes backward, creating distance. The gap reset. |
-| 2 | Mah Lazer | Long line beam with inner dead zone — cannot fire point-blank. The Quicksilver bread and butter. |
-| 3 | Quick Exit | Toggle. +MSB, +CDR. Incoming melee damage increased. Commit to range or eat the punishment. |
+| 1 | Mah Lazer | Long line beam with inner dead zone — cannot fire point-blank. The Quicksilver bread and butter. |
+| 2 | Quick Exit | Toggle. +MSB, +CDR. Incoming melee damage increased. Commit to range or eat the punishment. |
+
+---
+
+## Mobility
+
+| Name | Description |
+|---|---|
+| Triple Backflip Swan-dive | Dashes backward, creating distance, with brief knockback immunity during the dash. The gap reset. |
 
 ---
 

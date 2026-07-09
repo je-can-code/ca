@@ -36,7 +36,7 @@
 | P3 | Radius +33% | +33% AoE radius on all skills. Bigger zone, wider wall, further mine trigger. |
 | P4 | CDR +10% | −10% cooldown duration. Back Off comes back faster. |
 | P5 | Equip Javelin | Unlock. Grants access to the Javelin weapon subgroup. |
-| P6 | Trauma | `onKnockback`: apply stun. Every push is a setup. Requires new engine hook — see engine-requirements. |
+| P6 | Trauma | `onKnockback`: apply stun. Every push is a setup. |
 | P7 | Passive Punishment | +5% damage per negative state active on the target. More afflictions, more damage. Uses `<perDebuffBuff:5>`. |
 | P8 | Clear Mind | While no enemies are within melee range: +33% damage, −33% CDR. Playing correctly multiplies everything. |
 | P9 | Trudge | All hits apply the Trudge state (ID 10). They slow down. The projectile doesn't. |

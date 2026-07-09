@@ -20,8 +20,15 @@
 | # | Name | Description |
 |---|---|---|
 | 1 | Upper Hand | Self-buff. −25% MCR and +25% CDR. Spend less, act more. |
-| 2 | Excuse Me | Blink. Instant repositioning — proactive, reactive, or simply because walking is beneath him. |
-| 3 | Magic Bomb | Targeted. Drops a bomb on a designated target: deals damage and melts −50% MDF, amplifying all future magic against them. |
+| 2 | Magic Bomb | Targeted. Drops a bomb on a designated target: deals damage and melts −50% MDF, amplifying all future magic against them. |
+
+---
+
+## Mobility
+
+| Name | Description |
+|---|---|
+| Excuse Me | Blink. Instant repositioning — proactive, reactive, or simply because walking is beneath him. Briefly invulnerable on arrival. |
 
 ---
 

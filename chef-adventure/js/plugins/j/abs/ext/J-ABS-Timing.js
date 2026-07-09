@@ -203,7 +203,7 @@
  *  <baseCastSpeed:[FORMULA]>
  *  <castSpeedFlat:[FORMULA]>
  *  <castSpeedRate:[FORMULA]>
- * Where [FORMULA] is the formula to produce the fast cooldown value.
+ * Where [FORMULA] is the formula to produce the cast speed value.
  *
  * EXAMPLE:
  *  <baseCastSpeed:[3]>
@@ -213,7 +213,7 @@
  * All cast times are reduced by 2 frames per level.
  *
  *  <castSpeedRate:[b * -5]>
- * All cast times will be reduced by 5% per point of base fast cooldown.
+ * All cast times will be reduced by 5% per point of base casting speed.
  * (not a practical formula, but demonstrating use)
  * ==============================================================================
  * CHANGELOG:

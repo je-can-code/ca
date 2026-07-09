@@ -387,11 +387,17 @@ Game_Character.prototype.applyRegionStates = function() {
 	regionStateDatas.forEach((regionStateData) => {
 		const { stateId, chance, animationId } = regionStateData;
 		const calculatedChance = battler.stateRate(stateId) * chance;
-		if (!RPGManager.chanceIn100(calculatedChance)) return;
-		if (battler.isStateAffected(stateId)) {
-			battler.resetStateCounts(stateId, battler);
-		} else {
-			battler.addState(stateId, battler);
+		const state = $dataStates.at(stateId);
+		const positiveRolls = 1 + battler.getPositiveRollsForSkill(state);
+		const negativeRolls = battler.getNegativeRollsForSkill(state);
+		const procCount = RPGManager.resolveProcCount(battler, calculatedChance, positiveRolls, negativeRolls);
+		if (procCount === 0) return;
+		for (let i = 0; i < procCount; i++) {
+			if (battler.isStateAffected(stateId)) {
+				battler.resetStateCounts(stateId, battler);
+			} else {
+				battler.addState(stateId, battler);
+			}
 		}
 		if (animationId > 0) {
 			this.requestAnimation(animationId);

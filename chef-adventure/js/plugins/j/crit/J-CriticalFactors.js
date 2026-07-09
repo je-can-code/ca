@@ -545,6 +545,7 @@ J.CRIT.RegExp = {
 	CritAlwaysIfStateType: /<critAlwaysIfStateType:([a-zA-Z][a-zA-Z0-9_-]*)>/gi,
 	OnCritApply: /<onCritApply:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	OnCritSelf: /<onCritSelf:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	ForceCritProcs: /<forceCritProcs>/i,
 	CritDamageReductionBase: /<critReductionBase: ?(\d+)>/gi,
 	CritDamageReduction: /<critReduction: ?(\d+)>/gi,
 	CritDamageMultiplierBase: /<critMultiplierBase: ?(\d+)>/gi,
@@ -759,7 +760,17 @@ Game_Action.prototype.rollAndApplyCritStates = function(recipient, onChanceEffec
 	if (onChanceEffects.length === 0) return;
 	const attacker = this.subject();
 	onChanceEffects.forEach((effect) => {
-		if (effect.shouldTrigger()) {
+		const skill = effect.baseSkill(attacker);
+		const positiveRolls = 1 + attacker.getPositiveRollsForSkill(skill);
+		const negativeRolls = recipient.getNegativeRolls();
+		const positiveRoller = attacker.isForceCritProcs() ? {
+			isVeryLucky: () => true,
+			isVeryCursed: () => false,
+			isAccumulating: () => attacker.isAccumulating(),
+			getEncoreRepeats: () => attacker.getEncoreRepeats()
+		} : attacker;
+		const procCount = effect.resolveProcCount(positiveRolls, negativeRolls, positiveRoller);
+		for (let i = 0; i < procCount; i++) {
 			recipient.addState(effect.skillId, attacker);
 		}
 	});
@@ -1228,6 +1239,16 @@ Game_Battler.prototype.ctrNaturalGrowths = function() {
 	const growthRate = this.ctrRate();
 	if (!growthPlus && !growthRate) return 0;
 	return this.calculatePlusRate(baseCtr, growthPlus, growthRate);
+};
+/**
+* Whether or not this battler's on-crit state applications should skip their own chance roll and
+* always land. Scoped specifically to {@link Game_Action.rollAndApplyCritStates}- unlike
+* `isVeryLucky()`, this does not bypass any other roll site (hit chance, regular state-apply,
+* retaliation, etc). Sourced from any of this battler's own note sources via `<forceCritProcs>`.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isForceCritProcs = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.CRIT.RegExp.ForceCritProcs) === true;
 };
 
 //#endregion

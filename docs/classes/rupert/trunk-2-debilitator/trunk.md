@@ -26,6 +26,14 @@
 
 ---
 
+## Mobility
+
+| Name | Description |
+|---|---|
+| Backpedal | A controlled backstep with brief CC-immunity. He disables things before they get the chance to disable him — including his own footing. |
+
+---
+
 ## Passives
 
 | # | Name | Description |

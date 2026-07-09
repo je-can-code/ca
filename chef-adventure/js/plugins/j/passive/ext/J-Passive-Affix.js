@@ -532,8 +532,8 @@ JABS_AiManager.postConvertMutate = function(battler, jabsBattler) {
 	const enemyData = battler.enemy();
 	const prefixChance = character.getResolvedPassiveAffixPrefixChance(enemyData);
 	const suffixChance = character.getResolvedPassiveAffixSuffixChance(enemyData);
-	const canApplyPrefix = JABS_AiManager.shouldBlockPassivePrefixRng(character, enemyData) === false && Math.random() * 100 < prefixChance;
-	const canApplySuffix = JABS_AiManager.shouldBlockPassiveSuffixRng(character, enemyData) === false && Math.random() * 100 < suffixChance;
+	const canApplyPrefix = JABS_AiManager.shouldBlockPassivePrefixRng(character, enemyData) === false && RPGManager.chanceIn100(prefixChance);
+	const canApplySuffix = JABS_AiManager.shouldBlockPassiveSuffixRng(character, enemyData) === false && RPGManager.chanceIn100(suffixChance);
 	if (canApplyPrefix) {
 		const prefixStateId = RPGManager.weightedMapChoice(J.PASSIVE.EXT.AFFIX.Metadata.prefixMap, J.PASSIVE.EXT.AFFIX.Metadata.totalPrefixWeight);
 		if (prefixStateId !== null) {

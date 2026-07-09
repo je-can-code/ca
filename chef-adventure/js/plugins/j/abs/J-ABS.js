@@ -942,6 +942,26 @@
  * NOTE: This tag only affects LINE and WALL hitboxes.
  *
  * ----------------------------------------------------------------------------
+ * INNER RADIUS:
+ * Excludes targets within VAL tiles of the action's origin from colliding at
+ * all, regardless of hitbox shape -- a universal dead zone carved out of the
+ * middle of whatever shape the skill uses (a donut CIRCLE, an ARC with a bite
+ * taken out of its own pivot, etc). Applies uniformly to every hitbox type.
+ *    <innerRadius:VAL>
+ *  Where VAL is the dead zone radius, in tiles. Supports decimals.
+ *
+ * The exclusion is measured from the target's center point, not its full
+ * hitbox -- a target is excluded only once its center crosses inside VAL
+ * tiles of the origin, matching how the outer shape checks already treat
+ * a target as "in range" the moment any part of it qualifies.
+ *
+ * NOTE ABOUT RING WIDTH: keep (RADIUS - VAL) at least 0.5 tiles. This engine's
+ * targeting precision bottoms out around half a tile elsewhere (see PROXIMITY
+ * and DIRECT skill targeting); a thinner ring than that asks the player to
+ * land inside a band too narrow to reliably hit in real-time play, even
+ * though the collision math itself is correct at any width.
+ *
+ * ----------------------------------------------------------------------------
  * CAST TIME:
  * The number of frames the battler must wait before the skill fires.
  * While casting, the "cast animation" will loop if one is defined.
@@ -972,6 +992,70 @@
  * up tension, and the on-cast animation is the visible "release".
  *
  * ----------------------------------------------------------------------------
+ * CHANNEL:
+ * Turns this skill into a "vessel": instead of executing its own effects, it pays its own
+ * cost once, then repeatedly executes a child skill every so many frames for a total duration.
+ *    <channel:[SKILL_ID, TOTAL_DURATION]>
+ *  Where SKILL_ID is the skill id to repeatedly execute.
+ *  Where TOTAL_DURATION is the number of frames the channel lasts.
+ *
+ * A vessel skill's own damage/effects are never invoked- author it with no real effects of its
+ * own. The first execution of SKILL_ID happens after the first tick interval elapses, not
+ * immediately when the channel begins.
+ *
+ *    <channelTickSpeed:VAL>
+ *  Optional. VAL is the number of frames between each repeated execution of SKILL_ID. Falls
+ *  back to the plugin's configured default channel tick speed when omitted.
+ *
+ *    <onChannelComplete:[SKILL_ID, ...]>
+ *  Optional. One or more skill ids to execute for free, once, immediately after the channel
+ * completes its full duration uninterrupted. Resolved the same way the channel's own ticks are-
+ * does NOT fire if the channel is cut short by an interrupt.
+ *
+ * Example:
+ *    <channel:[25, 180]>
+ *    <channelTickSpeed:30>
+ *    <onChannelComplete:[36]>
+ *  Fires skill 25 every 30 frames for 180 frames (6 executions), then fires skill 36 once, for
+ *  free, the instant the channel completes- but only if nothing interrupted it first.
+ *
+ * ----------------------------------------------------------------------------
+ * CASTING / CHANNELING INTERRUPTION:
+ * By default, ALL casting and channeling can be interrupted two ways: the caster chooses to
+ * move (self-interrupt), or an enemy lands a hit with an `<interrupt:MAGNIFIER>` skill
+ * (external interrupt). Either way, the skill in-flight never fires (or, for a channel, no
+ * further ticks/on-complete payoff occur), and a cooldown penalty is stamped onto the
+ * interrupted skill's own slot: its full effective cooldown for a self-interrupt, or that
+ * cooldown scaled by MAGNIFIER percent for an external interrupt.
+ *
+ *    <cannotMoveToInterrupt>
+ *  Placed on the casting/channeling skill itself. Roots the caster in place entirely for the
+ *  duration (today's original cast-time behavior)- movement is simply not possible, so it can
+ *  never trigger a self-interrupt.
+ *
+ *    <interrupt:MAGNIFIER>
+ *  Placed on an attacking skill. On landing a hit against a casting/channeling target, cancels
+ *  that cast/channel and stamps (target's effective cooldown for the interrupted skill) *
+ *  (MAGNIFIER / 100) onto its slot. A skill with no `<interrupt>` tag never disturbs a cast or
+ *  channel it hits, no matter how hard it hits.
+ *
+ * Example: a skill has a cooldown of 100 frames, reduced by CDR/fastCooldown to an effective
+ * 75 frames. It gets hit by an `<interrupt:200>` skill mid-cast: the slot goes on cooldown for
+ * 75 * (200 / 100) = 150 frames.
+ *
+ *    <thisCannotBeInterrupted>
+ *  Placed on the casting/channeling skill itself. That specific cast/channel cannot be
+ *  externally interrupted, regardless of the caster's own battler-wide immunity (or lack
+ *  thereof). Does not affect self-interruption via movement- that is `<cannotMoveToInterrupt>`'s
+ *  job.
+ *
+ *    <cannotBeInterrupted>
+ *  A battler-wide immunity tag, read from ANY of a battler's own note sources (states, equips,
+ *  class, actor)- not the skill being cast/channeled. Suppresses external interrupts entirely
+ *  for this battler, no matter what is casting/channeling. Does not affect self-interruption via
+ *  movement.
+ *
+ * ----------------------------------------------------------------------------
  * PIERCING:
  * Defines how many collision "steps" (connections) the map action may
  * complete before it ends, and the delay between those steps.
@@ -995,6 +1079,17 @@
  * for that step (stacking with battler-side tags).
  *    <bonus-hits:VAL>
  *  Where VAL is a non-negative integer added to the per-connection bonus.
+ *
+ * FORMULA VARIANT:
+ * VAL can also be a bracketed formula instead of a flat integer, evaluated
+ * with `a` bound to the caster at the moment the action is created.
+ *    <bonus-hits:[FORMULA]>
+ *  Where FORMULA is a JS-style expression (e.g. <bonus-hits:[a.luk / 10]>).
+ *
+ * NOTE: The final combined total across every bonus-hits source (flat and
+ * formula, skill-note and battler-side) is floored once at the very end.
+ * Formulas do not need to wrap themselves in floor() -- the engine handles
+ * discretization so a clean `a.luk / 10` is fine as-is.
  *
  * PARRY VS GUARD:
  * If a parry triggers on a target during the first application of a bundle,
@@ -1680,6 +1775,23 @@
  *  Where VAL is the number of knockback tiles to cancel.
  *
  * ----------------------------------------------------------------------------
+ * PROXIMITY KNOCKBACK:
+ * Amplifies this battler's outgoing knockback based on how many opposing
+ * battlers are currently near them. Evaluated fresh against the live
+ * battlefield every time this battler lands a knockback hit.
+ *    <proximityKnockback:[RADIUS, PCT]>
+ *  Where RADIUS is the tile radius (from this battler) to scan for enemies.
+ *  Where PCT is the percent bonus applied per enemy found within RADIUS.
+ *
+ * Example: Orbiter's "Offended by Proximity" (+25% knockback per nearby
+ * enemy within 4 tiles):
+ *    <proximityKnockback:[4, 25]>
+ *
+ * NOTE: Only opposing battlers count -- allies within RADIUS are ignored.
+ * NOTE: Multiple tags (different sources, different radii) all contribute
+ * independently and sum together.
+ *
+ * ----------------------------------------------------------------------------
  * PER-CONNECTION BONUS HITS (ACTOR / CLASS / EQUIPMENT / STATES):
  * These stack with <bonus-hits:VAL> on the executing skill. Place them on
  * actor, class, weapons, armors, states, or enemy data as appropriate.
@@ -1690,6 +1802,17 @@
  * actors, or the enemy's designated basic attack skill).
  *    <bonus-hits-skill:VAL>
  * Adds VAL only for non-basic skills.
+ *
+ * FORMULA VARIANT:
+ * All three of the above accept a bracketed formula instead of a flat
+ * integer, evaluated with `a` bound to the battler carrying the tag:
+ *    <bonus-hits-global:[FORMULA]>
+ *    <bonus-hits-basic:[FORMULA]>
+ *    <bonus-hits-skill:[FORMULA]>
+ *  Where FORMULA is a JS-style expression (e.g. <bonus-hits-basic:[a.luk / 10]>).
+ *
+ * NOTE: As with the skill-note version above, the final combined total is
+ * floored once at the end -- formulas do not need their own floor() wrapper.
  *
  * HIDING ITEMS/SKILLS FROM ASSIGNMENT:
  * To prevent certain items or skills from appearing in the assignment
@@ -1908,6 +2031,30 @@
  * PARALYZED:
  * Functionally the same as being rooted, disabled, and muted all at once.
  *    <paralyzed>
+ *
+ * ----------------------------------------------------------------------------
+ * STATE-APPLICATION IMMUNITY & RESISTANCE:
+ * These tags are read from the TARGET's own notes (states, equips, class, etc.),
+ * not from the state being applied. Checked in Game_Battler#isStateAddable, in
+ * this priority order- each fully blocks application before any chance roll:
+ *   1. <immuneToAll>          — blocks everything, including the death state.
+ *   2. <immuneToStates>       — blocks everything EXCEPT the death state.
+ *   3. <immuneToNegatives>    — blocks any state carrying <negative>.
+ *   4. <stateTypeImmune:TYPE> — blocks any state carrying a matching <type:TYPE>.
+ * <stateTypeResist:[TYPE, PCT]> is different- it does not block anything outright,
+ * it reduces the chance a state carrying a matching <type:TYPE> tag lands, folded
+ * into the same application roll as vanilla's per-id state rate. Multiple tags for
+ * the same TYPE stack additively.
+ *
+ *    <stateTypeResist:[TYPE, PCT]>
+ *    <stateTypeImmune:TYPE>
+ *    <immuneToNegatives>
+ *    <immuneToStates>
+ *    <immuneToAll>
+ *
+ * Examples:
+ *    <stateTypeResist:[cc, 50]>
+ *    <stateTypeImmune:cc>
  *
  * ----------------------------------------------------------------------------
  * SKILL TRANSFORM:
@@ -2513,6 +2660,17 @@
  * @decimals 2
  * @default 0.50
  *
+ * @param channelConfigs
+ * @text CHANNELING DEFAULTS
+ *
+ * @param defaultChannelTickSpeed
+ * @parent channelConfigs
+ * @type number
+ * @min 1
+ * @text Default Channel Tick Speed
+ * @desc The number of frames between each repeated execution of a `<channel:[SKILL_ID, DURATION]>` skill's child skill, when the skill omits its own `<channelTickSpeed:N>` override.
+ * @default 30
+ *
  * @param stateConfigs
  * @text STATE DEFAULTS
  *
@@ -2543,6 +2701,11 @@
  * @parent stateConfigs
  * @text "STACK" CONFIG
  * @desc "Stack" means that a state will gain an additional instance and be "refreshed".
+ *
+ * @param tickConfigs
+ * @parent stateConfigs
+ * @text "TICK" CONFIG
+ * @desc Governs how often states (and natural regen) tick for slip/regen purposes.
  *
  * @param defaultStateRefreshDiminish
  * @parent refreshConfigs
@@ -2601,6 +2764,27 @@
  * @text Lose All Stacks
  * @desc If true, then all state "stacks" will be lost upon expiration. If false, then one will be lost and "refresh".
  * @default false
+ *
+ * @param defaultStateTickInterval
+ * @parent tickConfigs
+ * @type number
+ * @text Default Tick Interval
+ * @desc Frames between slip/regen ticks when a state omits <thisTickSpeed:N>. (60 frames = 1 second)
+ * @default 30
+ *
+ * @param minimumStateTickInterval
+ * @parent tickConfigs
+ * @type number
+ * @text Minimum Tick Interval
+ * @desc The tunable floor for tick intervals after all modifiers are applied; ticks can never resolve faster than this.
+ * @default 4
+ *
+ * @param naturalRegenTickType
+ * @parent tickConfigs
+ * @type string
+ * @text Natural Regen Tick Type
+ * @desc The <type:CLASSIFIER> string treated as natural HRG/MRG/TRG's own type, so type-scoped tick modifiers can reach it.
+ * @default regen
  *
  *
  * @param miscConfigs
@@ -3131,6 +3315,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 		this.initializeElementalIconMetadata();
 		this.initializeActionDecidedMetadata();
 		this.initializeAggroMetadata();
+		this.initializeChannelMetadata();
 		this.initializeStateMetadata();
 		this.initializeMiscMovementMetadata();
 		this.initializeHitboxMeleeOriginMetadata();
@@ -3221,6 +3406,12 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 		this.AggroPlayerReduction = Number(this.parsedPluginParameters["aggroPlayerReduction"]);
 	}
 	/**
+	* Maps channeling defaults from plugin parameters.
+	*/
+	initializeChannelMetadata() {
+		this.DefaultChannelTickSpeed = Number(this.parsedPluginParameters["defaultChannelTickSpeed"]) || 30;
+	}
+	/**
 	* Maps default state reapplication and stacking rules from plugin parameters.
 	*/
 	initializeStateMetadata() {
@@ -3228,6 +3419,9 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 		this.DefaultStateRefreshDiminish = Number(this.parsedPluginParameters["defaultStateRefreshDiminish"]) || 120;
 		this.DefaultStateRefreshReset = Number(this.parsedPluginParameters["defaultStateRefreshReset"]) || 900;
 		this.DefaultStateSpreadTickInterval = Number(this.parsedPluginParameters["defaultStateSpreadTickInterval"]) || 30;
+		this.DefaultStateTickInterval = Number(this.parsedPluginParameters["defaultStateTickInterval"]) || 30;
+		this.MinimumStateTickInterval = Number(this.parsedPluginParameters["minimumStateTickInterval"]) || 4;
+		this.NaturalRegenTickType = this.parsedPluginParameters["naturalRegenTickType"] || "regen";
 		this.DefaultStateExtendAmount = Number(this.parsedPluginParameters["defaultStateExtendAmount"]) || 180;
 		this.DefaultStateExtendMax = Number(this.parsedPluginParameters["defaultStateExtendMax"]) || 216e3;
 		this.DefaultStateStackMax = Number(this.parsedPluginParameters["defaultStateStackMax"]) || 5;
@@ -3799,6 +3993,12 @@ J.ABS.RegExp = {
 	HideFromJabsMenu: /<hideFromJabsMenu>/gi,
 	CastTime: /<castTime:[ ]?(\d+)>/gi,
 	CastAnimation: /<castAnimation:[ ]?(\d+)>/gi,
+	Channel: /<channel:[ ]?(\[(?:0|[1-9][0-9]*),[ ]?(?:0|[1-9][0-9]*)])>/gi,
+	ChannelTickSpeed: /<channelTickSpeed:[ ]?(\d+)>/gi,
+	OnChannelComplete: /<onChannelComplete:[ ]?(\[\d+(?:,[ ]?\d+)*])>/gi,
+	CannotMoveToInterrupt: /<cannotMoveToInterrupt>/i,
+	ThisCannotBeInterrupted: /<thisCannotBeInterrupted>/i,
+	Interrupt: /<interrupt:[ ]?(\d+)>/gi,
 	Cooldown: /<cooldown:[ ]?(\d+)>/gi,
 	UniqueCooldown: /<uniqueCooldown>/gi,
 	Ogcd: /<ogcd>/gi,
@@ -3815,8 +4015,10 @@ J.ABS.RegExp = {
 	DirectLock: /<directLock>/i,
 	DirectStateTarget: /<directStateTarget:[ ]?(\d+)>/gi,
 	Proximity: /<proximity:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	InnerRadius: /<innerRadius:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
 	Duration: /<duration:[ ]?(\d+)>/gi,
 	Knockback: /<knockback:[ ]?(\d+)>/gi,
+	IgnoreTerrain: /<ignoreTerrain>/i,
 	DelayData: /<delay:[ ]?(\[-?\d+,[ ]?(true|false)(?:,[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?))?])>/gi,
 	Linger: /<linger:[ ]?(\d+)>/gi,
 	OnDefeatedTarget: /<onDefeatedTarget>/gi,
@@ -3851,6 +4053,19 @@ J.ABS.RegExp = {
 	*/
 	BonusHitsSkillNote: /<bonus-hits:[ ]?(\d+)>/gi,
 	/**
+	* Formula variant of {@link BonusHitsSkillNote}. Evaluated with `a` bound to the caster.
+	*
+	* <pre>
+	* Structure:
+	*  <bonus-hits:[FORMULA]>
+	*
+	* Example:
+	*  <bonus-hits:[a.luk / 10]>
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusHitsSkillNoteFormula: /<bonus-hits:[ ]?\[([+\-*/ ().\w]+)]>/gi,
+	/**
 	* Bonus hits per connection from battler-side notes, applied to basic attacks only.
 	*
 	* <pre>
@@ -3863,6 +4078,19 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	BonusHitsScopeBasic: /<bonus-hits-basic:[ ]?(\d+)>/gi,
+	/**
+	* Formula variant of {@link BonusHitsScopeBasic}. Evaluated with `a` bound to the battler.
+	*
+	* <pre>
+	* Structure:
+	*  <bonus-hits-basic:[FORMULA]>
+	*
+	* Example:
+	*  <bonus-hits-basic:[a.luk / 10]>
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusHitsScopeBasicFormula: /<bonus-hits-basic:[ ]?\[([+\-*/ ().\w]+)]>/gi,
 	/**
 	* Bonus hits per connection from battler-side notes, applied to non-basic skills only.
 	*
@@ -3877,6 +4105,19 @@ J.ABS.RegExp = {
 	*/
 	BonusHitsScopeSkill: /<bonus-hits-skill:[ ]?(\d+)>/gi,
 	/**
+	* Formula variant of {@link BonusHitsScopeSkill}. Evaluated with `a` bound to the battler.
+	*
+	* <pre>
+	* Structure:
+	*  <bonus-hits-skill:[FORMULA]>
+	*
+	* Example:
+	*  <bonus-hits-skill:[a.luk / 10]>
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusHitsScopeSkillFormula: /<bonus-hits-skill:[ ]?\[([+\-*/ ().\w]+)]>/gi,
+	/**
 	* Bonus hits per connection from battler-side notes, applied to all JABS actions.
 	*
 	* <pre>
@@ -3889,6 +4130,81 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	BonusHitsScopeGlobal: /<bonus-hits-global:[ ]?(\d+)>/gi,
+	/**
+	* Formula variant of {@link BonusHitsScopeGlobal}. Evaluated with `a` bound to the battler.
+	*
+	* <pre>
+	* Structure:
+	*  <bonus-hits-global:[FORMULA]>
+	*
+	* Example:
+	*  <bonus-hits-global:[a.luk / 10]>
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusHitsScopeGlobalFormula: /<bonus-hits-global:[ ]?\[([+\-*/ ().\w]+)]>/gi,
+	/**
+	* Battler-wide bonus positive rerolls fed into chanceIn100 whenever this battler is the party
+	* wanting a roll to succeed (e.g. the attacker landing a hit/crit/state-apply). Evaluated with
+	* `a` bound to this battler, summed across every note source. No floor or cap.
+	* Structure: <luckyRolls:[FORMULA]>
+	* @type {RegExp}
+	*/
+	LuckyRolls: /<luckyRolls:[ ]?\[([+\-*/ ().\w]+)]>/gi,
+	/**
+	* Same as {@link LuckyRolls}, but read from a specific skill's own note only- lets a skill
+	* grant its caster bonus positive rerolls specifically while using it.
+	* Structure: <thisLuckyRolls:[FORMULA]>
+	* @type {RegExp}
+	*/
+	ThisLuckyRolls: /<thisLuckyRolls:[ ]?\[([+\-*/ ().\w]+)]>/gi,
+	/**
+	* Battler-wide bonus negative rerolls fed into chanceIn100 whenever this battler is the party
+	* wanting a roll to fail (e.g. the defender evading a hit/crit/state-apply). Evaluated with
+	* `a` bound to this battler, summed across every note source. No floor or cap.
+	* Structure: <cursedRolls:[FORMULA]>
+	* @type {RegExp}
+	*/
+	CursedRolls: /<cursedRolls:[ ]?\[([+\-*/ ().\w]+)]>/gi,
+	/**
+	* Same as {@link CursedRolls}, but read from a specific skill's own note only.
+	* Structure: <thisCursedRolls:[FORMULA]>
+	* @type {RegExp}
+	*/
+	ThisCursedRolls: /<thisCursedRolls:[ ]?\[([+\-*/ ().\w]+)]>/gi,
+	/**
+	* Battler-wide flag that short-circuits any `chanceIn100`/`shouldTrigger` roll this battler is
+	* the positive-roller for straight to guaranteed success- no roll occurs at all. True bypass,
+	* not an absurd reroll count.
+	* Structure: <veryLucky>
+	* @type {RegExp}
+	*/
+	VeryLucky: /<veryLucky>/i,
+	/**
+	* Battler-wide flag that short-circuits any `chanceIn100`/`shouldTrigger` roll this battler is
+	* the positive-roller for straight to guaranteed failure- no roll occurs at all.
+	* Structure: <veryCursed>
+	* @type {RegExp}
+	*/
+	VeryCursed: /<veryCursed>/i,
+	/**
+	* Battler-wide bonus repeat count: whenever this battler is the positive-roller for a
+	* repeatable-action proc (state application, forced skill execution), each individual success
+	* executes `1 + encoreRepeats` times instead of once. Evaluated with `a` bound to this battler,
+	* summed across every note source. No floor or cap.
+	* Structure: <encoreRepeats:[FORMULA]>
+	* @type {RegExp}
+	*/
+	EncoreRepeats: /<encoreRepeats:[ ]?\[([+\-*/ ().\w]+)]>/gi,
+	/**
+	* Battler-wide flag that switches this battler's repeatable-action procs into Accumulate Mode:
+	* instead of stopping at the first successful positive roll, every one of the positive rolls is
+	* counted, and the proc's action executes once per success (subject to `<encoreRepeats>` on
+	* top of that).
+	* Structure: <accumulate>
+	* @type {RegExp}
+	*/
+	Accumulate: /<accumulate>/i,
 	PiercingData: /<pierce:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	Guard: /<guard:[ ]?(\[-?\d+,[ ]?-?\d+])>/gi,
 	Parry: /<parry:[ ]?(\d+)>/gi,
@@ -3919,12 +4235,19 @@ J.ABS.RegExp = {
 	SkillId: /<skillId:[ ]?(\d+)>/gi,
 	OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
 	KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
+	ProximityKnockback: /<proximityKnockback:[ ]?(\[(?:0|[1-9][0-9]*)(?:\.[0-9]+)?,[ ]?-?(?:0|[1-9][0-9]*)])>/gi,
 	IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
 	UseOnPickup: /<useOnPickup>/gi,
 	Expires: /<expires:[ ]?(\d+)>/gi,
 	JabsTool: /<jabsTool>/i,
 	Negative: /<negative>/gi,
 	NoLogs: /<noLogs>/i,
+	StateTypeResist: /<stateTypeResist:[ ]?(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
+	StateTypeImmune: /<stateTypeImmune:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>/gi,
+	ImmuneToNegatives: /<immuneToNegatives>/gi,
+	ImmuneToStates: /<immuneToStates>/gi,
+	ImmuneToAll: /<immuneToAll>/gi,
+	CannotBeInterrupted: /<cannotBeInterrupted>/i,
 	ReapplyType: /<stackType:[ ]?(refresh|extend|stack)>/gi,
 	ReapplyRefreshDiminish: /<stateRefreshDiminish:[ ]?(-?\d+)>/gi,
 	ReapplyRefreshReset: /<stateRefreshReset:[ ]?(\d+)>/gi,
@@ -3933,6 +4256,7 @@ J.ABS.RegExp = {
 	ReapplyStackMax: /<stackMax:[ ]?(\d+)>/gi,
 	StateApplicationAmount: /<applyStacks:[ ]?(\d+)>/gi,
 	LoseAllStacksAtOnce: /<loseAllStacksAtOnce>/gi,
+	StackOnExpire: /<stackOnExpire>/gi,
 	StacksConvertToState: /<stacksConvertToState:(\[\d+,[ ]?\d+])>/gi,
 	RemoveOnConvert: /<removeOnConvert>/gi,
 	ConvertUsesCaster: /<convertUsesCaster>/gi,
@@ -3959,6 +4283,10 @@ J.ABS.RegExp = {
 	StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
 	StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
 	StateDurationFormulaPlus: /<stateDurationFormula:\[([+\-*/ ().\w]+)]>/gi,
+	ThisTickSpeed: /<thisTickSpeed:[ ]?(\d+)>/gi,
+	TickSpeedFlat: /<tickSpeedFlat:[ ]?(-?\d+)>/gi,
+	TickSpeedPercent: /<tickSpeedPercent:[ ]?(-?\d+)%?>/gi,
+	TickSpeedTypePercent: /<tickSpeedTypePercent:(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?\d+])>/gi,
 	EnemyId: /<enemyId:[ ]?(\d+)>/i,
 	TeamId: /<teamId:[ ]?(\d+)>/g,
 	Sight: /<sight:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
@@ -4153,6 +4481,61 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	BonusDamagePerStateType: /<bonusDamagePerStateType:[ ]?(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
+	/**
+	* Percent damage bonus per stack of one specific state currently active on the target.
+	* Unlike BonusDamagePerStateType (which counts distinct states of a type), this reads the
+	* stack count of one named state and multiplies accordingly. No stack cap is enforced here-
+	* whatever cap the state itself carries is the only ceiling. Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <bonusDamagePerStateStack:[STATE_ID, PCT]>
+	*
+	* Example:
+	*  <bonusDamagePerStateStack:[14, 2]>
+	*
+	* Translation:
+	*  +2% damage per stack of state 14 currently on the target.
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusDamagePerStateStack: /<bonusDamagePerStateStack:[ ]?(\[\d+,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
+	/**
+	* Flat percent damage bonus per distinct state currently on the target that this battler
+	* personally applied. Counts distinct authored states, not stack depth of any one state-
+	* distinct from BonusDamagePerStateStack above. Lives on a passive state; always active
+	* regardless of which skill is executing. Reads from getAllNotes().
+	*
+	* <pre>
+	* Structure:
+	*  <bonusDamageForMyStateCount:PCT>
+	*
+	* Example:
+	*  <bonusDamageForMyStateCount:5>
+	*
+	* Translation:
+	*  +5% damage per distinct state this battler has authored on the target.
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusDamageForMyStateCount: /<bonusDamageForMyStateCount:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Skill-scoped counterpart to BonusDamageForMyStateCount- applies only when this specific
+	* skill is the action being resolved. Reads from this.item() only.
+	*
+	* <pre>
+	* Structure:
+	*  <thisBonusDamageForMyStateCount:PCT>
+	*
+	* Example:
+	*  <thisBonusDamageForMyStateCount:5>
+	*
+	* Translation:
+	*  +5% damage per distinct state this battler has authored on the target, when this skill lands.
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisBonusDamageForMyStateCount: /<thisBonusDamageForMyStateCount:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
 	/**
 	* Flat tile addition applied to radius, proximity, and thickness before the rate multiplier.
 	* Signed decimal; negative values shrink reach. Reads from getAllNotes().
@@ -4731,6 +5114,7 @@ var JABS_HitboxPulseOptions = class JABS_HitboxPulseOptions {
 		o.facing = 2;
 		o.degrees = 180;
 		o.thickness = 1;
+		o.innerRadius = 0;
 		o.duration = 60;
 		o.sustained = false;
 		o.startAlpha = .2;
@@ -4776,6 +5160,7 @@ var JABS_HitboxPulseOptions = class JABS_HitboxPulseOptions {
 			facing: this.facing,
 			degrees: this.degrees,
 			thickness: this.thickness,
+			innerRadius: this.innerRadius,
 			duration: this.duration,
 			sustained: this.sustained,
 			startAlpha: this.startAlpha,
@@ -4844,6 +5229,15 @@ var JABS_HitboxPulseOptions = class JABS_HitboxPulseOptions {
 	*/
 	withThickness(tiles) {
 		this.thickness = tiles;
+		return this;
+	}
+	/**
+	* Fluent: sets the inner radius dead zone in tiles, for shapes carrying <innerRadius:N>.
+	* @param {number} tiles The inner radius in tiles; 0 disables the dead zone visual.
+	* @returns {JABS_HitboxPulseOptions}
+	*/
+	withInnerRadius(tiles) {
+		this.innerRadius = tiles;
 		return this;
 	}
 	/**
@@ -4967,6 +5361,7 @@ var Sprite_HitboxPulse = class extends Sprite {
 		this._range = 1;
 		this._degrees = 180;
 		this._thickness = 1;
+		this._innerRadius = 0;
 		this._sustained = false;
 		this.rotation = 0;
 		this.alpha = 1;
@@ -4992,6 +5387,7 @@ var Sprite_HitboxPulse = class extends Sprite {
 		this._range = Math.max(0, opts.range);
 		this._degrees = opts.degrees !== undefined ? opts.degrees : 180;
 		this._thickness = opts.thickness !== undefined ? Math.max(0, opts.thickness) : 1;
+		this._innerRadius = opts.innerRadius !== undefined ? Math.max(0, opts.innerRadius) : 0;
 		this._sustained = opts.sustained === true;
 		this.blendMode = this._blendMode;
 		this.drawGeometry();
@@ -5008,6 +5404,7 @@ var Sprite_HitboxPulse = class extends Sprite {
 		g.clear();
 		g.lineStyle(this._lineWidth, this._lineColor, this._lineAlpha);
 		g.beginFill(this._fillColor, this._fillAlpha);
+		let holeAlreadyBaked = false;
 		const tile = $gameMap.tileWidth();
 		switch (this._shape) {
 			case J.ABS.Shapes.Circle: {
@@ -5036,18 +5433,38 @@ var Sprite_HitboxPulse = class extends Sprite {
 				const rad = deg * Math.PI / 180;
 				const startAngle = -rad / 2;
 				const endAngle = rad / 2;
-				g.moveTo(0, 0);
 				const steps = Math.max(2, Math.ceil(deg / 8));
-				for (let i = 0; i <= steps; i++) {
-					const t = i / steps;
-					const a = startAngle + (endAngle - startAngle) * t;
-					const px = Math.cos(a) * r;
-					const py = Math.sin(a) * r;
-					g.lineTo(px, py);
+				const innerRadiusPx = this._innerRadius * tile;
+				if (innerRadiusPx > 0) {
+					holeAlreadyBaked = true;
+					g.moveTo(Math.cos(startAngle) * innerRadiusPx, Math.sin(startAngle) * innerRadiusPx);
+					for (let i = 0; i <= steps; i++) {
+						const t = i / steps;
+						const a = startAngle + (endAngle - startAngle) * t;
+						g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+					}
+					for (let i = steps; i >= 0; i--) {
+						const t = i / steps;
+						const a = startAngle + (endAngle - startAngle) * t;
+						g.lineTo(Math.cos(a) * innerRadiusPx, Math.sin(a) * innerRadiusPx);
+					}
+				} else {
+					g.moveTo(0, 0);
+					for (let i = 0; i <= steps; i++) {
+						const t = i / steps;
+						const a = startAngle + (endAngle - startAngle) * t;
+						g.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+					}
+					g.lineTo(0, 0);
 				}
-				g.lineTo(0, 0);
 				break;
 			}
+		}
+		if (this._innerRadius > 0 && holeAlreadyBaked === false) {
+			const innerRadiusPx = this._innerRadius * tile;
+			g.beginHole();
+			g.drawCircle(0, 0, innerRadiusPx);
+			g.endHole();
 		}
 		g.endFill();
 	}
@@ -6702,7 +7119,7 @@ var JABS_EnemyAI = class extends JABS_AI {
 		}
 		const randomIndex = Math.randomInt(usableSkills.length);
 		const randomSkillId = usableSkills.at(randomIndex);
-		if (Math.randomInt(2) === 0) {
+		if (RPGManager.chanceIn100(50)) {
 			return [user.getEnemyBasicAttack()];
 		}
 		return [randomSkillId];
@@ -8281,9 +8698,7 @@ var JABS_AiManager = class JABS_AiManager {
 	* @returns {boolean} True if we should take a step, false otherwise.
 	*/
 	static shouldMoveIdly() {
-		const chance = Math.randomInt(100) + 1;
-		const shouldMove = chance === 100;
-		return shouldMove;
+		return RPGManager.chanceIn100(1);
 	}
 	/**
 	* Phase 1 for AI is the phase where the battler will count down its "prepare" timer.
@@ -8442,7 +8857,7 @@ var JABS_AiManager = class JABS_AiManager {
 	* @returns {boolean} True if this battler needs to move, false otherwise.
 	*/
 	static needsRepositioning(battler) {
-		if (battler.isCasting()) return false;
+		if (battler.isCastingOrChanneling()) return false;
 		if (battler.isInPosition()) return false;
 		if (battler.getCharacter().isMoving()) {
 			return false;
@@ -8458,7 +8873,7 @@ var JABS_AiManager = class JABS_AiManager {
 	static needsActionExecution(battler) {
 		if (!battler.isActionDecided()) return false;
 		if (!battler.isInPosition()) return false;
-		if (battler.isCasting()) return false;
+		if (battler.isCastingOrChanneling()) return false;
 		return true;
 	}
 	/**
@@ -8476,7 +8891,7 @@ var JABS_AiManager = class JABS_AiManager {
 			battler.setPhase(3);
 			return;
 		}
-		if (battler.isCasting()) return;
+		if (battler.isCastingOrChanneling()) return;
 		battler.setCastCountdown(action.getCastTime());
 	}
 	/**
@@ -8877,7 +9292,7 @@ var JABS_AiManager = class JABS_AiManager {
 		if (!battler.isEngaged()) {
 			return false;
 		}
-		if (battler.isCasting()) {
+		if (battler.isCastingOrChanneling()) {
 			return false;
 		}
 		if (battler.isDodging()) {
@@ -10288,6 +10703,33 @@ var JABS_Battler = class JABS_Battler {
 		* @type {boolean}
 		*/
 		this._casting = false;
+		/**
+		* The skill id being repeatedly executed by an active channel; 0 when not channeling.
+		* @type {number}
+		*/
+		this._channelSkillId = 0;
+		/**
+		* The number of frames remaining until the next channel tick fires.
+		* @type {number}
+		*/
+		this._channelTickCountdown = 0;
+		/**
+		* The number of frames remaining in the active channel's total duration.
+		* @type {number}
+		*/
+		this._channelDurationRemaining = 0;
+		/**
+		* Whether or not this battler is currently channeling a skill.
+		* @type {boolean}
+		*/
+		this._channeling = false;
+		/**
+		* The decided vessel `JABS_Action` that originated the active channel- retained so its
+		* cooldown type/effective cooldown can be looked up whether the channel completes naturally
+		* or is cut short by {@link JABS_Battler#interrupt}.
+		* @type {JABS_Action|null}
+		*/
+		this._channelSourceAction = null;
 		/**
 		* Whether or not this battler is engaged in combat with a target.
 		* @type {boolean}
@@ -11862,6 +12304,26 @@ var JABS_Battler = class JABS_Battler {
 		this.updateRegen();
 		this.updateDodging();
 		this.updateDeathHandling();
+		this.updateSelfInterruptOnMove();
+	}
+	/**
+	* Self-interrupts an in-flight cast/channel the instant the player expresses movement intent.
+	*
+	* Watches the same raw input signals any movement implementation itself reads (directional
+	* input, an active click-to-move destination) rather than hooking a specific movement method-
+	* this project's pixel-movement plugin fully overwrites `Game_Player.moveByInput` rather than
+	* aliasing it, so hooking that (or `executeMove`, which it never calls) would be fragile to
+	* plugin load order. Reading raw input also naturally excludes forced displacement (knockback,
+	* pull-forward, jumps) from ever counting as a self-interrupt, since none of those touch
+	* `Input`/`$gameTemp`'s destination state.
+	*/
+	updateSelfInterruptOnMove() {
+		if (!this.isPlayer()) return;
+		if (!this.isCastingOrChanneling()) return;
+		if (this.hasUninterruptibleMovementLock()) return;
+		const wantsToMove = Input.dir8 > 0 || $gameTemp.isDestinationValid();
+		if (!wantsToMove) return;
+		this.interrupt(100, true);
 	}
 	/**
 	* Process any queued actions and execute them.
@@ -11870,26 +12332,38 @@ var JABS_Battler = class JABS_Battler {
 		if (!this.canProcessQueuedActions()) return;
 		const decidedActions = this.getDecidedAction();
 		const primaryAction = decidedActions.at(0);
+		this.setLastUsedSkillId(primaryAction.getBaseSkill().id);
+		this.setLastUsedSlot(primaryAction.getCooldownType());
+		if (primaryAction.getBaseSkill().jabsChannel.length) {
+			this.beginChannel(primaryAction);
+			return;
+		}
+		const [targetX, targetY] = this.resolveActionTargetCoordinates(primaryAction);
+		$jabsEngine.executeMapActions(this, decidedActions, targetX, targetY);
+		this.clearDecidedAction();
+	}
+	/**
+	* Resolves the `[x, y]` coordinates to execute the given action at: a frozen decision-time
+	* location takes priority, falling back to live direct-action resolution otherwise.
+	* @param {JABS_Action} action The action to resolve target coordinates for.
+	* @returns {[number|null, number|null]} The resolved coordinates, or `[null, null]`.
+	*/
+	resolveActionTargetCoordinates(action) {
 		let targetX = null;
 		let targetY = null;
-		if (primaryAction) {
-			const options = primaryAction.getActionOptions();
-			const loc = options ? options.getTargetLocation() : null;
-			if (loc) {
-				targetX = loc.getX();
-				targetY = loc.getY();
-			}
-			if (targetX === null || targetY === null) {
-				const [x, y] = this.resolveDirectActionTargetCoordinates(primaryAction);
-				targetX = x;
-				targetY = y;
-			}
+		if (!action) return [targetX, targetY];
+		const options = action.getActionOptions();
+		const loc = options ? options.getTargetLocation() : null;
+		if (loc) {
+			targetX = loc.getX();
+			targetY = loc.getY();
 		}
-		$jabsEngine.executeMapActions(this, decidedActions, targetX, targetY);
-		const lastUsedSkill = decidedActions.at(0);
-		this.setLastUsedSkillId(lastUsedSkill.getBaseSkill().id);
-		this.setLastUsedSlot(lastUsedSkill.getCooldownType());
-		this.clearDecidedAction();
+		if (targetX === null || targetY === null) {
+			const [x, y] = this.resolveDirectActionTargetCoordinates(action);
+			targetX = x;
+			targetY = y;
+		}
+		return [targetX, targetY];
 	}
 	/**
 	* Check if we can process any queued actions.
@@ -11898,6 +12372,7 @@ var JABS_Battler = class JABS_Battler {
 	canProcessQueuedActions() {
 		if (!this.isActionDecided()) return false;
 		if (this.isCasting()) return false;
+		if (this.isChanneling()) return false;
 		if (!this.isPlayer() && !this.isInPosition()) return false;
 		return true;
 	}
@@ -12092,7 +12567,7 @@ var JABS_Battler = class JABS_Battler {
 	* Updates all cooldowns for this battler.
 	*/
 	updateCooldowns() {
-		this.getBattler().getSkillSlotManager().updateCooldowns(this.isCasting());
+		this.getBattler().getSkillSlotManager().updateCooldowns(this.isCastingOrChanneling());
 	}
 	/**
 	* Updates all timers for this battler.
@@ -12104,6 +12579,7 @@ var JABS_Battler = class JABS_Battler {
 		this.processLastHitTimer();
 		this.processCombatTimer();
 		this.processCastingTimer();
+		this.processChannelingTimer();
 		this.processEngagementTimer();
 	}
 	/**
@@ -12164,6 +12640,138 @@ var JABS_Battler = class JABS_Battler {
 		if (!decidedActions) return;
 		const [decidedAction] = decidedActions;
 		decidedAction.completeCast();
+	}
+	/**
+	* Begins channeling a `<channel:[SKILL_ID, TOTAL_DURATION]>` vessel skill: pays its cost once,
+	* then repeatedly executes the child skill every tick until the full duration elapses or the
+	* channel is cut short by {@link JABS_Battler#interrupt}. The vessel's own damage/effects are
+	* never invoked- authoring a real effect onto a channel skill is a no-op by design.
+	* @param {JABS_Action} action The decided vessel action carrying the `<channel>` tag.
+	*/
+	beginChannel(action) {
+		const skill = action.getBaseSkill();
+		const [channelSkillId, totalDuration] = skill.jabsChannel;
+		$jabsEngine.paySkillCosts(this, action);
+		$jabsEngine.logSkillExecution(this.getUuid(), skill.id, skill.stypeId);
+		this._channelSourceAction = action;
+		this._channelSkillId = channelSkillId;
+		this._channelDurationRemaining = totalDuration;
+		this._channelTickCountdown = skill.jabsChannelTickSpeed;
+		this._channeling = true;
+	}
+	/**
+	* Updates the timer for "channeling".
+	*/
+	processChannelingTimer() {
+		if (!this.isChanneling()) return;
+		this._channelTickCountdown--;
+		if (this._channelTickCountdown <= 0) {
+			this.executeChannelTick();
+			this._channelTickCountdown = this._channelSourceAction.getBaseSkill().jabsChannelTickSpeed;
+		}
+		this._channelDurationRemaining--;
+		if (this._channelDurationRemaining <= 0) {
+			this.onChannelComplete();
+			return;
+		}
+	}
+	/**
+	* Fires one repeated execution of the channel's child skill, resolving its target the same way
+	* the vessel skill itself would- a frozen target/location for `<targeted>` skills, or live
+	* resolution otherwise.
+	*/
+	executeChannelTick() {
+		const [targetX, targetY] = this.resolveActionTargetCoordinates(this._channelSourceAction);
+		$jabsEngine.forceMapAction(this, this._channelSkillId, false, targetX, targetY);
+	}
+	/**
+	* Hook triggered when a channel's total duration elapses uninterrupted. Fires the optional
+	* `<onChannelComplete:[SKILL_ID, ...]>` payoff skill(s), then applies the vessel skill's normal
+	* effective cooldown- exactly as if it had just executed normally.
+	*/
+	onChannelComplete() {
+		const sourceAction = this._channelSourceAction;
+		this.endChannel();
+		const [targetX, targetY] = this.resolveActionTargetCoordinates(sourceAction);
+		sourceAction.getBaseSkill().jabsOnChannelComplete.forEach((skillId) => $jabsEngine.forceMapAction(this, skillId, false, targetX, targetY));
+		$jabsEngine.applyCooldownCounters(this, sourceAction);
+		this.clearDecidedAction();
+	}
+	/**
+	* Tears down channel state without applying any cooldown or firing any payoff- shared cleanup
+	* between natural completion and interruption.
+	*/
+	endChannel() {
+		this._channeling = false;
+		this._channelSkillId = 0;
+		this._channelTickCountdown = 0;
+		this._channelDurationRemaining = 0;
+	}
+	/**
+	* Gets whether or not this battler is currently channeling a skill.
+	* @returns {boolean}
+	*/
+	isChanneling() {
+		return this._channeling;
+	}
+	/**
+	* Gets the number of frames remaining in the active channel's total duration.
+	* @returns {number}
+	*/
+	getChannelDurationRemaining() {
+		return this._channelDurationRemaining;
+	}
+	/**
+	* Gets whether or not this battler is occupied by either a cast or a channel- the shared
+	* "busy" predicate consulted anywhere a new action/charge/parry decision needs to be blocked
+	* while committed to one of these two states.
+	* @returns {boolean}
+	*/
+	isCastingOrChanneling() {
+		return this.isCasting() || this.isChanneling();
+	}
+	/**
+	* Whether or not the currently in-flight cast/channel roots this battler in place, per its own
+	* `<cannotMoveToInterrupt>` tag. Always false when not casting/channeling at all.
+	* @returns {boolean}
+	*/
+	hasUninterruptibleMovementLock() {
+		if (!this.isCastingOrChanneling()) return false;
+		const decidedActions = this.getDecidedAction();
+		const skill = decidedActions ? decidedActions.at(0).getBaseSkill() : null;
+		return skill ? skill.jabsCannotMoveToInterrupt : false;
+	}
+	/**
+	* Cancels an in-flight cast or channel prematurely.
+	*
+	* For a cast, the decided action is discarded before it ever executes- the skill simply never
+	* fires. For a channel, state is torn down immediately- ticks that already fired stand, but no
+	* further ticks and no `<onChannelComplete>` payoff occur.
+	*
+	* A cooldown penalty is always applied to the interrupted skill's own slot: the full effective
+	* cooldown for a self-interrupt (moving away), or that cooldown scaled by `magnifierPct` for an
+	* external interrupt (hit by an `<interrupt:MAGNIFIER>` skill).
+	* @param {number} magnifierPct The percent of the effective cooldown to apply; ignored (treated
+	* as 100) when `isSelfInterrupt` is true.
+	* @param {boolean} isSelfInterrupt Whether this interrupt was caused by the caster choosing to
+	* move, rather than by an external hit.
+	*/
+	interrupt(magnifierPct = 100, isSelfInterrupt = false) {
+		let sourceAction = null;
+		if (this.isChanneling()) {
+			sourceAction = this._channelSourceAction;
+			this.endChannel();
+		} else if (this.isCasting()) {
+			const decidedActions = this.getDecidedAction();
+			sourceAction = decidedActions ? decidedActions.at(0) : null;
+			this._casting = false;
+			this.setCastTimeCountdown(0);
+		}
+		if (!sourceAction) return;
+		const penaltyPct = isSelfInterrupt ? 100 : magnifierPct;
+		const penalty = sourceAction.getCooldown() * (penaltyPct / 100);
+		$jabsEngine.applyCooldownValueForSkill(this, sourceAction, penalty);
+		this.clearDecidedAction();
 	}
 	/**
 	* Updates the timer for "engagement".
@@ -13478,11 +14086,17 @@ var JABS_Battler = class JABS_Battler {
 		if (executeEffects.length === 0) return;
 		const forEacher = (executeEffect) => {
 			const { skillId } = executeEffect;
-			if (executeEffect.shouldTrigger() === false) return;
-			if (jabsAttacker) {
-				$jabsEngine.forceMapAction(this, skillId, false, jabsAttacker.getX(), jabsAttacker.getY());
-			} else {
-				$jabsEngine.forceMapAction(this, skillId, false);
+			const evaderBattler = this.getBattler();
+			const skill = executeEffect.baseSkill(evaderBattler);
+			const positiveRolls = 1 + evaderBattler.getPositiveRollsForSkill(skill);
+			const negativeRolls = evaderBattler.getNegativeRollsForSkill(skill);
+			const procCount = executeEffect.resolveProcCount(positiveRolls, negativeRolls, evaderBattler);
+			for (let i = 0; i < procCount; i++) {
+				if (jabsAttacker) {
+					$jabsEngine.forceMapAction(this, skillId, false, jabsAttacker.getX(), jabsAttacker.getY());
+				} else {
+					$jabsEngine.forceMapAction(this, skillId, false);
+				}
 			}
 		};
 		executeEffects.forEach(forEacher, this);
@@ -13806,26 +14420,31 @@ var JABS_Battler = class JABS_Battler {
 		return true;
 	}
 	/**
-	* Frames between regeneration ticks at 60fps.
-	* 30 frames = 2 ticks/sec (was 15 = 4/sec); per-tick amounts are scaled so per-second totals match legacy behavior.
-	*/
-	static REGEN_TICK_INTERVAL_FRAMES = 30;
-	/**
-	* Divisor converting per-five state slip tag totals into per-tick application at 2 ticks/sec.
-	* Legacy used 20 at 4 ticks/sec; halving tick rate requires halving the divisor to preserve DPS.
-	*/
-	static STATE_SLIP_PER_TICK_DIVISOR = 10;
-	/**
-	* Natural HRG/MRG/TRG is applied each regen tick; doubling per tick compensates for half the tick rate.
-	*/
-	static NATURAL_REGEN_TICK_SCALE = 2;
-	/**
-	* Updates all regenerations and ticks twice per second (60fps: every 30 frames).
+	* Updates all regenerations. Ticks at a dynamically-resolved interval instead of a fixed rate-
+	* natural HRG/MRG/TRG is typed as {@link J_AbsPluginMetadata.NaturalRegenTickType} so the same
+	* flat/percent tick speed modifiers that affect state slip ticking can reach it too.
 	*/
 	updateRegen() {
 		if (!this.canUpdateRegen()) return;
 		this.performRegeneration();
-		this.setRegenCounter(JABS_Battler.REGEN_TICK_INTERVAL_FRAMES);
+		this.setRegenCounter(this.getNaturalRegenTickInterval());
+	}
+	/**
+	* Resolves how many frames elapse between natural regeneration ticks for this battler.<br/>
+	* Uses the same base-plus-flat-then-percent formula as per-state slip ticking, evaluated
+	* against this battler itself (natural regen has no external "source" to speak of), and typed
+	* as the plugin-configured natural regen tick type so type-scoped modifiers can reach it.
+	* @returns {number}
+	*/
+	getNaturalRegenTickInterval() {
+		const battler = this.getBattler();
+		const naturalRegenType = J.ABS.Metadata.NaturalRegenTickType;
+		const baseInterval = J.ABS.Metadata.DefaultStateTickInterval;
+		const flatModifier = battler.tickSpeedFlatModifier();
+		const percentModifier = battler.tickSpeedPercentModifier([naturalRegenType]);
+		const modifiedInterval = (baseInterval + flatModifier) / (1 + percentModifier / 100);
+		const tunableFloor = Math.max(J.ABS.Metadata.MinimumStateTickInterval, 1);
+		return Math.max(Math.round(modifiedInterval), tunableFloor);
 	}
 	/**
 	* Determines whether or not the regeneration can be updated.
@@ -13871,18 +14490,17 @@ var JABS_Battler = class JABS_Battler {
 		this._regenCounter = count;
 	}
 	/**
-	* Performs the full suite of possible regenerations handled by JABS.
-	*
-	* This includes both natural and tag/state-driven regenerations.
+	* Performs the natural regeneration handled by JABS, and prunes any orphaned states found
+	* along the way. State slip ticking no longer happens here- each {@link JABS_State} now
+	* ticks on its own dynamically-resolved cadence and calls {@link #processStateTick} directly.
 	*/
 	performRegeneration() {
 		const battler = this.getBattler();
 		if (!battler) return;
 		this.processNaturalRegens();
-		let states = battler.allStates();
+		const states = battler.allStates();
 		if (!states.length) return;
-		states = states.filter(this.shouldProcessState, this);
-		this.processStateRegens(states);
+		states.forEach(this.shouldProcessState, this);
 	}
 	/**
 	* Processes the natural regeneration of this battler.
@@ -13926,7 +14544,7 @@ var JABS_Battler = class JABS_Battler {
 		const battler = this.getBattler();
 		if (battler.hp < battler.mhp) {
 			const { hrg, rec } = battler;
-			const naturalHp5 = this.calculatedRegen(hrg, isReduced) * rec * JABS_Battler.NATURAL_REGEN_TICK_SCALE;
+			const naturalHp5 = this.calculatedRegen(hrg, isReduced) * rec;
 			battler.gainHp(naturalHp5);
 		}
 	}
@@ -13937,7 +14555,7 @@ var JABS_Battler = class JABS_Battler {
 		const battler = this.getBattler();
 		if (battler.mp < battler.mmp) {
 			const { mrg, rec } = battler;
-			const naturalMp5 = this.calculatedRegen(mrg, isReduced) * rec * JABS_Battler.NATURAL_REGEN_TICK_SCALE;
+			const naturalMp5 = this.calculatedRegen(mrg, isReduced) * rec;
 			battler.gainMp(naturalMp5);
 		}
 	}
@@ -13948,45 +14566,37 @@ var JABS_Battler = class JABS_Battler {
 		const battler = this.getBattler();
 		if (battler.tp < battler.maxTp()) {
 			const { trg, rec } = battler;
-			const naturalTp5 = this.calculatedRegen(trg, isReduced) * rec * JABS_Battler.NATURAL_REGEN_TICK_SCALE;
+			const naturalTp5 = this.calculatedRegen(trg, isReduced) * rec;
 			battler.gainTp(naturalTp5);
 		}
 	}
 	/**
-	* Processes all regenerations derived from state tags.
-	* Applies slip per state so hooks can attribute popup metadata (state id).
-	* Per-second slip totals match legacy aggregate math (divisor 10 at 2 ticks/sec vs 20 at 4 ticks/sec).
-	* @param {RPG_State[]} states The filtered list of states to parse.
+	* Applies a single slip/regen tick for one state. Called by the owning {@link JABS_State}
+	* whenever its own dynamically-resolved tick counter elapses- there is no longer a shared
+	* battler-wide divisor, so a state ticking faster than another deals/heals proportionally more
+	* over time. That's the intended power lever of a faster tick speed.
+	* @param {RPG_State} state The state whose slip tags should be applied for this tick.
 	*/
-	processStateRegens(states) {
+	processStateTick(state) {
 		const battler = this.getBattler();
+		if (!battler || battler.isDead()) return;
 		const { rec } = battler;
-		const slipDivisor = JABS_Battler.STATE_SLIP_PER_TICK_DIVISOR;
-		for (const state of states) {
-			const hpRaw = this.stateSlipHp(state);
-			const mpRaw = this.stateSlipMp(state);
-			const tpRaw = this.stateSlipTp(state);
-			const perResource = [
-				hpRaw,
-				mpRaw,
-				tpRaw
-			];
-			for (let index = 0; index < 3; index++) {
-				let regen = perResource[index];
-				if (!regen) {
-					continue;
-				}
-				if (regen > 0) {
-					regen *= rec;
-				}
-				regen /= slipDivisor;
-				if (!regen) {
-					continue;
-				}
-				this.applySlipEffect(regen, index);
-				const displayAmount = -regen;
-				this.onSlipRegenTick(displayAmount, index, state.id);
+		const perResource = [
+			this.stateSlipHp(state),
+			this.stateSlipMp(state),
+			this.stateSlipTp(state)
+		];
+		for (let index = 0; index < 3; index++) {
+			let regen = perResource[index];
+			if (!regen) {
+				continue;
 			}
+			if (regen > 0) {
+				regen *= rec;
+			}
+			this.applySlipEffect(regen, index);
+			const displayAmount = -regen;
+			this.onSlipRegenTick(displayAmount, index, state.id);
 		}
 	}
 	/**
@@ -14126,7 +14736,7 @@ var JABS_Battler = class JABS_Battler {
 	* Hook after slip/regen math is applied; extensions may show pops or other feedback.
 	* @param {number} displayAmount Amount passed to popup builders after sign normalization.
 	* @param {0|1|2} type HP / MP / TP index.
-	* @param {number} [stateId] Database state id when this tick came from {@link #processStateRegens}.
+	* @param {number} [stateId] Database state id when this tick came from {@link #processStateTick}.
 	*/
 	onSlipRegenTick(_displayAmount, _type, _stateId) {}
 	/**
@@ -14589,6 +15199,11 @@ var JABS_State = class {
 	*/
 	#spreadTickCounter = 0;
 	/**
+	* Frames until the next slip/regen tick for this tracked state.
+	* @type {number}
+	*/
+	#tickCounter = 0;
+	/**
 	* Constructor.
 	* @param {Game_Battler} battler The battler afflicted.
 	* @param {number} stateId The id of the state being applied to the battler.
@@ -14606,6 +15221,7 @@ var JABS_State = class {
 		this.source = source;
 		this.setBaseDuration(duration);
 		this.#spreadTickCounter = this.getSpreadTickInterval();
+		this.#tickCounter = this.getTickInterval();
 		this.expired = false;
 	}
 	/**
@@ -14651,7 +15267,7 @@ var JABS_State = class {
 	*/
 	update() {
 		this.handleCounters();
-		this.handleStackLossFromDuration();
+		this.handleStackChangeFromDuration();
 		this.handleExpiration();
 		this.handleDiminishedRefresh();
 	}
@@ -14663,6 +15279,7 @@ var JABS_State = class {
 		this.decrementRefreshResetCounter();
 		this.decrementDuration();
 		this.decrementSpreadTickCounter();
+		this.decrementTickCounter();
 	}
 	/**
 	* Decrements the refresh reset counter as-needed.
@@ -14694,23 +15311,41 @@ var JABS_State = class {
 		}
 	}
 	/**
-	* Handles stack loss from duration.
+	* Handles stack changes from duration expiring: states normally lose a stack (or all stacks),
+	* but a state tagged {@code <stackOnExpire>} gains a stack instead and re-arms itself
+	* indefinitely, with no external reapplication required.
 	*/
-	handleStackLossFromDuration() {
-		if (this.canLoseStackFromDuration() === false) return;
-		const loseAllStacksAtOnce = this.source.state(this.stateId).jabsLoseAllStacksAtOnce;
+	handleStackChangeFromDuration() {
+		if (this.canChangeStackFromDuration() === false) return;
+		const stateRow = this.source.state(this.stateId);
+		if (stateRow.jabsStackOnExpire === true) {
+			this.applyStackGain(1);
+			this.refreshDuration();
+			return;
+		}
+		const loseAllStacksAtOnce = stateRow.jabsLoseAllStacksAtOnce;
 		const stacksLossCount = loseAllStacksAtOnce === true ? this.stackCount : 1;
 		this.decrementStacks(stacksLossCount);
 	}
 	/**
-	* Determines whether or not this state can lose stacks from duration.
+	* Determines whether or not this state can gain or lose stacks from duration expiring.
 	* @returns {boolean} True if it can, false otherwise.
 	*/
-	canLoseStackFromDuration() {
+	canChangeStackFromDuration() {
 		if (this.stackCount <= 0) return false;
 		if (this.duration > 0) return false;
 		if (this.hasEternalDuration()) return false;
 		return true;
+	}
+	/**
+	* Gains stacks on this tracked state, then rolls for stack-conversion. Shared by both
+	* externally-triggered stacking ({@link JABS_Engine#stackJabsState}) and self-accumulation
+	* ({@link #handleStackChangeFromDuration}) so both paths get conversion-at-threshold support.
+	* @param {number} amount The number of stacks to gain; defaults to 1.
+	*/
+	applyStackGain(amount = 1) {
+		this.incrementStacks(amount);
+		$jabsEngine.checkStackConversion(this);
 	}
 	/**
 	* Refreshes the duration of the state based on its original duration.
@@ -14847,6 +15482,60 @@ var JABS_State = class {
 			return stateRow.jabsSpreadTickFrames;
 		}
 		return J.ABS.Metadata.DefaultStateSpreadTickInterval;
+	}
+	/**
+	* Decrements this state's own slip/regen tick counter and fires a tick when it reaches zero.
+	* Unlike the legacy battler-wide regen counter, every tracked state resolves and counts down
+	* its own interval, so different states can tick at entirely different speeds.
+	*/
+	decrementTickCounter() {
+		if (this.#tickCounter > 0) {
+			this.#tickCounter--;
+		}
+		if (this.#tickCounter === 0) {
+			this.resetTickCounter();
+			this.handleTick();
+		}
+	}
+	/**
+	* Resets the slip/regen tick counter to the freshly-resolved interval for this state.
+	* Resolving on every reset (rather than once at creation) means battler-wide or type-scoped
+	* tick speed modifiers gained/lost mid-affliction take effect at the next tick boundary.
+	*/
+	resetTickCounter() {
+		this.#tickCounter = this.getTickInterval();
+	}
+	/**
+	* Resolves how many frames elapse between slip/regen ticks for this tracked state.<br/>
+	* Base interval is this state's own {@code <thisTickSpeed:N>} override if present, otherwise
+	* the plugin's global default. That base is then adjusted by every flat and percent tick speed
+	* modifier currently affecting the state's source (the battler who applied it), where percent
+	* modifiers include both the battler-wide total and every type-scoped modifier matching one of
+	* this state's own {@code <type:CLASSIFIER>} tags. The result is floored at both a hardcoded
+	* absolute minimum and the plugin's tunable minimum.
+	* @returns {number}
+	*/
+	getTickInterval() {
+		const stateRow = this.source.state(this.stateId);
+		const baseInterval = stateRow.jabsThisTickSpeed > 0 ? stateRow.jabsThisTickSpeed : J.ABS.Metadata.DefaultStateTickInterval;
+		const flatModifier = this.source.tickSpeedFlatModifier();
+		const percentModifier = this.source.tickSpeedPercentModifier(stateRow.stateTypes());
+		const modifiedInterval = (baseInterval + flatModifier) / (1 + percentModifier / 100);
+		const tunableFloor = Math.max(J.ABS.Metadata.MinimumStateTickInterval, 1);
+		return Math.max(Math.round(modifiedInterval), tunableFloor);
+	}
+	/**
+	* Applies a single slip/regen tick for this state. Delegates the actual math and resource
+	* application to the map battler wrapper, which owns the slip tag parsing and the
+	* {@link JABS_Battler#onSlipRegenTick} popup hook.
+	*/
+	handleTick() {
+		if (this.expired === true) return;
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		if (!this.battler) return;
+		const carrier = JABS_AiManager.getBattlerByUuid(this.battler.getUuid());
+		if (!carrier) return;
+		carrier.processStateTick(this.source.state(this.stateId));
 	}
 	/**
 	* Attempts to spread this state to nearby battlers when the state row defines a spread rule.
@@ -15173,7 +15862,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 		if (JABS_InputAdapter.#isGlobalCooldownBlockingSkill(jabsBattler, actions[0].getBaseSkill().id)) {
 			return false;
 		}
-		if (jabsBattler.isCasting()) return false;
+		if (jabsBattler.isCastingOrChanneling()) return false;
 		return true;
 	}
 	/**
@@ -15203,7 +15892,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 		if (JABS_InputAdapter.#isGlobalCooldownBlockingSkill(jabsBattler, actions[0].getBaseSkill().id)) {
 			return false;
 		}
-		if (jabsBattler.isCasting()) return false;
+		if (jabsBattler.isCastingOrChanneling()) return false;
 		return true;
 	}
 	/**
@@ -15292,7 +15981,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 			return false;
 		}
 		if (!jabsBattler.isSkillTypeCooldownReady(slot)) return false;
-		if (jabsBattler.isCasting()) return false;
+		if (jabsBattler.isCastingOrChanneling()) return false;
 		const combatActions = jabsBattler.getAttackData(slot);
 		if (combatActions.length === 0) return false;
 		if (JABS_InputAdapter.#isGlobalCooldownBlockingSkill(jabsBattler, combatActions[0].getBaseSkill().id)) {
@@ -16216,8 +16905,7 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	stackJabsState(jabsState, newJabsState) {
 		const addedStackAmount = newJabsState.stackCount;
-		jabsState.incrementStacks(addedStackAmount);
-		this.checkStackConversion(jabsState);
+		jabsState.applyStackGain(addedStackAmount);
 		jabsState.setBaseDuration(newJabsState.duration);
 		this.refreshJabsState(jabsState, newJabsState);
 	}
@@ -17112,8 +17800,25 @@ var JABS_Engine = class JABS_Engine {
 	* @param {JABS_Action} action The JABS action to execute.
 	*/
 	applyPlayerCooldowns(caster, action) {
+		const skill = action.getBaseSkill();
+		this.applyCooldownValueForSkill(caster, action, action.getCooldown());
+		if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(skill)) {
+			const gcdFrames = JABS_GlobalCooldown.framesForSkill(skill);
+			const reducedFrames = JABS_GlobalCooldown.reducedFramesForCaster(caster, gcdFrames);
+			caster.setCooldownCounter(J.ABS.Globals.GlobalCooldownKey, reducedFrames);
+		}
+	}
+	/**
+	* Stamps a specific cooldown value onto whichever slot(s) the given action's skill occupies.
+	* Shared between normal post-execution cooldown application (using the skill's own effective
+	* cooldown) and interrupt cooldown penalties (using a scaled value)- both need the identical
+	* unique-vs-shared-cooldown slot resolution, just with a different value to apply.
+	* @param {JABS_Battler} caster The battler whose cooldown(s) to stamp.
+	* @param {JABS_Action} action The JABS action whose skill/cooldown-type is being stamped.
+	* @param {number} cooldownValue The cooldown duration, in frames, to apply.
+	*/
+	applyCooldownValueForSkill(caster, action, cooldownValue) {
 		const cooldownType = action.getCooldownType();
-		const cooldownValue = action.getCooldown();
 		const skill = action.getBaseSkill();
 		if (skill.jabsUniqueCooldown || this.isBasicAttack(cooldownType)) {
 			caster.setCooldownCounter(cooldownType, cooldownValue);
@@ -17127,11 +17832,6 @@ var JABS_Engine = class JABS_Engine {
 					this.applyComboModeForSkill(caster, skillSlot.key, skill);
 				}
 			});
-		}
-		if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(skill)) {
-			const gcdFrames = JABS_GlobalCooldown.framesForSkill(skill);
-			const reducedFrames = JABS_GlobalCooldown.reducedFramesForCaster(caster, gcdFrames);
-			caster.setCooldownCounter(J.ABS.Globals.GlobalCooldownKey, reducedFrames);
 		}
 	}
 	/**
@@ -17433,6 +18133,7 @@ var JABS_Engine = class JABS_Engine {
 			this.checkComboSequence(caster, action);
 		}
 		this.checkKnockback(action, target);
+		this.checkInterrupt(action, target);
 		this.triggerAlert(caster, target);
 		if (JABS_TeamRules.isOpposed(caster.getTeam(), target.getTeam())) {
 			caster.setBattlerLastHit(target);
@@ -17458,6 +18159,11 @@ var JABS_Engine = class JABS_Engine {
 		let knockback = action.getKnockback();
 		if (knockback === null) return;
 		knockback *= (100 - targetKnockbackResist) / 100;
+		const caster = action.getCaster();
+		const proximityBonusPct = this.getProximityKnockbackBonusPct(caster);
+		if (proximityBonusPct !== 0) {
+			knockback *= 1 + proximityBonusPct / 100;
+		}
 		const targetSprite = target.getCharacter();
 		if (knockback === 0 || action.isDirectAction()) {
 			targetSprite.jump(0, 0);
@@ -17481,39 +18187,31 @@ var JABS_Engine = class JABS_Engine {
 				xPlus += Math.ceil(knockback);
 				break;
 		}
-		const maxX = targetSprite.x + xPlus;
-		const maxY = targetSprite.y + yPlus;
-		let realX = targetSprite.x;
-		let realY = targetSprite.y;
-		let canPass = true;
-		while (canPass && (realX !== maxX || realY !== maxY)) {
-			switch (knockbackDirection) {
-				case J.ABS.Directions.UP:
-					realY--;
-					canPass = targetSprite.canPass(realX, realY, knockbackDirection);
-					if (!canPass) realY++;
-					break;
-				case J.ABS.Directions.DOWN:
-					realY++;
-					canPass = targetSprite.canPass(realX, realY, knockbackDirection);
-					if (!canPass) realY--;
-					break;
-				case J.ABS.Directions.LEFT:
-					realX--;
-					canPass = targetSprite.canPass(realX, realY, knockbackDirection);
-					if (!canPass) realX++;
-					break;
-				case J.ABS.Directions.RIGHT:
-					realX++;
-					canPass = targetSprite.canPass(realX, realY, knockbackDirection);
-					if (!canPass) realX--;
-					break;
-				default:
-					canPass = false;
-					break;
-			}
+		if (action.getBaseSkill().jabsIgnoreTerrain) {
+			targetSprite.jump(xPlus, yPlus);
+			return;
 		}
-		targetSprite.jump(realX - targetSprite.x, realY - targetSprite.y);
+		const knockbackDistance = Math.max(Math.abs(xPlus), Math.abs(yPlus));
+		const [dx, dy] = targetSprite.walkInDirectionClamped(knockbackDirection, knockbackDistance);
+		targetSprite.jump(dx, dy);
+	}
+	/**
+	* Checks whether this landed hit should interrupt the target's in-flight cast/channel.
+	* Requires the attacking skill to carry `<interrupt:MAGNIFIER>`, and the target to be neither
+	* skill-specifically immune (`<thisCannotBeInterrupted>` on its own in-flight skill) nor
+	* battler-wide immune (`<cannotBeInterrupted>` from any of its own note sources).
+	* @param {JABS_Action} action The action that just landed a hit.
+	* @param {JABS_Battler} target The map battler that was hit.
+	*/
+	checkInterrupt(action, target) {
+		if (!target.isCastingOrChanneling()) return;
+		const magnifier = action.getBaseSkill().jabsInterruptMagnifier;
+		if (!magnifier) return;
+		const decidedActions = target.getDecidedAction();
+		const interruptedSkill = decidedActions ? decidedActions.at(0).getBaseSkill() : null;
+		if (interruptedSkill && interruptedSkill.jabsThisCannotBeInterrupted) return;
+		if (target.getBattler().isImmuneToInterrupt()) return;
+		target.interrupt(magnifier, false);
 	}
 	canBeKnockedBack(action, target) {
 		if (target.getCharacter().isJumping()) {
@@ -17523,6 +18221,24 @@ var JABS_Engine = class JABS_Engine {
 			return false;
 		}
 		return true;
+	}
+	/**
+	* Computes the total knockback percent bonus from every `<proximityKnockback:[RADIUS, PCT]>`
+	* tag on the caster's own notes, each scaled by however many opposing battlers are currently
+	* within that specific tag's radius. Multiple tags (different sources, different radii) all
+	* contribute independently and sum together.
+	* @param {JABS_Battler} caster The battler executing the knockback-dealing action.
+	* @returns {number} The total percent bonus to apply to outgoing knockback; 0 if untagged.
+	*/
+	getProximityKnockbackBonusPct(caster) {
+		const allPairs = caster.getBattler().getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.ProximityKnockback));
+		if (!allPairs.length) return 0;
+		let totalPct = 0;
+		allPairs.forEach(([radius, percent]) => {
+			const nearbyEnemyCount = JABS_AiManager.getOpposingBattlersWithinRange(caster, radius).length;
+			totalPct += percent * nearbyEnemyCount;
+		});
+		return totalPct;
 	}
 	/**
 	* Determines if there is a combo action that should succeed this skill.
@@ -17586,14 +18302,14 @@ var JABS_Engine = class JABS_Engine {
 	}
 	/**
 	* Whether implicit (facing + GRD vs HIT) parry may roll for this target.
-	* While guarding, only explicit timed parry applies; casting and dashing
+	* While guarding, only explicit timed parry applies; casting/channeling and dashing
 	* suppress implicit parry only.
 	* @param {JABS_Battler} target The defender.
 	* @returns {boolean} True if implicit parry is allowed this frame.
 	*/
 	canAttemptImplicitParry(target) {
 		if (target.guarding()) return false;
-		if (target.isCasting()) return false;
+		if (target.isCastingOrChanneling()) return false;
 		const character = target.getCharacter();
 		if (character && character.isDashing()) return false;
 		return true;
@@ -17618,14 +18334,10 @@ var JABS_Engine = class JABS_Engine {
 		const rawChance = JABS_Engine.implicitParryChancePercent(caster, target, ignoreParryPercent);
 		const scaleFactor = J.ABS.Metadata.ImplicitParryScaleFactor;
 		const parryChancePercent = Math.round(rawChance * scaleFactor);
-		if (parryChancePercent >= 100) {
-			return true;
-		}
-		if (parryChancePercent <= 0) {
-			return false;
-		}
-		const rng = Math.randomInt(100) + 1;
-		return rng <= parryChancePercent;
+		const defenderBattler = target.getBattler();
+		const defenderPositiveRolls = defenderBattler.getPositiveRolls();
+		const attackerNegativeRolls = caster.getBattler().getNegativeRollsForSkill(action.getBaseSkill());
+		return RPGManager.fateOf100(defenderBattler, parryChancePercent, 1 + defenderPositiveRolls, attackerNegativeRolls);
 	}
 	/**
 	* Calculates whether the implicit parry roll succeeds as a glancing blow.
@@ -17642,14 +18354,10 @@ var JABS_Engine = class JABS_Engine {
 		}
 		const ignoreParryPercent = action.getBaseSkill().jabsIgnoreParry ?? 0;
 		const glancingChancePercent = JABS_Engine.glancingBlowChancePercent(caster, target, ignoreParryPercent);
-		if (glancingChancePercent >= 100) {
-			return true;
-		}
-		if (glancingChancePercent <= 0) {
-			return false;
-		}
-		const rng = Math.randomInt(100) + 1;
-		return rng <= glancingChancePercent;
+		const defenderBattler = target.getBattler();
+		const defenderPositiveRolls = defenderBattler.getPositiveRolls();
+		const attackerNegativeRolls = caster.getBattler().getNegativeRollsForSkill(action.getBaseSkill());
+		return RPGManager.fateOf100(defenderBattler, glancingChancePercent, 1 + defenderPositiveRolls, attackerNegativeRolls);
 	}
 	/**
 	* Prerequisites for implicit defensive events: {@link #checkImplicitFullParry} and
@@ -17774,8 +18482,11 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	handleAutoCounter(battler) {
 		if (!this.canAutoCounter(battler)) return;
-		const autoCounterChance = battler.getBattler().cnt * 100;
-		const shouldAutoCounter = RPGManager.chanceIn100(autoCounterChance);
+		const counterBattler = battler.getBattler();
+		const positiveRolls = 1 + counterBattler.getPositiveRolls();
+		const negativeRolls = counterBattler.getNegativeRolls();
+		const autoCounterChance = counterBattler.cnt * 100;
+		const shouldAutoCounter = RPGManager.fateOf100(counterBattler, autoCounterChance, positiveRolls, negativeRolls);
 		if (shouldAutoCounter) {
 			this.doAutoCounter(battler, JABS_Button.Offhand);
 		}
@@ -17852,26 +18563,32 @@ var JABS_Engine = class JABS_Engine {
 		const { hpDamage, mpDamage, tpDamage } = retaliator.getBattler().result();
 		retaliationSkills.forEach((skillChance) => {
 			if (!skillChance.matchesHitType(incomingHitType)) return;
-			if (!skillChance.shouldTrigger()) return;
-			const retaliationActions = retaliator.createJabsActionFromSkill(skillChance.skillId, JABS_ActionOptions.Builder().setIsRetaliation(true).build());
-			retaliationActions.forEach((retaliationAction) => retaliationAction.getAction().setTriggerDamage(hpDamage, mpDamage, tpDamage));
-			const attackerBattler = triggeringAction.getCaster();
-			const attackerDistance = retaliator.distanceToDesignatedTarget(attackerBattler);
-			const directRetaliationActions = retaliationActions.filter((a) => a.isDirectAction());
-			const blockedByProximity = directRetaliationActions.some((a) => attackerDistance > a.getProximity());
-			if (blockedByProximity) return;
-			const isAnyDirect = retaliationActions.some((a) => a.isDirectAction());
-			if (isAnyDirect) {
-				const attackerX = triggeringAction.getCaster().getX();
-				const attackerY = triggeringAction.getCaster().getY();
-				const frozenLocation = JABS_Location.Builder().setX(attackerX).setY(attackerY).build();
-				const frozenOptions = JABS_ActionOptions.Builder().setIsRetaliation(true).setLocation(frozenLocation).setRetaliationTarget(triggeringAction.getCaster()).build();
-				retaliationActions.forEach((a) => a.setActionOptions(frozenOptions));
-			}
-			const targetX = isAnyDirect ? triggeringAction.getCaster().getX() : null;
-			const targetY = isAnyDirect ? triggeringAction.getCaster().getY() : null;
-			if (this.canExecuteMapActions(retaliator, retaliationActions)) {
-				retaliationActions.forEach((retaliationAction) => this.executeMapAction(retaliator, retaliationAction, targetX, targetY));
+			const retaliatorBattler = retaliator.getBattler();
+			const skill = skillChance.baseSkill(retaliatorBattler);
+			const positiveRolls = 1 + retaliatorBattler.getPositiveRollsForSkill(skill);
+			const negativeRolls = retaliatorBattler.getNegativeRollsForSkill(skill);
+			const procCount = skillChance.resolveProcCount(positiveRolls, negativeRolls, retaliatorBattler);
+			for (let i = 0; i < procCount; i++) {
+				const retaliationActions = retaliator.createJabsActionFromSkill(skillChance.skillId, JABS_ActionOptions.Builder().setIsRetaliation(true).build());
+				retaliationActions.forEach((retaliationAction) => retaliationAction.getAction().setTriggerDamage(hpDamage, mpDamage, tpDamage));
+				const attackerBattler = triggeringAction.getCaster();
+				const attackerDistance = retaliator.distanceToDesignatedTarget(attackerBattler);
+				const directRetaliationActions = retaliationActions.filter((a) => a.isDirectAction());
+				const blockedByProximity = directRetaliationActions.some((a) => attackerDistance > a.getProximity());
+				if (blockedByProximity) continue;
+				const isAnyDirect = retaliationActions.some((a) => a.isDirectAction());
+				if (isAnyDirect) {
+					const attackerX = triggeringAction.getCaster().getX();
+					const attackerY = triggeringAction.getCaster().getY();
+					const frozenLocation = JABS_Location.Builder().setX(attackerX).setY(attackerY).build();
+					const frozenOptions = JABS_ActionOptions.Builder().setIsRetaliation(true).setLocation(frozenLocation).setRetaliationTarget(triggeringAction.getCaster()).build();
+					retaliationActions.forEach((a) => a.setActionOptions(frozenOptions));
+				}
+				const targetX = isAnyDirect ? triggeringAction.getCaster().getX() : null;
+				const targetY = isAnyDirect ? triggeringAction.getCaster().getY() : null;
+				if (this.canExecuteMapActions(retaliator, retaliationActions)) {
+					retaliationActions.forEach((retaliationAction) => this.executeMapAction(retaliator, retaliationAction, targetX, targetY));
+				}
 			}
 		});
 	}
@@ -18045,6 +18762,7 @@ var JABS_Engine = class JABS_Engine {
 		const actionSprite = jabsAction.getActionSprite();
 		const range = jabsAction.getRange() ?? (jabsAction.isDirectAction() ? 1 : null);
 		const shape = jabsAction.getShape();
+		const innerRadius = jabsAction.getInnerRadius();
 		const targetsHit = [];
 		let hitOne = false;
 		const queryCandidates = () => {
@@ -18085,7 +18803,7 @@ var JABS_Engine = class JABS_Engine {
 				if (actionSprite) {
 					const sprite = battler.getCharacter();
 					const actionDirection = actionSprite.getJabsAction().direction();
-					const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
+					const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape, innerRadius);
 					if (result) {
 						targetsHit.push(battler);
 						hitOne = true;
@@ -18107,7 +18825,7 @@ var JABS_Engine = class JABS_Engine {
 			}
 			const sprite = battler.getCharacter();
 			const actionDirection = actionSprite.getJabsAction().direction();
-			const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape);
+			const result = this.isTargetWithinRange(actionDirection, sprite, actionSprite, range, shape, innerRadius);
 			if (result) {
 				targetsHit.push(battler);
 				hitOne = true;
@@ -18123,8 +18841,17 @@ var JABS_Engine = class JABS_Engine {
 	* @param {Game_Event} actionEvent The action sprite against the target.
 	* @param {number} range How big the collision shape is.
 	* @param {string} shape The collision formula based on shape.
+	* @param {number} [innerRadius=0] The universal dead zone in tiles; 0 disables it.
 	*/
-	isTargetWithinRange(facing, targetCharacter, actionEvent, range, shape) {
+	isTargetWithinRange(facing, targetCharacter, actionEvent, range, shape, innerRadius = 0) {
+		if (innerRadius > 0) {
+			const innerRadiusPx = innerRadius * $gameMap.tileWidth();
+			const { x: originCx, y: originCy } = JABS_Engine.getActionOriginPixels(actionEvent);
+			const targetRect = JABS_Engine.getBattlerAabbModel(targetCharacter);
+			const dx = targetRect.cx - originCx;
+			const dy = targetRect.cy - originCy;
+			if (dx * dx + dy * dy <= innerRadiusPx * innerRadiusPx) return false;
+		}
 		switch (shape) {
 			case J.ABS.Shapes.Circle: return this.collisionCircle(targetCharacter, actionEvent, range);
 			case J.ABS.Shapes.Rhombus: return this.collisionRhombus(targetCharacter, actionEvent, range);
@@ -18612,7 +19339,7 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	createLootDrops(target, caster) {
 		if (target.isActor()) return;
-		const items = target.getBattler().makeDropItems();
+		const items = target.getBattler().makeDropItems(caster.getBattler());
 		if (items.length === 0) return;
 		items.forEach((item) => this.addLootDropToMap(target.getX(), target.getY(), item));
 	}
@@ -19028,6 +19755,11 @@ var JABS_Action = class JABS_Action {
 	}
 	/**
 	* Sums battler-scoped and skill-note per-connection bonus hits for this action.
+	* Battler-scoped totals already include their own formula contributions (see
+	* {@link Game_Battler#getBonusHitsFromSources}); the skill-note formula is evaluated
+	* here instead, since only this call site has the caster available as eval context.
+	* The combined total is floored once at the end, after every flat and formula source
+	* has been summed, rather than flooring each contribution separately.
 	* @returns {number}
 	*/
 	makeHitsPerConnectionBonus() {
@@ -19036,7 +19768,8 @@ var JABS_Action = class JABS_Action {
 		const hitsGlobal = gameBattler.getBonusHitsGlobal();
 		const hitsBasicOrSkill = isBasicAttack ? gameBattler.getBonusHitsBasic() : gameBattler.getBonusHitsSkill();
 		const hitsFromNote = this._baseSkill.jabsBonusHitsFromSkillNote;
-		const bonusHits = hitsGlobal + hitsBasicOrSkill + hitsFromNote;
+		const hitsFromNoteFormula = RPGManager.getResultFromNoteByRegex(this._baseSkill, J.ABS.RegExp.BonusHitsSkillNoteFormula, 0, gameBattler);
+		const bonusHits = Math.floor(hitsGlobal + hitsBasicOrSkill + hitsFromNote + hitsFromNoteFormula);
 		if (bonusHits < 0) {
 			return 0;
 		}
@@ -19746,6 +20479,7 @@ var JABS_Action = class JABS_Action {
 			facing,
 			degrees,
 			thickness,
+			innerRadius: this.getInnerRadius(),
 			duration,
 			sustained: true,
 			startAlpha: meta.startAlpha,
@@ -19899,6 +20633,13 @@ var JABS_Action = class JABS_Action {
 	*/
 	getKnockback() {
 		return this.getBaseSkill().jabsKnockback;
+	}
+	/**
+	* Gets the inner radius dead zone for this JABS action, in tiles.
+	* @returns {number} The inner radius; defaults to 0 (no dead zone) if not tagged.
+	*/
+	getInnerRadius() {
+		return this.getBaseSkill().jabsInnerRadius ?? 0;
 	}
 	/**
 	* Gets the event id associated with this JABS action from the action map.
@@ -20080,10 +20821,32 @@ var JABS_OnChanceEffect = class {
 	* Dances with RNG to determine if this onChanceEffect was successful or not.
 	* @param {number=} rollForPositive The number of times to try for success; defaults to 1.
 	* @param {number=} rollForNegative The number of times to try and undo success; defaults to 0.
+	* @param {Game_Battler=} positiveRoller The battler whose success this roll is for; when
+	* provided, their `isVeryLucky()`/`isVeryCursed()` fate-override flags are checked first.
+	* Defaults to null, which skips the fate-override check and rolls normally.
 	* @returns {boolean} True if this effect should proc, false otherwise.
 	*/
-	shouldTrigger(rollForPositive = 1, rollForNegative = 0) {
+	shouldTrigger(rollForPositive = 1, rollForNegative = 0, positiveRoller = null) {
+		if (positiveRoller) {
+			return RPGManager.fateOf100(positiveRoller, this.chance, rollForPositive, rollForNegative);
+		}
 		return RPGManager.chanceIn100(this.chance, rollForPositive, rollForNegative);
+	}
+	/**
+	* Resolves how many times this effect's action should execute, folding in the positive-roller's
+	* Accumulate Mode and Encore repeats. Use this instead of {@link #shouldTrigger} at any call
+	* site whose action is repeatable (adding a state, force-executing a skill).
+	* @param {number=} rollForPositive The number of times to try for success; defaults to 1.
+	* @param {number=} rollForNegative The number of times to try and undo success; defaults to 0.
+	* @param {Game_Battler=} positiveRoller The battler whose success this roll is for; when absent,
+	* this falls back to a plain boolean roll with no Accumulate/Encore multiplication.
+	* @returns {number} How many times this effect's action should execute; 0 means it did not proc.
+	*/
+	resolveProcCount(rollForPositive = 1, rollForNegative = 0, positiveRoller = null) {
+		if (!positiveRoller) {
+			return this.shouldTrigger(rollForPositive, rollForNegative) ? 1 : 0;
+		}
+		return RPGManager.resolveProcCount(positiveRoller, this.chance, rollForPositive, rollForNegative);
 	}
 };
 
@@ -21589,6 +22352,15 @@ Object.defineProperty(RPG_Skill.prototype, "jabsProximity", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.Proximity, true);
 } });
 /**
+* The universal dead zone for this skill's hitbox, in tiles. Targets within this many tiles
+* of the action's origin are excluded from collision entirely, regardless of the outer shape's
+* own math- lets a skill carve a hole out of the middle of any hitbox shape.
+* @type {number|null}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsInnerRadius", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.InnerRadius, true);
+} });
+/**
 * A new property for retrieving the JABS actionId from this skill.
 * @type {number}
 */
@@ -21626,6 +22398,16 @@ Object.defineProperty(RPG_Skill.prototype, "jabsKnockback", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.Knockback, true);
 } });
 /**
+* Whether this skill's forced displacement (knockback or pull-forward) should bypass terrain
+* passability entirely, sailing over any tile- pits, gaps, whatever- instead of stopping at the
+* last passable tile. Absent by default, which preserves knockback's existing terrain-respecting
+* behavior.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsIgnoreTerrain", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.IgnoreTerrain);
+} });
+/**
 * A new property for retrieving the JABS castAnimation id from this skill.
 * @type {number}
 */
@@ -21638,6 +22420,49 @@ Object.defineProperty(RPG_Skill.prototype, "jabsCastAnimation", { get: function(
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsCastTime", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.CastTime, true);
+} });
+/**
+* The `[SKILL_ID, TOTAL_DURATION]` pair parsed from this skill's `<channel:[...]>` tag.
+* When present, this skill becomes a "vessel": it pays its own cost once, then repeatedly
+* executes SKILL_ID every {@link RPG_Skill#jabsChannelTickSpeed} frames for TOTAL_DURATION
+* frames- the vessel's own damage/effects are never invoked.
+* @type {[number, number]}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsChannel", { get: function() {
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.RegExp.Channel, true, true) ?? [];
+} });
+/**
+* The number of frames between each repeated execution of a channel's child skill.
+* Falls back to the plugin-configured default when this skill omits its own override.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsChannelTickSpeed", { get: function() {
+	const tickSpeed = RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.ChannelTickSpeed, true);
+	return tickSpeed ?? J.ABS.Metadata.DefaultChannelTickSpeed;
+} });
+/**
+* The skill id(s) to execute for free, once, immediately after a channel completes its full
+* duration uninterrupted. Does not fire if the channel is cut short by {@link JABS_Battler#interrupt}.
+* @type {number[]}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsOnChannelComplete", { get: function() {
+	return RPGManager.getNumbersFromNoteByRegex(this, J.ABS.RegExp.OnChannelComplete);
+} });
+/**
+* Whether or not this specific casting/channeling skill can be self-interrupted by the caster
+* choosing to move. Absent by default, which means moving cancels the cast/channel.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsCannotMoveToInterrupt", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.CannotMoveToInterrupt);
+} });
+/**
+* Whether or not this specific casting/channeling skill can be interrupted by an incoming
+* `<interrupt:MAGNIFIER>` hit, regardless of the caster's own battler-wide immunity.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsThisCannotBeInterrupted", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.ThisCannotBeInterrupted);
 } });
 /**
 * A new property for retrieving the JABS direct from this skill.
@@ -22443,6 +23268,14 @@ Object.defineProperty(RPG_State.prototype, "jabsLoseAllStacksAtOnce", { get: fun
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.LoseAllStacksAtOnce, true) ?? J.ABS.Metadata.DefaultStateLoseAllStacksAtOnce;
 } });
 /**
+* When true, duration expiration gains a stack instead of losing one, indefinitely, with no
+* external reapplication required after the state is first planted on a target.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsStackOnExpire", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.StackOnExpire);
+} });
+/**
 * The state conversion data for this state.<br/>
 * When the stack count reaches the required threshold, the specified state is applied
 * to the afflicted battler as a fresh application.<br/>
@@ -22612,6 +23445,14 @@ Object.defineProperty(RPG_State.prototype, "jabsSlipTpFormulaPerFive", { get: fu
 	return RPGManager.getStringFromNoteByRegex(this, J.ABS.RegExp.SlipTpFormula);
 } });
 /**
+* The base tick interval (in frames) for this state's own slip/regen ticking, overriding the
+* global default before any flat/percent tick speed modifiers are applied.
+* @type {number}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsThisTickSpeed", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.ThisTickSpeed, true) || 0;
+} });
+/**
 * Whether the logs for adding this state show up in the action logs.
 * @type {boolean}
 */
@@ -22724,6 +23565,15 @@ Object.defineProperty(RPG_UsableItem.prototype, "jabsIgnoresGlobalCooldown", { g
 */
 Object.defineProperty(RPG_UsableItem.prototype, "jabsGlobalCooldownOverride", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.GlobalCooldownFrames, true);
+} });
+/**
+* The percent magnifier applied to a target's own effective cooldown when this skill lands a hit
+* against a battler that is casting/channeling and interrupts it. Sentinel `0` means this skill
+* carries no interrupt capability at all- it never disturbs a cast/channel it hits.
+* @type {number}
+*/
+Object.defineProperty(RPG_UsableItem.prototype, "jabsInterruptMagnifier", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.Interrupt);
 } });
 /**
 * Whether or not the skill or item is hidden from the JABS quick menus.
@@ -23037,10 +23887,11 @@ Game_Action.prototype.executeJabsAction = function(target) {
 * @returns {boolean} True if this action was evaded, false otherwise.
 */
 Game_Action.prototype.isHitEvaded = function(target) {
-	const hitRate = Math.random() + this.itemHit();
-	const evadeRate = this.itemEva(target);
-	const evaded = hitRate - evadeRate <= 0;
-	return evaded;
+	const hitChancePercent = (1 + this.itemHit() - this.itemEva(target)) * 100;
+	const attackerPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
+	const targetNegativeRolls = target.getNegativeRolls();
+	const isHit = RPGManager.fateOf100(this.subject(), hitChancePercent, 1 + attackerPositiveRolls, targetNegativeRolls);
+	return isHit === false;
 };
 /**
 * Calculates whether or not this action is a critical hit against the target.
@@ -23048,7 +23899,10 @@ Game_Action.prototype.isHitEvaded = function(target) {
 * @returns {boolean} True if this action was critical, false otherwise.
 */
 Game_Action.prototype.isHitCritical = function(target) {
-	return Math.random() < this.itemCri(target);
+	const attackerPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
+	const targetNegativeRolls = target.getNegativeRolls();
+	const isCritical = RPGManager.fateOf100(this.subject(), this.itemCri(target) * 100, 1 + attackerPositiveRolls, targetNegativeRolls);
+	return isCritical;
 };
 /**
 * Overwrites {@link #itemHit}.<br/>
@@ -23278,6 +24132,23 @@ Game_Action.prototype.itemEffectAddNormalState = function(target, effect) {
 	this.handleApplyState(target, stateId, chance, false);
 };
 /**
+* Overwrites {@link #itemEffectRemoveState}.<br/>
+* Potentially removes the state, leveraging our {@link RPGManager.chanceIn100}.
+* @param {Game_Battler} target The target having the state removed.
+* @param {RPG_UsableEffect} effect The effect containing state data for removal.
+*/
+Game_Action.prototype.itemEffectRemoveState = function(target, effect) {
+	const { value1: chance, dataId: stateId } = effect;
+	const d100 = Math.round(chance * 100);
+	const casterPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
+	const targetNegativeRolls = target.getNegativeRolls();
+	const isRemoved = RPGManager.fateOf100(this.subject(), d100, 1 + casterPositiveRolls, targetNegativeRolls);
+	if (isRemoved === true) {
+		target.removeState(stateId);
+		this.makeSuccess(target);
+	}
+};
+/**
 * Applies a state when the shouldApplyState roll passes for this action.
 * @param {Game_Battler} target The target.
 * @param {number} stateId The id of the state being applied.
@@ -23285,9 +24156,32 @@ Game_Action.prototype.itemEffectAddNormalState = function(target, effect) {
 * @param {boolean} useAttackerStateRate Whether or not the attacker's state rate should apply.
 */
 Game_Action.prototype.handleApplyState = function(target, stateId, chance, useAttackerStateRate) {
-	if (this.shouldApplyState(target, stateId, chance, useAttackerStateRate)) {
+	const procCount = this.resolveApplyStateProcCount(target, stateId, chance, useAttackerStateRate);
+	for (let i = 0; i < procCount; i++) {
 		this.applyStateEffect(target, stateId);
 	}
+};
+/**
+* Calculates the fully-modified d100 chance of applying the given state to the target, shared
+* by both {@link #shouldApplyState} and {@link #resolveApplyStateProcCount}.
+* @param {Game_Battler} target The battler being afflicted with the state.
+* @param {number} stateId The id of the state being applied.
+* @param {number} baseChance The decimal base chance of applying the state.
+* @param {boolean=} useAttackerStateRate Whether or not to apply the attacker's state rate.
+* @returns {number} The rounded base-100 chance of application.
+*/
+Game_Action.prototype.calculateStateApplicationD100 = function(target, stateId, baseChance, useAttackerStateRate = false) {
+	let applicationModifier = 1;
+	if (useAttackerStateRate) {
+		applicationModifier *= this.subject().attackStatesRate(stateId);
+	}
+	if (this.shouldTargetApplyResistances()) {
+		applicationModifier *= target.stateRate(stateId);
+		applicationModifier *= target.stateTypeResistRate(stateId);
+	}
+	applicationModifier *= this.lukEffectRate(target);
+	const calculatedChance = baseChance * applicationModifier;
+	return Math.round(calculatedChance * 100);
 };
 /**
 * Determines whether or not the state should be applied to the target.
@@ -23298,18 +24192,25 @@ Game_Action.prototype.handleApplyState = function(target, stateId, chance, useAt
 * @returns {boolean} True if the state should be applied to the target, false otherwise.
 */
 Game_Action.prototype.shouldApplyState = function(target, stateId, baseChance, useAttackerStateRate = false) {
-	let applicationModifier = 1;
-	if (useAttackerStateRate) {
-		applicationModifier *= this.subject().attackStatesRate(stateId);
-	}
-	if (this.shouldTargetApplyResistances()) {
-		applicationModifier *= target.stateRate(stateId);
-	}
-	applicationModifier *= this.lukEffectRate(target);
-	const calculatedChance = baseChance * applicationModifier;
-	const d100 = Math.round(calculatedChance * 100);
-	const shouldApplyState = RPGManager.chanceIn100(d100);
-	return shouldApplyState;
+	const d100 = this.calculateStateApplicationD100(target, stateId, baseChance, useAttackerStateRate);
+	const casterPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
+	const targetNegativeRolls = target.getNegativeRolls();
+	return RPGManager.fateOf100(this.subject(), d100, 1 + casterPositiveRolls, targetNegativeRolls);
+};
+/**
+* Resolves how many times the state application should execute, folding in the caster's
+* Accumulate Mode and Encore repeats.
+* @param {Game_Battler} target The battler being afflicted with the state.
+* @param {number} stateId The id of the state being applied.
+* @param {number} baseChance The decimal base chance of applying the state.
+* @param {boolean=} useAttackerStateRate Whether or not to apply the attacker's state rate.
+* @returns {number} How many times the state application should execute; 0 means it did not proc.
+*/
+Game_Action.prototype.resolveApplyStateProcCount = function(target, stateId, baseChance, useAttackerStateRate = false) {
+	const d100 = this.calculateStateApplicationD100(target, stateId, baseChance, useAttackerStateRate);
+	const casterPositiveRolls = this.subject().getPositiveRollsForSkill(this.item());
+	const targetNegativeRolls = target.getNegativeRolls();
+	return RPGManager.resolveProcCount(this.subject(), d100, 1 + casterPositiveRolls, targetNegativeRolls);
 };
 /**
 * Determines whether or not the direct application of a state should be
@@ -23335,8 +24236,9 @@ Game_Action.prototype.applyStateEffect = function(target, stateId) {
 /**
 * Applies damage multipliers derived from the current states of the target.
 * Combines perDebuffBuff (per-negative-state bonus), bonusDamageIfState (specific-state bonus),
-* bonusDamageIfStateType (type-classifier presence bonus), and bonusDamagePerStateType
-* (type-classifier count bonus).
+* bonusDamageIfStateType (type-classifier presence bonus), bonusDamagePerStateType
+* (type-classifier count bonus), bonusDamagePerStateStack (named-state stack-depth bonus), and
+* bonusDamageForMyStateCount (authored-distinct-state count bonus).
 * Applied before guard effects so flat guard reduction cannot fully cancel the state-exploitation bonus.
 * @param {number} baseDamage The damage value before state multipliers.
 * @param {Game_Battler} target The target whose states are evaluated.
@@ -23352,7 +24254,10 @@ Game_Action.prototype.applyStateDamageMultipliers = function(baseDamage, target)
 	const thisFlatPct = this.calculateThisBonusDamagePct();
 	const typePresencePct = this.calculateBonusIfStateTypePct(target);
 	const typeCountPct = this.calculatePerStateTypePct(target);
-	const combinedPct = debuffPct + specificPct + thisSpecificPct + selfStatePct + thisSelfStatePct + thisFlatPct + typePresencePct + typeCountPct;
+	const stackDepthPct = this.calculatePerStateStackPct(target);
+	const myStateCountPct = this.calculateBonusForMyStateCountPct(target);
+	const thisMyStateCountPct = this.calculateThisBonusForMyStateCountPct(target);
+	const combinedPct = debuffPct + specificPct + thisSpecificPct + selfStatePct + thisSelfStatePct + thisFlatPct + typePresencePct + typeCountPct + stackDepthPct + myStateCountPct + thisMyStateCountPct;
 	if (combinedPct === 0) return baseDamage;
 	return Math.round(baseDamage * (1 + combinedPct / 100));
 };
@@ -23496,6 +24401,66 @@ Game_Action.prototype.calculatePerStateTypePct = function(target) {
 		totalPct += percent * matchingStateCount;
 	});
 	return totalPct;
+};
+/**
+* Calculates the total damage bonus percent from bonusDamagePerStateStack tags on the caster's
+* notes. Each tag's PCT is multiplied by the current stack count of the one named state on the
+* target, then summed across all tags. Reads the live tracker directly rather than target.states()
+* because that array duplicates entries per stack for visualization- reading it here would double-count.
+* @param {Game_Battler} target The target whose named-state stack count is read.
+* @returns {number} The total bonus percent from all matching named-state tags.
+*/
+Game_Action.prototype.calculatePerStateStackPct = function(target) {
+	const allPairs = this.subject().getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.BonusDamagePerStateStack));
+	if (!allPairs.length) return 0;
+	let totalPct = 0;
+	allPairs.forEach(([stateId, percent]) => {
+		if (!target.isStateAffected(stateId)) return;
+		const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(target.getUuid(), stateId);
+		if (!trackedState) return;
+		totalPct += percent * trackedState.stackCount;
+	});
+	return totalPct;
+};
+/**
+* Counts the target's distinct currently-active states that this battler personally applied.
+* Reads the live tracker map directly (one entry per distinct state id) rather than
+* target.states(), which duplicates entries per stack for visualization.
+* @param {Game_Battler} target The target whose authored states are counted.
+* @returns {number} The count of distinct states on the target authored by this battler.
+*/
+Game_Action.prototype.countTargetStatesAuthoredByCaster = function(target) {
+	const casterUuid = this.subject().getUuid();
+	const trackedStates = $jabsEngine.getJabsStatesByUuid(target.getUuid());
+	let count = 0;
+	trackedStates.forEach((trackedState) => {
+		if (!target.isStateAffected(trackedState.stateId)) return;
+		if (trackedState.source.getUuid() !== casterUuid) return;
+		count++;
+	});
+	return count;
+};
+/**
+* Calculates the total damage bonus percent from bonusDamageForMyStateCount tags on the caster's
+* notes. Lives on a passive state, so it is always active regardless of which skill is executing.
+* @param {Game_Battler} target The target whose authored state count is read.
+* @returns {number} The total bonus percent from this tag type.
+*/
+Game_Action.prototype.calculateBonusForMyStateCountPct = function(target) {
+	const perStatePct = RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.BonusDamageForMyStateCount);
+	if (perStatePct === 0) return 0;
+	return perStatePct * this.countTargetStatesAuthoredByCaster(target);
+};
+/**
+* Calculates the total damage bonus percent from thisBonusDamageForMyStateCount on this action's
+* skill. Reads from this.item() only- fires only when this specific skill is the action resolving.
+* @param {Game_Battler} target The target whose authored state count is read.
+* @returns {number} The total bonus percent from this tag on this skill.
+*/
+Game_Action.prototype.calculateThisBonusForMyStateCountPct = function(target) {
+	const perStatePct = RPGManager.getNumberFromNoteByRegex(this.item(), J.ABS.RegExp.ThisBonusDamageForMyStateCount, true);
+	if (perStatePct === null) return 0;
+	return perStatePct * this.countTargetStatesAuthoredByCaster(target);
 };
 /**
 * Applies any skill history bonuses to the given base damage amount.
@@ -23762,6 +24727,9 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 	this.refreshBonusHits();
 	this.refreshCdr();
 	this.refreshPer();
+	this.refreshPositiveRolls();
+	this.refreshNegativeRolls();
+	this.refreshEncoreRepeats();
 	this.jabsRefresh();
 };
 /**
@@ -24648,6 +25616,25 @@ Game_Battler.prototype.initJabsMembers = function() {
 	* @type {number}
 	*/
 	this._j._abs._per = 0;
+	/**
+	* The cached, unfloored battler-wide positive-reroll total from `<luckyRolls:[FORMULA]>`.
+	* Refreshed by {@link #refreshPositiveRolls} on {@link #onBattlerDataChange}.
+	* @type {number}
+	*/
+	this._j._abs._positiveRolls = 0;
+	/**
+	* The cached, unfloored battler-wide negative-reroll total from `<cursedRolls:[FORMULA]>`.
+	* Refreshed by {@link #refreshNegativeRolls} on {@link #onBattlerDataChange}.
+	* @type {number}
+	*/
+	this._j._abs._negativeRolls = 0;
+	/**
+	* The cached, unfloored bonus repeat count for this battler's repeatable-action procs from
+	* `<encoreRepeats:[FORMULA]>`.
+	* Refreshed by {@link #refreshEncoreRepeats} on {@link #onBattlerDataChange}.
+	* @type {number}
+	*/
+	this._j._abs._encoreRepeats = 0;
 };
 /**
 * The battler's CDR in percent-point space; sourced from all active note sources.
@@ -24803,6 +25790,34 @@ Game_Battler.prototype.getVisionModifier = function() {
 	const constrainedVisionMultiplier = Math.max((baseVisionRate + visionMultiplier) / 100, 0);
 	this.setCachedVisionModifier(constrainedVisionMultiplier);
 	return this.getCachedVisionModifier();
+};
+/**
+* The sum of all flat tick-speed modifiers ({@code <tickSpeedFlat:N>}) currently affecting
+* this battler. Positive values shorten the resolved tick interval; negative values lengthen it.
+* @returns {number}
+*/
+Game_Battler.prototype.tickSpeedFlatModifier = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.TickSpeedFlat);
+};
+/**
+* The sum of all percent tick-speed modifiers currently affecting this battler: the
+* battler-wide {@code <tickSpeedPercent:N>} total, plus every
+* {@code <tickSpeedTypePercent:[TYPE, N]>} whose TYPE matches one of the provided classifiers.
+* Positive values make ticks fire more often; negative values make them fire less often.
+* @param {string[]} types The {@code <type:CLASSIFIER>} tags to match type-scoped modifiers against.
+* @returns {number}
+*/
+Game_Battler.prototype.tickSpeedPercentModifier = function(types = []) {
+	let total = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.TickSpeedPercent);
+	this.getAllNotes().forEach((note) => {
+		const tuples = RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.TickSpeedTypePercent, true);
+		tuples.forEach(([classifier, percent]) => {
+			if (types.includes(classifier)) {
+				total += Number(percent);
+			}
+		});
+	});
+	return total;
 };
 /**
 * All battlers have a default alerted pursuit boost.
@@ -25075,8 +26090,13 @@ Game_Battler.prototype.processOnEvadeStateSelf = function() {
 	const selfEffects = this.onEvadeApplySelfEffects();
 	if (selfEffects.length === 0) return;
 	selfEffects.forEach((stateEffect) => {
-		if (stateEffect.shouldTrigger() === false) return;
-		this.addState(stateEffect.skillId);
+		const skill = stateEffect.baseSkill(this);
+		const positiveRolls = 1 + this.getPositiveRollsForSkill(skill);
+		const negativeRolls = this.getNegativeRollsForSkill(skill);
+		const procCount = stateEffect.resolveProcCount(positiveRolls, negativeRolls, this);
+		for (let i = 0; i < procCount; i++) {
+			this.addState(stateEffect.skillId);
+		}
 	});
 };
 /**
@@ -25087,8 +26107,13 @@ Game_Battler.prototype.processOnEvadeStateAttacker = function(attacker) {
 	const attackerEffects = this.onEvadeApplyAttackerEffects();
 	if (attackerEffects.length === 0) return;
 	attackerEffects.forEach((stateEffect) => {
-		if (stateEffect.shouldTrigger() === false) return;
-		attacker.addState(stateEffect.skillId);
+		const skill = stateEffect.baseSkill(this);
+		const positiveRolls = 1 + this.getPositiveRollsForSkill(skill);
+		const negativeRolls = attacker.getNegativeRolls();
+		const procCount = stateEffect.resolveProcCount(positiveRolls, negativeRolls, this);
+		for (let i = 0; i < procCount; i++) {
+			attacker.addState(stateEffect.skillId);
+		}
 	});
 };
 /**
@@ -25153,6 +26178,98 @@ Game_Battler.prototype.addState = function(stateId, attacker) {
 	this.handleAddingJabsState(stateId, attacker);
 };
 /**
+* Whether or not this battler is immune to absolutely all state application, including the death
+* state. This is a stronger guarantee than {@link #isImmuneToNonDeathStates}- it does not carve
+* out an exception for dying, because there is no dedicated "death" system to intercept; vanilla
+* kills a battler by adding the death state through this exact same pathway.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isImmuneToAllStates = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ImmuneToAll) === true;
+};
+/**
+* Whether or not this battler is immune to all state application except the death state. Carves
+* out that one exception explicitly so that buff/debuff immunity never accidentally grants
+* immortality as a side effect.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isImmuneToNonDeathStates = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ImmuneToStates) === true;
+};
+/**
+* Whether or not this battler is immune to any state carrying the {@code <negative>} (jabsNegative)
+* notetag.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isImmuneToNegativeStates = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ImmuneToNegatives) === true;
+};
+/**
+* Whether or not this battler is immune to being externally interrupted out of a cast/channel by
+* an incoming `<interrupt:MAGNIFIER>` hit, from any of this battler's own note sources (states,
+* equips, class, actor). This does not suppress self-interruption from choosing to move- that axis
+* is controlled per-skill by {@link RPG_Skill#jabsCannotMoveToInterrupt} instead.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isImmuneToInterrupt = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.CannotBeInterrupted) === true;
+};
+/**
+* Collects every {@code <type:CLASSIFIER>} classifier this battler is fully immune to, from every
+* passive-capable note source.
+* @returns {string[]}
+*/
+Game_Battler.prototype.getImmuneStateTypes = function() {
+	return this.getAllNotes().flatMap((note) => RPGManager.getStringsFromNoteByRegex(note, J.ABS.RegExp.StateTypeImmune));
+};
+/**
+* Determines whether or not this battler is immune to the given state by type classifier.
+* @param {RPG_State} state The state row being checked for type-based immunity.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isImmuneToStateByType = function(state) {
+	const immuneTypes = this.getImmuneStateTypes();
+	if (!immuneTypes.length) return false;
+	return state.stateTypes().some((stateType) => immuneTypes.some((immuneType) => immuneType.toLowerCase() === stateType.toLowerCase()));
+};
+/**
+* Sums this battler's {@code <stateTypeResist:[TYPE, PCT]>} tags whose TYPE matches one of the
+* given state's own type classifiers, and converts the total into a multiplicative rate- the same
+* shape as vanilla's per-id {@link Game_BattlerBase#stateRate}, but scoped by type instead of id.
+* @param {number} stateId The database id of the state being rolled for application.
+* @returns {number} A multiplier in the 0-1 range (clamped); 1 means no resistance.
+*/
+Game_Battler.prototype.stateTypeResistRate = function(stateId) {
+	const state = $dataStates[stateId];
+	if (!state || !state.stateTypes().length) return 1;
+	const allPairs = this.getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.StateTypeResist));
+	if (!allPairs.length) return 1;
+	const stateTypes = state.stateTypes();
+	let totalPercent = 0;
+	allPairs.forEach(([type, percent]) => {
+		if (stateTypes.some((stateType) => stateType.toLowerCase() === type.toLowerCase())) {
+			totalPercent += percent;
+		}
+	});
+	return Math.max(1 - totalPercent / 100, 0);
+};
+/**
+* Extends {@link #isStateAddable}.<br/>
+* Gates state application against the new immunity tag family before falling through to
+* whatever this battler's existing eligibility rules (vanilla, passive layer, etc.) decide.
+*/
+J.ABS.Aliased.Game_Battler.set("isStateAddable", Game_Battler.prototype.isStateAddable);
+Game_Battler.prototype.isStateAddable = function(stateId) {
+	if (this.isImmuneToAllStates()) return false;
+	if (stateId !== this.deathStateId() && this.isImmuneToNonDeathStates()) return false;
+	const state = $dataStates[stateId];
+	if (state) {
+		if (state.jabsNegative === true && this.isImmuneToNegativeStates()) return false;
+		if (this.isImmuneToStateByType(state)) return false;
+	}
+	return J.ABS.Aliased.Game_Battler.get("isStateAddable").call(this, stateId);
+};
+/**
 * Handles logic surrounding state application in regards to JABS.
 * @param {number} stateId The state being applied.
 * @param {Game_Actor|Game_Enemy|Game_Battler} attacker The assailant applying the state.
@@ -25167,8 +26284,19 @@ Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker, overr
 	}
 	this.resetStateCounts(stateId, attacker);
 	this.addJabsState(stateId, attacker, overrides);
+	this.onJabsStateInflicted(stateId, attacker);
 	this._result.pushAddedState(stateId);
 };
+/**
+* A no-op hook fired on the afflicted battler whenever an attacker successfully inflicts a state
+* on them, including reapplications. Unlike {@link #onStateAdded}, this fires every time, not just
+* on the first application, and carries the attacker directly rather than requiring a lookup into
+* the JABS state tracker (which is not yet populated for this application at {@link #onStateAdded}
+* time). Extensions may alias this to react to "I just inflicted a state on someone" scenarios.
+* @param {number} _stateId The state id that was just inflicted.
+* @param {Game_Battler} _attacker The battler who inflicted the state.
+*/
+Game_Battler.prototype.onJabsStateInflicted = function(_stateId, _attacker) {};
 /**
 * Extends `removeState()` to also expire the state in the JABS state tracker.
 * @param {number} stateId The state id driving this step.
@@ -25405,6 +26533,8 @@ Game_Battler.prototype.setBonusHitsSkill = function(value) {
 };
 /**
 * Sums scoped per-connection bonus hits from a collection of traited database rows.
+* Includes both the flat-integer tags and their `[FORMULA]` counterparts, the latter
+* evaluated with `a` bound to this battler.
 * @param {RPG_Traited[]|RPG_BaseBattler[]|RPG_Class[]} sources Rows that may carry scoped bonus-hit notes.
 * @returns {{ global: number, basic: number, skill: number }} Totals contributed by this collection.
 */
@@ -25421,7 +26551,149 @@ Game_Battler.prototype.getBonusHitsFromSources = function(sources) {
 		totals.skill += source.jabsBonusHitsScopeSkill;
 	};
 	sources.forEach(collectFromSource);
+	totals.global += RPGManager.getResultsFromAllNotesByRegex(sources, J.ABS.RegExp.BonusHitsScopeGlobalFormula, 0, this);
+	totals.basic += RPGManager.getResultsFromAllNotesByRegex(sources, J.ABS.RegExp.BonusHitsScopeBasicFormula, 0, this);
+	totals.skill += RPGManager.getResultsFromAllNotesByRegex(sources, J.ABS.RegExp.BonusHitsScopeSkillFormula, 0, this);
 	return totals;
+};
+/**
+* The cached, unfloored battler-wide positive-reroll total. Kept unfloored so callers combining
+* this with a this-skill contribution can floor the true combined total once, rather than
+* compounding two separate floors.
+* @returns {number}
+*/
+Game_Battler.prototype.getRawPositiveRolls = function() {
+	return this._j._abs._positiveRolls;
+};
+/**
+* Sets the cached, unfloored battler-wide positive-reroll total.
+* @param {number} value The new total.
+*/
+Game_Battler.prototype.setPositiveRolls = function(value) {
+	this._j._abs._positiveRolls = value;
+};
+/**
+* Recomputes and caches the sum of all `<luckyRolls:[FORMULA]>` contributions from this
+* battler's note sources, each formula evaluated with `a` bound to this battler.
+* Called from {@link Game_Actor#onBattlerDataChange} and {@link Game_Enemy#onBattlerDataChange}.
+*/
+Game_Battler.prototype.refreshPositiveRolls = function() {
+	const newTotal = RPGManager.getResultsFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.LuckyRolls, 0, this);
+	this.setPositiveRolls(newTotal);
+};
+/**
+* The cached, unfloored battler-wide negative-reroll total.
+* @returns {number}
+*/
+Game_Battler.prototype.getRawNegativeRolls = function() {
+	return this._j._abs._negativeRolls;
+};
+/**
+* Sets the cached, unfloored battler-wide negative-reroll total.
+* @param {number} value The new total.
+*/
+Game_Battler.prototype.setNegativeRolls = function(value) {
+	this._j._abs._negativeRolls = value;
+};
+/**
+* Recomputes and caches the sum of all `<cursedRolls:[FORMULA]>` contributions from this
+* battler's note sources, each formula evaluated with `a` bound to this battler.
+* Called from {@link Game_Actor#onBattlerDataChange} and {@link Game_Enemy#onBattlerDataChange}.
+*/
+Game_Battler.prototype.refreshNegativeRolls = function() {
+	const newTotal = RPGManager.getResultsFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.CursedRolls, 0, this);
+	this.setNegativeRolls(newTotal);
+};
+/**
+* The total extra positive rerolls this battler contributes whenever it is the party wanting a
+* `chanceIn100` roll to succeed (e.g. the attacker landing a hit, applying a state, or scoring
+* a critical). Floored once at the end.
+* @returns {number}
+*/
+Game_Battler.prototype.getPositiveRolls = function() {
+	return Math.floor(this.getRawPositiveRolls());
+};
+/**
+* The total extra negative rerolls this battler contributes whenever it is the party wanting a
+* `chanceIn100` roll to fail (e.g. the defender evading a hit, resisting a crit, or resisting a
+* state). Floored once at the end.
+* @returns {number}
+*/
+Game_Battler.prototype.getNegativeRolls = function() {
+	return Math.floor(this.getRawNegativeRolls());
+};
+/**
+* This battler's total positive rerolls while executing the given skill: its own battler-wide
+* `luckyRolls` plus that skill's own `<thisLuckyRolls:[FORMULA]>` bonus, floored once combined-
+* not floored separately and then summed, which would compound rounding error.
+* @param {RPG_UsableItem} skill The skill being executed.
+* @returns {number}
+*/
+Game_Battler.prototype.getPositiveRollsForSkill = function(skill) {
+	const battlerWide = this.getRawPositiveRolls();
+	const thisSkill = RPGManager.getResultFromNoteByRegex(skill, J.ABS.RegExp.ThisLuckyRolls, 0, this);
+	return Math.floor(battlerWide + thisSkill);
+};
+/**
+* This battler's total negative rerolls while executing the given skill: its own battler-wide
+* `cursedRolls` plus that skill's own `<thisCursedRolls:[FORMULA]>` bonus, floored once combined.
+* @param {RPG_UsableItem} skill The skill being executed.
+* @returns {number}
+*/
+Game_Battler.prototype.getNegativeRollsForSkill = function(skill) {
+	const battlerWide = this.getRawNegativeRolls();
+	const thisSkill = RPGManager.getResultFromNoteByRegex(skill, J.ABS.RegExp.ThisCursedRolls, 0, this);
+	return Math.floor(battlerWide + thisSkill);
+};
+/**
+* Whether or not this battler's own on-chance rolls are guaranteed to succeed- a true bypass,
+* not an absurd reroll count. Sourced from any of this battler's own note sources via
+* `<veryLucky>`.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isVeryLucky = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.VeryLucky) === true;
+};
+/**
+* Whether or not this battler's own on-chance rolls are guaranteed to fail- a true bypass, not
+* an absurd reroll count. Sourced from any of this battler's own note sources via `<veryCursed>`.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isVeryCursed = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.VeryCursed) === true;
+};
+/**
+* The cached, floored bonus repeat count for this battler's repeatable-action procs: each
+* individual success executes `1 + getEncoreRepeats()` times instead of once.
+* @returns {number}
+*/
+Game_Battler.prototype.getEncoreRepeats = function() {
+	return Math.floor(this._j._abs._encoreRepeats);
+};
+/**
+* Sets the cached, unfloored bonus repeat count.
+* @param {number} value The new total.
+*/
+Game_Battler.prototype.setEncoreRepeats = function(value) {
+	this._j._abs._encoreRepeats = value;
+};
+/**
+* Recomputes and caches the sum of all `<encoreRepeats:[FORMULA]>` contributions from this
+* battler's note sources, each formula evaluated with `a` bound to this battler.
+* Called from {@link Game_Actor#onBattlerDataChange} and {@link Game_Enemy#onBattlerDataChange}.
+*/
+Game_Battler.prototype.refreshEncoreRepeats = function() {
+	const newTotal = RPGManager.getResultsFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.EncoreRepeats, 0, this);
+	this.setEncoreRepeats(newTotal);
+};
+/**
+* Whether or not this battler's repeatable-action procs are in Accumulate Mode: every positive
+* roll is counted instead of stopping at the first success. Sourced from any of this battler's
+* own note sources via `<accumulate>`.
+* @returns {boolean}
+*/
+Game_Battler.prototype.isAccumulating = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.Accumulate) === true;
 };
 /**
 * Gets the flat tile bonus applied to all outgoing action dimensions (radius, proximity, thickness).
@@ -26113,6 +27385,52 @@ Game_CharacterBase.prototype.isDodging = function() {
 	if (!battler) return false;
 	return battler.isDodging();
 };
+/**
+* Walks this character up to `distance` tiles in a single compass direction, testing each
+* tile's passability and stopping early the moment one blocks the way. Shared by every JABS
+* mechanic that forcibly displaces a character- push knockback, pull-forward, and terrain-
+* respecting gap-close all funnel through this one stepping routine so "stop at the last
+* passable tile" behaves identically everywhere it's used.
+* @param {number} direction The numpad compass direction to walk in (2/4/6/8).
+* @param {number} distance The maximum number of tiles to travel.
+* @returns {[number, number]} The actual [dx, dy] reached, in whole tiles.
+*/
+Game_CharacterBase.prototype.walkInDirectionClamped = function(direction, distance) {
+	let realX = this.x;
+	let realY = this.y;
+	let canPass = true;
+	let stepsTaken = 0;
+	const stepsToWalk = Math.round(distance);
+	while (canPass && stepsTaken < stepsToWalk) {
+		switch (direction) {
+			case J.ABS.Directions.UP:
+				realY--;
+				canPass = this.canPass(realX, realY, direction);
+				if (!canPass) realY++;
+				break;
+			case J.ABS.Directions.DOWN:
+				realY++;
+				canPass = this.canPass(realX, realY, direction);
+				if (!canPass) realY--;
+				break;
+			case J.ABS.Directions.LEFT:
+				realX--;
+				canPass = this.canPass(realX, realY, direction);
+				if (!canPass) realX++;
+				break;
+			case J.ABS.Directions.RIGHT:
+				realX++;
+				canPass = this.canPass(realX, realY, direction);
+				if (!canPass) realX--;
+				break;
+			default:
+				canPass = false;
+				break;
+		}
+		if (canPass) stepsTaken++;
+	}
+	return [realX - this.x, realY - this.y];
+};
 
 //#endregion
 //#region src/plugins/abs/core/objects/Game_Enemy.js
@@ -26146,6 +27464,9 @@ Game_Enemy.prototype.onBattlerDataChange = function() {
 	this.refreshBonusHits();
 	this.refreshCdr();
 	this.refreshPer();
+	this.refreshPositiveRolls();
+	this.refreshNegativeRolls();
+	this.refreshEncoreRepeats();
 	this.jabsRefresh();
 };
 /**
@@ -27536,8 +28857,8 @@ J.ABS.Aliased.Game_Player.set("canMove", Game_Player.prototype.canMove);
 Game_Player.prototype.canMove = function() {
 	const isMenuRequested = $jabsEngine.requestAbsMenu;
 	const isAbsPaused = $jabsEngine.absPause;
-	const isPlayerCasting = $jabsEngine.getPlayer1().isCasting();
-	const jabsDeniesMovement = isMenuRequested || isAbsPaused || isPlayerCasting;
+	const isPlayerRooted = $jabsEngine.getPlayer1().hasUninterruptibleMovementLock();
+	const jabsDeniesMovement = isMenuRequested || isAbsPaused || isPlayerRooted;
 	if (jabsDeniesMovement) {
 		return false;
 	} else {
@@ -29542,7 +30863,7 @@ var Sprite_MapCastGauge = class extends Sprite_MapGauge {
 	}
 	/**
 	* Whether the gauge should be considered valid for fill-rate.
-	* Valid only while this bound JABS battler is actively casting with time left,
+	* Valid only while this bound JABS battler is actively casting or channeling with time left,
 	* the battler identity matches the UUID we were bound to, AND the battler
 	* remains bound to this sprite’s expected character.
 	* @returns {boolean}
@@ -29554,42 +30875,45 @@ var Sprite_MapCastGauge = class extends Sprite_MapGauge {
 		if (!jabsBattler || !expectedUuid) return false;
 		if (jabsBattler.getUuid() !== expectedUuid) return false;
 		if (expectedCharacter && jabsBattler.getCharacter() !== expectedCharacter) return false;
-		if (!jabsBattler.isCasting()) return false;
+		if (!jabsBattler.isCastingOrChanneling()) return false;
 		const decided = jabsBattler.getDecidedAction();
 		if (!decided || decided.length === 0) return false;
-		if (jabsBattler.getCastTimeCountdown() <= 0) return false;
+		if (jabsBattler.isCasting() && jabsBattler.getCastTimeCountdown() <= 0) return false;
+		if (jabsBattler.isChanneling() && jabsBattler.getChannelDurationRemaining() <= 0) return false;
 		return true;
 	}
 	/**
-	* The current (elapsed) value of the cast bar.
+	* The current value of the cast/channel bar. A cast fills up (elapsed time); a channel
+	* depletes from full instead, so the two states read as visually distinct at a glance.
 	* @returns {number}
 	*/
 	currentValue() {
+		if (!this.isValid()) return NaN;
 		const jabsBattler = this.getJabsBattler();
-		if (!jabsBattler) return NaN;
-		if (!jabsBattler.isCasting()) return NaN;
-		const decided = jabsBattler.getDecidedAction();
-		if (!decided || decided.length === 0) return NaN;
-		if (jabsBattler.getCastTimeCountdown() <= 0) return NaN;
-		const [action] = decided;
+		const [action] = jabsBattler.getDecidedAction();
+		if (jabsBattler.isChanneling()) {
+			const [, totalDuration] = action.getBaseSkill().jabsChannel;
+			if (!totalDuration) return NaN;
+			return Math.max(0, jabsBattler.getChannelDurationRemaining());
+		}
 		const max = action.getCastTime();
 		if (!max) return NaN;
 		const remaining = jabsBattler.getCastTimeCountdown();
-		const elapsed = Math.max(0, max - remaining);
-		return elapsed;
+		return Math.max(0, max - remaining);
 	}
 	/**
-	* The max value for the cast bar: the action's cast time at decision.
+	* The max value for the cast/channel bar: the action's cast time, or the channel's total
+	* duration, at decision.
 	* @returns {number}
 	*/
 	currentMaxValue() {
+		if (!this.isValid()) return NaN;
 		const jabsBattler = this.getJabsBattler();
-		if (!jabsBattler) return NaN;
-		if (!jabsBattler.isCasting()) return NaN;
-		const decided = jabsBattler.getDecidedAction();
-		if (!decided || decided.length === 0) return NaN;
-		if (jabsBattler.getCastTimeCountdown() <= 0) return NaN;
-		const [action] = decided;
+		const [action] = jabsBattler.getDecidedAction();
+		if (jabsBattler.isChanneling()) {
+			const [, totalDuration] = action.getBaseSkill().jabsChannel;
+			return totalDuration || NaN;
+		}
 		const max = action.getCastTime();
 		return max || NaN;
 	}
@@ -30545,10 +31869,11 @@ Sprite_Character.prototype.canUpdateCastGauge = function() {
 	if (!this._j._abs._gauges._castGauge) return false;
 	const jabs = this._character.getJabsBattler();
 	if (!jabs) return false;
-	if (!jabs.isCasting()) return false;
+	if (!jabs.isCastingOrChanneling()) return false;
 	const decided = jabs.getDecidedAction();
 	if (!decided || decided.length === 0) return false;
-	if (jabs.getCastTimeCountdown() <= 0) return false;
+	if (jabs.isCasting() && jabs.getCastTimeCountdown() <= 0) return false;
+	if (jabs.isChanneling() && jabs.getChannelDurationRemaining() <= 0) return false;
 	return true;
 };
 /**
@@ -31359,7 +32684,7 @@ Spriteset_Map.prototype.collectActiveCastPreviewItems = function() {
 		const jabsBattler = ev.getJabsBattler();
 		if (!jabsBattler) return;
 		if (jabsBattler.isPlayer()) return;
-		if (!jabsBattler.isCasting()) return;
+		if (!jabsBattler.isCastingOrChanneling()) return;
 		const decided = jabsBattler.getDecidedAction();
 		if (!decided || !decided.length) return;
 		const [action] = decided;
@@ -31675,10 +33000,11 @@ Spriteset_Map.prototype.isBattlerCollidingWithAnyAction = function(item) {
 		const shape = jabsAction.getShape();
 		const range = jabsAction.getRange();
 		const facing = jabsAction.direction();
+		const innerRadius = jabsAction.getInnerRadius();
 		if (jabsAction.isDirectAction()) {
 			const actionSprite = jabsAction.getActionSprite();
 			if (actionSprite) {
-				const overlapped = $jabsEngine.isTargetWithinRange(facing, target, actionSprite, range, shape);
+				const overlapped = $jabsEngine.isTargetWithinRange(facing, target, actionSprite, range, shape, innerRadius);
 				if (overlapped) {
 					return true;
 				}
@@ -31704,7 +33030,7 @@ Spriteset_Map.prototype.isBattlerCollidingWithAnyAction = function(item) {
 			}
 			continue;
 		}
-		const overlapped = $jabsEngine.isTargetWithinRange(facing, target, actionEvent, range, shape);
+		const overlapped = $jabsEngine.isTargetWithinRange(facing, target, actionEvent, range, shape, innerRadius);
 		if (overlapped) {
 			return true;
 		}
@@ -31769,11 +33095,12 @@ Spriteset_Map.prototype.refreshExistingActionHitboxSprites = function() {
 		const shape = jabsAction.getShape();
 		const range = jabsAction.getRange();
 		const facing = jabsAction.direction();
+		const innerRadius = jabsAction.getInnerRadius();
 		const sprite = this.getOrCreateActionHitboxSpriteFor(actionEvent);
 		const origin = JABS_Engine.getActionOriginPixels(actionEvent);
 		sprite.x = origin.x;
 		sprite.y = origin.y;
-		this.drawActionHitboxInto(sprite, shape, range, facing, tw, th, actionEvent);
+		this.drawActionHitboxInto(sprite, shape, range, facing, tw, th, actionEvent, innerRadius);
 	});
 };
 /**
@@ -31872,8 +33199,9 @@ Spriteset_Map.prototype.drawOrientedHitboxQuadG = function(g, facing, lengthPx, 
 * @param {number} tw Tile width in pixels.
 * @param {number} th Tile height in pixels.
 * @param {Game_Event} actionEvent The action event for tag resolution.
+* @param {number} [innerRadius=0] The universal dead zone in tiles; 0 disables it.
 */
-Spriteset_Map.prototype.drawActionHitboxInto = function(sprite, shape, range, facing, tw, th, actionEvent) {
+Spriteset_Map.prototype.drawActionHitboxInto = function(sprite, shape, range, facing, tw, th, actionEvent, innerRadius = 0) {
 	/** @type {PIXI.Graphics} */
 	const g = sprite._jabsHitboxG;
 	g.clear();
@@ -31883,6 +33211,7 @@ Spriteset_Map.prototype.drawActionHitboxInto = function(sprite, shape, range, fa
 	const minPx = .5;
 	const thicknessX = Math.max(minPx, thicknessTiles * tw);
 	const thicknessY = Math.max(minPx, thicknessTiles * th);
+	let holeAlreadyBaked = false;
 	switch (shape) {
 		case J.ABS.Shapes.Circle: {
 			const r = range * tw;
@@ -31931,9 +33260,17 @@ Spriteset_Map.prototype.drawActionHitboxInto = function(sprite, shape, range, fa
 			const centerRad = Math.atan2(fy, fx);
 			const sweepRad = degrees * Math.PI / 180;
 			const r = range * tw;
-			this.drawSectorG(g, 0, 0, r, centerRad, sweepRad);
+			const innerRadiusPxArc = innerRadius * tw;
+			if (innerRadiusPxArc > 0) holeAlreadyBaked = true;
+			this.drawSectorG(g, 0, 0, r, centerRad, sweepRad, innerRadiusPxArc);
 			break;
 		}
+	}
+	if (innerRadius > 0 && holeAlreadyBaked === false) {
+		const innerRadiusPx = innerRadius * tw;
+		g.beginHole();
+		g.drawCircle(0, 0, innerRadiusPx);
+		g.endHole();
 	}
 	g.endFill();
 };
@@ -31959,16 +33296,39 @@ Spriteset_Map.prototype.drawRhombusG = function(g, rx, ry) {
 * @param {number} r Radius in pixels.
 * @param {number} centerRad Center angle in radians. 0 = right, π/2 = down, π = left, -π/2 = up.
 * @param {number} sweepRad Total sweep in radians (0–2π].
+* @param {number} [innerR=0] Inner dead-zone radius in pixels; bakes an annular sector (donut
+* slice) instead of a pivot fan when positive. A hole punched at the pivot would break PIXI's
+* triangulation since the fan's own path already touches that exact point.
 */
-Spriteset_Map.prototype.drawSectorG = function(g, cx, cy, r, centerRad, sweepRad) {
+Spriteset_Map.prototype.drawSectorG = function(g, cx, cy, r, centerRad, sweepRad, innerR = 0) {
 	const TAU = Math.PI * 2;
 	const sweep = Math.max(0, Math.min(TAU, sweepRad || 0));
 	if (sweep >= TAU - 1e-6) {
 		g.drawCircle(cx, cy, r);
+		if (innerR > 0) {
+			g.beginHole();
+			g.drawCircle(cx, cy, innerR);
+			g.endHole();
+		}
 		return;
 	}
 	const start = centerRad - sweep / 2;
 	const end = centerRad + sweep / 2;
+	if (innerR > 0) {
+		const startInnerX = cx + innerR * Math.cos(start);
+		const startInnerY = cy + innerR * Math.sin(start);
+		const endInnerX = cx + innerR * Math.cos(end);
+		const endInnerY = cy + innerR * Math.sin(end);
+		const startOuterX = cx + r * Math.cos(start);
+		const startOuterY = cy + r * Math.sin(start);
+		g.moveTo(startInnerX, startInnerY);
+		g.lineTo(startOuterX, startOuterY);
+		g.arc(cx, cy, r, start, end);
+		g.lineTo(endInnerX, endInnerY);
+		g.arc(cx, cy, innerR, end, start, true);
+		g.closePath();
+		return;
+	}
 	const sx = cx + r * Math.cos(start);
 	const sy = cy + r * Math.sin(start);
 	g.moveTo(cx, cy);

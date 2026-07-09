@@ -77,7 +77,7 @@
  *     - Element rate
  *     - Physical/Magical damage rate (treats as the parent’s type)
  *     - Variance
- *     - REC (recovery) on the recipient
+ *     - REC (recovery) on the recipient, and HAR (healing rate) on the caster
  *
  * Visuals and logs:
  *   - Popups (J-POPUPS): shows resource-specific damage/heal popups
@@ -167,6 +167,9 @@
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 1.0.4
+ *   Healing path now also applies HAR (healing rate) on the caster, alongside
+ *   the existing REC (recovery) on the recipient. Requires J-Base 3.5.0+.
  * - 1.0.2
  *   Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
@@ -224,7 +227,7 @@ J.ABS.EXT.FORMULA = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.0.3");
+J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.0.4");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -843,15 +846,15 @@ Game_Action.prototype.pipeFormulaThroughBattleCalculations = function(target, ma
 	return Math.max(0, value);
 };
 /**
-* Applies REC to a healing magnitude (already positive) across resources.
-* Mirrors native healing treatment (HP REC), generalized for MP/TP per project rules.
+* Applies REC and HAR to a healing magnitude (already positive) across resources.
+* Mirrors native healing treatment (HP REC/HAR), generalized for MP/TP per project rules.
 * @param {Game_Battler} target The recipient of healing.
 * @param {number} magnitude The base positive healing amount.
 * @param {"hp"|"mp"|"tp"} resource The resource being healed.
-* @returns {number} The REC-adjusted, rounded healing amount.
+* @returns {number} The REC- and HAR-adjusted, rounded healing amount.
 */
 Game_Action.prototype.applyResourceHealingWithRecovery = function(target, magnitude, resource) {
-	let healed = magnitude * target.rec;
+	let healed = magnitude * target.rec * this.subject().har;
 	healed = Math.round(healed);
 	return healed;
 };

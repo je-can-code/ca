@@ -1654,8 +1654,13 @@ Game_Action.prototype.reactiveStateSources = function() {
 Game_Action.prototype.applyStates = function(target, jabsOnChanceEffects) {
 	if (jabsOnChanceEffects.length === 0) return;
 	jabsOnChanceEffects.forEach((jabsOnChanceEffect) => {
-		if (jabsOnChanceEffect.shouldTrigger()) {
-			target.addState(jabsOnChanceEffect.skillId, this.subject());
+		const attacker = this.subject();
+		const skill = jabsOnChanceEffect.baseSkill(attacker);
+		const positiveRolls = 1 + attacker.getPositiveRollsForSkill(skill);
+		const negativeRolls = target.getNegativeRolls();
+		const procCount = jabsOnChanceEffect.resolveProcCount(positiveRolls, negativeRolls, attacker);
+		for (let i = 0; i < procCount; i++) {
+			target.addState(jabsOnChanceEffect.skillId, attacker);
 		}
 	});
 };
@@ -1668,7 +1673,11 @@ Game_Action.prototype.applyStates = function(target, jabsOnChanceEffects) {
 Game_Action.prototype.loseStates = function(target, jabsOnChanceEffects) {
 	if (jabsOnChanceEffects.length === 0) return;
 	jabsOnChanceEffects.forEach((jabsOnChanceEffect) => {
-		if (jabsOnChanceEffect.shouldTrigger()) {
+		const attacker = this.subject();
+		const skill = jabsOnChanceEffect.baseSkill(attacker);
+		const positiveRolls = 1 + attacker.getPositiveRollsForSkill(skill);
+		const negativeRolls = target.getNegativeRolls();
+		if (jabsOnChanceEffect.shouldTrigger(positiveRolls, negativeRolls, attacker)) {
 			this.loseState(target, jabsOnChanceEffect.skillId);
 		}
 	});
@@ -1682,7 +1691,11 @@ Game_Action.prototype.loseStates = function(target, jabsOnChanceEffects) {
 Game_Action.prototype.stripStates = function(target, jabsOnChanceEffects) {
 	if (jabsOnChanceEffects.length === 0) return;
 	jabsOnChanceEffects.forEach((jabsOnChanceEffect) => {
-		if (jabsOnChanceEffect.shouldTrigger()) {
+		const attacker = this.subject();
+		const skill = jabsOnChanceEffect.baseSkill(attacker);
+		const positiveRolls = 1 + attacker.getPositiveRollsForSkill(skill);
+		const negativeRolls = target.getNegativeRolls();
+		if (jabsOnChanceEffect.shouldTrigger(positiveRolls, negativeRolls, attacker)) {
 			this.stripState(target, jabsOnChanceEffect.skillId);
 		}
 	});
@@ -1722,7 +1735,11 @@ Game_Action.prototype.stripState = function(target, stateId) {
 Game_Action.prototype.removeStates = function(target, jabsOnChanceEffects) {
 	if (jabsOnChanceEffects.length === 0) return;
 	jabsOnChanceEffects.forEach((jabsOnChanceEffect) => {
-		if (jabsOnChanceEffect.shouldTrigger()) {
+		const attacker = this.subject();
+		const skill = jabsOnChanceEffect.baseSkill(attacker);
+		const positiveRolls = 1 + attacker.getPositiveRollsForSkill(skill);
+		const negativeRolls = target.getNegativeRolls();
+		if (jabsOnChanceEffect.shouldTrigger(positiveRolls, negativeRolls, attacker)) {
 			target.removeState(jabsOnChanceEffect.skillId);
 		}
 	});

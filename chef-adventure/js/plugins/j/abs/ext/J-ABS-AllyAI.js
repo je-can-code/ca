@@ -764,7 +764,7 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	decideBalancedSupport(usableSkills, user, target) {
 		const nearbyAllies = user.getAllNearbyAllies();
 		const anyInDanger = nearbyAllies.some((ally) => ally.getBattler().currentHpPercent() < .6);
-		if (anyInDanger && Math.randomInt(2) === 0) {
+		if (anyInDanger && RPGManager.chanceIn100(50)) {
 			const supportPick = this.decideSupportFirst(usableSkills, user, target);
 			if (supportPick.length) return supportPick;
 		}
@@ -828,7 +828,7 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 		if (tempSkills.length === 0) {
 			chosenSkillId = usableSkills[Math.randomInt(usableSkills.length)];
 		} else if (tempSkills.length === 1) {
-			chosenSkillId = Math.randomInt(2) === 0 ? tempSkills[0] : usableSkills[Math.randomInt(usableSkills.length)];
+			chosenSkillId = RPGManager.chanceIn100(50) ? tempSkills[0] : usableSkills[Math.randomInt(usableSkills.length)];
 		} else {
 			chosenSkillId = tempSkills[Math.randomInt(tempSkills.length)];
 		}
@@ -1069,7 +1069,7 @@ JABS_AiManager.enforceFollowerThroughPolicy = function(allyBattler) {
 * @returns {boolean} True if this ally can do phase 0 things, false otherwise.
 */
 JABS_AiManager.canPerformAllyPhase0 = function(allyBattler) {
-	if (allyBattler.isCasting()) return false;
+	if (allyBattler.isCastingOrChanneling()) return false;
 	if (allyBattler.isEngaged()) return false;
 	return true;
 };

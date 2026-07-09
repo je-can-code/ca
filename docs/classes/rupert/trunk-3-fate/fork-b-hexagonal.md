@@ -22,7 +22,7 @@
 | # | Name | Description |
 |---|---|---|
 | 1 | Terrorize | Applies a custom paralysis state rooted in fear. They cannot act, cannot move. The duration is needlessly, offensively long. |
-| 2 | Lobotomized | Their on-chance effects are now 0%. Not reduced. Not penalized. Zero. The proc system has been removed from them. |
+| 2 | Lobotomized | Their on-chance effects are now 0%. Not reduced. Not penalized. Zero. The proc system has been removed from them. Applied state uses `<veryCursed>` — a true bypass, not a reroll count. |
 | 3 | Eyes of the Rupert | Counter-curse. Every hit on Rupert applies a state to the attacker: all skill executions now cost a percentage of their MHP. They stared into the abyss. It lashed back. Violently. Stacks with the tome weapon lot's existing HP cost mechanics. |
 | 4 | Uninstall | **Signature.** Terrorize, Lobotomized, and Eyes of the Rupert applied simultaneously. You are done. Not dead — just removed from the fight as a functional entity. The allies will handle the rest. |
 

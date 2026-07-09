@@ -562,7 +562,7 @@ JABS_Battler.prototype.getHighestChargedTier = function() {
 		return null;
 	}
 	const sortedFilteredtiers = tiers.filter((chargeTier) => chargeTier.completed).sort((chargeTierLeft, chargeTierRight) => chargeTierRight.tier - chargeTierLeft.tier);
-	if (!sortedFilteredTiers.length) return null;
+	if (!sortedFilteredtiers.length) return null;
 	const [highestChargedTier] = sortedFilteredtiers;
 	return highestChargedTier;
 };
@@ -875,7 +875,7 @@ JABS_InputAdapter.performMainhandActionCharging = function(charging, jabsBattler
 */
 JABS_InputAdapter.canPerformMainhandActionCharging = function(jabsBattler) {
 	if (!jabsBattler.canBattlerUseAttacks()) return false;
-	if (jabsBattler.isCasting()) return false;
+	if (jabsBattler.isCastingOrChanneling()) return false;
 	return true;
 };
 /**
@@ -896,7 +896,7 @@ JABS_InputAdapter.performOffhandActionCharging = function(charging, jabsBattler)
 JABS_InputAdapter.canPerformOffhandActionCharging = function(jabsBattler) {
 	if (jabsBattler.isGuardSkillByKey(JABS_Button.Offhand)) return false;
 	if (!jabsBattler.canBattlerUseAttacks()) return false;
-	if (jabsBattler.isCasting()) return false;
+	if (jabsBattler.isCastingOrChanneling()) return false;
 	return true;
 };
 /**
@@ -916,7 +916,7 @@ JABS_InputAdapter.performCombatSkillCharging = function(charging, jabsBattler, s
 */
 JABS_InputAdapter.canPerformCombatSkillCharging = function(jabsBattler) {
 	if (!jabsBattler.canBattlerUseSkills()) return false;
-	if (jabsBattler.isCasting()) return false;
+	if (jabsBattler.isCastingOrChanneling()) return false;
 	return true;
 };
 

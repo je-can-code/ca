@@ -628,9 +628,11 @@ Game_Enemy.prototype.getBaseGoldRate = function() {
 * Overwrites {@link #makeDropItems}.<br/>
 * Modifies the drop chance algorithm to treat the number entered in the database as a percent chance instead of some
 * weird fractional shit. Also applies any applicable multipliers against the discovery rate of loot.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known; the
+* killer contributes both their own positive and negative rolls to the drop-chance roll.
 * @returns {RPG_BaseItem[]} The array of loot successfully found.
 */
-Game_Enemy.prototype.makeDropItems = function() {
+Game_Enemy.prototype.makeDropItems = function(killer = null) {
 	const dropList = this.getDropItems();
 	if (!dropList.length) return [];
 	const itemsFound = [];
@@ -639,7 +641,7 @@ Game_Enemy.prototype.makeDropItems = function() {
 		if (!this.canFindLoot(drop)) return;
 		const rate = drop.denominator * multiplier;
 		const treasureHunterSkip = rate >= 100;
-		const foundLoot = treasureHunterSkip ? true : this.didFindLoot(rate);
+		const foundLoot = treasureHunterSkip ? true : this.didFindLoot(rate, killer);
 		if (foundLoot === false) return;
 		this.findLoot(drop, itemsFound);
 	}, this);
@@ -672,14 +674,17 @@ Game_Enemy.prototype.canFindLoot = function(drop) {
 * Determines whether or not loot was found based on the provided rate.
 * This is not deterministic, and the same (non-100) rate
 * @param {number} rate The 0-100 integer rate of which to find this loot.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
 * @returns {boolean} True if we found loot this time, false otherwise.
 */
-Game_Enemy.prototype.didFindLoot = function(rate) {
+Game_Enemy.prototype.didFindLoot = function(rate, killer = null) {
 	let chance = rate;
 	if ($gameParty.hasDropItemDouble()) {
 		chance *= 2;
 	}
-	const found = RPGManager.chanceIn100(chance);
+	const positiveRolls = killer ? 1 + killer.getPositiveRolls() : 1;
+	const negativeRolls = killer ? killer.getNegativeRolls() : 0;
+	const found = killer ? RPGManager.fateOf100(killer, chance, positiveRolls, negativeRolls) : RPGManager.chanceIn100(chance, positiveRolls, negativeRolls);
 	return found;
 };
 /**
