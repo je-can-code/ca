@@ -39,8 +39,8 @@
 | # | Name | Description |
 |---|---|---|
 | P1 | MDF +10% | +10% magic defense. Also scales incoming healing — Equilibrium notices. |
-| P2 | TGR +10% | +10% aggro. Methodical Dismantler, Rupert's tankiest frontliner, appreciates this most. |
-| P3 | State Duration +25% | Every state Rupert applies lasts 25% longer. Debuffs, ailments, drains — whatever it is, it overstays. |
-| P4 | Erode | Debuffs Rupert applies that reduce PDR/MDR carry an additional −15% on top. |
+| P2 | State Duration +30% | Every state Rupert applies lasts 30% longer. Debuffs, ailments, drains — whatever it is, it overstays. |
+| P3 | Erode | Debuffs Rupert applies that reduce PDR/MDR carry an additional −15% on top. |
+| P4 | TGR +10% | +10% aggro. Methodical Dismantler, Rupert's tankiest frontliner, appreciates this most. |
 | P5 | Decompose | `<bonusDamageForMyStateCount:PCT>`. Bonus damage per state Rupert currently has active on the target — the more he's stripped away, the worse the next hit lands. |
 | P6 | Equip Hatchet | Unlock. Grants access to the Hatchet weapon subgroup. |

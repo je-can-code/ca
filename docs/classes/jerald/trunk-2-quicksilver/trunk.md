@@ -39,6 +39,6 @@
 | P1 | Range +15% | +15% attack range. |
 | P2 | MSB +5 | +5 move speed bonus. |
 | P3 | High Capacity | Self stack maximum +1. More room in the clip. |
-| P4 | Crit Chance +15% | CRI+15%. |
+| P4 | Crit Chance +20% | CRI+20%. |
 | P5 | Dead Air | When no enemies are within melee range, accuracy is significantly boosted. The moment before they close in. |
 | P6 | Equip Pistol | Unlock. Grants access to the Pistol weapon subgroup. |

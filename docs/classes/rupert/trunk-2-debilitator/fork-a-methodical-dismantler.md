@@ -31,13 +31,15 @@
 
 | # | Name              | Description                                                                                                                 |
 |---|-------------------|-----------------------------------------------------------------------------------------------------------------------------|
-| P1 | Equip Arm         | Unlock. Grants access to the Arm weapon subgroup.                                                                           |
-| P2 | Equip Claymore    | Unlock. Grants access to the Claymore weapon subgroup.                                                                      |
-| P3 | Equip Heavy Armor | Unlock. Grants access to heavy armor.                                                                                       |
-| P4 | Two-Handed        | Unlock. Deathgrip your weapon — seals the offhand slot, keeps the offhand skill, grants an ATK bonus. Yes, even the Arm.    |
-| P5 | ATK +30%          | +30% attack.                                                                                                                |
-| P6 | DEF +30%          | +30% defense.                                                                                                               |
-| P7 | GRD +33%          | +33% parry frequency against faced foes.                                                                                    |
-| P8 | MHP +20%          | +20% max HP.                                                                                                                |
-| P9 | Amortize          | Applying a debuff reduces all of Rupert's active cooldowns by 1 second. Every hit that takes something away buys back time. |
-| P10 | Backhand          | Glancing blows against Rupert retaliate with a stun. Barely touched him. Mistake.                                           |
+| P1 | Equip Claymore    | Unlock. Grants access to the Claymore weapon subgroup.                                                                      |
+| P2 | MHP +20%          | +20% max HP.                                                                                                                |
+| P3 | Imbalanced        | Glancing blows are more likely to land against Rupert.                                                                      |
+| P4 | ATK +40%          | +40% attack.                                                                                                                |
+| P5 | Amortize          | Applying a debuff reduces all of Rupert's active cooldowns by 1 second. Every hit that takes something away buys back time. |
+| P6 | Two-Handed        | Unlock. Deathgrip your weapon — seals the offhand slot, keeps the offhand skill, grants an ATK bonus. Yes, even the Arm.    |
+| P7 | DEF +40%          | +40% defense.                                                                                                               |
+| P8 | Equip Heavy Armor | Unlock. Grants access to heavy armor.                                                                                       |
+| P9 | MHP +80%          | +80% max HP.                                                                                                                |
+| P10 | GRD +30%          | +30% parry frequency against faced foes.                                                                                    |
+| P11 | Equip Arm         | Unlock. Grants access to the Arm weapon subgroup.                                                                           |
+| P12 | Backhand          | Glancing blows against Rupert retaliate with a stun. Barely touched him. Mistake.                                           |

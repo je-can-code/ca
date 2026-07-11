@@ -39,8 +39,8 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | HP +10% | +10% max HP. |
+| P1 | HP +20% | +20% max HP. |
 | P2 | LST +5 | +5 lifesteal. Damage dealt recovers a portion of HP. |
 | P3 | Oni Instinct | +5% ATK per nearby enemy. The worse the odds, the harder the hits. |
-| P4 | HP +20% | +20% max HP. |
+| P4 | HP +40% | +40% max HP. |
 | P5 | Equip Arm | Unlock. Grants access to the Arm weapon subgroup. |

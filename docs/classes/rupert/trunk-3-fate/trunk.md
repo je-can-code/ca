@@ -37,8 +37,8 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | Equip Pistol | Unlock. Grants access to the Pistol weapon subgroup. |
-| P2 | LUK +10% | +10% luck. |
-| P3 | DEF +10% | +10% defense. |
-| P4 | Crit Damage +25% | +25% critical damage. |
-| P5 | Aftershocks | On crit, applies Court Disaster's negative rolls to the target. After critting, yet more disaster befalls you. Uses `<onCritApply:[...]>` targeting the same `<cursedRolls:[N]>` state as Court Disaster. |
+| P1 | LUK +10% | +10% luck. |
+| P2 | DEF +10% | +10% defense. |
+| P3 | Crit Damage +30% | +30% critical damage. |
+| P4 | Aftershocks | On crit, applies Court Disaster's negative rolls to the target. After critting, yet more disaster befalls you. Uses `<onCritApply:[...]>` targeting the same `<cursedRolls:[N]>` state as Court Disaster. |
+| P5 | Equip Pistol | Unlock. Grants access to the Pistol weapon subgroup. |

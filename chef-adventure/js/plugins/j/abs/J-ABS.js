@@ -4295,6 +4295,7 @@ J.ABS.RegExp = {
 	MoveSpeed: /<moveSpeed:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
 	PrepareTime: /<prepare:[ ]?(\d+)>/i,
 	VisionMultiplier: /<visionMultiplier:[ ]?(-?\d+)>/i,
+	ProjectileDurationMultiplier: /<projectileDuration:[ ]?(-?\d+)>/i,
 	AlertDuration: /<alertDuration:[ ]?(\d+)>/i,
 	AlertedSightBoost: /<alertedSightBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
 	AlertedPursuitBoost: /<alertedPursuitBoost:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
@@ -20029,11 +20030,15 @@ var JABS_Action = class JABS_Action {
 	}
 	/**
 	* Gets the max duration in frames that this action will exist on the map.
+	* The skill's own base duration is scaled by the caster's projectile duration modifier
+	* (from `<projectileDuration:PERCENT_POINTS>` sources) before the minimum is enforced.
 	* If the duration was unset, or is set but less than the minimum, it will be the minimum.
 	* @returns {number} The max duration in frames (min 8).
 	*/
 	getMaxDuration() {
-		return Math.max(this.getBaseSkill().jabsDuration, JABS_Action.getMinimumDuration());
+		const baseDuration = this.getBaseSkill().jabsDuration;
+		const durationModifier = this.getCaster().getBattler().getProjectileDurationModifier();
+		return Math.max(Math.round(baseDuration * durationModifier), JABS_Action.getMinimumDuration());
 	}
 	/**
 	* Increments the duration for this JABS action. If the duration drops
@@ -24724,6 +24729,7 @@ J.ABS.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattl
 Game_Actor.prototype.onBattlerDataChange = function() {
 	J.ABS.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
 	this.setCachedVisionModifier(null);
+	this.setCachedProjectileDurationModifier(null);
 	this.refreshBonusHits();
 	this.refreshCdr();
 	this.refreshPer();
@@ -25605,6 +25611,12 @@ Game_Battler.prototype.initJabsMembers = function() {
 	*/
 	this._j._abs._cachedVisionModifier = null;
 	/**
+	* The cached result of {@link #getProjectileDurationModifier}.
+	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._abs._cachedProjectileDurationModifier = null;
+	/**
 	* The cached sum of all CDR (global cooldown reduction) percent-points from note sources.
 	* Refreshed by {@link #refreshCdr} on {@link #onBattlerDataChange}.
 	* @type {number}
@@ -25790,6 +25802,37 @@ Game_Battler.prototype.getVisionModifier = function() {
 	const constrainedVisionMultiplier = Math.max((baseVisionRate + visionMultiplier) / 100, 0);
 	this.setCachedVisionModifier(constrainedVisionMultiplier);
 	return this.getCachedVisionModifier();
+};
+/**
+* Gets the cached projectile duration modifier for this battler, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Battler.prototype.getCachedProjectileDurationModifier = function() {
+	return this._j._abs._cachedProjectileDurationModifier;
+};
+/**
+* Sets the cached projectile duration modifier for this battler.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedProjectileDurationModifier = function(value) {
+	this._j._abs._cachedProjectileDurationModifier = value;
+};
+/**
+* A multiplier against how long this battler's map actions (projectiles, hitboxes, etc.)
+* persist on the map, sourced from `<projectileDuration:PERCENT_POINTS>` across all active
+* note sources (equips, states, class, actor).
+* Result is cached and invalidated by {@link #onBattlerDataChange}.
+* @returns {number}
+*/
+Game_Battler.prototype.getProjectileDurationModifier = function() {
+	if (this.getCachedProjectileDurationModifier() !== null) {
+		return this.getCachedProjectileDurationModifier();
+	}
+	const baseDurationRate = 100;
+	const durationMultiplier = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ProjectileDurationMultiplier);
+	const constrainedDurationMultiplier = Math.max((baseDurationRate + durationMultiplier) / 100, 0);
+	this.setCachedProjectileDurationModifier(constrainedDurationMultiplier);
+	return this.getCachedProjectileDurationModifier();
 };
 /**
 * The sum of all flat tick-speed modifiers ({@code <tickSpeedFlat:N>}) currently affecting
@@ -27467,6 +27510,7 @@ Game_Enemy.prototype.onBattlerDataChange = function() {
 	this.refreshPositiveRolls();
 	this.refreshNegativeRolls();
 	this.refreshEncoreRepeats();
+	this.setCachedProjectileDurationModifier(null);
 	this.jabsRefresh();
 };
 /**

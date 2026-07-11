@@ -30,13 +30,14 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | Equip Rod | Unlock. Grants access to the Rod weapon subgroup. |
-| P2 | Equip Light Armor | Unlock. Grants access to light armor. |
-| P3 | MAT +20% | +20% magic attack. |
-| P4 | MAT +30% | +30% magic attack. |
-| P5 | CDR −20% | −20% cooldowns. |
-| P6 | Wildfire | Any burn state Rupert applies spreads autonomously to nearby enemies. |
-| P7 | Scorch | Heat damage +50%. |
-| P8 | Incinerate | Heat damage +100%. |
+| P1 | MAT +20% | +20% magic attack. |
+| P2 | Scorch | Heat damage +50%. |
+| P3 | Equip Light Armor | Unlock. Grants access to light armor. |
+| P4 | CDR +20% | +20% cooldown reduction. |
+| P5 | Wildfire | Any burn state Rupert applies spreads autonomously to nearby enemies. |
+| P6 | MAT +30% | +30% magic attack. |
+| P7 | Incinerate | Heat damage +100%. |
+| P8 | Equip Rod | Unlock. Grants access to the Rod weapon subgroup. |
 | P9 | Accelerant | Burn states tick twice as fast. |
-| P10 | Tribute | Each kill reduces all active cooldowns by 10% of their total value. Meltima notices. |
+| P10 | MAT +40% | +40% magic attack. |
+| P11 | Tribute | Each kill reduces all active cooldowns by 10% of their total value. Meltima notices. |

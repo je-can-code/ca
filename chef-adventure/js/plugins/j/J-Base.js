@@ -1364,14 +1364,57 @@ var ParameterKeys = class ParameterKeys {
 //#endregion
 //#region src/plugins/_base/core/JsonEx.js
 /**
+* Extends {@link JsonEx._encode}.<br/>
+* Also encodes native `Map`/`Set` instances. Their real key/value storage lives in an engine-internal
+* slot invisible to `Object.keys()`, so without this they never match the original algorithm's
+* `[object Object]`/`[object Array]` type-tag gate below and get silently serialized as an empty `{}`
+* by the raw `JSON.stringify()` call in {@link JsonEx.stringify}.
+*/
+J.BASE.Aliased.JsonEx.set("_encode", JsonEx._encode);
+JsonEx._encode = function(value, depth) {
+	if (depth >= this.maxDepth) {
+		throw new Error("Object too deep");
+	}
+	if (value instanceof Map) {
+		return {
+			"@": "Map",
+			entries: [...value.entries()].map(([key, val]) => [this._encode(key, depth + 1), this._encode(val, depth + 1)])
+		};
+	}
+	if (value instanceof Set) {
+		return {
+			"@": "Set",
+			values: [...value].map((val) => this._encode(val, depth + 1))
+		};
+	}
+	const type = Object.prototype.toString.call(value);
+	if (type === "[object Object]" || type === "[object Array]") {
+		const constructorName = value.constructor.name;
+		if (constructorName !== "Object" && constructorName !== "Array") {
+			value["@"] = constructorName;
+		}
+		for (const key of Object.keys(value)) {
+			value[key] = this._encode(value[key], depth + 1);
+		}
+	}
+	return value;
+};
+/**
 * Extends {@link JsonEx._decode}.<br/>
-* Also resolves constructors via {@link SerializableRegistry} before falling back
-* to the engine's default `window[className]` lookup.
+* Also resolves constructors via {@link SerializableRegistry} before falling back to the engine's
+* default `window[className]` lookup, and reconstructs `Map`/`Set` instances encoded by the
+* {@link JsonEx._encode} extension above.
 */
 J.BASE.Aliased.JsonEx.set("_decode", JsonEx._decode);
 JsonEx._decode = function(value) {
 	const type = Object.prototype.toString.call(value);
 	if (type === "[object Object]" || type === "[object Array]") {
+		if (value["@"] === "Map") {
+			return new Map(value.entries.map(([key, val]) => [this._decode(key), this._decode(val)]));
+		}
+		if (value["@"] === "Set") {
+			return new Set(value.values.map((val) => this._decode(val)));
+		}
 		if (value["@"]) {
 			const constructorName = value["@"];
 			const constructor = SerializableRegistry.resolve(constructorName) || window[constructorName];

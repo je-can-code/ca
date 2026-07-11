@@ -33,15 +33,16 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | Low-effort Splash | Fine., Confetti, and Dismiss each gain a radius 3 splash — nearby allies to the target also receive the effect. He cast it once. Everyone nearby just got caught in it. |
-| P2 | Low-effort Aggression | Fine., Confetti, and Dismiss also grant +20% ATK, MAT, CRI, and CDM to the target. The buffs are getting less embarrassing. |
-| P3 | Low-effort Recovery | Fine., Confetti, and Dismiss also grant 1% HP/MP/TP regen per second to the target. A little of everything. |
+| P1 | HAR +40% | +40% outgoing heal potency. |
+| P2 | Equip Cane | Unlock. Grants access to the Cane weapon subgroup. |
+| P3 | Low-effort Splash | Fine., Confetti, and Dismiss each gain a radius 3 splash — nearby allies to the target also receive the effect. He cast it once. Everyone nearby just got caught in it. |
 | P4 | Equip Breaker | Unlock. Grants access to the Breaker weapon subgroup (LLRL→SHATTER, party −PDR). |
-| P5 | Equip Light Armor | Unlock. Grants access to light armor. Cross-class source for Orbiter players. |
-| P6 | Equip Relic | Unlock. Grants access to relics (light offhand — spell-like offhand abilities). |
-| P7 | SAR +100% | +100% shield amplification rate. SHIELD goes from 5× to 10× max HP. "Rupert, just take this SHIELD." |
-| P8 | State Duration −50% | All states expire in half the time. Sounds bad. Doomganosis now triggers in 5 seconds instead of 10. |
+| P5 | SAR +50% | +50% shield amplification rate. SHIELD lands harder. |
+| P6 | Drawn Out | All states Malpractician applies last 50% longer. Doomganosis now takes longer to trigger. |
+| P7 | Low-effort Aggression | Fine., Confetti, and Dismiss also grant +20% ATK, MAT, CRI, and CDM to the target. The buffs are getting less embarrassing. |
+| P8 | Equip Cloth | Unlock. Grants access to light armor. |
 | P9 | HAR +50% | +50% outgoing heal potency. Collateral Care's sad firecrackers land a little less sadly. |
-| P10 | Malpractice | On skill hit, apply one stack of Malpracticed to the target — all stats −1% per stack, stacks to 100. Malpractician barely notices. Try Hard and Raving Lunatic will. |
-| P11 | Equip Cane | Unlock. Grants access to the Cane weapon subgroup. |
+| P10 | Equip Relic | Unlock. Grants access to relics (light offhand — spell-like offhand abilities). |
+| P11 | Low-effort Recovery | Fine., Confetti, and Dismiss also grant 1% HP/MP/TP regen per second to the target. A little of everything. |
 | P12 | Equip Rod | Unlock. Grants access to the Rod weapon subgroup. |
+| P13 | Malpractice | On skill hit, apply one stack of Malpracticed to the target — all stats −1% per stack, stacks to 100. Malpractician barely notices. Try Hard and Raving Lunatic will. |

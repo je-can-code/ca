@@ -832,7 +832,8 @@ Game_Actor.prototype.getAptitudeSkillAggregates = function() {
 	/** @type {{ [skillId: string]: AptitudeSkillAggregate }} */
 	const perSkill = {};
 	Object.entries(progresses).forEach(([sourceKey, progress]) => {
-		Object.entries(progress.learnings()).forEach(([skillId, learning]) => {
+		Object.entries(progress.learnings()).forEach(([skillIdKey, learning]) => {
+			const skillId = Number(skillIdKey);
 			if (!perSkill[skillId]) {
 				const skillData = this.skill(skillId);
 				perSkill[skillId] = new AptitudeSkillAggregate(skillId, skillData);
@@ -892,7 +893,7 @@ Game_Actor.prototype.initializeAptitudeProgress = function(key, skillId, require
 */
 Game_Actor.prototype.createAptitudeProgress = function(key, skillId, requiredAp, initialAp) {
 	const newProgress = new AptitudeProgress(key);
-	newProgress.setLearning(skillId, requiredAp, initialAp);
+	newProgress.initializeLearning(skillId, requiredAp, initialAp);
 	return newProgress;
 };
 /**

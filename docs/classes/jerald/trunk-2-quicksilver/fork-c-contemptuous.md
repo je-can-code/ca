@@ -31,13 +31,13 @@
 | # | Name | Description                                                                                                                          |
 |---|---|--------------------------------------------------------------------------------------------------------------------------------------|
 | P1 | PDR −5 | −5 PDR. He barely notices.                                                                                                           |
-| P2 | MDR −5 | −5 PDR. Still barely notices.                                                                                                        |
-| P3 | MHP +10% | +10% max HP. More of him to not care.                                                                                                |
-| P4 | Equip Boomstick | Unlock. Grants access to the Boomstick weapon subgroup.                                                                              |
-| P5 | Equip Medium Armor | Unlock. Grants access to medium armor. Cross-class source for Raving Lunatic players.                                                |
-| P6 | Overloaded | Self stack maximum +3. Tune at playtesting — the number may become outrageous.                                                       |
-| P7 | I Prefer Violence | +50% damage vs bleeding targets. He has a preference.                                                                                |
+| P2 | Equip Boomstick | Unlock. Grants access to the Boomstick weapon subgroup.                                                                              |
+| P3 | Overloaded | Self stack maximum +3. Tune at playtesting — the number may become outrageous.                                                       |
+| P4 | MDR −5 | −5 PDR. Still barely notices.                                                                                                        |
+| P5 | I Prefer Violence | +50% damage vs bleeding targets. He has a preference.                                                                                |
+| P6 | MHP +80% | +80% max HP. More of him to not care.                                                                                                |
+| P7 | Equip Mail | Unlock. Grants access to medium armor.                                                |
 | P8 | Knockback +50% | +50% knockback distance. Fewer trips.                                                                                                |
-| P9 | Exsanguination | Bleed states tick 50% more often.                         |
-| P10 | Hemorrhaging | Once bleed is applied, it self-generates stacks autonomously. |
-| P11 | Equip Claws | Unlock. Grants access to the Claws weapon subgroup. |
+| P9 | Equip Claws | Unlock. Grants access to the Claws weapon subgroup. |
+| P10 | Exsanguination | Bleed states tick 50% more often.                         |
+| P11 | Hemorrhaging | Once bleed is applied, it self-generates stacks autonomously. |

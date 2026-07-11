@@ -33,12 +33,12 @@
 | # | Name | Description |
 |---|---|---|
 | P1 | Equip Tome | Unlock. Grants access to the Tome weapon subgroup. |
-| P2 | Equip Boomstick | Unlock. Grants access to the Boomstick weapon subgroup. |
-| P3 | Equip Shield | Unlock. Grants access to shields. |
-| P4 | DEF +20% | +20% defense. |
-| P5 | MHP +30% | +30% max HP. |
-| P6 | MRG +25% | +25% MP regen. |
-| P7 | REC +50% | +50% recovery effectiveness. |
-| P8 | State Duration +100% | Every state Rupert applies lasts twice as long. |
-| P9 | Rupert's Retinas | Lesser, perpetual version of Eyes of the Rupert. Every hit landed on Rupert applies a weaker, permanent stack of the same MHP-cost curse — no cast required, always live. |
+| P2 | DEF +20% | +20% defense. |
+| P3 | State Duration +150% | Every state Rupert applies lasts two and a half times as long. |
+| P4 | Equip Shield | Unlock. Grants access to shields. |
+| P5 | MRG +80% | +80% MP regen. |
+| P6 | Rupert's Retinas | Lesser, perpetual version of Eyes of the Rupert. Every hit landed on Rupert applies a weaker, permanent stack of the same MHP-cost curse — no cast required, always live. |
+| P7 | DEF +30% | +30% defense. |
+| P8 | REC +50% | +50% recovery effectiveness. |
+| P9 | Equip Boomstick | Unlock. Grants access to the Boomstick weapon subgroup. |
 | P10 | Devastated | **Signature.** Enemies afflicted with a Rupert-authored state take +10% damage from anyone, per stack. Misery doesn't need to be delivered personally to be collected on. |

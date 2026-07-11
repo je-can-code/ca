@@ -132,7 +132,7 @@ JABS_Battler.prototype.getTargetFrameText = function() {
 		isFlying,
 		isShielded,
 		hasAura
-	].every((trait) => !!trait);
+	].some((trait) => !!trait);
 	if (hasNoTraits) return String.empty;
 	const traits = [];
 	if (isArmed) {

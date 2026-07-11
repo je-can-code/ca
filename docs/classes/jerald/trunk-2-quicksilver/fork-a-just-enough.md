@@ -32,8 +32,8 @@
 | # | Name | Description |
 |---|---|---|
 | P1 | ATK +10% | +10% attack. |
-| P2 | Projectile Duration +25% | Projectiles stay active 25% longer. Back Off bounces more. I Said Back Off grinds further. One throw, more work. |
-| P3 | Radius +33% | +33% AoE radius on all skills. Bigger zone, wider wall, further mine trigger. |
+| P2 | Projectile Duration +20% | Projectiles stay active 20% longer. Back Off bounces more. I Said Back Off grinds further. One throw, more work. |
+| P3 | Radius +30% | +30% AoE radius on all skills. Bigger zone, wider wall, further mine trigger. |
 | P4 | CDR +10% | −10% cooldown duration. Back Off comes back faster. |
 | P5 | Equip Javelin | Unlock. Grants access to the Javelin weapon subgroup. |
 | P6 | Trauma | `onKnockback`: apply stun. Every push is a setup. |

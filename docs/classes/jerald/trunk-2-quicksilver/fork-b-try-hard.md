@@ -31,11 +31,11 @@
 | # | Name | Description |
 |---|---|---|
 | P1 | MAT +10% | +10% magic attack. |
-| P2 | MAT +20% | +20% magic attack. |
-| P3 | LUK +X | +X luck. Scales Button Mash hits, basic attack bonus hits, and all proc odds simultaneously. |
-| P4 | CDR +20% | −20% cooldown duration. |
-| P5 | Equip Taser | Unlock. Grants access to the Taser weapon subgroup. |
-| P6 | Equip Light Armor | Unlock. Grants access to light armor. Cross-class source for Just Enough players. |
-| P7 | Bonus Damage vs Low HP | Bonus damage to targets below 50% HP. Scales harder the lower they go. |
-| P8 | +1 Skill Hits | All skills hit one additional time. |
+| P2 | Equip Taser | Unlock. Grants access to the Taser weapon subgroup. |
+| P3 | LUK +10% | +10% luck. Scales Button Mash hits, basic attack bonus hits, and all proc odds simultaneously. |
+| P4 | Abusive | Bonus damage to targets below 50% HP. Scales harder the lower they go. |
+| P5 | LUK +20% | +20% luck. Scales Button Mash hits, basic attack bonus hits, and all proc odds simultaneously. |
+| P6 | Basic Attack Hits +1 | Basic attacks hit one additional time. |
+| P7 | MAT +20% | +20% magic attack. |
+| P8 | CDR +20% | −20% cooldown duration. |
 | P9 | Fully Committed | Basic attack bonus hits = `floor(1 + LUK/250 + AGI/250)`. The longer he's decided you're the problem, the more that decision shows. Uses `<bonus-hits-basic:[floor(1 + a.luk/250 + a.agi/250)]>`. |

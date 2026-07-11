@@ -731,10 +731,10 @@ ApManager.resolveDomainId = function(domain, idOrName) {
 		case ApTypeKey.DomainType.Element:
 			list = $dataSystem.elements;
 			break;
-		case ApTypeKey.DomainType.WeaponType:
+		case ApTypeKey.DomainType.Weapon:
 			list = $dataSystem.weaponTypes;
 			break;
-		case ApTypeKey.DomainType.SkillType:
+		case ApTypeKey.DomainType.Skill:
 			list = $dataSystem.skillTypes;
 			break;
 		default: return NaN;
@@ -762,11 +762,11 @@ ApManager.apTypeDisplay = function(key) {
 			name = $dataSystem.elements[id];
 			icon = IconManager.element(id);
 			break;
-		case ApTypeKey.DomainType.WeaponType:
+		case ApTypeKey.DomainType.Weapon:
 			name = $dataSystem.weaponTypes[id];
 			icon = IconManager.weaponType(id);
 			break;
-		case ApTypeKey.DomainType.SkillType:
+		case ApTypeKey.DomainType.Skill:
 			name = $dataSystem.skillTypes[id];
 			icon = IconManager.skillType(id);
 			break;
