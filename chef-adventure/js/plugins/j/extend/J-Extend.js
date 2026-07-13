@@ -279,7 +279,44 @@
  *  <applyState:[12, 30]>
  * On every hit, 30% chance to apply state id 12 with the state's default duration.
  * ============================================================================
+ * TOGGLE STATE ON EXECUTE:
+ * Have you ever wanted a "stance" skill — one that flips a state on when it's off,
+ * and flips it off when it's on, using the same skill both ways? This tag does
+ * exactly that: it fires once when the skill executes (not per-hit), checks
+ * whether the caster currently has the tagged state, and toggles it.
+ *
+ * NOTE 1:
+ * This fires once at press-time, the same as the on-cast self-state tags above —
+ * it does not require (or care about) a successful hit against a target.
+ *
+ * NOTE 2:
+ * There is no chance roll; this always triggers when the skill executes.
+ *
+ * NOTE 3:
+ * A skill may carry multiple <toggleOnExecute> tags to flip several states in a
+ * single execution. Each STATE_ID is evaluated independently: if the caster has
+ * it, it's removed; if not, it's added.
+ *
+ * TAG USAGE:
+ * - Skills only.
+ *
+ * TAG FORMAT:
+ *  <toggleOnExecute:STATE_ID>
+ * Where STATE_ID is the id of the state to toggle on the caster.
+ *
+ * TAG EXAMPLES:
+ *  <toggleOnExecute:12>
+ * Executing this skill removes state id 12 from the caster if they have it,
+ * or adds it if they don't — toggling a stance on/off with one skill.
+ *
+ *  <toggleOnExecute:12>
+ *  <toggleOnExecute:13>
+ * Executing this skill independently toggles both state id 12 and state id 13.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Added <toggleOnExecute:STATE_ID> — a skill-scoped, press-time state toggle
+ *    for stance-style skills (add if absent, remove if present). Repeatable.
  * - 1.4.1
  *    Fixed Game_Actor#hasSkill to compare by skill id rather than object reference.
  *    Vanilla uses includes($dataSkills[id]) which breaks the moment the overlay system
@@ -614,6 +651,26 @@ J.EXTEND.RegExp.ThisApplyState = /<thisApplyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)
 * @type {RegExp}
 */
 J.EXTEND.RegExp.ApplyState = /<applyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+){0,2}])>/gi;
+/**
+* The structure of a skill-scoped toggle-state tag. Reads from the executing skill only
+* ({@code this.item()}). Fires once at press-time (same as the on-cast self-state tags), not on hit.
+*
+* <pre>
+* Structure:
+*  <toggleOnExecute:STATE_ID>
+*
+* Example (a stance skill that flips two states at once):
+*  <toggleOnExecute:12>
+*  <toggleOnExecute:13>
+*
+* Translation:
+*  On execution, for each tagged STATE_ID: if the caster already has it, remove it;
+*  if the caster does not have it, add it. Repeatable — one STATE_ID per tag/line, each
+*  toggled independently. No chance roll; this always triggers.
+* </pre>
+* @type {RegExp}
+*/
+J.EXTEND.RegExp.ToggleOnExecute = /<toggleOnExecute:[ ]?(\d+)>/gi;
 
 //#endregion
 //#region src/plugins/extend/core/managers/OverlayManager.js
@@ -1561,6 +1618,30 @@ Game_Action.prototype.applyItemUserEffect = function(target) {
 	J.EXTEND.Aliased.Game_Action.get("applyItemUserEffect").call(this, target);
 	this.applyOnCastStripStates(target);
 	this.applyOnCastRemoveStates(target);
+};
+/**
+* Toggles all {@code <toggleOnExecute:STATE_ID>} states on the caster: for each tagged state id,
+* removes it if the caster currently has it, or adds it if they don't. Fires once at press-time
+* (see {@link JABS_Engine#handleOnCastStateEffects}), same as the on-cast self-state family below.
+* There is no chance roll; this always triggers when the skill executes.
+*/
+Game_Action.prototype.applyToggleOnExecuteStates = function() {
+	const caster = this.subject();
+	this.toggleOnExecuteStateIds().forEach((stateId) => {
+		if (caster.isStateAffected(stateId)) {
+			caster.removeState(stateId);
+		} else {
+			caster.addState(stateId, caster);
+		}
+	});
+};
+/**
+* Gets all state ids tagged with {@code <toggleOnExecute:STATE_ID>} on the executing skill.
+* Skill-scoped only; a skill may carry multiple tags to toggle multiple states in one execution.
+* @returns {number[]}
+*/
+Game_Action.prototype.toggleOnExecuteStateIds = function() {
+	return RPGManager.getNumbersFromNoteByRegex(this.item(), J.EXTEND.RegExp.ToggleOnExecute);
 };
 /**
 * Applies all applicable on-cast self states.

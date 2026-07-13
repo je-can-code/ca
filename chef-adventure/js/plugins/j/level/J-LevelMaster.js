@@ -542,7 +542,31 @@ J.LEVEL.RegExp = {
 	* The regex for granting bonuses or penalties to max level (for actors only).
 	* @type {RegExp}
 	*/
-	MaxLevelBoost: /<maxLevelBoost: ?(-?\+?\d+)>/i
+	MaxLevelBoost: /<maxLevelBoost: ?(-?\+?\d+)>/i,
+	/**
+	* The regexes for the 8 base parameters' `GrowthCurve` tags, indexed by base paramId (0-7:
+	* mhp/mmp/atk/def/mat/mdf/agi/luk). Authored via the jmz-data-editor's Classes board and read by
+	* {@link GrowthCurveFormula.readForClass} to derive beyond-level-99 growth directly from the formula
+	* instead of {@link Game_Temp.buildBeyondMaxDataForClass}'s slope-extrapolation fallback.
+	* @type {RegExp[]}
+	*/
+	GrowthCurveByParamId: [
+		/<mhpGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<mmpGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<atkGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<defGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<matGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<mdfGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<agiGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<lukGrowthCurve:\[([+\-*/ ().\w]+)]>/gi
+	],
+	/**
+	* The regex for MTP's `GrowthCurve` tag. Unlike the 8 base params, MTP has no `params[]` array in
+	* Classes.json (it's a J-Base/J-NaturalGrowth note-tag-only stat), so when present this formula is
+	* evaluated live for every level, not just beyond 99- see {@link Game_Actor.maxTp}.
+	* @type {RegExp}
+	*/
+	MtpGrowthCurve: /<mtpGrowthCurve:\[([+\-*/ ().\w]+)]>/gi
 };
 
 //#endregion
@@ -570,6 +594,62 @@ J.LEVEL.Aliased.DataManager.set("setupNewGame", DataManager.setupNewGame);
 DataManager.setupNewGame = function() {
 	J.LEVEL.Aliased.DataManager.get("setupNewGame").call(this);
 	$gameTemp.buildBeyondMaxData();
+};
+
+//#endregion
+//#region src/plugins/level/core/managers/GrowthCurveFormula.js
+/**
+* A helper class for reading and evaluating `<paramGrowthCurve:[formula]>` note tags authored on a
+* class via the jmz-data-editor's Classes board. When present, these formulas are the source of truth
+* for a base parameter's value beyond level 99 (levels 1-99 stay driven by the class's baked
+* `params[paramId]` array) — replacing {@link Game_Temp.buildBeyondMaxDataForClass}'s prior
+* slope-extrapolation guess with the actual authored curve for any class/param that has one tagged.
+*/
+var GrowthCurveFormula = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Reads the `<paramGrowthCurve:[formula]>` tag for the given base paramId off a class, if present.
+	* @param {RPG_Class} dataClass The class database object to read the tag from.
+	* @param {number} paramId The base paramId (0-7) to look up the tag for.
+	* @returns {string|null} The raw formula text, or null if the class has no tag for this param.
+	*/
+	static readForClass(dataClass, paramId) {
+		const structure = J.LEVEL.RegExp.GrowthCurveByParamId.at(paramId);
+		return RPGManager.getStringFromNoteByRegex(dataClass, structure, true);
+	}
+	/**
+	* Reads the `<mtpGrowthCurve:[formula]>` tag off a class, if present.
+	* @param {RPG_Class} dataClass The class database object to read the tag from.
+	* @returns {string|null} The raw formula text, or null if the class has no MTP growth curve tag.
+	*/
+	static readMtpForClass(dataClass) {
+		return RPGManager.getStringFromNoteByRegex(dataClass, J.LEVEL.RegExp.MtpGrowthCurve, true);
+	}
+	/**
+	* Evaluates a growth curve formula at a given level.
+	*
+	* Mirrors jmz-data-editor's own `GrowthParser.evaluateFormula` so the editor's preview and the
+	* runtime's actual result stay identical for the same formula and level.
+	* @param {string} formula The formula text captured from a `GrowthCurve` tag.
+	* @param {number} level The level to evaluate the formula at.
+	* @returns {number} The evaluated result, or 0 if the formula fails to evaluate.
+	*/
+	static evaluate(formula, level) {
+		const a = { level };
+		try {
+			const evaluator = new Function("a", `return (${formula})`);
+			return evaluator(a);
+		} catch (error) {
+			console.error(`Error evaluating growth curve formula: ${formula}`, error);
+			return 0;
+		}
+	}
 };
 
 //#endregion
@@ -787,6 +867,23 @@ Game_Actor.prototype.paramBase = function(paramId) {
 	const beyondRow = params[paramId];
 	const beyondIdx = Math.min(rawLevel, beyondRow.length - 1);
 	return beyondRow[beyondIdx];
+};
+/**
+* Extends {@link #maxTp}.<br/>
+* When the actor's current class carries an `<mtpGrowthCurve:[formula]>` tag, that formula is the
+* sole source of this actor's MTP at every level- it replaces J-Base's flat `base + tag-sum`
+* calculation entirely (no additive stacking with `<maxTp:N>`/`<mtpBuffPlus:[...]>`), since MTP has no
+* `params[]` array to defer to for any level range the way the 8 base params do. Falls through to the
+* original calculation unchanged when the current class has no such tag.
+* @returns {number}
+*/
+J.LEVEL.Aliased.Game_Actor.set("maxTp", Game_Actor.prototype.maxTp);
+Game_Actor.prototype.maxTp = function() {
+	const growthCurveFormula = GrowthCurveFormula.readMtpForClass(this.currentClass());
+	if (growthCurveFormula) {
+		return Math.max(0, Math.round(GrowthCurveFormula.evaluate(growthCurveFormula, this.getLevel())));
+	}
+	return J.LEVEL.Aliased.Game_Actor.get("maxTp").call(this);
 };
 /**
 * The base or default level for this battler.
@@ -1418,22 +1515,30 @@ Game_Temp.prototype.buildBeyondMaxData = function() {
 * @param {number} classId The classId to build the beyond max data for.
 */
 Game_Temp.prototype.buildBeyondMaxDataForClass = function(classId) {
-	const classParams = $dataClasses.at(classId).params;
+	const dataClass = $dataClasses.at(classId);
+	const classParams = dataClass.params;
 	const newClassParams = Array.empty;
 	Game_BattlerBase.knownBaseParameterIds().forEach((paramId) => {
 		const parameterValues = classParams.at(paramId).toSpliced(0, 0);
-		const lastFive = parameterValues.slice(parameterValues.length - 6);
-		const growth = Array.empty;
-		lastFive.forEach((value, index) => {
-			if (index === 0) return;
-			const previousValue = lastFive[index - 1];
-			const difference = value - previousValue;
-			growth.push(difference);
-		});
-		const averageGrowth = growth.reduce((sum, value) => sum + value, 0) / growth.length;
-		for (let i = 100; i < 1e3; i++) {
-			const nextParameterValue = parameterValues.at(i - 1) + averageGrowth;
-			parameterValues[i] = Math.ceil(nextParameterValue);
+		const growthCurveFormula = GrowthCurveFormula.readForClass(dataClass, paramId);
+		if (growthCurveFormula) {
+			for (let i = 100; i < 1e3; i++) {
+				parameterValues[i] = Math.round(GrowthCurveFormula.evaluate(growthCurveFormula, i));
+			}
+		} else {
+			const lastFive = parameterValues.slice(parameterValues.length - 6);
+			const growth = Array.empty;
+			lastFive.forEach((value, index) => {
+				if (index === 0) return;
+				const previousValue = lastFive[index - 1];
+				const difference = value - previousValue;
+				growth.push(difference);
+			});
+			const averageGrowth = growth.reduce((sum, value) => sum + value, 0) / growth.length;
+			for (let i = 100; i < 1e3; i++) {
+				const nextParameterValue = parameterValues.at(i - 1) + averageGrowth;
+				parameterValues[i] = Math.ceil(nextParameterValue);
+			}
 		}
 		newClassParams.push(parameterValues);
 	});

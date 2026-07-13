@@ -17359,6 +17359,7 @@ var JABS_Engine = class JABS_Engine {
 		gameAction.applyOnCastSelfStates();
 		gameAction.applyOnCastSelfStatesIfAfflicted();
 		gameAction.applyOnCastLoseStates();
+		gameAction.applyToggleOnExecuteStates();
 	}
 	/**
 	* Handles adding this action to the map if applicable.
