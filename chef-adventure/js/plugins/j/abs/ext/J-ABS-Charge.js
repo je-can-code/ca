@@ -617,7 +617,7 @@ JABS_Battler.prototype.executeChargeAction = function(slot, charging) {
 	if (!charging) return;
 	const isStillCharging = isCurrentlyCharging && isSameSlot;
 	if (isStillCharging) return;
-	const isSwitchingChargingSlot = isStillCharging && !isSameSlot;
+	const isSwitchingChargingSlot = isCurrentlyCharging && !isSameSlot;
 	if (isSwitchingChargingSlot) {
 		this.endCharging();
 		return;
@@ -1112,6 +1112,7 @@ JABS_StandardController.prototype.performOffhandChargeAction = function() {
 */
 JABS_StandardController.prototype.performOffhandChargeAlterAction = function() {
 	JABS_InputAdapter.performOffhandActionCharging(false, $jabsEngine.getPlayer1());
+	this.resetChargeInputDelayBySlot(JABS_Button.Offhand);
 };
 /**
 * Determines whether or not the charging is ready.

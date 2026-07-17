@@ -22,33 +22,18 @@
  *
  * ----------------------------------------------------------------------------
  * DETAILS:
- * Cool details about this cool plugin go here.
+ * Quest and objective data is sourced from the Omni/Questopedia system (see
+ * J-Omni-Quest), not from notetags of any kind- this plugin is purely a
+ * display frame that reads tracked quest state and renders it.
  *
+ * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own.
  * ============================================================================
  * CHANGELOG:
  * - 1.0.0
  *    The initial release.
  * ============================================================================
- *
- * @param parentConfig
- * @text SETUP
- *
- * @param menu-switch
- * @parent parentConfig
- * @type switch
- * @text Menu Switch ID
- * @desc When this switch is ON, then this command is visible in the menu.
- * @default 101
- *
- *
- * @command do-the-thing
- * @text Add/Remove points
- * @desc Adds or removes a designated amount of points from all members of the current party.
- * @arg points
- * @type number
- * @min -99999999
- * @max 99999999
- * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  */
 //endregion annotations
 
@@ -71,13 +56,7 @@ var J_HUD_Quest_PluginMetadata = class extends PluginMetadata {
 	/**
 	* Initializes the metadata associated with this plugin.
 	*/
-	initializeMetadata() {
-		/**
-		* The id of a switch that represents whether or not this system is accessible in the menu.
-		* @type {number}
-		*/
-		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
-	}
+	initializeMetadata() {}
 };
 
 //#endregion
@@ -116,11 +95,6 @@ J.HUD.EXT.QUEST.Aliased.Scene_Questopedia = new Map();
 J.HUD.EXT.QUEST.Aliased.TrackedOmniQuest = new Map();
 J.HUD.EXT.QUEST.Aliased.TrackedOmniObjective = new Map();
 J.HUD.EXT.QUEST.Aliased.HudManager = new Map();
-/**
-* All regular expressions used by this plugin.
-*/
-J.HUD.EXT.QUEST.RegExp = {};
-J.HUD.EXT.QUEST.RegExp.Points = /<tag:[ ]?(\d+)>/i;
 
 //#endregion
 //#region src/plugins/hud/ext/quest/managers/HudManager.js

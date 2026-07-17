@@ -135,7 +135,7 @@
  *  <passive:[10,11,12]>
  * If a battler had two separate database objects in their possession each
  * bearing one of the above two tags, then the state id of 10 would be applied
- * twice, while 11, 12, and 13 would be applied only once.
+ * twice, while 11 and 12 would be applied only once.
  *
  *  <uniquePassive:[10]>
  *  <passive:[10,11,12]>

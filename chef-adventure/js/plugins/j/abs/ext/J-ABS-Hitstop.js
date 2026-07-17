@@ -12,34 +12,86 @@
  * @help
  * ============================================================================
  * OVERVIEW
- * This plugin does some stuff that is probably pretty cool.
+ * This plugin adds "hitstop" to JABS: a brief freeze-frame pause applied to
+ * the attacker, the target, and the delivering action event the instant a
+ * hit connects. It's the classic "impact frame" trick used to make hits
+ * feel heavier without touching damage numbers.
  *
  * Integrates with others of mine plugins:
  * - J-Base; to be honest this is just required for all my plugins.
  *
  * ----------------------------------------------------------------------------
  * DETAILS:
- * Cool details about this cool plugin go here.
+ * A skill's hitstop duration (in frames) is resolved from a base amount,
+ * then adjusted by whether the hit was a critical, whether it was guarded,
+ * and whether it was parried, then scaled by the target's own hitstop
+ * sensitivity, then clamped to the configured max. A parried hit always
+ * resolves to zero hitstop, regardless of any other tag.
  *
  * ============================================================================
- * SOMETHING KEY TO THIS PLUGIN:
- * Ever want to do something cool? Well now you can! By applying the
- * appropriate tag to across the various database locations, you too can do
- * cool things that only others with this plugin can do.
+ * HITSTOP DURATION (PER SKILL):
+ * Set how many frames of hitstop this skill's hits apply on impact.
+ * Without this tag, the plugin's global default base frames are used.
+ *
+ * TAG USAGE:
+ * - Skills
+ *
+ * TAG FORMAT:
+ *  <hitstop:FRAMES>
+ *    Where FRAMES is the base number of frames to freeze on impact.
+ *
+ * TAG EXAMPLES:
+ *  <hitstop:8>
+ * This skill applies 8 base frames of hitstop on every hit, before crit/
+ * guard/target-scale adjustments are layered on.
+ *
+ * ----------------------------------------------------------------------------
+ * DISABLE HITSTOP (PER SKILL):
+ * Fully disables hitstop for this skill's hits, ignoring the global default
+ * and this skill's own <hitstop:FRAMES> tag if both are somehow present.
+ *
+ * TAG USAGE:
+ * - Skills
+ *
+ * TAG FORMAT:
+ *  <noHitstop>
+ *
+ * TAG EXAMPLES:
+ *  <noHitstop>
+ * Hits from this skill never trigger a freeze-frame pause, even if the
+ * global default has hitstop enabled for everything else.
+ *
+ * ----------------------------------------------------------------------------
+ * HITSTOP SENSITIVITY (PER BATTLER):
+ * Scales how much hitstop a battler experiences when they are the one being
+ * hit. This is read from the TARGET's own database data, not the skill.
  *
  * TAG USAGE:
  * - Actors
  * - Enemies
- * - Skills
- * - etc.
  *
  * TAG FORMAT:
- *  <tag:VALUE>
- *    Where VALUE represents the amount to do.
+ *  <hitstopScale:P%>
+ *    Where P is the percent scale to apply against the resolved duration.
  *
  * TAG EXAMPLES:
- *  <tag:100>
- * 100 of something will occur when this is triggered.
+ *  <hitstopScale:50%>
+ * This battler experiences half the normal hitstop duration whenever they
+ * are hit- great for giving small/fast enemies a snappier feel, or heavily
+ * armored bosses a duller, less-interruptible one.
+ *
+ *  <hitstopScale:0%>
+ * This battler never experiences hitstop when hit, regardless of the
+ * attacking skill's own tags.
+ *
+ * NOTE: Without this tag, a battler defaults to 100% (no scaling).
+ * ============================================================================
+ * TUNING:
+ * This plugin has no editable plugin parameters. All base tuning (default
+ * hitstop frames, crit bonus, guard scale, max frames, flurry decay/window,
+ * screen-shake power/speed/cooldown, etc.) is hardcoded in
+ * JHitstop_PluginMetadata#initializeMetadata and adjusted by editing that
+ * file directly if you need different defaults for your project.
  * ============================================================================
  * CHANGELOG:
  * - 1.0.2
@@ -49,26 +101,6 @@
  * - 1.0.0
  *    The initial release.
  * ============================================================================
- *
- * @param parentConfig
- * @text SETUP
- *
- * @param menu-switch
- * @parent parentConfig
- * @type switch
- * @text Menu Switch ID
- * @desc When this switch is ON, then this command is visible in the menu.
- * @default 101
- *
- *
- * @command do-the-thing
- * @text Add/Remove points
- * @desc Adds or removes a designated amount of points from all members of the current party.
- * @arg points
- * @type number
- * @min -99999999
- * @max 99999999
- * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  */
 //endregion annotations
 

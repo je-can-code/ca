@@ -87,6 +87,68 @@
  * will be considered "blocked", where TIME will not flow:
  * <timeBlock>
  *
+ * =============================================================================
+ * TIME-GATED EVENT PAGES AND CHOICES
+ * Ever wanted an event page (or a "Show Choices" branch) to only be active
+ * during a specific minute, hour, day, month, year, time of day, season, or
+ * combination thereof? Well now you can! There are two parallel tag families-
+ * "Page" tags gate an entire event page condition; "Choice" tags gate a
+ * single choice in a "Show Choices" branch. Both families share identical
+ * unit names and behavior, just swap "Page" for "Choice" in the tag name.
+ *
+ * NOTE ABOUT EXACT VS RANGE:
+ * The plain unit tags (<minutePage>, <hourPage>, etc.) match only that exact
+ * value. The "Range" variants (<minuteRangePage>, <hourRangePage>, etc.)
+ * match an inclusive START-END span instead.
+ *
+ * TAG USAGE:
+ * - Event pages (comment, gates the whole page like a normal page condition)
+ * - "Show Choices" branches (comment, gates a single choice)
+ *
+ * EXACT-VALUE TAG FORMAT:
+ *  <minutePage:MINUTE>            <minuteChoice:MINUTE>
+ *  <hourPage:HOUR>                <hourChoice:HOUR>
+ *  <dayPage:DAY>                  <dayChoice:DAY>
+ *  <monthPage:MONTH>              <monthChoice:MONTH>
+ *  <yearPage:YEAR>                <yearChoice:YEAR>
+ *  <timeOfDayPage:TIME_OF_DAY>    <timeOfDayChoice:TIME_OF_DAY>
+ *  <seasonOfYearPage:SEASON>      <seasonOfYearChoice:SEASON>
+ * Where TIME_OF_DAY is a 0-5 index or one of: night, dawn, morning,
+ *   afternoon, evening, twilight.
+ * Where SEASON is a 0-3 index or one of: spring, summer, autumn, winter.
+ *
+ * RANGE TAG FORMAT (inclusive START-END):
+ *  <minuteRangePage:START-END>    <minuteRangeChoice:START-END>
+ *  <hourRangePage:START-END>      <hourRangeChoice:START-END>
+ *  <dayRangePage:START-END>       <dayRangeChoice:START-END>
+ *  <monthRangePage:START-END>     <monthRangeChoice:START-END>
+ *  <yearRangePage:START-END>      <yearRangeChoice:START-END>
+ *
+ * COMPOSITE SHORTCUT TAG FORMAT:
+ *  <timeRangePage:HH:MM-HH:MM>     <timeRangeChoice:HH:MM-HH:MM>
+ *    Shortcut for gating on an hour:minute clock-time span within a single
+ *    day (e.g. "9:00 to 17:30").
+ *
+ *  <fullDateRangePage:[MINUTE,HOUR,DAY,MONTH,YEAR]-[MINUTE,HOUR,DAY,MONTH,YEAR]>
+ *  <fullDateRangeChoice:[MINUTE,HOUR,DAY,MONTH,YEAR]-[MINUTE,HOUR,DAY,MONTH,YEAR]>
+ *    The most precise gate: an inclusive span across a full calendar
+ *    date+time. Seconds are always treated as 0 at the start of the range and
+ *    59 at the end (seconds are not independently configurable here).
+ *
+ * TAG EXAMPLES:
+ *  <timeOfDayPage:morning>
+ * This event page is only active while TIME considers it currently morning.
+ *
+ *  <hourRangePage:9-17>
+ * This event page is only active between hour 9 and hour 17, inclusive.
+ *
+ *  <timeRangeChoice:9:00-17:30>
+ * This choice is only shown between 9:00am and 5:30pm.
+ *
+ *  <fullDateRangePage:[0,9,29,5,2021]-[0,17,29,5,2021]>
+ * This event page is only active from 9:00am to 5:00pm on day 29, month 5,
+ * year 2021- and nowhere else on the calendar.
+ * =============================================================================
  * COMMANDS
  * There are a number of plugin commands available to manipulate TIME:
  * - Jump to time of day

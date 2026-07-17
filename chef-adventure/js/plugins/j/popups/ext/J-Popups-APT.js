@@ -22,6 +22,9 @@
  * is growing.
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own.
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.2
  *    AP reward popups route through `JABS_PopupMergeController.routeRewardPop` when J-Popups-ABS merge is enabled.

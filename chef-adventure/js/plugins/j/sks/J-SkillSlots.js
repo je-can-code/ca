@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
+ * @plugindesc [v1.1.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -10,9 +10,9 @@
  * ============================================================================
  * OVERVIEW
  * This plugin enables actors to equip skills into dedicated skill slots using
- * a point-budget system. Each actor has a pool of slot points; skills cost
- * points to equip, and only skills of the configured equippable types appear
- * in the equip scene.
+ * a point-budget system. Each actor has a number of slots and a pool of slot
+ * points; skills occupy a slot and cost points to equip, and only skills of
+ * the configured equippable types appear in the equip scene.
  *
  * Integrates with others of mine plugins:
  * - J-Base; required by all my plugins.
@@ -20,11 +20,14 @@
  *
  * ----------------------------------------------------------------------------
  * DETAILS
- * Each actor has a maximum number of slot points (maxSlotPoints). Skills that
- * belong to the configured equippable skill types can be placed into slots,
- * each consuming a number of slot points equal to their slot cost. The player
- * manages equipped skills through the SKS equip scene, accessible from the
- * menu when the configured menu switch is ON.
+ * Each actor has both a maximum number of slots (maxSlots) and a maximum
+ * number of slot points (maxSlotPoints). These are two independent capacities:
+ * slots limit how many skills can be equipped at once regardless of cost, and
+ * points limit how much those equipped skills can collectively cost. Skills
+ * that belong to the configured equippable skill types can be placed into
+ * slots, each consuming a number of slot points equal to their slot cost. The
+ * player manages equipped skills through the SKS equip scene, accessible from
+ * the menu when the configured menu switch is ON.
  *
  * Skills tagged as "unslotted" are perpetually active and never appear in the
  * equip scene. Skills whose type is not in the equippable list are also treated
@@ -88,7 +91,67 @@
  * All skills cost 1 fewer slot point while this is active on the actor.
  *
  * ============================================================================
+ * BASE SLOTS / BASE SLOT POINTS
+ * Want to control how many slots or slot points an actor has innately, and
+ * have that scale as they grow? By applying the appropriate tag to an actor
+ * or their class, you can define a formula-driven baseline for either
+ * capacity. When neither the actor nor their class carries the tag, the
+ * plugin's configured default is used instead.
+ *
+ * These formulas have access to "a" (the actor) and "v" (the game's
+ * variables), so growth curves can reference things like the actor's level.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ *
+ * TAG FORMAT:
+ *  <baseSlots:[FORMULA]>
+ *    Where FORMULA computes the actor's baseline slot count.
+ *  <baseSlotPoints:[FORMULA]>
+ *    Where FORMULA computes the actor's baseline slot point budget.
+ *
+ * TAG EXAMPLES:
+ *  <baseSlots:[4]>
+ * This actor/class has a flat baseline of 4 slots.
+ *
+ *  <baseSlotPoints:[6 + (a.level * 0.5)]>
+ * This actor/class's baseline slot points grow by half a point per level,
+ * starting from a base of 6.
+ *
+ * ============================================================================
+ * MAX SLOTS / MAX SLOT POINTS
+ * Want to grant bonus slots or slot points from equipment, states, or other
+ * sources? By applying the appropriate tag across the various database
+ * locations, you can add to an actor's baseline capacity. Unlike the base
+ * tags, these stack additively across every source found.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armor
+ * - States
+ *
+ * TAG FORMAT:
+ *  <maxSlots:[FORMULA]>
+ *    Where FORMULA computes a bonus to the actor's slot count.
+ *  <maxSlotPoints:[FORMULA]>
+ *    Where FORMULA computes a bonus to the actor's slot point budget.
+ *
+ * TAG EXAMPLES:
+ *  <maxSlots:[1]>
+ * This source grants +1 bonus slot while active/equipped.
+ *
+ *  <maxSlotPoints:[-2]>
+ * This source reduces the actor's slot point budget by 2 while active.
+ *
+ * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Promoted maxSlots and maxSlotPoints to independent, notetag-driven stats.
+ *    Removed the mod-slot-points-party plugin command.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -110,16 +173,19 @@
  * @desc The skill type IDs whose skills are eligible for equipping into slots. Skills of all other types are implicitly unslotted.
  * @default []
  *
- *
- * @command mod-slot-points-party
- * @text Add/Remove Slot Points (Party)
- * @desc Adds or removes a designated number of slot points from all members of the current party.
- * @arg points
+ * @param default-max-slots
+ * @parent parentConfig
  * @type number
- * @min -99999999
- * @max 99999999
- * @desc The number of slot points to modify by. Negative values remove points. Cannot go below 0.
- * @default 1
+ * @text Default Max Slots
+ * @desc The baseline number of skill slots an actor has when no <baseSlots:...> tag is found on the actor or class.
+ * @default 4
+ *
+ * @param default-max-slot-points
+ * @parent parentConfig
+ * @type number
+ * @text Default Max Slot Points
+ * @desc The baseline slot point budget an actor has when no <baseSlotPoints:...> tag is found on the actor or class.
+ * @default 4
  */
 //endregion annotations
 
@@ -156,10 +222,17 @@ var JSkillSlots_PluginMetadata = class extends PluginMetadata {
 		*/
 		this.equippableSkillTypeIds = JSON.parse(this.parsedPluginParameters["equippable-skill-type-ids"] || "[]").map((id) => J.BASE.Helpers.parsePluginInt(id, 0));
 		/**
-		* The default maximum number of skill slot points for an actor.
+		* The baseline number of skill slots an actor has when neither the actor nor their class
+		* carries a {@link J.SKS.RegExp.BaseSlots} tag.
 		* @type {number}
 		*/
-		this.defaultMaxSkillSlotPoints = 4;
+		this.defaultMaxSkillSlots = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["default-max-slots"], 4);
+		/**
+		* The baseline slot point budget an actor has when neither the actor nor their class
+		* carries a {@link J.SKS.RegExp.BaseSlotPoints} tag.
+		* @type {number}
+		*/
+		this.defaultMaxSkillSlotPoints = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["default-max-slot-points"], 4);
 		/**
 		* The default cost of a skill for a skill slot.
 		* @type {number}
@@ -185,7 +258,7 @@ J.SKS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.0.0");
+J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -198,6 +271,10 @@ J.SKS.RegExp = {};
 J.SKS.RegExp.SlotCost = /<slotCost:[ ]?(-?\d+)>/i;
 J.SKS.RegExp.Unslotted = /<unslotted>/i;
 J.SKS.RegExp.SlotCostModifier = /<slotCostModifier:[ ]?(-?\d+)>/i;
+J.SKS.RegExp.BaseSlots = /<baseSlots:\[([+\-*/ ().\w]+)]>/gi;
+J.SKS.RegExp.BaseSlotPoints = /<baseSlotPoints:\[([+\-*/ ().\w]+)]>/gi;
+J.SKS.RegExp.MaxSlots = /<maxSlots:\[([+\-*/ ().\w]+)]>/gi;
+J.SKS.RegExp.MaxSlotPoints = /<maxSlotPoints:\[([+\-*/ ().\w]+)]>/gi;
 
 //#endregion
 //#region src/plugins/sks/core/_models/SkillEquipSlot.js
@@ -301,11 +378,6 @@ Game_Actor.prototype.initSkillSlotsMembers = function() {
 	* @type {Map<number, number>}
 	*/
 	this._j._sks._slotMap = new Map();
-	/**
-	* The maximum number of slot points this actor can spend across all slots.
-	* @type {number}
-	*/
-	this._j._sks._maxSlotPoints = J.SKS.Metadata.defaultMaxSkillSlotPoints;
 };
 /**
 * Gets the ordered array of equipped skill slots for this actor.
@@ -348,27 +420,29 @@ Game_Actor.prototype.getEquippedSkillIndex = function(skillId) {
 	return -1;
 };
 /**
+* Gets the maximum number of skill slots available to this actor.
+* Baseline comes from a {@link J.SKS.RegExp.BaseSlots} tag on the actor or class, falling back to
+* the plugin's configured default when neither carries the tag. Bonus amounts from
+* {@link J.SKS.RegExp.MaxSlots} tags anywhere in {@link #getAllNotes} stack on top of that baseline.
+* @returns {number}
+*/
+Game_Actor.prototype.maxSlots = function() {
+	const baseline = RPGManager.getResultsFromAllNotesByRegex(this.getActorNotes(), J.SKS.RegExp.BaseSlots, 0, this, true) ?? J.SKS.Metadata.defaultMaxSkillSlots;
+	const bonus = RPGManager.getResultsFromAllNotesByRegex(this.getAllNotes(), J.SKS.RegExp.MaxSlots, 0, this, false);
+	return Math.max(0, baseline + bonus);
+};
+/**
 * Gets the maximum number of slot points available to this actor.
+* Baseline comes from a {@link J.SKS.RegExp.BaseSlotPoints} tag on the actor or class, falling back
+* to the plugin's configured default when neither carries the tag. Bonus amounts from
+* {@link J.SKS.RegExp.MaxSlotPoints} tags anywhere in {@link #getAllNotes} stack on top of that
+* baseline.
 * @returns {number}
 */
 Game_Actor.prototype.maxSlotPoints = function() {
-	return this._j._sks._maxSlotPoints;
-};
-/**
-* Sets the maximum number of slot points available to this actor.
-* @param {number} points - The new maximum slot points value.
-*/
-Game_Actor.prototype.setMaxSlotPoints = function(points) {
-	this._j._sks._maxSlotPoints = points;
-};
-/**
-* Modifies the maximum number of slot points for this actor by the given amount.
-* The result is clamped to a minimum of 0.
-* @param {number} amount - The amount to modify by. Negative values reduce the maximum.
-*/
-Game_Actor.prototype.modifyMaxSlotPoints = function(amount) {
-	const newMax = this.maxSlotPoints() + amount;
-	this.setMaxSlotPoints(Math.max(0, newMax));
+	const baseline = RPGManager.getResultsFromAllNotesByRegex(this.getActorNotes(), J.SKS.RegExp.BaseSlotPoints, 0, this, true) ?? J.SKS.Metadata.defaultMaxSkillSlotPoints;
+	const bonus = RPGManager.getResultsFromAllNotesByRegex(this.getAllNotes(), J.SKS.RegExp.MaxSlotPoints, 0, this, false);
+	return Math.max(0, baseline + bonus);
 };
 /**
 * Gets the total number of slot points currently spent by this actor.
@@ -698,12 +772,12 @@ var Window_SkillEquipSlots = class extends Window_Command {
 	}
 	/**
 	* Computes how many slot rows to render.
-	* Uses the max of: highest equipped slot index + 1, and max slot points.
+	* Uses the max of: highest equipped slot index + 1, and max slots.
 	* Guarantees at least 1 row.
 	* @returns {number}
 	*/
 	computeRenderableSlotCount() {
-		const baseline = Number(this.actor().maxSlotPoints()) || 0;
+		const baseline = Number(this.actor().maxSlots()) || 0;
 		let highest = -1;
 		const map = this.actor().slotMap();
 		for (const [slotIndex] of map) {
@@ -810,7 +884,7 @@ var Window_SkillEquipList = class extends Window_Command {
 		const filtered = learned.filter((skill) => {
 			if (!skill) return false;
 			if (skill.unslotted) return false;
-			if (J.EXTEND && skill.isSkillExtension) return false;
+			if (J.EXTEND && skill.isExtension) return false;
 			return true;
 		}).sort((a, b) => {
 			const costA = this.actor().skillSlotCost(a.id, this.slotContext());
@@ -1344,18 +1418,6 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		this.detailWindow().setSkillId(skillId);
 	}
 };
-
-//#endregion
-//#region src/plugins/sks/core/_metadata/pluginCommands.js
-/**
-* Plugin command for modifying slot points for all current party members.
-*/
-PluginManager.registerCommand(J.SKS.Metadata.name, "mod-slot-points-party", (args) => {
-	const parsedPoints = parseInt(args.points);
-	$gameParty.members().forEach((member) => {
-		member.modifyMaxSlotPoints(parsedPoints);
-	});
-});
 
 //#endregion
 //# sourceMappingURL=J-SkillSlots.js.map

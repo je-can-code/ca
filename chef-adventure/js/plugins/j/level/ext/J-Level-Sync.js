@@ -52,10 +52,11 @@
  *     Paired with <levelSync:N>. Enables uplevel (exact sync) mode:
  *     all actors fight at exactly level N, including underleveled ones.
  *
- * Example map note:
- *   <levelSync:50>         <- cap-only at 50
- *   <levelSync:50>         <- exact sync at 50
- *   <levelSyncUp>
+ * Example map notes:
+ *   <levelSync:50>                  <- cap-only at 50
+ *
+ *   <levelSync:50>
+ *   <levelSyncUp>                   <- exact sync at 50
  *
  * ----------------------------------------------------------------------------
  * SYNC MODES

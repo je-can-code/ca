@@ -200,16 +200,16 @@
  * - States
  *
  * TAG FORMAT:
- *  <baseCastSpeed:[FORMULA]>
- *  <castSpeedFlat:[FORMULA]>
+ *  <baseCastTime:[FORMULA]>
+ *  <castTimeFlat:[FORMULA]>
  *  <castSpeedRate:[FORMULA]>
  * Where [FORMULA] is the formula to produce the cast speed value.
  *
  * EXAMPLE:
- *  <baseCastSpeed:[3]>
+ *  <baseCastTime:[3]>
  * Base cast speed will be set to +3 frames.
  *
- *  <castSpeedFlat:[(a.level * 2) * -1]>
+ *  <castTimeFlat:[(a.level * 2) * -1]>
  * All cast times are reduced by 2 frames per level.
  *
  *  <castSpeedRate:[b * -5]>
@@ -555,7 +555,7 @@ Game_Battler.prototype.setCastSpeedRate = function(amount) {
 * Updates the cached cast speed rate value with the latest.
 */
 Game_Battler.prototype.updateCastSpeedRate = function() {
-	const currentCastSpeedRate = this.castSpeedFlat();
+	const currentCastSpeedRate = this.castSpeedRate();
 	this.setCastSpeedRate(currentCastSpeedRate);
 };
 /**

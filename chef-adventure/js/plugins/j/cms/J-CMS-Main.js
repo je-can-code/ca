@@ -11,6 +11,10 @@
  * ============================================================================
  * This is a redesign of the main menu.
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it is purely a scene/window
+ * redesign of the native main menu.
+ * ============================================================================
  */
 //endregion Introduction
 

@@ -60,19 +60,29 @@
  * There are multiple marker types that show up on the minimap, here is a
  * brief description of all of them:
  * - Player
- *    The player is usually at the center of the map and has a teal-green
- *    colored plus for its shape.
+ *    The player is a teal plus-shape marker.
  * - Follower
- *    The followers of the player are a sky-blue colored smaller squares.
- * - JABS Enemy
- *    These do not show up at all if not using JABS.
- *    They are rendered as red diamond shapes.
+ *    The followers of the player are sky-blue square markers.
+ * - JABS Enemy (hostile)
+ *    Does not show up at all if not using JABS. Rendered as a red diamond.
+ * - JABS Enemy (inanimate)
+ *    Enemy-backed but non-combative objects (pots, crates). Rendered as an
+ *    orange diamond.
  * - NPC
  *    An NPC event marker is rendered as a bright purple circle shape.
  * - Loot
  *    A loot event marker is rendered as a bright green diamond shape.
  * - Interactable Object
- *    An object event marker is rendered as a yellow square shape.
+ *    An object event marker is rendered as a yellow diamond shape.
+ * - Teleport
+ *    A hollow light-blue square. Can be stretched to represent a
+ *    multi-tile teleport zone with <areaEvent:WxH> (see below).
+ * - Quest Offer
+ *    A yellow square marking a quest available to accept.
+ * - Quest Progress
+ *    A blue diamond marking where to advance a quest's next objective.
+ * - Quest Turn-In
+ *    A green circle marking where to complete/turn in a quest.
  *
  * If multiple marker tags are present on a single event, the last one
  * found will be prioritized.
@@ -82,17 +92,58 @@
  *
  * TAG FORMAT:
  *  <minimap:MARKER_TYPE> or <mm:MARKER_TYPE>
- * Where MARKER_TYPE is one of "npc", "loot", or "object" (without quotes).
+ * Where MARKER_TYPE is one of "npc", "loot", "object", "teleport",
+ * "questOffer", "questProgress", or "questTurnIn" (without quotes).
  *
  * TAG EXAMPLES:
  *  <minimap:npc> or <mm:npc>
  * An event with this tag will show up as an NPC marker on the minimap.
- * 
+ *
  *  <minimap:loot> or <mm:loot>
  * An event with this tag will show up as a loot marker on the minimap.
- * 
+ *
  *  <minimap:object> or <mm:object>
  * An event with this tag will show up as an object marker on the minimap.
+ *
+ *  <minimap:teleport> or <mm:teleport>
+ * An event with this tag will show up as a hollow-square teleport marker.
+ *
+ * ----------------------------------------------------------------------------
+ * TELEPORT ZONE SIZE
+ * By default, a <minimap:teleport> marker is drawn as a single-tile hollow
+ * square. If the teleport actually spans multiple tiles, stretch its marker
+ * to match using this tag on the same event.
+ *
+ * TAG USAGE:
+ * - Events on the map (typically alongside <minimap:teleport>)
+ *
+ * TAG FORMAT:
+ *  <areaEvent:WIDTHxHEIGHT>
+ * Where WIDTH and HEIGHT are the tile dimensions of the zone. Defaults to
+ * 1x1 (a single tile) if this tag is absent or malformed.
+ *
+ * TAG EXAMPLES:
+ *  <minimap:teleport>
+ *  <areaEvent:3x2>
+ * This teleport event's minimap marker is stretched to a 3-wide by 2-tall
+ * hollow square instead of a single tile.
+ *
+ * ============================================================================
+ * BLOCKING THE MINIMAP:
+ * Some maps- like tight indoor corridors, cutscene-only maps, or maps where
+ * you simply don't want the minimap distracting the player- can suppress
+ * the minimap outright.
+ *
+ * TAG USAGE:
+ * - Maps (the map's own note field)
+ *
+ * TAG FORMAT:
+ *  <blockMinimap>
+ *
+ * TAG EXAMPLES:
+ *  <blockMinimap>
+ * The minimap never renders while the player is on this map, regardless of
+ * the plugin's "Start Visible" setting or any toggle command.
  *
  * ============================================================================
  * CHANGELOG:

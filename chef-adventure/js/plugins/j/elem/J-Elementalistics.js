@@ -16,10 +16,6 @@
  * - Elements can now be boosted.
  * - Actors/Enemies can now whitelist effective elements.
  *
- * WARNING:
- * None of the note tags below support negative numbers and are white-space
- * sensitive. Follow the examples closely to achieve your desired effects.
- *
  * NOTE:
  * Combining multiple elements together is done multiplicatively for all
  * the various operations below.
@@ -148,11 +144,16 @@
  * - Classes
  *
  * TAG FORMAT:
- *  <boostElement:[ELEMENT_ID]:[PERCENT_BOOST]>
+ *  <boostElement:ELEMENT_ID:PERCENT_BOOST>
+ * PERCENT_BOOST accepts negative numbers too, for a penalty instead of a boost.
  *
- * TAG EXAMPLE:
+ * TAG EXAMPLES:
  *  <boostElement:1:50>
  * This battler has a +50% boost to skills bearing element id 1.
+ *
+ *  <boostElement:1:-30>
+ * This battler deals 30% LESS damage with skills bearing element id 1- useful
+ * for a curse/debuff state rather than a buff.
  *
  * ============================================================================
  * STRICT ELEMENTS:

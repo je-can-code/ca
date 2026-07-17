@@ -253,7 +253,7 @@ Game_Character.prototype.distancePerFrame = function() {
 	const bonus = this.calculateSpeedBoostBonus(base);
 	const total = base + bonus;
 	const constrainedTotal = Math.max(total, this.minimumDistancePerFrame());
-	return total;
+	return constrainedTotal;
 };
 /**
 * Determines the bonus (or penalty) move speed for the player based on equipment.

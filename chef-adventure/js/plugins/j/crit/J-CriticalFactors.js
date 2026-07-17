@@ -33,34 +33,39 @@
  * modifier? Well now you can! By applying the appropriate tag to the database
  * objects in question, you can control the critical chance and critical
  * damage modifiers for a specific skill's execution!
- * 
+ *
  * NOTE:
  * This stacks additively with other crit effects.
- * 
+ *
  * NOTE:
  * The effects of these tags do not apply to skills that cannot crit, so be
  * sure to make certain the critical dropdown is set to "YES" in the damage
- * formula box for the given skill. 
- * 
+ * formula box for the given skill.
+ *
+ * Formula context:
+ *   a = this action's subject (the attacker)
+ *   b = 0 (unused; present for formula consistency)
+ *   v = $gameVariables._data
+ *
  * TAG USAGE:
  * - Items
  * - Skills
- * 
+ *
  * TAG FORMAT:
  *  <thisCritChance:[FORMULA]>
- *  <thisCritDamageMultiplier:[FORMULA]>
+ *  <thisCritMultiplier:[FORMULA]>
  *  <thisCritsAlways>
- * 
+ *
  * TAG EXAMPLES:
  *  <thisCritChance:[25]>
  * Increases the critical chance of this particular skill by 25%.
- * 
- *  <thisCritDamageMultiplier:[10 + a.agi]>
+ *
+ *  <thisCritMultiplier:[10 + a.agi]>
  * Increases the critical damage multiplier by 10% plus the battler's agility.
- * 
+ *
  *  <thisCritsAlways>
  * The skill or item with this tag will ALWAYS crit.
- * 
+ *
  * ============================================================================
  * CRITICAL DAMAGE MULTIPLIER:
  * Have you ever wanted to have any amount of control over critical damage?
@@ -183,10 +188,19 @@
  *
  * TAG FORMAT:
  *  <(PARAM)(BUFF|GROWTH)(PLUS|RATE):[FORMULA]>
- * Where (PARAM) is the (base/sp/ex) parameter shorthand.
+ * Where (PARAM) is literally one of either "cdm" (crit damage multiplier) or
+ * "ctr" (crit taken rate- internally this is the same stat the critReduction
+ * tags above feed into, just spelled differently here for consistency with
+ * how J-NaturalGrowths names its own tag families).
  * Where (BUFF|GROWTH) is literally one of either "Buff" or "Growth".
  * Where (PLUS|RATE) is literally one of either "Plus" or "Rate".
- * Where [FORMULA] is the formula to produce the amount.
+ * Where [FORMULA] is a real formula this time (unlike the thisCritChance/
+ * thisCritMultiplier tags above)- it runs through the standard evaluator with:
+ *   a = the battler these bonuses are being calculated for
+ *   b = the battler's base value for this parameter (baseCriticalMultiplier()
+ *       for cdm tags, baseCriticalReduction() for ctr tags- 0.5 by default
+ *       for both)
+ *   v = $gameVariables._data
  *
  * EXAMPLE:
  *  <cdmGrowthRate:[5]>
@@ -194,8 +208,8 @@
  * This would result in gaining an ever-increasing amount of crit damage
  * multiplier per level.
  *
- *  <cdrBuffPlus:[25]>
- * Gain a flat 25 crit damage reduction (cdr) while this tag is applied to
+ *  <ctrBuffPlus:[25]>
+ * Gain a flat 25 crit taken rate reduction (ctr) while this tag is applied to
  * this battler.
  * This would be lost if the object this tag lived on was removed.
  *
@@ -276,6 +290,41 @@
  *  <onCritSelf:[20, 50]>
  * Whenever this battler lands any critical hit, there is a 50% chance to apply
  * state id 20 to themselves.
+ *
+ * ============================================================================
+ * FORCING ON-CRIT PROCS:
+ * Have you ever wanted an on-crit state application to land every single time,
+ * no exceptions, without having to touch your Accumulate/Encore/luck systems
+ * to get there? Well now you can! Applying this tag to the attacker's own note
+ * sources forces every "thisCrit"/"onCrit" state-application roll from above
+ * to succeed, as if the attacker had rolled a guaranteed positive result.
+ *
+ * NOTE:
+ * This ONLY affects the on-crit state application roll (thisCritApply,
+ * thisCritSelf, onCritApply, onCritSelf). It does not change whether the hit
+ * itself crits, and it does not touch the attacker's real isVeryLucky() or
+ * isVeryCursed() flags anywhere else- Accumulate Mode and Encore both still
+ * read the attacker's real values and stack normally on top of this.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <forceCritProcs>
+ *
+ * TAG EXAMPLES:
+ *  <forceCritProcs>
+ * Any battler with this tag applied to one of their note sources will always
+ * succeed their on-crit state application rolls- a mastery capstone state with
+ * this tag turns an "onCritApply:[5, 25]" (25% chance) into a guaranteed
+ * application on every critical hit, without inflating crit chance itself or
+ * touching luck elsewhere.
  *
  * ============================================================================
  * CONDITIONAL CRITICAL CHANCE BY TARGET STATE:
@@ -467,6 +516,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Added plugin parameters for the base CDM/CTR defaults (previously a
+ *    hard-coded, unreachable 50% baked into Game_BattlerBase).
  * - 1.1.0
  *    Added on-crit state application tags:
  *    <thisCritApply>, <thisCritSelf> (skill-scoped) and
@@ -479,15 +531,77 @@
  * - 1.0.0
  *    Initial release.
  * ============================================================================
+ *
+ * @param critMultiplierBaseDefault
+ * @type number
+ * @decimals 2
+ * @min 0
+ * @text Base Critical Damage Multiplier
+ * @desc The default bonus critical damage (%) for battlers with no <critMultiplierBase> tags. 50 = +50% (x1.5 total).
+ * @default 50.00
+ *
+ * @param critReductionBaseDefault
+ * @type number
+ * @decimals 2
+ * @min 0
+ * @text Base Critical Damage Reduction
+ * @desc The default critical damage reduction (%) for battlers with no <critReductionBase> tags. 50 = -50% of the bonus.
+ * @default 50.00
  */
 
 //#region src/plugins/crit/core/_metadata/_pluginMetadata.js
-var J_CriticalFactorsPluginMetadata = class extends PluginMetadata {
+var J_CriticalFactorsPluginMetadata = class J_CriticalFactorsPluginMetadata extends PluginMetadata {
+	/**
+	* The default critical damage multiplier factor applied to every battler that carries no
+	* `<critMultiplierBase:NUM>` notetags. Parsed from the `critMultiplierBaseDefault` plugin
+	* parameter, a percent-point value (e.g. `50` becomes the `0.5` factor).
+	* @type {number}
+	*/
+	baseCdmFactor = .5;
+	/**
+	* The default critical damage reduction factor applied to every battler that carries no
+	* `<critReductionBase:NUM>` notetags. Parsed from the `critReductionBaseDefault` plugin
+	* parameter, a percent-point value (e.g. `50` becomes the `0.5` factor).
+	* @type {number}
+	*/
+	baseCtrFactor = .5;
 	/**
 	* Constructor.
 	*/
 	constructor(name, version) {
 		super(name, version);
+	}
+	/**
+	*  Extends {@link #postInitialize}.<br>
+	*  Includes translation of plugin parameters.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		this.initializeMetadata();
+	}
+	/**
+	* Initializes the metadata associated with this plugin.
+	*/
+	initializeMetadata() {
+		const { parsedPluginParameters: p } = this;
+		this.baseCdmFactor = J_CriticalFactorsPluginMetadata.#parsePercentFactorOr(p["critMultiplierBaseDefault"], this.baseCdmFactor);
+		this.baseCtrFactor = J_CriticalFactorsPluginMetadata.#parsePercentFactorOr(p["critReductionBaseDefault"], this.baseCtrFactor);
+	}
+	/**
+	* Parses a percent-point plugin parameter (e.g. `"50.00"`) into its `/100` factor.
+	* @param {string|number|undefined|null} value The raw plugin parameter value.
+	* @param {number} fallback The fallback factor to use when the value is absent or invalid.
+	* @returns {number}
+	*/
+	static #parsePercentFactorOr(value, fallback) {
+		if (value === undefined || value === null || value === "") {
+			return fallback;
+		}
+		const parsed = Number.parseFloat(value);
+		if (!Number.isFinite(parsed)) {
+			return fallback;
+		}
+		return parsed / 100;
 	}
 };
 
@@ -771,7 +885,7 @@ Game_Action.prototype.rollAndApplyCritStates = function(recipient, onChanceEffec
 		} : attacker;
 		const procCount = effect.resolveProcCount(positiveRolls, negativeRolls, positiveRoller);
 		for (let i = 0; i < procCount; i++) {
-			recipient.addState(effect.skillId, attacker);
+			recipient.addState(effect.skillId, attacker, skill);
 		}
 	});
 };
@@ -862,10 +976,12 @@ Game_Action.prototype.itemCri = function(target) {
 };
 /**
 * Calculates this action's own bonus to crit damage multipliers.
+* Formula context: `a` is this action's subject (the attacker), `b` is 0 (no meaningful
+* per-skill base value to expose), `v` is `$gameVariables._data`.
 * @returns {number}
 */
 Game_Action.prototype.ownCriticalDamageMultiplier = function() {
-	return RPGManager.getSumFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageMultiplier) / 100;
+	return RPGManager.getResultsFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageMultiplier, 0, this.subject()) / 100;
 };
 /**
 * Checks if this action is an unconditional guaranteed critical hit.
@@ -893,10 +1009,12 @@ Game_Action.prototype.isGuaranteedCritVsTarget = function(target) {
 };
 /**
 * Calculates this action's own bonus to crit chance.
+* Formula context: `a` is this action's subject (the attacker), `b` is 0 (no meaningful
+* per-skill base value to expose), `v` is `$gameVariables._data`.
 * @returns {number}
 */
 Game_Action.prototype.ownCriticalChanceBonus = function() {
-	return RPGManager.getSumFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageChance) / 100;
+	return RPGManager.getResultsFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageChance, 0, this.subject()) / 100;
 };
 /**
 * Calculates the conditional crit chance bonus from this skill's own state-gated tags.
@@ -944,7 +1062,7 @@ Game_Action.prototype.critChanceIfStateBonus = function(target) {
 * @returns {boolean} True if any active state on the target carries this type.
 */
 Game_Action.prototype.targetHasActiveStateType = function(target, type) {
-	return target.states().some((state) => state.stateTypes().some((stateType) => stateType.toLowerCase() === type.toLowerCase()));
+	return target.states().some((state) => state.types().some((stateType) => stateType.toLowerCase() === type.toLowerCase()));
 };
 
 //#endregion
@@ -1017,6 +1135,71 @@ var CritParameterRegistration = class {
 		ParameterRegistry.register(ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier())).build());
 		ParameterRegistry.register(ParameterDefinition.Builder().key("ctr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.ctr).sdpBinding(SdpParameterBinding.byKey("ctr", (actor) => actor.baseCriticalReduction())).build());
 	}
+};
+
+//#endregion
+//#region src/plugins/crit/core/objects/Game_BattlerBase.js
+Object.defineProperties(Game_BattlerBase.prototype, {
+	/**
+	* The battler's critical damage multiplier.
+	* Critical hits are multiplied by this amount to determine the total critical hit damage.
+	* @type {number}
+	*/
+	cdm: {
+		get: function() {
+			return this.criticalDamageMultiplier();
+		},
+		configurable: true
+	},
+	/**
+	* The battler's critical taken rate.
+	* Critical hit damage is reduced by this percent before being applied.
+	* @type {number}
+	*/
+	ctr: {
+		get: function() {
+			return this.criticalDamageReduction();
+		},
+		configurable: true
+	}
+});
+/**
+* The base critical damage multiplier.
+* A battler's critical damage multiplier acts as the base bonus multiplier for all
+* critical hits. The individual battler's `cdm` is added to this amount to calculate
+* the damage a critical hit can potentially deal.
+* Sourced from the plugin parameter so designers can retune the default without
+* touching code- see {@link J_CriticalFactorsPluginMetadata#baseCdmFactor}.
+* @returns {number} The base multiplier for this battler.
+*/
+Game_BattlerBase.prototype.baseCriticalMultiplier = function() {
+	return J.CRIT.Metadata.baseCdmFactor;
+};
+/**
+* Gets the multiplier for this battler's critical hits.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.criticalDamageMultiplier = function() {
+	return 0;
+};
+/**
+* The base critical taken rate.
+* A battler's critical taken rate acts as the base crit reduction for all incoming
+* critical hits. The individual battler's `ctr` is added to this amount to calculate
+* the damage a critical hit can potentially deal.
+* Sourced from the plugin parameter so designers can retune the default without
+* touching code- see {@link J_CriticalFactorsPluginMetadata#baseCtrFactor}.
+* @returns {number} The base reduction for this battler.
+*/
+Game_BattlerBase.prototype.baseCriticalReduction = function() {
+	return J.CRIT.Metadata.baseCtrFactor;
+};
+/**
+* Gets the reduction factor for when this battler receives a critical hit.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.criticalDamageReduction = function() {
+	return 0;
 };
 
 //#endregion
@@ -1114,14 +1297,19 @@ Game_Battler.prototype.modCtrRate = function(amount) {
 	this._j._natural._ctrRate += amount;
 };
 /**
-* Gets the base multiplier for this battler's critical hits.
-* @returns {number}
+* Extends {@link Game_BattlerBase#baseCriticalMultiplier}.<br/>
+* Adds any `<critMultiplierBase:NUM>` notetag contributions on top of the plugin-configured
+* floor value inherited from {@link Game_BattlerBase}, instead of replacing it outright-
+* without this alias, every battler without a notetag would floor out at 0 instead of the
+* designer-configured default.
 */
+J.CRIT.Aliased.Game_Battler.set("baseCriticalMultiplier", Game_Battler.prototype.baseCriticalMultiplier);
 Game_Battler.prototype.baseCriticalMultiplier = function() {
+	const baseFactor = J.CRIT.Aliased.Game_Battler.get("baseCriticalMultiplier").call(this);
 	const objectsToCheck = this.getAllNotes();
 	const baseCriticalMultiplier = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageMultiplierBase);
 	const baseCdmFactor = baseCriticalMultiplier / 100;
-	return baseCdmFactor;
+	return baseFactor + baseCdmFactor;
 };
 /**
 * Calculates this battler's current critical damage multiplier.
@@ -1177,14 +1365,19 @@ Game_Battler.prototype.cdmNaturalGrowths = function() {
 	return this.calculatePlusRate(baseCdm, growthPlus, growthRate);
 };
 /**
-* Gets the base reduction for this battler's critical hits.
-* @returns {number}
+* Extends {@link Game_BattlerBase#baseCriticalReduction}.<br/>
+* Adds any `<critReductionBase:NUM>` notetag contributions on top of the plugin-configured
+* floor value inherited from {@link Game_BattlerBase}, instead of replacing it outright-
+* without this alias, every battler without a notetag would floor out at 0 instead of the
+* designer-configured default.
 */
+J.CRIT.Aliased.Game_Battler.set("baseCriticalReduction", Game_Battler.prototype.baseCriticalReduction);
 Game_Battler.prototype.baseCriticalReduction = function() {
+	const baseFactor = J.CRIT.Aliased.Game_Battler.get("baseCriticalReduction").call(this);
 	const objectsToCheck = this.getAllNotes();
 	const baseCriticalReduction = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReductionBase);
-	const baseCdmFactor = baseCriticalReduction / 100;
-	return baseCdmFactor;
+	const baseCdrFactor = baseCriticalReduction / 100;
+	return baseFactor + baseCdrFactor;
 };
 /**
 * Gets the reduction factor for when this battler receives a critical hit.
@@ -1249,67 +1442,6 @@ Game_Battler.prototype.ctrNaturalGrowths = function() {
 */
 Game_Battler.prototype.isForceCritProcs = function() {
 	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.CRIT.RegExp.ForceCritProcs) === true;
-};
-
-//#endregion
-//#region src/plugins/crit/core/objects/Game_BattlerBase.js
-Object.defineProperties(Game_BattlerBase.prototype, {
-	/**
-	* The battler's critical damage multiplier.
-	* Critical hits are multiplied by this amount to determine the total critical hit damage.
-	* @type {number}
-	*/
-	cdm: {
-		get: function() {
-			return this.criticalDamageMultiplier();
-		},
-		configurable: true
-	},
-	/**
-	* The battler's critical taken rate.
-	* Critical hit damage is reduced by this percent before being applied.
-	* @type {number}
-	*/
-	ctr: {
-		get: function() {
-			return this.criticalDamageReduction();
-		},
-		configurable: true
-	}
-});
-/**
-* The base critical damage multiplier.
-* A battler's critical damage multiplier acts as the base bonus multiplier for all
-* critical hits. The individual battler's `cdm` is added to this amount to calculate
-* the damage a critical hit can potentially deal.
-* @returns {number} The base multiplier for this battler.
-*/
-Game_BattlerBase.prototype.baseCriticalMultiplier = function() {
-	return .5;
-};
-/**
-* Gets the multiplier for this battler's critical hits.
-* @returns {number}
-*/
-Game_BattlerBase.prototype.criticalDamageMultiplier = function() {
-	return 0;
-};
-/**
-* The base critical taken rate.
-* A battler's critical taken rate acts as the base crit reduction for all incoming
-* critical hits. The individual battler's `ctr` is added to this amount to calculate
-* the damage a critical hit can potentially deal.
-* @returns {number} The base reduction for this battler.
-*/
-Game_BattlerBase.prototype.baseCriticalReduction = function() {
-	return .5;
-};
-/**
-* Gets the reduction factor for when this battler receives a critical hit.
-* @returns {number}
-*/
-Game_BattlerBase.prototype.criticalDamageReduction = function() {
-	return 0;
 };
 
 //#endregion

@@ -1384,7 +1384,7 @@ Game_Enemy.prototype.targetFrameText = function() {
 * @returns {number}
 */
 Game_Enemy.prototype.targetFrameIcon = function() {
-	return RPGManager.getNumberFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameText);
+	return RPGManager.getNumberFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameIcon);
 };
 /**
 * Gets whether or not the battler can show the target frame.

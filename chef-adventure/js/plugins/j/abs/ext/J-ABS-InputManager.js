@@ -36,6 +36,12 @@
  * mapping back to defaults via script call if necessary).
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own. Everything here is exposed via
+ * plugin parameters (input remapping) and a Game_System script call for
+ * resetting mappings to default- there's nothing to tag on database
+ * objects.
+ * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
  * - 2.2.2
@@ -1430,13 +1436,6 @@ Input.bootstrapAllKeyboardKeysForCapture = function() {
 		"l2",
 		"r2"
 	]);
-	const existingMap = Object.assign({}, Input.keyMapper);
-	Object.keys(existingMap).forEach((code) => {
-		const sym = existingMap[code];
-		if (sym) {
-			reserved.add(sym);
-		}
-	});
 	for (let code = 8; code <= 222; code++) {
 		if (Input._isBlacklistedKeycode(code)) {
 			continue;
@@ -1996,10 +1995,8 @@ Game_System.prototype.resolveJabsControllerKey = function(controller, index) {
 */
 Game_System.prototype.initializeJabsInputForLegacySaveIfMissing = function() {
 	this.initJabsInputConfigMembers();
-	const mappingsDict = this._j && this._j._abs && this._j._abs._input ? this._j._abs._input._mappings : null;
-	const bindingsDict = this._j && this._j._abs && this._j._abs._input ? this._j._abs._input._bindings : null;
-	const hasMappings = mappingsDict ? Object.keys(mappingsDict).length > 0 : false;
-	const hasBindings = bindingsDict ? Object.keys(bindingsDict).length > 0 : false;
+	const hasMappings = Object.keys(this._j._abs._input._mappings).length > 0;
+	const hasBindings = Object.keys(this._j._abs._input._bindings).length > 0;
 	if (hasMappings === false && hasBindings === false) {
 		Input.ensureRemapBootstrapped();
 		const controllers = JABS_InputAdapter.getAllControllers();

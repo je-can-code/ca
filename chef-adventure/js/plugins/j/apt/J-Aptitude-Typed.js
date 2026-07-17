@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 APT-TYPED] A plugin that does cool stuff.
+ * [v1.0.0 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -486,7 +486,7 @@ J.APT.EXT.TYPED.RegExp = {
 	* </pre>
 	* @type {RegExp}
 	*/
-	ApTypedReward: /<apTyped:[ ]?(\[\d+,[ ]?\d+,[ ]?[A-Za-z]+,[ ]?[A-Za-z0-9_\- ]+])>/gi
+	ApTypedReward: /<apTyped:[ ]?(\[\d+,[ ]?[A-Za-z]+,[ ]?[A-Za-z0-9_\- ]+])>/gi
 };
 
 //#endregion

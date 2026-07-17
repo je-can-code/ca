@@ -680,7 +680,7 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	*/
 	getCloseDistance() {
 		if (this._doNothing) return JABS_AllyAI.DoNothingCloseDistance;
-		return JABS_AllyAI.CloseDistances[this._spacing] ?? JABS_Battler.closeDistance;
+		return JABS_AllyAI.CloseDistances[this._spacing];
 	}
 	/**
 	* Gets the far-distance threshold in tiles for this ally's current spacing.
@@ -689,7 +689,7 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	*/
 	getFarDistance() {
 		if (this._doNothing) return JABS_AllyAI.DoNothingFarDistance;
-		return JABS_AllyAI.FarDistances[this._spacing] ?? JABS_Battler.farDistance;
+		return JABS_AllyAI.FarDistances[this._spacing];
 	}
 	/**
 	* Gets the leash multiplier for this ally's current spacing.
@@ -698,7 +698,7 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	*/
 	getLeashMultiplier() {
 		if (this._doNothing) return JABS_AllyAI.DoNothingLeashMultiplier;
-		return JABS_AllyAI.LeashMultipliers[this._spacing] ?? 1;
+		return JABS_AllyAI.LeashMultipliers[this._spacing];
 	}
 	/**
 	* Wraps a base support helper result (0 means none) as a uniform skill-id list.
@@ -1340,7 +1340,7 @@ JABS_Engine.prototype.continuedPrimaryBattleEffects = function(action, target) {
 * @param target
 */
 JABS_Engine.prototype.applyBattleMemories = function(result, action, target) {
-	if (this.canApplyBattleMemories(target)) return;
+	if (!this.canApplyBattleMemories(target)) return;
 	const newMemory = new JABS_BattleMemory(target.getBattlerId(), action.getBaseSkill().id, action.getAction().calculateRawElementRate(target.getBattler()), result.hpDamage);
 	const attacker = action.getCaster();
 	attacker.applyBattleMemories(newMemory);
@@ -1566,9 +1566,9 @@ Game_Followers.prototype.jumpAll = function() {
 	if (!$gamePlayer.isJumping()) return;
 	const playerBattler = $gamePlayer.getJabsBattler();
 	for (const follower of this._data) {
-		if (!follower || !follower.isVisible()) return;
+		if (!follower || !follower.isVisible()) continue;
 		const battler = follower.getJabsBattler();
-		if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) return;
+		if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) continue;
 		const sx = $gamePlayer.deltaXFrom(follower.x);
 		const sy = $gamePlayer.deltaYFrom(follower.y);
 		follower.jump(sx, sy);

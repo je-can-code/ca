@@ -172,6 +172,12 @@
   ]
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own. Everything here is tuned entirely
+ * through the plugin parameters below (Exp Required Per Level, Exp Policy
+ * Multiplier) and the level-difference table above- there's nothing to tag
+ * on individual database objects.
+ * ============================================================================
  * NOTE ABOUT EXR:
  * Party members still apply their experience rate (exr) when the engine
  * actually grants EXP. This plugin does not fold exr into the policy number;

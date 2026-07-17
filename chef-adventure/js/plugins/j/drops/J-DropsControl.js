@@ -68,7 +68,8 @@
  *
  * TAG FORMAT:
  * <drops:[TYPE,ID,CHANCE]>
- * where TYPE is either "i", "w", or "a" (representing item/weapon/armor).
+ * where TYPE is either "i"/"item", "w"/"weapon", or "a"/"armor" (the short
+ * and long forms both work- use whichever reads clearer to you).
  * where ID is the id of the drop item in the database.
  * where CHANCE is the percent chance to drop.
  *
@@ -121,6 +122,57 @@
  * multiplier bonus, it would be increased from 40% >> 140% (250% of 40 is 100)
  * - If a drop item on an enemy has a 4% chance to drop, with this drop
  * multiplier bonus, it would be increased from 4% >> 14% (250% of 4 is 10)
+ * ============================================================================
+ * NATURAL GROWTH + DROP RATE:
+ * Have you ever wanted your drop rate bonus to permanently grow along with
+ * your other growths because you're also using my
+ *
+ *        J-NaturalGrowth
+ *
+ * plugin? Well now you can! This is a second, independent drop rate bonus
+ * from the flat <dropMultiplier:NUM> tag above- it lives on its own
+ * registered parameter (key "dor"), can be earned from SDP panels, and
+ * follows J-NaturalGrowths' own builder-like Buff/Growth tag pattern instead
+ * of a flat additive number.
+ *
+ * NOTE:
+ * This section requires J-NaturalGrowth to be loaded. Without it, these tags
+ * are silently ignored (the same as always- just nothing computes them).
+ *
+ * Formula context:
+ *   a = the battler these bonuses are being calculated for
+ *   b = 0 (dor's base value is always 0- there's no "base drop rate" to
+ *       expose without re-triggering the getAllNotes() lookup these formulas
+ *       already live inside)
+ *   v = $gameVariables._data
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - States
+ *
+ * TAG FORMAT:
+ *  <dorBuffPlus:[FORMULA]>
+ *  <dorBuffRate:[FORMULA]>
+ *  <dorGrowthPlus:[FORMULA]>
+ *  <dorGrowthRate:[FORMULA]>
+ * Where "Buff" is temporary (lost when the tag's source is removed) and
+ * "Growth" is permanent (accumulates and stays as you level).
+ * Where "Plus" is a flat amount and "Rate" is a percent-of-base amount.
+ *
+ * TAG EXAMPLES:
+ *  <dorGrowthPlus:[a.level * 0.5]>
+ * Permanently gain (level × 0.5)% drop rate per level.
+ *
+ *  <dorBuffPlus:[15]>
+ * Gain a flat 15% drop rate while this tag's source is applied; lost if the
+ * source is removed.
+ *
+ * Please refer to the J-NaturalGrowth documentation for more details on the
+ * Buff/Growth/Plus/Rate pattern itself.
  * ============================================================================
  * GOLD MULTIPLIER
  * Have you ever wanted to have an actor gain bonus gold for some thiefy

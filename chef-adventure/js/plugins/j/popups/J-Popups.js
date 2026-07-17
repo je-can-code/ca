@@ -39,6 +39,11 @@
  * stay cheap- no heavy work per frame. Event names live in J.POPUPS.EventNames.
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it is purely a fluent
+ * builder/rendering infrastructure that its extensions (ABS, APT, SDP,
+ * Resources) build popups on top of.
+ * ============================================================================
  * CHANGELOG:
  * - 2.1.0
  *    Sprite_MapDamage accumulation phase; merge helpers + PopupEmitter flush hooks.

@@ -20,6 +20,11 @@
  * Integrates with others of mine plugins:
  * - J-ControlledDrops; enables viewing of dropped loot in the bestiary.
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it is purely the extendable
+ * scene/menu shell that its sub-dataset extensions (Monster, Quest, etc.)
+ * plug into. Those extensions own their own respective tags.
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.1
  *    Updated JABS menu integration with help text.

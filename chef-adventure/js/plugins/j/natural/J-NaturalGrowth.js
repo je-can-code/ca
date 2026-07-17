@@ -13,7 +13,7 @@
  * various tags are applied.
  *
  * Integrates with others of mine plugins:
- * - J-CriticalFactors; enables natural growths of CDM/CDR.
+ * - J-CriticalFactors; enables natural growths of CDM/CTR.
  * - J-Passives; updates with relic gain as well.
  * - J-LevelMaster; enables the ".lvl" access for formulas.
  * - J-SDP; adds SDP to the options for reward-based formulas.
@@ -113,7 +113,7 @@
  *
  * TAG FORMAT:
  *  <(REWARD)(PLUS):[FORMULA]>
- * Where (REWARD) is either exp or gold.
+ * Where (REWARD) is one of exp, gold, or sdp.
  * Where (PLUS) is... plus. There is no "rate" for this value.
  * Where [FORMULA] is the formula to produce the amount.
  *
@@ -210,7 +210,7 @@
  * - trg (tp regen rate)
  *
  * Sp Parameters:
- * - trg (targeting rate)
+ * - tgr (targeting rate)
  * - grd (guarding rate)
  * - rec (recovery rate)
  * - pha (pharmacy rate)

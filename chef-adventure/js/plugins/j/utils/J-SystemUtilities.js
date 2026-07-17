@@ -18,6 +18,10 @@
  * - $gameParty.removeInvalidItemsFromParty() strips junk bag rows and equipment
  *   (missing DB rows, blank names, or names starting with "===").
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- everything here is a system-wide
+ * utility function or plugin-parameter/testplay convenience.
+ * ============================================================================
  * CHANGELOG:
  * - 1.1.4
  *    Inventory purge is Game_Party.prototype.removeInvalidItemsFromParty (was J.UTILS.GameParty).

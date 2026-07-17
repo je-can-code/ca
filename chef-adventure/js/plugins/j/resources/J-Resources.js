@@ -34,7 +34,7 @@
  *
  * NOTE:
  * By default, a battler cannot cast a skill if its HP cost would kill them.
- * Add the sacrifice tag to allow casting even when it would be lethal.
+ * Add the <hp-cost-can-kill> tag to allow casting even when it would be lethal.
  *
  * TAG USAGE:
  * - Skills
@@ -52,7 +52,7 @@
  *    Where FORMULA is an eval'd expression with access to `a` (the battler).
  *
  * TAG FORMAT (lethal / sacrifice):
- *  <hp-cost-sacrifice>
+ *  <hp-cost-can-kill>
  *    Allows casting even when the HP cost would reduce HP to 0.
  *
  * TAG EXAMPLES:
@@ -65,7 +65,7 @@
  *  <hp-cost:[a.mhp / 4]>
  *    Costs 25% of max HP via formula.
  *
- *  <hp-cost-sacrifice>
+ *  <hp-cost-can-kill>
  *    This skill can be cast even if it would reduce the caster to 0 HP.
  *
  * ============================================================================
@@ -77,8 +77,14 @@
  *
  * NOTE:
  * Unlike MCR/TCR which are multipliers, HCR is additive subtraction from 100.
- * A tag of <hcr:5> means "reduce HP costs by 5 percentage points", making it
+ * A tag of <hcr:[5]> means "reduce HP costs by 5 percentage points", making it
  * easy to read at-a-glance what each piece of equipment contributes.
+ *
+ * NOTE ABOUT THE FORMULA CONTEXT:
+ * Unlike most formula tags in these plugins, this one is evaluated per note
+ * source directly (not per-battler), so there is no `a` battler reference
+ * available- only literal numeric expressions are safe here (e.g. `[5]`,
+ * `[10 - 2]`). Referencing a battler property will throw.
  *
  * TAG USAGE:
  * - Actors
@@ -88,11 +94,11 @@
  * - States
  *
  * TAG FORMAT:
- *  <hcr:VALUE>
+ *  <hcr:[VALUE]>
  *    Where VALUE is the integer percentage to reduce HP costs by.
  *
  * TAG EXAMPLES:
- *  <hcr:5>
+ *  <hcr:[5]>
  *    Reduces all HP skill costs by 5%.
  *
  * ============================================================================
@@ -214,7 +220,7 @@ J.RESOURCES.Aliased.Game_Battler = new Map();
 * All regular expressions used by this plugin.
 */
 J.RESOURCES.RegExp = {};
-J.RESOURCES.RegExp.HpCostReduction = /<hrc:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.RegExp.HpCostReduction = /<hcr:\[([+\-*/ ().\w]+)]>/gi;
 J.RESOURCES.RegExp.HpCostFlat = /<hp-cost:(\d+)>/gi;
 J.RESOURCES.RegExp.HpCostPercent = /<hp-cost:(\d+)%>/gi;
 J.RESOURCES.RegExp.HpCostFormula = /<hp-cost:\[([+\-*/ ().\w]+)]>/gi;

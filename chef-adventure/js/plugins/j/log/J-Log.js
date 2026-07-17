@@ -108,6 +108,10 @@
  * to scroll up.
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- logging is driven entirely by
+ * JABS integration (when installed) and by plugin commands.
+ * ============================================================================
  * CHANGELOG:
  * - 2.2.1
  *    Added SDP drop-related logging.

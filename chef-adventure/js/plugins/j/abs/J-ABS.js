@@ -759,6 +759,29 @@
  *    <gcd:FRAMES>
  *  Overrides default GCD length for this skill when it triggers GCD.
  *
+ * COOLDOWN REDUCTION (CDR):
+ * A battler-wide stat that shrinks how long the global cooldown lasts once
+ * it's triggered. This is not a per-skill tag -- it's summed from every note
+ * source on the battler (actor, class, weapons, armors, states) and cached
+ * as a single percent-point value, same as a stat like ATK would be.
+ *    <cdr:[FORMULA]>
+ *  Where FORMULA resolves to the percent-points of cooldown reduction this
+ *  source contributes. All matching sources are summed together.
+ *
+ * Formula context: a = the battler being evaluated, b = 0, v = $gameVariables._data.
+ *
+ * EXAMPLE:
+ *    <cdr:[10]>
+ *  This source grants a flat +10 percent-points of CDR.
+ *
+ *    <cdr:[a.luk * 0.1]>
+ *  This source grants CDR scaled off the battler's own LUK.
+ *
+ * NOTE: The final summed value is converted from percent-points to a decimal
+ * before use (e.g. 25 percent-points becomes 0.25) and clamped at 0 on the
+ * low end by the GCD length math (Math.max(0, baseFrames * (1 - cdr))). A
+ * total of 100 or more percent-points reduces GCD length to zero frames.
+ *
  * ----------------------------------------------------------------------------
  * RADIUS:
  * How large the hitbox of this skill is, using tiles as measurement.
@@ -856,6 +879,26 @@
  *
  * NOTE: There is no hard cap, but keep the count reasonable to avoid
  * performance issues.
+ *
+ * PROJECTILE DURATION:
+ * A battler-wide percent-point modifier against how long ALL of this
+ * battler's map actions (projectiles, hitboxes, everything with a
+ * <duration:FRAMES> tag) persist on the map. This is not a per-skill tag --
+ * it's summed from every note source on the battler (actor, class,
+ * weapons, armors, states), same as CDR/PER above.
+ *    <projectileDuration:PERCENT_POINTS>
+ *  Where PERCENT_POINTS is the percent-point offset from the 100 baseline.
+ *  All matching sources are summed together before being applied.
+ *
+ * EXAMPLE:
+ *    <projectileDuration:50>
+ *  This source makes this battler's map actions last 150% as long (100 + 50).
+ *
+ *    <projectileDuration:-40>
+ *  This source makes this battler's map actions last 60% as long (100 - 40).
+ *
+ * NOTE: The combined total is clamped so the resulting multiplier never
+ * drops below 0 (a total of -100 or less reduces duration to nothing).
  *
  * ----------------------------------------------------------------------------
  * FORMATION:
@@ -1102,19 +1145,37 @@
  *    <knockback:VAL>
  *  Where VAL is the distance the target will be knocked back.
  *
+ * IGNORE TERRAIN:
+ * By default, forced displacement (knockback, pull, etc.) walks the target
+ * tile-by-tile toward the destination and stops early at the last passable
+ * tile if terrain blocks the rest of the way. With this tag, the target
+ * instead jumps straight to the computed destination, sailing over pits,
+ * gaps, or anything else that would normally halt the walk.
+ *    <ignoreTerrain>
+ *
  * ----------------------------------------------------------------------------
  * DELAY:
  * Allows a skill to sit on the map for a duration before triggering.
  * Think time bombs or landmines. Set DURATION to -1 to never detonate
  * until touched.
- *    <delay:[DURATION,TOUCHABLE]>
+ *    <delay:[DURATION,TOUCHABLE,TRIGGER_RADIUS?]>
  *  Where DURATION is frames to exist before detonating.
  *  Where TOUCHABLE is true/false for whether touching it triggers it.
+ *  Where TRIGGER_RADIUS (optional) is a tile radius used ONLY for touch-arming
+ *  during the delay window. When omitted, touch-triggering falls back to the
+ *  action's normal hitbox. This lets the touch-trigger space be smaller (or
+ *  larger) than the eventual detonation/hitbox size- e.g. a mine that's only
+ *  steppable-on within 1 tile, but explodes across a much bigger AoE once it
+ *  actually goes off.
  *
  * EXAMPLE:
  *      <delay:[300,true]>
  * Sits on the map for 300 frames (~5 seconds). Any enemy who walks
- * into it triggers the action.
+ * into it (within the action's normal hitbox) triggers the action.
+ *
+ *      <delay:[300,true,1]>
+ * Same as above, but only touch-arms within 1 tile- the detonation itself
+ * still uses whatever AoE the skill's own hitbox tags define.
  *
  * WARNING ABOUT INDEFINITE DELAY:
  * If DURATION is -1, set TOUCHABLE to true, or the action will sit
@@ -1240,6 +1301,29 @@
  * Makes a skill unable to be parried under any circumstances.
  *    <unparryable>
  *
+ * PARRY EXTENSION RATE (PER):
+ * A battler-wide stat that widens the parry window (see PARRY above). This
+ * is not a per-skill tag -- it's summed from every note source on the
+ * battler (actor, class, weapons, armors, states) and cached as a single
+ * percent-point value, same as CDR above.
+ *    <per:[FORMULA]>
+ *  Where FORMULA resolves to the percent-points of parry extension this
+ *  source contributes. All matching sources are summed together.
+ *
+ * Formula context: a = the battler being evaluated, b = 0, v = $gameVariables._data.
+ *
+ * EXAMPLE:
+ *    <per:[15]>
+ *  This source grants a flat +15 percent-points of parry window extension.
+ *
+ *    <per:[a.agi * 0.2]>
+ *  This source extends the parry window scaled off the battler's own AGI.
+ *
+ * NOTE: The final summed value is converted from percent-points to a decimal
+ * (e.g. 50 percent-points becomes 0.50) and applied as a multiplier against
+ * the skill's parry window: Math.floor((1 + per) * parryDuration). A total
+ * of 50 percent-points makes the parry window 1.5x as long.
+ *
  * ============================================================================
  * ON-CHANCE EFFECTS:
  * These tags define skills that can fire under special circumstances.
@@ -1333,6 +1417,81 @@
  *
  * Use this for counter-attacks, gap-closers, or any skill that should
  * trigger automatically when the battler successfully evades.
+ *
+ * ============================================================================
+ * ON-CHANCE ROLL MANIPULATION (LUCKY/CURSED ROLLS):
+ * Nearly every on-chance roll in JABS (hit, crit, state application, and
+ * skill procs) isn't a single roll -- it's a "best of N" roll for the party
+ * rolling toward success and a "best of N" roll for the party rolling
+ * toward failure, where N defaults to 1 for each side. These tags let you
+ * add extra rolls to either side of that contest.
+ *
+ * Formula context: a = the battler being evaluated, b = 0, v = $gameVariables._data.
+ *
+ * LUCKY ROLLS:
+ * Battler-wide extra positive rerolls, summed from all note sources. This
+ * battler gets an extra roll toward success any time IT is the one trying
+ * to succeed (landing a hit, applying a state, scoring a crit, proccing a
+ * bonus-hit or retaliate check).
+ *    <luckyRolls:[FORMULA]>
+ *  Where FORMULA resolves to the number of bonus positive rolls to grant.
+ *
+ * THIS LUCKY ROLLS:
+ * Skill-scoped variant. Adds on top of the battler-wide total, but only
+ * while this specific skill is executing.
+ *    <thisLuckyRolls:[FORMULA]>
+ *
+ * CURSED ROLLS:
+ * Battler-wide extra negative rerolls, summed from all note sources. This
+ * battler gets an extra roll toward failure any time it is on the
+ * receiving end of a chance roll (an incoming hit trying to land, an
+ * incoming state trying to apply).
+ *    <cursedRolls:[FORMULA]>
+ *  Where FORMULA resolves to the number of bonus negative rolls to grant.
+ *
+ * THIS CURSED ROLLS:
+ * Skill-scoped variant, layered on top of the battler-wide total. Applies
+ * while the target is defending against this specific incoming skill.
+ *    <thisCursedRolls:[FORMULA]>
+ *
+ * EXAMPLE:
+ *    <luckyRolls:[Math.floor(a.luk / 20)]>
+ *  Grants one bonus positive roll per 20 points of this battler's own LUK.
+ *
+ * VERY LUCKY / VERY CURSED:
+ * Boolean bypass flags rather than reroll counts. These short-circuit the
+ * roll contest entirely instead of adding more dice to it.
+ *    <veryLucky>
+ *  This battler's on-chance rolls always succeed when it is the roller.
+ *    <veryCursed>
+ *  This battler's on-chance rolls always fail when it is the roller.
+ *
+ * NOTE: veryLucky/veryCursed are checked before any reroll math runs, so a
+ * battler with both tags present resolves to whichever the engine checks
+ * first (lucky wins ties) -- avoid stacking both on the same battler.
+ *
+ * ----------------------------------------------------------------------------
+ * ENCORE REPEATS (BONUS PROC EXECUTIONS):
+ * A battler-wide bonus to how many times a successful on-chance proc (bonus
+ * hits, retaliate, on-evade, on-defeat, etc.) actually executes once it
+ * succeeds. A proc that would normally fire once instead fires
+ * 1 + encoreRepeats times.
+ *    <encoreRepeats:[FORMULA]>
+ *  Where FORMULA resolves to the number of bonus executions per success.
+ *
+ * Formula context: a = the battler being evaluated, b = 0, v = $gameVariables._data.
+ *
+ * ACCUMULATE MODE:
+ * By default, a chance-roll contest stops rolling the instant it finds one
+ * success (or exhausts all rolls without one). With <accumulate>, every
+ * single positive roll in the contest is counted instead of stopping at
+ * the first success, and that count feeds into how many times the proc
+ * executes -- stacking with (not replacing) ENCORE REPEATS above.
+ *    <accumulate>
+ *
+ * Use ACCUMULATE MODE for "the luckier you get, the more it snowballs"
+ * builds; use plain LUCKY ROLLS/ENCORE REPEATS for a steady, predictable
+ * bonus instead.
  *
  * ============================================================================
  * SKILL HISTORY BONUS:
@@ -1574,16 +1733,23 @@
  * If the target has all three, specificStateBonusPct = 75 (each fires independently).
  *
  * ----------------------------------------------------------------------------
- * THIS BONUS DAMAGE:
- * Skill-scoped unconditional flat percent damage bonus. Fires whenever THIS skill
- * is the action being resolved, with no target state requirement. Useful for
- * prof extend rows that need to boost a specific skill's damage without touching
- * its formula or leaking the bonus to the rest of the caster's kit.
- * Multiple tags on the same skill stack additively.
+ * BONUS DAMAGE / THIS BONUS DAMAGE:
+ * Unconditional flat percent damage bonus- no target state requirement at all.
+ * bonusDamage reads from the caster's notes (actor, class, equips, states), so
+ * it applies to EVERY action the caster performs- good fit for a passive state
+ * that just says "you deal X% more damage" while it's active. thisBonusDamage
+ * is the skill-scoped sibling: fires only when THIS skill is the action being
+ * resolved, useful for prof extend rows that boost one specific skill without
+ * touching its formula or leaking the bonus to the rest of the caster's kit.
+ * Multiple tags of either kind, on any number of sources, stack additively.
+ *    <bonusDamage:PCT>
  *    <thisBonusDamage:PCT>
  *  Where PCT is the integer (or decimal) percent bonus to add unconditionally.
  *
  * Example:
+ *  A "Berserk" state that grants +15% damage on everything while active:
+ *    <bonusDamage:15>
+ *
  *  Blade of the Mouse row 6 — +20% damage on mainchain skills:
  *    placed on the extend skill targeting [11,12,13]:
  *    <thisBonusDamage:20>
@@ -1641,6 +1807,92 @@
  * If the target has two different poison-typed states active simultaneously,
  * typeCountBonusPct from this tag = 10 * 2 = 20%.
  *
+ * ----------------------------------------------------------------------------
+ * BONUS DAMAGE IF SELF STATE:
+ * Sibling to BONUS DAMAGE IF STATE above, but checks the caster's own active
+ * states instead of the target's. Great for "empowered while buffed" kits.
+ *    <bonusDamageIfSelfState:[STATE_ID, PCT]>
+ *  Where STATE_ID is the state that must be active on the caster.
+ *  Where PCT is the integer percent bonus to add while that state is active.
+ *
+ * THIS BONUS DAMAGE IF SELF STATE:
+ * Skill-scoped variant. Only applies while this exact skill is executing,
+ * layering on top of the caster-wide <bonusDamageIfSelfState> tag rather
+ * than replacing it.
+ *    <thisBonusDamageIfSelfState:[STATE_ID, PCT]>
+ *
+ * Example — a rogue's "Shadow Form" empowers only their finishers:
+ *    <thisBonusDamageIfSelfState:[STATE_SHADOW_FORM_ID, 40]>
+ *
+ * ----------------------------------------------------------------------------
+ * BONUS DAMAGE PER STATE STACK:
+ * Adds PCT% bonus damage per current stack of a specific named state active
+ * on the target. Unlike BONUS DAMAGE PER STATE TYPE, which counts distinct
+ * states of a type, this counts the stack depth of one exact state id.
+ *    <bonusDamagePerStateStack:[STATE_ID, PCT]>
+ *  Where STATE_ID is the exact state id to read stacks from.
+ *  Where PCT is the integer percent bonus to add per stack.
+ *
+ * Example — "Exploit Wounds": +8% damage per stack of Bleed on the target:
+ *    <bonusDamagePerStateStack:[STATE_BLEED_ID, 8]>
+ * A target with 3 stacks of Bleed takes +24% bonus damage from this hit.
+ *
+ * NOTE: If the target is not currently tracked as afflicted by STATE_ID
+ * (state absent, or somehow untracked), this tag contributes nothing.
+ *
+ * THIS BONUS DAMAGE PER STATE STACK:
+ * Skill-scoped variant. Only applies while this exact skill is executing,
+ * layering on top of the caster-wide <bonusDamagePerStateStack> tag rather
+ * than replacing it.
+ *    <thisBonusDamagePerStateStack:[STATE_ID, PCT]>
+ *
+ * Example — a finisher that punishes stacked Bleed harder than the caster's
+ * baseline kit does: +15% per stack of Bleed, but only on this skill:
+ *    <thisBonusDamagePerStateStack:[STATE_BLEED_ID, 15]>
+ *
+ * ----------------------------------------------------------------------------
+ * BONUS DAMAGE FOR MY STATE COUNT:
+ * Adds PCT% bonus damage for every distinct state on the target that this
+ * exact caster is the one who applied. This lives entirely on the caster's
+ * own notes (actor/class/weapon/armor/state), not on the skill — it's a
+ * passive that's always live regardless of which skill is executing.
+ *    <bonusDamageForMyStateCount:PCT>
+ *  Where PCT is the integer percent bonus per distinct caster-authored state.
+ *
+ * THIS BONUS DAMAGE FOR MY STATE COUNT:
+ * Skill-scoped variant. Reads only from the executing skill's own note,
+ * stacking on top of the caster-wide tag above rather than replacing it.
+ *    <thisBonusDamageForMyStateCount:PCT>
+ *
+ * Example — a debuffer whose finisher scales off their own handiwork:
+ *    <thisBonusDamageForMyStateCount:15>
+ *  If this caster personally applied 3 different states currently active on
+ *  the target (regardless of who else also has states on it), this skill
+ *  gains +45% bonus damage (15 * 3).
+ *
+ * ----------------------------------------------------------------------------
+ * BONUS DAMAGE IF TARGET HP BELOW / THIS BONUS DAMAGE IF TARGET HP BELOW:
+ * Execute-style bonus that SCALES CONTINUOUSLY as the target's hp keeps
+ * dropping- not a flat one-time bonus. The gate opens once the target's
+ * current hp% is at or under THRESHOLD_PCT; once open, the bonus grows by
+ * PCT_PER_POINT for every percentage point the target is under that
+ * threshold. bonusDamageIfTargetHpBelow reads from the caster's notes
+ * (actor, class, equips, states)- good fit for a "the lower they are, the
+ * harder you hit" passive. thisBonusDamageIfTargetHpBelow is the skill-scoped
+ * sibling, useful for a dedicated execute/finisher skill.
+ * Multiple tags of either kind, on any number of sources (including multiple
+ * thresholds on the same source), stack additively.
+ *    <bonusDamageIfTargetHpBelow:[THRESHOLD_PCT, PCT_PER_POINT]>
+ *    <thisBonusDamageIfTargetHpBelow:[THRESHOLD_PCT, PCT_PER_POINT]>
+ *  Where THRESHOLD_PCT is the hp% ceiling that opens the gate.
+ *  Where PCT_PER_POINT is the percent bonus added per percentage point the
+ *  target is currently under THRESHOLD_PCT.
+ *
+ * Example — "the big red button": meaningful at 70%, ugly at 30% or lower:
+ *    <bonusDamageIfTargetHpBelow:[50, 2]>
+ *  At 51% hp: +0% (gate not open). At 50%: +0% (just crossed). At 30%:
+ *  +40% (20 points under 50, times 2). At 10%: +80% (40 points under 50).
+ *
  * ============================================================================
  * APPLY STATE ON EXPIRE:
  * When a state expires by its natural frame-counter reaching zero, this tag
@@ -1666,6 +1918,37 @@
  *
  * Only one <applyStateOnExpire> tag per state is read (the first match).
  * The follow-up state inherits the same source battler as the expiring state.
+ *
+ * ----------------------------------------------------------------------------
+ * PURGE STATES:
+ * A cleanse/dispel effect placed on a SKILL. When this skill lands a hit
+ * (parried and evaded actions do not trigger it), it strips one or more
+ * states off the target by priority, highest-priority state first.
+ *    <purgeStates:[TYPE, ALLOW_DEATH, COUNT]>
+ *  Where TYPE is one of "negative" (only <negative>-tagged states,
+ *    default), "positive" (only states NOT tagged <negative>), or "all"
+ *    (no polarity filter).
+ *  Where ALLOW_DEATH is true/false for whether the death state (id 1) is
+ *    eligible for removal (default false).
+ *  Where COUNT is how many states to strip, highest priority first
+ *    (default 1).
+ *
+ * All three parameters are optional and fall back to their defaults if
+ * omitted or malformed.
+ *
+ * EXAMPLES:
+ *    <purgeStates:[negative, false, 1]>
+ *  Strips the single highest-priority negative state from the target.
+ *  Equivalent to the tag's own defaults.
+ *
+ *    <purgeStates:[all, false, 3]>
+ *  A "cleanse burst" that strips up to 3 states (any polarity, never
+ *  death) from the target, highest priority first.
+ *
+ * NO LOGS:
+ * Place on a STATE to suppress its own removal from being written to the
+ * `Map_TextLog` when it is stripped via <purgeStates>.
+ *    <noLogs>
  *
  * ============================================================================
  * STATE SPREADING:
@@ -1792,6 +2075,24 @@
  * independently and sum together.
  *
  * ----------------------------------------------------------------------------
+ * KNOCKBACK AMP / THIS KNOCKBACK AMP:
+ * Unconditional outgoing knockback amplifier- no proximity requirement,
+ * unlike PROXIMITY KNOCKBACK above. knockbackAmp reads from any of the
+ * caster's note sources (actor, class, equips, states) and applies to every
+ * knockback this battler deals. thisKnockbackAmp is the skill-scoped
+ * sibling, read from the executing skill's own note only. Both sum
+ * additively with each other AND with proximityKnockback into one combined
+ * percent, applied as a single multiplier to outgoing knockback.
+ *    <knockbackAmp:PCT>
+ *    <thisKnockbackAmp:PCT>
+ *  Where PCT is the percent bonus (or penalty, if negative) to apply.
+ *
+ * Example: a battler who always knocks back 50% farther, plus a signature
+ * skill that adds another +20% on top when it specifically lands:
+ *    <knockbackAmp:50>
+ *    (placed on the signature skill itself) <thisKnockbackAmp:20>
+ *
+ * ----------------------------------------------------------------------------
  * PER-CONNECTION BONUS HITS (ACTOR / CLASS / EQUIPMENT / STATES):
  * These stack with <bonus-hits:VAL> on the executing skill. Place them on
  * actor, class, weapons, armors, states, or enemy data as appropriate.
@@ -1828,6 +2129,18 @@
  * Like equipment, assign a SKILL_ID to them to make them usable:
  *    <skillId:SKILL_ID>
  *  Where SKILL_ID is the skill to perform from the tool slot.
+ *
+ * WHICH ITEMS QUALIFY AS TOOLS:
+ * Place this tag on the item itself to mark it as belonging in the tool
+ * slot (hookshots, bombs, and other equippable-from-the-menu items):
+ *    <jabsTool>
+ *  Without this tag, an item is instead treated as a consumable and shows
+ *  up in the usable-item slot's list instead of the tool slot's list.
+ *
+ * NOTE: The tag alone is not the whole story -- the item's Item Type must
+ * also be "Regular Item" and Occasion must be "Always" for it to actually
+ * populate either the tool or usable-item menu. <jabsTool> only decides
+ * which of those two menus a qualifying item lands in.
  *
  * ----------------------------------------------------------------------------
  * DODGE SLOT:
@@ -1943,6 +2256,11 @@
  * 9. Attacker TGR stat multiplier.
  * 10. Player-unique multiplier, if applicable.
  *
+ * Steps 1-10 above produce a single delta that gets written to the caster's
+ * own aggro entry on the target. aggroPercent and notMyAggro/notMyAggroPercent
+ * (below) are separate post-processing steps that run AFTER that write,
+ * operating on already-stored aggro entries rather than this hit's delta.
+ *
  * ----------------------------------------------------------------------------
  * AGGRO TAGS FOR SKILLS:
  * BONUS AGGRO:
@@ -1954,6 +2272,39 @@
  *  Where VAL is a decimal multiplier applied on top of all other aggro.
  *
  * NOTE: Default is 1.0. A value of 0.5 halves aggro; 2.0 doubles it.
+ *
+ * AGGRO PERCENT (own existing aggro):
+ *    <aggroPercent:VAL>
+ *  Where VAL is a percent adjustment applied to the caster's own ALREADY-
+ *  STANDING aggro total on the target- not just this hit's contribution.
+ *  Resolved as aggro *= (1 + VAL/100). Contrast with aggroMultiplier above,
+ *  which only scales this one hit's newly-computed amount before it's added.
+ *
+ * TAG EXAMPLE:
+ *    <aggroPercent:100>
+ *  If the caster already has 1000 standing aggro on the target, landing
+ *  this skill doubles it to 2000 (in addition to whatever this hit's own
+ *  <aggro>/<aggroMultiplier> chain contributes).
+ *
+ * NOT MY AGGRO (redirect threat to yourself):
+ *    <notMyAggro:VAL>
+ *    <notMyAggroPercent:VAL>
+ *  Unlike the tags above (which only touch the caster's own aggro entry),
+ *  these adjust every OTHER battler's standing aggro on the same target-
+ *  battlers sharing the caster's team, excluding the caster's own entry.
+ *  notMyAggro adds VAL flat to each of those entries independently (can be
+ *  negative). notMyAggroPercent scales each of those entries independently
+ *  as entry *= (1 + VAL/100). Flat applies before percent, per entry.
+ *
+ * TAG EXAMPLE:
+ *    <notMyAggro:-50>
+ *    <notMyAggroPercent:-25>
+ *  On landing, every ally's standing aggro on this target drops by 50
+ *  flat, then by another 25% of whatever remains- a taunt that pulls
+ *  threat toward the caster and away from teammates fighting the same foe.
+ *
+ * NOTE: All aggro tags above fire regardless of hit/miss/parry, same as
+ * the base aggro calculation chain.
  *
  * ----------------------------------------------------------------------------
  * AGGRO TAGS FOR STATES:
@@ -2091,10 +2442,14 @@
  * ----------------------------------------------------------------------------
  * SLIP DAMAGE:
  * "Slip damage" is an alternative name for damage over time. There are
- * three types: flat, percent, and formula-based. All values are expressed
- * as "this much per 5 seconds" and are spread over 20 ticks (4/second).
- * The math:
- *    VAL / 20 = AMOUNT_PER_TICK
+ * three types: flat, percent, and formula-based. VAL is applied in full on
+ * every tick -- there is no per-tick division. A tick's length is governed
+ * by the tick interval (see TICK SPEED below), so the authored VAL is
+ * effectively "this much per tick", and the actual per-second/per-duration
+ * total depends entirely on how fast this battler's ticks are resolving.
+ * This is intentional: speeding up ticks (via tickSpeed tags) is what makes
+ * a slip effect hit harder over time, since the same VAL just lands more
+ * often.
  *
  * ----------------------------------------------------------------------------
  * SLIP DAMAGE AS A CONCEPT:
@@ -2113,37 +2468,133 @@
  *    <hpFlat:VAL>
  *    <mpFlat:VAL>
  *    <tpFlat:VAL>
- *  Where VAL is the flat amount to gain or lose per 5 seconds.
+ *  Where VAL is the flat amount to gain or lose, applied in full every tick.
  *
  * PERCENT:
  * Eats a portion of the battler's max value per tick. Use with care!
  *    <hpPercent:VAL>
  *    <mpPercent:VAL>
  *    <tpPercent:VAL>
- *  Where VAL is the % of max value to gain or lose per 5 seconds.
+ *  Where VAL is the % of max value to gain or lose, applied in full every tick.
  *
  * FORMULA:
- * Allows damage that scales with battler stats. "a" is the afflicted
- * battler, "b" is the one who applied the state, "v" is variables,
- * and "s" is the state object.
+ * Allows damage that scales with battler stats.
  *    <hpFormula:[FORMULA]>
  *    <mpFormula:[FORMULA]>
  *    <tpFormula:[FORMULA]>
- *  Where FORMULA is a damage-like formula to calculate VAL per 5 sec.
+ *  Where FORMULA is a damage-like formula to calculate VAL, applied in full
+ *  every tick.
+ *
+ * Formula context: "a" is the battler who applied the state (the source),
+ * "b" is the battler afflicted by the state (the one ticking), "v" is
+ * variables, and "s" is the state object itself. If the state was applied
+ * to oneself (self-inflicted), a and b are the same battler.
+ *
+ * NOTE ABOUT SIGN: write this formula the same way you would a normal
+ * damage formula, where a positive result means "harm". The engine negates
+ * the formula's output internally before adding it to the slip total, so a
+ * positive formula result becomes a loss and a negative formula result
+ * becomes a gain -- this is the opposite convention from FLAT and PERCENT
+ * above, where positive VAL is explicitly a gain.
  *
  * EXAMPLES:
  *    <hpFlat:-100>
- *  Lose 100 HP over five seconds (5 per tick).
+ *  Lose 100 HP on every tick this state is active.
  *
  *    <mpPercent:50>
- *  Lose 50% max MP over five seconds (2.5% per tick).
+ *  Lose 50% max MP on every tick this state is active.
  *
- *    <tpFormula:[(a.atk * 2)]>
- *  Gain TP equal to 200% of own ATK over five seconds.
+ *    <tpFormula:[-(a.atk * 2)]>
+ *  Gain TP equal to 200% of the source's ATK on every tick (negative
+ *  formula result = gain, per the sign note above).
  *
- * NOTE ABOUT VAL OUTPUT:
- * Multiples of 20 are a handy mental shortcut: val 20 = 1 per tick,
- * val 40 = 2 per tick, and so on.
+ *    <hpFormula:[(a.mat * 3)]>
+ *  Lose HP equal to 300% of the source's MAT on every tick (positive
+ *  formula result = harm, just like a damage formula).
+ *
+ * TICK SPEED:
+ * Slip/regen effects don't tick every frame -- they tick on an interval
+ * (the "Default State Tick Interval" plugin parameter as the base for state
+ * slips, a separate configurable interval for natural HP/MP/TP regen).
+ * Because slip VAL is applied in full every tick (see SLIP DAMAGE above),
+ * making ticks fire more often is what makes a slip effect deal more total
+ * damage over time -- there is no rescaling to compensate. These tags are
+ * battler-wide modifiers against that interval, summed from every note
+ * source on the battler (actor, class, weapons, armors, states).
+ *
+ *    <tickSpeedFlat:VAL>
+ *  Where VAL is a flat number of frames added to (or, if negative,
+ *  subtracted from) the base tick interval. Positive VAL = slower ticks
+ *  (longer wait between them); negative VAL = faster ticks.
+ *
+ *    <tickSpeedPercent:VAL>
+ *  Where VAL is a percent applied against the interval as a divisor:
+ *  interval / (1 + VAL / 100). Positive VAL = faster ticks (shorter
+ *  interval); negative VAL = slower ticks. Note this is the OPPOSITE sign
+ *  convention from tickSpeedFlat above -- a positive flat value slows ticks
+ *  down, but a positive percent value speeds them up.
+ *
+ *    <tickSpeedTypePercent:[TYPE, VAL]>
+ *  A percent modifier scoped to a single <type:TYPE> classifier (the same
+ *  classifier family used by <stateTypeResist>/<stateTypeImmune> above)
+ *  rather than applying universally. Only contributes when the state or
+ *  regen source actually carries a matching <type:TYPE> tag. Same sign
+ *  convention as tickSpeedPercent (positive = faster).
+ *
+ * Both flat and percent modifiers apply together: the flat offset is added
+ * to the base interval first, then the combined percent divides the result.
+ * The final interval is floored at a small minimum (the plugin's
+ * "Minimum State Tick Interval" parameter, never below 1 frame) so ticks
+ * can never be reduced to zero or negative frames.
+ *
+ * PER-STATE TICK SPEED OVERRIDE:
+ * Independent of the modifiers above, an individual state can declare its
+ * own fixed tick interval rather than using the shared base interval:
+ *    <thisTickSpeed:FRAMES>
+ *  Where FRAMES is this state's own tick interval, ignoring the plugin
+ *  parameter default entirely. The flat/percent modifiers above still
+ *  apply on top of this override the same way they would the default.
+ *
+ * EXAMPLE:
+ *    <tickSpeedPercent:100>
+ *  This source doubles this battler's slip/regen tick frequency (ticks
+ *  twice as often).
+ *
+ *    <tickSpeedTypePercent:[poison, 50]>
+ *  This source ticks poison-typed states 50% faster, but has no effect on
+ *  any other state.
+ *
+ * SLIP AMPLIFICATION:
+ * Independent of tick speed, the VAL of a single tick can be amplified
+ * directly. Amplification is always sourced from the battler who APPLIED
+ * the slip effect (the source), not the battler suffering/receiving it --
+ * a Ring of Melting worn by the poisoner makes their poison hit harder, it
+ * does nothing for the poisoner's own poison resistance. Healing-over-time
+ * additionally still applies the afflicted battler's own REC trait first,
+ * exactly as before; these tags layer on top of that.
+ *
+ *    <dotAmpRate:VAL>
+ *    <hotAmpRate:VAL>
+ *  Battler-wide percent amplification against every DoT/HoT this battler
+ *  applies, summed from every note source on the source (actor, class,
+ *  weapons, armors, states). VAL is a percent: 100 = double tick damage/
+ *  healing, -50 = half.
+ *
+ *    <thisDotAmpRate:VAL>
+ *    <thisHotAmpRate:VAL>
+ *  Skill-scoped percent amplification, read from the skill that was
+ *  executing when the state was applied (not the bearer's other skills).
+ *  Adds on top of the battler-wide rate above; a state applied with no
+ *  skill in scope (ambient/self-inflicted effects) never consults this.
+ *
+ * EXAMPLE:
+ *    <dotAmpRate:100>
+ *  (Ring of Melting) Doubles the tick damage of every DoT this battler's
+ *  wearer applies to anyone.
+ *
+ *    <thisDotAmpRate:50>
+ *  (on a specific poison skill) Adds another 50% on top of that, but only
+ *  for poison applied by this exact skill.
  *
  * STATE DURATIONS (map / ABS):
  * J-ABS does not use MZ "Remove by Walking" for map timers. That checkbox only
@@ -2182,10 +2633,17 @@
  *  Where VAL is the % of base duration to add (can be negative).
  *
  * FORMULA:
- *    <stateDurationForm:[FORMULA]>
+ *    <stateDurationFormula:[FORMULA]>
  *  Where FORMULA calculates bonus frames to add to the base duration.
- *  "a" is the afflicted battler, "b" is the base duration, "v" is
- *  the variable store.
+ *
+ * Formula context: a = the assailant applying the state (whose notes are
+ * being summed), b = the base duration in frames before any boosts,
+ * v = $gameVariables._data.
+ *
+ * EXAMPLE:
+ *    <stateDurationFormula:[a.luk * 2]>
+ *  Adds bonus frames to every state this battler applies, scaled off their
+ *  own LUK.
  *
  * ============================================================================
  * PER-STATE REAPPLY OVERRIDES:
@@ -2216,12 +2674,39 @@
  *    <stackMax:VAL>
  *  Maximum number of stacks this state can accumulate.
  *
+ *    <stackMaxBoost:VAL>
+ *  A blanket bonus to the stack cap of every state this battler stacks, regardless
+ *  of which state it is. Read from every note source on the battler applying the
+ *  stack (actor, class, equips, states) and summed together. Place on gear or a
+ *  passive state for a "stacks build up further, period" effect.
+ *
+ *    <thisStackMaxBoost:VAL>
+ *  A bonus to this specific state's own stack cap, read from this state's own note
+ *  only (not summed from the battler's other sources). On its own this is nothing
+ *  you couldn't do by just raising <stackMax:VAL> directly- its purpose is to ride
+ *  along on a J-Extend overlay state. When another active state carries
+ *  <extend:[STATE_ID]> or <extendType:TYPE> targeting this state, J-Extend
+ *  merges the overlay's note (and thus its <thisStackMaxBoost:VAL> tag) into this
+ *  state's resolved note before this tag is read- so a single overlay state (e.g.
+ *  an equipment-granted passive) can raise the stack cap of one specific state, or
+ *  of every state sharing a <type:TYPE> classifier, without touching the target
+ *  state(s) directly.
+ *
  *    <applyStacks:VAL>
  *  Number of stacks applied per hit (default 1).
  *
  *    <loseAllStacksAtOnce>
  *  If present, all stacks are lost at once upon expiration rather
  *  than losing one stack and refreshing.
+ *
+ *    <stackOnExpire>
+ *  Inverts the normal expiration behavior entirely: instead of losing a
+ *  stack when duration runs out, the state GAINS a stack and re-arms its
+ *  own duration indefinitely, with no external reapplication needed. This
+ *  is a self-perpetuating "ticking clock" state -- once applied, it keeps
+ *  building stacks on its own timer until something else removes it
+ *  outright (dispel, death, script call). Takes precedence over
+ *  <loseAllStacksAtOnce>, since stacks are never lost via this path.
  *
  *    <stacksConvertToState:[NEW_STATE_ID, STACKS_REQUIRED]>
  *  When this state's stack count reaches STACKS_REQUIRED (checked on every
@@ -2770,7 +3255,7 @@
  * @type number
  * @text Default Tick Interval
  * @desc Frames between slip/regen ticks when a state omits <thisTickSpeed:N>. (60 frames = 1 second)
- * @default 30
+ * @default 60
  *
  * @param minimumStateTickInterval
  * @parent tickConfigs
@@ -3419,7 +3904,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 		this.DefaultStateRefreshDiminish = Number(this.parsedPluginParameters["defaultStateRefreshDiminish"]) || 120;
 		this.DefaultStateRefreshReset = Number(this.parsedPluginParameters["defaultStateRefreshReset"]) || 900;
 		this.DefaultStateSpreadTickInterval = Number(this.parsedPluginParameters["defaultStateSpreadTickInterval"]) || 30;
-		this.DefaultStateTickInterval = Number(this.parsedPluginParameters["defaultStateTickInterval"]) || 30;
+		this.DefaultStateTickInterval = Number(this.parsedPluginParameters["defaultStateTickInterval"]) || 60;
 		this.MinimumStateTickInterval = Number(this.parsedPluginParameters["minimumStateTickInterval"]) || 4;
 		this.NaturalRegenTickType = this.parsedPluginParameters["naturalRegenTickType"] || "regen";
 		this.DefaultStateExtendAmount = Number(this.parsedPluginParameters["defaultStateExtendAmount"]) || 180;
@@ -4035,6 +4520,9 @@ J.ABS.RegExp = {
 	OffhandEligible: /<offhandEligible>/i,
 	BonusAggro: /<aggro:[ ]?(-?\d+)>/gi,
 	AggroMultiplier: /<aggroMultiplier:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	AggroPercent: /<aggroPercent:[ ]?(-?\d+)>/gi,
+	NotMyAggro: /<notMyAggro:[ ]?(-?\d+)>/gi,
+	NotMyAggroPercent: /<notMyAggroPercent:[ ]?(-?\d+)>/gi,
 	Unparryable: /<unparryable>/gi,
 	/**
 	* Extra battle-effect applications per target per pierce tick, from the executing skill note only.
@@ -4232,10 +4720,14 @@ J.ABS.RegExp = {
 	NoCastPreviewSkill: /<noCastPreview>/gi,
 	CastPreviewWarnAt: /<castPreviewWarnAt:[ ]?(\d+)>/gi,
 	PurgeStates: /<purgeStates:[ ]?(\[.*?])>/i,
+	ThisDotAmpRate: /<thisDotAmpRate:[ ]?(-?\d+)%?>/gi,
+	ThisHotAmpRate: /<thisHotAmpRate:[ ]?(-?\d+)%?>/gi,
 	SkillId: /<skillId:[ ]?(\d+)>/gi,
 	OffhandSkillId: /<offhandSkillId:[ ]?(\d+)>/gi,
 	KnockbackResist: /<knockbackResist:[ ]?(\d+)>/gi,
 	ProximityKnockback: /<proximityKnockback:[ ]?(\[(?:0|[1-9][0-9]*)(?:\.[0-9]+)?,[ ]?-?(?:0|[1-9][0-9]*)])>/gi,
+	KnockbackAmp: /<knockbackAmp:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	ThisKnockbackAmp: /<thisKnockbackAmp:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
 	IgnoreParry: /<ignoreParry:[ ]?(\d+)>/gi,
 	UseOnPickup: /<useOnPickup>/gi,
 	Expires: /<expires:[ ]?(\d+)>/gi,
@@ -4254,6 +4746,8 @@ J.ABS.RegExp = {
 	ReapplyExtendAmount: /<stackExtendAmount:[ ]?(\d+)>/gi,
 	ReapplyExtendMax: /<stackExtendMax:[ ]?(\d+)>/gi,
 	ReapplyStackMax: /<stackMax:[ ]?(\d+)>/gi,
+	StackMaxBoost: /<stackMaxBoost:[ ]?([-+]?\d+)>/gi,
+	ThisStackMaxBoost: /<thisStackMaxBoost:[ ]?([-+]?\d+)>/gi,
 	StateApplicationAmount: /<applyStacks:[ ]?(\d+)>/gi,
 	LoseAllStacksAtOnce: /<loseAllStacksAtOnce>/gi,
 	StackOnExpire: /<stackOnExpire>/gi,
@@ -4283,10 +4777,15 @@ J.ABS.RegExp = {
 	StateDurationFlatPlus: /<stateDurationFlat:[ ]?([-+]?\d+)>/gi,
 	StateDurationPercentPlus: /<stateDurationPerc:[ ]?([-+]?\d+)>/gi,
 	StateDurationFormulaPlus: /<stateDurationFormula:\[([+\-*/ ().\w]+)]>/gi,
+	ThisStateDurationFlatPlus: /<thisStateDurationFlat:[ ]?([-+]?\d+)>/gi,
+	ThisStateDurationPercentPlus: /<thisStateDurationPerc:[ ]?([-+]?\d+)>/gi,
+	ThisStateDurationFormulaPlus: /<thisStateDurationFormula:\[([+\-*/ ().\w]+)]>/gi,
 	ThisTickSpeed: /<thisTickSpeed:[ ]?(\d+)>/gi,
 	TickSpeedFlat: /<tickSpeedFlat:[ ]?(-?\d+)>/gi,
 	TickSpeedPercent: /<tickSpeedPercent:[ ]?(-?\d+)%?>/gi,
 	TickSpeedTypePercent: /<tickSpeedTypePercent:(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?\d+])>/gi,
+	DotAmpRate: /<dotAmpRate:[ ]?(-?\d+)%?>/gi,
+	HotAmpRate: /<hotAmpRate:[ ]?(-?\d+)%?>/gi,
 	EnemyId: /<enemyId:[ ]?(\d+)>/i,
 	TeamId: /<teamId:[ ]?(\d+)>/g,
 	Sight: /<sight:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/i,
@@ -4322,7 +4821,7 @@ J.ABS.RegExp = {
 	ConfigShowStates: /<jabsConfig:[ ]?showStates>/i,
 	ConfigHideStates: /<jabsConfig:[ ]?hideStates>/i,
 	ConfigInanimate: /<jabsConfig:[ ]?inanimate>/i,
-	ConfigNotInanimate: /<jabsConfig[ ]?:notInanimate>/i,
+	ConfigNotInanimate: /<jabsConfig:[ ]?notInanimate>/i,
 	ConfigInvincible: /<jabsConfig:[ ]?invincible>/i,
 	ConfigNotInvincible: /<jabsConfig:[ ]?notInvincible>/i,
 	ConfigNoName: /<jabsConfig:[ ]?noName>/i,
@@ -4427,6 +4926,25 @@ J.ABS.RegExp = {
 	*/
 	ThisBonusDamageIfSelfState: /<thisBonusDamageIfSelfState:[ ]?(\[\d+,[ ]?\d+])>/gi,
 	/**
+	* Unconditional flat percent damage bonus applied to every action the caster performs.
+	* Reads from the caster's getAllNotes() sources (actor, class, equips, states) — unlike
+	* thisBonusDamage, this is not scoped to one skill; it applies caster-wide. All values found
+	* across every note source are summed. Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <bonusDamage:PCT>
+	*
+	* Example:
+	*  <bonusDamage:15>
+	*
+	* Translation:
+	*  This battler always deals +15% damage with every action, regardless of target state.
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusDamage: /<bonusDamage:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
 	* Unconditional flat percent damage bonus applied when THIS skill is the action being resolved.
 	* Reads from this.item() only — does not read from getAllNotes() and does not affect other skills.
 	* Applied before guard reduction in the damage pipeline.
@@ -4502,6 +5020,25 @@ J.ABS.RegExp = {
 	*/
 	BonusDamagePerStateStack: /<bonusDamagePerStateStack:[ ]?(\[\d+,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
 	/**
+	* Percent damage bonus per stack of one specific state currently active on the target.
+	* Reads from this.item() only — fires only when this specific skill is the action being
+	* resolved, unlike BonusDamagePerStateStack which reads from the caster's getAllNotes().
+	* No stack cap is enforced here- whatever cap the state itself carries is the only ceiling.
+	*
+	* <pre>
+	* Structure:
+	*  <thisBonusDamagePerStateStack:[STATE_ID, PCT]>
+	*
+	* Example:
+	*  <thisBonusDamagePerStateStack:[14, 2]>
+	*
+	* Translation:
+	*  +2% damage per stack of state 14 currently on the target, from this skill only.
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisBonusDamagePerStateStack: /<thisBonusDamagePerStateStack:[ ]?(\[\d+,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
+	/**
 	* Flat percent damage bonus per distinct state currently on the target that this battler
 	* personally applied. Counts distinct authored states, not stack depth of any one state-
 	* distinct from BonusDamagePerStateStack above. Lives on a passive state; always active
@@ -4537,6 +5074,45 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	ThisBonusDamageForMyStateCount: /<thisBonusDamageForMyStateCount:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Execute-style percent damage bonus that scales with how far under a hp threshold the target
+	* currently is. Reads from getAllNotes() (actor, class, equips, states). The gate opens once
+	* target hp% <= THRESHOLD_PCT, then the bonus scales by PCT_PER_POINT for every percentage
+	* point the target is under that threshold- not a flat one-time bonus.
+	* Applied before guard reduction in the damage pipeline.
+	*
+	* <pre>
+	* Structure:
+	*  <bonusDamageIfTargetHpBelow:[THRESHOLD_PCT, PCT_PER_POINT]>
+	*
+	* Example:
+	*  <bonusDamageIfTargetHpBelow:[50, 2]>
+	*
+	* Translation:
+	*  Once the target is at or under 50% hp, gain +2% damage for every percentage point they are
+	*  under 50%- +40% at 30% hp, +80% at 10% hp.
+	* </pre>
+	* @type {RegExp}
+	*/
+	BonusDamageIfTargetHpBelow: /<bonusDamageIfTargetHpBelow:[ ]?(\[-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
+	/**
+	* Skill-scoped counterpart to BonusDamageIfTargetHpBelow- applies only when this specific
+	* skill is the action being resolved. Reads from this.item() only.
+	*
+	* <pre>
+	* Structure:
+	*  <thisBonusDamageIfTargetHpBelow:[THRESHOLD_PCT, PCT_PER_POINT]>
+	*
+	* Example:
+	*  <thisBonusDamageIfTargetHpBelow:[50, 2]>
+	*
+	* Translation:
+	*  When this skill lands on a target at or under 50% hp, gain +2% damage from this skill for
+	*  every percentage point they are under 50%.
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisBonusDamageIfTargetHpBelow: /<thisBonusDamageIfTargetHpBelow:[ ]?(\[-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
 	/**
 	* Flat tile addition applied to radius, proximity, and thickness before the rate multiplier.
 	* Signed decimal; negative values shrink reach. Reads from getAllNotes().
@@ -4684,6 +5260,144 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	ThicknessRate: /<thicknessRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	/**
+	* Self-scoped counterpart to rangeBuff: flat tile addition to radius, proximity, and thickness,
+	* read only from this skill's own note (this.getBaseSkill()), not the caster's getAllNotes().
+	* Stacks additively with rangeBuff.
+	*
+	* <pre>
+	* Structure:
+	*  <thisRangeBuff:N>
+	*
+	* Example:
+	*  <thisRangeBuff:2>
+	*
+	* Translation:
+	*  This skill alone gets +2 tiles flat to radius, proximity, and thickness.
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisRangeBuff: /<thisRangeBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Self-scoped counterpart to rangeRate: multiplicative rate applied to radius, proximity, and
+	* thickness, read only from this skill's own note. Base-1.0 delta model, same as rangeRate.
+	* Stacks additively with rangeRate.
+	*
+	* <pre>
+	* Structure:
+	*  <thisRangeRate:N>
+	*
+	* Example:
+	*  <thisRangeRate:1.5>
+	*
+	* Translation:
+	*  This skill alone has 1.5x radius, proximity, and thickness.
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisRangeRate: /<thisRangeRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	/**
+	* Self-scoped counterpart to radiusBuff, read only from this skill's own note.
+	* Stacks additively with radiusBuff (and thisRangeBuff).
+	*
+	* <pre>
+	* Structure:
+	*  <thisRadiusBuff:N>
+	*
+	* Example:
+	*  <thisRadiusBuff:2>
+	*
+	* Translation:
+	*  This skill alone gets +2 tiles flat to radius only (not proximity or thickness).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisRadiusBuff: /<thisRadiusBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Self-scoped counterpart to radiusRate, read only from this skill's own note.
+	* Stacks additively with radiusRate (and thisRangeRate).
+	*
+	* <pre>
+	* Structure:
+	*  <thisRadiusRate:N>
+	*
+	* Example:
+	*  <thisRadiusRate:1.5>
+	*
+	* Translation:
+	*  This skill alone has 1.5x radius only (not proximity or thickness).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisRadiusRate: /<thisRadiusRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	/**
+	* Self-scoped counterpart to proximityBuff, read only from this skill's own note.
+	* Stacks additively with proximityBuff (and thisRangeBuff).
+	*
+	* <pre>
+	* Structure:
+	*  <thisProximityBuff:N>
+	*
+	* Example:
+	*  <thisProximityBuff:2>
+	*
+	* Translation:
+	*  This skill alone gets +2 tiles flat to proximity only (not radius or thickness).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisProximityBuff: /<thisProximityBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Self-scoped counterpart to proximityRate, read only from this skill's own note.
+	* Stacks additively with proximityRate (and thisRangeRate).
+	*
+	* <pre>
+	* Structure:
+	*  <thisProximityRate:N>
+	*
+	* Example:
+	*  <thisProximityRate:1.5>
+	*
+	* Translation:
+	*  This skill alone has 1.5x proximity only (not radius or thickness).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisProximityRate: /<thisProximityRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
+	/**
+	* Self-scoped counterpart to thicknessBuff, read only from this skill's own note.
+	* Stacks additively with thicknessBuff (and thisRangeBuff).
+	*
+	* <pre>
+	* Structure:
+	*  <thisThicknessBuff:N>
+	*
+	* Example:
+	*  <thisThicknessBuff:1>
+	*
+	* Translation:
+	*  This skill alone gets +1 tile flat to thickness only (not radius or proximity).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisThicknessBuff: /<thisThicknessBuff:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Self-scoped counterpart to thicknessRate, read only from this skill's own note.
+	* Stacks additively with thicknessRate (and thisRangeRate).
+	*
+	* <pre>
+	* Structure:
+	*  <thisThicknessRate:N>
+	*
+	* Example:
+	*  <thisThicknessRate:1.5>
+	*
+	* Translation:
+	*  This skill alone has 1.5x thickness only (not radius or proximity).
+	* </pre>
+	* @type {RegExp}
+	*/
+	ThisThicknessRate: /<thisThicknessRate:[ ]?((0|([1-9][0-9]*))(\.[0-9]+)?)>/gi,
 	/**
 	* Passive/state/equip skill history damage bonus.
 	* Reads from getAllNotes(); applies to every attack by the bearer.
@@ -7158,10 +7872,6 @@ var JABS_EnemyAI = class extends JABS_AI {
 		if (leader === follower) return false;
 		if (!follower) return false;
 		if (follower.getBattlerRole().leader) return false;
-		if (follower.hasLeader() && follower.getLeader() !== leader.getUuid()) {
-			leader.removeFollower(follower.getUuid());
-			return false;
-		}
 		return true;
 	}
 	/**
@@ -10275,7 +10985,7 @@ var JABS_SkillSlot = class {
 	* @returns {this} Returns `this` for fluent chaining.
 	*/
 	setLock(locked) {
-		if (!this.canBeLocked()) {
+		if (this.canBeLocked()) {
 			this.locked = locked;
 		}
 		return this;
@@ -10459,7 +11169,6 @@ var JABS_Battler = class JABS_Battler {
 		this.initBattleInfo();
 		this.initIdleInfo();
 		this.initCooldowns();
-		this.initPoseInfo();
 	}
 	/**
 	* Initializes the battler's core data from the comments.
@@ -11131,18 +11840,6 @@ var JABS_Battler = class JABS_Battler {
 			console.error("this follower already existed within the follower list.");
 		} else {
 			this._followers.push(newFollowerUuid);
-		}
-	}
-	/**
-	* Removes the follower from
-	* @param {string} oldFollowerUuid The `uuid` of the follower to remove from tracking.
-	*/
-	removeFollower(oldFollowerUuid) {
-		const index = this._followers.indexOf((uuid) => uuid === oldFollowerUuid);
-		if (index !== -1) {
-			this._followers.splice(index, 1);
-		} else {
-			console.error("could not find follower to remove from the list.", oldFollowerUuid);
 		}
 	}
 	/**
@@ -12479,7 +13176,9 @@ var JABS_Battler = class JABS_Battler {
 		for (const candidate of candidates) {
 			if (candidate === this) continue;
 			if (candidate.isEnemy() === this.isEnemy()) continue;
-			if (!candidate.getBattler().isStateAffected(stateId)) continue;
+			if (!candidate.getBattler().isStateAffected(stateId)) {
+				continue;
+			}
 			const distance = this.distanceToDesignatedTarget(candidate);
 			if (distance < closestDistance) {
 				closestDistance = distance;
@@ -13245,7 +13944,7 @@ var JABS_Battler = class JABS_Battler {
 	* @param {number} frames The number of iframes.
 	*/
 	setDodgeIFrames(frames) {
-		this._dodgeIFrames = frames;
+		this._dodgeIframes = frames;
 	}
 	/**
 	* Tries to execute the battler's dodge skill.
@@ -13665,7 +14364,9 @@ var JABS_Battler = class JABS_Battler {
 		if (this.getCharacter().isJabsAction()) {
 			return false;
 		}
-		if (this.isFollower() && this.getCharacter().isVisible() === false) return false;
+		if (this.isFollower() && this.getCharacter().isVisible() === false) {
+			return false;
+		}
 		return true;
 	}
 	/**
@@ -13803,15 +14504,18 @@ var JABS_Battler = class JABS_Battler {
 		return battler.getResolvedSkillId(slot);
 	}
 	/**
-	* Consumes an item and performs its effects.
+	* Consumes an item and performs its effects. Shared by both the dedicated tool slot and the
+	* dedicated usable-item slot; the slot manipulated, the skill/action cooldown type stamped, and
+	* the cooldown tracked are all driven entirely by the button type provided.
 	* @param {number} toolId The id of the tool/item to be used.
+	* @param {string} buttonType The {@link JABS_Button} slot key this item was used from.
 	* @param {boolean} isLoot Whether or not this is a loot pickup.
 	*/
-	applyToolEffects(toolId, isLoot = false) {
+	applyToolItemEffects(toolId, buttonType, isLoot = false) {
 		const item = $dataItems.at(toolId);
 		const battler = this.getBattler();
 		battler.consumeItem(item);
-		battler.getSkillSlotManager().getToolSlot().flagSkillSlotForRefresh();
+		battler.getSkillSlotManager().getSkillSlotByKey(buttonType).flagSkillSlotForRefresh();
 		const gameAction = new Game_Action(battler, false);
 		gameAction.setItem(toolId);
 		const scopeNone = gameAction.item().scope === 0;
@@ -13845,84 +14549,32 @@ var JABS_Battler = class JABS_Battler {
 		if (itemSkillId) {
 			const mapAction = this.createJabsActionFromSkill(itemSkillId);
 			mapAction.forEach((action) => {
-				action.setCooldownType(JABS_Button.Tool);
+				action.setCooldownType(buttonType);
 				$jabsEngine.executeMapAction(this, action);
 			});
 		}
 		if (!isLoot && !$gameParty.items().includes(item)) {
-			battler.getSkillSlotManager().clearSlot(JABS_Button.Tool);
+			battler.getSkillSlotManager().clearSlot(buttonType);
 			const lastUsedItemLog = new LootLogBuilder().setupUsedLastItem(item.id).build();
 			$lootLogManager.addLog(lastUsedItemLog);
 		} else {
 			if (itemCooldown) {
-				if (!isLoot) this.modCooldownCounter(JABS_Button.Tool, itemCooldown);
+				if (!isLoot) this.modCooldownCounter(buttonType, itemCooldown);
 			}
 			if (!itemCooldown && !itemSkillId && !isLoot) {
-				this.modCooldownCounter(JABS_Button.Tool, J.ABS.DefaultValues.CooldownlessItems);
+				this.modCooldownCounter(buttonType, J.ABS.DefaultValues.CooldownlessItems);
 			}
 		}
 	}
 	/**
 	* Consumes an item from the usable-item slot and performs its effects.
-	* Mirrors {@link applyToolEffects} exactly but operates on {@link JABS_Button.UsableItem}
-	* instead of {@link JABS_Button.Tool}.
+	* Thin wrapper around {@link applyToolItemEffects} bound to {@link JABS_Button.UsableItem},
+	* preserved as its own hookable method for extensions that alias this specific slot's usage.
 	* @param {number} itemId The id of the item to be used.
 	* @param {boolean} isLoot Whether or not this is a loot pickup.
 	*/
 	applyUsableItemEffects(itemId, isLoot = false) {
-		const item = $dataItems.at(itemId);
-		const battler = this.getBattler();
-		battler.consumeItem(item);
-		battler.getSkillSlotManager().getUsableItemSlot().flagSkillSlotForRefresh();
-		const gameAction = new Game_Action(battler, false);
-		gameAction.setItem(itemId);
-		const scopeNone = gameAction.item().scope === 0;
-		const scopeSelf = gameAction.isForUser();
-		const scopeAlly = gameAction.isForFriend();
-		const scopeOpponent = gameAction.isForOpponent();
-		const scopeSingle = gameAction.isForOne();
-		const scopeAll = gameAction.isForAll();
-		const scopeEverything = gameAction.isForEveryone();
-		const scopeAllAllies = scopeEverything || scopeAll && scopeAlly;
-		const scopeAllOpponents = scopeEverything || scopeAll && scopeOpponent;
-		const scopeOneAlly = scopeSingle && scopeAlly;
-		const scopeOneOpponent = scopeSingle && scopeOpponent;
-		if (scopeSelf || scopeOneAlly) {
-			this.applyToolToPlayer(itemId);
-		} else if (scopeEverything) {
-			this.applyToolForAllAllies(itemId);
-			this.applyToolForAllOpponents(itemId);
-		} else if (scopeOneOpponent) {
-			this.applyToolForOneOpponent(itemId);
-		} else if (scopeAllAllies) {
-			this.applyToolForAllAllies(itemId);
-		} else if (scopeAllOpponents) {
-			this.applyToolForAllOpponents(itemId);
-		} else if (scopeNone) {} else {
-			console.warn(`unhandled scope for usable item: [ ${gameAction.item().scope} ]!`);
-		}
-		gameAction.applyGlobal();
-		this.createToolLog(item);
-		const { jabsCooldown: itemCooldown, jabsSkillId: itemSkillId } = item;
-		if (itemSkillId) {
-			const mapAction = this.createJabsActionFromSkill(itemSkillId);
-			mapAction.forEach((action) => {
-				action.setCooldownType(JABS_Button.UsableItem);
-				$jabsEngine.executeMapAction(this, action);
-			});
-		}
-		if (!isLoot && !$gameParty.items().includes(item)) {
-			battler.getSkillSlotManager().clearSlot(JABS_Button.UsableItem);
-			const lastUsedItemLog = new LootLogBuilder().setupUsedLastItem(item.id).build();
-			$lootLogManager.addLog(lastUsedItemLog);
-		} else {
-			if (itemCooldown) {
-				if (!isLoot) this.modCooldownCounter(JABS_Button.UsableItem, itemCooldown);
-			}
-			if (!itemCooldown && !itemSkillId && !isLoot) {
-				this.modCooldownCounter(JABS_Button.UsableItem, J.ABS.DefaultValues.CooldownlessItems);
-			}
-		}
+		this.applyToolItemEffects(itemId, JABS_Button.UsableItem, isLoot);
 	}
 	/**
 	* Applies the effects of the tool against the leader.
@@ -14431,21 +15083,13 @@ var JABS_Battler = class JABS_Battler {
 		this.setRegenCounter(this.getNaturalRegenTickInterval());
 	}
 	/**
-	* Resolves how many frames elapse between natural regeneration ticks for this battler.<br/>
-	* Uses the same base-plus-flat-then-percent formula as per-state slip ticking, evaluated
-	* against this battler itself (natural regen has no external "source" to speak of), and typed
-	* as the plugin-configured natural regen tick type so type-scoped modifiers can reach it.
+	* Resolves how many frames elapse between natural regeneration ticks for this battler.
+	* Delegates to {@link Game_Battler#getNaturalRegenTickInterval} so the same formula is
+	* available to any UI wanting to preview this cadence outside a live map context.
 	* @returns {number}
 	*/
 	getNaturalRegenTickInterval() {
-		const battler = this.getBattler();
-		const naturalRegenType = J.ABS.Metadata.NaturalRegenTickType;
-		const baseInterval = J.ABS.Metadata.DefaultStateTickInterval;
-		const flatModifier = battler.tickSpeedFlatModifier();
-		const percentModifier = battler.tickSpeedPercentModifier([naturalRegenType]);
-		const modifiedInterval = (baseInterval + flatModifier) / (1 + percentModifier / 100);
-		const tunableFloor = Math.max(J.ABS.Metadata.MinimumStateTickInterval, 1);
-		return Math.max(Math.round(modifiedInterval), tunableFloor);
+		return this.getBattler().getNaturalRegenTickInterval();
 	}
 	/**
 	* Determines whether or not the regeneration can be updated.
@@ -14525,18 +15169,20 @@ var JABS_Battler = class JABS_Battler {
 		return false;
 	}
 	/**
-	* Calculate the per5seconds regeneration rate and reduce it if applicable. By default, this should be roughly 5% of
-	* the base100 regeneration value, and 20% of that value if reduced.
-	* @param {number} baseValue The base regeneration value.
+	* Calculate the per-tick regeneration amount and reduce it if applicable. Applied in full on
+	* every natural regen tick- no per-tick division- matching the same philosophy as slip damage/
+	* regen: tick speed alone controls total throughput, there is no fixed divisor to keep in sync
+	* with the resolved tick interval.
+	* @param {number} baseValue The base regeneration value (raw x-param fraction, e.g. 0.01 = 1%).
 	* @param {boolean} isReduced Whether or not this regeneration value should be reduced.
 	* @returns {number}
 	*/
 	calculatedRegen(baseValue, isReduced = false) {
-		let calculatedValue = baseValue * 100 * .05;
+		let calculatedValue = baseValue * 100;
 		if (isReduced) {
 			calculatedValue *= .2;
 		}
-		return parseFloat(calculatedValue.toFixed(2)) ?? 0;
+		return parseFloat(calculatedValue.toFixed(2));
 	}
 	/**
 	* Processes the natural HRG for this battler.
@@ -14545,8 +15191,8 @@ var JABS_Battler = class JABS_Battler {
 		const battler = this.getBattler();
 		if (battler.hp < battler.mhp) {
 			const { hrg, rec } = battler;
-			const naturalHp5 = this.calculatedRegen(hrg, isReduced) * rec;
-			battler.gainHp(naturalHp5);
+			const naturalHp = this.calculatedRegen(hrg, isReduced) * rec;
+			battler.gainHp(naturalHp);
 		}
 	}
 	/**
@@ -14556,8 +15202,8 @@ var JABS_Battler = class JABS_Battler {
 		const battler = this.getBattler();
 		if (battler.mp < battler.mmp) {
 			const { mrg, rec } = battler;
-			const naturalMp5 = this.calculatedRegen(mrg, isReduced) * rec;
-			battler.gainMp(naturalMp5);
+			const naturalMp = this.calculatedRegen(mrg, isReduced) * rec;
+			battler.gainMp(naturalMp);
 		}
 	}
 	/**
@@ -14567,8 +15213,8 @@ var JABS_Battler = class JABS_Battler {
 		const battler = this.getBattler();
 		if (battler.tp < battler.maxTp()) {
 			const { trg, rec } = battler;
-			const naturalTp5 = this.calculatedRegen(trg, isReduced) * rec;
-			battler.gainTp(naturalTp5);
+			const naturalTp = this.calculatedRegen(trg, isReduced) * rec;
+			battler.gainTp(naturalTp);
 		}
 	}
 	/**
@@ -14579,26 +15225,104 @@ var JABS_Battler = class JABS_Battler {
 	* @param {RPG_State} state The state whose slip tags should be applied for this tick.
 	*/
 	processStateTick(state) {
-		const battler = this.getBattler();
-		if (!battler || battler.isDead()) return;
-		const { rec } = battler;
-		const perResource = [
+		if (this.canProcessStateTick() === false) return;
+		const slipResources = [
 			this.stateSlipHp(state),
 			this.stateSlipMp(state),
 			this.stateSlipTp(state)
 		];
-		for (let index = 0; index < 3; index++) {
-			let regen = perResource[index];
-			if (!regen) {
-				continue;
-			}
-			if (regen > 0) {
-				regen *= rec;
-			}
-			this.applySlipEffect(regen, index);
-			const displayAmount = -regen;
-			this.onSlipRegenTick(displayAmount, index, state.id);
+		const jabsState = $jabsEngine.getJabsStateByUuidAndStateId(this.getBattler().getUuid(), state.id);
+		slipResources.forEach((slipAmount, index) => this.processSlipEffect(slipAmount, index, jabsState), this);
+	}
+	/**
+	* Checks if the state can process the tick.
+	* @returns {boolean}
+	*/
+	canProcessStateTick() {
+		const battler = this.getBattler();
+		if (!battler || battler.isDead()) return false;
+		return true;
+	}
+	/**
+	* Process the effects of the slip.
+	* @param {number} slipAmount The slip amount itself to be processed.
+	* @param {0|1|2} index The type of resource this slip represents.
+	* @param {JABS_State} jabsState The state tracker that owns the slip.
+	*/
+	processSlipEffect(slipAmount, index, jabsState) {
+		if (this.canProcessSlipEffect(slipAmount) === false) return;
+		const modifiedSlipAmount = this.calculateModifiedSlipAmount(slipAmount, jabsState);
+		this.applySlipEffect(modifiedSlipAmount, index);
+		const displayAmount = -modifiedSlipAmount;
+		this.onSlipRegenTick(displayAmount, index, jabsState.stateId);
+	}
+	/**
+	* Determines whether the slip can be processed.
+	* @param {number} slipAmount The amount to slip.
+	* @returns {boolean}
+	*/
+	canProcessSlipEffect(slipAmount) {
+		if (slipAmount === 0) return false;
+		return true;
+	}
+	/**
+	* Calculate the slip amount against any additional modifiers.
+	* @param {number} original The original slip amount.
+	* @param {JABS_State} jabsState The state tracker that owns the slip.
+	* @returns {number}
+	*/
+	calculateModifiedSlipAmount(original, jabsState) {
+		if (original > 0) {
+			return this.applyHealingOverTimeAmp(original, jabsState);
 		}
+		if (original < 0) {
+			return this.applyDamageOverTimeAmp(original, jabsState);
+		}
+		return original;
+	}
+	/**
+	* Applies any amplification against healing-based slip effects.
+	* Layers the afflicted battler's own REC trait together with any {@link J.ABS.RegExp.HotAmpRate}/
+	* {@link J.ABS.RegExp.ThisHotAmpRate} tags carried by the source of the heal.
+	* @param {number} original The original healing tick amount.
+	* @param {JABS_State} jabsState The state tracker that owns the slip.
+	* @returns {number}
+	*/
+	applyHealingOverTimeAmp(original, jabsState) {
+		const amplifiedRegen = original * this.getBattler().rec;
+		const ampRate = this.calculateSlipAmpRate(jabsState, J.ABS.RegExp.HotAmpRate, J.ABS.RegExp.ThisHotAmpRate);
+		return amplifiedRegen * (1 + ampRate / 100);
+	}
+	/**
+	* Applies any amplification against the damage-based slip effects.
+	* Unlike healing, damage-over-time has no target-side trait counterpart (no vanilla "REC" for
+	* harm); amplification here is entirely sourced from the applier via
+	* {@link J.ABS.RegExp.DotAmpRate}/{@link J.ABS.RegExp.ThisDotAmpRate}.
+	* @param {number} original The original damage tick amount.
+	* @param {JABS_State} jabsState The state tracker that owns the slip.
+	* @returns {number}
+	*/
+	applyDamageOverTimeAmp(original, jabsState) {
+		const ampRate = this.calculateSlipAmpRate(jabsState, J.ABS.RegExp.DotAmpRate, J.ABS.RegExp.ThisDotAmpRate);
+		return original * (1 + ampRate / 100);
+	}
+	/**
+	* Calculates the combined slip amplification rate for a tick, summing the battler-wide rate
+	* from every note source on the applier (actor/class/weapon/armor/state) with the skill-scoped
+	* rate from the skill that was executing when the state was applied, if any.
+	* @param {JABS_State} jabsState The state tracker that owns the slip.
+	* @param {RegExp} battlerWideRegex The battler-wide tag to sum from the source's notes.
+	* @param {RegExp} skillScopedRegex The skill-scoped tag to read from the source skill's note.
+	* @returns {number} The combined percent amplification rate.
+	*/
+	calculateSlipAmpRate(jabsState, battlerWideRegex, skillScopedRegex) {
+		const { source } = jabsState;
+		let ampRate = RPGManager.getSumFromAllNotesByRegex(source.getAllNotes(), battlerWideRegex);
+		const { sourceSkill } = jabsState;
+		if (sourceSkill) {
+			ampRate += RPGManager.getNumberFromNoteByRegex(sourceSkill, skillScopedRegex);
+		}
+		return ampRate;
 	}
 	/**
 	* Determines if a state should be processed or not for slip effects.
@@ -14623,14 +15347,14 @@ var JABS_Battler = class JABS_Battler {
 	*/
 	stateSlipHp(state) {
 		const battler = this.getBattler();
-		let tagHp5 = 0;
-		const { jabsSlipHpFlatPerFive: hpPerFiveFlat, jabsSlipHpPercentPerFive: hpPerFivePercent, jabsSlipHpFormulaPerFive: hpPerFiveFormula } = state;
-		tagHp5 += hpPerFiveFlat;
-		tagHp5 += battler.mhp * (hpPerFivePercent / 100);
-		if (hpPerFiveFormula) {
-			tagHp5 += this.calculateStateSlipFormula(hpPerFiveFormula, battler, state);
+		let tagHp = 0;
+		const { jabsSlipHpFlat: hpFlat, jabsSlipHpPercent: hpPercent, jabsSlipHpFormula: hpFormula } = state;
+		tagHp += hpFlat;
+		tagHp += battler.mhp * (hpPercent / 100);
+		if (hpFormula) {
+			tagHp += this.calculateStateSlipFormula(hpFormula, battler, state);
 		}
-		return tagHp5;
+		return tagHp;
 	}
 	/**
 	* Processes a single state and returns its tag-based mp regen value.
@@ -14639,14 +15363,14 @@ var JABS_Battler = class JABS_Battler {
 	*/
 	stateSlipMp(state) {
 		const battler = this.getBattler();
-		let tagMp5 = 0;
-		const { jabsSlipMpFlatPerFive: mpPerFiveFlat, jabsSlipMpPercentPerFive: mpPerFivePercent, jabsSlipMpFormulaPerFive: mpPerFiveFormula } = state;
-		tagMp5 += mpPerFiveFlat;
-		tagMp5 += battler.mmp * (mpPerFivePercent / 100);
-		if (mpPerFiveFormula) {
-			tagMp5 += this.calculateStateSlipFormula(mpPerFiveFormula, battler, state);
+		let tagMp = 0;
+		const { jabsSlipMpFlat: mpFlat, jabsSlipMpPercent: mpPercent, jabsSlipMpFormula: mpFormula } = state;
+		tagMp += mpFlat;
+		tagMp += battler.mmp * (mpPercent / 100);
+		if (mpFormula) {
+			tagMp += this.calculateStateSlipFormula(mpFormula, battler, state);
 		}
-		return tagMp5;
+		return tagMp;
 	}
 	/**
 	* Processes a single state and returns its tag-based tp regen value.
@@ -14655,14 +15379,14 @@ var JABS_Battler = class JABS_Battler {
 	*/
 	stateSlipTp(state) {
 		const battler = this.getBattler();
-		let tagTp5 = 0;
-		const { jabsSlipTpFlatPerFive: tpPerFiveFlat, jabsSlipTpPercentPerFive: tpPerFivePercent, jabsSlipTpFormulaPerFive: tpPerFiveFormula } = state;
-		tagTp5 += tpPerFiveFlat;
-		tagTp5 += battler.maxTp() * (tpPerFivePercent / 100);
-		if (tpPerFiveFormula) {
-			tagTp5 += this.calculateStateSlipFormula(tpPerFiveFormula, battler, state);
+		let tagTp = 0;
+		const { jabsSlipTpFlat: tpFlat, jabsSlipTpPercent: tpPercent, jabsSlipTpFormula: tpFormula } = state;
+		tagTp += tpFlat;
+		tagTp += battler.maxTp() * (tpPercent / 100);
+		if (tpFormula) {
+			tagTp += this.calculateStateSlipFormula(tpFormula, battler, state);
 		}
-		return tagTp5;
+		return tagTp;
 	}
 	/**
 	* Calculates the value of a slip-based formula.
@@ -14735,9 +15459,9 @@ var JABS_Battler = class JABS_Battler {
 	}
 	/**
 	* Hook after slip/regen math is applied; extensions may show pops or other feedback.
-	* @param {number} displayAmount Amount passed to popup builders after sign normalization.
-	* @param {0|1|2} type HP / MP / TP index.
-	* @param {number} [stateId] Database state id when this tick came from {@link #processStateTick}.
+	* @param {number} _displayAmount Amount passed to popup builders after sign normalization.
+	* @param {0|1|2} _type HP / MP / TP index.
+	* @param {number} [_stateId] Database state id when this tick came from {@link #processStateTick}.
 	*/
 	onSlipRegenTick(_displayAmount, _type, _stateId) {}
 	/**
@@ -15059,6 +15783,11 @@ var JABS_StateBuilder = class {
 	*/
 	#source = null;
 	/**
+	* The skill that was executing when the state was applied, if any.
+	* @type {RPG_Skill|null}
+	*/
+	#sourceSkill = null;
+	/**
 	* Constructor.
 	* @param {Game_Battler} battler The battler afflicted by the state.
 	* @param {number} stateId The database id of the state being applied.
@@ -15072,7 +15801,7 @@ var JABS_StateBuilder = class {
 	* @returns {JABS_State} The constructed state instance.
 	*/
 	build() {
-		const state = new JABS_State(this.#battler, this.#stateId, this.#iconIndex, this.#duration, this.#startingStacks, this.#source);
+		const state = new JABS_State(this.#battler, this.#stateId, this.#iconIndex, this.#duration, this.#startingStacks, this.#source, this.#sourceSkill);
 		return state;
 	}
 	/**
@@ -15109,6 +15838,15 @@ var JABS_StateBuilder = class {
 	*/
 	setSource(source) {
 		this.#source = source;
+		return this;
+	}
+	/**
+	* Sets the skill that was executing when the state was applied.
+	* @param {RPG_Skill} sourceSkill The skill in scope at the moment of application.
+	* @returns {JABS_StateBuilder} This builder for chaining.
+	*/
+	setSourceSkill(sourceSkill) {
+		this.#sourceSkill = sourceSkill;
 		return this;
 	}
 };
@@ -15179,6 +15917,15 @@ var JABS_State = class {
 	*/
 	source = null;
 	/**
+	* The skill that was executing when this state was applied, if any. This is a live reference
+	* to the actual `$dataSkills` entry that was resolved at application time- including any
+	* `<skillTransform>` redirect already baked in- rather than a raw id, so downstream amp tags
+	* scoped to "the skill that applied this" don't need to re-derive anything. Null when the state
+	* was applied without a skill in scope (food chains, ambient/self-inflicted conversions, etc.).
+	* @type {RPG_Skill|null}
+	*/
+	sourceSkill = null;
+	/**
 	* The number of stacks of this state applied to the tracker.
 	* @type {number}
 	*/
@@ -15212,14 +15959,16 @@ var JABS_State = class {
 	* @param {number} duration The duration in frames that this state will remain.
 	* @param {number=} startingStacks The number of stacks to start out with; defaults to 1.
 	* @param {Game_Battler=} source The battler who afflicted the state; defaults to self.
+	* @param {RPG_Skill=} sourceSkill The skill that was executing when the state was applied; defaults to null.
 	*/
-	constructor(battler, stateId, iconIndex, duration, startingStacks = 1, source = battler) {
+	constructor(battler, stateId, iconIndex, duration, startingStacks = 1, source = battler, sourceSkill = null) {
 		this.battler = battler;
 		this.stateId = stateId;
 		this.iconIndex = iconIndex;
 		this.duration = duration;
 		this.stackCount = startingStacks;
 		this.source = source;
+		this.sourceSkill = sourceSkill;
 		this.setBaseDuration(duration);
 		this.#spreadTickCounter = this.getSpreadTickInterval();
 		this.#tickCounter = this.getTickInterval();
@@ -15383,7 +16132,7 @@ var JABS_State = class {
 		if (expireData === null) return;
 		const { stateId: nextStateId, chance } = expireData;
 		if (!RPGManager.chanceIn100(chance)) return;
-		this.battler.addState(nextStateId, this.source);
+		this.battler.addState(nextStateId, this.source, this.sourceSkill);
 	}
 	/**
 	* Handle reset circumstances for the refresh reset counter and times refreshed counter.
@@ -15398,7 +16147,8 @@ var JABS_State = class {
 	* @param {number} stackIncrease The number of stacks to increase; defaults to 1.
 	*/
 	incrementStacks(stackIncrease = 1) {
-		const maxStacks = this.battler.state(this.stateId).jabsStateStackMax;
+		const stateRow = this.battler.state(this.stateId);
+		const maxStacks = stateRow.jabsStateStackMax + stateRow.jabsThisStackMaxBoost + this.source.getStackMaxBoost();
 		if (this.stackCount < maxStacks) {
 			const projectedStackCount = this.stackCount + stackIncrease;
 			this.stackCount = Math.min(maxStacks, projectedStackCount);
@@ -15520,7 +16270,7 @@ var JABS_State = class {
 		const stateRow = this.source.state(this.stateId);
 		const baseInterval = stateRow.jabsThisTickSpeed > 0 ? stateRow.jabsThisTickSpeed : J.ABS.Metadata.DefaultStateTickInterval;
 		const flatModifier = this.source.tickSpeedFlatModifier();
-		const percentModifier = this.source.tickSpeedPercentModifier(stateRow.stateTypes());
+		const percentModifier = this.source.tickSpeedPercentModifier(stateRow.types());
 		const modifiedInterval = (baseInterval + flatModifier) / (1 + percentModifier / 100);
 		const tunableFloor = Math.max(J.ABS.Metadata.MinimumStateTickInterval, 1);
 		return Math.max(Math.round(modifiedInterval), tunableFloor);
@@ -15569,7 +16319,7 @@ var JABS_State = class {
 			if (maxPerTick > 0 && successCount >= maxPerTick) break;
 			const targetBattler = jabsBattler.getBattler();
 			if (RPGManager.chanceIn100(chance) === false) continue;
-			targetBattler.addState(this.stateId, this.source);
+			targetBattler.addState(this.stateId, this.source, this.sourceSkill);
 			successCount++;
 		}
 	}
@@ -15904,7 +16654,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	static performToolAction(jabsBattler) {
 		if (!this.#canPerformToolAction(jabsBattler)) return;
 		const toolId = jabsBattler.getBattler().getEquippedSkillId(JABS_Button.Tool);
-		jabsBattler.applyToolEffects(toolId);
+		jabsBattler.applyToolItemEffects(toolId, JABS_Button.Tool);
 	}
 	/**
 	* Determines whether or not the player can execute the tool action.
@@ -16923,7 +17673,7 @@ var JABS_Engine = class JABS_Engine {
 		const conversionData = conversionPerceivedState.jabsStacksConvertToState;
 		if (!conversionData) return;
 		if (jabsState.stackCount < conversionData.stacksRequired) return;
-		jabsState.battler.addState(conversionData.stateId, jabsState.battler);
+		jabsState.battler.addState(conversionData.stateId, jabsState.battler, jabsState.sourceSkill);
 		if (conversionPerceivedState.jabsRemoveOnConvert) {
 			jabsState.removeFromBattler();
 		}
@@ -18104,6 +18854,51 @@ var JABS_Engine = class JABS_Engine {
 			aggro *= J.ABS.Metadata.AggroPlayerReduction;
 		}
 		target.addUpdateAggro(attacker.getUuid(), aggro);
+		this.applyAggroPercentEffect(action, attacker, target);
+		this.applyNotMyAggroEffects(action, attacker, target);
+	}
+	/**
+	* Applies any {@code <aggroPercent:VAL>} scaling from the underlying skill to the attacker's own
+	* already-standing aggro entry on the target. Unlike {@code <aggroMultiplier>}, which scales the
+	* newly-computed chain result for just this hit, this scales the entry's full current total-
+	* including everything accumulated from prior hits.
+	* @param {JABS_Action} action The JABS action containing the action data.
+	* @param {JABS_Battler} attacker The battler that executed the action.
+	* @param {JABS_Battler} target The target having the action applied against.
+	*/
+	applyAggroPercentEffect(action, attacker, target) {
+		const percent = action.aggroPercent();
+		if (percent === 0) return;
+		const ownAggro = target.aggroExists(attacker.getUuid());
+		if (!ownAggro) return;
+		ownAggro.modAggro(ownAggro.aggro * (percent / 100));
+	}
+	/**
+	* Applies any {@code <notMyAggro:VAL>}/{@code <notMyAggroPercent:VAL>} redirection from the
+	* underlying skill to every OTHER battler's standing aggro on the target- same team as the
+	* attacker, attacker's own entry excluded. Unlike {@code <aggroMultiplier>} (a single scalar
+	* applied once to the attacker's own newly-computed aggro), this walks N distinct existing
+	* aggro entries and adjusts each independently off its own current value.
+	* @param {JABS_Action} action The JABS action containing the action data.
+	* @param {JABS_Battler} attacker The battler that executed the action.
+	* @param {JABS_Battler} target The target having the action applied against.
+	*/
+	applyNotMyAggroEffects(action, attacker, target) {
+		const flat = action.notMyAggro();
+		const percent = action.notMyAggroPercent();
+		if (flat === 0 && percent === 0) return;
+		target.getAllAggros().forEach((otherAggro) => {
+			if (otherAggro.uuid() === attacker.getUuid()) return;
+			const otherBattler = JABS_AiManager.getBattlerByUuid(otherAggro.uuid());
+			if (!otherBattler) return;
+			if (JABS_TeamRules.isFriendly(attacker.getTeam(), otherBattler.getTeam()) === false) return;
+			if (flat !== 0) {
+				otherAggro.modAggro(flat);
+			}
+			if (percent !== 0) {
+				otherAggro.modAggro(otherAggro.aggro * (percent / 100));
+			}
+		});
 	}
 	/**
 	* Applies on-hit effects against the target.
@@ -18162,9 +18957,9 @@ var JABS_Engine = class JABS_Engine {
 		if (knockback === null) return;
 		knockback *= (100 - targetKnockbackResist) / 100;
 		const caster = action.getCaster();
-		const proximityBonusPct = this.getProximityKnockbackBonusPct(caster);
-		if (proximityBonusPct !== 0) {
-			knockback *= 1 + proximityBonusPct / 100;
+		const totalAmpPct = this.getKnockbackAmplificationPct(caster, action);
+		if (totalAmpPct !== 0) {
+			knockback *= 1 + totalAmpPct / 100;
 		}
 		const targetSprite = target.getCharacter();
 		if (knockback === 0 || action.isDirectAction()) {
@@ -18223,6 +19018,39 @@ var JABS_Engine = class JABS_Engine {
 			return false;
 		}
 		return true;
+	}
+	/**
+	* Computes the total outgoing knockback percent bonus from every amplification source: the
+	* caster's unconditional `<knockbackAmp:PCT>` tags, this specific skill's `<thisKnockbackAmp:PCT>`
+	* tag, and the caster's conditional `<proximityKnockback:[RADIUS, PCT]>` tags. All three sum
+	* into one final multiplier applied once to outgoing knockback.
+	* @param {JABS_Battler} caster The battler executing the knockback-dealing action.
+	* @param {JABS_Action} action The action potentially knocking the target back.
+	* @returns {number} The total percent bonus to apply to outgoing knockback; 0 if untagged.
+	*/
+	getKnockbackAmplificationPct(caster, action) {
+		return this.getFlatKnockbackAmpPct(caster) + this.getThisKnockbackAmpPct(action) + this.getProximityKnockbackBonusPct(caster);
+	}
+	/**
+	* Sums every `<knockbackAmp:PCT>` tag from the caster's own note sources- an unconditional
+	* amplifier with no proximity requirement, unlike `<proximityKnockback>`.
+	* @param {JABS_Battler} caster The battler executing the knockback-dealing action.
+	* @returns {number} The total flat percent bonus to apply to outgoing knockback; 0 if untagged.
+	*/
+	getFlatKnockbackAmpPct(caster) {
+		const casterNotes = caster.getBattler().getAllNotes();
+		return RPGManager.getSumFromAllNotesByRegex(casterNotes, J.ABS.RegExp.KnockbackAmp) ?? 0;
+	}
+	/**
+	* Reads the `<thisKnockbackAmp:PCT>` tag from the executing skill's own note only- fires only
+	* when this specific skill is the one dealing the knockback, independent of the caster-wide
+	* `<knockbackAmp>` tag.
+	* @param {JABS_Action} action The action potentially knocking the target back.
+	* @returns {number} The percent bonus to apply to outgoing knockback; 0 if untagged.
+	*/
+	getThisKnockbackAmpPct(action) {
+		const pct = RPGManager.getNumberFromNoteByRegex(action.getBaseSkill(), J.ABS.RegExp.ThisKnockbackAmp, true);
+		return pct ?? 0;
 	}
 	/**
 	* Computes the total knockback percent bonus from every `<proximityKnockback:[RADIUS, PCT]>`
@@ -18740,9 +19568,6 @@ var JABS_Engine = class JABS_Engine {
 	getCollisionTargets(jabsAction) {
 		const gameAction = jabsAction.getAction();
 		const casterJabsBattler = jabsAction.getCaster();
-		if (gameAction.isForUser()) {
-			return [casterJabsBattler];
-		}
 		const allyTarget = casterJabsBattler.getAllyTarget();
 		if (allyTarget && gameAction.isForOne()) {
 			if (allyTarget.canActionConnect() && allyTarget.isWithinScope(jabsAction, allyTarget, false)) {
@@ -18867,6 +19692,59 @@ var JABS_Engine = class JABS_Engine {
 			case J.ABS.Shapes.Wall: return this.collisionWall(targetCharacter, actionEvent, range, facing);
 			default: return this.collisionCircle(targetCharacter, actionEvent, range);
 		}
+	}
+	/**
+	* Checks a small circular radius around the action sprite for potential targets
+	* solely to determine whether an action should arm during its delay phase.
+	*
+	* This does not apply damage; it only identifies whether any valid battlers are
+	* within the supplied radius.
+	*
+	* @param {JABS_Action} jabsAction The action to evaluate.
+	* @param {number} radius The trigger radius in tiles.
+	* @returns {JABS_Battler[]} A list of potential targets inside the trigger radius.
+	*/
+	getTriggerTouchTargets(jabsAction, radius) {
+		const casterJabsBattler = jabsAction.getCaster();
+		const actionSprite = jabsAction.getActionSprite();
+		if (!actionSprite) {
+			return [];
+		}
+		/**
+		* Basic candidate filter: can be hit, in-scope for the action, and not
+		* an inanimate target (when the caster is an enemy).
+		* @param {JABS_Battler} battler The candidate battler.
+		* @returns {boolean} True if valid for proximity trigger, false otherwise.
+		*/
+		const canActionConnectWithBattler = (battler) => {
+			if (!battler.canActionConnect()) {
+				return false;
+			}
+			if (!battler.isWithinScope(jabsAction, battler, false)) {
+				return false;
+			}
+			if (casterJabsBattler.isEnemy() && battler.isInanimate()) {
+				return false;
+			}
+			return true;
+		};
+		const cx = actionSprite._realX;
+		const cy = actionSprite._realY;
+		const minX = Math.floor(cx - radius);
+		const minY = Math.floor(cy - radius);
+		const maxX = Math.ceil(cx + radius);
+		const maxY = Math.ceil(cy + radius);
+		const candidates = JABS_AiManager.queryBattlersInAabb(minX, minY, maxX, maxY);
+		const targets = [];
+		const actionDirection = jabsAction.direction();
+		candidates.filter(canActionConnectWithBattler, this).forEach((battler) => {
+			const sprite = battler.getCharacter();
+			const inCircle = this.isTargetWithinRange(actionDirection, sprite, actionSprite, radius, J.ABS.Shapes.Circle);
+			if (inCircle) {
+				targets.push(battler);
+			}
+		}, this);
+		return targets;
 	}
 	/**
 	* Reads the <degrees:N> tag from the action’s underlying skill notes.
@@ -20156,59 +21034,6 @@ var JABS_Action = class JABS_Action {
 		return this._delay._triggerRadius ?? null;
 	}
 	/**
-	* Checks a small circular radius around the action sprite for potential targets
-	* solely to determine whether an action should arm during its delay phase.
-	*
-	* This does not apply damage; it only identifies whether any valid battlers are
-	* within the supplied radius.
-	*
-	* @param {JABS_Action} jabsAction The action to evaluate.
-	* @param {number} radius The trigger radius in tiles.
-	* @returns {JABS_Battler[]} A list of potential targets inside the trigger radius.
-	*/
-	getTriggerTouchTargets(jabsAction, radius) {
-		const casterJabsBattler = jabsAction.getCaster();
-		const actionSprite = jabsAction.getActionSprite();
-		if (!actionSprite) {
-			return [];
-		}
-		/**
-		* Basic candidate filter: can be hit, in-scope for the action, and not
-		* an inanimate target (when the caster is an enemy).
-		* @param {JABS_Battler} battler The candidate battler.
-		* @returns {boolean} True if valid for proximity trigger, false otherwise.
-		*/
-		const canActionConnectWithBattler = (battler) => {
-			if (!battler.canActionConnect()) {
-				return false;
-			}
-			if (!battler.isWithinScope(jabsAction, battler, false)) {
-				return false;
-			}
-			if (casterJabsBattler.isEnemy() && battler.isInanimate()) {
-				return false;
-			}
-			return true;
-		};
-		const cx = actionSprite._realX;
-		const cy = actionSprite._realY;
-		const minX = Math.floor(cx - radius);
-		const minY = Math.floor(cy - radius);
-		const maxX = Math.ceil(cx + radius);
-		const maxY = Math.ceil(cy + radius);
-		const candidates = JABS_AiManager.queryBattlersInAabb(minX, minY, maxX, maxY);
-		const targets = [];
-		const actionDirection = jabsAction.direction();
-		candidates.filter(canActionConnectWithBattler, this).forEach((battler) => {
-			const sprite = battler.getCharacter();
-			const inCircle = this.isTargetWithinRange(actionDirection, sprite, actionSprite, radius, J.ABS.Shapes.Circle);
-			if (inCircle) {
-				targets.push(battler);
-			}
-		}, this);
-		return targets;
-	}
-	/**
 	* Gets the number of times this action can potentially hit a target.
 	* @returns {number} The number of times remaining that this action can hit a target.
 	*/
@@ -20599,8 +21424,8 @@ var JABS_Action = class JABS_Action {
 	*/
 	applyRadiusModifiers(base) {
 		const caster = this.getAction().subject();
-		const totalBuff = caster.getRangeBuff() + caster.getRadiusBuff();
-		const totalRate = caster.getRangeRate() + caster.getRadiusRate();
+		const totalBuff = caster.getRangeBuff() + caster.getRadiusBuff() + this.getThisRangeBuff() + this.getThisRadiusBuff();
+		const totalRate = caster.getRangeRate() + caster.getRadiusRate() + this.getThisRangeRate() + this.getThisRadiusRate();
 		return Math.max(0, (base + totalBuff) * totalRate);
 	}
 	/**
@@ -20610,8 +21435,8 @@ var JABS_Action = class JABS_Action {
 	*/
 	applyProximityModifiers(base) {
 		const caster = this.getAction().subject();
-		const totalBuff = caster.getRangeBuff() + caster.getProximityBuff();
-		const totalRate = caster.getRangeRate() + caster.getProximityRate();
+		const totalBuff = caster.getRangeBuff() + caster.getProximityBuff() + this.getThisRangeBuff() + this.getThisProximityBuff();
+		const totalRate = caster.getRangeRate() + caster.getProximityRate() + this.getThisRangeRate() + this.getThisProximityRate();
 		return Math.max(0, (base + totalBuff) * totalRate);
 	}
 	/**
@@ -20621,9 +21446,80 @@ var JABS_Action = class JABS_Action {
 	*/
 	applyThicknessModifiers(base) {
 		const caster = this.getAction().subject();
-		const totalBuff = caster.getRangeBuff() + caster.getThicknessBuff();
-		const totalRate = caster.getRangeRate() + caster.getThicknessRate();
+		const totalBuff = caster.getRangeBuff() + caster.getThicknessBuff() + this.getThisRangeBuff() + this.getThisThicknessBuff();
+		const totalRate = caster.getRangeRate() + caster.getThicknessRate() + this.getThisRangeRate() + this.getThisThicknessRate();
 		return Math.max(0, (base + totalBuff) * totalRate);
+	}
+	/**
+	* Gets the flat tile bonus applied to all dimensions of this skill alone, read from this skill's
+	* own note only (not the caster's getAllNotes()). Stacks additively with {@link Game_Battler#getRangeBuff}.
+	* @returns {number}
+	*/
+	getThisRangeBuff() {
+		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisRangeBuff) ?? 0;
+	}
+	/**
+	* Gets the multiplicative rate applied to all dimensions of this skill alone, read from this
+	* skill's own note only. Contributes (N - 1.0) deltas on top of {@link Game_Battler#getRangeRate}.
+	* @returns {number}
+	*/
+	getThisRangeRate() {
+		const captures = RPGManager.getAllCapturesFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisRangeRate);
+		return (captures ?? []).reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+	}
+	/**
+	* Gets the flat tile bonus applied only to this skill's own radius, read from this skill's own
+	* note only. Stacks additively with {@link Game_Battler#getRadiusBuff} and {@link #getThisRangeBuff}.
+	* @returns {number}
+	*/
+	getThisRadiusBuff() {
+		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisRadiusBuff) ?? 0;
+	}
+	/**
+	* Gets the multiplicative rate applied only to this skill's own radius, read from this skill's
+	* own note only. Contributes (N - 1.0) deltas on top of {@link Game_Battler#getRadiusRate} and
+	* {@link #getThisRangeRate}.
+	* @returns {number}
+	*/
+	getThisRadiusRate() {
+		const captures = RPGManager.getAllCapturesFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisRadiusRate);
+		return (captures ?? []).reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+	}
+	/**
+	* Gets the flat tile bonus applied only to this skill's own proximity, read from this skill's own
+	* note only. Stacks additively with {@link Game_Battler#getProximityBuff} and {@link #getThisRangeBuff}.
+	* @returns {number}
+	*/
+	getThisProximityBuff() {
+		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisProximityBuff) ?? 0;
+	}
+	/**
+	* Gets the multiplicative rate applied only to this skill's own proximity, read from this skill's
+	* own note only. Contributes (N - 1.0) deltas on top of {@link Game_Battler#getProximityRate} and
+	* {@link #getThisRangeRate}.
+	* @returns {number}
+	*/
+	getThisProximityRate() {
+		const captures = RPGManager.getAllCapturesFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisProximityRate);
+		return (captures ?? []).reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+	}
+	/**
+	* Gets the flat tile bonus applied only to this skill's own thickness, read from this skill's own
+	* note only. Stacks additively with {@link Game_Battler#getThicknessBuff} and {@link #getThisRangeBuff}.
+	* @returns {number}
+	*/
+	getThisThicknessBuff() {
+		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisThicknessBuff) ?? 0;
+	}
+	/**
+	* Gets the multiplicative rate applied only to this skill's own thickness, read from this skill's
+	* own note only. Contributes (N - 1.0) deltas on top of {@link Game_Battler#getThicknessRate} and
+	* {@link #getThisRangeRate}.
+	* @returns {number}
+	*/
+	getThisThicknessRate() {
+		const captures = RPGManager.getAllCapturesFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisThicknessRate);
+		return (captures ?? []).reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
 	}
 	/**
 	* Gets the arc sweep in degrees for this JABS action.
@@ -20669,6 +21565,30 @@ var JABS_Action = class JABS_Action {
 	*/
 	aggroMultiplier() {
 		return this.getBaseSkill().jabsAggroMultiplier ?? 1;
+	}
+	/**
+	* Gets the percent adjustment this skill applies to the caster's own already-standing aggro
+	* on the target (see {@link JABS_Engine#applyAggroPercentEffect}).
+	* @returns {number}
+	*/
+	aggroPercent() {
+		return this.getBaseSkill().jabsAggroPercent ?? 0;
+	}
+	/**
+	* Gets the flat aggro adjustment this skill applies to every OTHER battler's standing aggro
+	* on the target (see {@link JABS_Engine#applyNotMyAggroEffects}).
+	* @returns {number}
+	*/
+	notMyAggro() {
+		return this.getBaseSkill().jabsNotMyAggro ?? 0;
+	}
+	/**
+	* Gets the percent aggro adjustment this skill applies to every OTHER battler's standing aggro
+	* on the target (see {@link JABS_Engine#applyNotMyAggroEffects}).
+	* @returns {number}
+	*/
+	notMyAggroPercent() {
+		return this.getBaseSkill().jabsNotMyAggroPercent ?? 0;
 	}
 	/**
 	* Whether or not this action has hit at least one target.
@@ -22515,6 +23435,33 @@ Object.defineProperty(RPG_Skill.prototype, "jabsAggroMultiplier", { get: functio
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.AggroMultiplier, true);
 } });
 /**
+* The percent adjustment this skill applies to the CASTER's own already-standing aggro on the
+* target (not the newly-computed chain result- see {@code <aggroMultiplier>} for that). Resolved
+* as `aggro *= (1 + VAL/100)` against whatever the caster's aggro entry already totals. Can be
+* negative.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsAggroPercent", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.AggroPercent, true);
+} });
+/**
+* The flat aggro adjustment this skill applies to every OTHER battler's standing aggro on the
+* target (same team as the caster, caster's own entry excluded). Can be negative.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsNotMyAggro", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.NotMyAggro, true);
+} });
+/**
+* The percent aggro adjustment this skill applies to every OTHER battler's standing aggro on the
+* target (same team as the caster, caster's own entry excluded). Resolved as `aggro *= (1 +
+* VAL/100)` per entry, so negative values reduce and positive values amplify. Can be negative.
+* @type {number}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsNotMyAggroPercent", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.NotMyAggroPercent, true);
+} });
+/**
 * The `JABS_GuardData` of this skill.
 * Will return null if there is no guard tag available on this
 * @type {JABS_GuardData}
@@ -23257,6 +24204,18 @@ Object.defineProperty(RPG_State.prototype, "jabsStateStackMax", { get: function(
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.ReapplyStackMax, true) ?? J.ABS.Metadata.DefaultStateStackMax;
 } });
 /**
+* A bonus to this state's stack cap, read from this state's own note only.<br/>
+* When J-Extend is active and another active state carries `<extend:[...]>` or
+* `<extendType:TYPE>` targeting this state, that overlay's note (and thus its own
+* `<thisStackMaxBoost:VAL>` tag, if any) is merged into this note before this getter runs-
+* so this is effectively "one state raising the stack cap of another it extends."<br/>
+* Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Stack}.
+* @type {number}
+*/
+Object.defineProperty(RPG_State.prototype, "jabsThisStackMaxBoost", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.ThisStackMaxBoost);
+} });
+/**
 * How many stacks of a state will be applied upon stacking.<br/>
 * Only applies when the state's reapplication type is {@link JABS_State.reapplicationType.Stack}.<br/>
 * Will either return the custom number of stacks defined on the state, or the default from configuration.
@@ -23382,72 +24341,72 @@ Object.defineProperty(RPG_State.prototype, "jabsSpreadSkipAfflicted", { get: fun
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.SpreadSkipAfflicted, true) === true;
 } });
 /**
-* The flat slip hp amount- per 5 seconds.
+* The flat slip hp amount, applied in full on every tick.
 * @type {number}
 */
-Object.defineProperty(RPG_State.prototype, "jabsSlipHpFlatPerFive", { get: function() {
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpFlat", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.SlipHpFlat);
 } });
 /**
-* The percent slip hp amount- per 5 seconds.
+* The percent slip hp amount, applied in full on every tick.
 * @type {number}
 */
-Object.defineProperty(RPG_State.prototype, "jabsSlipHpPercentPerFive", { get: function() {
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpPercent", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.SlipHpPercent);
 } });
 /**
-* The formula slip hp amount- per 5 seconds.
+* The formula slip hp amount, applied in full on every tick.
 * This does NOT `eval()` the formula, as there is no additional variables
 * available for context.
 * @type {string|null}
 */
-Object.defineProperty(RPG_State.prototype, "jabsSlipHpFormulaPerFive", { get: function() {
+Object.defineProperty(RPG_State.prototype, "jabsSlipHpFormula", { get: function() {
 	return RPGManager.getStringFromNoteByRegex(this, J.ABS.RegExp.SlipHpFormula);
 } });
 /**
-* The flat slip mp amount- per 5 seconds.
+* The flat slip mp amount, applied in full on every tick.
 * @type {number}
 */
-Object.defineProperty(RPG_State.prototype, "jabsSlipMpFlatPerFive", { get: function() {
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpFlat", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.SlipMpFlat);
 } });
 /**
-* The percent slip mp amount- per 5 seconds.
+* The percent slip mp amount, applied in full on every tick.
 * @type {number}
 */
-Object.defineProperty(RPG_State.prototype, "jabsSlipMpPercentPerFive", { get: function() {
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpPercent", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.SlipMpPercent);
 } });
 /**
-* The formula slip mp amount- per 5 seconds.
+* The formula slip mp amount, applied in full on every tick.
 * This does NOT `eval()` the formula, as there is no additional variables
 * available for context.
 * @type {string|null}
 */
-Object.defineProperty(RPG_State.prototype, "jabsSlipMpFormulaPerFive", { get: function() {
+Object.defineProperty(RPG_State.prototype, "jabsSlipMpFormula", { get: function() {
 	return RPGManager.getStringFromNoteByRegex(this, J.ABS.RegExp.SlipMpFormula);
 } });
 /**
-* The flat slip tp amount- per 5 seconds.
+* The flat slip tp amount, applied in full on every tick.
 * @type {number}
 */
-Object.defineProperty(RPG_State.prototype, "jabsSlipTpFlatPerFive", { get: function() {
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpFlat", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.SlipTpFlat);
 } });
 /**
-* The percent slip tp amount- per 5 seconds.
+* The percent slip tp amount, applied in full on every tick.
 * @type {number}
 */
-Object.defineProperty(RPG_State.prototype, "jabsSlipTpPercentPerFive", { get: function() {
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpPercent", { get: function() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.SlipTpPercent);
 } });
 /**
-* The formula slip tp amount- per 5 seconds.
+* The formula slip tp amount, applied in full on every tick.
 * This does NOT `eval()` the formula, as there is no additional variables
 * available for context.
 * @type {string|null}
 */
-Object.defineProperty(RPG_State.prototype, "jabsSlipTpFormulaPerFive", { get: function() {
+Object.defineProperty(RPG_State.prototype, "jabsSlipTpFormula", { get: function() {
 	return RPGManager.getStringFromNoteByRegex(this, J.ABS.RegExp.SlipTpFormula);
 } });
 /**
@@ -23513,6 +24472,27 @@ Object.defineProperty(RPG_State.prototype, "jabsStateDurationFrames", { get: fun
 	}
 	return this.stepsToRemove;
 } });
+/**
+* A bonus to this state's own outgoing map-timer duration, read from this state's own note only.<br/>
+* When J-Extend is active and another active state carries `<extend:[...]>` or
+* `<extendType:TYPE>` targeting this state, that overlay's note (and thus its own
+* `<thisStateDurationFlat/Perc/Formula>` tags, if any) is merged into this note before this
+* getter runs- so this is effectively "one state doubling the duration of another it extends,"
+* without touching the caster-wide {@code <stateDurationFlat/Perc/Formula>} tags (which apply to
+* every state a battler applies, not just ones sharing a classifier).<br/>
+* Mirrors {@link Game_Battler#getStateDurationBoost}, but sourced from a single (possibly
+* extension-merged) state note instead of every note source on the applying battler.
+* @param {number} baseDuration The base duration (in frames) to compute percent/formula bonuses off of.
+* @returns {number} The bonus frames to add to this state's own outgoing duration.
+*/
+RPG_State.prototype.jabsThisStateDurationBoost = function(baseDuration) {
+	const flat = RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.ThisStateDurationFlatPlus);
+	const percent = RPGManager.getNumberFromNoteByRegex(this, J.ABS.RegExp.ThisStateDurationPercentPlus);
+	const percentBoost = Math.round(baseDuration * (percent / 100));
+	const formulaBoost = RPGManager.getResultFromNoteByRegex(this, J.ABS.RegExp.ThisStateDurationFormulaPlus, baseDuration);
+	const durationBoost = flat + percentBoost + formulaBoost;
+	return parseFloat(durationBoost.toFixed(2));
+};
 
 //#endregion
 //#region src/plugins/abs/core/database/RPG_TraitItem.js
@@ -24236,15 +25216,18 @@ Game_Action.prototype.shouldTargetApplyResistances = function() {
 * @param {number} stateId The id of the staate being applied.
 */
 Game_Action.prototype.applyStateEffect = function(target, stateId) {
-	target.addState(stateId, this.subject());
+	target.addState(stateId, this.subject(), this.item());
 	this.makeSuccess(target);
 };
 /**
 * Applies damage multipliers derived from the current states of the target.
 * Combines perDebuffBuff (per-negative-state bonus), bonusDamageIfState (specific-state bonus),
 * bonusDamageIfStateType (type-classifier presence bonus), bonusDamagePerStateType
-* (type-classifier count bonus), bonusDamagePerStateStack (named-state stack-depth bonus), and
-* bonusDamageForMyStateCount (authored-distinct-state count bonus).
+* (type-classifier count bonus), bonusDamagePerStateStack (named-state stack-depth bonus),
+* thisBonusDamagePerStateStack (skill-scoped named-state stack-depth bonus),
+* bonusDamageForMyStateCount (authored-distinct-state count bonus), bonusDamage (unconditional
+* caster-wide bonus), thisBonusDamage (unconditional skill-scoped bonus), and
+* bonusDamageIfTargetHpBelow/thisBonusDamageIfTargetHpBelow (target-missing-hp execute bonus).
 * Applied before guard effects so flat guard reduction cannot fully cancel the state-exploitation bonus.
 * @param {number} baseDamage The damage value before state multipliers.
 * @param {Game_Battler} target The target whose states are evaluated.
@@ -24257,13 +25240,17 @@ Game_Action.prototype.applyStateDamageMultipliers = function(baseDamage, target)
 	const thisSpecificPct = this.calculateThisBonusDamageIfStatePct(target);
 	const selfStatePct = this.calculateBonusIfSelfStatePct();
 	const thisSelfStatePct = this.calculateThisBonusDamageIfSelfStatePct();
+	const flatPct = this.calculateBonusDamagePct();
 	const thisFlatPct = this.calculateThisBonusDamagePct();
 	const typePresencePct = this.calculateBonusIfStateTypePct(target);
 	const typeCountPct = this.calculatePerStateTypePct(target);
 	const stackDepthPct = this.calculatePerStateStackPct(target);
+	const thisStackDepthPct = this.calculateThisBonusDamagePerStateStackPct(target);
 	const myStateCountPct = this.calculateBonusForMyStateCountPct(target);
 	const thisMyStateCountPct = this.calculateThisBonusForMyStateCountPct(target);
-	const combinedPct = debuffPct + specificPct + thisSpecificPct + selfStatePct + thisSelfStatePct + thisFlatPct + typePresencePct + typeCountPct + stackDepthPct + myStateCountPct + thisMyStateCountPct;
+	const targetHpBelowPct = this.calculateBonusIfTargetHpBelowPct(target);
+	const thisTargetHpBelowPct = this.calculateThisBonusDamageIfTargetHpBelowPct(target);
+	const combinedPct = debuffPct + specificPct + thisSpecificPct + selfStatePct + thisSelfStatePct + flatPct + thisFlatPct + typePresencePct + typeCountPct + stackDepthPct + thisStackDepthPct + myStateCountPct + thisMyStateCountPct + targetHpBelowPct + thisTargetHpBelowPct;
 	if (combinedPct === 0) return baseDamage;
 	return Math.round(baseDamage * (1 + combinedPct / 100));
 };
@@ -24352,6 +25339,16 @@ Game_Action.prototype.calculateThisBonusDamageIfSelfStatePct = function() {
 	return totalPct;
 };
 /**
+* Calculates the unconditional flat percent damage bonus from bonusDamage tags on the caster's
+* notes. Fires on every action the caster performs, with no target-state or self-state check.
+* Reads from getAllNotes() (actor, class, equips, states), so it applies caster-wide rather than
+* being scoped to one skill — the sibling tag for that is thisBonusDamage.
+* @returns {number} The total bonus percent from all bonusDamage tags on the caster, or 0.
+*/
+Game_Action.prototype.calculateBonusDamagePct = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.BonusDamage) ?? 0;
+};
+/**
 * Calculates the unconditional flat percent damage bonus from the thisBonusDamage tag on this
 * action's skill. Fires whenever this skill is the action being resolved, with no state check.
 * Reads from this.item() only — does not affect any other skill in the caster's kit.
@@ -24363,6 +25360,56 @@ Game_Action.prototype.calculateThisBonusDamagePct = function() {
 	return pct;
 };
 /**
+* Resolves a battler's current HP as a whole-number percent of their max HP.
+* Rounded to match the same convention used by J-Passive-Conditional's hp threshold gates.
+* @param {Game_Battler} battler The battler whose hp percent is resolved.
+* @returns {number} A rounded percent 0-100; zero when max hp is zero or less.
+*/
+Game_Action.prototype.resolveHpPercent = function(battler) {
+	if (battler.mhp <= 0) return 0;
+	return Math.round(battler.hp / battler.mhp * 100);
+};
+/**
+* Calculates the total damage bonus percent from bonusDamageIfTargetHpBelow tags on the
+* caster's notes. Each tag opens its gate once the target's current hp percent is at or under
+* THRESHOLD_PCT, then scales its contribution by PCT_PER_POINT for every percentage point the
+* target is currently under that threshold- an "execute" style bonus that grows continuously as
+* the target's hp keeps dropping, not a flat one-time bonus. Multiple tags each fire independently
+* and stack additively.
+* @param {Game_Battler} target The target whose current hp percent is checked.
+* @returns {number} The total bonus percent from all matching target-hp tags.
+*/
+Game_Action.prototype.calculateBonusIfTargetHpBelowPct = function(target) {
+	const allPairs = this.subject().getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.BonusDamageIfTargetHpBelow));
+	if (!allPairs.length) return 0;
+	const targetHpPct = this.resolveHpPercent(target);
+	let totalPct = 0;
+	allPairs.forEach(([thresholdPct, pctPerPoint]) => {
+		if (targetHpPct > thresholdPct) return;
+		totalPct += pctPerPoint * (thresholdPct - targetHpPct);
+	});
+	return totalPct;
+};
+/**
+* Calculates the total damage bonus percent from thisBonusDamageIfTargetHpBelow tags on this
+* action's skill. Reads from this.item() only — fires only when this specific skill is the
+* action being resolved. Same gate-then-scale behavior as {@link calculateBonusIfTargetHpBelowPct},
+* scoped to one skill instead of the caster's whole kit.
+* @param {Game_Battler} target The target whose current hp percent is checked.
+* @returns {number} The total bonus percent from all matching target-hp tags on this skill.
+*/
+Game_Action.prototype.calculateThisBonusDamageIfTargetHpBelowPct = function(target) {
+	const allPairs = RPGManager.getArraysFromNotesByRegex(this.item(), J.ABS.RegExp.ThisBonusDamageIfTargetHpBelow);
+	if (!allPairs.length) return 0;
+	const targetHpPct = this.resolveHpPercent(target);
+	let totalPct = 0;
+	allPairs.forEach(([thresholdPct, pctPerPoint]) => {
+		if (targetHpPct > thresholdPct) return;
+		totalPct += pctPerPoint * (thresholdPct - targetHpPct);
+	});
+	return totalPct;
+};
+/**
 * Checks whether the target has at least one active state carrying the given type
 * classifier. The comparison is case-insensitive.
 * @param {Game_Battler} target The target whose active states are checked.
@@ -24370,7 +25417,7 @@ Game_Action.prototype.calculateThisBonusDamagePct = function() {
 * @returns {boolean} True if any active state on the target carries this type.
 */
 Game_Action.prototype.targetHasActiveStateType = function(target, type) {
-	return target.states().some((state) => state.stateTypes().some((stateType) => stateType.toLowerCase() === type.toLowerCase()));
+	return target.states().some((state) => state.types().some((stateType) => stateType.toLowerCase() === type.toLowerCase()));
 };
 /**
 * Calculates the total damage bonus percent from bonusDamageIfStateType tags on the caster's notes.
@@ -24403,7 +25450,7 @@ Game_Action.prototype.calculatePerStateTypePct = function(target) {
 	if (!allPairs.length) return 0;
 	let totalPct = 0;
 	allPairs.forEach(([type, percent]) => {
-		const matchingStateCount = target.states().filter((state) => state.stateTypes().some((stateType) => stateType.toLowerCase() === type.toLowerCase())).length;
+		const matchingStateCount = target.states().filter((state) => state.types().some((stateType) => stateType.toLowerCase() === type.toLowerCase())).length;
 		totalPct += percent * matchingStateCount;
 	});
 	return totalPct;
@@ -24418,6 +25465,28 @@ Game_Action.prototype.calculatePerStateTypePct = function(target) {
 */
 Game_Action.prototype.calculatePerStateStackPct = function(target) {
 	const allPairs = this.subject().getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.BonusDamagePerStateStack));
+	if (!allPairs.length) return 0;
+	let totalPct = 0;
+	allPairs.forEach(([stateId, percent]) => {
+		if (!target.isStateAffected(stateId)) return;
+		const trackedState = $jabsEngine.getJabsStateByUuidAndStateId(target.getUuid(), stateId);
+		if (!trackedState) return;
+		totalPct += percent * trackedState.stackCount;
+	});
+	return totalPct;
+};
+/**
+* Calculates the total damage bonus percent from thisBonusDamagePerStateStack tags on this
+* action's skill. Reads from this.item() only — fires only when this specific skill is the
+* action being resolved. Each tag's PCT is multiplied by the current stack count of the one
+* named state on the target, then summed across all tags. Reads the live tracker directly
+* rather than target.states() because that array duplicates entries per stack for
+* visualization- reading it here would double-count.
+* @param {Game_Battler} target The target whose named-state stack count is read.
+* @returns {number} The total bonus percent from all matching named-state tags on this skill.
+*/
+Game_Action.prototype.calculateThisBonusDamagePerStateStackPct = function(target) {
+	const allPairs = RPGManager.getArraysFromNotesByRegex(this.item(), J.ABS.RegExp.ThisBonusDamagePerStateStack);
 	if (!allPairs.length) return 0;
 	let totalPct = 0;
 	allPairs.forEach(([stateId, percent]) => {
@@ -25864,6 +26933,24 @@ Game_Battler.prototype.tickSpeedPercentModifier = function(types = []) {
 	return total;
 };
 /**
+* Resolves how many frames elapse between natural HRG/MRG/TRG regeneration ticks for this
+* battler. Uses the same base-plus-flat-then-percent formula as per-state slip ticking, typed
+* as the plugin-configured natural regen tick type so type-scoped modifiers can reach it.
+* Shared by {@link JABS_Battler#getNaturalRegenTickInterval} (the live map ticking loop) and any
+* UI wanting to preview the same cadence without a live map/JABS_Battler context- this only reads
+* notes and static plugin metadata off the battler itself.
+* @returns {number} The resolved tick interval, in frames.
+*/
+Game_Battler.prototype.getNaturalRegenTickInterval = function() {
+	const naturalRegenType = J.ABS.Metadata.NaturalRegenTickType;
+	const baseInterval = J.ABS.Metadata.DefaultStateTickInterval;
+	const flatModifier = this.tickSpeedFlatModifier();
+	const percentModifier = this.tickSpeedPercentModifier([naturalRegenType]);
+	const modifiedInterval = (baseInterval + flatModifier) / (1 + percentModifier / 100);
+	const tunableFloor = Math.max(J.ABS.Metadata.MinimumStateTickInterval, 1);
+	return Math.max(Math.round(modifiedInterval), tunableFloor);
+};
+/**
 * All battlers have a default alerted pursuit boost.
 * @returns {number}
 */
@@ -26212,14 +27299,15 @@ Game_Battler.prototype.stackCount = function(stateId) {
 * now relevant to the state being applied.
 * @param {number} stateId The state id to potentially apply.
 * @param {Game_Battler} attacker The battler who is applying this state.
+* @param {RPG_Skill=} sourceSkill The skill that was executing when this state was applied, if any.
 */
 J.ABS.Aliased.Game_Battler.set("addState", Game_Battler.prototype.addState);
-Game_Battler.prototype.addState = function(stateId, attacker) {
+Game_Battler.prototype.addState = function(stateId, attacker, sourceSkill = null) {
 	if (!attacker || !$jabsEngine.absEnabled) {
 		J.ABS.Aliased.Game_Battler.get("addState").call(this, stateId);
 		return;
 	}
-	this.handleAddingJabsState(stateId, attacker);
+	this.handleAddingJabsState(stateId, attacker, null, sourceSkill);
 };
 /**
 * Whether or not this battler is immune to absolutely all state application, including the death
@@ -26274,7 +27362,7 @@ Game_Battler.prototype.getImmuneStateTypes = function() {
 Game_Battler.prototype.isImmuneToStateByType = function(state) {
 	const immuneTypes = this.getImmuneStateTypes();
 	if (!immuneTypes.length) return false;
-	return state.stateTypes().some((stateType) => immuneTypes.some((immuneType) => immuneType.toLowerCase() === stateType.toLowerCase()));
+	return state.types().some((stateType) => immuneTypes.some((immuneType) => immuneType.toLowerCase() === stateType.toLowerCase()));
 };
 /**
 * Sums this battler's {@code <stateTypeResist:[TYPE, PCT]>} tags whose TYPE matches one of the
@@ -26285,10 +27373,10 @@ Game_Battler.prototype.isImmuneToStateByType = function(state) {
 */
 Game_Battler.prototype.stateTypeResistRate = function(stateId) {
 	const state = $dataStates[stateId];
-	if (!state || !state.stateTypes().length) return 1;
+	if (!state || !state.types().length) return 1;
 	const allPairs = this.getAllNotes().flatMap((note) => RPGManager.getArraysFromNotesByRegex(note, J.ABS.RegExp.StateTypeResist));
 	if (!allPairs.length) return 1;
-	const stateTypes = state.stateTypes();
+	const stateTypes = state.types();
 	let totalPercent = 0;
 	allPairs.forEach(([type, percent]) => {
 		if (stateTypes.some((stateType) => stateType.toLowerCase() === type.toLowerCase())) {
@@ -26319,15 +27407,16 @@ Game_Battler.prototype.isStateAddable = function(stateId) {
 * @param {Game_Actor|Game_Enemy|Game_Battler} attacker The assailant applying the state.
 * @param {JABS_StateOverrides|null} overrides Optional skill-authored overrides for duration and stacks.
 * When null, the state's own database values are used.
+* @param {RPG_Skill=} sourceSkill The skill that was executing when this state was applied, if any.
 */
-Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker, overrides = null) {
+Game_Battler.prototype.handleAddingJabsState = function(stateId, attacker, overrides = null, sourceSkill = null) {
 	if (!this.isStateAddable(stateId)) return;
 	if (!this.isStateAffected(stateId)) {
 		this.addNewState(stateId, attacker);
 		this.refresh();
 	}
 	this.resetStateCounts(stateId, attacker);
-	this.addJabsState(stateId, attacker, overrides);
+	this.addJabsState(stateId, attacker, overrides, sourceSkill);
 	this.onJabsStateInflicted(stateId, attacker);
 	this._result.pushAddedState(stateId);
 };
@@ -26431,8 +27520,9 @@ Game_Battler.prototype.isRemovableCandidate = function(state, type, allowDeath) 
 * @param {Game_Battler|Game_Actor|Game_Enemy} attacker The battler who is applying this state.
 * @param {JABS_StateOverrides|null} overrides Optional skill-authored overrides for duration and stacks.
 * When null, the state's own database values are used for both.
+* @param {RPG_Skill=} sourceSkill The skill that was executing when this state was applied, if any.
 */
-Game_Battler.prototype.addJabsState = function(stateId, attacker, overrides = null) {
+Game_Battler.prototype.addJabsState = function(stateId, attacker, overrides = null, sourceSkill = null) {
 	let assailant = attacker;
 	if (!attacker) {
 		assailant = this;
@@ -26448,9 +27538,9 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker, overrides = nu
 	}
 	let totalDuration = -1;
 	if (hasMapTimer) {
-		totalDuration = stateDuration + assailant.getStateDurationBoost(stateDuration);
+		totalDuration = stateDuration + assailant.getStateDurationBoost(stateDuration) + state.jabsThisStateDurationBoost(stateDuration);
 	}
-	const builder = this.createJabsState(this, stateId, iconIndex, totalDuration, stateStacks, assailant);
+	const builder = this.createJabsState(this, stateId, iconIndex, totalDuration, stateStacks, assailant, sourceSkill);
 	const jabsState = builder.build();
 	$jabsEngine.addOrUpdateStateByUuid(this.getUuid(), jabsState);
 };
@@ -26467,13 +27557,14 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker, overrides = nu
 * @param {number} stateId The id of the state to apply.
 * @param {Game_Battler} attacker The battler applying the state.
 * @param {JABS_StateOverrides} overrides The skill-authored duration and/or stack overrides.
+* @param {RPG_Skill=} sourceSkill The skill that was executing when this state was applied, if any.
 */
-Game_Battler.prototype.addStateWithOverrides = function(stateId, attacker, overrides) {
+Game_Battler.prototype.addStateWithOverrides = function(stateId, attacker, overrides, sourceSkill = null) {
 	if (!$jabsEngine.absEnabled) {
 		this.addState(stateId);
 		return;
 	}
-	this.handleAddingJabsState(stateId, attacker, overrides);
+	this.handleAddingJabsState(stateId, attacker, overrides, sourceSkill);
 };
 /**
 * An abstraction for creating a new {@link JABS_State} with the given parameters.
@@ -26484,10 +27575,11 @@ Game_Battler.prototype.addStateWithOverrides = function(stateId, attacker, overr
 * @param {number} totalDuration The total duration in frames of the state being applied.
 * @param {number} stacks The number of stacks of the state being applied.
 * @param {Game_Battler} attacker The battler applying the state.
+* @param {RPG_Skill=} sourceSkill The skill that was executing when this state was applied, if any.
 * @returns {JABS_StateBuilder} The builder with all the parameters of the state being applied.
 */
-Game_Battler.prototype.createJabsState = function(target, stateId, iconIndex, totalDuration, stacks, attacker) {
-	return JABS_State.Builder(target, stateId).setIconIndex(iconIndex).setDuration(totalDuration).setStartingStacks(stacks).setSource(attacker);
+Game_Battler.prototype.createJabsState = function(target, stateId, iconIndex, totalDuration, stacks, attacker, sourceSkill = null) {
+	return JABS_State.Builder(target, stateId).setIconIndex(iconIndex).setDuration(totalDuration).setStartingStacks(stacks).setSource(attacker).setSourceSkill(sourceSkill);
 };
 /**
 * Determines the various state duration boosts available to this battler.
@@ -26503,6 +27595,15 @@ Game_Battler.prototype.getStateDurationBoost = function(baseDuration) {
 	const durationBoost = flat + percentBoost + formulaiBoost;
 	const formattedDurationBoost = parseFloat(durationBoost.toFixed(2));
 	return formattedDurationBoost;
+};
+/**
+* Sums this battler's {@code <stackMaxBoost:VAL>} tags from every note source (actor, class,
+* equips, states). A blanket bonus applied to the stack cap of every state this battler stacks,
+* regardless of which state it is.
+* @returns {number} The total bonus to add to any state's stack cap.
+*/
+Game_Battler.prototype.getStackMaxBoost = function() {
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.StackMaxBoost);
 };
 /**
 * Recomputes cached per-connection bonus hit totals from all {@link Game_Battler.getBonusHitsSources} collections.
@@ -27354,6 +28455,13 @@ Game_CharacterBase.prototype.initMembers = function() {
 	* @type {number}
 	*/
 	this._j._abs._dodgeBoost = 0;
+	/**
+	* Whether the current jump (if any) should suppress its parabolic hop and render flat-
+	* see {@link Game_CharacterBase.glideTo}. Reset to false at the start of every jump so a
+	* normal jump afterward always renders its usual arc.
+	* @type {boolean}
+	*/
+	this._j._abs._noJumpArc = false;
 };
 /**
 * Gets the current true move speed associated with this character.
@@ -27474,6 +28582,119 @@ Game_CharacterBase.prototype.walkInDirectionClamped = function(direction, distan
 		if (canPass) stepsTaken++;
 	}
 	return [realX - this.x, realY - this.y];
+};
+/**
+* Terrain-only counterpart to vanilla {@link Game_CharacterBase.canPass}- identical except it
+* omits the character-collision check. A destination tile with a battler standing on it (the
+* normal case for gap closing, since the whole point is to reach that battler) would otherwise
+* always fail vanilla's collision check and report as unreachable.
+* @param {number} x The origin tile's X coordinate.
+* @param {number} y The origin tile's Y coordinate.
+* @param {number} d The compass direction of the step being probed.
+* @returns {boolean} True if the step is terrain-passable, ignoring any character occupying it.
+*/
+Game_CharacterBase.prototype.canPassTerrainOnly = function(x, y, d) {
+	const x2 = $gameMap.roundXWithDirection(x, d);
+	const y2 = $gameMap.roundYWithDirection(y, d);
+	if (!$gameMap.isValid(x2, y2)) return false;
+	if (this.isThrough() || this.isDebugThrough()) return true;
+	return this.isMapPassable(x, y, d);
+};
+/**
+* Terrain-only counterpart to vanilla {@link Game_CharacterBase.canPassDiagonally}- mirrors its
+* corner-cut-safe L-shaped probing (a diagonal step is valid if either of the two orthogonal
+* paths around the corner is clear), but built on {@link canPassTerrainOnly} so it shares the
+* same character-collision exemption.
+* @param {number} x The origin tile's X coordinate.
+* @param {number} y The origin tile's Y coordinate.
+* @param {number} horz The horizontal compass direction (4/6) of the diagonal step.
+* @param {number} vert The vertical compass direction (2/8) of the diagonal step.
+* @returns {boolean} True if either orthogonal path around the corner is terrain-passable.
+*/
+Game_CharacterBase.prototype.canPassDiagonallyTerrainOnly = function(x, y, horz, vert) {
+	const x2 = $gameMap.roundXWithDirection(x, horz);
+	const y2 = $gameMap.roundYWithDirection(y, vert);
+	if (this.canPassTerrainOnly(x, y, vert) && this.canPassTerrainOnly(x, y2, horz)) return true;
+	if (this.canPassTerrainOnly(x, y, horz) && this.canPassTerrainOnly(x2, y, vert)) return true;
+	return false;
+};
+/**
+* Probes whether this character could walk the full tile-by-tile path to a delta destination
+* without moving it- unlike {@link walkInDirectionClamped}, which stops early and reports
+* however far it got, this is all-or-nothing: the moment any step along the way is blocked,
+* the whole path counts as unreachable. Steps diagonally first (using the same corner-cut-safe
+* diagonal passability vanilla RMMZ uses for player movement) for as long as both axes still
+* have distance remaining, then finishes out whichever axis is left with straight steps.
+* Uses terrain-only passability throughout, since the destination is expected to have a
+* battler standing on it- that is the entire point of gap closing.
+* @param {number} dx The destination delta on the X axis, in tiles (fractional values are rounded).
+* @param {number} dy The destination delta on the Y axis, in tiles (fractional values are rounded).
+* @returns {boolean} True if every tile along the path to the rounded delta is terrain-passable.
+*/
+Game_CharacterBase.prototype.canReachTileDelta = function(dx, dy) {
+	let remainingX = Math.round(dx);
+	let remainingY = Math.round(dy);
+	let probeX = Math.round(this.x);
+	let probeY = Math.round(this.y);
+	while (remainingX !== 0 || remainingY !== 0) {
+		let stepX = 0;
+		if (remainingX > 0) stepX = J.ABS.Directions.RIGHT;
+		else if (remainingX < 0) stepX = J.ABS.Directions.LEFT;
+		let stepY = 0;
+		if (remainingY > 0) stepY = J.ABS.Directions.DOWN;
+		else if (remainingY < 0) stepY = J.ABS.Directions.UP;
+		if (stepX !== 0 && stepY !== 0) {
+			if (!this.canPassDiagonallyTerrainOnly(probeX, probeY, stepX, stepY)) return false;
+			probeX = $gameMap.roundXWithDirection(probeX, stepX);
+			probeY = $gameMap.roundYWithDirection(probeY, stepY);
+			remainingX -= Math.sign(remainingX);
+			remainingY -= Math.sign(remainingY);
+		} else if (stepX !== 0) {
+			if (!this.canPassTerrainOnly(probeX, probeY, stepX)) return false;
+			probeX = $gameMap.roundXWithDirection(probeX, stepX);
+			remainingX -= Math.sign(remainingX);
+		} else {
+			if (!this.canPassTerrainOnly(probeX, probeY, stepY)) return false;
+			probeY = $gameMap.roundYWithDirection(probeY, stepY);
+			remainingY -= Math.sign(remainingY);
+		}
+	}
+	return true;
+};
+/**
+* Extends {@link Game_CharacterBase.jump}.<br/>
+* Always resets arc suppression first, so a normal jump call after a glide still hops as
+* usual- only {@link glideTo} re-enables suppression, and only for the jump it triggers.
+*/
+J.ABS.Aliased.Game_CharacterBase.set("jump", Game_CharacterBase.prototype.jump);
+Game_CharacterBase.prototype.jump = function(xPlus, yPlus) {
+	this._j._abs._noJumpArc = false;
+	J.ABS.Aliased.Game_CharacterBase.get("jump").call(this, xPlus, yPlus);
+};
+/**
+* Extends {@link Game_CharacterBase.jumpHeight}.<br/>
+* Flattens the jump arc to zero while arc suppression is active, without touching the
+* underlying `_jumpCount`/`_jumpPeak` timing- every other system that keys off
+* {@link Game_CharacterBase.isJumping} (render sync, gap-close arrival, pixel movement's
+* mid-jump guard) still behaves exactly as it does for a normal jump.
+* @returns {number} The vertical hop offset in pixels, or 0 while suppressed.
+*/
+J.ABS.Aliased.Game_CharacterBase.set("jumpHeight", Game_CharacterBase.prototype.jumpHeight);
+Game_CharacterBase.prototype.jumpHeight = function() {
+	if (this._j._abs._noJumpArc) return 0;
+	return J.ABS.Aliased.Game_CharacterBase.get("jumpHeight").call(this);
+};
+/**
+* Moves this character to a delta destination exactly like {@link Game_CharacterBase.jump},
+* reusing all of its position/timing/facing machinery, but renders as a flat ground-level
+* glide instead of a parabolic hop- a "slide" with none of the kangaroo-bounce of a jump and
+* none of the jarring pop of an instant teleport.
+* @param {number} xPlus The destination delta on the X axis.
+* @param {number} yPlus The destination delta on the Y axis.
+*/
+Game_CharacterBase.prototype.glideTo = function(xPlus, yPlus) {
+	this.jump(xPlus, yPlus);
+	this._j._abs._noJumpArc = true;
 };
 
 //#endregion
@@ -28406,6 +29627,23 @@ Game_Interpreter.prototype.command204 = function(params) {
 	}
 };
 /**
+* Enables changing the weather with JABS.
+* Removed the check for seeing if the player is in-battle, because the player is
+* technically ALWAYS in-battle while the ABS is enabled.
+*/
+J.ABS.Aliased.Game_Interpreter.set("command236", Game_Interpreter.prototype.command236);
+Game_Interpreter.prototype.command236 = function(params) {
+	if ($jabsEngine.absEnabled) {
+		$gameScreen.changeWeather(params[0], params[1], params[2]);
+		if (params[3]) {
+			this.wait(params[2]);
+		}
+		return true;
+	} else {
+		return J.ABS.Aliased.Game_Interpreter.get("command236").call(this, params);
+	}
+};
+/**
 * Enables default battles with JABS.
 * Removed the check for seeing if the player is in-battle, because the player
 * is technically ALWAYS in-battle while the ABS is enabled.
@@ -28474,6 +29712,21 @@ Game_Interpreter.prototype.command303 = function(params) {
 		return true;
 	}
 	return J.ABS.Aliased.Game_Interpreter.get("command303").call(this, params);
+};
+/**
+* Enables opening the menu screen with JABS.
+* Removed the check for seeing if the player is in-battle, because the player is
+* technically ALWAYS in-battle while the ABS is enabled.
+*/
+J.ABS.Aliased.Game_Interpreter.set("command351", Game_Interpreter.prototype.command351);
+Game_Interpreter.prototype.command351 = function() {
+	if ($jabsEngine.absEnabled) {
+		SceneManager.push(Scene_Menu);
+		Window_MenuCommand.initCommandPosition();
+		return true;
+	} else {
+		return J.ABS.Aliased.Game_Interpreter.get("command351").call(this);
+	}
 };
 /**
 * Enables saving with JABS.
@@ -29016,7 +30269,7 @@ Game_Player.prototype.pickupLoot = function(lootEvent) {
 */
 Game_Player.prototype.useOnPickup = function(lootData) {
 	const player = $jabsEngine.getPlayer1();
-	player.applyToolEffects(lootData.id, true);
+	player.applyToolItemEffects(lootData.id, JABS_Button.Tool, true);
 };
 /**
 * Picks up the loot and stores it in the player's inventory.

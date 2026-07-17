@@ -21,12 +21,16 @@
  * Unconditional passives are simply grants with no rules.
  *
  * Tag families on database rows (skills, states, equip, class, actor, enemy, etc.):
- *  passiveSourceRule  — gates every passive from this source
- *  passiveStateRule   — gates one state id from this source
- *  passiveStateCount  — stack contribution for one state id from this source
- *  autoApplyState     — applies a real combat state on a timer or combat event
- *  autoExecuteSkill   — executes a map skill on a timer or combat event
- *  autoInflictState   — applies a real combat state onto whoever this battler just inflicted a state upon
+ *  passiveSourceRule       — gates every passive from this source
+ *  passiveStateRule        — gates one state id from this source
+ *  passiveStateCount       — stack contribution for one state id from this source
+ *  autoApplyState          — applies a real combat state on a timer or combat event
+ *  autoApplyStateOnNearby  — same as autoApplyState, but aura-style onto nearby battlers instead of the bearer
+ *  autoExecuteSkill        — executes a map skill on a timer or combat event
+ *  autoInflictState        — applies a real combat state onto whoever this battler just inflicted a state upon
+ *  removeOnSkillExecution  — chance to strip a stack from this state when the bearer executes a map skill
+ *  removeOnSkillResolution — chance to strip a stack from this state when the bearer's fired action expires
+ *  removeStateOnMove       — strips this state the instant the bearer moves (pairs with autoApplyState's "stand")
  *
  * Map battlers re-check on a throttled timer; any passive refresh re-evaluates.
  * ============================================================================
@@ -39,20 +43,38 @@
  *  {registryKey}Above/Below — flat or hundred-scale per ParameterRegistry
  *  allAllies{Key}Above/Below — every allied JABS battler (incl. self) must pass
  *
- * Discrete kinds include alliesNearby, enemiesNearby, hasState, negativeStateCount,
- * slotOnCooldown, slotOffCooldown, allOnCooldown, allOffCooldown,
- * sinceLastMoved/Hit/Attacked, movedWithin/hitWithin/attackedWithin (frames).
+ * Discrete kinds include alliesNearby, enemiesNearby, alliesNearbyBelow, enemiesNearbyBelow,
+ * enemiesTargetingMe, enemiesTargetingMeBelow, hasState, negativeStateCount, slotOnCooldown,
+ * slotOffCooldown, allOnCooldown, allOffCooldown, sinceLastMoved/Hit/Attacked,
+ * movedWithin/hitWithin/attackedWithin (frames).
+ *
+ * alliesNearby/enemiesNearby pass at COUNT or more in range (>=); the *Below counterparts pass
+ * under COUNT (<) — use them for "nobody nearby" gates, e.g. [enemiesNearbyBelow, 1, 1] for
+ * "no enemies within melee range" (1 tile).
+ *
+ * enemiesTargetingMe/enemiesTargetingMeBelow work the same way but are NOT proximity-scoped-
+ * they count opposing battlers that currently have this battler as their live AI target,
+ * regardless of tile distance. No radius param; PARAM is just the count threshold.
  *
  * EXAMPLES:
  *  <passive:[12]>
  *  <passiveStateRule:[12, hpBelow, 25]>
  *  <passiveSourceRule:[allOffCooldown]>
+ *  <passiveSourceRule:[enemiesNearbyBelow, 1, 1]>
+ *  <passiveSourceRule:[enemiesTargetingMe, 1]>
+ *    Only grants this source's passives while at least one enemy has this battler targeted.
  * ============================================================================
  * STACK COUNT TAG
  *  <passiveStateCount:[STATE_ID, KIND, PARAM]>
  *
- * Kinds: negativeStateCount, alliesNearby (excludes self), lessIsMoreHp/Mp/Tp,
- * moreIsMoreHp/Mp/Tp, per-{registryKey} (integer points per stack).
+ * Kinds: negativeStateCount, alliesNearby (excludes self), enemiesNearby, enemiesTargetingMe
+ * (not proximity-scoped- see above), lessIsMoreHp/Mp/Tp, moreIsMoreHp/Mp/Tp, per-{registryKey}
+ * (integer points per stack).
+ *
+ * EXAMPLE:
+ *  <passiveStateCount:[70, enemiesTargetingMe, 1]>
+ *    State 70 gains 1 stack per enemy currently targeting this battler- pair with a state
+ *  carrying a flat pdr/mdr param-rate trait so each stack chips away at incoming damage.
  * ============================================================================
  * AUTO-APPLY STATE TAG
  *  <autoApplyState:[STATE_ID, CONDITION, PARAM]>
@@ -75,6 +97,8 @@
  *  onDamageDealt   — when this battler lands damage on an opposing battler (JABS_Engine#postExecuteSkillEffects)
  *  move            — PARAM = whole TILES per apply (Pixelistics updatePixelStepping; requires J-Pixelistics)
  *  stand           — PARAM = frames between applies while standing still on the map
+ *  enemiesNearby / alliesNearby / enemiesNearbyBelow / alliesNearbyBelow — 4/5-value proximity
+ *    tuples, same shape and semantics as autoExecuteSkill's proximity form below.
  *
  * EXAMPLES:
  *  <autoApplyState:[50, time, 900]>
@@ -89,6 +113,46 @@
  *  <autoApplyState:[59, onAllyHeal, 0]>
  *  <autoApplyState:[MOMENTUM_ID, move, 2]>
  *  <autoApplyState:[BUFF_ID, stand, 120]>
+ *  <autoApplyState:[ACCURACY_BUFF_ID, enemiesNearbyBelow, 1, 30, 1]>
+ *    Every 30 frames, apply the accuracy buff while no enemy is within 1 tile (melee range).
+ * ============================================================================
+ * AUTO-APPLY STATE ON NEARBY TAG
+ *  <autoApplyStateOnNearby:[STATE_ID, KIND, MIN_COUNT, COOLDOWN_FRAMES, TRIGGER_TILES?]>
+ *
+ * Aura-style sibling of autoApplyState: instead of applying STATE_ID to the rule bearer,
+ * it redirects onto every battler currently in proximity- enemies or allies depending on
+ * KIND. Good fit for "afflicts nearby enemies" or "buffs nearby allies" passive auras.
+ *
+ * Only four KIND values do anything here (every other autoApplyState CONDITION has no
+ * proximity set to iterate and simply won't fire):
+ *  enemiesNearby      — targets nearby enemy JABS battlers
+ *  alliesNearby       — targets nearby allied JABS battlers, excluding the bearer itself
+ *  enemiesNearbyBelow — same target set as enemiesNearby, gate inverted (see below)
+ *  alliesNearbyBelow  — same target set as alliesNearby, gate inverted (see below)
+ *
+ * MIN_COUNT is the count threshold that gates the pulse. For enemiesNearby/alliesNearby the
+ * pulse fires at MIN_COUNT or more in range; for the Below variants it fires strictly UNDER
+ * MIN_COUNT. Either way the pulse then hits everyone CURRENTLY in range, not just MIN_COUNT
+ * of them- so a Below rule with MIN_COUNT 1 (the "nothing nearby" case) can gate-pass while
+ * resolving zero targets, applying to nobody that tick. MIN_COUNT 2+ still lands on whatever
+ * stragglers remain under the threshold.
+ * COOLDOWN_FRAMES is tracked on the bearer, so the pulse cadence is consistent regardless
+ * of how many targets are currently in range.
+ * The optional fifth TRIGGER_TILES overrides the plugin's default proximity radius for
+ * this rule's gate only.
+ *
+ * EXAMPLES:
+ *  <autoApplyStateOnNearby:[60, enemiesNearby, 1, 120]>
+ *    Every 120 frames, if at least 1 enemy is within the default proximity radius, apply
+ *    state 60 to every nearby enemy.
+ *
+ *  <autoApplyStateOnNearby:[61, alliesNearby, 2, 300, 8]>
+ *    Every 300 frames, if at least 2 allies (excluding the bearer) are within 8 tiles,
+ *    apply state 61 to every nearby ally.
+ *
+ *  <autoApplyStateOnNearby:[62, enemiesNearbyBelow, 3, 120]>
+ *    Every 120 frames, if fewer than 3 enemies are within range, apply state 62 to
+ *    whichever enemies (0-2 of them) are still around.
  * ============================================================================
  * AUTO-EXECUTE SKILL TAG
  *  <autoExecuteSkill:[SKILL_ID, CONDITION, PARAM]>
@@ -97,15 +161,20 @@
  * Victims may parry and retaliate. Payload skill owns radius, hitbox, and formula.
  * Do not tag the payload skill with autoExecuteSkill (depth guard).
  * PARAM meaning matches autoApplyState CONDITIONS, plus:
- *  enemiesNearby — four- or five-value tuple:
- *    <autoExecuteSkill:[SKILL_ID, enemiesNearby, MIN_COUNT, FRAMES]>
+ *  enemiesNearby / alliesNearby / enemiesNearbyBelow / alliesNearbyBelow — four- or
+ *  five-value tuple:
+ *    <autoExecuteSkill:[SKILL_ID, KIND, COUNT, FRAMES]>
  *    optional fifth TRIGGER_TILES overrides default-proximity-tiles for the gate only.
+ *    enemiesNearby/alliesNearby fire at or above COUNT; the Below variants fire strictly
+ *    under COUNT.
  *
  * EXAMPLES:
  *  <autoExecuteSkill:[1021, time, 60]>
  *  <autoExecuteSkill:[1022, enemiesNearby, 1, 60]>
  *  <autoExecuteSkill:[1023, move, 1]>
  *  <autoExecuteSkill:[1024, stand, 120]>
+ *  <autoExecuteSkill:[1025, enemiesNearbyBelow, 1, 60, 1]>
+ *    Casts skill 1025 every 60 frames while no enemy is within 1 tile.
  * ============================================================================
  * AUTO-INFLICT STATE TAG
  *  <autoInflictState:[STATE_ID, CONDITION, COOLDOWN_FRAMES]>
@@ -157,6 +226,24 @@
  * EXAMPLES:
  *  <removeOnSkillResolution:[7, 100]>
  *  <removeOnSkillResolution:[0, 25]>
+ * ============================================================================
+ * REMOVE STATE ON MOVE (state note only)
+ *  <removeStateOnMove:[STATE_ID]>
+ *
+ * The instant the bearer moves on the map, unconditionally peels one stack from STATE_ID
+ * (or all stacks at once if that state row has loseAllStacksAtOnce set). No chance roll,
+ * no stype filter- this fires every single time the bearer moves, full stop. Tag lives on
+ * the state doing the peeling- typically the SAME state also carries an autoApplyState
+ * "stand" rule for the very state id it removes, since this pairing is what makes a
+ * "charge up while standing still, lose it the moment you move" mechanic work: standing
+ * still builds the stack, moving strips it instantly, and the stand cooldown is reset to a
+ * full interval the moment you move again so the buildup can't restart instantly either.
+ *
+ * EXAMPLES:
+ *  <autoApplyState:[80, stand, 60]>
+ *  <removeStateOnMove:[80]>
+ *    On this same state row: standing still for 60 frames applies a stack of state 80.
+ *    Taking even a single step immediately strips it and resets the stand timer.
  * ============================================================================
  * CHANGELOG:
  * - 1.0.0
@@ -811,6 +898,24 @@ var PassiveRuleJabsAccess = class {
 		return JABS_AiManager.getOpposingBattlersWithinRange(jabsBattler, proximity);
 	}
 	/**
+	* Opposing battlers that currently have this battler as their live AI target- not a proximity
+	* check, unlike {@link nearbyEnemies}. An enemy counts here the moment it engages this battler
+	* as its target, regardless of tile distance, and stops counting the moment it disengages or
+	* retargets someone else.<br/>
+	* Used by {@code enemiesTargetingMe} gate and stack-count rules.
+	* @param {Game_Battler} battler The battler whose "being focused" status we measure.
+	* @returns {JABS_Battler[]} Opposing JABS battlers currently targeting this battler.
+	*/
+	static enemiesTargetingMe(battler) {
+		const jabsBattler = this.getJabsBattler(battler);
+		if (!jabsBattler) return [];
+		return JABS_AiManager.getOpposingBattlers(jabsBattler).filter((enemy) => {
+			const enemyTarget = enemy.getTarget();
+			if (!enemyTarget) return false;
+			return enemyTarget.getUuid() === jabsBattler.getUuid();
+		});
+	}
+	/**
 	* Allied battlers for {@code allAllies*} threshold checks (includes self when on the map).<br/>
 	* Every member of the returned set must satisfy the same threshold for the gate to pass.
 	* @param {Game_Battler} battler The battler whose party context we collect.
@@ -930,20 +1035,24 @@ var AutoRuleManager = class {
 		this.tryDispatch(battler, "stand");
 	}
 	/**
-	* Evaluates every {@code enemiesNearby} rule on this battler while on the ABS map.
+	* Evaluates every {@code enemiesNearby} and {@code enemiesNearbyBelow} rule on this battler
+	* while on the ABS map.
 	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules may fire.
 	*/
 	static processEnemiesNearbyRules(battler) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		this.tryDispatch(battler, "enemiesNearby");
+		this.tryDispatch(battler, "enemiesNearbyBelow");
 	}
 	/**
-	* Evaluates every {@code alliesNearby} rule on this battler while on the ABS map.
+	* Evaluates every {@code alliesNearby} and {@code alliesNearbyBelow} rule on this battler
+	* while on the ABS map.
 	* @param {Game_Actor|Game_Enemy} battler - The battler whose rules may fire.
 	*/
 	static processAlliesNearbyRules(battler) {
 		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
 		this.tryDispatch(battler, "alliesNearby");
+		this.tryDispatch(battler, "alliesNearbyBelow");
 	}
 	/**
 	* Fires resource-specific and {@code anyDmg} rules after damage is applied to one pool.
@@ -1056,7 +1165,7 @@ var AutoRuleManager = class {
 			if (Number.isNaN(id) || id <= 0) continue;
 			if (kind !== conditionKind) continue;
 			if (kind === "move") continue;
-			if (kind === "enemiesNearby" || kind === "alliesNearby") {
+			if (this.isProximityKind(kind)) {
 				this._tryDispatchProximityRule(battler, source, tupleIndex, id, kind, tuple);
 				continue;
 			}
@@ -1101,12 +1210,13 @@ var AutoRuleManager = class {
 		return `${sourceLabel}:${sourceId}:${tupleIndex}:${id}:${condition}`;
 	}
 	/**
-	* Handles the 4/5-tuple proximity branch for {@code enemiesNearby} and {@code alliesNearby} conditions.
+	* Handles the 4/5-tuple proximity branch for {@code enemiesNearby}/{@code alliesNearby} and
+	* their {@code *Below} counterparts.
 	* @param {Game_Actor|Game_Enemy} battler - The battler whose proximity is evaluated.
 	* @param {RPG_BaseItem} source - The database row that declared the rule.
 	* @param {number} tupleIndex - Zero-based index of this tuple on the source row.
 	* @param {number} id - State id or skill id for this rule.
-	* @param {string} kind - The proximity condition kind (enemiesNearby or alliesNearby).
+	* @param {string} kind - The proximity condition kind; see {@link isProximityKind}.
 	* @param {any[]} tuple - The full parsed tuple array from the authored tag.
 	*/
 	static _tryDispatchProximityRule(battler, source, tupleIndex, id, kind, tuple) {
@@ -1116,9 +1226,42 @@ var AutoRuleManager = class {
 		const triggerTiles = triggerTilesRaw !== null && !Number.isNaN(triggerTilesRaw) ? triggerTilesRaw : null;
 		if (Number.isNaN(minCount) || minCount < 1) return;
 		if (Number.isNaN(cooldownFrames) || cooldownFrames < 0) return;
-		const nearbyCount = kind === "enemiesNearby" ? PassiveRuleJabsAccess.nearbyEnemies(battler, triggerTiles).length : PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler).length;
-		if (nearbyCount < minCount) return;
+		const nearbyCount = this.nearbyBattlersForKind(battler, kind, triggerTiles).length;
+		if (this.proximityGatePasses(nearbyCount, minCount, kind) === false) return;
 		this._tryDispatchRule(battler, source, tupleIndex, id, kind, cooldownFrames);
+	}
+	/**
+	* Whether a condition kind string is one of the proximity-gated kinds handled by
+	* {@link _tryDispatchProximityRule} instead of the standard frame-cooldown path.
+	* @param {string} kind - The condition kind to test.
+	* @returns {boolean} - True for enemiesNearby, alliesNearby, and their Below counterparts.
+	*/
+	static isProximityKind(kind) {
+		return kind === "enemiesNearby" || kind === "alliesNearby" || kind === "enemiesNearbyBelow" || kind === "alliesNearbyBelow";
+	}
+	/**
+	* Resolves the JABS battler set a proximity kind counts/targets — opposing battlers for the
+	* enemy kinds, allied battlers (excluding self) for the ally kinds. The {@code Below} suffix
+	* only affects the gate comparison direction, not which set is measured.
+	* @param {Game_Actor|Game_Enemy} battler - The evaluating battler.
+	* @param {string} kind - The proximity condition kind; see {@link isProximityKind}.
+	* @param {number|null} triggerTiles - Optional explicit tile radius override.
+	* @returns {JABS_Battler[]} - The resolved battler set for this kind.
+	*/
+	static nearbyBattlersForKind(battler, kind, triggerTiles) {
+		return kind === "enemiesNearby" || kind === "enemiesNearbyBelow" ? PassiveRuleJabsAccess.nearbyEnemies(battler, triggerTiles) : PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler);
+	}
+	/**
+	* Compares a resolved nearby-battler count against the tuple's threshold, honoring the
+	* {@code Below} suffix as an inversion of the default at-least-COUNT comparison.
+	* @param {number} nearbyCount - Battlers currently resolved in range.
+	* @param {number} minCount - The count threshold authored on the tuple.
+	* @param {string} kind - The proximity condition kind; see {@link isProximityKind}.
+	* @returns {boolean} - True when the gate for this kind passes.
+	*/
+	static proximityGatePasses(nearbyCount, minCount, kind) {
+		if (kind === "enemiesNearbyBelow" || kind === "alliesNearbyBelow") return nearbyCount < minCount;
+		return nearbyCount >= minCount;
 	}
 	/**
 	* Dispatches one rule when its per-key frame cooldown has elapsed.
@@ -1194,8 +1337,12 @@ var AutoApplyStateManager = class extends AutoRuleManager {
 * on the condition kind. This enables aura-style effects where the bearer passively afflicts
 * surrounding targets on a pulse timer.
 *
-* Only {@code enemiesNearby} and {@code alliesNearby} conditions are meaningful here; other
-* condition kinds have no proximity target set to iterate and will not fire.
+* Only proximity condition kinds ({@code enemiesNearby}/{@code alliesNearby} and their
+* {@code Below} counterparts) are meaningful here; other condition kinds have no proximity
+* target set to iterate and will not fire. Note that a {@code *Below} tuple with a threshold
+* of 1 (the "nothing nearby" case) can gate-pass while resolving zero targets — that pulse
+* simply applies to nobody. Thresholds of 2+ still land on the stragglers under the count
+* (e.g. "not swarmed by 5+ enemies, but hit whichever 1-2 are still around").
 */
 var AutoApplyStateOnNearbyManager = class extends AutoRuleManager {
 	/**
@@ -1229,7 +1376,7 @@ var AutoApplyStateOnNearbyManager = class extends AutoRuleManager {
 	* @param {RPG_BaseItem} source - The database row that declared the rule.
 	* @param {number} tupleIndex - Zero-based index of this tuple on the source row.
 	* @param {number} id - The state id to apply to nearby battlers.
-	* @param {string} kind - The proximity condition kind (enemiesNearby or alliesNearby).
+	* @param {string} kind - The proximity condition kind; see {@link AutoRuleManager.isProximityKind}.
 	* @param {any[]} tuple - The full parsed tuple array from the authored tag.
 	*/
 	static _tryDispatchProximityRule(battler, source, tupleIndex, id, kind, tuple) {
@@ -1239,8 +1386,8 @@ var AutoApplyStateOnNearbyManager = class extends AutoRuleManager {
 		const triggerTiles = triggerTilesRaw !== null && !Number.isNaN(triggerTilesRaw) ? triggerTilesRaw : null;
 		if (Number.isNaN(minCount) || minCount < 1) return;
 		if (Number.isNaN(cooldownFrames) || cooldownFrames < 0) return;
-		const nearbyJabsBattlers = kind === "enemiesNearby" ? PassiveRuleJabsAccess.nearbyEnemies(battler, triggerTiles) : PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler);
-		if (nearbyJabsBattlers.length < minCount) return;
+		const nearbyJabsBattlers = this.nearbyBattlersForKind(battler, kind, triggerTiles);
+		if (this.proximityGatePasses(nearbyJabsBattlers.length, minCount, kind) === false) return;
 		const ruleKey = this.buildRuleKey(source, tupleIndex, id, kind);
 		const now = Graphics.frameCount;
 		const lastFrame = battler.getAutoRuleLastFrame(ruleKey);
@@ -1617,6 +1764,10 @@ var PassiveGateEvaluator = class {
 		switch (kind) {
 			case "alliesNearby": return PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler, scope ? Number(scope) : null).length >= Number(param);
 			case "enemiesNearby": return PassiveRuleJabsAccess.nearbyEnemies(battler, scope ? Number(scope) : null).length >= Number(param);
+			case "alliesNearbyBelow": return PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler, scope ? Number(scope) : null).length < Number(param);
+			case "enemiesNearbyBelow": return PassiveRuleJabsAccess.nearbyEnemies(battler, scope ? Number(scope) : null).length < Number(param);
+			case "enemiesTargetingMe": return PassiveRuleJabsAccess.enemiesTargetingMe(battler).length >= Number(param);
+			case "enemiesTargetingMeBelow": return PassiveRuleJabsAccess.enemiesTargetingMe(battler).length < Number(param);
 			case "hpAbove": return this.#evaluateResourceThreshold(battler, "hp", "above", Number(param), scope, range);
 			case "hpBelow": return this.#evaluateResourceThreshold(battler, "hp", "below", Number(param), scope, range);
 			case "mpAbove": return this.#evaluateResourceThreshold(battler, "mp", "above", Number(param), scope, range);
@@ -1841,6 +1992,7 @@ var PassiveStackCountEvaluator = class {
 			case "negativeStateCount": return Math.floor(PassiveGateEvaluator.countNegativeStates(battler) / Number(param));
 			case "alliesNearby": return Math.floor(PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler, proximityTiles).length / Number(param));
 			case "enemiesNearby": return Math.floor(PassiveRuleJabsAccess.nearbyEnemies(battler, proximityTiles).length / Number(param));
+			case "enemiesTargetingMe": return Math.floor(PassiveRuleJabsAccess.enemiesTargetingMe(battler).length / Number(param));
 			case "lessIsMoreHp": return Math.floor(this.#missingResourcePercent(battler, "hp") / Number(param));
 			case "lessIsMoreMp": return Math.floor(this.#missingResourcePercent(battler, "mp") / Number(param));
 			case "lessIsMoreTp": return Math.floor(this.#missingResourcePercent(battler, "tp") / Number(param));

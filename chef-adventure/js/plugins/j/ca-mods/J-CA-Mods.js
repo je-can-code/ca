@@ -41,6 +41,32 @@
  * - drop sources for enemies modified to include states and party drop sources
  *
  * ============================================================================
+ * FLOOR DAMAGE:
+ * A minimal, tag-driven damage-floor system (TODO: replace with a proper
+ * plugin). Damage is summed from every source in floorDamageSources()
+ * (currently just the current map's own note) whenever the actor steps.
+ *
+ * TAG USAGE:
+ * - Maps (the map note field)
+ *
+ * TAG FORMAT:
+ *  <damageFlat:VALUE>
+ *    Where VALUE is a flat HP damage amount taken per step.
+ *
+ *  <damagePerc:VALUE>
+ *    Where VALUE is a percent of the actor's max HP taken per step.
+ *
+ * TAG EXAMPLES:
+ *  <damageFlat:10>
+ * Stepping anywhere on this map deals 10 flat HP damage.
+ *
+ *  <damagePerc:5>
+ * Stepping anywhere on this map deals 5% of the actor's max HP.
+ *
+ * NOTE: Multiple tags of the same kind on the map note are all summed
+ * together (flat sums directly; percent sums are each calculated against
+ * max HP individually, then summed).
+ * ============================================================================
  */
 //endregion annotations
 

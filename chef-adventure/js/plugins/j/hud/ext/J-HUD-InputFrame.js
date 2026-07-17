@@ -29,6 +29,10 @@
  * - while holding the skill trigger, skill keys show instead.
  * - ability costs for all keys, or item count remaining for tool.
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it purely reads live JABS skill
+ * slot/cooldown/cost data for display.
+ * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
  * - 1.2.0

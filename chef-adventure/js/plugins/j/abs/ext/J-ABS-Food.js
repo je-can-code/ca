@@ -50,6 +50,17 @@
  *   State "Hangry"              → <foodChain:protein>  (no expire link — chain ends)
  *
  * ============================================================================
+ * FOOD CHAIN BAR COLOR:
+ * Tag any phase state in a food chain arc with a hex color to control how its
+ * segment renders in the food chain HUD bar:
+ *    <foodGroupColor:#RRGGBB>
+ *  Where #RRGGBB is a six-digit hex color string.
+ *
+ * Example:
+ *    <foodGroupColor:#44cc44>
+ *
+ * A phase state with no color tag renders as a neutral grey segment instead.
+ * ============================================================================
  * OVERSTUFFED IMMUNITY (FIELD MEDIC):
  * Any battler whose getAllNotes() sources include the following tag is treated
  * as having Field Medic mastery. This tag may appear on any passive state,

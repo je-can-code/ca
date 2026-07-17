@@ -71,13 +71,18 @@
  * NOTE:
  * Bonuses are flat bonuses that get added to the base amount, not percentage.
  *
+ * NOTE:
+ * Actors only. Enemies track their own skill proficiencies same as actors do,
+ * but the bonus-gain wiring this tag feeds into was only ever built for
+ * actors, so a <proficiencyBonus> tag on an enemy (or an enemy-applicable
+ * source) is inert- parsed by nothing, applied by nothing.
+ *
  * TAG USAGE:
  * - Actors
  * - Classes
  * - Skills
  * - Weapons
  * - Armors
- * - Enemies
  * - States
  *
  * TAG FORMAT:

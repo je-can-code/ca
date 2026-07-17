@@ -38,6 +38,10 @@
  * - in combat indicator
  * - shield gauge (if using J-ABS-Shield)
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it purely reads live battler data
+ * for display.
+ * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
  * - 1.2.0

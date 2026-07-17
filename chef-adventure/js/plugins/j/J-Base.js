@@ -282,6 +282,1077 @@
  * @default 100
  */
 
+//#region src/plugins/_base/core/JCache.js
+/**
+* A unified typed-cache primitive. A cache declares an ordered list of "weak dimensions" at
+* construction (e.g. `['battler']`, `['object']`, `['battler', 'object']`), and `get()` requires
+* one weak key per declared dimension before the stable string key. This makes cache *scope* a
+* visible, reviewable choice at construction time instead of an implicit default buried in a
+* generic memoize helper - the exact class of bug this primitive was built to prevent (a
+* battler-context eval result silently cached on an object-scoped structure).
+*/
+var JCache = class JCache {
+	/**
+	* Every JCache instance that declared a `'battler'` dimension, so a single bus call
+	* ({@link JCache.invalidateAllForBattler}) can clear every battler-scoped cache in the game
+	* without each caller needing to know the full list of caches that exist.
+	* @type {Set<JCache>}
+	*/
+	static _battlerCaches = new Set();
+	/**
+	* Drops every battler-scoped cache entry for the given battler, across every registered
+	* {@link JCache} instance that declared a `'battler'` dimension. Intended to be called once,
+	* from {@link Game_Battler#onBattlerDataChange}, so individual managers never need their own
+	* bespoke invalidation wiring into that method.
+	* @param {Game_Battler} battler The battler whose cached entries should be dropped.
+	*/
+	static invalidateAllForBattler(battler) {
+		for (const cache of this._battlerCaches) {
+			cache.invalidate(battler);
+		}
+	}
+	/**
+	* Builds an object-scoped cache: one weak dimension, keyed by the database object being parsed.
+	* Use for results that depend only on immutable note text (no runtime battler context).
+	* @param {{ name: string, resolveOriginal?: boolean }} o Construction options (see {@link constructor}).
+	* @returns {JCache}
+	*/
+	static objectScoped(o) {
+		return new JCache({
+			...o,
+			dims: ["object"]
+		});
+	}
+	/**
+	* Builds a battler-scoped cache: one weak dimension, keyed by the battler. Use for results that
+	* depend only on the battler's own live state (no distinct database object per entry).
+	* @param {{ name: string, resolveOriginal?: boolean }} o Construction options (see {@link constructor}).
+	* @returns {JCache}
+	*/
+	static battlerScoped(o) {
+		return new JCache({
+			...o,
+			dims: ["battler"]
+		});
+	}
+	/**
+	* Builds a battler-then-object-scoped cache: two weak dimensions, battler outermost then the
+	* database object. Use for eval results that read both a battler's live state ("a" in a
+	* formula) and a specific database object's note text.
+	* @param {{ name: string, resolveOriginal?: boolean }} o Construction options (see {@link constructor}).
+	* @returns {JCache}
+	*/
+	static battlerThenObject(o) {
+		return new JCache({
+			...o,
+			dims: ["battler", "object"]
+		});
+	}
+	/**
+	* @param {object} options Construction options.
+	* @param {string} options.name A human-readable identifier for this cache, used for metrics/debugging.
+	* @param {string[]} options.dims The ordered weak dimensions, e.g. `['battler', 'object']`.
+	* @param {boolean} [options.resolveOriginal] When true, an `'object'` dimension key that is an
+	* {@link RPG_Base} clone resolves to its {@link RPG_Base#_original} so clones share a bucket
+	* with their source object.
+	*/
+	constructor({ name, dims, resolveOriginal = false }) {
+		this.name = name;
+		this.dims = dims;
+		this.resolveOriginal = resolveOriginal;
+		this._root = new WeakMap();
+		this._metrics = {
+			hits: 0,
+			misses: 0
+		};
+		if (dims.includes("battler")) {
+			JCache._battlerCaches.add(this);
+		}
+	}
+	/**
+	* Resolves a single dimension's key to its actual cache-bucket identity.
+	* @param {string} dim The dimension name being resolved ('battler' or 'object').
+	* @param {object} key The raw key passed in for this dimension.
+	* @returns {object} The key to actually use as the WeakMap/Map key for this dimension.
+	*/
+	#resolve(dim, key) {
+		return dim === "object" && this.resolveOriginal && key instanceof RPG_Base ? key._original() : key;
+	}
+	/**
+	* Reads the cached value for the given dimension keys + string key, computing and storing it on
+	* a miss. Call shape is `get(...weakKeys, stringKey, computeFn)`, where `weakKeys.length` must
+	* equal `this.dims.length`.
+	* @param {...*} args The weak dimension keys, followed by the string key, followed by the compute function.
+	* @returns {any} The cached or freshly computed value.
+	*/
+	get(...args) {
+		const computeFn = args.pop();
+		const stringKey = args.pop();
+		let node = this._root;
+		for (let i = 0; i < this.dims.length; i++) {
+			const k = this.#resolve(this.dims[i], args[i]);
+			let next = node.get(k);
+			if (!next) {
+				next = i === this.dims.length - 1 ? new Map() : new WeakMap();
+				node.set(k, next);
+			}
+			node = next;
+		}
+		if (node.has(stringKey) === false) {
+			this._metrics.misses++;
+			node.set(stringKey, computeFn());
+		} else {
+			this._metrics.hits++;
+		}
+		return node.get(stringKey);
+	}
+	/**
+	* Drops the cached subtree at the given dimension-key prefix. `invalidate(battler)` (a
+	* one-element prefix) is the common case: it drops every entry nested under that battler,
+	* regardless of how many further dimensions this cache declares. Calling with zero arguments
+	* clears the entire cache.
+	* @param {...object} prefix The dimension keys identifying the subtree to drop, outermost first.
+	* @returns {boolean} True if something was found and removed at that prefix, false otherwise.
+	*/
+	invalidate(...prefix) {
+		if (prefix.length === 0) {
+			this.clear();
+			return true;
+		}
+		let node = this._root;
+		for (let i = 0; i < prefix.length - 1; i++) {
+			node = node.get(this.#resolve(this.dims[i], prefix[i]));
+			if (!node) return false;
+		}
+		const last = prefix.length - 1;
+		return node.delete(this.#resolve(this.dims[last], prefix[last]));
+	}
+	/**
+	* Drops every entry in this cache by discarding the root weak dimension bucket outright.
+	*/
+	clear() {
+		this._root = new WeakMap();
+	}
+	/**
+	* @returns {{ hits: number, misses: number }} A shallow copy of this cache's hit/miss counters.
+	*/
+	get metrics() {
+		return { ...this._metrics };
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/_utilities/JsonMapper.js
+var JsonMapper = class {
+	/**
+	* Parses a object into whatever its given data type is.
+	* @param {any} obj The unknown object to parse.
+	* @returns {any|null}
+	*/
+	static parseObject(obj) {
+		if (obj === null || obj === undefined) return null;
+		if (typeof obj === "string") {
+			if (obj.startsWith("[") && obj.endsWith("]")) {
+				return this.parseArrayFromString(obj);
+			}
+			return this.parseString(obj);
+		}
+		if (Array.isArray(obj)) {
+			return obj.map(this.parseObject, this);
+		}
+		return obj;
+	}
+	/**
+	* Parses a presumed array by peeling off the `[` and `]` and parsing the
+	* exposed insides.
+	*
+	* This does not handle multiple nested arrays properly.
+	* @param {string} strArr An string presumed to be an array.
+	* @returns {any} The parsed exposed insides of the string array.
+	*/
+	static parseArrayFromString(strArr) {
+		const exposedArray = strArr.slice(1, strArr.length - 1).split(/, |,/);
+		const innerArrayStartIndex = exposedArray.findIndex((element) => element.startsWith("["));
+		if (innerArrayStartIndex > -1) {
+			const outerArrayEndIndex = exposedArray.findLastIndex((element) => element.endsWith("]"));
+			const slicedArrayString = exposedArray.slice(innerArrayStartIndex, outerArrayEndIndex + 1).toString();
+			const innerArray = this.parseArrayFromString(slicedArrayString);
+			exposedArray.splice(innerArrayStartIndex, outerArrayEndIndex + 1 - innerArrayStartIndex, innerArray);
+		}
+		return this.parseObject(exposedArray);
+	}
+	/**
+	* Parses a metadata object from a string into possibly a boolean or number.
+	* If the conversion to those fail, then it'll proceed as a string.
+	* @param {string} str The string object to parse.
+	* @returns {boolean|number|string}
+	*/
+	static parseString(str) {
+		if (str.toLowerCase() === "true") {
+			return true;
+		} else if (str.toLowerCase() === "false") return false;
+		if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
+		return str;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/_utilities/ArrayHelper.js
+var ArrayHelper = class {
+	/**
+	* A filter function for ignoring null or undefined.
+	* @param {any} value The value of the array being filtered.
+	* @returns {boolean} False if the value is null or undefined, true otherwise.
+	*/
+	static NoNulls(value) {
+		if (value === undefined || value === null) {
+			return false;
+		}
+		return true;
+	}
+	/**
+	* Determines whether two arrays share at least one common element.
+	* Builds a Set from the smaller array for O(n + m) performance and early exit.
+	*
+	* Notes:
+	* - Accepts numbers or strings (ids, keys, etc.).
+	* - Returns false if either array is empty.
+	*
+	* @param {(number|string)[]} left The first collection of values.
+	* @param {(number|string)[]} right The second collection of values.
+	* @returns {boolean} True if a value is found in both arrays; otherwise false.
+	*/
+	static hasAnyIntersection(left, right) {
+		if (!left || left.length === 0) {
+			return false;
+		}
+		if (!right || right.length === 0) {
+			return false;
+		}
+		let small = left;
+		let large = right;
+		if (right.length < left.length) {
+			small = right;
+			large = left;
+		}
+		const lookup = new Set(small);
+		for (let i = 0; i < large.length; i++) {
+			const value = large[i];
+			if (lookup.has(value)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	/**
+	* Creates an array of numbers from a range, inclusive.
+	* @param {number} a The starting number of the range.
+	* @param {number} b The ending number of the range.
+	* @returns {number[]} An array of numbers from a to b, inclusive.
+	*/
+	static rangeInclusive(a, b) {
+		return Array.from({ length: b - a + 1 }, (_, i) => a + i);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/managers/RPGManager.js
+/**
+* A utility class for handling common database-related translations.
+*/
+var RPGManager = class RPGManager {
+	/**
+	* Backing field for {@link _noteCache}, built lazily on first access rather than as an eager
+	* static-field initializer. RPG_Base now imports this class (for its {@code types()} method),
+	* and JCache imports RPG_Base (for its {@code instanceof} clone-resolution check) — a real
+	* three-file import cycle (RPG_Base -> RPGManager -> JCache -> RPG_Base). Eager static fields
+	* evaluate at module-load time, so their result depends on which file the cycle happens to be
+	* entered from; a lazy getter defers construction until the first real call, by which point the
+	* whole module graph has finished loading regardless of entry order.
+	* @type {JCache|null}
+	*/
+	static #noteCache = null;
+	/**
+	* The cache for storing parsed note-text results (string/number/boolean/array/captures). Keyed
+	* by the database object alone- note text is immutable, so no battler dimension is needed.
+	* @type {JCache}
+	*/
+	static get _noteCache() {
+		return this.#noteCache ??= JCache.objectScoped({
+			name: "rpg:note-text",
+			resolveOriginal: true
+		});
+	}
+	/**
+	* Backing field for {@link _evalCache}; see {@link #noteCache} for why this is lazy.
+	* @type {JCache|null}
+	*/
+	static #evalCache = null;
+	/**
+	* The cache for storing eval'd formula results. Keyed by battler (the formula's live "a") then
+	* by database object, so two battlers sharing a note object never collide and a battler's
+	* entries can be dropped wholesale via the {@link JCache.invalidateAllForBattler} bus.
+	* @type {JCache}
+	*/
+	static get _evalCache() {
+		return this.#evalCache ??= JCache.battlerThenObject({
+			name: "rpg:eval",
+			resolveOriginal: true
+		});
+	}
+	/**
+	* Gets the cached data for the given object and tag key.
+	* @param {object} object The object to get the cached data for.
+	* @param {string} tagKey The tag key to get the cached data for.
+	* @param {Function} computeFn The function to compute the data if it doesn't exist.
+	* @returns {any} The cached data for the object and tag key.
+	*/
+	static cached(object, tagKey, computeFn) {
+		return this._noteCache.get(object, tagKey, computeFn);
+	}
+	/**
+	* Battler-scoped variant of {@link cached}: results are bucketed by the battler whose live
+	* state the formula reads, then by database object, so two battlers never share an entry and a
+	* battler's entries can be dropped wholesale on a data change.
+	* @param {Game_Battler} battler The formula context (the `a`).
+	* @param {object} object The database object being parsed.
+	* @param {string} tagKey The stable key for this regex/options set (NO battler, NO level).
+	* @param {Function} computeFn Producer run on a miss.
+	* @returns {any}
+	*/
+	static cachedForBattler(battler, object, tagKey, computeFn) {
+		return this._evalCache.get(battler, object, tagKey, computeFn);
+	}
+	/**
+	* Invalidates the cache for the given object.
+	* @param {object} object The object to invalidate the cache for.
+	* @returns {boolean} True if the cache was invalidated, false otherwise.
+	*/
+	static invalidate(object) {
+		return this._noteCache.invalidate(object);
+	}
+	/**
+	* Drops all cached eval results for one battler. Called from Game_Battler#onBattlerDataChange
+	* (via the {@link JCache.invalidateAllForBattler} bus); kept for any direct callers.
+	* @param {Game_Battler} battler
+	* @returns {boolean}
+	*/
+	static invalidateBattlerEval(battler) {
+		return this._evalCache.invalidate(battler);
+	}
+	/**
+	* Clears the cache for all objects.
+	*/
+	static clearCache() {
+		this._noteCache.clear();
+		this._evalCache.clear();
+	}
+	/**
+	* A quick and re-usable means of rolling for a chance of success.
+	* This will roll `rollForPositive` times in an effort to get a successful roll.
+	* If success is found and `rollsForNegative` is greater than 0, additional rolls of success will
+	* be required or the negative rolls will undo the success.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
+	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
+	* @returns {boolean} True if success, false otherwise.
+	*/
+	static chanceIn100(percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
+		if (percentOfSuccess <= 0) return false;
+		let success = false;
+		while (rollForPositive && !success) {
+			const chance = Math.randomInt(100) + 1;
+			if (chance <= percentOfSuccess) {
+				success = true;
+			}
+			rollForPositive--;
+		}
+		if (success && rollForNegative) {
+			while (rollForNegative && success) {
+				const chance = Math.randomInt(100) + 1;
+				if (chance <= percentOfSuccess) {
+					success = true;
+				} else {
+					return false;
+				}
+				rollForNegative--;
+			}
+		}
+		return success;
+	}
+	/**
+	* Same as {@link #chanceIn100}, but first checks the positive-roller's own fate-override
+	* flags- `isVeryLucky()` short-circuits straight to guaranteed success, `isVeryCursed()`
+	* short-circuits straight to guaranteed failure, both bypassing the roll entirely rather than
+	* stacking an absurd reroll count. Only when neither flag is set does an actual roll occur.
+	* @param {Game_Battler} positiveRoller The battler whose success this roll is for- the one
+	* whose `positiveRolls`/fate-override flags apply.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
+	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
+	* @returns {boolean} True if success, false otherwise.
+	*/
+	static fateOf100(positiveRoller, percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
+		if (positiveRoller.isVeryLucky()) return true;
+		if (positiveRoller.isVeryCursed()) return false;
+		return this.chanceIn100(percentOfSuccess, rollForPositive, rollForNegative);
+	}
+	/**
+	* Accumulate Mode's counting roll: instead of stopping at the first successful positive roll,
+	* rolls all `rollForPositive` attempts unconditionally and counts how many landed. Negative
+	* rerolls have no counting-mode equivalent (Accumulate Mode is scoped to positive rolls only)
+	* and are intentionally not accepted here.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to attempt; defaults to 1.
+	* @returns {number} How many of the attempted rolls succeeded.
+	*/
+	static countSuccessesIn100(percentOfSuccess, rollForPositive = 1) {
+		if (percentOfSuccess <= 0) return 0;
+		let successCount = 0;
+		let attemptsRemaining = rollForPositive;
+		while (attemptsRemaining) {
+			const chance = Math.randomInt(100) + 1;
+			if (chance <= percentOfSuccess) {
+				successCount++;
+			}
+			attemptsRemaining--;
+		}
+		return successCount;
+	}
+	/**
+	* Same as {@link #countSuccessesIn100}, but first checks the positive-roller's own
+	* fate-override flags- `isVeryLucky()` counts every attempt as a success, `isVeryCursed()`
+	* counts none, both bypassing the roll entirely.
+	* @param {Game_Battler} positiveRoller The battler whose success this roll is for.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to attempt; defaults to 1.
+	* @returns {number} How many of the attempted rolls succeeded.
+	*/
+	static countSuccessesFateOf100(positiveRoller, percentOfSuccess, rollForPositive = 1) {
+		if (positiveRoller.isVeryLucky()) return rollForPositive;
+		if (positiveRoller.isVeryCursed()) return 0;
+		return this.countSuccessesIn100(percentOfSuccess, rollForPositive);
+	}
+	/**
+	* Resolves how many times a repeatable-action proc's action should actually execute, folding
+	* in Accumulate Mode and Encore repeats from the positive-roller's own perspective. This is the
+	* one entry point sites with a repeatable action (add a state, force-execute a skill) should
+	* use instead of {@link #fateOf100}- sites whose success is consumed as a single boolean
+	* outcome (hit/evade, crit, parry) should keep using {@link #fateOf100} directly, since there is
+	* no repeatable action there for Accumulate/Encore to multiply.
+	* @param {Game_Battler} positiveRoller The battler whose success this roll is for.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
+	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
+	* @returns {number} How many times the proc's action should execute; 0 means it did not proc.
+	*/
+	static resolveProcCount(positiveRoller, percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
+		let successCount;
+		if (positiveRoller.isAccumulating()) {
+			successCount = this.countSuccessesFateOf100(positiveRoller, percentOfSuccess, rollForPositive);
+		} else {
+			const singleSuccess = this.fateOf100(positiveRoller, percentOfSuccess, rollForPositive, rollForNegative);
+			successCount = singleSuccess ? 1 : 0;
+		}
+		const repeatsPerSuccess = 1 + positiveRoller.getEncoreRepeats();
+		return successCount * repeatsPerSuccess;
+	}
+	/**
+	* A quick and re-usable means of rolling for chance using a weighted model against a map of (key=id,val=weight).
+	* @param {Map<any,number>} map The map of key-value pairs to choose from.
+	* @param {number} totalWeight The total weight of all values in the map.
+	* @returns {any|null} The chosen key or null if no valid choice is found.
+	*/
+	static weightedMapChoice(map, totalWeight) {
+		if (totalWeight <= 0) return null;
+		let r = Math.random() * totalWeight;
+		for (const [key, val] of map) {
+			if (val <= 0) continue;
+			r -= val;
+			if (r < 0) return key;
+		}
+		return null;
+	}
+	/**
+	* Gets the last instance of a string matching the regex from the given database object.
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string|null} The string matching the structure, {@link String.empty} if not found, or null with the flag.
+	*/
+	static getStringFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : String.empty;
+		}
+		const key = `str:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getStringFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gets the last instance of a string matching the regex from the given database object.
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string|null} The string matching the structure, {@link String.empty} if not found, or null with the flag.
+	*/
+	static #getStringFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		let val = String.empty;
+		const lines = databaseData.note.split(/[\r\n]+/);
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, stringResult] = result;
+			val = stringResult;
+		});
+		if (!val) {
+			return nullIfEmpty ? null : String.empty;
+		}
+		return val;
+	}
+	/**
+	* Gathers all string instances matching the regex from the given database object.
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string[]|null} The array of strings matching the structure, or an empty array if not found, or null.
+	*/
+	static getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : Array.empty;
+		}
+		const key = `str[]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gathers all string instances matching the regex from the given database object.
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string[]|null} The array of strings matching the structure, or an empty array if not found, or null.
+	*/
+	static #getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const val = [];
+		const lines = databaseData.note.split(/[\r\n]+/);
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, stringResult] = result;
+			val.push(stringResult);
+		});
+		if (val.length === 0) {
+			return nullIfEmpty ? null : [];
+		}
+		return val;
+	}
+	/**
+	* Gets the last numeric value based on the provided regex structure.
+	*
+	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
+	* this will be `null` instead of the default 0 as an indicator we didn't find
+	* anything from the notes of this skill.
+	*
+	* This can handle both integers and decimal numbers.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+	* @returns {number|null} The last value from the notes of this object, or zero/null.
+	*/
+	static getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : 0;
+		}
+		const key = `num:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gets the last numeric value based on the provided regex structure.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+	* @returns {number|null} The last value from the notes of this object, or zero/null.
+	*/
+	static #getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		if (!lines.length) {
+			return nullIfEmpty ? null : 0;
+		}
+		let val = null;
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, numericResult] = result;
+			val = parseFloat(numericResult);
+		});
+		if (val === null) {
+			return nullIfEmpty ? null : 0;
+		}
+		return val;
+	}
+	/**
+	* Gathers all numbers found in arrays on the database object provided.
+	*
+	* This accepts a regex structure, assuming the capture group is an numeric value,
+	* and adds all values together from each line in the notes that match the provided
+	* regex structure.
+	*
+	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
+	* this will be `null` instead of the default [] as an indicator we didn't find
+	* anything from the notes of this skill.
+	*
+	* This can handle both integers and decimal numbers.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+	* @returns {number[]|null}
+	*/
+	static getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : Array.empty;
+		}
+		const key = `num[]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gathers all numbers found in arrays on the database object provided.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+	* @returns {number[]|null}
+	*/
+	static #getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		let vals = [];
+		const found = this.getArrayFromNotesByRegex(databaseData, structure, true, true);
+		if (found !== null) {
+			vals = found;
+		}
+		if (!vals.length) {
+			return nullIfEmpty ? null : vals;
+		}
+		const noNullVals = vals.filter(ArrayHelper.NoNulls, this);
+		return noNullVals;
+	}
+	/**
+	* Gets the sum of all values from the notes of a collection of database objects.
+	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {number|null} A number if "nullIfEmpty=false", null otherwise.
+	*/
+	static getSumFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
+		if (!databaseDatas.length) {
+			return nullIfEmpty ? null : 0;
+		}
+		let val = 0;
+		databaseDatas.forEach((databaseData) => {
+			val += this.getNumberFromNoteByRegex(databaseData, structure);
+		});
+		if (!val && nullIfEmpty) {
+			return null;
+		}
+		return val;
+	}
+	/**
+	* Get the eval'd formula of all matching values from the notes of a single database object.
+	* @param {RPG_Base} databaseData The database object to parse the notes of.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
+	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {number|null} The calculated result from all formula summed together.
+	*/
+	static getResultFromNoteByRegex(databaseData, structure, baseParam, context = null, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : 0;
+		}
+		const key = `eval:${structure.source}::${structure.flags}::${baseParam}::nullIfEmpty=${nullIfEmpty}`;
+		const compute = () => this.#getResultFromNoteByRegex(databaseData, structure, baseParam, context, nullIfEmpty);
+		if (context) return this.cachedForBattler(context, databaseData, key, compute);
+		return this.cached(databaseData, key, compute);
+	}
+	/**
+	* Get the eval'd formula of all matching values from the notes of a single database object.
+	* @param {RPG_Base} databaseData The database object to parse the notes of.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
+	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {number|null} The calculated result from all formula summed together.
+	*/
+	static #getResultFromNoteByRegex(databaseData, structure, baseParam, context = null, nullIfEmpty = false) {
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let val = 0;
+		const a = context;
+		const b = baseParam;
+		const v = $gameVariables._data;
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, formula] = result;
+			try {
+				const evalResult = new Function("a", "b", "v", `return (${formula})`)(a, b, v).toFixed(3);
+				val += parseFloat(evalResult);
+			} catch (error) {
+				console.error(`An error occurred while evaluating the formula: [${formula}].`);
+				console.error(error);
+			}
+		});
+		if (!val && nullIfEmpty) {
+			return null;
+		}
+		return val;
+	}
+	/**
+	* Gets the eval'd formulai of all values from the notes of a collection of database objects.
+	* It is intended that the regex structure provided will be a numeric formula.
+	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
+	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {number|null} The calculated result from all formula summed together.
+	*/
+	static getResultsFromAllNotesByRegex(databaseDatas, structure, baseParam = 0, context = null, nullIfEmpty = false) {
+		if (!databaseDatas.length) {
+			return nullIfEmpty ? null : 0;
+		}
+		let val = 0;
+		databaseDatas.forEach((databaseData) => {
+			val += this.getResultFromNoteByRegex(databaseData, structure, baseParam, context);
+		});
+		if (!val && nullIfEmpty) {
+			return null;
+		}
+		return val;
+	}
+	/**
+	* Gets whether or not there is a matching regex tag on this database entry.
+	*
+	* Do be aware of the fact that with this type of tag, we are checking only
+	* for existence, not the value. As such, it will be `true` if found, and `false` if
+	* not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
+	* `null` instead of `false` when missing, or use a string regex pattern and add
+	* something like `<someKey:true>` or `<someKey:false>` for greater clarity.
+	*
+	* This accepts a regex structure, but does not leverage a capture group.
+	*
+	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
+	* this will be `null` instead of the default `false` as an indicator we didn't find
+	* anything from the notes of this skill.
+	* @param {RPG_Base} databaseData The regular expression to filter notes by.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
+	*/
+	static checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : false;
+		}
+		const key = `bool:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gets whether or not there is a matching regex tag on this database entry.
+	* @param {RPG_Base} databaseData The regular expression to filter notes by.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
+	*/
+	static #checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let val = false;
+		let hasMatch = false;
+		lines.forEach((line) => {
+			const hasStructure = scan.test(line);
+			if (hasStructure) {
+				val = true;
+				hasMatch = true;
+			}
+		});
+		if (hasMatch === false && nullIfEmpty) {
+			return null;
+		} else {
+			return val;
+		}
+	}
+	/**
+	* Gets whether or not there is a matching regex tag from a collection of database objects.
+	*
+	* Do be aware of the fact that with this type of tag, we are checking only
+	* for existence, not the value. As such, it will be `true` if found, and `false` if
+	* not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
+	* `null` instead of `false` when missing, or use a string regex pattern and add
+	* something like `<someKey:true>` or `<someKey:false>` for greater clarity.
+	*
+	* This accepts a regex structure, but does not leverage a capture group.
+	*
+	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
+	* this will be `null` instead of the default `false` as an indicator we didn't find
+	* anything from the notes of this skill.
+	* @param {RPG_Base[]} databaseDatas The objects to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
+	*/
+	static checkForBooleanFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
+		const results = databaseDatas.map((databaseData) => this.checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
+		const onlyTrueRemains = results.filter((result) => result !== null).filter((result) => result !== false);
+		if (onlyTrueRemains.length === 0) {
+			if (nullIfEmpty) {
+				return null;
+			}
+			return false;
+		}
+		return true;
+	}
+	/**
+	* Gets an array of arrays based on the provided regex structure.
+	*
+	* This accepts a regex structure, assuming the capture group is an array of values
+	* all wrapped in hard brackets [].
+	*
+	* If the optional flag `tryParse` is true, then it will attempt to parse out
+	* the array of values as well, including translating strings to numbers/booleans
+	* and keeping array structures all intact.
+	* @param {RPG_Base} databaseData The database object to parse notes from.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
+	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
+	* @returns {any[][]|null} The array of arrays from the notes, or null.
+	*/
+	static getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : [];
+		}
+		const key = `any[][]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getArraysFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
+	}
+	/**
+	* Gets an array of arrays based on the provided regex structure.
+	* @param {RPG_Base} databaseData The database object to parse notes from.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
+	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
+	* @returns {any[][]|null} The array of arrays from the notes, or null.
+	*/
+	static #getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let val = [];
+		let hasMatch = false;
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, match] = result;
+			val.push(match);
+			hasMatch = true;
+		});
+		if (!hasMatch) {
+			return nullIfEmpty ? null : [];
+		}
+		if (tryParse) {
+			val = val.map(JsonMapper.parseObject, JsonMapper);
+		}
+		return val;
+	}
+	/**
+	* Gets a single array based on the provided regex structure.
+	*
+	* This accepts a regex structure, assuming the capture group is an array of values
+	* all wrapped in hard brackets [].
+	*
+	* If the optional flag `tryParse` is true, then it will attempt to parse out
+	* the array of values as well, including translating strings to numbers/booleans
+	* and keeping array structures all intact.
+	* @param {RPG_Base} databaseData The contents of the note of a given object.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
+	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
+	* @returns {any[]|null} The array from the notes, or null.
+	*/
+	static getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : [];
+		}
+		const key = `any[]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getArrayFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
+	}
+	/**
+	* Gets a single array based on the provided regex structure.
+	*
+	* This accepts a regex structure, assuming the capture group is an array of values
+	* all wrapped in hard brackets [].
+	*
+	* If the optional flag `tryParse` is true, then it will attempt to parse out
+	* the array of values as well, including translating strings to numbers/booleans
+	* and keeping array structures all intact.
+	* @param {RPG_Base} databaseData The contents of the note of a given object.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
+	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
+	* @returns {any[]|null} The array from the notes, or null.
+	*/
+	static #getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let val = null;
+		let hasMatch = false;
+		lines.forEach((line) => {
+			if (line.match(structure)) {
+				const [, result] = scan.exec(line);
+				val = JsonMapper.parseObject(result);
+				hasMatch = true;
+			}
+		});
+		if (!hasMatch) {
+			return nullIfEmpty ? null : [];
+		}
+		if (tryParse) {
+			val = val.map(JsonMapper.parseObject, JsonMapper);
+		}
+		return val;
+	}
+	/**
+	* Collects all {@link JABS_OnChanceEffect}s from a single database objects.
+	* @param {RPG_Base} databaseData The database object to retrieve on-chance effects from.
+	* @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
+	* @returns {JABS_OnChanceEffect[]} All found on-chance effects on this database object.
+	*/
+	static getOnChanceEffectsFromDatabaseObject(databaseData, structure) {
+		const foundDatas = this.getArraysFromNotesByRegex(databaseData, structure, true);
+		if (!foundDatas) return [];
+		const key = J.BASE.Helpers.getKeyFromRegexp(structure);
+		const mapper = (data) => {
+			const [skillId, chance, hitTypeString] = data;
+			const hitType = RPGManager.resolveHitTypeString(hitTypeString);
+			return new JABS_OnChanceEffect(skillId, chance ?? 100, key, hitType);
+		};
+		const mappedOnChanceEffects = foundDatas.map(mapper, this);
+		return mappedOnChanceEffects;
+	}
+	/**
+	* Resolves an optional hit type string from a notetag into its numeric constant.
+	* Accepts "physical", "magical", or "certain" (case-insensitive).
+	* Returns null when the string is absent or unrecognised, meaning any hit type matches.
+	* @param {string|undefined} str The raw string from the parsed notetag array.
+	* @returns {number|null}
+	*/
+	static resolveHitTypeString(str) {
+		if (!str) return null;
+		switch (str.toLowerCase()) {
+			case "physical": return Game_Action.HITTYPE_PHYSICAL;
+			case "magical": return Game_Action.HITTYPE_MAGICAL;
+			case "certain": return Game_Action.HITTYPE_CERTAIN;
+			default: return null;
+		}
+	}
+	/**
+	* Collects all {@link JABS_OnChanceEffect}s from the list of database objects.
+	* @param {RPG_Base[]} databaseDatas The list of database objects to parse.
+	* @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
+	* @returns {JABS_OnChanceEffect[]}
+	*/
+	static getOnChanceEffectsFromDatabaseObjects(databaseDatas, structure) {
+		const onChanceEffects = [];
+		databaseDatas.forEach((databaseData) => {
+			const onChanceEffectList = this.getOnChanceEffectsFromDatabaseObject(databaseData, structure);
+			onChanceEffects.push(...onChanceEffectList);
+		});
+		return onChanceEffects;
+	}
+	/**
+	* Gets all capture groups (excluding the full match) for every note line that matches the regex.
+	*
+	* Each matching line contributes one entry to the result array. The entry is an array of strings
+	* corresponding to the capture groups for that match (index 1..n of the RegExp exec result).
+	*
+	* Example:
+	*   Regex: /<on-(hit|use):affect-(self|allies|target|enemies|all):\[([+\-/ ().\w]+)]>/gi
+	*   Line:  "<on-hit:affect-self:[a.atk * 400]>"
+	*   Pushes: [ "hit", "self", "a.atk * 400" ]
+	*
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+	* @returns {string[][]|null} An array of capture arrays, or null.
+	*/
+	static getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : [];
+		}
+		const key = `captures:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gets all capture groups (excluding the full match) for every note line that matches the regex.
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+	* @returns {string[][]|null} An array of capture arrays, or null.
+	*/
+	static #getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		const captures = [];
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (!result) return;
+			const groups = result.slice(1);
+			captures.push(groups);
+		});
+		if (captures.length === 0 && nullIfEmpty) {
+			return null;
+		}
+		return captures;
+	}
+	/**
+	* Gets all capture arrays from a collection of database objects.
+	*
+	* See {@link RPGManager.getAllCapturesFromNoteByRegex} for details on the shape
+	* of the returned values for each matching tag.
+	*
+	* @param {RPG_BaseItem[]} databaseDatas The database objects to inspect.
+	* @param {RegExp} structure The regular expression to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+	* @returns {string[][]|null} All capture arrays found across all provided objects.
+	*/
+	static getAllCapturesFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
+		const captures = [];
+		databaseDatas.forEach((databaseData) => {
+			const found = this.getAllCapturesFromNoteByRegex(databaseData, structure);
+			if (found.length) {
+				captures.push(...found);
+			}
+		}, this);
+		if (!captures.length && nullIfEmpty) {
+			return null;
+		}
+		return captures;
+	}
+	/**
+	* Determines whether the database object can have its note parsed.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @returns {boolean} True if it can be parsed, false otherwise.
+	*/
+	static #canParsedatabaseData(databaseData) {
+		if (!databaseData) return false;
+		if (databaseData && !databaseData.note) return false;
+		return true;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/database/base/RPG_Base.js
 /**
 * A class representing the foundation of all database objects.
@@ -469,6 +1540,15 @@ var RPG_Base = class RPG_Base {
 	implementationType() {
 		return "@base";
 	}
+	/**
+	* Gets all type classifiers assigned to this state via notetag.
+	* Returns every value matched by a {@code <type:CLASSIFIER>} tag in the notebox.
+	* Multiple tags on the same state are all collected and returned together.
+	* @returns {string[]} The array of classifier strings, or an empty array if none are defined.
+	*/
+	types() {
+		return RPGManager.getStringsFromNoteByRegex(this, J.BASE.RegExp.ClassifierType);
+	}
 };
 
 //#endregion
@@ -635,7 +1715,7 @@ J.BASE.RegExp = {};
 /**
 * The basic structure for the maximum count of a number of items holdable is.
 */
-J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
+J.BASE.RegExp.MaxItems = /<max:(\d+)>/gi;
 /**
 * Outgoing heal potency multiplier — the sender-side counterpart to REC (`<har:25>` = +25%).
 */
@@ -673,7 +1753,7 @@ J.BASE.RegExp.MaxTp = /<maxTp: ?(-?\d+)>/i;
 * </pre>
 * @type {RegExp}
 */
-J.BASE.RegExp.StateType = /<type:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>/gi;
+J.BASE.RegExp.ClassifierType = /<type:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>/gi;
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -905,120 +1985,6 @@ if (![].at) {
 		return this[index];
 	};
 }
-
-//#endregion
-//#region src/plugins/_base/_utilities/ArrayHelper.js
-var ArrayHelper = class {
-	/**
-	* A filter function for ignoring null or undefined.
-	* @param {any} value The value of the array being filtered.
-	* @returns {boolean} False if the value is null or undefined, true otherwise.
-	*/
-	static NoNulls(value) {
-		if (value === undefined || value === null) {
-			return false;
-		}
-		return true;
-	}
-	/**
-	* Determines whether two arrays share at least one common element.
-	* Builds a Set from the smaller array for O(n + m) performance and early exit.
-	*
-	* Notes:
-	* - Accepts numbers or strings (ids, keys, etc.).
-	* - Returns false if either array is empty.
-	*
-	* @param {(number|string)[]} left The first collection of values.
-	* @param {(number|string)[]} right The second collection of values.
-	* @returns {boolean} True if a value is found in both arrays; otherwise false.
-	*/
-	static hasAnyIntersection(left, right) {
-		if (!left || left.length === 0) {
-			return false;
-		}
-		if (!right || right.length === 0) {
-			return false;
-		}
-		let small = left;
-		let large = right;
-		if (right.length < left.length) {
-			small = right;
-			large = left;
-		}
-		const lookup = new Set(small);
-		for (let i = 0; i < large.length; i++) {
-			const value = large[i];
-			if (lookup.has(value)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	/**
-	* Creates an array of numbers from a range, inclusive.
-	* @param {number} a The starting number of the range.
-	* @param {number} b The ending number of the range.
-	* @returns {number[]} An array of numbers from a to b, inclusive.
-	*/
-	static rangeInclusive(a, b) {
-		return Array.from({ length: b - a + 1 }, (_, i) => a + i);
-	}
-};
-
-//#endregion
-//#region src/plugins/_base/_utilities/JsonMapper.js
-var JsonMapper = class {
-	/**
-	* Parses a object into whatever its given data type is.
-	* @param {any} obj The unknown object to parse.
-	* @returns {any|null}
-	*/
-	static parseObject(obj) {
-		if (obj === null || obj === undefined) return null;
-		if (typeof obj === "string") {
-			if (obj.startsWith("[") && obj.endsWith("]")) {
-				return this.parseArrayFromString(obj);
-			}
-			return this.parseString(obj);
-		}
-		if (Array.isArray(obj)) {
-			return obj.map(this.parseObject, this);
-		}
-		return obj;
-	}
-	/**
-	* Parses a presumed array by peeling off the `[` and `]` and parsing the
-	* exposed insides.
-	*
-	* This does not handle multiple nested arrays properly.
-	* @param {string} strArr An string presumed to be an array.
-	* @returns {any} The parsed exposed insides of the string array.
-	*/
-	static parseArrayFromString(strArr) {
-		const exposedArray = strArr.slice(1, strArr.length - 1).split(/, |,/);
-		const innerArrayStartIndex = exposedArray.findIndex((element) => element.startsWith("["));
-		if (innerArrayStartIndex > -1) {
-			const outerArrayEndIndex = exposedArray.findLastIndex((element) => element.endsWith("]"));
-			const slicedArrayString = exposedArray.slice(innerArrayStartIndex, outerArrayEndIndex + 1).toString();
-			const innerArray = this.parseArrayFromString(slicedArrayString);
-			exposedArray.splice(innerArrayStartIndex, outerArrayEndIndex + 1 - innerArrayStartIndex, innerArray);
-		}
-		return this.parseObject(exposedArray);
-	}
-	/**
-	* Parses a metadata object from a string into possibly a boolean or number.
-	* If the conversion to those fail, then it'll proceed as a string.
-	* @param {string} str The string object to parse.
-	* @returns {boolean|number|string}
-	*/
-	static parseString(str) {
-		if (str.toLowerCase() === "true") {
-			return true;
-		} else if (str.toLowerCase() === "false") return false;
-		if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
-		return str;
-	}
-};
 
 //#endregion
 //#region src/plugins/_base/core/SerializableRegistry.js
@@ -3116,16 +4082,20 @@ var ParameterDefinition = class ParameterDefinition {
 	* padding, and percent suffixes as dictated by the format and display policy.
 	* @param {number} value The raw battler value to format.
 	* @param {boolean=} withPadding True to apply zero-padding for styled stat columns; defaults to false.
+	* @param {Game_Battler=} actor The battler whose tick cadence resolves REGEN_PER_SECOND's
+	* conversion. Optional so `_base` stays decoupled from J-ABS; when omitted (or J-ABS isn't
+	* loaded), falls back to a neutral 1 tick/sec assumption rather than crashing.
 	* @returns {string}
 	*/
-	prettyValue(value, withPadding = false) {
+	prettyValue(value, withPadding = false, actor = null) {
 		const sentinel = this.resolveDisplaySentinel(value);
 		if (sentinel) {
 			return sentinel;
 		}
 		const num = this.clampDisplayMagnitude(this.displayMagnitude(value));
 		if (this.format === ParameterFormat.REGEN_PER_SECOND) {
-			const perSecond = num / 5;
+			const ticksPerSecond = actor && actor.getNaturalRegenTickInterval ? 60 / actor.getNaturalRegenTickInterval() : 1;
+			const perSecond = num * ticksPerSecond;
 			return `${perSecond.toFixed(1)}/s`;
 		}
 		let base = Number.isInteger(num) ? num.toString() : num.toFixed(1);
@@ -3482,784 +4452,6 @@ ColorManager.colorIndexFromHex = function(hexString) {
 		}
 	}
 	return bestIndex;
-};
-
-//#endregion
-//#region src/plugins/_base/managers/RPGManager.js
-/**
-* A utility class for handling common database-related translations.
-*/
-var RPGManager = class RPGManager {
-	/**
-	* The cache for storing parsed note data.
-	* @type {WeakMap<object, Map<string, any>>}
-	*/
-	static _cache = new WeakMap();
-	/**
-	* The metrics for this manager.
-	* @type {{ hits: number, misses: number }}
-	*/
-	static _metrics = {
-		hits: 0,
-		misses: 0
-	};
-	/**
-	* Gets or initializes the cache for the given object.
-	* @param {object} object The object to get or initialize the cache for.
-	* @returns {Map<string, any>} The cache for the object.
-	*/
-	static getOrCreateCacheForObject(object) {
-		const cacheTarget = object instanceof RPG_Base ? object._original() : object;
-		const cacheHit = this._cache.get(cacheTarget);
-		if (cacheHit) return cacheHit;
-		const newCache = new Map();
-		this._cache.set(cacheTarget, newCache);
-		return newCache;
-	}
-	/**
-	* Gets the cached data for the given object and tag key.
-	* @param {object} object The object to get the cached data for.
-	* @param {string} tagKey The tag key to get the cached data for.
-	* @param {Function} computeFn The function to compute the data if it doesn't exist.
-	* @returns {any} The cached data for the object and tag key.
-	*/
-	static cached(object, tagKey, computeFn) {
-		const cache = this.getOrCreateCacheForObject(object);
-		if (cache.has(tagKey) === false) {
-			this._metrics.misses++;
-			const data = computeFn();
-			cache.set(tagKey, data);
-		} else {
-			this._metrics.hits++;
-		}
-		return cache.get(tagKey);
-	}
-	/**
-	* Invalidates the cache for the given object.
-	* @param {object} object The object to invalidate the cache for.
-	* @returns {boolean} True if the cache was invalidated, false otherwise.
-	*/
-	static invalidate(object) {
-		const cacheTarget = object instanceof RPG_Base ? object._original() : object;
-		return this._cache.delete(cacheTarget);
-	}
-	/**
-	* Clears the cache for all objects.
-	*/
-	static clearCache() {
-		this._cache = new WeakMap();
-	}
-	/**
-	* A quick and re-usable means of rolling for a chance of success.
-	* This will roll `rollForPositive` times in an effort to get a successful roll.
-	* If success is found and `rollsForNegative` is greater than 0, additional rolls of success will
-	* be required or the negative rolls will undo the success.
-	* @param {number} percentOfSuccess The percent chance of success.
-	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
-	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
-	* @returns {boolean} True if success, false otherwise.
-	*/
-	static chanceIn100(percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
-		if (percentOfSuccess <= 0) return false;
-		let success = false;
-		while (rollForPositive && !success) {
-			const chance = Math.randomInt(100) + 1;
-			if (chance <= percentOfSuccess) {
-				success = true;
-			}
-			rollForPositive--;
-		}
-		if (success && rollForNegative) {
-			while (rollForNegative && success) {
-				const chance = Math.randomInt(100) + 1;
-				if (chance <= percentOfSuccess) {
-					success = true;
-				} else {
-					return false;
-				}
-				rollForNegative--;
-			}
-		}
-		return success;
-	}
-	/**
-	* Same as {@link #chanceIn100}, but first checks the positive-roller's own fate-override
-	* flags- `isVeryLucky()` short-circuits straight to guaranteed success, `isVeryCursed()`
-	* short-circuits straight to guaranteed failure, both bypassing the roll entirely rather than
-	* stacking an absurd reroll count. Only when neither flag is set does an actual roll occur.
-	* @param {Game_Battler} positiveRoller The battler whose success this roll is for- the one
-	* whose `positiveRolls`/fate-override flags apply.
-	* @param {number} percentOfSuccess The percent chance of success.
-	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
-	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
-	* @returns {boolean} True if success, false otherwise.
-	*/
-	static fateOf100(positiveRoller, percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
-		if (positiveRoller.isVeryLucky()) return true;
-		if (positiveRoller.isVeryCursed()) return false;
-		return this.chanceIn100(percentOfSuccess, rollForPositive, rollForNegative);
-	}
-	/**
-	* Accumulate Mode's counting roll: instead of stopping at the first successful positive roll,
-	* rolls all `rollForPositive` attempts unconditionally and counts how many landed. Negative
-	* rerolls have no counting-mode equivalent (Accumulate Mode is scoped to positive rolls only)
-	* and are intentionally not accepted here.
-	* @param {number} percentOfSuccess The percent chance of success.
-	* @param {number=} rollForPositive The number of positive rolls to attempt; defaults to 1.
-	* @returns {number} How many of the attempted rolls succeeded.
-	*/
-	static countSuccessesIn100(percentOfSuccess, rollForPositive = 1) {
-		if (percentOfSuccess <= 0) return 0;
-		let successCount = 0;
-		let attemptsRemaining = rollForPositive;
-		while (attemptsRemaining) {
-			const chance = Math.randomInt(100) + 1;
-			if (chance <= percentOfSuccess) {
-				successCount++;
-			}
-			attemptsRemaining--;
-		}
-		return successCount;
-	}
-	/**
-	* Same as {@link #countSuccessesIn100}, but first checks the positive-roller's own
-	* fate-override flags- `isVeryLucky()` counts every attempt as a success, `isVeryCursed()`
-	* counts none, both bypassing the roll entirely.
-	* @param {Game_Battler} positiveRoller The battler whose success this roll is for.
-	* @param {number} percentOfSuccess The percent chance of success.
-	* @param {number=} rollForPositive The number of positive rolls to attempt; defaults to 1.
-	* @returns {number} How many of the attempted rolls succeeded.
-	*/
-	static countSuccessesFateOf100(positiveRoller, percentOfSuccess, rollForPositive = 1) {
-		if (positiveRoller.isVeryLucky()) return rollForPositive;
-		if (positiveRoller.isVeryCursed()) return 0;
-		return this.countSuccessesIn100(percentOfSuccess, rollForPositive);
-	}
-	/**
-	* Resolves how many times a repeatable-action proc's action should actually execute, folding
-	* in Accumulate Mode and Encore repeats from the positive-roller's own perspective. This is the
-	* one entry point sites with a repeatable action (add a state, force-execute a skill) should
-	* use instead of {@link #fateOf100}- sites whose success is consumed as a single boolean
-	* outcome (hit/evade, crit, parry) should keep using {@link #fateOf100} directly, since there is
-	* no repeatable action there for Accumulate/Encore to multiply.
-	* @param {Game_Battler} positiveRoller The battler whose success this roll is for.
-	* @param {number} percentOfSuccess The percent chance of success.
-	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
-	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
-	* @returns {number} How many times the proc's action should execute; 0 means it did not proc.
-	*/
-	static resolveProcCount(positiveRoller, percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
-		let successCount;
-		if (positiveRoller.isAccumulating()) {
-			successCount = this.countSuccessesFateOf100(positiveRoller, percentOfSuccess, rollForPositive);
-		} else {
-			const singleSuccess = this.fateOf100(positiveRoller, percentOfSuccess, rollForPositive, rollForNegative);
-			successCount = singleSuccess ? 1 : 0;
-		}
-		const repeatsPerSuccess = 1 + positiveRoller.getEncoreRepeats();
-		return successCount * repeatsPerSuccess;
-	}
-	/**
-	* A quick and re-usable means of rolling for chance using a weighted model against a map of (key=id,val=weight).
-	* @param {Map<any,number>} map The map of key-value pairs to choose from.
-	* @param {number} totalWeight The total weight of all values in the map.
-	* @returns {any|null} The chosen key or null if no valid choice is found.
-	*/
-	static weightedMapChoice(map, totalWeight) {
-		if (totalWeight <= 0) return null;
-		let r = Math.random() * totalWeight;
-		for (const [key, val] of map) {
-			if (val <= 0) continue;
-			r -= val;
-			if (r < 0) return key;
-		}
-		return null;
-	}
-	/**
-	* Gets the last instance of a string matching the regex from the given database object.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {string|null} The string matching the structure, {@link String.empty} if not found, or null with the flag.
-	*/
-	static getStringFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : String.empty;
-		}
-		const key = `str:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getStringFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gets the last instance of a string matching the regex from the given database object.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {string|null} The string matching the structure, {@link String.empty} if not found, or null with the flag.
-	*/
-	static #getStringFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		let val = String.empty;
-		const lines = databaseData.note.split(/[\r\n]+/);
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, stringResult] = result;
-			val = stringResult;
-		});
-		if (!val) {
-			return nullIfEmpty ? null : String.empty;
-		}
-		return val;
-	}
-	/**
-	* Gathers all string instances matching the regex from the given database object.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {string[]|null} The array of strings matching the structure, or an empty array if not found, or null.
-	*/
-	static getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : Array.empty;
-		}
-		const key = `str[]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gathers all string instances matching the regex from the given database object.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {string[]|null} The array of strings matching the structure, or an empty array if not found, or null.
-	*/
-	static #getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const val = [];
-		const lines = databaseData.note.split(/[\r\n]+/);
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, stringResult] = result;
-			val.push(stringResult);
-		});
-		if (val.length === 0) {
-			return nullIfEmpty ? null : [];
-		}
-		return val;
-	}
-	/**
-	* Gets the last numeric value based on the provided regex structure.
-	*
-	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
-	* this will be `null` instead of the default 0 as an indicator we didn't find
-	* anything from the notes of this skill.
-	*
-	* This can handle both integers and decimal numbers.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
-	* @returns {number|null} The last value from the notes of this object, or zero/null.
-	*/
-	static getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : 0;
-		}
-		const key = `num:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gets the last numeric value based on the provided regex structure.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
-	* @returns {number|null} The last value from the notes of this object, or zero/null.
-	*/
-	static #getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		if (!lines.length) {
-			return nullIfEmpty ? null : 0;
-		}
-		let val = null;
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, numericResult] = result;
-			val = parseFloat(numericResult);
-		});
-		if (val === null) {
-			return nullIfEmpty ? null : 0;
-		}
-		return val;
-	}
-	/**
-	* Gathers all numbers found in arrays on the database object provided.
-	*
-	* This accepts a regex structure, assuming the capture group is an numeric value,
-	* and adds all values together from each line in the notes that match the provided
-	* regex structure.
-	*
-	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
-	* this will be `null` instead of the default [] as an indicator we didn't find
-	* anything from the notes of this skill.
-	*
-	* This can handle both integers and decimal numbers.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {number[]|null}
-	*/
-	static getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : Array.empty;
-		}
-		const key = `num[]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gathers all numbers found in arrays on the database object provided.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {number[]|null}
-	*/
-	static #getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		let vals = [];
-		const found = this.getArrayFromNotesByRegex(databaseData, structure, true, true);
-		if (found !== null) {
-			vals = found;
-		}
-		if (!vals.length) {
-			return nullIfEmpty ? null : vals;
-		}
-		const noNullVals = vals.filter(ArrayHelper.NoNulls, this);
-		return noNullVals;
-	}
-	/**
-	* Gets the sum of all values from the notes of a collection of database objects.
-	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {number|null} A number if "nullIfEmpty=false", null otherwise.
-	*/
-	static getSumFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
-		if (!databaseDatas.length) {
-			return nullIfEmpty ? null : 0;
-		}
-		let val = 0;
-		databaseDatas.forEach((databaseData) => {
-			val += this.getNumberFromNoteByRegex(databaseData, structure);
-		});
-		if (!val && nullIfEmpty) {
-			return null;
-		}
-		return val;
-	}
-	/**
-	* Get the eval'd formula of all matching values from the notes of a single database object.
-	* @param {RPG_Base} databaseData The database object to parse the notes of.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
-	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {number|null} The calculated result from all formula summed together.
-	*/
-	static getResultFromNoteByRegex(databaseData, structure, baseParam, context = null, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : 0;
-		}
-		const key = `eval:${structure.source}::${structure.flags}::${baseParam}${this.#getEvalCacheContextSuffix(context)}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getResultFromNoteByRegex(databaseData, structure, baseParam, context, nullIfEmpty));
-	}
-	/**
-	* Builds a cache-key fragment for formula evaluation when battler context can change.
-	* Without this, {@code a.level} (and similar) would stay frozen at the first value cached per note object.
-	* @param {RPG_BaseBattler|null} context The formula context ("a").
-	* @returns {string} Suffix to append to eval cache keys, or empty when there is no context.
-	*/
-	static #getEvalCacheContextSuffix(context) {
-		if (!context) return "";
-		return `::ctxLvl=${context.getLevel()}`;
-	}
-	/**
-	* Get the eval'd formula of all matching values from the notes of a single database object.
-	* @param {RPG_Base} databaseData The database object to parse the notes of.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
-	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {number|null} The calculated result from all formula summed together.
-	*/
-	static #getResultFromNoteByRegex(databaseData, structure, baseParam, context = null, nullIfEmpty = false) {
-		const lines = databaseData.note.split(/[\r\n]+/);
-		let val = 0;
-		const a = context;
-		const b = baseParam;
-		const v = $gameVariables._data;
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, formula] = result;
-			try {
-				const evalResult = new Function("a", "b", "v", `return (${formula})`)(a, b, v).toFixed(3);
-				val += parseFloat(evalResult);
-			} catch (error) {
-				console.error(`An error occurred while evaluating the formula: [${formula}].`);
-				console.error(error);
-			}
-		});
-		if (!val && nullIfEmpty) {
-			return null;
-		}
-		return val;
-	}
-	/**
-	* Gets the eval'd formulai of all values from the notes of a collection of database objects.
-	* It is intended that the regex structure provided will be a numeric formula.
-	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
-	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {number|null} The calculated result from all formula summed together.
-	*/
-	static getResultsFromAllNotesByRegex(databaseDatas, structure, baseParam = 0, context = null, nullIfEmpty = false) {
-		if (!databaseDatas.length) {
-			return nullIfEmpty ? null : 0;
-		}
-		let val = 0;
-		databaseDatas.forEach((databaseData) => {
-			val += this.getResultFromNoteByRegex(databaseData, structure, baseParam, context);
-		});
-		if (!val && nullIfEmpty) {
-			return null;
-		}
-		return val;
-	}
-	/**
-	* Gets whether or not there is a matching regex tag on this database entry.
-	*
-	* Do be aware of the fact that with this type of tag, we are checking only
-	* for existence, not the value. As such, it will be `true` if found, and `false` if
-	* not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
-	* `null` instead of `false` when missing, or use a string regex pattern and add
-	* something like `<someKey:true>` or `<someKey:false>` for greater clarity.
-	*
-	* This accepts a regex structure, but does not leverage a capture group.
-	*
-	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
-	* this will be `null` instead of the default `false` as an indicator we didn't find
-	* anything from the notes of this skill.
-	* @param {RPG_Base} databaseData The regular expression to filter notes by.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
-	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
-	*/
-	static checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : false;
-		}
-		const key = `bool:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gets whether or not there is a matching regex tag on this database entry.
-	* @param {RPG_Base} databaseData The regular expression to filter notes by.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
-	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
-	*/
-	static #checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		let val = false;
-		let hasMatch = false;
-		lines.forEach((line) => {
-			const hasStructure = scan.test(line);
-			if (hasStructure) {
-				val = true;
-				hasMatch = true;
-			}
-		});
-		if (hasMatch === false && nullIfEmpty) {
-			return null;
-		} else {
-			return val;
-		}
-	}
-	/**
-	* Gets whether or not there is a matching regex tag from a collection of database objects.
-	*
-	* Do be aware of the fact that with this type of tag, we are checking only
-	* for existence, not the value. As such, it will be `true` if found, and `false` if
-	* not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
-	* `null` instead of `false` when missing, or use a string regex pattern and add
-	* something like `<someKey:true>` or `<someKey:false>` for greater clarity.
-	*
-	* This accepts a regex structure, but does not leverage a capture group.
-	*
-	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
-	* this will be `null` instead of the default `false` as an indicator we didn't find
-	* anything from the notes of this skill.
-	* @param {RPG_Base[]} databaseDatas The objects to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
-	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
-	*/
-	static checkForBooleanFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
-		const results = databaseDatas.map((databaseData) => this.checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
-		const onlyTrueRemains = results.filter((result) => result !== null).filter((result) => result !== false);
-		if (onlyTrueRemains.length === 0) {
-			if (nullIfEmpty) {
-				return null;
-			}
-			return false;
-		}
-		return true;
-	}
-	/**
-	* Gets an array of arrays based on the provided regex structure.
-	*
-	* This accepts a regex structure, assuming the capture group is an array of values
-	* all wrapped in hard brackets [].
-	*
-	* If the optional flag `tryParse` is true, then it will attempt to parse out
-	* the array of values as well, including translating strings to numbers/booleans
-	* and keeping array structures all intact.
-	* @param {RPG_Base} databaseData The database object to parse notes from.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
-	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
-	* @returns {any[][]|null} The array of arrays from the notes, or null.
-	*/
-	static getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : [];
-		}
-		const key = `any[][]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getArraysFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
-	}
-	/**
-	* Gets an array of arrays based on the provided regex structure.
-	* @param {RPG_Base} databaseData The database object to parse notes from.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
-	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
-	* @returns {any[][]|null} The array of arrays from the notes, or null.
-	*/
-	static #getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		let val = [];
-		let hasMatch = false;
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, match] = result;
-			val.push(match);
-			hasMatch = true;
-		});
-		if (!hasMatch) {
-			return nullIfEmpty ? null : [];
-		}
-		if (tryParse) {
-			val = val.map(JsonMapper.parseObject, JsonMapper);
-		}
-		return val;
-	}
-	/**
-	* Gets a single array based on the provided regex structure.
-	*
-	* This accepts a regex structure, assuming the capture group is an array of values
-	* all wrapped in hard brackets [].
-	*
-	* If the optional flag `tryParse` is true, then it will attempt to parse out
-	* the array of values as well, including translating strings to numbers/booleans
-	* and keeping array structures all intact.
-	* @param {RPG_Base} databaseData The contents of the note of a given object.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
-	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
-	* @returns {any[]|null} The array from the notes, or null.
-	*/
-	static getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : [];
-		}
-		const key = `any[]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getArrayFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
-	}
-	/**
-	* Gets a single array based on the provided regex structure.
-	*
-	* This accepts a regex structure, assuming the capture group is an array of values
-	* all wrapped in hard brackets [].
-	*
-	* If the optional flag `tryParse` is true, then it will attempt to parse out
-	* the array of values as well, including translating strings to numbers/booleans
-	* and keeping array structures all intact.
-	* @param {RPG_Base} databaseData The contents of the note of a given object.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
-	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
-	* @returns {any[]|null} The array from the notes, or null.
-	*/
-	static #getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		let val = null;
-		let hasMatch = false;
-		lines.forEach((line) => {
-			if (line.match(structure)) {
-				const [, result] = scan.exec(line);
-				val = JsonMapper.parseObject(result);
-				hasMatch = true;
-			}
-		});
-		if (!hasMatch) {
-			return nullIfEmpty ? null : [];
-		}
-		if (tryParse) {
-			val = val.map(JsonMapper.parseObject, JsonMapper);
-		}
-		return val;
-	}
-	/**
-	* Collects all {@link JABS_OnChanceEffect}s from a single database objects.
-	* @param {RPG_Base} databaseData The database object to retrieve on-chance effects from.
-	* @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
-	* @returns {JABS_OnChanceEffect[]} All found on-chance effects on this database object.
-	*/
-	static getOnChanceEffectsFromDatabaseObject(databaseData, structure) {
-		const foundDatas = this.getArraysFromNotesByRegex(databaseData, structure, true);
-		if (!foundDatas) return [];
-		const key = J.BASE.Helpers.getKeyFromRegexp(structure);
-		const mapper = (data) => {
-			const [skillId, chance, hitTypeString] = data;
-			const hitType = RPGManager.resolveHitTypeString(hitTypeString);
-			return new JABS_OnChanceEffect(skillId, chance ?? 100, key, hitType);
-		};
-		const mappedOnChanceEffects = foundDatas.map(mapper, this);
-		return mappedOnChanceEffects;
-	}
-	/**
-	* Resolves an optional hit type string from a notetag into its numeric constant.
-	* Accepts "physical", "magical", or "certain" (case-insensitive).
-	* Returns null when the string is absent or unrecognised, meaning any hit type matches.
-	* @param {string|undefined} str The raw string from the parsed notetag array.
-	* @returns {number|null}
-	*/
-	static resolveHitTypeString(str) {
-		if (!str) return null;
-		switch (str.toLowerCase()) {
-			case "physical": return Game_Action.HITTYPE_PHYSICAL;
-			case "magical": return Game_Action.HITTYPE_MAGICAL;
-			case "certain": return Game_Action.HITTYPE_CERTAIN;
-			default: return null;
-		}
-	}
-	/**
-	* Collects all {@link JABS_OnChanceEffect}s from the list of database objects.
-	* @param {RPG_Base[]} databaseDatas The list of database objects to parse.
-	* @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
-	* @returns {JABS_OnChanceEffect[]}
-	*/
-	static getOnChanceEffectsFromDatabaseObjects(databaseDatas, structure) {
-		const onChanceEffects = [];
-		databaseDatas.forEach((databaseData) => {
-			const onChanceEffectList = this.getOnChanceEffectsFromDatabaseObject(databaseData, structure);
-			onChanceEffects.push(...onChanceEffectList);
-		});
-		return onChanceEffects;
-	}
-	/**
-	* Gets all capture groups (excluding the full match) for every note line that matches the regex.
-	*
-	* Each matching line contributes one entry to the result array. The entry is an array of strings
-	* corresponding to the capture groups for that match (index 1..n of the RegExp exec result).
-	*
-	* Example:
-	*   Regex: /<on-(hit|use):affect-(self|allies|target|enemies|all):\[([+\-/ ().\w]+)]>/gi
-	*   Line:  "<on-hit:affect-self:[a.atk * 400]>"
-	*   Pushes: [ "hit", "self", "a.atk * 400" ]
-	*
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {string[][]|null} An array of capture arrays, or null.
-	*/
-	static getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : [];
-		}
-		const key = `captures:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gets all capture groups (excluding the full match) for every note line that matches the regex.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {string[][]|null} An array of capture arrays, or null.
-	*/
-	static #getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		const captures = [];
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (!result) return;
-			const groups = result.slice(1);
-			captures.push(groups);
-		});
-		if (captures.length === 0 && nullIfEmpty) {
-			return null;
-		}
-		return captures;
-	}
-	/**
-	* Gets all capture arrays from a collection of database objects.
-	*
-	* See {@link RPGManager.getAllCapturesFromNoteByRegex} for details on the shape
-	* of the returned values for each matching tag.
-	*
-	* @param {RPG_BaseItem[]} databaseDatas The database objects to inspect.
-	* @param {RegExp} structure The regular expression to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {string[][]|null} All capture arrays found across all provided objects.
-	*/
-	static getAllCapturesFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
-		const captures = [];
-		databaseDatas.forEach((databaseData) => {
-			const found = this.getAllCapturesFromNoteByRegex(databaseData, structure);
-			if (found.length) {
-				captures.push(...found);
-			}
-		}, this);
-		if (!captures.length && nullIfEmpty) {
-			return null;
-		}
-		return captures;
-	}
-	/**
-	* Determines whether the database object can have its note parsed.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @returns {boolean} True if it can be parsed, false otherwise.
-	*/
-	static #canParsedatabaseData(databaseData) {
-		if (!databaseData) return false;
-		if (databaseData && !databaseData.note) return false;
-		return true;
-	}
 };
 
 //#endregion
@@ -4760,15 +4952,6 @@ var RPG_State = class RPG_State extends RPG_Traited {
 	*/
 	implementationType() {
 		return `${super.implementationType()}:state`;
-	}
-	/**
-	* Gets all type classifiers assigned to this state via notetag.
-	* Returns every value matched by a {@code <type:CLASSIFIER>} tag in the notebox.
-	* Multiple tags on the same state are all collected and returned together.
-	* @returns {string[]} The array of classifier strings, or an empty array if none are defined.
-	*/
-	stateTypes() {
-		return RPGManager.getStringsFromNoteByRegex(this, J.BASE.RegExp.StateType);
 	}
 	/**
 	* Hydrated blank state row—symmetry with other DB wrappers when a slot must read as "unused but valid".
@@ -8152,6 +8335,7 @@ Game_Battler.prototype.onBattlerDataChange = function() {
 	this.setCachedAllTraits(null);
 	this.setCachedMaxTpBonuses(null);
 	this.setCachedHarFactor(null);
+	JCache.invalidateAllForBattler(this);
 };
 /**
 * Gets the state associated with the given state id.

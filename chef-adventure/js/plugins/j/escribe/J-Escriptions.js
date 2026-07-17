@@ -21,21 +21,17 @@
  * <icon:ICON_INDEX>
  * Where ICON_INDEX is the icon index of the icon to show on this event.
  *
- * <proximityText>
- * or
  * <proximityText:DISTANCE>
  * Where DISTANCE is the distance in tiles/squares that the player must be
- * within in order to see the text on this event. If using the tag without
- * DISTANCE, then the DISTANCE will default to 0, meaning the player must be
- * standing ontop of the event in order for the text to show up.
+ * within in order to see the text on this event. DISTANCE is required- to
+ * require the player stand directly on the event, use <proximityText:0>
+ * explicitly.
  *
- * <proximityIcon>
- * or
  * <proximityIcon:DISTANCE>
  * Where DISTANCE is the distance in tiles/squares that the player must be
- * within in order to see the icon on this event. If using the tag without
- * DISTANCE, then the DISTANCE will default to 0, meaning the player must be
- * standing ontop of the event in order for the icon to show up.
+ * within in order to see the icon on this event. DISTANCE is required- to
+ * require the player stand directly on the event, use <proximityIcon:0>
+ * explicitly.
  * ============================================================================
  * NOTE:
  * Proximity tags are optional. If they are not added to the event alongside

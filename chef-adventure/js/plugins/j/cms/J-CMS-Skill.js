@@ -14,6 +14,12 @@
  *
  * Will reveal various JABS data points.
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it is purely a scene/window
+ * redesign of the native skill menu. Cost display data is read via the
+ * consuming plugins' own getters (e.g. J-Resources), not tags belonging to
+ * this plugin.
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.1
  *    Added HP skill cost display to the skill detail window (requires J-Resources).

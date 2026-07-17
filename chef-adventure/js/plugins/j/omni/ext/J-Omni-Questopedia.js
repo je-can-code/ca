@@ -94,6 +94,49 @@
  * to hack this together manually by writing JSON.
  *
  * ============================================================================
+ * QUEST-GATED EVENT PAGES AND CHOICES:
+ * Beyond the JSON-authored quest data itself, this plugin adds tags that
+ * gate event pages and "Show Choices" branches behind quest/objective
+ * state, similar in spirit to J-MessageTextCodes' leader/switch choice
+ * conditionals.
+ *
+ * NOTE ABOUT THE THREE ARGUMENT SHAPES:
+ * All six tags below accept the array in one of three shapes, and behave
+ * accordingly:
+ *  [QUEST_KEY]
+ *   Valid while the quest itself is active (any objective).
+ *  [QUEST_KEY, OBJECTIVE_ID]
+ *   Valid while that specific objective is active.
+ *  [QUEST_KEY, OBJECTIVE_ID, STATE]
+ *   Valid while that specific objective is in the given STATE, where STATE
+ *   is one of: inactive, active, completed, failed, missed.
+ *
+ * TAG USAGE:
+ * - Event pages (comment, gates the whole page like a normal page condition)
+ * - "Show Choices" branches (comment, gates a single choice)
+ *
+ * TAG FORMAT:
+ *  <pageQuestCondition:[QUEST_KEY]>
+ *  <pageQuestCondition:[QUEST_KEY, OBJECTIVE_ID]>
+ *  <pageQuestCondition:[QUEST_KEY, OBJECTIVE_ID, STATE]>
+ *    Gates an entire event page.
+ *
+ *  <choiceQuestCondition:[QUEST_KEY]>
+ *  <choiceQuestCondition:[QUEST_KEY, OBJECTIVE_ID]>
+ *  <choiceQuestCondition:[QUEST_KEY, OBJECTIVE_ID, STATE]>
+ *    Gates a single "Show Choices" branch.
+ *
+ * TAG EXAMPLES:
+ *  <pageQuestCondition:[herbalist_delivery]>
+ * This event page is only active while the "herbalist_delivery" quest is
+ * active (in any objective state).
+ *
+ *  <pageQuestCondition:[herbalist_delivery, 2]>
+ * This event page is only active while objective 2 of that quest is active.
+ *
+ *  <choiceQuestCondition:[herbalist_delivery, 2, completed]>
+ * This choice is only shown while objective 2 of that quest is completed.
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.3
  *    Updated to accommodate for mapping shortcut to view quest log.
@@ -3165,7 +3208,7 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function() {
 			trackings.push(newTracking);
 		}
 	});
-	trackings.sort((a, b) => a.key - b.key);
+	trackings.sort((a, b) => a.key.localeCompare(b.key));
 };
 /**
 * Gets all questopedia entries.

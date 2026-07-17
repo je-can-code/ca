@@ -76,6 +76,12 @@
  * Use this to force an event to seek it's current target:
  *   this.seekTarget();
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own. Everything here is exposed as
+ * script commands (turnRight45/turnLeft45/turnRightOrLeft45/homeIntoLastHit/
+ * homeIntoTarget/seekLastHit/seekTarget) dropped into action event
+ * moveroutes- there's nothing to tag on database objects.
+ * ============================================================================
  * CHANGELOG:
  * - 1.1.3
  *    Removed obsolete J.ABS.EXT.CYCLE / CycloneMovement guards from the

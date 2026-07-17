@@ -124,17 +124,20 @@
  *
  * <juiceMotion:NAME>
  *   Selects a preset weapon/caster motion. Valid values:
- *   Weapon overlay:  arc | arc-reverse | bash | present | recoil | spin | spin-reverse | stab-forward
+ *   Weapon overlay:  arc | arc-reverse | arc-oscillate | bash | present | recoil | spin |
+ *                    spin-reverse | stab-forward
  *   Caster-body:     squish | pulse | flip | flip-reverse
  *   Suppress:        none  (equivalent to <noJuice>)
  *   Legacy keys: swing-top-down → arc; swing-bottom-up → arc-reverse; spin-360 → spin;
  *   spin-720 → spin; spin-360-reverse → spin-reverse.
  *   present lifts the icon upward on screen (screen-stable "brandish"; uses facing-up card).
+ *   arc-oscillate sweeps the arc back and forth, alternating direction on each sweep (see
+ *   juiceRepeatCount below for sweep count).
  *   On healing skills, omitting juiceMotion keeps caster-only support squish; any juiceMotion
  *   tag opts into full strike juice.
  *
  * <juiceSpan:N>
- *   Arc span in degrees for arc / arc-reverse (default 120; typical range 30–300).
+ *   Arc span in degrees for arc / arc-reverse / arc-oscillate (default 120; typical range 30–300).
  *
  * <juiceRepeatCount:N>
  *   Number of times to repeat the motion within the juice duration (default 1).
@@ -1853,19 +1856,18 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 	}
 	/**
 	* Derives a direction-aware overlay placement so the icon reads like it's coming from the hand.
-	* Used for spin / stab (arc presets use orbit math instead).
+	* Used for spin / stab (arc presets use orbit math instead- this is only ever called from play()'s
+	* non-arc branch, so no motion-type parameter is needed here).
 	* @param {Sprite_Character} parentSprite The character sprite receiving the overlay.
-	* @param {string} motionType Preset key (kebab-case).
 	* @param {number} direction RMMZ 8-dir (same snapshot as the swing arc uses).
 	* @returns {{ x: number, y: number, scale: number }}
 	*/
-	static #buildSwingProfile(parentSprite, motionType, direction) {
+	static #buildSwingProfile(parentSprite, direction) {
 		const ph = parentSprite.patternHeight();
-		const tightOrbit = motionType === JuiceWeaponSwingMotionEffect.MotionTypes.Arc || motionType === JuiceWeaponSwingMotionEffect.MotionTypes.ArcReverse;
-		const tw = tightOrbit ? 20 : 26;
-		const ySide = -ph * (tightOrbit ? .48 : .52);
-		const yDown = -ph * (tightOrbit ? .18 : .22);
-		const yUp = -ph * (tightOrbit ? .76 : .82);
+		const tw = 26;
+		const ySide = -ph * .52;
+		const yDown = -ph * .22;
+		const yUp = -ph * .82;
 		const card = (horiz, vert, sc) => {
 			return {
 				x: horiz,
@@ -1882,7 +1884,7 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 		};
 		const left = card(-tw, ySide, 1.65);
 		const right = card(tw, ySide, 1.65);
-		const down = card(tightOrbit ? 6 : 10, yDown, 1.5);
+		const down = card(10, yDown, 1.5);
 		const up = card(0, yUp, 1.5);
 		/** @type {{ x: number, y: number, scale: number }} */
 		let prof;
@@ -1985,7 +1987,7 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 			overlay.scale.x = 1.6;
 			overlay.scale.y = 1.6;
 		} else {
-			const profile = JuiceWeaponSwingOverlay.#buildSwingProfile(parentSprite, motionType, swingDir);
+			const profile = JuiceWeaponSwingOverlay.#buildSwingProfile(parentSprite, swingDir);
 			const juiceDy = J.ABS.EXT.JUICE.Metadata.spriteJuiceVerticalOffsetPixels;
 			const neutralX = profile.x;
 			const neutralY = profile.y + juiceDy;
@@ -2017,7 +2019,7 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 				overlay.scale.x = profile.scale * (stabAlign.mirrorX ? -1 : 1);
 				overlay.scale.y = profile.scale;
 			} else if (motionType === JuiceWeaponSwingMotionEffect.MotionTypes.Present) {
-				const presentProf = JuiceWeaponSwingOverlay.#buildSwingProfile(parentSprite, motionType, 8);
+				const presentProf = JuiceWeaponSwingOverlay.#buildSwingProfile(parentSprite, 8);
 				const presentJuiceDy = J.ABS.EXT.JUICE.Metadata.spriteJuiceVerticalOffsetPixels;
 				const px = presentProf.x;
 				const py = presentProf.y + presentJuiceDy;

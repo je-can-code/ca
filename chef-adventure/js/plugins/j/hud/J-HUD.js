@@ -69,6 +69,10 @@
  *    Refreshes the image cache of the HUD, for when you change faces.
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- HUD control is entirely
+ * plugin-command driven.
+ * ============================================================================
  * @command hideHud
  * @text Hide HUD
  * @desc Hides the HUD on the map.

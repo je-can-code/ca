@@ -113,7 +113,7 @@
  *  <maxRefineCount:NUM>
  *
  * TAG EXAMPLES
- *  <maxRefinementCount:3>
+ *  <maxRefineCount:3>
  * An equip with this can only be used as a "base" for refinement 3 times
  * OR
  * An equip can only achieve be fused to or beyond +3 once
@@ -134,10 +134,10 @@
  * the player from adding an unreasonable number of traits onto an equip.
  *
  * TAG FORMAT
- *  <maxRefinedTraits:NUM>
+ *  <maxTraitCount:NUM>
  *
  * TAG EXAMPLES
- *  <maxRefinedTraits:3>
+ *  <maxTraitCount:3>
  * An equip with this can only have a total of 3 unique traits.
  *
  * NOTE ABOUT LIMITS

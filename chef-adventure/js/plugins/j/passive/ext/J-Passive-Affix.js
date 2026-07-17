@@ -980,52 +980,52 @@ Window_PassiveDetail.prototype.collectJabsAilmentRows = function(state) {
 		label: "Negative",
 		value: "(AI tries to remove)"
 	});
-	const slipHpPct = state.jabsSlipHpPercentPerFive;
-	const slipMpPct = state.jabsSlipMpPercentPerFive;
-	const slipTpPct = state.jabsSlipTpPercentPerFive;
-	const slipHpForm = state.jabsSlipHpFormulaPerFive;
-	const slipMpForm = state.jabsSlipMpFormulaPerFive;
-	const slipTpForm = state.jabsSlipTpFormulaPerFive;
+	const slipHpPct = state.jabsSlipHpPercent;
+	const slipMpPct = state.jabsSlipMpPercent;
+	const slipTpPct = state.jabsSlipTpPercent;
+	const slipHpForm = state.jabsSlipHpFormula;
+	const slipMpForm = state.jabsSlipMpFormula;
+	const slipTpForm = state.jabsSlipTpFormula;
 	if (slipHpPct) {
 		rows.push({
 			icon: TraitManager.slipIcon("hp", slipHpPct),
 			label: TraitManager.slipName("hp", slipHpPct),
-			value: `+${Math.abs(slipHpPct)}% / 5s`
+			value: `+${Math.abs(slipHpPct)}% / tick`
 		});
 	} else if (slipHpForm) {
 		const hpEval = this.evaluateFormula(slipHpForm, this._actor);
 		rows.push({
 			icon: TraitManager.slipIcon("hp", Number(hpEval)),
 			label: TraitManager.slipName("hp", Number(hpEval)),
-			value: `+${Math.abs(Number(hpEval))} / 5s`
+			value: `+${Math.abs(Number(hpEval))} / tick`
 		});
 	}
 	if (slipMpPct) {
 		rows.push({
 			icon: TraitManager.slipIcon("mp", slipMpPct),
 			label: TraitManager.slipName("mp", slipMpPct),
-			value: `+${Math.abs(slipMpPct)}% / 5s`
+			value: `+${Math.abs(slipMpPct)}% / tick`
 		});
 	} else if (slipMpForm) {
 		const mpEval = this.evaluateFormula(slipMpForm, this._actor);
 		rows.push({
 			icon: TraitManager.slipIcon("mp", Number(mpEval)),
 			label: TraitManager.slipName("mp", Number(mpEval)),
-			value: `+${Math.abs(Number(mpEval))} / 5s`
+			value: `+${Math.abs(Number(mpEval))} / tick`
 		});
 	}
 	if (slipTpPct) {
 		rows.push({
 			icon: TraitManager.slipIcon("tp", slipTpPct),
 			label: TraitManager.slipName("tp", slipTpPct),
-			value: `+${Math.abs(slipTpPct)}% / 5s`
+			value: `+${Math.abs(slipTpPct)}% / tick`
 		});
 	} else if (slipTpForm) {
 		const tpEval = this.evaluateFormula(slipTpForm, this._actor);
 		rows.push({
 			icon: TraitManager.slipIcon("tp", Number(tpEval)),
 			label: TraitManager.slipName("tp", Number(tpEval)),
-			value: `+${Math.abs(Number(tpEval))} / 5s`
+			value: `+${Math.abs(Number(tpEval))} / tick`
 		});
 	}
 	return rows;

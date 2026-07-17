@@ -40,6 +40,10 @@
  *   src/plugins/pixel/ext/abs  — JABS bridge (loads after J-ABS + this)
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- movement/collision tuning is
+ * entirely plugin-parameter driven.
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.1
  *    Optional foot-touch trigger delay after map setup (plugin parameter).
