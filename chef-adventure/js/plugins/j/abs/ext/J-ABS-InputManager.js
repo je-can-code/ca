@@ -1125,7 +1125,7 @@ IconManager.jabsInputTextForSymbol = function(symbol) {
 */
 IconManager.jabsIconTextForSymbol = function(symbol) {
 	if (!symbol) return "(unbound)";
-	return this.jabsInputTextForSymbol(symbol) || String(symbol);
+	return this.jabsInputTextForSymbol(symbol);
 };
 /**
 * Registers all JABS input symbols with their respective ex-text.

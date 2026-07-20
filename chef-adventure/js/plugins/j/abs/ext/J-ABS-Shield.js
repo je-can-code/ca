@@ -1329,9 +1329,7 @@ Game_Action.prototype.absorbDamageIntoShield = function(shieldState, target, ove
 		updatedShield.setCurrent(before - absorbed);
 		remainingDamage -= useFromReal;
 		pendingBonusDamage -= useFromBonus;
-		if (absorbed > 0) {
-			this.onShieldDamageAbsorbed(target, absorbed);
-		}
+		this.onShieldDamageAbsorbed(target, absorbed);
 		const brokeThisHit = before > 0 && updatedShield.getCurrent() === 0;
 		if (brokeThisHit) {
 			this.onShieldBroken(target);

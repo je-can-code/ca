@@ -848,6 +848,26 @@ var RPGManager = class RPGManager {
 		return val;
 	}
 	/**
+	* Gathers all string instances matching the regex across every database object provided.
+	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string[]|null} The array of strings matching the structure across all sources, or empty, or null.
+	*/
+	static getStringsFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
+		const strings = [];
+		databaseDatas.forEach((databaseData) => {
+			const found = this.getStringsFromNoteByRegex(databaseData, structure);
+			if (found.length) {
+				strings.push(...found);
+			}
+		}, this);
+		if (!strings.length && nullIfEmpty) {
+			return null;
+		}
+		return strings;
+	}
+	/**
 	* Gets the last numeric value based on the provided regex structure.
 	*
 	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
@@ -878,9 +898,6 @@ var RPGManager = class RPGManager {
 		const safeFlags = structure.flags.replace("g", "").replace("y", "");
 		const scan = new RegExp(structure.source, safeFlags);
 		const lines = databaseData.note.split(/[\r\n]+/);
-		if (!lines.length) {
-			return nullIfEmpty ? null : 0;
-		}
 		let val = null;
 		lines.forEach((line) => {
 			const result = scan.exec(line);
@@ -1136,6 +1153,27 @@ var RPGManager = class RPGManager {
 		return this.cached(databaseData, key, () => this.#getArraysFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
 	}
 	/**
+	* Gets an array of arrays matching the regex across every database object provided.
+	* @param {RPG_Base[]} databaseDatas The collection of database objects to parse notes from.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found arrays.
+	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
+	* @returns {any[][]|null} The array of arrays from the notes across all sources, or empty, or null.
+	*/
+	static getArraysFromAllNotesByRegex(databaseDatas, structure, tryParse = true, nullIfEmpty = false) {
+		const arrays = [];
+		databaseDatas.forEach((databaseData) => {
+			const found = this.getArraysFromNotesByRegex(databaseData, structure, tryParse);
+			if (found.length) {
+				arrays.push(...found);
+			}
+		}, this);
+		if (!arrays.length && nullIfEmpty) {
+			return null;
+		}
+		return arrays;
+	}
+	/**
 	* Gets an array of arrays based on the provided regex structure.
 	* @param {RPG_Base} databaseData The database object to parse notes from.
 	* @param {RegExp} structure The regular expression to filter notes by.
@@ -1230,7 +1268,6 @@ var RPGManager = class RPGManager {
 	*/
 	static getOnChanceEffectsFromDatabaseObject(databaseData, structure) {
 		const foundDatas = this.getArraysFromNotesByRegex(databaseData, structure, true);
-		if (!foundDatas) return [];
 		const key = J.BASE.Helpers.getKeyFromRegexp(structure);
 		const mapper = (data) => {
 			const [skillId, chance, hitTypeString] = data;
@@ -1269,76 +1306,6 @@ var RPGManager = class RPGManager {
 			onChanceEffects.push(...onChanceEffectList);
 		});
 		return onChanceEffects;
-	}
-	/**
-	* Gets all capture groups (excluding the full match) for every note line that matches the regex.
-	*
-	* Each matching line contributes one entry to the result array. The entry is an array of strings
-	* corresponding to the capture groups for that match (index 1..n of the RegExp exec result).
-	*
-	* Example:
-	*   Regex: /<on-(hit|use):affect-(self|allies|target|enemies|all):\[([+\-/ ().\w]+)]>/gi
-	*   Line:  "<on-hit:affect-self:[a.atk * 400]>"
-	*   Pushes: [ "hit", "self", "a.atk * 400" ]
-	*
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {string[][]|null} An array of capture arrays, or null.
-	*/
-	static getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : [];
-		}
-		const key = `captures:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gets all capture groups (excluding the full match) for every note line that matches the regex.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {string[][]|null} An array of capture arrays, or null.
-	*/
-	static #getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		const captures = [];
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (!result) return;
-			const groups = result.slice(1);
-			captures.push(groups);
-		});
-		if (captures.length === 0 && nullIfEmpty) {
-			return null;
-		}
-		return captures;
-	}
-	/**
-	* Gets all capture arrays from a collection of database objects.
-	*
-	* See {@link RPGManager.getAllCapturesFromNoteByRegex} for details on the shape
-	* of the returned values for each matching tag.
-	*
-	* @param {RPG_BaseItem[]} databaseDatas The database objects to inspect.
-	* @param {RegExp} structure The regular expression to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {string[][]|null} All capture arrays found across all provided objects.
-	*/
-	static getAllCapturesFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
-		const captures = [];
-		databaseDatas.forEach((databaseData) => {
-			const found = this.getAllCapturesFromNoteByRegex(databaseData, structure);
-			if (found.length) {
-				captures.push(...found);
-			}
-		}, this);
-		if (!captures.length && nullIfEmpty) {
-			return null;
-		}
-		return captures;
 	}
 	/**
 	* Determines whether the database object can have its note parsed.
@@ -1968,23 +1935,6 @@ J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?") {
 	const structure = /[0-9A-Za-z\-()[\]*!?'"=@,.]/gi;
 	return stringToMask.toString().replace(structure, maskingCharacter);
 };
-/**
-* A polyfill for {@link Array.prototype.at}.<br>
-* If this is not present in the available runtime, then this implementation
-* will be used instead.
-*/
-if (![].at) {
-	Array.prototype.at = function(index) {
-		index = Math.trunc(index) || 0;
-		if (index < 0) {
-			index += this.length;
-		}
-		if (index < 0 || index >= this.length) {
-			return undefined;
-		}
-		return this[index];
-	};
-}
 
 //#endregion
 //#region src/plugins/_base/core/SerializableRegistry.js
@@ -2069,6 +2019,16 @@ var ParameterFormat = class {
 	* @type {string}
 	*/
 	static MULTIPLIER_PERCENT = "multiplierPercent";
+	/**
+	* Hundred-scale points display with no centering (HIT).
+	* @type {string}
+	*/
+	static SCALED_POINTS = "scaledPoints";
+	/**
+	* Hundred-scale points display centered around zero (GRD).
+	* @type {string}
+	*/
+	static SCALED_OFFSET = "scaledOffset";
 };
 
 //#endregion
@@ -3322,11 +3282,6 @@ var J_Timer = class {
 		* @type {number}
 		*/
 		this._timer = 0;
-		/**
-		* The maximum count this timer can reach.
-		* @type {number}
-		*/
-		this._timerMax = 0;
 	}
 	/**
 	* Gets the key of this timer, if one was set.
@@ -4434,9 +4389,6 @@ ColorManager.colorIndexFromHex = function(hexString) {
 		return null;
 	}
 	const targetRgb = ColorManager.parseHexStringToRgb(hexString);
-	if (targetRgb === null) {
-		return null;
-	}
 	let bestIndex = 0;
 	let bestDist = Infinity;
 	for (let i = 0; i < 32; i++) {
@@ -6895,6 +6847,18 @@ TextManager.rewardDescription = function(paramId) {
 	}
 };
 /**
+* Whether a given registry key is a known catalog parameter.<br/>
+* Public surface for other plugins (e.g. J-MessageTextCodes) to distinguish "unregistered key"
+* from a legitimately-falsy/zero result, since {@link TextManager.parameterLabel}/
+* {@link IconManager.parameterIcon}/{@link ColorManager.parameterColor} each fall back to a
+* plausible-looking default instead of surfacing the miss.
+* @param {string} parameterKey The registry key.
+* @returns {boolean}
+*/
+TextManager.hasParameter = function(parameterKey) {
+	return ParameterRegistry.has(parameterKey);
+};
+/**
 * Gets the display label for a catalog parameter key.
 * @param {string} parameterKey The registry key.
 * @returns {string}
@@ -8808,6 +8772,26 @@ Object.defineProperty(Game_BattlerBase.prototype, "cnt", {
 	},
 	configurable: true
 });
+/**
+* Mp cost rate — negative values would let skillMpCost() go negative, which paySkillCost()
+* would then treat as a free MP refund on cast. Floor at zero to prevent that.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "mcr", {
+	get: function() {
+		return Math.max(0, this.sparam(4));
+	},
+	configurable: true
+});
+/**
+* Tp charge rate — negative values would let TP gain from damage/items go negative, silently
+* draining TP instead of charging it. Floor at zero.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "tcr", {
+	get: function() {
+		return Math.max(0, this.sparam(5));
+	},
+	configurable: true
+});
 
 //#endregion
 //#region src/plugins/_base/objects/Game_Character.js
@@ -9383,7 +9367,7 @@ Game_Party.prototype.allItemsQuantified = function() {
 	const allItemsDistinct = this.allItems();
 	const allItemsRepeated = [];
 	allItemsDistinct.forEach((baseItem) => {
-		let count = this.numItems(baseItem) ?? 0;
+		let count = this.numItems(baseItem);
 		while (count > 0) {
 			allItemsRepeated.push(baseItem);
 			count--;
@@ -9494,7 +9478,7 @@ Game_Temp.prototype.initMembers = function() {};
 */
 J.BASE.Aliased.Game_Timer.set("initialize", Game_Timer.prototype.initialize);
 Game_Timer.prototype.initialize = function() {
-	J.BASE.Aliased.Game_Timer.get("start").call(this);
+	J.BASE.Aliased.Game_Timer.get("initialize").call(this);
 	/**
 	* Also initialize the duration of the timer.
 	* @type {number}

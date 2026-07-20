@@ -21,6 +21,7 @@
 |---|---|---|
 | 1 | Mah Lazer | Long line beam with inner dead zone — cannot fire point-blank. The Quicksilver bread and butter. |
 | 2 | Quick Exit | Toggle. +MSB, +CDR. Incoming melee damage increased. Commit to range or eat the punishment. |
+| 3 | Personal Space | Point-blank self-centered burst. Modest damage, knocks back everything in melee range. Not a stun, not a nuke — its job is clearing the doorway so Dead Air and Quick Exit actually mean something. Short-moderate cooldown, spammable enough to be a reflex, not a commitment. |
 
 ---
 

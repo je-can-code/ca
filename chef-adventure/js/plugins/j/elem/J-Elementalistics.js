@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.2.0 ELEM] Enables greater control over elements.
+ * @plugindesc [v1.3.0 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -144,14 +144,15 @@
  * - Classes
  *
  * TAG FORMAT:
- *  <boostElement:ELEMENT_ID:PERCENT_BOOST>
+ *  <boostElement:[ELEMENT_ID, PERCENT_BOOST]>
  * PERCENT_BOOST accepts negative numbers too, for a penalty instead of a boost.
+ * Repeatable — one tag per boosted element.
  *
  * TAG EXAMPLES:
- *  <boostElement:1:50>
+ *  <boostElement:[1, 50]>
  * This battler has a +50% boost to skills bearing element id 1.
  *
- *  <boostElement:1:-30>
+ *  <boostElement:[1, -30]>
  * This battler deals 30% LESS damage with skills bearing element id 1- useful
  * for a curse/debuff state rather than a buff.
  *
@@ -282,6 +283,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Changed <boostElement:ELEMENT_ID:PERCENT_BOOST> to <boostElement:[ELEMENT_ID, PERCENT_BOOST]>.
+ *    The old colon-separated shape required a bespoke, ad-hoc capture-group reader
+ *    (RPGManager.getAllCapturesFromNoteByRegex) instead of the standardized bracket-array
+ *    family used by every other multi-value tag; the bracket form now reads through
+ *    getArraysFromNotesByRegex like the rest. Existing game data must be migrated.
  * - 1.2.0
  *    evalDamageFormula now delegates formula evaluation to Game_Action#evalFormulaWithContext.
  *    The hardcoded p (proficiency) setup and J.PROF conditional block have been removed;
@@ -330,7 +337,7 @@ J.ELEM = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.2.0");
+J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -343,7 +350,7 @@ J.ELEM.RegExp = {};
 J.ELEM.RegExp.AttackElementIds = /<attackElements:[ ]?(\[[\d, ]+])>/i;
 J.ELEM.RegExp.AbsorbElementIds = /<absorbElements:[ ]?(\[[\d, ]+])>/i;
 J.ELEM.RegExp.StrictElementIds = /<strictElements:[ ]?(\[[\d, ]+])>/i;
-J.ELEM.RegExp.BoostElement = /<boostElement:(\d+):(-?\+?[\d]+)>/i;
+J.ELEM.RegExp.BoostElement = /<boostElement:[ ]?(\[\d+,[ ]?-?\+?\d+])>/gi;
 J.ELEM.RegExp.PierceElement = /<pierceElement:[ ]?(\[\d+,[ ]?\d+])>/gi;
 J.ELEM.RegExp.ThisPierceElement = /<thisPierceElement:[ ]?(\[\d+,[ ]?\d+])>/gi;
 
@@ -420,8 +427,7 @@ Game_Battler.prototype.elementRateBoost = function(elementId) {
 */
 Game_Battler.prototype.extractElementRateBoosts = function(referenceData) {
 	if (!referenceData.note) return [];
-	const caps = RPGManager.getAllCapturesFromNoteByRegex(referenceData, J.ELEM.RegExp.BoostElement);
-	return caps.map(([id, boost]) => [Number(id), Number(boost)]);
+	return RPGManager.getArraysFromNotesByRegex(referenceData, J.ELEM.RegExp.BoostElement);
 };
 
 //#endregion

@@ -1698,7 +1698,7 @@
  *
  * ----------------------------------------------------------------------------
  * PER-DEBUFF BONUS:
- * Adds N% bonus damage for every negative state (jabsNegative tagged) currently
+ * Adds N% bonus damage for every negative state (<type:negative> tagged) currently
  * active on the target. Multiple <perDebuffBuff:N> tags have their N values
  * summed, then the total is multiplied by the debuff count.
  *    <perDebuffBuff:N>
@@ -1869,6 +1869,26 @@
  *  If this caster personally applied 3 different states currently active on
  *  the target (regardless of who else also has states on it), this skill
  *  gains +45% bonus damage (15 * 3).
+ *
+ * ----------------------------------------------------------------------------
+ * VULNERABILITY PER AUTHORED STATE STACK:
+ * Adds PCT% bonus damage per current stack of every state on the target that
+ * THIS TAG'S HOLDER (not the current attacker) originally applied. Unlike
+ * every other BONUS DAMAGE tag in this region, this one is not read from the
+ * current attacker's notes- it is read from each tracked state's own source
+ * battler. That means the bonus applies to damage from ANYONE, not just the
+ * battler carrying the tag. Lives entirely on that battler's own notes
+ * (actor/class/weapon/armor/state), always live regardless of who else is
+ * currently attacking.
+ *    <vulnerabilityPerAuthoredStateStack:PCT>
+ *  Where PCT is the integer percent bonus per stack of any state this
+ *  battler has personally applied to the target.
+ *
+ * Example — Rupert's "Misery Collector" signature: enemies stacked with any
+ * state Rupert applied take bonus damage from the whole party, not just him:
+ *    <vulnerabilityPerAuthoredStateStack:10>
+ * A target with 3 stacks of a Rupert-applied Bleed takes +30% bonus damage
+ * from an ally's hit, even if Rupert himself isn't the one attacking.
  *
  * ----------------------------------------------------------------------------
  * BONUS DAMAGE IF TARGET HP BELOW / THIS BONUS DAMAGE IF TARGET HP BELOW:
@@ -4732,7 +4752,6 @@ J.ABS.RegExp = {
 	UseOnPickup: /<useOnPickup>/gi,
 	Expires: /<expires:[ ]?(\d+)>/gi,
 	JabsTool: /<jabsTool>/i,
-	Negative: /<negative>/gi,
 	NoLogs: /<noLogs>/i,
 	StateTypeResist: /<stateTypeResist:[ ]?(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?])>/gi,
 	StateTypeImmune: /<stateTypeImmune:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>/gi,
@@ -4833,7 +4852,7 @@ J.ABS.RegExp = {
 	OnEvadeApplySelf: /<onEvadeApplySelf:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
 	OnEvadeExecute: /<onEvadeExecute:[ ]?(\[\d+,?[ ]?\d+?])>/gi,
 	/**
-	* Percent damage bonus per negative state (jabsNegative) currently active on the target.
+	* Percent damage bonus per negative state (isNegativeType) currently active on the target.
 	* All PerDebuffBuff values from getAllNotes() are summed, then multiplied by the debuff count.
 	* Applied before guard reduction in the damage pipeline.
 	*
@@ -5074,6 +5093,27 @@ J.ABS.RegExp = {
 	* @type {RegExp}
 	*/
 	ThisBonusDamageForMyStateCount: /<thisBonusDamageForMyStateCount:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
+	/**
+	* Percent damage vulnerability per stack of any state this battler has personally authored on
+	* the target, collected by whichever attacker is currently dealing damage- not just this
+	* battler. Lives on the author's passive/kit notes, but is read via each tracked state's
+	* source rather than via this.subject(), so the bonus applies to damage from anyone once the
+	* author's stacks are present. Unlike BonusDamageForMyStateCount (distinct state count), this
+	* scales by total stack count across every state the author has applied.
+	*
+	* <pre>
+	* Structure:
+	*  <vulnerabilityPerAuthoredStateStack:PCT>
+	*
+	* Example:
+	*  <vulnerabilityPerAuthoredStateStack:10>
+	*
+	* Translation:
+	*  +10% damage from anyone, per stack of any state this battler has applied to the target.
+	* </pre>
+	* @type {RegExp}
+	*/
+	VulnerabilityPerAuthoredStateStack: /<vulnerabilityPerAuthoredStateStack:[ ]?(-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?)>/gi,
 	/**
 	* Execute-style percent damage bonus that scales with how far under a hp threshold the target
 	* currently is. Reads from getAllNotes() (actor, class, equips, states). The gate opens once
@@ -6548,7 +6588,7 @@ var JABS_LocationBuilder = class {
 		switch (targetLocation.d) {
 			case J.ABS.Directions.LOWERLEFT: return this.facingUpperRight();
 			case J.ABS.Directions.DOWN: return this.facingUp();
-			case J.ABS.Directions.LOWERRIGHT: return this.facingUpperLeft;
+			case J.ABS.Directions.LOWERRIGHT: return this.facingUpperLeft();
 			case J.ABS.Directions.LEFT: return this.facingRight();
 			case J.ABS.Directions.RIGHT: return this.facingLeft();
 			case J.ABS.Directions.UPPERLEFT: return this.facingLowerRight();
@@ -7346,7 +7386,7 @@ var JABS_AI = class {
 			const allyStates = allyBattler.states();
 			if (allyStates.length === 0) return;
 			const cleansableState = allyStates.find((state) => {
-				const isNegative = state.jabsNegative;
+				const isNegative = state.isNegativeType();
 				const canBeCleansed = this.determineBestSkillForStateCleansing(availableSkills, state.id, user);
 				return isNegative && canBeCleansed;
 			});
@@ -8027,7 +8067,6 @@ var JABS_EnemyAI = class extends JABS_AI {
 		if (reckless && alliesMissingAnyHp > 0) {
 			bestSkillId = biggestHealSkill;
 		}
-		if (!bestSkillId) return [];
 		return [bestSkillId];
 	}
 	/**
@@ -10198,6 +10237,14 @@ var JABS_Cooldown = class {
 		*/
 		this.frames = 0;
 		/**
+		* The full duration this cooldown was set to the last time {@link #setFrames} was called with a
+		* positive value- i.e. the skill's total cooldown, not however much of it remains right now.
+		* Stored alongside {@link frames} the same way {@link comboExpireFramesMax} stashes the original
+		* combo window size, so percentage-based cooldown modifiers have a stable total to compute against.
+		* @type {number}
+		*/
+		this.maxFrames = 0;
+		/**
 		* Whether or not the base cooldown is ready.
 		* @type {boolean}
 		*/
@@ -10253,6 +10300,7 @@ var JABS_Cooldown = class {
 	*/
 	clearData() {
 		this.frames = 0;
+		this.maxFrames = 0;
 		this.ready = false;
 		this.comboFrames = 0;
 		this.comboReady = false;
@@ -10347,6 +10395,7 @@ var JABS_Cooldown = class {
 		this.handleIfBaseUnready();
 		if (frames > 0) {
 			this.setComboExpireFrames(0);
+			this.maxFrames = frames;
 		}
 	}
 	/**
@@ -15253,6 +15302,10 @@ var JABS_Battler = class JABS_Battler {
 		if (this.canProcessSlipEffect(slipAmount) === false) return;
 		const modifiedSlipAmount = this.calculateModifiedSlipAmount(slipAmount, jabsState);
 		this.applySlipEffect(modifiedSlipAmount, index);
+		if (modifiedSlipAmount < 0) {
+			const sourceUuid = jabsState.source.getUuid();
+			this.getBattler().setLastHitSource("state", sourceUuid, jabsState.stateId);
+		}
 		const displayAmount = -modifiedSlipAmount;
 		this.onSlipRegenTick(displayAmount, index, jabsState.stateId);
 	}
@@ -16356,7 +16409,6 @@ var JABS_State = class {
 		const afflicted = [];
 		for (const jabsBattler of candidates) {
 			const targetBattler = jabsBattler.getBattler();
-			if (!targetBattler) continue;
 			if (targetBattler.isStateAffected(this.stateId) === false) {
 				unafflicted.push(jabsBattler);
 			} else {
@@ -16747,7 +16799,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	* @param {JABS_Battler} jabsBattler The battler performing the action.
 	*/
 	static performSprint(sprinting, jabsBattler) {
-		if (!this.#canPerformSprint(jabsBattler)) return;
+		if (!this._canPerformSprint(jabsBattler)) return;
 		if (sprinting && jabsBattler.guarding()) {
 			jabsBattler.executeGuard(false, JABS_Button.Offhand);
 		}
@@ -16758,7 +16810,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	* @param {JABS_Battler} jabsBattler The battler performing the action.
 	* @returns {boolean} True if they can, false otherwise.
 	*/
-	static #canPerformSprint(_jabsBattler) {
+	static _canPerformSprint(_jabsBattler) {
 		return true;
 	}
 	/**
@@ -16768,7 +16820,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	* @param {JABS_Battler} jabsBattler The battler performing the action.
 	*/
 	static performStrafe(strafing, jabsBattler) {
-		if (!this.#canPerformStrafe(jabsBattler)) return;
+		if (!this._canPerformStrafe(jabsBattler)) return;
 		jabsBattler.getCharacter().setDirectionFix(strafing);
 	}
 	/**
@@ -16776,7 +16828,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	* @param {JABS_Battler} jabsBattler The battler performing the action.
 	* @returns {boolean} True if they can, false otherwise.
 	*/
-	static #canPerformStrafe(_jabsBattler) {
+	static _canPerformStrafe(_jabsBattler) {
 		return true;
 	}
 	/**
@@ -16786,7 +16838,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	* @param {JABS_Battler} jabsBattler The battler performing the action.
 	*/
 	static performRotate(rotating, jabsBattler) {
-		if (!this.#canPerformRotate(jabsBattler)) return;
+		if (!this._canPerformRotate(jabsBattler)) return;
 		jabsBattler.setMovementLock(rotating);
 	}
 	/**
@@ -16794,7 +16846,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	* @param {JABS_Battler} jabsBattler The battler performing the action.
 	* @returns {boolean} True if they can, false otherwise.
 	*/
-	static #canPerformRotate(_jabsBattler) {
+	static _canPerformRotate(_jabsBattler) {
 		return true;
 	}
 	/**
@@ -16844,7 +16896,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	* Calls the JABS quick menu on the map.
 	*/
 	static performMenuAction() {
-		if (!this.#canPerformMenuAction()) return;
+		if (!this._canPerformMenuAction()) return;
 		$jabsEngine.absPause = true;
 		$jabsEngine.requestAbsMenu = true;
 	}
@@ -16852,7 +16904,7 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	* Determines whether or not we can call the menu.
 	* @returns {boolean} True if they can, false otherwise.
 	*/
-	static #canPerformMenuAction() {
+	static _canPerformMenuAction() {
 		return true;
 	}
 };
@@ -17022,9 +17074,12 @@ var JABS_Engine = class JABS_Engine {
 	requestToggleHitboxOverlays = false;
 	/**
 	* Whether or not the hitbox overlays are presently visible.
-	* @type {boolean}
+	* Starts `null` (not `false`) so initialize()'s own `?? metadataDefault` fallback can actually
+	* seed it from the configured plugin parameter on first construction- a `false` default here
+	* would already be non-nullish and permanently mask that fallback.
+	* @type {boolean|null}
 	*/
-	hitboxOverlaysVisible = false;
+	hitboxOverlaysVisible = null;
 	/**
 	* When `true`, all non‑enemies are considered in combat (UI and mechanics that consult the engine).
 	* Useful for boss phases or scripted moments.
@@ -17198,9 +17253,6 @@ var JABS_Engine = class JABS_Engine {
 		const windowWidth = maxFrames - delayFrames;
 		const minPct = J.ABS.Metadata.AiComboHumanizeWindowMinPercent;
 		const maxPct = J.ABS.Metadata.AiComboHumanizeWindowMaxPercent;
-		if (windowWidth <= 0) {
-			return Graphics.frameCount + delayFrames;
-		}
 		const pct = minPct + Math.random() * (maxPct - minPct);
 		const offset = delayFrames + Math.round(pct * windowWidth);
 		return Graphics.frameCount + offset;
@@ -17315,7 +17367,7 @@ var JABS_Engine = class JABS_Engine {
 		* A collection of the metadata of all action-type events.
 		* @type {RPG_MapEvent[]}
 		*/
-		this._activeActions = isMapTransfer ? Array.empty : this._activeActions ?? Array.empty;
+		this._activeActions = Array.empty;
 		/**
 		* A collection of all ongoing states that are affecting battlers on the map.
 		* @type {Map<string, Map<number, JABS_State>>}
@@ -17534,7 +17586,7 @@ var JABS_Engine = class JABS_Engine {
 			if (trackedState.expired) return false;
 			if (trackedState.stateId === trackedState.battler.deathStateId()) return false;
 			const state = trackedState.battler.state(trackedState.stateId);
-			if (state.jabsNegative) return false;
+			if (state.isNegativeType()) return false;
 			return true;
 		};
 		const jabsStates = this.getJabsStatesByUuid(uuid);
@@ -17551,7 +17603,7 @@ var JABS_Engine = class JABS_Engine {
 			if (trackedState.expired) return false;
 			if (trackedState.stateId === trackedState.battler.deathStateId()) return false;
 			const state = trackedState.battler.state(trackedState.stateId);
-			if (!state.jabsNegative) return false;
+			if (!state.isNegativeType()) return false;
 			return true;
 		};
 		const jabsStates = this.getJabsStatesByUuid(uuid);
@@ -17835,8 +17887,22 @@ var JABS_Engine = class JABS_Engine {
 		battler.update();
 		if (this.shouldHandleDefeatedTarget(battler)) {
 			battler.setInvincible();
-			this.handleDefeatedTarget(battler, this.getPlayer1());
+			const caster = this.resolveCasterFromLastHit(battler) ?? this.getPlayer1();
+			this.handleDefeatedTarget(battler, caster);
 		}
+	}
+	/**
+	* Resolves the {@link JABS_Battler} that most recently dealt damage to the given target, using
+	* the target's own last-hit record rather than assuming the active player character.
+	* @param {JABS_Battler} target The battler to resolve a killer/hitter for.
+	* @returns {JABS_Battler|undefined} The resolved battler, or undefined if nothing is on record or
+	* the recorded battler is no longer resolvable (e.g. it has since been removed from the map).
+	*/
+	resolveCasterFromLastHit(target) {
+		const targetBattler = target.getBattler();
+		const lastHitSource = targetBattler.getLastHitSource();
+		if (!lastHitSource) return undefined;
+		return JABS_AiManager.getBattlerByUuid(lastHitSource.uuid);
 	}
 	/**
 	* Determines whether or not a battler should be handled as defeated.
@@ -18110,6 +18176,8 @@ var JABS_Engine = class JABS_Engine {
 		gameAction.applyOnCastSelfStatesIfAfflicted();
 		gameAction.applyOnCastLoseStates();
 		gameAction.applyToggleOnExecuteStates();
+		gameAction.applyToggleGroupOnExecuteStates();
+		gameAction.applyOnCastExecuteSkills(caster);
 	}
 	/**
 	* Handles adding this action to the map if applicable.
@@ -18296,8 +18364,7 @@ var JABS_Engine = class JABS_Engine {
 			if (d === 2) return 8;
 			if (d === 8) return 2;
 			if (d === 4) return 6;
-			if (d === 6) return 4;
-			return d;
+			return 4;
 		};
 		if (travelDir !== 1 && travelDir !== 3 && travelDir !== 7 && travelDir !== 9) {
 			if (casted === 2 || casted === 4 || casted === 6 || casted === 8) {
@@ -18317,9 +18384,6 @@ var JABS_Engine = class JABS_Engine {
 					case 9:
 						result = rev(casted);
 						break;
-					default:
-						result = casted;
-						break;
 				}
 				break;
 			}
@@ -18332,9 +18396,6 @@ var JABS_Engine = class JABS_Engine {
 					case 3:
 					case 9:
 						result = rev(casted);
-						break;
-					default:
-						result = casted;
 						break;
 				}
 				break;
@@ -18349,9 +18410,6 @@ var JABS_Engine = class JABS_Engine {
 					case 7:
 						result = rev(casted);
 						break;
-					default:
-						result = casted;
-						break;
 				}
 				break;
 			}
@@ -18364,9 +18422,6 @@ var JABS_Engine = class JABS_Engine {
 					case 1:
 					case 3:
 						result = rev(casted);
-						break;
-					default:
-						result = casted;
 						break;
 				}
 				break;
@@ -18782,6 +18837,11 @@ var JABS_Engine = class JABS_Engine {
 		}
 		const gameAction = action.getAction();
 		gameAction.apply(targetBattler);
+		const dealtDamage = result.hpDamage > 0 || result.mpDamage > 0 || result.tpDamage > 0;
+		if (dealtDamage) {
+			const casterUuid = action.getCaster().getBattler().getUuid();
+			targetBattler.setLastHitSource("skill", casterUuid, gameAction.item().id);
+		}
 		if (targetBattler.isDead()) {
 			const elementIds = gameAction.getApplicableElements(targetBattler);
 			let hitType;
@@ -19908,7 +19968,7 @@ var JABS_Engine = class JABS_Engine {
 		const tw = $gameMap.tileWidth();
 		const th = $gameMap.tileHeight();
 		const lengthPx = range * Math.max(tw, th);
-		const thicknessTiles = this.getActionThicknessTiles(action) ?? 1;
+		const thicknessTiles = this.getActionThicknessTiles(action);
 		const minPx = 1;
 		const thicknessX = Math.max(minPx, thicknessTiles * tw);
 		const thicknessY = Math.max(minPx, thicknessTiles * th);
@@ -19930,7 +19990,7 @@ var JABS_Engine = class JABS_Engine {
 	collisionWall(target, action, range, facing) {
 		const tw = $gameMap.tileWidth();
 		const th = $gameMap.tileHeight();
-		const thicknessTiles = this.getActionThicknessTiles(action) ?? 1;
+		const thicknessTiles = this.getActionThicknessTiles(action);
 		const minPx = 1;
 		const depthW = Math.max(minPx, thicknessTiles * tw);
 		const depthH = Math.max(minPx, thicknessTiles * th);
@@ -20029,7 +20089,7 @@ var JABS_Engine = class JABS_Engine {
 	collisionCross(target, action, range) {
 		const tw = $gameMap.tileWidth();
 		const th = $gameMap.tileHeight();
-		const thicknessTiles = this.getActionThicknessTiles(action) ?? 1;
+		const thicknessTiles = this.getActionThicknessTiles(action);
 		const minPx = 1;
 		const thicknessX = Math.max(minPx, thicknessTiles * tw);
 		const thicknessY = Math.max(minPx, thicknessTiles * th);
@@ -20567,7 +20627,7 @@ var JABS_Action = class JABS_Action {
 		* How many frames this action should linger visually.
 		* @type {number}
 		*/
-		this._lingerMaxFrames = this._baseSkill.jabsLinger ?? 10;
+		this._lingerMaxFrames = this._baseSkill.jabsLinger;
 		/**
 		* The current linger frame counter.
 		* @type {number}
@@ -20591,12 +20651,12 @@ var JABS_Action = class JABS_Action {
 		* The duration remaining before this will action will autotrigger.
 		* @type {JABS_Timer}
 		*/
-		this._delay._delayDuration = new JABS_Timer(this._baseSkill.jabsDelayDuration ?? 0);
+		this._delay._delayDuration = new JABS_Timer(this._baseSkill.jabsDelayDuration);
 		/**
 		* Whether or not this action will trigger when an enemy touches it.
 		* @type {boolean}
 		*/
-		this._delay._triggerOnTouch = this._baseSkill.jabsDelayTriggerByTouch ?? false;
+		this._delay._triggerOnTouch = this._baseSkill.jabsDelayTriggerByTouch;
 		/**
 		* Optional radius in tiles used only for touch-triggering during the delay window.
 		* If null, the action’s normal hitbox will be used (legacy behavior).
@@ -20736,7 +20796,6 @@ var JABS_Action = class JABS_Action {
 	*/
 	performOnCastAnimation(caster) {
 		const who = caster || this.getCaster();
-		if (!who) return;
 		if (this.hasOnCastAnimationId()) {
 			who.getCharacter().requestAnimation(this.getOnCastAnimationId());
 		}
@@ -21048,10 +21107,8 @@ var JABS_Action = class JABS_Action {
 	*/
 	decrementPierceTimes(decrement = 1) {
 		this._pierceTimesLeft -= decrement;
-		if (this._pierceTimesLeft <= 0) {
-			if (!this._isLingering) {
-				this.startLinger();
-			}
+		if (this._pierceTimesLeft <= 0 && !this.isLingering()) {
+			this.startLinger();
 		}
 	}
 	/**
@@ -21163,20 +21220,19 @@ var JABS_Action = class JABS_Action {
 		if (this.isDelayCompleted()) {
 			this.countdownDuration();
 		}
-		if (this._isLingering) {
+		if (this.canUpdateLinger()) {
 			this.updateLinger();
 			return;
 		}
-		if (this.isReadyForCleanup()) {
+		if (this.shouldBeginLingering()) {
+			this.startLinger();
 			return;
 		}
 		if (!this.isPierceReady()) {
 			this.countdownPierceDelay();
 			return;
 		}
-		if (this._collisionEnabled) {
-			this.processCollision();
-		}
+		this.processCollision();
 	}
 	/**
 	* Determines whether or not it is valid to perform the main update of the action.
@@ -21187,41 +21243,67 @@ var JABS_Action = class JABS_Action {
 		return true;
 	}
 	/**
-	* Determines whether or not to cleanup the action.
-	* @returns {boolean} True if the action should be cleaned up, false otherwise.
+	* Whether or not this action is currently in its linger phase.
+	* @returns {boolean}
 	*/
-	isReadyForCleanup() {
+	isLingering() {
+		return this._isLingering;
+	}
+	/**
+	* Whether or not the lingering fade-out timer should advance this frame, instead of running
+	* collision logic. Pure alias over {@link #isLingering} for readability at the call site.
+	* @returns {boolean}
+	*/
+	canUpdateLinger() {
+		return this.isLingering();
+	}
+	/**
+	* Whether or not collision is currently permitted for this action. Disabled once the action
+	* transitions into its lingering phase via {@link #startLinger}.
+	* @returns {boolean}
+	*/
+	canProcessCollision() {
+		return this._collisionEnabled;
+	}
+	/**
+	* Determines whether or not this action should transition into its lingering phase this frame:
+	* past the minimum duration, and either expired or out of pierce hits. A pure predicate- the
+	* caller ({@link #mainUpdate}) is responsible for actually invoking {@link #startLinger}.
+	* @returns {boolean} True if lingering should begin now, false otherwise.
+	*/
+	shouldBeginLingering() {
 		if (this.getDuration() < JABS_Action.getMinimumDuration()) return false;
-		if (this._isLingering) {
-			if (this._currentLinger >= this._lingerMaxFrames) {
-				this.cleanup();
-				return true;
-			}
-			return false;
-		}
-		const expired = this.isActionExpired();
-		const outOfPierce = this.getPiercingTimes() <= 0;
-		if (expired || outOfPierce) {
-			this.startLinger();
-			return false;
-		}
-		return false;
+		return this.isActionExpired() || this.getPiercingTimes() <= 0;
 	}
 	/**
 	* Begins the lingering effect.
 	*/
 	startLinger() {
-		if (this._isLingering) return;
+		if (this.isLingering()) return;
 		this._isLingering = true;
 		this._collisionEnabled = false;
 		this.performSelfAnimation();
+	}
+	/**
+	* The current linger frame counter.
+	* @returns {number}
+	*/
+	getCurrentLinger() {
+		return this._currentLinger;
+	}
+	/**
+	* How many frames this action should linger visually.
+	* @returns {number}
+	*/
+	getLingerMaxFrames() {
+		return this._lingerMaxFrames;
 	}
 	/**
 	* Updates the lingering effect.
 	*/
 	updateLinger() {
 		this._currentLinger++;
-		if (this._currentLinger >= this._lingerMaxFrames) {
+		if (this.getCurrentLinger() >= this.getLingerMaxFrames()) {
 			this.cleanup();
 		}
 	}
@@ -21329,11 +21411,11 @@ var JABS_Action = class JABS_Action {
 	* An event hook for logic to perform after the main update of an action.
 	*/
 	postUpdate() {
-		if (this._isLingering) {
+		if (this.isLingering()) {
 			const event = this.getActionSprite();
 			if (event) {
-				const max = Math.max(1, this._lingerMaxFrames);
-				const t = Math.min(this._currentLinger, max);
+				const max = Math.max(1, this.getLingerMaxFrames());
+				const t = Math.min(this.getCurrentLinger(), max);
 				const pct = 1 - t / max;
 				const opacity = Math.max(0, Math.floor(255 * pct));
 				event.setOpacity(opacity);
@@ -21456,7 +21538,7 @@ var JABS_Action = class JABS_Action {
 	* @returns {number}
 	*/
 	getThisRangeBuff() {
-		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisRangeBuff) ?? 0;
+		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisRangeBuff);
 	}
 	/**
 	* Gets the multiplicative rate applied to all dimensions of this skill alone, read from this
@@ -21464,8 +21546,8 @@ var JABS_Action = class JABS_Action {
 	* @returns {number}
 	*/
 	getThisRangeRate() {
-		const captures = RPGManager.getAllCapturesFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisRangeRate);
-		return (captures ?? []).reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+		const rates = RPGManager.getStringsFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisRangeRate);
+		return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 0);
 	}
 	/**
 	* Gets the flat tile bonus applied only to this skill's own radius, read from this skill's own
@@ -21473,7 +21555,7 @@ var JABS_Action = class JABS_Action {
 	* @returns {number}
 	*/
 	getThisRadiusBuff() {
-		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisRadiusBuff) ?? 0;
+		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisRadiusBuff);
 	}
 	/**
 	* Gets the multiplicative rate applied only to this skill's own radius, read from this skill's
@@ -21482,8 +21564,8 @@ var JABS_Action = class JABS_Action {
 	* @returns {number}
 	*/
 	getThisRadiusRate() {
-		const captures = RPGManager.getAllCapturesFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisRadiusRate);
-		return (captures ?? []).reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+		const rates = RPGManager.getStringsFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisRadiusRate);
+		return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 0);
 	}
 	/**
 	* Gets the flat tile bonus applied only to this skill's own proximity, read from this skill's own
@@ -21491,7 +21573,7 @@ var JABS_Action = class JABS_Action {
 	* @returns {number}
 	*/
 	getThisProximityBuff() {
-		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisProximityBuff) ?? 0;
+		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisProximityBuff);
 	}
 	/**
 	* Gets the multiplicative rate applied only to this skill's own proximity, read from this skill's
@@ -21500,8 +21582,8 @@ var JABS_Action = class JABS_Action {
 	* @returns {number}
 	*/
 	getThisProximityRate() {
-		const captures = RPGManager.getAllCapturesFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisProximityRate);
-		return (captures ?? []).reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+		const rates = RPGManager.getStringsFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisProximityRate);
+		return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 0);
 	}
 	/**
 	* Gets the flat tile bonus applied only to this skill's own thickness, read from this skill's own
@@ -21509,7 +21591,7 @@ var JABS_Action = class JABS_Action {
 	* @returns {number}
 	*/
 	getThisThicknessBuff() {
-		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisThicknessBuff) ?? 0;
+		return RPGManager.getSumFromAllNotesByRegex([this.getBaseSkill()], J.ABS.RegExp.ThisThicknessBuff);
 	}
 	/**
 	* Gets the multiplicative rate applied only to this skill's own thickness, read from this skill's
@@ -21518,8 +21600,8 @@ var JABS_Action = class JABS_Action {
 	* @returns {number}
 	*/
 	getThisThicknessRate() {
-		const captures = RPGManager.getAllCapturesFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisThicknessRate);
-		return (captures ?? []).reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+		const rates = RPGManager.getStringsFromNoteByRegex(this.getBaseSkill(), J.ABS.RegExp.ThisThicknessRate);
+		return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 0);
 	}
 	/**
 	* Gets the arc sweep in degrees for this JABS action.
@@ -22153,7 +22235,11 @@ var JABS_StateExpireData = class {
 var JABS_StateOverrides = class {
 	/**
 	* The override duration in frames for the applied state.
-	* When {@code null}, the state's own {@code jabsStateDurationFrames} value is used instead.
+	* When {@code null} or {@code 0}, no override is applied — the state's own tags
+	* ({@code jabsStateDurationFrames}, {@code jabsIndefiniteState}) decide as usual.
+	* When {@code -1}, the state is forced indefinite regardless of its own tags.
+	* Any other value forces that exact finite duration, also regardless of the
+	* state's own tags (including an {@code <indefiniteState>} tag).
 	* @type {number|null}
 	*/
 	duration = null;
@@ -22165,7 +22251,8 @@ var JABS_StateOverrides = class {
 	stacks = null;
 	/**
 	* Constructor.
-	* @param {number|null} duration Override duration in frames; pass {@code null} to use the state's default.
+	* @param {number|null} duration Override duration in frames; pass {@code null} or {@code 0} to use the
+	* state's default, or {@code -1} to force the state indefinite regardless of its own tags.
 	* @param {number|null} stacks Override starting stack count; pass {@code null} to use the state's default.
 	*/
 	constructor(duration = null, stacks = null) {
@@ -22277,10 +22364,9 @@ var SkillHistoryBonusDisplay = class SkillHistoryBonusDisplay {
 	*/
 	static collectGeneralProseLines(dataRow, window) {
 		if (!J.ABS) return [];
-		const captures = RPGManager.getAllCapturesFromNoteByRegex(dataRow, J.ABS.RegExp.SkillHistoryBonus);
+		const rawTags = RPGManager.getStringsFromNoteByRegex(dataRow, J.ABS.RegExp.SkillHistoryBonus);
 		const lines = [];
-		captures.forEach((captureGroup) => {
-			const [rawTag] = captureGroup;
+		rawTags.forEach((rawTag) => {
 			const parsed = SkillHistoryBonusDisplay.parseGeneralBracket(rawTag);
 			if (parsed === null) return;
 			lines.push(SkillHistoryBonusDisplay.formatGeneralProse(parsed, window));
@@ -23905,16 +23991,16 @@ Object.defineProperty(RPG_Skill.prototype, "jabsVisOffsetDL", { get: function() 
 RPG_Skill.prototype.getJabsVisOffsetFor = function(direction) {
 	const def = this.jabsVisOffset;
 	switch (direction) {
-		case 8: return this.jabsVisOffsetU || def || [0, 0];
-		case 2: return this.jabsVisOffsetD || def || [0, 0];
-		case 4: return this.jabsVisOffsetL || def || [0, 0];
-		case 6: return this.jabsVisOffsetR || def || [0, 0];
-		case 9: return this.jabsVisOffsetUR || this.jabsVisOffsetU || this.jabsVisOffsetR || def || [0, 0];
-		case 7: return this.jabsVisOffsetUL || this.jabsVisOffsetU || this.jabsVisOffsetL || def || [0, 0];
-		case 3: return this.jabsVisOffsetDR || this.jabsVisOffsetD || this.jabsVisOffsetR || def || [0, 0];
-		case 1: return this.jabsVisOffsetDL || this.jabsVisOffsetD || this.jabsVisOffsetL || def || [0, 0];
+		case 8: return this.jabsVisOffsetU || def;
+		case 2: return this.jabsVisOffsetD || def;
+		case 4: return this.jabsVisOffsetL || def;
+		case 6: return this.jabsVisOffsetR || def;
+		case 9: return this.jabsVisOffsetUR || this.jabsVisOffsetU || this.jabsVisOffsetR || def;
+		case 7: return this.jabsVisOffsetUL || this.jabsVisOffsetU || this.jabsVisOffsetL || def;
+		case 3: return this.jabsVisOffsetDR || this.jabsVisOffsetD || this.jabsVisOffsetR || def;
+		case 1: return this.jabsVisOffsetDL || this.jabsVisOffsetD || this.jabsVisOffsetL || def;
 	}
-	return def || [0, 0];
+	return def;
 };
 /**
 * Prefers skill note matches over action-map synthetic note (`holder`) for one array shaped tag pair.
@@ -24044,16 +24130,16 @@ RPG_Skill.prototype.getJabsVisOffsetForMergedActionMap = function(jabsAction, di
 	const mergedDR = pick(this, holder, J.ABS.RegExp.VisOffsetDR);
 	const mergedDL = pick(this, holder, J.ABS.RegExp.VisOffsetDL);
 	switch (direction) {
-		case 8: return mergedU || def || [0, 0];
-		case 2: return mergedD || def || [0, 0];
-		case 4: return mergedL || def || [0, 0];
-		case 6: return mergedR || def || [0, 0];
-		case 9: return mergedUR || mergedU || mergedR || def || [0, 0];
-		case 7: return mergedUL || mergedU || mergedL || def || [0, 0];
-		case 3: return mergedDR || mergedD || mergedR || def || [0, 0];
-		case 1: return mergedDL || mergedD || mergedL || def || [0, 0];
+		case 8: return mergedU || def;
+		case 2: return mergedD || def;
+		case 4: return mergedL || def;
+		case 6: return mergedR || def;
+		case 9: return mergedUR || mergedU || mergedR || def;
+		case 7: return mergedUL || mergedU || mergedL || def;
+		case 3: return mergedDR || mergedD || mergedR || def;
+		case 1: return mergedDL || mergedD || mergedL || def;
 	}
-	return def || [0, 0];
+	return def;
 };
 /**
 * The parsed {@code <purgeStates>} parameter tuple from this skill's notes, if present.
@@ -24110,14 +24196,17 @@ Object.defineProperty(RPG_State.prototype, "jabsDisarmed", { get: function() {
 	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.Disabled, true);
 } });
 /**
-* Whether or not this state is considered "negative" for the purpose
-* of AI action decision-making. Ally AI set to Support or enemy AI set
-* to Healing will attempt to remove "negative" states if possible.
-* @type {boolean|null}
+* Whether or not this state carries the {@code <type:negative>} classifier, used to determine
+* "negative"/ailment polarity for AI action decision-making, immunity gating, and passive rule
+* dispatch. Ally AI set to Support or enemy AI set to Healing will attempt to remove states this
+* returns true for. Polarity used to be its own dedicated {@code <negative>} notetag, but was
+* folded into the shared {@code <type:CLASSIFIER>} system so it composes naturally with
+* {@code <stateTypeResist>}/{@code <stateTypeImmune>} instead of needing a parallel mechanism.
+* @returns {boolean}
 */
-Object.defineProperty(RPG_State.prototype, "jabsNegative", { get: function() {
-	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.RegExp.Negative, true);
-} });
+RPG_State.prototype.isNegativeType = function() {
+	return this.types().some((type) => type.toLowerCase() === "negative");
+};
 /**
 * Multiply incoming aggro by this amount.
 * @type {number|null}
@@ -25225,9 +25314,11 @@ Game_Action.prototype.applyStateEffect = function(target, stateId) {
 * bonusDamageIfStateType (type-classifier presence bonus), bonusDamagePerStateType
 * (type-classifier count bonus), bonusDamagePerStateStack (named-state stack-depth bonus),
 * thisBonusDamagePerStateStack (skill-scoped named-state stack-depth bonus),
-* bonusDamageForMyStateCount (authored-distinct-state count bonus), bonusDamage (unconditional
-* caster-wide bonus), thisBonusDamage (unconditional skill-scoped bonus), and
-* bonusDamageIfTargetHpBelow/thisBonusDamageIfTargetHpBelow (target-missing-hp execute bonus).
+* bonusDamageForMyStateCount (authored-distinct-state count bonus),
+* vulnerabilityPerAuthoredStateStack (authored-state stack bonus collected by any attacker),
+* bonusDamage (unconditional caster-wide bonus), thisBonusDamage (unconditional skill-scoped
+* bonus), and bonusDamageIfTargetHpBelow/thisBonusDamageIfTargetHpBelow (target-missing-hp
+* execute bonus).
 * Applied before guard effects so flat guard reduction cannot fully cancel the state-exploitation bonus.
 * @param {number} baseDamage The damage value before state multipliers.
 * @param {Game_Battler} target The target whose states are evaluated.
@@ -25248,23 +25339,24 @@ Game_Action.prototype.applyStateDamageMultipliers = function(baseDamage, target)
 	const thisStackDepthPct = this.calculateThisBonusDamagePerStateStackPct(target);
 	const myStateCountPct = this.calculateBonusForMyStateCountPct(target);
 	const thisMyStateCountPct = this.calculateThisBonusForMyStateCountPct(target);
+	const authoredVulnerabilityPct = this.calculateAuthoredVulnerabilityStackPct(target);
 	const targetHpBelowPct = this.calculateBonusIfTargetHpBelowPct(target);
 	const thisTargetHpBelowPct = this.calculateThisBonusDamageIfTargetHpBelowPct(target);
-	const combinedPct = debuffPct + specificPct + thisSpecificPct + selfStatePct + thisSelfStatePct + flatPct + thisFlatPct + typePresencePct + typeCountPct + stackDepthPct + thisStackDepthPct + myStateCountPct + thisMyStateCountPct + targetHpBelowPct + thisTargetHpBelowPct;
+	const combinedPct = debuffPct + specificPct + thisSpecificPct + selfStatePct + thisSelfStatePct + flatPct + thisFlatPct + typePresencePct + typeCountPct + stackDepthPct + thisStackDepthPct + myStateCountPct + thisMyStateCountPct + authoredVulnerabilityPct + targetHpBelowPct + thisTargetHpBelowPct;
 	if (combinedPct === 0) return baseDamage;
 	return Math.round(baseDamage * (1 + combinedPct / 100));
 };
 /**
 * Calculates the total damage bonus percent from perDebuffBuff tags on the caster's notes.
-* Counts every active state on the target that is tagged with jabsNegative and multiplies
+* Counts every active state on the target carrying the <type:negative> classifier and multiplies
 * the summed N value by that count.
 * @param {Game_Battler} target The target whose negative states are counted.
 * @returns {number} The total bonus percent from this tag type.
 */
 Game_Action.prototype.calculatePerDebuffBonusPct = function(target) {
-	const totalN = RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.PerDebuffBuff) ?? 0;
+	const totalN = RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.PerDebuffBuff);
 	if (totalN === 0) return 0;
-	const debuffCount = target.states().filter((s) => s.jabsNegative).length;
+	const debuffCount = target.states().filter((s) => s.isNegativeType()).length;
 	return totalN * debuffCount;
 };
 /**
@@ -25346,7 +25438,7 @@ Game_Action.prototype.calculateThisBonusDamageIfSelfStatePct = function() {
 * @returns {number} The total bonus percent from all bonusDamage tags on the caster, or 0.
 */
 Game_Action.prototype.calculateBonusDamagePct = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.BonusDamage) ?? 0;
+	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.BonusDamage);
 };
 /**
 * Calculates the unconditional flat percent damage bonus from the thisBonusDamage tag on this
@@ -25538,6 +25630,28 @@ Game_Action.prototype.calculateThisBonusForMyStateCountPct = function(target) {
 	return perStatePct * this.countTargetStatesAuthoredByCaster(target);
 };
 /**
+* Calculates the total damage bonus percent from vulnerabilityPerAuthoredStateStack tags.
+* Unlike every other bonus in this region, this one is not read from this.subject()- it is read
+* from each tracked state's own source battler, so the bonus applies no matter who is currently
+* dealing the damage. This lets one battler's kit turn their applied debuffs into a standing
+* vulnerability that any ally can then exploit.
+* @param {Game_Battler} target The target whose tracked states are inspected.
+* @returns {number} The total bonus percent contributed by every authored, tagged state stack.
+*/
+Game_Action.prototype.calculateAuthoredVulnerabilityStackPct = function(target) {
+	const trackedStates = $jabsEngine.getJabsStatesByUuid(target.getUuid());
+	let totalPct = 0;
+	trackedStates.forEach((trackedState) => {
+		if (!target.isStateAffected(trackedState.stateId)) return;
+		const author = trackedState.source;
+		if (!author) return;
+		const perStackPct = RPGManager.getSumFromAllNotesByRegex(author.getAllNotes(), J.ABS.RegExp.VulnerabilityPerAuthoredStateStack);
+		if (perStackPct === 0) return;
+		totalPct += perStackPct * trackedState.stackCount;
+	});
+	return totalPct;
+};
+/**
 * Applies any skill history bonuses to the given base damage amount.
 * Reads from two sources: thisSkillHistoryBonus on this.item() (skill-specific)
 * and skillHistoryBonus from getAllNotes() (passive/equipment/state sources).
@@ -25581,10 +25695,9 @@ Game_Action.prototype.calculateThisSkillHistoryBonusPct = function(uuid) {
 */
 Game_Action.prototype.calculateGeneralSkillHistoryBonusPct = function(uuid) {
 	let totalPct = 0;
-	const allCaptures = RPGManager.getAllCapturesFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.SkillHistoryBonus);
-	if (!allCaptures.length) return 0;
-	allCaptures.forEach((captureGroup) => {
-		const [rawTag] = captureGroup;
+	const rawTags = RPGManager.getStringsFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.SkillHistoryBonus);
+	if (!rawTags.length) return 0;
+	rawTags.forEach((rawTag) => {
 		const parsed = this.parseGeneralSkillHistoryBracket(rawTag);
 		if (!parsed) return;
 		const { typeId, window, pct, countMode } = parsed;
@@ -25676,14 +25789,14 @@ Game_Action.prototype.applyCastTimeDamageBonus = function(baseDamage) {
 */
 Game_Action.prototype.calculateThisCastTimeDamageBonusPctPerSec = function() {
 	const item = this.item();
-	return RPGManager.getSumFromAllNotesByRegex([item], J.ABS.RegExp.ThisCastTimeDamageBonus) ?? 0;
+	return RPGManager.getSumFromAllNotesByRegex([item], J.ABS.RegExp.ThisCastTimeDamageBonus);
 };
 /**
 * Calculates the percent-per-second bonus from castTimeDamageBonus on all note sources.
 * @returns {number} The summed percent-per-second rate from passive/equipment/state sources.
 */
 Game_Action.prototype.calculateGeneralCastTimeDamageBonusPctPerSec = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.CastTimeDamageBonus) ?? 0;
+	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.CastTimeDamageBonus);
 };
 
 //#endregion
@@ -26675,6 +26788,15 @@ Game_Battler.prototype.initJabsMembers = function() {
 	*/
 	this._j._abs._deathContext = null;
 	/**
+	* A record of the most recent thing that dealt damage to this battler, regardless of whether it
+	* was fatal. Overwritten by every subsequent hit- this is a running "last hit", not a death-only
+	* snapshot like {@link #_deathContext}. Populated from two places: a direct skill/attack landing
+	* ({@link JABS_Engine#executeSkillEffects}) or a state DoT/HoT tick resolving
+	* ({@link JABS_Battler#processSlipEffect}).
+	* @type {{type: string, uuid: string, id: number}|null}
+	*/
+	this._j._abs._lastDamageSource = null;
+	/**
 	* The cached result of {@link #getVisionModifier}.
 	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
 	* @type {number|null}
@@ -27057,6 +27179,40 @@ Game_Battler.prototype.clearDeathContext = function() {
 	this._j._abs._deathContext = null;
 };
 /**
+* Records what just dealt damage to this battler, overwriting whatever was previously recorded.
+* @param {string} type Either `"skill"` for a direct hit, or `"state"` for a DoT/HoT tick.
+* @param {string} uuid The JABS uuid of the battler that caused this damage- the skill's caster for
+* a direct hit, or the state's original applier for a tick.
+* @param {number} id The skill id (for `"skill"`) or state id (for `"state"`) responsible.
+*/
+Game_Battler.prototype.setLastHitSource = function(type, uuid, id) {
+	this._j._abs._lastDamageSource = {
+		type,
+		uuid,
+		id
+	};
+};
+/**
+* Gets the kind of thing that last dealt damage to this battler.
+* @returns {string|null} Either `"skill"`, `"state"`, or `null` if nothing has hit this battler yet.
+*/
+Game_Battler.prototype.getLastHitType = function() {
+	return this._j._abs._lastDamageSource?.type ?? null;
+};
+/**
+* Gets the identity of whatever last dealt damage to this battler. Pair with {@link #getLastHitType}
+* to know how to interpret `id`- a skill id when the type is `"skill"`, or a state id when the type
+* is `"state"`.
+* @returns {{uuid: string, id: number}|null}
+*/
+Game_Battler.prototype.getLastHitSource = function() {
+	const record = this._j._abs._lastDamageSource;
+	return record ? {
+		uuid: record.uuid,
+		id: record.id
+	} : null;
+};
+/**
 * Gets the battler's skill slot manager directly.
 * @returns {JABS_SkillSlotManager}
 */
@@ -27329,8 +27485,8 @@ Game_Battler.prototype.isImmuneToNonDeathStates = function() {
 	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ImmuneToStates) === true;
 };
 /**
-* Whether or not this battler is immune to any state carrying the {@code <negative>} (jabsNegative)
-* notetag.
+* Whether or not this battler is immune to any state carrying the {@code <type:negative>}
+* classifier (see {@link RPG_State#isNegativeType}).
 * @returns {boolean}
 */
 Game_Battler.prototype.isImmuneToNegativeStates = function() {
@@ -27396,7 +27552,7 @@ Game_Battler.prototype.isStateAddable = function(stateId) {
 	if (stateId !== this.deathStateId() && this.isImmuneToNonDeathStates()) return false;
 	const state = $dataStates[stateId];
 	if (state) {
-		if (state.jabsNegative === true && this.isImmuneToNegativeStates()) return false;
+		if (state.isNegativeType() && this.isImmuneToNegativeStates()) return false;
 		if (this.isImmuneToStateByType(state)) return false;
 	}
 	return J.ABS.Aliased.Game_Battler.get("isStateAddable").call(this, stateId);
@@ -27507,10 +27663,10 @@ Game_Battler.prototype.isRemovableCandidate = function(state, type, allowDeath) 
 		return false;
 	}
 	if (type === "negative") {
-		return state.jabsNegative === true;
+		return state.isNegativeType();
 	}
 	if (type === "positive") {
-		return state.jabsNegative !== true;
+		return !state.isNegativeType();
 	}
 	return true;
 };
@@ -27529,16 +27685,13 @@ Game_Battler.prototype.addJabsState = function(stateId, attacker, overrides = nu
 	}
 	const state = assailant.state(stateId);
 	const { iconIndex, jabsStateHasMapTimer: hasMapTimer, jabsStateDurationFrames: baseDuration } = state;
-	let stateDuration = baseDuration;
-	let stateStacks = state.jabsStateStacksApplied;
-	if (overrides) {
-		const { duration, stacks } = overrides;
-		stateDuration = duration ?? baseDuration;
-		stateStacks = stacks ?? state.jabsStateStacksApplied;
-	}
+	const stateStacks = overrides?.stacks ?? state.jabsStateStacksApplied;
+	const overrideDuration = overrides ? overrides.duration : null;
 	let totalDuration = -1;
-	if (hasMapTimer) {
-		totalDuration = stateDuration + assailant.getStateDurationBoost(stateDuration) + state.jabsThisStateDurationBoost(stateDuration);
+	if (overrideDuration === -1) {} else if (overrideDuration !== null && overrideDuration !== 0) {
+		totalDuration = overrideDuration + assailant.getStateDurationBoost(overrideDuration) + state.jabsThisStateDurationBoost(overrideDuration);
+	} else if (hasMapTimer) {
+		totalDuration = baseDuration + assailant.getStateDurationBoost(baseDuration) + state.jabsThisStateDurationBoost(baseDuration);
 	}
 	const builder = this.createJabsState(this, stateId, iconIndex, totalDuration, stateStacks, assailant, sourceSkill);
 	const jabsState = builder.build();
@@ -27845,7 +27998,7 @@ Game_Battler.prototype.isAccumulating = function() {
 * @returns {number}
 */
 Game_Battler.prototype.getRangeBuff = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RangeBuff) ?? 0;
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RangeBuff);
 };
 /**
 * Gets the multiplicative rate applied to all outgoing action dimensions.
@@ -27853,8 +28006,8 @@ Game_Battler.prototype.getRangeBuff = function() {
 * @returns {number}
 */
 Game_Battler.prototype.getRangeRate = function() {
-	const captures = RPGManager.getAllCapturesFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RangeRate);
-	return captures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 1);
+	const rates = RPGManager.getStringsFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RangeRate);
+	return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 1);
 };
 /**
 * Gets the flat tile bonus applied only to outgoing action radius (AoE splash zone).
@@ -27862,7 +28015,7 @@ Game_Battler.prototype.getRangeRate = function() {
 * @returns {number}
 */
 Game_Battler.prototype.getRadiusBuff = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RadiusBuff) ?? 0;
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RadiusBuff);
 };
 /**
 * Gets the multiplicative rate applied only to outgoing action radius.
@@ -27870,8 +28023,8 @@ Game_Battler.prototype.getRadiusBuff = function() {
 * @returns {number}
 */
 Game_Battler.prototype.getRadiusRate = function() {
-	const captures = RPGManager.getAllCapturesFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RadiusRate);
-	return captures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+	const rates = RPGManager.getStringsFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.RadiusRate);
+	return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 0);
 };
 /**
 * Gets the flat tile bonus applied only to outgoing action proximity (targeting reach).
@@ -27879,7 +28032,7 @@ Game_Battler.prototype.getRadiusRate = function() {
 * @returns {number}
 */
 Game_Battler.prototype.getProximityBuff = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ProximityBuff) ?? 0;
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ProximityBuff);
 };
 /**
 * Gets the multiplicative rate applied only to outgoing action proximity.
@@ -27887,8 +28040,8 @@ Game_Battler.prototype.getProximityBuff = function() {
 * @returns {number}
 */
 Game_Battler.prototype.getProximityRate = function() {
-	const captures = RPGManager.getAllCapturesFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ProximityRate);
-	return captures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+	const rates = RPGManager.getStringsFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ProximityRate);
+	return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 0);
 };
 /**
 * Gets the flat tile bonus applied only to outgoing action thickness (LINE/WALL hitbox width).
@@ -27896,7 +28049,7 @@ Game_Battler.prototype.getProximityRate = function() {
 * @returns {number}
 */
 Game_Battler.prototype.getThicknessBuff = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ThicknessBuff) ?? 0;
+	return RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ThicknessBuff);
 };
 /**
 * Gets the multiplicative rate applied only to outgoing action thickness.
@@ -27904,8 +28057,8 @@ Game_Battler.prototype.getThicknessBuff = function() {
 * @returns {number}
 */
 Game_Battler.prototype.getThicknessRate = function() {
-	const captures = RPGManager.getAllCapturesFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ThicknessRate);
-	return captures.reduce((acc, capture) => acc + (Number(capture[0]) - 1), 0);
+	const rates = RPGManager.getStringsFromAllNotesByRegex(this.getAllNotes(), J.ABS.RegExp.ThicknessRate);
+	return rates.reduce((acc, rate) => acc + (Number(rate) - 1), 0);
 };
 /**
 * Checks all states to see if we have anything that grants parry ignore.
@@ -28293,19 +28446,13 @@ Game_Character.prototype.findDiagonalDirectionToHeuristic = function(goalX, goal
 	if (Math.abs(deltaX2) > Math.abs(deltaY2)) {
 		if (deltaX2 > 0) {
 			return deltaY2 === 0 ? 4 : deltaY2 > 0 ? 7 : 1;
-		} else if (deltaX2 < 0) {
-			return deltaY2 === 0 ? 6 : deltaY2 > 0 ? 9 : 3;
-		} else {
-			return deltaY2 === 0 ? 0 : deltaY2 > 0 ? 8 : 2;
 		}
+		return deltaY2 === 0 ? 6 : deltaY2 > 0 ? 9 : 3;
 	} else {
 		if (deltaY2 > 0) {
 			return deltaX2 === 0 ? 8 : deltaX2 > 0 ? 7 : 9;
-		} else if (deltaY2 < 0) {
-			return deltaX2 === 0 ? 2 : deltaX2 > 0 ? 1 : 3;
-		} else {
-			return deltaX2 === 0 ? 0 : deltaX2 > 0 ? 4 : 6;
 		}
+		return deltaX2 === 0 ? 2 : deltaX2 > 0 ? 1 : 3;
 	}
 };
 /**
@@ -28574,9 +28721,6 @@ Game_CharacterBase.prototype.walkInDirectionClamped = function(direction, distan
 				realX++;
 				canPass = this.canPass(realX, realY, direction);
 				if (!canPass) realX--;
-				break;
-			default:
-				canPass = false;
 				break;
 		}
 		if (canPass) stepsTaken++;
@@ -29187,7 +29331,7 @@ Game_Event.prototype.getBattlerIdOverrides = function() {
 * @returns {number|null} The found team id, or null if not found.
 */
 Game_Event.prototype.getTeamIdOverrides = function() {
-	let teamId = 1;
+	let teamId = null;
 	this.getValidCommentCommands().forEach((command) => {
 		const [comment] = command.parameters;
 		const regexResult = J.ABS.RegExp.TeamId.exec(comment);
@@ -29198,9 +29342,10 @@ Game_Event.prototype.getTeamIdOverrides = function() {
 };
 /**
 * Parses out the battler ai including their bonus ai traits.
-* @returns {JABS_EnemyAI} The constructed battler AI.
+* @returns {JABS_EnemyAI|null} The constructed battler AI, or null if no ai trait comment was found.
 */
 Game_Event.prototype.getBattlerAiOverrides = function() {
+	let found = false;
 	let careful = false;
 	let executor = false;
 	let reckless = false;
@@ -29213,29 +29358,38 @@ Game_Event.prototype.getBattlerAiOverrides = function() {
 		const [comment] = command.parameters;
 		if (J.ABS.RegExp.AiTraitCareful.test(comment)) {
 			careful = true;
+			found = true;
 		}
 		if (J.ABS.RegExp.AiTraitExecutor.test(comment)) {
 			executor = true;
+			found = true;
 		}
 		if (J.ABS.RegExp.AiTraitReckless.test(comment)) {
 			reckless = true;
+			found = true;
 		}
 		if (J.ABS.RegExp.AiTraitHealer.test(comment)) {
 			healer = true;
+			found = true;
 		}
 		if (J.ABS.RegExp.AiTraitCleanser.test(comment)) {
 			cleanser = true;
+			found = true;
 		}
 		if (J.ABS.RegExp.AiTraitBuffer.test(comment)) {
 			buffer = true;
+			found = true;
 		}
 		if (J.ABS.RegExp.AiTraitTactical.test(comment)) {
 			tactical = true;
+			found = true;
 		}
 		if (J.ABS.RegExp.AiTraitBerserker.test(comment)) {
 			berserker = true;
+			found = true;
 		}
 	});
+	if (found === false) return null;
 	return new JABS_EnemyAI(careful, executor, reckless, healer, cleanser, buffer, tactical, berserker);
 };
 /**

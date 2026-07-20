@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.4.1 EXTEND] Extends the capabilities of skills/actions.
+ * @plugindesc [v1.6.0 EXTEND] Extends the capabilities of skills/actions.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -183,6 +183,7 @@
  *  <onHitStripState:[STATE_ID,CHANCE]>
  *  <onCastRemoveState:[STATE_ID,CHANCE]>
  *  <onHitRemoveState:[STATE_ID,CHANCE]>
+ *  <onCastExecuteSkill:[SKILL_ID,CHANCE]>
  * Where STATE_ID is the id of the state to apply, strip, or remove.
  * Where CHANCE is the percent chance between 0 and 100 that it'll trigger.
  *
@@ -231,6 +232,15 @@
  *  <onHitRemoveState:[11,40]>
  * The caster has a 40% chance of fully removing state id 11 from the target when the
  * skill successfully hits that target.
+ *
+ *  <onCastExecuteSkill:[1026,100]>
+ *  <onCastExecuteSkill:[1027,50]>
+ * On cast, always force-execute skill id 1026, and separately roll a 50% chance to also
+ * force-execute skill id 1027. Fires once at press-time (same timing as onCastSelfState), through
+ * JABS forceMapAction — no MP/TP cost, no cooldown on the payload skills. Skill-scoped and
+ * repeatable: stack as many <onCastExecuteSkill> tags on one skill as you want, each rolls
+ * independently. A forced skill's own <onCastExecuteSkill> tag may chain one further hop before
+ * being cut off (depth-guarded against runaway loops).
  * ============================================================================
  * ON-HIT APPLY STATE (SKILL-SCOPED):
  * Have you ever wanted a specific skill to apply a state to its target with a
@@ -245,14 +255,21 @@
  * regardless of the chance roll.
  *
  * NOTE 2:
- * DURATION is in frames (60 frames = 1 second at 60fps). It replaces the state's
- * own jabsStateDurationFrames value as the BASE duration. Attacker duration-boost
- * tags (stateDurationFlat, stateDurationPerc, stateDurationFormula) still apply
- * on top of this overridden base, so passive gear and traits remain relevant.
+ * DURATION is in frames (60 frames = 1 second at 60fps). A positive value replaces
+ * the state's own jabsStateDurationFrames value as the BASE duration, and wins over
+ * the state's own tags EVEN IF the state carries <indefiniteState> — an explicit
+ * DURATION always overrides the target's own indefinite/duration tags. Attacker
+ * duration-boost tags (stateDurationFlat, stateDurationPerc, stateDurationFormula)
+ * still apply on top of this overridden base, so passive gear and traits remain
+ * relevant.
  *
  * NOTE 3:
- * DURATION and STACKS are both optional. Omitting DURATION uses the state's own
- * default duration. Omitting STACKS uses the state's own default stack count.
+ * DURATION and STACKS are both optional, and DURATION carries two sentinels:
+ *   - Omitted, or {@code 0}: no override — defer entirely to the state's own tags
+ *     (jabsStateDurationFrames, <indefiniteState>), unchanged from today.
+ *   - {@code -1}: force this application indefinite, regardless of the state's own
+ *     tags. No duration-boost math runs (there is no duration to boost).
+ * Omitting STACKS uses the state's own default stack count.
  *
  * NOTE 4:
  * A skill may carry multiple <thisApplyState> tags to apply different states on
@@ -271,7 +288,8 @@
  *  <thisApplyState:[STATE_ID, CHANCE, DURATION, STACKS]>
  * Where STATE_ID is the id of the state to apply to the target.
  * Where CHANCE is the percent chance between 0 and 100 that it triggers.
- * Where DURATION is the duration in frames; omit to use the state's default.
+ * Where DURATION is the duration in frames; omit or use 0 for the state's default,
+ * or -1 to force the application indefinite regardless of the state's own tags.
  * Where STACKS is the starting stack count; omit to use the state's default.
  *
  * TAG EXAMPLES:
@@ -283,6 +301,14 @@
  *
  *  <thisApplyState:[8, 50, 120, 2]>
  * On hit, 50% chance to apply state id 8 for 120 frames with 2 starting stacks.
+ *
+ *  <thisApplyState:[8, 50, 0, 2]>
+ * On hit, 50% chance to apply state id 8 with 2 starting stacks and the state's
+ * own default duration (0 = no duration change).
+ *
+ *  <thisApplyState:[8, 50, -1]>
+ * On hit, 50% chance to apply state id 8 forever, regardless of the state's own
+ * duration tags.
  * ============================================================================
  * ON-HIT APPLY STATE (CASTER-WIDE):
  * Have you ever wanted a passive state, equipped item, or actor data to make
@@ -308,7 +334,8 @@
  *  <applyState:[STATE_ID, CHANCE, DURATION, STACKS]>
  * Where STATE_ID is the id of the state to apply to the target.
  * Where CHANCE is the percent chance between 0 and 100 that it triggers.
- * Where DURATION is the duration in frames; omit to use the state's default.
+ * Where DURATION is the duration in frames; omit or use 0 for the state's default,
+ * or -1 to force the application indefinite regardless of the state's own tags.
  * Where STACKS is the starting stack count; omit to use the state's default.
  *
  * TAG EXAMPLES:
@@ -317,6 +344,14 @@
  *
  *  <applyState:[12, 30]>
  * On every hit, 30% chance to apply state id 12 with the state's default duration.
+ *
+ *  <applyState:[12, 30, 0, 3]>
+ * On every hit, 30% chance to apply state id 12 with 3 starting stacks and the
+ * state's own default duration (0 = no duration change).
+ *
+ *  <applyState:[12, 30, -1]>
+ * On every hit, 30% chance to apply state id 12 forever, regardless of the
+ * state's own duration tags.
  * ============================================================================
  * TOGGLE STATE ON EXECUTE:
  * Have you ever wanted a "stance" skill — one that flips a state on when it's off,
@@ -352,7 +387,56 @@
  *  <toggleOnExecute:13>
  * Executing this skill independently toggles both state id 12 and state id 13.
  * ============================================================================
+ * TOGGLE STATE GROUP ON EXECUTE:
+ * The scalar toggle above is fine for a single on/off flag, but it falls apart
+ * for a "stance A vs. stance B" pair (or a longer cycle): tagging both states
+ * with <toggleOnExecute> flips each one independently, so if anything outside
+ * this skill ever strips one of the two states out from under you, the pair can
+ * drift into both-active or both-inactive and stay that way. This tag instead
+ * treats a whole list of states as one coupled group with exactly one "active"
+ * member at a time, and self-repairs if that invariant is ever broken.
+ *
+ * NOTE 1:
+ * Same as <toggleOnExecute>: fires once at press-time, no chance roll, always
+ * triggers, and a skill may carry multiple <toggleGroupOnExecute> tags to cycle
+ * several independent groups in one execution.
+ *
+ * NOTE 2:
+ * Within one group: if none of the listed states are active, the first one is
+ * added. If exactly one is active, it's removed and the NEXT one in the list is
+ * added, wrapping back to the first after the last — so a longer list is a full
+ * cycle, not just an A/B swap. If more than one is somehow active at once (state
+ * drift from some other effect), all of them are removed and the group resyncs
+ * to the first entry rather than continuing to advance from a broken position.
+ *
+ * TAG USAGE:
+ * - Skills only.
+ *
+ * TAG FORMAT:
+ *  <toggleGroupOnExecute:[STATE_ID, STATE_ID, ...]>
+ * Where each STATE_ID is a member of the cycle, in the order they cycle through.
+ *
+ * TAG EXAMPLES:
+ *  <toggleGroupOnExecute:[12, 13]>
+ * A two-state stance swap: executing this skill flips from 12 to 13, or from 13
+ * back to 12, always landing on exactly one of the two.
+ *
+ *  <toggleGroupOnExecute:[12, 13, 14]>
+ * A three-state cycle: 12 -> 13 -> 14 -> 12 -> ..., one step per execution.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.6.0
+ *    Added <toggleGroupOnExecute:[STATE_ID, ...]> — a skill-scoped, press-time
+ *    cycle-group toggle for stance/equation-style mechanics with more than one
+ *    exclusive state. Coupled and self-repairing, unlike stacking independent
+ *    <toggleOnExecute> tags for the same purpose.
+ *    Fixed Game_Action#toggleOnExecuteStateIds throwing on every execution — it read
+ *    the tag through RPGManager.getNumbersFromNoteByRegex, which expects a single
+ *    bracketed list capture (the shape every other consumer of that helper uses),
+ *    but this tag captures one bare number per repeated line. Switched to
+ *    RPGManager.getStringsFromNoteByRegex (which collects one entry per matching
+ *    line instead of overwriting) plus a Number() map. No notetag syntax change;
+ *    existing <toggleOnExecute:STATE_ID> data is unaffected.
  * - 1.5.0
  *    Added <toggleOnExecute:STATE_ID> — a skill-scoped, press-time state toggle
  *    for stance-style skills (add if absent, remove if present). Repeatable.
@@ -449,7 +533,7 @@ J.EXTEND = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.4.1");
+J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.6.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -652,6 +736,26 @@ J.EXTEND.RegExp.OnCastStripState = /<onCastStripState:[ ]?(\[\d+,[ ]?\d+])>/i;
 */
 J.EXTEND.RegExp.OnCastRemoveState = /<onCastRemoveState:[ ]?(\[\d+,[ ]?\d+])>/i;
 /**
+* The structure of an on-cast force-execute-skill tag. Fires once at press-time, same as the rest
+* of the on-cast family — not per target hit. Repeatable: a skill may carry several of these tags,
+* each rolled and dispatched independently, so one cast can chain into multiple follow-up skills.
+*
+* <pre>
+* Structure:
+*  <onCastExecuteSkill:[SKILL_ID, CHANCE]>
+*
+* Example:
+*  <onCastExecuteSkill:[1026, 100]>
+*  <onCastExecuteSkill:[1027, 50]>
+*
+* Translation:
+*  On cast, always force-execute skill id 1026, and separately roll a 50% chance to also
+*  force-execute skill id 1027.
+* </pre>
+* @type {RegExp}
+*/
+J.EXTEND.RegExp.OnCastExecuteSkill = /<onCastExecuteSkill:[ ]?(\[\d+,[ ]?\d+])>/gi;
+/**
 * The structure of a skill-scoped on-hit apply-state tag with optional duration and stack overrides.
 * Reads from the executing skill only ({@code this.item()}).
 *
@@ -666,12 +770,16 @@ J.EXTEND.RegExp.OnCastRemoveState = /<onCastRemoveState:[ ]?(\[\d+,[ ]?\d+])>/i;
 *
 * Translation:
 *  On hit, 25% chance to apply state id 8 for 240 frames (4 seconds at 60fps).
-*  When DURATION is omitted, the state's own jabsStateDurationFrames value is used.
+*  When DURATION is omitted or {@code 0}, the state's own jabsStateDurationFrames value
+*  (and its own indefiniteState/duration tags) is used, unchanged.
+*  When DURATION is {@code -1}, the state is forced indefinite regardless of its own tags.
+*  Any other DURATION value forces that exact finite duration, also regardless of the
+*  state's own tags (including <indefiniteState>).
 *  When STACKS is omitted, the state's own jabsStateStacksApplied value is used.
 * </pre>
 * @type {RegExp}
 */
-J.EXTEND.RegExp.ThisApplyState = /<thisApplyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+){0,2}])>/gi;
+J.EXTEND.RegExp.ThisApplyState = /<thisApplyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?-?\d+(?:,[ ]?\d+)?)?])>/gi;
 /**
 * The structure of a caster-wide on-hit apply-state tag with optional duration and stack overrides.
 * Reads from all of the caster's notes ({@code getAllNotes()}), so it can live on states, equips,
@@ -688,12 +796,16 @@ J.EXTEND.RegExp.ThisApplyState = /<thisApplyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+)
 *
 * Translation:
 *  On hit, always apply state id 12 for 600 frames (10 seconds at 60fps).
-*  When DURATION is omitted, the state's own jabsStateDurationFrames value is used.
+*  When DURATION is omitted or {@code 0}, the state's own jabsStateDurationFrames value
+*  (and its own indefiniteState/duration tags) is used, unchanged.
+*  When DURATION is {@code -1}, the state is forced indefinite regardless of its own tags.
+*  Any other DURATION value forces that exact finite duration, also regardless of the
+*  state's own tags (including <indefiniteState>).
 *  When STACKS is omitted, the state's own jabsStateStacksApplied value is used.
 * </pre>
 * @type {RegExp}
 */
-J.EXTEND.RegExp.ApplyState = /<applyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+){0,2}])>/gi;
+J.EXTEND.RegExp.ApplyState = /<applyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?-?\d+(?:,[ ]?\d+)?)?])>/gi;
 /**
 * The structure of a skill-scoped toggle-state tag. Reads from the executing skill only
 * ({@code this.item()}). Fires once at press-time (same as the on-cast self-state tags), not on hit.
@@ -714,6 +826,32 @@ J.EXTEND.RegExp.ApplyState = /<applyState:[ ]?(\[\d+,[ ]?\d+(?:,[ ]?\d+){0,2}])>
 * @type {RegExp}
 */
 J.EXTEND.RegExp.ToggleOnExecute = /<toggleOnExecute:[ ]?(\d+)>/gi;
+/**
+* The structure of a skill-scoped cycle-group toggle tag. Reads from the executing skill only
+* ({@code this.item()}). Fires once at press-time, same as {@link J.EXTEND.RegExp.ToggleOnExecute}.
+* Unlike the scalar form, the ids in one group are coupled: exactly one is treated as "active"
+* and execution advances to the next id in the list, wrapping back to the first after the last.
+*
+* <pre>
+* Structure:
+*  <toggleGroupOnExecute:[STATE_ID, STATE_ID, ...]>
+*
+* Example (a two-state stance swap):
+*  <toggleGroupOnExecute:[12, 13]>
+*
+* Example (a three-state cycle):
+*  <toggleGroupOnExecute:[12, 13, 14]>
+*
+* Translation:
+*  On execution, find which id in the list the caster currently has. If none, add the first
+*  id. If exactly one, remove it and add the next id in the list (wrapping to the first after
+*  the last). If more than one is somehow active at once, remove all of them and add the first
+*  id, resyncing the group back to a single active state. A skill may carry multiple
+*  <toggleGroupOnExecute> tags to cycle several independent groups in one execution.
+* </pre>
+* @type {RegExp}
+*/
+J.EXTEND.RegExp.ToggleGroupOnExecute = /<toggleGroupOnExecute:[ ]?(\[[^\]]+])>/gi;
 
 //#endregion
 //#region src/plugins/extend/core/managers/OverlayManager.js
@@ -1581,7 +1719,7 @@ Game_Action.prototype.onHitRemoveStates = function() {
 * @param {Game_Actor|Game_Enemy} target The target being hit with the action.
 */
 Game_Action.prototype.applyOnHitApplyStates = function(target) {
-	const casterEntries = RPGManager.getAllCapturesFromAllNotesByRegex(this.subject().getAllNotes(), J.EXTEND.RegExp.ApplyState);
+	const casterEntries = RPGManager.getArraysFromAllNotesByRegex(this.subject().getAllNotes(), J.EXTEND.RegExp.ApplyState);
 	const skillEntries = RPGManager.getArraysFromNotesByRegex(this.item(), J.EXTEND.RegExp.ThisApplyState);
 	const allEntries = [...casterEntries, ...skillEntries];
 	if (!allEntries.length) return;
@@ -1625,7 +1763,38 @@ Game_Action.prototype.applyToggleOnExecuteStates = function() {
 * @returns {number[]}
 */
 Game_Action.prototype.toggleOnExecuteStateIds = function() {
-	return RPGManager.getNumbersFromNoteByRegex(this.item(), J.EXTEND.RegExp.ToggleOnExecute);
+	return RPGManager.getStringsFromNoteByRegex(this.item(), J.EXTEND.RegExp.ToggleOnExecute).map(Number);
+};
+/**
+* Cycles all {@code <toggleGroupOnExecute:[STATE_ID, ...]>} groups on the caster: for each
+* tagged group, advances the caster from whichever state in the group is currently active to
+* the next one in the list, wrapping back to the first after the last. Fires once at
+* press-time, same as {@link #applyToggleOnExecuteStates}.
+*/
+Game_Action.prototype.applyToggleGroupOnExecuteStates = function() {
+	const caster = this.subject();
+	this.toggleGroupOnExecuteGroups().forEach((group) => {
+		const activeIds = group.filter((stateId) => caster.isStateAffected(stateId));
+		activeIds.forEach((stateId) => caster.removeState(stateId));
+		let nextId;
+		if (activeIds.length === 1) {
+			const currentIndex = group.indexOf(activeIds[0]);
+			const nextIndex = (currentIndex + 1) % group.length;
+			nextId = group[nextIndex];
+		} else {
+			[nextId] = group;
+		}
+		caster.addState(nextId, caster);
+	});
+};
+/**
+* Gets all cycle groups tagged with {@code <toggleGroupOnExecute:[STATE_ID, ...]>} on the
+* executing skill. Skill-scoped only; a skill may carry multiple tags to cycle multiple
+* independent groups in one execution.
+* @returns {number[][]}
+*/
+Game_Action.prototype.toggleGroupOnExecuteGroups = function() {
+	return RPGManager.getArraysFromNotesByRegex(this.item(), J.EXTEND.RegExp.ToggleGroupOnExecute);
 };
 /**
 * Applies all applicable on-cast self states.
@@ -1666,6 +1835,47 @@ Game_Action.prototype.applyOnCastStripStates = function(target) {
 */
 Game_Action.prototype.applyOnCastRemoveStates = function(target) {
 	this.removeStates(target, this.onCastRemoveStates());
+};
+/**
+* Maximum nesting depth permitted for {@code <onCastExecuteSkill>} chains.
+* A forced skill's own tag is allowed to trigger one further hop before being cut off, guarding
+* against an authoring mistake (or a deliberately cyclic pair of skills) looping forever.
+* @type {number}
+*/
+var ON_CAST_EXECUTE_SKILL_MAX_DEPTH = 2;
+/**
+* Current nesting depth of in-flight {@code <onCastExecuteSkill>} dispatches.
+* @type {number}
+*/
+var onCastExecuteSkillDepth = 0;
+/**
+* Gets all skills that should be force-executed when casting this skill, alongside their
+* individual roll chances. Skill-scoped and repeatable — a skill may carry several
+* {@code <onCastExecuteSkill>} tags, each collected and rolled independently.
+* @returns {[number, number][]} Tuples of `[skillId, chance]`.
+*/
+Game_Action.prototype.onCastExecuteSkills = function() {
+	return RPGManager.getArraysFromNotesByRegex(this.item(), J.EXTEND.RegExp.OnCastExecuteSkill) ?? [];
+};
+/**
+* Force-executes every qualifying {@code <onCastExecuteSkill>} payload through JABS, exactly once
+* at the moment of press. Each tag rolls its own chance independently, so a single cast can chain
+* into several follow-up skills at once.
+* @param {JABS_Battler} caster The JABS battler executing this cast.
+*/
+Game_Action.prototype.applyOnCastExecuteSkills = function(caster) {
+	const payloads = this.onCastExecuteSkills();
+	if (payloads.length === 0) return;
+	if (onCastExecuteSkillDepth >= ON_CAST_EXECUTE_SKILL_MAX_DEPTH) return;
+	onCastExecuteSkillDepth += 1;
+	try {
+		payloads.forEach(([skillId, chance]) => {
+			if (!RPGManager.chanceIn100(chance)) return;
+			$jabsEngine.forceMapAction(caster, skillId, false);
+		});
+	} finally {
+		onCastExecuteSkillDepth -= 1;
+	}
 };
 /**
 * Gets all possible states that could be self-inflicted when casting this skill.

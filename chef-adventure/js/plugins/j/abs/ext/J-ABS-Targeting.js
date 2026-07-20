@@ -188,7 +188,7 @@ var JABS_TargetingSession = class {
 	* after `getAttackData`, since only the caller knows which slot this came from.
 	* @type {function(JABS_Action[]): void}
 	*/
-	#onCommit = () => {};
+	#onCommit;
 	/**
 	* Constructor.
 	* @param {JABS_Battler} battler The battler who initiated this session.

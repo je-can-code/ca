@@ -2343,11 +2343,9 @@ var Window_PassiveDetail = class extends Window_Base {
 	collectElemLines(state) {
 		if (!J.ELEM) return [];
 		const lines = [];
-		const boostCaptures = RPGManager.getAllCapturesFromNoteByRegex(state, J.ELEM.RegExp.BoostElement);
+		const boostCaptures = RPGManager.getArraysFromNotesByRegex(state, J.ELEM.RegExp.BoostElement);
 		if (boostCaptures && boostCaptures.length > 0) {
-			boostCaptures.forEach(([rawId, rawPct]) => {
-				const elementId = Number(rawId);
-				const pct = Number(rawPct);
+			boostCaptures.forEach(([elementId, pct]) => {
 				const sign = pct >= 0 ? "+" : "";
 				lines.push({
 					icon: IconManager.element(elementId),

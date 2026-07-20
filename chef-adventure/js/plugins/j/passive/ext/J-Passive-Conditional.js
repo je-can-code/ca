@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
+ * [v1.1.2 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -27,6 +27,7 @@
  *  autoApplyState          — applies a real combat state on a timer or combat event
  *  autoApplyStateOnNearby  — same as autoApplyState, but aura-style onto nearby battlers instead of the bearer
  *  autoExecuteSkill        — executes a map skill on a timer or combat event
+ *  autoModifyCooldowns     — modifies one or more of the bearer's own active skill-slot cooldowns on a timer or combat event
  *  autoInflictState        — applies a real combat state onto whoever this battler just inflicted a state upon
  *  removeOnSkillExecution  — chance to strip a stack from this state when the bearer executes a map skill
  *  removeOnSkillResolution — chance to strip a stack from this state when the bearer's fired action expires
@@ -88,13 +89,17 @@
  *  hpDmg / mpDmg / tpDmg — combat loss via gain* < 0 (not skill MP/TP pay)
  *  anyDmg          — when HP, MP, or TP takes combat damage
  *  whenCrit        — when THIS battler is critically hit (victim; not onCritApply)
- *  negaStateAdded  — when a <negative> (jabsNegative) state is added
+ *  whenGlanced     — when THIS battler suffers a glancing blow (victim; implicit partial parry-
+ *    reduced damage, not a miss); mutually exclusive with whenCrit on any single hit
+ *  negaStateAdded  — when a <type:negative> (isNegativeType) state is added
  *  posiStateAdded  — when a non-negative state is added
  *  anyStateAdded   — when any combat state is added
  *  onHealHp/Mp/Tp  — when this battler's own HP/MP/TP is restored (onSelfHeal)
  *  onAllyHeal      — when a battler within proximity of THIS battler is healed (any resource)
  *  onKill          — when this battler defeats an enemy (JABS_Engine#handleDefeatedEnemy)
  *  onDamageDealt   — when this battler lands damage on an opposing battler (JABS_Engine#postExecuteSkillEffects)
+ *  onWeaponHit     — narrower onDamageDealt: only Mainhand/Offhand-slot hits qualify (basic attack
+ *    or its combo chain); skills fired from any other slot do not trigger this condition
  *  move            — PARAM = whole TILES per apply (Pixelistics updatePixelStepping; requires J-Pixelistics)
  *  stand           — PARAM = frames between applies while standing still on the map
  *  enemiesNearby / alliesNearby / enemiesNearbyBelow / alliesNearbyBelow — 4/5-value proximity
@@ -105,6 +110,7 @@
  *  <autoApplyState:[51, hpDmg, 60]>
  *  <autoApplyState:[52, anyDmg, 120]>
  *  <autoApplyState:[53, whenCrit, 120]>
+ *  <autoApplyState:[53, whenGlanced, 120]>
  *  <autoApplyState:[54, negaStateAdded, 180]>
  *  <autoApplyState:[55, posiStateAdded, 180]>
  *  <autoApplyState:[56, anyStateAdded, 60]>
@@ -175,6 +181,65 @@
  *  <autoExecuteSkill:[1024, stand, 120]>
  *  <autoExecuteSkill:[1025, enemiesNearbyBelow, 1, 60, 1]>
  *    Casts skill 1025 every 60 frames while no enemy is within 1 tile.
+ *  <autoExecuteSkill:[1026, onWeaponHit, 0]>
+ *    Magic-knight style: every basic-attack (or combo) hit also fires skill 1026 on the target.
+ *  <autoExecuteSkill:[1027, whenGlanced, 0]>
+ *    Retaliate on a glancing blow: every time this battler is grazed, fires skill 1027 as a real
+ *    map action from this battler's own position. No auto-aim at the attacker- the payload skill's
+ *    own hitbox/range decides who it reaches (self-centered radial or facing-cone reads as
+ *    "retaliation").
+ * ============================================================================
+ * AUTO-MODIFY COOLDOWNS TAG
+ *  <autoModifyCooldowns:[AMOUNT, CONDITION, THROTTLE_FRAMES, UNIT, RANGE?, TARGET_KEY?]>
+ *
+ * Directly modifies one or more of the bearer's own active skill-slot cooldowns- no skill or state
+ * is executed/applied, this tag mutates cooldown timers in place.
+ *
+ * Unlike its siblings, AMOUNT is a signed modification amount, not a database id: negative reduces
+ * a cooldown, positive increases it. THROTTLE_FRAMES is the same per-rule minimum-frames-between-
+ * dispatches gate every other tag in this family uses.
+ *
+ * UNIT (required):
+ *  percent — AMOUNT is a percentage of each targeted cooldown's own full/total duration (not
+ *            however much of it happens to remain), so a kill always refunds a consistent,
+ *            predictable chunk regardless of timing.
+ *  flat    — AMOUNT is a literal frame count, applied directly regardless of that skill's length.
+ *
+ * RANGE (optional, defaults to "all"):
+ *  single  — exactly one named slot; requires TARGET_KEY.
+ *  combat  — the four combat-skill slots only.
+ *  all     — mainhand, offhand, tool, dodge (mobility skills equip here), and all four combat
+ *            skills. Deliberately excludes GCD/usable-item slots.
+ *
+ * TARGET_KEY (required only when RANGE is "single"): an author-facing slot name — mainhand,
+ * offhand, tool, dodge, or skill1-skill4 (combatskill1-4 also accepted); raw JABS_Button keys pass
+ * through unchanged.
+ *
+ * Only slots that are both equipped and currently mid-cooldown (frames > 0) are touched- a slot
+ * that's already ready has nothing to modify.
+ *
+ * Built on the same condition framework as the rest of this family, but only a subset of pumps are
+ * currently wired for this tag (see {@link AutoModifyCooldownManager}): onKill, and
+ * negaStateInflicted/posiStateInflicted/anyStateInflicted (this battler inflicts a state onto
+ * someone else- the effect lands back on the inflictor, not the afflicted target). Other conditions
+ * parse correctly but will not yet fire until their pump call sites are wired.
+ *
+ * EXAMPLES:
+ *  <autoModifyCooldowns:[-10, onKill, 0, percent, all]>
+ *    On every kill, no throttle: -10% of full duration off every active mainhand/offhand/tool/
+ *    dodge/combat-skill cooldown.
+ *  <autoModifyCooldowns:[-60, onKill, 0, flat, all]>
+ *    Same trigger/range, but a flat 60-frame (1 second) refund regardless of each skill's own
+ *    total duration.
+ *  <autoModifyCooldowns:[-15, onKill, 0, percent, combat]>
+ *    Restricted to the four combat-skill slots only.
+ *  <autoModifyCooldowns:[-25, onKill, 0, percent, single, mainhand]>
+ *    Restricted to the mainhand slot only.
+ *  <autoModifyCooldowns:[-10, onKill, 0, percent]>
+ *    RANGE omitted- defaults to "all".
+ *  <autoModifyCooldowns:[-60, negaStateInflicted, 0, flat, all]>
+ *    Every time this battler inflicts a negative-tagged state on an opponent, no throttle: refund
+ *    a flat 60 frames (1 second) off every active cooldown.
  * ============================================================================
  * AUTO-INFLICT STATE TAG
  *  <autoInflictState:[STATE_ID, CONDITION, COOLDOWN_FRAMES]>
@@ -188,7 +253,7 @@
  * would otherwise re-trigger this same tag on application.
  *
  * CONDITIONS:
- *  negaStateInflicted — this battler inflicts a <negative> (jabsNegative) state on someone
+ *  negaStateInflicted — this battler inflicts a <type:negative> (isNegativeType) state on someone
  *  posiStateInflicted — this battler inflicts a non-negative state on someone
  *  anyStateInflicted  — this battler inflicts any state on someone
  *  onKnockback        — this battler knocks an enemy back (JABS_Engine#checkKnockback)
@@ -246,6 +311,22 @@
  *    Taking even a single step immediately strips it and resets the stand timer.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Added the whenGlanced condition (this battler suffers a glancing blow as the victim- mutually
+ *    exclusive with whenCrit on any single hit), wired into autoApplyState and autoExecuteSkill via
+ *    Game_Action#apply alongside the existing whenCrit check. Lets "retaliate on a glancing blow"
+ *    builds fire.
+ * - 1.1.1
+ *    Wired negaStateInflicted/posiStateInflicted/anyStateInflicted into autoModifyCooldowns via a
+ *    new shared AutoRuleManager#scheduleSelfStateInflictedTriggers pump, called from
+ *    Game_Battler#onJabsStateInflicted alongside the existing autoInflictState dispatch. Lets
+ *    "reduce my own cooldowns when I land a debuff" builds fire, not just onKill.
+ * - 1.1.0
+ *    Added autoModifyCooldowns, which directly modifies one or more of the bearer's own active
+ *    skill-slot cooldowns (percent-of-total or flat frames) on a condition- currently wired for
+ *    onKill only. Widened the shared dispatch contract so a subclass's dispatch() can see the full
+ *    authored tuple, not just the leading id, and added an opt-out (requiresPositiveId) from the
+ *    base class's positive-id validation for tags whose leading slot is a signed value instead.
  * - 1.0.0
  *    Initial release. Passive gates (passiveSourceRule, passiveStateRule,
  *    passiveStateCount) with map reconcile and combat timestamps (movement, hit,
@@ -360,7 +441,7 @@ J.PASSIVE.EXT.CONDITIONAL = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.0.0");
+J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.1.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -491,6 +572,32 @@ J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyStateOnNearby = /<autoApplyStateOnNear
 */
 J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill = /<autoExecuteSkill:[ ]?(\[[^\]]+])>/gi;
 /**
+* Captures {@code autoModifyCooldowns} bracket tuples from database notes.<br/>
+* Parsed by {@link RPGManager.getArraysFromNotesByRegex} (Path 1: outer tag + inner bracket capture).<br/>
+* Each match schedules a signed cooldown modification via {@link AutoModifyCooldownManager} against
+* one or more of the rule bearer's own active skill-slot cooldowns.
+* <p>
+* Unlike its siblings, {@code tuple[0]} is a signed modification amount, not a database id- negative
+* reduces, positive increases. Unit (percent of the cooldown's own full duration, or a flat frame
+* count) and range (which skill slots) live past the slots the shared dispatch loop inspects.
+* </p>
+* <p>
+* Author shape: {@code <autoModifyCooldowns:[amount, condition, throttleFrames, unit, range?, targetKey?]>}.
+* After parsing, tuples look like:
+* </p>
+* <ul>
+*   <li>{@code [-10, 'onKill', 0, 'percent', 'all']} — on every kill, -10% of full duration off
+*   every active mainhand/offhand/tool/dodge/combat-skill cooldown</li>
+*   <li>{@code [-60, 'onKill', 0, 'flat', 'all']} — same trigger/range, but a flat 60-frame refund
+*   regardless of each skill's own total duration</li>
+*   <li>{@code [-15, 'onKill', 0, 'percent', 'combat']} — restricted to the four combat-skill slots</li>
+*   <li>{@code [-25, 'onKill', 0, 'percent', 'single', 'mainhand']} — restricted to one named slot</li>
+*   <li>{@code [-10, 'onKill', 0, 'percent']} — range omitted, defaults to {@code 'all'}</li>
+* </ul>
+* @type {RegExp}
+*/
+J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns = /<autoModifyCooldowns:[ ]?(\[[^\]]+])>/gi;
+/**
 * Captures {@code autoInflictState} bracket tuples from database notes.<br/>
 * Parsed by {@link RPGManager.getArraysFromNotesByRegex} (Path 1: outer tag + inner bracket capture).<br/>
 * Each match schedules a real JABS state application via {@link AutoInflictStateManager} onto
@@ -607,6 +714,15 @@ Object.defineProperty(RPG_BaseBattler.prototype, "autoExecuteSkillRules", { get(
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill, true);
 } });
 /**
+* Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns} tuples from this row.<br/>
+* Each tuple schedules a signed cooldown modification via {@link AutoModifyCooldownManager} against
+* one or more of the bearer's own active skill-slot cooldowns.
+* @type {any[][]}
+*/
+Object.defineProperty(RPG_BaseBattler.prototype, "autoModifyCooldownRules", { get() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns, true);
+} });
+/**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tuples from this row.<br/>
 * Each tuple schedules a real state application via {@link AutoInflictStateManager} onto whichever
 * external battler this row's bearer just inflicted a state upon- not the bearer, and not nearby.
@@ -667,6 +783,15 @@ Object.defineProperty(RPG_BaseItem.prototype, "autoApplyStateOnNearbyRules", { g
 */
 Object.defineProperty(RPG_BaseItem.prototype, "autoExecuteSkillRules", { get() {
 	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoExecuteSkill, true);
+} });
+/**
+* Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns} tuples from this row.<br/>
+* Each tuple schedules a signed cooldown modification via {@link AutoModifyCooldownManager} against
+* one or more of the bearer's own active skill-slot cooldowns.
+* @type {any[][]}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "autoModifyCooldownRules", { get() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoModifyCooldowns, true);
 } });
 /**
 * Parsed {@link J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoInflictState} tuples from this row.<br/>
@@ -1004,15 +1129,29 @@ var AutoRuleManager = class {
 		throw new Error(`${this.name} must implement static get rulesProperty()`);
 	}
 	/**
+	* Whether `tuple[0]` must be a strictly-positive integer to be considered valid.
+	*
+	* True for every subclass whose `tuple[0]` is a database id (state/skill ids are never 0 or
+	* negative). Override to false for a subclass whose `tuple[0]` is a signed value instead (e.g. a
+	* modification amount where negative/positive is meaningful direction, not an invalid id).
+	* @returns {boolean}
+	*/
+	static get requiresPositiveId() {
+		return true;
+	}
+	/**
 	* The terminal action for one resolved rule.
 	*
 	* Called after all condition and cooldown gates pass. Subclasses implement
 	* the actual effect — applying a state, firing a skill, etc.
 	* @param {Game_Battler} _battler - The battler that owns the rule.
 	* @param {number} _id - State id or skill id, depending on the subclass.
+	* @param {any[]} _tuple - The full authored tuple this dispatch came from, for subclasses whose
+	* payload needs more than just `id` (e.g. a modification amount plus a range/target selector
+	* living further down the tuple than the shared loop itself ever inspects).
 	* @returns {boolean} - True when the effect was successfully dispatched.
 	*/
-	static dispatch(_battler, _id) {
+	static dispatch(_battler, _id, _tuple) {
 		throw new Error(`${this.name} must implement static dispatch()`);
 	}
 	/**
@@ -1071,6 +1210,16 @@ var AutoRuleManager = class {
 		this.tryDispatch(battler, "whenCrit");
 	}
 	/**
+	* Fires {@code whenGlanced} rules after this battler suffers a glancing blow as the victim.
+	*
+	* Mutually exclusive with {@link scheduleCritTriggers} at the source- a glancing blow can never
+	* also be a critical hit, so a single incoming attack can only ever fire one of the two.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that was glanced.
+	*/
+	static scheduleGlancingTriggers(battler) {
+		this.tryDispatch(battler, "whenGlanced");
+	}
+	/**
 	* Fires state-polarity and {@code anyStateAdded} rules after a combat state lands on this battler.
 	* @param {Game_Actor|Game_Enemy} battler - The battler that received the state.
 	* @param {number} stateId - The database id of the state that was added.
@@ -1079,10 +1228,31 @@ var AutoRuleManager = class {
 		this.tryDispatch(battler, "anyStateAdded");
 		const state = $dataStates[stateId];
 		if (!state) return;
-		if (state.jabsNegative === true) {
+		if (state.isNegativeType()) {
 			this.tryDispatch(battler, "negaStateAdded");
 		} else {
 			this.tryDispatch(battler, "posiStateAdded");
+		}
+	}
+	/**
+	* Fires state-polarity and {@code anyStateInflicted} rules on the battler that just inflicted a
+	* combat state onto someone else- single-party variant for subclasses whose effect lands back on
+	* the rule bearer itself (e.g. modifying the inflictor's own cooldowns), not on the afflicted
+	* target. {@link AutoInflictStateManager} handles the dual-party case (rule bearer, external
+	* effect target) separately and does not go through this method.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that just inflicted the state.
+	* @param {number} inflictedStateId - The database id of the state that was just inflicted.
+	*/
+	static scheduleSelfStateInflictedTriggers(battler, inflictedStateId) {
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		if (!battler) return;
+		const inflictedState = $dataStates[inflictedStateId];
+		if (!inflictedState) return;
+		this.tryDispatch(battler, "anyStateInflicted");
+		if (inflictedState.isNegativeType()) {
+			this.tryDispatch(battler, "negaStateInflicted");
+		} else {
+			this.tryDispatch(battler, "posiStateInflicted");
 		}
 	}
 	/**
@@ -1112,6 +1282,18 @@ var AutoRuleManager = class {
 		this.tryDispatch(battler, "onDamageDealt");
 	}
 	/**
+	* Fires {@code onWeaponHit} rules on the battler that just landed a mainhand/offhand attack.
+	*
+	* Narrower than {@code onDamageDealt} — only counts hits from the caster's own basic-attack or
+	* combo chain (whatever is bound to the Mainhand/Offhand slot), not damage from arbitrary skills.
+	* @param {Game_Actor|Game_Enemy} battler - The battler that landed the weapon hit.
+	*/
+	static scheduleWeaponHitTriggers(battler) {
+		if (!$jabsEngine || $jabsEngine.absEnabled === false) return;
+		if (!battler) return;
+		this.tryDispatch(battler, "onWeaponHit");
+	}
+	/**
 	* Credits one whole tile of travel toward {@code move} rules on this battler.
 	*
 	* Called from {@link Game_CharacterBase#updatePixelStepping} after a Pixelistics tile step completes.
@@ -1125,7 +1307,7 @@ var AutoRuleManager = class {
 			const id = Number(tuple[0]);
 			const kind = String(tuple[1]);
 			const tilesPerDispatch = Number(tuple[2]);
-			if (Number.isNaN(id) || id <= 0) continue;
+			if (Number.isNaN(id) || this.requiresPositiveId && id <= 0) continue;
 			if (kind !== "move") continue;
 			if (Number.isNaN(tilesPerDispatch) || tilesPerDispatch <= 0) continue;
 			const ruleKey = this.buildRuleKey(source, tupleIndex, id, kind);
@@ -1135,7 +1317,7 @@ var AutoRuleManager = class {
 				battler.setAutoRuleTileCredit(ruleKey, nextCredit);
 				continue;
 			}
-			this.dispatch(battler, id);
+			this.dispatch(battler, id, tuple);
 			battler.setAutoRuleTileCredit(ruleKey, 0);
 		}
 	}
@@ -1162,7 +1344,7 @@ var AutoRuleManager = class {
 			const { source, tuple, tupleIndex } = entry;
 			const id = Number(tuple[0]);
 			const kind = String(tuple[1]);
-			if (Number.isNaN(id) || id <= 0) continue;
+			if (Number.isNaN(id) || this.requiresPositiveId && id <= 0) continue;
 			if (kind !== conditionKind) continue;
 			if (kind === "move") continue;
 			if (this.isProximityKind(kind)) {
@@ -1171,7 +1353,7 @@ var AutoRuleManager = class {
 			}
 			const param = Number(tuple[2]);
 			if (Number.isNaN(param) || param < 0) continue;
-			this._tryDispatchRule(battler, source, tupleIndex, id, kind, param);
+			this._tryDispatchRule(battler, source, tupleIndex, id, kind, param, tuple);
 		}
 	}
 	/**
@@ -1228,7 +1410,7 @@ var AutoRuleManager = class {
 		if (Number.isNaN(cooldownFrames) || cooldownFrames < 0) return;
 		const nearbyCount = this.nearbyBattlersForKind(battler, kind, triggerTiles).length;
 		if (this.proximityGatePasses(nearbyCount, minCount, kind) === false) return;
-		this._tryDispatchRule(battler, source, tupleIndex, id, kind, cooldownFrames);
+		this._tryDispatchRule(battler, source, tupleIndex, id, kind, cooldownFrames, tuple);
 	}
 	/**
 	* Whether a condition kind string is one of the proximity-gated kinds handled by
@@ -1271,14 +1453,16 @@ var AutoRuleManager = class {
 	* @param {number} id - State id or skill id for this rule.
 	* @param {string} condition - The condition kind string.
 	* @param {number} cooldownFrames - Minimum frames that must elapse between dispatches for this key.
+	* @param {any[]} tuple - The full authored tuple, forwarded to the subclass dispatch for rules
+	* whose payload needs more than just `id`.
 	*/
-	static _tryDispatchRule(battler, source, tupleIndex, id, condition, cooldownFrames) {
+	static _tryDispatchRule(battler, source, tupleIndex, id, condition, cooldownFrames, tuple) {
 		const ruleKey = this.buildRuleKey(source, tupleIndex, id, condition);
 		const now = Graphics.frameCount;
 		const lastFrame = battler.getAutoRuleLastFrame(ruleKey);
 		const elapsed = now - lastFrame;
 		if (lastFrame > 0 && elapsed < cooldownFrames) return;
-		const dispatched = this.dispatch(battler, id);
+		const dispatched = this.dispatch(battler, id, tuple);
 		if (dispatched === true) {
 			battler.setAutoRuleLastFrame(ruleKey, now);
 		}
@@ -1317,9 +1501,10 @@ var AutoApplyStateManager = class extends AutoRuleManager {
 	* Pushes a real combat state onto the battler through the JABS addState path.
 	* @param {Game_Actor|Game_Enemy} battler - The battler receiving the state.
 	* @param {number} stateId - The database id of the state to apply.
+	* @param {any[]} _tuple - The full authored tuple; unused here, this rule's whole payload is the id.
 	* @returns {boolean} - True when addState was called and the state was addable.
 	*/
-	static dispatch(battler, stateId) {
+	static dispatch(battler, stateId, _tuple) {
 		if (battler.isStateAddable(stateId) === false) return false;
 		battler.addState(stateId, battler);
 		return true;
@@ -1434,9 +1619,10 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 	* rule during its own execution, the nested dispatch is silently skipped.
 	* @param {Game_Actor|Game_Enemy} battler - The battler firing the skill.
 	* @param {number} skillId - The database id of the skill to execute.
+	* @param {any[]} _tuple - The full authored tuple; unused here, this rule's whole payload is the id.
 	* @returns {boolean} - True when forceMapAction was successfully invoked.
 	*/
-	static dispatch(battler, skillId) {
+	static dispatch(battler, skillId, _tuple) {
 		const maxDepth = J.PASSIVE.EXT.CONDITIONAL.Metadata.autoExecuteSkillMaxDepth || 1;
 		if (AutoExecuteSkillManager.#executionDepth >= maxDepth) return false;
 		const jabsBattler = PassiveRuleJabsAccess.getJabsBattler(battler);
@@ -1451,6 +1637,88 @@ var AutoExecuteSkillManager = class AutoExecuteSkillManager extends AutoRuleMana
 			return true;
 		} finally {
 			AutoExecuteSkillManager.#executionDepth -= 1;
+		}
+	}
+};
+
+//#endregion
+//#region src/plugins/passive/ext/conditional/managers/AutoModifyCooldownManager.js
+/**
+* Schedules cooldown modifications from {@link RPG_BaseItem#autoModifyCooldownRules} tuples.
+*
+* Unlike its siblings, the payload isn't a state/skill id- it's a signed modification amount
+* (`tuple[0]`) applied directly to one or more of the battler's own active skill-slot cooldowns.
+* Unit and range/target selection live further down the tuple than the shared dispatch loop ever
+* inspects (`tuple[3]` onward), so this manager parses those slots itself out of the forwarded tuple.
+*/
+var AutoModifyCooldownManager = class extends AutoRuleManager {
+	/**
+	* The name of the source property that holds auto-modify-cooldown rule tuples.
+	* @returns {string} - The property name holding rule tuples on source objects.
+	*/
+	static get rulesProperty() {
+		return "autoModifyCooldownRules";
+	}
+	/**
+	* `tuple[0]` here is a signed modification amount, not a database id- negative values are the
+	* normal case (reducing cooldowns), so the base class's positive-id safety net does not apply.
+	* @returns {boolean}
+	*/
+	static get requiresPositiveId() {
+		return false;
+	}
+	/**
+	* Applies a signed modification to one or more of the battler's active skill-slot cooldowns.
+	* @param {Game_Actor|Game_Enemy} battler - The battler whose cooldowns are modified.
+	* @param {number} amount - The signed modification amount; negative reduces, positive increases.
+	* @param {any[]} tuple - The full authored tuple:
+	* `[amount, condition, throttleFrames, unit, range?, targetKey?]`.
+	* @returns {boolean} - True when at least one active cooldown was modified.
+	*/
+	static dispatch(battler, amount, tuple) {
+		const unit = String(tuple[3]);
+		const range = tuple.length >= 5 ? String(tuple[4]) : "all";
+		const targetKeyParam = tuple.length >= 6 ? tuple[5] : undefined;
+		if (unit !== "percent" && unit !== "flat") return false;
+		const keys = this.resolveKeys(range, targetKeyParam);
+		if (keys.length === 0) return false;
+		const slots = battler.getSkillSlotManager().getEquippedSlots().filter((slot) => keys.includes(slot.key) && slot.getCooldown().frames > 0);
+		if (slots.length === 0) return false;
+		slots.forEach((slot) => {
+			const cooldown = slot.getCooldown();
+			const delta = unit === "percent" ? Math.floor(cooldown.maxFrames * (amount / 100)) : amount;
+			cooldown.modBaseFrames(delta);
+		});
+		return true;
+	}
+	/**
+	* Resolves a RANGE selector into the concrete set of {@link JABS_Button} keys it targets.
+	* @param {string} range - One of `'single'`, `'combat'`, or `'all'`.
+	* @param {string|number|undefined} targetKeyParam - The author-facing slot name for `'single'`.
+	* @returns {string[]} - The resolved {@link JABS_Button} keys, or an empty array when unresolvable.
+	*/
+	static resolveKeys(range, targetKeyParam) {
+		switch (range) {
+			case "single":
+				if (targetKeyParam === undefined) return [];
+				return [PassiveRuleJabsAccess.resolveSlotKey(targetKeyParam)];
+			case "combat": return [
+				JABS_Button.CombatSkill1,
+				JABS_Button.CombatSkill2,
+				JABS_Button.CombatSkill3,
+				JABS_Button.CombatSkill4
+			];
+			case "all": return [
+				JABS_Button.Mainhand,
+				JABS_Button.Offhand,
+				JABS_Button.Tool,
+				JABS_Button.Dodge,
+				JABS_Button.CombatSkill1,
+				JABS_Button.CombatSkill2,
+				JABS_Button.CombatSkill3,
+				JABS_Button.CombatSkill4
+			];
+			default: return [];
 		}
 	}
 };
@@ -1517,7 +1785,7 @@ var AutoInflictStateManager = class AutoInflictStateManager extends AutoRuleMana
 		if (!applier || !target) return;
 		const inflictedState = $dataStates[inflictedStateId];
 		if (!inflictedState) return;
-		const polarityKind = inflictedState.jabsNegative === true ? "negaStateInflicted" : "posiStateInflicted";
+		const polarityKind = inflictedState.isNegativeType() ? "negaStateInflicted" : "posiStateInflicted";
 		this._dispatchMatchingRules(applier, target, (kind) => kind === "anyStateInflicted" || kind === polarityKind);
 	}
 	/**
@@ -1815,12 +2083,12 @@ var PassiveGateEvaluator = class {
 	}
 	/**
 	* Counts negative states currently affecting this battler.<br/>
-	* Negative classification comes from {@code state.jabsNegative} / J-ABS {@code <negative>} tag.
+	* Negative classification comes from {@link RPG_State#isNegativeType} / the {@code <type:negative>} tag.
 	* @param {Game_Battler} battler The battler whose active states we inspect.
 	* @returns {number} Count of states flagged negative by J-ABS.
 	*/
 	static countNegativeStates(battler) {
-		return battler.allStates().filter((state) => state && state.jabsNegative === true).length;
+		return battler.allStates().filter((state) => state && state.isNegativeType()).length;
 	}
 	/**
 	* Whether one JABS skill slot is currently on cooldown for this battler.<br/>
@@ -2473,26 +2741,37 @@ Game_Battler.prototype.onStateAdded = function(stateId) {
 /**
 * Extends {@link #onJabsStateInflicted}.<br/>
 * Fires autoInflictState rules on the inflicting battler, applying the configured payload state
-* onto this battler (the one just afflicted)- not the inflictor, and not anything nearby.
+* onto this battler (the one just afflicted)- not the inflictor, and not anything nearby. Also
+* fires the inflicting battler's autoModifyCooldowns rules against themselves- unlike
+* autoInflictState, that effect lands back on the inflictor, not on this newly-afflicted target.
 */
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Battler.set("onJabsStateInflicted", Game_Battler.prototype.onJabsStateInflicted);
 Game_Battler.prototype.onJabsStateInflicted = function(stateId, attacker) {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Battler.get("onJabsStateInflicted").call(this, stateId, attacker);
 	AutoInflictStateManager.scheduleInflictedStateTriggers(attacker, this, stateId);
+	AutoModifyCooldownManager.scheduleSelfStateInflictedTriggers(attacker, stateId);
 };
 
 //#endregion
 //#region src/plugins/passive/ext/conditional/objects/Game_Action.js
 /**
 * Extends {@link #apply}.<br/>
-* When the target is critically hit, runs {@code whenCrit} auto-apply rules on the victim.
+* When the target is critically hit, runs {@code whenCrit} auto-apply rules on the victim. When the
+* target suffers a glancing blow instead, runs {@code whenGlanced} auto-apply rules on the victim-
+* the two are mutually exclusive on any single hit (see {@link Game_Action#executeJabsAction}).
 */
 J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Action.set("apply", Game_Action.prototype.apply);
 Game_Action.prototype.apply = function(target) {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Action.get("apply").call(this, target);
-	if (target.result().critical === false) return;
-	AutoApplyStateManager.scheduleCritTriggers(target);
-	AutoExecuteSkillManager.scheduleCritTriggers(target);
+	const result = target.result();
+	if (result.critical === true) {
+		AutoApplyStateManager.scheduleCritTriggers(target);
+		AutoExecuteSkillManager.scheduleCritTriggers(target);
+	}
+	if (result.glancing === true) {
+		AutoApplyStateManager.scheduleGlancingTriggers(target);
+		AutoExecuteSkillManager.scheduleGlancingTriggers(target);
+	}
 };
 
 //#endregion
@@ -2593,6 +2872,7 @@ JABS_Engine.prototype.handleDefeatedEnemy = function(defeatedTarget, caster) {
 	if (!casterBattler) return;
 	AutoApplyStateManager.scheduleKillTriggers(casterBattler);
 	AutoExecuteSkillManager.scheduleKillTriggers(casterBattler);
+	AutoModifyCooldownManager.scheduleKillTriggers(casterBattler);
 };
 /**
 * Extends {@link JABS_Engine#checkKnockback}.<br/>
@@ -2624,6 +2904,12 @@ JABS_Engine.prototype.postExecuteSkillEffects = function(action, target) {
 	if (!casterBattler) return;
 	AutoApplyStateManager.scheduleDamageDealtTriggers(casterBattler);
 	AutoExecuteSkillManager.scheduleDamageDealtTriggers(casterBattler);
+	const cooldownType = action.getCooldownType();
+	const isWeaponSlot = cooldownType === JABS_Button.Mainhand || cooldownType === JABS_Button.Offhand;
+	if (isWeaponSlot) {
+		AutoApplyStateManager.scheduleWeaponHitTriggers(casterBattler);
+		AutoExecuteSkillManager.scheduleWeaponHitTriggers(casterBattler);
+	}
 };
 
 //#endregion

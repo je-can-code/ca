@@ -1243,12 +1243,11 @@ JABS_AiManager.maintainSafeDistance = function(battler) {
 	const distance = battler.distanceToCurrentTarget();
 	const closeDistance = battler.getCloseDistance();
 	const farDistance = battler.getFarDistance();
-	if (distance > closeDistance && distance <= farDistance) return;
 	if (distance <= closeDistance) {
 		battler.smartMoveAwayFromTarget();
 	} else if (distance > farDistance) {
 		battler.smartMoveTowardTarget();
-	}
+	} else {}
 };
 /**
 * Extends {@link #decideAiPhase2Action}.<br/>

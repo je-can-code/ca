@@ -21,6 +21,7 @@
 |---|---|---|
 | 1 | Upper Hand | Self-buff. −25% MCR and +25% CDR. Spend less, act more. |
 | 2 | Magic Bomb | Targeted. Drops a bomb on a designated target: deals damage and melts −50% MDF, amplifying all future magic against them. |
+| 3 | Critical Mass | Magic damage, nothing remarkable about the base hit — moderate cooldown, unremarkable numbers. On crit: an obscene damage multiplier. Fires off any normal crit roll on its own, but every stack of Handle Without Care's CEV drop makes seeing it that much more inevitable. |
 
 ---
 

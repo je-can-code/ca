@@ -136,6 +136,41 @@
  *  <tp-gain:VALUE>  <tp-gain:PERCENT%>  <tp-gain:[FORMULA]>
  *
  * ============================================================================
+ * STACK COST / ITEM COST
+ * Have you ever wanted a skill that costs something other than hp/mp/tp- like
+ * charges banked up from an earlier proc, or literal ammo out of the party's
+ * inventory? Well now you can! These feed directly into canPaySkillCost/
+ * paySkillCost, so an unaffordable skill is refused to fire exactly like
+ * insufficient MP already is- no separate UI wiring needed.
+ *
+ * NOTE:
+ * Both tags live on the skill only (not on states/equips/etc.)- costs are
+ * inherent to the skill. If more than one of the same tag is authored on one
+ * note, only the last one found wins (same convention as flat/percent costs).
+ *
+ * TAG USAGE:
+ * - Skills
+ *
+ * TAG FORMAT (stack cost):
+ *  <stackCost:[STATE_ID,COUNT]>
+ *    Requires J-ABS. The caster must hold at least COUNT stacks of STATE_ID
+ *    to cast; COUNT stacks are consumed via decrementStateStacks on pay.
+ *    Leave the state's own <stackMax:VAL> high/unset for an uncapped pool.
+ *
+ * TAG FORMAT (item cost):
+ *  <itemCost:[ITEM_ID,COUNT]>
+ *    ITEM_ID resolves against $dataItems only (not weapons/armors). The party
+ *    must hold at least COUNT of the item to cast; COUNT are removed from
+ *    the party's inventory via $gameParty.loseItem on pay.
+ *
+ * TAG EXAMPLES:
+ *  <stackCost:[7,3]>
+ * Costs 3 stacks of state 7 to cast; refuses to fire below that.
+ *
+ *  <itemCost:[12,2]>
+ * Costs 2 of item 12 to cast; refuses to fire without them in stock.
+ *
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.0
  *    Initial release.
@@ -240,6 +275,8 @@ J.RESOURCES.RegExp.TpCostFormula = /<tp-cost:\[([+\-*/ ().\w]+)]>/gi;
 J.RESOURCES.RegExp.TpGainFlat = /<tp-gain:(\d+)>/i;
 J.RESOURCES.RegExp.TpGainPercent = /<tp-gain:(\d+)%>/i;
 J.RESOURCES.RegExp.TpGainFormula = /<tp-gain:\[([+\-*/ ().\w]+)]>/gi;
+J.RESOURCES.RegExp.StackCost = /<stackCost:[ ]?(\[\d+,[ ]?\d+])>/i;
+J.RESOURCES.RegExp.ItemCost = /<itemCost:[ ]?(\[\d+,[ ]?\d+])>/i;
 
 //#endregion
 //#region src/plugins/resources/core/database/RPG_Traited.js
@@ -462,6 +499,27 @@ Game_BattlerBase.prototype.skillHpCost = function(skill) {
 	return ResourceCostManager.hpCostBySkill(this, skill);
 };
 /**
+* Determines the state-stack cost of a skill, if any.
+* Skill-scoped only, same as every other cost tag- costs are inherent to the skill, not
+* something a caster's states/equips should be able to silently inject.
+* @param {RPG_Skill} skill The skill being calculated.
+* @returns {[number, number]} A `[stateId, count]` tuple; `[0, 0]` when no tag is present.
+*/
+Game_BattlerBase.prototype.skillStackCost = function(skill) {
+	const [stateId = 0, count = 0] = RPGManager.getArrayFromNotesByRegex(skill, J.RESOURCES.RegExp.StackCost);
+	return [stateId, count];
+};
+/**
+* Determines the inventory-item cost of a skill, if any.
+* Skill-scoped only, same as every other cost tag.
+* @param {RPG_Skill} skill The skill being calculated.
+* @returns {[number, number]} An `[itemId, count]` tuple; `[0, 0]` when no tag is present.
+*/
+Game_BattlerBase.prototype.skillItemCost = function(skill) {
+	const [itemId = 0, count = 0] = RPGManager.getArrayFromNotesByRegex(skill, J.RESOURCES.RegExp.ItemCost);
+	return [itemId, count];
+};
+/**
 * Extends {@link Game_BattlerBase.prototype.skillMpCost}.<br/>
 * Includes extended MP costs from tags.
 * @param {RPG_Skill} skill The skill cost being calculated.
@@ -529,9 +587,11 @@ Object.defineProperty(Game_Battler.prototype, "hcr", {
 /**
 * Gets the hp cost reduction factor for this battler.
 * This is the normalized fractional amount used in the math for hp cost reduction.
+* Floored at zero — a negative factor would let ResourceManager's hp cost calculations go
+* negative, which would refund hp on cast instead of just reducing the cost to free.
 */
 Game_Battler.prototype.hcrFactor = function() {
-	const hrcFactor = this._j._hcr / 100;
+	const hrcFactor = Math.max(0, this._j._hcr / 100);
 	return hrcFactor;
 };
 /**
@@ -581,11 +641,17 @@ Game_Battler.prototype.canPaySkillCost = function(skill) {
 	const hpCost = this.skillHpCost(skill);
 	if (hpCost > 0) {
 		const allowSacrifice = RPGManager.checkForBooleanFromNoteByRegex(skill, J.RESOURCES.RegExp.HpCostLethal);
-		if (allowSacrifice) {
-			return true;
-		} else {
-			return this.hp > hpCost;
+		if (allowSacrifice === false && this.hp <= hpCost) {
+			return false;
 		}
+	}
+	const [stackStateId, stackCount] = this.skillStackCost(skill);
+	if (stackCount > 0 && this.stackCount(stackStateId) < stackCount) {
+		return false;
+	}
+	const [itemId, itemCount] = this.skillItemCost(skill);
+	if (itemCount > 0 && $gameParty.numItems($dataItems.at(itemId)) < itemCount) {
+		return false;
 	}
 	return true;
 };
@@ -599,6 +665,14 @@ Game_Battler.prototype.paySkillCost = function(skill) {
 	J.RESOURCES.Aliased.Game_BattlerBase.get("paySkillCost").call(this, skill);
 	const hpCost = this.skillHpCost(skill);
 	this.paySkillHpCost(hpCost);
+	const [stackStateId, stackCount] = this.skillStackCost(skill);
+	if (stackCount > 0) {
+		this.decrementStateStacks(stackStateId, stackCount);
+	}
+	const [itemId, itemCount] = this.skillItemCost(skill);
+	if (itemCount > 0) {
+		$gameParty.loseItem($dataItems.at(itemId), itemCount, false);
+	}
 	const hpGain = ResourceCostManager.skillGainHp(this, skill);
 	const mpGain = ResourceCostManager.skillGainMp(this, skill);
 	const tpGain = ResourceCostManager.skillGainTp(this, skill);

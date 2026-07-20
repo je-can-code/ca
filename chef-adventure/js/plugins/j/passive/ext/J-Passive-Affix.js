@@ -975,7 +975,7 @@ Window_PassiveDetail.prototype.collectJabsAilmentRows = function(state) {
 		label: "Disabled",
 		value: "(no basic attack)"
 	});
-	if (state.jabsNegative) rows.push({
+	if (state.isNegativeType()) rows.push({
 		icon: 0,
 		label: "Negative",
 		value: "(AI tries to remove)"

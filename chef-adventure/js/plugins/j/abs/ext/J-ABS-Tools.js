@@ -636,7 +636,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsGapClosePosition", { get: functi
 * @type {number[]}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsThisOnGapCloseEnd", { get: function() {
-	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapCloseEndThis, true) ?? [];
+	return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.TOOLS.RegExp.GapCloseEndThis, true);
 } });
 /**
 * Whether this skill's gap close should respect terrain passability instead of its default
