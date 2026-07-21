@@ -31,18 +31,18 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | ATK +10% | +10% attack. |
-| P2 | Equip Medium Armor | Unlock. Grants access to medium armor. |
-| P3 | Untouchable | On evade, briefly apply `<invincible>` — removes Rupert from collision detection entirely, causing skills that would clip him post-dodge to also miss. |
+| P1 | Power +10% | +10% attack. |
+| P2 | Equip Mail | Unlock. Grants access to medium armor. |
+| P3 | Can't Touch This | On evade, briefly apply `<invincible>` — removes Rupert from collision detection entirely, causing skills that would clip him post-dodge to also miss. |
 | P4 | CDR +30% | +30% cooldown reduction. |
-| P5 | EVA +30% | +30% evasion. |
+| P5 | Phys Evade +30% | +30% evasion. |
 | P6 | Equip Gauntlet | Unlock. Grants access to gauntlets. |
 | P7 | Skill Hits +1 | All non-basic-attack skills hit one additional time. Every enchant follow-up lands one more time. Every Mince arc swings one more time. The loop accelerates. |
 | P8 | State Duration +60% | Every state Rupert applies lasts 60% longer. |
 | P9 | Dual-Wield | Unlock. Offhand slot becomes a second mainhand — equip a second Edge weapon for double weapon stats and a second mainhand combo. Forfeits offhand skill and shield access. |
 | P10 | Equip Glaive | Unlock. Grants access to the Glaive weapon subgroup. |
 | P11 | CDR +40% | +40% cooldown reduction. |
-| P12 | ATK +20% | +20% attack. |
+| P12 | Power +20% | +20% attack. |
 | P13 | Equip Gloves | Unlock. Grants access to the Gloves weapon subgroup. |
 | P14 | Equip Edge | Unlock. Grants access to the Edge weapon subgroup. |
-| P15 | Adrenaline Surge | Applies a stacking self-buff on hit: **Accelerate**. |
+| P15 | Adrenaline Surge | Applies a stacking self-buff on hit: **Accelerate** — +2% Hit/Eva/Crit per stack, up to 100 stacks. |

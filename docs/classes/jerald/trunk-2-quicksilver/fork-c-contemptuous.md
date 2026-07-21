@@ -35,7 +35,7 @@
 | P3 | Overloaded | Self stack maximum +3. Tune at playtesting — the number may become outrageous.                                                       |
 | P4 | MDR −5 | −5 PDR. Still barely notices.                                                                                                        |
 | P5 | I Prefer Violence | +50% damage vs bleeding targets. He has a preference.                                                                                |
-| P6 | MHP +80% | +80% max HP. More of him to not care.                                                                                                |
+| P6 | Max Life +80% | +80% max HP. More of him to not care.                                                                                                |
 | P7 | Equip Mail | Unlock. Grants access to medium armor.                                                |
 | P8 | Knockback +50% | +50% knockback distance. Fewer trips.                                                                                                |
 | P9 | Equip Claws | Unlock. Grants access to the Claws weapon subgroup. |

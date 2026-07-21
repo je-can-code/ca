@@ -31,16 +31,16 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | MMP +40% | +40% max MP. |
+| P1 | Max Magi +40% | +40% max MP. |
 | P2 | Equip Spear | Unlock. Grants access to the Spear weapon subgroup. The Architect decides reach is also his domain. |
 | P3 | Temporal Hold | `onKnockback`: inflict Rooted. If you're not standing your ground, he'll pin you to one. |
 | P4 | Projectile Duration +20% | Projectiles remain active 20% longer. |
-| P5 | Time Collapse | After casting a skill, the next skill cast is instant and costs no MP. The Architect has collapsed the interval between two moments. A self-state carrying `<castSpeedRate:[-100]>` + `<removeOnSkillExecution:[0,100]>` + a deeply negative MCR trait, consumed on the next skill cast. |
-| P6 | MCR −20% | −20% skill cost. |
+| P5 | Time Collapse | After casting a skill, the next skill cast is instant and costs no MP. The Architect has collapsed the interval between two moments. A self-state carrying `<castSpeedRate:[-100]>` + `<removeOnSkillExecution:[4,100]>` (expires on Rupert's next skill use specifically, not any skill type) + a triple-stacked MCR-to-zero trait (defensive redundancy against MCR debuffs/SDP bonuses), consumed on the next skill cast. |
+| P6 | Magi Cost -20% | −20% skill cost. |
 | P7 | Projectile Duration +40% | Projectiles remain active 40% longer. |
-| P8 | MMP +60% | +60% max MP. |
+| P8 | Max Magi +60% | +60% max MP. |
 | P9 | Deliberate Position | Rooted or paralyzed targets have PDR and MDR reduced to 0. |
-| P10 | MCR −30% | −30% skill cost. |
-| P11 | MMP +80% | +80% max MP. |
+| P10 | Magi Cost -30% | −30% skill cost. |
+| P11 | Max Magi +80% | +80% max MP. |
 | P12 | Equip Javelin | Unlock. Grants access to the Javelin weapon subgroup. |
-| P13 | Infinite Canvas | All skill AoE radii and ranges +50%. (`<rangeRate:1.5>` + `<radiusRate:1.5>`) |
+| P13 | Infinite Canvas | All skill AoE radii and ranges +50%. (`<rangeRate:1.5>` — covers radius, proximity, and thickness together) |

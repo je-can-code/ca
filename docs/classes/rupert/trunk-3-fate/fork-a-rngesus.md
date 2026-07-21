@@ -31,14 +31,14 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | LUK +20% | +20% luck. |
+| P1 | Luck +20% | +20% luck. |
 | P2 | Equip Blade | Unlock. Grants access to the Blade weapon subgroup. |
 | P3 | Extra Chance | Permanent +1 positive rolls. No trigger, no window — just always on. Uses `<luckyRolls:[1]>`. |
-| P4 | TGR −30% | −30% aggro. |
+| P4 | Aggro -30% | −30% aggro. |
 | P5 | Equip Relic | Unlock. Grants access to relic armor. |
-| P6 | ATK +30% | +30% attack. |
-| P7 | LUK +30% | +30% luck. |
+| P6 | Power +30% | +30% attack. |
+| P7 | Luck +30% | +30% luck. |
 | P8 | Every Chance | **Accumulate mode.** Positive rolls count every success instead of stopping at the first. One hit stacks bleed three deep, lands burn twice, applies a state multiple times from a single proc. Uses `<accumulate>`. |
-| P9 | EVA +50% | +50% evasion. |
+| P9 | Phys Evade +50% | +50% evasion. |
 | P10 | Equip Claws | Unlock. Grants access to the Claws weapon subgroup. |
 | P11 | Zero Chance | Critical hits always apply their on-hit effects, regardless of chance. Stacks with Every Chance. Applied state uses `<forceCritProcs>` — scoped to on-crit state applications only, unlike the battler-wide `<veryLucky>`. |

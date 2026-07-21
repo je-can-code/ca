@@ -29,7 +29,7 @@
 
 | Name | Description |
 |---|---|
-| Inevitable | After a short delay, Rupert is pulled to wherever Jerald currently is. Not sudden, not reactive — they both already knew this is where he'd end up. |
+| Inevitable | Rupert jumps to Jerald's position instantly. No delay, no wind-up — a simple targeted gap-closer. They both already knew this is where he'd end up. |
 
 ---
 
@@ -37,8 +37,8 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | LUK +10% | +10% luck. |
-| P2 | DEF +10% | +10% defense. |
-| P3 | Crit Damage +30% | +30% critical damage. |
+| P1 | Luck +10% | +10% luck. |
+| P2 | Endurance +10% | +10% defense. |
+| P3 | Crit Amp +30% | +30% critical damage. |
 | P4 | Aftershocks | On crit, applies Court Disaster's negative rolls to the target. After critting, yet more disaster befalls you. Uses `<onCritApply:[...]>` targeting the same `<cursedRolls:[N]>` state as Court Disaster. |
 | P5 | Equip Pistol | Unlock. Grants access to the Pistol weapon subgroup. |

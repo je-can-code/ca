@@ -33,15 +33,15 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | HAR +40% | +40% outgoing heal potency. |
+| P1 | Healing Rate +40% | +40% outgoing heal potency. |
 | P2 | Equip Cane | Unlock. Grants access to the Cane weapon subgroup. |
-| P3 | Low-effort Splash | Fine., Confetti, and Dismiss each gain a radius 3 splash — nearby allies to the target also receive the effect. He cast it once. Everyone nearby just got caught in it. |
+| P3 | Low-effort Echo | Fine., Confetti, and Dismiss each land/apply twice. Radius-splash would've been redundant with the trunk's Low-effort Range passive, so this doubles down on the target instead. |
 | P4 | Equip Breaker | Unlock. Grants access to the Breaker weapon subgroup (LLRL→SHATTER, party −PDR). |
-| P5 | SAR +50% | +50% shield amplification rate. SHIELD lands harder. |
+| P5 | Shield Amp +50% | +50% shield amplification rate. SHIELD lands harder. |
 | P6 | Drawn Out | All states Malpractician applies last 50% longer. Doomganosis now takes longer to trigger. |
 | P7 | Low-effort Aggression | Fine., Confetti, and Dismiss also grant +20% ATK, MAT, CRI, and CDM to the target. The buffs are getting less embarrassing. |
 | P8 | Equip Cloth | Unlock. Grants access to light armor. |
-| P9 | HAR +50% | +50% outgoing heal potency. Collateral Care's sad firecrackers land a little less sadly. |
+| P9 | Healing Rate +50% | +50% outgoing heal potency. Collateral Care's sad firecrackers land a little less sadly. |
 | P10 | Equip Relic | Unlock. Grants access to relics (light offhand — spell-like offhand abilities). |
 | P11 | Low-effort Recovery | Fine., Confetti, and Dismiss also grant 1% HP/MP/TP regen per second to the target. A little of everything. |
 | P12 | Equip Rod | Unlock. Grants access to the Rod weapon subgroup. |

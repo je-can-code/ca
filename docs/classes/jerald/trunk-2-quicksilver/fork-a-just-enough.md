@@ -31,7 +31,7 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | ATK +10% | +10% attack. |
+| P1 | Power +10% | +10% attack. |
 | P2 | Projectile Duration +20% | Projectiles stay active 20% longer. Back Off bounces more. I Said Back Off grinds further. One throw, more work. |
 | P3 | Radius +30% | +30% AoE radius on all skills. Bigger zone, wider wall, further mine trigger. |
 | P4 | CDR +10% | −10% cooldown duration. Back Off comes back faster. |
@@ -40,4 +40,4 @@
 | P7 | Passive Punishment | +5% damage per negative state active on the target. More afflictions, more damage. Uses `<perDebuffBuff:5>`. |
 | P8 | Clear Mind | While no enemies are within melee range: +33% damage, −33% CDR. Playing correctly multiplies everything. |
 | P9 | Trudge | All hits apply the Trudge state (ID 10). They slow down. The projectile doesn't. |
-| P10 | Overdue | On first hit, plant the Overdue state on the target. It gains one stack per second on its own — no further input required. Damage dealt to the target increases by X% per stack. Trash mobs won't feel it. Bosses will. |
+| P10 | Overdue | On first hit, plant the Overdue state on the target. It gains one stack per second on its own — no further input required. Each stack raises PDR/MDR by 1%, so damage taken from anyone increases per stack. Trash mobs won't feel it. Bosses will. |

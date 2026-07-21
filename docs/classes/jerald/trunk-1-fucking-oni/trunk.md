@@ -31,7 +31,7 @@
 
 | Name | Description |
 |---|---|
-| Barrel In | Forced, unstoppable short lurch straight ahead. Hyperarmor for its duration — can't be interrupted, can't be knocked off course. The problem is between him and where he's going. |
+| Barrel In | Forced, unstoppable short lurch straight ahead. Brief invincibility for its duration — can't be interrupted, can't be knocked off course. The problem is between him and where he's going. |
 
 ---
 
@@ -39,8 +39,8 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | HP +20% | +20% max HP. |
-| P2 | LST +5 | +5 lifesteal. Damage dealt recovers a portion of HP. |
+| P1 | Max Life +20% | +20% max HP. |
+| P2 | Lifesteal +5% | +5% lifesteal. Damage dealt recovers a portion of HP. |
 | P3 | Oni Instinct | +5% ATK per nearby enemy. The worse the odds, the harder the hits. |
-| P4 | HP +40% | +40% max HP. |
+| P4 | Max Life +40% | +40% max HP. |
 | P5 | Equip Arm | Unlock. Grants access to the Arm weapon subgroup. |

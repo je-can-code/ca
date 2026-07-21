@@ -39,9 +39,9 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | HRG +40% | +40% heal rate growth. He heals faster whether he likes it or not. |
-| P2 | Prolonged Suffering | "Low effort" type states last twice as long. Both parties are suffering — Jerald from having to cast them, everyone else from how long he's making them endure it. |
-| P3 | Adequate Care | HAR +30%. His outgoing heals land with more potency. He is appalled that this is necessary. |
+| P1 | HP Regen +40% | +40% heal rate growth. He heals faster whether he likes it or not. |
+| P2 | Low-effort Moderation | "Low effort" type states last twice as long. Both parties are suffering — Jerald from having to cast them, everyone else from how long he's making them endure it. |
+| P3 | Healing Rate +30% | HAR +30%. His outgoing heals land with more potency. He is appalled that this is necessary. |
 | P4 | SAR +30% | +30% shield amplification rate. Shields he casts land harder. |
-| P5 | Fine, All of You | "Low effort" type states affect twice the radius. He is covering more ground. He resents every tile of it. |
+| P5 | Low-effort Range | "Low effort" type states go from single-target to party-wide radius (+15 tiles flat). He is covering more ground. He resents every tile of it. |
 | P6 | Equip Warstaff | Unlock. Grants access to the Warstaff weapon subgroup. |

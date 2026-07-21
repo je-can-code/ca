@@ -31,17 +31,17 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | MDF +20% | +20% magic defense. |
+| P1 | Resist +20% | +20% magic defense. |
 | P2 | Equip Cane | Unlock. Grants access to the Cane weapon subgroup. |
 | P3 | Reallocate | Killing a foe heals nearby allies. A kill pays a dividend. |
-| P4 | TGR +20% | +20% aggro. |
-| P5 | MHP +40% | +40% max HP. |
+| P4 | Aggro +20% | +20% aggro. |
+| P5 | Max Life +40% | +40% max HP. |
 | P6 | Equip Warstaff | Unlock. Grants access to the Warstaff weapon subgroup. |
 | P7 | Overclock | MP costs +50%, cast time −50%. |
-| P8 | MDF +30% | +30% magic defense. |
+| P8 | Resist +30% | +30% magic defense. |
 | P9 | Overcharge | MP costs +50%, damage +50%. |
-| P10 | TGR +30% | +30% aggro. |
-| P11 | MHP +60% | +60% max HP. |
+| P10 | Aggro +30% | +30% aggro. |
+| P11 | Max Life +60% | +60% max HP. |
 | P12 | Equip Breaker | Unlock. Grants access to the Breaker weapon subgroup. Unwrapping them for the party is the whole point of the equation. |
 | P13 | Equalize | Whenever Rupert heals himself, a nearby enemy takes a proportional hit of damage. Whenever Rupert deals damage, he heals himself for a proportional amount. Always active — doesn't care what class he's currently wearing. |
 

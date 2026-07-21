@@ -41,15 +41,15 @@
 
 | # | Name | Description |
 |---|---|---|
-| P1 | DEF +10% | +10% defense. |
+| P1 | Endurance +10% | +10% defense. |
 | P2 | Festering | State tick speed +50%. The debuffs don't wait. |
-| P3 | MHP +60% | +60% max HP. |
+| P3 | Max Life +60% | +60% max HP. |
 | P4 | Equip Claymore | Unlock. Grants access to the Claymore weapon subgroup. Wield with a shield, or deathgrip it with Two-Handed. |
 | P5 | Two-Handed | Unlock. Deathgrip your weapon — seals the offhand slot, keeps the offhand skill, grants an ATK bonus. |
-| P6 | DEF +20% | +20% defense. |
-| P7 | Virulent | Slip damage +25%. The acid eats faster. |
+| P6 | Endurance +20% | +20% defense. |
+| P7 | Virulent | Slip damage +50%. The acid eats faster. |
 | P8 | Immovable | DEF +5% per nearby enemy. The more that pile on, the less he moves. |
 | P9 | Equip Armor | Unlock. Grants access to heavy armor. |
-| P10 | Melting 🫠🫠🫠 | `<bonusDamageForMyStateCount:PCT>`. Bonus damage per state Jerald currently has active on the target. Null Acid, Tangling Shadows, Corroding Resistance — they're all his. |
+| P10 | Melting 🫠🫠🫠 | `<bonusDamageForMyStateCount:PCT>`. +50% bonus damage per distinct state Jerald currently has active on the target. Null Acid, Tangling Shadows, Corroding Resistance — they're all his. |
 | P11 | Equip Tome | Unlock. Grants access to the Tome weapon subgroup. |
 | P12 | Pandemic | Any poison state Jerald applies spreads autonomously to nearby enemies. On Painbringer, this distributes the prerequisite for the entire debuff chain. |
