@@ -975,7 +975,7 @@ JABS_InputAdapter.performMainhandAction = function(jabsBattler) {
 */
 J.ABS.EXT.TARGETING.Aliased.JABS_InputAdapter.set("performOffhandAction", JABS_InputAdapter.performOffhandAction);
 JABS_InputAdapter.performOffhandAction = function(jabsBattler) {
-	if (jabsBattler.isGuardSkillByKey(JABS_Button.Offhand) || $gameMap.hasInteractableEventInFront(jabsBattler) || !jabsBattler.canBattlerUseAttacks() || !jabsBattler.isSkillTypeCooldownReady(JABS_Button.Offhand) || jabsBattler.isCastingOrChanneling()) {
+	if ($gameMap.hasInteractableEventInFront(jabsBattler) || !jabsBattler.canBattlerUseAttacks() || !jabsBattler.isSkillTypeCooldownReady(JABS_Button.Offhand) || jabsBattler.isCastingOrChanneling()) {
 		J.ABS.EXT.TARGETING.Aliased.JABS_InputAdapter.get("performOffhandAction").call(this, jabsBattler);
 		return;
 	}

@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
+ * @plugindesc [v1.3.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -66,6 +66,33 @@
  * TAG EXAMPLES:
  *  <unslotted>
  * This skill is always active and will never appear in the SKS equip scene.
+ *
+ * ============================================================================
+ * UNSLOTTED SKILLS
+ * Want a specific actor/class (or any other note source) to treat a normally-
+ * slottable skill as perpetually active for them specifically, without making
+ * that skill unslotted for everyone else? By applying the appropriate tag,
+ * you can grant a per-battler exemption from the slot requirement- the skill
+ * still costs a slot for any other actor who has to learn-then-equip it
+ * through the normal pipeline.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armor
+ * - States
+ *
+ * TAG FORMAT:
+ *  <unslottedSkills:[SKILL_ID, SKILL_ID, ...]>
+ *    Where each SKILL_ID is exempted from the slot requirement for this
+ *    battler, regardless of that skill's own <unslotted> tag or type.
+ *
+ * TAG EXAMPLES:
+ *  <unslottedSkills:[901,902]>
+ * This actor/class always has skills 901 and 902 active, without spending a
+ * slot on either- e.g. a class with native weapon access to two weapon types.
  *
  * ============================================================================
  * SLOT COST MODIFIER
@@ -148,7 +175,34 @@
  * This source reduces the actor's slot point budget by 2 while active.
  *
  * ============================================================================
+ * EXCLUSIVE MODE
+ * By default, equipping a skill is gated by both slot count AND slot points
+ * together (tandem mode) - a skill must fit within both the remaining slot
+ * count and the remaining point budget to be equipped. If you'd rather only
+ * one of those two capacities matter, turn on Exclusive Mode and choose which
+ * one governs equipping via the Slots Only config.
+ *
+ * When Exclusive Mode is ON and Slots Only is ON, only slot count matters -
+ * slot points are never checked, so an actor can equip anything as long as a
+ * slot is physically available (a la Digital Devil Saga's skill system).
+ *
+ * When Exclusive Mode is ON and Slots Only is OFF, only slot points matter -
+ * slot count is never checked, so an actor can equip anything as long as the
+ * point budget allows it, regardless of how many slots that occupies (a la
+ * Final Fantasy IX's passive ability system).
+ *
+ * When Exclusive Mode is OFF, Slots Only has no effect; tandem mode applies.
+ *
+ * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Added per-battler unslotted-skill exemptions via <unslottedSkills:[...]>.
+ *    Stale slot entries are now automatically cleared when the actor no
+ *    longer knows the skill occupying them.
+ * - 1.2.0
+ *    Added Exclusive Mode, letting slot count or slot points alone gate
+ *    equipping instead of requiring both. Enforced slot count as a real
+ *    limit on equipping rather than a display-only limit in the equip scene.
  * - 1.1.0
  *    Promoted maxSlots and maxSlotPoints to independent, notetag-driven stats.
  *    Removed the mod-slot-points-party plugin command.
@@ -186,6 +240,24 @@
  * @text Default Max Slot Points
  * @desc The baseline slot point budget an actor has when no <baseSlotPoints:...> tag is found on the actor or class.
  * @default 4
+ *
+ * @param enable-exclusive-mode
+ * @parent parentConfig
+ * @type boolean
+ * @text Enable Exclusive Mode
+ * @desc When ON, only slot count OR slot points gate equipping (see Slots Only), never both together.
+ * @on Exclusive
+ * @off Tandem
+ * @default false
+ *
+ * @param slots-only
+ * @parent parentConfig
+ * @type boolean
+ * @text Slots Only (Exclusive Mode)
+ * @desc Only used when Exclusive Mode is ON. ON means only slot count is checked (points ignored); OFF means only slot points are checked (count ignored).
+ * @on Slots Only
+ * @off Points Only
+ * @default false
  */
 //endregion annotations
 
@@ -238,6 +310,19 @@ var JSkillSlots_PluginMetadata = class extends PluginMetadata {
 		* @type {number}
 		*/
 		this.defaultSkillSlotCost = 1;
+		/**
+		* Whether or not exclusive mode is enabled. When enabled, only one of slot count or
+		* slot points gates equipping (per {@link #slotsOnly}), rather than both together.
+		* @type {boolean}
+		*/
+		this.enableExclusiveMode = this.parsedPluginParameters["enable-exclusive-mode"] === "true";
+		/**
+		* Which capacity governs equipping while {@link #enableExclusiveMode} is on.
+		* True means only slot count matters; false means only slot points matter.
+		* Has no effect when {@link #enableExclusiveMode} is false.
+		* @type {boolean}
+		*/
+		this.slotsOnly = this.parsedPluginParameters["slots-only"] === "true";
 	}
 };
 
@@ -258,7 +343,7 @@ J.SKS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.1.0");
+J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -275,6 +360,7 @@ J.SKS.RegExp.BaseSlots = /<baseSlots:\[([+\-*/ ().\w]+)]>/gi;
 J.SKS.RegExp.BaseSlotPoints = /<baseSlotPoints:\[([+\-*/ ().\w]+)]>/gi;
 J.SKS.RegExp.MaxSlots = /<maxSlots:\[([+\-*/ ().\w]+)]>/gi;
 J.SKS.RegExp.MaxSlotPoints = /<maxSlotPoints:\[([+\-*/ ().\w]+)]>/gi;
+J.SKS.RegExp.UnslottedSkills = /<unslottedSkills:[ ]?(\[[\d, ]+])>/i;
 
 //#endregion
 //#region src/plugins/sks/core/_models/SkillEquipSlot.js
@@ -378,6 +464,25 @@ Game_Actor.prototype.initSkillSlotsMembers = function() {
 	* @type {Map<number, number>}
 	*/
 	this._j._sks._slotMap = new Map();
+	/**
+	* The cached set of skill ids exempted from the slot requirement for this battler
+	* specifically, per {@link J.SKS.RegExp.UnslottedSkills}. Null until first computed,
+	* and invalidated back to null whenever {@link #onBattlerDataChange} fires.
+	* @type {Set<number>|null}
+	*/
+	this._j._sks._forcedUnslottedSkillIds = null;
+};
+/**
+* Extends {@link #onBattlerDataChange}.<br/>
+* Invalidates the forced-unslotted-skills cache and prunes any slot that no longer
+* holds a skill this actor actually knows, since whatever changed (equip, class,
+* state, level) may have altered either.
+*/
+J.SKS.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function() {
+	J.SKS.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
+	this._j._sks._forcedUnslottedSkillIds = null;
+	this.pruneStaleSlots();
 };
 /**
 * Gets the ordered array of equipped skill slots for this actor.
@@ -489,6 +594,21 @@ Game_Actor.prototype.equippedSkills = function() {
 	return equippedSkills;
 };
 /**
+* Gets the set of skill ids exempted from the slot requirement for this battler
+* specifically, per {@link J.SKS.RegExp.UnslottedSkills} tags found anywhere across
+* {@link #getAllNotes}. Unlike a skill's own {@link RPG_Skill#unslotted} tag, this
+* exemption applies only to this battler- the same skill still costs a slot for
+* anyone who has to learn-then-equip it through the normal pipeline. Cached until
+* {@link #onBattlerDataChange} invalidates it.
+* @returns {Set<number>}
+*/
+Game_Actor.prototype.forcedUnslottedSkillIds = function() {
+	if (this._j._sks._forcedUnslottedSkillIds !== null) return this._j._sks._forcedUnslottedSkillIds;
+	const arraysFound = RPGManager.getArraysFromAllNotesByRegex(this.getAllNotes(), J.SKS.RegExp.UnslottedSkills, true, false) ?? [];
+	this._j._sks._forcedUnslottedSkillIds = new Set(arraysFound.flat());
+	return this._j._sks._forcedUnslottedSkillIds;
+};
+/**
 * Assigns a skill to a slot entry, updating both the slots array and the slot map.
 * @param {number} index - The slot index to assign to.
 * @param {number} skillId - The id of the skill to assign.
@@ -518,19 +638,55 @@ Game_Actor.prototype.equipSkillToSlot = function(slotIndex, skillId) {
 };
 /**
 * Determines whether a skill can be equipped into the given slot by this actor.
+* Gating depends on the plugin's configured mode: by default both slot count and
+* slot points must permit the equip (tandem mode); when exclusive mode is enabled,
+* only one of those two capacities is checked at all, per {@link J.SKS.Metadata.slotsOnly}.
 * @param {number} slotIndex - The index of the slot to check.
 * @param {number} skillId - The id of the skill to check.
 * @returns {boolean}
 */
 Game_Actor.prototype.canEquipSkillToSlot = function(slotIndex, skillId) {
-	const newCost = this.skillSlotCost(skillId, slotIndex);
-	if (newCost <= 0) return true;
 	if (this.getEquippedSkillIndex(skillId) !== -1) return true;
 	const currentSkillId = this.getSkillIdInSlot(slotIndex);
 	if (currentSkillId === skillId) return true;
+	const pointsOk = this.canAffordSkillSlotPoints(slotIndex, skillId, currentSkillId);
+	const countOk = this.canAffordSkillSlotCount(currentSkillId);
+	if (J.SKS.Metadata.enableExclusiveMode) {
+		return J.SKS.Metadata.slotsOnly ? countOk : pointsOk;
+	}
+	return pointsOk && countOk;
+};
+/**
+* Determines whether this actor has enough slot points to place the given skill
+* into the given slot, accounting for whatever skill is being displaced.
+* @param {number} slotIndex - The index of the slot being targeted.
+* @param {number} skillId - The id of the incoming skill.
+* @param {number} currentSkillId - The id of the skill currently occupying the slot, or 0 if empty.
+* @returns {boolean}
+*/
+Game_Actor.prototype.canAffordSkillSlotPoints = function(slotIndex, skillId, currentSkillId) {
+	const newCost = this.skillSlotCost(skillId, slotIndex);
+	if (newCost <= 0) return true;
 	const currentCost = this.skillSlotCost(currentSkillId, slotIndex);
 	const hypotheticalSpent = this.spentSlotPoints() - currentCost + newCost;
 	return hypotheticalSpent <= this.maxSlotPoints();
+};
+/**
+* Determines whether this actor has room for one more occupied slot, unless the
+* target slot is already occupied- in which case no new slot usage is introduced.
+* @param {number} currentSkillId - The id of the skill currently occupying the target slot, or 0 if empty.
+* @returns {boolean}
+*/
+Game_Actor.prototype.canAffordSkillSlotCount = function(currentSkillId) {
+	const isNewSlotUsage = currentSkillId === 0;
+	return isNewSlotUsage === false || this.hasSufficientSlotCount();
+};
+/**
+* Determines if this actor has an available slot beyond what is currently occupied.
+* @returns {boolean}
+*/
+Game_Actor.prototype.hasSufficientSlotCount = function() {
+	return this.slotMap().size < this.maxSlots();
 };
 /**
 * Resolves the effective slot cost for a skill in a given slot context.
@@ -580,6 +736,19 @@ Game_Actor.prototype.unequipSkillFromSlot = function(slotIndex) {
 	if (currentSkillId === 0) return;
 	this.deleteSlot(slotIndex);
 	this.onSkillUnequipChange(slotIndex, currentSkillId);
+};
+/**
+* Unequips every slot whose skill this actor no longer actually knows- e.g. after a
+* class change or state removal takes away access to something that was equipped.
+* Left in place, a stale slot would keep pointing at a skill the actor can't use.
+*/
+Game_Actor.prototype.pruneStaleSlots = function() {
+	const occupiedIndices = [...this.slotMap().keys()];
+	occupiedIndices.forEach((slotIndex) => {
+		const skillId = this.getSkillIdInSlot(slotIndex);
+		if (this.hasSkill(skillId)) return;
+		this.unequipSkillFromSlot(slotIndex);
+	});
 };
 /**
 * Unequips the specified skill from whichever slot it currently occupies.
@@ -653,10 +822,20 @@ var Window_SkillEquipRibbon = class extends Window_ActorRibbon {
 		const nameX = fx + fw + 16;
 		const y = fy;
 		const name = actor.name();
-		const spent = actor.spentSlotPoints();
-		const total = actor.maxSlotPoints();
 		this.drawText(name, nameX, y, this.contentsWidth() - nameX - 6, "left");
-		this.drawText(`${spent}/${total} pts`, 0, y, this.contentsWidth() - 6, "right");
+		this.drawText(this.capacitySummaryText(actor), 0, y, this.contentsWidth() - 6, "right");
+	}
+	/**
+	* Builds the capacity summary text for the given actor, matching whichever
+	* capacity the plugin's configured mode actually gates equipping by.
+	* @param {Game_Actor} actor - The actor to summarize.
+	* @returns {string}
+	*/
+	capacitySummaryText(actor) {
+		if (J.SKS.Metadata.enableExclusiveMode && J.SKS.Metadata.slotsOnly) {
+			return `${actor.slotMap().size}/${actor.maxSlots()} slots`;
+		}
+		return `${actor.spentSlotPoints()}/${actor.maxSlotPoints()} pts`;
 	}
 };
 

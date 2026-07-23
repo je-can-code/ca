@@ -2291,10 +2291,8 @@ var ParameterKeys = class ParameterKeys {
 //#region src/plugins/_base/core/JsonEx.js
 /**
 * Extends {@link JsonEx._encode}.<br/>
-* Also encodes native `Map`/`Set` instances. Their real key/value storage lives in an engine-internal
-* slot invisible to `Object.keys()`, so without this they never match the original algorithm's
-* `[object Object]`/`[object Array]` type-tag gate below and get silently serialized as an empty `{}`
-* by the raw `JSON.stringify()` call in {@link JsonEx.stringify}.
+* Also encodes native `Map`/`Set` instances, and stops the original algorithm's in-place mutation of
+* whatever object graph is being stringified.
 */
 J.BASE.Aliased.JsonEx.set("_encode", JsonEx._encode);
 JsonEx._encode = function(value, depth) {
@@ -2315,13 +2313,15 @@ JsonEx._encode = function(value, depth) {
 	}
 	const type = Object.prototype.toString.call(value);
 	if (type === "[object Object]" || type === "[object Array]") {
+		const encoded = Array.isArray(value) ? [] : {};
 		const constructorName = value.constructor.name;
 		if (constructorName !== "Object" && constructorName !== "Array") {
-			value["@"] = constructorName;
+			encoded["@"] = constructorName;
 		}
 		for (const key of Object.keys(value)) {
-			value[key] = this._encode(value[key], depth + 1);
+			encoded[key] = this._encode(value[key], depth + 1);
 		}
+		return encoded;
 	}
 	return value;
 };

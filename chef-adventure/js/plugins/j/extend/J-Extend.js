@@ -184,6 +184,7 @@
  *  <onCastRemoveState:[STATE_ID,CHANCE]>
  *  <onHitRemoveState:[STATE_ID,CHANCE]>
  *  <onCastExecuteSkill:[SKILL_ID,CHANCE]>
+ *  <onCastExecuteSkillIfAfflicted:[SKILL_ID,CHANCE,STATE_REQUIREMENT]>
  * Where STATE_ID is the id of the state to apply, strip, or remove.
  * Where CHANCE is the percent chance between 0 and 100 that it'll trigger.
  *
@@ -241,6 +242,13 @@
  * repeatable: stack as many <onCastExecuteSkill> tags on one skill as you want, each rolls
  * independently. A forced skill's own <onCastExecuteSkill> tag may chain one further hop before
  * being cut off (depth-guarded against runaway loops).
+ *
+ *  <onCastExecuteSkillIfAfflicted:[267,100,134]>
+ * On cast, if the caster currently has state id 134 active, force-execute skill id 267 at 100%
+ * chance. If the caster does not have state 134, this tag does nothing- no roll occurs at all, and
+ * nothing is force-executed. Same <onCastExecuteSkill> timing, JABS dispatch path, and depth guard;
+ * this is purely a gate on top of it. Skill-scoped and repeatable, same as its unconditional
+ * counterpart.
  * ============================================================================
  * ON-HIT APPLY STATE (SKILL-SCOPED):
  * Have you ever wanted a specific skill to apply a state to its target with a
@@ -755,6 +763,24 @@ J.EXTEND.RegExp.OnCastRemoveState = /<onCastRemoveState:[ ]?(\[\d+,[ ]?\d+])>/i;
 * @type {RegExp}
 */
 J.EXTEND.RegExp.OnCastExecuteSkill = /<onCastExecuteSkill:[ ]?(\[\d+,[ ]?\d+])>/gi;
+/**
+* The structure of a conditional on-cast force-execute-skill tag.
+* Force-executes a payload skill only if the caster already has a required state active — the
+* <onCastSelfStateIfAfflicted> gate pattern, applied to <onCastExecuteSkill> instead of a self-state.
+*
+* <pre>
+* Structure:
+*  <onCastExecuteSkillIfAfflicted:[SKILL_ID, CHANCE, STATE_REQUIREMENT]>
+*
+* Example:
+*  <onCastExecuteSkillIfAfflicted:[267, 100, 134]>
+*
+* Translation:
+*  On cast, if the caster has state id 134 active, force-execute skill id 267 at 100% chance.
+* </pre>
+* @type {RegExp}
+*/
+J.EXTEND.RegExp.OnCastExecuteSkillIfAfflicted = /<onCastExecuteSkillIfAfflicted:[ ]?(\[\d+,[ ]?\d+,[ ]?\d+])>/gi;
 /**
 * The structure of a skill-scoped on-hit apply-state tag with optional duration and stack overrides.
 * Reads from the executing skill only ({@code this.item()}).
@@ -1858,13 +1884,14 @@ Game_Action.prototype.onCastExecuteSkills = function() {
 	return RPGManager.getArraysFromNotesByRegex(this.item(), J.EXTEND.RegExp.OnCastExecuteSkill) ?? [];
 };
 /**
-* Force-executes every qualifying {@code <onCastExecuteSkill>} payload through JABS, exactly once
-* at the moment of press. Each tag rolls its own chance independently, so a single cast can chain
-* into several follow-up skills at once.
+* Rolls and force-executes a batch of already-gated `[skillId, chance]` payloads through JABS,
+* sharing the single depth guard between both the unconditional and state-gated
+* {@code onCastExecuteSkill} families so a mixed chain still can't loop forever.
+* @param {[number, number][]} payloads Tuples of `[skillId, chance]` that have already passed
+* whatever gate (if any) applies to their source tag.
 * @param {JABS_Battler} caster The JABS battler executing this cast.
 */
-Game_Action.prototype.applyOnCastExecuteSkills = function(caster) {
-	const payloads = this.onCastExecuteSkills();
+function dispatchOnCastExecuteSkillPayloads(payloads, caster) {
 	if (payloads.length === 0) return;
 	if (onCastExecuteSkillDepth >= ON_CAST_EXECUTE_SKILL_MAX_DEPTH) return;
 	onCastExecuteSkillDepth += 1;
@@ -1876,6 +1903,37 @@ Game_Action.prototype.applyOnCastExecuteSkills = function(caster) {
 	} finally {
 		onCastExecuteSkillDepth -= 1;
 	}
+}
+/**
+* Force-executes every qualifying {@code <onCastExecuteSkill>} payload through JABS, exactly once
+* at the moment of press. Each tag rolls its own chance independently, so a single cast can chain
+* into several follow-up skills at once.
+* @param {JABS_Battler} caster The JABS battler executing this cast.
+*/
+Game_Action.prototype.applyOnCastExecuteSkills = function(caster) {
+	dispatchOnCastExecuteSkillPayloads(this.onCastExecuteSkills(), caster);
+};
+/**
+* Gets all state-gated skills that should be force-executed when casting this skill, alongside
+* their individual roll chances. Reads {@code <onCastExecuteSkillIfAfflicted>} from the executing
+* skill's own note only ({@code this.item()}), same skill-scoped rule as its unconditional sibling.
+* @returns {[number, number, number][]} Tuples of `[skillId, chance, stateRequirement]`.
+*/
+Game_Action.prototype.onCastExecuteSkillsIfAfflicted = function() {
+	return RPGManager.getArraysFromNotesByRegex(this.item(), J.EXTEND.RegExp.OnCastExecuteSkillIfAfflicted) ?? [];
+};
+/**
+* Force-executes every qualifying {@code <onCastExecuteSkillIfAfflicted>} payload through JABS,
+* exactly once at the moment of press, but only for tags whose required state is currently active
+* on the caster. Lets a skill fire one of several possible payloads depending on which state the
+* caster is carrying, without ever rolling or executing the ones that don't apply.
+* @param {JABS_Battler} caster The JABS battler executing this cast.
+*/
+Game_Action.prototype.applyOnCastExecuteSkillsIfAfflicted = function(caster) {
+	const subject = this.subject();
+	const allTriples = this.onCastExecuteSkillsIfAfflicted();
+	const qualifyingPayloads = allTriples.filter(([, , stateRequirement]) => subject.isStateAffected(stateRequirement)).map(([skillId, chance]) => [skillId, chance]);
+	dispatchOnCastExecuteSkillPayloads(qualifyingPayloads, caster);
 };
 /**
 * Gets all possible states that could be self-inflicted when casting this skill.

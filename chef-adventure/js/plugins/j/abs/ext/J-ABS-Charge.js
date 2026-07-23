@@ -889,12 +889,10 @@ JABS_InputAdapter.performOffhandActionCharging = function(charging, jabsBattler)
 };
 /**
 * Determines wehether or not the player can try to charge their offhand action.
-* Guard skills cannot be charged.
 * @param {JABS_Battler} jabsBattler The battler doing the charging.
 * @returns {boolean} True if we can charge with this slot, false otherwise.
 */
 JABS_InputAdapter.canPerformOffhandActionCharging = function(jabsBattler) {
-	if (jabsBattler.isGuardSkillByKey(JABS_Button.Offhand)) return false;
 	if (!jabsBattler.canBattlerUseAttacks()) return false;
 	if (jabsBattler.isCastingOrChanneling()) return false;
 	return true;

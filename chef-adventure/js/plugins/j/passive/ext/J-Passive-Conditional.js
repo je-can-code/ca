@@ -911,7 +911,6 @@ var PassiveRuleThreshold = class {
 				if (mtp <= 0) return 0;
 				return Math.round(battler.tp / mtp * 100);
 			}
-			default: return 0;
 		}
 	}
 	/**
@@ -966,7 +965,8 @@ var PassiveRuleThreshold = class {
 	*/
 	static parseAllAlliesThresholdKind(kind) {
 		if (kind.startsWith("allAllies") === false) return null;
-		const remainder = kind.slice("allAllies".length);
+		const stripped = kind.slice("allAllies".length);
+		const remainder = stripped.charAt(0).toLowerCase() + stripped.slice(1);
 		return this.parseThresholdKind(remainder);
 	}
 };
@@ -1365,7 +1365,7 @@ var AutoRuleManager = class {
 		const collected = [];
 		const sources = battler.getPassiveStateSources();
 		for (const source of sources) {
-			const tuples = source[this.rulesProperty] || [];
+			const tuples = source[this.rulesProperty];
 			for (let tupleIndex = 0; tupleIndex < tuples.length; tupleIndex++) {
 				collected.push({
 					source,
@@ -1853,7 +1853,7 @@ var SkillExecutionStateRemovalManager = class {
 		const activeStates = battler.states();
 		for (const state of activeStates) {
 			if (!state) continue;
-			const rules = state.removeOnSkillExecutionRules || [];
+			const rules = state.removeOnSkillExecutionRules;
 			for (const tuple of rules) {
 				const stypeId = Number(tuple[0]);
 				const chance = Number(tuple[1]);
@@ -1862,23 +1862,21 @@ var SkillExecutionStateRemovalManager = class {
 				const positiveRolls = 1 + battler.getPositiveRollsForSkill(state);
 				const negativeRolls = battler.getNegativeRollsForSkill(state);
 				if (RPGManager.fateOf100(battler, chance, positiveRolls, negativeRolls) === false) continue;
-				const stateId = state.id;
-				const stacksLossCount = this.#resolveStacksLossCount(battler, stateId);
-				battler.decrementStateStacks(stateId, stacksLossCount);
+				const stacksLossCount = this.#resolveStacksLossCount(battler, state);
+				battler.decrementStateStacks(state.id, stacksLossCount);
 			}
 		}
 	}
 	/**
-	* Mirrors {@link JABS_State#handleStackChangeFromDuration} stack peel amount for one state id.
+	* Mirrors {@link JABS_State#handleStackChangeFromDuration} stack peel amount for one state.
 	* @param {Game_Actor|Game_Enemy} battler The battler losing stacks.
-	* @param {number} stateId The database state id to peel.
+	* @param {RPG_State} state The state row to peel- already confirmed live on the battler by the
+	* caller, so no re-lookup against $dataStates is needed here.
 	* @returns {number} How many stacks to remove in one proc.
 	*/
-	static #resolveStacksLossCount(battler, stateId) {
-		const stateRow = $dataStates[stateId];
-		if (!stateRow) return 1;
-		const loseAllStacksAtOnce = stateRow.jabsLoseAllStacksAtOnce === true;
-		const tracked = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), stateId);
+	static #resolveStacksLossCount(battler, state) {
+		const loseAllStacksAtOnce = state.jabsLoseAllStacksAtOnce === true;
+		const tracked = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
 		if (loseAllStacksAtOnce === true && tracked) {
 			return tracked.stackCount;
 		}
@@ -1909,7 +1907,7 @@ var SkillResolutionStateRemovalManager = class {
 		const activeStates = battler.states();
 		for (const state of activeStates) {
 			if (!state) continue;
-			const rules = state.removeOnSkillResolutionRules || [];
+			const rules = state.removeOnSkillResolutionRules;
 			for (const tuple of rules) {
 				const stypeId = Number(tuple[0]);
 				const chance = Number(tuple[1]);
@@ -1918,23 +1916,21 @@ var SkillResolutionStateRemovalManager = class {
 				const positiveRolls = 1 + battler.getPositiveRollsForSkill(state);
 				const negativeRolls = battler.getNegativeRollsForSkill(state);
 				if (RPGManager.fateOf100(battler, chance, positiveRolls, negativeRolls) === false) continue;
-				const stateId = state.id;
-				const stacksLossCount = this.#resolveStacksLossCount(battler, stateId);
-				battler.decrementStateStacks(stateId, stacksLossCount);
+				const stacksLossCount = this.#resolveStacksLossCount(battler, state);
+				battler.decrementStateStacks(state.id, stacksLossCount);
 			}
 		}
 	}
 	/**
-	* Mirrors {@link JABS_State#handleStackChangeFromDuration} stack peel amount for one state id.
+	* Mirrors {@link JABS_State#handleStackChangeFromDuration} stack peel amount for one state.
 	* @param {Game_Actor|Game_Enemy} battler - The battler losing stacks.
-	* @param {number} stateId - The database state id to peel.
+	* @param {RPG_State} state - The state row to peel- already confirmed live on the battler by the
+	* caller, so no re-lookup against $dataStates is needed here.
 	* @returns {number} - How many stacks to remove in one proc.
 	*/
-	static #resolveStacksLossCount(battler, stateId) {
-		const stateRow = $dataStates[stateId];
-		if (!stateRow) return 1;
-		const loseAllStacksAtOnce = stateRow.jabsLoseAllStacksAtOnce === true;
-		const tracked = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), stateId);
+	static #resolveStacksLossCount(battler, state) {
+		const loseAllStacksAtOnce = state.jabsLoseAllStacksAtOnce === true;
+		const tracked = $jabsEngine.getJabsStateByUuidAndStateId(battler.getUuid(), state.id);
 		if (loseAllStacksAtOnce === true && tracked) {
 			return tracked.stackCount;
 		}
@@ -1962,7 +1958,7 @@ var MoveStateRemovalManager = class {
 		const activeStates = battler.allStates();
 		for (const state of activeStates) {
 			if (!state) continue;
-			const rules = state.removeStateOnMoveRules || [];
+			const rules = state.removeStateOnMoveRules;
 			for (const tuple of rules) {
 				const stateId = Number(tuple[0]);
 				if (Number.isNaN(stateId) || stateId <= 0) continue;
@@ -1981,7 +1977,7 @@ var MoveStateRemovalManager = class {
 	* @param {number} payloadStateId The payload state id to match against autoApplyState tuples.
 	*/
 	static #resetStandCooldown(battler, sourceState, payloadStateId) {
-		const tuples = sourceState.autoApplyStateRules || [];
+		const tuples = sourceState.autoApplyStateRules;
 		for (let tupleIndex = 0; tupleIndex < tuples.length; tupleIndex++) {
 			const tuple = tuples[tupleIndex];
 			const tupleStateId = Number(tuple[0]);
@@ -2604,10 +2600,10 @@ Game_Battler.prototype.getPassiveStackContributionFromSource = function(baseItem
 * @returns {boolean} Whether this source may contribute the given passive state right now.
 */
 Game_Battler.prototype.evaluatePassiveGateRulesForSource = function(baseItem, stateId) {
-	const sourceRules = baseItem.passiveSourceRules || [];
+	const sourceRules = baseItem.passiveSourceRules;
 	const passesSourceRules = sourceRules.every(([kind, ...params]) => PassiveGateEvaluator.evaluate(this, kind, ...params));
 	if (passesSourceRules === false) return false;
-	const stateRules = (baseItem.passiveStateRules || []).filter(([ruleStateId]) => Number(ruleStateId) === stateId);
+	const stateRules = baseItem.passiveStateRules.filter(([ruleStateId]) => Number(ruleStateId) === stateId);
 	const passesStateRules = stateRules.every(([, kind, ...params]) => PassiveGateEvaluator.evaluate(this, kind, ...params));
 	return passesStateRules;
 };
@@ -2619,7 +2615,7 @@ Game_Battler.prototype.evaluatePassiveGateRulesForSource = function(baseItem, st
 * @returns {any[]|null} Parsed {@code [stateId, kind, param]} tuple, or null when none.
 */
 Game_Battler.prototype.findPassiveStateCountTuple = function(baseItem, stateId) {
-	const matches = (baseItem.passiveStateCounts || []).filter((tuple) => Number(tuple[0]) === stateId);
+	const matches = baseItem.passiveStateCounts.filter((tuple) => Number(tuple[0]) === stateId);
 	if (matches.length === 0) return null;
 	return matches[0];
 };
@@ -2636,18 +2632,18 @@ Game_Battler.prototype.buildPassiveCollectionFingerprint = function() {
 	/** @type {Map<number, number>} */
 	const stackMap = new Map();
 	sources.forEach((source) => {
-		let uniqueSourceIds = source.uniquePassiveStateIds || [];
+		let uniqueSourceIds = source.uniquePassiveStateIds;
 		if (source.isEquipItem()) {
-			uniqueSourceIds = uniqueSourceIds.concat(source.uniqueEquippedPassiveStateIds || []);
+			uniqueSourceIds = uniqueSourceIds.concat(source.uniqueEquippedPassiveStateIds);
 		}
 		uniqueSourceIds.forEach((id) => {
 			if (this.canIncludePassiveStateFromSource(source, id)) {
 				uniqueIds.push(id);
 			}
 		});
-		let stackableSourceIds = source.passiveStateIds || [];
+		let stackableSourceIds = source.passiveStateIds;
 		if (source.isEquipItem()) {
-			stackableSourceIds = stackableSourceIds.concat(source.equippedPassiveStateIds || []);
+			stackableSourceIds = stackableSourceIds.concat(source.equippedPassiveStateIds);
 		}
 		stackableSourceIds.forEach((id) => {
 			if (this.canIncludePassiveStateFromSource(source, id) === false) return;
@@ -2988,7 +2984,7 @@ var AutoApplyStateDisplay = class AutoApplyStateDisplay {
 	* @returns {string[]}
 	*/
 	static collectTimeProseLines(dataRow, window) {
-		return AutoApplyStateDisplay.#collectProseLinesByCondition(dataRow, window, "time");
+		return AutoApplyStateDisplay.#collectProseLinesByCondition(dataRow, window, "time", AutoApplyStateDisplay.formatTimeProse);
 	}
 	/**
 	* Builds drawTextEx prose lines for every stand autoApplyState tag on a database row.
@@ -2997,16 +2993,18 @@ var AutoApplyStateDisplay = class AutoApplyStateDisplay {
 	* @returns {string[]}
 	*/
 	static collectStandProseLines(dataRow, window) {
-		return AutoApplyStateDisplay.#collectProseLinesByCondition(dataRow, window, "stand");
+		return AutoApplyStateDisplay.#collectProseLinesByCondition(dataRow, window, "stand", AutoApplyStateDisplay.formatStandProse);
 	}
 	/**
 	* Shared collector — filters autoApplyState tuples by condition kind and formats prose.
 	* @param {RPG_BaseItem} dataRow State, skill, or equip row bearing notes.
 	* @param {Window_Base} window Host window supplying bold/color text helpers.
 	* @param {string} conditionKind The condition kind to match ('time' or 'stand').
+	* @param {(stateId: number, param: number, window: Window_Base) => string} formatter Formats one
+	* matching tuple into a prose line; the caller supplies the kind-specific formatter to use.
 	* @returns {string[]}
 	*/
-	static #collectProseLinesByCondition(dataRow, window, conditionKind) {
+	static #collectProseLinesByCondition(dataRow, window, conditionKind, formatter) {
 		const tuples = RPGManager.getArraysFromNotesByRegex(dataRow, J.PASSIVE.EXT.CONDITIONAL.RegExp.AutoApplyState, true);
 		const lines = [];
 		for (const tuple of tuples) {
@@ -3016,11 +3014,7 @@ var AutoApplyStateDisplay = class AutoApplyStateDisplay {
 			if (Number.isNaN(stateId) || stateId < 1) continue;
 			if (condition !== conditionKind) continue;
 			if (Number.isNaN(param) || param < 1) continue;
-			if (conditionKind === "time") {
-				lines.push(AutoApplyStateDisplay.formatTimeProse(stateId, param, window));
-			} else if (conditionKind === "stand") {
-				lines.push(AutoApplyStateDisplay.formatStandProse(stateId, param, window));
-			}
+			lines.push(formatter(stateId, param, window));
 		}
 		return lines;
 	}
