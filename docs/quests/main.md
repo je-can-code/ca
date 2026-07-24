@@ -22,37 +22,41 @@ a room in the upstairs of the inn.
 
 The rich man is named Vanderslop and the average man is named Peter. They stand together outside of the inn.
 
-### The Curious Man
+### [The Curious Man](./NE-raevula/archaeologist.md)
 
 This guy's name is Cerak. He stands outside of the Save Shrine.
 
-### The Temporal Merchant
+### [The Temporal Merchant](./NE-raevula/temporal-merchant.md)
 
 This guy's name is Gilbert. He is the sketchy merchant.
 
 
 
-## NW Reavula
+## N Raevula (middle-north)
 
-### The Rumor-loving Lady
+### [The Rumor-loving Lady](./N-raevula/rumor-loving-lady.md)
 
 The rumor-loving lady's name is Amy. She stands outside of the vacant plot where supposedly the nature-loving lady
 once lived.
 
-### The Snotty little kid
+
+
+## NW Reavula
+
+### [The Snotty little kid](./NW-raevula/snotty-kid.md)
 
 The snotty little kid's name is Silia. She stands outside of her own house, preventing entry in the first four
 chapters of the game.
 
-### The Cat-woman hybrid
+### [The Cat-woman hybrid](./NW-raevula/cat-woman.md)
 
 The Cat Lady's name is Nyancy. She wanders around aimlessly in the NW quadrant of Raevula.
 
-### The Huntling Lord
+### [The Huntling Lord](./NW-raevula/hunting-lord.md)
 
 The Hunting Lord does not reveal their name. They stand behind the counter in the Hivemind Guild.
 
-### The Page
+### [The Page](./NW-raevula/page.md)
 
 The Page's name is Frederick. He is a part of the main story in the first chapter of the game, and the mansion becomes
 closed off until chapter 4.
@@ -61,50 +65,55 @@ closed off until chapter 4.
 
 ## SE Raevula
 
-### The Drunken Smith
+### [The Drunken Smith](./SE-raevula/drunken-smith.md)
 
 The smith's name is Viktor. He is found in the bar initially, but the player brings him back to the forge and he
 teaches the player about smithing JAFTING.
 
-### The Smith's Apprentice
+### [The Smith's Apprentice](./SE-raevula/smiths-apprentice.md)
 
 The apprentice's name is Viskra. She stands behind the counter of the Metal Petal, and her first quest is to bring
 back the drunken Viktor.
 
-### The City Guard
+### [The City Guard](./SE-raevula/city-guard.md)
 
 The city guard's name is Cecil. He idles about in the Metal Petal.
 
-### The Foreign Gentleman
-
-The foreign gentleman's name is Satoru. He stands around outside a house in the SE quadrant of Raevula.
-
-### The Hungry Kitty
+### [The Hungry Kitty](./SE-raevula/hungry-kitty.md)
 
 The hungry kitty's name is Mittens. The cat wanders aimlessly around the SE quadrant of Raevula.
 
 
 
+## S Raevula (middle-south)
+
+### [The Foreign Gentleman](./S-raevula/foreign-gentleman.md)
+
+The foreign gentleman's name is Satoru. He stands around outside a house in the middle-south section of Raevula,
+having traveled from Nare by way of Erocia Kingdom.
+
+
+
 ## SW Raevula
 
-### The Adventurous Guy and Wooed Gal
+### [The Adventurous Guy and Wooed Gal](./SW-raevula/adventurous-duo.md)
 
 The guy and gal are named Silver and Kayla. They hang out together in the SW quadrant outside of their house.
 
-### Random Facts Kid
+### [Random Facts Kid](./SW-raevula/random-facts-kid.md)
 
 This kid's name is Fortuitus. He wanders swiftly and randomly around the SW quadrant.
 
-### The Alchemy Acolyte
+### [The Alchemy Acolyte](./SW-raevula/alchemy-acolyte.md)
 
 The hooded alchemy acolyte's name is Alice. She stands behind the counter of the Withered Thorn, and is a merchant for
 alchemy-related goods.
 
-### The Alchemist Bard
+### [The Alchemist Bard](./SW-raevula/alchemist-bard.md)
 
 The alchemist slash bard's name is Leo. He is initially found in the Forlorn Basin as a part of the main story, but he
 returns to the Withered Thorn and hangs out in the backroom after being rescued.
 
-### The Calculating Heroine
+### [The Calculating Heroine](./SW-raevula/calculating-heroine.md)
 
 The calculating heroine's name is Iris. She is perusing the alchemy goods in the Withered Thorn.
