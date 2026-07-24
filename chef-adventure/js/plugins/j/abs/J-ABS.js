@@ -7829,7 +7829,7 @@ var JABS_EnemyAI = class extends JABS_AI {
 		if (this.shouldFollowWithCombo(user)) {
 			return [this.followWithCombo(user)];
 		}
-		if (!usableSkills.length) return [];
+		if (!usableSkills.length) return [user.getEnemyBasicAttack()];
 		const target = user.getTarget();
 		let filtered = usableSkills;
 		if (this.careful) {
@@ -9700,7 +9700,7 @@ var JABS_AiManager = class JABS_AiManager {
 			this.setupActionForNextPhase(battler, followerSkillId, followerCooldownKey);
 			return;
 		}
-		const decidedPicks = battler.getAiMode().decideAction(battler, battler.getTarget(), battler.getSkillIdsFromEnemy());
+		const decidedPicks = battler.getAiMode().decideAction(battler, battler.getTarget(), battler.getAllSkillIdsFromEnemy());
 		if (decidedPicks.length === 0 || !this.isSkillIdValid(decidedPicks[0])) {
 			this.cancelActionSetup(battler);
 			return;
@@ -18589,17 +18589,17 @@ var JABS_Engine = class JABS_Engine {
 	* @param {JABS_Action} action The JABS action to execute.
 	*/
 	applyCooldownCounters(caster, action) {
-		this.applyPlayerCooldowns(caster, action);
+		this.applyCasterCooldowns(caster, action);
 	}
 	/**
-	* Applies per-slot (or unique) skill cooldowns for the player after an action, then optionally stamps the
+	* Applies per-slot (or unique) skill cooldowns for the caster after an action, then optionally stamps the
 	* battler-wide GCD. When global cooldown is enabled and the skill is subject to it,
 	* {@link J.ABS.Globals.GlobalCooldownKey} is set to the computed duration so other GCD-subject skills cannot fire
 	* until it elapses.
-	* @param {JABS_Battler} caster The player.
+	* @param {JABS_Battler} caster The battler (player or enemy) that executed the action.
 	* @param {JABS_Action} action The JABS action to execute.
 	*/
-	applyPlayerCooldowns(caster, action) {
+	applyCasterCooldowns(caster, action) {
 		const skill = action.getBaseSkill();
 		this.applyCooldownValueForSkill(caster, action, action.getCooldown());
 		if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(skill)) {
@@ -21951,6 +21951,9 @@ var JABS_SkillSlotManager = class {
 	* @param {Game_Enemy} enemy The enemy to setup slots for.
 	*/
 	setupEnemySlots(enemy) {
+		const gcdSlot = new JABS_SkillSlot(J.ABS.Globals.GlobalCooldownKey, 0);
+		gcdSlot.getCooldown().enableBase();
+		this._slots.push(gcdSlot);
 		const battlerData = enemy.databaseData();
 		const skillIds = battlerData.actions.filter((action) => this.filterActionSkills(enemy, action)).map((action) => action.skillId);
 		const basicAttackSkillId = enemy.basicAttackSkillId();

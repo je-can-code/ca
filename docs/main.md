@@ -12,6 +12,7 @@ hack-n-slash & grindy & loot-and-crafty & laughable-story RPG ⚔️👾🔥📊
 
 As such, while the plugins living in my [other repository can be found over here][1], this documentation will include:
 - [**design contract** (fantasy, pillars, balance, onboarding tiers)][19]
+- [**story bible** (chapters 4-6/postgame, the red-eyed gent, the seven sins)][27]
 - [onboarding & tutorial backlog (implementation checklist)][20]
 - [a high-level game walkthrough accompanied by general area details][10]
 - [some additional area detail, separate from the actual story walk through][11]
@@ -49,3 +50,4 @@ And of course, a list of unlockables and their details:
 [24]: ./weapons/families.md
 [25]: ./database-decode-cheatsheet.md
 [26]: ./sdp/panel-parameters-cheatsheet.md
+[27]: ./story-bible.md
