@@ -183,6 +183,18 @@
  * @max 99999999
  * @desc The amount of AP to modify by. Negative removes AP. Per-source never goes below 0.
  * @default 10
+ *
+ * @command refresh-required-ap-all
+ * @text Refresh Required AP (Party)
+ * @desc Re-syncs persisted aptitude requiredAp values against current notetags for all party members.
+ *
+ * @command refresh-required-ap
+ * @text Refresh Required AP
+ * @desc Re-syncs persisted aptitude requiredAp values against current notetags for an actor by its id.
+ * @arg actorId
+ * @type actor
+ * @desc The id of the actor to refresh aptitude requirements for.
+ * @default 1
  */
 //endregion annotations
 
@@ -227,6 +239,13 @@ var AptitudeLearning = class {
 	*/
 	setAp(ap) {
 		this.currentAp = ap;
+	}
+	/**
+	* Sets the required AP to achieve this learning.
+	* @param {number} requiredAp The amount of AP to set as required.
+	*/
+	setRequiredAp(requiredAp) {
+		this.requiredAp = requiredAp;
 	}
 	/**
 	* Whether or not this learning is achieved.
@@ -946,12 +965,31 @@ Game_Actor.prototype.getAptitudeLearning = function(key, skillId) {
 	return progress.learningBySkillId(skillId);
 };
 /**
-* Gets all aptitude sources for this actor.
+* Gets all aptitude sources for this actor, in a curated display order:
+* class, then the actor itself, then equips, then states, then anything else.
 * This is typed as {@link RPG_Base}, but can yield many of its subclasses.
-* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_Weapon|RPG_Armor|RPG_Skill|RPG_State)[]}
+* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_Weapon|RPG_Armor|RPG_State)[]}
 */
 Game_Actor.prototype.getAptitudeSources = function() {
-	return this.getAllNotes().filter((obj) => obj.isSkill() === false);
+	const sources = this.getAllNotes().filter((obj) => obj.isSkill() === false);
+	const classes = sources.filter((obj) => obj.isClass());
+	const actors = sources.filter((obj) => obj.isActor());
+	const equips = sources.filter((obj) => obj.isEquipItem());
+	const states = sources.filter((obj) => obj.isState());
+	const known = new Set([
+		...classes,
+		...actors,
+		...equips,
+		...states
+	]);
+	const others = sources.filter((obj) => known.has(obj) === false);
+	return [
+		...classes,
+		...actors,
+		...equips,
+		...states,
+		...others
+	];
 };
 /**
 * Gets whether or not this actor has the aptitude skill registered.
@@ -1210,6 +1248,7 @@ var ApManager = class {
 				aptitudeProgress.initializeLearning(skillId, requiredAp, 0);
 			}
 			const aptitudeLearning = aptitudeProgress.learningBySkillId(skillId);
+			aptitudeLearning.setRequiredAp(requiredAp);
 			const before = aptitudeLearning.currentAp;
 			const unclamped = before + amount;
 			const after = Math.max(0, Math.min(unclamped, requiredAp));
@@ -1217,6 +1256,29 @@ var ApManager = class {
 			if (aptitudeLearning.isLearned()) {
 				this.#resolveLearn(actor, sourceKey, skillId, cause);
 			}
+		});
+	}
+	/**
+	* Re-syncs the requiredAp on every persisted aptitude learning for this actor to
+	* match the current live notetag values on their sources.
+	*
+	* Normal AP gain only re-syncs a learning's requiredAp the next time that specific
+	* source actually grants AP (see {@link ApManager.applyApToSource}), so a save that
+	* started a learning before a notetag was retuned would otherwise be stuck honoring
+	* the stale value forever. Use this to repair such a save after tuning notetags
+	* mid-playtest, without needing to grind AP to touch every learning again.
+	* @param {Game_Actor} actor The actor to refresh aptitude requirements for.
+	*/
+	static refreshRequiredAp(actor) {
+		const progresses = actor.getAllAptitudeProgresses();
+		Object.entries(progresses).forEach(([sourceKey, progress]) => {
+			const source = this.resolveStaticSourceByKey(sourceKey);
+			if (!source) return;
+			const teachables = source.aptitudeTeachings;
+			teachables.forEach((teachable) => {
+				if (progress.hasLearning(teachable.skillId) === false) return;
+				progress.learningBySkillId(teachable.skillId).setRequiredAp(teachable.requiredAp);
+			});
 		});
 	}
 	/**
@@ -1717,6 +1779,7 @@ var Window_AptitudeAggregateDetails = class extends Window_Base {
 	setActor(actor) {
 		if (this.actor() === actor) return;
 		this._actor = actor;
+		this._aggregate = null;
 		this.refresh();
 	}
 	/**
@@ -2503,7 +2566,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		const containerX = Math.floor((Graphics.boxWidth - containerW) / 2);
 		const x = containerX;
 		const y = 0;
-		const w = Math.floor(containerW * .25);
+		const w = Math.floor(containerW * this.listColumnWidthPercent());
 		const height = 36 * 3;
 		return new Rectangle(x, y, w, height);
 	}
@@ -2540,7 +2603,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		const { y: ribbonY, height: ribbonHeight } = this.aptitudeRibbonRect();
 		const wy = ribbonY + ribbonHeight;
 		const wh = Graphics.boxHeight - ribbonHeight;
-		const listW = Math.floor(containerW * .25);
+		const listW = Math.floor(containerW * this.listColumnWidthPercent());
 		return new Rectangle(containerX, wy, listW, wh);
 	}
 	/**
@@ -2601,7 +2664,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		const containerX = Math.floor((Graphics.boxWidth - containerW) / 2);
 		const wy = this.mainAreaTop();
 		const wh = Graphics.boxHeight;
-		const listW = Math.floor(containerW * .25);
+		const listW = Math.floor(containerW * this.listColumnWidthPercent());
 		const detailsW = containerW - listW;
 		const dx = containerX + listW;
 		return new Rectangle(dx, wy, detailsW, wh);
@@ -2640,6 +2703,15 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	}
 	containerWidthPercent() {
 		return .9;
+	}
+	/**
+	* The percentage of the container width allotted to the list column (and, by
+	* extension, the ribbon above it). Widened from the original 0.25 so that long
+	* skill/source names and their right-aligned AP counts don't collide.
+	* @returns {number}
+	*/
+	listColumnWidthPercent() {
+		return .32;
 	}
 	containerHeightPercent() {
 		return .8;
@@ -2932,6 +3004,21 @@ PluginManager.registerCommand(J.APT.Metadata.name, "mod-ap-all", ({ points }) =>
 PluginManager.registerCommand(J.APT.Metadata.name, "mod-ap", ({ actorId, points }) => {
 	const actor = $gameActors.actor(parseInt(actorId));
 	ApManager.gainAp(actor, parseInt(points), "plugin-command");
+});
+/**
+* Plugin command for re-syncing persisted aptitude requiredAp values against
+* current notetags, for all party members.
+*/
+PluginManager.registerCommand(J.APT.Metadata.name, "refresh-required-ap-all", () => {
+	$gameParty.members().forEach((actor) => ApManager.refreshRequiredAp(actor));
+});
+/**
+* Plugin command for re-syncing persisted aptitude requiredAp values against
+* current notetags, for a specific actor.
+*/
+PluginManager.registerCommand(J.APT.Metadata.name, "refresh-required-ap", ({ actorId }) => {
+	const actor = $gameActors.actor(parseInt(actorId));
+	ApManager.refreshRequiredAp(actor);
 });
 
 //#endregion

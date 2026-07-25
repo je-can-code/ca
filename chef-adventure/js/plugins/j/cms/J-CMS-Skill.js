@@ -378,15 +378,15 @@ var Window_SkillDetail = class extends Window_Base {
 		const actor = this._actor;
 		/** @type {JCMS_ParameterKvp[]} */
 		const params = [];
+		const col = Math.floor(this.innerWidth / 3);
+		const nameWidth = Math.floor(col * .55);
 		if (J.PROF) {
-			params.push(...this.makeSkillProficiency(actor, skill));
+			params.push(...this.makeSkillProficiency(actor, skill, nameWidth));
 		}
 		params.push(...this.makeAttackElementsList(skill, actor));
-		const col = Math.floor(this.innerWidth / 3);
 		const ox = col * 2 + 4;
 		const oy = 0;
 		const lh = this.lineHeight();
-		const nameWidth = Math.floor(col * .55);
 		const valueOffset = Math.floor(col * .57);
 		const valueWidth = col - valueOffset - 4;
 		params.forEach((param, index) => {
@@ -400,16 +400,18 @@ var Window_SkillDetail = class extends Window_Base {
 	* Makes a parameter that displays this actor's proficiency with this skill.
 	* @param {Game_Actor} actor The actor.
 	* @param {RPG_Skill} skill The skill.
+	* @param {number} nameWidth The pixel width available for the name column, used to keep
+	* long related-skill names from overlapping the fixed-position required/current values.
 	* @returns {JCMS_ParameterKvp[]}
 	*/
-	makeSkillProficiency(actor, skill) {
+	makeSkillProficiency(actor, skill, nameWidth) {
 		const proficiencyParams = [];
 		const skillProficiency = actor.tryGetSkillProficiencyBySkillId(skill.id);
 		const proficiencyKey = "\\C[21]Proficiency:\\C[0]";
 		const proficiencyValue = `${skillProficiency.proficiency}`;
 		const proficiencyParam = new JCMS_ParameterKvp(proficiencyKey, proficiencyValue);
 		proficiencyParams.push(proficiencyParam);
-		proficiencyParams.push(...this.makeRelatedProficiencyConditionals(actor, skill));
+		proficiencyParams.push(...this.makeRelatedProficiencyConditionals(actor, skill, nameWidth));
 		proficiencyParams.push(this.makeDividerParam());
 		return proficiencyParams;
 	}
@@ -417,11 +419,15 @@ var Window_SkillDetail = class extends Window_Base {
 	* Makes a parameter that displays this actor's proficiency with this skill.
 	* @param {Game_Actor} actor The actor.
 	* @param {RPG_Skill} skill The skill.
+	* @param {number} nameWidth The pixel width available for the name column, used to keep
+	* long related-skill names from overlapping the fixed-position required/current values.
 	* @returns {JCMS_ParameterKvp[]}
 	*/
-	makeRelatedProficiencyConditionals(actor, skill) {
+	makeRelatedProficiencyConditionals(actor, skill, nameWidth) {
 		const conditionals = actor.proficiencyConditionalBySkillId(skill.id);
 		const params = [];
+		const iconAllowance = (ImageManager.standardIconWidth + 4) * 2;
+		const availableNameTextWidth = nameWidth - iconAllowance;
 		conditionals.forEach((conditional) => {
 			if (!conditional.skillRewards.length) return;
 			conditional.skillRewards.forEach((skillRewardId) => {
@@ -434,7 +440,8 @@ var Window_SkillDetail = class extends Window_Base {
 				const actorKnowsSkill = actor.isLearnedSkill(skillRewardId);
 				const extendedSkill = actor.skill(skillRewardId);
 				const learnedIcon = actorKnowsSkill ? 91 : 90;
-				const name = `\\I[${learnedIcon}]\\Skill[${extendedSkill.id}]`;
+				const truncatedName = this.truncateToWidth(extendedSkill.name, availableNameTextWidth);
+				const name = `\\I[${learnedIcon}]\\I[${extendedSkill.iconIndex}]${truncatedName}`;
 				const currentProficiency = proficiencyRequirement.totalProficiency(actor);
 				const requiredProficiency = proficiencyRequirement.proficiency;
 				const value = `${currentProficiency} / ${requiredProficiency}`;
@@ -445,6 +452,23 @@ var Window_SkillDetail = class extends Window_Base {
 			params.unshift(new JCMS_ParameterKvp(`\\C[17]Related Skills\\C[0]`, `\\C[1]\\}REQUIRED\\{\\C[0]`));
 		}
 		return params;
+	}
+	/**
+	* Truncates plain (escape-code-free) text with an ellipsis so it fits within the
+	* given pixel width under this window's current font, without touching the
+	* position of whatever is drawn after it.
+	* @param {string} text The plain text to measure and truncate.
+	* @param {number} maxWidth The maximum pixel width the text may occupy.
+	* @returns {string} The original text if it already fits, or an ellipsis-suffixed
+	* truncation of it otherwise.
+	*/
+	truncateToWidth(text, maxWidth) {
+		if (this.textWidth(text) <= maxWidth) return text;
+		let truncated = text;
+		while (truncated.length > 0 && this.textWidth(`${truncated}...`) > maxWidth) {
+			truncated = truncated.slice(0, -1);
+		}
+		return `${truncated}...`;
 	}
 	/**
 	* Creates a list of all elemenets contained by this skill.

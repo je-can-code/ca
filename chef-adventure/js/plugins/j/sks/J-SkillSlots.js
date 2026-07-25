@@ -349,6 +349,8 @@ J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.3.0");
 */
 J.SKS.Aliased = {};
 J.SKS.Aliased.Game_Actor = new Map();
+J.SKS.Aliased.Scene_Menu = new Map();
+J.SKS.Aliased.Window_MenuCommand = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -941,7 +943,15 @@ var Window_SkillEquipSlots = class extends Window_Command {
 		const isEmpty = skillId === 0;
 		const name = isEmpty === false ? $dataSkills[skillId].name : "- empty -";
 		const iconIndex = isEmpty === false ? $dataSkills[skillId].iconIndex : 0;
-		const rightText = isEmpty === false ? `${this.actor().skillSlotCost(skillId, slotIndex)}` : "0";
+		const isSlotsOnlyMode = J.SKS.Metadata.enableExclusiveMode && J.SKS.Metadata.slotsOnly;
+		let rightText;
+		if (isSlotsOnlyMode) {
+			rightText = String.empty;
+		} else if (isEmpty === false) {
+			rightText = `${this.actor().skillSlotCost(skillId, slotIndex)}`;
+		} else {
+			rightText = "0";
+		}
 		const enabled = true;
 		const built = new WindowCommandBuilder(name).setSymbol(`slot:${slotIndex}`).setExtensionData({
 			index: slotIndex,
@@ -1063,6 +1073,7 @@ var Window_SkillEquipList = class extends Window_Command {
 		const filtered = learned.filter((skill) => {
 			if (!skill) return false;
 			if (skill.unslotted) return false;
+			if (this.actor().forcedUnslottedSkillIds().has(skill.id)) return false;
 			if (J.EXTEND && skill.isExtension) return false;
 			return true;
 		}).sort((a, b) => {
@@ -1080,9 +1091,10 @@ var Window_SkillEquipList = class extends Window_Command {
 	* @returns {BuiltWindowCommand}
 	*/
 	buildCommand(skill) {
-		const cost = this.actor().skillSlotCost(skill.id, this.slotContext());
+		const isSlotsOnlyMode = J.SKS.Metadata.enableExclusiveMode && J.SKS.Metadata.slotsOnly;
+		const rightText = isSlotsOnlyMode ? String.empty : `${this.actor().skillSlotCost(skill.id, this.slotContext())}`;
 		const enabled = this.actor().canEquipSkillToSlot(this.slotContext(), skill.id);
-		const built = new WindowCommandBuilder(skill.name).setSymbol(`skill:${skill.id}`).setExtensionData({ id: skill.id }).setIconIndex(skill.iconIndex).setRightText(`${cost}`).setEnabled(enabled).build();
+		const built = new WindowCommandBuilder(skill.name).setSymbol(`skill:${skill.id}`).setExtensionData({ id: skill.id }).setIconIndex(skill.iconIndex).setRightText(rightText).setEnabled(enabled).build();
 		return built;
 	}
 };
@@ -1595,6 +1607,40 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		const currentSkill = this.skillsWindow().item();
 		const skillId = currentSkill ? currentSkill.id : this.actor().getSkillIdInSlot(this.slotsWindow().index());
 		this.detailWindow().setSkillId(skillId);
+	}
+};
+
+//#endregion
+//#region src/plugins/sks/core/scenes/Scene_Menu.js
+/**
+* Extends {@link #createCommandWindow}.</br>
+* Adds a handler for the Skill Equip menu command.
+*/
+J.SKS.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
+Scene_Menu.prototype.createCommandWindow = function() {
+	J.SKS.Aliased.Scene_Menu.get("createCommandWindow").call(this);
+	this._commandWindow.setHandler("skill-equip", this.commandSkillEquip.bind(this));
+};
+/**
+* Opens the Skill Equip scene.
+*/
+Scene_Menu.prototype.commandSkillEquip = function() {
+	Scene_SkillEquip.callScene();
+};
+
+//#endregion
+//#region src/plugins/sks/core/windows/Window_MenuCommand.js
+/**
+* Extends {@link #addOriginalCommands}.</br>
+* Adds the Skill Equip menu command if enabled via plugin parameter.
+*/
+J.SKS.Aliased.Window_MenuCommand.set("addOriginalCommands", Window_MenuCommand.prototype.addOriginalCommands);
+Window_MenuCommand.prototype.addOriginalCommands = function() {
+	J.SKS.Aliased.Window_MenuCommand.get("addOriginalCommands").call(this);
+	const switchId = J.SKS.Metadata.menuSwitchId;
+	if (switchId === 0 || $gameSwitches.value(switchId)) {
+		const builtCommand = new WindowCommandBuilder("Skill Equip").setSymbol("skill-equip").setIconIndex(78).build();
+		this.addBuiltCommand(builtCommand);
 	}
 };
 

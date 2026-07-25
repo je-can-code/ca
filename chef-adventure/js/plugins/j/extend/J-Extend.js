@@ -1214,7 +1214,7 @@ var OverlayManager = class OverlayManager {
 		if (baseSkill.hitType && skillOverlay.hitType) {
 			baseSkill.hitType = skillOverlay.hitType;
 		}
-		if (baseSkill.animationId !== 0 && baseSkill.animationId !== skillOverlay.animationId) {
+		if (skillOverlay.animationId !== 0 && baseSkill.animationId !== skillOverlay.animationId) {
 			baseSkill.animationId = skillOverlay.animationId;
 		}
 	}
@@ -1224,10 +1224,10 @@ var OverlayManager = class OverlayManager {
 	* @param {RPG_Skill} skillOverlay The skill extending the base skill.
 	*/
 	static extendMessage(baseSkill, skillOverlay) {
-		if (baseSkill.message1 !== skillOverlay.message1) {
+		if (skillOverlay.message1 !== String.empty && baseSkill.message1 !== skillOverlay.message1) {
 			baseSkill.message1 = skillOverlay.message1;
 		}
-		if (baseSkill.message2 !== skillOverlay.message2) {
+		if (skillOverlay.message2 !== String.empty && baseSkill.message2 !== skillOverlay.message2) {
 			baseSkill.message2 = skillOverlay.message2;
 		}
 	}

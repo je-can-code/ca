@@ -703,6 +703,24 @@
  *    <actionId:EVENT_ID>
  *  Where EVENT_ID is the id of the event from the action map.
  *
+ * NOTE ABOUT THE DEFAULT (no tag present):
+ * Omitting this tag does not mean "no visual" -- it silently defaults to
+ * event id 1 on the action map. Whatever move route THAT specific event
+ * happens to have will run regardless of how the skill's target got
+ * resolved, INCLUDING for <direct>/<directLock> skills. Event id 1 has no
+ * special meaning to the engine itself -- it's just whatever event your
+ * project happens to have authored at that id on your action map. In the
+ * sample/default project, event 1 is set up as a melee swing anchored to
+ * the caster; if YOUR project's event 1 (or whatever id a skill defaults
+ * to) is likewise caster-anchored, an untagged direct/ranged skill will
+ * visually -- and spatially, since collision checks against the event's
+ * live position -- snap back to the caster every time, even though
+ * targeting resolved correctly. This looks exactly like a targeting bug
+ * but isn't one; it's a missing <actionId:N>. Always set this tag
+ * explicitly on any skill that isn't a plain melee swing, and check what
+ * move route your project's default-id event actually has before
+ * assuming the targeting math is wrong.
+ *
  * ----------------------------------------------------------------------------
  * DURATION:
  * How long the skill's action event persists on the map.
@@ -836,6 +854,18 @@
  * This gives a skilled player a window to dodge by moving away during
  * the cast. If you want to remove that window, use <directLock> below.
  *
+ * NOTE ABOUT ACTION ID:
+ * A direct skill still spawns a real action-map event once a target
+ * resolves -- it is not a pure math-only effect. Always pair it with an
+ * explicit <actionId:EVENT_ID> pointing at an event whose move route
+ * actually suits a direct skill (e.g. "stays put"). Leaving this tag off
+ * silently defaults to event id 1 -- and whatever move route YOUR
+ * project has authored at that id is what runs. In the sample/default
+ * project, event 1 is anchored back to the caster (a melee swing), so an
+ * untagged direct skill there will visually AND spatially snap back to
+ * the caster on every cast regardless of how correctly the target
+ * resolved -- see the ACTION ID section above.
+ *
  * ----------------------------------------------------------------------------
  * DIRECT LOCK:
  * Similar to <direct>, but locks onto the target's live position at the
@@ -849,6 +879,10 @@
  *
  * NOTE: <directLock> and <direct> are mutually exclusive. If both are
  * present on a skill, <directLock> takes precedence.
+ *
+ * NOTE ABOUT ACTION ID: same pitfall as <direct> above -- set <actionId:N>
+ * explicitly, or an untagged skill defaults to event 1 and inherits
+ * whatever move route it has (see the ACTION ID section above).
  *
  * ----------------------------------------------------------------------------
  * DIRECT STATE TARGET:
@@ -27632,6 +27666,28 @@ Game_Battler.prototype.removeState = function(stateId) {
 	if (trackedState) {
 		$jabsEngine.removeJabsStateByUuid(this.getUuid(), stateId);
 	}
+};
+/**
+* Extends `clearStates()` to also purge this battler's JABS-tracked map states.
+* Vanilla `clearStates()` (called by `die()`, `recoverAll()`, and `escape()`) wipes `_states`
+* directly without going through `removeState()`, which is the only place the JABS state
+* tracker gets cleaned up. Left unhandled, a tracked state whose owning battler dies (or is
+* otherwise vanilla-cleared) becomes permanently orphaned: its `canRemoveFromBattler()` check
+* requires `isStateAffected()`, which is now false forever, so the tracker's `expired` flag can
+* never flip true and it keeps ticking (regen forever) or fires again immediately on revive
+* (bleed reapplying its damage the instant hp comes back).
+*/
+J.ABS.Aliased.Game_Battler.set("clearStates", Game_Battler.prototype.clearStates);
+Game_Battler.prototype.clearStates = function() {
+	if (this._j?._abs?._uuid && $jabsEngine) {
+		const trackedStates = Array.from($jabsEngine.getJabsStatesByUuid(this.getUuid()).values());
+		trackedStates.forEach((trackedState) => {
+			if (trackedState.expired) return;
+			if (trackedState.stateId === this.deathStateId()) return;
+			this.removeState(trackedState.stateId);
+		}, this);
+	}
+	J.ABS.Aliased.Game_Battler.get("clearStates").call(this);
 };
 /**
 * Decrements the stack count of a tracked state by the designated amount.
