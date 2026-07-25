@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 APT-TYPED] A plugin that does cool stuff.
+ * [v1.1.0 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -171,6 +171,14 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Fixed <apTyped:[AMOUNT, DOMAIN, ID_OR_NAME]> never matching — the
+ *    regex required a 4th leading numeric field that the documented
+ *    3-argument format never had.
+ *    Fixed AptitudeTeachable.js never being imported in entry.js, so
+ *    setApTypeKey()/apTypeKey() were never actually attached.
+ *    Renamed ApTypeKey.DomainType.WeaponType/SkillType to Weapon/Skill.
+ *    Replaced the leftover boilerplate plugin description.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -375,6 +383,34 @@ var ApTypeDisplayInfo = class {
 };
 
 //#endregion
+//#region src/plugins/apt/ext/typed/_models/AptitudeTeachable.js
+/**
+* Sets the AP type key for this teachable.
+* @param {ApTypeKey} apTypeKey - The AP type key to set.
+*/
+AptitudeTeachable.prototype.setApTypeKey = function(apTypeKey) {
+	/**
+	* The AP type key for this teachable.
+	* @type {ApTypeKey} apTypeKey - The AP type key to set.
+	*/
+	this.apType = apTypeKey;
+};
+/**
+* Gets the AP type key for this teachable.
+* @returns {ApTypeKey} The AP type key.
+*/
+AptitudeTeachable.prototype.apTypeKey = function() {
+	return this.apType;
+};
+/**
+* Determines if this teachable is typed.
+* @returns {boolean}
+*/
+AptitudeTeachable.prototype.isTyped = function() {
+	return this.apType !== undefined;
+};
+
+//#endregion
 //#region src/plugins/apt/ext/typed/_metadata/_pluginMetadata.js
 /**
 * The metadata for the J-APT Typed extension.
@@ -441,7 +477,7 @@ J.APT.EXT.TYPED = J.APT.EXT.TYPED || {};
 * The plugin umbrella that governs all things related to this extension plugin.
 * Name and Version are owned by the metadata instance.
 */
-J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.0.0");
+J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -486,7 +522,7 @@ J.APT.EXT.TYPED.RegExp = {
 	* </pre>
 	* @type {RegExp}
 	*/
-	ApTypedReward: /<apTyped:[ ]?(\[\d+,[ ]?\d+,[ ]?[A-Za-z]+,[ ]?[A-Za-z0-9_\- ]+])>/gi
+	ApTypedReward: /<apTyped:[ ]?(\[\d+,[ ]?[A-Za-z]+,[ ]?[A-Za-z0-9_\- ]+])>/gi
 };
 
 //#endregion
@@ -664,7 +700,7 @@ Game_Temp.prototype.setAptTypedInferredEnemyTypes = function(enemyId, ids) {
 //#endregion
 //#region src/plugins/apt/ext/typed/managers/ApManager.js
 /**
-* Overrides {@link #gainAp}.<br/>
+* Overwrites {@link #gainAp}.<br/>
 * Routes untyped AP through `gainApUntypedOnly` so typed tracks are not fueled by it.
 * @param {Game_Actor} actor The actor gaining AP.
 * @param {number} amount The amount of AP awarded.
@@ -731,10 +767,10 @@ ApManager.resolveDomainId = function(domain, idOrName) {
 		case ApTypeKey.DomainType.Element:
 			list = $dataSystem.elements;
 			break;
-		case ApTypeKey.DomainType.WeaponType:
+		case ApTypeKey.DomainType.Weapon:
 			list = $dataSystem.weaponTypes;
 			break;
-		case ApTypeKey.DomainType.SkillType:
+		case ApTypeKey.DomainType.Skill:
 			list = $dataSystem.skillTypes;
 			break;
 		default: return NaN;
@@ -762,11 +798,11 @@ ApManager.apTypeDisplay = function(key) {
 			name = $dataSystem.elements[id];
 			icon = IconManager.element(id);
 			break;
-		case ApTypeKey.DomainType.WeaponType:
+		case ApTypeKey.DomainType.Weapon:
 			name = $dataSystem.weaponTypes[id];
 			icon = IconManager.weaponType(id);
 			break;
-		case ApTypeKey.DomainType.SkillType:
+		case ApTypeKey.DomainType.Skill:
 			name = $dataSystem.skillTypes[id];
 			icon = IconManager.skillType(id);
 			break;

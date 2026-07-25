@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 CMS_K] A redesign of the skill menu.
+ * [v1.1.0 CMS_K] A redesign of the skill menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -14,7 +14,20 @@
  *
  * Will reveal various JABS data points.
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it is purely a scene/window
+ * redesign of the native skill menu. Cost display data is read via the
+ * consuming plugins' own getters (e.g. J-Resources), not tags belonging to
+ * this plugin.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Fixed long related-skill names overlapping the fixed-position
+ *    required/current proficiency values; names now truncate with an
+ *    ellipsis to fit the available column width.
+ *    Migrated HP/MP/TP cost labels from TextManager.longParam(id) to the
+ *    parameter catalog's parameterLabel('hcr'/'mcr'/'tcr').
+ *    Replaced eval() with new Function() in the raw-damage preview.
  * - 1.0.1
  *    Added HP skill cost display to the skill detail window (requires J-Resources).
  *    Updated MP/TP cost display to reflect tag-based extra costs from J-Resources.
@@ -42,7 +55,7 @@ var J_CmsSkill_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -55,11 +68,11 @@ J.CMS_K = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS_K.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.0.1");
+J.CMS_K.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.1.0");
 J.CMS_K.Aliased = {
-	Scene_Skill: {},
-	Window_SkillList: {},
-	Window_EquipSlot: {}
+	Scene_Skill: new Map(),
+	Window_SkillList: new Map(),
+	Window_EquipSlot: new Map()
 };
 
 //#endregion
@@ -331,7 +344,7 @@ var Window_SkillDetail = class extends Window_Base {
 			}
 		}
 		const sign = [3, 4].includes(skill.damage.type) ? -1 : 1;
-		const value = Math.round(Math.max(eval(skill.damage.formula), 0));
+		const value = Math.round(Math.max(new Function("a", "b", "v", "p", `return (${skill.damage.formula})`)(a, b, v, p), 0));
 		const potential = isNaN(value) ? 0 : value;
 		const color = sign > 0 ? 10 : 24;
 		return new JCMS_ParameterKvp(`\\C[${color}]Raw Damage\\C[0]`, potential);
@@ -372,15 +385,15 @@ var Window_SkillDetail = class extends Window_Base {
 		const actor = this._actor;
 		/** @type {JCMS_ParameterKvp[]} */
 		const params = [];
+		const col = Math.floor(this.innerWidth / 3);
+		const nameWidth = Math.floor(col * .55);
 		if (J.PROF) {
-			params.push(...this.makeSkillProficiency(actor, skill));
+			params.push(...this.makeSkillProficiency(actor, skill, nameWidth));
 		}
 		params.push(...this.makeAttackElementsList(skill, actor));
-		const col = Math.floor(this.innerWidth / 3);
 		const ox = col * 2 + 4;
 		const oy = 0;
 		const lh = this.lineHeight();
-		const nameWidth = Math.floor(col * .55);
 		const valueOffset = Math.floor(col * .57);
 		const valueWidth = col - valueOffset - 4;
 		params.forEach((param, index) => {
@@ -394,16 +407,18 @@ var Window_SkillDetail = class extends Window_Base {
 	* Makes a parameter that displays this actor's proficiency with this skill.
 	* @param {Game_Actor} actor The actor.
 	* @param {RPG_Skill} skill The skill.
+	* @param {number} nameWidth The pixel width available for the name column, used to keep
+	* long related-skill names from overlapping the fixed-position required/current values.
 	* @returns {JCMS_ParameterKvp[]}
 	*/
-	makeSkillProficiency(actor, skill) {
+	makeSkillProficiency(actor, skill, nameWidth) {
 		const proficiencyParams = [];
 		const skillProficiency = actor.tryGetSkillProficiencyBySkillId(skill.id);
 		const proficiencyKey = "\\C[21]Proficiency:\\C[0]";
 		const proficiencyValue = `${skillProficiency.proficiency}`;
 		const proficiencyParam = new JCMS_ParameterKvp(proficiencyKey, proficiencyValue);
 		proficiencyParams.push(proficiencyParam);
-		proficiencyParams.push(...this.makeRelatedProficiencyConditionals(actor, skill));
+		proficiencyParams.push(...this.makeRelatedProficiencyConditionals(actor, skill, nameWidth));
 		proficiencyParams.push(this.makeDividerParam());
 		return proficiencyParams;
 	}
@@ -411,11 +426,15 @@ var Window_SkillDetail = class extends Window_Base {
 	* Makes a parameter that displays this actor's proficiency with this skill.
 	* @param {Game_Actor} actor The actor.
 	* @param {RPG_Skill} skill The skill.
+	* @param {number} nameWidth The pixel width available for the name column, used to keep
+	* long related-skill names from overlapping the fixed-position required/current values.
 	* @returns {JCMS_ParameterKvp[]}
 	*/
-	makeRelatedProficiencyConditionals(actor, skill) {
+	makeRelatedProficiencyConditionals(actor, skill, nameWidth) {
 		const conditionals = actor.proficiencyConditionalBySkillId(skill.id);
 		const params = [];
+		const iconAllowance = (ImageManager.standardIconWidth + 4) * 2;
+		const availableNameTextWidth = nameWidth - iconAllowance;
 		conditionals.forEach((conditional) => {
 			if (!conditional.skillRewards.length) return;
 			conditional.skillRewards.forEach((skillRewardId) => {
@@ -428,7 +447,8 @@ var Window_SkillDetail = class extends Window_Base {
 				const actorKnowsSkill = actor.isLearnedSkill(skillRewardId);
 				const extendedSkill = actor.skill(skillRewardId);
 				const learnedIcon = actorKnowsSkill ? 91 : 90;
-				const name = `\\I[${learnedIcon}]\\Skill[${extendedSkill.id}]`;
+				const truncatedName = this.truncateToWidth(extendedSkill.name, availableNameTextWidth);
+				const name = `\\I[${learnedIcon}]\\I[${extendedSkill.iconIndex}]${truncatedName}`;
 				const currentProficiency = proficiencyRequirement.totalProficiency(actor);
 				const requiredProficiency = proficiencyRequirement.proficiency;
 				const value = `${currentProficiency} / ${requiredProficiency}`;
@@ -439,6 +459,23 @@ var Window_SkillDetail = class extends Window_Base {
 			params.unshift(new JCMS_ParameterKvp(`\\C[17]Related Skills\\C[0]`, `\\C[1]\\}REQUIRED\\{\\C[0]`));
 		}
 		return params;
+	}
+	/**
+	* Truncates plain (escape-code-free) text with an ellipsis so it fits within the
+	* given pixel width under this window's current font, without touching the
+	* position of whatever is drawn after it.
+	* @param {string} text The plain text to measure and truncate.
+	* @param {number} maxWidth The maximum pixel width the text may occupy.
+	* @returns {string} The original text if it already fits, or an ellipsis-suffixed
+	* truncation of it otherwise.
+	*/
+	truncateToWidth(text, maxWidth) {
+		if (this.textWidth(text) <= maxWidth) return text;
+		let truncated = text;
+		while (truncated.length > 0 && this.textWidth(`${truncated}...`) > maxWidth) {
+			truncated = truncated.slice(0, -1);
+		}
+		return `${truncated}...`;
 	}
 	/**
 	* Creates a list of all elemenets contained by this skill.
@@ -532,7 +569,7 @@ var Window_SkillDetail = class extends Window_Base {
 	* @returns {JCMS_ParameterKvp}
 	*/
 	makeHpCostParam(skill, actor) {
-		const hpName = TextManager.longParam(34);
+		const hpName = TextManager.parameterLabel("hcr");
 		const { flat, percent, calculatedPercent, formula } = ResourceCostManager.hpCostBreakdown(actor, skill);
 		const hasAnyCost = flat !== 0 || percent !== 0 || formula !== 0;
 		const hpColor = hasAnyCost ? ColorManager.hpCostColor() : ColorManager.damageColor();
@@ -546,7 +583,7 @@ var Window_SkillDetail = class extends Window_Base {
 	* @returns {JCMS_ParameterKvp}
 	*/
 	makeMpCostParam(skill, actor) {
-		const mpName = TextManager.longParam(22);
+		const mpName = TextManager.parameterLabel("mcr");
 		if (J.RESOURCES) {
 			const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get("skillMpCost").call(actor, skill);
 			const { flat: extraFlat, percent, calculatedPercent, formula } = ResourceCostManager.extraMpCostBreakdown(actor, skill);
@@ -567,7 +604,7 @@ var Window_SkillDetail = class extends Window_Base {
 	* @returns {JCMS_ParameterKvp}
 	*/
 	makeTpCostParam(skill, actor) {
-		const tpName = TextManager.longParam(23);
+		const tpName = TextManager.parameterLabel("tcr");
 		if (J.RESOURCES) {
 			const baseCost = J.RESOURCES.Aliased.Game_BattlerBase.get("skillTpCost").call(actor, skill);
 			const { flat: extraFlat, percent, calculatedPercent, formula } = ResourceCostManager.extraTpCostBreakdown(actor, skill);
@@ -585,17 +622,30 @@ var Window_SkillDetail = class extends Window_Base {
 
 //#endregion
 //#region src/plugins/cms/skill/scenes/Scene_Skill.js
-J.CMS_K.Aliased.Scene_Skill.initialize = Scene_Skill.prototype.initialize;
+/**
+* Extends {@link Scene_Skill.initialize}.<br/>
+* Tracks whether the skill detail pane is visible.
+*/
+J.CMS_K.Aliased.Scene_Skill.set("initialize", Scene_Skill.prototype.initialize);
 Scene_Skill.prototype.initialize = function() {
-	J.CMS_K.Aliased.Scene_Skill.initialize.call(this);
+	J.CMS_K.Aliased.Scene_Skill.get("initialize").call(this);
 	this._j = this._j || {};
 	this._j.moreVisible = false;
 };
-J.CMS_K.Aliased.Scene_Skill.create = Scene_Skill.prototype.create;
+/**
+* Extends {@link Scene_Skill.create}.<br/>
+* Builds the skill detail window after vanilla skill scene windows.
+*/
+J.CMS_K.Aliased.Scene_Skill.set("create", Scene_Skill.prototype.create);
 Scene_Skill.prototype.create = function() {
-	J.CMS_K.Aliased.Scene_Skill.create.call(this);
+	J.CMS_K.Aliased.Scene_Skill.get("create").call(this);
 	this.createSkillDetailWindow();
 };
+/**
+* The rectangle for the skill-type picker column.<br/>
+* Flips horizontal anchor when right-side input mode is active.
+* @returns {Rectangle}
+*/
 Scene_Skill.prototype.skillTypeWindowRect = function() {
 	const ww = this.mainCommandWidth();
 	const wh = this.calcWindowHeight(4, true);
@@ -603,12 +653,19 @@ Scene_Skill.prototype.skillTypeWindowRect = function() {
 	const wy = this.mainAreaTop();
 	return new Rectangle(wx, wy, ww, wh);
 };
+/**
+* Creates and wires the skill detail pane beside the item list.
+*/
 Scene_Skill.prototype.createSkillDetailWindow = function() {
 	const rect = this.skillDetailRect();
 	this._skillDetailWindow = new Window_SkillDetail(rect);
 	this._itemWindow.setSkillDetailWindow(this._skillDetailWindow);
 	this.addWindow(this._skillDetailWindow);
 };
+/**
+* The rectangle for the skill detail pane below the status strip.
+* @returns {Rectangle}
+*/
 Scene_Skill.prototype.skillDetailRect = function() {
 	const ww = Graphics.boxWidth - this.mainCommandWidth();
 	const wh = this.mainAreaHeight() - this._statusWindow.height;
@@ -618,11 +675,13 @@ Scene_Skill.prototype.skillDetailRect = function() {
 };
 Scene_Skill.prototype.mainCommandWidth = () => 400;
 /**
-* OVERWRITE Removes the buttons because fuck the buttons.
+* Overwrites {@link #createButtons}.<br/>
+* Removes the buttons because fuck the buttons.
 */
 Scene_Skill.prototype.createButtons = function() {};
 /**
-* OVERWRITE Replaces the button area height with 0 because fuck buttons.
+* Overwrites {@link #buttonAreaHeight}.<br/>
+* Replaces the button area height with 0 because fuck buttons.
 * @returns {number}
 */
 Scene_Skill.prototype.buttonAreaHeight = () => 0;
@@ -640,9 +699,9 @@ Scene_Skill.prototype.itemWindowRect = function() {
 * Extends {@link #initialize}.<br/>
 * Includes our skill detail window.
 */
-J.CMS_K.Aliased.Window_SkillList.initialize = Window_SkillList.prototype.initialize;
+J.CMS_K.Aliased.Window_SkillList.set("initialize", Window_SkillList.prototype.initialize);
 Window_SkillList.prototype.initialize = function(rect) {
-	J.CMS_K.Aliased.Window_SkillList.initialize.call(this, rect);
+	J.CMS_K.Aliased.Window_SkillList.get("initialize").call(this, rect);
 	/**
 	* The detail window for the skill.
 	*  @type {Window_SkillDetail}
@@ -673,9 +732,9 @@ Window_SkillList.prototype.refreshSkillDetailWindow = function() {
 /**
 * Extends `.select()` to also update our skill detail window if need-be.
 */
-J.CMS_K.Aliased.Window_SkillList.select = Window_SkillList.prototype.select;
+J.CMS_K.Aliased.Window_SkillList.set("select", Window_SkillList.prototype.select);
 Window_SkillList.prototype.select = function(index) {
-	J.CMS_K.Aliased.Window_SkillList.select.call(this, index);
+	J.CMS_K.Aliased.Window_SkillList.get("select").call(this, index);
 	this.refreshSkillDetailWindow();
 };
 /**
@@ -712,7 +771,8 @@ Window_SkillList.prototype.includes = function(skill) {
 //#endregion
 //#region src/plugins/cms/skill/windows/Window_SkillType.js
 /**
-* OVERWRITE Fixes the maximum columns for this screen to be 1.
+* Overwrites {@link #maxCols}.<br/>
+* Fixes the maximum columns for this screen to be 1.
 * @returns {number}
 */
 Window_SkillType.prototype.maxCols = function() {

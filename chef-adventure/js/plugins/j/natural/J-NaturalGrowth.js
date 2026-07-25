@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.1.2 NATURAL] Enables level-based growth of all parameters.
+ * @plugindesc [v2.2.0 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13,7 +13,7 @@
  * various tags are applied.
  *
  * Integrates with others of mine plugins:
- * - J-CriticalFactors; enables natural growths of CDM/CDR.
+ * - J-CriticalFactors; enables natural growths of CDM/CTR.
  * - J-Passives; updates with relic gain as well.
  * - J-LevelMaster; enables the ".lvl" access for formulas.
  * - J-SDP; adds SDP to the options for reward-based formulas.
@@ -113,7 +113,7 @@
  *
  * TAG FORMAT:
  *  <(REWARD)(PLUS):[FORMULA]>
- * Where (REWARD) is either exp or gold.
+ * Where (REWARD) is one of exp, gold, or sdp.
  * Where (PLUS) is... plus. There is no "rate" for this value.
  * Where [FORMULA] is the formula to produce the amount.
  *
@@ -170,6 +170,14 @@
  *  For every level gained by an actor afflicted with this state, they will
  *  gain their level's worth of attack permanently.
  *
+ * TAG:
+ *  <harBuffPlus:[20]>
+ * LOCATION:
+ *  A state.
+ * EFFECT:
+ *  While afflicted, the actor's outgoing healing gains a flat +20 bonus on
+ *  top of their base HAR. Lost as soon as the state wears off.
+ *
  * ==============================================================================
  * GLOSSARY:
  * There are a lot of shorthands available for use with this plugin to build your
@@ -202,7 +210,7 @@
  * - trg (tp regen rate)
  *
  * Sp Parameters:
- * - trg (targeting rate)
+ * - tgr (targeting rate)
  * - grd (guarding rate)
  * - rec (recovery rate)
  * - pha (pharmacy rate)
@@ -215,6 +223,7 @@
  *
  * Custom Parameters:
  * - mtp (max tp)
+ * - har (healing rate, requires J-Base 3.2.0+)
  *
  * Rewards (plus only, no rate):
  * - exp
@@ -223,6 +232,13 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Added HAR (Healing Rate) growth and buff support — not a native param
+ *    array member, so it gets its own dedicated tag set like max tp:
+ *    <harGrowthPlus:[FORMULA]>, <harGrowthRate:[FORMULA]>,
+ *    <harBuffPlus:[FORMULA]>, <harBuffRate:[FORMULA]>. Growth applies via
+ *    the existing applyNaturalCustomGrowths hook (actors only); buffs apply
+ *    to both actors and enemies. Requires J-Base 3.2.0+.
  * - 2.1.2
  *    Fixed issue with broken regex structures for max TP.
  *    Consumed `RPGManager` updates.
@@ -264,7 +280,7 @@ var J_NaturalGrowthPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps plugin parameters into instance fields used by battler TP logic.
 	*/
 	postInitialize() {
@@ -301,7 +317,7 @@ J.NATURAL = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.NATURAL.Metadata = new J_NaturalGrowthPluginMetadata("J-NaturalGrowth", "2.1.2");
+J.NATURAL.Metadata = new J_NaturalGrowthPluginMetadata("J-NaturalGrowth", "2.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -434,6 +450,10 @@ J.NATURAL.RegExp = {
 	MaxTechBuffRate: /<mtpBuffRate:\[([+\-*/ ().\w]+)]>/gi,
 	MaxTechGrowthPlus: /<mtpGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
 	MaxTechGrowthRate: /<mtpGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+	HarBuffPlus: /<harBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+	HarBuffRate: /<harBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+	HarGrowthPlus: /<harGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+	HarGrowthRate: /<harGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 	RewardExp: /<expPlus:\[([+\-*/ ().\w]+)]>/gi,
 	RewardGold: /<goldPlus:\[([+\-*/ ().\w]+)]>/gi,
 	RewardSdps: /<sdpPlus:\[([+\-*/ ().\w]+)]>/gi
@@ -481,6 +501,26 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	* @type {number}
 	*/
 	this._j._natural._maxTpBuffRate = 0;
+	/**
+	* The permanent flat bonus for HAR.
+	* @type {number}
+	*/
+	this._j._natural._harGrowthPlus = 0;
+	/**
+	* The permanent multiplier bonus for HAR.
+	* @type {number}
+	*/
+	this._j._natural._harGrowthRate = 0;
+	/**
+	* The cache of the temporary flat bonus for HAR.
+	* @type {number}
+	*/
+	this._j._natural._harBuffPlus = 0;
+	/**
+	* The cache of the temporary multiplier bonus for HAR.
+	* @type {number}
+	*/
+	this._j._natural._harBuffRate = 0;
 	/**
 	* The permanent flat bonuses for each of the base parameters.
 	* @type {number[]}
@@ -733,6 +773,76 @@ Game_Battler.prototype.setMaxTpBuffRate = function(amount) {
 	this._j._natural._maxTpBuffRate = amount;
 };
 /**
+* Gets the permanent flat bonus for HAR.
+* @returns {number}
+*/
+Game_Battler.prototype.harGrowthPlus = function() {
+	return this._j._natural._harGrowthPlus;
+};
+/**
+* Modifies the permanent flat bonus for HAR by a given amount.
+* @param {number} amount The amount to modify the bonus by.
+*/
+Game_Battler.prototype.modHarGrowthPlus = function(amount) {
+	this._j._natural._harGrowthPlus += amount;
+};
+/**
+* Gets the permanent multiplicative bonus for HAR.
+* @returns {number}
+*/
+Game_Battler.prototype.harGrowthRate = function() {
+	return this._j._natural._harGrowthRate;
+};
+/**
+* Modifies the permanent multiplicative bonus for HAR by a given amount.
+* @param {number} amount The amount to modify the bonus by.
+*/
+Game_Battler.prototype.modHarGrowthRate = function(amount) {
+	this._j._natural._harGrowthRate += amount;
+};
+/**
+* Gets the temporary flat bonus for HAR.
+* @returns {number}
+*/
+Game_Battler.prototype.harBuffPlus = function() {
+	return this._j._natural._harBuffPlus;
+};
+/**
+* Modifies the temporary flat bonus for HAR by a given amount.
+* @param {number} amount The amount to modify the bonus by.
+*/
+Game_Battler.prototype.setHarBuffPlus = function(amount) {
+	this._j._natural._harBuffPlus = amount;
+};
+/**
+* Gets the temporary multiplicative bonus for HAR.
+* @returns {number}
+*/
+Game_Battler.prototype.harBuffRate = function() {
+	return this._j._natural._harBuffRate;
+};
+/**
+* Modifies the temporary multiplicative bonus for HAR by a given amount.
+* @param {number} amount The amount to modify the bonus by.
+*/
+Game_Battler.prototype.setHarBuffRate = function(amount) {
+	this._j._natural._harBuffRate = amount;
+};
+/**
+* Extends the `har` getter defined by J.BASE.<br/>
+* Layers temporary buffs on top of the notetag+SDP base factor. Growth is layered
+* further on top of this by {@link Game_Actor}, which is why this capture/redefine
+* happens here rather than being folded into a single combined getter.
+*/
+J.NATURAL.Aliased.Game_Battler.set("har", Object.getOwnPropertyDescriptor(Game_Battler.prototype, "har").get);
+Object.defineProperty(Game_Battler.prototype, "har", {
+	get: function() {
+		const baseParam = J.NATURAL.Aliased.Game_Battler.get("har").call(this);
+		return baseParam + this.getHarBuff(baseParam);
+	},
+	configurable: true
+});
+/**
 * Gets the permanent flat bonus for a base parameter of the given id.
 * @param {number} paramId The id of the parameter.
 * @returns {number}
@@ -971,6 +1081,7 @@ Game_Battler.prototype.setSdpsPlus = function(sdpsPlus) {
 Game_Battler.prototype.refreshAllParameterBuffs = function() {
 	this.clearAllParameterBuffs();
 	this.refreshMaxTpBuffs();
+	this.refreshHarBuffs();
 	this.refreshBParamBuffs();
 	this.refreshSParamBuffs();
 	this.refreshXParamBuffs();
@@ -982,6 +1093,8 @@ Game_Battler.prototype.refreshAllParameterBuffs = function() {
 Game_Battler.prototype.clearAllParameterBuffs = function() {
 	this._j._natural._maxTpBuffPlus = 0;
 	this._j._natural._maxTpBuffRate = 0;
+	this._j._natural._harBuffPlus = 0;
+	this._j._natural._harBuffRate = 0;
 	this._j._natural._bParamsBuffPlus = [
 		0,
 		0,
@@ -1061,9 +1174,43 @@ Game_Battler.prototype.refreshMaxTpBuffs = function() {
 	const baseParam = this.getBaseMaxTp();
 	const [plusStructure, rateStructure, ,] = this.getRegexForMaxTp();
 	const buffPlus = this.naturalParamBuff(plusStructure, baseParam);
-	const buffRate = this.naturalParamBuff(rateStructure, baseParam) / 100;
+	const buffRate = this.naturalParamBuff(rateStructure, baseParam);
 	this.setMaxTpBuffPlus(buffPlus);
 	this.setMaxTpBuffRate(buffRate);
+};
+/**
+* Refreshes both HAR plus/rate buffs.
+*/
+Game_Battler.prototype.refreshHarBuffs = function() {
+	const baseParam = this.baseHarFactor() + (this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("har", 1) : 0);
+	const [plusStructure, rateStructure, ,] = this.getRegexForHar();
+	const buffPlus = this.naturalParamBuff(plusStructure, baseParam);
+	const buffRate = this.naturalParamBuff(rateStructure, baseParam);
+	this.setHarBuffPlus(buffPlus);
+	this.setHarBuffRate(buffRate);
+};
+/**
+* Retrieves the four regular RegExps governing HAR buffs and growths.
+* @returns {[RegExp, RegExp, RegExp, RegExp]} The [buffplus, buffrate, growthplus, growthrate] regex structures.
+*/
+Game_Battler.prototype.getRegexForHar = function() {
+	return [
+		J.NATURAL.RegExp.HarBuffPlus,
+		J.NATURAL.RegExp.HarBuffRate,
+		J.NATURAL.RegExp.HarGrowthPlus,
+		J.NATURAL.RegExp.HarGrowthRate
+	];
+};
+/**
+* Get the current amount of HAR bonuses added from buffs.
+* @param {number} baseParam The base parameter value.
+* @returns {number}
+*/
+Game_Battler.prototype.getHarBuff = function(baseParam) {
+	const buffPlus = this.harBuffPlus();
+	const buffRate = this.harBuffRate();
+	if (!buffPlus && !buffRate) return 0;
+	return this.calculatePlusRate(baseParam, buffPlus, buffRate);
 };
 /**
 * Refreshes both base parameter plus/rate buffs.
@@ -1090,7 +1237,7 @@ Game_Battler.prototype.refreshXParamBuffs = function() {
 		const baseParam = J.NATURAL.Aliased.Game_Battler.get("xparam").call(this, paramId);
 		const [plusStructure, rateStructure] = this.getRegexByExParamId(paramId);
 		const buffPlus = this.naturalParamBuff(plusStructure, baseParam) / 100;
-		const buffRate = this.naturalParamBuff(rateStructure, baseParam) / 100;
+		const buffRate = this.naturalParamBuff(rateStructure, baseParam);
 		this.setXparamBuffPlus(paramId, buffPlus);
 		this.setXparamBuffRate(paramId, buffRate);
 	}, this);
@@ -1105,7 +1252,7 @@ Game_Battler.prototype.refreshSParamBuffs = function() {
 		const baseParam = J.NATURAL.Aliased.Game_Battler.get("sparam").call(this, paramId);
 		const [plusStructure, rateStructure] = this.getRegexBySpParamId(paramId);
 		const buffPlus = this.naturalParamBuff(plusStructure, baseParam) / 100;
-		const buffRate = this.naturalParamBuff(rateStructure, baseParam) / 100;
+		const buffRate = this.naturalParamBuff(rateStructure, baseParam);
 		this.setSparamBuffPlus(paramId, buffPlus);
 		this.setSparamBuffRate(paramId, buffRate);
 	}, this);
@@ -1201,7 +1348,7 @@ Game_Battler.prototype.getParamBaseNaturalBonuses = function(paramId, baseParam)
 */
 Game_Battler.prototype.calculateBParamBuff = function(paramId, baseParam) {
 	const buffPlus = this.bParamBuffPlus(paramId);
-	const buffRate = this.bParamBuffRate(paramId) / 100;
+	const buffRate = this.bParamBuffRate(paramId);
 	return baseParam * buffRate + buffPlus;
 };
 /**
@@ -1242,7 +1389,7 @@ Game_Battler.prototype.calculatePlusRate = function(baseValue, paramPlus, paramR
 	return paramBase * paramFactor - baseValue;
 };
 /**
-* Overrides {@link #maxTp}.<br/>
+* Overwrites {@link #maxTp}.<br/>
 * Combines base max TP with formula-based values derived from tags.
 * @returns {number}
 */
@@ -1304,7 +1451,7 @@ Game_Battler.prototype.getMaxTpBuff = function(baseParam) {
 //#endregion
 //#region src/plugins/natural/core/objects/Game_Actor.js
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Includes parameter buff initialization.
 */
 J.NATURAL.Aliased.Game_Actor.set("setup", Game_Actor.prototype.setup);
@@ -1313,7 +1460,7 @@ Game_Actor.prototype.setup = function(actorId) {
 	this.refreshAllParameterBuffs();
 };
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Also refreshes all natural parameter buff values on the battler.
 */
 J.NATURAL.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
@@ -1322,7 +1469,8 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 	this.refreshAllParameterBuffs();
 };
 /**
-* OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
+* Overwrites {@link #maxTp}.<br/>
+* Replaces the `maxTp()` function with our custom one that will respect
 * formulas and apply rates from tags, etc.
 * @returns {number}
 */
@@ -1348,6 +1496,30 @@ Game_Actor.prototype.getMaxTpNaturalBonuses = function(baseParam) {
 Game_Actor.prototype.getMaxTpGrowth = function(baseParam) {
 	const growthPlus = this.maxTpGrowthPlus();
 	const growthRate = this.maxTpGrowthRate();
+	if (!growthPlus && !growthRate) return 0;
+	return this.calculatePlusRate(baseParam, growthPlus, growthRate);
+};
+/**
+* Extends the `har` getter — already buff-inclusive from {@link Game_Battler} —
+* to also layer in permanent growth. Actors are the only battler type that
+* accrues growth, so this override lives here rather than on Game_Battler.
+*/
+J.NATURAL.Aliased.Game_Actor.set("har", Object.getOwnPropertyDescriptor(Game_Battler.prototype, "har").get);
+Object.defineProperty(Game_Actor.prototype, "har", {
+	get: function() {
+		const baseParam = J.NATURAL.Aliased.Game_Actor.get("har").call(this);
+		return baseParam + this.getHarGrowth(baseParam);
+	},
+	configurable: true
+});
+/**
+* Gets the current amount of HAR bonuses added from growths.
+* @param {number} baseParam The base parameter value.
+* @returns {number}
+*/
+Game_Actor.prototype.getHarGrowth = function(baseParam) {
+	const growthPlus = this.harGrowthPlus();
+	const growthRate = this.harGrowthRate();
 	if (!growthPlus && !growthRate) return 0;
 	return this.calculatePlusRate(baseParam, growthPlus, growthRate);
 };
@@ -1615,12 +1787,25 @@ Game_Actor.prototype.getGrowthRegexBySparamId = function(sparamId) {
 /**
 * A hook for applying additional custom growths that aren't native to RMMZ.
 */
-Game_Actor.prototype.applyNaturalCustomGrowths = function() {};
+Game_Actor.prototype.applyNaturalCustomGrowths = function() {
+	this.applyNaturalHarGrowths();
+};
+/**
+* Applies the growths for HAR.
+*/
+Game_Actor.prototype.applyNaturalHarGrowths = function() {
+	const [, , growthPlusStructure, growthRateStructure] = this.getRegexForHar();
+	const baseHar = this.baseHarFactor() + (this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("har", 1) : 0);
+	const growthPlus = this.naturalParamBuff(growthPlusStructure, baseHar);
+	this.modHarGrowthPlus(growthPlus);
+	const growthRate = this.naturalParamBuff(growthRateStructure, baseHar);
+	this.modHarGrowthRate(growthRate);
+};
 
 //#endregion
 //#region src/plugins/natural/core/objects/Game_Enemy.js
 /**
-* Extends {@link Game_Enemy.setup}.<br>
+* Extends {@link Game_Enemy.setup}.<br/>
 * Includes parameter buff initialization.
 */
 J.NATURAL.Aliased.Game_Enemy.set("setup", Game_Enemy.prototype.setup);
@@ -1629,7 +1814,7 @@ Game_Enemy.prototype.setup = function(enemyId, x, y) {
 	this.refreshAllParameterBuffs();
 };
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Also refreshes all natural parameter buff values on the battler.
 */
 J.NATURAL.Aliased.Game_Enemy.set("onBattlerDataChange", Game_Enemy.prototype.onBattlerDataChange);
@@ -1638,7 +1823,8 @@ Game_Enemy.prototype.onBattlerDataChange = function() {
 	this.refreshAllParameterBuffs();
 };
 /**
-* OVERWRITE Replaces the `maxTp()` function with our custom one that will respect
+* Overwrites {@link #maxTp}.<br/>
+* Replaces the `maxTp()` function with our custom one that will respect
 * formulas and apply rates from tags, etc.
 * @returns {number}
 */
@@ -1736,7 +1922,7 @@ Game_Enemy.prototype.getSparamNaturalBonuses = function(sparamId, baseParam) {
 	return this.calculateSpParamBuff(sparamId, baseParam);
 };
 /**
-* Overrides {@link #refreshRewardBonuses}.<br>
+* Overwrites {@link #refreshRewardBonuses}.<br/>
 * Implements the refresh for battle reward bonuses for the enemy.
 */
 Game_Enemy.prototype.refreshRewardBonuses = function() {
@@ -1767,7 +1953,7 @@ Game_Enemy.prototype.refreshSdpRewardBonuses = function() {
 	this.setSdpsPlus(sdpsBonus);
 };
 /**
-* Extends {@link #exp}.<br>
+* Extends {@link #exp}.<br/>
 * Also adds on any natural bonuses of experience.
 * @returns {number}
 */
@@ -1778,7 +1964,7 @@ Game_Enemy.prototype.exp = function() {
 	return baseReward + bonus;
 };
 /**
-* Extends {@link #gold}.<br>
+* Extends {@link #gold}.<br/>
 * Also adds on any natural bonuses of gold.
 * @returns {number}
 */
@@ -1802,7 +1988,7 @@ Game_Enemy.prototype.sdpPoints = function() {
 //#endregion
 //#region src/plugins/natural/core/objects/Game_Party.js
 /**
-* Extends {@link #gainItem}.<br>
+* Extends {@link #gainItem}.<br/>
 * Also refreshes the passive states for the party.
 * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
 * @param {number} amount The amount to modify the quantity by.
@@ -1823,7 +2009,7 @@ Game_Party.prototype.refreshAllParameterBuffsForAll = function() {
 //#endregion
 //#region src/plugins/natural/core/scenes/Scene_Equip.js
 /**
-* Extends {@link #executeEquipChange}.<br>
+* Extends {@link #executeEquipChange}.<br/>
 * Also refreshes all natural parameter data.
 */
 J.NATURAL.Aliased.Scene_Equip.set("executeEquipChange", Scene_Equip.prototype.executeEquipChange);
@@ -1835,7 +2021,7 @@ Scene_Equip.prototype.executeEquipChange = function() {
 //#endregion
 //#region src/plugins/natural/core/windows/Window_EquipItem.js
 /**
-* Extends {@link #postEquipSetupActorClone}.<br>
+* Extends {@link #postEquipSetupActorClone}.<br/>
 * Updates the buffs associated with the cloned actor so that it reflects in the
 * status window comparison.
 * @param {Game_Actor} actorClone The clone of the actor.

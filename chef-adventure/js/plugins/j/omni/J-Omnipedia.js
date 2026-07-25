@@ -20,6 +20,11 @@
  * Integrates with others of mine plugins:
  * - J-ControlledDrops; enables viewing of dropped loot in the bestiary.
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it is purely the extendable
+ * scene/menu shell that its sub-dataset extensions (Monster, Quest, etc.)
+ * plug into. Those extensions own their own respective tags.
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.1
  *    Updated JABS menu integration with help text.
@@ -40,7 +45,7 @@ var J_Omnipedia_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps static command and switch metadata used by menu integration.
 	*/
 	postInitialize() {
@@ -82,7 +87,7 @@ var J_Omnipedia_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -117,7 +122,7 @@ var Window_OmnipediaListHeader = class extends Window_Base {
 		super(rect);
 	}
 	/**
-	* Implements {@link Window_Base.drawContent}.<br>
+	* Implements {@link Window_Base.drawContent}.<br/>
 	* Draws a header and some detail for the omnipedia list header.
 	*/
 	drawContent() {
@@ -168,7 +173,7 @@ var Window_OmnipediaList = class extends Window_Command {
 		super(rect);
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of omnipedia entries available for this window.
 	*/
 	makeCommandList() {
@@ -184,7 +189,7 @@ var Window_OmnipediaList = class extends Window_Command {
 		return [];
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -430,7 +435,7 @@ var Scene_Omnipedia = class extends Scene_MenuBase {
 //#endregion
 //#region src/plugins/omni/core/objects/Game_Party.js
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Adds a hook for omnipedia extensions to initialize their members.
 */
 J.OMNI.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
@@ -474,7 +479,7 @@ Game_System.prototype.canCallOmnipediaScene = function() {
 //#endregion
 //#region src/plugins/omni/core/scenes/Scene_Map.js
 /**
-* Extends {@link #createJabsAbsMenuMainWindow}.<br>
+* Extends {@link #createJabsAbsMenuMainWindow}.<br/>
 * Adds additional handling in the list for the omnipedia command.
 */
 J.OMNI.Aliased.Scene_Map.set("createJabsAbsMenuMainWindow", Scene_Map.prototype.createJabsAbsMenuMainWindow);
@@ -510,7 +515,7 @@ Scene_Menu.prototype.commandOmnipedia = function() {
 //#endregion
 //#region src/plugins/omni/core/windows/Window_MenuCommand.js
 /**
-* Extends {@link #makeCommandList}.<br>
+* Extends {@link #makeCommandList}.<br/>
 * Also adds the omnipedia command.
 */
 J.OMNI.Aliased.Window_MenuCommand.set("makeCommandList", Window_MenuCommand.prototype.makeCommandList);
@@ -538,7 +543,7 @@ Window_MenuCommand.prototype.canAddOmnipediaCommand = function() {
 //#region src/plugins/omni/core/windows/Window_AbsMenu.js
 if (J.ABS) {
 	/**
-	* Extends {@link #buildCommands}.<br>
+	* Extends {@link #buildCommands}.<br/>
 	* Adds the sdp command at the end of the list.
 	* @returns {BuiltWindowCommand[]}
 	*/

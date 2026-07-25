@@ -76,6 +76,12 @@
  * Use this to force an event to seek it's current target:
  *   this.seekTarget();
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own. Everything here is exposed as
+ * script commands (turnRight45/turnLeft45/turnRightOrLeft45/homeIntoLastHit/
+ * homeIntoTarget/seekLastHit/seekTarget) dropped into action event
+ * moveroutes- there's nothing to tag on database objects.
+ * ============================================================================
  * CHANGELOG:
  * - 1.1.3
  *    Removed obsolete J.ABS.EXT.CYCLE / CycloneMovement guards from the
@@ -109,12 +115,12 @@ var J_DiagPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/diag/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);

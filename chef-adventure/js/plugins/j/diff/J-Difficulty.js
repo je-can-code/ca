@@ -680,7 +680,7 @@ var J_DiffPluginMetadata = class J_DiffPluginMetadata extends PluginMetadata {
 	}
 	/**
 	* Updates the default layer with a new default.
-	* @param {DifficultyLayer} layer
+	* @param {DifficultyLayer} layer The layer driving this step.
 	*/
 	static updateDefaultLayer(layer) {
 		this.#default = layer;
@@ -758,7 +758,7 @@ var J_DiffPluginMetadata = class J_DiffPluginMetadata extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {
@@ -799,7 +799,7 @@ var J_DiffPluginMetadata = class J_DiffPluginMetadata extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.3.1";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -949,7 +949,7 @@ var DifficultyManager = class {
 //#endregion
 //#region src/plugins/diff/core/managers/DataManager.js
 /**
-* Extends {@link DataManager.setupNewGame}.<br>
+* Extends {@link DataManager.setupNewGame}.<br/>
 * Includes difficulty setup for new games.
 */
 J.DIFFICULTY.Aliased.DataManager.set("setupNewGame", DataManager.setupNewGame);
@@ -997,7 +997,7 @@ Game_System.prototype.initDifficultyMembers = function() {
 	this._j._difficulty._layerPoints = 0;
 };
 /**
-* Extends {@link #onAfterLoad}.<br>
+* Extends {@link #onAfterLoad}.<br/>
 * Updates the list of all available difficulties from the latest plugin metadata.
 */
 J.DIFFICULTY.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
@@ -1239,7 +1239,7 @@ Game_Temp.prototype.buildAppliedDifficulty = function() {
 //#endregion
 //#region src/plugins/diff/core/objects/Game_Actor.js
 /**
-* Extends {@link #param}.<br>
+* Extends {@link #param}.<br/>
 * Also modifies the value based on the applied difficulty.
 * @returns {number}
 */
@@ -1251,7 +1251,7 @@ Game_Actor.prototype.param = function(paramId) {
 	return Math.round(originalValue * multiplier);
 };
 /**
-* Extends {@link #sparam}.<br>
+* Extends {@link #sparam}.<br/>
 * Also modifies the value based on the applied difficulty.
 * @returns {number}
 */
@@ -1263,7 +1263,7 @@ Game_Actor.prototype.sparam = function(sparamId) {
 	return originalValue * multiplier;
 };
 /**
-* Extends {@link #xparam}.<br>
+* Extends {@link #xparam}.<br/>
 * Also modifies the value based on the applied difficulty.
 * @returns {number}
 */
@@ -1278,7 +1278,7 @@ Game_Actor.prototype.xparam = function(xparamId) {
 //#endregion
 //#region src/plugins/diff/core/objects/Game_Enemy.js
 /**
-* Extends {@link #param}.<br>
+* Extends {@link #param}.<br/>
 * Also modifies the value based on the applied difficulty.
 * @returns {number}
 */
@@ -1290,7 +1290,7 @@ Game_Enemy.prototype.param = function(paramId) {
 	return Math.round(originalValue * multiplier);
 };
 /**
-* Extends {@link #sparam}.<br>
+* Extends {@link #sparam}.<br/>
 * Also modifies the value based on the applied difficulty.
 * @returns {number}
 */
@@ -1302,7 +1302,7 @@ Game_Enemy.prototype.sparam = function(sparamId) {
 	return originalValue * multiplier;
 };
 /**
-* Extends {@link #xparam}.<br>
+* Extends {@link #xparam}.<br/>
 * Also modifies the value based on the applied difficulty.
 * @returns {number}
 */
@@ -1387,7 +1387,7 @@ var Window_DifficultyList = class extends Window_Command {
 		super(rect);
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of difficulties for this window.
 	*/
 	makeCommandList() {
@@ -1465,7 +1465,7 @@ var Window_DifficultyPoints = class extends Window_Base {
 		this.#hoveredDifficulty = difficulty;
 	}
 	/**
-	* Implements {@link Window_Base.drawContent}.<br>
+	* Implements {@link Window_Base.drawContent}.<br/>
 	* Draws the various data points surrounding the difficulty layer points
 	* and how they are affected by the difficulty layer currently being
 	* hovered over by the player.
@@ -1651,7 +1651,7 @@ var Window_DifficultyEffects = class Window_DifficultyEffects extends Window_Com
 		this.refresh();
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Renders all the effect of the hovered difficulty layer.
 	*/
 	makeCommandList() {
@@ -1931,7 +1931,7 @@ var Window_DifficultyEffects = class Window_DifficultyEffects extends Window_Com
 		return biggerIsBetterXParameters[xparamId] ?? true;
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -1995,7 +1995,7 @@ var Scene_Difficulty = class extends Scene_MenuBase {
 		this._j._difficulty._actorEffects = null;
 	}
 	/**
-	* Extends {@link #start}.<br>
+	* Extends {@link #start}.<br/>
 	* Handles the post-scene setup.
 	*/
 	start() {
@@ -2005,7 +2005,7 @@ var Scene_Difficulty = class extends Scene_MenuBase {
 		this.onHoverChange();
 	}
 	/**
-	* Extends {@link #create}.<br>
+	* Extends {@link #create}.<br/>
 	* Creates our scene's windows.
 	*/
 	create() {
@@ -2370,7 +2370,6 @@ var Scene_Difficulty = class extends Scene_MenuBase {
 		pointsWindow.refresh();
 	}
 };
-globalThis.Scene_Difficulty = Scene_Difficulty;
 
 //#endregion
 //#region src/plugins/diff/core/_metadata/pluginCommands.js

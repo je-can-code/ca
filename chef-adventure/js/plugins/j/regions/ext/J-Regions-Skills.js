@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 REGION-SKILLS] Enables execution of skills via region ids.
+ * @plugindesc [v1.0.1 REGION-SKILLS] Enables execution of skills via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -120,6 +120,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Region skill triggers now roll through the shared on-chance system
+ *    (lucky/cursed rolls, Accumulate Mode, Encore) instead of a flat
+ *    percent check, and can proc more than once per step.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -180,7 +184,7 @@ J.REGIONS.EXT.SKILLS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata("J-Region-Skills", "1.0.0");
+J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata("J-Region-Skills", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -241,7 +245,7 @@ var RegionSkillData = class {
 //#endregion
 //#region src/plugins/regions/ext/skills/objects/Game_Map.js
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Also initializes the region skills properties.
 */
 J.REGIONS.EXT.SKILLS.Aliased.Game_Map.set("initialize", Game_Map.prototype.initialize);
@@ -302,7 +306,7 @@ Game_Map.prototype.addRegionSkillDataByRegionId = function(regionId, regionSkill
 	}
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Also initializes this map's region-skill data.
 */
 J.REGIONS.EXT.SKILLS.Aliased.Game_Map.set("setup", Game_Map.prototype.setup);
@@ -341,7 +345,7 @@ Game_Map.prototype.refreshRegionSkills = function() {
 //#endregion
 //#region src/plugins/regions/ext/skills/objects/Game_Character.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the region skills members.
 */
 J.REGIONS.EXT.SKILLS.Aliased.Game_Character.set("initMembers", Game_Character.prototype.initMembers);
@@ -379,7 +383,7 @@ Game_Character.prototype.getRegionSkillsTimer = function() {
 	return this._j._regions._skills._timer;
 };
 /**
-* Extends {@link #update}.<br>
+* Extends {@link #update}.<br/>
 * Also handles region skills updates for the character.
 */
 J.REGIONS.EXT.SKILLS.Aliased.Game_Character.set("update", Game_Character.prototype.update);
@@ -417,14 +421,21 @@ Game_Character.prototype.executeRegionSkills = function() {
 	const targetJabsBattler = this.getJabsBattler();
 	regionSkillDatas.forEach((regionSkillData) => {
 		const { skillId, chance, casterId, isFriendly } = regionSkillData;
-		if (!RPGManager.chanceIn100(chance)) return;
+		const walkerBattler = targetJabsBattler.getBattler();
+		const skill = $dataSkills.at(skillId);
+		const positiveRolls = 1 + walkerBattler.getPositiveRollsForSkill(skill);
+		const negativeRolls = walkerBattler.getNegativeRollsForSkill(skill);
+		const procCount = RPGManager.resolveProcCount(walkerBattler, chance, positiveRolls, negativeRolls);
+		if (procCount === 0) return;
 		const currentDummyCaster = $jabsEngine.getMapDamageBattler();
 		const correctCaster = currentDummyCaster?.getBattlerId() === casterId;
 		const correctTeam = currentDummyCaster?.isFriendlyTeam(targetJabsBattler.getTeam()) === isFriendly;
 		if (!correctCaster || !correctTeam) {
 			$jabsEngine.setMapDamageBattler(casterId, isFriendly);
 		}
-		$jabsEngine.forceMapAction($jabsEngine.getMapDamageBattler(), skillId, false, targetJabsBattler.getX(), targetJabsBattler.getY(), true);
+		for (let i = 0; i < procCount; i++) {
+			$jabsEngine.forceMapAction($jabsEngine.getMapDamageBattler(), skillId, false, targetJabsBattler.getX(), targetJabsBattler.getY(), true);
+		}
 	});
 };
 /**

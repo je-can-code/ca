@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.1.1 BASE] The base class for all J plugins.
+ * [v3.2.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -72,6 +72,71 @@
  * it would reduce to 50100.
  *
  * ============================================================================
+ * STATE TYPE CLASSIFIER:
+ * Have you ever wanted to group states into named categories, like "poison" or
+ * "bleed", so other plugins/tags can react to "any state of this category" instead
+ * of a single hardcoded state id? Well now you can! By applying this tag to a
+ * state's notebox, that state is classified under one or more named types.
+ *
+ * NOTE ABOUT MULTIPLE TAGS:
+ * A single state may carry more than one <type:CLASSIFIER> tag, and will
+ * belong to every classifier listed across all of its tags.
+ *
+ * NOTE ABOUT CASING:
+ * Classifier strings are intended to be compared case-insensitively by
+ * consumers of this tag (such as J-ABS's type-based damage bonus tags).
+ *
+ * TAG USAGE:
+ * - States
+ *
+ * TAG FORMAT:
+ *  <type:CLASSIFIER>
+ *    Where CLASSIFIER is the name of the category this state belongs to.
+ *
+ * TAG EXAMPLES:
+ *  <type:poison>
+ *  <type:bleed>
+ * This state is classified as both "poison" and "bleed".
+ *
+ * ============================================================================
+ * HAR (HEALING RATE):
+ * Have you ever wanted a battler to be better (or worse) at healing others,
+ * separately from how well a battler receives healing (REC)? Well now you
+ * can! HAR is the sender-side counterpart to REC — it multiplies the potency
+ * of healing this battler deals out, rather than healing this battler
+ * receives.
+ *
+ * NOTE ABOUT COMBINING TAGS:
+ * This is additive across the board, so if a single battler has multiple
+ * tags from various equipment and/or states, all amounts of HAR will be
+ * summed together before being applied as a single percent multiplier.
+ *
+ * NOTE ABOUT WHERE THIS APPLIES:
+ * HAR is applied everywhere REC already is on the giving side: Damage-tab
+ * "HP/MP Recover" skills, Effects-tab "Recover HP/MP" entries, and J-ABS-
+ * Formula's custom heal pipeline (if that plugin is installed).
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <har:VALUE>
+ *    Where VALUE represents the percent bonus/penalty to outgoing healing.
+ *
+ * TAG EXAMPLES:
+ *  <har:25>    (on actor)
+ * This battler's outgoing healing is now 125% effective.
+ *
+ *  <har:-50>   (on state)
+ * While afflicted, this battler's outgoing healing is only 50% effective.
+ *
+ * ============================================================================
  *
  * DEV DETAILS:
  * I would encourage you peruse the added functions to the various classes.
@@ -92,6 +157,46 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.2.0
+ *    Added skillIds() to Game_Battler (stub returning empty), Game_Actor (learned skills
+ *    plus trait-granted ids, deduplicated), and Game_Enemy (action skill ids plus
+ *    trait-granted ids, deduplicated). This gives the skill-extension resolver a raw-id
+ *    source that is completely outside the skill()/skills() call path, eliminating the
+ *    need for a re-entrancy guard and enabling intentional recursive overlay chains.
+ *    Added J.BASE.Resource enum (HP/MP/TP string keys).
+ *    Added Game_Battler.prototype.onHeal(resource, amount) stub — a broadcast hook
+ *    fired after any positive resource recovery. Extensions alias onHeal instead of
+ *    the three gainHp/gainMp/gainTp methods individually.
+ *    Aliased gainHp, gainMp, gainTp on Game_Battler to fire onHeal for positive values.
+ *    Added Game_Action.formulaContextProviders registry and Game_Action.registerFormulaContext
+ *    static method. Any plugin can now inject a named variable into damage formula evaluation
+ *    by registering a getter; the variable is available in every formula evaluated by
+ *    evalFormulaWithContext without any plugin needing to patch another plugin's code.
+ *    Added Game_Action.prototype.evalFormulaWithContext(formula, a, b) — evaluates a formula
+ *    string via new Function with the base context (a, b, v) plus all registered providers.
+ *    This replaces all eval() usage in damage/formula paths; see each consumer's changelog.
+ *    Added HAR (Healing Rate) — the sender-side counterpart to REC. New `har`
+ *    getter on Game_Battler/Game_BattlerBase, summed from `<har:VALUE>` tags
+ *    plus any SDP panel bonus. Registered in the parameter catalog (VITALITY
+ *    group, longParamId 46).
+ *    Aliased Game_Action.prototype.makeDamageValue to apply the caster's HAR
+ *    to Damage-tab "HP/MP Recover" results, alongside vanilla's own REC
+ *    multiplication for the same branch.
+ *    Overwrote Game_Action.prototype.itemEffectRecoverHp/itemEffectRecoverMp
+ *    to apply the caster's HAR to Effects-tab "Recover HP/MP" results.
+ *    Added TraitResolver, a static class centralizing trait-merging logic shared
+ *    across the ecosystem: overlayTraits (last-wins per code+dataId, used by
+ *    J-Extend's state/skill overlays) and refineTraits (keep-better per
+ *    code+dataId, used by JAFTING refinement), both built from shared
+ *    sub-operations (opposing-pair cancellation, no-duplicate filtering,
+ *    additive parameter-trait combining). Replaces ~550 lines of duplicated,
+ *    near-identical combine-by-trait-code logic that used to live inside
+ *    JaftingManager alone.
+ *    Extended JsonEx._encode/_decode to support native Map/Set instances in save data.
+ *    Fixed _encode mutating the live object graph in place while stringifying — the original
+ *    algorithm wrote its "@" constructor tag back onto the same object being saved, which was
+ *    invisible for plain objects/arrays but silently corrupted any live Map/Set the moment
+ *    something (e.g. autosave) called JsonEx.stringify() on the live game state.
  * - 3.1.1
  *    RPG database wrappers expose createEmpty() on item, weapon, armor, skill,
  *    and state classes.
@@ -187,6 +292,1044 @@
  * @default 100
  */
 
+//#region src/plugins/_base/core/JCache.js
+/**
+* A unified typed-cache primitive. A cache declares an ordered list of "weak dimensions" at
+* construction (e.g. `['battler']`, `['object']`, `['battler', 'object']`), and `get()` requires
+* one weak key per declared dimension before the stable string key. This makes cache *scope* a
+* visible, reviewable choice at construction time instead of an implicit default buried in a
+* generic memoize helper - the exact class of bug this primitive was built to prevent (a
+* battler-context eval result silently cached on an object-scoped structure).
+*/
+var JCache = class JCache {
+	/**
+	* Every JCache instance that declared a `'battler'` dimension, so a single bus call
+	* ({@link JCache.invalidateAllForBattler}) can clear every battler-scoped cache in the game
+	* without each caller needing to know the full list of caches that exist.
+	* @type {Set<JCache>}
+	*/
+	static _battlerCaches = new Set();
+	/**
+	* Drops every battler-scoped cache entry for the given battler, across every registered
+	* {@link JCache} instance that declared a `'battler'` dimension. Intended to be called once,
+	* from {@link Game_Battler#onBattlerDataChange}, so individual managers never need their own
+	* bespoke invalidation wiring into that method.
+	* @param {Game_Battler} battler The battler whose cached entries should be dropped.
+	*/
+	static invalidateAllForBattler(battler) {
+		for (const cache of this._battlerCaches) {
+			cache.invalidate(battler);
+		}
+	}
+	/**
+	* Builds an object-scoped cache: one weak dimension, keyed by the database object being parsed.
+	* Use for results that depend only on immutable note text (no runtime battler context).
+	* @param {{ name: string, resolveOriginal?: boolean }} o Construction options (see {@link constructor}).
+	* @returns {JCache}
+	*/
+	static objectScoped(o) {
+		return new JCache({
+			...o,
+			dims: ["object"]
+		});
+	}
+	/**
+	* Builds a battler-scoped cache: one weak dimension, keyed by the battler. Use for results that
+	* depend only on the battler's own live state (no distinct database object per entry).
+	* @param {{ name: string, resolveOriginal?: boolean }} o Construction options (see {@link constructor}).
+	* @returns {JCache}
+	*/
+	static battlerScoped(o) {
+		return new JCache({
+			...o,
+			dims: ["battler"]
+		});
+	}
+	/**
+	* Builds a battler-then-object-scoped cache: two weak dimensions, battler outermost then the
+	* database object. Use for eval results that read both a battler's live state ("a" in a
+	* formula) and a specific database object's note text.
+	* @param {{ name: string, resolveOriginal?: boolean }} o Construction options (see {@link constructor}).
+	* @returns {JCache}
+	*/
+	static battlerThenObject(o) {
+		return new JCache({
+			...o,
+			dims: ["battler", "object"]
+		});
+	}
+	/**
+	* @param {object} options Construction options.
+	* @param {string} options.name A human-readable identifier for this cache, used for metrics/debugging.
+	* @param {string[]} options.dims The ordered weak dimensions, e.g. `['battler', 'object']`.
+	* @param {boolean} [options.resolveOriginal] When true, an `'object'` dimension key that is an
+	* {@link RPG_Base} clone resolves to its {@link RPG_Base#_original} so clones share a bucket
+	* with their source object.
+	*/
+	constructor({ name, dims, resolveOriginal = false }) {
+		this.name = name;
+		this.dims = dims;
+		this.resolveOriginal = resolveOriginal;
+		this._root = new WeakMap();
+		this._metrics = {
+			hits: 0,
+			misses: 0
+		};
+		if (dims.includes("battler")) {
+			JCache._battlerCaches.add(this);
+		}
+	}
+	/**
+	* Resolves a single dimension's key to its actual cache-bucket identity.
+	* @param {string} dim The dimension name being resolved ('battler' or 'object').
+	* @param {object} key The raw key passed in for this dimension.
+	* @returns {object} The key to actually use as the WeakMap/Map key for this dimension.
+	*/
+	#resolve(dim, key) {
+		return dim === "object" && this.resolveOriginal && key instanceof RPG_Base ? key._original() : key;
+	}
+	/**
+	* Reads the cached value for the given dimension keys + string key, computing and storing it on
+	* a miss. Call shape is `get(...weakKeys, stringKey, computeFn)`, where `weakKeys.length` must
+	* equal `this.dims.length`.
+	* @param {...*} args The weak dimension keys, followed by the string key, followed by the compute function.
+	* @returns {any} The cached or freshly computed value.
+	*/
+	get(...args) {
+		const computeFn = args.pop();
+		const stringKey = args.pop();
+		let node = this._root;
+		for (let i = 0; i < this.dims.length; i++) {
+			const k = this.#resolve(this.dims[i], args[i]);
+			let next = node.get(k);
+			if (!next) {
+				next = i === this.dims.length - 1 ? new Map() : new WeakMap();
+				node.set(k, next);
+			}
+			node = next;
+		}
+		if (node.has(stringKey) === false) {
+			this._metrics.misses++;
+			node.set(stringKey, computeFn());
+		} else {
+			this._metrics.hits++;
+		}
+		return node.get(stringKey);
+	}
+	/**
+	* Drops the cached subtree at the given dimension-key prefix. `invalidate(battler)` (a
+	* one-element prefix) is the common case: it drops every entry nested under that battler,
+	* regardless of how many further dimensions this cache declares. Calling with zero arguments
+	* clears the entire cache.
+	* @param {...object} prefix The dimension keys identifying the subtree to drop, outermost first.
+	* @returns {boolean} True if something was found and removed at that prefix, false otherwise.
+	*/
+	invalidate(...prefix) {
+		if (prefix.length === 0) {
+			this.clear();
+			return true;
+		}
+		let node = this._root;
+		for (let i = 0; i < prefix.length - 1; i++) {
+			node = node.get(this.#resolve(this.dims[i], prefix[i]));
+			if (!node) return false;
+		}
+		const last = prefix.length - 1;
+		return node.delete(this.#resolve(this.dims[last], prefix[last]));
+	}
+	/**
+	* Drops every entry in this cache by discarding the root weak dimension bucket outright.
+	*/
+	clear() {
+		this._root = new WeakMap();
+	}
+	/**
+	* @returns {{ hits: number, misses: number }} A shallow copy of this cache's hit/miss counters.
+	*/
+	get metrics() {
+		return { ...this._metrics };
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/_utilities/JsonMapper.js
+var JsonMapper = class {
+	/**
+	* Parses a object into whatever its given data type is.
+	* @param {any} obj The unknown object to parse.
+	* @returns {any|null}
+	*/
+	static parseObject(obj) {
+		if (obj === null || obj === undefined) return null;
+		if (typeof obj === "string") {
+			if (obj.startsWith("[") && obj.endsWith("]")) {
+				return this.parseArrayFromString(obj);
+			}
+			return this.parseString(obj);
+		}
+		if (Array.isArray(obj)) {
+			return obj.map(this.parseObject, this);
+		}
+		return obj;
+	}
+	/**
+	* Parses a presumed array by peeling off the `[` and `]` and parsing the
+	* exposed insides.
+	*
+	* This does not handle multiple nested arrays properly.
+	* @param {string} strArr An string presumed to be an array.
+	* @returns {any} The parsed exposed insides of the string array.
+	*/
+	static parseArrayFromString(strArr) {
+		const exposedArray = strArr.slice(1, strArr.length - 1).split(/, |,/);
+		const innerArrayStartIndex = exposedArray.findIndex((element) => element.startsWith("["));
+		if (innerArrayStartIndex > -1) {
+			const outerArrayEndIndex = exposedArray.findLastIndex((element) => element.endsWith("]"));
+			const slicedArrayString = exposedArray.slice(innerArrayStartIndex, outerArrayEndIndex + 1).toString();
+			const innerArray = this.parseArrayFromString(slicedArrayString);
+			exposedArray.splice(innerArrayStartIndex, outerArrayEndIndex + 1 - innerArrayStartIndex, innerArray);
+		}
+		return this.parseObject(exposedArray);
+	}
+	/**
+	* Parses a metadata object from a string into possibly a boolean or number.
+	* If the conversion to those fail, then it'll proceed as a string.
+	* @param {string} str The string object to parse.
+	* @returns {boolean|number|string}
+	*/
+	static parseString(str) {
+		if (str.toLowerCase() === "true") {
+			return true;
+		} else if (str.toLowerCase() === "false") return false;
+		if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
+		return str;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/_utilities/ArrayHelper.js
+var ArrayHelper = class {
+	/**
+	* A filter function for ignoring null or undefined.
+	* @param {any} value The value of the array being filtered.
+	* @returns {boolean} False if the value is null or undefined, true otherwise.
+	*/
+	static NoNulls(value) {
+		if (value === undefined || value === null) {
+			return false;
+		}
+		return true;
+	}
+	/**
+	* Determines whether two arrays share at least one common element.
+	* Builds a Set from the smaller array for O(n + m) performance and early exit.
+	*
+	* Notes:
+	* - Accepts numbers or strings (ids, keys, etc.).
+	* - Returns false if either array is empty.
+	*
+	* @param {(number|string)[]} left The first collection of values.
+	* @param {(number|string)[]} right The second collection of values.
+	* @returns {boolean} True if a value is found in both arrays; otherwise false.
+	*/
+	static hasAnyIntersection(left, right) {
+		if (!left || left.length === 0) {
+			return false;
+		}
+		if (!right || right.length === 0) {
+			return false;
+		}
+		let small = left;
+		let large = right;
+		if (right.length < left.length) {
+			small = right;
+			large = left;
+		}
+		const lookup = new Set(small);
+		for (let i = 0; i < large.length; i++) {
+			const value = large[i];
+			if (lookup.has(value)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	/**
+	* Creates an array of numbers from a range, inclusive.
+	* @param {number} a The starting number of the range.
+	* @param {number} b The ending number of the range.
+	* @returns {number[]} An array of numbers from a to b, inclusive.
+	*/
+	static rangeInclusive(a, b) {
+		return Array.from({ length: b - a + 1 }, (_, i) => a + i);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/managers/RPGManager.js
+/**
+* A utility class for handling common database-related translations.
+*/
+var RPGManager = class RPGManager {
+	/**
+	* Backing field for {@link _noteCache}, built lazily on first access rather than as an eager
+	* static-field initializer. RPG_Base now imports this class (for its {@code types()} method),
+	* and JCache imports RPG_Base (for its {@code instanceof} clone-resolution check) — a real
+	* three-file import cycle (RPG_Base -> RPGManager -> JCache -> RPG_Base). Eager static fields
+	* evaluate at module-load time, so their result depends on which file the cycle happens to be
+	* entered from; a lazy getter defers construction until the first real call, by which point the
+	* whole module graph has finished loading regardless of entry order.
+	* @type {JCache|null}
+	*/
+	static #noteCache = null;
+	/**
+	* The cache for storing parsed note-text results (string/number/boolean/array/captures). Keyed
+	* by the database object alone- note text is immutable, so no battler dimension is needed.
+	* @type {JCache}
+	*/
+	static get _noteCache() {
+		return this.#noteCache ??= JCache.objectScoped({
+			name: "rpg:note-text",
+			resolveOriginal: true
+		});
+	}
+	/**
+	* Backing field for {@link _evalCache}; see {@link #noteCache} for why this is lazy.
+	* @type {JCache|null}
+	*/
+	static #evalCache = null;
+	/**
+	* The cache for storing eval'd formula results. Keyed by battler (the formula's live "a") then
+	* by database object, so two battlers sharing a note object never collide and a battler's
+	* entries can be dropped wholesale via the {@link JCache.invalidateAllForBattler} bus.
+	* @type {JCache}
+	*/
+	static get _evalCache() {
+		return this.#evalCache ??= JCache.battlerThenObject({
+			name: "rpg:eval",
+			resolveOriginal: true
+		});
+	}
+	/**
+	* Gets the cached data for the given object and tag key.
+	* @param {object} object The object to get the cached data for.
+	* @param {string} tagKey The tag key to get the cached data for.
+	* @param {Function} computeFn The function to compute the data if it doesn't exist.
+	* @returns {any} The cached data for the object and tag key.
+	*/
+	static cached(object, tagKey, computeFn) {
+		return this._noteCache.get(object, tagKey, computeFn);
+	}
+	/**
+	* Battler-scoped variant of {@link cached}: results are bucketed by the battler whose live
+	* state the formula reads, then by database object, so two battlers never share an entry and a
+	* battler's entries can be dropped wholesale on a data change.
+	* @param {Game_Battler} battler The formula context (the `a`).
+	* @param {object} object The database object being parsed.
+	* @param {string} tagKey The stable key for this regex/options set (NO battler, NO level).
+	* @param {Function} computeFn Producer run on a miss.
+	* @returns {any}
+	*/
+	static cachedForBattler(battler, object, tagKey, computeFn) {
+		return this._evalCache.get(battler, object, tagKey, computeFn);
+	}
+	/**
+	* Invalidates the cache for the given object.
+	* @param {object} object The object to invalidate the cache for.
+	* @returns {boolean} True if the cache was invalidated, false otherwise.
+	*/
+	static invalidate(object) {
+		return this._noteCache.invalidate(object);
+	}
+	/**
+	* Drops all cached eval results for one battler. Called from Game_Battler#onBattlerDataChange
+	* (via the {@link JCache.invalidateAllForBattler} bus); kept for any direct callers.
+	* @param {Game_Battler} battler
+	* @returns {boolean}
+	*/
+	static invalidateBattlerEval(battler) {
+		return this._evalCache.invalidate(battler);
+	}
+	/**
+	* Clears the cache for all objects.
+	*/
+	static clearCache() {
+		this._noteCache.clear();
+		this._evalCache.clear();
+	}
+	/**
+	* A quick and re-usable means of rolling for a chance of success.
+	* This will roll `rollForPositive` times in an effort to get a successful roll.
+	* If success is found and `rollsForNegative` is greater than 0, additional rolls of success will
+	* be required or the negative rolls will undo the success.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
+	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
+	* @returns {boolean} True if success, false otherwise.
+	*/
+	static chanceIn100(percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
+		if (percentOfSuccess <= 0) return false;
+		let success = false;
+		while (rollForPositive && !success) {
+			const chance = Math.randomInt(100) + 1;
+			if (chance <= percentOfSuccess) {
+				success = true;
+			}
+			rollForPositive--;
+		}
+		if (success && rollForNegative) {
+			while (rollForNegative && success) {
+				const chance = Math.randomInt(100) + 1;
+				if (chance <= percentOfSuccess) {
+					success = true;
+				} else {
+					return false;
+				}
+				rollForNegative--;
+			}
+		}
+		return success;
+	}
+	/**
+	* Same as {@link #chanceIn100}, but first checks the positive-roller's own fate-override
+	* flags- `isVeryLucky()` short-circuits straight to guaranteed success, `isVeryCursed()`
+	* short-circuits straight to guaranteed failure, both bypassing the roll entirely rather than
+	* stacking an absurd reroll count. Only when neither flag is set does an actual roll occur.
+	* @param {Game_Battler} positiveRoller The battler whose success this roll is for- the one
+	* whose `positiveRolls`/fate-override flags apply.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
+	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
+	* @returns {boolean} True if success, false otherwise.
+	*/
+	static fateOf100(positiveRoller, percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
+		if (positiveRoller.isVeryLucky()) return true;
+		if (positiveRoller.isVeryCursed()) return false;
+		return this.chanceIn100(percentOfSuccess, rollForPositive, rollForNegative);
+	}
+	/**
+	* Accumulate Mode's counting roll: instead of stopping at the first successful positive roll,
+	* rolls all `rollForPositive` attempts unconditionally and counts how many landed. Negative
+	* rerolls have no counting-mode equivalent (Accumulate Mode is scoped to positive rolls only)
+	* and are intentionally not accepted here.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to attempt; defaults to 1.
+	* @returns {number} How many of the attempted rolls succeeded.
+	*/
+	static countSuccessesIn100(percentOfSuccess, rollForPositive = 1) {
+		if (percentOfSuccess <= 0) return 0;
+		let successCount = 0;
+		let attemptsRemaining = rollForPositive;
+		while (attemptsRemaining) {
+			const chance = Math.randomInt(100) + 1;
+			if (chance <= percentOfSuccess) {
+				successCount++;
+			}
+			attemptsRemaining--;
+		}
+		return successCount;
+	}
+	/**
+	* Same as {@link #countSuccessesIn100}, but first checks the positive-roller's own
+	* fate-override flags- `isVeryLucky()` counts every attempt as a success, `isVeryCursed()`
+	* counts none, both bypassing the roll entirely.
+	* @param {Game_Battler} positiveRoller The battler whose success this roll is for.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to attempt; defaults to 1.
+	* @returns {number} How many of the attempted rolls succeeded.
+	*/
+	static countSuccessesFateOf100(positiveRoller, percentOfSuccess, rollForPositive = 1) {
+		if (positiveRoller.isVeryLucky()) return rollForPositive;
+		if (positiveRoller.isVeryCursed()) return 0;
+		return this.countSuccessesIn100(percentOfSuccess, rollForPositive);
+	}
+	/**
+	* Resolves how many times a repeatable-action proc's action should actually execute, folding
+	* in Accumulate Mode and Encore repeats from the positive-roller's own perspective. This is the
+	* one entry point sites with a repeatable action (add a state, force-execute a skill) should
+	* use instead of {@link #fateOf100}- sites whose success is consumed as a single boolean
+	* outcome (hit/evade, crit, parry) should keep using {@link #fateOf100} directly, since there is
+	* no repeatable action there for Accumulate/Encore to multiply.
+	* @param {Game_Battler} positiveRoller The battler whose success this roll is for.
+	* @param {number} percentOfSuccess The percent chance of success.
+	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
+	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
+	* @returns {number} How many times the proc's action should execute; 0 means it did not proc.
+	*/
+	static resolveProcCount(positiveRoller, percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
+		let successCount;
+		if (positiveRoller.isAccumulating()) {
+			successCount = this.countSuccessesFateOf100(positiveRoller, percentOfSuccess, rollForPositive);
+		} else {
+			const singleSuccess = this.fateOf100(positiveRoller, percentOfSuccess, rollForPositive, rollForNegative);
+			successCount = singleSuccess ? 1 : 0;
+		}
+		const repeatsPerSuccess = 1 + positiveRoller.getEncoreRepeats();
+		return successCount * repeatsPerSuccess;
+	}
+	/**
+	* A quick and re-usable means of rolling for chance using a weighted model against a map of (key=id,val=weight).
+	* @param {Map<any,number>} map The map of key-value pairs to choose from.
+	* @param {number} totalWeight The total weight of all values in the map.
+	* @returns {any|null} The chosen key or null if no valid choice is found.
+	*/
+	static weightedMapChoice(map, totalWeight) {
+		if (totalWeight <= 0) return null;
+		let r = Math.random() * totalWeight;
+		for (const [key, val] of map) {
+			if (val <= 0) continue;
+			r -= val;
+			if (r < 0) return key;
+		}
+		return null;
+	}
+	/**
+	* Gets the last instance of a string matching the regex from the given database object.
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string|null} The string matching the structure, {@link String.empty} if not found, or null with the flag.
+	*/
+	static getStringFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : String.empty;
+		}
+		const key = `str:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getStringFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gets the last instance of a string matching the regex from the given database object.
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string|null} The string matching the structure, {@link String.empty} if not found, or null with the flag.
+	*/
+	static #getStringFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		let val = String.empty;
+		const lines = databaseData.note.split(/[\r\n]+/);
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, stringResult] = result;
+			val = stringResult;
+		});
+		if (!val) {
+			return nullIfEmpty ? null : String.empty;
+		}
+		return val;
+	}
+	/**
+	* Gathers all string instances matching the regex from the given database object.
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string[]|null} The array of strings matching the structure, or an empty array if not found, or null.
+	*/
+	static getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : Array.empty;
+		}
+		const key = `str[]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gathers all string instances matching the regex from the given database object.
+	* @param {RPG_BaseItem} databaseData The database object to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string[]|null} The array of strings matching the structure, or an empty array if not found, or null.
+	*/
+	static #getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const val = [];
+		const lines = databaseData.note.split(/[\r\n]+/);
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, stringResult] = result;
+			val.push(stringResult);
+		});
+		if (val.length === 0) {
+			return nullIfEmpty ? null : [];
+		}
+		return val;
+	}
+	/**
+	* Gathers all string instances matching the regex across every database object provided.
+	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects to inspect.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {string[]|null} The array of strings matching the structure across all sources, or empty, or null.
+	*/
+	static getStringsFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
+		const strings = [];
+		databaseDatas.forEach((databaseData) => {
+			const found = this.getStringsFromNoteByRegex(databaseData, structure);
+			if (found.length) {
+				strings.push(...found);
+			}
+		}, this);
+		if (!strings.length && nullIfEmpty) {
+			return null;
+		}
+		return strings;
+	}
+	/**
+	* Gets the last numeric value based on the provided regex structure.
+	*
+	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
+	* this will be `null` instead of the default 0 as an indicator we didn't find
+	* anything from the notes of this skill.
+	*
+	* This can handle both integers and decimal numbers.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+	* @returns {number|null} The last value from the notes of this object, or zero/null.
+	*/
+	static getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : 0;
+		}
+		const key = `num:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gets the last numeric value based on the provided regex structure.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
+	* @returns {number|null} The last value from the notes of this object, or zero/null.
+	*/
+	static #getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let val = null;
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, numericResult] = result;
+			val = parseFloat(numericResult);
+		});
+		if (val === null) {
+			return nullIfEmpty ? null : 0;
+		}
+		return val;
+	}
+	/**
+	* Gathers all numbers found in arrays on the database object provided.
+	*
+	* This accepts a regex structure, assuming the capture group is an numeric value,
+	* and adds all values together from each line in the notes that match the provided
+	* regex structure.
+	*
+	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
+	* this will be `null` instead of the default [] as an indicator we didn't find
+	* anything from the notes of this skill.
+	*
+	* This can handle both integers and decimal numbers.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+	* @returns {number[]|null}
+	*/
+	static getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : Array.empty;
+		}
+		const key = `num[]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gathers all numbers found in arrays on the database object provided.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
+	* @returns {number[]|null}
+	*/
+	static #getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		let vals = [];
+		const found = this.getArrayFromNotesByRegex(databaseData, structure, true, true);
+		if (found !== null) {
+			vals = found;
+		}
+		if (!vals.length) {
+			return nullIfEmpty ? null : vals;
+		}
+		const noNullVals = vals.filter(ArrayHelper.NoNulls, this);
+		return noNullVals;
+	}
+	/**
+	* Gets the sum of all values from the notes of a collection of database objects.
+	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {number|null} A number if "nullIfEmpty=false", null otherwise.
+	*/
+	static getSumFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
+		if (!databaseDatas.length) {
+			return nullIfEmpty ? null : 0;
+		}
+		let val = 0;
+		databaseDatas.forEach((databaseData) => {
+			val += this.getNumberFromNoteByRegex(databaseData, structure);
+		});
+		if (!val && nullIfEmpty) {
+			return null;
+		}
+		return val;
+	}
+	/**
+	* Get the eval'd formula of all matching values from the notes of a single database object.
+	* @param {RPG_Base} databaseData The database object to parse the notes of.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
+	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {number|null} The calculated result from all formula summed together.
+	*/
+	static getResultFromNoteByRegex(databaseData, structure, baseParam, context = null, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : 0;
+		}
+		const key = `eval:${structure.source}::${structure.flags}::${baseParam}::nullIfEmpty=${nullIfEmpty}`;
+		const compute = () => this.#getResultFromNoteByRegex(databaseData, structure, baseParam, context, nullIfEmpty);
+		if (context) return this.cachedForBattler(context, databaseData, key, compute);
+		return this.cached(databaseData, key, compute);
+	}
+	/**
+	* Get the eval'd formula of all matching values from the notes of a single database object.
+	* @param {RPG_Base} databaseData The database object to parse the notes of.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
+	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {number|null} The calculated result from all formula summed together.
+	*/
+	static #getResultFromNoteByRegex(databaseData, structure, baseParam, context = null, nullIfEmpty = false) {
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let val = 0;
+		const a = context;
+		const b = baseParam;
+		const v = $gameVariables._data;
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, formula] = result;
+			try {
+				const evalResult = new Function("a", "b", "v", `return (${formula})`)(a, b, v).toFixed(3);
+				val += parseFloat(evalResult);
+			} catch (error) {
+				console.error(`An error occurred while evaluating the formula: [${formula}].`);
+				console.error(error);
+			}
+		});
+		if (!val && nullIfEmpty) {
+			return null;
+		}
+		return val;
+	}
+	/**
+	* Gets the eval'd formulai of all values from the notes of a collection of database objects.
+	* It is intended that the regex structure provided will be a numeric formula.
+	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
+	* @param {RegExp} structure The RegExp structure to find values for.
+	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
+	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
+	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
+	* @returns {number|null} The calculated result from all formula summed together.
+	*/
+	static getResultsFromAllNotesByRegex(databaseDatas, structure, baseParam = 0, context = null, nullIfEmpty = false) {
+		if (!databaseDatas.length) {
+			return nullIfEmpty ? null : 0;
+		}
+		let val = 0;
+		databaseDatas.forEach((databaseData) => {
+			val += this.getResultFromNoteByRegex(databaseData, structure, baseParam, context);
+		});
+		if (!val && nullIfEmpty) {
+			return null;
+		}
+		return val;
+	}
+	/**
+	* Gets whether or not there is a matching regex tag on this database entry.
+	*
+	* Do be aware of the fact that with this type of tag, we are checking only
+	* for existence, not the value. As such, it will be `true` if found, and `false` if
+	* not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
+	* `null` instead of `false` when missing, or use a string regex pattern and add
+	* something like `<someKey:true>` or `<someKey:false>` for greater clarity.
+	*
+	* This accepts a regex structure, but does not leverage a capture group.
+	*
+	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
+	* this will be `null` instead of the default `false` as an indicator we didn't find
+	* anything from the notes of this skill.
+	* @param {RPG_Base} databaseData The regular expression to filter notes by.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
+	*/
+	static checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : false;
+		}
+		const key = `bool:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Gets whether or not there is a matching regex tag on this database entry.
+	* @param {RPG_Base} databaseData The regular expression to filter notes by.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
+	*/
+	static #checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let val = false;
+		let hasMatch = false;
+		lines.forEach((line) => {
+			const hasStructure = scan.test(line);
+			if (hasStructure) {
+				val = true;
+				hasMatch = true;
+			}
+		});
+		if (hasMatch === false && nullIfEmpty) {
+			return null;
+		} else {
+			return val;
+		}
+	}
+	/**
+	* Gets whether or not there is a matching regex tag from a collection of database objects.
+	*
+	* Do be aware of the fact that with this type of tag, we are checking only
+	* for existence, not the value. As such, it will be `true` if found, and `false` if
+	* not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
+	* `null` instead of `false` when missing, or use a string regex pattern and add
+	* something like `<someKey:true>` or `<someKey:false>` for greater clarity.
+	*
+	* This accepts a regex structure, but does not leverage a capture group.
+	*
+	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
+	* this will be `null` instead of the default `false` as an indicator we didn't find
+	* anything from the notes of this skill.
+	* @param {RPG_Base[]} databaseDatas The objects to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
+	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
+	*/
+	static checkForBooleanFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
+		const results = databaseDatas.map((databaseData) => this.checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
+		const onlyTrueRemains = results.filter((result) => result !== null).filter((result) => result !== false);
+		if (onlyTrueRemains.length === 0) {
+			if (nullIfEmpty) {
+				return null;
+			}
+			return false;
+		}
+		return true;
+	}
+	/**
+	* Gets an array of arrays based on the provided regex structure.
+	*
+	* This accepts a regex structure, assuming the capture group is an array of values
+	* all wrapped in hard brackets [].
+	*
+	* If the optional flag `tryParse` is true, then it will attempt to parse out
+	* the array of values as well, including translating strings to numbers/booleans
+	* and keeping array structures all intact.
+	* @param {RPG_Base} databaseData The database object to parse notes from.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
+	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
+	* @returns {any[][]|null} The array of arrays from the notes, or null.
+	*/
+	static getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : [];
+		}
+		const key = `any[][]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getArraysFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
+	}
+	/**
+	* Gets an array of arrays matching the regex across every database object provided.
+	* @param {RPG_Base[]} databaseDatas The collection of database objects to parse notes from.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found arrays.
+	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
+	* @returns {any[][]|null} The array of arrays from the notes across all sources, or empty, or null.
+	*/
+	static getArraysFromAllNotesByRegex(databaseDatas, structure, tryParse = true, nullIfEmpty = false) {
+		const arrays = [];
+		databaseDatas.forEach((databaseData) => {
+			const found = this.getArraysFromNotesByRegex(databaseData, structure, tryParse);
+			if (found.length) {
+				arrays.push(...found);
+			}
+		}, this);
+		if (!arrays.length && nullIfEmpty) {
+			return null;
+		}
+		return arrays;
+	}
+	/**
+	* Gets an array of arrays based on the provided regex structure.
+	* @param {RPG_Base} databaseData The database object to parse notes from.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
+	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
+	* @returns {any[][]|null} The array of arrays from the notes, or null.
+	*/
+	static #getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let val = [];
+		let hasMatch = false;
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, match] = result;
+			val.push(match);
+			hasMatch = true;
+		});
+		if (!hasMatch) {
+			return nullIfEmpty ? null : [];
+		}
+		if (tryParse) {
+			val = val.map(JsonMapper.parseObject, JsonMapper);
+		}
+		return val;
+	}
+	/**
+	* Gets a single array based on the provided regex structure.
+	*
+	* This accepts a regex structure, assuming the capture group is an array of values
+	* all wrapped in hard brackets [].
+	*
+	* If the optional flag `tryParse` is true, then it will attempt to parse out
+	* the array of values as well, including translating strings to numbers/booleans
+	* and keeping array structures all intact.
+	* @param {RPG_Base} databaseData The contents of the note of a given object.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
+	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
+	* @returns {any[]|null} The array from the notes, or null.
+	*/
+	static getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : [];
+		}
+		const key = `any[]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getArrayFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
+	}
+	/**
+	* Gets a single array based on the provided regex structure.
+	*
+	* This accepts a regex structure, assuming the capture group is an array of values
+	* all wrapped in hard brackets [].
+	*
+	* If the optional flag `tryParse` is true, then it will attempt to parse out
+	* the array of values as well, including translating strings to numbers/booleans
+	* and keeping array structures all intact.
+	* @param {RPG_Base} databaseData The contents of the note of a given object.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
+	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
+	* @returns {any[]|null} The array from the notes, or null.
+	*/
+	static #getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let val = null;
+		let hasMatch = false;
+		lines.forEach((line) => {
+			if (line.match(structure)) {
+				const [, result] = scan.exec(line);
+				val = JsonMapper.parseObject(result);
+				hasMatch = true;
+			}
+		});
+		if (!hasMatch) {
+			return nullIfEmpty ? null : [];
+		}
+		if (tryParse) {
+			val = val.map(JsonMapper.parseObject, JsonMapper);
+		}
+		return val;
+	}
+	/**
+	* Collects all {@link JABS_OnChanceEffect}s from a single database objects.
+	* @param {RPG_Base} databaseData The database object to retrieve on-chance effects from.
+	* @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
+	* @returns {JABS_OnChanceEffect[]} All found on-chance effects on this database object.
+	*/
+	static getOnChanceEffectsFromDatabaseObject(databaseData, structure) {
+		const foundDatas = this.getArraysFromNotesByRegex(databaseData, structure, true);
+		const key = J.BASE.Helpers.getKeyFromRegexp(structure);
+		const mapper = (data) => {
+			const [skillId, chance, hitTypeString] = data;
+			const hitType = RPGManager.resolveHitTypeString(hitTypeString);
+			return new JABS_OnChanceEffect(skillId, chance ?? 100, key, hitType);
+		};
+		const mappedOnChanceEffects = foundDatas.map(mapper, this);
+		return mappedOnChanceEffects;
+	}
+	/**
+	* Resolves an optional hit type string from a notetag into its numeric constant.
+	* Accepts "physical", "magical", or "certain" (case-insensitive).
+	* Returns null when the string is absent or unrecognised, meaning any hit type matches.
+	* @param {string|undefined} str The raw string from the parsed notetag array.
+	* @returns {number|null}
+	*/
+	static resolveHitTypeString(str) {
+		if (!str) return null;
+		switch (str.toLowerCase()) {
+			case "physical": return Game_Action.HITTYPE_PHYSICAL;
+			case "magical": return Game_Action.HITTYPE_MAGICAL;
+			case "certain": return Game_Action.HITTYPE_CERTAIN;
+			default: return null;
+		}
+	}
+	/**
+	* Collects all {@link JABS_OnChanceEffect}s from the list of database objects.
+	* @param {RPG_Base[]} databaseDatas The list of database objects to parse.
+	* @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
+	* @returns {JABS_OnChanceEffect[]}
+	*/
+	static getOnChanceEffectsFromDatabaseObjects(databaseDatas, structure) {
+		const onChanceEffects = [];
+		databaseDatas.forEach((databaseData) => {
+			const onChanceEffectList = this.getOnChanceEffectsFromDatabaseObject(databaseData, structure);
+			onChanceEffects.push(...onChanceEffectList);
+		});
+		return onChanceEffects;
+	}
+	/**
+	* Determines whether the database object can have its note parsed.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @returns {boolean} True if it can be parsed, false otherwise.
+	*/
+	static #canParsedatabaseData(databaseData) {
+		if (!databaseData) return false;
+		if (databaseData && !databaseData.note) return false;
+		return true;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/database/base/RPG_Base.js
 /**
 * A class representing the foundation of all database objects.
@@ -195,12 +1338,15 @@
 * and additionally a means to access the original database object directly in case
 * there are other things that aren't supported by this class that need accessing.
 */
-var RPG_Base = class {
+var RPG_Base = class RPG_Base {
 	/**
-	* The original object that this data was built from.
-	* @type {any}
+	* Stores the original underlying data per-instance, keyed by the instance.
+	* Using a static WeakMap instead of a private instance field makes _original()
+	* safe to call on objects created via Object.create(RPG_Base.prototype) (which
+	* never run the constructor and therefore cannot initialize private fields).
+	* @type {WeakMap<RPG_Base, any>}
 	*/
-	#original = null;
+	static #originals = new WeakMap();
 	/**
 	* The index of this entry in the database.
 	* @type {number}
@@ -233,13 +1379,20 @@ var RPG_Base = class {
 	* @param {number} index The index of the entry in the database.
 	*/
 	constructor(baseItem, index) {
-		this.#original = baseItem;
+		RPG_Base.#originals.set(this, baseItem);
 		this.index = index;
 		this.id = baseItem.id;
 		this.meta = baseItem.meta;
 		this.name = baseItem.name;
 		this.note = baseItem.note;
+		this.initMembers(baseItem);
 	}
+	/**
+	* Extension seam: called at the end of construction with the raw source object so plugins can copy extra
+	* properties that are not part of the base schema.
+	* @param {any} _baseItem The underlying database object.
+	*/
+	initMembers(_baseItem) {}
 	/**
 	* Retrieves the index of this entry in the database.
 	* @returns {number}
@@ -271,7 +1424,7 @@ var RPG_Base = class {
 	* @returns {any}
 	*/
 	_original() {
-		return this.#original;
+		return RPG_Base.#originals.get(this) ?? this;
 	}
 	/**
 	* Creates a new instance of this wrapper class with all the same
@@ -336,6 +1489,14 @@ var RPG_Base = class {
 		return false;
 	}
 	/**
+	* Whether or not this database entry is an equip item (weapon or armor).
+	* {@link RPG_EquipItem} overrides this to return true.
+	* @returns {boolean}
+	*/
+	isEquipItem() {
+		return false;
+	}
+	/**
 	* Whether or not this database entry is a skill.
 	* @returns {boolean}
 	*/
@@ -355,6 +1516,15 @@ var RPG_Base = class {
 	*/
 	implementationType() {
 		return "@base";
+	}
+	/**
+	* Gets all type classifiers assigned to this state via notetag.
+	* Returns every value matched by a {@code <type:CLASSIFIER>} tag in the notebox.
+	* Multiple tags on the same state are all collected and returned together.
+	* @returns {string[]} The array of classifier strings, or an empty array if none are defined.
+	*/
+	types() {
+		return RPGManager.getStringsFromNoteByRegex(this, J.BASE.RegExp.ClassifierType);
 	}
 };
 
@@ -387,6 +1557,22 @@ var RPG_BaseItem = class extends RPG_Base {
 		this.iconIndex = baseItem.iconIndex;
 	}
 };
+/**
+* A frozen sentinel representing an empty or unoccupied database item slot.
+* Use in place of null when a slot may have no item equipped so that callers
+* can read {@code .name}, {@code .iconIndex}, and {@code .description} without
+* null-guarding. Distinguish a real entry from this sentinel via {@code entry.id > 0}.
+* @type {Readonly<{id: number, index: number, name: string, note: string, meta: {}, description: string, iconIndex: number}>}
+*/
+RPG_BaseItem.Empty = Object.freeze({
+	id: 0,
+	index: 0,
+	name: "",
+	note: "",
+	meta: {},
+	description: "",
+	iconIndex: 0
+});
 
 //#endregion
 //#region src/plugins/_base/_metadata/initialization.js
@@ -403,7 +1589,7 @@ J.BASE = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.1.1";
+J.BASE.Metadata.Version = "3.2.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -481,13 +1667,36 @@ J.BASE.Traits = {
 	NO_DISAPPEAR: 63
 };
 /**
+* String keys representing the three core battler resources.
+* Passed as the first argument to {@link Game_Battler#onHeal} so listeners
+* can branch without comparing magic strings themselves.
+*/
+J.BASE.Resource = {
+	/**
+	* Hit points — the primary health resource.
+	*/
+	HP: "hp",
+	/**
+	* Magic points — the mana / skill cost resource.
+	*/
+	MP: "mp",
+	/**
+	* Tech points — the limit / combo resource.
+	*/
+	TP: "tp"
+};
+/**
 * All regular expressions used by this plugin.
 */
 J.BASE.RegExp = {};
 /**
 * The basic structure for the maximum count of a number of items holdable is.
 */
-J.BASE.RegExp.MaxItems = /<max:(d+)>/gi;
+J.BASE.RegExp.MaxItems = /<max:(\d+)>/gi;
+/**
+* Outgoing heal potency multiplier — the sender-side counterpart to REC (`<har:25>` = +25%).
+*/
+J.BASE.RegExp.HealAmplification = /<har:(-?\d+)>/gi;
 /**
 * The definition of what a parsable comment in an event looks like.
 * This enforces a structure that enables the following tags to be valid:
@@ -506,6 +1715,23 @@ J.BASE.RegExp.ParsableComment = /^<[[\]\w :"',.!+\-*/\\]+>$/i;
 */
 J.BASE.RegExp.MaxTp = /<maxTp: ?(-?\d+)>/i;
 /**
+* One or more type classifiers assigned to a state.
+* Multiple tags on the same state are all collected.
+*
+* <pre>
+* Structure:
+*  <type:CLASSIFIER>
+*
+* Example:
+*  <type:poison>
+*
+* Translation:
+*  This state belongs to the "poison" classifier category.
+* </pre>
+* @type {RegExp}
+*/
+J.BASE.RegExp.ClassifierType = /<type:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>/gi;
+/**
 * A collection of all aliased methods for this plugin.
 */
 J.BASE.Aliased = {
@@ -513,6 +1739,7 @@ J.BASE.Aliased = {
 	Bitmap: new Map(),
 	DataManager: new Map(),
 	JsonEx: new Map(),
+	Game_Action: new Map(),
 	Game_BattlerBase: new Map(),
 	Game_Character: {},
 	Game_Actor: new Map(),
@@ -523,11 +1750,12 @@ J.BASE.Aliased = {
 	Game_Timer: new Map(),
 	Game_System: new Map(),
 	Scene_Base: new Map(),
+	Scene_Boot: new Map(),
 	Scene_MenuBase: new Map(),
 	SoundManager: new Map(),
 	Window_Base: new Map(),
-	Window_Command: {},
-	Window_Selectable: {}
+	Window_Command: new Map(),
+	Window_Selectable: new Map()
 };
 /**
 * The helper functions used commonly throughout my plugins.
@@ -672,7 +1900,7 @@ Object.defineProperty(Array, "empty", {
 /**
 * Executes a given function a given number of `times`.
 * This uses `.forEach()` under the covers, so build your functions accordingly.
-* @param {number} times
+* @param {number} times The times driving this step.
 * @param {Function} func The function
 * @param {undefined|any=} thisArg What represents "this" in the `.forEach()`; defaults to undefined.
 */
@@ -685,7 +1913,7 @@ Array.iterate = function(times, func, thisArg = undefined) {
 * @returns {Date} The updated date with the designated days.
 */
 Date.prototype.addDays = function(days) {
-	var result = new Date(this.valueOf());
+	const result = new Date(this.valueOf());
 	result.setDate(result.getDate() + days);
 	return result;
 };
@@ -716,137 +1944,6 @@ Date.prototype.addMinutes = function(minutes) {
 J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?") {
 	const structure = /[0-9A-Za-z\-()[\]*!?'"=@,.]/gi;
 	return stringToMask.toString().replace(structure, maskingCharacter);
-};
-/**
-* A polyfill for {@link Array.prototype.at}.<br>
-* If this is not present in the available runtime, then this implementation
-* will be used instead.
-*/
-if (![].at) {
-	Array.prototype.at = function(index) {
-		index = Math.trunc(index) || 0;
-		if (index < 0) {
-			index += this.length;
-		}
-		if (index < 0 || index >= this.length) {
-			return undefined;
-		}
-		return this[index];
-	};
-}
-
-//#endregion
-//#region src/plugins/_base/_utilities/ArrayHelper.js
-var ArrayHelper = class {
-	/**
-	* A filter function for ignoring null or undefined.
-	* @param {any} value The value of the array being filtered.
-	* @returns {boolean} False if the value is null or undefined, true otherwise.
-	*/
-	static NoNulls(value) {
-		if (value === undefined || value === null) {
-			return false;
-		}
-		return true;
-	}
-	/**
-	* Determines whether two arrays share at least one common element.
-	* Builds a Set from the smaller array for O(n + m) performance and early exit.
-	*
-	* Notes:
-	* - Accepts numbers or strings (ids, keys, etc.).
-	* - Returns false if either array is empty.
-	*
-	* @param {(number|string)[]} left The first collection of values.
-	* @param {(number|string)[]} right The second collection of values.
-	* @returns {boolean} True if a value is found in both arrays; otherwise false.
-	*/
-	static hasAnyIntersection(left, right) {
-		if (!left || left.length === 0) {
-			return false;
-		}
-		if (!right || right.length === 0) {
-			return false;
-		}
-		let small = left;
-		let large = right;
-		if (right.length < left.length) {
-			small = right;
-			large = left;
-		}
-		const lookup = new Set(small);
-		for (let i = 0; i < large.length; i++) {
-			const value = large[i];
-			if (lookup.has(value)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	/**
-	* Creates an array of numbers from a range, inclusive.
-	* @param {number} a The starting number of the range.
-	* @param {number} b The ending number of the range.
-	* @returns {number[]} An array of numbers from a to b, inclusive.
-	*/
-	static rangeInclusive(a, b) {
-		return Array.from({ length: b - a + 1 }, (_, i) => a + i);
-	}
-};
-
-//#endregion
-//#region src/plugins/_base/_utilities/JsonMapper.js
-var JsonMapper = class {
-	/**
-	* Parses a object into whatever its given data type is.
-	* @param {any} obj The unknown object to parse.
-	* @returns {any|null}
-	*/
-	static parseObject(obj) {
-		if (obj === null || obj === undefined) return null;
-		if (typeof obj === "string") {
-			if (obj.startsWith("[") && obj.endsWith("]")) {
-				return this.parseArrayFromString(obj);
-			}
-			return this.parseString(obj);
-		}
-		if (Array.isArray(obj)) {
-			return obj.map(this.parseObject, this);
-		}
-		return obj;
-	}
-	/**
-	* Parses a presumed array by peeling off the `[` and `]` and parsing the
-	* exposed insides.
-	*
-	* This does not handle multiple nested arrays properly.
-	* @param {string} strArr An string presumed to be an array.
-	* @returns {any} The parsed exposed insides of the string array.
-	*/
-	static parseArrayFromString(strArr) {
-		const exposedArray = strArr.slice(1, strArr.length - 1).split(/, |,/);
-		const innerArrayStartIndex = exposedArray.findIndex((element) => element.startsWith("["));
-		if (innerArrayStartIndex > -1) {
-			const outerArrayEndIndex = exposedArray.findLastIndex((element) => element.endsWith("]"));
-			const slicedArrayString = exposedArray.slice(innerArrayStartIndex, outerArrayEndIndex + 1).toString();
-			const innerArray = this.parseArrayFromString(slicedArrayString);
-			exposedArray.splice(innerArrayStartIndex, outerArrayEndIndex + 1 - innerArrayStartIndex, innerArray);
-		}
-		return this.parseObject(exposedArray);
-	}
-	/**
-	* Parses a metadata object from a string into possibly a boolean or number.
-	* If the conversion to those fail, then it'll proceed as a string.
-	* @param {string} str The string object to parse.
-	* @returns {boolean|number|string}
-	*/
-	static parseString(str) {
-		if (str.toLowerCase() === "true") {
-			return true;
-		} else if (str.toLowerCase() === "false") return false;
-		if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
-		return str;
-	}
 };
 
 //#endregion
@@ -892,16 +1989,368 @@ var SerializableRegistry = class {
 };
 
 //#endregion
+//#region src/plugins/_base/core/ParameterFormat.js
+/**
+* Display formatting policy for a {@link ParameterDefinition}.
+*/
+var ParameterFormat = class {
+	/**
+	* Whole-number base parameter (ATK, DEF, HIT, etc.).
+	* @type {string}
+	*/
+	static FLAT = "flat";
+	/**
+	* Large pool base parameter (MHP, MMP).
+	* @type {string}
+	*/
+	static FLAT_LARGE = "flatLarge";
+	/**
+	* Ex-parameter rate shown in percent space (multiply by 100).
+	* @type {string}
+	*/
+	static PERCENT = "percent";
+	/**
+	* S-parameter rate centered around zero (multiply by 100, subtract 100).
+	* @type {string}
+	*/
+	static PERCENT_CENTERED = "percentCentered";
+	/**
+	* Regeneration rate shown as per-second (divide engine tick by 5).
+	* @type {string}
+	*/
+	static REGEN_PER_SECOND = "regenPerSecond";
+	/**
+	* Percent stat with explicit suffix (CDM, CDR, CNT, MRF, etc.).
+	* @type {string}
+	*/
+	static PERCENT_SUFFIX = "percentSuffix";
+	/**
+	* Multiplier shown in percent space without centering (SDR, APR, etc.).
+	* @type {string}
+	*/
+	static MULTIPLIER_PERCENT = "multiplierPercent";
+	/**
+	* Hundred-scale points display with no centering (HIT).
+	* @type {string}
+	*/
+	static SCALED_POINTS = "scaledPoints";
+	/**
+	* Hundred-scale points display centered around zero (GRD).
+	* @type {string}
+	*/
+	static SCALED_OFFSET = "scaledOffset";
+};
+
+//#endregion
+//#region src/plugins/_base/core/ParameterDisplayPolicy.js
+/**
+* Value-aware display policy for {@link ParameterDefinition} entries.
+* Drives signed padding and dynamic status colors without changing raw battler math.
+*/
+var ParameterDisplayPolicy = class {
+	/**
+	* Default catalog display — static color only, no extra sign rules.
+	* @type {string}
+	*/
+	static NONE = "none";
+	/**
+	* Damage intake rates (PDR, MDR, FDR): lower is better, negative is protective.
+	* @type {string}
+	*/
+	static DAMAGE_RATE = "damageRate";
+	/**
+	* Reward gain rates (EXP, gold, drops, SDP, APT): higher is better, centered at zero.
+	* @type {string}
+	*/
+	static REWARD_RATE = "rewardRate";
+	/**
+	* Signed centered percent with no dynamic color (aggro).
+	* @type {string}
+	*/
+	static SIGNED = "signed";
+	/**
+	* Skill cost reduction rates (HCR, etc.): lower is better, reducing what the battler pays.
+	* @type {string}
+	*/
+	static COST_RATE = "costRate";
+};
+
+//#endregion
+//#region src/plugins/_base/core/ParameterDisplaySentinel.js
+/**
+* Fixed status-screen labels for clamped rate parameters.
+*/
+var ParameterDisplaySentinel = class {
+	/** @type {string} */
+	static FREE = "FREE";
+	/** @type {string} */
+	static IMMUNE = "IMMUNE";
+	/** @type {string} */
+	static NONE = "NONE";
+};
+
+//#endregion
+//#region src/plugins/_base/core/ParameterGroups.js
+/**
+* Status-screen and catalog grouping ids for {@link ParameterDefinition}.
+*/
+var ParameterGroups = class ParameterGroups {
+	/** @type {string} */
+	static VITALITY = "vitality";
+	/** @type {string} */
+	static COMBAT = "combat";
+	/** @type {string} */
+	static PRECISION = "precision";
+	/** @type {string} */
+	static DEFENSIVE = "defensive";
+	/** @type {string} */
+	static MOBILITY = "mobility";
+	/** @type {string} */
+	static FATE = "fate";
+	/** @type {string} */
+	static SUPPORT = "support";
+	/**
+	* All groups in default status-screen iteration order.
+	* @type {string[]}
+	*/
+	static ALL = [
+		ParameterGroups.VITALITY,
+		ParameterGroups.COMBAT,
+		ParameterGroups.PRECISION,
+		ParameterGroups.DEFENSIVE,
+		ParameterGroups.MOBILITY,
+		ParameterGroups.FATE,
+		ParameterGroups.SUPPORT
+	];
+};
+
+//#endregion
+//#region src/plugins/_base/core/ParameterKeys.js
+/**
+* String keys for vanilla engine parameters and legacy long-param id translation.
+*/
+var ParameterKeys = class ParameterKeys {
+	/**
+	* b-param registry keys indexed by engine param id (0–7).
+	* @type {string[]}
+	*/
+	static BPARAM_KEYS = [
+		"mhp",
+		"mmp",
+		"atk",
+		"def",
+		"mat",
+		"mdf",
+		"agi",
+		"luk"
+	];
+	/**
+	* x-param registry keys indexed by engine xparam id (0–9).
+	* @type {string[]}
+	*/
+	static XPARAM_KEYS = [
+		"hit",
+		"eva",
+		"cri",
+		"cev",
+		"mev",
+		"mrf",
+		"cnt",
+		"hrg",
+		"mrg",
+		"trg"
+	];
+	/**
+	* s-param registry keys indexed by engine sparam id (0–9).
+	* @type {string[]}
+	*/
+	static SPARAM_KEYS = [
+		"tgr",
+		"grd",
+		"rec",
+		"pha",
+		"mcr",
+		"tcr",
+		"pdr",
+		"mdr",
+		"fdr",
+		"exr"
+	];
+	/**
+	* Legacy SDP panel long-param id → registry key.
+	* @type {Object<number, string>}
+	*/
+	static LEGACY_LONG_PARAM_TO_KEY = {
+		0: "mhp",
+		1: "mmp",
+		2: "atk",
+		3: "def",
+		4: "mat",
+		5: "mdf",
+		6: "agi",
+		7: "luk",
+		8: "hit",
+		9: "eva",
+		10: "cri",
+		11: "cev",
+		12: "mev",
+		13: "mrf",
+		14: "cnt",
+		15: "hrg",
+		16: "mrg",
+		17: "trg",
+		18: "tgr",
+		19: "grd",
+		20: "rec",
+		21: "pha",
+		22: "mcr",
+		23: "tcr",
+		24: "pdr",
+		25: "mdr",
+		26: "fdr",
+		27: "exr",
+		28: "cdm",
+		29: "ctr",
+		30: "mtp",
+		31: "msb",
+		32: "prof",
+		33: "sdr",
+		35: "lst",
+		36: "mst",
+		37: "tst",
+		38: "sar",
+		39: "ser",
+		40: "apr",
+		41: "gdr",
+		42: "dor",
+		43: "hcr",
+		44: "cdr",
+		45: "per",
+		46: "har"
+	};
+	/**
+	* Parameters where a panel decrease is beneficial in the SDP preview UI.
+	* @type {string[]}
+	*/
+	static SDP_SMALLER_IS_BETTER = [
+		"tgr",
+		"mcr",
+		"tcr",
+		"pdr",
+		"mdr",
+		"fdr"
+	];
+	/**
+	* @param {number} paramId Engine b-param id (0–7).
+	* @returns {string|null}
+	*/
+	static bparamKey(paramId) {
+		return ParameterKeys.BPARAM_KEYS[paramId] ?? null;
+	}
+	/**
+	* @param {number} xparamId Engine x-param id (0–9).
+	* @returns {string|null}
+	*/
+	static xparamKey(xparamId) {
+		return ParameterKeys.XPARAM_KEYS[xparamId] ?? null;
+	}
+	/**
+	* @param {number} sparamId Engine s-param id (0–9).
+	* @returns {string|null}
+	*/
+	static sparamKey(sparamId) {
+		return ParameterKeys.SPARAM_KEYS[sparamId] ?? null;
+	}
+	/**
+	* @param {number} longParamId Legacy unified panel parameter id.
+	* @returns {string|null}
+	*/
+	static legacyLongParamKey(longParamId) {
+		return ParameterKeys.LEGACY_LONG_PARAM_TO_KEY[longParamId] ?? null;
+	}
+	/**
+	* Reverse lookup: returns the engine b-param id (0–7) for the given registry key,
+	* or -1 if the key does not correspond to any b-param.
+	* @param {string} parameterKey The registry key to look up.
+	* @returns {number}
+	*/
+	static bparamId(parameterKey) {
+		return ParameterKeys.BPARAM_KEYS.indexOf(parameterKey);
+	}
+	/**
+	* Reverse lookup: returns the engine x-param id (0–9) for the given registry key,
+	* or -1 if the key does not correspond to any x-param.
+	* @param {string} parameterKey The registry key to look up.
+	* @returns {number}
+	*/
+	static xparamId(parameterKey) {
+		return ParameterKeys.XPARAM_KEYS.indexOf(parameterKey);
+	}
+	/**
+	* Reverse lookup: returns the engine s-param id (0–9) for the given registry key,
+	* or -1 if the key does not correspond to any s-param.
+	* @param {string} parameterKey The registry key to look up.
+	* @returns {number}
+	*/
+	static sparamId(parameterKey) {
+		return ParameterKeys.SPARAM_KEYS.indexOf(parameterKey);
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/core/JsonEx.js
 /**
+* Extends {@link JsonEx._encode}.<br/>
+* Also encodes native `Map`/`Set` instances, and stops the original algorithm's in-place mutation of
+* whatever object graph is being stringified.
+*/
+J.BASE.Aliased.JsonEx.set("_encode", JsonEx._encode);
+JsonEx._encode = function(value, depth) {
+	if (depth >= this.maxDepth) {
+		throw new Error("Object too deep");
+	}
+	if (value instanceof Map) {
+		return {
+			"@": "Map",
+			entries: [...value.entries()].map(([key, val]) => [this._encode(key, depth + 1), this._encode(val, depth + 1)])
+		};
+	}
+	if (value instanceof Set) {
+		return {
+			"@": "Set",
+			values: [...value].map((val) => this._encode(val, depth + 1))
+		};
+	}
+	const type = Object.prototype.toString.call(value);
+	if (type === "[object Object]" || type === "[object Array]") {
+		const encoded = Array.isArray(value) ? [] : {};
+		const constructorName = value.constructor.name;
+		if (constructorName !== "Object" && constructorName !== "Array") {
+			encoded["@"] = constructorName;
+		}
+		for (const key of Object.keys(value)) {
+			encoded[key] = this._encode(value[key], depth + 1);
+		}
+		return encoded;
+	}
+	return value;
+};
+/**
 * Extends {@link JsonEx._decode}.<br/>
-* Also resolves constructors via {@link SerializableRegistry} before falling back
-* to the engine's default `window[className]` lookup.
+* Also resolves constructors via {@link SerializableRegistry} before falling back to the engine's
+* default `window[className]` lookup, and reconstructs `Map`/`Set` instances encoded by the
+* {@link JsonEx._encode} extension above.
 */
 J.BASE.Aliased.JsonEx.set("_decode", JsonEx._decode);
 JsonEx._decode = function(value) {
 	const type = Object.prototype.toString.call(value);
 	if (type === "[object Object]" || type === "[object Array]") {
+		if (value["@"] === "Map") {
+			return new Map(value.entries.map(([key, val]) => [this._decode(key), this._decode(val)]));
+		}
+		if (value["@"] === "Set") {
+			return new Set(value.values.map((val) => this._decode(val)));
+		}
 		if (value["@"]) {
 			const constructorName = value["@"];
 			const constructor = SerializableRegistry.resolve(constructorName) || window[constructorName];
@@ -958,7 +2407,7 @@ var PluginVersion = class PluginVersion {
 	* Constructor.
 	* It is strongly recommended to use the {@link PluginVersion.builder} to
 	* create these classes due to their string-parsing sensitivity.
-	* @param {string} version
+	* @param {string} version The version driving this step.
 	*/
 	constructor(version) {
 		const semverParts = version.split(".").map((part) => parseInt(part));
@@ -1798,197 +3247,193 @@ var J_EventEmitter = class extends PIXI.utils.EventEmitter {};
 /**
 * A reusable timer with some nifty functions.
 */
-function J_Timer(timerMax) {
-	this.initialize(timerMax);
-}
-J_Timer.prototype = {};
-J_Timer.prototype.constructor = J_Timer;
-/**
-* Constructor.
-*
-* NOTE: A key is not required, but can be set with setters.
-* @param {number=} [timerMax=0] The max duration of this timer.
-* @param {boolean=} [stopCounting=true] Whether or not to stop counting after completing; defaults to true.
-* @param {?Function} callback EXPERIMENTAL. A callback function for completion of this timer.
-*/
-J_Timer.prototype.initialize = function(timerMax = 0, stopCounting = true, callback = null) {
+var J_Timer = class {
 	/**
-	* The maximum count this timer can reach.
-	* @type {number}
+	* Constructor.
+	*
+	* NOTE: A key is not required, but can be set with setters.
+	* @param {number=} [timerMax=0] The max duration of this timer.
+	* @param {boolean=} [stopCounting=true] Whether or not to stop counting after completing; defaults to true.
+	* @param {?Function} callback EXPERIMENTAL. A callback function for completion of this timer.
 	*/
-	this._timerMax = timerMax;
+	constructor(timerMax = 0, stopCounting = true, callback = null) {
+		/**
+		* The maximum count this timer can reach.
+		* @type {number}
+		*/
+		this._timerMax = timerMax;
+		/**
+		* Whether or not to stop counting after we've reached the max.
+		* @type {boolean}
+		*/
+		this._stopCounting = stopCounting;
+		/**
+		* The callback function to execute when the timer completes.
+		* If none is provided, nothing will happen, though the {@link #onComplete} will still execute
+		* in case you would prefer to handle it in code yourself.
+		* @type {Function|null}
+		*/
+		this._callback = callback;
+		this.initMembers();
+	}
 	/**
-	* Whether or not to stop counting after we've reached the max.
-	* @type {boolean}
+	* Initializes the default members for the timer.
 	*/
-	this._stopCounting = stopCounting;
+	initMembers() {
+		/**
+		* A key or name for this timer.
+		* This is not strictly enforced by the timer, so this is for
+		* developer convenience if needed.
+		* @type {string}
+		*/
+		this._key = String.empty;
+		/**
+		* The counter on this timer that ticks up to the max.
+		* @type {number}
+		*/
+		this._timer = 0;
+	}
 	/**
-	* The callback function to execute when the timer completes.
-	* If none is provided, nothing will happen, though the {@link #onComplete} will still execute
-	* in case you would prefer to handle it in code yourself.
-	* @type {Function|null}
+	* Gets the key of this timer, if one was set.
+	* @returns {string|String.empty}
 	*/
-	this._callback = callback;
-	this.initMembers();
-};
-/**
-* Initializes the default members for the timer.
-*/
-J_Timer.prototype.initMembers = function() {
+	getKey() {
+		return this._key;
+	}
 	/**
-	* A key or name for this timer.
-	* This is not strictly enforced by the timer, so this is for
-	* developer convenience if needed.
-	* @type {string}
+	* Sets the key of this timer to the given value.
+	* @param {string} key The new key or name for this timer.
 	*/
-	this._key = String.empty;
+	setKey(key) {
+		this._key = key;
+	}
 	/**
-	* The counter on this timer that ticks up to the max.
-	* @type {number}
+	* Gets the current time on this timer.
+	* @returns {number}
 	*/
-	this._timer = 0;
+	getCurrentTime() {
+		return this._timer;
+	}
 	/**
-	* The maximum count this timer can reach.
-	* @type {number}
+	* Sets the current time of this timer to a given amount.
+	* Reducing below max time will remove completion if applicable.
+	* Setting at or above max time will apply completion if applicable.
+	* @param {number} time The new time for this timer.
 	*/
-	this._timerMax = 0;
-};
-/**
-* Gets the key of this timer, if one was set.
-* @returns {string|String.empty}
-*/
-J_Timer.prototype.getKey = function() {
-	return this._key;
-};
-/**
-* Sets the key of this timer to the given value.
-* @param {string} key The new key or name for this timer.
-*/
-J_Timer.prototype.setKey = function(key) {
-	this._key = key;
-};
-/**
-* Gets the current time on this timer.
-* @returns {number}
-*/
-J_Timer.prototype.getCurrentTime = function() {
-	return this._timer;
-};
-/**
-* Sets the current time of this timer to a given amount.
-* Reducing below max time will remove completion if applicable.
-* Setting at or above max time will apply completion if applicable.
-* @param {number} time The new time for this timer.
-*/
-J_Timer.prototype.setCurrentTime = function(time) {
-	this._timer = time;
-	this._handleIfIncomplete();
-	this._handleIfComplete();
-};
-/**
-* Modify the current time of this timer by the given amount.
-* Reducing below max time will remove completion if applicable.
-* Setting at or above max time will apply completion if applicable.
-* @param {number} time The amount to modify by.
-* @returns {number} The new total after modification.
-*/
-J_Timer.prototype.modCurrentTime = function(time) {
-	this._timer += time;
-	this._handleIfIncomplete();
-	this._handleIfComplete();
-	return this._timer;
-};
-/**
-* Gets the total time set to run on this timer.
-* @returns {number}
-*/
-J_Timer.prototype.getMaxTime = function() {
-	return this._timerMax;
-};
-/**
-* Sets the max time for this timer to the given amount.
-* @param {number} maxTime The new max time for this timer.
-*/
-J_Timer.prototype.setMaxTime = function(maxTime) {
-	this._timerMax = maxTime;
-};
-/**
-* Whether or not we should stop counting beyond max when updating.
-* @returns {boolean}
-*/
-J_Timer.prototype.shouldStopCounting = function() {
-	return this._stopCounting;
-};
-/**
-* Normalize time that is above bounds while the "stop counting" flag is set.
-*/
-J_Timer.prototype.normalizeTime = function() {
-	if (!this.isTimerComplete()) return;
-	if (!this.shouldStopCounting()) return;
-	this._timer = this.getMaxTime();
-};
-/**
-* Checks whether or not this timer is completed.
-* @returns {boolean} True if it is completed, false otherwise.
-*/
-J_Timer.prototype.isTimerComplete = function() {
-	return this._timerComplete;
-};
-/**
-* Resets the timer back to initial state.
-*/
-J_Timer.prototype.reset = function() {
-	this._timer = 0;
-	this._timerComplete = false;
-};
-/**
-* The main update method of this timer.
-*/
-J_Timer.prototype.update = function() {
-	this.tick();
-	this.tock();
-};
-/**
-* Processes the incrementing of the time.
-*/
-J_Timer.prototype.tick = function() {
-	if (this.isTimerComplete()) return;
-	this._timer++;
-};
-/**
-* Processes the management of state of this timer.
-*/
-J_Timer.prototype.tock = function() {
-	this._handleIfComplete();
-};
-/**
-* Handles the possibility of this timer becoming incomplete.
-*/
-J_Timer.prototype._handleIfIncomplete = function() {
-	if (this._timer < this._timerMax) {
+	setCurrentTime(time) {
+		this._timer = time;
+		this._handleIfIncomplete();
+		this._handleIfComplete();
+	}
+	/**
+	* Modify the current time of this timer by the given amount.
+	* Reducing below max time will remove completion if applicable.
+	* Setting at or above max time will apply completion if applicable.
+	* @param {number} time The amount to modify by.
+	* @returns {number} The new total after modification.
+	*/
+	modCurrentTime(time) {
+		this._timer += time;
+		this._handleIfIncomplete();
+		this._handleIfComplete();
+		return this._timer;
+	}
+	/**
+	* Gets the total time set to run on this timer.
+	* @returns {number}
+	*/
+	getMaxTime() {
+		return this._timerMax;
+	}
+	/**
+	* Sets the max time for this timer to the given amount.
+	* @param {number} maxTime The new max time for this timer.
+	*/
+	setMaxTime(maxTime) {
+		this._timerMax = maxTime;
+	}
+	/**
+	* Whether or not we should stop counting beyond max when updating.
+	* @returns {boolean}
+	*/
+	shouldStopCounting() {
+		return this._stopCounting;
+	}
+	/**
+	* Normalize time that is above bounds while the "stop counting" flag is set.
+	*/
+	normalizeTime() {
+		if (!this.isTimerComplete()) return;
+		if (!this.shouldStopCounting()) return;
+		this._timer = this.getMaxTime();
+	}
+	/**
+	* Checks whether or not this timer is completed.
+	* @returns {boolean} True if it is completed, false otherwise.
+	*/
+	isTimerComplete() {
+		return this._timerComplete;
+	}
+	/**
+	* Resets the timer back to initial state.
+	*/
+	reset() {
+		this._timer = 0;
 		this._timerComplete = false;
 	}
-	this.normalizeTime();
-};
-/**
-* Handles the possibility of this timer becoming complete.
-*/
-J_Timer.prototype._handleIfComplete = function() {
-	if (this.isTimerComplete()) return;
-	if (this._timer >= this._timerMax) {
-		this._timerComplete = true;
-		this.normalizeTime();
-		this.onComplete();
+	/**
+	* The main update method of this timer.
+	*/
+	update() {
+		this.tick();
+		this.tock();
 	}
+	/**
+	* Processes the incrementing of the time.
+	*/
+	tick() {
+		if (this.isTimerComplete()) return;
+		this._timer++;
+	}
+	/**
+	* Processes the management of state of this timer.
+	*/
+	tock() {
+		this._handleIfComplete();
+	}
+	/**
+	* Handles the possibility of this timer becoming incomplete.
+	*/
+	_handleIfIncomplete() {
+		if (this._timer < this._timerMax) {
+			this._timerComplete = false;
+		}
+		this.normalizeTime();
+	}
+	/**
+	* Handles the possibility of this timer becoming complete.
+	*/
+	_handleIfComplete() {
+		if (this.isTimerComplete()) return;
+		if (this._timer >= this._timerMax) {
+			this._timerComplete = true;
+			this.normalizeTime();
+			this.onComplete();
+		}
+	}
+	/**
+	* Forcefully completes this timer.
+	*/
+	forceComplete() {
+		this.setCurrentTime(this.getMaxTime());
+		this._handleIfComplete();
+	}
+	onComplete() {}
 };
-/**
-* Forcefully completes this timer.
-*/
-J_Timer.prototype.forceComplete = function() {
-	this.setCurrentTime(this.getMaxTime());
-	this._handleIfComplete();
-};
-J_Timer.prototype.onComplete = function() {};
+
+//#endregion
+//#region src/plugins/_base/core/registerJBaseSerializableModels.js
+SerializableRegistry.register(J_Timer);
 
 //#endregion
 //#region src/plugins/_base/models/WindowCommandBuilder.js
@@ -2227,19 +3672,538 @@ var WindowCommandBuilder = class {
 };
 
 //#endregion
+//#region src/plugins/_base/models/SdpParameterBinding.js
+/**
+* Describes how SDP panel rank bonuses attach to a {@link ParameterDefinition}.
+*/
+var SdpParameterBinding = class SdpParameterBinding {
+	/**
+	* @param {function(Game_Actor, number): number} getPanelBonus The get panel bonus driving this step.
+	* @param {function(Game_Actor): number=} getBaseForSdp The get base for sdp driving this step.
+	*/
+	constructor(getPanelBonus, getBaseForSdp = undefined) {
+		/**
+		* Returns the bonus amount SDP panels contribute for this parameter.
+		* @type {function(Game_Actor, number): number}
+		*/
+		this.getPanelBonus = getPanelBonus;
+		/**
+		* Optional base used when calculating percent-based panel growth.
+		* @type {function(Game_Actor): number|undefined}
+		*/
+		this.getBaseForSdp = getBaseForSdp;
+	}
+	/**
+	* Panel bonuses are not applied through the registry for this parameter.
+	* @returns {SdpParameterBinding}
+	*/
+	static none() {
+		return new SdpParameterBinding((_actor, _base) => 0);
+	}
+	/**
+	* SDP bonus resolves panel entries by registry key.
+	* @param {string} parameterKey The parameter key driving this step.
+	* @param {function(Game_Actor): number=} getBaseForSdp The get base for sdp driving this step.
+	* @returns {SdpParameterBinding}
+	*/
+	static byKey(parameterKey, getBaseForSdp = undefined) {
+		return new SdpParameterBinding((actor, base) => {
+			if (!J.SDP) return 0;
+			return actor.getSdpBonusForParameterKey(parameterKey, base);
+		}, getBaseForSdp);
+	}
+	/**
+	* SDP bonus follows the core b-param hook path.
+	* @param {number} paramId The param id driving this step.
+	* @returns {SdpParameterBinding}
+	*/
+	static bparam(paramId) {
+		const parameterKey = ParameterKeys.bparamKey(paramId);
+		return SdpParameterBinding.byKey(parameterKey);
+	}
+	/**
+	* SDP bonus follows the ex-param hook path.
+	* @param {number} xparamId The xparam id driving this step.
+	* @returns {SdpParameterBinding}
+	*/
+	static xparam(xparamId) {
+		return new SdpParameterBinding((actor, base) => {
+			if (!J.SDP) return 0;
+			return actor.getSdpBonusForNonCoreParam(xparamId, base, 8);
+		});
+	}
+	/**
+	* SDP bonus follows the sp-param hook path.
+	* @param {number} sparamId The sparam id driving this step.
+	* @returns {SdpParameterBinding}
+	*/
+	static sparam(sparamId) {
+		return new SdpParameterBinding((actor, base) => {
+			if (!J.SDP) return 0;
+			return actor.getSdpBonusForNonCoreParam(sparamId, base, 18);
+		});
+	}
+	/**
+	* Owner-defined SDP bonus logic (CDM, LST, SDR, etc.).
+	* @param {function(Game_Actor, number): number} getPanelBonus The get panel bonus driving this step.
+	* @param {function(Game_Actor): number=} getBaseForSdp The get base for sdp driving this step.
+	* @returns {SdpParameterBinding}
+	*/
+	static custom(getPanelBonus, getBaseForSdp = undefined) {
+		return new SdpParameterBinding(getPanelBonus, getBaseForSdp);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/models/ParameterDefinitionBuilder.js
+/**
+* Fluent builder for {@link ParameterDefinition}.
+*/
+var ParameterDefinitionBuilder = class {
+	#key = String.empty;
+	#group = String.empty;
+	#sortOrder = 0;
+	#label = () => String.empty;
+	#description = () => [String.empty];
+	#iconIndex = () => 0;
+	#colorIndex = () => 0;
+	#format = ParameterFormat.FLAT;
+	#displayPolicy = ParameterDisplayPolicy.NONE;
+	#getValue = (_battler) => 0;
+	#sdpBinding = SdpParameterBinding.none();
+	/**
+	* @param {string} key The key driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	key(key) {
+		this.#key = key;
+		return this;
+	}
+	/**
+	* @param {string} group The group driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	group(group) {
+		this.#group = group;
+		return this;
+	}
+	/**
+	* @param {number} sortOrder The sort order driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	sortOrder(sortOrder) {
+		this.#sortOrder = sortOrder;
+		return this;
+	}
+	/**
+	* @param {function(): string} label The label driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	label(label) {
+		this.#label = label;
+		return this;
+	}
+	/**
+	* @param {function(): string[]} description The description driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	description(description) {
+		this.#description = description;
+		return this;
+	}
+	/**
+	* @param {function(): number} iconIndex The icon index driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	iconIndex(iconIndex) {
+		this.#iconIndex = iconIndex;
+		return this;
+	}
+	/**
+	* @param {function(): number} colorIndex The color index driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	colorIndex(colorIndex) {
+		this.#colorIndex = colorIndex;
+		return this;
+	}
+	/**
+	* @param {string} format The format driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	format(format) {
+		this.#format = format;
+		return this;
+	}
+	/**
+	* @param {string} displayPolicy The display policy driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	displayPolicy(displayPolicy) {
+		this.#displayPolicy = displayPolicy;
+		return this;
+	}
+	/**
+	* @param {function(Game_Battler): number} getValue The get value driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	getValue(getValue) {
+		this.#getValue = getValue;
+		return this;
+	}
+	/**
+	* @param {SdpParameterBinding} sdpBinding The sdp binding driving this step.
+	* @returns {ParameterDefinitionBuilder}
+	*/
+	sdpBinding(sdpBinding) {
+		this.#sdpBinding = sdpBinding;
+		return this;
+	}
+	/**
+	* @returns {ParameterDefinition}
+	*/
+	build() {
+		return new ParameterDefinition(this.#key, this.#group, this.#sortOrder, this.#label, this.#description, this.#iconIndex, this.#colorIndex, this.#format, this.#displayPolicy, this.#getValue, this.#sdpBinding);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/models/ParameterDefinition.js
+/**
+* Immutable catalog entry for a battler parameter.
+*/
+var ParameterDefinition = class ParameterDefinition {
+	/**
+	* @param {string} key The registry key for this parameter.
+	* @param {string} group The display group this parameter belongs to.
+	* @param {number} sortOrder The sort order within the group.
+	* @param {function(): string} label Getter that returns the display label.
+	* @param {function(): string[]} description Getter that returns the description lines.
+	* @param {function(): number} iconIndex Getter that returns the icon index.
+	* @param {function(): number} colorIndex Getter that returns the base color index.
+	* @param {string} format The display format constant from ParameterFormat.
+	* @param {string} displayPolicy The display policy constant from ParameterDisplayPolicy.
+	* @param {function(Game_Battler): number} getValue Live-value resolver for a battler.
+	* @param {SdpParameterBinding} sdpBinding The SDP panel binding for this parameter.
+	*/
+	constructor(key, group, sortOrder, label, description, iconIndex, colorIndex, format, displayPolicy, getValue, sdpBinding) {
+		this.key = key;
+		this.group = group;
+		this.sortOrder = sortOrder;
+		this.label = label;
+		this.description = description;
+		this.iconIndex = iconIndex;
+		this.colorIndex = colorIndex;
+		this.format = format;
+		this.displayPolicy = displayPolicy;
+		this.getValue = getValue;
+		this.sdpBinding = sdpBinding;
+	}
+	/**
+	* Resolves the live value for the given battler.
+	* @param {Game_Battler} battler The battler driving this step.
+	* @returns {number}
+	*/
+	resolveValue(battler) {
+		return this.getValue(battler);
+	}
+	/**
+	* Pads a signed magnitude for styled numeric display, optionally reserving a sign column so
+	* signed and unsigned rows align when drawn next to each other.
+	* @param {number} num The rounded display magnitude.
+	* @param {number} digits Minimum digit width after padding.
+	* @param {boolean=} reserveSignColumn When true, zero uses a leading space so values align with signed rows.
+	* @param {boolean=} showPlusForPositive When true, positive values render with a leading {@code +}.
+	* @returns {string}
+	*/
+	static padSignedMagnitude(num, digits, reserveSignColumn = false, showPlusForPositive = false) {
+		const rounded = Math.round(num);
+		const padded = Math.abs(rounded).padZero(digits);
+		if (rounded < 0) {
+			return `-${padded}`;
+		}
+		if (showPlusForPositive && rounded > 0) {
+			return `+${padded}`;
+		}
+		if (reserveSignColumn && rounded === 0) {
+			return ` ${padded}`;
+		}
+		return padded;
+	}
+	/**
+	* Transforms a raw battler value into the numeric magnitude shown in the UI.
+	* Percent and regen formats are multiplied by 100; centered formats also subtract 100 for the delta.
+	* @param {number} value The raw battler value.
+	* @returns {number}
+	*/
+	displayMagnitude(value) {
+		let num = value;
+		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET || this.format === ParameterFormat.REGEN_PER_SECOND) {
+			num *= 100;
+		}
+		if (this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.SCALED_OFFSET) {
+			num -= 100;
+		}
+		return num;
+	}
+	/**
+	* Whether this parameter reserves a sign column when padded on the status screen.
+	* Rate-based display policies all use a sign column so values align visually.
+	* @returns {boolean}
+	*/
+	usesSignColumn() {
+		return this.displayPolicy === ParameterDisplayPolicy.COST_RATE || this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE || this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED;
+	}
+	/**
+	* Whether positive magnitudes should show a leading plus in the sign column.
+	* Reward-rate and signed policies use the plus to make gains visually distinct.
+	* @returns {boolean}
+	*/
+	usesPlusOnPositive() {
+		return this.displayPolicy === ParameterDisplayPolicy.COST_RATE || this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED;
+	}
+	/**
+	* Whether display magnitude should be clamped at {@code -100%} before formatting.
+	* Clamping applies to any policy that uses a sign column.
+	* @returns {boolean}
+	*/
+	clampsDisplayAtMinus100() {
+		return this.usesSignColumn();
+	}
+	/**
+	* Clamps the UI magnitude according to this definition's display policy.
+	* Rate-based policies cannot go below -100 (100% reduction = floor).
+	* @param {number} num The unclamped display magnitude.
+	* @returns {number}
+	*/
+	clampDisplayMagnitude(num) {
+		if (this.clampsDisplayAtMinus100()) {
+			return Math.max(num, -100);
+		}
+		return num;
+	}
+	/**
+	* Resolves a fixed sentinel label when a rate hits its display floor (-100%).
+	* Returns {@code null} when the value is above the floor and no sentinel applies.
+	* @param {number} value The raw battler value to evaluate.
+	* @returns {string|null}
+	*/
+	resolveDisplaySentinel(value) {
+		const num = this.displayMagnitude(value);
+		if (num > -100) {
+			return null;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.COST_RATE) {
+			return ParameterDisplaySentinel.FREE;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE) {
+			return ParameterDisplaySentinel.IMMUNE;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE || this.displayPolicy === ParameterDisplayPolicy.SIGNED) {
+			return ParameterDisplaySentinel.NONE;
+		}
+		return null;
+	}
+	/**
+	* Resolves the text color index for a live value on the status screen.
+	* Sentinel states and rate-direction policies each map to distinct palette entries.
+	* @param {number} value The raw battler value to evaluate.
+	* @returns {number}
+	*/
+	resolveDisplayColorIndex(value) {
+		const sentinel = this.resolveDisplaySentinel(value);
+		if (sentinel === ParameterDisplaySentinel.FREE) {
+			return 3;
+		}
+		if (sentinel === ParameterDisplaySentinel.IMMUNE) {
+			return 7;
+		}
+		if (sentinel === ParameterDisplaySentinel.NONE) {
+			return 10;
+		}
+		const num = this.clampDisplayMagnitude(this.displayMagnitude(value));
+		if (this.displayPolicy === ParameterDisplayPolicy.DAMAGE_RATE || this.displayPolicy === ParameterDisplayPolicy.COST_RATE) {
+			if (num < 0) {
+				return 3;
+			}
+			if (num > 0) {
+				return 10;
+			}
+			return 0;
+		}
+		if (this.displayPolicy === ParameterDisplayPolicy.REWARD_RATE) {
+			if (num > 0) {
+				return 3;
+			}
+			if (num < 0) {
+				return 10;
+			}
+			return 0;
+		}
+		return this.colorIndex();
+	}
+	/**
+	* Formats a numeric value for UI display, applying sentinel labels, regen formatting,
+	* padding, and percent suffixes as dictated by the format and display policy.
+	* @param {number} value The raw battler value to format.
+	* @param {boolean=} withPadding True to apply zero-padding for styled stat columns; defaults to false.
+	* @param {Game_Battler=} actor The battler whose tick cadence resolves REGEN_PER_SECOND's
+	* conversion. Optional so `_base` stays decoupled from J-ABS; when omitted (or J-ABS isn't
+	* loaded), falls back to a neutral 1 tick/sec assumption rather than crashing.
+	* @returns {string}
+	*/
+	prettyValue(value, withPadding = false, actor = null) {
+		const sentinel = this.resolveDisplaySentinel(value);
+		if (sentinel) {
+			return sentinel;
+		}
+		const num = this.clampDisplayMagnitude(this.displayMagnitude(value));
+		if (this.format === ParameterFormat.REGEN_PER_SECOND) {
+			const ticksPerSecond = actor && actor.getNaturalRegenTickInterval ? 60 / actor.getNaturalRegenTickInterval() : 1;
+			const perSecond = num * ticksPerSecond;
+			return `${perSecond.toFixed(1)}/s`;
+		}
+		let base = Number.isInteger(num) ? num.toString() : num.toFixed(1);
+		if (base.endsWith(".0")) {
+			base = base.slice(0, base.length - 2);
+		}
+		if (withPadding) {
+			base = this.applyPaddedDisplay(base, num);
+		}
+		if (this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.PERCENT) {
+			base = `${base}%`;
+		}
+		return base;
+	}
+	/**
+	* Applies zero-padding rules for styled stat values on the status screen.
+	* Each format family has its own digit width and sign-column rules.
+	* @param {string} base The un-padded display string.
+	* @param {number} num The transformed numeric magnitude used for padding decisions.
+	* @returns {string}
+	*/
+	applyPaddedDisplay(base, num) {
+		if (this.format === ParameterFormat.FLAT_LARGE) {
+			return String(base).padZero(6);
+		}
+		if (this.format === ParameterFormat.FLAT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET) {
+			return ParameterDefinition.padSignedMagnitude(num, 4, false, false);
+		}
+		if (this.format === ParameterFormat.PERCENT_CENTERED) {
+			return ParameterDefinition.padSignedMagnitude(num, 3, this.usesSignColumn(), this.usesPlusOnPositive());
+		}
+		if (this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT) {
+			if (this.usesSignColumn()) {
+				return ParameterDefinition.padSignedMagnitude(num, 3, true, this.usesPlusOnPositive());
+			}
+			return Math.abs(Math.round(num)).padZero(3);
+		}
+		return base;
+	}
+};
+ParameterDefinition.Builder = () => new ParameterDefinitionBuilder();
+
+//#endregion
+//#region src/plugins/_base/core/ParameterRegistry.js
+/**
+* Central registry of {@link ParameterDefinition} entries keyed by string id.
+*/
+var ParameterRegistry = class {
+	/**
+	* @type {Map<string, ParameterDefinition>}
+	*/
+	static _definitions = new Map();
+	/**
+	* @type {Map<string, ParameterDefinition[]>}
+	*/
+	static _groupCache = new Map();
+	/**
+	* Registers a parameter definition. Duplicate keys throw.
+	* @param {ParameterDefinition} definition The definition driving this step.
+	*/
+	static register(definition) {
+		if (!(definition instanceof ParameterDefinition)) {
+			throw new Error("ParameterRegistry.register requires a ParameterDefinition instance.");
+		}
+		if (this._definitions.has(definition.key)) {
+			throw new Error(`ParameterRegistry: duplicate key "${definition.key}".`);
+		}
+		this._definitions.set(definition.key, definition);
+		this._groupCache.clear();
+	}
+	/**
+	* @param {string} key The key driving this step.
+	* @returns {ParameterDefinition|null}
+	*/
+	static get(key) {
+		if (this._definitions.has(key)) {
+			return this._definitions.get(key);
+		}
+		return null;
+	}
+	/**
+	* @param {string} key The key driving this step.
+	* @returns {boolean}
+	*/
+	static has(key) {
+		return this._definitions.has(key);
+	}
+	/**
+	* @returns {ParameterDefinition[]}
+	*/
+	static all() {
+		return [...this._definitions.values()];
+	}
+	/**
+	* @param {string} group The group driving this step.
+	* @returns {ParameterDefinition[]}
+	*/
+	static byGroup(group) {
+		if (this._groupCache.has(group)) {
+			return this._groupCache.get(group);
+		}
+		const definitions = this.all().filter((definition) => definition.group === group).sort((left, right) => left.sortOrder - right.sortOrder);
+		this._groupCache.set(group, definitions);
+		return definitions;
+	}
+	/**
+	* Resolves a live battler value for the given parameter key.
+	* @param {Game_Battler} battler The battler driving this step.
+	* @param {string} key The key driving this step.
+	* @returns {number}
+	*/
+	static resolveValue(battler, key) {
+		const definition = this.get(key);
+		if (!definition) return 0;
+		return definition.resolveValue(battler);
+	}
+	/**
+	* Resolves SDP panel bonus for the given key.
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {string} key The key driving this step.
+	* @returns {number}
+	*/
+	static resolveSdpPanelBonus(actor, key) {
+		const definition = this.get(key);
+		if (!definition) return 0;
+		const base = definition.sdpBinding.getBaseForSdp ? definition.sdpBinding.getBaseForSdp(actor) : definition.resolveValue(actor);
+		return definition.sdpBinding.getPanelBonus(actor, base);
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/managers/ColorManager.js
 /**
-* Gets the color index from the "long" parameter id.
-*
-* "Long" parameter ids are used in the context of 0-27, rather than
-* 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
-* @param {number} paramId The "long" parameter id.
-* @returns {number} The color index of the given parameter.
+* Gets the color index for a catalog parameter key.
+* @param {string} parameterKey The registry key.
+* @returns {number}
 */
-ColorManager.longParam = function(paramId) {
-	switch (paramId) {
-		default: return 0;
+ColorManager.parameterColor = function(parameterKey) {
+	const definition = ParameterRegistry.get(parameterKey);
+	if (!definition) {
+		return 0;
 	}
+	return definition.colorIndex();
 };
 /**
 * Gets the windowskin text palette color for a given element (same sampling path as {@link ColorManager.textColor}).
@@ -2435,9 +4399,6 @@ ColorManager.colorIndexFromHex = function(hexString) {
 		return null;
 	}
 	const targetRgb = ColorManager.parseHexStringToRgb(hexString);
-	if (targetRgb === null) {
-		return null;
-	}
 	let bestIndex = 0;
 	let bestDist = Infinity;
 	for (let i = 0; i < 32; i++) {
@@ -2644,727 +4605,6 @@ var RPG_Traited = class extends RPG_BaseItem {
 };
 
 //#endregion
-//#region src/plugins/_base/database/core/RPG_BaseBattler.js
-/**
-* A class representing the groundwork for what all battlers
-* database data look like.
-*/
-var RPG_BaseBattler = class extends RPG_Traited {
-	/**
-	* The name of the battler while in battle.
-	* @type {string}
-	*/
-	battlerName = String.empty;
-	/**
-	* Constructor.
-	* Maps the base battler data to the properties on this class.
-	* @param {RPG_Enemy|RPG_Actor} battler The battler to parse.
-	* @param {number} index The index of the entry in the database.
-	*/
-	constructor(battler, index) {
-		super(battler, index);
-		this.battlerName = battler.battlerName;
-	}
-	/**
-	* Gets the type of implementation this database entry is.
-	* @returns {string}
-	*/
-	implementationType() {
-		return `${super.implementationType()}:battler`;
-	}
-};
-
-//#endregion
-//#region src/plugins/_base/managers/RPGManager.js
-/**
-* A utility class for handling common database-related translations.
-*/
-var RPGManager = class {
-	/**
-	* The cache for storing parsed note data.
-	* @type {WeakMap<object, Map<string, any>>}
-	*/
-	static _cache = new WeakMap();
-	/**
-	* The metrics for this manager.
-	* @type {{ hits: number, misses: number }}
-	*/
-	static _metrics = {
-		hits: 0,
-		misses: 0
-	};
-	/**
-	* Gets or initializes the cache for the given object.
-	* @param {object} object The object to get or initialize the cache for.
-	* @returns {Map<string, any>} The cache for the object.
-	*/
-	static getOrCreateCacheForObject(object) {
-		const cacheHit = this._cache.get(object);
-		if (cacheHit) return cacheHit;
-		const newCache = new Map();
-		this._cache.set(object, newCache);
-		return newCache;
-	}
-	/**
-	* Gets the cached data for the given object and tag key.
-	* @param {object} object The object to get the cached data for.
-	* @param {string} tagKey The tag key to get the cached data for.
-	* @param {Function} computeFn The function to compute the data if it doesn't exist.
-	* @returns {any} The cached data for the object and tag key.
-	*/
-	static cached(object, tagKey, computeFn) {
-		const cache = this.getOrCreateCacheForObject(object);
-		if (cache.has(tagKey) === false) {
-			this._metrics.misses++;
-			const data = computeFn();
-			cache.set(tagKey, data);
-		} else {
-			this._metrics.hits++;
-		}
-		return cache.get(tagKey);
-	}
-	/**
-	* Invalidates the cache for the given object.
-	* @param {object} object The object to invalidate the cache for.
-	* @returns {boolean} True if the cache was invalidated, false otherwise.
-	*/
-	static invalidate(object) {
-		return this._cache.delete(object);
-	}
-	/**
-	* Clears the cache for all objects.
-	*/
-	static clearCache() {
-		this._cache = new WeakMap();
-	}
-	/**
-	* A quick and re-usable means of rolling for a chance of success.
-	* This will roll `rollForPositive` times in an effort to get a successful roll.
-	* If success is found and `rollsForNegative` is greater than 0, additional rolls of success will
-	* be required or the negative rolls will undo the success.
-	* @param {number} percentOfSuccess The percent chance of success.
-	* @param {number=} rollForPositive The number of positive rolls to find success; defaults to 1.
-	* @param {number=} rollForNegative The number of negative rolls to follow success; defaults to 0.
-	* @returns {boolean} True if success, false otherwise.
-	*/
-	static chanceIn100(percentOfSuccess, rollForPositive = 1, rollForNegative = 0) {
-		if (percentOfSuccess <= 0) return false;
-		let success = false;
-		while (rollForPositive && !success) {
-			const chance = Math.randomInt(100) + 1;
-			if (chance <= percentOfSuccess) {
-				success = true;
-			}
-			rollForPositive--;
-		}
-		if (success && rollForNegative) {
-			while (rollForNegative && success) {
-				const chance = Math.randomInt(100) + 1;
-				if (chance <= percentOfSuccess) {
-					success = true;
-				} else {
-					return false;
-				}
-				rollForNegative--;
-			}
-		}
-		return success;
-	}
-	/**
-	* A quick and re-usable means of rolling for chance using a weighted model against a map of (key=id,val=weight).
-	* @param {Map<any,number>} map The map of key-value pairs to choose from.
-	* @param {number} totalWeight The total weight of all values in the map.
-	* @returns {any|null} The chosen key or null if no valid choice is found.
-	*/
-	static weightedMapChoice(map, totalWeight) {
-		if (totalWeight <= 0) return null;
-		let r = Math.random() * totalWeight;
-		for (const [key, val] of map) {
-			if (val <= 0) continue;
-			r -= val;
-			if (r < 0) return key;
-		}
-		return null;
-	}
-	/**
-	* Gets the last instance of a string matching the regex from the given database object.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {string|null} The string matching the structure, {@link String.empty} if not found, or null with the flag.
-	*/
-	static getStringFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : String.empty;
-		}
-		const key = `str:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getStringFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gets the last instance of a string matching the regex from the given database object.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {string|null} The string matching the structure, {@link String.empty} if not found, or null with the flag.
-	*/
-	static #getStringFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		let val = String.empty;
-		const lines = databaseData.note.split(/[\r\n]+/);
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, stringResult] = result;
-			val = stringResult;
-		});
-		if (!val) {
-			return nullIfEmpty ? null : String.empty;
-		}
-		return val;
-	}
-	/**
-	* Gathers all string instances matching the regex from the given database object.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {string[]|null} The array of strings matching the structure, or an empty array if not found, or null.
-	*/
-	static getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : Array.empty;
-		}
-		const key = `str[]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gathers all string instances matching the regex from the given database object.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {string[]|null} The array of strings matching the structure, or an empty array if not found, or null.
-	*/
-	static #getStringsFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const val = [];
-		const lines = databaseData.note.split(/[\r\n]+/);
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, stringResult] = result;
-			val.push(stringResult);
-		});
-		if (val.length === 0) {
-			return nullIfEmpty ? null : [];
-		}
-		return val;
-	}
-	/**
-	* Gets the last numeric value based on the provided regex structure.
-	*
-	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
-	* this will be `null` instead of the default 0 as an indicator we didn't find
-	* anything from the notes of this skill.
-	*
-	* This can handle both integers and decimal numbers.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
-	* @returns {number|null} The last value from the notes of this object, or zero/null.
-	*/
-	static getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : 0;
-		}
-		const key = `num:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gets the last numeric value based on the provided regex structure.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean=} nullIfEmpty Whether or not to return 0 if not found, or null.
-	* @returns {number|null} The last value from the notes of this object, or zero/null.
-	*/
-	static #getNumberFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		if (!lines.length) {
-			return nullIfEmpty ? null : 0;
-		}
-		let val = null;
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, numericResult] = result;
-			val = parseFloat(numericResult);
-		});
-		if (val === null) {
-			return nullIfEmpty ? null : 0;
-		}
-		return val;
-	}
-	/**
-	* Gathers all numbers found in arrays on the database object provided.
-	*
-	* This accepts a regex structure, assuming the capture group is an numeric value,
-	* and adds all values together from each line in the notes that match the provided
-	* regex structure.
-	*
-	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
-	* this will be `null` instead of the default [] as an indicator we didn't find
-	* anything from the notes of this skill.
-	*
-	* This can handle both integers and decimal numbers.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {number[]|null}
-	*/
-	static getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : Array.empty;
-		}
-		const key = `num[]:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gathers all numbers found in arrays on the database object provided.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {number[]|null}
-	*/
-	static #getNumbersFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		let vals = [];
-		const found = this.getArrayFromNotesByRegex(databaseData, structure, true, true);
-		if (found !== null) {
-			vals = found;
-		}
-		if (!vals.length) {
-			return nullIfEmpty ? null : vals;
-		}
-		const noNullVals = vals.filter(ArrayHelper.NoNulls, this);
-		return noNullVals;
-	}
-	/**
-	* Gets the sum of all values from the notes of a collection of database objects.
-	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {number|null} A number if "nullIfEmpty=false", null otherwise.
-	*/
-	static getSumFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
-		if (!databaseDatas.length) {
-			return nullIfEmpty ? null : 0;
-		}
-		let val = 0;
-		databaseDatas.forEach((databaseData) => {
-			val += this.getNumberFromNoteByRegex(databaseData, structure);
-		});
-		if (!val && nullIfEmpty) {
-			return null;
-		}
-		return val;
-	}
-	/**
-	* Get the eval'd formula of all matching values from the notes of a single database object.
-	* @param {RPG_Base} databaseData The database object to parse the notes of.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
-	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {number|null} The calculated result from all formula summed together.
-	*/
-	static getResultFromNoteByRegex(databaseData, structure, baseParam, context = null, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : 0;
-		}
-		const key = `eval:${structure.source}::${structure.flags}::${baseParam}${this.#getEvalCacheContextSuffix(context)}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getResultFromNoteByRegex(databaseData, structure, baseParam, context, nullIfEmpty));
-	}
-	/**
-	* Builds a cache-key fragment for formula evaluation when battler context can change.
-	* Without this, {@code a.level} (and similar) would stay frozen at the first value cached per note object.
-	* @param {RPG_BaseBattler|null} context The formula context ("a").
-	* @returns {string} Suffix to append to eval cache keys, or empty when there is no context.
-	*/
-	static #getEvalCacheContextSuffix(context) {
-		if (context === null || context === undefined) {
-			return "";
-		}
-		if (typeof context.getLevel === "function") {
-			return `::ctxLvl=${context.getLevel()}`;
-		}
-		if (typeof context.level === "number") {
-			return `::ctxLvl=${context.level}`;
-		}
-		return "";
-	}
-	/**
-	* Get the eval'd formula of all matching values from the notes of a single database object.
-	* @param {RPG_Base} databaseData The database object to parse the notes of.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
-	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {number|null} The calculated result from all formula summed together.
-	*/
-	static #getResultFromNoteByRegex(databaseData, structure, baseParam, context = null, nullIfEmpty = false) {
-		const lines = databaseData.note.split(/[\r\n]+/);
-		let val = 0;
-		const a = context;
-		const b = baseParam;
-		const v = $gameVariables._data;
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, formula] = result;
-			try {
-				const evalResult = eval(formula).toFixed(3);
-				val += parseFloat(evalResult);
-			} catch (error) {
-				console.error(`An error occurred while evaluating the formula: [${formula}].`);
-				console.error(error);
-			}
-		});
-		if (!val && nullIfEmpty) {
-			return null;
-		}
-		return val;
-	}
-	/**
-	* Gets the eval'd formulai of all values from the notes of a collection of database objects.
-	* It is intended that the regex structure provided will be a numeric formula.
-	* @param {RPG_BaseItem[]} databaseDatas The collection of database objects.
-	* @param {RegExp} structure The RegExp structure to find values for.
-	* @param {number} baseParam The base parameter value for use within the formula(s) as the "b"; defaults to 0.
-	* @param {RPG_BaseBattler=} context The context of which the formula(s) are using as the "a"; defaults to null.
-	* @param {boolean=} nullIfEmpty Whether or not to return null if we found nothing; defaults to false.
-	* @returns {number|null} The calculated result from all formula summed together.
-	*/
-	static getResultsFromAllNotesByRegex(databaseDatas, structure, baseParam = 0, context = null, nullIfEmpty = false) {
-		if (!databaseDatas.length) {
-			return nullIfEmpty ? null : 0;
-		}
-		let val = 0;
-		databaseDatas.forEach((databaseData) => {
-			val += this.getResultFromNoteByRegex(databaseData, structure, baseParam, context);
-		});
-		if (!val && nullIfEmpty) {
-			return null;
-		}
-		return val;
-	}
-	/**
-	* Gets whether or not there is a matching regex tag on this database entry.
-	*
-	* Do be aware of the fact that with this type of tag, we are checking only
-	* for existence, not the value. As such, it will be `true` if found, and `false` if
-	* not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
-	* `null` instead of `false` when missing, or use a string regex pattern and add
-	* something like `<someKey:true>` or `<someKey:false>` for greater clarity.
-	*
-	* This accepts a regex structure, but does not leverage a capture group.
-	*
-	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
-	* this will be `null` instead of the default `false` as an indicator we didn't find
-	* anything from the notes of this skill.
-	* @param {RPG_Base} databaseData The regular expression to filter notes by.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
-	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
-	*/
-	static checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : false;
-		}
-		const key = `bool:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gets whether or not there is a matching regex tag on this database entry.
-	* @param {RPG_Base} databaseData The regular expression to filter notes by.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
-	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
-	*/
-	static #checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		let val = false;
-		let hasMatch = false;
-		lines.forEach((line) => {
-			const hasStructure = scan.test(line);
-			if (hasStructure) {
-				val = true;
-				hasMatch = true;
-			}
-		});
-		if (hasMatch === false && nullIfEmpty) {
-			return null;
-		} else {
-			return val;
-		}
-	}
-	/**
-	* Gets whether or not there is a matching regex tag from a collection of database objects.
-	*
-	* Do be aware of the fact that with this type of tag, we are checking only
-	* for existence, not the value. As such, it will be `true` if found, and `false` if
-	* not, which may not be accurate. Pass `true` to the `nullIfEmpty` to obtain a
-	* `null` instead of `false` when missing, or use a string regex pattern and add
-	* something like `<someKey:true>` or `<someKey:false>` for greater clarity.
-	*
-	* This accepts a regex structure, but does not leverage a capture group.
-	*
-	* If the optional flag `nullIfEmpty` receives true passed in, then the result of
-	* this will be `null` instead of the default `false` as an indicator we didn't find
-	* anything from the notes of this skill.
-	* @param {RPG_Base[]} databaseDatas The objects to inspect.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} nullIfEmpty Whether or not to return `false` if not found, or null.
-	* @returns {boolean|null} The found value from the notes of this object, or empty/null.
-	*/
-	static checkForBooleanFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
-		const results = databaseDatas.map((databaseData) => this.checkForBooleanFromNoteByRegex(databaseData, structure, nullIfEmpty));
-		const onlyTrueRemains = results.filter((result) => result !== null).filter((result) => result !== false);
-		if (onlyTrueRemains.length === 0) {
-			if (nullIfEmpty) {
-				return null;
-			}
-			return false;
-		}
-		return true;
-	}
-	/**
-	* Gets an array of arrays based on the provided regex structure.
-	*
-	* This accepts a regex structure, assuming the capture group is an array of values
-	* all wrapped in hard brackets [].
-	*
-	* If the optional flag `tryParse` is true, then it will attempt to parse out
-	* the array of values as well, including translating strings to numbers/booleans
-	* and keeping array structures all intact.
-	* @param {RPG_Base} databaseData The database object to parse notes from.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
-	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
-	* @returns {any[][]|null} The array of arrays from the notes, or null.
-	*/
-	static getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : [];
-		}
-		const key = `any[][]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getArraysFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
-	}
-	/**
-	* Gets an array of arrays based on the provided regex structure.
-	* @param {RPG_Base} databaseData The database object to parse notes from.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
-	* @param {boolean} nullIfEmpty Whether or not to return null if nothing is found.
-	* @returns {any[][]|null} The array of arrays from the notes, or null.
-	*/
-	static #getArraysFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		let val = [];
-		let hasMatch = false;
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (result === null) return;
-			const [, match] = result;
-			val.push(match);
-			hasMatch = true;
-		});
-		if (!hasMatch) {
-			return nullIfEmpty ? null : [];
-		}
-		if (tryParse) {
-			val = val.map(JsonMapper.parseObject, JsonMapper);
-		}
-		return val;
-	}
-	/**
-	* Gets a single array based on the provided regex structure.
-	*
-	* This accepts a regex structure, assuming the capture group is an array of values
-	* all wrapped in hard brackets [].
-	*
-	* If the optional flag `tryParse` is true, then it will attempt to parse out
-	* the array of values as well, including translating strings to numbers/booleans
-	* and keeping array structures all intact.
-	* @param {RPG_Base} databaseData The contents of the note of a given object.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
-	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
-	* @returns {any[]|null} The array from the notes, or null.
-	*/
-	static getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : [];
-		}
-		const key = `any[]:${structure.source}::${structure.flags}::tryParse=${tryParse}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getArrayFromNotesByRegex(databaseData, structure, tryParse, nullIfEmpty));
-	}
-	/**
-	* Gets a single array based on the provided regex structure.
-	*
-	* This accepts a regex structure, assuming the capture group is an array of values
-	* all wrapped in hard brackets [].
-	*
-	* If the optional flag `tryParse` is true, then it will attempt to parse out
-	* the array of values as well, including translating strings to numbers/booleans
-	* and keeping array structures all intact.
-	* @param {RPG_Base} databaseData The contents of the note of a given object.
-	* @param {RegExp} structure The regular expression to filter notes by.
-	* @param {boolean} tryParse Whether or not to attempt to parse the found array.
-	* @param {boolean=} nullIfEmpty If this is true and nothing is found, null will be returned instead of empty array.
-	* @returns {any[]|null} The array from the notes, or null.
-	*/
-	static #getArrayFromNotesByRegex(databaseData, structure, tryParse = true, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		let val = null;
-		let hasMatch = false;
-		lines.forEach((line) => {
-			if (line.match(structure)) {
-				const [, result] = scan.exec(line);
-				val = JsonMapper.parseObject(result);
-				hasMatch = true;
-			}
-		});
-		if (!hasMatch) {
-			return nullIfEmpty ? null : [];
-		}
-		if (tryParse) {
-			val = val.map(JsonMapper.parseObject, JsonMapper);
-		}
-		return val;
-	}
-	/**
-	* Collects all {@link JABS_OnChanceEffect}s from a single database objects.
-	* @param {RPG_Base} databaseData The database object to retrieve on-chance effects from.
-	* @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
-	* @returns {JABS_OnChanceEffect[]} All found on-chance effects on this database object.
-	*/
-	static getOnChanceEffectsFromDatabaseObject(databaseData, structure) {
-		const foundDatas = this.getArraysFromNotesByRegex(databaseData, structure, true);
-		if (!foundDatas) return [];
-		const key = J.BASE.Helpers.getKeyFromRegexp(structure);
-		const mapper = (data) => {
-			const [skillId, chance] = data;
-			return new JABS_OnChanceEffect(skillId, chance ?? 100, key);
-		};
-		const mappedOnChanceEffects = foundDatas.map(mapper, this);
-		return mappedOnChanceEffects;
-	}
-	/**
-	* Collects all {@link JABS_OnChanceEffect}s from the list of database objects.
-	* @param {RPG_Base[]} databaseDatas The list of database objects to parse.
-	* @param {RegExp} structure The on-chance-effect-templated regex structure to parse for.
-	* @returns {JABS_OnChanceEffect[]}
-	*/
-	static getOnChanceEffectsFromDatabaseObjects(databaseDatas, structure) {
-		const onChanceEffects = [];
-		databaseDatas.forEach((databaseData) => {
-			const onChanceEffectList = this.getOnChanceEffectsFromDatabaseObject(databaseData, structure);
-			onChanceEffects.push(...onChanceEffectList);
-		});
-		return onChanceEffects;
-	}
-	/**
-	* Gets all capture groups (excluding the full match) for every note line that matches the regex.
-	*
-	* Each matching line contributes one entry to the result array. The entry is an array of strings
-	* corresponding to the capture groups for that match (index 1..n of the RegExp exec result).
-	*
-	* Example:
-	*   Regex: /<on-(hit|use):affect-(self|allies|target|enemies|all):\[([+\-/ ().\w]+)]>/gi
-	*   Line:  "<on-hit:affect-self:[a.atk * 400]>"
-	*   Pushes: [ "hit", "self", "a.atk * 400" ]
-	*
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {string[][]|null} An array of capture arrays, or null.
-	*/
-	static getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		if (this.#canParsedatabaseData(databaseData) === false) {
-			return nullIfEmpty ? null : [];
-		}
-		const key = `captures:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
-		return this.cached(databaseData, key, () => this.#getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty));
-	}
-	/**
-	* Gets all capture groups (excluding the full match) for every note line that matches the regex.
-	* @param {RPG_BaseItem} databaseData The database object to inspect.
-	* @param {RegExp} structure The regular expression to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {string[][]|null} An array of capture arrays, or null.
-	*/
-	static #getAllCapturesFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
-		const safeFlags = structure.flags.replace("g", "").replace("y", "");
-		const scan = new RegExp(structure.source, safeFlags);
-		const lines = databaseData.note.split(/[\r\n]+/);
-		const captures = [];
-		lines.forEach((line) => {
-			const result = scan.exec(line);
-			if (!result) return;
-			const groups = result.slice(1);
-			captures.push(groups);
-		});
-		if (captures.length === 0 && nullIfEmpty) {
-			return null;
-		}
-		return captures;
-	}
-	/**
-	* Gets all capture arrays from a collection of database objects.
-	*
-	* See {@link RPGManager.getAllCapturesFromNoteByRegex} for details on the shape
-	* of the returned values for each matching tag.
-	*
-	* @param {RPG_BaseItem[]} databaseDatas The database objects to inspect.
-	* @param {RegExp} structure The regular expression to find values for.
-	* @param {boolean=} nullIfEmpty Whether or not to return [] if not found, or null.
-	* @returns {string[][]|null} All capture arrays found across all provided objects.
-	*/
-	static getAllCapturesFromAllNotesByRegex(databaseDatas, structure, nullIfEmpty = false) {
-		const captures = [];
-		databaseDatas.forEach((databaseData) => {
-			const found = this.getAllCapturesFromNoteByRegex(databaseData, structure);
-			if (found.length) {
-				captures.push(...found);
-			}
-		}, this);
-		if (!captures.length && nullIfEmpty) {
-			return null;
-		}
-		return captures;
-	}
-	/**
-	* Determines whether the database object can have its note parsed.
-	* @param {RPG_Base} databaseData The database object to inspect.
-	* @returns {boolean} True if it can be parsed, false otherwise.
-	*/
-	static #canParsedatabaseData(databaseData) {
-		if (!databaseData) return false;
-		if (databaseData && !databaseData.note) return false;
-		return true;
-	}
-};
-
-//#endregion
 //#region src/plugins/_base/database/core/RPG_EquipItem.js
 /**
 * A base class representing containing common properties found in both
@@ -3425,6 +4665,13 @@ var RPG_EquipItem = class extends RPG_Traited {
 		return this.etypeId > 1;
 	}
 	/**
+	* Whether or not this database entry is an equip item.
+	* @returns {boolean}
+	*/
+	isEquipItem() {
+		return true;
+	}
+	/**
 	* Gets the type of implementation this database entry is.
 	* @returns {string}
 	*/
@@ -3470,6 +4717,13 @@ var RPG_Weapon = class RPG_Weapon extends RPG_EquipItem {
 	* @returns {boolean}
 	*/
 	isWeapon() {
+		return true;
+	}
+	/**
+	* Whether or not this database entry is an equip item.
+	* @returns {boolean}
+	*/
+	isEquipItem() {
 		return true;
 	}
 	/**
@@ -3531,7 +4785,7 @@ var RPG_State = class RPG_State extends RPG_Traited {
 	*/
 	chanceByDamage = 100;
 	/**
-	* OVERWRITE States do not normally have descriptions.
+	* States do not normally have descriptions.
 	* Rather than leaving it as `undefined`, lets be nice and keep it
 	* an empty string.
 	* @type {String.empty}
@@ -4251,6 +5505,37 @@ var RPG_EnemyAction = class {
 };
 
 //#endregion
+//#region src/plugins/_base/database/core/RPG_BaseBattler.js
+/**
+* A class representing the groundwork for what all battlers
+* database data look like.
+*/
+var RPG_BaseBattler = class extends RPG_Traited {
+	/**
+	* The name of the battler while in battle.
+	* @type {string}
+	*/
+	battlerName = String.empty;
+	/**
+	* Constructor.
+	* Maps the base battler data to the properties on this class.
+	* @param {RPG_Enemy|RPG_Actor} battler The battler to parse.
+	* @param {number} index The index of the entry in the database.
+	*/
+	constructor(battler, index) {
+		super(battler, index);
+		this.battlerName = battler.battlerName;
+	}
+	/**
+	* Gets the type of implementation this database entry is.
+	* @returns {string}
+	*/
+	implementationType() {
+		return `${super.implementationType()}:battler`;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/database/implementations/RPG_Enemy.js
 /**
 * A class representing a single enemy battler's data from the database.
@@ -4461,6 +5746,13 @@ var RPG_Armor = class RPG_Armor extends RPG_EquipItem {
 	* @returns {boolean}
 	*/
 	isArmor() {
+		return true;
+	}
+	/**
+	* Whether or not this database entry is an equip item.
+	* @returns {boolean}
+	*/
+	isEquipItem() {
 		return true;
 	}
 	/**
@@ -5070,6 +6362,7 @@ Object.defineProperty(Graphics, "boxOrigin", { get: function() {
 //#region src/plugins/_base/managers/IconManager.js
 /**
 * A static class that manages the icon to X correlation, such as stats and elements.
+* IconManager is a J-Base global — not part of the RMMZ engine (unlike TextManager).
 */
 var IconManager = class {
 	/**
@@ -5077,7 +6370,7 @@ var IconManager = class {
 	* This is a static class.
 	*/
 	constructor() {
-		throw new Error("This is a static class.");
+		throw new Error("The IconManager is a static class.");
 	}
 	/**
 	* Gets the iconIndex for levels.
@@ -5092,6 +6385,13 @@ var IconManager = class {
 	*/
 	static maxTp() {
 		return 930;
+	}
+	/**
+	* Gets the `iconIndex` for HAR (Healing Rate).
+	* @returns {number} The `iconIndex`.
+	*/
+	static har() {
+		return 7;
 	}
 	/**
 	* Gets the iconIndex for a given reward parameter.<br>
@@ -5171,48 +6471,16 @@ var IconManager = class {
 		}
 	}
 	/**
-	* Gets the `iconIndex` based on the "long" parameter id.
-	*
-	* "Long" parameter ids are used in the context of 0-27, rather than
-	* 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
-	* @param {number} paramId The "long" parameter id.
-	* @returns {number} The `iconIndex`.
+	* Gets the icon index for a catalog parameter key.
+	* @param {string} parameterKey The registry key.
+	* @returns {number}
 	*/
-	static longParam(paramId) {
-		switch (paramId) {
-			case 0: return this.param(paramId);
-			case 1: return this.param(paramId);
-			case 2: return this.param(paramId);
-			case 3: return this.param(paramId);
-			case 4: return this.param(paramId);
-			case 5: return this.param(paramId);
-			case 6: return this.param(paramId);
-			case 7: return this.param(paramId);
-			case 8: return this.xparam(paramId - 8);
-			case 9: return this.xparam(paramId - 8);
-			case 10: return this.xparam(paramId - 8);
-			case 11: return this.xparam(paramId - 8);
-			case 12: return this.xparam(paramId - 8);
-			case 13: return this.xparam(paramId - 8);
-			case 14: return this.xparam(paramId - 8);
-			case 15: return this.xparam(paramId - 8);
-			case 16: return this.xparam(paramId - 8);
-			case 17: return this.xparam(paramId - 8);
-			case 18: return this.sparam(paramId - 18);
-			case 19: return this.sparam(paramId - 18);
-			case 20: return this.sparam(paramId - 18);
-			case 21: return this.sparam(paramId - 18);
-			case 22: return this.sparam(paramId - 18);
-			case 23: return this.sparam(paramId - 18);
-			case 24: return this.sparam(paramId - 18);
-			case 25: return this.sparam(paramId - 18);
-			case 26: return this.sparam(paramId - 18);
-			case 27: return this.sparam(paramId - 18);
-			case 30: return this.maxTp();
-			default:
-				console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-				return 0;
+	static parameterIcon(parameterKey) {
+		const definition = ParameterRegistry.get(parameterKey);
+		if (!definition) {
+			return 0;
 		}
+		return definition.iconIndex();
 	}
 	/**
 	* Gets the corresponding `iconIndex` for the element based on their id.
@@ -5373,7 +6641,7 @@ var IconManager = class {
 			case 62: return this.specialFlag(trait._dataId);
 			case 64: return this.partyAbility(trait._dataId);
 			default:
-				console.error(`all traits are accounted for- is this a custom trait code: [${jaftingTrait._code}]?`);
+				console.error(`all traits are accounted for- is this a custom trait code: [${trait._code}]?`);
 				return false;
 		}
 	}
@@ -5525,6 +6793,20 @@ TextManager.maxTp = function() {
 	return "Max Tech";
 };
 /**
+* Display label for HAR — the sender-side counterpart to REC.
+* @returns {string}
+*/
+TextManager.har = function() {
+	return "Healing Rate";
+};
+/**
+* Help text explaining what HAR does.
+* @returns {string[]}
+*/
+TextManager.harDescription = function() {
+	return ["The percentage effectiveness of outgoing healing.", "Higher amounts of this will make healing others need less effort."];
+};
+/**
 * Gets the "current resource" name for a given parameter id.
 * This is the shorter, in-world name for the living resource itself
 * as opposed to the stat-cap name (e.g. "Life" vs "Max Life").
@@ -5575,45 +6857,40 @@ TextManager.rewardDescription = function(paramId) {
 	}
 };
 /**
-* Gets the double-line description for parameters by their long parameter id.
-* @param {number} paramId The long parameter id.
+* Whether a given registry key is a known catalog parameter.<br/>
+* Public surface for other plugins (e.g. J-MessageTextCodes) to distinguish "unregistered key"
+* from a legitimately-falsy/zero result, since {@link TextManager.parameterLabel}/
+* {@link IconManager.parameterIcon}/{@link ColorManager.parameterColor} each fall back to a
+* plausible-looking default instead of surfacing the miss.
+* @param {string} parameterKey The registry key.
+* @returns {boolean}
+*/
+TextManager.hasParameter = function(parameterKey) {
+	return ParameterRegistry.has(parameterKey);
+};
+/**
+* Gets the display label for a catalog parameter key.
+* @param {string} parameterKey The registry key.
+* @returns {string}
+*/
+TextManager.parameterLabel = function(parameterKey) {
+	const definition = ParameterRegistry.get(parameterKey);
+	if (!definition) {
+		return parameterKey;
+	}
+	return definition.label();
+};
+/**
+* Gets the double-line description for a catalog parameter key.
+* @param {string} parameterKey The registry key.
 * @returns {string[]}
 */
-TextManager.longParamDescription = function(paramId) {
-	switch (paramId) {
-		case 0: return this.bparamDescription(paramId);
-		case 1: return this.bparamDescription(paramId);
-		case 30: return this.bparamDescription(paramId);
-		case 2: return this.bparamDescription(paramId);
-		case 3: return this.bparamDescription(paramId);
-		case 4: return this.bparamDescription(paramId);
-		case 5: return this.bparamDescription(paramId);
-		case 6: return this.bparamDescription(paramId);
-		case 7: return this.bparamDescription(paramId);
-		case 8: return this.xparamDescription(paramId - 8);
-		case 9: return this.xparamDescription(paramId - 8);
-		case 10: return this.xparamDescription(paramId - 8);
-		case 11: return this.xparamDescription(paramId - 8);
-		case 12: return this.xparamDescription(paramId - 8);
-		case 13: return this.xparamDescription(paramId - 8);
-		case 14: return this.xparamDescription(paramId - 8);
-		case 15: return this.xparamDescription(paramId - 8);
-		case 16: return this.xparamDescription(paramId - 8);
-		case 17: return this.xparamDescription(paramId - 8);
-		case 18: return this.sparamDescription(paramId - 18);
-		case 19: return this.sparamDescription(paramId - 18);
-		case 20: return this.sparamDescription(paramId - 18);
-		case 21: return this.sparamDescription(paramId - 18);
-		case 22: return this.sparamDescription(paramId - 18);
-		case 23: return this.sparamDescription(paramId - 18);
-		case 24: return this.sparamDescription(paramId - 18);
-		case 25: return this.sparamDescription(paramId - 18);
-		case 26: return this.sparamDescription(paramId - 18);
-		case 27: return this.sparamDescription(paramId - 18);
-		default:
-			console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-			return String.empty;
+TextManager.parameterDescription = function(parameterKey) {
+	const definition = ParameterRegistry.get(parameterKey);
+	if (!definition) {
+		return [String.empty];
 	}
+	return definition.description();
 };
 /**
 * The double-line descriptions for the b-parameters.
@@ -5641,7 +6918,7 @@ TextManager.bparamDescription = function(paramId) {
 TextManager.xparamDescription = function(paramId) {
 	switch (paramId) {
 		case 0: return ["The stat representing one's skill of accuracy.", "Being more accurate will result in being parried less."];
-		case 1: return ["The stat governing one's uncanny ability to parry precisely.", "An optional stat, but having more will make parrying easier."];
+		case 1: return ["The stat representing skill in physically evading attacks.", "Having higher evasion will cause incoming hits to be dodged."];
 		case 2: return ["A numeric value to one's chance of landing a critical hit.", "Critical hits will deal percent-increased damage."];
 		case 3: return ["A numeric value to one's chance of evading a critical hit.", "Enemy critical hit chance is directly reduced by this amount."];
 		case 4: return ["A numeric value to one's chance of evading a magical hit.", "Enemy magical hit chance is directly reduced by this amount."];
@@ -5661,7 +6938,7 @@ TextManager.sparamDescription = function(paramId) {
 	switch (paramId) {
 		case 0: return ["The percentage of aggro that will be applied.", "Reduce for stealthing; increase for taunting."];
 		case 1: return ["A numeric value representing the frequency of parrying.", "More of this will result in auto-parrying faced foes."];
-		case 2: return ["The percentage effectiveness of healing applied to oneself.", "Higher amounts of this will make healing need less effort."];
+		case 2: return ["The percentage effectiveness of incoming healing.", "Higher amounts of this will make healing you need less effort."];
 		case 3: return ["The percentage effectiveness of items applied to oneself.", "Higher amounts of this will make items more potent."];
 		case 4: return ["The percentage bonuses being applied to Magi costs.", "Enemy magical hit chance is directly reduced by this amount."];
 		case 5: return ["The percentage bonuses being applied to Tech generation.", "Taking and dealing damage in combat will earn more Tech."];
@@ -5680,13 +6957,13 @@ TextManager.sparam = function(sParamId) {
 	switch (sParamId) {
 		case 0: return "Aggro";
 		case 1: return "Parry";
-		case 2: return "Healing Rate";
+		case 2: return "Recovery Rate";
 		case 3: return "Item Effects";
 		case 4: return "Magi Cost";
 		case 5: return "Tech Cost";
 		case 6: return "Phys Dmg Rate";
 		case 7: return "Magi Dmg Rate";
-		case 8: return "Environ Dmg Rate";
+		case 8: return "Env Dmg Rate";
 		case 9: return "Experience UP";
 	}
 };
@@ -5698,7 +6975,7 @@ TextManager.sparam = function(sParamId) {
 TextManager.xparam = function(xParamId) {
 	switch (xParamId) {
 		case 0: return "Accuracy";
-		case 1: return "Parry Extend";
+		case 1: return "Phys Evade";
 		case 2: return "Crit Rate";
 		case 3: return "Crit Dodge";
 		case 4: return "Magic Evade";
@@ -5707,50 +6984,6 @@ TextManager.xparam = function(xParamId) {
 		case 7: return "HP Regen";
 		case 8: return "MP Rejuv";
 		case 9: return "TP Restore";
-	}
-};
-/**
-* Gets the `parameter name` based on the "long" parameter id.
-*
-* "Long" parameter ids are used in the context of 0-27, rather than
-* 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
-* @param {number} paramId The "long" parameter id.
-* @returns {string} The `name`.
-*/
-TextManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 0: return this.param(paramId);
-		case 1: return this.param(paramId);
-		case 2: return this.param(paramId);
-		case 3: return this.param(paramId);
-		case 4: return this.param(paramId);
-		case 5: return this.param(paramId);
-		case 6: return this.param(paramId);
-		case 7: return this.param(paramId);
-		case 8: return this.xparam(paramId - 8);
-		case 9: return this.xparam(paramId - 8);
-		case 10: return this.xparam(paramId - 8);
-		case 11: return this.xparam(paramId - 8);
-		case 12: return this.xparam(paramId - 8);
-		case 13: return this.xparam(paramId - 8);
-		case 14: return this.xparam(paramId - 8);
-		case 15: return this.xparam(paramId - 8);
-		case 16: return this.xparam(paramId - 8);
-		case 17: return this.xparam(paramId - 8);
-		case 18: return this.sparam(paramId - 18);
-		case 19: return this.sparam(paramId - 18);
-		case 20: return this.sparam(paramId - 18);
-		case 21: return this.sparam(paramId - 18);
-		case 22: return this.sparam(paramId - 18);
-		case 23: return this.sparam(paramId - 18);
-		case 24: return this.sparam(paramId - 18);
-		case 25: return this.sparam(paramId - 18);
-		case 26: return this.sparam(paramId - 18);
-		case 27: return this.sparam(paramId - 18);
-		case 30: return this.maxTp();
-		default:
-			console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-			return String.empty;
 	}
 };
 /**
@@ -5921,54 +7154,636 @@ var TraitManager = class {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Actor.js
+//#region src/plugins/_base/managers/TraitResolver.js
 /**
-* Gets the parameter value from the "long" parameter id.
+* A static class that centralizes trait-merging operations shared across the ecosystem.
 *
-* "Long" parameter ids are used in the context of 0-27, rather than
-* 0-7 for param, 0-9 for xparam, and 0-9 for sparam.
-* @param {number} paramId The "long" parameter id.
-* @returns {number} The value of the given parameter.
+* Two distinct merge strategies are exposed:
+*  - {@link overlayTraits}  "last wins per code+dataId" — used by state extension.
+*  - {@link refineTraits}   "keep better per code+dataId" — used by JAFTING refinement.
+*
+* Both strategies share the same underlying sub-operations (opposing-pair cancellation,
+* no-duplicate filtering, parameter-trait additive combining) but differ in how they
+* resolve conflicts between traits that share the same code and dataId.
 */
-Game_Actor.prototype.longParam = function(paramId) {
-	switch (paramId) {
-		case 0: return this.param(paramId);
-		case 1: return this.param(paramId);
-		case 2: return this.param(paramId);
-		case 3: return this.param(paramId);
-		case 4: return this.param(paramId);
-		case 5: return this.param(paramId);
-		case 6: return this.param(paramId);
-		case 7: return this.param(paramId);
-		case 8: return this.xparam(paramId - 8);
-		case 9: return this.xparam(paramId - 8);
-		case 10: return this.xparam(paramId - 8);
-		case 11: return this.xparam(paramId - 8);
-		case 12: return this.xparam(paramId - 8);
-		case 13: return this.xparam(paramId - 8);
-		case 14: return this.xparam(paramId - 8);
-		case 15: return this.xparam(paramId - 8);
-		case 16: return this.xparam(paramId - 8);
-		case 17: return this.xparam(paramId - 8);
-		case 18: return this.sparam(paramId - 18);
-		case 19: return this.sparam(paramId - 18);
-		case 20: return this.sparam(paramId - 18);
-		case 21: return this.sparam(paramId - 18);
-		case 22: return this.sparam(paramId - 18);
-		case 23: return this.sparam(paramId - 18);
-		case 24: return this.sparam(paramId - 18);
-		case 25: return this.sparam(paramId - 18);
-		case 26: return this.sparam(paramId - 18);
-		case 27: return this.sparam(paramId - 18);
-		case 30: return this.maxTp();
-		case 31: return this.getWalkSpeedBoosts();
-		case 32: return this.bonusSkillProficiencyGains();
-		case 33: return this.sdpMultiplier();
-		default:
-			console.warn(`paramId:${paramId} didn't map to any of the default parameters.`);
-			return 0;
+var TraitResolver = class {
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Pairs of trait codes that are semantically opposed.
+	* When one side is present in the overlay and the other is present in the base,
+	* both are cancelled (for refinement) or the base entry is removed (for overlay).
+	* @type {[number, number][]}
+	*/
+	static #OpposingPairs = [[41, 42], [43, 44]];
+	/**
+	* Trait codes where having more than one entry with the same dataId is meaningless.
+	* Duplicates are stripped from the incoming overlay/material list during merging.
+	* @type {number[]}
+	*/
+	static #NoDuplicateCodes = [
+		14,
+		31,
+		51,
+		52,
+		53,
+		54,
+		62,
+		64
+	];
+	/**
+	* Trait codes where a higher value is the "better" one (used by {@link refineTraits}).
+	* @type {number[]}
+	*/
+	static #HigherIsBetterCodes = [
+		32,
+		33,
+		34,
+		61
+	];
+	/**
+	* Trait codes where a lower value is the "better" one (used by {@link refineTraits}).
+	* @type {number[]}
+	*/
+	static #LowerIsBetterCodes = [
+		11,
+		12,
+		13
+	];
+	/**
+	* Trait codes that have exactly one meaningful instance; the overlay/material version
+	* always replaces the base version when both are present (used by {@link refineTraits}).
+	* @type {number[]}
+	*/
+	static #AlwaysReplaceCodes = [35, 55];
+	/**
+	* Merges {@link overlayTraits} onto {@link baseTraits} using "last wins per code+dataId" semantics.
+	*
+	* For every trait in the overlay:
+	*  - Any base trait sharing the same code+dataId is removed (the overlay wins).
+	*  - If the overlay trait belongs to an opposing pair, the opposing code with the same
+	*    dataId is also removed from the base (e.g. overlay "seal skill type 3" strips
+	*    base "unlock skill type 3").
+	*
+	* All overlay traits are then appended to the surviving base traits.
+	* @param {RPG_Trait[]} baseTraits The traits of the object being extended.
+	* @param {RPG_Trait[]} overlayTraits The traits of the extension object.
+	* @returns {RPG_Trait[]} The merged trait array.
+	*/
+	static overlayTraits(baseTraits, overlayTraits) {
+		let result = baseTraits.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value));
+		overlayTraits.forEach((overlay) => {
+			result = result.filter((t) => !(t.code === overlay.code && t.dataId === overlay.dataId));
+			const opposing = this.#opposingCode(overlay.code);
+			if (opposing !== null) {
+				result = result.filter((t) => !(t.code === opposing && t.dataId === overlay.dataId));
+			}
+		});
+		overlayTraits.forEach((t) => result.push(RPG_Trait.fromValues(t.code, t.dataId, t.value)));
+		return result;
+	}
+	/**
+	* Merges {@link materialTraits} onto {@link baseTraits} using "keep better per code+dataId" semantics.
+	*
+	* Steps applied in order:
+	*  1. Additive combining of parameter traits (codes 21/22/23) within each list.
+	*  2. Opposing-pair cancellation — conflicting pairs are removed from both lists.
+	*  3. No-duplicate filtering — material entries are dropped if base already has them.
+	*  4. Always-replace codes (35, 55) — base entry is removed when material has the same code.
+	*  5. Keep-better resolution for rate/stackable codes — the lower-value or higher-value
+	*     winner stays; the loser is removed from its list before the final concat.
+	*  6. All surviving base traits are returned first, followed by remaining material traits.
+	* @param {RPG_Trait[]} baseTraits The traits of the base equip being refined.
+	* @param {RPG_Trait[]} materialTraits The traits of the material being consumed.
+	* @returns {RPG_Trait[]} The merged trait array.
+	*/
+	/**
+	* Folds all same-dataId traits within a single trait list into one combined entry per
+	* dataId using additive math, for every code where additive stacking is meaningful.
+	*
+	* This covers the full display-relevant set:
+	*  - Codes 11/12/13  (element/debuff/state rates)      — neutral 1.0, delta formula
+	*  - Codes 21/22/23  (base/ex/sp parameter rates)      — neutral 1.0 or 0.0
+	*  - Code  32        (attack state chance)              — neutral 0.0, straight additive
+	*
+	* Used by display and count consumers (e.g. JAFTING's {@link JaftingManager.parseTraits})
+	* that need a clean, consolidated view of an equip's traits rather than raw separate entries.
+	* Not used during merging — {@link refineTraits} and {@link overlayTraits} have their own
+	* resolution semantics for these codes.
+	* @param {RPG_Trait[]} traits The trait list to consolidate.
+	* @returns {RPG_Trait[]} A new array with stackable traits combined per code+dataId.
+	*/
+	static consolidate(traits) {
+		let result = traits.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value));
+		result = this.#combineParameterTraitsForCode(result, 11, 1);
+		result = this.#combineParameterTraitsForCode(result, 12, 1);
+		result = this.#combineParameterTraitsForCode(result, 13, 1);
+		result = this.#combineParameterTraitsForCode(result, 21, 1);
+		result = this.#combineParameterTraitsForCode(result, 22, 0);
+		result = this.#combineParameterTraitsForCode(result, 23, 1);
+		result = this.#combineParameterTraitsForCode(result, 32, 0);
+		return result;
+	}
+	static refineTraits(baseTraits, materialTraits) {
+		let base = this.#combineAllParameterTraits(baseTraits.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value)));
+		let material = this.#combineAllParameterTraits(materialTraits.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value)));
+		[base, material] = this.#cancelOpposingPairs(base, material);
+		[base, material] = this.#filterNoDuplicates(base, material);
+		for (const code of this.#AlwaysReplaceCodes) {
+			[base, material] = this.#replaceCode(base, material, code);
+		}
+		[base, material] = this.#keepBetterAll(base, material);
+		return [...base, ...material.map((t) => RPG_Trait.fromValues(t.code, t.dataId, t.value))];
+	}
+	/**
+	* Returns the opposing code for a given trait code, or null if it has none.
+	* @param {number} code The trait code to look up.
+	* @returns {number|null}
+	*/
+	static #opposingCode(code) {
+		for (const [a, b] of this.#OpposingPairs) {
+			if (code === a) return b;
+			if (code === b) return a;
+		}
+		return null;
+	}
+	/**
+	* Runs additive parameter combining for codes 21, 22, and 23 on a single trait list.
+	* Multiple entries with the same code+dataId are folded into one with a summed value.
+	* @param {RPG_Trait[]} traits The trait list to process in place.
+	* @returns {RPG_Trait[]}
+	*/
+	static #combineAllParameterTraits(traits) {
+		let combined = this.#combineParameterTraitsForCode(traits, 21, 1);
+		combined = this.#combineParameterTraitsForCode(combined, 22, 0);
+		combined = this.#combineParameterTraitsForCode(combined, 23, 1);
+		return combined;
+	}
+	/**
+	* Folds all traits of a single code in the list into one per dataId using additive math.
+	* @param {RPG_Trait[]} traits The trait list to process.
+	* @param {number} code The trait code to combine.
+	* @param {number} neutral The neutral value for this code (1 for rate traits, 0 for additive traits).
+	* @returns {RPG_Trait[]}
+	*/
+	static #combineParameterTraitsForCode(traits, code, neutral) {
+		const tracker = {};
+		const toRemove = new Set();
+		traits.forEach((trait, index) => {
+			if (trait.code !== code) return;
+			if (tracker[trait.dataId] === undefined) {
+				tracker[trait.dataId] = trait.value - neutral;
+			} else {
+				tracker[trait.dataId] += trait.value - neutral;
+			}
+			toRemove.add(index);
+		});
+		if (Object.keys(tracker).length === 0) return traits;
+		const result = traits.filter((_, i) => !toRemove.has(i));
+		for (const dataId in tracker) {
+			const value = parseFloat((tracker[dataId] + neutral).toFixed(2));
+			if (value === neutral) continue;
+			result.push(RPG_Trait.fromValues(code, parseInt(dataId), value));
+		}
+		return result;
+	}
+	/**
+	* Cancels opposing trait pairs across and within both lists.
+	* Any dataId that appears as both code A and code B (across or within either list) is
+	* removed entirely from both lists.
+	* @param {RPG_Trait[]} baseTraits
+	* @param {RPG_Trait[]} materialTraits
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #cancelOpposingPairs(baseTraits, materialTraits) {
+		let base = baseTraits;
+		let material = materialTraits;
+		for (const [codeA, codeB] of this.#OpposingPairs) {
+			[base, material] = this.#cancelPair(base, material, codeA, codeB);
+		}
+		return [base, material];
+	}
+	/**
+	* Cancels one opposing pair across and within both lists.
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @param {number} codeA
+	* @param {number} codeB
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #cancelPair(base, material, codeA, codeB) {
+		const conflicts = new Set();
+		const baseA = base.filter((t) => t.code === codeA);
+		const baseB = base.filter((t) => t.code === codeB);
+		const matA = material.filter((t) => t.code === codeA);
+		const matB = material.filter((t) => t.code === codeB);
+		baseA.forEach((a) => {
+			if (matB.some((b) => b.dataId === a.dataId)) conflicts.add(a.dataId);
+		});
+		baseB.forEach((b) => {
+			if (matA.some((a) => a.dataId === b.dataId)) conflicts.add(b.dataId);
+		});
+		baseA.forEach((a) => {
+			if (baseB.some((b) => b.dataId === a.dataId)) conflicts.add(a.dataId);
+		});
+		matA.forEach((a) => {
+			if (matB.some((b) => b.dataId === a.dataId)) conflicts.add(a.dataId);
+		});
+		if (conflicts.size === 0) return [base, material];
+		const strip = (traits) => traits.filter((t) => {
+			if (t.code !== codeA && t.code !== codeB) return true;
+			return !conflicts.has(t.dataId);
+		});
+		return [strip(base), strip(material)];
+	}
+	/**
+	* Strips material traits that the base already owns for no-duplicate codes.
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #filterNoDuplicates(base, material) {
+		const noDupes = this.#NoDuplicateCodes;
+		const filteredMaterial = material.filter((mat) => {
+			if (!noDupes.includes(mat.code)) return true;
+			return !base.some((b) => b.code === mat.code && b.dataId === mat.dataId);
+		});
+		return [base, filteredMaterial];
+	}
+	/**
+	* Removes the base entry for a given code when the material also has that code.
+	* This gives the material ("last applied") effective replacement behavior for
+	* codes like 35 (basic attack skill) and 55 (dual-wield toggle).
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @param {number} code The code to apply replacement to.
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #replaceCode(base, material, code) {
+		if (!material.some((t) => t.code === code)) return [base, material];
+		return [base.filter((t) => t.code !== code), material];
+	}
+	/**
+	* Runs keep-better resolution for all higher-is-better and lower-is-better codes.
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #keepBetterAll(base, material) {
+		let resultBase = base;
+		let resultMaterial = material;
+		for (const code of this.#HigherIsBetterCodes) {
+			[resultBase, resultMaterial] = this.#keepBetter(resultBase, resultMaterial, code, true);
+		}
+		for (const code of this.#LowerIsBetterCodes) {
+			[resultBase, resultMaterial] = this.#keepBetter(resultBase, resultMaterial, code, false);
+		}
+		return [resultBase, resultMaterial];
+	}
+	/**
+	* For each shared code+dataId pair between the two lists, removes the "worse" entry
+	* from its list so only the winner survives into the final concat.
+	* @param {RPG_Trait[]} base
+	* @param {RPG_Trait[]} material
+	* @param {number} code The trait code to process.
+	* @param {boolean} higherIsBetter True if higher values are preferred; false if lower is.
+	* @returns {[RPG_Trait[], RPG_Trait[]]}
+	*/
+	static #keepBetter(base, material, code, higherIsBetter) {
+		const baseToRemove = new Set();
+		const matToRemove = new Set();
+		base.forEach((baseTrait, bi) => {
+			if (baseTrait.code !== code) return;
+			const mi = material.findIndex((t) => t.code === code && t.dataId === baseTrait.dataId);
+			if (mi === -1) return;
+			const matTrait = material[mi];
+			const baseWins = higherIsBetter ? baseTrait.value >= matTrait.value : baseTrait.value <= matTrait.value;
+			if (baseWins) {
+				matToRemove.add(mi);
+			} else {
+				baseToRemove.add(bi);
+			}
+		});
+		return [base.filter((_, i) => !baseToRemove.has(i)), material.filter((_, i) => !matToRemove.has(i))];
 	}
 };
+
+//#endregion
+//#region src/plugins/_base/core/registerVanillaParameters.js
+/**
+* Boot-time registration for vanilla engine parameters in {@link ParameterRegistry}.
+*/
+var VanillaParameterRegistration = class VanillaParameterRegistration {
+	/**
+	* Registers a core b-parameter with the catalog.
+	* @param {string} key The key driving this step.
+	* @param {number} paramId The param id driving this step.
+	* @param {string} group The group driving this step.
+	* @param {number} sortOrder The sort order driving this step.
+	* @param {string} format The format driving this step.
+	*/
+	static registerBparam(key, paramId, group, sortOrder, format = ParameterFormat.FLAT) {
+		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.param(paramId)).description(() => TextManager.bparamDescription(paramId)).iconIndex(() => IconManager.param(paramId)).format(format).getValue((battler) => battler.param(paramId)).sdpBinding(SdpParameterBinding.bparam(paramId)).build());
+	}
+	/**
+	* Registers a core ex-parameter with the catalog.
+	* @param {string} key The key driving this step.
+	* @param {number} xparamId The xparam id driving this step.
+	* @param {string} group The group driving this step.
+	* @param {number} sortOrder The sort order driving this step.
+	* @param {string} format The format driving this step.
+	*/
+	static registerXparam(key, xparamId, group, sortOrder, format = ParameterFormat.PERCENT) {
+		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.xparam(xparamId)).description(() => TextManager.xparamDescription(xparamId)).iconIndex(() => IconManager.xparam(xparamId)).format(format).getValue((battler) => battler.xparam(xparamId)).sdpBinding(SdpParameterBinding.xparam(xparamId)).build());
+	}
+	/**
+	* Registers a core sp-parameter with the catalog.
+	* @param {string} key The key driving this step.
+	* @param {number} sparamId The sparam id driving this step.
+	* @param {string} group The group driving this step.
+	* @param {number} sortOrder The sort order driving this step.
+	* @param {string} format The format driving this step.
+	* @param {string} displayPolicy The display policy driving this step.
+	*/
+	static registerSparam(key, sparamId, group, sortOrder, format = ParameterFormat.PERCENT_CENTERED, displayPolicy = ParameterDisplayPolicy.NONE) {
+		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.sparam(sparamId)).description(() => TextManager.sparamDescription(sparamId)).iconIndex(() => IconManager.sparam(sparamId)).format(format).displayPolicy(displayPolicy).getValue((battler) => battler.sparam(sparamId)).sdpBinding(SdpParameterBinding.sparam(sparamId)).build());
+	}
+	/**
+	* Registers HAR — the sender-side counterpart to REC — with the catalog.
+	* Not a native engine param, so it needs its own custom builder rather than
+	* the registerBparam/Xparam/Sparam helpers, which wrap native param ids.
+	*/
+	static registerHar() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("har").group(ParameterGroups.VITALITY).sortOrder(8).label(() => TextManager.har()).description(() => TextManager.harDescription()).iconIndex(() => IconManager.har()).format(ParameterFormat.PERCENT_CENTERED).getValue((battler) => battler.har).sdpBinding(SdpParameterBinding.byKey("har", () => 1)).build());
+	}
+	/**
+	* Registers all vanilla engine parameters with the catalog.
+	*/
+	static registerAll() {
+		VanillaParameterRegistration.registerBparam("mhp", 0, ParameterGroups.VITALITY, 0, ParameterFormat.FLAT_LARGE);
+		VanillaParameterRegistration.registerXparam("hrg", 7, ParameterGroups.VITALITY, 1, ParameterFormat.REGEN_PER_SECOND);
+		VanillaParameterRegistration.registerBparam("mmp", 1, ParameterGroups.VITALITY, 2, ParameterFormat.FLAT_LARGE);
+		VanillaParameterRegistration.registerXparam("mrg", 8, ParameterGroups.VITALITY, 3, ParameterFormat.REGEN_PER_SECOND);
+		ParameterRegistry.register(ParameterDefinition.Builder().key("mtp").group(ParameterGroups.VITALITY).sortOrder(4).label(() => TextManager.maxTp()).description(() => TextManager.bparamDescription(30)).iconIndex(() => IconManager.maxTp()).format(ParameterFormat.FLAT).getValue((battler) => battler.maxTp()).sdpBinding(SdpParameterBinding.custom((actor, base) => {
+			if (!J.SDP) return 0;
+			if (!actor.maxTpSdpBonuses) return 0;
+			return actor.maxTpSdpBonuses(base);
+		}, (actor) => actor.getBaseMaxTp())).build());
+		VanillaParameterRegistration.registerXparam("trg", 9, ParameterGroups.VITALITY, 5, ParameterFormat.REGEN_PER_SECOND);
+		VanillaParameterRegistration.registerSparam("rec", 2, ParameterGroups.VITALITY, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+		VanillaParameterRegistration.registerSparam("pha", 3, ParameterGroups.VITALITY, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+		VanillaParameterRegistration.registerHar();
+		VanillaParameterRegistration.registerBparam("atk", 2, ParameterGroups.COMBAT, 0);
+		VanillaParameterRegistration.registerBparam("mat", 4, ParameterGroups.COMBAT, 1);
+		ParameterRegistry.register(ParameterDefinition.Builder().key("cnt").group(ParameterGroups.COMBAT).sortOrder(2).label(() => TextManager.xparam(6)).description(() => TextManager.xparamDescription(6)).iconIndex(() => IconManager.xparam(6)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.cnt).sdpBinding(SdpParameterBinding.xparam(6)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("mrf").group(ParameterGroups.COMBAT).sortOrder(3).label(() => TextManager.xparam(5)).description(() => TextManager.xparamDescription(5)).iconIndex(() => IconManager.xparam(5)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mrf).sdpBinding(SdpParameterBinding.xparam(5)).build());
+		VanillaParameterRegistration.registerSparam("mcr", 4, ParameterGroups.COMBAT, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
+		VanillaParameterRegistration.registerSparam("tcr", 5, ParameterGroups.COMBAT, 9, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
+		VanillaParameterRegistration.registerXparam("hit", 0, ParameterGroups.PRECISION, 0, ParameterFormat.SCALED_POINTS);
+		VanillaParameterRegistration.registerSparam("grd", 1, ParameterGroups.PRECISION, 1, ParameterFormat.SCALED_OFFSET);
+		VanillaParameterRegistration.registerBparam("agi", 6, ParameterGroups.PRECISION, 2);
+		VanillaParameterRegistration.registerXparam("cri", 2, ParameterGroups.PRECISION, 4);
+		VanillaParameterRegistration.registerXparam("cev", 3, ParameterGroups.PRECISION, 5);
+		VanillaParameterRegistration.registerBparam("def", 3, ParameterGroups.DEFENSIVE, 0);
+		VanillaParameterRegistration.registerBparam("mdf", 5, ParameterGroups.DEFENSIVE, 1);
+		VanillaParameterRegistration.registerSparam("pdr", 6, ParameterGroups.DEFENSIVE, 2, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+		VanillaParameterRegistration.registerSparam("mdr", 7, ParameterGroups.DEFENSIVE, 3, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+		VanillaParameterRegistration.registerXparam("eva", 1, ParameterGroups.DEFENSIVE, 4);
+		VanillaParameterRegistration.registerXparam("mev", 4, ParameterGroups.DEFENSIVE, 5);
+		VanillaParameterRegistration.registerSparam("fdr", 8, ParameterGroups.DEFENSIVE, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.DAMAGE_RATE);
+		VanillaParameterRegistration.registerSparam("tgr", 0, ParameterGroups.FATE, 0, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.SIGNED);
+		VanillaParameterRegistration.registerBparam("luk", 7, ParameterGroups.FATE, 2);
+		VanillaParameterRegistration.registerSparam("exr", 9, ParameterGroups.FATE, 1, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/AffiliationDisplay.js
+/**
+* Formats affiliation rates for CMS status and Monsterpedia elementalistics.
+*/
+var AffiliationDisplay = class AffiliationDisplay {
+	/**
+	* Digit width for styled affiliation deltas ({@code +0200%}, {@code -0050%}).
+	* @type {number}
+	*/
+	static padDigits = 4;
+	/**
+	* Mask template for unknown affiliation deltas — keeps column width stable while scouting.
+	* @type {string}
+	*/
+	static maskTemplate = "+0000%";
+	/**
+	* Formats an affiliation rate as a relative delta or special label.
+	* Shared by CMS status affiliations and Monsterpedia elementalistics.
+	* @param {number} ratePercent The effective rate on a 0–100+ scale (positive magnitude).
+	* @param {{ absorbed?: boolean, immune?: boolean }} flags Display modifiers.
+	* @returns {{ value: string, colorIndex: number }|null} Null when the rate is unmodified baseline.
+	*/
+	static formatDelta(ratePercent, flags = {}) {
+		const absorbed = flags.absorbed === true;
+		const immune = flags.immune === true;
+		if (absorbed) {
+			const magnitude = Math.round(ratePercent);
+			const diff = magnitude - 100;
+			if (diff === 0) {
+				return {
+					value: "ABSORB",
+					colorIndex: 5
+				};
+			}
+			return {
+				value: `ABSORB (${ParameterDefinition.padSignedMagnitude(diff, AffiliationDisplay.padDigits, true, true)}%)`,
+				colorIndex: 5
+			};
+		}
+		if (immune || ratePercent <= 0) {
+			return {
+				value: "IMMUNE",
+				colorIndex: 7
+			};
+		}
+		const diff = Math.round(ratePercent) - 100;
+		if (diff === 0) {
+			return null;
+		}
+		if (diff <= -100) {
+			return {
+				value: "IMMUNE",
+				colorIndex: 7
+			};
+		}
+		let colorIndex = 0;
+		if (diff > 0) {
+			colorIndex = 10;
+		} else {
+			colorIndex = 3;
+		}
+		return {
+			value: `${ParameterDefinition.padSignedMagnitude(diff, AffiliationDisplay.padDigits, true, true)}%`,
+			colorIndex
+		};
+	}
+	/**
+	* Resolves affiliation display text, using {@code 000%} when the rate matches baseline.
+	* @param {number} ratePercent The effective rate on a 0–100+ scale (positive magnitude).
+	* @param {{ absorbed?: boolean, immune?: boolean }} flags Display modifiers.
+	* @returns {{ value: string, colorIndex: number }}
+	*/
+	static resolveDisplay(ratePercent, flags = {}) {
+		const formatted = AffiliationDisplay.formatDelta(ratePercent, flags);
+		if (formatted) {
+			return formatted;
+		}
+		return {
+			value: `${ParameterDefinition.padSignedMagnitude(0, AffiliationDisplay.padDigits, true, true)}%`,
+			colorIndex: 0
+		};
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/objects/Game_Action.js
+/**
+* A collection of registered formula context providers.
+* Each provider contributes a named variable to every `evalFormulaWithContext` call.
+* Plugins append entries here via {@link Game_Action.registerFormulaContext}; the order
+* of registration determines the order of arguments passed to the generated function.
+* @type {Array<{name: string, getter: function}>}
+*/
+Game_Action.formulaContextProviders = [];
+/**
+* Registers a named formula context variable provided by a plugin.
+* The getter receives `(action, a, b)` where `action` is the {@link Game_Action} instance,
+* `a` is the attacker, and `b` is the target. Arrow functions are fully supported.
+* The return value of the getter becomes the value of `name` inside every
+* formula evaluated by {@link Game_Action#evalFormulaWithContext}.
+* @param {string} name The variable name exposed inside the formula (e.g. `'p'`, `'s'`).
+* @param {function(Game_Action, Game_Battler, Game_Battler): *} getter A function returning the value.
+*/
+Game_Action.registerFormulaContext = function(name, getter) {
+	Game_Action.formulaContextProviders.push({
+		name,
+		getter
+	});
+};
+/**
+* Evaluates a formula string using the base context (`a`, `b`, `v`) plus all
+* variables registered via {@link Game_Action.registerFormulaContext}.
+*
+* Uses `new Function` rather than `eval` so that each plugin owns its own
+* injected variable — no plugin needs to patch another's formula function.
+* @param {string} formula The formula string to evaluate.
+* @param {Game_Actor|Game_Enemy} a The attacker / subject of this action.
+* @param {Game_Actor|Game_Enemy} b The target of this action.
+* @returns {number} The result of the formula.
+*/
+Game_Action.prototype.evalFormulaWithContext = function(formula, a, b) {
+	const v = $gameVariables._data;
+	const names = [
+		"a",
+		"b",
+		"v",
+		...Game_Action.formulaContextProviders.map((provider) => provider.name)
+	];
+	const values = [
+		a,
+		b,
+		v,
+		...Game_Action.formulaContextProviders.map((provider) => provider.getter(this, a, b))
+	];
+	return new Function(...names, `return (${formula})`)(...values);
+};
+/**
+* Sets the triggering damage values that caused this action to fire (e.g. a retaliation).
+* These are exposed as `d` (HP), `m` (MP), and `t` (TP) inside damage formulas via
+* {@link Game_Action.registerFormulaContext}.
+* @param {number} hpDamage The HP damage that triggered this action.
+* @param {number} mpDamage The MP damage that triggered this action.
+* @param {number} tpDamage The TP damage that triggered this action.
+*/
+Game_Action.prototype.setTriggerDamage = function(hpDamage, mpDamage, tpDamage) {
+	this._triggerHpDamage = hpDamage;
+	this._triggerMpDamage = mpDamage;
+	this._triggerTpDamage = tpDamage;
+};
+/**
+* Gets the triggering HP damage stamped onto this action, defaulting to 0.
+* @returns {number}
+*/
+Game_Action.prototype.getTriggerHpDamage = function() {
+	return this._triggerHpDamage ?? 0;
+};
+/**
+* Gets the triggering MP damage stamped onto this action, defaulting to 0.
+* @returns {number}
+*/
+Game_Action.prototype.getTriggerMpDamage = function() {
+	return this._triggerMpDamage ?? 0;
+};
+/**
+* Gets the triggering TP damage stamped onto this action, defaulting to 0.
+* @returns {number}
+*/
+Game_Action.prototype.getTriggerTpDamage = function() {
+	return this._triggerTpDamage ?? 0;
+};
+Game_Action.registerFormulaContext("d", (action) => action.getTriggerHpDamage());
+Game_Action.registerFormulaContext("m", (action) => action.getTriggerMpDamage());
+Game_Action.registerFormulaContext("t", (action) => action.getTriggerTpDamage());
+/**
+* Extends {@link #makeDamageValue}.<br/>
+* Applies the caster's HAR to the Damage-tab "HP/MP Recover" result, mirroring
+* vanilla's own `value *= target.rec` for the same negative-value (heal) branch.
+* A negative return value here always means a heal; guard/variance/critical all
+* preserve sign, so checking the final value is equivalent to checking baseValue.
+*/
+J.BASE.Aliased.Game_Action.set("makeDamageValue", Game_Action.prototype.makeDamageValue);
+Game_Action.prototype.makeDamageValue = function(target, critical) {
+	let value = J.BASE.Aliased.Game_Action.get("makeDamageValue").call(this, target, critical);
+	if (value < 0) {
+		value *= this.subject().har;
+	}
+	return value;
+};
+/**
+* Overwrites {@link #itemEffectRecoverHp}.<br/>
+* Identical to vanilla except for the added `this.subject().har` multiplier;
+* the method mutates `target` directly rather than returning a value, so there's
+* no return value to post-multiply the way {@link #makeDamageValue} allows.
+*/
+Game_Action.prototype.itemEffectRecoverHp = function(target, effect) {
+	let value = (target.mhp * effect.value1 + effect.value2) * target.rec * this.subject().har;
+	if (this.isItem()) {
+		value *= this.subject().pha;
+	}
+	value = Math.floor(value);
+	if (value !== 0) {
+		target.gainHp(value);
+		this.makeSuccess(target);
+	}
+};
+/**
+* Overwrites {@link #itemEffectRecoverMp}.<br/>
+* Identical to vanilla except for the added `this.subject().har` multiplier;
+* the method mutates `target` directly rather than returning a value, so there's
+* no return value to post-multiply the way {@link #makeDamageValue} allows.
+*/
+Game_Action.prototype.itemEffectRecoverMp = function(target, effect) {
+	let value = (target.mmp * effect.value1 + effect.value2) * target.rec * this.subject().har;
+	if (this.isItem()) {
+		value *= this.subject().pha;
+	}
+	value = Math.floor(value);
+	if (value !== 0) {
+		target.gainMp(value);
+		this.makeSuccess(target);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/objects/Game_Actor.js
 /**
 * The underlying database data for this battler.
 *
@@ -5984,6 +7799,15 @@ Game_Actor.prototype.battlerId = function() {
 */
 Game_Actor.prototype.databaseData = function() {
 	return this.actor();
+};
+/**
+* Gets the raw skill ids known to this actor.
+* Combines the actor's learned skill list with any bonus skill ids granted by traits,
+* then deduplicates so each id appears at most once.
+* @returns {number[]}
+*/
+Game_Actor.prototype.skillIds = function() {
+	return [...new Set(this._skills.concat(this.addedSkills()))];
 };
 /**
 * Determines whether or not this actor is the leader.
@@ -6011,7 +7835,7 @@ Game_Actor.prototype.getNotesSources = function() {
 	return combinedNoteSources;
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Adds a hook for performing actions when an actor is setup.
 */
 J.BASE.Aliased.Game_Actor.set("setup", Game_Actor.prototype.setup);
@@ -6027,7 +7851,7 @@ Game_Actor.prototype.onSetup = function(actorId) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #learnSkill}.<br>
+* Extends {@link #learnSkill}.<br/>
 * Adds a hook for performing actions when a new skill is learned.
 * If the skill is already known, it will not trigger any on-skill-learned effects.
 */
@@ -6046,7 +7870,7 @@ Game_Actor.prototype.onLearnNewSkill = function(skillId) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #learnSkill}.<br>
+* Extends {@link #learnSkill}.<br/>
 * Adds a hook for performing actions when a new skill is learned.
 * If the skill is already known, it will not trigger any on-skill-learned effects.
 */
@@ -6065,7 +7889,7 @@ Game_Actor.prototype.onForgetSkill = function(skillId) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #die}.<br>
+* Extends {@link #die}.<br/>
 * Adds a toggle of the death effects.
 */
 J.BASE.Aliased.Game_Actor.set("die", Game_Actor.prototype.die);
@@ -6080,7 +7904,7 @@ Game_Actor.prototype.onDeath = function() {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #revive}.<br>
+* Extends {@link #revive}.<br/>
 * Handles on-revive effects at the actor-level.
 */
 J.BASE.Aliased.Game_Actor.set("revive", Game_Actor.prototype.revive);
@@ -6116,7 +7940,7 @@ Game_Actor.prototype.onClassChange = function(classId, keepExp) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #changeEquip}.<br>
+* Extends {@link #changeEquip}.<br/>
 * Adds a hook for performing actions when equipment on the actor has changed state.
 */
 J.BASE.Aliased.Game_Actor.set("changeEquip", Game_Actor.prototype.changeEquip);
@@ -6129,7 +7953,7 @@ Game_Actor.prototype.changeEquip = function(slotId, item) {
 	}
 };
 /**
-* Extends {@link #discardEquip}.<br>
+* Extends {@link #discardEquip}.<br/>
 * Adds a hook for performing actions when equipment on the actor has been discarded.
 */
 J.BASE.Aliased.Game_Actor.set("discardEquip", Game_Actor.prototype.discardEquip);
@@ -6142,7 +7966,7 @@ Game_Actor.prototype.discardEquip = function(item) {
 	}
 };
 /**
-* Extends {@link #forceChangeEquip}.<br>
+* Extends {@link #forceChangeEquip}.<br/>
 * Adds a hook for performing actions when equipment on the actor has been forcefully changed.
 */
 J.BASE.Aliased.Game_Actor.set("forceChangeEquip", Game_Actor.prototype.forceChangeEquip);
@@ -6155,7 +7979,7 @@ Game_Actor.prototype.forceChangeEquip = function(slotId, item) {
 	}
 };
 /**
-* Extends {@link #releaseUnequippableItems}.<br>
+* Extends {@link #releaseUnequippableItems}.<br/>
 * Adds a hook for performing actions when equipment on the actor has been released due to internal change.
 */
 J.BASE.Aliased.Game_Actor.set("releaseUnequippableItems", Game_Actor.prototype.releaseUnequippableItems);
@@ -6183,6 +8007,33 @@ Game_Actor.prototype.haveEquipsChanged = function(oldEquips) {
 		hasDifferentEquips = true;
 	});
 	return hasDifferentEquips;
+};
+/**
+* Overwrites the vanilla {@link #traitObjects} defined on {@link Game_Actor}.<br/>
+* Routes all calls through the cache wrapper on {@link Game_BattlerBase} so the
+* vanilla implementation — which pushes directly into the returned array — can never
+* shadow our cache layer or cause accidental mutation.
+* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_State)[]}
+*/
+Game_Actor.prototype.traitObjects = function() {
+	return Game_BattlerBase.prototype.traitObjects.call(this);
+};
+/**
+* Overwrites {@link #buildTraitObjects}.<br/>
+* Actors have additional trait-bearing sources beyond states: their actor data,
+* current class, and all currently equipped items.
+*
+* Returns a fresh array — never mutates the result of any super call — so the
+* cache in {@link #traitObjects} remains safe.
+* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_State)[]}
+*/
+Game_Actor.prototype.buildTraitObjects = function() {
+	return [
+		...this.states(),
+		this.actor(),
+		this.currentClass(),
+		...this.equippedEquips()
+	];
 };
 /**
 * Gets all currently-equipped equips for this actor.
@@ -6223,7 +8074,7 @@ Game_Actor.prototype.onLevelDown = function() {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #levelDown}.<br>
+* Extends {@link #levelDown}.<br/>
 * Adds a hook for performing actions when an the actor levels down.
 */
 J.BASE.Aliased.Game_Actor.set("levelDown", Game_Actor.prototype.levelDown);
@@ -6284,6 +8135,14 @@ Game_Battler.prototype.skills = function() {
 	return Array.empty;
 };
 /**
+* Gets the raw skill ids available to this battler.
+* Returns an empty array by default; actor and enemy override this for their respective data sources.
+* @returns {number[]}
+*/
+Game_Battler.prototype.skillIds = function() {
+	return Array.empty;
+};
+/**
 * The underlying database data for this battler.
 *
 * This allows operations to be performed against both actor and enemy indifferently.
@@ -6311,7 +8170,7 @@ Game_Battler.prototype.class = function(classId) {
 	return $dataClasses.at(classId);
 };
 /**
-* Overrides {@link #maxTp}.<br/>
+* Overwrites {@link #maxTp}.<br/>
 * Replaces the default of 100 for all battlers with a tag-based calculation that reviews all available notes to sum
 * together all maxTp values for a custom value.
 * @returns {number}
@@ -6330,22 +8189,102 @@ Game_Battler.prototype.getBaseMaxTp = function() {
 };
 /**
 * The base bonus to max tech on this battler.
+* Result is cached and invalidated by {@link #onBattlerDataChange}.
 * @returns {number}
 */
 Game_Battler.prototype.getBaseMaxTpBonuses = function() {
-	const objectsToCheck = this.getAllNotes();
-	return RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.BASE.RegExp.MaxTp);
+	if (this.getCachedMaxTpBonuses() !== null) {
+		return this.getCachedMaxTpBonuses();
+	}
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.BASE.RegExp.MaxTp);
+	this.setCachedMaxTpBonuses(bonus);
+	return this.getCachedMaxTpBonuses();
+};
+/**
+* Extends {@link #initMembers}.<br/>
+* Initializes the notes cache for this battler.
+*/
+J.BASE.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
+Game_Battler.prototype.initMembers = function() {
+	J.BASE.Aliased.Game_Battler.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with the base plugin.
+	*/
+	this._j._base ||= {};
+	/**
+	* The cached result of {@link #getNotesSources} for this battler.
+	* Null when the cache is cold; populated on the first {@link #getAllNotes} call after
+	* construction or after {@link #onBattlerDataChange} invalidates it.
+	* @type {RPG_BaseItem[]|null}
+	*/
+	this._j._base._cachedAllNotes = null;
+	/**
+	* The cached result of {@link #getBaseMaxTpBonuses} for this battler.
+	* Null when the cache is cold; populated on the first call and invalidated by
+	* {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._base._cachedMaxTpBonuses = null;
+	/**
+	* The cached result of {@link #baseHarFactor} for this battler.
+	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._base._cachedHarFactor = null;
+};
+/**
+* Gets the cached max-tp-bonuses value for this battler, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Battler.prototype.getCachedMaxTpBonuses = function() {
+	return this._j._base._cachedMaxTpBonuses;
+};
+/**
+* Sets the cached max-tp-bonuses value for this battler.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedMaxTpBonuses = function(value) {
+	this._j._base._cachedMaxTpBonuses = value;
+};
+/**
+* Gets the cached all-notes collection for this battler, or null if the cache is cold.
+* @returns {RPG_BaseItem[]|null}
+*/
+Game_Battler.prototype.getCachedAllNotes = function() {
+	return this._j._base._cachedAllNotes;
+};
+/**
+* Sets the cached all-notes collection for this battler.
+* @param {RPG_BaseItem[]|null} notes The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedAllNotes = function(notes) {
+	this._j._base._cachedAllNotes = notes;
 };
 /**
 * Gets everything that this battler has with notes on it.
+*
+* The result is cached and shared across all callers within a single data-change cycle.
+* The cache is invalidated by {@link #onBattlerDataChange}, which fires whenever states,
+* equipment, skills, or any other note-bearing data changes on this battler.
+*
 * All battlers have their own database data, along with all their states.
 * Actors also get their class, skills, and equips added.
 * Enemies also get their skills added.
 * @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
 */
 Game_Battler.prototype.getAllNotes = function() {
-	const objectsWithNotes = this.getNotesSources();
-	return objectsWithNotes;
+	if (this.__testNoteSources !== undefined) {
+		return this.__testNoteSources;
+	}
+	if (this.getCachedAllNotes() !== null) {
+		return this.getCachedAllNotes();
+	}
+	this.setCachedAllNotes(this.getNotesSources());
+	return this.getCachedAllNotes();
 };
 /**
 * Gets all database objects from which notes can be derived for this battler.
@@ -6364,7 +8303,14 @@ Game_Battler.prototype.getNotesSources = function() {
 *
 * Unlike {@link Game_Battler.refresh}, this does not trigger when hp/mp/tp changes.
 */
-Game_Battler.prototype.onBattlerDataChange = function() {};
+Game_Battler.prototype.onBattlerDataChange = function() {
+	this.setCachedAllNotes(null);
+	this.setCachedTraitObjects(null);
+	this.setCachedAllTraits(null);
+	this.setCachedMaxTpBonuses(null);
+	this.setCachedHarFactor(null);
+	JCache.invalidateAllForBattler(this);
+};
 /**
 * Gets the state associated with the given state id.
 * By abstracting this, we can modify the underlying state before it reaches its destination.
@@ -6375,7 +8321,7 @@ Game_Battler.prototype.state = function(stateId) {
 	return $dataStates[stateId];
 };
 /**
-* Overrides {@link #states}.<br>
+* Overwrites {@link #states}.<br/>
 * Returns all states from the view of this battler.
 * @returns {RPG_State[]}
 */
@@ -6383,7 +8329,7 @@ Game_Battler.prototype.states = function() {
 	return this._states.map((stateId) => this.state(stateId), this);
 };
 /**
-* Extends {@link #eraseState}.<br>
+* Extends {@link #eraseState}.<br/>
 * Adds a hook for performing actions when a state is removed from the battler.
 */
 J.BASE.Aliased.Game_Battler.set("eraseState", Game_Battler.prototype.eraseState);
@@ -6403,7 +8349,7 @@ Game_Battler.prototype.onStateRemoval = function(stateId) {
 	this.onBattlerDataChange();
 };
 /**
-* Extends {@link #addNewState}.<br>
+* Extends {@link #addNewState}.<br/>
 * Adds a hook for performing actions when a state is added on the battler.
 */
 J.BASE.Aliased.Game_Battler.set("addNewState", Game_Battler.prototype.addNewState);
@@ -6433,6 +8379,25 @@ Game_Battler.prototype.allStates = function() {
 	return states;
 };
 /**
+* Gets the ids of all states on the battler as raw numbers.
+* This can include other state ids from other plugins, too.
+* @returns {number[]}
+*/
+Game_Battler.prototype.allStateIds = function() {
+	return [...this._states];
+};
+/**
+* Overwrites {@link Game_BattlerBase#isStateAffected}.<br/>
+* Uses {@link #allStateIds} instead of the raw `_states` array so that passives injected
+* by J.PASSIVE (and any other plugin that extends allStateIds) are included in the check.
+* @param {number} stateId The state id to check.
+* @returns {boolean}
+*/
+J.BASE.Aliased.Game_Battler.set("isStateAffected", Game_BattlerBase.prototype.isStateAffected);
+Game_Battler.prototype.isStateAffected = function(stateId) {
+	return this.allStateIds().includes(stateId);
+};
+/**
 * Gets the current health percent of this battler.
 * @returns {number}
 */
@@ -6446,9 +8411,207 @@ Game_Battler.prototype.currentHpPercent = function() {
 Game_Battler.prototype.currentHpPercent100 = function() {
 	return Math.round(this.currentHpPercent() * 100);
 };
+/**
+* Resolves a catalog parameter value by string key.
+* Delegates to {@link ParameterRegistry} — does not bypass param/xparam/sparam alias chains.
+* @param {string} key The parameter key (e.g. `'atk'`).
+* @returns {number}
+*/
+Game_Battler.prototype.parameter = function(key) {
+	return ParameterRegistry.resolveValue(this, key);
+};
+/**
+* Hook fired after any positive resource recovery on this battler.
+* Extensions alias this instead of gainHp/gainMp/gainTp to react to healing events
+* without duplicating three separate aliases per plugin.
+* @param {string} _resource One of {@link J.BASE.Resource}.HP / .MP / .TP.
+* @param {number} _amount The positive amount that was recovered.
+*/
+Game_Battler.prototype.onHeal = function(_resource, _amount) {};
+/**
+* Extends {@link #gainHp}.<br/>
+* Fires {@link #onHeal} after any positive HP recovery so listeners can react.
+*/
+J.BASE.Aliased.Game_Battler.set("gainHp", Game_Battler.prototype.gainHp);
+Game_Battler.prototype.gainHp = function(value) {
+	J.BASE.Aliased.Game_Battler.get("gainHp").call(this, value);
+	if (value > 0) this.onHeal(J.BASE.Resource.HP, value);
+};
+/**
+* Extends {@link #gainMp}.<br/>
+* Fires {@link #onHeal} after any positive MP recovery so listeners can react.
+*/
+J.BASE.Aliased.Game_Battler.set("gainMp", Game_Battler.prototype.gainMp);
+Game_Battler.prototype.gainMp = function(value) {
+	J.BASE.Aliased.Game_Battler.get("gainMp").call(this, value);
+	if (value > 0) this.onHeal(J.BASE.Resource.MP, value);
+};
+/**
+* Extends {@link #gainTp}.<br/>
+* Fires {@link #onHeal} after any positive TP recovery so listeners can react.
+*/
+J.BASE.Aliased.Game_Battler.set("gainTp", Game_Battler.prototype.gainTp);
+Game_Battler.prototype.gainTp = function(value) {
+	J.BASE.Aliased.Game_Battler.get("gainTp").call(this, value);
+	if (value > 0) this.onHeal(J.BASE.Resource.TP, value);
+};
+Object.defineProperties(Game_BattlerBase.prototype, { 
+/**
+* Outgoing heal amplification (1.0 = baseline). The sender-side counterpart to REC.
+*/
+har: {
+	get: function() {
+		return 1;
+	},
+	configurable: true
+} });
+Object.defineProperty(Game_Battler.prototype, "har", {
+	get: function() {
+		let factor = this.baseHarFactor();
+		if (this.getSdpBonusForParameterKey) {
+			factor += this.getSdpBonusForParameterKey("har", 1);
+		}
+		return factor;
+	},
+	configurable: true
+});
+/**
+* Sums `<har:X>` notetags into a multiplier factor.
+* Result is cached and invalidated by {@link #onBattlerDataChange}.
+* @returns {number}
+*/
+Game_Battler.prototype.baseHarFactor = function() {
+	if (this.getCachedHarFactor() !== null) {
+		return this.getCachedHarFactor();
+	}
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.BASE.RegExp.HealAmplification);
+	this.setCachedHarFactor((100 + bonus) / 100);
+	return this.getCachedHarFactor();
+};
+/**
+* Gets the cached HAR factor for this battler, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Battler.prototype.getCachedHarFactor = function() {
+	return this._j._base._cachedHarFactor;
+};
+/**
+* Sets the cached HAR factor for this battler.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedHarFactor = function(value) {
+	this._j._base._cachedHarFactor = value;
+};
 
 //#endregion
 //#region src/plugins/_base/objects/Game_BattlerBase.js
+/**
+* Extends {@link #initMembers}.<br/>
+* Initializes the trait objects cache for this battler.
+*/
+J.BASE.Aliased.Game_BattlerBase.set("initMembers", Game_BattlerBase.prototype.initMembers);
+Game_BattlerBase.prototype.initMembers = function() {
+	J.BASE.Aliased.Game_BattlerBase.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with the base plugin.
+	*/
+	this._j._base ||= {};
+	/**
+	* The cached result of {@link #buildTraitObjects} for this battler.
+	* Null when the cache is cold; populated on the first {@link #traitObjects} call after
+	* construction or after {@link #onBattlerDataChange} invalidates it.
+	* @type {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]|null}
+	*/
+	this._j._base._cachedTraitObjects = null;
+	/**
+	* The cached result of {@link #allTraits} for this battler.
+	* Null when the cache is cold; populated on the first {@link #allTraits} call after
+	* construction or after {@link #onBattlerDataChange} invalidates it.
+	* Every downstream trait query ({@link #traits}, {@link #traitsWithId}, {@link #traitsPi},
+	* {@link #traitsDeltaSum}, {@link #traitsSum}) benefits automatically.
+	* @type {MV.Trait[]|null}
+	*/
+	this._j._base._cachedAllTraits = null;
+};
+/**
+* Gets the cached trait objects for this battler, or null if the cache is cold.
+* @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]|null}
+*/
+Game_BattlerBase.prototype.getCachedTraitObjects = function() {
+	return this._j._base._cachedTraitObjects;
+};
+/**
+* Sets the cached trait objects for this battler.
+* @param {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]|null} traitObjects The new cached value, or null to invalidate.
+*/
+Game_BattlerBase.prototype.setCachedTraitObjects = function(traitObjects) {
+	this._j._base._cachedTraitObjects = traitObjects;
+};
+/**
+* Gets all objects that bear traits for this battler.
+*
+* The result is cached and shared across all callers within a single data-change cycle.
+* The cache is invalidated by {@link #onBattlerDataChange}, which fires whenever states,
+* equipment, skills, or any other trait-bearing data changes on this battler.
+*
+* Subclasses define their full trait object list via {@link #buildTraitObjects} rather than
+* pushing into the returned array — this keeps the cache safe from accidental mutation.
+* @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
+*/
+Game_BattlerBase.prototype.traitObjects = function() {
+	if (this.getCachedTraitObjects() !== null) {
+		return this.getCachedTraitObjects();
+	}
+	this.setCachedTraitObjects(this.buildTraitObjects());
+	return this.getCachedTraitObjects();
+};
+/**
+* Builds the complete list of objects that bear traits for this battler.
+*
+* This is the extension point for subclasses — override this instead of {@link #traitObjects}
+* so the cache layer in {@link #traitObjects} remains intact. Return a fresh array each call;
+* never mutate the result of a super call.
+* @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
+*/
+Game_BattlerBase.prototype.buildTraitObjects = function() {
+	return [...this.states()];
+};
+/**
+* Gets the cached flat trait list for this battler, or null if the cache is cold.
+* @returns {MV.Trait[]|null}
+*/
+Game_BattlerBase.prototype.getCachedAllTraits = function() {
+	return this._j._base._cachedAllTraits;
+};
+/**
+* Sets the cached flat trait list for this battler.
+* @param {MV.Trait[]|null} allTraits The new cached value, or null to invalidate.
+*/
+Game_BattlerBase.prototype.setCachedAllTraits = function(allTraits) {
+	this._j._base._cachedAllTraits = allTraits;
+};
+/**
+* Gets the flat list of all traits from all trait-bearing objects for this battler.
+*
+* The result is cached and shared across all callers within a single data-change cycle.
+* Every downstream trait query — {@link #traits}, {@link #traitsWithId}, {@link #traitsPi},
+* {@link #traitsDeltaSum}, {@link #traitsSum} — benefits automatically since they all
+* call this method first.
+*
+* The cache is invalidated by {@link #onBattlerDataChange}.
+* @returns {MV.Trait[]}
+*/
+Game_BattlerBase.prototype.allTraits = function() {
+	if (this.getCachedAllTraits() !== null) {
+		return this.getCachedAllTraits();
+	}
+	this.setCachedAllTraits(this.traitObjects().reduce((r, obj) => r.concat(obj.traits), []));
+	return this.getCachedAllTraits();
+};
 /**
 * Returns a list of known base parameter ids.
 * @returns {number[]}
@@ -6502,58 +8665,6 @@ Game_BattlerBase.knownSpParameterIds = function() {
 	];
 };
 /**
-* Whether or not the given long-parameter id is a known base parameter.
-* @param {number} longParameterId The long-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isBaseParam = function(longParameterId) {
-	return this.knownBaseParameterIds().includes(longParameterId);
-};
-/**
-* Whether or not the given long-parameter id is a known ex parameter.
-* @param {number} longParameterId The long-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isExParam = function(longParameterId) {
-	return this.knownExParameterIds().includes(longParameterId - 8);
-};
-/**
-* Whether or not the given long-parameter id is a known sp parameter.
-* @param {number} longParameterId The long-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isSpParam = function(longParameterId) {
-	return this.knownSpParameterIds().includes(longParameterId - 18);
-};
-/**
-* Whether or not the given ex-parameter id is a known parameter.
-* Use {@link #isRegenLongParamId} for long-parameter ids.
-* @param {number} paramId The ex-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isRegenParamId = function(paramId) {
-	const regenParamIds = [
-		7,
-		8,
-		9
-	];
-	return regenParamIds.includes(paramId);
-};
-/**
-* Whether or not the given long-parameter id is a known parameter.
-* Use {@link #isRegenParamId} for ex-parameter ids.
-* @param {number} longParamId The long-parameter id to validate.
-* @returns {boolean}
-*/
-Game_BattlerBase.isRegenLongParamId = function(longParamId) {
-	const regenParamIds = [
-		7,
-		8,
-		9
-	];
-	return regenParamIds.includes(longParamId - 8);
-};
-/**
 * Gets the sum of deltas above the 1.0 neutral baseline for all traits matching the given
 * code and dataId.  Each trait value is treated as `1.0 + delta`; this method isolates
 * the delta portion and sums them additively.
@@ -6569,7 +8680,7 @@ Game_BattlerBase.prototype.traitsDeltaSum = function(code, id) {
 	return this.traitsWithId(code, id).map((trait) => trait.value - 1).reduce((total, delta) => total + delta, 0);
 };
 /**
-* Overrides {@link Game_BattlerBase#sparam}.<br>
+* Overwrites {@link Game_BattlerBase#sparam}.<br/>
 * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
 *
 * RMMZ stores sparam trait values as multipliers (1.0 = baseline, 1.5 = +50%).
@@ -6586,7 +8697,7 @@ Game_BattlerBase.prototype.sparam = function(sparamId) {
 	return 1 + this.traitsDeltaSum(Game_BattlerBase.TRAIT_SPARAM, sparamId);
 };
 /**
-* Overrides {@link Game_BattlerBase#elementRate}.<br>
+* Overwrites {@link Game_BattlerBase#elementRate}.<br/>
 * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
 *
 * RMMZ stores element rate trait values as multipliers (1.0 = neutral, 1.2 = +20% damage taken).
@@ -6606,7 +8717,7 @@ Game_BattlerBase.prototype.elementRate = function(elementId) {
 	return Math.max(0, rate);
 };
 /**
-* Overrides {@link Game_BattlerBase#paramRate}.<br>
+* Overwrites {@link Game_BattlerBase#paramRate}.<br/>
 * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
 *
 * RMMZ stores param rate trait values as multipliers (1.0 = baseline, 1.5 = +50%).
@@ -6626,7 +8737,7 @@ Game_BattlerBase.prototype.paramRate = function(paramId) {
 	return Math.max(0, rate);
 };
 /**
-* Overrides {@link Game_BattlerBase#stateRate}.<br>
+* Overwrites {@link Game_BattlerBase#stateRate}.<br/>
 * Replaces the default multiplicative aggregation (traitsPi) with additive delta stacking.
 *
 * RMMZ stores state rate trait values as multipliers (1.0 = neutral, 0.5 = 50% less likely).
@@ -6650,6 +8761,44 @@ Game_BattlerBase.prototype.stateRate = function(stateId) {
 Object.defineProperty(Game_BattlerBase.prototype, "mtp", {
 	get: function() {
 		return this.maxTp();
+	},
+	configurable: true
+});
+/**
+* Magic reflect rate — negative values are meaningless, so floor at zero for combat and UI.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "mrf", {
+	get: function() {
+		return Math.max(0, this.xparam(5));
+	},
+	configurable: true
+});
+/**
+* Counter rate — negative values are meaningless, so floor at zero for combat and UI.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "cnt", {
+	get: function() {
+		return Math.max(0, this.xparam(6));
+	},
+	configurable: true
+});
+/**
+* Mp cost rate — negative values would let skillMpCost() go negative, which paySkillCost()
+* would then treat as a free MP refund on cast. Floor at zero to prevent that.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "mcr", {
+	get: function() {
+		return Math.max(0, this.sparam(4));
+	},
+	configurable: true
+});
+/**
+* Tp charge rate — negative values would let TP gain from damage/items go negative, silently
+* draining TP instead of charging it. Floor at zero.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "tcr", {
+	get: function() {
+		return Math.max(0, this.sparam(5));
 	},
 	configurable: true
 });
@@ -6709,6 +8858,15 @@ Game_Character.prototype.distanceFromCharacter = function(character) {
 	const distance = $gameMap.distance(character.x, character.y, this.x, this.y);
 	const constrainedDistance = parseFloat(distance.toFixed(3));
 	return constrainedDistance;
+};
+/**
+* Characters are visible by default.
+* The base engine only defines {@code isVisible} on {@link Game_Follower} and {@link Game_Vehicle};
+* subclasses that have their own visibility logic (followers, vehicles) override this.
+* @returns {boolean}
+*/
+Game_Character.prototype.isVisible = function() {
+	return true;
 };
 
 //#endregion
@@ -6857,7 +9015,7 @@ Game_Enemy.prototype.getEnemyNotes = function() {
 	return [enemy];
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Adds a hook for performing actions when an enemy is setup.
 */
 J.BASE.Aliased.Game_Enemy.set("setup", Game_Enemy.prototype.setup);
@@ -6873,6 +9031,27 @@ Game_Enemy.prototype.onSetup = function(enemyId) {
 	this.onBattlerDataChange();
 };
 /**
+* Overwrites the vanilla {@link #traitObjects} defined on {@link Game_Enemy}.<br/>
+* Routes all calls through the cache wrapper on {@link Game_BattlerBase} so the
+* vanilla implementation — which concatenates directly onto the returned array — can never
+* shadow our cache layer or cause accidental mutation.
+* @returns {(RPG_Enemy|RPG_State)[]}
+*/
+Game_Enemy.prototype.traitObjects = function() {
+	return Game_BattlerBase.prototype.traitObjects.call(this);
+};
+/**
+* Overwrites {@link #buildTraitObjects}.<br/>
+* Enemies have one additional trait-bearing source beyond states: their own enemy database entry.
+*
+* Returns a fresh array — never mutates the result of any super call — so the
+* cache in {@link #traitObjects} remains safe.
+* @returns {(RPG_Enemy|RPG_State)[]}
+*/
+Game_Enemy.prototype.buildTraitObjects = function() {
+	return [...this.states(), this.enemy()];
+};
+/**
 * Converts all "actions" from an enemy into their collection of known skills.
 * This includes both skills listed in their skill list, and any added skills via traits.
 * @returns {RPG_Skill[]}
@@ -6881,6 +9060,19 @@ Game_Enemy.prototype.skills = function() {
 	const actions = this.enemy().actions.filter(this.canMapActionToSkill, this).map((action) => this.skill(action.skillId), this);
 	const skillTraits = this.traitObjects().filter((trait) => trait.code === J.BASE.Traits.ADD_SKILL).map((skillTrait) => this.skill(skillTrait.dataId), this);
 	return actions.concat(skillTraits).sort();
+};
+/**
+* Gets the raw skill ids available to this enemy.
+* Combines action skill ids with any bonus skill ids granted by traits,
+* then deduplicates so each id appears at most once.
+* Mirrors the logic of {@link #skills} but returns ids instead of resolved skill objects,
+* making it safe to call from inside the skill extension resolver.
+* @returns {number[]}
+*/
+Game_Enemy.prototype.skillIds = function() {
+	const actionIds = this.enemy().actions.filter(this.canMapActionToSkill, this).map((action) => action.skillId);
+	const traitIds = this.traitObjects().filter((trait) => trait.code === J.BASE.Traits.ADD_SKILL).map((trait) => trait.dataId);
+	return [...new Set(actionIds.concat(traitIds))];
 };
 /**
 * Determines whether or not the action can be mapped to a skill.
@@ -6917,7 +9109,7 @@ Game_Enemy.prototype.learnSkill = function(skillId) {
 	return true;
 };
 /**
-* Extends {@link #die}.<br>
+* Extends {@link #die}.<br/>
 * Adds a toggle of the death effects.
 */
 J.BASE.Aliased.Game_Enemy.set("die", Game_Enemy.prototype.die);
@@ -7098,7 +9290,7 @@ Game_Map.prototype.note = function() {
 //#endregion
 //#region src/plugins/_base/objects/Game_Party.js
 /**
-* Overrides {@link #gainItem}.<br>
+* Overwrites {@link #gainItem}.<br/>
 * Replaces item gain and management with index-based management instead.
 * @param {RPG_Item|RPG_Weapon|RPG_Armor} item The item to modify the quantity of.
 * @param {number} amount The amount to modify the quantity by.
@@ -7147,7 +9339,7 @@ Game_Party.prototype.processContainerlessItemGain = function(item, amount, inclu
 	console.error(item, amount, includeEquip);
 };
 /**
-* Extends {@link #maxItems}.<br>
+* Extends {@link #maxItems}.<br/>
 * Adds more handling regarding maximum quantities for your inventory.
 */
 J.BASE.Aliased.Game_Party.set("maxItems", Game_Party.prototype.maxItems);
@@ -7168,7 +9360,8 @@ Game_Party.prototype.defaultMaxItems = function() {
 	return 999;
 };
 /**
-* OVERWRITE Retrieves the item based on its index.
+* Overwrites {@link #numItems}.<br/>
+* Retrieves the item based on its index.
 * @param {RPG_BaseItem} item The item to check the quantity of.
 * @returns {number}
 */
@@ -7184,7 +9377,7 @@ Game_Party.prototype.allItemsQuantified = function() {
 	const allItemsDistinct = this.allItems();
 	const allItemsRepeated = [];
 	allItemsDistinct.forEach((baseItem) => {
-		let count = this.numItems(baseItem) ?? 0;
+		let count = this.numItems(baseItem);
 		while (count > 0) {
 			allItemsRepeated.push(baseItem);
 			count--;
@@ -7199,7 +9392,7 @@ Game_Party.prototype.recoverAllMembers = function() {
 	this.members().forEach((member) => member.recoverAll());
 };
 /**
-* Overrides {@link #maxBattleMembers}.<br/>
+* Overwrites {@link #maxBattleMembers}.<br/>
 * Sets the maximum number of battle members to 8.
 * @returns {number}
 */
@@ -7230,7 +9423,7 @@ Game_Player.prototype.isPlayer = function() {
 //#endregion
 //#region src/plugins/_base/objects/Game_System.js
 /**
-* Extends {@link Game_System.initialize}.<br>
+* Extends {@link Game_System.initialize}.<br/>
 * Initializes all members of this class and adds our custom members.
 */
 J.BASE.Aliased.Game_System.set("initialize", Game_System.prototype.initialize);
@@ -7274,7 +9467,7 @@ Game_System.prototype.canGainEntry = function(entry) {
 //#endregion
 //#region src/plugins/_base/objects/Game_Temp.js
 /**
-* Extends {@link Game_Temp.initialize}.<br>
+* Extends {@link Game_Temp.initialize}.<br/>
 * Initializes all members of this class and adds our custom members.
 */
 J.BASE.Aliased.Game_Temp.set("initialize", Game_Temp.prototype.initialize);
@@ -7295,7 +9488,7 @@ Game_Temp.prototype.initMembers = function() {};
 */
 J.BASE.Aliased.Game_Timer.set("initialize", Game_Timer.prototype.initialize);
 Game_Timer.prototype.initialize = function() {
-	J.BASE.Aliased.Game_Timer.get("start").call(this);
+	J.BASE.Aliased.Game_Timer.get("initialize").call(this);
 	/**
 	* Also initialize the duration of the timer.
 	* @type {number}
@@ -7380,7 +9573,7 @@ var Window_Dimmer = class extends Window_Base {
 */
 Scene_Base.MODAL_DIMMER_CONTENTS_OPACITY_DEFAULT = 200;
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Adds extension for initializing custom members for scenes.
 */
 J.BASE.Aliased.Scene_Base.set("initialize", Scene_Base.prototype.initialize);
@@ -7470,6 +9663,45 @@ Scene_Base.prototype.hideModalDimmer = function() {
 */
 Scene_Base.prototype.callScene = function() {
 	SceneManager.push(this);
+};
+/**
+* Whether this scene is the map scene.
+* All scenes return false; {@link Scene_Map} overrides to return true.
+* @returns {boolean}
+*/
+Scene_Base.prototype.isMapScene = function() {
+	return false;
+};
+/**
+* Identifies this scene as the map scene.
+* @returns {boolean}
+*/
+Scene_Map.prototype.isMapScene = function() {
+	return true;
+};
+
+//#endregion
+//#region src/plugins/_base/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Seeds vanilla engine parameters before downstream plugins extend the catalog.
+*/
+J.BASE.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	VanillaParameterRegistration.registerAll();
+	J.BASE.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+};
+
+//#endregion
+//#region src/plugins/_base/sprites/Sprite.js
+/**
+* Whether this sprite manages its own opacity independently of the HUD system.
+* {@link Sprite_Icon} and {@link Sprite_BaseText} override this when flagged with
+* {@code _disableManagedOpacity}; all other sprites defer to external management.
+* @returns {boolean}
+*/
+Sprite.prototype.hasSelfManagedOpacity = function() {
+	return false;
 };
 
 //#endregion
@@ -7859,41 +10091,51 @@ Sprite_Character.prototype.isErased = function() {
 /**
 * A sprite that displays a single face.
 */
-function Sprite_Face() {
-	this.initialize(...arguments);
-}
-Sprite_Face.prototype = Object.create(Sprite.prototype);
-Sprite_Face.prototype.constructor = Sprite_Face;
-Sprite_Face.prototype.initialize = function(faceName, faceIndex) {
-	Sprite.prototype.initialize.call(this);
-	this.initMembers(faceName, faceIndex);
-	this.loadBitmap();
-};
-/**
-* Initializes the properties associated with this sprite.
-* @param {string} faceName The name of the face file.
-* @param {number} faceIndex The index of the face.
-*/
-Sprite_Face.prototype.initMembers = function(faceName, faceIndex) {
-	this._j = {
-		_faceName: faceName,
-		_faceIndex: faceIndex
-	};
-};
-/**
-* Loads the bitmap into the sprite.
-*/
-Sprite_Face.prototype.loadBitmap = function() {
-	this.bitmap = ImageManager.loadFace(this._j._faceName);
-	const pw = ImageManager.faceWidth;
-	const ph = ImageManager.faceHeight;
-	const width = pw;
-	const height = ph;
-	const sw = Math.min(width, pw);
-	const sh = Math.min(height, ph);
-	const sx = Math.floor(this._j._faceIndex % 4 * pw + (pw - sw) / 2);
-	const sy = Math.floor(Math.floor(this._j._faceIndex / 4) * ph + (ph - sh) / 2);
-	this.setFrame(sx, sy, pw, ph);
+var Sprite_Face = class extends Sprite {
+	/**
+	* Constructor.
+	* @param {...*} args Forwarded to {@link #initialize}.
+	*/
+	constructor(...args) {
+		super();
+		this.initialize(...args);
+	}
+	/**
+	* Runs after {@link Sprite.prototype.initialize}.
+	* @param {string} faceName The name of the face file.
+	* @param {number} faceIndex The index of the face.
+	*/
+	initialize(faceName, faceIndex) {
+		super.initialize();
+		this.initMembers(faceName, faceIndex);
+		this.loadBitmap();
+	}
+	/**
+	* Initializes the properties associated with this sprite.
+	* @param {string} faceName The name of the face file.
+	* @param {number} faceIndex The index of the face.
+	*/
+	initMembers(faceName, faceIndex) {
+		this._j = {
+			_faceName: faceName,
+			_faceIndex: faceIndex
+		};
+	}
+	/**
+	* Loads the bitmap into the sprite.
+	*/
+	loadBitmap() {
+		this.bitmap = ImageManager.loadFace(this._j._faceName);
+		const pw = ImageManager.faceWidth;
+		const ph = ImageManager.faceHeight;
+		const width = pw;
+		const height = ph;
+		const sw = Math.min(width, pw);
+		const sh = Math.min(height, ph);
+		const sx = Math.floor(this._j._faceIndex % 4 * pw + (pw - sw) / 2);
+		const sy = Math.floor(Math.floor(this._j._faceIndex / 4) * ph + (ph - sh) / 2);
+		this.setFrame(sx, sy, pw, ph);
+	}
 };
 
 //#endregion
@@ -8199,7 +10441,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		this._statusType = statusType;
 	}
 	/**
-	* Overrides {@link #bitmapWidth}.<br/>
+	* Overwrites {@link #bitmapWidth}.<br/>
 	* Gets the width of our custom bitmap.
 	* @returns {number}
 	*/
@@ -8207,7 +10449,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this._gauge._bitmapWidth;
 	}
 	/**
-	* Overrides {@link #bitmapHeight}.<br/>
+	* Overwrites {@link #bitmapHeight}.<br/>
 	* Gets the height of our custom bitmap.
 	* @returns {number}
 	*/
@@ -8215,7 +10457,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this._gauge._bitmapHeight;
 	}
 	/**
-	* Overrides {@link #gaugeHeight}.<br/>
+	* Overwrites {@link #gaugeHeight}.<br/>
 	* Gets the height of our custom gauge.
 	* @returns {number}
 	*/
@@ -8223,7 +10465,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this._gauge._gaugeHeight;
 	}
 	/**
-	* Overrides {@link #label}.<br/>
+	* Overwrites {@link #label}.<br/>
 	* Gets our custom label for the gauge.
 	* @returns {string}
 	*/
@@ -8278,6 +10520,14 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		this._gauge._activated = true;
 	}
 	/**
+	* Extends {@link Sprite#hide}.<br/>
+	* Also deactivates the gauge so it does not tick or render while hidden.
+	*/
+	hide() {
+		super.hide();
+		this.deactivateGauge();
+	}
+	/**
 	* Deactivates the gauge.
 	*/
 	deactivateGauge() {
@@ -8291,7 +10541,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this._gauge._activated;
 	}
 	/**
-	* Overrides {@link #currentValue}.<br/>
+	* Overwrites {@link #currentValue}.<br/>
 	* Returns the current value of the gauge based on custom values.
 	* @returns {number|NaN}
 	*/
@@ -8306,7 +10556,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		}
 	}
 	/**
-	* Overrides {@link #currentMaxValue}.<br/>
+	* Overwrites {@link #currentMaxValue}.<br/>
 	* Returns the maximum value of the gauge based on custom values.
 	* @returns {number|NaN}
 	*/
@@ -8350,7 +10600,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		}
 	}
 	/**
-	* Overrides {@link #drawLabel}.<br/>
+	* Overwrites {@link #drawLabel}.<br/>
 	* Draws our custom label on the gauge.
 	*/
 	drawLabel() {
@@ -8361,12 +10611,12 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		this.bitmap.drawText(this._gauge._label, x, y, this.bitmapWidth(), this.bitmapHeight(), "left");
 	}
 	/**
-	* Overrides {@link #drawValue}.<br/>
+	* Overwrites {@link #drawValue}.<br/>
 	* Does nothing by design (no values for map gauges).
 	*/
 	drawValue() {}
 	/**
-	* Overrides {@link #redraw}.<br/>
+	* Overwrites {@link #redraw}.<br/>
 	* Redraws the gauge with our custom values.
 	*/
 	redraw() {
@@ -8386,7 +10636,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		}
 	}
 	/**
-	* Overrides {@link #measureLabelWidth}.<br/>
+	* Overwrites {@link #measureLabelWidth}.<br/>
 	* Measure the actual custom label for this map gauge. If no label is set,
 	* return 0 so HUD gauges (which are unlabeled) render with the same width.
 	* @returns {number}
@@ -8400,7 +10650,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		return this.bitmap.measureTextWidth(label);
 	}
 	/**
-	* Overrides {@link #textHeight}.<br/>
+	* Overwrites {@link #textHeight}.<br/>
 	* Return the bitmap height as the text height for map gauges to ensure borders are correctly drawn.
 	* @returns {number}
 	*/
@@ -8412,7 +10662,8 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 //#endregion
 //#region src/plugins/_base/windows/TileMap.js
 /**
-* OVERWRITE Fuck those autoshadows.
+* Overwrites {@link #_addShadow}.<br/>
+* Fuck those autoshadows.
 */
 Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) {};
 
@@ -8648,7 +10899,7 @@ Window_Base.prototype.refresh = function() {
 */
 Window_Base.prototype.drawContent = function() {};
 /**
-* Overrides {@link Window_Base.resetFontSettings}.<br>
+* Overwrites {@link Window_Base.resetFontSettings}.<br/>
 * Delegates each concern to its own method so individual windows can override
 * only what they need (e.g. a smaller font size) without re-implementing everything.
 */
@@ -8893,11 +11144,17 @@ Window_Base.prototype.buildLeadingPadZeroMask = function(value) {
 * @param {number} width The width to work within.
 * @param {number=} zeroColorIndex Palette index for leading zeros; defaults to 8.
 * @param {number=} valueColorIndex Palette index for significant digits; defaults to 0.
+* @param {'left'|'right'|'center'} align Horizontal alignment within {@code width}; defaults to {@code right}.
 */
-Window_Base.prototype.drawStyledPaddedValue = function(x, y, value, width, zeroColorIndex = 8, valueColorIndex = 0) {
+Window_Base.prototype.drawStyledPaddedValue = function(x, y, value, width, zeroColorIndex = 8, valueColorIndex = 0, align = "right") {
 	const charWidth = this.textWidth("0");
 	const totalCharWidth = value.length * charWidth;
-	const startX = x + width - totalCharWidth;
+	let startX = x;
+	if (align === "right") {
+		startX = x + width - totalCharWidth;
+	} else if (align === "center") {
+		startX = x + Math.floor((width - totalCharWidth) / 2);
+	}
 	const leadingPadZeroMask = this.buildLeadingPadZeroMask(value);
 	[...value].forEach((char, index) => {
 		const isDigit = char >= "0" && char <= "9";
@@ -9248,7 +11505,7 @@ Window_Command.prototype.hasCommands = function() {
 /**
 * Command row at {@link index}, or null when out of range (empty list, stale index, pre-refresh).
 *
-* @param {number} index
+* @param {number} index The index driving this step.
 * @returns {object|null}
 */
 Window_Command.prototype.commandEntryAt = function(index) {
@@ -9276,7 +11533,7 @@ Window_Command.prototype.preDrawItem = function(index) {
 	this.changePaintOpacity(this.isCommandEnabled(index));
 };
 /**
-* Overrides {@link #drawItem}.<br>
+* Overwrites {@link #drawItem}.<br/>
 * Renders the text along with any additional data that is available to the command.
 */
 Window_Command.prototype.drawItem = function(index) {
@@ -9487,7 +11744,7 @@ Window_Command.prototype.commandFaceData = function(index) {
 	return command.faceData ?? [String.empty, -1];
 };
 /**
-* Overrides {@link #addCommand}.<br>
+* Overwrites {@link #addCommand}.<br/>
 * Adds additional metadata to a command.
 * @param {string} name The visible name of this command.
 * @param {string} symbol The symbol for this command.
@@ -9547,7 +11804,7 @@ Window_Command.prototype.prependBuiltCommand = function(command) {
 //#endregion
 //#region src/plugins/_base/windows/Window_EquipItem.js
 /**
-* Overrides {@link #updateHelp}.<br>
+* Overwrites {@link #updateHelp}.<br/>
 * Enables extension of the method's logic for various menu needs.
 */
 Window_EquipItem.prototype.updateHelp = function() {
@@ -9646,7 +11903,7 @@ Window_Help.prototype.getSecondaryNewline = function() {
 	return "|";
 };
 /**
-* Overrides {@link #refresh}.<br>
+* Overwrites {@link #refresh}.<br/>
 * Extracts the text rendering out into its own function, but this function
 * still does the same thing: clears and redraws the contents of the window.
 */
@@ -9820,9 +12077,9 @@ var Window_MoreData = class Window_MoreData extends Window_Command {
 *
 * It can be added to any window that extends this or its subclasses.
 */
-J.BASE.Aliased.Window_Selectable.initialize = Window_Selectable.prototype.initialize;
+J.BASE.Aliased.Window_Selectable.set("initialize", Window_Selectable.prototype.initialize);
 Window_Selectable.prototype.initialize = function(rect) {
-	J.BASE.Aliased.Window_Selectable.initialize.call(this, rect);
+	J.BASE.Aliased.Window_Selectable.get("initialize").call(this, rect);
 	/**
 	* The "more data" window. Used for further elaborating on a particular selection.
 	*
@@ -9830,14 +12087,29 @@ Window_Selectable.prototype.initialize = function(rect) {
 	*/
 	this._moreDataWindow = null;
 };
-J.BASE.Aliased.Window_Selectable.processHandling = Window_Selectable.prototype.processHandling;
+J.BASE.Aliased.Window_Selectable.set("processHandling", Window_Selectable.prototype.processHandling);
 Window_Selectable.prototype.processHandling = function() {
 	if (this.isOpenAndActive()) {
 		if (this.isMoreEnabled() && this.isMoreTriggered()) {
 			return this.processMore();
 		}
+		if (this.isContextEnabled() && this.isContextTriggered()) {
+			return this.processContext();
+		}
+		if (this.isContentPrevEnabled() && this.isContentPrevTriggered()) {
+			return this.processContentPrev();
+		}
+		if (this.isContentNextEnabled() && this.isContentNextTriggered()) {
+			return this.processContentNext();
+		}
+		if (this.isActorPrevEnabled() && this.isActorPrevTriggered()) {
+			return this.processActorPrev();
+		}
+		if (this.isActorNextEnabled() && this.isActorNextTriggered()) {
+			return this.processActorNext();
+		}
 	}
-	return J.BASE.Aliased.Window_Selectable.processHandling.call(this);
+	return J.BASE.Aliased.Window_Selectable.get("processHandling").call(this);
 };
 /**
 * Gets whether or not "more" data has been provided.
@@ -9868,12 +12140,152 @@ Window_Selectable.prototype.callMoreHandler = function() {
 	this.callHandler("more");
 };
 /**
+* Gets whether a contextual scene action handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContextEnabled = function() {
+	return this.isHandled("context");
+};
+/**
+* Gets whether triangle / tab fired this frame (or repeat when allowed).
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContextTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("tab") : Input.isTriggered("tab");
+};
+/**
+* Processes the contextual scene action.
+*/
+Window_Selectable.prototype.processContext = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callContextHandler();
+};
+/**
+* Calls the handler registered for contextual scene actions.
+*/
+Window_Selectable.prototype.callContextHandler = function() {
+	this.callHandler("context");
+};
+/**
+* Gets whether a content-tab previous handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContentPrevEnabled = function() {
+	return this.isHandled("content-prev");
+};
+/**
+* Gets whether L2 / ctrl fired for content cycling.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContentPrevTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("l2") : Input.isTriggered("l2");
+};
+/**
+* Processes content-tab cycle toward the previous entry.
+*/
+Window_Selectable.prototype.processContentPrev = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callContentPrevHandler();
+};
+/**
+* Calls the handler registered for content-tab previous.
+*/
+Window_Selectable.prototype.callContentPrevHandler = function() {
+	this.callHandler("content-prev");
+};
+/**
+* Gets whether a content-tab next handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContentNextEnabled = function() {
+	return this.isHandled("content-next");
+};
+/**
+* Gets whether R2 / alt fired for content cycling.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isContentNextTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("r2") : Input.isTriggered("r2");
+};
+/**
+* Processes content-tab cycle toward the next entry.
+*/
+Window_Selectable.prototype.processContentNext = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callContentNextHandler();
+};
+/**
+* Calls the handler registered for content-tab next.
+*/
+Window_Selectable.prototype.callContentNextHandler = function() {
+	this.callHandler("content-next");
+};
+/**
+* Gets whether an actor-previous handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isActorPrevEnabled = function() {
+	return this.isHandled("actor-prev");
+};
+/**
+* Gets whether L1 / pageup fired for actor cycling.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isActorPrevTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("pageup") : Input.isTriggered("pageup");
+};
+/**
+* Processes actor cycle toward the previous party member.
+*/
+Window_Selectable.prototype.processActorPrev = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callActorPrevHandler();
+};
+/**
+* Calls the handler registered for actor-previous.
+*/
+Window_Selectable.prototype.callActorPrevHandler = function() {
+	this.callHandler("actor-prev");
+};
+/**
+* Gets whether an actor-next handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isActorNextEnabled = function() {
+	return this.isHandled("actor-next");
+};
+/**
+* Gets whether R1 / pagedown fired for actor cycling.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isActorNextTriggered = function() {
+	return this._canRepeat ? Input.isRepeated("pagedown") : Input.isTriggered("pagedown");
+};
+/**
+* Processes actor cycle toward the next party member.
+*/
+Window_Selectable.prototype.processActorNext = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callActorNextHandler();
+};
+/**
+* Calls the handler registered for actor-next.
+*/
+Window_Selectable.prototype.callActorNextHandler = function() {
+	this.callHandler("actor-next");
+};
+/**
 * Extends the `.select()` to include a hook for executing logic onIndexChange.
 */
-J.BASE.Aliased.Window_Selectable.select = Window_Selectable.prototype.select;
+J.BASE.Aliased.Window_Selectable.set("select", Window_Selectable.prototype.select);
 Window_Selectable.prototype.select = function(index) {
 	const previousIndex = this._index;
-	J.BASE.Aliased.Window_Selectable.select.call(this, index);
+	J.BASE.Aliased.Window_Selectable.get("select").call(this, index);
 	if (previousIndex !== this._index) {
 		this.onIndexChange();
 	}
@@ -9888,7 +12300,8 @@ Window_Selectable.prototype.onIndexChange = function() {};
 //#endregion
 //#region src/plugins/_base/windows/WindowLayer.js
 /**
-* OVERWRITE Renders windows, but WITH the ability to overlay.
+* Overwrites {@link #render}.<br/>
+* Renders windows, but WITH the ability to overlay.
 *
 * @param {PIXI.Renderer} renderer - The renderer.
 */

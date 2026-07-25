@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.1.2 DROPS] Enables greater control over loot drops.
+ * @plugindesc [v2.2.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -68,7 +68,8 @@
  *
  * TAG FORMAT:
  * <drops:[TYPE,ID,CHANCE]>
- * where TYPE is either "i", "w", or "a" (representing item/weapon/armor).
+ * where TYPE is either "i"/"item", "w"/"weapon", or "a"/"armor" (the short
+ * and long forms both work- use whichever reads clearer to you).
  * where ID is the id of the drop item in the database.
  * where CHANCE is the percent chance to drop.
  *
@@ -122,6 +123,57 @@
  * - If a drop item on an enemy has a 4% chance to drop, with this drop
  * multiplier bonus, it would be increased from 4% >> 14% (250% of 4 is 10)
  * ============================================================================
+ * NATURAL GROWTH + DROP RATE:
+ * Have you ever wanted your drop rate bonus to permanently grow along with
+ * your other growths because you're also using my
+ *
+ *        J-NaturalGrowth
+ *
+ * plugin? Well now you can! This is a second, independent drop rate bonus
+ * from the flat <dropMultiplier:NUM> tag above- it lives on its own
+ * registered parameter (key "dor"), can be earned from SDP panels, and
+ * follows J-NaturalGrowths' own builder-like Buff/Growth tag pattern instead
+ * of a flat additive number.
+ *
+ * NOTE:
+ * This section requires J-NaturalGrowth to be loaded. Without it, these tags
+ * are silently ignored (the same as always- just nothing computes them).
+ *
+ * Formula context:
+ *   a = the battler these bonuses are being calculated for
+ *   b = 0 (dor's base value is always 0- there's no "base drop rate" to
+ *       expose without re-triggering the getAllNotes() lookup these formulas
+ *       already live inside)
+ *   v = $gameVariables._data
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - States
+ *
+ * TAG FORMAT:
+ *  <dorBuffPlus:[FORMULA]>
+ *  <dorBuffRate:[FORMULA]>
+ *  <dorGrowthPlus:[FORMULA]>
+ *  <dorGrowthRate:[FORMULA]>
+ * Where "Buff" is temporary (lost when the tag's source is removed) and
+ * "Growth" is permanent (accumulates and stays as you level).
+ * Where "Plus" is a flat amount and "Rate" is a percent-of-base amount.
+ *
+ * TAG EXAMPLES:
+ *  <dorGrowthPlus:[a.level * 0.5]>
+ * Permanently gain (level × 0.5)% drop rate per level.
+ *
+ *  <dorBuffPlus:[15]>
+ * Gain a flat 15% drop rate while this tag's source is applied; lost if the
+ * source is removed.
+ *
+ * Please refer to the J-NaturalGrowth documentation for more details on the
+ * Buff/Growth/Plus/Rate pattern itself.
+ * ============================================================================
  * GOLD MULTIPLIER
  * Have you ever wanted to have an actor gain bonus gold for some thiefy
  * reason or another? Well now you can by applying the proper tags to the
@@ -157,6 +209,14 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Added a NaturalGrowth-integrated drop rate stat (key "dor") via
+ *    <dorBuffPlus>/<dorBuffRate>/<dorGrowthPlus>/<dorGrowthRate>, following
+ *    J-NaturalGrowth's own Buff/Growth tag pattern; requires J-NaturalGrowth.
+ *    makeDropItems/didFindLoot now accept the killing battler, whose
+ *    lucky/cursed on-chance rolls now contribute to the loot-discovery roll.
+ *    Documented that drop TYPE accepts long-form aliases (item/weapon/armor)
+ *    alongside the short forms (i/w/a).
  * - 2.1.2
  *    Consumed `RPGManager` updates.
  * - 2.1.1
@@ -197,7 +257,7 @@ J.DROPS = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.1.2");
+J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.2.0");
 /**
 * All regular expressions used by this plugin.
 */
@@ -205,10 +265,16 @@ J.DROPS.RegExp = {};
 J.DROPS.RegExp.ExtraDrop = /<drops:[ ]?(\[(i|item|w|weapon|a|armor),[ ]?(\d+),[ ]?(\d+)])>/i;
 J.DROPS.RegExp.DropMultiplier = /<dropMultiplier:[ ]?(-?\d+)>/i;
 J.DROPS.RegExp.GoldMultiplier = /<goldMultiplier:[ ]?(-?\d+)>/i;
+J.DROPS.RegExp.DropRateBuffPlus = /<dorBuffPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.DropRateBuffRate = /<dorBuffRate:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.DropRateGrowthPlus = /<dorGrowthPlus:\[([+\-*/ ().\w]+)]>/gi;
+J.DROPS.RegExp.DropRateGrowthRate = /<dorGrowthRate:\[([+\-*/ ().\w]+)]>/gi;
 /**
 * The collection of all aliased classes for extending.
 */
 J.DROPS.Aliased = {
+	Game_Actor: new Map(),
+	Game_Battler: new Map(),
 	Game_Enemy: new Map(),
 	RPG_Enemy: new Map(),
 	Scene_Boot: new Map()
@@ -429,7 +495,129 @@ var DropsPartyStrategy = class {
 };
 
 //#endregion
+//#region src/plugins/drops/core/objects/Game_Battler.js
+/**
+* Extends `.initNaturalGrowthParameters()` to include dor as growth-ready.
+*/
+J.DROPS.Aliased.Game_Battler.set("initNaturalGrowthParameters", Game_Battler.prototype.initNaturalGrowthParameters);
+Game_Battler.prototype.initNaturalGrowthParameters = function() {
+	if (!J.NATURAL) return;
+	J.DROPS.Aliased.Game_Battler.get("initNaturalGrowthParameters").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with natural growth.
+	*/
+	this._j._natural ||= {};
+	/**
+	* The permanent flat bonus for drop rate.
+	* @type {number}
+	*/
+	this._j._natural._dorPlus = 0;
+	/**
+	* The permanent multiplier bonus for drop rate.
+	* @type {number}
+	*/
+	this._j._natural._dorRate = 0;
+};
+/**
+* Gets the permanent flat bonus for drop rate.
+* @returns {number}
+*/
+Game_Battler.prototype.dorPlus = function() {
+	return this._j._natural._dorPlus;
+};
+/**
+* Modifies the permanent flat bonus for drop rate.
+* @param {number} amount The amount to modify the bonus by.
+*/
+Game_Battler.prototype.modDorPlus = function(amount) {
+	this._j._natural._dorPlus += amount;
+};
+/**
+* Gets the permanent multiplicative bonus for drop rate.
+* @returns {number}
+*/
+Game_Battler.prototype.dorRate = function() {
+	return this._j._natural._dorRate;
+};
+/**
+* Modifies the permanent multiplicative bonus for drop rate.
+* @param {number} amount The amount to modify the bonus by.
+*/
+Game_Battler.prototype.modDorRate = function(amount) {
+	this._j._natural._dorRate += amount;
+};
+/**
+* Gets all natural bonuses for dor.
+* @returns {number}
+*/
+Game_Battler.prototype.dorNaturalBonuses = function() {
+	if (!J.NATURAL) return 0;
+	const dorBuffs = this.dorNaturalBuffs();
+	const dorGrowths = this.dorNaturalGrowths();
+	return dorBuffs + dorGrowths;
+};
+/**
+* Calculates the buffs for drop rate.
+* @returns {number}
+*/
+Game_Battler.prototype.dorNaturalBuffs = function() {
+	const objectsToCheck = this.getAllNotes();
+	const baseParam = 0;
+	const dorBuffPlus = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropRateBuffPlus, baseParam, this);
+	const dorBuffRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropRateBuffRate, baseParam, this);
+	if (!dorBuffPlus && !dorBuffRate) return 0;
+	return this.calculatePlusRate(baseParam, dorBuffPlus, dorBuffRate);
+};
+/**
+* Calculates the growths associated with drop rate.
+* @returns {number}
+*/
+Game_Battler.prototype.dorNaturalGrowths = function() {
+	const baseParam = 0;
+	const growthPlus = this.dorPlus();
+	const growthRate = this.dorRate();
+	if (!growthPlus && !growthRate) return 0;
+	return this.calculatePlusRate(baseParam, growthPlus, growthRate);
+};
+
+//#endregion
 //#region src/plugins/drops/core/objects/Game_Actor.js
+Object.defineProperties(Game_BattlerBase.prototype, {
+	/**
+	* Gold drop rate multiplier bonus.
+	*/
+	gdr: {
+		get: function() {
+			return 0;
+		},
+		configurable: true
+	},
+	/**
+	* Item drop rate multiplier bonus.
+	*/
+	dor: {
+		get: function() {
+			return 0;
+		},
+		configurable: true
+	}
+});
+Object.defineProperty(Game_Actor.prototype, "gdr", {
+	get: function() {
+		return this.getGoldMultiplier();
+	},
+	configurable: true
+});
+Object.defineProperty(Game_Actor.prototype, "dor", {
+	get: function() {
+		return this.getDropMultiplierBonus();
+	},
+	configurable: true
+});
 /**
 * Gets this actor's bonus drop multiplier.
 * @returns {number}
@@ -438,8 +626,29 @@ Game_Actor.prototype.getDropMultiplierBonus = function() {
 	const baseMultiplier = 0;
 	const objectsToCheck = this.getAllNotes();
 	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropMultiplier);
-	const factor = (multiplierBonus + baseMultiplier) / 100;
-	return factor;
+	const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("dor", 1) : 0;
+	const factor = (multiplierBonus + baseMultiplier + sdpBonus) / 100;
+	const naturalBonus = this.dorNaturalBonuses();
+	return factor + naturalBonus;
+};
+/**
+* Extends `.applyNaturalCustomGrowths()` to include dor growths.
+*/
+J.DROPS.Aliased.Game_Actor.set("applyNaturalCustomGrowths", Game_Actor.prototype.applyNaturalCustomGrowths);
+Game_Actor.prototype.applyNaturalCustomGrowths = function() {
+	J.DROPS.Aliased.Game_Actor.get("applyNaturalCustomGrowths").call(this);
+	if (!J.NATURAL) return;
+	this.applyNaturalDorGrowths();
+};
+/**
+* Applies the natural drop rate growths to this battler.
+*/
+Game_Actor.prototype.applyNaturalDorGrowths = function() {
+	const baseParam = 0;
+	const growthPlus = this.naturalParamBuff(J.DROPS.RegExp.DropRateGrowthPlus, baseParam);
+	this.modDorPlus(growthPlus);
+	const growthRate = this.naturalParamBuff(J.DROPS.RegExp.DropRateGrowthRate, baseParam);
+	this.modDorRate(growthRate);
 };
 /**
 * Gets this actor's bonus gold multiplier.
@@ -449,8 +658,8 @@ Game_Actor.prototype.getGoldMultiplier = function() {
 	const baseMultiplier = 0;
 	const objectsToCheck = this.getAllNotes();
 	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.GoldMultiplier);
-	const factor = (multiplierBonus + baseMultiplier) / 100;
-	return factor;
+	const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("gdr", 1) : 0;
+	return (multiplierBonus + baseMultiplier + sdpBonus) / 100;
 };
 
 //#endregion
@@ -476,12 +685,14 @@ Game_Enemy.prototype.getBaseGoldRate = function() {
 	return 1;
 };
 /**
-* Overrides {@link #makeDropItems}.<br/>
+* Overwrites {@link #makeDropItems}.<br/>
 * Modifies the drop chance algorithm to treat the number entered in the database as a percent chance instead of some
 * weird fractional shit. Also applies any applicable multipliers against the discovery rate of loot.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known; the
+* killer contributes both their own positive and negative rolls to the drop-chance roll.
 * @returns {RPG_BaseItem[]} The array of loot successfully found.
 */
-Game_Enemy.prototype.makeDropItems = function() {
+Game_Enemy.prototype.makeDropItems = function(killer = null) {
 	const dropList = this.getDropItems();
 	if (!dropList.length) return [];
 	const itemsFound = [];
@@ -490,7 +701,7 @@ Game_Enemy.prototype.makeDropItems = function() {
 		if (!this.canFindLoot(drop)) return;
 		const rate = drop.denominator * multiplier;
 		const treasureHunterSkip = rate >= 100;
-		const foundLoot = treasureHunterSkip ? true : this.didFindLoot(rate);
+		const foundLoot = treasureHunterSkip ? true : this.didFindLoot(rate, killer);
 		if (foundLoot === false) return;
 		this.findLoot(drop, itemsFound);
 	}, this);
@@ -523,14 +734,17 @@ Game_Enemy.prototype.canFindLoot = function(drop) {
 * Determines whether or not loot was found based on the provided rate.
 * This is not deterministic, and the same (non-100) rate
 * @param {number} rate The 0-100 integer rate of which to find this loot.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
 * @returns {boolean} True if we found loot this time, false otherwise.
 */
-Game_Enemy.prototype.didFindLoot = function(rate) {
+Game_Enemy.prototype.didFindLoot = function(rate, killer = null) {
 	let chance = rate;
 	if ($gameParty.hasDropItemDouble()) {
 		chance *= 2;
 	}
-	const found = RPGManager.chanceIn100(chance);
+	const positiveRolls = killer ? 1 + killer.getPositiveRolls() : 1;
+	const negativeRolls = killer ? killer.getNegativeRolls() : 0;
+	const found = killer ? RPGManager.fateOf100(killer, chance, positiveRolls, negativeRolls) : RPGManager.chanceIn100(chance, positiveRolls, negativeRolls);
 	return found;
 };
 /**
@@ -661,15 +875,79 @@ Game_Party.prototype.dropMultiplierMembers = function(strategy = DropsPartyStrat
 };
 
 //#endregion
+//#region src/plugins/drops/core/managers/TextManager.js
+/**
+* Display label for gold rate — bonus multiplier on gold rewards.
+* @returns {string}
+*/
+TextManager.goldRate = function() {
+	return "Gold UP";
+};
+/**
+* Help text explaining how gold rate improves battle and chest payouts.
+* @returns {string[]}
+*/
+TextManager.goldRateDescription = function() {
+	return ["Bonus multiplier applied to gold rewards.", "Higher values yield more gold from battles and chests."];
+};
+/**
+* Display label for drop rate — bonus multiplier on item drop chances.
+* @returns {string}
+*/
+TextManager.dropRate = function() {
+	return "Drops UP";
+};
+/**
+* Help text explaining how drop rate improves extra loot odds.
+* @returns {string[]}
+*/
+TextManager.dropRateDescription = function() {
+	return ["Bonus multiplier applied to item drop chances.", "Higher values improve the odds of extra loot."];
+};
+
+//#endregion
+//#region src/plugins/drops/core/managers/IconManager.js
+/**
+* Icon index for gold rate bonus in fate parameter UI.
+* @returns {number}
+*/
+IconManager.goldRate = function() {
+	return 314;
+};
+/**
+* Icon index for item drop rate bonus in fate parameter UI.
+* @returns {number}
+*/
+IconManager.dropRate = function() {
+	return 210;
+};
+
+//#endregion
+//#region src/plugins/drops/core/core/registerDropsParameters.js
+/**
+* Boot-time registration for J-Drops parameters in {@link ParameterRegistry}.
+*/
+var DropsParameterRegistration = class {
+	/**
+	* Registers gold and drop rate multipliers with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("gdr").group(ParameterGroups.FATE).sortOrder(3).label(() => TextManager.goldRate()).description(() => TextManager.goldRateDescription()).iconIndex(() => IconManager.goldRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.gdr).sdpBinding(SdpParameterBinding.byKey("gdr", () => 1)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("dor").group(ParameterGroups.FATE).sortOrder(6).label(() => TextManager.dropRate()).description(() => TextManager.dropRateDescription()).iconIndex(() => IconManager.dropRate()).format(ParameterFormat.MULTIPLIER_PERCENT).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.dor).sdpBinding(SdpParameterBinding.byKey("dor", () => 1)).build());
+	}
+};
+
+//#endregion
 //#region src/plugins/drops/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* No initialization required for J-Drops on database load at this time;
-* the passive detail window draws J-Drops data directly from the state note.
+* Registers J-Drops stats with the parameter catalog after vanilla seeding.
 */
 J.DROPS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.DROPS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	DropsParameterRegistration.registerAll();
+	J.EXTEND.Metadata.registerNonCombiningKey(J.DROPS.RegExp.ExtraDrop);
 };
 
 //#endregion

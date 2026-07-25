@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.2 INPUT] A manager for overseeing the input of JABS.
+ * [v2.3.0 INPUT] A manager for overseeing the input of JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -36,8 +36,20 @@
  * mapping back to defaults via script call if necessary).
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own. Everything here is exposed via
+ * plugin parameters (input remapping) and a Game_System script call for
+ * resetting mappings to default- there's nothing to tag on database
+ * objects.
+ * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 2.3.0
+ *    Added UsableItem as a remappable logical input (R2 by default),
+ *    wiring J-ABS core's new usable-item equip slot to its own trigger.
+ *    Centralized raw Input symbol strings into JabsInputSymbols.
+ *    Removed now-redundant defensive guards now that input scaffolding
+ *    initialization guarantees the mappings/bindings shape always exists.
  * - 2.2.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 2.2.1
@@ -89,17 +101,24 @@ var JABS_Button = class {
 	*/
 	static Offhand = "Offhand";
 	/**
-	* The "tool", "Y" button, or "C" key.
+	* The "tool", Triangle button, or Tab key (native symbol: tab).
 	* Used for executing the currently selected tool skill.
 	* @type {string}
 	*/
 	static Tool = "Tool";
 	/**
-	* The "dodge", "R2" button, or "Tab" key.
-	* Used for executing the currently selected dodge skill.
+	* Optional dodge / mobility skill input (R2 by default when remapped).
+	* In combat, {@link JABS_Button.Sprint} (Square) handles mobility contextually.
 	* @type {string}
 	*/
 	static Dodge = "Dodge";
+	/**
+	* The usable-item slot input (R2 by default).
+	* Executes whatever consumable item is currently equipped in the usable-item slot.
+	* This slot is agnostic to item type — tools are excluded, everything else is fair game.
+	* @type {string}
+	*/
+	static UsableItem = "UsableItem";
 	/**
 	* The sprint/dash input (engine-native dash replacement).
 	* While held, the player sprints if allowed.
@@ -163,6 +182,7 @@ var JABS_Button = class {
 			this.Mainhand,
 			this.Offhand,
 			this.Tool,
+			this.UsableItem,
 			this.SkillTrigger,
 			this.Sprint,
 			this.Strafe,
@@ -182,6 +202,7 @@ var JABS_Button = class {
 			this.Mainhand,
 			this.Offhand,
 			this.Tool,
+			this.UsableItem,
 			this.Sprint,
 			this.SkillTrigger,
 			this.Strafe,
@@ -249,6 +270,7 @@ var JABS_StandardController = class extends JABS_BaseController {
 		this.inputMapping.set(JABS_Button.Mainhand, [J.ABS.EXT.INPUT.Symbols.Mainhand]);
 		this.inputMapping.set(JABS_Button.Offhand, [J.ABS.EXT.INPUT.Symbols.Offhand]);
 		this.inputMapping.set(JABS_Button.Tool, [J.ABS.EXT.INPUT.Symbols.Tool]);
+		this.inputMapping.set(JABS_Button.UsableItem, [J.ABS.EXT.INPUT.Symbols.MobilitySkill]);
 		this.inputMapping.set(JABS_Button.Sprint, [J.ABS.EXT.INPUT.Symbols.Dash]);
 		this.inputMapping.set(JABS_Button.Strafe, [J.ABS.EXT.INPUT.Symbols.StrafeTrigger]);
 		this.inputMapping.set(JABS_Button.Rotate, [J.ABS.EXT.INPUT.Symbols.GuardTrigger]);
@@ -272,6 +294,7 @@ var JABS_StandardController = class extends JABS_BaseController {
 		defaults[JABS_Button.Offhand] = [J.ABS.EXT.INPUT.Symbols.Offhand];
 		defaults[JABS_Button.Tool] = [J.ABS.EXT.INPUT.Symbols.Tool];
 		defaults[JABS_Button.Dodge] = [J.ABS.EXT.INPUT.Symbols.MobilitySkill];
+		defaults[JABS_Button.UsableItem] = [J.ABS.EXT.INPUT.Symbols.MobilitySkill];
 		defaults[JABS_Button.Sprint] = [J.ABS.EXT.INPUT.Symbols.Dash];
 		defaults[JABS_Button.Strafe] = [J.ABS.EXT.INPUT.Symbols.StrafeTrigger];
 		defaults[JABS_Button.Rotate] = [J.ABS.EXT.INPUT.Symbols.GuardTrigger];
@@ -381,6 +404,7 @@ var JABS_StandardController = class extends JABS_BaseController {
 		this.updateMainhandAction();
 		this.updateOffhandAction();
 		this.updateToolAction();
+		this.updateUsableItemAction();
 		this.updateSprintCommand();
 		this.updateCombatAction1();
 		this.updateCombatAction2();
@@ -578,6 +602,34 @@ var JABS_StandardController = class extends JABS_BaseController {
 	*/
 	performToolAction() {
 		JABS_InputAdapter.performToolAction(this.getBattler());
+	}
+	/**
+	* Monitors and takes action based on player input regarding the usable-item action.
+	* This is R2 on the gamepad by default.
+	*/
+	updateUsableItemAction() {
+		if (this.isUsableItemActionTriggered()) {
+			this.performUsableItemAction();
+		}
+	}
+	/**
+	* Checks the inputs of the usable-item action currently assigned (R2 default).
+	* @returns {boolean}
+	*/
+	isUsableItemActionTriggered() {
+		if (this.isCombatSkillUsageEnabled()) {
+			return false;
+		}
+		if (this.isActionTriggered(JABS_Button.UsableItem)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	* Executes the currently assigned usable-item action (R2 default).
+	*/
+	performUsableItemAction() {
+		JABS_InputAdapter.performUsableItemAction(this.getBattler());
 	}
 	/**
 	* Checks the inputs to ensure the combat action enabler is being held down (L1 default).
@@ -800,6 +852,39 @@ var JABS_StandardController = class extends JABS_BaseController {
 };
 
 //#endregion
+//#region src/plugins/abs/ext/input/_models/JabsInputSymbols.js
+/**
+* Symbol names registered with RMMZ {@link Input} for J-ABS Input extension mappings.
+*/
+var JabsInputSymbols = class {
+	static DirUp = "up";
+	static DirDown = "down";
+	static DirLeft = "left";
+	static DirRight = "right";
+	static Mainhand = "ok";
+	static Offhand = "cancel";
+	static Dash = "shift";
+	static Tool = "tab";
+	static GuardTrigger = "pagedown";
+	static SkillTrigger = "pageup";
+	static MobilitySkill = "r2";
+	static StrafeTrigger = "l2";
+	static Quickmenu = "start";
+	static PartyCycle = "select";
+	static Debug = "cheat";
+	static R3 = "r3";
+	static L3 = "l3";
+	static DPadUp = "dpad-up";
+	static DPadDown = "dpad-down";
+	static DPadLeft = "dpad-left";
+	static DPadRight = "dpad-right";
+	static CombatSkill1 = "combat-skill-1";
+	static CombatSkill2 = "combat-skill-2";
+	static CombatSkill3 = "combat-skill-3";
+	static CombatSkill4 = "combat-skill-4";
+};
+
+//#endregion
 //#region src/plugins/abs/ext/input/_metadata/_pluginMetadata.js
 var J_InputPluginMetadata = class extends PluginMetadata {
 	/**
@@ -814,12 +899,12 @@ var J_InputPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/input/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -830,9 +915,38 @@ globalThis.J ||= {};
 */
 J.ABS.EXT.INPUT = {};
 /**
+* Cross-ship symbol table for other plugins (map minimap, omni quest, charge, …).
+*/
+J.ABS.EXT.INPUT.Symbols = {};
+J.ABS.EXT.INPUT.Symbols.DirUp = JabsInputSymbols.DirUp;
+J.ABS.EXT.INPUT.Symbols.DirDown = JabsInputSymbols.DirDown;
+J.ABS.EXT.INPUT.Symbols.DirLeft = JabsInputSymbols.DirLeft;
+J.ABS.EXT.INPUT.Symbols.DirRight = JabsInputSymbols.DirRight;
+J.ABS.EXT.INPUT.Symbols.Mainhand = JabsInputSymbols.Mainhand;
+J.ABS.EXT.INPUT.Symbols.Offhand = JabsInputSymbols.Offhand;
+J.ABS.EXT.INPUT.Symbols.Dash = JabsInputSymbols.Dash;
+J.ABS.EXT.INPUT.Symbols.Tool = JabsInputSymbols.Tool;
+J.ABS.EXT.INPUT.Symbols.GuardTrigger = JabsInputSymbols.GuardTrigger;
+J.ABS.EXT.INPUT.Symbols.SkillTrigger = JabsInputSymbols.SkillTrigger;
+J.ABS.EXT.INPUT.Symbols.MobilitySkill = JabsInputSymbols.MobilitySkill;
+J.ABS.EXT.INPUT.Symbols.StrafeTrigger = JabsInputSymbols.StrafeTrigger;
+J.ABS.EXT.INPUT.Symbols.Quickmenu = JabsInputSymbols.Quickmenu;
+J.ABS.EXT.INPUT.Symbols.PartyCycle = JabsInputSymbols.PartyCycle;
+J.ABS.EXT.INPUT.Symbols.Debug = JabsInputSymbols.Debug;
+J.ABS.EXT.INPUT.Symbols.R3 = JabsInputSymbols.R3;
+J.ABS.EXT.INPUT.Symbols.L3 = JabsInputSymbols.L3;
+J.ABS.EXT.INPUT.Symbols.DPadUp = JabsInputSymbols.DPadUp;
+J.ABS.EXT.INPUT.Symbols.DPadDown = JabsInputSymbols.DPadDown;
+J.ABS.EXT.INPUT.Symbols.DPadLeft = JabsInputSymbols.DPadLeft;
+J.ABS.EXT.INPUT.Symbols.DPadRight = JabsInputSymbols.DPadRight;
+J.ABS.EXT.INPUT.Symbols.CombatSkill1 = JabsInputSymbols.CombatSkill1;
+J.ABS.EXT.INPUT.Symbols.CombatSkill2 = JabsInputSymbols.CombatSkill2;
+J.ABS.EXT.INPUT.Symbols.CombatSkill3 = JabsInputSymbols.CombatSkill3;
+J.ABS.EXT.INPUT.Symbols.CombatSkill4 = JabsInputSymbols.CombatSkill4;
+/**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.INPUT.Metadata = new J_InputPluginMetadata("J-ABS-InputManager", "2.2.2");
+J.ABS.EXT.INPUT.Metadata = new J_InputPluginMetadata("J-ABS-InputManager", "2.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -891,6 +1005,10 @@ JABS_InputAdapter.getAllControllers = function() {
 
 //#endregion
 //#region src/plugins/abs/ext/input/managers/DataManager.js
+/**
+* Extends {@link DataManager.createGameObjects}.<br/>
+* Bootstraps input remap defaults, JABS icon/text registration, and controller 1.
+*/
 J.ABS.EXT.INPUT.Aliased.DataManager.set("createGameObjects", DataManager.createGameObjects);
 DataManager.createGameObjects = function() {
 	J.ABS.EXT.INPUT.Aliased.DataManager.get("createGameObjects").call(this);
@@ -1013,7 +1131,7 @@ IconManager.jabsInputTextForSymbol = function(symbol) {
 */
 IconManager.jabsIconTextForSymbol = function(symbol) {
 	if (!symbol) return "(unbound)";
-	return this.jabsInputTextForSymbol(symbol) || String(symbol);
+	return this.jabsInputTextForSymbol(symbol);
 };
 /**
 * Registers all JABS input symbols with their respective ex-text.
@@ -1034,59 +1152,30 @@ IconManager.registerJabsInputTexts = function() {
 //#endregion
 //#region src/plugins/abs/ext/input/managers/Input.js
 /**
-* The mappings of the gamepad descriptions to their buttons.
-*/
-J.ABS.EXT.INPUT.Symbols = {};
-J.ABS.EXT.INPUT.Symbols.DirUp = "up";
-J.ABS.EXT.INPUT.Symbols.DirDown = "down";
-J.ABS.EXT.INPUT.Symbols.DirLeft = "left";
-J.ABS.EXT.INPUT.Symbols.DirRight = "right";
-J.ABS.EXT.INPUT.Symbols.Mainhand = "ok";
-J.ABS.EXT.INPUT.Symbols.Offhand = "cancel";
-J.ABS.EXT.INPUT.Symbols.Dash = "shift";
-J.ABS.EXT.INPUT.Symbols.Tool = "tab";
-J.ABS.EXT.INPUT.Symbols.GuardTrigger = "pagedown";
-J.ABS.EXT.INPUT.Symbols.SkillTrigger = "pageup";
-J.ABS.EXT.INPUT.Symbols.MobilitySkill = "r2";
-J.ABS.EXT.INPUT.Symbols.StrafeTrigger = "l2";
-J.ABS.EXT.INPUT.Symbols.Quickmenu = "start";
-J.ABS.EXT.INPUT.Symbols.PartyCycle = "select";
-J.ABS.EXT.INPUT.Symbols.Debug = "cheat";
-J.ABS.EXT.INPUT.Symbols.R3 = "r3";
-J.ABS.EXT.INPUT.Symbols.L3 = "l3";
-J.ABS.EXT.INPUT.Symbols.DPadUp = "dpad-up";
-J.ABS.EXT.INPUT.Symbols.DPadDown = "dpad-down";
-J.ABS.EXT.INPUT.Symbols.DPadLeft = "dpad-left";
-J.ABS.EXT.INPUT.Symbols.DPadRight = "dpad-right";
-J.ABS.EXT.INPUT.Symbols.CombatSkill1 = "combat-skill-1";
-J.ABS.EXT.INPUT.Symbols.CombatSkill2 = "combat-skill-2";
-J.ABS.EXT.INPUT.Symbols.CombatSkill3 = "combat-skill-3";
-J.ABS.EXT.INPUT.Symbols.CombatSkill4 = "combat-skill-4";
-/**
 * Extends the existing mapper for keyboards to accommodate for the
 * additional skill inputs that are used for gamepads.
 */
 Input.keyMapper = {
 	...Input.keyMapper,
-	192: J.ABS.EXT.INPUT.Symbols.Debug,
-	90: J.ABS.EXT.INPUT.Symbols.Mainhand,
-	88: J.ABS.EXT.INPUT.Symbols.Offhand,
-	16: J.ABS.EXT.INPUT.Symbols.Dash,
-	67: J.ABS.EXT.INPUT.Symbols.Tool,
-	81: J.ABS.EXT.INPUT.Symbols.SkillTrigger,
-	17: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,
-	69: J.ABS.EXT.INPUT.Symbols.GuardTrigger,
-	9: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
-	13: J.ABS.EXT.INPUT.Symbols.Quickmenu,
-	46: J.ABS.EXT.INPUT.Symbols.PartyCycle,
-	38: J.ABS.EXT.INPUT.Symbols.DirUp,
-	40: J.ABS.EXT.INPUT.Symbols.DirDown,
-	37: J.ABS.EXT.INPUT.Symbols.DirLeft,
-	39: J.ABS.EXT.INPUT.Symbols.DirRight,
-	49: J.ABS.EXT.INPUT.Symbols.CombatSkill1,
-	50: J.ABS.EXT.INPUT.Symbols.CombatSkill2,
-	51: J.ABS.EXT.INPUT.Symbols.CombatSkill3,
-	52: J.ABS.EXT.INPUT.Symbols.CombatSkill4
+	192: JabsInputSymbols.Debug,
+	90: JabsInputSymbols.Mainhand,
+	88: JabsInputSymbols.Offhand,
+	16: JabsInputSymbols.Dash,
+	9: JabsInputSymbols.Tool,
+	81: JabsInputSymbols.SkillTrigger,
+	17: JabsInputSymbols.StrafeTrigger,
+	69: JabsInputSymbols.GuardTrigger,
+	18: JabsInputSymbols.MobilitySkill,
+	13: JabsInputSymbols.Quickmenu,
+	46: JabsInputSymbols.PartyCycle,
+	38: JabsInputSymbols.DirUp,
+	40: JabsInputSymbols.DirDown,
+	37: JabsInputSymbols.DirLeft,
+	39: JabsInputSymbols.DirRight,
+	49: JabsInputSymbols.CombatSkill1,
+	50: JabsInputSymbols.CombatSkill2,
+	51: JabsInputSymbols.CombatSkill3,
+	52: JabsInputSymbols.CombatSkill4
 };
 /**
 * Overwrites gamepad button input to instead perform the various
@@ -1099,25 +1188,25 @@ Input.keyMapper = {
 * - NEW: select/options, start/menu
 * - NEW: L2/LT, R2/RT
 * - NEW: L3/LSB, R3/RSB
-* - OVERWRITE: Y now is the tool button, and start is the menu.
+* - remapped: Y is now the tool button, and start is the menu.
 */
 Input.gamepadMapper = {
-	0: J.ABS.EXT.INPUT.Symbols.Mainhand,
-	1: J.ABS.EXT.INPUT.Symbols.Offhand,
-	2: J.ABS.EXT.INPUT.Symbols.Dash,
-	3: J.ABS.EXT.INPUT.Symbols.Tool,
-	4: J.ABS.EXT.INPUT.Symbols.SkillTrigger,
-	5: J.ABS.EXT.INPUT.Symbols.GuardTrigger,
-	6: J.ABS.EXT.INPUT.Symbols.StrafeTrigger,
-	7: J.ABS.EXT.INPUT.Symbols.MobilitySkill,
-	8: J.ABS.EXT.INPUT.Symbols.PartyCycle,
-	9: J.ABS.EXT.INPUT.Symbols.Quickmenu,
-	10: J.ABS.EXT.INPUT.Symbols.L3,
-	11: J.ABS.EXT.INPUT.Symbols.R3,
-	12: J.ABS.EXT.INPUT.Symbols.DPadUp,
-	13: J.ABS.EXT.INPUT.Symbols.DPadDown,
-	14: J.ABS.EXT.INPUT.Symbols.DPadLeft,
-	15: J.ABS.EXT.INPUT.Symbols.DPadRight
+	0: JabsInputSymbols.Mainhand,
+	1: JabsInputSymbols.Offhand,
+	2: JabsInputSymbols.Dash,
+	3: JabsInputSymbols.Tool,
+	4: JabsInputSymbols.SkillTrigger,
+	5: JabsInputSymbols.GuardTrigger,
+	6: JabsInputSymbols.StrafeTrigger,
+	7: JabsInputSymbols.MobilitySkill,
+	8: JabsInputSymbols.PartyCycle,
+	9: JabsInputSymbols.Quickmenu,
+	10: JabsInputSymbols.L3,
+	11: JabsInputSymbols.R3,
+	12: JabsInputSymbols.DPadUp,
+	13: JabsInputSymbols.DPadDown,
+	14: JabsInputSymbols.DPadLeft,
+	15: JabsInputSymbols.DPadRight
 };
 Input._jRegistries ||= {
 	actions: Object.create(null),
@@ -1297,35 +1386,37 @@ Input.ensureRemapBootstrapped = function() {
 		return;
 	}
 	const d = {};
-	d[JABS_Button.Menu] = [J.ABS.EXT.INPUT.Symbols.Quickmenu];
-	d[JABS_Button.Select] = [J.ABS.EXT.INPUT.Symbols.PartyCycle];
-	d[JABS_Button.Mainhand] = [J.ABS.EXT.INPUT.Symbols.Mainhand];
-	d[JABS_Button.Offhand] = [J.ABS.EXT.INPUT.Symbols.Offhand];
-	d[JABS_Button.Tool] = [J.ABS.EXT.INPUT.Symbols.Tool];
-	d[JABS_Button.Sprint] = [J.ABS.EXT.INPUT.Symbols.Dash];
-	d[JABS_Button.Strafe] = [J.ABS.EXT.INPUT.Symbols.StrafeTrigger];
-	d[JABS_Button.Rotate] = [J.ABS.EXT.INPUT.Symbols.GuardTrigger];
-	d[JABS_Button.Guard] = [J.ABS.EXT.INPUT.Symbols.GuardTrigger];
-	d[JABS_Button.SkillTrigger] = [J.ABS.EXT.INPUT.Symbols.SkillTrigger];
-	d[JABS_Button.CombatSkill1] = [J.ABS.EXT.INPUT.Symbols.CombatSkill1];
-	d[JABS_Button.CombatSkill2] = [J.ABS.EXT.INPUT.Symbols.CombatSkill2];
-	d[JABS_Button.CombatSkill3] = [J.ABS.EXT.INPUT.Symbols.CombatSkill3];
-	d[JABS_Button.CombatSkill4] = [J.ABS.EXT.INPUT.Symbols.CombatSkill4];
+	d[JABS_Button.Menu] = [JabsInputSymbols.Quickmenu];
+	d[JABS_Button.Select] = [JabsInputSymbols.PartyCycle];
+	d[JABS_Button.Mainhand] = [JabsInputSymbols.Mainhand];
+	d[JABS_Button.Offhand] = [JabsInputSymbols.Offhand];
+	d[JABS_Button.Tool] = [JabsInputSymbols.Tool];
+	d[JABS_Button.Sprint] = [JabsInputSymbols.Dash];
+	d[JABS_Button.Strafe] = [JabsInputSymbols.StrafeTrigger];
+	d[JABS_Button.Rotate] = [JabsInputSymbols.GuardTrigger];
+	d[JABS_Button.Guard] = [JabsInputSymbols.GuardTrigger];
+	d[JABS_Button.SkillTrigger] = [JabsInputSymbols.SkillTrigger];
+	d[JABS_Button.CombatSkill1] = [JabsInputSymbols.CombatSkill1];
+	d[JABS_Button.CombatSkill2] = [JabsInputSymbols.CombatSkill2];
+	d[JABS_Button.CombatSkill3] = [JabsInputSymbols.CombatSkill3];
+	d[JABS_Button.CombatSkill4] = [JabsInputSymbols.CombatSkill4];
 	Input.seedDefaultBindings("JABS", d);
 	Input.getAllBindings("JABS");
-	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.L3, "L3");
-	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.R3, "R3");
-	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.MobilitySkill, "R2");
-	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadUp, "D-Pad Up");
-	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadDown, "D-Pad Down");
-	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadLeft, "D-Pad Left");
-	Input.registerSymbolLabel(J.ABS.EXT.INPUT.Symbols.DPadRight, "D-Pad Right");
-	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.L3);
-	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.R3);
-	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadUp);
-	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadDown);
-	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadLeft);
-	Input.registerRemapCaptureSymbol(J.ABS.EXT.INPUT.Symbols.DPadRight);
+	Input.registerSymbolLabel(JabsInputSymbols.L3, "L3");
+	Input.registerSymbolLabel(JabsInputSymbols.R3, "R3");
+	Input.registerSymbolLabel(JabsInputSymbols.Tool, "Triangle");
+	Input.registerSymbolLabel(JabsInputSymbols.StrafeTrigger, "L2");
+	Input.registerSymbolLabel(JabsInputSymbols.MobilitySkill, "R2");
+	Input.registerSymbolLabel(JabsInputSymbols.DPadUp, "D-Pad Up");
+	Input.registerSymbolLabel(JabsInputSymbols.DPadDown, "D-Pad Down");
+	Input.registerSymbolLabel(JabsInputSymbols.DPadLeft, "D-Pad Left");
+	Input.registerSymbolLabel(JabsInputSymbols.DPadRight, "D-Pad Right");
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.L3);
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.R3);
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.DPadUp);
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.DPadDown);
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.DPadLeft);
+	Input.registerRemapCaptureSymbol(JabsInputSymbols.DPadRight);
 	Input.bootstrapAllKeyboardKeysForCapture();
 	Input._jRegistries.bootstrapped = true;
 };
@@ -1347,15 +1438,10 @@ Input.bootstrapAllKeyboardKeysForCapture = function() {
 		"up",
 		"down",
 		"left",
-		"right"
+		"right",
+		"l2",
+		"r2"
 	]);
-	const existingMap = Object.assign({}, Input.keyMapper);
-	Object.keys(existingMap).forEach((code) => {
-		const sym = existingMap[code];
-		if (typeof sym === "string" && sym.length) {
-			reserved.add(sym);
-		}
-	});
 	for (let code = 8; code <= 222; code++) {
 		if (Input._isBlacklistedKeycode(code)) {
 			continue;
@@ -1469,7 +1555,8 @@ Input.setAxisThreshold = function(v) {
 	}
 };
 /**
-* OVERWRITE-ALIAS Extends gamepad processing to reinforce directions from axes
+* Extends {@link Input._updateGamepadState}.<br/>
+* Extends gamepad processing to reinforce directions from axes
 * using a configurable threshold, without disabling vanilla behavior.
 * Ensures mutual exclusivity and proper clearing when axes return to neutral.
 * Also writes results to the per-pad state, then rebuilds the merged state as
@@ -1514,7 +1601,7 @@ Input._updateGamepadState = function(gamepad) {
 */
 Input._ensurePadStates = function(gamepad) {
 	const s = this._currentState;
-	const padState = this._gamepadStates && typeof gamepad.index === "number" ? this._gamepadStates[gamepad.index] : null;
+	const padState = this._gamepadStates ? this._gamepadStates[gamepad.index] : null;
 	if (!s || !padState) {
 		return null;
 	}
@@ -1678,9 +1765,6 @@ Input.exportAllBindingsForSave = function() {
 * @param {Object<string, Object<string, string[]>>} saved The snapshot to import.
 */
 Input.importAllBindingsFromSave = function(saved) {
-	if (!saved || typeof saved !== "object") {
-		return;
-	}
 	const b = Input._jRegistries.bindings;
 	const namespaces = Object.keys(saved);
 	for (let i = 0; i < namespaces.length; i++) {
@@ -1816,10 +1900,7 @@ Game_System.prototype.getJabsInputConfig = function(controllerKey) {
 * @returns {Object<string, Object<string, string[]>>}
 */
 Game_System.prototype.getInputBindingsSnapshot = function() {
-	if (!this._j || !this._j._abs || !this._j._abs._input || !this._j._abs._input._bindings) {
-		return {};
-	}
-	return this._j._abs._input._bindings || {};
+	return this._j._abs._input._bindings;
 };
 /**
 * Overwrites the persisted Input bindings snapshot on the system object.
@@ -1920,10 +2001,8 @@ Game_System.prototype.resolveJabsControllerKey = function(controller, index) {
 */
 Game_System.prototype.initializeJabsInputForLegacySaveIfMissing = function() {
 	this.initJabsInputConfigMembers();
-	const mappingsDict = this._j && this._j._abs && this._j._abs._input ? this._j._abs._input._mappings : null;
-	const bindingsDict = this._j && this._j._abs && this._j._abs._input ? this._j._abs._input._bindings : null;
-	const hasMappings = mappingsDict ? Object.keys(mappingsDict).length > 0 : false;
-	const hasBindings = bindingsDict ? Object.keys(bindingsDict).length > 0 : false;
+	const hasMappings = Object.keys(this._j._abs._input._mappings).length > 0;
+	const hasBindings = Object.keys(this._j._abs._input._bindings).length > 0;
 	if (hasMappings === false && hasBindings === false) {
 		Input.ensureRemapBootstrapped();
 		const controllers = JABS_InputAdapter.getAllControllers();
@@ -1979,7 +2058,7 @@ var Window_JabsRemapUsageHelp = class extends Window_Base {
 	refresh() {
 		this.contents.clear();
 		const rebind = `${IconManager.jabsIconTextForSymbol("ok")} Rebind`;
-		const clear = `${IconManager.jabsIconTextForSymbol(J.ABS.EXT.INPUT.Symbols.GuardTrigger)} Clear Binding`;
+		const clear = `${IconManager.jabsIconTextForSymbol(J.ABS.EXT.INPUT.Symbols.Tool)} Clear Binding`;
 		this.drawTextEx(rebind, 0, this.lineHeight() * 0, this.contentsWidth());
 		this.drawTextEx(clear, 0, this.lineHeight() * 1, this.contentsWidth());
 	}
@@ -2782,15 +2861,6 @@ var Window_JabsRemapActions = class extends Window_Command {
 		super.processOk();
 	}
 	/**
-	* Forwards to base handling and maps PageDown to the `clear` handler.
-	*/
-	processHandling() {
-		super.processHandling();
-		if (this.isOpenAndActive() && Input.isTriggered("pagedown")) {
-			this.callHandler("clear");
-		}
-	}
-	/**
 	* First enabled command index (skips disabled headers).
 	* @returns {number}
 	*/
@@ -2995,7 +3065,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 		const rectangle = this.actionsWindowRectangle();
 		const window = new Window_JabsRemapActions(rectangle);
 		window.setHandler("ok", this.onRemapRequested.bind(this));
-		window.setHandler("clear", this.onClearBinding.bind(this));
+		window.setHandler("context", this.onClearBinding.bind(this));
 		window.setHandler("cancel", this.onActionsCancel.bind(this));
 		window.setHelpWindow(this.getTopHelpWindow());
 		return window;
@@ -3429,7 +3499,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 	* @param {string} symbol The physical input symbol to assign.
 	*/
 	assignWithConflictResolution(button, symbol) {
-		if (typeof button === "string" && button.indexOf("__ext__") === 0) {
+		if (button.startsWith("__ext__")) {
 			const without = button.substring("__ext__".length);
 			const splitAt = without.indexOf(":");
 			if (splitAt > 0) {

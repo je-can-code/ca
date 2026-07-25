@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 HITSTOP] An extension for JABS that adds hitstop functionality.
+ * [v1.0.3 HITSTOP] An extension for JABS that adds hitstop functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -12,36 +12,99 @@
  * @help
  * ============================================================================
  * OVERVIEW
- * This plugin does some stuff that is probably pretty cool.
+ * This plugin adds "hitstop" to JABS: a brief freeze-frame pause applied to
+ * the attacker, the target, and the delivering action event the instant a
+ * hit connects. It's the classic "impact frame" trick used to make hits
+ * feel heavier without touching damage numbers.
  *
  * Integrates with others of mine plugins:
  * - J-Base; to be honest this is just required for all my plugins.
  *
  * ----------------------------------------------------------------------------
  * DETAILS:
- * Cool details about this cool plugin go here.
+ * A skill's hitstop duration (in frames) is resolved from a base amount,
+ * then adjusted by whether the hit was a critical, whether it was guarded,
+ * and whether it was parried, then scaled by the target's own hitstop
+ * sensitivity, then clamped to the configured max. A parried hit always
+ * resolves to zero hitstop, regardless of any other tag.
  *
  * ============================================================================
- * SOMETHING KEY TO THIS PLUGIN:
- * Ever want to do something cool? Well now you can! By applying the
- * appropriate tag to across the various database locations, you too can do
- * cool things that only others with this plugin can do.
+ * HITSTOP DURATION (PER SKILL):
+ * Set how many frames of hitstop this skill's hits apply on impact.
+ * Without this tag, the plugin's global default base frames are used.
+ *
+ * TAG USAGE:
+ * - Skills
+ *
+ * TAG FORMAT:
+ *  <hitstop:FRAMES>
+ *    Where FRAMES is the base number of frames to freeze on impact.
+ *
+ * TAG EXAMPLES:
+ *  <hitstop:8>
+ * This skill applies 8 base frames of hitstop on every hit, before crit/
+ * guard/target-scale adjustments are layered on.
+ *
+ * ----------------------------------------------------------------------------
+ * DISABLE HITSTOP (PER SKILL):
+ * Fully disables hitstop for this skill's hits, ignoring the global default
+ * and this skill's own <hitstop:FRAMES> tag if both are somehow present.
+ *
+ * TAG USAGE:
+ * - Skills
+ *
+ * TAG FORMAT:
+ *  <noHitstop>
+ *
+ * TAG EXAMPLES:
+ *  <noHitstop>
+ * Hits from this skill never trigger a freeze-frame pause, even if the
+ * global default has hitstop enabled for everything else.
+ *
+ * ----------------------------------------------------------------------------
+ * HITSTOP SENSITIVITY (PER BATTLER):
+ * Scales how much hitstop a battler experiences when they are the one being
+ * hit. This is read from the TARGET's own database data, not the skill.
  *
  * TAG USAGE:
  * - Actors
  * - Enemies
- * - Skills
- * - etc.
  *
  * TAG FORMAT:
- *  <tag:VALUE>
- *    Where VALUE represents the amount to do.
+ *  <hitstopScale:P%>
+ *    Where P is the percent scale to apply against the resolved duration.
  *
  * TAG EXAMPLES:
- *  <tag:100>
- * 100 of something will occur when this is triggered.
+ *  <hitstopScale:50%>
+ * This battler experiences half the normal hitstop duration whenever they
+ * are hit- great for giving small/fast enemies a snappier feel, or heavily
+ * armored bosses a duller, less-interruptible one.
+ *
+ *  <hitstopScale:0%>
+ * This battler never experiences hitstop when hit, regardless of the
+ * attacking skill's own tags.
+ *
+ * NOTE: Without this tag, a battler defaults to 100% (no scaling).
+ * ============================================================================
+ * TUNING:
+ * This plugin has no editable plugin parameters. All base tuning (default
+ * hitstop frames, crit bonus, guard scale, max frames, flurry decay/window,
+ * screen-shake power/speed/cooldown, etc.) is hardcoded in
+ * JHitstop_PluginMetadata#initializeMetadata and adjusted by editing that
+ * file directly if you need different defaults for your project.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Wrote real help docs for <hitstop>, <noHitstop>, <hitstopScale>; the
+ *    help text was still boilerplate placeholder text despite the tags
+ *    already being implemented. Removed leftover unused scaffold params.
+ *    Fixed screen-shake anti-spam cooldown reading a key that was never
+ *    written to, so the cooldown never actually blocked anything; both
+ *    read and write now go through one JABS_HitstopRuntime static field.
+ *    Reset hitstop state (frozen frames, flurry windows) on save load so
+ *    stale combat state never carries over.
+ *    Removed the JsonEx Map-restore workaround now that JsonEx natively
+ *    round-trips Map instances (see J-Base changelog).
  * - 1.0.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
@@ -49,26 +112,6 @@
  * - 1.0.0
  *    The initial release.
  * ============================================================================
- *
- * @param parentConfig
- * @text SETUP
- *
- * @param menu-switch
- * @parent parentConfig
- * @type switch
- * @text Menu Switch ID
- * @desc When this switch is ON, then this command is visible in the menu.
- * @default 101
- *
- *
- * @command do-the-thing
- * @text Add/Remove points
- * @desc Adds or removes a designated amount of points from all members of the current party.
- * @arg points
- * @type number
- * @min -99999999
- * @max 99999999
- * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  */
 //endregion annotations
 
@@ -179,7 +222,6 @@ var JHitstop_PluginMetadata = class extends PluginMetadata {
 		* @type {boolean}
 		*/
 		this.shakeOnlyOnFlurryFirstHit = true;
-		this.lastShakeFrame = 0;
 	}
 };
 
@@ -187,12 +229,12 @@ var JHitstop_PluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/hitstop/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -205,11 +247,12 @@ J.ABS.EXT.HITSTOP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.HITSTOP.Metadata = new JHitstop_PluginMetadata("J-ABS-Hitstop", "1.0.2");
+J.ABS.EXT.HITSTOP.Metadata = new JHitstop_PluginMetadata("J-ABS-Hitstop", "1.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.ABS.EXT.HITSTOP.Aliased = {};
+J.ABS.EXT.HITSTOP.Aliased.DataManager = new Map();
 J.ABS.EXT.HITSTOP.Aliased.Game_Character = new Map();
 J.ABS.EXT.HITSTOP.Aliased.JABS_Engine = new Map();
 J.ABS.EXT.HITSTOP.Aliased.JABS_Action = new Map();
@@ -229,6 +272,19 @@ J.ABS.EXT.HITSTOP.RegExp = {
 	* Actor/Enemy: `<hitstopScale:P%>`
 	*/
 	HitstopScale: /<hitstopScale:[ ]?(\d+)%>/i
+};
+
+//#endregion
+//#region src/plugins/abs/ext/hitstop/_models/JABS_HitstopRuntime.js
+/**
+* Frame-scoped runtime state for J-ABS Hitstop (not plugin parameters).
+*/
+var JABS_HitstopRuntime = class {
+	/**
+	* Last frame index when screen shake was triggered (anti-spam cooldown).
+	* @type {number}
+	*/
+	static lastShakeFrame = 0;
 };
 
 //#endregion
@@ -281,25 +337,6 @@ var JABS_HitstopData = class {
 		this._flurryWindows = new Map();
 	}
 	/**
-	* JsonEx restores `_flurryWindows` as a plain object; `Map` is not JSON-native.
-	*/
-	normalizeFlurryWindowsMap() {
-		if (this._flurryWindows instanceof Map) {
-			return;
-		}
-		const raw = this._flurryWindows;
-		const map = new Map();
-		if (raw !== undefined && raw !== null && typeof raw === "object") {
-			Object.keys(raw).forEach((k) => {
-				const v = raw[k];
-				if (typeof v === "number" && Number.isNaN(v) === false) {
-					map.set(k, v);
-				}
-			});
-		}
-		this._flurryWindows = map;
-	}
-	/**
 	* Sets hitstop frames.
 	* @param {number} frames The frames to set.
 	*/
@@ -317,7 +354,6 @@ var JABS_HitstopData = class {
 	* Decrements hitstop frames by one frame.
 	*/
 	tick() {
-		this.normalizeFlurryWindowsMap();
 		if (this._frames > 0) this._frames--;
 		this._flurryWindows.forEach((remaining, key) => {
 			const next = remaining - 1;
@@ -341,7 +377,6 @@ var JABS_HitstopData = class {
 	* @param {number} windowFrames The window in frames.
 	*/
 	flagFlurryWindow(actionUuid, windowFrames) {
-		this.normalizeFlurryWindowsMap();
 		this._flurryWindows.set(actionUuid, Math.max(0, Math.floor(windowFrames)));
 	}
 	/**
@@ -350,11 +385,30 @@ var JABS_HitstopData = class {
 	* @returns {boolean} True if in the window, false otherwise.
 	*/
 	isInFlurryWindow(actionUuid) {
-		this.normalizeFlurryWindowsMap();
 		return this._flurryWindows.has(actionUuid);
 	}
 };
 SerializableRegistry.register(JABS_HitstopData);
+
+//#endregion
+//#region src/plugins/abs/ext/hitstop/managers/DataManager.js
+/**
+* Extends {@link DataManager.extractSaveContents}.<br/>
+* Reinitializes hitstop data on all characters after a save is loaded so no
+* stale combat state (frozen frames, active flurry windows) carries over.
+*/
+J.ABS.EXT.HITSTOP.Aliased.DataManager.set("extractSaveContents", DataManager.extractSaveContents);
+DataManager.extractSaveContents = function(contents) {
+	J.ABS.EXT.HITSTOP.Aliased.DataManager.get("extractSaveContents").call(this, contents);
+	const characters = [
+		$gamePlayer,
+		...$gamePlayer.followers().data(),
+		...$gameMap.events()
+	];
+	for (const character of characters) {
+		character.initHitstopMembers();
+	}
+};
 
 //#endregion
 //#region src/plugins/abs/ext/hitstop/managers/JABS_HitstopManager.js
@@ -463,14 +517,14 @@ var JABS_HitstopManager = class {
 		}
 		const now = Graphics.frameCount || SceneManager._frameCount || 0;
 		const cooldown = J.ABS.EXT.HITSTOP.Metadata.shakeCooldownFrames;
-		if (now - J.ABS.EXT.HITSTOP._lastShakeFrame < cooldown) return;
+		if (now - JABS_HitstopRuntime.lastShakeFrame < cooldown) return;
 		const base = J.ABS.EXT.HITSTOP.Metadata.shakeBasePower;
 		const perF = J.ABS.EXT.HITSTOP.Metadata.shakePowerPerFrame;
 		const power = Math.max(0, base + frames * perF);
 		const speed = J.ABS.EXT.HITSTOP.Metadata.shakeSpeed;
 		const duration = Math.min(frames, J.ABS.EXT.HITSTOP.Metadata.shakeMaxDurationFrames);
 		$gameScreen.startShake(power, speed, duration);
-		J.ABS.EXT.HITSTOP.Metadata.lastShakeFrame = now;
+		JABS_HitstopRuntime.lastShakeFrame = now;
 	}
 };
 
@@ -498,7 +552,7 @@ JABS_Engine.prototype.tryApplyHitstop = function(action, target) {
 //#endregion
 //#region src/plugins/abs/ext/hitstop/objects/Game_Character.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes hitstop members.
 */
 J.ABS.EXT.HITSTOP.Aliased.Game_Character.set("initMembers", Game_Character.prototype.initMembers);
@@ -546,7 +600,7 @@ Game_Character.prototype.isHitstopped = function() {
 	return this.getHitstopData().isActive();
 };
 /**
-* Extends {@link #update}.<br>
+* Extends {@link #update}.<br/>
 * Also pauses this character while hitstopped.
 */
 J.ABS.EXT.HITSTOP.Aliased.Game_Character.set("update", Game_Character.prototype.update);

@@ -31,3 +31,81 @@ The player thinks about it, and determines there is a spot way out in Fallen Kin
 the "Grimfangs" where the innkeeper could probably safely watch. So the player invites her to make her way to that
 designated location and observe the bloodbath that is the player and team genociding these voidal bearcats to satisfy
 the innkeepers obscure hunger for 3rd party bloodlust.
+
+### Design note: the buried truth is that there isn't one
+Deliberate tonal call, flagged for ratification: in a town full of hidden griefs (Gilbert's caravan, Viktor's
+ledger, Silia's father, Satoru's road), **Yelena is exactly what she appears to be** — a woman with two great
+loves (quality meat and quality muscles), completely at peace, living her best life. She is the mirror NPC
+precisely because she's HONEST about the appetites the player pretends are quests. No wound underneath. Her
+"depth" is heritage, not tragedy: a warm one (see quest 5). Some links are just joy — and the flagship link
+being the joyful one keeps the town's grief from becoming a monoculture.
+
+### 3) Surf & Turf: `???`
+> Gate: the torch (Seashell Shores access) — chapter 4. Zone doctrine: the Shores are Yelena's.
+
+The hides are strung, the bloodlust has a trophy wall, and now her OTHER appetite surfaces: she mentions, for the
+first time, the **family cookbook** — and that its next entries demand things no landlocked hunter can buy.
+Seafood from the Seashell Shores, some of it only present at certain tides (TIME-gated beach spawns). The duo
+fetches; she cooks; the player tastes the first hints that her family's recipes are... unusual. Every single one
+is built around monster parts.
+
+#### After effects of "Surf & Turf"
+- Kitchen tier up; a few sea-recipes enter the player's cookbook.
+- She starts sharpening things behind the counter during idle dialogue. Foreshadowing? Foreshadowing.
+
+### 4) The Matriarch: `???`
+The apex of the bearcat family tree: a named progenitor — the thing even Stonefurs are descended FROM (name and
+venue: Maker's call — deep Forest of Dreams and the Deluge Plains both plausible). Yelena has wanted this hunt
+her whole life. And this time she is not asking to watch.
+
+**The reveal:** apron off. Kitchen steel out — cleaver and tenderizer, chef-verbs as combat verbs (temporary
+ally battler; the allyai tech exists). The innkeeper is a MONSTER — the Star Ocean 2 "Slayers" homage finally
+lands at full volume. She breaks the matriarch down mid-fight like a carcass on a block, narrating cuts of meat.
+
+**The beat:** for once, the duo watches someone ELSE go too far. Rupert, quietly, to Jerald: "...is this what we
+look like?" The game does not answer. (Thesis-adjacent; same discipline as the Grudj fight — never say who's
+right.)
+
+#### After effects of "The Matriarch"
+- The matriarch's hide becomes the inn's new rug. Patrons comment on it forever.
+- The excited girl's dialogue escalates alarmingly ("Yelena says I can hold the cleaver when I'm TEN!").
+  Rupert: concerned. Yelena: beaming.
+- Yelena's muscular-men appreciation now includes specific, technical respect for the duo's form.
+
+### Reconciliation with the SHIPPING Recipe Journal system (2026-07-24)
+Recipe Journals I–III (Items 461–463) already exist and are wired into ~353 enemy drop tables, tier-scaled by
+region — that system is untouched. The reconciliation is LORE, not mechanics: the journals' own item text says
+they're pages from "a journal of **some famous chef**." The famous chef is **Yelena's family** — the
+hunter-cooks ranged the whole continent for generations, and their field journals are still out there, carried
+by the wilds. Every journal the player has ever looted was a page of her family's life coming home.
+
+- **The lampshade (early, comedy):** Rupert, at some point pre-chain: "why does every monster on this continent
+  carry cooking literature?" No answer. It's an RPG.
+- **The recognition beat (quest 3):** mid Surf & Turf, Yelena spots a Recipe Journal in the duo's haul and goes
+  quiet for exactly one line — "...where did you find this?" — her only serious line in the whole chain. Not
+  grief (the no-buried-wound ruling holds): *wonder*. The family's work is still alive out there, and the duo
+  keeps bringing it home. The lampshade gets its answer two chapters later.
+
+### 5) The Family Cookbook: `???`
+The capstone, and the warm truth: the bloodlust was never random. Her family were **hunter-cooks** — every
+recipe in the book is built around a specific beast, and the book was always meant to be worked by two: one who
+hunts, one who cooks. She's been both, alone, for years, and the book stalled at the recipes one person can't
+gather. The duo are the first partners worthy of it.
+
+She hands it over: **the Family Cookbook — the master volume** the field journals were always excerpts of,
+bound in the hide of something they killed together. Top-tier cooking unlocks.
+
+**Nana's Ledger (the journal-currency shop):** Yelena's counter gains a second shop tab where **Recipe
+Journals I–III are the currency** — recipes for sale, priced in pages ("that's nana's coastal series — give it
+here"). Staged unlock: a basic tier opens at quest 3 (the recognition beat — she'll trade for family pages the
+moment she knows they're out there), the premium tier opens here at quest 5. The journals KEEP their existing
+use-to-learn function (CE161–163) — which creates the real decision: **consume a journal now** for its bundled
+common recipes, **or bank it** as currency toward the premium list. Price the premium offerings above
+consume-value so the tradeoff stays honest. The "pile of excess journals" problem becomes an incentive engine:
+every drop is now either lunch or savings.
+
+#### After effects of "The Family Cookbook"
+- The Family Cookbook unlocks top-tier cooking; Nana's Ledger reaches its premium tier.
+- Every Recipe Journal I–III item the player finds afterward reads differently. Same items. New meaning.
+- Her final dialogue state: nothing changes. She's still at the counter, still admiring physiques, still
+  sharpening something. She was never broken. That was the point.

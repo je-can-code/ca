@@ -1,7 +1,7 @@
 //region initialization
 /*:
  * @target MZ
- * @plugindesc [v1.3.1 LEVEL] Allows levels to have greater control and purpose.
+ * @plugindesc [v1.4.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -31,38 +31,66 @@
  * - J-NATURAL; handles level-based max hp/mp/tp growths.
  *
  * ============================================================================
- * PLUGIN PARAMETERS BREAKDOWN:
- *  - Start Enabled:
- *      The scaling functionality will be enabled when a newgame is started.
- *      Defaults to true.
- *  - Minimum Multiplier (Combat):
- *      Clamp floor for damage and other combat uses of level scaling.
- *      Defaults to 0.1x.
- *  - Maximum Multiplier (Combat):
- *      Clamp ceiling for combat scaling.
- *      Defaults to 2.0x.
- *  - Minimum / Maximum Multiplier (Rewards):
- *      Separate clamps for EXP and gold from level scaling. When blank, combat values are used.
- *      Defaults to match combat.
- *  - Growth Multiplier:
+ * PLUGIN CONFIGURATION:
+ * All tuning for this plugin (scaling multipliers, invariance ranges, actor/
+ * enemy level balancer variable ids, single-level-across-classes toggle, the
+ * canonical exp curve inputs, and the max level settings) lives in an external
+ * JSON file rather than PluginManager parameters:
+ *   data/config.level.json
+ * This file is required- a missing or invalid file will crash boot, exactly
+ * like this author's other config-file-driven plugins (J-ABS, J-SDP,
+ * J-JAFTING-Creation, Omni-Quest, J-Diff, J-Prof). Author/maintain it via
+ * jmz-data-editor's Level board rather than hand-editing JSON.
+ *
+ * Fields and their meaning:
+ *  - useScaling (boolean):
+ *      Whether or not this scaling functionality is enabled by default.
+ *  - minMultiplier / maxMultiplier (number):
+ *      Clamp floor/ceiling for damage and other combat uses of level scaling.
+ *  - rewardMinMultiplier / rewardMaxMultiplier (number, nullable):
+ *      Separate clamps for EXP and gold from level scaling. When null/absent,
+ *      the combat min/max above is used instead.
+ *  - growthMultiplier (number):
  *      The amount the multiplier changes per level of difference.
- *      Defaults to 0.1x per level of difference.
- *  - Upper Invariance:
- *      The amount above 0 levels of difference before scaling is applied.
- *      See the SAMPLE CALCULATIONS below for examples.
- *      Defaults to 1 level.
- *  - Lower Invariance:
- *      The amount below 0 levels of difference before scaling is applied.
- *      See the SAMPLE CALCULATIONS below for examples.
- *      Defaults to 1 level.
- *  - Actor Balancer:
- *      A variableId whose value is added to all actor's levels.
- *      This DOES impact how their levels are perceived by RMMZ.
- *      Defaults to variableId 141.
- *  - Enemy Balancer:
- *      A variableId whose value is added to all enemy's levels.
- *      Only really applies to scaling since enemies usually lack levels.
- *      Defaults to variableId 142.
+ *  - invariantUpperRange / invariantLowerRange (number):
+ *      The amount above/below 0 levels of difference before scaling is
+ *      applied. See the SAMPLE CALCULATIONS below for examples.
+ *  - variableActorBalancer / variableEnemyBalancer (number):
+ *      A variableId whose value is added to all actors'/enemies' levels.
+ *  - useSharedActorLevel (boolean):
+ *      Whether all classes share one actor-wide level/exp instead of each
+ *      class leveling independently (vanilla RMMZ behavior).
+ *  - canonicalExpBasis / canonicalExpExtra / canonicalExpAccA / canonicalExpAccB (number):
+ *      The four inputs to the class-independent exp curve used when
+ *      useSharedActorLevel is on. Ignored if another plugin (e.g.
+ *      J-Level-Flat) overrides expForLevel; only matters as the honest
+ *      default when nothing else does.
+ *  - defaultBeyondMaxLevel (number):
+ *      The default max level beyond the database's 99 cap.
+ *  - trueMaxLevel (number):
+ *      The absolute max level your level can be, including all boosts.
+ * ============================================================================
+ * SINGLE LEVEL ACROSS CLASSES:
+ * By default, RPG Maker MZ tracks experience per-class (Game_Actor._exp is
+ * keyed by classId), so switching to a class you haven't played resets you to
+ * level 1 even if your other classes are deep into the double digits. With
+ * this setting enabled, every class always agrees on the same level and exp
+ * for a given actor- _exp remains an object keyed by classId (for
+ * compatibility with anything that expects that shape), but every key is kept
+ * in sync with every write, so there is effectively only one level per actor.
+ *
+ * Switching classes no longer resets or re-derives level from a per-class
+ * exp bucket. It also retroactively grants every learning on the destination
+ * class at or below your current level (mirroring how a fresh actor learns
+ * everything up to their initial level), so jumping into a brand new class at
+ * level 40 doesn't skip past its first 40 levels of learnings.
+ *
+ * This is intentionally orthogonal to per-class stat growth (see J-NATURAL):
+ * J-NATURAL banks permanent stat growth once per level-up, sourced from
+ * whichever class is active in that exact moment. With levels shared, playing
+ * many classes no longer punishes you with a level-1 reset, but the stat
+ * growth you bank is still shaped entirely by which classes you actually
+ * spent those levels playing.
  * ============================================================================
  * LEVEL TAGS:
  * Have you ever wanted to scale damage/experience/gold by level, but realized
@@ -211,6 +239,54 @@
  * base max level.
  *
  * ============================================================================
+ * GROWTH CURVES (BEYOND MAX LEVEL)
+ * Have you ever wanted precise, authored control over a stat's growth past
+ * level 99 instead of trusting a slope-extrapolation guess? Well now you can!
+ * By tagging a class with a growth curve formula for a given parameter, that
+ * formula becomes the source of truth for that stat beyond 99- replacing the
+ * fallback extrapolation entirely for that class/param combination.
+ *
+ * NOTE ABOUT AUTHORING:
+ * These are primarily generated via the jmz-data-editor's Classes board
+ * (which previews the exact same formula evaluation the runtime uses), but
+ * nothing stops you from hand-authoring them directly on a class note.
+ *
+ * NOTE ABOUT MTP:
+ * Every base parameter (mhp/mmp/atk/def/mat/mdf/agi/luk) only uses its growth
+ * curve tag beyond level 99- levels 1-99 stay driven by the class's baked
+ * params[] array from the database. MTP is different: it has no params[]
+ * array at all (it's a J-Base/J-NaturalGrowth note-tag-only stat), so its
+ * growth curve tag, when present, is evaluated LIVE for every level, not
+ * just beyond 99.
+ *
+ * Formula context:
+ *   a.level = the level being evaluated (this is the ONLY binding available-
+ *             no b, no v, unlike most other formula tags in this ecosystem)
+ *
+ * TAG USAGE:
+ * - Classes only.
+ *
+ * TAG FORMAT:
+ *  <mhpGrowthCurve:[FORMULA]>
+ *  <mmpGrowthCurve:[FORMULA]>
+ *  <atkGrowthCurve:[FORMULA]>
+ *  <defGrowthCurve:[FORMULA]>
+ *  <matGrowthCurve:[FORMULA]>
+ *  <mdfGrowthCurve:[FORMULA]>
+ *  <agiGrowthCurve:[FORMULA]>
+ *  <lukGrowthCurve:[FORMULA]>
+ *  <mtpGrowthCurve:[FORMULA]>
+ *
+ * TAG EXAMPLES:
+ *  <atkGrowthCurve:[20 + (a.level * 3)]>
+ * Beyond level 99, this class's ATK follows 20 + (level * 3) instead of the
+ * slope-extrapolation fallback.
+ *
+ *  <mtpGrowthCurve:[a.level * 2]>
+ * This class's max TP is always (level * 2), evaluated live at every level-
+ * not just beyond 99.
+ *
+ * ============================================================================
  * SAMPLE CALCULATIONS:
  * Here is an example back and forth encounter between an allied party and
  * enemy party.
@@ -296,6 +372,16 @@
  * This same logic is again applied to gold from each defeated enemy.
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.0
+ *    Added Single Level Across Classes: actors can now share one level/exp
+ *    across all classes instead of leveling each class independently, with
+ *    a class-independent canonical exp curve and retroactive learning
+ *    backfill on class change.
+ *    Added per-class growth curve tags (<mhpGrowthCurve>, etc. for all base
+ *    params plus <mtpGrowthCurve>) as authored, formula-driven replacements
+ *    for the slope-extrapolation fallback beyond level 99. MTP's curve is
+ *    evaluated live at every level, not just beyond 99, since MTP has no
+ *    baked params[] array to defer to below the cap.
  * - 1.3.1
  *    Updated battler name rendering support for compatibility.
  * - 1.3.0
@@ -316,108 +402,6 @@
  * - 1.0.0
  *    The initial release.
  * ============================================================================
- * @param parentConfigScaling
- * @text SCALING
- *
- * @param useScaling
- * @parent parentConfigScaling
- * @type boolean
- * @text Start Enabled
- * @desc Whether or not this scaling functionality is enabled by default.
- * @on Enabled By Default
- * @off Disabled By Default
- * @default true
- *
- * @param minMultiplier
- * @parent parentConfigScaling
- * @type number
- * @decimals 2
- * @text Minimum Multiplier (Combat)
- * @desc Min for damage and parry. EXP/gold use reward params when set.
- * @default 0.10
- *
- * @param maxMultiplier
- * @parent parentConfigScaling
- * @type number
- * @decimals 2
- * @text Maximum Multiplier (Combat)
- * @desc Clamp ceiling for combat scaling.
- * @default 2.00
- *
- * @param rewardMinMultiplier
- * @parent parentConfigScaling
- * @type number
- * @decimals 2
- * @text Minimum Multiplier (Rewards)
- * @desc Min for scaled EXP/gold. Missing param uses combat minimum.
- * @default 0.10
- *
- * @param rewardMaxMultiplier
- * @parent parentConfigScaling
- * @type number
- * @decimals 2
- * @text Maximum Multiplier (Rewards)
- * @desc Max for scaled EXP/gold. Missing param uses combat maximum.
- * @default 2.00
- *
- * @param growthMultiplier
- * @parent parentConfigScaling
- * @type number
- * @decimals 2
- * @text Growth Multiplier
- * @desc The amount of growth per level of difference.
- * @default 0.10
- *
- * @param invariantUpperRange
- * @parent parentConfigScaling
- * @type number
- * @text Upper Invariance
- * @desc The amount of level difference over 0 before scaling takes effect.
- * @default 1
- *
- * @param invariantLowerRange
- * @parent parentConfigScaling
- * @type number
- * @text Lower Invariance
- * @desc The amount of level difference under 0 before scaling takes effect.
- * @default 1
- *
- * @param variableActorBalancer
- * @parent parentConfigScaling
- * @type variable
- * @text Actor Balancer
- * @desc The variable id to act as a constant level modifier in favor of actors.
- * @default 141
- *
- * @param variableEnemyBalancer
- * @parent parentConfigScaling
- * @type variable
- * @text Enemy Balancer
- * @desc The variable id to act as a constant level modifier in favor of enemies.
- * @default 142
- *
- * @param parentConfigMaxLevel
- * @text MAX LEVEL
- *
- * @param defaultBeyondMaxLevel
- * @parent parentConfigMaxLevel
- * @type number
- * @min 100
- * @max 1000
- * @text Default Beyond Max Level
- * @desc The default for what the max level is if beyond the cap. Requires max level for actors to be set to 99.
- * @default 255
- *
- * @param trueMaxLevel
- * @parent parentConfigMaxLevel
- * @type number
- * @min 1
- * @max 1000
- * @text Max Boosted Level
- * @desc The max level your level can be. While this is intended to always be beyond the max, it can be lower.
- * @default 1000
- *
- *
  * @command enableScaling
  * @text Enable Scaling
  * @desc Enables the scaling functionality for damage/rewards.
@@ -428,7 +412,14 @@
  */
 
 //#region src/plugins/level/core/_metadata/_pluginMetadata.js
-var J_LevelPluginMetadata = class extends PluginMetadata {
+var J_LevelPluginMetadata = class J_LevelPluginMetadata extends PluginMetadata {
+	/**
+	* The project-relative path to this plugin's external configuration file. All tuning that used to live in
+	* PluginManager parameters now lives here instead, so it can be authored from jmz-data-editor without ever
+	* opening the RMMZ editor's Plugin Manager.
+	* @type {string}
+	*/
+	static CONFIG_PATH = "data/config.level.json";
 	/**
 	* Constructor.
 	*/
@@ -440,37 +431,38 @@ var J_LevelPluginMetadata = class extends PluginMetadata {
 		this.initializeLevelMaster();
 	}
 	initializeLevelMaster() {
+		const config = ExternalJsonConfigLoader.load(J_LevelPluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-LevelMaster").configName("level configuration").build());
 		/**
 		* Whether or not the scaling functionality is enabled.
 		* @type {boolean}
 		*/
-		this.enabled = this.parsedPluginParameters["useScaling"] === "true";
+		this.enabled = config.useScaling === true;
 		/**
 		* The minimum multiplier that scaling can reduce to based on level difference. This should never actually be zero
 		* or lower or unexpected things can happen.
 		* @type {number}
 		*/
-		this.minimumMultiplier = Number(this.parsedPluginParameters["minMultiplier"]);
+		this.minimumMultiplier = Number(config.minMultiplier);
 		/**
 		* The maximum multiplier that scaling can reach based on level difference.
 		* @type {number}
 		*/
-		this.maximumMultiplier = Number(this.parsedPluginParameters["maxMultiplier"]);
-		const rewardMinRaw = this.parsedPluginParameters["rewardMinMultiplier"];
+		this.maximumMultiplier = Number(config.maxMultiplier);
+		const rewardMinRaw = config.rewardMinMultiplier;
 		/**
 		* The minimum multiplier for reward scaling (EXP / gold). Falls back to combat minimum when unset.
 		* @type {number}
 		*/
-		this.rewardMinimumMultiplier = rewardMinRaw === undefined || rewardMinRaw === "" ? this.minimumMultiplier : Number(rewardMinRaw);
+		this.rewardMinimumMultiplier = rewardMinRaw === undefined || rewardMinRaw === null || rewardMinRaw === "" ? this.minimumMultiplier : Number(rewardMinRaw);
 		if (Number.isFinite(this.rewardMinimumMultiplier) === false) {
 			this.rewardMinimumMultiplier = this.minimumMultiplier;
 		}
-		const rewardMaxRaw = this.parsedPluginParameters["rewardMaxMultiplier"];
+		const rewardMaxRaw = config.rewardMaxMultiplier;
 		/**
 		* The maximum multiplier for reward scaling (EXP / gold). Falls back to combat maximum when unset.
 		* @type {number}
 		*/
-		this.rewardMaximumMultiplier = rewardMaxRaw === undefined || rewardMaxRaw === "" ? this.maximumMultiplier : Number(rewardMaxRaw);
+		this.rewardMaximumMultiplier = rewardMaxRaw === undefined || rewardMaxRaw === null || rewardMaxRaw === "" ? this.maximumMultiplier : Number(rewardMaxRaw);
 		if (Number.isFinite(this.rewardMaximumMultiplier) === false) {
 			this.rewardMaximumMultiplier = this.maximumMultiplier;
 		}
@@ -478,39 +470,64 @@ var J_LevelPluginMetadata = class extends PluginMetadata {
 		* The amount per level up or down that applies. This amount stacks additively.
 		* @type {number}
 		*/
-		this.growthMultiplier = Number(this.parsedPluginParameters["growthMultiplier"]);
+		this.growthMultiplier = Number(config.growthMultiplier);
 		/**
 		* The upper limit from a zero level difference before scaling kicks in.
 		* @type {number}
 		*/
-		this.invariantUpperRange = Number(this.parsedPluginParameters["invariantUpperRange"]);
+		this.invariantUpperRange = Number(config.invariantUpperRange);
 		/**
 		* The lower limit from a zero level difference before scaling kicks in.
 		* @type {number}
 		*/
-		this.invariantLowerRange = Number(this.parsedPluginParameters["invariantLowerRange"]);
+		this.invariantLowerRange = Number(config.invariantLowerRange);
 		/**
 		* The variableId to set to modify the actor level balancer value. This number is directly added to all actors'
 		* levels when considering scaling.
 		* @type {number}
 		*/
-		this.actorBalanceVariable = Number(this.parsedPluginParameters["variableActorBalancer"]);
+		this.actorBalanceVariable = Number(config.variableActorBalancer);
 		/**
 		* The variableId to set to modify the enemy level balancer value. This number is directly added to all enemies'
 		* levels when considering scaling.
 		* @type {number}
 		*/
-		this.enemyBalanceVariable = Number(this.parsedPluginParameters["variableEnemyBalancer"]);
+		this.enemyBalanceVariable = Number(config.variableEnemyBalancer);
 		/**
 		* The default max level beyond the max set by the database.
 		* @type {number}
 		*/
-		this.defaultBeyondMaxLevel = Number(this.parsedPluginParameters["defaultBeyondMaxLevel"]);
+		this.defaultBeyondMaxLevel = Number(config.defaultBeyondMaxLevel);
 		/**
 		* The true max level. No actor level can ascend beyond this. This will override actor max level if applicable.
 		* @type {number}
 		*/
-		this.trueMaxLevel = Number(this.parsedPluginParameters["trueMaxLevel"]);
+		this.trueMaxLevel = Number(config.trueMaxLevel);
+		/**
+		* Whether all classes share one actor-wide level/exp instead of each class leveling independently.
+		* @type {boolean}
+		*/
+		this.useSharedActorLevel = config.useSharedActorLevel === true;
+		/**
+		* The "basis" input to the canonical, class-independent exp curve used when {@link useSharedActorLevel} is on.
+		* @type {number}
+		*/
+		this.canonicalExpBasis = Number(config.canonicalExpBasis);
+		/**
+		* The "extra" input to the canonical exp curve.
+		* @type {number}
+		*/
+		this.canonicalExpExtra = Number(config.canonicalExpExtra);
+		/**
+		* The "acceleration A" input to the canonical exp curve.
+		* @type {number}
+		*/
+		this.canonicalExpAccA = Number(config.canonicalExpAccA);
+		/**
+		* The "acceleration B" input to the canonical exp curve.
+		* @type {number}
+		*/
+		this.canonicalExpAccB = Number(config.canonicalExpAccB);
 	}
 };
 
@@ -531,7 +548,7 @@ J.LEVEL.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.3.1");
+J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.4.0");
 /**
 * The maximum level definable in the level. Any level below this can be determined without extra calculations.
 * @type {number}
@@ -544,6 +561,7 @@ J.LEVEL.Aliased = {
 	Game_Action: new Map(),
 	Game_Actor: new Map(),
 	Game_Battler: new Map(),
+	Game_BattlerBase: new Map(),
 	Game_Enemy: new Map(),
 	Game_Event: new Map(),
 	Game_System: new Map(),
@@ -577,7 +595,31 @@ J.LEVEL.RegExp = {
 	* The regex for granting bonuses or penalties to max level (for actors only).
 	* @type {RegExp}
 	*/
-	MaxLevelBoost: /<maxLevelBoost: ?(-?\+?\d+)>/i
+	MaxLevelBoost: /<maxLevelBoost: ?(-?\+?\d+)>/i,
+	/**
+	* The regexes for the 8 base parameters' `GrowthCurve` tags, indexed by base paramId (0-7:
+	* mhp/mmp/atk/def/mat/mdf/agi/luk). Authored via the jmz-data-editor's Classes board and read by
+	* {@link GrowthCurveFormula.readForClass} to derive beyond-level-99 growth directly from the formula
+	* instead of {@link Game_Temp.buildBeyondMaxDataForClass}'s slope-extrapolation fallback.
+	* @type {RegExp[]}
+	*/
+	GrowthCurveByParamId: [
+		/<mhpGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<mmpGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<atkGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<defGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<matGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<mdfGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<agiGrowthCurve:\[([+\-*/ ().\w]+)]>/gi,
+		/<lukGrowthCurve:\[([+\-*/ ().\w]+)]>/gi
+	],
+	/**
+	* The regex for MTP's `GrowthCurve` tag. Unlike the 8 base params, MTP has no `params[]` array in
+	* Classes.json (it's a J-Base/J-NaturalGrowth note-tag-only stat), so when present this formula is
+	* evaluated live for every level, not just beyond 99- see {@link Game_Actor.maxTp}.
+	* @type {RegExp}
+	*/
+	MtpGrowthCurve: /<mtpGrowthCurve:\[([+\-*/ ().\w]+)]>/gi
 };
 
 //#endregion
@@ -586,14 +628,12 @@ J.LEVEL.RegExp = {
 * Plugin command for enabling the level scaling functionality.
 */
 PluginManager.registerCommand(J.LEVEL.Metadata.name, "enableScaling", () => {
-	J.LEVEL.Metadata.enabled = true;
 	$gameSystem.enableLevelScaling();
 });
 /**
 * Plugin command for disabling the level scaling functionality.
 */
 PluginManager.registerCommand(J.LEVEL.Metadata.name, "disableScaling", () => {
-	J.LEVEL.Metadata.enabled = false;
 	$gameSystem.disableLevelScaling();
 });
 
@@ -607,6 +647,62 @@ J.LEVEL.Aliased.DataManager.set("setupNewGame", DataManager.setupNewGame);
 DataManager.setupNewGame = function() {
 	J.LEVEL.Aliased.DataManager.get("setupNewGame").call(this);
 	$gameTemp.buildBeyondMaxData();
+};
+
+//#endregion
+//#region src/plugins/level/core/managers/GrowthCurveFormula.js
+/**
+* A helper class for reading and evaluating `<paramGrowthCurve:[formula]>` note tags authored on a
+* class via the jmz-data-editor's Classes board. When present, these formulas are the source of truth
+* for a base parameter's value beyond level 99 (levels 1-99 stay driven by the class's baked
+* `params[paramId]` array) — replacing {@link Game_Temp.buildBeyondMaxDataForClass}'s prior
+* slope-extrapolation guess with the actual authored curve for any class/param that has one tagged.
+*/
+var GrowthCurveFormula = class {
+	/**
+	* The constructor is not designed to be called.
+	* This is a static class.
+	*/
+	constructor() {
+		throw new Error("This is a static class.");
+	}
+	/**
+	* Reads the `<paramGrowthCurve:[formula]>` tag for the given base paramId off a class, if present.
+	* @param {RPG_Class} dataClass The class database object to read the tag from.
+	* @param {number} paramId The base paramId (0-7) to look up the tag for.
+	* @returns {string|null} The raw formula text, or null if the class has no tag for this param.
+	*/
+	static readForClass(dataClass, paramId) {
+		const structure = J.LEVEL.RegExp.GrowthCurveByParamId.at(paramId);
+		return RPGManager.getStringFromNoteByRegex(dataClass, structure, true);
+	}
+	/**
+	* Reads the `<mtpGrowthCurve:[formula]>` tag off a class, if present.
+	* @param {RPG_Class} dataClass The class database object to read the tag from.
+	* @returns {string|null} The raw formula text, or null if the class has no MTP growth curve tag.
+	*/
+	static readMtpForClass(dataClass) {
+		return RPGManager.getStringFromNoteByRegex(dataClass, J.LEVEL.RegExp.MtpGrowthCurve, true);
+	}
+	/**
+	* Evaluates a growth curve formula at a given level.
+	*
+	* Mirrors jmz-data-editor's own `GrowthParser.evaluateFormula` so the editor's preview and the
+	* runtime's actual result stay identical for the same formula and level.
+	* @param {string} formula The formula text captured from a `GrowthCurve` tag.
+	* @param {number} level The level to evaluate the formula at.
+	* @returns {number} The evaluated result, or 0 if the formula fails to evaluate.
+	*/
+	static evaluate(formula, level) {
+		const a = { level };
+		try {
+			const evaluator = new Function("a", `return (${formula})`);
+			return evaluator(a);
+		} catch (error) {
+			console.error(`Error evaluating growth curve formula: ${formula}`, error);
+			return 0;
+		}
+	}
 };
 
 //#endregion
@@ -734,7 +830,7 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
 //#endregion
 //#region src/plugins/level/core/objects/Game_Actor.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes this plugin's members.
 */
 J.LEVEL.Aliased.Game_Actor.set("initMembers", Game_Actor.prototype.initMembers);
@@ -764,6 +860,7 @@ J.LEVEL.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBat
 Game_Actor.prototype.onBattlerDataChange = function() {
 	J.LEVEL.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
 	this.updateRealMaxLevel();
+	this.refreshLevel();
 };
 Game_Actor.prototype.updateRealMaxLevel = function() {
 	const newMaxLevel = this.calculateRealMaxLevel();
@@ -779,7 +876,7 @@ Game_Actor.prototype.calculateRealMaxLevel = function() {
 	return normalizedMaxLevel;
 };
 /**
-* Overrides {@link #maxLevel}.<br/>
+* Overwrites {@link #maxLevel}.<br/>
 * Recalculates the max level based on the possibility of a modified max level.
 * @returns {number}
 */
@@ -803,7 +900,7 @@ Game_Actor.prototype.baseMaxLevel = function() {
 	return J.LEVEL.Metadata.defaultBeyondMaxLevel;
 };
 /**
-* Overrides {@link #paramBase}.<br/>
+* Overwrites {@link #paramBase}.<br/>
 * Potentially fetches "beyond max data" for when ones level is beyond the editor max of 99.
 * @param {number} paramId The paramId to fetch the data for.
 * @returns {number}
@@ -825,6 +922,23 @@ Game_Actor.prototype.paramBase = function(paramId) {
 	return beyondRow[beyondIdx];
 };
 /**
+* Extends {@link #maxTp}.<br/>
+* When the actor's current class carries an `<mtpGrowthCurve:[formula]>` tag, that formula is the
+* sole source of this actor's MTP at every level- it replaces J-Base's flat `base + tag-sum`
+* calculation entirely (no additive stacking with `<maxTp:N>`/`<mtpBuffPlus:[...]>`), since MTP has no
+* `params[]` array to defer to for any level range the way the 8 base params do. Falls through to the
+* original calculation unchanged when the current class has no such tag.
+* @returns {number}
+*/
+J.LEVEL.Aliased.Game_Actor.set("maxTp", Game_Actor.prototype.maxTp);
+Game_Actor.prototype.maxTp = function() {
+	const growthCurveFormula = GrowthCurveFormula.readMtpForClass(this.currentClass());
+	if (growthCurveFormula) {
+		return Math.max(0, Math.round(GrowthCurveFormula.evaluate(growthCurveFormula, this.getLevel())));
+	}
+	return J.LEVEL.Aliased.Game_Actor.get("maxTp").call(this);
+};
+/**
 * The base or default level for this battler.
 * Actors have a level tracker, so we'll use that for the base.
 * @returns {number}
@@ -834,14 +948,15 @@ Game_Actor.prototype.getBattlerBaseLevel = function() {
 };
 /**
 * Gets all database sources we can get levels from.
+*
+* Uses {@link #getAllNotes} so the result benefits from the notes cache and
+* includes all note-bearing sources — database data, class, skills, equips,
+* and all states (including passives). This also opens the door for skills
+* to grant level bonuses via the level tag, which is intentional.
 * @returns {RPG_BaseItem[]}
 */
 Game_Actor.prototype.getLevelSources = function() {
-	return [
-		this.databaseData(),
-		...this.equips(),
-		...this.allStates()
-	];
+	return this.getAllNotes();
 };
 /**
 * The variable level modifier for this actor.
@@ -852,6 +967,109 @@ Game_Actor.prototype.getLevelBalancer = function() {
 		return $gameVariables.value(J.LEVEL.Metadata.actorBalanceVariable);
 	}
 	return 0;
+};
+/**
+* Extends {@link #initExp}.<br/>
+* When single-level-across-classes is enabled, initializes exp as a synced value instead of
+* only seeding the current class's slot.
+*/
+J.LEVEL.Aliased.Game_Actor.set("initExp", Game_Actor.prototype.initExp);
+Game_Actor.prototype.initExp = function() {
+	if (J.LEVEL.Metadata.useSharedActorLevel === false) {
+		J.LEVEL.Aliased.Game_Actor.get("initExp").call(this);
+		return;
+	}
+	this.setSyncedExp(this.currentLevelExp());
+};
+/**
+* Extends {@link #changeExp}.<br/>
+* When single-level-across-classes is enabled, writes the new exp value to every class's slot
+* instead of just the current one, so switching classes never desyncs from this exp change.
+*/
+J.LEVEL.Aliased.Game_Actor.set("changeExp", Game_Actor.prototype.changeExp);
+Game_Actor.prototype.changeExp = function(exp, show) {
+	if (J.LEVEL.Metadata.useSharedActorLevel === false) {
+		J.LEVEL.Aliased.Game_Actor.get("changeExp").call(this, exp, show);
+		return;
+	}
+	const clampedExp = Math.max(exp, 0);
+	this.setSyncedExp(clampedExp);
+	const lastLevel = this._level;
+	const lastSkills = this.skills();
+	while (!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) {
+		this.levelUp();
+	}
+	while (this.currentExp() < this.currentLevelExp()) {
+		this.levelDown();
+	}
+	if (show && this._level > lastLevel) {
+		this.displayLevelUp(this.findNewSkills(lastSkills));
+	}
+	this.refresh();
+};
+/**
+* Extends {@link #changeClass}.<br/>
+* When single-level-across-classes is enabled, no longer resets level/exp on class change- the
+* actor's level is shared across all classes, so there is nothing to reset or re-derive. Also
+* retroactively backfills the destination class's learnings up to the current level.
+*/
+J.LEVEL.Aliased.Game_Actor.set("changeClass", Game_Actor.prototype.changeClass);
+Game_Actor.prototype.changeClass = function(classId, keepExp) {
+	if (J.LEVEL.Metadata.useSharedActorLevel === false) {
+		J.LEVEL.Aliased.Game_Actor.get("changeClass").call(this, classId, keepExp);
+		return;
+	}
+	this._classId = classId;
+	this.backfillLearningsForCurrentLevel();
+	this.onClassChange(classId, keepExp);
+	this.refresh();
+};
+/**
+* Grants every learning on the currently active class whose level requirement is already met by
+* this actor's current level. Safe to call repeatedly- {@link Game_Actor.learnSkill} is a no-op
+* for skills already known.
+*/
+Game_Actor.prototype.backfillLearningsForCurrentLevel = function() {
+	this.currentClass().learnings.forEach((learning) => {
+		if (learning.level <= this._level) {
+			this.learnSkill(learning.skillId);
+		}
+	}, this);
+};
+/**
+* Writes the given exp value to every class's exp slot, keeping them all in agreement. This keeps
+* {@link Game_Actor._exp} shaped exactly like vanilla (an object keyed by classId) for
+* compatibility with anything that expects that shape, while ensuring there is effectively only
+* one level per actor regardless of which class happens to be active.
+* @param {number} exp The exp value to write to every class's slot.
+*/
+Game_Actor.prototype.setSyncedExp = function(exp) {
+	$dataClasses.forEach((rpgClass) => {
+		if (!rpgClass) return;
+		this._exp[rpgClass.id] = exp;
+	}, this);
+};
+/**
+* Overwrites {@link #expForLevel}.<br/>
+* When single-level-across-classes is enabled, uses a canonical, class-independent exp curve
+* instead of pulling basis/extra/acceleration values from the currently active class. This is only
+* the honest default for when nothing else defines a curve- J-Level-Flat, for example, also plainly
+* overwrites expForLevel and loads after this plugin, so its definition simply replaces this one
+* entirely at load time (the same load-order-wins mechanics as any other plugin overwrite), not a
+* chained alias call.
+* @param {number} level The level to calculate the required exp for.
+* @returns {number}
+*/
+Game_Actor.prototype.expForLevel = function(level) {
+	if (J.LEVEL.Metadata.useSharedActorLevel === false) {
+		const [basis, extra, accA, accB] = this.currentClass().expParams;
+		return Math.round(basis * Math.pow(level - 1, .9 + accA / 250) * level * (level + 1) / (6 + Math.pow(level, 2) / 50 / accB) + (level - 1) * extra);
+	}
+	const basis = J.LEVEL.Metadata.canonicalExpBasis;
+	const extra = J.LEVEL.Metadata.canonicalExpExtra;
+	const accA = J.LEVEL.Metadata.canonicalExpAccA;
+	const accB = J.LEVEL.Metadata.canonicalExpAccB;
+	return Math.round(basis * Math.pow(level - 1, .9 + accA / 250) * level * (level + 1) / (6 + Math.pow(level, 2) / 50 / accB) + (level - 1) * extra);
 };
 
 //#endregion
@@ -882,16 +1100,33 @@ Object.defineProperty(Game_Battler.prototype, "lvl", {
 });
 /**
 * Gets the level for this battler.
+*
+* Returns the cached value when available; computes and caches on the first call or after
+* {@link #refreshLevel} invalidates the cache via {@link #onBattlerDataChange}.
 * @returns {number}
 */
 Game_Battler.prototype.getLevel = function() {
-	this._j ||= {};
-	this._j._level ||= {};
-	const levelSlot = this._j._level;
-	if (levelSlot._isComputingGetLevel === true) {
+	if (this._j._level._cachedLevel !== null) {
+		return this._j._level._cachedLevel;
+	}
+	const computed = this.computeLevel();
+	this._j._level._cachedLevel = computed;
+	return computed;
+};
+/**
+* Computes the level for this battler from all registered sources.
+*
+* Separated from {@link #getLevel} so the cache layer stays clean.
+* Includes a re-entrancy guard for cases where computing the level would
+* otherwise trigger another level computation (e.g. a state whose note
+* calls back into level logic).
+* @returns {number}
+*/
+Game_Battler.prototype.computeLevel = function() {
+	if (this._j._level._isComputingGetLevel === true) {
 		return this.getBattlerBaseLevel() + this.getLevelBalancer();
 	}
-	levelSlot._isComputingGetLevel = true;
+	this._j._level._isComputingGetLevel = true;
 	try {
 		const sources = this.getLevelSources();
 		let level = this.getBattlerBaseLevel();
@@ -901,8 +1136,18 @@ Game_Battler.prototype.getLevel = function() {
 		}, this);
 		return level;
 	} finally {
-		levelSlot._isComputingGetLevel = false;
+		this._j._level._isComputingGetLevel = false;
 	}
+};
+/**
+* Invalidates the cached level and immediately re-primes it.
+*
+* Called by {@link #onBattlerDataChange} hooks in both {@link Game_Actor} and
+* {@link Game_Enemy} so that the HUD's per-frame reads of {@link #level} remain O(1).
+*/
+Game_Battler.prototype.refreshLevel = function() {
+	this._j._level._cachedLevel = null;
+	this.getLevel();
 };
 /**
 * Gets all database sources we can get levels from.
@@ -934,9 +1179,41 @@ Game_Battler.prototype.extractLevel = function(rpgData) {
 };
 
 //#endregion
+//#region src/plugins/level/core/objects/Game_BattlerBase.js
+/**
+* Extends {@link #initMembers}.<br/>
+* Initializes the level cache members for this battler.
+*/
+J.LEVEL.Aliased.Game_BattlerBase.set("initMembers", Game_BattlerBase.prototype.initMembers);
+Game_BattlerBase.prototype.initMembers = function() {
+	J.LEVEL.Aliased.Game_BattlerBase.get("initMembers").call(this);
+	/**
+	* The J object where all my additional properties live.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with levels.
+	*/
+	this._j._level ||= {};
+	/**
+	* The cached computed level for this battler.
+	* Null when the cache is cold and must be recomputed via {@link #getLevel}.
+	* Invalidated by {@link #refreshLevel} whenever battler data changes.
+	* @type {number|null}
+	*/
+	this._j._level._cachedLevel = null;
+	/**
+	* Re-entrancy guard for {@link #computeLevel}.
+	* Prevents infinite recursion when level sources themselves reference level.
+	* @type {boolean}
+	*/
+	this._j._level._isComputingGetLevel = false;
+};
+
+//#endregion
 //#region src/plugins/level/core/objects/Game_Enemy.js
 /**
-* Extends {@link Game_Enemy.setup}.<br>
+* Extends {@link Game_Enemy.setup}.<br/>
 * Includes setting up the learned level map for skills.
 */
 J.LEVEL.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
@@ -976,7 +1253,16 @@ Game_Enemy.prototype.setCachedLevelOverride = function(level) {
 	this._j._level._cachedLevelOverride = level;
 };
 /**
-* Extends {@link Game_Enemy.setup}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
+* Refreshes the cached level when this enemy's battler data changes.
+*/
+J.LEVEL.Aliased.Game_Enemy.set("onBattlerDataChange", Game_Enemy.prototype.onBattlerDataChange);
+Game_Enemy.prototype.onBattlerDataChange = function() {
+	J.LEVEL.Aliased.Game_Enemy.get("onBattlerDataChange").call(this);
+	this.refreshLevel();
+};
+/**
+* Extends {@link Game_Enemy.setup}.<br/>
 * Includes setting up the learned level map for skills.
 */
 J.LEVEL.Aliased.Game_Enemy.set("setup", Game_Enemy.prototype.setup);
@@ -1017,7 +1303,7 @@ Game_Enemy.prototype.isLearnedSkillByLevel = function(action) {
 	return false;
 };
 /**
-* Overrides {@link #getBattlerBaseLevel}.<br/>
+* Overwrites {@link #getBattlerBaseLevel}.<br/>
 * Instead of defaulting to zero, it will use the enemy's own note, accommodating any overrides if present.
 * @returns {number}
 */
@@ -1049,10 +1335,15 @@ Game_Enemy.prototype.shouldHideLevel = function() {
 };
 /**
 * Gets all database sources we can get levels from.
+*
+* Excludes the enemy's own database entry because {@link #getBattlerBaseLevel} already
+* reads the base `<level:N>` tag directly from the enemy note. Including it here would
+* cause that tag to be counted twice. Skills and states may still carry `<level:+N>` bonus
+* tags, which is intentional.
 * @returns {RPG_BaseItem[]}
 */
 Game_Enemy.prototype.getLevelSources = function() {
-	return [...this.states()];
+	return [...this.skills(), ...this.allStates()];
 };
 /**
 * The variable level modifier for this enemy.
@@ -1068,7 +1359,7 @@ Game_Enemy.prototype.getLevelBalancer = function() {
 //#endregion
 //#region src/plugins/level/core/objects/Game_Event.js
 /**
-* Extends {@link Game_Event.initMembers}.<br>
+* Extends {@link Game_Event.initMembers}.<br/>
 * Initializes level-related properties.
 */
 J.LEVEL.Aliased.Game_Event.set("initMembers", Game_Event.prototype.initMembers);
@@ -1124,7 +1415,7 @@ Game_Event.prototype.setCachedHideLevel = function(hideLevel) {
 	this._j._level._cachedHideLevel = hideLevel;
 };
 /**
-* Extends {@link Game_Event.refresh}.<br>
+* Extends {@link Game_Event.refresh}.<br/>
 * Clears the level override cache when the event page changes.
 */
 J.LEVEL.Aliased.Game_Event.set("refresh", Game_Event.prototype.refresh);
@@ -1277,22 +1568,30 @@ Game_Temp.prototype.buildBeyondMaxData = function() {
 * @param {number} classId The classId to build the beyond max data for.
 */
 Game_Temp.prototype.buildBeyondMaxDataForClass = function(classId) {
-	const classParams = $dataClasses.at(classId).params;
+	const dataClass = $dataClasses.at(classId);
+	const classParams = dataClass.params;
 	const newClassParams = Array.empty;
 	Game_BattlerBase.knownBaseParameterIds().forEach((paramId) => {
 		const parameterValues = classParams.at(paramId).toSpliced(0, 0);
-		const lastFive = parameterValues.slice(parameterValues.length - 6);
-		const growth = Array.empty;
-		lastFive.forEach((value, index) => {
-			if (index === 0) return;
-			const previousValue = lastFive[index - 1];
-			const difference = value - previousValue;
-			growth.push(difference);
-		});
-		const averageGrowth = growth.reduce((sum, value) => sum + value, 0) / growth.length;
-		for (let i = 100; i < 1e3; i++) {
-			const nextParameterValue = parameterValues.at(i - 1) + averageGrowth;
-			parameterValues[i] = Math.ceil(nextParameterValue);
+		const growthCurveFormula = GrowthCurveFormula.readForClass(dataClass, paramId);
+		if (growthCurveFormula) {
+			for (let i = 100; i < 1e3; i++) {
+				parameterValues[i] = Math.round(GrowthCurveFormula.evaluate(growthCurveFormula, i));
+			}
+		} else {
+			const lastFive = parameterValues.slice(parameterValues.length - 6);
+			const growth = Array.empty;
+			lastFive.forEach((value, index) => {
+				if (index === 0) return;
+				const previousValue = lastFive[index - 1];
+				const difference = value - previousValue;
+				growth.push(difference);
+			});
+			const averageGrowth = growth.reduce((sum, value) => sum + value, 0) / growth.length;
+			for (let i = 100; i < 1e3; i++) {
+				const nextParameterValue = parameterValues.at(i - 1) + averageGrowth;
+				parameterValues[i] = Math.ceil(nextParameterValue);
+			}
 		}
 		newClassParams.push(parameterValues);
 	});
@@ -1336,7 +1635,7 @@ Game_Temp.prototype.flagBeyondMaxDataAsCached = function() {
 */
 J.LEVEL.Aliased.Game_Troop.set("expTotal", Game_Troop.prototype.expTotal);
 Game_Troop.prototype.expTotal = function() {
-	if (J.LEVEL.Metadata.enabled) {
+	if ($gameSystem.isLevelScalingEnabled()) {
 		return this.getScaledExpResult();
 	} else {
 		return J.LEVEL.Aliased.Game_Troop.get("expTotal").call(this);

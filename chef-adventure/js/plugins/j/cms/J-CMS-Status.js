@@ -32,10 +32,17 @@
  * edge-cases outside of how I use this.
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it is purely a scene/window
+ * redesign of the status menu that renders parameters sourced from the
+ * other listed plugins (which own their own respective tags).
+ * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
  * - 1.1.0
  *    Added complete long-parameter coverage and detailed breakdown panel.
+ *    Migrated StatusParameter from numeric longParamId to the shared
+ *    parameter catalog's string parameterKey.
  *    Documentation pass for status list window and models.
  *    Retroactively added this changelog.
  * - 1.0.0
@@ -63,7 +70,7 @@ var J_CmsStatus_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "1.0.1";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -92,10 +99,10 @@ var StatusParameter = class {
 	*/
 	value = 0;
 	/**
-	* The "long" parameter id for this parameter.
-	* @type {number}
+	* The parameter registry key this value represents.
+	* @type {string}
 	*/
-	longParamId = 0;
+	parameterKey = String.empty;
 	/**
 	* The `name` of this parameter.
 	* @type {string}
@@ -112,22 +119,54 @@ var StatusParameter = class {
 	*/
 	colorIndex = 0;
 	/**
+	* The battler this parameter belongs to, if known. Threaded through to
+	* {@link ParameterDefinition#prettyValue} so REGEN_PER_SECOND can convert using this
+	* battler's actual tick cadence instead of assuming a fixed tick count.
+	* @type {Game_Battler|null}
+	*/
+	actor = null;
+	/**
 	* Constructor.
 	* @param {number} value The value of the parameter.
-	* @param {number} longParamId The long parameter id this value represents.
+	* @param {string} parameterKey The registry key this value represents.
+	* @param {Game_Battler=} actor The battler this parameter belongs to, if known.
 	*/
-	constructor(value, longParamId) {
+	constructor(value, parameterKey, actor = null) {
 		this.value = value;
-		this.longParamId = longParamId;
+		this.parameterKey = parameterKey;
+		this.actor = actor;
 		this.refresh();
 	}
 	/**
-	* Initialize the properties based on the provided
+	* Initialize the properties based on the registry definition.
 	*/
 	refresh() {
-		this.name = TextManager.longParam(this.longParamId);
-		this.iconIndex = IconManager.longParam(this.longParamId);
-		this.colorIndex = ColorManager.longParam(this.longParamId);
+		const definition = ParameterRegistry.get(this.parameterKey);
+		if (!definition) {
+			this.name = this.parameterKey;
+			this.iconIndex = 0;
+			this.colorIndex = 0;
+			return;
+		}
+		this.name = definition.label();
+		this.iconIndex = definition.iconIndex();
+		this.colorIndex = definition.resolveDisplayColorIndex(this.value);
+	}
+	/**
+	* Whether this parameter should use styled zero-padding on the status screen.
+	* Returns false when a sentinel label replaces the numeric value, or for regen stats
+	* that already format themselves with a unit suffix.
+	* @returns {boolean}
+	*/
+	usesStyledValue() {
+		const definition = ParameterRegistry.get(this.parameterKey);
+		if (!definition) {
+			return false;
+		}
+		if (definition.resolveDisplaySentinel(this.value)) {
+			return false;
+		}
+		return definition.format !== ParameterFormat.REGEN_PER_SECOND;
 	}
 	/**
 	* Get the pretty value of this parameter.
@@ -135,117 +174,11 @@ var StatusParameter = class {
 	* @returns {string}
 	*/
 	prettyValue(withPadding = false) {
-		let num = this.value;
-		const multiplyBy100Ids = [
-			8,
-			9,
-			10,
-			11,
-			12,
-			13,
-			14,
-			15,
-			16,
-			17,
-			18,
-			19,
-			20,
-			21,
-			22,
-			23,
-			24,
-			25,
-			26,
-			27,
-			28,
-			29
-		];
-		if (multiplyBy100Ids.includes(this.longParamId)) {
-			num *= 100;
+		const definition = ParameterRegistry.get(this.parameterKey);
+		if (!definition) {
+			return this.value.toString();
 		}
-		const minus100Ids = [
-			18,
-			19,
-			20,
-			21,
-			22,
-			23,
-			24,
-			25,
-			26,
-			27
-		];
-		if (minus100Ids.includes(this.longParamId)) {
-			num -= 100;
-		}
-		const regenIds = [
-			15,
-			16,
-			17
-		];
-		if (regenIds.includes(this.longParamId)) {
-			const perSecond = num / 5;
-			const regenStr = Number.isInteger(perSecond) ? perSecond.toString() : perSecond.toFixed(1);
-			return `${regenStr}/s`;
-		}
-		let base = Number.isInteger(num) ? num.toString() : num.toFixed(1);
-		if (base.endsWith(".0")) {
-			base = base.slice(0, base.length - 2);
-		}
-		if (withPadding && this.value) {
-			const pad6 = [0, 1];
-			const pad4 = [
-				2,
-				3,
-				4,
-				5,
-				6,
-				7,
-				19,
-				28,
-				29,
-				30
-			];
-			const pad3 = [
-				13,
-				14,
-				18,
-				20,
-				21,
-				22,
-				23,
-				24,
-				25,
-				26,
-				27
-			];
-			if (pad6.includes(this.longParamId)) {
-				base = String(base).padZero(6);
-			} else if (pad4.includes(this.longParamId)) {
-				base = String(base).padZero(4);
-			} else if (pad3.includes(this.longParamId)) {
-				base = String(base).padZero(3);
-			}
-		}
-		const percentIds = [
-			9,
-			13,
-			14,
-			20,
-			21,
-			22,
-			23,
-			24,
-			25,
-			26,
-			27,
-			28,
-			29
-		];
-		if (percentIds.includes(this.longParamId)) {
-			base = `${base}%`;
-		}
-		return base;
+		return definition.prettyValue(this.value, withPadding, this.actor);
 	}
 };
 
@@ -253,7 +186,7 @@ var StatusParameter = class {
 //#region src/plugins/cms/status/_models/StatusStatListRow.js
 /**
 * Represents a single selectable stat row for the Status stat list window.
-* Each row points at a specific long parameter id and the display section it belongs to.
+* Each row points at a registry parameter key and the display section it belongs to.
 */
 var StatusStatListRow = class {
 	/**
@@ -262,18 +195,18 @@ var StatusStatListRow = class {
 	*/
 	section = String.empty;
 	/**
-	* The long parameter id represented by this row.
-	* @type {number}
+	* The registry key represented by this row.
+	* @type {string}
 	*/
-	longParamId = 0;
+	parameterKey = String.empty;
 	/**
 	* Constructor.
 	* @param {string} section The display section header.
-	* @param {number} longParamId The long parameter id represented by this row.
+	* @param {string} parameterKey The registry key this row represents.
 	*/
-	constructor(section, longParamId) {
+	constructor(section, parameterKey) {
 		this.section = section;
-		this.longParamId = longParamId;
+		this.parameterKey = parameterKey;
 	}
 };
 
@@ -302,6 +235,609 @@ var StatusHelper = class {
 	static toRateString(rate) {
 		const delta = (rate - 1) * 100;
 		return this.toPercentString(delta, true);
+	}
+};
+
+//#endregion
+//#region src/plugins/cms/status/windows/Window_StatusParameters.js
+/**
+* A replacement class for `Window_StatusParams`, which originally extended `Window_Selectable`
+* and rendered only the b-params. This window now extends `Window_Base` and renders all
+* params, including b-/x-/s- params.
+*/
+var Window_StatusParameters = class Window_StatusParameters extends Window_Base {
+	/**
+	* Section chrome for catalog groups rendered on page 1.
+	* @type {Object<string, {title: string, iconIndex: number, colorIndex: number}>}
+	*/
+	static GROUP_CHROME = {
+		combat: {
+			title: "Combat",
+			iconIndex: 76,
+			colorIndex: 10
+		},
+		vitality: {
+			title: "Vitality",
+			iconIndex: 7,
+			colorIndex: 3
+		},
+		precision: {
+			title: "Precision",
+			iconIndex: 1756,
+			colorIndex: 6
+		},
+		defensive: {
+			title: "Defensive",
+			iconIndex: 1625,
+			colorIndex: 26
+		},
+		mobility: {
+			title: "Haste",
+			iconIndex: 82,
+			colorIndex: 20
+		},
+		fate: {
+			title: "Fate",
+			iconIndex: 1619,
+			colorIndex: 27
+		}
+	};
+	/**
+	* Gap between a catalog name block and its value column.
+	* @type {number}
+	*/
+	static CATALOG_NAME_VALUE_GAP = 8;
+	/**
+	* Gap between paired values straddling the center divider.
+	* @type {number}
+	*/
+	static CATALOG_PAIR_GAP = 8;
+	/**
+	* Horizontal rules extend this many pixels past {@link #computeThreeColumnLayout} column width.
+	* @type {number}
+	*/
+	static COLUMN_LINE_BLEED = 16;
+	/**
+	* Clear air between columns after accounting for {@link #COLUMN_LINE_BLEED}.
+	* @type {number}
+	*/
+	static COLUMN_CLEAR_GAP = 24;
+	/**
+	* Shared layout constants for page-1 row bands.
+	* @type {{rowGap: number}}
+	*/
+	static PAGE_LAYOUT = { rowGap: 24 };
+	/**
+	* Catalog group ids per visual row band (left column, then middle column).
+	* @type {Array<[string, string]>}
+	*/
+	static PAGE_GROUP_ROW_GROUPS = [
+		["combat", "vitality"],
+		["precision", "defensive"],
+		["mobility", "fate"]
+	];
+	/**
+	* @param {Rectangle} rect A rectangle that represents the shape of this window.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.initMembers();
+	}
+	/**
+	* Initializes all members of this class.
+	*/
+	initMembers() {
+		this.actor = null;
+	}
+	/**
+	* Overwrites {@link #lineHeight}.<br/>
+	* Reduces line height for this window.
+	* @returns {number}
+	*/
+	lineHeight() {
+		return 32;
+	}
+	/**
+	* Sets the actor for this window to draw parameter data for.
+	* @param {Game_Actor} actor The actor to set.
+	*/
+	setActor(actor) {
+		this.actor = actor;
+		this.refresh();
+	}
+	/**
+	* Refreshes this window by clearing it and redrawing all its contents.
+	*/
+	refresh() {
+		this.contents.clear();
+		this.drawContent();
+	}
+	/**
+	* Draws all content in this window.
+	*/
+	drawContent() {
+		if (!this.actor) return;
+		const { rowGap } = Window_StatusParameters.PAGE_LAYOUT;
+		const columnLayout = this.computeThreeColumnLayout();
+		let cursorY = 0;
+		if (columnLayout) {
+			const { columnWidth, leftX, middleX, rightX, rightColumnWidth } = columnLayout;
+			const columnXs = [leftX, middleX];
+			Window_StatusParameters.PAGE_GROUP_ROW_GROUPS.forEach((rowGroups) => {
+				const rowHeights = rowGroups.map((groupId, columnIndex) => {
+					return this.drawParameterGroup(columnXs[columnIndex], cursorY, groupId, columnWidth);
+				});
+				const tallestSection = Math.max(...rowHeights);
+				cursorY += tallestSection + rowGap;
+			});
+			const elementsBottomY = this.drawElementalRates(rightX, 0, 10, rightColumnWidth);
+			this.drawStateRates(rightX, elementsBottomY + 16, rightColumnWidth);
+		} else {
+			const fallbackWidth = Math.floor((this.innerWidth - 24) / 2);
+			Window_StatusParameters.PAGE_GROUP_ROW_GROUPS.forEach((rowGroups) => {
+				const rowHeights = rowGroups.map((groupId, columnIndex) => {
+					const x = columnIndex === 0 ? 0 : fallbackWidth + 24;
+					return this.drawParameterGroup(x, cursorY, groupId, fallbackWidth);
+				});
+				const tallestSection = Math.max(...rowHeights);
+				cursorY += tallestSection + rowGap;
+			});
+			const halfWidth = Math.floor((this.innerWidth - 16) / 2);
+			const elementsHeight = this.drawElementalRates(0, cursorY + 8, 10, halfWidth);
+			this.drawStateRates(halfWidth + 16, cursorY + 8, halfWidth);
+		}
+	}
+	/**
+	* Computes equal-width three-column layout with equal inter-column gaps.
+	* @returns {{ edgePad: number, gap: number, columnWidth: number, leftX: number, middleX: number, rightX: number, rightColumnWidth: number }|null}
+	*/
+	computeThreeColumnLayout() {
+		const edgePad = 8;
+		const usable = this.innerWidth - edgePad * 2;
+		const gap = Window_StatusParameters.COLUMN_LINE_BLEED + Window_StatusParameters.COLUMN_CLEAR_GAP;
+		const minColumnWidth = 200;
+		const columnWidth = Math.floor((usable - gap * 2) / 3);
+		if (columnWidth < minColumnWidth) {
+			return null;
+		}
+		const leftX = edgePad;
+		const middleX = leftX + columnWidth + gap;
+		const rightX = middleX + columnWidth + gap;
+		const rightColumnWidth = this.innerWidth - rightX;
+		return {
+			edgePad,
+			gap,
+			columnWidth,
+			leftX,
+			middleX,
+			rightX,
+			rightColumnWidth
+		};
+	}
+	/**
+	* X coordinate of the vertical rule between paired stats — matches {@link #drawTSeparator}.
+	* @param {number} sectionX The left edge of the group column.
+	* @param {number} sectionWidth The drawable width of the group column.
+	* @returns {number}
+	*/
+	centerDividerX(sectionX, sectionWidth) {
+		return sectionX + Math.floor(sectionWidth / 2) + 8;
+	}
+	/**
+	* Outer right edge for catalog row chrome (icon column); matches section width, not line bleed.
+	* @param {number} sectionX The left edge of the group column.
+	* @param {number} sectionWidth The drawable width of the group column.
+	* @returns {number}
+	*/
+	catalogRowRight(sectionX, sectionWidth) {
+		return sectionX + sectionWidth;
+	}
+	/**
+	* Whether a catalog value already occupies the sign column (space, {@code +}, or {@code -}).
+	* @param {string} value The rendered value text.
+	* @returns {boolean}
+	*/
+	catalogValueHasSignColumn(value) {
+		const first = value.charAt(0);
+		return first === " " || first === "+" || first === "-";
+	}
+	/**
+	* Whether a right-half catalog value should indent one column to match signed percent rows.
+	* @param {string} value The rendered value text.
+	* @param {boolean} withPadding Whether styled padding is active.
+	* @param {boolean} isSentinel Whether the value is a clamped label ({@code FREE}, etc.).
+	* @returns {boolean}
+	*/
+	catalogValueRightReservesSignColumn(value, withPadding, isSentinel) {
+		if (withPadding) {
+			return this.catalogValueHasSignColumn(value) === false;
+		}
+		return isSentinel;
+	}
+	/**
+	* Monospace slot width for a right-half catalog value.
+	* @param {string} value The rendered value text.
+	* @param {boolean} withPadding Whether styled padding is active.
+	* @param {boolean} isSentinel Whether the value is a clamped label ({@code FREE}, etc.).
+	* @returns {number}
+	*/
+	catalogValueRightMeasureWidth(value, withPadding, isSentinel) {
+		if (withPadding || isSentinel) {
+			return this.styledValuePixelWidth(value);
+		}
+		return this.textWidth(value);
+	}
+	/**
+	* Layout width for a right-half catalog value beside the center divider.
+	* Flat numerics and sentinel labels reserve one digit column so they align with signed percents.
+	* @param {string} value The rendered value text.
+	* @param {boolean} withPadding Whether styled padding is active.
+	* @param {boolean} isSentinel Whether the value is a clamped label ({@code FREE}, etc.).
+	* @returns {number}
+	*/
+	catalogValueRightLayoutWidth(value, withPadding, isSentinel) {
+		const measureWidth = this.catalogValueRightMeasureWidth(value, withPadding, isSentinel);
+		if (this.catalogValueRightReservesSignColumn(value, withPadding, isSentinel)) {
+			return measureWidth + this.textWidth("0");
+		}
+		return measureWidth;
+	}
+	/**
+	* X coordinate for drawing a right-half catalog value beside the center divider.
+	* @param {number} halfX The inner edge of the right half-column.
+	* @param {string} value The rendered value text.
+	* @param {boolean} withPadding Whether styled padding is active.
+	* @param {boolean} isSentinel Whether the value is a clamped label ({@code FREE}, etc.).
+	* @returns {number}
+	*/
+	catalogValueRightDrawX(halfX, value, withPadding, isSentinel) {
+		if (this.catalogValueRightReservesSignColumn(value, withPadding, isSentinel)) {
+			return halfX + this.textWidth("0");
+		}
+		return halfX;
+	}
+	/**
+	* Estimates pixel width for a styled padded string (monospace digit assumption).
+	* @param {string} value The rendered text.
+	* @returns {number}
+	*/
+	styledValuePixelWidth(value) {
+		return value.length * this.textWidth("0");
+	}
+	/**
+	* Y coordinate for the horizontal rule beneath a section title — matches {@link #drawTSeparator}.
+	* @param {number} sectionY The section's content anchor y (same as catalog groups use).
+	* @returns {number}
+	*/
+	sectionSeparatorY(sectionY) {
+		const rowBaseY = sectionY + 8;
+		const firstRowY = rowBaseY - 2 + this.lineHeight();
+		return firstRowY - 4;
+	}
+	/**
+	* Collects element affiliation rows that differ from the 100% baseline.
+	* Uses {@link Game_Battler#elementRate} so the panel matches combat math (incl. J.ELEM absorb).
+	* @param {number} limit The number of elements to inspect.
+	* @returns {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>}
+	*/
+	collectElementAffiliationRows(limit = 10) {
+		/** @type {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>} */
+		const rows = [];
+		$dataSystem.elements.slice(0, limit).forEach((elementName, index) => {
+			const absorbed = J.ELEM && this.actor.isElementAbsorbed(index);
+			const combatRate = this.actor.elementRate(index);
+			const magnitudePercent = Math.round(Math.abs(combatRate) * 100);
+			const formatted = AffiliationDisplay.formatDelta(magnitudePercent, {
+				absorbed,
+				immune: absorbed === false && magnitudePercent <= 0
+			});
+			if (!formatted) {
+				return;
+			}
+			const name = elementName === String.empty ? "Neutral" : elementName;
+			rows.push({
+				name,
+				value: formatted.value,
+				iconIndex: IconManager.element(index),
+				colorIndex: formatted.colorIndex
+			});
+		});
+		return rows;
+	}
+	/**
+	* Collects ailment resistance rows that differ from the 100% baseline.
+	* Uses {@link Game_Battler#stateRate} so the panel matches combat math.
+	* @returns {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>}
+	*/
+	collectAilmentAffiliationRows() {
+		/** @type {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>} */
+		const rows = [];
+		$dataStates.slice(4, 18).forEach((state) => {
+			if (!state) return;
+			const immune = this.actor.isStateResist(state.id);
+			const ratePercent = immune ? 0 : Math.round(this.actor.stateRate(state.id) * 100);
+			const formatted = AffiliationDisplay.formatDelta(ratePercent, { immune });
+			if (!formatted) {
+				return;
+			}
+			rows.push({
+				name: state.name,
+				value: formatted.value,
+				iconIndex: state.iconIndex,
+				colorIndex: formatted.colorIndex
+			});
+		});
+		return rows;
+	}
+	/**
+	* Draws a single baseline placeholder row when every entry in a section is standard.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} sectionWidth The width available for this row.
+	*/
+	drawAffiliationBaselineRow(x, y, sectionWidth) {
+		this.resetFontSettings();
+		this.makeFontSmaller();
+		this.changeTextColor(ColorManager.textColor(7));
+		this.drawText("All standard", x, y, sectionWidth, "center");
+		this.resetFontSettings();
+	}
+	/**
+	* Draws filtered affiliation rows beneath a section header.
+	* @param {number} x The x coordinate.
+	* @param {number} y The section anchor y.
+	* @param {number} sectionWidth The width available for each row.
+	* @param {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>} rows The rows to draw.
+	* @returns {number} The y coordinate just below the last visible row.
+	*/
+	drawAffiliationRows(x, y, sectionWidth, rows) {
+		if (rows.length === 0) {
+			const rowY = y + this.lineHeight() + 8;
+			this.drawAffiliationBaselineRow(x, rowY, sectionWidth);
+			return rowY + this.lineHeight();
+		}
+		rows.forEach((row, index) => {
+			const rowY = y + (index + 1) * this.lineHeight() + 8;
+			this.drawParameter(row.name, row.value, row.iconIndex, x, rowY, row.colorIndex, sectionWidth);
+		});
+		return y + (rows.length + 1) * this.lineHeight() + 8;
+	}
+	/**
+	* Draws one catalog group section and returns the vertical space consumed.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {string} groupId The {@link ParameterGroups} id.
+	* @param {number} sectionWidth The width of the section.
+	* @returns {number}
+	*/
+	drawParameterGroup(x, y, groupId, sectionWidth) {
+		const chrome = Window_StatusParameters.GROUP_CHROME[groupId];
+		const definitions = ParameterRegistry.byGroup(groupId);
+		if (!chrome || !definitions.length) {
+			return 0;
+		}
+		const rowCount = Math.ceil(definitions.length / 2);
+		const titleY = y - 15;
+		const rowBaseY = y + 8;
+		this.drawTitle(chrome.title, x, titleY, chrome.iconIndex, chrome.colorIndex);
+		this.drawTSeparator(x, rowBaseY - 2, sectionWidth, rowCount);
+		this.drawGroupParameters(x, rowBaseY, sectionWidth, definitions);
+		return 36 + rowCount * this.lineHeight() + 8;
+	}
+	/**
+	* Draws all parameters for a group in two-column pairs.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} sectionWidth The width of the section.
+	* @param {ParameterDefinition[]} definitions The catalog entries for this group.
+	*/
+	drawGroupParameters(x, y, sectionWidth, definitions) {
+		const lh = this.lineHeight();
+		const dividerX = this.centerDividerX(x, sectionWidth);
+		const pairGap = Window_StatusParameters.CATALOG_PAIR_GAP;
+		const leftInnerRight = dividerX - Math.floor(pairGap / 2);
+		const rightHalfX = dividerX + Math.ceil(pairGap / 2);
+		const rowRight = this.catalogRowRight(x, sectionWidth);
+		definitions.forEach((definition, index) => {
+			const row = Math.floor(index / 2) + 1;
+			const rowY = y + lh * row;
+			const parameter = this.makeParameter(definition.key);
+			if (index % 2 === 0) {
+				this.drawParameterLeft(x, rowY, leftInnerRight, parameter);
+			} else {
+				this.drawParameterRight(rightHalfX, rowY, rowRight, parameter);
+			}
+		});
+	}
+	/**
+	* Draws a T separator by using a horizontal and vertical line.
+	* The length of these lines is defined by the section width and the number of lines.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} w The width of the T separator.
+	* @param {number=} lines The height of the T separator, multiplied by `lineHeight`; defaults to 1 line.
+	*/
+	drawTSeparator(x, y, w, lines = 1) {
+		const lh = this.lineHeight();
+		const firstRowY = y + lh * 1;
+		this.drawHorizontalLine(x, firstRowY - 4, w + Window_StatusParameters.COLUMN_LINE_BLEED, 3);
+		const secondColumnX = x + w / 2 + 12;
+		const verticalLineX = secondColumnX - 4;
+		const verticalLineHeight = lh * lines + 4;
+		this.drawVerticalLine(verticalLineX, firstRowY - 2, verticalLineHeight, 3);
+	}
+	/**
+	* Draws a catalog stat value with optional styled zero-padding.
+	* @param {number} x The value column x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} width The width reserved for the value.
+	* @param {StatusParameter} parameter The parameter being rendered.
+	* @param {'left'|'right'} align Horizontal alignment within the slot.
+	*/
+	drawCatalogParameterValue(x, y, width, parameter, align = "right") {
+		const withPadding = parameter.usesStyledValue();
+		const value = parameter.prettyValue(withPadding);
+		if (withPadding) {
+			this.drawStyledPaddedValue(x, y, value, width, 8, parameter.colorIndex, align);
+		} else {
+			const valueColorIndex = parameter.colorIndex;
+			if (valueColorIndex !== 0) {
+				this.contents.fontBold = true;
+			}
+			this.changeTextColor(ColorManager.textColor(valueColorIndex));
+			this.drawText(value, x, y, width, align);
+			this.resetTextColor();
+			this.resetFontFormatting();
+		}
+	}
+	/**
+	* Creates a new parameter object that contains the necessary data to draw it into the window.
+	* @param {string} parameterKey The parameter registry key (e.g. `'atk'`).
+	* @returns {StatusParameter} The compiled {@link StatusParameter}.
+	*/
+	makeParameter(parameterKey) {
+		const value = this.actor.parameter(parameterKey);
+		return new StatusParameter(value, parameterKey, this.actor);
+	}
+	/**
+	* Left half of a paired row: {@code [icon][name][value→center]}.
+	* @param {number} halfX The left edge of this half-column.
+	* @param {number} y The y coordinate.
+	* @param {number} innerRight The inner edge where values meet the center divider.
+	* @param {StatusParameter} parameter The parameter being rendered.
+	*/
+	drawParameterLeft(halfX, y, innerRight, parameter) {
+		this.resetFontSettings();
+		this.drawIcon(parameter.iconIndex, halfX, y);
+		this.makeFontSmaller();
+		const iconPad = ImageManager.iconWidth + 4;
+		const gap = Window_StatusParameters.CATALOG_NAME_VALUE_GAP;
+		const rowSpan = innerRight - halfX;
+		const nameX = halfX + iconPad;
+		const withPadding = parameter.usesStyledValue();
+		const value = parameter.prettyValue(withPadding);
+		const valuePixelWidth = withPadding ? this.styledValuePixelWidth(value) : this.textWidth(value);
+		const nameWidth = Math.max(0, rowSpan - iconPad - valuePixelWidth - gap);
+		this.drawText(`${parameter.name}`, nameX, y, nameWidth, "left");
+		this.drawCatalogParameterValue(halfX, y, rowSpan, parameter, "right");
+		this.resetFontSettings();
+	}
+	/**
+	* Right half of a paired row: {@code [value←center][name][icon]} (mirrored zigzag).
+	* @param {number} halfX The left (inner) edge of this half-column.
+	* @param {number} y The y coordinate.
+	* @param {number} outerRight The outer edge of the section (includes underline bleed).
+	* @param {StatusParameter} parameter The parameter being rendered.
+	*/
+	drawParameterRight(halfX, y, outerRight, parameter) {
+		this.resetFontSettings();
+		this.makeFontSmaller();
+		const gap = Window_StatusParameters.CATALOG_NAME_VALUE_GAP;
+		const iconX = outerRight - ImageManager.iconWidth;
+		const withPadding = parameter.usesStyledValue();
+		const value = parameter.prettyValue(withPadding);
+		const definition = ParameterRegistry.get(parameter.parameterKey);
+		const isSentinel = definition && definition.resolveDisplaySentinel(parameter.value) !== null;
+		const layoutWidth = this.catalogValueRightLayoutWidth(value, withPadding, isSentinel);
+		const valueDrawX = this.catalogValueRightDrawX(halfX, value, withPadding, isSentinel);
+		const valueDrawWidth = this.catalogValueRightMeasureWidth(value, withPadding, isSentinel);
+		const nameX = halfX + layoutWidth + gap;
+		const nameWidth = Math.max(0, iconX - nameX - gap);
+		this.drawCatalogParameterValue(valueDrawX, y, valueDrawWidth, parameter, "left");
+		this.resetTextColor();
+		this.resetFontFormatting();
+		this.drawText(`${parameter.name}`, nameX, y, nameWidth, "right");
+		this.drawIcon(parameter.iconIndex, iconX, y);
+		this.resetFontSettings();
+	}
+	/**
+	* Overwrites {@link #makeFontSmaller}.<br/>
+	* Makes the reduction step smaller.
+	*/
+	makeFontSmaller() {
+		if (this.contents.fontSize >= 24) {
+			this.contents.fontSize -= 6;
+		}
+	}
+	/**
+	* Overwrites {@link #makeFontBigger}.<br/>
+	* Makes the expansion step smaller.
+	*/
+	makeFontBigger() {
+		if (this.contents.fontSize <= 96) {
+			this.contents.fontSize += 6;
+		}
+	}
+	/**
+	* Draws the elemental rates section.
+	* @param {number} x The `x` coordinate.
+	* @param {number} y The `y` coordinate.
+	* @param {number} limit The endpoint if applicable of elements to pull.
+	* @param {number=} sectionWidth The width of this section; defaults to 450.
+	* @returns {number} The y coordinate just below the last drawn row.
+	*/
+	drawElementalRates(x, y, limit = 10, sectionWidth = 450) {
+		const titleY = y - 15;
+		const separatorY = this.sectionSeparatorY(y);
+		this.drawTitle("Elements", x, titleY, 64, 8, "center", sectionWidth);
+		this.drawHorizontalLine(x, separatorY, sectionWidth, 3);
+		const rows = this.collectElementAffiliationRows(limit);
+		return this.drawAffiliationRows(x, y, sectionWidth, rows);
+	}
+	/**
+	* Draws the state rates section.
+	* @param {number} x The `x` coordinate.
+	* @param {number} y The `y` coordinate.
+	* @param {number=} sectionWidth The width of this section; defaults to 450.
+	* @returns {number} The y coordinate just below the last drawn row.
+	*/
+	drawStateRates(x, y, sectionWidth = 450) {
+		const titleY = y - 15;
+		const separatorY = this.sectionSeparatorY(y);
+		this.drawTitle("Ailments", x, titleY, 2, 8, "center", sectionWidth);
+		this.drawHorizontalLine(x, separatorY, sectionWidth, 3);
+		const rows = this.collectAilmentAffiliationRows();
+		return this.drawAffiliationRows(x, y, sectionWidth, rows);
+	}
+	/**
+	* Draws the given data as "a parameter".
+	* @param {string} name The name of the parameter.
+	* @param {number} value The value of the parameter.
+	* @param {number} iconIndex The icon index for this parameter.
+	* @param {number} x The `x` coordinate.
+	* @param {number} y The `y` coordinate.
+	* @param {number} colorIndex The color index for this parameter.
+	* @param {number=} sectionWidth The width available for this row.
+	*/
+	drawParameter(name, value, iconIndex, x, y, colorIndex = 0, sectionWidth = 450) {
+		this.resetFontSettings();
+		this.makeFontSmaller();
+		const modifiedX = x + ImageManager.iconWidth + 4;
+		const gap = Window_StatusParameters.CATALOG_NAME_VALUE_GAP;
+		const valuePixelWidth = this.styledValuePixelWidth(value);
+		const nameWidth = Math.max(48, sectionWidth - (modifiedX - x) - valuePixelWidth - gap);
+		this.drawIcon(iconIndex, x, y);
+		this.drawText(`${name}`, modifiedX, y, nameWidth, "left");
+		this.drawStyledPaddedValue(x, y, value, sectionWidth, 8, colorIndex);
+		this.resetFontSettings();
+	}
+	/**
+	* Draws the title of one of the sections for parameters.
+	* @param {string} text The text to write as the title.
+	* @param {number} x The `x` coordinate.
+	* @param {number} y The `y` coordinate.
+	* @param {number=} iconIndex The icon index for this parameter; defaults to none(0).
+	* @param {number=} colorIndex The color index for the title; defaults to system color(1).
+	* @param {string=} alignment The text-alignment value of the title; defaults to "center".
+	* @param {number=} sectionWidth The width available for the title row.
+	*/
+	drawTitle(text, x, y, iconIndex = 0, colorIndex = 1, alignment = "center", sectionWidth = 350) {
+		this.resetFontSettings();
+		this.drawIcon(iconIndex, x, y + 16);
+		this.changeTextColor(ColorManager.textColor(colorIndex));
+		this.makeFontBigger();
+		this.drawText(text, x + 32, y + 16, sectionWidth - 32, alignment);
+		this.resetFontSettings();
 	}
 };
 
@@ -423,13 +959,13 @@ var Window_StatusStatList = class extends Window_Selectable {
 		return this.itemAt(this.index());
 	}
 	/**
-	* Gets the selected long parameter id (or 0 if none).
-	* @returns {number}
+	* Gets the selected parameter key (or empty when none).
+	* @returns {string}
 	*/
-	currentLongParamId() {
+	currentParameterKey() {
 		/** @type {StatusStatListRow} */
 		const row = this.currentItem();
-		return row ? row.longParamId : 0;
+		return row ? row.parameterKey : String.empty;
 	}
 	/**
 	* Changes selection and invokes the change callback.
@@ -454,68 +990,16 @@ var Window_StatusStatList = class extends Window_Selectable {
 	buildData() {
 		/** @type {StatusStatListRow[]} */
 		const rows = [];
-		const groups = [
-			{
-				section: "Combat",
-				ids: [
-					2,
-					4,
-					14,
-					13
-				]
-			},
-			{
-				section: "Vitality",
-				ids: [
-					0,
-					15,
-					1,
-					16,
-					30,
-					17,
-					20,
-					21
-				]
-			},
-			{
-				section: "Precision",
-				ids: [
-					8,
-					19,
-					6,
-					9,
-					10,
-					11,
-					28,
-					29
-				]
-			},
-			{
-				section: "Defensive",
-				ids: [
-					3,
-					5,
-					24,
-					25
-				]
-			},
-			{
-				section: "Mobility",
-				ids: [31]
-			},
-			{
-				section: "Fate",
-				ids: [
-					7,
-					27,
-					32,
-					33
-				]
-			}
-		];
-		groups.forEach((group) => {
-			group.ids.forEach((longId) => {
-				rows.push(new StatusStatListRow(group.section, longId));
+		Window_StatusParameters.PAGE_GROUP_ROW_GROUPS.forEach((rowGroups) => {
+			rowGroups.forEach((groupId) => {
+				const chrome = Window_StatusParameters.GROUP_CHROME[groupId];
+				const definitions = ParameterRegistry.byGroup(groupId);
+				if (!chrome || !definitions.length) {
+					return;
+				}
+				definitions.forEach((definition) => {
+					rows.push(new StatusStatListRow(chrome.title, definition.key));
+				});
 			});
 		});
 		this.setData(rows);
@@ -527,10 +1011,10 @@ var Window_StatusStatList = class extends Window_Selectable {
 	drawItem(index) {
 		const rect = this.itemRectWithPadding(index);
 		const row = this.itemAt(index);
-		const longId = row.longParamId;
-		const name = TextManager.longParam(longId);
-		const icon = IconManager.longParam(longId);
-		const color = ColorManager.longParam(longId);
+		const { parameterKey } = row;
+		const name = TextManager.parameterLabel(parameterKey);
+		const icon = IconManager.parameterIcon(parameterKey);
+		const color = ColorManager.parameterColor(parameterKey);
 		this.changeTextColor(ColorManager.textColor(color));
 		this.drawIcon(icon, rect.x, rect.y + 2);
 		this.drawText(name, rect.x + 36, rect.y, rect.width - 36, "left");
@@ -579,7 +1063,7 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		if (!this._j._cms_s._status) this._j._cms_s._status = {};
 		this._j._cms_s._status._breakdown = {
 			_actor: null,
-			_longParamId: 0
+			_parameterKey: String.empty
 		};
 	}
 	/** @returns {Game_Actor} */
@@ -590,22 +1074,22 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	setActor(v) {
 		this._j._cms_s._status._breakdown._actor = v;
 	}
-	/** @returns {number} */
-	getLongParamId() {
-		return this._j._cms_s._status._breakdown._longParamId | 0;
+	/** @returns {string} */
+	getParameterKey() {
+		return this._j._cms_s._status._breakdown._parameterKey;
 	}
-	/** @param {number} v */
-	setLongParamId(v) {
-		this._j._cms_s._status._breakdown._longParamId = v | 0;
+	/** @param {string} v */
+	setParameterKey(v) {
+		this._j._cms_s._status._breakdown._parameterKey = v;
 	}
 	/**
 	* Sets the context and refreshes the panel.
 	* @param {Game_Actor} actor The actor.
-	* @param {number} longParamId The long param id.
+	* @param {string} parameterKey The registry key.
 	*/
-	setContext(actor, longParamId) {
+	setContext(actor, parameterKey) {
 		this.setActor(actor);
-		this.setLongParamId(longParamId);
+		this.setParameterKey(parameterKey);
 		this.refresh();
 	}
 	lineHeight() {
@@ -622,11 +1106,11 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	*/
 	drawBreakdown() {
 		const actor = this.getActor();
-		const longId = this.getLongParamId();
-		const name = TextManager.longParam(longId);
-		const icon = IconManager.longParam(longId);
-		const color = ColorManager.longParam(longId);
-		const finalValue = new StatusParameter(actor.longParam(longId), longId).prettyValue(false);
+		const parameterKey = this.getParameterKey();
+		const name = TextManager.parameterLabel(parameterKey);
+		const icon = IconManager.parameterIcon(parameterKey);
+		const color = ColorManager.parameterColor(parameterKey);
+		const finalValue = new StatusParameter(actor.parameter(parameterKey), parameterKey, actor).prettyValue(false);
 		const gutter = 16;
 		const widthUsable = this.innerWidth - gutter;
 		const headerX = 0;
@@ -636,7 +1120,7 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		this.drawText(name, headerX + 36, headerY, widthUsable - 36, "left");
 		this.resetTextColor();
 		this.drawText(finalValue, headerX, headerY, widthUsable, "right");
-		const descriptionLines = TextManager.longParamDescription(longId);
+		const descriptionLines = TextManager.parameterDescription(parameterKey);
 		let cursorY = headerY + this.lineHeight();
 		if (descriptionLines && descriptionLines.length >= 1) {
 			this.drawText(descriptionLines[0], headerX, cursorY, widthUsable, "left");
@@ -647,25 +1131,25 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 			cursorY += this.lineHeight();
 		}
 		cursorY += 16;
-		const kind = this.resolveKind(longId);
+		const kind = this.resolveKind(parameterKey);
 		switch (kind) {
 			case Window_StatusStatBreakdown.KINDS.Base:
-				this.drawBParamBreakdown(actor, longId, headerX, cursorY, widthUsable);
+				this.drawBParamBreakdown(actor, ParameterKeys.bparamId(parameterKey), headerX, cursorY, widthUsable);
 				break;
 			case Window_StatusStatBreakdown.KINDS.Ex:
-				this.drawXParamBreakdown(actor, longId - 8, headerX, cursorY, widthUsable);
+				this.drawXParamBreakdown(actor, ParameterKeys.xparamId(parameterKey), headerX, cursorY, widthUsable);
 				break;
 			case Window_StatusStatBreakdown.KINDS.Special:
-				this.drawSParamBreakdown(actor, longId - 18, headerX, cursorY, widthUsable);
+				this.drawSParamBreakdown(actor, ParameterKeys.sparamId(parameterKey), headerX, cursorY, widthUsable);
 				break;
 			case Window_StatusStatBreakdown.KINDS.Mtp:
 				this.drawMtpBreakdown(actor, headerX, cursorY, widthUsable);
 				break;
 			case Window_StatusStatBreakdown.KINDS.Crit:
-				this.drawCritBreakdown(actor, longId - 28, headerX, cursorY, widthUsable);
+				this.drawCritBreakdown(actor, parameterKey === "cdm" ? 0 : 1, headerX, cursorY, widthUsable);
 				break;
 			case Window_StatusStatBreakdown.KINDS.Custom:
-				this.drawCustomBreakdown(actor, longId, headerX, cursorY, widthUsable);
+				this.drawCustomBreakdown(actor, parameterKey, headerX, cursorY, widthUsable);
 				break;
 			default:
 				this.drawText("No breakdown available for this stat.", headerX, cursorY, widthUsable, "left");
@@ -673,25 +1157,25 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		}
 	}
 	/**
-	* Resolves the kind from a long param id.
-	* @param {number} longId The long param id.
+	* Resolves the kind from a registry parameter key.
+	* @param {string} parameterKey The registry key.
 	* @returns {string}
 	*/
-	resolveKind(longId) {
-		if (longId === 30) return Window_StatusStatBreakdown.KINDS.Mtp;
-		if (longId >= 0 && longId <= 7) return Window_StatusStatBreakdown.KINDS.Base;
-		if (longId >= 8 && longId <= 17) return Window_StatusStatBreakdown.KINDS.Ex;
-		if (longId >= 18 && longId <= 27) return Window_StatusStatBreakdown.KINDS.Special;
-		if (longId >= 28 && longId <= 29) return Window_StatusStatBreakdown.KINDS.Crit;
+	resolveKind(parameterKey) {
+		if (parameterKey === "mtp") return Window_StatusStatBreakdown.KINDS.Mtp;
+		if (parameterKey === "cdm" || parameterKey === "ctr") return Window_StatusStatBreakdown.KINDS.Crit;
+		if (ParameterKeys.bparamId(parameterKey) >= 0) return Window_StatusStatBreakdown.KINDS.Base;
+		if (ParameterKeys.xparamId(parameterKey) >= 0) return Window_StatusStatBreakdown.KINDS.Ex;
+		if (ParameterKeys.sparamId(parameterKey) >= 0) return Window_StatusStatBreakdown.KINDS.Special;
 		return Window_StatusStatBreakdown.KINDS.Custom;
 	}
 	/**
 	* Draws the b-param breakdown.
-	* @param {Game_Actor} actor
-	* @param {number} longId
-	* @param {number} x
-	* @param {number} y
-	* @param {number} w
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} longId The long id driving this step.
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
+	* @param {number} w The w driving this step.
 	* @returns {number}
 	*/
 	drawBParamBreakdown(actor, longId, x, y, w) {
@@ -792,11 +1276,11 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Draws the x-param breakdown.
-	* @param {Game_Actor} actor
-	* @param {number} xId
-	* @param {number} x
-	* @param {number} y
-	* @param {number} w
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} xId The x id driving this step.
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
+	* @param {number} w The w driving this step.
 	* @returns {number}
 	*/
 	drawXParamBreakdown(actor, xId, x, y, w) {
@@ -808,7 +1292,9 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Renders the xparam breakdown for the three repurposed regen stats (HRG/MRG/TRG).
-	* These use flat native units and are displayed as "per 5s" values for readability.
+	* These use flat native units and are displayed as "per second" values for readability, using
+	* this actor's own currently-resolved tick interval so the preview stays accurate regardless of
+	* tick speed modifiers.
 	* The section includes Baseline, Natural (growth), Natural (buffs), Traits (+), and SDP (Panels).
 	* @param {Game_Actor} actor The actor whose regen xparam is being explained.
 	* @param {number} xId The xparam id (7=HRG, 8=MRG, 9=TRG).
@@ -839,16 +1325,16 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		const sdpTotalFlat = rSdp.sdpTotal;
 		let cursorY = y;
 		cursorY = this.drawSectionTitle(x, cursorY, w, "Baseline");
-		this.drawKeyValue(x + 12, cursorY, w - 12, "Baseline", this.formatPerFiveFlat(0), "left");
+		this.drawKeyValue(x + 12, cursorY, w - 12, "Baseline", this.formatPerSecondFlat(0, actor), "left");
 		cursorY += this.lineHeight() + 6;
 		if (natGrowthDeltaNative !== 0) {
 			cursorY = this.drawSectionTitle(x, cursorY, w, "Natural");
-			const growthText = this.formatPlusRatePerFive(natGrowthDeltaNative, actor.xParamGrowthRate(xId));
+			const growthText = this.formatPlusRatePerSecond(natGrowthDeltaNative, actor.xParamGrowthRate(xId), actor);
 			this.drawKeyValue(x + 12, cursorY, w - 12, "+ Natural (Growths)", growthText, "left");
 			cursorY += this.lineHeight() + 6;
 		}
 		if (natBuffDeltaNative !== 0) {
-			const buffText = this.formatSignedFlatPerFive(natBuffDeltaNative);
+			const buffText = this.formatSignedFlatPerSecond(natBuffDeltaNative, actor);
 			this.drawKeyValue(x + 12, cursorY, w - 12, "+ Natural (Buffs)", buffText, "left");
 			cursorY += this.lineHeight() + 6;
 		}
@@ -871,12 +1357,12 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 			}
 		].filter((r) => r.valueNative !== 0).map((r) => ({
 			key: r.key,
-			value: this.formatPerFiveFlat(r.valueNative)
+			value: this.formatPerSecondFlat(r.valueNative, actor)
 		}));
 		cursorY = this.drawSectionWithRows(x, cursorY, w, "Traits (+)", traitRows);
 		if (sdpPanelDeltas.length > 0 && sdpTotalFlat !== 0) {
-			const totalText = this.formatSignedFlatPerFive(sdpTotalFlat);
-			cursorY = this.drawSdpPanelsFlatPerFiveSection(x, cursorY, w, totalText, sdpPanelDeltas);
+			const totalText = this.formatSignedFlatPerSecond(sdpTotalFlat, actor);
+			cursorY = this.drawSdpPanelsFlatPerSecondSection(x, cursorY, w, totalText, sdpPanelDeltas, actor);
 		}
 		return cursorY + 10;
 	}
@@ -955,7 +1441,7 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	_gatherXparamCommon(actor, xId) {
 		const addActor = this.xparamAddFromTraits([actor.actor()], xId);
 		const addClass = this.xparamAddFromTraits([actor.currentClass()], xId);
-		const addEquips = this.xparamAddFromTraits(actor.equips().filter((e) => !!e), xId);
+		const addEquips = this.xparamAddFromTraits(actor.equips(), xId);
 		const addStates = this.xparamAddFromTraits(actor.states(), xId);
 		const natGrowthDelta = this.calcPlusRate(actor, 0, actor.xParamGrowthPlus(xId), actor.xParamGrowthRate(xId));
 		const totalWithSdp = actor.xparam(xId);
@@ -972,11 +1458,11 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Draws the s-param breakdown.
-	* @param {Game_Actor} actor
-	* @param {number} sId
-	* @param {number} x
-	* @param {number} y
-	* @param {number} w
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} sId The s id driving this step.
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
+	* @param {number} w The w driving this step.
 	* @returns {number}
 	*/
 	drawSParamBreakdown(actor, sId, x, y, w) {
@@ -1047,10 +1533,10 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Draws the max tp breakdown.
-	* @param {Game_Actor} actor
-	* @param {number} x
-	* @param {number} y
-	* @param {number} w
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
+	* @param {number} w The w driving this step.
 	* @returns {number}
 	*/
 	drawMtpBreakdown(actor, x, y, w) {
@@ -1126,9 +1612,9 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 			cursorY += this.lineHeight() + 6;
 		}
 		const notesSources = actor.getAllNotes();
-		const buffPlusRegex = isAmp ? J.CRIT.RegExp.CritDamageMultiplierBuffPlus : J.CRIT.RegExp.CritDamageReductionBuffPlus;
+		const buffPlusRegex = isAmp ? J.CRIT.RegExp.CritDamageMultiplierBuffPlus : J.CRIT.RegExp.CritTakenRateBuffPlus;
 		const buffPlusSum = RPGManager.getSumFromAllNotesByRegex(notesSources, buffPlusRegex);
-		const buffRateRegex = isAmp ? J.CRIT.RegExp.CritDamageMultiplierBuffRate : J.CRIT.RegExp.CritDamageReductionBuffRate;
+		const buffRateRegex = isAmp ? J.CRIT.RegExp.CritDamageMultiplierBuffRate : J.CRIT.RegExp.CritTakenRateBuffRate;
 		const buffRateSum = RPGManager.getSumFromAllNotesByRegex(notesSources, buffRateRegex);
 		const buffDelta = actor.calculatePlusRate(base, buffPlusSum, buffRateSum);
 		if (buffPlusSum !== 0 || buffRateSum !== 0 || buffDelta !== 0) {
@@ -1148,32 +1634,32 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		return cursorY + 10;
 	}
 	/**
-	* Draws a breakdown for custom long parameters that don’t fit the base/x/s/crit/mtp families.
+	* Draws a breakdown for custom long parameters that don't fit the base/x/s/crit/mtp families.
 	* Currently supported custom params:
 	* - 31: Move Speed Boost (MSB)
 	* - 32: Skill Proficiency Boost (SPB)
 	* - 33: SDP Multiplier Bonus (SMB)
+	* - 44: Cooldown Rate Reduction (CDR)
+	* - 45: Parry Extension Rate (PER)
 	* @param {Game_Actor} actor The actor whose stat is being explained.
-	* @param {number} longId The long param id to render.
+	* @param {string} parameterKey The registry key to render.
 	* @param {number} x The x coordinate to start drawing.
 	* @param {number} y The y coordinate to start drawing.
 	* @param {number} w The width available to draw within.
 	* @returns {number} The next y position after finishing this section.
 	*/
-	drawCustomBreakdown(actor, longId, x, y, w) {
-		if (longId === 31) {
-			return this._drawMsbBreakdown(actor, x, y, w);
+	drawCustomBreakdown(actor, parameterKey, x, y, w) {
+		switch (parameterKey) {
+			case "msb": return this._drawMsbBreakdown(actor, x, y, w);
+			case "prof": return this._drawSpbBreakdown(actor, x, y, w);
+			case "sdr": return this._drawSmbBreakdown(actor, x, y, w);
+			case "cdr": return this._drawCdrBreakdown(actor, x, y, w);
+			case "per": return this._drawPerBreakdown(actor, x, y, w);
+			default: return this.drawSectionWithRows(x, y, w, "Details", [{
+				key: "Info",
+				value: "No breakdown available for this custom stat."
+			}]);
 		}
-		if (longId === 32) {
-			return this._drawSpbBreakdown(actor, x, y, w);
-		}
-		if (longId === 33) {
-			return this._drawSmbBreakdown(actor, x, y, w);
-		}
-		return this.drawSectionWithRows(x, y, w, "Details", [{
-			key: "Info",
-			value: "No breakdown available for this custom stat."
-		}]);
 	}
 	/**
 	* Builds SDP percent (k) and flat (c) coefficients for core params (incl. MTP=30),
@@ -1190,7 +1676,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		rankings.forEach((ranking) => {
 			const panel = J.SDP.Metadata.panelsMap.get(ranking.key);
 			if (!panel) return;
-			const panelParams = panel.getPanelParameterById(paramId);
+			const parameterKey = ParameterKeys.bparamKey(paramId);
+			const panelParams = panel.getPanelParameterByKey(parameterKey);
 			if (!panelParams.length) return;
 			panelParams.forEach((pp) => {
 				const { name } = panel;
@@ -1230,7 +1717,7 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Computes each core panel's exact delta against the pre‑SDP base.
-	* Floors percent pieces to match J.SDP’s behavior for core params.
+	* Floors percent pieces to match J.SDP's behavior for core params.
 	* Carries icon/rarity for rendering.
 	* @param {number} basePreSdp The pre-SDP base value.
 	* @param {Array} rows The rows from _sdpCoreCoefficients().
@@ -1278,7 +1765,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		rankings.forEach((ranking) => {
 			const panel = J.SDP.Metadata.panelsMap.get(ranking.key);
 			if (!panel) return;
-			const panelParams = panel.getPanelParameterById(subId + idExtra);
+			const parameterKey = ParameterKeys.legacyLongParamKey(subId + idExtra);
+			const panelParams = panel.getPanelParameterByKey(parameterKey);
 			if (!panelParams.length) return;
 			panelParams.forEach((pp) => {
 				const { name } = panel;
@@ -1332,7 +1820,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		rankings.forEach((ranking) => {
 			const panel = J.SDP.Metadata.panelsMap.get(ranking.key);
 			if (!panel) return;
-			const panelParams = panel.getPanelParameterById(subId + idExtra);
+			const parameterKey = ParameterKeys.legacyLongParamKey(subId + idExtra);
+			const panelParams = panel.getPanelParameterByKey(parameterKey);
 			if (!panelParams.length) return;
 			panelParams.forEach((pp) => {
 				const { name } = panel;
@@ -1490,15 +1979,16 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		this.drawText(valueText, x, y, w, "right");
 	}
 	/**
-	* An SDP (Panels) section renderer for regen showing flat values per 5s.
+	* An SDP (Panels) section renderer for regen showing flat values per second.
 	* @param {number} x The x coordinate.
 	* @param {number} y The y coordinate to start drawing.
 	* @param {number} w The width.
-	* @param {string} totalValueText The right-aligned signed total in per‑5s units.
+	* @param {string} totalValueText The right-aligned signed total in per‑second units.
 	* @param {{ name:string, iconIndex:number, rarity:number, delta:number }[]} panels The per-panel rows.
+	* @param {Game_Actor} actor The actor whose tick cadence resolves the per‑second conversion.
 	* @returns {number} The next y after drawing (or unchanged if skipped).
 	*/
-	drawSdpPanelsFlatPerFiveSection(x, y, w, totalValueText, panels) {
+	drawSdpPanelsFlatPerSecondSection(x, y, w, totalValueText, panels, actor) {
 		const anyPanels = panels && panels.length > 0;
 		if (!anyPanels) {
 			return y;
@@ -1513,10 +2003,10 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 			let valueText;
 			if (panel.rateDec) {
 				const pctText = StatusHelper.toPercentString(panel.rateDec * 100, true);
-				const flatText = this.formatSignedFlatPerFive(panel.delta);
+				const flatText = this.formatSignedFlatPerSecond(panel.delta, actor);
 				valueText = `${pctText} (${flatText})`;
 			} else {
-				valueText = this.formatSignedFlatPerFive(panel.delta);
+				valueText = this.formatSignedFlatPerSecond(panel.delta, actor);
 			}
 			this.drawSdpPanelEntry(x + 24, cursorY, w - 24, name, iconIndex, rarity, valueText);
 			cursorY += this.lineHeight();
@@ -1525,36 +2015,45 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		return cursorY;
 	}
 	/**
-	* Formats a native flat value as a per‑5s display string, with simple rounding.
-	* Example: native 6 → "1.2" (per 5 seconds).
-	* @param {number} nativeFlat The native flat amount (pre‑division).
+	* Formats a native flat value (a per-tick amount, in the same units {@link JABS_Battler
+	* #calculatedRegen} applies in full on every natural regen tick) as a per‑second display
+	* string. Converts using this actor's own currently-resolved tick interval- rather than
+	* assuming a fixed tick count- so the preview stays accurate regardless of tick speed
+	* modifiers from gear/passives/states.
+	* Example: native 6 (per tick) at the default 60-frame (1 tick/sec) interval → "6.0" (per second).
+	* @param {number} nativeFlat The native flat per-tick amount.
+	* @param {Game_Actor} actor The actor whose tick cadence resolves the conversion.
 	* @returns {string}
 	*/
-	formatPerFiveFlat(nativeFlat) {
-		const perFive = nativeFlat / 5;
-		const text = perFive.toFixed(1);
+	formatPerSecondFlat(nativeFlat, actor) {
+		const intervalFrames = actor.getNaturalRegenTickInterval();
+		const ticksPerSecond = 60 / intervalFrames;
+		const perSecond = nativeFlat * ticksPerSecond;
+		const text = perSecond.toFixed(1);
 		return text;
 	}
 	/**
-	* Formats a native flat delta as a signed per‑5s string (ex: "+1.2").
-	* @param {number} nativeFlat The native flat delta (pre‑division).
+	* Formats a native flat delta as a signed per‑second string (ex: "+1.2").
+	* @param {number} nativeFlat The native flat per-tick delta.
+	* @param {Game_Actor} actor The actor whose tick cadence resolves the conversion.
 	* @returns {string}
 	*/
-	formatSignedFlatPerFive(nativeFlat) {
+	formatSignedFlatPerSecond(nativeFlat, actor) {
 		const sign = nativeFlat >= 0 ? "+" : String.empty;
-		const absPerFive = this.formatPerFiveFlat(Math.abs(nativeFlat));
-		return `${sign}${absPerFive}`;
+		const absPerSecond = this.formatPerSecondFlat(Math.abs(nativeFlat), actor);
+		return `${sign}${absPerSecond}`;
 	}
 	/**
-	* Formats NATURAL growth for regen as "<rate%> → +<per5s>" where the delta
-	* is expressed as per‑5s. Example: "+20% → +0.6".
+	* Formats NATURAL growth for regen as "<rate%> → +<perSecond>" where the delta
+	* is expressed as per‑second. Example: "+20% → +0.6".
 	* @param {number} deltaNative The computed delta in native flat units.
 	* @param {number} ratePercent The growth rate percent (for display only).
+	* @param {Game_Actor} actor The actor whose tick cadence resolves the conversion.
 	* @returns {string}
 	*/
-	formatPlusRatePerFive(deltaNative, ratePercent) {
+	formatPlusRatePerSecond(deltaNative, ratePercent, actor) {
 		const rateText = StatusHelper.toPercentString(ratePercent, true);
-		const deltaText = this.formatSignedFlatPerFive(deltaNative);
+		const deltaText = this.formatSignedFlatPerSecond(deltaNative, actor);
 		return `${rateText} → ${deltaText}`;
 	}
 	/**
@@ -1582,8 +2081,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	* @returns {number} The next y position after finishing this section.
 	*/
 	_drawMsbBreakdown(actor, x, y, w) {
-		const equipTotal = (actor.equippedEquips() || []).filter((e) => !!e).reduce((n, e) => n + (e.jabsSpeedBoost | 0), 0);
-		const stateTotal = (actor.states() || []).filter((s) => !!s).reduce((n, s) => n + (s.jabsSpeedBoost | 0), 0);
+		const equipTotal = actor.equippedEquips().reduce((n, e) => n + (e.jabsSpeedBoost | 0), 0);
+		const stateTotal = actor.states().reduce((n, s) => n + (s.jabsSpeedBoost | 0), 0);
 		const total = equipTotal + stateTotal;
 		const rows = [];
 		rows.push({
@@ -1615,8 +2114,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	* @returns {number} The next y position after finishing this section.
 	*/
 	_drawSpbBreakdown(actor, x, y, w) {
-		const eq = RPGManager.getSumFromAllNotesByRegex(actor.equippedEquips().filter((e) => !!e), J.PROF.RegExp.ProficiencyBonus);
-		const st = RPGManager.getSumFromAllNotesByRegex(actor.states().filter((s) => !!s), J.PROF.RegExp.ProficiencyBonus);
+		const eq = RPGManager.getSumFromAllNotesByRegex(actor.equippedEquips(), J.PROF.RegExp.ProficiencyBonus);
+		const st = RPGManager.getSumFromAllNotesByRegex(actor.states(), J.PROF.RegExp.ProficiencyBonus);
 		const total = eq + st;
 		const rows = [];
 		rows.push({
@@ -1648,8 +2147,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	* @returns {number} The next y position after finishing this section.
 	*/
 	_drawSmbBreakdown(actor, x, y, w) {
-		const eqPct = RPGManager.getSumFromAllNotesByRegex(actor.equippedEquips().filter((e) => !!e), J.SDP.RegExp.SdpMultiplier);
-		const stPct = RPGManager.getSumFromAllNotesByRegex(actor.states().filter((s) => !!s), J.SDP.RegExp.SdpMultiplier);
+		const eqPct = RPGManager.getSumFromAllNotesByRegex(actor.equippedEquips(), J.SDP.RegExp.SdpMultiplier);
+		const stPct = RPGManager.getSumFromAllNotesByRegex(actor.states(), J.SDP.RegExp.SdpMultiplier);
 		const basePct = 100;
 		const totalPct = basePct + eqPct + stPct;
 		const formatFactor = (n) => {
@@ -1694,11 +2193,79 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		return this.drawSectionWithRows(x, y, w, "Sources (Equips/States)", rows);
 	}
 	/**
+	* Renders the breakdown for Cooldown Rate Reduction (CDR).
+	* Sources are any note-bearing objects that carry `<cdr:[FORMULA]>` tags.
+	* Values are signed percent-points (positive = GCD shortened, negative = lengthened).
+	* @param {Game_Actor} actor The actor whose stat is being explained.
+	* @param {number} x The x coordinate to start drawing.
+	* @param {number} y The y coordinate to start drawing.
+	* @param {number} w The width available to draw within.
+	* @returns {number} The next y position after finishing this section.
+	*/
+	_drawCdrBreakdown(actor, x, y, w) {
+		const regex = J.ABS.RegExp.GlobalCooldownReduction;
+		const stateTotal = RPGManager.getResultsFromAllNotesByRegex(actor.allStates(), regex, 0, actor);
+		const equipTotal = RPGManager.getResultsFromAllNotesByRegex(actor.equippedEquips(), regex, 0, actor);
+		const actorClassTotal = RPGManager.getResultsFromAllNotesByRegex([actor.databaseData(), actor.currentClass()], regex, 0, actor);
+		const total = stateTotal + equipTotal + actorClassTotal;
+		const rows = [];
+		rows.push({
+			key: "Baseline",
+			value: "0%"
+		});
+		if (stateTotal !== 0) rows.push({
+			key: "+ States",
+			value: `${stateTotal > 0 ? "+" : ""}${stateTotal}%`
+		});
+		if (equipTotal !== 0) rows.push({
+			key: "+ Equips",
+			value: `${equipTotal > 0 ? "+" : ""}${equipTotal}%`
+		});
+		if (actorClassTotal !== 0) rows.push({
+			key: "+ Actor/Class",
+			value: `${actorClassTotal > 0 ? "+" : ""}${actorClassTotal}%`
+		});
+		rows.push({
+			key: "= Total",
+			value: `${total}%`
+		});
+		return this.drawSectionWithRows(x, y, w, "Sources", rows);
+	}
+	_drawPerBreakdown(actor, x, y, w) {
+		const regex = J.ABS.RegExp.ParryExtensionRate;
+		const stateTotal = RPGManager.getResultsFromAllNotesByRegex(actor.allStates(), regex, 0, actor);
+		const equipTotal = RPGManager.getResultsFromAllNotesByRegex(actor.equippedEquips(), regex, 0, actor);
+		const actorClassTotal = RPGManager.getResultsFromAllNotesByRegex([actor.databaseData(), actor.currentClass()], regex, 0, actor);
+		const total = stateTotal + equipTotal + actorClassTotal;
+		const rows = [];
+		rows.push({
+			key: "Baseline",
+			value: "0%"
+		});
+		if (stateTotal !== 0) rows.push({
+			key: "+ States",
+			value: `${stateTotal > 0 ? "+" : ""}${stateTotal}%`
+		});
+		if (equipTotal !== 0) rows.push({
+			key: "+ Equips",
+			value: `${equipTotal > 0 ? "+" : ""}${equipTotal}%`
+		});
+		if (actorClassTotal !== 0) rows.push({
+			key: "+ Actor/Class",
+			value: `${actorClassTotal > 0 ? "+" : ""}${actorClassTotal}%`
+		});
+		rows.push({
+			key: "= Total",
+			value: `${total}%`
+		});
+		return this.drawSectionWithRows(x, y, w, "Sources", rows);
+	}
+	/**
 	* Calculates the amount to add to a parameter.
-	* @param {Game_Actor} actor
-	* @param {number} base
-	* @param {number} plus
-	* @param {number} rate
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} base The base driving this step.
+	* @param {number} plus The plus driving this step.
+	* @param {number} rate The rate driving this step.
 	* @returns {number}
 	*/
 	calcPlusRate(actor, base, plus, rate) {
@@ -1707,9 +2274,9 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Formats the plus and rate into a readable string.
-	* @param {number} plus
-	* @param {number} rate
-	* @param {number} delta
+	* @param {number} plus The plus driving this step.
+	* @param {number} rate The rate driving this step.
+	* @param {number} delta The delta driving this step.
 	* @returns {string}
 	*/
 	formatPlusRate(plus, rate, delta) {
@@ -1720,8 +2287,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Sums the flat bonus parameter from equips.
-	* @param {Game_Actor} actor
-	* @param {number} paramId
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} paramId The param id driving this step.
 	* @returns {number}
 	*/
 	sumEquipBParamFlat(actor, paramId) {
@@ -1735,8 +2302,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Sums the flat bonus parameter from states.
-	* @param {Game_Actor} actor
-	* @param {number} paramId
+	* @param {Game_Actor} actor The actor driving this step.
+	* @param {number} paramId The param id driving this step.
 	* @returns {number}
 	*/
 	sumStateBParamFlat(actor, paramId) {
@@ -1750,8 +2317,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Determines the b-param bonuses from traits.
-	* @param {RPG_Traited[]} objs
-	* @param {number} paramId
+	* @param {RPG_Traited[]} objs The objs driving this step.
+	* @param {number} paramId The param id driving this step.
 	* @returns {number}
 	*/
 	paramRateFromTraits(objs, paramId) {
@@ -1769,8 +2336,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Determines the x-param bonuses from traits.
-	* @param {RPG_Traited[]} objs
-	* @param {number} xId
+	* @param {RPG_Traited[]} objs The objs driving this step.
+	* @param {number} xId The x id driving this step.
 	* @returns {number}
 	*/
 	xparamAddFromTraits(objs, xId) {
@@ -1788,8 +2355,8 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	}
 	/**
 	* Determines the s-param bonuses from traits.
-	* @param {RPG_Traited[]} objs
-	* @param {number} sId
+	* @param {RPG_Traited[]} objs The objs driving this step.
+	* @param {number} sId The s id driving this step.
 	* @returns {number}
 	*/
 	sparamRateFromTraits(objs, sId) {
@@ -1921,464 +2488,9 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 };
 
 //#endregion
-//#region src/plugins/cms/status/windows/Window_StatusParameters.js
-/**
-* A replacement class for `Window_StatusParams`, which originally extended `Window_Selectable`
-* and rendered only the b-params. This window now extends `Window_Base` and renders all
-* params, including b-/x-/s- params.
-*/
-var Window_StatusParameters = class extends Window_Base {
-	/**
-	* @param {Rectangle} rect A rectangle that represents the shape of this window.
-	*/
-	constructor(rect) {
-		super(rect);
-		this.initMembers();
-	}
-	/**
-	* Initializes all members of this class.
-	*/
-	initMembers() {
-		this.actor = null;
-	}
-	/**
-	* Overwrites {@link #lineHeight}.<br/>
-	* Reduces line height for this window.
-	* @returns {number}
-	*/
-	lineHeight() {
-		return 32;
-	}
-	/**
-	* Sets the actor for this window to draw parameter data for.
-	* @param {Game_Actor} actor The actor to set.
-	*/
-	setActor(actor) {
-		this.actor = actor;
-		this.refresh();
-	}
-	/**
-	* Refreshes this window by clearing it and redrawing all its contents.
-	*/
-	refresh() {
-		this.contents.clear();
-		this.drawContent();
-	}
-	/**
-	* Draws all content in this window.
-	*/
-	drawContent() {
-		if (!this.actor) return;
-		const [column1X, column2X] = [0, 500];
-		const [row1Y, row2Y, row3Y, row4Y] = [
-			0,
-			180,
-			360,
-			470
-		];
-		this.drawCombatStats(column1X, row1Y);
-		this.drawVitalityStats(column2X, row1Y);
-		this.drawPrecisionStats(column1X, row2Y);
-		this.drawDefensiveStats(column2X, row2Y);
-		this.drawMobilityStats(column1X, row3Y);
-		this.drawFateStats(column2X, row3Y);
-		this.drawElementalRates(column1X, row4Y);
-		this.drawStateRates(column2X, row4Y);
-	}
-	/**
-	* Draws all vitality-related stats, such as max hp and the regenerations.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	*/
-	drawVitalityStats(x, y) {
-		this.drawTitle("Vitality", x, y - 15, 7, 3);
-		const w = 450;
-		const rowBaseY = y + 8;
-		this.drawTSeparator(x, rowBaseY - 2, w, 4);
-		this.drawVitalityParameters(x, rowBaseY, w);
-	}
-	/**
-	* Draws the vitality parameter section.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	* @param {number} w The width of the parameter section.
-	*/
-	drawVitalityParameters(x, y, w) {
-		const lh = this.lineHeight();
-		const parameterWidth = w / 2;
-		const rightX = x + parameterWidth + 16;
-		const row1y = y + lh * 1;
-		const row2y = y + lh * 2;
-		const row3y = y + lh * 3;
-		const row4y = y + lh * 4;
-		const mhpParam = this.makeParameter(0);
-		const mmpParam = this.makeParameter(1);
-		const mtpParam = this.makeParameter(30);
-		const recParam = this.makeParameter(20);
-		const hrgParam = this.makeParameter(15);
-		const mrgParam = this.makeParameter(16);
-		const trgParam = this.makeParameter(17);
-		const phaParam = this.makeParameter(21);
-		this.drawParameterLeft(x, row1y, parameterWidth, mhpParam);
-		this.drawParameterRight(rightX, row1y, parameterWidth, hrgParam);
-		this.drawParameterLeft(x, row2y, parameterWidth, mmpParam);
-		this.drawParameterRight(rightX, row2y, parameterWidth, mrgParam);
-		this.drawParameterLeft(x, row3y, parameterWidth, mtpParam);
-		this.drawParameterRight(rightX, row3y, parameterWidth, trgParam);
-		this.drawParameterLeft(x, row4y, parameterWidth, recParam);
-		this.drawParameterRight(rightX, row4y, parameterWidth, phaParam);
-	}
-	/**
-	* Draws all core combat stats, such as power and force.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	*/
-	drawCombatStats(x, y) {
-		this.drawTitle("Combat", x, y - 15, 76, 10);
-		const w = 450;
-		const rowBaseY = y + 8;
-		this.drawTSeparator(x, rowBaseY - 4, w, 2);
-		this.drawCombatParameters(x, rowBaseY, w);
-	}
-	/**
-	* Draws the combat parameter section.
-	* @param {number} leftX The x coordinate.
-	* @param {number} rowBaseY The y coordinate.
-	* @param {number} sectionWidth The width of the parameter section.
-	*/
-	drawCombatParameters(leftX, rowBaseY, sectionWidth) {
-		const lh = this.lineHeight();
-		const parameterWidth = sectionWidth / 2;
-		const rightX = leftX + parameterWidth + 16;
-		const row1y = rowBaseY + lh * 1;
-		const atkParam = this.makeParameter(2);
-		const matParam = this.makeParameter(4);
-		const mrfParam = this.makeParameter(13);
-		const cntParam = this.makeParameter(14);
-		this.drawParameterLeft(leftX, row1y, parameterWidth, atkParam);
-		this.drawParameterRight(rightX, row1y, parameterWidth, matParam);
-		const row2y = rowBaseY + lh * 2;
-		this.drawParameterLeft(leftX, row2y, parameterWidth, cntParam);
-		this.drawParameterRight(rightX, row2y, parameterWidth, mrfParam);
-	}
-	/**
-	* Draws all precision-related stats, such as hit, crit, and parry.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	*/
-	drawPrecisionStats(x, y) {
-		this.drawTitle("Precision", x, y - 15, 1756, 6);
-		const w = 450;
-		const rowBaseY = y + 8;
-		this.drawTSeparator(x, rowBaseY - 2, w, 4);
-		this.drawPrecisionParameters(x, rowBaseY, w);
-	}
-	/**
-	* Draws the precision parameter section.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	* @param {number} w The width of the parameter section.
-	*/
-	drawPrecisionParameters(x, y, w) {
-		const lh = this.lineHeight();
-		const parameterWidth = w / 2;
-		const rightX = x + parameterWidth + 16;
-		const row1y = y + lh * 1;
-		const row2y = y + lh * 2;
-		const row3y = y + lh * 3;
-		const row4y = y + lh * 4;
-		const hitParam = this.makeParameter(8);
-		const grdParam = this.makeParameter(19);
-		const agiParam = this.makeParameter(6);
-		const evaParam = this.makeParameter(9);
-		const criParam = this.makeParameter(10);
-		const cevParam = this.makeParameter(11);
-		const cdmParam = this.makeParameter(28);
-		const cdrParam = this.makeParameter(29);
-		this.drawParameterLeft(x, row1y, parameterWidth, hitParam);
-		this.drawParameterRight(rightX, row1y, parameterWidth, grdParam);
-		this.drawParameterLeft(x, row2y, parameterWidth, agiParam);
-		this.drawParameterRight(rightX, row2y, parameterWidth, evaParam);
-		this.drawParameterLeft(x, row3y, parameterWidth, criParam);
-		this.drawParameterRight(rightX, row3y, parameterWidth, cevParam);
-		this.drawParameterLeft(x, row4y, parameterWidth, cdmParam);
-		this.drawParameterRight(rightX, row4y, parameterWidth, cdrParam);
-	}
-	/**
-	* Draws all defensive stats, such as endure and .
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	*/
-	drawDefensiveStats(x, y) {
-		this.drawTitle("Defensive", x, y - 15, 1625, 26);
-		const w = 450;
-		const rowBaseY = y + 8;
-		this.drawTSeparator(x, rowBaseY - 4, w, 2);
-		this.drawDefensiveParameters(x, rowBaseY, w);
-	}
-	/**
-	* Draws the combat parameter section.
-	* @param {number} leftX The x coordinate.
-	* @param {number} rowBaseY The y coordinate.
-	* @param {number} sectionWidth The width of the parameter section.
-	*/
-	drawDefensiveParameters(leftX, rowBaseY, sectionWidth) {
-		const lh = this.lineHeight();
-		const parameterWidth = sectionWidth / 2;
-		const rightX = leftX + parameterWidth + 16;
-		const row1y = rowBaseY + lh * 1;
-		const row2y = rowBaseY + lh * 2;
-		const defParam = this.makeParameter(3);
-		const mdfParam = this.makeParameter(5);
-		const pdrParam = this.makeParameter(24);
-		const mdrParam = this.makeParameter(25);
-		this.drawParameterLeft(leftX, row1y, parameterWidth, defParam);
-		this.drawParameterRight(rightX, row1y, parameterWidth, mdfParam);
-		this.drawParameterLeft(leftX, row2y, parameterWidth, pdrParam);
-		this.drawParameterRight(rightX, row2y, parameterWidth, mdrParam);
-	}
-	/**
-	* Draws all mobility stats, such as movespeed.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	*/
-	drawMobilityStats(x, y) {
-		this.drawTitle("Mobility", x, y - 15, 82, 20);
-		const w = 450;
-		const rowBaseY = y + 8;
-		this.drawTSeparator(x, rowBaseY - 4, w, 1);
-		this.drawMobilityParameters(x, rowBaseY, w);
-	}
-	/**
-	* Draws the mobility parameter section.
-	* @param {number} leftX The x coordinate.
-	* @param {number} rowBaseY The y coordinate.
-	* @param {number} sectionWidth The width of the parameter section.
-	*/
-	drawMobilityParameters(leftX, rowBaseY, sectionWidth) {
-		const lh = this.lineHeight();
-		const parameterWidth = sectionWidth / 2;
-		const row1y = rowBaseY + lh * 1;
-		const msbParam = this.makeParameter(31);
-		this.drawParameterLeft(leftX, row1y, parameterWidth, msbParam);
-	}
-	/**
-	* Draws all fate-related stats, such as experience rate and luck.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	*/
-	drawFateStats(x, y) {
-		this.drawTitle("Fate", x, y - 15, 1619, 27);
-		const w = 450;
-		const rowBaseY = y + 8;
-		this.drawTSeparator(x, rowBaseY - 4, w, 2);
-		this.drawFateParameters(x, rowBaseY, w);
-	}
-	/**
-	* Draws the fate parameter section.
-	* @param {number} leftX The x coordinate.
-	* @param {number} rowBaseY The y coordinate.
-	* @param {number} sectionWidth The width of the parameter section.
-	*/
-	drawFateParameters(leftX, rowBaseY, sectionWidth) {
-		const lh = this.lineHeight();
-		const parameterWidth = sectionWidth / 2;
-		const rightX = leftX + parameterWidth + 16;
-		const row1y = rowBaseY + lh * 1;
-		const lukParam = this.makeParameter(7);
-		const exrParam = this.makeParameter(27);
-		const spbParam = this.makeParameter(32);
-		const smbParam = this.makeParameter(33);
-		this.drawParameterLeft(leftX, row1y, parameterWidth, lukParam);
-		this.drawParameterRight(rightX, row1y, parameterWidth, exrParam);
-		const row2y = rowBaseY + lh * 2;
-		this.drawParameterLeft(leftX, row2y, parameterWidth, spbParam);
-		this.drawParameterRight(rightX, row2y, parameterWidth, smbParam);
-	}
-	/**
-	* Draws a T separator by using a horizontal and vertical line.
-	* The length of these lines is defined by the section width and the number of lines.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	* @param {number} w The width of the T separator.
-	* @param {number=} lines The height of the T separator, multiplied by `lineHeight`; defaults to 1 line.
-	*/
-	drawTSeparator(x, y, w, lines = 1) {
-		const lh = this.lineHeight();
-		const firstRowY = y + lh * 1;
-		this.drawHorizontalLine(x, firstRowY - 4, w + 16, 3);
-		const secondColumnX = x + w / 2 + 12;
-		const verticalLineX = secondColumnX - 4;
-		const verticalLineHeight = lh * lines + 4;
-		this.drawVerticalLine(verticalLineX, firstRowY - 2, verticalLineHeight, 3);
-	}
-	/**
-	* Creates a new parameter object that contains the necessary data to draw it into the window.
-	* @param {number} longParamId The "long" parameter id.
-	* @returns {StatusParameter} The compiled {@link StatusParameter}.
-	*/
-	makeParameter(longParamId) {
-		const value = this.actor.longParam(longParamId);
-		return new StatusParameter(value, longParamId);
-	}
-	/**
-	* Draws a {@link StatusParameter} at the designated coordinates, left-aligned.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	* @param {number} w The total width of the section.
-	* @param {StatusParameter} parameter The parameter to draw details for.
-	*/
-	drawParameterLeft(x, y, w, parameter) {
-		this.resetFontSettings();
-		this.drawIcon(parameter.iconIndex, x, y);
-		this.makeFontSmaller();
-		this.changeTextColor(ColorManager.textColor(parameter.colorIndex));
-		const iconPaddedX = x + ImageManager.iconWidth + 4;
-		const nameWidth = w * .7;
-		this.drawText(`${parameter.name}`, iconPaddedX, y, nameWidth, "left");
-		const iconNamePaddedX = iconPaddedX + w * .45;
-		const valueWidth = w * .4;
-		const value = parameter.prettyValue();
-		this.drawText(value, iconNamePaddedX, y, valueWidth, "right");
-		this.resetFontSettings();
-	}
-	/**
-	* Draws a {@link StatusParameter} at the designated coordinates, left-aligned.
-	* @param {number} x The x coordinate.
-	* @param {number} y The y coordinate.
-	* @param {number} w The total width of the section.
-	* @param {StatusParameter} parameter The parameter to draw details for.
-	*/
-	drawParameterRight(x, y, w, parameter) {
-		this.resetFontSettings();
-		this.changeTextColor(ColorManager.textColor(parameter.colorIndex));
-		this.makeFontSmaller();
-		const valueWidth = w * .4;
-		const value = parameter.prettyValue();
-		this.drawText(value, x, y, valueWidth, "left");
-		const valuePaddedX = x + valueWidth * .45;
-		const nameWidth = w * .7;
-		this.drawText(`${parameter.name}`, valuePaddedX, y, nameWidth, "right");
-		const nameValuePaddedX = valuePaddedX + nameWidth;
-		this.drawIcon(parameter.iconIndex, nameValuePaddedX, y);
-		this.resetFontSettings();
-	}
-	/**
-	* Overwrites {@link #makeFontSmaller}.<br/>
-	* Makes the reduction step smaller.
-	*/
-	makeFontSmaller() {
-		if (this.contents.fontSize >= 24) {
-			this.contents.fontSize -= 6;
-		}
-	}
-	/**
-	* Overwrites {@link #makeFontBigger}.<br/>
-	* Makes the expansion step smaller.
-	*/
-	makeFontBigger() {
-		if (this.contents.fontSize <= 96) {
-			this.contents.fontSize += 6;
-		}
-	}
-	/**
-	* Draws the elemental rates section.
-	* @param {number} x The `x` coordinate.
-	* @param {number} y The `y` coordinate.
-	* @param {number} limit The endpoint if applicable of elements to pull.
-	*/
-	drawElementalRates(x, y, limit = 10) {
-		this.drawTitle("Elemental Affiliations", x, y - 10, 64, 8);
-		this.drawHorizontalLine(x, y + 36, 450, 3);
-		const elements = $dataSystem.elements.slice(0, limit);
-		elements.forEach((elementName, index) => {
-			const modY = y + (index + 1) * this.lineHeight() + 8;
-			const rate = this.actor.traitsPi(11, index) * 100;
-			let colorIndex = 0;
-			if (rate > 100) {
-				colorIndex = 10;
-			} else if (rate < 100 && rate > 0) {
-				colorIndex = 3;
-			} else if (rate === 0) {
-				colorIndex = 7;
-			}
-			const iconIndex = IconManager.element(index);
-			const actualElementName = elementName === String.empty ? "Neutral" : elementName;
-			let ratePrefix = String.empty;
-			if (J.ELEM && this.actor.isElementAbsorbed(index)) {
-				ratePrefix = "-";
-				colorIndex = 5;
-			}
-			this.drawParameter(`${actualElementName}`, `${ratePrefix}${rate}%`, iconIndex, x + 40, modY, colorIndex);
-		});
-	}
-	/**
-	* Draws the state rates section.
-	* @param {number} x The `x` coordinate.
-	* @param {number} y The `y` coordinate.
-	*/
-	drawStateRates(x, y) {
-		this.drawTitle("Ailment Resistances", x, y - 10, 2, 8);
-		this.drawHorizontalLine(x, y + 36, 450, 3);
-		const states = $dataStates.slice(4, 18);
-		states.forEach((state, index) => {
-			if (!state) return;
-			const modY = y + (index + 1) * this.lineHeight() + 8;
-			let rate = this.actor.traitsPi(13, state.id) * 100;
-			if (this.actor.isStateResist(state.id)) {
-				rate = 0;
-			}
-			let colorIndex = 0;
-			if (rate > 100) {
-				colorIndex = 10;
-			} else if (rate < 100 && rate > 0) {
-				colorIndex = 3;
-			} else if (rate === 0) {
-				colorIndex = 7;
-			}
-			this.drawParameter(`${state.name}`, `${rate}%`, state.iconIndex, x + 40, modY, colorIndex);
-		});
-	}
-	/**
-	* Draws the given data as "a parameter".
-	* @param {string} name The name of the parameter.
-	* @param {number} value The value of the parameter.
-	* @param {number} iconIndex The icon index for this parameter.
-	* @param {number} x The `x` coordinate.
-	* @param {number} y The `y` coordinate.
-	* @param {number} colorIndex The color index for this parameter.
-	*/
-	drawParameter(name, value, iconIndex, x, y, colorIndex = 0) {
-		this.resetTextColor();
-		const modifiedX = x + 36;
-		this.drawIcon(iconIndex, x, y);
-		this.drawText(`${name}`, modifiedX, y, 200);
-		this.changeTextColor(ColorManager.textColor(colorIndex));
-		this.drawText(`${value}`, modifiedX + 200, y, 250);
-	}
-	/**
-	* Draws the title of one of the sections for parameters.
-	* @param {string} text The text to write as the title.
-	* @param {number} x The `x` coordinate.
-	* @param {number} y The `y` coordinate.
-	* @param {number=} iconIndex The icon index for this parameter; defaults to none(0).
-	* @param {number=} colorIndex The color index for the title; defaults to system color(1).
-	* @param {string=} alignment The text-alignment value of the title; defaults to "center".
-	*/
-	drawTitle(text, x, y, iconIndex = 0, colorIndex = 1, alignment = "center") {
-		this.resetFontSettings();
-		this.drawIcon(iconIndex, x, y + 16);
-		this.changeTextColor(ColorManager.textColor(colorIndex));
-		this.makeFontBigger();
-		this.drawText(text, x + 32, y + 16, 350, alignment);
-		this.resetFontSettings();
-	}
-};
-
-//#endregion
 //#region src/plugins/cms/status/windows/Window_StatusPageHint.js
 /**
-* A tiny, non-interactive window that informs the player they can use Left/Right
+* A tiny, non-interactive window that informs the player they can use L2/R2
 * to switch the right-hand view in the Status scene.
 */
 var Window_StatusPageHint = class extends Window_Base {
@@ -2397,7 +2509,7 @@ var Window_StatusPageHint = class extends Window_Base {
 		const { innerWidth } = this;
 		const x = 0;
 		const y = 0;
-		const text = "Left/Right: Switch View";
+		const text = "L2/R2: Switch View · L1/R1: Party";
 		this.changeTextColor(ColorManager.systemColor());
 		this.drawText(text, x, y, innerWidth, "center");
 		this.resetTextColor();
@@ -2536,7 +2648,24 @@ Scene_Status.prototype.refreshActor = function() {
 	const list = this.getStatListWindow();
 	const breakdown = this.getStatBreakdownWindow();
 	list.setActor(actor);
-	breakdown.setContext(actor, list.currentLongParamId());
+	breakdown.setContext(actor, list.currentParameterKey());
+};
+/**
+* Overwrites {@link #onActorChange}.<br/>
+* Vanilla activates {@link this._statusWindow}, which CMS does not use.
+* Refresh all CMS windows and restore focus for the active page.
+*/
+Scene_Status.prototype.onActorChange = function() {
+	Scene_MenuBase.prototype.onActorChange.call(this);
+	this.refreshActor();
+	this.applyPageVisibility();
+};
+/**
+* Width of the stacked actor + equip column on the left edge of Page 1.
+* @returns {number}
+*/
+Scene_Status.prototype.statusLeftColumnWidth = function() {
+	return Math.round(Graphics.boxWidth * .225);
 };
 /**
 * The rectangle for the status window.
@@ -2545,7 +2674,7 @@ Scene_Status.prototype.refreshActor = function() {
 Scene_Status.prototype.statusWindowRect = function() {
 	const wx = 0;
 	const wy = 0;
-	const ww = Math.round(Graphics.boxWidth * .3);
+	const ww = this.statusLeftColumnWidth();
 	const wh = Math.round(Graphics.boxHeight * .6);
 	return new Rectangle(wx, wy, ww, wh);
 };
@@ -2556,7 +2685,7 @@ Scene_Status.prototype.statusWindowRect = function() {
 Scene_Status.prototype.statusEquipWindowRect = function() {
 	const wx = 0;
 	const wy = this.getStatusWindow().height;
-	const ww = Math.round(Graphics.boxWidth * .3);
+	const ww = this.statusLeftColumnWidth();
 	const wh = Math.round(Graphics.boxHeight * .4);
 	return new Rectangle(wx, wy, ww, wh);
 };
@@ -2565,10 +2694,11 @@ Scene_Status.prototype.statusEquipWindowRect = function() {
 * @returns {Rectangle}
 */
 Scene_Status.prototype.statusParamsWindowRect = function() {
-	const wx = this.getStatusWindow().width;
+	const leftColumnWidth = this.statusLeftColumnWidth();
+	const wx = leftColumnWidth;
 	const hintRect = this.statusHintWindowRect();
 	const wy = hintRect.height;
-	const ww = Math.round(Graphics.boxWidth * .7);
+	const ww = Graphics.boxWidth - leftColumnWidth;
 	const wh = Graphics.boxHeight - wy;
 	return new Rectangle(wx, wy, ww, wh);
 };
@@ -2577,7 +2707,8 @@ Scene_Status.prototype.statusParamsWindowRect = function() {
 * @returns {Rectangle}
 */
 Scene_Status.prototype.statusStatListWindowRect = function() {
-	const wx = Math.round(Graphics.boxWidth * .3);
+	const leftColumnWidth = this.statusLeftColumnWidth();
+	const wx = leftColumnWidth;
 	const hintRect = this.statusHintWindowRect();
 	const wy = hintRect.height;
 	const ww = 440;
@@ -2601,7 +2732,8 @@ Scene_Status.prototype.statusStatBreakdownWindowRect = function() {
 * @returns {Rectangle}
 */
 Scene_Status.prototype.statusHintWindowRect = function() {
-	const wx = this.getStatusWindow().width;
+	const leftColumnWidth = this.statusLeftColumnWidth();
+	const wx = leftColumnWidth;
 	const wy = 0;
 	const ww = Graphics.boxWidth - wx;
 	const wh = 60;
@@ -2652,7 +2784,7 @@ Scene_Status.prototype.createStatBreakdownWindow = function() {
 	const rect = this.statusStatBreakdownWindowRect();
 	const breakdown = new Window_StatusStatBreakdown(rect);
 	this.setStatBreakdownWindow(breakdown);
-	breakdown.setContext(this.actor(), 0);
+	breakdown.setContext(this.actor(), "mhp");
 	this.addWindow(breakdown);
 };
 /**
@@ -2669,8 +2801,8 @@ Scene_Status.prototype.createStatusHintWindow = function() {
 */
 Scene_Status.prototype.onStatListChanged = function() {
 	if (this.getPageIndex() !== 1) return;
-	const longId = this.getStatListWindow().currentLongParamId();
-	this.getStatBreakdownWindow().setContext(this.actor(), longId);
+	const parameterKey = this.getStatListWindow().currentParameterKey();
+	this.getStatBreakdownWindow().setContext(this.actor(), parameterKey);
 };
 /**
 * Applies visibility to the windows based on the current page index.
@@ -2718,20 +2850,31 @@ Scene_Status.prototype.updatePageSwitchCooldown = function() {
 		return;
 	}
 	if (this.getSwitchCooldown() === 0) {
-		this.handlePageSwitching();
+		this.handleNormalizedStatusInput();
 	}
 };
 /**
-* Handles page switching between status breakdown and stat overview.
+* Handles L2/R2 page switching and L1/R1 actor cycling for the status scene.
+* Page 1 has no active selectable window, so this lives at scene scope.
 */
-Scene_Status.prototype.handlePageSwitching = function() {
-	const goPrev = Input.isTriggered("left") || Input.isTriggered("dpad-left");
-	const goNext = Input.isTriggered("right") || Input.isTriggered("dpad-right");
-	if (goPrev || goNext) {
+Scene_Status.prototype.handleNormalizedStatusInput = function() {
+	let handled = false;
+	if (Input.isTriggered("l2") || Input.isTriggered("r2")) {
 		const next = (this.getPageIndex() + 1) % 2;
 		this.setPageIndex(next);
 		this.applyPageVisibility();
 		this.onStatListChanged();
+		handled = true;
+	}
+	if (Input.isTriggered("pageup")) {
+		this.previousActor();
+		handled = true;
+	}
+	if (Input.isTriggered("pagedown")) {
+		this.nextActor();
+		handled = true;
+	}
+	if (handled) {
 		this.setSwitchCooldown(12);
 	}
 };

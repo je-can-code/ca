@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.4 CHARGE] Enable skills to be charged to perform other skills.
+ * [v1.1.0 CHARGE] Enable skills to be charged to perform other skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -163,6 +163,15 @@
  * 1st tier charge skill as a result.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added a segmented map charge gauge shown above charging battlers.
+ *    Registered <chargeTier> as a J-Extend non-combining key.
+ *    Charging input now also treats channeling as busy (J-ABS Channel).
+ *    canChargeSlot now requires an affordable release skill on some tier.
+ *    Guard skills can now be charged from the offhand slot.
+ *    Added per-slot charge input delay timers for hold-to-charge skills.
+ *    Fixed getHighestChargedTier crashing when no tier was completed.
+ *    Fixed switch-slot-to-charge logic, which never actually fired.
  * - 1.0.4
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.3
@@ -278,7 +287,7 @@ var J_ChargePluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps charging animation and sound defaults from plugin parameters.
 	*/
 	postInitialize() {
@@ -334,12 +343,12 @@ var J_ChargePluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/charge/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -352,7 +361,7 @@ J.ABS.EXT.CHARGE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.CHARGE.Metadata = new J_ChargePluginMetadata("J-ABS-Charge", "1.0.4");
+J.ABS.EXT.CHARGE.Metadata = new J_ChargePluginMetadata("J-ABS-Charge", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -364,7 +373,9 @@ J.ABS.EXT.CHARGE.Aliased = {
 	JABS_Action: new Map(),
 	JABS_Battler: new Map(),
 	JABS_StandardController: new Map(),
-	SoundManager: new Map()
+	Scene_Boot: new Map(),
+	SoundManager: new Map(),
+	Sprite_Character: new Map()
 };
 /**
 * All regular expressions used by this plugin.
@@ -459,7 +470,7 @@ var JABS_ChargingTier = class JABS_ChargingTier {
 //#endregion
 //#region src/plugins/abs/ext/charge/_models/JABS_Battler.js
 /**
-* Extends {@link JABS_Battler.initBattleInfo}.<br>
+* Extends {@link JABS_Battler.initBattleInfo}.<br/>
 * Also initializes the charge-related data.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set("initBattleInfo", JABS_Battler.prototype.initBattleInfo);
@@ -560,7 +571,7 @@ JABS_Battler.prototype.getHighestChargedTier = function() {
 		return null;
 	}
 	const sortedFilteredtiers = tiers.filter((chargeTier) => chargeTier.completed).sort((chargeTierLeft, chargeTierRight) => chargeTierRight.tier - chargeTierLeft.tier);
-	if (!sortedFilteredTiers.length) return null;
+	if (!sortedFilteredtiers.length) return null;
 	const [highestChargedTier] = sortedFilteredtiers;
 	return highestChargedTier;
 };
@@ -615,7 +626,7 @@ JABS_Battler.prototype.executeChargeAction = function(slot, charging) {
 	if (!charging) return;
 	const isStillCharging = isCurrentlyCharging && isSameSlot;
 	if (isStillCharging) return;
-	const isSwitchingChargingSlot = isStillCharging && !isSameSlot;
+	const isSwitchingChargingSlot = isCurrentlyCharging && !isSameSlot;
 	if (isSwitchingChargingSlot) {
 		this.endCharging();
 		return;
@@ -634,15 +645,19 @@ JABS_Battler.prototype.executeChargeAction = function(slot, charging) {
 */
 JABS_Battler.prototype.canChargeSlot = function(slot) {
 	if (!slot) return false;
-	const skillSlot = this.getBattler().getSkillSlotManager().getSkillSlotByKey(slot);
+	const battler = this.getBattler();
+	const skillSlot = battler.getSkillSlotManager().getSkillSlotByKey(slot);
 	if (!skillSlot) return false;
-	if (!this.getBattler().hasSkill(skillSlot.id)) {
-		return false;
+	if (!battler.hasSkill(skillSlot.id)) return false;
+	const chargingTiers = this.getChargingTiers(slot);
+	if (chargingTiers) {
+		const anyTierAffordable = chargingTiers.some((tier) => tier.skillId && battler.meetsSkillConditions(battler.skill(tier.skillId)));
+		if (!anyTierAffordable) return false;
 	}
 	return true;
 };
 /**
-*
+* Begins charging the given slot after seeding tier data and guards.
 * @param {string} slot The slot to be charged.
 * @param {JABS_ChargingTier[]} chargingTiers The charging tier data.
 */
@@ -734,7 +749,7 @@ JABS_Battler.prototype.normalizeChargeTierData = function(chargeTierData) {
 	return sortedTiers;
 };
 /**
-* Extends {@link JABS_Battler.update}.<br>
+* Extends {@link JABS_Battler.update}.<br/>
 * Also updates charging as-needed.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_Battler.set("update", JABS_Battler.prototype.update);
@@ -869,7 +884,7 @@ JABS_InputAdapter.performMainhandActionCharging = function(charging, jabsBattler
 */
 JABS_InputAdapter.canPerformMainhandActionCharging = function(jabsBattler) {
 	if (!jabsBattler.canBattlerUseAttacks()) return false;
-	if (jabsBattler.isCasting()) return false;
+	if (jabsBattler.isCastingOrChanneling()) return false;
 	return true;
 };
 /**
@@ -883,14 +898,12 @@ JABS_InputAdapter.performOffhandActionCharging = function(charging, jabsBattler)
 };
 /**
 * Determines wehether or not the player can try to charge their offhand action.
-* Guard skills cannot be charged.
 * @param {JABS_Battler} jabsBattler The battler doing the charging.
 * @returns {boolean} True if we can charge with this slot, false otherwise.
 */
 JABS_InputAdapter.canPerformOffhandActionCharging = function(jabsBattler) {
-	if (jabsBattler.isGuardSkillByKey(JABS_Button.Offhand)) return false;
 	if (!jabsBattler.canBattlerUseAttacks()) return false;
-	if (jabsBattler.isCasting()) return false;
+	if (jabsBattler.isCastingOrChanneling()) return false;
 	return true;
 };
 /**
@@ -910,12 +923,16 @@ JABS_InputAdapter.performCombatSkillCharging = function(charging, jabsBattler, s
 */
 JABS_InputAdapter.canPerformCombatSkillCharging = function(jabsBattler) {
 	if (!jabsBattler.canBattlerUseSkills()) return false;
-	if (jabsBattler.isCasting()) return false;
+	if (jabsBattler.isCastingOrChanneling()) return false;
 	return true;
 };
 
 //#endregion
 //#region src/plugins/abs/ext/charge/_models/JABS_InputController.js
+/**
+* Extends {@link JABS_StandardController.initMembers}.<br/>
+* Adds per-slot charge input delay timers for hold-to-charge skills.
+*/
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("initMembers", JABS_StandardController.prototype.initMembers);
 JABS_StandardController.prototype.initMembers = function() {
 	J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.get("initMembers").call(this);
@@ -981,7 +998,7 @@ JABS_StandardController.prototype.isTimerCompleteBySlot = function(slot) {
 	return this.getChargeInputDelayBySlot(slot).isTimerComplete();
 };
 /**
-* Extends {@link JABS_StandardController.updateMainhandAction}.<br>
+* Extends {@link JABS_StandardController.updateMainhandAction}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateMainhandAction", JABS_StandardController.prototype.updateMainhandAction);
@@ -1043,7 +1060,7 @@ JABS_StandardController.prototype.performMainhandChargeAlterAction = function() 
 	this.resetChargeInputDelayBySlot(JABS_Button.Mainhand);
 };
 /**
-* Extends {@link JABS_StandardController.updateOffhandAction}.<br>
+* Extends {@link JABS_StandardController.updateOffhandAction}.<br/>
 * Handles charging capability to the offhand.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateOffhandAction", JABS_StandardController.prototype.updateOffhandAction);
@@ -1102,6 +1119,7 @@ JABS_StandardController.prototype.performOffhandChargeAction = function() {
 */
 JABS_StandardController.prototype.performOffhandChargeAlterAction = function() {
 	JABS_InputAdapter.performOffhandActionCharging(false, $jabsEngine.getPlayer1());
+	this.resetChargeInputDelayBySlot(JABS_Button.Offhand);
 };
 /**
 * Determines whether or not the charging is ready.
@@ -1131,7 +1149,7 @@ JABS_StandardController.prototype.performCombatSkillChargeAlterAction = function
 	this.resetChargeInputDelayBySlot(slot);
 };
 /**
-* Extends {@link JABS_StandardController.updateCombatAction1}.<br>
+* Extends {@link JABS_StandardController.updateCombatAction1}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateCombatAction1", JABS_StandardController.prototype.updateCombatAction1);
@@ -1170,7 +1188,7 @@ JABS_StandardController.prototype.canChargeCombatAction1 = function() {
 	return true;
 };
 /**
-* Extends {@link JABS_StandardController.updateCombatAction2}.<br>
+* Extends {@link JABS_StandardController.updateCombatAction2}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateCombatAction2", JABS_StandardController.prototype.updateCombatAction2);
@@ -1209,7 +1227,7 @@ JABS_StandardController.prototype.canChargeCombatAction2 = function() {
 	return true;
 };
 /**
-* Extends {@link JABS_StandardController.updateCombatAction3}.<br>
+* Extends {@link JABS_StandardController.updateCombatAction3}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateCombatAction3", JABS_StandardController.prototype.updateCombatAction3);
@@ -1248,7 +1266,7 @@ JABS_StandardController.prototype.canChargeCombatAction3 = function() {
 	return true;
 };
 /**
-* Extends {@link JABS_StandardController.updateCombatAction4}.<br>
+* Extends {@link JABS_StandardController.updateCombatAction4}.<br/>
 * Handles charging capability for this input.
 */
 J.ABS.EXT.CHARGE.Aliased.JABS_StandardController.set("updateCombatAction4", JABS_StandardController.prototype.updateCombatAction4);
@@ -1300,7 +1318,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsChargeData", { get: function() {
 //#endregion
 //#region src/plugins/abs/ext/charge/managers/SoundManager.js
 /**
-* Extends {@link SoundManager.preloadImportantSounds}.<br>
+* Extends {@link SoundManager.preloadImportantSounds}.<br/>
 * Also preloads the charging-related sound effects.
 */
 J.ABS.EXT.CHARGE.Aliased.SoundManager.set("preloadImportantSounds", SoundManager.preloadImportantSounds);
@@ -1344,6 +1362,337 @@ SoundManager.chargeTierCompleteSE = function() {
 */
 SoundManager.maxChargeReadySE = function() {
 	return J.ABS.EXT.CHARGE.Metadata.ChargeReadySE ?? new RPG_SoundEffect("Item3", 50, 110, 0);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/charge/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers the chargeTier tag as non-combining with J-Extend so that multiple
+* <chargeTier> lines from separate extension skills are appended rather than overwritten.
+*/
+J.ABS.EXT.CHARGE.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.ABS.EXT.CHARGE.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.ABS.EXT.CHARGE.RegExp.ChargeData);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/charge/sprites/Sprite_MapChargeGauge.js
+/**
+* A dedicated segmented charge gauge for JABS battlers.
+* Extends {@link Sprite_MapGauge} and binds to a {@link JABS_Battler}.
+* Each segment represents one charge tier; segments fill left-to-right as tiers complete.
+*/
+var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
+	/**
+	* Constructor.
+	* @param {...*} args Forwarded to {@link #initialize}.
+	*/
+	constructor(...args) {
+		super();
+		this.initialize(...args);
+	}
+	/**
+	* Initializes this charge gauge with the given parameters.
+	* @param {number=} bitmapWidth The bitmap width of this gauge.
+	* @param {number=} bitmapHeight The bitmap height of this gauge.
+	* @param {number=} gaugeHeight The height of the filled strip.
+	*/
+	initialize(bitmapWidth = 128, bitmapHeight = 24, gaugeHeight = 10) {
+		super.initialize(bitmapWidth, bitmapHeight, gaugeHeight);
+		/**
+		* The JABS battler providing charge state.
+		* @type {JABS_Battler|null}
+		*/
+		this._jabsBattler = null;
+		this._statusType = "charge";
+		this.visible = false;
+	}
+	/**
+	* Gets the {@link JABS_Battler} this gauge is associated with.
+	* @returns {JABS_Battler|null}
+	*/
+	getJabsBattler() {
+		return this._jabsBattler;
+	}
+	/**
+	* Binds this gauge to a JABS battler and the expected character host.
+	* @param {JABS_Battler} jabsBattler The JABS battler.
+	* @param {Game_Character} expectedCharacter The character this sprite represents.
+	*/
+	setupJabs(jabsBattler, expectedCharacter) {
+		this._jabsBattler = jabsBattler;
+		/**
+		* The character this gauge expects the JABS battler to be bound to.
+		* @type {Game_Character|null}
+		*/
+		this._expectedCharacter = expectedCharacter ?? null;
+		/**
+		* The UUID we expect this gauge to track.
+		* @type {string}
+		*/
+		this._expectedUuid = jabsBattler ? jabsBattler.getUuid() : null;
+		this.setup(jabsBattler.getBattler(), this._statusType);
+	}
+	/**
+	* Whether the gauge should be considered valid for fill-rate.
+	* Valid only while the battler is actively charging with at least one incomplete tier.
+	* @returns {boolean}
+	*/
+	isValid() {
+		const jabsBattler = this.getJabsBattler();
+		const expectedUuid = this._expectedUuid;
+		const expectedCharacter = this._expectedCharacter;
+		if (!jabsBattler || !expectedUuid) return false;
+		if (jabsBattler.getUuid() !== expectedUuid) return false;
+		if (expectedCharacter && jabsBattler.getCharacter() !== expectedCharacter) return false;
+		if (!jabsBattler.isCharging()) return false;
+		if (!jabsBattler.getCurrentChargingTier()) return false;
+		return true;
+	}
+	/**
+	* The elapsed frames in the current charge tier.
+	* @returns {number|NaN}
+	*/
+	currentValue() {
+		const jabsBattler = this.getJabsBattler();
+		if (!jabsBattler) return NaN;
+		if (!jabsBattler.isCharging()) return NaN;
+		const currentTier = jabsBattler.getCurrentChargingTier();
+		if (!currentTier) return NaN;
+		return currentTier.duration;
+	}
+	/**
+	* The total frames required to complete the current charge tier.
+	* @returns {number|NaN}
+	*/
+	currentMaxValue() {
+		const jabsBattler = this.getJabsBattler();
+		if (!jabsBattler) return NaN;
+		if (!jabsBattler.isCharging()) return NaN;
+		const currentTier = jabsBattler.getCurrentChargingTier();
+		if (!currentTier) return NaN;
+		return currentTier.maxDuration;
+	}
+	/**
+	* Updates this gauge.
+	* Shows the gauge while charging and updates label/icon to reflect the current tier.
+	* Hides and clears adornments when not valid.
+	*/
+	update() {
+		if (this.getJabsBattler()) {
+			this._battler = this.getJabsBattler().getBattler();
+		}
+		const valid = this.isValid();
+		if (valid === false) {
+			this.visible = false;
+			if (this._gauge._label) {
+				this.setLabel(String.empty);
+			}
+			if (this._gauge._iconIndex !== -1) {
+				this.setIcon(-1);
+			}
+			return;
+		}
+		this.visible = true;
+		const currentTier = this.getJabsBattler().getCurrentChargingTier();
+		if (currentTier) {
+			const totalTiers = this.getJabsBattler().getChargingTierData().length;
+			this.setLabel(`T${currentTier.tier}/${totalTiers}`);
+			const releaseSkill = currentTier.skillId ? $dataSkills[currentTier.skillId] : null;
+			this.setIcon(releaseSkill ? releaseSkill.iconIndex : -1);
+		}
+		super.update();
+	}
+	/**
+	* Overwrites {@link Sprite_Gauge.drawGauge}.<br/>
+	* Draws one segment per charge tier instead of a single continuous bar.
+	* Completed tiers render full; the current tier renders at its elapsed fraction;
+	* future tiers render as empty background only.
+	*/
+	drawGauge() {
+		const jabsBattler = this.getJabsBattler();
+		if (!jabsBattler) return;
+		const tiers = jabsBattler.getChargingTierData();
+		const currentTier = jabsBattler.getCurrentChargingTier();
+		if (!tiers.length) return;
+		const totalTiers = tiers.length;
+		const gapWidth = 2;
+		const totalGaps = (totalTiers - 1) * gapWidth;
+		const availableWidth = this.bitmapWidth() - totalGaps;
+		const totalDuration = tiers.reduce((sum, tier) => sum + tier.maxDuration, 0);
+		const gaugeY = this.bitmapHeight() - this.gaugeHeight();
+		let cursorX = 0;
+		for (let i = 0; i < totalTiers; i++) {
+			const tier = tiers[i];
+			const segmentWidth = Math.floor(tier.maxDuration / totalDuration * availableWidth);
+			const segX = cursorX;
+			this.bitmap.fillRect(segX, gaugeY, segmentWidth, this.gaugeHeight(), this.gaugeBackColor());
+			let fillRate = 0;
+			if (tier.completed) {
+				fillRate = 1;
+			} else if (currentTier && tier.tier === currentTier.tier) {
+				fillRate = currentTier.maxDuration > 0 ? Math.min(1, currentTier.duration / currentTier.maxDuration) : 0;
+			}
+			if (fillRate > 0) {
+				const fillWidth = Math.floor(segmentWidth * fillRate);
+				this.bitmap.gradientFillRect(segX, gaugeY, fillWidth, this.gaugeHeight(), this.gaugeColor1(), this.gaugeColor2());
+			}
+			cursorX += segmentWidth + (i < totalTiers - 1 ? gapWidth : 0);
+		}
+	}
+	/**
+	* Overwrites {@link Sprite_MapCastGauge.drawLabel}.<br/>
+	* Draws the tier label with crisp, integer-aligned text.
+	*/
+	drawLabel() {
+		if (!this._gauge._label) return;
+		this.bitmap.fontFace = $gameSystem.mainFontFace();
+		this.bitmap.fontSize = 12;
+		this.bitmap.outlineWidth = 2;
+		this.bitmap.outlineColor = "rgba(0, 0, 0, 1)";
+		this.bitmap.textColor = "#ffffff";
+		const x = 32;
+		const y = 0;
+		const w = this.bitmapWidth() - x;
+		const h = this.bitmapHeight();
+		this.bitmap.drawText(this._gauge._label, Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h), "left");
+	}
+	/**
+	* Overwrites {@link Sprite_MapGauge.gaugeX}.<br/>
+	* Returns 0 so the segmented fill occupies the full bitmap width.
+	* @returns {number}
+	*/
+	gaugeX() {
+		return 0;
+	}
+	/**
+	* The background color for each empty segment.
+	* @returns {string}
+	*/
+	gaugeBackColor() {
+		return "rgba(32, 32, 32, 0.85)";
+	}
+	/**
+	* The left gradient color for the fill strip.
+	* @returns {string}
+	*/
+	gaugeColor1() {
+		return "#FF8C00";
+	}
+	/**
+	* The right gradient color for the fill strip.
+	* @returns {string}
+	*/
+	gaugeColor2() {
+		return "#FFD700";
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/charge/sprites/Sprite_Character.js
+/**
+* Extends {@link #initGaugeMembers}.<br/>
+* Also initializes the charge gauge member.
+*/
+J.ABS.EXT.CHARGE.Aliased.Sprite_Character.set("initGaugeMembers", Sprite_Character.prototype.initGaugeMembers);
+Sprite_Character.prototype.initGaugeMembers = function() {
+	J.ABS.EXT.CHARGE.Aliased.Sprite_Character.get("initGaugeMembers").call(this);
+	/**
+	* The charge gauge for this sprite.
+	* @type {Sprite_MapChargeGauge|null}
+	*/
+	this._j._abs._gauges._chargeGauge = null;
+};
+/**
+* Extends {@link #setupMapSprite}.<br/>
+* Also sets up the charge gauge.
+*/
+J.ABS.EXT.CHARGE.Aliased.Sprite_Character.set("setupMapSprite", Sprite_Character.prototype.setupMapSprite);
+Sprite_Character.prototype.setupMapSprite = function() {
+	J.ABS.EXT.CHARGE.Aliased.Sprite_Character.get("setupMapSprite").call(this);
+	this.setupChargeGauge();
+};
+/**
+* Sets up this character's charge gauge, which shows tier progress while charging.
+*/
+Sprite_Character.prototype.setupChargeGauge = function() {
+	const jabsBattler = this._character.getJabsBattler();
+	const expectedCharacter = this._character;
+	if (this._j._abs._gauges._chargeGauge) {
+		this._j._abs._gauges._chargeGauge.setupJabs(jabsBattler, expectedCharacter);
+		this._j._abs._gauges._chargeGauge.activateGauge();
+		const sprite = this._j._abs._gauges._chargeGauge;
+		sprite.move(-Math.round(sprite.bitmapWidth() / 2), -28);
+		return;
+	}
+	const sprite = new Sprite_MapChargeGauge();
+	sprite.setupJabs(jabsBattler, expectedCharacter);
+	sprite.activateGauge();
+	this._j._abs._gauges._chargeGauge = sprite;
+	sprite.move(-Math.round(sprite.bitmapWidth() / 2), -28);
+	this.addChild(sprite);
+};
+/**
+* Extends {@link #updateGauges}.<br/>
+* Also updates the charge gauge.
+*/
+J.ABS.EXT.CHARGE.Aliased.Sprite_Character.set("updateGauges", Sprite_Character.prototype.updateGauges);
+Sprite_Character.prototype.updateGauges = function() {
+	J.ABS.EXT.CHARGE.Aliased.Sprite_Character.get("updateGauges").call(this);
+	if (this.canUpdateChargeGauge()) {
+		this.updateChargeGauge();
+	} else {
+		this.hideChargeGauge();
+	}
+};
+/**
+* Determines whether or not we can update the charge gauge.
+* @returns {boolean} True if we can update the charge gauge, false otherwise.
+*/
+Sprite_Character.prototype.canUpdateChargeGauge = function() {
+	if (!this.canUpdate()) return false;
+	if (!this.isJabsBattler()) return false;
+	if (!this._j._abs._gauges._chargeGauge) return false;
+	const jabs = this._character.getJabsBattler();
+	if (!jabs) return false;
+	if (!jabs.isCharging()) return false;
+	return true;
+};
+/**
+* Updates the charge gauge sprite.
+*/
+Sprite_Character.prototype.updateChargeGauge = function() {
+	this.showChargeGauge();
+	const gauge = this._j._abs._gauges._chargeGauge;
+	if (gauge) {
+		const currentJabs = this._character.getJabsBattler();
+		const needsRebind = gauge._jabsBattler !== currentJabs || gauge._expectedCharacter !== this._character || gauge._expectedUuid !== (currentJabs ? currentJabs.getUuid() : null);
+		if (needsRebind) {
+			gauge.setupJabs(currentJabs, this._character);
+		}
+		gauge._battler = this.getBattler();
+	}
+};
+/**
+* Shows the charge gauge if it exists.
+*/
+Sprite_Character.prototype.showChargeGauge = function() {
+	const gauge = this._j._abs._gauges._chargeGauge;
+	if (gauge) {
+		gauge.activateGauge();
+		gauge.show();
+	}
+};
+/**
+* Hides the charge gauge if it exists.
+*/
+Sprite_Character.prototype.hideChargeGauge = function() {
+	const gauge = this._j._abs._gauges._chargeGauge;
+	if (gauge) {
+		gauge.hide();
+	}
 };
 
 //#endregion

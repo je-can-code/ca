@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 FORMULA] An extension for JABS that allows multiple damage formulas.
+ * [v1.1.0 FORMULA] An extension for JABS that allows multiple damage formulas.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -39,7 +39,7 @@
  * recipients when the packet triggers.
  *
  * Tag format:
- *   <on-HH:to-AA:by-formula:for-RR:[FORMULA]>
+ *   <onApplyFormula:[HH, AA, RR, FORMULA]>
  *
  * Where:
  *   - HH (trigger):
@@ -77,7 +77,7 @@
  *     - Element rate
  *     - Physical/Magical damage rate (treats as the parent’s type)
  *     - Variance
- *     - REC (recovery) on the recipient
+ *     - REC (recovery) on the recipient, and HAR (healing rate) on the caster
  *
  * Visuals and logs:
  *   - Popups (J-POPUPS): shows resource-specific damage/heal popups
@@ -85,16 +85,22 @@
  *
  * Examples:
  *   - On hit, damage the original target’s HP for the user’s ATK x2 minus target DEF:
- *       <on-hit:to-target:by-formula:for-hp:[a.atk * 2 - b.def]>
+ *       <onApplyFormula:[hit, target, hp, a.atk * 2 - b.def]>
  *
  *   - On use, grant self 25 TP immediately:
- *       <on-use:to-self:by-formula:for-tp:[25]>
+ *       <onApplyFormula:[use, self, tp, 25]>
  *
  *   - On hit, heal allies for 10% of the user’s max HP (negative = heal):
- *       <on-hit:to-allies:by-formula:for-hp:[-(a.mhp * 0.10)]>
+ *       <onApplyFormula:[hit, allies, hp, -(a.mhp * 0.10)]>
  *
  *   - On use, drain 5 MP from all enemies (positive = loss):
- *       <on-use:to-enemies:by-formula:for-mp:[5]>
+ *       <onApplyFormula:[use, enemies, mp, 5]>
+ *
+ * NOTE: the formula segment may not contain a comma (the tuple is parsed by
+ * splitting on commas), so multi-argument function calls like Math.max(a, b)
+ * cannot be used inline. Keep formulas to operators only (+ - * / ( ) and
+ * whitespace); wrap complex logic in a Game_Action-registered context helper
+ * instead (see registerFormulaContext).
  *
  * ============================================================================
  * TAGS: BY-SKILL (CHILD SKILL) PACKETS
@@ -107,7 +113,7 @@
  *   - For on-hit packets, child damage can mirror the parent crit state when appropriate.
  *
  * Tag format:
- *   <on-HH:to-AA:by-skill:[SKILL_ID]>
+ *   <onApplySkill:[HH, AA, SKILL_ID]>
  *
  * Where:
  *   - HH (trigger): hit | use
@@ -116,10 +122,10 @@
  *
  * Examples:
  *   - On hit, also fire skill 123 at the original target:
- *       <on-hit:to-target:by-skill:[123]>
+ *       <onApplySkill:[hit, target, 123]>
  *
  *   - On use, cast an aura skill 77 centered on self:
- *       <on-use:to-self:by-skill:[77]>
+ *       <onApplySkill:[use, self, 77]>
  *
  * Notes:
  *   - For target/allies/enemies/all, position bias uses the recipient’s current
@@ -154,10 +160,10 @@
  * QUICK REFERENCE
  * ----------------------------------------------------------------------------
  * BY-FORMULA:
- *   <on-(hit|use):to-(self|target|allies|enemies|all):by-formula:for-(hp|mp|tp):[FORMULA]>
+ *   <onApplyFormula:[hit|use, self|target|allies|enemies|all, hp|mp|tp, FORMULA]>
  *
  * BY-SKILL:
- *   <on-(hit|use):to-(self|target|allies|enemies|all):by-skill:[SKILL_ID]>
+ *   <onApplySkill:[hit|use, self|target|allies|enemies|all, SKILL_ID]>
  *
  * Formula variables:
  *   a = user/subject, b = recipient, v = $gameVariables._data, i = RPG_Skill
@@ -167,6 +173,23 @@
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 1.1.0
+ *   Changed <on-HH:to-AA:by-formula:for-RR:[FORMULA]> to
+ *   <onApplyFormula:[HH, AA, RR, FORMULA]>, and <on-HH:to-AA:by-skill:[SKILL_ID]>
+ *   to <onApplySkill:[HH, AA, SKILL_ID]>. The old tag-name-encoded-enum shape
+ *   required a bespoke, ad-hoc multi-capture-group reader
+ *   (RPGManager.getAllCapturesFromNoteByRegex) instead of the standardized
+ *   bracket-array family used by every other multi-value tag; the new single
+ *   bracket form reads through getArraysFromNotesByRegex like the rest. No
+ *   existing Chef Adventure data used these tags, so no migration was needed.
+ *   Replaced eval() with new Function() in evaluateFormula, matching J-Base's
+ *   removal of eval() from every damage/formula path.
+ *   Dropped the unused reduced/HP-mitigation-display param from
+ *   generateFormulaActionLogIfAvailable; guarded recipient.result() against
+ *   a null recipient.
+ * - 1.0.4
+ *   Healing path now also applies HAR (healing rate) on the caster, alongside
+ *   the existing REC (recovery) on the recipient. Requires J-Base 3.2.0+.
  * - 1.0.2
  *   Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
@@ -186,7 +209,7 @@ var JFORMULA_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {
@@ -209,12 +232,12 @@ var JFORMULA_PluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/formula/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -224,7 +247,7 @@ J.ABS.EXT.FORMULA = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.0.2");
+J.ABS.EXT.FORMULA.Metadata = new JFORMULA_PluginMetadata("J-ABS-Formula", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -273,8 +296,8 @@ J.ABS.EXT.FORMULA.Settings = {
 * All regular expressions used by this plugin.
 */
 J.ABS.EXT.FORMULA.RegExp = {};
-J.ABS.EXT.FORMULA.RegExp.FormulaApply = /<on-(hit|use):to-(self|allies|target|enemies|all):by-formula:for-(hp|mp|tp):\[([+\-*/ ().\w]+)]>/gi;
-J.ABS.EXT.FORMULA.RegExp.SkillApply = /<on-(hit|use):to-(self|allies|target|enemies|all):by-skill:\[(\d+)]>/gi;
+J.ABS.EXT.FORMULA.RegExp.FormulaApply = /<onApplyFormula:[ ]?(\[(?:hit|use),[ ]?(?:self|allies|target|enemies|all),[ ]?(?:hp|mp|tp),[ ]?[+\-*/ ().\w]+])>/gi;
+J.ABS.EXT.FORMULA.RegExp.SkillApply = /<onApplySkill:[ ]?(\[(?:hit|use),[ ]?(?:self|allies|target|enemies|all),[ ]?\d+])>/gi;
 
 //#endregion
 //#region src/plugins/abs/ext/formula/__models/FormulaEffect.js
@@ -559,8 +582,8 @@ RPG_Skill.prototype.jabsFormulaEffects = function() {
 * @returns {FormulaEffect[]}
 */
 RPG_Skill.prototype.extractJabsFormulaEffects = function() {
-	const formulaTuples = RPGManager.getAllCapturesFromNoteByRegex(this, J.ABS.EXT.FORMULA.RegExp.FormulaApply, false) || [];
-	const skillTuples = RPGManager.getAllCapturesFromNoteByRegex(this, J.ABS.EXT.FORMULA.RegExp.SkillApply, false) || [];
+	const formulaTuples = RPGManager.getArraysFromNotesByRegex(this, J.ABS.EXT.FORMULA.RegExp.FormulaApply);
+	const skillTuples = RPGManager.getArraysFromNotesByRegex(this, J.ABS.EXT.FORMULA.RegExp.SkillApply);
 	const formulaEffects = formulaTuples.map(FormulaEffect.fromFormulaTuple, FormulaEffect);
 	const skillEffects = skillTuples.map(FormulaEffect.fromSkillTuple, FormulaEffect);
 	return [...formulaEffects, ...skillEffects];
@@ -727,10 +750,10 @@ Game_Action.prototype.evaluateFormula = function(formula, source, recipient, ite
 	const i = item;
 	let result;
 	try {
-		result = eval(formula);
+		result = new Function("a", "b", "v", "i", `return (${formula})`)(a, b, v, i);
 		if (!Number.isFinite(result)) throw new Error("Invalid formula output.");
 	} catch (err) {
-		console.warn(`J.FORMULA eval failed: [ ${formula} ]`);
+		console.warn(`J.FORMULA formula failed: [ ${formula} ]`);
 		console.trace();
 		throw err;
 	}
@@ -843,15 +866,15 @@ Game_Action.prototype.pipeFormulaThroughBattleCalculations = function(target, ma
 	return Math.max(0, value);
 };
 /**
-* Applies REC to a healing magnitude (already positive) across resources.
-* Mirrors native healing treatment (HP REC), generalized for MP/TP per project rules.
+* Applies REC and HAR to a healing magnitude (already positive) across resources.
+* Mirrors native healing treatment (HP REC/HAR), generalized for MP/TP per project rules.
 * @param {Game_Battler} target The recipient of healing.
 * @param {number} magnitude The base positive healing amount.
 * @param {"hp"|"mp"|"tp"} resource The resource being healed.
-* @returns {number} The REC-adjusted, rounded healing amount.
+* @returns {number} The REC- and HAR-adjusted, rounded healing amount.
 */
 Game_Action.prototype.applyResourceHealingWithRecovery = function(target, magnitude, resource) {
-	let healed = magnitude * target.rec;
+	let healed = magnitude * target.rec * this.subject().har;
 	healed = Math.round(healed);
 	return healed;
 };
@@ -900,9 +923,8 @@ Game_Action.prototype.onFormulaResourceDelta = function(recipient, amount, resou
 * @param {number} amount The signed amount (positive => damage/loss, negative => heal/gain).
 * @param {"hp"|"mp"|"tp"} resource Which resource this packet targeted.
 * @param {number} skillId The skill id attributed to this packet (parent or child).
-* @param {number=} reduced Optional reduced magnitude (HP typically) when known.
 */
-Game_Action.prototype.generateFormulaActionLogIfAvailable = function(recipient, amount, resource, skillId, reduced) {
+Game_Action.prototype.generateFormulaActionLogIfAvailable = function(recipient, amount, resource, skillId) {
 	if (!J.LOG) return;
 	const signed = Math.round(amount);
 	const magnitude = Math.abs(signed);
@@ -910,14 +932,10 @@ Game_Action.prototype.generateFormulaActionLogIfAvailable = function(recipient, 
 	const caster = this.subject();
 	const casterName = caster ? caster.name() : "Unknown";
 	const targetName = recipient ? recipient.name() : "Unknown";
-	let reducedAmount = String.empty;
-	if (typeof reduced === "number" && reduced !== 0) {
-		reducedAmount = `(${Math.round(Math.abs(reduced))})`;
-	}
 	const isHeal = signed < 0;
-	const recipientResult = recipient.result();
+	const recipientResult = recipient ? recipient.result() : null;
 	const wasCrit = recipientResult ? recipientResult.critical === true : false;
-	const log = new ActionLogBuilder().setupExecution(targetName, casterName, skillId || 0, magnitude, reducedAmount, isHeal, wasCrit).build();
+	const log = new ActionLogBuilder().setupExecution(targetName, casterName, skillId || 0, magnitude, String.empty, isHeal, wasCrit).build();
 	$actionLogManager.addLog(log);
 };
 /**

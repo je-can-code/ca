@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 MOVE] Enable modifying move speeds.
+ * [v1.1.0 MOVE] Enable modifying move speeds.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -66,6 +66,13 @@
  * This battler's movement speed will be increased by ~40%.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Move speed boost (msb) registered with the shared parameter catalog
+ *    and given an SDP panel binding, so it can now be invested via SDP.
+ *    Replaced getWalkSpeedBoosts() with a plain msb getter, matching the
+ *    catalog's getValue(battler => battler.msb) convention.
+ *    Removed the legacy IconManager.longParam(31) override in favor of
+ *    catalog-driven icon resolution.
  * - 1.0.3
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.2
@@ -91,12 +98,12 @@ var J_SpeedPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/speed/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -109,11 +116,12 @@ J.ABS.EXT.SPEED = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-SpeedBoosts", "1.0.3");
+J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-SpeedBoosts", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.ABS.EXT.SPEED.Aliased = {
+	Scene_Boot: new Map(),
 	Game_Actor: new Map(),
 	Game_Character: new Map(),
 	Game_Battler: new Map(),
@@ -139,17 +147,6 @@ Object.defineProperty(RPG_Base.prototype, "jabsSpeedBoost", { get: function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/managers/IconManager.js
 /**
-* Extend {@link #longParam}.<br>
-* First checks if the paramId was the move speed boost, then checks others.
-*/
-J.ABS.EXT.SPEED.Aliased.IconManager.set("longParam", IconManager.longParam);
-IconManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 31: return this.movespeed();
-		default: return J.ABS.EXT.SPEED.Aliased.IconManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the icon index for the move speed boost.
 * @returns {number}
 */
@@ -160,33 +157,11 @@ IconManager.movespeed = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/managers/TextManager.js
 /**
-* Extends {@link #longParam}.<br>
-* First checks if this is the move speed parameter, then checks others.
-*/
-J.ABS.EXT.SPEED.Aliased.TextManager.set("longParam", TextManager.longParam);
-TextManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 31: return this.movespeed();
-		default: return J.ABS.EXT.SPEED.Aliased.TextManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the proper name of "move speed boost".
 * @returns {string}
 */
 TextManager.movespeed = function() {
 	return "Move Boost";
-};
-/**
-* Extends {@link #longParamDescription}.<br>
-* First checks if this is the move speed parameter, then checks others.
-*/
-J.ABS.EXT.SPEED.Aliased.TextManager.set("longParamDescription", TextManager.longParamDescription);
-TextManager.longParamDescription = function(paramId) {
-	switch (paramId) {
-		case 31: return this.moveSpeedDescription();
-		default: return J.ABS.EXT.SPEED.Aliased.TextManager.get("longParamDescription").call(this, paramId);
-	}
 };
 /**
 * Gets the description text for the move speed boost.
@@ -199,7 +174,7 @@ TextManager.moveSpeedDescription = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/objects/Game_Actor.js
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Refreshes movement speed boosts when the battler's data changes.
 */
 J.ABS.EXT.SPEED.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
@@ -211,7 +186,7 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/objects/Game_Battler.js
 /**
-* Extends {@link Game_Battler.initMembers}.<br>
+* Extends {@link Game_Battler.initMembers}.<br/>
 */
 J.ABS.EXT.SPEED.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
 Game_Battler.prototype.initMembers = function() {
@@ -241,12 +216,20 @@ Game_Battler.prototype.initSpeedBoosts = function() {
 	this._j._abs._speed._walkBoost = 0;
 };
 /**
-* Gets the current walking speed boost scale for this battler.
-* @returns {number}
+* Move speed boost from notes and SDP panels.
 */
-Game_Battler.prototype.getWalkSpeedBoosts = function() {
-	return this._j._abs._speed._walkBoost;
-};
+Object.defineProperty(Game_BattlerBase.prototype, "msb", {
+	get: function() {
+		return 0;
+	},
+	configurable: true
+});
+Object.defineProperty(Game_Battler.prototype, "msb", {
+	get: function() {
+		return this._j._abs._speed._walkBoost;
+	},
+	configurable: true
+});
 /**
 * Sets the current speed bost scale for this battler.
 * @param {number} amount The new walking speed boost amount.
@@ -267,7 +250,7 @@ Game_Battler.prototype.refreshSpeedBoosts = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/objects/Game_Character.js
 /**
-* Extends {@link Game_Character.distancePerFrame}.<br>
+* Extends {@link Game_Character.distancePerFrame}.<br/>
 * Enables modification of the character's movement speed on the map.
 * @return {number} The modified distance per frame to move.
 */
@@ -286,7 +269,7 @@ Game_Character.prototype.distancePerFrame = function() {
 Game_Character.prototype.calculateSpeedBoostBonus = function(baseMoveSpeed) {
 	const battler = this.getJabsBattler();
 	if (!battler) return 0;
-	const scale = battler.getBattler().getWalkSpeedBoosts();
+	const scale = battler.getBattler().msb;
 	if (scale === 0) return 0;
 	const constrainedScale = Math.max(this.minimumWalkSpeedBoost(), scale);
 	const multiplier = constrainedScale / 100;
@@ -308,13 +291,39 @@ Game_Character.prototype.minimumDistancePerFrame = function() {
 //#endregion
 //#region src/plugins/abs/ext/speed/objects/Game_Enemy.js
 /**
-* Extends {@link #onBattlerDataChange}.<br>
+* Extends {@link #onBattlerDataChange}.<br/>
 * Refreshes movement speed boosts when the battler's data changes.
 */
 J.ABS.EXT.SPEED.Aliased.Game_Enemy.set("onBattlerDataChange", Game_Enemy.prototype.onBattlerDataChange);
 Game_Enemy.prototype.onBattlerDataChange = function() {
 	J.ABS.EXT.SPEED.Aliased.Game_Enemy.get("onBattlerDataChange").call(this);
 	this.refreshSpeedBoosts();
+};
+
+//#endregion
+//#region src/plugins/abs/ext/speed/core/registerSpeedParameters.js
+/**
+* Boot-time registration for J-ABS-Speed parameters in {@link ParameterRegistry}.
+*/
+var SpeedParameterRegistration = class {
+	/**
+	* Registers move speed boost with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("msb").group(ParameterGroups.MOBILITY).sortOrder(0).label(() => TextManager.movespeed()).description(() => TextManager.moveSpeedDescription()).iconIndex(() => IconManager.movespeed()).format(ParameterFormat.FLAT).getValue((battler) => battler.msb).sdpBinding(SdpParameterBinding.byKey("msb", () => 0)).build());
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/speed/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers J-ABS-Speed stats with the parameter catalog after vanilla seeding.
+*/
+J.ABS.EXT.SPEED.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.ABS.EXT.SPEED.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	SpeedParameterRegistration.registerAll();
 };
 
 //#endregion

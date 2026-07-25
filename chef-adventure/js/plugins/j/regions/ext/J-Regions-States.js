@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 REGION-STATES] Enables application of states via region ids.
+ * @plugindesc [v1.0.1 REGION-STATES] Enables application of states via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -96,6 +96,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Region state application now rolls through the shared on-chance
+ *    system (lucky/cursed rolls, Accumulate Mode, Encore) instead of a
+ *    flat percent check.
+ *    Removed a defensive function-existence guard around isVisible(); the
+ *    method is always present on the contract this plugin targets.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -150,7 +156,7 @@ J.REGIONS.EXT.STATES = {};
 /**
 * The metadata associated with this plugin, such as name and version.
 */
-J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.0.0");
+J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -162,7 +168,7 @@ J.REGIONS.EXT.STATES.Aliased.Game_System = new Map();
 * All regular expressions used by this plugin.
 */
 J.REGIONS.EXT.STATES.RegExp = {};
-J.REGIONS.EXT.STATES.RegExp.RegionState = /<regionAddState:[ ]?(\[\d+, ?\d+, ?\d+, ?\d+])>/gi;
+J.REGIONS.EXT.STATES.RegExp.RegionState = /<regionAddState:[ ]?(\[\d+, ?\d+(?:, ?\d+)?(?:, ?\d+)?])>/gi;
 
 //#endregion
 //#region src/plugins/regions/ext/states/models/RegionStateData.js
@@ -205,7 +211,7 @@ var RegionStateData = class {
 //#endregion
 //#region src/plugins/regions/ext/states/objects/Game_Map.js
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Also initializes the region states properties.
 */
 J.REGIONS.EXT.STATES.Aliased.Game_Map.set("initialize", Game_Map.prototype.initialize);
@@ -266,7 +272,7 @@ Game_Map.prototype.addRegionStateDataByRegionId = function(regionId, regionState
 	}
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Also initializes this map's region-state data.
 */
 J.REGIONS.EXT.STATES.Aliased.Game_Map.set("setup", Game_Map.prototype.setup);
@@ -305,7 +311,7 @@ Game_Map.prototype.refreshRegionStates = function() {
 //#endregion
 //#region src/plugins/regions/ext/states/objects/Game_Character.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the region states members.
 */
 J.REGIONS.EXT.STATES.Aliased.Game_Character.set("initMembers", Game_Character.prototype.initMembers);
@@ -347,7 +353,7 @@ Game_Character.prototype.getRegionStatesTimer = function() {
 	return this._j._regions._states._timer;
 };
 /**
-* Extends {@link #update}.<br>
+* Extends {@link #update}.<br/>
 * Also handles region states updates for the character.
 */
 J.REGIONS.EXT.STATES.Aliased.Game_Character.set("update", Game_Character.prototype.update);
@@ -373,7 +379,7 @@ Game_Character.prototype.handleRegionStates = function() {
 */
 Game_Character.prototype.canHandleRegionStates = function() {
 	if (this.isVehicle()) return false;
-	if (typeof this.isVisible === "function" && this.isVisible() === false) return false;
+	if (!this.isVisible()) return false;
 	if (!this.hasJabsBattler()) return false;
 	return true;
 };
@@ -387,11 +393,17 @@ Game_Character.prototype.applyRegionStates = function() {
 	regionStateDatas.forEach((regionStateData) => {
 		const { stateId, chance, animationId } = regionStateData;
 		const calculatedChance = battler.stateRate(stateId) * chance;
-		if (!RPGManager.chanceIn100(calculatedChance)) return;
-		if (battler.isStateAffected(stateId)) {
-			battler.resetStateCounts(stateId, battler);
-		} else {
-			battler.addState(stateId, battler);
+		const state = $dataStates.at(stateId);
+		const positiveRolls = 1 + battler.getPositiveRollsForSkill(state);
+		const negativeRolls = battler.getNegativeRollsForSkill(state);
+		const procCount = RPGManager.resolveProcCount(battler, calculatedChance, positiveRolls, negativeRolls);
+		if (procCount === 0) return;
+		for (let i = 0; i < procCount; i++) {
+			if (battler.isStateAffected(stateId)) {
+				battler.resetStateCounts(stateId, battler);
+			} else {
+				battler.addState(stateId, battler);
+			}
 		}
 		if (animationId > 0) {
 			this.requestAnimation(animationId);

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v1.1.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -94,7 +94,55 @@
  * to hack this together manually by writing JSON.
  *
  * ============================================================================
+ * QUEST-GATED EVENT PAGES AND CHOICES:
+ * Beyond the JSON-authored quest data itself, this plugin adds tags that
+ * gate event pages and "Show Choices" branches behind quest/objective
+ * state, similar in spirit to J-MessageTextCodes' leader/switch choice
+ * conditionals.
+ *
+ * NOTE ABOUT THE THREE ARGUMENT SHAPES:
+ * All six tags below accept the array in one of three shapes, and behave
+ * accordingly:
+ *  [QUEST_KEY]
+ *   Valid while the quest itself is active (any objective).
+ *  [QUEST_KEY, OBJECTIVE_ID]
+ *   Valid while that specific objective is active.
+ *  [QUEST_KEY, OBJECTIVE_ID, STATE]
+ *   Valid while that specific objective is in the given STATE, where STATE
+ *   is one of: inactive, active, completed, failed, missed.
+ *
+ * TAG USAGE:
+ * - Event pages (comment, gates the whole page like a normal page condition)
+ * - "Show Choices" branches (comment, gates a single choice)
+ *
+ * TAG FORMAT:
+ *  <pageQuestCondition:[QUEST_KEY]>
+ *  <pageQuestCondition:[QUEST_KEY, OBJECTIVE_ID]>
+ *  <pageQuestCondition:[QUEST_KEY, OBJECTIVE_ID, STATE]>
+ *    Gates an entire event page.
+ *
+ *  <choiceQuestCondition:[QUEST_KEY]>
+ *  <choiceQuestCondition:[QUEST_KEY, OBJECTIVE_ID]>
+ *  <choiceQuestCondition:[QUEST_KEY, OBJECTIVE_ID, STATE]>
+ *    Gates a single "Show Choices" branch.
+ *
+ * TAG EXAMPLES:
+ *  <pageQuestCondition:[herbalist_delivery]>
+ * This event page is only active while the "herbalist_delivery" quest is
+ * active (in any objective state).
+ *
+ *  <pageQuestCondition:[herbalist_delivery, 2]>
+ * This event page is only active while objective 2 of that quest is active.
+ *
+ *  <choiceQuestCondition:[herbalist_delivery, 2, completed]>
+ * This choice is only shown while objective 2 of that quest is completed.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added <pageQuestCondition>/<choiceQuestCondition>, gating an event
+ *    page or a single "Show Choices" branch behind quest/objective state
+ *    (active quest, active objective, or a specific objective STATE:
+ *    inactive/active/completed/failed/missed).
  * - 1.0.3
  *    Updated to accommodate for mapping shortcut to view quest log.
  *    Added flag for showing external file load info.
@@ -260,10 +308,10 @@ var OmniFulfillmentData = class {
 	*/
 	constructor(indiscriminate = null, destination = null, fetch = null, slay = null, quest = null) {
 		this.indiscriminate = indiscriminate ?? new IndiscriminateData();
-		this.destination = destination ?? new DestinationData(-1, -1, -1, -1, -1);
-		this.fetch = fetch ?? new FetchData(OmniObjectiveFetchType.Unset, 0, 0);
-		this.slay = slay ?? new SlayData(0, 0);
-		this.quest = quest ?? new QuestData([]);
+		this.destination = destination ?? new DestinationData();
+		this.fetch = fetch ?? new FetchData();
+		this.slay = slay ?? new SlayData();
+		this.quest = quest ?? new QuestData();
 	}
 };
 
@@ -404,6 +452,10 @@ var OmniObjective = class OmniObjective {
 		Missed: 4
 	};
 	static FetchTypes = {
+		/**
+		* The default state for a fetch objective before a real type has been chosen.
+		*/
+		Unset: -1,
 		Item: 0,
 		Weapon: 1,
 		Armor: 2
@@ -580,7 +632,7 @@ var OmniQuestBuilder = class {
 	clear() {
 		this.#name = String.empty;
 		this.#key = String.empty;
-		this.#categoryKey = Array.empty;
+		this.#categoryKey = String.empty;
 		this.#tagKeys = Array.empty;
 		this.#unknownHint = String.empty;
 		this.#overview = String.empty;
@@ -667,7 +719,7 @@ var OmniQuest = class OmniQuest {
 	};
 	/**
 	* Converts a string descriptor of a quest state to its numeric counterpart.
-	* @param {string} questStateDescriptor
+	* @param {string} questStateDescriptor The quest state descriptor driving this step.
 	* @returns {number}
 	* @constructor
 	*/
@@ -1012,974 +1064,972 @@ var QuestManager = class {
 //#region src/plugins/omni/ext/quest/__models/TrackedOmniObjective.js
 /**
 * A class representing the tracking for a single objective of a quest.
+* Serialized into party save data via {@link JsonEx}; registered so bundled restores keep prototype methods.
 */
-function TrackedOmniObjective(questKey, id, omniFulfillmentData, hidden, optional) {
-	this.initialize(questKey, id, omniFulfillmentData, hidden, optional);
-}
-TrackedOmniObjective.prototype = {};
-TrackedOmniObjective.prototype.constructor = TrackedOmniObjective;
-/**
-* Initialize an objective tracker for an quest.
-* @param {number} id The id of this objective.
-* @param {string} questKey The key of the quest that owns this objective.
-* @param {OmniFulfillmentData} omniFulfillmentData The extraneous data on how this objective is to be fulfilled.
-* @param {boolean} hidden Whether or not this objective is hidden.
-* @param {boolean} optional Whether or not this objective is optional for its parent quest.
-*/
-TrackedOmniObjective.prototype.initialize = function(questKey, id, omniFulfillmentData, hidden, optional) {
+var TrackedOmniObjective = class {
 	/**
-	* The key of the quest that owns this objective. This is mostly used for metadata lookup.
-	* @type {string}
+	* Initialize an objective tracker for an quest.
+	* @param {number} id The id of this objective.
+	* @param {string} questKey The key of the quest that owns this objective.
+	* @param {OmniFulfillmentData} omniFulfillmentData The extraneous data on how this objective is to be fulfilled.
+	* @param {boolean} hidden Whether or not this objective is hidden.
+	* @param {boolean} optional Whether or not this objective is optional for its parent quest.
 	*/
-	this.questKey = questKey;
-	/**
-	* The id of this objective. This is typically used to indicate order between objectives within a single quest.
-	* @type {number}
-	*/
-	this.id = id;
-	/**
-	* Whether or not this objective is currently hidden.
-	* @type {boolean}
-	*/
-	this.hidden = hidden;
-	/**
-	* Whether or not this objective is considered "optional", in that it is not strictly required to complete the parent
-	* quest. Typically these objectives will end up "missed" if not completed rather than "failed".
-	* @type {boolean}
-	*/
-	this.optional = optional;
-	/**
-	* The current state of this objective, effectively a tracking of its progress.
-	* @type {number}
-	*/
-	this.state = OmniObjective.States.Inactive;
-	this.initializeFulfillmentData();
-	this.populateFulfillmentData(omniFulfillmentData);
-};
-/**
-* Initialize the fulfillment data properties to default values.
-*/
-TrackedOmniObjective.prototype.initializeFulfillmentData = function() {
-	/**
-	* The indiscriminate detail for completing this objective.
-	* @type {string}
-	*/
-	this._indiscriminateTargetData = String.empty;
-	/**
-	* The target mapId that the target coordinates reside for a destination-type objective.
-	* @type {number}
-	*/
-	this._targetMapId = -1;
-	/**
-	* The target coordinate range this objective requires the player to reach in order to fulfill the objective. This is
-	* designed to be a pair of coordinates that the player must reach within- and will be calculated as a rectangle
-	* which means if the player is anywhere within the coordinate range, then the objective will be considered fulfilled.
-	* @type {[[number, number],[number, number]]}
-	*/
-	this._targetCoordinateRange = [];
-	/**
-	* The target item type that the player must acquire {@link _targetItemFetchQuantity} quantity of in order to fulfill
-	* the objective.
-	* @type {number}
-	*/
-	this._targetItemType = -1;
-	/**
-	* The target item id that the player must acquire.
-	* @type {number}
-	*/
-	this._targetItemId = -1;
-	/**
-	* The target quantity to fetch of item of type {@link _targetItemType} in order to fulfill the objective.
-	* @type {number}
-	*/
-	this._targetItemFetchQuantity = -1;
-	/**
-	* The current quantity of the target item to fetch.
-	* @type {number}
-	*/
-	this._currentItemFetchQuantity = 0;
-	/**
-	* The target enemyId of which the player must defeat {@link _targetEnemyAmount} quantity of in order to fulfill the
-	* objective.
-	* @type {number}
-	*/
-	this._targetEnemyId = 0;
-	/**
-	* The target quantity to slay of enemy of id {@link _targetEnemyId} in order to fulfill the objective.
-	* @type {number}
-	*/
-	this._targetEnemyAmount = 0;
-	/**
-	* The current quantity of the target enemy to slay.
-	* @type {number}
-	*/
-	this._currentEnemyAmount = 0;
-	/**
-	* The target quest keys to complete in order to fulfill this objective.
-	* @type {string[]}
-	*/
-	this._targetQuestKeys = [];
-};
-/**
-* Populates the this objective's fulfillment requirements.
-* @param {OmniFulfillmentData} omniFulfillmentData
-*/
-TrackedOmniObjective.prototype.populateFulfillmentData = function(omniFulfillmentData) {
-	switch (this.type()) {
-		case OmniObjective.Types.Indiscriminate:
-			this._indiscriminateTargetData = omniFulfillmentData.indiscriminate.hint ?? "No indiscriminate objective instructions provided.";
-			return;
-		case OmniObjective.Types.Destination:
-			const { mapId, x1, y1, x2, y2 } = omniFulfillmentData.destination;
-			this._targetMapId = mapId;
-			const point1 = [x1, y1];
-			const point2 = [x2, y2];
-			this._targetCoordinateRange = [point1, point2];
-			break;
-		case OmniObjective.Types.Fetch:
-			this._targetItemType = omniFulfillmentData.fetch.type;
-			this._targetItemId = omniFulfillmentData.fetch.id;
-			this._targetItemFetchQuantity = omniFulfillmentData.fetch.amount;
-			break;
-		case OmniObjective.Types.Slay:
-			this._targetEnemyId = omniFulfillmentData.slay.id;
-			this._targetEnemyAmount = omniFulfillmentData.slay.amount;
-			break;
-		case OmniObjective.Types.Quest:
-			this._targetQuestKeys = [...omniFulfillmentData.quest.keys];
-			break;
+	constructor(questKey, id, omniFulfillmentData, hidden, optional) {
+		/**
+		* The key of the quest that owns this objective. This is mostly used for metadata lookup.
+		* @type {string}
+		*/
+		this.questKey = questKey;
+		/**
+		* The id of this objective. This is typically used to indicate order between objectives within a single quest.
+		* @type {number}
+		*/
+		this.id = id;
+		/**
+		* Whether or not this objective is currently hidden.
+		* @type {boolean}
+		*/
+		this.hidden = hidden;
+		/**
+		* Whether or not this objective is considered "optional", in that it is not strictly required to complete the parent
+		* quest. Typically these objectives will end up "missed" if not completed rather than "failed".
+		* @type {boolean}
+		*/
+		this.optional = optional;
+		/**
+		* The current state of this objective, effectively a tracking of its progress.
+		* @type {number}
+		*/
+		this.state = OmniObjective.States.Inactive;
+		this.initializeFulfillmentData();
+		this.populateFulfillmentData(omniFulfillmentData);
 	}
-};
-/**
-* Returns whether or not this objective has moved beyond being {@link OmniObjective.States.Inactive}.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isKnown = function() {
-	if (!this.hidden && this.isInactive()) return true;
-	if (!this.isInactive()) return true;
-	return false;
-};
-/**
-* Returns whether or not this objective has had some form of finalization from another state. This most commonly will
-* be completed, failed, or missed.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isFinalized = function() {
-	if (this.isCompleted()) return true;
-	if (this.isFailed()) return true;
-	if (this.isMissed()) return true;
-	return false;
-};
-/**
-* Returns whether or not this objective is {@link OmniObjective.States.Inactive}.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isInactive = function() {
-	return this.state === OmniObjective.States.Inactive;
-};
-/**
-* Returns whether or not this objective is {@link OmniObjective.States.Active}.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isActive = function() {
-	return this.state === OmniObjective.States.Active;
-};
-/**
-* Returns whether or not this objective is {@link OmniObjective.States.Completed}.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isCompleted = function() {
-	return this.state === OmniObjective.States.Completed;
-};
-/**
-* Returns whether or not this objective is {@link OmniObjective.States.Failed}.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isFailed = function() {
-	return this.state === OmniObjective.States.Failed;
-};
-/**
-* Returns whether or not this objective is {@link OmniObjective.States.Missed}.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isMissed = function() {
-	return this.state === OmniObjective.States.Missed;
-};
-/**
-* Returns whether or not this objective is hidden.<br/>
-* Objectives that are NOT hidden will show up in the questopedia and can be completed to activate the owning quest.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isHidden = function() {
-	return this.hidden === true;
-};
-/**
-* Determines whether or not this objective is valid in the sense that it can be updated and completed.
-* @param {OmniObjective.Types} targetType One of the {@link OmniObjective.Types} to validate against.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isValid = function(targetType) {
-	if (this.isCompleted() || this.isFailed() || this.isMissed()) return false;
-	if (!this.isActive() && this.isHidden()) return false;
-	return this.type() === targetType;
-};
-/**
-* Check if this objective is fulfilled- whatever type that it is.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isFulfilled = function() {
-	switch (this.type()) {
-		case OmniObjective.Types.Indiscriminate: return false;
-		case OmniObjective.Types.Destination: return this.isPlayerWithinDestinationRange();
-		case OmniObjective.Types.Fetch:
-			this.synchronizeFetchTargetItemQuantity();
-			return this.hasFetchedEnoughItems();
-		case OmniObjective.Types.Slay: return this.hasSlainEnoughEnemies();
-		case OmniObjective.Types.Quest: return this.hasCompletedAllQuests();
+	/**
+	* Initialize the fulfillment data properties to default values.
+	*/
+	initializeFulfillmentData() {
+		/**
+		* The indiscriminate detail for completing this objective.
+		* @type {string}
+		*/
+		this._indiscriminateTargetData = String.empty;
+		/**
+		* The target mapId that the target coordinates reside for a destination-type objective.
+		* @type {number}
+		*/
+		this._targetMapId = -1;
+		/**
+		* The target coordinate range this objective requires the player to reach in order to fulfill the objective. This is
+		* designed to be a pair of coordinates that the player must reach within- and will be calculated as a rectangle
+		* which means if the player is anywhere within the coordinate range, then the objective will be considered fulfilled.
+		* @type {[[number, number],[number, number]]}
+		*/
+		this._targetCoordinateRange = [];
+		/**
+		* The target item type that the player must acquire {@link _targetItemFetchQuantity} quantity of in order to fulfill
+		* the objective.
+		* @type {number}
+		*/
+		this._targetItemType = -1;
+		/**
+		* The target item id that the player must acquire.
+		* @type {number}
+		*/
+		this._targetItemId = -1;
+		/**
+		* The target quantity to fetch of item of type {@link _targetItemType} in order to fulfill the objective.
+		* @type {number}
+		*/
+		this._targetItemFetchQuantity = -1;
+		/**
+		* The current quantity of the target item to fetch.
+		* @type {number}
+		*/
+		this._currentItemFetchQuantity = 0;
+		/**
+		* The target enemyId of which the player must defeat {@link _targetEnemyAmount} quantity of in order to fulfill the
+		* objective.
+		* @type {number}
+		*/
+		this._targetEnemyId = 0;
+		/**
+		* The target quantity to slay of enemy of id {@link _targetEnemyId} in order to fulfill the objective.
+		* @type {number}
+		*/
+		this._targetEnemyAmount = 0;
+		/**
+		* The current quantity of the target enemy to slay.
+		* @type {number}
+		*/
+		this._currentEnemyAmount = 0;
+		/**
+		* The target quest keys to complete in order to fulfill this objective.
+		* @type {string[]}
+		*/
+		this._targetQuestKeys = [];
 	}
-};
-/**
-* Gets the metadata for the quest that owns this objective.
-* @returns {OmniQuest}
-*/
-TrackedOmniObjective.prototype.parentQuestMetadata = function() {
-	return J.OMNI.EXT.QUEST.Metadata.questsMap.get(this.questKey);
-};
-/**
-* Gets the metadata for this objective.
-* @returns {OmniObjective}
-*/
-TrackedOmniObjective.prototype.objectiveMetadata = function() {
-	return this.parentQuestMetadata().objectives.at(this.id);
-};
-/**
-* Gets the description of this objective.
-* @returns {string}
-*/
-TrackedOmniObjective.prototype.description = function() {
-	const { description } = this.objectiveMetadata();
-	return description;
-};
-/**
-* Gets the log represented by the current state of this objective.
-* @returns {string}
-*/
-TrackedOmniObjective.prototype.log = function() {
-	const { inactive, active, completed, failed, missed } = this.objectiveMetadata().logs;
-	switch (this.state) {
-		case OmniObjective.States.Inactive: return inactive;
-		case OmniObjective.States.Active: return active;
-		case OmniObjective.States.Completed: return completed;
-		case OmniObjective.States.Failed: return failed;
-		case OmniObjective.States.Missed: return missed;
+	/**
+	* Populates the this objective's fulfillment requirements.
+	* @param {OmniFulfillmentData} omniFulfillmentData The omni fulfillment data driving this step.
+	*/
+	populateFulfillmentData(omniFulfillmentData) {
+		switch (this.type()) {
+			case OmniObjective.Types.Indiscriminate:
+				this._indiscriminateTargetData = omniFulfillmentData.indiscriminate.hint ?? "No indiscriminate objective instructions provided.";
+				return;
+			case OmniObjective.Types.Destination:
+				const { mapId, x1, y1, x2, y2 } = omniFulfillmentData.destination;
+				this._targetMapId = mapId;
+				const point1 = [x1, y1];
+				const point2 = [x2, y2];
+				this._targetCoordinateRange = [point1, point2];
+				break;
+			case OmniObjective.Types.Fetch:
+				this._targetItemType = omniFulfillmentData.fetch.type;
+				this._targetItemId = omniFulfillmentData.fetch.id;
+				this._targetItemFetchQuantity = omniFulfillmentData.fetch.amount;
+				break;
+			case OmniObjective.Types.Slay:
+				this._targetEnemyId = omniFulfillmentData.slay.id;
+				this._targetEnemyAmount = omniFulfillmentData.slay.amount;
+				break;
+			case OmniObjective.Types.Quest:
+				this._targetQuestKeys = [...omniFulfillmentData.quest.keys];
+				break;
+		}
 	}
-};
-/**
-* Gets the {@link OmniObjective.Types} of objective this is to determine how it must be fulfilled.
-* @returns {number}
-*/
-TrackedOmniObjective.prototype.type = function() {
-	const { type } = this.objectiveMetadata();
-	return type;
-};
-/**
-* Gets the textual description of what it takes to fulfill the objective based on its type.
-* @returns {string}
-*/
-TrackedOmniObjective.prototype.fulfillmentText = function() {
-	const enoughColor = 24;
-	const notEnoughColor = 25;
-	switch (this.type()) {
-		case OmniObjective.Types.Indiscriminate: return OmniObjective.FulfillmentTemplate(this.type(), this._indiscriminateTargetData);
-		case OmniObjective.Types.Destination:
-			const point1 = `${this._targetCoordinateRange.at(0)}`;
-			const point2 = `${this._targetCoordinateRange.at(1)}`;
-			return OmniObjective.FulfillmentTemplate(this.type(), $gameMap.displayName(), point1, point2);
-		case OmniObjective.Types.Fetch:
-			const fetchColor = this._currentItemFetchQuantity < this._targetItemFetchQuantity ? notEnoughColor : enoughColor;
-			const targetItemText = `${this.fetchDataSourceTextPrefix()}[${this._targetItemId}]`;
-			const quantity = `\\C[${fetchColor}]${this._currentItemFetchQuantity} / ${this._targetItemFetchQuantity}\\C[0]`;
-			return OmniObjective.FulfillmentTemplate(this.type(), quantity, targetItemText);
-		case OmniObjective.Types.Slay:
-			const slayColor = this._currentEnemyAmount < this._targetEnemyAmount ? notEnoughColor : enoughColor;
-			const targetEnemyText = `\\C[${slayColor}]${this._currentEnemyAmount} / ${this._targetEnemyAmount}\\C[0]`;
-			return OmniObjective.FulfillmentTemplate(this.type(), targetEnemyText, this._targetEnemyId);
-		case OmniObjective.Types.Quest:
-			const questNames = this._targetQuestKeys.map((questKey) => `'\\quest[${questKey}]'`);
-			const questNamesWithCommas = questNames.join(", ");
-			return OmniObjective.FulfillmentTemplate(this.type(), questNamesWithCommas);
+	/**
+	* Returns whether or not this objective has moved beyond being {@link OmniObjective.States.Inactive}.
+	* @returns {boolean}
+	*/
+	isKnown() {
+		if (!this.hidden && this.isInactive()) return true;
+		if (!this.isInactive()) return true;
+		return false;
 	}
-};
-/**
-* Gets the icon index derived from the state of this objective.
-* @returns {number}
-*/
-TrackedOmniObjective.prototype.iconIndexByState = function() {
-	switch (this.state) {
-		case OmniObjective.States.Inactive: return 93;
-		case OmniObjective.States.Active: return 92;
-		case OmniObjective.States.Completed: return 91;
-		case OmniObjective.States.Failed: return 90;
-		case OmniObjective.States.Missed: return 95;
+	/**
+	* Returns whether or not this objective has had some form of finalization from another state. This most commonly will
+	* be completed, failed, or missed.
+	* @returns {boolean}
+	*/
+	isFinalized() {
+		if (this.isCompleted()) return true;
+		if (this.isFailed()) return true;
+		if (this.isMissed()) return true;
+		return false;
 	}
-};
-/**
-* Changes the state of this objective to a new state and processes the {@link onObjectiveUpdate} hook. If the state
-* does not actually change to something new, the hook will not trigger.
-* @param {number} newState The new {@link OmniObjective.States} to set this state to.
-*/
-TrackedOmniObjective.prototype.setState = function(newState) {
-	if (this.state !== newState) {
-		this.state = newState;
+	/**
+	* Returns whether or not this objective is {@link OmniObjective.States.Inactive}.
+	* @returns {boolean}
+	*/
+	isInactive() {
+		return this.state === OmniObjective.States.Inactive;
+	}
+	/**
+	* Returns whether or not this objective is {@link OmniObjective.States.Active}.
+	* @returns {boolean}
+	*/
+	isActive() {
+		return this.state === OmniObjective.States.Active;
+	}
+	/**
+	* Returns whether or not this objective is {@link OmniObjective.States.Completed}.
+	* @returns {boolean}
+	*/
+	isCompleted() {
+		return this.state === OmniObjective.States.Completed;
+	}
+	/**
+	* Returns whether or not this objective is {@link OmniObjective.States.Failed}.
+	* @returns {boolean}
+	*/
+	isFailed() {
+		return this.state === OmniObjective.States.Failed;
+	}
+	/**
+	* Returns whether or not this objective is {@link OmniObjective.States.Missed}.
+	* @returns {boolean}
+	*/
+	isMissed() {
+		return this.state === OmniObjective.States.Missed;
+	}
+	/**
+	* Returns whether or not this objective is hidden.<br/>
+	* Objectives that are NOT hidden will show up in the questopedia and can be completed to activate the owning quest.
+	* @returns {boolean}
+	*/
+	isHidden() {
+		return this.hidden === true;
+	}
+	/**
+	* Determines whether or not this objective is valid in the sense that it can be updated and completed.
+	* @param {OmniObjective.Types} targetType One of the {@link OmniObjective.Types} to validate against.
+	* @returns {boolean}
+	*/
+	isValid(targetType) {
+		if (this.isCompleted() || this.isFailed() || this.isMissed()) return false;
+		if (!this.isActive() && this.isHidden()) return false;
+		return this.type() === targetType;
+	}
+	/**
+	* Check if this objective is fulfilled- whatever type that it is.
+	* @returns {boolean}
+	*/
+	isFulfilled() {
+		switch (this.type()) {
+			case OmniObjective.Types.Indiscriminate: return false;
+			case OmniObjective.Types.Destination: return this.isPlayerWithinDestinationRange();
+			case OmniObjective.Types.Fetch:
+				this.synchronizeFetchTargetItemQuantity();
+				return this.hasFetchedEnoughItems();
+			case OmniObjective.Types.Slay: return this.hasSlainEnoughEnemies();
+			case OmniObjective.Types.Quest: return this.hasCompletedAllQuests();
+		}
+	}
+	/**
+	* Gets the metadata for the quest that owns this objective.
+	* @returns {OmniQuest}
+	*/
+	parentQuestMetadata() {
+		return J.OMNI.EXT.QUEST.Metadata.questsMap.get(this.questKey);
+	}
+	/**
+	* Gets the metadata for this objective.
+	* @returns {OmniObjective}
+	*/
+	objectiveMetadata() {
+		return this.parentQuestMetadata().objectives.at(this.id);
+	}
+	/**
+	* Gets the description of this objective.
+	* @returns {string}
+	*/
+	description() {
+		const { description } = this.objectiveMetadata();
+		return description;
+	}
+	/**
+	* Gets the log represented by the current state of this objective.
+	* @returns {string}
+	*/
+	log() {
+		const { inactive, active, completed, failed, missed } = this.objectiveMetadata().logs;
+		switch (this.state) {
+			case OmniObjective.States.Inactive: return inactive;
+			case OmniObjective.States.Active: return active;
+			case OmniObjective.States.Completed: return completed;
+			case OmniObjective.States.Failed: return failed;
+			case OmniObjective.States.Missed: return missed;
+		}
+	}
+	/**
+	* Gets the {@link OmniObjective.Types} of objective this is to determine how it must be fulfilled.
+	* @returns {number}
+	*/
+	type() {
+		const { type } = this.objectiveMetadata();
+		return type;
+	}
+	/**
+	* Gets the textual description of what it takes to fulfill the objective based on its type.
+	* @returns {string}
+	*/
+	fulfillmentText() {
+		const enoughColor = 24;
+		const notEnoughColor = 25;
+		switch (this.type()) {
+			case OmniObjective.Types.Indiscriminate: return OmniObjective.FulfillmentTemplate(this.type(), this._indiscriminateTargetData);
+			case OmniObjective.Types.Destination:
+				const point1 = `${this._targetCoordinateRange.at(0)}`;
+				const point2 = `${this._targetCoordinateRange.at(1)}`;
+				return OmniObjective.FulfillmentTemplate(this.type(), $gameMap.displayName(), point1, point2);
+			case OmniObjective.Types.Fetch:
+				const fetchColor = this._currentItemFetchQuantity < this._targetItemFetchQuantity ? notEnoughColor : enoughColor;
+				const targetItemText = `${this.fetchDataSourceTextPrefix()}[${this._targetItemId}]`;
+				const quantity = `\\C[${fetchColor}]${this._currentItemFetchQuantity} / ${this._targetItemFetchQuantity}\\C[0]`;
+				return OmniObjective.FulfillmentTemplate(this.type(), quantity, targetItemText);
+			case OmniObjective.Types.Slay:
+				const slayColor = this._currentEnemyAmount < this._targetEnemyAmount ? notEnoughColor : enoughColor;
+				const targetEnemyText = `\\C[${slayColor}]${this._currentEnemyAmount} / ${this._targetEnemyAmount}\\C[0]`;
+				return OmniObjective.FulfillmentTemplate(this.type(), targetEnemyText, this._targetEnemyId);
+			case OmniObjective.Types.Quest:
+				const questNames = this._targetQuestKeys.map((questKey) => `'\\quest[${questKey}]'`);
+				const questNamesWithCommas = questNames.join(", ");
+				return OmniObjective.FulfillmentTemplate(this.type(), questNamesWithCommas);
+		}
+	}
+	/**
+	* Gets the icon index derived from the state of this objective.
+	* @returns {number}
+	*/
+	iconIndexByState() {
+		switch (this.state) {
+			case OmniObjective.States.Inactive: return 93;
+			case OmniObjective.States.Active: return 92;
+			case OmniObjective.States.Completed: return 91;
+			case OmniObjective.States.Failed: return 90;
+			case OmniObjective.States.Missed: return 95;
+		}
+	}
+	/**
+	* Changes the state of this objective to a new state and processes the {@link onObjectiveUpdate} hook. If the state
+	* does not actually change to something new, the hook will not trigger.
+	* @param {number} newState The new {@link OmniObjective.States} to set this state to.
+	*/
+	setState(newState) {
+		if (this.state !== newState) {
+			this.state = newState;
+			this.onObjectiveUpdate();
+		}
+	}
+	/**
+	* Gets the destination data for this objective. The response shape will contain the mapId, and the coordinate range.
+	* <pre>
+	*     [ mapId, [[x1,y1], [x2,y2]] ]
+	* </pre>
+	* @returns {[number,[[number,number],[number,number]]]}
+	*/
+	destinationData() {
+		return [this._targetMapId, this._targetCoordinateRange];
+	}
+	/**
+	* Checks if the player is presently standing within the rectangle derived from the coordinate range for this objective.
+	*/
+	isPlayerWithinDestinationRange() {
+		const [mapId, range] = this.destinationData();
+		if ($gameMap.mapId() !== mapId) return false;
+		const [x1, y1] = range.at(0);
+		const [x2, y2] = range.at(1);
+		const playerX = $gamePlayer.x;
+		const playerY = $gamePlayer.y;
+		const isInCoordinateRange = playerX >= x1 && playerX <= x2 && playerY >= y1 && playerY <= y2;
+		this.onObjectiveUpdate();
+		return isInCoordinateRange;
+	}
+	/**
+	* The data points associated with fetch-related objectives.
+	* @returns {[number,number]}
+	*/
+	fetchData() {
+		return [this._targetItemId, this._targetItemFetchQuantity];
+	}
+	/**
+	* Determines whether or not the given item is the target of this fetch objective.
+	* @param {RPG_Item|RPG_Weapon|RPG_Armor} entry The entry driving this step.
+	* @returns {boolean}
+	*/
+	isFetchTarget(entry) {
+		const objectiveType = this.type();
+		if (objectiveType !== OmniObjective.Types.Fetch) return false;
+		if (this._targetItemType === 0 && !entry.isItem()) return false;
+		if (this._targetItemType === 1 && !entry.isWeapon()) return false;
+		if (this._targetItemType === 2 && !entry.isArmor()) return false;
+		return entry.id === this._targetItemId;
+	}
+	/**
+	* Gets the escape code for displaying text in a window based on the given target item type to fetch.
+	* @returns {string}
+	*/
+	fetchDataSourceTextPrefix() {
+		switch (this._targetItemType) {
+			case OmniObjective.FetchTypes.Item: return `\\Item`;
+			case OmniObjective.FetchTypes.Weapon: return `\\Weapon`;
+			case OmniObjective.FetchTypes.Armor: return `\\Armor`;
+			default: throw new Error(`unknown target item type: ${this._targetItemType}`);
+		}
+	}
+	/**
+	* Returns the datasource of the fetch objective data.
+	* @returns {RPG_Item[]|RPG_Weapon[]|RPG_Armor[]}
+	*/
+	fetchItemDataSource() {
+		switch (this._targetItemType) {
+			case OmniObjective.FetchTypes.Item: return $dataItems;
+			case OmniObjective.FetchTypes.Weapon: return $dataWeapons;
+			case OmniObjective.FetchTypes.Armor: return $dataArmors;
+			default: throw new Error(`unknown target item type: ${this._targetItemType}`);
+		}
+	}
+	/**
+	* Synchronizes the number of items the player has in their possession with this objective.
+	*/
+	synchronizeFetchTargetItemQuantity() {
+		const targetDataSource = this.fetchItemDataSource();
+		const targetItem = targetDataSource.at(this._targetItemId);
+		this._currentItemFetchQuantity = $gameParty.numItems(targetItem);
 		this.onObjectiveUpdate();
 	}
-};
-/**
-* Gets the destination data for this objective. The response shape will contain the mapId, and the coordinate range.
-* <pre>
-*     [ mapId, [[x1,y1], [x2,y2]] ]
-* </pre>
-* @returns {[number,[[number,number],[number,number]]]}
-*/
-TrackedOmniObjective.prototype.destinationData = function() {
-	return [this._targetMapId, this._targetCoordinateRange];
-};
-/**
-* Checks if the player is presently standing within the rectangle derived from the coordinate range for this objective.
-*/
-TrackedOmniObjective.prototype.isPlayerWithinDestinationRange = function() {
-	const [mapId, range] = this.destinationData();
-	if ($gameMap.mapId() !== mapId) return false;
-	const [x1, y1] = range.at(0);
-	const [x2, y2] = range.at(1);
-	const playerX = $gamePlayer.x;
-	const playerY = $gamePlayer.y;
-	const isInCoordinateRange = playerX >= x1 && playerX <= x2 && playerY >= y1 && playerY <= y2;
-	this.onObjectiveUpdate();
-	return isInCoordinateRange;
-};
-/**
-* The data points associated with fetch-related objectives.
-* @returns {[number,number]}
-*/
-TrackedOmniObjective.prototype.fetchData = function() {
-	return [this._targetItemId, this._targetItemFetchQuantity];
-};
-/**
-* Determines whether or not the given item is the target of this fetch objective.
-* @param {RPG_Item|RPG_Weapon|RPG_Armor} entry
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.isFetchTarget = function(entry) {
-	const objectiveType = this.type();
-	if (objectiveType !== OmniObjective.Types.Fetch) return false;
-	if (this._targetItemType === 0 && !entry.isItem()) return false;
-	if (this._targetItemType === 1 && !entry.isWeapon()) return false;
-	if (this._targetItemType === 2 && !entry.isArmor()) return false;
-	return entry.id === this._targetItemId;
-};
-/**
-* Gets the escape code for displaying text in a window based on the given target item type to fetch.
-* @returns {string}
-*/
-TrackedOmniObjective.prototype.fetchDataSourceTextPrefix = function() {
-	switch (this._targetItemType) {
-		case OmniObjective.FetchTypes.Item: return `\\Item`;
-		case OmniObjective.FetchTypes.Weapon: return `\\Weapon`;
-		case OmniObjective.FetchTypes.Armor: return `\\Armor`;
-		default: throw new Error(`unknown target item type: ${this._targetItemType}`);
+	/**
+	* Checks whether or not the player has collected enough of the target fetched item. This always returns false for
+	* objectives that are not of type {@link OmniObjective.Types.Fetch}.
+	* @returns {boolean}
+	*/
+	hasFetchedEnoughItems() {
+		if (this.type() !== OmniObjective.Types.Fetch) return false;
+		return this._currentItemFetchQuantity >= this._targetItemFetchQuantity;
+	}
+	/**
+	* The data points associated with slay-related objectives.
+	* @returns {[number,number]}
+	*/
+	slayData() {
+		return [this._targetEnemyId, this._targetEnemyAmount];
+	}
+	/**
+	* Increments the counter for how many of the required enemies the player has slain.
+	*/
+	incrementSlayTargetEnemyAmount() {
+		this._currentEnemyAmount++;
+		this.onObjectiveUpdate();
+	}
+	/**
+	* Checks whether or not the player has collected enough of the target fetched item. This always returns false for
+	* objectives that are not of type {@link OmniObjective.Types.Fetch}.
+	* @returns {boolean}
+	*/
+	hasSlainEnoughEnemies() {
+		if (this.type() !== OmniObjective.Types.Slay) return false;
+		return this._currentEnemyAmount >= this._targetEnemyAmount;
+	}
+	questCompletionData() {
+		return this._targetQuestKeys;
+	}
+	hasCompletedAllQuests() {
+		const requiredQuestKeys = this.questCompletionData();
+		if (requiredQuestKeys.length === 0) return true;
+		return requiredQuestKeys.every((requiredQuestKey) => QuestManager.quest(requiredQuestKey).isCompleted());
+	}
+	/**
+	* An event hook for when objective progress is updated, like an enemy is slain for the objective or an item is
+	* acquired towards the fetch goal.
+	*/
+	onObjectiveUpdate() {
+		if ($diaLogManager) {
+			this.handleObjectiveUpdateLog();
+		}
+	}
+	/**
+	* Generate a dialog indicating the quest objectives have been updated.
+	*/
+	handleObjectiveUpdateLog() {
+		if (!this.isFinalized()) return;
+		const objectiveMessage = [`\\C[1][${this.parentQuestMetadata().name}]\\C[0] updated.`];
+		switch (this.state) {
+			case OmniObjective.States.Completed:
+				objectiveMessage.push("Objective completed.");
+				break;
+			case OmniObjective.States.Failed:
+				objectiveMessage.push("Objective failed.");
+				break;
+			case OmniObjective.States.Missed:
+				objectiveMessage.push("Objective missed.");
+				break;
+			default: throw new Error("Unknown finalization state for objective update message.");
+		}
+		const log = new DiaLogBuilder().setLines(objectiveMessage).build();
+		$diaLogManager.addLog(log);
 	}
 };
-/**
-* Returns the datasource of the fetch objective data.
-* @returns {RPG_Item[]|RPG_Weapon[]|RPG_Armor[]}
-*/
-TrackedOmniObjective.prototype.fetchItemDataSource = function() {
-	switch (this._targetItemType) {
-		case OmniObjective.FetchTypes.Item: return $dataItems;
-		case OmniObjective.FetchTypes.Weapon: return $dataWeapons;
-		case OmniObjective.FetchTypes.Armor: return $dataArmors;
-		default: throw new Error(`unknown target item type: ${this._targetItemType}`);
-	}
-};
-/**
-* Synchronizes the number of items the player has in their possession with this objective.
-*/
-TrackedOmniObjective.prototype.synchronizeFetchTargetItemQuantity = function() {
-	const targetDataSource = this.fetchItemDataSource();
-	const targetItem = targetDataSource.at(this._targetItemId);
-	this._currentItemFetchQuantity = $gameParty.numItems(targetItem);
-	this.onObjectiveUpdate();
-};
-/**
-* Checks whether or not the player has collected enough of the target fetched item. This always returns false for
-* objectives that are not of type {@link OmniObjective.Types.Fetch}.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.hasFetchedEnoughItems = function() {
-	if (this.type() !== OmniObjective.Types.Fetch) return false;
-	return this._currentItemFetchQuantity >= this._targetItemFetchQuantity;
-};
-/**
-* The data points associated with slay-related objectives.
-* @returns {[number,number]}
-*/
-TrackedOmniObjective.prototype.slayData = function() {
-	return [this._targetEnemyId, this._targetEnemyAmount];
-};
-/**
-* Increments the counter for how many of the required enemies the player has slain.
-*/
-TrackedOmniObjective.prototype.incrementSlayTargetEnemyAmount = function() {
-	this._currentEnemyAmount++;
-	this.onObjectiveUpdate();
-};
-/**
-* Checks whether or not the player has collected enough of the target fetched item. This always returns false for
-* objectives that are not of type {@link OmniObjective.Types.Fetch}.
-* @returns {boolean}
-*/
-TrackedOmniObjective.prototype.hasSlainEnoughEnemies = function() {
-	if (this.type() !== OmniObjective.Types.Slay) return false;
-	return this._currentEnemyAmount >= this._targetEnemyAmount;
-};
-TrackedOmniObjective.prototype.questCompletionData = function() {
-	return this._targetQuestKeys;
-};
-TrackedOmniObjective.prototype.hasCompletedAllQuests = function() {
-	const requiredQuestKeys = this.questCompletionData();
-	if (requiredQuestKeys.length === 0) return true;
-	return requiredQuestKeys.every((requiredQuestKey) => QuestManager.quest(requiredQuestKey).isCompleted());
-};
-/**
-* An event hook for when objective progress is updated, like an enemy is slain for the objective or an item is
-* acquired towards the fetch goal.
-*/
-TrackedOmniObjective.prototype.onObjectiveUpdate = function() {
-	if ($diaLogManager) {
-		this.handleObjectiveUpdateLog();
-	}
-};
-/**
-* Generate a dialog indicating the quest objectives have been updated.
-*/
-TrackedOmniObjective.prototype.handleObjectiveUpdateLog = function() {
-	if (!this.isFinalized()) return;
-	const objectiveMessage = [`\\C[1][${this.parentQuestMetadata().name}]\\C[0] updated.`];
-	switch (this.state) {
-		case OmniObjective.States.Completed:
-			objectiveMessage.push("Objective completed.");
-			break;
-		case OmniObjective.States.Failed:
-			objectiveMessage.push("Objective failed.");
-			break;
-		case OmniObjective.States.Missed:
-			objectiveMessage.push("Objective missed.");
-			break;
-		default: throw new Error("Unknown finalization state for objective update message.");
-	}
-	const log = new DiaLogBuilder().setLines(objectiveMessage).build();
-	$diaLogManager.addLog(log);
-};
+SerializableRegistry.register(TrackedOmniObjective);
 
 //#endregion
 //#region src/plugins/omni/ext/quest/__models/TrackedOmniQuest.js
 /**
 * A class representing the tracking for a single quest.
+* Serialized into party save data via {@link JsonEx}; registered so bundled restores keep prototype methods.
 */
-function TrackedOmniQuest(key, categoryKey, objectives) {
-	this.initialize(key, categoryKey, objectives);
-}
-TrackedOmniQuest.prototype = {};
-TrackedOmniQuest.prototype.constructor = TrackedOmniQuest;
-/**
-* Initialize a tracker for a quest.
-* @param {string} key The primary key of this quest.
-* @param {string} categoryKey The category key of this quest.
-* @param {TrackedOmniObjective[]} objectives The various objectives required to complete this quest.
-*/
-TrackedOmniQuest.prototype.initialize = function(key, categoryKey, objectives) {
+var TrackedOmniQuest = class {
 	/**
-	* The primary key of the quest. This is a unique representation used for managing the quest.
-	* @type {string}
+	* Initialize a tracker for a quest.
+	* @param {string} key The primary key of this quest.
+	* @param {string} categoryKey The category key of this quest.
+	* @param {TrackedOmniObjective[]} objectives The various objectives required to complete this quest.
 	*/
-	this.key = key;
+	constructor(key, categoryKey, objectives) {
+		/**
+		* The primary key of the quest. This is a unique representation used for managing the quest.
+		* @type {string}
+		*/
+		this.key = key;
+		/**
+		* The category key of the quest. This is used for organizing where in the UI the quest will show up.
+		* @type {string}
+		*/
+		this.categoryKey = categoryKey;
+		/**
+		* The various objectives that can/must be fulfilled in order to complete the quest. These are sorted by id from
+		* lowest to highest, indicating sequence.
+		* @type {TrackedOmniObjective[]}
+		*/
+		this.objectives = objectives.sort((a, b) => a.id - b.id);
+		this.initMembers();
+	}
 	/**
-	* The category key of the quest. This is used for organizing where in the UI the quest will show up.
-	* @type {string}
+	* Initialize all members of this quest.
 	*/
-	this.categoryKey = categoryKey;
+	initMembers() {
+		/**
+		* The current state of this quest.
+		* @type {number}
+		*/
+		this.state = OmniQuest.States.Inactive;
+		/**
+		* Whether or not this quest is being tracked.
+		* @type {boolean}
+		*/
+		this.tracked = false;
+	}
 	/**
-	* The various objectives that can/must be fulfilled in order to complete the quest. These are sorted by id from
-	* lowest to highest, indicating sequence.
-	* @type {TrackedOmniObjective[]}
+	* Determines whether or not this quest can be tracked.
+	* @returns {boolean}
 	*/
-	this.objectives = objectives.sort((a, b) => a.id - b.id);
-	this.initMembers();
-};
-/**
-* Initialize all members of this quest.
-*/
-TrackedOmniQuest.prototype.initMembers = function() {
-	/**
-	* The current state of this quest.
-	* @type {number}
-	*/
-	this.state = OmniQuest.States.Inactive;
+	canBeTracked() {
+		if (this.isActive()) return true;
+		return this.objectives.some((objective) => !objective.isHidden());
+	}
 	/**
 	* Whether or not this quest is being tracked.
-	* @type {boolean}
+	* @returns {boolean}
 	*/
-	this.tracked = false;
-};
-/**
-* Determines whether or not this quest can be tracked.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.canBeTracked = function() {
-	if (this.isActive()) return true;
-	return this.objectives.some((objective) => !objective.isHidden());
-};
-/**
-* Whether or not this quest is being tracked.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isTracked = function() {
-	return this.tracked === true || this.tracked === "true";
-};
-/**
-* Toggles whether or not the quest is being tracked.
-* @param {?boolean} forcedState If provided, then will force tracking to the designated boolean.
-*/
-TrackedOmniQuest.prototype.toggleTracked = function(forcedState = null) {
-	if (forcedState !== null) {
-		this.tracked = forcedState;
-		return;
+	isTracked() {
+		return this.tracked === true || this.tracked === "true";
 	}
-	this.tracked = !this.tracked;
-};
-/**
-* Gets the metadata for this {@link TrackedOmniQuest}.
-* @returns {OmniQuest}
-*/
-TrackedOmniQuest.prototype.questMetadata = function() {
-	return J.OMNI.EXT.QUEST.Metadata.questsMap.get(this.key);
-};
-/**
-* The name of the quest- but its computed since its just read from the data file.
-* @returns {string} The name of the quest from the data source.
-*/
-TrackedOmniQuest.prototype.name = function() {
-	const { name } = this.questMetadata();
-	return name;
-};
-/**
-* The recommended level for the quest- but its computed since its just read from the data file.
-* @returns {number} The recommended level to complete the quest.
-*/
-TrackedOmniQuest.prototype.recommendedLevel = function() {
-	const { recommendedLevel } = this.questMetadata();
-	return recommendedLevel;
-};
-/**
-* The tag keys on the quest- but its computed since its just read from the data file.
-* @returns {string[]} The tag keys associated with the quest.
-*/
-TrackedOmniQuest.prototype.tagKeys = function() {
-	const { tagKeys } = this.questMetadata();
-	return tagKeys ?? [];
-};
-/**
-* Gets the {@link OmniTag}s that correspond with the tag keys on the quest.
-* @returns {OmniTag[]}
-*/
-TrackedOmniQuest.prototype.tags = function() {
-	return this.tagKeys().map((tagKey) => J.OMNI.EXT.QUEST.Metadata.tagsMap.get(tagKey));
-};
-/**
-* Gets the hint provided when a quest has yet to be discovered.
-* @returns {string}
-*/
-TrackedOmniQuest.prototype.unknownHint = function() {
-	const { unknownHint } = this.questMetadata();
-	return unknownHint;
-};
-/**
-* The journaling of the quest- but its computed since its a combination of all started objectives' descriptions that
-* are just read from the data file.
-* @returns {string[]}
-*/
-TrackedOmniQuest.prototype.overview = function() {
-	const { overview } = this.questMetadata();
-	return overview;
-};
-/**
-* Check if the target objective by its id is completed already. This falls back to the immediate, or the first if no
-* objective id was provided.
-* @param {?number} objectiveId The objective id to check for completion.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isObjectiveCompleted = function(objectiveId = null) {
-	return this.isObjectiveInState(OmniObjective.States.Completed, objectiveId);
-};
-/**
-* Check if an objective is the specified state.
-* @param {number} targetState The state from {@link OmniObjective.States} to check if the objective is in.
-* @param {?number} objectiveId The objective id to check the state of; falls back to immediate >> first.
-* @returns {boolean} True if the objective is in the specified state, false otherwise.
-*/
-TrackedOmniQuest.prototype.isObjectiveInState = function(targetState, objectiveId = null) {
-	const actualObjectiveId = this.getFallbackObjectiveId(objectiveId);
-	const objective = this.objectives.find((o) => o.id === actualObjectiveId);
-	if (objective) {
-		return objective.state === targetState;
-	}
-	return false;
-};
-/**
-* Determines whether or not an objective is able to be executed. This does not consider the state of the quest itself,
-* only the objective. If no objective id is provided, then the fallback will be referred to.
-* @param {?number} objectiveId The id of the objective to interrogate.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.canExecuteObjectiveById = function(objectiveId = null) {
-	const actualObjectiveId = this.getFallbackObjectiveId(objectiveId);
-	const objective = this.objectives.find((o) => o.id === actualObjectiveId);
-	return objective?.state === OmniObjective.States.Active;
-};
-/**
-* A "known" quest is one that is no longer undiscovered/inactive. This includes completed/failed/missed quests.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isKnown = function() {
-	return !this.isInactive();
-};
-/**
-* An {@link OmniQuest.States.Inactive} quest is one that has yet to be unlocked/discovered by the player.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isInactive = function() {
-	return this.isInState(OmniQuest.States.Inactive);
-};
-/**
-* An {@link OmniQuest.States.Active} quest is one that has already been unlocked/discovered by the player.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isActive = function() {
-	return this.isInState(OmniQuest.States.Active);
-};
-/**
-* A {@link OmniQuest.States.Completed} quest is one that had all of its objectives completed with some possibly missed.
-* This is considered a finalized state.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isCompleted = function() {
-	return this.isInState(OmniQuest.States.Completed);
-};
-/**
-* A {@link OmniQuest.States.Failed} quest is one that had one or more of its objectives placed into a failed state.
-* This is considered a finalized state.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isFailed = function() {
-	return this.isInState(OmniQuest.States.Failed);
-};
-/**
-* A {@link OmniQuest.States.Missed} quest is one that had one or more of its objectives placed into a missed state, and
-* none of the objectives marked as completed. This most likely will happen to a quest that may or may not have a
-* non-hidden objective to the player but the objective was never completed resulting in the quest being missed.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isMissed = function() {
-	return this.isInState(OmniQuest.States.Missed);
-};
-/**
-* A "Finalized" quest is one that has been completed/failed/missed.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isFinalized = function() {
-	if (this.isCompleted()) return true;
-	if (this.isFailed()) return true;
-	if (this.isMissed()) return true;
-	return false;
-};
-/**
-* Checks if the quest is in a particular {@link OmniQuest.States}.
-* @param {number} targetState The {@link OmniQuest.States} to compare the current state against.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.isInState = function(targetState) {
-	return this.state === targetState;
-};
-/**
-* Unlocks this quest and actives the target objective. If no objectiveId is provided, then the first objective will be
-* made {@link OmniObjective.States.Active}.
-* @param {?number} objectiveId The id of the objective to initialize as active; defaults to the immediate or first.
-*/
-TrackedOmniQuest.prototype.unlock = function(objectiveId = null) {
-	if (!this.canBeUnlocked()) {
-		console.warn(`Attempted to unlock quest with key ${this.key}, but it cannot be unlocked from state ${this.state}.`);
-		return;
-	}
-	this.flagObjectiveAsActive(objectiveId);
-	this.refreshState();
-};
-/**
-* Resets this quest back to being completely unknown.<br/>
-* Note that objectives that are still not-hidden will be visible.
-*/
-TrackedOmniQuest.prototype.reset = function() {
-	this.setState(OmniQuest.States.Inactive);
-	this.objectives.forEach((objective) => objective.state = OmniObjective.States.Inactive);
-};
-/**
-* Determines whether or not the quest can be unlocked.
-* @returns {boolean}
-*/
-TrackedOmniQuest.prototype.canBeUnlocked = function() {
-	if (this.isKnown()) return false;
-	return true;
-};
-/**
-* Automatically progress the current objective to complete and active the next objective in the list. If no objectives
-* are active, then the next objective in the sequence will be activated. If there are no other objectives to activate,
-* then the quest will be completed.
-*
-* If multiple objectives are active, this function will not work- multiple active objectives must be handled manually
-* and individually.
-*
-* Normally, this is triggered as a result of programmatic detection of an objective being achieved, but can also be a
-* manual action if desiring to move a quest along.
-*/
-TrackedOmniQuest.prototype.progressObjectives = function() {
-	const activeObjectives = this.activeObjectives();
-	if (activeObjectives.length > 1) {
-		console.warn(`multiple quest objectives are currently active and must be finalized manually by id.`);
-		return;
-	}
-	if (activeObjectives.length === 1) {
-		const objectiveId = activeObjectives.at(0).id;
-		this.flagObjectiveAsCompleted(objectiveId);
-	}
-	this._fastForwardToNextObjective();
-};
-/**
-* Fast-forwards to the next objective in the list and changes it from inactive to active. If the newly activated
-* objective is completable immediately, complete it and keep taking one more inactive objective sequentially until we
-* stop immediately completing them and leave the player with an active objective on the quest, or by running out of
-* inactive objectives to activate translating to the quest being officially complete.
-*/
-TrackedOmniQuest.prototype._fastForwardToNextObjective = function() {
-	let needsNextObjective;
-	do {
-		const nextObjective = this.objectives.find((objective) => objective.state === OmniObjective.States.Inactive);
-		if (nextObjective) {
-			if (nextObjective.isFulfilled()) {
-				this.flagObjectiveAsCompleted(nextObjective.id);
-				needsNextObjective = true;
-			} else {
-				this.flagObjectiveAsActive(nextObjective.id);
-				needsNextObjective = false;
-			}
-		} else {
-			needsNextObjective = false;
+	/**
+	* Toggles whether or not the quest is being tracked.
+	* @param {?boolean} forcedState If provided, then will force tracking to the designated boolean.
+	*/
+	toggleTracked(forcedState = null) {
+		if (forcedState !== null) {
+			this.tracked = forcedState;
+			return;
 		}
-	} while (needsNextObjective);
-	const hasAnymoreActiveObjectives = this.objectives.some((objective) => objective.isActive());
-	if (hasAnymoreActiveObjectives) return;
-	this.flagAsCompleted();
-};
-/**
-* Gets all objectives currently tracked as {@link OmniObjective.States.Active}.
-* @returns {TrackedOmniObjective[]}
-*/
-TrackedOmniQuest.prototype.activeObjectives = function() {
-	return this.objectives.filter((objective) => objective.state === OmniObjective.States.Active);
-};
-/**
-* Gets the first-most objective that is currently tracked as {@link OmniObjective.States.Active}.
-* @returns {TrackedOmniObjective}
-*/
-TrackedOmniQuest.prototype.immediateObjective = function() {
-	return this.activeObjectives()?.at(0);
-};
-/**
-* Flags the given objective by its id as {@link OmniObjective.States.Active}. If no objectiveId is provided, then the
-* immediate objective will be flagged instead (that being the lowest-id active objective, if any), or the very first
-* objective will be flagged.
-* @param {?number} objectiveId The id of the objective to flag as missed; defaults to the immediate or first.
-*/
-TrackedOmniQuest.prototype.flagObjectiveAsActive = function(objectiveId = null) {
-	this.changeTargetObjectiveState(objectiveId, OmniObjective.States.Active);
-};
-/**
-* Completes the objective matching the objectiveId.
-* @param {?number} objectiveId The id of the objective to complete.
-*/
-TrackedOmniQuest.prototype.flagObjectiveAsCompleted = function(objectiveId = null) {
-	this.changeTargetObjectiveState(objectiveId, OmniObjective.States.Completed);
-};
-/**
-* Flags the given objective by its id as {@link OmniObjective.States.Missed}. If no objectiveId is provided, then the
-* immediate objective will be flagged instead (that being the lowest-id active objective, if any), or the very first
-* objective will be flagged.
-* @param {?number} objectiveId The id of the objective to flag as missed; defaults to the immediate or first.
-*/
-TrackedOmniQuest.prototype.flagObjectiveAsMissed = function(objectiveId = null) {
-	this.changeTargetObjectiveState(objectiveId, OmniObjective.States.Missed);
-};
-/**
-* Change the target objective by its id to a new state.
-* @param {number} objectiveId
-* @param {number} newState The new {@link OmniObjective.States} to change the objective to.
-*/
-TrackedOmniQuest.prototype.changeTargetObjectiveState = function(objectiveId, newState) {
-	const actualObjectiveId = this.getFallbackObjectiveId(objectiveId);
-	const objective = this.objectives.find((o) => o.id === actualObjectiveId);
-	if (objective && objective.state !== newState) {
-		objective.setState(newState);
+		this.tracked = !this.tracked;
+	}
+	/**
+	* Gets the metadata for this {@link TrackedOmniQuest}.
+	* @returns {OmniQuest}
+	*/
+	questMetadata() {
+		return J.OMNI.EXT.QUEST.Metadata.questsMap.get(this.key);
+	}
+	/**
+	* The name of the quest- but its computed since its just read from the data file.
+	* @returns {string} The name of the quest from the data source.
+	*/
+	name() {
+		const { name } = this.questMetadata();
+		return name;
+	}
+	/**
+	* The recommended level for the quest- but its computed since its just read from the data file.
+	* @returns {number} The recommended level to complete the quest.
+	*/
+	recommendedLevel() {
+		const { recommendedLevel } = this.questMetadata();
+		return recommendedLevel;
+	}
+	/**
+	* The tag keys on the quest- but its computed since its just read from the data file.
+	* @returns {string[]} The tag keys associated with the quest.
+	*/
+	tagKeys() {
+		const { tagKeys } = this.questMetadata();
+		return tagKeys ?? [];
+	}
+	/**
+	* Gets the {@link OmniTag}s that correspond with the tag keys on the quest.
+	* @returns {OmniTag[]}
+	*/
+	tags() {
+		return this.tagKeys().map((tagKey) => J.OMNI.EXT.QUEST.Metadata.tagsMap.get(tagKey));
+	}
+	/**
+	* Gets the hint provided when a quest has yet to be discovered.
+	* @returns {string}
+	*/
+	unknownHint() {
+		const { unknownHint } = this.questMetadata();
+		return unknownHint;
+	}
+	/**
+	* The journaling of the quest- but its computed since its a combination of all started objectives' descriptions that
+	* are just read from the data file.
+	* @returns {string[]}
+	*/
+	overview() {
+		const { overview } = this.questMetadata();
+		return overview;
+	}
+	/**
+	* Check if the target objective by its id is completed already. This falls back to the immediate, or the first if no
+	* objective id was provided.
+	* @param {?number} objectiveId The objective id to check for completion.
+	* @returns {boolean}
+	*/
+	isObjectiveCompleted(objectiveId = null) {
+		return this.isObjectiveInState(OmniObjective.States.Completed, objectiveId);
+	}
+	/**
+	* Check if an objective is the specified state.
+	* @param {number} targetState The state from {@link OmniObjective.States} to check if the objective is in.
+	* @param {?number} objectiveId The objective id to check the state of; falls back to immediate >> first.
+	* @returns {boolean} True if the objective is in the specified state, false otherwise.
+	*/
+	isObjectiveInState(targetState, objectiveId = null) {
+		const actualObjectiveId = this.getFallbackObjectiveId(objectiveId);
+		const objective = this.objectives.find((o) => o.id === actualObjectiveId);
+		if (objective) {
+			return objective.state === targetState;
+		}
+		return false;
+	}
+	/**
+	* Determines whether or not an objective is able to be executed. This does not consider the state of the quest itself,
+	* only the objective. If no objective id is provided, then the fallback will be referred to.
+	* @param {?number} objectiveId The id of the objective to interrogate.
+	* @returns {boolean}
+	*/
+	canExecuteObjectiveById(objectiveId = null) {
+		const actualObjectiveId = this.getFallbackObjectiveId(objectiveId);
+		const objective = this.objectives.find((o) => o.id === actualObjectiveId);
+		return objective?.state === OmniObjective.States.Active;
+	}
+	/**
+	* A "known" quest is one that is no longer undiscovered/inactive. This includes completed/failed/missed quests.
+	* @returns {boolean}
+	*/
+	isKnown() {
+		return !this.isInactive();
+	}
+	/**
+	* An {@link OmniQuest.States.Inactive} quest is one that has yet to be unlocked/discovered by the player.
+	* @returns {boolean}
+	*/
+	isInactive() {
+		return this.isInState(OmniQuest.States.Inactive);
+	}
+	/**
+	* An {@link OmniQuest.States.Active} quest is one that has already been unlocked/discovered by the player.
+	* @returns {boolean}
+	*/
+	isActive() {
+		return this.isInState(OmniQuest.States.Active);
+	}
+	/**
+	* A {@link OmniQuest.States.Completed} quest is one that had all of its objectives completed with some possibly missed.
+	* This is considered a finalized state.
+	* @returns {boolean}
+	*/
+	isCompleted() {
+		return this.isInState(OmniQuest.States.Completed);
+	}
+	/**
+	* A {@link OmniQuest.States.Failed} quest is one that had one or more of its objectives placed into a failed state.
+	* This is considered a finalized state.
+	* @returns {boolean}
+	*/
+	isFailed() {
+		return this.isInState(OmniQuest.States.Failed);
+	}
+	/**
+	* A {@link OmniQuest.States.Missed} quest is one that had one or more of its objectives placed into a missed state, and
+	* none of the objectives marked as completed. This most likely will happen to a quest that may or may not have a
+	* non-hidden objective to the player but the objective was never completed resulting in the quest being missed.
+	* @returns {boolean}
+	*/
+	isMissed() {
+		return this.isInState(OmniQuest.States.Missed);
+	}
+	/**
+	* A "Finalized" quest is one that has been completed/failed/missed.
+	* @returns {boolean}
+	*/
+	isFinalized() {
+		if (this.isCompleted()) return true;
+		if (this.isFailed()) return true;
+		if (this.isMissed()) return true;
+		return false;
+	}
+	/**
+	* Checks if the quest is in a particular {@link OmniQuest.States}.
+	* @param {number} targetState The {@link OmniQuest.States} to compare the current state against.
+	* @returns {boolean}
+	*/
+	isInState(targetState) {
+		return this.state === targetState;
+	}
+	/**
+	* Unlocks this quest and actives the target objective. If no objectiveId is provided, then the first objective will be
+	* made {@link OmniObjective.States.Active}.
+	* @param {?number} objectiveId The id of the objective to initialize as active; defaults to the immediate or first.
+	*/
+	unlock(objectiveId = null) {
+		if (!this.canBeUnlocked()) {
+			console.warn(`Attempted to unlock quest with key ${this.key}, but it cannot be unlocked from state ${this.state}.`);
+			return;
+		}
+		this.flagObjectiveAsActive(objectiveId);
 		this.refreshState();
 	}
-};
-/**
-* Captures an objectiveId provided (if provided) and provides fallback options if there was no provided id. If there
-* is no id provided, then the immediate objective's id will be provided. If there is no immediate objective, then the
-* quest's first objective will be provided.
-* @param {?number} objectiveId The objective id to provide fallback options for.
-* @returns {number}
-*/
-TrackedOmniQuest.prototype.getFallbackObjectiveId = function(objectiveId = null) {
-	if (objectiveId !== null) return objectiveId;
-	const immediate = this.immediateObjective() ?? null;
-	if (immediate !== null) return immediate.id;
-	return 0;
-};
-/**
-* Flags this quest as missed, which automatically miss all active and inactive objectives and miss the quest.
-*/
-TrackedOmniQuest.prototype.flagAsMissed = function() {
-	this.objectives.forEach((objective) => {
-		if (objective.isActive() || objective.isInactive()) {
-			objective.setState(OmniObjective.States.Missed);
-		}
-	});
-	this.refreshState();
-};
-/**
-* Flags this quest as failed, which automatically fail all active and inactive objectives and fail the quest.
-*/
-TrackedOmniQuest.prototype.flagAsFailed = function() {
-	this.objectives.forEach((objective) => {
-		if (objective.isActive() || objective.isInactive()) {
-			objective.setState(OmniObjective.States.Failed);
-		}
-	});
-	this.refreshState();
-};
-/**
-* Flags this quest as completed, which automatically complete all active objectives, and misses all inactive ones.
-*/
-TrackedOmniQuest.prototype.flagAsCompleted = function() {
-	this.objectives.forEach((objective) => {
-		if (objective.isActive()) {
-			objective.setState(OmniObjective.States.Completed);
-		}
-		if (objective.isInactive()) {
-			objective.setState(OmniObjective.States.Missed);
-		}
-	});
-	this.refreshState();
-	this._processQuestCompletionQuestsCheck();
-};
-/**
-* Evaluate all active quest completion objectives that reside applicable to this quest.
-*/
-TrackedOmniQuest.prototype._processQuestCompletionQuestsCheck = function() {
-	const activeQuestCompletionObjectives = QuestManager.getValidQuestCompletionObjectives();
-	if (activeQuestCompletionObjectives.length === 0) return;
-	activeQuestCompletionObjectives.forEach((objective) => {
-		if (!objective.hasCompletedAllQuests()) return;
-		const questToProgress = QuestManager.quest(objective.questKey);
-		questToProgress.flagObjectiveAsCompleted(objective.id);
-		questToProgress.progressObjectives();
-	}, this);
-};
-/**
-* Refreshes the state of the quest based on the state of its objectives.
-*/
-TrackedOmniQuest.prototype.refreshState = function() {
-	const anyFailed = this.objectives.some((objective) => objective.isFailed());
-	if (anyFailed) {
-		this.setState(OmniObjective.States.Failed);
-		return;
+	/**
+	* Resets this quest back to being completely unknown.<br/>
+	* Note that objectives that are still not-hidden will be visible.
+	*/
+	reset() {
+		this.setState(OmniQuest.States.Inactive);
+		this.objectives.forEach((objective) => objective.state = OmniObjective.States.Inactive);
 	}
-	const allUnknown = this.objectives.every((objective) => objective.isInactive());
-	if (allUnknown) {
-		this.setState(OmniObjective.States.Inactive);
-		return;
+	/**
+	* Determines whether or not the quest can be unlocked.
+	* @returns {boolean}
+	*/
+	canBeUnlocked() {
+		if (this.isKnown()) return false;
+		return true;
 	}
-	const someActive = this.objectives.some((objective) => objective.isActive());
-	if (someActive) {
-		this.setState(OmniObjective.States.Active);
-		return;
-	}
-	const enoughComplete = this.objectives.every((objective) => objective.isCompleted() || objective.isMissed());
-	if (enoughComplete) {
-		this.setState(OmniObjective.States.Completed);
-		return;
-	}
-	console.info(`refreshed state without changing state for quest key: ${this.key}`);
-};
-/**
-* Sets the state of the quest to a designated state regardless of objectives' status.<br/>
-* It is normally recommended to use {@link #refreshState} if desiring to change state so that the objectives determine
-* the quest state when managing the state programmatically. Unexpected behavior may occur if this is executed from
-* outside of state refresh.
-* @param {number} newState The new state to set this quest to.
-*/
-TrackedOmniQuest.prototype.setState = function(newState) {
-	if (newState < 0 || newState > 4) {
-		console.error(`Attempted to set invalid state for this quest: ${newState}.`);
-		throw new Error("Invalid quest state provided for setting of state.");
-	}
-	if (this.state === newState) return;
-	this.state = newState;
-	this.onQuestStateChange();
-};
-/**
-* The hook for when the state of the quest changes.
-*/
-TrackedOmniQuest.prototype.onQuestStateChange = function() {
-	if ($diaLogManager) {
-		this.handleQuestUpdateLog();
-	}
-};
-/**
-* Generate a dialog indicating the quest state has been updated.
-*/
-TrackedOmniQuest.prototype.handleQuestUpdateLog = function() {
-	if (this.state === OmniQuest.States.Inactive) return;
-	const questUpdatedLines = [`\\C[1][${this.name()}]\\C[0]`];
-	switch (this.state) {
-		case OmniQuest.States.Active:
-			questUpdatedLines.push("Quest unlocked.");
-			break;
-		case OmniQuest.States.Completed:
-			questUpdatedLines.push("Quest completed.");
-			break;
-		case OmniQuest.States.Failed:
-			questUpdatedLines.push("Quest failed.");
-			break;
-		case OmniQuest.States.Missed:
-			questUpdatedLines.push("Quest missed.");
-			break;
-		default:
-			console.warn(`unexpected state change for logging: ${this.state}`);
+	/**
+	* Automatically progress the current objective to complete and active the next objective in the list. If no objectives
+	* are active, then the next objective in the sequence will be activated. If there are no other objectives to activate,
+	* then the quest will be completed.
+	*
+	* If multiple objectives are active, this function will not work- multiple active objectives must be handled manually
+	* and individually.
+	*
+	* Normally, this is triggered as a result of programmatic detection of an objective being achieved, but can also be a
+	* manual action if desiring to move a quest along.
+	*/
+	progressObjectives() {
+		const activeObjectives = this.activeObjectives();
+		if (activeObjectives.length > 1) {
+			console.warn(`multiple quest objectives are currently active and must be finalized manually by id.`);
 			return;
+		}
+		if (activeObjectives.length === 1) {
+			const objectiveId = activeObjectives.at(0).id;
+			this.flagObjectiveAsCompleted(objectiveId);
+		}
+		this._fastForwardToNextObjective();
 	}
-	const log = new DiaLogBuilder().setLines(questUpdatedLines).build();
-	$diaLogManager.addLog(log);
+	/**
+	* Fast-forwards to the next objective in the list and changes it from inactive to active. If the newly activated
+	* objective is completable immediately, complete it and keep taking one more inactive objective sequentially until we
+	* stop immediately completing them and leave the player with an active objective on the quest, or by running out of
+	* inactive objectives to activate translating to the quest being officially complete.
+	*/
+	_fastForwardToNextObjective() {
+		let needsNextObjective;
+		do {
+			const nextObjective = this.objectives.find((objective) => objective.state === OmniObjective.States.Inactive);
+			if (nextObjective) {
+				if (nextObjective.isFulfilled()) {
+					this.flagObjectiveAsCompleted(nextObjective.id);
+					needsNextObjective = true;
+				} else {
+					this.flagObjectiveAsActive(nextObjective.id);
+					needsNextObjective = false;
+				}
+			} else {
+				needsNextObjective = false;
+			}
+		} while (needsNextObjective);
+		const hasAnymoreActiveObjectives = this.objectives.some((objective) => objective.isActive());
+		if (hasAnymoreActiveObjectives) return;
+		this.flagAsCompleted();
+	}
+	/**
+	* Gets all objectives currently tracked as {@link OmniObjective.States.Active}.
+	* @returns {TrackedOmniObjective[]}
+	*/
+	activeObjectives() {
+		return this.objectives.filter((objective) => objective.state === OmniObjective.States.Active);
+	}
+	/**
+	* Gets the first-most objective that is currently tracked as {@link OmniObjective.States.Active}.
+	* @returns {TrackedOmniObjective}
+	*/
+	immediateObjective() {
+		return this.activeObjectives()?.at(0);
+	}
+	/**
+	* Flags the given objective by its id as {@link OmniObjective.States.Active}. If no objectiveId is provided, then the
+	* immediate objective will be flagged instead (that being the lowest-id active objective, if any), or the very first
+	* objective will be flagged.
+	* @param {?number} objectiveId The id of the objective to flag as missed; defaults to the immediate or first.
+	*/
+	flagObjectiveAsActive(objectiveId = null) {
+		this.changeTargetObjectiveState(objectiveId, OmniObjective.States.Active);
+	}
+	/**
+	* Completes the objective matching the objectiveId.
+	* @param {?number} objectiveId The id of the objective to complete.
+	*/
+	flagObjectiveAsCompleted(objectiveId = null) {
+		this.changeTargetObjectiveState(objectiveId, OmniObjective.States.Completed);
+	}
+	/**
+	* Flags the given objective by its id as {@link OmniObjective.States.Missed}. If no objectiveId is provided, then the
+	* immediate objective will be flagged instead (that being the lowest-id active objective, if any), or the very first
+	* objective will be flagged.
+	* @param {?number} objectiveId The id of the objective to flag as missed; defaults to the immediate or first.
+	*/
+	flagObjectiveAsMissed(objectiveId = null) {
+		this.changeTargetObjectiveState(objectiveId, OmniObjective.States.Missed);
+	}
+	/**
+	* Change the target objective by its id to a new state.
+	* @param {number} objectiveId The objective id driving this step.
+	* @param {number} newState The new {@link OmniObjective.States} to change the objective to.
+	*/
+	changeTargetObjectiveState(objectiveId, newState) {
+		const actualObjectiveId = this.getFallbackObjectiveId(objectiveId);
+		const objective = this.objectives.find((o) => o.id === actualObjectiveId);
+		if (objective && objective.state !== newState) {
+			objective.setState(newState);
+			this.refreshState();
+		}
+	}
+	/**
+	* Captures an objectiveId provided (if provided) and provides fallback options if there was no provided id. If there
+	* is no id provided, then the immediate objective's id will be provided. If there is no immediate objective, then the
+	* quest's first objective will be provided.
+	* @param {?number} objectiveId The objective id to provide fallback options for.
+	* @returns {number}
+	*/
+	getFallbackObjectiveId(objectiveId = null) {
+		if (objectiveId !== null) return objectiveId;
+		const immediate = this.immediateObjective() ?? null;
+		if (immediate !== null) return immediate.id;
+		return 0;
+	}
+	/**
+	* Flags this quest as missed, which automatically miss all active and inactive objectives and miss the quest.
+	*/
+	flagAsMissed() {
+		this.objectives.forEach((objective) => {
+			if (objective.isActive() || objective.isInactive()) {
+				objective.setState(OmniObjective.States.Missed);
+			}
+		});
+		this.refreshState();
+	}
+	/**
+	* Flags this quest as failed, which automatically fail all active and inactive objectives and fail the quest.
+	*/
+	flagAsFailed() {
+		this.objectives.forEach((objective) => {
+			if (objective.isActive() || objective.isInactive()) {
+				objective.setState(OmniObjective.States.Failed);
+			}
+		});
+		this.refreshState();
+	}
+	/**
+	* Flags this quest as completed, which automatically complete all active objectives, and misses all inactive ones.
+	*/
+	flagAsCompleted() {
+		this.objectives.forEach((objective) => {
+			if (objective.isActive()) {
+				objective.setState(OmniObjective.States.Completed);
+			}
+			if (objective.isInactive()) {
+				objective.setState(OmniObjective.States.Missed);
+			}
+		});
+		this.refreshState();
+		this._processQuestCompletionQuestsCheck();
+	}
+	/**
+	* Evaluate all active quest completion objectives that reside applicable to this quest.
+	*/
+	_processQuestCompletionQuestsCheck() {
+		const activeQuestCompletionObjectives = QuestManager.getValidQuestCompletionObjectives();
+		if (activeQuestCompletionObjectives.length === 0) return;
+		activeQuestCompletionObjectives.forEach((objective) => {
+			if (!objective.hasCompletedAllQuests()) return;
+			const questToProgress = QuestManager.quest(objective.questKey);
+			questToProgress.flagObjectiveAsCompleted(objective.id);
+			questToProgress.progressObjectives();
+		}, this);
+	}
+	/**
+	* Refreshes the state of the quest based on the state of its objectives.
+	*/
+	refreshState() {
+		const anyFailed = this.objectives.some((objective) => objective.isFailed());
+		if (anyFailed) {
+			this.setState(OmniObjective.States.Failed);
+			return;
+		}
+		const allUnknown = this.objectives.every((objective) => objective.isInactive());
+		if (allUnknown) {
+			this.setState(OmniObjective.States.Inactive);
+			return;
+		}
+		const someActive = this.objectives.some((objective) => objective.isActive());
+		if (someActive) {
+			this.setState(OmniObjective.States.Active);
+			return;
+		}
+		const enoughComplete = this.objectives.every((objective) => objective.isCompleted() || objective.isMissed());
+		if (enoughComplete) {
+			this.setState(OmniObjective.States.Completed);
+			return;
+		}
+		console.info(`refreshed state without changing state for quest key: ${this.key}`);
+	}
+	/**
+	* Sets the state of the quest to a designated state regardless of objectives' status.<br/>
+	* It is normally recommended to use {@link #refreshState} if desiring to change state so that the objectives determine
+	* the quest state when managing the state programmatically. Unexpected behavior may occur if this is executed from
+	* outside of state refresh.
+	* @param {number} newState The new state to set this quest to.
+	*/
+	setState(newState) {
+		if (newState < 0 || newState > 4) {
+			console.error(`Attempted to set invalid state for this quest: ${newState}.`);
+			throw new Error("Invalid quest state provided for setting of state.");
+		}
+		if (this.state === newState) return;
+		this.state = newState;
+		this.onQuestStateChange();
+	}
+	/**
+	* The hook for when the state of the quest changes.
+	*/
+	onQuestStateChange() {
+		if ($diaLogManager) {
+			this.handleQuestUpdateLog();
+		}
+	}
+	/**
+	* Generate a dialog indicating the quest state has been updated.
+	*/
+	handleQuestUpdateLog() {
+		if (this.state === OmniQuest.States.Inactive) return;
+		const questUpdatedLines = [`\\C[1][${this.name()}]\\C[0]`];
+		switch (this.state) {
+			case OmniQuest.States.Active:
+				questUpdatedLines.push("Quest unlocked.");
+				break;
+			case OmniQuest.States.Completed:
+				questUpdatedLines.push("Quest completed.");
+				break;
+			case OmniQuest.States.Failed:
+				questUpdatedLines.push("Quest failed.");
+				break;
+			case OmniQuest.States.Missed:
+				questUpdatedLines.push("Quest missed.");
+				break;
+			default:
+				console.warn(`unexpected state change for logging: ${this.state}`);
+				return;
+		}
+		const log = new DiaLogBuilder().setLines(questUpdatedLines).build();
+		$diaLogManager.addLog(log);
+	}
 };
+SerializableRegistry.register(TrackedOmniQuest);
 
 //#endregion
 //#region src/plugins/omni/ext/quest/__models/OmniConfiguration.js
@@ -2156,7 +2206,7 @@ var J_QUEST_PluginMetadata = class J_QUEST_PluginMetadata extends PluginMetadata
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -2178,7 +2228,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.0.3");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2208,7 +2258,7 @@ J.OMNI.EXT.QUEST.RegExp.ChoiceQuestObjectiveForState = /<choiceQuestCondition:[ 
 //#endregion
 //#region src/plugins/omni/ext/quest/managers/DataManager.js
 /**
-* Extends/Overrides {@link #createGameObjects}.<br/>
+* Extends {@link #createGameObjects}.<br/>
 * Also registers J.OMNI.QUEST input actions and defaults.
 */
 J.OMNI.EXT.QUEST.Aliased.DataManager.set("createGameObjects", DataManager.createGameObjects);
@@ -2238,7 +2288,7 @@ var Window_QuestopediaCategories = class extends Window_HorzCommand {
 		super(rect);
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of all known quests in this window.
 	*/
 	makeCommandList() {
@@ -2263,7 +2313,7 @@ var Window_QuestopediaCategories = class extends Window_HorzCommand {
 		return new WindowCommandBuilder(omniCategory.name).setSymbol(omniCategory.key).setExtensionData(omniCategory).setIconIndex(omniCategory.iconIndex).build();
 	}
 	/**
-	* Overrides {@link maxCols}.<br/>
+	* Overwrites {@link maxCols}.<br/>
 	* Sets the column count to be the number of categories there are.
 	* @returns {number}
 	*/
@@ -2302,7 +2352,7 @@ var Window_QuestopediaList = class extends Window_Command {
 		this._currentCategoryKey = categoryKey;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of all known quests in this window.
 	*/
 	makeCommandList() {
@@ -2543,7 +2593,7 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 		super(rect);
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2565,7 +2615,7 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 		this._currentObjectives = questObjectives ?? [];
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of all known quests in this window.
 	*/
 	makeCommandList() {
@@ -2597,6 +2647,41 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 	}
 	buildNoObjectivesCommand() {
 		return new WindowCommandBuilder(String.empty).setSymbol(0).setExtensionData(null).addTextLine("No known objectives for this quest.").flagAsSubText().build();
+	}
+};
+
+//#endregion
+//#region src/plugins/omni/ext/quest/windows/Window_QuestopediaControlsHint.js
+/**
+* A single-line controller hint for the Questopedia scene.
+*/
+var Window_QuestopediaControlsHint = class extends Window_Base {
+	/**
+	* @param {Rectangle} rect The dimensions of the window.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.initialize(rect);
+	}
+	/**
+	* Re-renders the static controller hint.
+	*/
+	refresh() {
+		this.contents.clear();
+		this.drawControllerHint();
+	}
+	/**
+	* Draws the controller-first legend for quest category cycling.
+	*/
+	drawControllerHint() {
+		const padX = 12;
+		this.resetFontSettings();
+		this.modFontSize(-4);
+		this.changeTextColor(ColorManager.normalColor());
+		const text = "L2/R2: category";
+		const y = Math.max(0, Math.floor((this.innerHeight - this.lineHeight()) / 2));
+		this.drawText(text, padX, y, this.innerWidth - padX * 2, "left");
+		this.resetFontSettings();
 	}
 };
 
@@ -2677,6 +2762,11 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		* @type {Window_QuestopediaObjectives}
 		*/
 		this._j._omni._quest._pediaObjectives = null;
+		/**
+		* The controller hint strip for category cycling.
+		* @type {Window_QuestopediaControlsHint}
+		*/
+		this._j._omni._quest._pediaControlsHint = null;
 	}
 	/**
 	* Initialize all resources required for this scene.
@@ -2698,14 +2788,15 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		this.createQuestopediaCategoriesWindow();
 		this.createQuestopediaListWindow();
 		this.createQuestopediaDescriptionWindow();
+		this.createQuestopediaControlsHintWindow();
 		const categoriesWindow = this.getQuestopediaCategoriesWindow();
 		categoriesWindow.onIndexChange();
 		const listWindow = this.getQuestopediaListWindow();
 		listWindow.onIndexChange();
 	}
 	/**
-	* Overrides {@link Scene_MenuBase.prototype.createBackground}.<br>
-	* Changes the filter to a different type from {@link PIXI.filters}.<br>
+	* Overwrites {@link Scene_MenuBase.prototype.createBackground}.<br/>
+	* Changes the filter to a different type from {@link PIXI.filters}.
 	*/
 	createBackground() {
 		this._backgroundFilter = new PIXI.filters.AlphaFilter(.1);
@@ -2775,8 +2866,8 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		window.setHandler("cancel", this.onCancelQuestopedia.bind(this));
 		window.setHandler("ok", this.onQuestopediaListSelection.bind(this));
 		window.onIndexChange = this.onQuestopediaIndexChange.bind(this);
-		window.setHandler("pagedown", this.cycleQuestCategories.bind(this, true));
-		window.setHandler("pageup", this.cycleQuestCategories.bind(this, false));
+		window.setHandler("content-next", this.cycleQuestCategories.bind(this, true));
+		window.setHandler("content-prev", this.cycleQuestCategories.bind(this, false));
 		return window;
 	}
 	/**
@@ -2788,7 +2879,8 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		const { x } = categoriesRectangle;
 		const y = categoriesRectangle.height + Graphics.verticalPadding;
 		const { width } = categoriesRectangle;
-		const height = Graphics.boxHeight - Graphics.verticalPadding - y;
+		const hintH = this.questopediaControlsHintHeight();
+		const height = Graphics.boxHeight - Graphics.verticalPadding - y - hintH;
 		return new Rectangle(x, y, width, height);
 	}
 	/**
@@ -2804,6 +2896,52 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 	*/
 	setQuestopediaListWindow(listWindow) {
 		this._j._omni._quest._pediaList = listWindow;
+	}
+	/**
+	* Height reserved for the controller hint strip beneath the quest list.
+	* @returns {number}
+	*/
+	questopediaControlsHintHeight() {
+		return 28;
+	}
+	/**
+	* Creates the controller hint strip beneath the quest list.
+	*/
+	createQuestopediaControlsHintWindow() {
+		const window = this.buildQuestopediaControlsHintWindow();
+		this.setQuestopediaControlsHintWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Builds the questopedia controller hint window.
+	* @returns {Window_QuestopediaControlsHint}
+	*/
+	buildQuestopediaControlsHintWindow() {
+		return new Window_QuestopediaControlsHint(this.questopediaControlsHintRectangle());
+	}
+	/**
+	* Gets the rectangle for the controller hint strip.
+	* @returns {Rectangle}
+	*/
+	questopediaControlsHintRectangle() {
+		const listRectangle = this.questopediaListRectangle();
+		const hintH = this.questopediaControlsHintHeight();
+		const y = listRectangle.y + listRectangle.height;
+		return new Rectangle(listRectangle.x, y, listRectangle.width, hintH);
+	}
+	/**
+	* Gets the tracked controller hint window.
+	* @returns {Window_QuestopediaControlsHint}
+	*/
+	getQuestopediaControlsHintWindow() {
+		return this._j._omni._quest._pediaControlsHint;
+	}
+	/**
+	* Sets the tracked controller hint window.
+	* @param {Window_QuestopediaControlsHint} hintWindow The hint window to track.
+	*/
+	setQuestopediaControlsHintWindow(hintWindow) {
+		this._j._omni._quest._pediaControlsHint = hintWindow;
 	}
 	/**
 	* Creates the description of a single quest the player has discovered.
@@ -2977,7 +3115,7 @@ if (J.ABS) {
 	* @private
 	*/
 	JABS_InputAdapter._canPerformQuestopediaAction = function() {
-		if (!(SceneManager._scene instanceof Scene_Map)) {
+		if (!SceneManager._scene.isMapScene()) {
 			return false;
 		}
 		if ($gameMessage.isBusy()) {
@@ -2993,7 +3131,7 @@ if (J.ABS) {
 //#endregion
 //#region src/plugins/omni/ext/quest/objects/Game_Party.js
 /**
-* Extends {@link #initOmnipediaMembers}.<br>
+* Extends {@link #initOmnipediaMembers}.<br/>
 * Includes monsterpedia members.
 */
 J.OMNI.EXT.QUEST.Aliased.Game_Party.set("initOmnipediaMembers", Game_Party.prototype.initOmnipediaMembers);
@@ -3075,7 +3213,7 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function() {
 			trackings.push(newTracking);
 		}
 	});
-	trackings.sort((a, b) => a.key - b.key);
+	trackings.sort((a, b) => a.key.localeCompare(b.key));
 };
 /**
 * Gets all questopedia entries.
@@ -3220,7 +3358,7 @@ Game_System.prototype.onBeforeSave = function() {
 	$gameParty.synchronizeQuestopediaDataBeforeSave();
 };
 /**
-* Extends {@link #onAfterLoad}.<br>
+* Extends {@link #onAfterLoad}.<br/>
 * Updates the database with the tracked refined equips.
 */
 J.OMNI.EXT.QUEST.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
@@ -3264,7 +3402,7 @@ Game_Enemy.prototype.processSlayQuestsCheck = function() {
 /**
 * Extends {@link meetsConditions}.<br/>
 * Also includes the custom conditions that relate to a quest.
-* @param {any} page
+* @param {any} page The page driving this step.
 * @returns {boolean}
 */
 J.OMNI.EXT.QUEST.Aliased.Game_Event.set("meetsConditions", Game_Event.prototype.meetsConditions);
@@ -3526,7 +3664,7 @@ Window_JabsRemapActions.prototype.buildPostExtensionGroups = function(rows, can)
 //#endregion
 //#region src/plugins/omni/ext/quest/windows/Window_OmnipediaList.js
 /**
-* Extends {@link #buildCommands}.<br>
+* Extends {@link #buildCommands}.<br/>
 * Adds the questopedia command to the list of commands in the omnipedia.
 */
 J.OMNI.EXT.QUEST.Aliased.Window_OmnipediaList.set("buildCommands", Window_OmnipediaList.prototype.buildCommands);
@@ -3550,7 +3688,7 @@ Window_OmnipediaList.prototype.canAddMonsterpediaCommand = function() {
 //#endregion
 //#region src/plugins/omni/ext/quest/scenes/Scene_Omnipedia.js
 /**
-* Extends {@link #onRootPediaSelection}.<br>
+* Extends {@link #onRootPediaSelection}.<br/>
 * When the monsterpedia is selected, open the monsterpedia.
 */
 J.OMNI.EXT.QUEST.Aliased.Scene_Omnipedia.set("onRootPediaSelection", Scene_Omnipedia.prototype.onRootPediaSelection);

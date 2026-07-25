@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 JAFT-Create] An extension for JAFTING to enable recipe creation.
+ * [v1.1.2 JAFT-Create] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -133,7 +133,17 @@
  * rather wasteful.
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- recipes and categories are
+ * entirely defined in the external JSON configuration file (authored via
+ * the J-MZ Data Editor app), not tagged on individual database objects.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Registered RecipeTracking/CategoryTracking with SerializableRegistry so
+ *    JsonEx restores keep their prototype methods after a save load.
+ *    Moved dev-only debug cheat helpers from a standalone debug/ file into
+ *    initialization.js; no functional change.
  * - 1.0.4
  *    Craft outputs inherit dismantle lineage from recipe ingredients (core
  *    salvage stamping).
@@ -845,136 +855,134 @@ var CraftingConfiguration = class CraftingConfiguration {
 //#region src/plugins/jafting/ext/create/__models/RecipeTracking.js
 /**
 * A data model representing the tracking of a single crafting recipe key.
+* Serialized into party save data via {@link JsonEx}; registered so bundled restores keep prototype methods.
 */
-function RecipeTracking(recipeKey, unlocked, timesCrafted) {
-	this.initialize(recipeKey, unlocked, timesCrafted);
-}
-RecipeTracking.prototype = {};
-RecipeTracking.prototype.constructor = RecipeTracking;
-/**
-* Initializes a single recipe tracking.
-* @param {string} recipeKey The key of the recipe tracked.
-* @param {boolean} unlocked Whether or not unlocked.
-* @param {number=} timesCrafted The number of times this recipe has been crafted before.
-*/
-RecipeTracking.prototype.initialize = function(recipeKey, unlocked, timesCrafted = 0) {
+var RecipeTracking = class {
 	/**
-	* The key of this recipe that is being tracked.
-	* @type {string}
+	* Initializes a single recipe tracking.
+	* @param {string} recipeKey The key of the recipe tracked.
+	* @param {boolean} unlocked Whether or not unlocked.
+	* @param {number=} timesCrafted The number of times this recipe has been crafted before.
 	*/
-	this.key = recipeKey;
+	constructor(recipeKey, unlocked, timesCrafted = 0) {
+		/**
+		* The key of this recipe that is being tracked.
+		* @type {string}
+		*/
+		this.key = recipeKey;
+		/**
+		* True if the recipe associated with this key is unlocked,
+		* false otherwise.
+		* @type {boolean}
+		*/
+		this.unlocked = unlocked;
+		/**
+		* The number of times a recipe with this key has been crafted.
+		* @type {number}
+		*/
+		this.proficiency = timesCrafted;
+	}
 	/**
-	* True if the recipe associated with this key is unlocked,
-	* false otherwise.
-	* @type {boolean}
+	* Checks whether or not this tracked recipe has been unlocked.
+	* @return {boolean}
 	*/
-	this.unlocked = unlocked;
+	isUnlocked() {
+		return this.unlocked;
+	}
 	/**
-	* The number of times a recipe with this key has been crafted.
-	* @type {number}
+	* Unlocks this crafting recipe.<br>
+	* It will be available to the player if they have the other requirements met.
 	*/
-	this.proficiency = timesCrafted;
+	unlock() {
+		this.unlocked = true;
+	}
+	/**
+	* Locks this crafting recipe.<br>
+	* It will be hidden from the player, even if they have other requirements met.
+	*/
+	lock() {
+		this.unlocked = false;
+	}
+	/**
+	* Improves the crafting proficiency for this recipe.
+	*/
+	improveProficiency(improvement = 1) {
+		this.proficiency += improvement;
+	}
+	/**
+	* Checks if this recipe has been crafted before.
+	* @return {boolean}
+	*/
+	hasBeenCrafted() {
+		return this.craftingProficiency() > 0;
+	}
+	/**
+	* Gets how many times this particular recipe has been crafted.
+	* @return {number}
+	*/
+	craftingProficiency() {
+		return this.proficiency;
+	}
 };
-/**
-* Checks whether or not this tracked recipe has been unlocked.
-* @return {boolean}
-*/
-RecipeTracking.prototype.isUnlocked = function() {
-	return this.unlocked;
-};
-/**
-* Unlocks this crafting recipe.<br>
-* It will be available to the player if they have the other requirements met.
-*/
-RecipeTracking.prototype.unlock = function() {
-	this.unlocked = true;
-};
-/**
-* Locks this crafting recipe.<br>
-* It will be hidden from the player, even if they have other requirements met.
-*/
-RecipeTracking.prototype.lock = function() {
-	this.unlocked = false;
-};
-/**
-* Improves the crafting proficiency for this recipe.
-*/
-RecipeTracking.prototype.improveProficiency = function(improvement = 1) {
-	this.proficiency += improvement;
-};
-/**
-* Checks if this recipe has been crafted before.
-* @return {boolean}
-*/
-RecipeTracking.prototype.hasBeenCrafted = function() {
-	return this.craftingProficiency() > 0;
-};
-/**
-* Gets how many times this particular recipe has been crafted.
-* @return {number}
-*/
-RecipeTracking.prototype.craftingProficiency = function() {
-	return this.proficiency;
-};
+SerializableRegistry.register(RecipeTracking);
 
 //#endregion
 //#region src/plugins/jafting/ext/create/__models/CategoryTracking.js
 /**
 * A data model representing the tracking of a single crafting category key.
+* Serialized into party save data via {@link JsonEx}; registered so bundled restores keep prototype methods.
 */
-function CategoryTracking(key, unlocked, timesCrafted) {
-	this.initialize(...arguments);
-}
-CategoryTracking.prototype = {};
-CategoryTracking.prototype.constructor = CategoryTracking;
-/**
-* Initializes a single category tracking.
-* @param {string} key The key of the category tracked.
-* @param {boolean} unlocked Whether or not unlocked.
-* @param {number=} timesCrafted The number of times a recipe with this category key has been crafted before.
-*/
-CategoryTracking.prototype.initialize = function(key, unlocked, timesCrafted = 0) {
+var CategoryTracking = class {
 	/**
-	* The key of this category that is being tracked.
-	* @type {string}
+	* Initializes a single category tracking.
+	* @param {string} key The key of the category tracked.
+	* @param {boolean} unlocked Whether or not unlocked.
+	* @param {number=} timesCrafted The number of times a recipe with this category key has been crafted before.
 	*/
-	this.key = key;
+	constructor(key, unlocked, timesCrafted = 0) {
+		/**
+		* The key of this category that is being tracked.
+		* @type {string}
+		*/
+		this.key = key;
+		/**
+		* True if the category associated with this key is unlocked,
+		* false otherwise.
+		* @type {boolean}
+		*/
+		this.unlocked = unlocked;
+		/**
+		* The number of times a recipe with this category key has been crafted.
+		* @type {number}
+		*/
+		this.timesCrafted = 0;
+	}
 	/**
-	* True if the category associated with this key is unlocked,
-	* false otherwise.
-	* @type {boolean}
+	* Checks whether or not this tracked recipe has been unlocked.
+	* @return {boolean}
 	*/
-	this.unlocked = unlocked;
+	isUnlocked() {
+		return this.unlocked;
+	}
 	/**
-	* The number of times a recipe with this category key has been crafted.
-	* @type {number}
+	* Unlocks this crafting category.<br>
+	* It will be available to the player if they have the other requirements met.
 	*/
-	this.timesCrafted = 0;
+	unlock() {
+		this.unlocked = true;
+	}
+	/**
+	* Locks this crafting category.<br>
+	* It will be hidden from the player, even if they have other requirements met.
+	*/
+	lock() {
+		this.unlocked = false;
+	}
+	craftedCount() {
+		return this.timesCrafted;
+	}
 };
-/**
-* Checks whether or not this tracked recipe has been unlocked.
-* @return {boolean}
-*/
-CategoryTracking.prototype.isUnlocked = function() {
-	return this.unlocked;
-};
-/**
-* Unlocks this crafting category.<br>
-* It will be available to the player if they have the other requirements met.
-*/
-CategoryTracking.prototype.unlock = function() {
-	this.unlocked = true;
-};
-/**
-* Locks this crafting category.<br>
-* It will be hidden from the player, even if they have other requirements met.
-*/
-CategoryTracking.prototype.lock = function() {
-	this.unlocked = false;
-};
-CategoryTracking.prototype.craftedCount = function() {
-	return this.timesCrafted;
-};
+SerializableRegistry.register(CategoryTracking);
 
 //#endregion
 //#region src/plugins/jafting/ext/create/__models/CraftingCreationSession.js
@@ -1042,7 +1050,7 @@ var CraftingCreationSession = class CraftingCreationSession {
 	/**
 	* User locked in a category; recipe list should filter to {@link categoryKey}.
 	*
-	* @param {string} categoryKey
+	* @param {string} categoryKey The category key driving this step.
 	*/
 	enterRecipeBrowsing(categoryKey) {
 		this.#categoryKey = categoryKey;
@@ -1058,7 +1066,7 @@ var CraftingCreationSession = class CraftingCreationSession {
 	/**
 	* Attempts to craft the given recipe when the player confirms on the recipe list.
 	*
-	* @param {CraftingRecipe|null|undefined} recipe
+	* @param {CraftingRecipe|null|undefined} recipe The recipe driving this step.
 	* @returns {{ crafted: boolean, playedSuccessSound: boolean, reason: string|null }}
 	*/
 	tryCraftRecipe(recipe) {
@@ -1277,7 +1285,7 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -1299,7 +1307,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.1.1");
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.1.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1312,11 +1320,100 @@ J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList = new Map();
 * All regular expressions used by this plugin.
 */
 J.JAFTING.EXT.CREATE.RegExp = {};
+/**
+* Dev-only cheat helpers for JAFTING Creation testing.
+*/
+J.JAFTING.EXT.CREATE.Debug = {};
+/**
+* Unlocks every category/recipe the metadata knows about and bumps proficiency so masking drops away.
+*/
+J.JAFTING.EXT.CREATE.Debug.unlockEverythingForTesting = function() {
+	$gameParty.unlockEverythingCompletely();
+};
+/**
+* Maxes the party count for every non-null item, weapon, and armor database row (respects engine max item stacks).
+*/
+J.JAFTING.EXT.CREATE.Debug.gainMaxOfAllItemWeaponArmor = function() {
+	const grantTable = (data) => {
+		if (data === null || data === undefined) return;
+		for (let i = 1; i < data.length; i++) {
+			const datum = data[i];
+			if (datum === null) continue;
+			const cap = $gameParty.maxItems(datum);
+			if (cap > 0) {
+				$gameParty.gainItem(datum, cap);
+			}
+		}
+	};
+	grantTable($dataItems);
+	grantTable($dataWeapons);
+	grantTable($dataArmors);
+};
+/**
+* Grants gold suitable for recipe tests that charge gold components.
+*
+* @param {number} [amount] The [amount] driving this step.
+*/
+J.JAFTING.EXT.CREATE.Debug.gainGoldForTesting = function(amount) {
+	const value = amount === undefined || amount === null || amount === 0 ? 999999 : amount;
+	$gameParty.gainGold(value);
+};
+/**
+* When J-SDP is linked, grants every party member a large SDP pool.
+*
+* @param {number} [points] The [points] driving this step.
+*/
+J.JAFTING.EXT.CREATE.Debug.gainBulkSdpIfAvailable = function(points) {
+	if (J.JAFTING.EXT.CREATE.Metadata.usingSdp() === false) return;
+	const value = points === undefined || points === null ? 999999 : points;
+	$gameParty.members().forEach((actor) => actor.modSdpPoints(value));
+};
+/**
+* Grants ingredients and tools for every unlockable recipe, scaled by {@link multiplier}.
+*
+* @param {number} [multiplier] The [multiplier] driving this step.
+*/
+J.JAFTING.EXT.CREATE.Debug.gainStockFromAllRecipes = function(multiplier) {
+	const mult = multiplier === undefined || multiplier === null || multiplier < 1 ? 10 : Math.floor(multiplier);
+	const { recipes } = J.JAFTING.EXT.CREATE.Metadata;
+	const feedComponent = (component) => {
+		const total = component.quantity() * mult;
+		if (component.isDatabaseEntry()) {
+			$gameParty.gainItem(component.getItem(), total);
+			return;
+		}
+		if (component.isGold()) {
+			$gameParty.gainGold(total);
+			return;
+		}
+		if (component.isSdp()) {
+			if (J.JAFTING.EXT.CREATE.Metadata.usingSdp() === false) return;
+			$gameParty.members().forEach((actor) => actor.modSdpPoints(total));
+		}
+	};
+	recipes.forEach((recipe) => {
+		if ($gameParty.canGainEntry(recipe.key) === false) return;
+		recipe.ingredients.forEach(feedComponent);
+		recipe.tools.forEach(feedComponent);
+	});
+};
+/**
+* One-shot dev harness: unlock all JAFTING Creation content, max DB goods, bulk gold/SDP, and stock recipe mats.
+*
+* @param {number} [recipeStockMultiplier] Applied per ingredient/tool quantity in config (default 15).
+*/
+J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest = function(recipeStockMultiplier) {
+	J.JAFTING.EXT.CREATE.Debug.unlockEverythingForTesting();
+	J.JAFTING.EXT.CREATE.Debug.gainMaxOfAllItemWeaponArmor();
+	J.JAFTING.EXT.CREATE.Debug.gainGoldForTesting();
+	J.JAFTING.EXT.CREATE.Debug.gainBulkSdpIfAvailable();
+	J.JAFTING.EXT.CREATE.Debug.gainStockFromAllRecipes(recipeStockMultiplier);
+};
 
 //#endregion
 //#region src/plugins/jafting/ext/create/objects/Game_Party.js
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Also initializes our jafting members.
 */
 J.JAFTING.EXT.CREATE.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
@@ -1621,7 +1718,7 @@ Game_Party.prototype.updateVariableWithCraftedCountByCategories = function(varia
 //#endregion
 //#region src/plugins/jafting/ext/create/objects/Game_System.js
 /**
-* Extends {@link #onAfterLoad}.<br>
+* Extends {@link #onAfterLoad}.<br/>
 * Updates the database with the tracked refined equips.
 */
 J.JAFTING.EXT.CREATE.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
@@ -1700,7 +1797,7 @@ var Window_CategoryList = class extends Window_Command {
 		super(rect);
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting categories.
 	*/
 	makeCommandList() {
@@ -1727,7 +1824,7 @@ var Window_CategoryList = class extends Window_Command {
 		return new WindowCommandBuilder(category.name).setSymbol(category.key).setExtensionData(category).setIconIndex(category.iconIndex).setHelpText(category.description).setEnabled(category.hasAnyRecipes()).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -1770,7 +1867,7 @@ var Window_RecipeList = class extends Window_Command {
 		return this.currentCategory;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting recipes.
 	*/
 	makeCommandList() {
@@ -1799,7 +1896,7 @@ var Window_RecipeList = class extends Window_Command {
 		return new WindowCommandBuilder(recipe.getRecipeName()).setSymbol(recipe.key).setExtensionData(recipe).setHelpText(recipe.getRecipeDescription()).setIconIndex(recipe.getRecipeIcon()).setEnabled(recipe.canCraft()).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows smaller so there can be additional recipeeeees.
 	* @returns {number}
 	*/
@@ -1807,7 +1904,7 @@ var Window_RecipeList = class extends Window_Command {
 		return this.lineHeight();
 	}
 	/**
-	* Overrides {@link #drawBackgroundRect}.<br>
+	* Overwrites {@link #drawBackgroundRect}.<br/>
 	* Prevents the rendering of the backdrop of each line in the window.
 	* @param {Rectangle} _ The rectangle to draw the background for.
 	* @override
@@ -1908,8 +2005,8 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	/**
 	* Wraps plain text to fit width using the current font metrics (caller sets face).
 	*
-	* @param {string} text
-	* @param {number} maxWidth
+	* @param {string} text The text driving this step.
+	* @param {number} maxWidth The max width driving this step.
 	* @returns {string[]}
 	*/
 	#splitLongToken(token, maxWidth) {
@@ -1973,8 +2070,8 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	/**
 	* Measures wrapped lines for italic subtext at the standard recipe-detail size.
 	*
-	* @param {string} subtext
-	* @param {number} bandWidth
+	* @param {string} subtext The subtext driving this step.
+	* @param {number} bandWidth The band width driving this step.
 	* @returns {string[]}
 	*/
 	#measureItalicSubtextLines(subtext, bandWidth) {
@@ -2031,12 +2128,12 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	/**
 	* Draws title + wrapped subtext for one column; horizontal rules are drawn separately at a shared Y.
 	*
-	* @param {number} x
-	* @param {number} y
-	* @param {number} bandWidth
-	* @param {string} title
-	* @param {string[]} lines
-	* @param {number} subLineHeight
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
+	* @param {number} bandWidth The band width driving this step.
+	* @param {string} title The title driving this step.
+	* @param {string[]} lines The lines driving this step.
+	* @param {number} subLineHeight The sub line height driving this step.
 	*/
 	#drawColumnTitleAndSubtext(x, y, bandWidth, title, lines, subLineHeight) {
 		this.resetFontSettings();
@@ -2076,7 +2173,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 		return Math.max(56, this.detailsFourthBandWidth() - 10);
 	}
 	/**
-	* Implements {@link Window_Base.drawContent}.<br>
+	* Implements {@link Window_Base.drawContent}.<br/>
 	* Draws the recipe details header bands and the primary output column.
 	*/
 	drawContent() {
@@ -2109,8 +2206,8 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 		return true;
 	}
 	/**
-	* @param {number} x
-	* @param {number} y
+	* @param {number} x The x driving this step.
+	* @param {number} y The y driving this step.
 	* @param {number} bandWidth width of the fourth (detail) column
 	*/
 	drawPrimaryOutput(x, y, bandWidth) {
@@ -2355,7 +2452,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 		this.opacity = 0;
 	}
 	/**
-	* Extends {@link #initialize}.<br>
+	* Extends {@link #initialize}.<br/>
 	* Initializes some additional window properies.
 	*/
 	initialize(rect) {
@@ -2370,7 +2467,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 		this._components = components;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting categories.
 	*/
 	makeCommandList() {
@@ -2407,7 +2504,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 		return new WindowCommandBuilder(component.getName()).setSymbol(`${component.getName()}-${this.index()}`).setExtensionData(component).setIconIndex(component.getIconIndex()).setHelpText(component.getName()).setRightText(needQuantity).setRightColorIndex(haveTextColor).setTextLines(subtexts).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2429,7 +2526,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 		return Window_RecipeIngredientList.recipeComponentRowTopInsetPx();
 	}
 	/**
-	* @param {number} index
+	* @param {number} index The index driving this step.
 	* @returns {Rectangle}
 	*/
 	itemLineRect(index) {
@@ -2438,7 +2535,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 		return rect;
 	}
 	/**
-	* Overrides {@link #drawBackgroundRect}.<br>
+	* Overwrites {@link #drawBackgroundRect}.<br/>
 	* Prevents the rendering of the backdrop of each line in the window.
 	* @param {Rectangle} _ The rectangle to draw the background for.
 	* @override
@@ -2458,7 +2555,7 @@ var Window_RecipeToolList = class extends Window_Command {
 		this.opacity = 0;
 	}
 	/**
-	* Extends {@link #initialize}.<br>
+	* Extends {@link #initialize}.<br/>
 	* Initializes some additional window properies.
 	*/
 	initialize(rect) {
@@ -2473,7 +2570,7 @@ var Window_RecipeToolList = class extends Window_Command {
 		this._components = components;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting categories.
 	*/
 	makeCommandList() {
@@ -2510,7 +2607,7 @@ var Window_RecipeToolList = class extends Window_Command {
 		return new WindowCommandBuilder(component.getName()).setSymbol(`${component.getName()}-${this.index()}`).setExtensionData(component).setIconIndex(component.getIconIndex()).setHelpText(component.getName()).setRightText(needQuantity).setRightColorIndex(haveTextColor).setTextLines(subtexts).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2524,7 +2621,7 @@ var Window_RecipeToolList = class extends Window_Command {
 		return Window_RecipeIngredientList.recipeComponentRowTopInsetPx();
 	}
 	/**
-	* @param {number} index
+	* @param {number} index The index driving this step.
 	* @returns {Rectangle}
 	*/
 	itemLineRect(index) {
@@ -2533,14 +2630,14 @@ var Window_RecipeToolList = class extends Window_Command {
 		return rect;
 	}
 	/**
-	* Overrides {@link #drawBackgroundRect}.<br>
+	* Overwrites {@link #drawBackgroundRect}.<br/>
 	* Prevents the rendering of the backdrop of each line in the window.
 	* @param {Rectangle} _ The rectangle to draw the background for.
 	* @override
 	*/
 	drawBackgroundRect(_) {}
 	/**
-	* Overrides {@link Window_Selectable.prototype.drawAllItems}.<br>
+	* Overwrites {@link Window_Selectable.prototype.drawAllItems}.<br/>
 	* Explains an empty TOOLS column instead of leaving it ambiguous.
 	* @override
 	*/
@@ -2573,7 +2670,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 		this.opacity = 0;
 	}
 	/**
-	* Extends {@link #initialize}.<br>
+	* Extends {@link #initialize}.<br/>
 	* Initializes some additional window properies.
 	*/
 	initialize(rect) {
@@ -2591,7 +2688,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 		this.needsMasking = needsMasking;
 	}
 	/**
-	* Implements {@link #makeCommandList}.<br>
+	* Implements {@link #makeCommandList}.<br/>
 	* Creates the command list of unlocked crafting categories.
 	*/
 	makeCommandList() {
@@ -2622,7 +2719,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 		return command;
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2636,7 +2733,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 		return Window_RecipeIngredientList.recipeComponentRowTopInsetPx();
 	}
 	/**
-	* @param {number} index
+	* @param {number} index The index driving this step.
 	* @returns {Rectangle}
 	*/
 	itemLineRect(index) {
@@ -2645,7 +2742,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 		return rect;
 	}
 	/**
-	* Overrides {@link #drawBackgroundRect}.<br>
+	* Overwrites {@link #drawBackgroundRect}.<br/>
 	* Prevents the rendering of the backdrop of each line in the window.
 	* @param {Rectangle} _ The rectangle to draw the background for.
 	* @override
@@ -2824,7 +2921,7 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 		this.getCreationDescriptionWindow().setText(this.getCategoryListWindow().currentHelpText() ?? String.empty);
 	}
 	/**
-	* Overrides {@link Scene_MenuBase.prototype.createBackground}.<br>
+	* Overwrites {@link Scene_MenuBase.prototype.createBackground}.<br/>
 	* Changes the filter to a different type from {@link PIXI.filters}.<br>
 	*/
 	createBackground() {
@@ -2835,7 +2932,7 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 		this.addChild(this._backgroundSprite);
 	}
 	/**
-	* Overrides {@link #createButtons}.<br>
+	* Overwrites {@link #createButtons}.<br/>
 	* Disables the creation of the buttons.
 	* @override
 	*/
@@ -2928,7 +3025,7 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 		return this._j._crafting._create._creationCategoryBadge;
 	}
 	/**
-	* @param {Window_CreationCategoryBadge} someWindow
+	* @param {Window_CreationCategoryBadge} someWindow The some window driving this step.
 	*/
 	setCreationCategoryBadgeWindow(someWindow) {
 		this._j._crafting._create._creationCategoryBadge = someWindow;
@@ -3305,7 +3402,7 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 //#endregion
 //#region src/plugins/jafting/ext/create/scenes/Scene_Jafting.js
 /**
-* Extends {@link #onRootJaftingSelection}.<br>
+* Extends {@link #onRootJaftingSelection}.<br/>
 * When Creation is chosen on the JAFTING hub, opens the Creation scene.
 */
 J.JAFTING.EXT.CREATE.Aliased.Scene_Jafting.set("onRootJaftingSelection", Scene_Jafting.prototype.onRootJaftingSelection);
@@ -3328,7 +3425,7 @@ Scene_Jafting.prototype.jaftingCreationSelected = function() {
 //#endregion
 //#region src/plugins/jafting/ext/create/windows/Window_JaftingList.js
 /**
-* Extends {@link #buildCommands}.<br>
+* Extends {@link #buildCommands}.<br/>
 * Includes the creation command as well as the rest.
 */
 J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList.set("buildCommands", Window_JaftingList.prototype.buildCommands);
@@ -3433,95 +3530,6 @@ PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "debug-prepare
 	}
 	J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest(mult);
 });
-
-//#endregion
-//#region src/plugins/jafting/ext/create/debug/jaftingCreationDebug.js
-J.JAFTING.EXT.CREATE.Debug = {};
-/**
-* Unlocks every category/recipe the metadata knows about and bumps proficiency so masking drops away.
-*/
-J.JAFTING.EXT.CREATE.Debug.unlockEverythingForTesting = function() {
-	$gameParty.unlockEverythingCompletely();
-};
-/**
-* Maxes the party count for every non-null item, weapon, and armor database row (respects engine max item stacks).
-*/
-J.JAFTING.EXT.CREATE.Debug.gainMaxOfAllItemWeaponArmor = function() {
-	const grantTable = (data) => {
-		if (data === null || data === undefined) return;
-		for (let i = 1; i < data.length; i++) {
-			const datum = data[i];
-			if (datum === null) continue;
-			const cap = $gameParty.maxItems(datum);
-			if (cap > 0) {
-				$gameParty.gainItem(datum, cap);
-			}
-		}
-	};
-	grantTable($dataItems);
-	grantTable($dataWeapons);
-	grantTable($dataArmors);
-};
-/**
-* Grants gold suitable for recipe tests that charge gold components.
-*
-* @param {number} [amount]
-*/
-J.JAFTING.EXT.CREATE.Debug.gainGoldForTesting = function(amount) {
-	const value = amount === undefined || amount === null || amount === 0 ? 999999 : amount;
-	$gameParty.gainGold(value);
-};
-/**
-* When J-SDP is linked, grants every party member a large SDP pool.
-*
-* @param {number} [points]
-*/
-J.JAFTING.EXT.CREATE.Debug.gainBulkSdpIfAvailable = function(points) {
-	if (J.JAFTING.EXT.CREATE.Metadata.usingSdp() === false) return;
-	const value = points === undefined || points === null ? 999999 : points;
-	$gameParty.members().forEach((actor) => actor.modSdpPoints(value));
-};
-/**
-* Grants ingredients and tools for every unlockable recipe, scaled by {@link multiplier}.
-*
-* @param {number} [multiplier]
-*/
-J.JAFTING.EXT.CREATE.Debug.gainStockFromAllRecipes = function(multiplier) {
-	const mult = multiplier === undefined || multiplier === null || multiplier < 1 ? 10 : Math.floor(multiplier);
-	const { recipes } = J.JAFTING.EXT.CREATE.Metadata;
-	const feedComponent = (component) => {
-		const total = component.quantity() * mult;
-		if (component.isDatabaseEntry()) {
-			$gameParty.gainItem(component.getItem(), total);
-			return;
-		}
-		if (component.isGold()) {
-			$gameParty.gainGold(total);
-			return;
-		}
-		if (component.isSdp()) {
-			if (J.JAFTING.EXT.CREATE.Metadata.usingSdp() === false) return;
-			$gameParty.members().forEach((actor) => actor.modSdpPoints(total));
-		}
-	};
-	recipes.forEach((recipe) => {
-		if ($gameParty.canGainEntry(recipe.key) === false) return;
-		recipe.ingredients.forEach(feedComponent);
-		recipe.tools.forEach(feedComponent);
-	});
-};
-/**
-* One-shot dev harness: unlock all JAFTING Creation content, max DB goods, bulk gold/SDP, and stock recipe mats.
-*
-* @param {number} [recipeStockMultiplier] Applied per ingredient/tool quantity in config (default 15).
-*/
-J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest = function(recipeStockMultiplier) {
-	J.JAFTING.EXT.CREATE.Debug.unlockEverythingForTesting();
-	J.JAFTING.EXT.CREATE.Debug.gainMaxOfAllItemWeaponArmor();
-	J.JAFTING.EXT.CREATE.Debug.gainGoldForTesting();
-	J.JAFTING.EXT.CREATE.Debug.gainBulkSdpIfAvailable();
-	J.JAFTING.EXT.CREATE.Debug.gainStockFromAllRecipes(recipeStockMultiplier);
-};
 
 //#endregion
 //# sourceMappingURL=J-JAFTING-Creation.js.map

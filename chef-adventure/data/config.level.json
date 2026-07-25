@@ -1,0 +1,19 @@
+{
+  "useScaling": true,
+  "minMultiplier": 0.10,
+  "maxMultiplier": 2.00,
+  "rewardMinMultiplier": null,
+  "rewardMaxMultiplier": null,
+  "growthMultiplier": 0.10,
+  "invariantUpperRange": 1,
+  "invariantLowerRange": 1,
+  "variableActorBalancer": 141,
+  "variableEnemyBalancer": 142,
+  "defaultBeyondMaxLevel": 255,
+  "trueMaxLevel": 1000,
+  "useSharedActorLevel": true,
+  "canonicalExpBasis": 30,
+  "canonicalExpExtra": 20,
+  "canonicalExpAccA": 30,
+  "canonicalExpAccB": 30
+}

@@ -1,7 +1,7 @@
 //region annoations
 /*:
  * @target MZ
- * @plugindesc [v1.0.2 MAP] Renders a passability-driven minimap on the screen.
+ * @plugindesc [v1.1.0 MAP] Renders a passability-driven minimap on the screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -60,19 +60,29 @@
  * There are multiple marker types that show up on the minimap, here is a
  * brief description of all of them:
  * - Player
- *    The player is usually at the center of the map and has a teal-green
- *    colored plus for its shape.
+ *    The player is a teal plus-shape marker.
  * - Follower
- *    The followers of the player are a sky-blue colored smaller squares.
- * - JABS Enemy
- *    These do not show up at all if not using JABS.
- *    They are rendered as red diamond shapes.
+ *    The followers of the player are sky-blue square markers.
+ * - JABS Enemy (hostile)
+ *    Does not show up at all if not using JABS. Rendered as a red diamond.
+ * - JABS Enemy (inanimate)
+ *    Enemy-backed but non-combative objects (pots, crates). Rendered as an
+ *    orange diamond.
  * - NPC
  *    An NPC event marker is rendered as a bright purple circle shape.
  * - Loot
  *    A loot event marker is rendered as a bright green diamond shape.
  * - Interactable Object
- *    An object event marker is rendered as a yellow square shape.
+ *    An object event marker is rendered as a yellow diamond shape.
+ * - Teleport
+ *    A hollow light-blue square. Can be stretched to represent a
+ *    multi-tile teleport zone with <areaEvent:WxH> (see below).
+ * - Quest Offer
+ *    A yellow square marking a quest available to accept.
+ * - Quest Progress
+ *    A blue diamond marking where to advance a quest's next objective.
+ * - Quest Turn-In
+ *    A green circle marking where to complete/turn in a quest.
  *
  * If multiple marker tags are present on a single event, the last one
  * found will be prioritized.
@@ -82,20 +92,69 @@
  *
  * TAG FORMAT:
  *  <minimap:MARKER_TYPE> or <mm:MARKER_TYPE>
- * Where MARKER_TYPE is one of "npc", "loot", or "object" (without quotes).
+ * Where MARKER_TYPE is one of "npc", "loot", "object", "teleport",
+ * "questOffer", "questProgress", or "questTurnIn" (without quotes).
  *
  * TAG EXAMPLES:
  *  <minimap:npc> or <mm:npc>
  * An event with this tag will show up as an NPC marker on the minimap.
- * 
+ *
  *  <minimap:loot> or <mm:loot>
  * An event with this tag will show up as a loot marker on the minimap.
- * 
+ *
  *  <minimap:object> or <mm:object>
  * An event with this tag will show up as an object marker on the minimap.
  *
+ *  <minimap:teleport> or <mm:teleport>
+ * An event with this tag will show up as a hollow-square teleport marker.
+ *
+ * ----------------------------------------------------------------------------
+ * TELEPORT ZONE SIZE
+ * By default, a <minimap:teleport> marker is drawn as a single-tile hollow
+ * square. If the teleport actually spans multiple tiles, stretch its marker
+ * to match using this tag on the same event.
+ *
+ * TAG USAGE:
+ * - Events on the map (typically alongside <minimap:teleport>)
+ *
+ * TAG FORMAT:
+ *  <areaEvent:WIDTHxHEIGHT>
+ * Where WIDTH and HEIGHT are the tile dimensions of the zone. Defaults to
+ * 1x1 (a single tile) if this tag is absent or malformed.
+ *
+ * TAG EXAMPLES:
+ *  <minimap:teleport>
+ *  <areaEvent:3x2>
+ * This teleport event's minimap marker is stretched to a 3-wide by 2-tall
+ * hollow square instead of a single tile.
+ *
+ * ============================================================================
+ * BLOCKING THE MINIMAP:
+ * Some maps- like tight indoor corridors, cutscene-only maps, or maps where
+ * you simply don't want the minimap distracting the player- can suppress
+ * the minimap outright.
+ *
+ * TAG USAGE:
+ * - Maps (the map's own note field)
+ *
+ * TAG FORMAT:
+ *  <blockMinimap>
+ *
+ * TAG EXAMPLES:
+ *  <blockMinimap>
+ * The minimap never renders while the player is on this map, regardless of
+ * the plugin's "Start Visible" setting or any toggle command.
+ *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added an orange-diamond minimap marker for inanimate JABS enemies
+ *    (pots, crates), distinct from the red-diamond hostile marker.
+ *    Added <minimap:teleport>/<mm:teleport> markers (hollow light-blue
+ *    square), stretchable to a multi-tile zone via <areaEvent:WxH>.
+ *    Added quest markers (questOffer/questProgress/questTurnIn) for
+ *    Omni-Quest integration.
+ *    Added <blockMinimap> to suppress the minimap outright on a given map.
  * - 1.0.2
  *    Adapted for updates to J-ABS-InputManager (input namespace).
  * - 1.0.1
@@ -170,7 +229,7 @@ var J_MAP__PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps plugin parameters into instance fields used by the minimap.
 	*/
 	postInitialize() {
@@ -225,7 +284,7 @@ J.MAP.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MAP.Metadata = new J_MAP__PluginMetadata("J-MAP", "1.0.2");
+J.MAP.Metadata = new J_MAP__PluginMetadata("J-MAP", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -423,7 +482,7 @@ var MinimapEventType = class MinimapEventType {
 //#endregion
 //#region src/plugins/map/core/objects/Game_Event.js
 /**
-* Extends {@link Game_Event.initMembers}.<br>
+* Extends {@link Game_Event.initMembers}.<br/>
 * Initializes minimap-related properties.
 */
 J.MAP.Aliased.Game_Event.set("initMembers", Game_Event.prototype.initMembers);
@@ -1106,8 +1165,8 @@ var Sprite_MiniMap = class extends Sprite {
 	/**
 	* Draws one full map copy into the cache, offset by whole-tile origins.
 	* originTileX/Y are in cache tile space, relative to the cache’s (0,0).
-	* @param {number} originTileX
-	* @param {number} originTileY
+	* @param {number} originTileX The origin tile x driving this step.
+	* @param {number} originTileY The origin tile y driving this step.
 	* @param {number[]} flags - tileset flags (pre-fetched)
 	*/
 	drawMapCopyAt(originTileX, originTileY, flags) {
@@ -1408,7 +1467,7 @@ var Sprite_MiniMap = class extends Sprite {
 	* player's facing direction. The line sits near the tip of the faced arm
 	* and stays within the inner marker box to avoid clipping.
 	*
-	* @param {Bitmap} targetBitmap
+	* @param {Bitmap} targetBitmap The target bitmap driving this step.
 	* @param {number} lx - tile top-left x in pixels
 	* @param {number} ly - tile top-left y in pixels
 	* @param {number} sizePx - desired marker size in pixels
@@ -1488,7 +1547,6 @@ var Sprite_MiniMap = class extends Sprite {
 	* @returns {string} CSS color string.
 	*/
 	toCss(hex) {
-		if (typeof hex !== "string") return "#ff00ff";
 		const clean = hex.replace(/\s+/g, String.empty);
 		if (!clean.startsWith("#")) return "#ff00ff";
 		if (clean.length === 7) return clean;
@@ -1657,7 +1715,7 @@ var Sprite_MiniMap = class extends Sprite {
 //#endregion
 //#region src/plugins/map/core/managers/DataManager.js
 /**
-* Extends/Overrides {@link #createGameObjects}.<br/>
+* Extends {@link #createGameObjects}.<br/>
 * Also registers J.MAP minimap input actions and defaults.
 */
 J.MAP.Aliased.DataManager.set("createGameObjects", DataManager.createGameObjects);
@@ -1691,6 +1749,10 @@ DataManager.registerMinimapInputActions = function() {
 
 //#endregion
 //#region src/plugins/map/core/managers/JABS_Engine.js
+/**
+* Extends {@link JABS_Engine.addLootDropToMap}.<br/>
+* Injects a minimap loot comment tag into freshly spawned loot events.
+*/
 J.MAP.Aliased.JABS_Engine.set("addLootDropToMap", JABS_Engine.prototype.addLootDropToMap);
 JABS_Engine.prototype.addLootDropToMap = function(x, y, item) {
 	const lootEvent = J.MAP.Aliased.JABS_Engine.get("addLootDropToMap").call(this, x, y, item);
@@ -1737,7 +1799,7 @@ if (J.ABS) {
 	*/
 	JABS_InputAdapter.performMinimapFocusStart = function() {
 		if ($gameMap.isMinimapBlocked()) return;
-		if (!(SceneManager._scene instanceof Scene_Map)) return;
+		if (!SceneManager._scene.isMapScene()) return;
 		const mini = SceneManager._scene.getMiniMap();
 		if (!mini) return;
 		mini.enterFocusMode();
@@ -1746,7 +1808,7 @@ if (J.ABS) {
 	* Ends the temporary minimap focus mode and restores prior size/position.
 	*/
 	JABS_InputAdapter.performMinimapFocusEnd = function() {
-		if (!(SceneManager._scene instanceof Scene_Map)) return;
+		if (!SceneManager._scene.isMapScene()) return;
 		const mini = SceneManager._scene.getMiniMap();
 		if (!mini) return;
 		mini.exitFocusMode();
@@ -1757,7 +1819,7 @@ if (J.ABS) {
 //#region src/plugins/map/core/objects/JABS_InputController.js
 if (J.ABS) {
 	/**
-	* Extends/Overrides {@link #initMembers}.<br/>
+	* Extends {@link #initMembers}.<br/>
 	* Also initializes the minimap controller-local state without lazy init.
 	*/
 	J.MAP.Aliased.JABS_StandardController.set("initMembers", JABS_StandardController.prototype.initMembers);
@@ -1857,7 +1919,7 @@ if (J.ABS) {
 //#endregion
 //#region src/plugins/map/core/windows/Window_JabsRemapActions.js
 /**
-* Extends/Overrides {@link #buildPostExtensionGroups}.<br/>
+* Extends {@link #buildPostExtensionGroups}.<br/>
 * Also appends a "Map Actions" section for external (J.MAP) actions.
 * @param {BuiltWindowCommand[]} rows The rows being built.
 * @param {Set<string>} can The set of assignable logical action keys.
@@ -1900,7 +1962,7 @@ Scene_Map.prototype.initMiniMapMembers = function() {
 	this._j._map._miniMap = null;
 };
 /**
-* Extends {@link #createAllWindows}.<br>
+* Extends {@link #createAllWindows}.<br/>
 * Also creates the minimap sprite.
 */
 J.MAP.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);
@@ -1999,7 +2061,7 @@ PluginManager.registerCommand(J.MAP.Metadata.name, "toggle-minimap", (args) => {
 	const shouldShow = `${args.action}` === "true";
 	if ($gameMap.isMinimapBlocked()) {
 		$gameSystem.hideMinimap();
-		if (SceneManager._scene instanceof Scene_Map) {
+		if (SceneManager._scene.isMapScene()) {
 			const miniMap = SceneManager._scene.getMiniMap();
 			if (miniMap) {
 				miniMap.visible = false;
@@ -2012,7 +2074,7 @@ PluginManager.registerCommand(J.MAP.Metadata.name, "toggle-minimap", (args) => {
 	} else {
 		$gameSystem.hideMinimap();
 	}
-	if (SceneManager._scene instanceof Scene_Map) {
+	if (SceneManager._scene.isMapScene()) {
 		const miniMap = SceneManager._scene.getMiniMap();
 		if (miniMap) {
 			miniMap.visible = shouldShow;

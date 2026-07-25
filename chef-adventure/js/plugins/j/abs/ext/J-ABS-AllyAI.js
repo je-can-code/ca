@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.0 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v3.0.1 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -94,6 +94,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.1
+ *    Ally idle-check now also treats channeling as busy (J-ABS Channel).
+ *    Fixed applyBattleMemories' inverted check; memories went unrecorded.
+ *    Fixed jumpAll returning early instead of skipping just one follower.
  * - 3.0.0
  *    Replaced exclusive AI modes with three orthogonal behavior axes:
  *    risk (careful/balanced/reckless), support (offense/balanced/support),
@@ -241,7 +245,7 @@ var J_AllyAiPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps ally AI menu commands and formation defaults from plugin parameters.
 	*/
 	postInitialize() {
@@ -326,12 +330,12 @@ var J_AllyAiPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/allyai/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.10.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -344,7 +348,7 @@ J.ABS.EXT.ALLYAI = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.0");
+J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -375,475 +379,488 @@ J.ABS.EXT.ALLYAI.RegExp.DefaultAi = /<defaultAi:(berserker|guardian|vanguard|war
 //#region src/plugins/abs/ext/allyai/_models/JABS_AllyAI.js
 /**
 * A class representing the AI-decision-making functionality for allies.
+* Serialized into actor save data via {@link JsonEx}; registered so bundled restores keep prototype methods.
 */
-function JABS_AllyAI() {
-	this.initialize(...arguments);
-}
-JABS_AllyAI.prototype = Object.create(JABS_AI.prototype);
-JABS_AllyAI.prototype.constructor = JABS_AllyAI;
-/**
-* The risk axis controls how aggressively the ally selects offensive skills.
-*/
-JABS_AllyAI.Risk = {
-	/** Relies on known-effective skills; conservative fallback to random. */
-	CAREFUL: 0,
-	/** Balances memory-driven and random skill selection. */
-	BALANCED: 1,
-	/** Always presses the strongest available skill. */
-	RECKLESS: 2
-};
-/**
-* The support axis controls how the ally weighs healing/buffing against offense.
-*/
-JABS_AllyAI.Support = {
-	/** Never deviates toward support skills. */
-	OFFENSE: 0,
-	/** Conditionally supports when allies are in danger. */
-	BALANCED: 1,
-	/** Prioritizes cleansing, healing, and buffing before offense. */
-	SUPPORT: 2
-};
-/**
-* The spacing axis controls how close the ally positions itself relative to its target.
-*/
-JABS_AllyAI.Spacing = {
-	/** Closes to melee range; chases targets aggressively. */
-	FRONTLINE: 0,
-	/** Maintains a moderate distance from targets. */
-	MIDLINE: 1,
-	/** Stays at maximum skill range; avoids close combat. */
-	BACKLINE: 2
-};
-/**
-* The close-distance threshold (in tiles) for each spacing axis value.
-* Allies back away from their target when inside this range.
-*/
-JABS_AllyAI.CloseDistances = {
-	[JABS_AllyAI.Spacing.FRONTLINE]: 1,
-	[JABS_AllyAI.Spacing.MIDLINE]: 3,
-	[JABS_AllyAI.Spacing.BACKLINE]: 5
-};
-/**
-* The far-distance threshold (in tiles) for each spacing axis value.
-* Allies move toward their target when beyond this range.
-*/
-JABS_AllyAI.FarDistances = {
-	[JABS_AllyAI.Spacing.FRONTLINE]: 2,
-	[JABS_AllyAI.Spacing.MIDLINE]: 5,
-	[JABS_AllyAI.Spacing.BACKLINE]: 7
-};
-/**
-* The leash multiplier for each spacing axis value.
-* Applied to {@link JABS_Battler.allyRubberbandRange} to derive per-ally leash distance.
-*/
-JABS_AllyAI.LeashMultipliers = {
-	[JABS_AllyAI.Spacing.FRONTLINE]: 1.5,
-	[JABS_AllyAI.Spacing.MIDLINE]: 1,
-	[JABS_AllyAI.Spacing.BACKLINE]: .6
-};
-/**
-* The close-distance threshold when do-nothing is active (very large so the ally always backs away).
-* @type {number}
-*/
-JABS_AllyAI.DoNothingCloseDistance = 8;
-/**
-* The far-distance threshold when do-nothing is active.
-* @type {number}
-*/
-JABS_AllyAI.DoNothingFarDistance = 10;
-/**
-* The leash multiplier when do-nothing is active (small so the ally stays near the leader).
-* @type {number}
-*/
-JABS_AllyAI.DoNothingLeashMultiplier = .5;
-/**
-* All ten named presets available for ally AI configuration.
-* Each preset maps to a combination of risk, support, and spacing axis values.
-*/
-JABS_AllyAI.presets = {
-	BERSERKER: {
-		key: "berserker",
-		name: "Berserker",
-		description: "Reckless melee aggressor.\nCharges in and hits as hard as possible at all times.",
-		risk: JABS_AllyAI.Risk.RECKLESS,
-		support: JABS_AllyAI.Support.OFFENSE,
-		spacing: JABS_AllyAI.Spacing.FRONTLINE
-	},
-	GUARDIAN: {
-		key: "guardian",
-		name: "Guardian",
-		description: "Careful frontline protector.\nStays in the thick of it but won't overextend.",
-		risk: JABS_AllyAI.Risk.CAREFUL,
-		support: JABS_AllyAI.Support.OFFENSE,
-		spacing: JABS_AllyAI.Spacing.FRONTLINE
-	},
-	VANGUARD: {
-		key: "vanguard",
-		name: "Vanguard",
-		description: "Balanced frontline fighter.\nA dependable melee ally who adapts to the situation.",
-		risk: JABS_AllyAI.Risk.BALANCED,
-		support: JABS_AllyAI.Support.BALANCED,
-		spacing: JABS_AllyAI.Spacing.FRONTLINE
-	},
-	WAR_PRIEST: {
-		key: "war-priest",
-		name: "War Priest",
-		description: "Frontline support hybrid.\nFights up close but keeps an eye on ally health.",
-		risk: JABS_AllyAI.Risk.BALANCED,
-		support: JABS_AllyAI.Support.SUPPORT,
-		spacing: JABS_AllyAI.Spacing.FRONTLINE
-	},
-	SKIRMISHER: {
-		key: "skirmisher",
-		name: "Skirmisher",
-		description: "Mobile midline attacker.\nFlexible and opportunistic; adapts to whatever is needed.",
-		risk: JABS_AllyAI.Risk.BALANCED,
-		support: JABS_AllyAI.Support.OFFENSE,
-		spacing: JABS_AllyAI.Spacing.MIDLINE
-	},
-	GENERALIST: {
-		key: "generalist",
-		name: "Generalist",
-		description: "Balanced all-rounder.\nA sensible default for allies without a defined specialty.",
-		risk: JABS_AllyAI.Risk.BALANCED,
-		support: JABS_AllyAI.Support.BALANCED,
-		spacing: JABS_AllyAI.Spacing.MIDLINE
-	},
-	CLERIC: {
-		key: "cleric",
-		name: "Cleric",
-		description: "Careful midline supporter.\nKeeps allies healthy from a moderate distance.",
-		risk: JABS_AllyAI.Risk.CAREFUL,
-		support: JABS_AllyAI.Support.SUPPORT,
-		spacing: JABS_AllyAI.Spacing.MIDLINE
-	},
-	ARTILLERY: {
-		key: "artillery",
-		name: "Artillery",
-		description: "Careful backline attacker.\nHangs back and fires from safety; never rushes in.",
-		risk: JABS_AllyAI.Risk.CAREFUL,
-		support: JABS_AllyAI.Support.OFFENSE,
-		spacing: JABS_AllyAI.Spacing.BACKLINE
-	},
-	WIZARD: {
-		key: "wizard",
-		name: "Wizard",
-		description: "Balanced backline attacker.\nDeals damage from range and pushes up when needed.",
-		risk: JABS_AllyAI.Risk.BALANCED,
-		support: JABS_AllyAI.Support.OFFENSE,
-		spacing: JABS_AllyAI.Spacing.BACKLINE
-	},
-	MEDIC: {
-		key: "medic",
-		name: "Medic",
-		description: "Careful backline support.\nStays well back and focuses on keeping the party alive.",
-		risk: JABS_AllyAI.Risk.CAREFUL,
-		support: JABS_AllyAI.Support.SUPPORT,
-		spacing: JABS_AllyAI.Spacing.BACKLINE
-	}
-};
-/**
-* Gets all valid preset objects.
-* @returns {object[]}
-*/
-JABS_AllyAI.getPresets = () => Object.keys(JABS_AllyAI.presets).map((key) => JABS_AllyAI.presets[key]);
-/**
-* Finds a preset object by its key string.
-* @param {string} key The preset key to look up.
-* @returns {object|null}
-*/
-JABS_AllyAI.getPresetByKey = (key) => JABS_AllyAI.getPresets().find((preset) => preset.key === key) ?? null;
-/**
-* Validates that the given key corresponds to a known preset.
-* @param {string} key The key to validate.
-* @returns {boolean}
-*/
-JABS_AllyAI.validatePreset = (key) => JABS_AllyAI.getPresetByKey(key) !== null;
-/**
-* Initializes this ally AI with an optional starting preset.
-* @param {string} [presetKey] The preset key to apply on construction.
-*/
-JABS_AllyAI.prototype.initialize = function(presetKey) {
-	this.initMembers();
-	if (presetKey) {
-		this.applyPreset(presetKey);
-	}
-};
-/**
-* Initializes all default members of this class.
-*/
-JABS_AllyAI.prototype.initMembers = function() {
+var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	/**
-	* When true this ally takes no actions and backs away from all targets.
-	* Overrides all axis behavior.
-	* @type {boolean}
+	* The risk axis controls how aggressively the ally selects offensive skills.
 	*/
-	this._doNothing = false;
+	static Risk = {
+		/** Relies on known-effective skills; conservative fallback to random. */
+		CAREFUL: 0,
+		/** Balances memory-driven and random skill selection. */
+		BALANCED: 1,
+		/** Always presses the strongest available skill. */
+		RECKLESS: 2
+	};
 	/**
-	* The risk axis: how aggressively this ally picks offensive skills.
+	* The support axis controls how the ally weighs healing/buffing against offense.
+	*/
+	static Support = {
+		/** Never deviates toward support skills. */
+		OFFENSE: 0,
+		/** Conditionally supports when allies are in danger. */
+		BALANCED: 1,
+		/** Prioritizes cleansing, healing, and buffing before offense. */
+		SUPPORT: 2
+	};
+	/**
+	* The spacing axis controls how close the ally positions itself relative to its target.
+	*/
+	static Spacing = {
+		/** Closes to melee range; chases targets aggressively. */
+		FRONTLINE: 0,
+		/** Maintains a moderate distance from targets. */
+		MIDLINE: 1,
+		/** Stays at maximum skill range; avoids close combat. */
+		BACKLINE: 2
+	};
+	/**
+	* The close-distance threshold (in tiles) for each spacing axis value.
+	* Allies back away from their target when inside this range.
+	*/
+	static CloseDistances = {
+		[JABS_AllyAI.Spacing.FRONTLINE]: 1,
+		[JABS_AllyAI.Spacing.MIDLINE]: 3,
+		[JABS_AllyAI.Spacing.BACKLINE]: 5
+	};
+	/**
+	* The far-distance threshold (in tiles) for each spacing axis value.
+	* Allies move toward their target when beyond this range.
+	*/
+	static FarDistances = {
+		[JABS_AllyAI.Spacing.FRONTLINE]: 2,
+		[JABS_AllyAI.Spacing.MIDLINE]: 5,
+		[JABS_AllyAI.Spacing.BACKLINE]: 7
+	};
+	/**
+	* The leash multiplier for each spacing axis value.
+	* Applied to {@link JABS_Battler.allyRubberbandRange} to derive per-ally leash distance.
+	*/
+	static LeashMultipliers = {
+		[JABS_AllyAI.Spacing.FRONTLINE]: 1.5,
+		[JABS_AllyAI.Spacing.MIDLINE]: 1,
+		[JABS_AllyAI.Spacing.BACKLINE]: .6
+	};
+	/**
+	* The close-distance threshold when do-nothing is active (very large so the ally always backs away).
 	* @type {number}
 	*/
-	this._risk = JABS_AllyAI.Risk.BALANCED;
+	static DoNothingCloseDistance = 8;
 	/**
-	* The support axis: how much this ally weighs healing/buffing vs offense.
+	* The far-distance threshold when do-nothing is active.
 	* @type {number}
 	*/
-	this._support = JABS_AllyAI.Support.BALANCED;
+	static DoNothingFarDistance = 10;
 	/**
-	* The spacing axis: how close this ally positions itself relative to its target.
+	* The leash multiplier when do-nothing is active (small so the ally stays near the leader).
 	* @type {number}
 	*/
-	this._spacing = JABS_AllyAI.Spacing.MIDLINE;
+	static DoNothingLeashMultiplier = .5;
 	/**
-	* The key of the last applied preset, or the default preset key.
-	* @type {string}
+	* All ten named presets available for ally AI configuration.
+	* Each preset maps to a combination of risk, support, and spacing axis values.
 	*/
-	this._presetKey = JABS_AllyAI.presets.GENERALIST.key;
+	static presets = {
+		BERSERKER: {
+			key: "berserker",
+			name: "Berserker",
+			description: "Reckless melee aggressor.\nCharges in and hits as hard as possible at all times.",
+			risk: JABS_AllyAI.Risk.RECKLESS,
+			support: JABS_AllyAI.Support.OFFENSE,
+			spacing: JABS_AllyAI.Spacing.FRONTLINE
+		},
+		GUARDIAN: {
+			key: "guardian",
+			name: "Guardian",
+			description: "Careful frontline protector.\nStays in the thick of it but won't overextend.",
+			risk: JABS_AllyAI.Risk.CAREFUL,
+			support: JABS_AllyAI.Support.OFFENSE,
+			spacing: JABS_AllyAI.Spacing.FRONTLINE
+		},
+		VANGUARD: {
+			key: "vanguard",
+			name: "Vanguard",
+			description: "Balanced frontline fighter.\nA dependable melee ally who adapts to the situation.",
+			risk: JABS_AllyAI.Risk.BALANCED,
+			support: JABS_AllyAI.Support.BALANCED,
+			spacing: JABS_AllyAI.Spacing.FRONTLINE
+		},
+		WAR_PRIEST: {
+			key: "war-priest",
+			name: "War Priest",
+			description: "Frontline support hybrid.\nFights up close but keeps an eye on ally health.",
+			risk: JABS_AllyAI.Risk.BALANCED,
+			support: JABS_AllyAI.Support.SUPPORT,
+			spacing: JABS_AllyAI.Spacing.FRONTLINE
+		},
+		SKIRMISHER: {
+			key: "skirmisher",
+			name: "Skirmisher",
+			description: "Mobile midline attacker.\nFlexible and opportunistic; adapts to whatever is needed.",
+			risk: JABS_AllyAI.Risk.BALANCED,
+			support: JABS_AllyAI.Support.OFFENSE,
+			spacing: JABS_AllyAI.Spacing.MIDLINE
+		},
+		GENERALIST: {
+			key: "generalist",
+			name: "Generalist",
+			description: "Balanced all-rounder.\nA sensible default for allies without a defined specialty.",
+			risk: JABS_AllyAI.Risk.BALANCED,
+			support: JABS_AllyAI.Support.BALANCED,
+			spacing: JABS_AllyAI.Spacing.MIDLINE
+		},
+		CLERIC: {
+			key: "cleric",
+			name: "Cleric",
+			description: "Careful midline supporter.\nKeeps allies healthy from a moderate distance.",
+			risk: JABS_AllyAI.Risk.CAREFUL,
+			support: JABS_AllyAI.Support.SUPPORT,
+			spacing: JABS_AllyAI.Spacing.MIDLINE
+		},
+		ARTILLERY: {
+			key: "artillery",
+			name: "Artillery",
+			description: "Careful backline attacker.\nHangs back and fires from safety; never rushes in.",
+			risk: JABS_AllyAI.Risk.CAREFUL,
+			support: JABS_AllyAI.Support.OFFENSE,
+			spacing: JABS_AllyAI.Spacing.BACKLINE
+		},
+		WIZARD: {
+			key: "wizard",
+			name: "Wizard",
+			description: "Balanced backline attacker.\nDeals damage from range and pushes up when needed.",
+			risk: JABS_AllyAI.Risk.BALANCED,
+			support: JABS_AllyAI.Support.OFFENSE,
+			spacing: JABS_AllyAI.Spacing.BACKLINE
+		},
+		MEDIC: {
+			key: "medic",
+			name: "Medic",
+			description: "Careful backline support.\nStays well back and focuses on keeping the party alive.",
+			risk: JABS_AllyAI.Risk.CAREFUL,
+			support: JABS_AllyAI.Support.SUPPORT,
+			spacing: JABS_AllyAI.Spacing.BACKLINE
+		}
+	};
 	/**
-	* The collection of memories this ally AI possesses.
-	* @type {JABS_BattleMemory[]}
+	* Gets all valid preset objects.
+	* @returns {object[]}
 	*/
-	this.memory = [];
-};
-/**
-* Gets whether this ally is in do-nothing mode.
-* @returns {boolean}
-*/
-JABS_AllyAI.prototype.isDoNothing = function() {
-	return this._doNothing;
-};
-/**
-* Sets the do-nothing flag for this ally.
-* @param {boolean} doNothing True to enable do-nothing mode, false to disable.
-*/
-JABS_AllyAI.prototype.setDoNothing = function(doNothing) {
-	this._doNothing = doNothing;
-};
-/**
-* Gets the current risk axis value.
-* @returns {number}
-*/
-JABS_AllyAI.prototype.getRisk = function() {
-	return this._risk;
-};
-/**
-* Gets the current support axis value.
-* @returns {number}
-*/
-JABS_AllyAI.prototype.getSupport = function() {
-	return this._support;
-};
-/**
-* Gets the current spacing axis value.
-* @returns {number}
-*/
-JABS_AllyAI.prototype.getSpacing = function() {
-	return this._spacing;
-};
-/**
-* Gets the key of the currently applied preset.
-* @returns {string}
-*/
-JABS_AllyAI.prototype.getPresetKey = function() {
-	return this._presetKey;
-};
-/**
-* Applies a preset by key, updating all three axes and the stored preset key.
-* @param {string} presetKey The key of the preset to apply.
-*/
-JABS_AllyAI.prototype.applyPreset = function(presetKey) {
-	const preset = JABS_AllyAI.getPresetByKey(presetKey);
-	if (!preset) {
-		console.error(`Attempted to apply ally AI preset: [${presetKey}], but it is not a valid preset.`);
-		return;
+	static getPresets() {
+		return Object.keys(JABS_AllyAI.presets).map((key) => JABS_AllyAI.presets[key]);
 	}
-	this._risk = preset.risk;
-	this._support = preset.support;
-	this._spacing = preset.spacing;
-	this._presetKey = preset.key;
-};
-/**
-* Gets the close-distance threshold in tiles for this ally's current spacing.
-* The ally backs away from its target when within this range.
-* @returns {number}
-*/
-JABS_AllyAI.prototype.getCloseDistance = function() {
-	if (this._doNothing) return JABS_AllyAI.DoNothingCloseDistance;
-	return JABS_AllyAI.CloseDistances[this._spacing] ?? JABS_Battler.closeDistance;
-};
-/**
-* Gets the far-distance threshold in tiles for this ally's current spacing.
-* The ally moves toward its target when beyond this range.
-* @returns {number}
-*/
-JABS_AllyAI.prototype.getFarDistance = function() {
-	if (this._doNothing) return JABS_AllyAI.DoNothingFarDistance;
-	return JABS_AllyAI.FarDistances[this._spacing] ?? JABS_Battler.farDistance;
-};
-/**
-* Gets the leash multiplier for this ally's current spacing.
-* Applied to the base rubber-band range to derive the per-ally leash distance.
-* @returns {number}
-*/
-JABS_AllyAI.prototype.getLeashMultiplier = function() {
-	if (this._doNothing) return JABS_AllyAI.DoNothingLeashMultiplier;
-	return JABS_AllyAI.LeashMultipliers[this._spacing] ?? 1;
-};
-/**
-* Wraps a base support helper result (0 means none) as a uniform skill-id list.
-* @param {number} skillId
-* @returns {number[]}
-*/
-JABS_AllyAI.prototype.wrapSupportSkillId = function(skillId) {
-	if (!skillId) return [];
-	return [skillId];
-};
-/**
-* Decides an action based on this battler's axes, the target, and the available skills.
-* @param {JABS_Battler} user The battler of the AI deciding a skill.
-* @param {JABS_Battler} target The target battler to decide an action against.
-* @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
-* @returns {number[]} Exactly one skill id, or empty when no valid choice exists.
-*/
-JABS_AllyAI.prototype.decideAction = function(user, target, availableSkills) {
-	if (this._doNothing) return this.decideDoNothing(user);
-	const usableSkills = this.filterUncastableSkills(user, availableSkills);
-	if (this.shouldFollowWithCombo(user)) return [this.followWithCombo(user)];
-	switch (this._support) {
-		case JABS_AllyAI.Support.SUPPORT: return this.decideSupportFirst(usableSkills, user, target);
-		case JABS_AllyAI.Support.BALANCED: return this.decideBalancedSupport(usableSkills, user, target);
-		case JABS_AllyAI.Support.OFFENSE:
-		default: return this.decideOffense(usableSkills, user, target);
+	/**
+	* Finds a preset object by its key string.
+	* @param {string} key The preset key to look up.
+	* @returns {object|null}
+	*/
+	static getPresetByKey(key) {
+		return JABS_AllyAI.getPresets().find((preset) => preset.key === key) ?? null;
 	}
-};
-/**
-* Decides to do nothing and waits briefly before reconsidering.
-* @param {JABS_Battler} user The battler doing nothing.
-* @returns {number[]}
-*/
-JABS_AllyAI.prototype.decideDoNothing = function(user) {
-	user.setWaitCountdown(20);
-	return [];
-};
-/**
-* Prioritizes cleansing, healing, and buffing allies before falling through to cautious offense.
-* Used when the support axis is {@link JABS_AllyAI.Support.SUPPORT}.
-* @param {number[]} usableSkills The skill ids available to choose from.
-* @param {JABS_Battler} user The battler choosing the skill.
-* @param {JABS_Battler} target The targeted battler.
-* @returns {number[]}
-*/
-JABS_AllyAI.prototype.decideSupportFirst = function(usableSkills, user, target) {
-	const cleansePick = this.wrapSupportSkillId(this.decideCleansing(user, usableSkills));
-	if (cleansePick.length) return cleansePick;
-	const healPick = this.wrapSupportSkillId(this.decideHealing(user, usableSkills));
-	if (healPick.length) return healPick;
-	const buffPick = this.wrapSupportSkillId(this.decideBuffing(user, usableSkills));
-	if (buffPick.length) return buffPick;
-	return this.decideCautiousOffense(usableSkills, user, target);
-};
-/**
-* Conditionally supports allies when in danger, otherwise proceeds to offense.
-* Used when the support axis is {@link JABS_AllyAI.Support.BALANCED}.
-* @param {number[]} usableSkills The skill ids available to choose from.
-* @param {JABS_Battler} user The battler choosing the skill.
-* @param {JABS_Battler} target The targeted battler.
-* @returns {number[]}
-*/
-JABS_AllyAI.prototype.decideBalancedSupport = function(usableSkills, user, target) {
-	const nearbyAllies = user.getAllNearbyAllies();
-	const anyInDanger = nearbyAllies.some((ally) => ally.getBattler().currentHpPercent() < .6);
-	if (anyInDanger && Math.randomInt(2) === 0) {
-		const supportPick = this.decideSupportFirst(usableSkills, user, target);
-		if (supportPick.length) return supportPick;
+	/**
+	* Validates that the given key corresponds to a known preset.
+	* @param {string} key The key to validate.
+	* @returns {boolean}
+	*/
+	static validatePreset(key) {
+		return JABS_AllyAI.getPresetByKey(key) !== null;
 	}
-	return this.decideOffense(usableSkills, user, target);
-};
-/**
-* Dispatches to the appropriate offense behavior based on the risk axis.
-* @param {number[]} usableSkills The skill ids available to choose from.
-* @param {JABS_Battler} user The battler choosing the skill.
-* @param {JABS_Battler} target The targeted battler.
-* @returns {number[]}
-*/
-JABS_AllyAI.prototype.decideOffense = function(usableSkills, user, target) {
-	if (!usableSkills.length) return [];
-	switch (this._risk) {
-		case JABS_AllyAI.Risk.RECKLESS: return this.decideRecklessOffense(usableSkills, user, target);
-		case JABS_AllyAI.Risk.CAREFUL: return this.decideCautiousOffense(usableSkills, user, target);
-		case JABS_AllyAI.Risk.BALANCED:
-		default: return this.decideBalancedOffense(usableSkills, user, target);
+	/**
+	* Constructor.
+	* @param {...*} args Forwarded to {@link #initialize}.
+	*/
+	constructor(...args) {
+		super();
+		this.initialize(...args);
 	}
-};
-/**
-* Always presses the strongest available skill, using battle memories as a secondary signal.
-* Used when the risk axis is {@link JABS_AllyAI.Risk.RECKLESS}.
-* @param {number[]} usableSkills The skill ids available to choose from.
-* @param {JABS_Battler} user The battler choosing the skill.
-* @param {JABS_Battler} target The targeted battler.
-* @returns {number[]}
-*/
-JABS_AllyAI.prototype.decideRecklessOffense = function(usableSkills, user, target) {
-	const strongestSkillId = this.determineStrongestSkill(usableSkills, user, target);
-	const memoriesOfTarget = this.memory.filter((mem) => mem.battlerId === target.getBattlerId());
-	if (memoriesOfTarget.length) {
-		const effectiveSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
-		if (effectiveSkills.length === 1 && effectiveSkills[0] !== strongestSkillId) {
-			const chosen = RPGManager.chanceIn100(50) ? strongestSkillId : effectiveSkills[0];
-			return this.isSkillIdValid(chosen) ? [chosen] : [];
-		}
-		if (effectiveSkills.length > 1) {
-			const chosen = effectiveSkills[Math.randomInt(effectiveSkills.length)];
-			return this.isSkillIdValid(chosen) ? [chosen] : [];
+	/**
+	* Initializes this ally AI with an optional starting preset.
+	* @param {string} [presetKey] The preset key to apply on construction.
+	*/
+	initialize(presetKey) {
+		this.initMembers();
+		if (presetKey) {
+			this.applyPreset(presetKey);
 		}
 	}
-	return this.isSkillIdValid(strongestSkillId) ? [strongestSkillId] : [];
-};
-/**
-* Balances memory-driven skill choices with randomness.
-* Used when the risk axis is {@link JABS_AllyAI.Risk.BALANCED}.
-* @param {number[]} usableSkills The skill ids available to choose from.
-* @param {JABS_Battler} user The battler choosing the skill.
-* @param {JABS_Battler} target The targeted battler.
-* @returns {number[]}
-*/
-JABS_AllyAI.prototype.decideBalancedOffense = function(usableSkills, user, target) {
-	const memoriesOfTarget = this.memory.filter((mem) => mem.battlerId === target.getBattlerId());
-	let tempSkills = usableSkills;
-	if (memoriesOfTarget.length) {
-		tempSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
+	/**
+	* Initializes all default members of this class.
+	*/
+	initMembers() {
+		/**
+		* When true this ally takes no actions and backs away from all targets.
+		* Overrides all axis behavior.
+		* @type {boolean}
+		*/
+		this._doNothing = false;
+		/**
+		* The risk axis: how aggressively this ally picks offensive skills.
+		* @type {number}
+		*/
+		this._risk = JABS_AllyAI.Risk.BALANCED;
+		/**
+		* The support axis: how much this ally weighs healing/buffing vs offense.
+		* @type {number}
+		*/
+		this._support = JABS_AllyAI.Support.BALANCED;
+		/**
+		* The spacing axis: how close this ally positions itself relative to its target.
+		* @type {number}
+		*/
+		this._spacing = JABS_AllyAI.Spacing.MIDLINE;
+		/**
+		* The key of the last applied preset, or the default preset key.
+		* @type {string}
+		*/
+		this._presetKey = JABS_AllyAI.presets.GENERALIST.key;
+		/**
+		* The collection of memories this ally AI possesses.
+		* @type {JABS_BattleMemory[]}
+		*/
+		this.memory = [];
 	}
-	let chosenSkillId;
-	if (tempSkills.length === 0) {
-		chosenSkillId = usableSkills[Math.randomInt(usableSkills.length)];
-	} else if (tempSkills.length === 1) {
-		chosenSkillId = Math.randomInt(2) === 0 ? tempSkills[0] : usableSkills[Math.randomInt(usableSkills.length)];
-	} else {
-		chosenSkillId = tempSkills[Math.randomInt(tempSkills.length)];
+	/**
+	* Gets whether this ally is in do-nothing mode.
+	* @returns {boolean}
+	*/
+	isDoNothing() {
+		return this._doNothing;
 	}
-	return this.isSkillIdValid(chosenSkillId) ? [chosenSkillId] : [];
-};
-/**
-* Relies heavily on battle memories, falling back to random only when none exist.
-* Used when the risk axis is {@link JABS_AllyAI.Risk.CAREFUL}.
-* @param {number[]} usableSkills The skill ids available to choose from.
-* @param {JABS_Battler} user The battler choosing the skill.
-* @param {JABS_Battler} target The targeted battler.
-* @returns {number[]}
-*/
-JABS_AllyAI.prototype.decideCautiousOffense = function(usableSkills, user, target) {
-	if (!usableSkills.length) return [];
-	const memoriesOfTarget = this.memory.filter((mem) => mem.battlerId === target.getBattlerId());
-	if (memoriesOfTarget.length) {
-		const effectiveSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
-		if (effectiveSkills.length) {
-			const chosen = effectiveSkills[Math.randomInt(effectiveSkills.length)];
-			return this.isSkillIdValid(chosen) ? [chosen] : [];
+	/**
+	* Sets the do-nothing flag for this ally.
+	* @param {boolean} doNothing True to enable do-nothing mode, false to disable.
+	*/
+	setDoNothing(doNothing) {
+		this._doNothing = doNothing;
+	}
+	/**
+	* Gets the current risk axis value.
+	* @returns {number}
+	*/
+	getRisk() {
+		return this._risk;
+	}
+	/**
+	* Gets the current support axis value.
+	* @returns {number}
+	*/
+	getSupport() {
+		return this._support;
+	}
+	/**
+	* Gets the current spacing axis value.
+	* @returns {number}
+	*/
+	getSpacing() {
+		return this._spacing;
+	}
+	/**
+	* Gets the key of the currently applied preset.
+	* @returns {string}
+	*/
+	getPresetKey() {
+		return this._presetKey;
+	}
+	/**
+	* Applies a preset by key, updating all three axes and the stored preset key.
+	* @param {string} presetKey The key of the preset to apply.
+	*/
+	applyPreset(presetKey) {
+		const preset = JABS_AllyAI.getPresetByKey(presetKey);
+		if (!preset) {
+			console.error(`Attempted to apply ally AI preset: [${presetKey}], but it is not a valid preset.`);
+			return;
+		}
+		this._risk = preset.risk;
+		this._support = preset.support;
+		this._spacing = preset.spacing;
+		this._presetKey = preset.key;
+	}
+	/**
+	* Gets the close-distance threshold in tiles for this ally's current spacing.
+	* The ally backs away from its target when within this range.
+	* @returns {number}
+	*/
+	getCloseDistance() {
+		if (this._doNothing) return JABS_AllyAI.DoNothingCloseDistance;
+		return JABS_AllyAI.CloseDistances[this._spacing];
+	}
+	/**
+	* Gets the far-distance threshold in tiles for this ally's current spacing.
+	* The ally moves toward its target when beyond this range.
+	* @returns {number}
+	*/
+	getFarDistance() {
+		if (this._doNothing) return JABS_AllyAI.DoNothingFarDistance;
+		return JABS_AllyAI.FarDistances[this._spacing];
+	}
+	/**
+	* Gets the leash multiplier for this ally's current spacing.
+	* Applied to the base rubber-band range to derive the per-ally leash distance.
+	* @returns {number}
+	*/
+	getLeashMultiplier() {
+		if (this._doNothing) return JABS_AllyAI.DoNothingLeashMultiplier;
+		return JABS_AllyAI.LeashMultipliers[this._spacing];
+	}
+	/**
+	* Wraps a base support helper result (0 means none) as a uniform skill-id list.
+	* @param {number} skillId The skill id driving this step.
+	* @returns {number[]}
+	*/
+	wrapSupportSkillId(skillId) {
+		if (!skillId) return [];
+		return [skillId];
+	}
+	/**
+	* Decides an action based on this battler's axes, the target, and the available skills.
+	* @param {JABS_Battler} user The battler of the AI deciding a skill.
+	* @param {JABS_Battler} target The target battler to decide an action against.
+	* @param {number[]} availableSkills A collection of all skill ids to potentially pick from.
+	* @returns {number[]} Exactly one skill id, or empty when no valid choice exists.
+	*/
+	decideAction(user, target, availableSkills) {
+		if (this._doNothing) return this.decideDoNothing(user);
+		const usableSkills = this.filterUncastableSkills(user, availableSkills);
+		if (this.shouldFollowWithCombo(user)) return [this.followWithCombo(user)];
+		switch (this._support) {
+			case JABS_AllyAI.Support.SUPPORT: return this.decideSupportFirst(usableSkills, user, target);
+			case JABS_AllyAI.Support.BALANCED: return this.decideBalancedSupport(usableSkills, user, target);
+			case JABS_AllyAI.Support.OFFENSE:
+			default: return this.decideOffense(usableSkills, user, target);
 		}
 	}
-	const chosen = usableSkills[Math.randomInt(usableSkills.length)];
-	return this.isSkillIdValid(chosen) ? [chosen] : [];
+	/**
+	* Decides to do nothing and waits briefly before reconsidering.
+	* @param {JABS_Battler} user The battler doing nothing.
+	* @returns {number[]}
+	*/
+	decideDoNothing(user) {
+		user.setWaitCountdown(20);
+		return [];
+	}
+	/**
+	* Prioritizes cleansing, healing, and buffing allies before falling through to cautious offense.
+	* Used when the support axis is {@link JABS_AllyAI.Support.SUPPORT}.
+	* @param {number[]} usableSkills The skill ids available to choose from.
+	* @param {JABS_Battler} user The battler choosing the skill.
+	* @param {JABS_Battler} target The targeted battler.
+	* @returns {number[]}
+	*/
+	decideSupportFirst(usableSkills, user, target) {
+		const cleansePick = this.wrapSupportSkillId(this.decideCleansing(user, usableSkills));
+		if (cleansePick.length) return cleansePick;
+		const healPick = this.wrapSupportSkillId(this.decideHealing(user, usableSkills));
+		if (healPick.length) return healPick;
+		const buffPick = this.wrapSupportSkillId(this.decideBuffing(user, usableSkills));
+		if (buffPick.length) return buffPick;
+		return this.decideCautiousOffense(usableSkills, user, target);
+	}
+	/**
+	* Conditionally supports allies when in danger, otherwise proceeds to offense.
+	* Used when the support axis is {@link JABS_AllyAI.Support.BALANCED}.
+	* @param {number[]} usableSkills The skill ids available to choose from.
+	* @param {JABS_Battler} user The battler choosing the skill.
+	* @param {JABS_Battler} target The targeted battler.
+	* @returns {number[]}
+	*/
+	decideBalancedSupport(usableSkills, user, target) {
+		const nearbyAllies = user.getAllNearbyAllies();
+		const anyInDanger = nearbyAllies.some((ally) => ally.getBattler().currentHpPercent() < .6);
+		if (anyInDanger && RPGManager.chanceIn100(50)) {
+			const supportPick = this.decideSupportFirst(usableSkills, user, target);
+			if (supportPick.length) return supportPick;
+		}
+		return this.decideOffense(usableSkills, user, target);
+	}
+	/**
+	* Dispatches to the appropriate offense behavior based on the risk axis.
+	* @param {number[]} usableSkills The skill ids available to choose from.
+	* @param {JABS_Battler} user The battler choosing the skill.
+	* @param {JABS_Battler} target The targeted battler.
+	* @returns {number[]}
+	*/
+	decideOffense(usableSkills, user, target) {
+		if (!usableSkills.length) return [];
+		switch (this._risk) {
+			case JABS_AllyAI.Risk.RECKLESS: return this.decideRecklessOffense(usableSkills, user, target);
+			case JABS_AllyAI.Risk.CAREFUL: return this.decideCautiousOffense(usableSkills, user, target);
+			case JABS_AllyAI.Risk.BALANCED:
+			default: return this.decideBalancedOffense(usableSkills, user, target);
+		}
+	}
+	/**
+	* Always presses the strongest available skill, using battle memories as a secondary signal.
+	* Used when the risk axis is {@link JABS_AllyAI.Risk.RECKLESS}.
+	* @param {number[]} usableSkills The skill ids available to choose from.
+	* @param {JABS_Battler} user The battler choosing the skill.
+	* @param {JABS_Battler} target The targeted battler.
+	* @returns {number[]}
+	*/
+	decideRecklessOffense(usableSkills, user, target) {
+		const strongestSkillId = this.determineStrongestSkill(usableSkills, user, target);
+		const memoriesOfTarget = this.memory.filter((mem) => mem.battlerId === target.getBattlerId());
+		if (memoriesOfTarget.length) {
+			const effectiveSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
+			if (effectiveSkills.length === 1 && effectiveSkills[0] !== strongestSkillId) {
+				const chosen = RPGManager.chanceIn100(50) ? strongestSkillId : effectiveSkills[0];
+				return this.isSkillIdValid(chosen) ? [chosen] : [];
+			}
+			if (effectiveSkills.length > 1) {
+				const chosen = effectiveSkills[Math.randomInt(effectiveSkills.length)];
+				return this.isSkillIdValid(chosen) ? [chosen] : [];
+			}
+		}
+		return this.isSkillIdValid(strongestSkillId) ? [strongestSkillId] : [];
+	}
+	/**
+	* Balances memory-driven skill choices with randomness.
+	* Used when the risk axis is {@link JABS_AllyAI.Risk.BALANCED}.
+	* @param {number[]} usableSkills The skill ids available to choose from.
+	* @param {JABS_Battler} user The battler choosing the skill.
+	* @param {JABS_Battler} target The targeted battler.
+	* @returns {number[]}
+	*/
+	decideBalancedOffense(usableSkills, user, target) {
+		const memoriesOfTarget = this.memory.filter((mem) => mem.battlerId === target.getBattlerId());
+		let tempSkills = usableSkills;
+		if (memoriesOfTarget.length) {
+			tempSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
+		}
+		let chosenSkillId;
+		if (tempSkills.length === 0) {
+			chosenSkillId = usableSkills[Math.randomInt(usableSkills.length)];
+		} else if (tempSkills.length === 1) {
+			chosenSkillId = RPGManager.chanceIn100(50) ? tempSkills[0] : usableSkills[Math.randomInt(usableSkills.length)];
+		} else {
+			chosenSkillId = tempSkills[Math.randomInt(tempSkills.length)];
+		}
+		return this.isSkillIdValid(chosenSkillId) ? [chosenSkillId] : [];
+	}
+	/**
+	* Relies heavily on battle memories, falling back to random only when none exist.
+	* Used when the risk axis is {@link JABS_AllyAI.Risk.CAREFUL}.
+	* @param {number[]} usableSkills The skill ids available to choose from.
+	* @param {JABS_Battler} user The battler choosing the skill.
+	* @param {JABS_Battler} target The targeted battler.
+	* @returns {number[]}
+	*/
+	decideCautiousOffense(usableSkills, user, target) {
+		if (!usableSkills.length) return [];
+		const memoriesOfTarget = this.memory.filter((mem) => mem.battlerId === target.getBattlerId());
+		if (memoriesOfTarget.length) {
+			const effectiveSkills = this.filterMemoriesByEffectiveness(usableSkills, memoriesOfTarget);
+			if (effectiveSkills.length) {
+				const chosen = effectiveSkills[Math.randomInt(effectiveSkills.length)];
+				return this.isSkillIdValid(chosen) ? [chosen] : [];
+			}
+		}
+		const chosen = usableSkills[Math.randomInt(usableSkills.length)];
+		return this.isSkillIdValid(chosen) ? [chosen] : [];
+	}
 };
+SerializableRegistry.register(JABS_AllyAI);
 
 //#endregion
 //#region src/plugins/abs/ext/allyai/_models/JABS_Battler.js
@@ -1056,7 +1073,7 @@ JABS_AiManager.enforceFollowerThroughPolicy = function(allyBattler) {
 * @returns {boolean} True if this ally can do phase 0 things, false otherwise.
 */
 JABS_AiManager.canPerformAllyPhase0 = function(allyBattler) {
-	if (allyBattler.isCasting()) return false;
+	if (allyBattler.isCastingOrChanneling()) return false;
 	if (allyBattler.isEngaged()) return false;
 	return true;
 };
@@ -1217,7 +1234,7 @@ JABS_AiManager.isWithinTolerance = function(allyBattler, targetX, targetY, toler
 	return dist <= tolerance;
 };
 /**
-* Extends {@link #maintainSafeDistance}.<br>
+* Extends {@link #maintainSafeDistance}.<br/>
 * Allies use spacing-axis-driven close/far thresholds instead of the global constants.
 * @param {JABS_Battler} battler The battler to reposition.
 */
@@ -1230,15 +1247,14 @@ JABS_AiManager.maintainSafeDistance = function(battler) {
 	const distance = battler.distanceToCurrentTarget();
 	const closeDistance = battler.getCloseDistance();
 	const farDistance = battler.getFarDistance();
-	if (distance > closeDistance && distance <= farDistance) return;
 	if (distance <= closeDistance) {
 		battler.smartMoveAwayFromTarget();
 	} else if (distance > farDistance) {
 		battler.smartMoveTowardTarget();
-	}
+	} else {}
 };
 /**
-* Extends {@link #decideAiPhase2Action}.<br>
+* Extends {@link #decideAiPhase2Action}.<br/>
 * Includes handling ally AI as well as enemy.
 * @param {JABS_Battler} battler The battler deciding the action.
 */
@@ -1289,7 +1305,7 @@ Object.defineProperty(JABS_Engine.prototype, "requestAlliesRefresh", {
 	writeable: true
 });
 /**
-* Extends {@link JABS_Engine.prePartyCycling}.<br>
+* Extends {@link JABS_Engine.prePartyCycling}.<br/>
 * Jumps all followers to the player upon party cycling.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("prePartyCycling", JABS_Engine.prototype.prePartyCycling);
@@ -1298,7 +1314,7 @@ JABS_Engine.prototype.prePartyCycling = function() {
 	$gamePlayer.jumpFollowersToMe();
 };
 /**
-* Overrides {@link JABS_Engine.handlePartyCycleMemberChanges}.<br>
+* Overwrites {@link JABS_Engine.handlePartyCycleMemberChanges}.<br/>
 * Jumps all followers to the player upon party cycling.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("handlePartyCycleMemberChanges", JABS_Engine.prototype.handlePartyCycleMemberChanges);
@@ -1311,7 +1327,7 @@ JABS_Engine.prototype.handlePartyCycleMemberChanges = function() {
 	$jabsEngine.requestAlliesRefresh = true;
 };
 /**
-* Extends {@link JABS_Engine.continuedPrimaryBattleEffects}.<br>
+* Extends {@link JABS_Engine.continuedPrimaryBattleEffects}.<br/>
 * Also applies battle memories as-necessary.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("continuedPrimaryBattleEffects", JABS_Engine.prototype.continuedPrimaryBattleEffects);
@@ -1327,7 +1343,7 @@ JABS_Engine.prototype.continuedPrimaryBattleEffects = function(action, target) {
 * @param target
 */
 JABS_Engine.prototype.applyBattleMemories = function(result, action, target) {
-	if (this.canApplyBattleMemories(target)) return;
+	if (!this.canApplyBattleMemories(target)) return;
 	const newMemory = new JABS_BattleMemory(target.getBattlerId(), action.getBaseSkill().id, action.getAction().calculateRawElementRate(target.getBattler()), result.hpDamage);
 	const attacker = action.getCaster();
 	attacker.applyBattleMemories(newMemory);
@@ -1361,7 +1377,7 @@ JABS_Engine.prototype.postPartyCycling = function() {
 	this.rebuildActorAllies();
 };
 /**
-* Extends {@link JABS_Engine#canBeAlerted}.<br>
+* Extends {@link JABS_Engine#canBeAlerted}.<br/>
 * Do-nothing allies cannot be alerted; they ignore attacks passively.
 */
 J.ABS.EXT.ALLYAI.Aliased.JABS_Engine.set("canBeAlerted", JABS_Engine.prototype.canBeAlerted);
@@ -1388,7 +1404,7 @@ JABS_SkillSlotManager.prototype.getEquippedAllySlots = function() {
 //#endregion
 //#region src/plugins/abs/ext/allyai/objects/Game_Actor.js
 /**
-* Extends {@link #initMembers}.<br>
+* Extends {@link #initMembers}.<br/>
 * Also tracks JABS ally AI.
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set("initMembers", Game_Actor.prototype.initMembers);
@@ -1419,7 +1435,7 @@ Game_Actor.prototype.initAllyAiMembers = function() {
 	this._j._abs._allyAi._mode = new JABS_AllyAI(JABS_AllyAI.presets.GENERALIST.key);
 };
 /**
-* Extends {@link #setup}.<br>
+* Extends {@link #setup}.<br/>
 * Also initializes ally AI.
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Actor.set("setup", Game_Actor.prototype.setup);
@@ -1477,7 +1493,8 @@ Game_Actor.prototype.getValidSkillSlotsForAlly = function() {
 //#endregion
 //#region src/plugins/abs/ext/allyai/objects/Game_Follower.js
 /**
-* OVERWRITE Adjust the chaseCharacter function to prevent chasing the player
+* Extends {@link #chaseCharacter}.<br/>
+* Adjust the chaseCharacter function to prevent chasing the player
 * while this follower is engaged.
 * @param {Game_Character} character The character this follower is following.
 */
@@ -1522,7 +1539,8 @@ Game_Follower.prototype.jumpToPlayer = function() {
 //#endregion
 //#region src/plugins/abs/ext/allyai/objects/Game_Followers.js
 /**
-* OVERWRITE If you're using this, the followers always show up!
+* Extends {@link #show}.<br/>
+* If you're using this, the followers always show up!
 * @returns {boolean}
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set("show", Game_Followers.prototype.show);
@@ -1532,7 +1550,8 @@ Game_Followers.prototype.show = function() {
 	$jabsEngine.requestJabsMenuRefresh = true;
 };
 /**
-* OVERWRITE If you're using this, the followers always show up!
+* Extends {@link #hide}.<br/>
+* If you're using this, the followers always show up!
 * @returns {boolean}
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set("hide", Game_Followers.prototype.hide);
@@ -1542,16 +1561,17 @@ Game_Followers.prototype.hide = function() {
 	$jabsEngine.requestJabsMenuRefresh = true;
 };
 /**
-* OVERWRITE Adjust the jumpAll function to prevent jumping to the player
+* Overwrites {@link #jumpAll}.<br/>
+* Adjust the jumpAll function to prevent jumping to the player
 * when the player is hit.
 */
 Game_Followers.prototype.jumpAll = function() {
 	if (!$gamePlayer.isJumping()) return;
 	const playerBattler = $gamePlayer.getJabsBattler();
 	for (const follower of this._data) {
-		if (!follower || !follower.isVisible()) return;
+		if (!follower || !follower.isVisible()) continue;
 		const battler = follower.getJabsBattler();
-		if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) return;
+		if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) continue;
 		const sx = $gamePlayer.deltaXFrom(follower.x);
 		const sy = $gamePlayer.deltaYFrom(follower.y);
 		follower.jump(sx, sy);
@@ -1592,7 +1612,7 @@ Game_Interpreter.prototype.command205 = function(params) {
 //#endregion
 //#region src/plugins/abs/ext/allyai/objects/Game_Map.js
 /**
-* Extends {@link Game_Map.parseBattlers}.<br>
+* Extends {@link Game_Map.parseBattlers}.<br/>
 * Also parses ally battlers as well as events.
 * @returns {JABS_Battler[]}
 */
@@ -1712,7 +1732,7 @@ Game_Party.prototype.setPartyFormation = function(formation) {
 	this._j._abs._allyAI._partyFormation = formation;
 };
 /**
-* Extends {@link Game_Party.addActor}.<br>
+* Extends {@link Game_Party.addActor}.<br/>
 * Also updates allies to accommodate the addition of the actor.
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Party.set("addActor", Game_Party.prototype.addActor);
@@ -1721,7 +1741,7 @@ Game_Party.prototype.addActor = function(actorId) {
 	$gameMap.updateAllies();
 };
 /**
-* Extends {@link Game_Party.removeActor}.<br>
+* Extends {@link Game_Party.removeActor}.<br/>
 * Also updates allies to accommodate the removal of the actor.
 */
 J.ABS.EXT.ALLYAI.Aliased.Game_Party.set("removeActor", Game_Party.prototype.removeActor);
@@ -1765,7 +1785,7 @@ var Window_Formations = class extends Window_Command {
 		return new WindowCommandBuilder(name).setSymbol("select-formation").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setIconIndex(iconIndex).setEnabled(true).setExtensionData(formation).build();
 	}
 	/**
-	* Overrides {@link #itemHeight}.<br>
+	* Overwrites {@link #itemHeight}.<br/>
 	* Makes the command rows bigger so there can be additional lines.
 	* @returns {number}
 	*/
@@ -2079,7 +2099,7 @@ Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
 //#endregion
 //#region src/plugins/abs/ext/allyai/windows/Window_AbsMenu.js
 /**
-* Extends {@link #buildCommands}.<br>
+* Extends {@link #buildCommands}.<br/>
 * Adds the ally ai management command at the end of the list.
 * @returns {BuiltWindowCommand[]}
 */

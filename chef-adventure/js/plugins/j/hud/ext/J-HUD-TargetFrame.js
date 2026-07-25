@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 HUD-TARGET] A HUD frame that displays your battle target.
+ * [v1.1.0 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -383,6 +383,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Target frame now renders the shared dual-row state affliction
+ *    presenter from J-HUD core, wired via a new patch file.
+ *    Fixed Game_Enemy#targetFrameIcon reading with the TargetFrameText
+ *    regex instead of TargetFrameIcon, so the icon tag never matched.
  * - 1.0.1
  *    Adjusted target frame defaults for better readability.
  *    Improved gauge alignment logic for consistent HP/MP positioning.
@@ -401,7 +406,7 @@ var JHudTarget_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {
@@ -542,7 +547,7 @@ var JHudTarget_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.2";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -561,7 +566,7 @@ J.HUD.EXT.TARGET = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudTarget_PluginMetadata}
 */
-J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "1.0.1");
+J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -569,7 +574,8 @@ J.HUD.EXT.TARGET.Aliased = {
 	Game_System: new Map(),
 	Hud_Manager: new Map(),
 	JABS_Battler: new Map(),
-	Scene_Map: new Map()
+	Scene_Map: new Map(),
+	Window_TargetFrame: new Map()
 };
 /**
 * All regular expressions used by this plugin.
@@ -664,7 +670,7 @@ var FramedTarget = class {
 	*/
 	configuration = null;
 	/**
-	* Optional `#RRGGBB` for the name row when tier stripe hex should also tint the HUD (Passive-ABS + J-Passive-ABS).
+	* Optional `#RRGGBB` for the name row; a passive extension may set this so the HUD tints the target name.
 	* Empty means use the window default text color.
 	* @type {string|String.empty}
 	*/
@@ -1383,7 +1389,7 @@ Game_Enemy.prototype.targetFrameText = function() {
 * @returns {number}
 */
 Game_Enemy.prototype.targetFrameIcon = function() {
-	return RPGManager.getNumberFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameText);
+	return RPGManager.getNumberFromNoteByRegex(this.enemy(), J.HUD.EXT.TARGET.RegExp.TargetFrameIcon);
 };
 /**
 * Gets whether or not the battler can show the target frame.
@@ -1766,8 +1772,8 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 		*/
 		this._j._name = String.empty;
 		/**
-		* When set, {@link #drawTargetName} tints the line with this `#RRGGBB` before `drawTextEx` (Passive-ABS tier stripe
-		* hex).
+		* When set, {@link #drawTargetName} tints the line with this `#RRGGBB` before `drawTextEx`.
+		* Populated when a passive extension is active and supplies a name color for the target.
 		* @type {string|String.empty}
 		*/
 		this._j._nameColorHex = String.empty;
@@ -2217,9 +2223,63 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 };
 
 //#endregion
+//#region src/plugins/hud/ext/target/patches/Window_TargetFrame.js
+if (J.HUD && J.HUD.EXT.TARGET) {
+	J.HUD.EXT.TARGET.Aliased.Window_TargetFrame.set("initialize", Window_TargetFrame.prototype.initialize);
+	/**
+	* Extends {@link Window_TargetFrame#initialize}.<br/>
+	* Wires the shared affliction presenter after the target frame cache exists.
+	* @param {Rectangle} rect The shape representing this window.
+	*/
+	Window_TargetFrame.prototype.initialize = function(rect) {
+		J.HUD.EXT.TARGET.Aliased.Window_TargetFrame.get("initialize").call(this, rect);
+		/**
+		* Shared affliction presenter for the framed battler.
+		* @type {StateAfflictionHudPresenter}
+		*/
+		this._afflictionPresenter = new StateAfflictionHudPresenter(this, this._j._spriteCache);
+	};
+	/**
+	* Builds the layout spec for target frame affliction rows.
+	* @returns {StateAfflictionHudLayoutSpec}
+	*/
+	Window_TargetFrame.prototype.targetAfflictionLayoutSpec = function() {
+		const layout = new StateAfflictionHudLayoutSpec();
+		layout.originX = 32;
+		if (this.hasTargetIcon()) {
+			layout.originX += ImageManager.iconWidth;
+		}
+		layout.originY = this.targetBattlerGaugesY() + 44;
+		layout.rowGap = 24;
+		return layout;
+	};
+	/**
+	* Updates affliction rows every frame while a battler is framed.
+	*/
+	Window_TargetFrame.prototype.updateTargetAfflictions = function() {
+		if (!this._afflictionPresenter) {
+			return;
+		}
+		if (!this._j._battler) {
+			return;
+		}
+		if (this._j._inactivityTimer < 60) {
+			return;
+		}
+		const layout = this.targetAfflictionLayoutSpec();
+		this._afflictionPresenter.render(this._j._battler, layout);
+	};
+	J.HUD.EXT.TARGET.Aliased.Window_TargetFrame.set("updateTarget", Window_TargetFrame.prototype.updateTarget);
+	Window_TargetFrame.prototype.updateTarget = function() {
+		J.HUD.EXT.TARGET.Aliased.Window_TargetFrame.get("updateTarget").call(this);
+		this.updateTargetAfflictions();
+	};
+}
+
+//#endregion
 //#region src/plugins/hud/ext/target/scenes/Scene_Map.js
 /**
-* Extends {@link #initHudMembers}.<br>
+* Extends {@link #initHudMembers}.<br/>
 * Includes initialization of the target frame members.
 */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set("initHudMembers", Scene_Map.prototype.initHudMembers);
@@ -2244,7 +2304,7 @@ Scene_Map.prototype.initHudMembers = function() {
 	this._j._hud._target._bossFrame = null;
 };
 /**
-* Extends {@link #createAllWindows}.<br>
+* Extends {@link #createAllWindows}.<br/>
 * Includes creation of the target frame window.
 */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);
@@ -2295,7 +2355,7 @@ Scene_Map.prototype.setTargetFrameWindow = function(window) {
 	this._j._hud._target._targetFrame = window;
 };
 /**
-* Extends {@link #updateHudFrames}.<br>
+* Extends {@link #updateHudFrames}.<br/>
 * Includes updating the target frame.
 */
 J.HUD.EXT.TARGET.Aliased.Scene_Map.set("updateHudFrames", Scene_Map.prototype.updateHudFrames);

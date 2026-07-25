@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 SHIELD] A JABS extension that provides state-based HP shields.
+ * [v1.1.0 SHIELD] A JABS extension that provides state-based HP shields.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -74,18 +74,60 @@
  * TAG FORMAT:
  *  <shield:[FORMULA]>
  *    Where FORMULA represents a damage-like formula calculating the amount to
- *    absorb. The variables 'a' and 'b' can be used in the formulas like you
- *    would in a damage formula, where 'a' represents the target afflicted
- *    with the shield state, and 'b' represents the RPG_State object.
+ *    absorb. The variables 'a', 'b', and 's' can be used in the formulas like
+ *    you would in a damage formula, where 'a' represents the battler applying
+ *    the shield state, 'b' represents the battler receiving the shield state,
+ *    and 's' represents the RPG_State object of the shield state itself.
  *
  * TAG EXAMPLES:
  *  <shield:[100]>
- * A shield to protect against 100 daamge will be supplied when afflicted with
+ * A shield to protect against 100 damage will be supplied when afflicted with
  * the state bearing this tag.
  *
- *  <shield:[(a.atk * 3) + b.stepsToRemove]>
- * A shield to protect against damage based on triple the afflicted's attack
- * parameter as well as the value in the "steps to remove" field on the state.
+ *  <shield:[(a.mat * 3) + s.stepsToRemove]>
+ * A shield based on triple the caster's magic attack parameter as well as the
+ * value in the "steps to remove" field on the shield state.
+ *
+ * NOTE ABOUT SAR/SER SCALING:
+ * After the formula is evaluated, the result is multiplied by the applying
+ * battler's "sar" (Shield Amplification Rate) and the receiving battler's
+ * "ser" (Shield Effectiveness Rate) factors. See the SHIELD AMPLIFICATION/
+ * EFFECTIVENESS section below for how those factors are built.
+ *
+ * ============================================================================
+ * SHIELD AMPLIFICATION / EFFECTIVENESS:
+ * Two percent-point stats scale every shield this battler is involved with,
+ * summed from all of a battler's note sources (actor, class, weapons,
+ * armors, states) and also contributed to by SDP panel investment.
+ *
+ * SAR (Shield Amplification Rate) scales shields THIS battler grants when
+ * applying a shield state to someone (including themselves). SER (Shield
+ * Effectiveness Rate) scales shields THIS battler receives, regardless of
+ * who applied them. Both default to a neutral 100 (1.0x multiplier).
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Enemies
+ * - Weapons
+ * - Armors
+ * - States
+ *
+ * TAG FORMAT:
+ *  <sar:PERCENT_POINTS>
+ *  <ser:PERCENT_POINTS>
+ *    Where PERCENT_POINTS is a signed integer offset from the 100 baseline.
+ *    All matching sources are summed before being converted to a multiplier.
+ *
+ * TAG EXAMPLES:
+ *  <sar:25>
+ * This source grants +25 percent-points of Shield Amplification, meaning
+ * shields this battler applies to others (or themselves) come out 25%
+ * larger.
+ *
+ *  <ser:-50>
+ * This source grants -50 percent-points of Shield Effectiveness, meaning
+ * any shield this battler receives is worth half as much.
  *
  * ============================================================================
  * SHIELD CAPS:
@@ -105,18 +147,19 @@
  * TAG FORMAT:
  *  <shieldCap:[FORMULA]>
  *    Where FORMULA represents a damage-like formula calculating the cap shield
- *    amount. The variables 'a' and 'b' can be used in the formulas like you
- *    would in a damage formula, where 'a' represents the target afflicted
- *    with the shield state, and 'b' represents the RPG_State object.
+ *    amount. The variables 'a', 'b', and 's' can be used in the formulas like
+ *    you would in a damage formula, where 'a' represents the battler applying
+ *    the shield state, 'b' represents the battler receiving the shield state,
+ *    and 's' represents the RPG_State object of the shield state itself.
  *
  * TAG EXAMPLES:
  *  <shieldCap:[100]>
  * A shield cap of 100 will be applied when afflicted with the state bearing this
  * tag.
  *
- *  <shieldCap:[(a.atk * 3) + b.stepsToRemove]>
- * A shield cap of (target's attack * 3) + (number of steps to remove) will be
- * applied when afflicted with the state bearing this tag.
+ *  <shieldCap:[(a.mat * 3) + s.stepsToRemove]>
+ * A shield cap of (caster's magic attack * 3) + (number of steps to remove) will
+ * be applied when afflicted with the state bearing this tag.
  *
  * ============================================================================
  * SHIELD PRIORITY:
@@ -301,6 +344,21 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    JABS_State.onShieldBreak now passes the broken shield's cap to Game_Battler.onShieldBreak.
+ *    Game_Battler.onShieldBreak stores the value as lastShieldBreakValue before firing break
+ *    skills, then clears it immediately after. This value is exposed as the formula variable
+ *    's' via Game_Action.registerFormulaContext, so a skill authored with <shieldBreak:[ID]>
+ *    can write its damage formula as e.g. "s * 0.30" to deal 30% of the broken shield's cap.
+ *    's' is 0 for all non-shield-break actions; it never persists across frames.
+ *    Added SAR (Shield Amplification Rate) and SER (Shield Effectiveness
+ *    Rate) battler-wide stats via <sar:PERCENT_POINTS>/<ser:PERCENT_POINTS>,
+ *    summed from all note sources plus SDP panel investment. SAR scales
+ *    shields this battler grants; SER scales shields this battler receives.
+ *    <shield>/<shieldCap> formulas now expose 'a' (applier), 'b' (receiver),
+ *    and 's' (the shield state itself) — previously 'a' was the afflicted
+ *    target and 'b' was the state, so existing formulas using 'a'/'b' need
+ *    re-authoring against the new meaning.
  * - 1.0.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
@@ -337,12 +395,12 @@ var JShield_PluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/shield/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -359,11 +417,12 @@ J.ABS.EXT.SHIELD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.0.2");
+J.ABS.EXT.SHIELD.Metadata = new JShield_PluginMetadata("J-ABS-Shield", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.ABS.EXT.SHIELD.Aliased = {
+	Scene_Boot: new Map(),
 	Game_Action: new Map(),
 	Game_Actor: new Map(),
 	Game_Battler: new Map(),
@@ -412,8 +471,18 @@ J.ABS.EXT.SHIELD.RegExp = {
 	/**
 	* Represents one or many skills to fire when this state’s shield breaks.
 	*/
-	Break: /<shieldBreak:[ ]?(\[[\d, ]+])>/i
+	Break: /<shieldBreak:[ ]?(\[[\d, ]+])>/i,
+	/** Outgoing shield point amplification (`<sar:25>` = +25%). */
+	ShieldAmplification: /<sar:(-?\d+)>/gi,
+	/** Incoming shield effectiveness (`<ser:25>` = +25%). */
+	ShieldEffectiveness: /<ser:(-?\d+)>/gi
 };
+/** Legacy SDP panel parameter ids for shield stats. */
+J.ABS.EXT.SHIELD.SdpParamId = {
+	SAR: 38,
+	SER: 39
+};
+Game_Action.registerFormulaContext("s", (_action, a) => a.lastShieldBreakValue);
 
 //#endregion
 //#region src/plugins/abs/ext/shield/_models/JABS_Shield.js
@@ -431,8 +500,9 @@ var JABS_Shield = class JABS_Shield {
 	static fromStateId(stateId, target, attacker) {
 		const state = target.state(stateId);
 		const pointFormulas = RPGManager.getStringsFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.ShieldPointsFormula);
-		const a = attacker ?? target;
+		const a = attacker;
 		const b = target;
+		const s = state;
 		/**
 		* A safe reduce function that wears a diaper during evaluation.
 		* @param {number} total The current total value.
@@ -441,13 +511,19 @@ var JABS_Shield = class JABS_Shield {
 		*/
 		const safeReduce = (total, formula) => {
 			try {
-				return total + eval(formula);
+				return total + new Function("a", "b", "s", `return (${formula})`)(a, b, s);
 			} catch (e) {
 				console.error(`Error evaluating shield formula: ${formula}`, target, attacker, e);
 				return total;
 			}
 		};
-		const totalPoints = pointFormulas.reduce(safeReduce, 0);
+		let totalPoints = pointFormulas.reduce(safeReduce, 0);
+		if (attacker && attacker.sar) {
+			totalPoints *= attacker.sar;
+		}
+		if (target && target.ser) {
+			totalPoints *= target.ser;
+		}
 		if (totalPoints === 0) return null;
 		const capFormulas = RPGManager.getStringsFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.ShieldCapFormula);
 		const totalCap = capFormulas.reduce(safeReduce, 0);
@@ -622,7 +698,8 @@ JABS_State.prototype.removeFromBattler = function() {
 * An event hook fired when a shield is broken.
 */
 JABS_State.prototype.onShieldBreak = function() {
-	this.battler.onShieldBreak();
+	const shieldCap = this.shield ? this.shield.getCap() : 0;
+	this.battler.onShieldBreak(shieldCap);
 	this.decrementStacks(1);
 	if (this.stackCount === 0) {
 		this.removeFromBattler();
@@ -720,16 +797,10 @@ Object.defineProperties(RPG_UsableItem.prototype, {
 			if (this.hasShieldBypass === false) {
 				return null;
 			}
-			J.ABS.EXT.SHIELD.RegExp.Bypass.lastIndex = 0;
-			const match = J.ABS.EXT.SHIELD.RegExp.Bypass.exec(this.note);
-			if (!match) {
+			if (this.isShieldBypassUniversal) {
 				return null;
 			}
-			if (!match[1] || String(match[1]).trim().length === 0) {
-				return null;
-			}
-			const list = RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass, true);
-			return list;
+			return RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass, true);
 		},
 		configurable: true
 	},
@@ -740,8 +811,7 @@ Object.defineProperties(RPG_UsableItem.prototype, {
 	*/
 	hasShieldBypass: {
 		get: function() {
-			J.ABS.EXT.SHIELD.RegExp.Bypass.lastIndex = 0;
-			return J.ABS.EXT.SHIELD.RegExp.Bypass.test(this.note);
+			return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass);
 		},
 		configurable: true
 	},
@@ -755,12 +825,8 @@ Object.defineProperties(RPG_UsableItem.prototype, {
 			if (this.hasShieldBypass === false) {
 				return false;
 			}
-			J.ABS.EXT.SHIELD.RegExp.Bypass.lastIndex = 0;
-			const match = J.ABS.EXT.SHIELD.RegExp.Bypass.exec(this.note);
-			if (match && (!match[1] || String(match[1]).trim().length === 0)) {
-				return true;
-			}
-			return false;
+			const list = RPGManager.getArrayFromNotesByRegex(this, J.ABS.EXT.SHIELD.RegExp.Bypass, true, true);
+			return list === null;
 		},
 		configurable: true
 	},
@@ -772,7 +838,6 @@ Object.defineProperties(RPG_UsableItem.prototype, {
 	*/
 	shieldBonusFormulas: {
 		get: function() {
-			J.ABS.EXT.SHIELD.RegExp.ShieldDamage.lastIndex = 0;
 			const formulas = RPGManager.getStringsFromNoteByRegex(this, J.ABS.EXT.SHIELD.RegExp.ShieldDamage);
 			return Array.isArray(formulas) ? formulas : [];
 		},
@@ -795,6 +860,54 @@ ColorManager.shieldGauge1 = function() {
 */
 ColorManager.shieldGauge2 = function() {
 	return this.textColor(8);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/shield/managers/TextManager.js
+/**
+* Display label for shield amplification — scales shield points applied to allies.
+* @returns {string}
+*/
+TextManager.sar = function() {
+	return "Shield Amp";
+};
+/**
+* Help text explaining how shield amplification strengthens outgoing shields.
+* @returns {string[]}
+*/
+TextManager.sarDescription = function() {
+	return ["Multiplier on shield points this battler applies to allies.", "Higher values create stronger outgoing shields."];
+};
+/**
+* Display label for shield efficiency — scales shield points received on self.
+* @returns {string}
+*/
+TextManager.ser = function() {
+	return "Shield Eff";
+};
+/**
+* Help text explaining how shield efficiency strengthens incoming shields.
+* @returns {string[]}
+*/
+TextManager.serDescription = function() {
+	return ["Multiplier on shield points received on this battler.", "Higher values strengthen incoming shields."];
+};
+
+//#endregion
+//#region src/plugins/abs/ext/shield/managers/IconManager.js
+/**
+* Icon index for shield amplification (outgoing shield multiplier) in parameter UI.
+* @returns {number}
+*/
+IconManager.sar = function() {
+	return 967;
+};
+/**
+* Icon index for shield efficiency (incoming shield multiplier) in parameter UI.
+* @returns {number}
+*/
+IconManager.ser = function() {
+	return 968;
 };
 
 //#endregion
@@ -821,6 +934,145 @@ JABS_Engine.prototype.extendJabsState = function(jabsState, newJabsState) {
 };
 
 //#endregion
+//#region src/plugins/abs/ext/shield/objects/Game_Battler.js
+/**
+* Extends {@link #initMembers}.<br/>
+* Initializes shield parameter caches.
+*/
+J.ABS.EXT.SHIELD.Aliased.Game_Battler.set("initMembers", Game_Battler.prototype.initMembers);
+Game_Battler.prototype.initMembers = function() {
+	J.ABS.EXT.SHIELD.Aliased.Game_Battler.get("initMembers").call(this);
+	/**
+	* The shared root namespace for all of J's plugin data.
+	*/
+	this._j ||= {};
+	/**
+	* A grouping of all properties associated with JABS.
+	*/
+	this._j._abs ||= {};
+	/**
+	* A grouping of all JABS shield extension properties.
+	*/
+	this._j._abs._shield ||= {};
+	/**
+	* The cached result of {@link #baseSarFactor}.
+	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._abs._shield._cachedSarFactor = null;
+	/**
+	* The cached result of {@link #baseSerFactor}.
+	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._abs._shield._cachedSerFactor = null;
+};
+/**
+* Gets the cached SAR factor for this battler, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Battler.prototype.getCachedSarFactor = function() {
+	return this._j._abs._shield._cachedSarFactor;
+};
+/**
+* Sets the cached SAR factor for this battler.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedSarFactor = function(value) {
+	this._j._abs._shield._cachedSarFactor = value;
+};
+/**
+* Gets the cached SER factor for this battler, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Battler.prototype.getCachedSerFactor = function() {
+	return this._j._abs._shield._cachedSerFactor;
+};
+/**
+* Sets the cached SER factor for this battler.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Battler.prototype.setCachedSerFactor = function(value) {
+	this._j._abs._shield._cachedSerFactor = value;
+};
+/**
+* Extends {@link #onBattlerDataChange}.<br/>
+* Invalidates the SAR and SER factor caches.
+*/
+J.ABS.EXT.SHIELD.Aliased.Game_Battler.set("onBattlerDataChange", Game_Battler.prototype.onBattlerDataChange);
+Game_Battler.prototype.onBattlerDataChange = function() {
+	J.ABS.EXT.SHIELD.Aliased.Game_Battler.get("onBattlerDataChange").call(this);
+	this.setCachedSarFactor(null);
+	this.setCachedSerFactor(null);
+};
+Object.defineProperties(Game_BattlerBase.prototype, {
+	/**
+	* Outgoing shield amplification (1.0 = baseline).
+	*/
+	sar: {
+		get: function() {
+			return 1;
+		},
+		configurable: true
+	},
+	/**
+	* Incoming shield effectiveness (1.0 = baseline).
+	*/
+	ser: {
+		get: function() {
+			return 1;
+		},
+		configurable: true
+	}
+});
+Object.defineProperty(Game_Battler.prototype, "sar", {
+	get: function() {
+		let factor = this.baseSarFactor();
+		if (this.getSdpBonusForParameterKey) {
+			factor += this.getSdpBonusForParameterKey("sar", 1);
+		}
+		return factor;
+	},
+	configurable: true
+});
+Object.defineProperty(Game_Battler.prototype, "ser", {
+	get: function() {
+		let factor = this.baseSerFactor();
+		if (this.getSdpBonusForParameterKey) {
+			factor += this.getSdpBonusForParameterKey("ser", 1);
+		}
+		return factor;
+	},
+	configurable: true
+});
+/**
+* Sums `<sar:X>` notetags into a multiplier factor.
+* Result is cached and invalidated by {@link #onBattlerDataChange}.
+* @returns {number}
+*/
+Game_Battler.prototype.baseSarFactor = function() {
+	if (this.getCachedSarFactor() !== null) {
+		return this.getCachedSarFactor();
+	}
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.EXT.SHIELD.RegExp.ShieldAmplification);
+	this.setCachedSarFactor((100 + bonus) / 100);
+	return this.getCachedSarFactor();
+};
+/**
+* Sums `<ser:X>` notetags into a multiplier factor.
+* Result is cached and invalidated by {@link #onBattlerDataChange}.
+* @returns {number}
+*/
+Game_Battler.prototype.baseSerFactor = function() {
+	if (this.getCachedSerFactor() !== null) {
+		return this.getCachedSerFactor();
+	}
+	const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.ABS.EXT.SHIELD.RegExp.ShieldEffectiveness);
+	this.setCachedSerFactor((100 + bonus) / 100);
+	return this.getCachedSerFactor();
+};
+
+//#endregion
 //#region src/plugins/abs/ext/shield/objects/_Game_Battler.js
 /**
 * Extends {@link #createJabsState}.<br/>
@@ -831,11 +1083,12 @@ JABS_Engine.prototype.extendJabsState = function(jabsState, newJabsState) {
 * @param {number} totalDuration The total duration in frames of the state being applied.
 * @param {number} stacks The number of stacks of the state being applied.
 * @param {Game_Battler} attacker The battler applying the state.
+* @param {RPG_Skill=} sourceSkill The skill that was executing when this state was applied, if any.
 * @returns {JABS_StateBuilder} The builder with all the parameters of the state being applied.
 */
 J.ABS.EXT.SHIELD.Aliased.Game_Battler.set("createJabsState", Game_Battler.prototype.createJabsState);
-Game_Battler.prototype.createJabsState = function(target, stateId, iconIndex, totalDuration, stacks, attacker) {
-	const builder = J.ABS.EXT.SHIELD.Aliased.Game_Battler.get("createJabsState").call(this, target, stateId, iconIndex, totalDuration, stacks, attacker);
+Game_Battler.prototype.createJabsState = function(target, stateId, iconIndex, totalDuration, stacks, attacker, sourceSkill = null) {
+	const builder = J.ABS.EXT.SHIELD.Aliased.Game_Battler.get("createJabsState").call(this, target, stateId, iconIndex, totalDuration, stacks, attacker, sourceSkill);
 	const shield = JABS_Shield.fromStateId(stateId, target);
 	builder.setShield(shield);
 	return builder;
@@ -904,10 +1157,17 @@ Game_Battler.prototype.currentShieldStacks = function() {
 };
 /**
 * An event hook fired when a shield is broken.
+* Stores the broken shield's cap on the battler so that break skills can
+* reference it as `s` inside their damage formulas.
+* @param {number} shieldBreakValue The cap of the shield that just broke.
 */
-Game_Battler.prototype.onShieldBreak = function() {
+Game_Battler.prototype.onShieldBreak = function(shieldBreakValue = 0) {
+	this.lastShieldBreakValue = shieldBreakValue;
 	const caster = JABS_AiManager.getBattlerByUuid(this.getUuid());
-	if (!caster) return;
+	if (!caster) {
+		this.lastShieldBreakValue = 0;
+		return;
+	}
 	const sources = this.shieldBreakSources().filter((source) => !!source);
 	/**
 	* A reducer function to grab all the shield break skills.
@@ -919,8 +1179,12 @@ Game_Battler.prototype.onShieldBreak = function() {
 		return accumulator.concat(...skillIds);
 	};
 	const breakSkillIds = sources.reduce(reducer, []);
-	if (breakSkillIds.length === 0) return;
+	if (breakSkillIds.length === 0) {
+		this.lastShieldBreakValue = 0;
+		return;
+	}
 	breakSkillIds.forEach((skillId) => $jabsEngine.forceMapAction(caster, skillId, true));
+	this.lastShieldBreakValue = 0;
 };
 /**
 * Gets all the sources from which shield break skills can be pulled from.
@@ -1036,7 +1300,7 @@ Game_Action.prototype.calculateShieldBonusDamage = function(target, baseDamage) 
 	const b = target;
 	const o = baseDamage;
 	const sum = formulas.reduce((total, f) => {
-		const result = eval(f);
+		const result = new Function("a", "b", "o", `return (${f})`)(a, b, o);
 		const n = Number(result) || 0;
 		return total + Math.max(0, Math.round(n));
 	}, 0);
@@ -1058,10 +1322,13 @@ Game_Action.prototype.absorbDamageIntoShield = function(shieldState, target, ove
 	let pendingBonusDamage = bonusDamage;
 	while (remainingDamage > 0 || pendingBonusDamage > 0) {
 		const { shield: updatedShield } = shieldState;
-		if (!updatedShield || updatedShield.getCurrent() <= 0) {
+		if (!updatedShield) {
 			break;
 		}
 		const before = updatedShield.getCurrent();
+		if (before <= 0) {
+			break;
+		}
 		const maxAbsorbThisTick = before;
 		const absorbPower = remainingDamage + pendingBonusDamage;
 		const absorbed = Math.min(absorbPower, maxAbsorbThisTick);
@@ -1070,9 +1337,7 @@ Game_Action.prototype.absorbDamageIntoShield = function(shieldState, target, ove
 		updatedShield.setCurrent(before - absorbed);
 		remainingDamage -= useFromReal;
 		pendingBonusDamage -= useFromBonus;
-		if (absorbed > 0) {
-			this.onShieldDamageAbsorbed(target, absorbed);
-		}
+		this.onShieldDamageAbsorbed(target, absorbed);
 		const brokeThisHit = before > 0 && updatedShield.getCurrent() === 0;
 		if (brokeThisHit) {
 			this.onShieldBroken(target);
@@ -1285,7 +1550,7 @@ var Sprite_ShieldMapGauge = class extends Sprite_MapGauge {
 		return capShieldValue;
 	}
 	/**
-	* Overrides {@link #gaugeColor1}.<br/>
+	* Overwrites {@link #gaugeColor1}.<br/>
 	* Returns the shield gauge color gradient 1.
 	* @returns {string}
 	*/
@@ -1293,7 +1558,7 @@ var Sprite_ShieldMapGauge = class extends Sprite_MapGauge {
 		return ColorManager.shieldGauge1();
 	}
 	/**
-	* Overrides {@link #gaugeColor2}.<br/>
+	* Overwrites {@link #gaugeColor2}.<br/>
 	* Returns the shield gauge color gradient 2.
 	* @returns {string}
 	*/
@@ -1412,6 +1677,33 @@ Sprite_Character.prototype.hideShieldGauge = function() {
 	if (gauge) {
 		gauge.hide();
 	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/shield/core/registerShieldParameters.js
+/**
+* Boot-time registration for J-ABS-Shield parameters in {@link ParameterRegistry}.
+*/
+var ShieldParameterRegistration = class {
+	/**
+	* Registers shield amplification and effectiveness with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("sar").group(ParameterGroups.SUPPORT).sortOrder(0).label(() => TextManager.sar()).description(() => TextManager.sarDescription()).iconIndex(() => IconManager.sar()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.sar).sdpBinding(SdpParameterBinding.byKey("sar", () => 1)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("ser").group(ParameterGroups.SUPPORT).sortOrder(1).label(() => TextManager.ser()).description(() => TextManager.serDescription()).iconIndex(() => IconManager.ser()).format(ParameterFormat.MULTIPLIER_PERCENT).getValue((battler) => battler.ser).sdpBinding(SdpParameterBinding.byKey("ser", () => 1)).build());
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/shield/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers J-ABS-Shield stats with the parameter catalog after vanilla seeding.
+*/
+J.ABS.EXT.SHIELD.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.ABS.EXT.SHIELD.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	ShieldParameterRegistration.registerAll();
 };
 
 //#endregion
@@ -1543,7 +1835,7 @@ if (J.HUD && J.HUD.EXT.PARTY) {
 		shieldValues.show();
 	};
 	/**
-	* Extends/Overrides {@link #drawAllyGauges}.<br/>
+	* Extends {@link #drawAllyGauges}.<br/>
 	* Calls original, then overlays the composite shield gauge on the ally HP gauge.
 	* @param {Game_Actor} ally The ally to draw the gauges for.
 	* @param {number} x The x coordinate.

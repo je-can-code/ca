@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.0.2 CRIT] Manages critical damage multiplier/reduction of battlers.
+ * @plugindesc [v1.3.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -33,34 +33,39 @@
  * modifier? Well now you can! By applying the appropriate tag to the database
  * objects in question, you can control the critical chance and critical
  * damage modifiers for a specific skill's execution!
- * 
+ *
  * NOTE:
  * This stacks additively with other crit effects.
- * 
+ *
  * NOTE:
  * The effects of these tags do not apply to skills that cannot crit, so be
  * sure to make certain the critical dropdown is set to "YES" in the damage
- * formula box for the given skill. 
- * 
+ * formula box for the given skill.
+ *
+ * Formula context:
+ *   a = this action's subject (the attacker)
+ *   b = 0 (unused; present for formula consistency)
+ *   v = $gameVariables._data
+ *
  * TAG USAGE:
  * - Items
  * - Skills
- * 
+ *
  * TAG FORMAT:
  *  <thisCritChance:[FORMULA]>
- *  <thisCritDamageMultiplier:[FORMULA]>
+ *  <thisCritMultiplier:[FORMULA]>
  *  <thisCritsAlways>
- * 
+ *
  * TAG EXAMPLES:
  *  <thisCritChance:[25]>
  * Increases the critical chance of this particular skill by 25%.
- * 
- *  <thisCritDamageMultiplier:[10 + a.agi]>
+ *
+ *  <thisCritMultiplier:[10 + a.agi]>
  * Increases the critical damage multiplier by 10% plus the battler's agility.
- * 
+ *
  *  <thisCritsAlways>
  * The skill or item with this tag will ALWAYS crit.
- * 
+ *
  * ============================================================================
  * CRITICAL DAMAGE MULTIPLIER:
  * Have you ever wanted to have any amount of control over critical damage?
@@ -183,10 +188,19 @@
  *
  * TAG FORMAT:
  *  <(PARAM)(BUFF|GROWTH)(PLUS|RATE):[FORMULA]>
- * Where (PARAM) is the (base/sp/ex) parameter shorthand.
+ * Where (PARAM) is literally one of either "cdm" (crit damage multiplier) or
+ * "ctr" (crit taken rate- internally this is the same stat the critReduction
+ * tags above feed into, just spelled differently here for consistency with
+ * how J-NaturalGrowths names its own tag families).
  * Where (BUFF|GROWTH) is literally one of either "Buff" or "Growth".
  * Where (PLUS|RATE) is literally one of either "Plus" or "Rate".
- * Where [FORMULA] is the formula to produce the amount.
+ * Where [FORMULA] is a real formula this time (unlike the thisCritChance/
+ * thisCritMultiplier tags above)- it runs through the standard evaluator with:
+ *   a = the battler these bonuses are being calculated for
+ *   b = the battler's base value for this parameter (baseCriticalMultiplier()
+ *       for cdm tags, baseCriticalReduction() for ctr tags- 0.5 by default
+ *       for both)
+ *   v = $gameVariables._data
  *
  * EXAMPLE:
  *  <cdmGrowthRate:[5]>
@@ -194,8 +208,8 @@
  * This would result in gaining an ever-increasing amount of crit damage
  * multiplier per level.
  *
- *  <cdrBuffPlus:[25]>
- * Gain a flat 25 crit damage reduction (cdr) while this tag is applied to
+ *  <ctrBuffPlus:[25]>
+ * Gain a flat 25 crit taken rate reduction (ctr) while this tag is applied to
  * this battler.
  * This would be lost if the object this tag lived on was removed.
  *
@@ -207,7 +221,318 @@
  *
  * Please refer to the other plugin's documentation for more details.
  * ============================================================================
+ * ON-CRIT STATE APPLICATION:
+ * Have you ever wanted a critical hit to do more than just deal extra damage?
+ * Well now you can! By applying the appropriate tags to the relevant database
+ * objects, you can configure states to be applied to the target or to the
+ * attacker themselves whenever a critical hit lands — each with its own
+ * independent chance to trigger.
+ *
+ * Two families of tags are available:
+ *
+ * "thisCrit" tags live on a specific skill or item and only fire when THAT
+ * skill or item lands a critical hit. Think of these as per-skill effects.
+ *
+ * "onCrit" tags live on any note source attached to the attacker (states,
+ * weapons, armors, class, actor, enemy) and fire whenever ANY of their
+ * actions lands a critical hit. Think of these as passive crit behaviors —
+ * ideal for mastery passive states that grant a character-wide on-crit effect.
+ *
+ * Both families are processed independently on every critical hit, so a
+ * battler can carry both simultaneously without conflict.
+ *
+ * NOTE:
+ * These effects require J-ABS to be loaded. The tags will be silently ignored
+ * in non-JABS combat contexts.
+ *
+ * NOTE:
+ * CHANCE is a whole-number percent from 0 to 100.
+ * A CHANCE of 100 means the state is always applied on crit.
+ * Multiple tags for the same state are each rolled independently.
+ *
+ * TAG USAGE:
+ * "thisCrit" tags:
+ * - Skills
+ * - Items
+ *
+ * "onCrit" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritApply:[STATE_ID, CHANCE]>
+ *  <thisCritSelf:[STATE_ID, CHANCE]>
+ *  <onCritApply:[STATE_ID, CHANCE]>
+ *  <onCritSelf:[STATE_ID, CHANCE]>
+ * Where STATE_ID is the id of the state to apply.
+ * Where CHANCE is the percent chance (0–100) that the state applies on a crit.
+ * "Apply" variants apply the state to the TARGET that was critically hit.
+ * "Self" variants apply the state to the ATTACKER who landed the critical hit.
+ *
+ * TAG EXAMPLES:
+ *  <thisCritApply:[5, 30]>
+ * This skill has a 30% chance to apply state id 5 to the target when it crits.
+ *
+ *  <thisCritSelf:[12, 100]>
+ * This skill always applies state id 12 to the attacker when it crits.
+ *
+ *  <onCritApply:[5, 25]>
+ * Whenever this battler (or whatever carries this note) lands any critical hit,
+ * there is a 25% chance to apply state id 5 to the target.
+ * A passive mastery state with this tag would grant the effect for as long as
+ * the state is active.
+ *
+ *  <onCritSelf:[20, 50]>
+ * Whenever this battler lands any critical hit, there is a 50% chance to apply
+ * state id 20 to themselves.
+ *
+ * ============================================================================
+ * FORCING ON-CRIT PROCS:
+ * Have you ever wanted an on-crit state application to land every single time,
+ * no exceptions, without having to touch your Accumulate/Encore/luck systems
+ * to get there? Well now you can! Applying this tag to the attacker's own note
+ * sources forces every "thisCrit"/"onCrit" state-application roll from above
+ * to succeed, as if the attacker had rolled a guaranteed positive result.
+ *
+ * NOTE:
+ * This ONLY affects the on-crit state application roll (thisCritApply,
+ * thisCritSelf, onCritApply, onCritSelf). It does not change whether the hit
+ * itself crits, and it does not touch the attacker's real isVeryLucky() or
+ * isVeryCursed() flags anywhere else- Accumulate Mode and Encore both still
+ * read the attacker's real values and stack normally on top of this.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <forceCritProcs>
+ *
+ * TAG EXAMPLES:
+ *  <forceCritProcs>
+ * Any battler with this tag applied to one of their note sources will always
+ * succeed their on-crit state application rolls- a mastery capstone state with
+ * this tag turns an "onCritApply:[5, 25]" (25% chance) into a guaranteed
+ * application on every critical hit, without inflating crit chance itself or
+ * touching luck elsewhere.
+ *
+ * ============================================================================
+ * CONDITIONAL CRITICAL CHANCE BY TARGET STATE:
+ * Have you ever wanted a skill to crit more reliably — or guaranteed — when the
+ * target is already afflicted with a specific state? Well now you can! By
+ * applying the appropriate tags, you can add bonus crit chance that only applies
+ * when the target has a specific state active.
+ *
+ * Two families of tags are available, mirroring the "thisCrit"/"onCrit" split:
+ *
+ * "thisCritChanceIfState" lives on a specific skill or item and only contributes
+ * its bonus when THAT skill is the one being executed.
+ *
+ * "critChanceIfState" lives on any note source attached to the attacker (states,
+ * weapons, armors, class, actor, enemy) and contributes its bonus whenever ANY
+ * of their actions is executed against a matching target.
+ *
+ * NOTE:
+ * BONUS_CHANCE is a whole-number percent from 0 to 100 (or higher for guaranteed).
+ * A BONUS_CHANCE of 100 effectively guarantees a crit when the state is present,
+ * though the target's crit evasion (cev) still applies.
+ *
+ * NOTE:
+ * Multiple tags stack additively. If a skill carries two tags for different states,
+ * and the target has both states, both bonuses are added to the crit chance.
+ *
+ * TAG USAGE:
+ * "thisCritChanceIfState" tags:
+ * - Skills
+ * - Items
+ *
+ * "critChanceIfState" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritChanceIfState:[STATE_ID, BONUS_CHANCE]>
+ *  <critChanceIfState:[STATE_ID, BONUS_CHANCE]>
+ * Where STATE_ID is the id of the state the target must have.
+ * Where BONUS_CHANCE is the percent crit chance bonus (0–100+) to add.
+ *
+ * TAG EXAMPLES:
+ *  <thisCritChanceIfState:[14, 100]>
+ * This skill has guaranteed crit chance against targets afflicted with state 14.
+ *
+ *  <thisCritChanceIfState:[14, 50]>
+ *  <thisCritChanceIfState:[7, 50]>
+ * This skill gains +50% crit chance if the target has state 14, another +50%
+ * if the target has state 7. If both are present, the bonus totals +100%.
+ *
+ *  <critChanceIfState:[14, 30]>
+ * While this note source is active on the attacker, all of their actions gain
+ * +30% crit chance against targets afflicted with state 14. Useful on passive
+ * mastery states to reward building into a specific debuff.
+ *
+ * ============================================================================
+ * CONDITIONAL CRITICAL CHANCE BY TARGET STATE TYPE:
+ * The same as the state-id variants above, but matching by type classifier
+ * (the <type:TYPE> tag on states) rather than a specific state id. This lets
+ * you say "any bleed" instead of "specifically state 15."
+ *
+ * NOTE:
+ * The type comparison is case-insensitive.
+ *
+ * TAG USAGE:
+ * "thisCritChanceIfStateType" tags:
+ * - Skills
+ * - Items
+ *
+ * "critChanceIfStateType" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritChanceIfStateType:[TYPE, BONUS_CHANCE]>
+ *  <critChanceIfStateType:[TYPE, BONUS_CHANCE]>
+ * Where TYPE is the state type classifier string (case-insensitive).
+ * Where BONUS_CHANCE is the percent crit chance bonus (0–100+) to add.
+ *
+ * TAG EXAMPLES:
+ *  <thisCritChanceIfStateType:[bleed, 100]>
+ * This skill has guaranteed crit chance against targets with any state typed "bleed".
+ *
+ *  <critChanceIfStateType:[bleed, 50]>
+ * While this note source is active, all actions gain +50% crit chance against
+ * targets with any state typed "bleed".
+ *
+ * ============================================================================
+ * GUARANTEED CRITICAL HIT BY TARGET STATE:
+ * Have you ever wanted a skill to always crit against a target that has a
+ * specific state — without needing to route through the chance system? Well
+ * now you can! By applying the appropriate tags, you can guarantee a critical
+ * hit when the target has any one of the listed states active.
+ *
+ * Two families of tags are available, mirroring the "thisCrit"/"crit" split:
+ *
+ * "thisCritsAlwaysIfState" lives on a specific skill or item and only triggers
+ * for THAT skill's execution.
+ *
+ * "critAlwaysIfState" lives on any note source attached to the attacker and
+ * triggers for ALL of their actions.
+ *
+ * NOTE:
+ * Each tag accepts one or more state IDs. The crit is guaranteed if the target
+ * has ANY of the listed states active — you do not need all of them.
+ *
+ * NOTE:
+ * Multiple tags stack via OR — if any tag's state list contains a state the
+ * target has, the crit is guaranteed.
+ *
+ * NOTE:
+ * A guaranteed crit from these tags bypasses the target's crit evasion (cev),
+ * exactly like {@link thisCritsAlways}.
+ *
+ * TAG USAGE:
+ * "thisCritsAlwaysIfState" tags:
+ * - Skills
+ * - Items
+ *
+ * "critAlwaysIfState" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritsAlwaysIfState:[STATE_ID, ...]>
+ *  <critAlwaysIfState:[STATE_ID, ...]>
+ * Where STATE_ID is one or more state ids (comma-separated) to check on the target.
+ *
+ * TAG EXAMPLES:
+ *  <thisCritsAlwaysIfState:[14]>
+ * This skill always crits against targets afflicted with state 14.
+ *
+ *  <thisCritsAlwaysIfState:[14, 7]>
+ * This skill always crits against targets afflicted with state 14 OR state 7.
+ *
+ *  <critAlwaysIfState:[14]>
+ * While this note source is active on the attacker, all of their actions always
+ * crit against targets afflicted with state 14.
+ *
+ * ============================================================================
+ * GUARANTEED CRITICAL HIT BY TARGET STATE TYPE:
+ * The same as the state-id guaranteed-crit variants above, but matching by
+ * type classifier rather than a specific state id.
+ *
+ * NOTE:
+ * The type comparison is case-insensitive.
+ *
+ * TAG USAGE:
+ * "thisCritsAlwaysIfStateType" tags:
+ * - Skills
+ * - Items
+ *
+ * "critAlwaysIfStateType" tags:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - Enemies
+ * - States
+ *
+ * TAG FORMAT:
+ *  <thisCritsAlwaysIfStateType:TYPE>
+ *  <critAlwaysIfStateType:TYPE>
+ * Where TYPE is the state type classifier string (case-insensitive).
+ *
+ * TAG EXAMPLES:
+ *  <thisCritsAlwaysIfStateType:bleed>
+ * This skill always crits against targets with any state typed "bleed".
+ *
+ *  <critAlwaysIfStateType:bleed>
+ * While this note source is active, all actions always crit against targets
+ * with any state typed "bleed".
+ *
+ * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Added <forceCritProcs> to force every on-crit state application roll
+ *    to succeed, without inflating crit chance or touching luck elsewhere.
+ *    Added conditional crit chance bonuses vs a target's active state, by
+ *    id (<thisCritChanceIfState>/<critChanceIfState>) or by type
+ *    classifier (<thisCritChanceIfStateType>/<critChanceIfStateType>).
+ *    Added guaranteed crits vs a target's active state, by id
+ *    (<thisCritsAlwaysIfState>/<critAlwaysIfState>) or by type classifier
+ *    (<thisCritsAlwaysIfStateType>/<critAlwaysIfStateType>); bypasses cev
+ *    the same way <thisCritsAlways> does.
+ * - 1.2.0
+ *    Added plugin parameters for the base CDM/CTR defaults (previously a
+ *    hard-coded, unreachable 50% baked into Game_BattlerBase).
+ * - 1.1.0
+ *    Added on-crit state application tags:
+ *    <thisCritApply>, <thisCritSelf> (skill-scoped) and
+ *    <onCritApply>, <onCritSelf> (attacker-global, any note source).
  * - 1.0.2
  *    Added dependency note about NaturalGrowth.
  *    Added ordering annotation for coming after J-NaturalGrowth.
@@ -216,15 +541,77 @@
  * - 1.0.0
  *    Initial release.
  * ============================================================================
+ *
+ * @param critMultiplierBaseDefault
+ * @type number
+ * @decimals 2
+ * @min 0
+ * @text Base Critical Damage Multiplier
+ * @desc The default bonus critical damage (%) for battlers with no <critMultiplierBase> tags. 50 = +50% (x1.5 total).
+ * @default 50.00
+ *
+ * @param critReductionBaseDefault
+ * @type number
+ * @decimals 2
+ * @min 0
+ * @text Base Critical Damage Reduction
+ * @desc The default critical damage reduction (%) for battlers with no <critReductionBase> tags. 50 = -50% of the bonus.
+ * @default 50.00
  */
 
 //#region src/plugins/crit/core/_metadata/_pluginMetadata.js
-var J_CriticalFactorsPluginMetadata = class extends PluginMetadata {
+var J_CriticalFactorsPluginMetadata = class J_CriticalFactorsPluginMetadata extends PluginMetadata {
+	/**
+	* The default critical damage multiplier factor applied to every battler that carries no
+	* `<critMultiplierBase:NUM>` notetags. Parsed from the `critMultiplierBaseDefault` plugin
+	* parameter, a percent-point value (e.g. `50` becomes the `0.5` factor).
+	* @type {number}
+	*/
+	baseCdmFactor = .5;
+	/**
+	* The default critical damage reduction factor applied to every battler that carries no
+	* `<critReductionBase:NUM>` notetags. Parsed from the `critReductionBaseDefault` plugin
+	* parameter, a percent-point value (e.g. `50` becomes the `0.5` factor).
+	* @type {number}
+	*/
+	baseCtrFactor = .5;
 	/**
 	* Constructor.
 	*/
 	constructor(name, version) {
 		super(name, version);
+	}
+	/**
+	*  Extends {@link #postInitialize}.<br>
+	*  Includes translation of plugin parameters.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		this.initializeMetadata();
+	}
+	/**
+	* Initializes the metadata associated with this plugin.
+	*/
+	initializeMetadata() {
+		const { parsedPluginParameters: p } = this;
+		this.baseCdmFactor = J_CriticalFactorsPluginMetadata.#parsePercentFactorOr(p["critMultiplierBaseDefault"], this.baseCdmFactor);
+		this.baseCtrFactor = J_CriticalFactorsPluginMetadata.#parsePercentFactorOr(p["critReductionBaseDefault"], this.baseCtrFactor);
+	}
+	/**
+	* Parses a percent-point plugin parameter (e.g. `"50.00"`) into its `/100` factor.
+	* @param {string|number|undefined|null} value The raw plugin parameter value.
+	* @param {number} fallback The fallback factor to use when the value is absent or invalid.
+	* @returns {number}
+	*/
+	static #parsePercentFactorOr(value, fallback) {
+		if (value === undefined || value === null || value === "") {
+			return fallback;
+		}
+		const parsed = Number.parseFloat(value);
+		if (!Number.isFinite(parsed)) {
+			return fallback;
+		}
+		return parsed / 100;
 	}
 };
 
@@ -235,7 +622,7 @@ var J_CriticalFactorsPluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -248,7 +635,7 @@ J.CRIT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.0.2");
+J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -270,14 +657,27 @@ J.CRIT.RegExp = {
 	ThisCritDamageChance: /<thisCritChance:\[([+\-*/ ().\w]+)]>/gi,
 	ThisCritDamageMultiplier: /<thisCritMultiplier:\[([+\-*/ ().\w]+)]>/gi,
 	ThisCritsAlways: /<thisCritsAlways>/gi,
+	ThisCritChanceIfState: /<thisCritChanceIfState:(\[\d+,[ ]?\d+])>/gi,
+	ThisCritChanceIfStateType: /<thisCritChanceIfStateType:(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?\d+])>/gi,
+	ThisCritsAlwaysIfState: /<thisCritsAlwaysIfState:(\[\d+(?:,[ ]?\d+)*])>/gi,
+	ThisCritsAlwaysIfStateType: /<thisCritsAlwaysIfStateType:([a-zA-Z][a-zA-Z0-9_-]*)>/gi,
+	ThisCritApply: /<thisCritApply:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	ThisCritSelf: /<thisCritSelf:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	CritChanceIfState: /<critChanceIfState:(\[\d+,[ ]?\d+])>/gi,
+	CritChanceIfStateType: /<critChanceIfStateType:(\[[a-zA-Z][a-zA-Z0-9_-]*,[ ]?\d+])>/gi,
+	CritAlwaysIfState: /<critAlwaysIfState:(\[\d+(?:,[ ]?\d+)*])>/gi,
+	CritAlwaysIfStateType: /<critAlwaysIfStateType:([a-zA-Z][a-zA-Z0-9_-]*)>/gi,
+	OnCritApply: /<onCritApply:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	OnCritSelf: /<onCritSelf:[ ]?(\[\d+,[ ]?\d+])>/gi,
+	ForceCritProcs: /<forceCritProcs>/i,
 	CritDamageReductionBase: /<critReductionBase: ?(\d+)>/gi,
 	CritDamageReduction: /<critReduction: ?(\d+)>/gi,
 	CritDamageMultiplierBase: /<critMultiplierBase: ?(\d+)>/gi,
 	CritDamageMultiplier: /<critMultiplier: ?(\d+)>/gi,
-	CritDamageReductionBuffPlus: /<cdrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
-	CritDamageReductionBuffRate: /<cdrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
-	CritDamageReductionGrowthPlus: /<cdrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
-	CritDamageReductionGrowthRate: /<cdrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
+	CritTakenRateBuffPlus: /<ctrBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
+	CritTakenRateBuffRate: /<ctrBuffRate:\[([+\-*/ ().\w]+)]>/gi,
+	CritTakenRateGrowthPlus: /<ctrGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
+	CritTakenRateGrowthRate: /<ctrGrowthRate:\[([+\-*/ ().\w]+)]>/gi,
 	CritDamageMultiplierBuffPlus: /<cdmBuffPlus:\[([+\-*/ ().\w]+)]>/gi,
 	CritDamageMultiplierBuffRate: /<cdmBuffRate:\[([+\-*/ ().\w]+)]>/gi,
 	CritDamageMultiplierGrowthPlus: /<cdmGrowthPlus:\[([+\-*/ ().\w]+)]>/gi,
@@ -285,19 +685,83 @@ J.CRIT.RegExp = {
 };
 
 //#endregion
-//#region src/plugins/crit/core/managers/IconManager.js
+//#region src/plugins/crit/core/database/RPG_BaseItem.js
 /**
-* Extend {@link #longParam}.<br>
-* First checks if the paramId was a critical param before checking others.
+* The conditional crit chance bonuses on this note source, keyed by target state id.
+* Each entry is a [stateId, bonusChance] pair — the bonus applies to all actions executed
+* by the attacker when the target has the specified state active.
+* Covers actors, classes, skills, weapons, armors, enemies, and states.
+* @type {[number, number][]|null}
 */
-J.CRIT.Aliased.IconManager.set("longParam", IconManager.longParam);
-IconManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 28: return this.critParam(0);
-		case 29: return this.critParam(1);
-		default: return J.CRIT.Aliased.IconManager.get("longParam").call(this, paramId);
-	}
-};
+Object.defineProperty(RPG_BaseItem.prototype, "critChanceIfStates", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.CritChanceIfState);
+} });
+/**
+* The conditional crit chance bonuses on this note source, keyed by state type classifier.
+* Each entry is a [type, bonusChance] pair — the bonus applies to all actions executed by
+* the attacker when the target has any active state carrying the specified type classifier.
+* @type {[string, number][]}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "critChanceIfStateTypes", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.CritChanceIfStateType);
+} });
+/**
+* The flat list of state ids that guarantee a critical hit for all actions while this note
+* source is active on the attacker, when the target has any one of them active.
+* Aggregated across all <critAlwaysIfState> tags on this note source.
+* @type {number[]}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "critAlwaysIfStates", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.CritAlwaysIfState).flat();
+} });
+/**
+* The list of state type classifiers that guarantee a critical hit for all actions while this
+* note source is active on the attacker, when the target has any active state carrying one of them.
+* @type {string[]}
+*/
+Object.defineProperty(RPG_BaseItem.prototype, "critAlwaysIfStateTypes", { get: function() {
+	return RPGManager.getStringsFromNoteByRegex(this, J.CRIT.RegExp.CritAlwaysIfStateType);
+} });
+
+//#endregion
+//#region src/plugins/crit/core/database/RPG_Skill.js
+/**
+* The conditional crit chance bonuses for this skill, keyed by target state id.
+* Each entry is a [stateId, bonusChance] pair — the bonus applies only when the
+* target has the specified state active at the time this skill is executed.
+* @type {[number, number][]|null}
+*/
+Object.defineProperty(RPG_Skill.prototype, "thisCritChanceIfStates", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.ThisCritChanceIfState);
+} });
+/**
+* The conditional crit chance bonuses for this skill, keyed by state type classifier.
+* Each entry is a [type, bonusChance] pair — the bonus applies when the target has any
+* active state carrying the specified type classifier.
+* @type {[string, number][]|null}
+*/
+Object.defineProperty(RPG_Skill.prototype, "thisCritChanceIfStateTypes", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.ThisCritChanceIfStateType);
+} });
+/**
+* The flat list of state ids that guarantee a critical hit for this skill when the target
+* has any one of them active. Aggregated across all <thisCritsAlwaysIfState> tags on this skill.
+* @type {number[]}
+*/
+Object.defineProperty(RPG_Skill.prototype, "thisCritsAlwaysIfStates", { get: function() {
+	return RPGManager.getArraysFromNotesByRegex(this, J.CRIT.RegExp.ThisCritsAlwaysIfState).flat();
+} });
+/**
+* The list of state type classifiers that guarantee a critical hit for this skill when the
+* target has any active state carrying one of them.
+* @type {string[]}
+*/
+Object.defineProperty(RPG_Skill.prototype, "thisCritsAlwaysIfStateTypes", { get: function() {
+	return RPGManager.getStringsFromNoteByRegex(this, J.CRIT.RegExp.ThisCritsAlwaysIfStateType);
+} });
+
+//#endregion
+//#region src/plugins/crit/core/managers/IconManager.js
 /**
 * Gets the icon index for the critical damage parameters.
 * @param {number} paramId The id of the crit param to get an icon index for.
@@ -313,18 +777,6 @@ IconManager.critParam = function(paramId) {
 //#endregion
 //#region src/plugins/crit/core/managers/TextManager.js
 /**
-* Extends {@link #longParam}.<br>
-* First searches for our critical damage text ids before searching for others.
-*/
-J.CRIT.Aliased.TextManager.set("longParam", TextManager.longParam);
-TextManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 28: return this.critParam(0);
-		case 29: return this.critParam(1);
-		default: return J.CRIT.Aliased.TextManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the text for the critical damage parameters from "J-CriticalFactors".
 * @param {number} paramId The id of the crit param to get a name for.
 * @returns {string} The name of the parameter.
@@ -333,18 +785,6 @@ TextManager.critParam = function(paramId) {
 	switch (paramId) {
 		case 0: return "Crit Amp";
 		case 1: return "Crit Block";
-	}
-};
-/**
-* Extends {@link #longParamDescription}.<br>
-* First searches for our critical damage text ids before searching for others.
-*/
-J.CRIT.Aliased.TextManager.set("longParamDescription", TextManager.longParamDescription);
-TextManager.longParamDescription = function(paramId) {
-	switch (paramId) {
-		case 28: return this.critParamDescription(0);
-		case 29: return this.critParamDescription(1);
-		default: return J.CRIT.Aliased.TextManager.get("longParamDescription").call(this, paramId);
 	}
 };
 /**
@@ -394,15 +834,105 @@ Game_Action.prototype.targetBattler = function() {
 	return this._targetBattler;
 };
 /**
-* Extends `apply()` to also set the target for more universal use throughout the calculations.
+* Extends {@link #apply}.<br/>
+* Tracks the target for use in critical calculations, then fires any on-crit state effects
+* when the result confirms a critical hit landed.
 */
 J.CRIT.Aliased.Game_Action.set("apply", Game_Action.prototype.apply);
 Game_Action.prototype.apply = function(target) {
 	this.setTargetBattler(target);
 	J.CRIT.Aliased.Game_Action.get("apply").call(this, target);
+	if (target.result().critical) {
+		this.applyOnCriticalStateEffects(target);
+	}
 };
 /**
-* Overrides {@link #applyCritical}.<br/>
+* Applies all on-crit state effects — states to the target and states to self — from both
+* the executing skill and any global crit tags present anywhere on the attacker.
+* Guarded by J-ABS availability since on-chance effects depend on {@link JABS_OnChanceEffect}.
+* @param {Game_Actor|Game_Enemy} target The target that received the critical hit.
+*/
+Game_Action.prototype.applyOnCriticalStateEffects = function(target) {
+	if (!J.ABS) return;
+	this.applyOnCriticalTargetStates(target);
+	this.applyOnCriticalSelfStates();
+};
+/**
+* Rolls and applies all on-crit states that target the enemy that was just critically hit.
+* Checks both the executing skill ({@link thisCritApply}) and all attacker notes ({@link onCritApply}).
+* @param {Game_Actor|Game_Enemy} target The target to apply states to.
+*/
+Game_Action.prototype.applyOnCriticalTargetStates = function(target) {
+	this.rollAndApplyCritStates(target, this.thisCritTargetStates());
+	this.rollAndApplyCritStates(target, this.onCritTargetStates());
+};
+/**
+* Rolls and applies all on-crit states that target the attacker themselves.
+* Checks both the executing skill ({@link thisCritSelf}) and all attacker notes ({@link onCritSelf}).
+*/
+Game_Action.prototype.applyOnCriticalSelfStates = function() {
+	const attacker = this.subject();
+	this.rollAndApplyCritStates(attacker, this.thisCritSelfStates());
+	this.rollAndApplyCritStates(attacker, this.onCritSelfStates());
+};
+/**
+* Iterates a list of on-chance effects and applies any that pass their roll to the recipient.
+* @param {Game_Actor|Game_Enemy} recipient The battler receiving the state applications.
+* @param {JABS_OnChanceEffect[]} onChanceEffects The effects to roll and apply.
+*/
+Game_Action.prototype.rollAndApplyCritStates = function(recipient, onChanceEffects) {
+	if (onChanceEffects.length === 0) return;
+	const attacker = this.subject();
+	onChanceEffects.forEach((effect) => {
+		const skill = effect.baseSkill(attacker);
+		const positiveRolls = 1 + attacker.getPositiveRollsForSkill(skill);
+		const negativeRolls = recipient.getNegativeRolls();
+		const positiveRoller = attacker.isForceCritProcs() ? {
+			isVeryLucky: () => true,
+			isVeryCursed: () => false,
+			isAccumulating: () => attacker.isAccumulating(),
+			getEncoreRepeats: () => attacker.getEncoreRepeats()
+		} : attacker;
+		const procCount = effect.resolveProcCount(positiveRolls, negativeRolls, positiveRoller);
+		for (let i = 0; i < procCount; i++) {
+			recipient.addState(effect.skillId, attacker, skill);
+		}
+	});
+};
+/**
+* Gets all on-crit target states sourced from the executing skill only.
+* Uses the {@link thisCritApply} tag — independent of what the attacker has globally.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Action.prototype.thisCritTargetStates = function() {
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects([this.item()], J.CRIT.RegExp.ThisCritApply);
+};
+/**
+* Gets all on-crit self states sourced from the executing skill only.
+* Uses the {@link thisCritSelf} tag — independent of what the attacker has globally.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Action.prototype.thisCritSelfStates = function() {
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects([this.item()], J.CRIT.RegExp.ThisCritSelf);
+};
+/**
+* Gets all on-crit target states sourced from anywhere on the attacker.
+* Uses the {@link onCritApply} tag — fires whenever any crit lands, regardless of the skill used.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Action.prototype.onCritTargetStates = function() {
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects(this.subject().getAllNotes(), J.CRIT.RegExp.OnCritApply);
+};
+/**
+* Gets all on-crit self states sourced from anywhere on the attacker.
+* Uses the {@link onCritSelf} tag — fires whenever any crit lands, regardless of the skill used.
+* @returns {JABS_OnChanceEffect[]}
+*/
+Game_Action.prototype.onCritSelfStates = function() {
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects(this.subject().getAllNotes(), J.CRIT.RegExp.OnCritSelf);
+};
+/**
+* Overwrites {@link #applyCritical}.<br/>
 * Replaces the way critical damage is calculated by
 * adding multiplier and reduction modifiers for actors and enemies alike.
 * @param {number} baseDamage The base damage before crit modification.
@@ -433,12 +963,12 @@ Game_Action.prototype.applyCriticalDamageMultiplier = function(baseDamage) {
 Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage) {
 	const defender = this.targetBattler();
 	if (!defender) return criticalDamage;
-	const baseCriticalReductionRate = 1 - defender.cdr;
+	const baseCriticalReductionRate = 1 - defender.ctr;
 	const criticalReductionRate = Math.max(baseCriticalReductionRate, 0);
 	return criticalDamage * criticalReductionRate;
 };
 /**
-* Overrides {@link #itemCri}.<br/>
+* Overwrites {@link #itemCri}.<br/>
 * Includes the addition of potential action-based crit rate boosts.
 * @param {Game_Battler} target The target being struck with the critical.
 * @returns {number} The calculated critical chance of this action.
@@ -446,55 +976,116 @@ Game_Action.prototype.applyCriticalDamageReduction = function(criticalDamage) {
 Game_Action.prototype.itemCri = function(target) {
 	if (!this.item().damage.critical) return 0;
 	if (this.isGuaranteedCrit()) return 9999;
+	if (this.isGuaranteedCritVsTarget(target)) return 9999;
 	let critChance = this.subject().cri;
 	critChance += this.ownCriticalChanceBonus();
+	critChance += this.thisCritChanceIfStateBonus(target);
+	critChance += this.critChanceIfStateBonus(target);
 	critChance -= target.cev;
 	return Math.max(critChance, 0);
 };
 /**
 * Calculates this action's own bonus to crit damage multipliers.
+* Formula context: `a` is this action's subject (the attacker), `b` is 0 (no meaningful
+* per-skill base value to expose), `v` is `$gameVariables._data`.
 * @returns {number}
 */
 Game_Action.prototype.ownCriticalDamageMultiplier = function() {
-	return RPGManager.getSumFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageMultiplier) / 100;
+	return RPGManager.getResultsFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageMultiplier, 0, this.subject()) / 100;
 };
 /**
-* Checks if this action is a guaranteed critical hit.
+* Checks if this action is an unconditional guaranteed critical hit.
 * @returns {boolean}
 */
 Game_Action.prototype.isGuaranteedCrit = function() {
 	return RPGManager.checkForBooleanFromNoteByRegex(this.item(), J.CRIT.RegExp.ThisCritsAlways);
 };
 /**
+* Checks if the target's current states trigger a guaranteed critical hit for this action.
+* Checks both the skill's own {@link thisCritsAlwaysIfState} tags and the attacker's global
+* {@link critAlwaysIfState} tags across all note sources.
+* @param {Game_Battler} target The target being struck.
+* @returns {boolean} True if the target has any state that guarantees a crit, false otherwise.
+*/
+Game_Action.prototype.isGuaranteedCritVsTarget = function(target) {
+	const skillStateIds = this.item().thisCritsAlwaysIfStates;
+	if (skillStateIds.some((stateId) => target.isStateAffected(stateId))) return true;
+	const skillStateTypes = this.item().thisCritsAlwaysIfStateTypes;
+	if (skillStateTypes.some((type) => this.targetHasActiveStateType(target, type))) return true;
+	const globalStateIds = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critAlwaysIfStates);
+	if (globalStateIds.some((stateId) => target.isStateAffected(stateId))) return true;
+	const globalStateTypes = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critAlwaysIfStateTypes);
+	return globalStateTypes.some((type) => this.targetHasActiveStateType(target, type));
+};
+/**
 * Calculates this action's own bonus to crit chance.
+* Formula context: `a` is this action's subject (the attacker), `b` is 0 (no meaningful
+* per-skill base value to expose), `v` is `$gameVariables._data`.
 * @returns {number}
 */
 Game_Action.prototype.ownCriticalChanceBonus = function() {
-	return RPGManager.getSumFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageChance) / 100;
+	return RPGManager.getResultsFromAllNotesByRegex([this.item()], J.CRIT.RegExp.ThisCritDamageChance, 0, this.subject()) / 100;
+};
+/**
+* Calculates the conditional crit chance bonus from this skill's own state-gated tags.
+* Reads all {@link thisCritChanceIfState} pairs on the executing skill and sums the bonus
+* for each pair whose state the target currently has active.
+* @param {Game_Battler} target The target being struck.
+* @returns {number} The total conditional bonus as a 0–1 rate addend.
+*/
+Game_Action.prototype.thisCritChanceIfStateBonus = function(target) {
+	const pairs = this.item().thisCritChanceIfStates;
+	if (!pairs.length) return 0;
+	const stateIdBonus = pairs.reduce((total, [stateId, bonusChance]) => {
+		return total + (target.isStateAffected(stateId) ? bonusChance / 100 : 0);
+	}, 0);
+	const typePairs = this.item().thisCritChanceIfStateTypes;
+	const stateTypeBonus = typePairs.reduce((total, [type, bonusChance]) => {
+		return total + (this.targetHasActiveStateType(target, type) ? bonusChance / 100 : 0);
+	}, 0);
+	return stateIdBonus + stateTypeBonus;
+};
+/**
+* Calculates the conditional crit chance bonus from the attacker's global state-gated tags.
+* Reads all {@link critChanceIfState} pairs from every note source on the attacker and sums
+* the bonus for each pair whose state the target currently has active.
+* @param {Game_Battler} target The target being struck.
+* @returns {number} The total conditional bonus as a 0–1 rate addend.
+*/
+Game_Action.prototype.critChanceIfStateBonus = function(target) {
+	const allPairs = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critChanceIfStates);
+	if (!allPairs.length) return 0;
+	const stateIdBonus = allPairs.reduce((total, [stateId, bonusChance]) => {
+		return total + (target.isStateAffected(stateId) ? bonusChance / 100 : 0);
+	}, 0);
+	const allTypePairs = this.subject().getAllNotes().flatMap((noteSource) => noteSource.critChanceIfStateTypes);
+	const stateTypeBonus = allTypePairs.reduce((total, [type, bonusChance]) => {
+		return total + (this.targetHasActiveStateType(target, type) ? bonusChance / 100 : 0);
+	}, 0);
+	return stateIdBonus + stateTypeBonus;
+};
+/**
+* Checks whether the target has any active state carrying the specified type classifier.
+* The comparison is case-insensitive.
+* @param {Game_Battler} target The target whose active states are checked.
+* @param {string} type The type classifier to look for.
+* @returns {boolean} True if any active state on the target carries this type.
+*/
+Game_Action.prototype.targetHasActiveStateType = function(target, type) {
+	return target.states().some((state) => state.types().some((stateType) => stateType.toLowerCase() === type.toLowerCase()));
 };
 
 //#endregion
 //#region src/plugins/crit/core/objects/Game_Actor.js
 /**
-* Extend `.applyNaturalCustomGrowths()` to include our cdm/cdr growths.
+* Extend `.applyNaturalCustomGrowths()` to include our cdm/ctr growths.
 */
 J.CRIT.Aliased.Game_Actor.set("applyNaturalCustomGrowths", Game_Actor.prototype.applyNaturalCustomGrowths);
 Game_Actor.prototype.applyNaturalCustomGrowths = function() {
 	J.CRIT.Aliased.Game_Actor.get("applyNaturalCustomGrowths").call(this);
 	if (!J.NATURAL) return;
 	this.applyNaturalCdmGrowths();
-	this.applyNaturalCdrGrowths();
-};
-/**
-* Extend `.longParam()` to first check for our crit params.
-*/
-J.CRIT.Aliased.Game_Actor.set("longParam", Game_Actor.prototype.longParam);
-Game_Actor.prototype.longParam = function(longParamId) {
-	switch (longParamId) {
-		case 28: return this.cdm;
-		case 29: return this.cdr;
-		default: return J.CRIT.Aliased.Game_Actor.get("longParam").call(this, longParamId);
-	}
+	this.applyNaturalCtrGrowths();
 };
 /**
 * Applies the natural CDM growths to this battler.
@@ -508,24 +1099,24 @@ Game_Actor.prototype.applyNaturalCdmGrowths = function() {
 	this.modCdmRate(growthRate);
 };
 /**
-* Applies the natural CDR growths to this battler.
+* Applies the natural CTR growths to this battler.
 */
-Game_Actor.prototype.applyNaturalCdrGrowths = function() {
+Game_Actor.prototype.applyNaturalCtrGrowths = function() {
 	const [growthPlusStructure, growthRateStructure, ,] = this.getNaturalGrowthsRegexForCrit();
-	const baseCdr = this.baseCriticalReduction();
-	const growthPlus = this.naturalParamBuff(growthPlusStructure, baseCdr);
-	this.modCdrPlus(growthPlus);
-	const growthRate = this.naturalParamBuff(growthRateStructure, baseCdr);
-	this.modCdrRate(growthRate);
+	const baseCtr = this.baseCriticalReduction();
+	const growthPlus = this.naturalParamBuff(growthPlusStructure, baseCtr);
+	this.modCtrPlus(growthPlus);
+	const growthRate = this.naturalParamBuff(growthRateStructure, baseCtr);
+	this.modCtrRate(growthRate);
 };
 /**
-* Gets the various regular expressions used for getting CDM/CDR growth values.
+* Gets the various regular expressions used for getting CDM/CTR growth values.
 * @returns {[RegExp,RegExp,RegExp,RegExp]}
 */
 Game_Actor.prototype.getNaturalGrowthsRegexForCrit = function() {
 	return [
-		J.CRIT.RegExp.CritDamageReductionGrowthPlus,
-		J.CRIT.RegExp.CritDamageReductionGrowthRate,
+		J.CRIT.RegExp.CritTakenRateGrowthPlus,
+		J.CRIT.RegExp.CritTakenRateGrowthRate,
 		J.CRIT.RegExp.CritDamageMultiplierGrowthPlus,
 		J.CRIT.RegExp.CritDamageMultiplierGrowthRate
 	];
@@ -537,17 +1128,88 @@ Game_Actor.prototype.getNaturalGrowthsRegexForCrit = function() {
 * @returns {number}
 */
 Game_Actor.prototype.critSdpBonuses = function(critParamId, baseParam) {
-	if (!J.SDP) return 0;
-	const panelRankings = this.getAllSdpRankings();
-	if (!panelRankings.length) return 0;
-	const actualCritParamId = 28 + critParamId;
-	let val = 0;
-	panelRankings.forEach((panelRanking) => {
-		const panel = J.SDP.Metadata.panelsMap.get(panelRanking.key);
-		if (!panel) return;
-		val += panel.calculateBonusByRank(actualCritParamId, panelRanking.currentRank, baseParam, false);
-	});
-	return val;
+	const parameterKey = critParamId === 0 ? "cdm" : "ctr";
+	return this.getSdpBonusForParameterKey(parameterKey, baseParam);
+};
+
+//#endregion
+//#region src/plugins/crit/core/core/registerCritParameters.js
+/**
+* Boot-time registration for J-Crit parameters in {@link ParameterRegistry}.
+*/
+var CritParameterRegistration = class {
+	/**
+	* Registers CDM and CTR with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier())).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("ctr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.ctr).sdpBinding(SdpParameterBinding.byKey("ctr", (actor) => actor.baseCriticalReduction())).build());
+	}
+};
+
+//#endregion
+//#region src/plugins/crit/core/objects/Game_BattlerBase.js
+Object.defineProperties(Game_BattlerBase.prototype, {
+	/**
+	* The battler's critical damage multiplier.
+	* Critical hits are multiplied by this amount to determine the total critical hit damage.
+	* @type {number}
+	*/
+	cdm: {
+		get: function() {
+			return this.criticalDamageMultiplier();
+		},
+		configurable: true
+	},
+	/**
+	* The battler's critical taken rate.
+	* Critical hit damage is reduced by this percent before being applied.
+	* @type {number}
+	*/
+	ctr: {
+		get: function() {
+			return this.criticalDamageReduction();
+		},
+		configurable: true
+	}
+});
+/**
+* The base critical damage multiplier.
+* A battler's critical damage multiplier acts as the base bonus multiplier for all
+* critical hits. The individual battler's `cdm` is added to this amount to calculate
+* the damage a critical hit can potentially deal.
+* Sourced from the plugin parameter so designers can retune the default without
+* touching code- see {@link J_CriticalFactorsPluginMetadata#baseCdmFactor}.
+* @returns {number} The base multiplier for this battler.
+*/
+Game_BattlerBase.prototype.baseCriticalMultiplier = function() {
+	return J.CRIT.Metadata.baseCdmFactor;
+};
+/**
+* Gets the multiplier for this battler's critical hits.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.criticalDamageMultiplier = function() {
+	return 0;
+};
+/**
+* The base critical taken rate.
+* A battler's critical taken rate acts as the base crit reduction for all incoming
+* critical hits. The individual battler's `ctr` is added to this amount to calculate
+* the damage a critical hit can potentially deal.
+* Sourced from the plugin parameter so designers can retune the default without
+* touching code- see {@link J_CriticalFactorsPluginMetadata#baseCtrFactor}.
+* @returns {number} The base reduction for this battler.
+*/
+Game_BattlerBase.prototype.baseCriticalReduction = function() {
+	return J.CRIT.Metadata.baseCtrFactor;
+};
+/**
+* Gets the reduction factor for when this battler receives a critical hit.
+* @returns {number}
+*/
+Game_BattlerBase.prototype.criticalDamageReduction = function() {
+	return 0;
 };
 
 //#endregion
@@ -578,15 +1240,15 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	*/
 	this._j._natural._cdmRate = 0;
 	/**
-	* The permanent flat bonus for CDM.
+	* The permanent flat bonus for CTR.
 	* @type {number}
 	*/
-	this._j._natural._cdrPlus = 0;
+	this._j._natural._ctrPlus = 0;
 	/**
-	* The permanent multiplier bonus for CDR.
+	* The permanent multiplier bonus for CTR.
 	* @type {number}
 	*/
-	this._j._natural._cdrRate = 0;
+	this._j._natural._ctrRate = 0;
 };
 /**
 * Gets the permanent flat bonus for CDM.
@@ -617,42 +1279,47 @@ Game_Battler.prototype.modCdmRate = function(amount) {
 	this._j._natural._cdmRate += amount;
 };
 /**
-* Gets the current growths applied to CDR plus.
+* Gets the current growths applied to CTR plus.
 * @returns {number}
 */
-Game_Battler.prototype.cdrPlus = function() {
-	return this._j._natural._cdrPlus;
+Game_Battler.prototype.ctrPlus = function() {
+	return this._j._natural._ctrPlus;
 };
 /**
-* Modifies the permanent flat bonus for CDR.
+* Modifies the permanent flat bonus for CTR.
 * @param {number} amount The amount to modify the bonus by.
 */
-Game_Battler.prototype.modCdrPlus = function(amount) {
-	this._j._natural._cdrPlus += amount;
+Game_Battler.prototype.modCtrPlus = function(amount) {
+	this._j._natural._ctrPlus += amount;
 };
 /**
-* Gets the current growths applied to CDR rate.
+* Gets the current growths applied to CTR rate.
 * @returns {number}
 */
-Game_Battler.prototype.cdrRate = function() {
-	return this._j._natural._cdrRate;
+Game_Battler.prototype.ctrRate = function() {
+	return this._j._natural._ctrRate;
 };
 /**
-* Modifies the permanent multiplicative bonus for CDR.
+* Modifies the permanent multiplicative bonus for CTR.
 * @param {number} amount The amount to modify the bonus by.
 */
-Game_Battler.prototype.modCdrRate = function(amount) {
-	this._j._natural._cdrRate += amount;
+Game_Battler.prototype.modCtrRate = function(amount) {
+	this._j._natural._ctrRate += amount;
 };
 /**
-* Gets the base multiplier for this battler's critical hits.
-* @returns {number}
+* Extends {@link Game_BattlerBase#baseCriticalMultiplier}.<br/>
+* Adds any `<critMultiplierBase:NUM>` notetag contributions on top of the plugin-configured
+* floor value inherited from {@link Game_BattlerBase}, instead of replacing it outright-
+* without this alias, every battler without a notetag would floor out at 0 instead of the
+* designer-configured default.
 */
+J.CRIT.Aliased.Game_Battler.set("baseCriticalMultiplier", Game_Battler.prototype.baseCriticalMultiplier);
 Game_Battler.prototype.baseCriticalMultiplier = function() {
+	const baseFactor = J.CRIT.Aliased.Game_Battler.get("baseCriticalMultiplier").call(this);
 	const objectsToCheck = this.getAllNotes();
 	const baseCriticalMultiplier = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageMultiplierBase);
 	const baseCdmFactor = baseCriticalMultiplier / 100;
-	return baseCdmFactor;
+	return baseFactor + baseCdmFactor;
 };
 /**
 * Calculates this battler's current critical damage multiplier.
@@ -708,25 +1375,30 @@ Game_Battler.prototype.cdmNaturalGrowths = function() {
 	return this.calculatePlusRate(baseCdm, growthPlus, growthRate);
 };
 /**
-* Gets the base reduction for this battler's critical hits.
-* @returns {number}
+* Extends {@link Game_BattlerBase#baseCriticalReduction}.<br/>
+* Adds any `<critReductionBase:NUM>` notetag contributions on top of the plugin-configured
+* floor value inherited from {@link Game_BattlerBase}, instead of replacing it outright-
+* without this alias, every battler without a notetag would floor out at 0 instead of the
+* designer-configured default.
 */
+J.CRIT.Aliased.Game_Battler.set("baseCriticalReduction", Game_Battler.prototype.baseCriticalReduction);
 Game_Battler.prototype.baseCriticalReduction = function() {
+	const baseFactor = J.CRIT.Aliased.Game_Battler.get("baseCriticalReduction").call(this);
 	const objectsToCheck = this.getAllNotes();
 	const baseCriticalReduction = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReductionBase);
-	const baseCdmFactor = baseCriticalReduction / 100;
-	return baseCdmFactor;
+	const baseCdrFactor = baseCriticalReduction / 100;
+	return baseFactor + baseCdrFactor;
 };
 /**
 * Gets the reduction factor for when this battler receives a critical hit.
 * @returns {number} The CDR factor for this battler.
 */
 Game_Battler.prototype.criticalDamageReduction = function() {
-	const cdrBonuses = this.getCriticalDamageReduction();
-	const cdrNaturalBonuses = this.cdrNaturalBonuses();
-	const cdrSdpBonuses = this.critSdpBonuses(1, this.baseCriticalReduction());
-	const cdrFactor = (cdrBonuses + cdrNaturalBonuses + cdrSdpBonuses) / 100;
-	return cdrFactor;
+	const ctrBonuses = this.getCriticalDamageReduction();
+	const ctrNaturalBonuses = this.ctrNaturalBonuses();
+	const ctrSdpBonuses = this.critSdpBonuses(1, this.baseCriticalReduction());
+	const ctrFactor = (ctrBonuses + ctrNaturalBonuses + ctrSdpBonuses) / 100;
+	return ctrFactor;
 };
 /**
 * Gets the sum of all critical damage reductions from all notes.
@@ -734,115 +1406,72 @@ Game_Battler.prototype.criticalDamageReduction = function() {
 */
 Game_Battler.prototype.getCriticalDamageReduction = function() {
 	const objectsToCheck = this.getAllNotes();
-	const cdrBonuses = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReduction);
-	return cdrBonuses;
+	const ctrBonuses = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReduction);
+	return ctrBonuses;
 };
 /**
-* Gets all natural bonuses for cdr, excluding the base cdr itself.
+* Gets all natural bonuses for ctr, excluding the base ctr itself.
 * @returns {number}
 */
-Game_Battler.prototype.cdrNaturalBonuses = function() {
+Game_Battler.prototype.ctrNaturalBonuses = function() {
 	if (!J.NATURAL) return 0;
-	const cdmBuffs = this.cdrNaturalBuffs();
-	const cdmGrowths = this.cdrNaturalGrowths();
-	return cdmBuffs + cdmGrowths;
+	const ctrBuffs = this.ctrNaturalBuffs();
+	const ctrGrowths = this.ctrNaturalGrowths();
+	return ctrBuffs + ctrGrowths;
 };
 /**
-* Calculates the buffs for critical damage reductions.
+* Calculates the buffs for critical taken rate.
 * @returns {number}
 */
-Game_Battler.prototype.cdrNaturalBuffs = function() {
+Game_Battler.prototype.ctrNaturalBuffs = function() {
 	const objectsToCheck = this.getAllNotes();
 	const baseParam = this.baseCriticalReduction();
-	const cdrBuffPlus = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReductionBuffPlus, baseParam, this);
-	const cdrBuffRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritDamageReductionBuffRate, baseParam, this);
-	if (!cdrBuffPlus && !cdrBuffRate) return 0;
-	const baseCdr = this.baseCriticalReduction();
-	return this.calculatePlusRate(baseCdr, cdrBuffPlus, cdrBuffRate);
+	const ctrBuffPlus = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritTakenRateBuffPlus, baseParam, this);
+	const ctrBuffRate = RPGManager.getResultsFromAllNotesByRegex(objectsToCheck, J.CRIT.RegExp.CritTakenRateBuffRate, baseParam, this);
+	if (!ctrBuffPlus && !ctrBuffRate) return 0;
+	const baseCtr = this.baseCriticalReduction();
+	return this.calculatePlusRate(baseCtr, ctrBuffPlus, ctrBuffRate);
 };
 /**
-* Calculates the growths associated with critical damage reductions.
+* Calculates the growths associated with critical taken rate.
 * @returns {number}
 */
-Game_Battler.prototype.cdrNaturalGrowths = function() {
-	const baseCdr = this.baseCriticalReduction();
-	const growthPlus = this.cdrPlus();
-	const growthRate = this.cdrRate();
+Game_Battler.prototype.ctrNaturalGrowths = function() {
+	const baseCtr = this.baseCriticalReduction();
+	const growthPlus = this.ctrPlus();
+	const growthRate = this.ctrRate();
 	if (!growthPlus && !growthRate) return 0;
-	return this.calculatePlusRate(baseCdr, growthPlus, growthRate);
-};
-
-//#endregion
-//#region src/plugins/crit/core/objects/Game_BattlerBase.js
-Object.defineProperties(Game_BattlerBase.prototype, {
-	/**
-	* The battler's critical damage multiplier.
-	* Critical hits are multiplied by this amount to determine the total critical hit damage.
-	* @type {number}
-	*/
-	cdm: {
-		get: function() {
-			return this.criticalDamageMultiplier();
-		},
-		configurable: true
-	},
-	/**
-	* The battler's critical damage reduction.
-	* Critical hit damage is reduced by this percent before being applied.
-	* @type {number}
-	*/
-	cdr: {
-		get: function() {
-			return this.criticalDamageReduction();
-		},
-		configurable: true
-	}
-});
-/**
-* The base critical damage multiplier.
-* A battler's critical damage multiplier acts as the base bonus multiplier for all
-* critical hits. The individual battler's `cdm` is added to this amount to calculate
-* the damage a critical hit can potentially deal.
-* @returns {number} The base multiplier for this battler.
-*/
-Game_BattlerBase.prototype.baseCriticalMultiplier = function() {
-	return .5;
+	return this.calculatePlusRate(baseCtr, growthPlus, growthRate);
 };
 /**
-* Gets the multiplier for this battler's critical hits.
-* @returns {number}
+* Whether or not this battler's on-crit state applications should skip their own chance roll and
+* always land. Scoped specifically to {@link Game_Action.rollAndApplyCritStates}- unlike
+* `isVeryLucky()`, this does not bypass any other roll site (hit chance, regular state-apply,
+* retaliation, etc). Sourced from any of this battler's own note sources via `<forceCritProcs>`.
+* @returns {boolean}
 */
-Game_BattlerBase.prototype.criticalDamageMultiplier = function() {
-	return 0;
-};
-/**
-* The base critical damage reduction.
-* A battler's critical damage reduction acts as the base crit reduction for all incoming
-* critical hits. The individual battler's `cdr` is added to this amount to calculate
-* the damage a critical hit can potentially deal.
-* @returns {number} The base reduction for this battler.
-*/
-Game_BattlerBase.prototype.baseCriticalReduction = function() {
-	return .5;
-};
-/**
-* Gets the reduction factor for when this battler receives a critical hit.
-* @returns {number}
-*/
-Game_BattlerBase.prototype.criticalDamageReduction = function() {
-	return 0;
+Game_Battler.prototype.isForceCritProcs = function() {
+	return RPGManager.checkForBooleanFromAllNotesByRegex(this.getAllNotes(), J.CRIT.RegExp.ForceCritProcs) === true;
 };
 
 //#endregion
 //#region src/plugins/crit/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* No initialization required for J-Crit on database load at this time;
-* the passive detail window draws J-Crit data directly from the state note.
+* Registers J-Crit stats with the parameter catalog after vanilla seeding.
 */
 J.CRIT.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.CRIT.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	CritParameterRegistration.registerAll();
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritChanceIfState);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritChanceIfStateType);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.CritChanceIfState);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.CritChanceIfStateType);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritsAlwaysIfState);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.ThisCritsAlwaysIfStateType);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.CritAlwaysIfState);
+	J.EXTEND.Metadata.registerNonCombiningKey(J.CRIT.RegExp.CritAlwaysIfStateType);
 };
 
 //#endregion

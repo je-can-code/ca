@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.4 POSES] Enable action poses for JABS.
+ * [v1.0.5 POSES] Enable action poses for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -55,6 +55,11 @@
  * This is not a highly tested feature of JABS and may not work as intended.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.5
+ *    startGuarding no longer takes a skillSlot param, matching J-ABS core;
+ *    the guard pose now resolves via getGuardSkillId() instead.
+ *    Moved gameAssetExists from its own file into initialization.js.
+ *    Removed leftover unused scaffold plugin params.
  * - 1.0.4
  *    `JABS_Battler` pose hooks aligned with J-ABS 4.10.0 dodge/guard battler updates.
  * - 1.0.3
@@ -66,16 +71,6 @@
  * - 1.0.0
  *    The initial release.
  * ============================================================================
- *
- * @param parentConfig
- * @text SETUP
- *
- * @param menu-switch
- * @parent parentConfig
- * @type switch
- * @text Menu Switch ID
- * @desc When this switch is ON, then this command is visible in the menu.
- * @default 101
  */
 //endregion annotations
 
@@ -118,12 +113,12 @@ var J_PosesPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/poses/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -146,7 +141,7 @@ J.ABS.EXT.POSES.EXT ||= {};
 * The metadata associated with this plugin.
 
 */
-J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.4");
+J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.5");
 /**
 
 * A collection of all aliased methods for this plugin.
@@ -168,6 +163,26 @@ J.ABS.EXT.POSES.RegExp.PoseSuffix = /<poseSuffix:[ ]?(\[[-_]?\w+,[ ]?\d+,[ ]?\d+
 
 */
 J.ABS.EXT.POSES.Helpers = {};
+/**
+* Whether a project-relative file exists under the game folder (desktop / NW.js).
+*
+* RMMZ's {@link StorageManager.localFileExists} only checks save slots (`save/name.rmmzsave`),
+* not arbitrary assets like `img/characters/...`. Engine {@link StorageManager} fs helpers
+* are save-oriented too. Poses is the sole consumer, so the check lives here — not in J-Base —
+* so the J-Base Vite ship does not bundle Node `fs` / Rolldown's `__commonJSMin` runtime.
+*
+* Incompatible with web-deployed builds (no local filesystem layout).
+*
+* @param {string} projectRelativePath Path from the game project root, e.g. `img/characters/Actor1.png`.
+* @returns {boolean} True when the file is present on disk.
+*/
+J.ABS.EXT.POSES.Helpers.gameAssetExists = function(projectRelativePath) {
+	const path = __require("path");
+	const fs = __require("fs");
+	const gameRoot = path.dirname(process.mainModule.filename);
+	const absolutePath = path.join(gameRoot, projectRelativePath);
+	return fs.existsSync(absolutePath);
+};
 
 //#endregion
 //#region src/plugins/abs/ext/poses/database/RPG_Skill.js
@@ -205,29 +220,6 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPoseDuration", { get: function()
 } });
 
 //#endregion
-//#region src/plugins/abs/ext/poses/helpers/PoseAssetPaths.js
-/**
-* Whether a project-relative file exists under the game folder (desktop / NW.js).
-*
-* RMMZ's {@link StorageManager.localFileExists} only checks save slots (`save/name.rmmzsave`),
-* not arbitrary assets like `img/characters/...`. Engine {@link StorageManager} fs helpers
-* are save-oriented too. Poses is the sole consumer, so the check lives here — not in J-Base —
-* so the J-Base Vite ship does not bundle Node `fs` / Rolldown's `__commonJSMin` runtime.
-*
-* Incompatible with web-deployed builds (no local filesystem layout).
-*
-* @param {string} projectRelativePath Path from the game project root, e.g. `img/characters/Actor1.png`.
-* @returns {boolean} True when the file is present on disk.
-*/
-J.ABS.EXT.POSES.Helpers.gameAssetExists = function(projectRelativePath) {
-	const path = __require("path");
-	const fs = __require("fs");
-	const gameRoot = path.dirname(process.mainModule.filename);
-	const absolutePath = path.join(gameRoot, projectRelativePath);
-	return fs.existsSync(absolutePath);
-};
-
-//#endregion
 //#region src/plugins/abs/ext/poses/managers/JABS_Engine.js
 /**
 * Handles the pose functionality behind this action.
@@ -256,7 +248,7 @@ JABS_Engine.prototype.executeMapAction = function(caster, action, targetX, targe
 //#region src/plugins/abs/ext/poses/objects/JABS_Battler.js
 J.ABS.EXT.POSES.Aliased.JABS_Battler.set("initialize", JABS_Battler.prototype.initialize);
 /**
-* Extends {@link #initialize}.<br>
+* Extends {@link #initialize}.<br/>
 * Also intializes the pose information.
 * @param {Game_Event} event The event the battler is bound to.
 * @param {Game_Actor|Game_Enemy} battler The battler data itself.
@@ -529,11 +521,10 @@ J.ABS.EXT.POSES.Aliased.JABS_Battler.set("startGuarding", JABS_Battler.prototype
 /**
 * Extends {@link #startGuarding}.
 * Executes an action pose when guarding.
-* @param {string} skillSlot The skill slot containing the guard data.
 */
-JABS_Battler.prototype.startGuarding = function(skillSlot) {
-	J.ABS.EXT.POSES.Aliased.JABS_Battler.get("startGuarding").call(this, skillSlot);
-	const skillId = this.getBattler().getEquippedSkillId(skillSlot);
+JABS_Battler.prototype.startGuarding = function() {
+	J.ABS.EXT.POSES.Aliased.JABS_Battler.get("startGuarding").call(this);
+	const skillId = this.getBattler().getGuardSkillId();
 	const skill = this.getSkill(skillId);
 	this.performActionPose(skill);
 };

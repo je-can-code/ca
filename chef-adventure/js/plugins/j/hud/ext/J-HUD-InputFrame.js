@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 HUD-INPUT] A HUD frame that displays your leader's buttons data.
+ * [v1.2.0 HUD-INPUT] A HUD frame that displays your leader's buttons data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -21,7 +21,7 @@
  *
  * This plugin requires JABS.
  * This plugin requires the base HUD.
- * This plugin has no additional configuration required.
+ * See plugin parameters below for configuration options.
  * ----------------------------------------------------------------------------
  * DETAILS:
  * This includes the following data points for the currently selected leader:
@@ -29,8 +29,20 @@
  * - while holding the skill trigger, skill keys show instead.
  * - ability costs for all keys, or item count remaining for tool.
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it purely reads live JABS skill
+ * slot/cooldown/cost data for display.
+ * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 1.2.0
+ *    Cooldown overlay icon: a configurable icon renders over skill slots that
+ *    are currently on cooldown, making unavailability obvious at a glance.
+ *    Pulse animation: a brief scale pop fires whenever a slot becomes newly
+ *    available (base cooldown finished or combo window opens).
+ *    Combo expire gauge: the cooldown gauge switches to a warm orange-to-yellow
+ *    color and counts down the combo expiry window while a follow-up is live,
+ *    then returns to the base cooldown display after the window closes.
  * - 1.1.2
  *    Combo cooldown gauge merges J-ABS global cooldown (GCD) for GCD-subject
  *    skill slots (not tool/dodge).
@@ -43,6 +55,12 @@
  * - 1.0.0
  *    Initial release.
  * ============================================================================
+ *
+ * @param cooldownOverlayIconIndex
+ * @type number
+ * @text Cooldown Overlay Icon
+ * @desc Icon index to overlay on skill slots that are currently on cooldown.
+ * @default 90
  */
 
 //#region src/plugins/hud/ext/input/_metadata/_pluginMetadata.js
@@ -55,6 +73,13 @@ var JHudInput_PluginMetadata = class extends PluginMetadata {
 	constructor(name, version) {
 		super(name, version);
 	}
+	/**
+	* Extends {@link PluginMetadata.postInitialize}.<br/>
+	* Reads plugin parameters and stores them as typed metadata properties.
+	*/
+	postInitialize() {
+		this.CooldownOverlayIconIndex = Number(this.parsedPluginParameters["cooldownOverlayIconIndex"]) || 90;
+	}
 };
 
 //#endregion
@@ -64,7 +89,7 @@ var JHudInput_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.3.1";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -83,7 +108,7 @@ J.HUD.EXT.INPUT = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudInput_PluginMetadata}
 */
-J.HUD.EXT.INPUT.Metadata = new JHudInput_PluginMetadata("J-HUD-InputFrame", "1.1.2");
+J.HUD.EXT.INPUT.Metadata = new JHudInput_PluginMetadata("J-HUD-InputFrame", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -287,7 +312,7 @@ var Sprite_CooldownGauge = class extends Sprite {
 		this._j._gcdMergeSkillId = 0;
 		if (!jabsBattler || !skillSlot) return;
 		const { key } = skillSlot;
-		if (key === JABS_Button.Tool || key === JABS_Button.Dodge) return;
+		if (key === JABS_Button.Tool || key === JABS_Button.UsableItem || key === JABS_Button.Dodge) return;
 		if (skillSlot.isItem()) return;
 		this._j._gcdMergeBattler = jabsBattler;
 		this._j._gcdMergeSkillId = skillSlot.id;
@@ -301,7 +326,6 @@ var Sprite_CooldownGauge = class extends Sprite {
 	*/
 	globalHudFrames() {
 		if (!this._j._gcdMergeBattler || !this._j._gcdMergeSkillId) return 0;
-		if (typeof J.ABS === "undefined" || typeof JABS_GlobalCooldown === "undefined") return 0;
 		const sk = $dataSkills[this._j._gcdMergeSkillId];
 		if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(sk) === false) return 0;
 		const globalCd = this._j._gcdMergeBattler.getCooldown(J.ABS.Globals.GlobalCooldownKey);
@@ -310,10 +334,20 @@ var Sprite_CooldownGauge = class extends Sprite {
 		return globalCd.frames;
 	}
 	/**
+	* Gets whether or not this gauge is currently showing the combo expiry countdown.
+	* While true, the gauge reflects the shrinking follow-up window rather than the base cooldown.
+	* @returns {boolean}
+	*/
+	isInComboExpireMode() {
+		return this.cooldownData().comboExpireFrames > 0;
+	}
+	/**
 	* Gets whether or not this gauge has a max value currently.
+	* In combo expire mode the max is always the original window size, so we never treat it as unassigned.
 	* @returns {boolean}
 	*/
 	isMaxUnassigned() {
+		if (this.isInComboExpireMode()) return false;
 		return this._j._valueMax === 0;
 	}
 	/**
@@ -332,18 +366,23 @@ var Sprite_CooldownGauge = class extends Sprite {
 	}
 	/**
 	* Gets the current value for this gauge.
+	* During the combo expiry window this is the remaining frames of that window rather than the base cooldown,
+	* so the gauge reads as "time left to press the follow-up."
 	* @returns {number}
 	*/
 	currentValue() {
+		if (this.isInComboExpireMode()) return this.cooldownData().comboExpireFrames;
 		const cd = this.cooldownData();
 		const g = this.globalHudFrames();
 		return Math.max(cd.frames, g);
 	}
 	/**
 	* Gets the max value for this gauge.
+	* During the combo expiry window this is the original window size rather than the base cooldown peak.
 	* @returns {number}
 	*/
 	maxValue() {
+		if (this.isInComboExpireMode()) return this.cooldownData().comboExpireFramesMax;
 		return this._j._valueMax;
 	}
 	/**
@@ -373,18 +412,20 @@ var Sprite_CooldownGauge = class extends Sprite {
 	}
 	/**
 	* The color to gradient from.
-	* Defaults to blue.
+	* Defaults to blue; switches to orange during the combo expiry window.
 	* @returns {string}
 	*/
 	gaugeColor1() {
+		if (this.isInComboExpireMode()) return "rgba(255, 165, 0, 1)";
 		return "rgba(0, 0, 255, 1)";
 	}
 	/**
 	* The color to gradient into.
-	* Defaults to green.
+	* Defaults to green; switches to yellow during the combo expiry window.
 	* @returns {string}
 	*/
 	gaugeColor2() {
+		if (this.isInComboExpireMode()) return "rgba(255, 255, 0, 1)";
 		return "rgba(0, 255, 0, 1)";
 	}
 	/**
@@ -444,7 +485,7 @@ var Sprite_CooldownGauge = class extends Sprite {
 		this.bitmap.paintOpacity = 255;
 	}
 	/**
-	* Extends {@link Sprite.update}.<br>
+	* Extends {@link Sprite.update}.<br/>
 	* Also updates the drawing of this gauge.
 	*/
 	update() {
@@ -465,11 +506,20 @@ var Sprite_CooldownGauge = class extends Sprite {
 	* Shows or hides the gauge and updates its max from slot cooldown and optional merged GCD.
 	* Hides only when both the slot base cooldown and merged GCD are finished; otherwise keeps the peak max for a smooth
 	* drain.
+	* During a combo expiry window the gauge stays visible in expire-mode colors; the peak is still tracked so the
+	* base-cooldown display resumes correctly once the window closes.
 	*/
 	handleActionReadiness() {
 		const cooldown = this.cooldownData();
 		const g = this.globalHudFrames();
 		const eff = Math.max(cooldown.frames, g);
+		if (eff > this._j._gcdHudPeak) {
+			this._j._gcdHudPeak = eff;
+		}
+		if (this.isInComboExpireMode()) {
+			this.bitmap.paintOpacity = 255;
+			return;
+		}
 		if (cooldown.isComboReady() && this.isMaxUnassigned()) {
 			this.enableGauge();
 		}
@@ -478,9 +528,6 @@ var Sprite_CooldownGauge = class extends Sprite {
 			return;
 		}
 		if (cooldown.isBaseReady() === false || g > 0) {
-			if (this._j._gcdHudPeak < eff) {
-				this._j._gcdHudPeak = eff;
-			}
 			this.setMaxValue(this._j._gcdHudPeak);
 			this.bitmap.paintOpacity = 255;
 		}
@@ -524,73 +571,81 @@ var Sprite_CooldownGauge = class extends Sprite {
 /**
 * A sprite that displays a timer representing the cooldown time for a JABS action.
 */
-function Sprite_CooldownTimer() {
-	this.initialize(...arguments);
-}
-Sprite_CooldownTimer.prototype = Object.create(Sprite.prototype);
-Sprite_CooldownTimer.prototype.constructor = Sprite_CooldownTimer;
-Sprite_CooldownTimer.prototype.initialize = function(skillType, cooldownData, isItem = false) {
-	Sprite.prototype.initialize.call(this);
-	this.initMembers(skillType, cooldownData, isItem);
-	this.loadBitmap();
-};
-/**
-* Initializes the properties associated with this sprite.
-* @param {string} skillType The slot that this skill maps to.
-* @param {object} cooldownData The cooldown data associated with this cooldown sprite.
-* @param {boolean} isItem Whether or not this cooldown timer is for an item.
-*/
-Sprite_CooldownTimer.prototype.initMembers = function(skillType, cooldownData, isItem) {
-	this._j = {};
-	this._j._skillType = skillType;
-	this._j._cooldownData = cooldownData;
-	this._j._isItem = isItem;
-};
-/**
-* Loads the bitmap into the sprite.
-*/
-Sprite_CooldownTimer.prototype.loadBitmap = function() {
-	this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
-	this.bitmap.fontFace = this.fontFace();
-	this.bitmap.fontSize = this.fontSize();
-	this.bitmap.drawText(this._j._text, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
-};
-Sprite_CooldownTimer.prototype.update = function() {
-	Sprite.prototype.update.call(this);
-	this.updateCooldownText();
-};
-Sprite_CooldownTimer.prototype.updateCooldownText = function() {
-	this.bitmap.clear();
-	let baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
-	if (typeof baseCooldown === "undefined") {
-		baseCooldown = 0;
+var Sprite_CooldownTimer = class extends Sprite {
+	/**
+	* Constructor.
+	* @param {...*} args Forwarded to {@link #initialize}.
+	*/
+	constructor(...args) {
+		super();
+		this.initialize(...args);
 	}
-	const cooldownBaseText = baseCooldown > 0 ? baseCooldown : String.empty;
-	this.bitmap.drawText(cooldownBaseText, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
-};
-/**
-* Determines the width of the bitmap accordingly to the length of the string.
-*/
-Sprite_CooldownTimer.prototype.bitmapWidth = function() {
-	return 40;
-};
-/**
-* Determines the width of the bitmap accordingly to the length of the string.
-*/
-Sprite_CooldownTimer.prototype.bitmapHeight = function() {
-	return this.fontSize() * 3;
-};
-/**
-* Determines the font size for text in this sprite.
-*/
-Sprite_CooldownTimer.prototype.fontSize = function() {
-	return $gameSystem.mainFontSize() - 10;
-};
-/**
-* determines the font face for text in this sprite.
-*/
-Sprite_CooldownTimer.prototype.fontFace = function() {
-	return $gameSystem.numberFontFace();
+	/**
+	* Initializes this cooldown timer sprite.
+	* @param {string} skillType The slot that this skill maps to.
+	* @param {object} cooldownData The cooldown data associated with this cooldown sprite.
+	* @param {boolean} isItem Whether or not this cooldown timer is for an item.
+	*/
+	initialize(skillType, cooldownData, isItem = false) {
+		super.initialize();
+		this.initMembers(skillType, cooldownData, isItem);
+		this.loadBitmap();
+	}
+	/**
+	* Initializes the properties associated with this sprite.
+	* @param {string} skillType The slot that this skill maps to.
+	* @param {object} cooldownData The cooldown data associated with this cooldown sprite.
+	* @param {boolean} isItem Whether or not this cooldown timer is for an item.
+	*/
+	initMembers(skillType, cooldownData, isItem) {
+		this._j = {};
+		this._j._skillType = skillType;
+		this._j._cooldownData = cooldownData;
+		this._j._isItem = isItem;
+	}
+	/**
+	* Loads the bitmap into the sprite.
+	*/
+	loadBitmap() {
+		this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
+		this.bitmap.fontFace = this.fontFace();
+		this.bitmap.fontSize = this.fontSize();
+		this.bitmap.drawText(this._j._text, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
+	}
+	update() {
+		super.update();
+		this.updateCooldownText();
+	}
+	updateCooldownText() {
+		this.bitmap.clear();
+		const baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
+		const cooldownBaseText = baseCooldown > 0 ? baseCooldown : String.empty;
+		this.bitmap.drawText(cooldownBaseText, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
+	}
+	/**
+	* Determines the width of the bitmap accordingly to the length of the string.
+	*/
+	bitmapWidth() {
+		return 40;
+	}
+	/**
+	* Determines the width of the bitmap accordingly to the length of the string.
+	*/
+	bitmapHeight() {
+		return this.fontSize() * 3;
+	}
+	/**
+	* Determines the font size for text in this sprite.
+	*/
+	fontSize() {
+		return $gameSystem.mainFontSize() - 10;
+	}
+	/**
+	* determines the font face for text in this sprite.
+	*/
+	fontFace() {
+		return $gameSystem.numberFontFace();
+	}
 };
 
 //#endregion
@@ -658,8 +713,8 @@ var Sprite_SkillCost = class Sprite_SkillCost extends Sprite_BaseSkillSlot {
 		if (!ability) return 0;
 		switch (this.skillCostType()) {
 			case Sprite_SkillCost.Types.HP: return leader.skillHpCost(ability);
-			case Sprite_SkillCost.Types.MP: return ability.mpCost * leader.mcr;
-			case Sprite_SkillCost.Types.TP: return ability.tpCost * leader.tcr;
+			case Sprite_SkillCost.Types.MP: return leader.skillMpCost(ability);
+			case Sprite_SkillCost.Types.TP: return leader.skillTpCost(ability);
 			case Sprite_SkillCost.Types.Item: return $gameParty.numItems(ability);
 		}
 	}
@@ -674,7 +729,8 @@ var Sprite_SkillCost = class Sprite_SkillCost extends Sprite_BaseSkillSlot {
 		}
 	}
 	/**
-	* OVERWRITE Gets the color of the text for this sprite based on the
+	* Overwrites {@link #color}.<br/>
+	* Gets the color of the text for this sprite based on the
 	* type of skill cost for this sprite, instead of the assigned color.
 	* @returns {string}
 	*/
@@ -694,7 +750,8 @@ var Sprite_SkillCost = class Sprite_SkillCost extends Sprite_BaseSkillSlot {
 		}
 	}
 	/**
-	* OVERWRITE Gets the font size for this sprite's text.
+	* Overwrites {@link #fontSize}.<br/>
+	* Gets the font size for this sprite's text.
 	* Skill costs are hard-coded to be a fixed size, 12.
 	* @returns {number}
 	*/
@@ -799,6 +856,29 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 		* @type {JABS_SkillSlot|null}
 		*/
 		this._j._skillSlot = null;
+		/**
+		* The icon sprite rendered over the skill icon while the slot is on cooldown.
+		* Created lazily on first use and then cached here.
+		* @type {Sprite_Icon|null}
+		*/
+		this._j._cooldownOverlaySprite = null;
+		/**
+		* Whether the base cooldown was ready on the previous frame.
+		* Initialized to true so no pulse fires on HUD setup before any skill is used.
+		* @type {boolean}
+		*/
+		this._j._prevBaseReady = true;
+		/**
+		* Whether the combo window was ready (open) on the previous frame.
+		* @type {boolean}
+		*/
+		this._j._prevComboReady = false;
+		/**
+		* Remaining frames of the ready-pulse scale animation.
+		* Zero means no pulse is currently active.
+		* @type {number}
+		*/
+		this._j._pulseFrames = 0;
 	}
 	/**
 	* Sets the skill slot for this sprite's icon.
@@ -845,12 +925,93 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 		return this._j._skillSlot.key;
 	}
 	/**
-	* Extends the `update()` to monitor the icon index in case it changes.
+	* Extends the `update()` to monitor the icon index in case it changes,
+	* and to drive the cooldown overlay and ready-pulse animations.
 	*/
 	update() {
 		super.update();
 		if (this.needsSynchronization()) {
 			this.synchronizeIconIndex();
+		}
+		if (!this.hasSkillSlot()) return;
+		const jabsBattler = $jabsEngine?.getPlayer1();
+		if (!jabsBattler) return;
+		const cooldown = jabsBattler.getCooldown(this.skillSlotKey());
+		if (!cooldown) return;
+		this.updateCooldownOverlay(cooldown);
+		this.updateReadyPulse(cooldown);
+	}
+	/**
+	* Returns the cached cooldown overlay sprite, creating and attaching it on first call.
+	* @returns {Sprite_Icon}
+	*/
+	getOrCreateCooldownOverlaySprite() {
+		if (this._j._cooldownOverlaySprite) return this._j._cooldownOverlaySprite;
+		const overlay = new Sprite_Icon(J.HUD.EXT.INPUT.Metadata.CooldownOverlayIconIndex);
+		overlay.opacity = 160;
+		overlay.hide();
+		this.addChild(overlay);
+		this._j._cooldownOverlaySprite = overlay;
+		return overlay;
+	}
+	/**
+	* Synchronizes the cooldown overlay icon's visibility with the slot's base-ready state.
+	*
+	* Visibility is driven by {@link JABS_Cooldown.comboMode}, stamped at skill-fire time:
+	*   'none'     — no combo link; overlay shows immediately while the slot is on cooldown.
+	*   'expiring' — combo with an authored expire window; overlay hidden while the window is live,
+	*                then shown for the remaining base cooldown once the window closes.
+	*   'infinite' — combo with no expire window; overlay never shown (the entire CD is the window).
+	*
+	* @param {JABS_Cooldown} cooldown The cooldown data for this slot.
+	*/
+	updateCooldownOverlay(cooldown) {
+		const overlay = this.getOrCreateCooldownOverlaySprite();
+		if (cooldown.isBaseReady() === true) {
+			overlay.hide();
+			return;
+		}
+		switch (cooldown.comboMode) {
+			case "infinite":
+				overlay.hide();
+				break;
+			case "expiring":
+				if (cooldown.comboExpireFrames > 0) {
+					overlay.hide();
+				} else {
+					overlay.show();
+				}
+				break;
+			default:
+				overlay.show();
+				break;
+		}
+	}
+	/**
+	* Detects when the base cooldown or combo window becomes newly available and triggers a brief
+	* scale pop to signal "new skill ready" to the player.
+	* @param {JABS_Cooldown} cooldown The cooldown data for this slot.
+	*/
+	updateReadyPulse(cooldown) {
+		const baseReady = cooldown.isBaseReady();
+		const comboReady = cooldown.isComboReady();
+		if (!this._j._prevBaseReady && baseReady) {
+			this._j._pulseFrames = 12;
+		}
+		if (!this._j._prevComboReady && comboReady) {
+			this._j._pulseFrames = 12;
+		}
+		this._j._prevBaseReady = baseReady;
+		this._j._prevComboReady = comboReady;
+		if (this._j._pulseFrames > 0) {
+			const t = this._j._pulseFrames / 12;
+			const s = 1 + Math.sin(t * Math.PI) * .25;
+			this.scale.x = s;
+			this.scale.y = s;
+			this._j._pulseFrames--;
+		} else {
+			this.scale.x = 1;
+			this.scale.y = 1;
 		}
 	}
 	/**
@@ -1115,7 +1276,7 @@ var Sprite_InputKeySlot = class extends Sprite {
 	* @returns {Sprite_CooldownTimer}
 	*/
 	getOrCreateInputKeyCooldownTimerSprite(cooldownData, inputType) {
-		const isItem = inputType === JABS_Button.Tool;
+		const isItem = this.hasSkillSlot() && this.skillSlot().isItem();
 		const key = this.makeInputKeyCooldownTimerSpriteKey(cooldownData, inputType, isItem);
 		if (this._j._spriteCache.has(key)) {
 			return this._j._spriteCache.get(key);
@@ -1182,11 +1343,15 @@ var Sprite_InputKeySlot = class extends Sprite {
 	}
 	/**
 	* Creates the key for the input key skill name sprite based on the parameters.
+	* The offhand slot includes the equipped skill id so that swapping between a guard
+	* skill and an action skill produces a fresh sprite with the correct label.
+	* @param {JABS_SkillSlot} skillSlot The slot being labelled.
 	* @param {string} inputType The type of input for this key.
 	* @returns {string}
 	*/
-	makeInputKeySlotNameSpriteKey(inputType) {
-		return `slotname-${this.battler().name()}-${this.battler().battlerId()}-${inputType}`;
+	makeInputKeySlotNameSpriteKey(skillSlot, inputType) {
+		const slotId = inputType === JABS_Button.Offhand ? skillSlot.id : 0;
+		return `slotname-${this.battler().name()}-${this.battler().battlerId()}-${inputType}-${slotId}`;
 	}
 	/**
 	* Creates a slot name sprite for the given input key and caches it.
@@ -1195,13 +1360,16 @@ var Sprite_InputKeySlot = class extends Sprite {
 	* @returns {Sprite_BaseText}
 	*/
 	getOrCreateInputKeySlotNameSprite(skillSlot, inputType) {
-		const key = this.makeInputKeySlotNameSpriteKey(inputType);
+		const key = this.makeInputKeySlotNameSpriteKey(skillSlot, inputType);
 		if (this._j._spriteCache.has(key)) {
 			return this._j._spriteCache.get(key);
 		}
 		let labelText = inputType.toUpperCase();
 		if (skillSlot.isSecondarySlot()) {
 			labelText = labelText.replace("COMBAT", String.empty);
+		}
+		if (inputType === JABS_Button.Offhand && skillSlot.id && JABS_Battler.isGuardSkillById(skillSlot.id)) {
+			labelText = "GUARD";
 		}
 		const sprite = new Sprite_BaseText(labelText).setFontSize(12).setAlignment(Sprite_BaseText.Alignments.Center).setBold(true);
 		this._j._spriteCache.set(key, sprite);
@@ -1528,7 +1696,7 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	*/
 	configure() {
 		super.configure();
-		this.opacity = 32;
+		this.opacity = 0;
 	}
 	/**
 	* Ensures all sprites are created and available for use.
@@ -1745,6 +1913,7 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 			this.drawDiamond(Window_InputFrame.Modes.Skills, alphaSkills);
 		}
 		this.contents.paintOpacity = 255;
+		this.drawUsableItemSlot();
 		this.drawModeLabels(alphaBase, alphaSkills);
 		this.acknowledgeInternalRefresh();
 	}
@@ -2002,6 +2171,79 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 		this.contents.outlineColor = originalOutlineC;
 	}
 	/**
+	* Draws the usable-item slot to the right of the diamond's rightmost node.
+	* Uses the same coordinate geometry as {@link drawDiamond} to stay in sync.
+	* The panel is always visible; an empty slot shows a placeholder icon and label.
+	*/
+	drawUsableItemSlot() {
+		const ikw = this.inputKeyWidth();
+		const ikh = this.inputKeyHeight();
+		const desiredGap = Window_InputFrame.DiamondGap;
+		const cx = Math.floor(this.width / 2) + 4;
+		const cy = Math.floor(this.height / 2) - 10;
+		const halfIkw = Math.floor(ikw / 2);
+		const halfIkh = Math.floor(ikh / 2);
+		const rightCenterX = cx + (ikw + desiredGap);
+		const usableItemX = rightCenterX + halfIkw + desiredGap;
+		const sideY = cy - halfIkh - 20;
+		const panelWidth = ikw - 10;
+		const panelHeight = ikh;
+		const panelX = usableItemX - 10;
+		const panelY = sideY + 20;
+		this.drawHudPanelFancy(panelX, panelY, panelWidth, panelHeight, {
+			tint: null,
+			tintAlpha: 0
+		});
+		const leader = $gameParty.leader();
+		if (!leader) {
+			this.drawEmptyUsableItemSlotContent(panelX, panelY, panelWidth, panelHeight);
+			return;
+		}
+		const skillSlot = leader.getUsableItemSkillSlot();
+		if (!skillSlot) {
+			this.drawEmptyUsableItemSlotContent(panelX, panelY, panelWidth, panelHeight);
+			return;
+		}
+		const sprite = this.getOrCreateInputKeySlotSprite(skillSlot, JABS_Button.UsableItem);
+		if (skillSlot.isEmpty()) {
+			sprite.hide();
+			this.drawEmptyUsableItemSlotContent(panelX, panelY, panelWidth, panelHeight);
+			return;
+		}
+		this.drawInputKeySlotSprite(skillSlot, JABS_Button.UsableItem, usableItemX, sideY, 255, true);
+	}
+	/**
+	* Draws placeholder contents inside an empty usable-item slot panel.
+	* @param {number} panelX The panel left edge in contents space.
+	* @param {number} panelY The panel top edge in contents space.
+	* @param {number} panelWidth The panel width.
+	* @param {number} panelHeight The panel height.
+	*/
+	drawEmptyUsableItemSlotContent(panelX, panelY, panelWidth, panelHeight) {
+		const iconW = ImageManager.iconWidth;
+		const iconH = ImageManager.iconHeight;
+		const labelReserve = 18;
+		const iconX = panelX + Math.floor((panelWidth - iconW) / 2);
+		const iconY = panelY + Math.max(0, Math.floor((panelHeight - labelReserve - iconH) / 2));
+		this.drawIcon(0, iconX, iconY);
+		const originalSize = this.contents.fontSize;
+		const originalOutlineW = this.contents.outlineWidth;
+		const originalOutlineC = this.contents.outlineColor;
+		this.setFontSize(originalSize - 10);
+		this.contents.outlineWidth = 4;
+		this.contents.outlineColor = "rgba(0, 0, 0, 0.85)";
+		this.changeTextColor(ColorManager.dimColor1());
+		const text = "Item";
+		const tw = this.textSizeEx(text).width;
+		const labelX = panelX + Math.floor((panelWidth - tw) / 2) - 5;
+		const labelY = panelY + panelHeight - labelReserve - 16;
+		this.drawText(text, labelX, labelY, tw, "left");
+		this.resetTextColor();
+		this.setFontSize(originalSize);
+		this.contents.outlineWidth = originalOutlineW;
+		this.contents.outlineColor = originalOutlineC;
+	}
+	/**
 	* Draws a single input key of the input frame.
 	* @param {string} inputType The type of input key this is.
 	* @param {number} x The x coordinate.
@@ -2022,10 +2264,11 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	* @param {number} x The x coordinate (CONTENTS space).
 	* @param {number} y The y coordinate (CONTENTS space).
 	* @param {number} opacity The per-pass opacity (0..255) for the slot sprite.
+	* @param {boolean} skipPanel When true, the caller already drew the HUD panel (usable-item slot).
 	*/
-	drawInputKeySlotSprite(skillSlot, inputType, x, y, opacity) {
+	drawInputKeySlotSprite(skillSlot, inputType, x, y, opacity, skipPanel = false) {
 		const sprite = this.getOrCreateInputKeySlotSprite(skillSlot, inputType);
-		if (!skillSlot.isEmpty()) {
+		if (skipPanel === false && !skillSlot.isEmpty()) {
 			const width = this.inputKeyWidth() - 10;
 			const height = this.inputKeyHeight();
 			this.drawHudPanelFancy(x - 10, y + 20, width, height, {
@@ -2093,7 +2336,8 @@ Scene_Map.prototype.inputFrameWindowRect = function() {
 	const labelReserveEachSide = 48;
 	const marginX = 24;
 	const marginY = 24;
-	const width = Math.ceil(diamondBodyWidth + labelReserveEachSide * 2 + marginX);
+	const usableItemSlotReserve = ikw + 16;
+	const width = Math.ceil(diamondBodyWidth + labelReserveEachSide * 2 + marginX + usableItemSlotReserve);
 	const height = Math.ceil(diamondBodyHeight + marginY);
 	const x = Math.floor((Graphics.boxWidth - width) / 2);
 	const y = Graphics.boxHeight - height;

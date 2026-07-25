@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 ESCRIBE] Enables "describing" the event with some text and/or an icon.
+ * @plugindesc [v1.0.1 ESCRIBE] Enables "describing" the event with some text and/or an icon.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -21,26 +21,32 @@
  * <icon:ICON_INDEX>
  * Where ICON_INDEX is the icon index of the icon to show on this event.
  *
- * <proximityText>
- * or
  * <proximityText:DISTANCE>
  * Where DISTANCE is the distance in tiles/squares that the player must be
- * within in order to see the text on this event. If using the tag without
- * DISTANCE, then the DISTANCE will default to 0, meaning the player must be
- * standing ontop of the event in order for the text to show up.
+ * within in order to see the text on this event. DISTANCE is required- to
+ * require the player stand directly on the event, use <proximityText:0>
+ * explicitly.
  *
- * <proximityIcon>
- * or
  * <proximityIcon:DISTANCE>
  * Where DISTANCE is the distance in tiles/squares that the player must be
- * within in order to see the icon on this event. If using the tag without
- * DISTANCE, then the DISTANCE will default to 0, meaning the player must be
- * standing ontop of the event in order for the icon to show up.
+ * within in order to see the icon on this event. DISTANCE is required- to
+ * require the player stand directly on the event, use <proximityIcon:0>
+ * explicitly.
  * ============================================================================
  * NOTE:
  * Proximity tags are optional. If they are not added to the event alongside
  * the text or icon tag, then the text/icon will always be visible while the
  * event is visible on the map.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    <proximityText>/<proximityIcon> now require an explicit DISTANCE; the
+ *    no-argument form (implicit distance 0) is no longer supported- use
+ *    <proximityText:0>/<proximityIcon:0> instead.
+ *    Removed a dead constructor-type check against Game_Event that was
+ *    already unreachable behind an equivalent isEvent() check.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
 */
 
@@ -61,7 +67,7 @@ var J_EscriptionsPluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -74,7 +80,7 @@ J.ESCRIBE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.0.0");
+J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.0.1");
 /**
 * All regular expressions used by this plugin.
 */
@@ -97,53 +103,50 @@ J.ESCRIBE.Aliased = {
 /**
 * A single "describe" class which contains various data to describe this event on the map.
 */
-function Escription() {
-	this.initialize(...arguments);
-}
-Escription.prototype = {};
-Escription.prototype.constructor = Escription;
-/**
-* Initializes the data about the event's describe.
-* @param {string} text The text to show on this event.
-* @param {number} iconIndex The index of the icon to show on this event.
-* @param {number} proximityTextRange The distance required for the describe text to be visible.
-* @param {number} proximityIconRange The distance required for the describe icon to be visible.
-*/
-Escription.prototype.initialize = function(text, iconIndex, proximityTextRange, proximityIconRange) {
-	this._text = text;
-	this._iconIndex = iconIndex;
-	this._proximityText = proximityTextRange;
-	this._proximityIcon = proximityIconRange;
-};
-/**
-* Gets the text associated with this describe.
-* @returns {string}
-*/
-Escription.prototype.text = function() {
-	return this._text;
-};
-/**
-* Gets the icon index associated with this describe.
-* @returns {number}
-*/
-Escription.prototype.iconIndex = function() {
-	return this._iconIndex;
-};
-/**
-* Gets the distance required for this describe text to be visible.
-* Returns -1 when there is no proximity requirement.
-* @returns {number}
-*/
-Escription.prototype.proximityTextRange = function() {
-	return this._proximityText;
-};
-/**
-* Gets the distance required for this describe icon to be visible.
-* Returns -1 when there is no proximity requirement.
-* @returns {number}
-*/
-Escription.prototype.proximityIconRange = function() {
-	return this._proximityIcon;
+var Escription = class {
+	/**
+	* Initializes the data about the event's describe.
+	* @param {string} text The text to show on this event.
+	* @param {number} iconIndex The index of the icon to show on this event.
+	* @param {number} proximityTextRange The distance required for the describe text to be visible.
+	* @param {number} proximityIconRange The distance required for the describe icon to be visible.
+	*/
+	constructor(text, iconIndex, proximityTextRange, proximityIconRange) {
+		this._text = text;
+		this._iconIndex = iconIndex;
+		this._proximityText = proximityTextRange;
+		this._proximityIcon = proximityIconRange;
+	}
+	/**
+	* Gets the text associated with this describe.
+	* @returns {string}
+	*/
+	text() {
+		return this._text;
+	}
+	/**
+	* Gets the icon index associated with this describe.
+	* @returns {number}
+	*/
+	iconIndex() {
+		return this._iconIndex;
+	}
+	/**
+	* Gets the distance required for this describe text to be visible.
+	* Returns -1 when there is no proximity requirement.
+	* @returns {number}
+	*/
+	proximityTextRange() {
+		return this._proximityText;
+	}
+	/**
+	* Gets the distance required for this describe icon to be visible.
+	* Returns -1 when there is no proximity requirement.
+	* @returns {number}
+	*/
+	proximityIconRange() {
+		return this._proximityIcon;
+	}
 };
 
 //#endregion
@@ -330,7 +333,7 @@ Game_Event.prototype.parseEscriptionIconProximityValue = function() {
 	return iconProximity;
 };
 /**
-* Extends {@link Game_Event.update}.<br>
+* Extends {@link Game_Event.update}.<br/>
 * Also updates the describe proximity information of the player for the describe data.
 */
 J.ESCRIBE.Aliased.Game_Event.set("update", Game_Event.prototype.update);
@@ -587,7 +590,6 @@ Sprite_Character.prototype.needsEscribeAdding = function() {
 	const character = this.character();
 	if (!character) return false;
 	if (!character.isEvent()) return false;
-	if (!(character instanceof Game_Event)) return false;
 	return character.needsEscribeAdding();
 };
 Sprite_Character.prototype.needsEscribeRemoval = function() {
@@ -625,7 +627,7 @@ Sprite_Character.prototype.characterCanSeeIcon = function() {
 	return character.getPlayerNearbyForIcon();
 };
 /**
-* Extends {@link Sprite_Character.isEmptyCharacter}.<br>
+* Extends {@link Sprite_Character.isEmptyCharacter}.<br/>
 * If the character has describe data, don't make it invisible for the time being.
 * @returns {boolean} True if the character should be drawn, false otherwise.
 */
@@ -644,7 +646,7 @@ Sprite_Character.prototype.refreshCharacterEscription = function() {
 	character.refreshEscription();
 };
 /**
-* Extends {@link Sprite_Character.setCharacterBitmap}.<br>
+* Extends {@link Sprite_Character.setCharacterBitmap}.<br/>
 * Sets up the initial escription sprites and renders them as applicable.
 */
 J.ESCRIBE.Aliased.Sprite_Character.set("setCharacterBitmap", Sprite_Character.prototype.setCharacterBitmap);

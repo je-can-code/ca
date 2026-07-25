@@ -1,9 +1,8 @@
 {
   "quests": [
     {
-      "key": "divider-main",
       "name": "=== MAIN QUESTS",
-      "iconIndex": 0,
+      "key": "divider-main",
       "categoryKey": "",
       "tagKeys": [],
       "unknownHint": "The old man at the Raevula Waterfront has a crazy idea for a heroic quest.",
@@ -28,8 +27,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -48,12 +47,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "main-000",
       "name": "The Journey Begins With Darkness...",
-      "iconIndex": 0,
+      "key": "main-000",
       "categoryKey": "main",
       "tagKeys": [
         "ch1"
@@ -80,8 +79,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -118,8 +117,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -156,8 +155,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -194,8 +193,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -232,8 +231,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -270,8 +269,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -308,8 +307,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -346,8 +345,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -366,12 +365,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "main-001",
       "name": "Trekking to Town",
-      "iconIndex": 0,
+      "key": "main-001",
       "categoryKey": "main",
       "tagKeys": [
         "ch1"
@@ -398,8 +397,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -436,8 +435,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -474,8 +473,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -494,12 +493,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "main-002",
       "name": "Bearcats For Pudding?",
-      "iconIndex": 0,
+      "key": "main-002",
       "categoryKey": "main",
       "tagKeys": [
         "ch1"
@@ -526,8 +525,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -564,8 +563,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -602,8 +601,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -622,12 +621,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "main-003",
       "name": "The Mayor of Raevula",
-      "iconIndex": 0,
+      "key": "main-003",
       "categoryKey": "main",
       "tagKeys": [
         "ch1"
@@ -639,7 +638,7 @@
         {
           "id": 0,
           "type": "Indiscriminate",
-          "description": "Check out the blue-roofed house- which probably belongs to the mayor in \\C[1]the Northwestern quadrant of Raevula\\C[0].",
+          "description": "Check out the blue-roofed house- which probably belongs to the mayor in \\C[1]the Northwestern section of Raevula\\C[0].",
           "logs": {
             "inactive": "",
             "active": "Hopefully the blue-roofed house in the NW of Raevula has some answers.",
@@ -654,8 +653,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -677,6 +676,166 @@
         {
           "id": 1,
           "type": "Indiscriminate",
+          "description": "Gotta get a weapon somehow, might as well start at a smith.",
+          "logs": {
+            "inactive": "",
+            "active": "The southeastern section had a smith, didn't it?",
+            "completed": "Huh, a drunkard old man smith. Who would've guessed.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Go to \\C[1]The Metal Petal\\C[0] smithery."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": [
+                "side-001"
+              ]
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 2,
+          "type": "Indiscriminate",
+          "description": "This really is a tutorial lap around Raevula- first the smith and now the pub...",
+          "logs": {
+            "inactive": "",
+            "active": "The pub was just across from the inn- easy to find.",
+            "completed": "Old men are so easy to persuade!",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Find the smith in \\C[1]The Red Baron\\C[0] pub."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": [
+                "side-001"
+              ]
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 3,
+          "type": "Indiscriminate",
+          "description": "That smith is a hoot! Viskra is sure to appreciate your assistance.",
+          "logs": {
+            "inactive": "",
+            "active": "Viskra has to thank you for going out of your way to help a total stranger!",
+            "completed": "She was indeed thankful, and now the smith will surely help you.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Report to Viskra your success."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": [
+                "side-001"
+              ]
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 4,
+          "type": "Quest",
+          "description": "Have the smith help you with making your first weapons.",
+          "logs": {
+            "inactive": "",
+            "active": "Looks like just bringing gramps home isn't enough- he wants to enlist your services for more mind-numbing tutorial shit.",
+            "completed": "Well, at least you got to stretch your legs and also got some levels and weapons out of it.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Report to Viskra your success."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": [
+                "side-001"
+              ]
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 5,
+          "type": "Indiscriminate",
           "description": "Go have a chat with the mayor- he is waiting in the entry hall of his mansion.",
           "logs": {
             "inactive": "",
@@ -692,160 +851,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": -1,
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        },
-        {
-          "id": 2,
-          "type": "Indiscriminate",
-          "description": "You don't want to wait to see what the mayor has in store for you, so figure out how to escape the wing.",
-          "logs": {
-            "inactive": "",
-            "active": "Seek out a means to escape the mansion wing you've been locked in.",
-            "completed": "Jumping down mysterious holes in the wall does \\_technically\\_ count as an escape...",
-            "failed": "",
-            "missed": ""
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": "Figure out how to escape the mansion wing."
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
               "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": -1,
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        },
-        {
-          "id": 3,
-          "type": "Indiscriminate",
-          "description": "It is unclear why there were mines directly beneath the mayor's mansion, but you should escape those, too.",
-          "logs": {
-            "inactive": "",
-            "active": "The mine tunnels and caverns are twisted and labyrinthine, but escaping is the only alternative to death.",
-            "completed": "Holy fucking cripes, mines suck as a first real dungeon.",
-            "failed": "",
-            "missed": ""
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": "Navigate out of the mines."
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": -1,
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        },
-        {
-          "id": 4,
-          "type": "Indiscriminate",
-          "description": "Going from one dungeon directly to another usually means there is something at the end... but what?",
-          "logs": {
-            "inactive": "",
-            "active": "This forest holds an aura of mystery and danger, what could be at the heart of it?",
-            "completed": "A... cabin?",
-            "failed": "",
-            "missed": ""
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": "Explore the depths of the forest."
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
-              "y2": -1
-            },
-            "fetch": {
-              "type": -1,
-              "id": 0,
-              "amount": 0
-            },
-            "slay": {
-              "id": 0,
-              "amount": 0
-            },
-            "quest": {
-              "keys": []
-            }
-          },
-          "hiddenByDefault": true,
-          "isOptional": false
-        },
-        {
-          "id": 5,
-          "type": "Indiscriminate",
-          "description": "What could a cabin be doing so deep in such a deadly forest? Only one way to find out...",
-          "logs": {
-            "inactive": "",
-            "active": "An adventurer never leaves such a juicy secret unrevealed- explore that damn cabin.",
-            "completed": "Definitely didn't expect to find the mayor out here!",
-            "failed": "",
-            "missed": ""
-          },
-          "fulfillment": {
-            "indiscriminate": {
-              "hint": "Investigate the busted up cabin."
-            },
-            "destination": {
-              "mapId": -1,
-              "x1": -1,
-              "y1": -1,
-              "x2": -1,
               "y2": -1
             },
             "fetch": {
@@ -866,6 +873,158 @@
         },
         {
           "id": 6,
+          "type": "Indiscriminate",
+          "description": "You don't want to wait to see what the mayor has in store for you, so figure out how to escape the wing.",
+          "logs": {
+            "inactive": "",
+            "active": "Seek out a means to escape the mansion wing you've been locked in.",
+            "completed": "Jumping down mysterious holes in the wall does \\_technically\\_ count as an escape...",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Figure out how to escape the mansion wing."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 7,
+          "type": "Indiscriminate",
+          "description": "It is unclear why there were mines directly beneath the mayor's mansion, but you should escape those, too.",
+          "logs": {
+            "inactive": "",
+            "active": "The mine tunnels and caverns are twisted and labyrinthine, but escaping is the only alternative to death.",
+            "completed": "Holy fucking cripes, mines suck as a first real dungeon.",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Navigate out of the mines."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 8,
+          "type": "Indiscriminate",
+          "description": "Going from one dungeon directly to another usually means there is something at the end... but what?",
+          "logs": {
+            "inactive": "",
+            "active": "This forest holds an aura of mystery and danger, what could be at the heart of it?",
+            "completed": "A... cabin?",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Explore the depths of the forest."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 9,
+          "type": "Indiscriminate",
+          "description": "What could a cabin be doing so deep in such a deadly forest? Only one way to find out...",
+          "logs": {
+            "inactive": "",
+            "active": "An adventurer never leaves such a juicy secret unrevealed- explore that damn cabin.",
+            "completed": "Definitely didn't expect to find the mayor out here!",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Investigate the busted up cabin."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": -1,
+              "id": 0,
+              "amount": 0
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 10,
           "type": "Slay",
           "description": "Who would've guessed the mayor was hanging out in the basement of a busted up cabin? Take care of business.",
           "logs": {
@@ -882,8 +1041,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -902,12 +1061,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "main-004",
       "name": "A Way to the Kingdom!",
-      "iconIndex": 0,
+      "key": "main-004",
       "categoryKey": "main",
       "tagKeys": [
         "ch2"
@@ -934,8 +1093,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -972,8 +1131,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1010,8 +1169,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1048,8 +1207,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1086,8 +1245,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1124,8 +1283,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1162,8 +1321,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1182,12 +1341,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "main-005",
       "name": "The Path Continues East",
-      "iconIndex": 0,
+      "key": "main-005",
       "categoryKey": "main",
       "tagKeys": [
         "ch2"
@@ -1214,8 +1373,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1252,8 +1411,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1290,8 +1449,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1330,8 +1489,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1350,12 +1509,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "main-006",
       "name": "The Adventure Doesn't Stop",
-      "iconIndex": 0,
+      "key": "main-006",
       "categoryKey": "main",
       "tagKeys": [
         "ch3"
@@ -1382,8 +1541,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1420,8 +1579,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1458,8 +1617,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1496,8 +1655,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1534,8 +1693,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1572,8 +1731,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1610,8 +1769,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1648,8 +1807,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1668,12 +1827,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "main-007",
       "name": "A Fallen Kingdom",
-      "iconIndex": 0,
+      "key": "main-007",
       "categoryKey": "main",
       "tagKeys": [
         "ch3"
@@ -1700,8 +1859,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1738,8 +1897,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1776,8 +1935,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1814,8 +1973,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1852,8 +2011,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1890,8 +2049,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -1910,18 +2069,19 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "main-008",
       "name": "Peak Performance",
-      "overview": "In an agreement with the other elementals, our fearless protagonists have decided to round up the final elemental in an effort to round out the elemental spread of the party. However, considering the fourth of the primary elementals is \\element[6], it means you'll be ascending a mountain... and where did you last see mountains? Just north of Raevula. So go to Raevula and head due north to check out the \\C[1]Negative Peaks\\C[0].",
+      "key": "main-008",
+      "categoryKey": "main",
       "tagKeys": [
         "ch4"
       ],
-      "categoryKey": "main",
-      "recommendedLevel": 0,
       "unknownHint": "",
+      "overview": "In an agreement with the other elementals, our fearless protagonists have decided to round up the final elemental in an effort to round out the elemental spread of the party. However, considering the fourth of the primary elementals is \\element[6], it means you'll be ascending a mountain... and where did you last see mountains? Just north of Raevula. So go to Raevula and head due north to check out the \\C[1]Negative Peaks\\C[0].",
+      "recommendedLevel": 0,
       "objectives": [
         {
           "id": 0,
@@ -1946,8 +2106,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -1984,8 +2144,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -2022,8 +2182,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -2060,8 +2220,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -2098,8 +2258,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -2136,8 +2296,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -2174,8 +2334,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -2189,12 +2349,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "neo-9999",
       "name": "=== TRAINING QUESTS",
-      "iconIndex": 0,
+      "key": "neo-9999",
       "categoryKey": "",
       "tagKeys": [],
       "unknownHint": "The old man at the Raevula Waterfront has a crazy idea for a heroic quest.",
@@ -2219,8 +2379,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2239,12 +2399,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "train-000",
       "name": "The Lord of Training - Part 1",
-      "iconIndex": 0,
+      "key": "train-000",
       "categoryKey": "train",
       "tagKeys": [],
       "unknownHint": "Is that a transdimensional portal I see over there?",
@@ -2269,8 +2429,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2307,8 +2467,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2345,8 +2505,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2365,12 +2525,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "train-001",
       "name": "The Lord of Teleportals",
-      "iconIndex": 0,
+      "key": "train-001",
       "categoryKey": "train",
       "tagKeys": [
         "ch2"
@@ -2397,8 +2557,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2435,8 +2595,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2455,12 +2615,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "neo-9999",
       "name": "=== SIDE QUESTS",
-      "iconIndex": 0,
+      "key": "neo-9999",
       "categoryKey": "",
       "tagKeys": [],
       "unknownHint": "The old man at the Raevula Waterfront has a crazy idea for a heroic quest.",
@@ -2485,8 +2645,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2505,26 +2665,26 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
+      "name": "First-time Forgery",
       "key": "side-001",
-      "name": "Bring 'gramps' Home",
-      "iconIndex": 0,
       "categoryKey": "side",
       "tagKeys": [],
-      "unknownHint": "The town of Raevula has a pretty impressive smithery...",
-      "overview": "The smithery of Raevula is impressive to behold, yet the primary smith is a fucking drunkard- not the most conducive to you getting your smithery things done.",
-      "recommendedLevel": 1,
+      "unknownHint": "",
+      "overview": "The smithery of Raevula is impressive to behold, yet the primary smith is a fucking drunkard- not the most conducive to you getting your smithery things done. Looks like you get to help them out of a hard spot if you want them to help you at all.",
+      "recommendedLevel": 5,
       "objectives": [
         {
           "id": 0,
-          "type": "Indiscriminate",
-          "description": "Go find the smith and convince him to return to \\C[3]The Metal Petal\\C[0].",
+          "type": "Fetch",
+          "description": "Looks like Viktor and Viskra run the shop, and they are low on raw materials. You get the materials, they teach you how to smith.",
           "logs": {
             "inactive": "",
-            "active": "The smith is probably drunk at the pub again, so you should give him some 'encouragement'.",
-            "completed": "What a great mode of encouragement!",
+            "active": "You'll need to fetch a pile of about 10 ore in order to help resupply the smith.",
+            "completed": "Mind-numbing fetching of ore complete!",
             "failed": "",
             "missed": ""
           },
@@ -2535,8 +2695,46 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
+              "y2": -1
+            },
+            "fetch": {
+              "type": 0,
+              "id": 30,
+              "amount": 10
+            },
+            "slay": {
+              "id": 0,
+              "amount": 0
+            },
+            "quest": {
+              "keys": []
+            }
+          },
+          "hiddenByDefault": true,
+          "isOptional": false
+        },
+        {
+          "id": 1,
+          "type": "Indiscriminate",
+          "description": "Such simple gestures all so you can unlock new systems like crafting weapons.",
+          "logs": {
+            "inactive": "",
+            "active": "Return to \\C[1]The Metal Petal\\C[0] and deliver the ore.",
+            "completed": "The simple things you do to build relationships with permanent NPCs...",
+            "failed": "",
+            "missed": ""
+          },
+          "fulfillment": {
+            "indiscriminate": {
+              "hint": "Report to Viskra your success."
+            },
+            "destination": {
+              "mapId": -1,
+              "x1": -1,
+              "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2556,25 +2754,25 @@
           "isOptional": false
         },
         {
-          "id": 1,
+          "id": 2,
           "type": "Indiscriminate",
-          "description": "That smith is a hoot! Viskra is sure to appreciate your assistance.",
+          "description": "Smithing doesn't seem too hard, just make a \\weapon[2] and \\weapon[122], right?",
           "logs": {
             "inactive": "",
-            "active": "Viskra has to thank you for going out of your way to help a total stranger!",
-            "completed": "She was indeed thankful, and now the smith will surely help you.",
+            "active": "Gotta 'upgrade' our weapons- better hit the apprentice forge.",
+            "completed": "Easy as pie.",
             "failed": "",
             "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Report to Viskra your success."
+              "hint": "Smith up the \\weapon[2] and \\weapon[122]."
             },
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2593,12 +2791,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "side-002",
       "name": "A Self-Exiled Nature-Lover?",
-      "iconIndex": 0,
+      "key": "side-002",
       "categoryKey": "side",
       "tagKeys": [],
       "unknownHint": "Does anyone know what the deal is with that empty lot in Raevula?",
@@ -2623,8 +2821,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2643,12 +2841,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "side-003",
       "name": "Four Former Protagonists",
-      "iconIndex": 0,
+      "key": "side-003",
       "categoryKey": "side",
       "tagKeys": [
         "ch1"
@@ -2675,8 +2873,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2695,12 +2893,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "side-004",
       "name": "A Sword In Some Stone",
-      "iconIndex": 0,
+      "key": "side-004",
       "categoryKey": "side",
       "tagKeys": [
         "ch2"
@@ -2727,8 +2925,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2747,12 +2945,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "side-005",
       "name": "The Path of the Magic Fox",
-      "iconIndex": 0,
+      "key": "side-005",
       "categoryKey": "side",
       "tagKeys": [
         "ch2"
@@ -2779,8 +2977,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2817,8 +3015,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2855,8 +3053,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2875,12 +3073,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "side-006",
       "name": "Into the Earthen Layer",
-      "iconIndex": 0,
+      "key": "side-006",
       "categoryKey": "side",
       "tagKeys": [
         "ch2"
@@ -2907,8 +3105,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2945,8 +3143,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -2983,8 +3181,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3021,8 +3219,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3041,12 +3239,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "side-007",
       "name": "A Suspicious Castle",
-      "iconIndex": 0,
+      "key": "side-007",
       "categoryKey": "side",
       "tagKeys": [
         "ch2"
@@ -3073,8 +3271,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3116,8 +3314,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -3154,8 +3352,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -3169,12 +3367,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "side-008",
       "name": "Deal with the \\C[1]Water Entity\\C[0]",
-      "iconIndex": 0,
+      "key": "side-008",
       "categoryKey": "side",
       "tagKeys": [
         "ch2"
@@ -3201,8 +3399,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3239,8 +3437,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3277,8 +3475,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3315,8 +3513,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3353,8 +3551,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3373,16 +3571,17 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "side-009",
       "name": "The Journal of Alchemy",
-      "overview": "After rescuing the alchemist, you had a brief chat with him and discovered he apparently was under the tutelage of a legendary scientist that was fully aware of worlds beyond their own and wrote in non-Erocian, apparently. It isn't clear who this person is, but she left a full journal with the recipe to the legendary Philosopher's Stone in it, but it got snatched and scattered to the four winds by a fucking giant bird of some sort. Dutiful protagonist, your trade for fetching his multitude of journal pages is a reward of alchemic formulai.\n\nFor your convenience, this quest will guide you through finding each page, one objective at a time.",
-      "tagKeys": [],
+      "key": "side-009",
       "categoryKey": "side",
-      "recommendedLevel": 65,
+      "tagKeys": [],
       "unknownHint": "Rescuing alchemists always deserves a reward...",
+      "overview": "After rescuing the alchemist, you had a brief chat with him and discovered he apparently was under the tutelage of a legendary scientist that was fully aware of worlds beyond their own and wrote in non-Erocian, apparently. It isn't clear who this person is, but she left a full journal with the recipe to the legendary Philosopher's Stone in it, but it got snatched and scattered to the four winds by a fucking giant bird of some sort. Dutiful protagonist, your trade for fetching his multitude of journal pages is a reward of alchemic formulai.\n\nFor your convenience, this quest will guide you through finding each page, one objective at a time.",
+      "recommendedLevel": 65,
       "objectives": [
         {
           "id": 0,
@@ -3407,8 +3606,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -3445,8 +3644,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -3483,8 +3682,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -3521,8 +3720,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -3559,8 +3758,8 @@
               "y2": -1
             },
             "fetch": {
-              "id": -1,
               "type": -1,
+              "id": -1,
               "amount": -1
             },
             "slay": {
@@ -3574,12 +3773,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "neo-9999",
       "name": "=== ANOMALIES",
-      "iconIndex": 0,
+      "key": "neo-9999",
       "categoryKey": "",
       "tagKeys": [],
       "unknownHint": "The old man at the Raevula Waterfront has a crazy idea for a heroic quest.",
@@ -3604,8 +3803,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3624,12 +3823,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-001",
       "name": "Anomaly: Kappa",
-      "iconIndex": 0,
+      "key": "hunt-001",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch1"
@@ -3656,8 +3855,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3676,12 +3875,12 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-002",
       "name": "Anomaly: Wraith",
-      "iconIndex": 0,
+      "key": "hunt-002",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch1"
@@ -3708,8 +3907,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3728,12 +3927,12 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-003",
       "name": "Anomaly: Faerie",
-      "iconIndex": 0,
+      "key": "hunt-003",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch1"
@@ -3760,8 +3959,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3780,12 +3979,12 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-004",
       "name": "Anomaly: Wave 1",
-      "iconIndex": 0,
+      "key": "hunt-004",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch1"
@@ -3812,8 +4011,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3836,12 +4035,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-005",
       "name": "Anomaly: Wisp",
-      "iconIndex": 0,
+      "key": "hunt-005",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch2"
@@ -3868,8 +4067,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3892,12 +4091,12 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-006",
       "name": "Anomaly: Goobat",
-      "iconIndex": 0,
+      "key": "hunt-006",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch2"
@@ -3924,8 +4123,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -3948,12 +4147,12 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-007",
       "name": "Anomaly: Cobra",
-      "iconIndex": 0,
+      "key": "hunt-007",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch2"
@@ -3980,8 +4179,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -4004,12 +4203,12 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-008",
       "name": "Anomaly: Wave 2",
-      "iconIndex": 0,
+      "key": "hunt-008",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch2"
@@ -4036,8 +4235,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -4060,12 +4259,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-009",
       "name": "Anomaly: Thief",
-      "iconIndex": 0,
+      "key": "hunt-009",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch3"
@@ -4092,8 +4291,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -4116,12 +4315,12 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-010",
       "name": "Anomaly: Crab",
-      "iconIndex": 0,
+      "key": "hunt-010",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch3"
@@ -4148,8 +4347,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -4172,12 +4371,12 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-011",
       "name": "Anomaly: Bear",
-      "iconIndex": 0,
+      "key": "hunt-011",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch3"
@@ -4204,8 +4403,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -4228,12 +4427,12 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-012",
       "name": "Anomaly: Wave 3",
-      "iconIndex": 0,
+      "key": "hunt-012",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch3"
@@ -4260,8 +4459,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -4284,12 +4483,12 @@
           "hiddenByDefault": true,
           "isOptional": false
         }
-      ]
+      ],
+      "iconIndex": 0
     },
     {
-      "key": "hunt-013",
       "name": "Anomaly: TBD",
-      "iconIndex": 0,
+      "key": "hunt-013",
       "categoryKey": "hunt",
       "tagKeys": [
         "ch4"
@@ -4316,8 +4515,8 @@
             "destination": {
               "mapId": -1,
               "x1": -1,
-              "y1": -1,
               "x2": -1,
+              "y1": -1,
               "y2": -1
             },
             "fetch": {
@@ -4340,29 +4539,8 @@
           "hiddenByDefault": false,
           "isOptional": false
         }
-      ]
-    }
-  ],
-  "categories": [
-    {
-      "key": "main",
-      "name": "Main",
-      "iconIndex": 189
-    },
-    {
-      "key": "side",
-      "name": "Side",
-      "iconIndex": 193
-    },
-    {
-      "key": "hunt",
-      "name": "Hunt",
-      "iconIndex": 14
-    },
-    {
-      "key": "train",
-      "name": "Train",
-      "iconIndex": 1619
+      ],
+      "iconIndex": 0
     }
   ],
   "tags": [
@@ -4385,6 +4563,28 @@
       "key": "ch4",
       "name": "Chapter 4",
       "iconIndex": 2061
+    }
+  ],
+  "categories": [
+    {
+      "key": "main",
+      "name": "Main",
+      "iconIndex": 189
+    },
+    {
+      "key": "side",
+      "name": "Side",
+      "iconIndex": 193
+    },
+    {
+      "key": "hunt",
+      "name": "Hunt",
+      "iconIndex": 14
+    },
+    {
+      "key": "train",
+      "name": "Train",
+      "iconIndex": 1619
     }
   ]
 }

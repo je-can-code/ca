@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
+ * [v1.1.0 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -113,27 +113,45 @@
  * ============================================================================
  * SKILL TAGS (notes):
  * <jabsJuiceIcon:N>
- *   Forces weapon swing overlay icon index N on the IconSet sheet (-1 behavior
- *   falls back to inferred equip icon for actors: dual-wield offhand uses weapon slot 2; offhand + one weapon
- *   resolves orb/shield armor by matching skill ids on armor rows or equip slot 1 when it is armor (body armor is
- *   not blindly armors()[0]), unless the executing offhand skill currently belongs to the mainhand's
- *   provided offhand path, including any temporary state-driven transform on that path).
+ *   Forces weapon swing overlay icon index N on the IconSet sheet. When absent,
+ *   the icon is inferred from the actor's equipped gear: dual-wield offhand uses
+ *   weapon slot 2; a single offhand resolves the orb/shield armor icon by matching
+ *   skill ids on armor rows or the equip slot when it is armor.
  *
- * <juiceMotion:arc> | arc-reverse | bash | present | recoil | spin | spin-reverse | stab-forward
- *   Weapon overlay preset. Legacy swing-top-down / swing-bottom-up map to arc / arc-reverse.
- *   Legacy spin keys: spin-360 → spin; spin-720 → spin (see juiceSpinCount); spin-360-reverse → spin-reverse.
- *   present lifts the icon upward on screen (screen-stable "brandish" read; placement uses facing-up card).
- *   On healing skills, omitting juiceMotion keeps caster-only support squish; any juiceMotion tag opts into full strike juice.
+ * <noJuice>
+ *   Suppresses all juice motion on the caster when this skill executes.
+ *   Equivalent to <juiceMotion:none>.
+ *
+ * <juiceMotion:NAME>
+ *   Selects a preset weapon/caster motion. Valid values:
+ *   Weapon overlay:  arc | arc-reverse | arc-oscillate | bash | present | recoil | spin |
+ *                    spin-reverse | stab-forward
+ *   Caster-body:     squish | pulse | flip | flip-reverse
+ *   Suppress:        none  (equivalent to <noJuice>)
+ *   Legacy keys: swing-top-down → arc; swing-bottom-up → arc-reverse; spin-360 → spin;
+ *   spin-720 → spin; spin-360-reverse → spin-reverse.
+ *   present lifts the icon upward on screen (screen-stable "brandish"; uses facing-up card).
+ *   arc-oscillate sweeps the arc back and forth, alternating direction on each sweep (see
+ *   juiceRepeatCount below for sweep count).
+ *   On healing skills, omitting juiceMotion keeps caster-only support squish; any juiceMotion
+ *   tag opts into full strike juice.
  *
  * <juiceSpan:N>
- *   Arc span in degrees for arc / arc-reverse (default 120; typical range 30–300).
+ *   Arc span in degrees for arc / arc-reverse / arc-oscillate (default 120; typical range 30–300).
  *
- * <juiceSpinCount:N>
- *   Full rotations for spin / spin-reverse (default 1; clamped 1–8). Legacy juiceMotion:spin-720 implies 2 when omitted.
+ * <juiceRepeatCount:N>
+ *   Number of times to repeat the motion within the juice duration (default 1).
+ *   For spin / spin-reverse: full rotations.
+ *   For arc-oscillate: number of arc sweeps, alternating direction.
+ *   For all other motions: full replays within the duration window.
+ *
+ * <juiceDuration:N>
+ *   Overrides the swing animation duration in frames. When omitted, the global
+ *   `weaponSwingFrames * 2` value from config.jabs.json is used.
  *
  * <juiceStabTipDegrees:N>
  *   Degrees from Pixi +x to bore/tip at rotation 0. Stab defaults to sword diagonal;
- *   bash / recoil default to barrel toward −x unless you override.
+ *   bash / recoil default to barrel toward −x unless overridden. Accepts negative values.
  *
  * <juiceProfileGun>
  *   Side-profile firearm icon: mirror east/west instead of ~180° rotation (keeps the grip
@@ -141,14 +159,25 @@
  *   pure side-view art cannot read as true top-down aim; use a separate sprite or tune degrees.
  *
  * <jabsJuiceWeaponStyle:key>
- *   Selects a multiplier row from the `profiles` map in `config.jabs.json` -> `juice`.
+ *   Selects a multiplier row from the `profiles` map in `config.jabs.json` → `juice`.
  *   Keys are arbitrary identifiers (letters, digits, underscore, dash) and must already
  *   exist in the `profiles` map.
- *   When omitted, inferred keys match the swing icon row: weapon rows use string weapon type ids; armor rows use
- *   a + armor type id (example type 4 → "a4") so armor buckets never collide with weapon type ids.
+ *   When omitted, inferred keys match the swing icon row: weapon rows use the string weapon
+ *   type id (e.g. wtypeId 1 → "1"); armor rows use "a" + armor type id (e.g. atypeId 4 → "a4")
+ *   so armor buckets never collide with weapon type ids.
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added <noJuice> and <juiceMotion:none> to suppress caster motion outright.
+ *    Added flip/flip-reverse caster-body full-rotation spin motions.
+ *    Added arc-oscillate weapon motion (alternating-direction arc sweeps).
+ *    Renamed <juiceSpinCount> to <juiceRepeatCount>, generalized to every motion.
+ *    Added <juiceDuration:N> to override the per-cycle swing frame count.
+ *    Support/utility skills (damage type None) no longer trigger a target
+ *    hit-reaction squish that could cancel their own caster-side motion.
+ *    Removed the juiceConfigValidation module; config shape is now
+ *    guaranteed by the jmz-data-editor tool instead of validated at runtime.
  * - 1.0.1
  *    Fixed crash when the full menu (Scene_Menu) was opened while a juice motion was in flight.
  *    JuiceMotionManager.#effects is a static array that outlives any single scene instance;
@@ -167,115 +196,6 @@
  */
 //endregion annotations
 
-//#region src/plugins/abs/ext/juice/_metadata/juiceConfigValidation.js
-/**
-* Validates a finite float value loaded from the external juice config, throwing on absence / non-finite values.
-* Lives outside {@link JAbsJuice_PluginMetadata} so it is safe while {@link PluginMetadata#initializePlugin}
-* runs {@link JAbsJuice_PluginMetadata#postInitialize} during {@code super()} (subclass private slots are not
-* usable yet).
-*
-* @param {*} raw Raw config value read at a leaf path.
-* @param {string} path Dotted path used in the thrown error (e.g. {@code juice.target.physicalSquishIntensity}).
-* @returns {number}
-*/
-function jabsJuiceRequireFloat(raw, path) {
-	if (raw === undefined || raw === null) {
-		throw new Error(`[J-ABS-Juice] missing required number at config.jabs.json -> ${path}`);
-	}
-	const parsed = typeof raw === "number" ? raw : Number.parseFloat(String(raw));
-	if (Number.isFinite(parsed) === false) {
-		throw new Error(`[J-ABS-Juice] non-finite number at config.jabs.json -> ${path} (got: ${String(raw)})`);
-	}
-	return parsed;
-}
-/**
-* Validates a finite integer value loaded from the external juice config, throwing on absence / non-finite values.
-* Truncates any fractional component the same way RMMZ frame counts do.
-*
-* @param {*} raw Raw config value read at a leaf path.
-* @param {string} path Dotted path used in the thrown error (e.g. {@code juice.target.squishFrames}).
-* @returns {number}
-*/
-function jabsJuiceRequireInt(raw, path) {
-	const f = jabsJuiceRequireFloat(raw, path);
-	return Math.trunc(f);
-}
-/**
-* Validates a single weapon-style multiplier row loaded from the external juice config.
-*
-* @param {*} row Unknown JSON row content.
-* @param {string} path Dotted path used in the thrown error (e.g. {@code juice.profiles.default}).
-* @returns {{ tiltMul: number, swingMul: number }}
-*/
-function jabsJuiceRequireStyleRow(row, path) {
-	if (row === undefined || row === null || typeof row !== "object") {
-		throw new Error(`[J-ABS-Juice] missing or invalid profile row at config.jabs.json -> ${path}`);
-	}
-	const tiltMul = jabsJuiceRequireFloat(row.tiltMul, `${path}.tiltMul`);
-	const swingMul = jabsJuiceRequireFloat(row.swingMul, `${path}.swingMul`);
-	return {
-		tiltMul,
-		swingMul
-	};
-}
-/**
-* Regex used to validate weapon-style profile keys. Matches the plugin's note tag capture: letters, digits,
-* underscore, and hyphen. Kept here so the data editor can mirror it without duplicating constants.
-* @type {RegExp}
-*/
-var jabsJuiceProfileKeyPattern = /^[a-zA-Z0-9_-]+$/;
-/**
-* Validates the `juice.profiles` map, normalizes its rows, and guarantees a `default` row is present.
-*
-* @param {*} profiles Raw `juice.profiles` blob from the external config.
-* @returns {Object<string, { tiltMul: number, swingMul: number }>}
-*/
-function jabsJuiceRequireProfiles(profiles) {
-	if (profiles === undefined || profiles === null || typeof profiles !== "object") {
-		throw new Error("[J-ABS-Juice] missing required map at config.jabs.json -> juice.profiles");
-	}
-	const table = {};
-	const keys = Object.keys(profiles);
-	for (let i = 0; i < keys.length; i++) {
-		const key = keys[i];
-		if (jabsJuiceProfileKeyPattern.test(key) === false) {
-			throw new Error(`[J-ABS-Juice] invalid profile key "${key}" at config.jabs.json -> juice.profiles ` + `(allowed: ${jabsJuiceProfileKeyPattern.source})`);
-		}
-		table[key] = jabsJuiceRequireStyleRow(profiles[key], `juice.profiles.${key}`);
-	}
-	if (Object.prototype.hasOwnProperty.call(table, "default") === false) {
-		throw new Error("[J-ABS-Juice] missing required row at config.jabs.json -> juice.profiles.default");
-	}
-	return table;
-}
-/**
-* Validates the entire `juice` block from the external JABS config, throwing on absence or shape problems.
-* Returns the raw block so the caller can extract sub-sections by name without re-walking.
-*
-* @param {*} root The parsed `config.jabs.json` root blob (already loaded by J-ABS).
-* @returns {object}
-*/
-function jabsJuiceRequireBlock(root) {
-	if (root === undefined || root === null || typeof root !== "object") {
-		throw new Error("[J-ABS-Juice] config.jabs.json is missing or unreadable; the juice block cannot be loaded.");
-	}
-	const { juice } = root;
-	if (juice === undefined || juice === null || typeof juice !== "object") {
-		throw new Error("[J-ABS-Juice] config.jabs.json is missing the required \"juice\" block " + "(see plugin help for the expected shape).");
-	}
-	if (typeof juice.target !== "object" || juice.target === null) {
-		throw new Error("[J-ABS-Juice] config.jabs.json -> juice is missing the required \"target\" section.");
-	}
-	if (typeof juice.caster !== "object" || juice.caster === null) {
-		throw new Error("[J-ABS-Juice] config.jabs.json -> juice is missing the required \"caster\" section.");
-	}
-	if (typeof juice.casting !== "object" || juice.casting === null) {
-		throw new Error("[J-ABS-Juice] config.jabs.json -> juice is missing the required \"casting\" section.");
-	}
-	return juice;
-}
-
-//#endregion
 //#region src/plugins/abs/ext/juice/_metadata/_pluginMetadata.js
 var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 	/**
@@ -285,8 +205,8 @@ var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	*  Extends {@link #postInitialize}.<br>
-	*  Loads the juice block from the external JABS config.
+	* Extends {@link #postInitialize}.<br>
+	* Loads the juice block from the external JABS config.
 	*/
 	postInitialize() {
 		super.postInitialize();
@@ -294,103 +214,104 @@ var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 	}
 	/**
 	* Initializes the metadata associated with this plugin by reading the `juice` block from `config.jabs.json`.
-	* Throws if the block (or any required sub-key) is missing — this is intentional and documented in the plugin
-	* help. Disabling juice is "remove the plugin from the manifest", not "leave the block out".
+	* The JMZ data editor guarantees all fields are present and numeric; no shape validation is needed here.
 	*/
 	initializeMetadata() {
-		const juice = jabsJuiceRequireBlock(J.ABS.Metadata.ExternalConfig);
-		const { target, caster, casting } = juice;
+		const { target, caster, casting, profiles } = J.ABS.Metadata.ExternalConfig.juice;
 		/**
 		* Target squish intensity scale for physical impacts (dimensionless scale delta).
 		* @type {number}
 		*/
-		this.targetPhysicalSquishIntensity = jabsJuiceRequireFloat(target.physicalSquishIntensity, "juice.target.physicalSquishIntensity");
+		this.targetPhysicalSquishIntensity = target.physicalSquishIntensity;
 		/**
 		* Target squish intensity scale for magical impacts.
 		* @type {number}
 		*/
-		this.targetMagicalSquishIntensity = jabsJuiceRequireFloat(target.magicalSquishIntensity, "juice.target.magicalSquishIntensity");
+		this.targetMagicalSquishIntensity = target.magicalSquishIntensity;
 		/**
 		* Frames to spend easing the target squish envelope.
 		* @type {number}
 		*/
-		this.targetSquishFrames = jabsJuiceRequireInt(target.squishFrames, "juice.target.squishFrames");
+		this.targetSquishFrames = Math.trunc(target.squishFrames);
 		/**
 		* Scalar applied to recipient squish when the incoming action is healing.
 		* @type {number}
 		*/
-		this.healingRecipientSquishScale = jabsJuiceRequireFloat(target.healingRecipientScale, "juice.target.healingRecipientScale");
+		this.healingRecipientSquishScale = target.healingRecipientScale;
 		/**
 		* Percent (0–100) describing how strongly repeated hits decay juice amplitude within the flurry window.
 		* @type {number}
 		*/
-		this.flurryDecayPercent = jabsJuiceRequireInt(target.flurryDecayPercent, "juice.target.flurryDecayPercent");
+		this.flurryDecayPercent = Math.trunc(target.flurryDecayPercent);
 		/**
 		* Dodge-only caster squish intensity (cooldown key matches dodge skill).
 		* @type {number}
 		*/
-		this.dodgeSquishIntensity = jabsJuiceRequireFloat(caster.dodgeSquishIntensity, "juice.caster.dodgeSquishIntensity");
+		this.dodgeSquishIntensity = caster.dodgeSquishIntensity;
 		/**
 		* Frames for dodge squish easing.
 		* @type {number}
 		*/
-		this.dodgeSquishFrames = jabsJuiceRequireInt(caster.dodgeSquishFrames, "juice.caster.dodgeSquishFrames");
+		this.dodgeSquishFrames = Math.trunc(caster.dodgeSquishFrames);
 		/**
 		* Support/healing caster pulse intensity.
 		* @type {number}
 		*/
-		this.supportCasterPulseIntensity = jabsJuiceRequireFloat(caster.supportPulseIntensity, "juice.caster.supportPulseIntensity");
+		this.supportCasterPulseIntensity = caster.supportPulseIntensity;
 		/**
 		* Frames for support caster easing.
 		* @type {number}
 		*/
-		this.supportCasterPulseFrames = jabsJuiceRequireInt(caster.supportPulseFrames, "juice.caster.supportPulseFrames");
+		this.supportCasterPulseFrames = Math.trunc(caster.supportPulseFrames);
 		/**
 		* Peak body tilt (radians) applied to strikers at execution time (before style multipliers).
 		* @type {number}
 		*/
-		this.casterStrikeTiltRadians = jabsJuiceRequireFloat(caster.strikeTiltRadians, "juice.caster.strikeTiltRadians");
+		this.casterStrikeTiltRadians = caster.strikeTiltRadians;
 		/**
 		* Frames spent tilting the striker.
 		* @type {number}
 		*/
-		this.casterStrikeTiltFrames = jabsJuiceRequireInt(caster.strikeTiltFrames, "juice.caster.strikeTiltFrames");
+		this.casterStrikeTiltFrames = Math.trunc(caster.strikeTiltFrames);
 		/**
 		* Peak weapon-overlay swing rotation (radians) before style multipliers.
 		* @type {number}
 		*/
-		this.weaponSwingPeakRadians = jabsJuiceRequireFloat(caster.weaponSwingPeakRadians, "juice.caster.weaponSwingPeakRadians");
+		this.weaponSwingPeakRadians = caster.weaponSwingPeakRadians;
 		/**
 		* Frames for the weapon swing overlay arc.
 		* @type {number}
 		*/
-		this.weaponSwingFrames = jabsJuiceRequireInt(caster.weaponSwingFrames, "juice.caster.weaponSwingFrames");
+		this.weaponSwingFrames = Math.trunc(caster.weaponSwingFrames);
 		/**
 		* Extra downward shift for IconSet juice overlays (pixels; positive moves toward feet).
 		* @type {number}
 		*/
-		this.spriteJuiceVerticalOffsetPixels = jabsJuiceRequireInt(caster.spriteVerticalOffsetPixels, "juice.caster.spriteVerticalOffsetPixels");
+		this.spriteJuiceVerticalOffsetPixels = Math.trunc(caster.spriteVerticalOffsetPixels);
 		/**
 		* Body squish intensity when no weapon icon overlay plays (unarmed / enemies without icons).
 		* @type {number}
 		*/
-		this.unarmedStrikeSquishIntensity = jabsJuiceRequireFloat(caster.unarmedStrikeSquishIntensity, "juice.caster.unarmedStrikeSquishIntensity");
+		this.unarmedStrikeSquishIntensity = caster.unarmedStrikeSquishIntensity;
 		/**
 		* Frames for unarmed strike easing.
 		* @type {number}
 		*/
-		this.unarmedStrikeSquishFrames = jabsJuiceRequireInt(caster.unarmedStrikeSquishFrames, "juice.caster.unarmedStrikeSquishFrames");
+		this.unarmedStrikeSquishFrames = Math.trunc(caster.unarmedStrikeSquishFrames);
 		/**
 		* Casting pulse amplitude while {@link JABS_Battler.isCasting} remains true.
 		* @type {number}
 		*/
-		this.castingPulseAmplitude = jabsJuiceRequireFloat(casting.pulseAmplitude, "juice.casting.pulseAmplitude");
+		this.castingPulseAmplitude = casting.pulseAmplitude;
 		/**
-		* Named multiplier buckets keyed by skill tags or weapon type ids (parsed `juice.profiles` map).
-		* `default` is guaranteed to exist (validator throws if not).
+		* Named multiplier buckets keyed by weapon style tag (parsed `juice.profiles` map).
+		* `default` is guaranteed to exist by the editor.
 		* @type {Object<string, { tiltMul: number, swingMul: number }>}
 		*/
-		this.weaponStyleMultipliers = jabsJuiceRequireProfiles(juice.profiles);
+		this.weaponStyleMultipliers = Object.fromEntries(Object.keys(profiles).map((key) => [key, {
+			tiltMul: profiles[key].tiltMul,
+			swingMul: profiles[key].swingMul
+		}]));
 	}
 };
 
@@ -398,12 +319,12 @@ var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/juice/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.7.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (hasJabsRequirement === false) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -416,7 +337,7 @@ J.ABS.EXT.JUICE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.0.1");
+J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -424,6 +345,7 @@ J.ABS.EXT.JUICE.Aliased = {};
 J.ABS.EXT.JUICE.Aliased.JABS_Engine = new Map();
 J.ABS.EXT.JUICE.Aliased.JABS_Battler = new Map();
 J.ABS.EXT.JUICE.Aliased.Scene_Map = new Map();
+J.ABS.EXT.JUICE.Aliased.Sprite_Character = new Map();
 /**
 * All regular expressions used by this plugin.
 */
@@ -437,7 +359,14 @@ J.ABS.EXT.JUICE.RegExp = {
 	*/
 	JuiceWeaponStyle: /<jabsJuiceWeaponStyle:[ ]?([a-zA-Z0-9_-]+)>/i,
 	/**
+	* Skill: `<noJuice>` — suppresses all juice motion on the caster when this skill executes.
+	*/
+	NoJuice: /<noJuice>/i,
+	/**
 	* Skill: `<juiceMotion:NAME>` — selects a preset weapon motion (kebab-case).
+	* Weapon overlay: arc | arc-reverse | arc-oscillate | bash | present | recoil | spin | spin-reverse | stab-forward
+	* Caster-body: squish | pulse | flip | flip-reverse
+	* Suppress: none (equivalent to <noJuice>)
 	*/
 	JuiceMotion: /<juiceMotion:[ ]?([a-zA-Z0-9_-]+)>/i,
 	/**
@@ -445,9 +374,16 @@ J.ABS.EXT.JUICE.RegExp = {
 	*/
 	JuiceSpan: /<juiceSpan:[ ]?(\d+)>/i,
 	/**
-	* Skill: `<juiceSpinCount:N>` — full rotations for spin / spin-reverse (default 1; range 1–8).
+	* Skill: `<juiceRepeatCount:N>` — number of times to repeat the motion within the juice duration (default 1).
+	* For spin / spin-reverse: full rotations. For arc-oscillate: number of arc sweeps (alternating direction).
+	* For all other motions: number of full replays within the duration window.
 	*/
-	JuiceSpinCount: /<juiceSpinCount:[ ]?(\d+)>/i,
+	JuiceRepeatCount: /<juiceRepeatCount:[ ]?(\d+)>/i,
+	/**
+	* Skill: `<juiceDuration:N>` — overrides the swing animation duration in frames.
+	* When omitted, the global `weaponSwingFrames * 2` metadata default is used.
+	*/
+	JuiceDuration: /<juiceDuration:[ ]?(\d+)>/i,
 	/**
 	* Skill: `<juiceStabTipDegrees:N>` — tip/bore bearing from Pixi +x at rotation 0 (stab / bash / recoil; see help).
 	*/
@@ -461,11 +397,18 @@ J.ABS.EXT.JUICE.RegExp = {
 //#endregion
 //#region src/plugins/abs/ext/juice/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS-Juice";
-var PLUGIN_VERSION = "1.0.1";
+var PLUGIN_VERSION = "1.1.0";
 var PLUGIN_DESC_TAG = "ABS-JUICE";
 
 //#endregion
 //#region src/plugins/abs/ext/juice/database/RPG_Skill.js
+/**
+* When {@code true}, all juice motion is suppressed for this skill on the caster.
+* @type {boolean}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsNoJuice", { get: function() {
+	return RPGManager.checkForBooleanFromNoteByRegex(this, J.ABS.EXT.JUICE.RegExp.NoJuice, false) === true;
+} });
 /**
 * Skill note override for J-ABS-Juice weapon swing IconSet index (falls back to equipped weapon).
 * @type {number}
@@ -495,11 +438,21 @@ Object.defineProperty(RPG_Skill.prototype, "jabsJuiceArcSpanDegrees", { get: fun
 	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.JUICE.RegExp.JuiceSpan, true) ?? -1;
 } });
 /**
-* Skill note: `<juiceSpinCount:N>` — full rotations for spin / spin-reverse (see J-ABS-Juice help).
+* Skill note: `<juiceRepeatCount:N>` — number of times to repeat the motion within the juice duration.
+* Applies to all motion types: spin / spin-reverse use it as full rotations; arc-oscillate uses it as
+* sweep count (alternating direction); all others replay the motion N times within the duration.
 * @type {number}
 */
-Object.defineProperty(RPG_Skill.prototype, "jabsJuiceSpinCount", { get: function() {
-	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.JUICE.RegExp.JuiceSpinCount, true) ?? -1;
+Object.defineProperty(RPG_Skill.prototype, "jabsJuiceRepeatCount", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.JUICE.RegExp.JuiceRepeatCount, true) ?? -1;
+} });
+/**
+* Skill note: `<juiceDuration:N>` — overrides the weapon swing animation duration in frames.
+* When omitted, the global metadata default (`weaponSwingFrames * 2`) is used.
+* @type {number|null}
+*/
+Object.defineProperty(RPG_Skill.prototype, "jabsJuiceDuration", { get: function() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.ABS.EXT.JUICE.RegExp.JuiceDuration, true) ?? null;
 } });
 /**
 * Skill note: tip/bearing from Pixi +x at rotation 0 in degrees (`<juiceStabTipDegrees:N>`).
@@ -546,7 +499,7 @@ var JuiceMapSpriteFinder = class {
 	*/
 	static findSpriteCharacterFor(mapCharacter) {
 		const scene = SceneManager._scene;
-		if (!(scene instanceof Scene_Map)) {
+		if (!scene.isMapScene()) {
 			return null;
 		}
 		const spriteset = scene._spriteset;
@@ -601,22 +554,16 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	* @returns {{ x: number, y: number }}
 	*/
 	/**
-	* Clamps spin preset rotation count (full turns) for spin / spin-reverse.
-	* @param {number} spinCount Candidate count from skill notes or resolver.
+	* Normalizes repeat count — floors to integer, defaults to 1 if invalid or below 1.
+	* @param {number} repeatCount Candidate count from skill notes or resolver.
 	* @returns {number}
 	*/
-	static #clampSpinCount(spinCount) {
-		if (spinCount === undefined || spinCount === null || Number.isFinite(spinCount) === false) {
+	static #clampRepeatCount(repeatCount) {
+		if (repeatCount === undefined || repeatCount === null || Number.isFinite(repeatCount) === false) {
 			return 1;
 		}
-		const k = Math.floor(spinCount);
-		if (k < 1) {
-			return 1;
-		}
-		if (k > 8) {
-			return 8;
-		}
-		return k;
+		const k = Math.floor(repeatCount);
+		return k < 1 ? 1 : k;
 	}
 	static #forwardUnit(dir) {
 		const h = Math.SQRT1_2;
@@ -919,6 +866,7 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	*/
 	static MotionTypes = {
 		Arc: "arc",
+		ArcOscillate: "arc-oscillate",
 		ArcReverse: "arc-reverse",
 		Bash: "bash",
 		Present: "present",
@@ -945,10 +893,10 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	* @param {number} stabTipAngleRadians Resolved radians from +x to tip/bore at rotation 0 (stab / bash / recoil).
 	* @param {number} neutralBaseX Hand-neutral overlay X when spawn pose includes preset offset (bash / recoil).
 	* @param {number} neutralBaseY Hand-neutral overlay Y (same).
-	* @param {number} spinCount Full rotations for spin / spin-reverse (clamped 1–8; ignored for other presets).
+	* @param {number} repeatCount Times to repeat the motion within duration (clamped 1–8).
 	* @param {boolean} profileGun Skill `<juiceProfileGun>` — mirror for E/W aim instead of π rotation.
 	*/
-	constructor(parentSprite, overlay, baseRotation, peakRotationRadians, durationFrames, motionType, arcSpanDegrees, swingDirection, stabTipAngleRadians, neutralBaseX, neutralBaseY, spinCount, profileGun) {
+	constructor(parentSprite, overlay, baseRotation, peakRotationRadians, durationFrames, motionType, arcSpanDegrees, swingDirection, stabTipAngleRadians, neutralBaseX, neutralBaseY, repeatCount, profileGun) {
 		super();
 		this._parentSprite = parentSprite;
 		this._overlay = overlay;
@@ -978,10 +926,10 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 		/** @type {{ sprite: Sprite, ttl: number }[]} */
 		this._trail = [];
 		/**
-		* Full rotations for spin / spin-reverse ({@link MotionTypes.Spin}, {@link MotionTypes.SpinReverse}).
+		* Times to repeat the motion within the duration window (all motion types).
 		* @type {number}
 		*/
-		this._spinCount = JuiceWeaponSwingMotionEffect.#clampSpinCount(spinCount);
+		this._repeatCount = JuiceWeaponSwingMotionEffect.#clampRepeatCount(repeatCount);
 		/**
 		* Profile gun: horizontal mirror replaces full 180° rotation for side-view IconSet art.
 		* @type {boolean}
@@ -1032,11 +980,14 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 			case JuiceWeaponSwingMotionEffect.MotionTypes.ArcReverse:
 				this.#tickArc(phy, dir, ease, true);
 				break;
+			case JuiceWeaponSwingMotionEffect.MotionTypes.ArcOscillate:
+				this.#tickArcOscillate(phy, dir, t);
+				break;
 			case JuiceWeaponSwingMotionEffect.MotionTypes.Spin:
-				this.#tickSpin(phy, t, this._spinCount, 1);
+				this.#tickSpin(phy, t, this._repeatCount, 1);
 				break;
 			case JuiceWeaponSwingMotionEffect.MotionTypes.SpinReverse:
-				this.#tickSpin(phy, t, this._spinCount, -1);
+				this.#tickSpin(phy, t, this._repeatCount, -1);
 				break;
 			case JuiceWeaponSwingMotionEffect.MotionTypes.StabForward:
 				this.#tickStabForward(phy, dir, ease);
@@ -1085,6 +1036,20 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 			return;
 		}
 		this._overlay.rotation = JuiceWeaponSwingMotionEffect.bladeRotationArcForward(pose.theta);
+	}
+	/**
+	* Alternating arc sweeps: arc → arc-reverse → arc … for `_repeatCount` total passes.
+	* Each pass occupies an equal slice of the total duration; direction flips each slice.
+	* @param {number} phy Pattern height.
+	* @param {number} dir Facing direction.
+	* @param {number} t Linear progress (0..1).
+	*/
+	#tickArcOscillate(phy, dir, t) {
+		const sliceT = t * this._repeatCount % 1;
+		const sliceIndex = Math.floor(t * this._repeatCount);
+		const reverse = sliceIndex % 2 === 1;
+		const ease = 1 - Math.pow(1 - sliceT, 3);
+		this.#tickArc(phy, dir, ease, reverse);
 	}
 	/**
 	* Ticks a spin flourish around the battler center.
@@ -1242,6 +1207,9 @@ var JuiceProfileResolver = class JuiceProfileResolver {
 		if (motion === String.empty) {
 			return JuiceProfileResolver.MotionArcKey;
 		}
+		if (motion === "arc-oscillate") {
+			return JuiceWeaponSwingMotionEffect.MotionTypes.ArcOscillate;
+		}
 		if (motion === "swing-top-down") {
 			return JuiceProfileResolver.MotionArcKey;
 		}
@@ -1260,19 +1228,16 @@ var JuiceProfileResolver = class JuiceProfileResolver {
 		return motion;
 	}
 	/**
-	* Full rotations for spin / spin-reverse (1–8). Tag overrides legacy `spin-720` (=2 when tag omitted).
+	* Number of times to repeat the motion within the juice duration (1–8).
+	* Applies universally: rotations for spin, sweeps for arc-oscillate, replays for all others.
 	* @param {JABS_Action} action The executing action.
 	* @returns {number}
 	*/
-	static resolveJuiceSpinCount(action) {
+	static resolveJuiceRepeatCount(action) {
 		const skill = action.getBaseSkill();
-		const tagged = skill.jabsJuiceSpinCount;
-		if (tagged >= 1 && tagged <= 8) {
+		const tagged = skill.jabsJuiceRepeatCount;
+		if (tagged >= 1) {
 			return Math.floor(tagged);
-		}
-		const motion = skill.jabsJuiceMotion;
-		if (motion === "spin-720") {
-			return 2;
 		}
 		return 1;
 	}
@@ -1298,6 +1263,14 @@ var JuiceProfileResolver = class JuiceProfileResolver {
 			return n;
 		}
 		return 120;
+	}
+	/**
+	* Override swing duration in frames from `<juiceDuration:N>`, or null to use the metadata default.
+	* @param {JABS_Action} action The executing action.
+	* @returns {number|null}
+	*/
+	static resolveJuiceDuration(action) {
+		return action.getBaseSkill().jabsJuiceDuration;
 	}
 	/**
 	* True when skill notes request profile-gun overlay alignment (horizontal mirror vs full flip).
@@ -1527,13 +1500,16 @@ var JuiceSquishMotionEffect = class extends JuiceBaseEffect {
 	/**
 	* @param {Sprite} sprite The Pixi sprite being driven.
 	* @param {number} intensityScale Max delta applied via sine envelope (e.g. 0.12).
-	* @param {number} durationFrames Frames to run.
+	* @param {number} durationFrames Frames to run per repeat cycle.
+	* @param {number} [repeatCount=1] How many times to cycle the squish envelope before finishing.
 	*/
-	constructor(sprite, intensityScale, durationFrames) {
+	constructor(sprite, intensityScale, durationFrames, repeatCount = 1) {
 		super();
 		this._sprite = sprite;
 		this._intensityScale = intensityScale;
 		this._durationFrames = durationFrames;
+		this._repeatCount = Math.max(1, repeatCount);
+		this._repeatsRemaining = this._repeatCount;
 		this._frame = 0;
 		this._baseScaleX = sprite.scale.x;
 		this._baseScaleY = sprite.scale.y;
@@ -1569,6 +1545,11 @@ var JuiceSquishMotionEffect = class extends JuiceBaseEffect {
 		this._sprite.scale.x = this._baseScaleX * mul;
 		this._sprite.scale.y = this._baseScaleY * (1 / mul);
 		if (this._frame >= this._durationFrames) {
+			this._repeatsRemaining--;
+			if (this._repeatsRemaining > 0) {
+				this._frame = 0;
+				return true;
+			}
 			this.restore();
 			JuiceMotionManager.relinquishSpriteLock(this._sprite);
 			return false;
@@ -1654,6 +1635,72 @@ var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
 };
 
 //#endregion
+//#region src/plugins/abs/ext/juice/models/JuiceFlipBodyMotionEffect.js
+/**
+* Full-rotation body spin on a sprite — drives `rotation` through N × 2π over the total duration.
+* Direction is controlled by the sign of {@link directionSign}: +1 = clockwise, -1 = counter-clockwise.
+*
+* Sprite_Character anchors at (0.5, 1). Shifting to (0.5, 0.5) re-centers the rotation pivot
+* but causes a visible drop of ~half the sprite height on entry because RMMZ's updatePosition
+* writes screenY() every frame (calibrated for anchor.y=1) and cannot be compensated.
+* This is a known limitation of the current approach.
+*/
+var JuiceFlipBodyMotionEffect = class extends JuiceBaseEffect {
+	/**
+	* @param {Sprite} sprite The Pixi sprite being driven.
+	* @param {number} directionSign +1 for clockwise (flip), -1 for counter-clockwise (flip-reverse).
+	* @param {number} durationFrames Total frames for the entire animation (all rotations).
+	* @param {number} [repeatCount=1] Number of full 360° rotations to complete.
+	*/
+	constructor(sprite, directionSign, durationFrames, repeatCount = 1) {
+		super();
+		this._sprite = sprite;
+		this._directionSign = directionSign;
+		this._durationFrames = durationFrames;
+		this._repeatCount = Math.max(1, repeatCount);
+		this._frame = 0;
+		this._baseRotation = sprite.rotation;
+		this._baseAnchorX = sprite.anchor.x;
+		this._baseAnchorY = sprite.anchor.y;
+		sprite.anchor.x = .5;
+		sprite.anchor.y = .5;
+	}
+	/**
+	* Returns false when the target sprite's Pixi transform has been nulled out.
+	* @returns {boolean}
+	*/
+	isSpriteAlive() {
+		return !!this._sprite.transform;
+	}
+	/**
+	* Snaps rotation and anchor back to the baselines captured at construction time.
+	*/
+	restore() {
+		this._sprite._juiceFlipping = false;
+		this._sprite.rotation = this._baseRotation;
+		this._sprite.anchor.x = this._baseAnchorX;
+		this._sprite.anchor.y = this._baseAnchorY;
+	}
+	/**
+	* Advances one frame of the flip envelope.
+	* Rotation sweeps linearly through repeatCount × 2π over the total duration.
+	* @returns {boolean} True while the effect should stay in the runner queue.
+	*/
+	tick() {
+		this._sprite._juiceFlipping = true;
+		this._frame++;
+		const t = this._frame / this._durationFrames;
+		this._sprite.rotation = this._baseRotation + this._directionSign * t * (Math.PI * 2) * this._repeatCount;
+		if (this._frame >= this._durationFrames) {
+			this.restore();
+			JuiceMotionManager.relinquishSpriteLock(this._sprite);
+			return false;
+		}
+		return true;
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/ext/juice/managers/JuiceMotionManager.js
 /**
 * Owns lightweight per-frame juice tweens on Pixi sprites (scale / rotation).
@@ -1677,14 +1724,15 @@ var JuiceMotionManager = class JuiceMotionManager {
 		JuiceMotionManager.#spriteLocks.delete(sprite);
 	}
 	/**
-	* Schedules a one-shot body squish on a sprite (scale pulse).
+	* Schedules a body squish on a sprite (scale pulse), optionally repeated N times.
 	* @param {Sprite} sprite The Pixi sprite.
 	* @param {number} intensityScale Max delta applied via sine envelope (e.g. 0.12).
-	* @param {number} durationFrames Frames to run.
+	* @param {number} durationFrames Frames to run per cycle.
+	* @param {number} [repeatCount=1] Number of times to cycle the squish envelope.
 	*/
-	static scheduleSquish(sprite, intensityScale, durationFrames) {
+	static scheduleSquish(sprite, intensityScale, durationFrames, repeatCount = 1) {
 		JuiceMotionManager.#cancelSpriteLock(sprite);
-		const effect = new JuiceSquishMotionEffect(sprite, intensityScale, durationFrames);
+		const effect = new JuiceSquishMotionEffect(sprite, intensityScale, durationFrames, repeatCount);
 		JuiceMotionManager.#spriteLocks.set(sprite, effect);
 		JuiceMotionManager.#effects.push(effect);
 	}
@@ -1697,6 +1745,19 @@ var JuiceMotionManager = class JuiceMotionManager {
 	static scheduleTilt(sprite, peakRadians, durationFrames) {
 		JuiceMotionManager.#cancelSpriteLock(sprite);
 		const effect = new JuiceTiltMotionEffect(sprite, peakRadians, durationFrames);
+		JuiceMotionManager.#spriteLocks.set(sprite, effect);
+		JuiceMotionManager.#effects.push(effect);
+	}
+	/**
+	* Schedules a full-body rotation spin on a sprite, optionally repeated N times.
+	* @param {Sprite} sprite The Pixi sprite.
+	* @param {number} directionSign +1 for clockwise (flip), -1 for counter-clockwise (flip-reverse).
+	* @param {number} durationFrames Total frames for the entire animation.
+	* @param {number} [repeatCount=1] Number of full 360° rotations to complete.
+	*/
+	static scheduleFlipBody(sprite, directionSign, durationFrames, repeatCount = 1) {
+		JuiceMotionManager.#cancelSpriteLock(sprite);
+		const effect = new JuiceFlipBodyMotionEffect(sprite, directionSign, durationFrames, repeatCount);
 		JuiceMotionManager.#spriteLocks.set(sprite, effect);
 		JuiceMotionManager.#effects.push(effect);
 	}
@@ -1805,19 +1866,18 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 	}
 	/**
 	* Derives a direction-aware overlay placement so the icon reads like it's coming from the hand.
-	* Used for spin / stab (arc presets use orbit math instead).
+	* Used for spin / stab (arc presets use orbit math instead- this is only ever called from play()'s
+	* non-arc branch, so no motion-type parameter is needed here).
 	* @param {Sprite_Character} parentSprite The character sprite receiving the overlay.
-	* @param {string} motionType Preset key (kebab-case).
 	* @param {number} direction RMMZ 8-dir (same snapshot as the swing arc uses).
 	* @returns {{ x: number, y: number, scale: number }}
 	*/
-	static #buildSwingProfile(parentSprite, motionType, direction) {
+	static #buildSwingProfile(parentSprite, direction) {
 		const ph = parentSprite.patternHeight();
-		const tightOrbit = motionType === JuiceWeaponSwingMotionEffect.MotionTypes.Arc || motionType === JuiceWeaponSwingMotionEffect.MotionTypes.ArcReverse;
-		const tw = tightOrbit ? 20 : 26;
-		const ySide = -ph * (tightOrbit ? .48 : .52);
-		const yDown = -ph * (tightOrbit ? .18 : .22);
-		const yUp = -ph * (tightOrbit ? .76 : .82);
+		const tw = 26;
+		const ySide = -ph * .52;
+		const yDown = -ph * .22;
+		const yUp = -ph * .82;
 		const card = (horiz, vert, sc) => {
 			return {
 				x: horiz,
@@ -1834,7 +1894,7 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 		};
 		const left = card(-tw, ySide, 1.65);
 		const right = card(tw, ySide, 1.65);
-		const down = card(tightOrbit ? 6 : 10, yDown, 1.5);
+		const down = card(10, yDown, 1.5);
 		const up = card(0, yUp, 1.5);
 		/** @type {{ x: number, y: number, scale: number }} */
 		let prof;
@@ -1937,7 +1997,7 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 			overlay.scale.x = 1.6;
 			overlay.scale.y = 1.6;
 		} else {
-			const profile = JuiceWeaponSwingOverlay.#buildSwingProfile(parentSprite, motionType, swingDir);
+			const profile = JuiceWeaponSwingOverlay.#buildSwingProfile(parentSprite, swingDir);
 			const juiceDy = J.ABS.EXT.JUICE.Metadata.spriteJuiceVerticalOffsetPixels;
 			const neutralX = profile.x;
 			const neutralY = profile.y + juiceDy;
@@ -1969,7 +2029,7 @@ var JuiceWeaponSwingOverlay = class JuiceWeaponSwingOverlay {
 				overlay.scale.x = profile.scale * (stabAlign.mirrorX ? -1 : 1);
 				overlay.scale.y = profile.scale;
 			} else if (motionType === JuiceWeaponSwingMotionEffect.MotionTypes.Present) {
-				const presentProf = JuiceWeaponSwingOverlay.#buildSwingProfile(parentSprite, motionType, 8);
+				const presentProf = JuiceWeaponSwingOverlay.#buildSwingProfile(parentSprite, 8);
 				const presentJuiceDy = J.ABS.EXT.JUICE.Metadata.spriteJuiceVerticalOffsetPixels;
 				const px = presentProf.x;
 				const py = presentProf.y + presentJuiceDy;
@@ -2058,6 +2118,9 @@ var JuiceHookManager = class JuiceHookManager {
 		}
 		const md = J.ABS.EXT.JUICE.Metadata;
 		const ga = action.getAction();
+		if (ga.item().damage.type === 0) {
+			return;
+		}
 		let intensity = md.targetMagicalSquishIntensity;
 		if (ga.isPhysical()) {
 			intensity = md.targetPhysicalSquishIntensity;
@@ -2074,18 +2137,53 @@ var JuiceHookManager = class JuiceHookManager {
 	* @param {JABS_Action} action The action executing on the map.
 	*/
 	static onExecuteMapAction(caster, action) {
+		const skill = action.getBaseSkill();
 		const cooldownKey = action.getCooldownType();
-		const dodgeKey = typeof JABS_Button !== "undefined" ? JABS_Button.Dodge : "Dodge";
+		const dodgeKey = JABS_Button.Dodge;
 		if (cooldownKey === dodgeKey) {
 			JuiceHookManager.#applyDodgeJuice(caster);
 			return;
 		}
+		if (skill.jabsNoJuice === true) {
+			return;
+		}
+		const motionKey = skill.jabsJuiceMotion;
+		if (motionKey === "none") {
+			return;
+		}
+		if (motionKey === "squish") {
+			const repeatCount = JuiceProfileResolver.resolveJuiceRepeatCount(action);
+			const duration = JuiceProfileResolver.resolveJuiceDuration(action);
+			JuiceHookManager.#applySquishCasterJuice(caster, repeatCount, duration);
+			return;
+		}
+		if (motionKey === "pulse") {
+			const repeatCount = JuiceProfileResolver.resolveJuiceRepeatCount(action);
+			const duration = JuiceProfileResolver.resolveJuiceDuration(action);
+			JuiceHookManager.#applySupportCasterJuice(caster, repeatCount, duration);
+			return;
+		}
+		if (motionKey === "flip") {
+			const repeatCount = JuiceProfileResolver.resolveJuiceRepeatCount(action);
+			const duration = JuiceProfileResolver.resolveJuiceDuration(action);
+			JuiceHookManager.#applyFlipBodyJuice(caster, 1, repeatCount, duration);
+			return;
+		}
+		if (motionKey === "flip-reverse") {
+			const repeatCount = JuiceProfileResolver.resolveJuiceRepeatCount(action);
+			const duration = JuiceProfileResolver.resolveJuiceDuration(action);
+			JuiceHookManager.#applyFlipBodyJuice(caster, -1, repeatCount, duration);
+			return;
+		}
 		if (action.isHealing()) {
-			const strikeMotionRequested = action.getBaseSkill().jabsJuiceMotion !== String.empty;
-			if (strikeMotionRequested === false) {
+			if (motionKey === String.empty) {
 				JuiceHookManager.#applySupportCasterJuice(caster);
 				return;
 			}
+		}
+		if (skill.damage.type === 0 && motionKey === String.empty) {
+			JuiceHookManager.#applySupportCasterJuice(caster);
+			return;
 		}
 		JuiceHookManager.#applyStrikeJuice(caster, action);
 	}
@@ -2102,16 +2200,60 @@ var JuiceHookManager = class JuiceHookManager {
 		JuiceMotionManager.scheduleSquish(sprite, md.dodgeSquishIntensity, md.dodgeSquishFrames);
 	}
 	/**
-	* Applies gentle caster pulse for healing actions.
-	* @param {JABS_Battler} caster The healing caster.
+	* Applies a body squash on the caster, optionally repeated {@link repeatCount} times.
+	* Used by <juiceMotion:squish> for skills that want a punchy caster reaction without a weapon overlay.
+	* @param {JABS_Battler} caster The caster.
+	* @param {number} [repeatCount=1] How many times to cycle the squish.
 	*/
-	static #applySupportCasterJuice(caster) {
+	/**
+	* Applies a body squash on the caster, optionally repeated {@link repeatCount} times.
+	* Used by <juiceMotion:squish> for skills that want a punchy caster reaction without a weapon overlay.
+	* @param {JABS_Battler} caster The caster.
+	* @param {number} [repeatCount=1] How many times to cycle the squish.
+	* @param {number|null} [totalDuration=null] Total frame budget; divided evenly across cycles. Defaults to metadata value.
+	*/
+	static #applySquishCasterJuice(caster, repeatCount = 1, totalDuration = null) {
 		const md = J.ABS.EXT.JUICE.Metadata;
 		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(caster.getCharacter());
 		if (!sprite) {
 			return;
 		}
-		JuiceMotionManager.scheduleSquish(sprite, md.supportCasterPulseIntensity, md.supportCasterPulseFrames);
+		const baseDuration = totalDuration ?? md.unarmedStrikeSquishFrames;
+		const perCycleDuration = Math.max(1, Math.floor(baseDuration / repeatCount));
+		JuiceMotionManager.scheduleSquish(sprite, md.unarmedStrikeSquishIntensity, perCycleDuration, repeatCount);
+	}
+	/**
+	* Applies gentle caster pulse for healing or support actions, optionally repeated {@link repeatCount} times.
+	* @param {JABS_Battler} caster The healing caster.
+	* @param {number} [repeatCount=1] How many times to cycle the pulse.
+	* @param {number|null} [totalDuration=null] Total frame budget; divided evenly across cycles. Defaults to metadata value.
+	*/
+	static #applySupportCasterJuice(caster, repeatCount = 1, totalDuration = null) {
+		const md = J.ABS.EXT.JUICE.Metadata;
+		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(caster.getCharacter());
+		if (!sprite) {
+			return;
+		}
+		const baseDuration = totalDuration ?? md.supportCasterPulseFrames;
+		const perCycleDuration = Math.max(1, Math.floor(baseDuration / repeatCount));
+		JuiceMotionManager.scheduleSquish(sprite, md.supportCasterPulseIntensity, perCycleDuration, repeatCount);
+	}
+	/**
+	* Spins the caster sprite through N full 360° rotations over the total duration.
+	* Used by <juiceMotion:flip> (clockwise) and <juiceMotion:flip-reverse> (counter-clockwise).
+	* @param {JABS_Battler} caster The caster.
+	* @param {number} directionSign +1 for clockwise, -1 for counter-clockwise.
+	* @param {number} [repeatCount=1] Number of full rotations to complete.
+	* @param {number|null} [totalDuration=null] Total frame budget. Defaults to metadata unarmed squish frames.
+	*/
+	static #applyFlipBodyJuice(caster, directionSign, repeatCount = 1, totalDuration = null) {
+		const md = J.ABS.EXT.JUICE.Metadata;
+		const sprite = JuiceMapSpriteFinder.findSpriteCharacterFor(caster.getCharacter());
+		if (!sprite) {
+			return;
+		}
+		const duration = totalDuration ?? md.unarmedStrikeSquishFrames;
+		JuiceMotionManager.scheduleFlipBody(sprite, directionSign, duration, repeatCount);
 	}
 	/**
 	* Applies strike motion: tilt + optional weapon swing for actors when an icon resolves.
@@ -2134,9 +2276,10 @@ var JuiceHookManager = class JuiceHookManager {
 			const motionType = JuiceProfileResolver.resolveJuiceMotion(action);
 			const arcSpanDegrees = JuiceProfileResolver.resolveJuiceArcSpanDegrees(action);
 			const weaponTipRadians = JuiceProfileResolver.resolveJuiceWeaponTipRadians(action, motionType);
-			const spinCount = JuiceProfileResolver.resolveJuiceSpinCount(action);
+			const spinCount = JuiceProfileResolver.resolveJuiceRepeatCount(action);
 			const profileGun = JuiceProfileResolver.resolveJuiceProfileGun(action);
-			JuiceWeaponSwingOverlay.play(sprite, iconIndex, md.weaponSwingPeakRadians * mul.swingMul * swingWidthMultiplier, md.weaponSwingFrames * swingDurationMultiplier, motionType, arcSpanDegrees, action.direction(), weaponTipRadians, spinCount, profileGun);
+			const juiceDuration = JuiceProfileResolver.resolveJuiceDuration(action) ?? md.weaponSwingFrames * swingDurationMultiplier;
+			JuiceWeaponSwingOverlay.play(sprite, iconIndex, md.weaponSwingPeakRadians * mul.swingMul * swingWidthMultiplier, juiceDuration, motionType, arcSpanDegrees, action.direction(), weaponTipRadians, spinCount, profileGun);
 		} else {
 			JuiceMotionManager.scheduleSquish(sprite, md.unarmedStrikeSquishIntensity, md.unarmedStrikeSquishFrames);
 		}
@@ -2240,6 +2383,22 @@ J.ABS.EXT.JUICE.Aliased.Scene_Map.set("terminate", Scene_Map.prototype.terminate
 Scene_Map.prototype.terminate = function() {
 	JuiceMotionManager.clearAll();
 	J.ABS.EXT.JUICE.Aliased.Scene_Map.get("terminate").call(this);
+};
+
+//#endregion
+//#region src/plugins/abs/ext/juice/sprites/Sprite_Character.js
+/**
+* Extends {@link Sprite_Character#updatePosition}.<br/>
+* When a flip-body juice effect is active, compensates for the anchor shift from (0.5, 1)
+* to (0.5, 0.5) by adding half the sprite height back to y each frame so the character
+* does not visually drop during the animation.
+*/
+J.ABS.EXT.JUICE.Aliased.Sprite_Character.set("updatePosition", Sprite_Character.prototype.updatePosition);
+Sprite_Character.prototype.updatePosition = function() {
+	J.ABS.EXT.JUICE.Aliased.Sprite_Character.get("updatePosition").call(this);
+	if (this._juiceFlipping === true) {
+		this.y -= this.height / 2;
+	}
 };
 
 //#endregion

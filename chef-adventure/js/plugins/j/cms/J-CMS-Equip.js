@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 CMS_E] A redesign of the equip menu.
+ * [v1.1.0 CMS_E] A redesign of the equip menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -13,6 +13,19 @@
  * It includes the ability to see more parameters when changing equips.
  * You can also now press the square button (or equivalent of) to view the
  * detailed information relating to JABS (if applicable).
+ * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- it is purely a scene/window
+ * redesign of the native equip menu.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.1.0
+ *    Added a context action on the equip slot list to unequip the
+ *    currently-selected slot directly, without opening the item list.
+ *    Renamed slot-window handler symbols pagedown/pageup to
+ *    actor-next/actor-prev.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
  */
 
@@ -35,7 +48,7 @@ var J_CmsEquip_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -48,11 +61,11 @@ J.CMS_E = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS_E.Metadata = new J_CmsEquip_PluginMetadata("J-CMS-Equip", "1.0.0");
+J.CMS_E.Metadata = new J_CmsEquip_PluginMetadata("J-CMS-Equip", "1.1.0");
 J.CMS_E.Aliased = {
-	Scene_Equip: {},
-	Window_EquipItem: {},
-	Window_EquipSlot: {}
+	Scene_Equip: new Map(),
+	Window_EquipItem: new Map(),
+	Window_EquipSlot: new Map()
 };
 
 //#endregion
@@ -286,11 +299,13 @@ Scene_Equip.prototype.initialize = function() {
 	this._j.moreVisible = false;
 };
 /**
-* OVERWRITE Removes the buttons because fuck the buttons.
+* Overwrites {@link #createButtons}.<br/>
+* Removes the buttons because fuck the buttons.
 */
 Scene_Equip.prototype.createButtons = function() {};
 /**
-* OVERWRITE Removes the command window, because who even uses optimize?
+* Overwrites {@link #create}.<br/>
+* Removes the command window, because who even uses optimize?
 */
 Scene_Equip.prototype.create = function() {
 	Scene_MenuBase.prototype.create.call(this);
@@ -305,16 +320,18 @@ Scene_Equip.prototype.create = function() {
 	this._slotWindow.onIndexChange();
 };
 /**
-* OVERWRITE Replaces the button area height with 0 because fuck buttons.
+* Overwrites {@link #buttonAreaHeight}.<br/>
+* Replaces the button area height with 0 because fuck buttons.
 * @returns {number}
 */
 Scene_Equip.prototype.buttonAreaHeight = () => 0;
 /**
-* OVERWRITE Modifies the width of the equip status window.
+* Overwrites {@link #statusWidth}.<br/>
+* Modifies the width of the equip status window.
 */
 Scene_Equip.prototype.statusWidth = () => 1024;
 /**
-* Overrides {@link #helpWindowRect}.<br/>
+* Overwrites {@link #helpWindowRect}.<br/>
 * Changes the width to be what we want it to be.
 * @returns {Rectangle}
 */
@@ -326,7 +343,8 @@ Scene_Equip.prototype.helpWindowRect = function() {
 	return new Rectangle(wx, wy, ww, wh);
 };
 /**
-* OVERWRITE Modifies the size of the equip slots window.
+* Overwrites {@link #slotWindowRect}.<br/>
+* Modifies the size of the equip slots window.
 * @returns {Rectangle}
 */
 Scene_Equip.prototype.slotWindowRect = function() {
@@ -383,16 +401,34 @@ Scene_Equip.prototype.switchToMoreDataFromEquipItems = function() {
 /**
 * Extends the slot window to include our additional actions.
 */
-J.CMS_E.Aliased.Scene_Equip.createSlotWindow = Scene_Equip.prototype.createSlotWindow;
+J.CMS_E.Aliased.Scene_Equip.set("createSlotWindow", Scene_Equip.prototype.createSlotWindow);
 Scene_Equip.prototype.createSlotWindow = function() {
-	J.CMS_E.Aliased.Scene_Equip.createSlotWindow.call(this);
+	J.CMS_E.Aliased.Scene_Equip.get("createSlotWindow").call(this);
 	this._slotWindow.setHandler("more", this.switchToMoreDataFromEquipSlots.bind(this));
-	this._slotWindow.setHandler("pagedown", this.nextActor.bind(this));
-	this._slotWindow.setHandler("pageup", this.previousActor.bind(this));
+	this._slotWindow.setHandler("context", this.onContextUnequipSlot.bind(this));
+	this._slotWindow.setHandler("actor-next", this.nextActor.bind(this));
+	this._slotWindow.setHandler("actor-prev", this.previousActor.bind(this));
 	this._slotWindow.setMoreDataWindow(this._moreDataWindow);
 };
 /**
-* OVERWRITE Prevents hiding the item window.
+* Handles the contextual unequip action from the slot window.
+* Removes the item in the currently focused equip slot, if any.
+*/
+Scene_Equip.prototype.onContextUnequipSlot = function() {
+	if (this._slotWindow.active === false) {
+		return;
+	}
+	const slotId = this._slotWindow.index();
+	this.actor().changeEquip(slotId, null);
+	this._statusWindow.refresh();
+	this._slotWindow.refresh();
+	this._itemWindow.refresh();
+	this.refreshActor();
+	this._slotWindow.activate();
+};
+/**
+* Overwrites {@link #createItemWindow}.<br/>
+* Prevents hiding the item window.
 */
 Scene_Equip.prototype.createItemWindow = function() {
 	const rect = this.itemWindowRect();
@@ -444,27 +480,31 @@ Scene_Equip.prototype.itemWindowRect = function() {
 	return new Rectangle(wx, wy, ww, wh);
 };
 /**
-* OVERWRITE Prevents hiding the equip window.
+* Overwrites {@link #onSlotOk}.<br/>
+* Prevents hiding the equip window.
 */
 Scene_Equip.prototype.onSlotOk = function() {
 	this._itemWindow.activate();
 	this._itemWindow.select(0);
 };
 /**
-* OVERWRITE Replaces the slot cancel functionality with the end of the scene.
+* Overwrites {@link #onSlotCancel}.<br/>
+* Replaces the slot cancel functionality with the end of the scene.
 */
 Scene_Equip.prototype.onSlotCancel = function() {
 	this.popScene();
 };
 /**
-* OVERWRITE Prevents hiding the item window.
+* Overwrites {@link #hideItemWindow}.<br/>
+* Prevents hiding the item window.
 */
 Scene_Equip.prototype.hideItemWindow = function() {
 	this._slotWindow.activate();
 	this._itemWindow.deselect();
 };
 /**
-* OVERWRITE Prevents trying to activate a window that was removed from the scene.
+* Overwrites {@link #onActorChange}.<br/>
+* Prevents trying to activate a window that was removed from the scene.
 */
 Scene_Equip.prototype.onActorChange = function() {
 	Scene_MenuBase.prototype.onActorChange.call(this);
@@ -474,9 +514,9 @@ Scene_Equip.prototype.onActorChange = function() {
 /**
 * Extends the actor refresh to include the more data window.
 */
-J.CMS_E.Aliased.Scene_Equip.refreshActor = Scene_Equip.prototype.refreshActor;
+J.CMS_E.Aliased.Scene_Equip.set("refreshActor", Scene_Equip.prototype.refreshActor);
 Scene_Equip.prototype.refreshActor = function() {
-	J.CMS_E.Aliased.Scene_Equip.refreshActor.call(this);
+	J.CMS_E.Aliased.Scene_Equip.get("refreshActor").call(this);
 	const actor = this.actor();
 	this._moreDataWindow.setActor(actor);
 };
@@ -486,9 +526,9 @@ Scene_Equip.prototype.refreshActor = function() {
 /**
 * Extends the `.initialize()` to include tracking for the more equip data window.
 */
-J.CMS_E.Aliased.Window_EquipItem.initialize = Window_EquipItem.prototype.initialize;
+J.CMS_E.Aliased.Window_EquipItem.set("initialize", Window_EquipItem.prototype.initialize);
 Window_EquipItem.prototype.initialize = function(rect) {
-	J.CMS_E.Aliased.Window_EquipItem.initialize.call(this, rect);
+	J.CMS_E.Aliased.Window_EquipItem.get("initialize").call(this, rect);
 	/**
 	* The more data window to manipulate.
 	* @type {Window_MoreEquipData}
@@ -520,9 +560,9 @@ Window_EquipItem.prototype.setMoreDataWindow = function(moreDataWindow) {
 /**
 * Extends the `.initialize()` to include tracking for the more equip data window.
 */
-J.CMS_E.Aliased.Window_EquipSlot.initialize = Window_EquipSlot.prototype.initialize;
+J.CMS_E.Aliased.Window_EquipSlot.set("initialize", Window_EquipSlot.prototype.initialize);
 Window_EquipSlot.prototype.initialize = function(rect) {
-	J.CMS_E.Aliased.Window_EquipSlot.initialize.call(this, rect);
+	J.CMS_E.Aliased.Window_EquipSlot.get("initialize").call(this, rect);
 	/**
 	* The more data window to manipulate.
 	* @type {Window_MoreEquipData}

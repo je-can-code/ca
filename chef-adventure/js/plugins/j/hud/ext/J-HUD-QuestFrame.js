@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 HUD-QUEST] A HUD frame that displays quest objective information.
+ * [v1.0.1 HUD-QUEST] A HUD frame that displays quest objective information.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -22,33 +22,21 @@
  *
  * ----------------------------------------------------------------------------
  * DETAILS:
- * Cool details about this cool plugin go here.
+ * Quest and objective data is sourced from the Omni/Questopedia system (see
+ * J-Omni-Quest), not from notetags of any kind- this plugin is purely a
+ * display frame that reads tracked quest state and renders it.
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Wrote real help docs; the help text was still boilerplate placeholder.
+ *    Removed leftover unused scaffold plugin params/command/regex.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
- *
- * @param parentConfig
- * @text SETUP
- *
- * @param menu-switch
- * @parent parentConfig
- * @type switch
- * @text Menu Switch ID
- * @desc When this switch is ON, then this command is visible in the menu.
- * @default 101
- *
- *
- * @command do-the-thing
- * @text Add/Remove points
- * @desc Adds or removes a designated amount of points from all members of the current party.
- * @arg points
- * @type number
- * @min -99999999
- * @max 99999999
- * @desc The number of points to modify by. Negative will remove points. Cannot go below 0.
  */
 //endregion annotations
 
@@ -71,13 +59,7 @@ var J_HUD_Quest_PluginMetadata = class extends PluginMetadata {
 	/**
 	* Initializes the metadata associated with this plugin.
 	*/
-	initializeMetadata() {
-		/**
-		* The id of a switch that represents whether or not this system is accessible in the menu.
-		* @type {number}
-		*/
-		this.menuSwitchId = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menu-switch"], 0);
-	}
+	initializeMetadata() {}
 };
 
 //#endregion
@@ -87,7 +69,7 @@ var J_HUD_Quest_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.2";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -106,7 +88,7 @@ J.HUD.EXT.QUEST ||= {};
 * The metadata associated with this plugin.
 * @type {J_HUD_Quest_PluginMetadata}
 */
-J.HUD.EXT.QUEST.Metadata = new J_HUD_Quest_PluginMetadata("J-HUD-QuestFrame", "1.0.0");
+J.HUD.EXT.QUEST.Metadata = new J_HUD_Quest_PluginMetadata("J-HUD-QuestFrame", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -116,11 +98,6 @@ J.HUD.EXT.QUEST.Aliased.Scene_Questopedia = new Map();
 J.HUD.EXT.QUEST.Aliased.TrackedOmniQuest = new Map();
 J.HUD.EXT.QUEST.Aliased.TrackedOmniObjective = new Map();
 J.HUD.EXT.QUEST.Aliased.HudManager = new Map();
-/**
-* All regular expressions used by this plugin.
-*/
-J.HUD.EXT.QUEST.RegExp = {};
-J.HUD.EXT.QUEST.RegExp.Points = /<tag:[ ]?(\d+)>/i;
 
 //#endregion
 //#region src/plugins/hud/ext/quest/managers/HudManager.js
@@ -371,7 +348,7 @@ var Window_QuestFrame = class extends Window_Base {
 		this.drawTextEx(objectiveText, objectiveX, y, objectiveTextWidth);
 	}
 	/**
-	* Overrides {@link lineHeight}.<br/>
+	* Overwrites {@link lineHeight}.<br/>
 	* This window's default lineheight will be 10 less than the default.
 	* @returns {number}
 	*/
@@ -383,7 +360,7 @@ var Window_QuestFrame = class extends Window_Base {
 //#endregion
 //#region src/plugins/hud/ext/quest/scenes/Scene_Map.js
 /**
-* Extends {@link #initHudMembers}.<br>
+* Extends {@link #initHudMembers}.<br/>
 * Includes initialization of the target frame members.
 */
 J.HUD.EXT.QUEST.Aliased.Scene_Map.set("initHudMembers", Scene_Map.prototype.initHudMembers);
@@ -400,7 +377,7 @@ Scene_Map.prototype.initHudMembers = function() {
 	this._j._hud._quest._questFrame = null;
 };
 /**
-* Extends {@link #createAllWindows}.<br>
+* Extends {@link #createAllWindows}.<br/>
 * Includes creation of the target frame window.
 */
 J.HUD.EXT.QUEST.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);
@@ -451,7 +428,7 @@ Scene_Map.prototype.setQuestFrameWindow = function(window) {
 	this._j._hud._quest._questFrame = window;
 };
 /**
-* Extends {@link #updateHudFrames}.<br>
+* Extends {@link #updateHudFrames}.<br/>
 * Includes updating the target frame.
 */
 J.HUD.EXT.QUEST.Aliased.Scene_Map.set("updateHudFrames", Scene_Map.prototype.updateHudFrames);

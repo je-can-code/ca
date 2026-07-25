@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.1.0 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -18,7 +18,8 @@
  * Integrates with others of mine plugins:
  * - J-Base; to be honest this is just required for all my plugins.
  * - J-ABS; acquire points from enemy kills and skill executions.
- * - J-LevelMaster; considers level difference for an AP multiplier.
+ * - J-LevelMaster; gates AP gain entirely (all-or-nothing, not a scaling
+ *   multiplier) once the actor is too many levels above the enemy.
  * - J-Log; log all AP gained.
  * - J-Popups (+ J-Popups-APT); display popups for AP gained.
  *
@@ -79,6 +80,42 @@
  * This enemy will yield 6 AP upon defeat.
  *
  * ============================================================================
+ * AP RATE MULTIPLIER
+ * Ever want an actor to earn AP faster (or slower) than everyone else? Well
+ * now you can! By applying the appropriate tag across the various database
+ * locations, you can boost or reduce how much AP that actor actually banks
+ * from every gain.
+ *
+ * NOTE:
+ * The format implies whole numbers, not actual multipliers like 1.3. All
+ * matching tags across an actor's active note sources sum together before
+ * being applied as a single rate against the raw AP amount- same pattern as
+ * J-SDP's sdpMultiplier. Also stacks with any SDP panel bonus for the "apr"
+ * parameter key, if J-SDP is loaded.
+ *
+ * TAG USAGE:
+ * - Actors
+ * - Classes
+ * - Skills
+ * - Weapons
+ * - Armors
+ * - States
+ *
+ * TAG FORMAT:
+ *  <aptMultiplier:AMOUNT>    (for positive)
+ *  <aptMultiplier:-AMOUNT>   (for negative)
+ *
+ * TAG EXAMPLES:
+ *  <aptMultiplier:25>
+ * An actor with something equipped/applied that has the above tag now gains
+ * 25% increased AP from every source.
+ *
+ *  <aptMultiplier:80>
+ *  <aptMultiplier:-30>
+ * An actor with something equipped/applied that has both of the above tags
+ * now gains 50% increased AP (80 - 30 = 50).
+ *
+ * ============================================================================
  * TIPS
  * ----------------------------------------------------------------------------
  * - Stack learnings: You can define the same skill on multiple sources. The UI
@@ -91,6 +128,18 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added AP rate multiplier via <aptMultiplier:AMOUNT>, registered with
+ *    the shared parameter catalog (apr) with an SDP panel binding.
+ *    J-LevelMaster integration is now an all-or-nothing gate on AP gain
+ *    once the actor is too many levels above the enemy, replacing the old
+ *    scaling multiplier; reads $gameSystem.isLevelScalingEnabled() instead
+ *    of the static plugin metadata flag.
+ *    Fixed stale requiredAp: a learning's persisted requiredAp now re-syncs
+ *    to the live notetag value every time its source grants AP, instead of
+ *    being frozen at whatever value existed the first time it was touched.
+ *    Added refresh-required-ap / refresh-required-ap-all plugin commands to
+ *    manually repair saves that had already gone stale before this fix.
  * - 1.0.3
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.2
@@ -146,228 +195,225 @@
  * @max 99999999
  * @desc The amount of AP to modify by. Negative removes AP. Per-source never goes below 0.
  * @default 10
+ *
+ * @command refresh-required-ap-all
+ * @text Refresh Required AP (Party)
+ * @desc Re-syncs persisted aptitude requiredAp values against current notetags for all party members.
+ *
+ * @command refresh-required-ap
+ * @text Refresh Required AP
+ * @desc Re-syncs persisted aptitude requiredAp values against current notetags for an actor by its id.
+ * @arg actorId
+ * @type actor
+ * @desc The id of the actor to refresh aptitude requirements for.
+ * @default 1
  */
 //endregion annotations
 
 //#region src/plugins/apt/core/_models/AptitudeLearning.js
 /**
 * The current state of a skill being learned.
-* @param {number} skillId The skill id to learn.
-* @param {number} requiredAp The required AP to achieve this learning.
-* @param {number} currentAp The current AP towards achieving this learning.
-* @constructor
 */
-function AptitudeLearning(skillId, requiredAp, currentAp) {
-	this.initialize(skillId, requiredAp, currentAp);
-}
-AptitudeLearning.prototype = {};
-AptitudeLearning.prototype.constructor = AptitudeLearning;
-/**
-* Initializes the learning.
-* @param {number} skillId The skill id to learn.
-* @param {number} requiredAp The required AP to achieve this learning.
-* @param {number} currentAp The current AP towards achieving this learning.
-*/
-AptitudeLearning.prototype.initialize = function(skillId, requiredAp, currentAp) {
+var AptitudeLearning = class {
 	/**
-	* The id of the skill learned when achieving this learning.
-	* @type {number}
+	* Constructor.
+	* @param {number} skillId The skill id to learn.
+	* @param {number} requiredAp The required AP to achieve this learning.
+	* @param {number} currentAp The current AP towards achieving this learning.
 	*/
-	this.skillId = skillId;
+	constructor(skillId, requiredAp, currentAp) {
+		/**
+		* The id of the skill learned when achieving this learning.
+		* @type {number}
+		*/
+		this.skillId = skillId;
+		/**
+		* The current AP towards achieving this learning.
+		* @type {number}
+		*/
+		this.currentAp = currentAp;
+		/**
+		* The required amount of AP to achieve this learning.
+		* @type {number}
+		*/
+		this.requiredAp = requiredAp;
+	}
 	/**
-	* The current AP towards achieving this learning.
-	* @type {number}
+	* Gains AP towards achieving this learning.
+	* @param {number} ap The amount of AP to gain.
 	*/
-	this.currentAp = currentAp;
+	gainAp(ap) {
+		this.currentAp += ap;
+	}
 	/**
-	* The required amount of AP to achieve this learning.
-	* @type {number}
+	* Sets the current AP towards achieving this learning.
+	* @param {number} ap The amount of AP to set.
 	*/
-	this.requiredAp = requiredAp;
+	setAp(ap) {
+		this.currentAp = ap;
+	}
+	/**
+	* Sets the required AP to achieve this learning.
+	* @param {number} requiredAp The amount of AP to set as required.
+	*/
+	setRequiredAp(requiredAp) {
+		this.requiredAp = requiredAp;
+	}
+	/**
+	* Whether or not this learning is achieved.
+	* @returns {boolean} True if the learning is achieved, false otherwise.
+	*/
+	isLearned() {
+		return this.currentAp >= this.requiredAp;
+	}
 };
-/**
-* Gains AP towards achieving this learning.
-* @param {number} ap The amount of AP to gain.
-*/
-AptitudeLearning.prototype.gainAp = function(ap) {
-	this.currentAp += ap;
-};
-/**
-* Sets the current AP towards achieving this learning.
-* @param {number} ap The amount of AP to set.
-*/
-AptitudeLearning.prototype.setAp = function(ap) {
-	this.currentAp = ap;
-};
-/**
-* Whether or not this learning is achieved.
-* @returns {boolean} True if the learning is achieved, false otherwise.
-*/
-AptitudeLearning.prototype.isLearned = function() {
-	return this.currentAp >= this.requiredAp;
-};
+SerializableRegistry.register(AptitudeLearning);
 
 //#endregion
 //#region src/plugins/apt/core/_models/AptitudeTeachable.js
 /**
 * The runtime shape of a learnable skill and its requirements.
-* @param {number} skillId The skill id to learn.
-* @param {number} requiredAp The required AP to learn the skill.
-* @constructor
 */
-function AptitudeTeachable(skillId, requiredAp) {
-	this.initialize(skillId, requiredAp);
-}
-AptitudeTeachable.prototype = {};
-AptitudeTeachable.prototype.constructor = AptitudeTeachable;
-/**
-* Initializes the learning.
-* @param {number} skillId The skill id to learn.
-* @param {number} requiredAp The required AP to learn the skill.
-*/
-AptitudeTeachable.prototype.initialize = function(skillId, requiredAp) {
+var AptitudeTeachable = class {
 	/**
-	* The id of the skill to learn.
-	* @type {number}
+	* Constructor.
+	* @param {number} skillId The skill id to learn.
+	* @param {number} requiredAp The required AP to learn the skill.
 	*/
-	this.skillId = skillId;
-	/**
-	* The required AP to learn the skill.
-	* @type {number}
-	*/
-	this.requiredAp = requiredAp;
+	constructor(skillId, requiredAp) {
+		/**
+		* The id of the skill to learn.
+		* @type {number}
+		*/
+		this.skillId = skillId;
+		/**
+		* The required AP to learn the skill.
+		* @type {number}
+		*/
+		this.requiredAp = requiredAp;
+	}
 };
 
 //#endregion
 //#region src/plugins/apt/core/_models/AptitudeProgress.js
 /**
 * The structure of an object and its potential {@link AptitudeLearning}s.
-* @param {string} key "type:id" unique key of the aptitude being learned.
-* @param {Record<number, AptitudeLearning>} aptitudeLearnings The current state of learnings.
-* @constructor
 */
-function AptitudeProgress(key, aptitudeLearnings) {
-	this.initialize(key, aptitudeLearnings);
-}
-AptitudeProgress.prototype = {};
-AptitudeProgress.prototype.constructor = AptitudeProgress;
-/**
-* Initializes the learning.
-* @param {string} key "type:id" unique key of the aptitude being learned.
-* @param {Record<number, AptitudeLearning>} [aptitudeLearnings] The current state of learnings; defaults to nothing.
-*/
-AptitudeProgress.prototype.initialize = function(key, aptitudeLearnings = {}) {
+var AptitudeProgress = class {
 	/**
-	* The "type:id" unique key of the aptitude being learned.
-	* @type {string}
+	* Constructor.
+	* @param {string} key "type:id" unique key of the aptitude being learned.
+	* @param {Record<number, AptitudeLearning>} [aptitudeLearnings] The current state of learnings; defaults to nothing.
 	*/
-	this.key = key;
+	constructor(key, aptitudeLearnings = {}) {
+		/**
+		* The "type:id" unique key of the aptitude being learned.
+		* @type {string}
+		*/
+		this.key = key;
+		/**
+		* The current state of learnings.
+		* @type {Record<number, AptitudeLearning>}
+		*/
+		this._learnings = aptitudeLearnings;
+	}
 	/**
-	* The current state of learnings.
-	* @type {Record<number, AptitudeLearning>}
+	* Gets the current progress for a skill.
+	* @param {number} skillId The skill id to learn.
+	* @returns {AptitudeLearning|null} The current learning for the skill, or null if it doesn't exist.
 	*/
-	this._learnings = aptitudeLearnings;
+	learningBySkillId(skillId) {
+		return this._learnings[skillId] ?? null;
+	}
+	/**
+	* Determines whether or not this aptitude progress has a learning for the given skill.
+	* @param {number} skillId The skill id to check for.
+	* @returns {boolean} True if the skill exists on this progress, false otherwise.
+	*/
+	hasLearning(skillId) {
+		return this._learnings[skillId] !== undefined;
+	}
+	/**
+	* Adds or updates a learning for this aptitude progress.
+	* @param {number} skillId The skill id to learn.
+	* @param {number} [amount] The current amount of AP for the learning; defaults to 0.
+	*/
+	setLearning(skillId, amount = 0) {
+		if (this.hasLearning(skillId) === false) return;
+		const learning = this.learningBySkillId(skillId);
+		learning.setAp(amount);
+	}
+	/**
+	* Creates a new learning for this aptitude progress.
+	* @param {number} skillId The id of the skill for the learning.
+	* @param {number} requiredAp The amount of AP required for the learning.
+	* @param {number} [amount] The current amount of AP for the learning; defaults to 0.
+	*/
+	initializeLearning(skillId, requiredAp, amount = 0) {
+		this._learnings[skillId] = new AptitudeLearning(skillId, requiredAp, amount);
+	}
+	/**
+	* Gets the current state of learnings for this aptitude progress tracker.
+	* @returns {Record<number, AptitudeLearning>}
+	*/
+	learnings() {
+		return this._learnings;
+	}
 };
-/**
-* Gets the current progress for a skill.
-* @param {number} skillId The skill id to learn.
-* @returns {AptitudeLearning|null} The current learning for the skill, or null if it doesn't exist.
-*/
-AptitudeProgress.prototype.learningBySkillId = function(skillId) {
-	return this._learnings[skillId] ?? null;
-};
-/**
-* Determines whether or not this aptitude progress has a learning for the given skill.
-* @param {number} skillId The skill id to check for.
-* @returns {boolean} True if the skill exists on this progress, false otherwise.
-*/
-AptitudeProgress.prototype.hasLearning = function(skillId) {
-	return this._learnings[skillId] !== undefined;
-};
-/**
-* Adds or updates a learning for this aptitude progress.
-* @param {number} skillId The skill id to learn.
-* @param {number} [amount] The current amount of AP for the learning; defaults to 0.
-*/
-AptitudeProgress.prototype.setLearning = function(skillId, amount = 0) {
-	if (this.hasLearning(skillId) === false) return;
-	const learning = this.learningBySkillId(skillId);
-	learning.setAp(amount);
-};
-/**
-* Creates a new learning for this aptitude progress.
-* @param {number} skillId The id of the skill for the learning.
-* @param {number} requiredAp The amount of AP required for the learning.
-* @param {number} [amount] The current amount of AP for the learning; defaults to 0.
-*/
-AptitudeProgress.prototype.initializeLearning = function(skillId, requiredAp, amount = 0) {
-	this._learnings[skillId] = new AptitudeLearning(skillId, requiredAp, amount);
-};
-/**
-* Gets the current state of learnings for this aptitude progress tracker.
-* @returns {Record<number, AptitudeLearning>}
-*/
-AptitudeProgress.prototype.learnings = function() {
-	return this._learnings;
-};
+SerializableRegistry.register(AptitudeProgress);
 
 //#endregion
 //#region src/plugins/apt/core/_models/AptitudeSkill.js
 /**
 * The structure of an object and the skill that was learned.
-* @param {skillId} skillId The skill id that was learned.
-* @param {boolean} [learned] Whether or not the skill was learned; defaults to false.
-* @constructor
 */
-function AptitudeSkill(skillId, learned = false) {
-	this.initialize(skillId, learned);
-}
-AptitudeSkill.prototype = {};
-AptitudeSkill.prototype.constructor = AptitudeSkill;
-/**
-* Initializes the learning.
-* @param {skillId} skillId The skill id that was learned.
-* @param {boolean} [learned] Whether or not the skill was learned; defaults to false.
-*/
-AptitudeSkill.prototype.initialize = function(skillId, learned = false) {
+var AptitudeSkill = class {
 	/**
-	* The skill id that was learned.
-	* @type {number}
+	* Constructor.
+	* @param {skillId} skillId The skill id that was learned.
+	* @param {boolean} [learned] Whether or not the skill was learned; defaults to false.
 	*/
-	this.skillId = skillId;
+	constructor(skillId, learned = false) {
+		/**
+		* The skill id that was learned.
+		* @type {number}
+		*/
+		this.skillId = skillId;
+		/**
+		* Whether or not this aptitude skill is learned.
+		* @type {boolean}
+		*/
+		this.learned = learned;
+		/**
+		* The "type:id" key of the aptitude that this skill was learned from.
+		* @type {string}
+		*/
+		this._learnedFrom = String.empty;
+	}
 	/**
-	* Whether or not this aptitude skill is learned.
-	* @type {boolean}
+	* Learns the skill.
+	* @param {AptitudeProgress} learnedFrom The aptitude from which this skill was learned.
 	*/
-	this.learned = learned;
+	learnSkill(learnedFrom) {
+		this.learned = true;
+		this._learnedFrom = learnedFrom.key;
+	}
 	/**
-	* The "type:id" key of the aptitude that this skill was learned from.
-	* @type {string}
+	* Forgets the skill.
 	*/
-	this._learnedFrom = String.empty;
+	forgetSkill() {
+		this.learned = false;
+		this._learnedFrom = String.empty;
+	}
+	/**
+	* Gets the key of the aptitude that this skill was learned from.
+	* @returns {string}
+	*/
+	learnedFrom() {
+		return this._learnedFrom;
+	}
 };
-/**
-* Learns the skill.
-* @param {AptitudeProgress} learnedFrom The aptitude from which this skill was learned.
-*/
-AptitudeSkill.prototype.learnSkill = function(learnedFrom) {
-	this.learned = true;
-	this._learnedFrom = learnedFrom.key;
-};
-/**
-* Forgets the skill.
-*/
-AptitudeSkill.prototype.forgetSkill = function() {
-	this.learned = false;
-	this._learnedFrom = String.empty;
-};
-/**
-* Gets the key of the aptitude that this skill was learned from.
-* @returns {string}
-*/
-AptitudeSkill.prototype.learnedFrom = function() {
-	return this._learnedFrom;
-};
+SerializableRegistry.register(AptitudeSkill);
 
 //#endregion
 //#region src/plugins/apt/core/_models/AptitudeSkillSourceProgress.js
@@ -625,12 +671,12 @@ var JAptitude_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (hasJabsRequirement === false) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -647,11 +693,12 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.0.3");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
 J.APT.Aliased = {};
+J.APT.Aliased.Scene_Boot = new Map();
 J.APT.Aliased.BattleManager = new Map();
 J.APT.Aliased.Game_Action = new Map();
 J.APT.Aliased.Game_Actor = new Map();
@@ -696,6 +743,7 @@ J.APT.RegExp.AptitudeTeachable = /<aptitude:[ ]?(\[\d+,[ ]?\d+])>/gi;
 * @type {RegExp}
 */
 J.APT.RegExp.ApReward = /<ap: ?(\d+)>/i;
+J.APT.RegExp.AptMultiplier = /<aptMultiplier:(-?\d+)>/i;
 
 //#endregion
 //#region src/plugins/apt/core/database/RPG_Base.js
@@ -725,6 +773,33 @@ RPG_Base.prototype.buildAptitudeTeachings = function() {
 Object.defineProperty(RPG_Enemy.prototype, "apPoints", { get() {
 	return RPGManager.getNumberFromNoteByRegex(this, J.APT.RegExp.ApReward);
 } });
+
+//#endregion
+//#region src/plugins/apt/core/objects/Game_BattlerBase.js
+Object.defineProperties(Game_BattlerBase.prototype, { 
+/**
+* Aptitude point gain multiplier.
+*/
+apr: {
+	get: function() {
+		return 1;
+	},
+	configurable: true
+} });
+Object.defineProperty(Game_Actor.prototype, "apr", {
+	get: function() {
+		if (this.getCachedApr() !== null) {
+			return this.getCachedApr();
+		}
+		const multiplier = 100;
+		const bonus = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.APT.RegExp.AptMultiplier);
+		const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("apr", 1) : 0;
+		const factor = (multiplier + bonus + sdpBonus) / 100;
+		this.setCachedApr(factor);
+		return this.getCachedApr();
+	},
+	configurable: true
+});
 
 //#endregion
 //#region src/plugins/apt/core/objects/Game_Battler.js
@@ -769,6 +844,35 @@ Game_Actor.prototype.initAptitudeMembers = function() {
 	* @type {Record<number, AptitudeSkill>}
 	*/
 	this._j._aptitude._learned = {};
+	/**
+	* The cached result of the {@link #apr} property getter.
+	* Null when the cache is cold; invalidated by {@link #onBattlerDataChange}.
+	* @type {number|null}
+	*/
+	this._j._aptitude._cachedApr = null;
+};
+/**
+* Gets the cached APR factor for this actor, or null if the cache is cold.
+* @returns {number|null}
+*/
+Game_Actor.prototype.getCachedApr = function() {
+	return this._j._aptitude._cachedApr;
+};
+/**
+* Sets the cached APR factor for this actor.
+* @param {number|null} value The new cached value, or null to invalidate.
+*/
+Game_Actor.prototype.setCachedApr = function(value) {
+	this._j._aptitude._cachedApr = value;
+};
+/**
+* Extends {@link #onBattlerDataChange}.<br/>
+* Invalidates the APR factor cache.
+*/
+J.APT.Aliased.Game_Actor.set("onBattlerDataChange", Game_Actor.prototype.onBattlerDataChange);
+Game_Actor.prototype.onBattlerDataChange = function() {
+	J.APT.Aliased.Game_Actor.get("onBattlerDataChange").call(this);
+	this.setCachedApr(null);
 };
 /**
 * Gets all aptitude progress for this actor.
@@ -796,7 +900,8 @@ Game_Actor.prototype.getAptitudeSkillAggregates = function() {
 	/** @type {{ [skillId: string]: AptitudeSkillAggregate }} */
 	const perSkill = {};
 	Object.entries(progresses).forEach(([sourceKey, progress]) => {
-		Object.entries(progress.learnings()).forEach(([skillId, learning]) => {
+		Object.entries(progress.learnings()).forEach(([skillIdKey, learning]) => {
+			const skillId = Number(skillIdKey);
 			if (!perSkill[skillId]) {
 				const skillData = this.skill(skillId);
 				perSkill[skillId] = new AptitudeSkillAggregate(skillId, skillData);
@@ -856,7 +961,7 @@ Game_Actor.prototype.initializeAptitudeProgress = function(key, skillId, require
 */
 Game_Actor.prototype.createAptitudeProgress = function(key, skillId, requiredAp, initialAp) {
 	const newProgress = new AptitudeProgress(key);
-	newProgress.setLearning(skillId, requiredAp, initialAp);
+	newProgress.initializeLearning(skillId, requiredAp, initialAp);
 	return newProgress;
 };
 /**
@@ -872,12 +977,31 @@ Game_Actor.prototype.getAptitudeLearning = function(key, skillId) {
 	return progress.learningBySkillId(skillId);
 };
 /**
-* Gets all aptitude sources for this actor.
+* Gets all aptitude sources for this actor, in a curated display order:
+* class, then the actor itself, then equips, then states, then anything else.
 * This is typed as {@link RPG_Base}, but can yield many of its subclasses.
-* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_Weapon|RPG_Armor|RPG_Skill|RPG_State)[]}
+* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_Weapon|RPG_Armor|RPG_State)[]}
 */
 Game_Actor.prototype.getAptitudeSources = function() {
-	return this.getAllNotes().filter((obj) => obj.isSkill() === false);
+	const sources = this.getAllNotes().filter((obj) => obj.isSkill() === false);
+	const classes = sources.filter((obj) => obj.isClass());
+	const actors = sources.filter((obj) => obj.isActor());
+	const equips = sources.filter((obj) => obj.isEquipItem());
+	const states = sources.filter((obj) => obj.isState());
+	const known = new Set([
+		...classes,
+		...actors,
+		...equips,
+		...states
+	]);
+	const others = sources.filter((obj) => known.has(obj) === false);
+	return [
+		...classes,
+		...actors,
+		...equips,
+		...states,
+		...others
+	];
 };
 /**
 * Gets whether or not this actor has the aptitude skill registered.
@@ -962,10 +1086,15 @@ var ApManager = class {
 	*/
 	static gainAp(actor, amount, cause = "victory") {
 		if (this.canGainAp(actor, amount) === false) return;
+		let scaledAmount = amount;
+		if (actor.apr) {
+			scaledAmount = Math.round(amount * actor.apr);
+		}
+		if (scaledAmount === 0) return;
 		const teachableSources = this.activeTeachables(actor);
 		teachableSources.forEach((source) => {
 			const { key, teachables } = source;
-			this.applyApToSource(actor, key, teachables, amount, cause);
+			this.applyApToSource(actor, key, teachables, scaledAmount, cause);
 		});
 	}
 	/**
@@ -1018,7 +1147,7 @@ var ApManager = class {
 	}
 	/**
 	* Resolves a `sourceKey` into a database object (ignores actor state).
-	* @param {string} sourceKey
+	* @param {string} sourceKey The source key driving this step.
 	* @returns {RPG_Actor|RPG_Class|RPG_Skill|RPG_Weapon|RPG_Armor|RPG_State|RPG_Item|null}
 	*/
 	static resolveStaticSourceByKey(sourceKey) {
@@ -1131,6 +1260,7 @@ var ApManager = class {
 				aptitudeProgress.initializeLearning(skillId, requiredAp, 0);
 			}
 			const aptitudeLearning = aptitudeProgress.learningBySkillId(skillId);
+			aptitudeLearning.setRequiredAp(requiredAp);
 			const before = aptitudeLearning.currentAp;
 			const unclamped = before + amount;
 			const after = Math.max(0, Math.min(unclamped, requiredAp));
@@ -1138,6 +1268,29 @@ var ApManager = class {
 			if (aptitudeLearning.isLearned()) {
 				this.#resolveLearn(actor, sourceKey, skillId, cause);
 			}
+		});
+	}
+	/**
+	* Re-syncs the requiredAp on every persisted aptitude learning for this actor to
+	* match the current live notetag values on their sources.
+	*
+	* Normal AP gain only re-syncs a learning's requiredAp the next time that specific
+	* source actually grants AP (see {@link ApManager.applyApToSource}), so a save that
+	* started a learning before a notetag was retuned would otherwise be stuck honoring
+	* the stale value forever. Use this to repair such a save after tuning notetags
+	* mid-playtest, without needing to grind AP to touch every learning again.
+	* @param {Game_Actor} actor The actor to refresh aptitude requirements for.
+	*/
+	static refreshRequiredAp(actor) {
+		const progresses = actor.getAllAptitudeProgresses();
+		Object.entries(progresses).forEach(([sourceKey, progress]) => {
+			const source = this.resolveStaticSourceByKey(sourceKey);
+			if (!source) return;
+			const teachables = source.aptitudeTeachings;
+			teachables.forEach((teachable) => {
+				if (progress.hasLearning(teachable.skillId) === false) return;
+				progress.learningBySkillId(teachable.skillId).setRequiredAp(teachable.requiredAp);
+			});
 		});
 	}
 	/**
@@ -1153,6 +1306,59 @@ var ApManager = class {
 			actor.learnSkill(skillId);
 		}
 	}
+};
+
+//#endregion
+//#region src/plugins/apt/core/managers/TextManager.js
+/**
+* Display label for aptitude rate — bonus multiplier on aptitude point gains.
+* @returns {string}
+*/
+TextManager.aptRate = function() {
+	return "Aptitude UP";
+};
+/**
+* Help text explaining how aptitude rate accelerates skill mastery tracks.
+* @returns {string[]}
+*/
+TextManager.aptRateDescription = function() {
+	return ["Bonus multiplier applied to aptitude point gains.", "Higher values accelerate skill mastery through aptitude tracks."];
+};
+
+//#endregion
+//#region src/plugins/apt/core/managers/IconManager.js
+/**
+* Icon index for aptitude rate bonus in parameter and CMS displays.
+* @returns {number}
+*/
+IconManager.aptRate = function() {
+	return 79;
+};
+
+//#endregion
+//#region src/plugins/apt/core/core/registerAptParameters.js
+/**
+* Boot-time registration for J-Aptitude parameters in {@link ParameterRegistry}.
+*/
+var AptParameterRegistration = class {
+	/**
+	* Registers aptitude point gain multiplier with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("apr").group(ParameterGroups.FATE).sortOrder(7).label(() => TextManager.aptRate()).description(() => TextManager.aptRateDescription()).iconIndex(() => IconManager.aptRate()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.apr).sdpBinding(SdpParameterBinding.byKey("apr", () => 1)).build());
+	}
+};
+
+//#endregion
+//#region src/plugins/apt/core/scenes/Scene_Boot.js
+/**
+* Extends {@link #onDatabaseLoaded}.<br/>
+* Registers J-Aptitude stats with the parameter catalog after vanilla seeding.
+*/
+J.APT.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
+Scene_Boot.prototype.onDatabaseLoaded = function() {
+	J.APT.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	AptParameterRegistration.registerAll();
 };
 
 //#endregion
@@ -1217,8 +1423,17 @@ if (J.ABS) {
 	J.APT.Aliased.JABS_Engine.set("gainBasicRewards", JABS_Engine.prototype.gainBasicRewards);
 	JABS_Engine.prototype.gainBasicRewards = function(enemy, actor) {
 		J.APT.Aliased.JABS_Engine.get("gainBasicRewards").call(this, enemy, actor);
-		const ap = enemy.apPoints();
+		const ap = this.determineApGained(enemy);
 		this.gainAptitudeReward(ap, actor, enemy);
+	};
+	/**
+	* Determines how many AP the defeated enemy yielded before per-member level scaling.
+	* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
+	* @returns {number} The base AP gained.
+	*/
+	JABS_Engine.prototype.determineApGained = function(defeatedEnemy) {
+		if (this.canGainReward(defeatedEnemy, null) === false) return 0;
+		return defeatedEnemy.apPoints();
 	};
 	/**
 	* Gains AP from battle rewards.
@@ -1244,7 +1459,7 @@ if (J.ABS) {
 	* @returns {boolean} True if the actor can gain AP, false otherwise.
 	*/
 	JABS_Engine.prototype.canGainAptitudeReward = function(actor, enemy) {
-		if (J.LEVEL && J.LEVEL.Metadata.enabled && J.APT.Metadata.usingLevelThresholdLimit === true) {
+		if (J.LEVEL && $gameSystem.isLevelScalingEnabled() && J.APT.Metadata.usingLevelThresholdLimit === true) {
 			const levelDifference = actor.level - enemy.level;
 			if (levelDifference > J.APT.Metadata.maxLevelThreshold) return false;
 		}
@@ -1576,6 +1791,7 @@ var Window_AptitudeAggregateDetails = class extends Window_Base {
 	setActor(actor) {
 		if (this.actor() === actor) return;
 		this._actor = actor;
+		this._aggregate = null;
 		this.refresh();
 	}
 	/**
@@ -2362,7 +2578,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		const containerX = Math.floor((Graphics.boxWidth - containerW) / 2);
 		const x = containerX;
 		const y = 0;
-		const w = Math.floor(containerW * .25);
+		const w = Math.floor(containerW * this.listColumnWidthPercent());
 		const height = 36 * 3;
 		return new Rectangle(x, y, w, height);
 	}
@@ -2383,9 +2599,9 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		win.setAggregates(this.aggregates());
 		win.setHandler("ok", this.onListOk.bind(this));
 		win.setHandler("cancel", this.popScene.bind(this));
-		win.setHandler("more", this.toggleViewMode.bind(this));
-		win.setHandler("pageup", this.onCycleActorLeft.bind(this));
-		win.setHandler("pagedown", this.onCycleActorRight.bind(this));
+		win.setHandler("context", this.toggleViewMode.bind(this));
+		win.setHandler("actor-prev", this.onCycleActorLeft.bind(this));
+		win.setHandler("actor-next", this.onCycleActorRight.bind(this));
 		this._j._aptitude._windows._aggregateList = win;
 		this.addWindow(win);
 	}
@@ -2399,7 +2615,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		const { y: ribbonY, height: ribbonHeight } = this.aptitudeRibbonRect();
 		const wy = ribbonY + ribbonHeight;
 		const wh = Graphics.boxHeight - ribbonHeight;
-		const listW = Math.floor(containerW * .25);
+		const listW = Math.floor(containerW * this.listColumnWidthPercent());
 		return new Rectangle(containerX, wy, listW, wh);
 	}
 	/**
@@ -2419,9 +2635,9 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		win.setSources(this.sources());
 		win.setHandler("ok", this.onListOk.bind(this));
 		win.setHandler("cancel", this.popScene.bind(this));
-		win.setHandler("more", this.toggleViewMode.bind(this));
-		win.setHandler("pageup", this.onCycleActorLeft.bind(this));
-		win.setHandler("pagedown", this.onCycleActorRight.bind(this));
+		win.setHandler("context", this.toggleViewMode.bind(this));
+		win.setHandler("actor-prev", this.onCycleActorLeft.bind(this));
+		win.setHandler("actor-next", this.onCycleActorRight.bind(this));
 		win.hide();
 		win.deactivate();
 		this._j._aptitude._windows._sourceList = win;
@@ -2460,7 +2676,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		const containerX = Math.floor((Graphics.boxWidth - containerW) / 2);
 		const wy = this.mainAreaTop();
 		const wh = Graphics.boxHeight;
-		const listW = Math.floor(containerW * .25);
+		const listW = Math.floor(containerW * this.listColumnWidthPercent());
 		const detailsW = containerW - listW;
 		const dx = containerX + listW;
 		return new Rectangle(dx, wy, detailsW, wh);
@@ -2499,6 +2715,15 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	}
 	containerWidthPercent() {
 		return .9;
+	}
+	/**
+	* The percentage of the container width allotted to the list column (and, by
+	* extension, the ribbon above it). Widened from the original 0.25 so that long
+	* skill/source names and their right-aligned AP counts don't collide.
+	* @returns {number}
+	*/
+	listColumnWidthPercent() {
+		return .32;
 	}
 	containerHeightPercent() {
 		return .8;
@@ -2791,6 +3016,21 @@ PluginManager.registerCommand(J.APT.Metadata.name, "mod-ap-all", ({ points }) =>
 PluginManager.registerCommand(J.APT.Metadata.name, "mod-ap", ({ actorId, points }) => {
 	const actor = $gameActors.actor(parseInt(actorId));
 	ApManager.gainAp(actor, parseInt(points), "plugin-command");
+});
+/**
+* Plugin command for re-syncing persisted aptitude requiredAp values against
+* current notetags, for all party members.
+*/
+PluginManager.registerCommand(J.APT.Metadata.name, "refresh-required-ap-all", () => {
+	$gameParty.members().forEach((actor) => ApManager.refreshRequiredAp(actor));
+});
+/**
+* Plugin command for re-syncing persisted aptitude requiredAp values against
+* current notetags, for a specific actor.
+*/
+PluginManager.registerCommand(J.APT.Metadata.name, "refresh-required-ap", ({ actorId }) => {
+	const actor = $gameActors.actor(parseInt(actorId));
+	ApManager.refreshRequiredAp(actor);
 });
 
 //#endregion

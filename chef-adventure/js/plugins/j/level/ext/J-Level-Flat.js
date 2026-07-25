@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 LEVEL-FLAT] Flat per-level thresholds and map-based kill experience.
+ * @plugindesc [v1.0.1 LEVEL-FLAT] Flat per-level thresholds and map-based kill experience.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -172,6 +172,12 @@
   ]
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own. Everything here is tuned entirely
+ * through the plugin parameters below (Exp Required Per Level, Exp Policy
+ * Multiplier) and the level-difference table above- there's nothing to tag
+ * on individual database objects.
+ * ============================================================================
  * NOTE ABOUT EXR:
  * Party members still apply their experience rate (exr) when the engine
  * actually grants EXP. This plugin does not fold exr into the policy number;
@@ -208,6 +214,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Flat experience gain now consults the shared reward-policy gate
+ *    (canGainReward), so inanimate enemies grant none.
+ *    Reads $gameSystem.isLevelScalingEnabled() instead of the static
+ *    J.LEVEL.Metadata.enabled flag.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -285,7 +296,7 @@ J.LEVEL.EXT.FLAT = {};
 /**
 * The metadata associated with this plugin.
 */
-J.LEVEL.EXT.FLAT.Metadata = new JLevelMasterFlat_PluginMetadata("J-LEVEL-Flat", "1.0.0");
+J.LEVEL.EXT.FLAT.Metadata = new JLevelMasterFlat_PluginMetadata("J-LEVEL-Flat", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -481,7 +492,7 @@ var ExperienceManager = class {
 //#endregion
 //#region src/plugins/level/ext/flat/objects/Game_Actor.js
 /**
-* Overrides {@link #expForLevel}.<br/>
+* Overwrites {@link #expForLevel}.<br/>
 * Uses the flat-experience formula.
 * @param {number} level The level to calculate the experience for.
 * @returns {number}
@@ -500,7 +511,7 @@ Game_Actor.prototype.expForLevel = function(level) {
 */
 J.LEVEL.EXT.FLAT.Aliased.Game_Troop.set("expTotal", Game_Troop.prototype.expTotal);
 Game_Troop.prototype.expTotal = function() {
-	if (J.LEVEL.Metadata.enabled) {
+	if ($gameSystem.isLevelScalingEnabled()) {
 		return this.getFlatExpResult();
 	} else {
 		return J.LEVEL.EXT.FLAT.Aliased.Game_Troop.get("expTotal").call(this);
@@ -526,12 +537,13 @@ Game_Troop.prototype.getFlatExpResult = function() {
 //#region src/plugins/level/ext/flat/managers/JABS_Engine.js
 if (J.ABS) {
 	/**
-	* Overrides {@link #determineExperienceGained}.<br/>
+	* Overwrites {@link #determineExperienceGained}.<br/>
 	* Replaces with the flat-experience logic.
 	* @param {Game_Enemy} defeatedEnemy The enemy that was defeated.
 	* @param {Game_Actor} victoriousActor The actor that defeated the enemy.
 	*/
 	JABS_Engine.prototype.determineExperienceGained = function(defeatedEnemy, victoriousActor) {
+		if (this.canGainReward(defeatedEnemy, victoriousActor) === false) return 0;
 		const baseExperience = ExperienceManager.calculateRewardFromLevelDifference(victoriousActor.level, defeatedEnemy.level);
 		const withBonusExperience = defeatedEnemy.exp() + baseExperience;
 		return withBonusExperience;

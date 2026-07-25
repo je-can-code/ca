@@ -37,6 +37,9 @@
  * that plugin go through the same Game_Battler hooks and get popups for free.
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own.
+ * ============================================================================
  * CHANGELOG:
  * - 1.0.1
  *    Cost and on-map resource gain popups route through strike merge when J-Popups-ABS is active (`routeStrikePop`).

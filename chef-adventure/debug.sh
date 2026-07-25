@@ -1,1 +1,0 @@
-../../../utilities/nwjs/nw ./ "test" &>/dev/null &

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 TIMING] Enable modifying cooldowns/casting for actions.
+ * [v1.0.3 TIMING] Enable modifying cooldowns/casting for actions.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -200,23 +200,29 @@
  * - States
  *
  * TAG FORMAT:
- *  <baseCastSpeed:[FORMULA]>
- *  <castSpeedFlat:[FORMULA]>
+ *  <baseCastTime:[FORMULA]>
+ *  <castTimeFlat:[FORMULA]>
  *  <castSpeedRate:[FORMULA]>
- * Where [FORMULA] is the formula to produce the fast cooldown value.
+ * Where [FORMULA] is the formula to produce the cast speed value.
  *
  * EXAMPLE:
- *  <baseCastSpeed:[3]>
+ *  <baseCastTime:[3]>
  * Base cast speed will be set to +3 frames.
  *
- *  <castSpeedFlat:[(a.level * 2) * -1]>
+ *  <castTimeFlat:[(a.level * 2) * -1]>
  * All cast times are reduced by 2 frames per level.
  *
  *  <castSpeedRate:[b * -5]>
- * All cast times will be reduced by 5% per point of base fast cooldown.
+ * All cast times will be reduced by 5% per point of base casting speed.
  * (not a practical formula, but demonstrating use)
  * ==============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Fixed <castSpeedRate> actually matching <castTimePercent:...> instead
+ *    of its own documented tag name, so it never worked as documented.
+ *    Fixed updateCastSpeedRate reading castSpeedFlat() instead of
+ *    castSpeedRate(), feeding the rate modifier the wrong source value.
+ *    Corrected stale doc text for <baseCastTime>/<castTimeFlat>.
  * - 1.0.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
@@ -269,7 +275,7 @@ var J_TimingPluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Maps cast/cooldown tuning from plugin parameters.
 	*/
 	postInitialize() {
@@ -307,12 +313,12 @@ var J_TimingPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/timing/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -325,7 +331,7 @@ J.ABS.EXT.TIMING = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.TIMING.Metadata = new J_TimingPluginMetadata("J-ABS-Timing", "1.0.2");
+J.ABS.EXT.TIMING.Metadata = new J_TimingPluginMetadata("J-ABS-Timing", "1.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -342,7 +348,7 @@ J.ABS.EXT.TIMING.Aliased = {
 J.ABS.EXT.TIMING.RegExp = {
 	BaseCastSpeed: /<baseCastTime:\[([+\-*/ ().\w]+)]>/gi,
 	CastSpeedFlat: /<castTimeFlat:\[([+\-*/ ().\w]+)]>/gi,
-	CastSpeedRate: /<castTimePercent:\[([+\-*/ ().\w]+)]>/gi,
+	CastSpeedRate: /<castSpeedRate:\[([+\-*/ ().\w]+)]>/gi,
 	BaseFastCooldown: /<baseFastCooldown:\[([+\-*/ ().\w]+)]>/gi,
 	FastCooldownFlat: /<fastCooldownFlat:\[([+\-*/ ().\w]+)]>/gi,
 	FastCooldownRate: /<fastCooldownRate:\[([+\-*/ ().\w]+)]>/gi
@@ -351,7 +357,7 @@ J.ABS.EXT.TIMING.RegExp = {
 //#endregion
 //#region src/plugins/abs/ext/timing/_models/JABS_Action.js
 /**
-* Extends {@link JABS_Action.getCastTime}.<br>
+* Extends {@link JABS_Action.getCastTime}.<br/>
 * Applies cast speed into the equation of determining cast time.
 */
 J.ABS.EXT.TIMING.Aliased.JABS_Action.set("getCastTime", JABS_Action.prototype.getCastTime);
@@ -363,7 +369,7 @@ JABS_Action.prototype.getCastTime = function() {
 	return actualCastTime;
 };
 /**
-* Extends {@link JABS_Action.getCooldown}.<br>
+* Extends {@link JABS_Action.getCooldown}.<br/>
 * Applies fast cooldown into the equation of determining cooldown time.
 */
 J.ABS.EXT.TIMING.Aliased.JABS_Action.set("getCooldown", JABS_Action.prototype.getCooldown);
@@ -555,7 +561,7 @@ Game_Battler.prototype.setCastSpeedRate = function(amount) {
 * Updates the cached cast speed rate value with the latest.
 */
 Game_Battler.prototype.updateCastSpeedRate = function() {
-	const currentCastSpeedRate = this.castSpeedFlat();
+	const currentCastSpeedRate = this.castSpeedRate();
 	this.setCastSpeedRate(currentCastSpeedRate);
 };
 /**

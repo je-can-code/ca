@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.2.1 MESSAGE] Gives access to more message window functionality.
+ * @plugindesc [v1.3.0 MESSAGE] Gives access to more message window functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -44,10 +44,15 @@
  *  From mine other plugins:
  *  \sdp[SDP_KEY]
  *  \quest[QUEST_KEY]
+ *  \param[PARAM_KEY]
  *
  * Where ID is the id of the entry in the database.
  * Where SDP_KEY is the key of the panel.
  * Where QUEST_KEY is the key of the quest.
+ * Where PARAM_KEY is a registered J-Base ParameterRegistry key (e.g. "atk", "mcr", "hcr").
+ * An unrecognized PARAM_KEY renders as an unmistakable "!!! UNKNOWN PARAM !!!" in red with a
+ * question-mark icon instead of failing silently- this is always an authoring mistake, never a
+ * legitimate zero/empty result.
  *
  * NEW TEXT CODES EXAMPLES:
  *  \Weapon[4]
@@ -59,6 +64,15 @@
  * The text of "\Skill[101]" will be replaced with:
  * - the icon of the skill matching id 101 in the database.
  * - the name of the skill matching id 101 in the database.
+ *
+ *  \param[atk]
+ * The text of "\param[atk]" will be replaced with:
+ * - the icon of the "atk" parameter from the ParameterRegistry.
+ * - the label of the "atk" parameter from the ParameterRegistry.
+ *
+ *  \param[typo]
+ * An unregistered key like "typo" will be replaced with a bright red
+ * "!!! UNKNOWN PARAM !!!" and a question-mark icon instead of doing nothing.
  *
  * ============================================================================
  * NEW TEXT STYLES:
@@ -126,6 +140,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Added \param[PARAM_KEY] text code, pulling name/icon/color from the
+ *    shared J-Base ParameterRegistry catalog. An unregistered key renders as
+ *    a loud red "!!! UNKNOWN PARAM !!!" instead of failing silently.
  * - 1.2.1
  *    Added helper for applying text color to fragments.
  * - 1.2.0
@@ -167,7 +185,7 @@ J.MESSAGE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.MESSAGE.Metadata = new J_MessageTextCodesPluginMetadata("J-MessageTextCodes", "1.2.1");
+J.MESSAGE.Metadata = new J_MessageTextCodesPluginMetadata("J-MessageTextCodes", "1.3.0");
 /**
 * A collection of all base aliases.
 */
@@ -414,7 +432,7 @@ Game_Event.toBasicConditional = function(commentCommand) {
 //#endregion
 //#region src/plugins/message/core/windows/Window_Base.js
 /**
-* Extends {@link #convertEscapeCharacters}.<br>
+* Extends {@link #convertEscapeCharacters}.<br/>
 * Adds handling for new text codes for various database objects.
 */
 J.MESSAGE.Aliased.Window_Base.set("convertEscapeCharacters", Window_Base.prototype.convertEscapeCharacters);
@@ -433,6 +451,7 @@ Window_Base.prototype.convertEscapeCharacters = function(text) {
 	textToModify = this.translateArmorTypeTextCode(textToModify);
 	textToModify = this.translateSkillTypeTextCode(textToModify);
 	textToModify = this.translateSdpTextCode(textToModify);
+	textToModify = this.translateParamTextCode(textToModify);
 	return J.MESSAGE.Aliased.Window_Base.get("convertEscapeCharacters").call(this, textToModify);
 };
 /**
@@ -602,6 +621,29 @@ Window_Base.prototype.translateSdpTextCode = function(text) {
 	});
 };
 /**
+* Translates the text code into the name and icon of the corresponding catalog parameter.<br/>
+* Unlike the other lookups in this file, an unresolvable key is never silently swallowed- an
+* unregistered STRING_KEY is always an authoring mistake (a typo, or a plugin whose registration
+* didn't load), so it renders as an unmistakable red "!!! UNKNOWN PARAM !!!" with a question-mark
+* icon instead of passing through untouched or vanishing quietly.
+* @param {string} text The text that has a text code in it.
+* @returns {string} The new text to parse.
+*/
+Window_Base.prototype.translateParamTextCode = function(text) {
+	return text.replace(/\\param\[([\w-]+)]/gi, (_, p1) => {
+		const parameterKey = p1 ?? String.empty;
+		if (!TextManager.hasParameter(parameterKey)) {
+			const unknownIconIndex = 93;
+			const unknownColorIndex = 18;
+			return `\\I[${unknownIconIndex}]\\C[${unknownColorIndex}]!!! UNKNOWN PARAM !!!\\C[0]`;
+		}
+		const name = TextManager.parameterLabel(parameterKey);
+		const iconIndex = IconManager.parameterIcon(parameterKey);
+		const colorIndex = ColorManager.parameterColor(parameterKey);
+		return `\\I[${iconIndex}]\\C[${colorIndex}]${name}\\C[0]`;
+	});
+};
+/**
 * Translates the text code into the name and icon of the corresponding quest.
 * @param {string} text The text that has a text code in it.
 * @returns {string} The new text to parse.
@@ -631,7 +673,7 @@ Window_ChoiceList.prototype.makeCommandList = function() {
 	this.clearChoiceMap();
 	J.MESSAGE.Aliased.Window_ChoiceList.get("makeCommandList").call(this);
 	let needsUpdate = false;
-	for (var i = this._list.length; i > -1; i--) {
+	for (let i = this._list.length; i > -1; i--) {
 		if ($gameMessage.isChoiceHidden(i)) {
 			this._list.splice(i, 1);
 			$gameMessage._choices.splice(i, 1);

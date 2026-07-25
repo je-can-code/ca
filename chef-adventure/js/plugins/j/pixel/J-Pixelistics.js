@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
+ * [v1.0.2 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -40,7 +40,17 @@
  *   src/plugins/pixel/ext/abs  — JABS bridge (loads after J-ABS + this)
  *
  * ============================================================================
+ * NOTE ABOUT NOTETAGS:
+ * This plugin has no notetags of its own- movement/collision tuning is
+ * entirely plugin-parameter driven.
+ * ============================================================================
  * CHANGELOG:
+ * - 1.0.2
+ *    Fixed a jump-in-progress being teleported to its destination on frame
+ *    one- Game_CharacterBase#update's render-coordinate snap now skips
+ *    while isJumping() so updateJump's own interpolation is not overridden.
+ *    Moved the debug-overlay sample collector from a plain J.PIXEL.Debug
+ *    object into its own PixelDebugSampler class; no functional change.
  * - 1.0.1
  *    Optional foot-touch trigger delay after map setup (plugin parameter).
  * - 1.0.0
@@ -128,7 +138,7 @@ var JPixelistics_PluginMetadata = class extends PluginMetadata {
 		super(name, version);
 	}
 	/**
-	* Extends {@link #postInitialize}.<br>
+	* Extends {@link #postInitialize}.<br/>
 	* Includes translation of plugin parameters.
 	*/
 	postInitialize() {
@@ -186,7 +196,7 @@ J.PIXEL.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.0.1");
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.0.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -212,41 +222,45 @@ J.PIXEL.Directions = {
 	UPPERLEFT: 7,
 	UPPERRIGHT: 9
 };
+
+//#endregion
+//#region src/plugins/pixel/core/_models/PixelDebugSampler.js
 /**
-* A small debug container for one-frame collision sampling traces.
-* Populated by the pixel passage helpers and consumed by Sprite_PixelCollisionOverlay.
+* One-frame collision sampling traces for the pixel collision overlay.
+* Populated by pixel passage helpers and consumed by {@link Sprite_PixelCollisionOverlay}.
 */
-J.PIXEL.Debug = {
+var PixelDebugSampler = class PixelDebugSampler {
 	/**
 	* Controls whether subcell samples are collected.
 	* Set to true only when the collision overlay is actively visible.
-	* Leave false in production to avoid per-frame object allocations in the probe loops.
 	* @type {boolean}
 	*/
-	enabled: false,
+	static enabled = false;
 	/**
 	* @type {{x:number,y:number,color:string}[]}
 	*/
-	samples: [],
+	static samples = [];
 	/**
 	* Queues a subcell sample to be drawn this frame by the overlay.
 	* @param {number} x Fractional tile x (seam-aligned).
 	* @param {number} y Fractional tile y (seam-aligned).
 	* @param {string} color A rgba color string.
 	*/
-	push(x, y, color) {
-		if (this.enabled === false) return;
-		this.samples.push({
+	static push(x, y, color) {
+		if (PixelDebugSampler.enabled === false) {
+			return;
+		}
+		PixelDebugSampler.samples.push({
 			x,
 			y,
 			color
 		});
-	},
+	}
 	/**
 	* Clears all queued samples at the end of each frame.
 	*/
-	clear() {
-		this.samples.length = 0;
+	static clear() {
+		PixelDebugSampler.samples.length = 0;
 	}
 };
 
@@ -581,7 +595,7 @@ Game_Character.pixelRepeatableMoveCommandCodes = [
 	13
 ];
 /**
-* Extends {@link processMoveCommand}.<br>
+* Extends {@link processMoveCommand}.<br/>
 * Ensures when move routes are being processed, that we adjust the x,y coordinates.
 * @param {RPG_EventListCommand} command The commands associated with this movement.
 */
@@ -654,7 +668,7 @@ Game_Character.prototype.canStartPixelRepeatMove = function(command) {
 //#endregion
 //#region src/plugins/pixel/core/objects/Game_CharacterBase.js
 /**
-* Extends {@link Game_CharacterBase.initMembers}.<br>
+* Extends {@link Game_CharacterBase.initMembers}.<br/>
 * Includes this plugin's extra properties as well.
 */
 J.PIXEL.Aliased.Game_CharacterBase.set("initMembers", Game_CharacterBase.prototype.initMembers);
@@ -919,7 +933,7 @@ Game_CharacterBase.prototype.addPositionalRecord = function(positionalRecord) {
 };
 /**
 * Gets the first-added record from the collection of coordinate tracking.
-* @returns {Point}
+* @returns {Point|null} The oldest tracked point, or null if no records exist yet.
 */
 Game_CharacterBase.prototype.oldestPositionalRecord = function() {
 	const records = this.positionalRecords();
@@ -930,7 +944,7 @@ Game_CharacterBase.prototype.oldestPositionalRecord = function() {
 };
 /**
 * Gets the last-added record from the collection of coordinate tracking.
-* @returns {Point}
+* @returns {Point|null} The most recently tracked point, or null if no records exist yet.
 */
 Game_CharacterBase.prototype.mostRecentPositionalRecord = function() {
 	const records = this.positionalRecords();
@@ -940,13 +954,13 @@ Game_CharacterBase.prototype.mostRecentPositionalRecord = function() {
 	return null;
 };
 /**
-* Extends {@link Game_CharacterBase.update}.<br>
+* Extends {@link Game_CharacterBase.update}.<br/>
 * Ensures render coordinates match logical coordinates and clears per-frame flags.
 */
 J.PIXEL.Aliased.Game_CharacterBase.set("update", Game_CharacterBase.prototype.update);
 Game_CharacterBase.prototype.update = function() {
 	J.PIXEL.Aliased.Game_CharacterBase.get("update").call(this);
-	if (this._realX !== this._x || this._realY !== this._y) {
+	if ((this._realX !== this._x || this._realY !== this._y) && !this.isJumping()) {
 		this._realX = this._x;
 		this._realY = this._y;
 	}
@@ -1150,9 +1164,6 @@ Game_CharacterBase.prototype.moveStraightDistance = function(direction, pixelDis
 		case J.PIXEL.Directions.UP:
 			this.moveStraight8Up(pixelDistance);
 			break;
-		default:
-			console.warn("attempted to move an invalid straight direction: ", direction);
-			break;
 	}
 };
 /**
@@ -1173,9 +1184,6 @@ Game_CharacterBase.prototype.moveDiagonalDistance = function(direction, pixelDis
 			break;
 		case J.PIXEL.Directions.UPPERRIGHT:
 			this.moveDiagonal9UpRight(pixelDistance);
-			break;
-		default:
-			console.warn("attempted to move an invalid diagonal direction: ", direction);
 			break;
 	}
 };
@@ -1341,7 +1349,7 @@ Game_CharacterBase.prototype.isOverlappingSolidTiles = function(px, py, radius) 
 	return false;
 };
 /**
-* Extends {@link Game_CharacterBase.canPass}.<br>
+* Extends {@link Game_CharacterBase.canPass}.<br/>
 * Rounds fractional pixel coordinates to the nearest tile integer before delegating
 * to the tile-based passability check. With pixel movement, `_x`/`_y` are fractional;
 * the base RMMZ method uses them as array indices, so non-integer inputs produce
@@ -1356,7 +1364,7 @@ Game_CharacterBase.prototype.canPass = function(x, y, d) {
 	return J.PIXEL.Aliased.Game_CharacterBase.get("canPass").call(this, Math.round(x), Math.round(y), d);
 };
 /**
-* Extends {@link Game_CharacterBase#regionId}.<br>
+* Extends {@link Game_CharacterBase#regionId}.<br/>
 * Samples the map region at the character's collision pivot tile. With pixel movement,
 * `_x`/`_y` are fractional; vanilla forwards them into {@link Game_Map#tileId}, which
 * indexes `$dataMap.data` and returns wrong regions when coordinates are not integers.
@@ -1384,7 +1392,7 @@ Game_CharacterBase.prototype.moveStraight = function(direction) {
 	}
 };
 /**
-* Extends {@link Game_CharacterBase.moveDiagonally}.<br>
+* Extends {@link Game_CharacterBase.moveDiagonally}.<br/>
 * Evaluates pixel-aware diagonal passability and executes pixel-distance movement.
 * Direction is updated unconditionally (matching rmmz default behavior) so that
 * a blocked diagonal step still rotates the character away from a wall.
@@ -1448,7 +1456,6 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction) {
 				return J.PIXEL.Directions.UP;
 			}
 		}
-		return 0;
 	};
 	const diagonalFallback = (preferHorzDir, preferVertDir, chooseHorizontalPredicate) => {
 		if (chooseHorizontalPredicate()) {
@@ -1531,9 +1538,6 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction) {
 				innerDirection = J.PIXEL.Directions.UP;
 				return innerDirection;
 			}
-			default: {
-				return 0;
-			}
 		}
 	};
 	const tryWallSlide = (blockedDir) => {
@@ -1590,9 +1594,6 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction) {
 			case J.PIXEL.Directions.RIGHT: {
 				if (canRight()) return doStraightMove(J.PIXEL.Directions.RIGHT);
 				return tryWallSlide(J.PIXEL.Directions.RIGHT);
-			}
-			default: {
-				return 0;
 			}
 		}
 	};
@@ -2017,8 +2018,8 @@ Game_CharacterBase.prototype._pixelCheckLeftPassage = function(x, y, xDest, hb, 
 	const destColX = destLeftIdx / count;
 	for (let row = firstRowIdx; row <= lastRowIdx; row++) {
 		const ny = row / count;
-		J.PIXEL.Debug.push(curColX, ny, "rgba(255, 255, 0, 0.6)");
-		J.PIXEL.Debug.push(destColX, ny, "rgba(0, 255, 255, 0.6)");
+		PixelDebugSampler.push(curColX, ny, "rgba(255, 255, 0, 0.6)");
+		PixelDebugSampler.push(destColX, ny, "rgba(0, 255, 255, 0.6)");
 		if (this._pixelIsPositionPassable(curColX, ny, J.PIXEL.Directions.LEFT) === false) return false;
 		if (this._pixelIsPositionPassable(destColX, ny, J.PIXEL.Directions.RIGHT) === false) return false;
 	}
@@ -2051,8 +2052,8 @@ Game_CharacterBase.prototype._pixelCheckRightPassage = function(x, y, xDest, hb,
 	const destColX = destRightIdx / count;
 	for (let row = firstRowIdx; row <= lastRowIdx; row++) {
 		const ny = row / count;
-		J.PIXEL.Debug.push(curColX, ny, "rgba(255, 255, 0, 0.6)");
-		J.PIXEL.Debug.push(destColX, ny, "rgba(0, 255, 255, 0.6)");
+		PixelDebugSampler.push(curColX, ny, "rgba(255, 255, 0, 0.6)");
+		PixelDebugSampler.push(destColX, ny, "rgba(0, 255, 255, 0.6)");
 		if (this._pixelIsPositionPassable(curColX, ny, J.PIXEL.Directions.RIGHT) === false) return false;
 		if (this._pixelIsPositionPassable(destColX, ny, J.PIXEL.Directions.LEFT) === false) return false;
 	}
@@ -2085,8 +2086,8 @@ Game_CharacterBase.prototype._pixelCheckUpPassage = function(x, y, yDest, hb, co
 	const destRowY = destTopIdx / count;
 	for (let col = firstColIdx; col <= lastColIdx; col++) {
 		const nx = col / count;
-		J.PIXEL.Debug.push(nx, curRowY, "rgba(255, 255, 0, 0.6)");
-		J.PIXEL.Debug.push(nx, destRowY, "rgba(0, 255, 255, 0.6)");
+		PixelDebugSampler.push(nx, curRowY, "rgba(255, 255, 0, 0.6)");
+		PixelDebugSampler.push(nx, destRowY, "rgba(0, 255, 255, 0.6)");
 		if (this._pixelIsPositionPassable(nx, curRowY, J.PIXEL.Directions.UP) === false) return false;
 		if (this._pixelIsPositionPassable(nx, destRowY, J.PIXEL.Directions.DOWN) === false) return false;
 	}
@@ -2119,8 +2120,8 @@ Game_CharacterBase.prototype._pixelCheckDownPassage = function(x, y, yDest, hb, 
 	const destRowY = destBottomIdx / count;
 	for (let col = firstColIdx; col <= lastColIdx; col++) {
 		const nx = col / count;
-		J.PIXEL.Debug.push(nx, curRowY, "rgba(255, 255, 0, 0.6)");
-		J.PIXEL.Debug.push(nx, destRowY, "rgba(0, 255, 255, 0.6)");
+		PixelDebugSampler.push(nx, curRowY, "rgba(255, 255, 0, 0.6)");
+		PixelDebugSampler.push(nx, destRowY, "rgba(0, 255, 255, 0.6)");
 		if (this._pixelIsPositionPassable(nx, curRowY, J.PIXEL.Directions.DOWN) === false) return false;
 		if (this._pixelIsPositionPassable(nx, destRowY, J.PIXEL.Directions.UP) === false) return false;
 	}
@@ -2155,7 +2156,7 @@ Game_CharacterBase.prototype._pixelCheckVerticalAtNewXColumn = function(xCurrent
 	const lastRowIdx = Math.floor((py + hb.hy + hb.h) * count - eps);
 	for (let row = firstRowIdx; row <= lastRowIdx; row++) {
 		const ny = row / count;
-		J.PIXEL.Debug.push(columnX, ny, "rgba(0, 128, 255, 0.6)");
+		PixelDebugSampler.push(columnX, ny, "rgba(0, 128, 255, 0.6)");
 		const upOk = this._pixelIsPositionPassable(columnX, ny, J.PIXEL.Directions.UP);
 		const downOk = this._pixelIsPositionPassable(columnX, ny, J.PIXEL.Directions.DOWN);
 		if (upOk === false && downOk === false) return false;
@@ -2191,7 +2192,7 @@ Game_CharacterBase.prototype._pixelCheckHorizontalAtNewYRow = function(yCurrent,
 	const lastColIdx = Math.floor((px + hb.hx + hb.w) * count - eps);
 	for (let col = firstColIdx; col <= lastColIdx; col++) {
 		const nx = col / count;
-		J.PIXEL.Debug.push(nx, rowY, "rgba(0, 128, 255, 0.6)");
+		PixelDebugSampler.push(nx, rowY, "rgba(0, 128, 255, 0.6)");
 		const leftOk = this._pixelIsPositionPassable(nx, rowY, J.PIXEL.Directions.LEFT);
 		const rightOk = this._pixelIsPositionPassable(nx, rowY, J.PIXEL.Directions.RIGHT);
 		if (leftOk === false && rightOk === false) return false;
@@ -2297,7 +2298,7 @@ Game_Event.prototype.isCollidedWithEvents = function(x, y) {
 	return colliders.length > 0;
 };
 /**
-* Overrides {@link Game_CharacterBase.getCollisionPivotY}.<br>
+* Overwrites {@link Game_CharacterBase.getCollisionPivotY}.<br/>
 * Anchors NPC and enemy event collision near their feet for natural depth feel.
 * JABS action events (projectiles) are flagged as through and bypass tile collision
 * entirely, so this override does not affect them.
@@ -2404,7 +2405,7 @@ Game_Follower.prototype.moveDiagonally = function(horz, vert) {
 	J.PIXEL.Aliased.Game_Follower.get("moveDiagonally").call(this, horz, vert);
 };
 /**
-* Overrides {@link Game_CharacterBase.getCollisionPivotY}.<br>
+* Overwrites {@link Game_CharacterBase.getCollisionPivotY}.<br/>
 * Anchors the follower's collision center near their feet to match the player's
 * depth-biased collision feel. Keeps the follower train visually consistent.
 * @returns {number} The Y pivot offset in tile units.
@@ -2416,7 +2417,7 @@ Game_Follower.prototype.getCollisionPivotY = function() {
 //#endregion
 //#region src/plugins/pixel/core/objects/Game_Map.js
 /**
-* Extends {@link Game_Map.setup}.<br>
+* Extends {@link Game_Map.setup}.<br/>
 * Builds the PIXEL subcell collision table when a new map loads.
 * @param {number} mapId The id of the map to setup.
 */
@@ -2430,7 +2431,7 @@ Game_Map.prototype.setup = function(mapId) {
 //#endregion
 //#region src/plugins/pixel/core/objects/Game_Player.js
 /**
-* Overrides {@link Game_Player.checkEventTriggerHere}.<br>
+* Overwrites {@link Game_Player.checkEventTriggerHere}.<br/>
 * Includes the rounding of the x,y coordinates when checking event triggers for things beneath you.
 * @param {number[]} triggers The numeric triggers for this event.
 */
@@ -2449,7 +2450,7 @@ Game_Player.prototype.checkEventTriggerHere = function(triggers) {
 	}
 };
 /**
-* Extends {@link Game_Player.update}.<br>
+* Extends {@link Game_Player.update}.<br/>
 * Ticks down the foot-touch trigger cooldown after all movement and trigger logic for the frame.
 */
 J.PIXEL.Aliased.Game_Player.set("update", Game_Player.prototype.update);
@@ -2460,7 +2461,7 @@ Game_Player.prototype.update = function(sceneActive) {
 	}
 };
 /**
-* Overrides {@link Game_Player.checkEventTriggerThere}.<br/>
+* Overwrites {@link Game_Player.checkEventTriggerThere}.<br/>
 * Computes the front tile from the current facing using rounded base coordinates,
 * then starts map events there; if that tile is a counter, also checks one tile beyond.
 * @param {number[]} triggers The triggers associated with checking the event at the location.
@@ -2481,7 +2482,7 @@ Game_Player.prototype.checkEventTriggerThere = function(triggers) {
 	}
 };
 /**
-* Extends {@link checkEventTriggerTouch}.<br>
+* Extends {@link checkEventTriggerTouch}.<br/>
 * Handles the triggering of events by using a threshold-type formula to determine if actually touched.
 */
 J.PIXEL.Aliased.Game_Player.set("checkEventTriggerTouch", Game_Player.prototype.checkEventTriggerTouch);
@@ -2495,7 +2496,7 @@ Game_Player.prototype.checkEventTriggerTouch = function(x, y) {
 	return false;
 };
 /**
-* Overrides {@link Game_Player.checkEventTriggerTouchFront}.<br/>
+* Overwrites {@link Game_Player.checkEventTriggerTouchFront}.<br/>
 * Computes the front tile from the current facing using rounded base coordinates,
 * checks for touch triggers there via PIXEL threshold logic, and if the front tile
 * is a counter, also checks the tile beyond.
@@ -2606,7 +2607,7 @@ Game_Player.prototype.dir8ToAngle = function(dir8) {
 	}
 };
 /**
-* Overrides {@link Game_Player.moveByInput}.<br>
+* Overwrites {@link Game_Player.moveByInput}.<br/>
 * The meat and potatoes for pixel movement of the player.
 * Handles keyboard/gamepad directional input and click-to-move via destination coordinates.
 */
@@ -2693,7 +2694,7 @@ Game_Player.prototype.pixelMoveTowardDestination = function() {
 	}
 };
 /**
-* Extends {@link #onStep}.<br>
+* Extends {@link #onStep}.<br/>
 * Also processes on-step effects for the player.
 */
 J.PIXEL.Aliased.Game_Player.set("onStep", Game_Player.prototype.onStep);
@@ -2735,7 +2736,7 @@ Game_Player.prototype.stopFollowersPixelMoving = function() {
 	});
 };
 /**
-* Overrides {@link Game_CharacterBase.getCollisionPivotY}.<br>
+* Overwrites {@link Game_CharacterBase.getCollisionPivotY}.<br/>
 * Anchors the player's collision center near their feet rather than the tile center.
 * This gives the implied top-down perspective its natural depth feel: the player can
 * slide closer to objects from below (approaching northward) and is gently blocked
@@ -2752,235 +2753,240 @@ Game_Player.prototype.getCollisionPivotY = function() {
 * A sprite that visualizes the PIXEL subcell collision table and the player's hitbox.
 * Draws only the currently visible subcells for performance.
 */
-function Sprite_PixelCollisionOverlay() {
-	this.initialize(...arguments);
-}
-Sprite_PixelCollisionOverlay.prototype = Object.create(Sprite.prototype);
-Sprite_PixelCollisionOverlay.prototype.constructor = Sprite_PixelCollisionOverlay;
-/**
-* Initializes the overlay's bitmap and configuration.
-*/
-Sprite_PixelCollisionOverlay.prototype.initialize = function() {
-	Sprite.prototype.initialize.call(this);
-	this.bitmap = new Bitmap(Graphics.width, Graphics.height);
-	this.z = 10;
-	this.bitmap.smooth = false;
-	this._throttle = 0;
-	this._lastDisplayX = -9999;
-	this._lastDisplayY = -9999;
-	this._lastPlayerX = -9999;
-	this._lastPlayerY = -9999;
-	this._showGridLines = true;
-	this.opacity = 180;
-};
-/**
-* Updates the overlay each frame.
-*/
-Sprite_PixelCollisionOverlay.prototype.update = function() {
-	Sprite.prototype.update.call(this);
-	if (this.visible === false) return;
-	if (!$gameMap || !$dataMap) {
-		return;
+var Sprite_PixelCollisionOverlay = class extends Sprite {
+	/**
+	* Constructor.
+	* @param {...*} args Forwarded to {@link #initialize}.
+	*/
+	constructor(...args) {
+		super();
+		this.initialize(...args);
 	}
-	const tw = $gameMap.tileWidth();
-	const th = $gameMap.tileHeight();
-	const dx = $gameMap.displayX();
-	const dy = $gameMap.displayY();
-	this.x = -Math.floor(dx * tw);
-	this.y = -Math.floor(dy * th);
-	this._throttle++;
-	const needThrottleRedraw = this._throttle % 6 === 0;
-	const cameraMoved = dx !== this._lastDisplayX || dy !== this._lastDisplayY;
-	const player = $gamePlayer;
-	const playerMoved = player && (player.x !== this._lastPlayerX || player.y !== this._lastPlayerY);
-	if (!needThrottleRedraw && cameraMoved === false && playerMoved === false) {
-		return;
+	/**
+	* Initializes the overlay's bitmap and configuration.
+	*/
+	initialize() {
+		super.initialize();
+		this.bitmap = new Bitmap(Graphics.width, Graphics.height);
+		this.z = 10;
+		this.bitmap.smooth = false;
+		this._throttle = 0;
+		this._lastDisplayX = -9999;
+		this._lastDisplayY = -9999;
+		this._lastPlayerX = -9999;
+		this._lastPlayerY = -9999;
+		this._showGridLines = true;
+		this.opacity = 180;
 	}
-	this._lastDisplayX = dx;
-	this._lastDisplayY = dy;
-	if (player) {
-		this._lastPlayerX = player.x;
-		this._lastPlayerY = player.y;
+	/**
+	* Updates the overlay each frame.
+	*/
+	update() {
+		super.update();
+		if (this.visible === false) return;
+		if (!$gameMap || !$dataMap) {
+			return;
+		}
+		const tw = $gameMap.tileWidth();
+		const th = $gameMap.tileHeight();
+		const dx = $gameMap.displayX();
+		const dy = $gameMap.displayY();
+		this.x = -Math.floor(dx * tw);
+		this.y = -Math.floor(dy * th);
+		this._throttle++;
+		const needThrottleRedraw = this._throttle % 6 === 0;
+		const cameraMoved = dx !== this._lastDisplayX || dy !== this._lastDisplayY;
+		const player = $gamePlayer;
+		const playerMoved = player && (player.x !== this._lastPlayerX || player.y !== this._lastPlayerY);
+		if (!needThrottleRedraw && cameraMoved === false && playerMoved === false) {
+			return;
+		}
+		this._lastDisplayX = dx;
+		this._lastDisplayY = dy;
+		if (player) {
+			this._lastPlayerX = player.x;
+			this._lastPlayerY = player.y;
+		}
+		this.redrawVisibleRegion();
 	}
-	this.redrawVisibleRegion();
-};
-/**
-* Redraws the bitmap for the currently visible region of the map.
-*/
-Sprite_PixelCollisionOverlay.prototype.redrawVisibleRegion = function() {
-	this.bitmap.clear();
-	if (PIXEL_CollisionManager.collisionStepCount === undefined) {
-		PIXEL_CollisionManager.initConfig();
-	}
-	const stepCount = PIXEL_CollisionManager.collisionStepCount;
-	const subSizeX = $gameMap.tileWidth() / stepCount;
-	const subSizeY = $gameMap.tileHeight() / stepCount;
-	const tw = $gameMap.tileWidth();
-	const th = $gameMap.tileHeight();
-	const dx = $gameMap.displayX();
-	const dy = $gameMap.displayY();
-	const tilesWide = Math.ceil(Graphics.width / tw) + 2;
-	const tilesHigh = Math.ceil(Graphics.height / th) + 2;
-	const tileStartX = Math.floor(dx);
-	const tileStartY = Math.floor(dy);
-	const tileEndX = Math.min(tileStartX + tilesWide, $gameMap.width());
-	const tileEndY = Math.min(tileStartY + tilesHigh, $gameMap.height());
-	for (let ty = tileStartY; ty < tileEndY; ty++) {
-		for (let tx = tileStartX; tx < tileEndX; tx++) {
-			for (let sy = 0; sy < stepCount; sy++) {
-				const subWorldY = ty + sy / stepCount;
-				const py = Math.floor((subWorldY - dy) * th);
-				for (let sx = 0; sx < stepCount; sx++) {
-					const subWorldX = tx + sx / stepCount;
-					const code = this._readCode(subWorldX, subWorldY);
-					const color = this._colorForCode(code);
-					if (!color) {
-						continue;
+	/**
+	* Redraws the bitmap for the currently visible region of the map.
+	*/
+	redrawVisibleRegion() {
+		this.bitmap.clear();
+		if (PIXEL_CollisionManager.collisionStepCount === undefined) {
+			PIXEL_CollisionManager.initConfig();
+		}
+		const stepCount = PIXEL_CollisionManager.collisionStepCount;
+		const subSizeX = $gameMap.tileWidth() / stepCount;
+		const subSizeY = $gameMap.tileHeight() / stepCount;
+		const tw = $gameMap.tileWidth();
+		const th = $gameMap.tileHeight();
+		const dx = $gameMap.displayX();
+		const dy = $gameMap.displayY();
+		const tilesWide = Math.ceil(Graphics.width / tw) + 2;
+		const tilesHigh = Math.ceil(Graphics.height / th) + 2;
+		const tileStartX = Math.floor(dx);
+		const tileStartY = Math.floor(dy);
+		const tileEndX = Math.min(tileStartX + tilesWide, $gameMap.width());
+		const tileEndY = Math.min(tileStartY + tilesHigh, $gameMap.height());
+		for (let ty = tileStartY; ty < tileEndY; ty++) {
+			for (let tx = tileStartX; tx < tileEndX; tx++) {
+				for (let sy = 0; sy < stepCount; sy++) {
+					const subWorldY = ty + sy / stepCount;
+					const py = Math.floor((subWorldY - dy) * th);
+					for (let sx = 0; sx < stepCount; sx++) {
+						const subWorldX = tx + sx / stepCount;
+						const code = this._readCode(subWorldX, subWorldY);
+						const color = this._colorForCode(code);
+						if (!color) {
+							continue;
+						}
+						const px = Math.floor((subWorldX - dx) * tw);
+						this.bitmap.fillRect(px, py, Math.ceil(subSizeX), Math.ceil(subSizeY), color);
 					}
-					const px = Math.floor((subWorldX - dx) * tw);
-					this.bitmap.fillRect(px, py, Math.ceil(subSizeX), Math.ceil(subSizeY), color);
 				}
 			}
 		}
+		if (this._showGridLines) {
+			this._drawGridLines(tileStartX, tileStartY, tileEndX, tileEndY, stepCount, tw, th, dx, dy);
+		}
+		this._drawPlayerHitbox();
+		this._drawSampleTraces();
+		PixelDebugSampler.clear();
 	}
-	if (this._showGridLines) {
-		this._drawGridLines(tileStartX, tileStartY, tileEndX, tileEndY, stepCount, tw, th, dx, dy);
+	/**
+	* Reads a code from the collision table for a fractional tile coordinate.
+	* @param {number} subWorldX The fractional tile x.
+	* @param {number} subWorldY The fractional tile y.
+	* @returns {number} The stored code (or Open if missing).
+	*/
+	_readCode(subWorldX, subWorldY) {
+		const idx = PIXEL_CollisionManager._index(subWorldX, subWorldY);
+		return PIXEL_CollisionManager._table[idx] || PIXEL_CollisionManager.Codes.Open;
 	}
-	this._drawPlayerHitbox();
-	this._drawSampleTraces();
-	J.PIXEL.Debug.clear();
-};
-/**
-* Reads a code from the collision table for a fractional tile coordinate.
-* @param {number} subWorldX The fractional tile x.
-* @param {number} subWorldY The fractional tile y.
-* @returns {number} The stored code (or Open if missing).
-*/
-Sprite_PixelCollisionOverlay.prototype._readCode = function(subWorldX, subWorldY) {
-	const idx = PIXEL_CollisionManager._index(subWorldX, subWorldY);
-	return PIXEL_CollisionManager._table[idx] || PIXEL_CollisionManager.Codes.Open;
-};
-/**
-* Maps collision codes to semi-transparent colors for display.
-* @param {number} code The collision code.
-* @returns {string|null} A CSS color string, or null for transparent skip.
-*/
-Sprite_PixelCollisionOverlay.prototype._colorForCode = function(code) {
-	switch (code) {
-		case PIXEL_CollisionManager.Codes.Open: return null;
-		case PIXEL_CollisionManager.Codes.Solid: return "rgba(255, 0, 0, 0.35)";
-		case PIXEL_CollisionManager.Codes.VerticalLine: return "rgba(40, 120, 255, 0.35)";
-		case PIXEL_CollisionManager.Codes.HorizontalLine: return "rgba(0, 220, 220, 0.35)";
-		case PIXEL_CollisionManager.Codes.EdgeLeft: return "rgba(255, 140, 0, 0.40)";
-		case PIXEL_CollisionManager.Codes.EdgeRight: return "rgba(255, 110, 0, 0.40)";
-		case PIXEL_CollisionManager.Codes.EdgeDown: return "rgba(220, 0, 180, 0.40)";
-		case PIXEL_CollisionManager.Codes.EdgeUp: return "rgba(180, 0, 220, 0.40)";
-		case PIXEL_CollisionManager.Codes.CornerBottomLeft:
-		case PIXEL_CollisionManager.Codes.CornerBottomRight:
-		case PIXEL_CollisionManager.Codes.CornerTopLeft:
-		case PIXEL_CollisionManager.Codes.CornerTopRight: return "rgba(255, 255, 0, 0.40)";
-		default: return "rgba(200, 200, 200, 0.25)";
-	}
-};
-/**
-* Draws faint subgrid lines to visualize seam alignment.
-* @param {number} tileStartX Start tile x.
-* @param {number} tileStartY Start tile y.
-* @param {number} tileEndX End tile x.
-* @param {number} tileEndY End tile y.
-* @param {number} stepCount Subcells per tile edge.
-* @param {number} tw Tile width in pixels.
-* @param {number} th Tile height in pixels.
-* @param {number} dx Display origin x in tiles.
-* @param {number} dy Display origin y in tiles.
-*/
-Sprite_PixelCollisionOverlay.prototype._drawGridLines = function(tileStartX, tileStartY, tileEndX, tileEndY, stepCount, tw, th, dx, dy) {
-	const tileLine = "rgba(255,255,255,0.12)";
-	const subLine = "rgba(255,255,255,0.06)";
-	const pxStart = Math.floor((tileStartX - dx) * tw);
-	const pyStart = Math.floor((tileStartY - dy) * th);
-	const pxEnd = Math.ceil((tileEndX - dx) * tw);
-	const pyEnd = Math.ceil((tileEndY - dy) * th);
-	for (let tx = tileStartX; tx <= tileEndX; tx++) {
-		const px = Math.floor((tx - dx) * tw);
-		this.bitmap.fillRect(px, pyStart, 1, pyEnd - pyStart, tileLine);
-		for (let s = 1; s < stepCount; s++) {
-			const psx = Math.floor((tx - dx) * tw + s * (tw / stepCount));
-			this.bitmap.fillRect(psx, pyStart, 1, pyEnd - pyStart, subLine);
+	/**
+	* Maps collision codes to semi-transparent colors for display.
+	* @param {number} code The collision code.
+	* @returns {string|null} A CSS color string, or null for transparent skip.
+	*/
+	_colorForCode(code) {
+		switch (code) {
+			case PIXEL_CollisionManager.Codes.Open: return null;
+			case PIXEL_CollisionManager.Codes.Solid: return "rgba(255, 0, 0, 0.35)";
+			case PIXEL_CollisionManager.Codes.VerticalLine: return "rgba(40, 120, 255, 0.35)";
+			case PIXEL_CollisionManager.Codes.HorizontalLine: return "rgba(0, 220, 220, 0.35)";
+			case PIXEL_CollisionManager.Codes.EdgeLeft: return "rgba(255, 140, 0, 0.40)";
+			case PIXEL_CollisionManager.Codes.EdgeRight: return "rgba(255, 110, 0, 0.40)";
+			case PIXEL_CollisionManager.Codes.EdgeDown: return "rgba(220, 0, 180, 0.40)";
+			case PIXEL_CollisionManager.Codes.EdgeUp: return "rgba(180, 0, 220, 0.40)";
+			case PIXEL_CollisionManager.Codes.CornerBottomLeft:
+			case PIXEL_CollisionManager.Codes.CornerBottomRight:
+			case PIXEL_CollisionManager.Codes.CornerTopLeft:
+			case PIXEL_CollisionManager.Codes.CornerTopRight: return "rgba(255, 255, 0, 0.40)";
+			default: return "rgba(200, 200, 200, 0.25)";
 		}
 	}
-	for (let ty = tileStartY; ty <= tileEndY; ty++) {
-		const py = Math.floor((ty - dy) * th);
-		this.bitmap.fillRect(pxStart, py, pxEnd - pxStart, 1, tileLine);
-		for (let s = 1; s < stepCount; s++) {
-			const psy = Math.floor((ty - dy) * th + s * (th / stepCount));
-			this.bitmap.fillRect(pxStart, psy, pxEnd - pxStart, 1, subLine);
+	/**
+	* Draws faint subgrid lines to visualize seam alignment.
+	* @param {number} tileStartX Start tile x.
+	* @param {number} tileStartY Start tile y.
+	* @param {number} tileEndX End tile x.
+	* @param {number} tileEndY End tile y.
+	* @param {number} stepCount Subcells per tile edge.
+	* @param {number} tw Tile width in pixels.
+	* @param {number} th Tile height in pixels.
+	* @param {number} dx Display origin x in tiles.
+	* @param {number} dy Display origin y in tiles.
+	*/
+	_drawGridLines(tileStartX, tileStartY, tileEndX, tileEndY, stepCount, tw, th, dx, dy) {
+		const tileLine = "rgba(255,255,255,0.12)";
+		const subLine = "rgba(255,255,255,0.06)";
+		const pxStart = Math.floor((tileStartX - dx) * tw);
+		const pyStart = Math.floor((tileStartY - dy) * th);
+		const pxEnd = Math.ceil((tileEndX - dx) * tw);
+		const pyEnd = Math.ceil((tileEndY - dy) * th);
+		for (let tx = tileStartX; tx <= tileEndX; tx++) {
+			const px = Math.floor((tx - dx) * tw);
+			this.bitmap.fillRect(px, pyStart, 1, pyEnd - pyStart, tileLine);
+			for (let s = 1; s < stepCount; s++) {
+				const psx = Math.floor((tx - dx) * tw + s * (tw / stepCount));
+				this.bitmap.fillRect(psx, pyStart, 1, pyEnd - pyStart, subLine);
+			}
+		}
+		for (let ty = tileStartY; ty <= tileEndY; ty++) {
+			const py = Math.floor((ty - dy) * th);
+			this.bitmap.fillRect(pxStart, py, pxEnd - pxStart, 1, tileLine);
+			for (let s = 1; s < stepCount; s++) {
+				const psy = Math.floor((ty - dy) * th + s * (th / stepCount));
+				this.bitmap.fillRect(pxStart, psy, pxEnd - pxStart, 1, subLine);
+			}
 		}
 	}
-};
-/**
-* Draws the player's collision hitbox rectangle over the overlay.
-*/
-Sprite_PixelCollisionOverlay.prototype._drawPlayerHitbox = function() {
-	if (!$gamePlayer) {
-		return;
+	/**
+	* Draws the player's collision hitbox rectangle over the overlay.
+	*/
+	_drawPlayerHitbox() {
+		if (!$gamePlayer) {
+			return;
+		}
+		const cx = $gamePlayer.x + $gamePlayer.getCollisionPivotX();
+		const cy = $gamePlayer.y + $gamePlayer.getCollisionPivotY();
+		const radius = $gamePlayer.getEffectiveRadius();
+		const hb = $gamePlayer._pixelHitbox(radius);
+		const left = cx + hb.hx;
+		const top = cy + hb.hy;
+		const widthTiles = hb.w;
+		const heightTiles = hb.h;
+		const tw = $gameMap.tileWidth();
+		const th = $gameMap.tileHeight();
+		const dx = $gameMap.displayX();
+		const dy = $gameMap.displayY();
+		const px = Math.floor((left - dx) * tw);
+		const py = Math.floor((top - dy) * th);
+		const pw = Math.ceil(widthTiles * tw);
+		const ph = Math.ceil(heightTiles * th);
+		this._strokeRect(px, py, pw, ph, "rgba(0, 255, 0, 0.9)");
+		const cxp = Math.floor((cx - dx) * tw);
+		const cyp = Math.floor((cy - dy) * th);
+		this.bitmap.fillRect(cxp - 2, cyp, 5, 1, "rgba(0,255,0,0.9)");
+		this.bitmap.fillRect(cxp, cyp - 2, 1, 5, "rgba(0,255,0,0.9)");
 	}
-	const cx = $gamePlayer.x + $gamePlayer.getCollisionPivotX();
-	const cy = $gamePlayer.y + $gamePlayer.getCollisionPivotY();
-	const radius = $gamePlayer.getEffectiveRadius();
-	const hb = $gamePlayer._pixelHitbox(radius);
-	const left = cx + hb.hx;
-	const top = cy + hb.hy;
-	const widthTiles = hb.w;
-	const heightTiles = hb.h;
-	const tw = $gameMap.tileWidth();
-	const th = $gameMap.tileHeight();
-	const dx = $gameMap.displayX();
-	const dy = $gameMap.displayY();
-	const px = Math.floor((left - dx) * tw);
-	const py = Math.floor((top - dy) * th);
-	const pw = Math.ceil(widthTiles * tw);
-	const ph = Math.ceil(heightTiles * th);
-	this._strokeRect(px, py, pw, ph, "rgba(0, 255, 0, 0.9)");
-	const cxp = Math.floor((cx - dx) * tw);
-	const cyp = Math.floor((cy - dy) * th);
-	this.bitmap.fillRect(cxp - 2, cyp, 5, 1, "rgba(0,255,0,0.9)");
-	this.bitmap.fillRect(cxp, cyp - 2, 1, 5, "rgba(0,255,0,0.9)");
-};
-/**
-* Draws one-frame sample traces emitted by the collision checks.
-*/
-Sprite_PixelCollisionOverlay.prototype._drawSampleTraces = function() {
-	if (!J.PIXEL.Debug) return;
-	const dbg = J.PIXEL.Debug;
-	if (!dbg.samples || dbg.samples.length === 0) return;
-	const tw = $gameMap.tileWidth();
-	const th = $gameMap.tileHeight();
-	const dx = $gameMap.displayX();
-	const dy = $gameMap.displayY();
-	if (PIXEL_CollisionManager.collisionStepCount === undefined) PIXEL_CollisionManager.initConfig();
-	const step = PIXEL_CollisionManager.collisionStepCount;
-	const subW = Math.max(2, Math.ceil(tw / step) - 1);
-	const subH = Math.max(2, Math.ceil(th / step) - 1);
-	dbg.samples.forEach((s) => {
-		const px = Math.floor((s.x - dx) * tw);
-		const py = Math.floor((s.y - dy) * th);
-		this.bitmap.fillRect(px, py, subW, subH, s.color);
-	});
-};
-/**
-* Draws a 1px rectangle stroke.
-* @param {number} x The x in pixels.
-* @param {number} y The y in pixels.
-* @param {number} w The width in pixels.
-* @param {number} h The height in pixels.
-* @param {string} color The CSS color.
-*/
-Sprite_PixelCollisionOverlay.prototype._strokeRect = function(x, y, w, h, color) {
-	this.bitmap.fillRect(x, y, w, 1, color);
-	this.bitmap.fillRect(x, y + h - 1, w, 1, color);
-	this.bitmap.fillRect(x, y, 1, h, color);
-	this.bitmap.fillRect(x + w - 1, y, 1, h, color);
+	/**
+	* Draws one-frame sample traces emitted by the collision checks.
+	*/
+	_drawSampleTraces() {
+		if (PixelDebugSampler.enabled === false) return;
+		const dbg = PixelDebugSampler;
+		if (!dbg.samples || dbg.samples.length === 0) return;
+		const tw = $gameMap.tileWidth();
+		const th = $gameMap.tileHeight();
+		const dx = $gameMap.displayX();
+		const dy = $gameMap.displayY();
+		if (PIXEL_CollisionManager.collisionStepCount === undefined) PIXEL_CollisionManager.initConfig();
+		const step = PIXEL_CollisionManager.collisionStepCount;
+		const subW = Math.max(2, Math.ceil(tw / step) - 1);
+		const subH = Math.max(2, Math.ceil(th / step) - 1);
+		dbg.samples.forEach((s) => {
+			const px = Math.floor((s.x - dx) * tw);
+			const py = Math.floor((s.y - dy) * th);
+			this.bitmap.fillRect(px, py, subW, subH, s.color);
+		});
+	}
+	/**
+	* Draws a 1px rectangle stroke.
+	* @param {number} x The x in pixels.
+	* @param {number} y The y in pixels.
+	* @param {number} w The width in pixels.
+	* @param {number} h The height in pixels.
+	* @param {string} color The CSS color.
+	*/
+	_strokeRect(x, y, w, h, color) {
+		this.bitmap.fillRect(x, y, w, 1, color);
+		this.bitmap.fillRect(x, y + h - 1, w, 1, color);
+		this.bitmap.fillRect(x, y, 1, h, color);
+		this.bitmap.fillRect(x + w - 1, y, 1, h, color);
+	}
 };
 
 //#endregion
@@ -3001,7 +3007,7 @@ Spriteset_Map.prototype.createPixelCollisionOverlay = function() {
 	this.setupPixelOverlayKeymap();
 	const initialVisibility = J.PIXEL && J.PIXEL.Metadata ? J.PIXEL.Metadata.OverlayInitiallyVisible : false;
 	this._pixelOverlayVisible = this._pixelOverlayVisible || initialVisibility;
-	J.PIXEL.Debug.enabled = this._pixelOverlayVisible;
+	PixelDebugSampler.enabled = this._pixelOverlayVisible;
 	this._pixelCollisionOverlay = new Sprite_PixelCollisionOverlay();
 	this._pixelCollisionOverlay.visible = this._pixelOverlayVisible;
 	this.addChild(this._pixelCollisionOverlay);
@@ -3027,7 +3033,7 @@ Spriteset_Map.prototype.update = function() {
 		if (this._pixelCollisionOverlay) {
 			this._pixelCollisionOverlay.visible = this._pixelOverlayVisible;
 		}
-		J.PIXEL.Debug.enabled = this._pixelOverlayVisible;
+		PixelDebugSampler.enabled = this._pixelOverlayVisible;
 	}
 };
 

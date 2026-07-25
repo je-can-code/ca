@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.0.1 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.1.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -71,13 +71,18 @@
  * NOTE:
  * Bonuses are flat bonuses that get added to the base amount, not percentage.
  *
+ * NOTE:
+ * Actors only. Enemies track their own skill proficiencies same as actors do,
+ * but the bonus-gain wiring this tag feeds into was only ever built for
+ * actors, so a <proficiencyBonus> tag on an enemy (or an enemy-applicable
+ * source) is inert- parsed by nothing, applied by nothing.
+ *
  * TAG USAGE:
  * - Actors
  * - Classes
  * - Skills
  * - Weapons
  * - Armors
- * - Enemies
  * - States
  *
  * TAG FORMAT:
@@ -146,6 +151,13 @@
  * - Decreasing the proficiency will NOT undo rewards gained.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    Registers 'p' as a formula context variable via Game_Action.registerFormulaContext.
+ *    Damage formulas can now use 'p' for skill proficiency without J-Elementalistics
+ *    needing to hardcode a J.PROF conditional block. The registration calls
+ *    this.skillProficiency() on the Game_Action instance at formula evaluation time.
+ *    Proficiency bonus (key "prof") registered with the shared parameter
+ *    catalog, given an SDP panel binding via baseSkillProficiencyAmount().
  * - 2.0.1
  *    Added flag for showing external file load info.
  *    Removed dead plugin parameters for conditionals.
@@ -292,43 +304,43 @@ var ProficiencyConditional = class {
 /**
 * A data model for saving skill usage/proficiency for battlers.
 */
-function SkillProficiency() {
-	this.initialize(...arguments);
-}
-SkillProficiency.prototype = {};
-SkillProficiency.prototype.constructor = SkillProficiency;
-/**
-* Initializes this class with the given parameters.
-*/
-SkillProficiency.prototype.initialize = function(skillId, initialProficiency = 0) {
+var SkillProficiency = class {
 	/**
-	* The skill id of the skill for this prof.
-	* @type {number}
+	* Initializes this class with the given parameters.
+	* @param {number} skillId The skill id of the skill for this prof.
+	* @param {number} [initialProficiency] The prof the owning battler bears with this skill; defaults to 0.
 	*/
-	this.skillId = skillId;
+	constructor(skillId, initialProficiency = 0) {
+		/**
+		* The skill id of the skill for this prof.
+		* @type {number}
+		*/
+		this.skillId = skillId;
+		/**
+		* The prof the owning battler bears with this skill.
+		* @type {number}
+		*/
+		this.proficiency = initialProficiency;
+	}
 	/**
-	* The prof the owning battler bears with this skill.
-	* @type {number}
+	* Gets the underlying skill of this prof.
+	* @returns {RPG_Skill}
 	*/
-	this.proficiency = initialProficiency;
-};
-/**
-* Gets the underlying skill of this prof.
-* @returns {RPG_Skill}
-*/
-SkillProficiency.prototype.skill = function() {
-	return $dataSkills[this.skillId];
-};
-/**
-* Adds a given amount of prof to the skill's current prof.
-* @param {number} value The amount of prof to add.
-*/
-SkillProficiency.prototype.improve = function(value) {
-	this.proficiency += value;
-	if (this.proficiency < 0) {
-		this.proficiency = 0;
+	skill() {
+		return $dataSkills[this.skillId];
+	}
+	/**
+	* Adds a given amount of prof to the skill's current prof.
+	* @param {number} value The amount of prof to add.
+	*/
+	improve(value) {
+		this.proficiency += value;
+		if (this.proficiency < 0) {
+			this.proficiency = 0;
+		}
 	}
 };
+SerializableRegistry.register(SkillProficiency);
 
 //#endregion
 //#region src/plugins/prof/core/_metadata/_pluginMetadata.js
@@ -394,7 +406,7 @@ J.PROF = {};
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.0.1");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.1.0");
 /**
 * The various aliases associated with this plugin.
 */
@@ -412,9 +424,19 @@ J.PROF.RegExp = {};
 J.PROF.RegExp.ProficiencyBonus = /<proficiencyBonus:[ ]?(\d+)>/i;
 J.PROF.RegExp.ProficiencyGivingBlock = /<proficiencyGivingBlock>/i;
 J.PROF.RegExp.ProficiencyGainingBlock = /<proficiencyGainingBlock>/i;
+Game_Action.registerFormulaContext("p", (action) => action.skillProficiency());
 
 //#endregion
 //#region src/plugins/prof/core/objects/Game_Battler.js
+/**
+* Bonus proficiency gained when earning skill proficiency.
+*/
+Object.defineProperty(Game_BattlerBase.prototype, "prof", {
+	get: function() {
+		return 0;
+	},
+	configurable: true
+});
 /**
 * Gets all skill proficiencies for this battler.
 * @returns {SkillProficiency[]}
@@ -436,7 +458,7 @@ Game_Battler.prototype.skillProficiencyBySkillId = function(skillId) {
 */
 Game_Battler.prototype.skillProficiencyAmount = function() {
 	const base = this.baseSkillProficiencyAmount();
-	const bonuses = this.bonusSkillProficiencyGains();
+	const bonuses = this.prof;
 	return base + bonuses;
 };
 /**
@@ -445,13 +467,6 @@ Game_Battler.prototype.skillProficiencyAmount = function() {
 */
 Game_Battler.prototype.baseSkillProficiencyAmount = function() {
 	return 1;
-};
-/**
-* Gets the base amount of proficiency gained from an action for this battler.
-* @returns {number}
-*/
-Game_Battler.prototype.bonusSkillProficiencyGains = function() {
-	return 0;
 };
 /**
 * Whether or not a battler can gain proficiency by using skills against this battler.
@@ -595,7 +610,7 @@ Game_Actor.prototype.executeJsRewards = function(conditional) {
 	const c = conditional;
 	const { jsRewards } = c;
 	try {
-		eval(jsRewards);
+		new Function("a", "c", jsRewards)(a, c);
 	} catch (error) {
 		console.error(`there was an error executing the reward for: ${c.key}.<br>`);
 		console.log(error);
@@ -707,15 +722,22 @@ Game_Actor.prototype.updateBonusSkillProficiencyGains = function() {
 	this._j._proficiency._bonusSkillProficiencyGains = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyBonus);
 };
 /**
-* Calculates total amount of bonus proficiency gain when gaining skill proficiency.
-* @returns {number}
+* Bonus proficiency gained when earning skill proficiency.
 */
-Game_Actor.prototype.bonusSkillProficiencyGains = function() {
-	return this._j._proficiency._bonusSkillProficiencyGains;
-};
+Object.defineProperty(Game_Actor.prototype, "prof", {
+	get: function() {
+		const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("prof", 1) : 0;
+		return this._j._proficiency._bonusSkillProficiencyGains + sdpBonus;
+	},
+	configurable: true
+});
 
 //#endregion
 //#region src/plugins/prof/core/objects/Game_Enemy.js
+/**
+* Extends {@link Game_Enemy.initMembers}.<br/>
+* Initializes skill proficiency storage for map enemies.
+*/
 J.PROF.Aliased.Game_Enemy.set("initMembers", Game_Enemy.prototype.initMembers);
 Game_Enemy.prototype.initMembers = function() {
 	J.PROF.Aliased.Game_Enemy.get("initMembers").call(this);
@@ -847,7 +869,7 @@ Game_Action.prototype.skillProficiency = function() {
 };
 if (J.ABS) {
 	/**
-	* Extends {@link Game_Action.onParry}.<br>
+	* Extends {@link Game_Action.onParry}.<br/>
 	* Also gains proficiency for the parry if possible.
 	* @param {JABS_Battler} jabsBattler The battler that is parrying.
 	*/
@@ -857,7 +879,7 @@ if (J.ABS) {
 		this.gainProficiencyFromGuarding(jabsBattler);
 	};
 	/**
-	* Extends {@link Game_Action.onGuard}.<br>
+	* Extends {@link Game_Action.onGuard}.<br/>
 	* Also gains proficiency for the guard if possible.
 	* @param {JABS_Battler} jabsBattler The battler that is guarding.
 	*/
@@ -912,35 +934,11 @@ Game_System.prototype.updateProficienciesFromPluginMetadata = function() {
 //#endregion
 //#region src/plugins/prof/core/managers/TextManager.js
 /**
-* Extends {@link #longParam}.<br>
-* First checks if it is the proficiency paramId before searching for others.
-* @returns {string}
-*/
-J.PROF.Aliased.TextManager.set("longParam", TextManager.longParam);
-TextManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 32: return this.proficiencyBonus();
-		default: return J.PROF.Aliased.TextManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the proper name of "proficiency bonus", which is quite long, really.
 * @returns {string}
 */
 TextManager.proficiencyBonus = function() {
 	return "Proficiency+";
-};
-/**
-* Extends {@link #longParamDescription}.<br>
-* First checks if it is the proficiency paramId before searching for others.
-* @returns {string[]}
-*/
-J.PROF.Aliased.TextManager.set("longParamDescription", TextManager.longParamDescription);
-TextManager.longParamDescription = function(paramId) {
-	switch (paramId) {
-		case 32: return this.proficiencyDescription();
-		default: return J.PROF.Aliased.TextManager.get("longParamDescription").call(this, paramId);
-	}
 };
 /**
 * Gets the description text for the proficiency boost.
@@ -953,17 +951,6 @@ TextManager.proficiencyDescription = function() {
 //#endregion
 //#region src/plugins/prof/core/managers/IconManager.js
 /**
-* Extend {@link #longParam}.<br>
-* First checks if the paramId was the proficiency boost before checking others.
-*/
-J.PROF.Aliased.IconManager.set("longParam", IconManager.longParam);
-IconManager.longParam = function(paramId) {
-	switch (paramId) {
-		case 32: return this.proficiencyBoost();
-		default: return J.PROF.Aliased.IconManager.get("longParam").call(this, paramId);
-	}
-};
-/**
 * Gets the icon index for the proficiency boost.
 * @return {number}
 */
@@ -972,15 +959,29 @@ IconManager.proficiencyBoost = function() {
 };
 
 //#endregion
+//#region src/plugins/prof/core/core/registerProfParameters.js
+/**
+* Boot-time registration for J-Prof parameters in {@link ParameterRegistry}.
+*/
+var ProfParameterRegistration = class {
+	/**
+	* Registers proficiency bonus with the parameter catalog.
+	*/
+	static registerAll() {
+		ParameterRegistry.register(ParameterDefinition.Builder().key("prof").group(ParameterGroups.FATE).sortOrder(4).label(() => TextManager.proficiencyBonus()).description(() => TextManager.proficiencyDescription()).iconIndex(() => IconManager.proficiencyBoost()).format(ParameterFormat.FLAT).getValue((battler) => battler.prof).sdpBinding(SdpParameterBinding.byKey("prof", (actor) => actor.baseSkillProficiencyAmount())).build());
+	}
+};
+
+//#endregion
 //#region src/plugins/prof/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
-* Initializes the proficiency data. The passive detail window draws
-* J-Prof data directly from the state note — no contributor registration needed.
+* Registers J-Prof stats with the parameter catalog and initializes proficiency data.
 */
 J.PROF.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.PROF.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
+	ProfParameterRegistration.registerAll();
 	J.PROF.Metadata.initializeProficiencies();
 };
 
