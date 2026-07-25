@@ -41,6 +41,8 @@
  * ----------------------------------------------------------------------------
  * - 1.1.0
  *    Added complete long-parameter coverage and detailed breakdown panel.
+ *    Migrated StatusParameter from numeric longParamId to the shared
+ *    parameter catalog's string parameterKey.
  *    Documentation pass for status list window and models.
  *    Retroactively added this changelog.
  * - 1.0.0
@@ -68,7 +70,7 @@ var J_CmsStatus_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "1.0.1";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);

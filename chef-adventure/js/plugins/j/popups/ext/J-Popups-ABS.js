@@ -98,6 +98,10 @@
  *    idle/combo/map flush hooks; requires J-Popups v2.1.0+ merge stack (`Sprite_MapDamage`, merge controller).
  *    `mergeIdleFlushFrames` is one sliding window per target (all merge kinds refresh it); strike release does not
  *    listen on `ComboChainCleared` (avoids global flush from other battlers' cooldowns).
+ *    Added <noHpPopup>/<noMpPopup>/<noTpPopup>/<noSlipPopup> state tags to
+ *    suppress slip/regen popups per-resource or entirely.
+ *    Added configurable outline width plugin params for harm vs heal
+ *    combat damage numbers (damageOutlineWidth/healingOutlineWidth).
  * - 1.2.0
  *    Plugin parameter disableSkillUsedPopups suppresses caster skill-name popups only.
  * - 1.1.0

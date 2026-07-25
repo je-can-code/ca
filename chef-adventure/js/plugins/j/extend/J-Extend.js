@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.6.0 EXTEND] Extends the capabilities of skills/actions.
+ * @plugindesc [v1.7.0 EXTEND] Extends the capabilities of skills/actions.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -433,6 +433,23 @@
  * A three-state cycle: 12 -> 13 -> 14 -> 12 -> ..., one step per execution.
  * ============================================================================
  * CHANGELOG:
+ * - 1.7.0
+ *    Renamed plugin from J-SkillExtend to J-Extend (PLUGIN_NAME only; no
+ *    functional change, nothing else in the codebase referenced the old
+ *    name by string).
+ *    Added <extendType:CLASSIFIER> — extends every skill/state carrying a
+ *    matching J-Base <type:CLASSIFIER> tag instead of listing ids one by
+ *    one. Type-based overlays apply before id-based overlays; id-based
+ *    wins on conflict.
+ *    Added <applyState>/<thisApplyState> — apply a state on hit with an
+ *    authored chance, and optionally an overridden duration (0 = state's
+ *    own default, -1 = force indefinite) and starting stack count.
+ *    thisApplyState is skill-scoped; applyState reads from any of the
+ *    caster's note sources. thisApplyState wins when both target the same
+ *    state id on the same hit.
+ *    Added two new sibling integration plugins: J-Extend-ABS (prevents
+ *    JABS AI from selecting extension skills as actions) and J-Extend-SKS
+ *    (skill equip detail window shows the overlayed skill).
  * - 1.6.0
  *    Added <toggleGroupOnExecute:[STATE_ID, ...]> — a skill-scoped, press-time
  *    cycle-group toggle for stance/equation-style mechanics with more than one
@@ -528,7 +545,7 @@ var J_SkillExtendPluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -541,7 +558,7 @@ J.EXTEND = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.6.0");
+J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.7.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.2.1 MESSAGE] Gives access to more message window functionality.
+ * @plugindesc [v1.3.0 MESSAGE] Gives access to more message window functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -140,6 +140,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Added \param[PARAM_KEY] text code, pulling name/icon/color from the
+ *    shared J-Base ParameterRegistry catalog. An unregistered key renders as
+ *    a loud red "!!! UNKNOWN PARAM !!!" instead of failing silently.
  * - 1.2.1
  *    Added helper for applying text color to fragments.
  * - 1.2.0
@@ -181,7 +185,7 @@ J.MESSAGE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.MESSAGE.Metadata = new J_MessageTextCodesPluginMetadata("J-MessageTextCodes", "1.2.1");
+J.MESSAGE.Metadata = new J_MessageTextCodesPluginMetadata("J-MessageTextCodes", "1.3.0");
 /**
 * A collection of all base aliases.
 */

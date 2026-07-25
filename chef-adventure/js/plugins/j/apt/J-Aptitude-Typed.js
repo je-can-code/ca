@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
+ * [v1.1.0 APT-TYPED] Adds typed (element/weapon type/skill type) AP gains and teachables.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -171,6 +171,14 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Fixed <apTyped:[AMOUNT, DOMAIN, ID_OR_NAME]> never matching — the
+ *    regex required a 4th leading numeric field that the documented
+ *    3-argument format never had.
+ *    Fixed AptitudeTeachable.js never being imported in entry.js, so
+ *    setApTypeKey()/apTypeKey() were never actually attached.
+ *    Renamed ApTypeKey.DomainType.WeaponType/SkillType to Weapon/Skill.
+ *    Replaced the leftover boilerplate plugin description.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -469,7 +477,7 @@ J.APT.EXT.TYPED = J.APT.EXT.TYPED || {};
 * The plugin umbrella that governs all things related to this extension plugin.
 * Name and Version are owned by the metadata instance.
 */
-J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.0.0");
+J.APT.EXT.TYPED.Metadata = new JAptitudeTyped_PluginMetadata("J-Aptitude-Typed", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

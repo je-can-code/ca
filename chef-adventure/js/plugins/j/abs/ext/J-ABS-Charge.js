@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.4 CHARGE] Enable skills to be charged to perform other skills.
+ * [v1.1.0 CHARGE] Enable skills to be charged to perform other skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -163,6 +163,15 @@
  * 1st tier charge skill as a result.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added a segmented map charge gauge shown above charging battlers.
+ *    Registered <chargeTier> as a J-Extend non-combining key.
+ *    Charging input now also treats channeling as busy (J-ABS Channel).
+ *    canChargeSlot now requires an affordable release skill on some tier.
+ *    Guard skills can now be charged from the offhand slot.
+ *    Added per-slot charge input delay timers for hold-to-charge skills.
+ *    Fixed getHighestChargedTier crashing when no tier was completed.
+ *    Fixed switch-slot-to-charge logic, which never actually fired.
  * - 1.0.4
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.3
@@ -334,12 +343,12 @@ var J_ChargePluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/charge/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -352,7 +361,7 @@ J.ABS.EXT.CHARGE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.CHARGE.Metadata = new J_ChargePluginMetadata("J-ABS-Charge", "1.0.4");
+J.ABS.EXT.CHARGE.Metadata = new J_ChargePluginMetadata("J-ABS-Charge", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

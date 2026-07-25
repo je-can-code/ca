@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.2 INPUT] A manager for overseeing the input of JABS.
+ * [v2.3.0 INPUT] A manager for overseeing the input of JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -44,6 +44,12 @@
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 2.3.0
+ *    Added UsableItem as a remappable logical input (R2 by default),
+ *    wiring J-ABS core's new usable-item equip slot to its own trigger.
+ *    Centralized raw Input symbol strings into JabsInputSymbols.
+ *    Removed now-redundant defensive guards now that input scaffolding
+ *    initialization guarantees the mappings/bindings shape always exists.
  * - 2.2.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 2.2.1
@@ -893,12 +899,12 @@ var J_InputPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/input/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -940,7 +946,7 @@ J.ABS.EXT.INPUT.Symbols.CombatSkill4 = JabsInputSymbols.CombatSkill4;
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.INPUT.Metadata = new J_InputPluginMetadata("J-ABS-InputManager", "2.2.2");
+J.ABS.EXT.INPUT.Metadata = new J_InputPluginMetadata("J-ABS-InputManager", "2.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

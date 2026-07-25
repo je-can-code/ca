@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 DANGER] Enable danger indicators on foes on the map.
+ * [v1.0.3 DANGER] Enable danger indicators on foes on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -49,6 +49,8 @@
  * default is enabled.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Added <noDangerIndicator>/<showDangerIndicator> per-enemy overrides.
  * - 1.0.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
@@ -139,12 +141,12 @@ var J_DangerPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/danger/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -178,7 +180,7 @@ J.ABS.EXT.DANGER.Helpers.PluginManager.TranslateDangerIndicatorIcons = (obj) => 
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.DANGER.Metadata = new J_DangerPluginMetadata("J-ABS-DangerIndicator", "1.0.2");
+J.ABS.EXT.DANGER.Metadata = new J_DangerPluginMetadata("J-ABS-DangerIndicator", "1.0.3");
 /**
 * A collection of icons that represent the danger level of a given enemy relative to the player.
 */

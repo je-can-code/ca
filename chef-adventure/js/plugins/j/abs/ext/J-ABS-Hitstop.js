@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 HITSTOP] An extension for JABS that adds hitstop functionality.
+ * [v1.0.3 HITSTOP] An extension for JABS that adds hitstop functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -94,6 +94,17 @@
  * file directly if you need different defaults for your project.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Wrote real help docs for <hitstop>, <noHitstop>, <hitstopScale>; the
+ *    help text was still boilerplate placeholder text despite the tags
+ *    already being implemented. Removed leftover unused scaffold params.
+ *    Fixed screen-shake anti-spam cooldown reading a key that was never
+ *    written to, so the cooldown never actually blocked anything; both
+ *    read and write now go through one JABS_HitstopRuntime static field.
+ *    Reset hitstop state (frozen frames, flurry windows) on save load so
+ *    stale combat state never carries over.
+ *    Removed the JsonEx Map-restore workaround now that JsonEx natively
+ *    round-trips Map instances (see J-Base changelog).
  * - 1.0.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
@@ -218,12 +229,12 @@ var JHitstop_PluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/hitstop/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -236,7 +247,7 @@ J.ABS.EXT.HITSTOP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.HITSTOP.Metadata = new JHitstop_PluginMetadata("J-ABS-Hitstop", "1.0.2");
+J.ABS.EXT.HITSTOP.Metadata = new JHitstop_PluginMetadata("J-ABS-Hitstop", "1.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */

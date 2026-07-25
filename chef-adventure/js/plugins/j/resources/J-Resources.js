@@ -176,8 +176,11 @@
  *    Initial release.
  *    Added HP/MP/TP costs and gains via flat, percent, and formula notetags.
  *    Added HCR (HP Cost Reduction) as an additive stat sourced from traits.
- *    Added sacrifice tag to allow lethal HP costs.
+ *    Added <hp-cost-can-kill> tag to allow lethal HP costs.
  *    Registered {@code hcr} (HP Cost Reduction) in the parameter catalog.
+ *    Added <stackCost:[STATE_ID,COUNT]> (requires J-ABS) and
+ *    <itemCost:[ITEM_ID,COUNT]> skill costs, feeding directly into
+ *    canPaySkillCost/paySkillCost alongside hp/mp/tp.
  * ============================================================================
  *
  * @param parentConfig

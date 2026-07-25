@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.0.0 HUD] Provides core functionality for this HUD system.
+ * [v2.1.0 HUD] Provides core functionality for this HUD system.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -73,6 +73,15 @@
  * This plugin has no notetags of its own- HUD control is entirely
  * plugin-command driven.
  * ============================================================================
+ * CHANGELOG:
+ * - 2.1.0
+ *    Added a dual-row (negative/positive) state affliction presenter to the
+ *    party HUD frame- icons, timers, and stack counts, sprite-cached per
+ *    battler and cleaned up on target switch.
+ *    Added an explicit J-ABS 4.0.0+ version requirement check at boot.
+ *    Fixed a self-referencing @base/@orderAfter J-HUD declaration on this
+ *    plugin's own header.
+ * ============================================================================
  * @command hideHud
  * @text Hide HUD
  * @desc Hides the HUD on the map.
@@ -121,7 +130,7 @@ var JHud_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "1.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -144,7 +153,7 @@ J.HUD.EXT = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHud_PluginMetadata}
 */
-J.HUD.Metadata = new JHud_PluginMetadata("J-HUD", "2.0.0");
+J.HUD.Metadata = new JHud_PluginMetadata("J-HUD", "2.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

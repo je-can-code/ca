@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 ESCRIBE] Enables "describing" the event with some text and/or an icon.
+ * @plugindesc [v1.0.1 ESCRIBE] Enables "describing" the event with some text and/or an icon.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -38,6 +38,16 @@
  * the text or icon tag, then the text/icon will always be visible while the
  * event is visible on the map.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.1
+ *    <proximityText>/<proximityIcon> now require an explicit DISTANCE; the
+ *    no-argument form (implicit distance 0) is no longer supported- use
+ *    <proximityText:0>/<proximityIcon:0> instead.
+ *    Removed a dead constructor-type check against Game_Event that was
+ *    already unreachable behind an equivalent isEvent() check.
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
 */
 
 //#region src/plugins/escribe/core/_metadata/_pluginMetadata.js
@@ -57,7 +67,7 @@ var J_EscriptionsPluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -70,7 +80,7 @@ J.ESCRIBE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.0.0");
+J.ESCRIBE.Metadata = new J_EscriptionsPluginMetadata("J-Escriptions", "1.0.1");
 /**
 * All regular expressions used by this plugin.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 CMS_K] A redesign of the skill menu.
+ * [v1.1.0 CMS_K] A redesign of the skill menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -21,6 +21,13 @@
  * this plugin.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Fixed long related-skill names overlapping the fixed-position
+ *    required/current proficiency values; names now truncate with an
+ *    ellipsis to fit the available column width.
+ *    Migrated HP/MP/TP cost labels from TextManager.longParam(id) to the
+ *    parameter catalog's parameterLabel('hcr'/'mcr'/'tcr').
+ *    Replaced eval() with new Function() in the raw-damage preview.
  * - 1.0.1
  *    Added HP skill cost display to the skill detail window (requires J-Resources).
  *    Updated MP/TP cost display to reflect tag-based extra costs from J-Resources.
@@ -48,7 +55,7 @@ var J_CmsSkill_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -61,7 +68,7 @@ J.CMS_K = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS_K.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.0.1");
+J.CMS_K.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.1.0");
 J.CMS_K.Aliased = {
 	Scene_Skill: new Map(),
 	Window_SkillList: new Map(),

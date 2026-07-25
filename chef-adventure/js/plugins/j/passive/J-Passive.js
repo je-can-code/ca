@@ -182,6 +182,9 @@
  *    Added J.PASSIVE.EXT.AFFIX — aliases detail window sections to inject JABS-specific
  *    content: slip effects, shield, stacking, resource gains (J-Resources-ABS), and JABS
  *    modifier/timing rows.
+ *    Added <hideFromPassiveList> to keep stack amplifiers and other
+ *    implementation-only passive duplicates out of the Passives menu while
+ *    still contributing traits in combat.
  * - 2.0.2
  *    Added support for passives driven by map events.
  * - 2.0.1

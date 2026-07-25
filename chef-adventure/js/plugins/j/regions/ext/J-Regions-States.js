@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 REGION-STATES] Enables application of states via region ids.
+ * @plugindesc [v1.0.1 REGION-STATES] Enables application of states via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -96,6 +96,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Region state application now rolls through the shared on-chance
+ *    system (lucky/cursed rolls, Accumulate Mode, Encore) instead of a
+ *    flat percent check.
+ *    Removed a defensive function-existence guard around isVisible(); the
+ *    method is always present on the contract this plugin targets.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -150,7 +156,7 @@ J.REGIONS.EXT.STATES = {};
 /**
 * The metadata associated with this plugin, such as name and version.
 */
-J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.0.0");
+J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

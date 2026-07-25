@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 HUD-BOSS] A HUD frame that displays a single target, like a boss.
+ * [v1.0.1 HUD-BOSS] A HUD frame that displays a single target, like a boss.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -25,6 +25,11 @@
  * the player's current target, not a specially-tagged "boss".
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Fixed the HP-percent threshold check using a chained comparison
+ *    (lowerRange <= hpPercent <= upperRange), which does not perform a
+ *    range check in JS and was nearly always true regardless of the
+ *    boss's actual HP.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -49,7 +54,7 @@ var JHudBoss_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.3";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -68,7 +73,7 @@ J.HUD.EXT.BOSS = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudBoss_PluginMetadata}
 */
-J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.0.0");
+J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

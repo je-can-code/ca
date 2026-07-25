@@ -1,7 +1,7 @@
 //region annoations
 /*:
  * @target MZ
- * @plugindesc [v1.0.2 MAP] Renders a passability-driven minimap on the screen.
+ * @plugindesc [v1.1.0 MAP] Renders a passability-driven minimap on the screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -147,6 +147,14 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added an orange-diamond minimap marker for inanimate JABS enemies
+ *    (pots, crates), distinct from the red-diamond hostile marker.
+ *    Added <minimap:teleport>/<mm:teleport> markers (hollow light-blue
+ *    square), stretchable to a multi-tile zone via <areaEvent:WxH>.
+ *    Added quest markers (questOffer/questProgress/questTurnIn) for
+ *    Omni-Quest integration.
+ *    Added <blockMinimap> to suppress the minimap outright on a given map.
  * - 1.0.2
  *    Adapted for updates to J-ABS-InputManager (input namespace).
  * - 1.0.1
@@ -276,7 +284,7 @@ J.MAP.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MAP.Metadata = new J_MAP__PluginMetadata("J-MAP", "1.0.2");
+J.MAP.Metadata = new J_MAP__PluginMetadata("J-MAP", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

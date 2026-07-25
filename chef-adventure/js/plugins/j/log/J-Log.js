@@ -1,7 +1,7 @@
 //region introduction
 /*:
  * @target MZ
- * @plugindesc [v2.2.1 LOG] A log window for viewing on the map.
+ * @plugindesc [v2.2.2 LOG] A log window for viewing on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -113,6 +113,9 @@
  * JABS integration (when installed) and by plugin commands.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.2
+ *    Added ActionLogBuilder#setupStatePurged, a log message for a state
+ *    being removed via J-ABS's new <purgeStates> tag.
  * - 2.2.1
  *    Added SDP drop-related logging.
  * - 2.2.0
@@ -406,7 +409,7 @@ var J_LogPluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.2";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -419,7 +422,7 @@ J.LOG = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "2.2.1");
+J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "2.2.2");
 /**
 * A collection of all aliased methods for this plugin.
 */

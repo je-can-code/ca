@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 REGION-SKILLS] Enables execution of skills via region ids.
+ * @plugindesc [v1.0.1 REGION-SKILLS] Enables execution of skills via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -120,6 +120,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Region skill triggers now roll through the shared on-chance system
+ *    (lucky/cursed rolls, Accumulate Mode, Encore) instead of a flat
+ *    percent check, and can proc more than once per step.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -180,7 +184,7 @@ J.REGIONS.EXT.SKILLS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata("J-Region-Skills", "1.0.0");
+J.REGIONS.EXT.SKILLS.Metadata = new J_RegionSkillsPluginMetadata("J-Region-Skills", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

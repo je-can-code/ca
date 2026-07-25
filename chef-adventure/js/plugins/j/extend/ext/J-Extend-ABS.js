@@ -21,6 +21,10 @@
  * This plugin has no notetags of its own- it is pure integration glue
  * between J-Extend and J-ABS's AI skill-selection logic.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
  */
 //endregion annotations
 

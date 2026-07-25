@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 TIMING] Enable modifying cooldowns/casting for actions.
+ * [v1.0.3 TIMING] Enable modifying cooldowns/casting for actions.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -217,6 +217,12 @@
  * (not a practical formula, but demonstrating use)
  * ==============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Fixed <castSpeedRate> actually matching <castTimePercent:...> instead
+ *    of its own documented tag name, so it never worked as documented.
+ *    Fixed updateCastSpeedRate reading castSpeedFlat() instead of
+ *    castSpeedRate(), feeding the rate modifier the wrong source value.
+ *    Corrected stale doc text for <baseCastTime>/<castTimeFlat>.
  * - 1.0.2
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.1
@@ -307,12 +313,12 @@ var J_TimingPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/timing/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -325,7 +331,7 @@ J.ABS.EXT.TIMING = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.TIMING.Metadata = new J_TimingPluginMetadata("J-ABS-Timing", "1.0.2");
+J.ABS.EXT.TIMING.Metadata = new J_TimingPluginMetadata("J-ABS-Timing", "1.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */

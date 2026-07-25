@@ -22,6 +22,10 @@
  * This plugin has no notetags of its own- it is pure integration glue
  * between J-Extend and J-SKS's skill equip detail window.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
  */
 //endregion annotations
 

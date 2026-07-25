@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.3 JAFT-Refine] An extension for JAFTING to enable equip refinement.
+ * [v1.2.0 JAFT-Refine] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -148,6 +148,14 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Replaced ~550 lines of local trait-combining logic with calls to
+ *    J-Base's new shared TraitResolver.refineTraits/consolidate.
+ *    Fixed the salvage ledger being silently dropped from refined equipment
+ *    on save/load- RPG_EquipItem's base schema doesn't carry
+ *    _jaftingSalvageLedger, so Game_Party's database-refresh reconstruction
+ *    (new RPG_Weapon/RPG_Armor from raw JSON) lost refinement lineage every
+ *    time until this fix.
  * - 1.0.2
  *    Salvage ledger merges before refine consumes inputs.
  *    Refinable list lineage hints; hollow-diamond prefix for stamped rows.
@@ -610,7 +618,7 @@ var J_CraftingRefinePluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -629,7 +637,7 @@ J.JAFTING.EXT.REFINE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.1.3");
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.2.0");
 /**
 * A helpful mapping of the various messages that we use in JAFTING.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
+ * [v1.1.0 ABS-JUICE] Procedural map battler motion juice for JABS (squish, tilt, casting pulse, weapon swing).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -168,6 +168,16 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added <noJuice> and <juiceMotion:none> to suppress caster motion outright.
+ *    Added flip/flip-reverse caster-body full-rotation spin motions.
+ *    Added arc-oscillate weapon motion (alternating-direction arc sweeps).
+ *    Renamed <juiceSpinCount> to <juiceRepeatCount>, generalized to every motion.
+ *    Added <juiceDuration:N> to override the per-cycle swing frame count.
+ *    Support/utility skills (damage type None) no longer trigger a target
+ *    hit-reaction squish that could cancel their own caster-side motion.
+ *    Removed the juiceConfigValidation module; config shape is now
+ *    guaranteed by the jmz-data-editor tool instead of validated at runtime.
  * - 1.0.1
  *    Fixed crash when the full menu (Scene_Menu) was opened while a juice motion was in flight.
  *    JuiceMotionManager.#effects is a static array that outlives any single scene instance;
@@ -309,12 +319,12 @@ var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/juice/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.7.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (hasJabsRequirement === false) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -327,7 +337,7 @@ J.ABS.EXT.JUICE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.0.1");
+J.ABS.EXT.JUICE.Metadata = new JAbsJuice_PluginMetadata("J-ABS-Juice", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -387,7 +397,7 @@ J.ABS.EXT.JUICE.RegExp = {
 //#endregion
 //#region src/plugins/abs/ext/juice/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS-Juice";
-var PLUGIN_VERSION = "1.0.1";
+var PLUGIN_VERSION = "1.1.0";
 var PLUGIN_DESC_TAG = "ABS-JUICE";
 
 //#endregion

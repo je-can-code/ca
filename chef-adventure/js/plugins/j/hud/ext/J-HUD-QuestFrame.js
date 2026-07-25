@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 HUD-QUEST] A HUD frame that displays quest objective information.
+ * [v1.0.1 HUD-QUEST] A HUD frame that displays quest objective information.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -31,6 +31,9 @@
  * This plugin has no notetags of its own.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    Wrote real help docs; the help text was still boilerplate placeholder.
+ *    Removed leftover unused scaffold plugin params/command/regex.
  * - 1.0.0
  *    The initial release.
  * ============================================================================
@@ -66,7 +69,7 @@ var J_HUD_Quest_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.2";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -85,7 +88,7 @@ J.HUD.EXT.QUEST ||= {};
 * The metadata associated with this plugin.
 * @type {J_HUD_Quest_PluginMetadata}
 */
-J.HUD.EXT.QUEST.Metadata = new J_HUD_Quest_PluginMetadata("J-HUD-QuestFrame", "1.0.0");
+J.HUD.EXT.QUEST.Metadata = new J_HUD_Quest_PluginMetadata("J-HUD-QuestFrame", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

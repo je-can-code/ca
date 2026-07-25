@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.0 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v3.0.1 ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -94,6 +94,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.1
+ *    Ally idle-check now also treats channeling as busy (J-ABS Channel).
+ *    Fixed applyBattleMemories' inverted check; memories went unrecorded.
+ *    Fixed jumpAll returning early instead of skipping just one follower.
  * - 3.0.0
  *    Replaced exclusive AI modes with three orthogonal behavior axes:
  *    risk (careful/balanced/reckless), support (offense/balanced/support),
@@ -326,12 +330,12 @@ var J_AllyAiPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/allyai/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.10.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -344,7 +348,7 @@ J.ABS.EXT.ALLYAI = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.0");
+J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

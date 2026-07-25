@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 MOVE] Enable modifying move speeds.
+ * [v1.1.0 MOVE] Enable modifying move speeds.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -66,6 +66,13 @@
  * This battler's movement speed will be increased by ~40%.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Move speed boost (msb) registered with the shared parameter catalog
+ *    and given an SDP panel binding, so it can now be invested via SDP.
+ *    Replaced getWalkSpeedBoosts() with a plain msb getter, matching the
+ *    catalog's getValue(battler => battler.msb) convention.
+ *    Removed the legacy IconManager.longParam(31) override in favor of
+ *    catalog-driven icon resolution.
  * - 1.0.3
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.2
@@ -91,12 +98,12 @@ var J_SpeedPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/speed/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -109,7 +116,7 @@ J.ABS.EXT.SPEED = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-SpeedBoosts", "1.0.3");
+J.ABS.EXT.SPEED.Metadata = new J_SpeedPluginMetadata("J-ABS-SpeedBoosts", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.4 POSES] Enable action poses for JABS.
+ * [v1.0.5 POSES] Enable action poses for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -55,6 +55,11 @@
  * This is not a highly tested feature of JABS and may not work as intended.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.5
+ *    startGuarding no longer takes a skillSlot param, matching J-ABS core;
+ *    the guard pose now resolves via getGuardSkillId() instead.
+ *    Moved gameAssetExists from its own file into initialization.js.
+ *    Removed leftover unused scaffold plugin params.
  * - 1.0.4
  *    `JABS_Battler` pose hooks aligned with J-ABS 4.10.0 dodge/guard battler updates.
  * - 1.0.3
@@ -108,12 +113,12 @@ var J_PosesPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/poses/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -136,7 +141,7 @@ J.ABS.EXT.POSES.EXT ||= {};
 * The metadata associated with this plugin.
 
 */
-J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.4");
+J.ABS.EXT.POSES.Metadata = new J_PosesPluginMetadata("J-ABS-Poses", "1.0.5");
 /**
 
 * A collection of all aliased methods for this plugin.

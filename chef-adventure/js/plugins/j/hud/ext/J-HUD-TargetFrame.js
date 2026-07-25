@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 HUD-TARGET] A HUD frame that displays your battle target.
+ * [v1.1.0 HUD-TARGET] A HUD frame that displays your battle target.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -383,6 +383,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Target frame now renders the shared dual-row state affliction
+ *    presenter from J-HUD core, wired via a new patch file.
+ *    Fixed Game_Enemy#targetFrameIcon reading with the TargetFrameText
+ *    regex instead of TargetFrameIcon, so the icon tag never matched.
  * - 1.0.1
  *    Adjusted target frame defaults for better readability.
  *    Improved gauge alignment logic for consistent HP/MP positioning.
@@ -542,7 +547,7 @@ var JHudTarget_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.2";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -561,7 +566,7 @@ J.HUD.EXT.TARGET = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudTarget_PluginMetadata}
 */
-J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "1.0.1");
+J.HUD.EXT.TARGET.Metadata = new JHudTarget_PluginMetadata("J-HUD-TargetFrame", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

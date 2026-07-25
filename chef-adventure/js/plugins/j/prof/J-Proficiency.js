@@ -156,6 +156,8 @@
  *    Damage formulas can now use 'p' for skill proficiency without J-Elementalistics
  *    needing to hardcode a J.PROF conditional block. The registration calls
  *    this.skillProficiency() on the Game_Action instance at formula evaluation time.
+ *    Proficiency bonus (key "prof") registered with the shared parameter
+ *    catalog, given an SDP panel binding via baseSkillProficiencyAmount().
  * - 2.0.1
  *    Added flag for showing external file load info.
  *    Removed dead plugin parameters for conditionals.

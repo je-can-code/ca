@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 OMNI-MON] Extends the Omnipedia with a Monsterpedia entry.
+ * [v1.1.0 OMNI-MON] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -57,6 +57,9 @@
  * one per tag, in the order they appear on the note.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added <hideFromMonsterpedia>, <monsterFamilyIcon:ICON_INDEX>, and
+ *    repeatable <descriptionLine:TEXT> Monsterpedia entry tags.
  * - 1.0.2
  *    Consumed `RPGManager` updates.
  *    Fixed missed issue with SDP rendering.
@@ -115,7 +118,7 @@ var J_OmniMonster_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -137,7 +140,7 @@ J.OMNI.EXT.MONSTER = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-Omni-Monsterpedia", "1.0.2");
+J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-Omni-Monsterpedia", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

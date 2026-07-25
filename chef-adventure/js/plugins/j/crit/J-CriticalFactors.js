@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 CRIT] Manages critical damage multiplier/reduction of battlers.
+ * @plugindesc [v1.3.0 CRIT] Manages critical damage multiplier/reduction of battlers.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -516,6 +516,16 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Added <forceCritProcs> to force every on-crit state application roll
+ *    to succeed, without inflating crit chance or touching luck elsewhere.
+ *    Added conditional crit chance bonuses vs a target's active state, by
+ *    id (<thisCritChanceIfState>/<critChanceIfState>) or by type
+ *    classifier (<thisCritChanceIfStateType>/<critChanceIfStateType>).
+ *    Added guaranteed crits vs a target's active state, by id
+ *    (<thisCritsAlwaysIfState>/<critAlwaysIfState>) or by type classifier
+ *    (<thisCritsAlwaysIfStateType>/<critAlwaysIfStateType>); bypasses cev
+ *    the same way <thisCritsAlways> does.
  * - 1.2.0
  *    Added plugin parameters for the base CDM/CTR defaults (previously a
  *    hard-coded, unreachable 50% baked into Game_BattlerBase).
@@ -612,7 +622,7 @@ var J_CriticalFactorsPluginMetadata = class J_CriticalFactorsPluginMetadata exte
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -625,7 +635,7 @@ J.CRIT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.1.0");
+J.CRIT.Metadata = new J_CriticalFactorsPluginMetadata("J-CriticalFactors", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

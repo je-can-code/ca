@@ -24,6 +24,10 @@
  * This plugin does NOT parse food notetags or register the R2 button.
  * Those responsibilities belong to J-ABS-Food.
  * ============================================================================
+ * CHANGELOG:
+ * - 1.0.0
+ *    Initial release.
+ * ============================================================================
  * PLUGIN PARAMETERS:
  * @param windowX
  * @type number
@@ -126,7 +130,7 @@ var JFoodHud_PluginMetadata = class extends PluginMetadata {
 //#region src/plugins/hud/ext/food/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);

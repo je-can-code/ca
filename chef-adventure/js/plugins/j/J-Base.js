@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.5.0 BASE] The base class for all J plugins.
+ * [v3.2.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,7 +157,24 @@
  *
  * ============================================================================
  * CHANGELOG:
- * - 3.5.0
+ * - 3.2.0
+ *    Added skillIds() to Game_Battler (stub returning empty), Game_Actor (learned skills
+ *    plus trait-granted ids, deduplicated), and Game_Enemy (action skill ids plus
+ *    trait-granted ids, deduplicated). This gives the skill-extension resolver a raw-id
+ *    source that is completely outside the skill()/skills() call path, eliminating the
+ *    need for a re-entrancy guard and enabling intentional recursive overlay chains.
+ *    Added J.BASE.Resource enum (HP/MP/TP string keys).
+ *    Added Game_Battler.prototype.onHeal(resource, amount) stub — a broadcast hook
+ *    fired after any positive resource recovery. Extensions alias onHeal instead of
+ *    the three gainHp/gainMp/gainTp methods individually.
+ *    Aliased gainHp, gainMp, gainTp on Game_Battler to fire onHeal for positive values.
+ *    Added Game_Action.formulaContextProviders registry and Game_Action.registerFormulaContext
+ *    static method. Any plugin can now inject a named variable into damage formula evaluation
+ *    by registering a getter; the variable is available in every formula evaluated by
+ *    evalFormulaWithContext without any plugin needing to patch another plugin's code.
+ *    Added Game_Action.prototype.evalFormulaWithContext(formula, a, b) — evaluates a formula
+ *    string via new Function with the base context (a, b, v) plus all registered providers.
+ *    This replaces all eval() usage in damage/formula paths; see each consumer's changelog.
  *    Added HAR (Healing Rate) — the sender-side counterpart to REC. New `har`
  *    getter on Game_Battler/Game_BattlerBase, summed from `<har:VALUE>` tags
  *    plus any SDP panel bonus. Registered in the parameter catalog (VITALITY
@@ -167,26 +184,19 @@
  *    multiplication for the same branch.
  *    Overwrote Game_Action.prototype.itemEffectRecoverHp/itemEffectRecoverMp
  *    to apply the caster's HAR to Effects-tab "Recover HP/MP" results.
- * - 3.4.0
- *    Added Game_Action.formulaContextProviders registry and Game_Action.registerFormulaContext
- *    static method. Any plugin can now inject a named variable into damage formula evaluation
- *    by registering a getter; the variable is available in every formula evaluated by
- *    evalFormulaWithContext without any plugin needing to patch another plugin's code.
- *    Added Game_Action.prototype.evalFormulaWithContext(formula, a, b) — evaluates a formula
- *    string via new Function with the base context (a, b, v) plus all registered providers.
- *    This replaces all eval() usage in damage/formula paths; see each consumer's changelog.
- * - 3.3.0
- *    Added J.BASE.Resource enum (HP/MP/TP string keys).
- *    Added Game_Battler.prototype.onHeal(resource, amount) stub — a broadcast hook
- *    fired after any positive resource recovery. Extensions alias onHeal instead of
- *    the three gainHp/gainMp/gainTp methods individually.
- *    Aliased gainHp, gainMp, gainTp on Game_Battler to fire onHeal for positive values.
- * - 3.2.0
- *    Added skillIds() to Game_Battler (stub returning empty), Game_Actor (learned skills
- *    plus trait-granted ids, deduplicated), and Game_Enemy (action skill ids plus
- *    trait-granted ids, deduplicated). This gives the skill-extension resolver a raw-id
- *    source that is completely outside the skill()/skills() call path, eliminating the
- *    need for a re-entrancy guard and enabling intentional recursive overlay chains.
+ *    Added TraitResolver, a static class centralizing trait-merging logic shared
+ *    across the ecosystem: overlayTraits (last-wins per code+dataId, used by
+ *    J-Extend's state/skill overlays) and refineTraits (keep-better per
+ *    code+dataId, used by JAFTING refinement), both built from shared
+ *    sub-operations (opposing-pair cancellation, no-duplicate filtering,
+ *    additive parameter-trait combining). Replaces ~550 lines of duplicated,
+ *    near-identical combine-by-trait-code logic that used to live inside
+ *    JaftingManager alone.
+ *    Extended JsonEx._encode/_decode to support native Map/Set instances in save data.
+ *    Fixed _encode mutating the live object graph in place while stringifying — the original
+ *    algorithm wrote its "@" constructor tag back onto the same object being saved, which was
+ *    invisible for plain objects/arrays but silently corrupted any live Map/Set the moment
+ *    something (e.g. autosave) called JsonEx.stringify() on the live game state.
  * - 3.1.1
  *    RPG database wrappers expose createEmpty() on item, weapon, armor, skill,
  *    and state classes.
@@ -1579,7 +1589,7 @@ J.BASE = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.5.0";
+J.BASE.Metadata.Version = "3.2.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

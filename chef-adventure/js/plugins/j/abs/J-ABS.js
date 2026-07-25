@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.12.4 JABS] Enables combat to be carried out on the map.
+ * [v4.13.0 JABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -47,23 +47,38 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
- * - 4.12.4
- *    State spread: `<spread:[CHANCE, RANGE]>`, `<viral>`, `<spreadTick:N>`, `<spreadPerTick:N>`,
- *    `<spreadPreferUnafflicted>`, `<spreadSkipAfflicted>`. Each tracked JABS_State ticks a spread
- *    counter (plugin param `defaultStateSpreadTickInterval`, default 30 frames). Independent chance
- *    per target in range; applies via addState with original source battler. Not tied to slip/regen.
- *    Startup: `_pluginMetadata` no longer imports `JABS_State` (default reapply type `'refresh'`).
- * - 4.12.3
- *    Cast-time direct damage scaling: `<castTimeDamageBonus:N>` on any getAllNotes() source and
- *    `<thisCastTimeDamageBonus:N>` on a specific skill. Bonus percent = sum(N per sec) × resolved
- *    cast seconds (frames ÷ 60). Resolved cast duration is stamped on the shared Game_Action when
- *    JABS actions are built (includes J-ABS-Timing cast speed). Applies to HP/MP damage skills
- *    only; not healing, recovery, or slip DoT ticks.
- * - 4.12.2
- *    Fixed a bug where `JABS_SkillSlot.canBeAutocleared` was missing Mainhand and
- *    Offhand from its protected-slots list, causing those slots to be wiped by
- *    `removeInvalidSkills` any time a proficiency conditional taught the actor a new
- *    skill (or any other mid-refresh skill-learn path).
+ * - 4.13.0
+ *    Added <channel> vessel skills that repeat a child skill over time.
+ *    Added cast/channel interruption via movement or <interrupt> hits.
+ *    Added Glancing Blow, a partial-hit tier between hit and parry.
+ *    Added lucky/cursed rerolls, veryLucky/veryCursed, encore repeats.
+ *    Added accumulate mode for on-chance roll contests.
+ *    Added onEvadeApply/onEvadeApplySelf/onEvadeExecute reactions.
+ *    Retaliate now filters by hit type and exposes d/m/t formula vars.
+ *    Added a UsableItem equip slot, separate from the Tool slot.
+ *    Added ~10 conditional/unconditional bonus damage tags.
+ *    Added cast-time damage bonus tags scaled by resolved cast time.
+ *    Added skill history bonus tags and SkillHistoryBonusDisplay HUD.
+ *    Added range/radius/proximity/thickness buff and rate modifiers.
+ *    Added proximity knockback and knockback amp tags.
+ *    Slip VAL now applies in full per tick, not divided over 5 sec.
+ *    Added tick speed flat/percent/type modifiers and per-state override.
+ *    Added DoT/HoT amplification tags, battler and skill scoped.
+ *    Added state spreading via <spread>, <viral>, and related tags.
+ *    Added apply-state-on-expire chaining on natural expiry.
+ *    Added purgeStates cleanse tag and noLogs suppression.
+ *    Added tiered state immunity and type-scoped resistance tags.
+ *    Added stackMaxBoost, stackOnExpire, and state-to-state conversion.
+ *    Renamed <stateDurationForm> to <stateDurationFormula>.
+ *    Replaced <size> with <innerRadius>, a hitbox dead-zone tag.
+ *    Added CDR (cooldown reduction) and PER (parry extension) stats.
+ *    Combos can now auto-clear after EXPIRE_FRAMES if unused.
+ *    <delay> now supports an independent touch-trigger radius.
+ *    Added aggroPercent and notMyAggro/notMyAggroPercent tags.
+ *    Added a map affliction icon strip HUD under map battlers.
+ *    Documented <jabsTool> vs default usable-item classification.
+ *    Documented that omitted <actionId> silently defaults to event 1.
+ *    Fixed JABS_SkillSlot.canBeAutocleared missing Mainhand/Offhand.
  * - 4.12.1
  *    Arc hitbox (`<hitbox:arc>`) collision now correctly registers hits against large enemies
  *    whose AABB center falls outside the wedge sweep but whose edge or corner overlaps it.
@@ -674,7 +689,7 @@
  * along with skill cooldowns.
  *
  * NOTE ABOUT SKILL EXTENSION FOR ENEMIES:
- * If you are leveraging "J-SkillExtend", extension skills must be known
+ * If you are leveraging "J-Extend", extension skills must be known
  * to the enemy in some form. Extension skills are excluded from random
  * selection but will still apply their extension effects.
  *
@@ -1268,7 +1283,7 @@
  *    <aiSkillExclusion>
  *
  * NOTE ABOUT SKILL EXTENSION SKILLS:
- * If using "J-SkillExtend", extension skills are automatically excluded
+ * If using "J-Extend", extension skills are automatically excluded
  * from random AI selection, identical to the tag above.
  *
  * ----------------------------------------------------------------------------
@@ -4216,7 +4231,7 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -4296,7 +4311,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.12.4");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.13.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -11142,7 +11157,7 @@ var JABS_SkillSlot = class {
 	/**
 	* Gets the underlying data for this slot.
 	* Supports retrieving combo skills via targetId.
-	* Supports skill extended data via J-SkillExtend.
+	* Supports skill extended data via J-Extend.
 	* @param {Game_Actor|null} user The user to get extended skill data for.
 	* @param {number|null} targetId The target id to get skill data for.
 	* @returns {RPG_UsableItem|RPG_Skill|null}
@@ -15125,7 +15140,7 @@ var JABS_Battler = class JABS_Battler {
 	}
 	/**
 	* Gets the proper skill based on the skill id.
-	* Accommodates J-SkillExtend and/or J-Passives.
+	* Accommodates J-Extend and/or J-Passives.
 	* @param {number} skillId The skill id to retrieve.
 	* @returns {RPG_Skill|null}
 	*/
@@ -22720,7 +22735,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.12.4";
+var PLUGIN_VERSION = "4.13.0";
 var PLUGIN_DESC_TAG = "JABS";
 
 //#endregion
@@ -23808,7 +23823,7 @@ Object.defineProperty(RPG_Skill.prototype, "jabsPierceDelay", { get: function() 
 } });
 /**
 * Extra per-connection bonus hits parsed from this skill note, additive with battler scope tags.
-* When J-SkillExtend merges extension notes into this skill, matching tags on the extension contribute here too.
+* When J-Extend merges extension notes into this skill, matching tags on the extension contribute here too.
 * @type {number}
 */
 Object.defineProperty(RPG_Skill.prototype, "jabsBonusHitsFromSkillNote", { get: function() {

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.1 JAFT-Create] An extension for JAFTING to enable recipe creation.
+ * [v1.1.2 JAFT-Create] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -139,6 +139,11 @@
  * the J-MZ Data Editor app), not tagged on individual database objects.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Registered RecipeTracking/CategoryTracking with SerializableRegistry so
+ *    JsonEx restores keep their prototype methods after a save load.
+ *    Moved dev-only debug cheat helpers from a standalone debug/ file into
+ *    initialization.js; no functional change.
  * - 1.0.4
  *    Craft outputs inherit dismantle lineage from recipe ingredients (core
  *    salvage stamping).
@@ -1280,7 +1285,7 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -1302,7 +1307,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.1.1");
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.1.2");
 /**
 * A collection of all aliased methods for this plugin.
 */

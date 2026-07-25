@@ -87,6 +87,99 @@
  * Then the panel will not be included in the list that is parsed from the
  * configuration file upon starting the game.
  * ============================================================================
+ * FAMILIES AND SUBGROUPS:
+ * Have you ever wanted to organize a large panel list into browsable
+ * categories, or build a chain of panels where investing deep into one
+ * grants a payoff that replaces the previous tier's? Well now you can! Two
+ * new top-level blocks in `config.sdp.json`- `families` and `subgroups`-
+ * let you group panels for menu browsing and for mastery progression.
+ *
+ * A FAMILY is a top-level menu category. In the SDP scene, the player
+ * cycles between families with L2/R2, filtering the panel list down to just
+ * that family's panels (or "All", or "Unsorted" for panels with no
+ * subgroup/family enrollment). Each family row owns a list of subgroup
+ * keys.
+ *
+ * A SUBGROUP is a tiered chain of panels that live inside a family. Panels
+ * enroll in a subgroup individually (see their own `mastery` block below)
+ * by referencing the subgroup's key and declaring their tier within it.
+ * Subgroups themselves don't define the panels- they're just the
+ * authoring/display metadata (name, key, icon, description) that panels
+ * point back to.
+ *
+ * CONFIG SCHEMA (families):
+ *    {
+ *      "key": "elemental",
+ *      "name": "Elemental Affinities",
+ *      "iconIndex": 64,
+ *      "description": "Mastery over the elements.",
+ *      "subgroupKeys": ["fire-mastery", "ice-mastery"]
+ *    }
+ *  Where "key" uniquely identifies this family and is referenced by nothing
+ *  else directly- families own subgroups, not the other way around.
+ *  Where "subgroupKeys" lists every subgroup key that belongs to this family.
+ *
+ * CONFIG SCHEMA (subgroups):
+ *    {
+ *      "key": "fire-mastery",
+ *      "name": "Fire Mastery",
+ *      "iconIndex": 65,
+ *      "description": "Deepen your command of flame."
+ *    }
+ *  Where "key" is referenced by panels via their own `mastery.subgroupKey`
+ *  (see MASTERY below) and by a family's `subgroupKeys` list above.
+ *
+ * NOTE: A subgroup with no owning family (not listed in any family's
+ * subgroupKeys) still functions for mastery purposes, but its panels fall
+ * back to the "Unsorted" filter bucket in the family strip instead of a
+ * named family.
+ * ============================================================================
+ * MASTERY:
+ * Have you ever wanted maxing out a panel to grant a passive skill- and have
+ * a deeper panel in the same progression line automatically replace that
+ * skill with a better one? Well now you can! Any panel can opt into the
+ * mastery program by adding a `mastery` block to its config row.
+ *
+ * NOTE ABOUT TWO INDEPENDENT FLAGS:
+ * Subgroup ENROLLMENT (subgroupKey + subgroupTier) and mastery SKILL
+ * GRANTING (masterySkillId) are independent- a panel can be enrolled in a
+ * subgroup (participating in family filtering and occupying a tier slot)
+ * without granting any skill at all (masterySkillId left at 0). This is
+ * useful for "filler" tiers that exist purely to occupy a slot in the
+ * progression without a payoff of their own.
+ *
+ * CONFIG SCHEMA (panel `mastery` block):
+ *    "mastery": {
+ *      "subgroupKey": "fire-mastery",
+ *      "subgroupTier": 1,
+ *      "masterySkillId": 501
+ *    }
+ *  Where "subgroupKey" enrolls this panel in a subgroup (must match a
+ *  subgroups[].key entry above). Omit or leave empty to opt this panel out
+ *  of the subgroup hierarchy entirely.
+ *  Where "subgroupTier" is this panel's rank within the subgroup's
+ *  progression- higher tiers win when reconciling which mastery skill is
+ *  active. Boot validation rejects two panels sharing the same tier within
+ *  one subgroup. Required (> 0) whenever subgroupKey is set.
+ *  Where "masterySkillId" is the skill id granted to the actor when this
+ *  panel reaches max rank. Leave at 0 (or omit) for an enrolled panel that
+ *  should not grant a mastery skill of its own.
+ *
+ * HOW RECONCILIATION WORKS:
+ * The instant a panel reaches max rank, every panel enrolled in that same
+ * subgroup is re-evaluated: the actor's highest-tier MAXED panel in the
+ * subgroup wins, its masterySkillId is learned if not already known, and
+ * every other tier's masterySkillId in that subgroup is forgotten if
+ * currently known. Only one mastery skill per subgroup is ever active on a
+ * given actor at a time- deepening your investment upgrades the payoff
+ * instead of stacking it.
+ *
+ * NOTE: Ranking a panel back down (if your project allows that) does not
+ * un-grant a mastery skill by itself- reconciliation only runs when a panel
+ * is freshly maxed. The mastery summary for whichever panel is currently
+ * hovered in the SDP scene is shown read-only alongside the normal reward
+ * list.
+ * ============================================================================
  * SDP POINTS:
  * Ever wanted enemies to yield SDP points on defeat, or items that grant (or
  * consume) SDP points when used? Well now you can! By applying the same tag
@@ -275,6 +368,14 @@
  *    BREAKING: Rank-up cost spine is defined per **rarity** in plugin parameters; each panel’s `baseCost`,
  *    `flatGrowthCost`, and `multGrowthCost` in `config.sdp.json` are **offsets / scale** (defaults **0 / 0 / 1.0**).
  *    Retune plugin defaults or panel overrides when migrating from v2.x absolute triples.
+ *    Added panel Families and Subgroups (`config.sdp.json` `families`/`subgroups` blocks): a
+ *    Family is a top-level menu category cycled with L2/R2 in the SDP scene (Window_SdpFamilyStrip);
+ *    a Subgroup is a tiered chain of panels within a Family whose masteries supersede each other.
+ *    Added Mastery: a panel enrolled in a subgroup (via its `mastery` block: subgroupKey,
+ *    subgroupTier, masterySkillId) grants that tier's wrapper skill to the actor when maxed.
+ *    Maxing a higher tier in the same subgroup automatically forgets the previous tier's mastery
+ *    skill and grants the new one (SdpMasteryManager) — only the highest maxed tier is ever active.
+ *    Surfaced read-only in the SDP scene via Window_SdpMastery for whichever panel is hovered.
  * - 2.1.2
  *    Consumed `RPGManager` updates.
  * - 2.1.1

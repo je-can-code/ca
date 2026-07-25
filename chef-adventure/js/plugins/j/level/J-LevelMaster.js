@@ -1,7 +1,7 @@
 //region initialization
 /*:
  * @target MZ
- * @plugindesc [v1.3.1 LEVEL] Allows levels to have greater control and purpose.
+ * @plugindesc [v1.4.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -377,6 +377,11 @@
  *    across all classes instead of leveling each class independently, with
  *    a class-independent canonical exp curve and retroactive learning
  *    backfill on class change.
+ *    Added per-class growth curve tags (<mhpGrowthCurve>, etc. for all base
+ *    params plus <mtpGrowthCurve>) as authored, formula-driven replacements
+ *    for the slope-extrapolation fallback beyond level 99. MTP's curve is
+ *    evaluated live at every level, not just beyond 99, since MTP has no
+ *    baked params[] array to defer to below the cap.
  * - 1.3.1
  *    Updated battler name rendering support for compatibility.
  * - 1.3.0
@@ -543,7 +548,7 @@ J.LEVEL.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.3.1");
+J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.4.0");
 /**
 * The maximum level definable in the level. Any level below this can be determined without extra calculations.
 * @type {number}

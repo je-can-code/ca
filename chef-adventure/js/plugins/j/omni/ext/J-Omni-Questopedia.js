@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v1.1.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -138,6 +138,11 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added <pageQuestCondition>/<choiceQuestCondition>, gating an event
+ *    page or a single "Show Choices" branch behind quest/objective state
+ *    (active quest, active objective, or a specific objective STATE:
+ *    inactive/active/completed/failed/missed).
  * - 1.0.3
  *    Updated to accommodate for mapping shortcut to view quest log.
  *    Added flag for showing external file load info.
@@ -2201,7 +2206,7 @@ var J_QUEST_PluginMetadata = class J_QUEST_PluginMetadata extends PluginMetadata
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -2223,7 +2228,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.0.3");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

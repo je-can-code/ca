@@ -3,7 +3,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.6 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
+ * [v1.0.7 PIXEL-ABS] Bridges J-Pixelistics with J-ABS for combat-aware pixel movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -88,6 +88,14 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.7
+ *    Overrode JABS_Battler#canDirectionalDodgeStepPass to gate directional
+ *    dodge steps through PIXEL's own subcell passability
+ *    (canPassDiagonalByDirection/canPassStraight) instead of the base
+ *    tile-grid check.
+ *    Added Game_CharacterBase#hasCustomPixelHitbox/getPixelAbsBattlerAabbModel
+ *    default stubs (false/null), replacing duck-typing checks against
+ *    optional methods with a real base contract.
  * - 1.0.6
  *    Added enemy `hitboxReveal` support for proximity-based hitbox outlines in `J-ABS-Pixelistics`.
  *    Added an always-active outline option and a default reveal-range plugin parameter.
@@ -255,7 +263,7 @@ J.PIXEL.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-ABS-Pixelistics", "1.0.6");
+J.PIXEL.EXT.ABS.Metadata = new JAbsPixelistics_PluginMetadata("J-ABS-Pixelistics", "1.0.7");
 /**
 * A collection of regex patterns for this plugin.
 */

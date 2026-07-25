@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.1.0 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -128,6 +128,18 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Added AP rate multiplier via <aptMultiplier:AMOUNT>, registered with
+ *    the shared parameter catalog (apr) with an SDP panel binding.
+ *    J-LevelMaster integration is now an all-or-nothing gate on AP gain
+ *    once the actor is too many levels above the enemy, replacing the old
+ *    scaling multiplier; reads $gameSystem.isLevelScalingEnabled() instead
+ *    of the static plugin metadata flag.
+ *    Fixed stale requiredAp: a learning's persisted requiredAp now re-syncs
+ *    to the live notetag value every time its source grants AP, instead of
+ *    being frozen at whatever value existed the first time it was touched.
+ *    Added refresh-required-ap / refresh-required-ap-all plugin commands to
+ *    manually repair saves that had already gone stale before this fix.
  * - 1.0.3
  *    Raised minimum J-ABS version requirement to 4.6.0.
  * - 1.0.2
@@ -659,12 +671,12 @@ var JAptitude_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (hasJabsRequirement === false) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -681,7 +693,7 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.0.3");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

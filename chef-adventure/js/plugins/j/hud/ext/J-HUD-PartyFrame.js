@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 HUD-PARTY] A HUD frame that displays your party's data.
+ * [v1.3.0 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -44,6 +44,11 @@
  * ============================================================================
  * CHANGELOG
  * ----------------------------------------------------------------------------
+ * - 1.3.0
+ *    Leader affliction rendering now delegates to J-HUD core's shared
+ *    StateAfflictionHudPresenter/StateAfflictionHudLayoutSpec instead of a
+ *    duplicated local implementation (removed ~300 lines of local code).
+ *    Window backdrop opacity default changed from 32 to fully transparent (0).
  * - 1.2.0
  *    Integrated J-ABS-Shields; supports display for shield gauge.
  *    Updated many classes to use modern class syntax.
@@ -75,7 +80,7 @@ var JHudParty_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.3.2";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -94,7 +99,7 @@ J.HUD.EXT.PARTY = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudParty_PluginMetadata}
 */
-J.HUD.EXT.PARTY.Metadata = new JHudParty_PluginMetadata("J-HUD-PartyFrame", "1.2.0");
+J.HUD.EXT.PARTY.Metadata = new JHudParty_PluginMetadata("J-HUD-PartyFrame", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

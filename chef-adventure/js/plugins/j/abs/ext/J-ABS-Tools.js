@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 TOOLS] Enable new tool-like tags for use with skills.
+ * [v1.1.0 TOOLS] Enable new tool-like tags for use with skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -160,6 +160,21 @@
  *    Gap close tags now require a key: <gapClose:key> / <gapCloseTarget:key>.
  *    Keys must match for gap closing to occur — no cross-mechanic bypass.
  *    Removed canGapCloseByDefault plugin parameter.
+ *    Added <gapCloseAny> to skip key-matching and close on whatever the
+ *    skill's hitbox connects with.
+ *    Added <blockGapClose> to make a target immune to all gap closing,
+ *    including <gapCloseAny> skills.
+ *    Added <gapCloseMode:MODE> (blink/jump/travel) to control how the
+ *    caster travels to the destination.
+ *    Added <gapClosePosition:POSITION> (infront/behind/same) to control
+ *    where relative to the target the caster lands.
+ *    Added <respectTerrain> to cancel a gap close blocked by terrain,
+ *    instead of the default terrain-bypassing behavior.
+ *    Added <onGapCloseEnd>/<thisOnGapCloseEnd> to fire follow-up skills
+ *    the instant a gap close arrives at its destination.
+ *    Added <pullForward:MAGNITUDE>, a non-key-gated reverse-knockback tag
+ *    that pulls the target toward the caster; combines with gap close by
+ *    pulling first, then closing whatever distance remains.
  * - 1.0.3
  *    Raised minimum J-ABS version requirement to 4.7.0.
  * - 1.0.2
@@ -225,12 +240,12 @@ var J_ToolsPluginMetadata = class extends PluginMetadata {
 //#region src/plugins/abs/ext/tools/_metadata/initialization.js
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "3.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (!hasBaseRequirement) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
-	const requiredJabsVersion = "4.6.0";
+	const requiredJabsVersion = "4.13.0";
 	const hasJabsRequirement = J.BASE.Helpers.satisfies(J.ABS.Metadata.version.version(), requiredJabsVersion);
 	if (!hasJabsRequirement) {
 		throw new Error(`Either missing J-ABS or has a lower version than the required: ${requiredJabsVersion}`);
@@ -243,7 +258,7 @@ J.ABS.EXT.TOOLS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.TOOLS.Metadata = new J_ToolsPluginMetadata("J-ABS-Tools", "1.0.3");
+J.ABS.EXT.TOOLS.Metadata = new J_ToolsPluginMetadata("J-ABS-Tools", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

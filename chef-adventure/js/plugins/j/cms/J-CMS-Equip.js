@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 CMS_E] A redesign of the equip menu.
+ * [v1.1.0 CMS_E] A redesign of the equip menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -17,6 +17,15 @@
  * NOTE ABOUT NOTETAGS:
  * This plugin has no notetags of its own- it is purely a scene/window
  * redesign of the native equip menu.
+ * ============================================================================
+ * CHANGELOG:
+ * - 1.1.0
+ *    Added a context action on the equip slot list to unequip the
+ *    currently-selected slot directly, without opening the item list.
+ *    Renamed slot-window handler symbols pagedown/pageup to
+ *    actor-next/actor-prev.
+ * - 1.0.0
+ *    Initial release.
  * ============================================================================
  */
 
@@ -39,7 +48,7 @@ var J_CmsEquip_PluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.0.0";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -52,7 +61,7 @@ J.CMS_E = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS_E.Metadata = new J_CmsEquip_PluginMetadata("J-CMS-Equip", "1.0.0");
+J.CMS_E.Metadata = new J_CmsEquip_PluginMetadata("J-CMS-Equip", "1.1.0");
 J.CMS_E.Aliased = {
 	Scene_Equip: new Map(),
 	Window_EquipItem: new Map(),

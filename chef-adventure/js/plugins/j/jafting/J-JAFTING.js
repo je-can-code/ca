@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.2 JAFTING-Core] Root JAFTING menu, salvage loop, and extension hooks.
+ * [v2.1.3 JAFTING-Core] Root JAFTING menu, salvage loop, and extension hooks.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -39,6 +39,11 @@
  * their own respective tags.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.3
+ *    Split JaftingSalvageDataModels.js into one file per class
+ *    (JaftingSalvageLedgerRow/Snapshot/PartyLedgerBag) and registered all
+ *    three with SerializableRegistry so JsonEx restores keep their
+ *    prototype methods after a save load.
  * - 2.1.2
  *    Salvage hub row: label, icon, optional switch gate
  *    ({@link Window_JaftingList}).
@@ -146,7 +151,7 @@ var J_CraftingPluginMetadata = class extends PluginMetadata {
 */
 globalThis.J ||= {};
 (() => {
-	const requiredBaseVersion = "2.1.3";
+	const requiredBaseVersion = "3.2.0";
 	const hasBaseRequirement = J.BASE.Helpers.satisfies(J.BASE.Metadata.Version, requiredBaseVersion);
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
@@ -163,7 +168,7 @@ J.JAFTING.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.JAFTING.Metadata = new J_CraftingPluginMetadata("J-JAFTING", "2.1.2");
+J.JAFTING.Metadata = new J_CraftingPluginMetadata("J-JAFTING", "2.1.3");
 /**
 * A helpful mapping of all the various RMMZ classes being extended.
 */

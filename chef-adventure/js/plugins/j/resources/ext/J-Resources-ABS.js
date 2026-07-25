@@ -244,6 +244,9 @@
  *    New plugin parameter: healChainDepth (default 5) caps cascade depth.
  *    Fixed: Scene_Boot import was missing from entry.js, so parameter
  *    registration was never called. Now fixed.
+ *    Added LST/MST/TST (life/mana/tech steal) battler-wide percent-point
+ *    stats, summed from every note source plus SDP panel bonus, recovering
+ *    HP/MP/TP as a percent of HP damage dealt on every hit.
  * - 1.0.0
  *    Initial release.
  *    Added on-attack HP/MP/TP gains via flat, percent, and formula skill tags.

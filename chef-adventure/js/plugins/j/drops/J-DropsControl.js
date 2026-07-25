@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.1.2 DROPS] Enables greater control over loot drops.
+ * @plugindesc [v2.2.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -209,6 +209,14 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Added a NaturalGrowth-integrated drop rate stat (key "dor") via
+ *    <dorBuffPlus>/<dorBuffRate>/<dorGrowthPlus>/<dorGrowthRate>, following
+ *    J-NaturalGrowth's own Buff/Growth tag pattern; requires J-NaturalGrowth.
+ *    makeDropItems/didFindLoot now accept the killing battler, whose
+ *    lucky/cursed on-chance rolls now contribute to the loot-discovery roll.
+ *    Documented that drop TYPE accepts long-form aliases (item/weapon/armor)
+ *    alongside the short forms (i/w/a).
  * - 2.1.2
  *    Consumed `RPGManager` updates.
  * - 2.1.1
@@ -249,7 +257,7 @@ J.DROPS = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.1.2");
+J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.2.0");
 /**
 * All regular expressions used by this plugin.
 */

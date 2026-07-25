@@ -223,7 +223,7 @@
  *
  * Custom Parameters:
  * - mtp (max tp)
- * - har (healing rate, requires J-Base 3.5.0+)
+ * - har (healing rate, requires J-Base 3.2.0+)
  *
  * Rewards (plus only, no rate):
  * - exp
@@ -238,7 +238,7 @@
  *    <harGrowthPlus:[FORMULA]>, <harGrowthRate:[FORMULA]>,
  *    <harBuffPlus:[FORMULA]>, <harBuffRate:[FORMULA]>. Growth applies via
  *    the existing applyNaturalCustomGrowths hook (actors only); buffs apply
- *    to both actors and enemies. Requires J-Base 3.5.0+.
+ *    to both actors and enemies. Requires J-Base 3.2.0+.
  * - 2.1.2
  *    Fixed issue with broken regex structures for max TP.
  *    Consumed `RPGManager` updates.
