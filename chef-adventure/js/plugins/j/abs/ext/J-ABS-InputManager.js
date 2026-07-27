@@ -174,6 +174,36 @@ var JABS_Button = class {
 	*/
 	static CombatSkill4 = "CombatSkill4";
 	/**
+	* Gets the logical buttons that combine to produce each combat skill input.
+	*
+	* Combat skills are not independently bindable- each one is the {@link JABS_Button.SkillTrigger}
+	* modifier held alongside one of the four primary buttons. That relationship used to exist only
+	* inside display strings such as "Skill Trigger + Mainhand", which meant a retired button could
+	* (and did) leave those strings quietly lying about what actually fires the skill.
+	*
+	* Expressing it as data instead lets every consumer- remap labels, HUD hints, loadout screens-
+	* resolve the current binding of each half through the live input mapping, so remapping either
+	* component immediately and correctly updates everywhere it is displayed.
+	* @returns {Object<string, string[]>} A map of combat skill key to its component button keys.
+	*/
+	static combatSkillCompositions() {
+		const compositions = {};
+		compositions[this.CombatSkill1] = [this.SkillTrigger, this.Mainhand];
+		compositions[this.CombatSkill2] = [this.SkillTrigger, this.Offhand];
+		compositions[this.CombatSkill3] = [this.SkillTrigger, this.Sprint];
+		compositions[this.CombatSkill4] = [this.SkillTrigger, this.Tool];
+		return compositions;
+	}
+	/**
+	* Gets the logical buttons that combine to produce the given combat skill input.
+	* @param {string} combatSkillButton The combat skill key to decompose.
+	* @returns {string[]} The component button keys, or an empty array if it is not a combat skill.
+	*/
+	static combatSkillComposition(combatSkillButton) {
+		const composition = this.combatSkillCompositions()[combatSkillButton];
+		return composition ?? Array.empty;
+	}
+	/**
 	* Gets all assignable buttons used for JABS.
 	* @returns {string[]} A collection of JABS-input keys' identifiers.
 	*/
@@ -2385,10 +2415,6 @@ function jabsRemapActionLookupMaps() {
 	labels[JABS_Button.Offhand] = "Offhand";
 	labels[JABS_Button.Tool] = "Tool";
 	labels[JABS_Button.Dodge] = "Dodge";
-	labels[JABS_Button.CombatSkill1] = "Skill Trigger + Mainhand";
-	labels[JABS_Button.CombatSkill2] = "Skill Trigger + Offhand";
-	labels[JABS_Button.CombatSkill3] = "Skill Trigger + Dodge";
-	labels[JABS_Button.CombatSkill4] = "Skill Trigger + Tool";
 	labels[JABS_Button.Sprint] = "Sprint";
 	labels[JABS_Button.SkillTrigger] = "Skill Trigger";
 	labels[JABS_Button.Strafe] = "Strafe";
@@ -2396,6 +2422,10 @@ function jabsRemapActionLookupMaps() {
 	labels[JABS_Button.Guard] = "Guard";
 	labels[JABS_Button.Menu] = "Menu";
 	labels[JABS_Button.Select] = "Party Cycle";
+	const compositions = JABS_Button.combatSkillCompositions();
+	Object.keys(compositions).forEach((combatSkillButton) => {
+		labels[combatSkillButton] = compositions[combatSkillButton].map((component) => labels[component]).join(" + ");
+	});
 	const help = {};
 	help[JABS_Button.Menu] = "Open the JABS quick menu.\nAccess actions, tools, and options.";
 	help[JABS_Button.Select] = "Cycle the party leader.\nRotate the front actor with the next in line.";
@@ -2593,8 +2623,7 @@ var Window_JabsRemapActions = class extends Window_Command {
 				buttons: [
 					JABS_Button.SkillTrigger,
 					JABS_Button.Rotate,
-					JABS_Button.Strafe,
-					JABS_Button.Dodge
+					JABS_Button.Strafe
 				]
 			},
 			{
