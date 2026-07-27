@@ -845,9 +845,6 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 		const now = Graphics.frameCount;
 		JABS_PopupMergeController.#trackedCharacters.forEach((character) => {
 			const bucket = JABS_PopupMergeController.#characterStore.get(character);
-			if (!bucket) {
-				return;
-			}
 			const spriteCharacter = PopupSpriteLocator.findSpriteCharacterForGameCharacter(character);
 			const keys = Array.from(bucket.sessions.keys());
 			keys.forEach((key) => {
@@ -856,7 +853,7 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 					bucket.sessions.delete(key);
 					return;
 				}
-				const lastAct = session.lastActivityFrame ?? 0;
+				const lastAct = session.lastActivityFrame;
 				if (now - lastAct < idleFrames) {
 					return;
 				}

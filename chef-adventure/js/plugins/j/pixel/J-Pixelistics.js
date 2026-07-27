@@ -664,6 +664,27 @@ Game_Character.prototype.canStartPixelRepeatMove = function(command) {
 	if (Game_Character.pixelRepeatableMoveCommandCodes.includes(command.code) === false) return false;
 	return true;
 };
+/**
+* Overwrites {@link Game_Character.moveRandom}.<br/>
+* Vanilla rolls a brand-new random cardinal direction on every single call. Under pixel
+* movement, {@link Game_Character#handlePixelRoutineMove} repeats a "Move Random" route
+* command every frame to cover a full tile's worth of sub-pixel distance, so the vanilla
+* version re-rolls dozens of times before a tile is crossed - visibly twitching in place
+* instead of travelling. This caches the rolled direction using the same micro-route hold
+* primitives ({@link Game_CharacterBase#setMicroRouteDirection} etc.) already used by JABS'
+* AI idle-wander/retreat logic, and reuses it for one full tile's worth of frames.
+*/
+Game_Character.prototype.moveRandom = function() {
+	if (this.isMicroRouting()) {
+		this.moveStraight(this.getMicroRouteDirection());
+		this.decrementMicroRouteFrames();
+		return;
+	}
+	const direction = 2 + Math.floor(Math.random() * 4) * 2;
+	this.setMicroRouteDirection(direction);
+	this.setMicroRouteFrames(this.pixelRepeatCountForRoute());
+	this.moveStraight(direction);
+};
 
 //#endregion
 //#region src/plugins/pixel/core/objects/Game_CharacterBase.js
@@ -1364,6 +1385,23 @@ Game_CharacterBase.prototype.canPass = function(x, y, d) {
 	return J.PIXEL.Aliased.Game_CharacterBase.get("canPass").call(this, Math.round(x), Math.round(y), d);
 };
 /**
+* Overwrites {@link Game_CharacterBase.pos}.<br/>
+* Rounds this character's fractional pixel coordinates to the nearest tile before comparing.
+* Vanilla `pos` is an exact-equality check, which callers throughout the engine (event-trigger
+* lookups via `Game_Map.eventsXy`, `startMapEvent`, etc.) rely on to match a character against
+* an already-rounded tile coordinate. Under pixel movement, `_x`/`_y` are fractional almost all
+* the time, so exact equality only ever matched by coincidence — this is the same fractional-vs-
+* integer mismatch already fixed for {@link Game_CharacterBase#canPass} and
+* {@link Game_CharacterBase#regionId}, just on the "am I at this tile" side of the comparison
+* instead of the "can I move to this tile" side.
+* @param {number} x The x tile coordinate to compare against (expected to be an integer).
+* @param {number} y The y tile coordinate to compare against (expected to be an integer).
+* @returns {boolean} True if this character's nearest tile matches (x, y).
+*/
+Game_CharacterBase.prototype.pos = function(x, y) {
+	return Math.round(this._x) === x && Math.round(this._y) === y;
+};
+/**
 * Extends {@link Game_CharacterBase#regionId}.<br/>
 * Samples the map region at the character's collision pivot tile. With pixel movement,
 * `_x`/`_y` are fractional; vanilla forwards them into {@link Game_Map#tileId}, which
@@ -1394,8 +1432,11 @@ Game_CharacterBase.prototype.moveStraight = function(direction) {
 /**
 * Extends {@link Game_CharacterBase.moveDiagonally}.<br/>
 * Evaluates pixel-aware diagonal passability and executes pixel-distance movement.
-* Direction is updated unconditionally (matching rmmz default behavior) so that
-* a blocked diagonal step still rotates the character away from a wall.
+* Faces the vertical component (down/up) on a successful diagonal step rather than the raw
+* 8-dir composite code (1/3/7/9): {@link Sprite_Character#characterPatternY} only understands
+* cardinals 2/4/6/8 and produces a fractional, corrupted sprite-sheet row for anything else.
+* This mirrors the facing convention this plugin already uses for its other diagonal-movement
+* path in {@link Game_CharacterBase#pixelMoveByInput}'s `tryDiagonal` helper.
 * @param {4|6} horz The horizontal component direction (4=left, 6=right).
 * @param {2|8} vert The vertical component direction (2=down, 8=up).
 */
@@ -1405,7 +1446,7 @@ Game_CharacterBase.prototype.moveDiagonally = function(horz, vert) {
 	if (this.isMovementSucceeded()) {
 		const direction = this.directionFromHorzVert(horz, vert);
 		this.movePixelDistance(direction, this.diagonalDistancePerFrame());
-		this.setDirection(direction);
+		this.setDirection(vert);
 	}
 	if (this._direction === this.reverseDir(horz)) {
 		this.setDirection(horz);

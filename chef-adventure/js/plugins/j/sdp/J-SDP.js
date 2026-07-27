@@ -3736,6 +3736,57 @@ var SdpFamilyFilter = class SdpFamilyFilter {
 		return cycle;
 	}
 	/**
+	* Ordinal position of a family within the authored family list.
+	* Unresolved/unknown families sort after every known family.
+	* @param {string} familyKey The family key driving this step.
+	* @returns {number}
+	*/
+	static familyOrderIndex(familyKey) {
+		const index = J.SDP.Metadata.families.findIndex((family) => family.key === familyKey);
+		return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+	}
+	/**
+	* Ordinal position of a subgroup within its owning family's authored subgroup list.
+	* Unresolved/unknown subgroups sort after every known subgroup.
+	* @param {string} familyKey The family key driving this step.
+	* @param {string} subgroupKey The subgroup key driving this step.
+	* @returns {number}
+	*/
+	static subgroupOrderIndex(familyKey, subgroupKey) {
+		const family = J.SDP.Metadata.familiesMap.get(familyKey);
+		if (!family) {
+			return Number.MAX_SAFE_INTEGER;
+		}
+		const index = family.subgroupKeys.indexOf(subgroupKey);
+		return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+	}
+	/**
+	* Orders two panels by family, then subgroup, then subgroup tier.
+	* Falls back to alphabetical-by-key when the hierarchy can't fully disambiguate
+	* (e.g. panels sitting entirely outside the family/subgroup hierarchy).
+	* @param {StatDistributionPanel} panelA The first panel driving this step.
+	* @param {StatDistributionPanel} panelB The second panel driving this step.
+	* @returns {number}
+	*/
+	static comparePanels(panelA, panelB) {
+		const familyKeyA = SdpFamilyFilter.resolvePanelFamilyFilterKey(panelA);
+		const familyKeyB = SdpFamilyFilter.resolvePanelFamilyFilterKey(panelB);
+		const familyIndexA = SdpFamilyFilter.familyOrderIndex(familyKeyA);
+		const familyIndexB = SdpFamilyFilter.familyOrderIndex(familyKeyB);
+		if (familyIndexA !== familyIndexB) {
+			return familyIndexA - familyIndexB;
+		}
+		const subgroupIndexA = SdpFamilyFilter.subgroupOrderIndex(familyKeyA, panelA.mastery.subgroupKey);
+		const subgroupIndexB = SdpFamilyFilter.subgroupOrderIndex(familyKeyB, panelB.mastery.subgroupKey);
+		if (subgroupIndexA !== subgroupIndexB) {
+			return subgroupIndexA - subgroupIndexB;
+		}
+		if (panelA.mastery.subgroupTier !== panelB.mastery.subgroupTier) {
+			return panelA.mastery.subgroupTier - panelB.mastery.subgroupTier;
+		}
+		return panelA.key.localeCompare(panelB.key);
+	}
+	/**
 	* Display label for a family-filter key in the menu strip.
 	* @param {string} filterKey The filter key driving this step.
 	* @returns {string}
@@ -3865,6 +3916,7 @@ var Window_SdpList = class extends Window_Command {
 			if (!command) return null;
 			return command;
 		}, this).filter((command) => command !== null);
+		commands.sort((left, right) => SdpFamilyFilter.comparePanels(left.ext, right.ext));
 		commands.forEach(this.addBuiltCommand, this);
 	}
 	/**

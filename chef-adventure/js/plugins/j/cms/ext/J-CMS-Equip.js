@@ -6,7 +6,9 @@
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
+ * @base J-CMS
  * @orderAfter J-Base
+ * @orderAfter J-CMS
  * @help
  * ============================================================================
  * This is a redesign of the equipment menu.
@@ -29,7 +31,7 @@
  * ============================================================================
  */
 
-//#region src/plugins/cms/equip/_metadata/_pluginMetadata.js
+//#region src/plugins/cms/ext/equip/_metadata/_pluginMetadata.js
 var J_CmsEquip_PluginMetadata = class extends PluginMetadata {
 	/**
 	* Constructor.
@@ -42,7 +44,7 @@ var J_CmsEquip_PluginMetadata = class extends PluginMetadata {
 };
 
 //#endregion
-//#region src/plugins/cms/equip/_metadata/initialization.js
+//#region src/plugins/cms/ext/equip/_metadata/initialization.js
 /**
 * The core where all of my extensions live: in the `J` object.
 */
@@ -69,7 +71,7 @@ J.CMS_E.Aliased = {
 };
 
 //#endregion
-//#region src/plugins/cms/equip/windows/Window_MoreEquipData.js
+//#region src/plugins/cms/ext/equip/windows/Window_MoreEquipData.js
 /**
 * A window designed to display "more" data associated with the equipment.
 */
@@ -104,30 +106,8 @@ var Window_MoreEquipData = class extends Window_MoreData {
 	*/
 	buildCommands() {
 		this.addJaftingRefinementData();
-		this.addBaseParameterData();
-		this.addJabsEquipmentData();
-		this.addEquipmentTraitData();
-	}
-	/**
-	* Add any applicable base parameter commands from the equipment.
-	*/
-	addBaseParameterData() {
-		const forEacher = (value, paramIdIndex) => {
-			if (!value) return;
-			const baseValue = this.item.params[paramIdIndex];
-			const commandName = `${TextManager.param(paramIdIndex)}: ${baseValue}`;
-			const command = new WindowCommandBuilder(commandName).setIconIndex(IconManager.param(paramIdIndex)).build();
-			this.addBuiltCommand(command);
-		};
-		this.item.params.forEach(forEacher, this);
-	}
-	/**
-	* Adds all commands related to JABS on the equipment.
-	*/
-	addJabsEquipmentData() {
 		this.addHitsCommand();
-		this.addSkillCommands();
-		this.addSpeedBoostCommand();
+		this.addEquipmentTraitData();
 	}
 	/**
 	* Adds per-connection bonus hit lines from scoped JABS tags, plus a weapon hit-count summary.
@@ -154,44 +134,6 @@ var Window_MoreEquipData = class extends Window_MoreData {
 			const hitCountRow = new WindowCommandBuilder(`Hit count: x${weaponHitTotal}`).setIconIndex(hitBonusIcon).build();
 			this.addBuiltCommand(hitCountRow);
 		}
-	}
-	/**
-	* Add the the appropriate skill and combo commands as-needed.
-	*/
-	addSkillCommands() {
-		const { jabsSkillId } = this.item;
-		if (!jabsSkillId) return;
-		const skill = this.actor.skill(jabsSkillId);
-		const comboSkillList = skill.getComboSkillIdList(this.actor);
-		let baseAttackSkillCommand = this.item.isArmor() ? `Offhand Skill` : `Attack Skill`;
-		const hasCombo = comboSkillList.length > 0;
-		if (hasCombo) {
-			baseAttackSkillCommand = `Combo Starter`;
-		}
-		const { name, iconIndex } = skill;
-		const attackSkillCommand = `${baseAttackSkillCommand}: \\C[2]${name}\\C[0]`;
-		const command = new WindowCommandBuilder(attackSkillCommand).setIconIndex(iconIndex).build();
-		this.addBuiltCommand(command);
-		if (hasCombo) {
-			const forEacher = (comboSkillId, index) => {
-				const comboSkill = this.actor.skill(comboSkillId);
-				const comboSkillCommandName = `Combo Skill ${index + 1}: \\C[2]${comboSkill.name}\\C[0]`;
-				const comboCommand = new WindowCommandBuilder(comboSkillCommandName).setIconIndex(iconIndex).build();
-				this.addBuiltCommand(comboCommand);
-			};
-			comboSkillList.forEach(forEacher, this);
-		}
-	}
-	/**
-	* Add any speed boost adjustments from the equipment.
-	*/
-	addSpeedBoostCommand() {
-		const { jabsSpeedBoost } = this.item;
-		if (!jabsSpeedBoost) return;
-		const speedBoostCommand = `Speed Boost: ${jabsSpeedBoost}`;
-		const speedBoostIcon = IconManager.jabsParameterIcon(IconManager.JABS_PARAMETER.SPEED_BOOST);
-		const command = new WindowCommandBuilder(speedBoostCommand).setIconIndex(speedBoostIcon).build();
-		this.addBuiltCommand(command);
 	}
 	/**
 	* Adds all commands related to JAFTING on the equipment.
@@ -238,18 +180,14 @@ var Window_MoreEquipData = class extends Window_MoreData {
 	* Adds all trait commands on the equipment.
 	*/
 	addEquipmentTraitData() {
-		const allTraits = this.item.traits;
-		if (!allTraits.length) return;
-		const xparamNoPercents = [
-			0,
-			2,
-			7,
-			8,
-			9
+		const paramTraitCodes = [
+			J.BASE.Traits.B_PARAMETER,
+			J.BASE.Traits.X_PARAMETER,
+			J.BASE.Traits.S_PARAMETER
 		];
-		const sparamNoPercents = [1];
-		const dividerIndex = allTraits.findIndex((trait) => trait.code === J.BASE.Traits.NO_DISAPPEAR);
-		const hasDivider = dividerIndex !== -1;
+		const allTraits = this.item.traits.filter((trait) => paramTraitCodes.includes(trait.code) === false);
+		if (!allTraits.length) return;
+		const hasDivider = allTraits.some((trait) => trait.code === J.BASE.Traits.NO_DISAPPEAR);
 		if (hasDivider) {
 			this.addCommand(`BASE TRAITS`, null, true, null, 16, 30);
 		}
@@ -257,30 +195,9 @@ var Window_MoreEquipData = class extends Window_MoreData {
 			const convertedTrait = new JAFTING_Trait(t.code, t.dataId, t.value);
 			let commandName = convertedTrait.nameAndValue;
 			let commandColor = 0;
-			switch (convertedTrait._code) {
-				case 21:
-					const paramId = convertedTrait._dataId;
-					const paramBase = this.actor.paramBase(paramId);
-					const bonus = paramBase * (convertedTrait._value - 1);
-					const sign = bonus >= 0 ? "+" : "-";
-					commandName += ` \\C[6](${sign}${bonus.toFixed(2)})\\C[0]`;
-					break;
-				case 22:
-					const xparamId = convertedTrait._dataId;
-					if (xparamNoPercents.includes(xparamId)) {
-						commandName = commandName.replace("%", String.empty);
-					}
-					break;
-				case 23:
-					const sparamId = convertedTrait._dataId;
-					if (sparamNoPercents.includes(sparamId)) {
-						commandName = commandName.replace("%", String.empty);
-					}
-					break;
-				case 63:
-					commandName = convertedTrait.name;
-					commandColor = 30;
-					break;
+			if (convertedTrait._code === J.BASE.Traits.NO_DISAPPEAR) {
+				commandName = convertedTrait.name;
+				commandColor = 30;
 			}
 			const commandIcon = IconManager.trait(convertedTrait);
 			this.addCommand(commandName, null, true, null, commandIcon, commandColor);
@@ -289,7 +206,79 @@ var Window_MoreEquipData = class extends Window_MoreData {
 };
 
 //#endregion
-//#region src/plugins/cms/equip/scenes/Scene_Equip.js
+//#region src/plugins/cms/ext/equip/windows/Window_EquipActorRibbon.js
+/**
+* A ribbon window for the equip scene that displays the currently equipped actor's face and name.
+* Replaces the old full face portrait that vanilla `Window_EquipStatus` drew internally, freeing
+* up most of that window's vertical space for the parameter catalog.
+*/
+var Window_EquipActorRibbon = class extends Window_ActorRibbon {
+	/**
+	* Constructor.
+	* @param {Rectangle} rect The rectangle for this window.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.initialize(rect);
+	}
+	/**
+	* Extends {@link Window_ActorRibbon#drawContent}.<br/>
+	* Also draws the actor name beside the face.
+	*/
+	drawContent() {
+		super.drawContent();
+		this.drawActorName();
+	}
+	/**
+	* Draws the actor name centered vertically beside the face graphic.
+	*/
+	drawActorName() {
+		if (!this._actor) return;
+		const textX = this.faceWidth() + 8;
+		const textWidth = this.innerWidth - textX;
+		const textY = Math.floor((this.innerHeight - this.lineHeight()) / 2);
+		this.drawText(this._actor.name(), textX, textY, textWidth, "left");
+	}
+};
+
+//#endregion
+//#region src/plugins/cms/ext/equip/windows/Window_EquipControlsHint.js
+/**
+* A single-line controller hint for the equip scene.
+* Sits beside {@link Window_EquipActorRibbon} in the row above the parameter catalog.
+*/
+var Window_EquipControlsHint = class extends Window_Base {
+	/**
+	* @param {Rectangle} rect The dimensions of the window.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.initialize(rect);
+	}
+	/**
+	* Re-renders the static controller hint.
+	*/
+	refresh() {
+		this.contents.clear();
+		this.drawControllerHint();
+	}
+	/**
+	* Draws the controller-first legend for equip/unequip/back.
+	*/
+	drawControllerHint() {
+		const padX = 12;
+		this.resetFontSettings();
+		this.modFontSize(-4);
+		this.changeTextColor(ColorManager.normalColor());
+		const text = "OK: Equip    Cancel: Back    Triangle: Unequip";
+		const y = Math.max(0, Math.floor((this.innerHeight - this.lineHeight()) / 2));
+		this.drawText(text, padX, y, this.innerWidth - padX * 2, "center");
+		this.resetFontSettings();
+	}
+};
+
+//#endregion
+//#region src/plugins/cms/ext/equip/scenes/Scene_Equip.js
 /**
 * Initializes this scene.
 */
@@ -310,6 +299,8 @@ Scene_Equip.prototype.createButtons = function() {};
 Scene_Equip.prototype.create = function() {
 	Scene_MenuBase.prototype.create.call(this);
 	this.createHelpWindow();
+	this.createActorRibbonWindow();
+	this.createControlsHintWindow();
 	this.createStatusWindow();
 	this.createMoreDataWindow();
 	this.createSlotWindow();
@@ -327,29 +318,107 @@ Scene_Equip.prototype.create = function() {
 Scene_Equip.prototype.buttonAreaHeight = () => 0;
 /**
 * Overwrites {@link #statusWidth}.<br/>
-* Modifies the width of the equip status window.
+* Modifies the width of the equip status window — whatever {@link #rightColumnWidth} trims off
+* the right-hand column (slot/item lists + controls hint) flows into this column instead, since
+* the parameter grid is the one that actually needs the room.
+* @returns {number}
 */
-Scene_Equip.prototype.statusWidth = () => 1024;
+Scene_Equip.prototype.statusWidth = function() {
+	return Graphics.boxWidth - this.rightColumnWidth();
+};
+/**
+* The width of the right-hand column (slot list, item list, controls hint). Trimmed to ~70% of
+* its original width (the full remainder past the old fixed 1024px status column) — still plenty
+* of room for the controls hint text and the widest equipment names, without hogging space the
+* parameter grid needs more.
+* @returns {number}
+*/
+Scene_Equip.prototype.rightColumnWidth = function() {
+	const originalRightWidth = Graphics.boxWidth - 1024;
+	return Math.round(originalRightWidth * .7);
+};
 /**
 * Overwrites {@link #helpWindowRect}.<br/>
-* Changes the width to be what we want it to be.
+* Stretches the help window across the full screen width along the bottom, instead of only the
+* status column, since it's the one window in this scene that isn't scoped to either column.
 * @returns {Rectangle}
 */
 Scene_Equip.prototype.helpWindowRect = function() {
 	const wx = 0;
 	const wy = this.helpAreaTop();
-	const ww = this.statusWidth();
+	const ww = Graphics.boxWidth;
 	const wh = this.helpAreaHeight();
 	return new Rectangle(wx, wy, ww, wh);
 };
 /**
+* The height of a one-line top row (actor ribbon on the left, controls hint on the right).
+* @returns {number}
+*/
+Scene_Equip.prototype.topRowHeight = function() {
+	return this.calcWindowHeight(1, false);
+};
+/**
+* Gets the rectangle that defines the shape of the actor ribbon window.
+* Spans the full width of the status column.
+* @returns {Rectangle}
+*/
+Scene_Equip.prototype.actorRibbonRect = function() {
+	const wx = 0;
+	const wy = this.mainAreaTop();
+	const ww = this.statusWidth();
+	const wh = this.topRowHeight();
+	return new Rectangle(wx, wy, ww, wh);
+};
+/**
+* Gets the rectangle that defines the shape of the controls hint window.
+* Sits directly above the slot window, since that's what its legend describes.
+* @returns {Rectangle}
+*/
+Scene_Equip.prototype.controlsHintRect = function() {
+	const wx = this.statusWidth();
+	const wy = this.mainAreaTop();
+	const ww = Graphics.boxWidth - this.statusWidth();
+	const wh = this.topRowHeight();
+	return new Rectangle(wx, wy, ww, wh);
+};
+/**
+* Creates the actor ribbon window.
+*/
+Scene_Equip.prototype.createActorRibbonWindow = function() {
+	const rect = this.actorRibbonRect();
+	this._actorRibbonWindow = new Window_EquipActorRibbon(rect);
+	this.addWindow(this._actorRibbonWindow);
+};
+/**
+* Creates the controls hint window.
+*/
+Scene_Equip.prototype.createControlsHintWindow = function() {
+	const rect = this.controlsHintRect();
+	this._controlsHintWindow = new Window_EquipControlsHint(rect);
+	this._controlsHintWindow.refresh();
+	this.addWindow(this._controlsHintWindow);
+};
+/**
+* Overwrites {@link #statusWindowRect}.<br/>
+* Shrinks the status window to start below the actor-ribbon row instead of carving out space for
+* a portrait internally.
+* @returns {Rectangle}
+*/
+Scene_Equip.prototype.statusWindowRect = function() {
+	const wx = 0;
+	const wy = this.mainAreaTop() + this.topRowHeight();
+	const ww = this.statusWidth();
+	const wh = this.mainAreaHeight() - this.topRowHeight();
+	return new Rectangle(wx, wy, ww, wh);
+};
+/**
 * Overwrites {@link #slotWindowRect}.<br/>
-* Modifies the size of the equip slots window.
+* Modifies the size of the equip slots window, starting below the controls hint row.
 * @returns {Rectangle}
 */
 Scene_Equip.prototype.slotWindowRect = function() {
 	const wx = this.statusWidth();
-	const wy = this.mainAreaTop();
+	const wy = this.mainAreaTop() + this.topRowHeight();
 	const ww = Graphics.boxWidth - this.statusWidth();
 	const wh = this.slotWindowHeight(6);
 	return new Rectangle(wx, wy, ww, wh);
@@ -459,7 +528,7 @@ Scene_Equip.prototype.moreDataRect = function() {
 	const wx = this.statusWidth() - width - 4;
 	const wy = this.slotWindowRect().y - 4;
 	const ww = width;
-	const wh = Graphics.boxHeight - wy;
+	const wh = this.mainAreaBottom() - wy;
 	return new Rectangle(wx, wy, ww, wh);
 };
 Scene_Equip.prototype.backToSlotsList = function() {
@@ -470,13 +539,14 @@ Scene_Equip.prototype.backToItemsList = function() {
 };
 /**
 * Gets the rectangle that defines the shape of this window.
+* Starts below the slot window and stops above the bottom help window, so it never runs behind it.
 * @returns {Rectangle}
 */
 Scene_Equip.prototype.itemWindowRect = function() {
 	const wx = this.statusWidth();
-	const wy = this.mainAreaTop() + this._slotWindow.height;
+	const wy = this.slotWindowRect().y + this._slotWindow.height;
 	const ww = Graphics.boxWidth - this.statusWidth();
-	const wh = Graphics.boxHeight - wy;
+	const wh = this.mainAreaBottom() - wy;
 	return new Rectangle(wx, wy, ww, wh);
 };
 /**
@@ -519,10 +589,11 @@ Scene_Equip.prototype.refreshActor = function() {
 	J.CMS_E.Aliased.Scene_Equip.get("refreshActor").call(this);
 	const actor = this.actor();
 	this._moreDataWindow.setActor(actor);
+	this._actorRibbonWindow.setActor(actor);
 };
 
 //#endregion
-//#region src/plugins/cms/equip/windows/Window_EquipItem.js
+//#region src/plugins/cms/ext/equip/windows/Window_EquipItem.js
 /**
 * Extends the `.initialize()` to include tracking for the more equip data window.
 */
@@ -556,7 +627,7 @@ Window_EquipItem.prototype.setMoreDataWindow = function(moreDataWindow) {
 };
 
 //#endregion
-//#region src/plugins/cms/equip/windows/Window_EquipSlot.js
+//#region src/plugins/cms/ext/equip/windows/Window_EquipSlot.js
 /**
 * Extends the `.initialize()` to include tracking for the more equip data window.
 */
@@ -590,253 +661,84 @@ Window_EquipSlot.prototype.setMoreDataWindow = function(moreDataWindow) {
 };
 
 //#endregion
-//#region src/plugins/cms/equip/windows/Window_EquipStatus.js
+//#region src/plugins/cms/ext/equip/windows/Window_EquipStatus.js
 /**
-* Gets the parameter bitmap width.
-* @returns {number} The parameter bitmap width.
+* Overwrites {@link #lineHeight}.<br/>
+* Matches the status scene's line height so both screens read identically.
+* @returns {number}
 */
-Window_EquipStatus.prototype.paramWidth = () => 64;
+Window_EquipStatus.prototype.lineHeight = function() {
+	return 32;
+};
 /**
-* Draws all parameters.
+* Overwrites {@link #makeFontSmaller}.<br/>
+* Eases off the reduction step compared to the status scene — this window has a wider two-column
+* layout with room to spare, so parameter names don't need to squeeze down as far to fit.
+*/
+Window_EquipStatus.prototype.makeFontSmaller = function() {
+	if (this.contents.fontSize >= 20) {
+		this.contents.fontSize -= 2;
+	}
+};
+/**
+* Overwrites {@link #makeFontBigger}.<br/>
+* Matches the status scene's expanded font step.
+*/
+Window_EquipStatus.prototype.makeFontBigger = function() {
+	if (this.contents.fontSize <= 96) {
+		this.contents.fontSize += 6;
+	}
+};
+/**
+* Overwrites {@link #refresh}.<br/>
+* Drops the vanilla name/face block — {@link Window_EquipActorRibbon} owns that now, in its own
+* row above this window — so the parameter grid gets the full window instead of carving out space
+* for a portrait internally.
+*/
+Window_EquipStatus.prototype.refresh = function() {
+	this.contents.clear();
+	if (this._actor) {
+		this.drawAllParams();
+	}
+};
+/**
+* Overwrites {@link #drawAllParams}.<br/>
+* Renders every registered parameter — vanilla b/x/s params and every custom one alike — through
+* the shared {@link ParameterCatalogRenderer}, grouped and chromed identically to the status
+* scene's page 1 (Combat/Vitality/Precision/Defensive/Haste/Fate/Support). This is the same catalog
+* data the status scene reads, so nothing shown here can drift out of sync with what the player
+* already knows from that screen.
+*
+* Unlike the status page, this window uses a two-column layout instead of three — there's no
+* elements/ailments panel to reserve a third column for here, so the freed width goes toward
+* wider, more legible name/value columns instead.
+*
+* When a `_tempActor` is present (the player is hovering a candidate piece of equipment), each row
+* renders "current → projected" instead of a bare value, so the impact of the swap is visible
+* without leaving this window.
 */
 Window_EquipStatus.prototype.drawAllParams = function() {
-	this.drawAllBParams(0, 192);
-	this.drawAllXParams(360, 0);
-	this.drawAllSParams(360, 380);
-};
-/**
-* Draws all b-parameters and their changed values.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawAllBParams = function(ox, oy) {
-	const params = [
-		0,
-		1,
-		2,
-		3,
-		4,
-		5,
-		6,
-		7
-	];
-	params.forEach((_, paramId) => {
-		this.drawBParamName(paramId, ox, oy);
-		this.drawCurrentBParam(paramId, ox, oy);
-		this.drawNextBParam(paramId, ox, oy);
-	});
-};
-/**
-* Draws the name of the parameter.
-* @param {number} paramId The parameter id.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawBParamName = function(paramId, ox, oy) {
-	const paramWidth = this.paramWidth();
-	const row = paramId;
-	const rowY = this.lineHeight() * row + oy;
-	const paramIcon = IconManager.param(paramId);
-	const paramName = TextManager.param(paramId);
-	this.drawIcon(paramIcon, ox, rowY);
-	this.resetTextColor();
-	this.drawText(paramName, ox + 32, rowY, paramWidth * 2, "left");
-};
-/**
-* Draws the current value that the parameter is now.
-* @param {number} paramId The parameter id.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawCurrentBParam = function(paramId, ox, oy) {
-	const paramWidth = this.paramWidth();
-	const row = paramId;
-	const rowX = ox + 100 + paramWidth;
-	const rowY = this.lineHeight() * row + oy;
-	this.resetTextColor();
-	const current = this._actor.param(paramId);
-	this.drawText(current, rowX, rowY, paramWidth, "right");
-};
-/**
-* Draws the projected value that the parameter will be if equipped.
-* @param {number} paramId The parameter id.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawNextBParam = function(paramId, ox, oy) {
-	if (!this._tempActor) return;
-	const paramWidth = this.paramWidth();
-	const row = paramId;
-	const rowX = ox + 160 + paramWidth;
-	const rowY = this.lineHeight() * row + oy;
-	const newValue = this._tempActor.param(paramId);
-	const diffValue = newValue - this._actor.param(paramId);
-	this.drawModifierArrow(rowX + 16, rowY, diffValue);
-	this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
-	this.drawText(newValue, rowX + 56, rowY, paramWidth, "left");
-};
-/**
-* Draws all x-params.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawAllXParams = function(ox, oy) {
-	const xparams = [
-		0,
-		1,
-		2,
-		3,
-		4,
-		5,
-		6,
-		7,
-		8,
-		9
-	];
-	xparams.forEach((_, xparamId) => {
-		this.drawXParamName(xparamId, ox, oy);
-		this.drawCurrentXParam(xparamId, ox, oy);
-		this.drawNextXParam(xparamId, ox, oy);
-	});
-};
-/**
-* Draws the name of the parameter.
-* @param {number} xparamId The parameter id.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawXParamName = function(xparamId, ox, oy) {
-	const paramWidth = this.paramWidth();
-	const row = xparamId;
-	const rowY = this.lineHeight() * row + oy;
-	const paramIcon = IconManager.xparam(xparamId);
-	const paramName = TextManager.xparam(xparamId);
-	this.drawIcon(paramIcon, ox, rowY);
-	this.resetTextColor();
-	this.drawText(paramName, ox + 32, rowY, paramWidth * 2, "left");
-};
-/**
-* Draws the current value that the parameter is now.
-* @param {number} xparamId The parameter id.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawCurrentXParam = function(xparamId, ox, oy) {
-	const paramWidth = this.paramWidth();
-	const row = xparamId;
-	const rowX = ox + 100 + paramWidth;
-	const rowY = this.lineHeight() * row + oy;
-	this.resetTextColor();
-	const current = (this._actor.xparam(xparamId) * 100).toFixed(0);
-	this.drawText(current, rowX, rowY, paramWidth, "right");
-};
-/**
-* Draws the projected value that the parameter will be if equipped.
-* @param {number} xparamId The parameter id.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawNextXParam = function(xparamId, ox, oy) {
-	if (!this._tempActor) return;
-	const paramWidth = this.paramWidth();
-	const row = xparamId;
-	const rowX = ox + 160 + paramWidth;
-	const rowY = this.lineHeight() * row + oy;
-	const newValue = this._tempActor.xparam(xparamId);
-	const displayedNewValue = (newValue * 100).toFixed(0);
-	const diffValue = newValue - this._actor.xparam(xparamId);
-	this.drawModifierArrow(rowX + 16, rowY, diffValue);
-	this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
-	this.drawText(displayedNewValue, rowX + 56, rowY, paramWidth, "left");
-};
-/**
-* Draws all s-params.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawAllSParams = function(ox, oy) {
-	const sparams = [
-		0,
-		1,
-		2,
-		3,
-		4,
-		5,
-		6,
-		7,
-		8,
-		9
-	];
-	sparams.forEach((_, xparamId) => {
-		this.drawSParamName(xparamId, ox, oy);
-		this.drawCurrentSParam(xparamId, ox, oy);
-		this.drawNextSParam(xparamId, ox, oy);
-	});
-};
-/**
-* Draws the name of the parameter.
-* @param {number} sparamId The parameter id.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawSParamName = function(sparamId, ox, oy) {
-	const paramWidth = this.paramWidth();
-	const row = sparamId;
-	const rowY = this.lineHeight() * row + oy;
-	const paramIcon = IconManager.sparam(sparamId);
-	const paramName = TextManager.sparam(sparamId);
-	this.drawIcon(paramIcon, ox, rowY);
-	this.resetTextColor();
-	this.drawText(paramName, ox + 32, rowY, paramWidth * 2, "left");
-};
-/**
-* Draws the current value that the parameter is now.
-* @param {number} sparamId The parameter id.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawCurrentSParam = function(sparamId, ox, oy) {
-	const paramWidth = this.paramWidth();
-	const row = sparamId;
-	const rowX = ox + 100 + paramWidth;
-	const rowY = this.lineHeight() * row + oy;
-	this.resetTextColor();
-	const current = (this._actor.sparam(sparamId) * 100 - 100).toFixed(0);
-	this.drawText(current, rowX, rowY, paramWidth, "right");
-};
-/**
-* Draws the projected value that the parameter will be if equipped.
-* @param {number} sparamId The parameter id.
-* @param {number} ox The origin x.
-* @param {number} oy The origin y.
-*/
-Window_EquipStatus.prototype.drawNextSParam = function(sparamId, ox, oy) {
-	if (!this._tempActor) return;
-	const paramWidth = this.paramWidth();
-	const row = sparamId;
-	const rowX = ox + 160 + paramWidth;
-	const rowY = this.lineHeight() * row + oy;
-	const newValue = this._tempActor.sparam(sparamId);
-	const displayedNewValue = (newValue * 100 - 100).toFixed(0);
-	const diffValue = newValue - this._actor.sparam(sparamId);
-	this.drawModifierArrow(rowX + 16, rowY, diffValue);
-	this.changeTextColor(ColorManager.paramchangeTextColor(diffValue));
-	this.drawText(displayedNewValue, rowX + 56, rowY, paramWidth, "left");
-};
-Window_EquipStatus.prototype.drawModifierArrow = function(x, y, diffValue) {
-	const rightArrowWidth = this.rightArrowWidth();
-	this.changeTextColor(ColorManager.systemColor());
-	const character = this.arrowCharacter(diffValue);
-	this.drawText(character, x, y, rightArrowWidth, "center");
-};
-Window_EquipStatus.prototype.arrowCharacter = function(diffValue) {
-	if (diffValue > 0) {
-		return "↗️";
-	} else if (diffValue < 0) {
-		return "↘️";
-	} else {
-		return "→";
+	const { rowGap } = ParameterCatalogRenderer.PAGE_LAYOUT;
+	const columnLayout = ParameterCatalogRenderer.computeTwoColumnLayout(this);
+	let cursorY = 0;
+	if (columnLayout) {
+		const columnXs = [columnLayout.leftX, columnLayout.middleX];
+		ParameterCatalogRenderer.PAGE_GROUP_ROW_GROUPS.forEach((rowGroups) => {
+			const rowHeights = rowGroups.map((groupId, columnIndex) => {
+				return ParameterCatalogRenderer.drawParameterGroup(this, columnXs[columnIndex], cursorY, groupId, columnLayout.columnWidth, this._actor, this._tempActor);
+			});
+			const tallestSection = Math.max(...rowHeights);
+			cursorY += tallestSection + rowGap;
+		});
+		return;
 	}
+	const fallbackWidth = this.innerWidth;
+	ParameterCatalogRenderer.PAGE_GROUP_ROW_GROUPS.forEach((rowGroups) => {
+		rowGroups.forEach((groupId) => {
+			const groupHeight = ParameterCatalogRenderer.drawParameterGroup(this, 0, cursorY, groupId, fallbackWidth, this._actor, this._tempActor);
+			cursorY += groupHeight + rowGap;
+		});
+	});
 };
 
 //#endregion

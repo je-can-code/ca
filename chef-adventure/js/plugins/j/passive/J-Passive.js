@@ -425,8 +425,8 @@ Object.defineProperty(RPG_State.prototype, "hideFromPassiveList", { get() {
 */
 J.PASSIVE.Aliased.Game_Actor.set("onSetup", Game_Actor.prototype.onSetup);
 Game_Actor.prototype.onSetup = function(actorId) {
+	this.refreshPassiveStates(true);
 	J.PASSIVE.Aliased.Game_Actor.get("onSetup").call(this, actorId);
-	this.refreshPassiveStates();
 };
 /**
 * Gets all sources from which this battler can derive passive state from.
@@ -689,8 +689,12 @@ Game_Battler.prototype.clearPassiveStates = function() {
 };
 /**
 * Clears and updates the passive state tracker with the latest.
+* @param {boolean=} deferRefresh Whether or not to defer the trailing battler-data-change
+* notification; defaults to false. Callers that already know a follow-up notification is coming
+* (e.g. {@link Game_Enemy.onSetup} pairing this with the base setup notification) should pass true
+* so the expensive note-regex cascade behind {@link #onBattlerDataChange} only runs once.
 */
-Game_Battler.prototype.refreshPassiveStates = function() {
+Game_Battler.prototype.refreshPassiveStates = function(deferRefresh = false) {
 	this.clearPassiveStates();
 	const uniqueIds = this.getAllUniquePassiveStateIds();
 	uniqueIds.forEach((stateId) => this.addPassiveStateId(stateId, false), this);
@@ -704,6 +708,7 @@ Game_Battler.prototype.refreshPassiveStates = function() {
 		}
 	});
 	this.cachePassiveCapableSources();
+	if (deferRefresh === true) return;
 	this.onBattlerDataChange();
 };
 /**
@@ -888,8 +893,8 @@ Game_Battler.prototype.onStateRemoval = function(stateId) {
 */
 J.PASSIVE.Aliased.Game_Enemy.set("onSetup", Game_Enemy.prototype.onSetup);
 Game_Enemy.prototype.onSetup = function(enemyId) {
+	this.refreshPassiveStates(true);
 	J.PASSIVE.Aliased.Game_Enemy.get("onSetup").call(this, enemyId);
-	this.refreshPassiveStates();
 };
 /**
 * Extends {@link #buildTraitObjects}.<br/>

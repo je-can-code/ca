@@ -4005,6 +4005,16 @@ var ParameterDefinition = class ParameterDefinition {
 		return null;
 	}
 	/**
+	* Whether an increase in this parameter's raw value is beneficial to the battler. Cost-reduction
+	* and damage-intake policies are inverted from the common case — lower is better — so a decrease
+	* there should read as a positive change (green), not a negative one (red). Every other policy
+	* (including the ambiguous/neutral ones) defaults to the common "higher is better" reading.
+	* @returns {boolean}
+	*/
+	isIncreaseBeneficial() {
+		return this.displayPolicy !== ParameterDisplayPolicy.DAMAGE_RATE && this.displayPolicy !== ParameterDisplayPolicy.COST_RATE;
+	}
+	/**
 	* Resolves the text color index for a live value on the status screen.
 	* Sentinel states and rate-direction policies each map to distinct palette entries.
 	* @param {number} value The raw battler value to evaluate.
@@ -4069,6 +4079,40 @@ var ParameterDefinition = class ParameterDefinition {
 		}
 		if (withPadding) {
 			base = this.applyPaddedDisplay(base, num);
+		}
+		if (this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.PERCENT) {
+			base = `${base}%`;
+		}
+		return base;
+	}
+	/**
+	* Formats a raw delta (the difference between two raw battler values for this parameter) as a
+	* signed string using the same scale/unit conventions as {@link #prettyValue} — but deliberately
+	* skipping two things that only make sense for an absolute value, not a difference of two:
+	* - The PERCENT_CENTERED/SCALED_OFFSET baseline subtraction {@link #displayMagnitude} applies.
+	*   That constant cancels out of any difference of two absolute values on its own; re-applying it
+	*   here would corrupt the delta instead of correctly reproducing it.
+	* - Sentinel labels (FREE/IMMUNE/NONE). Those describe an absolute state a value has clamped
+	*   into, which a delta never represents.
+	* @param {number} rawDiff The raw difference between the projected and current values.
+	* @param {Game_Battler=} actor The battler whose tick cadence resolves REGEN_PER_SECOND's
+	* conversion, same as {@link #prettyValue}.
+	* @returns {string}
+	*/
+	prettyDelta(rawDiff, actor = null) {
+		const isPercentScaled = this.format === ParameterFormat.PERCENT || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.SCALED_POINTS || this.format === ParameterFormat.SCALED_OFFSET || this.format === ParameterFormat.REGEN_PER_SECOND;
+		const num = isPercentScaled ? rawDiff * 100 : rawDiff;
+		if (this.format === ParameterFormat.REGEN_PER_SECOND) {
+			const ticksPerSecond = actor && actor.getNaturalRegenTickInterval ? 60 / actor.getNaturalRegenTickInterval() : 1;
+			const perSecond = num * ticksPerSecond;
+			return perSecond >= 0 ? `+${perSecond.toFixed(1)}` : perSecond.toFixed(1);
+		}
+		let base = Number.isInteger(num) ? num.toString() : num.toFixed(1);
+		if (base.endsWith(".0")) {
+			base = base.slice(0, base.length - 2);
+		}
+		if (num >= 0) {
+			base = `+${base}`;
 		}
 		if (this.format === ParameterFormat.PERCENT_SUFFIX || this.format === ParameterFormat.PERCENT_CENTERED || this.format === ParameterFormat.MULTIPLIER_PERCENT || this.format === ParameterFormat.PERCENT) {
 			base = `${base}%`;
@@ -7515,7 +7559,7 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 	* the registerBparam/Xparam/Sparam helpers, which wrap native param ids.
 	*/
 	static registerHar() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("har").group(ParameterGroups.VITALITY).sortOrder(8).label(() => TextManager.har()).description(() => TextManager.harDescription()).iconIndex(() => IconManager.har()).format(ParameterFormat.PERCENT_CENTERED).getValue((battler) => battler.har).sdpBinding(SdpParameterBinding.byKey("har", () => 1)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("har").group(ParameterGroups.VITALITY).sortOrder(7).label(() => TextManager.har()).description(() => TextManager.harDescription()).iconIndex(() => IconManager.har()).format(ParameterFormat.PERCENT_CENTERED).getValue((battler) => battler.har).sdpBinding(SdpParameterBinding.byKey("har", () => 1)).build());
 	}
 	/**
 	* Registers all vanilla engine parameters with the catalog.
@@ -7532,7 +7576,7 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 		}, (actor) => actor.getBaseMaxTp())).build());
 		VanillaParameterRegistration.registerXparam("trg", 9, ParameterGroups.VITALITY, 5, ParameterFormat.REGEN_PER_SECOND);
 		VanillaParameterRegistration.registerSparam("rec", 2, ParameterGroups.VITALITY, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
-		VanillaParameterRegistration.registerSparam("pha", 3, ParameterGroups.VITALITY, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
+		VanillaParameterRegistration.registerSparam("pha", 3, ParameterGroups.VITALITY, 8, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
 		VanillaParameterRegistration.registerHar();
 		VanillaParameterRegistration.registerBparam("atk", 2, ParameterGroups.COMBAT, 0);
 		VanillaParameterRegistration.registerBparam("mat", 4, ParameterGroups.COMBAT, 1);
@@ -7541,8 +7585,8 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 		VanillaParameterRegistration.registerSparam("mcr", 4, ParameterGroups.COMBAT, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
 		VanillaParameterRegistration.registerSparam("tcr", 5, ParameterGroups.COMBAT, 9, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
 		VanillaParameterRegistration.registerXparam("hit", 0, ParameterGroups.PRECISION, 0, ParameterFormat.SCALED_POINTS);
-		VanillaParameterRegistration.registerSparam("grd", 1, ParameterGroups.PRECISION, 1, ParameterFormat.SCALED_OFFSET);
-		VanillaParameterRegistration.registerBparam("agi", 6, ParameterGroups.PRECISION, 2);
+		VanillaParameterRegistration.registerBparam("agi", 6, ParameterGroups.PRECISION, 1);
+		VanillaParameterRegistration.registerSparam("grd", 1, ParameterGroups.PRECISION, 2, ParameterFormat.SCALED_OFFSET);
 		VanillaParameterRegistration.registerXparam("cri", 2, ParameterGroups.PRECISION, 4);
 		VanillaParameterRegistration.registerXparam("cev", 3, ParameterGroups.PRECISION, 5);
 		VanillaParameterRegistration.registerBparam("def", 3, ParameterGroups.DEFENSIVE, 0);

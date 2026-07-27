@@ -36,7 +36,7 @@
  * ============================================================================
  */
 
-//#region src/plugins/cms/skill/_metadata/_pluginMetadata.js
+//#region src/plugins/cms/ext/skill/_metadata/_pluginMetadata.js
 var J_CmsSkill_PluginMetadata = class extends PluginMetadata {
 	/**
 	* Constructor.
@@ -49,7 +49,7 @@ var J_CmsSkill_PluginMetadata = class extends PluginMetadata {
 };
 
 //#endregion
-//#region src/plugins/cms/skill/_metadata/initialization.js
+//#region src/plugins/cms/ext/skill/_metadata/initialization.js
 /**
 * The core where all of my extensions live: in the `J` object.
 */
@@ -76,7 +76,7 @@ J.CMS_K.Aliased = {
 };
 
 //#endregion
-//#region src/plugins/cms/skill/_models/JCMS_ParameterKvp.js
+//#region src/plugins/cms/ext/skill/_models/JCMS_ParameterKvp.js
 /**
 * A class representing a single key-value pair, with an optional long id.
 * This is used for storing table-like data related to actors and skills.
@@ -123,7 +123,7 @@ var JCMS_ParameterKvp = class {
 };
 
 //#endregion
-//#region src/plugins/cms/skill/windows/Window_SkillDetail.js
+//#region src/plugins/cms/ext/skill/windows/Window_SkillDetail.js
 /**
 * A window responsible for showing various datapoints of a skill.
 */
@@ -621,7 +621,7 @@ var Window_SkillDetail = class extends Window_Base {
 };
 
 //#endregion
-//#region src/plugins/cms/skill/scenes/Scene_Skill.js
+//#region src/plugins/cms/ext/skill/scenes/Scene_Skill.js
 /**
 * Extends {@link Scene_Skill.initialize}.<br/>
 * Tracks whether the skill detail pane is visible.
@@ -694,7 +694,7 @@ Scene_Skill.prototype.itemWindowRect = function() {
 };
 
 //#endregion
-//#region src/plugins/cms/skill/windows/Window_SkillList.js
+//#region src/plugins/cms/ext/skill/windows/Window_SkillList.js
 /**
 * Extends {@link #initialize}.<br/>
 * Includes our skill detail window.
@@ -769,7 +769,7 @@ Window_SkillList.prototype.includes = function(skill) {
 };
 
 //#endregion
-//#region src/plugins/cms/skill/windows/Window_SkillType.js
+//#region src/plugins/cms/ext/skill/windows/Window_SkillType.js
 /**
 * Overwrites {@link #maxCols}.<br/>
 * Fixes the maximum columns for this screen to be 1.
