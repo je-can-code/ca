@@ -1385,21 +1385,45 @@ Game_CharacterBase.prototype.canPass = function(x, y, d) {
 	return J.PIXEL.Aliased.Game_CharacterBase.get("canPass").call(this, Math.round(x), Math.round(y), d);
 };
 /**
+* Gets the x tile coordinate this character's body actually occupies.
+* Derives from the collision pivot so triggers, lookups, and collision all agree on a single
+* definition of "the tile I am on" — see {@link Game_CharacterBase#occupiedTileY} for why this
+* matters. The pivot is clamped below 1.0 because the JABS pixel extension anchors custom-hitbox
+* enemies at pivotY 1.0 ("feet on the tile's bottom edge"); unclamped, an at-rest enemy sitting on
+* an exact integer tile would report the tile below itself instead of its own.
+* @returns {number} The x tile coordinate containing this character's pivot.
+*/
+Game_CharacterBase.prototype.occupiedTileX = function() {
+	return Math.floor(this._x + Math.min(this.getCollisionPivotX(), 1 - 1e-6));
+};
+/**
+* Gets the y tile coordinate this character's body actually occupies.
+* Collision (`canPassStraight`, `isOverlappingSolidTiles`, etc.) decides where a character
+* physically stops using `floor(_y + getCollisionPivotY())` — the feet-anchored body tile. Event-
+* trigger lookups used to decide "which tile is this character on" via `Math.round(_y)` instead —
+* the logical-center tile. For any pivot other than 0.5 those two conventions disagree whenever
+* `frac(_y)` falls in `[1 - pivotY, 0.5)`, and pixel movement's feet-anchored physics parks
+* characters in that band constantly. This is the single authority both sides must use instead.
+* See {@link Game_CharacterBase#occupiedTileX} for the clamp rationale.
+* @returns {number} The y tile coordinate containing this character's pivot.
+*/
+Game_CharacterBase.prototype.occupiedTileY = function() {
+	return Math.floor(this._y + Math.min(this.getCollisionPivotY(), 1 - 1e-6));
+};
+/**
 * Overwrites {@link Game_CharacterBase.pos}.<br/>
-* Rounds this character's fractional pixel coordinates to the nearest tile before comparing.
-* Vanilla `pos` is an exact-equality check, which callers throughout the engine (event-trigger
-* lookups via `Game_Map.eventsXy`, `startMapEvent`, etc.) rely on to match a character against
-* an already-rounded tile coordinate. Under pixel movement, `_x`/`_y` are fractional almost all
-* the time, so exact equality only ever matched by coincidence — this is the same fractional-vs-
-* integer mismatch already fixed for {@link Game_CharacterBase#canPass} and
-* {@link Game_CharacterBase#regionId}, just on the "am I at this tile" side of the comparison
-* instead of the "can I move to this tile" side.
+* Compares against this character's occupied tile (the collision pivot's tile) rather than
+* vanilla's exact fractional equality or a naive round-to-nearest. Vanilla `pos` assumes integer
+* `_x`/`_y`, which pixel movement violates almost all the time; rounding alone "fixed" the
+* fractional-vs-integer mismatch but kept the wrong convention, disagreeing with the physics that
+* decide where a character's body actually stands whenever the collision pivot isn't 0.5. For
+* pivot-0.5 characters (vanilla defaults) this is identical to `Math.round`.
 * @param {number} x The x tile coordinate to compare against (expected to be an integer).
 * @param {number} y The y tile coordinate to compare against (expected to be an integer).
-* @returns {boolean} True if this character's nearest tile matches (x, y).
+* @returns {boolean} True if this character's occupied tile matches (x, y).
 */
 Game_CharacterBase.prototype.pos = function(x, y) {
-	return Math.round(this._x) === x && Math.round(this._y) === y;
+	return this.occupiedTileX() === x && this.occupiedTileY() === y;
 };
 /**
 * Extends {@link Game_CharacterBase#regionId}.<br/>
@@ -1410,8 +1434,8 @@ Game_CharacterBase.prototype.pos = function(x, y) {
 */
 J.PIXEL.Aliased.Game_CharacterBase.set("regionId", Game_CharacterBase.prototype.regionId);
 Game_CharacterBase.prototype.regionId = function() {
-	const tileX = Math.floor(this._x + this.getCollisionPivotX());
-	const tileY = Math.floor(this._y + this.getCollisionPivotY());
+	const tileX = this.occupiedTileX();
+	const tileY = this.occupiedTileY();
 	return $gameMap.regionId(tileX, tileY);
 };
 /**
@@ -2243,15 +2267,22 @@ Game_CharacterBase.prototype._pixelCheckHorizontalAtNewYRow = function(yCurrent,
 /**
 * Moves this character at an arbitrary angle in degrees.
 * The angle follows the RMMZ map convention: 0° = right, 90° = down, 180° = left, 270° = up.
-* Movement is blocked if pixel collision prevents passage in the chosen direction.
+* Movement is blocked if pixel collision prevents passage in the chosen direction. Fires touch-
+* front triggers on contact with either blocked axis, even while wall-sliding continues
+* successfully along the other axis - see the wall-sliding comment inline for why "moved
+* successfully via sliding" and "touched a blocked axis" are independent outcomes, not mutually
+* exclusive ones.
 * @param {number} angleDegrees The angle in degrees (0–360, clockwise from right).
 * @param {number=} speed The movement speed in tile units; defaults to distancePerFrame.
 * @returns {boolean} True if the character moved, false if blocked.
 */
 Game_CharacterBase.prototype.vectorMoveByAngle = function(angleDegrees, speed = this.distancePerFrame()) {
 	const radians = angleDegrees * Math.PI / 180;
-	const dx = Math.cos(radians) * speed;
-	const dy = Math.sin(radians) * speed;
+	const noiseEpsilon = 1e-9;
+	let dx = Math.cos(radians) * speed;
+	let dy = Math.sin(radians) * speed;
+	if (Math.abs(dx) < noiseEpsilon) dx = 0;
+	if (Math.abs(dy) < noiseEpsilon) dy = 0;
 	const prevX = this._x;
 	const prevY = this._y;
 	const radius = this.getEffectiveRadius();
@@ -2279,6 +2310,14 @@ Game_CharacterBase.prototype.vectorMoveByAngle = function(angleDegrees, speed = 
 	const finalDy = canMoveY ? dy : 0;
 	if (finalDx === 0 && finalDy === 0) {
 		return false;
+	}
+	if (dx !== 0 && canMoveX === false) {
+		this.setDirection(horzDir);
+		this.checkEventTriggerTouchFront(horzDir);
+	}
+	if (dy !== 0 && canMoveY === false) {
+		this.setDirection(vertDir);
+		this.checkEventTriggerTouchFront(vertDir);
 	}
 	this._x += finalDx;
 	this._y += finalDy;
@@ -2347,6 +2386,19 @@ Game_Event.prototype.isCollidedWithEvents = function(x, y) {
 */
 Game_Event.prototype.getCollisionPivotY = function() {
 	return .7;
+};
+/**
+* Overwrites {@link Game_CharacterBase.checkEventTriggerTouchFront}.<br/>
+* Vanilla computes the front tile from this event's raw `_x`/`_y`, which are fractional under
+* pixel movement — the downstream `$gamePlayer.pos(x2, y2)` integer-tile comparison could never
+* match. Derives the front tile from this event's occupied tile instead, so an Event Touch (NPC
+* bumps into the player) trigger fires correctly regardless of where mid-step this event is.
+* @param {number} d The direction this event is moving.
+*/
+Game_Event.prototype.checkEventTriggerTouchFront = function(d) {
+	const x2 = $gameMap.roundXWithDirection(this.occupiedTileX(), d);
+	const y2 = $gameMap.roundYWithDirection(this.occupiedTileY(), d);
+	this.checkEventTriggerTouch(x2, y2);
 };
 
 //#endregion
@@ -2473,7 +2525,8 @@ Game_Map.prototype.setup = function(mapId) {
 //#region src/plugins/pixel/core/objects/Game_Player.js
 /**
 * Overwrites {@link Game_Player.checkEventTriggerHere}.<br/>
-* Includes the rounding of the x,y coordinates when checking event triggers for things beneath you.
+* Checks the tile this character's body actually occupies (the collision pivot's tile) rather
+* than the fractional `_x`/`_y` vanilla assumes are already integers.
 * @param {number[]} triggers The numeric triggers for this event.
 */
 Game_Player.prototype.checkEventTriggerHere = function(triggers) {
@@ -2485,14 +2538,13 @@ Game_Player.prototype.checkEventTriggerHere = function(triggers) {
 				return;
 			}
 		}
-		const roundX = Math.round(this.x);
-		const roundY = Math.round(this.y);
-		this.startMapEvent(roundX, roundY, effectiveTriggers, false);
+		this.startMapEvent(this.occupiedTileX(), this.occupiedTileY(), effectiveTriggers, false);
 	}
 };
 /**
 * Extends {@link Game_Player.update}.<br/>
-* Ticks down the foot-touch trigger cooldown after all movement and trigger logic for the frame.
+* Ticks down the foot-touch trigger cooldown after all movement and trigger logic for the frame,
+* then fires underfoot touch triggers exactly once per tile entered.
 */
 J.PIXEL.Aliased.Game_Player.set("update", Game_Player.prototype.update);
 Game_Player.prototype.update = function(sceneActive) {
@@ -2500,23 +2552,36 @@ Game_Player.prototype.update = function(sceneActive) {
 	if ($gameMap._pixelFootTouchTriggerCooldown > 0) {
 		$gameMap._pixelFootTouchTriggerCooldown--;
 	}
+	const tileX = this.occupiedTileX();
+	const tileY = this.occupiedTileY();
+	if (this._lastOccupiedTileX !== tileX || this._lastOccupiedTileY !== tileY) {
+		this._lastOccupiedTileX = tileX;
+		this._lastOccupiedTileY = tileY;
+		this.checkEventTriggerHere([1, 2]);
+	}
 };
 /**
 * Overwrites {@link Game_Player.checkEventTriggerThere}.<br/>
-* Computes the front tile from the current facing using rounded base coordinates,
-* then starts map events there; if that tile is a counter, also checks one tile beyond.
+* Checks the player's own occupied tile before the front tile: under pixel movement a
+* feet-anchored body can legitimately be standing on an event's tile (e.g. a doorstep whose
+* blocking wall is the row behind it) even though the tile "in front" per vanilla's model is
+* something else entirely (the wall). Vanilla's model — only ever check the tile ahead — assumes
+* tile-locked movement where that overlap can't happen. Then computes the front tile from the
+* current facing using the occupied-tile coordinates, and if that tile is a counter, checks one
+* tile beyond — matching vanilla's own guard against double-starting an event across both checks.
 * @param {number[]} triggers The triggers associated with checking the event at the location.
 */
 Game_Player.prototype.checkEventTriggerThere = function(triggers) {
 	if (this.canStartLocalEvents() === false) return;
-	const baseX = Math.round(this.x);
-	const baseY = Math.round(this.y);
+	const baseX = this.occupiedTileX();
+	const baseY = this.occupiedTileY();
+	this.startMapEvent(baseX, baseY, triggers, true);
+	if ($gameMap.isAnyEventStarting()) return;
 	const dir = this.direction();
 	const x1 = $gameMap.roundXWithDirection(baseX, dir);
 	const y1 = $gameMap.roundYWithDirection(baseY, dir);
 	this.startMapEvent(x1, y1, triggers, true);
-	const isCounter = $gameMap.isCounter(x1, y1);
-	if (isCounter) {
+	if ($gameMap.isAnyEventStarting() === false && $gameMap.isCounter(x1, y1)) {
 		const x2 = $gameMap.roundXWithDirection(x1, dir);
 		const y2 = $gameMap.roundYWithDirection(y1, dir);
 		this.startMapEvent(x2, y2, triggers, true);
@@ -2538,15 +2603,20 @@ Game_Player.prototype.checkEventTriggerTouch = function(x, y) {
 };
 /**
 * Overwrites {@link Game_Player.checkEventTriggerTouchFront}.<br/>
-* Computes the front tile from the current facing using rounded base coordinates,
-* checks for touch triggers there via PIXEL threshold logic, and if the front tile
-* is a counter, also checks the tile beyond.
+* Checks the player's own occupied tile first — a blocked player can be overlapping an event's
+* tile (doorstep geometry) and should still fire its touch trigger, not just the tile ahead. Then
+* computes the front tile from the current facing using the occupied-tile coordinates, checks for
+* touch triggers there via PIXEL threshold logic, and if the front tile is a counter, also checks
+* the tile beyond.
 * @param {number} direction The attempted move direction (ignored; uses current facing).
 * @returns {boolean} True if a touch trigger fired, false otherwise.
 */
 Game_Player.prototype.checkEventTriggerTouchFront = function(direction) {
-	const baseX = Math.round(this.x);
-	const baseY = Math.round(this.y);
+	const baseX = this.occupiedTileX();
+	const baseY = this.occupiedTileY();
+	if (this.checkEventTriggerTouch(baseX, baseY)) {
+		return true;
+	}
 	const dir = this.direction();
 	const x1 = $gameMap.roundXWithDirection(baseX, dir);
 	const y1 = $gameMap.roundYWithDirection(baseY, dir);
