@@ -598,6 +598,39 @@ Game_Actor.prototype.executeSkillRewards = function(conditional) {
 	const { skillRewards } = conditional;
 	if (!skillRewards.length) return;
 	skillRewards.forEach(this.learnSkill, this);
+	skillRewards.forEach((skillId) => this.handleProficiencySkillLearnedLog(conditional, skillId));
+};
+/**
+* Generates a dia log announcing that this actor earned a skill by way of weapon proficiency.
+* The skill's own message fields act as per-skill overrides for either line, allowing an author to
+* give a notable skill its own voice without touching this default phrasing.
+* @param {ProficiencyConditional} conditional The conditional whose rewards were just granted.
+* @param {number} skillId The id of the skill that was taught.
+*/
+Game_Actor.prototype.handleProficiencySkillLearnedLog = function(conditional, skillId) {
+	if (!J.LOG) return;
+	const skill = this.skill(skillId);
+	const sourceName = this.proficiencySourceLabel(conditional);
+	const headline = skill.message1 || `\\C[1]${this.name()}\\C[0] learned \\C[1]${skill.name}\\C[0] from ${sourceName} proficiency!`;
+	const instruction = skill.message2 || "Equip it from the skills menu to use it.";
+	const log = new DiaLogBuilder().addLine(headline).addLine(instruction).setFaceName(this.faceName()).setFaceIndex(this.faceIndex()).build();
+	$diaLogManager.addLog(log);
+};
+/**
+* Derives a player-facing label describing what was practiced to satisfy a proficiency conditional.
+* Proficiency is tracked per-skill rather than per-weapon-family- a conditional is satisfied by using
+* one specific skill enough times- so the practiced skill itself is what the player actually did, and
+* naming anything broader would misdescribe the accomplishment. The conditional's own key is an
+* authoring slug such as "blade-1h-01", so it is never shown.
+* @param {ProficiencyConditional} conditional The conditional to describe.
+* @returns {string}
+*/
+Game_Actor.prototype.proficiencySourceLabel = function(conditional) {
+	const primaryRequirement = conditional.requirements.at(0);
+	if (!primaryRequirement) return "combat";
+	const practicedSkill = this.skill(primaryRequirement.skillId);
+	if (!practicedSkill) return "combat";
+	return practicedSkill.name;
 };
 /**
 * Performs the arbitrary javascript provided in the skill proficiency conditional-

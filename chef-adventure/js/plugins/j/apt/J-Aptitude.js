@@ -1076,7 +1076,7 @@ Game_Troop.prototype.aptitudeApTotal = function() {
 
 //#endregion
 //#region src/plugins/apt/core/managers/ApManager.js
-var ApManager = class {
+var ApManager = class ApManager {
 	/**
 	* Awards AP to the given actor, distributing to all active APT sources
 	* and resolving any skill learns that cross their thresholds.
@@ -1305,6 +1305,25 @@ var ApManager = class {
 		if (actor.isLearnedSkill(skillId) === false) {
 			actor.learnSkill(skillId);
 		}
+		this.#handleSkillLearnedLog(actor, sourceKey, skillId);
+	}
+	/**
+	* Generates a dia log announcing that an actor learned a skill from one of their aptitude sources.
+	* The skill's own message fields act as per-skill overrides for either line, allowing an author to
+	* give a notable skill its own voice without touching this default phrasing.
+	* @param {Game_Actor} actor The actor who learned the skill.
+	* @param {string} sourceKey The key of the aptitude source that taught the skill.
+	* @param {number} skillId The id of the skill that was learned.
+	*/
+	static #handleSkillLearnedLog(actor, sourceKey, skillId) {
+		if (!J.LOG) return;
+		const skill = actor.skill(skillId);
+		const source = ApManager.resolveSourceByKey(actor, sourceKey);
+		const sourceName = source ? source.name : "training";
+		const headline = skill.message1 || `\\C[1]${actor.name()}\\C[0] learned \\C[1]${skill.name}\\C[0] from ${sourceName} aptitudes!`;
+		const instruction = skill.message2 || "Equip it from the skills menu to use it.";
+		const log = new DiaLogBuilder().addLine(headline).addLine(instruction).setFaceName(actor.faceName()).setFaceIndex(actor.faceIndex()).build();
+		$diaLogManager.addLog(log);
 	}
 };
 

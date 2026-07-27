@@ -1032,9 +1032,28 @@ Game_Actor.prototype.changeClass = function(classId, keepExp) {
 Game_Actor.prototype.backfillLearningsForCurrentLevel = function() {
 	this.currentClass().learnings.forEach((learning) => {
 		if (learning.level <= this._level) {
+			const wasAlreadyKnown = this.isLearnedSkill(learning.skillId);
 			this.learnSkill(learning.skillId);
+			if (wasAlreadyKnown === false) {
+				this.handleLevelSkillLearnedLog(learning.skillId);
+			}
 		}
 	}, this);
+};
+/**
+* Generates a dia log announcing that this actor learned a skill from their current class.
+* The skill's own message fields act as per-skill overrides for either line, allowing an author to
+* give a notable skill its own voice without touching this default phrasing.
+* @param {number} skillId The id of the skill that was learned.
+*/
+Game_Actor.prototype.handleLevelSkillLearnedLog = function(skillId) {
+	if (!J.LOG) return;
+	const skill = this.skill(skillId);
+	const sourceName = this.currentClass().name;
+	const headline = skill.message1 || `\\C[1]${this.name()}\\C[0] learned \\C[1]${skill.name}\\C[0] from ${sourceName} training!`;
+	const instruction = skill.message2 || "Equip it from the skills menu to use it.";
+	const log = new DiaLogBuilder().addLine(headline).addLine(instruction).setFaceName(this.faceName()).setFaceIndex(this.faceIndex()).build();
+	$diaLogManager.addLog(log);
 };
 /**
 * Writes the given exp value to every class's exp slot, keeping them all in agreement. This keeps

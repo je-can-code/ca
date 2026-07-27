@@ -1505,7 +1505,7 @@ var TrackedOmniObjective = class {
 	* acquired towards the fetch goal.
 	*/
 	onObjectiveUpdate() {
-		if ($diaLogManager) {
+		if (J.LOG) {
 			this.handleObjectiveUpdateLog();
 		}
 	}
@@ -1998,7 +1998,7 @@ var TrackedOmniQuest = class {
 	* The hook for when the state of the quest changes.
 	*/
 	onQuestStateChange() {
-		if ($diaLogManager) {
+		if (J.LOG) {
 			this.handleQuestUpdateLog();
 		}
 	}

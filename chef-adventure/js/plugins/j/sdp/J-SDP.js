@@ -1904,19 +1904,39 @@ var SdpMasteryManager = class SdpMasteryManager {
 		const panelsInSubgroup = J.SDP.Metadata.panelsBySubgroupKey.get(subgroupKey);
 		if (!panelsInSubgroup || panelsInSubgroup.length === 0) return;
 		const winningPanel = SdpMasteryManager.#resolveWinningMasteryPanel(actor, subgroupKey);
+		let supersededPanel = null;
 		panelsInSubgroup.forEach((panel) => {
 			const { mastery } = panel;
 			if (mastery.masterySkillId <= 0) return;
 			const shouldKeepSkill = winningPanel !== null && panel.key === winningPanel.key;
 			if (shouldKeepSkill === false && actor.isLearnedSkill(mastery.masterySkillId)) {
 				actor.forgetSkill(mastery.masterySkillId);
+				supersededPanel = panel;
 			}
 		});
 		if (winningPanel === null) return;
 		const winningMastery = winningPanel.mastery;
 		if (actor.isLearnedSkill(winningMastery.masterySkillId) === false) {
 			actor.learnSkill(winningMastery.masterySkillId);
+			SdpMasteryManager.#handleMasteryLearnedLog(actor, winningPanel, supersededPanel);
 		}
+	}
+	/**
+	* Generates a dia log announcing that an actor gained a subgroup mastery.
+	* Masteries supersede one another within a subgroup, so this distinguishes a first mastery from an
+	* upgrade over a lower tier- the latter being the more common and more satisfying of the two, and
+	* otherwise entirely invisible to the player. Reconciles that change nothing never reach this.
+	* @param {Game_Actor} actor The actor who gained the mastery.
+	* @param {StatDistributionPanel} winningPanel The panel whose mastery is now active.
+	* @param {StatDistributionPanel|null} supersededPanel The panel this mastery grew out of, if any.
+	*/
+	static #handleMasteryLearnedLog(actor, winningPanel, supersededPanel) {
+		if (!J.LOG) return;
+		const skill = actor.skill(winningPanel.mastery.masterySkillId);
+		const headline = skill.message1 || (supersededPanel !== null ? `\\C[1]${actor.name()}\\C[0] deepened their mastery: \\C[1]${skill.name}\\C[0] supersedes ${actor.skill(supersededPanel.mastery.masterySkillId).name}!` : `\\C[1]${actor.name()}\\C[0] achieved mastery of \\C[1]${skill.name}\\C[0]!`);
+		const instruction = skill.message2 || "Equip it from the skills menu to use it.";
+		const log = new DiaLogBuilder().addLine(headline).addLine(instruction).setFaceName(actor.faceName()).setFaceIndex(actor.faceIndex()).build();
+		$diaLogManager.addLog(log);
 	}
 	/**
 	* Finds the highest-tier maxed mastery panel for a subgroup on an actor.
