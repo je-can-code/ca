@@ -2194,14 +2194,14 @@
       ],
       "requirements": [
         {
-          "skillId": 251,
+          "skillId": 211,
           "proficiency": 50,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        252,
-        253
+        212,
+        213
       ],
       "jsRewards": ""
     },
@@ -2213,13 +2213,13 @@
       ],
       "requirements": [
         {
-          "skillId": 253,
+          "skillId": 213,
           "proficiency": 100,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        254
+        214
       ],
       "jsRewards": ""
     },
@@ -2231,18 +2231,18 @@
       ],
       "requirements": [
         {
-          "skillId": 251,
+          "skillId": 211,
           "proficiency": 400,
           "secondarySkillIds": []
         },
         {
-          "skillId": 253,
+          "skillId": 213,
           "proficiency": 200,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        255
+        215
       ],
       "jsRewards": ""
     },
@@ -2254,13 +2254,13 @@
       ],
       "requirements": [
         {
-          "skillId": 253,
+          "skillId": 213,
           "proficiency": 400,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        256
+        216
       ],
       "jsRewards": ""
     },
@@ -2272,13 +2272,13 @@
       ],
       "requirements": [
         {
-          "skillId": 251,
+          "skillId": 211,
           "proficiency": 1000,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        257
+        217
       ],
       "jsRewards": ""
     },
@@ -2290,13 +2290,13 @@
       ],
       "requirements": [
         {
-          "skillId": 253,
+          "skillId": 213,
           "proficiency": 1000,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        258
+        218
       ],
       "jsRewards": ""
     },
@@ -2308,13 +2308,13 @@
       ],
       "requirements": [
         {
-          "skillId": 251,
+          "skillId": 211,
           "proficiency": 2000,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        259
+        219
       ],
       "jsRewards": ""
     },
@@ -2326,18 +2326,18 @@
       ],
       "requirements": [
         {
-          "skillId": 251,
+          "skillId": 211,
           "proficiency": 3000,
           "secondarySkillIds": []
         },
         {
-          "skillId": 253,
+          "skillId": 213,
           "proficiency": 1000,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        260
+        220
       ],
       "jsRewards": ""
     },
@@ -2349,13 +2349,13 @@
       ],
       "requirements": [
         {
-          "skillId": 261,
+          "skillId": 221,
           "proficiency": 100,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        262
+        222
       ],
       "jsRewards": ""
     },
@@ -2367,14 +2367,14 @@
       ],
       "requirements": [
         {
-          "skillId": 261,
+          "skillId": 221,
           "proficiency": 250,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        263,
-        264
+        223,
+        224
       ],
       "jsRewards": ""
     },
@@ -2386,13 +2386,13 @@
       ],
       "requirements": [
         {
-          "skillId": 261,
+          "skillId": 221,
           "proficiency": 2000,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        265
+        225
       ],
       "jsRewards": ""
     },
@@ -2404,13 +2404,13 @@
       ],
       "requirements": [
         {
-          "skillId": 261,
+          "skillId": 221,
           "proficiency": 4000,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        266
+        226
       ],
       "jsRewards": ""
     },
@@ -2422,13 +2422,13 @@
       ],
       "requirements": [
         {
-          "skillId": 264,
+          "skillId": 224,
           "proficiency": 500,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        267
+        227
       ],
       "jsRewards": ""
     },
@@ -2440,13 +2440,13 @@
       ],
       "requirements": [
         {
-          "skillId": 264,
+          "skillId": 224,
           "proficiency": 1250,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        268
+        228
       ],
       "jsRewards": ""
     },
@@ -2458,13 +2458,13 @@
       ],
       "requirements": [
         {
-          "skillId": 261,
+          "skillId": 221,
           "proficiency": 6000,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        269
+        229
       ],
       "jsRewards": ""
     },
@@ -2476,18 +2476,18 @@
       ],
       "requirements": [
         {
-          "skillId": 261,
+          "skillId": 221,
           "proficiency": 7500,
           "secondarySkillIds": []
         },
         {
-          "skillId": 264,
+          "skillId": 224,
           "proficiency": 2500,
           "secondarySkillIds": []
         }
       ],
       "skillRewards": [
-        270
+        230
       ],
       "jsRewards": ""
     }
