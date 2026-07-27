@@ -196,31 +196,46 @@ symbol→icon registry keyed by exactly those.
 Same registration pattern as the facet ring — no plugin names another, and nothing breaks when a
 plugin is absent.
 
-### 2. Hub layout — 1920 × 1080, three columns
+### 2. Hub layout — three columns, proportional
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  HELP / description of the highlighted command              1920×108 │
+│  HELP / description of the highlighted command                       │
 ├──────────────┬────────────────────────────────────┬──────────────────┤
 │  ACTORS      │        Jerald    │    Rupert       │  PARTY           │
 │    Status    │   face · lv · hp/mp/tp             │    Items         │
 │    Equipment │   key params · weapon · states     │    Crafting      │
 │    Skills    │                                    │    Bestiary      │
-│    SkillEquip│        (540)     │     (540)       │    Quests        │
+│    SkillEquip│                                    │    Quests        │
 │    Loadout   │                                    │    Controls      │
 │    Aptitude  │                                    │    Difficulty    │
 │    Passive   │                                    │    Save          │
 │    Nodes     │                                    │    Options       │
-│    (420)     │              (1080)                │      (420)       │
 ├──────────────┴────────────────────────────────────┴──────────────────┤
-│  ✕ open    ○ back    □ more                                  1920×48 │
+│  ✕ open    ○ back    □ more                                          │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-- Main area height `1080 − 108 − 48 = 924`
-- Columns `420 + 1080 + 420 = 1920` — no dead margin
-- The middle gives each actor **540 px**, enough for face, level, bars, key params, weapon, states
-- The ribbon is **inert context**, not selectable — the actor-selection step is deleted, not relocated
+**Everything derives — no literals.** All of it is expressed against `Graphics.boxWidth` /
+`Graphics.boxHeight`, `mainAreaTop()`, `mainAreaHeight()`, and `lineHeight()`:
+
+| Rect | Derivation |
+|---|---|
+| help height | `fittingHeight(2)` |
+| legend height | `fittingHeight(1)` |
+| main area | `Graphics.boxHeight − helpHeight − legendHeight` |
+| side column width | `Math.floor(Graphics.boxWidth * COMMAND_COLUMN_RATIO)` |
+| centre width | `Graphics.boxWidth − (sideWidth * 2)` — absorbs any rounding remainder |
+| per-actor cell | `centreWidth / $gameParty.size()` |
+
+`COMMAND_COLUMN_RATIO` is a single named constant on the base (starting value ≈ `0.22`), overridable
+per scene. At 1920 that yields ≈ 422 / 1076 / 422; at any other resolution it still fills the width,
+because the centre is defined as *the remainder* rather than a number.
+
+The ribbon is **inert context**, not selectable — the actor-selection step is deleted, not relocated.
+
+> **Rule: no hardcoded pixel dimensions anywhere in the base or the scenes built on it.** The magic
+> `420` in `Scene_SkillEquip` is the exact failure this replaces.
 
 ### 3. Accommodating the existing menu-list extenders
 
@@ -244,15 +259,19 @@ about sections still works. Switch-gating, icons, and help text all continue to 
 `dodge-assign`, `item-assign`, `usable-item-assign`, plus `sdp-menu` (sdp), `ally-ai` (allyai),
 and omnipedia (omni) via `buildCommands` aliases.
 
-**Target — three commands:**
+**Target — two commands.**
 
 | Command | Fate |
 |---|---|
-| `loadout` | **new** → `Scene_JabsLoadout.callScene()` |
-| `ally-ai` | keep — tactical, passes the mid-dungeon test |
 | `main-menu` | keep — it is the door |
+| `ally-ai` | keep — tactical, passes the mid-dungeon test, and is party-scoped so it has no hub home |
 | the five `*-assign` commands | **deleted** — absorbed by the loadout scene |
-| `sdp-menu`, omnipedia | **deleted from the quick menu** — deliberative, already have hub doors |
+| `sdp-menu`, omnipedia | **deleted** — deliberative, already have hub doors |
+
+**Loadout is deliberately *not* on the quick menu.** It is an actor-column scene like every other
+actor scene, so it is one press deeper via the hub — and that is correct, because backing out of it
+returns the player to the actor column rather than dumping them straight onto the map. The hub is the
+place where "what else can I change about my guys?" is answered; a shortcut would fragment that.
 
 ⚠️ **`Window_AbsMenuSelect` cannot simply be deleted.** Ally AI — the one assign-style command being
 kept — is built on it:
@@ -279,7 +298,87 @@ Every input must be spelled out — ✕ ○ △ □ L1 R1 L2 R2 D-pad — and ag
 written. Inventing bindings during implementation is precisely how the drift catalogued above
 happened.
 
-### 5. Sequencing
+### 4b. Loadout input map — **resolved**
+
+The two-up focus problem dissolves: **the board is a two-column `Window_Command`** (`maxCols() = 2`,
+column 0 Jerald, column 1 Rupert, one row per slot). Horizontal cursor movement between actors is
+then *native grid navigation* — no binding invented, nothing hijacked.
+
+| Input | Semantic | Loadout behaviour |
+|---|---|---|
+| D-pad ↑ ↓ | — | move between slots |
+| D-pad ← → | — | move between actors (native 2-column grid) |
+| ✕ | `ok` | assign a skill/item to the highlighted slot |
+| ○ | `cancel` | back to the hub |
+| △ | `context` | clear the highlighted slot |
+| □ | `more` | detail on the slotted skill |
+| L1 / R1 | `actor-prev/next` | **inert** — both actors are already visible |
+| L2 / R2 | `content-prev/next` | **unused** — reserved, do not invent a use |
+
+Slots per actor, in order: **offhand · combat 1-4 · dodge · tool · usable item** (eight rows).
+Mainhand is *not* listed — it is weapon-derived and not player-assignable.
+
+`L1/R1` staying inert rather than being repurposed is deliberate: `actor-*` means "change who"
+everywhere, and in a scene showing everyone there is simply nobody to change to. Giving it a second
+meaning here is how the vocabulary rots.
+
+### 5. File-by-file mapping
+
+#### Phase 1 — J-Base foundation *(additive; nothing breaks)*
+
+| File | Change | Why |
+|---|---|---|
+| `_base/windows/Window_ControlLegend.js` | **new.** `extends Window_Base`. Takes `{semantic, label}[]`, renders a single reduced-size line. Ports the `padX`/`modFontSize(-4)`/vertical-centre treatment from `Window_SdpControlsHint` | every scene needs button help; only SDP has it today |
+| `_base/managers/InputLegendResolver.js` | **new.** Registry mapping a semantic (`context`, `content-next`, …) to a display glyph. Empty by default; returns the plain label when unresolved | lets J-ABS-Input supply controller glyphs **without J-Base depending on it** |
+| `_base/scenes/Scene_MenuFacetBase.js` | **new.** `extends Scene_MenuBase`. Owns `helpWindowRect()`, `legendWindowRect()`, `facetAreaRect()` (the bounded middle), `COMMAND_COLUMN_RATIO`, and legend wiring. Subclasses fill the middle only | the outer layer, shared by all 18 scenes |
+| `_base/scenes/Scene_ActorFacetBase.js` | **new.** `extends Scene_MenuFacetBase`. Adds ribbon rect(s), `isTwoUp()` (default `true`), per-actor cell math, and actor resolution via `$gameParty.menuActor()` | the inner layer, the 8 actor scenes |
+| `_base/models/WindowCommandBuilder.js` | **edit.** Add `setMenuSection(section)` | routes a command to the actor or party column |
+| `_base/models/BuiltWindowCommand.js` | **edit.** Add `menuSection` field, defaulting to `party` | untagged commands must keep working |
+| `_base/models/MenuSection.js` | **new.** `static Actor = 'actor'; static Party = 'party';` | avoid magic strings |
+| `_base/entry.js` | **edit.** Import the four new files | build registration |
+| `abs/ext/input/managers/IconManager.js` | **edit.** Register into `InputLegendResolver` at boot, mapping semantics through their vanilla symbol strings (`context`→`'tab'`→`JabsInputSymbols.Tool`→ icon) | live glyphs that follow remapping |
+
+#### Phase 2 — the hub
+
+| File | Change | Why |
+|---|---|---|
+| `cms/core/scenes/Scene_Menu.js` | **rewrite.** Three columns via `Scene_MenuFacetBase` math. Creates `Window_MenuActorCommand`, `Window_MenuPartyCommand`, and the centre party panel. Deletes `commandWindowRect`/`statusWindowRect` overrides | the current file only nudges vanilla rects; the new layout is structural |
+| `cms/core/windows/Window_MenuActorCommand.js` | **new.** Filters the built command list to `menuSection === Actor` | left column |
+| `cms/core/windows/Window_MenuPartyCommand.js` | **new.** Filters to `Party` **and untagged** | right column; untagged default is what keeps unknown plugins working |
+| `cms/core/windows/Window_MenuStatus.js` | **rewrite.** `numVisibleRows()` 6→`$gameParty.size()`; one column per actor across the centre instead of stacked rows | six stacked rows in a 1080-wide centre is the space waste this fixes |
+| `cms/core/windows/Window_MenuCommand.js` | **edit.** Tag `skill`/`equip`/`status` as `Actor`; `item`/`options`/`gameEnd` stay `Party` | vanilla commands must land in the right columns |
+
+#### Phase 3 — `Scene_JabsLoadout`
+
+| File | Change | Why |
+|---|---|---|
+| `abs/ext/loadout/**` | **new plugin family** — `entry.js`, `_metadata/*`, `scenes/Scene_JabsLoadout.js`, `windows/Window_LoadoutBoard.js`, `windows/Window_LoadoutPicker.js` | keeps it isolated; JABS-dependent so it lives under `abs/ext` |
+| `Scene_JabsLoadout` | `extends Scene_ActorFacetBase`, `static callScene()`, board in the middle, picker as a modal over it | matches `Scene_SkillEquip` conventions |
+| `Window_LoadoutBoard` | `extends Window_Command`, `maxCols() = 2`, 8 rows/actor, renders slot · content · derived input via `JABS_Button.combatSkillCompositions()` + live mapping | the two-up board |
+| its `Window_MenuCommand` patch | adds a `loadout` command tagged `MenuSection.Actor` | hub entry |
+
+#### Phase 4 — pare the quick menu
+
+| File | Change | Why |
+|---|---|---|
+| `abs/core/windows/Window_AbsMenu.js` | **edit.** `buildCommands()` returns `[mainMenuCommand, ...]` only; delete the five `*-assign` builders and their help-text methods | target is Main Menu + Ally AI |
+| `abs/core/scenes/Scene_Map.js` | **edit, large.** Remove the 10 window trackers, their getters/setters, builders, rects, and handlers (≈51 references across 2083 lines) | dead once the board ships |
+| `abs/core/windows/Window_AbsMenuSelect.js` | **edit.** Delete the 10 loadout selection types and their `make*List` methods. **Keep the class** | allyai aliases it for `ai-party-list` / `select-ai` |
+| `sdp/core/windows/Window_AbsMenu.js` | **delete** | SDP fails the mid-dungeon test |
+| `omni/core/windows/Window_AbsMenu.js` | **delete** | omnipedia fails it too |
+| `abs/ext/allyai/**` | **unchanged** | it rides on the retained class |
+
+#### Phase 5 — retrofit the seven
+
+One scene per commit, in ascending risk: `Scene_Passive` → `Scene_Status` → `Scene_Aptitude` →
+`Scene_Skill` → `Scene_Equip` → `Scene_SkillEquip` → `Scene_SDP`.
+
+Each: reparent to `Scene_ActorFacetBase`, delete its bespoke rect methods, delete its ribbon subclass
+where it merely re-derived the base, declare `isTwoUp()`, and supply a legend. **`Scene_SDP` goes
+last and declares `isTwoUp() === false`** — it is too dense to double, and it keeps `actor-prev/next`
+for cycling. `Window_SdpControlsHint` is deleted in favour of the base legend.
+
+### 6. Sequencing
 
 Each phase is independently shippable.
 
