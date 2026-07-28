@@ -2601,6 +2601,46 @@ var PluginMetadata = class PluginMetadata {
 };
 
 //#endregion
+//#region src/plugins/_base/models/MenuSection.js
+/**
+* The sections a main menu command can belong to.
+*
+* The main menu is split into two columns because the scenes behind it split cleanly in two: those
+* that answer "something specific about this actor", and those that concern the party or the game as
+* a whole. Surfacing that split in the menu itself means the player learns the model by using it,
+* rather than hunting through one long undifferentiated list.
+*/
+var MenuSection = class {
+	/**
+	* Commands opening a scene scoped to a single actor- status, equipment, skills, and the like.
+	* These render in the left column.
+	* @type {string}
+	*/
+	static Actor = "actor";
+	/**
+	* Commands opening a scene concerning the party or the game as a whole- items, crafting, options.
+	* These render in the right column, and are the default for any command that never declares itself.
+	* @type {string}
+	*/
+	static Party = "party";
+	/**
+	* Gets every valid section.
+	* @returns {string[]}
+	*/
+	static sections() {
+		return [this.Actor, this.Party];
+	}
+	/**
+	* Determines whether the given value names a real section.
+	* @param {string} section The value to validate.
+	* @returns {boolean}
+	*/
+	static isValid(section) {
+		return this.sections().includes(section);
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/models/BuiltWindowCommand.js
 /**
 * An implementation of a class surrounding the data for a singular window command.
@@ -2676,6 +2716,15 @@ var BuiltWindowCommand = class {
 	* @type {number}
 	*/
 	#faceIndex = -1;
+	/**
+	* The menu section this command belongs to, for menus that split their commands into columns.
+	*
+	* This defaults to {@link MenuSection.Party} rather than being required, so that any command built
+	* without knowledge of sections still lands somewhere sensible instead of vanishing. Only commands
+	* that open an actor-scoped scene need to say otherwise.
+	* @type {string}
+	*/
+	#menuSection = MenuSection.Party;
 	constructor(name, symbol, enabled = true, extensionData = null, iconIndex = 0, colorIndex = 0, rightText = String.empty, rightColorIndex = 0, lines = [], helpText = String.empty, isSubtext = true, faceData = [String.empty, -1]) {
 		this.#name = name;
 		this.#key = symbol;
@@ -2780,6 +2829,25 @@ var BuiltWindowCommand = class {
 	}
 	get faceData() {
 		return [this.#faceName, this.#faceIndex];
+	}
+	/**
+	* Gets the menu section this command belongs to.
+	* @returns {string}
+	*/
+	get menuSection() {
+		return this.#menuSection;
+	}
+	/**
+	* Sets the menu section this command belongs to.
+	*
+	* This is assigned after construction rather than through the constructor because the constructor
+	* already carries twelve positional parameters- adding a thirteenth for a field that most commands
+	* never set would make every existing call site harder to read for no benefit.
+	* @param {string} menuSection One of {@link MenuSection}.
+	*/
+	set menuSection(menuSection) {
+		if (MenuSection.isValid(menuSection) === false) return;
+		this.#menuSection = menuSection;
 	}
 };
 
@@ -3512,6 +3580,11 @@ var WindowCommandBuilder = class {
 	*/
 	#faceIndex = -1;
 	/**
+	* The menu section this command belongs to.
+	* @type {string}
+	*/
+	#menuSection = MenuSection.Party;
+	/**
 	* Start by defining the name, and chain additional setter methods to
 	* build out this window command.
 	* @param {string} name The name of the command.
@@ -3525,6 +3598,7 @@ var WindowCommandBuilder = class {
 	*/
 	build() {
 		const command = new BuiltWindowCommand(this.#name, this.#key, this.#enabled, this.#extensionData, this.#iconIndex, this.#colorIndex, this.#rightText, this.#rightColorIndex, this.#lines, this.#helpText, this.#isSubtext, [this.#faceName, this.#faceIndex]);
+		command.menuSection = this.#menuSection;
 		return command;
 	}
 	/**
@@ -3667,6 +3741,18 @@ var WindowCommandBuilder = class {
 	*/
 	setFaceIndex(faceIndex) {
 		this.#faceIndex = faceIndex;
+		return this;
+	}
+	/**
+	* Sets the menu section this command belongs to, for menus that split commands into columns.
+	*
+	* Commands that never call this default to {@link MenuSection.Party}, which is what allows menus to
+	* be split without every existing command in the ecosystem having to be updated first.
+	* @param {string} menuSection One of {@link MenuSection}.
+	* @returns {this} This builder for fluent-building.
+	*/
+	setMenuSection(menuSection) {
+		this.#menuSection = menuSection;
 		return this;
 	}
 };
@@ -6750,6 +6836,63 @@ var IconManager = class {
 };
 
 //#endregion
+//#region src/plugins/_base/managers/InputLegendResolver.js
+/**
+* A registry translating semantic input handlers into something displayable to the player.
+*
+* Windows bind semantic handler names- `context`, `content-next`, `actor-prev`- rather than physical
+* buttons, which is what lets one input mapping serve the whole ecosystem. The cost is that a legend
+* wanting to tell the player "press Triangle" has nothing to read: the semantic name is all there is.
+*
+* This registry closes that gap without creating a dependency. J-Base knows only that a resolver may
+* exist; whichever plugin actually owns the input mapping registers one at boot. With a resolver
+* present, legends render live controller glyphs that follow the player's remapping. Without one,
+* they fall back to the plain text label the caller supplied, which is always readable.
+*/
+var InputLegendResolver = class {
+	/**
+	* The registered resolver function, if any.
+	* @type {?function(string): string}
+	*/
+	static #resolver = null;
+	/**
+	* Registers the function responsible for turning a semantic handler name into display text.
+	*
+	* The resolver is expected to return {@link String.empty} for anything it cannot describe, which
+	* lets the caller keep its own fallback rather than rendering a blank.
+	* @param {function(string): string} resolver Receives a semantic name, returns display text.
+	*/
+	static registerResolver(resolver) {
+		this.#resolver = resolver;
+	}
+	/**
+	* Gets whether a resolver has been registered.
+	* @returns {boolean}
+	*/
+	static hasResolver() {
+		return this.#resolver !== null;
+	}
+	/**
+	* Resolves a semantic handler name into display text.
+	* @param {string} semantic The semantic handler name, such as `context` or `actor-next`.
+	* @param {string} fallback The text to use when no resolver can describe this semantic.
+	* @returns {string}
+	*/
+	static resolve(semantic, fallback) {
+		if (this.hasResolver() === false) return fallback;
+		const resolved = this.#resolver(semantic);
+		if (resolved === String.empty) return fallback;
+		return resolved;
+	}
+	/**
+	* Clears the registered resolver, restoring plain-text fallback behavior.
+	*/
+	static clearResolver() {
+		this.#resolver = null;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/managers/ImageManager.js
 /**
 * Generates a promise based on the resolution of the bitmap.
@@ -9737,6 +9880,566 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 };
 
 //#endregion
+//#region src/plugins/_base/windows/Window_ControlLegend.js
+/**
+* A single-line legend describing what the controls do in the scene currently being viewed.
+*
+* Every scene teaches its own controls or the player never finds them. This is the window that does
+* the teaching, and it lives in J-Base precisely so that it is available to every scene rather than
+* being reinvented- or, as has historically happened, simply omitted- one scene at a time.
+*
+* Entries are supplied as semantic handler names paired with a plain-language label. The semantic is
+* resolved through {@link InputLegendResolver} when something has registered one, so the rendered
+* glyph follows the player's own remapping instead of asserting a button that may no longer be true.
+*/
+var Window_ControlLegend = class extends Window_Base {
+	/**
+	* @constructor
+	* @param {Rectangle} rect The rectangle that defines this window's shape.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.initMembers();
+	}
+	/**
+	* Initializes all custom members of this window.
+	*/
+	initMembers() {
+		/**
+		* The entries described by this legend.
+		* @type {{semantic: string, label: string}[]}
+		*/
+		this._entries = [];
+	}
+	/**
+	* Gets the entries currently described by this legend.
+	* @returns {{semantic: string, label: string}[]}
+	*/
+	entries() {
+		return this._entries;
+	}
+	/**
+	* Sets the entries described by this legend and redraws.
+	* @param {{semantic: string, label: string}[]} entries The entries to describe.
+	*/
+	setEntries(entries) {
+		this._entries = entries;
+		this.refresh();
+	}
+	/**
+	* Renders the legend.
+	*/
+	refresh() {
+		this.contents.clear();
+		if (this._entries.length === 0) return;
+		this.drawLegend();
+	}
+	/**
+	* Draws the assembled legend line.
+	*/
+	drawLegend() {
+		const padX = this.legendPadding();
+		this.resetFontSettings();
+		this.modFontSize(this.legendFontSizeModifier());
+		const text = this.buildLegendText();
+		const y = Math.max(0, Math.floor((this.innerHeight - this.lineHeight()) / 2));
+		this.drawTextEx(text, padX, y, this.innerWidth - padX * 2);
+		this.resetFontSettings();
+	}
+	/**
+	* Builds the full legend line from this window's entries.
+	* @returns {string}
+	*/
+	buildLegendText() {
+		return this.entries().map((entry) => this.describeEntry(entry)).join(this.legendSeparator());
+	}
+	/**
+	* Describes a single legend entry as displayable text.
+	* @param {{semantic: string, label: string}} entry The entry to describe.
+	* @returns {string}
+	*/
+	describeEntry(entry) {
+		const input = InputLegendResolver.resolve(entry.semantic, entry.semantic);
+		return `${input}: ${entry.label}`;
+	}
+	/**
+	* The horizontal padding applied to either end of the legend.
+	* @returns {number}
+	*/
+	legendPadding() {
+		return 12;
+	}
+	/**
+	* The separator drawn between legend entries.
+	* @returns {string}
+	*/
+	legendSeparator() {
+		return "   ";
+	}
+	/**
+	* How much smaller the legend renders than body copy.
+	* @returns {number}
+	*/
+	legendFontSizeModifier() {
+		return -4;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/scenes/Scene_MenuFacetBase.js
+/**
+* The shared skeleton for menu scenes.
+*
+* Scenes built independently drift. Measured across this ecosystem: one scene centers a container at
+* two thirds of the screen, another runs full width with a hardcoded 420px column, a third invents a
+* layout of its own, and one of them mixes two different vertical origins between its own rectangles.
+* Nobody decided any of that- it is simply what happens when the same idea is implemented separately
+* enough times.
+*
+* This base owns the chrome: a help window across the top, a control legend across the bottom, and a
+* bounded region between them. Subclasses fill the region and nothing else. The region's contents are
+* entirely free; its rectangle is not, and that single constraint is the whole anti-drift mechanism.
+*
+* Every dimension derives from {@link Graphics} and the current line height. There are no pixel
+* literals here, and there should be none in anything built on this.
+*/
+var Scene_MenuFacetBase = class extends Scene_MenuBase {
+	/**
+	* Extends {@link #initialize}.<br/>
+	* Also initializes this scene's members.
+	*/
+	initialize() {
+		super.initialize();
+		this.initMembers();
+	}
+	/**
+	* Initializes all custom members of this scene.
+	*/
+	initMembers() {
+		/**
+		* The shared root namespace for all of J's plugin data.
+		*/
+		this._j ||= {};
+		/**
+		* A grouping of all properties associated with the facet skeleton.
+		*/
+		this._j._facet = {};
+		/**
+		* The legend describing this scene's controls.
+		* @type {Window_ControlLegend|null}
+		*/
+		this._j._facet._legend = null;
+	}
+	/**
+	* Extends {@link #create}.<br/>
+	* Also creates the shared chrome.
+	*/
+	create() {
+		super.create();
+		this.createControlLegendWindow();
+	}
+	/**
+	* Creates the control legend window and adds it to tracking.
+	*/
+	createControlLegendWindow() {
+		const rectangle = this.controlLegendWindowRect();
+		const window = new Window_ControlLegend(rectangle);
+		window.setEntries(this.controlLegendEntries());
+		this.setControlLegendWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Gets the currently tracked control legend window.
+	* @returns {Window_ControlLegend|null}
+	*/
+	getControlLegendWindow() {
+		return this._j._facet._legend;
+	}
+	/**
+	* Sets the currently tracked control legend window to the given window.
+	* @param {Window_ControlLegend} window The window to track.
+	*/
+	setControlLegendWindow(window) {
+		this._j._facet._legend = window;
+	}
+	/**
+	* Overwrites {@link #isBottomHelpMode}.<br/>
+	* The help window belongs at the top of a facet scene, never the bottom.
+	*
+	* The engine defaults this to true, which places the help window across the bottom of the screen-
+	* directly where the control legend lives. Left alone, every facet scene renders an empty help
+	* window on top of its own legend.
+	* @returns {boolean}
+	*/
+	isBottomHelpMode() {
+		return false;
+	}
+	/**
+	* Overwrites {@link #isBottomButtonMode}.<br/>
+	* Facet scenes teach their controls through the legend rather than on-screen buttons.
+	* @returns {boolean}
+	*/
+	isBottomButtonMode() {
+		return true;
+	}
+	/**
+	* The height of the help window across the top.
+	* @returns {number}
+	*/
+	helpAreaHeight() {
+		return this.calcWindowHeight(this.helpWindowLineCount(), false);
+	}
+	/**
+	* How many lines of description the help window across the top can render.
+	* @returns {number}
+	*/
+	helpWindowLineCount() {
+		return 2;
+	}
+	/**
+	* The height of the control legend across the bottom.
+	* @returns {number}
+	*/
+	controlLegendHeight() {
+		return this.calcWindowHeight(1, false);
+	}
+	/**
+	* Builds the rectangle for the control legend, pinned across the bottom of the screen.
+	* @returns {Rectangle}
+	*/
+	controlLegendWindowRect() {
+		const width = Graphics.boxWidth;
+		const height = this.controlLegendHeight();
+		const y = Graphics.boxHeight - height;
+		return new Rectangle(0, y, width, height);
+	}
+	/**
+	* Builds the rectangle for the bounded region subclasses fill.
+	*
+	* This is deliberately the *remainder* of the screen rather than a computed size, so that rounding
+	* in the chrome above and below can never leave an unclaimed strip of pixels.
+	* @returns {Rectangle}
+	*/
+	facetAreaRect() {
+		const y = this.mainAreaTop();
+		const height = Graphics.boxHeight - y - this.controlLegendHeight();
+		return new Rectangle(0, y, Graphics.boxWidth, height);
+	}
+	/**
+	* The proportion of the screen width given to a single column of commands.
+	*
+	* Expressed as a ratio rather than a pixel count so the layout holds at any resolution. Subclasses
+	* needing a wider or narrower command column override this rather than computing their own widths.
+	* @returns {number}
+	*/
+	commandColumnRatio() {
+		return .22;
+	}
+	/**
+	* The width of a single command column.
+	* @returns {number}
+	*/
+	commandColumnWidth() {
+		return Math.floor(Graphics.boxWidth * this.commandColumnRatio());
+	}
+	/**
+	* The entries this scene's control legend describes.
+	*
+	* Subclasses override this to teach their own controls. Returning an empty collection renders no
+	* legend at all, which is the correct behavior for a scene that genuinely has nothing to explain.
+	* @returns {{semantic: string, label: string}[]}
+	*/
+	controlLegendEntries() {
+		return [];
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/windows/Window_ActorRibbon.js
+/**
+* A window for rendering a ribbon of an actor's face.
+* If the window is made longer or taller, additional info could be rendered around it.
+*/
+var Window_ActorRibbon = class extends Window_Base {
+	/**
+	* @constructor
+	* @param {Rectangle} rect The rectangle that defines this window's shape.
+	*/
+	constructor(rect) {
+		super(rect);
+		this.initMembers();
+	}
+	/**
+	* Initializes all custom members of this window.
+	*/
+	initMembers() {
+		/**
+		* The actor in this window.
+		* @type {Game_Actor|null}
+		*/
+		this._actor = null;
+		/**
+		* The width of the actor face in the ribbon.
+		* @type {number}
+		*/
+		this._faceWidth = 128;
+		/**
+		* The height of the actor face in the ribbon.
+		* @type {number}
+		*/
+		this._faceHeight = 40;
+		/**
+		* The x of the actor's face in the ribbon.
+		* @type {number}
+		*/
+		this._faceX = 0;
+		/**
+		* The y of the actor's face in the ribbon.
+		* @type {number}
+		*/
+		this._faceY = 0;
+	}
+	/**
+	* Gets the actor focus for the window.
+	* @returns {Game_Actor|null}
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
+	* Sets the actor focus for the window and optionally refreshes.
+	* @param {Game_Actor} actor The actor to display.
+	* @param {boolean} [andRefresh=true] Whether or not to refresh the window; defaults to true.
+	*/
+	setActor(actor, andRefresh = true) {
+		this._actor = actor;
+		if (andRefresh) {
+			this.refresh();
+		}
+	}
+	/**
+	* The width of the actor face in the ribbon.
+	* @returns {number}
+	*/
+	faceWidth() {
+		return this._faceWidth;
+	}
+	/**
+	* The width of the actor face in the ribbon.
+	* @returns {number}
+	*/
+	setFaceWidth(width) {
+		this._faceWidth = width;
+	}
+	/**
+	* The height of the actor face in the ribbon.
+	* @returns {number}
+	*/
+	faceHeight() {
+		return this._faceHeight;
+	}
+	/**
+	* The height of the actor face in the ribbon.
+	* @returns {number}
+	*/
+	setFaceHeight(height) {
+		this._faceHeight = height;
+	}
+	/**
+	* Gets the size of the actor face in the ribbon.
+	* @returns {[number, number]}
+	*/
+	faceSize() {
+		return [this.faceWidth(), this.faceHeight()];
+	}
+	/**
+	* Gets the x coordinate of the actor face in the ribbon.
+	* @returns {number}
+	*/
+	faceX() {
+		return this._faceX;
+	}
+	/**
+	* Sets the x coordinate of the actor face in the ribbon.
+	* @param {number} x The x coordinate.
+	*/
+	setFaceX(x) {
+		this._faceX = x;
+	}
+	/**
+	* Gets the y coordinate of the actor face in the ribbon.
+	* @returns {number}
+	*/
+	faceY() {
+		return this._faceY;
+	}
+	/**
+	* Sets the y coordinate of the actor face in the ribbon.
+	* @param {number} y The y coordinate.
+	*/
+	setFaceY(y) {
+		this._faceY = y;
+	}
+	/**
+	* Gets the coordinates of the actor face in the ribbon.
+	* @returns {[number, number]}
+	*/
+	faceCoordinates() {
+		return [this.faceX(), this.faceY()];
+	}
+	/**
+	* Implements {@link #drawContent}.<br/>
+	* Draws the actor face in the ribbon.
+	*/
+	drawContent() {
+		if (!this._actor) return;
+		this.drawActorRibbon();
+	}
+	/**
+	* Draws the actor face in the ribbon.
+	*/
+	drawActorRibbon() {
+		const actor = this.actor();
+		const [x, y] = this.faceCoordinates();
+		const [w, h] = this.faceSize();
+		this.drawFace(actor.faceName(), actor.faceIndex(), x, y, w, h);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/scenes/Scene_ActorFacetBase.js
+/**
+* The shared skeleton for menu scenes scoped to a single actor.
+*
+* Extends the facet skeleton with the one thing those scenes all need and all currently solve
+* separately: showing which actor is being looked at, and letting the player change them. Four scenes
+* already extend {@link Window_ActorRibbon} for the first half and one grew a bespoke header instead;
+* this consolidates that so a fifth cannot diverge again.
+*
+* These scenes are always single-actor. An earlier design showed both party members at once, on the
+* reasoning that the party is permanently a fixed pair- but every one of these scenes carries a
+* picker or a detail panel occupying exactly the space a second actor would need. Rendering more than
+* one actor is therefore a decision for an individual window that can afford it, not a posture of the
+* base, and {@link JABS_Button}-style loadout boards do it themselves.
+*
+* Consequently `actor-prev` and `actor-next` mean the same thing in every scene built on this, with
+* no exceptions to remember.
+*/
+var Scene_ActorFacetBase = class extends Scene_MenuFacetBase {
+	/**
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes the actor-scoped members.
+	*/
+	initMembers() {
+		super.initMembers();
+		/**
+		* The ribbon identifying the actor currently being viewed.
+		* @type {Window_ActorRibbon|null}
+		*/
+		this._j._facet._ribbon = null;
+	}
+	/**
+	* Extends {@link #create}.<br/>
+	* Also creates the actor ribbon.
+	*/
+	create() {
+		super.create();
+		this.createActorRibbonWindow();
+	}
+	/**
+	* Creates the actor ribbon window and adds it to tracking.
+	*/
+	createActorRibbonWindow() {
+		const rectangle = this.actorRibbonWindowRect();
+		const window = this.buildActorRibbonWindow(rectangle);
+		window.setActor(this.actor());
+		this.setActorRibbonWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Builds the actor ribbon window.
+	*
+	* Subclasses wanting to render additional information alongside the face- points, slot counts, and
+	* the like- override this to return their own subclass of {@link Window_ActorRibbon} rather than
+	* building an unrelated window and positioning it themselves.
+	* @param {Rectangle} rectangle The rectangle to build the window within.
+	* @returns {Window_ActorRibbon}
+	*/
+	buildActorRibbonWindow(rectangle) {
+		return new Window_ActorRibbon(rectangle);
+	}
+	/**
+	* Gets the currently tracked actor ribbon window.
+	* @returns {Window_ActorRibbon|null}
+	*/
+	getActorRibbonWindow() {
+		return this._j._facet._ribbon;
+	}
+	/**
+	* Sets the currently tracked actor ribbon window to the given window.
+	* @param {Window_ActorRibbon} window The window to track.
+	*/
+	setActorRibbonWindow(window) {
+		this._j._facet._ribbon = window;
+	}
+	/**
+	* The height of the actor ribbon.
+	* @returns {number}
+	*/
+	actorRibbonHeight() {
+		return this.calcWindowHeight(this.actorRibbonLineCount(), false);
+	}
+	/**
+	* How many lines tall the actor ribbon is.
+	* @returns {number}
+	*/
+	actorRibbonLineCount() {
+		return 2;
+	}
+	/**
+	* Builds the rectangle for the actor ribbon, sat at the top of the bounded region.
+	* @returns {Rectangle}
+	*/
+	actorRibbonWindowRect() {
+		const facetArea = this.facetAreaRect();
+		return new Rectangle(facetArea.x, facetArea.y, facetArea.width, this.actorRibbonHeight());
+	}
+	/**
+	* Extends {@link #facetAreaRect}.<br/>
+	* Narrows the region available to subclasses to exclude the actor ribbon.
+	*
+	* Subclasses therefore never need to account for the ribbon's height themselves- they receive a
+	* region that already excludes it, the same way they already receive one excluding help and legend.
+	* @returns {Rectangle}
+	*/
+	contentAreaRect() {
+		const facetArea = this.facetAreaRect();
+		const ribbonHeight = this.actorRibbonHeight();
+		return new Rectangle(facetArea.x, facetArea.y + ribbonHeight, facetArea.width, facetArea.height - ribbonHeight);
+	}
+	/**
+	* Extends {@link #onActorChange}.<br/>
+	* Also refreshes the ribbon so it names whoever is now being viewed.
+	*/
+	onActorChange() {
+		super.onActorChange();
+		this.getActorRibbonWindow().setActor(this.actor());
+	}
+	/**
+	* Cycles to the previous actor.
+	*/
+	onCycleActorLeft() {
+		this.previousActor();
+	}
+	/**
+	* Cycles to the next actor.
+	*/
+	onCycleActorRight() {
+		this.nextActor();
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/sprites/Sprite.js
 /**
 * Whether this sprite manages its own opacity independently of the HUD system.
@@ -10710,158 +11413,6 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 * Fuck those autoshadows.
 */
 Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) {};
-
-//#endregion
-//#region src/plugins/_base/windows/Window_ActorRibbon.js
-/**
-* A window for rendering a ribbon of an actor's face.
-* If the window is made longer or taller, additional info could be rendered around it.
-*/
-var Window_ActorRibbon = class extends Window_Base {
-	/**
-	* @constructor
-	* @param {Rectangle} rect The rectangle that defines this window's shape.
-	*/
-	constructor(rect) {
-		super(rect);
-		this.initMembers();
-	}
-	/**
-	* Initializes all custom members of this window.
-	*/
-	initMembers() {
-		/**
-		* The actor in this window.
-		* @type {Game_Actor|null}
-		*/
-		this._actor = null;
-		/**
-		* The width of the actor face in the ribbon.
-		* @type {number}
-		*/
-		this._faceWidth = 128;
-		/**
-		* The height of the actor face in the ribbon.
-		* @type {number}
-		*/
-		this._faceHeight = 40;
-		/**
-		* The x of the actor's face in the ribbon.
-		* @type {number}
-		*/
-		this._faceX = 0;
-		/**
-		* The y of the actor's face in the ribbon.
-		* @type {number}
-		*/
-		this._faceY = 0;
-	}
-	/**
-	* Gets the actor focus for the window.
-	* @returns {Game_Actor|null}
-	*/
-	actor() {
-		return this._actor;
-	}
-	/**
-	* Sets the actor focus for the window and optionally refreshes.
-	* @param {Game_Actor} actor The actor to display.
-	* @param {boolean} [andRefresh=true] Whether or not to refresh the window; defaults to true.
-	*/
-	setActor(actor, andRefresh = true) {
-		this._actor = actor;
-		if (andRefresh) {
-			this.refresh();
-		}
-	}
-	/**
-	* The width of the actor face in the ribbon.
-	* @returns {number}
-	*/
-	faceWidth() {
-		return this._faceWidth;
-	}
-	/**
-	* The width of the actor face in the ribbon.
-	* @returns {number}
-	*/
-	setFaceWidth(width) {
-		this._faceWidth = width;
-	}
-	/**
-	* The height of the actor face in the ribbon.
-	* @returns {number}
-	*/
-	faceHeight() {
-		return this._faceHeight;
-	}
-	/**
-	* The height of the actor face in the ribbon.
-	* @returns {number}
-	*/
-	setFaceHeight(height) {
-		this._faceHeight = height;
-	}
-	/**
-	* Gets the size of the actor face in the ribbon.
-	* @returns {[number, number]}
-	*/
-	faceSize() {
-		return [this.faceWidth(), this.faceHeight()];
-	}
-	/**
-	* Gets the x coordinate of the actor face in the ribbon.
-	* @returns {number}
-	*/
-	faceX() {
-		return this._faceX;
-	}
-	/**
-	* Sets the x coordinate of the actor face in the ribbon.
-	* @param {number} x The x coordinate.
-	*/
-	setFaceX(x) {
-		this._faceX = x;
-	}
-	/**
-	* Gets the y coordinate of the actor face in the ribbon.
-	* @returns {number}
-	*/
-	faceY() {
-		return this._faceY;
-	}
-	/**
-	* Sets the y coordinate of the actor face in the ribbon.
-	* @param {number} y The y coordinate.
-	*/
-	setFaceY(y) {
-		this._faceY = y;
-	}
-	/**
-	* Gets the coordinates of the actor face in the ribbon.
-	* @returns {[number, number]}
-	*/
-	faceCoordinates() {
-		return [this.faceX(), this.faceY()];
-	}
-	/**
-	* Implements {@link #drawContent}.<br/>
-	* Draws the actor face in the ribbon.
-	*/
-	drawContent() {
-		if (!this._actor) return;
-		this.drawActorRibbon();
-	}
-	/**
-	* Draws the actor face in the ribbon.
-	*/
-	drawActorRibbon() {
-		const actor = this.actor();
-		const [x, y] = this.faceCoordinates();
-		const [w, h] = this.faceSize();
-		this.drawFace(actor.faceName(), actor.faceIndex(), x, y, w, h);
-	}
-};
 
 //#endregion
 //#region src/plugins/_base/windows/Window_Base.js

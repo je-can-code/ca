@@ -3657,7 +3657,7 @@ Window_MenuCommand.prototype.addOriginalCommands = function() {
 * Adds the JABS Controls command to the main menu.
 */
 Window_MenuCommand.prototype.addJabsRemapCommand = function() {
-	const command = new WindowCommandBuilder("JABS Controls").setSymbol("jabsRemap").setIconIndex(2569).setEnabled(true).build();
+	const command = new WindowCommandBuilder("JABS Controls").setSymbol("jabsRemap").setHelpText("Rebind the controls used during combat.").setIconIndex(2569).setEnabled(true).build();
 	const lastCommand = this._list.at(-1);
 	if (lastCommand.symbol === "gameEnd") {
 		this._list.splice(this._list.length - 2, 0, command);

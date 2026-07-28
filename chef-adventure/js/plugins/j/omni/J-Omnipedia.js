@@ -522,7 +522,7 @@ J.OMNI.Aliased.Window_MenuCommand.set("makeCommandList", Window_MenuCommand.prot
 Window_MenuCommand.prototype.makeCommandList = function() {
 	J.OMNI.Aliased.Window_MenuCommand.get("makeCommandList").call(this);
 	if (!this.canAddOmnipediaCommand()) return;
-	const command = new WindowCommandBuilder(J.OMNI.Metadata.Command.Name).setSymbol(J.OMNI.Metadata.Command.Symbol).setIconIndex(J.OMNI.Metadata.Command.IconIndex).setColorIndex(J.OMNI.Metadata.Command.ColorIndex).build();
+	const command = new WindowCommandBuilder(J.OMNI.Metadata.Command.Name).setSymbol(J.OMNI.Metadata.Command.Symbol).setHelpText("Browse everything the party has discovered so far.").setIconIndex(J.OMNI.Metadata.Command.IconIndex).setColorIndex(J.OMNI.Metadata.Command.ColorIndex).build();
 	const lastCommand = this._list.at(-1);
 	if (lastCommand.symbol === "gameEnd") {
 		this._list.splice(this._list.length - 2, 0, command);

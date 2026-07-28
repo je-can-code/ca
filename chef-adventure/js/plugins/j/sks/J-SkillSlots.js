@@ -1639,7 +1639,7 @@ Window_MenuCommand.prototype.addOriginalCommands = function() {
 	J.SKS.Aliased.Window_MenuCommand.get("addOriginalCommands").call(this);
 	const switchId = J.SKS.Metadata.menuSwitchId;
 	if (switchId === 0 || $gameSwitches.value(switchId)) {
-		const builtCommand = new WindowCommandBuilder("Skill Equip").setSymbol("skill-equip").setIconIndex(78).build();
+		const builtCommand = new WindowCommandBuilder("Skill Equip").setSymbol("skill-equip").setHelpText("Choose which of this character's known skills are active.").setMenuSection(MenuSection.Actor).setIconIndex(78).build();
 		this.addBuiltCommand(builtCommand);
 	}
 };

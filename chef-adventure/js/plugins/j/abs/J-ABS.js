@@ -8009,7 +8009,6 @@ var JABS_EnemyAI = class extends JABS_AI {
 		let mostWoundedAlly = null;
 		let lowestHpRatio = 1.01;
 		let actualHpDifference = 0;
-		let alliesBelow66 = 0;
 		let alliesMissingAnyHp = 0;
 		allies.forEach((ally) => {
 			const battler = ally.getBattler();
@@ -8018,9 +8017,6 @@ var JABS_EnemyAI = class extends JABS_AI {
 				lowestHpRatio = hpRatio;
 				mostWoundedAlly = ally;
 				actualHpDifference = battler.mhp - battler.hp;
-				if (hpRatio <= .66) {
-					alliesBelow66++;
-				}
 			}
 			if (hpRatio < 1) {
 				alliesMissingAnyHp++;
@@ -8068,24 +8064,24 @@ var JABS_EnemyAI = class extends JABS_AI {
 				firstSkill = true;
 			}
 			if (testAction.isForAll()) {
-				if (runningBiggestHealAll < healAmount) {
+				if (Math.abs(runningBiggestHealAll) < Math.abs(healAmount)) {
 					biggestHealAllSkill = skillId;
 					runningBiggestHealAll = healAmount;
 				}
-				const runningDifference = Math.abs(runningClosestFitHealAll - actualHpDifference);
-				const thisDifference = Math.abs(healAmount - actualHpDifference);
+				const runningDifference = Math.abs(Math.abs(runningClosestFitHealAll) - actualHpDifference);
+				const thisDifference = Math.abs(Math.abs(healAmount) - actualHpDifference);
 				if (thisDifference < runningDifference) {
 					closestFitHealAllSkill = skillId;
 					runningClosestFitHealAll = healAmount;
 				}
 			}
 			if (testAction.isForOne()) {
-				if (runningBiggestHealOne < healAmount) {
+				if (Math.abs(runningBiggestHealOne) < Math.abs(healAmount)) {
 					biggestHealOneSkill = skillId;
 					runningBiggestHealOne = healAmount;
 				}
-				const runningDifference = Math.abs(runningClosestFitHealOne - actualHpDifference);
-				const thisDifference = Math.abs(healAmount - actualHpDifference);
+				const runningDifference = Math.abs(Math.abs(runningClosestFitHealOne) - actualHpDifference);
+				const thisDifference = Math.abs(Math.abs(healAmount) - actualHpDifference);
 				if (thisDifference < runningDifference) {
 					closestFitHealOneSkill = skillId;
 					runningClosestFitHealOne = healAmount;
@@ -8106,12 +8102,6 @@ var JABS_EnemyAI = class extends JABS_AI {
 				bestSkillId = closestFitHealAllSkill;
 			} else if (alliesMissingAnyHp === 1 && lowestHpRatio < .8) {
 				bestSkillId = closestFitHealOneSkill;
-			}
-		} else {
-			if (alliesMissingAnyHp === 1) {
-				bestSkillId = biggestHealOneSkill;
-			} else if (alliesMissingAnyHp > 1) {
-				bestSkillId = biggestHealAllSkill;
 			}
 		}
 		if (reckless && alliesMissingAnyHp > 0) {

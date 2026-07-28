@@ -3627,7 +3627,7 @@ J.SDP.Aliased.Window_MenuCommand.set("makeCommandList", Window_MenuCommand.proto
 Window_MenuCommand.prototype.makeCommandList = function() {
 	J.SDP.Aliased.Window_MenuCommand.get("makeCommandList").call(this);
 	if (!this.canAddSdpCommand()) return;
-	const command = new WindowCommandBuilder(J.SDP.Metadata.commandName).setSymbol("sdp-menu").setEnabled($gameParty.hasAnyUnlockedSdps()).setIconIndex(J.SDP.Metadata.commandIconIndex).setColorIndex(1).build();
+	const command = new WindowCommandBuilder(J.SDP.Metadata.commandName).setSymbol("sdp-menu").setHelpText("Spend earned points to grow this character's parameters.").setMenuSection(MenuSection.Actor).setEnabled($gameParty.hasAnyUnlockedSdps()).setIconIndex(J.SDP.Metadata.commandIconIndex).setColorIndex(1).build();
 	const lastCommand = this._list.at(-1);
 	if (lastCommand.symbol === "gameEnd") {
 		this._list.splice(this._list.length - 2, 0, command);

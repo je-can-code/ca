@@ -15,10 +15,78 @@
  * parameter-catalog rendering (grouping, chrome, layout) that other CMS
  * scenes build on, so it must be enabled and ordered before them.
  * ============================================================================
+ * COMMAND HELP TEXT
+ * The main menu describes the highlighted command in a help window along the
+ * top. Each of the engine's own commands has its description configured here,
+ * because those commands belong to the engine rather than to any plugin.
+ *
+ * Commands contributed by other plugins carry their own descriptions, supplied
+ * where that plugin builds its command. This plugin neither knows nor needs to
+ * know what those commands are.
+ * ============================================================================
  * NOTE ABOUT NOTETAGS:
  * This plugin has no notetags of its own- it is purely a scene/window
  * redesign of the native main menu.
  * ============================================================================
+ *
+ * @param parentConfig
+ * @text COMMAND DESCRIPTIONS
+ *
+ * @param help-item
+ * @parent parentConfig
+ * @type multiline_string
+ * @text Inventory
+ * @desc Describes the inventory command in the menu's help window.
+ * @default Review and use the items the party is carrying.
+ *
+ * @param help-skill
+ * @parent parentConfig
+ * @type multiline_string
+ * @text Abilities
+ * @desc Describes the abilities command in the menu's help window.
+ * @default Review every ability this character knows.
+ *
+ * @param help-equip
+ * @parent parentConfig
+ * @type multiline_string
+ * @text Equipment
+ * @desc Describes the equipment command in the menu's help window.
+ * @default Change the weapons and armor this character has equipped.
+ *
+ * @param help-status
+ * @parent parentConfig
+ * @type multiline_string
+ * @text Status
+ * @desc Describes the status command in the menu's help window.
+ * @default Inspect this character's parameters in detail.
+ *
+ * @param help-options
+ * @parent parentConfig
+ * @type multiline_string
+ * @text Options
+ * @desc Describes the options command in the menu's help window.
+ * @default Adjust sound, display, and other game settings.
+ *
+ * @param help-save
+ * @parent parentConfig
+ * @type multiline_string
+ * @text Save
+ * @desc Describes the save command in the menu's help window.
+ * @default Record your progress to a save file.
+ *
+ * @param help-gameEnd
+ * @parent parentConfig
+ * @type multiline_string
+ * @text Exit
+ * @desc Describes the exit command in the menu's help window.
+ * @default Return to the title screen or close the game.
+ *
+ * @param help-formation
+ * @parent parentConfig
+ * @type multiline_string
+ * @text Formation
+ * @desc Describes the formation command in the menu's help window.
+ * @default Rearrange the order of the party.
  */
 //endregion Introduction
 
@@ -31,6 +99,45 @@ var J_CmsMain_PluginMetadata = class extends PluginMetadata {
 	*/
 	constructor(name, version) {
 		super(name, version);
+	}
+	/**
+	* Extends {@link #postInitialize}.<br/>
+	* Includes translation of plugin parameters.
+	*/
+	postInitialize() {
+		super.postInitialize();
+		this.initializeMetadata();
+	}
+	/**
+	* Initializes the metadata associated with this plugin.
+	*/
+	initializeMetadata() {
+		/**
+		* A map of the engine's own menu command symbols to their configured descriptions.
+		*
+		* Only the engine's commands live here. Commands contributed by other plugins carry their own
+		* descriptions, supplied wherever that plugin builds its command- this plugin has no business
+		* knowing they exist, let alone what they do.
+		* @type {Map<string, string>}
+		*/
+		this.commandHelpText = new Map([
+			["item", this.parsedPluginParameters["help-item"] ?? String.empty],
+			["skill", this.parsedPluginParameters["help-skill"] ?? String.empty],
+			["equip", this.parsedPluginParameters["help-equip"] ?? String.empty],
+			["status", this.parsedPluginParameters["help-status"] ?? String.empty],
+			["options", this.parsedPluginParameters["help-options"] ?? String.empty],
+			["save", this.parsedPluginParameters["help-save"] ?? String.empty],
+			["gameEnd", this.parsedPluginParameters["help-gameEnd"] ?? String.empty],
+			["formation", this.parsedPluginParameters["help-formation"] ?? String.empty]
+		]);
+	}
+	/**
+	* Gets the configured description for one of the engine's menu commands.
+	* @param {string} symbol The symbol of the command being described.
+	* @returns {string} The description, or {@link String.empty} if this is not an engine command.
+	*/
+	helpTextFor(symbol) {
+		return this.commandHelpText.get(symbol) ?? String.empty;
 	}
 };
 
@@ -156,6 +263,57 @@ var CmsParameter = class {
 			return this.value.toString();
 		}
 		return definition.prettyValue(this.value, withPadding, this.actor);
+	}
+};
+
+//#endregion
+//#region src/plugins/cms/core/_models/MenuCommandBroadcaster.js
+/**
+* Stands in for the main menu's single command window now that there are two of them.
+*
+* Six plugins integrate with the main menu by aliasing `Scene_Menu#createCommandWindow` and calling
+* `this._commandWindow.setHandler(...)`. Splitting the menu into two columns would have silently
+* broken every one of them- their commands would still render, but pressing one would do nothing,
+* which is the worst possible failure because it looks like it works.
+*
+* Rather than asking six plugins to learn about columns, `_commandWindow` becomes this: something
+* that accepts a handler and gives it to both columns. A command's section decides which column
+* renders it, so only one column will ever actually fire the handler- registering with both is
+* harmless, and means a plugin retagging its command between sections needs no change at all.
+*/
+var MenuCommandBroadcaster = class {
+	/**
+	* The command windows receiving everything registered here.
+	* @type {Window_MenuCommand[]}
+	*/
+	#windows = [];
+	/**
+	* @constructor
+	* @param {Window_MenuCommand[]} windows The command windows to broadcast to.
+	*/
+	constructor(windows) {
+		this.#windows = windows;
+	}
+	/**
+	* Registers a handler against every command window.
+	* @param {string} symbol The symbol of the command being handled.
+	* @param {Function} method The handler to invoke when that command is chosen.
+	*/
+	setHandler(symbol, method) {
+		this.#windows.forEach((window) => window.setHandler(symbol, method));
+	}
+	/**
+	* Refreshes every command window.
+	*/
+	refresh() {
+		this.#windows.forEach((window) => window.refresh());
+	}
+	/**
+	* Gets the windows this broadcaster feeds.
+	* @returns {Window_MenuCommand[]}
+	*/
+	windows() {
+		return this.#windows;
 	}
 };
 
@@ -623,40 +781,412 @@ var ParameterCatalogRenderer = class ParameterCatalogRenderer {
 };
 
 //#endregion
-//#region src/plugins/cms/core/scenes/Scene_Menu.js
+//#region src/plugins/cms/core/windows/Window_MenuCommand.js
 /**
-* The rectangle for the command window.<br/>
-* Flips horizontal anchor when right-side input mode is active.
-* @returns {Rectangle}
+* Overwrites {@link #addMainCommands}.<br/>
+* Adds the vanilla main commands as built commands carrying both an icon and a menu section.
+*
+* These are built rather than added through vanilla's {@link Window_Command.addCommand} because that
+* pushes a plain object with nowhere to record a section, and these four are precisely the commands
+* that need one- three of them open actor-scoped scenes and belong in the menu's left column.
 */
-Scene_Menu.prototype.commandWindowRect = function() {
-	const ww = this.mainCommandWidth();
-	const wh = this.mainAreaHeight() - this.goldWindowRect().height;
-	const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
-	const wy = this.mainAreaTop();
-	return new Rectangle(wx, wy, ww, wh);
+Window_MenuCommand.prototype.addMainCommands = function() {
+	const enabled = this.areMainCommandsEnabled();
+	if (this.needsCommand("item")) {
+		this.addBuiltCommand(new WindowCommandBuilder(TextManager.item).setSymbol("item").setHelpText(J.CMS_M.Metadata.helpTextFor("item")).setEnabled(enabled).setIconIndex(2567).setMenuSection(MenuSection.Party).build());
+	}
+	if (this.needsCommand("skill")) {
+		this.addBuiltCommand(new WindowCommandBuilder(TextManager.skill).setSymbol("skill").setHelpText(J.CMS_M.Metadata.helpTextFor("skill")).setEnabled(enabled).setIconIndex(2564).setMenuSection(MenuSection.Actor).build());
+	}
+	if (this.needsCommand("equip")) {
+		this.addBuiltCommand(new WindowCommandBuilder(TextManager.equip).setSymbol("equip").setHelpText(J.CMS_M.Metadata.helpTextFor("equip")).setEnabled(enabled).setIconIndex(2565).setMenuSection(MenuSection.Actor).build());
+	}
+	if (this.needsCommand("status")) {
+		this.addBuiltCommand(new WindowCommandBuilder(TextManager.status).setSymbol("status").setHelpText(J.CMS_M.Metadata.helpTextFor("status")).setEnabled(enabled).setIconIndex(2560).setMenuSection(MenuSection.Actor).build());
+	}
 };
 /**
-* The rectangle for the status window.<br/>
-* Fills the remaining width beside the command column.
+* Overwrites {@link #addOptionsCommand}.<br/>
+* Adds the options command when the plugin list includes it.
+*/
+Window_MenuCommand.prototype.addOptionsCommand = function() {
+	if (this.needsCommand("options") === false) return;
+	const enabled = this.isOptionsEnabled();
+	this.addBuiltCommand(new WindowCommandBuilder(TextManager.options).setSymbol("options").setHelpText(J.CMS_M.Metadata.helpTextFor("options")).setEnabled(enabled).setIconIndex(2566).setMenuSection(MenuSection.Party).build());
+};
+/**
+* Overwrites {@link #addGameEndCommand}.<br/>
+* Adds the game-end command with CMS icon styling.
+*/
+Window_MenuCommand.prototype.addGameEndCommand = function() {
+	const enabled = this.isGameEndEnabled();
+	this.addBuiltCommand(new WindowCommandBuilder(TextManager.gameEnd).setSymbol("gameEnd").setHelpText(J.CMS_M.Metadata.helpTextFor("gameEnd")).setEnabled(enabled).setIconIndex(2562).setMenuSection(MenuSection.Party).build());
+};
+
+//#endregion
+//#region src/plugins/cms/core/windows/Window_MenuSectionCommand.js
+/**
+* A main menu command window showing only the commands belonging to one section.
+*
+* The main menu is split into two columns- one for scenes about a single actor, one for scenes about
+* the party or the game. Rather than asking every plugin in the ecosystem to register into a new
+* place, both columns extend {@link Window_MenuCommand} and therefore inherit every existing
+* `addOriginalCommands` hook automatically. Each column then keeps only the commands belonging to it.
+*
+* This is why nothing had to change about how commands are registered: the split happens at the point
+* of consumption, not registration. A plugin that has never heard of sections still works, and lands
+* in the party column because that is what an untagged command defaults to.
+*/
+var Window_MenuSectionCommand = class extends Window_MenuCommand {
+	/**
+	* Extends {@link #makeCommandList}.<br/>
+	* Also discards every command belonging to a different section.
+	*/
+	makeCommandList() {
+		super.makeCommandList();
+		this.filterToSection();
+	}
+	/**
+	* Discards every command in the list that does not belong to this window's section.
+	*/
+	filterToSection() {
+		const commands = this.commandList();
+		const surviving = commands.filter((command) => this.belongsToSection(command));
+		commands.length = 0;
+		commands.push(...surviving);
+	}
+	/**
+	* Determines whether a command belongs in this window.
+	*
+	* The command list is deliberately heterogeneous- vanilla's {@link Window_Command.addCommand} pushes
+	* plain objects while {@link Window_Command.addBuiltCommand} pushes {@link BuiltWindowCommand}
+	* instances- so a command may genuinely have no section at all. Those are treated as party
+	* commands, which is the same default a built command gets when it never declares one.
+	* @param {BuiltWindowCommand|{symbol: string}} command The command to evaluate.
+	* @returns {boolean}
+	*/
+	belongsToSection(command) {
+		const section = command.menuSection ?? MenuSection.Party;
+		return section === this.menuSection();
+	}
+	/**
+	* The section of commands this window renders.
+	* @returns {string} One of {@link MenuSection}.
+	*/
+	menuSection() {
+		return MenuSection.Party;
+	}
+	/**
+	* Shrinks this window to the height of its contents and centers it vertically.
+	*
+	* The window sizes itself rather than being handed a height because only it knows how many commands
+	* survived filtering- most of this menu is unlocked over the course of the game, so the count is not
+	* knowable until the list has actually been built.
+	*/
+	fitToContents() {
+		const desiredHeight = this.fittingHeight(Math.max(1, this.maxItems()));
+		const height = Math.min(desiredHeight, Graphics.boxHeight);
+		const y = Math.floor((Graphics.boxHeight - height) / 2);
+		this.move(this.x, y, this.width, height);
+	}
+	/**
+	* Overwrites {@link #updateHelp}.<br/>
+	* Describes the highlighted command in the scene's help window.
+	*/
+	updateHelp() {
+		if (!this._helpWindow) return;
+		this._helpWindow.setText(this.currentHelpText());
+	}
+	/**
+	* Remembers which command is currently highlighted, so it can be returned to later.
+	*
+	* Kept separately from the selection itself because a column losing focus is fully deselected- the
+	* index is gone the moment the highlight is cleared, so it has to be captured beforehand.
+	*/
+	rememberSelection() {
+		if (this.index() < 0) return;
+		this._rememberedIndex = this.index();
+	}
+	/**
+	* Restores the previously remembered selection, defaulting to the first command.
+	*/
+	restoreSelection() {
+		const index = this._rememberedIndex ?? 0;
+		this.select(Math.min(index, Math.max(0, this.maxItems() - 1)));
+	}
+	/**
+	* Extends {@link #cursorRight}.<br/>
+	* Moves focus to the column on the right, if there is one.
+	*
+	* A single-column list has no use for horizontal cursor movement- the engine no-ops it entirely- so
+	* the input is free, and moving right between two side-by-side columns is what a player reaches for
+	* first. This routes it to the same handler the shoulder buttons use, so both work and neither is a
+	* special case.
+	* @param {boolean} wrap Whether or not to wrap the cursor.
+	*/
+	cursorRight(wrap) {
+		if (this.isHandled("content-next")) {
+			this.callHandler("content-next");
+			return;
+		}
+		super.cursorRight(wrap);
+	}
+	/**
+	* Extends {@link #cursorLeft}.<br/>
+	* Moves focus to the column on the left, if there is one.
+	* @param {boolean} wrap Whether or not to wrap the cursor.
+	*/
+	cursorLeft(wrap) {
+		if (this.isHandled("content-prev")) {
+			this.callHandler("content-prev");
+			return;
+		}
+		super.cursorLeft(wrap);
+	}
+};
+
+//#endregion
+//#region src/plugins/cms/core/windows/Window_MenuActorCommand.js
+/**
+* The left column of the main menu, listing every scene scoped to a single actor.
+*/
+var Window_MenuActorCommand = class extends Window_MenuSectionCommand {
+	/**
+	* Implements {@link Window_MenuSectionCommand.menuSection}.<br/>
+	* @returns {string}
+	*/
+	menuSection() {
+		return MenuSection.Actor;
+	}
+};
+
+//#endregion
+//#region src/plugins/cms/core/windows/Window_MenuPartyCommand.js
+/**
+* The right column of the main menu, listing every scene concerning the party or the game as a whole.
+*
+* This column also collects any command that never declared a section at all, which is what allows a
+* plugin written before the menu was split- or one written by someone who never learned it was- to
+* keep appearing rather than silently vanishing.
+*/
+var Window_MenuPartyCommand = class extends Window_MenuSectionCommand {
+	/**
+	* Implements {@link Window_MenuSectionCommand.menuSection}.<br/>
+	* @returns {string}
+	*/
+	menuSection() {
+		return MenuSection.Party;
+	}
+};
+
+//#endregion
+//#region src/plugins/cms/core/windows/Window_MenuStatus.js
+/**
+* Overwrites {@link #maxCols}.<br/>
+* Renders one column per party member rather than one row.
+*
+* The party is a permanently fixed pair, so the center of the menu can afford to show every member at
+* once side by side. Six stacked rows was the correct shape for a variable-size party filling a narrow
+* strip; it wastes most of a wide center column and answers nothing the player was asking.
+* @returns {number}
+*/
+Window_MenuStatus.prototype.maxCols = function() {
+	return Math.max(1, $gameParty.size());
+};
+/**
+* Overwrites {@link #numVisibleRows}.<br/>
+* Every member is visible at once, so there is only ever one row of them.
+* @returns {number}
+*/
+Window_MenuStatus.prototype.numVisibleRows = function() {
+	return 1;
+};
+/**
+* Overwrites {@link #itemHeight}.<br/>
+* Each member's cell claims the full height of the window.
+* @returns {number}
+*/
+Window_MenuStatus.prototype.itemHeight = function() {
+	return this.innerHeight;
+};
+/**
+* Overwrites {@link #drawItemImage}.<br/>
+* Draws the actor's face at the top of their column.
+*
+* This is the only place in the game a full-size portrait appears. Concentrating it here is what
+* permits every other actor-scoped scene to carry a compact ribbon instead of re-rendering the same
+* artwork in a layout that has better uses for the space.
+* @param {number} index The index of the party member being rendered.
+*/
+Window_MenuStatus.prototype.drawItemImage = function(index) {
+	const actor = this.actor(index);
+	const rect = this.itemRect(index);
+	const faceX = rect.x + Math.floor((rect.width - ImageManager.faceWidth) / 2);
+	this.drawActorFace(actor, faceX, rect.y, ImageManager.faceWidth, ImageManager.faceHeight);
+};
+/**
+* Overwrites {@link #drawItemStatus}.<br/>
+* Draws a member's details beneath their portrait.
+*
+* Deliberately sparse for now- name, level, class, and the basic gauges. What else belongs here is a
+* question better answered against a working skeleton than guessed at in advance.
+* @param {number} index The index of the party member being rendered.
+*/
+Window_MenuStatus.prototype.drawItemStatus = function(index) {
+	const actor = this.actor(index);
+	const rect = this.itemRect(index);
+	const y = rect.y + ImageManager.faceHeight + this.lineHeight();
+	const padding = this.itemPadding();
+	const x = rect.x + padding;
+	const width = rect.width - padding * 2;
+	this.drawActorName(actor, x, y, width);
+	this.drawActorLevel(actor, x, y + this.lineHeight());
+	this.drawActorClass(actor, x, y + this.lineHeight() * 2, width);
+	this.placeBasicGauges(actor, x, y + this.lineHeight() * 3);
+};
+
+//#endregion
+//#region src/plugins/cms/core/scenes/Scene_Menu.js
+/**
+* Overwrites {@link #create}.<br/>
+* Builds the main menu as three columns- actor commands, the party display, party commands.
+*
+* The two command columns mirror how the scenes behind them actually divide: some concern a single
+* actor, the rest concern the party or the game. Two columns of eight read faster than one list of
+* sixteen, because the grouping does the sorting on the player's behalf.
+*/
+Scene_Menu.prototype.create = function() {
+	Scene_MenuBase.prototype.create.call(this);
+	this.createHelpWindow();
+	this.createCommandWindow();
+	this.createStatusWindow();
+	this.createGoldWindow();
+	this.createControlLegendWindow();
+	this.actorCommandWindow().fitToContents();
+	this.partyCommandWindow().fitToContents();
+	this.actorCommandWindow().activate();
+	this.actorCommandWindow().select(0);
+};
+/**
+* The width of a single command column.
+*
+* Derived from the screen rather than fixed, so the layout holds at any resolution. Nothing in this
+* scene may use a pixel literal- a hardcoded column width is exactly the drift this menu replaces.
+* @returns {number}
+*/
+Scene_Menu.prototype.commandColumnWidth = function() {
+	return Math.floor(Graphics.boxWidth * this.commandColumnRatio());
+};
+/**
+* The proportion of the screen width given to each command column.
+* @returns {number}
+*/
+Scene_Menu.prototype.commandColumnRatio = function() {
+	return .22;
+};
+/**
+* The width of the center stack, being whatever the two command columns do not claim.
+*
+* Expressed as the remainder rather than its own calculation, so rounding in the column widths can
+* never leave an unclaimed strip down the middle of the screen.
+* @returns {number}
+*/
+Scene_Menu.prototype.centerStackWidth = function() {
+	return Graphics.boxWidth - this.commandColumnWidth() * 2;
+};
+/**
+* The x coordinate at which the center stack begins.
+* @returns {number}
+*/
+Scene_Menu.prototype.centerStackX = function() {
+	return this.commandColumnWidth();
+};
+/**
+* Builds the provisional rectangle for a command column.
+*
+* Only the width and left edge matter here. The column shrinks to its contents and centers itself
+* once its list exists- see {@link Window_MenuSectionCommand.fitToContents}- because most of this
+* menu is unlocked over the course of the game and the count is not knowable before then.
+* @param {number} x The left edge of the column.
+* @returns {Rectangle}
+*/
+Scene_Menu.prototype.floatingColumnRect = function(x) {
+	return new Rectangle(x, 0, this.commandColumnWidth(), Graphics.boxHeight);
+};
+/**
+* The rectangle for the actor command column, floating against the left edge.
+* @returns {Rectangle}
+*/
+Scene_Menu.prototype.actorCommandWindowRect = function() {
+	return this.floatingColumnRect(0);
+};
+/**
+* The rectangle for the party command column, floating against the right edge.
+* @returns {Rectangle}
+*/
+Scene_Menu.prototype.partyCommandWindowRect = function() {
+	return this.floatingColumnRect(Graphics.boxWidth - this.commandColumnWidth());
+};
+/**
+* Overwrites {@link #helpWindowRect}.<br/>
+* The rectangle for the help window, capping the center stack.
+* @returns {Rectangle}
+*/
+Scene_Menu.prototype.helpWindowRect = function() {
+	return new Rectangle(this.centerStackX(), 0, this.centerStackWidth(), this.calcWindowHeight(this.helpWindowLineCount(), false));
+};
+/**
+* How many lines of description the help window renders.
+* @returns {number}
+*/
+Scene_Menu.prototype.helpWindowLineCount = function() {
+	return 2;
+};
+/**
+* Overwrites {@link #statusWindowRect}.<br/>
+* The rectangle for the party display, filling the center stack between help and currency.
 * @returns {Rectangle}
 */
 Scene_Menu.prototype.statusWindowRect = function() {
-	const ww = Graphics.boxWidth - this.mainCommandWidth();
-	const wh = this.mainAreaHeight();
-	const wx = this.isRightInputMode() ? 0 : Graphics.boxWidth - ww;
-	const wy = this.mainAreaTop();
-	return new Rectangle(wx, wy, ww, wh);
+	const wy = this.helpWindowRect().height;
+	const wh = Graphics.boxHeight - wy - this.goldWindowRect().height;
+	return new Rectangle(this.centerStackX(), wy, this.centerStackWidth(), wh);
 };
 /**
-* CMS menu keeps commands on the left — never mirror for right-side input.
+* Overwrites {@link #goldWindowRect}.<br/>
+* The rectangle for the currency strip, flooring the center stack.
+*
+* Deliberately mirrors the help window at the opposite end of the stack, and spans the full center
+* width rather than only as much as a gold value needs- this strip is intended to carry more than
+* gold in future, and sizing it to today's contents would only mean resizing it later.
+* @returns {Rectangle}
+*/
+Scene_Menu.prototype.goldWindowRect = function() {
+	const wh = this.calcWindowHeight(1, true);
+	const wy = Graphics.boxHeight - this.controlLegendWindowRect().height - wh;
+	return new Rectangle(this.centerStackX(), wy, this.centerStackWidth(), wh);
+};
+/**
+* The rectangle for the control legend, pinned across the full width of the bottom.
+*
+* Unlike the help window and currency strip, this spans the whole screen rather than only the center
+* stack, because it describes the entire scene- including the two command columns that sit outside
+* that stack.
+* @returns {Rectangle}
+*/
+Scene_Menu.prototype.controlLegendWindowRect = function() {
+	const wh = this.calcWindowHeight(1, false);
+	return new Rectangle(0, Graphics.boxHeight - wh, Graphics.boxWidth, wh);
+};
+/**
+* CMS menu keeps commands on the left- never mirror for right-side input.
 * @returns {boolean}
 */
 Scene_Menu.prototype.isRightInputMode = function() {
 	return false;
 };
 /**
-* CMS menu keeps help at the top — not the bottom strip layout.
+* CMS menu keeps help at the top- not the bottom strip layout.
 * @returns {boolean}
 */
 Scene_Menu.prototype.isBottomHelpMode = function() {
@@ -669,66 +1199,173 @@ Scene_Menu.prototype.isBottomHelpMode = function() {
 Scene_Menu.prototype.isBottomButtonMode = function() {
 	return true;
 };
-
-//#endregion
-//#region src/plugins/cms/core/windows/Window_MenuCommand.js
 /**
-* Adds CMS main menu commands with custom icon indices per entry.
+* Creates the control legend and adds it to tracking.
 */
-Window_MenuCommand.prototype.addMainCommands = function() {
-	const enabled = this.areMainCommandsEnabled();
-	if (this.needsCommand("item")) {
-		this.addCommand(TextManager.item, "item", enabled, null, 2567);
-	}
-	if (this.needsCommand("skill")) {
-		this.addCommand(TextManager.skill, "skill", enabled, null, 2564);
-	}
-	if (this.needsCommand("equip")) {
-		this.addCommand(TextManager.equip, "equip", enabled, null, 2565);
-	}
-	if (this.needsCommand("status")) {
-		this.addCommand(TextManager.status, "status", enabled, null, 2560);
-	}
+Scene_Menu.prototype.createControlLegendWindow = function() {
+	const window = new Window_ControlLegend(this.controlLegendWindowRect());
+	window.setEntries(this.controlLegendEntries());
+	this.addWindow(window);
 };
 /**
-* Adds the options command when the plugin list includes it.
+* The controls this menu teaches.
+*
+* Only the non-obvious ones are worth the space. Moving between the two columns is the entry that
+* justifies this window existing at all- nothing about two side-by-side lists suggests the second one
+* is reachable, which is precisely the sort of silent capability players never find.
+* @returns {{semantic: string, label: string}[]}
 */
-Window_MenuCommand.prototype.addOptionsCommand = function() {
-	if (this.needsCommand("options")) {
-		const enabled = this.isOptionsEnabled();
-		this.addCommand(TextManager.options, "options", enabled, null, 2566);
-	}
+Scene_Menu.prototype.controlLegendEntries = function() {
+	return [
+		{
+			semantic: "content-next",
+			label: "switch column"
+		},
+		{
+			semantic: "ok",
+			label: "open"
+		},
+		{
+			semantic: "cancel",
+			label: "back"
+		}
+	];
 };
 /**
-* Adds the game-end command with CMS icon styling.
+* Overwrites {@link #createCommandWindow}.<br/>
+* Creates both command columns and exposes them behind a single broadcaster.
+*
+* Eight plugins alias this method and then call `this._commandWindow.setHandler(...)` to wire their
+* own commands. Keeping both the method name and that property means all eight keep working
+* untouched- `_commandWindow` is simply no longer a window, but something that hands each
+* registration to both columns. Only the column actually rendering a given command can ever fire its
+* handler.
+*
+* IMPORTANT: this is an overwrite rather than an alias, so any plugin patching this method must load
+* AFTER this one or its patch is discarded. That is why J-CMS is ordered immediately after J-Base,
+* ahead of every plugin that contributes a menu command- ordering it later silently breaks the
+* handlers of anything loaded before it, while leaving their commands visibly rendered.
 */
-Window_MenuCommand.prototype.addGameEndCommand = function() {
-	const enabled = this.isGameEndEnabled();
-	this.addCommand(TextManager.gameEnd, "gameEnd", enabled, null, 2562);
+Scene_Menu.prototype.createCommandWindow = function() {
+	this.createActorCommandWindow();
+	this.createPartyCommandWindow();
+	this._commandWindow = new MenuCommandBroadcaster([this.actorCommandWindow(), this.partyCommandWindow()]);
+	this.bindMenuCommandHandlers(this._commandWindow);
+	this.actorCommandWindow().setHelpWindow(this._helpWindow);
+	this.partyCommandWindow().setHelpWindow(this._helpWindow);
 };
-
-//#endregion
-//#region src/plugins/cms/core/windows/Window_MenuStatus.js
 /**
-* CMS status window shows six party rows at once.
-* @returns {number}
+* Creates the actor command column.
 */
-Window_MenuStatus.prototype.numVisibleRows = function() {
-	return 6;
+Scene_Menu.prototype.createActorCommandWindow = function() {
+	const window = new Window_MenuActorCommand(this.actorCommandWindowRect());
+	window.setHandler("content-next", this.onFocusPartyColumn.bind(this));
+	window.setHandler("cancel", this.popScene.bind(this));
+	this.setActorCommandWindow(window);
+	this.addWindow(window);
 };
 /**
-* Draws a compact actor ribbon: name, level, class, and basic gauges.
-* @param {Game_Actor} actor The actor row being rendered.
-* @param {number} x Left edge of the row content.
-* @param {number} y Top edge of the row content.
+* Creates the party command column.
 */
-Window_MenuStatus.prototype.drawActorSimpleStatus = function(actor, x, y) {
-	const lineHeight = this.lineHeight();
-	const x2 = x + 180;
-	this.drawActorName(actor, x, y);
-	this.drawActorLevel(actor, x, y + lineHeight * 1);
-	this.drawActorClass(actor, x2, y);
-	this.placeBasicGauges(actor, x2, y + lineHeight);
+Scene_Menu.prototype.createPartyCommandWindow = function() {
+	const window = new Window_MenuPartyCommand(this.partyCommandWindowRect());
+	window.setHandler("content-prev", this.onFocusActorColumn.bind(this));
+	window.setHandler("cancel", this.popScene.bind(this));
+	window.deactivate();
+	window.deselect();
+	this.setPartyCommandWindow(window);
+	this.addWindow(window);
+};
+/**
+* Gets the actor command column.
+* @returns {Window_MenuActorCommand}
+*/
+Scene_Menu.prototype.actorCommandWindow = function() {
+	return this._j._cms._actorCommandWindow;
+};
+/**
+* Sets the actor command column to the given window.
+* @param {Window_MenuActorCommand} window The window to track.
+*/
+Scene_Menu.prototype.setActorCommandWindow = function(window) {
+	this._j ||= {};
+	this._j._cms ||= {};
+	this._j._cms._actorCommandWindow = window;
+};
+/**
+* Gets the party command column.
+* @returns {Window_MenuPartyCommand}
+*/
+Scene_Menu.prototype.partyCommandWindow = function() {
+	return this._j._cms._partyCommandWindow;
+};
+/**
+* Sets the party command column to the given window.
+* @param {Window_MenuPartyCommand} window The window to track.
+*/
+Scene_Menu.prototype.setPartyCommandWindow = function(window) {
+	this._j ||= {};
+	this._j._cms ||= {};
+	this._j._cms._partyCommandWindow = window;
+};
+/**
+* Hands focus to the party column.
+*/
+Scene_Menu.prototype.onFocusPartyColumn = function() {
+	this.swapColumnFocus(this.actorCommandWindow(), this.partyCommandWindow());
+};
+/**
+* Hands focus back to the actor column.
+*/
+Scene_Menu.prototype.onFocusActorColumn = function() {
+	this.swapColumnFocus(this.partyCommandWindow(), this.actorCommandWindow());
+};
+/**
+* Moves focus from one command column to the other.
+*
+* The column being left is fully deselected rather than merely deactivated, because a dormant column
+* still showing a highlighted row reads as though two things are selected at once. Its position is
+* remembered separately so returning to it lands where the player left off instead of snapping back
+* to the top.
+* @param {Window_MenuSectionCommand} leaving The column losing focus.
+* @param {Window_MenuSectionCommand} entering The column gaining focus.
+*/
+Scene_Menu.prototype.swapColumnFocus = function(leaving, entering) {
+	leaving.rememberSelection();
+	leaving.deactivate();
+	leaving.deselect();
+	entering.activate();
+	entering.restoreSelection();
+	entering.updateHelp();
+};
+/**
+* Binds the handlers for every command either column may contain.
+*
+* Both columns are wired identically, because a command's section decides which column renders it-
+* not which handlers exist. A command that never appears in a given column simply never fires there,
+* and wiring both means a plugin retagging its command needs no change here.
+* @param {MenuCommandBroadcaster} window The broadcaster feeding both command columns.
+*/
+Scene_Menu.prototype.bindMenuCommandHandlers = function(window) {
+	window.setHandler("skill", this.commandActorScene.bind(this, Scene_Skill));
+	window.setHandler("equip", this.commandActorScene.bind(this, Scene_Equip));
+	window.setHandler("status", this.commandActorScene.bind(this, Scene_Status));
+	window.setHandler("item", this.commandItem.bind(this));
+	window.setHandler("options", this.commandOptions.bind(this));
+	window.setHandler("save", this.commandSave.bind(this));
+	window.setHandler("gameEnd", this.commandGameEnd.bind(this));
+};
+/**
+* Opens a scene scoped to the currently selected actor.
+*
+* Vanilla routes these three commands through an actor-selection window first, to answer "which of
+* the party did you mean?". A permanently two-person party whose scenes each carry their own actor
+* ribbon does not need that question asked, so the scene is pushed immediately and resolves the menu
+* actor itself- which {@link Game_Party.menuActor} always answers with a valid party member.
+* @param {Function} sceneClass The scene to open.
+*/
+Scene_Menu.prototype.commandActorScene = function(sceneClass) {
+	SceneManager.push(sceneClass);
 };
 
 //#endregion

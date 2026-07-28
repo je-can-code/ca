@@ -3002,7 +3002,7 @@ J.PASSIVE.Aliased.Window_MenuCommand.set("makeCommandList", Window_MenuCommand.p
 Window_MenuCommand.prototype.makeCommandList = function() {
 	J.PASSIVE.Aliased.Window_MenuCommand.get("makeCommandList").call(this);
 	if (!this.canAddPassivesCommand()) return;
-	const command = new WindowCommandBuilder(J.PASSIVE.Metadata.commandName).setSymbol("passive-menu").setEnabled(true).setIconIndex(J.PASSIVE.Metadata.commandIconIndex).build();
+	const command = new WindowCommandBuilder(J.PASSIVE.Metadata.commandName).setSymbol("passive-menu").setHelpText("Review the always-active effects this character benefits from.").setMenuSection(MenuSection.Actor).setEnabled(true).setIconIndex(J.PASSIVE.Metadata.commandIconIndex).build();
 	const lastCommand = this._list.at(-1);
 	if (lastCommand.symbol === "gameEnd") {
 		this._list.splice(this._list.length - 2, 0, command);

@@ -3016,7 +3016,7 @@ Window_MenuCommand.prototype.addOriginalCommands = function() {
 	J.APT.Aliased.Window_MenuCommand.get("addOriginalCommands").call(this);
 	const switchId = J.APT.Metadata.menuSwitchId;
 	if (switchId === 0 || $gameSwitches.value(switchId)) {
-		const builtCommand = new WindowCommandBuilder("Aptitude").setSymbol("aptitude").setIconIndex(186).build();
+		const builtCommand = new WindowCommandBuilder("Aptitude").setSymbol("aptitude").setHelpText("Track this character's progress toward learning new skills.").setMenuSection(MenuSection.Actor).setIconIndex(186).build();
 		this.addBuiltCommand(builtCommand);
 	}
 };
