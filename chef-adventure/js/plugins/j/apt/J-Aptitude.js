@@ -1826,8 +1826,8 @@ var Window_AptitudeAggregateDetails = class extends Window_Base {
 	*/
 	setActor(actor) {
 		if (this.actor() === actor) return;
-		this.setActor(actor);
-		this._aggregate = null;
+		this._actor = actor;
+		this.setAggregate(null);
 		this.refresh();
 	}
 	/**
