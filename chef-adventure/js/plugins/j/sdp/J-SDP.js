@@ -3646,40 +3646,6 @@ Window_MenuCommand.prototype.canAddSdpCommand = function() {
 };
 
 //#endregion
-//#region src/plugins/sdp/core/windows/Window_AbsMenu.js
-if (J.ABS) {
-	/**
-	* Extends {@link #buildCommands}.<br/>
-	* Adds the sdp command at the end of the list.
-	* @returns {BuiltWindowCommand[]}
-	*/
-	J.SDP.Aliased.Window_AbsMenu.set("buildCommands", Window_AbsMenu.prototype.buildCommands);
-	Window_AbsMenu.prototype.buildCommands = function() {
-		const originalCommands = J.SDP.Aliased.Window_AbsMenu.get("buildCommands").call(this);
-		if (!this.canAddSdpCommand()) return originalCommands;
-		const command = new WindowCommandBuilder(J.SDP.Metadata.commandName).setSymbol("sdp-menu").setEnabled($gameParty.hasAnyUnlockedSdps()).setIconIndex(J.SDP.Metadata.commandIconIndex).setColorIndex(1).setHelpText(this.sdpHelpText()).build();
-		originalCommands.push(command);
-		return originalCommands;
-	};
-	/**
-	* Determines whether or not the sdp command can be added to the JABS menu.
-	* @returns {boolean} True if the command should be added, false otherwise.
-	*/
-	Window_AbsMenu.prototype.canAddSdpCommand = function() {
-		if (!$gameSwitches.value(J.SDP.Metadata.menuSwitchId)) return false;
-		return true;
-	};
-	/**
-	* The help text for the JABS sdp menu.
-	* @returns {string}
-	*/
-	Window_AbsMenu.prototype.sdpHelpText = function() {
-		const description = ["The ever-growing list of stat distribution panels, aka your junction system.", "Junction points can be spent here to modify your stats- permanently."];
-		return description.join("\n");
-	};
-}
-
-//#endregion
 //#region src/plugins/sdp/core/managers/SdpFamilyFilter.js
 /**
 * Family-filter symbols and helpers for the SDP panel list.

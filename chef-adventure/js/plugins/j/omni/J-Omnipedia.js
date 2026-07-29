@@ -540,38 +540,4 @@ Window_MenuCommand.prototype.canAddOmnipediaCommand = function() {
 };
 
 //#endregion
-//#region src/plugins/omni/core/windows/Window_AbsMenu.js
-if (J.ABS) {
-	/**
-	* Extends {@link #buildCommands}.<br/>
-	* Adds the sdp command at the end of the list.
-	* @returns {BuiltWindowCommand[]}
-	*/
-	J.OMNI.Aliased.Window_AbsMenu.set("buildCommands", Window_AbsMenu.prototype.buildCommands);
-	Window_AbsMenu.prototype.buildCommands = function() {
-		const originalCommands = J.OMNI.Aliased.Window_AbsMenu.get("buildCommands").call(this);
-		if (!this.canAddOmnipediaCommand()) return originalCommands;
-		const command = new WindowCommandBuilder(J.OMNI.Metadata.Command.Name).setSymbol(J.OMNI.Metadata.Command.Symbol).setIconIndex(J.OMNI.Metadata.Command.IconIndex).setColorIndex(J.OMNI.Metadata.Command.ColorIndex).setHelpText(this.omnipediaHelpText()).build();
-		originalCommands.push(command);
-		return originalCommands;
-	};
-	/**
-	* Determines whether or not the sdp command can be added to the JABS menu.
-	* @returns {boolean} True if the command should be added, false otherwise.
-	*/
-	Window_AbsMenu.prototype.canAddOmnipediaCommand = function() {
-		if (!$gameSwitches.value(J.OMNI.Metadata.InJabsMenuSwitch)) return false;
-		return true;
-	};
-	/**
-	* The help text for the JABS omnipedia menu.
-	* @returns {string}
-	*/
-	Window_AbsMenu.prototype.omnipediaHelpText = function() {
-		const description = ["An encyclopedia-like system full of data-driven entries.", "It can contain many sub-categories, such as the Monsterpedia."];
-		return description.join("\n");
-	};
-}
-
-//#endregion
 //# sourceMappingURL=J-Omnipedia.js.map
