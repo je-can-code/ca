@@ -187,6 +187,34 @@ var Window_LoadoutActorHeader = class extends Window_Base {
 		this._slotSpineWidth = 0;
 	}
 	/**
+	* Gets the actor column width.
+	* @returns {number} The actorColumnWidth.
+	*/
+	actorColumnWidth() {
+		return this._actorColumnWidth;
+	}
+	/**
+	* Sets the actor column width.
+	* @param {number} newActorColumnWidth The new actorColumnWidth.
+	*/
+	setActorColumnWidth(newActorColumnWidth) {
+		this._actorColumnWidth = newActorColumnWidth;
+	}
+	/**
+	* Gets the slot spine width.
+	* @returns {number} The slotSpineWidth.
+	*/
+	slotSpineWidth() {
+		return this._slotSpineWidth;
+	}
+	/**
+	* Sets the slot spine width.
+	* @param {number} newSlotSpineWidth The new slotSpineWidth.
+	*/
+	setSlotSpineWidth(newSlotSpineWidth) {
+		this._slotSpineWidth = newSlotSpineWidth;
+	}
+	/**
 	* Adopts the board's column geometry so each name lands over its own column.
 	*
 	* The geometry is handed over rather than recalculated because two windows deriving the same layout
@@ -196,8 +224,8 @@ var Window_LoadoutActorHeader = class extends Window_Base {
 	* @param {number} slotSpineWidth The width of the spine between them.
 	*/
 	setColumnGeometry(actorColumnWidth, slotSpineWidth) {
-		this._actorColumnWidth = actorColumnWidth;
-		this._slotSpineWidth = slotSpineWidth;
+		this.setActorColumnWidth(actorColumnWidth);
+		this.setSlotSpineWidth(slotSpineWidth);
 		this.refresh();
 	}
 	/**
@@ -212,7 +240,7 @@ var Window_LoadoutActorHeader = class extends Window_Base {
 	*/
 	refresh() {
 		this.contents.clear();
-		if (this._actorColumnWidth === 0) return;
+		if (this.actorColumnWidth() === 0) return;
 		this.members().forEach((actor, index) => this.drawColumnHeader(actor, index));
 	}
 	/**
@@ -221,10 +249,10 @@ var Window_LoadoutActorHeader = class extends Window_Base {
 	* @param {number} index The column index.
 	*/
 	drawColumnHeader(actor, index) {
-		const spineOffset = index === 0 ? 0 : this._slotSpineWidth;
-		const x = this._actorColumnWidth * index + spineOffset;
+		const spineOffset = index === 0 ? 0 : this.slotSpineWidth();
+		const x = this.actorColumnWidth() * index + spineOffset;
 		this.changeTextColor(ColorManager.systemColor());
-		this.drawText(actor.name(), x, 0, this._actorColumnWidth, "center");
+		this.drawText(actor.name(), x, 0, this.actorColumnWidth(), "center");
 		this.resetTextColor();
 	}
 };
@@ -441,7 +469,9 @@ var Window_LoadoutBoard = class extends Window_Command {
 	*/
 	currentSlotData() {
 		if (this.index() < 0) return null;
-		return this.commandEntryAt(this.index())?.ext ?? null;
+		const commandEntry = this.commandEntryAt(this.index());
+		if (commandEntry === null) return null;
+		return commandEntry.ext;
 	}
 };
 
@@ -484,13 +514,27 @@ var Window_LoadoutPicker = class extends Window_Command {
 		this._slotKey = String.empty;
 	}
 	/**
+	* Sets the actor.
+	* @param {Game_Actor|null} newActor The new actor.
+	*/
+	setActor(newActor) {
+		this._actor = newActor;
+	}
+	/**
+	* Sets the slot key.
+	* @param {string} newSlotKey The new slotKey.
+	*/
+	setSlotKey(newSlotKey) {
+		this._slotKey = newSlotKey;
+	}
+	/**
 	* Points this window at a particular actor's particular slot and rebuilds accordingly.
 	* @param {Game_Actor} actor The actor whose slot is being filled.
 	* @param {string} slotKey The key of the slot being filled.
 	*/
 	setTarget(actor, slotKey) {
-		this._actor = actor;
-		this._slotKey = slotKey;
+		this.setActor(actor);
+		this.setSlotKey(slotKey);
 		this.refresh();
 		this.select(0);
 	}
@@ -682,7 +726,7 @@ var Scene_JabsLoadout = class Scene_JabsLoadout extends Scene_MenuFacetBase {
 		window.setHandler("ok", this.onSlotSelected.bind(this));
 		window.setHandler("context", this.onSlotCleared.bind(this));
 		window.setHandler("cancel", this.popScene.bind(this));
-		window.setHelpWindow(this._helpWindow);
+		window.setHelpWindow(this.helpWindow());
 		this._j._loadout._board = window;
 		this.addWindow(window);
 	}
@@ -701,7 +745,7 @@ var Scene_JabsLoadout = class Scene_JabsLoadout extends Scene_MenuFacetBase {
 		const window = new Window_LoadoutPicker(rectangle);
 		window.setHandler("candidate", this.onCandidateSelected.bind(this));
 		window.setHandler("cancel", this.onPickerCancelled.bind(this));
-		window.setHelpWindow(this._helpWindow);
+		window.setHelpWindow(this.helpWindow());
 		window.hide();
 		window.deactivate();
 		this._j._loadout._picker = window;
@@ -821,7 +865,7 @@ var Scene_JabsLoadout = class Scene_JabsLoadout extends Scene_MenuFacetBase {
 J.ABS.EXT.LOADOUT.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function() {
 	J.ABS.EXT.LOADOUT.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this._commandWindow.setHandler("jabs-loadout", this.commandJabsLoadout.bind(this));
+	this.commandWindow().setHandler("jabs-loadout", this.commandJabsLoadout.bind(this));
 };
 /**
 * Opens the loadout scene.

@@ -690,7 +690,7 @@ JABS_Engine.prototype.initialize = function(isMapTransfer = true) {
 * @returns {JABS_FoodChainPlan|null} The plan, or null if none is registered.
 */
 JABS_Engine.prototype.getFoodChainPlanByUuid = function(uuid) {
-	return this._foodChainPlans.get(uuid) ?? null;
+	return this.foodChainPlans().get(uuid) ?? null;
 };
 /**
 * Caches a food chain plan for the given actor UUID, replacing any prior plan.
@@ -699,7 +699,14 @@ JABS_Engine.prototype.getFoodChainPlanByUuid = function(uuid) {
 * @param {JABS_FoodChainPlan} plan The plan built from the item's entry state.
 */
 JABS_Engine.prototype.setFoodChainPlanByUuid = function(uuid, plan) {
-	this._foodChainPlans.set(uuid, plan);
+	this.foodChainPlans().set(uuid, plan);
+};
+/**
+* Gets the food chain plans.
+* @returns {*} The foodChainPlans.
+*/
+JABS_Engine.prototype.foodChainPlans = function() {
+	return this._foodChainPlans;
 };
 
 //#endregion

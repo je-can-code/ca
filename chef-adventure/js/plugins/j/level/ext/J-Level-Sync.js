@@ -280,6 +280,15 @@ Game_System.prototype.initialize = function() {
 	this._j._levelSync._contentSyncSession = null;
 };
 /**
+* Seeds the content sync session slot when it is absent, leaving any loaded session intact.
+*
+* Saves written before this plugin existed have no slot at all; this fills it without disturbing
+* a session that was already restored.
+*/
+Game_System.prototype.initContentSyncSessionIfAbsent = function() {
+	this._j._levelSync._contentSyncSession ??= null;
+};
+/**
 * Gets the active content sync session.
 * @returns {{ level: number, uplevel: boolean }|null}
 */
@@ -319,7 +328,7 @@ J.LEVEL.EXT.SYNC.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.on
 Game_System.prototype.onAfterLoad = function() {
 	J.LEVEL.EXT.SYNC.Aliased.Game_System.get("onAfterLoad").call(this);
 	this._j._levelSync ||= {};
-	this._j._levelSync._contentSyncSession ??= null;
+	this.initContentSyncSessionIfAbsent();
 	$gameParty.members().forEach((actor) => {
 		if (J.NATURAL) actor.refreshAllParameterBuffs();
 		actor.onBattlerDataChange();
@@ -382,23 +391,51 @@ Game_Map.prototype.setup = function(mapId) {
 */
 Game_Map.prototype.parseMapContentSyncTags = function() {
 	const syncLevel = RPGManager.getNumberFromNoteByRegex($dataMap, J.LEVEL.EXT.SYNC.RegExp.ContentSyncLevel);
-	this._j._levelSync._contentSyncLevel = syncLevel > 0 ? syncLevel : null;
+	this.setContentSyncLevel(syncLevel > 0 ? syncLevel : null);
 	const uplevel = RPGManager.checkForBooleanFromNoteByRegex($dataMap, J.LEVEL.EXT.SYNC.RegExp.ContentSyncUplevel);
-	this._j._levelSync._contentSyncUplevel = uplevel === true;
+	this.setContentSyncUplevel(uplevel === true);
 };
 /**
 * Gets the content sync level declared in this map's note, or null if absent.
 * @returns {number|null}
 */
 Game_Map.prototype.getMapContentSyncLevel = function() {
-	return this._j._levelSync._contentSyncLevel;
+	return this.contentSyncLevel();
 };
 /**
 * Gets whether this map's note opts into uplevel (exact sync) mode.
 * @returns {boolean}
 */
 Game_Map.prototype.isMapContentSyncUplevel = function() {
+	return this.contentSyncUplevel();
+};
+/**
+* Gets the content sync level.
+* @returns {number} The contentSyncLevel.
+*/
+Game_Map.prototype.contentSyncLevel = function() {
+	return this._j._levelSync._contentSyncLevel;
+};
+/**
+* Sets the content sync level.
+* @param {number} newContentSyncLevel The new contentSyncLevel.
+*/
+Game_Map.prototype.setContentSyncLevel = function(newContentSyncLevel) {
+	this._j._levelSync._contentSyncLevel = newContentSyncLevel;
+};
+/**
+* Gets the content sync uplevel.
+* @returns {*} The contentSyncUplevel.
+*/
+Game_Map.prototype.contentSyncUplevel = function() {
 	return this._j._levelSync._contentSyncUplevel;
+};
+/**
+* Sets the content sync uplevel.
+* @param {*} newContentSyncUplevel The new contentSyncUplevel.
+*/
+Game_Map.prototype.setContentSyncUplevel = function(newContentSyncUplevel) {
+	this._j._levelSync._contentSyncUplevel = newContentSyncUplevel;
 };
 
 //#endregion
@@ -455,7 +492,7 @@ Game_Actor.prototype.isContentSynced = function() {
 */
 Game_Actor.prototype.getLevelForExp = function() {
 	if (J.LEVEL.EXT.SYNC.Metadata.syncAffectsExp === false) {
-		return this._level;
+		return this.getBattlerBaseLevel();
 	}
 	return this.getLevel();
 };
@@ -573,9 +610,9 @@ if (J.HUD && J.HUD.EXT && J.HUD.EXT.PARTY) {
 		if (this.getParameter() !== Window_PartyFrame.gaugeTypes.Level) return;
 		this.getOrCreateSyncIcon();
 		if (this.getActor().isContentSynced()) {
-			this._j._syncIconSprite.show();
+			this.syncIconSprite().show();
 		} else {
-			this._j._syncIconSprite.hide();
+			this.syncIconSprite().hide();
 		}
 	};
 	/**
@@ -583,12 +620,12 @@ if (J.HUD && J.HUD.EXT && J.HUD.EXT.PARTY) {
 	* @returns {Sprite_Icon}
 	*/
 	Sprite_ActorValue.prototype.getOrCreateSyncIcon = function() {
-		if (this._j._syncIconSprite) return this._j._syncIconSprite;
+		if (this.syncIconSprite()) return this.syncIconSprite();
 		const iconIndex = J.LEVEL.EXT.SYNC.Metadata.syncIndicatorIconIndex;
 		const sprite = new Sprite_Icon(iconIndex);
 		sprite.selfManageOpacity();
 		sprite.hide();
-		this._j._syncIconSprite = sprite;
+		this.setSyncIconSprite(sprite);
 		sprite.x = -ImageManager.iconWidth;
 		this.addChild(sprite);
 		return sprite;
@@ -626,6 +663,20 @@ if (J.HUD && J.HUD.EXT && J.HUD.EXT.PARTY) {
 		return `${syncedLevel} (${realLevel})`;
 	};
 }
+/**
+* Gets the sync icon sprite.
+* @returns {Sprite} The syncIconSprite.
+*/
+Sprite_ActorValue.prototype.syncIconSprite = function() {
+	return this._j._syncIconSprite;
+};
+/**
+* Sets the sync icon sprite.
+* @param {Sprite} newSyncIconSprite The new syncIconSprite.
+*/
+Sprite_ActorValue.prototype.setSyncIconSprite = function(newSyncIconSprite) {
+	this._j._syncIconSprite = newSyncIconSprite;
+};
 
 //#endregion
 //# sourceMappingURL=J-Level-Sync.js.map

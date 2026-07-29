@@ -732,6 +732,20 @@ var TimeConditional = class {
 */
 var Time_Snapshot = class Time_Snapshot {
 	/**
+	* Gets the season of year id.
+	* @returns {number} The seasonOfYearId.
+	*/
+	seasonOfYearId() {
+		return this._seasonOfYearId;
+	}
+	/**
+	* Gets the time of day id.
+	* @returns {number} The timeOfDayId.
+	*/
+	timeOfDayId() {
+		return this._timeOfDayId;
+	}
+	/**
 	* @constructor
 	* @param {number} seconds The seconds of the current time.
 	* @param {number} minutes The minutes of the current time.
@@ -888,28 +902,28 @@ var Time_Snapshot = class Time_Snapshot {
 	* @type {string}
 	*/
 	get seasonOfTheYearName() {
-		return Time_Snapshot.SeasonsName(this._seasonOfYearId);
+		return Time_Snapshot.SeasonsName(this.seasonOfYearId());
 	}
 	/**
 	* Gets the icon index of the current season of the year.
 	* @type {number}
 	*/
 	get seasonOfTheYearIcon() {
-		return Time_Snapshot.SeasonsIconIndex(this._seasonOfYearId);
+		return Time_Snapshot.SeasonsIconIndex(this.seasonOfYearId());
 	}
 	/**
 	* Gets the name of the current time of the day.
 	* @type {string}
 	*/
 	get timeOfDayName() {
-		return Time_Snapshot.TimesOfDayName(this._timeOfDayId);
+		return Time_Snapshot.TimesOfDayName(this.timeOfDayId());
 	}
 	/**
 	* Gets the icon index of the current time of the day.
 	* @type {number}
 	*/
 	get timeOfDayIcon() {
-		return Time_Snapshot.TimesOfDayIcon(this._timeOfDayId);
+		return Time_Snapshot.TimesOfDayIcon(this.timeOfDayId());
 	}
 	/**
 	* Determines if this {@link Time_Snapshot} is effectively the same as the provided snapshot.<br/>
@@ -1335,11 +1349,172 @@ var Game_Time = class Game_Time {
 		this._hasBeenUpdated ??= false;
 	}
 	/**
+	* Gets the has been updated.
+	* @returns {boolean} The hasBeenUpdated.
+	*/
+	hasBeenUpdated() {
+		return this._hasBeenUpdated;
+	}
+	/**
+	* Sets the has been updated.
+	* @param {boolean} newHasBeenUpdated The new hasBeenUpdated.
+	*/
+	setHasBeenUpdated(newHasBeenUpdated) {
+		this._hasBeenUpdated = newHasBeenUpdated;
+	}
+	/**
+	* Gets the visible.
+	* @returns {*} The visible.
+	*/
+	isVisible() {
+		return this._visible;
+	}
+	/**
+	* Sets the visible.
+	* @param {boolean} newVisible The new visible.
+	*/
+	setVisible(newVisible) {
+		this._visible = newVisible;
+	}
+	/**
+	* Gets the tick frames.
+	* @returns {number} The tickFrames.
+	*/
+	tickFrames() {
+		return this._tickFrames;
+	}
+	/**
+	* Sets the tick frames.
+	* @param {number} newTickFrames The new tickFrames.
+	*/
+	setTickFrames(newTickFrames) {
+		this._tickFrames = newTickFrames;
+	}
+	/**
+	* Gets the hours.
+	* @returns {*} The hours.
+	*/
+	hours() {
+		return this._hours;
+	}
+	/**
+	* Sets the hours.
+	* @param {*} newHours The new hours.
+	*/
+	setHours(newHours) {
+		this._hours = newHours;
+	}
+	/**
+	* Gets the months.
+	* @returns {*} The months.
+	*/
+	months() {
+		return this._months;
+	}
+	/**
+	* Sets the months.
+	* @param {*} newMonths The new months.
+	*/
+	setMonths(newMonths) {
+		this._months = newMonths;
+	}
+	/**
+	* Gets the seconds.
+	* @returns {number} The seconds.
+	*/
+	seconds() {
+		return this._seconds;
+	}
+	/**
+	* Sets the seconds.
+	* @param {number} newSeconds The new seconds.
+	*/
+	setSeconds(newSeconds) {
+		this._seconds = newSeconds;
+	}
+	/**
+	* Gets the minutes.
+	* @returns {number} The minutes.
+	*/
+	minutes() {
+		return this._minutes;
+	}
+	/**
+	* Sets the minutes.
+	* @param {number} newMinutes The new minutes.
+	*/
+	setMinutes(newMinutes) {
+		this._minutes = newMinutes;
+	}
+	/**
+	* Gets the days.
+	* @returns {*} The days.
+	*/
+	days() {
+		return this._days;
+	}
+	/**
+	* Sets the days.
+	* @param {*} newDays The new days.
+	*/
+	setDays(newDays) {
+		this._days = newDays;
+	}
+	/**
+	* Gets the years.
+	* @returns {*} The years.
+	*/
+	years() {
+		return this._years;
+	}
+	/**
+	* Sets the years.
+	* @param {*} newYears The new years.
+	*/
+	setYears(newYears) {
+		this._years = newYears;
+	}
+	/**
+	* Gets the minutes per tick.
+	* @returns {*} The minutesPerTick.
+	*/
+	minutesPerTick() {
+		return this._minutesPerTick;
+	}
+	/**
+	* Gets the hours per tick.
+	* @returns {*} The hoursPerTick.
+	*/
+	hoursPerTick() {
+		return this._hoursPerTick;
+	}
+	/**
+	* Gets the days per tick.
+	* @returns {*} The daysPerTick.
+	*/
+	daysPerTick() {
+		return this._daysPerTick;
+	}
+	/**
+	* Gets the months per tick.
+	* @returns {*} The monthsPerTick.
+	*/
+	monthsPerTick() {
+		return this._monthsPerTick;
+	}
+	/**
+	* Gets the years per tick.
+	* @returns {*} The yearsPerTick.
+	*/
+	yearsPerTick() {
+		return this._yearsPerTick;
+	}
+	/**
 	* Gets the current tick speed.
 	* @returns {number}
 	*/
 	getTickSpeed() {
-		return this._tickFrames;
+		return this.tickFrames();
 	}
 	/**
 	* Sets the new tick speed to (60 / multiplier) frames per second.
@@ -1355,14 +1530,14 @@ var Game_Time = class Game_Time {
 			flow = .1;
 		}
 		const newTickSpeed = Math.ceil(60 / flow);
-		this._tickFrames = newTickSpeed;
+		this.setTickFrames(newTickSpeed);
 	}
 	/**
 	* Gets whether or not the time window is visibile on the map.
 	* @returns {boolean}
 	*/
 	isMapWindowVisible() {
-		return this._visible;
+		return this.isVisible();
 	}
 	/**
 	* Gets whether or not time is actively flowing right now.
@@ -1425,53 +1600,53 @@ var Game_Time = class Game_Time {
 	* Hides the time window on the map.
 	*/
 	hideMapWindow() {
-		this._visible = false;
+		this.setVisible(false);
 	}
 	/**
 	* Shows the time window on the map.
 	*/
 	showMapWindow() {
-		this._visible = true;
+		this.setVisible(true);
 	}
 	/**
 	* Toggles the map window visibility.
 	*/
 	toggleMapWindow() {
-		if (this._visible === true) {
-			this._visible = false;
-		} else if (this._visible === false) {
-			this._visible = true;
+		if (this.isVisible() === true) {
+			this.setVisible(false);
+		} else if (this.isVisible() === false) {
+			this.setVisible(true);
 		}
 	}
 	/**
 	* Flags oneself for having been updated so HUD elements can update accordingly.
 	*/
 	flagForHudUpdate() {
-		if (this._hasBeenUpdated === undefined) {
-			this._hasBeenUpdated = true;
+		if (this.hasBeenUpdated() === undefined) {
+			this.setHasBeenUpdated(true);
 			console.log("hasBeenUpdated property added.");
 		}
-		this._hasBeenUpdated = true;
+		this.setHasBeenUpdated(true);
 	}
 	/**
 	* Acknowledges a HUD update.
 	*/
 	acknowledgeHudUpdate() {
-		if (this._hasBeenUpdated === undefined) {
-			this._hasBeenUpdated = false;
+		if (this.hasBeenUpdated() === undefined) {
+			this.setHasBeenUpdated(false);
 			console.log("hasBeenUpdated property added.");
 		}
-		this._hasBeenUpdated = false;
+		this.setHasBeenUpdated(false);
 	}
 	/**
 	* Gets whether or not TIME has been updated and thus the HUD should be updated.
 	* @returns {boolean}
 	*/
 	needsHudUpdate() {
-		if (this._hasBeenUpdated === undefined) {
-			this._hasBeenUpdated = false;
+		if (this.hasBeenUpdated() === undefined) {
+			this.setHasBeenUpdated(false);
 		}
-		return this._hasBeenUpdated;
+		return this.hasBeenUpdated();
 	}
 	/**
 	* Updates the time when the framecount aligns with the designated tick frame count.
@@ -1577,7 +1752,7 @@ var Game_Time = class Game_Time {
 	* @returns {[number, number, number, number]}
 	*/
 	translateHourToTone() {
-		const hours = J.TIME.Metadata.UseRealTime ? new Date().getHours() : this._hours;
+		const hours = J.TIME.Metadata.UseRealTime ? new Date().getHours() : this.hours();
 		let tone = [
 			0,
 			0,
@@ -1688,11 +1863,11 @@ var Game_Time = class Game_Time {
 	* @returns {boolean}
 	*/
 	isSameTone(targetTone) {
-		if (this._currentTone.length < 4) return false;
-		if (this._currentTone[0] !== targetTone[0]) return false;
-		if (this._currentTone[1] !== targetTone[1]) return false;
-		if (this._currentTone[2] !== targetTone[2]) return false;
-		if (this._currentTone[3] !== targetTone[3]) return false;
+		if (this.getCurrentTone().length < 4) return false;
+		if (this.getCurrentTone()[0] !== targetTone[0]) return false;
+		if (this.getCurrentTone()[1] !== targetTone[1]) return false;
+		if (this.getCurrentTone()[2] !== targetTone[2]) return false;
+		if (this.getCurrentTone()[3] !== targetTone[3]) return false;
 		return true;
 	}
 	/**
@@ -1701,9 +1876,9 @@ var Game_Time = class Game_Time {
 	*/
 	processToneChange(skip = false) {
 		if (skip) {
-			$gameScreen.startTint(this._currentTone, 1);
+			$gameScreen.startTint(this.getCurrentTone(), 1);
 		} else {
-			$gameScreen.startTint(this._currentTone, 300);
+			$gameScreen.startTint(this.getCurrentTone(), 300);
 		}
 	}
 	/**
@@ -1765,9 +1940,9 @@ var Game_Time = class Game_Time {
 	* @returns {Time_Snapshot}
 	*/
 	determineArtificialTime() {
-		const timeOfDayId = this.timeOfDay(this._hours);
-		const seasonOfYearId = this.seasonOfYear(this._months);
-		return new Time_Snapshot(this._seconds, this._minutes, this._hours, this._days, this._months, this._years, timeOfDayId, seasonOfYearId);
+		const timeOfDayId = this.timeOfDay(this.hours());
+		const seasonOfYearId = this.seasonOfYear(this.months());
+		return new Time_Snapshot(this.seconds(), this.minutes(), this.hours(), this.days(), this.months(), this.years(), timeOfDayId, seasonOfYearId);
 	}
 	/**
 	* Gets a snapshot of the current time in the real world.
@@ -1852,12 +2027,12 @@ var Game_Time = class Game_Time {
 	*/
 	setTime(seconds, minutes, hours, days, months, years) {
 		if (J.TIME.Metadata.UseRealTime) return;
-		this._seconds = seconds;
-		this._minutes = minutes;
-		this._hours = hours;
-		this._days = days;
-		this._months = months;
-		this._years = years;
+		this.setSeconds(seconds);
+		this.setMinutes(minutes);
+		this.setHours(hours);
+		this.setDays(days);
+		this.setMonths(months);
+		this.setYears(years);
 	}
 	/**
 	* Fast forwards to the next instance of a specific time of day.
@@ -1867,19 +2042,19 @@ var Game_Time = class Game_Time {
 	* @param {number} targetTimeOfDayId The target time of day's id.
 	*/
 	jumpToTimeOfDay(targetTimeOfDayId) {
-		const currentTimeOfDay = this.timeOfDay(this._hours);
+		const currentTimeOfDay = this.timeOfDay(this.hours());
 		let timeUntilTargetTimeOfDay;
 		if (currentTimeOfDay >= targetTimeOfDayId) {
-			const timeToEndOfDay = 24 - this._hours;
+			const timeToEndOfDay = 24 - this.hours();
 			const startingHourTargetTimeOfday = this.startOfTimeOfDay(targetTimeOfDayId);
 			timeUntilTargetTimeOfDay = timeToEndOfDay + startingHourTargetTimeOfday;
 		} else {
 			const startingHourTargetTimeOfday = this.startOfTimeOfDay(targetTimeOfDayId);
-			timeUntilTargetTimeOfDay = startingHourTargetTimeOfday - this._hours;
+			timeUntilTargetTimeOfDay = startingHourTargetTimeOfday - this.hours();
 		}
 		this.addHours(timeUntilTargetTimeOfDay);
-		this._seconds = 0;
-		this._minutes = 0;
+		this.setSeconds(0);
+		this.setMinutes(0);
 	}
 	/**
 	* Executes the progression of time automatically. Adds the default amount of seconds
@@ -1895,15 +2070,15 @@ var Game_Time = class Game_Time {
 	* @param {number} seconds The number of seconds to tick.
 	*/
 	addSeconds(seconds = this._secondsPerTick) {
-		let potentialSeconds = this._seconds + seconds;
+		let potentialSeconds = this.seconds() + seconds;
 		if (potentialSeconds >= 60) {
 			while (potentialSeconds >= 60) {
-				this.addMinutes(this._minutesPerTick);
+				this.addMinutes(this.minutesPerTick());
 				potentialSeconds -= 60;
 			}
-			this._seconds = potentialSeconds;
+			this.setSeconds(potentialSeconds);
 		} else {
-			this._seconds += seconds;
+			this.setSeconds(this.seconds() + seconds);
 		}
 	}
 	/**
@@ -1912,15 +2087,15 @@ var Game_Time = class Game_Time {
 	*/
 	addMinutes(minutes = this._minutesPerTick) {
 		this.updateCurrentTone();
-		let potentialMinutes = this._minutes + minutes;
+		let potentialMinutes = this.minutes() + minutes;
 		if (potentialMinutes >= 60) {
 			while (potentialMinutes >= 60) {
-				this.addHours(this._hoursPerTick);
+				this.addHours(this.hoursPerTick());
 				potentialMinutes -= 60;
 			}
-			this._minutes = potentialMinutes;
+			this.setMinutes(potentialMinutes);
 		} else {
-			this._minutes += minutes;
+			this.setMinutes(this.minutes() + minutes);
 		}
 	}
 	/**
@@ -1928,15 +2103,15 @@ var Game_Time = class Game_Time {
 	* @param {number} hours The number of hours to tick.
 	*/
 	addHours(hours = this._hoursPerTick) {
-		let potentialHours = this._hours + hours;
+		let potentialHours = this.hours() + hours;
 		if (potentialHours >= 24) {
 			while (potentialHours >= 24) {
-				this.addDays(this._daysPerTick);
+				this.addDays(this.daysPerTick());
 				potentialHours -= 24;
 			}
-			this._hours = potentialHours;
+			this.setHours(potentialHours);
 		} else {
-			this._hours += hours;
+			this.setHours(this.hours() + hours);
 		}
 	}
 	/**
@@ -1944,15 +2119,15 @@ var Game_Time = class Game_Time {
 	* @param {number} days The number of days to tick.
 	*/
 	addDays(days = this._daysPerTick) {
-		let potentialDays = this._days + days;
+		let potentialDays = this.days() + days;
 		if (potentialDays > 30) {
 			while (potentialDays > 30) {
-				this.addMonths(this._monthsPerTick);
+				this.addMonths(this.monthsPerTick());
 				potentialDays -= 30;
 			}
-			this._days = potentialDays;
+			this.setDays(potentialDays);
 		} else {
-			this._days += days;
+			this.setDays(this.days() + days);
 		}
 	}
 	/**
@@ -1960,15 +2135,15 @@ var Game_Time = class Game_Time {
 	* @param {number} months The number of months to tick.
 	*/
 	addMonths(months = this._monthsPerTick) {
-		let potentialMonths = this._months + months;
+		let potentialMonths = this.months() + months;
 		if (potentialMonths > 12) {
 			while (potentialMonths > 12) {
-				this.addYears(this._yearsPerTick);
+				this.addYears(this.yearsPerTick());
 				potentialMonths -= 12;
 			}
-			this._months = potentialMonths;
+			this.setMonths(potentialMonths);
 		} else {
-			this._months += months;
+			this.setMonths(this.months() + months);
 		}
 	}
 	/**
@@ -1976,7 +2151,7 @@ var Game_Time = class Game_Time {
 	* @param {number} years The number of years to tick.
 	*/
 	addYears(years = this._yearsPerTick) {
-		this._years += years;
+		this.setYears(this.years() + years);
 	}
 };
 SerializableRegistry.register(Game_Time);
@@ -2236,7 +2411,7 @@ Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandInd
 	const defaultShow = J.TIME.Aliased.Game_Interpreter.get("shouldHideChoiceBranch").call(this, subChoiceCommandIndex);
 	if (defaultShow) return true;
 	const eventMetadata = $gameMap.event(this.eventId());
-	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this._commonEventId).list;
+	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this.commonEventId()).list;
 	const subEventCommand = currentPageCommands.at(subChoiceCommandIndex);
 	if (!Game_Event.filterInvalidEventCommand(subEventCommand)) return false;
 	if (!Game_Event.filterCommentCommandsByChoiceTimeConditional(subEventCommand)) return false;
@@ -2388,10 +2563,24 @@ var Window_Time = class extends Window_Base {
 		this._alternating = false;
 	}
 	/**
+	* Gets the alternating.
+	* @returns {boolean} The alternating.
+	*/
+	isAlternating() {
+		return this._alternating;
+	}
+	/**
+	* Sets the alternating.
+	* @param {boolean} newAlternating The new alternating.
+	*/
+	setAlternating(newAlternating) {
+		this._alternating = newAlternating;
+	}
+	/**
 	* Toggles the alternating colon boolean.
 	*/
 	toggleAlternating() {
-		this._alternating = !this._alternating;
+		this.setAlternating(!this.isAlternating());
 	}
 	/**
 	* Updates the frames and refreshes the window's contents once every half second.
@@ -2432,8 +2621,8 @@ var Window_Time = class extends Window_Base {
 	* Renders the TIME into the window.
 	*/
 	drawContent() {
-		const colon1 = this._alternating ? ":" : " ";
-		const colon2 = this._alternating ? " " : ":";
+		const colon1 = this.isAlternating() ? ":" : " ";
+		const colon2 = this.isAlternating() ? " " : ":";
 		const ampm = this.time.hours > 11 ? "PM" : "AM";
 		const lh = this.lineHeight();
 		const seconds = this.time.seconds.padZero(2);
@@ -2566,7 +2755,7 @@ Scene_Map.prototype.manageTimeVisibility = function() {
 */
 J.TIME.Aliased.Scene_Map.set("onMapLoaded", Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function() {
-	if (this._transfer) {
+	if (this.transfer()) {
 		this.handleTimeBlock();
 		$gameTime.setNeedsToneChange(true);
 	}

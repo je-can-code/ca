@@ -214,6 +214,13 @@ var Window_MoreEquipData = class extends Window_MoreData {
 */
 var Window_EquipActorRibbon = class extends Window_ActorRibbon {
 	/**
+	* Gets the actor.
+	* @returns {*} The actor.
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle for this window.
 	*/
@@ -233,11 +240,11 @@ var Window_EquipActorRibbon = class extends Window_ActorRibbon {
 	* Draws the actor name centered vertically beside the face graphic.
 	*/
 	drawActorName() {
-		if (!this._actor) return;
+		if (!this.actor()) return;
 		const textX = this.faceWidth() + 8;
 		const textWidth = this.innerWidth - textX;
 		const textY = Math.floor((this.innerHeight - this.lineHeight()) / 2);
-		this.drawText(this._actor.name(), textX, textY, textWidth, "left");
+		this.drawText(this.actor().name(), textX, textY, textWidth, "left");
 	}
 };
 
@@ -306,9 +313,9 @@ Scene_Equip.prototype.create = function() {
 	this.createSlotWindow();
 	this.createItemWindow();
 	this.refreshActor();
-	this._slotWindow.activate();
-	this._slotWindow.select(0);
-	this._slotWindow.onIndexChange();
+	this.slotWindow().activate();
+	this.slotWindow().select(0);
+	this.slotWindow().onIndexChange();
 };
 /**
 * Overwrites {@link #buttonAreaHeight}.<br/>
@@ -386,17 +393,17 @@ Scene_Equip.prototype.controlsHintRect = function() {
 */
 Scene_Equip.prototype.createActorRibbonWindow = function() {
 	const rect = this.actorRibbonRect();
-	this._actorRibbonWindow = new Window_EquipActorRibbon(rect);
-	this.addWindow(this._actorRibbonWindow);
+	this.setActorRibbonWindow(new Window_EquipActorRibbon(rect));
+	this.addWindow(this.actorRibbonWindow());
 };
 /**
 * Creates the controls hint window.
 */
 Scene_Equip.prototype.createControlsHintWindow = function() {
 	const rect = this.controlsHintRect();
-	this._controlsHintWindow = new Window_EquipControlsHint(rect);
-	this._controlsHintWindow.refresh();
-	this.addWindow(this._controlsHintWindow);
+	this.setControlsHintWindow(new Window_EquipControlsHint(rect));
+	this.controlsHintWindow().refresh();
+	this.addWindow(this.controlsHintWindow());
 };
 /**
 * Overwrites {@link #statusWindowRect}.<br/>
@@ -435,8 +442,8 @@ Scene_Equip.prototype.slotWindowHeight = (equipSlotCount) => 48 * equipSlotCount
 Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function() {
 	this._j.moreVisible = !this._j.moreVisible;
 	if (this._j.moreVisible) {
-		this._slotWindow.refreshMoreData();
-		this._slotWindow.deactivate();
+		this.slotWindow().refreshMoreData();
+		this.slotWindow().deactivate();
 		this._moreDataWindow.setHandler("cancel", this.backToSlotsList.bind(this));
 		this._moreDataWindow.show();
 		this._moreDataWindow.activate();
@@ -445,7 +452,7 @@ Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function() {
 		this._moreDataWindow.hide();
 		this._moreDataWindow.deactivate();
 		this._moreDataWindow.deselect();
-		this._slotWindow.activate();
+		this.slotWindow().activate();
 	}
 };
 /**
@@ -454,8 +461,8 @@ Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function() {
 Scene_Equip.prototype.switchToMoreDataFromEquipItems = function() {
 	this._j.moreVisible = !this._j.moreVisible;
 	if (this._j.moreVisible) {
-		this._itemWindow.refreshMoreData();
-		this._itemWindow.deactivate();
+		this.itemWindow().refreshMoreData();
+		this.itemWindow().deactivate();
 		this._moreDataWindow.setHandler("cancel", this.backToItemsList.bind(this));
 		this._moreDataWindow.show();
 		this._moreDataWindow.activate();
@@ -464,7 +471,7 @@ Scene_Equip.prototype.switchToMoreDataFromEquipItems = function() {
 		this._moreDataWindow.hide();
 		this._moreDataWindow.deactivate();
 		this._moreDataWindow.deselect();
-		this._itemWindow.activate();
+		this.itemWindow().activate();
 	}
 };
 /**
@@ -473,27 +480,27 @@ Scene_Equip.prototype.switchToMoreDataFromEquipItems = function() {
 J.CMS_E.Aliased.Scene_Equip.set("createSlotWindow", Scene_Equip.prototype.createSlotWindow);
 Scene_Equip.prototype.createSlotWindow = function() {
 	J.CMS_E.Aliased.Scene_Equip.get("createSlotWindow").call(this);
-	this._slotWindow.setHandler("more", this.switchToMoreDataFromEquipSlots.bind(this));
-	this._slotWindow.setHandler("context", this.onContextUnequipSlot.bind(this));
-	this._slotWindow.setHandler("actor-next", this.nextActor.bind(this));
-	this._slotWindow.setHandler("actor-prev", this.previousActor.bind(this));
-	this._slotWindow.setMoreDataWindow(this._moreDataWindow);
+	this.slotWindow().setHandler("more", this.switchToMoreDataFromEquipSlots.bind(this));
+	this.slotWindow().setHandler("context", this.onContextUnequipSlot.bind(this));
+	this.slotWindow().setHandler("actor-next", this.nextActor.bind(this));
+	this.slotWindow().setHandler("actor-prev", this.previousActor.bind(this));
+	this.slotWindow().setMoreDataWindow(this._moreDataWindow);
 };
 /**
 * Handles the contextual unequip action from the slot window.
 * Removes the item in the currently focused equip slot, if any.
 */
 Scene_Equip.prototype.onContextUnequipSlot = function() {
-	if (this._slotWindow.active === false) {
+	if (this.slotWindow().active === false) {
 		return;
 	}
-	const slotId = this._slotWindow.index();
+	const slotId = this.slotWindow().index();
 	this.actor().changeEquip(slotId, null);
-	this._statusWindow.refresh();
-	this._slotWindow.refresh();
-	this._itemWindow.refresh();
+	this.statusWindow().refresh();
+	this.slotWindow().refresh();
+	this.itemWindow().refresh();
 	this.refreshActor();
-	this._slotWindow.activate();
+	this.slotWindow().activate();
 };
 /**
 * Overwrites {@link #createItemWindow}.<br/>
@@ -501,15 +508,15 @@ Scene_Equip.prototype.onContextUnequipSlot = function() {
 */
 Scene_Equip.prototype.createItemWindow = function() {
 	const rect = this.itemWindowRect();
-	this._itemWindow = new Window_EquipItem(rect);
-	this._itemWindow.setHelpWindow(this._helpWindow);
-	this._itemWindow.setStatusWindow(this._statusWindow);
-	this._itemWindow.setHandler("more", this.switchToMoreDataFromEquipItems.bind(this));
-	this._itemWindow.setHandler("ok", this.onItemOk.bind(this));
-	this._itemWindow.setHandler("cancel", this.onItemCancel.bind(this));
-	this._itemWindow.setMoreDataWindow(this._moreDataWindow);
-	this._slotWindow.setItemWindow(this._itemWindow);
-	this.addWindow(this._itemWindow);
+	this.setItemWindow(new Window_EquipItem(rect));
+	this.itemWindow().setHelpWindow(this.helpWindow());
+	this.itemWindow().setStatusWindow(this.statusWindow());
+	this.itemWindow().setHandler("more", this.switchToMoreDataFromEquipItems.bind(this));
+	this.itemWindow().setHandler("ok", this.onItemOk.bind(this));
+	this.itemWindow().setHandler("cancel", this.onItemCancel.bind(this));
+	this.itemWindow().setMoreDataWindow(this._moreDataWindow);
+	this.slotWindow().setItemWindow(this.itemWindow());
+	this.addWindow(this.itemWindow());
 };
 /**
 * Creates the more data window.
@@ -544,7 +551,7 @@ Scene_Equip.prototype.backToItemsList = function() {
 */
 Scene_Equip.prototype.itemWindowRect = function() {
 	const wx = this.statusWidth();
-	const wy = this.slotWindowRect().y + this._slotWindow.height;
+	const wy = this.slotWindowRect().y + this.slotWindow().height;
 	const ww = Graphics.boxWidth - this.statusWidth();
 	const wh = this.mainAreaBottom() - wy;
 	return new Rectangle(wx, wy, ww, wh);
@@ -554,8 +561,8 @@ Scene_Equip.prototype.itemWindowRect = function() {
 * Prevents hiding the equip window.
 */
 Scene_Equip.prototype.onSlotOk = function() {
-	this._itemWindow.activate();
-	this._itemWindow.select(0);
+	this.itemWindow().activate();
+	this.itemWindow().select(0);
 };
 /**
 * Overwrites {@link #onSlotCancel}.<br/>
@@ -569,8 +576,8 @@ Scene_Equip.prototype.onSlotCancel = function() {
 * Prevents hiding the item window.
 */
 Scene_Equip.prototype.hideItemWindow = function() {
-	this._slotWindow.activate();
-	this._itemWindow.deselect();
+	this.slotWindow().activate();
+	this.itemWindow().deselect();
 };
 /**
 * Overwrites {@link #onActorChange}.<br/>
@@ -589,7 +596,35 @@ Scene_Equip.prototype.refreshActor = function() {
 	J.CMS_E.Aliased.Scene_Equip.get("refreshActor").call(this);
 	const actor = this.actor();
 	this._moreDataWindow.setActor(actor);
-	this._actorRibbonWindow.setActor(actor);
+	this.actorRibbonWindow().setActor(actor);
+};
+/**
+* Gets the actor ribbon window.
+* @returns {Window_Base} The actorRibbonWindow.
+*/
+Scene_Equip.prototype.actorRibbonWindow = function() {
+	return this._actorRibbonWindow;
+};
+/**
+* Sets the actor ribbon window.
+* @param {Window_Base} newActorRibbonWindow The new actorRibbonWindow.
+*/
+Scene_Equip.prototype.setActorRibbonWindow = function(newActorRibbonWindow) {
+	this._actorRibbonWindow = newActorRibbonWindow;
+};
+/**
+* Gets the controls hint window.
+* @returns {Window_Base} The controlsHintWindow.
+*/
+Scene_Equip.prototype.controlsHintWindow = function() {
+	return this._controlsHintWindow;
+};
+/**
+* Sets the controls hint window.
+* @param {Window_Base} newControlsHintWindow The new controlsHintWindow.
+*/
+Scene_Equip.prototype.setControlsHintWindow = function(newControlsHintWindow) {
+	this._controlsHintWindow = newControlsHintWindow;
 };
 
 //#endregion
@@ -697,7 +732,7 @@ Window_EquipStatus.prototype.makeFontBigger = function() {
 */
 Window_EquipStatus.prototype.refresh = function() {
 	this.contents.clear();
-	if (this._actor) {
+	if (this.actor()) {
 		this.drawAllParams();
 	}
 };
@@ -725,7 +760,7 @@ Window_EquipStatus.prototype.drawAllParams = function() {
 		const columnXs = [columnLayout.leftX, columnLayout.middleX];
 		ParameterCatalogRenderer.PAGE_GROUP_ROW_GROUPS.forEach((rowGroups) => {
 			const rowHeights = rowGroups.map((groupId, columnIndex) => {
-				return ParameterCatalogRenderer.drawParameterGroup(this, columnXs[columnIndex], cursorY, groupId, columnLayout.columnWidth, this._actor, this._tempActor);
+				return ParameterCatalogRenderer.drawParameterGroup(this, columnXs[columnIndex], cursorY, groupId, columnLayout.columnWidth, this.actor(), this.tempActor());
 			});
 			const tallestSection = Math.max(...rowHeights);
 			cursorY += tallestSection + rowGap;
@@ -735,7 +770,7 @@ Window_EquipStatus.prototype.drawAllParams = function() {
 	const fallbackWidth = this.innerWidth;
 	ParameterCatalogRenderer.PAGE_GROUP_ROW_GROUPS.forEach((rowGroups) => {
 		rowGroups.forEach((groupId) => {
-			const groupHeight = ParameterCatalogRenderer.drawParameterGroup(this, 0, cursorY, groupId, fallbackWidth, this._actor, this._tempActor);
+			const groupHeight = ParameterCatalogRenderer.drawParameterGroup(this, 0, cursorY, groupId, fallbackWidth, this.actor(), this.tempActor());
 			cursorY += groupHeight + rowGap;
 		});
 	});

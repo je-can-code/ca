@@ -459,7 +459,7 @@ CombatResourcePopupLayout.installMotionOffsetAugment();
 */
 J.POPUPS.EXT.ABS.Aliased.Sprite_Damage.set("damageColor", Sprite_Damage.prototype.damageColor);
 Sprite_Damage.prototype.damageColor = function() {
-	return PopupResourceDisplayColor.resolvePopupFillColor(this._j._popups._sourcePopup, this._j._popups._damageColor);
+	return PopupResourceDisplayColor.resolvePopupFillColor(this.j()._popups._sourcePopup, this.j()._popups._damageColor);
 };
 /**
 * Extends {@link #outlineColor}.<br/>
@@ -467,7 +467,7 @@ Sprite_Damage.prototype.damageColor = function() {
 */
 J.POPUPS.EXT.ABS.Aliased.Sprite_Damage.set("outlineColor", Sprite_Damage.prototype.outlineColor);
 Sprite_Damage.prototype.outlineColor = function() {
-	return PopupResourceDisplayColor.resolvePopupOutlineColor(this._j._popups._sourcePopup);
+	return PopupResourceDisplayColor.resolvePopupOutlineColor(this.j()._popups._sourcePopup);
 };
 /**
 * Extends {@link #outlineWidth}.<br/>
@@ -475,7 +475,14 @@ Sprite_Damage.prototype.outlineColor = function() {
 */
 J.POPUPS.EXT.ABS.Aliased.Sprite_Damage.set("outlineWidth", Sprite_Damage.prototype.outlineWidth);
 Sprite_Damage.prototype.outlineWidth = function() {
-	return PopupResourceDisplayColor.resolvePopupOutlineWidth(this._j._popups._sourcePopup, this.isDamage());
+	return PopupResourceDisplayColor.resolvePopupOutlineWidth(this.j()._popups._sourcePopup, this.isDamage());
+};
+/**
+* Gets the plugin data namespace carried by this popup sprite.
+* @returns {object} The plugin namespace root.
+*/
+Sprite_Damage.prototype.j = function() {
+	return this._j;
 };
 
 //#endregion

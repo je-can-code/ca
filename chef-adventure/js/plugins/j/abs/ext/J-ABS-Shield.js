@@ -1168,7 +1168,7 @@ Game_Battler.prototype.onShieldBreak = function(shieldBreakValue = 0) {
 		this.lastShieldBreakValue = 0;
 		return;
 	}
-	const sources = this.shieldBreakSources().filter((source) => !!source);
+	const sources = this.shieldBreakSources();
 	/**
 	* A reducer function to grab all the shield break skills.
 	* @param {number[]} accumulator The accumulator of skill ids.
@@ -1603,10 +1603,10 @@ Sprite_Character.prototype.setupMapSprite = function() {
 * Sets up this character's shield gauge, to show shields as-needed.
 */
 Sprite_Character.prototype.setupShieldGauge = function() {
-	if (this._j._abs._gauges._shieldGauge) {
-		this._j._abs._gauges._shieldGauge.setup(this.getBattler(), "shield");
-		this._j._abs._gauges._shieldGauge.activateGauge();
-		const sprite = this._j._abs._gauges._shieldGauge;
+	if (this.shieldGauge()) {
+		this.shieldGauge().setup(this.getBattler(), "shield");
+		this.shieldGauge().activateGauge();
+		const sprite = this.shieldGauge();
 		const x = -Math.round(sprite.bitmapWidth() / 2);
 		const y = 0;
 		sprite.move(x, y);
@@ -1617,7 +1617,7 @@ Sprite_Character.prototype.setupShieldGauge = function() {
 	const sprite = new Sprite_ShieldMapGauge(baseWidth, baseHeight, 6);
 	sprite.setup(this.getBattler(), "shield");
 	sprite.activateGauge();
-	this._j._abs._gauges._shieldGauge = sprite;
+	this.setShieldGauge(sprite);
 	const x = -Math.round(sprite.bitmapWidth() / 2);
 	const y = 0;
 	sprite.move(x, y);
@@ -1643,7 +1643,7 @@ Sprite_Character.prototype.updateGauges = function() {
 Sprite_Character.prototype.canUpdateShieldGauge = function() {
 	if (!this.canUpdate()) return false;
 	if (!this.isJabsBattler()) return false;
-	if (!this._j._abs._gauges._shieldGauge) return false;
+	if (!this.shieldGauge()) return false;
 	const battler = this.getBattler();
 	if (!battler) return false;
 	if (battler.currentShieldValue() <= 0) return false;
@@ -1654,7 +1654,7 @@ Sprite_Character.prototype.canUpdateShieldGauge = function() {
 */
 Sprite_Character.prototype.updateShieldGauge = function() {
 	this.showShieldGauge();
-	const gauge = this._j._abs._gauges._shieldGauge;
+	const gauge = this.shieldGauge();
 	if (gauge) {
 		gauge._battler = this.getBattler();
 	}
@@ -1663,7 +1663,7 @@ Sprite_Character.prototype.updateShieldGauge = function() {
 * Shows the shield gauge if it exists.
 */
 Sprite_Character.prototype.showShieldGauge = function() {
-	const gauge = this._j._abs._gauges._shieldGauge;
+	const gauge = this.shieldGauge();
 	if (gauge) {
 		gauge.activateGauge();
 		gauge.show();
@@ -1673,10 +1673,24 @@ Sprite_Character.prototype.showShieldGauge = function() {
 * Hides the shield gauge if it exists.
 */
 Sprite_Character.prototype.hideShieldGauge = function() {
-	const gauge = this._j._abs._gauges._shieldGauge;
+	const gauge = this.shieldGauge();
 	if (gauge) {
 		gauge.hide();
 	}
+};
+/**
+* Gets the shield gauge.
+* @returns {*} The shieldGauge.
+*/
+Sprite_Character.prototype.shieldGauge = function() {
+	return this._j._abs._gauges._shieldGauge;
+};
+/**
+* Sets the shield gauge.
+* @param {*} newShieldGauge The new shieldGauge.
+*/
+Sprite_Character.prototype.setShieldGauge = function(newShieldGauge) {
+	this._j._abs._gauges._shieldGauge = newShieldGauge;
 };
 
 //#endregion
@@ -1730,8 +1744,8 @@ if (J.HUD && J.HUD.EXT.PARTY) {
 	*/
 	Window_PartyFrame.prototype.getOrCreateFullSizeShieldGaugeSprite = function(actor) {
 		const key = this.makeShieldGaugeSpriteKey(actor, true);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const hpGauge = this.getOrCreateFullSizeGaugeSprite(actor, Window_PartyFrame.gaugeTypes.HP);
 		const bitmapWidth = hpGauge.bitmapWidth();
@@ -1740,7 +1754,7 @@ if (J.HUD && J.HUD.EXT.PARTY) {
 		const sprite = new Sprite_ShieldMapGauge(bitmapWidth, bitmapHeight, gaugeHeight);
 		sprite.setup(actor, Window_PartyFrame.gaugeTypes.Shield);
 		sprite.deactivateGauge();
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1752,8 +1766,8 @@ if (J.HUD && J.HUD.EXT.PARTY) {
 	*/
 	Window_PartyFrame.prototype.getOrCreateMiniSizeShieldGaugeSprite = function(actor) {
 		const key = this.makeShieldGaugeSpriteKey(actor, false);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const hpGauge = this.getOrCreateMiniSizeGaugeSprite(actor, Window_PartyFrame.gaugeTypes.HP);
 		const bitmapWidth = hpGauge.bitmapWidth();
@@ -1762,7 +1776,7 @@ if (J.HUD && J.HUD.EXT.PARTY) {
 		const sprite = new Sprite_ShieldMapGauge(bitmapWidth, bitmapHeight, gaugeHeight);
 		sprite.setup(actor, Window_PartyFrame.gaugeTypes.Shield);
 		sprite.deactivateGauge();
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1783,11 +1797,11 @@ if (J.HUD && J.HUD.EXT.PARTY) {
 	*/
 	Window_PartyFrame.prototype.getOrCreateShieldValueSprite = function(actor) {
 		const key = this.makeShieldValueSpriteKey(actor);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const sprite = new Sprite_ActorValue(actor, Window_PartyFrame.gaugeTypes.Shield, -6);
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1865,6 +1879,13 @@ if (J.HUD && J.HUD.EXT.PARTY) {
 		shield.show();
 	};
 }
+/**
+* Gets the hud sprites.
+* @returns {*} The hudSprites.
+*/
+Window_PartyFrame.prototype.hudSprites = function() {
+	return this._hudSprites;
+};
 
 //#endregion
 //# sourceMappingURL=J-ABS-Shield.js.map

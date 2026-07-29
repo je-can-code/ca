@@ -459,11 +459,11 @@ Sprite_Character.prototype.setupJabsSprite = function() {
 */
 Sprite_Character.prototype.setupDangerIndicator = function() {
 	const dangerIndicatorIcon = this.getDangerIndicatorIcon();
-	if (this._j._dangerIndicator) {
-		this._j._dangerIndicator.setIconIndex(dangerIndicatorIcon);
+	if (this.dangerIndicator()) {
+		this.dangerIndicator().setIconIndex(dangerIndicatorIcon);
 	} else {
-		this._j._dangerIndicator = this.createDangerIndicatorSprite(dangerIndicatorIcon);
-		this.addChild(this._j._dangerIndicator);
+		this.setDangerIndicator(this.createDangerIndicatorSprite(dangerIndicatorIcon));
+		this.addChild(this.dangerIndicator());
 	}
 };
 /**
@@ -508,7 +508,7 @@ Sprite_Character.prototype.update = function() {
 Sprite_Character.prototype.canUpdateDangerIndicator = function() {
 	if (!this.canUpdate()) return false;
 	if (!this.isJabsBattler()) return false;
-	if (!this._character.getJabsBattler().showDangerIndicator()) {
+	if (!this.character().getJabsBattler().showDangerIndicator()) {
 		return false;
 	}
 	return true;
@@ -523,13 +523,27 @@ Sprite_Character.prototype.updateDangerIndicator = function() {
 * Shows the danger indicator if it exists.
 */
 Sprite_Character.prototype.showDangerIndicator = function() {
-	this._j._dangerIndicator.show();
+	this.dangerIndicator().show();
 };
 /**
 * Hides the danger indicator if it exists.
 */
 Sprite_Character.prototype.hideDangerIndicator = function() {
-	this._j._dangerIndicator.hide();
+	this.dangerIndicator().hide();
+};
+/**
+* Gets the danger indicator.
+* @returns {*} The dangerIndicator.
+*/
+Sprite_Character.prototype.dangerIndicator = function() {
+	return this._j._dangerIndicator;
+};
+/**
+* Sets the danger indicator.
+* @param {*} newDangerIndicator The new dangerIndicator.
+*/
+Sprite_Character.prototype.setDangerIndicator = function(newDangerIndicator) {
+	this._j._dangerIndicator = newDangerIndicator;
 };
 
 //#endregion
@@ -539,7 +553,7 @@ Sprite_Character.prototype.hideDangerIndicator = function() {
 */
 J.ABS.EXT.DANGER.Aliased.Spriteset_Map.set("refreshAllCharacterSprites", Spriteset_Map.prototype.refreshAllCharacterSprites);
 Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
-	this._characterSprites.forEach((sprite) => sprite.setupDangerIndicator());
+	this.characterSprites().forEach((sprite) => sprite.setupDangerIndicator());
 	J.ABS.EXT.DANGER.Aliased.Spriteset_Map.get("refreshAllCharacterSprites").call(this);
 };
 

@@ -2321,7 +2321,7 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	static classifyPanels(parsedBlob) {
 		const parsedPanels = [];
 		const foreacher = (parsedPanel) => {
-			const panelName = parsedPanel.identity?.name ?? parsedPanel.name ?? String.empty;
+			const panelName = parsedPanel.identity ? parsedPanel.identity.name : parsedPanel.name ?? String.empty;
 			if (panelName.startsWith("__")) return;
 			if (panelName.startsWith("--")) return;
 			const { panelParameters, panelRewards } = parsedPanel;
@@ -2634,7 +2634,7 @@ RPG_DropItem.prototype.setSdpKey = function(key) {
 * @returns {boolean} True if this is a panel drop, false otherwise.
 */
 RPG_DropItem.prototype.isSdpDrop = function() {
-	return !!this._sdpKey;
+	return !!this.getSdpKey();
 };
 
 //#endregion
@@ -3360,7 +3360,7 @@ Game_System.prototype.disableForcedSdpDrops = function() {
 * @returns {boolean|*|boolean}
 */
 Game_System.prototype.shouldForceDropSdp = function() {
-	return this._j._sdp._forceDropPanels ?? false;
+	return this._j._sdp._forceDropPanels;
 };
 
 //#endregion
@@ -3451,10 +3451,10 @@ Game_Action.prototype.modSdpPointsOnApply = function(target) {
 J.SDP.Aliased.BattleManager.set("makeRewards", BattleManager.makeRewards);
 BattleManager.makeRewards = function() {
 	J.SDP.Aliased.BattleManager.get("makeRewards").call(this);
-	this._rewards = {
-		...this._rewards,
+	this.setRewards({
+		...this.rewards(),
 		sdp: $gameTroop.sdpTotal()
-	};
+	});
 };
 /**
 * Extends {@link #gainRewards}.<br/>
@@ -3469,7 +3469,7 @@ BattleManager.gainRewards = function() {
 * Performs a gain of the SDP points for all members of the party after battle.
 */
 BattleManager.gainSdpPoints = function() {
-	const { sdp } = this._rewards;
+	const { sdp } = this.rewards();
 	$gameParty.members().forEach((member) => member.modSdpPoints(sdp));
 };
 /**
@@ -3485,7 +3485,7 @@ BattleManager.displayRewards = function() {
 * Displays the SDP victory text in the victory log.
 */
 BattleManager.displaySdp = function() {
-	const { sdp } = this._rewards;
+	const { sdp } = this.rewards();
 	if (sdp <= 0) return;
 	const text = `\\. ${sdp} ${J.SDP.Metadata.victoryText}`;
 	$gameMessage.add(text);
@@ -3628,9 +3628,9 @@ Window_MenuCommand.prototype.makeCommandList = function() {
 	J.SDP.Aliased.Window_MenuCommand.get("makeCommandList").call(this);
 	if (!this.canAddSdpCommand()) return;
 	const command = new WindowCommandBuilder(J.SDP.Metadata.commandName).setSymbol("sdp-menu").setHelpText("Spend earned points to grow this character's parameters.").setMenuSection(MenuSection.Actor).setEnabled($gameParty.hasAnyUnlockedSdps()).setIconIndex(J.SDP.Metadata.commandIconIndex).setColorIndex(1).build();
-	const lastCommand = this._list.at(-1);
+	const lastCommand = this.commandList().at(-1);
 	if (lastCommand.symbol === "gameEnd") {
-		this._list.splice(this._list.length - 2, 0, command);
+		this.commandList().splice(this.commandList().length - 2, 0, command);
 	} else {
 		this.addBuiltCommand(command);
 	}
@@ -3904,6 +3904,7 @@ var Window_SdpList = class extends Window_Command {
 	* @param {string} familyFilterKey The family filter key driving this step.
 	*/
 	setFamilyFilterKey(familyFilterKey) {
+		if (this.familyFilterKey === familyFilterKey) return;
 		this.familyFilterKey = familyFilterKey;
 		this.refresh();
 	}
@@ -4815,6 +4816,13 @@ var Window_SdpPoints = class extends Window_Base {
 		this._actor = null;
 	}
 	/**
+	* Gets the actor.
+	* @returns {*} The actor.
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
 	* Refreshes this window and all its content.
 	*/
 	refresh() {
@@ -4833,21 +4841,21 @@ var Window_SdpPoints = class extends Window_Base {
 	* Draws the menu actor name beside the face graphic.
 	*/
 	drawActorName() {
-		if (!this._actor) return;
+		if (!this.actor()) return;
 		const nameX = 140;
 		const y = this.ribbonTextY();
 		const nameMaxWidth = this.sdpWalletAnchorX() - nameX - 8;
-		this.drawText(this._actor.name(), nameX, y, nameMaxWidth, "left");
+		this.drawText(this.actor().name(), nameX, y, nameMaxWidth, "left");
 	}
 	/**
 	* Draws the actor's SDP balance on the right edge of the ribbon.
 	*/
 	drawSdpWallet() {
-		if (!this._actor) return;
+		if (!this.actor()) return;
 		const y = this.ribbonTextY();
 		const pad = 12;
 		const gap = 8;
-		const wallet = this._actor.getSdpPoints();
+		const wallet = this.actor().getSdpPoints();
 		const amountW = this.textWidth("00000000");
 		const amountX = this.innerWidth - amountW - pad;
 		this.drawStyledZeroPaddedNumber(amountX, y, wallet, amountW, 8, 8, 0);
@@ -4877,8 +4885,8 @@ var Window_SdpPoints = class extends Window_Base {
 	* A wrapper around the drawing of the actor's face- in case we need logic.
 	*/
 	drawSdpFace() {
-		if (!this._actor) return;
-		this.drawFace(this._actor.faceName(), this._actor.faceIndex(), 0, 0, 128, 40);
+		if (!this.actor()) return;
+		this.drawFace(this.actor().faceName(), this.actor().faceIndex(), 0, 0, 128, 40);
 	}
 	/**
 	* Sets the actor focus for the SDP points window. Implicit refresh.
@@ -5086,6 +5094,13 @@ var Scene_SDP = class extends Scene_MenuBase {
 		this._j._sdp._familyFilterIndex = 0;
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Initialize all resources required for this scene.
 	*/
 	create() {
@@ -5171,14 +5186,14 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpFamilyStrip}
 	*/
 	getSdpFamilyStripWindow() {
-		return this._j._sdp._windows._sdpFamilyStrip;
+		return this.j()._sdp._windows._sdpFamilyStrip;
 	}
 	/**
 	* Sets the tracked family strip window.
 	* @param {Window_SdpFamilyStrip} familyStripWindow The family strip window driving this step.
 	*/
 	setSdpFamilyStripWindow(familyStripWindow) {
-		this._j._sdp._windows._sdpFamilyStrip = familyStripWindow;
+		this.j()._sdp._windows._sdpFamilyStrip = familyStripWindow;
 	}
 	/**
 	* Rebuilds the L2/R2 family cycle for the current menu actor.
@@ -5191,19 +5206,19 @@ var Scene_SDP = class extends Scene_MenuBase {
 		if (nextIndex < 0) {
 			nextIndex = 0;
 		}
-		this._j._sdp._familyFilterCycle = cycle;
-		this._j._sdp._familyFilterIndex = nextIndex;
+		this.j()._sdp._familyFilterCycle = cycle;
+		this.j()._sdp._familyFilterIndex = nextIndex;
 	}
 	/**
 	* Gets the active family-filter key from scene state.
 	* @returns {string}
 	*/
 	getActiveFamilyFilterKey() {
-		const cycle = this._j._sdp._familyFilterCycle;
+		const cycle = this.j()._sdp._familyFilterCycle;
 		if (cycle.length === 0) {
 			return SdpFamilyFilter.ALL;
 		}
-		return cycle[this._j._sdp._familyFilterIndex | 0] ?? SdpFamilyFilter.ALL;
+		return cycle[this.j()._sdp._familyFilterIndex | 0] ?? SdpFamilyFilter.ALL;
 	}
 	/**
 	* Applies the active family filter to the strip and panel list.
@@ -5239,16 +5254,16 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @param {boolean} isForward The is forward driving this step.
 	*/
 	cycleFamilyFilters(isForward = true) {
-		const cycle = this._j._sdp._familyFilterCycle;
+		const cycle = this.j()._sdp._familyFilterCycle;
 		if (cycle.length <= 1) {
 			SoundManager.playBuzzer();
 			this.getSdpListWindow().activate();
 			return;
 		}
-		const currentIndex = this._j._sdp._familyFilterIndex | 0;
+		const currentIndex = this.j()._sdp._familyFilterIndex | 0;
 		const delta = isForward ? 1 : -1;
 		const nextIndex = (currentIndex + delta + cycle.length) % cycle.length;
-		this._j._sdp._familyFilterIndex = nextIndex;
+		this.j()._sdp._familyFilterIndex = nextIndex;
 		this.applyActiveFamilyFilter();
 		this.onPanelHoveredChange();
 		this.getSdpListWindow().activate();
@@ -5301,14 +5316,14 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpList}
 	*/
 	getSdpListWindow() {
-		return this._j._sdp._windows._sdpList;
+		return this.j()._sdp._windows._sdpList;
 	}
 	/**
 	* Set the currently tracked parameter list window to the given window.
 	* @param {Window_SdpList} listWindow The parameter list window to track.
 	*/
 	setSdpListWindow(listWindow) {
-		this._j._sdp._windows._sdpList = listWindow;
+		this.j()._sdp._windows._sdpList = listWindow;
 	}
 	/**
 	* Creates the window for all parameters associated with the hovered SDP.
@@ -5350,14 +5365,14 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpParameterList}
 	*/
 	getSdpParameterListWindow() {
-		return this._j._sdp._windows._sdpParameterList;
+		return this.j()._sdp._windows._sdpParameterList;
 	}
 	/**
 	* Set the currently tracked parameter list window to the given window.
 	* @param {Window_SdpParameterList} listWindow The parameter list window to track.
 	*/
 	setSdpParameterListWindow(listWindow) {
-		this._j._sdp._windows._sdpParameterList = listWindow;
+		this.j()._sdp._windows._sdpParameterList = listWindow;
 	}
 	/**
 	* Creates the window for all rewards associated with the hovered SDP.
@@ -5383,14 +5398,14 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpRewardList}
 	*/
 	getSdpRewardListWindow() {
-		return this._j._sdp._windows._sdpRewardList;
+		return this.j()._sdp._windows._sdpRewardList;
 	}
 	/**
 	* Set the currently tracked reward list window to the given window.
 	* @param {Window_SdpRewardList} listWindow The reward list window to track.
 	*/
 	setSdpRewardListWindow(listWindow) {
-		this._j._sdp._windows._sdpRewardList = listWindow;
+		this.j()._sdp._windows._sdpRewardList = listWindow;
 	}
 	/**
 	* Creates the mastery summary window above rank rewards.
@@ -5414,14 +5429,14 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpMastery}
 	*/
 	getSdpMasteryWindow() {
-		return this._j._sdp._windows._sdpMastery;
+		return this.j()._sdp._windows._sdpMastery;
 	}
 	/**
 	* Sets the tracked mastery window.
 	* @param {Window_SdpMastery} masteryWindow The mastery window to track.
 	*/
 	setSdpMasteryWindow(masteryWindow) {
-		this._j._sdp._windows._sdpMastery = masteryWindow;
+		this.j()._sdp._windows._sdpMastery = masteryWindow;
 	}
 	/**
 	* Creates the window for planned ("cart") panel rankups.
@@ -5447,14 +5462,14 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpCart}
 	*/
 	getSdpCartWindow() {
-		return this._j._sdp._windows._sdpCart;
+		return this.j()._sdp._windows._sdpCart;
 	}
 	/**
 	* Sets the tracked cart window.
 	* @param {Window_SdpCart} cartWindow The cart window to track.
 	*/
 	setSdpCartWindow(cartWindow) {
-		this._j._sdp._windows._sdpCart = cartWindow;
+		this.j()._sdp._windows._sdpCart = cartWindow;
 	}
 	/**
 	* Shared geometry for the right column (mastery, rewards, cart).
@@ -5566,14 +5581,14 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpHeader}
 	*/
 	getSdpHeaderWindow() {
-		return this._j._sdp._windows._sdpHeader;
+		return this.j()._sdp._windows._sdpHeader;
 	}
 	/**
 	* Sets the tracked header window.
 	* @param {Window_SdpHeader} headerWindow The header window to track.
 	*/
 	setSdpHeaderWindow(headerWindow) {
-		this._j._sdp._windows._sdpHeader = headerWindow;
+		this.j()._sdp._windows._sdpHeader = headerWindow;
 	}
 	/**
 	* Pixel height reserved for the controller legend strip above {@link Window_SdpHelp}.
@@ -5650,14 +5665,14 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpHelp}
 	*/
 	getSdpHelpWindow() {
-		return this._j._sdp._windows._sdpHelp;
+		return this.j()._sdp._windows._sdpHelp;
 	}
 	/**
 	* Set the currently tracked help window to the given window.
 	* @param {Window_SdpHelp} helpWindow The help window to track.
 	*/
 	setSdpHelpWindow(helpWindow) {
-		this._j._sdp._windows._sdpHelp = helpWindow;
+		this.j()._sdp._windows._sdpHelp = helpWindow;
 	}
 	/**
 	* Creates the points window for displaying how many points the current actor has.
@@ -5693,14 +5708,14 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpPoints}
 	*/
 	getSdpPointsWindow() {
-		return this._j._sdp._windows._sdpPoints;
+		return this.j()._sdp._windows._sdpPoints;
 	}
 	/**
 	* Set the currently tracked sdp points window to the given window.
 	* @param {Window_SdpPoints} pointsWindow The window to track.
 	*/
 	setSdpPointsWindow(pointsWindow) {
-		this._j._sdp._windows._sdpPoints = pointsWindow;
+		this.j()._sdp._windows._sdpPoints = pointsWindow;
 	}
 	/**
 	* Creates the confirmation window for confirming the rankup of an SDP.
@@ -5746,20 +5761,20 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @returns {Window_SdpConfirmation}
 	*/
 	getSdpConfirmationWindow() {
-		return this._j._sdp._windows._sdpConfirmation;
+		return this.j()._sdp._windows._sdpConfirmation;
 	}
 	/**
 	* Set the currently tracked sdp confirmation window to the given window.
 	* @param {Window_SdpConfirmation} confirmationWindow The window to track.
 	*/
 	setSdpConfirmationWindow(confirmationWindow) {
-		this._j._sdp._windows._sdpConfirmation = confirmationWindow;
+		this.j()._sdp._windows._sdpConfirmation = confirmationWindow;
 	}
 	/**
 	* When selecting a panel, bring up the confirmation window.
 	*/
 	onSelectPanel() {
-		if (this._j._sdp._cart.size > 0) {
+		if (this.j()._sdp._cart.size > 0) {
 			this.openCartCheckoutConfirmation();
 			return;
 		}
@@ -5820,7 +5835,7 @@ var Scene_SDP = class extends Scene_MenuBase {
 		const { key, maxRank } = panel;
 		const { currentRank } = actor.getSdpByKey(key);
 		const maxQueue = Math.max(0, maxRank - currentRank);
-		const cart = this._j._sdp._cart;
+		const cart = this.j()._sdp._cart;
 		const existing = cart.get(key) ?? 0;
 		const next = Math.max(0, Math.min(existing + delta, maxQueue));
 		if (next === 0) {
@@ -5846,7 +5861,7 @@ var Scene_SDP = class extends Scene_MenuBase {
 	*/
 	checkoutCart() {
 		const actor = $gameParty.menuActor();
-		const cart = this._j._sdp._cart;
+		const cart = this.j()._sdp._cart;
 		if (cart.size === 0) {
 			return false;
 		}
@@ -5882,7 +5897,7 @@ var Scene_SDP = class extends Scene_MenuBase {
 				actor.modAccumulatedSpentSdpPoints(cost);
 			}
 		});
-		this._j._sdp._cart.clear();
+		this.j()._sdp._cart.clear();
 		this.onPanelHoveredChange();
 		this.getSdpListWindow().activate();
 		return true;
@@ -5901,7 +5916,7 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* }}
 	*/
 	buildCartSummary(actor) {
-		const cart = this._j._sdp._cart;
+		const cart = this.j()._sdp._cart;
 		const wallet = actor.getSdpPoints();
 		let totalCost = 0;
 		let levelCount = 0;
@@ -5972,7 +5987,7 @@ var Scene_SDP = class extends Scene_MenuBase {
 		}
 		const currentActor = $gameParty.menuActor();
 		this.getSdpListWindow().setActor(currentActor);
-		this.getSdpListWindow().setCart(this._j._sdp._cart);
+		this.getSdpListWindow().setCart(this.j()._sdp._cart);
 		this.getSdpPointsWindow().setActor(currentActor);
 		const parameterListWindow = this.getSdpParameterListWindow();
 		parameterListWindow.setActor(currentActor);
@@ -5983,7 +5998,7 @@ var Scene_SDP = class extends Scene_MenuBase {
 		rewardListWindow.refresh();
 		this.getSdpMasteryWindow().setPanel(currentPanel);
 		this.getSdpMasteryWindow().refresh();
-		this.getSdpCartWindow().setCart(currentActor, this._j._sdp._cart);
+		this.getSdpCartWindow().setCart(currentActor, this.j()._sdp._cart);
 		this.getSdpCartWindow().refresh();
 		this.getSdpHeaderWindow().setPanel(currentPanel);
 		this.getSdpHeaderWindow().refresh();
@@ -5994,7 +6009,7 @@ var Scene_SDP = class extends Scene_MenuBase {
 	* @param {boolean} isForward Whether or not to cycle to the next member or previous.
 	*/
 	cycleMembers(isForward = true) {
-		if (this._j._sdp._cart.size > 0) {
+		if (this.j()._sdp._cart.size > 0) {
 			SoundManager.playBuzzer();
 			this.getSdpListWindow().activate();
 			return;
@@ -6093,7 +6108,7 @@ Scene_Map.prototype.commandSdp = function() {
 J.SDP.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function() {
 	J.SDP.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this._commandWindow.setHandler("sdp-menu", this.commandSdp.bind(this));
+	this.commandWindow().setHandler("sdp-menu", this.commandSdp.bind(this));
 };
 /**
 * Brings up the SDP menu.

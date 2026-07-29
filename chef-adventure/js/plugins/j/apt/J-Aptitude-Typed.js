@@ -443,14 +443,16 @@ var JAptitudeTyped_PluginMetadata = class extends PluginMetadata {
 		this.ImplicitEnemyElementPercent = JsonMapper.parseObject(this.parsedPluginParameters["implicitEnemyElementPercent"]);
 		/**
 		* The strict resistance threshold (elements with rate < this are alignments).
+		* Authored in percent points, consumed as the `/100` factor element rates are expressed in.
 		* @type {number}
 		*/
-		this.ResistThreshold = JsonMapper.parseObject(this.parsedPluginParameters["resistThreshold"]);
+		this.ResistThreshold = JsonMapper.parseObject(this.parsedPluginParameters["resistThreshold"]) / 100;
 		/**
 		* The strict slayer/attribute threshold (elements with rate > this qualify).
+		* Authored in percent points, consumed as the `/100` factor element rates are expressed in.
 		* @type {number}
 		*/
-		this.SlayerWeaknessThreshold = JsonMapper.parseObject(this.parsedPluginParameters["slayerWeaknessThreshold"]);
+		this.SlayerWeaknessThreshold = JsonMapper.parseObject(this.parsedPluginParameters["slayerWeaknessThreshold"]) / 100;
 		/**
 		* Names or ids to exclude from resistance-as-alignment.
 		* @type {string[]}
@@ -686,7 +688,7 @@ Game_Temp.prototype.initMembers = function() {
 * @returns {number[]|null} The cached list or null.
 */
 Game_Temp.prototype.getAptTypedInferredEnemyTypes = function(enemyId) {
-	return this._j._apt._typed._aptTypedInferredEnemyTypes[enemyId] || null;
+	return this.aptTypedInferredEnemyTypes()[enemyId] || null;
 };
 /**
 * Sets cached inferred element ids for an enemy.
@@ -695,6 +697,13 @@ Game_Temp.prototype.getAptTypedInferredEnemyTypes = function(enemyId) {
 */
 Game_Temp.prototype.setAptTypedInferredEnemyTypes = function(enemyId, ids) {
 	this._j._apt._typed._aptTypedInferredEnemyTypes[enemyId] = Array.isArray(ids) ? ids.slice() : [];
+};
+/**
+* Gets the apt typed inferred enemy types.
+* @returns {*} The aptTypedInferredEnemyTypes.
+*/
+Game_Temp.prototype.aptTypedInferredEnemyTypes = function() {
+	return this._j._apt._typed._aptTypedInferredEnemyTypes;
 };
 
 //#endregion

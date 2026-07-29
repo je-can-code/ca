@@ -240,8 +240,8 @@ var BasicChoiceConditional = class BasicChoiceConditional {
 	*/
 	isMet() {
 		switch (this.type) {
-			case BasicChoiceConditional.Types.Leader: return $gameParty.leader() && $gameParty.leader()?.actorId() === this.id;
-			case BasicChoiceConditional.Types.NotLeader: return $gameParty.leader() && $gameParty.leader()?.actorId() !== this.id;
+			case BasicChoiceConditional.Types.Leader: return $gameParty.leader() && $gameParty.leader().actorId() === this.id;
+			case BasicChoiceConditional.Types.NotLeader: return $gameParty.leader() && $gameParty.leader().actorId() !== this.id;
 			case BasicChoiceConditional.Types.SwitchOn: return $gameSwitches.value(this.id) === true;
 			case BasicChoiceConditional.Types.SwitchOff: return $gameSwitches.value(this.id) === false;
 		}
@@ -262,24 +262,24 @@ Game_Message.prototype.clear = function() {
 	* An object tracking key:value (index:boolean) pairs for whether or not an index of a choice is hidden.
 	* @type {Map<number, boolean>}
 	*/
-	this._hiddenChoiceConditions = new Map();
+	this.setHiddenChoiceConditions(new Map());
 	/**
 	* A container for backing up the choice collection.
 	* @type {string[]}
 	*/
-	this._oldChoices = [];
+	this.setOldChoices([]);
 };
 /**
 * Clones the original choice data into a backup for later use.
 */
 Game_Message.prototype.backupChoices = function() {
-	this._oldChoices = this._choices.clone();
+	this.setOldChoices(this.choices().clone());
 };
 /**
 * Restores the cloned original choice data from backup.
 */
 Game_Message.prototype.restoreChoices = function() {
-	this._choices = this._oldChoices.clone();
+	this._choices = this.oldChoices().clone();
 };
 /**
 * Determines whether or not this choice is actually hidden.
@@ -287,8 +287,8 @@ Game_Message.prototype.restoreChoices = function() {
 * @returns {boolean}
 */
 Game_Message.prototype.isChoiceHidden = function(choiceIndex) {
-	if (this._hiddenChoiceConditions.has(choiceIndex)) {
-		return this._hiddenChoiceConditions.get(choiceIndex);
+	if (this.hiddenChoiceConditions().has(choiceIndex)) {
+		return this.hiddenChoiceConditions().get(choiceIndex);
 	}
 	return false;
 };
@@ -298,7 +298,35 @@ Game_Message.prototype.isChoiceHidden = function(choiceIndex) {
 * @param {boolean} isHidden Whether or not this choice is hidden.
 */
 Game_Message.prototype.hideChoice = function(choiceIndex, isHidden) {
-	this._hiddenChoiceConditions.set(choiceIndex, isHidden);
+	this.hiddenChoiceConditions().set(choiceIndex, isHidden);
+};
+/**
+* Gets the hidden choice conditions.
+* @returns {*} The hiddenChoiceConditions.
+*/
+Game_Message.prototype.hiddenChoiceConditions = function() {
+	return this._hiddenChoiceConditions;
+};
+/**
+* Sets the hidden choice conditions.
+* @param {*} newHiddenChoiceConditions The new hiddenChoiceConditions.
+*/
+Game_Message.prototype.setHiddenChoiceConditions = function(newHiddenChoiceConditions) {
+	this._hiddenChoiceConditions = newHiddenChoiceConditions;
+};
+/**
+* Gets the old choices.
+* @returns {*} The oldChoices.
+*/
+Game_Message.prototype.oldChoices = function() {
+	return this._oldChoices;
+};
+/**
+* Sets the old choices.
+* @param {*} newOldChoices The new oldChoices.
+*/
+Game_Message.prototype.setOldChoices = function(newOldChoices) {
+	this._oldChoices = newOldChoices;
 };
 
 //#endregion
@@ -327,7 +355,7 @@ Game_Interpreter.prototype.evaluateChoicesForVisibility = function(params) {
 Game_Interpreter.prototype.hideSpecificChoiceBranches = function(params) {
 	const currentCommand = this.currentCommand();
 	const eventMetadata = $gameMap.event(this.eventId());
-	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this._commonEventId).list;
+	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this.commonEventId()).list;
 	const startShowChoiceIndex = currentPageCommands.findIndex((item) => item === currentCommand);
 	const endShowChoiceIndex = currentPageCommands.findIndex((item, index) => index > startShowChoiceIndex && item.indent === currentCommand.indent && item.code === 404);
 	const showChoiceIndices = currentPageCommands.map((command, index) => {
@@ -360,7 +388,7 @@ Game_Interpreter.prototype.hideSpecificChoiceBranches = function(params) {
 */
 Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandIndex) {
 	const eventMetadata = $gameMap.event(this.eventId());
-	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this._commonEventId).list;
+	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this.commonEventId()).list;
 	const subEventCommand = currentPageCommands.at(subChoiceCommandIndex);
 	if (!Game_Event.filterInvalidEventCommand(subEventCommand)) return false;
 	if (!Game_Event.filterCommentCommandsForBasicConditionals(subEventCommand)) return false;
@@ -377,6 +405,13 @@ Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandInd
 */
 Game_Interpreter.prototype.setChoiceHidden = function(choiceIndex, shouldHide = true) {
 	$gameMessage.hideChoice(choiceIndex, shouldHide);
+};
+/**
+* Gets the common event id.
+* @returns {number} The commonEventId.
+*/
+Game_Interpreter.prototype.commonEventId = function() {
+	return this._commonEventId;
 };
 
 //#endregion
@@ -644,21 +679,15 @@ Window_Base.prototype.translateParamTextCode = function(text) {
 	});
 };
 /**
-* Translates the text code into the name and icon of the corresponding quest.
-* @param {string} text The text that has a text code in it.
-* @returns {string} The new text to parse.
+* Translates the quest text code into the quest's name and icon.
+*
+* Core does not know what a quest is- this is a no-op hook that J-Omnipedia's quest extension
+* overrides to supply the real behavior. Core never probes for extensions.
+* @param {string} text The text that may contain a quest text code.
+* @returns {string} The text, unchanged.
 */
 Window_Base.prototype.translateQuestTextCode = function(text) {
-	if (!J.OMNI?.EXT?.QUEST) return text;
-	return text.replace(/\\quest\[([\w.-]+)]/gi, (_, p1) => {
-		const questKey = p1 ?? String.empty;
-		if (!questKey) return text;
-		const quest = QuestManager.quest(questKey);
-		if (!quest) return text;
-		const questName = quest.name();
-		const questIconIndex = QuestManager.category(quest.categoryKey).iconIndex;
-		return `\\I[${questIconIndex}]\\C[1]${questName}\\C[0]`;
-	});
+	return text;
 };
 
 //#endregion
@@ -673,13 +702,13 @@ Window_ChoiceList.prototype.makeCommandList = function() {
 	this.clearChoiceMap();
 	J.MESSAGE.Aliased.Window_ChoiceList.get("makeCommandList").call(this);
 	let needsUpdate = false;
-	for (let i = this._list.length; i > -1; i--) {
+	for (let i = this.commandList().length; i > -1; i--) {
 		if ($gameMessage.isChoiceHidden(i)) {
-			this._list.splice(i, 1);
+			this.commandList().splice(i, 1);
 			$gameMessage._choices.splice(i, 1);
 			needsUpdate = true;
 		} else {
-			this._choiceMap.unshift(i);
+			this.choiceMap().unshift(i);
 		}
 	}
 	if (needsUpdate === true) {
@@ -687,16 +716,30 @@ Window_ChoiceList.prototype.makeCommandList = function() {
 	}
 };
 Window_ChoiceList.prototype.clearChoiceMap = function() {
-	this._choiceMap = [];
+	this.setChoiceMap([]);
 };
 /**
 * Overwrites {@link callOkHandler}.<br/>
 * Uses the index of our custom list instead of the original list.
 */
 Window_ChoiceList.prototype.callOkHandler = function() {
-	$gameMessage.onChoice(this._choiceMap[this.index()]);
-	this._messageWindow.terminateMessage();
+	$gameMessage.onChoice(this.choiceMap()[this.index()]);
+	this.messageWindow().terminateMessage();
 	this.close();
+};
+/**
+* Gets the choice map.
+* @returns {*} The choiceMap.
+*/
+Window_ChoiceList.prototype.choiceMap = function() {
+	return this._choiceMap;
+};
+/**
+* Sets the choice map.
+* @param {*} newChoiceMap The new choiceMap.
+*/
+Window_ChoiceList.prototype.setChoiceMap = function(newChoiceMap) {
+	this._choiceMap = newChoiceMap;
 };
 
 //#endregion

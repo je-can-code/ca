@@ -273,6 +273,20 @@ var PixelDebugSampler = class PixelDebugSampler {
 */
 var PIXEL_CollisionManager = class {
 	/**
+	* Gets the table.
+	* @returns {*} The table.
+	*/
+	static table() {
+		return this._table;
+	}
+	/**
+	* Sets the table.
+	* @param {*} newTable The new table.
+	*/
+	static setTable(newTable) {
+		this._table = newTable;
+	}
+	/**
 	* Initializes configuration for collision table density and storage.
 	* Reads the step count from J.PIXEL.Metadata if available, otherwise defaults to 4.
 	*/
@@ -295,7 +309,7 @@ var PIXEL_CollisionManager = class {
 		}
 		const subW = $dataMap.width * this.collisionStepCount;
 		const subH = $dataMap.height * this.collisionStepCount;
-		this._table = new Array(subW * subH);
+		this.setTable(new Array(subW * subH));
 		this._loadDefaultCollisionTable();
 	}
 	/**
@@ -346,7 +360,7 @@ var PIXEL_CollisionManager = class {
 	*/
 	static _set(px, py, code) {
 		const idx = this._index(px, py);
-		this._table[idx] = code;
+		this.table()[idx] = code;
 	}
 	/**
 	* Fills an entire integer tile with a single collision code.
@@ -503,7 +517,7 @@ var PIXEL_CollisionManager = class {
 		if (tx < 0 || ty < 0 || tx >= $gameMap.width() || ty >= $gameMap.height()) {
 			return false;
 		}
-		const code = this._table[this._index(sx, sy)] || this.Codes.Open;
+		const code = this.table()[this._index(sx, sy)] || this.Codes.Open;
 		if (code === this.Codes.Open) {
 			return true;
 		}
@@ -632,12 +646,12 @@ Game_Character.prototype.updateRoutineMove = function() {
 * to the next command in the route, so scripted movement covers the full tile.
 */
 Game_Character.prototype.handlePixelRoutineMove = function() {
-	if (this._waitCount > 0) {
-		this._waitCount--;
+	if (this.waitCount() > 0) {
+		this.setWaitCount(this.waitCount() - 1);
 		return;
 	}
 	this.setMovementSuccess(true);
-	const command = this._moveRoute.list[this._moveRouteIndex];
+	const command = this.moveRoute().list[this.moveRouteIndex()];
 	if (command === undefined) return;
 	if (this.canStartPixelRepeatMove(command)) {
 		this.beginRepeatMove();
@@ -769,15 +783,10 @@ Game_CharacterBase.prototype.initPixelMovementMembers = function() {
 };
 /**
 * Returns the pixel movement state namespace for this character.
-* If the namespace is absent — for example when loading a save created before
-* this plugin was installed — it is initialized on demand so that no individual
-* getter or setter needs its own defensive guard.
+* `initMembers` is aliased to seed this namespace, so it is always present.
 * @returns {object} The `this._j._pixel` state object.
 */
 Game_CharacterBase.prototype._pixelState = function() {
-	if (!this._j || !this._j._pixel) {
-		this.initPixelMovementMembers();
-	}
 	return this._j._pixel;
 };
 /**
@@ -981,9 +990,9 @@ Game_CharacterBase.prototype.mostRecentPositionalRecord = function() {
 J.PIXEL.Aliased.Game_CharacterBase.set("update", Game_CharacterBase.prototype.update);
 Game_CharacterBase.prototype.update = function() {
 	J.PIXEL.Aliased.Game_CharacterBase.get("update").call(this);
-	if ((this._realX !== this._x || this._realY !== this._y) && !this.isJumping()) {
-		this._realX = this._x;
-		this._realY = this._y;
+	if ((this.realX() !== this.x || this.realY() !== this.y) && !this.isJumping()) {
+		this.setRealX(this.x);
+		this.setRealY(this.y);
 	}
 	if (this.isPixelOnCooldown()) {
 		this.decrementPixelMoveCooldown();
@@ -1104,11 +1113,11 @@ Game_CharacterBase.prototype.recordPixelPosition = function() {
 * @param {number} y The y coordinate.
 */
 Game_CharacterBase.prototype.relocate = function(x, y) {
-	this._x = x;
-	this._y = y;
-	this._realX = x;
-	this._realY = y;
-	this._stopCount = 0;
+	this.setX(x);
+	this.setY(y);
+	this.setRealX(x);
+	this.setRealY(y);
+	this.setStopCount(0);
 };
 /**
 * Enables the "pixel moving" state and updates pixel position.
@@ -1122,8 +1131,8 @@ Game_CharacterBase.prototype.startPixelMoving = function() {
 */
 Game_CharacterBase.prototype.stopPixelMoving = function() {
 	this.setMovePressed(false);
-	this._realX = this._x;
-	this._realY = this._y;
+	this.setRealX(this.x);
+	this.setRealY(this.y);
 	this.recordPixelPosition();
 };
 /**
@@ -1142,8 +1151,8 @@ Game_CharacterBase.prototype.diagonalDistancePerFrame = function() {
 * @param {number} distance The number of pixels to move.
 */
 Game_CharacterBase.prototype.movePixelDistance = function(direction, distance) {
-	const prevX = this._x;
-	const prevY = this._y;
+	const prevX = this.x;
+	const prevY = this.y;
 	const isStraight = this.isStraightDirection(direction);
 	const isDiagonal = this.isDiagonalDirection(direction);
 	if (isStraight) {
@@ -1152,17 +1161,17 @@ Game_CharacterBase.prototype.movePixelDistance = function(direction, distance) {
 		this.moveDiagonalDistance(direction, distance);
 	}
 	const radius = this.getEffectiveRadius();
-	if (this.isThrough() === false && this.isDebugThrough() === false && this.isOverlappingSolidTiles(this._x + this.getCollisionPivotX(), this._y + this.getCollisionPivotY(), radius)) {
-		this._x = prevX;
-		this._y = prevY;
-		this._realX = this._x;
-		this._realY = this._y;
+	if (this.isThrough() === false && this.isDebugThrough() === false && this.isOverlappingSolidTiles(this.x + this.getCollisionPivotX(), this.y + this.getCollisionPivotY(), radius)) {
+		this.setX(prevX);
+		this.setY(prevY);
+		this.setRealX(this.x);
+		this.setRealY(this.y);
 		this.setMovementSuccess(false);
 		return;
 	}
 	this.setMovedThisFrame(true);
-	this._realX = this._x;
-	this._realY = this._y;
+	this.setRealX(this.x);
+	this.setRealY(this.y);
 	this.modMoveDistance(distance);
 	this.updatePixelStepping();
 };
@@ -1213,60 +1222,60 @@ Game_CharacterBase.prototype.moveDiagonalDistance = function(direction, pixelDis
 * @param {number} pixelDistance The distance in pixels.
 */
 Game_CharacterBase.prototype.moveStraight2Down = function(pixelDistance) {
-	this._y += pixelDistance;
+	this.setY(this.y + pixelDistance);
 };
 /**
 * Move straight left the given distance.
 * @param {number} pixelDistance The distance in pixels.
 */
 Game_CharacterBase.prototype.moveStraight4Left = function(pixelDistance) {
-	this._x -= pixelDistance;
+	this.setX(this.x - pixelDistance);
 };
 /**
 * Move straight right the given distance.
 * @param {number} pixelDistance The distance in pixels.
 */
 Game_CharacterBase.prototype.moveStraight6Right = function(pixelDistance) {
-	this._x += pixelDistance;
+	this.setX(this.x + pixelDistance);
 };
 /**
 * Move straight up the given distance.
 * @param {number} pixelDistance The distance in pixels.
 */
 Game_CharacterBase.prototype.moveStraight8Up = function(pixelDistance) {
-	this._y -= pixelDistance;
+	this.setY(this.y - pixelDistance);
 };
 /**
 * Move diagonally down-left the given distance.
 * @param {number} pixelDistance The distance in pixels.
 */
 Game_CharacterBase.prototype.moveDiagonal1DownLeft = function(pixelDistance) {
-	this._x -= pixelDistance;
-	this._y += pixelDistance;
+	this.setX(this.x - pixelDistance);
+	this.setY(this.y + pixelDistance);
 };
 /**
 * Move diagonally down-right the given distance.
 * @param {number} pixelDistance The distance in pixels.
 */
 Game_CharacterBase.prototype.moveDiagonal3DownRight = function(pixelDistance) {
-	this._x += pixelDistance;
-	this._y += pixelDistance;
+	this.setX(this.x + pixelDistance);
+	this.setY(this.y + pixelDistance);
 };
 /**
 * Move diagonally up-left the given distance.
 * @param {number} pixelDistance The distance in pixels.
 */
 Game_CharacterBase.prototype.moveDiagonal7UpLeft = function(pixelDistance) {
-	this._x -= pixelDistance;
-	this._y -= pixelDistance;
+	this.setX(this.x - pixelDistance);
+	this.setY(this.y - pixelDistance);
 };
 /**
 * Move diagonally up-right the given distance.
 * @param {number} pixelDistance The distance in pixels.
 */
 Game_CharacterBase.prototype.moveDiagonal9UpRight = function(pixelDistance) {
-	this._x += pixelDistance;
-	this._y -= pixelDistance;
+	this.setX(this.x + pixelDistance);
+	this.setY(this.y - pixelDistance);
 };
 /**
 * Determines whether or not this character can pass in the given straight direction.
@@ -1279,8 +1288,8 @@ Game_CharacterBase.prototype.moveDiagonal9UpRight = function(pixelDistance) {
 * @returns {boolean} True if movement is permitted this frame, false otherwise.
 */
 Game_CharacterBase.prototype.canPassStraight = function(direction, distance = this.distancePerFrame()) {
-	const x0 = this._x;
-	const y0 = this._y;
+	const x0 = this.x;
+	const y0 = this.y;
 	if (this.isThrough() || this.isDebugThrough()) {
 		return true;
 	}
@@ -1394,7 +1403,7 @@ Game_CharacterBase.prototype.canPass = function(x, y, d) {
 * @returns {number} The x tile coordinate containing this character's pivot.
 */
 Game_CharacterBase.prototype.occupiedTileX = function() {
-	return Math.floor(this._x + Math.min(this.getCollisionPivotX(), 1 - 1e-6));
+	return Math.floor(this.x + Math.min(this.getCollisionPivotX(), 1 - 1e-6));
 };
 /**
 * Gets the y tile coordinate this character's body actually occupies.
@@ -1408,7 +1417,7 @@ Game_CharacterBase.prototype.occupiedTileX = function() {
 * @returns {number} The y tile coordinate containing this character's pivot.
 */
 Game_CharacterBase.prototype.occupiedTileY = function() {
-	return Math.floor(this._y + Math.min(this.getCollisionPivotY(), 1 - 1e-6));
+	return Math.floor(this.y + Math.min(this.getCollisionPivotY(), 1 - 1e-6));
 };
 /**
 * Overwrites {@link Game_CharacterBase.pos}.<br/>
@@ -1466,16 +1475,16 @@ Game_CharacterBase.prototype.moveStraight = function(direction) {
 */
 J.PIXEL.Aliased.Game_CharacterBase.set("moveDiagonally", Game_CharacterBase.prototype.moveDiagonally);
 Game_CharacterBase.prototype.moveDiagonally = function(horz, vert) {
-	this.setMovementSuccess(this.canPassDiagonally(this._x, this._y, horz, vert));
+	this.setMovementSuccess(this.canPassDiagonally(this.x, this.y, horz, vert));
 	if (this.isMovementSucceeded()) {
 		const direction = this.directionFromHorzVert(horz, vert);
 		this.movePixelDistance(direction, this.diagonalDistancePerFrame());
 		this.setDirection(vert);
 	}
-	if (this._direction === this.reverseDir(horz)) {
+	if (this.direction() === this.reverseDir(horz)) {
 		this.setDirection(horz);
 	}
-	if (this._direction === this.reverseDir(vert)) {
+	if (this.direction() === this.reverseDir(vert)) {
 		this.setDirection(vert);
 	}
 };
@@ -1500,8 +1509,8 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction) {
 	const canUp = () => this.canPassStraight(J.PIXEL.Directions.UP, straightDistance);
 	const canLeft = () => this.canPassStraight(J.PIXEL.Directions.LEFT, straightDistance);
 	const canRight = () => this.canPassStraight(J.PIXEL.Directions.RIGHT, straightDistance);
-	const roundX = Math.round(this._x);
-	const roundY = Math.round(this._y);
+	const roundX = Math.round(this.x);
+	const roundY = Math.round(this.y);
 	const SNAP_EPSILON = .1;
 	const tryDiagonal = (diagDir) => {
 		if (this.canPassDiagonalByDirection(diagDir) === false) {
@@ -1530,13 +1539,13 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction) {
 		}
 	};
 	const recenterXAfterVertical = () => {
-		if (Math.abs(this._x - roundX) <= SNAP_EPSILON) {
-			this._x = roundX;
+		if (Math.abs(this.x - roundX) <= SNAP_EPSILON) {
+			this.setX(roundX);
 		}
 	};
 	const recenterYAfterHorizontal = () => {
-		if (Math.abs(this._y - roundY) <= SNAP_EPSILON) {
-			this._y = roundY;
+		if (Math.abs(this.y - roundY) <= SNAP_EPSILON) {
+			this.setY(roundY);
 		}
 	};
 	const doStraightMove = (cardinalDir) => {
@@ -1609,32 +1618,32 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction) {
 		const isHorizontal = blockedDir === J.PIXEL.Directions.LEFT || blockedDir === J.PIXEL.Directions.RIGHT;
 		const radius = this.getEffectiveRadius();
 		if (isHorizontal) {
-			const targetY = Math.round(this._y);
-			const residual = targetY - this._y;
+			const targetY = Math.round(this.y);
+			const residual = targetY - this.y;
 			if (Math.abs(residual) < .001) return 0;
 			const nudge = Math.sign(residual) * Math.min(Math.abs(residual), straightDistance);
-			const nudgedY = this._y + nudge;
-			if (this.isOverlappingSolidTiles(this._x + this.getCollisionPivotX(), nudgedY + this.getCollisionPivotY(), radius)) {
+			const nudgedY = this.y + nudge;
+			if (this.isOverlappingSolidTiles(this.x + this.getCollisionPivotX(), nudgedY + this.getCollisionPivotY(), radius)) {
 				return 0;
 			}
-			this._y = nudgedY;
-			this._realY = this._y;
+			this.setY(nudgedY);
+			this.setRealY(this.y);
 			if (this.canPassStraight(blockedDir, straightDistance)) {
 				return doStraightMove(blockedDir);
 			}
 			this.setMovedThisFrame(true);
 			return 0;
 		} else {
-			const targetX = Math.round(this._x);
-			const residual = targetX - this._x;
+			const targetX = Math.round(this.x);
+			const residual = targetX - this.x;
 			if (Math.abs(residual) < .001) return 0;
 			const nudge = Math.sign(residual) * Math.min(Math.abs(residual), straightDistance);
-			const nudgedX = this._x + nudge;
-			if (this.isOverlappingSolidTiles(nudgedX + this.getCollisionPivotX(), this._y + this.getCollisionPivotY(), radius)) {
+			const nudgedX = this.x + nudge;
+			if (this.isOverlappingSolidTiles(nudgedX + this.getCollisionPivotX(), this.y + this.getCollisionPivotY(), radius)) {
 				return 0;
 			}
-			this._x = nudgedX;
-			this._realX = this._x;
+			this.setX(nudgedX);
+			this.setRealX(this.x);
 			if (this.canPassStraight(blockedDir, straightDistance)) {
 				return doStraightMove(blockedDir);
 			}
@@ -1683,13 +1692,13 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction) {
 * @returns {boolean} True if diagonal is permitted.
 */
 Game_CharacterBase.prototype.canPassDiagonally = function(x, y, horz, vert) {
-	const oldX = this._x;
-	const oldY = this._y;
-	this._x = x;
-	this._y = y;
+	const oldX = this.x;
+	const oldY = this.y;
+	this.setX(x);
+	this.setY(y);
 	if (this.isThrough() || this.isDebugThrough()) {
-		this._x = oldX;
-		this._y = oldY;
+		this.setX(oldX);
+		this.setY(oldY);
 		return true;
 	}
 	const straightStep = this.distancePerFrame();
@@ -1697,116 +1706,116 @@ Game_CharacterBase.prototype.canPassDiagonally = function(x, y, horz, vert) {
 	const radius = this.getEffectiveRadius();
 	const hitbox = this._pixelHitbox(radius);
 	const subCount = this._pixelCollisionSubCount();
-	let nx = this._x;
-	let ny = this._y;
+	let nx = this.x;
+	let ny = this.y;
 	if (horz === J.PIXEL.Directions.RIGHT) {
-		nx = this._x + diagStep;
+		nx = this.x + diagStep;
 	} else if (horz === J.PIXEL.Directions.LEFT) {
-		nx = this._x - diagStep;
+		nx = this.x - diagStep;
 	}
 	if (vert === J.PIXEL.Directions.DOWN) {
-		ny = this._y + diagStep;
+		ny = this.y + diagStep;
 	} else if (vert === J.PIXEL.Directions.UP) {
-		ny = this._y - diagStep;
+		ny = this.y - diagStep;
 	}
 	if ($gameMap.isValid(nx, ny) === false) {
-		this._x = oldX;
-		this._y = oldY;
+		this.setX(oldX);
+		this.setY(oldY);
 		return false;
 	}
 	if (horz === J.PIXEL.Directions.LEFT) {
-		if (this._pixelCheckLeftPassage(this._x, this._y, this._x - straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+		if (this._pixelCheckLeftPassage(this.x, this.y, this.x - straightStep, hitbox, subCount) === false) {
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	} else {
-		if (this._pixelCheckRightPassage(this._x, this._y, this._x + straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+		if (this._pixelCheckRightPassage(this.x, this.y, this.x + straightStep, hitbox, subCount) === false) {
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	}
 	if (vert === J.PIXEL.Directions.UP) {
-		if (this._pixelCheckUpPassage(this._x, this._y, this._y - straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+		if (this._pixelCheckUpPassage(this.x, this.y, this.y - straightStep, hitbox, subCount) === false) {
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	} else {
-		if (this._pixelCheckDownPassage(this._x, this._y, this._y + straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+		if (this._pixelCheckDownPassage(this.x, this.y, this.y + straightStep, hitbox, subCount) === false) {
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	}
-	let y2 = this._y;
+	let y2 = this.y;
 	if (vert === J.PIXEL.Directions.DOWN) {
-		y2 = this._y + straightStep;
+		y2 = this.y + straightStep;
 	} else if (vert === J.PIXEL.Directions.UP) {
-		y2 = this._y - straightStep;
+		y2 = this.y - straightStep;
 	}
 	if (horz === J.PIXEL.Directions.LEFT) {
-		if (this._pixelCheckLeftPassage(this._x, y2, this._x - straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+		if (this._pixelCheckLeftPassage(this.x, y2, this.x - straightStep, hitbox, subCount) === false) {
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	} else {
-		if (this._pixelCheckRightPassage(this._x, y2, this._x + straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+		if (this._pixelCheckRightPassage(this.x, y2, this.x + straightStep, hitbox, subCount) === false) {
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	}
-	let x2 = this._x;
+	let x2 = this.x;
 	if (horz === J.PIXEL.Directions.RIGHT) {
-		x2 = this._x + straightStep;
+		x2 = this.x + straightStep;
 	} else if (horz === J.PIXEL.Directions.LEFT) {
-		x2 = this._x - straightStep;
+		x2 = this.x - straightStep;
 	}
 	if (vert === J.PIXEL.Directions.UP) {
-		if (this._pixelCheckUpPassage(x2, this._y, this._y - straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+		if (this._pixelCheckUpPassage(x2, this.y, this.y - straightStep, hitbox, subCount) === false) {
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	} else {
-		if (this._pixelCheckDownPassage(x2, this._y, this._y + straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+		if (this._pixelCheckDownPassage(x2, this.y, this.y + straightStep, hitbox, subCount) === false) {
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	}
 	if (horz === J.PIXEL.Directions.LEFT) {
 		if (this._pixelCheckRightPassage(nx, ny, nx + straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	} else {
 		if (this._pixelCheckLeftPassage(nx, ny, nx - straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	}
 	if (vert === J.PIXEL.Directions.UP) {
 		if (this._pixelCheckDownPassage(nx, ny, ny + straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	} else {
 		if (this._pixelCheckUpPassage(nx, ny, ny - straightStep, hitbox, subCount) === false) {
-			this._x = oldX;
-			this._y = oldY;
+			this.setX(oldX);
+			this.setY(oldY);
 			return false;
 		}
 	}
 	const blocked = this.isCharacterCollisionAt(nx, ny, radius);
-	this._x = oldX;
-	this._y = oldY;
+	this.setX(oldX);
+	this.setY(oldY);
 	return blocked === false;
 };
 /**
@@ -1830,8 +1839,8 @@ Game_CharacterBase.prototype.canPassDiagonalByDirection = function(diagonalDir, 
 	if (diagonalDir === J.PIXEL.Directions.UPPERRIGHT) legsOk = canRight() && canUp();
 	if (legsOk === false) return false;
 	const step = this.diagonalDistancePerFrame();
-	let nx = this._x;
-	let ny = this._y;
+	let nx = this.x;
+	let ny = this.y;
 	if (diagonalDir === J.PIXEL.Directions.LOWERLEFT) {
 		nx -= step;
 		ny += step;
@@ -1862,49 +1871,74 @@ Game_CharacterBase.prototype.canPassDiagonalByDirection = function(diagonalDir, 
 * @returns {boolean} True if any solid character would collide at (px, py).
 */
 Game_CharacterBase.prototype.isCharacterCollisionAt = function(px, py, radius = .35) {
+	const selfAabb = this.getCollisionAabbAt(px, py, radius);
+	return this.getCollisionCandidates().some((candidate) => {
+		if (J.ABS && candidate.isJabsAction()) return false;
+		const candidateAabb = candidate.getCollisionAabbAt(candidate.x, candidate.y, candidate.getEffectiveRadius());
+		return collisionAabbsOverlap(selfAabb, candidateAabb);
+	});
+};
+/**
+* Collects every character that could block this one from moving.
+* Party members never block each other, so they only count when the mover is an outsider.
+* @returns {Game_CharacterBase[]} The characters worth testing for overlap.
+*/
+Game_CharacterBase.prototype.getCollisionCandidates = function() {
 	const player = $gamePlayer;
 	const followers = player._followers._data;
-	const party = [player].concat(followers);
-	const selfIsParty = party.includes(this);
-	const events = $gameMap.events();
-	const candidates = [];
-	events.forEach((ev) => {
-		if (ev === this) return;
-		if (ev.isErased()) return;
-		if (ev.isThrough()) return;
-		if (ev.isNormalPriority() === false) return;
-		if (J.ABS && ev.isJabsAction()) return;
-		candidates.push(ev);
+	const selfIsParty = [player].concat(followers).includes(this);
+	const candidates = $gameMap.events().filter((event) => {
+		if (event === this) return false;
+		if (event.isErased()) return false;
+		if (event.isThrough()) return false;
+		if (event.isNormalPriority() === false) return false;
+		if (J.ABS && event.isJabsAction()) return false;
+		return true;
 	});
-	if (selfIsParty === false) {
-		if (player !== this && player.isThrough() === false) {
-			candidates.push(player);
-		}
-		followers.forEach((f) => {
-			if (f === this) return;
-			if (f.isThrough()) return;
-			candidates.push(f);
-		});
+	if (selfIsParty) return candidates;
+	if (player.isThrough() === false) {
+		candidates.push(player);
 	}
-	const aabbOverlap = function(ax, ay, ahw, ahh, bx, by, bhw, bhh) {
-		const dx = Math.abs(ax - bx);
-		const dy = Math.abs(ay - by);
-		return dx < ahw + bhw && dy < ahh + bhh;
-	};
-	for (let i = 0; i < candidates.length; i++) {
-		const ch = candidates[i];
-		if (J.ABS && ch.isJabsAction()) {
-			continue;
-		}
-		const cx = ch.x;
-		const cy = ch.y;
-		const cr = ch.getEffectiveRadius();
-		if (aabbOverlap(px, py, radius, radius, cx, cy, cr, cr)) {
-			return true;
-		}
-	}
-	return false;
+	followers.forEach((follower) => {
+		if (follower.isThrough()) return;
+		candidates.push(follower);
+	});
+	return candidates;
 };
+/**
+* Builds this character's collision footprint in tile space at a proposed position.
+* Anchored on this character's own pivot and shaped by its own hitbox, so feet-anchored and
+* rectangular hitboxes are measured correctly rather than as a square around the logical coordinate.
+* @param {number} logicalX The x coordinate to measure from, in fractional tiles.
+* @param {number} logicalY The y coordinate to measure from, in fractional tiles.
+* @param {number} halfRadius The compatibility radius for square footprints.
+* @returns {{left: number, top: number, right: number, bottom: number, width: number, height: number}}
+*/
+Game_CharacterBase.prototype.getCollisionAabbAt = function(logicalX, logicalY, halfRadius) {
+	const pivotX = logicalX + this.getCollisionPivotX();
+	const pivotY = logicalY + this.getCollisionPivotY();
+	const hitbox = this._pixelHitbox(halfRadius);
+	const left = pivotX + hitbox.hx;
+	const top = pivotY + hitbox.hy;
+	return {
+		left,
+		top,
+		right: left + hitbox.w,
+		bottom: top + hitbox.h,
+		width: hitbox.w,
+		height: hitbox.h
+	};
+};
+/**
+* Determines whether two tile-space collision footprints overlap.
+* Edge-touching is not overlap, matching the legacy scalar logic.
+* @param {{left: number, top: number, right: number, bottom: number}} a The first footprint.
+* @param {{left: number, top: number, right: number, bottom: number}} b The second footprint.
+* @returns {boolean} True if the two footprints share any area.
+*/
+function collisionAabbsOverlap(a, b) {
+	return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
 /**
 * Gets the collision radius for this character in tile units.
 * This radius is used for pixel-accurate character-vs-character collision checks.
@@ -2283,8 +2317,8 @@ Game_CharacterBase.prototype.vectorMoveByAngle = function(angleDegrees, speed = 
 	let dy = Math.sin(radians) * speed;
 	if (Math.abs(dx) < noiseEpsilon) dx = 0;
 	if (Math.abs(dy) < noiseEpsilon) dy = 0;
-	const prevX = this._x;
-	const prevY = this._y;
+	const prevX = this.x;
+	const prevY = this.y;
 	const radius = this.getEffectiveRadius();
 	let horzDir = 0;
 	if (dx > 0) {
@@ -2319,18 +2353,18 @@ Game_CharacterBase.prototype.vectorMoveByAngle = function(angleDegrees, speed = 
 		this.setDirection(vertDir);
 		this.checkEventTriggerTouchFront(vertDir);
 	}
-	this._x += finalDx;
-	this._y += finalDy;
-	if (this.isThrough() === false && this.isDebugThrough() === false && this.isOverlappingSolidTiles(this._x + this.getCollisionPivotX(), this._y + this.getCollisionPivotY(), radius)) {
-		this._x = prevX;
-		this._y = prevY;
-		this._realX = this._x;
-		this._realY = this._y;
+	this.setX(this.x + finalDx);
+	this.setY(this.y + finalDy);
+	if (this.isThrough() === false && this.isDebugThrough() === false && this.isOverlappingSolidTiles(this.x + this.getCollisionPivotX(), this.y + this.getCollisionPivotY(), radius)) {
+		this.setX(prevX);
+		this.setY(prevY);
+		this.setRealX(this.x);
+		this.setRealY(this.y);
 		return false;
 	}
 	this.setMovedThisFrame(true);
-	this._realX = this._x;
-	this._realY = this._y;
+	this.setRealX(this.x);
+	this.setRealY(this.y);
 	this.modMoveDistance(speed);
 	this.updatePixelStepping();
 	const facingDirection = this.angleToNearestDirection(angleDegrees);
@@ -2411,11 +2445,11 @@ Game_Event.prototype.checkEventTriggerTouchFront = function(d) {
 Game_Follower.prototype.pixelFaceCharacter = function(otherCharacter = $gamePlayer) {
 	const otherPosition = otherCharacter.oldestPositionalRecord();
 	if (!otherPosition) return;
-	const isFacingVertically = Math.abs(otherPosition.y - this._y) > Math.abs(otherPosition.x - this._x);
-	const shouldFaceDown = isFacingVertically && otherPosition.y > this._y;
-	const shouldFaceUp = isFacingVertically && otherPosition.y < this._y;
-	const shouldFaceRight = !isFacingVertically && otherPosition.x > this._x;
-	const shouldFaceLeft = !isFacingVertically && otherPosition.x < this._x;
+	const isFacingVertically = Math.abs(otherPosition.y - this.y) > Math.abs(otherPosition.x - this.x);
+	const shouldFaceDown = isFacingVertically && otherPosition.y > this.y;
+	const shouldFaceUp = isFacingVertically && otherPosition.y < this.y;
+	const shouldFaceRight = !isFacingVertically && otherPosition.x > this.x;
+	const shouldFaceLeft = !isFacingVertically && otherPosition.x < this.x;
 	switch (true) {
 		case shouldFaceDown:
 			this.setDirection(J.PIXEL.Directions.DOWN);
@@ -2448,15 +2482,15 @@ Game_Follower.prototype.chaseCharacter = function(character) {
 J.PIXEL.Aliased.Game_Follower.set("update", Game_Follower.prototype.update);
 Game_Follower.prototype.update = function() {
 	J.PIXEL.Aliased.Game_Follower.get("update").call(this);
-	if (this._realX !== this._x || this._realY !== this._y) {
-		this._realX = this._x;
-		this._realY = this._y;
+	if (this.realX() !== this.x || this.realY() !== this.y) {
+		this.setRealX(this.x);
+		this.setRealY(this.y);
 	}
 	if (J.ABS.EXT.ALLYAI && this.getJabsBattler()) {
 		if (this.isMovePressed() === false) {
-			this._stopCount = 0;
-			this._realX = this._x;
-			this._realY = this._y;
+			this.setStopCount(0);
+			this.setRealX(this.x);
+			this.setRealY(this.y);
 		}
 	}
 };
@@ -2554,9 +2588,9 @@ Game_Player.prototype.update = function(sceneActive) {
 	}
 	const tileX = this.occupiedTileX();
 	const tileY = this.occupiedTileY();
-	if (this._lastOccupiedTileX !== tileX || this._lastOccupiedTileY !== tileY) {
-		this._lastOccupiedTileX = tileX;
-		this._lastOccupiedTileY = tileY;
+	if (this.lastOccupiedTileX() !== tileX || this.lastOccupiedTileY() !== tileY) {
+		this.setLastOccupiedTileX(tileX);
+		this.setLastOccupiedTileY(tileY);
 		this.checkEventTriggerHere([1, 2]);
 	}
 };
@@ -2743,7 +2777,7 @@ Game_Player.prototype.moveByInput = function() {
 			}
 			if (!this.isMovePressed()) {
 				this.clearPositionalRecords();
-				const followers = this._followers._data;
+				const followers = this.followers()._data;
 				followers.forEach((follower) => follower.clearPositionalRecords());
 			}
 			this.setMovementSuccess(false);
@@ -2825,7 +2859,7 @@ Game_Player.prototype.handleOnStepEffects = function() {
 */
 Game_Player.prototype.processFollowersPixelMoving = function() {
 	this.recordPixelPosition();
-	const followers = this._followers._data;
+	const followers = this.followers()._data;
 	followers.forEach((follower, index) => {
 		if (J.ABS.EXT.ALLYAI && follower.getJabsBattler()) return;
 		const precedingCharacter = index > 0 ? followers.at(index - 1) : $gamePlayer;
@@ -2841,7 +2875,7 @@ Game_Player.prototype.processFollowersPixelMoving = function() {
 * Stops the pixel movement for followers.
 */
 Game_Player.prototype.stopFollowersPixelMoving = function() {
-	this._followers._data.forEach((follower) => {
+	this.followers()._data.forEach((follower) => {
 		if (J.ABS.EXT.ALLYAI && follower.getJabsBattler()) return;
 		follower.stopPixelMoving();
 	});
@@ -2857,6 +2891,34 @@ Game_Player.prototype.stopFollowersPixelMoving = function() {
 Game_Player.prototype.getCollisionPivotY = function() {
 	return .7;
 };
+/**
+* Gets the last occupied tile x.
+* @returns {number} The lastOccupiedTileX.
+*/
+Game_Player.prototype.lastOccupiedTileX = function() {
+	return this._lastOccupiedTileX;
+};
+/**
+* Sets the last occupied tile x.
+* @param {number} newLastOccupiedTileX The new lastOccupiedTileX.
+*/
+Game_Player.prototype.setLastOccupiedTileX = function(newLastOccupiedTileX) {
+	this._lastOccupiedTileX = newLastOccupiedTileX;
+};
+/**
+* Gets the last occupied tile y.
+* @returns {number} The lastOccupiedTileY.
+*/
+Game_Player.prototype.lastOccupiedTileY = function() {
+	return this._lastOccupiedTileY;
+};
+/**
+* Sets the last occupied tile y.
+* @param {number} newLastOccupiedTileY The new lastOccupiedTileY.
+*/
+Game_Player.prototype.setLastOccupiedTileY = function(newLastOccupiedTileY) {
+	this._lastOccupiedTileY = newLastOccupiedTileY;
+};
 
 //#endregion
 //#region src/plugins/pixel/core/sprites/Sprite_PixelCollisionOverlay.js
@@ -2865,6 +2927,83 @@ Game_Player.prototype.getCollisionPivotY = function() {
 * Draws only the currently visible subcells for performance.
 */
 var Sprite_PixelCollisionOverlay = class extends Sprite {
+	/**
+	* Gets the show grid lines.
+	* @returns {*} The showGridLines.
+	*/
+	isShowGridLines() {
+		return this._showGridLines;
+	}
+	/**
+	* Gets the throttle.
+	* @returns {*} The throttle.
+	*/
+	throttle() {
+		return this._throttle;
+	}
+	/**
+	* Sets the throttle.
+	* @param {*} newThrottle The new throttle.
+	*/
+	setThrottle(newThrottle) {
+		this._throttle = newThrottle;
+	}
+	/**
+	* Gets the last display x.
+	* @returns {number} The lastDisplayX.
+	*/
+	lastDisplayX() {
+		return this._lastDisplayX;
+	}
+	/**
+	* Sets the last display x.
+	* @param {number} newLastDisplayX The new lastDisplayX.
+	*/
+	setLastDisplayX(newLastDisplayX) {
+		this._lastDisplayX = newLastDisplayX;
+	}
+	/**
+	* Gets the last display y.
+	* @returns {number} The lastDisplayY.
+	*/
+	lastDisplayY() {
+		return this._lastDisplayY;
+	}
+	/**
+	* Sets the last display y.
+	* @param {number} newLastDisplayY The new lastDisplayY.
+	*/
+	setLastDisplayY(newLastDisplayY) {
+		this._lastDisplayY = newLastDisplayY;
+	}
+	/**
+	* Gets the last player x.
+	* @returns {number} The lastPlayerX.
+	*/
+	lastPlayerX() {
+		return this._lastPlayerX;
+	}
+	/**
+	* Sets the last player x.
+	* @param {number} newLastPlayerX The new lastPlayerX.
+	*/
+	setLastPlayerX(newLastPlayerX) {
+		this._lastPlayerX = newLastPlayerX;
+	}
+	/**
+	* Gets the last player y.
+	* @returns {number} The lastPlayerY.
+	*/
+	lastPlayerY() {
+		return this._lastPlayerY;
+	}
+	/**
+	* Sets the last player y.
+	* @param {number} newLastPlayerY The new lastPlayerY.
+	*/
+	setLastPlayerY(newLastPlayerY) {
+		this._lastPlayerY = newLastPlayerY;
+	}
 	/**
 	* Constructor.
 	* @param {...*} args Forwarded to {@link #initialize}.
@@ -2904,19 +3043,19 @@ var Sprite_PixelCollisionOverlay = class extends Sprite {
 		const dy = $gameMap.displayY();
 		this.x = -Math.floor(dx * tw);
 		this.y = -Math.floor(dy * th);
-		this._throttle++;
-		const needThrottleRedraw = this._throttle % 6 === 0;
-		const cameraMoved = dx !== this._lastDisplayX || dy !== this._lastDisplayY;
+		this.setThrottle(this.throttle() + 1);
+		const needThrottleRedraw = this.throttle() % 6 === 0;
+		const cameraMoved = dx !== this.lastDisplayX() || dy !== this.lastDisplayY();
 		const player = $gamePlayer;
-		const playerMoved = player && (player.x !== this._lastPlayerX || player.y !== this._lastPlayerY);
+		const playerMoved = player && (player.x !== this.lastPlayerX() || player.y !== this.lastPlayerY());
 		if (!needThrottleRedraw && cameraMoved === false && playerMoved === false) {
 			return;
 		}
-		this._lastDisplayX = dx;
-		this._lastDisplayY = dy;
+		this.setLastDisplayX(dx);
+		this.setLastDisplayY(dy);
 		if (player) {
-			this._lastPlayerX = player.x;
-			this._lastPlayerY = player.y;
+			this.setLastPlayerX(player.x);
+			this.setLastPlayerY(player.y);
 		}
 		this.redrawVisibleRegion();
 	}
@@ -2959,7 +3098,7 @@ var Sprite_PixelCollisionOverlay = class extends Sprite {
 				}
 			}
 		}
-		if (this._showGridLines) {
+		if (this.isShowGridLines()) {
 			this._drawGridLines(tileStartX, tileStartY, tileEndX, tileEndY, stepCount, tw, th, dx, dy);
 		}
 		this._drawPlayerHitbox();
@@ -3117,10 +3256,10 @@ Spriteset_Map.prototype.createUpperLayer = function() {
 Spriteset_Map.prototype.createPixelCollisionOverlay = function() {
 	this.setupPixelOverlayKeymap();
 	const initialVisibility = J.PIXEL && J.PIXEL.Metadata ? J.PIXEL.Metadata.OverlayInitiallyVisible : false;
-	this._pixelOverlayVisible = this._pixelOverlayVisible || initialVisibility;
-	PixelDebugSampler.enabled = this._pixelOverlayVisible;
+	this.setPixelOverlayVisible(this.pixelOverlayVisible() || initialVisibility);
+	PixelDebugSampler.enabled = this.pixelOverlayVisible();
 	this._pixelCollisionOverlay = new Sprite_PixelCollisionOverlay();
-	this._pixelCollisionOverlay.visible = this._pixelOverlayVisible;
+	this._pixelCollisionOverlay.visible = this.pixelOverlayVisible();
 	this.addChild(this._pixelCollisionOverlay);
 };
 /**
@@ -3140,12 +3279,26 @@ J.PIXEL.Aliased.Spriteset_Map.set("update", Spriteset_Map.prototype.update);
 Spriteset_Map.prototype.update = function() {
 	J.PIXEL.Aliased.Spriteset_Map.get("update").call(this);
 	if (Input.isTriggered("pixelOverlay")) {
-		this._pixelOverlayVisible = !this._pixelOverlayVisible;
+		this.setPixelOverlayVisible(!this.pixelOverlayVisible());
 		if (this._pixelCollisionOverlay) {
-			this._pixelCollisionOverlay.visible = this._pixelOverlayVisible;
+			this._pixelCollisionOverlay.visible = this.pixelOverlayVisible();
 		}
-		PixelDebugSampler.enabled = this._pixelOverlayVisible;
+		PixelDebugSampler.enabled = this.pixelOverlayVisible();
 	}
+};
+/**
+* Gets the pixel overlay visible.
+* @returns {*} The pixelOverlayVisible.
+*/
+Spriteset_Map.prototype.pixelOverlayVisible = function() {
+	return this._pixelOverlayVisible;
+};
+/**
+* Sets the pixel overlay visible.
+* @param {*} newPixelOverlayVisible The new pixelOverlayVisible.
+*/
+Spriteset_Map.prototype.setPixelOverlayVisible = function(newPixelOverlayVisible) {
+	this._pixelOverlayVisible = newPixelOverlayVisible;
 };
 
 //#endregion

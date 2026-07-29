@@ -1630,8 +1630,8 @@ Input._updateGamepadState = function(gamepad) {
 * @returns {{ s: object, padState: object }|null}
 */
 Input._ensurePadStates = function(gamepad) {
-	const s = this._currentState;
-	const padState = this._gamepadStates ? this._gamepadStates[gamepad.index] : null;
+	const s = this.currentState();
+	const padState = this.gamepadStates() ? this.gamepadStates()[gamepad.index] : null;
 	if (!s || !padState) {
 		return null;
 	}
@@ -2119,96 +2119,119 @@ var Window_JabsRemapPrompt = class Window_JabsRemapPrompt extends Window_Base {
 	*/
 	constructor(rect) {
 		super(rect);
+		this.initMembers();
 		this.opacity = 192;
 		this.refresh();
 	}
 	/**
-	* Lazily ensures the root plugin namespace exists for this window's data.
+	* Initializes all members of this window.
 	*/
-	_root() {
+	initMembers() {
 		this._j ||= {};
 		this._j._abs ||= {};
 		this._j._abs._input ||= {};
+		/**
+		* The captured symbol awaiting pickup by the scene.
+		* @type {string|null}
+		*/
+		this._j._abs._input._remapCaptured = null;
+		/**
+		* Whether or not the prompt is currently capturing input.
+		* @type {boolean}
+		*/
+		this._j._abs._input._remapActive = false;
+		/**
+		* The remaining frames before input capture begins.
+		* @type {number}
+		*/
+		this._j._abs._input._remapWarmup = 0;
+		/**
+		* The remaining frames before the prompt auto-closes.
+		* @type {number}
+		*/
+		this._j._abs._input._remapTimeout = 0;
+		/**
+		* The logical action label being captured for.
+		* @type {string}
+		*/
+		this._j._abs._input._remapButtonLabel = String.empty;
+	}
+	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
 	}
 	/**
 	* Gets the captured symbol awaiting pickup by the scene.
 	* @returns {string|null}
 	*/
 	getCapturedSymbol() {
-		this._root();
-		return this._j._abs._input._remapCaptured ?? null;
+		return this.j()._abs._input._remapCaptured;
 	}
 	/**
 	* Sets the captured symbol awaiting pickup by the scene.
 	* @param {string|null} v The captured symbol.
 	*/
 	setCapturedSymbol(v) {
-		this._root();
-		this._j._abs._input._remapCaptured = v ?? null;
+		this.j()._abs._input._remapCaptured = v ?? null;
 	}
 	/**
 	* Gets whether or not the prompt is currently active.
 	* @returns {boolean}
 	*/
 	isActive() {
-		this._root();
-		return this._j._abs._input._remapActive === true;
+		return this.j()._abs._input._remapActive === true;
 	}
 	/**
 	* Sets whether or not the prompt is currently active.
 	* @param {boolean} v The new active state.
 	*/
 	setActive(v) {
-		this._root();
-		this._j._abs._input._remapActive = v === true;
+		this.j()._abs._input._remapActive = v === true;
 	}
 	/**
 	* Gets the remaining warmup frames.
 	* @returns {number}
 	*/
 	getWarmupFrames() {
-		this._root();
-		return this._j._abs._input._remapWarmup | 0;
+		return this.j()._abs._input._remapWarmup | 0;
 	}
 	/**
 	* Sets the remaining warmup frames.
 	* @param {number} v The frames to set.
 	*/
 	setWarmupFrames(v) {
-		this._root();
-		this._j._abs._input._remapWarmup = Math.max(0, v | 0);
+		this.j()._abs._input._remapWarmup = Math.max(0, v | 0);
 	}
 	/**
 	* Gets the remaining timeout frames.
 	* @returns {number}
 	*/
 	getTimeoutFrames() {
-		this._root();
-		return this._j._abs._input._remapTimeout | 0;
+		return this.j()._abs._input._remapTimeout | 0;
 	}
 	/**
 	* Sets the remaining timeout frames.
 	* @param {number} v The frames to set.
 	*/
 	setTimeoutFrames(v) {
-		this._root();
-		this._j._abs._input._remapTimeout = Math.max(0, v | 0);
+		this.j()._abs._input._remapTimeout = Math.max(0, v | 0);
 	}
 	/**
 	* Gets the logical action label being captured for.
 	* @returns {string}
 	*/
 	getButtonLabel() {
-		this._root();
-		return this._j._abs._input._remapButtonLabel || String.empty;
+		return this.j()._abs._input._remapButtonLabel;
 	}
 	/**
 	* Sets the logical action label being captured for.
 	* @param {string} v The button label.
 	*/
 	setButtonLabel(v) {
-		this._root();
-		this._j._abs._input._remapButtonLabel = String(v || String.empty);
+		this.j()._abs._input._remapButtonLabel = String(v || String.empty);
 	}
 	/**
 	* Begins the prompt for the given logical action.
@@ -2484,11 +2507,18 @@ var Window_JabsRemapActions = class extends Window_Command {
 		}
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Gets the current mapping being displayed.
 	* @returns {Object<string, string[]>}
 	*/
 	getMapping() {
-		return this._state()._mapping || {};
+		return this._state()._mapping;
 	}
 	/**
 	* Sets the mapping to display and refreshes.
@@ -2504,7 +2534,7 @@ var Window_JabsRemapActions = class extends Window_Command {
 	* @returns {Object<string, string[]>}
 	*/
 	getExternalMapping() {
-		return this._state()._externalMapping || {};
+		return this._state()._externalMapping;
 	}
 	/**
 	* Sets the external mapping reference; scene owns lifecycle.
@@ -2569,39 +2599,18 @@ var Window_JabsRemapActions = class extends Window_Command {
 		return String(cmd.symbol || String.empty);
 	}
 	/**
-	* Ensures the `_j._abs._input._actions` chain exists.
-	* Lazily mirrors ctor init so accessors stay valid when this window is touched without a full
-	* new-game init path (continued saves, aliased entry, or future scene wiring).
-	*/
-	_root() {
-		this._j ||= {};
-		this._j._abs ||= {};
-		this._j._abs._input ||= {};
-		this._j._abs._input._actions ||= {};
-	}
-	/**
-	* Lazily ensures and returns the window-local state bag.
+	* Returns the window-local state bag, seeded by {@link #initMembers}.
 	* @returns {{_mapping:Object<string,string[]>, _externalMapping:Object<string, string[]>, _buttons:string[]}}
 	*/
 	_state() {
-		this._root();
-		const actions = this._j._abs._input._actions;
-		actions._state ||= {
-			_mapping: {},
-			_externalMapping: {},
-			_buttons: []
-		};
-		return actions._state;
+		return this.j()._abs._input._actions._state;
 	}
 	/**
-	* Lazily ensures and returns the window-local view bag.
+	* Returns the window-local view bag, seeded by {@link #initMembers}.
 	* @returns {{_helpWindow:Window_Help|null}}
 	*/
 	_view() {
-		this._root();
-		const actions = this._j._abs._input._actions;
-		actions._view ||= { _helpWindow: null };
-		return actions._view;
+		return this.j()._abs._input._actions._view;
 	}
 	/**
 	* Built-in section specs (title + logical keys). Override to reorder or replace default sections.
@@ -2740,7 +2749,7 @@ var Window_JabsRemapActions = class extends Window_Command {
 	*/
 	drawItem(index) {
 		const rect = this.itemRectWithPadding(index);
-		const cmd = this._list[index];
+		const cmd = this.commandList()[index];
 		if (!cmd) {
 			return;
 		}
@@ -2894,8 +2903,8 @@ var Window_JabsRemapActions = class extends Window_Command {
 	* @returns {number}
 	*/
 	firstActionIndex() {
-		for (let i = 0; i < this._list.length; i++) {
-			const cmd = this._list[i];
+		for (let i = 0; i < this.commandList().length; i++) {
+			const cmd = this.commandList()[i];
 			if (cmd && cmd.enabled !== false) {
 				return i;
 			}
@@ -3310,7 +3319,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 	* @returns {Object<string, string[]>}
 	*/
 	buildDisplayMapping() {
-		const base = this.currentPendingMapping() || {};
+		const base = this.currentPendingMapping();
 		const combined = {};
 		Object.keys(base).forEach((button) => {
 			const list = base[button];
@@ -3331,7 +3340,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 	*/
 	currentPendingMapping() {
 		const key = this.resolveControllerKey(this._state()._controllerIndex);
-		return this._state()._pendingByKey[key];
+		return this._state()._pendingByKey[key] ?? {};
 	}
 	/**
 	* Ensures at most one logical action holds a given symbol across the mapping.
@@ -3636,7 +3645,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 J.ABS.EXT.INPUT.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function() {
 	J.ABS.EXT.INPUT.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this._commandWindow.setHandler("jabsRemap", () => {
+	this.commandWindow().setHandler("jabsRemap", () => {
 		SceneManager.push(Scene_JabsRemap);
 	});
 };
@@ -3658,9 +3667,9 @@ Window_MenuCommand.prototype.addOriginalCommands = function() {
 */
 Window_MenuCommand.prototype.addJabsRemapCommand = function() {
 	const command = new WindowCommandBuilder("JABS Controls").setSymbol("jabsRemap").setHelpText("Rebind the controls used during combat.").setIconIndex(2569).setEnabled(true).build();
-	const lastCommand = this._list.at(-1);
+	const lastCommand = this.commandList().at(-1);
 	if (lastCommand.symbol === "gameEnd") {
-		this._list.splice(this._list.length - 2, 0, command);
+		this.commandList().splice(this.commandList().length - 2, 0, command);
 	} else {
 		this.addBuiltCommand(command);
 	}

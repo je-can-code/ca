@@ -499,7 +499,7 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 		const stateFlat = this.sumStateBParamFlat(actor, paramId);
 		const trActor = this.paramRateFromTraits([actor.actor()], paramId);
 		const trClass = this.paramRateFromTraits([actor.currentClass()], paramId);
-		const trEquips = this.paramRateFromTraits(actor.equips().filter((equip) => !!equip), paramId);
+		const trEquips = this.paramRateFromTraits(actor.equippedEquips(), paramId);
 		const trStates = this.paramRateFromTraits(actor.states(), paramId);
 		const traitsProduct = trActor * trClass * trEquips * trStates;
 		const preRateBase = baseNatural + (equipFlat + stateFlat);
@@ -771,7 +771,7 @@ var Window_StatusStatBreakdown = class Window_StatusStatBreakdown extends Window
 	drawSParamBreakdown(actor, sId, x, y, w) {
 		const rActor = this.sparamRateFromTraits([actor.actor()], sId);
 		const rClass = this.sparamRateFromTraits([actor.currentClass()], sId);
-		const rEquips = this.sparamRateFromTraits(actor.equips().filter((equip) => !!equip), sId);
+		const rEquips = this.sparamRateFromTraits(actor.equippedEquips(), sId);
 		const rStates = this.sparamRateFromTraits(actor.states(), sId);
 		const natGrowthPlus = actor.sParamGrowthPlus(sId);
 		const natGrowthRate = actor.sParamGrowthRate(sId);
@@ -2082,8 +2082,8 @@ var Window_StatusPageHint = class extends Window_Base {
 */
 Window_Status.prototype.drawBlock1 = function() {
 	const y = this.block1Y();
-	this.drawActorName(this._actor, 0, y, 168);
-	this.drawActorClass(this._actor, 204, y, 168);
+	this.drawActorName(this.actor(), 0, y, 168);
+	this.drawActorClass(this.actor(), 204, y, 168);
 };
 /**
 * Overwrites {@link #drawBlock2}.<br/>
@@ -2091,7 +2091,7 @@ Window_Status.prototype.drawBlock1 = function() {
 */
 Window_Status.prototype.drawBlock2 = function() {
 	const y = this.block2Y();
-	this.drawActorFace(this._actor, 12, y);
+	this.drawActorFace(this.actor(), 12, y);
 	this.drawBasicInfo(204, y);
 	this.drawExpInfo(0, y + 250);
 };
@@ -2176,19 +2176,19 @@ Scene_Status.prototype.setStatusHintWindow = function(v) {
 	this._j._cms_s._status._windows._hint = v;
 };
 Scene_Status.prototype.getPageIndex = function() {
-	return this._j._cms_s._status._state._pageIndex | 0;
+	return this.pageIndex() | 0;
 };
 Scene_Status.prototype.setPageIndex = function(v) {
 	this._j._cms_s._status._state._pageIndex = v | 0;
 };
 Scene_Status.prototype.getLastDir4 = function() {
-	return this._j._cms_s._status._state._lastDir4 | 0;
+	return this.lastDir4() | 0;
 };
 Scene_Status.prototype.setLastDir4 = function(v) {
 	this._j._cms_s._status._state._lastDir4 = v | 0;
 };
 Scene_Status.prototype.getSwitchCooldown = function() {
-	return this._j._cms_s._status._state._switchCooldown | 0;
+	return this.switchCooldown() | 0;
 };
 Scene_Status.prototype.setSwitchCooldown = function(v) {
 	const frames = v | 0;
@@ -2435,6 +2435,27 @@ Scene_Status.prototype.handleNormalizedStatusInput = function() {
 	if (handled) {
 		this.setSwitchCooldown(12);
 	}
+};
+/**
+* Gets the page index.
+* @returns {number} The pageIndex.
+*/
+Scene_Status.prototype.pageIndex = function() {
+	return this._j._cms_s._status._state._pageIndex;
+};
+/**
+* Gets the last dir4.
+* @returns {*} The lastDir4.
+*/
+Scene_Status.prototype.lastDir4 = function() {
+	return this._j._cms_s._status._state._lastDir4;
+};
+/**
+* Gets the switch cooldown.
+* @returns {number} The switchCooldown.
+*/
+Scene_Status.prototype.switchCooldown = function() {
+	return this._j._cms_s._status._state._switchCooldown;
 };
 
 //#endregion

@@ -839,6 +839,20 @@ Window_MenuCommand.prototype.addGameEndCommand = function() {
 */
 var Window_MenuSectionCommand = class extends Window_MenuCommand {
 	/**
+	* Gets the remembered index.
+	* @returns {number} The rememberedIndex.
+	*/
+	rememberedIndex() {
+		return this._rememberedIndex;
+	}
+	/**
+	* Sets the remembered index.
+	* @param {number} newRememberedIndex The new rememberedIndex.
+	*/
+	setRememberedIndex(newRememberedIndex) {
+		this._rememberedIndex = newRememberedIndex;
+	}
+	/**
 	* Extends {@link #makeCommandList}.<br/>
 	* Also discards every command belonging to a different section.
 	*/
@@ -894,8 +908,8 @@ var Window_MenuSectionCommand = class extends Window_MenuCommand {
 	* Describes the highlighted command in the scene's help window.
 	*/
 	updateHelp() {
-		if (!this._helpWindow) return;
-		this._helpWindow.setText(this.currentHelpText());
+		if (!this.helpWindow()) return;
+		this.helpWindow().setText(this.currentHelpText());
 	}
 	/**
 	* Remembers which command is currently highlighted, so it can be returned to later.
@@ -905,13 +919,13 @@ var Window_MenuSectionCommand = class extends Window_MenuCommand {
 	*/
 	rememberSelection() {
 		if (this.index() < 0) return;
-		this._rememberedIndex = this.index();
+		this.setRememberedIndex(this.index());
 	}
 	/**
 	* Restores the previously remembered selection, defaulting to the first command.
 	*/
 	restoreSelection() {
-		const index = this._rememberedIndex ?? 0;
+		const index = this.rememberedIndex() ?? 0;
 		this.select(Math.min(index, Math.max(0, this.maxItems() - 1)));
 	}
 	/**
@@ -1249,10 +1263,10 @@ Scene_Menu.prototype.controlLegendEntries = function() {
 Scene_Menu.prototype.createCommandWindow = function() {
 	this.createActorCommandWindow();
 	this.createPartyCommandWindow();
-	this._commandWindow = new MenuCommandBroadcaster([this.actorCommandWindow(), this.partyCommandWindow()]);
-	this.bindMenuCommandHandlers(this._commandWindow);
-	this.actorCommandWindow().setHelpWindow(this._helpWindow);
-	this.partyCommandWindow().setHelpWindow(this._helpWindow);
+	this.setCommandWindow(new MenuCommandBroadcaster([this.actorCommandWindow(), this.partyCommandWindow()]));
+	this.bindMenuCommandHandlers(this.commandWindow());
+	this.actorCommandWindow().setHelpWindow(this.helpWindow());
+	this.partyCommandWindow().setHelpWindow(this.helpWindow());
 };
 /**
 * Creates the actor command column.

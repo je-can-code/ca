@@ -531,87 +531,6 @@ Game_CharacterBase.prototype.isOverlappingSolidTiles = function(px, py, radius) 
 	return false;
 };
 /**
-* Extends {@link Game_CharacterBase.isCharacterCollisionAt}.<br/>
-* Character-vs-character overlap needs one shared PIXEL AABB builder so every
-* battler is compared in the same pivot-aware coordinate space.
-* @param {number} px Proposed x in fractional tiles.
-* @param {number} py Proposed y in fractional tiles.
-* @param {number=} radius Optional collision half-size in tiles.
-* @returns {boolean}
-*/
-J.PIXEL.EXT.ABS.Aliased.Game_CharacterBase.set("isCharacterCollisionAt", Game_CharacterBase.prototype.isCharacterCollisionAt);
-Game_CharacterBase.prototype.isCharacterCollisionAt = function(px, py, radius = .35) {
-	const player = $gamePlayer;
-	const followers = player._followers._data;
-	const party = [player].concat(followers);
-	const selfIsParty = party.includes(this);
-	const events = $gameMap.events();
-	const candidates = [];
-	events.forEach((ev) => {
-		if (ev === this) return;
-		if (ev.isErased()) return;
-		if (ev.isThrough()) return;
-		if (ev.isNormalPriority() === false) return;
-		if (J.ABS && ev.isJabsAction()) return;
-		candidates.push(ev);
-	});
-	if (selfIsParty === false) {
-		if (player !== this && player.isThrough() === false) {
-			candidates.push(player);
-		}
-		followers.forEach((f) => {
-			if (f === this) return;
-			if (f.isThrough()) return;
-			candidates.push(f);
-		});
-	}
-	/**
-	* Builds a tile-space AABB for collision testing from the character's current
-	* PIXEL pivot and hitbox data.
-	* @param {Game_CharacterBase} character The character being represented.
-	* @param {number} logicalX The logical x coordinate to evaluate.
-	* @param {number} logicalY The logical y coordinate to evaluate.
-	* @param {number} halfRadius The compatibility radius for square footprints.
-	* @returns {{left:number,right:number,top:number,bottom:number}}
-	*/
-	const buildCharacterAabb = function(character, logicalX, logicalY, halfRadius) {
-		const pivotX = logicalX + character.getCollisionPivotX();
-		const pivotY = logicalY + character.getCollisionPivotY();
-		const hitbox = character._pixelHitbox(halfRadius);
-		const left = pivotX + hitbox.hx;
-		const top = pivotY + hitbox.hy;
-		return {
-			left,
-			right: left + hitbox.w,
-			top,
-			bottom: top + hitbox.h
-		};
-	};
-	/**
-	* Determines whether or not two tile-space rectangles overlap.
-	* Edge-touching is not treated as overlap, matching the legacy scalar logic.
-	* @param {{left:number,right:number,top:number,bottom:number}} a The first rect.
-	* @param {{left:number,right:number,top:number,bottom:number}} b The second rect.
-	* @returns {boolean}
-	*/
-	const rectanglesOverlap = function(a, b) {
-		return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-	};
-	const selfAabb = buildCharacterAabb(this, px, py, radius);
-	for (let i = 0; i < candidates.length; i++) {
-		const ch = candidates[i];
-		if (J.ABS && ch.isJabsAction()) {
-			continue;
-		}
-		const candidateRadius = ch.getEffectiveRadius();
-		const candidateAabb = buildCharacterAabb(ch, ch.x, ch.y, candidateRadius);
-		if (rectanglesOverlap(selfAabb, candidateAabb)) {
-			return true;
-		}
-	}
-	return false;
-};
-/**
 * Whether this character has a custom rectangular pixel hitbox.
 * Only {@link Game_Event} overrides this to check for a hitbox tag.
 * All other character types (player, followers, enemies as characters) have no custom hitbox.
@@ -665,9 +584,6 @@ Game_Event.prototype.initPixelAbsHitboxData = function() {
 * @returns {{widthTiles:number,heightTiles:number}|null}
 */
 Game_Event.prototype.getPixelAbsHitboxSizeData = function() {
-	if (!this._j || !this._j._pixel || !this._j._pixel._abs) {
-		this.initPixelAbsHitboxData();
-	}
 	return this._j._pixel._abs._hitboxSizeData;
 };
 /**
@@ -675,9 +591,6 @@ Game_Event.prototype.getPixelAbsHitboxSizeData = function() {
 * @param {{widthTiles:number,heightTiles:number}|null} hitboxSizeData The resolved data.
 */
 Game_Event.prototype.setPixelAbsHitboxSizeData = function(hitboxSizeData) {
-	if (!this._j || !this._j._pixel || !this._j._pixel._abs) {
-		this.initPixelAbsHitboxData();
-	}
 	if (hitboxSizeData === null) {
 		this._j._pixel._abs._hitboxSizeData = null;
 		return;
@@ -734,9 +647,6 @@ Game_Event.prototype.getPixelAbsHitboxSizeCommentOverride = function() {
 * @returns {number|null}
 */
 Game_Event.prototype.getPixelAbsHitboxRevealRange = function() {
-	if (!this._j || !this._j._pixel || !this._j._pixel._abs) {
-		this.initPixelAbsHitboxData();
-	}
 	return this._j._pixel._abs._hitboxRevealRange;
 };
 /**
@@ -744,9 +654,6 @@ Game_Event.prototype.getPixelAbsHitboxRevealRange = function() {
 * @param {number|null} hitboxRevealRange The resolved reveal range.
 */
 Game_Event.prototype.setPixelAbsHitboxRevealRange = function(hitboxRevealRange) {
-	if (!this._j || !this._j._pixel || !this._j._pixel._abs) {
-		this.initPixelAbsHitboxData();
-	}
 	this._j._pixel._abs._hitboxRevealRange = hitboxRevealRange;
 };
 /**
@@ -858,19 +765,7 @@ Game_Event.prototype.canShowPixelAbsHitboxReveal = function() {
 * @returns {{left:number,top:number,right:number,bottom:number,width:number,height:number}}
 */
 Game_Event.prototype.getPixelAbsHitboxTileAabb = function(logicalX = this.x, logicalY = this.y) {
-	const pivotX = logicalX + this.getCollisionPivotX();
-	const pivotY = logicalY + this.getCollisionPivotY();
-	const hitbox = this._pixelHitbox(this.getEffectiveRadius());
-	const left = pivotX + hitbox.hx;
-	const top = pivotY + hitbox.hy;
-	return {
-		left,
-		top,
-		right: left + hitbox.w,
-		bottom: top + hitbox.h,
-		width: hitbox.w,
-		height: hitbox.h
-	};
+	return this.getCollisionAabbAt(logicalX, logicalY, this.getEffectiveRadius());
 };
 /**
 * Builds the battler AABB model for JABS using this event's resolved hitbox.
@@ -1047,39 +942,39 @@ JABS_Battler.pixelIdleStuckLimit = 90;
 *  - Choosing: no destination and no wait; roll a new destination or wait if none found.
 */
 JABS_Battler.prototype.updatePixelIdleWander = function() {
-	this._pixelIdleDest ??= null;
-	this._pixelIdleWait ??= 0;
-	this._pixelIdleStuckFrames ??= 0;
-	if (this._pixelIdleWait > 0) {
-		this._pixelIdleWait--;
+	this.setPixelIdleDest(this.pixelIdleDest() ?? null);
+	this.setPixelIdleWait(this.pixelIdleWait() ?? 0);
+	this.setPixelIdleStuckFrames(this.pixelIdleStuckFrames() ?? 0);
+	if (this.pixelIdleWait() > 0) {
+		this.setPixelIdleWait(this.pixelIdleWait() - 1);
 		return;
 	}
-	if (this._pixelIdleDest !== null) {
-		const { x, y } = this._pixelIdleDest;
+	if (this.pixelIdleDest() !== null) {
+		const { x, y } = this.pixelIdleDest();
 		const arrived = Math.hypot(this.getX() - x, this.getY() - y) < .25;
 		if (arrived === false) {
-			this._pixelIdleStuckFrames++;
-			if (this._pixelIdleStuckFrames >= JABS_Battler.pixelIdleStuckLimit) {
-				this._pixelIdleDest = null;
-				this._pixelIdleStuckFrames = 0;
-				this._pixelIdleWait = this._rollIdleWaitDuration();
+			this.setPixelIdleStuckFrames(this.pixelIdleStuckFrames() + 1);
+			if (this.pixelIdleStuckFrames() >= JABS_Battler.pixelIdleStuckLimit) {
+				this.setPixelIdleDest(null);
+				this.setPixelIdleStuckFrames(0);
+				this.setPixelIdleWait(this._rollIdleWaitDuration());
 				return;
 			}
 			this.smartMoveTowardCoordinates(x, y);
 			return;
 		}
-		this._pixelIdleDest = null;
-		this._pixelIdleStuckFrames = 0;
-		this._pixelIdleWait = this._rollIdleWaitDuration();
+		this.setPixelIdleDest(null);
+		this.setPixelIdleStuckFrames(0);
+		this.setPixelIdleWait(this._rollIdleWaitDuration());
 		return;
 	}
 	const dest = this._rollIdleDestination();
 	if (dest === null) {
-		this._pixelIdleWait = this._rollIdleWaitDuration();
+		this.setPixelIdleWait(this._rollIdleWaitDuration());
 		return;
 	}
-	this._pixelIdleDest = dest;
-	this._pixelIdleStuckFrames = 0;
+	this.setPixelIdleDest(dest);
+	this.setPixelIdleStuckFrames(0);
 };
 /**
 * Rolls a random wait duration before this battler picks its next wander destination.
@@ -1165,10 +1060,6 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function() {
 	const dy = chr.y - target.getY();
 	const currentDistance = Math.sqrt(dx * dx + dy * dy);
 	if (JABS_Battler.isClose(currentDistance) === false) {
-		return;
-	}
-	const hysteresis = .25;
-	if (currentDistance >= JABS_Battler.closeDistance + hysteresis) {
 		return;
 	}
 	if (chr.isMicroRouting()) {
@@ -1490,6 +1381,48 @@ JABS_Battler.prototype.canDirectionalDodgeStepPass = function(character, directi
 	}
 	return character.canPassStraight(direction8);
 };
+/**
+* Gets the pixel idle dest.
+* @returns {*} The pixelIdleDest.
+*/
+JABS_Battler.prototype.pixelIdleDest = function() {
+	return this._pixelIdleDest;
+};
+/**
+* Sets the pixel idle dest.
+* @param {*} newPixelIdleDest The new pixelIdleDest.
+*/
+JABS_Battler.prototype.setPixelIdleDest = function(newPixelIdleDest) {
+	this._pixelIdleDest = newPixelIdleDest;
+};
+/**
+* Gets the pixel idle wait.
+* @returns {*} The pixelIdleWait.
+*/
+JABS_Battler.prototype.pixelIdleWait = function() {
+	return this._pixelIdleWait;
+};
+/**
+* Sets the pixel idle wait.
+* @param {*} newPixelIdleWait The new pixelIdleWait.
+*/
+JABS_Battler.prototype.setPixelIdleWait = function(newPixelIdleWait) {
+	this._pixelIdleWait = newPixelIdleWait;
+};
+/**
+* Gets the pixel idle stuck frames.
+* @returns {number} The pixelIdleStuckFrames.
+*/
+JABS_Battler.prototype.pixelIdleStuckFrames = function() {
+	return this._pixelIdleStuckFrames;
+};
+/**
+* Sets the pixel idle stuck frames.
+* @param {number} newPixelIdleStuckFrames The new pixelIdleStuckFrames.
+*/
+JABS_Battler.prototype.setPixelIdleStuckFrames = function(newPixelIdleStuckFrames) {
+	this._pixelIdleStuckFrames = newPixelIdleStuckFrames;
+};
 
 //#endregion
 //#region src/plugins/pixel/ext/abs/sprites/Spriteset_Map.js
@@ -1531,27 +1464,27 @@ Spriteset_Map.prototype.createPixelAbsHitboxRevealLayer = function() {
 	* The container for battler hitbox reveal outlines.
 	* @type {Sprite}
 	*/
-	this._j._pixel._abs._hitboxRevealLayer = new Sprite();
+	this.setHitboxRevealLayer(new Sprite());
 	/**
 	* Direct tracking for reveal sprites by their stable key.
 	* @type {Record<string, Sprite>}
 	*/
-	this._j._pixel._abs._hitboxRevealSprites = {};
-	this.addChild(this._j._pixel._abs._hitboxRevealLayer);
+	this.setHitboxRevealSprites({});
+	this.addChild(this.hitboxRevealLayer());
 };
 /**
 * Gets the PIXEL-ABS reveal outline layer.
 * @returns {Sprite}
 */
 Spriteset_Map.prototype.getPixelAbsHitboxRevealLayer = function() {
-	return this._j._pixel._abs._hitboxRevealLayer;
+	return this.hitboxRevealLayer();
 };
 /**
 * Gets the PIXEL-ABS reveal outline sprite dictionary.
 * @returns {Record<string, Sprite>}
 */
 Spriteset_Map.prototype.getPixelAbsHitboxRevealSprites = function() {
-	return this._j._pixel._abs._hitboxRevealSprites;
+	return this.hitboxRevealSprites();
 };
 /**
 * Updates the proximity-based hitbox reveal outlines for eligible battlers.
@@ -1695,6 +1628,34 @@ Spriteset_Map.prototype.getPixelAbsRevealHitboxStyle = function() {
 		lineAlpha: .35,
 		lineWidth: pulseStyle.lineWidth
 	};
+};
+/**
+* Gets the hitbox reveal layer.
+* @returns {*} The hitboxRevealLayer.
+*/
+Spriteset_Map.prototype.hitboxRevealLayer = function() {
+	return this._j._pixel._abs._hitboxRevealLayer;
+};
+/**
+* Sets the hitbox reveal layer.
+* @param {*} newHitboxRevealLayer The new hitboxRevealLayer.
+*/
+Spriteset_Map.prototype.setHitboxRevealLayer = function(newHitboxRevealLayer) {
+	this._j._pixel._abs._hitboxRevealLayer = newHitboxRevealLayer;
+};
+/**
+* Gets the hitbox reveal sprites.
+* @returns {*} The hitboxRevealSprites.
+*/
+Spriteset_Map.prototype.hitboxRevealSprites = function() {
+	return this._j._pixel._abs._hitboxRevealSprites;
+};
+/**
+* Sets the hitbox reveal sprites.
+* @param {*} newHitboxRevealSprites The new hitboxRevealSprites.
+*/
+Spriteset_Map.prototype.setHitboxRevealSprites = function(newHitboxRevealSprites) {
+	this._j._pixel._abs._hitboxRevealSprites = newHitboxRevealSprites;
 };
 
 //#endregion

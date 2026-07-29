@@ -994,7 +994,7 @@ Game_Actor.prototype.changeExp = function(exp, show) {
 	}
 	const clampedExp = Math.max(exp, 0);
 	this.setSyncedExp(clampedExp);
-	const lastLevel = this._level;
+	const lastLevel = this.getBattlerBaseLevel();
 	const lastSkills = this.skills();
 	while (!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) {
 		this.levelUp();
@@ -1002,7 +1002,7 @@ Game_Actor.prototype.changeExp = function(exp, show) {
 	while (this.currentExp() < this.currentLevelExp()) {
 		this.levelDown();
 	}
-	if (show && this._level > lastLevel) {
+	if (show && this.getBattlerBaseLevel() > lastLevel) {
 		this.displayLevelUp(this.findNewSkills(lastSkills));
 	}
 	this.refresh();
@@ -1019,7 +1019,7 @@ Game_Actor.prototype.changeClass = function(classId, keepExp) {
 		J.LEVEL.Aliased.Game_Actor.get("changeClass").call(this, classId, keepExp);
 		return;
 	}
-	this._classId = classId;
+	this.setClassId(classId);
 	this.backfillLearningsForCurrentLevel();
 	this.onClassChange(classId, keepExp);
 	this.refresh();
@@ -1031,7 +1031,7 @@ Game_Actor.prototype.changeClass = function(classId, keepExp) {
 */
 Game_Actor.prototype.backfillLearningsForCurrentLevel = function() {
 	this.currentClass().learnings.forEach((learning) => {
-		if (learning.level <= this._level) {
+		if (learning.level <= this.getBattlerBaseLevel()) {
 			const wasAlreadyKnown = this.isLearnedSkill(learning.skillId);
 			this.learnSkill(learning.skillId);
 			if (wasAlreadyKnown === false) {
@@ -1065,7 +1065,7 @@ Game_Actor.prototype.handleLevelSkillLearnedLog = function(skillId) {
 Game_Actor.prototype.setSyncedExp = function(exp) {
 	$dataClasses.forEach((rpgClass) => {
 		if (!rpgClass) return;
-		this._exp[rpgClass.id] = exp;
+		this.exp()[rpgClass.id] = exp;
 	}, this);
 };
 /**
@@ -1263,7 +1263,7 @@ Game_Enemy.prototype.initMembers = function() {
 * @param {number} level The level the corresponding skill is learned.
 */
 Game_Enemy.prototype.setSkillLearning = function(skillId, level) {
-	this._j._level._skillLearnings[skillId] = level;
+	this.skillLearnings()[skillId] = level;
 };
 Game_Enemy.prototype.getCachedLevelOverride = function() {
 	return this._j._level._cachedLevelOverride;
@@ -1316,7 +1316,7 @@ Game_Enemy.prototype.canMapActionToSkill = function(action) {
 * @returns {boolean}
 */
 Game_Enemy.prototype.isLearnedSkillByLevel = function(action) {
-	const levelLearned = this._j._level._skillLearnings[action.skillId];
+	const levelLearned = this.skillLearnings()[action.skillId];
 	if (levelLearned === undefined) return true;
 	if (this.level >= levelLearned) return true;
 	return false;
@@ -1373,6 +1373,13 @@ Game_Enemy.prototype.getLevelBalancer = function() {
 		return $gameVariables.value(J.LEVEL.Metadata.enemyBalanceVariable);
 	}
 	return 0;
+};
+/**
+* Gets the skill learnings.
+* @returns {*} The skillLearnings.
+*/
+Game_Enemy.prototype.skillLearnings = function() {
+	return this._j._level._skillLearnings;
 };
 
 //#endregion
@@ -1622,7 +1629,7 @@ Game_Temp.prototype.buildBeyondMaxDataForClass = function(classId) {
 * @returns {number[][]} The parameter collection for a given class and its parameters.
 */
 Game_Temp.prototype.getBeyondMaxData = function(classId) {
-	return this._j._level._beyondMaxData[classId];
+	return this.beyondMaxData()[classId];
 };
 /**
 * Sets the parameter data for the given class.
@@ -1644,6 +1651,13 @@ Game_Temp.prototype.hasCachedBeyondMaxData = function() {
 */
 Game_Temp.prototype.flagBeyondMaxDataAsCached = function() {
 	this._j._level._hasCachedBeyondMaxData = true;
+};
+/**
+* Gets the beyond max data.
+* @returns {Array} The beyondMaxData.
+*/
+Game_Temp.prototype.beyondMaxData = function() {
+	return this._j._level._beyondMaxData;
 };
 
 //#endregion
@@ -1692,7 +1706,7 @@ Sprite_Character.prototype.getBattlerName = function() {
 	const { level } = battler;
 	if (level === 0) return originalName;
 	let levelString = `${level.padZero(3)}`;
-	if (this._character && this._character.isEvent() && this._character.shouldHideLevel()) {
+	if (this.character() && this.character().isEvent() && this.character().shouldHideLevel()) {
 		levelString = "???";
 	}
 	if (levelString !== "???" && battler.shouldHideLevel()) {

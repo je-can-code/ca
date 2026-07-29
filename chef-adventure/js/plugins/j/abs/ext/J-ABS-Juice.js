@@ -554,6 +554,125 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	* @returns {{ x: number, y: number }}
 	*/
 	/**
+	* Gets the stab tip angle radians.
+	* @returns {number} The stabTipAngleRadians.
+	*/
+	stabTipAngleRadians() {
+		return this._stabTipAngleRadians;
+	}
+	/**
+	* Gets the profile gun.
+	* @returns {boolean} The profileGun.
+	*/
+	profileGun() {
+		return this._profileGun;
+	}
+	/**
+	* Gets the overlay.
+	* @returns {Bitmap} The overlay.
+	*/
+	overlay() {
+		return this._overlay;
+	}
+	/**
+	* Gets the scale mag.
+	* @returns {number} The scaleMag.
+	*/
+	scaleMag() {
+		return this._scaleMag;
+	}
+	/**
+	* Gets the parent sprite.
+	* @returns {Sprite} The parentSprite.
+	*/
+	parentSprite() {
+		return this._parentSprite;
+	}
+	/**
+	* Gets the frame.
+	* @returns {number} The frame.
+	*/
+	frame() {
+		return this._frame;
+	}
+	/**
+	* Sets the frame.
+	* @param {number} newFrame The new frame.
+	*/
+	setFrame(newFrame) {
+		this._frame = newFrame;
+	}
+	/**
+	* Gets the duration frames.
+	* @returns {number} The durationFrames.
+	*/
+	durationFrames() {
+		return this._durationFrames;
+	}
+	/**
+	* Gets the swing direction.
+	* @returns {number} The swingDirection.
+	*/
+	swingDirection() {
+		return this._swingDirection;
+	}
+	/**
+	* Gets the motion type.
+	* @returns {*} The motionType.
+	*/
+	motionType() {
+		return this._motionType;
+	}
+	/**
+	* Gets the repeat count.
+	* @returns {number} The repeatCount.
+	*/
+	repeatCount() {
+		return this._repeatCount;
+	}
+	/**
+	* Gets the trail.
+	* @returns {*} The trail.
+	*/
+	trail() {
+		return this._trail;
+	}
+	/**
+	* Sets the trail.
+	* @param {*} newTrail The new trail.
+	*/
+	setTrail(newTrail) {
+		this._trail = newTrail;
+	}
+	/**
+	* Gets the arc span degrees.
+	* @returns {*} The arcSpanDegrees.
+	*/
+	arcSpanDegrees() {
+		return this._arcSpanDegrees;
+	}
+	/**
+	* Gets the base rotation.
+	* @returns {*} The baseRotation.
+	*/
+	baseRotation() {
+		return this._baseRotation;
+	}
+	/**
+	* Gets the base x.
+	* @returns {number} The baseX.
+	*/
+	baseX() {
+		return this._baseX;
+	}
+	/**
+	* Gets the base y.
+	* @returns {number} The baseY.
+	*/
+	baseY() {
+		return this._baseY;
+	}
+	/**
 	* Normalizes repeat count — floors to integer, defaults to 1 if invalid or below 1.
 	* @param {number} repeatCount Candidate count from skill notes or resolver.
 	* @returns {number}
@@ -947,11 +1066,11 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	* @param {number} extraRotationRadians Added on top of aligned thrust (whip, recoil kick, etc.).
 	*/
 	#applyTipAlignedRotation(dir, extraRotationRadians) {
-		const align = JuiceWeaponSwingMotionEffect.weaponTipAlign(dir, this._stabTipAngleRadians, this._profileGun);
-		this._overlay.rotation = align.rotation + extraRotationRadians;
-		if (this._profileGun === true) {
-			this._overlay.scale.x = this._scaleMag * (align.mirrorX ? -1 : 1);
-			this._overlay.scale.y = this._scaleMag;
+		const align = JuiceWeaponSwingMotionEffect.weaponTipAlign(dir, this.stabTipAngleRadians(), this.profileGun());
+		this.overlay().rotation = align.rotation + extraRotationRadians;
+		if (this.profileGun() === true) {
+			this.overlay().scale.x = this.scaleMag() * (align.mirrorX ? -1 : 1);
+			this.overlay().scale.y = this.scaleMag();
 		}
 	}
 	/**
@@ -964,19 +1083,19 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	* @returns {boolean}
 	*/
 	isSpriteAlive() {
-		return !!this._parentSprite.transform;
+		return !!this.parentSprite().transform;
 	}
 	/**
 	* Advances one frame of the swing arc.
 	* @returns {boolean} True while the effect should stay in the runner queue.
 	*/
 	tick() {
-		this._frame++;
-		const t = Math.min(this._frame / this._durationFrames, 1);
+		this.setFrame(this.frame() + 1);
+		const t = Math.min(this.frame() / this.durationFrames(), 1);
 		const ease = 1 - Math.pow(1 - t, 3);
-		const phy = this._parentSprite.patternHeight();
-		const dir = this._swingDirection;
-		switch (this._motionType) {
+		const phy = this.parentSprite().patternHeight();
+		const dir = this.swingDirection();
+		switch (this.motionType()) {
 			case JuiceWeaponSwingMotionEffect.MotionTypes.ArcReverse:
 				this.#tickArc(phy, dir, ease, true);
 				break;
@@ -984,10 +1103,10 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 				this.#tickArcOscillate(phy, dir, t);
 				break;
 			case JuiceWeaponSwingMotionEffect.MotionTypes.Spin:
-				this.#tickSpin(phy, t, this._repeatCount, 1);
+				this.#tickSpin(phy, t, this.repeatCount(), 1);
 				break;
 			case JuiceWeaponSwingMotionEffect.MotionTypes.SpinReverse:
-				this.#tickSpin(phy, t, this._repeatCount, -1);
+				this.#tickSpin(phy, t, this.repeatCount(), -1);
 				break;
 			case JuiceWeaponSwingMotionEffect.MotionTypes.StabForward:
 				this.#tickStabForward(phy, dir, ease);
@@ -1007,14 +1126,14 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 				break;
 		}
 		this.#tickTrail();
-		if (this._frame >= this._durationFrames) {
-			this._parentSprite.removeChild(this._overlay);
-			this._overlay.destroy();
-			this._trail.forEach((trail) => {
-				this._parentSprite.removeChild(trail.sprite);
+		if (this.frame() >= this.durationFrames()) {
+			this.parentSprite().removeChild(this.overlay());
+			this.overlay().destroy();
+			this.trail().forEach((trail) => {
+				this.parentSprite().removeChild(trail.sprite);
 				trail.sprite.destroy();
 			});
-			this._trail.length = 0;
+			this.trail().length = 0;
 			return false;
 		}
 		return true;
@@ -1027,15 +1146,15 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	* @param {boolean} reverse Arc-reverse when true.
 	*/
 	#tickArc(phy, dir, ease, reverse) {
-		const pose = JuiceWeaponSwingMotionEffect.computeArcPose(dir, phy, this._arcSpanDegrees, reverse, ease);
-		this._overlay.x = pose.x;
-		this._overlay.y = pose.y;
+		const pose = JuiceWeaponSwingMotionEffect.computeArcPose(dir, phy, this.arcSpanDegrees(), reverse, ease);
+		this.overlay().x = pose.x;
+		this.overlay().y = pose.y;
 		if (reverse === true) {
-			const travel = JuiceWeaponSwingMotionEffect.computeArcTravelRadians(dir, phy, this._arcSpanDegrees, true, ease);
-			this._overlay.rotation = JuiceWeaponSwingMotionEffect.bladeRotationFromTravelRadians(travel);
+			const travel = JuiceWeaponSwingMotionEffect.computeArcTravelRadians(dir, phy, this.arcSpanDegrees(), true, ease);
+			this.overlay().rotation = JuiceWeaponSwingMotionEffect.bladeRotationFromTravelRadians(travel);
 			return;
 		}
-		this._overlay.rotation = JuiceWeaponSwingMotionEffect.bladeRotationArcForward(pose.theta);
+		this.overlay().rotation = JuiceWeaponSwingMotionEffect.bladeRotationArcForward(pose.theta);
 	}
 	/**
 	* Alternating arc sweeps: arc → arc-reverse → arc … for `_repeatCount` total passes.
@@ -1045,8 +1164,8 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	* @param {number} t Linear progress (0..1).
 	*/
 	#tickArcOscillate(phy, dir, t) {
-		const sliceT = t * this._repeatCount % 1;
-		const sliceIndex = Math.floor(t * this._repeatCount);
+		const sliceT = t * this.repeatCount() % 1;
+		const sliceIndex = Math.floor(t * this.repeatCount());
 		const reverse = sliceIndex % 2 === 1;
 		const ease = 1 - Math.pow(1 - sliceT, 3);
 		this.#tickArc(phy, dir, ease, reverse);
@@ -1061,10 +1180,10 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	#tickSpin(phy, t, spinCount, spinDirectionSign) {
 		const sign = spinDirectionSign === -1 ? -1 : 1;
 		const radians = Math.PI * 2 * spinCount * t * sign;
-		this._overlay.rotation = this._baseRotation + radians;
+		this.overlay().rotation = this.baseRotation() + radians;
 		const centerX = 0;
 		const centerY = -(phy * .5);
-		const forward = JuiceWeaponSwingMotionEffect.#forwardUnit(this._swingDirection);
+		const forward = JuiceWeaponSwingMotionEffect.#forwardUnit(this.swingDirection());
 		const front = phy * .12;
 		const frontX = forward.x * front;
 		const frontY = forward.y * front;
@@ -1072,9 +1191,9 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 		const theta = radians + phaseOffset;
 		const orbit = phy * .38;
 		const juiceDy = J.ABS.EXT.JUICE.Metadata.spriteJuiceVerticalOffsetPixels;
-		this._overlay.x = centerX + frontX + Math.cos(theta) * orbit;
-		this._overlay.y = centerY + frontY + Math.sin(theta) * orbit + juiceDy;
-		if (this._frame % 2 === 0) {
+		this.overlay().x = centerX + frontX + Math.cos(theta) * orbit;
+		this.overlay().y = centerY + frontY + Math.sin(theta) * orbit + juiceDy;
+		if (this.frame() % 2 === 0) {
 			this.#spawnTrailAfterimage();
 		}
 	}
@@ -1083,19 +1202,19 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	*/
 	#spawnTrailAfterimage() {
 		const ghost = new Sprite();
-		ghost.bitmap = this._overlay.bitmap;
-		ghost.anchor.x = this._overlay.anchor.x;
-		ghost.anchor.y = this._overlay.anchor.y;
-		ghost.scale.x = this._overlay.scale.x;
-		ghost.scale.y = this._overlay.scale.y;
+		ghost.bitmap = this.overlay().bitmap;
+		ghost.anchor.x = this.overlay().anchor.x;
+		ghost.anchor.y = this.overlay().anchor.y;
+		ghost.scale.x = this.overlay().scale.x;
+		ghost.scale.y = this.overlay().scale.y;
 		ghost.opacity = 140;
 		ghost.blendMode = 1;
-		ghost.setFrame(this._overlay._frame.x, this._overlay._frame.y, this._overlay._frame.width, this._overlay._frame.height);
-		ghost.x = this._overlay.x;
-		ghost.y = this._overlay.y;
-		ghost.rotation = this._overlay.rotation;
-		this._parentSprite.addChild(ghost);
-		this._trail.push({
+		ghost.setFrame(this.overlay()._frame.x, this.overlay()._frame.y, this.overlay()._frame.width, this.overlay()._frame.height);
+		ghost.x = this.overlay().x;
+		ghost.y = this.overlay().y;
+		ghost.rotation = this.overlay().rotation;
+		this.parentSprite().addChild(ghost);
+		this.trail().push({
 			sprite: ghost,
 			ttl: 10
 		});
@@ -1104,21 +1223,21 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	* Ticks and fades all existing trail afterimages.
 	*/
 	#tickTrail() {
-		if (this._trail.length === 0) {
+		if (this.trail().length === 0) {
 			return;
 		}
 		const survivors = [];
-		this._trail.forEach((trail) => {
+		this.trail().forEach((trail) => {
 			trail.ttl -= 1;
 			trail.sprite.opacity = Math.max(0, Math.round(trail.ttl / 10 * 140));
 			if (trail.ttl > 0) {
 				survivors.push(trail);
 				return;
 			}
-			this._parentSprite.removeChild(trail.sprite);
+			this.parentSprite().removeChild(trail.sprite);
 			trail.sprite.destroy();
 		});
-		this._trail = survivors;
+		this.setTrail(survivors);
 	}
 	/**
 	* Ticks a forward stab (mostly translation, minimal rotation).
@@ -1132,8 +1251,8 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 		const dist = phy * .55;
 		const dx = forward.x * dist;
 		const dy = forward.y * dist;
-		this._overlay.x = this._baseX + dx * ease;
-		this._overlay.y = this._baseY + dy * ease;
+		this.overlay().x = this.baseX() + dx * ease;
+		this.overlay().y = this.baseY() + dy * ease;
 	}
 	/**
 	* Lifts the icon straight upward on screen (facing-agnostic “present this item”).
@@ -1142,9 +1261,9 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	*/
 	#tickPresent(phy, ease) {
 		const lift = phy * .42;
-		this._overlay.x = this._baseX;
-		this._overlay.y = this._baseY - lift * ease;
-		this._overlay.rotation = this._baseRotation;
+		this.overlay().x = this.baseX();
+		this.overlay().y = this.baseY() - lift * ease;
+		this.overlay().rotation = this.baseRotation();
 	}
 	/**
 	* Ticks bash smack — thrust-aligned weapon plus a single wrist hump (no velocity-spin rotation).
@@ -1155,8 +1274,8 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	#tickBash(phy, dir, ease) {
 		const off = JuiceWeaponSwingMotionEffect.computeBashOffset(dir, phy, ease);
 		const whip = JuiceWeaponSwingMotionEffect.bashWhipRotationRadians(ease);
-		this._overlay.x = this._baseX + off.x;
-		this._overlay.y = this._baseY + off.y;
+		this.overlay().x = this.baseX() + off.x;
+		this.overlay().y = this.baseY() + off.y;
 		this.#applyTipAlignedRotation(dir, whip);
 	}
 	/**
@@ -1167,8 +1286,8 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	*/
 	#tickRecoil(phy, dir, ease) {
 		const p = JuiceWeaponSwingMotionEffect.computeRecoilPose(dir, phy, ease);
-		this._overlay.x = this._baseX + p.x;
-		this._overlay.y = this._baseY + p.y;
+		this.overlay().x = this.baseX() + p.x;
+		this.overlay().y = this.baseY() + p.y;
 		this.#applyTipAlignedRotation(dir, p.rotationDelta);
 	}
 };
@@ -1444,6 +1563,48 @@ var JuiceProfileResolver = class JuiceProfileResolver {
 */
 var JuiceTiltMotionEffect = class extends JuiceBaseEffect {
 	/**
+	* Gets the sprite.
+	* @returns {*} The sprite.
+	*/
+	sprite() {
+		return this._sprite;
+	}
+	/**
+	* Gets the base rotation.
+	* @returns {*} The baseRotation.
+	*/
+	baseRotation() {
+		return this._baseRotation;
+	}
+	/**
+	* Gets the frame.
+	* @returns {number} The frame.
+	*/
+	frame() {
+		return this._frame;
+	}
+	/**
+	* Sets the frame.
+	* @param {number} newFrame The new frame.
+	*/
+	setFrame(newFrame) {
+		this._frame = newFrame;
+	}
+	/**
+	* Gets the duration frames.
+	* @returns {number} The durationFrames.
+	*/
+	durationFrames() {
+		return this._durationFrames;
+	}
+	/**
+	* Gets the peak radians.
+	* @returns {*} The peakRadians.
+	*/
+	peakRadians() {
+		return this._peakRadians;
+	}
+	/**
 	* @param {Sprite} sprite The Pixi sprite being driven.
 	* @param {number} peakRadians Peak rotation magnitude (radians).
 	* @param {number} durationFrames Frames to run.
@@ -1465,26 +1626,26 @@ var JuiceTiltMotionEffect = class extends JuiceBaseEffect {
 	* @returns {boolean}
 	*/
 	isSpriteAlive() {
-		return !!this._sprite.transform;
+		return !!this.sprite().transform;
 	}
 	/**
 	* Snaps rotation back to the baseline captured at construction time.
 	*/
 	restore() {
-		this._sprite.rotation = this._baseRotation;
+		this.sprite().rotation = this.baseRotation();
 	}
 	/**
 	* Advances one frame of the tilt envelope.
 	* @returns {boolean} True while the effect should stay in the runner queue.
 	*/
 	tick() {
-		this._frame++;
-		const t = this._frame / this._durationFrames;
+		this.setFrame(this.frame() + 1);
+		const t = this.frame() / this.durationFrames();
 		const envelope = Math.sin(t * Math.PI);
-		this._sprite.rotation = this._baseRotation + envelope * this._peakRadians;
-		if (this._frame >= this._durationFrames) {
+		this.sprite().rotation = this.baseRotation() + envelope * this.peakRadians();
+		if (this.frame() >= this.durationFrames()) {
 			this.restore();
-			JuiceMotionManager.relinquishSpriteLock(this._sprite);
+			JuiceMotionManager.relinquishSpriteLock(this.sprite());
 			return false;
 		}
 		return true;
@@ -1497,6 +1658,69 @@ var JuiceTiltMotionEffect = class extends JuiceBaseEffect {
 * One-shot scale squash / stretch envelope on a sprite (body squish juice).
 */
 var JuiceSquishMotionEffect = class extends JuiceBaseEffect {
+	/**
+	* Gets the sprite.
+	* @returns {*} The sprite.
+	*/
+	sprite() {
+		return this._sprite;
+	}
+	/**
+	* Gets the base scale x.
+	* @returns {number} The baseScaleX.
+	*/
+	baseScaleX() {
+		return this._baseScaleX;
+	}
+	/**
+	* Gets the base scale y.
+	* @returns {number} The baseScaleY.
+	*/
+	baseScaleY() {
+		return this._baseScaleY;
+	}
+	/**
+	* Gets the frame.
+	* @returns {number} The frame.
+	*/
+	frame() {
+		return this._frame;
+	}
+	/**
+	* Sets the frame.
+	* @param {number} newFrame The new frame.
+	*/
+	setFrame(newFrame) {
+		this._frame = newFrame;
+	}
+	/**
+	* Gets the duration frames.
+	* @returns {number} The durationFrames.
+	*/
+	durationFrames() {
+		return this._durationFrames;
+	}
+	/**
+	* Gets the intensity scale.
+	* @returns {*} The intensityScale.
+	*/
+	intensityScale() {
+		return this._intensityScale;
+	}
+	/**
+	* Gets the repeats remaining.
+	* @returns {*} The repeatsRemaining.
+	*/
+	repeatsRemaining() {
+		return this._repeatsRemaining;
+	}
+	/**
+	* Sets the repeats remaining.
+	* @param {*} newRepeatsRemaining The new repeatsRemaining.
+	*/
+	setRepeatsRemaining(newRepeatsRemaining) {
+		this._repeatsRemaining = newRepeatsRemaining;
+	}
 	/**
 	* @param {Sprite} sprite The Pixi sprite being driven.
 	* @param {number} intensityScale Max delta applied via sine envelope (e.g. 0.12).
@@ -1524,34 +1748,34 @@ var JuiceSquishMotionEffect = class extends JuiceBaseEffect {
 	* @returns {boolean}
 	*/
 	isSpriteAlive() {
-		return !!this._sprite.transform;
+		return !!this.sprite().transform;
 	}
 	/**
 	* Snaps the sprite back to the baseline captured at construction time.
 	*/
 	restore() {
-		this._sprite.scale.x = this._baseScaleX;
-		this._sprite.scale.y = this._baseScaleY;
+		this.sprite().scale.x = this.baseScaleX();
+		this.sprite().scale.y = this.baseScaleY();
 	}
 	/**
 	* Advances one frame of the squish envelope.
 	* @returns {boolean} True while the effect should stay in the runner queue.
 	*/
 	tick() {
-		this._frame++;
-		const t = this._frame / this._durationFrames;
+		this.setFrame(this.frame() + 1);
+		const t = this.frame() / this.durationFrames();
 		const envelope = Math.sin(t * Math.PI);
-		const mul = 1 + envelope * this._intensityScale;
-		this._sprite.scale.x = this._baseScaleX * mul;
-		this._sprite.scale.y = this._baseScaleY * (1 / mul);
-		if (this._frame >= this._durationFrames) {
-			this._repeatsRemaining--;
-			if (this._repeatsRemaining > 0) {
-				this._frame = 0;
+		const mul = 1 + envelope * this.intensityScale();
+		this.sprite().scale.x = this.baseScaleX() * mul;
+		this.sprite().scale.y = this.baseScaleY() * (1 / mul);
+		if (this.frame() >= this.durationFrames()) {
+			this.setRepeatsRemaining(this.repeatsRemaining() - 1);
+			if (this.repeatsRemaining() > 0) {
+				this.setFrame(0);
 				return true;
 			}
 			this.restore();
-			JuiceMotionManager.relinquishSpriteLock(this._sprite);
+			JuiceMotionManager.relinquishSpriteLock(this.sprite());
 			return false;
 		}
 		return true;
@@ -1564,6 +1788,62 @@ var JuiceSquishMotionEffect = class extends JuiceBaseEffect {
 * Continuous scale shimmer while a caller-supplied predicate stays true (casting juice).
 */
 var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
+	/**
+	* Gets the sprite.
+	* @returns {*} The sprite.
+	*/
+	sprite() {
+		return this._sprite;
+	}
+	/**
+	* Gets the base scale x.
+	* @returns {number} The baseScaleX.
+	*/
+	baseScaleX() {
+		return this._baseScaleX;
+	}
+	/**
+	* Gets the base scale y.
+	* @returns {number} The baseScaleY.
+	*/
+	baseScaleY() {
+		return this._baseScaleY;
+	}
+	/**
+	* Gets the base blend color.
+	* @returns {*} The baseBlendColor.
+	*/
+	baseBlendColor() {
+		return this._baseBlendColor;
+	}
+	/**
+	* Gets the base color tone.
+	* @returns {*} The baseColorTone.
+	*/
+	baseColorTone() {
+		return this._baseColorTone;
+	}
+	/**
+	* Gets the phase.
+	* @returns {number} The phase.
+	*/
+	phase() {
+		return this._phase;
+	}
+	/**
+	* Sets the phase.
+	* @param {number} newPhase The new phase.
+	*/
+	setPhase(newPhase) {
+		this._phase = newPhase;
+	}
+	/**
+	* Gets the amplitude scale.
+	* @returns {*} The amplitudeScale.
+	*/
+	amplitudeScale() {
+		return this._amplitudeScale;
+	}
 	/**
 	* @param {Sprite} sprite The Pixi sprite being driven.
 	* @param {number} amplitudeScale Scale wobble amplitude (small, e.g. 0.04).
@@ -1589,16 +1869,16 @@ var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
 	* @returns {boolean}
 	*/
 	isSpriteAlive() {
-		return !!this._sprite.transform;
+		return !!this.sprite().transform;
 	}
 	/**
 	* Snaps scale back to the baseline captured at construction time.
 	*/
 	restore() {
-		this._sprite.scale.x = this._baseScaleX;
-		this._sprite.scale.y = this._baseScaleY;
-		this._sprite.setBlendColor(this._baseBlendColor);
-		this._sprite.setColorTone(this._baseColorTone);
+		this.sprite().scale.x = this.baseScaleX();
+		this.sprite().scale.y = this.baseScaleY();
+		this.sprite().setBlendColor(this.baseBlendColor());
+		this.sprite().setColorTone(this.baseColorTone());
 	}
 	/**
 	* Advances one frame of the casting pulse.
@@ -1607,24 +1887,24 @@ var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
 	tick() {
 		if (this._continuePredicate() === false) {
 			this.restore();
-			JuiceMotionManager.relinquishSpriteLock(this._sprite);
+			JuiceMotionManager.relinquishSpriteLock(this.sprite());
 			return false;
 		}
-		this._phase++;
+		this.setPhase(this.phase() + 1);
 		const startPeriodFrames = 60;
 		const endPeriodFrames = 24;
 		const rampDurationFrames = 180;
-		const t = Math.min(this._phase / rampDurationFrames, 1);
+		const t = Math.min(this.phase() / rampDurationFrames, 1);
 		const periodFrames = Math.round(startPeriodFrames + (endPeriodFrames - startPeriodFrames) * t);
-		const phaseRadians = this._phase % periodFrames / periodFrames * (Math.PI * 2);
+		const phaseRadians = this.phase() % periodFrames / periodFrames * (Math.PI * 2);
 		const wave = Math.sin(phaseRadians);
-		const mul = 1 + wave * this._amplitudeScale;
-		this._sprite.scale.x = this._baseScaleX * mul;
-		this._sprite.scale.y = this._baseScaleY * mul;
+		const mul = 1 + wave * this.amplitudeScale();
+		this.sprite().scale.x = this.baseScaleX() * mul;
+		this.sprite().scale.y = this.baseScaleY() * mul;
 		const glowMin = 0;
 		const glowMax = 96;
 		const glowAlpha = Math.round((wave + 1) / 2 * (glowMax - glowMin) + glowMin);
-		this._sprite.setBlendColor([
+		this.sprite().setBlendColor([
 			180,
 			220,
 			255,
@@ -1646,6 +1926,69 @@ var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
 * This is a known limitation of the current approach.
 */
 var JuiceFlipBodyMotionEffect = class extends JuiceBaseEffect {
+	/**
+	* Gets the sprite.
+	* @returns {*} The sprite.
+	*/
+	sprite() {
+		return this._sprite;
+	}
+	/**
+	* Gets the base rotation.
+	* @returns {*} The baseRotation.
+	*/
+	baseRotation() {
+		return this._baseRotation;
+	}
+	/**
+	* Gets the base anchor x.
+	* @returns {number} The baseAnchorX.
+	*/
+	baseAnchorX() {
+		return this._baseAnchorX;
+	}
+	/**
+	* Gets the base anchor y.
+	* @returns {number} The baseAnchorY.
+	*/
+	baseAnchorY() {
+		return this._baseAnchorY;
+	}
+	/**
+	* Gets the frame.
+	* @returns {number} The frame.
+	*/
+	frame() {
+		return this._frame;
+	}
+	/**
+	* Sets the frame.
+	* @param {number} newFrame The new frame.
+	*/
+	setFrame(newFrame) {
+		this._frame = newFrame;
+	}
+	/**
+	* Gets the duration frames.
+	* @returns {number} The durationFrames.
+	*/
+	durationFrames() {
+		return this._durationFrames;
+	}
+	/**
+	* Gets the direction sign.
+	* @returns {*} The directionSign.
+	*/
+	directionSign() {
+		return this._directionSign;
+	}
+	/**
+	* Gets the repeat count.
+	* @returns {number} The repeatCount.
+	*/
+	repeatCount() {
+		return this._repeatCount;
+	}
 	/**
 	* @param {Sprite} sprite The Pixi sprite being driven.
 	* @param {number} directionSign +1 for clockwise (flip), -1 for counter-clockwise (flip-reverse).
@@ -1670,16 +2013,16 @@ var JuiceFlipBodyMotionEffect = class extends JuiceBaseEffect {
 	* @returns {boolean}
 	*/
 	isSpriteAlive() {
-		return !!this._sprite.transform;
+		return !!this.sprite().transform;
 	}
 	/**
 	* Snaps rotation and anchor back to the baselines captured at construction time.
 	*/
 	restore() {
-		this._sprite._juiceFlipping = false;
-		this._sprite.rotation = this._baseRotation;
-		this._sprite.anchor.x = this._baseAnchorX;
-		this._sprite.anchor.y = this._baseAnchorY;
+		this.sprite()._juiceFlipping = false;
+		this.sprite().rotation = this.baseRotation();
+		this.sprite().anchor.x = this.baseAnchorX();
+		this.sprite().anchor.y = this.baseAnchorY();
 	}
 	/**
 	* Advances one frame of the flip envelope.
@@ -1687,13 +2030,13 @@ var JuiceFlipBodyMotionEffect = class extends JuiceBaseEffect {
 	* @returns {boolean} True while the effect should stay in the runner queue.
 	*/
 	tick() {
-		this._sprite._juiceFlipping = true;
-		this._frame++;
-		const t = this._frame / this._durationFrames;
-		this._sprite.rotation = this._baseRotation + this._directionSign * t * (Math.PI * 2) * this._repeatCount;
-		if (this._frame >= this._durationFrames) {
+		this.sprite()._juiceFlipping = true;
+		this.setFrame(this.frame() + 1);
+		const t = this.frame() / this.durationFrames();
+		this.sprite().rotation = this.baseRotation() + this.directionSign() * t * (Math.PI * 2) * this.repeatCount();
+		if (this.frame() >= this.durationFrames()) {
 			this.restore();
-			JuiceMotionManager.relinquishSpriteLock(this._sprite);
+			JuiceMotionManager.relinquishSpriteLock(this.sprite());
 			return false;
 		}
 		return true;
@@ -2396,9 +2739,16 @@ Scene_Map.prototype.terminate = function() {
 J.ABS.EXT.JUICE.Aliased.Sprite_Character.set("updatePosition", Sprite_Character.prototype.updatePosition);
 Sprite_Character.prototype.updatePosition = function() {
 	J.ABS.EXT.JUICE.Aliased.Sprite_Character.get("updatePosition").call(this);
-	if (this._juiceFlipping === true) {
+	if (this.juiceFlipping() === true) {
 		this.y -= this.height / 2;
 	}
+};
+/**
+* Gets the juice flipping.
+* @returns {*} The juiceFlipping.
+*/
+Sprite_Character.prototype.juiceFlipping = function() {
+	return this._juiceFlipping;
 };
 
 //#endregion

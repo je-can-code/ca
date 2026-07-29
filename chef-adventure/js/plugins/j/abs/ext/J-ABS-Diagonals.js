@@ -628,11 +628,11 @@ J.ABS.EXT.DIAG.Aliased.Game_Player.set("moveDiagonally", Game_Player.prototype.m
 Game_Player.prototype.moveDiagonally = function(horz, vert) {
 	J.ABS.EXT.DIAG.Aliased.Game_Player.get("moveDiagonally").call(this, horz, vert);
 	if (this.isMovementSucceeded() === true) return;
-	this.setMovementSuccess(this.canPass(this._x, this._y, vert));
+	this.setMovementSuccess(this.canPass(this.x, this.y, vert));
 	if (this.isMovementSucceeded()) {
 		this.moveStraight(vert);
 	}
-	this.setMovementSuccess(this.canPass(this._x, this._y, horz));
+	this.setMovementSuccess(this.canPass(this.x, this.y, horz));
 	if (this.isMovementSucceeded()) {
 		this.moveStraight(horz);
 	}

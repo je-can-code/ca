@@ -151,6 +151,27 @@ var Window_SkillDetail = class extends Window_Base {
 		this.refresh();
 	}
 	/**
+	* Gets the skill id.
+	* @returns {number} The skillId.
+	*/
+	skillId() {
+		return this._skillId;
+	}
+	/**
+	* Gets the actor.
+	* @returns {Game_Actor} The actor.
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
+	* Gets the skill sprites.
+	* @returns {Map<string, Sprite>} The skillSprites.
+	*/
+	skillSprites() {
+		return this._skillSprites;
+	}
+	/**
 	* Sets the skill id of the window to this and refreshes the data.
 	* @param {number} newSkillId The new skill id for this window.
 	*/
@@ -168,13 +189,13 @@ var Window_SkillDetail = class extends Window_Base {
 	* @returns {RPG_Skill|null}
 	*/
 	skill() {
-		if (!this._skillId) {
+		if (!this.skillId()) {
 			return null;
 		} else {
-			if (J.EXTEND && this._actor) {
-				return OverlayManager.getExtendedSkill(this._actor, this._skillId);
+			if (J.EXTEND && this.actor()) {
+				return this.actor().skill(this.skillId());
 			}
-			return $dataSkills[this._skillId];
+			return $dataSkills[this.skillId()];
 		}
 	}
 	/**
@@ -196,7 +217,7 @@ var Window_SkillDetail = class extends Window_Base {
 	* Hides all skill images available.
 	*/
 	clearSkillImages() {
-		this._skillSprites.forEach((sprite) => {
+		this.skillSprites().forEach((sprite) => {
 			sprite.hide();
 		});
 	}
@@ -252,14 +273,14 @@ var Window_SkillDetail = class extends Window_Base {
 	* @param {number} iconIndex The icon index of this sprite.
 	*/
 	createIconSprite(key, iconIndex) {
-		let sprite = this._skillSprites.get(key);
+		let sprite = this.skillSprites().get(key);
 		if (sprite) {
 			return sprite;
 		} else {
 			sprite = new Sprite_Icon(iconIndex);
 			sprite.scale.x = 4;
 			sprite.scale.y = 4;
-			this._skillSprites.set(key, sprite);
+			this.skillSprites().set(key, sprite);
 			this.addInnerChild(sprite);
 			return sprite;
 		}
@@ -269,7 +290,7 @@ var Window_SkillDetail = class extends Window_Base {
 	*/
 	drawLeftColumn() {
 		const skill = this.skill();
-		const actor = this._actor;
+		const actor = this.actor();
 		const params = [];
 		params.push(this.makeSkillTypeParam(skill));
 		params.push(this.makeDividerParam());
@@ -299,7 +320,7 @@ var Window_SkillDetail = class extends Window_Base {
 	*/
 	drawMiddleColumn() {
 		const skill = this.skill();
-		const actor = this._actor;
+		const actor = this.actor();
 		const params = [];
 		params.push(this.makeProjectedDamageParam(skill, actor));
 		params.push(this.makeHitsParam(skill, actor));
@@ -382,7 +403,7 @@ var Window_SkillDetail = class extends Window_Base {
 	*/
 	drawRightColumn() {
 		const skill = this.skill();
-		const actor = this._actor;
+		const actor = this.actor();
 		/** @type {JCMS_ParameterKvp[]} */
 		const params = [];
 		const col = Math.floor(this.innerWidth / 3);
@@ -659,7 +680,7 @@ Scene_Skill.prototype.skillTypeWindowRect = function() {
 Scene_Skill.prototype.createSkillDetailWindow = function() {
 	const rect = this.skillDetailRect();
 	this._skillDetailWindow = new Window_SkillDetail(rect);
-	this._itemWindow.setSkillDetailWindow(this._skillDetailWindow);
+	this.itemWindow().setSkillDetailWindow(this._skillDetailWindow);
 	this.addWindow(this._skillDetailWindow);
 };
 /**
@@ -668,9 +689,9 @@ Scene_Skill.prototype.createSkillDetailWindow = function() {
 */
 Scene_Skill.prototype.skillDetailRect = function() {
 	const ww = Graphics.boxWidth - this.mainCommandWidth();
-	const wh = this.mainAreaHeight() - this._statusWindow.height;
+	const wh = this.mainAreaHeight() - this.statusWindow().height;
 	const wx = this.isRightInputMode() ? 0 : Graphics.boxWidth - ww;
-	const wy = this.mainAreaTop() + this._statusWindow.height;
+	const wy = this.mainAreaTop() + this.statusWindow().height;
 	return new Rectangle(wx, wy, ww, wh);
 };
 Scene_Skill.prototype.mainCommandWidth = () => 400;
@@ -687,9 +708,9 @@ Scene_Skill.prototype.createButtons = function() {};
 Scene_Skill.prototype.buttonAreaHeight = () => 0;
 Scene_Skill.prototype.itemWindowRect = function() {
 	const ww = this.mainCommandWidth();
-	const wh = this.mainAreaHeight() - this._statusWindow.height;
+	const wh = this.mainAreaHeight() - this.statusWindow().height;
 	const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
-	const wy = this._statusWindow.y + this._statusWindow.height;
+	const wy = this.statusWindow().y + this.statusWindow().height;
 	return new Rectangle(wx, wy, ww, wh);
 };
 
@@ -720,14 +741,14 @@ Window_SkillList.prototype.setSkillDetailWindow = function(newWindow) {
 * Refreshes the skill details window.
 */
 Window_SkillList.prototype.refreshSkillDetailWindow = function() {
-	if (!this._skillDetailWindow) return;
+	if (!this.skillDetailWindow()) return;
 	let id = 0;
 	const item = this.item();
 	if (item) {
 		({id} = item);
 	}
-	this._skillDetailWindow.setActor(this._actor);
-	this._skillDetailWindow.setSkillId(id);
+	this.skillDetailWindow().setActor(this.actor());
+	this.skillDetailWindow().setSkillId(id);
 };
 /**
 * Extends `.select()` to also update our skill detail window if need-be.
@@ -762,10 +783,17 @@ Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width) {};
 */
 Window_SkillList.prototype.includes = function(skill) {
 	if (!skill) return false;
-	const matchesSkillTypeId = skill.stypeId === this._stypeId;
-	if (!this._actor) return matchesSkillTypeId;
-	const matchesWeaponTypeId = this._actor.isSkillWtypeOk(skill);
+	const matchesSkillTypeId = skill.stypeId === this.stypeId();
+	if (!this.actor()) return matchesSkillTypeId;
+	const matchesWeaponTypeId = this.actor().isSkillWtypeOk(skill);
 	return matchesSkillTypeId && matchesWeaponTypeId;
+};
+/**
+* Gets the skill detail window.
+* @returns {Window_Base} The skillDetailWindow.
+*/
+Window_SkillList.prototype.skillDetailWindow = function() {
+	return this._skillDetailWindow;
 };
 
 //#endregion
@@ -780,7 +808,7 @@ Window_SkillType.prototype.maxCols = function() {
 };
 Window_SkillType.prototype.makeCommandList = function() {
 	/** @type {Game_Actor} */
-	const currentActor = this._actor;
+	const currentActor = this.actor();
 	if (!currentActor) return;
 	/** @type {number[]} */
 	const skillTypeIds = currentActor.addedSkillTypes().filter((x, i, self) => self.indexOf(x) === i);

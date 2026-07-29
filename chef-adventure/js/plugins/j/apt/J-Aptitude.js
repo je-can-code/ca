@@ -323,7 +323,7 @@ var AptitudeProgress = class {
 	* @returns {AptitudeLearning|null} The current learning for the skill, or null if it doesn't exist.
 	*/
 	learningBySkillId(skillId) {
-		return this._learnings[skillId] ?? null;
+		return this.learnings()[skillId] ?? null;
 	}
 	/**
 	* Determines whether or not this aptitude progress has a learning for the given skill.
@@ -331,7 +331,7 @@ var AptitudeProgress = class {
 	* @returns {boolean} True if the skill exists on this progress, false otherwise.
 	*/
 	hasLearning(skillId) {
-		return this._learnings[skillId] !== undefined;
+		return this.learnings()[skillId] !== undefined;
 	}
 	/**
 	* Adds or updates a learning for this aptitude progress.
@@ -880,7 +880,7 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 */
 Game_Actor.prototype.getAllAptitudeProgresses = function() {
 	if (!this._j._aptitude) this.initAptitudeMembers();
-	return this._j._aptitude._progress;
+	return this.progress();
 };
 /**
 * Gets all learned aptitude skills for this actor.
@@ -888,7 +888,7 @@ Game_Actor.prototype.getAllAptitudeProgresses = function() {
 */
 Game_Actor.prototype.getAllAptitudeSkillsLearned = function() {
 	if (!this._j._aptitude) this.initAptitudeMembers();
-	return this._j._aptitude._learned;
+	return this.learned();
 };
 /**
 * Builds per‑skill aptitude aggregates across all current sources on this actor.
@@ -919,7 +919,7 @@ Game_Actor.prototype.getAptitudeSkillAggregates = function() {
 */
 Game_Actor.prototype.getAptitudeProgress = function(key) {
 	if (!this._j._aptitude) this.initAptitudeMembers();
-	return this._j._aptitude._progress[key] ?? null;
+	return this.progress()[key] ?? null;
 };
 /**
 * Determines whether or not the actor has a progress for the given key.
@@ -927,7 +927,7 @@ Game_Actor.prototype.getAptitudeProgress = function(key) {
 * @returns {boolean} True if the actor has progress for the key, false otherwise.
 */
 Game_Actor.prototype.hasAptitudeProgress = function(key) {
-	return this._j._aptitude._progress[key] !== undefined;
+	return this.progress()[key] !== undefined;
 };
 /**
 * Sets the aptitude progress for the given key, skill id, and current AP.
@@ -1009,7 +1009,7 @@ Game_Actor.prototype.getAptitudeSources = function() {
 * @returns {boolean} True if the actor has the aptitude skill registered, false otherwise.
 */
 Game_Actor.prototype.hasAptitudeSkill = function(skillId) {
-	return this._j._aptitude._learned[skillId] !== undefined;
+	return this.learned()[skillId] !== undefined;
 };
 /**
 * Gets the aptitude skill for the given skill id.
@@ -1017,7 +1017,7 @@ Game_Actor.prototype.hasAptitudeSkill = function(skillId) {
 * @returns {AptitudeSkill|null} The aptitude skill for the given skill id, or null if it doesn't exist.
 */
 Game_Actor.prototype.getAptitudeSkill = function(skillId) {
-	return this._j._aptitude._learned[skillId];
+	return this.learned()[skillId];
 };
 /**
 * Sets the aptitude skill for the given skill id.
@@ -1025,7 +1025,7 @@ Game_Actor.prototype.getAptitudeSkill = function(skillId) {
 * @param {AptitudeSkill} aptitudeSkill The aptitude skill to set.
 */
 Game_Actor.prototype.setAptitudeSkill = function(skillId, aptitudeSkill) {
-	this._j._aptitude._learned[skillId] = aptitudeSkill;
+	this.learned()[skillId] = aptitudeSkill;
 };
 /**
 * Gets whether or not this actor has learned the given skill from an aptitude.
@@ -1060,6 +1060,20 @@ Game_Actor.prototype.learnAptitudeSkill = function(skillId, sourceKey) {
 */
 Game_Actor.prototype.createAptitudeSkill = function(skillId, isLearned = false) {
 	return new AptitudeSkill(skillId, isLearned);
+};
+/**
+* Gets the accumulated aptitude progress, keyed by aptitude.
+* @returns {Object<string, number>} The progress per aptitude.
+*/
+Game_Actor.prototype.progress = function() {
+	return this._j._aptitude._progress;
+};
+/**
+* Gets the aptitude-granted skills this actor has already learned.
+* @returns {Object<string, number[]>} The learned skills per aptitude.
+*/
+Game_Actor.prototype.learned = function() {
+	return this._j._aptitude._learned;
 };
 
 //#endregion
@@ -1389,10 +1403,10 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 J.APT.Aliased.BattleManager.set("makeRewards", BattleManager.makeRewards);
 BattleManager.makeRewards = function() {
 	J.APT.Aliased.BattleManager.get("makeRewards").call(this);
-	this._rewards = {
-		...this._rewards,
+	this.setRewards({
+		...this.rewards(),
 		aptitudeAp: $gameTroop.aptitudeApTotal()
-	};
+	});
 };
 /**
 * Extends {@link #gainRewards}.<br/>
@@ -1407,7 +1421,7 @@ BattleManager.gainRewards = function() {
 * Performs the AP award for all members of the party after battle.
 */
 BattleManager.gainAptitudeApRewards = function() {
-	const { aptitudeAp } = this._rewards;
+	const { aptitudeAp } = this.rewards();
 	if (!aptitudeAp) return;
 	$gameParty.members().forEach((actor) => ApManager.gainAp(actor, aptitudeAp, "victory"));
 };
@@ -1424,7 +1438,7 @@ BattleManager.displayRewards = function() {
 * Displays the AP victory text in the victory log.
 */
 BattleManager.displayAptitudeAp = function() {
-	const { aptitudeAp } = this._rewards;
+	const { aptitudeAp } = this.rewards();
 	if (!aptitudeAp) return;
 	const text = `\\. ${aptitudeAp} AP gained`;
 	$gameMessage.add(text);
@@ -1526,6 +1540,7 @@ var Window_AptitudeRibbon = class extends Window_ActorRibbon {
 	* @param {string} target The target to show a hint for.
 	*/
 	setToggleHintTarget(target) {
+		if (this._toggleHintTarget === target) return;
 		this._toggleHintTarget = target;
 		this.refresh();
 	}
@@ -1620,7 +1635,7 @@ var Window_AptitudeAggregateList = class extends Window_Command {
 	* @returns {AptitudeSkillAggregate[]}
 	*/
 	aggregates() {
-		return this._aggregates || [];
+		return this._aggregates;
 	}
 	/**
 	* Sets the prebuilt aggregates for rendering.
@@ -1713,7 +1728,7 @@ var Window_AptitudeSourceList = class extends Window_Command {
 	* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_Weapon|RPG_Armor|RPG_Skill|RPG_State)[]}
 	*/
 	sources() {
-		return this._sources || [];
+		return this._sources;
 	}
 	/**
 	* Sets the sources for this window.
@@ -1809,7 +1824,7 @@ var Window_AptitudeAggregateDetails = class extends Window_Base {
 	*/
 	setActor(actor) {
 		if (this.actor() === actor) return;
-		this._actor = actor;
+		this.setActor(actor);
 		this._aggregate = null;
 		this.refresh();
 	}
@@ -1834,7 +1849,7 @@ var Window_AptitudeAggregateDetails = class extends Window_Base {
 	* @returns {number}
 	*/
 	nextY() {
-		return this._nextY || 0;
+		return this._nextY;
 	}
 	/**
 	* Sets the next y position for drawing.
@@ -2091,7 +2106,7 @@ var Window_AptitudeSourceDetails = class extends Window_Base {
 	* @returns {number}
 	*/
 	nextY() {
-		return this._nextY || 0;
+		return this._nextY;
 	}
 	/**
 	* Sets the next y position for drawing.
@@ -2305,6 +2320,13 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		this.initPrimaryMembers();
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Initializes the core aptitude members.
 	*/
 	initCoreMembers() {
@@ -2383,7 +2405,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* Applies initial visibility and selection to match the current view mode.
 	* Ensures index 0 is selected (or the remembered index) and details are set.
 	*/
-	initializeView() {
+	static initializeView() {
 		this.resetSelectionTrackers();
 		const startIndex = this.viewMode() === Scene_Aptitude.viewMode.AGGREGATE ? this.lastAggregateIndex() : this.lastSourceIndex();
 		if (this.viewMode() === Scene_Aptitude.viewMode.AGGREGATE) {
@@ -2402,7 +2424,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	*/
 	lastAggregateIndex() {
 		const actorId = this.actor().actorId();
-		const map = this._j._aptitude._lastAggregateIndexByActor;
+		const map = this.j()._aptitude._lastAggregateIndexByActor;
 		if (map[actorId] === undefined) {
 			map[actorId] = 0;
 		}
@@ -2414,7 +2436,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	*/
 	setLastAggregateIndex(index) {
 		const actorId = this.actor().actorId();
-		this._j._aptitude._lastAggregateIndexByActor[actorId] = index;
+		this.j()._aptitude._lastAggregateIndexByActor[actorId] = index;
 	}
 	/**
 	* Gets the last index tracked in the source list window for the current actor.
@@ -2422,7 +2444,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	*/
 	lastSourceIndex() {
 		const actorId = this.actor().actorId();
-		const map = this._j._aptitude._lastSourceIndexByActor;
+		const map = this.j()._aptitude._lastSourceIndexByActor;
 		if (map[actorId] === undefined) {
 			map[actorId] = 0;
 		}
@@ -2434,7 +2456,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	*/
 	setLastSourceIndex(index) {
 		const actorId = this.actor().actorId();
-		this._j._aptitude._lastSourceIndexByActor[actorId] = index;
+		this.j()._aptitude._lastSourceIndexByActor[actorId] = index;
 	}
 	/**
 	* Ensures selection tracker indices exist for the current actor without overwriting them.
@@ -2442,11 +2464,11 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	*/
 	resetSelectionTrackers() {
 		const actorId = this.actor().actorId();
-		const aggMap = this._j._aptitude._lastAggregateIndexByActor;
+		const aggMap = this.j()._aptitude._lastAggregateIndexByActor;
 		if (aggMap[actorId] === undefined) {
 			aggMap[actorId] = 0;
 		}
-		const srcMap = this._j._aptitude._lastSourceIndexByActor;
+		const srcMap = this.j()._aptitude._lastSourceIndexByActor;
 		if (srcMap[actorId] === undefined) {
 			srcMap[actorId] = 0;
 		}
@@ -2456,14 +2478,14 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {AptitudeSkillAggregate[]}
 	*/
 	aggregates() {
-		return this._j._aptitude._aggregates;
+		return this.j()._aptitude._aggregates;
 	}
 	/**
 	* Sets the cached list of per‑skill aggregates for the current actor.
 	* @param {AptitudeSkillAggregate[]} aggregates The new aggregates.
 	*/
 	setAggregates(aggregates) {
-		this._j._aptitude._aggregates = aggregates;
+		this.j()._aptitude._aggregates = aggregates;
 	}
 	/**
 	* Rebuilds the aggregates cache for the current actor.
@@ -2477,14 +2499,14 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_Weapon|RPG_Armor|RPG_Skill|RPG_State)[]}
 	*/
 	sources() {
-		return this._j._aptitude._sources;
+		return this.j()._aptitude._sources;
 	}
 	/**
 	* Sets the aptitude sources for the current actor.
 	* @param {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_Weapon|RPG_Armor|RPG_Skill|RPG_State)[]} sources The new sources.
 	*/
 	setSources(sources) {
-		this._j._aptitude._sources = sources;
+		this.j()._aptitude._sources = sources;
 	}
 	/**
 	* Rebuilds the sources cache for the current actor.
@@ -2499,20 +2521,20 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {string}
 	*/
 	viewMode() {
-		return this._j._aptitude._viewMode;
+		return this.j()._aptitude._viewMode;
 	}
 	/**
 	* Sets the current view mode to the aggregate view.
 	*/
 	setViewModeToAggregate() {
-		this._j._aptitude._viewMode = Scene_Aptitude.viewMode.AGGREGATE;
+		this.j()._aptitude._viewMode = Scene_Aptitude.viewMode.AGGREGATE;
 		this.aptitudeRibbonWindow().setToggleHintTarget("the sources");
 	}
 	/**
 	* Sets the current view mode to the source view.
 	*/
 	setViewModeToSource() {
-		this._j._aptitude._viewMode = Scene_Aptitude.viewMode.SOURCE;
+		this.j()._aptitude._viewMode = Scene_Aptitude.viewMode.SOURCE;
 		this.aptitudeRibbonWindow().setToggleHintTarget("your skills");
 	}
 	/**
@@ -2585,7 +2607,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		const win = new Window_AptitudeRibbon(rect);
 		win.setActor(this.actor());
 		win.setToggleHintTarget("the sources");
-		this._j._aptitude._windows._ribbon = win;
+		this.j()._aptitude._windows._ribbon = win;
 		this.addWindow(win);
 	}
 	/**
@@ -2606,7 +2628,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {Window_AptitudeRibbon|null}
 	*/
 	aptitudeRibbonWindow() {
-		return this._j._aptitude._windows._ribbon;
+		return this.j()._aptitude._windows._ribbon;
 	}
 	/**
 	* Creates the aptitude aggregate list window.
@@ -2621,7 +2643,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		win.setHandler("context", this.toggleViewMode.bind(this));
 		win.setHandler("actor-prev", this.onCycleActorLeft.bind(this));
 		win.setHandler("actor-next", this.onCycleActorRight.bind(this));
-		this._j._aptitude._windows._aggregateList = win;
+		this.j()._aptitude._windows._aggregateList = win;
 		this.addWindow(win);
 	}
 	/**
@@ -2642,7 +2664,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {Window_AptitudeAggregateList|null}
 	*/
 	aptitudeAggregateListWindow() {
-		return this._j._aptitude._windows._aggregateList;
+		return this.j()._aptitude._windows._aggregateList;
 	}
 	/**
 	* Creates the aptitude source list window.
@@ -2659,7 +2681,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		win.setHandler("actor-next", this.onCycleActorRight.bind(this));
 		win.hide();
 		win.deactivate();
-		this._j._aptitude._windows._sourceList = win;
+		this.j()._aptitude._windows._sourceList = win;
 		this.addWindow(win);
 	}
 	/**
@@ -2674,7 +2696,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {Window_AptitudeSourceList|null}
 	*/
 	aptitudeSourceListWindow() {
-		return this._j._aptitude._windows._sourceList;
+		return this.j()._aptitude._windows._sourceList;
 	}
 	/**
 	* Creates the aptitude aggregate details window.
@@ -2683,7 +2705,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		const rect = this.aptitudeAggregateDetailsWindowRect();
 		const win = new Window_AptitudeAggregateDetails(rect);
 		win.setActor(this.actor());
-		this._j._aptitude._windows._aggregateDetails = win;
+		this.j()._aptitude._windows._aggregateDetails = win;
 		this.addWindow(win);
 	}
 	/**
@@ -2705,7 +2727,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {Window_AptitudeAggregateDetails|null}
 	*/
 	aptitudeAggregateDetailsWindow() {
-		return this._j._aptitude._windows._aggregateDetails;
+		return this.j()._aptitude._windows._aggregateDetails;
 	}
 	/**
 	* Creates the aptitude source details window.
@@ -2715,7 +2737,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		const win = new Window_AptitudeSourceDetails(rect);
 		win.setActor(this.actor());
 		win.hide();
-		this._j._aptitude._windows._sourceDetails = win;
+		this.j()._aptitude._windows._sourceDetails = win;
 		this.addWindow(win);
 	}
 	/**
@@ -2730,7 +2752,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {Window_AptitudeSourceDetails|null}
 	*/
 	aptitudeSourceDetailsWindow() {
-		return this._j._aptitude._windows._sourceDetails;
+		return this.j()._aptitude._windows._sourceDetails;
 	}
 	containerWidthPercent() {
 		return .9;
@@ -2996,7 +3018,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 J.APT.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function() {
 	J.APT.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this._commandWindow.setHandler("aptitude", this.commandAptitude.bind(this));
+	this.commandWindow().setHandler("aptitude", this.commandAptitude.bind(this));
 };
 /**
 * Opens the Aptitude scene.

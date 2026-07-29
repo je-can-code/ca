@@ -523,8 +523,8 @@ Game_Actor.prototype.skillProficiencies = function() {
 * @param {SkillProficiency} skillProficiency The newly acquired proficiency.
 */
 Game_Actor.prototype.addNewSkillProficiency = function(skillProficiency) {
-	this._j._proficiency._proficiencies.push(skillProficiency);
-	this._j._proficiency._proficiencies.sort();
+	this.skillProficiencies().push(skillProficiency);
+	this.skillProficiencies().sort();
 };
 /**
 * Gets all of this actor's skill proficiency conditionals, locked and unlocked.
@@ -545,7 +545,7 @@ Game_Actor.prototype.unlockedConditionals = function() {
 * @param {string} conditional The key of the conditional to unlock.
 */
 Game_Actor.prototype.addUnlockedConditional = function(conditional) {
-	this._j._proficiency._unlockedConditionals.push(conditional);
+	this.unlockedConditionals().push(conditional);
 };
 /**
 * Gets all of this actor's skill proficiency conditionals that include a requirement of the provided skillId.
@@ -749,10 +749,10 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 * Updates the skill proficiency gains for this actor.
 */
 Game_Actor.prototype.updateBonusSkillProficiencyGains = function() {
-	if (this._j._proficiency._bonusSkillProficiencyGains === undefined || this._j._proficiency._bonusSkillProficiencyGains === null) {
-		this._j._proficiency._bonusSkillProficiencyGains = 0;
+	if (this.bonusSkillProficiencyGains() === undefined || this.bonusSkillProficiencyGains() === null) {
+		this.setBonusSkillProficiencyGains(0);
 	}
-	this._j._proficiency._bonusSkillProficiencyGains = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyBonus);
+	this.setBonusSkillProficiencyGains(RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyBonus));
 };
 /**
 * Bonus proficiency gained when earning skill proficiency.
@@ -764,6 +764,20 @@ Object.defineProperty(Game_Actor.prototype, "prof", {
 	},
 	configurable: true
 });
+/**
+* Gets the bonus skill proficiency gains.
+* @returns {*} The bonusSkillProficiencyGains.
+*/
+Game_Actor.prototype.bonusSkillProficiencyGains = function() {
+	return this._j._proficiency._bonusSkillProficiencyGains;
+};
+/**
+* Sets the bonus skill proficiency gains.
+* @param {*} newBonusSkillProficiencyGains The new bonusSkillProficiencyGains.
+*/
+Game_Actor.prototype.setBonusSkillProficiencyGains = function(newBonusSkillProficiencyGains) {
+	this._j._proficiency._bonusSkillProficiencyGains = newBonusSkillProficiencyGains;
+};
 
 //#endregion
 //#region src/plugins/prof/core/objects/Game_Enemy.js
@@ -812,8 +826,8 @@ Game_Enemy.prototype.addSkillProficiency = function(skillId, initialProficiency 
 		return exists;
 	}
 	const proficiency = new SkillProficiency(skillId, initialProficiency);
-	this._j._profs.push(proficiency);
-	this._j._profs.sort();
+	this.skillProficiencies().push(proficiency);
+	this.skillProficiencies().sort();
 	return proficiency;
 };
 /**

@@ -433,6 +433,27 @@ IconManager.tst = function() {
 */
 var HealEventManager = class {
 	/**
+	* Gets the current depth.
+	* @returns {*} The currentDepth.
+	*/
+	static currentDepth() {
+		return this._currentDepth;
+	}
+	/**
+	* Sets the current depth.
+	* @param {*} newCurrentDepth The new currentDepth.
+	*/
+	static setCurrentDepth(newCurrentDepth) {
+		this._currentDepth = newCurrentDepth;
+	}
+	/**
+	* Gets the self blocked tags.
+	* @returns {*} The selfBlockedTags.
+	*/
+	static selfBlockedTags() {
+		return this._selfBlockedTags;
+	}
+	/**
 	* Tracks how many cascade rounds are currently in flight.
 	* Incremented at the start of each dispatch round and decremented on exit.
 	* @type {number}
@@ -471,13 +492,13 @@ var HealEventManager = class {
 	* @param {number} amount The positive amount that was recovered.
 	*/
 	static #dispatch(recipient, triggerKey, amount) {
-		if (this._currentDepth >= J.RESOURCES.EXT.ABS.Metadata.healChainDepth) return;
-		this._currentDepth++;
+		if (this.currentDepth() >= J.RESOURCES.EXT.ABS.Metadata.healChainDepth) return;
+		this.setCurrentDepth(this.currentDepth() + 1);
 		try {
 			this.#dispatchOnSelf(recipient, triggerKey, amount);
 			this.#dispatchOnAlly(recipient, triggerKey, amount);
 		} finally {
-			this._currentDepth--;
+			this.setCurrentDepth(this.currentDepth() - 1);
 		}
 	}
 	/**
@@ -509,16 +530,16 @@ var HealEventManager = class {
 		for (const outputKey of this.#outputKeys) {
 			const tuples = this.#getTuples(notes, false, triggerKey, outputKey);
 			for (const [percent, range, maxDepth] of tuples) {
-				if (this._currentDepth > maxDepth) continue;
+				if (this.currentDepth() > maxDepth) continue;
 				const secondary = Math.floor(amount * percent / 100);
 				if (secondary <= 0) continue;
 				const selfBlockKey = `${outputKey}:${recipient.getUuid()}`;
-				if (!this._selfBlockedTags.has(selfBlockKey)) {
-					this._selfBlockedTags.add(selfBlockKey);
+				if (!this.selfBlockedTags().has(selfBlockKey)) {
+					this.selfBlockedTags().add(selfBlockKey);
 					try {
 						this.#applySecondaryHeal(recipient, outputKey, secondary);
 					} finally {
-						this._selfBlockedTags.delete(selfBlockKey);
+						this.selfBlockedTags().delete(selfBlockKey);
 					}
 				}
 				if (range > 0) {
@@ -553,7 +574,7 @@ var HealEventManager = class {
 			for (const outputKey of this.#outputKeys) {
 				const tuples = this.#getTuples(notes, true, triggerKey, outputKey);
 				for (const [percent, range, maxDepth] of tuples) {
-					if (this._currentDepth > maxDepth) continue;
+					if (this.currentDepth() > maxDepth) continue;
 					if (distance > range) continue;
 					const secondary = Math.floor(amount * percent / 100);
 					if (secondary <= 0) continue;

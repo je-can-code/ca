@@ -410,7 +410,7 @@ Game_Interpreter.prototype.command301 = function(params) {
 	const hasTroop = !!$dataTroops[troopId];
 	if (hasTroop) {
 		BattleManager.setup(troopId, canEscape, canLose);
-		BattleManager.setEventCallback((n) => this._branch[this._indent] = n);
+		BattleManager.setEventCallback((n) => this.branch()[this.indent()] = n);
 		$gamePlayer.makeEncounterCount();
 	}
 	return true;

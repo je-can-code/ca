@@ -396,7 +396,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {number} height Outer height including the frame.
 	*/
 	#strokeBarOutline(x, y, width, height) {
-		const ctx = this.contents._context;
+		const ctx = this.contents.context;
 		ctx.save();
 		ctx.beginPath();
 		ctx.rect(x + .5, y + .5, width - 1, height - 1);

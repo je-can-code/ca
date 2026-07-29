@@ -190,10 +190,17 @@ J.UTILS.GamepadLog.logFreshPresses = function(pad, prev, next) {
 */
 Bitmap.prototype._createCanvas = function(width, height) {
 	this._canvas = document.createElement("canvas");
-	this._context = this._canvas.getContext("2d", { willReadFrequently: true });
+	this.setContext(this._canvas.getContext("2d", { willReadFrequently: true }));
 	this._canvas.width = width;
 	this._canvas.height = height;
 	this._createBaseTexture(this._canvas);
+};
+/**
+* Sets the 2d drawing context this bitmap renders through.
+* @param {CanvasRenderingContext2D} newContext The drawing context.
+*/
+Bitmap.prototype.setContext = function(newContext) {
+	this._context = newContext;
 };
 
 //#endregion
@@ -231,9 +238,9 @@ Input.keyMapper = {
 */
 J.UTILS.Aliased.Input.set("_updateGamepadState", Input._updateGamepadState);
 Input._updateGamepadState = function(gamepad) {
-	const prev = this._gamepadStates[gamepad.index] || [];
+	const prev = this.gamepadStates()[gamepad.index] || [];
 	J.UTILS.Aliased.Input.get("_updateGamepadState").call(this, gamepad);
-	const next = this._gamepadStates[gamepad.index] || [];
+	const next = this.gamepadStates()[gamepad.index] || [];
 	J.UTILS.GamepadLog.logFreshPresses(gamepad, prev, next);
 };
 
@@ -302,9 +309,9 @@ Game_Party.prototype.removeInvalidItemsFromParty = function() {
 			}
 		}
 	};
-	purgeContainer(this._items, $dataItems);
-	purgeContainer(this._weapons, $dataWeapons);
-	purgeContainer(this._armors, $dataArmors);
+	purgeContainer(this.rawItems(), $dataItems);
+	purgeContainer(this.rawWeapons(), $dataWeapons);
+	purgeContainer(this.rawArmors(), $dataArmors);
 	const members = this.members();
 	for (let i = 0; i < members.length; i++) {
 		const actor = members[i];

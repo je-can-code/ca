@@ -352,13 +352,13 @@ JABS_Battler.prototype.isPosing = function() {
 * Flags the battler to start posing.
 */
 JABS_Battler.prototype.startPosing = function() {
-	this._posing = true;
+	this.setPosing(true);
 };
 /**
 * Ends the battler's posing status.
 */
 JABS_Battler.prototype.endPosing = function() {
-	this._posing = false;
+	this.setPosing(false);
 };
 /**
 * Initializes the sprite info for this battler.
@@ -394,7 +394,7 @@ JABS_Battler.prototype.setPosePattern = function(pattern) {
 * @param {RPG_Skill} skill The skill to pose for.
 */
 JABS_Battler.prototype.performActionPose = function(skill) {
-	if (this._posing) {
+	if (this.isPosing()) {
 		this.endAnimation();
 	}
 	if (skill.jabsPoseData) {
@@ -537,6 +537,13 @@ J.ABS.EXT.POSES.Aliased.JABS_Battler.set("executeDodgeSkill", JABS_Battler.proto
 JABS_Battler.prototype.executeDodgeSkill = function(skill, forcedDirection8) {
 	J.ABS.EXT.POSES.Aliased.JABS_Battler.get("executeDodgeSkill").call(this, skill, forcedDirection8);
 	this.performActionPose(skill);
+};
+/**
+* Sets whether this battler is currently locked into a pose animation.
+* @param {boolean} newPosing True while posing.
+*/
+JABS_Battler.prototype.setPosing = function(newPosing) {
+	this._posing = newPosing;
 };
 
 //#endregion

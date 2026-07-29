@@ -751,7 +751,7 @@ var CraftingRecipe = class {
 	* @return {RPG_Item|RPG_Weapon|RPG_Armor}
 	*/
 	getPrimaryOutput() {
-		return this.outputs.at(0)?.getItem();
+		return this.outputs.at(0).getItem();
 	}
 	/**
 	* A debug function for receiving all materials required to craft this recipe.
@@ -1451,8 +1451,8 @@ Game_Party.prototype.initJaftingCreationMembers = function() {
 * Populates all jafting trackings from the current plugin metadata.
 */
 Game_Party.prototype.populateJaftingTrackings = function() {
-	this._j._crafting._recipeTrackings = J.JAFTING.EXT.CREATE.Metadata.recipes.map((recipe) => new RecipeTracking(recipe.key, recipe.unlockedByDefault));
-	this._j._crafting._categoryTrackings = J.JAFTING.EXT.CREATE.Metadata.categories.map((category) => new CategoryTracking(category.key, category.unlockedByDefault));
+	this.setRecipeTrackings(J.JAFTING.EXT.CREATE.Metadata.recipes.map((recipe) => new RecipeTracking(recipe.key, recipe.unlockedByDefault)));
+	this.setCategoryTrackings(J.JAFTING.EXT.CREATE.Metadata.categories.map((category) => new CategoryTracking(category.key, category.unlockedByDefault)));
 };
 /**
 * Refreshes all the recipe trackings from the plugin metadata.
@@ -1487,14 +1487,14 @@ Game_Party.prototype.updateCategoriesFromConfig = function() {
 * @return {RecipeTracking[]}
 */
 Game_Party.prototype.getAllRecipeTrackings = function() {
-	return this._j._crafting._recipeTrackings;
+	return this.recipeTrackings();
 };
 /**
 * Gets all jafting category trackings.
 * @return {CategoryTracking[]}
 */
 Game_Party.prototype.getAllCategoryTrackings = function() {
-	return this._j._crafting._categoryTrackings;
+	return this.categoryTrackings();
 };
 /**
 * Gets all recipe trackings that are unlocked.
@@ -1714,6 +1714,34 @@ Game_Party.prototype.updateVariableWithCraftedCountByCategories = function(varia
 	}, this);
 	$gameVariables.setValue(variableId, count);
 };
+/**
+* Gets the recipe trackings.
+* @returns {*} The recipeTrackings.
+*/
+Game_Party.prototype.recipeTrackings = function() {
+	return this._j._crafting._recipeTrackings;
+};
+/**
+* Sets the recipe trackings.
+* @param {*} newRecipeTrackings The new recipeTrackings.
+*/
+Game_Party.prototype.setRecipeTrackings = function(newRecipeTrackings) {
+	this._j._crafting._recipeTrackings = newRecipeTrackings;
+};
+/**
+* Gets the category trackings.
+* @returns {*} The categoryTrackings.
+*/
+Game_Party.prototype.categoryTrackings = function() {
+	return this._j._crafting._categoryTrackings;
+};
+/**
+* Sets the category trackings.
+* @param {*} newCategoryTrackings The new categoryTrackings.
+*/
+Game_Party.prototype.setCategoryTrackings = function(newCategoryTrackings) {
+	this._j._crafting._categoryTrackings = newCategoryTrackings;
+};
 
 //#endregion
 //#region src/plugins/jafting/ext/create/objects/Game_System.js
@@ -1856,6 +1884,7 @@ var Window_RecipeList = class extends Window_Command {
 	* @param {string} newCategory The new jafting category to consider.
 	*/
 	setCurrentCategory(newCategory) {
+		if (this.currentCategory === newCategory) return;
 		this.currentCategory = newCategory;
 		this.refresh();
 	}
@@ -2444,6 +2473,13 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 //#region src/plugins/jafting/ext/create/windows/Window_RecipeIngredientList.js
 var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Window_Command {
 	/**
+	* Gets the components.
+	* @returns {CraftingComponent[]} The components.
+	*/
+	components() {
+		return this._components;
+	}
+	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
@@ -2481,7 +2517,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 	* @returns {BuiltWindowCommand[]}
 	*/
 	buildCommands() {
-		const components = this._components;
+		const components = this.components();
 		const commands = components.map(this.buildCommand, this);
 		return commands;
 	}
@@ -2547,6 +2583,13 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 //#region src/plugins/jafting/ext/create/windows/Window_RecipeToolList.js
 var Window_RecipeToolList = class extends Window_Command {
 	/**
+	* Gets the components.
+	* @returns {CraftingComponent[]} The components.
+	*/
+	components() {
+		return this._components;
+	}
+	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
@@ -2584,7 +2627,7 @@ var Window_RecipeToolList = class extends Window_Command {
 	* @returns {BuiltWindowCommand[]}
 	*/
 	buildCommands() {
-		const components = this._components;
+		const components = this.components();
 		const commands = components.map(this.buildCommand, this);
 		return commands;
 	}
@@ -2642,7 +2685,7 @@ var Window_RecipeToolList = class extends Window_Command {
 	* @override
 	*/
 	drawAllItems() {
-		if (this._components.length === 0) {
+		if (this.components().length === 0) {
 			this.resetFontSettings();
 			this.changeTextColor(ColorManager.normalColor());
 			const y = this.recipeComponentRowTopInset();
@@ -2656,6 +2699,13 @@ var Window_RecipeToolList = class extends Window_Command {
 //#endregion
 //#region src/plugins/jafting/ext/create/windows/Window_RecipeOutputList.js
 var Window_RecipeOutputList = class extends Window_Command {
+	/**
+	* Gets the components.
+	* @returns {CraftingComponent[]} The components.
+	*/
+	components() {
+		return this._components;
+	}
 	/**
 	* True if the text of this list should be masked, false otherwise.
 	* @type {boolean}
@@ -2702,7 +2752,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 	* @returns {BuiltWindowCommand[]}
 	*/
 	buildCommands() {
-		const components = this._components;
+		const components = this.components();
 		const commands = components.map(this.buildCommand, this);
 		return commands;
 	}
@@ -2925,11 +2975,11 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 	* Changes the filter to a different type from {@link PIXI.filters}.<br>
 	*/
 	createBackground() {
-		this._backgroundFilter = new PIXI.filters.AlphaFilter(.1);
-		this._backgroundSprite = new Sprite();
-		this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-		this._backgroundSprite.filters = [this._backgroundFilter];
-		this.addChild(this._backgroundSprite);
+		this.setBackgroundFilter(new PIXI.filters.AlphaFilter(.1));
+		this.setBackgroundSprite(new Sprite());
+		this.backgroundSprite().bitmap = SceneManager.backgroundBitmap();
+		this.backgroundSprite().filters = [this.backgroundFilter()];
+		this.addChild(this.backgroundSprite());
 	}
 	/**
 	* Overwrites {@link #createButtons}.<br/>

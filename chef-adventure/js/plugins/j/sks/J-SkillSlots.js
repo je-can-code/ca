@@ -807,11 +807,18 @@ var Window_SkillEquipRibbon = class extends Window_ActorRibbon {
 		super.initMembers();
 	}
 	/**
+	* Gets the actor.
+	* @returns {*} The actor.
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
 	* Clears and redraws the contents of this window.
 	*/
 	drawContent() {
 		super.drawContent();
-		if (!this._actor) return;
+		if (!this.actor()) return;
 		this.drawNameAndPoints();
 	}
 	/**
@@ -909,6 +916,7 @@ var Window_SkillEquipSlots = class extends Window_Command {
 	* @param {number} count The number of slots to prefer showing at once.
 	*/
 	setVisibleSlots(count) {
+		if (this._visibleSlots === count) return;
 		this._visibleSlots = count;
 		this.refresh();
 	}
@@ -1039,6 +1047,7 @@ var Window_SkillEquipList = class extends Window_Command {
 	* @param {number} slotIndex The slot index being targeted.
 	*/
 	setSlotContext(slotIndex) {
+		if (this._slotContext === slotIndex) return;
 		this._slotContext = slotIndex;
 		this.refresh();
 	}
@@ -1130,6 +1139,20 @@ var Window_SkillEquipDetail = class extends Window_Base {
 		this.refresh();
 	}
 	/**
+	* Gets the actor.
+	* @returns {Game_Actor|null} The actor.
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
+	* Gets the skill id.
+	* @returns {number} The skillId.
+	*/
+	skillId() {
+		return this._skillId;
+	}
+	/**
 	* Assigns the actor for this window.
 	* @param {Game_Actor} actor The actor to assign.
 	*/
@@ -1150,8 +1173,8 @@ var Window_SkillEquipDetail = class extends Window_Base {
 	* @returns {RPG_Skill|null}
 	*/
 	skill() {
-		if (!this._skillId) return null;
-		return $dataSkills[this._skillId];
+		if (!this.skillId()) return null;
+		return $dataSkills[this.skillId()];
 	}
 	/**
 	* Clears and redraws contents.
@@ -1169,7 +1192,7 @@ var Window_SkillEquipDetail = class extends Window_Base {
 		this.drawHorzLine(y - 2);
 		const mpCost = skill.mpCost || 0;
 		const tpCost = skill.tpCost || 0;
-		const slotCost = this._actor ? this._actor.skillSlotCost(skill.id, 0) : J.SKS.Metadata.defaultSkillSlotCost || 1;
+		const slotCost = this.actor() ? this.actor().skillSlotCost(skill.id, 0) : J.SKS.Metadata.defaultSkillSlotCost || 1;
 		this.drawText(`MP: ${mpCost}`, 0, y, 120, "left");
 		this.drawText(`TP: ${tpCost}`, 120, y, 120, "left");
 		this.drawText(`Slot: ${slotCost}`, 240, y, 160, "left");
@@ -1619,7 +1642,7 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 J.SKS.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function() {
 	J.SKS.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this._commandWindow.setHandler("skill-equip", this.commandSkillEquip.bind(this));
+	this.commandWindow().setHandler("skill-equip", this.commandSkillEquip.bind(this));
 };
 /**
 * Opens the Skill Equip scene.

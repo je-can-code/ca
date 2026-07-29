@@ -303,6 +303,27 @@
 */
 var JCache = class JCache {
 	/**
+	* Gets the battler caches.
+	* @returns {*} The battlerCaches.
+	*/
+	static battlerCaches() {
+		return this._battlerCaches;
+	}
+	/**
+	* Gets the root.
+	* @returns {WeakMap} The root.
+	*/
+	root() {
+		return this._root;
+	}
+	/**
+	* Sets the root.
+	* @param {WeakMap} newRoot The new root.
+	*/
+	setRoot(newRoot) {
+		this._root = newRoot;
+	}
+	/**
 	* Every JCache instance that declared a `'battler'` dimension, so a single bus call
 	* ({@link JCache.invalidateAllForBattler}) can clear every battler-scoped cache in the game
 	* without each caller needing to know the full list of caches that exist.
@@ -317,7 +338,7 @@ var JCache = class JCache {
 	* @param {Game_Battler} battler The battler whose cached entries should be dropped.
 	*/
 	static invalidateAllForBattler(battler) {
-		for (const cache of this._battlerCaches) {
+		for (const cache of this.battlerCaches()) {
 			cache.invalidate(battler);
 		}
 	}
@@ -398,7 +419,7 @@ var JCache = class JCache {
 	get(...args) {
 		const computeFn = args.pop();
 		const stringKey = args.pop();
-		let node = this._root;
+		let node = this.root();
 		for (let i = 0; i < this.dims.length; i++) {
 			const k = this.#resolve(this.dims[i], args[i]);
 			let next = node.get(k);
@@ -429,7 +450,7 @@ var JCache = class JCache {
 			this.clear();
 			return true;
 		}
-		let node = this._root;
+		let node = this.root();
 		for (let i = 0; i < prefix.length - 1; i++) {
 			node = node.get(this.#resolve(this.dims[i], prefix[i]));
 			if (!node) return false;
@@ -441,7 +462,7 @@ var JCache = class JCache {
 	* Drops every entry in this cache by discarding the root weak dimension bucket outright.
 	*/
 	clear() {
-		this._root = new WeakMap();
+		this.setRoot(new WeakMap());
 	}
 	/**
 	* @returns {{ hits: number, misses: number }} A shallow copy of this cache's hit/miss counters.
@@ -498,10 +519,25 @@ var JsonMapper = class {
 	* @returns {boolean|number|string}
 	*/
 	static parseString(str) {
-		if (str.toLowerCase() === "true") {
+		const unquoted = this.unquoteString(str);
+		if (unquoted.toLowerCase() === "true") {
 			return true;
-		} else if (str.toLowerCase() === "false") return false;
-		if (!Number.isNaN(parseFloat(str))) return parseFloat(str);
+		} else if (unquoted.toLowerCase() === "false") return false;
+		if (!Number.isNaN(parseFloat(unquoted))) return parseFloat(unquoted);
+		return unquoted;
+	}
+	/**
+	* Strips a single matching pair of surrounding double quotes from a token.
+	*
+	* RMMZ serializes list-type plugin parameters as a JSON string, so every entry arrives still
+	* wrapped in its own quotes. Left in place they defeat downstream comparisons entirely-
+	* `Number('"7"')` is NaN and `'"physical"'` never matches `'physical'`.
+	* @param {string} str The token to unwrap.
+	* @returns {string} The token without its surrounding quotes.
+	*/
+	static unquoteString(str) {
+		if (str.length < 2) return str;
+		if (str.startsWith("\"") && str.endsWith("\"")) return str.slice(1, -1);
 		return str;
 	}
 };
@@ -572,6 +608,20 @@ var ArrayHelper = class {
 */
 var RPGManager = class RPGManager {
 	/**
+	* Gets the note cache.
+	* @returns {*} The noteCache.
+	*/
+	static noteCache() {
+		return this._noteCache;
+	}
+	/**
+	* Gets the eval cache.
+	* @returns {*} The evalCache.
+	*/
+	static evalCache() {
+		return this._evalCache;
+	}
+	/**
 	* Backing field for {@link _noteCache}, built lazily on first access rather than as an eager
 	* static-field initializer. RPG_Base now imports this class (for its {@code types()} method),
 	* and JCache imports RPG_Base (for its {@code instanceof} clone-resolution check) — a real
@@ -618,7 +668,7 @@ var RPGManager = class RPGManager {
 	* @returns {any} The cached data for the object and tag key.
 	*/
 	static cached(object, tagKey, computeFn) {
-		return this._noteCache.get(object, tagKey, computeFn);
+		return this.noteCache().get(object, tagKey, computeFn);
 	}
 	/**
 	* Battler-scoped variant of {@link cached}: results are bucketed by the battler whose live
@@ -631,7 +681,7 @@ var RPGManager = class RPGManager {
 	* @returns {any}
 	*/
 	static cachedForBattler(battler, object, tagKey, computeFn) {
-		return this._evalCache.get(battler, object, tagKey, computeFn);
+		return this.evalCache().get(battler, object, tagKey, computeFn);
 	}
 	/**
 	* Invalidates the cache for the given object.
@@ -639,7 +689,7 @@ var RPGManager = class RPGManager {
 	* @returns {boolean} True if the cache was invalidated, false otherwise.
 	*/
 	static invalidate(object) {
-		return this._noteCache.invalidate(object);
+		return this.noteCache().invalidate(object);
 	}
 	/**
 	* Drops all cached eval results for one battler. Called from Game_Battler#onBattlerDataChange
@@ -648,14 +698,14 @@ var RPGManager = class RPGManager {
 	* @returns {boolean}
 	*/
 	static invalidateBattlerEval(battler) {
-		return this._evalCache.invalidate(battler);
+		return this.evalCache().invalidate(battler);
 	}
 	/**
 	* Clears the cache for all objects.
 	*/
 	static clearCache() {
-		this._noteCache.clear();
-		this._evalCache.clear();
+		this.noteCache().clear();
+		this.evalCache().clear();
 	}
 	/**
 	* A quick and re-usable means of rolling for a chance of success.
@@ -1954,6 +2004,13 @@ J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?") {
 */
 var SerializableRegistry = class {
 	/**
+	* Gets the constructors.
+	* @returns {*} The constructors.
+	*/
+	static constructors() {
+		return this._constructors;
+	}
+	/**
 	* The internal collection of registered constructors.
 	* @type {Map<string, Function>}
 	*/
@@ -1969,10 +2026,10 @@ var SerializableRegistry = class {
 	*/
 	static register(constructor, options = undefined) {
 		const id = options && options.id ? options.id : constructor.name;
-		this._constructors.set(id, constructor);
+		this.constructors().set(id, constructor);
 		const aliases = options && options.aliases ? options.aliases : [];
 		aliases.forEach((alias) => {
-			this._constructors.set(alias, constructor);
+			this.constructors().set(alias, constructor);
 		});
 	}
 	/**
@@ -1981,8 +2038,8 @@ var SerializableRegistry = class {
 	* @returns {Function|null} The resolved constructor, or null when not found.
 	*/
 	static resolve(id) {
-		if (this._constructors.has(id)) {
-			return this._constructors.get(id);
+		if (this.constructors().has(id)) {
+			return this.constructors().get(id);
 		}
 		return null;
 	}
@@ -3362,6 +3419,41 @@ var J_Timer = class {
 		this._timer = 0;
 	}
 	/**
+	* Gets the timer.
+	* @returns {number} The timer.
+	*/
+	timer() {
+		return this._timer;
+	}
+	/**
+	* Sets the timer.
+	* @param {number} newTimer The new timer.
+	*/
+	setTimer(newTimer) {
+		this._timer = newTimer;
+	}
+	/**
+	* Gets the timer max.
+	* @returns {number} The timerMax.
+	*/
+	timerMax() {
+		return this._timerMax;
+	}
+	/**
+	* Sets the timer max.
+	* @param {number} newTimerMax The new timerMax.
+	*/
+	setTimerMax(newTimerMax) {
+		this._timerMax = newTimerMax;
+	}
+	/**
+	* Gets the stop counting.
+	* @returns {boolean} The stopCounting.
+	*/
+	stopCounting() {
+		return this._stopCounting;
+	}
+	/**
 	* Gets the key of this timer, if one was set.
 	* @returns {string|String.empty}
 	*/
@@ -3380,7 +3472,7 @@ var J_Timer = class {
 	* @returns {number}
 	*/
 	getCurrentTime() {
-		return this._timer;
+		return this.timer();
 	}
 	/**
 	* Sets the current time of this timer to a given amount.
@@ -3389,7 +3481,7 @@ var J_Timer = class {
 	* @param {number} time The new time for this timer.
 	*/
 	setCurrentTime(time) {
-		this._timer = time;
+		this.setTimer(time);
 		this._handleIfIncomplete();
 		this._handleIfComplete();
 	}
@@ -3401,31 +3493,31 @@ var J_Timer = class {
 	* @returns {number} The new total after modification.
 	*/
 	modCurrentTime(time) {
-		this._timer += time;
+		this.setTimer(this.timer() + time);
 		this._handleIfIncomplete();
 		this._handleIfComplete();
-		return this._timer;
+		return this.timer();
 	}
 	/**
 	* Gets the total time set to run on this timer.
 	* @returns {number}
 	*/
 	getMaxTime() {
-		return this._timerMax;
+		return this.timerMax();
 	}
 	/**
 	* Sets the max time for this timer to the given amount.
 	* @param {number} maxTime The new max time for this timer.
 	*/
 	setMaxTime(maxTime) {
-		this._timerMax = maxTime;
+		this.setTimerMax(maxTime);
 	}
 	/**
 	* Whether or not we should stop counting beyond max when updating.
 	* @returns {boolean}
 	*/
 	shouldStopCounting() {
-		return this._stopCounting;
+		return this.stopCounting();
 	}
 	/**
 	* Normalize time that is above bounds while the "stop counting" flag is set.
@@ -3433,7 +3525,7 @@ var J_Timer = class {
 	normalizeTime() {
 		if (!this.isTimerComplete()) return;
 		if (!this.shouldStopCounting()) return;
-		this._timer = this.getMaxTime();
+		this.setTimer(this.getMaxTime());
 	}
 	/**
 	* Checks whether or not this timer is completed.
@@ -3446,7 +3538,7 @@ var J_Timer = class {
 	* Resets the timer back to initial state.
 	*/
 	reset() {
-		this._timer = 0;
+		this.setTimer(0);
 		this._timerComplete = false;
 	}
 	/**
@@ -3461,7 +3553,7 @@ var J_Timer = class {
 	*/
 	tick() {
 		if (this.isTimerComplete()) return;
-		this._timer++;
+		this.setTimer(this.timer() + 1);
 	}
 	/**
 	* Processes the management of state of this timer.
@@ -3473,7 +3565,7 @@ var J_Timer = class {
 	* Handles the possibility of this timer becoming incomplete.
 	*/
 	_handleIfIncomplete() {
-		if (this._timer < this._timerMax) {
+		if (this.timer() < this.timerMax()) {
 			this._timerComplete = false;
 		}
 		this.normalizeTime();
@@ -3483,7 +3575,7 @@ var J_Timer = class {
 	*/
 	_handleIfComplete() {
 		if (this.isTimerComplete()) return;
-		if (this._timer >= this._timerMax) {
+		if (this.timer() >= this.timerMax()) {
 			this._timerComplete = true;
 			this.normalizeTime();
 			this.onComplete();
@@ -3755,6 +3847,23 @@ var WindowCommandBuilder = class {
 		this.#menuSection = menuSection;
 		return this;
 	}
+};
+
+//#endregion
+//#region src/plugins/_base/managers/BattleManager.js
+/**
+* Gets the rewards accrued from the battle currently being resolved.
+* @returns {{exp: number, gold: number, items: RPG_BaseItem[]}} The battle rewards.
+*/
+BattleManager.rewards = function() {
+	return this._rewards;
+};
+/**
+* Sets the rewards accrued from the battle currently being resolved.
+* @param {{exp: number, gold: number, items: RPG_BaseItem[]}} newRewards The rewards bundle.
+*/
+BattleManager.setRewards = function(newRewards) {
+	this._rewards = newRewards;
 };
 
 //#endregion
@@ -4240,6 +4349,20 @@ ParameterDefinition.Builder = () => new ParameterDefinitionBuilder();
 */
 var ParameterRegistry = class {
 	/**
+	* Gets the definitions.
+	* @returns {*} The definitions.
+	*/
+	static definitions() {
+		return this._definitions;
+	}
+	/**
+	* Gets the group cache.
+	* @returns {*} The groupCache.
+	*/
+	static groupCache() {
+		return this._groupCache;
+	}
+	/**
 	* @type {Map<string, ParameterDefinition>}
 	*/
 	static _definitions = new Map();
@@ -4255,19 +4378,19 @@ var ParameterRegistry = class {
 		if (!(definition instanceof ParameterDefinition)) {
 			throw new Error("ParameterRegistry.register requires a ParameterDefinition instance.");
 		}
-		if (this._definitions.has(definition.key)) {
+		if (this.definitions().has(definition.key)) {
 			throw new Error(`ParameterRegistry: duplicate key "${definition.key}".`);
 		}
-		this._definitions.set(definition.key, definition);
-		this._groupCache.clear();
+		this.definitions().set(definition.key, definition);
+		this.groupCache().clear();
 	}
 	/**
 	* @param {string} key The key driving this step.
 	* @returns {ParameterDefinition|null}
 	*/
 	static get(key) {
-		if (this._definitions.has(key)) {
-			return this._definitions.get(key);
+		if (this.definitions().has(key)) {
+			return this.definitions().get(key);
 		}
 		return null;
 	}
@@ -4276,24 +4399,24 @@ var ParameterRegistry = class {
 	* @returns {boolean}
 	*/
 	static has(key) {
-		return this._definitions.has(key);
+		return this.definitions().has(key);
 	}
 	/**
 	* @returns {ParameterDefinition[]}
 	*/
 	static all() {
-		return [...this._definitions.values()];
+		return [...this.definitions().values()];
 	}
 	/**
 	* @param {string} group The group driving this step.
 	* @returns {ParameterDefinition[]}
 	*/
 	static byGroup(group) {
-		if (this._groupCache.has(group)) {
-			return this._groupCache.get(group);
+		if (this.groupCache().has(group)) {
+			return this.groupCache().get(group);
 		}
 		const definitions = this.all().filter((definition) => definition.group === group).sort((left, right) => left.sortOrder - right.sortOrder);
-		this._groupCache.set(group, definitions);
+		this.groupCache().set(group, definitions);
 		return definitions;
 	}
 	/**
@@ -6836,6 +6959,23 @@ var IconManager = class {
 };
 
 //#endregion
+//#region src/plugins/_base/managers/Input.js
+/**
+* Gets the merged input state for the current frame.
+* @returns {Object<string, boolean>} The current state, keyed by input symbol.
+*/
+Input.currentState = function() {
+	return this._currentState;
+};
+/**
+* Gets the per-gamepad button state snapshots, indexed by gamepad index.
+* @returns {Object<number, boolean[]>} The gamepad states.
+*/
+Input.gamepadStates = function() {
+	return this._gamepadStates;
+};
+
+//#endregion
 //#region src/plugins/_base/managers/InputLegendResolver.js
 /**
 * A registry translating semantic input handlers into something displayable to the player.
@@ -7883,6 +8023,27 @@ Game_Action.prototype.evalFormulaWithContext = function(formula, a, b) {
 	return new Function(...names, `return (${formula})`)(...values);
 };
 /**
+* Gets the `Game_Item` wrapper backing this action.
+*
+* This is deliberately not {@link Game_Action#item}, which unwraps into the database row. Anything
+* rebinding what this action points at needs the wrapper to call `setObject` on.
+* @returns {Game_Item} The raw item wrapper.
+*/
+Game_Action.prototype.rawItem = function() {
+	return this._item;
+};
+/**
+* Extends {@link #clear}.<br/>
+* Also seeds the triggering damage values, so they are always numbers rather than undefined.
+*/
+J.BASE.Aliased.Game_Action.set("clear", Game_Action.prototype.clear);
+Game_Action.prototype.clear = function() {
+	J.BASE.Aliased.Game_Action.get("clear").call(this);
+	this.setTriggerHpDamage(0);
+	this.setTriggerMpDamage(0);
+	this.setTriggerTpDamage(0);
+};
+/**
 * Sets the triggering damage values that caused this action to fire (e.g. a retaliation).
 * These are exposed as `d` (HP), `m` (MP), and `t` (TP) inside damage formulas via
 * {@link Game_Action.registerFormulaContext}.
@@ -7891,30 +8052,30 @@ Game_Action.prototype.evalFormulaWithContext = function(formula, a, b) {
 * @param {number} tpDamage The TP damage that triggered this action.
 */
 Game_Action.prototype.setTriggerDamage = function(hpDamage, mpDamage, tpDamage) {
-	this._triggerHpDamage = hpDamage;
-	this._triggerMpDamage = mpDamage;
-	this._triggerTpDamage = tpDamage;
+	this.setTriggerHpDamage(hpDamage);
+	this.setTriggerMpDamage(mpDamage);
+	this.setTriggerTpDamage(tpDamage);
 };
 /**
 * Gets the triggering HP damage stamped onto this action, defaulting to 0.
 * @returns {number}
 */
 Game_Action.prototype.getTriggerHpDamage = function() {
-	return this._triggerHpDamage ?? 0;
+	return this.triggerHpDamage();
 };
 /**
 * Gets the triggering MP damage stamped onto this action, defaulting to 0.
 * @returns {number}
 */
 Game_Action.prototype.getTriggerMpDamage = function() {
-	return this._triggerMpDamage ?? 0;
+	return this.triggerMpDamage();
 };
 /**
 * Gets the triggering TP damage stamped onto this action, defaulting to 0.
 * @returns {number}
 */
 Game_Action.prototype.getTriggerTpDamage = function() {
-	return this._triggerTpDamage ?? 0;
+	return this.triggerTpDamage();
 };
 Game_Action.registerFormulaContext("d", (action) => action.getTriggerHpDamage());
 Game_Action.registerFormulaContext("m", (action) => action.getTriggerMpDamage());
@@ -7968,6 +8129,76 @@ Game_Action.prototype.itemEffectRecoverMp = function(target, effect) {
 		this.makeSuccess(target);
 	}
 };
+/**
+* Gets the actor id of this action's subject, or 0 when an enemy.
+* @returns {number} The subjectActorId.
+*/
+Game_Action.prototype.subjectActorId = function() {
+	return this._subjectActorId;
+};
+/**
+* Sets the actor id of this action's subject, or 0 when an enemy.
+* @param {number} newSubjectActorId The new subjectActorId.
+*/
+Game_Action.prototype.setSubjectActorId = function(newSubjectActorId) {
+	this._subjectActorId = newSubjectActorId;
+};
+/**
+* Gets the troop index of this action's subject, or -1 when an actor.
+* @returns {number} The subjectEnemyIndex.
+*/
+Game_Action.prototype.subjectEnemyIndex = function() {
+	return this._subjectEnemyIndex;
+};
+/**
+* Sets the troop index of this action's subject, or -1 when an actor.
+* @param {number} newSubjectEnemyIndex The new subjectEnemyIndex.
+*/
+Game_Action.prototype.setSubjectEnemyIndex = function(newSubjectEnemyIndex) {
+	this._subjectEnemyIndex = newSubjectEnemyIndex;
+};
+/**
+* Gets the trigger hp damage.
+* @returns {*} The triggerHpDamage.
+*/
+Game_Action.prototype.triggerHpDamage = function() {
+	return this._triggerHpDamage;
+};
+/**
+* Sets the trigger hp damage.
+* @param {*} newTriggerHpDamage The new triggerHpDamage.
+*/
+Game_Action.prototype.setTriggerHpDamage = function(newTriggerHpDamage) {
+	this._triggerHpDamage = newTriggerHpDamage;
+};
+/**
+* Gets the trigger mp damage.
+* @returns {*} The triggerMpDamage.
+*/
+Game_Action.prototype.triggerMpDamage = function() {
+	return this._triggerMpDamage;
+};
+/**
+* Sets the trigger mp damage.
+* @param {*} newTriggerMpDamage The new triggerMpDamage.
+*/
+Game_Action.prototype.setTriggerMpDamage = function(newTriggerMpDamage) {
+	this._triggerMpDamage = newTriggerMpDamage;
+};
+/**
+* Gets the trigger tp damage.
+* @returns {*} The triggerTpDamage.
+*/
+Game_Action.prototype.triggerTpDamage = function() {
+	return this._triggerTpDamage;
+};
+/**
+* Sets the trigger tp damage.
+* @param {*} newTriggerTpDamage The new triggerTpDamage.
+*/
+Game_Action.prototype.setTriggerTpDamage = function(newTriggerTpDamage) {
+	this._triggerTpDamage = newTriggerTpDamage;
+};
 
 //#endregion
 //#region src/plugins/_base/objects/Game_Actor.js
@@ -7988,13 +8219,34 @@ Game_Actor.prototype.databaseData = function() {
 	return this.actor();
 };
 /**
+* Gets the skill ids this actor has actually learned.
+*
+* This is only the learned list. Trait-granted skills live in {@link Game_Actor#addedSkills},
+* and {@link Game_Actor#skillIds} is the union of the two.
+* @returns {number[]} The learned skill ids.
+*/
+Game_Actor.prototype.learnedSkillIds = function() {
+	return this._skills;
+};
+/**
+* Gets the equipped items as their `Game_Item` wrappers.
+*
+* This is deliberately not {@link Game_Actor#equips}, which unwraps each slot into its database
+* row. Anything comparing or snapshotting equipment needs the wrappers, since two different
+* wrappers can point at the same row.
+* @returns {Game_Item[]} The raw, slot-ordered equipment wrappers.
+*/
+Game_Actor.prototype.rawEquips = function() {
+	return this._equips;
+};
+/**
 * Gets the raw skill ids known to this actor.
 * Combines the actor's learned skill list with any bonus skill ids granted by traits,
 * then deduplicates so each id appears at most once.
 * @returns {number[]}
 */
 Game_Actor.prototype.skillIds = function() {
-	return [...new Set(this._skills.concat(this.addedSkills()))];
+	return [...new Set(this.learnedSkillIds().concat(this.addedSkills()))];
 };
 /**
 * Determines whether or not this actor is the leader.
@@ -8132,9 +8384,9 @@ Game_Actor.prototype.onClassChange = function(classId, keepExp) {
 */
 J.BASE.Aliased.Game_Actor.set("changeEquip", Game_Actor.prototype.changeEquip);
 Game_Actor.prototype.changeEquip = function(slotId, item) {
-	const oldEquips = JsonEx.makeDeepCopy(this._equips);
+	const oldEquips = JsonEx.makeDeepCopy(this.rawEquips());
 	J.BASE.Aliased.Game_Actor.get("changeEquip").call(this, slotId, item);
-	const isChanged = !oldEquips.equals(this._equips);
+	const isChanged = !oldEquips.equals(this.rawEquips());
 	if (isChanged) {
 		this.onEquipChange();
 	}
@@ -8145,9 +8397,9 @@ Game_Actor.prototype.changeEquip = function(slotId, item) {
 */
 J.BASE.Aliased.Game_Actor.set("discardEquip", Game_Actor.prototype.discardEquip);
 Game_Actor.prototype.discardEquip = function(item) {
-	const oldEquips = JsonEx.makeDeepCopy(this._equips);
+	const oldEquips = JsonEx.makeDeepCopy(this.rawEquips());
 	J.BASE.Aliased.Game_Actor.get("discardEquip").call(this, item);
-	const isChanged = !oldEquips.equals(this._equips);
+	const isChanged = !oldEquips.equals(this.rawEquips());
 	if (isChanged) {
 		this.onEquipChange();
 	}
@@ -8158,9 +8410,9 @@ Game_Actor.prototype.discardEquip = function(item) {
 */
 J.BASE.Aliased.Game_Actor.set("forceChangeEquip", Game_Actor.prototype.forceChangeEquip);
 Game_Actor.prototype.forceChangeEquip = function(slotId, item) {
-	const oldEquips = JsonEx.makeDeepCopy(this._equips);
+	const oldEquips = JsonEx.makeDeepCopy(this.rawEquips());
 	J.BASE.Aliased.Game_Actor.get("forceChangeEquip").call(this, slotId, item);
-	const isChanged = !oldEquips.equals(this._equips);
+	const isChanged = !oldEquips.equals(this.rawEquips());
 	if (isChanged) {
 		this.onEquipChange();
 	}
@@ -8171,7 +8423,7 @@ Game_Actor.prototype.forceChangeEquip = function(slotId, item) {
 */
 J.BASE.Aliased.Game_Actor.set("releaseUnequippableItems", Game_Actor.prototype.releaseUnequippableItems);
 Game_Actor.prototype.releaseUnequippableItems = function(forcing) {
-	const oldEquips = JsonEx.makeDeepCopy(this._equips);
+	const oldEquips = JsonEx.makeDeepCopy(this.rawEquips());
 	J.BASE.Aliased.Game_Actor.get("releaseUnequippableItems").call(this, forcing);
 	const isChanged = this.haveEquipsChanged(oldEquips);
 	if (isChanged) {
@@ -8184,12 +8436,13 @@ Game_Actor.prototype.releaseUnequippableItems = function(forcing) {
 * @returns {boolean} True if there was a change in equips, false otherwise.
 */
 Game_Actor.prototype.haveEquipsChanged = function(oldEquips) {
-	if (oldEquips.length !== this._equips.length) return true;
+	if (oldEquips.length !== this.rawEquips().length) return true;
 	let hasDifferentEquips = false;
 	oldEquips.forEach((oldEquip, index) => {
-		const sameItemId = oldEquip.itemId() === this._equips[index].itemId();
-		const sameType = oldEquip._dataClass === this._equips[index]._dataClass;
-		const sameInnerItem = oldEquip._item === this._equips[index]._item;
+		const currentEquip = this.rawEquips()[index];
+		const sameItemId = oldEquip.itemId() === currentEquip.itemId();
+		const sameType = oldEquip.dataClass() === currentEquip.dataClass();
+		const sameInnerItem = oldEquip.underlyingObject() === currentEquip.underlyingObject();
 		if (sameItemId && sameType && sameInnerItem) return;
 		hasDifferentEquips = true;
 	});
@@ -8275,6 +8528,27 @@ Game_Actor.prototype.levelDown = function() {
 */
 Game_Actor.prototype.getBaseMaxTp = function() {
 	return J.BASE.Metadata.BaseTpMaxActors;
+};
+/**
+* Gets the id of this actor's current class.
+* @returns {number} The classId.
+*/
+Game_Actor.prototype.classId = function() {
+	return this._classId;
+};
+/**
+* Sets the id of this actor's current class.
+* @param {number} newClassId The new classId.
+*/
+Game_Actor.prototype.setClassId = function(newClassId) {
+	this._classId = newClassId;
+};
+/**
+* Gets the accumulated experience per class id.
+* @returns {Object<number, number>} The exp.
+*/
+Game_Actor.prototype.exp = function() {
+	return this._exp;
 };
 
 //#endregion
@@ -8464,8 +8738,8 @@ Game_Battler.prototype.setCachedAllNotes = function(notes) {
 * @returns {(RPG_Actor|RPG_Enemy|RPG_Class|RPG_Skill|RPG_EquipItem|RPG_State)[]}
 */
 Game_Battler.prototype.getAllNotes = function() {
-	if (this.__testNoteSources !== undefined) {
-		return this.__testNoteSources;
+	if (this.testNoteSources() !== undefined) {
+		return this.testNoteSources();
 	}
 	if (this.getCachedAllNotes() !== null) {
 		return this.getCachedAllNotes();
@@ -8521,9 +8795,9 @@ Game_Battler.prototype.states = function() {
 */
 J.BASE.Aliased.Game_Battler.set("eraseState", Game_Battler.prototype.eraseState);
 Game_Battler.prototype.eraseState = function(stateId) {
-	const oldStates = Array.from(this._states);
+	const oldStates = this.allStateIds();
 	J.BASE.Aliased.Game_Battler.get("eraseState").call(this, stateId);
-	const isChanged = !oldStates.equals(this._states);
+	const isChanged = !oldStates.equals(this.allStateIds());
 	if (isChanged) {
 		this.onStateRemoval(stateId);
 	}
@@ -8541,9 +8815,9 @@ Game_Battler.prototype.onStateRemoval = function(stateId) {
 */
 J.BASE.Aliased.Game_Battler.set("addNewState", Game_Battler.prototype.addNewState);
 Game_Battler.prototype.addNewState = function(stateId) {
-	const oldStates = Array.from(this._states);
+	const oldStates = this.allStateIds();
 	J.BASE.Aliased.Game_Battler.get("addNewState").call(this, stateId);
-	const isChanged = !oldStates.equals(this._states);
+	const isChanged = !oldStates.equals(this.allStateIds());
 	if (isChanged) {
 		this.onStateAdded(stateId);
 	}
@@ -8688,6 +8962,13 @@ Game_Battler.prototype.getCachedHarFactor = function() {
 */
 Game_Battler.prototype.setCachedHarFactor = function(value) {
 	this._j._base._cachedHarFactor = value;
+};
+/**
+* Gets the test note sources.
+* @returns {*} The testNoteSources.
+*/
+Game_Battler.prototype.testNoteSources = function() {
+	return this.__testNoteSources;
 };
 
 //#endregion
@@ -9055,6 +9336,34 @@ Game_Character.prototype.distanceFromCharacter = function(character) {
 Game_Character.prototype.isVisible = function() {
 	return true;
 };
+/**
+* Gets the remaining frames this character must wait before its next move.
+* @returns {number} The waitCount.
+*/
+Game_Character.prototype.waitCount = function() {
+	return this._waitCount;
+};
+/**
+* Sets the remaining frames this character must wait before its next move.
+* @param {number} newWaitCount The new waitCount.
+*/
+Game_Character.prototype.setWaitCount = function(newWaitCount) {
+	this._waitCount = newWaitCount;
+};
+/**
+* Gets the move route this character is currently following.
+* @returns {object} The moveRoute.
+*/
+Game_Character.prototype.moveRoute = function() {
+	return this._moveRoute;
+};
+/**
+* Gets how far through the current move route this character is.
+* @returns {number} The moveRouteIndex.
+*/
+Game_Character.prototype.moveRouteIndex = function() {
+	return this._moveRouteIndex;
+};
 
 //#endregion
 //#region src/plugins/_base/objects/Game_CharacterBase.js
@@ -9148,6 +9457,67 @@ Game_CharacterBase.prototype.directionFromHorzVert = function(horz, vert) {
 		return 9;
 	}
 	return 0;
+};
+/**
+* Gets the number of frames this character has been standing still.
+* @returns {number} The stopCount.
+*/
+Game_CharacterBase.prototype.stopCount = function() {
+	return this._stopCount;
+};
+/**
+* Sets the number of frames this character has been standing still.
+* @param {number} newStopCount The new stopCount.
+*/
+Game_CharacterBase.prototype.setStopCount = function(newStopCount) {
+	this._stopCount = newStopCount;
+};
+/**
+* Sets the x coordinate of this character on the map.
+*
+* RMMZ exposes the matching getter as the native `x` property rather than a method, so reads go
+* through `this.x` while writes come here- defining an `x()` method would clobber that property.
+* @param {number} newX The new x coordinate.
+*/
+Game_CharacterBase.prototype.setX = function(newX) {
+	this._x = newX;
+};
+/**
+* Sets the y coordinate of this character on the map.
+*
+* Reads go through the native `y` property, for the same reason described on {@link #setX}.
+* @param {number} newY The new y coordinate.
+*/
+Game_CharacterBase.prototype.setY = function(newY) {
+	this._y = newY;
+};
+/**
+* Gets the interpolated x coordinate this character is rendered at mid-step.
+* @returns {number} The realX.
+*/
+Game_CharacterBase.prototype.realX = function() {
+	return this._realX;
+};
+/**
+* Sets the interpolated x coordinate this character is rendered at mid-step.
+* @param {number} newRealX The new realX.
+*/
+Game_CharacterBase.prototype.setRealX = function(newRealX) {
+	this._realX = newRealX;
+};
+/**
+* Gets the interpolated y coordinate this character is rendered at mid-step.
+* @returns {number} The realY.
+*/
+Game_CharacterBase.prototype.realY = function() {
+	return this._realY;
+};
+/**
+* Sets the interpolated y coordinate this character is rendered at mid-step.
+* @param {number} newRealY The new realY.
+*/
+Game_CharacterBase.prototype.setRealY = function(newRealY) {
+	this._realY = newRealY;
 };
 
 //#endregion
@@ -9449,6 +9819,20 @@ Game_Event.prototype.isEvent = function() {
 Game_Event.prototype.isErased = function() {
 	return this._erased;
 };
+/**
+* Gets the index of the currently active event page.
+* @returns {number} The pageIndex.
+*/
+Game_Event.prototype.pageIndex = function() {
+	return this._pageIndex;
+};
+/**
+* Sets the index of the currently active event page.
+* @param {number} newPageIndex The new pageIndex.
+*/
+Game_Event.prototype.setPageIndex = function(newPageIndex) {
+	this._pageIndex = newPageIndex;
+};
 
 //#endregion
 //#region src/plugins/_base/objects/Game_Follower.js
@@ -9461,7 +9845,80 @@ Game_Follower.prototype.isFollower = function() {
 };
 
 //#endregion
+//#region src/plugins/_base/objects/Game_Item.js
+/**
+* Gets the data class of this item, describing which database this item is drawn from.
+* @returns {string} One of "skill", "item", "weapon", or "armor"- or empty when unassigned.
+*/
+Game_Item.prototype.dataClass = function() {
+	return this._dataClass;
+};
+/**
+* Sets the data class of this item.
+* @param {string} newDataClass One of "skill", "item", "weapon", or "armor".
+*/
+Game_Item.prototype.setDataClass = function(newDataClass) {
+	this._dataClass = newDataClass;
+};
+
+//#endregion
+//#region src/plugins/_base/objects/Game_Interpreter.js
+/**
+* Gets the conditional branch results by indent depth.
+* @returns {Object<number, *>} The branch.
+*/
+Game_Interpreter.prototype.branch = function() {
+	return this._branch;
+};
+/**
+* Gets the indent depth of the command being executed.
+* @returns {number} The indent.
+*/
+Game_Interpreter.prototype.indent = function() {
+	return this._indent;
+};
+/**
+* Gets the index of the command being executed.
+* @returns {number} The index.
+*/
+Game_Interpreter.prototype.index = function() {
+	return this._index;
+};
+/**
+* Sets the index of the command being executed.
+* @param {number} newIndex The new index.
+*/
+Game_Interpreter.prototype.setIndex = function(newIndex) {
+	this._index = newIndex;
+};
+
+//#endregion
 //#region src/plugins/_base/objects/Game_Map.js
+/**
+* Gets the raw event collection, nulls and all.
+*
+* This is deliberately not {@link Game_Map#events}, which filters the nulls out. A null is an
+* empty slot awaiting reuse, so any code adding or removing events by index needs to see them.
+* @returns {(Game_Event|null)[]} The raw, index-stable event collection.
+*/
+Game_Map.prototype.rawEvents = function() {
+	return this._events;
+};
+/**
+* Places an event into a specific slot of the event collection.
+* @param {number} index The slot to place the event into.
+* @param {Game_Event} newEvent The event being placed.
+*/
+Game_Map.prototype.setEventByIndex = function(index, newEvent) {
+	this._events[index] = newEvent;
+};
+/**
+* Empties a specific slot of the event collection, leaving it free for reuse.
+* @param {number} index The slot to empty.
+*/
+Game_Map.prototype.clearEventByIndex = function(index) {
+	this._events[index] = null;
+};
 /**
 * Gets the note for the current map.
 * @returns {string|String.empty}
@@ -9476,6 +9933,30 @@ Game_Map.prototype.note = function() {
 
 //#endregion
 //#region src/plugins/_base/objects/Game_Party.js
+/**
+* Gets the raw item container, mapping item ids to the quantity held.
+*
+* This is deliberately not {@link Game_Party#items}, which resolves the ids into database rows.
+* Anything inspecting or pruning the container itself needs the id-keyed form.
+* @returns {Object<number, number>} The raw id-to-quantity map.
+*/
+Game_Party.prototype.rawItems = function() {
+	return this._items;
+};
+/**
+* Gets the raw weapon container, mapping weapon ids to the quantity held.
+* @returns {Object<number, number>} The raw id-to-quantity map.
+*/
+Game_Party.prototype.rawWeapons = function() {
+	return this._weapons;
+};
+/**
+* Gets the raw armor container, mapping armor ids to the quantity held.
+* @returns {Object<number, number>} The raw id-to-quantity map.
+*/
+Game_Party.prototype.rawArmors = function() {
+	return this._armors;
+};
 /**
 * Overwrites {@link #gainItem}.<br/>
 * Replaces item gain and management with index-based management instead.
@@ -9689,14 +10170,28 @@ Game_Timer.prototype.initialize = function() {
 J.BASE.Aliased.Game_Timer.set("start", Game_Timer.prototype.start);
 Game_Timer.prototype.start = function(duration) {
 	J.BASE.Aliased.Game_Timer.get("start").call(this, duration);
-	this._duration = duration;
+	this.setDuration(duration);
 };
 /**
 * Gets the elapsed amount of time relative to the duration.
 * @returns {number}
 */
 Game_Timer.prototype.elapsedFrames = function() {
-	return this._duration - this._frames;
+	return this.duration() - this.frames();
+};
+/**
+* Gets the frame count this timer was originally started with.
+* @returns {number} The starting duration in frames.
+*/
+Game_Timer.prototype.duration = function() {
+	return this._duration;
+};
+/**
+* Sets the frame count this timer counts down from.
+* @param {number} newDuration The starting duration in frames.
+*/
+Game_Timer.prototype.setDuration = function(newDuration) {
+	this._duration = newDuration;
 };
 
 //#endregion
@@ -9814,7 +10309,7 @@ Scene_Base.prototype.getModalDimmerWindow = function() {
 */
 Scene_Base.prototype.ensureModalDimmerBeforeWindow = function(anchorWindow) {
 	const dimmer = this.getModalDimmerWindow();
-	const wl = this._windowLayer;
+	const wl = this.windowLayer();
 	if (dimmer.parent !== null) {
 		dimmer.parent.removeChild(dimmer);
 	}
@@ -9865,6 +10360,126 @@ Scene_Base.prototype.isMapScene = function() {
 */
 Scene_Map.prototype.isMapScene = function() {
 	return true;
+};
+/**
+* Gets the layer every window of this scene is added to.
+* @returns {WindowLayer} The windowLayer.
+*/
+Scene_Base.prototype.windowLayer = function() {
+	return this._windowLayer;
+};
+
+//#endregion
+//#region src/plugins/_base/scenes/Scene_Equip.js
+/**
+* Gets the window listing this actor's equipment slots.
+* @returns {Window_EquipSlot} The slotWindow.
+*/
+Scene_Equip.prototype.slotWindow = function() {
+	return this._slotWindow;
+};
+/**
+* Gets the window listing equippable items for the chosen slot.
+* @returns {Window_EquipItem} The itemWindow.
+*/
+Scene_Equip.prototype.itemWindow = function() {
+	return this._itemWindow;
+};
+/**
+* Sets the window listing equippable items for the chosen slot.
+* @param {Window_EquipItem} newItemWindow The new itemWindow.
+*/
+Scene_Equip.prototype.setItemWindow = function(newItemWindow) {
+	this._itemWindow = newItemWindow;
+};
+/**
+* Gets the window previewing parameter changes.
+* @returns {Window_EquipStatus} The statusWindow.
+*/
+Scene_Equip.prototype.statusWindow = function() {
+	return this._statusWindow;
+};
+
+//#endregion
+//#region src/plugins/_base/scenes/Scene_Map.js
+/**
+* Gets whether or not a map transfer is currently underway.
+* @returns {boolean} The transfer.
+*/
+Scene_Map.prototype.transfer = function() {
+	return this._transfer;
+};
+
+//#endregion
+//#region src/plugins/_base/scenes/Scene_Menu.js
+/**
+* Gets the window listing the top-level menu commands.
+* @returns {Window_MenuCommand} The commandWindow.
+*/
+Scene_Menu.prototype.commandWindow = function() {
+	return this._commandWindow;
+};
+/**
+* Sets the window listing the top-level menu commands.
+* @param {Window_MenuCommand} newCommandWindow The new commandWindow.
+*/
+Scene_Menu.prototype.setCommandWindow = function(newCommandWindow) {
+	this._commandWindow = newCommandWindow;
+};
+
+//#endregion
+//#region src/plugins/_base/scenes/Scene_MenuBase.js
+/**
+* Gets the sprite rendering this scene's blurred background.
+* @returns {Sprite} The backgroundSprite.
+*/
+Scene_MenuBase.prototype.backgroundSprite = function() {
+	return this._backgroundSprite;
+};
+/**
+* Sets the sprite rendering this scene's blurred background.
+* @param {Sprite} newBackgroundSprite The new backgroundSprite.
+*/
+Scene_MenuBase.prototype.setBackgroundSprite = function(newBackgroundSprite) {
+	this._backgroundSprite = newBackgroundSprite;
+};
+/**
+* Gets the blur filter applied to this scene's background.
+* @returns {PIXI.filters.BlurFilter} The backgroundFilter.
+*/
+Scene_MenuBase.prototype.backgroundFilter = function() {
+	return this._backgroundFilter;
+};
+/**
+* Sets the blur filter applied to this scene's background.
+* @param {PIXI.filters.BlurFilter} newBackgroundFilter The new backgroundFilter.
+*/
+Scene_MenuBase.prototype.setBackgroundFilter = function(newBackgroundFilter) {
+	this._backgroundFilter = newBackgroundFilter;
+};
+/**
+* Gets the help window describing the current selection.
+* @returns {Window_Help} The helpWindow.
+*/
+Scene_MenuBase.prototype.helpWindow = function() {
+	return this._helpWindow;
+};
+
+//#endregion
+//#region src/plugins/_base/scenes/Scene_Skill.js
+/**
+* Gets the window describing the actor whose skills are shown.
+* @returns {Window_SkillStatus} The statusWindow.
+*/
+Scene_Skill.prototype.statusWindow = function() {
+	return this._statusWindow;
+};
+/**
+* Gets the window listing the selectable skills.
+* @returns {Window_SkillList} The itemWindow.
+*/
+Scene_Skill.prototype.itemWindow = function() {
+	return this._itemWindow;
 };
 
 //#endregion
@@ -9931,7 +10546,7 @@ var Window_ControlLegend = class extends Window_Base {
 	*/
 	refresh() {
 		this.contents.clear();
-		if (this._entries.length === 0) return;
+		if (this.entries().length === 0) return;
 		this.drawLegend();
 	}
 	/**
@@ -10292,7 +10907,7 @@ var Window_ActorRibbon = class extends Window_Base {
 	* Draws the actor face in the ribbon.
 	*/
 	drawContent() {
-		if (!this._actor) return;
+		if (!this.actor()) return;
 		this.drawActorRibbon();
 	}
 	/**
@@ -10537,6 +11152,13 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 		this._j._disableManagedOpacity = false;
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Sets up the bitmap based on the desired text content.
 	*/
 	loadBitmap() {
@@ -10578,13 +11200,13 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* @returns {number}
 	*/
 	bitmapWidth() {
-		this._j._testBitmap = new Bitmap(this.bitmap?.width ?? 128, this.bitmapHeight());
-		this._j._testBitmap.fontFace = this.fontFace();
-		this._j._testBitmap.fontSize = this.fontSize();
-		this._j._testBitmap.fontItalic = this.isItalics();
-		this._j._testBitmap.fontBold = this.isBold();
-		const measured = this._j._testBitmap.measureTextWidth(this.text());
-		const min = this._j._minWidth;
+		this.j()._testBitmap = new Bitmap(this.bitmap ? this.bitmap.width : 128, this.bitmapHeight());
+		this.j()._testBitmap.fontFace = this.fontFace();
+		this.j()._testBitmap.fontSize = this.fontSize();
+		this.j()._testBitmap.fontItalic = this.isItalics();
+		this.j()._testBitmap.fontBold = this.isBold();
+		const measured = this.j()._testBitmap.measureTextWidth(this.text());
+		const min = this.j()._minWidth;
 		return Math.max(measured, min);
 	}
 	/**
@@ -10593,14 +11215,14 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* @returns {number}
 	*/
 	bitmapHeight() {
-		return this._j._fontSize * 3;
+		return this.j()._fontSize * 3;
 	}
 	/**
 	* The text currently assigned to this sprite.
 	* @returns {string|String.empty}
 	*/
 	text() {
-		return this._j._text;
+		return this.j()._text;
 	}
 	/**
 	* Assigns text to this sprite.
@@ -10610,7 +11232,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	*/
 	setText(text) {
 		if (this.text() !== text) {
-			this._j._text = text;
+			this.j()._text = text;
 			this.refresh();
 		}
 		return this;
@@ -10620,7 +11242,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* @returns {string|*}
 	*/
 	color() {
-		return this._j._color;
+		return this.j()._color;
 	}
 	/**
 	* Sets the color of this sprite's text.
@@ -10631,7 +11253,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	setColor(color) {
 		if (!this.isValidColor(color)) return;
 		if (this.color() !== color) {
-			this._j._color = color;
+			this.j()._color = color;
 			this.refresh();
 		}
 		return this;
@@ -10654,7 +11276,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* @returns {Sprite_BaseText.Alignments}
 	*/
 	alignment() {
-		return this._j._alignment;
+		return this.j()._alignment;
 	}
 	/**
 	* Sets the alignment of this sprite's text.
@@ -10665,7 +11287,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	setAlignment(alignment) {
 		if (!this.isValidAlignment(alignment)) return;
 		if (this.alignment() !== alignment) {
-			this._j._alignment = alignment;
+			this.j()._alignment = alignment;
 			this.refresh();
 		}
 		return this;
@@ -10688,7 +11310,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* @returns {boolean}
 	*/
 	isBold() {
-		return this._j._bold;
+		return this.j()._bold;
 	}
 	/**
 	* Sets the bold for this sprite's text.
@@ -10697,7 +11319,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	*/
 	setBold(bold) {
 		if (this.isBold() !== bold) {
-			this._j._bold = bold;
+			this.j()._bold = bold;
 			this.refresh();
 		}
 		return this;
@@ -10707,7 +11329,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* @returns {boolean}
 	*/
 	isItalics() {
-		return this._j._italics;
+		return this.j()._italics;
 	}
 	/**
 	* Sets the italics for this sprite's text.
@@ -10716,7 +11338,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	*/
 	setItalics(italics) {
 		if (this.isItalics() !== italics) {
-			this._j._italics = italics;
+			this.j()._italics = italics;
 			this.refresh();
 		}
 		return this;
@@ -10726,7 +11348,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* @returns {string}
 	*/
 	fontFace() {
-		return this._j._fontFace;
+		return this.j()._fontFace;
 	}
 	/**
 	* Sets the font face to the designated font.
@@ -10737,7 +11359,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	*/
 	setFontFace(fontFace) {
 		if (this.fontFace() !== fontFace) {
-			this._j._fontFace = fontFace;
+			this.j()._fontFace = fontFace;
 			this.refresh();
 		}
 		return this;
@@ -10747,7 +11369,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* @returns {number}
 	*/
 	fontSize() {
-		return this._j._fontSize;
+		return this.j()._fontSize;
 	}
 	/**
 	* Sets the font size to the designated number.
@@ -10756,7 +11378,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	*/
 	setFontSize(fontSize) {
 		if (this.fontSize() !== fontSize) {
-			this._j._fontSize = fontSize;
+			this.j()._fontSize = fontSize;
 			this.refresh();
 		}
 		return this;
@@ -10766,7 +11388,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* @returns {number}
 	*/
 	minWidth() {
-		return this._j._minWidth;
+		return this.j()._minWidth;
 	}
 	/**
 	* Sets a minimum width for the text box. Useful to make center/right alignment visible.
@@ -10775,8 +11397,8 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	*/
 	setMinWidth(width) {
 		const w = Math.max(0, width);
-		if (this._j._minWidth !== w) {
-			this._j._minWidth = w;
+		if (this.j()._minWidth !== w) {
+			this.j()._minWidth = w;
 			this.refresh();
 		}
 		return this;
@@ -10785,20 +11407,20 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	* Flags this sprite to disable the managed opacity automation.
 	*/
 	selfManageOpacity() {
-		this._j._disableManagedOpacity = true;
+		this.j()._disableManagedOpacity = true;
 	}
 	/**
 	* Unflags this sprite to enable the managed opacity automation.
 	*/
 	autoManageOpacity() {
-		this._j._disableManagedOpacity = false;
+		this.j()._disableManagedOpacity = false;
 	}
 	/**
 	* Checks whether or not this sprite is flagged for self-managed opacity.
 	* @returns {boolean}
 	*/
 	hasSelfManagedOpacity() {
-		return this._j._disableManagedOpacity;
+		return this.j()._disableManagedOpacity;
 	}
 	/**
 	* Renders the text of this sprite.
@@ -10869,18 +11491,25 @@ var Sprite_Face = class extends Sprite {
 		};
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Loads the bitmap into the sprite.
 	*/
 	loadBitmap() {
-		this.bitmap = ImageManager.loadFace(this._j._faceName);
+		this.bitmap = ImageManager.loadFace(this.j()._faceName);
 		const pw = ImageManager.faceWidth;
 		const ph = ImageManager.faceHeight;
 		const width = pw;
 		const height = ph;
 		const sw = Math.min(width, pw);
 		const sh = Math.min(height, ph);
-		const sx = Math.floor(this._j._faceIndex % 4 * pw + (pw - sw) / 2);
-		const sy = Math.floor(Math.floor(this._j._faceIndex / 4) * ph + (ph - sh) / 2);
+		const sx = Math.floor(this.j()._faceIndex % 4 * pw + (pw - sw) / 2);
+		const sy = Math.floor(Math.floor(this.j()._faceIndex / 4) * ph + (ph - sh) / 2);
 		this.setFrame(sx, sy, pw, ph);
 	}
 };
@@ -11086,6 +11715,13 @@ var Sprite_Icon = class extends Sprite {
 */
 var Sprite_MapGauge = class extends Sprite_Gauge {
 	/**
+	* Gets the gauge.
+	* @returns {*} The gauge.
+	*/
+	gauge() {
+		return this._gauge;
+	}
+	/**
 	* Constructor.
 	* @param {number} bitmapWidth - The width of the gauge bitmap.
 	* @param {number} bitmapHeight - The height of the gauge bitmap.
@@ -11171,14 +11807,14 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	* @returns {Game_Actor|Game_Enemy|null}
 	*/
 	getBattler() {
-		return this._battler;
+		return this.battler();
 	}
 	/**
 	* Gets the status type associated with this gauge.
 	* @returns {string|null}
 	*/
 	getStatusType() {
-		return this._statusType;
+		return this.statusType();
 	}
 	/**
 	* Sets the status type associated with this gauge.
@@ -11193,7 +11829,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	* @returns {number}
 	*/
 	bitmapWidth() {
-		return this._gauge._bitmapWidth;
+		return this.gauge()._bitmapWidth;
 	}
 	/**
 	* Overwrites {@link #bitmapHeight}.<br/>
@@ -11201,7 +11837,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	* @returns {number}
 	*/
 	bitmapHeight() {
-		return this._gauge._bitmapHeight;
+		return this.gauge()._bitmapHeight;
 	}
 	/**
 	* Overwrites {@link #gaugeHeight}.<br/>
@@ -11209,7 +11845,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	* @returns {number}
 	*/
 	gaugeHeight() {
-		return this._gauge._gaugeHeight;
+		return this.gauge()._gaugeHeight;
 	}
 	/**
 	* Overwrites {@link #label}.<br/>
@@ -11217,38 +11853,38 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	* @returns {string}
 	*/
 	label() {
-		return this._gauge._label;
+		return this.gauge()._label;
 	}
 	/**
 	* Gets the icon index of the gauge.
 	* @returns {number}
 	*/
 	iconIndex() {
-		return this._gauge._iconIndex;
+		return this.gauge()._iconIndex;
 	}
 	/**
 	* Sets the icon index of the gauge.
 	* @param {number} iconIndex The index of the icon to set.
 	*/
 	setIcon(iconIndex) {
-		this._gauge._iconIndex = iconIndex;
-		if (this._gauge._iconSprite) {
-			if (this._gauge._iconIndex < 0) {
-				this._gauge._iconSprite.visible = false;
+		this.gauge()._iconIndex = iconIndex;
+		if (this.gauge()._iconSprite) {
+			if (this.gauge()._iconIndex < 0) {
+				this.gauge()._iconSprite.visible = false;
 			} else {
-				this._gauge._iconSprite.setIconIndex(this._gauge._iconIndex);
-				this._gauge._iconSprite.visible = true;
+				this.gauge()._iconSprite.setIconIndex(this.gauge()._iconIndex);
+				this.gauge()._iconSprite.visible = true;
 				const iconHeight = 16;
 				const centeredY = Math.floor((this.bitmapHeight() - iconHeight) / 2);
-				this._gauge._iconSprite.move(10, centeredY);
+				this.gauge()._iconSprite.move(10, centeredY);
 			}
 			this.redraw();
 			return;
 		}
-		if (this._gauge._iconIndex >= 0) {
+		if (this.gauge()._iconIndex >= 0) {
 			const sprite = this.createIconSprite();
 			this.addChild(sprite);
-			this._gauge._iconSprite = sprite;
+			this.gauge()._iconSprite = sprite;
 		}
 		this.redraw();
 	}
@@ -11257,14 +11893,14 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	* @param {string} label The label to set.
 	*/
 	setLabel(label) {
-		this._gauge._label = label;
+		this.gauge()._label = label;
 		this.redraw();
 	}
 	/**
 	* Activates the gauge.
 	*/
 	activateGauge() {
-		this._gauge._activated = true;
+		this.gauge()._activated = true;
 	}
 	/**
 	* Extends {@link Sprite#hide}.<br/>
@@ -11278,14 +11914,14 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	* Deactivates the gauge.
 	*/
 	deactivateGauge() {
-		this._gauge._activated = false;
+		this.gauge()._activated = false;
 	}
 	/**
 	* Gets whether or not the gauge is currently active.
 	* @returns {boolean}
 	*/
 	isGaugeActive() {
-		return this._gauge._activated;
+		return this.gauge()._activated;
 	}
 	/**
 	* Overwrites {@link #currentValue}.<br/>
@@ -11295,10 +11931,10 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	currentValue() {
 		if (!this.getBattler()) return NaN;
 		switch (this.getStatusType()) {
-			case "hp": return this._battler.hp;
-			case "mp": return this._battler.mp;
-			case "tp": return this._battler.tp;
-			case "time": return this._battler.currentExp() - this._battler.currentLevelExp();
+			case "hp": return this.battler().hp;
+			case "mp": return this.battler().mp;
+			case "tp": return this.battler().tp;
+			case "time": return this.battler().currentExp() - this.battler().currentLevelExp();
 			default: return NaN;
 		}
 	}
@@ -11309,11 +11945,11 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	*/
 	currentMaxValue() {
 		if (!this.getBattler()) return NaN;
-		switch (this._statusType) {
-			case "hp": return this._battler.mhp;
-			case "mp": return this._battler.mmp;
-			case "tp": return this._battler.maxTp();
-			case "time": return this._battler.nextLevelExp() - this._battler.currentLevelExp();
+		switch (this.statusType()) {
+			case "hp": return this.battler().mhp;
+			case "mp": return this.battler().mmp;
+			case "tp": return this.battler().maxTp();
+			case "time": return this.battler().nextLevelExp() - this.battler().currentLevelExp();
 			default: return NaN;
 		}
 	}
@@ -11322,7 +11958,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	* @returns {Sprite_Icon}
 	*/
 	createIconSprite() {
-		const sprite = new Sprite_Icon(this._gauge._iconIndex);
+		const sprite = new Sprite_Icon(this.gauge()._iconIndex);
 		sprite.scale.x = .5;
 		sprite.scale.y = .5;
 		const iconHeight = 16;
@@ -11336,14 +11972,14 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	}
 	drawIcon() {
 		if (this.iconIndex() >= 0) {
-			if (!this._gauge._iconSprite) {
+			if (!this.gauge()._iconSprite) {
 				const sprite = this.createIconSprite();
 				this.addChild(sprite);
-				this._gauge._iconSprite = sprite;
+				this.gauge()._iconSprite = sprite;
 			}
-			this._gauge._iconSprite.visible = true;
-		} else if (this._gauge._iconSprite) {
-			this._gauge._iconSprite.visible = false;
+			this.gauge()._iconSprite.visible = true;
+		} else if (this.gauge()._iconSprite) {
+			this.gauge()._iconSprite.visible = false;
 		}
 	}
 	/**
@@ -11355,7 +11991,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		const x = 32;
 		const y = 0;
 		this.bitmap.fontSize = 12;
-		this.bitmap.drawText(this._gauge._label, x, y, this.bitmapWidth(), this.bitmapHeight(), "left");
+		this.bitmap.drawText(this.gauge()._label, x, y, this.bitmapWidth(), this.bitmapHeight(), "left");
 	}
 	/**
 	* Overwrites {@link #drawValue}.<br/>
@@ -11370,10 +12006,10 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 		this.bitmap.clear();
 		const currentValue = this.currentValue();
 		if (!isNaN(currentValue)) {
-			this._value = currentValue;
-			this._maxValue = this.currentMaxValue();
+			this.setValue(currentValue);
+			this.setMaxValue(this.currentMaxValue());
 			this.drawGauge();
-			if (this._statusType !== "time") {
+			if (this.statusType() !== "time") {
 				this.drawLabel();
 				this.drawIcon();
 				if (this.isValid()) {
@@ -11404,6 +12040,147 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 	textHeight() {
 		return this.bitmapHeight();
 	}
+};
+
+//#endregion
+//#region src/plugins/_base/sprites/Sprite_Animation.js
+/**
+* Gets the animation data being played.
+* @returns {object} The animation.
+*/
+Sprite_Animation.prototype.animation = function() {
+	return this._animation;
+};
+/**
+* Gets the sprites this animation is playing against.
+* @returns {Sprite[]} The targets.
+*/
+Sprite_Animation.prototype.targets = function() {
+	return this._targets;
+};
+
+//#endregion
+//#region src/plugins/_base/sprites/Sprite_AnimationMV.js
+/**
+* Gets the MV-format animation data being played.
+* @returns {object} The animation.
+*/
+Sprite_AnimationMV.prototype.animation = function() {
+	return this._animation;
+};
+/**
+* Gets the sprites this animation is playing against.
+* @returns {Sprite[]} The targets.
+*/
+Sprite_AnimationMV.prototype.targets = function() {
+	return this._targets;
+};
+
+//#endregion
+//#region src/plugins/_base/sprites/Sprite_Damage.js
+/**
+* Gets the remaining frames before this popup disappears.
+* @returns {number} The duration.
+*/
+Sprite_Damage.prototype.duration = function() {
+	return this._duration;
+};
+/**
+* Sets the remaining frames before this popup disappears.
+* @param {number} newDuration The new duration.
+*/
+Sprite_Damage.prototype.setDuration = function(newDuration) {
+	this._duration = newDuration;
+};
+/**
+* Gets the rgba flash applied while this popup is displayed.
+* @returns {number[]} The flashColor.
+*/
+Sprite_Damage.prototype.flashColor = function() {
+	return this._flashColor;
+};
+
+//#endregion
+//#region src/plugins/_base/sprites/Sprite_Gauge.js
+/**
+* Gets the battler this gauge is currently bound to.
+* @returns {Game_Battler} The battler.
+*/
+Sprite_Gauge.prototype.battler = function() {
+	return this._battler;
+};
+/**
+* Sets the battler this gauge is currently bound to.
+* @param {Game_Battler} newBattler The new battler.
+*/
+Sprite_Gauge.prototype.setBattler = function(newBattler) {
+	this._battler = newBattler;
+};
+/**
+* Gets which resource this gauge renders, such as "hp" or "mp".
+* @returns {string} The statusType.
+*/
+Sprite_Gauge.prototype.statusType = function() {
+	return this._statusType;
+};
+/**
+* Sets which resource this gauge renders, such as "hp" or "mp".
+* @param {string} newStatusType The new statusType.
+*/
+Sprite_Gauge.prototype.setStatusType = function(newStatusType) {
+	this._statusType = newStatusType;
+};
+/**
+* Gets the current value this gauge is rendering.
+* @returns {number} The value.
+*/
+Sprite_Gauge.prototype.value = function() {
+	return this._value;
+};
+/**
+* Sets the current value this gauge is rendering.
+* @param {number} newValue The new value.
+*/
+Sprite_Gauge.prototype.setValue = function(newValue) {
+	this._value = newValue;
+};
+/**
+* Gets the maximum value this gauge is rendering.
+* @returns {number} The maxValue.
+*/
+Sprite_Gauge.prototype.maxValue = function() {
+	return this._maxValue;
+};
+/**
+* Sets the maximum value this gauge is rendering.
+* @param {number} newMaxValue The new maxValue.
+*/
+Sprite_Gauge.prototype.setMaxValue = function(newMaxValue) {
+	this._maxValue = newMaxValue;
+};
+
+//#endregion
+//#region src/plugins/_base/sprites/Spriteset_Map.js
+/**
+* Gets the tilemap rendering the current map.
+* @returns {Tilemap} The tilemap.
+*/
+Spriteset_Map.prototype.tilemap = function() {
+	return this._tilemap;
+};
+/**
+* Gets the sprites representing every character on the map.
+* @returns {Sprite_Character[]} The characterSprites.
+*/
+Spriteset_Map.prototype.characterSprites = function() {
+	return this._characterSprites;
+};
+/**
+* Sets the sprites representing every character on the map.
+* @param {Sprite_Character[]} newCharacterSprites The new characterSprites.
+*/
+Spriteset_Map.prototype.setCharacterSprites = function(newCharacterSprites) {
+	this._characterSprites = newCharacterSprites;
 };
 
 //#endregion
@@ -11883,7 +12660,7 @@ Window_Base.prototype.drawGaugeBorderedRect = function(x, y, w, h, rate, options
 	if (fw > 0 && h > 0) {
 		this.contents.gradientFillRect(x, y, fw, h, options.leftGradientColor, options.rightGradientColor);
 	}
-	const ctx = this.contents._context;
+	const ctx = this.context();
 	ctx.save();
 	ctx.beginPath();
 	ctx.rect(x + .5, y + .5, w - 1, h - 1);
@@ -11930,7 +12707,7 @@ Window_Base.prototype.drawGaugeSegmented = function(x, y, w, h, rate, options) {
 			}
 		}
 	}
-	const ctx = this.contents._context;
+	const ctx = this.context();
 	ctx.save();
 	ctx.beginPath();
 	ctx.rect(x + .5, y + .5, w - 1, h - 1);
@@ -11957,7 +12734,7 @@ Window_Base.prototype.drawGaugePill = function(x, y, w, h, rate, options) {
 	const { borderThickness } = options;
 	const fw = Math.max(0, Math.floor(w * Math.max(0, Math.min(1, rate))));
 	if (h <= 0) return;
-	const ctx = this.contents._context;
+	const ctx = this.context();
 	const grad = ctx.createLinearGradient(x, y, x + w, y);
 	grad.addColorStop(0, options.leftGradientColor);
 	grad.addColorStop(1, options.rightGradientColor);
@@ -12020,7 +12797,7 @@ Window_Base.prototype.drawGaugeRadial = function(x, y, w, h, rate, options) {
 	const { backColor } = options;
 	const { borderColor } = options;
 	const { borderThickness } = options;
-	const ctx = this.contents._context;
+	const ctx = this.context();
 	const midAngle = a0 + (a1 - a0) / 2;
 	const gx0 = cx + Math.cos(a0) * irx;
 	const gy0 = cy + Math.sin(a0) * iry;
@@ -12080,6 +12857,13 @@ Window_Base.prototype._computeGaugeInnerRect = function(rect, options) {
 		height: ih
 	};
 };
+/**
+* Gets the 2d drawing context backing this window's contents bitmap.
+* @returns {CanvasRenderingContext2D} The drawing context.
+*/
+Window_Base.prototype.context = function() {
+	return this.contents.context;
+};
 
 //#endregion
 //#region src/plugins/_base/windows/Window_Command.js
@@ -12088,7 +12872,7 @@ Window_Base.prototype._computeGaugeInnerRect = function(rect, options) {
 * @returns {BuiltWindowCommand[]}
 */
 Window_Command.prototype.commandList = function() {
-	return this._list ?? [];
+	return this._list;
 };
 /**
 * Checks whether or not there are any commands in this list.
@@ -12404,7 +13188,7 @@ Window_Command.prototype.prependBuiltCommand = function(command) {
 */
 Window_EquipItem.prototype.updateHelp = function() {
 	Window_ItemList.prototype.updateHelp.call(this);
-	if (this._actor && this._statusWindow && this._slotId >= 0) {
+	if (this.actor() && this.statusWindow() && this.slotId() >= 0) {
 		this.updateActorComparison();
 	}
 };
@@ -12413,11 +13197,11 @@ Window_EquipItem.prototype.updateHelp = function() {
 * and forcefully equipping it with the hovered item.
 */
 Window_EquipItem.prototype.updateActorComparison = function() {
-	const actorClone = this.getActorClone(this._actor);
+	const actorClone = this.getActorClone(this.actor());
 	this.preEquipSetupActorClone(actorClone);
-	actorClone.forceChangeEquip(this._slotId, this.item());
+	actorClone.forceChangeEquip(this.slotId(), this.item());
 	this.postEquipSetupActorClone(actorClone);
-	this._statusWindow.setTempActor(actorClone);
+	this.statusWindow().setTempActor(actorClone);
 };
 /**
 * Duplicates a given actor.
@@ -12442,6 +13226,27 @@ Window_EquipItem.prototype.preEquipSetupActorClone = function(actorClone) {};
 * @param {Game_Actor} actorClone The clone of the actor.
 */
 Window_EquipItem.prototype.postEquipSetupActorClone = function(actorClone) {};
+/**
+* Gets the actor whose equipment is being changed.
+* @returns {Game_Actor} The actor.
+*/
+Window_EquipItem.prototype.actor = function() {
+	return this._actor;
+};
+/**
+* Gets the status window previewing this selection.
+* @returns {Window_EquipStatus} The statusWindow.
+*/
+Window_EquipItem.prototype.statusWindow = function() {
+	return this._statusWindow;
+};
+/**
+* Gets the equipment slot currently being filled.
+* @returns {number} The slotId.
+*/
+Window_EquipItem.prototype.slotId = function() {
+	return this._slotId;
+};
 
 //#endregion
 //#region src/plugins/_base/windows/Window_Help.js
@@ -12511,7 +13316,7 @@ Window_Help.prototype.refresh = function() {
 */
 Window_Help.prototype.renderText = function() {
 	const { x, y, width } = this.baseTextRect();
-	this.drawTextEx(this._text, x, y, width);
+	this.drawTextEx(this.getText(), x, y, width);
 };
 
 //#endregion
@@ -12656,7 +13461,7 @@ var Window_MoreData = class Window_MoreData extends Window_Command {
 	*/
 	adjustWindowHeight() {
 		const magicHeight = 800;
-		const calculatedHeight = (this._list.length + 1) * (this.lineHeight() + 8) - 16;
+		const calculatedHeight = (this.commandList().length + 1) * (this.lineHeight() + 8) - 16;
 		if (calculatedHeight >= magicHeight) {
 			this.height = magicHeight;
 		} else {
@@ -12718,7 +13523,7 @@ Window_Selectable.prototype.isMoreEnabled = function() {
 * @returns {boolean} True if the "more" button is pressed/held, false otherwise.
 */
 Window_Selectable.prototype.isMoreTriggered = function() {
-	return this._canRepeat ? Input.isRepeated("shift") : Input.isTriggered("shift");
+	return this.canRepeat() ? Input.isRepeated("shift") : Input.isTriggered("shift");
 };
 /**
 * Processes the "more" functionality.
@@ -12746,7 +13551,7 @@ Window_Selectable.prototype.isContextEnabled = function() {
 * @returns {boolean}
 */
 Window_Selectable.prototype.isContextTriggered = function() {
-	return this._canRepeat ? Input.isRepeated("tab") : Input.isTriggered("tab");
+	return this.canRepeat() ? Input.isRepeated("tab") : Input.isTriggered("tab");
 };
 /**
 * Processes the contextual scene action.
@@ -12774,7 +13579,7 @@ Window_Selectable.prototype.isContentPrevEnabled = function() {
 * @returns {boolean}
 */
 Window_Selectable.prototype.isContentPrevTriggered = function() {
-	return this._canRepeat ? Input.isRepeated("l2") : Input.isTriggered("l2");
+	return this.canRepeat() ? Input.isRepeated("l2") : Input.isTriggered("l2");
 };
 /**
 * Processes content-tab cycle toward the previous entry.
@@ -12802,7 +13607,7 @@ Window_Selectable.prototype.isContentNextEnabled = function() {
 * @returns {boolean}
 */
 Window_Selectable.prototype.isContentNextTriggered = function() {
-	return this._canRepeat ? Input.isRepeated("r2") : Input.isTriggered("r2");
+	return this.canRepeat() ? Input.isRepeated("r2") : Input.isTriggered("r2");
 };
 /**
 * Processes content-tab cycle toward the next entry.
@@ -12830,7 +13635,7 @@ Window_Selectable.prototype.isActorPrevEnabled = function() {
 * @returns {boolean}
 */
 Window_Selectable.prototype.isActorPrevTriggered = function() {
-	return this._canRepeat ? Input.isRepeated("pageup") : Input.isTriggered("pageup");
+	return this.canRepeat() ? Input.isRepeated("pageup") : Input.isTriggered("pageup");
 };
 /**
 * Processes actor cycle toward the previous party member.
@@ -12858,7 +13663,7 @@ Window_Selectable.prototype.isActorNextEnabled = function() {
 * @returns {boolean}
 */
 Window_Selectable.prototype.isActorNextTriggered = function() {
-	return this._canRepeat ? Input.isRepeated("pagedown") : Input.isTriggered("pagedown");
+	return this.canRepeat() ? Input.isRepeated("pagedown") : Input.isTriggered("pagedown");
 };
 /**
 * Processes actor cycle toward the next party member.
@@ -12879,9 +13684,9 @@ Window_Selectable.prototype.callActorNextHandler = function() {
 */
 J.BASE.Aliased.Window_Selectable.set("select", Window_Selectable.prototype.select);
 Window_Selectable.prototype.select = function(index) {
-	const previousIndex = this._index;
+	const previousIndex = this.index();
 	J.BASE.Aliased.Window_Selectable.get("select").call(this, index);
-	if (previousIndex !== this._index) {
+	if (previousIndex !== this.index()) {
 		this.onIndexChange();
 	}
 };
@@ -12891,6 +13696,84 @@ Window_Selectable.prototype.select = function(index) {
 * NOTE: This executes AFTER the index has changed.
 */
 Window_Selectable.prototype.onIndexChange = function() {};
+/**
+* Gets whether or not holding a direction repeats the cursor movement.
+* @returns {boolean} The canRepeat.
+*/
+Window_Selectable.prototype.canRepeat = function() {
+	return this._canRepeat;
+};
+/**
+* Gets the help window bound to this selection.
+* @returns {Window_Help} The helpWindow.
+*/
+Window_Selectable.prototype.helpWindow = function() {
+	return this._helpWindow;
+};
+
+//#endregion
+//#region src/plugins/_base/windows/Window_ChoiceList.js
+/**
+* Gets the message window this choice list is anchored to.
+* @returns {Window_Message} The messageWindow.
+*/
+Window_ChoiceList.prototype.messageWindow = function() {
+	return this._messageWindow;
+};
+
+//#endregion
+//#region src/plugins/_base/windows/Window_EquipStatus.js
+/**
+* Gets the actor whose parameters are displayed.
+* @returns {Game_Actor} The actor.
+*/
+Window_EquipStatus.prototype.actor = function() {
+	return this._actor;
+};
+/**
+* Gets the hypothetical actor used to preview parameter changes.
+* @returns {Game_Actor} The tempActor.
+*/
+Window_EquipStatus.prototype.tempActor = function() {
+	return this._tempActor;
+};
+
+//#endregion
+//#region src/plugins/_base/windows/Window_SkillList.js
+/**
+* Gets the actor whose skills are listed.
+* @returns {Game_Actor} The actor.
+*/
+Window_SkillList.prototype.actor = function() {
+	return this._actor;
+};
+/**
+* Gets the skill type currently being filtered to.
+* @returns {number} The stypeId.
+*/
+Window_SkillList.prototype.stypeId = function() {
+	return this._stypeId;
+};
+
+//#endregion
+//#region src/plugins/_base/windows/Window_SkillType.js
+/**
+* Gets the actor whose skill types are listed.
+* @returns {Game_Actor} The actor.
+*/
+Window_SkillType.prototype.actor = function() {
+	return this._actor;
+};
+
+//#endregion
+//#region src/plugins/_base/windows/Window_Status.js
+/**
+* Gets the actor whose status is displayed.
+* @returns {Game_Actor} The actor.
+*/
+Window_Status.prototype.actor = function() {
+	return this._actor;
+};
 
 //#endregion
 //#region src/plugins/_base/windows/WindowLayer.js

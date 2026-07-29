@@ -1148,11 +1148,11 @@ Game_Temp.prototype.findDifficultyLayerByKey = function(key) {
 * Sets up the difficulty layers based on the plugin parameters.
 */
 Game_Temp.prototype.setupDifficultySystem = function() {
-	this._j._difficulty._metadata.forEach((difficultyMetadata, key) => {
+	this.metadata().forEach((difficultyMetadata, key) => {
 		const difficultyLayer = DifficultyLayer.fromMetadata(difficultyMetadata);
-		this._j._difficulty._allLayers.set(key, difficultyLayer);
+		this.getAllDifficultyLayers().set(key, difficultyLayer);
 		const difficultyConfig = DifficultyConfig.fromMetadata(difficultyMetadata);
-		this._j._difficulty._allConfigs.set(key, difficultyConfig);
+		this.allConfigs().set(key, difficultyConfig);
 		$gameSystem.registerDifficultyConfig(difficultyConfig);
 	});
 	this.refreshAppliedDifficulty();
@@ -1234,6 +1234,20 @@ Game_Temp.prototype.buildAppliedDifficulty = function() {
 	const { appliedKey, appliedName, appliedDescription } = DifficultyLayer;
 	const newDifficulty = new DifficultyBuilder(appliedName, appliedKey).setDescription(appliedDescription).setCost(cost).setActorEffects(enabledActorEffects).setEnemyEffects(enabledEnemyEffects).setRewards(rewards).buildAsLayer();
 	return newDifficulty;
+};
+/**
+* Gets the difficulty metadata staged for the layer being edited.
+* @returns {object} The staged difficulty metadata.
+*/
+Game_Temp.prototype.metadata = function() {
+	return this._j._difficulty._metadata;
+};
+/**
+* Gets the all configs.
+* @returns {*} The allConfigs.
+*/
+Game_Temp.prototype.allConfigs = function() {
+	return this._j._difficulty._allConfigs;
 };
 
 //#endregion

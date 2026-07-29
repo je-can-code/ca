@@ -503,7 +503,7 @@ Scene_Map.prototype.commandOmnipedia = function() {
 J.OMNI.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function() {
 	J.OMNI.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this._commandWindow.setHandler(J.OMNI.Metadata.Command.Symbol, this.commandOmnipedia.bind(this));
+	this.commandWindow().setHandler(J.OMNI.Metadata.Command.Symbol, this.commandOmnipedia.bind(this));
 };
 /**
 * Calls forth the omnipedia scene.
@@ -523,9 +523,9 @@ Window_MenuCommand.prototype.makeCommandList = function() {
 	J.OMNI.Aliased.Window_MenuCommand.get("makeCommandList").call(this);
 	if (!this.canAddOmnipediaCommand()) return;
 	const command = new WindowCommandBuilder(J.OMNI.Metadata.Command.Name).setSymbol(J.OMNI.Metadata.Command.Symbol).setHelpText("Browse everything the party has discovered so far.").setIconIndex(J.OMNI.Metadata.Command.IconIndex).setColorIndex(J.OMNI.Metadata.Command.ColorIndex).build();
-	const lastCommand = this._list.at(-1);
+	const lastCommand = this.commandList().at(-1);
 	if (lastCommand.symbol === "gameEnd") {
-		this._list.splice(this._list.length - 2, 0, command);
+		this.commandList().splice(this.commandList().length - 2, 0, command);
 	} else {
 		this.addBuiltCommand(command);
 	}
