@@ -1114,37 +1114,74 @@ IconManager.registerJabsIcons = function() {
 	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill4, 79);
 };
 /**
-* A key-value mapping of physical input symbols to ex-text.
-* @type {Record<string, string>}
+* A key-value mapping of physical input symbols to per-device ex-text.
+*
+* Every symbol carries a glyph for each device rather than one combined string, because the player is
+* only ever holding one of them. Showing both bindings permanently tells a controller player about a
+* keyboard they are not touching, and doubles the length of every legend to do it.
+* @type {Record<string, {gamepad: string, keyboard: string}>}
 */
 IconManager._jabsInputTextRegistry = {};
 /**
 * Gets the ex-text registry for JABS input symbols.
-* @returns {Record<string, string>}
+* @returns {Record<string, {gamepad: string, keyboard: string}>}
 */
 IconManager.getJabsInputTextRegistry = function() {
 	return IconManager._jabsInputTextRegistry;
 };
 /**
-* Registers custom ex-text for a given symbol.
+* Registers custom per-device ex-text for a given symbol.
 * @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
-* @param {string} text The ex-text to use for the given symbol.
+* @param {string} gamepadText The ex-text to use while the player is on a gamepad.
+* @param {string} keyboardText The ex-text to use while the player is on a keyboard.
 */
-IconManager.registerJabsInputText = function(symbol, text) {
+IconManager.registerJabsInputText = function(symbol, gamepadText, keyboardText) {
 	const validatedSymbol = String(symbol);
 	const normalizedSymbol = validatedSymbol.trim().toLowerCase();
 	if (!normalizedSymbol) {
-		throw new Error(`Attempting to register an empty symbol for ex-text: ${text}`);
+		throw new Error(`Attempting to register an empty symbol for ex-text: ${gamepadText}`);
 	}
-	const validatedText = String(text).trim();
-	if (!validatedText) {
-		throw new Error(`Attempting to register an empty ex-text for symbol: ${normalizedSymbol}`);
+	const validatedGamepadText = String(gamepadText).trim();
+	if (!validatedGamepadText) {
+		throw new Error(`Attempting to register empty gamepad ex-text for symbol: ${normalizedSymbol}`);
+	}
+	const validatedKeyboardText = String(keyboardText).trim();
+	if (!validatedKeyboardText) {
+		throw new Error(`Attempting to register empty keyboard ex-text for symbol: ${normalizedSymbol}`);
 	}
 	const registry = this.getJabsInputTextRegistry();
-	registry[normalizedSymbol] = validatedText;
+	registry[normalizedSymbol] = {
+		gamepad: validatedGamepadText,
+		keyboard: validatedKeyboardText
+	};
 };
 /**
-* Get the ex-text for a given physical input symbol.
+* How far a keyboard glyph sits from its gamepad counterpart in the icon sheet.
+*
+* The sheet is laid out so that the keyboard row sits exactly one row above the gamepad row, with the
+* two in identical order- cross above Z, circle above X, and so on all the way along. That regularity
+* is deliberate on the sheet's part, so it is expressed here once as a rule rather than restated as a
+* second magic number beside every registration.
+* @returns {number}
+*/
+IconManager.keyboardIconIndexOffset = function() {
+	return 16;
+};
+/**
+* Registers the paired glyphs for a symbol from its gamepad icon index alone.
+*
+* The keyboard index is derived via {@link IconManager.keyboardIconIndexOffset}. Anything whose two
+* glyphs do not follow that layout should call {@link IconManager.registerJabsInputText} directly and
+* state both.
+* @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
+* @param {number} gamepadIconIndex The icon index of the gamepad glyph for this symbol.
+*/
+IconManager.registerJabsInputIcon = function(symbol, gamepadIconIndex) {
+	const keyboardIconIndex = gamepadIconIndex - this.keyboardIconIndexOffset();
+	this.registerJabsInputText(symbol, `\\I[${gamepadIconIndex}]`, `\\I[${keyboardIconIndex}]`);
+};
+/**
+* Get the ex-text for a given physical input symbol, for whichever device the player is using.
 * @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
 * @returns {string} The ex-text for the given symbol, or the symbol itself if not mapped.
 */
@@ -1152,7 +1189,9 @@ IconManager.jabsInputTextForSymbol = function(symbol) {
 	const registry = this.getJabsInputTextRegistry();
 	const validatedSymbol = String(symbol);
 	const normalizedSymbol = validatedSymbol.toLowerCase();
-	return registry[normalizedSymbol] || Input.labelForSymbol(normalizedSymbol) || symbol;
+	const registered = registry[normalizedSymbol];
+	if (registered === undefined) return Input.labelForSymbol(normalizedSymbol) || symbol;
+	return InputDeviceTracker.isGamepad() ? registered.gamepad : registered.keyboard;
 };
 /**
 * Gets the ex-text for a given physical input symbol.
@@ -1165,19 +1204,77 @@ IconManager.jabsIconTextForSymbol = function(symbol) {
 };
 /**
 * Registers all JABS input symbols with their respective ex-text.
+*
+* Only the gamepad index is stated for each symbol; the keyboard glyph follows from the sheet's layout.
+* Note that a symbol's name and its keyboard glyph are not expected to agree- the names are borrowed
+* from the engine's own mapping vocabulary and serve as identifiers, while the glyph shows the key
+* actually bound to that action.
 */
 IconManager.registerJabsInputTexts = function() {
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Mainhand, "\\I[2448] / \\I[2432]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Offhand, "\\I[2449] / \\I[2433]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Tool, "\\I[2450] / \\I[2434]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Dash, "\\I[2451] / \\I[2435]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.SkillTrigger, "\\I[2452] / \\I[2436]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, "\\I[2454] / \\I[2438]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.GuardTrigger, "\\I[2453] / \\I[2437]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.MobilitySkill, "\\I[2455] / \\I[2439]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Quickmenu, "\\I[2456] / \\I[2440]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.PartyCycle, "\\I[2457] / \\I[2441]");
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Mainhand, 2448);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Offhand, 2449);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Tool, 2450);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Dash, 2451);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.SkillTrigger, 2452);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.GuardTrigger, 2453);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, 2454);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.MobilitySkill, 2455);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Quickmenu, 2456);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.PartyCycle, 2457);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirLeft, 2458);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirRight, 2459);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirUp, 2460);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirDown, 2461);
 };
+
+//#endregion
+//#region src/plugins/abs/ext/input/managers/InputLegendResolver.js
+/**
+* Teaches J-Base how to describe a semantic input to the player.
+*
+* Windows bind semantic handler names rather than physical buttons, which is what lets one input
+* mapping serve every scene. The cost is that a legend saying "context: clear slot" is telling the
+* player the name of an implementation detail- nobody has ever pressed a button called context.
+*
+* The semantics happen to resolve cleanly, because the vanilla input symbols they check for are the
+* very same strings this plugin uses as its own symbol identities: `context` polls `tab`, which is
+* this plugin's Tool symbol, and so on for all eight. So describing a semantic is just a matter of
+* naming which vanilla symbol it polls and handing that to the icon registry, which already carries
+* a gamepad and keyboard glyph for each.
+*
+* J-Base holds only the hook; this registration is what fills it in. Without this plugin present,
+* legends fall back to plain readable text rather than breaking.
+*/
+/**
+* The vanilla input symbol each semantic handler polls for.
+*
+* These mirror {@link Window_Selectable}'s own checks. Keeping them here rather than in J-Base is
+* deliberate: J-Base defines what a semantic *means*, and this plugin owns what it is *bound to*.
+* @type {Object<string, string>}
+*/
+var SEMANTIC_TO_SYMBOL = {
+	"ok": JabsInputSymbols.Mainhand,
+	"cancel": JabsInputSymbols.Offhand,
+	"context": JabsInputSymbols.Tool,
+	"more": JabsInputSymbols.Dash,
+	"content-prev": JabsInputSymbols.StrafeTrigger,
+	"content-next": JabsInputSymbols.MobilitySkill,
+	"actor-prev": JabsInputSymbols.SkillTrigger,
+	"actor-next": JabsInputSymbols.GuardTrigger,
+	"focus-prev": JabsInputSymbols.DirLeft,
+	"focus-next": JabsInputSymbols.DirRight
+};
+/**
+* Describes a semantic handler as the inputs currently bound to it.
+* @param {string} semantic The semantic handler name, such as `context` or `actor-next`.
+* @returns {string} Renderable text, or {@link String.empty} when this semantic is not describable.
+*/
+function resolveSemantic(semantic) {
+	const symbol = SEMANTIC_TO_SYMBOL[semantic];
+	if (!symbol) return String.empty;
+	return IconManager.jabsInputTextForSymbol(symbol);
+}
+InputLegendResolver.registerResolver(resolveSemantic);
 
 //#endregion
 //#region src/plugins/abs/ext/input/managers/Input.js

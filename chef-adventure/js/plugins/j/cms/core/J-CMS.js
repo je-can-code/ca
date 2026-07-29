@@ -904,14 +904,6 @@ var Window_MenuSectionCommand = class extends Window_MenuCommand {
 		this.move(this.x, y, this.width, height);
 	}
 	/**
-	* Overwrites {@link #updateHelp}.<br/>
-	* Describes the highlighted command in the scene's help window.
-	*/
-	updateHelp() {
-		if (!this.helpWindow()) return;
-		this.helpWindow().setText(this.currentHelpText());
-	}
-	/**
 	* Remembers which command is currently highlighted, so it can be returned to later.
 	*
 	* Kept separately from the selection itself because a column losing focus is fully deselected- the
@@ -927,35 +919,6 @@ var Window_MenuSectionCommand = class extends Window_MenuCommand {
 	restoreSelection() {
 		const index = this.rememberedIndex() ?? 0;
 		this.select(Math.min(index, Math.max(0, this.maxItems() - 1)));
-	}
-	/**
-	* Extends {@link #cursorRight}.<br/>
-	* Moves focus to the column on the right, if there is one.
-	*
-	* A single-column list has no use for horizontal cursor movement- the engine no-ops it entirely- so
-	* the input is free, and moving right between two side-by-side columns is what a player reaches for
-	* first. This routes it to the same handler the shoulder buttons use, so both work and neither is a
-	* special case.
-	* @param {boolean} wrap Whether or not to wrap the cursor.
-	*/
-	cursorRight(wrap) {
-		if (this.isHandled("content-next")) {
-			this.callHandler("content-next");
-			return;
-		}
-		super.cursorRight(wrap);
-	}
-	/**
-	* Extends {@link #cursorLeft}.<br/>
-	* Moves focus to the column on the left, if there is one.
-	* @param {boolean} wrap Whether or not to wrap the cursor.
-	*/
-	cursorLeft(wrap) {
-		if (this.isHandled("content-prev")) {
-			this.callHandler("content-prev");
-			return;
-		}
-		super.cursorLeft(wrap);
 	}
 };
 
@@ -1232,7 +1195,7 @@ Scene_Menu.prototype.createControlLegendWindow = function() {
 Scene_Menu.prototype.controlLegendEntries = function() {
 	return [
 		{
-			semantic: "content-next",
+			semantic: ["focus-prev", "focus-next"],
 			label: "switch column"
 		},
 		{
@@ -1273,7 +1236,7 @@ Scene_Menu.prototype.createCommandWindow = function() {
 */
 Scene_Menu.prototype.createActorCommandWindow = function() {
 	const window = new Window_MenuActorCommand(this.actorCommandWindowRect());
-	window.setHandler("content-next", this.onFocusPartyColumn.bind(this));
+	window.setHandler("focus-next", this.onFocusPartyColumn.bind(this));
 	window.setHandler("cancel", this.popScene.bind(this));
 	this.setActorCommandWindow(window);
 	this.addWindow(window);
@@ -1283,7 +1246,7 @@ Scene_Menu.prototype.createActorCommandWindow = function() {
 */
 Scene_Menu.prototype.createPartyCommandWindow = function() {
 	const window = new Window_MenuPartyCommand(this.partyCommandWindowRect());
-	window.setHandler("content-prev", this.onFocusActorColumn.bind(this));
+	window.setHandler("focus-prev", this.onFocusActorColumn.bind(this));
 	window.setHandler("cancel", this.popScene.bind(this));
 	window.deactivate();
 	window.deselect();

@@ -1799,6 +1799,7 @@ J.BASE.Aliased = {
 	Game_Temp: new Map(),
 	Game_Timer: new Map(),
 	Game_System: new Map(),
+	Input: new Map(),
 	Scene_Base: new Map(),
 	Scene_Boot: new Map(),
 	Scene_MenuBase: new Map(),
@@ -2694,6 +2695,51 @@ var MenuSection = class {
 	*/
 	static isValid(section) {
 		return this.sections().includes(section);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/models/InputDevice.js
+/**
+* The kinds of input device the player can be holding.
+*
+* This exists so that anything drawing a button glyph can ask one question- "what is the player
+* actually using right now?"- and get an answer that is a fixed vocabulary rather than a guess. A
+* legend telling a controller player to press `Z` is worse than no legend at all, because it is
+* confidently wrong.
+*
+* There are deliberately only two members. The glyph sheet this vocabulary serves carries one gamepad
+* style and one keyboard style, so a third member would name something that cannot be drawn. Should
+* further styles ever be illustrated, this is the enum that grows.
+*/
+var InputDevice = class {
+	/**
+	* The player is on a keyboard.
+	*
+	* This is the default, because a keyboard is the one input device a computer running the game is
+	* guaranteed to have.
+	* @type {string}
+	*/
+	static Keyboard = "keyboard";
+	/**
+	* The player is on a gamepad.
+	* @type {string}
+	*/
+	static Gamepad = "gamepad";
+	/**
+	* Gets every valid device.
+	* @returns {string[]}
+	*/
+	static devices() {
+		return [this.Keyboard, this.Gamepad];
+	}
+	/**
+	* Determines whether the given value names a real device.
+	* @param {string} device The value to validate.
+	* @returns {boolean}
+	*/
+	static isValid(device) {
+		return this.devices().includes(device);
 	}
 };
 
@@ -6959,6 +7005,98 @@ var IconManager = class {
 };
 
 //#endregion
+//#region src/plugins/_base/managers/InputDeviceTracker.js
+/**
+* Tracks which kind of device the player most recently gave input with.
+*
+* The engine offers no way to ask this. {@link Input._currentState} is keyed by button name and both
+* the keyboard handler and the gamepad poller write into that same map, so by the time any state is
+* observable the device that produced it is gone. {@link Input._latestButton} records *what* was
+* pressed, never *by what*.
+*
+* The answer therefore has to be captured at the moment of the write, which is what the aliases in
+* `managers/Input.js` do. This tracker is only the place the answer is kept, deliberately separated
+* from the capturing so that consumers depend on a question rather than on a mechanism- if this is
+* ever replaced by an explicit player-facing setting, {@link #currentDevice} is the single method that
+* changes and nothing that draws a glyph has to know.
+*/
+var InputDeviceTracker = class {
+	/**
+	* The device the player most recently used.
+	* @type {string} One of {@link InputDevice}.
+	*/
+	static #currentDevice = InputDevice.Keyboard;
+	/**
+	* Whether the player has actually given input with anything yet.
+	*
+	* Kept apart from the device itself to solve the opening moments of a session: a player who booted
+	* the game with a controller already plugged in has not pressed anything, so nothing has claimed the
+	* device, and defaulting blindly to keyboard would greet exactly the wrong audience with keyboard
+	* glyphs. Until a real press arrives, the mere presence of a pad is allowed to decide. After one, the
+	* player's own input outranks presence forever.
+	* @type {boolean}
+	*/
+	static #claimed = false;
+	/**
+	* Gets the device the player is currently using.
+	* @returns {string} One of {@link InputDevice}.
+	*/
+	static currentDevice() {
+		return this.#currentDevice;
+	}
+	/**
+	* Gets whether the player is currently using a gamepad.
+	* @returns {boolean}
+	*/
+	static isGamepad() {
+		return this.#currentDevice === InputDevice.Gamepad;
+	}
+	/**
+	* Gets whether the player is currently using a keyboard.
+	* @returns {boolean}
+	*/
+	static isKeyboard() {
+		return this.#currentDevice === InputDevice.Keyboard;
+	}
+	/**
+	* Records that the player just gave input with the keyboard.
+	*/
+	static markKeyboard() {
+		this.#claimed = true;
+		this.#currentDevice = InputDevice.Keyboard;
+	}
+	/**
+	* Records that the player just gave input with a gamepad.
+	*/
+	static markGamepad() {
+		this.#claimed = true;
+		this.#currentDevice = InputDevice.Gamepad;
+	}
+	/**
+	* Records that a gamepad is connected, without claiming that the player used it.
+	*
+	* A pad sitting connected and idle is weak evidence, so it only counts while there is no stronger
+	* evidence available. This is what makes the first glyphs a controller player ever sees correct,
+	* rather than correct only after they have pressed something.
+	*/
+	static noteGamepadPresent() {
+		if (this.#claimed === true) return;
+		this.#currentDevice = InputDevice.Gamepad;
+	}
+	/**
+	* Restores this tracker to its initial state.
+	*
+	* Deliberately not wired to {@link Input.clear}, which the engine calls on window blur- alt-tabbing
+	* out of the game is not the player changing controllers, and treating it as such would make the
+	* legend rewrite itself every time focus moved.
+	*/
+	static reset() {
+		this.#currentDevice = InputDevice.Keyboard;
+		this.#claimed = false;
+	}
+};
+
+//#endregion
 //#region src/plugins/_base/managers/Input.js
 /**
 * Gets the merged input state for the current frame.
@@ -6973,6 +7111,75 @@ Input.currentState = function() {
 */
 Input.gamepadStates = function() {
 	return this._gamepadStates;
+};
+/**
+* The deflection an analog axis must exceed before it counts as deliberate input.
+*
+* Matches the threshold the engine itself uses when it synthesizes D-pad presses from stick axes, so
+* that a stick claiming the device and a stick moving the cursor agree on what "pushed" means.
+* @returns {number}
+*/
+Input.gamepadAxisThreshold = function() {
+	return .5;
+};
+/**
+* Determines whether the player is currently holding anything on the given gamepad.
+*
+* Asked every frame while a pad is connected, so it answers "is something pressed right now" rather
+* than "did something just change". That distinction matters: the engine's own state loop fires on
+* releases too, and a release is not a reason to decide the player switched devices.
+* @param {Gamepad} gamepad The gamepad to inspect.
+* @returns {boolean}
+*/
+Input.isGamepadActive = function(gamepad) {
+	const buttonHeld = gamepad.buttons.some((button) => button.pressed === true);
+	if (buttonHeld === true) return true;
+	const threshold = this.gamepadAxisThreshold();
+	return gamepad.axes.some((axis) => Math.abs(axis) > threshold);
+};
+/**
+* Determines whether a key is one the game actually binds to something.
+*
+* The browser reports every key the player touches, the overwhelming majority of which the game has no
+* use for. Treating those as evidence about the player's chosen device would mean an errant screenshot
+* hotkey or a cat on the keyboard silently rewrites a controller player's legend, so only keys the game
+* would genuinely act on get a say.
+* @param {number} keyCode The key code reported by the browser.
+* @returns {boolean}
+*/
+Input.isMappedKeyCode = function(keyCode) {
+	const buttonName = this.keyMapper[keyCode];
+	return buttonName !== undefined;
+};
+/**
+* Extends {@link Input._onKeyDown}.<br/>
+* Also records that the player is currently using a keyboard.
+*
+* This is one of only two places in the engine where a device writes into the merged input state, which
+* is why aliasing it is exhaustive rather than a heuristic.
+*/
+J.BASE.Aliased.Input.set("_onKeyDown", Input._onKeyDown);
+Input._onKeyDown = function(event) {
+	if (this.isMappedKeyCode(event.keyCode) === true) {
+		InputDeviceTracker.markKeyboard();
+	}
+	J.BASE.Aliased.Input.get("_onKeyDown").call(this, event);
+};
+/**
+* Extends {@link Input._updateGamepadState}.<br/>
+* Also records that the player is currently using a gamepad.
+*
+* The other of the two device-specific writers into the merged input state. Unlike the keyboard's, this
+* one runs every frame for every connected pad whether or not the player touched it, so presence and
+* use have to be reported separately.
+* @param {Gamepad} gamepad The gamepad whose state is being read.
+*/
+J.BASE.Aliased.Input.set("_updateGamepadState", Input._updateGamepadState);
+Input._updateGamepadState = function(gamepad) {
+	J.BASE.Aliased.Input.get("_updateGamepadState").call(this, gamepad);
+	InputDeviceTracker.noteGamepadPresent();
+	if (this.isGamepadActive(gamepad) === false) return;
+	InputDeviceTracker.markGamepad();
 };
 
 //#endregion
@@ -10525,6 +10732,25 @@ var Window_ControlLegend = class extends Window_Base {
 		* @type {{semantic: string, label: string}[]}
 		*/
 		this._entries = [];
+		/**
+		* The input device this legend's glyphs were last drawn for.
+		* @type {string} One of {@link InputDevice}.
+		*/
+		this._renderedDevice = InputDeviceTracker.currentDevice();
+	}
+	/**
+	* Gets the input device this legend's glyphs were last drawn for.
+	* @returns {string} One of {@link InputDevice}.
+	*/
+	renderedDevice() {
+		return this._renderedDevice;
+	}
+	/**
+	* Sets the input device this legend's glyphs were last drawn for.
+	* @param {string} device One of {@link InputDevice}.
+	*/
+	setRenderedDevice(device) {
+		this._renderedDevice = device;
 	}
 	/**
 	* Gets the entries currently described by this legend.
@@ -10539,6 +10765,22 @@ var Window_ControlLegend = class extends Window_Base {
 	*/
 	setEntries(entries) {
 		this._entries = entries;
+		this.refresh();
+	}
+	/**
+	* Extends {@link Window_Base.update}.<br/>
+	* Also redraws the legend when the player changes input device.
+	*
+	* Nothing pushes this change outward- the tracker has no idea who is listening- so the window asks,
+	* which is the same way every other window in the engine notices the world moving underneath it. The
+	* comparison is against what was last *drawn* rather than a flag, so a legend created before the
+	* player ever touched anything still corrects itself.
+	*/
+	update() {
+		super.update();
+		const currentDevice = InputDeviceTracker.currentDevice();
+		if (this.renderedDevice() === currentDevice) return;
+		this.setRenderedDevice(currentDevice);
 		this.refresh();
 	}
 	/**
@@ -10570,12 +10812,24 @@ var Window_ControlLegend = class extends Window_Base {
 	}
 	/**
 	* Describes a single legend entry as displayable text.
-	* @param {{semantic: string, label: string}} entry The entry to describe.
+	*
+	* An entry may name more than one semantic, because some controls are a pair the player thinks of
+	* as one thing- moving between columns is "left or right", not two separate abilities. Listing
+	* those separately would say the same sentence twice.
+	* @param {{semantic: (string|string[]), label: string}} entry The entry to describe.
 	* @returns {string}
 	*/
 	describeEntry(entry) {
-		const input = InputLegendResolver.resolve(entry.semantic, entry.semantic);
-		return `${input}: ${entry.label}`;
+		const semantics = Array.isArray(entry.semantic) ? entry.semantic : [entry.semantic];
+		const inputs = semantics.map((semantic) => InputLegendResolver.resolve(semantic, semantic)).join(this.semanticSeparator());
+		return `${inputs}: ${entry.label}`;
+	}
+	/**
+	* The separator drawn between the inputs of a single entry.
+	* @returns {string}
+	*/
+	semanticSeparator() {
+		return "/";
 	}
 	/**
 	* The horizontal padding applied to either end of the legend.
@@ -13079,6 +13333,21 @@ Window_Command.prototype.currentHelpText = function() {
 	return this.commandHelpText(this.index()) ?? String.empty;
 };
 /**
+* Overwrites {@link #updateHelp}.<br/>
+* Describes the highlighted command in the attached help window.
+*
+* Commands already carry their own help text, and the engine already tells a window when to refresh
+* its help- but the default implementation only ever clears, so every window wanting the two joined
+* up had to say so itself. Doing it here means attaching a help window is the whole of the work.
+*
+* Commands without help text resolve to an empty string, which reads identically to the clear this
+* replaces, so windows that never set any behave exactly as they did before.
+*/
+Window_Command.prototype.updateHelp = function() {
+	if (!this.helpWindow()) return;
+	this.helpWindow().setText(this.currentHelpText());
+};
+/**
 * Wraps the command in color if a color index is provided.
 * @param {string} command The comman as raw text.
 * @param {number} index The index of this command in the window.
@@ -13678,6 +13947,82 @@ Window_Selectable.prototype.processActorNext = function() {
 */
 Window_Selectable.prototype.callActorNextHandler = function() {
 	this.callHandler("actor-next");
+};
+/**
+* Gets whether a focus-previous handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isFocusPrevEnabled = function() {
+	return this.isHandled("focus-prev");
+};
+/**
+* Gets whether a focus-next handler is registered.
+* @returns {boolean}
+*/
+Window_Selectable.prototype.isFocusNextEnabled = function() {
+	return this.isHandled("focus-next");
+};
+/**
+* Processes moving focus to the window on the left.
+*/
+Window_Selectable.prototype.processFocusPrev = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callFocusPrevHandler();
+};
+/**
+* Processes moving focus to the window on the right.
+*/
+Window_Selectable.prototype.processFocusNext = function() {
+	this.playCursorSound();
+	this.updateInputData();
+	this.callFocusNextHandler();
+};
+/**
+* Calls the handler registered for focus-previous.
+*/
+Window_Selectable.prototype.callFocusPrevHandler = function() {
+	this.callHandler("focus-prev");
+};
+/**
+* Calls the handler registered for focus-next.
+*/
+Window_Selectable.prototype.callFocusNextHandler = function() {
+	this.callHandler("focus-next");
+};
+/**
+* Extends {@link #cursorLeft}.<br/>
+* Moves focus to the window on the left when one has been declared.
+*
+* Horizontal cursor movement is spatial- it means "go that way"- which the engine can only honour
+* within a single window, and only when that window has more than one column. A scene laying windows
+* out side by side has nowhere to express the same intent, so it declares a focus handler and this
+* routes the input there.
+*
+* Note that this is a different idea from `content-prev`, which changes which subset a window is
+* showing rather than where the player is. Those deliberately answer to different inputs: this to the
+* directional pad, content cycling to the shoulder buttons. Collapsing them would spend two inputs
+* on one job and leave the other unexpressible.
+* @param {boolean} wrap Whether or not to wrap the cursor.
+*/
+J.BASE.Aliased.Window_Selectable.set("cursorLeft", Window_Selectable.prototype.cursorLeft);
+Window_Selectable.prototype.cursorLeft = function(wrap) {
+	if (this.isFocusPrevEnabled()) {
+		return this.processFocusPrev();
+	}
+	return J.BASE.Aliased.Window_Selectable.get("cursorLeft").call(this, wrap);
+};
+/**
+* Extends {@link #cursorRight}.<br/>
+* Moves focus to the window on the right when one has been declared.
+* @param {boolean} wrap Whether or not to wrap the cursor.
+*/
+J.BASE.Aliased.Window_Selectable.set("cursorRight", Window_Selectable.prototype.cursorRight);
+Window_Selectable.prototype.cursorRight = function(wrap) {
+	if (this.isFocusNextEnabled()) {
+		return this.processFocusNext();
+	}
+	return J.BASE.Aliased.Window_Selectable.get("cursorRight").call(this, wrap);
 };
 /**
 * Extends the `.select()` to include a hook for executing logic onIndexChange.
