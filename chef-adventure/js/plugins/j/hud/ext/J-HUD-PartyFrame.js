@@ -224,7 +224,7 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	/**
 	* Creates all sprites for this hud and caches them.
 	*/
-	static createCache() {
+	createCache() {
 		const gaugeTypes = this.gaugeTypes();
 		$gameParty.battleMembers().forEach((actor) => {
 			this.getOrCreateFullSizeFaceSprite(actor);

@@ -24455,9 +24455,9 @@ Object.defineProperty(RPG_Item.prototype, "jabsExpiration", { get: function() {
 * Whether this item is a JABS tool (hookshot, bomb, etc.) that belongs in the tool slot.<br/>
 * Tagged with {@code <jabsTool>}. Items without this tag are treated as consumables and land
 * in the usable-item slot instead.<br/>
-* Note: the tag alone is not sufficient — {@link Window_AbsMenuSelect#isItemVisibleInToolMenu}
-* also enforces itypeId===1 and occasion===0 as a safety rail, since only RPG_Item entries
-* are ever iterated for either menu list.
+* Note: the tag alone is not sufficient — the loadout picker also enforces itypeId===1 and
+* occasion===0 as a safety rail, since only RPG_Item entries are ever iterated for either
+* slot's candidate list.
 * @type {boolean}
 */
 Object.defineProperty(RPG_Item.prototype, "jabsTool", { get: function() {
@@ -28783,7 +28783,7 @@ Game_Battler.prototype.removeState = function(stateId) {
 */
 J.ABS.Aliased.Game_Battler.set("clearStates", Game_Battler.prototype.clearStates);
 Game_Battler.prototype.clearStates = function() {
-	if ($jabsEngine) {
+	if ($jabsEngine && this.getUuid() !== String.empty) {
 		const trackedStates = Array.from($jabsEngine.getJabsStatesByUuid(this.getUuid()).values());
 		trackedStates.forEach((trackedState) => {
 			if (trackedState.expired) return;
@@ -31913,13 +31913,6 @@ Scene_Map.prototype.createAllWindows = function() {
 */
 Scene_Map.prototype.createJabsAbsMenu = function() {
 	this.createJabsAbsMenuMainWindow();
-	this.createJabsAbsMenuToolListWindow();
-	this.createJabsAbsMenuEquipSkillWindow();
-	this.createJabsAbsMenuEquipToolWindow();
-	this.createJabsAbsMenuEquipDodgeWindow();
-	this.createJabsAbsMenuEquipOffhandWindow();
-	this.createJabsAbsMenuUsableItemListWindow();
-	this.createJabsAbsMenuEquipUsableItemWindow();
 };
 /**
 * Creates the JABS main menu window containing the list of other options

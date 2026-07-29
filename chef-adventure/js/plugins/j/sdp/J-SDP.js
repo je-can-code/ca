@@ -6050,21 +6050,6 @@ Scene_Map.prototype.start = function() {
 	J.SDP.Aliased.Scene_Map.get("start").call(this);
 	SdpMasteryManager.reconcileAllForParty();
 };
-/**
-* Adds the functionality for calling the SDP menu from the JABS quick menu.
-*/
-J.SDP.Aliased.Scene_Map.set("createJabsAbsMenuMainWindow", Scene_Map.prototype.createJabsAbsMenuMainWindow);
-Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
-	J.SDP.Aliased.Scene_Map.get("createJabsAbsMenuMainWindow").call(this);
-	const mainMenuWindow = this.getJabsMainListWindow();
-	mainMenuWindow.setHandler("sdp-menu", this.commandSdp.bind(this));
-};
-/**
-* Brings up the SDP menu.
-*/
-Scene_Map.prototype.commandSdp = function() {
-	Scene_SDP.callScene();
-};
 
 //#endregion
 //#region src/plugins/sdp/core/scenes/Scene_Menu.js

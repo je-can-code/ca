@@ -2405,7 +2405,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* Applies initial visibility and selection to match the current view mode.
 	* Ensures index 0 is selected (or the remembered index) and details are set.
 	*/
-	static initializeView() {
+	initializeView() {
 		this.resetSelectionTrackers();
 		const startIndex = this.viewMode() === Scene_Aptitude.viewMode.AGGREGATE ? this.lastAggregateIndex() : this.lastSourceIndex();
 		if (this.viewMode() === Scene_Aptitude.viewMode.AGGREGATE) {

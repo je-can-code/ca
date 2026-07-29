@@ -2105,7 +2105,7 @@ var Game_Time = class Game_Time {
 	* @param {number} seconds The number of seconds to tick.
 	*/
 	addSeconds(seconds = this._secondsPerTick) {
-		this.#advanceUnit(seconds, Game_Time.secondsPerMinute, true, () => this.seconds(), (newSeconds) => this.setSeconds(newSeconds), () => this.addMinutes(this.minutesPerTick()));
+		this.advanceUnit(seconds, Game_Time.secondsPerMinute, true, () => this.seconds(), (newSeconds) => this.setSeconds(newSeconds), () => this.addMinutes(this.minutesPerTick()));
 	}
 	/**
 	* Advances a single unit of the clock, spilling any excess up into the unit above it.
@@ -2125,7 +2125,7 @@ var Game_Time = class Game_Time {
 	* @param {function(number): void} write Writes this unit's new value.
 	* @param {function(): void} carry Advances the unit above this one by a tick's worth.
 	*/
-	#advanceUnit(amount, limit, isZeroBased, read, write, carry) {
+	advanceUnit(amount, limit, isZeroBased, read, write, carry) {
 		const hasOverflowed = (value) => isZeroBased ? value >= limit : value > limit;
 		let potential = read() + amount;
 		if (!hasOverflowed(potential)) {
@@ -2144,28 +2144,28 @@ var Game_Time = class Game_Time {
 	*/
 	addMinutes(minutes = this._minutesPerTick) {
 		this.updateCurrentTone();
-		this.#advanceUnit(minutes, Game_Time.minutesPerHour, true, () => this.minutes(), (newMinutes) => this.setMinutes(newMinutes), () => this.addHours(this.hoursPerTick()));
+		this.advanceUnit(minutes, Game_Time.minutesPerHour, true, () => this.minutes(), (newMinutes) => this.setMinutes(newMinutes), () => this.addHours(this.hoursPerTick()));
 	}
 	/**
 	* Ticks the hour counter up by a designated amount.
 	* @param {number} hours The number of hours to tick.
 	*/
 	addHours(hours = this._hoursPerTick) {
-		this.#advanceUnit(hours, Game_Time.hoursPerDay, true, () => this.hours(), (newHours) => this.setHours(newHours), () => this.addDays(this.daysPerTick()));
+		this.advanceUnit(hours, Game_Time.hoursPerDay, true, () => this.hours(), (newHours) => this.setHours(newHours), () => this.addDays(this.daysPerTick()));
 	}
 	/**
 	* Ticks the days counter up by a designated amount.
 	* @param {number} days The number of days to tick.
 	*/
 	addDays(days = this._daysPerTick) {
-		this.#advanceUnit(days, Game_Time.daysPerMonth, false, () => this.days(), (newDays) => this.setDays(newDays), () => this.addMonths(this.monthsPerTick()));
+		this.advanceUnit(days, Game_Time.daysPerMonth, false, () => this.days(), (newDays) => this.setDays(newDays), () => this.addMonths(this.monthsPerTick()));
 	}
 	/**
 	* Ticks the months counter up by a designated amount.
 	* @param {number} months The number of months to tick.
 	*/
 	addMonths(months = this._monthsPerTick) {
-		this.#advanceUnit(months, Game_Time.monthsPerYear, false, () => this.months(), (newMonths) => this.setMonths(newMonths), () => this.addYears(this.yearsPerTick()));
+		this.advanceUnit(months, Game_Time.monthsPerYear, false, () => this.months(), (newMonths) => this.setMonths(newMonths), () => this.addYears(this.yearsPerTick()));
 	}
 	/**
 	* Ticks the years counter up by a designated amount.

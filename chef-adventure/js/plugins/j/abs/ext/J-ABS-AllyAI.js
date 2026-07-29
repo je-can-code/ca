@@ -2391,14 +2391,6 @@ Window_AbsMenu.prototype.allyAiHelpText = function() {
 	const description = ["Your ally management selection menu.", "A general direction or theme of guidance can be assigned to your allies from here."];
 	return description.join("\n");
 };
-/**
-* Overwrites {@link #itemHeight}.<br/>
-* Increases the height so subtext can be added.
-* @returns {number}
-*/
-Window_AbsMenuSelect.prototype.itemHeight = function() {
-	return this.lineHeight() * 2;
-};
 
 //#endregion
 //# sourceMappingURL=J-ABS-AllyAI.js.map

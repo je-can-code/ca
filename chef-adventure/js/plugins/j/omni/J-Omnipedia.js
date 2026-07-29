@@ -477,25 +477,6 @@ Game_System.prototype.canCallOmnipediaScene = function() {
 };
 
 //#endregion
-//#region src/plugins/omni/core/scenes/Scene_Map.js
-/**
-* Extends {@link #createJabsAbsMenuMainWindow}.<br/>
-* Adds additional handling in the list for the omnipedia command.
-*/
-J.OMNI.Aliased.Scene_Map.set("createJabsAbsMenuMainWindow", Scene_Map.prototype.createJabsAbsMenuMainWindow);
-Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
-	J.OMNI.Aliased.Scene_Map.get("createJabsAbsMenuMainWindow").call(this);
-	const mainMenuWindow = this.getJabsMainListWindow();
-	mainMenuWindow.setHandler(J.OMNI.Metadata.Command.Symbol, this.commandOmnipedia.bind(this));
-};
-/**
-* Calls forth the omnipedia scene.
-*/
-Scene_Map.prototype.commandOmnipedia = function() {
-	Scene_Omnipedia.callScene();
-};
-
-//#endregion
 //#region src/plugins/omni/core/scenes/Scene_Menu.js
 /**
 * Hooks into the command window creation of the menu to add functionality for the SDP menu.
