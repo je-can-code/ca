@@ -2488,16 +2488,25 @@ var Window_QuestopediaList = class extends Window_Command {
 		return this._questFiltering;
 	}
 	/**
-	* The category that this list is being filtered by. When an empty string, no filter is applied.
-	* @type {string}
-	*/
-	_currentCategoryKey = String.empty;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* This cannot be a class field declaration: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from it and found it undefined.
+	*/
+	initMembers() {
+		/**
+		* The category that this list is being filtered by. When an empty string, no filter is applied.
+		* @type {string}
+		*/
+		this._currentCategoryKey = String.empty;
 	}
 	/**
 	* Gets the current category key of quests being displayed in this list.
@@ -2746,13 +2755,26 @@ var Window_QuestopediaDescription = class extends Window_Base {
 //#endregion
 //#region src/plugins/omni/ext/quest/windows/Window_QuestopediaObjectives.js
 var Window_QuestopediaObjectives = class extends Window_Command {
-	_currentObjectives = [];
 	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* This cannot be a class field declaration: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from it and found it undefined.
+	*/
+	initMembers() {
+		/**
+		* The quest objectives currently being rendered.
+		* @type {TrackedOmniObjective[]}
+		*/
+		this._currentObjectives = [];
 	}
 	/**
 	* Overwrites {@link #itemHeight}.<br/>

@@ -1892,21 +1892,21 @@ var Window_AllyAiSelect = class Window_AllyAiSelect extends Window_Command {
 	*/
 	constructor(rect, type) {
 		super(rect);
-		this.initMembers(type);
+		this.setMenuType(type);
 		this.refresh();
 		this.select(0);
 		this.activate();
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
 	* Initializes all custom members of this window.
-	* @param {string} type Which of {@link Window_AllyAiSelect.Types} this window renders.
 	*/
-	initMembers(type) {
+	initMembers() {
 		/**
 		* Which mode this window renders.
 		* @type {string}
 		*/
-		this._menuType = type;
+		this._menuType = String.empty;
 		/**
 		* The actor id of the ally currently being managed through this window.
 		* @type {number}

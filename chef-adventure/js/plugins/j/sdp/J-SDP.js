@@ -479,17 +479,6 @@
  * @default SDP
  *
  *
- * @param JABSconfigs
- * @text JABS-ONLY CONFIG
- * @desc Without JABS, these configurations are irrelevant.
- *
- * @param showInBoth
- * @parent JABSconfigs
- * @type boolean
- * @desc If ON, then show in both JABS quick menu and main menu, otherwise only JABS quick menu.
- * @default false
- *
- *
  * @param sdpPanelCostDefaults
  * @text Panel rank-up defaults (by rarity)
  * @desc Core base / flat coefficient / exponential base (**mult**) per rarity. Panel JSON adds offsets on top.
@@ -2505,15 +2494,6 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 		*/
 		this.commandIconIndex = J.BASE.Helpers.parsePluginInt(this.parsedPluginParameters["menuCommandIcon"], 0);
 		/**
-		* When JABS is enabled, this menu is removed from the main menu and added instead
-		* to the quick menu. If this is set to true, then access to the menu will be re-added
-		* to the main menu again.<br>
-		*
-		* Both menus are shown/hidden by the menu switch id.
-		* @type {boolean}
-		*/
-		this.jabsShowInBothMenus = this.parsedPluginParameters["showInBoth"] === "true";
-		/**
 		* Singular player-facing name for one SDP row (confirmation copy, future labels).
 		* @type {string}
 		*/
@@ -3636,13 +3616,16 @@ Window_MenuCommand.prototype.makeCommandList = function() {
 	}
 };
 /**
-* Determines whether or not the sdp command can be added to the JABS menu.
+* Determines whether or not the sdp command can be added to the main menu.
+*
+* Formerly also refused to render whenever JABS was installed, unless a parameter opted back in. That
+* made sense while the JABS quick menu carried its own copy of this command and the two would have
+* duplicated each other- but the quick menu no longer offers anything except a way into this one, so
+* the check had quietly become the reason the scene was reachable from nowhere at all.
 * @returns {boolean} True if the command should be added, false otherwise.
 */
 Window_MenuCommand.prototype.canAddSdpCommand = function() {
-	if (!$gameSwitches.value(J.SDP.Metadata.menuSwitchId)) return false;
-	if (J.ABS && !J.SDP.Metadata.jabsShowInBothMenus) return false;
-	return true;
+	return $gameSwitches.value(J.SDP.Metadata.menuSwitchId);
 };
 
 //#endregion
@@ -3814,27 +3797,40 @@ var SdpFamilyFilter = class SdpFamilyFilter {
 */
 var Window_SdpList = class extends Window_Command {
 	/**
-	* The currently selected actor for listing unlocked panels and drawing ranks/costs.
-	* @type {Game_Actor}
-	*/
-	currentActor = null;
-	filterNoMaxedPanels = false;
-	/**
-	* Active family-filter key for the panel list.
-	* @type {string}
-	*/
-	familyFilterKey = SdpFamilyFilter.ALL;
-	/**
-	* The queued cart levels by panel key.
-	* @type {Map<string, number>}
-	*/
-	cart = new Map();
-	/**
 	* @constructor
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
+	*/
+	initMembers() {
+		/**
+		* The currently selected actor for listing unlocked panels and drawing ranks/costs.
+		* @type {Game_Actor}
+		*/
+		this.currentActor = null;
+		/**
+		* Whether panels already at max rank are hidden from the list.
+		* @type {boolean}
+		*/
+		this.filterNoMaxedPanels = false;
+		/**
+		* Active family-filter key for the panel list.
+		* @type {string}
+		*/
+		this.familyFilterKey = SdpFamilyFilter.ALL;
+		/**
+		* The queued cart levels by panel key.
+		* @type {Map<string, number>}
+		*/
+		this.cart = new Map();
 	}
 	/**
 	* Sets the actor for this window to the provided actor. Implicit refresh.
@@ -4055,20 +4051,30 @@ var Window_SdpHeader = class extends Window_Base {
 //#region src/plugins/sdp/core/windows/Window_SdpParameterList.js
 var Window_SdpParameterList = class extends Window_Command {
 	/**
-	* The current parameters on the panel being hovered over.
-	* @type {PanelParameter[]}
-	*/
-	panelParameters = [];
-	/**
-	* The current actor to compare parameters against the panel parameters for.
-	* @type {Game_Actor}
-	*/
-	currentActor = null;
-	/**
 	* Constructor.
+	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
+	*/
+	initMembers() {
+		/**
+		* The current parameters on the panel being hovered over.
+		* @type {PanelParameter[]}
+		*/
+		this.panelParameters = [];
+		/**
+		* The current actor to compare parameters against the panel parameters for.
+		* @type {Game_Actor}
+		*/
+		this.currentActor = null;
 	}
 	/**
 	* Sets the current actor to compare parameters for.
@@ -4175,16 +4181,25 @@ var Window_SdpParameterList = class extends Window_Command {
 //#region src/plugins/sdp/core/windows/Window_SdpRewardList.js
 var Window_SdpRewardList = class extends Window_Command {
 	/**
-	* The list of rewards for the currently-selected panel.
-	* @type {PanelRankupReward[]}
-	*/
-	panelRewards = [];
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* This cannot be a class field declaration: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from it and found it undefined.
+	*/
+	initMembers() {
+		/**
+		* The list of rewards for the currently-selected panel.
+		* @type {PanelRankupReward[]}
+		*/
+		this.panelRewards = [];
 	}
 	setRewards(rewards) {
 		this.panelRewards = rewards;
@@ -4346,31 +4361,40 @@ var Window_SdpMastery = class extends Window_Base {
 */
 var Window_SdpCart = class Window_SdpCart extends Window_Command {
 	/**
-	* The actor whose wallet + rankings apply.
-	* @type {Game_Actor|null}
-	*/
-	actor = null;
-	/**
-	* The queued cart levels by panel key.
-	* @type {Map<string, number>}
-	*/
-	cart = new Map();
-	/**
-	* The cached wallet value for the pinned row.
-	* @type {number}
-	*/
-	wallet = 0;
-	/**
-	* The cached total cost for the pinned row.
-	* @type {number}
-	*/
-	totalCost = 0;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
+	*/
+	initMembers() {
+		/**
+		* The actor whose wallet + rankings apply.
+		* @type {Game_Actor|null}
+		*/
+		this.actor = null;
+		/**
+		* The queued cart levels by panel key.
+		* @type {Map<string, number>}
+		*/
+		this.cart = new Map();
+		/**
+		* The cached wallet value for the pinned row.
+		* @type {number}
+		*/
+		this.wallet = 0;
+		/**
+		* The cached total cost for the pinned row.
+		* @type {number}
+		*/
+		this.totalCost = 0;
 	}
 	/**
 	* Binds the cart context to this window.
@@ -4535,8 +4559,6 @@ var Window_SdpConfirmation = class extends Window_Command {
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initialize(rect);
-		this.initMembers();
 		this.opacity = 255;
 		this.contentsBack.opacity = 255;
 		this.contents.opacity = 255;

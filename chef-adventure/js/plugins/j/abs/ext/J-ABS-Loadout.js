@@ -347,7 +347,6 @@ var Window_LoadoutSlots = class extends Window_Command {
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initMembers();
 	}
 	/**
 	* Initializes all custom members of this window.
@@ -578,7 +577,6 @@ var Window_LoadoutPicker = class extends Window_Command {
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initMembers();
 	}
 	/**
 	* Initializes all custom members of this window.

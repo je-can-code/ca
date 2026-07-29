@@ -30152,6 +30152,28 @@ Game_Enemy.prototype.getGuardSkillId = function() {
 	return this.databaseData().jabsGuardSkillId ?? 0;
 };
 /**
+* Gets the `uuid` of this enemy.
+*
+* Overridden purely to survive the moment before this enemy knows what it is. Vanilla's
+* {@link Game_Enemy.initialize} runs {@link Game_Battler.initialize} first- which reaches
+* {@link Game_Battler.clearStates}, and through it this method- and only afterwards calls
+* {@link Game_Enemy.setup} to assign the enemy id. Until that happens {@link Game_Enemy.enemy}
+* has no database record to return, so the inherited implementation's call to
+* {@link Game_Enemy.name} throws while reading a name off nothing.
+*
+* The empty return is therefore the expected state during construction rather than a fault, and
+* deliberately stays silent about it: every enemy ever built passes through here exactly once, so
+* warning would report the lifecycle working as designed. {@link Game_Actor.getUuid} guards the
+* same moment the same way, for the same reason.
+* @returns {string}
+*/
+Game_Enemy.prototype.getUuid = function() {
+	if (this.enemy()) {
+		return `${this.name()}_${this.uuid()}`;
+	}
+	return String.empty;
+};
+/**
 * Gets the enemy's prepare time from their notes.
 * This will be overwritten by values provided from an event.
 * @returns {number}

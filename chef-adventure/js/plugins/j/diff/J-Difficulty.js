@@ -1574,23 +1574,35 @@ var Window_DifficultyPoints = class extends Window_Base {
 //#region src/plugins/diff/core/windows/Window_DifficultyEffects.js
 var Window_DifficultyEffects = class Window_DifficultyEffects extends Window_Command {
 	/**
-	* The difficulty being hovered over from the list.
-	* @type {DifficultyBattlerEffects}
-	*/
-	hoveredEffects = null;
-	hoveredBonuses = null;
-	/**
-	* The type of effects being displayed in this list.
-	* @type {Window_DifficultyEffects.EffectsTypes}
-	*/
-	hoveredEffectsType = String.empty;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
-		this.refresh();
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
+	*/
+	initMembers() {
+		/**
+		* The difficulty being hovered over from the list.
+		* @type {DifficultyBattlerEffects}
+		*/
+		this.hoveredEffects = null;
+		/**
+		* The bonuses of the difficulty being hovered over from the list.
+		* @type {DifficultyBonusEffects}
+		*/
+		this.hoveredBonuses = null;
+		/**
+		* The type of effects being displayed in this list.
+		* @type {Window_DifficultyEffects.EffectsTypes}
+		*/
+		this.hoveredEffectsType = String.empty;
 	}
 	/**
 	* The types of comparison that are valid when comparing parameter values.

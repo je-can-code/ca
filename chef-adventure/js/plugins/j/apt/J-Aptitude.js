@@ -1593,25 +1593,26 @@ var Window_AptitudeRibbon = class extends Window_ActorRibbon {
 * The window containing the list of aptitude skill aggregations for an actor.
 */
 var Window_AptitudeAggregateList = class extends Window_Command {
-	/**
-	* The actor bound to this window.
-	* @type {Game_Actor|null}
-	*/
-	_actor = null;
-	/**
-	* The list of aggregates bound to this window.
-	* @type {AptitudeSkillAggregate[]}
-	*/
-	_aggregates = [];
 	constructor(rect) {
 		super(rect);
-		this.initMembers();
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
 	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
 	*/
 	initMembers() {
+		/**
+		* The actor bound to this window.
+		* @type {Game_Actor|null}
+		*/
 		this._actor = null;
+		/**
+		* The list of aggregates bound to this window.
+		* @type {AptitudeSkillAggregate[]}
+		*/
 		this._aggregates = [];
 	}
 	/**
@@ -1688,25 +1689,26 @@ var Window_AptitudeAggregateList = class extends Window_Command {
 * A window listing all aptitude sources currently applied to the actor.
 */
 var Window_AptitudeSourceList = class extends Window_Command {
-	/**
-	* The actor bound to this window.
-	* @type {Game_Actor|null}
-	*/
-	_actor = null;
-	/**
-	* The list of sources bound to this window.
-	* @type {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_Weapon|RPG_Armor|RPG_Skill|RPG_State)[]}
-	*/
-	_sources = [];
 	constructor(rect) {
 		super(rect);
-		this.initMembers();
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
 	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
 	*/
 	initMembers() {
+		/**
+		* The actor bound to this window.
+		* @type {Game_Actor|null}
+		*/
 		this._actor = null;
+		/**
+		* The list of sources bound to this window.
+		* @type {(RPG_Actor|RPG_Class|RPG_EquipItem|RPG_Weapon|RPG_Armor|RPG_Skill|RPG_State)[]}
+		*/
 		this._sources = [];
 	}
 	/**

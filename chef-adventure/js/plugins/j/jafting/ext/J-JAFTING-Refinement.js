@@ -1118,8 +1118,6 @@ var Window_RefinableList = class extends Window_Command {
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initialize(rect);
-		this.initMembers();
 	}
 	/**
 	* Initializes the properties of this class.

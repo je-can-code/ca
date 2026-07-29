@@ -856,28 +856,29 @@ var Window_SkillEquipRibbon = class extends Window_ActorRibbon {
 */
 var Window_SkillEquipSlots = class extends Window_Command {
 	/**
-	* The actor whose equips are being managed.
-	* @type {Game_Actor|null}
-	*/
-	_actor = null;
-	/**
-	* The number of visible slots to present.
-	* @type {number}
-	*/
-	_visibleSlots = 8;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle for this window.
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initMembers();
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
 	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
 	*/
 	initMembers() {
+		/**
+		* The actor whose equips are being managed.
+		* @type {Game_Actor|null}
+		*/
 		this._actor = null;
+		/**
+		* The number of visible slots to present.
+		* @type {number}
+		*/
 		this._visibleSlots = 8;
 	}
 	/**
@@ -996,28 +997,29 @@ var Window_SkillEquipSlots = class extends Window_Command {
 */
 var Window_SkillEquipList = class extends Window_Command {
 	/**
-	* The actor whose equips are being managed.
-	* @type {Game_Actor|null}
-	*/
-	_actor = null;
-	/**
-	* The current slot index context used for cost checks.
-	* @type {number}
-	*/
-	_slotContext = 0;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle for this window.
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initMembers();
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
 	* Initializes internal members.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
 	*/
 	initMembers() {
+		/**
+		* The actor whose equips are being managed.
+		* @type {Game_Actor|null}
+		*/
 		this._actor = null;
+		/**
+		* The current slot index context used for cost checks.
+		* @type {number}
+		*/
 		this._slotContext = 0;
 	}
 	/**

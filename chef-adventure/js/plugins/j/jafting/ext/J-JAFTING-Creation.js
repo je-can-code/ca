@@ -1868,16 +1868,25 @@ var Window_CategoryList = class extends Window_Command {
 */
 var Window_RecipeList = class extends Window_Command {
 	/**
-	* The currently selected category on the category list window.
-	* @type {string}
-	*/
-	currentCategory = String.empty;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* This cannot be a class field declaration: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from it and found it undefined.
+	*/
+	initMembers() {
+		/**
+		* The currently selected category on the category list window.
+		* @type {string}
+		*/
+		this.currentCategory = String.empty;
 	}
 	/**
 	* Sets the current category and updates the list of available recipes.
@@ -2707,11 +2716,6 @@ var Window_RecipeOutputList = class extends Window_Command {
 		return this._components;
 	}
 	/**
-	* True if the text of this list should be masked, false otherwise.
-	* @type {boolean}
-	*/
-	needsMasking = false;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
@@ -2720,16 +2724,25 @@ var Window_RecipeOutputList = class extends Window_Command {
 		this.opacity = 0;
 	}
 	/**
-	* Extends {@link #initialize}.<br/>
-	* Initializes some additional window properies.
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* This replaces an `initialize` override that seeded `_components` before calling super for exactly
+	* this reason- the hook now does that centrally, for every command window. `needsMasking` could not
+	* be a class field either: JavaScript applies those only after `super()` returns, by which point the
+	* command list has already been built from them.
 	*/
-	initialize(rect) {
+	initMembers() {
 		/**
 		* The list of components this window should render.
 		* @type {CraftingComponent[]}
 		*/
 		this._components = [];
-		super.initialize(rect);
+		/**
+		* True if the text of this list should be masked, false otherwise.
+		* @type {boolean}
+		*/
+		this.needsMasking = false;
 	}
 	setComponents(components) {
 		this._components = components;
