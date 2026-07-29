@@ -1424,7 +1424,7 @@ var OverlayManager = class OverlayManager {
 	*/
 	static _tokenizeNote(note) {
 		const tags = note.match(/<[^>]+>/g) || [];
-		const rawLines = (note.split(/[\r\n]+/) || []).filter((l) => l.length > 0);
+		const rawLines = note.split(/[\r\n]+/).filter((l) => l.length > 0);
 		const tagSet = new Set(tags);
 		const unsupported = rawLines.filter((l) => tagSet.has(l) === false);
 		return {
@@ -1470,8 +1470,8 @@ var OverlayManager = class OverlayManager {
 	*/
 	static _classifyLine(line) {
 		if (line.startsWith("<") === false || line.endsWith(">") === false) return OverlayManager.LineType.unsupported;
-		if ((line.match(/</g) || []).length > 1) return OverlayManager.LineType.unsupported;
-		if ((line.match(/>/g) || []).length > 1) return OverlayManager.LineType.unsupported;
+		if (line.match(/</g).length > 1) return OverlayManager.LineType.unsupported;
+		if (line.match(/>/g).length > 1) return OverlayManager.LineType.unsupported;
 		if (line.includes(":")) return OverlayManager.LineType.kvp;
 		return OverlayManager.LineType.boolean;
 	}
@@ -1520,9 +1520,7 @@ var OverlayManager = class OverlayManager {
 				return;
 			}
 			mergedMap[key] = lines.slice(0);
-			if (mergedOrder.includes(key) === false) {
-				mergedOrder.push(key);
-			}
+			mergedOrder.push(key);
 		};
 		oldBuckets.order.forEach((key) => {
 			const isExcluded = exclusions.includes(key);

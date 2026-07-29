@@ -1119,7 +1119,7 @@ JABS_Battler.prototype.smartMoveAwayFromTarget = function() {
 			simY -= straightStep;
 		} else if (dir === J.ABS.Directions.RIGHT) {
 			simX += straightStep;
-		} else if (dir === J.ABS.Directions.LEFT) {
+		} else {
 			simX -= straightStep;
 		}
 		const sdx = simX - target.getX();

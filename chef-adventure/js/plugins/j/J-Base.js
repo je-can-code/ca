@@ -1862,9 +1862,9 @@ J.BASE.Helpers.generateUuid = function() {
 * @returns {string} The `uuid`.
 */
 J.BASE.Helpers.shortUuid = function() {
-	return "xxx-xxx".replace(/[xy]/g, (c) => {
-		const r = Math.random() * 16 | 0, v = c === "x" ? r : r & 3 | 8;
-		return v.toString(16);
+	return "xxx-xxx".replace(/x/g, () => {
+		const nibble = Math.random() * 16 | 0;
+		return nibble.toString(16);
 	});
 };
 /**

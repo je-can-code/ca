@@ -644,15 +644,7 @@ RPG_Enemy.prototype.computeInferredTypedElementIds = function() {
 			}
 		}
 	}
-	const out = [];
-	const seen = new Set();
-	inferred.forEach((id) => {
-		if (!seen.has(id)) {
-			seen.add(id);
-			out.push(id);
-		}
-	});
-	return out;
+	return inferred;
 };
 
 //#endregion

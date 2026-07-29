@@ -1188,20 +1188,23 @@ var TimeMapper = class {
 };
 
 //#endregion
-//#region src/plugins/time/core/_models/Game_Time.js
+//#region src/plugins/time/core/managers/TimeToneResolver.js
 /**
-* A class for controlling time.
+* Resolves the screen tone that belongs to a given hour of the day.
+*
+* This is deliberately free of any state at all- hand it an hour, get back a tone. Everything about
+* *when* a tone gets applied, whether the player has locked it, and how it reaches the screen stays
+* with {@link Game_Time}; this only answers "what colour is this hour?".
+*
+* A day is divided into six four-hour phases, each fading from the previous phase's tone into its
+* own. The first three hours of a phase are partway through that fade and the fourth has arrived,
+* which is why an hour resolves to either an interpolation or a phase tone exactly.
 */
-var Game_Time = class Game_Time {
+var TimeToneResolver = class {
 	/**
-	* Constructor.
-	*/
-	constructor() {
-		this.initMembers();
-		this.updateCurrentTone();
-	}
-	/**
-	* A static representation of the tones for each time of day.
+	* The tone each phase of the day settles on, as `[red, green, blue, grey]`.
+	*
+	* Grey is constrained to 0-255 by the engine while the colour channels span -255 to 255.
 	*/
 	static toneOfDay = {
 		Night: [
@@ -1241,6 +1244,144 @@ var Game_Time = class Game_Time {
 			68
 		]
 	};
+	/**
+	* The tones of day in the order a full day cycles through them.
+	*
+	* Twilight appears at both ends deliberately: the day opens partway through the twilight-to-night
+	* fade and closes having just arrived back at twilight, so bookending it lets one lookup serve
+	* every hour without a wraparound special case. Phase `n` starts at index `n` and arrives at
+	* index `n + 1`.
+	* @type {[number, number, number, number][]}
+	*/
+	static toneSequence = [
+		this.toneOfDay.Twilight,
+		this.toneOfDay.Night,
+		this.toneOfDay.Dawn,
+		this.toneOfDay.Morning,
+		this.toneOfDay.Afternoon,
+		this.toneOfDay.Evening,
+		this.toneOfDay.Twilight
+	];
+	/**
+	* How many hours each phase of the day occupies before the next takes over.
+	* @type {number}
+	*/
+	static hoursPerPhase = 4;
+	/**
+	* The phase id handed back for an hour that isn't on the 24-hour clock.
+	* @type {number}
+	*/
+	static unknownPhase = -1;
+	/**
+	* Buckets an hour into the phase of day it belongs to.
+	*
+	* The boundaries are arranged so each phase owns exactly {@link hoursPerPhase} hours, which means
+	* this is simply integer division- but it is spelled out as comparisons because the phase ids are
+	* a published contract, surfaced to events through the time-of-day variable.
+	* @param {number} hours The hour of the day, 0 through 23.
+	* @returns {number} The phase id 0-5, or {@link unknownPhase} for an hour off the clock.
+	*/
+	static phaseOfHour(hours) {
+		if (!this.isClockHour(hours)) return this.unknownPhase;
+		return Math.floor(hours / this.hoursPerPhase);
+	}
+	/**
+	* Determines the hour a given phase of the day begins on.
+	* @param {number} phaseId The id of the phase.
+	* @returns {number} The hour that phase starts at.
+	*/
+	static startOfPhase(phaseId) {
+		return phaseId * this.hoursPerPhase;
+	}
+	/**
+	* Determines whether a value is a real hour on the 24-hour clock.
+	*
+	* The clock can genuinely hold something else: setting the time and the time-losing plugin
+	* commands both write the hour straight through without constraining it to a valid range.
+	* @param {number} hours The value to check.
+	* @returns {boolean}
+	*/
+	static isClockHour(hours) {
+		return Number.isInteger(hours) && hours >= 0 && hours <= 23;
+	}
+	/**
+	* Resolves the tone belonging to a given hour of the day.
+	* @param {number} hours The hour of the day, 0 through 23.
+	* @returns {[number, number, number, number]} The tone for that hour.
+	*/
+	static toneOfHour(hours) {
+		if (!this.isClockHour(hours)) return [
+			0,
+			0,
+			0,
+			0
+		];
+		const phase = this.phaseOfHour(hours);
+		const hoursIntoPhase = hours % this.hoursPerPhase;
+		const destination = this.toneSequence[phase + 1];
+		if (hoursIntoPhase === this.hoursPerPhase - 1) return destination;
+		const rate = (hoursIntoPhase + 1) / this.hoursPerPhase;
+		return this.between(this.toneSequence[phase], destination, rate);
+	}
+	/**
+	* Calculates the tone a given fraction of the way between two tones.
+	*
+	* Order matters- this travels from the first tone toward the second, so swapping the arguments
+	* does not produce the same result unless the rate is exactly half.
+	* @param {[number, number, number, number]} fromTone The tone being left behind.
+	* @param {[number, number, number, number]} toTone The tone being approached.
+	* @param {number} rate The decimal fraction of the way across, 0 through 1.
+	* @returns {[number, number, number, number]}
+	*/
+	static between(fromTone, toTone, rate) {
+		const distance = (from, to) => from > to ? from - to : to - from;
+		const blended = [];
+		fromTone.forEach((fromChannel, index) => {
+			const toChannel = toTone[index];
+			const travelled = Math.round(distance(fromChannel, toChannel) * rate);
+			blended.push(toChannel > fromChannel ? fromChannel + travelled : fromChannel - travelled);
+		});
+		return blended;
+	}
+	/**
+	* Compares two tones channel by channel to see whether they are the same.
+	* @param {[number, number, number, number]} currentTone The tone presently in effect.
+	* @param {[number, number, number, number]} targetTone The tone being compared against.
+	* @returns {boolean}
+	*/
+	static isSameTone(currentTone, targetTone) {
+		if (currentTone.length < 4) return false;
+		return currentTone.every((channel, index) => channel === targetTone[index]);
+	}
+};
+
+//#endregion
+//#region src/plugins/time/core/_models/Game_Time.js
+/**
+* A class for controlling time.
+*/
+var Game_Time = class Game_Time {
+	/**
+	* Constructor.
+	*/
+	constructor() {
+		this.initMembers();
+		this.updateCurrentTone();
+	}
+	/**
+	* How many of each unit fit inside the unit above it, which is the point at which the smaller
+	* unit resets and hands one of itself up the chain.
+	*
+	* Seconds, minutes and hours are zero-based and reset once they *reach* their limit; days and
+	* months are one-based and only reset once they *pass* it. That asymmetry is why the rollover
+	* helper takes a zero-based flag rather than assuming one convention for everything.
+	* @type {number}
+	*/
+	static secondsPerMinute = 60;
+	static minutesPerHour = 60;
+	static hoursPerDay = 24;
+	static daysPerMonth = 30;
+	static monthsPerYear = 12;
 	/**
 	* Initializes the members of this class.
 	*/
@@ -1612,30 +1753,18 @@ var Game_Time = class Game_Time {
 	* Toggles the map window visibility.
 	*/
 	toggleMapWindow() {
-		if (this.isVisible() === true) {
-			this.setVisible(false);
-		} else if (this.isVisible() === false) {
-			this.setVisible(true);
-		}
+		this.setVisible(!this.isVisible());
 	}
 	/**
 	* Flags oneself for having been updated so HUD elements can update accordingly.
 	*/
 	flagForHudUpdate() {
-		if (this.hasBeenUpdated() === undefined) {
-			this.setHasBeenUpdated(true);
-			console.log("hasBeenUpdated property added.");
-		}
 		this.setHasBeenUpdated(true);
 	}
 	/**
 	* Acknowledges a HUD update.
 	*/
 	acknowledgeHudUpdate() {
-		if (this.hasBeenUpdated() === undefined) {
-			this.setHasBeenUpdated(false);
-			console.log("hasBeenUpdated property added.");
-		}
 		this.setHasBeenUpdated(false);
 	}
 	/**
@@ -1643,9 +1772,6 @@ var Game_Time = class Game_Time {
 	* @returns {boolean}
 	*/
 	needsHudUpdate() {
-		if (this.hasBeenUpdated() === undefined) {
-			this.setHasBeenUpdated(false);
-		}
 		return this.hasBeenUpdated();
 	}
 	/**
@@ -1694,9 +1820,6 @@ var Game_Time = class Game_Time {
 			console.warn("no datamap to inspect.");
 			return false;
 		}
-		if ($dataMap.meta["noToneChange"]) {
-			return false;
-		}
 		return this._needsToneChange;
 	}
 	/**
@@ -1725,11 +1848,38 @@ var Game_Time = class Game_Time {
 	*/
 	updateCurrentTone() {
 		if (!this.canUpdateTone()) return;
-		const tone = this.translateHourToTone();
+		const tone = this.targetTone();
 		if (!this.isSameTone(tone)) {
 			this.setCurrentTone(tone.clone());
 			this.setNeedsToneChange(true);
 		}
+	}
+	/**
+	* Determines the tone the screen ought to be showing right now.
+	*
+	* Normally that is whatever the hour of the day calls for, but a map can opt out of the day/night
+	* cycle entirely with a `noToneChange` tag- an interior, a cave, anywhere the sky is not visible.
+	* Such a map resolves to a neutral tone rather than to no answer at all, because the screen tint
+	* is global state that outlives a map change: nothing in the engine clears it on transfer, so
+	* declining to answer leaves the previous map's tone painted over the new one.
+	* @returns {[number, number, number, number]}
+	*/
+	targetTone() {
+		if (this.isToneSuppressedByMap()) return [
+			0,
+			0,
+			0,
+			0
+		];
+		return this.translateHourToTone();
+	}
+	/**
+	* Determines whether the active map has opted out of the day/night tone cycle.
+	* @returns {boolean}
+	*/
+	isToneSuppressedByMap() {
+		if (!$dataMap || !$dataMap.meta) return false;
+		return Boolean($dataMap.meta["noToneChange"]);
 	}
 	/**
 	* Gets whether or not the screen's tone can be updated.
@@ -1753,122 +1903,15 @@ var Game_Time = class Game_Time {
 	*/
 	translateHourToTone() {
 		const hours = J.TIME.Metadata.UseRealTime ? new Date().getHours() : this.hours();
-		let tone = [
-			0,
-			0,
-			0,
-			0
-		];
-		switch (hours) {
-			case 0:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Twilight, Game_Time.toneOfDay.Night, .25);
-				break;
-			case 1:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Twilight, Game_Time.toneOfDay.Night, .5);
-				break;
-			case 2:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Twilight, Game_Time.toneOfDay.Night, .75);
-				break;
-			case 3:
-				tone = Game_Time.toneOfDay.Night;
-				break;
-			case 4:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Night, Game_Time.toneOfDay.Dawn, .25);
-				break;
-			case 5:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Night, Game_Time.toneOfDay.Dawn, .5);
-				break;
-			case 6:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Night, Game_Time.toneOfDay.Dawn, .75);
-				break;
-			case 7:
-				tone = Game_Time.toneOfDay.Dawn;
-				break;
-			case 8:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Dawn, Game_Time.toneOfDay.Morning, .25);
-				break;
-			case 9:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Dawn, Game_Time.toneOfDay.Morning, .5);
-				break;
-			case 10:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Dawn, Game_Time.toneOfDay.Morning, .75);
-				break;
-			case 11:
-				tone = Game_Time.toneOfDay.Morning;
-				break;
-			case 12:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Morning, Game_Time.toneOfDay.Afternoon, .25);
-				break;
-			case 13:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Morning, Game_Time.toneOfDay.Afternoon, .5);
-				break;
-			case 14:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Morning, Game_Time.toneOfDay.Afternoon, .75);
-				break;
-			case 15:
-				tone = Game_Time.toneOfDay.Afternoon;
-				break;
-			case 16:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Afternoon, Game_Time.toneOfDay.Evening, .25);
-				break;
-			case 17:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Afternoon, Game_Time.toneOfDay.Evening, .5);
-				break;
-			case 18:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Afternoon, Game_Time.toneOfDay.Evening, .75);
-				break;
-			case 19:
-				tone = Game_Time.toneOfDay.Evening;
-				break;
-			case 20:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Evening, Game_Time.toneOfDay.Twilight, .25);
-				break;
-			case 21:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Evening, Game_Time.toneOfDay.Twilight, .5);
-				break;
-			case 22:
-				tone = this.toneBetweenTones(Game_Time.toneOfDay.Evening, Game_Time.toneOfDay.Twilight, .75);
-				break;
-			case 23:
-				tone = Game_Time.toneOfDay.Twilight;
-				break;
-		}
-		return tone;
-	}
-	/**
-	* Calculates the tone that is a percentage of the way between two tones.
-	*
-	* Order is important here, as we are calculating a percent of the way from
-	* the first tone to the second tone.
-	* @param {[number, number, number, number]} tone1 The starting tone.
-	* @param {[number, number, number, number]} tone2 The next tone.
-	* @param {number} rate The decimal rate of which we are transitioning to.
-	* @returns {[number, number, number, number]}
-	*/
-	toneBetweenTones(tone1, tone2, rate) {
-		const diff = (a, b) => a > b ? a - b : b - a;
-		const newTone = [];
-		tone1.forEach((color1, index) => {
-			const color2 = tone2[index];
-			const diffToNext = diff(color1, color2);
-			const partial = Math.round(diffToNext * rate);
-			const newRgbValue = color2 > color1 ? color1 + partial : color1 - partial;
-			newTone.push(newRgbValue);
-		});
-		return newTone;
+		return TimeToneResolver.toneOfHour(hours);
 	}
 	/**
 	* Compares the current tone with a target tone to see if they are the same.
-	* @param {[number, number, number, number]} targetTone
+	* @param {[number, number, number, number]} targetTone The tone being compared against.
 	* @returns {boolean}
 	*/
 	isSameTone(targetTone) {
-		if (this.getCurrentTone().length < 4) return false;
-		if (this.getCurrentTone()[0] !== targetTone[0]) return false;
-		if (this.getCurrentTone()[1] !== targetTone[1]) return false;
-		if (this.getCurrentTone()[2] !== targetTone[2]) return false;
-		if (this.getCurrentTone()[3] !== targetTone[3]) return false;
-		return true;
+		return TimeToneResolver.isSameTone(this.getCurrentTone(), targetTone);
 	}
 	/**
 	* Processes the screen's tone change.
@@ -1965,15 +2008,7 @@ var Game_Time = class Game_Time {
 	* @returns {number}
 	*/
 	timeOfDay(hours) {
-		switch (true) {
-			case hours <= 3: return 0;
-			case hours > 3 && hours <= 7: return 1;
-			case hours > 7 && hours <= 11: return 2;
-			case hours > 11 && hours <= 15: return 3;
-			case hours > 15 && hours <= 19: return 4;
-			case hours > 19: return 5;
-			default: return -1;
-		}
+		return TimeToneResolver.phaseOfHour(hours);
 	}
 	/**
 	* Determines when the (hour) start of a given time of day is.
@@ -1981,7 +2016,7 @@ var Game_Time = class Game_Time {
 	* @returns
 	*/
 	startOfTimeOfDay(timeOfDayId) {
-		return timeOfDayId * 4;
+		return TimeToneResolver.startOfPhase(timeOfDayId);
 	}
 	/**
 	* Translates the current month into the season of the year id.
@@ -2070,16 +2105,38 @@ var Game_Time = class Game_Time {
 	* @param {number} seconds The number of seconds to tick.
 	*/
 	addSeconds(seconds = this._secondsPerTick) {
-		let potentialSeconds = this.seconds() + seconds;
-		if (potentialSeconds >= 60) {
-			while (potentialSeconds >= 60) {
-				this.addMinutes(this.minutesPerTick());
-				potentialSeconds -= 60;
-			}
-			this.setSeconds(potentialSeconds);
-		} else {
-			this.setSeconds(this.seconds() + seconds);
+		this.#advanceUnit(seconds, Game_Time.secondsPerMinute, true, () => this.seconds(), (newSeconds) => this.setSeconds(newSeconds), () => this.addMinutes(this.minutesPerTick()));
+	}
+	/**
+	* Advances a single unit of the clock, spilling any excess up into the unit above it.
+	*
+	* Every unit from seconds through months shares this shape: land on a new value, and while that
+	* value has outgrown its own range, shed one full unit of itself and bump the next unit up. What
+	* gets bumped is a *tick's worth* of the larger unit rather than exactly one of it, which is what
+	* lets a configuration advance several minutes per minute of overflow.
+	*
+	* Note that overflow is the only direction handled. Handing a negative amount to a unit that does
+	* not overflow simply writes the negative result through, since there is no borrowing counterpart.
+	* @param {number} amount How much of this unit to add.
+	* @param {number} limit How many of this unit fit inside the unit above it.
+	* @param {boolean} isZeroBased True when the unit counts from 0 and resets on reaching the limit,
+	* false when it counts from 1 and only resets after passing the limit.
+	* @param {function(): number} read Reads this unit's current value.
+	* @param {function(number): void} write Writes this unit's new value.
+	* @param {function(): void} carry Advances the unit above this one by a tick's worth.
+	*/
+	#advanceUnit(amount, limit, isZeroBased, read, write, carry) {
+		const hasOverflowed = (value) => isZeroBased ? value >= limit : value > limit;
+		let potential = read() + amount;
+		if (!hasOverflowed(potential)) {
+			write(potential);
+			return;
 		}
+		while (hasOverflowed(potential)) {
+			carry();
+			potential -= limit;
+		}
+		write(potential);
 	}
 	/**
 	* Ticks the minute counter up by a designated amount.
@@ -2087,64 +2144,28 @@ var Game_Time = class Game_Time {
 	*/
 	addMinutes(minutes = this._minutesPerTick) {
 		this.updateCurrentTone();
-		let potentialMinutes = this.minutes() + minutes;
-		if (potentialMinutes >= 60) {
-			while (potentialMinutes >= 60) {
-				this.addHours(this.hoursPerTick());
-				potentialMinutes -= 60;
-			}
-			this.setMinutes(potentialMinutes);
-		} else {
-			this.setMinutes(this.minutes() + minutes);
-		}
+		this.#advanceUnit(minutes, Game_Time.minutesPerHour, true, () => this.minutes(), (newMinutes) => this.setMinutes(newMinutes), () => this.addHours(this.hoursPerTick()));
 	}
 	/**
 	* Ticks the hour counter up by a designated amount.
 	* @param {number} hours The number of hours to tick.
 	*/
 	addHours(hours = this._hoursPerTick) {
-		let potentialHours = this.hours() + hours;
-		if (potentialHours >= 24) {
-			while (potentialHours >= 24) {
-				this.addDays(this.daysPerTick());
-				potentialHours -= 24;
-			}
-			this.setHours(potentialHours);
-		} else {
-			this.setHours(this.hours() + hours);
-		}
+		this.#advanceUnit(hours, Game_Time.hoursPerDay, true, () => this.hours(), (newHours) => this.setHours(newHours), () => this.addDays(this.daysPerTick()));
 	}
 	/**
 	* Ticks the days counter up by a designated amount.
 	* @param {number} days The number of days to tick.
 	*/
 	addDays(days = this._daysPerTick) {
-		let potentialDays = this.days() + days;
-		if (potentialDays > 30) {
-			while (potentialDays > 30) {
-				this.addMonths(this.monthsPerTick());
-				potentialDays -= 30;
-			}
-			this.setDays(potentialDays);
-		} else {
-			this.setDays(this.days() + days);
-		}
+		this.#advanceUnit(days, Game_Time.daysPerMonth, false, () => this.days(), (newDays) => this.setDays(newDays), () => this.addMonths(this.monthsPerTick()));
 	}
 	/**
 	* Ticks the months counter up by a designated amount.
 	* @param {number} months The number of months to tick.
 	*/
 	addMonths(months = this._monthsPerTick) {
-		let potentialMonths = this.months() + months;
-		if (potentialMonths > 12) {
-			while (potentialMonths > 12) {
-				this.addYears(this.yearsPerTick());
-				potentialMonths -= 12;
-			}
-			this.setMonths(potentialMonths);
-		} else {
-			this.setMonths(this.months() + months);
-		}
+		this.#advanceUnit(months, Game_Time.monthsPerYear, false, () => this.months(), (newMonths) => this.setMonths(newMonths), () => this.addYears(this.yearsPerTick()));
 	}
 	/**
 	* Ticks the years counter up by a designated amount.
@@ -2188,7 +2209,10 @@ DataManager.extractSaveContents = function(contents) {
 	if (!$gameTime) {
 		$gameTime = new Game_Time();
 		console.info("J-Time did not exist in the loaded save file- creating anew.");
+		return;
 	}
+	$gameTime.initMembers();
+	$gameTime.updateCurrentTone();
 };
 
 //#endregion
@@ -2373,9 +2397,9 @@ Game_Event._timeConditionalTimeRangeMet = function(timeConditional) {
 		endMinute,
 		0
 	];
-	const fakeEndDate = new Date(...fakeEndTimeArray);
+	let fakeEndDate = new Date(...fakeEndTimeArray);
 	if (isOvernight) {
-		fakeEndDate.addDays(1);
+		fakeEndDate = fakeEndDate.addDays(1);
 	}
 	if (isOverhour) {
 		fakeEndDate.addHours(1);
@@ -2757,7 +2781,7 @@ J.TIME.Aliased.Scene_Map.set("onMapLoaded", Scene_Map.prototype.onMapLoaded);
 Scene_Map.prototype.onMapLoaded = function() {
 	if (this.transfer()) {
 		this.handleTimeBlock();
-		$gameTime.setNeedsToneChange(true);
+		$gameTime.updateCurrentTone();
 	}
 	J.TIME.Aliased.Scene_Map.get("onMapLoaded").call(this);
 };
