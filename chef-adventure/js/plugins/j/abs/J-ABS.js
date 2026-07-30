@@ -3757,10 +3757,6 @@
  * @desc (Re-)Enables the ability to execute a party rotate.
  * Other conditions still apply (like not rotating to a dead member).
  *
- * @command Refresh JABS Menu
- * @text Refresh JABS Menu
- * @desc Refreshes the JABS menu in case there were any adjustments made to it.
- *
  * @command Apply Global Cooldown
  * @text Apply global cooldown to actor
  * @desc Sets the battler-wide GCD timer on a party actor that is on the map (leader or visible follower).
@@ -5590,7 +5586,6 @@ J.ABS.Aliased = {
 	Game_Map: new Map(),
 	Game_Party: new Map(),
 	Game_Player: new Map(),
-	Game_Switches: new Map(),
 	Game_Unit: new Map(),
 	RPG_Actor: new Map(),
 	RPG_Enemy: new Map(),
@@ -17739,19 +17734,27 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 		return true;
 	}
 	/**
-	* Calls the JABS quick menu on the map.
+	* Opens the main menu.
+	*
+	* This used to raise a small quick menu over the map instead. That menu was pared down over time as
+	* each of the things it configured became a scene of its own, until its only remaining entries were a
+	* way into this menu and a way into the ally AI menu- at which point it was a keypress charged for
+	* nothing, and went the way of the rest.
+	*
+	* Nothing needs pausing or flagging here, which is precisely the advantage of it being a scene: the
+	* map stops updating and the player stops moving because Scene_Map is no longer the running scene, not
+	* because something remembered to say so.
 	*/
 	static performMenuAction() {
 		if (!this._canPerformMenuAction()) return;
-		$jabsEngine.absPause = true;
-		$jabsEngine.requestAbsMenu = true;
+		SceneManager.push(Scene_Menu);
 	}
 	/**
 	* Determines whether or not we can call the menu.
 	* @returns {boolean} True if they can, false otherwise.
 	*/
 	static _canPerformMenuAction() {
-		return true;
+		return $gameSystem.isMenuEnabled();
 	}
 };
 
@@ -17908,21 +17911,10 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	absPause = false;
 	/**
-	* Checks whether or not we have a need to request the JABS quick menu.
-	* @returns {boolean} True if menu requested, false otherwise.
-	*/
-	requestAbsMenu = false;
-	/**
 	* Gets whether or not there is a request to cycle through party members.
 	* @returns {boolean}
 	*/
 	requestPartyRotation = false;
-	/**
-	* Gets whether or not there is a request to refresh the JABS menu.
-	* The most common use case for this is adding new commands to the menu.
-	* @returns {boolean}
-	*/
-	requestJabsMenuRefresh = false;
 	/**
 	* Checks whether or not we have a need to request rendering for new actions.
 	* @returns {boolean} True if needing to render actions, false otherwise.
@@ -18822,7 +18814,6 @@ var JABS_Engine = class JABS_Engine {
 	canUpdateInput() {
 		if ($gameMap.isEventRunning()) return false;
 		if ($gameMessage.isBusy()) return false;
-		if ($jabsEngine.requestAbsMenu) return false;
 		if ($jabsEngine.absPause) return false;
 		if (!$jabsEngine.absEnabled) return false;
 		return true;
@@ -22792,63 +22783,6 @@ var JABS_BattlerName = class {
 };
 
 //#endregion
-//#region src/plugins/abs/core/models/JABS_MenuFocus.js
-/**
-* The keys of the window focuses that the JABS menu can choose from.
-*/
-var JABS_MenuType = class {
-	/**
-	* Constructor.
-	* Not intended to be used for static classes.
-	*/
-	constructor() {
-		console.warn(`Attempted to instantiate the JABS_MenuType class.`);
-		console.warn(`Please directly use the static properties on it instead of instantiating it.`);
-		console.warn(`Consider adding additional static properties if new menu items are being added.`);
-		console.trace();
-		throw new Error(`JABS_MenuType is a static class that cannot be instantiated.`);
-	}
-	/**
-	* The "main" window is the root window containing the list of subcommands.
-	* @type {"main"}
-	*/
-	static Main = "main";
-	/**
-	* The "skill" window is the list of combat skills that the player can choose from to equip.
-	* @type {"skill"}
-	*/
-	static Skill = "skill";
-	/**
-	* The "tool" window is the list of tools that the player can choose from to equip.
-	* @type {"tool"}
-	*/
-	static Tool = "tool";
-	/**
-	* The "dodge" window is the list of dodge skills that the player can choose from to equip.
-	* @type {string}
-	*/
-	static Dodge = "dodge";
-	/**
-	* The "offhand" window is the list of offhand-eligible skills that the player can pin
-	* into the offhand slot.
-	* @type {string}
-	*/
-	static Offhand = "offhand";
-	/**
-	* The "usable-item" window is the list of consumable items (potions, food, etc.) that the
-	* player can equip into the R2 usable-item slot. Tools (hookshot, bombs, etc.) are separate.
-	* @type {string}
-	*/
-	static UsableItem = "usable-item";
-	/**
-	* The "assign" window is one of multiple types of windows where items or skills are assigned
-	* via the concept of "combat skills", "dodge skills", "offhand skills", and "tools".
-	* @type {string}
-	*/
-	static Assign = "assign";
-};
-
-//#endregion
 //#region src/plugins/abs/core/models/JABS_OnChanceEffect.js
 /**
 * A class defining the structure of an on-death skill, either for ally or enemy.
@@ -23884,12 +23818,6 @@ PluginManager.registerCommand(J.ABS.Metadata.name, "Disable Party Rotation", () 
 */
 PluginManager.registerCommand(J.ABS.Metadata.name, "Enable Party Rotation", () => {
 	$gameParty.enablePartyCycling();
-});
-/**
-* Plugin command for updating the JABS menu.
-*/
-PluginManager.registerCommand(J.ABS.Metadata.name, "Refresh JABS Menu", () => {
-	$jabsEngine.requestJabsMenuRefresh = true;
 });
 /**
 * Plugin command: forces the global cooldown counter on a party actor who is currently on the map as
@@ -31597,10 +31525,9 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
 */
 J.ABS.Aliased.Game_Player.set("canMove", Game_Player.prototype.canMove);
 Game_Player.prototype.canMove = function() {
-	const isMenuRequested = $jabsEngine.requestAbsMenu;
 	const isAbsPaused = $jabsEngine.absPause;
 	const isPlayerRooted = $jabsEngine.getPlayer1().hasUninterruptibleMovementLock();
-	const jabsDeniesMovement = isMenuRequested || isAbsPaused || isPlayerRooted;
+	const jabsDeniesMovement = isAbsPaused || isPlayerRooted;
 	if (jabsDeniesMovement) {
 		return false;
 	} else {
@@ -31733,18 +31660,6 @@ Game_Player.prototype.removeLoot = function(lootEvent) {
 };
 
 //#endregion
-//#region src/plugins/abs/core/objects/Game_Switches.js
-/**
-* Extends {@link #onChange}.<br/>
-* Also refreshes the JABS menu when a switch is toggled.
-*/
-J.ABS.Aliased.Game_Switches.set("onChange", Game_Switches.prototype.onChange);
-Game_Switches.prototype.onChange = function() {
-	J.ABS.Aliased.Game_Switches.get("onChange").call(this);
-	$jabsEngine.requestJabsMenuRefresh = true;
-};
-
-//#endregion
 //#region src/plugins/abs/core/objects/Game_Unit.js
 /**
 * Overwrites {@link Game_Unit.inBattle}.<br/>
@@ -31790,69 +31705,7 @@ Scene_Load.prototype.reloadMapIfUpdated = function() {
 };
 
 //#endregion
-//#region src/plugins/abs/core/windows/Window_AbsMenu.js
-/**
-* The main JABS menu window called from the map.
-* This window contains mostly combat-setup options relating to JABS.
-*/
-var Window_AbsMenu = class extends Window_Command {
-	/**
-	* Constructor.
-	* @param {Rectangle} rect The shape of the window.
-	*/
-	constructor(rect) {
-		super(rect);
-	}
-	/**
-	* Generates the command list for the JABS menu.
-	*/
-	makeCommandList() {
-		const commands = this.buildCommands();
-		commands.forEach(this.addBuiltCommand, this);
-	}
-	/**
-	* Builds all commands that exist in the JABS menu.
-	* @returns {BuiltWindowCommand[]}
-	*/
-	buildCommands() {
-		const mainMenuCommand = new WindowCommandBuilder(J.ABS.Metadata.MainMenuText).setSymbol("main-menu").setEnabled($gameSystem.isMenuEnabled()).setIconIndex(189).setHelpText(this.mainMenuHelpText()).build();
-		return [mainMenuCommand];
-	}
-	/**
-	* The help text for the JABS main menu.
-	* @returns {string}
-	*/
-	mainMenuHelpText() {
-		const description = ["The unabbreviated main menu with access to player status, descriptions, etc.", "This is colloquially referred to as the 'The Main Menu™' by protagonists all across the universe."];
-		return description.join("\n");
-	}
-	/**
-	* Closes the Abs menu.
-	*/
-	closeMenu() {
-		if (!this.isClosed()) {
-			this.close();
-		}
-		$jabsEngine.absPause = false;
-		$jabsEngine.requestAbsMenu = false;
-	}
-};
-
-//#endregion
 //#region src/plugins/abs/core/scenes/Scene_Map.js
-/**
-* Extends {@link #initialize}.<br/>
-* Also initializes all additional properties for JABS.
-*/
-J.ABS.Aliased.Scene_Map.set("initialize", Scene_Map.prototype.initialize);
-Scene_Map.prototype.initialize = function() {
-	J.ABS.Aliased.Scene_Map.get("initialize").call(this);
-	/**
-	* The shared root namespace for all of J's plugin data.
-	*/
-	this._j ||= {};
-	this.initJabsMembers();
-};
 /**
 * Extends {@link #onMapLoaded}.<br/>
 * Safety net for ensuring the player's battler is initialized with the map load.
@@ -31863,119 +31716,6 @@ Scene_Map.prototype.onMapLoaded = function() {
 		$jabsEngine.initializePlayer1();
 	}
 	J.ABS.Aliased.Scene_Map.get("onMapLoaded").call(this);
-};
-/**
-* Initializes all JABS components.
-*/
-Scene_Map.prototype.initJabsMembers = function() {
-	this.initJabsMenu();
-};
-/**
-* Initializes the JABS menu.
-*/
-Scene_Map.prototype.initJabsMenu = function() {
-	/**
-	* The over-arching container for all things relating to the JABS menu.
-	*/
-	this._j._absMenu = {};
-	/**
-	* The current focus that represents which submenu is selected.
-	* @type {string|null}
-	*/
-	this._j._absMenu._windowFocus = null;
-	/**
-	* The type of equip that is being equipped.
-	* @type {string|null}
-	*/
-	this._j._absMenu._equipType = null;
-	/**
-	* The primary list window of commands within the JABS menu.
-	* @type {Window_AbsMenu|null}
-	*/
-	this._j._absMenu._mainWindow = null;
-};
-/**
-* Gets the current window focus of the JABS menu.
-* @returns {string|null}
-*/
-Scene_Map.prototype.getJabsMenuFocus = function() {
-	return this._j._absMenu._windowFocus;
-};
-/**
-* Sets the current window focus of the JABS menu.
-* @param {string} focus The key of the new JABS menu window to focus on.
-*/
-Scene_Map.prototype.setJabsMenuFocus = function(focus) {
-	this._j._absMenu._windowFocus = focus;
-};
-/**
-* Gets the currently tracked JABS main menu window.
-* @returns {Window_AbsMenu}
-*/
-Scene_Map.prototype.getJabsMainListWindow = function() {
-	return this._j._absMenu._mainWindow;
-};
-/**
-* Sets the currently tracked JABS main menu window to the given window.
-* @param {Window_AbsMenu} window The JABS main menu window to track.
-*/
-Scene_Map.prototype.setJabsMenuMainWindow = function(window) {
-	this._j._absMenu._mainWindow = window;
-};
-/**
-* Create the Hud with all the rest of the windows.
-*/
-J.ABS.Aliased.Scene_Map.set("createAllWindows", Scene_Map.prototype.createAllWindows);
-Scene_Map.prototype.createAllWindows = function() {
-	this.createJabsAbsMenu();
-	J.ABS.Aliased.Scene_Map.get("createAllWindows").call(this);
-};
-/**
-* Creates the Jabs quick menu for use.
-*/
-Scene_Map.prototype.createJabsAbsMenu = function() {
-	this.createJabsAbsMenuMainWindow();
-};
-/**
-* Creates the JABS main menu window containing the list of other options
-* available for use while on the map.
-*/
-Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
-	const window = this.buildJabsMenuMainWindow();
-	this.setJabsMenuMainWindow(window);
-	window.onIndexChange();
-	this.addWindow(window);
-};
-/**
-* Sets up and defines the JABS main menu window.
-* @returns {Window_AbsMenu}
-*/
-Scene_Map.prototype.buildJabsMenuMainWindow = function() {
-	const rectangle = this.jabsMenuMainWindowRectangle();
-	const window = new Window_AbsMenu(rectangle);
-	window.setHandler("main-menu", this.commandMenu.bind(this));
-	window.setHandler("cancel", this.closeAbsWindow.bind(this, JABS_MenuType.Main));
-	window.close();
-	window.hide();
-	return window;
-};
-/**
-* Get the rectangle associated with the main list of the JABS menu.
-* @returns {Rectangle}
-*/
-Scene_Map.prototype.jabsMenuMainWindowRectangle = function() {
-	const commandHeight = 36;
-	const width = 400;
-	const height = commandHeight * 8;
-	const x = Graphics.boxWidth - width;
-	const y = 100;
-	return new Rectangle(x, y, width, height);
-};
-/**
-* Brings up the main menu.
-*/
-Scene_Map.prototype.commandMenu = function() {
-	SceneManager.push(Scene_Menu);
 };
 /**
 * Extends {@link #update}.<br/>
@@ -31992,16 +31732,8 @@ Scene_Map.prototype.update = function() {
 Scene_Map.prototype.updateJabs = function() {
 	if (!$jabsEngine.absEnabled) return;
 	JABS_AiManager.update();
-	if ($jabsEngine.requestAbsMenu) {
-		this.manageAbsMenu();
-	} else {
-		this.hideAllJabsWindows();
-	}
 	if ($jabsEngine.requestPartyRotation) {
 		this.handlePartyRotation();
-	}
-	if ($jabsEngine.requestJabsMenuRefresh) {
-		this.refreshJabsMenu();
 	}
 };
 /**
@@ -32016,102 +31748,17 @@ Scene_Map.prototype.handlePartyRotation = function() {
 */
 Scene_Map.prototype.onPartyRotate = function() {};
 /**
-* Refreshes the contents of the JABS menu.
-*/
-Scene_Map.prototype.refreshJabsMenu = function() {
-	this.getJabsMainListWindow().refresh();
-	$jabsEngine.requestJabsMenuRefresh = false;
-};
-/**
-* Manages the ABS main menu's interactivity.
-*/
-Scene_Map.prototype.manageAbsMenu = function() {
-	switch (this.getJabsMenuFocus()) {
-		case JABS_MenuType.Main:
-			this.showJabsMainListWindow();
-			break;
-		case null:
-			this.setJabsMenuFocus(JABS_MenuType.Main);
-			break;
-	}
-};
-/**
 * Extends {@link #callMenu}.<br/>
 * Disables the ability to directly call the menu by pressing the given key.
+*
+* Kept even now that the menu is reached from the map again, because the key vanilla listens for here is
+* the one JABS gives to the offhand attack. Swinging a weapon should not open a menu. The menu has its
+* own dedicated button, handled by {@link JABS_InputAdapter.performMenuAction}.
 */
 J.ABS.Aliased.Scene_Map.set("callMenu", Scene_Map.prototype.callMenu);
 Scene_Map.prototype.callMenu = function() {
 	if ($jabsEngine.absEnabled) return;
 	J.ABS.Aliased.Scene_Map.get("callMenu").call(this);
-};
-/**
-* Shows the JABS menu main list window.
-*/
-Scene_Map.prototype.showJabsMainListWindow = function() {
-	const window = this.getJabsMainListWindow();
-	const wasHidden = !window.visible;
-	this.showJabsMenuWindow(window);
-	if (wasHidden && window.maxItems() > 1) {
-		window.forceSelect(0);
-	}
-};
-/**
-* Hides the JABS menu main list window.
-*/
-Scene_Map.prototype.hideJabsMainWindow = function() {
-	const window = this.getJabsMainListWindow();
-	this.hideJabsMenuWindow(window);
-};
-/**
-* Hides all windows of the JABS menu.
-*/
-Scene_Map.prototype.hideAllJabsWindows = function() {
-	this.hideJabsMainWindow();
-	this.closeAbsMenu();
-};
-/**
-* Shows a JABS menu window.
-* @param {Window_AbsMenu} window The window to show.
-*/
-Scene_Map.prototype.showJabsMenuWindow = function(window) {
-	window.show();
-	window.open();
-	window.activate();
-};
-/**
-* Hides a JABS menu window.
-* @param {Window_AbsMenu} window The window to hide.
-*/
-Scene_Map.prototype.hideJabsMenuWindow = function(window) {
-	window.deselect();
-	window.close();
-	window.deactivate();
-	window.hide();
-};
-/**
-* Closes a given JABS menu window.
-* @param {string} absWindow The type of abs window being closed.
-*/
-Scene_Map.prototype.closeAbsWindow = function(absWindow) {
-	switch (absWindow) {
-		case JABS_MenuType.Main:
-			this.hideJabsMainWindow();
-			this.closeAbsMenu();
-			break;
-	}
-};
-/**
-* Close out from the Abs menu.
-*/
-Scene_Map.prototype.closeAbsMenu = function() {
-	this.getJabsMainListWindow().closeMenu();
-};
-/**
-* Force closes the JABS quick menu entirely.
-*/
-Scene_Map.prototype.forceCloseAbsMenu = function() {
-	this.closeAbsWindow(JABS_MenuType.Main);
-	this.setJabsMenuFocus(JABS_MenuType.Main);
 };
 
 //#endregion

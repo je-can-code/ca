@@ -2572,7 +2572,6 @@ J.SDP.Aliased = {
 	Scene_Boot: new Map(),
 	Scene_Map: new Map(),
 	Scene_Menu: new Map(),
-	Window_AbsMenu: new Map(),
 	Window_MenuCommand: new Map()
 };
 /**
