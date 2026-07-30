@@ -310,7 +310,7 @@ BattleManager.setupStarBattle = function(originLocation, battleMapId) {
 	BattleManager.setup($gameTroop.troop().id, true, true);
 	$gameSystem.onBattleStart();
 	this.engageInBattle();
-	this._originLocation = originLocation;
+	this.setOrigin(originLocation);
 	$gamePlayer.reserveTransfer(battleMapId, 14, 9);
 };
 /**
@@ -339,6 +339,14 @@ BattleManager.isInBattle = function() {
 */
 BattleManager.origin = function() {
 	return this._originLocation;
+};
+/**
+* Sets the origin location of the player- the map info for where the player came from prior to
+* entering battle.
+* @param {StarOrigin} originLocation The location to return the player to.
+*/
+BattleManager.setOrigin = function(originLocation) {
+	this._originLocation = originLocation;
 };
 
 //#endregion

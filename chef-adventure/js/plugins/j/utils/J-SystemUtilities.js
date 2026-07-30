@@ -189,11 +189,22 @@ J.UTILS.GamepadLog.logFreshPresses = function(pad, prev, next) {
 * @override
 */
 Bitmap.prototype._createCanvas = function(width, height) {
-	this._canvas = document.createElement("canvas");
-	this.setContext(this._canvas.getContext("2d", { willReadFrequently: true }));
-	this._canvas.width = width;
-	this._canvas.height = height;
-	this._createBaseTexture(this._canvas);
+	const canvas = document.createElement("canvas");
+	this.setCanvas(canvas);
+	this.setContext(canvas.getContext("2d", { willReadFrequently: true }));
+	canvas.width = width;
+	canvas.height = height;
+	this._createBaseTexture(canvas);
+};
+/**
+* Sets the canvas element this bitmap draws onto.
+*
+* Note that there is deliberately no matching getter here; the engine already exposes a `canvas`
+* property, and that one lazily creates the element it returns.
+* @param {HTMLCanvasElement} newCanvas The canvas element.
+*/
+Bitmap.prototype.setCanvas = function(newCanvas) {
+	this._canvas = newCanvas;
 };
 /**
 * Sets the 2d drawing context this bitmap renders through.

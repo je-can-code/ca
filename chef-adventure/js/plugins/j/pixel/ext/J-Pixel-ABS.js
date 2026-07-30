@@ -842,6 +842,16 @@ Game_Event.prototype._pixelHitbox = function(radius) {
 //#endregion
 //#region src/plugins/pixel/ext/abs/objects/Game_Player.js
 /**
+* Sets whether the player is dashing.
+*
+* The engine writes this field from half a dozen places and never provided a way to say so; pivot guard
+* needs to clear it, and reaching into it directly is the thing the accessor rule exists to stop.
+* @param {boolean} dashing Whether the player is dashing.
+*/
+Game_Player.prototype.setDashing = function(dashing) {
+	this._dashing = dashing;
+};
+/**
 * Pivot guard is one input: movement lock in place, with guard layered when the offhand is guard-ready.
 * Pixel {@link #pixelMoveByInput} applies steps before JABS can reject them, so skip map motion while pivoting.
 */
@@ -882,7 +892,7 @@ Game_Player.prototype.updateDashing = function() {
 	const leaderCharacterMatches = jabsPlayer && jabsPlayer.getCharacter() === this;
 	const pivotGuardBlocksMotion = leaderCharacterMatches && (jabsPlayer.canBattlerMove() === false || jabsPlayer.guarding());
 	if (pivotGuardBlocksMotion) {
-		this._dashing = false;
+		this.setDashing(false);
 		return;
 	}
 	J.PIXEL.EXT.ABS.Aliased.Game_Player.get("updateDashing").call(this);

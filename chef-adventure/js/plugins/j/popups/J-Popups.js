@@ -1665,6 +1665,13 @@ Sprite_Damage.prototype.initMembers = function() {
 	this._j._popups._sourcePopup = null;
 };
 /**
+* Gets the popup this sprite was built from.
+* @returns {Map_TextPop|null}
+*/
+Sprite_Damage.prototype.sourcePopup = function() {
+	return this._j._popups._sourcePopup;
+};
+/**
 * Gets whether or not this sprite is a damage popup.
 * @returns {boolean} True if it is a damage popup, false if it is a non-damage popup.
 */
@@ -1757,12 +1764,12 @@ Sprite_Damage.prototype.setupMotionData = function(sprite) {
 */
 Sprite_Damage.prototype.createValue = function(value) {
 	let healingPopup = false;
-	if (this._j._popups._sourcePopup && this._j._popups._sourcePopup.healing === true) {
+	if (this.sourcePopup() && this.sourcePopup().healing === true) {
 		healingPopup = true;
 	}
 	const displayValue = PopupNumericDisplay.formatNumericPopupDisplayString(value, healingPopup);
-	if (this._j._popups._sourcePopup) {
-		this._j._popups._sourcePopup.value = displayValue;
+	if (this.sourcePopup()) {
+		this.sourcePopup().value = displayValue;
 	}
 	const w = J.POPUPS.Layout.ValueBitmapWidth;
 	const h = this.fontSize();
@@ -1814,7 +1821,7 @@ Sprite_Damage.prototype.repositionChildren = function() {
 	if (icon && text) {
 		const spacing = 4;
 		const iconWidth = ImageManager.iconWidth * J.POPUPS.Layout.IconScale;
-		const textWidth = text.bitmap.measureTextWidth(this._j._popups._sourcePopup.value);
+		const textWidth = text.bitmap.measureTextWidth(this.sourcePopup().value);
 		const totalWidth = iconWidth + spacing + textWidth;
 		const startX = -(totalWidth / 2);
 		icon.x = startX + iconWidth / 2;

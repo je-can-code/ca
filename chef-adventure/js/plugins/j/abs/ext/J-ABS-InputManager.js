@@ -291,6 +291,13 @@ var JABS_StandardController = class extends JABS_BaseController {
 		this._lastInCombat = false;
 	}
 	/**
+	* Sets whether the battler was in combat on the previous frame.
+	* @param {boolean} lastInCombat Whether the battler was in combat.
+	*/
+	setLastInCombat(lastInCombat) {
+		this._lastInCombat = lastInCombat;
+	}
+	/**
 	* Initialize the button-to-input mappings.
 	* Seeds from current JABS defaults.
 	*/
@@ -576,10 +583,10 @@ var JABS_StandardController = class extends JABS_BaseController {
 		const battler = this.getBattler();
 		const inCombat = battler.isInCombat();
 		if (inCombat) {
-			this._lastInCombat = true;
+			this.setLastInCombat(true);
 			return this.isActionTriggered(JABS_Button.Sprint);
 		}
-		this._lastInCombat = false;
+		this.setLastInCombat(false);
 		return this.isActionPressed(JABS_Button.Sprint);
 	}
 	/**
@@ -2032,6 +2039,13 @@ Game_System.prototype.getInputBindingsSnapshot = function() {
 	return this._j._abs._input._bindings;
 };
 /**
+* Sets the persisted Input bindings snapshot on the system object.
+* @param {Object<string, Object<string, string[]>>} bindings The snapshot to persist.
+*/
+Game_System.prototype.setInputBindings = function(bindings) {
+	this._j._abs._input._bindings = bindings;
+};
+/**
 * Overwrites the persisted Input bindings snapshot on the system object.
 * The provided object should follow the shape: { [ns]: { [key]: string[] } }.
 * @param {Object<string, Object<string, string[]>>} snapshot The snapshot to store.
@@ -2051,7 +2065,7 @@ Game_System.prototype.setInputBindingsSnapshot = function(snapshot) {
 		}
 		out[ns] = copy;
 	}
-	this._j._abs._input._bindings = out;
+	this.setInputBindings(out);
 };
 /**
 * Applies a stored mapping (if present) to the given controller.

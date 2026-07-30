@@ -430,10 +430,10 @@ var JCache = class JCache {
 			node = next;
 		}
 		if (node.has(stringKey) === false) {
-			this._metrics.misses++;
+			this.recordMiss();
 			node.set(stringKey, computeFn());
 		} else {
-			this._metrics.hits++;
+			this.recordHit();
 		}
 		return node.get(stringKey);
 	}
@@ -469,6 +469,18 @@ var JCache = class JCache {
 	*/
 	get metrics() {
 		return { ...this._metrics };
+	}
+	/**
+	* Records that a lookup found nothing and had to compute.
+	*/
+	recordMiss() {
+		this._metrics.misses++;
+	}
+	/**
+	* Records that a lookup was served from the cache.
+	*/
+	recordHit() {
+		this._metrics.hits++;
 	}
 };
 
@@ -10495,6 +10507,16 @@ Scene_Base.prototype.buildModalDimmerWindow = function() {
 	return win;
 };
 /**
+* Gets whether this scene has ever summoned its modal dimmer.
+*
+* Asked instead of the getter when the answer only matters for tearing down, since the getter builds
+* one on first use and would create a dimmer purely to switch it off.
+* @returns {boolean}
+*/
+Scene_Base.prototype.hasModalDimmerWindow = function() {
+	return this._j._modalDimmerWindow !== null;
+};
+/**
 * Gets the shared modal dimmer window for this scene, creating it on first use when the engine data layer is live.
 *
 * @returns {Window_Dimmer} The dimmer overlay window.
@@ -10539,10 +10561,8 @@ Scene_Base.prototype.showModalDimmer = function(opacity = Scene_Base.MODAL_DIMME
 * Hides the dimmer without destroying the window so the next modal can reuse it.
 */
 Scene_Base.prototype.hideModalDimmer = function() {
-	if (this._j._modalDimmerWindow === null) {
-		return;
-	}
-	this._j._modalDimmerWindow.visible = false;
+	if (this.hasModalDimmerWindow() === false) return;
+	this.getModalDimmerWindow().visible = false;
 };
 /**
 * Pushes this current scene onto the stack, forcing it into action.

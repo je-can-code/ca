@@ -3258,9 +3258,24 @@ Spriteset_Map.prototype.createPixelCollisionOverlay = function() {
 	const initialVisibility = J.PIXEL && J.PIXEL.Metadata ? J.PIXEL.Metadata.OverlayInitiallyVisible : false;
 	this.setPixelOverlayVisible(this.pixelOverlayVisible() || initialVisibility);
 	PixelDebugSampler.enabled = this.pixelOverlayVisible();
-	this._pixelCollisionOverlay = new Sprite_PixelCollisionOverlay();
-	this._pixelCollisionOverlay.visible = this.pixelOverlayVisible();
-	this.addChild(this._pixelCollisionOverlay);
+	const overlay = new Sprite_PixelCollisionOverlay();
+	overlay.visible = this.pixelOverlayVisible();
+	this.setPixelCollisionOverlay(overlay);
+	this.addChild(overlay);
+};
+/**
+* Gets the sprite drawing the pixel collision overlay.
+* @returns {Sprite_PixelCollisionOverlay|null}
+*/
+Spriteset_Map.prototype.pixelCollisionOverlay = function() {
+	return this._pixelCollisionOverlay;
+};
+/**
+* Sets the sprite drawing the pixel collision overlay.
+* @param {Sprite_PixelCollisionOverlay} overlay The sprite to track.
+*/
+Spriteset_Map.prototype.setPixelCollisionOverlay = function(overlay) {
+	this._pixelCollisionOverlay = overlay;
 };
 /**
 * Ensures a key is mapped for toggling the overlay.
@@ -3280,8 +3295,8 @@ Spriteset_Map.prototype.update = function() {
 	J.PIXEL.Aliased.Spriteset_Map.get("update").call(this);
 	if (Input.isTriggered("pixelOverlay")) {
 		this.setPixelOverlayVisible(!this.pixelOverlayVisible());
-		if (this._pixelCollisionOverlay) {
-			this._pixelCollisionOverlay.visible = this.pixelOverlayVisible();
+		if (this.pixelCollisionOverlay()) {
+			this.pixelCollisionOverlay().visible = this.pixelOverlayVisible();
 		}
 		PixelDebugSampler.enabled = this.pixelOverlayVisible();
 	}

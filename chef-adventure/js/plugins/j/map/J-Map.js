@@ -2203,17 +2203,13 @@ Scene_Map.prototype.createAllWindows = function() {
 * Creates and attaches the minimap to the scene.
 */
 Scene_Map.prototype.createMiniMap = function() {
-	/**
-	* The minimap sprite instance.
-	* @type {Sprite_MiniMap}
-	*/
-	this._j._map._miniMap = new Sprite_MiniMap();
+	this.setMiniMap(new Sprite_MiniMap());
 	let shouldBeVisible = $gameSystem.isMinimapVisible();
 	if ($gameMap.isMinimapBlocked()) {
 		shouldBeVisible = false;
 	}
-	this._j._map._miniMap.visible = shouldBeVisible;
-	this.addChild(this._j._map._miniMap);
+	this.getMiniMap().visible = shouldBeVisible;
+	this.addChild(this.getMiniMap());
 };
 /**
 * Gets the minimap sprite.
@@ -2221,6 +2217,13 @@ Scene_Map.prototype.createMiniMap = function() {
 */
 Scene_Map.prototype.getMiniMap = function() {
 	return this._j._map._miniMap;
+};
+/**
+* Sets the minimap sprite.
+* @param {Sprite_MiniMap} miniMap The sprite to track.
+*/
+Scene_Map.prototype.setMiniMap = function(miniMap) {
+	this._j._map._miniMap = miniMap;
 };
 /**
 * Extends {@link #update}.<br/>

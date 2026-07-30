@@ -278,7 +278,40 @@ Scene_Equip.prototype.initMembers = function() {
 	* Whether the extended equipment detail panel is currently showing.
 	* @type {boolean}
 	*/
-	this._j.moreVisible = false;
+	this._j._moreVisible = false;
+	/**
+	* The panel showing the extended data of the highlighted equipment.
+	* @type {Window_MoreEquipData|null}
+	*/
+	this._j._moreDataWindow = null;
+};
+/**
+* Gets whether the extended equipment detail panel is currently showing.
+* @returns {boolean}
+*/
+Scene_Equip.prototype.moreVisible = function() {
+	return this._j._moreVisible;
+};
+/**
+* Sets whether the extended equipment detail panel is currently showing.
+* @param {boolean} moreVisible Whether the panel is showing.
+*/
+Scene_Equip.prototype.setMoreVisible = function(moreVisible) {
+	this._j._moreVisible = moreVisible;
+};
+/**
+* Gets the panel showing the extended data of the highlighted equipment.
+* @returns {Window_MoreEquipData}
+*/
+Scene_Equip.prototype.moreDataWindow = function() {
+	return this._j._moreDataWindow;
+};
+/**
+* Sets the panel showing the extended data of the highlighted equipment.
+* @param {Window_MoreEquipData} window The window to track.
+*/
+Scene_Equip.prototype.setMoreDataWindow = function(window) {
+	this._j._moreDataWindow = window;
 };
 /**
 * Overwrites {@link #createButtons}.<br/>
@@ -396,42 +429,41 @@ Scene_Equip.prototype.slotWindowRect = function() {
 */
 Scene_Equip.prototype.slotWindowHeight = (equipSlotCount) => 48 * equipSlotCount;
 /**
-* Toggles the visibility of the "more" window.
+* Toggles the extended data panel over the equipment slots.
 */
 Scene_Equip.prototype.switchToMoreDataFromEquipSlots = function() {
-	this._j.moreVisible = !this._j.moreVisible;
-	if (this._j.moreVisible) {
-		this.slotWindow().refreshMoreData();
-		this.slotWindow().deactivate();
-		this._moreDataWindow.setHandler("cancel", this.backToSlotsList.bind(this));
-		this._moreDataWindow.show();
-		this._moreDataWindow.activate();
-		this._moreDataWindow.select(0);
-	} else {
-		this._moreDataWindow.hide();
-		this._moreDataWindow.deactivate();
-		this._moreDataWindow.deselect();
-		this.slotWindow().activate();
-	}
+	this.toggleMoreData(this.slotWindow(), this.backToSlotsList.bind(this));
 };
 /**
-* Toggles the visibility of the "more" window.
+* Toggles the extended data panel over whichever list summoned it.
+*
+* The slots and the items wanted the same nine lines with two words changed, so they share them. Which
+* list is underneath, and where cancelling returns to, is the whole of the difference.
+* @param {Window_Selectable} sourceWindow The list the panel was summoned from.
+* @param {Function} onCancel What backing out of the panel should do.
+*/
+Scene_Equip.prototype.toggleMoreData = function(sourceWindow, onCancel) {
+	this.setMoreVisible(!this.moreVisible());
+	const moreDataWindow = this.moreDataWindow();
+	if (this.moreVisible() === false) {
+		moreDataWindow.hide();
+		moreDataWindow.deactivate();
+		moreDataWindow.deselect();
+		sourceWindow.activate();
+		return;
+	}
+	sourceWindow.refreshMoreData();
+	sourceWindow.deactivate();
+	moreDataWindow.setHandler("cancel", onCancel);
+	moreDataWindow.show();
+	moreDataWindow.activate();
+	moreDataWindow.select(0);
+};
+/**
+* Toggles the extended data panel over the equippable items.
 */
 Scene_Equip.prototype.switchToMoreDataFromEquipItems = function() {
-	this._j.moreVisible = !this._j.moreVisible;
-	if (this._j.moreVisible) {
-		this.itemWindow().refreshMoreData();
-		this.itemWindow().deactivate();
-		this._moreDataWindow.setHandler("cancel", this.backToItemsList.bind(this));
-		this._moreDataWindow.show();
-		this._moreDataWindow.activate();
-		this._moreDataWindow.select(0);
-	} else {
-		this._moreDataWindow.hide();
-		this._moreDataWindow.deactivate();
-		this._moreDataWindow.deselect();
-		this.itemWindow().activate();
-	}
+	this.toggleMoreData(this.itemWindow(), this.backToItemsList.bind(this));
 };
 /**
 * Extends the slot window to include our additional actions.
@@ -443,7 +475,7 @@ Scene_Equip.prototype.createSlotWindow = function() {
 	this.slotWindow().setHandler("context", this.onContextUnequipSlot.bind(this));
 	this.slotWindow().setHandler("actor-next", this.nextActor.bind(this));
 	this.slotWindow().setHandler("actor-prev", this.previousActor.bind(this));
-	this.slotWindow().setMoreDataWindow(this._moreDataWindow);
+	this.slotWindow().setMoreDataWindow(this.moreDataWindow());
 };
 /**
 * Handles the contextual unequip action from the slot window.
@@ -473,7 +505,7 @@ Scene_Equip.prototype.createItemWindow = function() {
 	this.itemWindow().setHandler("more", this.switchToMoreDataFromEquipItems.bind(this));
 	this.itemWindow().setHandler("ok", this.onItemOk.bind(this));
 	this.itemWindow().setHandler("cancel", this.onItemCancel.bind(this));
-	this.itemWindow().setMoreDataWindow(this._moreDataWindow);
+	this.itemWindow().setMoreDataWindow(this.moreDataWindow());
 	this.slotWindow().setItemWindow(this.itemWindow());
 	this.addWindow(this.itemWindow());
 };
@@ -481,13 +513,13 @@ Scene_Equip.prototype.createItemWindow = function() {
 * Creates the more data window.
 */
 Scene_Equip.prototype.createMoreDataWindow = function() {
-	const rect = this.moreDataRect();
-	this._moreDataWindow = new Window_MoreEquipData(rect);
-	this._moreDataWindow.hide();
-	this._moreDataWindow.deactivate();
-	this._moreDataWindow.deselect();
-	this._moreDataWindow.opacity = 255;
-	this.addWindow(this._moreDataWindow);
+	const window = new Window_MoreEquipData(this.moreDataRect());
+	window.hide();
+	window.deactivate();
+	window.deselect();
+	window.opacity = 255;
+	this.setMoreDataWindow(window);
+	this.addWindow(window);
 };
 Scene_Equip.prototype.moreDataRect = function() {
 	const contentArea = this.contentAreaRect();
@@ -552,7 +584,7 @@ J.CMS_E.Aliased.Scene_Equip.set("refreshActor", Scene_Equip.prototype.refreshAct
 Scene_Equip.prototype.refreshActor = function() {
 	J.CMS_E.Aliased.Scene_Equip.get("refreshActor").call(this);
 	const actor = this.actor();
-	this._moreDataWindow.setActor(actor);
+	this.moreDataWindow().setActor(actor);
 	this.actorRibbonWindow().setActor(actor);
 };
 /**
@@ -590,7 +622,7 @@ Window_EquipItem.prototype.refreshMoreData = function() {
 * Updates the "more" window to point to the new index's item.
 */
 Window_EquipItem.prototype.onIndexChange = function() {
-	this._moreDataWindow.setItem(this.item());
+	this.moreDataWindow().setItem(this.item());
 };
 /**
 * Associates the more equip data window to this one for observation.
@@ -598,6 +630,13 @@ Window_EquipItem.prototype.onIndexChange = function() {
 */
 Window_EquipItem.prototype.setMoreDataWindow = function(moreDataWindow) {
 	this._moreDataWindow = moreDataWindow;
+};
+/**
+* Gets the more equip data window observing this one.
+* @returns {Window_MoreEquipData}
+*/
+Window_EquipItem.prototype.moreDataWindow = function() {
+	return this._moreDataWindow;
 };
 
 //#endregion
@@ -624,7 +663,7 @@ Window_EquipSlot.prototype.refreshMoreData = function() {
 * Updates the "more" window to point to the new index's item.
 */
 Window_EquipSlot.prototype.onIndexChange = function() {
-	this._moreDataWindow.setItem(this.item());
+	this.moreDataWindow().setItem(this.item());
 };
 /**
 * Associates the more equip data window to this one for observation.
@@ -632,6 +671,13 @@ Window_EquipSlot.prototype.onIndexChange = function() {
 */
 Window_EquipSlot.prototype.setMoreDataWindow = function(moreDataWindow) {
 	this._moreDataWindow = moreDataWindow;
+};
+/**
+* Gets the more equip data window observing this one.
+* @returns {Window_MoreEquipData}
+*/
+Window_EquipSlot.prototype.moreDataWindow = function() {
+	return this._moreDataWindow;
 };
 
 //#endregion

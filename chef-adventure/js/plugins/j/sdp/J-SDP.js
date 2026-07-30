@@ -2848,6 +2848,13 @@ Game_Actor.prototype.getSdpPoints = function() {
 	return this._j._sdp._points;
 };
 /**
+* Sets the amount of SDP points this actor has.
+* @param {number} points The new amount of points.
+*/
+Game_Actor.prototype.setSdpPoints = function(points) {
+	this._j._sdp._points = points;
+};
+/**
 * Increase the amount of SDP points the actor has by a given amount.
 * If the parameter provided is negative, it will reduce the actor's points instead.
 *
@@ -2864,10 +2871,7 @@ Game_Actor.prototype.modSdpPoints = function(points) {
 		}
 		this.modAccumulatedTotalSdpPoints(gainedSdpPoints);
 	}
-	this._j._sdp._points += gainedSdpPoints;
-	if (this._j._sdp._points < 0) {
-		this._j._sdp._points = 0;
-	}
+	this.setSdpPoints(Math.max(0, this.getSdpPoints() + gainedSdpPoints));
 	return gainedSdpPoints;
 };
 /**

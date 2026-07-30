@@ -1443,7 +1443,7 @@ var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 		win.setHandler("context", this.onSlotUnequip.bind(this));
 		win.setHandler("actor-prev", this.onCycleActorLeft.bind(this));
 		win.setHandler("actor-next", this.onCycleActorRight.bind(this));
-		this._j._sks._windows._slots = win;
+		this.setSlotsWindow(win);
 		this.addWindow(win);
 	}
 	/**
@@ -1464,6 +1464,13 @@ var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 		return this._j._sks._windows._slots;
 	}
 	/**
+	* Sets the slots window.
+	* @param {Window_SkillEquipSlots} window The window to track.
+	*/
+	setSlotsWindow(window) {
+		this._j._sks._windows._slots = window;
+	}
+	/**
 	* Creates the skills list window on the right side.
 	*/
 	createSkillsListWindow() {
@@ -1472,7 +1479,7 @@ var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 		win.setActor(this.actor());
 		win.setHandler("ok", this.onSkillOk.bind(this));
 		win.setHandler("cancel", this.onSkillCancel.bind(this));
-		this._j._sks._windows._skills = win;
+		this.setSkillsWindow(win);
 		this.addWindow(win);
 	}
 	/**
@@ -1502,13 +1509,20 @@ var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 		return this._j._sks._windows._skills;
 	}
 	/**
+	* Sets the skills list window.
+	* @param {Window_SkillEquipList} window The window to track.
+	*/
+	setSkillsWindow(window) {
+		this._j._sks._windows._skills = window;
+	}
+	/**
 	* Creates the detail window beneath the skills list.
 	*/
 	createDetailWindow() {
 		const rect = this.detailWindowRect();
 		const win = new Window_SkillEquipDetail(rect);
 		win.setActor(this.actor());
-		this._j._sks._windows._detail = win;
+		this.setDetailWindow(win);
 		this.addWindow(win);
 	}
 	/**
@@ -1527,6 +1541,13 @@ var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 	*/
 	detailWindow() {
 		return this._j._sks._windows._detail;
+	}
+	/**
+	* Sets the detail window.
+	* @param {Window_SkillEquipDetail} window The window to track.
+	*/
+	setDetailWindow(window) {
+		this._j._sks._windows._detail = window;
 	}
 	/**
 	* Extends {@link #update}.<br/>

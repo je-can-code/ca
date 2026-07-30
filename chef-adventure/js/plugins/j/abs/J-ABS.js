@@ -13707,17 +13707,17 @@ var JABS_Battler = class JABS_Battler {
 	* @param {number} tailFrames The maximum tail to leave when calm (in frames).
 	*/
 	_maybeShortenCombatTail(tailFrames) {
-		if (this._inCombatCountdown <= tailFrames) {
+		if (this.getInCombatCountdown() <= tailFrames) {
 			return;
 		}
 		const windowMax = this.getCombatWindowMax();
 		const graceFrames = 15;
-		const withinGraceWindow = this._inCombatCountdown > windowMax - graceFrames;
+		const withinGraceWindow = this.getInCombatCountdown() > windowMax - graceFrames;
 		if (withinGraceWindow) {
 			return;
 		}
 		if (JABS_AiManager.anyLivingEnemiesAggroedToParty() === false) {
-			this._inCombatCountdown = tailFrames;
+			this.setInCombatCountdown(tailFrames);
 		}
 	}
 	/**
@@ -29324,22 +29324,22 @@ Game_Character.prototype.initJabsActionMembers = function() {
 	* The actual action for this character.
 	* @type {JABS_Action|null}
 	*/
-	this._j._abs._action.actionData = null;
+	this._j._abs._action._jabsAction = null;
 	/**
 	* Whether or not this action needs to be added to the map visually.
 	* @type {boolean}
 	*/
-	this._j._abs._action.needsAdding = false;
+	this._j._abs._action._actionSpriteNeedsAdding = false;
 	/**
 	* Whether or not this action needs to be removed from the map visually.
 	* @type {boolean}
 	*/
-	this._j._abs._action.needsRemoving = false;
+	this._j._abs._action._actionSpriteNeedsRemoving = false;
 	/**
 	* The uuid for this character.
 	* @type {string|String.empty}
 	*/
-	this._j._abs._action.battlerUuid = String.empty;
+	this._j._abs._action._jabsBattlerUuid = String.empty;
 };
 /**
 * Initializes the battler sprite properties for this character.
@@ -29385,14 +29385,14 @@ Game_Character.prototype.initJabsLootMembers = function() {
 * @returns {JABS_Action}
 */
 Game_Character.prototype.getJabsAction = function() {
-	return this._j._abs._action.actionData;
+	return this._j._abs._action._jabsAction;
 };
 /**
 * Binds a JABS action to this character.
 * @param {JABS_Action} action The action to assign to this character.
 */
 Game_Character.prototype.setJabsAction = function(action) {
-	this._j._abs._action.actionData = action;
+	this._j._abs._action._jabsAction = action;
 };
 /**
 * Gets whether or not this character is an action.
@@ -29425,40 +29425,40 @@ Game_Character.prototype.getJabsActionUuid = function() {
 * Gets the `needsAdding` property from the `actionSpriteProperties` for this event.
 */
 Game_Character.prototype.getActionSpriteNeedsAdding = function() {
-	return this._j._abs._action.needsAdding;
+	return this._j._abs._action._actionSpriteNeedsAdding;
 };
 /**
 * Sets the `needsAdding` property from the `actionSpriteProperties` for this event.
 * @param {boolean} addSprite True if you want this event to be added, false otherwise (default: true).
 */
 Game_Character.prototype.setActionSpriteNeedsAdding = function(addSprite = true) {
-	this._j._abs._action.needsAdding = addSprite;
+	this._j._abs._action._actionSpriteNeedsAdding = addSprite;
 };
 /**
 * Gets the `needsRemoving` property from the `actionSpriteProperties` for this event.
 */
 Game_Character.prototype.getActionSpriteNeedsRemoving = function() {
-	return this._j._abs._action.needsRemoving;
+	return this._j._abs._action._actionSpriteNeedsRemoving;
 };
 /**
 * Sets the `needsRemoving` property from the `actionSpriteProperties` for this event.
 * @param {boolean} removeSprite True if you want this event to be removed, false otherwise (default: true).
 */
 Game_Character.prototype.setActionSpriteNeedsRemoving = function(removeSprite = true) {
-	this._j._abs._action.needsRemoving = removeSprite;
+	this._j._abs._action._actionSpriteNeedsRemoving = removeSprite;
 };
 /**
 * Gets the `uuid` of this `JABS_Battler`.
 */
 Game_Character.prototype.getJabsBattlerUuid = function() {
-	return this._j._abs._action.battlerUuid;
+	return this._j._abs._action._jabsBattlerUuid;
 };
 /**
 * Sets the provided `JABS_Battler` to this character.
 * @param {string} uuid The uuid of the `JABS_Battler` to set to this character.
 */
 Game_Character.prototype.setJabsBattlerUuid = function(uuid) {
-	this._j._abs._action.battlerUuid = uuid;
+	this._j._abs._action._jabsBattlerUuid = uuid;
 };
 /**
 * Gets whether or not this character has a `JABS_Battler` attached to it.
@@ -32759,12 +32759,33 @@ Sprite_Character.prototype.applyActionDebug = function(skill) {
 		if (!this.children.includes(this._j._abs._visDebugGizmo)) {
 			this.addChild(this._j._abs._visDebugGizmo);
 		}
-		this._j._abs._visDebugGizmo.visible = true;
+		this.visDebugGizmo().visible = true;
 		return;
 	}
-	if (this._j._abs._visDebugGizmo) {
-		this._j._abs._visDebugGizmo.visible = false;
+	if (this.visDebugGizmo()) {
+		this.visDebugGizmo().visible = false;
 	}
+};
+/**
+* Gets the gizmo drawn over this character while visual debugging is on.
+* @returns {Sprite|null}
+*/
+Sprite_Character.prototype.visDebugGizmo = function() {
+	return this._j._abs._visDebugGizmo;
+};
+/**
+* Gets the stripe drawn beneath this battler's name to mark their tier.
+* @returns {Sprite|null}
+*/
+Sprite_Character.prototype.battlerNameTierStripe = function() {
+	return this._j._abs._battlerNameTierStripe;
+};
+/**
+* Sets the stripe drawn beneath this battler's name to mark their tier.
+* @param {Sprite|null} stripe The sprite to track, or null when there is none.
+*/
+Sprite_Character.prototype.setBattlerNameTierStripe = function(stripe) {
+	this._j._abs._battlerNameTierStripe = stripe;
 };
 /**
 * Creates a tiny crosshair to visualize the sprite’s local origin.
@@ -33061,15 +33082,15 @@ Sprite_Character.prototype.setupBattlerName = function() {
 		const { name, colorHex, tier } = this.getBattlerName();
 		this.battlerName().setText(name);
 		this.battlerName().setColor("#ffffff");
-		if (this._j._abs._battlerNameTierStripe && this.shouldDrawMapTierStripe(colorHex)) {
+		if (this.battlerNameTierStripe() && this.shouldDrawMapTierStripe(colorHex)) {
 			const fontSize = this.battlerName().fontSize();
-			this._j._abs._battlerNameTierStripe.bitmap = this.buildMapTierStripeBitmap(colorHex, fontSize, tier);
+			this.battlerNameTierStripe().bitmap = this.buildMapTierStripeBitmap(colorHex, fontSize, tier);
 		}
 		return;
 	}
 	this.setBattlerName(this.createBattlerNameSprite());
-	if (this._j._abs._battlerNameTierStripe) {
-		this.addChild(this._j._abs._battlerNameTierStripe);
+	if (this.battlerNameTierStripe()) {
+		this.addChild(this.battlerNameTierStripe());
 	}
 	this.addChild(this.battlerName());
 };
@@ -33083,7 +33104,7 @@ Sprite_Character.prototype.createBattlerNameSprite = function() {
 	const fontSize = 16;
 	const textSprite = new Sprite_BaseText().setText(name).setFontSize(fontSize).setAlignment(Sprite_BaseText.Alignments.Left).setColor("#ffffff");
 	textSprite.move(-70, 0);
-	this._j._abs._battlerNameTierStripe = null;
+	this.setBattlerNameTierStripe(null);
 	if (this.shouldDrawMapTierStripe(colorHex)) {
 		const stripeSprite = new Sprite();
 		stripeSprite.bitmap = this.buildMapTierStripeBitmap(colorHex, fontSize, tier);
@@ -33092,7 +33113,7 @@ Sprite_Character.prototype.createBattlerNameSprite = function() {
 		const GAP = 4;
 		const stripeY = this.computeMapTierStripeY(textSprite, outerH);
 		stripeSprite.move(-70 - GAP - outerW, stripeY);
-		this._j._abs._battlerNameTierStripe = stripeSprite;
+		this.setBattlerNameTierStripe(stripeSprite);
 	}
 	return textSprite;
 };
@@ -33210,8 +33231,8 @@ Sprite_Character.prototype.canUpdateBattlerName = function() {
 */
 Sprite_Character.prototype.showBattlerName = function() {
 	this.battlerName().show();
-	if (this._j._abs._battlerNameTierStripe) {
-		this._j._abs._battlerNameTierStripe.show();
+	if (this.battlerNameTierStripe()) {
+		this.battlerNameTierStripe().show();
 	}
 };
 /**
@@ -33219,8 +33240,8 @@ Sprite_Character.prototype.showBattlerName = function() {
 */
 Sprite_Character.prototype.hideBattlerName = function() {
 	this.battlerName().hide();
-	if (this._j._abs._battlerNameTierStripe) {
-		this._j._abs._battlerNameTierStripe.hide();
+	if (this.battlerNameTierStripe()) {
+		this.battlerNameTierStripe().hide();
 	}
 };
 /**

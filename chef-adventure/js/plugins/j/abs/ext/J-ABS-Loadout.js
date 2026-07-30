@@ -811,6 +811,34 @@ var Scene_JabsLoadout = class Scene_JabsLoadout extends Scene_MenuFacetBase {
 		return $gameParty.members();
 	}
 	/**
+	* Gets the headers naming each column's party member.
+	* @returns {Window_LoadoutActorHeader}
+	*/
+	headerWindow() {
+		return this._j._loadout._header;
+	}
+	/**
+	* Sets the headers naming each column's party member.
+	* @param {Window_LoadoutActorHeader} window The window to track.
+	*/
+	setHeaderWindow(window) {
+		this._j._loadout._header = window;
+	}
+	/**
+	* Gets the labels naming each row's slot.
+	* @returns {Window_LoadoutSpine}
+	*/
+	spineWindow() {
+		return this._j._loadout._spine;
+	}
+	/**
+	* Sets the labels naming each row's slot.
+	* @param {Window_LoadoutSpine} window The window to track.
+	*/
+	setSpineWindow(window) {
+		this._j._loadout._spine = window;
+	}
+	/**
 	* Gets every member's slot column.
 	* @returns {Window_LoadoutSlots[]}
 	*/
@@ -873,7 +901,7 @@ var Scene_JabsLoadout = class Scene_JabsLoadout extends Scene_MenuFacetBase {
 	createActorHeaderWindow() {
 		const window = new Window_LoadoutActorHeader(this.actorHeaderWindowRect());
 		window.setColumnGeometry(this.actorColumnWidth(), this.spineWidth());
-		this._j._loadout._header = window;
+		this.setHeaderWindow(window);
 		this.addWindow(window);
 	}
 	/**
@@ -900,7 +928,7 @@ var Scene_JabsLoadout = class Scene_JabsLoadout extends Scene_MenuFacetBase {
 	createSpineWindow() {
 		const window = new Window_LoadoutSpine(this.spineWindowRect());
 		window.setRowHeight(this.slotColumns()[0].itemHeight());
-		this._j._loadout._spine = window;
+		this.setSpineWindow(window);
 		this.addWindow(window);
 	}
 	/**
