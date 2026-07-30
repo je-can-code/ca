@@ -495,14 +495,14 @@ change or two on first contact. That is the reason to start small rather than a 
 **Group A order, one scene per commit, ascending size:** `Scene_Passive` → `Scene_Aptitude` →
 `Scene_SkillEquip` → `Scene_SDP`.
 
-**Group A status — 3 of 4 done (2026-07-29):**
+**Group A status — ✅ COMPLETE (2026-07-29):**
 
 | Scene | State | What it gave up |
 |---|---|---|
 | `Scene_Passive` | ✅ | a hardcoded 480px list column, a 72px ribbon height, and a constructor that initialized twice |
 | `Scene_Aptitude` | ✅ | a centered 90% container, a dead `containerHeightPercent()`, and a details rect that started at `mainAreaTop()` while its sibling list started below the ribbon — it ran off the bottom of the screen |
 | `Scene_SkillEquip` | ✅ | the fixed 420px slot column, and a one-line ribbon that was cropping the face it drew |
-| `Scene_SDP` | ⬜ | see below |
+| `Scene_SDP` | ✅ | ten rects chained through each other, `Graphics.height` where `boxHeight` was meant, a flat `720` centre column, and `Window_SdpControlsHint` |
 
 **The base needed exactly one change across all three:** `hasHelpWindow()`, defaulting true. Aptitude and
 SkillEquip both carry a detail panel already and their command windows have no help text, so reserving the
@@ -518,29 +518,32 @@ Three things recurred and are worth expecting in the remaining four:
   points, or capacity is exactly what inheriting is for. Supply it through `buildActorRibbonWindow()` so
   the base still owns placement. Only delete a subclass that genuinely adds nothing.
 
-#### `Scene_SDP` — deliberately left for a fresh start
+#### `Scene_SDP` — notes worth keeping
 
-Not blocked, just larger than the other three combined, and it is the scene most recently repaired. It is
-**1,635 lines across ten windows**, and unlike its siblings its rects are chained through each other
-rather than derived from a common region — `sdpListRectangle()` reads the points rect, the family strip
-height, the help rect *and* the controls-hint height to compute one number. Untangling that wants a clear
-run, not the tail of a session.
-
-Known work, beyond the standard reparent:
+The largest of the four and the one the base was extracted from, so it is fitting that it was the last to
+actually sit on it. Two findings here corrected earlier assumptions in this document:
 
 - ⚠️ **`Window_SdpHeader` is not the actor header.** Despite the name, it draws the *hovered panel's* name
-  and flavour text. It stays, and only needs repositioning. The drift-table entry naming it as SDP's
-  bespoke ribbon was wrong, and following that instruction would have deleted a panel-detail window.
-- ✅ **`Window_SdpPoints` was the ribbon**, and now inherits `Window_ActorRibbon` (done 2026-07-29). It had
-  reimplemented the parent wholesale- its own `_actor`, `actor()`, `setActor()`, and face drawing. It is
-  still positioned by the scene; wiring it through `buildActorRibbonWindow()` is part of the scene work
-  below.
-- **Retire `Window_SdpControlsHint`** in favour of the base legend. It was the only button help in the
-  game, and is now the only scene not using the shared one.
-- **Keep `Window_SdpHelp`** — SDP is the one Group A scene whose commands do carry help text, so it is
-  also the one that should keep `hasHelpWindow()` true.
-- `Window_SdpPoints`, `Window_SdpMastery`, `Window_SdpRewardList` and `Window_SdpCart` have not been read
-  yet and are not accounted for above.
+  and flavour text. The drift-table entry naming it as SDP's bespoke ribbon was **wrong**, and following
+  that instruction would have deleted a panel-detail window. It survives, and now spans only the centre
+  column rather than running to the right edge across the mastery and cart windows — it describes the
+  panel whose parameters sit beneath it, so that is the width it should have.
+- ✅ **`Window_SdpPoints` was the ribbon all along**, and now inherits `Window_ActorRibbon`. It had
+  reimplemented the parent wholesale: its own `_actor`, `actor()`, `setActor()`, and face drawing. The
+  scene supplies it through `buildActorRibbonWindow()`, and the face dimensions are expressed as overrides
+  of the parent's own accessors so the name column starts *from* the face instead of from a `140` that had
+  to agree with a `128`.
+
+Also of note:
+
+- **`Window_SdpHelp` kept `hasHelpWindow()` true** — SDP is the one Group A scene whose commands carry
+  help text. The window moved from the bottom of the screen to the base's top strip; it had been sitting
+  directly above the controls hint, spanning the left and centre columns only, an arrangement that existed
+  because both were competing for the bottom edge.
+- **`cart-dec` and `cart-inc` are absent from the legend.** Both are wired (they adjust cart quantity) but
+  neither semantic has an entry in `InputLegendResolver`, so listing them would render the raw strings
+  `cart-dec` / `cart-inc`. Registering glyphs for them is a small outstanding item, and worth doing —
+  adjusting quantity is exactly the kind of non-obvious control a legend is for.
 
 **Group B order once its mechanism is settled:** `Scene_Skill` → `Scene_Equip` → **`Scene_Status` last**.
 
