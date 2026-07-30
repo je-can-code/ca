@@ -1517,11 +1517,6 @@ if (J.ABS) {
 */
 var Window_AptitudeRibbon = class extends Window_ActorRibbon {
 	/**
-	* The target to show a hint for when the view is toggled.
-	* @type {string}
-	*/
-	_toggleHintTarget = String.empty;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle to draw the ribbon in.
 	*/
@@ -1529,36 +1524,11 @@ var Window_AptitudeRibbon = class extends Window_ActorRibbon {
 		super(rect);
 	}
 	/**
-	* Gets the target to show a hint for when the view is toggled.
-	* @returns {string}
-	*/
-	toggleHintTarget() {
-		return this._toggleHintTarget;
-	}
-	/**
-	* Sets the target to show a hint for when the view is toggled.
-	* @param {string} target The target to show a hint for.
-	*/
-	setToggleHintTarget(target) {
-		if (this._toggleHintTarget === target) return;
-		this._toggleHintTarget = target;
-		this.refresh();
-	}
-	/**
-	* Extends {@link #initMembers}.<br/>
-	* Adds the toggle hint target.
-	*/
-	initMembers() {
-		super.initMembers();
-		this._toggleHintTarget = String.empty;
-	}
-	/**
 	* Draws the actor face in the ribbon.
 	*/
 	drawActorRibbon() {
 		super.drawActorRibbon();
 		this.drawActorName();
-		this.drawHint();
 	}
 	/**
 	* Draws the actor's name.
@@ -1571,19 +1541,6 @@ var Window_AptitudeRibbon = class extends Window_ActorRibbon {
 		const nameX = x + w + 16;
 		const nameWidth = this.contents.measureTextWidth(name);
 		this.drawText(name, nameX, y, nameWidth);
-	}
-	/**
-	* Draws the hint for the current view.
-	*/
-	drawHint() {
-		const target = this.toggleHintTarget();
-		const hint = `\\I[2450]/\\I[2434]: see ${target}.`;
-		const textW = this.contents.measureTextWidth(hint);
-		const [x, y] = this.faceCoordinates();
-		const [w, h] = this.faceSize();
-		const textX = x + 64;
-		const textY = y + h;
-		this.drawTextEx(hint, textX, textY, textW);
 	}
 };
 
@@ -2534,14 +2491,12 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	*/
 	setViewModeToAggregate() {
 		this.j()._aptitude._viewMode = Scene_Aptitude.viewMode.AGGREGATE;
-		this.aptitudeRibbonWindow().setToggleHintTarget("the sources");
 	}
 	/**
 	* Sets the current view mode to the source view.
 	*/
 	setViewModeToSource() {
 		this.j()._aptitude._viewMode = Scene_Aptitude.viewMode.SOURCE;
-		this.aptitudeRibbonWindow().setToggleHintTarget("your skills");
 	}
 	/**
 	* Gets the current active list window for the view mode.
@@ -2614,9 +2569,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	* @returns {Window_AptitudeRibbon}
 	*/
 	buildActorRibbonWindow(rectangle) {
-		const window = new Window_AptitudeRibbon(rectangle);
-		window.setToggleHintTarget("the sources");
-		return window;
+		return new Window_AptitudeRibbon(rectangle);
 	}
 	/**
 	* Gets the aptitude ribbon window.
@@ -2780,7 +2733,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	controlLegendEntries() {
 		return [
 			{
-				semantic: "more",
+				semantic: "context",
 				label: "skills / sources"
 			},
 			{
@@ -2920,7 +2873,12 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 		details.hide();
 	}
 	/**
-	* Handles the "more" action- aka the shift key/square button from the either list.
+	* Swaps between the per-skill aggregate view and the per-source view.
+	*
+	* Bound to `context`, not `more`- this said "more" for a long time while the handler said otherwise, and
+	* the ribbon's own hardcoded hint icons quietly agreed with the handler rather than the comment. The
+	* control legend now resolves the glyph from the semantic, so there is one statement of it instead of
+	* three that could disagree.
 	*/
 	toggleViewMode() {
 		switch (this.viewMode()) {
