@@ -528,8 +528,13 @@ run, not the tail of a session.
 
 Known work, beyond the standard reparent:
 
-- **Retire `Window_SdpHeader`** in favour of a `Window_ActorRibbon` subclass drawing name + points, which
-  is the pattern the other three now follow. This is the actual drift the drift-table entry names.
+- ⚠️ **`Window_SdpHeader` is not the actor header.** Despite the name, it draws the *hovered panel's* name
+  and flavour text. It stays, and only needs repositioning. The drift-table entry naming it as SDP's
+  bespoke ribbon was wrong, and following that instruction would have deleted a panel-detail window.
+- ✅ **`Window_SdpPoints` was the ribbon**, and now inherits `Window_ActorRibbon` (done 2026-07-29). It had
+  reimplemented the parent wholesale- its own `_actor`, `actor()`, `setActor()`, and face drawing. It is
+  still positioned by the scene; wiring it through `buildActorRibbonWindow()` is part of the scene work
+  below.
 - **Retire `Window_SdpControlsHint`** in favour of the base legend. It was the only button help in the
   game, and is now the only scene not using the shared one.
 - **Keep `Window_SdpHelp`** — SDP is the one Group A scene whose commands do carry help text, so it is
