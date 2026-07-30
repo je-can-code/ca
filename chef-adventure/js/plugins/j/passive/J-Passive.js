@@ -1370,7 +1370,7 @@ var Window_PassiveList = class extends Window_Selectable {
 	*/
 	currentPassiveState() {
 		const entry = this.getData()[this.index()];
-		if (entry === null) return null;
+		if (entry === undefined || entry === null) return null;
 		return entry.state;
 	}
 	/**
