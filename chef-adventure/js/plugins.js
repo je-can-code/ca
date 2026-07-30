@@ -57,7 +57,6 @@ var $plugins =
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
 {"name":"j/cms/ext/J-CMS-Equip","status":true,"description":"[v1.1.0 CMS_E] A redesign of the equip menu.","parameters":{}},
 {"name":"j/cms/ext/J-CMS-Skill","status":true,"description":"[v1.1.0 CMS_K] A redesign of the skill menu.","parameters":{}},
-{"name":"j/cms/ext/J-CMS-Status","status":true,"description":"[v1.1.0 CMS_S] A redesign of the status menu for chef adventure.","parameters":{}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},
 {"name":"j/level/J-LevelMaster","status":true,"description":"[v1.4.0 LEVEL] Allows levels to have greater control and purpose.","parameters":{}},
 {"name":"j/level/ext/J-Level-Flat","status":true,"description":"[v1.0.1 LEVEL-FLAT] Flat per-level thresholds and map-based kill experience.","parameters":{"parentConfigFlat":"","exp-per-level":"1000","policy-multiplier":"1.00"}},

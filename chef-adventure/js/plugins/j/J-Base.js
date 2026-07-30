@@ -2162,8 +2162,6 @@ var ParameterGroups = class ParameterGroups {
 	/** @type {string} */
 	static DEFENSIVE = "defensive";
 	/** @type {string} */
-	static MOBILITY = "mobility";
-	/** @type {string} */
 	static FATE = "fate";
 	/** @type {string} */
 	static SUPPORT = "support";
@@ -2176,7 +2174,6 @@ var ParameterGroups = class ParameterGroups {
 		ParameterGroups.COMBAT,
 		ParameterGroups.PRECISION,
 		ParameterGroups.DEFENSIVE,
-		ParameterGroups.MOBILITY,
 		ParameterGroups.FATE,
 		ParameterGroups.SUPPORT
 	];

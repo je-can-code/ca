@@ -356,11 +356,6 @@ var ParameterCatalogRenderer = class ParameterCatalogRenderer {
 			iconIndex: 1625,
 			colorIndex: 26
 		},
-		mobility: {
-			title: "Haste",
-			iconIndex: 82,
-			colorIndex: 20
-		},
 		fate: {
 			title: "Fate",
 			iconIndex: 1619,
@@ -373,15 +368,18 @@ var ParameterCatalogRenderer = class ParameterCatalogRenderer {
 		}
 	};
 	/**
-	* Catalog group ids per visual row band (left column, then middle column). `support` has no
-	* partner group — like an odd-count group's dangling last row, it's a lone entry in its own band.
-	* @type {Array<[string, string]|[string]>}
+	* Catalog group ids per visual row band (left column, then middle column).
+	*
+	* Three bands, all paired. There used to be a fourth holding `support` alone, with the two movement
+	* stats above it in a `mobility` group titled "Haste" - two groups of two, stacked, where one group
+	* of four says the same thing. Merging them frees the whole bottom band, which is where the elemental
+	* and ailment affiliations now go.
+	* @type {Array<[string, string]>}
 	*/
 	static PAGE_GROUP_ROW_GROUPS = [
 		["combat", "vitality"],
 		["precision", "defensive"],
-		["mobility", "fate"],
-		["support"]
+		["support", "fate"]
 	];
 	/**
 	* Gap between a catalog name block and its value column.
@@ -778,6 +776,181 @@ var ParameterCatalogRenderer = class ParameterCatalogRenderer {
 		window.drawText(text, x + 32, y + 16, sectionWidth - 32, alignment);
 		window.resetFontSettings();
 	}
+	/**
+	* The size step affiliation rows shrink by, relative to body copy.
+	*
+	* Smaller than the catalog rows above them, because these are exceptions rather than the standing
+	* facts about a battler- an actor with no unusual resistances shows none of them at all.
+	* @returns {number}
+	*/
+	static affiliationFontSizeModifier() {
+		return -6;
+	}
+	/**
+	* The range of state ids treated as ailments worth reporting resistance to.
+	*
+	* Deliberately a narrow band rather than every state in the database. There are over a thousand, the
+	* overwhelming majority of which are passives, affixes, food buffs and other machinery the player
+	* never resists. These are the debilitations they actually build against.
+	* @returns {[number, number]} The inclusive start and exclusive end of the band.
+	*/
+	static ailmentStateIdRange() {
+		return [4, 18];
+	}
+	/**
+	* Y coordinate for the horizontal rule beneath a section title.
+	* @param {Window_Base} window The window doing the drawing.
+	* @param {number} sectionY The section's content anchor y, same as catalog groups use.
+	* @returns {number}
+	*/
+	static affiliationSeparatorY(window, sectionY) {
+		const rowBaseY = sectionY + 8;
+		const firstRowY = rowBaseY - 2 + window.lineHeight();
+		return firstRowY - 4;
+	}
+	/**
+	* Collects element affiliation rows that differ from the 100% baseline.
+	*
+	* Read through {@link Game_Battler.elementRate} rather than summed from traits, so what the panel
+	* claims and what combat actually does cannot disagree- including J-Elementalistics absorption.
+	* @param {Game_Actor} actor The actor to inspect.
+	* @param {number} limit The number of elements to inspect.
+	* @returns {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>}
+	*/
+	static collectElementAffiliationRows(actor, limit = 10) {
+		/** @type {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>} */
+		const rows = [];
+		$dataSystem.elements.slice(0, limit).forEach((elementName, index) => {
+			const absorbed = J.ELEM && actor.isElementAbsorbed(index);
+			const combatRate = actor.elementRate(index);
+			const magnitudePercent = Math.round(Math.abs(combatRate) * 100);
+			const formatted = AffiliationDisplay.formatDelta(magnitudePercent, {
+				absorbed,
+				immune: absorbed === false && magnitudePercent <= 0
+			});
+			if (!formatted) return;
+			const name = elementName === String.empty ? "Neutral" : elementName;
+			rows.push({
+				name,
+				value: formatted.value,
+				iconIndex: IconManager.element(index),
+				colorIndex: formatted.colorIndex
+			});
+		});
+		return rows;
+	}
+	/**
+	* Collects ailment resistance rows that differ from the 100% baseline.
+	*
+	* Read through {@link Game_Battler.stateRate} for the same reason the elements are.
+	* @param {Game_Actor} actor The actor to inspect.
+	* @returns {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>}
+	*/
+	static collectAilmentAffiliationRows(actor) {
+		/** @type {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>} */
+		const rows = [];
+		const [firstId, lastId] = this.ailmentStateIdRange();
+		$dataStates.slice(firstId, lastId).forEach((state) => {
+			if (!state) return;
+			const immune = actor.isStateResist(state.id);
+			const ratePercent = immune ? 0 : Math.round(actor.stateRate(state.id) * 100);
+			const formatted = AffiliationDisplay.formatDelta(ratePercent, { immune });
+			if (!formatted) return;
+			rows.push({
+				name: state.name,
+				value: formatted.value,
+				iconIndex: state.iconIndex,
+				colorIndex: formatted.colorIndex
+			});
+		});
+		return rows;
+	}
+	/**
+	* Draws one affiliation row: icon, name, and the deviation from baseline.
+	* @param {Window_Base} window The window doing the drawing.
+	* @param {{name: string, value: string, iconIndex: number, colorIndex: number}} row The row to draw.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} sectionWidth The width available for this row.
+	*/
+	static drawAffiliationRow(window, row, x, y, sectionWidth) {
+		window.resetFontSettings();
+		window.modFontSize(this.affiliationFontSizeModifier());
+		const modifiedX = x + ImageManager.iconWidth + 4;
+		const gap = 8;
+		const valuePixelWidth = this.styledValuePixelWidth(window, row.value);
+		const nameWidth = Math.max(48, sectionWidth - (modifiedX - x) - valuePixelWidth - gap);
+		window.drawIcon(row.iconIndex, x, y);
+		window.drawText(`${row.name}`, modifiedX, y, nameWidth, "left");
+		window.drawStyledPaddedValue(x, y, row.value, sectionWidth, 8, row.colorIndex);
+		window.resetFontSettings();
+	}
+	/**
+	* Draws a single placeholder row for a section where every entry sits at the baseline.
+	* @param {Window_Base} window The window doing the drawing.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} sectionWidth The width available for this row.
+	*/
+	static drawAffiliationBaselineRow(window, x, y, sectionWidth) {
+		window.resetFontSettings();
+		window.modFontSize(this.affiliationFontSizeModifier());
+		window.changeTextColor(ColorManager.textColor(7));
+		window.drawText("All standard", x, y, sectionWidth, "center");
+		window.resetFontSettings();
+	}
+	/**
+	* Draws filtered affiliation rows beneath a section header.
+	* @param {Window_Base} window The window doing the drawing.
+	* @param {number} x The x coordinate.
+	* @param {number} y The section anchor y.
+	* @param {number} sectionWidth The width available for each row.
+	* @param {Array<{name: string, value: string, iconIndex: number, colorIndex: number}>} rows The rows.
+	* @returns {number} The y coordinate just below the last visible row.
+	*/
+	static drawAffiliationRows(window, x, y, sectionWidth, rows) {
+		if (rows.length === 0) {
+			const rowY = y + window.lineHeight() + 8;
+			this.drawAffiliationBaselineRow(window, x, rowY, sectionWidth);
+			return rowY + window.lineHeight();
+		}
+		rows.forEach((row, index) => {
+			const rowY = y + (index + 1) * window.lineHeight() + 8;
+			this.drawAffiliationRow(window, row, x, rowY, sectionWidth);
+		});
+		return y + (rows.length + 1) * window.lineHeight() + 8;
+	}
+	/**
+	* Draws the elemental affiliations section.
+	* @param {Window_Base} window The window doing the drawing.
+	* @param {Game_Actor} actor The actor to inspect.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} sectionWidth The width of this section.
+	* @param {number} limit The number of elements to inspect.
+	* @returns {number} The y coordinate just below the last drawn row.
+	*/
+	static drawElementAffiliations(window, actor, x, y, sectionWidth, limit = 10) {
+		const titleY = y - 15;
+		this.drawTitle(window, "Elements", x, titleY, 64, 8, "center", sectionWidth);
+		window.drawHorizontalLine(x, this.affiliationSeparatorY(window, y), sectionWidth, 3);
+		return this.drawAffiliationRows(window, x, y, sectionWidth, this.collectElementAffiliationRows(actor, limit));
+	}
+	/**
+	* Draws the ailment affiliations section.
+	* @param {Window_Base} window The window doing the drawing.
+	* @param {Game_Actor} actor The actor to inspect.
+	* @param {number} x The x coordinate.
+	* @param {number} y The y coordinate.
+	* @param {number} sectionWidth The width of this section.
+	* @returns {number} The y coordinate just below the last drawn row.
+	*/
+	static drawAilmentAffiliations(window, actor, x, y, sectionWidth) {
+		const titleY = y - 15;
+		this.drawTitle(window, "Ailments", x, titleY, 2, 8, "center", sectionWidth);
+		window.drawHorizontalLine(x, this.affiliationSeparatorY(window, y), sectionWidth, 3);
+		return this.drawAffiliationRows(window, x, y, sectionWidth, this.collectAilmentAffiliationRows(actor));
+	}
 };
 
 //#endregion
@@ -800,9 +973,6 @@ Window_MenuCommand.prototype.addMainCommands = function() {
 	}
 	if (this.needsCommand("equip")) {
 		this.addBuiltCommand(new WindowCommandBuilder(TextManager.equip).setSymbol("equip").setHelpText(J.CMS_M.Metadata.helpTextFor("equip")).setEnabled(enabled).setIconIndex(2565).setMenuSection(MenuSection.Actor).build());
-	}
-	if (this.needsCommand("status")) {
-		this.addBuiltCommand(new WindowCommandBuilder(TextManager.status).setSymbol("status").setHelpText(J.CMS_M.Metadata.helpTextFor("status")).setEnabled(enabled).setIconIndex(2560).setMenuSection(MenuSection.Actor).build());
 	}
 };
 /**
@@ -1326,7 +1496,6 @@ Scene_Menu.prototype.swapColumnFocus = function(leaving, entering) {
 Scene_Menu.prototype.bindMenuCommandHandlers = function(window) {
 	window.setHandler("skill", this.commandActorScene.bind(this, Scene_Skill));
 	window.setHandler("equip", this.commandActorScene.bind(this, Scene_Equip));
-	window.setHandler("status", this.commandActorScene.bind(this, Scene_Status));
 	window.setHandler("item", this.commandItem.bind(this));
 	window.setHandler("options", this.commandOptions.bind(this));
 	window.setHandler("save", this.commandSave.bind(this));

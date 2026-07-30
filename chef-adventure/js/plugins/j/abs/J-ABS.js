@@ -31681,7 +31681,7 @@ Game_Unit.prototype.inBattle = function() {
 J.ABS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.ABS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
-	ParameterRegistry.register(ParameterDefinition.Builder().key("cdr").group(ParameterGroups.MOBILITY).sortOrder(1).label(() => TextManager.cdr()).description(() => TextManager.cdrDescription()).iconIndex(() => IconManager.cdr()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).build());
+	ParameterRegistry.register(ParameterDefinition.Builder().key("cdr").group(ParameterGroups.SUPPORT).sortOrder(3).label(() => TextManager.cdr()).description(() => TextManager.cdrDescription()).iconIndex(() => IconManager.cdr()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).build());
 	ParameterRegistry.register(ParameterDefinition.Builder().key("per").group(ParameterGroups.PRECISION).sortOrder(3).label(() => TextManager.per()).description(() => TextManager.perDescription()).iconIndex(() => IconManager.per()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.per).build());
 };
 
