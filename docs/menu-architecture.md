@@ -104,7 +104,7 @@ Measured, not theorised. All of it is independent implementations of one idea di
 | Internal consistency | Aptitude mixes `mainAreaTop()` and `Graphics.boxHeight` between its own rects |
 | Actor ribbon | 4 scenes share `Window_ActorRibbon`; SDP has a bespoke `Window_SdpHeader` |
 | Emphasis | SkillEquip gives the *available skills* picker the whole left side and squeezes the **slots** — the actual subject — into 420 px. Inverted |
-| Button help | Only SDP has one (`Window_SdpControlsHint`). Every other scene expects the player to guess |
+| Button help | Only SDP had one (`Window_SdpControlsHint`). **Resolved for facet scenes** — `Window_ControlLegend` is now standard, and renders live glyphs for the device in hand. Still outstanding for the seven until Phase 5 reaches them |
 
 ---
 
@@ -151,11 +151,23 @@ The shared base is an **extraction of what SDP already proved**, retrofitted ont
 - **`Scene_Status` and `Scene_Skill` join the skeleton**, and their full-size actor profile is gutted —
   the hub is the only place a full portrait appears.
 - **Names:** `Scene_MenuFacetBase` / `Scene_ActorFacetBase`.
+- **The quick menu is retired, not pared** *(2026-07-29)*. A two-item menu whose first item opens
+  another menu is a keypress charged for nothing. The map keeps no menu of its own; the menu button
+  opens the hub. See section 4.
+- **Button glyphs auto-detect the device; there is no "button style" setting** *(2026-07-29)*. The whole
+  reason this work exists is a playtester who never found a feature — and that player does not open an
+  options menu to tell the game what is in their hands. Auto-detect is right by default for everyone; a
+  setting is right only for those who configure it. The glyph sheet is PlayStation + keyboard only, so
+  the options would have read "PlayStation / Keyboard" — a fact about the player's desk, not a taste.
+  `InputDeviceTracker.currentDevice()` is a one-method seam if this is ever revisited.
 
 ### Open
 
 - Contents of the hub's center panel beyond face/name/level/gauges — deliberately deferred until the
   skeleton exists
+- **The Group B reparenting mechanism** — `Object.setPrototypeOf`, a prototype mixin, or outright
+  replacement, for the three engine-owned scenes. Deliberately deferred until Group A is done, since
+  four retrofits will show what the base actually needs to expose. See Phase 5.
 
 ---
 
@@ -260,39 +272,49 @@ So all six keep working untouched, landing on the right, and get moved left by a
 `.setMenuSection(MenuSection.Actor)` call whenever convenient. Any future plugin that never learns
 about sections still works. Switch-gating, icons, and help text all continue to function unchanged.
 
-### 4. Accommodating the quick menu
+### 4. Retiring the quick menu — *revised 2026-07-29*
 
-`Window_AbsMenu.buildCommands()` today: `main-menu`, `offhand-assign`, `skill-assign`,
-`dodge-assign`, `item-assign`, `usable-item-assign`, plus `sdp-menu` (sdp), `ally-ai` (allyai),
-and omnipedia (omni) via `buildCommands` aliases.
+This section originally planned to **pare** the quick menu down to two commands: `main-menu` and
+`ally-ai`. That happened, and then the result was looked at, and the result was not good.
 
-**Target — two commands.**
+**A two-item menu whose first item opens another menu is not a menu.** Once the five `*-assign`
+commands had moved into the loadout scene and SDP/omnipedia had been dropped, the quick menu's whole
+remaining content was one redundant entry and one door to the last on-map window stack. It was a
+keypress charged for nothing, on the most-used navigation in the game — and it overlapped the TIME
+HUD in the top-right corner, which is what finally drew attention to it.
 
-| Command | Fate |
+**So it is gone entirely.** `Window_AbsMenu` is deleted, along with the allyai extension that appended
+to it.
+
+| Was | Now |
 |---|---|
-| `main-menu` | keep — it is the door |
-| `ally-ai` | keep — tactical, passes the mid-dungeon test, and is party-scoped so it has no hub home |
-| the five `*-assign` commands | **deleted** — absorbed by the loadout scene |
-| `sdp-menu`, omnipedia | **deleted** — deliberative, already have hub doors |
+| menu button → quick menu on map | menu button → **main menu**, directly. Same binding (`start`) |
+| quick menu → `main-menu` | *(step no longer exists)* |
+| quick menu → `ally-ai` → 3 stacked on-map windows | main menu → party column → **`Scene_JabsAllyAi`** |
+| the five `*-assign` commands | `Scene_JabsLoadout` |
+| `sdp-menu`, omnipedia | hub doors, as planned |
 
-**Loadout is deliberately *not* on the quick menu.** It is an actor-column scene like every other
-actor scene, so it is one press deeper via the hub — and that is correct, because backing out of it
-returns the player to the actor column rather than dumping them straight onto the map. The hub is the
-place where "what else can I change about my guys?" is answered; a shortcut would fragment that.
+`Window_AbsMenuSelect` — flagged here as undeletable because Ally AI rode on it — **was** deleted, in
+Phase 4's first pass. Its ally AI modes were extracted into a standalone `Window_AllyAiSelect`, which
+is what made the scene promotion cheap later: the window was already free-standing.
 
-⚠️ **`Window_AbsMenuSelect` cannot simply be deleted.** Ally AI — the one assign-style command being
-kept — is built on it:
+**Deleting the on-map menu deleted two engine flags.** `$jabsEngine.requestAbsMenu` meant "a menu is
+open on the map" and gated both player movement and JABS input; a scene needs neither, because
+`Scene_Map` is not the running scene while it is open. `requestJabsMenuRefresh` existed so a switch
+flip could re-render the quick menu's command list; a scene builds its list on creation. Both are gone,
+along with the plugin command, the `Game_Switches` hook, and the two follower-visibility hooks that set
+them.
 
-| Consumer | References |
-|---|---|
-| `abs/core/scenes/Scene_Map.js` | 51 |
-| `abs/ext/allyai/windows/Window_AbsMenuSelect.js` | 18 (`party-member`, `select-ai`, `ally-formations`, `aggro-passive-toggle`, `do-nothing-toggle`) |
-| `abs/ext/allyai/scenes/Scene_Map.js` | 4 |
+⚠️ **One check had to move rather than die.** The quick menu greyed out its `main-menu` command when
+`$gameSystem.isMenuEnabled()` was false. With no command left to grey out,
+`JABS_InputAdapter._canPerformMenuAction()` now honours it — otherwise the menu opens during cutscenes
+that disabled it. The separate refusal to let vanilla's `Scene_Map#callMenu` work is **unchanged and
+must stay**: the key it listens for is the one JABS gives to the offhand attack.
 
-So Phase 4 **pares** rather than deletes: remove the ten loadout-related selection modes and their
-`Scene_Map` handlers, keep the class and the Ally AI modes riding on it. The hardcoded
-`$gameParty.leader()` is retired from the deleted modes only — Ally AI is party-scoped anyway, so it
-was never wrong there.
+**Loadout remains deliberately reachable only through the hub**, for the original reason — backing out
+of it should return the player to the actor column, not dump them on the map.
+
+**Net effect: 605 lines added, 1363 removed.**
 
 ### 4b. Loadout input map
 
@@ -447,8 +469,33 @@ reimplementing them.
 
 #### Phase 5 — retrofit the seven
 
-One scene per commit, in ascending size: `Scene_Passive` → `Scene_Skill` → `Scene_Aptitude` →
-`Scene_Equip` → `Scene_SkillEquip` → `Scene_SDP` → **`Scene_Status` last**.
+⚠️ **The seven are not seven of the same thing** *(found 2026-07-29, before starting)*. They split by
+**who owns the class**, and the two halves need different mechanics:
+
+| Group | Scenes | What "reparent" means |
+|---|---|---|
+| **A — plugin classes** | `Scene_Passive`, `Scene_Aptitude`, `Scene_SkillEquip`, `Scene_SDP` | a real `class X extends Scene_MenuBase`. Reparenting is **one word** |
+| **B — engine classes** | `Scene_Skill`, `Scene_Equip`, `Scene_Status` | vanilla RMMZ scenes, patched via prototype from `cms/ext` (plus `natural/core` and `_base` for Equip). **There is no `extends` clause to change** |
+
+Group B cannot be reparented as written below. `Scene_Status` is `function Scene_Status()` with a
+hand-built prototype chain, so the options are rewriting the chain via `Object.setPrototypeOf`, mixing
+the facet methods onto the prototype, or replacing the class outright — three very different bets, and
+`Scene_Status` is 3,542 lines to be wrong about.
+
+**Decision: do Group A first, and defer the Group B mechanism.** Not procrastination — after four
+retrofits we will know exactly what the base provides and what subclasses actually override, which is
+precisely the information needed to choose. Deciding now is guessing. Group A alone kills most of the
+measured drift, and each scene is independently shippable.
+
+⚠️ **`Scene_ActorFacetBase` has zero consumers.** It was written in Phase 1 and never used —
+`Scene_JabsLoadout` and `Scene_JabsAllyAi` both extend `Scene_MenuFacetBase`, skipping it. So the first
+Group A retrofit is also the first proof the actor base is correct, and it should be expected to need a
+change or two on first contact. That is the reason to start small rather than a reason to delay.
+
+**Group A order, one scene per commit, ascending size:** `Scene_Passive` → `Scene_Aptitude` →
+`Scene_SkillEquip` → `Scene_SDP`.
+
+**Group B order once its mechanism is settled:** `Scene_Skill` → `Scene_Equip` → **`Scene_Status` last**.
 
 `Scene_Status` is the largest actor scene in the game — **3,542 lines across six windows**, one of
 them (`Window_StatusStatBreakdown.js`) 2,251 lines on its own, and it is paginated. It goes last, not
@@ -468,25 +515,52 @@ Scene-specific notes:
 
 ### 5b. Progress
 
-As of 2026-07-27 evening, **built and deployed but deliberately uncommitted** (JE is batching the
-whole effort into one sweep):
+As of **2026-07-29**, phases 1–4 are done, committed, and pushed to
+`feat/testplay-rebalancing-fixing` (plugins) and `feat/testplay-rabalancing-fixing` (CA).
 
 | Phase | State |
 |---|---|
-| 1 — J-Base foundation | ✅ done. `MenuSection`, `InputLegendResolver`, `Window_ControlLegend`, both facet bases, `setMenuSection` |
+| 1 — J-Base foundation | ✅ done, and since **extended** — see below |
 | 2 — the hub | ✅ done. Three columns, floating shrink-wrapped command columns, help + currency in the centre stack, full-width legend, D-pad **and** L2/R2 column switching, split help-text ownership |
-| 3 — `Scene_JabsLoadout` | ✅ board + picker working. Assign, clear, cross-actor editing all live |
-| 4 — pare the quick menu | ⬜ not started |
-| 5 — retrofit the seven | ⬜ not started |
+| 3 — `Scene_JabsLoadout` | ✅ done, then **redesigned** — see below |
+| 4 — retire the quick menu | ✅ done. Deleted outright rather than pared; ally AI promoted to `Scene_JabsAllyAi` |
+| 5 — retrofit the seven | ⬜ not started. Now split into Group A / Group B |
 
-**Outstanding smaller items:**
+**Phase 3 was redesigned after playtesting.** `Window_LoadoutBoard` is deleted. The scene is now **two
+synced slot columns** sharing a `Window_LoadoutSpine` of labels down the middle, with a candidate picker
+under each column filling the space the board left empty. The inactive column stays *selected but
+deactivated*, so it keeps showing which slot it points at while the other holds the cursor — no modal,
+no second window over the first. `Window_LoadoutSlots` resolves contents by asking
+`JABS_SkillSlot#isItem()` rather than looking every id up in `$dataSkills`, which had been rendering an
+Ether as whichever skill shared its id.
 
-- `InputLegendResolver` has no resolver registered, so legends and the loadout spine render raw
-  semantic names (`SkillTrigger + Main`) instead of controller glyphs. J-ABS-Input needs to register
-  one — this improves the loadout board more than any other screen.
-- J-CMS had to move to plugin load position 4. It **overwrites** `Scene_Menu#createCommandWindow`, so
-  anything loading before it has its handler patch silently discarded while its command still renders.
-  This already broke J-ABS-InputManager and J-ABS-Loadout once.
+**Phase 1 grew four things Phase 5 needs to know about:**
+
+- **`Window_Command.initMembers`** — a no-op hook in J-Base, called from an aliased `initialize` *before*
+  the original logic. Command windows **must** seed state here: not as class fields, not in the
+  constructor, both of which land after the command list has already been built. Enforced by
+  `verify:no-late-window-command-state`. Implementations may **only assign fields** — the hook runs
+  before `Window_Base.initialize`, so there is no `contents`, geometry, or font yet. See also: nothing on
+  the `makeCommandList` path may touch a private member, since private brands are installed after
+  `super()` returns.
+- **`InputDevice` + `InputDeviceTracker`** — legends now draw glyphs for whichever device the player is
+  actually holding, detected by aliasing the engine's only two device-specific writers into
+  `Input._currentState`. `InputDeviceTracker.currentDevice()` is the single seam if this ever becomes a
+  player-facing setting. Deliberately **not** an options entry — see Decisions.
+- **`Window_ControlLegend` multi-semantic entries** — an entry may carry an array of semantics, joined
+  with `/`, so a pair the player thinks of as one control (`focus-prev`/`focus-next`) reads as one line.
+- **`focus-prev` / `focus-next`** — D-pad left/right became its own semantic region on
+  `Window_Selectable`, so multi-column scenes stop borrowing L2/R2 (which already means "previous/next
+  content"). `Window_Command.updateHelp` was centralized in the same pass; previously only one CMS window
+  implemented it, and every other scene's help window silently cleared itself.
+
+**Both former outstanding items are resolved:** J-ABS-Input registers an `InputLegendResolver` (all four
+D-pad directions included, icons 2458–2461 / 2442–2445), and J-CMS sits at plugin load position 4.
+
+**Verifications are now nine, not seven** — `verify:no-late-window-command-state` and
+`verify:no-self-calling-accessors` joined during this work. Both were provoked by the same overnight
+mechanical-rewrite sweep, and the second exists specifically to catch the failure mode the
+`verify:no-direct-property-getset` rule creates when obeyed literally *inside* an accessor.
 
 ### 6. Sequencing
 
@@ -505,16 +579,30 @@ last rather than first.
 
 ---
 
-## The quick menu
+## The quick menu — *retired 2026-07-29*
 
-`Window_AbsMenu` currently carries **nine** commands: `main-menu`, `offhand-assign`, `skill-assign`,
-`dodge-assign`, `item-assign`, `usable-item-assign`, `sdp-menu`, `ally-ai`, and omnipedia.
+Kept as a record, because the reasoning is worth more than the outcome.
 
-Five of those nine are the same operation (bind a thing to a slot), implemented as ten modes of
-`Window_AbsMenuSelect` — every one of them leader-only.
+It carried **nine** commands at the start of this work: `main-menu`, `offhand-assign`, `skill-assign`,
+`dodge-assign`, `item-assign`, `usable-item-assign`, `sdp-menu`, `ally-ai`, and omnipedia. Five of those
+nine were the same operation (bind a thing to a slot), implemented as ten modes of a single
+`Window_AbsMenuSelect` — every one of them leader-only, which is what forced the player to flip party
+leaders to edit an ally's skills.
 
-**Editorial rule for the quick menu: "I need this without breaking flow, between fights, mid-dungeon."**
-Bindings pass. Ally AI passes. SDP and Omnipedia fail — they are deliberative and already have main
-menu doors.
+The editorial rule applied was: **"I need this without breaking flow, between fights, mid-dungeon."**
+Bindings passed. Ally AI passed. SDP and Omnipedia failed — deliberative, and already reachable from the
+hub.
 
-Target: **Loadout · Ally AI · Main Menu.**
+That rule was correct and it emptied the menu. Almost everything that felt like it needed to be
+*immediate* turned out, on inspection, to be something you stop walking to do — and a thing you stop
+walking for may as well be a scene, where it can be legible instead of cramped. What survived the rule
+was one door to another menu.
+
+**It had been in the game since JABS 1.0.0**, and it is the reason most of these scenes exist at all: it
+was how each feature got reached while it was being built, and it proved each one was worth having before
+any of them earned a home of its own. It did not get deleted for being bad. It got deleted because it
+worked, and everything it held outgrew it.
+
+Its final content, for the record: **Full Menu · Manage Ally AI.**
+
+🫡
