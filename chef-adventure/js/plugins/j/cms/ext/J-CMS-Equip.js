@@ -378,9 +378,7 @@ Scene_Equip.prototype.buildActorRibbonWindow = function(rectangle) {
 * Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
 * Describes the controls this scene responds to.
 *
-* Replaces `Window_EquipControlsHint`, which drew the same three controls as a fixed string with the
-* button names spelled out in words. The legend resolves live glyphs for whichever device the player
-* is holding, and sits in the same place it does in every other facet scene.
+* These are semantics rather than glyphs, so the legend can draw whichever device the player is holding.
 * @returns {{semantic: (string|string[]), label: string}[]}
 */
 Scene_Equip.prototype.controlLegendEntries = function() {
@@ -588,10 +586,7 @@ Scene_Equip.prototype.refreshActor = function() {
 	this.actorRibbonWindow().setActor(actor);
 };
 /**
-* Gets the actor ribbon window.
-*
-* Kept as a name that reads in context; the base owns the window and its rectangle now, and the
-* controls hint it used to sit beside is the shared control legend.
+* Gets the actor ribbon window under the name this scene refers to it by.
 * @returns {Window_EquipActorRibbon}
 */
 Scene_Equip.prototype.actorRibbonWindow = function() {

@@ -1211,9 +1211,8 @@ var Window_PassiveActorRibbon = class extends Window_ActorRibbon {
 	/**
 	* Constructor.
 	*
-	* No explicit `initialize()` call: {@link Window_ActorRibbon}'s own constructor performs one, so
-	* making a second was initializing this window twice. Nor is there an `actor()` getter here anymore-
-	* the parent already provides one, and redeclaring it only invited the two to drift apart.
+	* No explicit `initialize()` call: {@link Window_ActorRibbon}'s own constructor performs one, and a
+	* second would initialize this window twice.
 	* @param {Rectangle} rect The rectangle for this window.
 	*/
 	constructor(rect) {
@@ -2708,10 +2707,6 @@ var Window_PassiveDetail = class extends Window_Base {
 * - a tab header strip across the top of the content area
 * - left column: scrollable state list, filtered by the active tab
 * - right column: detail panel for the currently highlighted state
-*
-* Before this it positioned all of that against `Graphics.boxWidth`/`boxHeight` directly, with a
-* hardcoded 480px list column and its own ribbon height- which is precisely the drift the shared base
-* exists to end.
 */
 var Scene_Passive = class extends Scene_ActorFacetBase {
 	/**
@@ -2752,8 +2747,8 @@ var Scene_Passive = class extends Scene_ActorFacetBase {
 	/**
 	* Constructor.
 	*
-	* No explicit `initialize()` call: the engine's own scene constructor performs one, so making a
-	* second was running the whole initialization twice.
+	* No explicit `initialize()` call: the engine's own scene constructor performs one, and a second would
+	* run the whole initialization twice.
 	*/
 	constructor() {
 		super();
@@ -2860,9 +2855,8 @@ var Scene_Passive = class extends Scene_ActorFacetBase {
 	/**
 	* The proportion of the content area given to the state list.
 	*
-	* A ratio rather than the 480px this used to hardcode, so the split holds at any resolution- and so
-	* that the detail panel can be defined as the remainder instead of a second number that has to be
-	* kept in agreement with the first.
+	* A ratio rather than a pixel width, so the split holds at any resolution- and so that the detail
+	* panel can be defined as the remainder instead of a second number that has to agree with the first.
 	* @returns {number}
 	*/
 	passiveListRatio() {
@@ -3105,8 +3099,6 @@ var Scene_Passive = class extends Scene_ActorFacetBase {
 	/**
 	* Extends {@link Scene_ActorFacetBase.onActorChange}.<br/>
 	* Refreshes this scene's actor-driven windows whenever the party's menu actor changes.
-	*
-	* The ribbon is no longer updated here- the base owns it, and does that itself.
 	*/
 	onActorChange() {
 		super.onActorChange();

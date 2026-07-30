@@ -3620,11 +3620,6 @@ Window_MenuCommand.prototype.makeCommandList = function() {
 };
 /**
 * Determines whether or not the sdp command can be added to the main menu.
-*
-* Formerly also refused to render whenever JABS was installed, unless a parameter opted back in. That
-* made sense while the JABS quick menu carried its own copy of this command and the two would have
-* duplicated each other- but the quick menu no longer offers anything except a way into this one, so
-* the check had quietly become the reason the scene was reachable from nowhere at all.
 * @returns {boolean} True if the command should be added, false otherwise.
 */
 Window_MenuCommand.prototype.canAddSdpCommand = function() {
@@ -4790,11 +4785,9 @@ var Window_SdpConfirmation = class extends Window_Command {
 /**
 * The SDP ribbon: menu actor identity and always-visible wallet balance.
 *
-* This is the scene's actor ribbon, and now says so by inheriting one. It previously extended
-* {@link Window_Base} and reimplemented the whole of {@link Window_ActorRibbon} alongside it- its own
-* `_actor` field, its own `actor()` and `setActor()`, and its own face drawing- which is the drift the
-* shared ribbon exists to prevent. All that remains here is what is genuinely particular to SDP: the
-* name beside the face, and the wallet on the right edge.
+* This is the scene's actor ribbon, so {@link Window_ActorRibbon} supplies the actor tracking and the
+* face. All this adds is what is particular to SDP: the name beside the face, and the wallet balance
+* on the right edge.
 *
 * Note that {@link Window_SdpHeader} is *not* the counterpart to this window despite the name. That one
 * describes the hovered panel, not the actor.
@@ -4941,12 +4934,6 @@ var Window_SdpFamilyStrip = class extends Window_Base {
 * Layout is inherited from {@link Scene_ActorFacetBase}: the help window across the top, the actor ribbon
 * beneath it, the control legend across the bottom, and {@link Scene_ActorFacetBase.contentAreaRect} as
 * the region left over for the three columns.
-*
-* This was the furthest-evolved of the actor scenes and the template the shared base was extracted from,
-* so it is fitting that it is the last to actually sit on it. Its rects previously chained through each
-* other rather than deriving from a common region- one of them read the points rect, the family strip
-* height, the help rect *and* the controls hint height to produce a single number- which meant every
-* rectangle had to be right for any rectangle to be right.
 */
 var Scene_SDP = class extends Scene_ActorFacetBase {
 	/**
@@ -5510,9 +5497,7 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	* Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
 	* Describes the controls this scene responds to.
 	*
-	* This replaces `Window_SdpControlsHint`, which was for a long time the only button help anywhere in
-	* the game- and therefore the proof that the idea was worth generalising. The shared legend it became
-	* renders live glyphs for whichever device the player is holding, which the bespoke one could not.
+	* These are semantics rather than glyphs, so the legend can draw whichever device the player is holding.
 	* @returns {{semantic: (string|string[]), label: string}[]}
 	*/
 	controlLegendEntries() {
@@ -5610,8 +5595,7 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	* Overrides {@link Scene_ActorFacetBase.buildActorRibbonWindow}.<br/>
 	* Supplies the SDP ribbon, which shows the actor plus their spendable point balance.
 	*
-	* The base decides where it sits and how wide it is. This used to be a 480px band pinned to the upper
-	* left, whose width the panel list below then had to match by restating the same number.
+	* Only the contents differ from the default ribbon; the base decides where it sits and how wide it is.
 	* @param {Rectangle} rectangle The rectangle to build the window within.
 	* @returns {Window_SdpPoints}
 	*/
@@ -5619,9 +5603,7 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		return new Window_SdpPoints(rectangle);
 	}
 	/**
-	* Gets the currently tracked sdp points window.
-	*
-	* Kept as a name that reads in context; the base owns the window itself.
+	* Gets the actor ribbon window under the name this scene refers to it by.
 	* @returns {Window_SdpPoints}
 	*/
 	getSdpPointsWindow() {

@@ -682,9 +682,9 @@ Scene_Skill.prototype.initMembers = function() {
 * Builds this scene's windows around the shared chrome.
 *
 * Deliberately does not call vanilla's own `create`. That builds a `Window_SkillStatus`- a full-width
-* strip carrying the actor's face, name, level and gauges- which is the actor ribbon by another name,
-* and a taller, less consistent one. The ribbon the base supplies replaces it, so the remaining window
-* creations are listed here individually rather than inherited wholesale.
+* strip carrying the actor's face, name, level and gauges- which is the actor ribbon by another name.
+* The base already supplies the ribbon, so the remaining window creations are listed out individually
+* rather than inherited wholesale.
 */
 Scene_Skill.prototype.create = function() {
 	Scene_ActorFacetBase.prototype.create.call(this);
@@ -696,10 +696,10 @@ Scene_Skill.prototype.create = function() {
 };
 /**
 * Overwrites {@link Scene_Skill.statusWindow}.<br/>
-* Reports the actor ribbon in place of the retired status strip.
+* Reports the actor ribbon as this scene's status window.
 *
 * Vanilla reaches for this in `refreshActor` and when returning from item use, so it answers rather
-* than vanishing- and the ribbon genuinely is what describes the actor whose skills are listed now.
+* than vanishing- and the ribbon is what describes the actor whose skills are listed here.
 * @returns {Window_ActorRibbon}
 */
 Scene_Skill.prototype.statusWindow = function() {
@@ -737,8 +737,7 @@ Scene_Skill.prototype.listColumnRatio = function() {
 * Overwrites {@link Scene_Skill.mainCommandWidth}.<br/>
 * The width of the skill type and skill list column.
 *
-* A proportion of the region rather than the flat 400px it used to be, so the split holds at any
-* resolution.
+* A proportion of the region rather than a pixel width, so the split holds at any resolution.
 * @returns {number}
 */
 Scene_Skill.prototype.mainCommandWidth = function() {
@@ -791,9 +790,7 @@ Scene_Skill.prototype.setSkillDetailWindow = function(window) {
 };
 /**
 * Overwrites {@link Scene_Skill.skillDetailRect}.<br/>
-* The detail pane, taking the whole column beside the list.
-*
-* Full height of the region now, rather than starting beneath a status strip that no longer exists.
+* The detail pane, taking the whole column beside the list at the full height of the content area.
 * @returns {Rectangle}
 */
 Scene_Skill.prototype.skillDetailRect = function() {

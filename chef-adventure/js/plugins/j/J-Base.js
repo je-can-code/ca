@@ -11296,10 +11296,6 @@ var Scene_ActorFacetBase = class extends Scene_MenuFacetBase {
 	*
 	* One, because it is a ribbon: a band naming who is being looked at, not a panel about them. The face
 	* it draws is cropped to 40px by default precisely so it fits in a single row.
-	*
-	* This was two for a while, matching {@link Scene_MenuFacetBase.helpWindowLineCount} by coincidence
-	* rather than intent- which made every scene's ribbon exactly as tall as its help window, and looked
-	* like one had been copied from the other.
 	* @returns {number}
 	*/
 	actorRibbonLineCount() {
@@ -13173,9 +13169,9 @@ Window_Base.prototype.context = function() {
 * - the constructor body after `super(rect)`, because `super(rect)` is what triggers the refresh.
 * - class field declarations, because JavaScript applies those only after `super()` returns.
 *
-* And a derived constructor cannot touch `this` before calling `super`, so there is no earlier place
-* to put it. The result was a family of crashes that all looked like "cannot read properties of
-* undefined" from inside `makeCommandList`, one per scene, each apparently unrelated to the others.
+* And a derived constructor cannot touch `this` before calling `super`, so there is no earlier place to
+* put it. Seeding state anywhere else yields "cannot read properties of undefined" from inside
+* `makeCommandList`, on the first frame the window exists.
 *
 * Implementations must confine themselves to assigning fields. This runs before the original logic
 * reaches {@link Window_Base.initialize}, so there is no `contents`, no geometry and no font yet-
@@ -13417,12 +13413,9 @@ Window_Command.prototype.currentHelpText = function() {
 * Overwrites {@link #updateHelp}.<br/>
 * Describes the highlighted command in the attached help window.
 *
-* Commands already carry their own help text, and the engine already tells a window when to refresh
-* its help- but the default implementation only ever clears, so every window wanting the two joined
-* up had to say so itself. Doing it here means attaching a help window is the whole of the work.
-*
-* Commands without help text resolve to an empty string, which reads identically to the clear this
-* replaces, so windows that never set any behave exactly as they did before.
+* Commands already carry their own help text, and the engine already tells a window when to refresh its
+* help- so doing the join here means attaching a help window is the whole of the work. Commands without
+* help text resolve to an empty string, which reads as a cleared help window.
 */
 Window_Command.prototype.updateHelp = function() {
 	if (!this.helpWindow()) return;

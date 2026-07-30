@@ -2052,9 +2052,6 @@ var Window_Formations = class extends Window_Command {
 * The party column rather than the actor column, because what this configures is how the party behaves
 * as a group- the formation they hold, whether they pick fights of their own- and the per-ally presets
 * only make sense read against each other.
-*
-* This command previously lived in the JABS quick menu on the map. It moved here when that menu was
-* retired, since by then the quick menu's only other entry was a way into this very menu.
 */
 J.ABS.EXT.ALLYAI.Aliased.Window_MenuCommand.set("addOriginalCommands", Window_MenuCommand.prototype.addOriginalCommands);
 Window_MenuCommand.prototype.addOriginalCommands = function() {
@@ -2085,13 +2082,8 @@ Window_MenuCommand.prototype.allyAiHelpText = function() {
 /**
 * The scene for deciding how the party's allies behave in combat.
 *
-* This replaces a stack of windows that used to open on top of the map, one over the next: pick "manage
-* ally ai", get a window; pick an ally, get another window over that one; pick formations, get a third.
-* Each step hid the one before it, so the player could never see what they were changing relative to
-* anything else, and the whole arrangement lived on {@link Scene_Map} where it competed with the HUD.
-*
-* Here the party stays on screen the entire time, and whatever is being chosen sits beside it rather
-* than on top of it. Same three lists, same handlers, none of the stacking.
+* The party list stays on screen the entire time, and whatever is being chosen for the highlighted ally
+* sits beside it- so the player can always read one ally's settings against the rest of the party.
 */
 var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 	/**

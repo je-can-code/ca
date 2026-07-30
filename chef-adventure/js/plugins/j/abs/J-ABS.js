@@ -17736,13 +17736,8 @@ var JABS_InputAdapter = class JABS_InputAdapter {
 	/**
 	* Opens the main menu.
 	*
-	* This used to raise a small quick menu over the map instead. That menu was pared down over time as
-	* each of the things it configured became a scene of its own, until its only remaining entries were a
-	* way into this menu and a way into the ally AI menu- at which point it was a keypress charged for
-	* nothing, and went the way of the rest.
-	*
-	* Nothing needs pausing or flagging here, which is precisely the advantage of it being a scene: the
-	* map stops updating and the player stops moving because Scene_Map is no longer the running scene, not
+	* Nothing needs pausing or flagging here, which is the advantage of the menu being a scene: the map
+	* stops updating and the player stops moving because {@link Scene_Map} is not the running scene, not
 	* because something remembered to say so.
 	*/
 	static performMenuAction() {
@@ -31751,9 +31746,9 @@ Scene_Map.prototype.onPartyRotate = function() {};
 * Extends {@link #callMenu}.<br/>
 * Disables the ability to directly call the menu by pressing the given key.
 *
-* Kept even now that the menu is reached from the map again, because the key vanilla listens for here is
-* the one JABS gives to the offhand attack. Swinging a weapon should not open a menu. The menu has its
-* own dedicated button, handled by {@link JABS_InputAdapter.performMenuAction}.
+* The key vanilla listens for here is the one JABS gives to the offhand attack, and swinging a weapon
+* should not open a menu. The menu has its own dedicated button, handled by
+* {@link JABS_InputAdapter.performMenuAction}.
 */
 J.ABS.Aliased.Scene_Map.set("callMenu", Scene_Map.prototype.callMenu);
 Scene_Map.prototype.callMenu = function() {

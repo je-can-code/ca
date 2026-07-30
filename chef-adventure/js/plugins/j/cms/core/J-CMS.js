@@ -370,10 +370,8 @@ var ParameterCatalogRenderer = class ParameterCatalogRenderer {
 	/**
 	* Catalog group ids per visual row band (left column, then middle column).
 	*
-	* Three bands, all paired. There used to be a fourth holding `support` alone, with the two movement
-	* stats above it in a `mobility` group titled "Haste" - two groups of two, stacked, where one group
-	* of four says the same thing. Merging them frees the whole bottom band, which is where the elemental
-	* and ailment affiliations now go.
+	* Three bands, all paired, leaving the bottom of the page free for the elemental and ailment
+	* affiliations.
 	* @type {Array<[string, string]>}
 	*/
 	static PAGE_GROUP_ROW_GROUPS = [

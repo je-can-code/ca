@@ -2252,11 +2252,6 @@ var Window_AptitudeSourceDetails = class extends Window_Base {
 * Layout is inherited from {@link Scene_ActorFacetBase}, which supplies the actor ribbon and the
 * control legend and hands down {@link Scene_ActorFacetBase.contentAreaRect} as the region left over.
 * This scene positions only its lists and detail panels within that region.
-*
-* It previously centered a container of its own- 90% of the screen width, at one point 66%- and mixed
-* `mainAreaTop()` with raw `Graphics.boxHeight` between sibling rects, so its detail panel ran off the
-* bottom of the screen by the height of its own ribbon. That inconsistency is the reason the shared base
-* exists, and none of it survives here.
 */
 var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	/**
@@ -2563,8 +2558,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	* Overrides {@link Scene_ActorFacetBase.buildActorRibbonWindow}.<br/>
 	* Supplies the aptitude ribbon, which shows the actor plus a hint about the view toggle.
 	*
-	* Only the contents differ from the default ribbon; the base still decides where it sits and how tall
-	* it is, which is what replaced this scene's own centered, proportionally-derived ribbon rect.
+	* Only the contents differ from the default ribbon; the base decides where it sits and how tall it is.
 	* @param {Rectangle} rectangle The rectangle to build the window within.
 	* @returns {Window_AptitudeRibbon}
 	*/
@@ -2572,10 +2566,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 		return new Window_AptitudeRibbon(rectangle);
 	}
 	/**
-	* Gets the aptitude ribbon window.
-	*
-	* Kept as a name that reads in context, but the base owns the window itself now- along with its
-	* rectangle, which this scene used to derive from a centered container of its own.
+	* Gets the actor ribbon window under the name this scene refers to it by.
 	* @returns {Window_AptitudeRibbon}
 	*/
 	aptitudeRibbonWindow() {
@@ -2698,9 +2689,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	/**
 	* The proportion of the content area allotted to the list column.
 	*
-	* Wide enough that long skill and source names do not collide with their right-aligned AP counts. It
-	* is a proportion of the region the base hands down rather than of a container this scene invents, so
-	* there is no longer a centered 90% width to keep in agreement with anything.
+	* Wide enough that long skill and source names do not collide with their right-aligned AP counts.
 	* @returns {number}
 	*/
 	listColumnWidthPercent() {
@@ -2875,10 +2864,7 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	/**
 	* Swaps between the per-skill aggregate view and the per-source view.
 	*
-	* Bound to `context`, not `more`- this said "more" for a long time while the handler said otherwise, and
-	* the ribbon's own hardcoded hint icons quietly agreed with the handler rather than the comment. The
-	* control legend now resolves the glyph from the semantic, so there is one statement of it instead of
-	* three that could disagree.
+	* Bound to the `context` semantic, which is what the control legend resolves its glyph from.
 	*/
 	toggleViewMode() {
 		switch (this.viewMode()) {
