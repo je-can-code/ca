@@ -1223,8 +1223,15 @@ var Window_SkillEquipDetail = class extends Window_Base {
 //#region src/plugins/sks/core/scenes/Scene_SkillEquip.js
 /**
 * The scene for viewing and managing skill equip slots.
+*
+* Layout is inherited from {@link Scene_ActorFacetBase}, which supplies the actor ribbon and the control
+* legend and hands down {@link Scene_ActorFacetBase.contentAreaRect} as the region left over.
+*
+* The slot column used to be a fixed 420px while the pool of available skills took everything else- so
+* the subject of the scene got the smaller half. It now takes the same proportional share the sibling
+* facet scenes give their primary list.
 */
-var Scene_SkillEquip = class extends Scene_MenuBase {
+var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 	/**
 	* Pushes this current scene onto the stack, forcing it into action.
 	*/
@@ -1276,11 +1283,6 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		* A grouping of all windows for this scene.
 		*/
 		this._j._sks._windows = {};
-		/**
-		* The ribbon window displayed along the top.
-		* @type {Window_SkillEquipRibbon|null}
-		*/
-		this._j._sks._windows._ribbon = null;
 		/**
 		* The slots list window displayed on the left.
 		* @type {Window_SkillEquipSlots|null}
@@ -1356,7 +1358,6 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* Creates all windows for this scene.
 	*/
 	createAllWindows() {
-		this.createRibbonWindow();
 		this.createSlotsWindow();
 		this.createSkillsListWindow();
 		this.createDetailWindow();
@@ -1364,32 +1365,71 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		this.initializeView();
 	}
 	/**
-	* Creates the ribbon window across the top.
+	* Overrides {@link Scene_ActorFacetBase.buildActorRibbonWindow}.<br/>
+	* Supplies the skill equip ribbon, which shows the actor plus their slot capacity summary.
+	*
+	* The base decides where it sits and how tall it is. That is a change in itself: this scene used to
+	* give the ribbon a single line of height, which cramped the face it draws.
+	* @param {Rectangle} rectangle The rectangle to build the window within.
+	* @returns {Window_SkillEquipRibbon}
 	*/
-	createRibbonWindow() {
-		const rect = this.ribbonWindowRect();
-		const win = new Window_SkillEquipRibbon(rect);
-		win.setActor(this.actor());
-		this._j._sks._windows._ribbon = win;
-		this.addWindow(win);
-	}
-	/**
-	* Builds the rectangle for the ribbon window across the top.
-	* @returns {Rectangle}
-	*/
-	ribbonWindowRect() {
-		const ww = Graphics.boxWidth;
-		const wh = this.calcWindowHeight(1, false);
-		const wx = 0;
-		const wy = this.mainAreaTop();
-		return new Rectangle(wx, wy, ww, wh);
+	buildActorRibbonWindow(rectangle) {
+		return new Window_SkillEquipRibbon(rectangle);
 	}
 	/**
 	* Gets the ribbon window.
-	* @returns {Window_SkillEquipRibbon|null}
+	*
+	* Kept as a name that reads in context, but the base owns the window and its rectangle now.
+	* @returns {Window_SkillEquipRibbon}
 	*/
 	ribbonWindow() {
-		return this._j._sks._windows._ribbon;
+		return this.getActorRibbonWindow();
+	}
+	/**
+	* The proportion of the content area given to the slot column.
+	*
+	* The slots are the subject of this scene, so they take the larger share rather than the fixed 420px
+	* they used to be squeezed into while the pool of candidates filled everything else.
+	* @returns {number}
+	*/
+	slotColumnRatio() {
+		return .4;
+	}
+	/**
+	* Overrides {@link Scene_MenuFacetBase.hasHelpWindow}.<br/>
+	* Declines the help strip across the top.
+	*
+	* This scene already carries a detail panel beneath the candidate list, and its command windows have
+	* no help text of their own, so the strip would have sat empty.
+	* @returns {boolean}
+	*/
+	hasHelpWindow() {
+		return false;
+	}
+	/**
+	* Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
+	* Describes the controls this scene responds to.
+	* @returns {{semantic: (string|string[]), label: string}[]}
+	*/
+	controlLegendEntries() {
+		return [
+			{
+				semantic: "ok",
+				label: "equip"
+			},
+			{
+				semantic: "context",
+				label: "unequip"
+			},
+			{
+				semantic: ["actor-prev", "actor-next"],
+				label: "switch character"
+			},
+			{
+				semantic: "cancel",
+				label: "back"
+			}
+		];
 	}
 	/**
 	* Creates the slots window on the left side.
@@ -1411,12 +1451,10 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	slotsWindowRect() {
-		const totalHeight = this.mainAreaHeight() - this.ribbonWindowRect().height;
-		const ww = 420;
-		const wh = totalHeight;
-		const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
-		const wy = this.ribbonWindowRect().y + this.ribbonWindowRect().height;
-		return new Rectangle(wx, wy, ww, wh);
+		const contentArea = this.contentAreaRect();
+		const ww = Math.round(contentArea.width * this.slotColumnRatio());
+		const wx = this.isRightInputMode() ? contentArea.x + contentArea.width - ww : contentArea.x;
+		return new Rectangle(wx, contentArea.y, ww, contentArea.height);
 	}
 	/**
 	* Gets the slots window.
@@ -1442,12 +1480,19 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	skillsListWindowRect() {
-		const wx = this.isRightInputMode() ? 0 : this.slotsWindowRect().x + this.slotsWindowRect().width;
-		const ww = Graphics.boxWidth - this.slotsWindowRect().width;
-		const remainingHeight = this.mainAreaHeight() - this.ribbonWindowRect().height;
-		const wh = Math.floor(remainingHeight * .6);
-		const wy = this.ribbonWindowRect().y + this.ribbonWindowRect().height;
-		return new Rectangle(wx, wy, ww, wh);
+		const contentArea = this.contentAreaRect();
+		const slotsRect = this.slotsWindowRect();
+		const wx = this.isRightInputMode() ? contentArea.x : slotsRect.x + slotsRect.width;
+		const ww = contentArea.width - slotsRect.width;
+		const wh = Math.floor(contentArea.height * this.skillsListHeightRatio());
+		return new Rectangle(wx, contentArea.y, ww, wh);
+	}
+	/**
+	* The proportion of the region's height given to the candidate list, above its detail panel.
+	* @returns {number}
+	*/
+	skillsListHeightRatio() {
+		return .6;
 	}
 	/**
 	* Gets the skills list window.
@@ -1471,11 +1516,10 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	detailWindowRect() {
-		const wx = this.skillsListWindowRect().x;
-		const ww = this.skillsListWindowRect().width;
-		const wh = this.mainAreaHeight() - this.ribbonWindowRect().height - this.skillsListWindowRect().height;
-		const wy = this.skillsListWindowRect().y + this.skillsListWindowRect().height;
-		return new Rectangle(wx, wy, ww, wh);
+		const listRect = this.skillsListWindowRect();
+		const contentArea = this.contentAreaRect();
+		const wh = contentArea.height - listRect.height;
+		return new Rectangle(listRect.x, listRect.y + listRect.height, listRect.width, wh);
 	}
 	/**
 	* Gets the detail window.
@@ -1584,18 +1628,6 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		this.detailWindow().setSkillId(skillIdInSlot);
 	}
 	/**
-	* Cycles to the previous actor.
-	*/
-	onCycleActorLeft() {
-		this.previousActor();
-	}
-	/**
-	* Cycles to the next actor.
-	*/
-	onCycleActorRight() {
-		this.nextActor();
-	}
-	/**
 	* Applies the initial selection and focus state for the scene.
 	*/
 	initializeView() {
@@ -1616,7 +1648,6 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* @param {Game_Actor} actor - The actor to bind to all windows.
 	*/
 	rebindAllWindowsToActor(actor) {
-		this.ribbonWindow().setActor(actor);
 		this.slotsWindow().setActor(actor);
 		this.skillsWindow().setActor(actor);
 		this.detailWindow().setActor(actor);

@@ -495,6 +495,48 @@ change or two on first contact. That is the reason to start small rather than a 
 **Group A order, one scene per commit, ascending size:** `Scene_Passive` → `Scene_Aptitude` →
 `Scene_SkillEquip` → `Scene_SDP`.
 
+**Group A status — 3 of 4 done (2026-07-29):**
+
+| Scene | State | What it gave up |
+|---|---|---|
+| `Scene_Passive` | ✅ | a hardcoded 480px list column, a 72px ribbon height, and a constructor that initialized twice |
+| `Scene_Aptitude` | ✅ | a centered 90% container, a dead `containerHeightPercent()`, and a details rect that started at `mainAreaTop()` while its sibling list started below the ribbon — it ran off the bottom of the screen |
+| `Scene_SkillEquip` | ✅ | the fixed 420px slot column, and a one-line ribbon that was cropping the face it drew |
+| `Scene_SDP` | ⬜ | see below |
+
+**The base needed exactly one change across all three:** `hasHelpWindow()`, defaulting true. Aptitude and
+SkillEquip both carry a detail panel already and their command windows have no help text, so reserving the
+strip left a blank band; declining it hands them the taller region instead. `Scene_ActorFacetBase` itself
+needed nothing — which for a class that had never been extended was a better result than expected.
+
+Three things recurred and are worth expecting in the remaining four:
+
+- **`onCycleActorLeft`/`onCycleActorRight` are usually already there and identical to the base's.** Delete them.
+- **`rebindAllWindowsToActor`-style methods set the ribbon's actor**, which the base now does in
+  `onActorChange`. Remove that line or it is assigned twice.
+- **The ribbon subclass stays.** Per JE: the base drawing only a face is deliberate, and adding name,
+  points, or capacity is exactly what inheriting is for. Supply it through `buildActorRibbonWindow()` so
+  the base still owns placement. Only delete a subclass that genuinely adds nothing.
+
+#### `Scene_SDP` — deliberately left for a fresh start
+
+Not blocked, just larger than the other three combined, and it is the scene most recently repaired. It is
+**1,635 lines across ten windows**, and unlike its siblings its rects are chained through each other
+rather than derived from a common region — `sdpListRectangle()` reads the points rect, the family strip
+height, the help rect *and* the controls-hint height to compute one number. Untangling that wants a clear
+run, not the tail of a session.
+
+Known work, beyond the standard reparent:
+
+- **Retire `Window_SdpHeader`** in favour of a `Window_ActorRibbon` subclass drawing name + points, which
+  is the pattern the other three now follow. This is the actual drift the drift-table entry names.
+- **Retire `Window_SdpControlsHint`** in favour of the base legend. It was the only button help in the
+  game, and is now the only scene not using the shared one.
+- **Keep `Window_SdpHelp`** — SDP is the one Group A scene whose commands do carry help text, so it is
+  also the one that should keep `hasHelpWindow()` true.
+- `Window_SdpPoints`, `Window_SdpMastery`, `Window_SdpRewardList` and `Window_SdpCart` have not been read
+  yet and are not accounted for above.
+
 **Group B order once its mechanism is settled:** `Scene_Skill` → `Scene_Equip` → **`Scene_Status` last**.
 
 `Scene_Status` is the largest actor scene in the game — **3,542 lines across six windows**, one of

@@ -2291,8 +2291,17 @@ var Window_AptitudeSourceDetails = class extends Window_Base {
 //#region src/plugins/apt/core/scenes/Scene_Aptitude.js
 /**
 * The scene for viewing aptitude progress.
+*
+* Layout is inherited from {@link Scene_ActorFacetBase}, which supplies the actor ribbon and the
+* control legend and hands down {@link Scene_ActorFacetBase.contentAreaRect} as the region left over.
+* This scene positions only its lists and detail panels within that region.
+*
+* It previously centered a container of its own- 90% of the screen width, at one point 66%- and mixed
+* `mainAreaTop()` with raw `Graphics.boxHeight` between sibling rects, so its detail panel ran off the
+* bottom of the screen by the height of its own ribbon. That inconsistency is the reason the shared base
+* exists, and none of it survives here.
 */
-var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
+var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	/**
 	* Pushes this current scene onto the stack, forcing it into action.
 	*/
@@ -2377,11 +2386,6 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		* A grouping of all windows for this scene.
 		*/
 		this._j._aptitude._windows = {};
-		/**
-		* The ribbon window to display the actor and their name.
-		* @type {Window_AptitudeRibbon|null}
-		*/
-		this._j._aptitude._windows._ribbon = null;
 		/**
 		* The list window that displays the per-skill aggregates.
 		* @type {Window_AptitudeAggregateList|null}
@@ -2594,7 +2598,6 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	createAllWindows() {
 		this.rebuildAggregatesForActor();
 		this.rebuildSourcesForActor();
-		this.createAptitudeRibbonWindow();
 		this.createAptitudeAggregateListWindow();
 		this.createAptitudeSourceListWindow();
 		this.createAptitudeAggregateDetailsWindow();
@@ -2602,35 +2605,28 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		this.initializeView();
 	}
 	/**
-	* Creates the aptitude ribbon window.
+	* Overrides {@link Scene_ActorFacetBase.buildActorRibbonWindow}.<br/>
+	* Supplies the aptitude ribbon, which shows the actor plus a hint about the view toggle.
+	*
+	* Only the contents differ from the default ribbon; the base still decides where it sits and how tall
+	* it is, which is what replaced this scene's own centered, proportionally-derived ribbon rect.
+	* @param {Rectangle} rectangle The rectangle to build the window within.
+	* @returns {Window_AptitudeRibbon}
 	*/
-	createAptitudeRibbonWindow() {
-		const rect = this.aptitudeRibbonRect();
-		const win = new Window_AptitudeRibbon(rect);
-		win.setActor(this.actor());
-		win.setToggleHintTarget("the sources");
-		this.j()._aptitude._windows._ribbon = win;
-		this.addWindow(win);
-	}
-	/**
-	* Gets the rectangle for the aptitude ribbon window.
-	* @returns {Rectangle}
-	*/
-	aptitudeRibbonRect() {
-		const containerW = Math.floor(Graphics.boxWidth * this.containerWidthPercent());
-		const containerX = Math.floor((Graphics.boxWidth - containerW) / 2);
-		const x = containerX;
-		const y = 0;
-		const w = Math.floor(containerW * this.listColumnWidthPercent());
-		const height = 36 * 3;
-		return new Rectangle(x, y, w, height);
+	buildActorRibbonWindow(rectangle) {
+		const window = new Window_AptitudeRibbon(rectangle);
+		window.setToggleHintTarget("the sources");
+		return window;
 	}
 	/**
 	* Gets the aptitude ribbon window.
-	* @returns {Window_AptitudeRibbon|null}
+	*
+	* Kept as a name that reads in context, but the base owns the window itself now- along with its
+	* rectangle, which this scene used to derive from a centered container of its own.
+	* @returns {Window_AptitudeRibbon}
 	*/
 	aptitudeRibbonWindow() {
-		return this.j()._aptitude._windows._ribbon;
+		return this.getActorRibbonWindow();
 	}
 	/**
 	* Creates the aptitude aggregate list window.
@@ -2653,13 +2649,8 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	aptitudeAggregateListWindowRect() {
-		const containerW = Math.floor(Graphics.boxWidth * this.containerWidthPercent());
-		const containerX = Math.floor((Graphics.boxWidth - containerW) / 2);
-		const { y: ribbonY, height: ribbonHeight } = this.aptitudeRibbonRect();
-		const wy = ribbonY + ribbonHeight;
-		const wh = Graphics.boxHeight - ribbonHeight;
-		const listW = Math.floor(containerW * this.listColumnWidthPercent());
-		return new Rectangle(containerX, wy, listW, wh);
+		const contentArea = this.contentAreaRect();
+		return new Rectangle(contentArea.x, contentArea.y, this.listColumnWidth(), contentArea.height);
 	}
 	/**
 	* Gets the aptitude aggregate list window.
@@ -2715,14 +2706,9 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	aptitudeAggregateDetailsWindowRect() {
-		const containerW = Math.floor(Graphics.boxWidth * this.containerWidthPercent());
-		const containerX = Math.floor((Graphics.boxWidth - containerW) / 2);
-		const wy = this.mainAreaTop();
-		const wh = Graphics.boxHeight;
-		const listW = Math.floor(containerW * this.listColumnWidthPercent());
-		const detailsW = containerW - listW;
-		const dx = containerX + listW;
-		return new Rectangle(dx, wy, detailsW, wh);
+		const listRect = this.aptitudeAggregateListWindowRect();
+		const contentArea = this.contentAreaRect();
+		return new Rectangle(listRect.x + listRect.width, listRect.y, contentArea.width - listRect.width, listRect.height);
 	}
 	/**
 	* Gets the aptitude aggregate details window.
@@ -2756,20 +2742,56 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	aptitudeSourceDetailsWindow() {
 		return this.j()._aptitude._windows._sourceDetails;
 	}
-	containerWidthPercent() {
-		return .9;
-	}
 	/**
-	* The percentage of the container width allotted to the list column (and, by
-	* extension, the ribbon above it). Widened from the original 0.25 so that long
-	* skill/source names and their right-aligned AP counts don't collide.
+	* The proportion of the content area allotted to the list column.
+	*
+	* Wide enough that long skill and source names do not collide with their right-aligned AP counts. It
+	* is a proportion of the region the base hands down rather than of a container this scene invents, so
+	* there is no longer a centered 90% width to keep in agreement with anything.
 	* @returns {number}
 	*/
 	listColumnWidthPercent() {
-		return .32;
+		return .36;
 	}
-	containerHeightPercent() {
-		return .8;
+	/**
+	* The width of the list column.
+	* @returns {number}
+	*/
+	listColumnWidth() {
+		return Math.round(this.contentAreaRect().width * this.listColumnWidthPercent());
+	}
+	/**
+	* Overrides {@link Scene_MenuFacetBase.hasHelpWindow}.<br/>
+	* Declines the help strip across the top.
+	*
+	* Both view modes already devote most of the screen to a detail panel describing whatever is
+	* highlighted, and the list commands carry no help text of their own to put in a second one. Reserving
+	* the strip would have left a blank band above the ribbon.
+	* @returns {boolean}
+	*/
+	hasHelpWindow() {
+		return false;
+	}
+	/**
+	* Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
+	* Describes the controls this scene responds to.
+	* @returns {{semantic: (string|string[]), label: string}[]}
+	*/
+	controlLegendEntries() {
+		return [
+			{
+				semantic: "more",
+				label: "skills / sources"
+			},
+			{
+				semantic: ["actor-prev", "actor-next"],
+				label: "switch character"
+			},
+			{
+				semantic: "cancel",
+				label: "back"
+			}
+		];
 	}
 	/**
 	* Extends {@link #update}.<br/>
@@ -2898,18 +2920,6 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 		details.hide();
 	}
 	/**
-	* Cycles to the previous actor.
-	*/
-	onCycleActorLeft() {
-		this.previousActor();
-	}
-	/**
-	* Cycles to the next actor.
-	*/
-	onCycleActorRight() {
-		this.nextActor();
-	}
-	/**
 	* Handles the "more" action- aka the shift key/square button from the either list.
 	*/
 	toggleViewMode() {
@@ -2943,7 +2953,6 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_MenuBase {
 	* @param {Game_Actor} actor - The actor to bind to all windows.
 	*/
 	rebindAllWindowsToActor(actor) {
-		this.aptitudeRibbonWindow().setActor(actor);
 		this.aptitudeAggregateListWindow().setActor(actor);
 		this.aptitudeSourceListWindow().setActor(actor);
 		this.aptitudeAggregateDetailsWindow().setActor(actor);

@@ -10956,7 +10956,23 @@ var Scene_MenuFacetBase = class extends Scene_MenuBase {
 	* @returns {number}
 	*/
 	helpAreaHeight() {
+		if (this.hasHelpWindow() === false) return 0;
 		return this.calcWindowHeight(this.helpWindowLineCount(), false);
+	}
+	/**
+	* Whether this scene renders a help window across the top.
+	*
+	* Most facet scenes should: a line or two describing whatever is highlighted is the cheapest
+	* discoverability there is. But some carry a detail panel rich enough that a help strip would either
+	* duplicate it or sit empty, and reserving space for a window that never arrives is worse than not
+	* reserving it. Those override this to `false`, and receive a taller region in exchange.
+	*
+	* Note that the base does not create the help window either way- scenes call `createHelpWindow()`
+	* themselves, because they alone know what to feed it. This only governs whether the room is made.
+	* @returns {boolean}
+	*/
+	hasHelpWindow() {
+		return true;
 	}
 	/**
 	* How many lines of description the help window across the top can render.
