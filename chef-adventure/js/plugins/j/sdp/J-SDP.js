@@ -4103,7 +4103,7 @@ var Window_SdpParameterList = class extends Window_Command {
 	* @returns {BuiltWindowCommand[]}
 	*/
 	buildCommands() {
-		if (!this.panelParameters) return [];
+		if (this.panelParameters.length === 0) return [];
 		const commands = this.panelParameters.map(this.#buildPanelParameterCommand, this);
 		return commands;
 	}

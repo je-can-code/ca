@@ -13140,6 +13140,17 @@ Window_Base.prototype.context = function() {
 * Implementations must confine themselves to assigning fields. This runs before the original logic
 * reaches {@link Window_Base.initialize}, so there is no `contents`, no geometry and no font yet-
 * anything that draws, measures, or refreshes belongs after `super(rect)` in the constructor instead.
+*
+* There is a second, sharper consequence of the same timing, and it applies to `makeCommandList` rather
+* than to this hook: **a command window's list is built before the instance is fully constructed**, so
+* nothing on that path may touch a private member. Private fields and methods are branded onto an
+* instance only once `super()` returns, and until then any `this.#anything` throws:
+*
+*   TypeError: Receiver must be an instance of class anonymous
+*
+* Note that naming a private method is enough- `array.map(this.#build, this)` evaluates the reference
+* before `map` runs, so it throws even when the array is empty. So a `makeCommandList` with nothing to
+* build should return before reaching any private member, which is worth a guard of its own.
 */
 Window_Command.prototype.initMembers = function() {};
 /**
