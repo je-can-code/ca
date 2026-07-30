@@ -249,49 +249,35 @@ var Window_EquipActorRibbon = class extends Window_ActorRibbon {
 };
 
 //#endregion
-//#region src/plugins/cms/ext/equip/windows/Window_EquipControlsHint.js
-/**
-* A single-line controller hint for the equip scene.
-* Sits beside {@link Window_EquipActorRibbon} in the row above the parameter catalog.
-*/
-var Window_EquipControlsHint = class extends Window_Base {
-	/**
-	* @param {Rectangle} rect The dimensions of the window.
-	*/
-	constructor(rect) {
-		super(rect);
-		this.initialize(rect);
-	}
-	/**
-	* Re-renders the static controller hint.
-	*/
-	refresh() {
-		this.contents.clear();
-		this.drawControllerHint();
-	}
-	/**
-	* Draws the controller-first legend for equip/unequip/back.
-	*/
-	drawControllerHint() {
-		const padX = 12;
-		this.resetFontSettings();
-		this.modFontSize(-4);
-		this.changeTextColor(ColorManager.normalColor());
-		const text = "OK: Equip    Cancel: Back    Triangle: Unequip";
-		const y = Math.max(0, Math.floor((this.innerHeight - this.lineHeight()) / 2));
-		this.drawText(text, padX, y, this.innerWidth - padX * 2, "center");
-		this.resetFontSettings();
-	}
-};
-
-//#endregion
 //#region src/plugins/cms/ext/equip/scenes/Scene_Equip.js
+/**
+* Re-parents the engine's equip scene onto the shared actor facet skeleton.
+*
+* This scene is one of RPG Maker's own, declared as a function with a hand-built prototype chain, so
+* there is no `extends` clause to change. Re-pointing that chain is real inheritance all the same: the
+* base's rect math and ribbon handling arrive as inherited methods, `super` inside them still resolves
+* correctly, this file's own definitions still shadow anything they mean to override, and the scene
+* remains an instance of {@link Scene_MenuBase} for everything that checks.
+*
+* The base's chain already includes `Scene_MenuBase`, so nothing is lost by pointing at it instead.
+*/
+Object.setPrototypeOf(Scene_Equip.prototype, Scene_ActorFacetBase.prototype);
 /**
 * Initializes this scene.
 */
 Scene_Equip.prototype.initialize = function() {
-	Scene_MenuBase.prototype.initialize.call(this);
-	this._j = this._j || {};
+	Scene_ActorFacetBase.prototype.initialize.call(this);
+};
+/**
+* Extends {@link Scene_ActorFacetBase.initMembers}.<br/>
+* Also initializes this scene's own members.
+*/
+Scene_Equip.prototype.initMembers = function() {
+	Scene_ActorFacetBase.prototype.initMembers.call(this);
+	/**
+	* Whether the extended equipment detail panel is currently showing.
+	* @type {boolean}
+	*/
 	this._j.moreVisible = false;
 };
 /**
@@ -304,10 +290,8 @@ Scene_Equip.prototype.createButtons = function() {};
 * Removes the command window, because who even uses optimize?
 */
 Scene_Equip.prototype.create = function() {
-	Scene_MenuBase.prototype.create.call(this);
+	Scene_ActorFacetBase.prototype.create.call(this);
 	this.createHelpWindow();
-	this.createActorRibbonWindow();
-	this.createControlsHintWindow();
 	this.createStatusWindow();
 	this.createMoreDataWindow();
 	this.createSlotWindow();
@@ -331,79 +315,60 @@ Scene_Equip.prototype.buttonAreaHeight = () => 0;
 * @returns {number}
 */
 Scene_Equip.prototype.statusWidth = function() {
-	return Graphics.boxWidth - this.rightColumnWidth();
+	return this.contentAreaRect().width - this.rightColumnWidth();
 };
 /**
-* The width of the right-hand column (slot list, item list, controls hint). Trimmed to ~70% of
-* its original width (the full remainder past the old fixed 1024px status column) — still plenty
-* of room for the controls hint text and the widest equipment names, without hogging space the
-* parameter grid needs more.
+* The proportion of the region given to the right-hand column of slot and item lists.
+* @returns {number}
+*/
+Scene_Equip.prototype.rightColumnRatio = function() {
+	return .32;
+};
+/**
+* The width of the right-hand column (slot list, item list). Deliberately the smaller share- it holds
+* equipment names, while the parameter grid beside it holds everything those names change.
 * @returns {number}
 */
 Scene_Equip.prototype.rightColumnWidth = function() {
-	const originalRightWidth = Graphics.boxWidth - 1024;
-	return Math.round(originalRightWidth * .7);
+	return Math.round(this.contentAreaRect().width * this.rightColumnRatio());
 };
 /**
-* Overwrites {@link #helpWindowRect}.<br/>
-* Stretches the help window across the full screen width along the bottom, instead of only the
-* status column, since it's the one window in this scene that isn't scoped to either column.
-* @returns {Rectangle}
+* Overrides {@link Scene_ActorFacetBase.buildActorRibbonWindow}.<br/>
+* Supplies the equip ribbon; the base decides where it sits and how tall it is.
+* @param {Rectangle} rectangle The rectangle to build the window within.
+* @returns {Window_EquipActorRibbon}
 */
-Scene_Equip.prototype.helpWindowRect = function() {
-	const wx = 0;
-	const wy = this.helpAreaTop();
-	const ww = Graphics.boxWidth;
-	const wh = this.helpAreaHeight();
-	return new Rectangle(wx, wy, ww, wh);
+Scene_Equip.prototype.buildActorRibbonWindow = function(rectangle) {
+	return new Window_EquipActorRibbon(rectangle);
 };
 /**
-* The height of a one-line top row (actor ribbon on the left, controls hint on the right).
-* @returns {number}
+* Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
+* Describes the controls this scene responds to.
+*
+* Replaces `Window_EquipControlsHint`, which drew the same three controls as a fixed string with the
+* button names spelled out in words. The legend resolves live glyphs for whichever device the player
+* is holding, and sits in the same place it does in every other facet scene.
+* @returns {{semantic: (string|string[]), label: string}[]}
 */
-Scene_Equip.prototype.topRowHeight = function() {
-	return this.calcWindowHeight(1, false);
-};
-/**
-* Gets the rectangle that defines the shape of the actor ribbon window.
-* Spans the full width of the status column.
-* @returns {Rectangle}
-*/
-Scene_Equip.prototype.actorRibbonRect = function() {
-	const wx = 0;
-	const wy = this.mainAreaTop();
-	const ww = this.statusWidth();
-	const wh = this.topRowHeight();
-	return new Rectangle(wx, wy, ww, wh);
-};
-/**
-* Gets the rectangle that defines the shape of the controls hint window.
-* Sits directly above the slot window, since that's what its legend describes.
-* @returns {Rectangle}
-*/
-Scene_Equip.prototype.controlsHintRect = function() {
-	const wx = this.statusWidth();
-	const wy = this.mainAreaTop();
-	const ww = Graphics.boxWidth - this.statusWidth();
-	const wh = this.topRowHeight();
-	return new Rectangle(wx, wy, ww, wh);
-};
-/**
-* Creates the actor ribbon window.
-*/
-Scene_Equip.prototype.createActorRibbonWindow = function() {
-	const rect = this.actorRibbonRect();
-	this.setActorRibbonWindow(new Window_EquipActorRibbon(rect));
-	this.addWindow(this.actorRibbonWindow());
-};
-/**
-* Creates the controls hint window.
-*/
-Scene_Equip.prototype.createControlsHintWindow = function() {
-	const rect = this.controlsHintRect();
-	this.setControlsHintWindow(new Window_EquipControlsHint(rect));
-	this.controlsHintWindow().refresh();
-	this.addWindow(this.controlsHintWindow());
+Scene_Equip.prototype.controlLegendEntries = function() {
+	return [
+		{
+			semantic: "ok",
+			label: "equip"
+		},
+		{
+			semantic: "context",
+			label: "unequip"
+		},
+		{
+			semantic: ["actor-prev", "actor-next"],
+			label: "switch character"
+		},
+		{
+			semantic: "cancel",
+			label: "back"
+		}
+	];
 };
 /**
 * Overwrites {@link #statusWindowRect}.<br/>
@@ -412,11 +377,8 @@ Scene_Equip.prototype.createControlsHintWindow = function() {
 * @returns {Rectangle}
 */
 Scene_Equip.prototype.statusWindowRect = function() {
-	const wx = 0;
-	const wy = this.mainAreaTop() + this.topRowHeight();
-	const ww = this.statusWidth();
-	const wh = this.mainAreaHeight() - this.topRowHeight();
-	return new Rectangle(wx, wy, ww, wh);
+	const contentArea = this.contentAreaRect();
+	return new Rectangle(contentArea.x, contentArea.y, this.statusWidth(), contentArea.height);
 };
 /**
 * Overwrites {@link #slotWindowRect}.<br/>
@@ -424,11 +386,8 @@ Scene_Equip.prototype.statusWindowRect = function() {
 * @returns {Rectangle}
 */
 Scene_Equip.prototype.slotWindowRect = function() {
-	const wx = this.statusWidth();
-	const wy = this.mainAreaTop() + this.topRowHeight();
-	const ww = Graphics.boxWidth - this.statusWidth();
-	const wh = this.slotWindowHeight(6);
-	return new Rectangle(wx, wy, ww, wh);
+	const contentArea = this.contentAreaRect();
+	return new Rectangle(contentArea.x + this.statusWidth(), contentArea.y, this.rightColumnWidth(), this.slotWindowHeight(6));
 };
 /**
 * Calculates the slot window height based on slot count.
@@ -531,12 +490,11 @@ Scene_Equip.prototype.createMoreDataWindow = function() {
 	this.addWindow(this._moreDataWindow);
 };
 Scene_Equip.prototype.moreDataRect = function() {
+	const contentArea = this.contentAreaRect();
 	const width = 500;
-	const wx = this.statusWidth() - width - 4;
+	const wx = contentArea.x + this.statusWidth() - width - 4;
 	const wy = this.slotWindowRect().y - 4;
-	const ww = width;
-	const wh = this.mainAreaBottom() - wy;
-	return new Rectangle(wx, wy, ww, wh);
+	return new Rectangle(wx, wy, width, contentArea.y + contentArea.height - wy);
 };
 Scene_Equip.prototype.backToSlotsList = function() {
 	this.switchToMoreDataFromEquipSlots();
@@ -550,11 +508,10 @@ Scene_Equip.prototype.backToItemsList = function() {
 * @returns {Rectangle}
 */
 Scene_Equip.prototype.itemWindowRect = function() {
-	const wx = this.statusWidth();
-	const wy = this.slotWindowRect().y + this.slotWindow().height;
-	const ww = Graphics.boxWidth - this.statusWidth();
-	const wh = this.mainAreaBottom() - wy;
-	return new Rectangle(wx, wy, ww, wh);
+	const contentArea = this.contentAreaRect();
+	const slotRect = this.slotWindowRect();
+	const wy = slotRect.y + this.slotWindow().height;
+	return new Rectangle(slotRect.x, wy, slotRect.width, contentArea.y + contentArea.height - wy);
 };
 /**
 * Overwrites {@link #onSlotOk}.<br/>
@@ -600,31 +557,13 @@ Scene_Equip.prototype.refreshActor = function() {
 };
 /**
 * Gets the actor ribbon window.
-* @returns {Window_Base} The actorRibbonWindow.
+*
+* Kept as a name that reads in context; the base owns the window and its rectangle now, and the
+* controls hint it used to sit beside is the shared control legend.
+* @returns {Window_EquipActorRibbon}
 */
 Scene_Equip.prototype.actorRibbonWindow = function() {
-	return this._actorRibbonWindow;
-};
-/**
-* Sets the actor ribbon window.
-* @param {Window_Base} newActorRibbonWindow The new actorRibbonWindow.
-*/
-Scene_Equip.prototype.setActorRibbonWindow = function(newActorRibbonWindow) {
-	this._actorRibbonWindow = newActorRibbonWindow;
-};
-/**
-* Gets the controls hint window.
-* @returns {Window_Base} The controlsHintWindow.
-*/
-Scene_Equip.prototype.controlsHintWindow = function() {
-	return this._controlsHintWindow;
-};
-/**
-* Sets the controls hint window.
-* @param {Window_Base} newControlsHintWindow The new controlsHintWindow.
-*/
-Scene_Equip.prototype.setControlsHintWindow = function(newControlsHintWindow) {
-	this._controlsHintWindow = newControlsHintWindow;
+	return this.getActorRibbonWindow();
 };
 
 //#endregion
