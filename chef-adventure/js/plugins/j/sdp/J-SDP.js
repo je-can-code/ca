@@ -4338,7 +4338,7 @@ var Window_SdpMastery = class extends Window_Base {
 		const subgroupName = subgroup ? subgroup.name : mastery.subgroupKey;
 		const subgroupIcon = subgroup && subgroup.iconIndex >= 0 ? subgroup.iconIndex : J.SDP.Metadata.sdpIconIndex;
 		const iconPad = 4;
-		const textX = subgroupIcon >= 0 ? Window_Base._iconWidth + iconPad : 0;
+		const textX = subgroupIcon >= 0 ? ImageManager.iconWidth + iconPad : 0;
 		if (subgroupIcon >= 0) {
 			this.drawIcon(subgroupIcon, iconPad, 0);
 		}
@@ -5270,7 +5270,8 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	sdpParameterListRectangle() {
 		const contentArea = this.contentAreaRect();
 		const headerRect = this.sdpHeaderRectangle();
-		return new Rectangle(headerRect.x, headerRect.y + headerRect.height, headerRect.width, contentArea.height - headerRect.height);
+		const width = Math.round(contentArea.width * this.sdpCenterColumnRatio());
+		return new Rectangle(headerRect.x, headerRect.y + headerRect.height, width, contentArea.height - headerRect.height);
 	}
 	/**
 	* Gets the currently tracked parameter list window.
@@ -5390,14 +5391,14 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	*/
 	sdpRightColumnMetrics() {
 		const contentArea = this.contentAreaRect();
+		const parameterRect = this.sdpParameterListRectangle();
 		const headerRect = this.sdpHeaderRectangle();
-		const x = headerRect.x + headerRect.width;
-		const topY = contentArea.y;
+		const x = parameterRect.x + parameterRect.width;
 		const width = contentArea.x + contentArea.width - x;
 		const bottom = this.sdpRightColumnBottom();
 		const gap = this.sdpRightColumnSplitGap();
-		const fullHeight = bottom - topY;
-		const cartHeight = Math.floor((fullHeight - gap) / 2);
+		const topY = headerRect.y + headerRect.height;
+		const cartHeight = Math.floor((contentArea.height - gap) / 2);
 		const cartY = bottom - cartHeight;
 		const topRegionHeight = cartY - topY - gap;
 		return {
@@ -5415,7 +5416,7 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	* @returns {number}
 	*/
 	sdpMasteryWindowHeight() {
-		return 108;
+		return this.calcWindowHeight(2, false);
 	}
 	/**
 	* Rectangle for the mastery window at the top of the right column.
@@ -5484,7 +5485,7 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		const contentArea = this.contentAreaRect();
 		const x = contentArea.x + this.sdpListColumnWidth();
 		const height = this.calcWindowHeight(2, false);
-		const width = Math.round(contentArea.width * this.sdpCenterColumnRatio());
+		const width = contentArea.x + contentArea.width - x;
 		return new Rectangle(x, contentArea.y, width, height);
 	}
 	/**
@@ -5519,6 +5520,10 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 			{
 				semantic: "context",
 				label: "checkout"
+			},
+			{
+				semantic: ["cart-dec", "cart-inc"],
+				label: "ranks to buy"
 			},
 			{
 				semantic: ["content-prev", "content-next"],
