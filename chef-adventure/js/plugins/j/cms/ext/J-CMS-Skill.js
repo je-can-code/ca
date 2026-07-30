@@ -651,8 +651,24 @@ var Window_SkillDetail = class extends Window_Base {
 * inheritance: the base's rect math arrives as inherited methods, `super` inside them still resolves,
 * this file's own definitions still shadow what they mean to override, and the scene remains an
 * instance of {@link Scene_MenuBase} for everything that checks.
+*
+* Unlike the equip scene, the parent being displaced here is not an empty one. {@link Scene_ItemBase}
+* carries the whole "use this on which ally" flow- the actor window, target resolution, usability
+* checks and item application- roughly twenty methods that the skill scene leans on and does not
+* redefine. Pointing straight at the facet base would take all of that with it.
+*
+* So the layer is rebuilt above the facet base rather than dropped: a plain object holding
+* `Scene_ItemBase`'s own members, whose own prototype is the facet base. The resulting chain is
+* `Scene_Skill` -> item-base members -> facet base -> `Scene_MenuBase`, and both halves answer.
+*
+* Splicing the facet base beneath `Scene_ItemBase.prototype` itself would be shorter, but
+* {@link Scene_Item} shares that prototype and would inherit the facet skeleton's `helpAreaHeight`
+* along with it, moving windows in a scene that never asked for any of this.
 */
-Object.setPrototypeOf(Scene_Skill.prototype, Scene_ActorFacetBase.prototype);
+var skillItemBaseMembers = Object.create(Scene_ActorFacetBase.prototype);
+Object.defineProperties(skillItemBaseMembers, Object.getOwnPropertyDescriptors(Scene_ItemBase.prototype));
+delete skillItemBaseMembers.constructor;
+Object.setPrototypeOf(Scene_Skill.prototype, skillItemBaseMembers);
 /**
 * Overwrites {@link Scene_Skill.initialize}.<br/>
 * Reaches the facet skeleton's initialize so its members are seeded alongside this scene's.
@@ -704,6 +720,44 @@ Scene_Skill.prototype.create = function() {
 */
 Scene_Skill.prototype.statusWindow = function() {
 	return this.getActorRibbonWindow();
+};
+/**
+* Overwrites {@link Scene_Skill.refreshActor}.<br/>
+* Points every actor-driven window in this scene at whoever is currently being viewed.
+*
+* Vanilla reaches for `_statusWindow` by field here rather than through its accessor, and this scene
+* never builds one- the ribbon stands in its place, so the accessor is what gets asked.
+*/
+Scene_Skill.prototype.refreshActor = function() {
+	const actor = this.actor();
+	this.skillTypeWindow().setActor(actor);
+	this.statusWindow().setActor(actor);
+	this.itemWindow().setActor(actor);
+};
+/**
+* Overwrites {@link Scene_Skill.useItem}.<br/>
+* Spends the highlighted skill and refreshes whatever its use may have changed.
+*
+* Same substitution as {@link Scene_Skill.refreshActor}: the ribbon is this scene's status window, and
+* it needs redrawing because using a skill moves the resources the ribbon reports.
+*/
+Scene_Skill.prototype.useItem = function() {
+	Scene_ItemBase.prototype.useItem.call(this);
+	this.statusWindow().refresh();
+	this.itemWindow().refresh();
+};
+/**
+* Overwrites {@link Scene_Skill.onActorChange}.<br/>
+* Rebuilds this scene around the newly selected party member.
+*
+* Routed through the facet base rather than {@link Scene_MenuBase} directly, because the base is what
+* knows to repoint the actor ribbon- reaching past it would leave the ribbon naming the previous actor.
+*/
+Scene_Skill.prototype.onActorChange = function() {
+	Scene_ActorFacetBase.prototype.onActorChange.call(this);
+	this.refreshActor();
+	this.itemWindow().deselect();
+	this.skillTypeWindow().activate();
 };
 /**
 * Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>

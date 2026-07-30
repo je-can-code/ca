@@ -10705,6 +10705,13 @@ Scene_Skill.prototype.statusWindow = function() {
 Scene_Skill.prototype.itemWindow = function() {
 	return this._itemWindow;
 };
+/**
+* Gets the window listing the actor's skill types, which filters the skill list.
+* @returns {Window_SkillType} The skillTypeWindow.
+*/
+Scene_Skill.prototype.skillTypeWindow = function() {
+	return this._skillTypeWindow;
+};
 
 //#endregion
 //#region src/plugins/_base/scenes/Scene_Boot.js
