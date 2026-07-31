@@ -39,7 +39,7 @@ pass.
 |---|---|
 | `main.md` | The hub — start here, it links everything below |
 | `design-contract.md` | What CA is trying to be; how features, balance, and tutorials get judged |
-| `story-bible.md` / `story-canon.md` | Chapters, the red-eyed gent, the seven sins, the ending |
+| `story-canon.md` | Chapters, the red-eyed gent, the seven sins, the ending |
 | `database-decode-cheatsheet.md` | Trait `code` → meaning and `value` scaling. **Required reading before interpreting raw DB JSON** |
 | `menu-architecture.md` | Menu and UI structure |
 | `classes/`, `enemies/`, `weapons/`, `food/`, `quests/`, `maps/`, `walk/`, `unlockables/`, `tutorials/` | Per-system design |
