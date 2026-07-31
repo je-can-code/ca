@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.3 JAFTING-Core] Root JAFTING menu, salvage loop, and extension hooks.
+ * [v2.1.3 JAFTING] Root JAFTING menu, salvage loop, and extension hooks.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

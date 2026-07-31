@@ -2,11 +2,13 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 CMS_K] A redesign of the skill menu.
+ * [v1.1.0 CMS-SKILL] A redesign of the skill menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
+ * @base J-CMS
  * @orderAfter J-Base
+ * @orderAfter J-CMS
  * @help
  * ============================================================================
  * This is a redesign of the skill menu.
@@ -60,16 +62,28 @@ globalThis.J ||= {};
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
+	const requiredCmsVersion = "1.0.0";
+	const hasCmsRequirement = J.BASE.Helpers.satisfies(J.CMS.Metadata.version.version(), requiredCmsVersion);
+	if (hasCmsRequirement === false) {
+		throw new Error(`Either missing J-CMS or has a lower version than the required: ${requiredCmsVersion}`);
+	}
 })();
+/**
+* The plugin umbrella that governs all extensions of the parent.
+*/
+J.CMS.EXT ||= {};
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
-J.CMS_K = {};
+J.CMS.EXT.SKILL = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS_K.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.1.0");
-J.CMS_K.Aliased = {
+J.CMS.EXT.SKILL.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.1.0");
+/**
+* A collection of all aliased methods for this plugin.
+*/
+J.CMS.EXT.SKILL.Aliased = {
 	Scene_Skill: new Map(),
 	Window_SkillList: new Map(),
 	Window_EquipSlot: new Map()
@@ -871,9 +885,9 @@ Scene_Skill.prototype.buttonAreaHeight = () => 0;
 * Extends {@link #initialize}.<br/>
 * Includes our skill detail window.
 */
-J.CMS_K.Aliased.Window_SkillList.set("initialize", Window_SkillList.prototype.initialize);
+J.CMS.EXT.SKILL.Aliased.Window_SkillList.set("initialize", Window_SkillList.prototype.initialize);
 Window_SkillList.prototype.initialize = function(rect) {
-	J.CMS_K.Aliased.Window_SkillList.get("initialize").call(this, rect);
+	J.CMS.EXT.SKILL.Aliased.Window_SkillList.get("initialize").call(this, rect);
 	/**
 	* The detail window for the skill.
 	*  @type {Window_SkillDetail}
@@ -904,9 +918,9 @@ Window_SkillList.prototype.refreshSkillDetailWindow = function() {
 /**
 * Extends `.select()` to also update our skill detail window if need-be.
 */
-J.CMS_K.Aliased.Window_SkillList.set("select", Window_SkillList.prototype.select);
+J.CMS.EXT.SKILL.Aliased.Window_SkillList.set("select", Window_SkillList.prototype.select);
 Window_SkillList.prototype.select = function(index) {
-	J.CMS_K.Aliased.Window_SkillList.get("select").call(this, index);
+	J.CMS.EXT.SKILL.Aliased.Window_SkillList.get("select").call(this, index);
 	this.refreshSkillDetailWindow();
 };
 /**

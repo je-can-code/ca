@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.5 POSES] Enable action poses for JABS.
+ * [v1.0.5 ABS-POSES] Enable action poses for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

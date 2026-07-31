@@ -80,10 +80,6 @@ J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.0.1"
 J.HUD.EXT.BOSS.Aliased = {};
 J.HUD.EXT.BOSS.Aliased.Hud_Manager = new Map();
 J.HUD.EXT.BOSS.Aliased.Scene_Map = new Map();
-/**
-* All regular expressions used by this plugin.
-*/
-J.HUD.EXT.BOSS.RegExp = {};
 
 //#endregion
 //#region src/plugins/hud/ext/boss/managers/BossFrameManager.js

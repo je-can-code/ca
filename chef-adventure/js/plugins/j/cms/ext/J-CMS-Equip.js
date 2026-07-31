@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 CMS_E] A redesign of the equip menu.
+ * [v1.1.0 CMS-EQUIP] A redesign of the equip menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -55,16 +55,28 @@ globalThis.J ||= {};
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
+	const requiredCmsVersion = "1.0.0";
+	const hasCmsRequirement = J.BASE.Helpers.satisfies(J.CMS.Metadata.version.version(), requiredCmsVersion);
+	if (hasCmsRequirement === false) {
+		throw new Error(`Either missing J-CMS or has a lower version than the required: ${requiredCmsVersion}`);
+	}
 })();
+/**
+* The plugin umbrella that governs all extensions of the parent.
+*/
+J.CMS.EXT ||= {};
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
-J.CMS_E = {};
+J.CMS.EXT.EQUIP = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS_E.Metadata = new J_CmsEquip_PluginMetadata("J-CMS-Equip", "1.1.0");
-J.CMS_E.Aliased = {
+J.CMS.EXT.EQUIP.Metadata = new J_CmsEquip_PluginMetadata("J-CMS-Equip", "1.1.0");
+/**
+* A collection of all aliased methods for this plugin.
+*/
+J.CMS.EXT.EQUIP.Aliased = {
 	Scene_Equip: new Map(),
 	Window_EquipItem: new Map(),
 	Window_EquipSlot: new Map()
@@ -466,9 +478,9 @@ Scene_Equip.prototype.switchToMoreDataFromEquipItems = function() {
 /**
 * Extends the slot window to include our additional actions.
 */
-J.CMS_E.Aliased.Scene_Equip.set("createSlotWindow", Scene_Equip.prototype.createSlotWindow);
+J.CMS.EXT.EQUIP.Aliased.Scene_Equip.set("createSlotWindow", Scene_Equip.prototype.createSlotWindow);
 Scene_Equip.prototype.createSlotWindow = function() {
-	J.CMS_E.Aliased.Scene_Equip.get("createSlotWindow").call(this);
+	J.CMS.EXT.EQUIP.Aliased.Scene_Equip.get("createSlotWindow").call(this);
 	this.slotWindow().setHandler("more", this.switchToMoreDataFromEquipSlots.bind(this));
 	this.slotWindow().setHandler("context", this.onContextUnequipSlot.bind(this));
 	this.slotWindow().setHandler("actor-next", this.nextActor.bind(this));
@@ -578,9 +590,9 @@ Scene_Equip.prototype.onActorChange = function() {
 /**
 * Extends the actor refresh to include the more data window.
 */
-J.CMS_E.Aliased.Scene_Equip.set("refreshActor", Scene_Equip.prototype.refreshActor);
+J.CMS.EXT.EQUIP.Aliased.Scene_Equip.set("refreshActor", Scene_Equip.prototype.refreshActor);
 Scene_Equip.prototype.refreshActor = function() {
-	J.CMS_E.Aliased.Scene_Equip.get("refreshActor").call(this);
+	J.CMS.EXT.EQUIP.Aliased.Scene_Equip.get("refreshActor").call(this);
 	const actor = this.actor();
 	this.moreDataWindow().setActor(actor);
 	this.actorRibbonWindow().setActor(actor);
@@ -598,9 +610,9 @@ Scene_Equip.prototype.actorRibbonWindow = function() {
 /**
 * Extends the `.initialize()` to include tracking for the more equip data window.
 */
-J.CMS_E.Aliased.Window_EquipItem.set("initialize", Window_EquipItem.prototype.initialize);
+J.CMS.EXT.EQUIP.Aliased.Window_EquipItem.set("initialize", Window_EquipItem.prototype.initialize);
 Window_EquipItem.prototype.initialize = function(rect) {
-	J.CMS_E.Aliased.Window_EquipItem.get("initialize").call(this, rect);
+	J.CMS.EXT.EQUIP.Aliased.Window_EquipItem.get("initialize").call(this, rect);
 	/**
 	* The more data window to manipulate.
 	* @type {Window_MoreEquipData}
@@ -639,9 +651,9 @@ Window_EquipItem.prototype.moreDataWindow = function() {
 /**
 * Extends the `.initialize()` to include tracking for the more equip data window.
 */
-J.CMS_E.Aliased.Window_EquipSlot.set("initialize", Window_EquipSlot.prototype.initialize);
+J.CMS.EXT.EQUIP.Aliased.Window_EquipSlot.set("initialize", Window_EquipSlot.prototype.initialize);
 Window_EquipSlot.prototype.initialize = function(rect) {
-	J.CMS_E.Aliased.Window_EquipSlot.get("initialize").call(this, rect);
+	J.CMS.EXT.EQUIP.Aliased.Window_EquipSlot.get("initialize").call(this, rect);
 	/**
 	* The more data window to manipulate.
 	* @type {Window_MoreEquipData}

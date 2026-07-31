@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 OMNI-MON] Extends the Omnipedia with a Monsterpedia entry.
+ * [v1.1.0 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

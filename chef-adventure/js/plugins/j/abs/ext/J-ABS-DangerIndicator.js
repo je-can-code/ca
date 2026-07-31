@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 DANGER] Enable danger indicators on foes on the map.
+ * [v1.0.3 ABS-DANGER] Enable danger indicators on foes on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS

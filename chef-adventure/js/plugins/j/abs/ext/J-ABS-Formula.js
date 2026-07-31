@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 FORMULA] An extension for JABS that allows multiple damage formulas.
+ * [v1.1.0 ABS-FORMULA] An extension for JABS that allows multiple damage formulas.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -551,15 +551,6 @@ var FormulaEffect = class FormulaEffect {
 		this.skillId = this.mode === FormulaEffect.Mode.SKILL ? parseInt(init.skillId ?? 0) || 0 : 0;
 	}
 };
-
-//#endregion
-//#region src/plugins/abs/ext/formula/_metadata/pluginCommands.js
-/**
-* Plugin command for doing the thing.
-*/
-PluginManager.registerCommand(J.ABS.EXT.FORMULA.Metadata.name, "do-the-thing", (args) => {
-	console.log("did the thing.");
-});
 
 //#endregion
 //#region src/plugins/abs/ext/formula/database/RPG_Skill.js

@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.4 UTIL] Various system utilities.
+ * [v1.1.4 UTILS] Various system utilities.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

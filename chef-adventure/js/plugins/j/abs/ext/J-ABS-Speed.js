@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 MOVE] Enable modifying move speeds.
+ * [v1.1.0 ABS-SPEED] Enable modifying move speeds.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

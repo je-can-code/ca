@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 TARGETING] An extension for JABS that adds cursor-driven tactical targeting.
+ * [v1.0.0 ABS-TARGETING] An extension for JABS that adds cursor-driven tactical targeting.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

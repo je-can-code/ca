@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 CMS_M] A redesign of the main menu.
+ * [v1.0.0 CMS] A redesign of the main menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -157,16 +157,15 @@ globalThis.J ||= {};
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
-J.CMS_M = {};
+J.CMS = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS_M.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.0.0");
-J.CMS_M.Aliased = {
-	Scene_Menu: {},
-	Window_EquipItem: {},
-	Window_EquipSlot: {}
-};
+J.CMS.Metadata = new J_CmsMain_PluginMetadata("J-CMS", "1.0.0");
+/**
+* The plugin umbrella that governs all extensions of this plugin.
+*/
+J.CMS.EXT = {};
 
 //#endregion
 //#region src/plugins/cms/core/_models/CmsParameter.js
@@ -964,13 +963,13 @@ var ParameterCatalogRenderer = class ParameterCatalogRenderer {
 Window_MenuCommand.prototype.addMainCommands = function() {
 	const enabled = this.areMainCommandsEnabled();
 	if (this.needsCommand("item")) {
-		this.addBuiltCommand(new WindowCommandBuilder(TextManager.item).setSymbol("item").setHelpText(J.CMS_M.Metadata.helpTextFor("item")).setEnabled(enabled).setIconIndex(2567).setMenuSection(MenuSection.Party).build());
+		this.addBuiltCommand(new WindowCommandBuilder(TextManager.item).setSymbol("item").setHelpText(J.CMS.Metadata.helpTextFor("item")).setEnabled(enabled).setIconIndex(2567).setMenuSection(MenuSection.Party).build());
 	}
 	if (this.needsCommand("skill")) {
-		this.addBuiltCommand(new WindowCommandBuilder(TextManager.skill).setSymbol("skill").setHelpText(J.CMS_M.Metadata.helpTextFor("skill")).setEnabled(enabled).setIconIndex(2564).setMenuSection(MenuSection.Actor).build());
+		this.addBuiltCommand(new WindowCommandBuilder(TextManager.skill).setSymbol("skill").setHelpText(J.CMS.Metadata.helpTextFor("skill")).setEnabled(enabled).setIconIndex(2564).setMenuSection(MenuSection.Actor).build());
 	}
 	if (this.needsCommand("equip")) {
-		this.addBuiltCommand(new WindowCommandBuilder(TextManager.equip).setSymbol("equip").setHelpText(J.CMS_M.Metadata.helpTextFor("equip")).setEnabled(enabled).setIconIndex(2565).setMenuSection(MenuSection.Actor).build());
+		this.addBuiltCommand(new WindowCommandBuilder(TextManager.equip).setSymbol("equip").setHelpText(J.CMS.Metadata.helpTextFor("equip")).setEnabled(enabled).setIconIndex(2565).setMenuSection(MenuSection.Actor).build());
 	}
 };
 /**
@@ -980,7 +979,7 @@ Window_MenuCommand.prototype.addMainCommands = function() {
 Window_MenuCommand.prototype.addOptionsCommand = function() {
 	if (this.needsCommand("options") === false) return;
 	const enabled = this.isOptionsEnabled();
-	this.addBuiltCommand(new WindowCommandBuilder(TextManager.options).setSymbol("options").setHelpText(J.CMS_M.Metadata.helpTextFor("options")).setEnabled(enabled).setIconIndex(2566).setMenuSection(MenuSection.Party).build());
+	this.addBuiltCommand(new WindowCommandBuilder(TextManager.options).setSymbol("options").setHelpText(J.CMS.Metadata.helpTextFor("options")).setEnabled(enabled).setIconIndex(2566).setMenuSection(MenuSection.Party).build());
 };
 /**
 * Overwrites {@link #addGameEndCommand}.<br/>
@@ -988,7 +987,7 @@ Window_MenuCommand.prototype.addOptionsCommand = function() {
 */
 Window_MenuCommand.prototype.addGameEndCommand = function() {
 	const enabled = this.isGameEndEnabled();
-	this.addBuiltCommand(new WindowCommandBuilder(TextManager.gameEnd).setSymbol("gameEnd").setHelpText(J.CMS_M.Metadata.helpTextFor("gameEnd")).setEnabled(enabled).setIconIndex(2562).setMenuSection(MenuSection.Party).build());
+	this.addBuiltCommand(new WindowCommandBuilder(TextManager.gameEnd).setSymbol("gameEnd").setHelpText(J.CMS.Metadata.helpTextFor("gameEnd")).setEnabled(enabled).setIconIndex(2562).setMenuSection(MenuSection.Party).build());
 };
 
 //#endregion

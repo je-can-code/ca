@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 STAR] Converts random encounters into star battles.
+ * [v1.0.0 ABS-STAR] Converts random encounters into star battles.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 FOOD] A J-HUD extension that displays the current food chain status on screen.
+ * [v1.0.0 HUD-FOOD] A J-HUD extension that displays the current food chain status on screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

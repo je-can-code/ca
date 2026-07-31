@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 LOADOUT] A scene for managing every party member's combat loadout.
+ * [v1.0.0 ABS-LOADOUT] A scene for managing every party member's combat loadout.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

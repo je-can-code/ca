@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 HITSTOP] An extension for JABS that adds hitstop functionality.
+ * [v1.0.3 ABS-HITSTOP] An extension for JABS that adds hitstop functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.13.0 JABS] Enables combat to be carried out on the map.
+ * [v4.13.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -23728,7 +23728,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
 var PLUGIN_VERSION = "4.13.0";
-var PLUGIN_DESC_TAG = "JABS";
+var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
 //#region src/plugins/abs/core/_metadata/pluginCommands.js
