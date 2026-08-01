@@ -1561,9 +1561,11 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		this.initMembers();
 	}
 	/**
-	* Initialize all properties for our omnipedia.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes all properties for our omnipedia.
 	*/
 	initMembers() {
+		super.initMembers();
 		this.initCoreMembers();
 		this.initPrimaryMembers();
 	}

@@ -1220,14 +1220,14 @@ IconManager.jabsIconTextForSymbol = function(symbol) {
 IconManager.registerJabsInputTexts = function() {
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Mainhand, 2448);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Offhand, 2449);
-	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Tool, 2450);
-	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Dash, 2451);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Dash, 2450);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Tool, 2451);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.SkillTrigger, 2452);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.GuardTrigger, 2453);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, 2454);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.MobilitySkill, 2455);
-	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Quickmenu, 2456);
-	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.PartyCycle, 2457);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.PartyCycle, 2456);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Quickmenu, 2457);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirLeft, 2458);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirRight, 2459);
 	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirUp, 2460);
@@ -3081,9 +3081,11 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 		this.initMembers();
 	}
 	/**
-	* Initialize all properties required by the scene.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes all properties required by the scene.
 	*/
 	initMembers() {
+		super.initMembers();
 		this.initCoreMembers();
 		this.initPrimaryMembers();
 	}
@@ -3775,7 +3777,7 @@ Window_MenuCommand.prototype.addOriginalCommands = function() {
 * Adds the JABS Controls command to the main menu.
 */
 Window_MenuCommand.prototype.addJabsRemapCommand = function() {
-	const command = new WindowCommandBuilder("JABS Controls").setSymbol("jabsRemap").setHelpText("Rebind the controls used during combat.").setIconIndex(2569).setEnabled(true).build();
+	const command = new WindowCommandBuilder("Remap Controls").setSymbol("jabsRemap").setHelpText("Rebind the controls used during combat.").setIconIndex(2569).setEnabled(true).build();
 	const lastCommand = this.commandList().at(-1);
 	if (lastCommand.symbol === "gameEnd") {
 		this.commandList().splice(this.commandList().length - 2, 0, command);

@@ -8,9 +8,11 @@
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @base J-ABS
+ * @base J-ABS-AllyAI
  * @base J-Pixelistics
  * @orderAfter J-Base
  * @orderAfter J-ABS
+ * @orderAfter J-ABS-AllyAI
  * @orderAfter J-Pixelistics
  * @help
  * ============================================================================
@@ -295,6 +297,7 @@ J.PIXEL.EXT.ABS.RegExp.HitboxReveal = /<hitboxReveal:[ ]?([+-]?\d+(?:\.\d+)?)>/i
 J.PIXEL.EXT.ABS.Aliased = {
 	Game_CharacterBase: new Map(),
 	Game_Event: new Map(),
+	Game_Follower: new Map(),
 	Game_Player: new Map(),
 	JABS_AiManager: new Map(),
 	JABS_Battler: new Map(),
@@ -413,11 +416,8 @@ JABS_AiManager.moveTowardSlotIfNeeded = function(allyBattler, desiredX, desiredY
 		return;
 	}
 	const chr = allyBattler.getCharacter();
-	let tolerance = .45;
+	const tolerance = J.ABS.EXT.ALLYAI.Metadata.FormationTolerance;
 	const hysteresis = .25;
-	if (J.ABS.EXT.ALLYAI && J.ABS.EXT.ALLYAI.Metadata) {
-		tolerance = J.ABS.EXT.ALLYAI.Metadata.FormationTolerance;
-	}
 	const dx = chr.x - desiredX;
 	const dy = chr.y - desiredY;
 	const dist = Math.sqrt(dx * dx + dy * dy);
@@ -837,6 +837,80 @@ Game_Event.prototype._pixelHitbox = function(radius) {
 		hx: -(widthTiles / 2),
 		hy: -heightTiles
 	};
+};
+
+//#endregion
+//#region src/plugins/pixel/ext/abs/objects/Game_Follower.js
+/**
+* Overwrites {@link Game_Follower.isPixelTrainSuspended}.<br/>
+* An ally with a JABS battler is steered by formation movement, which this same plugin implements
+* over in its {@link JABS_AiManager} augments. The player's breadcrumb train must therefore keep
+* its hands off: two systems writing a position to the same sprite every frame make it stutter
+* between the trail and the formation slot instead of settling on either.
+* @returns {boolean} True if formation movement owns this follower, false otherwise.
+*/
+Game_Follower.prototype.isPixelTrainSuspended = function() {
+	return this.getJabsBattler() !== undefined;
+};
+/**
+* Extends {@link Game_Follower.chaseCharacter}.<br/>
+* Suppresses vanilla chasing for an AI-controlled ally, so formation movement owns where it goes.
+* @param {Game_Character} character The character to chase (usually the preceding character).
+*/
+J.PIXEL.EXT.ABS.Aliased.Game_Follower.set("chaseCharacter", Game_Follower.prototype.chaseCharacter);
+Game_Follower.prototype.chaseCharacter = function(character) {
+	if (this.isPixelTrainSuspended()) return;
+	J.PIXEL.EXT.ABS.Aliased.Game_Follower.get("chaseCharacter").call(this, character);
+};
+/**
+* Extends {@link Game_Follower.update}.<br/>
+* Clamps residual movement state on an idle AI-controlled ally. Formation movement issues its
+* steps deliberately rather than continuously, so an ally that took no pixel step this frame must
+* be told it is stationary- otherwise the engine keeps interpolating toward a destination nothing
+* intends to reach, and the ally drifts away from its slot.
+*/
+J.PIXEL.EXT.ABS.Aliased.Game_Follower.set("update", Game_Follower.prototype.update);
+Game_Follower.prototype.update = function() {
+	J.PIXEL.EXT.ABS.Aliased.Game_Follower.get("update").call(this);
+	if (this.isPixelTrainSuspended() === false) return;
+	if (this.isMovePressed()) return;
+	this.setStopCount(0);
+	this.setRealX(this.x);
+	this.setRealY(this.y);
+};
+/**
+* Determines whether generic movement should be blocked for an idle AI-controlled ally.
+* While an ally is neither engaged nor alerted it is in its formation phase, where the only
+* legitimate movement is the pixel step formation itself issued this frame. Anything else
+* reaching this point is a stray vanilla-cadence move that would fight the formation pull.
+* @returns {boolean} True if the movement should be blocked, false otherwise.
+*/
+Game_Follower.prototype.isIdleFormationMoveBlocked = function() {
+	if (this.isPixelTrainSuspended() === false) return false;
+	const jabsBattler = this.getJabsBattler();
+	if (jabsBattler.isEngaged() || jabsBattler.isAlerted()) return false;
+	return this.isMovePressed() === false;
+};
+/**
+* Extends {@link Game_Follower.moveStraight}.<br/>
+* Blocks stray straight movement for an idle AI-controlled ally.
+* @param {2|4|6|8} direction The cardinal direction to move.
+*/
+J.PIXEL.EXT.ABS.Aliased.Game_Follower.set("moveStraight", Game_Follower.prototype.moveStraight);
+Game_Follower.prototype.moveStraight = function(direction) {
+	if (this.isIdleFormationMoveBlocked()) return;
+	J.PIXEL.EXT.ABS.Aliased.Game_Follower.get("moveStraight").call(this, direction);
+};
+/**
+* Extends {@link Game_Follower.moveDiagonally}.<br/>
+* Blocks stray diagonal movement for an idle AI-controlled ally.
+* @param {4|6} horz The horizontal component direction (4=left, 6=right).
+* @param {2|8} vert The vertical component direction (2=down, 8=up).
+*/
+J.PIXEL.EXT.ABS.Aliased.Game_Follower.set("moveDiagonally", Game_Follower.prototype.moveDiagonally);
+Game_Follower.prototype.moveDiagonally = function(horz, vert) {
+	if (this.isIdleFormationMoveBlocked()) return;
+	J.PIXEL.EXT.ABS.Aliased.Game_Follower.get("moveDiagonally").call(this, horz, vert);
 };
 
 //#endregion

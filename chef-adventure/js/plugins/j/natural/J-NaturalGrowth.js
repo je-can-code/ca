@@ -1855,7 +1855,7 @@ Game_Actor.prototype.applyNaturalXparamGrowths = function() {
 	paramIds.forEach((paramId) => {
 		const [plusStructure, rateStructure] = this.getGrowthRegexByXparamId(paramId);
 		const baseParam = J.NATURAL.Aliased.Game_Actor.get("xparam").call(this, paramId);
-		const growthPlus = this.naturalParamBuff(plusStructure, baseParam);
+		const growthPlus = this.naturalParamBuff(plusStructure, baseParam) / 100;
 		this.modXparamGrowthPlus(paramId, growthPlus);
 		const growthRate = this.naturalParamBuff(rateStructure, baseParam);
 		this.modXparamGrowthRate(paramId, growthRate);
@@ -1889,7 +1889,7 @@ Game_Actor.prototype.applyNaturalSparamGrowths = function() {
 	paramIds.forEach((paramId) => {
 		const [plusStructure, rateStructure] = this.getGrowthRegexBySparamId(paramId);
 		const baseParam = J.NATURAL.Aliased.Game_Actor.get("sparam").call(this, paramId);
-		const growthPlus = this.naturalParamBuff(plusStructure, baseParam);
+		const growthPlus = this.naturalParamBuff(plusStructure, baseParam) / 100;
 		this.modSparamGrowthPlus(paramId, growthPlus);
 		const growthRate = this.naturalParamBuff(rateStructure, baseParam);
 		this.modSparamGrowthRate(paramId, growthRate);

@@ -5504,11 +5504,11 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 		return [
 			{
 				semantic: "ok",
-				label: "add to cart"
+				label: "purchase"
 			},
 			{
 				semantic: "context",
-				label: "checkout"
+				label: "hide maxed"
 			},
 			{
 				semantic: ["cart-dec", "cart-inc"],
@@ -5517,10 +5517,6 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 			{
 				semantic: ["content-prev", "content-next"],
 				label: "switch family"
-			},
-			{
-				semantic: "more",
-				label: "hide maxed"
 			},
 			{
 				semantic: ["actor-prev", "actor-next"],

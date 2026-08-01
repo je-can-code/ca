@@ -396,20 +396,16 @@ Scene_Equip.prototype.buildActorRibbonWindow = function(rectangle) {
 Scene_Equip.prototype.controlLegendEntries = function() {
 	return [
 		{
-			semantic: "ok",
-			label: "equip"
-		},
-		{
 			semantic: "context",
 			label: "unequip"
 		},
 		{
-			semantic: ["actor-prev", "actor-next"],
-			label: "switch character"
+			semantic: "more",
+			label: "more data"
 		},
 		{
-			semantic: "cancel",
-			label: "back"
+			semantic: ["actor-prev", "actor-next"],
+			label: "switch character"
 		}
 	];
 };
@@ -420,8 +416,21 @@ Scene_Equip.prototype.controlLegendEntries = function() {
 * @returns {Rectangle}
 */
 Scene_Equip.prototype.statusWindowRect = function() {
-	const contentArea = this.contentAreaRect();
-	return new Rectangle(contentArea.x, contentArea.y, this.statusWidth(), contentArea.height);
+	const facetArea = this.facetAreaRect();
+	return new Rectangle(facetArea.x, facetArea.y, this.statusWidth(), facetArea.height);
+};
+/**
+* Overrides {@link Scene_ActorFacetBase.actorRibbonWindowRect}.<br/>
+* Confines the ribbon to the right-hand column instead of spanning the full width.
+*
+* The base assumes a full-width band because most facet scenes have nothing worth promoting into that
+* space. Here the parameter grid does- it is the reason the scene exists- so the ribbon steps aside to
+* cap the slot list it actually sits above, and the grid grows into what it gave up.
+* @returns {Rectangle}
+*/
+Scene_Equip.prototype.actorRibbonWindowRect = function() {
+	const facetArea = this.facetAreaRect();
+	return new Rectangle(facetArea.x + this.statusWidth(), facetArea.y, this.rightColumnWidth(), this.actorRibbonHeight());
 };
 /**
 * Overwrites {@link #slotWindowRect}.<br/>

@@ -1640,9 +1640,11 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		this.initMembers();
 	}
 	/**
-	* Initialize all properties for the Refinement scene.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes all properties for the Refinement scene.
 	*/
 	initMembers() {
+		super.initMembers();
 		this.initCoreMembers();
 		this.initPrimaryMembers();
 	}

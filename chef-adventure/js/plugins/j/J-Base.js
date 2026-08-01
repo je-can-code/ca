@@ -6844,11 +6844,7 @@ var IconManager = class {
 			case 5: return 188;
 			case 6: return 227;
 			case 7: return 76;
-			case 8: return 68;
-			case 9: return 69;
-			case 10: return 64;
-			case 11: return 67;
-			case 12: return 2192;
+			case 8: return 2192;
 			default: return 0;
 		}
 	}
@@ -10906,9 +10902,11 @@ var Scene_MenuFacetBase = class extends Scene_MenuBase {
 		this.initMembers();
 	}
 	/**
-	* Initializes all custom members of this scene.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes the members shared by every facet scene.
 	*/
 	initMembers() {
+		super.initMembers();
 		/**
 		* The shared root namespace for all of J's plugin data.
 		*/

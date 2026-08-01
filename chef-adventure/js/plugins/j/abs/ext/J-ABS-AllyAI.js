@@ -2268,6 +2268,7 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		SoundManager.playRecovery();
 		$gameParty.isAggro() ? $gameParty.becomePassive() : $gameParty.becomeAggro();
 		this.partyListWindow().refresh();
+		this.partyListWindow().activate();
 	}
 	/**
 	* Applies the chosen preset to the chosen ally.
@@ -2277,6 +2278,7 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		const allyAi = $gameActors.actor(this.chosenActorId()).getAllyAI();
 		allyAi.applyPreset(newPreset.key);
 		this.presetListWindow().refresh();
+		this.presetListWindow().activate();
 	}
 	/**
 	* Toggles whether the chosen ally acts at all.
@@ -2286,6 +2288,7 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		const allyAi = $gameActors.actor(this.chosenActorId()).getAllyAI();
 		allyAi.setDoNothing(!allyAi.isDoNothing());
 		this.presetListWindow().refresh();
+		this.presetListWindow().activate();
 	}
 	/**
 	* Shows the party's available formations.
@@ -2301,6 +2304,7 @@ var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
 		const selectedFormation = this.formationListWindow().currentExt();
 		$gameParty.setPartyFormation(selectedFormation.key);
 		this.formationListWindow().refresh();
+		this.formationListWindow().activate();
 	}
 	/**
 	* Gets the party column.

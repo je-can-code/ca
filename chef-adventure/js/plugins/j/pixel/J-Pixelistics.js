@@ -1672,13 +1672,10 @@ Game_CharacterBase.prototype.pixelMoveByInput = function(direction) {
 		}
 	};
 	if (this.isDiagonalDirection(direction)) {
-		const faced = handleDiagonal(direction);
-		if (faced > 0) return faced;
+		return handleDiagonal(direction);
 	}
-	if (this.isStraightDirection(direction)) {
-		const faced = handleStraight(direction);
-		if (faced > 0) return faced;
-	}
+	const faced = handleStraight(direction);
+	if (faced > 0) return faced;
 	return innerDirection;
 };
 /**
@@ -1710,12 +1707,12 @@ Game_CharacterBase.prototype.canPassDiagonally = function(x, y, horz, vert) {
 	let ny = this.y;
 	if (horz === J.PIXEL.Directions.RIGHT) {
 		nx = this.x + diagStep;
-	} else if (horz === J.PIXEL.Directions.LEFT) {
+	} else {
 		nx = this.x - diagStep;
 	}
 	if (vert === J.PIXEL.Directions.DOWN) {
 		ny = this.y + diagStep;
-	} else if (vert === J.PIXEL.Directions.UP) {
+	} else {
 		ny = this.y - diagStep;
 	}
 	if ($gameMap.isValid(nx, ny) === false) {
@@ -1752,7 +1749,7 @@ Game_CharacterBase.prototype.canPassDiagonally = function(x, y, horz, vert) {
 	let y2 = this.y;
 	if (vert === J.PIXEL.Directions.DOWN) {
 		y2 = this.y + straightStep;
-	} else if (vert === J.PIXEL.Directions.UP) {
+	} else {
 		y2 = this.y - straightStep;
 	}
 	if (horz === J.PIXEL.Directions.LEFT) {
@@ -1771,7 +1768,7 @@ Game_CharacterBase.prototype.canPassDiagonally = function(x, y, horz, vert) {
 	let x2 = this.x;
 	if (horz === J.PIXEL.Directions.RIGHT) {
 		x2 = this.x + straightStep;
-	} else if (horz === J.PIXEL.Directions.LEFT) {
+	} else {
 		x2 = this.x - straightStep;
 	}
 	if (vert === J.PIXEL.Directions.UP) {
@@ -2367,10 +2364,7 @@ Game_CharacterBase.prototype.vectorMoveByAngle = function(angleDegrees, speed = 
 	this.setRealY(this.y);
 	this.modMoveDistance(speed);
 	this.updatePixelStepping();
-	const facingDirection = this.angleToNearestDirection(angleDegrees);
-	if (facingDirection > 0) {
-		this.setDirection(facingDirection);
-	}
+	this.setDirection(this.angleToNearestDirection(angleDegrees));
 	return true;
 };
 /**
@@ -2466,16 +2460,6 @@ Game_Follower.prototype.pixelFaceCharacter = function(otherCharacter = $gamePlay
 	}
 };
 /**
-* Extends {@link Game_Follower.chaseCharacter}.<br/>
-* Suppresses vanilla chasing when ALLYAI controls this follower, so formation owns movement.
-* @param {Game_Character} character The character to chase (usually the preceding character).
-*/
-J.PIXEL.Aliased.Game_Follower.set("chaseCharacter", Game_Follower.prototype.chaseCharacter);
-Game_Follower.prototype.chaseCharacter = function(character) {
-	if (J.ABS.EXT.ALLYAI && this.getJabsBattler()) return;
-	J.PIXEL.Aliased.Game_Follower.get("chaseCharacter").call(this, character);
-};
-/**
 * Extends {@link Game_Follower.update}.<br/>
 * Ensures follower render coordinates always match logical coordinates.
 */
@@ -2486,50 +2470,21 @@ Game_Follower.prototype.update = function() {
 		this.setRealX(this.x);
 		this.setRealY(this.y);
 	}
-	if (J.ABS.EXT.ALLYAI && this.getJabsBattler()) {
-		if (this.isMovePressed() === false) {
-			this.setStopCount(0);
-			this.setRealX(this.x);
-			this.setRealY(this.y);
-		}
-	}
 };
 /**
-* Extends {@link Game_Follower.moveStraight}.<br/>
-* When AllyAI controls this follower and it is idle (not alerted/engaged),
-* block generic straight movement unless PIXEL is actively driving movement.
-* @param {2|4|6|8} direction The cardinal direction to move.
+* Whether this follower's position is owned by something other than the player's breadcrumb
+* train. The train relocates each follower onto the trail the character ahead of it left behind;
+* if another system is also steering the same follower, both write a position every frame and the
+* sprite visibly fights itself. A follower that answers true here is skipped by the train entirely,
+* on the understanding that whatever claimed it is now responsible for moving it.
+*
+* Pixel movement on its own has no such other system, so the answer is always no here. Ships that
+* introduce one - J-ABS-Pixelistics handing allies to formation movement, for instance - override
+* this to claim their followers.
+* @returns {boolean} True if the follower train must not move this follower, false otherwise.
 */
-J.PIXEL.Aliased.Game_Follower.set("moveStraight", Game_Follower.prototype.moveStraight);
-Game_Follower.prototype.moveStraight = function(direction) {
-	if (J.ABS.EXT.ALLYAI && this.getJabsBattler()) {
-		const jabsBattler = this.getJabsBattler();
-		if (!jabsBattler.isEngaged() && !jabsBattler.isAlerted()) {
-			if (this.isMovePressed() === false) {
-				return;
-			}
-		}
-	}
-	J.PIXEL.Aliased.Game_Follower.get("moveStraight").call(this, direction);
-};
-/**
-* Extends {@link Game_Follower.moveDiagonally}.<br/>
-* When AllyAI controls this follower and it is idle (not alerted/engaged),
-* block generic diagonal movement unless PIXEL is actively driving movement.
-* @param {4|6} horz The horizontal component direction (4=left, 6=right).
-* @param {2|8} vert The vertical component direction (2=down, 8=up).
-*/
-J.PIXEL.Aliased.Game_Follower.set("moveDiagonally", Game_Follower.prototype.moveDiagonally);
-Game_Follower.prototype.moveDiagonally = function(horz, vert) {
-	if (J.ABS.EXT.ALLYAI && this.getJabsBattler()) {
-		const jabsBattler = this.getJabsBattler();
-		if (!jabsBattler.isEngaged() && !jabsBattler.isAlerted()) {
-			if (this.isMovePressed() === false) {
-				return;
-			}
-		}
-	}
-	J.PIXEL.Aliased.Game_Follower.get("moveDiagonally").call(this, horz, vert);
+Game_Follower.prototype.isPixelTrainSuspended = function() {
+	return false;
 };
 /**
 * Overwrites {@link Game_CharacterBase.getCollisionPivotY}.<br/>
@@ -2624,16 +2579,22 @@ Game_Player.prototype.checkEventTriggerThere = function(triggers) {
 /**
 * Extends {@link checkEventTriggerTouch}.<br/>
 * Handles the triggering of events by using a threshold-type formula to determine if actually touched.
+* Vanilla's version reports nothing at all, so this asks the map whether an event is now starting
+* and hands that back- callers need a real answer to know whether to keep searching neighboring
+* tiles, and {@link Game_Player#checkEventTriggerThere} already uses the same map-level question
+* as its own short-circuit.
+* @param {number} x The fractional x coordinate to test for a touch.
+* @param {number} y The fractional y coordinate to test for a touch.
+* @returns {boolean} True if an event is starting after this check, false otherwise.
 */
 J.PIXEL.Aliased.Game_Player.set("checkEventTriggerTouch", Game_Player.prototype.checkEventTriggerTouch);
 Game_Player.prototype.checkEventTriggerTouch = function(x, y) {
 	const roundX = Math.round(x);
 	const roundY = Math.round(y);
 	const didTrigger = Math.abs(roundX - x) < .3 && Math.abs(roundY - y) < .3;
-	if (didTrigger) {
-		return J.PIXEL.Aliased.Game_Player.get("checkEventTriggerTouch").call(this, roundX, roundY);
-	}
-	return false;
+	if (didTrigger === false) return false;
+	J.PIXEL.Aliased.Game_Player.get("checkEventTriggerTouch").call(this, roundX, roundY);
+	return $gameMap.isAnyEventStarting();
 };
 /**
 * Overwrites {@link Game_Player.checkEventTriggerTouchFront}.<br/>
@@ -2782,9 +2743,7 @@ Game_Player.prototype.moveByInput = function() {
 			}
 			this.setMovementSuccess(false);
 			direction = this.pixelMoveByInput(direction);
-			if (direction > 0) {
-				this.setDirection(direction);
-			}
+			this.setDirection(direction);
 			if (this.isMovementSucceeded()) {
 				this.processFollowersPixelMoving();
 				this.setMovePressed(true);
@@ -2827,9 +2786,7 @@ Game_Player.prototype.pixelMoveTowardDestination = function() {
 	}
 	this.setMovementSuccess(false);
 	const facedDirection = this.pixelMoveByInput(dir);
-	if (facedDirection > 0) {
-		this.setDirection(facedDirection);
-	}
+	this.setDirection(facedDirection);
 	if (this.isMovementSucceeded()) {
 		this.processFollowersPixelMoving();
 		this.setMovePressed(true);
@@ -2861,7 +2818,7 @@ Game_Player.prototype.processFollowersPixelMoving = function() {
 	this.recordPixelPosition();
 	const followers = this.followers()._data;
 	followers.forEach((follower, index) => {
-		if (J.ABS.EXT.ALLYAI && follower.getJabsBattler()) return;
+		if (follower.isPixelTrainSuspended()) return;
 		const precedingCharacter = index > 0 ? followers.at(index - 1) : $gamePlayer;
 		follower.pixelFaceCharacter(precedingCharacter);
 		const last = precedingCharacter.oldestPositionalRecord();
@@ -2876,7 +2833,7 @@ Game_Player.prototype.processFollowersPixelMoving = function() {
 */
 Game_Player.prototype.stopFollowersPixelMoving = function() {
 	this.followers()._data.forEach((follower) => {
-		if (J.ABS.EXT.ALLYAI && follower.getJabsBattler()) return;
+		if (follower.isPixelTrainSuspended()) return;
 		follower.stopPixelMoving();
 	});
 };
