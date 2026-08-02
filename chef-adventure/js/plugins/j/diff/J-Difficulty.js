@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v2.0.1 DIFFICULTY] A layered difficulty system.
+ * @plugindesc [v2.0.2 DIFFICULTY] A layered difficulty system.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -23,6 +23,12 @@
  * All difficulties are defined in an external JSON file.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.2
+ *    Fixed the scene's initMembers chain never reaching Scene_Base, which left
+ *    the modal dimmer field unseeded. getModalDimmerWindow guards on === null,
+ *    so undefined slipped straight past it and showModalDimmer dereferenced it.
+ *    Command windows now seed state in initMembers, early enough for
+ *    makeCommandList to see it.
  * - 2.0.1
  *    Added flag for showing external file load info.
  *    Removed dead plugin parameter inputs.
@@ -812,7 +818,7 @@ J.DIFFICULTY = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.0.1");
+J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.0.2");
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */

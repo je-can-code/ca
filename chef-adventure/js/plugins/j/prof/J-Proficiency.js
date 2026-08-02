@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.1.0 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.2.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -151,6 +151,12 @@
  * - Decreasing the proficiency will NOT undo rewards gained.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Learning a skill through proficiency now announces in the dia log,
+ *    naming the practiced skill, instead of only producing a floating text
+ *    pop on the same visual channel as damage numbers and gold. A skill's own
+ *    message1/message2 overrides the line.
+ *    Converted the last SDP duck-type in this ship to a namespace check.
  * - 2.1.0
  *    Registers 'p' as a formula context variable via Game_Action.registerFormulaContext.
  *    Damage formulas can now use 'p' for skill proficiency without J-Elementalistics
@@ -406,7 +412,7 @@ J.PROF = {};
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.1.0");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.2.0");
 /**
 * The various aliases associated with this plugin.
 */
@@ -759,7 +765,7 @@ Game_Actor.prototype.updateBonusSkillProficiencyGains = function() {
 */
 Object.defineProperty(Game_Actor.prototype, "prof", {
 	get: function() {
-		const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("prof", 1) : 0;
+		const sdpBonus = J.SDP ? this.getSdpBonusForParameterKey("prof", 1) : 0;
 		return this._j._proficiency._bonusSkillProficiencyGains + sdpBonus;
 	},
 	configurable: true

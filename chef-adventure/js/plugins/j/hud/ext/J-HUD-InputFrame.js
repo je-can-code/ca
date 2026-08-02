@@ -33,8 +33,7 @@
  * This plugin has no notetags of its own- it purely reads live JABS skill
  * slot/cooldown/cost data for display.
  * ============================================================================
- * CHANGELOG
- * ----------------------------------------------------------------------------
+ * CHANGELOG:
  * - 1.2.0
  *    Cooldown overlay icon: a configurable icon renders over skill slots that
  *    are currently on cooldown, making unavailability obvious at a glance.

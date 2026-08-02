@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 TIME] A system for tracking time- real or artificial.
+ * @plugindesc [v1.1.1 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -197,6 +197,16 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.1.1
+ *    Fixed a map tagged <noToneChange> suppressing the tone change outright,
+ *    so no tint was ever issued and the previous map's tone stayed painted on
+ *    screen: walking into a cave at midnight kept it midnight-blue. The tag now
+ *    resolves to a neutral target tone that the existing pipeline applies, and
+ *    the map transfer hook recomputes the tone rather than only flagging one
+ *    as due.
+ *    Fixed overnight time ranges, which had never worked. Date#addDays returns
+ *    a new date instead of mutating, unlike addHours beside it, so discarding
+ *    its result left every overnight range ending before it began.
  * - 1.1.0
  *    Added time-gated event pages/choices: exact-value, range, composite
  *    clock-time, and full-date-range tag families (Page and Choice variants)
@@ -646,7 +656,7 @@ J.TIME = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.1.0");
+J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.1.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -171,8 +171,7 @@
  *   + => damage/loss, - => heal/gain
  *
  * ============================================================================
- * CHANGELOG
- * ----------------------------------------------------------------------------
+ * CHANGELOG:
  * - 1.1.0
  *   Changed <on-HH:to-AA:by-formula:for-RR:[FORMULA]> to
  *   <onApplyFormula:[HH, AA, RR, FORMULA]>, and <on-HH:to-AA:by-skill:[SKILL_ID]>

@@ -42,8 +42,7 @@
  * resetting mappings to default- there's nothing to tag on database
  * objects.
  * ============================================================================
- * CHANGELOG
- * ----------------------------------------------------------------------------
+ * CHANGELOG:
  * - 2.3.0
  *    Added UsableItem as a remappable logical input (R2 by default),
  *    wiring J-ABS core's new usable-item equip slot to its own trigger.

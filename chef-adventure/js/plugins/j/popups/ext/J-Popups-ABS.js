@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.0 POPUPS-ABS] Combat and reward popups for JABS.
+ * [v1.3.1 POPUPS-ABS] Combat and reward popups for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -93,6 +93,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.1
+ *    Cleaned up the popup guards that the passive-refresh ordering fix in
+ *    J-Passive made redundant.
  * - 1.3.0
  *    Per-target strike/slip aggregates (no per-attacker lanes); combat slip/reward/mitigation merge buckets +
  *    idle/combo/map flush hooks; requires J-Popups v2.1.0+ merge stack (`Sprite_MapDamage`, merge controller).
@@ -187,7 +190,7 @@ J.POPUPS.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.POPUPS.EXT.ABS.Metadata = new J_PopupsAbs_PluginMetadata("J-Popups-ABS", "1.3.0");
+J.POPUPS.EXT.ABS.Metadata = new J_PopupsAbs_PluginMetadata("J-Popups-ABS", "1.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

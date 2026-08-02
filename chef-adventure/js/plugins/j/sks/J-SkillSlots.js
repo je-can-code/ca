@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.3.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
+ * @plugindesc [v1.4.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -195,6 +195,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.0
+ *    Retrofitted the skill equip scene onto the shared actor skeleton, so it
+ *    matches the other actor-scoped scenes.
+ *    Command windows now seed state in initMembers, early enough for
+ *    makeCommandList to see it.
  * - 1.3.0
  *    Added per-battler unslotted-skill exemptions via <unslottedSkills:[...]>.
  *    Stale slot entries are now automatically cleared when the actor no
@@ -343,7 +348,7 @@ J.SKS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.3.0");
+J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

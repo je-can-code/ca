@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.3.0 ELEM] Enables greater control over elements.
+ * @plugindesc [v1.3.1 ELEM] Enables greater control over elements.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -283,6 +283,12 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.1
+ *    Fixed Game_Actor#elementRate capturing its own original into the actor
+ *    alias map and then invoking the enemy's chain instead. Harmless only by
+ *    coincidence, since vanilla defines elementRate on Game_BattlerBase alone
+ *    and both maps held the same inherited function; the moment either
+ *    subclass gained its own, actors would have silently run the enemy's.
  * - 1.3.0
  *    Changed <boostElement:ELEMENT_ID:PERCENT_BOOST> to <boostElement:[ELEMENT_ID, PERCENT_BOOST]>.
  *    The old colon-separated shape required a bespoke, ad-hoc capture-group reader
@@ -337,7 +343,7 @@ J.ELEM = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.3.0");
+J.ELEM.Metadata = new J_ElementalisticsPluginMetadata("J-Elementalistics", "1.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -437,7 +443,7 @@ Game_Battler.prototype.extractElementRateBoosts = function(referenceData) {
 */
 J.ELEM.Aliased.Game_Actor.set("elementRate", Game_Actor.prototype.elementRate);
 Game_Actor.prototype.elementRate = function(elementId) {
-	const baseRate = J.ELEM.Aliased.Game_Enemy.get("elementRate").call(this, elementId);
+	const baseRate = J.ELEM.Aliased.Game_Actor.get("elementRate").call(this, elementId);
 	const isAbsorbed = this.isElementAbsorbed(elementId) ? -1 : 1;
 	return baseRate * isAbsorbed;
 };

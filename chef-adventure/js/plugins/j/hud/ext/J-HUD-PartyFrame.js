@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.0 HUD-PARTY] A HUD frame that displays your party's data.
+ * [v1.3.1 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -42,8 +42,12 @@
  * This plugin has no notetags of its own- it purely reads live battler data
  * for display.
  * ============================================================================
- * CHANGELOG
- * ----------------------------------------------------------------------------
+ * CHANGELOG:
+ * - 1.3.1
+ *    Fixed boot and load failures left behind by the quick menu pare-down:
+ *    Scene_Map#createJabsAbsMenu still called the six create-window methods
+ *    that went with the removed assignment flows, so loading any save crashed
+ *    before the map finished building. The quick menu has one window left.
  * - 1.3.0
  *    Leader affliction rendering now delegates to J-HUD core's shared
  *    StateAfflictionHudPresenter/StateAfflictionHudLayoutSpec instead of a
@@ -99,7 +103,7 @@ J.HUD.EXT.PARTY = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudParty_PluginMetadata}
 */
-J.HUD.EXT.PARTY.Metadata = new JHudParty_PluginMetadata("J-HUD-PartyFrame", "1.3.0");
+J.HUD.EXT.PARTY.Metadata = new JHudParty_PluginMetadata("J-HUD-PartyFrame", "1.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

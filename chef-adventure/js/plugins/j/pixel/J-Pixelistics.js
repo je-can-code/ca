@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.2 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
+ * [v1.0.3 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -45,6 +45,19 @@
  * entirely plugin-parameter driven.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.3
+ *    Fixed Game_CharacterBase#pos comparing fractional coordinates for exact
+ *    equality. Under pixel movement _x/_y are fractional almost always, so
+ *    pos() matched only by coincidence and event-trigger lookups
+ *    (Game_Map#eventsXy, startMapEvent) broke; coordinates are now rounded
+ *    before the tile comparison.
+ *    Fixed Game_Character#moveRandom re-rolling a direction every frame. A
+ *    "Move Random" route command repeats per frame to cover a tile of
+ *    sub-pixel distance, so the character twitched in place instead of
+ *    travelling; the rolled direction now holds for a full tile.
+ *    Fixed Game_CharacterBase#moveDiagonally facing the raw 8-direction
+ *    composite code, which Sprite_Character#characterPatternY cannot interpret
+ *    and rendered as a corrupted sprite-sheet row.
  * - 1.0.2
  *    Fixed a jump-in-progress being teleported to its destination on frame
  *    one- Game_CharacterBase#update's render-coordinate snap now skips
@@ -196,7 +209,7 @@ J.PIXEL.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.0.2");
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.0.3");
 /**
 * A collection of all aliased methods for this plugin.
 */

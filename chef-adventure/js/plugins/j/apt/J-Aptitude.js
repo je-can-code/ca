@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.2.0 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -128,6 +128,15 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Learning a skill through an aptitude now announces in the dia log, naming
+ *    the aptitude source, instead of only producing a floating text pop on the
+ *    same visual channel as damage numbers and gold.
+ *    Retrofitted the aptitude viewer onto the shared actor skeleton.
+ *    The actor ribbon is now one row tall and no longer teaches controls.
+ *    Fixed an accessor calling itself rather than assigning its field.
+ *    Command windows now seed state in initMembers, early enough for
+ *    makeCommandList to see it.
  * - 1.1.0
  *    Added AP rate multiplier via <aptMultiplier:AMOUNT>, registered with
  *    the shared parameter catalog (apr) with an SDP panel binding.
@@ -693,7 +702,7 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.1.0");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */

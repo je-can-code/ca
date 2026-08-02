@@ -1,7 +1,7 @@
 //region initialization
 /*:
  * @target MZ
- * @plugindesc [v1.4.0 LEVEL] Allows levels to have greater control and purpose.
+ * @plugindesc [v1.5.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -372,6 +372,12 @@
  * This same logic is again applied to gold from each defeated enemy.
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Learning a skill by levelling now announces in the dia log instead of
+ *    only producing a floating text pop on the same visual channel as damage
+ *    numbers and gold. backfillLearningsForCurrentLevel is explicitly safe to
+ *    call repeatedly, so it snapshots prior knowledge and does not re-announce
+ *    an actor's whole class list on every class change.
  * - 1.4.0
  *    Added Single Level Across Classes: actors can now share one level/exp
  *    across all classes instead of leveling each class independently, with
@@ -548,7 +554,7 @@ J.LEVEL.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.4.0");
+J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.5.0");
 /**
 * The maximum level definable in the level. Any level below this can be determined without extra calculations.
 * @type {number}
