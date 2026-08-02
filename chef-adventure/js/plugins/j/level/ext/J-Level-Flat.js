@@ -475,7 +475,7 @@ var ExperienceManager = class {
 		if (levelDifference === 0) return this.#parityExperience;
 		if (levelDifference < -15) return this.#minimumExperience;
 		if (levelDifference > 15) return this.#maximumExperience;
-		return this.#experienceMap.get(levelDifference) ?? this.#minimumExperience;
+		return this.#experienceMap.get(levelDifference);
 	}
 	/**
 	* Applies the experience modifications based on the policy multiplier.

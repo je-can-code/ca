@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.3 JAFTING-Core] Root JAFTING menu, salvage loop, and extension hooks.
+ * [v2.1.3 JAFTING] Root JAFTING menu, salvage loop, and extension hooks.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1202,6 +1202,20 @@ var Window_JaftingListHeader = class extends Window_Base {
 */
 var Window_SalvageCandidateList = class extends Window_Selectable {
 	/**
+	* Gets the data.
+	* @returns {Array} The data.
+	*/
+	data() {
+		return this._data;
+	}
+	/**
+	* Sets the data.
+	* @param {Array} newData The new data.
+	*/
+	setData(newData) {
+		this._data = newData;
+	}
+	/**
 	* @param {Rectangle} rect Window geometry.
 	*/
 	constructor(rect) {
@@ -1212,19 +1226,19 @@ var Window_SalvageCandidateList = class extends Window_Selectable {
 	* @returns {number}
 	*/
 	maxItems() {
-		return this._data.length;
+		return this.data().length;
 	}
 	/**
 	* @returns {RPG_Item|RPG_Weapon|RPG_Armor|undefined}
 	*/
 	item() {
-		return this._data[this.index()];
+		return this.data()[this.index()];
 	}
 	/**
 	* Rebuilds the backing datums from {@link JaftingSalvageManager.getSalvageCandidateDatums}.
 	*/
 	makeItemList() {
-		this._data = JaftingSalvageManager.getSalvageCandidateDatums();
+		this.setData(JaftingSalvageManager.getSalvageCandidateDatums());
 	}
 	/**
 	* Refreshes selectable entries.
@@ -1249,7 +1263,7 @@ var Window_SalvageCandidateList = class extends Window_Selectable {
 	* @param {number} index Draw index.
 	*/
 	drawItem(index) {
-		const datum = this._data[index];
+		const datum = this.data()[index];
 		if (datum === undefined || datum === null) {
 			return;
 		}
@@ -1292,8 +1306,36 @@ var Window_SalvageConfirmation = class extends Window_Command {
 */
 var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 	/**
+	* Gets the refund two column.
+	* @returns {*} The refundTwoColumn.
+	*/
+	/**
+	* Gets the dismantle amount.
+	* @returns {number} The dismantleAmount.
+	*/
+	dismantleAmount() {
+		return this._dismantleAmount;
+	}
+	/**
+	* Gets the datum.
+	* @returns {*} The datum.
+	*/
+	datum() {
+		return this._datum;
+	}
+	/**
 	* @param {Rectangle} rect Window geometry (repositioned by {@link Scene_JaftingSalvage#layoutSalvagePanels}).
 	*/
+	isRefundTwoColumn() {
+		return this._refundTwoColumn;
+	}
+	/**
+	* Sets the refund two column.
+	* @param {*} newRefundTwoColumn The new refundTwoColumn.
+	*/
+	setRefundTwoColumn(newRefundTwoColumn) {
+		this._refundTwoColumn = newRefundTwoColumn;
+	}
 	constructor(rect) {
 		super(rect);
 		this._datum = null;
@@ -1306,7 +1348,7 @@ var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 	* @param {boolean} flag The flag driving this step.
 	*/
 	setRefundTwoColumnMode(flag) {
-		this._refundTwoColumn = flag === true;
+		this.setRefundTwoColumn(flag === true);
 	}
 	/**
 	* How many stamped units one confirm action dismantles (must match {@link Scene_JaftingSalvage.DismantleBatchSize}).
@@ -1335,23 +1377,23 @@ var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 			this.createContents();
 		}
 		this.contents.clear();
-		if (this._datum === null || this._datum === undefined) {
+		if (this.datum() === null || this.datum() === undefined) {
 			this.drawText("Select an item to preview refunds.", 0, 0, this.contentsWidth(), "left");
 			return;
 		}
-		const raw = JaftingSalvageManager.getLedgerForDatum(this._datum);
+		const raw = JaftingSalvageManager.getLedgerForDatum(this.datum());
 		if (!raw || !raw.rows || raw.rows.length === 0) {
 			this.drawText("Nothing recoverable is stamped on this item.", 0, 0, this.contentsWidth(), "left");
 			return;
 		}
-		const snap = JaftingSalvageManager.getSalvageLedgerSnapshotExpanded(this._datum);
+		const snap = JaftingSalvageManager.getSalvageLedgerSnapshotExpanded(this.datum());
 		if (!snap || !snap.rows || snap.rows.length === 0) {
 			this.drawText("Stamped, but every weapon/armor line was vendor-only—nothing returns when dismantled.", 0, 0, this.contentsWidth(), "left");
 			return;
 		}
 		const visibleRows = Window_SalvagePreview.collectNonBannedRows(snap.rows);
-		const stack = $gameParty.numItems(this._datum);
-		const batch = this._dismantleAmount;
+		const stack = $gameParty.numItems(this.datum());
+		const batch = this.dismantleAmount();
 		let y = 0;
 		const lh = this.lineHeight();
 		const countCol = 72;
@@ -1360,7 +1402,7 @@ var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 		this.drawText("Selected item", 0, y, this.contentsWidth(), "left");
 		y += lh;
 		this.resetTextColor();
-		this.drawItemName(this._datum, 0, y, nameW);
+		this.drawItemName(this.datum(), 0, y, nameW);
 		this.drawText(`×${stack}`, nameW, y, countCol, "right");
 		y += lh;
 		this.changeTextColor(ColorManager.systemColor());
@@ -1397,7 +1439,7 @@ var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 	* @param {number} nameW The name w driving this step.
 	*/
 	paintExpandedRefundRows(y, visibleRows, batch, lh, countCol, nameW) {
-		if (this._refundTwoColumn === false) {
+		if (this.isRefundTwoColumn() === false) {
 			this.paintExpandedRefundRowsSingle(y, visibleRows, batch, lh, countCol, nameW);
 			return;
 		}
@@ -1549,6 +1591,76 @@ var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 */
 var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 	/**
+	* Gets the last preview datum.
+	* @returns {*} The lastPreviewDatum.
+	*/
+	lastPreviewDatum() {
+		return this._lastPreviewDatum;
+	}
+	/**
+	* Sets the last preview datum.
+	* @param {*} newLastPreviewDatum The new lastPreviewDatum.
+	*/
+	setLastPreviewDatum(newLastPreviewDatum) {
+		this._lastPreviewDatum = newLastPreviewDatum;
+	}
+	/**
+	* Gets the last preview stack.
+	* @returns {*} The lastPreviewStack.
+	*/
+	lastPreviewStack() {
+		return this._lastPreviewStack;
+	}
+	/**
+	* Sets the last preview stack.
+	* @param {*} newLastPreviewStack The new lastPreviewStack.
+	*/
+	setLastPreviewStack(newLastPreviewStack) {
+		this._lastPreviewStack = newLastPreviewStack;
+	}
+	/**
+	* Gets the candidate window.
+	* @returns {Window_SalvageCandidateList} The candidateWindow.
+	*/
+	candidateWindow() {
+		return this._candidateWindow;
+	}
+	/**
+	* Sets the candidate window.
+	* @param {Window_SalvageCandidateList} newCandidateWindow The new candidateWindow.
+	*/
+	setCandidateWindow(newCandidateWindow) {
+		this._candidateWindow = newCandidateWindow;
+	}
+	/**
+	* Gets the preview window.
+	* @returns {Window_SalvagePreview} The previewWindow.
+	*/
+	previewWindow() {
+		return this._previewWindow;
+	}
+	/**
+	* Sets the preview window.
+	* @param {Window_SalvagePreview} newPreviewWindow The new previewWindow.
+	*/
+	setPreviewWindow(newPreviewWindow) {
+		this._previewWindow = newPreviewWindow;
+	}
+	/**
+	* Gets the confirmation window.
+	* @returns {Window_SalvageConfirmation} The confirmationWindow.
+	*/
+	confirmationWindow() {
+		return this._confirmationWindow;
+	}
+	/**
+	* Sets the confirmation window.
+	* @param {Window_SalvageConfirmation} newConfirmationWindow The new confirmationWindow.
+	*/
+	setConfirmationWindow(newConfirmationWindow) {
+		this._confirmationWindow = newConfirmationWindow;
+	}
+	/**
 	* How many stamped units one confirmation dismantles (stack splitting can grow this later).
 	*/
 	static DismantleBatchSize = 1;
@@ -1587,19 +1699,19 @@ var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 	*/
 	create() {
 		Scene_MenuBase.prototype.create.call(this);
-		this._lastPreviewDatum = null;
-		this._lastPreviewStack = null;
+		this.setLastPreviewDatum(null);
+		this.setLastPreviewStack(null);
 		this.createSalvageWindows();
 	}
 	/**
 	* Softens the map backdrop similar to other JAFTING scenes.
 	*/
 	createBackground() {
-		this._backgroundFilter = new PIXI.filters.AlphaFilter(.1);
-		this._backgroundSprite = new Sprite();
-		this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-		this._backgroundSprite.filters = [this._backgroundFilter];
-		this.addChild(this._backgroundSprite);
+		this.setBackgroundFilter(new PIXI.filters.AlphaFilter(.1));
+		this.setBackgroundSprite(new Sprite());
+		this.backgroundSprite().bitmap = SceneManager.backgroundBitmap();
+		this.backgroundSprite().filters = [this.backgroundFilter()];
+		this.addChild(this.backgroundSprite());
 	}
 	/**
 	* Suppresses touch UI chrome for parity with Creation / Refinement scenes.
@@ -1612,19 +1724,19 @@ var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 		const candidateRect = this.salvageCandidateWindowRect();
 		const previewRect = this.salvagePreviewWindowRect();
 		const confirmRect = this.salvageConfirmationWindowRect();
-		this._candidateWindow = new Window_SalvageCandidateList(candidateRect);
-		this._candidateWindow.setHandler("ok", this.onSalvageCandidateOk.bind(this));
-		this._candidateWindow.setHandler("cancel", this.popScene.bind(this));
-		this._previewWindow = new Window_SalvagePreview(previewRect);
-		this._confirmationWindow = new Window_SalvageConfirmation(confirmRect);
-		this._confirmationWindow.setHandler("confirm", this.onSalvageConfirmOk.bind(this));
-		this._confirmationWindow.setHandler("cancel", this.onSalvageConfirmCancel.bind(this));
-		this._confirmationWindow.hide();
-		this._confirmationWindow.deactivate();
-		this.addWindow(this._candidateWindow);
-		this.addWindow(this._previewWindow);
-		this.addWindow(this._confirmationWindow);
-		this._previewWindow.setDismantleAmount(Scene_JaftingSalvage.DismantleBatchSize);
+		this.setCandidateWindow(new Window_SalvageCandidateList(candidateRect));
+		this.candidateWindow().setHandler("ok", this.onSalvageCandidateOk.bind(this));
+		this.candidateWindow().setHandler("cancel", this.popScene.bind(this));
+		this.setPreviewWindow(new Window_SalvagePreview(previewRect));
+		this.setConfirmationWindow(new Window_SalvageConfirmation(confirmRect));
+		this.confirmationWindow().setHandler("confirm", this.onSalvageConfirmOk.bind(this));
+		this.confirmationWindow().setHandler("cancel", this.onSalvageConfirmCancel.bind(this));
+		this.confirmationWindow().hide();
+		this.confirmationWindow().deactivate();
+		this.addWindow(this.candidateWindow());
+		this.addWindow(this.previewWindow());
+		this.addWindow(this.confirmationWindow());
+		this.previewWindow().setDismantleAmount(Scene_JaftingSalvage.DismantleBatchSize);
 	}
 	/**
 	* Shared width for the candidate column so create-time rects match {@link #layoutSalvagePanels}.
@@ -1710,9 +1822,9 @@ var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 	layoutSalvagePanels() {
 		const strip = this.salvageClusterStripLayout();
 		const { listX, listW, previewX, previewW, topY, bandH } = strip;
-		this._candidateWindow.move(listX, topY, listW, bandH);
-		const preview = this._previewWindow;
-		const item = this._candidateWindow.item();
+		this.candidateWindow().move(listX, topY, listW, bandH);
+		const preview = this.previewWindow();
+		const item = this.candidateWindow().item();
 		const n = JaftingSalvageManager.visibleExpandedRefundRowCount(item);
 		const linesSingle = JaftingSalvageManager.layoutPreviewLineCountSingle(item);
 		const linesTwo = JaftingSalvageManager.layoutPreviewLineCountTwoColumn(item);
@@ -1756,11 +1868,11 @@ var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 	*/
 	start() {
 		Scene_MenuBase.prototype.start.call(this);
-		this._candidateWindow.open();
-		this._previewWindow.open();
-		this._confirmationWindow.open();
-		this._candidateWindow.refresh();
-		this._candidateWindow.activate();
+		this.candidateWindow().open();
+		this.previewWindow().open();
+		this.confirmationWindow().open();
+		this.candidateWindow().refresh();
+		this.candidateWindow().activate();
 		this.refreshPreviewFromSelection();
 	}
 	/**
@@ -1768,14 +1880,14 @@ var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 	*/
 	update() {
 		Scene_MenuBase.prototype.update.call(this);
-		if (this._candidateWindow && this._candidateWindow.active) {
-			const item = this._candidateWindow.item();
+		if (this.candidateWindow() && this.candidateWindow().active) {
+			const item = this.candidateWindow().item();
 			const stack = item ? $gameParty.numItems(item) : 0;
-			if (item !== this._lastPreviewDatum || stack !== this._lastPreviewStack) {
-				this._lastPreviewDatum = item;
-				this._lastPreviewStack = stack;
+			if (item !== this.lastPreviewDatum() || stack !== this.lastPreviewStack()) {
+				this.setLastPreviewDatum(item);
+				this.setLastPreviewStack(stack);
 				this.layoutSalvagePanels();
-				this._previewWindow.setDatum(item);
+				this.previewWindow().setDatum(item);
 			}
 		}
 	}
@@ -1783,21 +1895,21 @@ var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 	* Requests confirmation before dismantling the highlighted entry.
 	*/
 	onSalvageCandidateOk() {
-		const datum = this._candidateWindow.item();
+		const datum = this.candidateWindow().item();
 		if (datum === undefined || datum === null) {
 			SoundManager.playBuzzer();
 			return;
 		}
-		this._confirmationWindow.show();
-		this._confirmationWindow.select(0);
-		this._confirmationWindow.activate();
-		this._candidateWindow.deactivate();
+		this.confirmationWindow().show();
+		this.confirmationWindow().select(0);
+		this.confirmationWindow().activate();
+		this.candidateWindow().deactivate();
 	}
 	/**
 	* Confirms salvage execution for a single unit.
 	*/
 	onSalvageConfirmOk() {
-		const datum = this._candidateWindow.item();
+		const datum = this.candidateWindow().item();
 		if (datum === undefined || datum === null) {
 			SoundManager.playBuzzer();
 			this.onSalvageConfirmCancel();
@@ -1809,7 +1921,7 @@ var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 		} else {
 			SoundManager.playUseItem();
 		}
-		this._candidateWindow.refresh();
+		this.candidateWindow().refresh();
 		this.refreshPreviewFromSelection();
 		this.onSalvageConfirmCancel();
 	}
@@ -1817,20 +1929,20 @@ var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 	* Closes the confirmation layer and returns focus to the list.
 	*/
 	onSalvageConfirmCancel() {
-		this._confirmationWindow.hide();
-		this._confirmationWindow.deactivate();
-		this._candidateWindow.activate();
+		this.confirmationWindow().hide();
+		this.confirmationWindow().deactivate();
+		this.candidateWindow().activate();
 	}
 	/**
 	* Forces preview regeneration after list mutations.
 	*/
 	refreshPreviewFromSelection() {
-		const item = this._candidateWindow.item();
+		const item = this.candidateWindow().item();
 		const stack = item ? $gameParty.numItems(item) : 0;
-		this._lastPreviewDatum = item;
-		this._lastPreviewStack = stack;
+		this.setLastPreviewDatum(item);
+		this.setLastPreviewStack(stack);
 		this.layoutSalvagePanels();
-		this._previewWindow.setDatum(item);
+		this.previewWindow().setDatum(item);
 	}
 };
 

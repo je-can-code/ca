@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v2.0.1 DIFFICULTY] A layered difficulty system.
+ * @plugindesc [v2.0.2 DIFFICULTY] A layered difficulty system.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -23,6 +23,12 @@
  * All difficulties are defined in an external JSON file.
  * ============================================================================
  * CHANGELOG:
+ * - 2.0.2
+ *    Fixed the scene's initMembers chain never reaching Scene_Base, which left
+ *    the modal dimmer field unseeded. getModalDimmerWindow guards on === null,
+ *    so undefined slipped straight past it and showModalDimmer dereferenced it.
+ *    Command windows now seed state in initMembers, early enough for
+ *    makeCommandList to see it.
  * - 2.0.1
  *    Added flag for showing external file load info.
  *    Removed dead plugin parameter inputs.
@@ -812,7 +818,7 @@ J.DIFFICULTY = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.0.1");
+J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.0.2");
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -1148,11 +1154,11 @@ Game_Temp.prototype.findDifficultyLayerByKey = function(key) {
 * Sets up the difficulty layers based on the plugin parameters.
 */
 Game_Temp.prototype.setupDifficultySystem = function() {
-	this._j._difficulty._metadata.forEach((difficultyMetadata, key) => {
+	this.metadata().forEach((difficultyMetadata, key) => {
 		const difficultyLayer = DifficultyLayer.fromMetadata(difficultyMetadata);
-		this._j._difficulty._allLayers.set(key, difficultyLayer);
+		this.getAllDifficultyLayers().set(key, difficultyLayer);
 		const difficultyConfig = DifficultyConfig.fromMetadata(difficultyMetadata);
-		this._j._difficulty._allConfigs.set(key, difficultyConfig);
+		this.allConfigs().set(key, difficultyConfig);
 		$gameSystem.registerDifficultyConfig(difficultyConfig);
 	});
 	this.refreshAppliedDifficulty();
@@ -1234,6 +1240,20 @@ Game_Temp.prototype.buildAppliedDifficulty = function() {
 	const { appliedKey, appliedName, appliedDescription } = DifficultyLayer;
 	const newDifficulty = new DifficultyBuilder(appliedName, appliedKey).setDescription(appliedDescription).setCost(cost).setActorEffects(enabledActorEffects).setEnemyEffects(enabledEnemyEffects).setRewards(rewards).buildAsLayer();
 	return newDifficulty;
+};
+/**
+* Gets the difficulty metadata staged for the layer being edited.
+* @returns {object} The staged difficulty metadata.
+*/
+Game_Temp.prototype.metadata = function() {
+	return this._j._difficulty._metadata;
+};
+/**
+* Gets the all configs.
+* @returns {*} The allConfigs.
+*/
+Game_Temp.prototype.allConfigs = function() {
+	return this._j._difficulty._allConfigs;
 };
 
 //#endregion
@@ -1560,23 +1580,35 @@ var Window_DifficultyPoints = class extends Window_Base {
 //#region src/plugins/diff/core/windows/Window_DifficultyEffects.js
 var Window_DifficultyEffects = class Window_DifficultyEffects extends Window_Command {
 	/**
-	* The difficulty being hovered over from the list.
-	* @type {DifficultyBattlerEffects}
-	*/
-	hoveredEffects = null;
-	hoveredBonuses = null;
-	/**
-	* The type of effects being displayed in this list.
-	* @type {Window_DifficultyEffects.EffectsTypes}
-	*/
-	hoveredEffectsType = String.empty;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
-		this.refresh();
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
+	*/
+	initMembers() {
+		/**
+		* The difficulty being hovered over from the list.
+		* @type {DifficultyBattlerEffects}
+		*/
+		this.hoveredEffects = null;
+		/**
+		* The bonuses of the difficulty being hovered over from the list.
+		* @type {DifficultyBonusEffects}
+		*/
+		this.hoveredBonuses = null;
+		/**
+		* The type of effects being displayed in this list.
+		* @type {Window_DifficultyEffects.EffectsTypes}
+		*/
+		this.hoveredEffectsType = String.empty;
 	}
 	/**
 	* The types of comparison that are valid when comparing parameter values.
@@ -1957,9 +1989,11 @@ var Scene_Difficulty = class extends Scene_MenuBase {
 		this.initialize();
 	}
 	/**
-	* Initializes all properties for this scene.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes all properties for this scene.
 	*/
 	initMembers() {
+		super.initMembers();
 		/**
 		* The shared root namespace for all of J's plugin data.
 		*/

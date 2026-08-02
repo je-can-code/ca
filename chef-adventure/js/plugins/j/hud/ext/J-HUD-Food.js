@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 FOOD] A J-HUD extension that displays the current food chain status on screen.
+ * [v1.0.0 HUD-FOOD] A J-HUD extension that displays the current food chain status on screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -396,7 +396,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {number} height Outer height including the frame.
 	*/
 	#strokeBarOutline(x, y, width, height) {
-		const ctx = this.contents._context;
+		const ctx = this.contents.context;
 		ctx.save();
 		ctx.beginPath();
 		ctx.rect(x + .5, y + .5, width - 1, height - 1);

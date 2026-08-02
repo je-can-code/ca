@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.1 ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v3.0.1 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -365,9 +365,10 @@ J.ABS.EXT.ALLYAI.Aliased = {
 	JABS_Battler: new Map(),
 	JABS_Engine: new Map(),
 	Scene_Map: new Map(),
+	Scene_Menu: new Map(),
 	Spriteset_Map: new Map(),
-	Window_AbsMenu: new Map(),
-	Window_AbsMenuSelect: new Map()
+	Window_AllyAiSelect: new Map(),
+	Window_MenuCommand: new Map()
 };
 /**
 * All regular expressions used by this plugin.
@@ -621,6 +622,62 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 		this.memory = [];
 	}
 	/**
+	* Gets the risk.
+	* @returns {number} The risk.
+	*/
+	risk() {
+		return this._risk;
+	}
+	/**
+	* Sets the risk.
+	* @param {number} newRisk The new risk.
+	*/
+	setRisk(newRisk) {
+		this._risk = newRisk;
+	}
+	/**
+	* Gets the support.
+	* @returns {number} The support.
+	*/
+	support() {
+		return this._support;
+	}
+	/**
+	* Sets the support.
+	* @param {number} newSupport The new support.
+	*/
+	setSupport(newSupport) {
+		this._support = newSupport;
+	}
+	/**
+	* Gets the spacing.
+	* @returns {number} The spacing.
+	*/
+	spacing() {
+		return this._spacing;
+	}
+	/**
+	* Sets the spacing.
+	* @param {number} newSpacing The new spacing.
+	*/
+	setSpacing(newSpacing) {
+		this._spacing = newSpacing;
+	}
+	/**
+	* Gets the preset key.
+	* @returns {string} The presetKey.
+	*/
+	presetKey() {
+		return this._presetKey;
+	}
+	/**
+	* Sets the preset key.
+	* @param {string} newPresetKey The new presetKey.
+	*/
+	setPresetKey(newPresetKey) {
+		this._presetKey = newPresetKey;
+	}
+	/**
 	* Gets whether this ally is in do-nothing mode.
 	* @returns {boolean}
 	*/
@@ -639,28 +696,28 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	* @returns {number}
 	*/
 	getRisk() {
-		return this._risk;
+		return this.risk();
 	}
 	/**
 	* Gets the current support axis value.
 	* @returns {number}
 	*/
 	getSupport() {
-		return this._support;
+		return this.support();
 	}
 	/**
 	* Gets the current spacing axis value.
 	* @returns {number}
 	*/
 	getSpacing() {
-		return this._spacing;
+		return this.spacing();
 	}
 	/**
 	* Gets the key of the currently applied preset.
 	* @returns {string}
 	*/
 	getPresetKey() {
-		return this._presetKey;
+		return this.presetKey();
 	}
 	/**
 	* Applies a preset by key, updating all three axes and the stored preset key.
@@ -672,10 +729,10 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 			console.error(`Attempted to apply ally AI preset: [${presetKey}], but it is not a valid preset.`);
 			return;
 		}
-		this._risk = preset.risk;
-		this._support = preset.support;
-		this._spacing = preset.spacing;
-		this._presetKey = preset.key;
+		this.setRisk(preset.risk);
+		this.setSupport(preset.support);
+		this.setSpacing(preset.spacing);
+		this.setPresetKey(preset.key);
 	}
 	/**
 	* Gets the close-distance threshold in tiles for this ally's current spacing.
@@ -683,8 +740,8 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	* @returns {number}
 	*/
 	getCloseDistance() {
-		if (this._doNothing) return JABS_AllyAI.DoNothingCloseDistance;
-		return JABS_AllyAI.CloseDistances[this._spacing];
+		if (this.isDoNothing()) return JABS_AllyAI.DoNothingCloseDistance;
+		return JABS_AllyAI.CloseDistances[this.spacing()];
 	}
 	/**
 	* Gets the far-distance threshold in tiles for this ally's current spacing.
@@ -692,8 +749,8 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	* @returns {number}
 	*/
 	getFarDistance() {
-		if (this._doNothing) return JABS_AllyAI.DoNothingFarDistance;
-		return JABS_AllyAI.FarDistances[this._spacing];
+		if (this.isDoNothing()) return JABS_AllyAI.DoNothingFarDistance;
+		return JABS_AllyAI.FarDistances[this.spacing()];
 	}
 	/**
 	* Gets the leash multiplier for this ally's current spacing.
@@ -701,8 +758,8 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	* @returns {number}
 	*/
 	getLeashMultiplier() {
-		if (this._doNothing) return JABS_AllyAI.DoNothingLeashMultiplier;
-		return JABS_AllyAI.LeashMultipliers[this._spacing];
+		if (this.isDoNothing()) return JABS_AllyAI.DoNothingLeashMultiplier;
+		return JABS_AllyAI.LeashMultipliers[this.spacing()];
 	}
 	/**
 	* Wraps a base support helper result (0 means none) as a uniform skill-id list.
@@ -721,10 +778,10 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	* @returns {number[]} Exactly one skill id, or empty when no valid choice exists.
 	*/
 	decideAction(user, target, availableSkills) {
-		if (this._doNothing) return this.decideDoNothing(user);
+		if (this.isDoNothing()) return this.decideDoNothing(user);
 		const usableSkills = this.filterUncastableSkills(user, availableSkills);
 		if (this.shouldFollowWithCombo(user)) return [this.followWithCombo(user)];
-		switch (this._support) {
+		switch (this.support()) {
 			case JABS_AllyAI.Support.SUPPORT: return this.decideSupportFirst(usableSkills, user, target);
 			case JABS_AllyAI.Support.BALANCED: return this.decideBalancedSupport(usableSkills, user, target);
 			case JABS_AllyAI.Support.OFFENSE:
@@ -783,7 +840,7 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	*/
 	decideOffense(usableSkills, user, target) {
 		if (!usableSkills.length) return [];
-		switch (this._risk) {
+		switch (this.risk()) {
 			case JABS_AllyAI.Risk.RECKLESS: return this.decideRecklessOffense(usableSkills, user, target);
 			case JABS_AllyAI.Risk.CAREFUL: return this.decideCautiousOffense(usableSkills, user, target);
 			case JABS_AllyAI.Risk.BALANCED:
@@ -1458,14 +1515,14 @@ Game_Actor.prototype.getAllyAI = function() {
 	if (!this._j._abs._allyAi) {
 		this.initAllyAiMembers();
 	}
-	return this._j._abs._allyAi._mode;
+	return this.mode();
 };
 /**
 * Applies an ally AI preset to this ally by preset key.
 * @param {string} presetKey The key of the preset to apply.
 */
 Game_Actor.prototype.setAllyAIPreset = function(presetKey) {
-	this._j._abs._allyAi._mode.applyPreset(presetKey);
+	this.mode().applyPreset(presetKey);
 };
 /**
 * Gets the default ally AI mode associated with an actor.
@@ -1473,7 +1530,7 @@ Game_Actor.prototype.setAllyAIPreset = function(presetKey) {
 * @returns {string}
 */
 Game_Actor.prototype.getDefaultAllyAI = function() {
-	if (!this._actorId) return null;
+	if (!this.actorId()) return null;
 	const actorMode = RPGManager.getStringFromNoteByRegex(this.actor(), J.ABS.EXT.ALLYAI.RegExp.DefaultAi, true);
 	const classMode = RPGManager.getStringFromNoteByRegex(this.currentClass(), J.ABS.EXT.ALLYAI.RegExp.DefaultAi, true);
 	const allyAiMode = classMode ?? actorMode;
@@ -1488,6 +1545,13 @@ Game_Actor.prototype.getDefaultAllyAI = function() {
 */
 Game_Actor.prototype.getValidSkillSlotsForAlly = function() {
 	return this.getSkillSlotManager().getEquippedAllySlots();
+};
+/**
+* Gets the ally AI mode governing how this actor fights on its own.
+* @returns {string} The configured ally AI mode.
+*/
+Game_Actor.prototype.mode = function() {
+	return this._j._abs._allyAi._mode;
 };
 
 //#endregion
@@ -1547,7 +1611,6 @@ J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set("show", Game_Followers.prototype.sho
 Game_Followers.prototype.show = function() {
 	J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get("show").call(this);
 	$gameMap.updateAllies();
-	$jabsEngine.requestJabsMenuRefresh = true;
 };
 /**
 * Extends {@link #hide}.<br/>
@@ -1558,7 +1621,6 @@ J.ABS.EXT.ALLYAI.Aliased.Game_Followers.set("hide", Game_Followers.prototype.hid
 Game_Followers.prototype.hide = function() {
 	J.ABS.EXT.ALLYAI.Aliased.Game_Followers.get("hide").call(this);
 	$gameMap.updateAllies();
-	$jabsEngine.requestJabsMenuRefresh = true;
 };
 /**
 * Overwrites {@link #jumpAll}.<br/>
@@ -1568,7 +1630,7 @@ Game_Followers.prototype.hide = function() {
 Game_Followers.prototype.jumpAll = function() {
 	if (!$gamePlayer.isJumping()) return;
 	const playerBattler = $gamePlayer.getJabsBattler();
-	for (const follower of this._data) {
+	for (const follower of this.data()) {
 		if (!follower || !follower.isVisible()) continue;
 		const battler = follower.getJabsBattler();
 		if (battler.isEngaged() || !$gameMap._interpreter.isRunning()) continue;
@@ -1582,7 +1644,7 @@ Game_Followers.prototype.jumpAll = function() {
 * @param {boolean} isFixed Whether or not the direction should be fixed.
 */
 Game_Followers.prototype.setDirectionFixAll = function(isFixed) {
-	this._data.forEach((follower) => {
+	this.data().forEach((follower) => {
 		if (!follower) return;
 		const battler = follower.getJabsBattler();
 		if (!battler) return;
@@ -1760,6 +1822,193 @@ Game_Player.prototype.jumpFollowersToMe = function() {
 };
 
 //#endregion
+//#region src/plugins/abs/ext/allyai/sprites/Spriteset_Map.js
+/**
+* Extends {@link #refreshAllCharacterSprites}.<br/>
+* Also refreshes follower ally battlers after sprites have been refreshed.
+*/
+J.ABS.EXT.ALLYAI.Aliased.Spriteset_Map.set("refreshAllCharacterSprites", Spriteset_Map.prototype.refreshAllCharacterSprites);
+Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Spriteset_Map.get("refreshAllCharacterSprites").call(this);
+	if ($jabsEngine.requestAlliesRefresh) {
+		$gameMap.updateAllies();
+		$jabsEngine.requestAlliesRefresh = false;
+	}
+};
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/windows/Window_AllyAiSelect.js
+/**
+* The on-map windows for reviewing and changing how allies behave in combat.
+*
+* This previously rode on the JABS quick menu's shared selection window, extending it with two extra
+* modes. That window existed to serve ten loadout-assignment modes as well, all of which moved into
+* the loadout scene- leaving ally AI as its only remaining consumer. Inheriting from a class gutted
+* down to nothing but a mode switch would have been worse than owning the behavior outright, so this
+* is now a window in its own right.
+*
+* Ally AI stays on the map rather than following the assignment flows into a scene because it is a
+* tactical decision made between fights, where breaking to a full scene costs more than it gains.
+*/
+var Window_AllyAiSelect = class Window_AllyAiSelect extends Window_Command {
+	/**
+	* The modes this window can render.
+	*/
+	static Types = {
+		/**
+		* The list of party members whose AI may be configured, plus the party-wide toggles.
+		*/
+		PartyList: "ai-party-list",
+		/**
+		* The list of AI presets a single chosen ally may adopt.
+		*/
+		SelectAi: "select-ai"
+	};
+	/**
+	* @constructor
+	* @param {Rectangle} rect The shape of the window.
+	* @param {string} type Which of {@link Window_AllyAiSelect.Types} this window renders.
+	*/
+	constructor(rect, type) {
+		super(rect);
+		this.setMenuType(type);
+		this.refresh();
+		this.select(0);
+		this.activate();
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes all custom members of this window.
+	*/
+	initMembers() {
+		/**
+		* Which mode this window renders.
+		* @type {string}
+		*/
+		this._menuType = String.empty;
+		/**
+		* The actor id of the ally currently being managed through this window.
+		* @type {number}
+		*/
+		this._chosenActorId = 0;
+	}
+	/**
+	* Gets which mode this window renders.
+	* @returns {string} The menuType.
+	*/
+	menuType() {
+		return this._menuType;
+	}
+	/**
+	* Sets which mode this window renders.
+	* @param {string} newMenuType The new menuType.
+	*/
+	setMenuType(newMenuType) {
+		this._menuType = newMenuType;
+	}
+	/**
+	* Gets the actor id of the ally being managed.
+	* @returns {number} The chosenActorId.
+	*/
+	getActorId() {
+		return this._chosenActorId;
+	}
+	/**
+	* Sets the actor id of the ally being managed.
+	* @param {number} actorId The new chosenActorId.
+	*/
+	setActorId(actorId) {
+		this._chosenActorId = actorId;
+	}
+	/**
+	* Implements {@link #makeCommandList}.<br/>
+	* Builds whichever list this window's mode calls for.
+	*/
+	makeCommandList() {
+		switch (this.menuType()) {
+			case Window_AllyAiSelect.Types.PartyList:
+				this.addAggroPassiveToggleCommand();
+				this.makeAllyList();
+				this.addAllyFormationCommand();
+				break;
+			case Window_AllyAiSelect.Types.SelectAi:
+				this.makeAllyAiDoNothingToggle();
+				this.makeAllyAiPresetList();
+				break;
+		}
+	}
+	/**
+	* Draws the list of party members whose AI can be configured.
+	*/
+	makeAllyList() {
+		const forEacher = (member) => {
+			const command = new WindowCommandBuilder(member.name()).setSymbol("party-member").setExtensionData(member.actorId()).build();
+			this.addBuiltCommand(command);
+		};
+		$gameParty.allMembers().forEach(forEacher, this);
+	}
+	/**
+	* Injects the aggro-passive toggle command into the menu.
+	*/
+	addAggroPassiveToggleCommand() {
+		const aggroPassiveCommandName = $gameParty.isAggro() ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText;
+		const aggroPassiveCommandIcon = $gameParty.isAggro() ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex;
+		const description = $gameParty.isAggro() ? "The party is currently 'aggro'.\nAllies will engage in any enemy that comes within their range." : "The party is currently 'passive'.\nAllies will not engage until the leader strikes or is struck.";
+		const textColor = $gameParty.isAggro() ? 2 : 3;
+		const command = new WindowCommandBuilder(aggroPassiveCommandName).setSymbol("aggro-passive-toggle").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setColorIndex(textColor).setIconIndex(aggroPassiveCommandIcon).build();
+		this.addBuiltCommand(command);
+	}
+	/**
+	* Injects the party formations command into the menu.
+	*/
+	addAllyFormationCommand() {
+		const allyFormationsCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandName).setSymbol("ally-formations").setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandIconIndex).setColorIndex(23).build();
+		this.addBuiltCommand(allyFormationsCommand);
+	}
+	/**
+	* Adds a do-nothing toggle command at the top of the ally AI selection window.
+	* Mirrors the aggro/passive toggle pattern from the party list window.
+	*/
+	makeAllyAiDoNothingToggle() {
+		const currentActor = $gameActors.actor(this.getActorId());
+		if (!currentActor) return;
+		const allyAI = currentActor.getAllyAI();
+		const isDoNothing = allyAI.isDoNothing();
+		const commandName = isDoNothing ? "Do Nothing: ON" : "Do Nothing: OFF";
+		const description = isDoNothing ? "This ally hangs back and takes no actions.\nToggle off to restore their preset behavior." : "This ally acts according to their preset.\nToggle on to make them stand down entirely.";
+		const colorIndex = isDoNothing ? 3 : 2;
+		const iconIndex = isDoNothing ? J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex : J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex;
+		const command = new WindowCommandBuilder(commandName).setSymbol("do-nothing-toggle").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setColorIndex(colorIndex).setIconIndex(iconIndex).build();
+		this.addBuiltCommand(command);
+	}
+	/**
+	* Draws the list of available AI presets that an ally can use.
+	*/
+	makeAllyAiPresetList() {
+		const currentActor = $gameActors.actor(this.getActorId());
+		if (!currentActor) return;
+		const presets = JABS_AllyAI.getPresets();
+		const currentAi = currentActor.getAllyAI();
+		const forEacher = (preset) => {
+			const { key, name, description } = preset;
+			const isEquipped = currentAi.getPresetKey() === key;
+			const iconIndex = isEquipped ? J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex : J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
+			const command = new WindowCommandBuilder(name).setSymbol("select-ai").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setIconIndex(iconIndex).setEnabled(true).setExtensionData(preset).build();
+			this.addBuiltCommand(command);
+		};
+		presets.forEach(forEacher, this);
+	}
+	/**
+	* Overwrites {@link #itemHeight}.<br/>
+	* Increases the height so subtext can be added.
+	* @returns {number}
+	*/
+	itemHeight() {
+		return this.lineHeight() * 2;
+	}
+};
+
+//#endregion
 //#region src/plugins/abs/ext/allyai/windows/Window_Formations.js
 /**
 * A window that allows selection from a list of ally AI formations.
@@ -1795,469 +2044,328 @@ var Window_Formations = class extends Window_Command {
 };
 
 //#endregion
-//#region src/plugins/abs/ext/allyai/scenes/Scene_Map.js
+//#region src/plugins/abs/ext/allyai/windows/Window_MenuCommand.js
 /**
-* Extends the JABS menu initialization to include the new ally ai management selection.
+* Extends {@link #addOriginalCommands}.<br/>
+* Adds the ally AI command to the main menu's party column.
+*
+* The party column rather than the actor column, because what this configures is how the party behaves
+* as a group- the formation they hold, whether they pick fights of their own- and the per-ally presets
+* only make sense read against each other.
 */
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("initJabsMembers", Scene_Map.prototype.initJabsMembers);
-Scene_Map.prototype.initJabsMembers = function() {
-	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("initJabsMembers").call(this);
-	this.initAllyAiMembers();
-};
-/**
-* Initializes the new windows for ally ai management.
-*/
-Scene_Map.prototype.initAllyAiMembers = function() {
-	/**
-	* The window containing the list of party members to adjust the AI for.
-	* @type {Window_AbsMenuSelect|null}
-	*/
-	this._j._absMenu._allyAiPartyWindow = null;
-	/**
-	* The window containing the list of AI strategies for use.
-	* @type {Window_AbsMenuSelect|null}
-	*/
-	this._j._absMenu._allyAiEquipWindow = null;
-	/**
-	* The window containing the list of ally formations available.
-	* @type {Window_Formations|null}
-	*/
-	this._j._absMenu._allyAiFormationWindow = null;
-	/**
-	* The currently-selected ally actorId.
-	* @type {number}
-	*/
-	this._j._absMenu._allyAiActorId = 0;
-};
-/**
-* Sets the chosen actor id to the provided id.
-* @param {number} chosenActorId The id of the chosen actor.
-*/
-Scene_Map.prototype.setAllyAiActorId = function(chosenActorId) {
-	this._j._absMenu._allyAiActorId = chosenActorId;
-};
-/**
-* Gets the chosen actor id.
-*/
-Scene_Map.prototype.getAllyAiActorId = function() {
-	return this._j._absMenu._allyAiActorId;
-};
-/**
-* Gets the ally formation window.
-* @returns {Window_Formations}
-*/
-Scene_Map.prototype.getAllyFormationWindow = function() {
-	return this._j._absMenu._allyAiFormationWindow;
-};
-/**
-* Sets the ally formation window.
-* @param {Window_Formations} window The new window.
-*/
-Scene_Map.prototype.setAllyFormationWindow = function(window) {
-	this._j._absMenu._allyAiFormationWindow = window;
-};
-/**
-* Extends the JABS menu creation to include the new windows for ally ai management.
-*/
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("createJabsAbsMenu", Scene_Map.prototype.createJabsAbsMenu);
-Scene_Map.prototype.createJabsAbsMenu = function() {
-	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("createJabsAbsMenu").call(this);
-	this.createAllyAiPartyWindow();
-	this.createAllyAiEquipWindow();
-	this.createAllyAiFormationWindow();
-};
-/**
-* Extends the JABS menu creation to include a new command handler for ally ai.
-*/
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("createJabsAbsMenuMainWindow", Scene_Map.prototype.createJabsAbsMenuMainWindow);
-Scene_Map.prototype.createJabsAbsMenuMainWindow = function() {
-	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("createJabsAbsMenuMainWindow").call(this);
-	this._j._absMenu._mainWindow.setHandler("ally-ai", this.commandManagePartyAi.bind(this));
-};
-/**
-* Creates the window that lists all active members of the party.
-*/
-Scene_Map.prototype.createAllyAiPartyWindow = function() {
-	const rect = this.allyAiPartyRectangle();
-	const aiPartyMenu = new Window_AbsMenuSelect(rect, "ai-party-list");
-	aiPartyMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "ai-party-list"));
-	aiPartyMenu.setHandler("party-member", this.commandSelectMemberAi.bind(this));
-	aiPartyMenu.setHandler("aggro-passive-toggle", this.commandAggroPassiveToggle.bind(this));
-	aiPartyMenu.setHandler("ally-formations", this.commandAllyFormations.bind(this));
-	this._j._absMenu._allyAiPartyWindow = aiPartyMenu;
-	this.addWindow(this._j._absMenu._allyAiPartyWindow);
-	this._j._absMenu._allyAiPartyWindow.close();
-	this._j._absMenu._allyAiPartyWindow.hide();
-};
-/**
-* Creates the rectangle representing the window for selecting which ally to manage AI for.
-* @returns {Rectangle}
-*/
-Scene_Map.prototype.allyAiPartyRectangle = function() {
-	const w = 600;
-	const h = 600;
-	const x = Graphics.boxWidth - w;
-	const y = 200;
-	return new Rectangle(x, y, w, h);
-};
-/**
-* Creates a window that lists all available ai modes that the chosen ally can use.
-*/
-Scene_Map.prototype.createAllyAiEquipWindow = function() {
-	const rect = this.allyAiEquipRectangle();
-	const aiMemberMenu = new Window_AbsMenuSelect(rect, "select-ai");
-	aiMemberMenu.setHandler("cancel", this.closeAbsWindow.bind(this, "select-ai"));
-	aiMemberMenu.setHandler("select-ai", this.commandEquipMemberAi.bind(this));
-	aiMemberMenu.setHandler("do-nothing-toggle", this.commandToggleDoNothing.bind(this));
-	this._j._absMenu._allyAiEquipWindow = aiMemberMenu;
-	this.addWindow(this._j._absMenu._allyAiEquipWindow);
-	this._j._absMenu._allyAiEquipWindow.close();
-	this._j._absMenu._allyAiEquipWindow.hide();
-};
-/**
-* Creates the rectangle representing the window for selecting which AI mode to apply to a given ally.
-* @returns {Rectangle}
-*/
-Scene_Map.prototype.allyAiEquipRectangle = function() {
-	const width = Math.round(Graphics.boxWidth * .4);
-	const commandHeight = 72;
-	const height = commandHeight * 11 + 40;
-	const x = Graphics.boxWidth - width;
-	const y = 0;
-	return new Rectangle(x, y, width, height);
-};
-/**
-* Creates the ally formations window.
-*/
-Scene_Map.prototype.createAllyAiFormationWindow = function() {
-	const rect = this.allyAiFormationRectangle();
-	const window = new Window_Formations(rect);
-	window.setHandler("cancel", this.closeAbsWindow.bind(this, "ally-formations"));
-	window.setHandler("select-formation", this.commandSelectAllyFormation.bind(this));
-	this.setAllyFormationWindow(window);
-	this.addWindow(window);
-	window.close();
-	window.hide();
-};
-/**
-* Creates the rectangle representing the window for the formations.
-* @returns {Rectangle}
-*/
-Scene_Map.prototype.allyAiFormationRectangle = function() {
-	const width = 600;
-	const height = 400;
-	const x = Graphics.boxWidth - width;
-	const y = 200;
-	return new Rectangle(x, y, width, height);
-};
-/**
-* When the "manage ally ai" option is chosen, it prioritizes this window.
-*/
-Scene_Map.prototype.commandManagePartyAi = function() {
-	this.setJabsMenuFocus("ai-party-list");
-};
-/**
-* When an individual party member is chosen, it prioritizes the AI mode selection window.
-*/
-Scene_Map.prototype.commandSelectMemberAi = function() {
-	this.setJabsMenuFocus("select-ai");
-	const actorId = this._j._absMenu._allyAiPartyWindow.currentExt();
-	this.setAllyAiActorId(actorId);
-	this._j._absMenu._allyAiEquipWindow.setActorId(actorId);
-	this._j._absMenu._allyAiEquipWindow.refresh();
-};
-/**
-* Toggles the party-wide aggro/passive switch.
-* Passive switch will only target the leader's current target.
-* Aggro switch will enable full sight range and auto-engaging abilities.
-*/
-Scene_Map.prototype.commandAggroPassiveToggle = function() {
-	SoundManager.playRecovery();
-	$gameParty.isAggro() ? $gameParty.becomePassive() : $gameParty.becomeAggro();
-	this._j._absMenu._allyAiPartyWindow.refresh();
-};
-/**
-* When a preset is chosen, applies it to the actor's ally AI.
-*/
-Scene_Map.prototype.commandEquipMemberAi = function() {
-	const newPreset = this._j._absMenu._allyAiEquipWindow.currentExt();
-	const allyAi = $gameActors.actor(this.getAllyAiActorId()).getAllyAI();
-	allyAi.applyPreset(newPreset.key);
-	this._j._absMenu._allyAiEquipWindow.refresh();
-};
-/**
-* Toggles the do-nothing flag for the currently selected ally.
-*/
-Scene_Map.prototype.commandToggleDoNothing = function() {
-	SoundManager.playRecovery();
-	const allyAi = $gameActors.actor(this.getAllyAiActorId()).getAllyAI();
-	allyAi.setDoNothing(!allyAi.isDoNothing());
-	this._j._absMenu._allyAiEquipWindow.refresh();
-};
-Scene_Map.prototype.commandAllyFormations = function() {
-	this.setJabsMenuFocus("ally-formations");
-};
-Scene_Map.prototype.commandSelectAllyFormation = function() {
-	const window = this.getAllyFormationWindow();
-	/**
-	* @type {JABS_Formation}
-	*/
-	const selectedFormation = window.currentExt();
-	$gameParty.setPartyFormation(selectedFormation.key);
-	window.refresh();
-};
-/**
-* Manages the ABS main menu's interactivity.
-*/
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("manageAbsMenu", Scene_Map.prototype.manageAbsMenu);
-Scene_Map.prototype.manageAbsMenu = function() {
-	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("manageAbsMenu").call(this);
-	switch (this._j._absMenu._windowFocus) {
-		case "ai-party-list":
-			this._j._absMenu._mainWindow.hide();
-			this._j._absMenu._mainWindow.close();
-			this._j._absMenu._mainWindow.deactivate();
-			this._j._absMenu._allyAiPartyWindow.show();
-			this._j._absMenu._allyAiPartyWindow.open();
-			this._j._absMenu._allyAiPartyWindow.activate();
-			break;
-		case "select-ai":
-			this._j._absMenu._allyAiPartyWindow.hide();
-			this._j._absMenu._allyAiPartyWindow.close();
-			this._j._absMenu._allyAiPartyWindow.deactivate();
-			this._j._absMenu._allyAiEquipWindow.show();
-			this._j._absMenu._allyAiEquipWindow.open();
-			this._j._absMenu._allyAiEquipWindow.activate();
-			break;
-		case "ally-formations": {
-			this._j._absMenu._allyAiPartyWindow.hide();
-			this._j._absMenu._allyAiPartyWindow.close();
-			this._j._absMenu._allyAiPartyWindow.deactivate();
-			const window = this.getAllyFormationWindow();
-			window.show();
-			window.open();
-			window.activate();
-			break;
-		}
-	}
-};
-/**
-* Closes a given Abs menu window.
-* @param {string} absWindow The type of abs window being closed.
-*/
-J.ABS.EXT.ALLYAI.Aliased.Scene_Map.set("closeAbsWindow", Scene_Map.prototype.closeAbsWindow);
-Scene_Map.prototype.closeAbsWindow = function(absWindow) {
-	J.ABS.EXT.ALLYAI.Aliased.Scene_Map.get("closeAbsWindow").call(this, absWindow);
-	switch (absWindow) {
-		case "ai-party-list":
-			this._j._absMenu._allyAiPartyWindow.hide();
-			this._j._absMenu._allyAiPartyWindow.close();
-			this._j._absMenu._allyAiPartyWindow.deactivate();
-			this._j._absMenu._mainWindow.activate();
-			this._j._absMenu._mainWindow.open();
-			this._j._absMenu._mainWindow.show();
-			this.setJabsMenuFocus("main");
-			break;
-		case "select-ai":
-			this._j._absMenu._allyAiEquipWindow.hide();
-			this._j._absMenu._allyAiEquipWindow.close();
-			this._j._absMenu._allyAiEquipWindow.deactivate();
-			this._j._absMenu._allyAiPartyWindow.activate();
-			this._j._absMenu._allyAiPartyWindow.open();
-			this._j._absMenu._allyAiPartyWindow.show();
-			this.setJabsMenuFocus("ai-party-list");
-			break;
-		case "ally-formations": {
-			const window = this.getAllyFormationWindow();
-			window.hide();
-			window.close();
-			window.deactivate();
-			this._j._absMenu._allyAiPartyWindow.activate();
-			this._j._absMenu._allyAiPartyWindow.open();
-			this._j._absMenu._allyAiPartyWindow.show();
-			this.setJabsMenuFocus("ai-party-list");
-			break;
-		}
-	}
-};
-
-//#endregion
-//#region src/plugins/abs/ext/allyai/sprites/Spriteset_Map.js
-/**
-* Extends {@link #refreshAllCharacterSprites}.<br/>
-* Also refreshes follower ally battlers after sprites have been refreshed.
-*/
-J.ABS.EXT.ALLYAI.Aliased.Spriteset_Map.set("refreshAllCharacterSprites", Spriteset_Map.prototype.refreshAllCharacterSprites);
-Spriteset_Map.prototype.refreshAllCharacterSprites = function() {
-	J.ABS.EXT.ALLYAI.Aliased.Spriteset_Map.get("refreshAllCharacterSprites").call(this);
-	if ($jabsEngine.requestAlliesRefresh) {
-		$gameMap.updateAllies();
-		$jabsEngine.requestAlliesRefresh = false;
-	}
-};
-
-//#endregion
-//#region src/plugins/abs/ext/allyai/windows/Window_AbsMenu.js
-/**
-* Extends {@link #buildCommands}.<br/>
-* Adds the ally ai management command at the end of the list.
-* @returns {BuiltWindowCommand[]}
-*/
-J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.set("buildCommands", Window_AbsMenu.prototype.buildCommands);
-Window_AbsMenu.prototype.buildCommands = function() {
-	const originalCommands = J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenu.get("buildCommands").call(this);
-	if (!this.canAddAllyAiCommand()) return originalCommands;
+J.ABS.EXT.ALLYAI.Aliased.Window_MenuCommand.set("addOriginalCommands", Window_MenuCommand.prototype.addOriginalCommands);
+Window_MenuCommand.prototype.addOriginalCommands = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Window_MenuCommand.get("addOriginalCommands").call(this);
+	if (this.canAddAllyAiCommand() === false) return;
 	const enabled = $gamePlayer.followers().isVisible();
-	const allyAiCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandName).setSymbol("ally-ai").setEnabled(enabled).setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex).setColorIndex(27).setHelpText(this.allyAiHelpText()).build();
-	originalCommands.push(allyAiCommand);
-	return originalCommands;
+	const command = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandName).setSymbol("ally-ai").setEnabled(enabled).setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandIconIndex).setColorIndex(27).setHelpText(this.allyAiHelpText()).setMenuSection(MenuSection.Party).build();
+	this.addBuiltCommand(command);
 };
 /**
-* Determines whether or not the ally ai management command can be added to the JABS menu.
+* Determines whether or not the ally ai management command can be added to the menu.
 * @returns {boolean} True if the command should be added, false otherwise.
 */
-Window_AbsMenu.prototype.canAddAllyAiCommand = function() {
-	if (!$gameSwitches.value(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandSwitchId)) return false;
-	return true;
+Window_MenuCommand.prototype.canAddAllyAiCommand = function() {
+	return $gameSwitches.value(J.ABS.EXT.ALLYAI.Metadata.AllyAiCommandSwitchId);
 };
 /**
-* The help text for the JABS ally AI menu.
+* The help text for the ally AI menu command.
 * @returns {string}
 */
-Window_AbsMenu.prototype.allyAiHelpText = function() {
+Window_MenuCommand.prototype.allyAiHelpText = function() {
 	const description = ["Your ally management selection menu.", "A general direction or theme of guidance can be assigned to your allies from here."];
 	return description.join("\n");
 };
+
+//#endregion
+//#region src/plugins/abs/ext/allyai/scenes/Scene_JabsAllyAi.js
 /**
-* Overwrites {@link #itemHeight}.<br/>
-* Increases the height so subtext can be added.
-* @returns {number}
+* The scene for deciding how the party's allies behave in combat.
+*
+* The party list stays on screen the entire time, and whatever is being chosen for the highlighted ally
+* sits beside it- so the player can always read one ally's settings against the rest of the party.
 */
-Window_AbsMenuSelect.prototype.itemHeight = function() {
-	return this.lineHeight() * 2;
+var Scene_JabsAllyAi = class Scene_JabsAllyAi extends Scene_MenuFacetBase {
+	/**
+	* Constructor.
+	*/
+	constructor() {
+		super();
+	}
+	/**
+	* Pushes this scene onto the scene stack.
+	*/
+	static callScene() {
+		SceneManager.push(Scene_JabsAllyAi);
+	}
+	/**
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes the members particular to this scene.
+	*/
+	initMembers() {
+		super.initMembers();
+		/**
+		* The actor whose AI presets the detail column is currently showing.
+		* @type {number}
+		*/
+		this._chosenActorId = 0;
+	}
+	/**
+	* Gets the actor whose AI presets the detail column is currently showing.
+	* @returns {number}
+	*/
+	chosenActorId() {
+		return this._chosenActorId;
+	}
+	/**
+	* Sets the actor whose AI presets the detail column should show.
+	* @param {number} actorId The id of the actor.
+	*/
+	setChosenActorId(actorId) {
+		this._chosenActorId = actorId;
+	}
+	/**
+	* Extends {@link #create}.<br/>
+	* Also creates this scene's own windows.
+	*/
+	create() {
+		super.create();
+		this.createHelpWindow();
+		this.createPartyListWindow();
+		this.createPresetListWindow();
+		this.createFormationListWindow();
+		this.focusPartyList();
+	}
+	/**
+	* Creates the list of party members whose AI may be configured.
+	*/
+	createPartyListWindow() {
+		const window = new Window_AllyAiSelect(this.partyListRect(), Window_AllyAiSelect.Types.PartyList);
+		window.setHandler("cancel", this.popScene.bind(this));
+		window.setHandler("party-member", this.commandSelectMemberAi.bind(this));
+		window.setHandler("aggro-passive-toggle", this.commandAggroPassiveToggle.bind(this));
+		window.setHandler("ally-formations", this.commandAllyFormations.bind(this));
+		window.setHelpWindow(this.helpWindow());
+		this.setPartyListWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Creates the list of AI presets a single chosen ally may adopt.
+	*/
+	createPresetListWindow() {
+		const window = new Window_AllyAiSelect(this.detailRect(), Window_AllyAiSelect.Types.SelectAi);
+		window.setHandler("cancel", this.focusPartyList.bind(this));
+		window.setHandler("select-ai", this.commandEquipMemberAi.bind(this));
+		window.setHandler("do-nothing-toggle", this.commandToggleDoNothing.bind(this));
+		window.setHelpWindow(this.helpWindow());
+		this.setPresetListWindow(window);
+		this.addWindow(window);
+		window.hide();
+		window.deactivate();
+	}
+	/**
+	* Creates the list of party formations.
+	*/
+	createFormationListWindow() {
+		const window = new Window_Formations(this.detailRect());
+		window.setHandler("cancel", this.focusPartyList.bind(this));
+		window.setHandler("select-formation", this.commandSelectAllyFormation.bind(this));
+		window.setHelpWindow(this.helpWindow());
+		this.setFormationListWindow(window);
+		this.addWindow(window);
+		window.hide();
+		window.deactivate();
+	}
+	/**
+	* The share of the content area given to the party column.
+	*
+	* The party gets the smaller half because its rows are names, while the column beside it carries
+	* presets and formations that each explain themselves across a second line.
+	* @returns {number}
+	*/
+	partyColumnRatio() {
+		return .4;
+	}
+	/**
+	* The shape of the party column.
+	* @returns {Rectangle}
+	*/
+	partyListRect() {
+		const area = this.facetAreaRect();
+		const width = Math.round(area.width * this.partyColumnRatio());
+		return new Rectangle(area.x, area.y, width, area.height);
+	}
+	/**
+	* The shape of the column beside the party, shared by the presets and the formations.
+	*
+	* Defined as the remainder rather than its own fraction, so the two columns cannot drift apart or
+	* leave a seam between them however the ratio is tuned.
+	* @returns {Rectangle}
+	*/
+	detailRect() {
+		const area = this.facetAreaRect();
+		const partyWidth = this.partyListRect().width;
+		return new Rectangle(area.x + partyWidth, area.y, area.width - partyWidth, area.height);
+	}
+	/**
+	* Implements {@link #controlLegendEntries}.<br/>
+	* Describes the controls this scene responds to.
+	* @returns {{semantic: (string|string[]), label: string}[]}
+	*/
+	controlLegendEntries() {
+		return [{
+			semantic: "ok",
+			label: "select"
+		}, {
+			semantic: "cancel",
+			label: "back"
+		}];
+	}
+	/**
+	* Gives the party column the cursor, and takes the detail column away.
+	*
+	* The detail column is hidden rather than merely deactivated, because what it shows only makes sense
+	* next to a specific choice- an ally's presets, with no ally chosen, would describe nobody.
+	*/
+	focusPartyList() {
+		this.presetListWindow().hide();
+		this.presetListWindow().deactivate();
+		this.formationListWindow().hide();
+		this.formationListWindow().deactivate();
+		this.partyListWindow().activate();
+		this.partyListWindow().show();
+	}
+	/**
+	* Gives one of the detail lists the cursor.
+	*
+	* The party column stays visible and stays selected- only deactivated- so the player keeps seeing
+	* which ally the list beside it belongs to.
+	* @param {Window_Command} window The detail window to focus.
+	*/
+	focusDetail(window) {
+		this.partyListWindow().deactivate();
+		window.show();
+		window.refresh();
+		window.activate();
+		window.select(0);
+	}
+	/**
+	* Shows the chosen ally's AI presets.
+	*/
+	commandSelectMemberAi() {
+		const actorId = this.partyListWindow().currentExt();
+		this.setChosenActorId(actorId);
+		this.presetListWindow().setActorId(actorId);
+		this.focusDetail(this.presetListWindow());
+	}
+	/**
+	* Toggles the party-wide aggro/passive stance.
+	*
+	* Passive confines allies to the leader's current target; aggro gives them their full sight range and
+	* lets them pick fights of their own.
+	*/
+	commandAggroPassiveToggle() {
+		SoundManager.playRecovery();
+		$gameParty.isAggro() ? $gameParty.becomePassive() : $gameParty.becomeAggro();
+		this.partyListWindow().refresh();
+		this.partyListWindow().activate();
+	}
+	/**
+	* Applies the chosen preset to the chosen ally.
+	*/
+	commandEquipMemberAi() {
+		const newPreset = this.presetListWindow().currentExt();
+		const allyAi = $gameActors.actor(this.chosenActorId()).getAllyAI();
+		allyAi.applyPreset(newPreset.key);
+		this.presetListWindow().refresh();
+		this.presetListWindow().activate();
+	}
+	/**
+	* Toggles whether the chosen ally acts at all.
+	*/
+	commandToggleDoNothing() {
+		SoundManager.playRecovery();
+		const allyAi = $gameActors.actor(this.chosenActorId()).getAllyAI();
+		allyAi.setDoNothing(!allyAi.isDoNothing());
+		this.presetListWindow().refresh();
+		this.presetListWindow().activate();
+	}
+	/**
+	* Shows the party's available formations.
+	*/
+	commandAllyFormations() {
+		this.focusDetail(this.formationListWindow());
+	}
+	/**
+	* Applies the chosen formation to the party.
+	*/
+	commandSelectAllyFormation() {
+		/** @type {JABS_Formation} */
+		const selectedFormation = this.formationListWindow().currentExt();
+		$gameParty.setPartyFormation(selectedFormation.key);
+		this.formationListWindow().refresh();
+		this.formationListWindow().activate();
+	}
+	/**
+	* Gets the party column.
+	* @returns {Window_AllyAiSelect}
+	*/
+	partyListWindow() {
+		return this._partyListWindow;
+	}
+	/**
+	* Sets the party column.
+	* @param {Window_AllyAiSelect} window The window to track.
+	*/
+	setPartyListWindow(window) {
+		this._partyListWindow = window;
+	}
+	/**
+	* Gets the AI preset list.
+	* @returns {Window_AllyAiSelect}
+	*/
+	presetListWindow() {
+		return this._presetListWindow;
+	}
+	/**
+	* Sets the AI preset list.
+	* @param {Window_AllyAiSelect} window The window to track.
+	*/
+	setPresetListWindow(window) {
+		this._presetListWindow = window;
+	}
+	/**
+	* Gets the formation list.
+	* @returns {Window_Formations}
+	*/
+	formationListWindow() {
+		return this._formationListWindow;
+	}
+	/**
+	* Sets the formation list.
+	* @param {Window_Formations} window The window to track.
+	*/
+	setFormationListWindow(window) {
+		this._formationListWindow = window;
+	}
 };
 
 //#endregion
-//#region src/plugins/abs/ext/allyai/windows/Window_AbsMenuSelect.js
+//#region src/plugins/abs/ext/allyai/scenes/Scene_Menu.js
 /**
-* Extends {@link Window_AbsMenuSelect#initialize}.<br/>
-* Also initializes the ally AI members.
+* Extends {@link #createCommandWindow}.<br/>
+* Adds a handler for the ally AI menu command.
 */
-J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set("initialize", Window_AbsMenuSelect.prototype.initialize);
-Window_AbsMenuSelect.prototype.initialize = function(rect, type) {
-	J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get("initialize").call(this, rect, type);
-	this.initJabsAllyAiMenuMembers();
+J.ABS.EXT.ALLYAI.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
+Scene_Menu.prototype.createCommandWindow = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Scene_Menu.get("createCommandWindow").call(this);
+	this.commandWindow().setHandler("ally-ai", this.commandJabsAllyAi.bind(this));
 };
 /**
-* Initializes the ally AI members for this window.
+* Opens the ally AI scene.
 */
-Window_AbsMenuSelect.prototype.initJabsAllyAiMenuMembers = function() {
-	/**
-	* The actor id of the ally currently being managed via this window.
-	* @type {number}
-	*/
-	this._j._chosenActorId = 0;
-};
-/**
-* Sets the actor id assigned to this window.
-* @param {number} actorId The new actor id for this window.
-*/
-Window_AbsMenuSelect.prototype.setActorId = function(actorId) {
-	this._j._chosenActorId = actorId;
-};
-/**
-* Gets the actor id assigned to this window, if any.
-* @returns {number}
-*/
-Window_AbsMenuSelect.prototype.getActorId = function() {
-	return this._j._chosenActorId;
-};
-/**
-* Extends the JABS quick menu select to also handle ai management.
-*/
-J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.set("makeCommandList", Window_AbsMenuSelect.prototype.makeCommandList);
-Window_AbsMenuSelect.prototype.makeCommandList = function() {
-	J.ABS.EXT.ALLYAI.Aliased.Window_AbsMenuSelect.get("makeCommandList").call(this);
-	switch (this._j._menuType) {
-		case "ai-party-list":
-			this.addAggroPassiveToggleCommand();
-			this.makeAllyList();
-			this.addAllyFormationCommand();
-			break;
-		case "select-ai":
-			this.makeAllyAiDoNothingToggle();
-			this.makeAllyAiPresetList();
-			break;
-	}
-};
-/**
-* Draws the list of available AI modes that an ally can use.
-*/
-Window_AbsMenuSelect.prototype.makeAllyList = function() {
-	const forEacher = (member) => {
-		const command = new WindowCommandBuilder(member.name()).setSymbol("party-member").setExtensionData(member.actorId()).build();
-		this.addBuiltCommand(command);
-	};
-	$gameParty.allMembers().forEach(forEacher, this);
-};
-/**
-* Injects the aggro-passive toggle command into the menu.
-*/
-Window_AbsMenuSelect.prototype.addAggroPassiveToggleCommand = function() {
-	const aggroPassiveCommandName = $gameParty.isAggro() ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveText : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveText;
-	const aggroPassiveCommandIcon = $gameParty.isAggro() ? J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex : J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex;
-	const description = $gameParty.isAggro() ? "The party is currently 'aggro'.\nAllies will engage in any enemy that comes within their range." : "The party is currently 'passive'.\nAllies will not engage until the leader strikes or is struck.";
-	const textColor = $gameParty.isAggro() ? 2 : 3;
-	const command = new WindowCommandBuilder(aggroPassiveCommandName).setSymbol("aggro-passive-toggle").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setColorIndex(textColor).setIconIndex(aggroPassiveCommandIcon).build();
-	this.addBuiltCommand(command);
-};
-/**
-* Injects the party formations command into the menu.
-*/
-Window_AbsMenuSelect.prototype.addAllyFormationCommand = function() {
-	const allyFormationsCommand = new WindowCommandBuilder(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandName).setSymbol("ally-formations").setIconIndex(J.ABS.EXT.ALLYAI.Metadata.AllyFormationsCommandIconIndex).setColorIndex(23).build();
-	this.addBuiltCommand(allyFormationsCommand);
-};
-/**
-* Adds a do-nothing toggle command at the top of the ally AI selection window.
-* Mirrors the aggro/passive toggle pattern from the party list window.
-*/
-Window_AbsMenuSelect.prototype.makeAllyAiDoNothingToggle = function() {
-	const currentActor = $gameActors.actor(this.getActorId());
-	if (!currentActor) return;
-	const allyAI = currentActor.getAllyAI();
-	const isDoNothing = allyAI.isDoNothing();
-	const commandName = isDoNothing ? "Do Nothing: ON" : "Do Nothing: OFF";
-	const description = isDoNothing ? "This ally hangs back and takes no actions.\nToggle off to restore their preset behavior." : "This ally acts according to their preset.\nToggle on to make them stand down entirely.";
-	const colorIndex = isDoNothing ? 3 : 2;
-	const iconIndex = isDoNothing ? J.ABS.EXT.ALLYAI.Metadata.PartyAiPassiveIconIndex : J.ABS.EXT.ALLYAI.Metadata.PartyAiAggressiveIconIndex;
-	const command = new WindowCommandBuilder(commandName).setSymbol("do-nothing-toggle").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setColorIndex(colorIndex).setIconIndex(iconIndex).build();
-	this.addBuiltCommand(command);
-};
-/**
-* Draws the list of available AI presets that an ally can use.
-*/
-Window_AbsMenuSelect.prototype.makeAllyAiPresetList = function() {
-	const currentActor = $gameActors.actor(this.getActorId());
-	if (!currentActor) return;
-	const presets = JABS_AllyAI.getPresets();
-	const currentAi = currentActor.getAllyAI();
-	const forEacher = (preset) => {
-		const { key, name, description } = preset;
-		const isEquipped = currentAi.getPresetKey() === key;
-		const iconIndex = isEquipped ? J.ABS.EXT.ALLYAI.Metadata.AiModeEquippedIconIndex : J.ABS.EXT.ALLYAI.Metadata.AiModeNotEquippedIconIndex;
-		const command = new WindowCommandBuilder(name).setSymbol("select-ai").setTextLines(description.split(/[\r\n]/i)).flagAsSubText().setIconIndex(iconIndex).setEnabled(true).setExtensionData(preset).build();
-		this.addBuiltCommand(command);
-	};
-	presets.forEach(forEacher, this);
-};
-/**
-* Overwrites {@link #itemHeight}.<br/>
-* Increases the height so subtext can be added.
-* @returns {number}
-*/
-Window_AbsMenuSelect.prototype.itemHeight = function() {
-	return this.lineHeight() * 2;
+Scene_Menu.prototype.commandJabsAllyAi = function() {
+	Scene_JabsAllyAi.callScene();
 };
 
 //#endregion

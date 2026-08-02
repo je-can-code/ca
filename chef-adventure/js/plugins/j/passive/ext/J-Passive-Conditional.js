@@ -2387,7 +2387,7 @@ Game_Battler.prototype.initPassiveRuleMembers = function() {
 * @returns {number}
 */
 Game_Battler.prototype.getAutoRuleLastFrame = function(ruleKey) {
-	return this._j._passive._conditional._autoRuleLastFrame.get(ruleKey) || 0;
+	return this.autoRuleLastFrame().get(ruleKey) || 0;
 };
 /**
 * Stamps the last map frame an auto rule key fired.
@@ -2395,7 +2395,7 @@ Game_Battler.prototype.getAutoRuleLastFrame = function(ruleKey) {
 * @param {number} frame {@link Graphics.frameCount} when the rule last fired.
 */
 Game_Battler.prototype.setAutoRuleLastFrame = function(ruleKey, frame) {
-	this._j._passive._conditional._autoRuleLastFrame.set(ruleKey, frame);
+	this.autoRuleLastFrame().set(ruleKey, frame);
 };
 /**
 * Reads accumulated whole-tile credit for one {@code move} auto rule key.
@@ -2403,7 +2403,7 @@ Game_Battler.prototype.setAutoRuleLastFrame = function(ruleKey, frame) {
 * @returns {number}
 */
 Game_Battler.prototype.getAutoRuleTileCredit = function(ruleKey) {
-	return this._j._passive._conditional._autoRuleTileCredit.get(ruleKey) || 0;
+	return this.autoRuleTileCredit().get(ruleKey) || 0;
 };
 /**
 * Stores accumulated whole-tile credit for one {@code move} auto rule key.
@@ -2411,7 +2411,7 @@ Game_Battler.prototype.getAutoRuleTileCredit = function(ruleKey) {
 * @param {number} tiles Whole tiles credited toward the next dispatch.
 */
 Game_Battler.prototype.setAutoRuleTileCredit = function(ruleKey, tiles) {
-	this._j._passive._conditional._autoRuleTileCredit.set(ruleKey, tiles);
+	this.autoRuleTileCredit().set(ruleKey, tiles);
 };
 /**
 * Returns the last map frame this battler moved.<br/>
@@ -2419,7 +2419,7 @@ Game_Battler.prototype.setAutoRuleTileCredit = function(ruleKey, tiles) {
 * @returns {number} {@link Graphics.frameCount} stamp, or 0 when never moved on the map.
 */
 Game_Battler.prototype.getPassiveRuleLastMovedFrame = function() {
-	return this._j._passive._conditional._lastMovedFrame;
+	return this.lastMovedFrame();
 };
 /**
 * Returns the last map frame this battler took damage.<br/>
@@ -2427,7 +2427,7 @@ Game_Battler.prototype.getPassiveRuleLastMovedFrame = function() {
 * @returns {number} {@link Graphics.frameCount} stamp, or 0 when never hit on the map.
 */
 Game_Battler.prototype.getPassiveRuleLastHitFrame = function() {
-	return this._j._passive._conditional._lastHitFrame;
+	return this.lastHitFrame();
 };
 /**
 * Returns the last map frame this battler executed a map skill.<br/>
@@ -2435,28 +2435,28 @@ Game_Battler.prototype.getPassiveRuleLastHitFrame = function() {
 * @returns {number} {@link Graphics.frameCount} stamp, or 0 when never attacked on the map.
 */
 Game_Battler.prototype.getPassiveRuleLastAttackedFrame = function() {
-	return this._j._passive._conditional._lastAttackedFrame;
+	return this.lastAttackedFrame();
 };
 /**
 * Stamps the current frame as the last time this battler moved on the map.<br/>
 * Called from {@link JABS_Battler#updatePassiveRuleMovementTracking} when coordinates change.
 */
 Game_Battler.prototype.stampPassiveRuleMovedFrame = function() {
-	this._j._passive._conditional._lastMovedFrame = Graphics.frameCount;
+	this.setLastMovedFrame(Graphics.frameCount);
 };
 /**
 * Stamps the current frame as the last time this battler took damage.<br/>
 * Called from the {@link #gainHp} alias when hp loss is applied.
 */
 Game_Battler.prototype.stampPassiveRuleHitFrame = function() {
-	this._j._passive._conditional._lastHitFrame = Graphics.frameCount;
+	this.setLastHitFrame(Graphics.frameCount);
 };
 /**
 * Stamps the current frame as the last time this battler executed a map skill.<br/>
 * Called from {@link JABS_Battler#setLastUsedSkillId} after a real skill use.
 */
 Game_Battler.prototype.stampPassiveRuleAttackedFrame = function() {
-	this._j._passive._conditional._lastAttackedFrame = Graphics.frameCount;
+	this.setLastAttackedFrame(Graphics.frameCount);
 };
 /**
 * Returns the last frame this battler received positive HP recovery.<br/>
@@ -2464,7 +2464,7 @@ Game_Battler.prototype.stampPassiveRuleAttackedFrame = function() {
 * @returns {number} {@link Graphics.frameCount} stamp, or 0 when never healed.
 */
 Game_Battler.prototype.getPassiveRuleLastHpHealFrame = function() {
-	return this._j._passive._conditional._lastHpHealFrame;
+	return this.lastHpHealFrame();
 };
 /**
 * Returns the last frame this battler received positive MP recovery.<br/>
@@ -2472,7 +2472,7 @@ Game_Battler.prototype.getPassiveRuleLastHpHealFrame = function() {
 * @returns {number} {@link Graphics.frameCount} stamp, or 0 when never healed.
 */
 Game_Battler.prototype.getPassiveRuleLastMpHealFrame = function() {
-	return this._j._passive._conditional._lastMpHealFrame;
+	return this.lastMpHealFrame();
 };
 /**
 * Returns the last frame this battler received positive TP recovery.<br/>
@@ -2480,25 +2480,25 @@ Game_Battler.prototype.getPassiveRuleLastMpHealFrame = function() {
 * @returns {number} {@link Graphics.frameCount} stamp, or 0 when never healed.
 */
 Game_Battler.prototype.getPassiveRuleLastTpHealFrame = function() {
-	return this._j._passive._conditional._lastTpHealFrame;
+	return this.lastTpHealFrame();
 };
 /**
 * Stamps the current frame as the last time this battler received HP healing.
 */
 Game_Battler.prototype.stampPassiveRuleHpHealFrame = function() {
-	this._j._passive._conditional._lastHpHealFrame = Graphics.frameCount;
+	this.setLastHpHealFrame(Graphics.frameCount);
 };
 /**
 * Stamps the current frame as the last time this battler received MP healing.
 */
 Game_Battler.prototype.stampPassiveRuleMpHealFrame = function() {
-	this._j._passive._conditional._lastMpHealFrame = Graphics.frameCount;
+	this.setLastMpHealFrame(Graphics.frameCount);
 };
 /**
 * Stamps the current frame as the last time this battler received TP healing.
 */
 Game_Battler.prototype.stampPassiveRuleTpHealFrame = function() {
-	this._j._passive._conditional._lastTpHealFrame = Graphics.frameCount;
+	this.setLastTpHealFrame(Graphics.frameCount);
 };
 /**
 * Extends {@link #gainHp}.<br/>
@@ -2668,12 +2668,12 @@ Game_Battler.prototype.buildPassiveCollectionFingerprint = function() {
 * fresh to produce an accurate baseline.
 */
 Game_Battler.prototype.updatePassiveRuleCollectionFingerprint = function() {
-	const pending = this._j._passive._conditional._pendingFingerprint;
+	const pending = this.pendingFingerprint();
 	if (pending !== null) {
-		this._j._passive._conditional._collectionFingerprint = pending;
+		this.setCollectionFingerprint(pending);
 		return;
 	}
-	this._j._passive._conditional._collectionFingerprint = this.buildPassiveCollectionFingerprint();
+	this.setCollectionFingerprint(this.buildPassiveCollectionFingerprint());
 };
 /**
 * Re-checks whether passive rule drift changed the collection; refreshes when it did.<br/>
@@ -2681,11 +2681,11 @@ Game_Battler.prototype.updatePassiveRuleCollectionFingerprint = function() {
 */
 Game_Battler.prototype.reconcilePassiveRules = function() {
 	const nextFingerprint = this.buildPassiveCollectionFingerprint();
-	const previousFingerprint = this._j._passive._conditional._collectionFingerprint;
+	const previousFingerprint = this.collectionFingerprint();
 	if (nextFingerprint === previousFingerprint) return;
-	this._j._passive._conditional._pendingFingerprint = nextFingerprint;
+	this.setPendingFingerprint(nextFingerprint);
 	this.refreshPassiveStates();
-	this._j._passive._conditional._pendingFingerprint = null;
+	this.setPendingFingerprint(null);
 };
 /**
 * Returns the throttled reconcile timer used while this battler is active on the map.<br/>
@@ -2746,6 +2746,132 @@ Game_Battler.prototype.onJabsStateInflicted = function(stateId, attacker) {
 	J.PASSIVE.EXT.CONDITIONAL.Aliased.Game_Battler.get("onJabsStateInflicted").call(this, stateId, attacker);
 	AutoInflictStateManager.scheduleInflictedStateTriggers(attacker, this, stateId);
 	AutoModifyCooldownManager.scheduleSelfStateInflictedTriggers(attacker, stateId);
+};
+/**
+* Gets the auto rule last frame.
+* @returns {*} The autoRuleLastFrame.
+*/
+Game_Battler.prototype.autoRuleLastFrame = function() {
+	return this._j._passive._conditional._autoRuleLastFrame;
+};
+/**
+* Gets the auto rule tile credit.
+* @returns {*} The autoRuleTileCredit.
+*/
+Game_Battler.prototype.autoRuleTileCredit = function() {
+	return this._j._passive._conditional._autoRuleTileCredit;
+};
+/**
+* Gets the last moved frame.
+* @returns {*} The lastMovedFrame.
+*/
+Game_Battler.prototype.lastMovedFrame = function() {
+	return this._j._passive._conditional._lastMovedFrame;
+};
+/**
+* Sets the last moved frame.
+* @param {*} newLastMovedFrame The new lastMovedFrame.
+*/
+Game_Battler.prototype.setLastMovedFrame = function(newLastMovedFrame) {
+	this._j._passive._conditional._lastMovedFrame = newLastMovedFrame;
+};
+/**
+* Gets the last hit frame.
+* @returns {*} The lastHitFrame.
+*/
+Game_Battler.prototype.lastHitFrame = function() {
+	return this._j._passive._conditional._lastHitFrame;
+};
+/**
+* Sets the last hit frame.
+* @param {*} newLastHitFrame The new lastHitFrame.
+*/
+Game_Battler.prototype.setLastHitFrame = function(newLastHitFrame) {
+	this._j._passive._conditional._lastHitFrame = newLastHitFrame;
+};
+/**
+* Gets the last attacked frame.
+* @returns {*} The lastAttackedFrame.
+*/
+Game_Battler.prototype.lastAttackedFrame = function() {
+	return this._j._passive._conditional._lastAttackedFrame;
+};
+/**
+* Sets the last attacked frame.
+* @param {*} newLastAttackedFrame The new lastAttackedFrame.
+*/
+Game_Battler.prototype.setLastAttackedFrame = function(newLastAttackedFrame) {
+	this._j._passive._conditional._lastAttackedFrame = newLastAttackedFrame;
+};
+/**
+* Gets the last hp heal frame.
+* @returns {*} The lastHpHealFrame.
+*/
+Game_Battler.prototype.lastHpHealFrame = function() {
+	return this._j._passive._conditional._lastHpHealFrame;
+};
+/**
+* Sets the last hp heal frame.
+* @param {*} newLastHpHealFrame The new lastHpHealFrame.
+*/
+Game_Battler.prototype.setLastHpHealFrame = function(newLastHpHealFrame) {
+	this._j._passive._conditional._lastHpHealFrame = newLastHpHealFrame;
+};
+/**
+* Gets the last mp heal frame.
+* @returns {*} The lastMpHealFrame.
+*/
+Game_Battler.prototype.lastMpHealFrame = function() {
+	return this._j._passive._conditional._lastMpHealFrame;
+};
+/**
+* Sets the last mp heal frame.
+* @param {*} newLastMpHealFrame The new lastMpHealFrame.
+*/
+Game_Battler.prototype.setLastMpHealFrame = function(newLastMpHealFrame) {
+	this._j._passive._conditional._lastMpHealFrame = newLastMpHealFrame;
+};
+/**
+* Gets the last tp heal frame.
+* @returns {*} The lastTpHealFrame.
+*/
+Game_Battler.prototype.lastTpHealFrame = function() {
+	return this._j._passive._conditional._lastTpHealFrame;
+};
+/**
+* Sets the last tp heal frame.
+* @param {*} newLastTpHealFrame The new lastTpHealFrame.
+*/
+Game_Battler.prototype.setLastTpHealFrame = function(newLastTpHealFrame) {
+	this._j._passive._conditional._lastTpHealFrame = newLastTpHealFrame;
+};
+/**
+* Gets the pending fingerprint.
+* @returns {*} The pendingFingerprint.
+*/
+Game_Battler.prototype.pendingFingerprint = function() {
+	return this._j._passive._conditional._pendingFingerprint;
+};
+/**
+* Sets the pending fingerprint.
+* @param {*} newPendingFingerprint The new pendingFingerprint.
+*/
+Game_Battler.prototype.setPendingFingerprint = function(newPendingFingerprint) {
+	this._j._passive._conditional._pendingFingerprint = newPendingFingerprint;
+};
+/**
+* Gets the collection fingerprint.
+* @returns {*} The collectionFingerprint.
+*/
+Game_Battler.prototype.collectionFingerprint = function() {
+	return this._j._passive._conditional._collectionFingerprint;
+};
+/**
+* Sets the collection fingerprint.
+* @param {*} newCollectionFingerprint The new collectionFingerprint.
+*/
+Game_Battler.prototype.setCollectionFingerprint = function(newCollectionFingerprint) {
+	this._j._passive._conditional._collectionFingerprint = newCollectionFingerprint;
 };
 
 //#endregion

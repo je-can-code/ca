@@ -33,8 +33,7 @@
  * This plugin has no notetags of its own- it purely reads live JABS skill
  * slot/cooldown/cost data for display.
  * ============================================================================
- * CHANGELOG
- * ----------------------------------------------------------------------------
+ * CHANGELOG:
  * - 1.2.0
  *    Cooldown overlay icon: a configurable icon renders over skill slots that
  *    are currently on cooldown, making unavailability obvious at a glance.
@@ -141,11 +140,18 @@ var Sprite_BaseSkillSlot = class extends Sprite_BaseText {
 		this._j._skillSlot = null;
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Gets the skill slot associated with this sprite.
 	* @returns {JABS_SkillSlot|null}
 	*/
 	skillSlot() {
-		return this._j._skillSlot;
+		return this.j()._skillSlot;
 	}
 	/**
 	* Gets whether or not there is a skill slot presently
@@ -153,14 +159,14 @@ var Sprite_BaseSkillSlot = class extends Sprite_BaseText {
 	* @returns {boolean}
 	*/
 	hasSkillSlot() {
-		return !!this._j._skillSlot;
+		return !!this.j()._skillSlot;
 	}
 	/**
 	* Sets the skill slot for this sprite.
 	* @param {JABS_SkillSlot} skillSlot The skill slot to assign.
 	*/
 	setSkillSlot(skillSlot) {
-		this._j._skillSlot = skillSlot;
+		this.j()._skillSlot = skillSlot;
 		this.setText(this.skillName());
 	}
 	/**
@@ -302,20 +308,27 @@ var Sprite_CooldownGauge = class extends Sprite {
 		};
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Binds this gauge to show remaining GCD alongside the slot cooldown when the slot maps to a GCD-subject skill.
 	* Clears merge state for tool, dodge, and item slots so those inputs never display the shared timer.
 	* @param {JABS_Battler|null} jabsBattler The leader JABS battler.
 	* @param {JABS_SkillSlot|null} skillSlot Slot shown on this input key.
 	*/
 	setHudGcdMerge(jabsBattler, skillSlot) {
-		this._j._gcdMergeBattler = null;
-		this._j._gcdMergeSkillId = 0;
+		this.j()._gcdMergeBattler = null;
+		this.j()._gcdMergeSkillId = 0;
 		if (!jabsBattler || !skillSlot) return;
 		const { key } = skillSlot;
 		if (key === JABS_Button.Tool || key === JABS_Button.UsableItem || key === JABS_Button.Dodge) return;
 		if (skillSlot.isItem()) return;
-		this._j._gcdMergeBattler = jabsBattler;
-		this._j._gcdMergeSkillId = skillSlot.id;
+		this.j()._gcdMergeBattler = jabsBattler;
+		this.j()._gcdMergeSkillId = skillSlot.id;
 	}
 	/**
 	* Remaining frames on the battler-wide GCD for HUD purposes when merge is armed and the slotted skill is
@@ -325,10 +338,10 @@ var Sprite_CooldownGauge = class extends Sprite {
 	* @returns {number} Frames left on {@link J.ABS.Globals.GlobalCooldownKey}, or 0 when not applicable.
 	*/
 	globalHudFrames() {
-		if (!this._j._gcdMergeBattler || !this._j._gcdMergeSkillId) return 0;
-		const sk = $dataSkills[this._j._gcdMergeSkillId];
+		if (!this.j()._gcdMergeBattler || !this.j()._gcdMergeSkillId) return 0;
+		const sk = $dataSkills[this.j()._gcdMergeSkillId];
 		if (JABS_GlobalCooldown.skillIsSubjectToGlobalCooldown(sk) === false) return 0;
-		const globalCd = this._j._gcdMergeBattler.getCooldown(J.ABS.Globals.GlobalCooldownKey);
+		const globalCd = this.j()._gcdMergeBattler.getCooldown(J.ABS.Globals.GlobalCooldownKey);
 		if (!globalCd) return 0;
 		if (globalCd.isBaseReady() === true) return 0;
 		return globalCd.frames;
@@ -348,21 +361,21 @@ var Sprite_CooldownGauge = class extends Sprite {
 	*/
 	isMaxUnassigned() {
 		if (this.isInComboExpireMode()) return false;
-		return this._j._valueMax === 0;
+		return this.j()._valueMax === 0;
 	}
 	/**
 	* Gets the cooldown data associated with this gauge.
 	* @returns {JABS_Cooldown}
 	*/
 	cooldownData() {
-		return this._j._cooldownData;
+		return this.j()._cooldownData;
 	}
 	/**
 	* Sets the cooldown data associated with this gauge.
 	* @param {JABS_Cooldown} cooldownData The new cooldown data to set.
 	*/
 	setCooldownData(cooldownData) {
-		this._j._cooldownData = cooldownData;
+		this.j()._cooldownData = cooldownData;
 	}
 	/**
 	* Gets the current value for this gauge.
@@ -383,14 +396,14 @@ var Sprite_CooldownGauge = class extends Sprite {
 	*/
 	maxValue() {
 		if (this.isInComboExpireMode()) return this.cooldownData().comboExpireFramesMax;
-		return this._j._valueMax;
+		return this.j()._valueMax;
 	}
 	/**
 	* Sets the max value for this gauge.
 	* @param {number} maxValue The max value to set.
 	*/
 	setMaxValue(maxValue) {
-		this._j._valueMax = maxValue;
+		this.j()._valueMax = maxValue;
 	}
 	/**
 	* The width of the bitmap.
@@ -466,7 +479,7 @@ var Sprite_CooldownGauge = class extends Sprite {
 	*/
 	disableGauge() {
 		this.setMaxValue(0);
-		this._j._gcdHudPeak = 0;
+		this.j()._gcdHudPeak = 0;
 		this.bitmap.paintOpacity = 0;
 	}
 	/**
@@ -478,10 +491,10 @@ var Sprite_CooldownGauge = class extends Sprite {
 		const cd = this.cooldownData();
 		const g = this.globalHudFrames();
 		const eff = Math.max(cd.frames, g);
-		if (this._j._gcdHudPeak < eff) {
-			this._j._gcdHudPeak = eff;
+		if (this.j()._gcdHudPeak < eff) {
+			this.j()._gcdHudPeak = eff;
 		}
-		this.setMaxValue(this._j._gcdHudPeak);
+		this.setMaxValue(this.j()._gcdHudPeak);
 		this.bitmap.paintOpacity = 255;
 	}
 	/**
@@ -513,8 +526,8 @@ var Sprite_CooldownGauge = class extends Sprite {
 		const cooldown = this.cooldownData();
 		const g = this.globalHudFrames();
 		const eff = Math.max(cooldown.frames, g);
-		if (eff > this._j._gcdHudPeak) {
-			this._j._gcdHudPeak = eff;
+		if (eff > this.j()._gcdHudPeak) {
+			this.j()._gcdHudPeak = eff;
 		}
 		if (this.isInComboExpireMode()) {
 			this.bitmap.paintOpacity = 255;
@@ -528,7 +541,7 @@ var Sprite_CooldownGauge = class extends Sprite {
 			return;
 		}
 		if (cooldown.isBaseReady() === false || g > 0) {
-			this.setMaxValue(this._j._gcdHudPeak);
+			this.setMaxValue(this.j()._gcdHudPeak);
 			this.bitmap.paintOpacity = 255;
 		}
 	}
@@ -604,13 +617,20 @@ var Sprite_CooldownTimer = class extends Sprite {
 		this._j._isItem = isItem;
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Loads the bitmap into the sprite.
 	*/
 	loadBitmap() {
 		this.bitmap = new Bitmap(this.bitmapWidth(), this.bitmapHeight());
 		this.bitmap.fontFace = this.fontFace();
 		this.bitmap.fontSize = this.fontSize();
-		this.bitmap.drawText(this._j._text, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
+		this.bitmap.drawText(this.j()._text, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
 	}
 	update() {
 		super.update();
@@ -618,7 +638,7 @@ var Sprite_CooldownTimer = class extends Sprite {
 	}
 	updateCooldownText() {
 		this.bitmap.clear();
-		const baseCooldown = (this._j._cooldownData.frames / 60).toFixed(1);
+		const baseCooldown = (this.j()._cooldownData.frames / 60).toFixed(1);
 		const cooldownBaseText = baseCooldown > 0 ? baseCooldown : String.empty;
 		this.bitmap.drawText(cooldownBaseText, 0, 0, this.bitmapWidth(), this.bitmapHeight(), "center");
 	}
@@ -881,25 +901,32 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 		this._j._pulseFrames = 0;
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Sets the skill slot for this sprite's icon.
 	* @param {JABS_SkillSlot} skillSlot The skill slot being assigned.
 	*/
 	setSkillSlot(skillSlot) {
-		this._j._skillSlot = skillSlot;
+		this.j()._skillSlot = skillSlot;
 	}
 	/**
 	* Gets whether or not there is a skill slot currently being tracked.
 	* @returns {boolean}
 	*/
 	hasSkillSlot() {
-		return !!this._j._skillSlot;
+		return !!this.j()._skillSlot;
 	}
 	/**
 	* Gets the skill slot currently assigned to this sprite.
 	* @returns {JABS_SkillSlot|null}
 	*/
 	skillSlot() {
-		return this._j._skillSlot;
+		return this.j()._skillSlot;
 	}
 	/**
 	* Gets the icon associated with the tracked skill slot.
@@ -909,9 +936,9 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 	* @returns {number}
 	*/
 	skillSlotIcon() {
-		if (!this.hasSkillSlot()) return this._j._iconIndex;
+		if (!this.hasSkillSlot()) return this.j()._iconIndex;
 		const leader = $gameParty.leader();
-		if (!leader) return this._j._iconIndex;
+		if (!leader) return this.j()._iconIndex;
 		const resolvedId = leader.getResolvedSkillId(this.skillSlot().key);
 		const skill = this.skillSlot().data(leader, resolvedId);
 		if (!skill) return 0;
@@ -922,7 +949,7 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 	* @returns {string}
 	*/
 	skillSlotKey() {
-		return this._j._skillSlot.key;
+		return this.j()._skillSlot.key;
 	}
 	/**
 	* Extends the `update()` to monitor the icon index in case it changes,
@@ -934,7 +961,7 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 			this.synchronizeIconIndex();
 		}
 		if (!this.hasSkillSlot()) return;
-		const jabsBattler = $jabsEngine?.getPlayer1();
+		const jabsBattler = $jabsEngine.getPlayer1();
 		if (!jabsBattler) return;
 		const cooldown = jabsBattler.getCooldown(this.skillSlotKey());
 		if (!cooldown) return;
@@ -946,12 +973,12 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 	* @returns {Sprite_Icon}
 	*/
 	getOrCreateCooldownOverlaySprite() {
-		if (this._j._cooldownOverlaySprite) return this._j._cooldownOverlaySprite;
+		if (this.j()._cooldownOverlaySprite) return this.j()._cooldownOverlaySprite;
 		const overlay = new Sprite_Icon(J.HUD.EXT.INPUT.Metadata.CooldownOverlayIconIndex);
 		overlay.opacity = 160;
 		overlay.hide();
 		this.addChild(overlay);
-		this._j._cooldownOverlaySprite = overlay;
+		this.j()._cooldownOverlaySprite = overlay;
 		return overlay;
 	}
 	/**
@@ -995,20 +1022,20 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 	updateReadyPulse(cooldown) {
 		const baseReady = cooldown.isBaseReady();
 		const comboReady = cooldown.isComboReady();
-		if (!this._j._prevBaseReady && baseReady) {
-			this._j._pulseFrames = 12;
+		if (!this.j()._prevBaseReady && baseReady) {
+			this.j()._pulseFrames = 12;
 		}
-		if (!this._j._prevComboReady && comboReady) {
-			this._j._pulseFrames = 12;
+		if (!this.j()._prevComboReady && comboReady) {
+			this.j()._pulseFrames = 12;
 		}
-		this._j._prevBaseReady = baseReady;
-		this._j._prevComboReady = comboReady;
-		if (this._j._pulseFrames > 0) {
-			const t = this._j._pulseFrames / 12;
+		this.j()._prevBaseReady = baseReady;
+		this.j()._prevComboReady = comboReady;
+		if (this.j()._pulseFrames > 0) {
+			const t = this.j()._pulseFrames / 12;
 			const s = 1 + Math.sin(t * Math.PI) * .25;
 			this.scale.x = s;
 			this.scale.y = s;
-			this._j._pulseFrames--;
+			this.j()._pulseFrames--;
 		} else {
 			this.scale.x = 1;
 			this.scale.y = 1;
@@ -1086,6 +1113,13 @@ var Sprite_InputKeySlot = class extends Sprite {
 		this._j._spriteCache = new Map();
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Sets up this sprite with the given skill slot and owning battler.
 	* @param {JABS_SkillSlot} skillSlot The skill slot to track.
 	* @param {JABS_Battler} battler The battler owning the skill slot.
@@ -1100,21 +1134,21 @@ var Sprite_InputKeySlot = class extends Sprite {
 	* @returns {JABS_SkillSlot|null}
 	*/
 	skillSlot() {
-		return this._j._skillSlot;
+		return this.j()._skillSlot;
 	}
 	/**
 	* Checks whether or not there is a skill slot currently assigned.
 	* @returns {boolean}
 	*/
 	hasSkillSlot() {
-		return !!this._j._skillSlot;
+		return !!this.j()._skillSlot;
 	}
 	/**
 	* Assigns the given skill slot to this sprite.
 	* @param {JABS_SkillSlot} skillSlot The skill slot to track.
 	*/
 	setSkillSlot(skillSlot) {
-		this._j._skillSlot = skillSlot;
+		this.j()._skillSlot = skillSlot;
 	}
 	/**
 	* Get the cooldown data associated with the battler that owns
@@ -1148,7 +1182,7 @@ var Sprite_InputKeySlot = class extends Sprite {
 	* @returns {JABS_Battler|null}
 	*/
 	jabsBattler() {
-		return this._j._battler;
+		return this.j()._battler;
 	}
 	/**
 	* Gets the `Game_Battler` associated with the `JABS_Battler` assigned to this sprite.
@@ -1162,14 +1196,14 @@ var Sprite_InputKeySlot = class extends Sprite {
 	* @returns {boolean}
 	*/
 	hasBattler() {
-		return !!this._j._battler;
+		return !!this.j()._battler;
 	}
 	/**
 	* Assigns the given battler to this sprite.
 	* @param {JABS_Battler} battler The battler owning the skill slot.
 	*/
 	setBattler(battler) {
-		this._j._battler = battler;
+		this.j()._battler = battler;
 	}
 	/**
 	* Ensures all sprites are created and available for use.
@@ -1194,11 +1228,11 @@ var Sprite_InputKeySlot = class extends Sprite {
 	*/
 	getOrCreateInputKeyIconSprite(skillSlot, inputType) {
 		const key = this.makeInputKeyIconSpriteKey(skillSlot, inputType);
-		if (this._j._spriteCache.has(key)) {
-			return this._j._spriteCache.get(key);
+		if (this.j()._spriteCache.has(key)) {
+			return this.j()._spriteCache.get(key);
 		}
 		const sprite = new Sprite_SkillSlotIcon(0, skillSlot);
-		this._j._spriteCache.set(key, sprite);
+		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1223,11 +1257,11 @@ var Sprite_InputKeySlot = class extends Sprite {
 	*/
 	getOrCreateInputKeyAbilityCostSprite(amount, colorIndex, inputType, itemId = 0) {
 		const key = this.makeInputKeyAbilityCostSpriteKey(amount, colorIndex, inputType);
-		if (this._j._spriteCache.has(key)) {
-			return this._j._spriteCache.get(key);
+		if (this.j()._spriteCache.has(key)) {
+			return this.j()._spriteCache.get(key);
 		}
 		const sprite = new Sprite_SkillCost(amount, colorIndex, itemId);
-		this._j._spriteCache.set(key, sprite);
+		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1250,11 +1284,11 @@ var Sprite_InputKeySlot = class extends Sprite {
 	*/
 	getOrCreateInputKeySkillCostSprite(skillSlot, costType, inputType) {
 		const key = this.makeInputKeySkillCostSpriteKey(costType, inputType);
-		if (this._j._spriteCache.has(key)) {
-			return this._j._spriteCache.get(key);
+		if (this.j()._spriteCache.has(key)) {
+			return this.j()._spriteCache.get(key);
 		}
 		const sprite = new Sprite_SkillCost(skillSlot, costType);
-		this._j._spriteCache.set(key, sprite);
+		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1278,11 +1312,11 @@ var Sprite_InputKeySlot = class extends Sprite {
 	getOrCreateInputKeyCooldownTimerSprite(cooldownData, inputType) {
 		const isItem = this.hasSkillSlot() && this.skillSlot().isItem();
 		const key = this.makeInputKeyCooldownTimerSpriteKey(cooldownData, inputType, isItem);
-		if (this._j._spriteCache.has(key)) {
-			return this._j._spriteCache.get(key);
+		if (this.j()._spriteCache.has(key)) {
+			return this.j()._spriteCache.get(key);
 		}
 		const sprite = new Sprite_CooldownTimer(inputType, cooldownData, isItem);
-		this._j._spriteCache.set(key, sprite);
+		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1304,11 +1338,11 @@ var Sprite_InputKeySlot = class extends Sprite {
 	*/
 	getOrCreateInputKeyComboGaugeSprite(cooldownData, inputType) {
 		const key = this.makeInputKeyComboGaugeSpriteKey(cooldownData, inputType);
-		if (this._j._spriteCache.has(key)) {
-			return this._j._spriteCache.get(key);
+		if (this.j()._spriteCache.has(key)) {
+			return this.j()._spriteCache.get(key);
 		}
 		const sprite = new Sprite_CooldownGauge(cooldownData);
-		this._j._spriteCache.set(key, sprite);
+		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
 		sprite.rotation = 270 * (Math.PI / 180);
 		sprite.scale.x = .6;
@@ -1332,11 +1366,11 @@ var Sprite_InputKeySlot = class extends Sprite {
 	*/
 	getOrCreateInputKeySkillNameSprite(skillSlot, inputType) {
 		const key = this.makeInputKeySkillNameSpriteKey(inputType);
-		if (this._j._spriteCache.has(key)) {
-			return this._j._spriteCache.get(key);
+		if (this.j()._spriteCache.has(key)) {
+			return this.j()._spriteCache.get(key);
 		}
 		const sprite = new Sprite_SkillName(skillSlot).setFontSize(12).setAlignment(Sprite_BaseText.Alignments.Center);
-		this._j._spriteCache.set(key, sprite);
+		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1361,8 +1395,8 @@ var Sprite_InputKeySlot = class extends Sprite {
 	*/
 	getOrCreateInputKeySlotNameSprite(skillSlot, inputType) {
 		const key = this.makeInputKeySlotNameSpriteKey(skillSlot, inputType);
-		if (this._j._spriteCache.has(key)) {
-			return this._j._spriteCache.get(key);
+		if (this.j()._spriteCache.has(key)) {
+			return this.j()._spriteCache.get(key);
 		}
 		let labelText = inputType.toUpperCase();
 		if (skillSlot.isSecondarySlot()) {
@@ -1372,7 +1406,7 @@ var Sprite_InputKeySlot = class extends Sprite {
 			labelText = "GUARD";
 		}
 		const sprite = new Sprite_BaseText(labelText).setFontSize(12).setAlignment(Sprite_BaseText.Alignments.Center).setBold(true);
-		this._j._spriteCache.set(key, sprite);
+		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1615,67 +1649,74 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 		this._j._flip._direction = 0;
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Gets whether or not the skill trigger is held.
 	* @returns {boolean}
 	*/
 	skillTriggerHeld() {
-		return this._j._last._skillTriggerHeld;
+		return this.j()._last._skillTriggerHeld;
 	}
 	/**
 	* Sets whether or not the skill trigger is held.
 	* @param {boolean} value True if the skill trigger is held, false otherwise.
 	*/
 	setSkillTriggerHeld(value) {
-		this._j._last._skillTriggerHeld = value;
+		this.j()._last._skillTriggerHeld = value;
 	}
 	/**
 	* Gets whether or not the party is in combat.
 	* @returns {boolean}
 	*/
 	partyInCombat() {
-		return this._j._last._partyInCombat;
+		return this.j()._last._partyInCombat;
 	}
 	/**
 	* Sets whether or not the party is in combat.
 	* @param {boolean} value True if the party is in combat, false otherwise.
 	*/
 	setPartyInCombat(value) {
-		this._j._last._partyInCombat = value;
+		this.j()._last._partyInCombat = value;
 	}
 	/**
 	* Gets the current flip progress (0..max).
 	* @returns {number}
 	*/
 	getFlipProgress() {
-		return this._j._flip._progress;
+		return this.j()._flip._progress;
 	}
 	/**
 	* Sets the current flip progress (0..max).
 	* @param {number} value The new progress.
 	*/
 	setFlipProgress(value) {
-		this._j._flip._progress = Math.max(0, value);
+		this.j()._flip._progress = Math.max(0, value);
 	}
 	/**
 	* Gets the maximum flip duration in frames.
 	* @returns {number}
 	*/
 	getFlipMax() {
-		return this._j._flip._max;
+		return this.j()._flip._max;
 	}
 	/**
 	* Sets the maximum flip duration in frames.
 	* @param {number} value The new max duration.
 	*/
 	setFlipMax(value) {
-		this._j._flip._max = Math.max(0, value);
+		this.j()._flip._max = Math.max(0, value);
 	}
 	/**
 	* Gets the current flip direction (-1, 0, +1).
 	* @returns {number}
 	*/
 	getFlipDirection() {
-		return this._j._flip._direction;
+		return this.j()._flip._direction;
 	}
 	/**
 	* Sets the current flip direction (-1, 0, +1).
@@ -1684,11 +1725,11 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	setFlipDirection(value) {
 		const dir = value;
 		if (dir < 0) {
-			this._j._flip._direction = -1;
+			this.j()._flip._direction = -1;
 		} else if (dir > 0) {
-			this._j._flip._direction = 1;
+			this.j()._flip._direction = 1;
 		} else {
-			this._j._flip._direction = 0;
+			this.j()._flip._direction = 0;
 		}
 	}
 	/**
@@ -1721,11 +1762,11 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	*/
 	getOrCreateInputKeySlotSprite(skillSlot, inputType) {
 		const key = this.makeInputKeySlotSpriteKey(skillSlot, inputType);
-		if (this._j._spriteCache.has(key)) {
-			return this._j._spriteCache.get(key);
+		if (this.j()._spriteCache.has(key)) {
+			return this.j()._spriteCache.get(key);
 		}
 		const sprite = new Sprite_InputKeySlot(skillSlot, $jabsEngine.getPlayer1());
-		this._j._spriteCache.set(key, sprite);
+		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -1734,20 +1775,20 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	* Requests this window to clear and redraw its contents.
 	*/
 	requestInternalRefresh() {
-		this._j._needsRefresh = true;
+		this.j()._needsRefresh = true;
 	}
 	/**
 	* Gets whether or not this window needs refresh.
 	* @returns {boolean}
 	*/
 	needsInternalRefresh() {
-		return this._j._needsRefresh;
+		return this.j()._needsRefresh;
 	}
 	/**
 	* Flags internally this window for successfully refreshing text.
 	*/
 	acknowledgeInternalRefresh() {
-		this._j._needsRefresh = false;
+		this.j()._needsRefresh = false;
 	}
 	/**
 	* Refreshes the contents of this window.
@@ -1760,7 +1801,7 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	* Hide all sprites for the hud.
 	*/
 	hideSprites() {
-		this._j._spriteCache.forEach((sprite, _) => sprite.hide());
+		this.j()._spriteCache.forEach((sprite, _) => sprite.hide());
 		this.requestInternalRefresh();
 	}
 	/**
@@ -1832,7 +1873,7 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	* Manages opacity for all sprites while the player is interfering with the visibility.
 	*/
 	handlePlayerInterference() {
-		this._j._spriteCache.forEach((sprite, _) => {
+		this.j()._spriteCache.forEach((sprite, _) => {
 			if (sprite.opacity > 64) {
 				sprite.opacity -= 15;
 			} else if (sprite.opacity < 64) sprite.opacity += 1;
@@ -1842,7 +1883,7 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	* Reverts the opacity changes associated with the player getting in the way.
 	*/
 	revertInterferenceOpacity() {
-		this._j._spriteCache.forEach((sprite, _) => {
+		this.j()._spriteCache.forEach((sprite, _) => {
 			if (sprite.opacity < 255) {
 				sprite.opacity += 15;
 			} else if (sprite.opacity > 255) sprite.opacity = 255;
@@ -1898,7 +1939,7 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 		if (!this.canDrawInputFrame()) return;
 		this.contents.clear();
 		this.contentsBack.clear();
-		this._j._spriteCache.forEach(((sprite) => {
+		this.j()._spriteCache.forEach(((sprite) => {
 			sprite.hide();
 			sprite.drawInputKey();
 		}));

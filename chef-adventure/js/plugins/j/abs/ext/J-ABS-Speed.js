@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 MOVE] Enable modifying move speeds.
+ * [v1.1.0 ABS-SPEED] Enable modifying move speeds.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -310,7 +310,7 @@ var SpeedParameterRegistration = class {
 	* Registers move speed boost with the parameter catalog.
 	*/
 	static registerAll() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("msb").group(ParameterGroups.MOBILITY).sortOrder(0).label(() => TextManager.movespeed()).description(() => TextManager.moveSpeedDescription()).iconIndex(() => IconManager.movespeed()).format(ParameterFormat.FLAT).getValue((battler) => battler.msb).sdpBinding(SdpParameterBinding.byKey("msb", () => 0)).build());
+		ParameterRegistry.register(ParameterDefinition.Builder().key("msb").group(ParameterGroups.SUPPORT).sortOrder(2).label(() => TextManager.movespeed()).description(() => TextManager.moveSpeedDescription()).iconIndex(() => IconManager.movespeed()).format(ParameterFormat.FLAT).getValue((battler) => battler.msb).sdpBinding(SdpParameterBinding.byKey("msb", () => 0)).build());
 	}
 };
 

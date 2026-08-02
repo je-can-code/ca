@@ -727,6 +727,13 @@ var Window_Frame = class extends Window_Base {
 		this._j._spriteCache = new Map();
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Executes any one-time configuration required for this window.
 	*/
 	configure() {
@@ -743,8 +750,8 @@ var Window_Frame = class extends Window_Base {
 	* Empties the cache of all sprites.
 	*/
 	emptyCache() {
-		this._j._spriteCache.forEach((value, _) => value.destroy());
-		this._j._spriteCache.clear();
+		this.j()._spriteCache.forEach((value, _) => value.destroy());
+		this.j()._spriteCache.clear();
 	}
 	/**
 	* Empties and recreates the entire cache of sprites.

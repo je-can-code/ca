@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 STAR] Converts random encounters into star battles.
+ * [v1.0.0 ABS-STAR] Converts random encounters into star battles.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -310,7 +310,7 @@ BattleManager.setupStarBattle = function(originLocation, battleMapId) {
 	BattleManager.setup($gameTroop.troop().id, true, true);
 	$gameSystem.onBattleStart();
 	this.engageInBattle();
-	this._originLocation = originLocation;
+	this.setOrigin(originLocation);
 	$gamePlayer.reserveTransfer(battleMapId, 14, 9);
 };
 /**
@@ -339,6 +339,14 @@ BattleManager.isInBattle = function() {
 */
 BattleManager.origin = function() {
 	return this._originLocation;
+};
+/**
+* Sets the origin location of the player- the map info for where the player came from prior to
+* entering battle.
+* @param {StarOrigin} originLocation The location to return the player to.
+*/
+BattleManager.setOrigin = function(originLocation) {
+	this._originLocation = originLocation;
 };
 
 //#endregion
@@ -410,7 +418,7 @@ Game_Interpreter.prototype.command301 = function(params) {
 	const hasTroop = !!$dataTroops[troopId];
 	if (hasTroop) {
 		BattleManager.setup(troopId, canEscape, canLose);
-		BattleManager.setEventCallback((n) => this._branch[this._indent] = n);
+		BattleManager.setEventCallback((n) => this.branch()[this.indent()] = n);
 		$gamePlayer.makeEncounterCount();
 	}
 	return true;

@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.4 UTIL] Various system utilities.
+ * [v1.1.4 UTILS] Various system utilities.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -189,11 +189,29 @@ J.UTILS.GamepadLog.logFreshPresses = function(pad, prev, next) {
 * @override
 */
 Bitmap.prototype._createCanvas = function(width, height) {
-	this._canvas = document.createElement("canvas");
-	this._context = this._canvas.getContext("2d", { willReadFrequently: true });
-	this._canvas.width = width;
-	this._canvas.height = height;
-	this._createBaseTexture(this._canvas);
+	const canvas = document.createElement("canvas");
+	this.setCanvas(canvas);
+	this.setContext(canvas.getContext("2d", { willReadFrequently: true }));
+	canvas.width = width;
+	canvas.height = height;
+	this._createBaseTexture(canvas);
+};
+/**
+* Sets the canvas element this bitmap draws onto.
+*
+* Note that there is deliberately no matching getter here; the engine already exposes a `canvas`
+* property, and that one lazily creates the element it returns.
+* @param {HTMLCanvasElement} newCanvas The canvas element.
+*/
+Bitmap.prototype.setCanvas = function(newCanvas) {
+	this._canvas = newCanvas;
+};
+/**
+* Sets the 2d drawing context this bitmap renders through.
+* @param {CanvasRenderingContext2D} newContext The drawing context.
+*/
+Bitmap.prototype.setContext = function(newContext) {
+	this._context = newContext;
 };
 
 //#endregion
@@ -231,9 +249,9 @@ Input.keyMapper = {
 */
 J.UTILS.Aliased.Input.set("_updateGamepadState", Input._updateGamepadState);
 Input._updateGamepadState = function(gamepad) {
-	const prev = this._gamepadStates[gamepad.index] || [];
+	const prev = this.gamepadStates()[gamepad.index] || [];
 	J.UTILS.Aliased.Input.get("_updateGamepadState").call(this, gamepad);
-	const next = this._gamepadStates[gamepad.index] || [];
+	const next = this.gamepadStates()[gamepad.index] || [];
 	J.UTILS.GamepadLog.logFreshPresses(gamepad, prev, next);
 };
 
@@ -302,9 +320,9 @@ Game_Party.prototype.removeInvalidItemsFromParty = function() {
 			}
 		}
 	};
-	purgeContainer(this._items, $dataItems);
-	purgeContainer(this._weapons, $dataWeapons);
-	purgeContainer(this._armors, $dataArmors);
+	purgeContainer(this.rawItems(), $dataItems);
+	purgeContainer(this.rawWeapons(), $dataWeapons);
+	purgeContainer(this.rawArmors(), $dataArmors);
 	const members = this.members();
 	for (let i = 0; i < members.length; i++) {
 		const actor = members[i];

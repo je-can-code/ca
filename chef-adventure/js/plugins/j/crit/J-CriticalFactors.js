@@ -562,19 +562,20 @@
 //#region src/plugins/crit/core/_metadata/_pluginMetadata.js
 var J_CriticalFactorsPluginMetadata = class J_CriticalFactorsPluginMetadata extends PluginMetadata {
 	/**
-	* The default critical damage multiplier factor applied to every battler that carries no
-	* `<critMultiplierBase:NUM>` notetags. Parsed from the `critMultiplierBaseDefault` plugin
-	* parameter, a percent-point value (e.g. `50` becomes the `0.5` factor).
+	* The factor used for critical damage multiplication when the plugin parameter is absent or
+	* unreadable. This is a static rather than a field initializer on purpose: the parent
+	* constructor reaches `initializeMetadata` before any subclass field initializer has run, so a
+	* field would still be `undefined` at the moment the fallback is needed - and would then
+	* overwrite the parsed result on its way in.
 	* @type {number}
 	*/
-	baseCdmFactor = .5;
+	static #DEFAULT_CDM_FACTOR = .5;
 	/**
-	* The default critical damage reduction factor applied to every battler that carries no
-	* `<critReductionBase:NUM>` notetags. Parsed from the `critReductionBaseDefault` plugin
-	* parameter, a percent-point value (e.g. `50` becomes the `0.5` factor).
+	* The factor used for critical damage reduction when the plugin parameter is absent or
+	* unreadable. Static for the same reason as {@link #DEFAULT_CDM_FACTOR}.
 	* @type {number}
 	*/
-	baseCtrFactor = .5;
+	static #DEFAULT_CTR_FACTOR = .5;
 	/**
 	* Constructor.
 	*/
@@ -594,8 +595,18 @@ var J_CriticalFactorsPluginMetadata = class J_CriticalFactorsPluginMetadata exte
 	*/
 	initializeMetadata() {
 		const { parsedPluginParameters: p } = this;
-		this.baseCdmFactor = J_CriticalFactorsPluginMetadata.#parsePercentFactorOr(p["critMultiplierBaseDefault"], this.baseCdmFactor);
-		this.baseCtrFactor = J_CriticalFactorsPluginMetadata.#parsePercentFactorOr(p["critReductionBaseDefault"], this.baseCtrFactor);
+		/**
+		* The default critical damage multiplier factor applied to every battler that carries no
+		* `<critMultiplierBase:NUM>` notetags. A percent-point value (e.g. `50` becomes `0.5`).
+		* @type {number}
+		*/
+		this.baseCdmFactor = J_CriticalFactorsPluginMetadata.#parsePercentFactorOr(p["critMultiplierBaseDefault"], J_CriticalFactorsPluginMetadata.#DEFAULT_CDM_FACTOR);
+		/**
+		* The default critical damage reduction factor applied to every battler that carries no
+		* `<critReductionBase:NUM>` notetags. A percent-point value (e.g. `50` becomes `0.5`).
+		* @type {number}
+		*/
+		this.baseCtrFactor = J_CriticalFactorsPluginMetadata.#parsePercentFactorOr(p["critReductionBaseDefault"], J_CriticalFactorsPluginMetadata.#DEFAULT_CTR_FACTOR);
 	}
 	/**
 	* Parses a percent-point plugin parameter (e.g. `"50.00"`) into its `/100` factor.

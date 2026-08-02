@@ -167,6 +167,30 @@
  *    prefix.
  *
  * ============================================================================
+ * TIER RANK (PIP COUNT)
+ * Have you ever wanted the map nameplate stripe to communicate not just that
+ * a prefix is special, but how special, without forcing players to memorize
+ * five different tier colors? Well now you can! By applying a tier rank tag
+ * to a prefix state, you too can make the stripe draw that many thin pips
+ * instead of one solid block.
+ *
+ * TAG USAGE:
+ * - States
+ *
+ * TAG FORMAT:
+ *  <affix-tier:N>
+ *    Where N is a positive integer tier rank.
+ *
+ * TAG NOTES:
+ * - No tag (or a tag of 1) draws the original single solid stripe. Full stop.
+ * - Rank is capped at 5 pips regardless of the tagged value.
+ *
+ * TAG EXAMPLES:
+ *  <affix-tier:3>
+ *    Draws three thin pips on the map nameplate stripe when this prefix is
+ *    the selected tier prefix.
+ *
+ * ============================================================================
  * REWARD MULTIPLIERS
  * Have you ever wanted affixed enemies to yield better rewards for the extra
  * challenge they pose? Well now you can! By applying the following tag to
@@ -346,6 +370,7 @@ J.PASSIVE.EXT.AFFIX.RegExp.Prefix = /<enemy-prefix>/i;
 J.PASSIVE.EXT.AFFIX.RegExp.Suffix = /<enemy-suffix>/i;
 J.PASSIVE.EXT.AFFIX.RegExp.Weight = /<affix-weight:([1-9]\d*)>/i;
 J.PASSIVE.EXT.AFFIX.RegExp.TierColorHex = /<tier-color-hex:(#[0-9A-F]{6})>/i;
+J.PASSIVE.EXT.AFFIX.RegExp.AffixTier = /<affix-tier:([1-9]\d*)>/i;
 J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassives = /<no-rng-passives>/i;
 J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassivePrefixes = /<no-rng-passive-prefixes>/i;
 J.PASSIVE.EXT.AFFIX.RegExp.NoRngPassiveSuffixes = /<no-rng-passive-suffixes>/i;
@@ -379,25 +404,47 @@ J.PASSIVE.EXT.AFFIX.Helpers.parseRewardMultipliers = function(databaseData) {
 	return results;
 };
 /**
+* Walks a battler's passive states in order and returns the first enemy-prefix state found.
+* Shared by every resolver that needs "the one prefix state currently deciding tier presentation"
+* (stripe color, HUD tint, tier rank) so they all agree on the same winning state.
+* @param {Game_Battler} battler Source battler; only enemies participate.
+* @returns {RPG_State|null} The first qualifying enemy-prefix state, or null when none applies.
+*/
+J.PASSIVE.EXT.AFFIX.Helpers.findFirstEnemyPrefixState = function(battler) {
+	if (!battler || battler.isEnemy() === false) return null;
+	const passiveStatesIds = battler.getPassiveStateIds();
+	if (passiveStatesIds.length === 0) return null;
+	for (const passiveStateId of passiveStatesIds) {
+		const state = battler.state(passiveStateId);
+		if (!state) continue;
+		if (state.isEnemyPrefix !== true) continue;
+		return state;
+	}
+	return null;
+};
+/**
 * Resolves map/HUD tier stripe tint from the first enemy-prefix passive state on the battler.
 * Callers assign the result to {@link JABS_BattlerName#colorHex} (or HUD fields) when non-empty.
 * @param {Game_Battler} battler Source battler; only enemies participate.
 * @returns {string} Stripe hex, or {@link String.empty} when none applies.
 */
 J.PASSIVE.EXT.AFFIX.Helpers.resolvePassiveTierStripeColorHex = function(battler) {
-	if (!battler || battler.isEnemy() === false) return String.empty;
-	const passiveStatesIds = battler.getPassiveStateIds();
-	if (passiveStatesIds.length === 0) return String.empty;
-	for (const passiveStateId of passiveStatesIds) {
-		const state = battler.state(passiveStateId);
-		if (!state) continue;
-		if (state.isEnemyPrefix !== true) continue;
-		if (state.tierColorHex && state.tierColorHex !== String.empty) {
-			return state.tierColorHex;
-		}
-		break;
+	const state = J.PASSIVE.EXT.AFFIX.Helpers.findFirstEnemyPrefixState(battler);
+	if (!state) return String.empty;
+	if (state.tierColorHex && state.tierColorHex !== String.empty) {
+		return state.tierColorHex;
 	}
 	return String.empty;
+};
+/**
+* Resolves the map nameplate tier rank (pip count) from the first enemy-prefix passive state on the battler.
+* Callers assign the result to {@link JABS_BattlerName#tier} to control how many stripe pips are drawn.
+* @param {Game_Battler} battler Source battler; only enemies participate.
+* @returns {number} The tier rank, or `0` when none applies.
+*/
+J.PASSIVE.EXT.AFFIX.Helpers.resolvePassiveTierRank = function(battler) {
+	const state = J.PASSIVE.EXT.AFFIX.Helpers.findFirstEnemyPrefixState(battler);
+	return state ? state.affixTier : 0;
 };
 
 //#endregion
@@ -476,6 +523,14 @@ Object.defineProperty(RPG_State.prototype, "affixWeight", { get() {
 */
 Object.defineProperty(RPG_State.prototype, "tierColorHex", { get() {
 	return RPGManager.getStringFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.TierColorHex, true);
+} });
+/**
+* The tier rank of this state for map nameplate stripe pips, from {@link J.PASSIVE.EXT.AFFIX.RegExp.AffixTier}.
+* Defaults to 0 if none is found, meaning no pip subdivision (single solid stripe).
+* @type {number}
+*/
+Object.defineProperty(RPG_State.prototype, "affixTier", { get() {
+	return RPGManager.getNumberFromNoteByRegex(this, J.PASSIVE.EXT.AFFIX.RegExp.AffixTier, true) ?? 0;
 } });
 /**
 * All reward multipliers defined on this state via {@link J.PASSIVE.EXT.AFFIX.RegExp.RewardMultiplier}.
@@ -857,6 +912,10 @@ Sprite_Character.prototype.applyPassiveMapTierAccent = function(battlerName) {
 	if (tierStripeHex !== String.empty) {
 		battlerName.colorHex = tierStripeHex;
 	}
+	const tierRank = J.PASSIVE.EXT.AFFIX.Helpers.resolvePassiveTierRank(battler);
+	if (tierRank !== 0) {
+		battlerName.tier = tierRank;
+	}
 };
 /**
 * Determines whether or not passive map tier accent should be considered for this sprite.
@@ -993,7 +1052,7 @@ Window_PassiveDetail.prototype.collectJabsAilmentRows = function(state) {
 			value: `+${Math.abs(slipHpPct)}% / tick`
 		});
 	} else if (slipHpForm) {
-		const hpEval = this.evaluateFormula(slipHpForm, this._actor);
+		const hpEval = this.evaluateFormula(slipHpForm, this.actor());
 		rows.push({
 			icon: TraitManager.slipIcon("hp", Number(hpEval)),
 			label: TraitManager.slipName("hp", Number(hpEval)),
@@ -1007,7 +1066,7 @@ Window_PassiveDetail.prototype.collectJabsAilmentRows = function(state) {
 			value: `+${Math.abs(slipMpPct)}% / tick`
 		});
 	} else if (slipMpForm) {
-		const mpEval = this.evaluateFormula(slipMpForm, this._actor);
+		const mpEval = this.evaluateFormula(slipMpForm, this.actor());
 		rows.push({
 			icon: TraitManager.slipIcon("mp", Number(mpEval)),
 			label: TraitManager.slipName("mp", Number(mpEval)),
@@ -1021,7 +1080,7 @@ Window_PassiveDetail.prototype.collectJabsAilmentRows = function(state) {
 			value: `+${Math.abs(slipTpPct)}% / tick`
 		});
 	} else if (slipTpForm) {
-		const tpEval = this.evaluateFormula(slipTpForm, this._actor);
+		const tpEval = this.evaluateFormula(slipTpForm, this.actor());
 		rows.push({
 			icon: TraitManager.slipIcon("tp", Number(tpEval)),
 			label: TraitManager.slipName("tp", Number(tpEval)),
@@ -1120,7 +1179,7 @@ Window_PassiveDetail.prototype.collectResourceGainRow = function(state, flatRx, 
 	};
 	const form = RPGManager.getStringFromNoteByRegex(state, formRx);
 	if (form) {
-		const evaluated = this.evaluateFormula(form, this._actor);
+		const evaluated = this.evaluateFormula(form, this.actor());
 		return {
 			icon,
 			label,
@@ -1232,7 +1291,7 @@ Window_PassiveDetail.prototype.collectJabsTimingRows = function(state) {
 			rows.push({
 				icon: 0,
 				label: "Cast Time Flat",
-				value: `${this.evaluateFormula(castFlat, this._actor)}`
+				value: `${this.evaluateFormula(castFlat, this.actor())}`
 			});
 		}
 		const castRate = RPGManager.getStringFromNoteByRegex(state, J.ABS.EXT.TIMING.RegExp.CastSpeedRate);
@@ -1240,7 +1299,7 @@ Window_PassiveDetail.prototype.collectJabsTimingRows = function(state) {
 			rows.push({
 				icon: 0,
 				label: "Cast Time Rate",
-				value: `${this.evaluateFormula(castRate, this._actor)}%`
+				value: `${this.evaluateFormula(castRate, this.actor())}%`
 			});
 		}
 		const cdFlat = RPGManager.getStringFromNoteByRegex(state, J.ABS.EXT.TIMING.RegExp.FastCooldownFlat);
@@ -1248,7 +1307,7 @@ Window_PassiveDetail.prototype.collectJabsTimingRows = function(state) {
 			rows.push({
 				icon: 0,
 				label: "Cooldown Flat",
-				value: `${this.evaluateFormula(cdFlat, this._actor)}`
+				value: `${this.evaluateFormula(cdFlat, this.actor())}`
 			});
 		}
 		const cdRate = RPGManager.getStringFromNoteByRegex(state, J.ABS.EXT.TIMING.RegExp.FastCooldownRate);
@@ -1256,7 +1315,7 @@ Window_PassiveDetail.prototype.collectJabsTimingRows = function(state) {
 			rows.push({
 				icon: 0,
 				label: "Cooldown Rate",
-				value: `${this.evaluateFormula(cdRate, this._actor)}%`
+				value: `${this.evaluateFormula(cdRate, this.actor())}%`
 			});
 		}
 	}
@@ -1277,7 +1336,7 @@ Window_PassiveDetail.prototype.collectJabsTimingRows = function(state) {
 		rows.push({
 			icon: 0,
 			label: "Duration",
-			value: `x${this.evaluateFormula(durationForm, this._actor)}`
+			value: `x${this.evaluateFormula(durationForm, this.actor())}`
 		});
 	}
 	return rows;
@@ -1295,7 +1354,7 @@ Window_PassiveDetail.prototype.drawJabsShieldSection = function(state) {
 		rows.push({
 			icon: 0,
 			label: "Shield",
-			value: `${this.evaluateFormula(shieldFormula, this._actor)}`
+			value: `${this.evaluateFormula(shieldFormula, this.actor())}`
 		});
 	}
 	const shieldProtect = RPGManager.checkForBooleanFromNoteByRegex(state, J.ABS.EXT.SHIELD.RegExp.Protect);
@@ -1332,6 +1391,13 @@ Window_PassiveDetail.prototype.drawJabsStackingSection = function(state) {
 		this.drawDetailRow(0, "Stacks Applied", `${state.jabsStateStacksApplied}`);
 		if (state.jabsLoseAllStacksAtOnce) this.drawDetailRow(0, "Lose All Stacks At Once", "");
 	}
+};
+/**
+* Gets the actor whose passive details are being displayed.
+* @returns {Game_Actor} The displayed actor.
+*/
+Window_PassiveDetail.prototype.actor = function() {
+	return this._actor;
 };
 
 //#endregion

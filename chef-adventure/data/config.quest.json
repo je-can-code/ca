@@ -2672,7 +2672,9 @@
       "name": "First-time Forgery",
       "key": "side-001",
       "categoryKey": "side",
-      "tagKeys": [],
+      "tagKeys": [
+        "ch1"
+      ],
       "unknownHint": "",
       "overview": "The smithery of Raevula is impressive to behold, yet the primary smith is a fucking drunkard- not the most conducive to you getting your smithery things done. Looks like you get to help them out of a hard spot if you want them to help you at all.",
       "recommendedLevel": 5,
@@ -2756,17 +2758,17 @@
         {
           "id": 2,
           "type": "Indiscriminate",
-          "description": "Smithing doesn't seem too hard, just make a \\weapon[2] and \\weapon[122], right?",
+          "description": "Smithing doesn't seem too hard, just make a \\weapon[2] and \\weapon[122], and show them off to Viskra, right?",
           "logs": {
             "inactive": "",
-            "active": "Gotta 'upgrade' our weapons- better hit the apprentice forge.",
+            "active": "Gotta 'upgrade' our weapons- better hit the apprentice forge, then show Viskra the fruits of your labor.",
             "completed": "Easy as pie.",
             "failed": "",
             "missed": ""
           },
           "fulfillment": {
             "indiscriminate": {
-              "hint": "Smith up the \\weapon[2] and \\weapon[122]."
+              "hint": "Smith up the \\weapon[2] and \\weapon[122], then show them to Viskra."
             },
             "destination": {
               "mapId": -1,

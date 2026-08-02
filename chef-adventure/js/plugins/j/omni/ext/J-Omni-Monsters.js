@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 OMNI-MON] Extends the Omnipedia with a Monsterpedia entry.
+ * [v1.1.0 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -1561,9 +1561,11 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 		this.initMembers();
 	}
 	/**
-	* Initialize all properties for our omnipedia.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes all properties for our omnipedia.
 	*/
 	initMembers() {
+		super.initMembers();
 		this.initCoreMembers();
 		this.initPrimaryMembers();
 	}
@@ -1634,11 +1636,11 @@ var Scene_Monsterpedia = class extends Scene_MenuBase {
 	* Changes the filter to a different type from {@link PIXI.filters}.
 	*/
 	createBackground() {
-		this._backgroundFilter = new PIXI.filters.AlphaFilter(.1);
-		this._backgroundSprite = new Sprite();
-		this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-		this._backgroundSprite.filters = [this._backgroundFilter];
-		this.addChild(this._backgroundSprite);
+		this.setBackgroundFilter(new PIXI.filters.AlphaFilter(.1));
+		this.setBackgroundSprite(new Sprite());
+		this.backgroundSprite().bitmap = SceneManager.backgroundBitmap();
+		this.backgroundSprite().filters = [this.backgroundFilter()];
+		this.addChild(this.backgroundSprite());
 	}
 	/**
 	* Creates the list of monsters the player has perceived.

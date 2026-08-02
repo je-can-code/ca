@@ -2,11 +2,13 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 CMS_K] A redesign of the skill menu.
+ * [v1.1.0 CMS-SKILL] A redesign of the skill menu.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
+ * @base J-CMS
  * @orderAfter J-Base
+ * @orderAfter J-CMS
  * @help
  * ============================================================================
  * This is a redesign of the skill menu.
@@ -36,7 +38,7 @@
  * ============================================================================
  */
 
-//#region src/plugins/cms/skill/_metadata/_pluginMetadata.js
+//#region src/plugins/cms/ext/skill/_metadata/_pluginMetadata.js
 var J_CmsSkill_PluginMetadata = class extends PluginMetadata {
 	/**
 	* Constructor.
@@ -49,7 +51,7 @@ var J_CmsSkill_PluginMetadata = class extends PluginMetadata {
 };
 
 //#endregion
-//#region src/plugins/cms/skill/_metadata/initialization.js
+//#region src/plugins/cms/ext/skill/_metadata/initialization.js
 /**
 * The core where all of my extensions live: in the `J` object.
 */
@@ -60,23 +62,35 @@ globalThis.J ||= {};
 	if (hasBaseRequirement === false) {
 		throw new Error(`Either missing J-Base or has a lower version than the required: ${requiredBaseVersion}`);
 	}
+	const requiredCmsVersion = "1.0.0";
+	const hasCmsRequirement = J.BASE.Helpers.satisfies(J.CMS.Metadata.version.version(), requiredCmsVersion);
+	if (hasCmsRequirement === false) {
+		throw new Error(`Either missing J-CMS or has a lower version than the required: ${requiredCmsVersion}`);
+	}
 })();
+/**
+* The plugin umbrella that governs all extensions of the parent.
+*/
+J.CMS.EXT ||= {};
 /**
 * The plugin umbrella that governs all things related to this plugin.
 */
-J.CMS_K = {};
+J.CMS.EXT.SKILL = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.CMS_K.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.1.0");
-J.CMS_K.Aliased = {
+J.CMS.EXT.SKILL.Metadata = new J_CmsSkill_PluginMetadata("J-CMS-Skill", "1.1.0");
+/**
+* A collection of all aliased methods for this plugin.
+*/
+J.CMS.EXT.SKILL.Aliased = {
 	Scene_Skill: new Map(),
 	Window_SkillList: new Map(),
 	Window_EquipSlot: new Map()
 };
 
 //#endregion
-//#region src/plugins/cms/skill/_models/JCMS_ParameterKvp.js
+//#region src/plugins/cms/ext/skill/_models/JCMS_ParameterKvp.js
 /**
 * A class representing a single key-value pair, with an optional long id.
 * This is used for storing table-like data related to actors and skills.
@@ -123,7 +137,7 @@ var JCMS_ParameterKvp = class {
 };
 
 //#endregion
-//#region src/plugins/cms/skill/windows/Window_SkillDetail.js
+//#region src/plugins/cms/ext/skill/windows/Window_SkillDetail.js
 /**
 * A window responsible for showing various datapoints of a skill.
 */
@@ -151,6 +165,27 @@ var Window_SkillDetail = class extends Window_Base {
 		this.refresh();
 	}
 	/**
+	* Gets the skill id.
+	* @returns {number} The skillId.
+	*/
+	skillId() {
+		return this._skillId;
+	}
+	/**
+	* Gets the actor.
+	* @returns {Game_Actor} The actor.
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
+	* Gets the skill sprites.
+	* @returns {Map<string, Sprite>} The skillSprites.
+	*/
+	skillSprites() {
+		return this._skillSprites;
+	}
+	/**
 	* Sets the skill id of the window to this and refreshes the data.
 	* @param {number} newSkillId The new skill id for this window.
 	*/
@@ -168,13 +203,13 @@ var Window_SkillDetail = class extends Window_Base {
 	* @returns {RPG_Skill|null}
 	*/
 	skill() {
-		if (!this._skillId) {
+		if (!this.skillId()) {
 			return null;
 		} else {
-			if (J.EXTEND && this._actor) {
-				return OverlayManager.getExtendedSkill(this._actor, this._skillId);
+			if (J.EXTEND && this.actor()) {
+				return this.actor().skill(this.skillId());
 			}
-			return $dataSkills[this._skillId];
+			return $dataSkills[this.skillId()];
 		}
 	}
 	/**
@@ -196,7 +231,7 @@ var Window_SkillDetail = class extends Window_Base {
 	* Hides all skill images available.
 	*/
 	clearSkillImages() {
-		this._skillSprites.forEach((sprite) => {
+		this.skillSprites().forEach((sprite) => {
 			sprite.hide();
 		});
 	}
@@ -252,14 +287,14 @@ var Window_SkillDetail = class extends Window_Base {
 	* @param {number} iconIndex The icon index of this sprite.
 	*/
 	createIconSprite(key, iconIndex) {
-		let sprite = this._skillSprites.get(key);
+		let sprite = this.skillSprites().get(key);
 		if (sprite) {
 			return sprite;
 		} else {
 			sprite = new Sprite_Icon(iconIndex);
 			sprite.scale.x = 4;
 			sprite.scale.y = 4;
-			this._skillSprites.set(key, sprite);
+			this.skillSprites().set(key, sprite);
 			this.addInnerChild(sprite);
 			return sprite;
 		}
@@ -269,7 +304,7 @@ var Window_SkillDetail = class extends Window_Base {
 	*/
 	drawLeftColumn() {
 		const skill = this.skill();
-		const actor = this._actor;
+		const actor = this.actor();
 		const params = [];
 		params.push(this.makeSkillTypeParam(skill));
 		params.push(this.makeDividerParam());
@@ -299,7 +334,7 @@ var Window_SkillDetail = class extends Window_Base {
 	*/
 	drawMiddleColumn() {
 		const skill = this.skill();
-		const actor = this._actor;
+		const actor = this.actor();
 		const params = [];
 		params.push(this.makeProjectedDamageParam(skill, actor));
 		params.push(this.makeHitsParam(skill, actor));
@@ -382,7 +417,7 @@ var Window_SkillDetail = class extends Window_Base {
 	*/
 	drawRightColumn() {
 		const skill = this.skill();
-		const actor = this._actor;
+		const actor = this.actor();
 		/** @type {JCMS_ParameterKvp[]} */
 		const params = [];
 		const col = Math.floor(this.innerWidth / 3);
@@ -621,59 +656,217 @@ var Window_SkillDetail = class extends Window_Base {
 };
 
 //#endregion
-//#region src/plugins/cms/skill/scenes/Scene_Skill.js
+//#region src/plugins/cms/ext/skill/scenes/Scene_Skill.js
 /**
-* Extends {@link Scene_Skill.initialize}.<br/>
-* Tracks whether the skill detail pane is visible.
+* Re-parents the engine's skill scene onto the shared actor facet skeleton.
+*
+* Like the equip scene, this is one of RPG Maker's own- a function with a hand-built prototype chain
+* and no `extends` clause to change- so its prototype is re-pointed at the base's. That is real
+* inheritance: the base's rect math arrives as inherited methods, `super` inside them still resolves,
+* this file's own definitions still shadow what they mean to override, and the scene remains an
+* instance of {@link Scene_MenuBase} for everything that checks.
+*
+* Unlike the equip scene, the parent being displaced here is not an empty one. {@link Scene_ItemBase}
+* carries the whole "use this on which ally" flow- the actor window, target resolution, usability
+* checks and item application- roughly twenty methods that the skill scene leans on and does not
+* redefine. Pointing straight at the facet base would take all of that with it.
+*
+* So the layer is rebuilt above the facet base rather than dropped: a plain object holding
+* `Scene_ItemBase`'s own members, whose own prototype is the facet base. The resulting chain is
+* `Scene_Skill` -> item-base members -> facet base -> `Scene_MenuBase`, and both halves answer.
+*
+* Splicing the facet base beneath `Scene_ItemBase.prototype` itself would be shorter, but
+* {@link Scene_Item} shares that prototype and would inherit the facet skeleton's `helpAreaHeight`
+* along with it, moving windows in a scene that never asked for any of this.
 */
-J.CMS_K.Aliased.Scene_Skill.set("initialize", Scene_Skill.prototype.initialize);
+var skillItemBaseMembers = Object.create(Scene_ActorFacetBase.prototype);
+Object.defineProperties(skillItemBaseMembers, Object.getOwnPropertyDescriptors(Scene_ItemBase.prototype));
+delete skillItemBaseMembers.constructor;
+Object.setPrototypeOf(Scene_Skill.prototype, skillItemBaseMembers);
+/**
+* Overwrites {@link Scene_Skill.initialize}.<br/>
+* Reaches the facet skeleton's initialize so its members are seeded alongside this scene's.
+*/
 Scene_Skill.prototype.initialize = function() {
-	J.CMS_K.Aliased.Scene_Skill.get("initialize").call(this);
-	this._j = this._j || {};
-	this._j.moreVisible = false;
+	Scene_ActorFacetBase.prototype.initialize.call(this);
 };
 /**
-* Extends {@link Scene_Skill.create}.<br/>
-* Builds the skill detail window after vanilla skill scene windows.
+* Extends {@link Scene_ActorFacetBase.initMembers}.<br/>
+* Also initializes this scene's own members.
 */
-J.CMS_K.Aliased.Scene_Skill.set("create", Scene_Skill.prototype.create);
+Scene_Skill.prototype.initMembers = function() {
+	Scene_ActorFacetBase.prototype.initMembers.call(this);
+	/**
+	* Whether the extended skill detail pane is currently showing.
+	* @type {boolean}
+	*/
+	this._j._moreVisible = false;
+	/**
+	* The pane describing the highlighted skill.
+	* @type {Window_SkillDetail|null}
+	*/
+	this._j._skillDetailWindow = null;
+};
+/**
+* Overwrites {@link Scene_Skill.create}.<br/>
+* Builds this scene's windows around the shared chrome.
+*
+* Deliberately does not call vanilla's own `create`. That builds a `Window_SkillStatus`- a full-width
+* strip carrying the actor's face, name, level and gauges- which is the actor ribbon by another name.
+* The base already supplies the ribbon, so the remaining window creations are listed out individually
+* rather than inherited wholesale.
+*/
 Scene_Skill.prototype.create = function() {
-	J.CMS_K.Aliased.Scene_Skill.get("create").call(this);
+	Scene_ActorFacetBase.prototype.create.call(this);
+	this.createHelpWindow();
+	this.createSkillTypeWindow();
+	this.createItemWindow();
+	this.createActorWindow();
 	this.createSkillDetailWindow();
 };
 /**
-* The rectangle for the skill-type picker column.<br/>
-* Flips horizontal anchor when right-side input mode is active.
+* Overwrites {@link Scene_Skill.statusWindow}.<br/>
+* Reports the actor ribbon as this scene's status window.
+*
+* Vanilla reaches for this in `refreshActor` and when returning from item use, so it answers rather
+* than vanishing- and the ribbon is what describes the actor whose skills are listed here.
+* @returns {Window_ActorRibbon}
+*/
+Scene_Skill.prototype.statusWindow = function() {
+	return this.getActorRibbonWindow();
+};
+/**
+* Overwrites {@link Scene_Skill.refreshActor}.<br/>
+* Points every actor-driven window in this scene at whoever is currently being viewed.
+*
+* Vanilla reaches for `_statusWindow` by field here rather than through its accessor, and this scene
+* never builds one- the ribbon stands in its place, so the accessor is what gets asked.
+*/
+Scene_Skill.prototype.refreshActor = function() {
+	const actor = this.actor();
+	this.skillTypeWindow().setActor(actor);
+	this.statusWindow().setActor(actor);
+	this.itemWindow().setActor(actor);
+};
+/**
+* Overwrites {@link Scene_Skill.useItem}.<br/>
+* Spends the highlighted skill and refreshes whatever its use may have changed.
+*
+* Same substitution as {@link Scene_Skill.refreshActor}: the ribbon is this scene's status window, and
+* it needs redrawing because using a skill moves the resources the ribbon reports.
+*/
+Scene_Skill.prototype.useItem = function() {
+	Scene_ItemBase.prototype.useItem.call(this);
+	this.statusWindow().refresh();
+	this.itemWindow().refresh();
+};
+/**
+* Overwrites {@link Scene_Skill.onActorChange}.<br/>
+* Rebuilds this scene around the newly selected party member.
+*
+* Routed through the facet base rather than {@link Scene_MenuBase} directly, because the base is what
+* knows to repoint the actor ribbon- reaching past it would leave the ribbon naming the previous actor.
+*/
+Scene_Skill.prototype.onActorChange = function() {
+	Scene_ActorFacetBase.prototype.onActorChange.call(this);
+	this.refreshActor();
+	this.itemWindow().deselect();
+	this.skillTypeWindow().activate();
+};
+/**
+* Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
+* Describes the controls this scene responds to.
+* @returns {{semantic: (string|string[]), label: string}[]}
+*/
+Scene_Skill.prototype.controlLegendEntries = function() {
+	return [
+		{
+			semantic: "ok",
+			label: "use"
+		},
+		{
+			semantic: ["actor-prev", "actor-next"],
+			label: "switch character"
+		},
+		{
+			semantic: "cancel",
+			label: "back"
+		}
+	];
+};
+/**
+* The proportion of the region given to the left column of skill types and skills.
+* @returns {number}
+*/
+Scene_Skill.prototype.listColumnRatio = function() {
+	return .32;
+};
+/**
+* Overwrites {@link Scene_Skill.mainCommandWidth}.<br/>
+* The width of the skill type and skill list column.
+*
+* A proportion of the region rather than a pixel width, so the split holds at any resolution.
+* @returns {number}
+*/
+Scene_Skill.prototype.mainCommandWidth = function() {
+	return Math.round(this.contentAreaRect().width * this.listColumnRatio());
+};
+/**
+* Overwrites {@link Scene_Skill.skillTypeWindowRect}.<br/>
+* The skill-type picker, at the top of the list column.
 * @returns {Rectangle}
 */
 Scene_Skill.prototype.skillTypeWindowRect = function() {
+	const contentArea = this.contentAreaRect();
 	const ww = this.mainCommandWidth();
-	const wh = this.calcWindowHeight(4, true);
-	const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
-	const wy = this.mainAreaTop();
-	return new Rectangle(wx, wy, ww, wh);
+	const wx = this.isRightInputMode() ? contentArea.x + contentArea.width - ww : contentArea.x;
+	return new Rectangle(wx, contentArea.y, ww, this.calcWindowHeight(4, true));
 };
 /**
-* Creates and wires the skill detail pane beside the item list.
+* Overwrites {@link Scene_Skill.itemWindowRect}.<br/>
+* The skill list, filling the rest of its column beneath the type picker.
+* @returns {Rectangle}
+*/
+Scene_Skill.prototype.itemWindowRect = function() {
+	const contentArea = this.contentAreaRect();
+	const typeRect = this.skillTypeWindowRect();
+	const wy = typeRect.y + typeRect.height;
+	return new Rectangle(typeRect.x, wy, typeRect.width, contentArea.y + contentArea.height - wy);
+};
+/**
+* Creates and wires the skill detail pane beside the skill list.
 */
 Scene_Skill.prototype.createSkillDetailWindow = function() {
-	const rect = this.skillDetailRect();
-	this._skillDetailWindow = new Window_SkillDetail(rect);
-	this._itemWindow.setSkillDetailWindow(this._skillDetailWindow);
-	this.addWindow(this._skillDetailWindow);
+	const window = new Window_SkillDetail(this.skillDetailRect());
+	this.itemWindow().setSkillDetailWindow(window);
+	this.setSkillDetailWindow(window);
+	this.addWindow(window);
 };
 /**
-* The rectangle for the skill detail pane below the status strip.
+* Gets the pane describing the highlighted skill.
+* @returns {Window_SkillDetail}
+*/
+Scene_Skill.prototype.skillDetailWindow = function() {
+	return this._j._skillDetailWindow;
+};
+/**
+* Sets the pane describing the highlighted skill.
+* @param {Window_SkillDetail} window The window to track.
+*/
+Scene_Skill.prototype.setSkillDetailWindow = function(window) {
+	this._j._skillDetailWindow = window;
+};
+/**
+* Overwrites {@link Scene_Skill.skillDetailRect}.<br/>
+* The detail pane, taking the whole column beside the list at the full height of the content area.
 * @returns {Rectangle}
 */
 Scene_Skill.prototype.skillDetailRect = function() {
-	const ww = Graphics.boxWidth - this.mainCommandWidth();
-	const wh = this.mainAreaHeight() - this._statusWindow.height;
-	const wx = this.isRightInputMode() ? 0 : Graphics.boxWidth - ww;
-	const wy = this.mainAreaTop() + this._statusWindow.height;
-	return new Rectangle(wx, wy, ww, wh);
+	const contentArea = this.contentAreaRect();
+	const listWidth = this.mainCommandWidth();
+	const wx = this.isRightInputMode() ? contentArea.x : contentArea.x + listWidth;
+	return new Rectangle(wx, contentArea.y, contentArea.width - listWidth, contentArea.height);
 };
-Scene_Skill.prototype.mainCommandWidth = () => 400;
 /**
 * Overwrites {@link #createButtons}.<br/>
 * Removes the buttons because fuck the buttons.
@@ -685,23 +878,16 @@ Scene_Skill.prototype.createButtons = function() {};
 * @returns {number}
 */
 Scene_Skill.prototype.buttonAreaHeight = () => 0;
-Scene_Skill.prototype.itemWindowRect = function() {
-	const ww = this.mainCommandWidth();
-	const wh = this.mainAreaHeight() - this._statusWindow.height;
-	const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
-	const wy = this._statusWindow.y + this._statusWindow.height;
-	return new Rectangle(wx, wy, ww, wh);
-};
 
 //#endregion
-//#region src/plugins/cms/skill/windows/Window_SkillList.js
+//#region src/plugins/cms/ext/skill/windows/Window_SkillList.js
 /**
 * Extends {@link #initialize}.<br/>
 * Includes our skill detail window.
 */
-J.CMS_K.Aliased.Window_SkillList.set("initialize", Window_SkillList.prototype.initialize);
+J.CMS.EXT.SKILL.Aliased.Window_SkillList.set("initialize", Window_SkillList.prototype.initialize);
 Window_SkillList.prototype.initialize = function(rect) {
-	J.CMS_K.Aliased.Window_SkillList.get("initialize").call(this, rect);
+	J.CMS.EXT.SKILL.Aliased.Window_SkillList.get("initialize").call(this, rect);
 	/**
 	* The detail window for the skill.
 	*  @type {Window_SkillDetail}
@@ -720,21 +906,21 @@ Window_SkillList.prototype.setSkillDetailWindow = function(newWindow) {
 * Refreshes the skill details window.
 */
 Window_SkillList.prototype.refreshSkillDetailWindow = function() {
-	if (!this._skillDetailWindow) return;
+	if (!this.skillDetailWindow()) return;
 	let id = 0;
 	const item = this.item();
 	if (item) {
 		({id} = item);
 	}
-	this._skillDetailWindow.setActor(this._actor);
-	this._skillDetailWindow.setSkillId(id);
+	this.skillDetailWindow().setActor(this.actor());
+	this.skillDetailWindow().setSkillId(id);
 };
 /**
 * Extends `.select()` to also update our skill detail window if need-be.
 */
-J.CMS_K.Aliased.Window_SkillList.set("select", Window_SkillList.prototype.select);
+J.CMS.EXT.SKILL.Aliased.Window_SkillList.set("select", Window_SkillList.prototype.select);
 Window_SkillList.prototype.select = function(index) {
-	J.CMS_K.Aliased.Window_SkillList.get("select").call(this, index);
+	J.CMS.EXT.SKILL.Aliased.Window_SkillList.get("select").call(this, index);
 	this.refreshSkillDetailWindow();
 };
 /**
@@ -762,14 +948,21 @@ Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width) {};
 */
 Window_SkillList.prototype.includes = function(skill) {
 	if (!skill) return false;
-	const matchesSkillTypeId = skill.stypeId === this._stypeId;
-	if (!this._actor) return matchesSkillTypeId;
-	const matchesWeaponTypeId = this._actor.isSkillWtypeOk(skill);
+	const matchesSkillTypeId = skill.stypeId === this.stypeId();
+	if (!this.actor()) return matchesSkillTypeId;
+	const matchesWeaponTypeId = this.actor().isSkillWtypeOk(skill);
 	return matchesSkillTypeId && matchesWeaponTypeId;
+};
+/**
+* Gets the skill detail window.
+* @returns {Window_Base} The skillDetailWindow.
+*/
+Window_SkillList.prototype.skillDetailWindow = function() {
+	return this._skillDetailWindow;
 };
 
 //#endregion
-//#region src/plugins/cms/skill/windows/Window_SkillType.js
+//#region src/plugins/cms/ext/skill/windows/Window_SkillType.js
 /**
 * Overwrites {@link #maxCols}.<br/>
 * Fixes the maximum columns for this screen to be 1.
@@ -780,7 +973,7 @@ Window_SkillType.prototype.maxCols = function() {
 };
 Window_SkillType.prototype.makeCommandList = function() {
 	/** @type {Game_Actor} */
-	const currentActor = this._actor;
+	const currentActor = this.actor();
 	if (!currentActor) return;
 	/** @type {number[]} */
 	const skillTypeIds = currentActor.addedSkillTypes().filter((x, i, self) => self.indexOf(x) === i);

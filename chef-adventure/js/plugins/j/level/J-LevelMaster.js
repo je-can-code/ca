@@ -1,7 +1,7 @@
 //region initialization
 /*:
  * @target MZ
- * @plugindesc [v1.4.0 LEVEL] Allows levels to have greater control and purpose.
+ * @plugindesc [v1.5.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -372,6 +372,12 @@
  * This same logic is again applied to gold from each defeated enemy.
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Learning a skill by levelling now announces in the dia log instead of
+ *    only producing a floating text pop on the same visual channel as damage
+ *    numbers and gold. backfillLearningsForCurrentLevel is explicitly safe to
+ *    call repeatedly, so it snapshots prior knowledge and does not re-announce
+ *    an actor's whole class list on every class change.
  * - 1.4.0
  *    Added Single Level Across Classes: actors can now share one level/exp
  *    across all classes instead of leveling each class independently, with
@@ -548,7 +554,7 @@ J.LEVEL.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.4.0");
+J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.5.0");
 /**
 * The maximum level definable in the level. Any level below this can be determined without extra calculations.
 * @type {number}
@@ -994,7 +1000,7 @@ Game_Actor.prototype.changeExp = function(exp, show) {
 	}
 	const clampedExp = Math.max(exp, 0);
 	this.setSyncedExp(clampedExp);
-	const lastLevel = this._level;
+	const lastLevel = this.getBattlerBaseLevel();
 	const lastSkills = this.skills();
 	while (!this.isMaxLevel() && this.currentExp() >= this.nextLevelExp()) {
 		this.levelUp();
@@ -1002,7 +1008,7 @@ Game_Actor.prototype.changeExp = function(exp, show) {
 	while (this.currentExp() < this.currentLevelExp()) {
 		this.levelDown();
 	}
-	if (show && this._level > lastLevel) {
+	if (show && this.getBattlerBaseLevel() > lastLevel) {
 		this.displayLevelUp(this.findNewSkills(lastSkills));
 	}
 	this.refresh();
@@ -1019,7 +1025,7 @@ Game_Actor.prototype.changeClass = function(classId, keepExp) {
 		J.LEVEL.Aliased.Game_Actor.get("changeClass").call(this, classId, keepExp);
 		return;
 	}
-	this._classId = classId;
+	this.setClassId(classId);
 	this.backfillLearningsForCurrentLevel();
 	this.onClassChange(classId, keepExp);
 	this.refresh();
@@ -1031,10 +1037,29 @@ Game_Actor.prototype.changeClass = function(classId, keepExp) {
 */
 Game_Actor.prototype.backfillLearningsForCurrentLevel = function() {
 	this.currentClass().learnings.forEach((learning) => {
-		if (learning.level <= this._level) {
+		if (learning.level <= this.getBattlerBaseLevel()) {
+			const wasAlreadyKnown = this.isLearnedSkill(learning.skillId);
 			this.learnSkill(learning.skillId);
+			if (wasAlreadyKnown === false) {
+				this.handleLevelSkillLearnedLog(learning.skillId);
+			}
 		}
 	}, this);
+};
+/**
+* Generates a dia log announcing that this actor learned a skill from their current class.
+* The skill's own message fields act as per-skill overrides for either line, allowing an author to
+* give a notable skill its own voice without touching this default phrasing.
+* @param {number} skillId The id of the skill that was learned.
+*/
+Game_Actor.prototype.handleLevelSkillLearnedLog = function(skillId) {
+	if (!J.LOG) return;
+	const skill = this.skill(skillId);
+	const sourceName = this.currentClass().name;
+	const headline = skill.message1 || `\\C[1]${this.name()}\\C[0] learned \\C[1]${skill.name}\\C[0] from ${sourceName} training!`;
+	const instruction = skill.message2 || "Equip it from the skills menu to use it.";
+	const log = new DiaLogBuilder().addLine(headline).addLine(instruction).setFaceName(this.faceName()).setFaceIndex(this.faceIndex()).build();
+	$diaLogManager.addLog(log);
 };
 /**
 * Writes the given exp value to every class's exp slot, keeping them all in agreement. This keeps
@@ -1046,7 +1071,7 @@ Game_Actor.prototype.backfillLearningsForCurrentLevel = function() {
 Game_Actor.prototype.setSyncedExp = function(exp) {
 	$dataClasses.forEach((rpgClass) => {
 		if (!rpgClass) return;
-		this._exp[rpgClass.id] = exp;
+		this.exp()[rpgClass.id] = exp;
 	}, this);
 };
 /**
@@ -1244,7 +1269,7 @@ Game_Enemy.prototype.initMembers = function() {
 * @param {number} level The level the corresponding skill is learned.
 */
 Game_Enemy.prototype.setSkillLearning = function(skillId, level) {
-	this._j._level._skillLearnings[skillId] = level;
+	this.skillLearnings()[skillId] = level;
 };
 Game_Enemy.prototype.getCachedLevelOverride = function() {
 	return this._j._level._cachedLevelOverride;
@@ -1297,7 +1322,7 @@ Game_Enemy.prototype.canMapActionToSkill = function(action) {
 * @returns {boolean}
 */
 Game_Enemy.prototype.isLearnedSkillByLevel = function(action) {
-	const levelLearned = this._j._level._skillLearnings[action.skillId];
+	const levelLearned = this.skillLearnings()[action.skillId];
 	if (levelLearned === undefined) return true;
 	if (this.level >= levelLearned) return true;
 	return false;
@@ -1354,6 +1379,13 @@ Game_Enemy.prototype.getLevelBalancer = function() {
 		return $gameVariables.value(J.LEVEL.Metadata.enemyBalanceVariable);
 	}
 	return 0;
+};
+/**
+* Gets the skill learnings.
+* @returns {*} The skillLearnings.
+*/
+Game_Enemy.prototype.skillLearnings = function() {
+	return this._j._level._skillLearnings;
 };
 
 //#endregion
@@ -1603,7 +1635,7 @@ Game_Temp.prototype.buildBeyondMaxDataForClass = function(classId) {
 * @returns {number[][]} The parameter collection for a given class and its parameters.
 */
 Game_Temp.prototype.getBeyondMaxData = function(classId) {
-	return this._j._level._beyondMaxData[classId];
+	return this.beyondMaxData()[classId];
 };
 /**
 * Sets the parameter data for the given class.
@@ -1625,6 +1657,13 @@ Game_Temp.prototype.hasCachedBeyondMaxData = function() {
 */
 Game_Temp.prototype.flagBeyondMaxDataAsCached = function() {
 	this._j._level._hasCachedBeyondMaxData = true;
+};
+/**
+* Gets the beyond max data.
+* @returns {Array} The beyondMaxData.
+*/
+Game_Temp.prototype.beyondMaxData = function() {
+	return this._j._level._beyondMaxData;
 };
 
 //#endregion
@@ -1673,7 +1712,7 @@ Sprite_Character.prototype.getBattlerName = function() {
 	const { level } = battler;
 	if (level === 0) return originalName;
 	let levelString = `${level.padZero(3)}`;
-	if (this._character && this._character.isEvent() && this._character.shouldHideLevel()) {
+	if (this.character() && this.character().isEvent() && this.character().shouldHideLevel()) {
 		levelString = "???";
 	}
 	if (levelString !== "???" && battler.shouldHideLevel()) {

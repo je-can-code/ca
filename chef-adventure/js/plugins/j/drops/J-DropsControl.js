@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.2.0 DROPS] Enables greater control over loot drops.
+ * @plugindesc [v2.3.0 DROPS] Enables greater control over loot drops.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -209,6 +209,19 @@
  * The party will now gain +175% gold from defeated enemies.
  * ============================================================================
  * CHANGELOG:
+ * - 2.3.0
+ *    Loot drops now resolve through the shared proc-count path, so a killer in
+ *    Accumulate Mode earns a copy per successful roll rather than spending the
+ *    surplus on an already-won roll, and Encore echoes each earned copy. The
+ *    treasure-hunter shortcut is gone as a special case rather than as
+ *    behavior; one consequence is that an absolutely cursed killer can now be
+ *    denied a guaranteed drop, where the shortcut previously bypassed fate.
+ *    didFindLoot keeps its boolean contract and delegates.
+ *    Fixed two compounding rate bugs that made loot far more common than
+ *    authored: the enemy base rate and the party bonus both started from one
+ *    and were summed, doubling every drop in the game; and the double-drop
+ *    accessory was consulted twice per roll, once inside the multiplier and
+ *    again as a bare doubling of the chance.
  * - 2.2.0
  *    Added a NaturalGrowth-integrated drop rate stat (key "dor") via
  *    <dorBuffPlus>/<dorBuffRate>/<dorGrowthPlus>/<dorGrowthRate>, following
@@ -257,7 +270,7 @@ J.DROPS = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.2.0");
+J.DROPS.Metadata = new J_DropsControlPluginMetadata("J-DropsControl", "2.3.0");
 /**
 * All regular expressions used by this plugin.
 */
@@ -622,12 +635,24 @@ Object.defineProperty(Game_Actor.prototype, "dor", {
 * Gets this actor's bonus drop multiplier.
 * @returns {number}
 */
-Game_Actor.prototype.getDropMultiplierBonus = function() {
+/**
+* Assembles a reward multiplier factor from this actor's notes and SDP panels.
+* Both contributions are expressed in percent-points and are summed before being scaled down
+* into the factor callers multiply by, so a notetag granting 20 and a panel granting 5 together
+* produce a factor of 0.25 rather than two separately-rounded factors.
+* @param {RegExp} structure The notetag structure carrying the multiplier.
+* @param {string} parameterKey The SDP parameter key contributing to the same multiplier.
+* @returns {number} The assembled multiplier factor.
+*/
+Game_Actor.prototype.rewardMultiplierFactor = function(structure, parameterKey) {
 	const baseMultiplier = 0;
 	const objectsToCheck = this.getAllNotes();
-	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.DropMultiplier);
-	const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("dor", 1) : 0;
-	const factor = (multiplierBonus + baseMultiplier + sdpBonus) / 100;
+	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, structure);
+	const sdpBonus = J.SDP ? this.getSdpBonusForParameterKey(parameterKey, 1) : 0;
+	return (multiplierBonus + baseMultiplier + sdpBonus) / 100;
+};
+Game_Actor.prototype.getDropMultiplierBonus = function() {
+	const factor = this.rewardMultiplierFactor(J.DROPS.RegExp.DropMultiplier, "dor");
 	const naturalBonus = this.dorNaturalBonuses();
 	return factor + naturalBonus;
 };
@@ -655,11 +680,7 @@ Game_Actor.prototype.applyNaturalDorGrowths = function() {
 * @returns {number}
 */
 Game_Actor.prototype.getGoldMultiplier = function() {
-	const baseMultiplier = 0;
-	const objectsToCheck = this.getAllNotes();
-	const multiplierBonus = RPGManager.getSumFromAllNotesByRegex(objectsToCheck, J.DROPS.RegExp.GoldMultiplier);
-	const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("gdr", 1) : 0;
-	return (multiplierBonus + baseMultiplier + sdpBonus) / 100;
+	return this.rewardMultiplierFactor(J.DROPS.RegExp.GoldMultiplier, "gdr");
 };
 
 //#endregion
@@ -700,10 +721,11 @@ Game_Enemy.prototype.makeDropItems = function(killer = null) {
 	dropList.forEach((drop) => {
 		if (!this.canFindLoot(drop)) return;
 		const rate = drop.denominator * multiplier;
-		const treasureHunterSkip = rate >= 100;
-		const foundLoot = treasureHunterSkip ? true : this.didFindLoot(rate, killer);
-		if (foundLoot === false) return;
-		this.findLoot(drop, itemsFound);
+		const foundCount = this.howMuchLootFound(rate, killer);
+		if (foundCount <= 0) return;
+		for (let index = 0; index < foundCount; index++) {
+			this.findLoot(drop, itemsFound);
+		}
 	}, this);
 	return itemsFound;
 };
@@ -731,21 +753,37 @@ Game_Enemy.prototype.canFindLoot = function(drop) {
 	return true;
 };
 /**
+* Determines how many copies of a drop were found at the given rate.
+*
+* A drop is a repeatable outcome- finding it twice is a coherent result in a way that "hit twice"
+* or "critted twice" are not- so this resolves through the shared proc-count path rather than
+* collapsing to a single yes/no. That is what lets Accumulate Mode roll every one of the killer's
+* positive rolls and award a copy per success, and lets Encore echo each success further.
+*
+* A rate at or beyond 100 succeeds on every roll by construction, so a "guaranteed" drop needs no
+* special case: it simply lands on all of them.
+* @param {number} rate The 0-100 integer rate of which to find this loot.
+* @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
+* @returns {number} How many copies of this loot were found; 0 means none.
+*/
+Game_Enemy.prototype.howMuchLootFound = function(rate, killer = null) {
+	if (!killer) {
+		return RPGManager.chanceIn100(rate, 1, 0) ? 1 : 0;
+	}
+	const positiveRolls = 1 + killer.getPositiveRolls();
+	const negativeRolls = killer.getNegativeRolls();
+	return RPGManager.resolveProcCount(killer, rate, positiveRolls, negativeRolls);
+};
+/**
 * Determines whether or not loot was found based on the provided rate.
-* This is not deterministic, and the same (non-100) rate
+* This is not deterministic, and the same (non-100) rate can answer differently each time.
+* Callers that care how many copies were found should ask {@link #howMuchLootFound} instead.
 * @param {number} rate The 0-100 integer rate of which to find this loot.
 * @param {Game_Actor|Game_Enemy=} killer The battler that landed the killing blow, if known.
 * @returns {boolean} True if we found loot this time, false otherwise.
 */
 Game_Enemy.prototype.didFindLoot = function(rate, killer = null) {
-	let chance = rate;
-	if ($gameParty.hasDropItemDouble()) {
-		chance *= 2;
-	}
-	const positiveRolls = killer ? 1 + killer.getPositiveRolls() : 1;
-	const negativeRolls = killer ? killer.getNegativeRolls() : 0;
-	const found = killer ? RPGManager.fateOf100(killer, chance, positiveRolls, negativeRolls) : RPGManager.chanceIn100(chance, positiveRolls, negativeRolls);
-	return found;
+	return this.howMuchLootFound(rate, killer) > 0;
 };
 /**
 * Gets the drop items from this enemy from all sources available.
@@ -786,7 +824,7 @@ Game_Enemy.prototype.dropSources = function() {
 * @returns {RPG_DropItem[]}
 */
 Game_Enemy.prototype.extractExtraDrops = function(referenceData) {
-	const moreDrops = RPGManager.getArraysFromNotesByRegex(referenceData, J.DROPS.RegExp.ExtraDrop, true) ?? [];
+	const moreDrops = RPGManager.getArraysFromNotesByRegex(referenceData, J.DROPS.RegExp.ExtraDrop, true);
 	const mapper = (drop) => {
 		const [dropType, dropId, chance] = drop;
 		return new RPG_DropItemBuilder().setType(RPG_DropItem.TypeFromLetter(dropType)).setId(dropId).setChance(chance).build();
@@ -826,52 +864,51 @@ Game_Party.prototype.getGoldMultiplier = function() {
 	return goldMultiplier;
 };
 /**
+* Resolves which party members a reward strategy says should influence a bonus multiplier.
+* An unrecognized strategy is a misconfigured plugin parameter rather than a runtime condition,
+* and silently considering nobody would quietly halve the party's rewards for the rest of the
+* playthrough with nothing to point at. Refusing to boot is the louder and cheaper failure.
+* @param {string} strategy The configured reward strategy.
+* @returns {Game_Actor[]} The members the strategy considers.
+*/
+Game_Party.prototype.dropsStrategyMembers = function(strategy) {
+	switch (strategy) {
+		case DropsPartyStrategy.AbsStyle: return [$gameParty.leader()];
+		case DropsPartyStrategy.CombatPartyStyle: return [...$gameParty.battleMembers()];
+		case DropsPartyStrategy.FullPartyStyle: return [...$gameParty.members()];
+		default: throw new Error(`Unrecognized drops party strategy of [ ${strategy} ]; check the plugin parameters.`);
+	}
+};
+/**
 * Gets the selection of actors to consider when determining gold bonus multipliers.
+* @param {string} [strategy] The reward strategy governing who counts.
 * @returns {Game_Actor[]}
 */
 Game_Party.prototype.goldMultiplierMembers = function(strategy = DropsPartyStrategy.CombatPartyStyle) {
-	const membersToConsider = [];
-	switch (strategy) {
-		case DropsPartyStrategy.AbsStyle:
-			membersToConsider.push($gameParty.leader());
-			break;
-		case DropsPartyStrategy.CombatPartyStyle:
-			membersToConsider.push(...$gameParty.battleMembers());
-			break;
-		case DropsPartyStrategy.FullPartyStyle:
-			membersToConsider.push(...$gameParty.members());
-			break;
-	}
-	return membersToConsider;
+	return this.dropsStrategyMembers(strategy);
 };
 /**
-* Gets the collective sum multiplier for loot drops for the entire party.
+* Gets the collective bonus the party contributes to loot drop rates.
+* This is a sum of bonuses rather than a multiplier in its own right, so it starts from zero and
+* a party with nothing equipped contributes nothing. The identity value belongs to the enemy's
+* own {@link Game_Enemy#getBaseDropRate}, which this is added to- starting from one here as well
+* would mean two identities summing to two, doubling every drop in the game before any bonus
+* was even involved.
 * @returns {number}
 */
 Game_Party.prototype.getPartyDropMultiplier = function() {
-	const baseMultiplier = 1;
+	const baseBonus = 0;
 	const membersToConsider = this.dropMultiplierMembers();
-	const dropMultiplier = membersToConsider.reduce((runningTotal, currentActor) => runningTotal + currentActor.getDropMultiplierBonus(), baseMultiplier);
+	const dropMultiplier = membersToConsider.reduce((runningTotal, currentActor) => runningTotal + currentActor.getDropMultiplierBonus(), baseBonus);
 	return dropMultiplier;
 };
 /**
 * Gets the selection of actors to consider when determining bonus drop multipliers.
+* @param {string} [strategy] The reward strategy governing who counts.
 * @returns {Game_Actor[]}
 */
 Game_Party.prototype.dropMultiplierMembers = function(strategy = DropsPartyStrategy.CombatPartyStyle) {
-	const membersToConsider = [];
-	switch (strategy) {
-		case DropsPartyStrategy.AbsStyle:
-			membersToConsider.push($gameParty.leader());
-			break;
-		case DropsPartyStrategy.CombatPartyStyle:
-			membersToConsider.push(...$gameParty.battleMembers());
-			break;
-		case DropsPartyStrategy.FullPartyStyle:
-			membersToConsider.push(...$gameParty.members());
-			break;
-	}
-	return membersToConsider;
+	return this.dropsStrategyMembers(strategy);
 };
 
 //#endregion

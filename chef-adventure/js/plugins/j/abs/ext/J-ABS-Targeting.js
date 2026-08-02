@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 TARGETING] An extension for JABS that adds cursor-driven tactical targeting.
+ * [v1.0.0 ABS-TARGETING] An extension for JABS that adds cursor-driven tactical targeting.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -558,6 +558,83 @@ var JABS_TargetingSentinelAction = class {
 */
 var JABS_TargetingManager = class JABS_TargetingManager {
 	/**
+	* Gets the just began.
+	* @returns {*} The justBegan.
+	*/
+	static isJustBegan() {
+		return this._justBegan;
+	}
+	/**
+	* Sets the just began.
+	* @param {*} newJustBegan The new justBegan.
+	*/
+	static setJustBegan(newJustBegan) {
+		this._justBegan = newJustBegan;
+	}
+	/**
+	* Gets the session.
+	* @returns {*} The session.
+	*/
+	static session() {
+		return this._session;
+	}
+	/**
+	* Sets the session.
+	* @param {*} newSession The new session.
+	*/
+	static setSession(newSession) {
+		this._session = newSession;
+	}
+	/**
+	* Gets the cursor.
+	* @returns {*} The cursor.
+	*/
+	static cursor() {
+		return this._cursor;
+	}
+	/**
+	* Sets the cursor.
+	* @param {*} newCursor The new cursor.
+	*/
+	static setCursor(newCursor) {
+		this._cursor = newCursor;
+	}
+	/**
+	* Gets the sentinel.
+	* @returns {*} The sentinel.
+	*/
+	static sentinel() {
+		return this._sentinel;
+	}
+	/**
+	* Gets the previous dir8.
+	* @returns {*} The previousDir8.
+	*/
+	static previousDir8() {
+		return this._previousDir8;
+	}
+	/**
+	* Sets the previous dir8.
+	* @param {*} newPreviousDir8 The new previousDir8.
+	*/
+	static setPreviousDir8(newPreviousDir8) {
+		this._previousDir8 = newPreviousDir8;
+	}
+	/**
+	* Gets the previous dpad step.
+	* @returns {*} The previousDpadStep.
+	*/
+	static previousDpadStep() {
+		return this._previousDpadStep;
+	}
+	/**
+	* Sets the previous dpad step.
+	* @param {*} newPreviousDpadStep The new previousDpadStep.
+	*/
+	static setPreviousDpadStep(newPreviousDpadStep) {
+		this._previousDpadStep = newPreviousDpadStep;
+	}
+	/**
 	* The currently active targeting session, or null if nobody is aiming.
 	* @type {JABS_TargetingSession|null}
 	*/
@@ -604,21 +681,21 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 	* @returns {boolean}
 	*/
 	static isActive() {
-		return this._session !== null;
+		return this.session() !== null;
 	}
 	/**
 	* Gets the active aiming state, or null if nobody is aiming.
 	* @returns {JABS_TargetingCursor|null}
 	*/
 	static getCursor() {
-		return this._cursor;
+		return this.cursor();
 	}
 	/**
 	* Gets the shared sentinel action-event, standing in for whatever is currently being aimed.
 	* @returns {JABS_TargetingSentinelAction}
 	*/
 	static getSentinel() {
-		return this._sentinel;
+		return this.sentinel();
 	}
 	/**
 	* Whether the primary of the given already-built actions requires the tactical targeting UX
@@ -654,14 +731,14 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 	*/
 	static beginTargeting(battler, actions, onCommit) {
 		if (this.isActive()) return;
-		this._session = new JABS_TargetingSession(battler, actions, onCommit);
+		this.setSession(new JABS_TargetingSession(battler, actions, onCommit));
 		const [primaryAction] = actions;
-		this._cursor = primaryAction.isDirectAction() ? this.#buildCycleCursor(battler, primaryAction) : JABS_TargetingCursor.FreeRoam(battler, primaryAction.getProximity());
-		this._sentinel.set(primaryAction);
+		this.setCursor(primaryAction.isDirectAction() ? this.#buildCycleCursor(battler, primaryAction) : JABS_TargetingCursor.FreeRoam(battler, primaryAction.getProximity()));
+		this.sentinel().set(primaryAction);
 		this.#syncSentinelPosition();
-		this._justBegan = true;
-		this._previousDir8 = 0;
-		this._previousDpadStep = 0;
+		this.setJustBegan(true);
+		this.setPreviousDir8(0);
+		this.setPreviousDpadStep(0);
 	}
 	/**
 	* Gathers the eligible candidate pool for cycle mode, scoped to allies/enemies per the
@@ -703,8 +780,8 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 	*/
 	static update() {
 		if (!this.isActive()) return;
-		if (this._justBegan) {
-			this._justBegan = false;
+		if (this.isJustBegan()) {
+			this.setJustBegan(false);
 			return;
 		}
 		this.#updateCursorMovement();
@@ -721,14 +798,14 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 	* Reads directional input and moves the cursor according to its current mode.
 	*/
 	static #updateCursorMovement() {
-		if (this._cursor.isCycleMode()) {
+		if (this.cursor().isCycleMode()) {
 			this.#updateCycleSelection();
 			return;
 		}
 		const dir8 = this.#readDirectionalInput();
 		if (dir8 === 0) return;
 		const { x: dx, y: dy } = $jabsEngine.dir8ToUnitVector(dir8);
-		const cursor = this._cursor;
+		const cursor = this.cursor();
 		const caster = cursor.getCaster();
 		let nextX = cursor.getX() + dx * JABS_TargetingManager.FreeRoamSpeedPerFrame;
 		let nextY = cursor.getY() + dy * JABS_TargetingManager.FreeRoamSpeedPerFrame;
@@ -756,16 +833,16 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 	*/
 	static #updateCycleSelection() {
 		const { dir8 } = Input;
-		if (dir8 !== 0 && this._previousDir8 === 0) {
+		if (dir8 !== 0 && this.previousDir8() === 0) {
 			const { x: dirX, y: dirY } = $jabsEngine.dir8ToUnitVector(dir8);
-			this._cursor.selectTowards(dirX, dirY);
+			this.cursor().selectTowards(dirX, dirY);
 		}
-		this._previousDir8 = dir8;
+		this.setPreviousDir8(dir8);
 		const dpadStep = this.#readDpadStep();
-		if (dpadStep !== 0 && this._previousDpadStep === 0) {
-			this._cursor.stepIndex(dpadStep);
+		if (dpadStep !== 0 && this.previousDpadStep() === 0) {
+			this.cursor().stepIndex(dpadStep);
 		}
-		this._previousDpadStep = dpadStep;
+		this.setPreviousDpadStep(dpadStep);
 	}
 	/**
 	* Reads the d-pad as a simple list-stepping direction: right/down advance forward, left/up
@@ -817,25 +894,25 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 	* at open ground with no hitbox to center on at all.
 	*/
 	static #syncSentinelPosition() {
-		const cursor = this._cursor;
+		const cursor = this.cursor();
 		if (cursor.isCycleMode()) {
 			const selected = cursor.getSelectedBattler();
 			if (selected) {
 				const character = selected.getCharacter();
-				this._sentinel.setPosition(selected.getX(), selected.getY());
-				this._sentinel.setVerticalCenterOffset(JABS_Engine.getBattlerAabbModel(character).h / 2);
+				this.sentinel().setPosition(selected.getX(), selected.getY());
+				this.sentinel().setVerticalCenterOffset(JABS_Engine.getBattlerAabbModel(character).h / 2);
 			}
 			return;
 		}
-		this._sentinel.setPosition(cursor.getX(), cursor.getY());
-		this._sentinel.setVerticalCenterOffset(0);
+		this.sentinel().setPosition(cursor.getX(), cursor.getY());
+		this.sentinel().setVerticalCenterOffset(0);
 	}
 	/**
 	* Confirms the current targeting session and commits the pending actions exactly as the
 	* intercepted input-adapter method would have, using the cursor's actual resolved target.
 	*/
 	static confirm() {
-		const session = this._session;
+		const session = this.session();
 		if (!session) return;
 		const battler = session.getBattler();
 		const actions = session.getActions();
@@ -865,7 +942,7 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 	* @param {JABS_TargetingSession} session The active session being confirmed.
 	*/
 	static #confirmDirectLock(battler, primaryAction, session) {
-		const selected = this._cursor.getSelectedBattler();
+		const selected = this.cursor().getSelectedBattler();
 		if (selected) {
 			if (primaryAction.isSupportAction()) {
 				battler.setAllyTarget(selected);
@@ -884,7 +961,7 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 	* @returns {{x: number, y: number}}
 	*/
 	static #resolveTargetXY(battler) {
-		const cursor = this._cursor;
+		const cursor = this.cursor();
 		if (cursor.isCycleMode()) {
 			const target = cursor.getSelectedBattler() ?? battler;
 			return {
@@ -909,9 +986,9 @@ var JABS_TargetingManager = class JABS_TargetingManager {
 	* Tears down the active session and restores normal JABS flow.
 	*/
 	static #endSession() {
-		this._session = null;
-		this._cursor = null;
-		this._sentinel.reset();
+		this.setSession(null);
+		this.setCursor(null);
+		this.sentinel().reset();
 	}
 };
 
@@ -1046,6 +1123,13 @@ Game_Player.prototype.canMove = function() {
 */
 var Window_TargetingList = class Window_TargetingList extends Window_Command {
 	/**
+	* Gets the candidates.
+	* @returns {*} The candidates.
+	*/
+	candidates() {
+		return this._candidates;
+	}
+	/**
 	* How many font sizes smaller than normal the list entries render at.
 	* @type {number}
 	*/
@@ -1071,8 +1155,8 @@ var Window_TargetingList = class Window_TargetingList extends Window_Command {
 	* Builds one command per eligible battler, rendered smaller than normal.
 	*/
 	makeCommandList() {
-		if (!this._candidates) return;
-		this._candidates.forEach((candidate) => {
+		if (!this.candidates()) return;
+		this.candidates().forEach((candidate) => {
 			const name = this.modFontSizeForText(Window_TargetingList.FontSizeDelta, candidate.battlerName());
 			this.addCommand(name, candidate.getUuid(), true, candidate);
 		});
@@ -1162,11 +1246,11 @@ Spriteset_Map.prototype.createLowerLayer = function() {
 Spriteset_Map.prototype.createTargetingOverlay = function() {
 	this._j ||= {};
 	this._j._targeting ||= {};
-	this._j._targeting._reticle = new Sprite_TargetingCursor();
-	this.addChild(this._j._targeting._reticle);
-	this._j._targeting._highlightSprites = {};
-	this._j._targeting._previewPulse = null;
-	this._j._targeting._rangeRing = null;
+	this.setReticle(new Sprite_TargetingCursor());
+	this.addChild(this.reticle());
+	this.setHighlightSprites({});
+	this.setPreviewPulse(null);
+	this.setRangeRing(null);
 };
 /**
 * Extends {@link Spriteset_Map#update}.<br/>
@@ -1195,7 +1279,7 @@ Spriteset_Map.prototype.updateTargetingRangeRing = function() {
 * Hides the max-range ring, if one was ever created.
 */
 Spriteset_Map.prototype.hideTargetingRangeRing = function() {
-	const ring = this._j._targeting._rangeRing;
+	const ring = this.rangeRing();
 	if (ring) {
 		ring.visible = false;
 	}
@@ -1205,11 +1289,11 @@ Spriteset_Map.prototype.hideTargetingRangeRing = function() {
 * @param {JABS_TargetingCursor} cursor The active aiming cursor.
 */
 Spriteset_Map.prototype.showTargetingRangeRing = function(cursor) {
-	let ring = this._j._targeting._rangeRing;
+	let ring = this.rangeRing();
 	if (!ring) {
 		ring = new Sprite_HitboxPulse();
 		JABS_HitboxPulseManager.getLayer().addChild(ring);
-		this._j._targeting._rangeRing = ring;
+		this.setRangeRing(ring);
 	}
 	const options = JABS_HitboxPulseOptions.from({
 		shape: J.ABS.Shapes.Circle,
@@ -1253,7 +1337,7 @@ Spriteset_Map.prototype.updateTargetingAoePreview = function() {
 * Hides/clears the AoE preview pulse and purges all highlight sprites.
 */
 Spriteset_Map.prototype.hideTargetingAoePreview = function() {
-	const pulse = this._j._targeting._previewPulse;
+	const pulse = this.previewPulse();
 	if (pulse) {
 		pulse.visible = false;
 	}
@@ -1270,11 +1354,11 @@ Spriteset_Map.prototype.hideTargetingAoePreview = function() {
 * @param {JABS_Action} action The real action being aimed.
 */
 Spriteset_Map.prototype.showTargetingAoePreviewPulse = function(cursor, sentinel, action) {
-	let pulse = this._j._targeting._previewPulse;
+	let pulse = this.previewPulse();
 	if (!pulse) {
 		pulse = new Sprite_HitboxPulse();
 		JABS_HitboxPulseManager.getLayer().addChild(pulse);
-		this._j._targeting._previewPulse = pulse;
+		this.setPreviewPulse(pulse);
 	}
 	const degrees = $jabsEngine.getActionDegrees(sentinel) ?? 180;
 	const thickness = $jabsEngine.getActionThicknessTiles(sentinel) ?? 1;
@@ -1331,7 +1415,7 @@ Spriteset_Map.prototype.refreshTargetingHighlightSprites = function(cursor, sent
 	const candidates = JABS_TargetingManager.gatherScopedCandidates(caster, action, searchRange);
 	const caught = candidates.filter((battler) => $jabsEngine.isTargetWithinRange(facing, battler.getCharacter(), sentinel, range, shape));
 	const colliding = !action.isSupportAction();
-	const dict = this._j._targeting._highlightSprites;
+	const dict = this.highlightSprites();
 	const layer = this.getJabsHitboxLayer();
 	const tw = $gameMap.tileWidth();
 	const th = $gameMap.tileHeight();
@@ -1360,7 +1444,7 @@ Spriteset_Map.prototype.refreshTargetingHighlightSprites = function(cursor, sent
 * @param {JABS_Battler[]} stillCaught The battlers still caught this frame.
 */
 Spriteset_Map.prototype.purgeTargetingHighlightSprites = function(stillCaught) {
-	const dict = this._j._targeting._highlightSprites;
+	const dict = this.highlightSprites();
 	const layer = this.getJabsHitboxLayer();
 	const activeKeys = new Set(stillCaught.map((battler) => battler.getUuid()));
 	Object.keys(dict).forEach((key) => {
@@ -1371,6 +1455,62 @@ Spriteset_Map.prototype.purgeTargetingHighlightSprites = function(stillCaught) {
 		}
 		delete dict[key];
 	});
+};
+/**
+* Gets the reticle sprite drawn over the currently selected target.
+* @returns {Sprite} The targeting reticle.
+*/
+Spriteset_Map.prototype.reticle = function() {
+	return this._j._targeting._reticle;
+};
+/**
+* Sets the reticle sprite drawn over the currently selected target.
+* @param {Sprite} newReticle The targeting reticle.
+*/
+Spriteset_Map.prototype.setReticle = function(newReticle) {
+	this._j._targeting._reticle = newReticle;
+};
+/**
+* Gets the highlight sprites.
+* @returns {*} The highlightSprites.
+*/
+Spriteset_Map.prototype.highlightSprites = function() {
+	return this._j._targeting._highlightSprites;
+};
+/**
+* Sets the highlight sprites.
+* @param {*} newHighlightSprites The new highlightSprites.
+*/
+Spriteset_Map.prototype.setHighlightSprites = function(newHighlightSprites) {
+	this._j._targeting._highlightSprites = newHighlightSprites;
+};
+/**
+* Gets the preview pulse.
+* @returns {*} The previewPulse.
+*/
+Spriteset_Map.prototype.previewPulse = function() {
+	return this._j._targeting._previewPulse;
+};
+/**
+* Sets the preview pulse.
+* @param {*} newPreviewPulse The new previewPulse.
+*/
+Spriteset_Map.prototype.setPreviewPulse = function(newPreviewPulse) {
+	this._j._targeting._previewPulse = newPreviewPulse;
+};
+/**
+* Gets the range ring.
+* @returns {*} The rangeRing.
+*/
+Spriteset_Map.prototype.rangeRing = function() {
+	return this._j._targeting._rangeRing;
+};
+/**
+* Sets the range ring.
+* @param {*} newRangeRing The new rangeRing.
+*/
+Spriteset_Map.prototype.setRangeRing = function(newRangeRing) {
+	this._j._targeting._rangeRing = newRangeRing;
 };
 
 //#endregion
@@ -1389,9 +1529,9 @@ Scene_Map.prototype.createAllWindows = function() {
 */
 Scene_Map.prototype.createTargetingListWindow = function() {
 	const rect = this.targetingListWindowRect();
-	this._targetingListWindow = new Window_TargetingList(rect);
-	this._targetingListWindow.hide();
-	this.addWindow(this._targetingListWindow);
+	this.setTargetingListWindow(new Window_TargetingList(rect));
+	this.targetingListWindow().hide();
+	this.addWindow(this.targetingListWindow());
 };
 /**
 * Determines the shape of the targeting list window. Position is configurable via plugin
@@ -1411,7 +1551,7 @@ Scene_Map.prototype.targetingListWindowRect = function() {
 J.ABS.EXT.TARGETING.Aliased.Scene_Map.set("update", Scene_Map.prototype.update);
 Scene_Map.prototype.update = function() {
 	J.ABS.EXT.TARGETING.Aliased.Scene_Map.get("update").call(this);
-	const wasActive = this._targetingWasActive === true;
+	const wasActive = this.targetingWasActive() === true;
 	JABS_TargetingManager.update();
 	this.updateTargetingListWindow(wasActive);
 };
@@ -1425,14 +1565,42 @@ Scene_Map.prototype.updateTargetingListWindow = function(wasActive) {
 	const isCycleMode = isActive && cursor.isCycleMode();
 	if (isCycleMode) {
 		if (!wasActive) {
-			this._targetingListWindow.setCandidates(cursor.getCandidates());
-			this._targetingListWindow.show();
+			this.targetingListWindow().setCandidates(cursor.getCandidates());
+			this.targetingListWindow().show();
 		}
-		this._targetingListWindow.select(cursor.getSelectedIndex());
-	} else if (this._targetingListWindow.visible) {
-		this._targetingListWindow.hide();
+		this.targetingListWindow().select(cursor.getSelectedIndex());
+	} else if (this.targetingListWindow().visible) {
+		this.targetingListWindow().hide();
 	}
-	this._targetingWasActive = isActive;
+	this.setTargetingWasActive(isActive);
+};
+/**
+* Gets the targeting list window.
+* @returns {Window_Base} The targetingListWindow.
+*/
+Scene_Map.prototype.targetingListWindow = function() {
+	return this._targetingListWindow;
+};
+/**
+* Sets the targeting list window.
+* @param {Window_Base} newTargetingListWindow The new targetingListWindow.
+*/
+Scene_Map.prototype.setTargetingListWindow = function(newTargetingListWindow) {
+	this._targetingListWindow = newTargetingListWindow;
+};
+/**
+* Gets the targeting was active.
+* @returns {*} The targetingWasActive.
+*/
+Scene_Map.prototype.targetingWasActive = function() {
+	return this._targetingWasActive;
+};
+/**
+* Sets the targeting was active.
+* @param {*} newTargetingWasActive The new targetingWasActive.
+*/
+Scene_Map.prototype.setTargetingWasActive = function(newTargetingWasActive) {
+	this._targetingWasActive = newTargetingWasActive;
 };
 
 //#endregion

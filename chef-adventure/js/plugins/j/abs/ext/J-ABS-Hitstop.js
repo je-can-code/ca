@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 HITSTOP] An extension for JABS that adds hitstop functionality.
+ * [v1.0.3 ABS-HITSTOP] An extension for JABS that adds hitstop functionality.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -337,6 +337,13 @@ var JABS_HitstopData = class {
 		this._flurryWindows = new Map();
 	}
 	/**
+	* Gets the flurry windows.
+	* @returns {Map<string, number>} The flurryWindows.
+	*/
+	flurryWindows() {
+		return this._flurryWindows;
+	}
+	/**
 	* Sets hitstop frames.
 	* @param {number} frames The frames to set.
 	*/
@@ -354,13 +361,13 @@ var JABS_HitstopData = class {
 	* Decrements hitstop frames by one frame.
 	*/
 	tick() {
-		if (this._frames > 0) this._frames--;
-		this._flurryWindows.forEach((remaining, key) => {
+		if (this.getFrames() > 0) this.setFrames(this.getFrames() - 1);
+		this.flurryWindows().forEach((remaining, key) => {
 			const next = remaining - 1;
 			if (next <= 0) {
-				this._flurryWindows.delete(key);
+				this.flurryWindows().delete(key);
 			} else {
-				this._flurryWindows.set(key, next);
+				this.flurryWindows().set(key, next);
 			}
 		});
 	}
@@ -369,7 +376,7 @@ var JABS_HitstopData = class {
 	* @returns {boolean}
 	*/
 	isActive() {
-		return this._frames > 0;
+		return this.getFrames() > 0;
 	}
 	/**
 	* Flags the provided action uuid as “in flurry window” on this entity.
@@ -377,7 +384,7 @@ var JABS_HitstopData = class {
 	* @param {number} windowFrames The window in frames.
 	*/
 	flagFlurryWindow(actionUuid, windowFrames) {
-		this._flurryWindows.set(actionUuid, Math.max(0, Math.floor(windowFrames)));
+		this.flurryWindows().set(actionUuid, Math.max(0, Math.floor(windowFrames)));
 	}
 	/**
 	* Determines whether or not the provided action uuid is inside the flurry window.
@@ -385,7 +392,7 @@ var JABS_HitstopData = class {
 	* @returns {boolean} True if in the window, false otherwise.
 	*/
 	isInFlurryWindow(actionUuid) {
-		return this._flurryWindows.has(actionUuid);
+		return this.flurryWindows().has(actionUuid);
 	}
 };
 SerializableRegistry.register(JABS_HitstopData);
@@ -590,7 +597,7 @@ Game_Character.prototype.getHitstopData = function() {
 	if (!this._j._abs._hitstop) {
 		this.initHitstopMembers();
 	}
-	return this._j._abs._hitstop._data;
+	return this.data();
 };
 /**
 * Whether or not this character is currently paused by hitstop.
@@ -610,6 +617,13 @@ Game_Character.prototype.update = function() {
 		return;
 	}
 	J.ABS.EXT.HITSTOP.Aliased.Game_Character.get("update").call(this);
+};
+/**
+* Gets the hitstop data driving this character's freeze-frame effect.
+* @returns {JABS_HitstopData} The active hitstop data.
+*/
+Game_Character.prototype.data = function() {
+	return this._j._abs._hitstop._data;
 };
 
 //#endregion

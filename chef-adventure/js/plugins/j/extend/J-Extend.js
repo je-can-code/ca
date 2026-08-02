@@ -904,6 +904,20 @@ J.EXTEND.RegExp.ToggleGroupOnExecute = /<toggleGroupOnExecute:[ ]?(\[[^\]]+])>/g
 */
 var OverlayManager = class OverlayManager {
 	/**
+	* Gets the skill cache.
+	* @returns {*} The skillCache.
+	*/
+	static skillCache() {
+		return this._skillCache;
+	}
+	/**
+	* Gets the state cache.
+	* @returns {*} The stateCache.
+	*/
+	static stateCache() {
+		return this._stateCache;
+	}
+	/**
 	* The line types available for overlaying in the context of a note.
 	*/
 	static LineType = {
@@ -952,15 +966,15 @@ var OverlayManager = class OverlayManager {
 	* @returns {boolean} True if the cache was invalidated, false otherwise.
 	*/
 	static invalidate(battler) {
-		this._skillCache.invalidate(battler);
-		this._stateCache.invalidate(battler);
+		this.skillCache().invalidate(battler);
+		this.stateCache().invalidate(battler);
 	}
 	/**
 	* Clears the cache for all objects.
 	*/
 	static clearCache() {
-		this._skillCache.clear();
-		this._stateCache.clear();
+		this.skillCache().clear();
+		this.stateCache().clear();
 	}
 	/**
 	* Gets the extended skill based on the caster's learned skills.
@@ -979,8 +993,8 @@ var OverlayManager = class OverlayManager {
 	*/
 	static getExtendedSkill(caster, skillId) {
 		if (skillId <= 0) throw new Error("Invalid skill extension id.");
-		if (!caster) return $dataSkills[skillId];
-		return this._skillCache.get(caster, String(skillId), () => {
+		if (!caster) return this.#requireDatabaseEntry($dataSkills[skillId], "skill", skillId);
+		return this.skillCache().get(caster, String(skillId), () => {
 			const knownIds = caster.skillIds();
 			const targetSkill = $dataSkills[skillId];
 			const targetTypes = targetSkill ? targetSkill.types() : [];
@@ -1036,8 +1050,8 @@ var OverlayManager = class OverlayManager {
 	*/
 	static getExtendedState(battler, stateId) {
 		if (stateId <= 0) throw new Error("Invalid state id for extension.");
-		if (!battler) return $dataStates[stateId];
-		return this._stateCache.get(battler, String(stateId), () => {
+		if (!battler) return this.#requireDatabaseEntry($dataStates[stateId], "state", stateId);
+		return this.stateCache().get(battler, String(stateId), () => {
 			const allIds = battler.allStateIds();
 			const targetState = $dataStates[stateId];
 			const targetTypes = targetState ? targetState.types() : [];
@@ -1083,10 +1097,11 @@ var OverlayManager = class OverlayManager {
 	* @returns {RPG_Skill} The extended skill.
 	*/
 	static #getExtendedSkill(overlaySkills, skillId) {
+		const baseSkill = this.#requireDatabaseEntry($dataSkills[skillId], "skill", skillId);
 		if (overlaySkills.length === 0) {
-			return $dataSkills[skillId];
+			return baseSkill;
 		}
-		const baseClone = $dataSkills[skillId]._clone();
+		const baseClone = baseSkill._clone();
 		const extended = overlaySkills.reduce((working, overlay) => this.extendSkill(working, overlay), baseClone);
 		return extended;
 	}
@@ -1097,9 +1112,27 @@ var OverlayManager = class OverlayManager {
 	* @returns {RPG_State} The extended state.
 	*/
 	static #getExtendedState(overlayStates, stateId) {
-		if (overlayStates.length === 0) return $dataStates[stateId];
-		const baseClone = $dataStates[stateId]._clone();
+		const baseState = this.#requireDatabaseEntry($dataStates[stateId], "state", stateId);
+		if (overlayStates.length === 0) return baseState;
+		const baseClone = baseState._clone();
 		return overlayStates.reduce((working, overlay) => this.extendState(working, overlay), baseClone);
+	}
+	/**
+	* Asserts that a database row actually exists before it gets overlaid.
+	*
+	* An `<extend:>` tag pointing at an id that no longer exists is a data error, and a silent
+	* fallback would leave a skill or state quietly doing nothing for the rest of the playthrough.
+	* Failing loudly, naming the id, is the only useful outcome.
+	* @param {RPG_Skill|RPG_State} entry The database row to validate.
+	* @param {string} kind The kind of row, for the error message.
+	* @param {number} id The id that was looked up.
+	* @returns {RPG_Skill|RPG_State} The validated row.
+	*/
+	static #requireDatabaseEntry(entry, kind, id) {
+		if (!entry) {
+			throw new Error(`Extension targets a ${kind} id that does not exist: ${id}. Check your <extend:> data.`);
+		}
+		return entry;
 	}
 	/**
 	* Merges the skill overlay onto the base skill and returns the updated base skill.
@@ -1221,7 +1254,7 @@ var OverlayManager = class OverlayManager {
 		if (skillOverlay.speed !== 0) {
 			baseSkill.speed += skillOverlay.speed;
 		}
-		if (baseSkill.successRate !== skillOverlay.successRate || skillOverlay.successRate !== 100) {
+		if (baseSkill.successRate !== skillOverlay.successRate && skillOverlay.successRate !== 100) {
 			baseSkill.successRate += skillOverlay.successRate;
 		}
 		if (skillOverlay.repeats !== 1) {
@@ -1391,7 +1424,7 @@ var OverlayManager = class OverlayManager {
 	*/
 	static _tokenizeNote(note) {
 		const tags = note.match(/<[^>]+>/g) || [];
-		const rawLines = (note.split(/[\r\n]+/) || []).filter((l) => l.length > 0);
+		const rawLines = note.split(/[\r\n]+/).filter((l) => l.length > 0);
 		const tagSet = new Set(tags);
 		const unsupported = rawLines.filter((l) => tagSet.has(l) === false);
 		return {
@@ -1437,8 +1470,8 @@ var OverlayManager = class OverlayManager {
 	*/
 	static _classifyLine(line) {
 		if (line.startsWith("<") === false || line.endsWith(">") === false) return OverlayManager.LineType.unsupported;
-		if ((line.match(/</g) || []).length > 1) return OverlayManager.LineType.unsupported;
-		if ((line.match(/>/g) || []).length > 1) return OverlayManager.LineType.unsupported;
+		if (line.match(/</g).length > 1) return OverlayManager.LineType.unsupported;
+		if (line.match(/>/g).length > 1) return OverlayManager.LineType.unsupported;
 		if (line.includes(":")) return OverlayManager.LineType.kvp;
 		return OverlayManager.LineType.boolean;
 	}
@@ -1487,9 +1520,7 @@ var OverlayManager = class OverlayManager {
 				return;
 			}
 			mergedMap[key] = lines.slice(0);
-			if (mergedOrder.includes(key) === false) {
-				mergedOrder.push(key);
-			}
+			mergedOrder.push(key);
 		};
 		oldBuckets.order.forEach((key) => {
 			const isExcluded = exclusions.includes(key);
@@ -1642,7 +1673,7 @@ Game_Action.prototype.setSkill = function(skillId) {
 		return;
 	}
 	const skillToSet = OverlayManager.getExtendedSkill(this.subject(), skillId);
-	this._item.setObject(skillToSet);
+	this.rawItem().setObject(skillToSet);
 };
 /**
 * Overwrites {@link #setItemObject}.<br/>
@@ -1654,7 +1685,7 @@ Game_Action.prototype.setItemObject = function(itemObject) {
 		J.EXTEND.Aliased.Game_Action.get("setItemObject").call(this, itemObject);
 		return;
 	}
-	this._item.setObject(itemObject);
+	this.rawItem().setObject(itemObject);
 };
 /**
 * Extends {@link #apply}.<br/>
@@ -2213,10 +2244,10 @@ Game_Item.prototype.setObject = function(obj) {
 	J.EXTEND.Aliased.Game_Item.get("setObject").call(this, obj);
 	if (!obj) return;
 	if (obj.hasOwnProperty("stypeId")) {
-		this._dataClass = "skill";
+		this.setDataClass("skill");
 		this._item = obj;
 	} else if (obj.hasOwnProperty("itypeId")) {
-		this._dataClass = "item";
+		this.setDataClass("item");
 		this._item = obj;
 	}
 };

@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.3.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
+ * @plugindesc [v1.4.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -195,6 +195,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.4.0
+ *    Retrofitted the skill equip scene onto the shared actor skeleton, so it
+ *    matches the other actor-scoped scenes.
+ *    Command windows now seed state in initMembers, early enough for
+ *    makeCommandList to see it.
  * - 1.3.0
  *    Added per-battler unslotted-skill exemptions via <unslottedSkills:[...]>.
  *    Stale slot entries are now automatically cleared when the actor no
@@ -343,7 +348,7 @@ J.SKS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.3.0");
+J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -807,11 +812,18 @@ var Window_SkillEquipRibbon = class extends Window_ActorRibbon {
 		super.initMembers();
 	}
 	/**
+	* Gets the actor.
+	* @returns {*} The actor.
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
 	* Clears and redraws the contents of this window.
 	*/
 	drawContent() {
 		super.drawContent();
-		if (!this._actor) return;
+		if (!this.actor()) return;
 		this.drawNameAndPoints();
 	}
 	/**
@@ -849,28 +861,29 @@ var Window_SkillEquipRibbon = class extends Window_ActorRibbon {
 */
 var Window_SkillEquipSlots = class extends Window_Command {
 	/**
-	* The actor whose equips are being managed.
-	* @type {Game_Actor|null}
-	*/
-	_actor = null;
-	/**
-	* The number of visible slots to present.
-	* @type {number}
-	*/
-	_visibleSlots = 8;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle for this window.
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initMembers();
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
 	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
 	*/
 	initMembers() {
+		/**
+		* The actor whose equips are being managed.
+		* @type {Game_Actor|null}
+		*/
 		this._actor = null;
+		/**
+		* The number of visible slots to present.
+		* @type {number}
+		*/
 		this._visibleSlots = 8;
 	}
 	/**
@@ -909,6 +922,7 @@ var Window_SkillEquipSlots = class extends Window_Command {
 	* @param {number} count The number of slots to prefer showing at once.
 	*/
 	setVisibleSlots(count) {
+		if (this._visibleSlots === count) return;
 		this._visibleSlots = count;
 		this.refresh();
 	}
@@ -988,28 +1002,29 @@ var Window_SkillEquipSlots = class extends Window_Command {
 */
 var Window_SkillEquipList = class extends Window_Command {
 	/**
-	* The actor whose equips are being managed.
-	* @type {Game_Actor|null}
-	*/
-	_actor = null;
-	/**
-	* The current slot index context used for cost checks.
-	* @type {number}
-	*/
-	_slotContext = 0;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle for this window.
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initMembers();
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
 	* Initializes internal members.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
 	*/
 	initMembers() {
+		/**
+		* The actor whose equips are being managed.
+		* @type {Game_Actor|null}
+		*/
 		this._actor = null;
+		/**
+		* The current slot index context used for cost checks.
+		* @type {number}
+		*/
 		this._slotContext = 0;
 	}
 	/**
@@ -1039,6 +1054,7 @@ var Window_SkillEquipList = class extends Window_Command {
 	* @param {number} slotIndex The slot index being targeted.
 	*/
 	setSlotContext(slotIndex) {
+		if (this._slotContext === slotIndex) return;
 		this._slotContext = slotIndex;
 		this.refresh();
 	}
@@ -1130,6 +1146,20 @@ var Window_SkillEquipDetail = class extends Window_Base {
 		this.refresh();
 	}
 	/**
+	* Gets the actor.
+	* @returns {Game_Actor|null} The actor.
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
+	* Gets the skill id.
+	* @returns {number} The skillId.
+	*/
+	skillId() {
+		return this._skillId;
+	}
+	/**
 	* Assigns the actor for this window.
 	* @param {Game_Actor} actor The actor to assign.
 	*/
@@ -1150,8 +1180,8 @@ var Window_SkillEquipDetail = class extends Window_Base {
 	* @returns {RPG_Skill|null}
 	*/
 	skill() {
-		if (!this._skillId) return null;
-		return $dataSkills[this._skillId];
+		if (!this.skillId()) return null;
+		return $dataSkills[this.skillId()];
 	}
 	/**
 	* Clears and redraws contents.
@@ -1169,7 +1199,7 @@ var Window_SkillEquipDetail = class extends Window_Base {
 		this.drawHorzLine(y - 2);
 		const mpCost = skill.mpCost || 0;
 		const tpCost = skill.tpCost || 0;
-		const slotCost = this._actor ? this._actor.skillSlotCost(skill.id, 0) : J.SKS.Metadata.defaultSkillSlotCost || 1;
+		const slotCost = this.actor() ? this.actor().skillSlotCost(skill.id, 0) : J.SKS.Metadata.defaultSkillSlotCost || 1;
 		this.drawText(`MP: ${mpCost}`, 0, y, 120, "left");
 		this.drawText(`TP: ${tpCost}`, 120, y, 120, "left");
 		this.drawText(`Slot: ${slotCost}`, 240, y, 160, "left");
@@ -1198,8 +1228,12 @@ var Window_SkillEquipDetail = class extends Window_Base {
 //#region src/plugins/sks/core/scenes/Scene_SkillEquip.js
 /**
 * The scene for viewing and managing skill equip slots.
+*
+* Layout is inherited from {@link Scene_ActorFacetBase}, which supplies the actor ribbon and the control
+* legend and hands down {@link Scene_ActorFacetBase.contentAreaRect} as the region left over. Within it,
+* the slot column takes the same proportional share the sibling facet scenes give their primary list.
 */
-var Scene_SkillEquip = class extends Scene_MenuBase {
+var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 	/**
 	* Pushes this current scene onto the stack, forcing it into action.
 	*/
@@ -1251,11 +1285,6 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		* A grouping of all windows for this scene.
 		*/
 		this._j._sks._windows = {};
-		/**
-		* The ribbon window displayed along the top.
-		* @type {Window_SkillEquipRibbon|null}
-		*/
-		this._j._sks._windows._ribbon = null;
 		/**
 		* The slots list window displayed on the left.
 		* @type {Window_SkillEquipSlots|null}
@@ -1331,7 +1360,6 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* Creates all windows for this scene.
 	*/
 	createAllWindows() {
-		this.createRibbonWindow();
 		this.createSlotsWindow();
 		this.createSkillsListWindow();
 		this.createDetailWindow();
@@ -1339,32 +1367,68 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		this.initializeView();
 	}
 	/**
-	* Creates the ribbon window across the top.
+	* Overrides {@link Scene_ActorFacetBase.buildActorRibbonWindow}.<br/>
+	* Supplies the skill equip ribbon, which shows the actor plus their slot capacity summary.
+	*
+	* Only the contents differ from the default ribbon; the base decides where it sits and how tall it is.
+	* @param {Rectangle} rectangle The rectangle to build the window within.
+	* @returns {Window_SkillEquipRibbon}
 	*/
-	createRibbonWindow() {
-		const rect = this.ribbonWindowRect();
-		const win = new Window_SkillEquipRibbon(rect);
-		win.setActor(this.actor());
-		this._j._sks._windows._ribbon = win;
-		this.addWindow(win);
+	buildActorRibbonWindow(rectangle) {
+		return new Window_SkillEquipRibbon(rectangle);
 	}
 	/**
-	* Builds the rectangle for the ribbon window across the top.
-	* @returns {Rectangle}
-	*/
-	ribbonWindowRect() {
-		const ww = Graphics.boxWidth;
-		const wh = this.calcWindowHeight(1, false);
-		const wx = 0;
-		const wy = this.mainAreaTop();
-		return new Rectangle(wx, wy, ww, wh);
-	}
-	/**
-	* Gets the ribbon window.
-	* @returns {Window_SkillEquipRibbon|null}
+	* Gets the actor ribbon window under the name this scene refers to it by.
+	* @returns {Window_SkillEquipRibbon}
 	*/
 	ribbonWindow() {
-		return this._j._sks._windows._ribbon;
+		return this.getActorRibbonWindow();
+	}
+	/**
+	* The proportion of the content area given to the slot column.
+	*
+	* The same share the sibling facet scenes give their primary list, leaving the remainder for the pool
+	* of candidate skills- which needs the room more, since it lists every skill the actor knows.
+	* @returns {number}
+	*/
+	slotColumnRatio() {
+		return .4;
+	}
+	/**
+	* Overrides {@link Scene_MenuFacetBase.hasHelpWindow}.<br/>
+	* Declines the help strip across the top.
+	*
+	* This scene already carries a detail panel beneath the candidate list, and its command windows have
+	* no help text of their own, so the strip would have sat empty.
+	* @returns {boolean}
+	*/
+	hasHelpWindow() {
+		return false;
+	}
+	/**
+	* Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
+	* Describes the controls this scene responds to.
+	* @returns {{semantic: (string|string[]), label: string}[]}
+	*/
+	controlLegendEntries() {
+		return [
+			{
+				semantic: "ok",
+				label: "equip"
+			},
+			{
+				semantic: "context",
+				label: "unequip"
+			},
+			{
+				semantic: ["actor-prev", "actor-next"],
+				label: "switch character"
+			},
+			{
+				semantic: "cancel",
+				label: "back"
+			}
+		];
 	}
 	/**
 	* Creates the slots window on the left side.
@@ -1378,7 +1442,7 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		win.setHandler("context", this.onSlotUnequip.bind(this));
 		win.setHandler("actor-prev", this.onCycleActorLeft.bind(this));
 		win.setHandler("actor-next", this.onCycleActorRight.bind(this));
-		this._j._sks._windows._slots = win;
+		this.setSlotsWindow(win);
 		this.addWindow(win);
 	}
 	/**
@@ -1386,12 +1450,10 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	slotsWindowRect() {
-		const totalHeight = this.mainAreaHeight() - this.ribbonWindowRect().height;
-		const ww = 420;
-		const wh = totalHeight;
-		const wx = this.isRightInputMode() ? Graphics.boxWidth - ww : 0;
-		const wy = this.ribbonWindowRect().y + this.ribbonWindowRect().height;
-		return new Rectangle(wx, wy, ww, wh);
+		const contentArea = this.contentAreaRect();
+		const ww = Math.round(contentArea.width * this.slotColumnRatio());
+		const wx = this.isRightInputMode() ? contentArea.x + contentArea.width - ww : contentArea.x;
+		return new Rectangle(wx, contentArea.y, ww, contentArea.height);
 	}
 	/**
 	* Gets the slots window.
@@ -1399,6 +1461,13 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	*/
 	slotsWindow() {
 		return this._j._sks._windows._slots;
+	}
+	/**
+	* Sets the slots window.
+	* @param {Window_SkillEquipSlots} window The window to track.
+	*/
+	setSlotsWindow(window) {
+		this._j._sks._windows._slots = window;
 	}
 	/**
 	* Creates the skills list window on the right side.
@@ -1409,7 +1478,7 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		win.setActor(this.actor());
 		win.setHandler("ok", this.onSkillOk.bind(this));
 		win.setHandler("cancel", this.onSkillCancel.bind(this));
-		this._j._sks._windows._skills = win;
+		this.setSkillsWindow(win);
 		this.addWindow(win);
 	}
 	/**
@@ -1417,12 +1486,19 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	skillsListWindowRect() {
-		const wx = this.isRightInputMode() ? 0 : this.slotsWindowRect().x + this.slotsWindowRect().width;
-		const ww = Graphics.boxWidth - this.slotsWindowRect().width;
-		const remainingHeight = this.mainAreaHeight() - this.ribbonWindowRect().height;
-		const wh = Math.floor(remainingHeight * .6);
-		const wy = this.ribbonWindowRect().y + this.ribbonWindowRect().height;
-		return new Rectangle(wx, wy, ww, wh);
+		const contentArea = this.contentAreaRect();
+		const slotsRect = this.slotsWindowRect();
+		const wx = this.isRightInputMode() ? contentArea.x : slotsRect.x + slotsRect.width;
+		const ww = contentArea.width - slotsRect.width;
+		const wh = Math.floor(contentArea.height * this.skillsListHeightRatio());
+		return new Rectangle(wx, contentArea.y, ww, wh);
+	}
+	/**
+	* The proportion of the region's height given to the candidate list, above its detail panel.
+	* @returns {number}
+	*/
+	skillsListHeightRatio() {
+		return .6;
 	}
 	/**
 	* Gets the skills list window.
@@ -1432,13 +1508,20 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		return this._j._sks._windows._skills;
 	}
 	/**
+	* Sets the skills list window.
+	* @param {Window_SkillEquipList} window The window to track.
+	*/
+	setSkillsWindow(window) {
+		this._j._sks._windows._skills = window;
+	}
+	/**
 	* Creates the detail window beneath the skills list.
 	*/
 	createDetailWindow() {
 		const rect = this.detailWindowRect();
 		const win = new Window_SkillEquipDetail(rect);
 		win.setActor(this.actor());
-		this._j._sks._windows._detail = win;
+		this.setDetailWindow(win);
 		this.addWindow(win);
 	}
 	/**
@@ -1446,11 +1529,10 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* @returns {Rectangle}
 	*/
 	detailWindowRect() {
-		const wx = this.skillsListWindowRect().x;
-		const ww = this.skillsListWindowRect().width;
-		const wh = this.mainAreaHeight() - this.ribbonWindowRect().height - this.skillsListWindowRect().height;
-		const wy = this.skillsListWindowRect().y + this.skillsListWindowRect().height;
-		return new Rectangle(wx, wy, ww, wh);
+		const listRect = this.skillsListWindowRect();
+		const contentArea = this.contentAreaRect();
+		const wh = contentArea.height - listRect.height;
+		return new Rectangle(listRect.x, listRect.y + listRect.height, listRect.width, wh);
 	}
 	/**
 	* Gets the detail window.
@@ -1458,6 +1540,13 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	*/
 	detailWindow() {
 		return this._j._sks._windows._detail;
+	}
+	/**
+	* Sets the detail window.
+	* @param {Window_SkillEquipDetail} window The window to track.
+	*/
+	setDetailWindow(window) {
+		this._j._sks._windows._detail = window;
 	}
 	/**
 	* Extends {@link #update}.<br/>
@@ -1559,18 +1648,6 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 		this.detailWindow().setSkillId(skillIdInSlot);
 	}
 	/**
-	* Cycles to the previous actor.
-	*/
-	onCycleActorLeft() {
-		this.previousActor();
-	}
-	/**
-	* Cycles to the next actor.
-	*/
-	onCycleActorRight() {
-		this.nextActor();
-	}
-	/**
 	* Applies the initial selection and focus state for the scene.
 	*/
 	initializeView() {
@@ -1591,7 +1668,6 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 	* @param {Game_Actor} actor - The actor to bind to all windows.
 	*/
 	rebindAllWindowsToActor(actor) {
-		this.ribbonWindow().setActor(actor);
 		this.slotsWindow().setActor(actor);
 		this.skillsWindow().setActor(actor);
 		this.detailWindow().setActor(actor);
@@ -1619,7 +1695,7 @@ var Scene_SkillEquip = class extends Scene_MenuBase {
 J.SKS.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function() {
 	J.SKS.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this._commandWindow.setHandler("skill-equip", this.commandSkillEquip.bind(this));
+	this.commandWindow().setHandler("skill-equip", this.commandSkillEquip.bind(this));
 };
 /**
 * Opens the Skill Equip scene.
@@ -1639,7 +1715,7 @@ Window_MenuCommand.prototype.addOriginalCommands = function() {
 	J.SKS.Aliased.Window_MenuCommand.get("addOriginalCommands").call(this);
 	const switchId = J.SKS.Metadata.menuSwitchId;
 	if (switchId === 0 || $gameSwitches.value(switchId)) {
-		const builtCommand = new WindowCommandBuilder("Skill Equip").setSymbol("skill-equip").setIconIndex(78).build();
+		const builtCommand = new WindowCommandBuilder("Skill Equip").setSymbol("skill-equip").setHelpText("Choose which of this character's known skills are active.").setMenuSection(MenuSection.Actor).setIconIndex(78).build();
 		this.addBuiltCommand(builtCommand);
 	}
 };

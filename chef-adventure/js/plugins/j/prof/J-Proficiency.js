@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.1.0 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.2.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -151,6 +151,12 @@
  * - Decreasing the proficiency will NOT undo rewards gained.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Learning a skill through proficiency now announces in the dia log,
+ *    naming the practiced skill, instead of only producing a floating text
+ *    pop on the same visual channel as damage numbers and gold. A skill's own
+ *    message1/message2 overrides the line.
+ *    Converted the last SDP duck-type in this ship to a namespace check.
  * - 2.1.0
  *    Registers 'p' as a formula context variable via Game_Action.registerFormulaContext.
  *    Damage formulas can now use 'p' for skill proficiency without J-Elementalistics
@@ -406,7 +412,7 @@ J.PROF = {};
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.1.0");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.2.0");
 /**
 * The various aliases associated with this plugin.
 */
@@ -523,8 +529,8 @@ Game_Actor.prototype.skillProficiencies = function() {
 * @param {SkillProficiency} skillProficiency The newly acquired proficiency.
 */
 Game_Actor.prototype.addNewSkillProficiency = function(skillProficiency) {
-	this._j._proficiency._proficiencies.push(skillProficiency);
-	this._j._proficiency._proficiencies.sort();
+	this.skillProficiencies().push(skillProficiency);
+	this.skillProficiencies().sort();
 };
 /**
 * Gets all of this actor's skill proficiency conditionals, locked and unlocked.
@@ -545,7 +551,7 @@ Game_Actor.prototype.unlockedConditionals = function() {
 * @param {string} conditional The key of the conditional to unlock.
 */
 Game_Actor.prototype.addUnlockedConditional = function(conditional) {
-	this._j._proficiency._unlockedConditionals.push(conditional);
+	this.unlockedConditionals().push(conditional);
 };
 /**
 * Gets all of this actor's skill proficiency conditionals that include a requirement of the provided skillId.
@@ -598,6 +604,39 @@ Game_Actor.prototype.executeSkillRewards = function(conditional) {
 	const { skillRewards } = conditional;
 	if (!skillRewards.length) return;
 	skillRewards.forEach(this.learnSkill, this);
+	skillRewards.forEach((skillId) => this.handleProficiencySkillLearnedLog(conditional, skillId));
+};
+/**
+* Generates a dia log announcing that this actor earned a skill by way of weapon proficiency.
+* The skill's own message fields act as per-skill overrides for either line, allowing an author to
+* give a notable skill its own voice without touching this default phrasing.
+* @param {ProficiencyConditional} conditional The conditional whose rewards were just granted.
+* @param {number} skillId The id of the skill that was taught.
+*/
+Game_Actor.prototype.handleProficiencySkillLearnedLog = function(conditional, skillId) {
+	if (!J.LOG) return;
+	const skill = this.skill(skillId);
+	const sourceName = this.proficiencySourceLabel(conditional);
+	const headline = skill.message1 || `\\C[1]${this.name()}\\C[0] learned \\C[1]${skill.name}\\C[0] from ${sourceName} proficiency!`;
+	const instruction = skill.message2 || "Equip it from the skills menu to use it.";
+	const log = new DiaLogBuilder().addLine(headline).addLine(instruction).setFaceName(this.faceName()).setFaceIndex(this.faceIndex()).build();
+	$diaLogManager.addLog(log);
+};
+/**
+* Derives a player-facing label describing what was practiced to satisfy a proficiency conditional.
+* Proficiency is tracked per-skill rather than per-weapon-family- a conditional is satisfied by using
+* one specific skill enough times- so the practiced skill itself is what the player actually did, and
+* naming anything broader would misdescribe the accomplishment. The conditional's own key is an
+* authoring slug such as "blade-1h-01", so it is never shown.
+* @param {ProficiencyConditional} conditional The conditional to describe.
+* @returns {string}
+*/
+Game_Actor.prototype.proficiencySourceLabel = function(conditional) {
+	const primaryRequirement = conditional.requirements.at(0);
+	if (!primaryRequirement) return "combat";
+	const practicedSkill = this.skill(primaryRequirement.skillId);
+	if (!practicedSkill) return "combat";
+	return practicedSkill.name;
 };
 /**
 * Performs the arbitrary javascript provided in the skill proficiency conditional-
@@ -716,21 +755,35 @@ Game_Actor.prototype.onBattlerDataChange = function() {
 * Updates the skill proficiency gains for this actor.
 */
 Game_Actor.prototype.updateBonusSkillProficiencyGains = function() {
-	if (this._j._proficiency._bonusSkillProficiencyGains === undefined || this._j._proficiency._bonusSkillProficiencyGains === null) {
-		this._j._proficiency._bonusSkillProficiencyGains = 0;
+	if (this.bonusSkillProficiencyGains() === undefined || this.bonusSkillProficiencyGains() === null) {
+		this.setBonusSkillProficiencyGains(0);
 	}
-	this._j._proficiency._bonusSkillProficiencyGains = RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyBonus);
+	this.setBonusSkillProficiencyGains(RPGManager.getSumFromAllNotesByRegex(this.getAllNotes(), J.PROF.RegExp.ProficiencyBonus));
 };
 /**
 * Bonus proficiency gained when earning skill proficiency.
 */
 Object.defineProperty(Game_Actor.prototype, "prof", {
 	get: function() {
-		const sdpBonus = this.getSdpBonusForParameterKey ? this.getSdpBonusForParameterKey("prof", 1) : 0;
+		const sdpBonus = J.SDP ? this.getSdpBonusForParameterKey("prof", 1) : 0;
 		return this._j._proficiency._bonusSkillProficiencyGains + sdpBonus;
 	},
 	configurable: true
 });
+/**
+* Gets the bonus skill proficiency gains.
+* @returns {*} The bonusSkillProficiencyGains.
+*/
+Game_Actor.prototype.bonusSkillProficiencyGains = function() {
+	return this._j._proficiency._bonusSkillProficiencyGains;
+};
+/**
+* Sets the bonus skill proficiency gains.
+* @param {*} newBonusSkillProficiencyGains The new bonusSkillProficiencyGains.
+*/
+Game_Actor.prototype.setBonusSkillProficiencyGains = function(newBonusSkillProficiencyGains) {
+	this._j._proficiency._bonusSkillProficiencyGains = newBonusSkillProficiencyGains;
+};
 
 //#endregion
 //#region src/plugins/prof/core/objects/Game_Enemy.js
@@ -779,8 +832,8 @@ Game_Enemy.prototype.addSkillProficiency = function(skillId, initialProficiency 
 		return exists;
 	}
 	const proficiency = new SkillProficiency(skillId, initialProficiency);
-	this._j._profs.push(proficiency);
-	this._j._profs.sort();
+	this.skillProficiencies().push(proficiency);
+	this.skillProficiencies().sort();
 	return proficiency;
 };
 /**

@@ -1068,6 +1068,160 @@ var QuestManager = class {
 */
 var TrackedOmniObjective = class {
 	/**
+	* Gets the indiscriminate target data.
+	* @returns {string} The indiscriminateTargetData.
+	*/
+	indiscriminateTargetData() {
+		return this._indiscriminateTargetData;
+	}
+	/**
+	* Sets the indiscriminate target data.
+	* @param {string} newIndiscriminateTargetData The new indiscriminateTargetData.
+	*/
+	setIndiscriminateTargetData(newIndiscriminateTargetData) {
+		this._indiscriminateTargetData = newIndiscriminateTargetData;
+	}
+	/**
+	* Gets the target map id.
+	* @returns {number} The targetMapId.
+	*/
+	targetMapId() {
+		return this._targetMapId;
+	}
+	/**
+	* Sets the target map id.
+	* @param {number} newTargetMapId The new targetMapId.
+	*/
+	setTargetMapId(newTargetMapId) {
+		this._targetMapId = newTargetMapId;
+	}
+	/**
+	* Gets the target coordinate range.
+	* @returns {*} The targetCoordinateRange.
+	*/
+	targetCoordinateRange() {
+		return this._targetCoordinateRange;
+	}
+	/**
+	* Sets the target coordinate range.
+	* @param {*} newTargetCoordinateRange The new targetCoordinateRange.
+	*/
+	setTargetCoordinateRange(newTargetCoordinateRange) {
+		this._targetCoordinateRange = newTargetCoordinateRange;
+	}
+	/**
+	* Gets the target item type.
+	* @returns {number} The targetItemType.
+	*/
+	targetItemType() {
+		return this._targetItemType;
+	}
+	/**
+	* Sets the target item type.
+	* @param {number} newTargetItemType The new targetItemType.
+	*/
+	setTargetItemType(newTargetItemType) {
+		this._targetItemType = newTargetItemType;
+	}
+	/**
+	* Gets the target item id.
+	* @returns {number} The targetItemId.
+	*/
+	targetItemId() {
+		return this._targetItemId;
+	}
+	/**
+	* Sets the target item id.
+	* @param {number} newTargetItemId The new targetItemId.
+	*/
+	setTargetItemId(newTargetItemId) {
+		this._targetItemId = newTargetItemId;
+	}
+	/**
+	* Gets the target item fetch quantity.
+	* @returns {number} The targetItemFetchQuantity.
+	*/
+	targetItemFetchQuantity() {
+		return this._targetItemFetchQuantity;
+	}
+	/**
+	* Sets the target item fetch quantity.
+	* @param {number} newTargetItemFetchQuantity The new targetItemFetchQuantity.
+	*/
+	setTargetItemFetchQuantity(newTargetItemFetchQuantity) {
+		this._targetItemFetchQuantity = newTargetItemFetchQuantity;
+	}
+	/**
+	* Gets the target enemy id.
+	* @returns {number} The targetEnemyId.
+	*/
+	targetEnemyId() {
+		return this._targetEnemyId;
+	}
+	/**
+	* Sets the target enemy id.
+	* @param {number} newTargetEnemyId The new targetEnemyId.
+	*/
+	setTargetEnemyId(newTargetEnemyId) {
+		this._targetEnemyId = newTargetEnemyId;
+	}
+	/**
+	* Gets the target enemy amount.
+	* @returns {number} The targetEnemyAmount.
+	*/
+	targetEnemyAmount() {
+		return this._targetEnemyAmount;
+	}
+	/**
+	* Sets the target enemy amount.
+	* @param {number} newTargetEnemyAmount The new targetEnemyAmount.
+	*/
+	setTargetEnemyAmount(newTargetEnemyAmount) {
+		this._targetEnemyAmount = newTargetEnemyAmount;
+	}
+	/**
+	* Gets the target quest keys.
+	* @returns {string[]} The targetQuestKeys.
+	*/
+	targetQuestKeys() {
+		return this._targetQuestKeys;
+	}
+	/**
+	* Sets the target quest keys.
+	* @param {string[]} newTargetQuestKeys The new targetQuestKeys.
+	*/
+	setTargetQuestKeys(newTargetQuestKeys) {
+		this._targetQuestKeys = newTargetQuestKeys;
+	}
+	/**
+	* Gets the current item fetch quantity.
+	* @returns {number} The currentItemFetchQuantity.
+	*/
+	currentItemFetchQuantity() {
+		return this._currentItemFetchQuantity;
+	}
+	/**
+	* Sets the current item fetch quantity.
+	* @param {number} newCurrentItemFetchQuantity The new currentItemFetchQuantity.
+	*/
+	setCurrentItemFetchQuantity(newCurrentItemFetchQuantity) {
+		this._currentItemFetchQuantity = newCurrentItemFetchQuantity;
+	}
+	/**
+	* Gets the current enemy amount.
+	* @returns {number} The currentEnemyAmount.
+	*/
+	currentEnemyAmount() {
+		return this._currentEnemyAmount;
+	}
+	/**
+	* Sets the current enemy amount.
+	* @param {number} newCurrentEnemyAmount The new currentEnemyAmount.
+	*/
+	setCurrentEnemyAmount(newCurrentEnemyAmount) {
+		this._currentEnemyAmount = newCurrentEnemyAmount;
+	}
+	/**
 	* Initialize an objective tracker for an quest.
 	* @param {number} id The id of this objective.
 	* @param {string} questKey The key of the quest that owns this objective.
@@ -1176,26 +1330,26 @@ var TrackedOmniObjective = class {
 	populateFulfillmentData(omniFulfillmentData) {
 		switch (this.type()) {
 			case OmniObjective.Types.Indiscriminate:
-				this._indiscriminateTargetData = omniFulfillmentData.indiscriminate.hint ?? "No indiscriminate objective instructions provided.";
+				this.setIndiscriminateTargetData(omniFulfillmentData.indiscriminate.hint ?? "No indiscriminate objective instructions provided.");
 				return;
 			case OmniObjective.Types.Destination:
 				const { mapId, x1, y1, x2, y2 } = omniFulfillmentData.destination;
-				this._targetMapId = mapId;
+				this.setTargetMapId(mapId);
 				const point1 = [x1, y1];
 				const point2 = [x2, y2];
-				this._targetCoordinateRange = [point1, point2];
+				this.setTargetCoordinateRange([point1, point2]);
 				break;
 			case OmniObjective.Types.Fetch:
-				this._targetItemType = omniFulfillmentData.fetch.type;
-				this._targetItemId = omniFulfillmentData.fetch.id;
-				this._targetItemFetchQuantity = omniFulfillmentData.fetch.amount;
+				this.setTargetItemType(omniFulfillmentData.fetch.type);
+				this.setTargetItemId(omniFulfillmentData.fetch.id);
+				this.setTargetItemFetchQuantity(omniFulfillmentData.fetch.amount);
 				break;
 			case OmniObjective.Types.Slay:
-				this._targetEnemyId = omniFulfillmentData.slay.id;
-				this._targetEnemyAmount = omniFulfillmentData.slay.amount;
+				this.setTargetEnemyId(omniFulfillmentData.slay.id);
+				this.setTargetEnemyAmount(omniFulfillmentData.slay.amount);
 				break;
 			case OmniObjective.Types.Quest:
-				this._targetQuestKeys = [...omniFulfillmentData.quest.keys];
+				this.setTargetQuestKeys([...omniFulfillmentData.quest.keys]);
 				break;
 		}
 	}
@@ -1339,22 +1493,22 @@ var TrackedOmniObjective = class {
 		const enoughColor = 24;
 		const notEnoughColor = 25;
 		switch (this.type()) {
-			case OmniObjective.Types.Indiscriminate: return OmniObjective.FulfillmentTemplate(this.type(), this._indiscriminateTargetData);
+			case OmniObjective.Types.Indiscriminate: return OmniObjective.FulfillmentTemplate(this.type(), this.indiscriminateTargetData());
 			case OmniObjective.Types.Destination:
-				const point1 = `${this._targetCoordinateRange.at(0)}`;
-				const point2 = `${this._targetCoordinateRange.at(1)}`;
+				const point1 = `${this.targetCoordinateRange().at(0)}`;
+				const point2 = `${this.targetCoordinateRange().at(1)}`;
 				return OmniObjective.FulfillmentTemplate(this.type(), $gameMap.displayName(), point1, point2);
 			case OmniObjective.Types.Fetch:
-				const fetchColor = this._currentItemFetchQuantity < this._targetItemFetchQuantity ? notEnoughColor : enoughColor;
-				const targetItemText = `${this.fetchDataSourceTextPrefix()}[${this._targetItemId}]`;
-				const quantity = `\\C[${fetchColor}]${this._currentItemFetchQuantity} / ${this._targetItemFetchQuantity}\\C[0]`;
+				const fetchColor = this.currentItemFetchQuantity() < this.targetItemFetchQuantity() ? notEnoughColor : enoughColor;
+				const targetItemText = `${this.fetchDataSourceTextPrefix()}[${this.targetItemId()}]`;
+				const quantity = `\\C[${fetchColor}]${this.currentItemFetchQuantity()} / ${this.targetItemFetchQuantity()}\\C[0]`;
 				return OmniObjective.FulfillmentTemplate(this.type(), quantity, targetItemText);
 			case OmniObjective.Types.Slay:
-				const slayColor = this._currentEnemyAmount < this._targetEnemyAmount ? notEnoughColor : enoughColor;
-				const targetEnemyText = `\\C[${slayColor}]${this._currentEnemyAmount} / ${this._targetEnemyAmount}\\C[0]`;
-				return OmniObjective.FulfillmentTemplate(this.type(), targetEnemyText, this._targetEnemyId);
+				const slayColor = this.currentEnemyAmount() < this.targetEnemyAmount() ? notEnoughColor : enoughColor;
+				const targetEnemyText = `\\C[${slayColor}]${this.currentEnemyAmount()} / ${this.targetEnemyAmount()}\\C[0]`;
+				return OmniObjective.FulfillmentTemplate(this.type(), targetEnemyText, this.targetEnemyId());
 			case OmniObjective.Types.Quest:
-				const questNames = this._targetQuestKeys.map((questKey) => `'\\quest[${questKey}]'`);
+				const questNames = this.targetQuestKeys().map((questKey) => `'\\quest[${questKey}]'`);
 				const questNamesWithCommas = questNames.join(", ");
 				return OmniObjective.FulfillmentTemplate(this.type(), questNamesWithCommas);
 		}
@@ -1391,7 +1545,7 @@ var TrackedOmniObjective = class {
 	* @returns {[number,[[number,number],[number,number]]]}
 	*/
 	destinationData() {
-		return [this._targetMapId, this._targetCoordinateRange];
+		return [this.targetMapId(), this.targetCoordinateRange()];
 	}
 	/**
 	* Checks if the player is presently standing within the rectangle derived from the coordinate range for this objective.
@@ -1412,7 +1566,7 @@ var TrackedOmniObjective = class {
 	* @returns {[number,number]}
 	*/
 	fetchData() {
-		return [this._targetItemId, this._targetItemFetchQuantity];
+		return [this.targetItemId(), this.targetItemFetchQuantity()];
 	}
 	/**
 	* Determines whether or not the given item is the target of this fetch objective.
@@ -1422,21 +1576,21 @@ var TrackedOmniObjective = class {
 	isFetchTarget(entry) {
 		const objectiveType = this.type();
 		if (objectiveType !== OmniObjective.Types.Fetch) return false;
-		if (this._targetItemType === 0 && !entry.isItem()) return false;
-		if (this._targetItemType === 1 && !entry.isWeapon()) return false;
-		if (this._targetItemType === 2 && !entry.isArmor()) return false;
-		return entry.id === this._targetItemId;
+		if (this.targetItemType() === 0 && !entry.isItem()) return false;
+		if (this.targetItemType() === 1 && !entry.isWeapon()) return false;
+		if (this.targetItemType() === 2 && !entry.isArmor()) return false;
+		return entry.id === this.targetItemId();
 	}
 	/**
 	* Gets the escape code for displaying text in a window based on the given target item type to fetch.
 	* @returns {string}
 	*/
 	fetchDataSourceTextPrefix() {
-		switch (this._targetItemType) {
+		switch (this.targetItemType()) {
 			case OmniObjective.FetchTypes.Item: return `\\Item`;
 			case OmniObjective.FetchTypes.Weapon: return `\\Weapon`;
 			case OmniObjective.FetchTypes.Armor: return `\\Armor`;
-			default: throw new Error(`unknown target item type: ${this._targetItemType}`);
+			default: throw new Error(`unknown target item type: ${this.targetItemType()}`);
 		}
 	}
 	/**
@@ -1444,11 +1598,11 @@ var TrackedOmniObjective = class {
 	* @returns {RPG_Item[]|RPG_Weapon[]|RPG_Armor[]}
 	*/
 	fetchItemDataSource() {
-		switch (this._targetItemType) {
+		switch (this.targetItemType()) {
 			case OmniObjective.FetchTypes.Item: return $dataItems;
 			case OmniObjective.FetchTypes.Weapon: return $dataWeapons;
 			case OmniObjective.FetchTypes.Armor: return $dataArmors;
-			default: throw new Error(`unknown target item type: ${this._targetItemType}`);
+			default: throw new Error(`unknown target item type: ${this.targetItemType()}`);
 		}
 	}
 	/**
@@ -1456,8 +1610,8 @@ var TrackedOmniObjective = class {
 	*/
 	synchronizeFetchTargetItemQuantity() {
 		const targetDataSource = this.fetchItemDataSource();
-		const targetItem = targetDataSource.at(this._targetItemId);
-		this._currentItemFetchQuantity = $gameParty.numItems(targetItem);
+		const targetItem = targetDataSource.at(this.targetItemId());
+		this.setCurrentItemFetchQuantity($gameParty.numItems(targetItem));
 		this.onObjectiveUpdate();
 	}
 	/**
@@ -1467,20 +1621,20 @@ var TrackedOmniObjective = class {
 	*/
 	hasFetchedEnoughItems() {
 		if (this.type() !== OmniObjective.Types.Fetch) return false;
-		return this._currentItemFetchQuantity >= this._targetItemFetchQuantity;
+		return this.currentItemFetchQuantity() >= this.targetItemFetchQuantity();
 	}
 	/**
 	* The data points associated with slay-related objectives.
 	* @returns {[number,number]}
 	*/
 	slayData() {
-		return [this._targetEnemyId, this._targetEnemyAmount];
+		return [this.targetEnemyId(), this.targetEnemyAmount()];
 	}
 	/**
 	* Increments the counter for how many of the required enemies the player has slain.
 	*/
 	incrementSlayTargetEnemyAmount() {
-		this._currentEnemyAmount++;
+		this.setCurrentEnemyAmount(this.currentEnemyAmount() + 1);
 		this.onObjectiveUpdate();
 	}
 	/**
@@ -1490,10 +1644,10 @@ var TrackedOmniObjective = class {
 	*/
 	hasSlainEnoughEnemies() {
 		if (this.type() !== OmniObjective.Types.Slay) return false;
-		return this._currentEnemyAmount >= this._targetEnemyAmount;
+		return this.currentEnemyAmount() >= this.targetEnemyAmount();
 	}
 	questCompletionData() {
-		return this._targetQuestKeys;
+		return this.targetQuestKeys();
 	}
 	hasCompletedAllQuests() {
 		const requiredQuestKeys = this.questCompletionData();
@@ -1505,7 +1659,7 @@ var TrackedOmniObjective = class {
 	* acquired towards the fetch goal.
 	*/
 	onObjectiveUpdate() {
-		if ($diaLogManager) {
+		if (J.LOG) {
 			this.handleObjectiveUpdateLog();
 		}
 	}
@@ -1693,7 +1847,8 @@ var TrackedOmniQuest = class {
 	canExecuteObjectiveById(objectiveId = null) {
 		const actualObjectiveId = this.getFallbackObjectiveId(objectiveId);
 		const objective = this.objectives.find((o) => o.id === actualObjectiveId);
-		return objective?.state === OmniObjective.States.Active;
+		if (objective === undefined) return false;
+		return objective.state === OmniObjective.States.Active;
 	}
 	/**
 	* A "known" quest is one that is no longer undiscovered/inactive. This includes completed/failed/missed quests.
@@ -1849,7 +2004,7 @@ var TrackedOmniQuest = class {
 	* @returns {TrackedOmniObjective}
 	*/
 	immediateObjective() {
-		return this.activeObjectives()?.at(0);
+		return this.activeObjectives().at(0);
 	}
 	/**
 	* Flags the given objective by its id as {@link OmniObjective.States.Active}. If no objectiveId is provided, then the
@@ -1998,7 +2153,7 @@ var TrackedOmniQuest = class {
 	* The hook for when the state of the quest changes.
 	*/
 	onQuestStateChange() {
-		if ($diaLogManager) {
+		if (J.LOG) {
 			this.handleQuestUpdateLog();
 		}
 	}
@@ -2326,16 +2481,32 @@ var Window_QuestopediaCategories = class extends Window_HorzCommand {
 //#region src/plugins/omni/ext/quest/windows/Window_QuestopediaList.js
 var Window_QuestopediaList = class extends Window_Command {
 	/**
-	* The category that this list is being filtered by. When an empty string, no filter is applied.
-	* @type {string}
+	* Gets the quest filtering.
+	* @returns {*} The questFiltering.
 	*/
-	_currentCategoryKey = String.empty;
+	questFiltering() {
+		return this._questFiltering;
+	}
 	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* This cannot be a class field declaration: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from it and found it undefined.
+	*/
+	initMembers() {
+		/**
+		* The category that this list is being filtered by. When an empty string, no filter is applied.
+		* @type {string}
+		*/
+		this._currentCategoryKey = String.empty;
 	}
 	/**
 	* Gets the current category key of quests being displayed in this list.
@@ -2366,7 +2537,7 @@ var Window_QuestopediaList = class extends Window_Command {
 	*/
 	buildCommands() {
 		const questEntries = $gameParty.getQuestopediaEntries();
-		const filteredQuests = questEntries.filter(this._questFiltering, this);
+		const filteredQuests = questEntries.filter(this.questFiltering(), this);
 		if (filteredQuests.length === 0) return [];
 		return filteredQuests.map(this.buildCommand, this);
 	}
@@ -2584,13 +2755,26 @@ var Window_QuestopediaDescription = class extends Window_Base {
 //#endregion
 //#region src/plugins/omni/ext/quest/windows/Window_QuestopediaObjectives.js
 var Window_QuestopediaObjectives = class extends Window_Command {
-	_currentObjectives = [];
 	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
 	constructor(rect) {
 		super(rect);
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* This cannot be a class field declaration: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from it and found it undefined.
+	*/
+	initMembers() {
+		/**
+		* The quest objectives currently being rendered.
+		* @type {TrackedOmniObjective[]}
+		*/
+		this._currentObjectives = [];
 	}
 	/**
 	* Overwrites {@link #itemHeight}.<br/>
@@ -2605,7 +2789,7 @@ var Window_QuestopediaObjectives = class extends Window_Command {
 	* @returns {TrackedOmniObjective[]}
 	*/
 	getCurrentObjectives() {
-		return this._currentObjectives ?? [];
+		return this._currentObjectives;
 	}
 	/**
 	* Sets the quest objectives currently being rendered.
@@ -2712,9 +2896,11 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 		this.initMembers();
 	}
 	/**
-	* Initialize all properties for our omnipedia.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes all properties for our omnipedia.
 	*/
 	initMembers() {
+		super.initMembers();
 		this.initCoreMembers();
 		this.initPrimaryMembers();
 	}
@@ -2799,11 +2985,11 @@ var Scene_Questopedia = class extends Scene_MenuBase {
 	* Changes the filter to a different type from {@link PIXI.filters}.
 	*/
 	createBackground() {
-		this._backgroundFilter = new PIXI.filters.AlphaFilter(.1);
-		this._backgroundSprite = new Sprite();
-		this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-		this._backgroundSprite.filters = [this._backgroundFilter];
-		this.addChild(this._backgroundSprite);
+		this.setBackgroundFilter(new PIXI.filters.AlphaFilter(.1));
+		this.setBackgroundSprite(new Sprite());
+		this.backgroundSprite().bitmap = SceneManager.backgroundBitmap();
+		this.backgroundSprite().filters = [this.backgroundFilter()];
+		this.addChild(this.backgroundSprite());
 	}
 	/**
 	* Creates the quest categories window.
@@ -3172,7 +3358,7 @@ Game_Party.prototype.initQuestopediaMembers = function() {
 Game_Party.prototype.populateQuestopediaTrackings = function() {
 	const trackedOmniquests = J.OMNI.EXT.QUEST.Metadata.quests.map(this.toTrackedOmniQuest, this);
 	trackedOmniquests.forEach((trackedOmniquest) => {
-		this._j._omni._questopediaCache.set(trackedOmniquest.key, trackedOmniquest);
+		this.getQuestopediaEntriesCache().set(trackedOmniquest.key, trackedOmniquest);
 	});
 };
 /**
@@ -3203,7 +3389,8 @@ Game_Party.prototype.updateTrackedOmniQuestsFromConfig = function() {
 			}
 			foundTracking.objectives.forEach((objective, index) => {
 				if (!omniquest.objectives.at(index)) return;
-				objective.populateFulfillmentData(omniquest.objectives.at(index)?.fulfillment);
+				const sourceObjective = omniquest.objectives.at(index);
+				objective.populateFulfillmentData(sourceObjective === undefined ? undefined : sourceObjective.fulfillment);
 				const newObjective = newTracking.objectives.at(index);
 				objective.hidden = newObjective.hidden;
 				objective.optional = newObjective.optional;
@@ -3521,7 +3708,7 @@ Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandInd
 	const defaultShow = J.OMNI.EXT.QUEST.Aliased.Game_Interpreter.get("shouldHideChoiceBranch").call(this, subChoiceCommandIndex);
 	if (defaultShow) return true;
 	const eventMetadata = $gameMap.event(this.eventId());
-	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this._commonEventId).list;
+	const currentPageCommands = eventMetadata ? eventMetadata.page().list : $dataCommonEvents.at(this.commonEventId()).list;
 	const subEventCommand = currentPageCommands.at(subChoiceCommandIndex);
 	if (!Game_Event.filterInvalidEventCommand(subEventCommand)) return false;
 	if (!Game_Event.filterCommentCommandsByChoiceQuestConditional(subEventCommand)) return false;
@@ -3662,6 +3849,26 @@ Window_JabsRemapActions.prototype.buildPostExtensionGroups = function(rows, can)
 };
 
 //#endregion
+//#region src/plugins/omni/ext/quest/windows/Window_Base.js
+/**
+* Overwrites {@link Window_Base#translateQuestTextCode}.
+* Supplies the real quest translation now that the Questopedia system is present.
+* @param {string} text The text that has a text code in it.
+* @returns {string} The new text to parse.
+*/
+Window_Base.prototype.translateQuestTextCode = function(text) {
+	return text.replace(/\\quest\[([\w.-]+)]/gi, (_, p1) => {
+		const questKey = p1 ?? String.empty;
+		if (!questKey) return text;
+		const quest = QuestManager.quest(questKey);
+		if (!quest) return text;
+		const questName = quest.name();
+		const questIconIndex = QuestManager.category(quest.categoryKey).iconIndex;
+		return `\\I[${questIconIndex}]\\C[1]${questName}\\C[0]`;
+	});
+};
+
+//#endregion
 //#region src/plugins/omni/ext/quest/windows/Window_OmnipediaList.js
 /**
 * Extends {@link #buildCommands}.<br/>
@@ -3731,7 +3938,8 @@ PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "progress-quest", 
 PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "finalize-quest", (args) => {
 	const { key, state } = args;
 	const quest = QuestManager.quest(key);
-	switch (state) {
+	const finalizedState = parseInt(state);
+	switch (finalizedState) {
 		case 0:
 			quest.flagAsCompleted();
 			break;
@@ -3748,7 +3956,8 @@ PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "finalize-quest", 
 */
 PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "set-quest-tracking", (args) => {
 	const { key, trackingState } = args;
-	QuestManager.setQuestTrackingByKey(key, trackingState);
+	const shouldTrack = trackingState === "true";
+	QuestManager.setQuestTrackingByKey(key, shouldTrack);
 });
 
 //#endregion

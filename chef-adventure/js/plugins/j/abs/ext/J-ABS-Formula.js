@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 FORMULA] An extension for JABS that allows multiple damage formulas.
+ * [v1.1.0 ABS-FORMULA] An extension for JABS that allows multiple damage formulas.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -171,8 +171,7 @@
  *   + => damage/loss, - => heal/gain
  *
  * ============================================================================
- * CHANGELOG
- * ----------------------------------------------------------------------------
+ * CHANGELOG:
  * - 1.1.0
  *   Changed <on-HH:to-AA:by-formula:for-RR:[FORMULA]> to
  *   <onApplyFormula:[HH, AA, RR, FORMULA]>, and <on-HH:to-AA:by-skill:[SKILL_ID]>
@@ -553,15 +552,6 @@ var FormulaEffect = class FormulaEffect {
 };
 
 //#endregion
-//#region src/plugins/abs/ext/formula/_metadata/pluginCommands.js
-/**
-* Plugin command for doing the thing.
-*/
-PluginManager.registerCommand(J.ABS.EXT.FORMULA.Metadata.name, "do-the-thing", (args) => {
-	console.log("did the thing.");
-});
-
-//#endregion
 //#region src/plugins/abs/ext/formula/database/RPG_Skill.js
 /**
 * Gets all FormulaEffect packets defined on this skill via J.ABS.EXT.FORMULA.
@@ -571,10 +561,10 @@ PluginManager.registerCommand(J.ABS.EXT.FORMULA.Metadata.name, "do-the-thing", (
 RPG_Skill.prototype.jabsFormulaEffects = function() {
 	this._j ||= {};
 	this._j._abs ||= {};
-	if (!this._j._abs._formulaEffects) {
-		this._j._abs._formulaEffects = this.extractJabsFormulaEffects();
+	if (!this.formulaEffects()) {
+		this.setFormulaEffects(this.extractJabsFormulaEffects());
 	}
-	return this._j._abs._formulaEffects;
+	return this.formulaEffects();
 };
 /**
 * Parses the notes for all formula effects using the extension regex and central model.
@@ -587,6 +577,20 @@ RPG_Skill.prototype.extractJabsFormulaEffects = function() {
 	const formulaEffects = formulaTuples.map(FormulaEffect.fromFormulaTuple, FormulaEffect);
 	const skillEffects = skillTuples.map(FormulaEffect.fromSkillTuple, FormulaEffect);
 	return [...formulaEffects, ...skillEffects];
+};
+/**
+* Gets the formula effects.
+* @returns {Array} The formulaEffects.
+*/
+RPG_Skill.prototype.formulaEffects = function() {
+	return this._j._abs._formulaEffects;
+};
+/**
+* Sets the formula effects.
+* @param {Array} newFormulaEffects The new formulaEffects.
+*/
+RPG_Skill.prototype.setFormulaEffects = function(newFormulaEffects) {
+	this._j._abs._formulaEffects = newFormulaEffects;
 };
 
 //#endregion
@@ -708,17 +712,17 @@ Game_Action.prototype.resolveFormulaRecipients = function(affect, parentTarget) 
 			const subjJabs = JABS_AiManager.getBattlerByUuid(subject.getUuid());
 			if (!subjJabs) return [];
 			const allies = JABS_AiManager.getAlliedBattlers(subjJabs);
-			return mapToBattlers(allies).filter(this._filterFormulaEligibleBattler, this);
+			return mapToBattlers(allies).filter(this.filterFormulaEligibleBattler(), this);
 		}
 		case FormulaEffect.Affect.ENEMIES: {
 			const subjJabs = JABS_AiManager.getBattlerByUuid(subject.getUuid());
 			if (!subjJabs) return [];
 			const foes = JABS_AiManager.getOpposingBattlers(subjJabs);
-			return mapToBattlers(foes).filter(this._filterFormulaEligibleBattler, this);
+			return mapToBattlers(foes).filter(this.filterFormulaEligibleBattler(), this);
 		}
 		case FormulaEffect.Affect.ALL: {
 			const all = JABS_AiManager.getAllBattlers();
-			return mapToBattlers(all).filter(this._filterFormulaEligibleBattler, this);
+			return mapToBattlers(all).filter(this.filterFormulaEligibleBattler(), this);
 		}
 	}
 	return [];
@@ -946,6 +950,13 @@ J.ABS.EXT.FORMULA.Aliased.Game_Action.set("applyGlobal", Game_Action.prototype.a
 Game_Action.prototype.applyGlobal = function() {
 	if (J.ABS.EXT.FORMULA.Context.suppressCommonEvents) return;
 	J.ABS.EXT.FORMULA.Aliased.Game_Action.get("applyGlobal").call(this);
+};
+/**
+* Gets the filter formula eligible battler.
+* @returns {*} The filterFormulaEligibleBattler.
+*/
+Game_Action.prototype.filterFormulaEligibleBattler = function() {
+	return this._filterFormulaEligibleBattler;
 };
 
 //#endregion

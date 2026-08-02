@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.0 PASSIVE] Grants passive states from various database objects.
+ * [v2.2.0 PASSIVE] Grants passive states from various database objects.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -167,6 +167,17 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Retrofitted the passive viewer onto the shared actor skeleton, so it
+ *    matches the other actor-scoped scenes.
+ *    Constrained the viewer's chrome, which previously spanned the whole
+ *    screen.
+ *    The passive list now names both absences it can report, rather than
+ *    showing one message for two different situations.
+ *    Fixed passive-refresh ordering: Game_Actor/Game_Enemy#onSetup now attach
+ *    passives before the original setup logic runs, so the base setup's own
+ *    notification is the only one that fires instead of cascading a redundant
+ *    second pass through the note-regex-heavy onBattlerDataChange path.
  * - 2.1.0
  *    Added Scene_Passive viewer scene with actor ribbon, state list, and semantic detail window.
  *    Detail window uses a three-column layout with labeled sections: Combat, Parameters,
@@ -285,7 +296,7 @@ J.PASSIVE.EXT = {};
 * The `metadata` associated with this plugin, such as version and plugin parameter values.
 * @type {JPassive_PluginMetadata}
 */
-J.PASSIVE.Metadata = new JPassive_PluginMetadata("J-Passive", "2.1.0");
+J.PASSIVE.Metadata = new JPassive_PluginMetadata("J-Passive", "2.2.0");
 /**
 * All regular expressions used by this plugin.
 */
@@ -425,8 +436,8 @@ Object.defineProperty(RPG_State.prototype, "hideFromPassiveList", { get() {
 */
 J.PASSIVE.Aliased.Game_Actor.set("onSetup", Game_Actor.prototype.onSetup);
 Game_Actor.prototype.onSetup = function(actorId) {
+	this.refreshPassiveStates(true);
 	J.PASSIVE.Aliased.Game_Actor.get("onSetup").call(this, actorId);
-	this.refreshPassiveStates();
 };
 /**
 * Gets all sources from which this battler can derive passive state from.
@@ -561,14 +572,14 @@ Game_Battler.prototype.initPassiveStatesMembers = function() {
 * @returns {number[]}
 */
 Game_Battler.prototype.getPassiveStateIds = function() {
-	return this._j._passive._stateIds;
+	return this.stateIds();
 };
 /**
 * Gets all the external sources (as base items) for this battler.
 * @returns {RPG_BaseItem[]}
 */
 Game_Battler.prototype.passiveExternalStateSources = function() {
-	return this._j._passive._externalStateSources;
+	return this.externalStateSources();
 };
 /**
 * Returns the pre-filtered list of passive-capable sources from the last refresh.<br/>
@@ -576,7 +587,7 @@ Game_Battler.prototype.passiveExternalStateSources = function() {
 * @returns {RPG_BaseItem[]}
 */
 Game_Battler.prototype.passiveCapableSources = function() {
-	return this._j._passive._passiveSources;
+	return this.passiveSources();
 };
 /**
 * Rebuilds the filtered list of passive-capable sources from the full source list.<br/>
@@ -585,7 +596,7 @@ Game_Battler.prototype.passiveCapableSources = function() {
 */
 Game_Battler.prototype.cachePassiveCapableSources = function() {
 	const allSources = this.getPassiveStateSources();
-	this._j._passive._passiveSources = allSources.filter((source) => this.sourceHasAnyPassiveIds(source));
+	this.setPassiveSources(allSources.filter((source) => this.sourceHasAnyPassiveIds(source)));
 };
 /**
 * Whether a source has any passive state ids on any passive tag variant.<br/>
@@ -619,7 +630,7 @@ Game_Battler.prototype.addPassiveStateExternalSourceByStateIds = function(stateI
 * @param {boolean} deferRefresh Whether or not to defer refreshing the passive states.
 */
 Game_Battler.prototype.addPassiveStateExternalSource = function(source, deferRefresh = false) {
-	this._j._passive._externalStateSources.push(source);
+	this.externalStateSources().push(source);
 	if (deferRefresh === true) return;
 	this.refreshPassiveStates();
 };
@@ -628,7 +639,7 @@ Game_Battler.prototype.addPassiveStateExternalSource = function(source, deferRef
 * @param {boolean} deferRefresh Whether or not to defer refreshing the passive states.
 */
 Game_Battler.prototype.clearPassiveStateExternalSources = function(deferRefresh = false) {
-	this._j._passive._externalStateSources = [];
+	this.setExternalStateSources([]);
 	if (deferRefresh === true) return;
 	this.refreshPassiveStates();
 };
@@ -685,12 +696,16 @@ Game_Battler.prototype.getPassiveStates = function() {
 * Clears all passive state data currently tracked.
 */
 Game_Battler.prototype.clearPassiveStates = function() {
-	this._j._passive._stateIds = [];
+	this.setStateIds([]);
 };
 /**
 * Clears and updates the passive state tracker with the latest.
+* @param {boolean=} deferRefresh Whether or not to defer the trailing battler-data-change
+* notification; defaults to false. Callers that already know a follow-up notification is coming
+* (e.g. {@link Game_Enemy.onSetup} pairing this with the base setup notification) should pass true
+* so the expensive note-regex cascade behind {@link #onBattlerDataChange} only runs once.
 */
-Game_Battler.prototype.refreshPassiveStates = function() {
+Game_Battler.prototype.refreshPassiveStates = function(deferRefresh = false) {
 	this.clearPassiveStates();
 	const uniqueIds = this.getAllUniquePassiveStateIds();
 	uniqueIds.forEach((stateId) => this.addPassiveStateId(stateId, false), this);
@@ -704,6 +719,7 @@ Game_Battler.prototype.refreshPassiveStates = function() {
 		}
 	});
 	this.cachePassiveCapableSources();
+	if (deferRefresh === true) return;
 	this.onBattlerDataChange();
 };
 /**
@@ -807,7 +823,7 @@ Game_Battler.prototype.getPassiveStateSourcedSkills = function() {
 * @returns {boolean} True if it is identified as passive, false otherwise.
 */
 Game_Battler.prototype.isPassiveState = function(stateId) {
-	return this._j._passive._stateIds.includes(stateId);
+	return this.stateIds().includes(stateId);
 };
 /**
 * Extends {@link #allStates}.<br/>
@@ -878,6 +894,48 @@ Game_Battler.prototype.onStateRemoval = function(stateId) {
 	J.PASSIVE.Aliased.Game_Battler.get("onStateRemoval").call(this, stateId);
 	this.refreshPassiveStates();
 };
+/**
+* Gets the state ids.
+* @returns {*} The stateIds.
+*/
+Game_Battler.prototype.stateIds = function() {
+	return this._j._passive._stateIds;
+};
+/**
+* Sets the state ids.
+* @param {*} newStateIds The new stateIds.
+*/
+Game_Battler.prototype.setStateIds = function(newStateIds) {
+	this._j._passive._stateIds = newStateIds;
+};
+/**
+* Gets the external state sources.
+* @returns {*} The externalStateSources.
+*/
+Game_Battler.prototype.externalStateSources = function() {
+	return this._j._passive._externalStateSources;
+};
+/**
+* Sets the external state sources.
+* @param {*} newExternalStateSources The new externalStateSources.
+*/
+Game_Battler.prototype.setExternalStateSources = function(newExternalStateSources) {
+	this._j._passive._externalStateSources = newExternalStateSources;
+};
+/**
+* Gets the passive sources.
+* @returns {*} The passiveSources.
+*/
+Game_Battler.prototype.passiveSources = function() {
+	return this._j._passive._passiveSources;
+};
+/**
+* Sets the passive sources.
+* @param {*} newPassiveSources The new passiveSources.
+*/
+Game_Battler.prototype.setPassiveSources = function(newPassiveSources) {
+	this._j._passive._passiveSources = newPassiveSources;
+};
 
 //#endregion
 //#region src/plugins/passive/core/objects/Game_Enemy.js
@@ -888,8 +946,8 @@ Game_Battler.prototype.onStateRemoval = function(stateId) {
 */
 J.PASSIVE.Aliased.Game_Enemy.set("onSetup", Game_Enemy.prototype.onSetup);
 Game_Enemy.prototype.onSetup = function(enemyId) {
+	this.refreshPassiveStates(true);
 	J.PASSIVE.Aliased.Game_Enemy.get("onSetup").call(this, enemyId);
-	this.refreshPassiveStates();
 };
 /**
 * Extends {@link #buildTraitObjects}.<br/>
@@ -975,14 +1033,14 @@ Game_Party.prototype.initPassiveItemStates = function() {
 * @returns {number[]}
 */
 Game_Party.prototype.passiveStateIds = function() {
-	return this._j._passive._states;
+	return this.states();
 };
 /**
 * Gets an array of all passive states currently applied to the party.
 * @returns {RPG_State[]}
 */
 Game_Party.prototype.passiveStates = function() {
-	return this._j._passive._cachedStates;
+	return this.cachedStates();
 };
 /**
 * Gets the party's interpretation of the state based on its id.
@@ -996,8 +1054,8 @@ Game_Party.prototype.state = function(stateId) {
 * Clears all passive state data currently tracked.
 */
 Game_Party.prototype.clearPassiveStates = function() {
-	this._j._passive._states = [];
-	this._j._passive._cachedStates = [];
+	this.setStates([]);
+	this.setCachedStates([]);
 };
 /**
 * Adds a passive state id to the list for tracking.
@@ -1005,9 +1063,9 @@ Game_Party.prototype.clearPassiveStates = function() {
 * @param {boolean=} allowDuplicates Whether or not to allow duplicate passive state ids; defaults to true.
 */
 Game_Party.prototype.addPassiveStateId = function(stateId, allowDuplicates = true) {
-	if (!allowDuplicates && this._j._passive._states.has(stateId)) return;
-	this._j._passive._states.push(stateId);
-	this._j._passive._cachedStates.push(this.state(stateId));
+	if (!allowDuplicates && this.states().has(stateId)) return;
+	this.states().push(stateId);
+	this.cachedStates().push(this.state(stateId));
 };
 /**
 * Clears and updates the passive state tracker with the latest.
@@ -1074,6 +1132,34 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
 	J.PASSIVE.Aliased.Game_Party.get("gainItem").call(this, item, amount, includeEquip);
 	this.refreshPassiveStates();
 };
+/**
+* Gets the passive state ids currently applied across the whole party.
+* @returns {number[]} The party-wide passive state ids.
+*/
+Game_Party.prototype.states = function() {
+	return this._j._passive._states;
+};
+/**
+* Sets the passive state ids applied across the whole party.
+* @param {number[]} newStates The party-wide passive state ids.
+*/
+Game_Party.prototype.setStates = function(newStates) {
+	this._j._passive._states = newStates;
+};
+/**
+* Gets the cached states.
+* @returns {*} The cachedStates.
+*/
+Game_Party.prototype.cachedStates = function() {
+	return this._j._passive._cachedStates;
+};
+/**
+* Sets the cached states.
+* @param {*} newCachedStates The new cachedStates.
+*/
+Game_Party.prototype.setCachedStates = function(newCachedStates) {
+	this._j._passive._cachedStates = newCachedStates;
+};
 
 //#endregion
 //#region src/plugins/passive/core/windows/Window_PassiveTabHeader.js
@@ -1082,6 +1168,13 @@ Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
 * The ◀ and ▶ glyphs hint at left/right navigation without consuming any input.
 */
 var Window_PassiveTabHeader = class extends Window_Base {
+	/**
+	* Gets the label.
+	* @returns {string} The label.
+	*/
+	label() {
+		return this._label;
+	}
 	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle for this window.
@@ -1104,6 +1197,7 @@ var Window_PassiveTabHeader = class extends Window_Base {
 	* @param {string} label The display label for the current tab.
 	*/
 	setLabel(label) {
+		if (this._label === label) return;
 		this._label = label;
 		this.refresh();
 	}
@@ -1112,7 +1206,7 @@ var Window_PassiveTabHeader = class extends Window_Base {
 	*/
 	refresh() {
 		this.contents.clear();
-		const text = `◀  ${this._label}  ▶`;
+		const text = `◀  ${this.label()}  ▶`;
 		this.drawText(text, 0, 0, this.innerWidth, "center");
 	}
 };
@@ -1127,11 +1221,13 @@ var Window_PassiveTabHeader = class extends Window_Base {
 var Window_PassiveActorRibbon = class extends Window_ActorRibbon {
 	/**
 	* Constructor.
+	*
+	* No explicit `initialize()` call: {@link Window_ActorRibbon}'s own constructor performs one, and a
+	* second would initialize this window twice.
 	* @param {Rectangle} rect The rectangle for this window.
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initialize(rect);
 	}
 	/**
 	* Extends {@link Window_ActorRibbon#drawContent}.<br/>
@@ -1145,11 +1241,11 @@ var Window_PassiveActorRibbon = class extends Window_ActorRibbon {
 	* Draws the actor name centered vertically beside the face graphic.
 	*/
 	drawActorName() {
-		if (!this._actor) return;
+		if (!this.actor()) return;
 		const textX = this.faceWidth() + 8;
 		const textWidth = this.innerWidth - textX;
 		const textY = Math.floor((this.innerHeight - this.lineHeight()) / 2);
-		this.drawText(this._actor.name(), textX, textY, textWidth, "left");
+		this.drawText(this.actor().name(), textX, textY, textWidth, "left");
 	}
 };
 
@@ -1284,7 +1380,7 @@ var Window_PassiveList = class extends Window_Selectable {
 	*/
 	currentPassiveState() {
 		const entry = this.getData()[this.index()];
-		if (entry === null) return null;
+		if (entry === undefined || entry === null) return null;
 		return entry.state;
 	}
 	/**
@@ -1346,9 +1442,37 @@ var Window_PassiveList = class extends Window_Selectable {
 */
 var Window_PassiveDetail = class extends Window_Base {
 	/**
+	* Gets the column start y.
+	* @returns {number} The columnStartY.
+	*/
+	/**
+	* Gets the actor.
+	* @returns {Game_Actor|null} The actor.
+	*/
+	actor() {
+		return this._actor;
+	}
+	/**
+	* Gets the state.
+	* @returns {RPG_State|null} The state.
+	*/
+	state() {
+		return this._state;
+	}
+	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle for this window.
 	*/
+	columnStartY() {
+		return this._columnStartY;
+	}
+	/**
+	* Sets the column start y.
+	* @param {number} newColumnStartY The new columnStartY.
+	*/
+	setColumnStartY(newColumnStartY) {
+		this._columnStartY = newColumnStartY;
+	}
 	constructor(rect) {
 		super(rect);
 		this.initialize(rect);
@@ -1422,7 +1546,7 @@ var Window_PassiveDetail = class extends Window_Base {
 	*/
 	switchToColumn(columnIndex) {
 		this.currentX = columnIndex * (this.columnWidth + 8);
-		this.currentY = this._columnStartY;
+		this.currentY = this.columnStartY();
 	}
 	/**
 	* Convenience: moves to the middle (second) column.
@@ -1457,10 +1581,10 @@ var Window_PassiveDetail = class extends Window_Base {
 	*/
 	refresh() {
 		this.contents.clear();
-		if (!this._state) return;
+		if (!this.state()) return;
 		this.currentX = 0;
 		this.currentY = 0;
-		this.drawPassiveStateDetail(this._state);
+		this.drawPassiveStateDetail(this.state());
 	}
 	/**
 	* Top-level orchestrator — draws the full-width header, then populates the
@@ -1474,7 +1598,7 @@ var Window_PassiveDetail = class extends Window_Base {
 	*/
 	drawPassiveStateDetail(state) {
 		this.drawStateHeader(state);
-		this._columnStartY = this.currentY;
+		this.setColumnStartY(this.currentY);
 		this.drawCombatSection(state);
 		this.drawAilmentsSection(state);
 		this.switchToMiddleColumn();
@@ -1672,7 +1796,7 @@ var Window_PassiveDetail = class extends Window_Base {
 		if (!J.RESOURCES) return null;
 		const formula = RPGManager.getStringFromNoteByRegex(state, J.RESOURCES.RegExp.HpCostReduction);
 		if (!formula) return null;
-		const evaluated = Number(this.evaluateFormula(formula, this._actor));
+		const evaluated = Number(this.evaluateFormula(formula, this.actor()));
 		return {
 			icon: IconManager.param(0),
 			label: "Life Cost",
@@ -1719,7 +1843,7 @@ var Window_PassiveDetail = class extends Window_Base {
 		if (!J.ABS) return null;
 		const formula = RPGManager.getStringFromNoteByRegex(state, J.ABS.RegExp.GlobalCooldownReduction);
 		if (!formula) return null;
-		const evaluated = Number(this.evaluateFormula(formula, this._actor));
+		const evaluated = Number(this.evaluateFormula(formula, this.actor()));
 		return {
 			icon: IconManager.cdr(),
 			label: "Cooldown Rate",
@@ -2302,7 +2426,7 @@ var Window_PassiveDetail = class extends Window_Base {
 		checks.forEach(([label, regexp, icon, isGrowth]) => {
 			const formula = RPGManager.getStringFromNoteByRegex(state, regexp);
 			if (formula) {
-				const evaluated = this.evaluateFormula(formula, this._actor);
+				const evaluated = this.evaluateFormula(formula, this.actor());
 				const sign = Number(evaluated) >= 0 ? "+" : "";
 				const value = isGrowth ? `${sign}${evaluated} /lv` : `${sign}${evaluated}`;
 				lines.push({
@@ -2553,7 +2677,7 @@ var Window_PassiveDetail = class extends Window_Base {
 				rows.push({
 					icon: 0,
 					label: "EXP Bonus",
-					value: this.evaluateFormula(expFormula, this._actor)
+					value: this.evaluateFormula(expFormula, this.actor())
 				});
 			}
 			const goldFormula = RPGManager.getStringFromNoteByRegex(state, J.NATURAL.RegExp.RewardGold);
@@ -2561,7 +2685,7 @@ var Window_PassiveDetail = class extends Window_Base {
 				rows.push({
 					icon: 0,
 					label: "Gold Bonus",
-					value: this.evaluateFormula(goldFormula, this._actor)
+					value: this.evaluateFormula(goldFormula, this.actor())
 				});
 			}
 			const sdpFormula = RPGManager.getStringFromNoteByRegex(state, J.NATURAL.RegExp.RewardSdps);
@@ -2569,7 +2693,7 @@ var Window_PassiveDetail = class extends Window_Base {
 				rows.push({
 					icon: 0,
 					label: "SDP Bonus",
-					value: this.evaluateFormula(sdpFormula, this._actor)
+					value: this.evaluateFormula(sdpFormula, this.actor())
 				});
 			}
 		}
@@ -2586,12 +2710,16 @@ var Window_PassiveDetail = class extends Window_Base {
 * The core always provides an "All" tab; extensions register additional tabs during
 * their own initialization phases (e.g. the OTIB ext registers an "Item Boosts" tab).
 *
-* Layout (top to bottom, left to right):
-* - Full-width tab header strip at the top
-* - Left column: scrollable state list (filtered by active tab)
-* - Right column: detail panel for the currently highlighted state
+* Layout is inherited rather than declared. {@link Scene_ActorFacetBase} supplies the help window
+* across the top, the actor ribbon beneath it, and the control legend across the bottom, and hands
+* down {@link Scene_ActorFacetBase.contentAreaRect} as the region left over. This scene therefore
+* describes only what is particular to it, within that region:
+*
+* - a tab header strip across the top of the content area
+* - left column: scrollable state list, filtered by the active tab
+* - right column: detail panel for the currently highlighted state
 */
-var Scene_Passive = class extends Scene_MenuBase {
+var Scene_Passive = class extends Scene_ActorFacetBase {
 	/**
 	* Tab configurations in registration order; the core seeds the "All" tab first.
 	* @type {Array<{key: string, label: string, filter: Function|null}>}
@@ -2618,28 +2746,30 @@ var Scene_Passive = class extends Scene_MenuBase {
 	* @param {{key: string, label: string, filter: Function|null}} config Tab configuration.
 	*/
 	static registerTab(config) {
-		this._tabRegistry.push(config);
+		this.tabRegistry().push(config);
 	}
 	/**
 	* Gets all registered tab configurations in registration order.
 	* @returns {Array<{key: string, label: string, filter: Function|null}>}
 	*/
 	static registeredTabs() {
-		return this._tabRegistry;
+		return this.tabRegistry();
 	}
 	/**
 	* Constructor.
+	*
+	* No explicit `initialize()` call: the engine's own scene constructor performs one, and a second would
+	* run the whole initialization twice.
 	*/
 	constructor() {
 		super();
-		this.initialize();
 	}
 	/**
-	* Initializes all properties for this scene.
+	* Extends {@link Scene_ActorFacetBase.initMembers}.<br/>
+	* Also initializes the properties particular to the passive viewer.
 	*/
 	initMembers() {
 		super.initMembers();
-		this._j ||= {};
 		/**
 		* A grouping of all properties associated with the passive viewer.
 		*/
@@ -2653,11 +2783,6 @@ var Scene_Passive = class extends Scene_MenuBase {
 		* @type {Window_PassiveTabHeader}
 		*/
 		this._j._passive._windows._tabHeader = null;
-		/**
-		* The actor identity ribbon above the state list.
-		* @type {Window_PassiveActorRibbon}
-		*/
-		this._j._passive._windows._actorRibbon = null;
 		/**
 		* The scrollable list of passive states for the active tab.
 		* @type {Window_PassiveList}
@@ -2676,10 +2801,26 @@ var Scene_Passive = class extends Scene_MenuBase {
 		this._j._passive._tabIndex = 0;
 	}
 	/**
-	* Initialize all resources required for this scene.
+	* Gets the tab registry.
+	* @returns {*} The tabRegistry.
+	*/
+	static tabRegistry() {
+		return this._tabRegistry;
+	}
+	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
+	* Extends {@link Scene_ActorFacetBase.create}.<br/>
+	* Also creates the windows particular to this scene.
 	*/
 	create() {
 		super.create();
+		this.createHelpWindow();
 		this.createDisplayObjects();
 	}
 	/**
@@ -2698,10 +2839,21 @@ var Scene_Passive = class extends Scene_MenuBase {
 	*/
 	createAllWindows() {
 		this.createPassiveTabHeaderWindow();
-		this.createPassiveActorRibbonWindow();
 		this.createPassiveDetailWindow();
 		this.createPassiveListWindow();
 		this.onPassiveHoveredChange();
+	}
+	/**
+	* Overrides {@link Scene_ActorFacetBase.buildActorRibbonWindow}.<br/>
+	* Supplies a ribbon that names the actor as well as showing their face.
+	*
+	* This is the extension point rather than building a ribbon and placing it by hand: the base owns
+	* where the ribbon sits and how tall it is, and only the contents differ.
+	* @param {Rectangle} rectangle The rectangle to build the window within.
+	* @returns {Window_PassiveActorRibbon}
+	*/
+	buildActorRibbonWindow(rectangle) {
+		return new Window_PassiveActorRibbon(rectangle);
 	}
 	/**
 	* The pixel height of the tab header strip.
@@ -2709,22 +2861,61 @@ var Scene_Passive = class extends Scene_MenuBase {
 	* @returns {number}
 	*/
 	passiveTabHeaderHeight() {
-		return Window_Base.prototype.lineHeight() + $gameSystem.windowPadding() * 2;
+		return this.calcWindowHeight(1, false);
 	}
 	/**
-	* The pixel height of the actor ribbon strip above the state list.
-	* Sized to fit a cropped face (40px) plus two text rows and window padding.
+	* The proportion of the content area given to the state list.
+	*
+	* A ratio rather than a pixel width, so the split holds at any resolution- and so that the detail
+	* panel can be defined as the remainder instead of a second number that has to agree with the first.
 	* @returns {number}
 	*/
-	passiveActorRibbonHeight() {
-		return 72;
+	passiveListRatio() {
+		return .4;
 	}
 	/**
 	* The pixel width of the passive state list column.
 	* @returns {number}
 	*/
 	passiveListWidth() {
-		return 480;
+		return Math.round(this.contentAreaRect().width * this.passiveListRatio());
+	}
+	/**
+	* Overrides {@link Scene_ActorFacetBase.actorRibbonWindowRect}.<br/>
+	* Narrows the ribbon to sit above the state list rather than spanning the screen.
+	*
+	* The base spans the full width because most facet scenes want that, but a ribbon holding a cropped
+	* face and one name has nothing to do with the remaining sixteen hundred pixels. Confining it to the
+	* left column lets the detail panel beside it start from the very top instead.
+	* @returns {Rectangle}
+	*/
+	actorRibbonWindowRect() {
+		const facetArea = this.facetAreaRect();
+		return new Rectangle(facetArea.x, facetArea.y, this.passiveListWidth(), this.actorRibbonHeight());
+	}
+	/**
+	* Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
+	* Describes the controls this scene responds to.
+	*
+	* Note that there is no `ok` entry: nothing in here is chosen, only read. Teaching a button that does
+	* nothing would be worse than teaching nothing.
+	* @returns {{semantic: (string|string[]), label: string}[]}
+	*/
+	controlLegendEntries() {
+		return [
+			{
+				semantic: ["content-prev", "content-next"],
+				label: "switch tab"
+			},
+			{
+				semantic: ["actor-prev", "actor-next"],
+				label: "switch character"
+			},
+			{
+				semantic: "cancel",
+				label: "back"
+			}
+		];
 	}
 	/**
 	* Creates the tab header strip window.
@@ -2744,75 +2935,29 @@ var Scene_Passive = class extends Scene_MenuBase {
 	}
 	/**
 	* Gets the rectangle for the tab header strip.
-	* Sits above the detail panel in the right column — same x and width as the detail window,
-	* so it does not overlap the actor ribbon and list on the left.
+	*
+	* Confined to the left column, directly beneath the ribbon and directly above the list. The tab names
+	* which subset of *the list* is showing, so the list's width is the honest width for it- it has no
+	* bearing on the detail panel beside it.
 	* @returns {Rectangle}
 	*/
 	passiveTabHeaderRectangle() {
-		const x = this.passiveListWidth();
-		const y = 0;
-		const width = Graphics.boxWidth - this.passiveListWidth();
-		const height = this.passiveTabHeaderHeight();
-		return new Rectangle(x, y, width, height);
+		const contentArea = this.contentAreaRect();
+		return new Rectangle(contentArea.x, contentArea.y, this.passiveListWidth(), this.passiveTabHeaderHeight());
 	}
 	/**
 	* Gets the tracked tab header window.
 	* @returns {Window_PassiveTabHeader}
 	*/
 	getPassiveTabHeaderWindow() {
-		return this._j._passive._windows._tabHeader;
+		return this.j()._passive._windows._tabHeader;
 	}
 	/**
 	* Sets the tracked tab header window.
 	* @param {Window_PassiveTabHeader} tabHeaderWindow The window to track.
 	*/
 	setPassiveTabHeaderWindow(tabHeaderWindow) {
-		this._j._passive._windows._tabHeader = tabHeaderWindow;
-	}
-	/**
-	* Creates the actor ribbon window.
-	*/
-	createPassiveActorRibbonWindow() {
-		const window = this.buildPassiveActorRibbonWindow();
-		this.setPassiveActorRibbonWindow(window);
-		this.addWindow(window);
-	}
-	/**
-	* Builds the actor ribbon window.
-	* @returns {Window_PassiveActorRibbon}
-	*/
-	buildPassiveActorRibbonWindow() {
-		const rectangle = this.passiveActorRibbonRectangle();
-		const window = new Window_PassiveActorRibbon(rectangle);
-		window.setActor($gameParty.menuActor());
-		return window;
-	}
-	/**
-	* Gets the rectangle for the actor ribbon.
-	* Sits at the top of the left column — flush to y=0 because the tab header
-	* now lives above the detail panel (right column) only.
-	* @returns {Rectangle}
-	*/
-	passiveActorRibbonRectangle() {
-		const x = 0;
-		const y = 0;
-		const width = this.passiveListWidth();
-		const height = this.passiveActorRibbonHeight();
-		return new Rectangle(x, y, width, height);
-	}
-	/**
-	* Gets the tracked actor ribbon window.
-	* @returns {Window_PassiveActorRibbon}
-	*/
-	getPassiveActorRibbonWindow() {
-		return this._j._passive._windows._actorRibbon;
-	}
-	/**
-	* Sets the tracked actor ribbon window.
-	* @param {Window_PassiveActorRibbon} ribbonWindow The window to track.
-	*/
-	setPassiveActorRibbonWindow(ribbonWindow) {
-		this._j._passive._windows._actorRibbon = ribbonWindow;
+		this.j()._passive._windows._tabHeader = tabHeaderWindow;
 	}
 	/**
 	* Creates the passive state list window.
@@ -2842,29 +2987,27 @@ var Scene_Passive = class extends Scene_MenuBase {
 	}
 	/**
 	* Gets the rectangle for the passive state list column.
-	* Sits below the actor ribbon in the left column.
+	* Occupies the left of the content area, beneath the tab header.
 	* @returns {Rectangle}
 	*/
 	passiveListRectangle() {
-		const x = 0;
-		const y = this.passiveActorRibbonHeight();
-		const width = this.passiveListWidth();
-		const height = Graphics.boxHeight - y;
-		return new Rectangle(x, y, width, height);
+		const contentArea = this.contentAreaRect();
+		const y = contentArea.y + this.passiveTabHeaderHeight();
+		return new Rectangle(contentArea.x, y, this.passiveListWidth(), contentArea.height - this.passiveTabHeaderHeight());
 	}
 	/**
 	* Gets the tracked passive list window.
 	* @returns {Window_PassiveList}
 	*/
 	getPassiveListWindow() {
-		return this._j._passive._windows._list;
+		return this.j()._passive._windows._list;
 	}
 	/**
 	* Sets the tracked passive list window.
 	* @param {Window_PassiveList} listWindow The window to track.
 	*/
 	setPassiveListWindow(listWindow) {
-		this._j._passive._windows._list = listWindow;
+		this.j()._passive._windows._list = listWindow;
 	}
 	/**
 	* Creates the passive state detail window.
@@ -2887,44 +3030,45 @@ var Scene_Passive = class extends Scene_MenuBase {
 	}
 	/**
 	* Gets the rectangle for the detail panel.
-	* Occupies the right column beside the list, below the tab header.
+	*
+	* Takes the whole right side, full height, starting from the very top of the region- above where the
+	* ribbon and tab header sit, because neither of those extends this far across. Its width is the
+	* *remainder* of the region rather than its own fraction, so the two columns cannot drift apart or
+	* leave a seam however the list's ratio is tuned.
 	* @returns {Rectangle}
 	*/
 	passiveDetailRectangle() {
+		const facetArea = this.facetAreaRect();
 		const listWidth = this.passiveListWidth();
-		const x = listWidth;
-		const y = this.passiveTabHeaderHeight();
-		const width = Graphics.boxWidth - listWidth;
-		const height = Graphics.boxHeight - y;
-		return new Rectangle(x, y, width, height);
+		return new Rectangle(facetArea.x + listWidth, facetArea.y, facetArea.width - listWidth, facetArea.height);
 	}
 	/**
 	* Gets the tracked passive detail window.
 	* @returns {Window_PassiveDetail}
 	*/
 	getPassiveDetailWindow() {
-		return this._j._passive._windows._detail;
+		return this.j()._passive._windows._detail;
 	}
 	/**
 	* Sets the tracked passive detail window.
 	* @param {Window_PassiveDetail} detailWindow The window to track.
 	*/
 	setPassiveDetailWindow(detailWindow) {
-		this._j._passive._windows._detail = detailWindow;
+		this.j()._passive._windows._detail = detailWindow;
 	}
 	/**
 	* Gets the tab configuration at the current tab index.
 	* @returns {{key: string, label: string, filter: Function|null}}
 	*/
 	currentTab() {
-		return this.constructor._tabRegistry[this._j._passive._tabIndex];
+		return this.constructor._tabRegistry[this.j()._passive._tabIndex];
 	}
 	/**
 	* Advances to the next tab in the registry, wrapping around from the last to the first.
 	*/
 	cycleTabRight() {
 		const tabCount = this.constructor._tabRegistry.length;
-		this._j._passive._tabIndex = (this._j._passive._tabIndex + 1) % tabCount;
+		this.j()._passive._tabIndex = (this.j()._passive._tabIndex + 1) % tabCount;
 		this.applyCurrentTab();
 	}
 	/**
@@ -2932,7 +3076,7 @@ var Scene_Passive = class extends Scene_MenuBase {
 	*/
 	cycleTabLeft() {
 		const tabCount = this.constructor._tabRegistry.length;
-		this._j._passive._tabIndex = (this._j._passive._tabIndex - 1 + tabCount) % tabCount;
+		this.j()._passive._tabIndex = (this.j()._passive._tabIndex - 1 + tabCount) % tabCount;
 		this.applyCurrentTab();
 	}
 	/**
@@ -2952,15 +3096,24 @@ var Scene_Passive = class extends Scene_MenuBase {
 	onPassiveHoveredChange() {
 		const state = this.getPassiveListWindow().currentPassiveState();
 		this.getPassiveDetailWindow().setState(state);
+		this.helpWindow().setText(this.describeHoveredPassive(state));
 	}
 	/**
-	* Extends {@link #onActorChange}.<br/>
-	* Refreshes all actor-driven windows whenever the party's menu actor changes.
+	* Describes the highlighted passive state for the help window.
+	* @param {?RPG_State} state The highlighted state, or null when the list is empty.
+	* @returns {string}
+	*/
+	describeHoveredPassive(state) {
+		if (state === null) return "No passive states are currently applied.";
+		return state.description;
+	}
+	/**
+	* Extends {@link Scene_ActorFacetBase.onActorChange}.<br/>
+	* Refreshes this scene's actor-driven windows whenever the party's menu actor changes.
 	*/
 	onActorChange() {
 		super.onActorChange();
 		const actor = $gameParty.menuActor();
-		this.getPassiveActorRibbonWindow().setActor(actor);
 		this.getPassiveListWindow().setActor(actor);
 		this.getPassiveDetailWindow().setActor(actor);
 		this.getPassiveListWindow().select(0);
@@ -2978,7 +3131,7 @@ var Scene_Passive = class extends Scene_MenuBase {
 J.PASSIVE.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function() {
 	J.PASSIVE.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this._commandWindow.setHandler("passive-menu", this.commandPassive.bind(this));
+	this.commandWindow().setHandler("passive-menu", this.commandPassive.bind(this));
 };
 /**
 * Opens the passive state viewer for the current menu actor.
@@ -2997,10 +3150,10 @@ J.PASSIVE.Aliased.Window_MenuCommand.set("makeCommandList", Window_MenuCommand.p
 Window_MenuCommand.prototype.makeCommandList = function() {
 	J.PASSIVE.Aliased.Window_MenuCommand.get("makeCommandList").call(this);
 	if (!this.canAddPassivesCommand()) return;
-	const command = new WindowCommandBuilder(J.PASSIVE.Metadata.commandName).setSymbol("passive-menu").setEnabled(true).setIconIndex(J.PASSIVE.Metadata.commandIconIndex).build();
-	const lastCommand = this._list.at(-1);
+	const command = new WindowCommandBuilder(J.PASSIVE.Metadata.commandName).setSymbol("passive-menu").setHelpText("Review the always-active effects this character benefits from.").setMenuSection(MenuSection.Actor).setEnabled(true).setIconIndex(J.PASSIVE.Metadata.commandIconIndex).build();
+	const lastCommand = this.commandList().at(-1);
 	if (lastCommand.symbol === "gameEnd") {
-		this._list.splice(this._list.length - 2, 0, command);
+		this.commandList().splice(this.commandList().length - 2, 0, command);
 	} else {
 		this.addBuiltCommand(command);
 	}

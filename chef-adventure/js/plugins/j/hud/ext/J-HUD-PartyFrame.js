@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.0 HUD-PARTY] A HUD frame that displays your party's data.
+ * [v1.3.1 HUD-PARTY] A HUD frame that displays your party's data.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -42,8 +42,12 @@
  * This plugin has no notetags of its own- it purely reads live battler data
  * for display.
  * ============================================================================
- * CHANGELOG
- * ----------------------------------------------------------------------------
+ * CHANGELOG:
+ * - 1.3.1
+ *    Fixed boot and load failures left behind by the quick menu pare-down:
+ *    Scene_Map#createJabsAbsMenu still called the six create-window methods
+ *    that went with the removed assignment flows, so loading any save crashed
+ *    before the map finished building. The quick menu has one window left.
  * - 1.3.0
  *    Leader affliction rendering now delegates to J-HUD core's shared
  *    StateAfflictionHudPresenter/StateAfflictionHudLayoutSpec instead of a
@@ -99,7 +103,7 @@ J.HUD.EXT.PARTY = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHudParty_PluginMetadata}
 */
-J.HUD.EXT.PARTY.Metadata = new JHudParty_PluginMetadata("J-HUD-PartyFrame", "1.3.0");
+J.HUD.EXT.PARTY.Metadata = new JHudParty_PluginMetadata("J-HUD-PartyFrame", "1.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -171,6 +175,20 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 		this._afflictionPresenter = new StateAfflictionHudPresenter(this, this._hudSprites);
 	}
 	/**
+	* Gets the hud sprites.
+	* @returns {Map<string, Sprite_Face|Sprite_MapGauge|Sprite_ActorValue|Sprite_Icon|Sprite_BaseText>} The hudSprites.
+	*/
+	hudSprites() {
+		return this._hudSprites;
+	}
+	/**
+	* Gets the affliction presenter.
+	* @returns {StateAfflictionHudPresenter} The afflictionPresenter.
+	*/
+	afflictionPresenter() {
+		return this._afflictionPresenter;
+	}
+	/**
 	* Performs the one-time setup and configuration per instantiation.
 	*/
 	configure() {
@@ -189,7 +207,7 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	* Hide all sprites for the hud.
 	*/
 	hideSprites() {
-		this._hudSprites.forEach((sprite, _) => {
+		this.hudSprites().forEach((sprite, _) => {
 			sprite.hide();
 		});
 	}
@@ -204,8 +222,8 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	* Empties the cache of all sprites.
 	*/
 	emptyCache() {
-		this._hudSprites.forEach((value, _) => value.destroy());
-		this._hudSprites.clear();
+		this.hudSprites().forEach((value, _) => value.destroy());
+		this.hudSprites().clear();
 	}
 	/**
 	* Creates all sprites for this hud and caches them.
@@ -238,13 +256,13 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	*/
 	getOrCreateFullSizeFaceSprite(actor) {
 		const key = this.makeFaceSpriteKey(actor, true);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const sprite = new Sprite_Face(actor.faceName(), actor.faceIndex());
 		sprite.scale.x = 1;
 		sprite.scale.y = 1;
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -256,13 +274,13 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	*/
 	getOrCreateMiniSizeFaceSprite(actor) {
 		const key = this.makeFaceSpriteKey(actor, false);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const sprite = new Sprite_Face(actor.faceName(), actor.faceIndex());
 		sprite.scale.x = .3;
 		sprite.scale.y = .3;
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -298,15 +316,15 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	*/
 	getOrCreateFullSizeGaugeSprite(actor, gaugeType) {
 		const key = this.makeGaugeSpriteKey(actor, true, gaugeType);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const gaugeHeight = gaugeType === Window_PartyFrame.gaugeTypes.XP ? 12 : 24;
 		const gaugeWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP ? 114 : 144;
 		const sprite = new Sprite_MapGauge(gaugeWidth, gaugeHeight, gaugeHeight);
 		sprite.setup(actor, gaugeType);
 		sprite.deactivateGauge();
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -319,15 +337,15 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	*/
 	getOrCreateMiniSizeGaugeSprite(actor, gaugeType) {
 		const key = this.makeGaugeSpriteKey(actor, false, gaugeType);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const bitmapHeight = 12;
 		const bitmapWidth = gaugeType === Window_PartyFrame.gaugeTypes.XP ? 42 : 96;
 		const sprite = new Sprite_MapGauge(bitmapWidth, bitmapHeight, bitmapHeight);
 		sprite.setup(actor, gaugeType);
 		sprite.deactivateGauge();
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -352,12 +370,12 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	*/
 	getOrCreateActorValueSprite(actor, gaugeType) {
 		const key = this.makeValueSpriteKey(actor, gaugeType);
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const valueFontSize = gaugeType === Window_PartyFrame.gaugeTypes.XP ? -6 : -2;
 		const sprite = new Sprite_ActorValue(actor, gaugeType, valueFontSize);
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -369,13 +387,13 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	*/
 	getOrCreateCombatIcon(actor) {
 		const key = `combat-icon-${actor.name()}-${actor.actorId()}`;
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const iconIndex = 31;
 		const sprite = new Sprite_Icon(iconIndex);
 		sprite.selfManageOpacity();
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		sprite.hide();
 		this.addChild(sprite);
 		return sprite;
@@ -387,8 +405,8 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	*/
 	getOrCreateCombatTimer(actor) {
 		const key = `combat-timer-${actor.name()}-${actor.actorId()}`;
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const sprite = new Sprite_BaseText(String.empty);
 		sprite.setFontFace($gameSystem.numberFontFace());
@@ -397,7 +415,7 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 		sprite.setMinWidth(ImageManager.iconWidth);
 		sprite.selfManageOpacity();
 		sprite.hide();
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		this.addChild(sprite);
 		return sprite;
 	}
@@ -409,12 +427,12 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	*/
 	getOrCreateCombatLabel(actor) {
 		const key = `combat-label-${actor.name()}-${actor.actorId()}`;
-		if (this._hudSprites.has(key)) {
-			return this._hudSprites.get(key);
+		if (this.hudSprites().has(key)) {
+			return this.hudSprites().get(key);
 		}
 		const sprite = new Sprite_BaseText(String.empty);
 		sprite.setFontFace($gameSystem.mainFontFace()).setFontSize($gameSystem.mainFontSize() - 8).setAlignment(Sprite_BaseText.Alignments.Center).setBold(true).setItalics(true).setMinWidth(Math.round(ImageManager.iconWidth * 2.5)).selfManageOpacity();
-		this._hudSprites.set(key, sprite);
+		this.hudSprites().set(key, sprite);
 		this.addChild(sprite);
 		return sprite;
 	}
@@ -462,7 +480,7 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	* Manages opacity for all sprites while the player is interfering with the visibility.
 	*/
 	handlePlayerInterference() {
-		this._hudSprites.forEach((sprite, _) => {
+		this.hudSprites().forEach((sprite, _) => {
 			if (this.canHandleSpriteInterference(sprite) === false) return;
 			if (sprite.opacity > 64) {
 				sprite.opacity -= 15;
@@ -475,7 +493,7 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 	* Reverts the opacity changes associated with the player getting in the way.
 	*/
 	revertInterferenceOpacity() {
-		this._hudSprites.forEach((sprite, _) => {
+		this.hudSprites().forEach((sprite, _) => {
 			if (this.canHandleSpriteInterference(sprite) === false) return;
 			if (sprite.opacity < 255) {
 				sprite.opacity += 15;
@@ -525,7 +543,7 @@ var Window_PartyFrame = class Window_PartyFrame extends Window_Base {
 		const layout = new StateAfflictionHudLayoutSpec();
 		layout.originX = gaugesX;
 		layout.originY = gaugesY - ImageManager.iconHeight * 2 - 48;
-		this._afflictionPresenter.render($gameParty.leader(), layout);
+		this.afflictionPresenter().render($gameParty.leader(), layout);
 		this.drawLeaderCombatIndicator(gaugesX, gaugesY);
 	}
 	/**
@@ -781,37 +799,44 @@ var Sprite_ActorValue = class extends Sprite {
 		this._j._autoCounter = 60;
 	}
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
 	* Gets the parameter being tracked by this sprite.
 	* @returns {string}
 	*/
 	getParameter() {
-		return this._j._parameter;
+		return this.j()._parameter;
 	}
 	/**
 	* Gets the actor being tracked by this sprite.
 	* @returns {Game_Actor}
 	*/
 	getActor() {
-		return this._j._actor;
+		return this.j()._actor;
 	}
 	/**
 	* Gets the autorefresh counter.
 	* @returns {number}
 	*/
 	getAutoCounter() {
-		return this._j._autoCounter;
+		return this.j()._autoCounter;
 	}
 	/**
 	* Decrements the autorefresh counter.
 	*/
 	decrementAutoCounter() {
-		this._j._autoCounter--;
+		this.j()._autoCounter--;
 	}
 	/**
 	* Resets the autorefresh counter to its default value.
 	*/
 	resetAutoCounter() {
-		this._j._autoCounter = 60;
+		this.j()._autoCounter = 60;
 	}
 	/**
 	* Updates the bitmap if it needs updating.
@@ -864,29 +889,29 @@ var Sprite_ActorValue = class extends Sprite {
 		const actor = this.getActor();
 		switch (this.getParameter()) {
 			case Window_PartyFrame.gaugeTypes.HP: {
-				changed = actor.hp !== this._j._last._hp;
-				if (changed) this._j._last._hp = actor.hp;
+				changed = actor.hp !== this.j()._last._hp;
+				if (changed) this.j()._last._hp = actor.hp;
 				return changed;
 			}
 			case Window_PartyFrame.gaugeTypes.MP: {
-				changed = actor.mp !== this._j._last._mp;
-				if (changed) this._j._last._mp = actor.mp;
+				changed = actor.mp !== this.j()._last._mp;
+				if (changed) this.j()._last._mp = actor.mp;
 				return changed;
 			}
 			case Window_PartyFrame.gaugeTypes.TP: {
-				changed = actor.tp !== this._j._last._tp;
-				if (changed) this._j._last._tp = actor.tp;
+				changed = actor.tp !== this.j()._last._tp;
+				if (changed) this.j()._last._tp = actor.tp;
 				return changed;
 			}
 			case Window_PartyFrame.gaugeTypes.XP: {
 				const current = actor.currentExp();
-				changed = current !== this._j._last._xp;
-				if (changed) this._j._last._xp = current;
+				changed = current !== this.j()._last._xp;
+				if (changed) this.j()._last._xp = current;
 				return changed;
 			}
 			case Window_PartyFrame.gaugeTypes.Level: {
-				changed = actor.level !== this._j._last._lvl;
-				if (changed) this._j._last._lvl = actor.level;
+				changed = actor.level !== this.j()._last._lvl;
+				if (changed) this.j()._last._lvl = actor.level;
 				return changed;
 			}
 		}
@@ -979,7 +1004,7 @@ var Sprite_ActorValue = class extends Sprite {
 	* Defaults the font size to be an adjusted amount from the base font size.
 	*/
 	fontSize() {
-		return $gameSystem.mainFontSize() + this._j._fontSizeMod;
+		return $gameSystem.mainFontSize() + this.j()._fontSizeMod;
 	}
 	/**
 	* Defaults the font face to be the number font.
@@ -1020,8 +1045,8 @@ Scene_Map.prototype.createAllWindows = function() {
 */
 Scene_Map.prototype.createPartyFrameWindow = function() {
 	const rect = this.partyFrameWindowRectangle();
-	this._j._partyFrame = new Window_PartyFrame(rect);
-	this.addWindow(this._j._partyFrame);
+	this.setPartyFrame(new Window_PartyFrame(rect));
+	this.addWindow(this.partyFrame());
 };
 /**
 * Creates the rectangle representing the window for the map hud.
@@ -1051,7 +1076,7 @@ Scene_Map.prototype.mapNameWindowRect = function() {
 J.HUD.EXT.PARTY.Aliased.Scene_Map.set("refreshHud", Scene_Map.prototype.refreshHud);
 Scene_Map.prototype.refreshHud = function() {
 	J.HUD.EXT.PARTY.Aliased.Scene_Map.get("refreshHud").call(this);
-	this._j._partyFrame.refresh();
+	this.partyFrame().refresh();
 };
 /**
 * Extend the update loop for the party frame.
@@ -1067,7 +1092,7 @@ Scene_Map.prototype.updateHudFrames = function() {
 */
 Scene_Map.prototype.handleRefreshPartyFrame = function() {
 	if ($hudManager.hasRequestRefreshHud()) {
-		this._j._partyFrame.refresh();
+		this.partyFrame().refresh();
 		$hudManager.acknowledgeRefreshHud();
 	}
 };
@@ -1076,10 +1101,24 @@ Scene_Map.prototype.handleRefreshPartyFrame = function() {
 */
 Scene_Map.prototype.handleRefreshPartyFrameImageCache = function() {
 	if ($hudManager.hasRequestRefreshImageCache()) {
-		this._j._partyFrame.refreshCache();
-		this._j._partyFrame.refresh();
+		this.partyFrame().refreshCache();
+		this.partyFrame().refresh();
 		$hudManager.acknowledgeRefreshImageCache();
 	}
+};
+/**
+* Gets the party frame.
+* @returns {*} The partyFrame.
+*/
+Scene_Map.prototype.partyFrame = function() {
+	return this._j._partyFrame;
+};
+/**
+* Sets the party frame.
+* @param {*} newPartyFrame The new partyFrame.
+*/
+Scene_Map.prototype.setPartyFrame = function(newPartyFrame) {
+	this._j._partyFrame = newPartyFrame;
 };
 
 //#endregion

@@ -63,11 +63,23 @@ J.EXTEND.EXT.SKS.Aliased.Window_SkillEquipDetail.set("skill", Window_SkillEquipD
 * @returns {RPG_Skill|null}
 */
 Window_SkillEquipDetail.prototype.skill = function() {
-	if (!this._skillId) return null;
-	if (this._actor) {
-		return OverlayManager.getExtendedSkill(this._actor, this._skillId);
-	}
+	if (!this.skillId()) return null;
+	if (this.actor()) return this.actor().skill(this.skillId());
 	return J.EXTEND.EXT.SKS.Aliased.Window_SkillEquipDetail.get("skill").call(this);
+};
+/**
+* Gets the skill id.
+* @returns {number} The skillId.
+*/
+Window_SkillEquipDetail.prototype.skillId = function() {
+	return this._skillId;
+};
+/**
+* Gets the actor whose equipped skill is being detailed.
+* @returns {Game_Actor} The detailed actor.
+*/
+Window_SkillEquipDetail.prototype.actor = function() {
+	return this._actor;
 };
 
 //#endregion

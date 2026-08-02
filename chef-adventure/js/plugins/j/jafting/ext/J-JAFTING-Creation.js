@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 JAFT-Create] An extension for JAFTING to enable recipe creation.
+ * [v1.1.2 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -237,16 +237,6 @@
  * @command lock-all-recipes
  * @text Lock All Recipes
  * @desc Locks all implemented crafting recipes.
- *
- * @command debug-prepare-creation-testing
- * @text DEBUG: Prepare Creation testing
- * @desc Developer convenience: unlocks all JAFTING Creation entries, maxes DB item/weapon/armor stacks, grants gold (and SDP if linked), then multiplies ingredient/tool grants from config.
- * @arg recipeStockMultiplier
- * @type number
- * @min 1
- * @default 15
- * @text Recipe stock multiplier
- * @desc Each configured ingredient/tool quantity is multiplied by this before granting to the party.
  */
 //endregion annotations
 
@@ -751,7 +741,7 @@ var CraftingRecipe = class {
 	* @return {RPG_Item|RPG_Weapon|RPG_Armor}
 	*/
 	getPrimaryOutput() {
-		return this.outputs.at(0)?.getItem();
+		return this.outputs.at(0).getItem();
 	}
 	/**
 	* A debug function for receiving all materials required to craft this recipe.
@@ -1316,99 +1306,6 @@ J.JAFTING.EXT.CREATE.Aliased.Game_Party = new Map();
 J.JAFTING.EXT.CREATE.Aliased.Game_System = new Map();
 J.JAFTING.EXT.CREATE.Aliased.Scene_Jafting = new Map();
 J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList = new Map();
-/**
-* All regular expressions used by this plugin.
-*/
-J.JAFTING.EXT.CREATE.RegExp = {};
-/**
-* Dev-only cheat helpers for JAFTING Creation testing.
-*/
-J.JAFTING.EXT.CREATE.Debug = {};
-/**
-* Unlocks every category/recipe the metadata knows about and bumps proficiency so masking drops away.
-*/
-J.JAFTING.EXT.CREATE.Debug.unlockEverythingForTesting = function() {
-	$gameParty.unlockEverythingCompletely();
-};
-/**
-* Maxes the party count for every non-null item, weapon, and armor database row (respects engine max item stacks).
-*/
-J.JAFTING.EXT.CREATE.Debug.gainMaxOfAllItemWeaponArmor = function() {
-	const grantTable = (data) => {
-		if (data === null || data === undefined) return;
-		for (let i = 1; i < data.length; i++) {
-			const datum = data[i];
-			if (datum === null) continue;
-			const cap = $gameParty.maxItems(datum);
-			if (cap > 0) {
-				$gameParty.gainItem(datum, cap);
-			}
-		}
-	};
-	grantTable($dataItems);
-	grantTable($dataWeapons);
-	grantTable($dataArmors);
-};
-/**
-* Grants gold suitable for recipe tests that charge gold components.
-*
-* @param {number} [amount] The [amount] driving this step.
-*/
-J.JAFTING.EXT.CREATE.Debug.gainGoldForTesting = function(amount) {
-	const value = amount === undefined || amount === null || amount === 0 ? 999999 : amount;
-	$gameParty.gainGold(value);
-};
-/**
-* When J-SDP is linked, grants every party member a large SDP pool.
-*
-* @param {number} [points] The [points] driving this step.
-*/
-J.JAFTING.EXT.CREATE.Debug.gainBulkSdpIfAvailable = function(points) {
-	if (J.JAFTING.EXT.CREATE.Metadata.usingSdp() === false) return;
-	const value = points === undefined || points === null ? 999999 : points;
-	$gameParty.members().forEach((actor) => actor.modSdpPoints(value));
-};
-/**
-* Grants ingredients and tools for every unlockable recipe, scaled by {@link multiplier}.
-*
-* @param {number} [multiplier] The [multiplier] driving this step.
-*/
-J.JAFTING.EXT.CREATE.Debug.gainStockFromAllRecipes = function(multiplier) {
-	const mult = multiplier === undefined || multiplier === null || multiplier < 1 ? 10 : Math.floor(multiplier);
-	const { recipes } = J.JAFTING.EXT.CREATE.Metadata;
-	const feedComponent = (component) => {
-		const total = component.quantity() * mult;
-		if (component.isDatabaseEntry()) {
-			$gameParty.gainItem(component.getItem(), total);
-			return;
-		}
-		if (component.isGold()) {
-			$gameParty.gainGold(total);
-			return;
-		}
-		if (component.isSdp()) {
-			if (J.JAFTING.EXT.CREATE.Metadata.usingSdp() === false) return;
-			$gameParty.members().forEach((actor) => actor.modSdpPoints(total));
-		}
-	};
-	recipes.forEach((recipe) => {
-		if ($gameParty.canGainEntry(recipe.key) === false) return;
-		recipe.ingredients.forEach(feedComponent);
-		recipe.tools.forEach(feedComponent);
-	});
-};
-/**
-* One-shot dev harness: unlock all JAFTING Creation content, max DB goods, bulk gold/SDP, and stock recipe mats.
-*
-* @param {number} [recipeStockMultiplier] Applied per ingredient/tool quantity in config (default 15).
-*/
-J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest = function(recipeStockMultiplier) {
-	J.JAFTING.EXT.CREATE.Debug.unlockEverythingForTesting();
-	J.JAFTING.EXT.CREATE.Debug.gainMaxOfAllItemWeaponArmor();
-	J.JAFTING.EXT.CREATE.Debug.gainGoldForTesting();
-	J.JAFTING.EXT.CREATE.Debug.gainBulkSdpIfAvailable();
-	J.JAFTING.EXT.CREATE.Debug.gainStockFromAllRecipes(recipeStockMultiplier);
-};
 
 //#endregion
 //#region src/plugins/jafting/ext/create/objects/Game_Party.js
@@ -1451,8 +1348,8 @@ Game_Party.prototype.initJaftingCreationMembers = function() {
 * Populates all jafting trackings from the current plugin metadata.
 */
 Game_Party.prototype.populateJaftingTrackings = function() {
-	this._j._crafting._recipeTrackings = J.JAFTING.EXT.CREATE.Metadata.recipes.map((recipe) => new RecipeTracking(recipe.key, recipe.unlockedByDefault));
-	this._j._crafting._categoryTrackings = J.JAFTING.EXT.CREATE.Metadata.categories.map((category) => new CategoryTracking(category.key, category.unlockedByDefault));
+	this.setRecipeTrackings(J.JAFTING.EXT.CREATE.Metadata.recipes.map((recipe) => new RecipeTracking(recipe.key, recipe.unlockedByDefault)));
+	this.setCategoryTrackings(J.JAFTING.EXT.CREATE.Metadata.categories.map((category) => new CategoryTracking(category.key, category.unlockedByDefault)));
 };
 /**
 * Refreshes all the recipe trackings from the plugin metadata.
@@ -1487,14 +1384,14 @@ Game_Party.prototype.updateCategoriesFromConfig = function() {
 * @return {RecipeTracking[]}
 */
 Game_Party.prototype.getAllRecipeTrackings = function() {
-	return this._j._crafting._recipeTrackings;
+	return this.recipeTrackings();
 };
 /**
 * Gets all jafting category trackings.
 * @return {CategoryTracking[]}
 */
 Game_Party.prototype.getAllCategoryTrackings = function() {
-	return this._j._crafting._categoryTrackings;
+	return this.categoryTrackings();
 };
 /**
 * Gets all recipe trackings that are unlocked.
@@ -1714,6 +1611,34 @@ Game_Party.prototype.updateVariableWithCraftedCountByCategories = function(varia
 	}, this);
 	$gameVariables.setValue(variableId, count);
 };
+/**
+* Gets the recipe trackings.
+* @returns {*} The recipeTrackings.
+*/
+Game_Party.prototype.recipeTrackings = function() {
+	return this._j._crafting._recipeTrackings;
+};
+/**
+* Sets the recipe trackings.
+* @param {*} newRecipeTrackings The new recipeTrackings.
+*/
+Game_Party.prototype.setRecipeTrackings = function(newRecipeTrackings) {
+	this._j._crafting._recipeTrackings = newRecipeTrackings;
+};
+/**
+* Gets the category trackings.
+* @returns {*} The categoryTrackings.
+*/
+Game_Party.prototype.categoryTrackings = function() {
+	return this._j._crafting._categoryTrackings;
+};
+/**
+* Sets the category trackings.
+* @param {*} newCategoryTrackings The new categoryTrackings.
+*/
+Game_Party.prototype.setCategoryTrackings = function(newCategoryTrackings) {
+	this._j._crafting._categoryTrackings = newCategoryTrackings;
+};
 
 //#endregion
 //#region src/plugins/jafting/ext/create/objects/Game_System.js
@@ -1840,11 +1765,6 @@ var Window_CategoryList = class extends Window_Command {
 */
 var Window_RecipeList = class extends Window_Command {
 	/**
-	* The currently selected category on the category list window.
-	* @type {string}
-	*/
-	currentCategory = String.empty;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
@@ -1852,10 +1772,25 @@ var Window_RecipeList = class extends Window_Command {
 		super(rect);
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* This cannot be a class field declaration: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from it and found it undefined.
+	*/
+	initMembers() {
+		/**
+		* The currently selected category on the category list window.
+		* @type {string}
+		*/
+		this.currentCategory = String.empty;
+	}
+	/**
 	* Sets the current category and updates the list of available recipes.
 	* @param {string} newCategory The new jafting category to consider.
 	*/
 	setCurrentCategory(newCategory) {
+		if (this.currentCategory === newCategory) return;
 		this.currentCategory = newCategory;
 		this.refresh();
 	}
@@ -2444,6 +2379,13 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 //#region src/plugins/jafting/ext/create/windows/Window_RecipeIngredientList.js
 var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Window_Command {
 	/**
+	* Gets the components.
+	* @returns {CraftingComponent[]} The components.
+	*/
+	components() {
+		return this._components;
+	}
+	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
@@ -2481,7 +2423,7 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 	* @returns {BuiltWindowCommand[]}
 	*/
 	buildCommands() {
-		const components = this._components;
+		const components = this.components();
 		const commands = components.map(this.buildCommand, this);
 		return commands;
 	}
@@ -2547,6 +2489,13 @@ var Window_RecipeIngredientList = class Window_RecipeIngredientList extends Wind
 //#region src/plugins/jafting/ext/create/windows/Window_RecipeToolList.js
 var Window_RecipeToolList = class extends Window_Command {
 	/**
+	* Gets the components.
+	* @returns {CraftingComponent[]} The components.
+	*/
+	components() {
+		return this._components;
+	}
+	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
@@ -2584,7 +2533,7 @@ var Window_RecipeToolList = class extends Window_Command {
 	* @returns {BuiltWindowCommand[]}
 	*/
 	buildCommands() {
-		const components = this._components;
+		const components = this.components();
 		const commands = components.map(this.buildCommand, this);
 		return commands;
 	}
@@ -2642,7 +2591,7 @@ var Window_RecipeToolList = class extends Window_Command {
 	* @override
 	*/
 	drawAllItems() {
-		if (this._components.length === 0) {
+		if (this.components().length === 0) {
 			this.resetFontSettings();
 			this.changeTextColor(ColorManager.normalColor());
 			const y = this.recipeComponentRowTopInset();
@@ -2657,10 +2606,12 @@ var Window_RecipeToolList = class extends Window_Command {
 //#region src/plugins/jafting/ext/create/windows/Window_RecipeOutputList.js
 var Window_RecipeOutputList = class extends Window_Command {
 	/**
-	* True if the text of this list should be masked, false otherwise.
-	* @type {boolean}
+	* Gets the components.
+	* @returns {CraftingComponent[]} The components.
 	*/
-	needsMasking = false;
+	components() {
+		return this._components;
+	}
 	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
@@ -2670,16 +2621,23 @@ var Window_RecipeOutputList = class extends Window_Command {
 		this.opacity = 0;
 	}
 	/**
-	* Extends {@link #initialize}.<br/>
-	* Initializes some additional window properies.
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* `needsMasking` cannot be a class field: JavaScript applies those only after `super()` returns, by
+	* which point the command list has already been built from them.
 	*/
-	initialize(rect) {
+	initMembers() {
 		/**
 		* The list of components this window should render.
 		* @type {CraftingComponent[]}
 		*/
 		this._components = [];
-		super.initialize(rect);
+		/**
+		* True if the text of this list should be masked, false otherwise.
+		* @type {boolean}
+		*/
+		this.needsMasking = false;
 	}
 	setComponents(components) {
 		this._components = components;
@@ -2702,7 +2660,7 @@ var Window_RecipeOutputList = class extends Window_Command {
 	* @returns {BuiltWindowCommand[]}
 	*/
 	buildCommands() {
-		const components = this._components;
+		const components = this.components();
 		const commands = components.map(this.buildCommand, this);
 		return commands;
 	}
@@ -2806,9 +2764,11 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 		this.initMembers();
 	}
 	/**
-	* Initialize all properties for the Creation scene.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes all properties for the Creation scene.
 	*/
 	initMembers() {
+		super.initMembers();
 		this.initCoreMembers();
 		this.initPrimaryMembers();
 	}
@@ -2925,11 +2885,11 @@ var Scene_JaftingCreate = class Scene_JaftingCreate extends Scene_MenuBase {
 	* Changes the filter to a different type from {@link PIXI.filters}.<br>
 	*/
 	createBackground() {
-		this._backgroundFilter = new PIXI.filters.AlphaFilter(.1);
-		this._backgroundSprite = new Sprite();
-		this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-		this._backgroundSprite.filters = [this._backgroundFilter];
-		this.addChild(this._backgroundSprite);
+		this.setBackgroundFilter(new PIXI.filters.AlphaFilter(.1));
+		this.setBackgroundSprite(new Sprite());
+		this.backgroundSprite().bitmap = SceneManager.backgroundBitmap();
+		this.backgroundSprite().filters = [this.backgroundFilter()];
+		this.addChild(this.backgroundSprite());
 	}
 	/**
 	* Overwrites {@link #createButtons}.<br/>
@@ -3515,20 +3475,6 @@ PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "unlock-all-re
 */
 PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "lock-all-recipes", () => {
 	$gameParty.lockAllRecipes();
-});
-/**
-* Developer-only convenience: see {@link J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest}.
-*/
-PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "debug-prepare-creation-testing", (args) => {
-	const { recipeStockMultiplier } = args;
-	let mult = 15;
-	if (recipeStockMultiplier !== undefined && recipeStockMultiplier !== null && recipeStockMultiplier !== "") {
-		const parsed = Number(recipeStockMultiplier);
-		if (Number.isFinite(parsed) && parsed >= 1) {
-			mult = Math.floor(parsed);
-		}
-	}
-	J.JAFTING.EXT.CREATE.Debug.prepareFullCreationTest(mult);
 });
 
 //#endregion

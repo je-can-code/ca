@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.3.0 POPUPS-ABS] Combat and reward popups for JABS.
+ * [v1.3.1 POPUPS-ABS] Combat and reward popups for JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -93,6 +93,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.1
+ *    Cleaned up the popup guards that the passive-refresh ordering fix in
+ *    J-Passive made redundant.
  * - 1.3.0
  *    Per-target strike/slip aggregates (no per-attacker lanes); combat slip/reward/mitigation merge buckets +
  *    idle/combo/map flush hooks; requires J-Popups v2.1.0+ merge stack (`Sprite_MapDamage`, merge controller).
@@ -187,7 +190,7 @@ J.POPUPS.EXT.ABS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.POPUPS.EXT.ABS.Metadata = new J_PopupsAbs_PluginMetadata("J-Popups-ABS", "1.3.0");
+J.POPUPS.EXT.ABS.Metadata = new J_PopupsAbs_PluginMetadata("J-Popups-ABS", "1.3.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -459,7 +462,7 @@ CombatResourcePopupLayout.installMotionOffsetAugment();
 */
 J.POPUPS.EXT.ABS.Aliased.Sprite_Damage.set("damageColor", Sprite_Damage.prototype.damageColor);
 Sprite_Damage.prototype.damageColor = function() {
-	return PopupResourceDisplayColor.resolvePopupFillColor(this._j._popups._sourcePopup, this._j._popups._damageColor);
+	return PopupResourceDisplayColor.resolvePopupFillColor(this.j()._popups._sourcePopup, this.j()._popups._damageColor);
 };
 /**
 * Extends {@link #outlineColor}.<br/>
@@ -467,7 +470,7 @@ Sprite_Damage.prototype.damageColor = function() {
 */
 J.POPUPS.EXT.ABS.Aliased.Sprite_Damage.set("outlineColor", Sprite_Damage.prototype.outlineColor);
 Sprite_Damage.prototype.outlineColor = function() {
-	return PopupResourceDisplayColor.resolvePopupOutlineColor(this._j._popups._sourcePopup);
+	return PopupResourceDisplayColor.resolvePopupOutlineColor(this.j()._popups._sourcePopup);
 };
 /**
 * Extends {@link #outlineWidth}.<br/>
@@ -475,7 +478,14 @@ Sprite_Damage.prototype.outlineColor = function() {
 */
 J.POPUPS.EXT.ABS.Aliased.Sprite_Damage.set("outlineWidth", Sprite_Damage.prototype.outlineWidth);
 Sprite_Damage.prototype.outlineWidth = function() {
-	return PopupResourceDisplayColor.resolvePopupOutlineWidth(this._j._popups._sourcePopup, this.isDamage());
+	return PopupResourceDisplayColor.resolvePopupOutlineWidth(this.j()._popups._sourcePopup, this.isDamage());
+};
+/**
+* Gets the plugin data namespace carried by this popup sprite.
+* @returns {object} The plugin namespace root.
+*/
+Sprite_Damage.prototype.j = function() {
+	return this._j;
 };
 
 //#endregion
@@ -845,9 +855,6 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 		const now = Graphics.frameCount;
 		JABS_PopupMergeController.#trackedCharacters.forEach((character) => {
 			const bucket = JABS_PopupMergeController.#characterStore.get(character);
-			if (!bucket) {
-				return;
-			}
 			const spriteCharacter = PopupSpriteLocator.findSpriteCharacterForGameCharacter(character);
 			const keys = Array.from(bucket.sessions.keys());
 			keys.forEach((key) => {
@@ -856,7 +863,7 @@ var JABS_PopupMergeController = class JABS_PopupMergeController {
 					bucket.sessions.delete(key);
 					return;
 				}
-				const lastAct = session.lastActivityFrame ?? 0;
+				const lastAct = session.lastActivityFrame;
 				if (now - lastAct < idleFrames) {
 					return;
 				}

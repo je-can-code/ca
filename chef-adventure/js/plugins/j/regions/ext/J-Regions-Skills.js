@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.1 REGION-SKILLS] Enables execution of skills via region ids.
+ * @plugindesc [v1.0.1 REGIONS-SKILLS] Enables execution of skills via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -428,8 +428,9 @@ Game_Character.prototype.executeRegionSkills = function() {
 		const procCount = RPGManager.resolveProcCount(walkerBattler, chance, positiveRolls, negativeRolls);
 		if (procCount === 0) return;
 		const currentDummyCaster = $jabsEngine.getMapDamageBattler();
-		const correctCaster = currentDummyCaster?.getBattlerId() === casterId;
-		const correctTeam = currentDummyCaster?.isFriendlyTeam(targetJabsBattler.getTeam()) === isFriendly;
+		const hasDummyCaster = currentDummyCaster !== null && currentDummyCaster !== undefined;
+		const correctCaster = hasDummyCaster && currentDummyCaster.getBattlerId() === casterId;
+		const correctTeam = hasDummyCaster && currentDummyCaster.isFriendlyTeam(targetJabsBattler.getTeam()) === isFriendly;
 		if (!correctCaster || !correctTeam) {
 			$jabsEngine.setMapDamageBattler(casterId, isFriendly);
 		}

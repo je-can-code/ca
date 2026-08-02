@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 JAFT-Refine] An extension for JAFTING to enable equip refinement.
+ * [v1.2.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -208,6 +208,20 @@
 */
 var JAFTING_Trait = class {
 	/**
+	* Gets the code.
+	* @returns {*} The code.
+	*/
+	code() {
+		return this._code;
+	}
+	/**
+	* Gets the data id.
+	* @returns {number} The dataId.
+	*/
+	dataId() {
+		return this._dataId;
+	}
+	/**
 	* Initializes the members of this class.
 	* @param {number} code The code of the trait.
 	* @param {number} dataId The dataId of the trait.
@@ -255,7 +269,7 @@ var JAFTING_Trait = class {
 	* @returns {RPG_Trait}
 	*/
 	convertToRmTrait() {
-		return RPG_Trait.fromValues(this._code, this._dataId, this._value);
+		return RPG_Trait.fromValues(this.code(), this.dataId(), this._value);
 	}
 };
 
@@ -265,6 +279,13 @@ var JAFTING_Trait = class {
 * A class containing all the various data points extracted from notes.
 */
 var JAFTING_RefinementData = class {
+	/**
+	* Gets the notes.
+	* @returns {*} The notes.
+	*/
+	notes() {
+		return this._notes;
+	}
 	/**
 	* @constructor
 	* @param {string} notes The raw note box as a string.
@@ -285,28 +306,28 @@ var JAFTING_RefinementData = class {
 	* @returns {number}
 	*/
 	getMaxRefineCount() {
-		return RPGManager.getNumberFromNoteByRegex({ note: this._notes }, J.JAFTING.EXT.REFINE.MaxRefineCount);
+		return RPGManager.getNumberFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.MaxRefineCount);
 	}
 	/**
 	* The number of transferable traits that this piece of equipment can have at any one time.
 	* @returns {number}
 	*/
 	getMaxTraitCount() {
-		return RPGManager.getNumberFromNoteByRegex({ note: this._notes }, J.JAFTING.EXT.REFINE.MaxRefinedTraits);
+		return RPGManager.getNumberFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.MaxRefinedTraits);
 	}
 	/**
 	* Gets whether or not this piece of equipment can be used in refinement as a material.
 	* @returns {boolean}
 	*/
 	isNotRefinableAsMaterial() {
-		return RPGManager.checkForBooleanFromNoteByRegex({ note: this._notes }, J.JAFTING.EXT.REFINE.NotRefinementMaterial);
+		return RPGManager.checkForBooleanFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.NotRefinementMaterial);
 	}
 	/**
 	* Gets whether or not this piece of equipment can be used in refinement as a base.
 	* @returns {boolean}
 	*/
 	isNotRefinableAsBase() {
-		return RPGManager.checkForBooleanFromNoteByRegex({ note: this._notes }, J.JAFTING.EXT.REFINE.NotRefinementBase);
+		return RPGManager.checkForBooleanFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.NotRefinementBase);
 	}
 	/**
 	* Gets whether or not this piece of equipment can be used in refinement.
@@ -314,7 +335,7 @@ var JAFTING_RefinementData = class {
 	* @returns
 	*/
 	isNotRefinable() {
-		return RPGManager.checkForBooleanFromNoteByRegex({ note: this._notes }, J.JAFTING.EXT.REFINE.Unrefinable);
+		return RPGManager.checkForBooleanFromNoteByRegex({ note: this.notes() }, J.JAFTING.EXT.REFINE.Unrefinable);
 	}
 };
 
@@ -923,14 +944,14 @@ Game_Party.prototype.getRefinedArmors = function() {
 * @param {RPG_EquipItem} equip The newly refined weapon.
 */
 Game_Party.prototype.addRefinedWeapon = function(equip) {
-	this._j._refinement._weapons.push(equip);
+	this.getRefinedWeapons().push(equip);
 };
 /**
 * Adds a newly refined armor to the collection for tracking purposes.
 * @param {RPG_EquipItem} equip The newly refined armor.
 */
 Game_Party.prototype.addRefinedArmor = function(equip) {
-	this._j._refinement._armors.push(equip);
+	this.getRefinedArmors().push(equip);
 };
 /**
 * Updates the $dataWeapons collection to include the player's collection of
@@ -958,14 +979,21 @@ Game_Party.prototype.refreshDatabaseArmors = function() {
 * @returns {number}
 */
 Game_Party.prototype.getRefinementCounter = function(refinementType) {
-	return this._j._refinement._increments[refinementType];
+	return this.increments()[refinementType];
 };
 /**
 * Increments the refinement index for a particular datastore.
 * @param {string} refinementType One of the refinement types.
 */
 Game_Party.prototype.incrementRefinementCounter = function(refinementType) {
-	this._j._refinement._increments[refinementType]++;
+	this.increments()[refinementType]++;
+};
+/**
+* Gets how many times each item has been refined by this party.
+* @returns {Object<number, number>} The refinement count per item id.
+*/
+Game_Party.prototype.increments = function() {
+	return this._j._refinement._increments;
 };
 
 //#endregion
@@ -1019,7 +1047,7 @@ var Window_RefinementStepHint = class extends Window_Base {
 		const y = 0;
 		const { innerWidth } = this;
 		this.changeTextColor(ColorManager.systemColor());
-		this.drawText(this._text, x, y, innerWidth, "left");
+		this.drawText(this.getText(), x, y, innerWidth, "left");
 		this.resetTextColor();
 	}
 };
@@ -1090,8 +1118,6 @@ var Window_RefinableList = class extends Window_Command {
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initialize(rect);
-		this.initMembers();
 	}
 	/**
 	* Initializes the properties of this class.
@@ -1614,9 +1640,11 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		this.initMembers();
 	}
 	/**
-	* Initialize all properties for the Refinement scene.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes all properties for the Refinement scene.
 	*/
 	initMembers() {
+		super.initMembers();
 		this.initCoreMembers();
 		this.initPrimaryMembers();
 	}
@@ -1773,11 +1801,11 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 	* Changes the filter to a different type from {@link PIXI.filters}.<br>
 	*/
 	createBackground() {
-		this._backgroundFilter = new PIXI.filters.AlphaFilter(.1);
-		this._backgroundSprite = new Sprite();
-		this._backgroundSprite.bitmap = SceneManager.backgroundBitmap();
-		this._backgroundSprite.filters = [this._backgroundFilter];
-		this.addChild(this._backgroundSprite);
+		this.setBackgroundFilter(new PIXI.filters.AlphaFilter(.1));
+		this.setBackgroundSprite(new Sprite());
+		this.backgroundSprite().bitmap = SceneManager.backgroundBitmap();
+		this.backgroundSprite().filters = [this.backgroundFilter()];
+		this.addChild(this.backgroundSprite());
 	}
 	/**
 	* Overwrites {@link #createButtons}.<br/>
@@ -1948,7 +1976,7 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		const helpText = listWindow.currentHelpText();
 		this.getRefinementDescriptionWindow().setText(helpText ?? String.empty);
 		const baseRefinable = listWindow.currentExt();
-		this.getRefinementDetailsWindow().primaryEquip = baseRefinable?.data;
+		this.getRefinementDetailsWindow().primaryEquip = baseRefinable === null ? null : baseRefinable.data;
 	}
 	onBaseRefinableListCancel() {
 		SceneManager.pop();
@@ -2006,7 +2034,8 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		listWindow.refresh();
 		listWindow.show();
 		listWindow.activate();
-		const selected = listWindow.currentExt()?.data;
+		const selectedExt = listWindow.currentExt();
+		const selected = selectedExt === null ? null : selectedExt.data;
 		this.setConsumedSelected(selected);
 		this.getRefinementDetailsWindow().secondaryEquip = selected;
 		this.getRefinementDescriptionWindow().setText(listWindow.currentHelpText());

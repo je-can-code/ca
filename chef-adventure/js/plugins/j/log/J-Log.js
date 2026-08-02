@@ -1,7 +1,7 @@
 //region introduction
 /*:
  * @target MZ
- * @plugindesc [v2.2.2 LOG] A log window for viewing on the map.
+ * @plugindesc [v2.2.3 LOG] A log window for viewing on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -113,6 +113,13 @@
  * JABS integration (when installed) and by plugin commands.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.3
+ *    Fixed Scene_Map's loot log window accessors reading and writing
+ *    this._j._log._diaLog. Since createAllWindows builds the dia log first,
+ *    the loot log clobbered its tracker and getDiaLogWindow returned the wrong
+ *    window entirely. Nothing called the three accessors yet, so this never
+ *    surfaced in play; it was a landmine for the next caller. The missing
+ *    _lootLog property is now declared alongside its siblings.
  * - 2.2.2
  *    Added ActionLogBuilder#setupStatePurged, a log message for a state
  *    being removed via J-ABS's new <purgeStates> tag.
@@ -422,7 +429,7 @@ J.LOG = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "2.2.2");
+J.LOG.Metadata = new J_LogPluginMetadata("J-Log", "2.2.3");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -976,21 +983,6 @@ var Window_MapLog = class Window_MapLog extends Window_Command {
 	*/
 	static rowHeight = 16;
 	/**
-	* The in-window tracking of how long before we reduce opacity for inactivity.
-	* @type {number}
-	*/
-	inactivityTimer = 300;
-	/**
-	* The duration of which the inactivity timer will be refreshed to.
-	* @type {number}
-	*/
-	defaultInactivityDuration = J.LOG.Metadata.InactivityTimerDuration;
-	/**
-	* The underlying data source that logs are derived from.
-	* @type {MapLogManager}
-	*/
-	logManager = null;
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	* @param {MapLogManager} logManager the manager that this window leverages to get logs from.
@@ -998,6 +990,30 @@ var Window_MapLog = class Window_MapLog extends Window_Command {
 	constructor(rect, logManager) {
 		super(rect);
 		this.logManager = logManager;
+	}
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Initializes the members of this window.
+	*
+	* These cannot be class field declarations: JavaScript applies those only after `super()` returns,
+	* by which point the command list has already been built from them and found them undefined.
+	*/
+	initMembers() {
+		/**
+		* The in-window tracking of how long before we reduce opacity for inactivity.
+		* @type {number}
+		*/
+		this.inactivityTimer = 300;
+		/**
+		* The duration of which the inactivity timer will be refreshed to.
+		* @type {number}
+		*/
+		this.defaultInactivityDuration = J.LOG.Metadata.InactivityTimerDuration;
+		/**
+		* The underlying data source that logs are derived from.
+		* @type {MapLogManager}
+		*/
+		this.logManager = null;
 	}
 	/**
 	* Sets the default inactivity max duration. Changing this will change how long
@@ -1425,6 +1441,11 @@ Scene_Map.prototype.initialize = function() {
 	* @type {Window_DiaLog}
 	*/
 	this._j._log._diaLog = null;
+	/**
+	* The loot-centric log for the map.
+	* @type {Window_LootLog}
+	*/
+	this._j._log._lootLog = null;
 };
 /**
 * Extends {@link #createAllWindows}.<br/>
@@ -1528,7 +1549,7 @@ Scene_Map.prototype.setDiaLogWindow = function(window) {
 	this._j._log._diaLog = window;
 };
 /**
-* Creates the dia log window and adds it to tracking.
+* Creates the loot log window and adds it to tracking.
 */
 Scene_Map.prototype.createLootLogWindow = function() {
 	const window = this.buildLootLogWindow();
@@ -1563,14 +1584,14 @@ Scene_Map.prototype.lootLogWindowRect = function() {
 * @returns {Window_LootLog}
 */
 Scene_Map.prototype.getLootLogWindow = function() {
-	return this._j._log._diaLog;
+	return this._j._log._lootLog;
 };
 /**
 * Set the currently tracked loot log window to the given window.
 * @param {Window_LootLog} window The window to track.
 */
 Scene_Map.prototype.setLootLogWindow = function(window) {
-	this._j._log._diaLog = window;
+	this._j._log._lootLog = window;
 };
 
 //#endregion

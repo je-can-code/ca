@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 CHARGE] Enable skills to be charged to perform other skills.
+ * [v1.1.0 ABS-CHARGE] Enable skills to be charged to perform other skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -536,7 +536,7 @@ JABS_Battler.prototype.getChargingTierData = function() {
 * @returns {boolean} True if it exists, false otherwise.
 */
 JABS_Battler.prototype.hasChargingTierData = function() {
-	return this._chargingTiers.length > 0;
+	return this.getChargingTierData().length > 0;
 };
 /**
 * Sets the charging tier data to the given data.
@@ -973,7 +973,7 @@ JABS_StandardController.prototype.initInputDelays = function() {
 * @returns {JABS_Timer}
 */
 JABS_StandardController.prototype.getChargeInputDelayBySlot = function(slot) {
-	return this._chargeInputDelay.get(slot);
+	return this.chargeInputDelay().get(slot);
 };
 /**
 * Updates the charge input delay in the given slot.
@@ -1304,6 +1304,13 @@ JABS_StandardController.prototype.canChargeCombatAction4 = function() {
 	if (this.isCombatAction4Triggered()) return false;
 	return true;
 };
+/**
+* Gets the charge input delay.
+* @returns {*} The chargeInputDelay.
+*/
+JABS_StandardController.prototype.chargeInputDelay = function() {
+	return this._chargeInputDelay;
+};
 
 //#endregion
 //#region src/plugins/abs/ext/charge/database/RPG_Skill.js
@@ -1386,6 +1393,55 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 */
 var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 	/**
+	* Gets the jabs battler.
+	* @returns {JABS_Battler|null} The jabsBattler.
+	*/
+	jabsBattler() {
+		return this._jabsBattler;
+	}
+	/**
+	* Sets the jabs battler.
+	* @param {JABS_Battler|null} newJabsBattler The new jabsBattler.
+	*/
+	setJabsBattler(newJabsBattler) {
+		this._jabsBattler = newJabsBattler;
+	}
+	/**
+	* Gets the expected character.
+	* @returns {*} The expectedCharacter.
+	*/
+	expectedCharacter() {
+		return this._expectedCharacter;
+	}
+	/**
+	* Sets the expected character.
+	* @param {*} newExpectedCharacter The new expectedCharacter.
+	*/
+	setExpectedCharacter(newExpectedCharacter) {
+		this._expectedCharacter = newExpectedCharacter;
+	}
+	/**
+	* Gets the expected uuid.
+	* @returns {*} The expectedUuid.
+	*/
+	expectedUuid() {
+		return this._expectedUuid;
+	}
+	/**
+	* Sets the expected uuid.
+	* @param {*} newExpectedUuid The new expectedUuid.
+	*/
+	setExpectedUuid(newExpectedUuid) {
+		this._expectedUuid = newExpectedUuid;
+	}
+	/**
+	* Gets the gauge.
+	* @returns {*} The gauge.
+	*/
+	gauge() {
+		return this._gauge;
+	}
+	/**
 	* Constructor.
 	* @param {...*} args Forwarded to {@link #initialize}.
 	*/
@@ -1406,7 +1462,7 @@ var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 		* @type {JABS_Battler|null}
 		*/
 		this._jabsBattler = null;
-		this._statusType = "charge";
+		this.setStatusType("charge");
 		this.visible = false;
 	}
 	/**
@@ -1414,7 +1470,7 @@ var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 	* @returns {JABS_Battler|null}
 	*/
 	getJabsBattler() {
-		return this._jabsBattler;
+		return this.jabsBattler();
 	}
 	/**
 	* Binds this gauge to a JABS battler and the expected character host.
@@ -1422,18 +1478,18 @@ var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 	* @param {Game_Character} expectedCharacter The character this sprite represents.
 	*/
 	setupJabs(jabsBattler, expectedCharacter) {
-		this._jabsBattler = jabsBattler;
+		this.setJabsBattler(jabsBattler);
 		/**
 		* The character this gauge expects the JABS battler to be bound to.
 		* @type {Game_Character|null}
 		*/
-		this._expectedCharacter = expectedCharacter ?? null;
+		this.setExpectedCharacter(expectedCharacter ?? null);
 		/**
 		* The UUID we expect this gauge to track.
 		* @type {string}
 		*/
-		this._expectedUuid = jabsBattler ? jabsBattler.getUuid() : null;
-		this.setup(jabsBattler.getBattler(), this._statusType);
+		this.setExpectedUuid(jabsBattler ? jabsBattler.getUuid() : null);
+		this.setup(jabsBattler.getBattler(), this.statusType());
 	}
 	/**
 	* Whether the gauge should be considered valid for fill-rate.
@@ -1442,8 +1498,8 @@ var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 	*/
 	isValid() {
 		const jabsBattler = this.getJabsBattler();
-		const expectedUuid = this._expectedUuid;
-		const expectedCharacter = this._expectedCharacter;
+		const expectedUuid = this.expectedUuid();
+		const expectedCharacter = this.expectedCharacter();
 		if (!jabsBattler || !expectedUuid) return false;
 		if (jabsBattler.getUuid() !== expectedUuid) return false;
 		if (expectedCharacter && jabsBattler.getCharacter() !== expectedCharacter) return false;
@@ -1482,15 +1538,15 @@ var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 	*/
 	update() {
 		if (this.getJabsBattler()) {
-			this._battler = this.getJabsBattler().getBattler();
+			this.setBattler(this.getJabsBattler().getBattler());
 		}
 		const valid = this.isValid();
 		if (valid === false) {
 			this.visible = false;
-			if (this._gauge._label) {
+			if (this.gauge()._label) {
 				this.setLabel(String.empty);
 			}
-			if (this._gauge._iconIndex !== -1) {
+			if (this.gauge()._iconIndex !== -1) {
 				this.setIcon(-1);
 			}
 			return;
@@ -1547,7 +1603,7 @@ var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 	* Draws the tier label with crisp, integer-aligned text.
 	*/
 	drawLabel() {
-		if (!this._gauge._label) return;
+		if (!this.gauge()._label) return;
 		this.bitmap.fontFace = $gameSystem.mainFontFace();
 		this.bitmap.fontSize = 12;
 		this.bitmap.outlineWidth = 2;
@@ -1557,7 +1613,7 @@ var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 		const y = 0;
 		const w = this.bitmapWidth() - x;
 		const h = this.bitmapHeight();
-		this.bitmap.drawText(this._gauge._label, Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h), "left");
+		this.bitmap.drawText(this.gauge()._label, Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h), "left");
 	}
 	/**
 	* Overwrites {@link Sprite_MapGauge.gaugeX}.<br/>
@@ -1618,19 +1674,19 @@ Sprite_Character.prototype.setupMapSprite = function() {
 * Sets up this character's charge gauge, which shows tier progress while charging.
 */
 Sprite_Character.prototype.setupChargeGauge = function() {
-	const jabsBattler = this._character.getJabsBattler();
-	const expectedCharacter = this._character;
-	if (this._j._abs._gauges._chargeGauge) {
-		this._j._abs._gauges._chargeGauge.setupJabs(jabsBattler, expectedCharacter);
-		this._j._abs._gauges._chargeGauge.activateGauge();
-		const sprite = this._j._abs._gauges._chargeGauge;
+	const jabsBattler = this.character().getJabsBattler();
+	const expectedCharacter = this.character();
+	if (this.chargeGauge()) {
+		this.chargeGauge().setupJabs(jabsBattler, expectedCharacter);
+		this.chargeGauge().activateGauge();
+		const sprite = this.chargeGauge();
 		sprite.move(-Math.round(sprite.bitmapWidth() / 2), -28);
 		return;
 	}
 	const sprite = new Sprite_MapChargeGauge();
 	sprite.setupJabs(jabsBattler, expectedCharacter);
 	sprite.activateGauge();
-	this._j._abs._gauges._chargeGauge = sprite;
+	this.setChargeGauge(sprite);
 	sprite.move(-Math.round(sprite.bitmapWidth() / 2), -28);
 	this.addChild(sprite);
 };
@@ -1654,8 +1710,8 @@ Sprite_Character.prototype.updateGauges = function() {
 Sprite_Character.prototype.canUpdateChargeGauge = function() {
 	if (!this.canUpdate()) return false;
 	if (!this.isJabsBattler()) return false;
-	if (!this._j._abs._gauges._chargeGauge) return false;
-	const jabs = this._character.getJabsBattler();
+	if (!this.chargeGauge()) return false;
+	const jabs = this.character().getJabsBattler();
 	if (!jabs) return false;
 	if (!jabs.isCharging()) return false;
 	return true;
@@ -1665,12 +1721,12 @@ Sprite_Character.prototype.canUpdateChargeGauge = function() {
 */
 Sprite_Character.prototype.updateChargeGauge = function() {
 	this.showChargeGauge();
-	const gauge = this._j._abs._gauges._chargeGauge;
+	const gauge = this.chargeGauge();
 	if (gauge) {
-		const currentJabs = this._character.getJabsBattler();
-		const needsRebind = gauge._jabsBattler !== currentJabs || gauge._expectedCharacter !== this._character || gauge._expectedUuid !== (currentJabs ? currentJabs.getUuid() : null);
+		const currentJabs = this.character().getJabsBattler();
+		const needsRebind = gauge._jabsBattler !== currentJabs || gauge._expectedCharacter !== this.character() || gauge._expectedUuid !== (currentJabs ? currentJabs.getUuid() : null);
 		if (needsRebind) {
-			gauge.setupJabs(currentJabs, this._character);
+			gauge.setupJabs(currentJabs, this.character());
 		}
 		gauge._battler = this.getBattler();
 	}
@@ -1679,7 +1735,7 @@ Sprite_Character.prototype.updateChargeGauge = function() {
 * Shows the charge gauge if it exists.
 */
 Sprite_Character.prototype.showChargeGauge = function() {
-	const gauge = this._j._abs._gauges._chargeGauge;
+	const gauge = this.chargeGauge();
 	if (gauge) {
 		gauge.activateGauge();
 		gauge.show();
@@ -1689,10 +1745,24 @@ Sprite_Character.prototype.showChargeGauge = function() {
 * Hides the charge gauge if it exists.
 */
 Sprite_Character.prototype.hideChargeGauge = function() {
-	const gauge = this._j._abs._gauges._chargeGauge;
+	const gauge = this.chargeGauge();
 	if (gauge) {
 		gauge.hide();
 	}
+};
+/**
+* Gets the charge gauge.
+* @returns {*} The chargeGauge.
+*/
+Sprite_Character.prototype.chargeGauge = function() {
+	return this._j._abs._gauges._chargeGauge;
+};
+/**
+* Sets the charge gauge.
+* @param {*} newChargeGauge The new chargeGauge.
+*/
+Sprite_Character.prototype.setChargeGauge = function(newChargeGauge) {
+	this._j._abs._gauges._chargeGauge = newChargeGauge;
 };
 
 //#endregion

@@ -2,7 +2,7 @@
 
 > Assembled 2026-07-24. This is the full stitched-together story — 20 years of lineage, 6 years of built
 > content, and one very long week of worldbuilding — transcribed chapter-by-chapter: what, where, why, when,
-> who, and how. It supersedes and absorbs `story-bible.md` (the ch4+ decisions doc) and pairs with
+> who, and how. It absorbed the old `story-bible.md` (the ch4+ decisions doc, deleted 2026-07-31) and pairs with
 > [`walk/`](./walk/main.md) for the beat-by-beat ch1-3 playthrough.
 >
 > **Status tags** — every claim is marked:
@@ -23,7 +23,8 @@ Robert's RM2K game *"Jeremy and Robert"*, ~2003) they:
 - traveled continents, then space, and **saved the galaxy**
 - learned ancient magics from times of yore (Rupert)
 - scaled a mountain and absorbed a stupid alter-ego (Jerald — see *Raving Lunatic*, below)
-- watched old friends pass (Rupert's feline ally — the in-fiction source of his **avenge skill**)
+- watched old friends pass (**Kore**, Rupert's cat-humanoid ally who fought with claws — the in-fiction
+  source of his **avenge skill**; see [origins-the-roleplay.md](./origins-the-roleplay.md))
 - **exterminated the void clown species** — a predatory race whose favorite prey was an alien race called
   **The Elementals**. Final boss: a void clown named **Majik**.
 
@@ -31,7 +32,7 @@ That genocide, ~**440 years ago "on this time loop"**, accidentally saved The El
 **the pact**: *if you save the life of an elemental, that elemental serves the rescuer until the end of their
 days.* It is written into their genetics. They literally cannot refuse. (`SHIPPED` — Earthen Layer dialogue.)
 
-There was also a **time adventure** (*J&R2: Lost in Time*) that the two barely remember — fittingly, because
+There was also a **time adventure** (*J&R II: Disaster Of Time*) that the two barely remember — fittingly, because
 its source is literally lost to history. Running gag `PROPOSED`: J: "yeah, we went on that adventure through
 time, remember?" R: "...we did?" They are **cross-dimensional travelers**; they did not fly a ship here.
 
@@ -374,7 +375,7 @@ side-quest-driven passive grind may raise real-world numbers. Map sizes and enem
 knows the what and the why; this chapter is execution *in an open continent* — forks unlock via Raevula NPC
 questlines, hunts run, and the optional continent opens: the **Crystalline Ravine** (Erocian Isthmus), the
 **Deluge Plains** and **Windward Tunnels** (cavern route from Deluge to the Pearlsalt Mines), the
-**Seashell Shores** (from the Outer Cliffs — a *Lost in Time* throwback), the **Desolate Graves** (purpose
+**Seashell Shores** (from the Outer Cliffs — a *Disaster Of Time* throwback), the **Desolate Graves** (purpose
 `OPEN`), and the Subterranean waiting to be *whispered about*. The
 two technodisk retrievals are the only mandatory beats, and they should feel like **expeditions the player
 mounts when ready — not corridor stops.**
@@ -438,6 +439,40 @@ you've become over this journey, protagonists!"* — and **extracts the Sin of G
 essence.** No boss. No location. No fight. Greed was never the gent's doing; it is a manifestation of what
 Jerald and Rupert have been doing since minute one: hoarding. Unsettling, not celebratory — and a deliberate
 dress rehearsal for the Ammit reveal (see Postgame).
+
+### The Sabre cameo `PROPOSED (2026-07-31)`
+
+A roadside gag, placeable anywhere in the open chapter. **Sabre** is the antagonist of the prequel time
+adventure *J&R II: Disaster Of Time* (see [prequel-jr2.md](./prequel-jr2.md)) — a man who owned a mine, whose
+two workers Jeremy murdered over an interrupted nap, and who has been fleeing the duo through time ever since.
+He appears **once**, and dies in it. No boss, no fight, no health bar.
+
+1. An **interdimensional portal** opens in front of the duo mid-journey.
+2. Sabre and two lackeys tumble out, wounded and exhausted — this is the instant *after* one of his escapes
+   in the prequel.
+3. The duo: *"wtf?"*
+4. Sabre, panicking: *"huff puff — wait, what are YOU TWO doing here?!"*
+5. The duo, indignant: *"What do you MEAN 'you two', asswipe?! YOU are the one that jumped out of an
+   interdimensional — probably time-travelly — portal in front of US!"*
+6. A lackey offers: *"yarr, i just work for sabre!"*
+7. Jerald: *"ya know what, I don't have time for this."* **Slash animation. Erase character.**
+8. Rupert: *"you'd think time travelers would watch where they are going."*
+
+**Why it earns its place:** Sabre is panicking rather than menacing — he assumes they got ahead of him,
+because they always do. Nobody in the scene understands what is happening, so there is no straight man.
+Jerald kills him out of **impatience**, and *"I don't have time for this"* is said to a time traveler about
+time. Rupert treats an interdimensional assassination as a **traffic incident**.
+
+**It arms Grudj rather than spending him.** The Ch5 callback — *"I gave you your power. I TOLD you I was
+coming. You asked if there was a reward."* — currently asks the player to take Grudj at his word. If Sabre
+lands first, the player has already watched the duo do exactly that, **and laughed.** Sabre is the farce;
+Grudj is the same grievance at tragic scale. **Sabre must therefore land before Ch5.**
+
+The lackey's line and the erase-character death are both callbacks to the prequel, where Sabre's miners
+greeted Jeremy with *"I work for Sabre, how can I help you?"* and were killed with no combat, the same way.
+**No player will ever catch it.** `LOCKED (intent)`: the player never learns who he was — no name drop, no
+bestiary entry, no recap. Optional garnish, unassigned: the duo loot the corpse (feeding Greed), and
+pointedly skip the "review the facts" recap they perform after every *notable* plot point.
 
 ---
 

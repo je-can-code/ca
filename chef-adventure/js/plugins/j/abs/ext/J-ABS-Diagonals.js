@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.3 DIAG] Enables diagonal movement.
+ * [v1.1.3 ABS-DIAG] Enables diagonal movement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -628,11 +628,11 @@ J.ABS.EXT.DIAG.Aliased.Game_Player.set("moveDiagonally", Game_Player.prototype.m
 Game_Player.prototype.moveDiagonally = function(horz, vert) {
 	J.ABS.EXT.DIAG.Aliased.Game_Player.get("moveDiagonally").call(this, horz, vert);
 	if (this.isMovementSucceeded() === true) return;
-	this.setMovementSuccess(this.canPass(this._x, this._y, vert));
+	this.setMovementSuccess(this.canPass(this.x, this.y, vert));
 	if (this.isMovementSucceeded()) {
 		this.moveStraight(vert);
 	}
-	this.setMovementSuccess(this.canPass(this._x, this._y, horz));
+	this.setMovementSuccess(this.canPass(this.x, this.y, horz));
 	if (this.isMovementSucceeded()) {
 		this.moveStraight(horz);
 	}

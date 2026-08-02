@@ -593,8 +593,18 @@ Object.defineProperty(Game_Battler.prototype, "hcr", {
 * Floored at zero — a negative factor would let ResourceManager's hp cost calculations go
 * negative, which would refund hp on cast instead of just reducing the cost to free.
 */
+/**
+* Gets the raw hp-cost-reduction percentage as stored (100 means no reduction).
+*
+* This is deliberately not {@link Game_Battler#hcr}, which normalises the same value into the
+* fractional multiplier the cost math consumes.
+* @returns {number} The stored hcr percentage.
+*/
+Game_Battler.prototype.hcrPercent = function() {
+	return this._j._hcr;
+};
 Game_Battler.prototype.hcrFactor = function() {
-	const hrcFactor = Math.max(0, this._j._hcr / 100);
+	const hrcFactor = Math.max(0, this.hcrPercent() / 100);
 	return hrcFactor;
 };
 /**

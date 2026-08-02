@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 TOOLS] Enable new tool-like tags for use with skills.
+ * [v1.1.0 ABS-TOOLS] Enable new tool-like tags for use with skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -404,7 +404,7 @@ JABS_Battler.prototype.hasGapCloseDestination = function() {
 * Clears the destination coordinates for gap closing.
 */
 JABS_Battler.prototype.clearGapCloseDestination = function() {
-	this._gapCloseDestination = [0, 0];
+	this.setGapCloseDestination([0, 0]);
 };
 /**
 * Extends {@link JABS_Battler.update}.<br/>
@@ -461,7 +461,7 @@ JABS_Battler.prototype.gapCloseToTarget = function(action, target) {
 	const casterCharacter = this.getCharacter();
 	if (jabsRespectTerrain && !casterCharacter.canReachTileDelta(x, y)) return;
 	this.beginGapClosing();
-	this._gapCloseSourceSkillId = action.getBaseSkill().id;
+	this.setGapCloseSourceSkillId(action.getBaseSkill().id);
 	this.setGapCloseDestination([this.getX() + x, this.getY() + y]);
 	jabsGapCloseMode ??= J.ABS.EXT.TOOLS.GapCloseModes.Jump;
 	switch (jabsGapCloseMode) {
@@ -550,7 +550,7 @@ JABS_Battler.prototype.resolvePullVector = function(caster) {
 * @returns {number[]} The merged list of skill IDs to execute on landing.
 */
 JABS_Battler.prototype.resolveGapCloseEndSkillIds = function() {
-	const sourceSkill = $dataSkills[this._gapCloseSourceSkillId];
+	const sourceSkill = $dataSkills[this.gapCloseSourceSkillId()];
 	const thisIds = sourceSkill ? sourceSkill.jabsThisOnGapCloseEnd : [];
 	const battlerIds = this.getBattler().gapCloseEndSkillIds();
 	return [...thisIds, ...battlerIds];
@@ -608,6 +608,20 @@ JABS_Battler.prototype.hasReachedGapCloseDestination = function() {
 */
 JABS_Battler.gapCloseWiggleRoom = function() {
 	return .5;
+};
+/**
+* Gets the gap close source skill id.
+* @returns {number} The gapCloseSourceSkillId.
+*/
+JABS_Battler.prototype.gapCloseSourceSkillId = function() {
+	return this._gapCloseSourceSkillId;
+};
+/**
+* Sets the gap close source skill id.
+* @param {number} newGapCloseSourceSkillId The new gapCloseSourceSkillId.
+*/
+JABS_Battler.prototype.setGapCloseSourceSkillId = function(newGapCloseSourceSkillId) {
+	this._gapCloseSourceSkillId = newGapCloseSourceSkillId;
 };
 
 //#endregion

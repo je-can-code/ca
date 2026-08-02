@@ -1037,6 +1037,27 @@ var PopupNumericDisplay = class {
 */
 var Sprite_MapDamage = class extends Sprite_Damage {
 	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
+	/**
+	* Gets the duration.
+	* @returns {number} The duration.
+	*/
+	duration() {
+		return this._duration;
+	}
+	/**
+	* Sets the duration.
+	* @param {number} newDuration The new duration.
+	*/
+	setDuration(newDuration) {
+		this._duration = newDuration;
+	}
+	/**
 	* Constructor.
 	* @param {...*} args Forwarded to {@link #initialize}.
 	*/
@@ -1104,9 +1125,9 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 	*/
 	update() {
 		Sprite.prototype.update.call(this);
-		if (this._duration > 0) {
-			if (this._j._popups._mapAccumulatePhase !== true) {
-				this._duration--;
+		if (this.duration() > 0) {
+			if (this.j()._popups._mapAccumulatePhase !== true) {
+				this.setDuration(this.duration() - 1);
 			}
 			for (let i = 0; i < this.children.length; i++) {
 				this.updateChild(this.children[i]);
@@ -1120,16 +1141,16 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 	* Eases root scale after {@link #refreshDisplayedValue} so combined totals read as a pulse, not a silent swap.
 	*/
 	updateMergeCombinePulse() {
-		const idx = this._j._popups._mergePulseFrameIndex;
-		const total = this._j._popups._mergePulseTotalFrames;
-		const holdFrames = this._j._popups._mergePulseHoldFrames;
+		const idx = this.j()._popups._mergePulseFrameIndex;
+		const total = this.j()._popups._mergePulseTotalFrames;
+		const holdFrames = this.j()._popups._mergePulseHoldFrames;
 		if (idx >= total) {
 			this.scale.x = 1;
 			this.scale.y = 1;
-			this._j._popups._mergePulseFlashAlpha = 0;
+			this.j()._popups._mergePulseFlashAlpha = 0;
 			return;
 		}
-		const peak = this._j._popups._mergePulsePeakScale;
+		const peak = this.j()._popups._mergePulsePeakScale;
 		let scale = peak;
 		if (idx >= holdFrames) {
 			const decayFrames = Math.max(total - holdFrames, 1);
@@ -1138,16 +1159,16 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 			const easedRatio = Math.cos(Math.PI / 2 * decayRatio);
 			scale = 1 + (peak - 1) * easedRatio;
 		}
-		const flashMaxAlpha = this._j._popups._mergePulseFlashMaxAlpha;
+		const flashMaxAlpha = this.j()._popups._mergePulseFlashMaxAlpha;
 		if (flashMaxAlpha > 0) {
 			const fadeRatio = 1 - idx / Math.max(total, 1);
-			this._j._popups._mergePulseFlashAlpha = Math.round(flashMaxAlpha * fadeRatio);
+			this.j()._popups._mergePulseFlashAlpha = Math.round(flashMaxAlpha * fadeRatio);
 		} else {
-			this._j._popups._mergePulseFlashAlpha = 0;
+			this.j()._popups._mergePulseFlashAlpha = 0;
 		}
 		this.scale.x = scale;
 		this.scale.y = scale;
-		this._j._popups._mergePulseFrameIndex = idx + 1;
+		this.j()._popups._mergePulseFrameIndex = idx + 1;
 	}
 	/**
 	* Restarts the combine pulse when a merge refresh lands (stacking hits, slip ticks, mitigation counts).
@@ -1155,21 +1176,21 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 	* @param {boolean} largePulse Whether or not this pulse should be exaggerated.
 	*/
 	kickMergeCombinePulse(largePulse = false) {
-		const baseFrames = this._j._popups._mergePulseBaseFrames;
-		this._j._popups._mergePulsePeakScale = largePulse ? 1.9 : 1.33;
-		this._j._popups._mergePulseTotalFrames = largePulse ? baseFrames * 3 : baseFrames;
-		this._j._popups._mergePulseHoldFrames = largePulse ? 6 : 0;
-		this._j._popups._mergePulseFlashMaxAlpha = largePulse ? 192 : 0;
-		this._j._popups._mergePulseFrameIndex = 0;
+		const baseFrames = this.j()._popups._mergePulseBaseFrames;
+		this.j()._popups._mergePulsePeakScale = largePulse ? 1.9 : 1.33;
+		this.j()._popups._mergePulseTotalFrames = largePulse ? baseFrames * 3 : baseFrames;
+		this.j()._popups._mergePulseHoldFrames = largePulse ? 6 : 0;
+		this.j()._popups._mergePulseFlashMaxAlpha = largePulse ? 192 : 0;
+		this.j()._popups._mergePulseFrameIndex = 0;
 	}
 	/**
 	* Ends the accumulation phase and allows normal bounce / flyaway motion to run.
 	*/
 	releaseAccumulatePhase() {
-		this._j._popups._mapAccumulatePhase = false;
+		this.j()._popups._mapAccumulatePhase = false;
 		const baseDuration = J.POPUPS.Layout.BaseDuration;
-		if (this._duration < baseDuration) {
-			this._duration = baseDuration;
+		if (this.duration() < baseDuration) {
+			this.setDuration(baseDuration);
 		}
 	}
 	/**
@@ -1180,14 +1201,14 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 	*/
 	refreshDisplayedValue(valueString, largePulse = false) {
 		let healingPopup = false;
-		if (this._j._popups._sourcePopup && this._j._popups._sourcePopup.healing === true) {
+		if (this.j()._popups._sourcePopup && this.j()._popups._sourcePopup.healing === true) {
 			healingPopup = true;
 		}
 		const displayString = PopupNumericDisplay.formatNumericPopupDisplayString(valueString, healingPopup);
-		if (this._j._popups._sourcePopup) {
-			this._j._popups._sourcePopup.value = displayString;
+		if (this.j()._popups._sourcePopup) {
+			this.j()._popups._sourcePopup.value = displayString;
 		}
-		const iconRef = this._j._popups._iconSprite;
+		const iconRef = this.j()._popups._iconSprite;
 		const textSprite = this.children.find((child) => child !== iconRef && child.bitmap && child.bitmap.width === J.POPUPS.Layout.ValueBitmapWidth);
 		if (!textSprite || !textSprite.bitmap) {
 			return;
@@ -1196,11 +1217,11 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 		const h = this.fontSize();
 		textSprite.bitmap.clear();
 		let fontSize = 20;
-		if (this._j._popups._isCritical) {
+		if (this.j()._popups._isCritical) {
 			fontSize += 12;
 			textSprite.bitmap.fontBold = true;
 		} else {
-			const accent = this._j._popups._textAccent;
+			const accent = this.j()._popups._textAccent;
 			const accentSmallItalic = accent === "miss" || accent === "evade" || accent === "parry";
 			const legacyItalic = displayString.includes("Missed") || displayString.includes("Evaded") || displayString.includes("Parry");
 			if (accentSmallItalic || legacyItalic) {
@@ -1225,8 +1246,8 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 	* @param {Sprite} sprite Child motion sprite from {@link Sprite_Damage#createChildSprite}.
 	*/
 	updateChild(sprite) {
-		if (this._j._popups._mapAccumulatePhase === true) {
-			const mergePulseFlashAlpha = this._j._popups._mergePulseFlashAlpha;
+		if (this.j()._popups._mapAccumulatePhase === true) {
+			const mergePulseFlashAlpha = this.j()._popups._mergePulseFlashAlpha;
 			if (mergePulseFlashAlpha > 0) {
 				sprite.setBlendColor([
 					255,
@@ -1235,7 +1256,7 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 					mergePulseFlashAlpha
 				]);
 			} else {
-				sprite.setBlendColor(this._flashColor);
+				sprite.setBlendColor(this.flashColor());
 			}
 			return;
 		}
@@ -1644,6 +1665,13 @@ Sprite_Damage.prototype.initMembers = function() {
 	this._j._popups._sourcePopup = null;
 };
 /**
+* Gets the popup this sprite was built from.
+* @returns {Map_TextPop|null}
+*/
+Sprite_Damage.prototype.sourcePopup = function() {
+	return this._j._popups._sourcePopup;
+};
+/**
 * Gets whether or not this sprite is a damage popup.
 * @returns {boolean} True if it is a damage popup, false if it is a non-damage popup.
 */
@@ -1736,22 +1764,22 @@ Sprite_Damage.prototype.setupMotionData = function(sprite) {
 */
 Sprite_Damage.prototype.createValue = function(value) {
 	let healingPopup = false;
-	if (this._j._popups._sourcePopup && this._j._popups._sourcePopup.healing === true) {
+	if (this.sourcePopup() && this.sourcePopup().healing === true) {
 		healingPopup = true;
 	}
 	const displayValue = PopupNumericDisplay.formatNumericPopupDisplayString(value, healingPopup);
-	if (this._j._popups._sourcePopup) {
-		this._j._popups._sourcePopup.value = displayValue;
+	if (this.sourcePopup()) {
+		this.sourcePopup().value = displayValue;
 	}
 	const w = J.POPUPS.Layout.ValueBitmapWidth;
 	const h = this.fontSize();
 	const sprite = this.createChildSprite(w, h);
 	let fontSize = 20;
-	if (this._j._popups._isCritical) {
+	if (this.isCritical()) {
 		fontSize += 12;
 		sprite.bitmap.fontBold = true;
 	} else {
-		const accent = this._j._popups._textAccent;
+		const accent = this.textAccent();
 		const accentSmallItalic = accent === "miss" || accent === "evade" || accent === "parry";
 		const legacyItalic = displayValue.includes("Missed") || displayValue.includes("Evaded") || displayValue.includes("Parry");
 		if (accentSmallItalic || legacyItalic) {
@@ -1780,7 +1808,7 @@ Sprite_Damage.prototype.addIcon = function(iconIndex) {
 	const iconScale = J.POPUPS.Layout.IconScale;
 	sprite.scale.x = iconScale;
 	sprite.scale.y = iconScale;
-	this._j._popups._iconSprite = sprite;
+	this.setIconSprite(sprite);
 	sprite.anchor.y = .5;
 	sprite.x = 0;
 };
@@ -1788,12 +1816,12 @@ Sprite_Damage.prototype.addIcon = function(iconIndex) {
 * Repositions children to be side-by-side if both icon and text exist.
 */
 Sprite_Damage.prototype.repositionChildren = function() {
-	const icon = this._j._popups._iconSprite;
+	const icon = this.iconSprite();
 	const text = this.children.find((child) => child !== icon && child.bitmap && child.bitmap.width === J.POPUPS.Layout.ValueBitmapWidth);
 	if (icon && text) {
 		const spacing = 4;
 		const iconWidth = ImageManager.iconWidth * J.POPUPS.Layout.IconScale;
-		const textWidth = text.bitmap.measureTextWidth(this._j._popups._sourcePopup.value);
+		const textWidth = text.bitmap.measureTextWidth(this.sourcePopup().value);
 		const totalWidth = iconWidth + spacing + textWidth;
 		const startX = -(totalWidth / 2);
 		icon.x = startX + iconWidth / 2;
@@ -1805,7 +1833,7 @@ Sprite_Damage.prototype.repositionChildren = function() {
 * @param {number} extraDuration The amount to extend in frames.
 */
 Sprite_Damage.prototype.addDuration = function(extraDuration) {
-	this._duration += extraDuration;
+	this.setDuration(this.duration() + extraDuration);
 };
 /**
 * Overwrites {@link #updateChild}.<br/>
@@ -1813,7 +1841,7 @@ Sprite_Damage.prototype.addDuration = function(extraDuration) {
 * @param {Sprite} sprite The sprite to udpate.
 */
 Sprite_Damage.prototype.updateChild = function(sprite) {
-	sprite.setBlendColor(this._flashColor);
+	sprite.setBlendColor(this.flashColor());
 	const isMotionType = this.isDamage() || this.isHealing();
 	if (J.POPUPS.Layout.Motion.Enabled === true && isMotionType) {
 		const style = J.POPUPS.Layout.Motion.Style;
@@ -1886,7 +1914,7 @@ Sprite_Damage.prototype.defaultDamageSpriteMotion = function(sprite) {
 Sprite_Damage.prototype.flyawayDamageSpriteMotion = function(sprite) {
 	sprite.yf3 -= 1;
 	sprite.y = -sprite.yf2 + sprite.yf3;
-	if (this._duration > 30) {
+	if (this.duration() > 30) {
 		sprite.opacity += 10;
 	} else {
 		sprite.opacity -= 10;
@@ -1898,8 +1926,8 @@ Sprite_Damage.prototype.flyawayDamageSpriteMotion = function(sprite) {
 */
 Sprite_Damage.prototype.updateOpacity = function() {
 	const baseDuration = J.POPUPS.Layout.BaseDuration;
-	if (this._duration < baseDuration) {
-		this.opacity = 255 * this._duration / baseDuration;
+	if (this.duration() < baseDuration) {
+		this.opacity = 255 * this.duration() / baseDuration;
 	}
 };
 /**
@@ -1922,9 +1950,44 @@ Sprite_Damage.prototype.damageColor = function() {
 J.POPUPS.Aliased.Sprite_Damage.set("setupCriticalEffect", Sprite_Damage.prototype.setupCriticalEffect);
 Sprite_Damage.prototype.setupCriticalEffect = function() {
 	J.POPUPS.Aliased.Sprite_Damage.get("setupCriticalEffect").call(this);
-	this._j._popups._isCritical = true;
-	this._flashColor[3] = 240;
+	this.setIsCritical(true);
+	this.flashColor()[3] = 240;
 	this.addDuration(60);
+};
+/**
+* Gets the is critical.
+* @returns {boolean} The isCritical.
+*/
+Sprite_Damage.prototype.isCritical = function() {
+	return this._j._popups._isCritical;
+};
+/**
+* Sets the is critical.
+* @param {boolean} newIsCritical The new isCritical.
+*/
+Sprite_Damage.prototype.setIsCritical = function(newIsCritical) {
+	this._j._popups._isCritical = newIsCritical;
+};
+/**
+* Gets the text accent.
+* @returns {*} The textAccent.
+*/
+Sprite_Damage.prototype.textAccent = function() {
+	return this._j._popups._textAccent;
+};
+/**
+* Gets the icon sprite.
+* @returns {Sprite} The iconSprite.
+*/
+Sprite_Damage.prototype.iconSprite = function() {
+	return this._j._popups._iconSprite;
+};
+/**
+* Sets the icon sprite.
+* @param {Sprite} newIconSprite The new iconSprite.
+*/
+Sprite_Damage.prototype.setIconSprite = function(newIconSprite) {
+	this._j._popups._iconSprite = newIconSprite;
 };
 
 //#endregion
@@ -1961,40 +2024,28 @@ Sprite_Character.prototype.initMembers = function() {
 * @returns {boolean} True if we have any, false otherwise.
 */
 Sprite_Character.prototype.hasDamagePops = function() {
-	return this._j._popups._damagePopSprites.length > 0;
+	return this.damagePopSprites().length > 0;
 };
 /**
 * Gets all damage pop sprites currently being tracked.
 * @returns {Sprite_Damage[]}
 */
 Sprite_Character.prototype.getDamagePops = function() {
-	return this._j._popups._damagePopSprites;
+	return this.damagePopSprites();
 };
 /**
 * Determines whether or not this character has non damage pops.
 * @returns {boolean} True if we have any, false otherwise.
 */
 Sprite_Character.prototype.hasNonDamagePops = function() {
-	return this._j._popups._nonDamagePopSprites.length > 0;
+	return this.nonDamagePopSprites().length > 0;
 };
 /**
 * Gets all non damage pop sprites currently being tracked.
 * @returns {Sprite_Damage[]}
 */
 Sprite_Character.prototype.getNonDamagePops = function() {
-	return this._j._popups._nonDamagePopSprites;
-};
-/**
-* Cleans up the `undefined` or `null` damage pop sprites that are invalid.
-*/
-Sprite_Character.prototype.cleanupDamagePops = function() {
-	this._j._popups._damagePopSprites = this._j._popups._damagePopSprites.filter((pop) => !!pop);
-};
-/**
-* Cleans up the `undefined` or `null` non damage pop sprites that are invalid.
-*/
-Sprite_Character.prototype.cleanupNonDamagePops = function() {
-	this._j._popups._nonDamagePopSprites = this._j._popups._nonDamagePopSprites.filter((pop) => !!pop);
+	return this.nonDamagePopSprites();
 };
 /**
 * Hooks into the `Sprite_Character.update` and adds our ABS updates.
@@ -2037,9 +2088,9 @@ Sprite_Character.prototype.createIncomingTextPop = function(popup) {
 	const ringExtra = useMotion ? PopupLayoutHelper.resolveMotionOffset(popup) : PopupLayoutHelper.consumeLayoutRingOffset(character, popup.layoutRing);
 	const sprite = TextPopSpriteManager.convert(popup, ringExtra);
 	if (sprite.isDamage()) {
-		this._j._popups._damagePopSprites.push(sprite);
+		this.damagePopSprites().push(sprite);
 	} else {
-		this._j._popups._nonDamagePopSprites.push(sprite);
+		this.nonDamagePopSprites().push(sprite);
 	}
 	this.parent.addChild(sprite);
 	J.POPUPS.notifyPopupSpriteSpawned(character, popup, sprite);
@@ -2052,9 +2103,9 @@ Sprite_Character.prototype.createIncomingTextPop = function(popup) {
 */
 Sprite_Character.prototype.attachConvertedDamagePopupSprite = function(sprite, popup) {
 	if (sprite.isDamage()) {
-		this._j._popups._damagePopSprites.push(sprite);
+		this.damagePopSprites().push(sprite);
 	} else {
-		this._j._popups._nonDamagePopSprites.push(sprite);
+		this.nonDamagePopSprites().push(sprite);
 	}
 	this.parent.addChild(sprite);
 	J.POPUPS.notifyPopupSpriteSpawned(this.character(), popup, sprite);
@@ -2088,36 +2139,26 @@ Sprite_Character.prototype.updateNonDamagePops = function() {
 * @param {function(Sprite_Damage): void} updateLocationFn Hook for positioning (damage vs non-damage override).
 */
 Sprite_Character.prototype._updateTrackedPopupBucket = function(bucket, updateLocationFn) {
-	const deletedFlags = bucket.map((pop, index) => {
-		if (!pop) return false;
+	bucket.forEach((pop) => {
 		pop.update();
 		updateLocationFn.call(this, pop);
-		if (!pop.isPlaying()) {
-			this._removeTrackedPopSprite(pop, index, bucket);
-			return true;
-		}
-		return false;
-	}, this);
-	if (deletedFlags.some((flag) => flag === true)) {
-		const next = bucket.filter((entry) => !!entry);
-		bucket.length = 0;
-		for (let i = 0; i < next.length; i++) {
-			bucket.push(next[i]);
-		}
-	}
+	});
+	const stillPlaying = bucket.filter((pop) => pop.isPlaying() === true);
+	const finished = bucket.filter((pop) => pop.isPlaying() === false);
+	if (finished.length === 0) return;
+	finished.forEach((pop) => this._removeTrackedPopSprite(pop));
+	bucket.length = 0;
+	stillPlaying.forEach((pop) => bucket.push(pop));
 };
 /**
 * Detaches a finished popup, emits lifecycle, and destroys the sprite.
 * @param {Sprite_Damage} sprite The popup sprite.
-* @param {number} index Index in the bucket (may be sparse).
-* @param {Sprite_Damage[]} bucket Owning array.
 */
-Sprite_Character.prototype._removeTrackedPopSprite = function(sprite, index, bucket) {
+Sprite_Character.prototype._removeTrackedPopSprite = function(sprite) {
 	const character = this.character();
 	this.parent.removeChild(sprite);
 	J.POPUPS.notifyPopupSpriteFinished(character, sprite._j._popups._sourcePopup, sprite);
 	sprite.destroy();
-	delete bucket[index];
 };
 /**
 * Default anchor for map text pops (override for custom layout).
@@ -2141,6 +2182,34 @@ Sprite_Character.prototype.updateDamagePopLocation = function(damageSprite) {
 */
 Sprite_Character.prototype.updateNonDamagePopLocation = function(nonDamageSprite) {
 	this.updateTextPopAnchorPosition(nonDamageSprite);
+};
+/**
+* Gets the damage pop sprites.
+* @returns {*} The damagePopSprites.
+*/
+Sprite_Character.prototype.damagePopSprites = function() {
+	return this._j._popups._damagePopSprites;
+};
+/**
+* Sets the damage pop sprites.
+* @param {*} newDamagePopSprites The new damagePopSprites.
+*/
+Sprite_Character.prototype.setDamagePopSprites = function(newDamagePopSprites) {
+	this._j._popups._damagePopSprites = newDamagePopSprites;
+};
+/**
+* Gets the non damage pop sprites.
+* @returns {*} The nonDamagePopSprites.
+*/
+Sprite_Character.prototype.nonDamagePopSprites = function() {
+	return this._j._popups._nonDamagePopSprites;
+};
+/**
+* Sets the non damage pop sprites.
+* @param {*} newNonDamagePopSprites The new nonDamagePopSprites.
+*/
+Sprite_Character.prototype.setNonDamagePopSprites = function(newNonDamagePopSprites) {
+	this._j._popups._nonDamagePopSprites = newNonDamagePopSprites;
 };
 
 //#endregion
@@ -2172,21 +2241,21 @@ Game_Character.prototype.initMembers = function() {
 */
 Game_Character.prototype.hasTextPops = function() {
 	if (J.POPUPS.Metadata.disablePopups === true) return false;
-	return this._j._textPopRequest;
+	return this.isTextPopRequest();
 };
 /**
 * Flags this character for requiring text pops to be processed.
 */
 Game_Character.prototype.requestTextPop = function() {
 	if (J.POPUPS.Metadata.disablePopups === true) return;
-	this._j._textPopRequest = true;
+	this.setTextPopRequest(true);
 	J.POPUPS.notifyPopupFlushRequested(this);
 };
 /**
 * Acknowledges the request for generating text pops.
 */
 Game_Character.prototype.acknowledgeTextPops = function() {
-	this._j._textPopRequest = false;
+	this.setTextPopRequest(false);
 };
 /**
 * Adds a text pop to this character.
@@ -2198,7 +2267,7 @@ Game_Character.prototype.addTextPop = function(textPop) {
 		console.warn(`[${J.POPUPS.Metadata.name}] addTextPop rejected invalid Map_TextPop (bad type or layoutRing).`, textPop);
 		return;
 	}
-	this._j._textPops.push(textPop);
+	this.getTextPops().push(textPop);
 	J.POPUPS.notifyPopupQueued(this, textPop);
 };
 /**
@@ -2220,6 +2289,20 @@ Game_Character.prototype.emptyDamagePops = function() {
 */
 Game_Character.prototype.clearPendingTextPops = function() {
 	this.emptyDamagePops();
+};
+/**
+* Gets the text pop request.
+* @returns {*} The textPopRequest.
+*/
+Game_Character.prototype.isTextPopRequest = function() {
+	return this._j._textPopRequest;
+};
+/**
+* Sets the text pop request.
+* @param {*} newTextPopRequest The new textPopRequest.
+*/
+Game_Character.prototype.setTextPopRequest = function(newTextPopRequest) {
+	this._j._textPopRequest = newTextPopRequest;
 };
 
 //#endregion

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.3.0 INPUT] A manager for overseeing the input of JABS.
+ * [v2.3.0 ABS-INPUT] A manager for overseeing the input of JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -42,8 +42,7 @@
  * resetting mappings to default- there's nothing to tag on database
  * objects.
  * ============================================================================
- * CHANGELOG
- * ----------------------------------------------------------------------------
+ * CHANGELOG:
  * - 2.3.0
  *    Added UsableItem as a remappable logical input (R2 by default),
  *    wiring J-ABS core's new usable-item equip slot to its own trigger.
@@ -174,6 +173,36 @@ var JABS_Button = class {
 	*/
 	static CombatSkill4 = "CombatSkill4";
 	/**
+	* Gets the logical buttons that combine to produce each combat skill input.
+	*
+	* Combat skills are not independently bindable- each one is the {@link JABS_Button.SkillTrigger}
+	* modifier held alongside one of the four primary buttons. That relationship used to exist only
+	* inside display strings such as "Skill Trigger + Mainhand", which meant a retired button could
+	* (and did) leave those strings quietly lying about what actually fires the skill.
+	*
+	* Expressing it as data instead lets every consumer- remap labels, HUD hints, loadout screens-
+	* resolve the current binding of each half through the live input mapping, so remapping either
+	* component immediately and correctly updates everywhere it is displayed.
+	* @returns {Object<string, string[]>} A map of combat skill key to its component button keys.
+	*/
+	static combatSkillCompositions() {
+		const compositions = {};
+		compositions[this.CombatSkill1] = [this.SkillTrigger, this.Mainhand];
+		compositions[this.CombatSkill2] = [this.SkillTrigger, this.Offhand];
+		compositions[this.CombatSkill3] = [this.SkillTrigger, this.Sprint];
+		compositions[this.CombatSkill4] = [this.SkillTrigger, this.Tool];
+		return compositions;
+	}
+	/**
+	* Gets the logical buttons that combine to produce the given combat skill input.
+	* @param {string} combatSkillButton The combat skill key to decompose.
+	* @returns {string[]} The component button keys, or an empty array if it is not a combat skill.
+	*/
+	static combatSkillComposition(combatSkillButton) {
+		const composition = this.combatSkillCompositions()[combatSkillButton];
+		return composition ?? Array.empty;
+	}
+	/**
 	* Gets all assignable buttons used for JABS.
 	* @returns {string[]} A collection of JABS-input keys' identifiers.
 	*/
@@ -259,6 +288,13 @@ var JABS_StandardController = class extends JABS_BaseController {
 		* @type {boolean}
 		*/
 		this._lastInCombat = false;
+	}
+	/**
+	* Sets whether the battler was in combat on the previous frame.
+	* @param {boolean} lastInCombat Whether the battler was in combat.
+	*/
+	setLastInCombat(lastInCombat) {
+		this._lastInCombat = lastInCombat;
 	}
 	/**
 	* Initialize the button-to-input mappings.
@@ -546,10 +582,10 @@ var JABS_StandardController = class extends JABS_BaseController {
 		const battler = this.getBattler();
 		const inCombat = battler.isInCombat();
 		if (inCombat) {
-			this._lastInCombat = true;
+			this.setLastInCombat(true);
 			return this.isActionTriggered(JABS_Button.Sprint);
 		}
-		this._lastInCombat = false;
+		this.setLastInCombat(false);
 		return this.isActionPressed(JABS_Button.Sprint);
 	}
 	/**
@@ -1084,37 +1120,74 @@ IconManager.registerJabsIcons = function() {
 	this.registerJabsIcon(J.ABS.EXT.INPUT.Symbols.CombatSkill4, 79);
 };
 /**
-* A key-value mapping of physical input symbols to ex-text.
-* @type {Record<string, string>}
+* A key-value mapping of physical input symbols to per-device ex-text.
+*
+* Every symbol carries a glyph for each device rather than one combined string, because the player is
+* only ever holding one of them. Showing both bindings permanently tells a controller player about a
+* keyboard they are not touching, and doubles the length of every legend to do it.
+* @type {Record<string, {gamepad: string, keyboard: string}>}
 */
 IconManager._jabsInputTextRegistry = {};
 /**
 * Gets the ex-text registry for JABS input symbols.
-* @returns {Record<string, string>}
+* @returns {Record<string, {gamepad: string, keyboard: string}>}
 */
 IconManager.getJabsInputTextRegistry = function() {
 	return IconManager._jabsInputTextRegistry;
 };
 /**
-* Registers custom ex-text for a given symbol.
+* Registers custom per-device ex-text for a given symbol.
 * @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
-* @param {string} text The ex-text to use for the given symbol.
+* @param {string} gamepadText The ex-text to use while the player is on a gamepad.
+* @param {string} keyboardText The ex-text to use while the player is on a keyboard.
 */
-IconManager.registerJabsInputText = function(symbol, text) {
+IconManager.registerJabsInputText = function(symbol, gamepadText, keyboardText) {
 	const validatedSymbol = String(symbol);
 	const normalizedSymbol = validatedSymbol.trim().toLowerCase();
 	if (!normalizedSymbol) {
-		throw new Error(`Attempting to register an empty symbol for ex-text: ${text}`);
+		throw new Error(`Attempting to register an empty symbol for ex-text: ${gamepadText}`);
 	}
-	const validatedText = String(text).trim();
-	if (!validatedText) {
-		throw new Error(`Attempting to register an empty ex-text for symbol: ${normalizedSymbol}`);
+	const validatedGamepadText = String(gamepadText).trim();
+	if (!validatedGamepadText) {
+		throw new Error(`Attempting to register empty gamepad ex-text for symbol: ${normalizedSymbol}`);
+	}
+	const validatedKeyboardText = String(keyboardText).trim();
+	if (!validatedKeyboardText) {
+		throw new Error(`Attempting to register empty keyboard ex-text for symbol: ${normalizedSymbol}`);
 	}
 	const registry = this.getJabsInputTextRegistry();
-	registry[normalizedSymbol] = validatedText;
+	registry[normalizedSymbol] = {
+		gamepad: validatedGamepadText,
+		keyboard: validatedKeyboardText
+	};
 };
 /**
-* Get the ex-text for a given physical input symbol.
+* How far a keyboard glyph sits from its gamepad counterpart in the icon sheet.
+*
+* The sheet is laid out so that the keyboard row sits exactly one row above the gamepad row, with the
+* two in identical order- cross above Z, circle above X, and so on all the way along. That regularity
+* is deliberate on the sheet's part, so it is expressed here once as a rule rather than restated as a
+* second magic number beside every registration.
+* @returns {number}
+*/
+IconManager.keyboardIconIndexOffset = function() {
+	return 16;
+};
+/**
+* Registers the paired glyphs for a symbol from its gamepad icon index alone.
+*
+* The keyboard index is derived via {@link IconManager.keyboardIconIndexOffset}. Anything whose two
+* glyphs do not follow that layout should call {@link IconManager.registerJabsInputText} directly and
+* state both.
+* @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
+* @param {number} gamepadIconIndex The icon index of the gamepad glyph for this symbol.
+*/
+IconManager.registerJabsInputIcon = function(symbol, gamepadIconIndex) {
+	const keyboardIconIndex = gamepadIconIndex - this.keyboardIconIndexOffset();
+	this.registerJabsInputText(symbol, `\\I[${gamepadIconIndex}]`, `\\I[${keyboardIconIndex}]`);
+};
+/**
+* Get the ex-text for a given physical input symbol, for whichever device the player is using.
 * @param {string} symbol The physical input symbol (ex: "ok", "pagedown", "l2", "start").
 * @returns {string} The ex-text for the given symbol, or the symbol itself if not mapped.
 */
@@ -1122,7 +1195,9 @@ IconManager.jabsInputTextForSymbol = function(symbol) {
 	const registry = this.getJabsInputTextRegistry();
 	const validatedSymbol = String(symbol);
 	const normalizedSymbol = validatedSymbol.toLowerCase();
-	return registry[normalizedSymbol] || Input.labelForSymbol(normalizedSymbol) || symbol;
+	const registered = registry[normalizedSymbol];
+	if (registered === undefined) return Input.labelForSymbol(normalizedSymbol) || symbol;
+	return InputDeviceTracker.isGamepad() ? registered.gamepad : registered.keyboard;
 };
 /**
 * Gets the ex-text for a given physical input symbol.
@@ -1135,19 +1210,79 @@ IconManager.jabsIconTextForSymbol = function(symbol) {
 };
 /**
 * Registers all JABS input symbols with their respective ex-text.
+*
+* Only the gamepad index is stated for each symbol; the keyboard glyph follows from the sheet's layout.
+* Note that a symbol's name and its keyboard glyph are not expected to agree- the names are borrowed
+* from the engine's own mapping vocabulary and serve as identifiers, while the glyph shows the key
+* actually bound to that action.
 */
 IconManager.registerJabsInputTexts = function() {
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Mainhand, "\\I[2448] / \\I[2432]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Offhand, "\\I[2449] / \\I[2433]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Tool, "\\I[2450] / \\I[2434]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Dash, "\\I[2451] / \\I[2435]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.SkillTrigger, "\\I[2452] / \\I[2436]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, "\\I[2454] / \\I[2438]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.GuardTrigger, "\\I[2453] / \\I[2437]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.MobilitySkill, "\\I[2455] / \\I[2439]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.Quickmenu, "\\I[2456] / \\I[2440]");
-	this.registerJabsInputText(J.ABS.EXT.INPUT.Symbols.PartyCycle, "\\I[2457] / \\I[2441]");
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Mainhand, 2448);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Offhand, 2449);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Dash, 2450);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Tool, 2451);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.SkillTrigger, 2452);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.GuardTrigger, 2453);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.StrafeTrigger, 2454);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.MobilitySkill, 2455);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.PartyCycle, 2456);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.Quickmenu, 2457);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirLeft, 2458);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirRight, 2459);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirUp, 2460);
+	this.registerJabsInputIcon(J.ABS.EXT.INPUT.Symbols.DirDown, 2461);
 };
+
+//#endregion
+//#region src/plugins/abs/ext/input/managers/InputLegendResolver.js
+/**
+* Teaches J-Base how to describe a semantic input to the player.
+*
+* Windows bind semantic handler names rather than physical buttons, which is what lets one input
+* mapping serve every scene. The cost is that a legend saying "context: clear slot" is telling the
+* player the name of an implementation detail- nobody has ever pressed a button called context.
+*
+* The semantics happen to resolve cleanly, because the vanilla input symbols they check for are the
+* very same strings this plugin uses as its own symbol identities: `context` polls `tab`, which is
+* this plugin's Tool symbol, and so on for all eight. So describing a semantic is just a matter of
+* naming which vanilla symbol it polls and handing that to the icon registry, which already carries
+* a gamepad and keyboard glyph for each.
+*
+* J-Base holds only the hook; this registration is what fills it in. Without this plugin present,
+* legends fall back to plain readable text rather than breaking.
+*/
+/**
+* The vanilla input symbol each semantic handler polls for.
+*
+* These mirror {@link Window_Selectable}'s own checks. Keeping them here rather than in J-Base is
+* deliberate: J-Base defines what a semantic *means*, and this plugin owns what it is *bound to*.
+* @type {Object<string, string>}
+*/
+var SEMANTIC_TO_SYMBOL = {
+	"ok": JabsInputSymbols.Mainhand,
+	"cancel": JabsInputSymbols.Offhand,
+	"context": JabsInputSymbols.Tool,
+	"more": JabsInputSymbols.Dash,
+	"content-prev": JabsInputSymbols.StrafeTrigger,
+	"content-next": JabsInputSymbols.MobilitySkill,
+	"actor-prev": JabsInputSymbols.SkillTrigger,
+	"actor-next": JabsInputSymbols.GuardTrigger,
+	"focus-prev": JabsInputSymbols.DirLeft,
+	"focus-next": JabsInputSymbols.DirRight,
+	"cart-dec": JabsInputSymbols.DirLeft,
+	"cart-inc": JabsInputSymbols.DirRight
+};
+/**
+* Describes a semantic handler as the inputs currently bound to it.
+* @param {string} semantic The semantic handler name, such as `context` or `actor-next`.
+* @returns {string} Renderable text, or {@link String.empty} when this semantic is not describable.
+*/
+function resolveSemantic(semantic) {
+	const symbol = SEMANTIC_TO_SYMBOL[semantic];
+	if (!symbol) return String.empty;
+	return IconManager.jabsInputTextForSymbol(symbol);
+}
+InputLegendResolver.registerResolver(resolveSemantic);
 
 //#endregion
 //#region src/plugins/abs/ext/input/managers/Input.js
@@ -1600,8 +1735,8 @@ Input._updateGamepadState = function(gamepad) {
 * @returns {{ s: object, padState: object }|null}
 */
 Input._ensurePadStates = function(gamepad) {
-	const s = this._currentState;
-	const padState = this._gamepadStates ? this._gamepadStates[gamepad.index] : null;
+	const s = this.currentState();
+	const padState = this.gamepadStates() ? this.gamepadStates()[gamepad.index] : null;
 	if (!s || !padState) {
 		return null;
 	}
@@ -1903,6 +2038,13 @@ Game_System.prototype.getInputBindingsSnapshot = function() {
 	return this._j._abs._input._bindings;
 };
 /**
+* Sets the persisted Input bindings snapshot on the system object.
+* @param {Object<string, Object<string, string[]>>} bindings The snapshot to persist.
+*/
+Game_System.prototype.setInputBindings = function(bindings) {
+	this._j._abs._input._bindings = bindings;
+};
+/**
 * Overwrites the persisted Input bindings snapshot on the system object.
 * The provided object should follow the shape: { [ns]: { [key]: string[] } }.
 * @param {Object<string, Object<string, string[]>>} snapshot The snapshot to store.
@@ -1922,7 +2064,7 @@ Game_System.prototype.setInputBindingsSnapshot = function(snapshot) {
 		}
 		out[ns] = copy;
 	}
-	this._j._abs._input._bindings = out;
+	this.setInputBindings(out);
 };
 /**
 * Applies a stored mapping (if present) to the given controller.
@@ -2089,96 +2231,119 @@ var Window_JabsRemapPrompt = class Window_JabsRemapPrompt extends Window_Base {
 	*/
 	constructor(rect) {
 		super(rect);
+		this.initMembers();
 		this.opacity = 192;
 		this.refresh();
 	}
 	/**
-	* Lazily ensures the root plugin namespace exists for this window's data.
+	* Initializes all members of this window.
 	*/
-	_root() {
+	initMembers() {
 		this._j ||= {};
 		this._j._abs ||= {};
 		this._j._abs._input ||= {};
+		/**
+		* The captured symbol awaiting pickup by the scene.
+		* @type {string|null}
+		*/
+		this._j._abs._input._remapCaptured = null;
+		/**
+		* Whether or not the prompt is currently capturing input.
+		* @type {boolean}
+		*/
+		this._j._abs._input._remapActive = false;
+		/**
+		* The remaining frames before input capture begins.
+		* @type {number}
+		*/
+		this._j._abs._input._remapWarmup = 0;
+		/**
+		* The remaining frames before the prompt auto-closes.
+		* @type {number}
+		*/
+		this._j._abs._input._remapTimeout = 0;
+		/**
+		* The logical action label being captured for.
+		* @type {string}
+		*/
+		this._j._abs._input._remapButtonLabel = String.empty;
+	}
+	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
 	}
 	/**
 	* Gets the captured symbol awaiting pickup by the scene.
 	* @returns {string|null}
 	*/
 	getCapturedSymbol() {
-		this._root();
-		return this._j._abs._input._remapCaptured ?? null;
+		return this.j()._abs._input._remapCaptured;
 	}
 	/**
 	* Sets the captured symbol awaiting pickup by the scene.
 	* @param {string|null} v The captured symbol.
 	*/
 	setCapturedSymbol(v) {
-		this._root();
-		this._j._abs._input._remapCaptured = v ?? null;
+		this.j()._abs._input._remapCaptured = v ?? null;
 	}
 	/**
 	* Gets whether or not the prompt is currently active.
 	* @returns {boolean}
 	*/
 	isActive() {
-		this._root();
-		return this._j._abs._input._remapActive === true;
+		return this.j()._abs._input._remapActive === true;
 	}
 	/**
 	* Sets whether or not the prompt is currently active.
 	* @param {boolean} v The new active state.
 	*/
 	setActive(v) {
-		this._root();
-		this._j._abs._input._remapActive = v === true;
+		this.j()._abs._input._remapActive = v === true;
 	}
 	/**
 	* Gets the remaining warmup frames.
 	* @returns {number}
 	*/
 	getWarmupFrames() {
-		this._root();
-		return this._j._abs._input._remapWarmup | 0;
+		return this.j()._abs._input._remapWarmup | 0;
 	}
 	/**
 	* Sets the remaining warmup frames.
 	* @param {number} v The frames to set.
 	*/
 	setWarmupFrames(v) {
-		this._root();
-		this._j._abs._input._remapWarmup = Math.max(0, v | 0);
+		this.j()._abs._input._remapWarmup = Math.max(0, v | 0);
 	}
 	/**
 	* Gets the remaining timeout frames.
 	* @returns {number}
 	*/
 	getTimeoutFrames() {
-		this._root();
-		return this._j._abs._input._remapTimeout | 0;
+		return this.j()._abs._input._remapTimeout | 0;
 	}
 	/**
 	* Sets the remaining timeout frames.
 	* @param {number} v The frames to set.
 	*/
 	setTimeoutFrames(v) {
-		this._root();
-		this._j._abs._input._remapTimeout = Math.max(0, v | 0);
+		this.j()._abs._input._remapTimeout = Math.max(0, v | 0);
 	}
 	/**
 	* Gets the logical action label being captured for.
 	* @returns {string}
 	*/
 	getButtonLabel() {
-		this._root();
-		return this._j._abs._input._remapButtonLabel || String.empty;
+		return this.j()._abs._input._remapButtonLabel;
 	}
 	/**
 	* Sets the logical action label being captured for.
 	* @param {string} v The button label.
 	*/
 	setButtonLabel(v) {
-		this._root();
-		this._j._abs._input._remapButtonLabel = String(v || String.empty);
+		this.j()._abs._input._remapButtonLabel = String(v || String.empty);
 	}
 	/**
 	* Begins the prompt for the given logical action.
@@ -2385,10 +2550,6 @@ function jabsRemapActionLookupMaps() {
 	labels[JABS_Button.Offhand] = "Offhand";
 	labels[JABS_Button.Tool] = "Tool";
 	labels[JABS_Button.Dodge] = "Dodge";
-	labels[JABS_Button.CombatSkill1] = "Skill Trigger + Mainhand";
-	labels[JABS_Button.CombatSkill2] = "Skill Trigger + Offhand";
-	labels[JABS_Button.CombatSkill3] = "Skill Trigger + Dodge";
-	labels[JABS_Button.CombatSkill4] = "Skill Trigger + Tool";
 	labels[JABS_Button.Sprint] = "Sprint";
 	labels[JABS_Button.SkillTrigger] = "Skill Trigger";
 	labels[JABS_Button.Strafe] = "Strafe";
@@ -2396,6 +2557,10 @@ function jabsRemapActionLookupMaps() {
 	labels[JABS_Button.Guard] = "Guard";
 	labels[JABS_Button.Menu] = "Menu";
 	labels[JABS_Button.Select] = "Party Cycle";
+	const compositions = JABS_Button.combatSkillCompositions();
+	Object.keys(compositions).forEach((combatSkillButton) => {
+		labels[combatSkillButton] = compositions[combatSkillButton].map((component) => labels[component]).join(" + ");
+	});
 	const help = {};
 	help[JABS_Button.Menu] = "Open the JABS quick menu.\nAccess actions, tools, and options.";
 	help[JABS_Button.Select] = "Cycle the party leader.\nRotate the front actor with the next in line.";
@@ -2430,12 +2595,11 @@ var Window_JabsRemapActions = class extends Window_Command {
 	*/
 	constructor(rect) {
 		super(rect);
-		this.initMembers();
 		this.select(this.firstActionIndex());
 	}
 	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
 	* Ensures `this._j._abs._input._actions` exists and seeds state/view bags.
-	* Also hydrates the assignable button list when empty.
 	*/
 	initMembers() {
 		this._j ||= {};
@@ -2449,16 +2613,20 @@ var Window_JabsRemapActions = class extends Window_Command {
 			_buttons: []
 		};
 		actions._view = { _helpWindow: null };
-		if (this.getButtons().length === 0) {
-			this.setButtons(this.buildButtonList());
-		}
+	}
+	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
 	}
 	/**
 	* Gets the current mapping being displayed.
 	* @returns {Object<string, string[]>}
 	*/
 	getMapping() {
-		return this._state()._mapping || {};
+		return this._state()._mapping;
 	}
 	/**
 	* Sets the mapping to display and refreshes.
@@ -2474,7 +2642,7 @@ var Window_JabsRemapActions = class extends Window_Command {
 	* @returns {Object<string, string[]>}
 	*/
 	getExternalMapping() {
-		return this._state()._externalMapping || {};
+		return this._state()._externalMapping;
 	}
 	/**
 	* Sets the external mapping reference; scene owns lifecycle.
@@ -2539,39 +2707,18 @@ var Window_JabsRemapActions = class extends Window_Command {
 		return String(cmd.symbol || String.empty);
 	}
 	/**
-	* Ensures the `_j._abs._input._actions` chain exists.
-	* Lazily mirrors ctor init so accessors stay valid when this window is touched without a full
-	* new-game init path (continued saves, aliased entry, or future scene wiring).
-	*/
-	_root() {
-		this._j ||= {};
-		this._j._abs ||= {};
-		this._j._abs._input ||= {};
-		this._j._abs._input._actions ||= {};
-	}
-	/**
-	* Lazily ensures and returns the window-local state bag.
+	* Returns the window-local state bag, seeded by {@link #initMembers}.
 	* @returns {{_mapping:Object<string,string[]>, _externalMapping:Object<string, string[]>, _buttons:string[]}}
 	*/
 	_state() {
-		this._root();
-		const actions = this._j._abs._input._actions;
-		actions._state ||= {
-			_mapping: {},
-			_externalMapping: {},
-			_buttons: []
-		};
-		return actions._state;
+		return this.j()._abs._input._actions._state;
 	}
 	/**
-	* Lazily ensures and returns the window-local view bag.
+	* Returns the window-local view bag, seeded by {@link #initMembers}.
 	* @returns {{_helpWindow:Window_Help|null}}
 	*/
 	_view() {
-		this._root();
-		const actions = this._j._abs._input._actions;
-		actions._view ||= { _helpWindow: null };
-		return actions._view;
+		return this.j()._abs._input._actions._view;
 	}
 	/**
 	* Built-in section specs (title + logical keys). Override to reorder or replace default sections.
@@ -2593,8 +2740,7 @@ var Window_JabsRemapActions = class extends Window_Command {
 				buttons: [
 					JABS_Button.SkillTrigger,
 					JABS_Button.Rotate,
-					JABS_Button.Strafe,
-					JABS_Button.Dodge
+					JABS_Button.Strafe
 				]
 			},
 			{
@@ -2711,7 +2857,7 @@ var Window_JabsRemapActions = class extends Window_Command {
 	*/
 	drawItem(index) {
 		const rect = this.itemRectWithPadding(index);
-		const cmd = this._list[index];
+		const cmd = this.commandList()[index];
 		if (!cmd) {
 			return;
 		}
@@ -2865,8 +3011,8 @@ var Window_JabsRemapActions = class extends Window_Command {
 	* @returns {number}
 	*/
 	firstActionIndex() {
-		for (let i = 0; i < this._list.length; i++) {
-			const cmd = this._list[i];
+		for (let i = 0; i < this.commandList().length; i++) {
+			const cmd = this.commandList()[i];
 			if (cmd && cmd.enabled !== false) {
 				return i;
 			}
@@ -2934,9 +3080,11 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 		this.initMembers();
 	}
 	/**
-	* Initialize all properties required by the scene.
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes all properties required by the scene.
 	*/
 	initMembers() {
+		super.initMembers();
 		this.initCoreMembers();
 		this.initPrimaryMembers();
 	}
@@ -3281,7 +3429,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 	* @returns {Object<string, string[]>}
 	*/
 	buildDisplayMapping() {
-		const base = this.currentPendingMapping() || {};
+		const base = this.currentPendingMapping();
 		const combined = {};
 		Object.keys(base).forEach((button) => {
 			const list = base[button];
@@ -3302,7 +3450,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 	*/
 	currentPendingMapping() {
 		const key = this.resolveControllerKey(this._state()._controllerIndex);
-		return this._state()._pendingByKey[key];
+		return this._state()._pendingByKey[key] ?? {};
 	}
 	/**
 	* Ensures at most one logical action holds a given symbol across the mapping.
@@ -3607,7 +3755,7 @@ var Scene_JabsRemap = class extends Scene_MenuBase {
 J.ABS.EXT.INPUT.Aliased.Scene_Menu.set("createCommandWindow", Scene_Menu.prototype.createCommandWindow);
 Scene_Menu.prototype.createCommandWindow = function() {
 	J.ABS.EXT.INPUT.Aliased.Scene_Menu.get("createCommandWindow").call(this);
-	this._commandWindow.setHandler("jabsRemap", () => {
+	this.commandWindow().setHandler("jabsRemap", () => {
 		SceneManager.push(Scene_JabsRemap);
 	});
 };
@@ -3628,10 +3776,10 @@ Window_MenuCommand.prototype.addOriginalCommands = function() {
 * Adds the JABS Controls command to the main menu.
 */
 Window_MenuCommand.prototype.addJabsRemapCommand = function() {
-	const command = new WindowCommandBuilder("JABS Controls").setSymbol("jabsRemap").setIconIndex(2569).setEnabled(true).build();
-	const lastCommand = this._list.at(-1);
+	const command = new WindowCommandBuilder("Remap Controls").setSymbol("jabsRemap").setHelpText("Rebind the controls used during combat.").setIconIndex(2569).setEnabled(true).build();
+	const lastCommand = this.commandList().at(-1);
 	if (lastCommand.symbol === "gameEnd") {
-		this._list.splice(this._list.length - 2, 0, command);
+		this.commandList().splice(this.commandList().length - 2, 0, command);
 	} else {
 		this.addBuiltCommand(command);
 	}

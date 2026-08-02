@@ -80,10 +80,6 @@ J.HUD.EXT.BOSS.Metadata = new JHudBoss_PluginMetadata("J-HUD-BossFrame", "1.0.1"
 J.HUD.EXT.BOSS.Aliased = {};
 J.HUD.EXT.BOSS.Aliased.Hud_Manager = new Map();
 J.HUD.EXT.BOSS.Aliased.Scene_Map = new Map();
-/**
-* All regular expressions used by this plugin.
-*/
-J.HUD.EXT.BOSS.RegExp = {};
 
 //#endregion
 //#region src/plugins/hud/ext/boss/managers/BossFrameManager.js
@@ -270,9 +266,9 @@ var BossFrameManager = class {
 	*/
 	static #canCreateBossFrameFromEventId(eventId) {
 		if (!eventId) return false;
-		if (!$gameMap.event(eventId).getJabsBattler()) {
-			return false;
-		}
+		const bossEvent = $gameMap.event(eventId);
+		if (!bossEvent) return false;
+		if (!bossEvent.getJabsBattler()) return false;
 		return true;
 	}
 };
@@ -295,35 +291,42 @@ var Window_BossFrame = class extends Window_TargetFrame {
 		this._j._hud._boss._requestShow = false;
 		this._j._hud._boss._revealing = false;
 	}
+	/**
+	* Gets the j.
+	* @returns {*} The j.
+	*/
+	j() {
+		return this._j;
+	}
 	requestHideBossFrame() {
-		this._j._hud._boss._requestHide = true;
+		this.j()._hud._boss._requestHide = true;
 		this.beginConcealing();
 	}
 	beginConcealing() {
-		this._j._hud._boss._concealing = true;
+		this.j()._hud._boss._concealing = true;
 	}
 	endConcealing() {
-		this._j._hud._boss._concealing = false;
+		this.j()._hud._boss._concealing = false;
 		this.acknowledgeBossFrameHidden();
 	}
 	acknowledgeBossFrameHidden() {
-		this._j._hud._boss._requestHide = false;
+		this.j()._hud._boss._requestHide = false;
 	}
 	isStillConcealing() {
-		return this._j._hud._boss._concealing;
+		return this.j()._hud._boss._concealing;
 	}
 	requestShowBossFrame() {
-		this._j._hud._boss._requestShow = true;
+		this.j()._hud._boss._requestShow = true;
 		this.beginRevealing();
 	}
 	beginRevealing() {
-		this._j._hud._boss._revealing = true;
+		this.j()._hud._boss._revealing = true;
 	}
 	endRevealing() {
-		this._j._hud._boss._revealing = false;
+		this.j()._hud._boss._revealing = false;
 	}
 	isStillRevealing() {
-		return this._j._hud._boss._revealing;
+		return this.j()._hud._boss._revealing;
 	}
 	/**
 	* Ensures all sprites are created and available for use.
@@ -337,11 +340,11 @@ var Window_BossFrame = class extends Window_TargetFrame {
 	*/
 	getOrCreateTargetHpGaugeSprite() {
 		const key = `bossframe-enemy-hp-gauge`;
-		if (this._j._spriteCache.has(key)) {
-			return this._j._spriteCache.get(key);
+		if (this.j()._spriteCache.has(key)) {
+			return this.j()._spriteCache.get(key);
 		}
 		const sprite = new Sprite_FlowingGauge();
-		this._j._spriteCache.set(key, sprite);
+		this.j()._spriteCache.set(key, sprite);
 		sprite.hide();
 		sprite.scale.x = 10;
 		sprite.scale.y = 1;
@@ -366,7 +369,7 @@ var Window_BossFrame = class extends Window_TargetFrame {
 	*/
 	fadeOutWindow() {
 		this.contentsOpacity -= 10;
-		this._j._spriteCache.forEach((sprite, _) => sprite.opacity -= 10);
+		this.j()._spriteCache.forEach((sprite, _) => sprite.opacity -= 10);
 		const contentsOpacityZero = this.contentsOpacity <= 0;
 		const doneFading = contentsOpacityZero;
 		if (doneFading) {
@@ -378,7 +381,7 @@ var Window_BossFrame = class extends Window_TargetFrame {
 	*/
 	fadeInWindow() {
 		this.contentsOpacity += 40;
-		this._j._spriteCache.forEach((sprite, _) => sprite.opacity += 40);
+		this.j()._spriteCache.forEach((sprite, _) => sprite.opacity += 40);
 		const contentsOpacityMax = this.contentsOpacity >= 255;
 		const doneShowing = contentsOpacityMax;
 		if (doneShowing) {
