@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.0.0 BASE] The base class for all J plugins.
+ * [v3.3.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,10 +157,11 @@
  *
  * ============================================================================
  * CHANGELOG:
- * - 4.0.0
- *    BREAKING: the shipped file moved from js/plugins/J-Base.js to
- *    js/plugins/base/J-Base.js. Every plugin list referencing it must be
- *    updated, or the project will not boot.
+ * - 3.3.0
+ *    The shipped file moved from js/plugins/J-Base.js to
+ *    js/plugins/base/J-Base.js, following the base plugin set's split into a
+ *    core and its extensions. A plugin list still naming the old path will not
+ *    find it.
  *    Added the J.BASE.EXT namespace, so extensions of the base plugin set have
  *    somewhere to live that is not the core itself.
  *    SerializableRegistry now holds serialization DECLARATIONS - what a type
@@ -1674,7 +1675,7 @@ J.BASE.EXT = {};
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "4.0.0";
+J.BASE.Metadata.Version = "3.3.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
