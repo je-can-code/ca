@@ -17,3 +17,9 @@ node_modules
 # editor backups / autosaves (Krita, gedit/vim tilde files, etc.)
 *-autosave.kra
 *~
+
+# database backups taken before a risky edit; keep them locally, never in history.
+# Classes.old.json predates this rule and stays tracked, since it is the copy that
+# recovered 282 aptitude tags after the clobber and is worth keeping findable.
+*.backup.json
+*.backup-*.json
