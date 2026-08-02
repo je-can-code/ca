@@ -2343,9 +2343,7 @@ var SaveFileSystem = class {
 	* @returns {boolean}
 	*/
 	static slotExists(slotName) {
-		const current = this.currentGenerationName(slotName);
-		if (current === String.empty) return false;
-		return StorageManager.fsExists(this.generationDirectory(slotName, current));
+		return this.loadOrder(slotName).length > 0;
 	}
 	/**
 	* Writes a complete generation and makes it live.
