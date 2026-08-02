@@ -138,6 +138,7 @@ J.BASE.EXT.SAVE.Metadata = new J_BaseSavePluginMetadata("J-Base-Save", "1.0.0");
 J.BASE.EXT.SAVE.Aliased = {};
 J.BASE.EXT.SAVE.Aliased.ConfigManager = new Map();
 J.BASE.EXT.SAVE.Aliased.DataManager = new Map();
+J.BASE.EXT.SAVE.Aliased.Game_System = new Map();
 J.BASE.EXT.SAVE.Aliased.Scene_Boot = new Map();
 
 //#endregion
@@ -1209,6 +1210,18 @@ var SaveManifest = class SaveManifest {
 	*/
 	playtimeFrames = 0;
 	/**
+	* The playthrough this generation belongs to.
+	*
+	* A slot is a folder, and a folder is not a playthrough. Saving a new game over an old slot leaves
+	* both games' generations sitting side by side, so a rollback that only counted backwards could
+	* land in a game the player has no relationship to. Every generation records whose it is, and the
+	* loader steps back only through generations that answer with the same id.
+	*
+	* Empty when the generation predates this field, which reads as "unknown" rather than "nobody".
+	* @type {string}
+	*/
+	playthroughId = String.empty;
+	/**
 	* The file name of every section this generation is made of, manifest excluded.
 	* @type {string[]}
 	*/
@@ -1223,13 +1236,15 @@ var SaveManifest = class SaveManifest {
 	* @param {string[]} sections The file name of every section in the generation, manifest excluded.
 	* @param {object} display Everything the load menu needs to draw this slot.
 	* @param {number} playtimeFrames The playtime at the moment of writing, in frames.
+	* @param {string} playthroughId The playthrough this generation belongs to.
 	* @returns {SaveManifest}
 	*/
-	static create(sections, display, playtimeFrames) {
+	static create(sections, display, playtimeFrames, playthroughId) {
 		const manifest = new SaveManifest();
 		manifest.schemaVersion = SaveManifest.schemaVersion;
 		manifest.savedAt = new Date().toISOString();
 		manifest.playtimeFrames = playtimeFrames;
+		manifest.playthroughId = playthroughId;
 		manifest.sections = sections;
 		manifest.display = display;
 		return manifest;
@@ -2057,6 +2072,37 @@ SerializableRegistry.register(Game_Vehicle, {
 });
 
 //#endregion
+//#region src/plugins/_base/ext/save/objects/Game_System.js
+/**
+* Extends {@link #initMembers}.<br/>
+* Also stamps the playthrough this game belongs to.
+*/
+J.BASE.EXT.SAVE.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function() {
+	J.BASE.EXT.SAVE.Aliased.Game_System.get("initMembers").call(this);
+	/**
+	* The identity of the playthrough this game belongs to.
+	*
+	* A slot is a folder of generations, and until this existed nothing tied one generation to the
+	* next beyond them sharing a folder. Start a new game, save it over an old slot, then roll that
+	* generation back, and the loader would happily hand back the previous playthrough- a different
+	* party, a different story position, and no indication that anything had happened.
+	*
+	* A new id is minted here, which is to say once per game world created. A loaded save overwrites
+	* it with the one it was written under, so the id follows a playthrough rather than a session.
+	* @type {string}
+	*/
+	this._playthroughId = J.BASE.Helpers.generateUuid();
+};
+/**
+* Gets the identity of the playthrough this game belongs to.
+* @returns {string}
+*/
+Game_System.prototype.playthroughId = function() {
+	return this._playthroughId;
+};
+
+//#endregion
 //#region src/plugins/_base/ext/save/managers/SaveFileSystem.js
 /**
 * The bottom of the save pipeline: everything about *files*, and nothing about what they mean.
@@ -2202,9 +2248,39 @@ var SaveFileSystem = class {
 	* @returns {string} The generation directory name, or an empty string when there is no pointer.
 	*/
 	static currentGenerationName(slotName) {
+		return this.pointerFields(slotName)[0] ?? String.empty;
+	}
+	/**
+	* Reads which playthrough a slot currently belongs to.
+	*
+	* This lives in the pointer rather than in the newest manifest, and the difference matters exactly
+	* when it is hardest to see. A manifest sits inside the generation it describes, so a generation
+	* torn badly enough to be unloadable also takes its own identity down with it - and the moment the
+	* slot cannot say whose it is, stepping back has nothing to check against and walks straight into
+	* whatever playthrough happened to occupy the slot before. The pointer is the one write already
+	* proven atomic, so putting the identity there means a torn generation loses its data and nothing
+	* else.
+	*
+	* Empty for a slot written before ids existed, which reads as "unknown" rather than "nobody".
+	* @param {string} slotName The slot's name.
+	* @returns {string} The playthrough id, or an empty string when the pointer does not name one.
+	*/
+	static currentPlaythroughId(slotName) {
+		return this.pointerFields(slotName)[1] ?? String.empty;
+	}
+	/**
+	* Splits a slot's pointer into the fields it carries.
+	*
+	* The pointer is one line of whitespace-separated fields - the live generation, then the
+	* playthrough it belongs to - so a pointer from before the second field existed still parses, and
+	* still answers the question it was originally written to answer.
+	* @param {string} slotName The slot's name.
+	* @returns {string[]} The fields, or an empty array when the slot has no pointer.
+	*/
+	static pointerFields(slotName) {
 		const pointer = StorageManager.fsReadFile(this.pointerPath(slotName));
-		if (pointer === null) return String.empty;
-		return pointer.trim();
+		if (pointer === null) return [];
+		return pointer.trim().split(/\s+/);
 	}
 	/**
 	* Lists every generation directory a slot holds, newest first.
@@ -2233,7 +2309,33 @@ var SaveFileSystem = class {
 		const current = this.currentGenerationName(slotName);
 		if (current === String.empty) return [];
 		const currentNumber = this.generationNumber(current);
-		return this.generationNames(slotName).filter((name) => this.generationNumber(name) <= currentNumber);
+		const candidates = this.generationNames(slotName).filter((name) => this.generationNumber(name) <= currentNumber);
+		const playthroughId = this.currentPlaythroughId(slotName);
+		if (playthroughId === String.empty) return candidates;
+		return candidates.filter((name) => {
+			const claimed = this.playthroughIdAt(slotName, name);
+			return claimed === String.empty || claimed === playthroughId;
+		});
+	}
+	/**
+	* Reads which playthrough a generation claims, without decoding anything.
+	*
+	* A generation whose manifest is missing or torn answers with nothing rather than throwing. It is
+	* unloadable either way, and failing here would take down the listing that exists to route around
+	* it- the caller's job is to choose what to try, not to discover what is broken.
+	* @param {string} slotName The slot's name.
+	* @param {string} generationName The generation to ask, ex: `gen-0007`.
+	* @returns {string} The playthrough id, or an empty string when it cannot be read.
+	*/
+	static playthroughIdAt(slotName, generationName) {
+		const manifestPath = `${this.generationDirectory(slotName, generationName)}${this.manifestFileName}`;
+		if (StorageManager.fsExists(manifestPath) === false) return String.empty;
+		try {
+			const manifest = this.readJson(manifestPath);
+			return manifest.playthroughId ?? String.empty;
+		} catch {
+			return String.empty;
+		}
 	}
 	/**
 	* Determines whether a slot holds a save the game could load.
@@ -2282,7 +2384,7 @@ var SaveFileSystem = class {
 		});
 		this.writeJson(`${generationDirectory}${this.manifestFileName}`, manifest);
 		StorageManager.fsSyncDirectory(generationDirectory);
-		this.swapPointer(slotName, generationName);
+		this.swapPointer(slotName, generationName, manifest.playthroughId ?? String.empty);
 		this.pruneGenerations(slotName, orphanCutoff);
 	}
 	/**
@@ -2293,10 +2395,12 @@ var SaveFileSystem = class {
 	* previous generation live rather than leaving the pointer half-written and the slot unreadable.
 	* @param {string} slotName The slot's name.
 	* @param {string} generationName The generation to make live.
+	* @param {string} playthroughId The playthrough that generation belongs to.
 	*/
-	static swapPointer(slotName, generationName) {
+	static swapPointer(slotName, generationName, playthroughId) {
 		const temporaryPath = this.pointerTempPath(slotName);
-		this.writeSynced(temporaryPath, generationName);
+		const pointer = playthroughId === String.empty ? generationName : `${generationName} ${playthroughId}`;
+		this.writeSynced(temporaryPath, pointer);
 		StorageManager.fsRename(temporaryPath, this.pointerPath(slotName));
 	}
 	/**
@@ -2407,9 +2511,14 @@ var SaveFileSystem = class {
 				return;
 			}
 			const failures = [];
+			const current = this.currentGenerationName(slotName);
 			for (const generationName of order) {
 				try {
-					resolve(this.readGeneration(slotName, generationName, buildFromSections));
+					const loaded = this.readGeneration(slotName, generationName, buildFromSections);
+					if (generationName !== current) {
+						this.announceGenerationFallback(slotName, current, generationName, failures);
+					}
+					resolve(loaded);
 					return;
 				} catch (error) {
 					failures.push(`${generationName}: ${error.message}`);
@@ -2417,6 +2526,35 @@ var SaveFileSystem = class {
 			}
 			reject(SaveStorageError.noLoadableGeneration(this.slotDirectory(slotName), failures));
 		});
+	}
+	/**
+	* Reports that a load stepped back past the generation the slot pointed at.
+	*
+	* The timestamp is what makes the message actionable- "an older one" tells the player nothing,
+	* while the moment it was written tells them exactly how much they are about to replay.
+	* @param {string} slotName The slot's name.
+	* @param {string} current The generation the slot's pointer names.
+	* @param {string} generationName The generation that actually loaded.
+	* @param {string[]} failures Why each newer generation was passed over, newest first.
+	*/
+	static announceGenerationFallback(slotName, current, generationName, failures) {
+		const savedAt = this.savedAtOf(slotName, generationName);
+		console.warn(`[save] ${slotName}: ${current} could not be loaded, so ${generationName} (saved ${savedAt}) ` + "was loaded instead. Anything after that point is not in this file.");
+		failures.forEach((failure) => console.warn(`[save] ${slotName}: skipped ${failure}`));
+	}
+	/**
+	* Reads when a generation was written, for reporting rather than for logic.
+	* @param {string} slotName The slot's name.
+	* @param {string} generationName The generation to ask, ex: `gen-0007`.
+	* @returns {string} The ISO-8601 timestamp, or `an unknown time` when it cannot be read.
+	*/
+	static savedAtOf(slotName, generationName) {
+		const manifestPath = `${this.generationDirectory(slotName, generationName)}${this.manifestFileName}`;
+		try {
+			return this.readJson(manifestPath).savedAt;
+		} catch {
+			return "an unknown time";
+		}
 	}
 	/**
 	* Reads and verifies one generation, then hands its sections to the caller.
@@ -2707,7 +2845,7 @@ StorageManager.loadObject = function(saveName) {
 */
 StorageManager.saveSlot = function(saveName, contents) {
 	const sections = SaveSectionRouter.toSections(contents);
-	const manifest = SaveManifest.create(Object.keys(sections), DataManager.makeSavefileInfo(), Graphics.frameCount);
+	const manifest = SaveManifest.create(Object.keys(sections), DataManager.makeSavefileInfo(), Graphics.frameCount, $gameSystem.playthroughId());
 	return SaveFileSystem.writeSlot(saveName, sections, SaveEncoder.encode(manifest, "$.manifest"));
 };
 /**

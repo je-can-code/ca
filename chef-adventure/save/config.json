@@ -18,10 +18,10 @@
         "ok"
       ],
       "Offhand": [
-        "cancel"
+        "tab"
       ],
       "Tool": [
-        "tab"
+        "cancel"
       ],
       "UsableItem": [
         "r2"
@@ -67,10 +67,10 @@
         "ok"
       ],
       "Offhand": [
-        "cancel"
+        "tab"
       ],
       "Tool": [
-        "tab"
+        "cancel"
       ],
       "Sprint": [
         "shift"
@@ -81,9 +81,7 @@
       "Rotate": [
         "pagedown"
       ],
-      "Guard": [
-        "pagedown"
-      ],
+      "Guard": [],
       "SkillTrigger": [
         "pageup"
       ],
