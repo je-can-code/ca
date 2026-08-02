@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.0.1 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
+ * [v3.0.2 ABS-ALLYAI] Grants your allies AI to fight alongside the player.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -94,6 +94,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.0.2
+ *    Moved the ally AI namespace seeding from the initialize alias to
+ *    initMembers, so a decoded save can establish it without a constructor.
  * - 3.0.1
  *    Ally idle-check now also treats channeling as busy (J-ABS Channel).
  *    Fixed applyBattleMemories' inverted check; memories went unrecorded.
@@ -348,7 +351,7 @@ J.ABS.EXT.ALLYAI = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.1");
+J.ABS.EXT.ALLYAI.Metadata = new J_AllyAiPluginMetadata("J-ABS-AllyAI", "3.0.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1726,9 +1729,9 @@ Game_Map.prototype.removeBattlers = function(battlers) {
 /**
 * Extends initialization to include the ally AI configurations.
 */
-J.ABS.EXT.ALLYAI.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function() {
-	J.ABS.EXT.ALLYAI.Aliased.Game_Party.get("initialize").call(this);
+J.ABS.EXT.ALLYAI.Aliased.Game_Party.set("initMembers", Game_Party.prototype.initMembers);
+Game_Party.prototype.initMembers = function() {
+	J.ABS.EXT.ALLYAI.Aliased.Game_Party.get("initMembers").call(this);
 	this.initAllyAi();
 };
 /**

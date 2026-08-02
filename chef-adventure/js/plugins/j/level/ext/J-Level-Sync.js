@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 LEVEL-SYNC] Content level sync for dungeons and trials.
+ * @plugindesc [v1.1.0 LEVEL-SYNC] Content level sync for dungeons and trials.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -112,6 +112,16 @@
  *     - Inner maps do not need any tags
  *
  * ============================================================================
+ * CHANGELOG:
+ * - 1.1.0
+ *    Routed the _levelSync namespace into its own save section, so an active
+ *    sync session lands in systems/level-sync.json rather than in the system
+ *    blob.
+ *    Moved the _levelSync namespace seeding from the initialize aliases to
+ *    initMembers, so a decoded save can establish it without a constructor.
+ * - 1.0.0
+ *    The initial release.
+ * ============================================================================
  *
  * @command setContentSync
  * @text Set Content Sync
@@ -206,7 +216,7 @@ J.LEVEL.EXT.SYNC = {};
 /**
 * The metadata associated with this plugin.
 */
-J.LEVEL.EXT.SYNC.Metadata = new JLevelSync_PluginMetadata("J-Level-Sync", "1.0.0");
+J.LEVEL.EXT.SYNC.Metadata = new JLevelSync_PluginMetadata("J-Level-Sync", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -259,12 +269,12 @@ J.LEVEL.EXT.SYNC.RegExp = {
 //#endregion
 //#region src/plugins/level/ext/sync/objects/Game_System.js
 /**
-* Extends {@link #initialize}.<br/>
+* Extends {@link #initMembers}.<br/>
 * Also initializes content sync session storage for this plugin.
 */
-J.LEVEL.EXT.SYNC.Aliased.Game_System.set("initialize", Game_System.prototype.initialize);
-Game_System.prototype.initialize = function() {
-	J.LEVEL.EXT.SYNC.Aliased.Game_System.get("initialize").call(this);
+J.LEVEL.EXT.SYNC.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function() {
+	J.LEVEL.EXT.SYNC.Aliased.Game_System.get("initMembers").call(this);
 	/**
 	* The overarching _j object, where all my stateful plugin data is stored.
 	*/
@@ -338,12 +348,12 @@ Game_System.prototype.onAfterLoad = function() {
 //#endregion
 //#region src/plugins/level/ext/sync/objects/Game_Map.js
 /**
-* Extends {@link #initialize}.<br/>
+* Extends {@link #initMembers}.<br/>
 * Initializes the level sync state so accessors are safe before the first map setup.
 */
-J.LEVEL.EXT.SYNC.Aliased.Game_Map.set("initialize", Game_Map.prototype.initialize);
-Game_Map.prototype.initialize = function() {
-	J.LEVEL.EXT.SYNC.Aliased.Game_Map.get("initialize").call(this);
+J.LEVEL.EXT.SYNC.Aliased.Game_Map.set("initMembers", Game_Map.prototype.initMembers);
+Game_Map.prototype.initMembers = function() {
+	J.LEVEL.EXT.SYNC.Aliased.Game_Map.get("initMembers").call(this);
 	this.initLevelSyncMembers();
 };
 /**
@@ -677,6 +687,22 @@ Sprite_ActorValue.prototype.syncIconSprite = function() {
 Sprite_ActorValue.prototype.setSyncIconSprite = function(newSyncIconSprite) {
 	this._j._syncIconSprite = newSyncIconSprite;
 };
+
+//#endregion
+//#region src/plugins/level/ext/sync/registerLevelSyncSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-Level-Sync a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_levelSync", "level-sync");
+}
 
 //#endregion
 //# sourceMappingURL=J-Level-Sync.js.map

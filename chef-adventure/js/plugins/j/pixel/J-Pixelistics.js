@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.3 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
+ * [v1.1.0 PIXEL] Enables sub-tile (pixel-accurate) movement on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -45,6 +45,9 @@
  * entirely plugin-parameter driven.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Routed the _pixel namespace into its own save section, so pixel movement
+ *    state lands in systems/pixel.json rather than inside the system blob.
  * - 1.0.3
  *    Fixed Game_CharacterBase#pos comparing fractional coordinates for exact
  *    equality. Under pixel movement _x/_y are fractional almost always, so
@@ -209,7 +212,7 @@ J.PIXEL.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.0.3");
+J.PIXEL.Metadata = new JPixelistics_PluginMetadata("J-Pixelistics", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3285,6 +3288,22 @@ Spriteset_Map.prototype.pixelOverlayVisible = function() {
 Spriteset_Map.prototype.setPixelOverlayVisible = function(newPixelOverlayVisible) {
 	this._pixelOverlayVisible = newPixelOverlayVisible;
 };
+
+//#endregion
+//#region src/plugins/pixel/core/registerPixelSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-Pixelistics a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_pixel", "pixel");
+}
 
 //#endregion
 //# sourceMappingURL=J-Pixelistics.js.map

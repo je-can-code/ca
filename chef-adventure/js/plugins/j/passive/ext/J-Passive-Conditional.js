@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
+ * [v1.2.0 PASSIVE-CONDITIONAL] Gates passives and auto-applies combat states (JABS map).
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -311,6 +311,9 @@
  *    Taking even a single step immediately strips it and resets the stand timer.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Conditional passive tracking state is no longer written to savefiles
+ *    where it can be recomputed from the battler's current situation on load.
  * - 1.1.2
  *    Added the whenGlanced condition (this battler suffers a glancing blow as the victim- mutually
  *    exclusive with whenCrit on any single hit), wired into autoApplyState and autoExecuteSkill via
@@ -441,7 +444,7 @@ J.PASSIVE.EXT.CONDITIONAL = {};
 /**
 * The metadata associated with this plugin.
 */
-J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.1.2");
+J.PASSIVE.EXT.CONDITIONAL.Metadata = new JPassiveConditional_PluginMetadata("J-Passive-Conditional", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3328,6 +3331,18 @@ Window_PassiveDetail.prototype.drawRemoveStateOnMoveProse = function(state) {
 		this.currentY += this.textSizeEx(text).height + 4;
 	});
 };
+
+//#endregion
+//#region src/plugins/passive/ext/conditional/registerPassiveConditionalSaveCodecs.js
+/**
+* The reconcile throttle is a stopwatch measuring how long since this battler's conditional passives
+* were last reconciled, which is a question only the current session can ask - so it is never
+* written, and every loaded actor starts with a fresh one.
+*
+* `Game_Actor` is the only host that reaches a savefile: the field is assigned on `Game_Battler`,
+* but enemies are rebuilt from the troop rather than persisted.
+*/
+SerializableRegistry.extend(Game_Actor, { transients: { "_j._passive._conditional._timer": () => new JABS_Timer(J.PASSIVE.EXT.CONDITIONAL.Metadata.reconcileDelayFrames || 15) } });
 
 //#endregion
 //# sourceMappingURL=J-Passive-Conditional.js.map

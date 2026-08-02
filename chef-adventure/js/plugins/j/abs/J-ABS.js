@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.13.0 ABS] Enables combat to be carried out on the map.
+ * [v4.14.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -47,6 +47,13 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.14.0
+ *    Declared what JABS state on the party and the system is worth writing to
+ *    a savefile, and routed the _abs namespace into its own save section.
+ *    Moved the _abs namespace seeding from the initialize alias to initMembers,
+ *    so a decoded save can establish it without running a constructor.
+ *    Declared JABS_SkillSlot's cooldown as a typed field; it was registered as
+ *    serializable while holding a JABS_Cooldown instance nothing declared.
  * - 4.13.0
  *    Added <channel> vessel skills that repeat a child skill over time.
  *    Added cast/channel interruption via movement or <interrupt> hits.
@@ -4307,7 +4314,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.13.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.14.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -11477,7 +11484,7 @@ var JABS_SkillSlot = class {
 		return !noAutoclearSlots.includes(this.key);
 	}
 };
-SerializableRegistry.register(JABS_SkillSlot);
+SerializableRegistry.register(JABS_SkillSlot, { typed: { cooldown: JABS_Cooldown } });
 
 //#endregion
 //#region src/plugins/abs/core/models/JABS_Battler.js
@@ -17836,6 +17843,24 @@ var JABS_DeathContext = class {
 		return JABS_AiManager.getBattlerByUuid(this.killerUuid);
 	}
 };
+/**
+* A death context survives into a savefile: an actor that died and has not yet been revived carries
+* one at `_j._abs._deathContext`, so the save encoder meets this type and needs a codec for it.
+*
+* The seed is explicit rather than derived because {@link JABS_DeathContext.initMembers} takes the
+* four values as parameters. The decoder never runs a constructor and therefore has nothing to pass
+* it, so the defaults are spelled out here as the cold equivalents of what a killing blow supplies.
+*/
+SerializableRegistry.register(JABS_DeathContext, {
+	id: "jabs-death-context",
+	aliases: ["JABS_DeathContext"],
+	seed: (instance) => {
+		instance.elementIds = [];
+		instance.hitType = String.empty;
+		instance.stypeId = 0;
+		instance.killerUuid = String.empty;
+	}
+});
 
 //#endregion
 //#region src/plugins/abs/core/managers/JABS_Engine.js
@@ -23727,7 +23752,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.13.0";
+var PLUGIN_VERSION = "4.14.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -26844,11 +26869,11 @@ Game_Action.prototype.calculateGeneralCastTimeDamageBonusPctPerSec = function() 
 //#endregion
 //#region src/plugins/abs/core/objects/Game_ActionResult.js
 /**
-* Extends {@link Game_ActionResult.initialize}.<br/>
+* Extends {@link Game_ActionResult.initMembers}.<br/>
 * Initializes additional members.
 */
-J.ABS.Aliased.Game_ActionResult.set("initialize", Game_ActionResult.prototype.initialize);
-Game_ActionResult.prototype.initialize = function() {
+J.ABS.Aliased.Game_ActionResult.set("initMembers", Game_ActionResult.prototype.initMembers);
+Game_ActionResult.prototype.initMembers = function() {
 	/**
 	* Whether or not the result was guarded.
 	* @type {boolean}
@@ -26869,7 +26894,7 @@ Game_ActionResult.prototype.initialize = function() {
 	* @type {number}
 	*/
 	this.reduced = 0;
-	J.ABS.Aliased.Game_ActionResult.get("initialize").call(this);
+	J.ABS.Aliased.Game_ActionResult.get("initMembers").call(this);
 };
 /**
 * Extends `.clear()` to include wiping the custom properties.
@@ -31426,9 +31451,9 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler) {
 /**
 * Extends the initialize to include additional objects for JABS.
 */
-J.ABS.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function() {
-	J.ABS.Aliased.Game_Party.get("initialize").call(this);
+J.ABS.Aliased.Game_Party.set("initMembers", Game_Party.prototype.initMembers);
+Game_Party.prototype.initMembers = function() {
+	J.ABS.Aliased.Game_Party.get("initMembers").call(this);
 	this.initJabsPartyData();
 };
 /**
@@ -34910,6 +34935,22 @@ Spriteset_Map.prototype.hitboxPulseLayer = function() {
 Spriteset_Map.prototype.setHitboxPulseLayer = function(newHitboxPulseLayer) {
 	this._j._abs._hitboxPulseLayer = newHitboxPulseLayer;
 };
+
+//#endregion
+//#region src/plugins/abs/core/registerJabsSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-ABS a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_abs", "abs");
+}
 
 //#endregion
 //# sourceMappingURL=J-ABS.js.map

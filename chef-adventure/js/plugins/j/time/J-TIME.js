@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.1.1 TIME] A system for tracking time- real or artificial.
+ * @plugindesc [v1.1.2 TIME] A system for tracking time- real or artificial.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -197,6 +197,11 @@
  *
  * =============================================================================
  * CHANGELOG:
+ * - 1.1.2
+ *    Stopped re-running the clock's member backfill after extracting a save.
+ *    Game_Time is registered as serializable, so its seed already runs on the
+ *    bare instance before any saved field lands, making the second pass both
+ *    redundant and dependent on every member being assigned defensively.
  * - 1.1.1
  *    Fixed a map tagged <noToneChange> suppressing the tone change outright,
  *    so no tint was ever issued and the previous map's tone stayed painted on
@@ -656,7 +661,7 @@ J.TIME = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.1.1");
+J.TIME.Metadata = new J_TIME_PluginMetadata("J-TIME", "1.1.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2221,7 +2226,6 @@ DataManager.extractSaveContents = function(contents) {
 		console.info("J-Time did not exist in the loaded save file- creating anew.");
 		return;
 	}
-	$gameTime.initMembers();
 	$gameTime.updateCurrentTone();
 };
 

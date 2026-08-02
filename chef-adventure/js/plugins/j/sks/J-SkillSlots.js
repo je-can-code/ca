@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.4.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
+ * @plugindesc [v1.5.0 SKS] A plugin enabling actors to equip skills into dedicated skill slots.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -195,6 +195,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.5.0
+ *    Routed the _sks namespace into its own save section, so equipped skill
+ *    slots land in systems/sks.json rather than inside the actor blobs.
  * - 1.4.0
  *    Retrofitted the skill equip scene onto the shared actor skeleton, so it
  *    matches the other actor-scoped scenes.
@@ -348,7 +351,7 @@ J.SKS.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.4.0");
+J.SKS.Metadata = new JSkillSlots_PluginMetadata("J-SkillSlots", "1.5.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1719,6 +1722,22 @@ Window_MenuCommand.prototype.addOriginalCommands = function() {
 		this.addBuiltCommand(builtCommand);
 	}
 };
+
+//#endregion
+//#region src/plugins/sks/core/registerSkillSlotsSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-SkillSlots a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_sks", "sks");
+}
 
 //#endregion
 //# sourceMappingURL=J-SkillSlots.js.map

@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.1 REGIONS-STATES] Enables application of states via region ids.
+ * @plugindesc [v1.1.0 REGIONS-STATES] Enables application of states via region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -96,6 +96,10 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Region state step tracking is no longer written to savefiles for the
+ *    player, followers, or vehicles; it is per-step bookkeeping that means
+ *    nothing across a load, and it now starts fresh.
  * - 1.0.1
  *    Region state application now rolls through the shared on-chance
  *    system (lucky/cursed rolls, Accumulate Mode, Encore) instead of a
@@ -156,7 +160,7 @@ J.REGIONS.EXT.STATES = {};
 /**
 * The metadata associated with this plugin, such as name and version.
 */
-J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.0.1");
+J.REGIONS.EXT.STATES.Metadata = new J_RegionStatesPluginMetadata("J-Region-States", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -211,12 +215,12 @@ var RegionStateData = class {
 //#endregion
 //#region src/plugins/regions/ext/states/objects/Game_Map.js
 /**
-* Extends {@link #initialize}.<br/>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the region states properties.
 */
-J.REGIONS.EXT.STATES.Aliased.Game_Map.set("initialize", Game_Map.prototype.initialize);
-Game_Map.prototype.initialize = function() {
-	J.REGIONS.EXT.STATES.Aliased.Game_Map.get("initialize").call(this);
+J.REGIONS.EXT.STATES.Aliased.Game_Map.set("initMembers", Game_Map.prototype.initMembers);
+Game_Map.prototype.initMembers = function() {
+	J.REGIONS.EXT.STATES.Aliased.Game_Map.get("initMembers").call(this);
 	this.initRegionStatesMembers();
 };
 /**
@@ -438,6 +442,23 @@ Game_System.prototype.updateRegionStatesAfterLoad = function() {
 	$gamePlayer.initRegionStatesMembers();
 	$gamePlayer.followers().data().forEach((follower) => follower.initRegionStatesMembers());
 };
+
+//#endregion
+//#region src/plugins/regions/ext/states/registerRegionStatesSaveCodecs.js
+/**
+* The region-states application timer is a stopwatch and is never written to a savefile; each holder
+* gets a fresh one on load, built from the plugin parameter rather than from whatever delay was
+* configured when the save was written.
+*
+* The three character-like hosts are named individually because a codec is resolved by the exact
+* constructor of the value being encoded, so a declaration on `Game_Character` - where the field is
+* assigned - would reach none of them. Events are absent because J-Base's event codec drops
+* everything at `_j` on an event outright.
+*/
+var regionStatesTimerTransients = { "_j._regions._states._timer": () => new JABS_Timer(J.REGIONS.EXT.STATES.Metadata.delayBetweenApplications) };
+SerializableRegistry.extend(Game_Player, { transients: regionStatesTimerTransients });
+SerializableRegistry.extend(Game_Follower, { transients: regionStatesTimerTransients });
+SerializableRegistry.extend(Game_Vehicle, { transients: regionStatesTimerTransients });
 
 //#endregion
 //# sourceMappingURL=J-Regions-States.js.map
