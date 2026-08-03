@@ -176,6 +176,9 @@
  *    is the seam that makes those types seedable.
  *    Added Game_Actors accessors - actorIds, actors, data, existingActors -
  *    replacing direct reads of the underlying sparse array.
+ *    Added Scene_Title commandWindow accessors, matching the pair Scene_Menu
+ *    already carried, so a plugin replacing a title command does not have to
+ *    reach past them into the field.
  * - 3.2.0
  *    Added skillIds() to Game_Battler (stub returning empty), Game_Actor (learned skills
  *    plus trait-granted ids, deduplicated), and Game_Enemy (action skill ids plus
@@ -10701,6 +10704,22 @@ Game_Player.prototype.isPlayer = function() {
 };
 
 //#endregion
+//#region src/plugins/_base/core/objects/Game_Screen.js
+/**
+* Gets the tone the screen is currently moving toward.
+*
+* Vanilla exposes {@link Game_Screen.tone} but nothing for the destination, and the two answer very
+* different questions. A tint runs over a duration, so partway through a fade the current tone is a
+* value nobody asked for - an interpolation between where it was and where it is going. Anything
+* deciding *who set the tint* has to compare against the destination; comparing against the current
+* value reads any in-progress fade as belonging to nobody.
+* @returns {[number, number, number, number]}
+*/
+Game_Screen.prototype.toneTarget = function() {
+	return this._toneTarget;
+};
+
+//#endregion
 //#region src/plugins/_base/core/objects/Game_System.js
 /**
 * Extends {@link Game_System.initialize}.<br/>
@@ -11056,6 +11075,23 @@ Scene_Menu.prototype.commandWindow = function() {
 * @param {Window_MenuCommand} newCommandWindow The new commandWindow.
 */
 Scene_Menu.prototype.setCommandWindow = function(newCommandWindow) {
+	this._commandWindow = newCommandWindow;
+};
+
+//#endregion
+//#region src/plugins/_base/core/scenes/Scene_Title.js
+/**
+* Gets the window listing the title screen's commands.
+* @returns {Window_TitleCommand} The commandWindow.
+*/
+Scene_Title.prototype.commandWindow = function() {
+	return this._commandWindow;
+};
+/**
+* Sets the window listing the title screen's commands.
+* @param {Window_TitleCommand} newCommandWindow The new commandWindow.
+*/
+Scene_Title.prototype.setCommandWindow = function(newCommandWindow) {
 	this._commandWindow = newCommandWindow;
 };
 

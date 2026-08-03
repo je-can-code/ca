@@ -51,6 +51,33 @@
  * only what actually had to be remembered.
  *
  * ----------------------------------------------------------------------------
+ * THE FILES SCENE:
+ * This plugin also replaces Scene_Save and Scene_Load with a single scene that
+ * saves, loads, deletes, and rewinds. What it offers depends entirely on where
+ * it was opened from:
+ *
+ *    save platform     Save, Load, Rewind
+ *    main menu         Load, Rewind
+ *    title screen      Load, Delete
+ *
+ * Commands an origin does not offer are omitted rather than greyed out. The
+ * player should never learn that these are the same screen.
+ *
+ * REWINDING is loading an older generation of the slot being played, listed
+ * newest first and labelled by how long ago each one was written. It is NOT a
+ * delete: the pointer stays where it is and the next save writes a new
+ * generation on top, so the state rewound away from remains on disk until
+ * retention retires it normally. Rewinding is itself undoable.
+ *
+ * DELETING is the only irreversible thing in the scene, which is why it exists
+ * only at the title screen. It takes the whole slot, pointer first.
+ *
+ * Every save also writes a snapshot.jpg into its generation - the map, cropped
+ * around where the player was standing - which the list draws beside each row.
+ * It is deliberately not named in the manifest, so a lost picture can never
+ * cost anybody a save.
+ *
+ * ----------------------------------------------------------------------------
  * NOTE ABOUT SAVE COMPATIBILITY:
  * Savefiles written by vanilla RPG Maker MZ cannot be read by this plugin, and
  * savefiles written by this plugin cannot be read without it. There is no
@@ -59,6 +86,19 @@
  * CHANGELOG:
  * - 1.0.0
  *    The initial release.
+ *    Added Scene_Files, one scene for saving, loading, deleting and rewinding,
+ *    replacing Scene_Save and Scene_Load. What it offers is decided by where it
+ *    was opened from and never by $gameSystem, since save access persists into
+ *    savefiles and would leak.
+ *    Added Rewind, which loads one named generation of the slot being played
+ *    with no fallback to a newer one, and deletes nothing doing it.
+ *    Added Delete, offered only from the title screen.
+ *    Saving now writes a snapshot.jpg beside the sections, cropped from the map
+ *    capture the menu backdrop already takes. It is absent from the manifest's
+ *    section list on purpose, so losing it cannot fail a generation.
+ *    maxSavefiles now answers with the number of slots the scene renders, so
+ *    New Game can no longer claim a slot the scene never draws.
+ *    The menu's save command became a Files command, ungated by save access.
  * ============================================================================
  *
  * @param retainedSaveGenerations
@@ -140,6 +180,7 @@ J.BASE.EXT.SAVE.Aliased.ConfigManager = new Map();
 J.BASE.EXT.SAVE.Aliased.DataManager = new Map();
 J.BASE.EXT.SAVE.Aliased.Game_System = new Map();
 J.BASE.EXT.SAVE.Aliased.Scene_Boot = new Map();
+J.BASE.EXT.SAVE.Aliased.Scene_Map = new Map();
 
 //#endregion
 //#region src/plugins/_base/ext/save/core/SaveError.js
@@ -2072,34 +2113,228 @@ SerializableRegistry.register(Game_Vehicle, {
 });
 
 //#endregion
-//#region src/plugins/_base/ext/save/objects/Game_System.js
+//#region src/plugins/_base/ext/save/core/SaveThumbnail.js
 /**
-* Extends {@link #initMembers}.<br/>
-* Also stamps the playthrough this game belongs to.
+* The picture a save takes of where the player was standing.
+*
+* Costs nothing to obtain. `Scene_Map.terminate` already calls `SceneManager.snapForBackground()` on
+* every exit that is not a battle, to build the blurred backdrop the menu draws behind itself - so a
+* full-resolution capture of the map exists before the files scene is ever constructed, and this only
+* has to crop and encode it.
+*
+* **The bitmap is shared, and two rules follow from that.** It is destroyed and replaced by the next
+* `snapForBackground()`, so it is read fresh at every save and never held across the scene. And it is
+* only ever drawn *from*, never onto - it is the live menu backdrop, and scribbling on it would show up
+* behind every menu in the game. Note that it is not blurred despite how the menu looks: the blur is a
+* `PIXI.filters.BlurFilter` on the background *sprite*, and the bitmap underneath is clean.
 */
-J.BASE.EXT.SAVE.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
-Game_System.prototype.initMembers = function() {
-	J.BASE.EXT.SAVE.Aliased.Game_System.get("initMembers").call(this);
+var SaveThumbnail = class SaveThumbnail {
 	/**
-	* The identity of the playthrough this game belongs to.
+	* The width of the aspect the crop holds to.
 	*
-	* A slot is a folder of generations, and until this existed nothing tied one generation to the
-	* next beyond them sharing a folder. Start a new game, save it over an old slot, then roll that
-	* generation back, and the loader would happily hand back the previous playthrough- a different
-	* party, a different story position, and no indication that anything had happened.
+	* This describes a *shape*, not a size. The picture is stored at whatever the crop actually measured
+	* rather than resampled to fixed dimensions - see {@link SaveThumbnail.encode}.
+	* @type {number}
+	*/
+	static aspectWidth = 16;
+	/**
+	* The height of the aspect the crop holds to.
+	* @type {number}
+	*/
+	static aspectHeight = 9;
+	/**
+	* The height the picture will actually be drawn at, or zero when nobody has said.
+	* @type {number}
+	*/
+	static #requestedHeight = 0;
+	/**
+	* Gets the height the picture will actually be drawn at.
+	* @returns {number} The height in pixels, or zero when nobody has said.
+	*/
+	static requestedHeight() {
+		return SaveThumbnail.#requestedHeight;
+	}
+	/**
+	* Declares the size the picture will actually be drawn at.
 	*
-	* A new id is minted here, which is to say once per game world created. A loaded save overwrites
-	* it with the one it was written under, so the id follows a playthrough rather than a session.
+	* Every scaling step costs sharpness, and there are only ever two available: the crop can be resized
+	* on the way in, and it can be resized again on the way out. Told what the display needs, this takes
+	* exactly that many pixels and neither step happens at all - the file is a lossless slice of the
+	* screen and the row draws it one for one.
+	*
+	* The alternative was for this file to work the layout out for itself, which means a second copy of
+	* a chain running from the screen size through the help window and the control legend into a row
+	* height. Two copies of that drift, and the day they disagree the pictures go quietly soft.
+	*
+	* Left unset, the crop falls back to {@link SaveThumbnail.cropScale}, which is what a save triggered
+	* from somewhere with no list to draw into gets.
+	* @param {number} height The height in pixels the picture will be drawn at.
+	*/
+	static requestSize(height) {
+		SaveThumbnail.#requestedHeight = height;
+	}
+	/**
+	* How much of the source's height the crop takes.
+	*
+	* Half, which reads as a two-times zoom on wherever the player was standing. A full-screen crop would
+	* be a shrunken screenshot with the player as an indistinct speck; anything much tighter stops
+	* showing enough of the room to be recognizable, which is the entire job.
+	* @type {number}
+	*/
+	static cropScale = .5;
+	/**
+	* The format the picture is stored in.
+	*
+	* PNG rather than JPEG, and the content is why. JPEG's transform is built for photographs, where
+	* neighbouring pixels mostly resemble one another; tile art is the opposite, all hard boundaries
+	* between flat colours, and it is exactly those boundaries JPEG spends its error budget on. Every
+	* tile edge in a map picks up a halo, and no quality setting removes them so much as makes them
+	* smaller in exchange for the size advantage that was the only reason to be there.
+	*
+	* PNG is lossless, so the stored picture is precisely what was on the screen. It costs perhaps five
+	* times the bytes, which against a format that already declares size a non-goal is nothing.
 	* @type {string}
 	*/
-	this._playthroughId = J.BASE.Helpers.generateUuid();
+	static format = "image/png";
+	/**
+	* The aspect the crop and the stored image both hold to.
+	* @returns {number}
+	*/
+	static aspectRatio() {
+		return SaveThumbnail.aspectWidth / SaveThumbnail.aspectHeight;
+	}
+	/**
+	* Takes the picture for a save about to be written.
+	* @returns {string} The picture as a data URL, or an empty string when there is nothing to capture.
+	*/
+	static capture() {
+		const source = SceneManager.backgroundBitmap();
+		if (source === null) return String.empty;
+		const { sx, sy, sw, sh } = SaveThumbnail.cropRect($gamePlayer.screenX(), $gamePlayer.screenY(), source.width, source.height);
+		return SaveThumbnail.encode(source, sx, sy, sw, sh);
+	}
+	/**
+	* Works out which part of the capture to keep.
+	*
+	* Centred on the player, at the target aspect, and clamped so it never runs past an edge - which is
+	* not a corner case but the ordinary one at a map boundary, where the engine stops scrolling and the
+	* player walks toward the edge of a stationary screen instead of staying centred.
+	*
+	* Kept as a pure function of four numbers on purpose: this is where the clamp lives, the clamp is the
+	* part with a bug in it if anything here has one, and none of it needs a canvas to test.
+	* @param {number} centerX The x to centre on, in source pixels.
+	* @param {number} centerY The y to centre on, in source pixels.
+	* @param {number} sourceWidth The capture's full width.
+	* @param {number} sourceHeight The capture's full height.
+	* @returns {{sx: number, sy: number, sw: number, sh: number}} The rectangle to copy from.
+	*/
+	static cropRect(centerX, centerY, sourceWidth, sourceHeight) {
+		const preferredHeight = SaveThumbnail.requestedHeight() === 0 ? Math.round(sourceHeight * SaveThumbnail.cropScale) : SaveThumbnail.requestedHeight();
+		const requestedHeight = Math.min(sourceHeight, preferredHeight);
+		const width = Math.min(sourceWidth, Math.round(requestedHeight * SaveThumbnail.aspectRatio()));
+		const height = Math.min(requestedHeight, Math.round(width / SaveThumbnail.aspectRatio()));
+		const sx = Math.round(centerX - width / 2).clamp(0, sourceWidth - width);
+		const sy = Math.round(centerY - height / 2).clamp(0, sourceHeight - height);
+		return {
+			sx,
+			sy,
+			sw: width,
+			sh: height
+		};
+	}
+	/**
+	* Copies the chosen region into a canvas of our own and encodes it.
+	*
+	* **Stored at exactly the size it was cropped at, deliberately.** Resampling to fixed dimensions here
+	* would resample the picture twice: once down to whatever number was chosen, and then back up by the
+	* row that draws it, which is wider than any number small enough to feel like a thumbnail. The first
+	* pass throws detail away and the second magnifies what survived, and the result is soft in a way no
+	* amount of JPEG quality recovers.
+	*
+	* Storing the crop untouched means the picture can never be the bottleneck: a row scaling it *down*
+	* stays sharp at any size, and the size it needs is a property of the window's layout and the screen
+	* resolution, neither of which this file can see.
+	* @param {Bitmap} source The capture to draw from.
+	* @param {number} sx The left edge of the region to copy.
+	* @param {number} sy The top edge of the region to copy.
+	* @param {number} sw The width of the region to copy.
+	* @param {number} sh The height of the region to copy.
+	* @returns {string} The picture as a data URL.
+	*/
+	static encode(source, sx, sy, sw, sh) {
+		const canvas = document.createElement("canvas");
+		canvas.width = sw;
+		canvas.height = sh;
+		canvas.getContext("2d").drawImage(source.canvas, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+		return canvas.toDataURL("image/png");
+	}
 };
+
+//#endregion
+//#region src/plugins/_base/ext/save/core/SaveFileEntryMode.js
 /**
-* Gets the identity of the playthrough this game belongs to.
-* @returns {string}
+* Where the files scene was opened from, and what each origin is willing to offer.
+*
+* The three origins are named for the place the player came from rather than for the commands they
+* omit. Origin is the stable fact, and it is the actual reason the sets differ - a name like "without
+* save" says nothing about what *is* offered, and stops being descriptive the moment a sixth command
+* exists.
+*
+* **Availability is a function of the origin only, never of `$gameSystem`.** That is not a stylistic
+* preference. `_saveEnabled` is an own enumerable field on {@link Game_System}, the codec seeds it, and
+* nothing declares it transient - so it persists into savefiles. Gating the menu's Save by toggling
+* save access around a platform would leak: the file captures `_saveEnabled: true`, and loading it
+* later restores saving-everywhere until the player touches another platform. Silently, and looking for
+* all the world like the gate randomly stopped working. The origin lives and dies with the scene, which
+* is the only lifetime that is correct here.
 */
-Game_System.prototype.playthroughId = function() {
-	return this._playthroughId;
+var SaveFileEntryMode = class SaveFileEntryMode {
+	/**
+	* Opened by stepping onto a save platform in the world.
+	* @type {string}
+	*/
+	static Platform = "platform";
+	/**
+	* Opened from the ordinary start-button menu.
+	* @type {string}
+	*/
+	static Menu = "menu";
+	/**
+	* Opened from the title screen's Continue command.
+	* @type {string}
+	*/
+	static Title = "title";
+	/**
+	* Which command keys each origin offers.
+	*
+	* This is the one table. Changing what an origin offers is a single row here, and nothing else in
+	* the feature has an opinion about it - the modes ask this, the command window asks the modes, and
+	* the scene asks the command window.
+	*
+	* Commands an origin does not offer are **omitted, not greyed**. A greyed Rewind on the title screen
+	* is an invitation to wonder what you did wrong; an absent one just reads as a different screen. The
+	* player should never learn that these are the same scene.
+	* @type {Map<string, string[]>}
+	*/
+	static offerings = new Map([
+		[SaveFileEntryMode.Platform, [
+			"save",
+			"load",
+			"rewind"
+		]],
+		[SaveFileEntryMode.Menu, ["load", "rewind"]],
+		[SaveFileEntryMode.Title, ["load", "delete"]]
+	]);
+	/**
+	* Determines whether an origin offers a given command.
+	* @param {string} entryMode The origin the scene was opened from.
+	* @param {string} key The command's key, ex: `save`.
+	* @returns {boolean}
+	*/
+	static offers(entryMode, key) {
+		const offered = SaveFileEntryMode.offerings.get(entryMode) ?? [];
+		return offered.includes(key);
+	}
 };
 
 //#endregion
@@ -2156,6 +2391,15 @@ var SaveFileSystem = class {
 	* @type {string}
 	*/
 	static manifestFileName = "manifest.json";
+	/**
+	* The picture taken of the map at the moment a generation was written.
+	*
+	* Deliberately absent from a manifest's `sections`: that array is the torn-write completeness check,
+	* so naming the picture there would let a missing image fail an otherwise perfect generation into a
+	* rollback. Losing a picture must never cost somebody a save.
+	* @type {string}
+	*/
+	static thumbnailFileName = "snapshot.png";
 	/**
 	* How many generations a slot keeps before the oldest are pruned.
 	*
@@ -2354,12 +2598,13 @@ var SaveFileSystem = class {
 	* @param {string} slotName The slot's name.
 	* @param {Object<string, object>} sections The plain data of each section, keyed by file name.
 	* @param {SaveManifest} manifest The manifest describing them.
+	* @param {string=} thumbnail The picture of where the player was; defaults to none.
 	* @returns {Promise<void>} Resolves once the generation is live.
 	*/
-	static writeSlot(slotName, sections, manifest) {
+	static writeSlot(slotName, sections, manifest, thumbnail = String.empty) {
 		return new Promise((resolve, reject) => {
 			try {
-				this.writeGeneration(slotName, sections, manifest);
+				this.writeGeneration(slotName, sections, manifest, thumbnail);
 				resolve();
 			} catch (error) {
 				reject(error);
@@ -2368,11 +2613,16 @@ var SaveFileSystem = class {
 	}
 	/**
 	* Performs the whole write sequence for one generation.
+	*
+	* The picture is passed in rather than taken here, and it has to be: the generation's directory name
+	* is worked out inside this method, so nothing upstream knows where to put a file. Taking it here
+	* instead would mean reaching into the running scene from the filesystem layer.
 	* @param {string} slotName The slot's name.
 	* @param {Object<string, object>} sections The plain data of each section, keyed by file name.
 	* @param {SaveManifest} manifest The manifest describing them.
+	* @param {string=} thumbnail The picture of where the player was; defaults to none.
 	*/
-	static writeGeneration(slotName, sections, manifest) {
+	static writeGeneration(slotName, sections, manifest, thumbnail = String.empty) {
 		const orphanCutoff = this.generationNumber(this.currentGenerationName(slotName));
 		const generationName = this.generationName(this.nextGenerationNumber(slotName));
 		const generationDirectory = this.generationDirectory(slotName, generationName);
@@ -2380,6 +2630,9 @@ var SaveFileSystem = class {
 		Object.keys(sections).forEach((sectionName) => {
 			this.writeJson(this.sectionPath(slotName, generationName, sectionName), sections[sectionName]);
 		});
+		if (thumbnail !== String.empty) {
+			this.writeThumbnail(slotName, generationName, thumbnail);
+		}
 		this.writeJson(`${generationDirectory}${this.manifestFileName}`, manifest);
 		StorageManager.fsSyncDirectory(generationDirectory);
 		this.swapPointer(slotName, generationName, manifest.playthroughId ?? String.empty);
@@ -2555,6 +2808,29 @@ var SaveFileSystem = class {
 		}
 	}
 	/**
+	* Reads one named generation and nothing else.
+	*
+	* This is the front door {@link readSlot} deliberately is not. `readSlot` always takes the newest
+	* generation that works, because a player asking to load a slot wants the best save in it. A player
+	* stepping back through a slot's history has already looked at a list and pointed at one row, and
+	* silently handing them a different generation is precisely the failure the whole scene exists to
+	* make visible - "reload to five minutes ago" landing somewhere else is worse than not landing at
+	* all. **There is no fallback here, on purpose.**
+	* @param {string} slotName The slot's name.
+	* @param {string} generationName The generation to read, ex: `gen-0007`.
+	* @param {Function} buildFromSections Receives `(sections, manifest)` and returns the loaded value.
+	* @returns {Promise<*>} Whatever `buildFromSections` returned, or a rejection carrying why not.
+	*/
+	static readGenerationAt(slotName, generationName, buildFromSections) {
+		return new Promise((resolve, reject) => {
+			try {
+				resolve(this.readGeneration(slotName, generationName, buildFromSections));
+			} catch (error) {
+				reject(error);
+			}
+		});
+	}
+	/**
 	* Reads and verifies one generation, then hands its sections to the caller.
 	* @param {string} slotName The slot's name.
 	* @param {string} generationName The generation to read.
@@ -2597,17 +2873,54 @@ var SaveFileSystem = class {
 	* @returns {object|null} The manifest as plain data, or null when the slot has nothing readable.
 	*/
 	static readManifest(slotName) {
-		const order = this.loadOrder(slotName);
-		let manifest = null;
-		order.some((generationName) => {
-			try {
-				manifest = this.readManifestAt(slotName, generationName);
-				return true;
-			} catch {
-				return false;
-			}
+		return this.readableGeneration(slotName).manifest;
+	}
+	/**
+	* Finds the newest generation of a slot that describes itself, and hands back both halves.
+	*
+	* The name matters as much as the manifest to anything that reads more than one file per
+	* generation- a picture beside a save, say. Answering with only the manifest would leave the caller
+	* guessing which generation it came from, and the obvious guess (the pointer's) is wrong in exactly
+	* the case this walk exists for: a slot whose newest write was torn describes itself with an older
+	* generation, and everything else about that row has to come from the same one.
+	* @param {string} slotName The slot's name.
+	* @returns {{generationName: string, manifest: object|null}} The generation and its manifest, or
+	* empty and null when the slot has nothing readable.
+	*/
+	static readableGeneration(slotName) {
+		let found = {
+			generationName: String.empty,
+			manifest: null
+		};
+		this.loadOrder(slotName).some((generationName) => {
+			const manifest = this.readManifestQuietly(slotName, generationName);
+			if (manifest === null) return false;
+			found = {
+				generationName,
+				manifest
+			};
+			return true;
 		});
-		return manifest;
+		return found;
+	}
+	/**
+	* Reads one generation's manifest without letting an unreadable one take a listing down.
+	*
+	* {@link readManifestAt} throws for a manifest that is missing, malformed, or written at a schema
+	* this build cannot reach, and all three are real states for a generation a menu is asked to show-
+	* `loadOrder` deliberately leaves in a generation that cannot say whose it is, so it can fail on its
+	* own terms rather than vanishing from the history. A row that cannot describe itself should draw as
+	* empty; it should not stop the other rows from drawing.
+	* @param {string} slotName The slot's name.
+	* @param {string} generationName The generation to read the manifest of.
+	* @returns {object|null} The manifest as plain data, or null when it cannot be read.
+	*/
+	static readManifestQuietly(slotName, generationName) {
+		try {
+			return this.readManifestAt(slotName, generationName);
+		} catch {
+			return null;
+		}
 	}
 	/**
 	* Reads one JSON file, failing loudly about which file and why when it cannot.
@@ -2665,12 +2978,1868 @@ var SaveFileSystem = class {
 		});
 	}
 	/**
+	* Gets the path of the picture belonging to one generation.
+	*
+	* The name is fixed rather than recorded anywhere, because there is exactly one per generation and a
+	* field naming it could only ever disagree with the file it names.
+	* @param {string} slotName The slot's name.
+	* @param {string} generationName The generation's directory name.
+	* @returns {string}
+	*/
+	static thumbnailPath(slotName, generationName) {
+		return `${this.generationDirectory(slotName, generationName)}${this.thumbnailFileName}`;
+	}
+	/**
+	* Writes the picture taken at the moment a generation was saved.
+	*
+	* The data URL is decoded to real bytes first, so what lands on disk is a genuine JPEG that opens in
+	* any image viewer. Writing the `data:image/jpeg;base64,...` text under a `.jpg` name would produce
+	* a file that lies about what it is, which is precisely the opposite of the premise this save format
+	* was built on. No new filesystem primitive is needed for it: `writeSynced` is contents-agnostic and
+	* Node's `writeSync` is overloaded for a string or a Buffer.
+	* @param {string} slotName The slot's name.
+	* @param {string} generationName The generation's directory name.
+	* @param {string} dataUrl The picture, as `canvas.toDataURL` produced it.
+	*/
+	static writeThumbnail(slotName, generationName, dataUrl) {
+		const bytes = Buffer.from(dataUrl.slice(dataUrl.indexOf(",") + 1), "base64");
+		this.writeSynced(this.thumbnailPath(slotName, generationName), bytes);
+	}
+	/**
+	* Gets the url a picture can actually be loaded through.
+	*
+	* There is no reader to pair with the writer, because `Bitmap.load` assigns its argument straight
+	* onto an `<img>`'s `src` and an `<img>` opens a local file itself - so the only thing needed on the
+	* way back in is a url rather than an operating system path. **Those are not the same string**, and
+	* the difference does not show up on the machine this was written on:
+	*
+	* - `StorageManager.fileDirectoryPath` builds the save root with Node's `path.join`, so on Linux it
+	*   produces `/home/…/save/` and on Windows `C:\Games\…\save\`.
+	* - A POSIX absolute path resolves correctly against the `file:///` origin an NW.js game runs under,
+	*   so it loads with no scheme at all and everything looks finished.
+	* - A Windows one does not. `C:\Games\…` is not a valid url, so it is treated as relative, resolved
+	*   against the game's own directory, and fails - leaving a row that draws nothing, on the platform
+	*   CA ships on and not on the one it is developed on.
+	*
+	* Hence the explicit scheme, the separator normalization, and the escaping: a game installed under
+	* `My Games` has a space in every path it builds.
+	* @param {string} slotName The slot's name.
+	* @param {string} generationName The generation's directory name.
+	* @returns {string}
+	*/
+	static thumbnailUrl(slotName, generationName) {
+		return this.fileUrl(this.thumbnailPath(slotName, generationName));
+	}
+	/**
+	* Renders a local file path as a url an `<img>` will accept.
+	* @param {string} filePath The path to render.
+	* @returns {string}
+	*/
+	static fileUrl(filePath) {
+		const normalized = filePath.replace(/\\/g, "/");
+		const rooted = normalized.replace(/^\/+/, "");
+		const escaped = encodeURI(rooted).replace(/#/g, "%23").replace(/\?/g, "%3F");
+		return `file:///${escaped}`;
+	}
+	/**
+	* Determines whether a generation has a picture beside it.
+	*
+	* Absent simply means "no image" - a lost picture must never cost somebody a save, which is also why
+	* the manifest's `sections` array never names it.
+	* @param {string} slotName The slot's name.
+	* @param {string} generationName The generation's directory name.
+	* @returns {boolean}
+	*/
+	static hasThumbnail(slotName, generationName) {
+		return StorageManager.fsExists(this.thumbnailPath(slotName, generationName));
+	}
+	/**
 	* Deletes a slot and everything in it.
 	* @param {string} slotName The slot's name.
 	*/
 	static removeSlot(slotName) {
 		StorageManager.fsRemoveDirectory(this.slotDirectory(slotName));
 	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/core/SaveFileEntry.js
+/**
+* One row of the files list, whether that row is a whole slot or a single generation within one.
+*
+* Three of the four commands list slots and the fourth lists generations, but a row draws the same way
+* either way - a picture, where you were, who was leading, how long you had played. Modelling both as
+* one thing is what lets a single list window serve every mode instead of branching on which one is
+* active.
+*
+* **Everything drawable is read once, here, off the manifest.** A row must never reach for `$gameParty`
+* or `$gameActors`: the files scene is reachable from the title screen, where a throwaway new game is
+* already standing (`Scene_Boot.startNormalGame` calls `DataManager.setupNewGame`, which calls
+* `createGameObjects`). Reading a live global there would not throw - it would quietly draw the wrong
+* party over the right thumbnail, which is worse.
+*
+* The manifest is captured at construction rather than re-read per frame, so entries are cheap to draw
+* and stale by design: the scene rebuilds them after anything that changes the disk.
+*/
+var SaveFileEntry = class SaveFileEntry {
+	/**
+	* The savefile id this row belongs to.
+	* @type {number}
+	*/
+	_savefileId = 0;
+	/**
+	* The slot's directory name, ex: `file1`.
+	* @type {string}
+	*/
+	_slotName = String.empty;
+	/**
+	* The generation this row names, or an empty string when the row is a whole slot.
+	* @type {string}
+	*/
+	_generationName = String.empty;
+	/**
+	* The generation this row's manifest and picture actually came from.
+	* @type {string}
+	*/
+	_sourceGenerationName = String.empty;
+	/**
+	* The manifest describing what this row holds, or null when there is nothing to describe.
+	* @type {object|null}
+	*/
+	_manifest = null;
+	/**
+	* @constructor
+	* @param {number} savefileId The savefile id this row belongs to.
+	* @param {string} slotName The slot's directory name.
+	* @param {string} generationName The generation named, or an empty string for a whole slot.
+	* @param {string} sourceGenerationName The generation the manifest and picture came from.
+	* @param {object|null} manifest The manifest describing the row, or null when there is none.
+	*/
+	constructor(savefileId, slotName, generationName, sourceGenerationName, manifest) {
+		this._savefileId = savefileId;
+		this._slotName = slotName;
+		this._generationName = generationName;
+		this._sourceGenerationName = sourceGenerationName;
+		this._manifest = manifest;
+	}
+	/**
+	* Builds the row describing a whole slot, as the save, load and delete lists show them.
+	*
+	* The manifest comes from {@link SaveFileSystem.readableGeneration}, which steps past a generation
+	* whose newest write was torn - so a slot that lost its newest save still describes itself with the
+	* one the loader would actually open, rather than reading as empty. That is also why the source
+	* generation is remembered: the picture has to come from the same place the words did, or a slot in
+	* rollback shows a snapshot of a save it can no longer open.
+	* @param {number} savefileId The slot's id, one-based.
+	* @returns {SaveFileEntry}
+	*/
+	static forSlot(savefileId) {
+		const slotName = DataManager.makeSavename(savefileId);
+		const { generationName, manifest } = SaveFileSystem.readableGeneration(slotName);
+		return new SaveFileEntry(savefileId, slotName, String.empty, generationName, manifest);
+	}
+	/**
+	* Builds the row describing one generation within a slot, as the rewind list shows them.
+	* @param {number} savefileId The slot's id, one-based.
+	* @param {string} generationName The generation's directory name, ex: `gen-0007`.
+	* @returns {SaveFileEntry}
+	*/
+	static forGeneration(savefileId, generationName) {
+		const slotName = DataManager.makeSavename(savefileId);
+		const manifest = SaveFileSystem.readManifestQuietly(slotName, generationName);
+		return new SaveFileEntry(savefileId, slotName, generationName, generationName, manifest);
+	}
+	/**
+	* Gets the savefile id this row belongs to.
+	* @returns {number}
+	*/
+	savefileId() {
+		return this._savefileId;
+	}
+	/**
+	* Gets the slot's directory name.
+	* @returns {string}
+	*/
+	slotName() {
+		return this._slotName;
+	}
+	/**
+	* Gets the generation this row names, empty when the row describes a whole slot.
+	* @returns {string}
+	*/
+	generationName() {
+		return this._generationName;
+	}
+	/**
+	* Gets the generation this row's manifest and picture came from.
+	* @returns {string}
+	*/
+	sourceGenerationName() {
+		return this._sourceGenerationName;
+	}
+	/**
+	* Gets the manifest describing this row.
+	* @returns {object|null} The manifest, or null when this row has nothing in it.
+	*/
+	manifest() {
+		return this._manifest;
+	}
+	/**
+	* Determines whether this row names one generation rather than a whole slot.
+	* @returns {boolean}
+	*/
+	isGeneration() {
+		return this.generationName() !== String.empty;
+	}
+	/**
+	* Determines whether this row has anything in it worth drawing or loading.
+	* @returns {boolean}
+	*/
+	hasSave() {
+		return this.manifest() !== null;
+	}
+	/**
+	* Gets everything the row draws: map name, leader, level, gold, playtime, timestamp.
+	* @returns {object} The display block, or an empty object for a row with nothing in it.
+	*/
+	display() {
+		if (this.hasSave() === false) return {};
+		return this.manifest().display;
+	}
+	/**
+	* Gets when this row's generation was written, as an ISO-8601 timestamp.
+	* @returns {string} The timestamp, or an empty string for a row with nothing in it.
+	*/
+	savedAt() {
+		if (this.hasSave() === false) return String.empty;
+		return this.manifest().savedAt;
+	}
+	/**
+	* Gets the playtime this row was written at, in frames.
+	* @returns {number} The frame count, or zero for a row with nothing in it.
+	*/
+	playtimeFrames() {
+		if (this.hasSave() === false) return 0;
+		return this.manifest().playtimeFrames;
+	}
+	/**
+	* Determines whether this row has a picture on disk to draw.
+	* @returns {boolean}
+	*/
+	hasThumbnail() {
+		if (this.hasSave() === false) return false;
+		return SaveFileSystem.hasThumbnail(this.slotName(), this.sourceGenerationName());
+	}
+	/**
+	* Gets the url this row's picture loads through.
+	*
+	* A url rather than the path it is built from, because `Bitmap.load` hands its argument to an
+	* `<img>` and a Windows path is not something an `<img>` can resolve.
+	* @returns {string}
+	*/
+	thumbnailUrl() {
+		return SaveFileSystem.thumbnailUrl(this.slotName(), this.sourceGenerationName());
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/core/SaveFileMode.js
+/**
+* What selecting a row means.
+*
+* The files scene has one list and four things choosing a row can do to it, which is a strategy object
+* wearing a scene as a disguise - vanilla's own `Scene_Save` and `Scene_Load` differ by six methods and
+* nothing else. Pulling those six out here is what makes the entire feature testable: scenes, windows
+* and sprites are excluded from coverage on purpose, so every policy decision has to live somewhere
+* with no PIXI in it. This is that somewhere.
+*
+* A subclass answers what its command is called, whether the origin offers it, which rows it lists,
+* which of those rows can be chosen, whether choosing one needs confirming, and what choosing one
+* actually does. The scene asks; it never decides.
+*/
+var SaveFileMode = class {
+	/**
+	* The command symbol this mode is selected by.
+	* @returns {string}
+	*/
+	key() {
+		return String.empty;
+	}
+	/**
+	* The text the command column draws for this mode.
+	* @returns {string}
+	*/
+	label() {
+		return String.empty;
+	}
+	/**
+	* The icon the command column draws beside this mode's label.
+	* @returns {number}
+	*/
+	iconIndex() {
+		return 0;
+	}
+	/**
+	* What the help window says while this mode is highlighted or active.
+	* @returns {string}
+	*/
+	helpText() {
+		return String.empty;
+	}
+	/**
+	* Determines whether this command appears at all, given where the scene was opened from.
+	*
+	* Every mode answers this the same way, from the single table on {@link SaveFileEntryMode} - the
+	* point of that table is that changing what an origin offers is one row in one place rather than a
+	* method on each of four classes drifting away from the others.
+	* @param {string} entryMode The origin the scene was opened from.
+	* @returns {boolean}
+	*/
+	isOfferedFrom(entryMode) {
+		return SaveFileEntryMode.offers(entryMode, this.key());
+	}
+	/**
+	* Determines whether this command can be chosen right now.
+	*
+	* Distinct from {@link isOfferedFrom}, and the difference is what the player is told. A command the
+	* origin does not offer is absent, because its absence reads as a different screen. A command that is
+	* offered but momentarily useless is drawn and greyed, because that says "this exists, there is just
+	* nothing for it to do yet" - which is true, and is information.
+	* @returns {boolean}
+	*/
+	isEnabled() {
+		return true;
+	}
+	/**
+	* The rows this mode lists.
+	*
+	* Slots for three of the four. Rewind overrides this to list the generations within one slot, and
+	* that single divergence is the reason this is an overridable member rather than something the scene
+	* computes once and shares.
+	* @returns {SaveFileEntry[]}
+	*/
+	entries() {
+		return Array.from({ length: DataManager.maxSavefiles() }, (unused, index) => SaveFileEntry.forSlot(index + 1));
+	}
+	/**
+	* Determines whether a given row can be chosen in this mode.
+	*
+	* Everything but saving needs something already on disk to act on. Save is the one command for which
+	* an empty row is the whole point.
+	* @param {SaveFileEntry} entry The row being considered.
+	* @returns {boolean}
+	*/
+	isEntrySelectable(entry) {
+		return entry.hasSave();
+	}
+	/**
+	* The line a row leads with in this mode.
+	*
+	* Where you were is the right answer almost everywhere: a save is a place, and a player scanning a
+	* list of them is looking for a place they remember. Rewind is the exception, and it is enough of one
+	* to be worth the indirection - see its override.
+	* @param {SaveFileEntry} entry The row being described.
+	* @returns {string}
+	*/
+	leadText(entry) {
+		return entry.display().mapName;
+	}
+	/**
+	* Determines whether choosing a row here asks the player to confirm first.
+	*
+	* Defaults to yes. The single exception is loading from the title screen, where confirming asks the
+	* player to agree to the thing they opened the menu to do, and where there is no game in memory for
+	* the load to cost them.
+	* @param {string} _entryMode The origin the scene was opened from.
+	* @returns {boolean}
+	*/
+	requiresConfirmation(_entryMode) {
+		return true;
+	}
+	/**
+	* The question the confirmation window asks about a given row.
+	* @param {SaveFileEntry} _entry The row being confirmed.
+	* @returns {string}
+	*/
+	confirmText(_entry) {
+		return String.empty;
+	}
+	/**
+	* The consequence of answering yes, on its own line beneath the question.
+	*
+	* Split from the question rather than trailing it in one sentence because `drawTextEx` does not
+	* wrap: a single sentence long enough to say both things runs off the edge of any window narrow
+	* enough to sit over a row without hiding it. They are two different things anyway - one is what is
+	* being asked, the other is what it costs - and a reader takes them faster on two lines.
+	*
+	* Empty for a command whose question needs no qualification.
+	* @param {SaveFileEntry} _entry The row being asked about.
+	* @returns {string}
+	*/
+	confirmDetail(_entry) {
+		return String.empty;
+	}
+	/**
+	* Determines whether the confirmation window opens with the cursor on "no".
+	*
+	* Only for a command that cannot be taken back. Everywhere else, starting on "no" adds a keypress to
+	* the thing the player just asked for.
+	* @returns {boolean}
+	*/
+	confirmDefaultsToNo() {
+		return false;
+	}
+	/**
+	* Determines whether succeeding here puts the player back into the world.
+	*
+	* Loading and rewinding both end with the scene going away and a map coming up, and they share the
+	* whole of `Scene_Load`'s success path to get there. Saving and deleting leave the player exactly
+	* where they were, looking at a list that now says something different.
+	* @returns {boolean}
+	*/
+	resumesGame() {
+		return false;
+	}
+	/**
+	* Acknowledges this mode having done its thing.
+	*
+	* On the mode rather than in the scene because the engine's sounds are named for the actions they
+	* belong to, and a scene playing the save chime after a deletion would be quietly lying about what
+	* just happened.
+	*/
+	playSuccessSound() {
+		SoundManager.playOk();
+	}
+	/**
+	* Does the thing.
+	*
+	* Always a promise, even for the modes whose work is synchronous, so the scene has one success path
+	* and one failure path rather than a branch on which command it is running.
+	* @param {SaveFileEntry} _entry The row chosen.
+	* @returns {Promise<*>}
+	*/
+	execute(_entry) {
+		return Promise.resolve();
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/core/SaveFileModeSave.js
+/**
+* Writing the running game into a slot.
+*
+* The only mode for which an empty row is the point rather than a dead end, and the only one that
+* leaves the player exactly where they were when it succeeds. Vanilla pops the scene after a save; this
+* deliberately does not, because the player is standing on a save platform and may well want to look at
+* something else while they are here.
+*/
+var SaveFileModeSave = class extends SaveFileMode {
+	/**
+	* Implements {@link SaveFileMode.key}.<br/>
+	* @returns {string}
+	*/
+	key() {
+		return "save";
+	}
+	/**
+	* Implements {@link SaveFileMode.label}.<br/>
+	* Uses the engine's own term, since saving is a thing the database already has a word for.
+	* @returns {string}
+	*/
+	label() {
+		return TextManager.save;
+	}
+	/**
+	* Implements {@link SaveFileMode.helpText}.<br/>
+	* @returns {string}
+	*/
+	helpText() {
+		return TextManager.saveMessage;
+	}
+	/**
+	* Overrides {@link SaveFileMode.isEntrySelectable}.<br/>
+	* Every row can be saved to, because an empty slot is exactly where a first save goes.
+	* @param {SaveFileEntry} _entry The row being considered.
+	* @returns {boolean}
+	*/
+	isEntrySelectable(_entry) {
+		return true;
+	}
+	/**
+	* Implements {@link SaveFileMode.confirmText}.<br/>
+	* Names overwriting explicitly, because that is the one outcome a player might not have intended.
+	* @param {SaveFileEntry} entry The row being confirmed.
+	* @returns {string}
+	*/
+	confirmText(entry) {
+		if (entry.hasSave()) return `Overwrite the save in slot ${entry.savefileId()}?`;
+		return `Save to slot ${entry.savefileId()}?`;
+	}
+	/**
+	* Overrides {@link SaveFileMode.playSuccessSound}.<br/>
+	* @returns {void}
+	*/
+	playSuccessSound() {
+		SoundManager.playSave();
+	}
+	/**
+	* Implements {@link SaveFileMode.execute}.<br/>
+	* Follows vanilla's own save sequence, which several plugins hang state-flushing off.
+	* @param {SaveFileEntry} entry The row chosen.
+	* @returns {Promise<*>}
+	*/
+	execute(entry) {
+		$gameSystem.setSavefileId(entry.savefileId());
+		$gameSystem.onBeforeSave();
+		return DataManager.saveGame(entry.savefileId());
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/core/SaveFileModeLoad.js
+/**
+* Opening a slot and resuming the game inside it.
+*
+* The only mode offered from all three origins, and the only one whose confirmation depends on where
+* the player came from - see {@link requiresConfirmation}, which is the single place in this feature
+* where the origin changes behavior rather than availability.
+*/
+var SaveFileModeLoad = class extends SaveFileMode {
+	/**
+	* Implements {@link SaveFileMode.key}.<br/>
+	* @returns {string}
+	*/
+	key() {
+		return "load";
+	}
+	/**
+	* Implements {@link SaveFileMode.label}.<br/>
+	* @returns {string}
+	*/
+	label() {
+		return "Load";
+	}
+	/**
+	* Implements {@link SaveFileMode.helpText}.<br/>
+	* @returns {string}
+	*/
+	helpText() {
+		return TextManager.loadMessage;
+	}
+	/**
+	* Overrides {@link SaveFileMode.requiresConfirmation}.<br/>
+	* Skips the question at the title screen, and asks it everywhere else.
+	*
+	* From the title screen, confirming asks the player to agree to the thing they opened the menu to do,
+	* and there is no game in memory for the load to cost them. In-game there is: whatever they have done
+	* since their last save goes away, and that is worth one keypress.
+	* @param {string} entryMode The origin the scene was opened from.
+	* @returns {boolean}
+	*/
+	requiresConfirmation(entryMode) {
+		return entryMode !== SaveFileEntryMode.Title;
+	}
+	/**
+	* Implements {@link SaveFileMode.confirmText}.<br/>
+	* Names the cost rather than the action, since the action is the part the player already knows.
+	* @param {SaveFileEntry} entry The row being confirmed.
+	* @returns {string}
+	*/
+	confirmText(entry) {
+		return `Load slot ${entry.savefileId()}?`;
+	}
+	/**
+	* Implements {@link SaveFileMode.confirmDetail}.<br/>
+	* @param {SaveFileEntry} _entry The row being asked about.
+	* @returns {string}
+	*/
+	confirmDetail(_entry) {
+		return "Anything since your last save will be lost.";
+	}
+	/**
+	* Overrides {@link SaveFileMode.resumesGame}.<br/>
+	* @returns {boolean}
+	*/
+	resumesGame() {
+		return true;
+	}
+	/**
+	* Overrides {@link SaveFileMode.playSuccessSound}.<br/>
+	* @returns {void}
+	*/
+	playSuccessSound() {
+		SoundManager.playLoad();
+	}
+	/**
+	* Implements {@link SaveFileMode.execute}.<br/>
+	* @param {SaveFileEntry} entry The row chosen.
+	* @returns {Promise<*>}
+	*/
+	execute(entry) {
+		return DataManager.loadGame(entry.savefileId());
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/core/SaveFileModeDelete.js
+/**
+* Destroying a slot and every generation inside it.
+*
+* The one irreversible command in this scene, and the reason it is offered only from the title screen.
+* Nobody sets out to destroy a file while standing in a dungeon, and arriving with nothing loaded means
+* deleting can never interact with the game currently in memory - which removes a whole category of
+* question about what happens if you delete the slot you are playing.
+*
+* It takes the whole slot, pointer first. Deleting a single generation would be a way to make a slot's
+* history lie about itself for no benefit anybody asked for.
+*/
+var SaveFileModeDelete = class extends SaveFileMode {
+	/**
+	* Implements {@link SaveFileMode.key}.<br/>
+	* @returns {string}
+	*/
+	key() {
+		return "delete";
+	}
+	/**
+	* Implements {@link SaveFileMode.label}.<br/>
+	* @returns {string}
+	*/
+	label() {
+		return "Delete";
+	}
+	/**
+	* Implements {@link SaveFileMode.helpText}.<br/>
+	* @returns {string}
+	*/
+	helpText() {
+		return "Which file would you like to delete? This cannot be undone.";
+	}
+	/**
+	* Implements {@link SaveFileMode.confirmText}.<br/>
+	* Says permanent out loud, because every other command in this scene is recoverable and this one is
+	* not - including Rewind, which players may reasonably assume this resembles.
+	* @param {SaveFileEntry} entry The row being confirmed.
+	* @returns {string}
+	*/
+	confirmText(entry) {
+		return `Permanently delete slot ${entry.savefileId()}?`;
+	}
+	/**
+	* Implements {@link SaveFileMode.confirmDetail}.<br/>
+	* @param {SaveFileEntry} _entry The row being asked about.
+	* @returns {string}
+	*/
+	confirmDetail(_entry) {
+		return "This cannot be undone.";
+	}
+	/**
+	* Overrides {@link SaveFileMode.confirmDefaultsToNo}.<br/>
+	* The only command here that cannot be undone is the only one that opens on the safe answer.
+	* @returns {boolean}
+	*/
+	confirmDefaultsToNo() {
+		return true;
+	}
+	/**
+	* Implements {@link SaveFileMode.execute}.<br/>
+	* Removes the slot, then rebuilds the index the title screen reads.
+	*
+	* `DataManager._globalInfo` is an in-memory array built once when the load menu opens, so deleting a
+	* slot leaves it describing a save that is no longer there. That matters immediately and visibly:
+	* the title screen's Continue command is enabled from `isAnySavefileExists`, which reads that array -
+	* so deleting the last remaining save without rebuilding it leaves Continue lit up and pointing at
+	* nothing.
+	* @param {SaveFileEntry} entry The row chosen.
+	* @returns {Promise<*>}
+	*/
+	execute(entry) {
+		StorageManager.remove(entry.slotName());
+		DataManager.loadGlobalInfo();
+		return Promise.resolve();
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/core/SaveFileModeRewind.js
+/**
+* Stepping back to an older generation of the slot currently being played.
+*
+* **Rewinding is loading, not deleting.** The pointer stays where it is and the next save writes a new
+* generation on top, so the state rewound away from remains on disk until retention retires it
+* normally - which makes rewinding itself undoable. Delete is the only destructive command in this
+* scene, and it is the only one that says so.
+*
+* **There is no slot picker.** The rows are the generations of the slot the player is already in,
+* newest first. This is the one mode whose {@link entries} returns generations rather than slots, and
+* it is the entire reason that member is overridable.
+*/
+var SaveFileModeRewind = class extends SaveFileMode {
+	/**
+	* Implements {@link SaveFileMode.key}.<br/>
+	* @returns {string}
+	*/
+	key() {
+		return "rewind";
+	}
+	/**
+	* Implements {@link SaveFileMode.label}.<br/>
+	* @returns {string}
+	*/
+	label() {
+		return "Rewind";
+	}
+	/**
+	* Implements {@link SaveFileMode.helpText}.<br/>
+	* @returns {string}
+	*/
+	helpText() {
+		return "Step back to an earlier save in this file. Nothing is deleted.";
+	}
+	/**
+	* Overrides {@link SaveFileMode.isEnabled}.<br/>
+	* A playthrough with one save in it has nothing to step back to.
+	*
+	* Two halves, and they pull in opposite directions, which is why neither alone is the test:
+	*
+	* - `$gameSystem.savefileId()` is the only thing that knows which slot is being played, since there
+	*   is no picker to ask.
+	* - It cannot decide availability by itself, because `DataManager.selectSavefileForNewGame` stamps it
+	*   at New Game with a *guessed* empty slot, before anything has been written. It is non-zero for a
+	*   playthrough that has never saved once.
+	*
+	* So the id names the slot and the slot's own history answers the question. More than one reachable
+	* generation means there is somewhere to go.
+	* @returns {boolean}
+	*/
+	isEnabled() {
+		const savefileId = $gameSystem.savefileId();
+		if (savefileId === 0) return false;
+		return SaveFileSystem.loadOrder(DataManager.makeSavename(savefileId)).length > 1;
+	}
+	/**
+	* Overrides {@link SaveFileMode.entries}.<br/>
+	* Lists the generations of the slot being played, newest first.
+	* @returns {SaveFileEntry[]}
+	*/
+	entries() {
+		const savefileId = $gameSystem.savefileId();
+		return SaveFileSystem.loadOrder(DataManager.makeSavename(savefileId)).map((generationName) => SaveFileEntry.forGeneration(savefileId, generationName));
+	}
+	/**
+	* Overrides {@link SaveFileMode.leadText}.<br/>
+	* Leads with how long ago, because that is how people actually navigate their own history.
+	*
+	* Every row here is the same slot, usually the same map, often the same room - so the map name that
+	* distinguishes one *slot* from another distinguishes nothing at all between generations. "Reload to
+	* five minutes ago" is the sentence a player is thinking, so that is the number the row leads with.
+	* The place still rides along underneath as the confirmation.
+	* @param {SaveFileEntry} entry The row being described.
+	* @returns {string}
+	*/
+	leadText(entry) {
+		return this.elapsedTextFor(entry);
+	}
+	/**
+	* Implements {@link SaveFileMode.confirmText}.<br/>
+	* Says what survives, because the word "rewind" invites the assumption that something does not.
+	* @param {SaveFileEntry} _entry The row being confirmed.
+	* @returns {string}
+	*/
+	confirmText(_entry) {
+		return "Step back to this save?";
+	}
+	/**
+	* Implements {@link SaveFileMode.confirmDetail}.<br/>
+	* @param {SaveFileEntry} _entry The row being asked about.
+	* @returns {string}
+	*/
+	confirmDetail(_entry) {
+		return "Nothing is deleted and you can step forward again.";
+	}
+	/**
+	* Overrides {@link SaveFileMode.resumesGame}.<br/>
+	* @returns {boolean}
+	*/
+	resumesGame() {
+		return true;
+	}
+	/**
+	* Overrides {@link SaveFileMode.playSuccessSound}.<br/>
+	* Rewinding is loading, so it sounds like loading.
+	* @returns {void}
+	*/
+	playSuccessSound() {
+		SoundManager.playLoad();
+	}
+	/**
+	* Implements {@link SaveFileMode.execute}.<br/>
+	* Loads the exact generation chosen, with no fallback to a newer one.
+	* @param {SaveFileEntry} entry The row chosen.
+	* @returns {Promise<*>}
+	*/
+	execute(entry) {
+		return DataManager.loadGeneration(entry.savefileId(), entry.generationName());
+	}
+	/**
+	* How much wall-clock time may pass before it stops being the useful number.
+	*
+	* Elapsed wall-clock time is what people actually navigate a rewind list by - "reload to five minutes
+	* ago" - but it is only meaningful within a single session. A player who loaded a three-day-old save
+	* and immediately opened Rewind would otherwise see "3 days ago" on every row: three identical labels
+	* carrying no information at all.
+	*
+	* Two hours is comfortably longer than any single sitting's worth of generations and comfortably
+	* shorter than the gap between sittings, so a live session reads in wall-clock and a resumed one
+	* falls back.
+	* @returns {number} The threshold, in milliseconds.
+	*/
+	elapsedThresholdMs() {
+		return 2 * 60 * 60 * 1e3;
+	}
+	/**
+	* How many frames the engine counts per second of playtime.
+	* @returns {number}
+	*/
+	framesPerSecond() {
+		return 60;
+	}
+	/**
+	* Describes how long ago a row's save happened, in whichever clock still means something.
+	*
+	* Past the threshold this switches to the *playtime* delta, which is the number that survives being
+	* put down and picked up again - `Graphics.frameCount` is restored by `Game_System.onAfterLoad`, so
+	* it is a continuous measure of time spent playing rather than time elapsed in the world.
+	* @param {number} elapsedMs How long ago the row was written, in wall-clock milliseconds.
+	* @param {number} playtimeFrameDelta How much playtime has passed since, in frames.
+	* @returns {string}
+	*/
+	describeElapsed(elapsedMs, playtimeFrameDelta) {
+		if (elapsedMs <= this.elapsedThresholdMs()) return `${this.humanizeDuration(elapsedMs)} ago`;
+		const playtimeMs = playtimeFrameDelta / this.framesPerSecond() * 1e3;
+		return `${this.humanizeDuration(playtimeMs)} of play earlier`;
+	}
+	/**
+	* Renders a duration at the coarsest unit that still says something.
+	*
+	* One unit only. "1 hour, 4 minutes and 12 seconds ago" is a worse answer to "how far back is this"
+	* than "1 hour ago", because the question is about choosing between rows rather than about accuracy.
+	* @param {number} milliseconds The duration to describe.
+	* @returns {string}
+	*/
+	humanizeDuration(milliseconds) {
+		const seconds = Math.floor(milliseconds / 1e3);
+		if (seconds < 60) return "moments";
+		const minutes = Math.floor(seconds / 60);
+		if (minutes < 60) return this.pluralize(minutes, "minute");
+		const hours = Math.floor(minutes / 60);
+		if (hours < 24) return this.pluralize(hours, "hour");
+		return this.pluralize(Math.floor(hours / 24), "day");
+	}
+	/**
+	* Renders a count with its unit, pluralized.
+	* @param {number} count How many of the unit there are.
+	* @param {string} unit The singular form of the unit.
+	* @returns {string}
+	*/
+	pluralize(count, unit) {
+		if (count === 1) return `1 ${unit}`;
+		return `${count} ${unit}s`;
+	}
+	/**
+	* Describes how long ago one row's save happened, measured against right now.
+	*
+	* The thin wrapper over {@link describeElapsed} that reads the two live clocks, kept separate so the
+	* rule itself stays a pure function of two numbers.
+	* @param {SaveFileEntry} entry The row being described.
+	* @returns {string}
+	*/
+	elapsedTextFor(entry) {
+		const elapsedMs = Date.now() - Date.parse(entry.savedAt());
+		const playtimeFrameDelta = Graphics.frameCount - entry.playtimeFrames();
+		return this.describeElapsed(elapsedMs, playtimeFrameDelta);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/core/SaveFileModeCatalog.js
+/**
+* The four things selecting a row can mean, and the order they are offered in.
+*
+* A catalog rather than a static on {@link SaveFileMode} because the base cannot import its own
+* subclasses without a cycle, and rather than a list built inline in the command window because the
+* scene needs the same lookup to run whatever the player chose. One place that knows the roster; two
+* consumers that do not have to.
+*
+* Order is deliberate and not alphabetical: the commands run from most-used to least, and Delete sits
+* last because it is the destructive one and the cursor should not pass through it on the way to
+* anything else.
+*/
+var SaveFileModeCatalog = class SaveFileModeCatalog {
+	/**
+	* Builds one instance of every mode.
+	*
+	* Modes hold no state - they answer questions about entries handed to them - so a caller is free to
+	* build its own set rather than share one. Nothing here is a singleton on purpose.
+	* @returns {SaveFileMode[]}
+	*/
+	static all() {
+		return [
+			new SaveFileModeSave(),
+			new SaveFileModeLoad(),
+			new SaveFileModeRewind(),
+			new SaveFileModeDelete()
+		];
+	}
+	/**
+	* Finds the mode a given command symbol names.
+	* @param {string} key The command's key, ex: `rewind`.
+	* @returns {SaveFileMode|null} The mode, or null for a symbol no mode claims - such as `back`.
+	*/
+	static byKey(key) {
+		return SaveFileModeCatalog.all().find((mode) => mode.key() === key) ?? null;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/objects/Game_System.js
+/**
+* Extends {@link #initMembers}.<br/>
+* Also stamps the playthrough this game belongs to.
+*/
+J.BASE.EXT.SAVE.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function() {
+	J.BASE.EXT.SAVE.Aliased.Game_System.get("initMembers").call(this);
+	/**
+	* The identity of the playthrough this game belongs to.
+	*
+	* A slot is a folder of generations, and until this existed nothing tied one generation to the
+	* next beyond them sharing a folder. Start a new game, save it over an old slot, then roll that
+	* generation back, and the loader would happily hand back the previous playthrough- a different
+	* party, a different story position, and no indication that anything had happened.
+	*
+	* A new id is minted here, which is to say once per game world created. A loaded save overwrites
+	* it with the one it was written under, so the id follows a playthrough rather than a session.
+	* @type {string}
+	*/
+	this._playthroughId = J.BASE.Helpers.generateUuid();
+};
+/**
+* Gets the identity of the playthrough this game belongs to.
+* @returns {string}
+*/
+Game_System.prototype.playthroughId = function() {
+	return this._playthroughId;
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/windows/Window_FilesCommand.js
+/**
+* The column naming what the player can do with their files.
+*
+* It offers whatever the origin offers and nothing else, which is why there is no branching here worth
+* reading: the decision of what a save platform means versus what the title screen means lives in one
+* table, and this window simply renders the answer.
+*/
+var Window_FilesCommand = class extends Window_Command {
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Seeds the roster and the origin before the command list is first built from them.
+	*
+	* `Window_Command.initialize` ends by refreshing, and refreshing is what calls `makeCommandList` - so
+	* this hook is the only moment early enough for the list to see these at all.
+	*/
+	initMembers() {
+		/**
+		* Every mode this window could offer, whether or not the current origin does.
+		* @type {SaveFileMode[]}
+		*/
+		this._modes = SaveFileModeCatalog.all();
+		/**
+		* Where the scene was opened from, which decides what is offered.
+		*
+		* Empty until the scene says, and an empty origin offers nothing - the list is built once during
+		* construction, before anyone could have said, and a window that guessed would draw commands it is
+		* about to have to take away again.
+		* @type {string}
+		*/
+		this._entryMode = String.empty;
+	}
+	/**
+	* Gets every mode this window could offer.
+	* @returns {SaveFileMode[]}
+	*/
+	modes() {
+		return this._modes;
+	}
+	/**
+	* Gets where the scene was opened from.
+	* @returns {string}
+	*/
+	entryMode() {
+		return this._entryMode;
+	}
+	/**
+	* Sets where the scene was opened from and rebuilds the commands around it.
+	* @param {string} entryMode The origin the scene was opened from.
+	*/
+	setEntryMode(entryMode) {
+		this._entryMode = entryMode;
+		this.refresh();
+	}
+	/**
+	* Finds the mode a command symbol names.
+	* @param {string} symbol The symbol of the chosen command.
+	* @returns {SaveFileMode|null} The mode, or null for `back`, which is a scene handler rather than a
+	* mode.
+	*/
+	modeFor(symbol) {
+		return this.modes().find((mode) => mode.key() === symbol) ?? null;
+	}
+	/**
+	* The symbol of the command that leaves the scene.
+	* @returns {string}
+	*/
+	backSymbol() {
+		return "back";
+	}
+	/**
+	* Implements {@link Window_Command.makeCommandList}.<br/>
+	* Offers what the origin offers, then a way out.
+	*/
+	makeCommandList() {
+		if (this.entryMode() === String.empty) return;
+		this.modes().filter((mode) => mode.isOfferedFrom(this.entryMode())).forEach((mode) => this.addModeCommand(mode));
+		this.addBuiltCommand(new WindowCommandBuilder("Back").setSymbol(this.backSymbol()).setHelpText("Return to what you were doing.").build());
+	}
+	/**
+	* Adds the command for one mode.
+	* @param {SaveFileMode} mode The mode being offered.
+	*/
+	addModeCommand(mode) {
+		this.addBuiltCommand(new WindowCommandBuilder(mode.label()).setSymbol(mode.key()).setHelpText(mode.helpText()).setEnabled(mode.isEnabled()).setIconIndex(mode.iconIndex()).build());
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/windows/Window_FilesList.js
+/**
+* The list of things the chosen command can be pointed at.
+*
+* Slots for three of the four commands and generations for the fourth, drawn identically either way -
+* a picture of where you were, and four lines saying what "there" meant. Two rows at a time rather than
+* a scrolling column of thin ones, because the picture is the part a player actually recognizes and a
+* picture needs room to be recognized.
+*
+* **Every drawn value comes off the entry's manifest.** Not one of them comes off a `$game*` global,
+* and that is not a style preference: this scene is reachable from the title screen, where a throwaway
+* new game is already standing by. A row that reached for `$gameParty` there would draw the wrong party
+* without erroring, over the right thumbnail, which is the worst available outcome.
+*/
+var Window_FilesList = class extends Window_Command {
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Seeds the rows and their cache before the command list is first built from them.
+	*/
+	initMembers() {
+		/**
+		* The rows currently listed.
+		* @type {SaveFileEntry[]}
+		*/
+		this._entries = [];
+		/**
+		* The mode deciding what a row means and how it reads.
+		* @type {SaveFileMode|null}
+		*/
+		this._mode = null;
+		/**
+		* Pictures already asked for, by the path they were asked for by.
+		*
+		* `Bitmap.load` is asynchronous, so a row drawn before its picture arrives has to be drawn again
+		* once it does. Caching by path is what stops that redraw from starting a fresh load and looping
+		* forever - and because a path carries its generation, a new save is a new path and therefore
+		* never shows a stale picture.
+		* @type {Map<string, Bitmap>}
+		*/
+		this._thumbnails = new Map();
+	}
+	/**
+	* Gets the rows currently listed.
+	* @returns {SaveFileEntry[]}
+	*/
+	entries() {
+		return this._entries;
+	}
+	/**
+	* Sets the rows currently listed.
+	* @param {SaveFileEntry[]} entries The rows to list.
+	*/
+	setEntries(entries) {
+		this._entries = entries;
+	}
+	/**
+	* Gets the mode deciding what a row means.
+	* @returns {SaveFileMode|null}
+	*/
+	mode() {
+		return this._mode;
+	}
+	/**
+	* Gets the pictures already asked for, by the path they were asked for by.
+	* @returns {Map<string, Bitmap>}
+	*/
+	thumbnails() {
+		return this._thumbnails;
+	}
+	/**
+	* Points this list at a mode and rebuilds it from that mode's rows.
+	* @param {SaveFileMode} mode The mode now driving the list.
+	*/
+	setMode(mode) {
+		this._mode = mode;
+		this.setEntries(mode.entries());
+		this.refresh();
+	}
+	/**
+	* Gets the row currently highlighted.
+	* @returns {SaveFileEntry|null} The row, or null while nothing is highlighted.
+	*/
+	currentEntry() {
+		return this.entries().at(this.index()) ?? null;
+	}
+	/**
+	* How many rows are visible at once.
+	*
+	* Two, which with the facet area's height is what makes a 16:9 picture comfortable rather than a
+	* squeeze. A plugin parameter eventually; a constant deliberately for now.
+	* @returns {number}
+	*/
+	visibleRowCount() {
+		return 2;
+	}
+	/**
+	* Overwrites {@link Window_Selectable.itemHeight}.<br/>
+	* Divides the window evenly among the rows it shows, rather than using a line height.
+	* @returns {number}
+	*/
+	itemHeight() {
+		return Math.floor(this.innerHeight / this.visibleRowCount());
+	}
+	/**
+	* The height of the picture drawn in a row.
+	* @returns {number}
+	*/
+	thumbnailHeight() {
+		return this.itemHeight() - this.rowPadding() * 2;
+	}
+	/**
+	* The width of the picture drawn in a row, holding it to 16:9.
+	* @returns {number}
+	*/
+	thumbnailWidth() {
+		return Math.floor(this.thumbnailHeight() * (16 / 9));
+	}
+	/**
+	* The breathing room between a row's edges and its contents.
+	* @returns {number}
+	*/
+	rowPadding() {
+		return 8;
+	}
+	/**
+	* Where a row's text block begins, clear of the picture.
+	* @returns {number}
+	*/
+	textOffsetX() {
+		return this.thumbnailWidth() + this.rowPadding() * 2;
+	}
+	/**
+	* Implements {@link Window_Command.makeCommandList}.<br/>
+	* Adds one command per row, enabled according to what this mode can act on.
+	*/
+	makeCommandList() {
+		if (this.mode() === null) return;
+		this.entries().forEach((entry, index) => {
+			this.addBuiltCommand(new WindowCommandBuilder(String.empty).setSymbol("entry").setEnabled(this.mode().isEntrySelectable(entry)).setExtensionData(index).build());
+		});
+	}
+	/**
+	* Overwrites {@link Window_Command.drawItem}.<br/>
+	* Renders a whole file rather than a line of text.
+	* @param {number} index The row being drawn.
+	*/
+	drawItem(index) {
+		const entry = this.entries()[index];
+		const rectangle = this.itemRect(index);
+		this.changePaintOpacity(this.isCommandEnabled(index));
+		if (entry.hasSave()) {
+			this.drawFilledRow(entry, rectangle);
+		} else {
+			this.drawEmptyRow(entry, rectangle);
+		}
+		this.changePaintOpacity(true);
+	}
+	/**
+	* Draws a row describing something that is actually on disk.
+	* @param {SaveFileEntry} entry The row's data.
+	* @param {Rectangle} rectangle The row's bounds.
+	*/
+	drawFilledRow(entry, rectangle) {
+		this.drawThumbnail(entry, rectangle);
+		const x = rectangle.x + this.textOffsetX();
+		const width = rectangle.width - this.textOffsetX() - this.rowPadding();
+		this.textLines(entry).forEach((line, lineIndex) => {
+			this.drawTextEx(line, x, rectangle.y + this.rowPadding() + lineIndex * this.lineHeight(), width);
+		});
+	}
+	/**
+	* Builds the lines of text a filled row carries.
+	* @param {SaveFileEntry} entry The row's data.
+	* @returns {string[]}
+	*/
+	textLines(entry) {
+		const display = entry.display();
+		return [
+			this.mode().leadText(entry),
+			`${display.leaderName}  \\C[6]Lv.${display.level}\\C[0]`,
+			`${display.playtime}   \\C[17]${display.gold}\\C[0] ${TextManager.currencyUnit}`,
+			this.describeTimestamp(display.timestamp)
+		];
+	}
+	/**
+	* Draws a row for a slot nobody has saved to.
+	*
+	* Its number and nothing else. There is no data to be coy about, and inventing a placeholder picture
+	* would make an empty slot look like a broken one.
+	* @param {SaveFileEntry} entry The row's data.
+	* @param {Rectangle} rectangle The row's bounds.
+	*/
+	drawEmptyRow(entry, rectangle) {
+		const y = rectangle.y + Math.floor((rectangle.height - this.lineHeight()) / 2);
+		this.drawTextEx(`Slot ${entry.savefileId()} - Empty`, rectangle.x + this.rowPadding(), y, rectangle.width);
+	}
+	/**
+	* Draws the picture taken when this row was written.
+	* @param {SaveFileEntry} entry The row's data.
+	* @param {Rectangle} rectangle The row's bounds.
+	*/
+	drawThumbnail(entry, rectangle) {
+		const x = rectangle.x + this.rowPadding();
+		const y = rectangle.y + this.rowPadding();
+		const width = this.thumbnailWidth();
+		const height = this.thumbnailHeight();
+		if (entry.hasThumbnail() === false) {
+			this.drawMissingThumbnail(x, y, width, height);
+			return;
+		}
+		const bitmap = this.thumbnailFor(entry);
+		if (bitmap.isReady() === false) return;
+		this.contents.blt(bitmap, 0, 0, bitmap.width, bitmap.height, x, y, width, height);
+	}
+	/**
+	* Draws the space a picture would have occupied, so the text does not shift when one is absent.
+	* @param {number} x The left edge of the space.
+	* @param {number} y The top edge of the space.
+	* @param {number} width The width of the space.
+	* @param {number} height The height of the space.
+	*/
+	drawMissingThumbnail(x, y, width, height) {
+		this.contents.fillRect(x, y, width, height, ColorManager.gaugeBackColor());
+	}
+	/**
+	* Gets the picture for a row, loading it the first time it is asked for.
+	*
+	* The load listener refreshes the whole window rather than the one row, which is both simpler and
+	* cheap at two rows - and it attaches exactly once, at the moment the picture enters the cache, so a
+	* redraw cannot stack listeners or start a second load.
+	* @param {SaveFileEntry} entry The row wanting its picture.
+	* @returns {Bitmap}
+	*/
+	thumbnailFor(entry) {
+		const url = entry.thumbnailUrl();
+		if (this.thumbnails().has(url)) {
+			return this.thumbnails().get(url);
+		}
+		const bitmap = Bitmap.load(url);
+		this.thumbnails().set(url, bitmap);
+		bitmap.addLoadListener(() => this.refresh());
+		return bitmap;
+	}
+	/**
+	* Renders when a row was written, in the player's own locale.
+	* @param {number} timestamp The moment of writing, as milliseconds since the epoch.
+	* @returns {string}
+	*/
+	describeTimestamp(timestamp) {
+		const written = new Date(timestamp);
+		return `\\C[7]${written.toLocaleDateString()} ${written.toLocaleTimeString()}\\C[0]`;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/windows/Window_FilesConfirm.js
+/**
+* The last chance to change your mind.
+*
+* Deliberately small and deliberately centred over the list, so the row being asked about stays visible
+* behind the question rather than being covered by it - "delete slot 1?" is a much easier question to
+* answer correctly while still looking at slot 1.
+*
+* Which answer the cursor starts on is the mode's decision, not this window's. Only the irreversible
+* command opens on "no"; everywhere else, starting on the safe answer would add a keypress to the thing
+* the player just asked for.
+*/
+var Window_FilesConfirm = class extends Window_Command {
+	/**
+	* Implements {@link Window_Command.initMembers}.<br/>
+	* Seeds the question before the command list is first built.
+	*/
+	initMembers() {
+		/**
+		* The question being asked.
+		* @type {string}
+		*/
+		this._prompt = String.empty;
+		/**
+		* What answering yes will cost, drawn beneath the question.
+		* @type {string}
+		*/
+		this._detail = String.empty;
+	}
+	/**
+	* Gets the question being asked.
+	* @returns {string}
+	*/
+	prompt() {
+		return this._prompt;
+	}
+	/**
+	* Gets what answering yes will cost.
+	* @returns {string}
+	*/
+	detail() {
+		return this._detail;
+	}
+	/**
+	* Sets the question being asked and redraws around it.
+	*
+	* The two arrive together because they are drawn together, and setting one without the other would
+	* leave the window briefly describing a different command than the one it is asking about.
+	* @param {string} prompt The question to ask.
+	* @param {string} detail What answering yes will cost, or an empty string when nothing needs saying.
+	*/
+	setPrompt(prompt, detail) {
+		this._prompt = prompt;
+		this.setDetail(detail);
+		this.refresh();
+	}
+	/**
+	* Sets what answering yes will cost.
+	*
+	* Deliberately does not redraw: it is only ever written as half of a question, and {@link #setPrompt}
+	* refreshes once both halves are in place rather than twice while they disagree.
+	* @param {string} detail What answering yes will cost.
+	*/
+	setDetail(detail) {
+		this._detail = detail;
+	}
+	/**
+	* The symbol of the answer that goes ahead.
+	* @returns {string}
+	*/
+	confirmSymbol() {
+		return "confirm";
+	}
+	/**
+	* The symbol of the answer that backs out.
+	* @returns {string}
+	*/
+	denySymbol() {
+		return "deny";
+	}
+	/**
+	* How many lines the question is given before the answers begin.
+	* @returns {number}
+	*/
+	promptLineCount() {
+		return 2;
+	}
+	/**
+	* Extends {@link Window_Selectable.itemRect}.<br/>
+	* Pushes every answer below the question rather than letting the first one sit on top of it.
+	* @param {number} index The row being placed.
+	* @returns {Rectangle}
+	*/
+	itemRect(index) {
+		const rectangle = super.itemRect(index);
+		rectangle.y += this.promptLineCount() * this.lineHeight();
+		return rectangle;
+	}
+	/**
+	* Implements {@link Window_Command.makeCommandList}.<br/>
+	*/
+	makeCommandList() {
+		this.addBuiltCommand(new WindowCommandBuilder("Yes").setSymbol(this.confirmSymbol()).build());
+		this.addBuiltCommand(new WindowCommandBuilder("No").setSymbol(this.denySymbol()).build());
+	}
+	/**
+	* Extends {@link Window_Command.refresh}.<br/>
+	* Also draws the question above the answers.
+	*/
+	refresh() {
+		super.refresh();
+		if (this.prompt() === String.empty) return;
+		this.drawTextEx(this.prompt(), 0, 0, this.innerWidth);
+		if (this.detail() === String.empty) return;
+		this.drawTextEx(this.detail(), 0, this.lineHeight(), this.innerWidth);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/scenes/Scene_Files.js
+/**
+* One scene for saving, loading, deleting and rewinding.
+*
+* Vanilla's `Scene_Save` and `Scene_Load` differ by six methods - `mode`, `helpWindowText`,
+* `firstSavefileId`, `onSavefileOk`, and their execute/success/failure trio - which is already a
+* strategy pattern wearing inheritance as a disguise. Delete has no home in vanilla at all despite
+* needing the identical list of slots, and Rewind needs it too. So: one scene, one list, and a mode
+* that decides what selecting a row means.
+*
+* **What it offers depends entirely on where it was opened from.** A save platform offers Save, Load
+* and Rewind; the menu drops Save; the title screen offers Load and Delete. Commands that do not apply
+* are omitted rather than greyed - a greyed Rewind on the title screen is an invitation to wonder what
+* you did wrong, while an absent one just reads as a different screen. The player should never learn
+* that these are the same scene.
+*
+* It is a `Scene_MenuBase` descendant reached from the title screen, which looks unsafe and is not:
+* `Scene_Boot.startNormalGame` calls `DataManager.setupNewGame`, so a throwaway new game is already
+* standing by the time the title draws and Continue simply discards it. Vanilla's own `Scene_Load`
+* relies on exactly this. The rule it leaves behind is that nothing in this scene may *read* those
+* globals to describe a save - see {@link Window_FilesList}.
+*/
+var Scene_Files = class Scene_Files extends Scene_MenuFacetBase {
+	/**
+	* Opens the files scene from a save platform in the world.
+	*
+	* The three entry points are static methods rather than three copies of the same two lines because
+	* the engine's own preparation helper operates on `_nextScene`, so `prepare` must be called *after*
+	* the push - the reverse of what reads naturally. Wrapping it here means nobody has to remember that.
+	*/
+	static callFromSavePoint() {
+		SceneManager.push(Scene_Files);
+		SceneManager.prepareNextScene(SaveFileEntryMode.Platform);
+	}
+	/**
+	* Opens the files scene from the main menu.
+	*/
+	static callFromMenu() {
+		SceneManager.push(Scene_Files);
+		SceneManager.prepareNextScene(SaveFileEntryMode.Menu);
+	}
+	/**
+	* Opens the files scene from the title screen's Continue command.
+	*/
+	static callFromTitle() {
+		SceneManager.push(Scene_Files);
+		SceneManager.prepareNextScene(SaveFileEntryMode.Title);
+	}
+	/**
+	* Receives where this scene was opened from.
+	* @param {string} entryMode One of {@link SaveFileEntryMode}.
+	*/
+	prepare(entryMode) {
+		this.setEntryMode(entryMode);
+	}
+	/**
+	* Extends {@link #initMembers}.<br/>
+	* Also initializes this scene's members.
+	*/
+	initMembers() {
+		super.initMembers();
+		/**
+		* A grouping of all properties associated with the files scene.
+		*/
+		this._j._files = {};
+		/**
+		* Where this scene was opened from, which decides what it offers.
+		* @type {string}
+		*/
+		this._j._files._entryMode = SaveFileEntryMode.Title;
+		/**
+		* The column of things that can be done.
+		* @type {Window_FilesCommand|null}
+		*/
+		this._j._files._command = null;
+		/**
+		* The list of files or generations the chosen command acts on.
+		* @type {Window_FilesList|null}
+		*/
+		this._j._files._list = null;
+		/**
+		* The prompt shown before anything irreversible or expensive.
+		* @type {Window_FilesConfirm|null}
+		*/
+		this._j._files._confirm = null;
+		/**
+		* Whether a load or rewind succeeded, which decides what {@link terminate} owes the new game.
+		* @type {boolean}
+		*/
+		this._j._files._loadSuccess = false;
+	}
+	/**
+	* Gets where this scene was opened from.
+	* @returns {string}
+	*/
+	entryMode() {
+		return this._j._files._entryMode;
+	}
+	/**
+	* Sets where this scene was opened from.
+	* @param {string} entryMode One of {@link SaveFileEntryMode}.
+	*/
+	setEntryMode(entryMode) {
+		this._j._files._entryMode = entryMode;
+	}
+	/**
+	* Gets the column of things that can be done.
+	* @returns {Window_FilesCommand}
+	*/
+	commandWindow() {
+		return this._j._files._command;
+	}
+	/**
+	* Sets the column of things that can be done.
+	* @param {Window_FilesCommand} window The window to track.
+	*/
+	setCommandWindow(window) {
+		this._j._files._command = window;
+	}
+	/**
+	* Gets the list of files the chosen command acts on.
+	* @returns {Window_FilesList}
+	*/
+	listWindow() {
+		return this._j._files._list;
+	}
+	/**
+	* Sets the list of files the chosen command acts on.
+	* @param {Window_FilesList} window The window to track.
+	*/
+	setListWindow(window) {
+		this._j._files._list = window;
+	}
+	/**
+	* Gets the prompt shown before anything irreversible or expensive.
+	* @returns {Window_FilesConfirm}
+	*/
+	confirmWindow() {
+		return this._j._files._confirm;
+	}
+	/**
+	* Sets the prompt shown before anything irreversible or expensive.
+	* @param {Window_FilesConfirm} window The window to track.
+	*/
+	setConfirmWindow(window) {
+		this._j._files._confirm = window;
+	}
+	/**
+	* Gets whether a load or rewind succeeded in this scene.
+	* @returns {boolean}
+	*/
+	hasLoadSucceeded() {
+		return this._j._files._loadSuccess;
+	}
+	/**
+	* Records that a load or rewind succeeded in this scene.
+	*/
+	flagLoadSucceeded() {
+		this._j._files._loadSuccess = true;
+	}
+	/**
+	* Gets the mode currently driving the list.
+	* @returns {SaveFileMode|null}
+	*/
+	currentMode() {
+		return this.listWindow().mode();
+	}
+	/**
+	* Extends {@link #create}.<br/>
+	* Also creates this scene's own windows.
+	*/
+	create() {
+		super.create();
+		this.createHelpWindow();
+		this.createFilesCommandWindow();
+		this.createFilesListWindow();
+		this.createFilesConfirmWindow();
+	}
+	/**
+	* Creates the column of commands and adds it to tracking.
+	*/
+	createFilesCommandWindow() {
+		const window = new Window_FilesCommand(this.filesCommandWindowRect());
+		window.modes().forEach((mode) => window.setHandler(mode.key(), this.onModeChosen.bind(this, mode)));
+		window.setHandler(window.backSymbol(), this.popScene.bind(this));
+		window.setHandler("cancel", this.popScene.bind(this));
+		window.setHelpWindow(this.helpWindow());
+		window.setEntryMode(this.entryMode());
+		window.select(0);
+		this.setCommandWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Creates the list of files and adds it to tracking.
+	*/
+	createFilesListWindow() {
+		const window = new Window_FilesList(this.filesListWindowRect());
+		window.setHandler("entry", this.onEntryChosen.bind(this));
+		window.setHandler("cancel", this.onListCancelled.bind(this));
+		window.deactivate();
+		window.deselect();
+		SaveThumbnail.requestSize(window.thumbnailHeight());
+		this.setListWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Creates the confirmation prompt and adds it to tracking.
+	*/
+	createFilesConfirmWindow() {
+		const window = new Window_FilesConfirm(this.filesConfirmWindowRect());
+		window.setHandler(window.confirmSymbol(), this.onConfirmed.bind(this));
+		window.setHandler(window.denySymbol(), this.onDenied.bind(this));
+		window.setHandler("cancel", this.onDenied.bind(this));
+		window.hide();
+		window.deactivate();
+		this.setConfirmWindow(window);
+		this.addWindow(window);
+	}
+	/**
+	* Builds the rectangle for the column of commands.
+	* @returns {Rectangle}
+	*/
+	filesCommandWindowRect() {
+		const facetArea = this.facetAreaRect();
+		return new Rectangle(facetArea.x, facetArea.y, this.commandColumnWidth(), facetArea.height);
+	}
+	/**
+	* Builds the rectangle for the list of files, claiming everything the command column does not.
+	* @returns {Rectangle}
+	*/
+	filesListWindowRect() {
+		const facetArea = this.facetAreaRect();
+		const x = facetArea.x + this.commandColumnWidth();
+		return new Rectangle(x, facetArea.y, facetArea.width - this.commandColumnWidth(), facetArea.height);
+	}
+	/**
+	* Builds the rectangle for the confirmation prompt, centred over the list.
+	*
+	* Over the list rather than over the whole scene, so the row being asked about stays visible beside
+	* the question rather than behind it.
+	* @returns {Rectangle}
+	*/
+	filesConfirmWindowRect() {
+		const listArea = this.filesListWindowRect();
+		const width = Math.floor(listArea.width * this.confirmWidthRatio());
+		const height = this.calcWindowHeight(this.confirmLineCount(), true);
+		const x = listArea.x + Math.floor((listArea.width - width) / 2);
+		const y = listArea.y + Math.floor((listArea.height - height) / 2);
+		return new Rectangle(x, y, width, height);
+	}
+	/**
+	* The proportion of the list's width the confirmation prompt takes.
+	* @returns {number}
+	*/
+	confirmWidthRatio() {
+		return .5;
+	}
+	/**
+	* How many lines the confirmation prompt is tall: the question, then the two answers.
+	* @returns {number}
+	*/
+	confirmLineCount() {
+		return 4;
+	}
+	/**
+	* Handles a command being chosen, pointing the list at that mode's rows.
+	* @param {SaveFileMode} mode The mode chosen.
+	*/
+	onModeChosen(mode) {
+		this.listWindow().setMode(mode);
+		this.commandWindow().deactivate();
+		this.listWindow().activate();
+		this.listWindow().select(0);
+	}
+	/**
+	* Handles the list being backed out of, returning focus to the commands.
+	*/
+	onListCancelled() {
+		this.listWindow().deactivate();
+		this.listWindow().deselect();
+		this.commandWindow().activate();
+	}
+	/**
+	* Handles a row being chosen, either asking first or acting immediately.
+	*/
+	onEntryChosen() {
+		if (this.currentMode().requiresConfirmation(this.entryMode()) === false) {
+			this.executeCurrentMode();
+			return;
+		}
+		this.openConfirmation();
+	}
+	/**
+	* Raises the confirmation prompt over the list.
+	*/
+	openConfirmation() {
+		const mode = this.currentMode();
+		const entry = this.listWindow().currentEntry();
+		const window = this.confirmWindow();
+		window.setPrompt(mode.confirmText(entry), mode.confirmDetail(entry));
+		window.show();
+		window.activate();
+		window.select(mode.confirmDefaultsToNo() ? 1 : 0);
+		this.listWindow().deactivate();
+	}
+	/**
+	* Handles the confirmation being accepted.
+	*/
+	onConfirmed() {
+		this.closeConfirmation();
+		this.executeCurrentMode();
+	}
+	/**
+	* Handles the confirmation being declined, returning the player to the list.
+	*/
+	onDenied() {
+		this.closeConfirmation();
+		this.listWindow().activate();
+	}
+	/**
+	* Puts the confirmation prompt away.
+	*/
+	closeConfirmation() {
+		this.confirmWindow().hide();
+		this.confirmWindow().deactivate();
+	}
+	/**
+	* Runs whatever the current mode does to the highlighted row.
+	*/
+	executeCurrentMode() {
+		const mode = this.currentMode();
+		const entry = this.listWindow().currentEntry();
+		mode.execute(entry).then(() => this.onExecuteSuccess(mode)).catch((error) => this.onExecuteFailure(error));
+	}
+	/**
+	* Handles a command succeeding.
+	* @param {SaveFileMode} mode The mode that ran.
+	*/
+	onExecuteSuccess(mode) {
+		mode.playSuccessSound();
+		if (mode.resumesGame()) {
+			this.onLoadSuccess();
+			return;
+		}
+		this.onListChangeSuccess(mode);
+	}
+	/**
+	* Handles a command that leaves the player in this scene succeeding.
+	*
+	* Vanilla pops the scene after a save; this deliberately does not. The player is standing on a save
+	* platform, and having the screen close itself the moment they use it means anything else they wanted
+	* to do here costs them a walk back onto the platform.
+	* @param {SaveFileMode} mode The mode that ran.
+	*/
+	onListChangeSuccess(mode) {
+		this.listWindow().setMode(mode);
+		this.listWindow().deactivate();
+		this.listWindow().deselect();
+		this.commandWindow().refresh();
+		this.commandWindow().activate();
+	}
+	/**
+	* Handles a load or rewind succeeding.
+	*
+	* Copied from `Scene_Load` deliberately rather than by feel, because every step of it is load-bearing
+	* somewhere: `reloadMapIfUpdated` is what J-ABS aliases to force a map rebuild, and the flag is what
+	* {@link terminate} reads to decide whether the new game is owed an `onAfterLoad`.
+	*/
+	onLoadSuccess() {
+		this.fadeOutAll();
+		this.reloadMapIfUpdated();
+		SceneManager.goto(Scene_Map);
+		this.flagLoadSucceeded();
+	}
+	/**
+	* Handles a command failing, leaving the player where they were to try something else.
+	* @param {Error} error Why it failed.
+	*/
+	onExecuteFailure(error) {
+		console.error(error);
+		SoundManager.playBuzzer();
+		this.listWindow().activate();
+	}
+	/**
+	* Transfers the player to a fresh copy of the map when the game's data has moved on since the save.
+	*
+	* Identical to `Scene_Load`'s, and separate for the same reason it is separate there: J-ABS replaces
+	* it outright while JABS is enabled, because the enemies on a map do not survive a load without a
+	* rebuild.
+	*/
+	reloadMapIfUpdated() {
+		if ($gameSystem.versionId() !== $dataSystem.versionId) {
+			const mapId = $gameMap.mapId();
+			const { x } = $gamePlayer;
+			const { y } = $gamePlayer;
+			const direction = $gamePlayer.direction();
+			$gamePlayer.reserveTransfer(mapId, x, y, direction, 0);
+			$gamePlayer.requestMapReload();
+		}
+	}
+	/**
+	* Extends {@link #terminate}.<br/>
+	* Also gives the freshly loaded game the after-load pass a great deal of plugin state re-applies in.
+	*
+	* `Scene_Load` does this and `Scene_Files` does not inherit from it, so without this the state that
+	* re-seeds itself in `onAfterLoad` simply never would - silently, and only after a load.
+	*/
+	terminate() {
+		super.terminate();
+		if (this.hasLoadSucceeded()) {
+			$gameSystem.onAfterLoad();
+		}
+	}
+	/**
+	* Implements {@link Scene_MenuFacetBase.controlLegendEntries}.<br/>
+	* @returns {{semantic: string, label: string}[]}
+	*/
+	controlLegendEntries() {
+		return [{
+			semantic: "ok",
+			label: "choose"
+		}, {
+			semantic: "cancel",
+			label: "back"
+		}];
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/objects/Game_Interpreter.js
+/**
+* Overwrites {@link #command352}.<br/>
+* Opens the files scene instead of vanilla's save screen.
+*
+* All 34 of CA's save platforms call the same common event, and that common event ends in this command
+* - so intercepting the command covers every platform in the game without touching a single map. That
+* is the entire reason the entry point is here rather than in map data.
+*
+* Overwritten rather than aliased because the original body is one line that pushes the scene this one
+* replaces; calling it as well would open both.
+*/
+Game_Interpreter.prototype.command352 = function() {
+	Scene_Files.callFromSavePoint();
+	return true;
 };
 
 //#endregion
@@ -2844,7 +5013,8 @@ StorageManager.loadObject = function(saveName) {
 StorageManager.saveSlot = function(saveName, contents) {
 	const sections = SaveSectionRouter.toSections(contents);
 	const manifest = SaveManifest.create(Object.keys(sections), DataManager.makeSavefileInfo(), Graphics.frameCount, $gameSystem.playthroughId());
-	return SaveFileSystem.writeSlot(saveName, sections, SaveEncoder.encode(manifest, "$.manifest"));
+	const thumbnail = SaveThumbnail.capture();
+	return SaveFileSystem.writeSlot(saveName, sections, SaveEncoder.encode(manifest, "$.manifest"), thumbnail);
 };
 /**
 * Reads one playthrough slot, falling back through older generations as needed.
@@ -2853,6 +5023,20 @@ StorageManager.saveSlot = function(saveName, contents) {
 */
 StorageManager.loadSlot = function(saveName) {
 	return SaveFileSystem.readSlot(saveName, (sections) => SaveSectionRouter.fromSections(sections));
+};
+/**
+* Reads one specific generation of one slot, with no fallback to a newer one.
+*
+* Mirrors {@link StorageManager.loadSlot} exactly, save for which generation it opens - the router
+* still runs inside the read, so the sections arrive as an object graph rather than as plain data. The
+* absent fallback is the point: this exists for a player who looked at a list of their own history and
+* pointed at one row, and handing them a different one would make the list a lie.
+* @param {string} saveName The slot's name.
+* @param {string} generationName The generation to read, ex: `gen-0007`.
+* @returns {Promise<object>} The save contents, ready for `DataManager.extractSaveContents`.
+*/
+StorageManager.loadGeneration = function(saveName, generationName) {
+	return SaveFileSystem.readGenerationAt(saveName, generationName, (sections) => SaveSectionRouter.fromSections(sections));
 };
 /**
 * Writes one scope-level document.
@@ -3154,6 +5338,46 @@ DataManager.savefileMapName = function() {
 	return $dataMapInfos[$gameMap.mapId()].name;
 };
 /**
+* Overwrites {@link #maxSavefiles}.<br/>
+* Answers with the number of slots the files scene actually renders.
+*
+* Vanilla says twenty, and leaving that disagreeing with what is drawn causes two real problems rather
+* than one cosmetic one:
+*
+* - `DataManager.selectSavefileForNewGame` picks the first empty slot across the whole range and stamps
+*   `$gameSystem.setSavefileId` with it. It can land on a slot the scene never draws, which puts that
+*   playthrough's entire generation history somewhere Rewind can never reach.
+* - {@link #loadGlobalInfo} loops the same range, so every open of the load menu reads eighteen absent
+*   manifests to learn nothing.
+*
+* This is the one knob, and both problems turn with it. It is a plain constant rather than a plugin
+* parameter for now, deliberately - see the files scene plan.
+* @returns {number}
+*/
+DataManager.maxSavefiles = function() {
+	return 2;
+};
+/**
+* Loads one specific generation of a slot, rather than the newest one that works.
+*
+* Mirrors vanilla's {@link #loadGame} step for step, and that is the whole reason it exists. Reading
+* the file is not loading it: `createGameObjects`, `extractSaveContents` and `correctDataErrors` are
+* what actually replace the running game, and without this layer a rewind would decode a perfectly good
+* generation and then quietly do nothing with it.
+* @param {number} savefileId The slot to read from.
+* @param {string} generationName The generation to read, ex: `gen-0007`.
+* @returns {Promise<number>}
+*/
+DataManager.loadGeneration = function(savefileId, generationName) {
+	const saveName = this.makeSavename(savefileId);
+	return StorageManager.loadGeneration(saveName, generationName).then((contents) => {
+		this.createGameObjects();
+		this.extractSaveContents(contents);
+		this.correctDataErrors();
+		return 0;
+	});
+};
+/**
 * Overwrites {@link #loadGlobalInfo}.<br/>
 * Builds the savefile index by reading each slot's manifest instead of a parallel index file.
 *
@@ -3183,6 +5407,30 @@ DataManager.loadGlobalInfo = function() {
 DataManager.saveGlobalInfo = function() {};
 
 //#endregion
+//#region src/plugins/_base/ext/save/windows/Window_MenuCommand.js
+/**
+* Overwrites {@link #addSaveCommand}.<br/>
+* Offers the files scene from the menu, ungated.
+*
+* Two vanilla gates are deliberately dropped here, and both of them would otherwise take this command
+* off the menu entirely:
+*
+* - **`needsCommand("save")`** reads the database's menu-command table, and a project that turned the
+*   save command off there did so to stop the *menu* from saving. That is now this plugin's own policy
+*   rather than a setting - the menu offers Load and Rewind and never Save, because saving is the save
+*   platform's job - so the table is answering a question nobody is asking anymore.
+* - **`isSaveEnabled()`** reads `$gameSystem.isSaveEnabled()`, which an event can turn off and, in a
+*   game built around save points, generally has. Leaving that gate in would grey out Load and Rewind
+*   as collateral damage from a switch that was only ever meant to be about saving.
+*
+* Neither omission can leak into a savefile, which is the thing that would actually be dangerous: this
+* is a rendering decision made fresh every time the menu opens, not state written anywhere.
+*/
+Window_MenuCommand.prototype.addSaveCommand = function() {
+	this.addBuiltCommand(new WindowCommandBuilder("Files").setSymbol("save").setHelpText("Save, load, or step back through this playthrough.").setIconIndex(2568).setMenuSection(MenuSection.Party).build());
+};
+
+//#endregion
 //#region src/plugins/_base/ext/save/scenes/Scene_Boot.js
 /**
 * Extends {@link #loadPlayerData}.<br/>
@@ -3202,6 +5450,58 @@ J.BASE.EXT.SAVE.Aliased.Scene_Boot.set("isPlayerDataLoaded", Scene_Boot.prototyp
 Scene_Boot.prototype.isPlayerDataLoaded = function() {
 	const loaded = J.BASE.EXT.SAVE.Aliased.Scene_Boot.get("isPlayerDataLoaded").call(this);
 	return loaded && ProfileManager.isLoaded();
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/scenes/Scene_Map.js
+/**
+* Extends {@link #needsFadeIn}.<br/>
+* Also fades in when the map was reached by loading from the files scene.
+*
+* Vanilla asks whether the previous scene was `Scene_Battle` or `Scene_Load`, and
+* `SceneManager.isPreviousScene` compares `_previousClass === sceneClass` - **exact constructor
+* identity rather than any walk of the prototype chain** - so even a `Scene_Files` that inherited from
+* `Scene_Load` would not have satisfied it.
+*
+* Without this the map stops fading in after a load and simply pops into existence. It is cosmetic, it
+* announces nothing, and it is exactly the sort of thing that gets blamed on something unrelated three
+* weeks later.
+* @returns {boolean}
+*/
+J.BASE.EXT.SAVE.Aliased.Scene_Map.set("needsFadeIn", Scene_Map.prototype.needsFadeIn);
+Scene_Map.prototype.needsFadeIn = function() {
+	const original = J.BASE.EXT.SAVE.Aliased.Scene_Map.get("needsFadeIn").call(this);
+	return original || SceneManager.isPreviousScene(Scene_Files);
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/scenes/Scene_Menu.js
+/**
+* Overwrites {@link #commandSave}.<br/>
+* Opens the files scene rather than vanilla's save screen.
+*
+* The symbol stays `save` on purpose even though the command no longer saves. It is internal - the
+* player sees the label, which {@link Window_MenuCommand.addSaveCommand} sets - and every consumer of
+* that symbol is a handler registration in somebody else's menu. Renaming it would mean editing the
+* scene that binds the handler and the plugin parameters that describe it, in exchange for nothing the
+* player could ever observe.
+*/
+Scene_Menu.prototype.commandSave = function() {
+	Scene_Files.callFromMenu();
+};
+
+//#endregion
+//#region src/plugins/_base/ext/save/scenes/Scene_Title.js
+/**
+* Overwrites {@link #commandContinue}.<br/>
+* Opens the files scene rather than vanilla's load screen.
+*
+* The scene arrives knowing it came from the title, which is what makes it drop Rewind and Save, add
+* Delete, and load without asking the player to confirm the thing they just asked for.
+*/
+Scene_Title.prototype.commandContinue = function() {
+	this.commandWindow().close();
+	Scene_Files.callFromTitle();
 };
 
 //#endregion

@@ -1864,10 +1864,24 @@ var Game_Time = class Game_Time {
 	updateCurrentTone() {
 		if (!this.canUpdateTone()) return;
 		const tone = this.targetTone();
-		if (!this.isSameTone(tone)) {
+		if (this.isSameTone(tone)) return;
+		if (this.isToneSuppressedByMap() && this.hasForeignScreenTone()) {
 			this.setCurrentTone(tone.clone());
-			this.setNeedsToneChange(true);
+			return;
 		}
+		this.setCurrentTone(tone.clone());
+		this.setNeedsToneChange(true);
+	}
+	/**
+	* Determines whether the screen is showing a tint that something other than the clock asked for.
+	*
+	* The comparison is against the screen's *destination* rather than its current value, because a
+	* tint runs over a duration: partway through one of the clock's own fades the live tone is an
+	* interpolation matching nobody, and comparing against it would call the clock's own work foreign.
+	* @returns {boolean}
+	*/
+	hasForeignScreenTone() {
+		return TimeToneResolver.isSameTone($gameScreen.toneTarget(), this.getCurrentTone()) === false;
 	}
 	/**
 	* Determines the tone the screen ought to be showing right now.

@@ -7,6 +7,7 @@
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
+ * @orderAfter J-Base-Save
  * @help
  * ============================================================================
  * OVERVIEW
@@ -54,6 +55,14 @@
  *    so a decoded save can establish it without running a constructor.
  *    Declared JABS_SkillSlot's cooldown as a typed field; it was registered as
  *    serializable while holding a JABS_Cooldown instance nothing declared.
+ *    command352 now opens J-Base-Save's files scene when that plugin is
+ *    installed, and vanilla's save scene when it is not. Previously the JABS
+ *    branch named Scene_Save outright, so every save platform bypassed the
+ *    files scene entirely.
+ *    Added an @orderAfter for J-Base-Save, which the namespace guard alone does
+ *    not cover: reaching Scene_Files needs the class, not just the namespace.
+ *    The forced map reload JABS needs after any load moved to a shared helper,
+ *    so vanilla's load scene and the files scene cannot drift apart on it.
  * - 4.13.0
  *    Added <channel> vessel skills that repeat a child skill over time.
  *    Added cast/channel interruption via movement or <interrupt> hits.
@@ -4253,6 +4262,25 @@ J.ABS.EXT = {};
 */
 J.ABS.Helpers = {};
 /**
+* Transfers the player onto a freshly built copy of the map they are standing on.
+*
+* Vanilla only rebuilds a map after a load when the database's version has moved on since the save was
+* written. That is not enough for JABS: a map's enemies are built from its events when the map loads
+* and do not survive being restored out of a savefile, so the map has to be rebuilt on every load
+* regardless of whether anything in the database changed.
+*
+* It lives here rather than on a scene because two scenes need it - vanilla's load screen, and the
+* files scene that replaces it when J-Base-Save is installed. Written twice, the two would eventually
+* stop matching each other, and the symptom would be "enemies are missing, but only sometimes".
+*/
+J.ABS.Helpers.forceMapReload = () => {
+	const mapId = $gameMap.mapId();
+	const { x } = $gamePlayer;
+	const { y } = $gamePlayer;
+	$gamePlayer.reserveTransfer(mapId, x, y);
+	$gamePlayer.requestMapReload();
+};
+/**
 * A collection of helper functions for the use with the plugin manager.
 */
 J.ABS.Helpers.PluginManager = {};
@@ -5598,6 +5626,7 @@ J.ABS.Aliased = {
 	RPG_Enemy: new Map(),
 	RPG_Skill: new Map(),
 	Scene_Boot: new Map(),
+	Scene_Files: new Map(),
 	Scene_Load: new Map(),
 	Scene_Map: new Map(),
 	Sprite_Animation: new Map(),
@@ -31102,15 +31131,39 @@ Game_Interpreter.prototype.command351 = function() {
 * Enables saving with JABS.
 * Removed the check for seeing if the player is in-battle, because the player is
 * technically ALWAYS in-battle while the ABS is enabled.
+*
+* The JABS branch has to name a scene rather than defer, because deferring is what it is here to avoid:
+* vanilla refuses to open the save screen mid-battle, and with the ABS enabled the player is always
+* technically mid-battle. That makes the choice of scene this method's problem, so it asks whether
+* J-Base-Save is installed and opens whichever screen actually exists.
 */
 J.ABS.Aliased.Game_Interpreter.set("command352", Game_Interpreter.prototype.command352);
 Game_Interpreter.prototype.command352 = function() {
 	if ($jabsEngine.absEnabled) {
-		SceneManager.push(Scene_Save);
+		this.openSaveScene();
 		return true;
 	} else {
 		return J.ABS.Aliased.Game_Interpreter.get("command352").call(this);
 	}
+};
+/**
+* Opens whichever save screen this project actually has.
+*
+* J-Base-Save replaces vanilla's save and load scenes with a single files scene, and it is genuinely
+* optional - J-ABS must keep working in a project without it. This is the sanctioned cross-plugin
+* check: one test, at the namespace, in a path that is honestly optional.
+*
+* Note that the namespace existing is not by itself enough to reach `Scene_Files`; the *class* has to
+* have been defined, which means J-Base-Save must have loaded first. That is what the `@orderAfter`
+* declaration in this plugin's annotations is for, and why it is `@orderAfter` rather than `@base` -
+* `@base` would make the save plugin mandatory and destroy the optionality this check exists to keep.
+*/
+Game_Interpreter.prototype.openSaveScene = function() {
+	if (J.BASE.EXT.SAVE) {
+		Scene_Files.callFromSavePoint();
+		return;
+	}
+	SceneManager.push(Scene_Save);
 };
 
 //#endregion
@@ -31706,6 +31759,37 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 };
 
 //#endregion
+//#region src/plugins/abs/core/scenes/Scene_Files.js
+/**
+* Teaches J-Base-Save's files scene the same map-reload rule vanilla's load screen already learned.
+*
+* J-Base-Save is genuinely optional, so this whole file is behind one namespace check - the sanctioned
+* cross-plugin form. Without the check, a project running J-ABS and not J-Base-Save would throw on
+* boot; without the file, a project running both would load a map with no enemies on it and nothing
+* anywhere would say why.
+*
+* **The namespace check alone is not sufficient, and this is the subtle part.** `J.BASE.EXT.SAVE`
+* proves the namespace exists; aliasing `Scene_Files.prototype` needs the *class* to exist, which means
+* J-Base-Save has to have loaded first. That is declared as `@orderAfter J-Base-Save` in this plugin's
+* annotations - deliberately `@orderAfter` and not `@base`, since `@base` is a hard dependency and
+* would make the save plugin mandatory, destroying the optionality this check exists to preserve.
+*/
+if (J.BASE.EXT.SAVE) {
+	/**
+	* Overwrites {@link Scene_Files.reloadMapIfUpdated}.<br/>
+	* When loading, the map needs to be refreshed to load the enemies properly.
+	*/
+	J.ABS.Aliased.Scene_Files.set("reloadMapIfUpdated", Scene_Files.prototype.reloadMapIfUpdated);
+	Scene_Files.prototype.reloadMapIfUpdated = function() {
+		if ($jabsEngine.absEnabled) {
+			J.ABS.Helpers.forceMapReload();
+		} else {
+			J.ABS.Aliased.Scene_Files.get("reloadMapIfUpdated").call(this);
+		}
+	};
+}
+
+//#endregion
 //#region src/plugins/abs/core/scenes/Scene_Load.js
 /**
 * Overwrites {@link Scene_Load.reloadMapIfUpdated}.<br/>
@@ -31714,11 +31798,7 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 J.ABS.Aliased.Scene_Load.set("reloadMapIfUpdated", Scene_Load.prototype.reloadMapIfUpdated);
 Scene_Load.prototype.reloadMapIfUpdated = function() {
 	if ($jabsEngine.absEnabled) {
-		const mapId = $gameMap.mapId();
-		const { x } = $gamePlayer;
-		const { y } = $gamePlayer;
-		$gamePlayer.reserveTransfer(mapId, x, y);
-		$gamePlayer.requestMapReload();
+		J.ABS.Helpers.forceMapReload();
 	} else {
 		J.ABS.Aliased.Scene_Load.get("reloadMapIfUpdated").call(this);
 	}
