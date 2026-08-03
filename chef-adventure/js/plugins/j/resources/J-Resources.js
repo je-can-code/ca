@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 RESOURCES] Extends skill cost/gain system to include HP, MP, and TP.
+ * @plugindesc [v1.1.0 RESOURCES] Extends skill cost/gain system to include HP, MP, and TP.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -172,6 +172,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Routed the _resources namespace into its own save section, so resource
+ *    state lands in systems/resources.json rather than in the system blob.
  * - 1.0.0
  *    Initial release.
  *    Added HP/MP/TP costs and gains via flat, percent, and formula notetags.
@@ -244,7 +247,7 @@ J.RESOURCES.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.RESOURCES.Metadata = new JResources_PluginMetadata("J-Resources", "1.0.0");
+J.RESOURCES.Metadata = new JResources_PluginMetadata("J-Resources", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -757,7 +760,8 @@ var ResourcesParameterRegistration = class {
 	* Registers Life Cost (HCR) with the parameter catalog.
 	*/
 	static registerAll() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("hcr").group(ParameterGroups.COMBAT).sortOrder(5).label(() => TextManager.hcr()).description(() => TextManager.hcrDescription()).iconIndex(() => IconManager.hcr()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.COST_RATE).getValue((battler) => battler.hcrFactor()).sdpBinding(SdpParameterBinding.byKey("hcr", () => 100)).build());
+		const hpCostReduction = ParameterDefinition.Builder().key("hcr").group(ParameterGroups.COMBAT).sortOrder(5).label(() => TextManager.hcr()).description(() => TextManager.hcrDescription()).iconIndex(() => IconManager.hcr()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.COST_RATE).getValue((battler) => battler.hcrFactor()).sdpBinding(SdpParameterBinding.byKey("hcr", () => 100)).build();
+		ParameterRegistry.register(hpCostReduction);
 	}
 };
 
@@ -772,6 +776,22 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.RESOURCES.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
 	ResourcesParameterRegistration.registerAll();
 };
+
+//#endregion
+//#region src/plugins/resources/core/registerResourcesSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-Resources a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_resources", "resources");
+}
 
 //#endregion
 //# sourceMappingURL=J-Resources.js.map

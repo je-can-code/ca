@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.3.0 ABS-INPUT] A manager for overseeing the input of JABS.
+ * [v2.4.0 ABS-INPUT] A manager for overseeing the input of JABS.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-ABS
@@ -43,6 +43,14 @@
  * objects.
  * ============================================================================
  * CHANGELOG:
+ * - 2.4.0
+ *    Keybinds are now installation scope rather than slot scope, when
+ *    J-Base-Save is installed. They lived inside each savefile only because
+ *    vanilla ConfigManager had no room for an eighth field, which meant
+ *    rebinding a key applied to one savefile, a second playthrough started on
+ *    the defaults, and deleting saves deleted the bindings with them. Both
+ *    stores now register as config fields and persist beside volume.
+ *    Without J-Base-Save installed they stay exactly where they were.
  * - 2.3.0
  *    Added UsableItem as a remappable logical input (R2 by default),
  *    wiring J-ABS core's new usable-item equip slot to its own trigger.
@@ -982,7 +990,7 @@ J.ABS.EXT.INPUT.Symbols.CombatSkill4 = JabsInputSymbols.CombatSkill4;
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.INPUT.Metadata = new J_InputPluginMetadata("J-ABS-InputManager", "2.3.0");
+J.ABS.EXT.INPUT.Metadata = new J_InputPluginMetadata("J-ABS-InputManager", "2.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1040,6 +1048,28 @@ JABS_InputAdapter.getAllControllers = function() {
 };
 
 //#endregion
+//#region src/plugins/abs/ext/input/registerJabsInputConfigFields.js
+/**
+* Keybinds are installation scope, not slot scope.
+*
+* They lived at `$gameSystem._j._abs._input` because vanilla `ConfigManager` had seven fields and no
+* way for a plugin to add an eighth - not because a control scheme belongs to a playthrough. The
+* consequence was real and player-visible: rebinding a key applied to one savefile, a second
+* playthrough started on the defaults again, and deleting saves deleted the bindings with them.
+*
+* Registering them here puts both stores in `config.json` beside volume and touch UI, which is a
+* deliberate behavior change: bindings are now global.
+*
+* The defaults are empty rather than the built-in mapping, because the controllers are the authority
+* on what their defaults are and they are not constructed yet at this point. `initializeJabsInputIfMissing`
+* is what fills an empty store from them.
+*/
+if (J.BASE.EXT.SAVE) {
+	ConfigManager.registerField("jabsInputMappings", () => ({}));
+	ConfigManager.registerField("jabsInputBindings", () => ({}));
+}
+
+//#endregion
 //#region src/plugins/abs/ext/input/managers/DataManager.js
 /**
 * Extends {@link DataManager.createGameObjects}.<br/>
@@ -1054,6 +1084,7 @@ DataManager.createGameObjects = function() {
 	if (!$jabsController1) {
 		$jabsController1 = new JABS_StandardController();
 	}
+	$gameSystem.applyJabsInputConfiguration();
 };
 
 //#endregion
@@ -1964,45 +1995,35 @@ Game_System.prototype.initMembers = function() {
 	this.initJabsInputConfigMembers();
 };
 /**
-* Initializes members used for storing JABS input mappings and controller references.
+* Ensures the installation-scoped stores backing every accessor below exist.
+*
+* **Keybinds belong to the person, not to the playthrough.** They live on {@link ConfigManager},
+* beside volume and touch UI, so rebinding a key in one save is visible in every other one and
+* deleting every savefile does not cost the player their controls. The methods here stay on
+* `Game_System` because that is where every caller already reaches for them; only the storage moved.
 */
 Game_System.prototype.initJabsInputConfigMembers = function() {
-	/**
-	* Root namespace for J-related data stored on the system object.
-	*/
-	this._j ||= {};
-	/**
-	* ABS (JABS) namespace stored under the J-root on the system object.
-	*/
-	this._j._abs ||= {};
-	/**
-	* Input extension namespace stored under the ABS namespace on the system object.
-	*/
-	this._j._abs._input ||= {};
-	/**
-	* Dictionary of controllerKey -> mapping object `{ [button]: symbol }`.
-	* @type {Object<string, Object<string, string>>}
-	*/
-	this._j._abs._input._mappings ||= {};
-	/**
-	* Snapshot of the full Input registry bindings across all namespaces.
-	* @type {Object<string, Object<string, string[]>>}
-	*/
-	this._j._abs._input._bindings ||= {};
+	ConfigManager.jabsInputMappings ||= {};
+	ConfigManager.jabsInputBindings ||= {};
 };
 /**
 * Gets the stored mapping dictionary of controllerKey -> mapping object.
 * @returns {Object<string, Object<string,string>>}
 */
 Game_System.prototype.getJabsInputMappings = function() {
-	return this._j._abs._input._mappings;
+	return ConfigManager.jabsInputMappings;
 };
 /**
 * Overwrites the stored mapping dictionary of controllerKey -> mapping object.
+*
+* The config document is written immediately rather than at the next save, because installation
+* scope has no save to wait for- the player rebinding a key expects it to still be bound after they
+* quit without saving.
 * @param {Object<string, Object<string,string>>} mappings The new mappings dictionary.
 */
 Game_System.prototype.setJabsInputMappings = function(mappings) {
-	this._j._abs._input._mappings = mappings;
+	ConfigManager.jabsInputMappings = mappings;
+	ConfigManager.save();
 };
 /**
 * Stores a full mapping for the given controller key.
@@ -2035,14 +2056,15 @@ Game_System.prototype.getJabsInputConfig = function(controllerKey) {
 * @returns {Object<string, Object<string, string[]>>}
 */
 Game_System.prototype.getInputBindingsSnapshot = function() {
-	return this._j._abs._input._bindings;
+	return ConfigManager.jabsInputBindings;
 };
 /**
 * Sets the persisted Input bindings snapshot on the system object.
 * @param {Object<string, Object<string, string[]>>} bindings The snapshot to persist.
 */
 Game_System.prototype.setInputBindings = function(bindings) {
-	this._j._abs._input._bindings = bindings;
+	ConfigManager.jabsInputBindings = bindings;
+	ConfigManager.save();
 };
 /**
 * Overwrites the persisted Input bindings snapshot on the system object.
@@ -2137,14 +2159,16 @@ Game_System.prototype.resolveJabsControllerKey = function(controller, index) {
 	return `player${index + 1}`;
 };
 /**
-* Initializes JABS input data for legacy saves that predate persistence.
-* If both the stored controller mappings and Input bindings snapshot are missing,
-* this seeds defaults one time so subsequent saves/loads work normally.
+* Seeds the stored input configuration from the controllers' own defaults when nothing is stored.
+*
+* This is the first-run path: a fresh installation has an empty config document, so the defaults
+* every controller can build for itself become the stored configuration once, and everything after
+* that is the player's own.
 */
-Game_System.prototype.initializeJabsInputForLegacySaveIfMissing = function() {
+Game_System.prototype.initializeJabsInputIfMissing = function() {
 	this.initJabsInputConfigMembers();
-	const hasMappings = Object.keys(this._j._abs._input._mappings).length > 0;
-	const hasBindings = Object.keys(this._j._abs._input._bindings).length > 0;
+	const hasMappings = Object.keys(this.getJabsInputMappings()).length > 0;
+	const hasBindings = Object.keys(this.getInputBindingsSnapshot()).length > 0;
 	if (hasMappings === false && hasBindings === false) {
 		Input.ensureRemapBootstrapped();
 		const controllers = JABS_InputAdapter.getAllControllers();
@@ -2170,13 +2194,15 @@ Game_System.prototype.onBeforeSave = function() {
 	this.saveAllInputBindingsFromInput();
 };
 /**
-* Extends {@link #onAfterLoad}.<br/>
-* Applies stored mappings after loading.
+* Pushes the stored keybind configuration into the live input registry and every controller.
+*
+* This runs whenever a game world comes up, not when a savefile is read. Keybinds are installation
+* scope- they are read from {@link ConfigManager}, and a new game has exactly as much claim on them
+* as a loaded one does. Hanging this off the load hook instead would leave a fresh playthrough
+* running the built-in defaults while the player's own bindings sat in the config file, unread.
 */
-J.ABS.EXT.INPUT.Aliased.Game_System.set("onAfterLoad", Game_System.prototype.onAfterLoad);
-Game_System.prototype.onAfterLoad = function() {
-	J.ABS.EXT.INPUT.Aliased.Game_System.get("onAfterLoad").call(this);
-	this.initializeJabsInputForLegacySaveIfMissing();
+Game_System.prototype.applyJabsInputConfiguration = function() {
+	this.initializeJabsInputIfMissing();
 	this.applyAllInputBindingsToInput();
 	this.applyAllJabsInputConfigs();
 };

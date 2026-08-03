@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.2 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
+ * [v1.2.0 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -139,6 +139,11 @@
  * the J-MZ Data Editor app), not tagged on individual database objects.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Routed the _crafting namespace into its own save section, so recipe and
+ *    category tracking land in systems/crafting.json.
+ *    Moved the _crafting namespace seeding from the initialize alias to
+ *    initMembers, so a decoded save can establish it without a constructor.
  * - 1.1.2
  *    Registered RecipeTracking/CategoryTracking with SerializableRegistry so
  *    JsonEx restores keep their prototype methods after a save load.
@@ -1165,7 +1170,9 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 	*/
 	initializeConfiguration() {
 		const canLogLoadInfo = J_CraftingCreatePluginMetadata.#hasMinimumBaseVersion();
-		const classifiedCraftingConfig = ExternalJsonConfigLoader.load(J_CraftingCreatePluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-JAFTING-Creation").configName("crafting configuration").mapper(J_CraftingCreatePluginMetadata.classify.bind(J_CraftingCreatePluginMetadata)).logSummary(canLogLoadInfo ? (result) => [`- ${result.recipes().length} recipes`, `- ${result.categories().length} categories`] : null).build());
+		const summarize = canLogLoadInfo ? (result) => [`- ${result.recipes().length} recipes`, `- ${result.categories().length} categories`] : null;
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-JAFTING-Creation").configName("crafting configuration").mapper(J_CraftingCreatePluginMetadata.classify.bind(J_CraftingCreatePluginMetadata)).logSummary(summarize).build();
+		const classifiedCraftingConfig = ExternalJsonConfigLoader.load(J_CraftingCreatePluginMetadata.CONFIG_PATH, options);
 		/**
 		* The collection of all defined jafting recipes.
 		* @type {CraftingRecipe[]}
@@ -1297,7 +1304,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.1.2");
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1310,12 +1317,12 @@ J.JAFTING.EXT.CREATE.Aliased.Window_JaftingList = new Map();
 //#endregion
 //#region src/plugins/jafting/ext/create/objects/Game_Party.js
 /**
-* Extends {@link #initialize}.<br/>
+* Extends {@link #initMembers}.<br/>
 * Also initializes our jafting members.
 */
-J.JAFTING.EXT.CREATE.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function() {
-	J.JAFTING.EXT.CREATE.Aliased.Game_Party.get("initialize").call(this);
+J.JAFTING.EXT.CREATE.Aliased.Game_Party.set("initMembers", Game_Party.prototype.initMembers);
+Game_Party.prototype.initMembers = function() {
+	J.JAFTING.EXT.CREATE.Aliased.Game_Party.get("initMembers").call(this);
 	this.initJaftingCreationMembers();
 	this.populateJaftingTrackings();
 };
@@ -3476,6 +3483,22 @@ PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "unlock-all-re
 PluginManager.registerCommand(J.JAFTING.EXT.CREATE.Metadata.name, "lock-all-recipes", () => {
 	$gameParty.lockAllRecipes();
 });
+
+//#endregion
+//#region src/plugins/jafting/ext/create/registerJaftingCreateSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-JAFTING-Creation a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_crafting", "crafting");
+}
 
 //#endregion
 //# sourceMappingURL=J-JAFTING-Creation.js.map

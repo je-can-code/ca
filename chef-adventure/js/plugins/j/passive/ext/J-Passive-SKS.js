@@ -78,7 +78,8 @@ J.PASSIVE.EXT.SKS.Aliased.Game_Actor = new Map();
 J.PASSIVE.EXT.SKS.Aliased.Game_Actor.set("getPassiveStateSourcedSkills", Game_Actor.prototype.getPassiveStateSourcedSkills);
 Game_Actor.prototype.getPassiveStateSourcedSkills = function() {
 	const learnedSkills = J.PASSIVE.EXT.SKS.Aliased.Game_Actor.get("getPassiveStateSourcedSkills").call(this);
-	const equippedIds = new Set(this.equippedSkills().map((skill) => skill.id));
+	const equippedSkillIds = this.equippedSkills().map((skill) => skill.id);
+	const equippedIds = new Set(equippedSkillIds);
 	const forcedUnslottedIds = this.forcedUnslottedSkillIds();
 	return learnedSkills.filter((skill) => skill.unslotted === true || forcedUnslottedIds.has(skill.id) || equippedIds.has(skill.id));
 };

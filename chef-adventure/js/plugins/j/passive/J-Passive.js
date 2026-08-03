@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.2.0 PASSIVE] Grants passive states from various database objects.
+ * [v2.3.0 PASSIVE] Grants passive states from various database objects.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -167,6 +167,13 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.3.0
+ *    Passive sources are no longer written to savefiles; they are entirely
+ *    derived from equipment, states, and skills, and are now rebuilt on load
+ *    rather than restored from a file that could disagree with the database.
+ *    Routed the _passive namespace into its own save section.
+ *    Moved the _passive namespace seeding from the initialize alias to
+ *    initMembers, so a decoded save can establish it without a constructor.
  * - 2.2.0
  *    Retrofitted the passive viewer onto the shared actor skeleton, so it
  *    matches the other actor-scoped scenes.
@@ -296,7 +303,7 @@ J.PASSIVE.EXT = {};
 * The `metadata` associated with this plugin, such as version and plugin parameter values.
 * @type {JPassive_PluginMetadata}
 */
-J.PASSIVE.Metadata = new JPassive_PluginMetadata("J-Passive", "2.2.0");
+J.PASSIVE.Metadata = new JPassive_PluginMetadata("J-Passive", "2.3.0");
 /**
 * All regular expressions used by this plugin.
 */
@@ -997,12 +1004,12 @@ Game_Event.prototype.getPassiveStateIds = function() {
 //#endregion
 //#region src/plugins/passive/core/objects/Game_Party.js
 /**
-* Extends {@link #initialize}.<br/>
+* Extends {@link #initMembers}.<br/>
 * Includes our custom members as well.
 */
-J.PASSIVE.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function() {
-	J.PASSIVE.Aliased.Game_Party.get("initialize").call(this);
+J.PASSIVE.Aliased.Game_Party.set("initMembers", Game_Party.prototype.initMembers);
+Game_Party.prototype.initMembers = function() {
+	J.PASSIVE.Aliased.Game_Party.get("initMembers").call(this);
 	this.initPassiveItemStates();
 };
 /**
@@ -1245,7 +1252,8 @@ var Window_PassiveActorRibbon = class extends Window_ActorRibbon {
 		const textX = this.faceWidth() + 8;
 		const textWidth = this.innerWidth - textX;
 		const textY = Math.floor((this.innerHeight - this.lineHeight()) / 2);
-		this.drawText(this.actor().name(), textX, textY, textWidth, "left");
+		const actorName = this.actor().name();
+		this.drawText(actorName, textX, textY, textWidth, "left");
 	}
 };
 
@@ -3202,6 +3210,32 @@ Window_MoreEquipData.prototype.canAddPassiveStateData = function() {
 	if (!this.item) return false;
 	return true;
 };
+
+//#endregion
+//#region src/plugins/passive/core/registerPassiveSaveCodecs.js
+/**
+* The passive-capable source list is a filtered view of this battler's own sources, rebuilt at the
+* end of every {@link Game_Battler.refreshPassiveStates} so the conditional ext's drift check has a
+* short list to walk. It is derived, so it is never written.
+*
+* It rebuilds itself here rather than coming back empty, because nothing reads it through a guard -
+* {@link Game_Battler.passiveCapableSources} hands the array straight over, so an empty one reads as
+* "this battler has no passive sources" rather than as "this has not been built yet". By the time a
+* transient factory runs, every field the rebuild reads has already decoded.
+*
+* `Game_Actor` is the only host that reaches a savefile: the field is assigned on `Game_Battler`, but
+* enemies are rebuilt from the troop rather than persisted, and declarations do not inherit.
+*/
+SerializableRegistry.extend(Game_Actor, { transients: { "_j._passive._passiveSources": (battler) => {
+	battler.cachePassiveCapableSources();
+	return battler.passiveSources();
+} } });
+/**
+* Lifts the passive slice out of its hosts and into a section file of its own.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_passive", "passive");
+}
 
 //#endregion
 //# sourceMappingURL=J-Passive.js.map

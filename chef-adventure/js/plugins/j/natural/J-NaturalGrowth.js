@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.3.0 NATURAL] Enables level-based growth of all parameters.
+ * @plugindesc [v2.4.0 NATURAL] Enables level-based growth of all parameters.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -232,6 +232,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 2.4.0
+ *    Routed the _natural namespace into its own save section, so accumulated
+ *    growth lands in systems/natural.json rather than in the system blob.
  * - 2.3.0
  *    BREAKING (tag semantics): ex- and sp-parameter growth tags now take whole
  *    percents, matching the buff tags beside them. The growth path stored its
@@ -326,7 +329,7 @@ J.NATURAL = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.NATURAL.Metadata = new J_NaturalGrowthPluginMetadata("J-NaturalGrowth", "2.3.0");
+J.NATURAL.Metadata = new J_NaturalGrowthPluginMetadata("J-NaturalGrowth", "2.4.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2172,6 +2175,22 @@ J.NATURAL.Aliased.Window_EquipItem.set("postEquipSetupActorClone", Window_EquipI
 Window_EquipItem.prototype.postEquipSetupActorClone = function(actorClone) {
 	actorClone.refreshAllParameterBuffs();
 };
+
+//#endregion
+//#region src/plugins/natural/core/registerNaturalSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-NaturalGrowth a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_natural", "natural");
+}
 
 //#endregion
 //# sourceMappingURL=J-NaturalGrowth.js.map

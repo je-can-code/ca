@@ -1,7 +1,7 @@
 //region annoations
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 MAP] Renders a passability-driven minimap on the screen.
+ * @plugindesc [v1.2.0 MAP] Renders a passability-driven minimap on the screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -147,6 +147,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Routed the _map namespace into its own save section, so minimap state
+ *    lands in systems/map.json rather than inside the system blob.
  * - 1.1.0
  *    Added an orange-diamond minimap marker for inanimate JABS enemies
  *    (pots, crates), distinct from the red-diamond hostile marker.
@@ -284,7 +287,7 @@ J.MAP.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.MAP.Metadata = new J_MAP__PluginMetadata("J-MAP", "1.1.0");
+J.MAP.Metadata = new J_MAP__PluginMetadata("J-MAP", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2313,6 +2316,22 @@ PluginManager.registerCommand(J.MAP.Metadata.name, "toggle-minimap", (args) => {
 		}
 	}
 });
+
+//#endregion
+//#region src/plugins/map/core/registerMapSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-Map a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_map", "map");
+}
 
 //#endregion
 //# sourceMappingURL=J-Map.js.map

@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v2.1.0 HUD] Provides core functionality for this HUD system.
+ * [v2.2.0 HUD] Provides core functionality for this HUD system.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -74,6 +74,13 @@
  * plugin-command driven.
  * ============================================================================
  * CHANGELOG:
+ * - 2.2.0
+ *    Routed the _hud namespace into its own save section, so HUD state lands
+ *    in systems/hud.json rather than inside the system blob.
+ *    Moved the _hud namespace seeding from the initialize alias to initMembers,
+ *    so a decoded save can establish it without running a constructor.
+ *    Fixed four broken import paths in the state affliction presenter's tests
+ *    that resolved outside the repository entirely.
  * - 2.1.0
  *    Added a dual-row (negative/positive) state affliction presenter to the
  *    party HUD frame- icons, timers, and stack counts, sprite-cached per
@@ -153,7 +160,7 @@ J.HUD.EXT = {};
 * The `metadata` associated with this plugin, such as version.
 * @type {JHud_PluginMetadata}
 */
-J.HUD.Metadata = new JHud_PluginMetadata("J-HUD", "2.1.0");
+J.HUD.Metadata = new JHud_PluginMetadata("J-HUD", "2.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -205,9 +212,9 @@ PluginManager.registerCommand(J.HUD.Metadata.name, "refreshImageCache", () => {
 /**
 * Extends the `initialize()` to include our hud data for remembering.
 */
-J.HUD.Aliased.Game_System.set("initialize", Game_System.prototype.initialize);
-Game_System.prototype.initialize = function() {
-	J.HUD.Aliased.Game_System.get("initialize").call(this);
+J.HUD.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function() {
+	J.HUD.Aliased.Game_System.get("initMembers").call(this);
 	this._j ||= {};
 	this._j._hud ||= {
 		_hudVisible: true,
@@ -957,7 +964,8 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 			activeStateIds.add(viewModel.stateId);
 		}
 		if (StateAfflictionProvider.canCollect() === true) {
-			const trackedStates = Array.from($jabsEngine.getJabsStatesByUuid(battler.getUuid()).values());
+			const trackedStateValues = $jabsEngine.getJabsStatesByUuid(battler.getUuid()).values();
+			const trackedStates = Array.from(trackedStateValues);
 			for (const trackedState of trackedStates) {
 				if (trackedState.expired === false) {
 					continue;
@@ -1130,6 +1138,22 @@ var StateAfflictionHudPresenter = class StateAfflictionHudPresenter {
 		return spriteText;
 	}
 };
+
+//#endregion
+//#region src/plugins/hud/core/registerHudSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-HUD a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_hud", "hud");
+}
 
 //#endregion
 //# sourceMappingURL=J-HUD.js.map

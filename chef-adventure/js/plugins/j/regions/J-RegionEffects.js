@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.1.0 REGIONS] A plugin that controls passage by region ids.
+ * @plugindesc [v1.2.0 REGIONS] A plugin that controls passage by region ids.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -53,6 +53,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Routed the _regions namespace into its own save section, so region
+ *    effect state lands in systems/regions.json rather than in the system blob.
+ *    Moved the _regions namespace seeding from the initialize alias to
+ *    initMembers, so a decoded save can establish it without a constructor.
  * - 1.0.2
  *    Fixed issue with referencing CycloneMovement.
  * - 1.0.1
@@ -138,7 +143,7 @@ J.REGIONS.Helpers.translateRegionIds = (regionsBlob) => {
 /**
 * The `metadata` associated with this plugin; such as version.
 */
-J.REGIONS.Metadata = new J_RegionEffectsPluginMetadata("J-RegionEffects", "1.1.0");
+J.REGIONS.Metadata = new J_RegionEffectsPluginMetadata("J-RegionEffects", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -154,12 +159,12 @@ J.REGIONS.RegExp.DenyRegions = /<denyRegions:[ ]?(\[[\d, ]+])>/gi;
 //#endregion
 //#region src/plugins/regions/core/objects/Game_Map.js
 /**
-* Extends {@link #initialize}.<br/>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the region effects properties.
 */
-J.REGIONS.Aliased.Game_Map.set("initialize", Game_Map.prototype.initialize);
-Game_Map.prototype.initialize = function() {
-	J.REGIONS.Aliased.Game_Map.get("initialize").call(this);
+J.REGIONS.Aliased.Game_Map.set("initMembers", Game_Map.prototype.initMembers);
+Game_Map.prototype.initMembers = function() {
+	J.REGIONS.Aliased.Game_Map.get("initMembers").call(this);
 	this.initRegionEffectsMembers();
 };
 /**
@@ -354,6 +359,22 @@ Game_Map.prototype.projectCoordinatesByDirection = function(x, y, d) {
 	}
 	return [projectedX, projectedY];
 };
+
+//#endregion
+//#region src/plugins/regions/core/registerRegionsSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-RegionEffects a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_regions", "regions");
+}
 
 //#endregion
 //# sourceMappingURL=J-RegionEffects.js.map

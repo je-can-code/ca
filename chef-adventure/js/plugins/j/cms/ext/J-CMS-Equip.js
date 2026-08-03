@@ -256,7 +256,8 @@ var Window_EquipActorRibbon = class extends Window_ActorRibbon {
 		const textX = this.faceWidth() + 8;
 		const textWidth = this.innerWidth - textX;
 		const textY = Math.floor((this.innerHeight - this.lineHeight()) / 2);
-		this.drawText(this.actor().name(), textX, textY, textWidth, "left");
+		const actorName = this.actor().name();
+		this.drawText(actorName, textX, textY, textWidth, "left");
 	}
 };
 

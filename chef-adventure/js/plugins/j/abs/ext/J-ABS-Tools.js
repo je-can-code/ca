@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 ABS-TOOLS] Enable new tool-like tags for use with skills.
+ * [v1.2.0 ABS-TOOLS] Enable new tool-like tags for use with skills.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -156,6 +156,9 @@
  * always fixed. See the plugin parameters below.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    Routed the _tools namespace into its own save section, so tool state
+ *    lands in systems/abs-tools.json rather than inside the system blob.
  * - 1.1.0
  *    Gap close tags now require a key: <gapClose:key> / <gapCloseTarget:key>.
  *    Keys must match for gap closing to occur — no cross-mechanic bypass.
@@ -258,7 +261,7 @@ J.ABS.EXT.TOOLS = {};
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.EXT.TOOLS.Metadata = new J_ToolsPluginMetadata("J-ABS-Tools", "1.1.0");
+J.ABS.EXT.TOOLS.Metadata = new J_ToolsPluginMetadata("J-ABS-Tools", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -496,7 +499,8 @@ JABS_Battler.prototype.pullToCaster = function(action, caster) {
 	if (this.getCharacter().isJumping()) return;
 	const pullMagnitude = action.getBaseSkill().jabsPullForward;
 	if (pullMagnitude === null) return;
-	const resist = RPGManager.getSumFromAllNotesByRegex(this.getBattler().getAllNotes(), J.ABS.RegExp.KnockbackResist);
+	const notes = this.getBattler().getAllNotes();
+	const resist = RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.KnockbackResist);
 	if (resist >= 100) return;
 	const effectiveMagnitude = pullMagnitude * ((100 - resist) / 100);
 	const { unitX, unitY, maxPullDistance } = this.resolvePullVector(caster);
@@ -875,6 +879,39 @@ Game_System.prototype.setGrabThrowEnabled = function(isEnabled) {
 Game_System.prototype.toggleGrabThrowEnabled = function() {
 	this._j._tools._grabThrowEnabled = !this.isGrabThrowEnabled();
 };
+
+//#endregion
+//#region src/plugins/abs/ext/tools/registerJabsToolsSaveCodecs.js
+/**
+* The grab-and-throw wait timers are stopwatches, not state a player would notice resetting, so
+* neither of them is written to a savefile - and `JABS_Timer` is deliberately left unregistered so
+* that one reaching the encoder is a loud sign a holder was missed rather than a silent write.
+*
+* The declarations name the three character-like hosts individually because a codec is resolved by
+* the exact constructor of the value in front of the encoder. Declaring these on
+* `Game_CharacterBase`, where the fields are actually assigned, would describe a type that never
+* appears in a savefile by itself and would reach none of the types that do.
+*
+* `Game_Event` is absent on purpose: everything at `_j` on an event is dropped wholesale by J-Base's
+* own event codec, since the engine rebuilds every event at the next map setup.
+*
+* The cold values reproduce the construction site in `objects/Game_CharacterBase.js` exactly, which
+* is why they are expressions rather than remembered numbers - a delay that changes there takes
+* effect on the next load rather than being frozen at whatever a save happened to capture.
+*/
+var jabsToolsTimerTransients = {
+	"_j._tools._grabThrow._grab._wait": () => new JABS_Timer(0),
+	"_j._tools._grabThrow._throw._wait": () => new JABS_Timer(0)
+};
+SerializableRegistry.extend(Game_Player, { transients: jabsToolsTimerTransients });
+SerializableRegistry.extend(Game_Follower, { transients: jabsToolsTimerTransients });
+SerializableRegistry.extend(Game_Vehicle, { transients: jabsToolsTimerTransients });
+/**
+* Lifts the tools slice out of its hosts and into a section file of its own.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_tools", "abs-tools");
+}
 
 //#endregion
 //# sourceMappingURL=J-ABS-Tools.js.map

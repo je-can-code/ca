@@ -273,7 +273,8 @@ Game_Message.prototype.clear = function() {
 * Clones the original choice data into a backup for later use.
 */
 Game_Message.prototype.backupChoices = function() {
-	this.setOldChoices(this.choices().clone());
+	const backup = this.choices().clone();
+	this.setOldChoices(backup);
 };
 /**
 * Restores the cloned original choice data from backup.

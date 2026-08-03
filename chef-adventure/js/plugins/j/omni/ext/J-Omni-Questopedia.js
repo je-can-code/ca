@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.1.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v1.2.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -138,6 +138,13 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.0
+ *    The questopedia lookup cache is no longer written to savefiles. It held
+ *    the same entries as the saveables it is built from, keyed for lookup,
+ *    which made it the single largest thing in a savefile - 44,109 characters
+ *    in a real one. It now rebuilds from the saveables on load.
+ *    The destination timer is no longer written either; the map gets a fresh
+ *    one, since it measures nothing the player can observe.
  * - 1.1.0
  *    Added <pageQuestCondition>/<choiceQuestCondition>, gating an event
  *    page or a single "Show Choices" branch behind quest/objective state
@@ -2259,11 +2266,13 @@ var J_QUEST_PluginMetadata = class J_QUEST_PluginMetadata extends PluginMetadata
 	}
 	initializeQuests() {
 		const canLogLoadInfo = J_QUEST_PluginMetadata.#hasMinimumBaseVersion();
-		const parsedConfiguration = ExternalJsonConfigLoader.load(J_QUEST_PluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Omni-Questopedia").configName("quest configuration").logSummary(canLogLoadInfo ? (result) => [
+		const summarize = canLogLoadInfo ? (result) => [
 			`- ${result.quests.length} quests`,
 			`- ${result.categories.length} categories`,
 			`- ${result.tags.length} tags`
-		] : null).build());
+		] : null;
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Omni-Questopedia").configName("quest configuration").logSummary(summarize).build();
+		const parsedConfiguration = ExternalJsonConfigLoader.load(J_QUEST_PluginMetadata.CONFIG_PATH, options);
 		const classifiedQuests = J_QUEST_PluginMetadata.classifyQuests(parsedConfiguration.quests);
 		/**
 		* A collection of all defined quests.
@@ -2383,7 +2392,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.1.0");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3484,7 +3493,8 @@ Game_Party.prototype.getQuestopediaEntryByKey = function(questKey) {
 * @returns {TrackedOmniQuest[]}
 */
 Game_Party.prototype.getQuestopediaEntries = function() {
-	return Array.from(this.getQuestopediaEntriesCache().values());
+	const entries = this.getQuestopediaEntriesCache().values();
+	return Array.from(entries);
 };
 if (!Game_Party.prototype.canGainEntry) {
 	/**
@@ -3724,9 +3734,9 @@ Game_Interpreter.prototype.shouldHideChoiceBranch = function(subChoiceCommandInd
 * Extends {@link initialize}.<br/>
 * Also initializes the questopedia members.
 */
-J.OMNI.EXT.QUEST.Aliased.Game_Map.set("initialize", Game_Map.prototype.initialize);
-Game_Map.prototype.initialize = function() {
-	J.OMNI.EXT.QUEST.Aliased.Game_Map.get("initialize").call(this);
+J.OMNI.EXT.QUEST.Aliased.Game_Map.set("initMembers", Game_Map.prototype.initMembers);
+Game_Map.prototype.initMembers = function() {
+	J.OMNI.EXT.QUEST.Aliased.Game_Map.get("initMembers").call(this);
 	this.initQuestopediaMembers();
 };
 /**
@@ -3959,6 +3969,31 @@ PluginManager.registerCommand(J.OMNI.EXT.QUEST.Metadata.name, "set-quest-trackin
 	const shouldTrack = trackingState === "true";
 	QuestManager.setQuestTrackingByKey(key, shouldTrack);
 });
+
+//#endregion
+//#region src/plugins/omni/ext/quest/registerOmniQuestSaveCodecs.js
+/**
+* The destination timer throttles how often the questopedia checks the player's coordinates against
+* a tracked destination. It measures nothing the player can observe, so it is never written and the
+* map gets a fresh one on load.
+*
+* `Game_Map` is the host, which is easy to miss: this is the one plugin slice living on the map
+* object itself rather than on the system, the party, or a character.
+*/
+SerializableRegistry.extend(Game_Map, { transients: { "_j._omni._quest._destinationTimer": () => new J_Timer(15) } });
+/**
+* The questopedia cache is the same entries as `_questopediaSaveables`, keyed for lookup - the whole
+* collection, written to the file a second time. It was the single largest thing in a savefile.
+*
+* It rebuilds here rather than coming back empty, because nothing reads it through a guard: the
+* lookups call `.get()` on it directly, so an empty cache reads as "this party knows no quests"
+* rather than as "this has not been built yet". Every saveable it needs has already decoded by the
+* time a transient factory runs.
+*/
+SerializableRegistry.extend(Game_Party, { transients: { "_j._omni._questopediaCache": (party) => {
+	const keyedEntries = party.getSavedQuestopediaEntries().map((entry) => [entry.key, entry]);
+	return new Map(keyedEntries);
+} } });
 
 //#endregion
 //# sourceMappingURL=J-Omni-Questopedia.js.map

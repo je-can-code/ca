@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v2.0.2 DIFFICULTY] A layered difficulty system.
+ * @plugindesc [v2.1.0 DIFFICULTY] A layered difficulty system.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -23,6 +23,11 @@
  * All difficulties are defined in an external JSON file.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.0
+ *    Routed the _difficulty namespace into its own save section, so difficulty
+ *    state lands in systems/difficulty.json rather than in the system blob.
+ *    Moved the _difficulty namespace seeding from the initialize alias to
+ *    initMembers, so a decoded save can establish it without a constructor.
  * - 2.0.2
  *    Fixed the scene's initMembers chain never reaching Scene_Base, which left
  *    the modal dimmer field unseeded. getModalDimmerWindow guards on === null,
@@ -661,6 +666,20 @@ var DifficultyConfig = class DifficultyConfig {
 		this.hidden = hidden;
 	}
 };
+/**
+* Every difficulty the player has toggled lives in a savefile at
+* `$gameSystem._j._difficulty._configurations`, so the save encoder meets this type and needs a
+* codec for it.
+*
+* The defaults live in class fields, which only run when a constructor does- and the decoder never
+* runs one. The seed therefore copies them off a freshly built instance rather than restating them,
+* which is safe because this constructor defaults every parameter and does nothing but assign.
+*/
+SerializableRegistry.register(DifficultyConfig, {
+	id: "difficulty-config",
+	aliases: ["DifficultyConfig"],
+	seed: (instance) => Object.assign(instance, new DifficultyConfig())
+});
 
 //#endregion
 //#region src/plugins/diff/core/_metadata/_pluginMetadata.js
@@ -776,7 +795,8 @@ var J_DiffPluginMetadata = class J_DiffPluginMetadata extends PluginMetadata {
 	* Loads difficulty layers from {@link J_DiffPluginMetadata.CONFIG_PATH}.
 	*/
 	initializeDifficulties() {
-		const classifiedMetadatas = ExternalJsonConfigLoader.load(J_DiffPluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Difficulty").configName("difficulty configuration").mapper(J_DiffPluginMetadata.classifyDifficulties.bind(J_DiffPluginMetadata)).logSummary((result) => [`- ${result.size} difficulty layers`]).build());
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Difficulty").configName("difficulty configuration").mapper(J_DiffPluginMetadata.classifyDifficulties.bind(J_DiffPluginMetadata)).logSummary((result) => [`- ${result.size} difficulty layers`]).build();
+		const classifiedMetadatas = ExternalJsonConfigLoader.load(J_DiffPluginMetadata.CONFIG_PATH, options);
 		/**
 		* A map of difficulty layer metadatas by their key.
 		* @type {Map<string, DifficultyMetadata>}
@@ -818,7 +838,7 @@ J.DIFFICULTY = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.0.2");
+J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.1.0");
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -969,9 +989,9 @@ DataManager.setupNewGame = function() {
 /**
 * Extends the `.initialize()` with our difficulty initialization.
 */
-J.DIFFICULTY.Aliased.Game_System.set("initialize", Game_System.prototype.initialize);
-Game_System.prototype.initialize = function() {
-	J.DIFFICULTY.Aliased.Game_System.get("initialize").call(this);
+J.DIFFICULTY.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function() {
+	J.DIFFICULTY.Aliased.Game_System.get("initMembers").call(this);
 	this.initDifficultyMembers();
 };
 /**
@@ -2481,6 +2501,22 @@ PluginManager.registerCommand(J.DIFFICULTY.Metadata.name, "modifyLayerMax", (arg
 	const parsedAmount = parseInt(amount);
 	$gameSystem.modLayerPointMax(parsedAmount);
 });
+
+//#endregion
+//#region src/plugins/diff/core/registerDifficultySaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-Difficulty a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_difficulty", "difficulty");
+}
 
 //#endregion
 //# sourceMappingURL=J-Difficulty.js.map

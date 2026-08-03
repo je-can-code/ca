@@ -393,7 +393,8 @@ J.PASSIVE.EXT.AFFIX.Helpers.parseRewardMultipliers = function(databaseData) {
 	if (!databaseData || !databaseData.note) return results;
 	const regex = J.PASSIVE.EXT.AFFIX.RegExp.RewardMultiplier;
 	const lines = databaseData.note.split(/[\r\n]+/);
-	const scan = new RegExp(regex.source, regex.flags.replace("g", "").replace("y", ""));
+	const stickyFreeFlags = regex.flags.replace("g", "").replace("y", "");
+	const scan = new RegExp(regex.source, stickyFreeFlags);
 	lines.forEach((line) => {
 		const match = scan.exec(line);
 		if (match === null) return;

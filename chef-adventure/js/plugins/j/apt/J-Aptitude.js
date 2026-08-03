@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 APT] A plugin that grants the ability to learn by gaining points.
+ * [v1.3.0 APT] A plugin that grants the ability to learn by gaining points.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -128,6 +128,9 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Routed the _aptitude namespace into its own save section, so aptitude
+ *    state lands in systems/aptitude.json rather than inside the system blob.
  * - 1.2.0
  *    Learning a skill through an aptitude now announces in the dia log, naming
  *    the aptitude source, instead of only producing a floating text pop on the
@@ -702,7 +705,7 @@ J.APT.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.2.0");
+J.APT.Metadata = new JAptitude_PluginMetadata("J-Aptitude", "1.3.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1387,7 +1390,8 @@ var AptParameterRegistration = class {
 	* Registers aptitude point gain multiplier with the parameter catalog.
 	*/
 	static registerAll() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("apr").group(ParameterGroups.FATE).sortOrder(7).label(() => TextManager.aptRate()).description(() => TextManager.aptRateDescription()).iconIndex(() => IconManager.aptRate()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.apr).sdpBinding(SdpParameterBinding.byKey("apr", () => 1)).build());
+		const aptitudeRate = ParameterDefinition.Builder().key("apr").group(ParameterGroups.FATE).sortOrder(7).label(() => TextManager.aptRate()).description(() => TextManager.aptRateDescription()).iconIndex(() => IconManager.aptRate()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.apr).sdpBinding(SdpParameterBinding.byKey("apr", () => 1)).build();
+		ParameterRegistry.register(aptitudeRate);
 	}
 };
 
@@ -3037,6 +3041,22 @@ PluginManager.registerCommand(J.APT.Metadata.name, "refresh-required-ap", ({ act
 	const actor = $gameActors.actor(parseInt(actorId));
 	ApManager.refreshRequiredAp(actor);
 });
+
+//#endregion
+//#region src/plugins/apt/core/registerAptitudeSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-Aptitude a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_aptitude", "aptitude");
+}
 
 //#endregion
 //# sourceMappingURL=J-Aptitude.js.map

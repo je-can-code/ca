@@ -2,11 +2,12 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v4.13.0 ABS] Enables combat to be carried out on the map.
+ * [v4.14.0 ABS] Enables combat to be carried out on the map.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
  * @orderAfter J-Base
+ * @orderAfter J-Base-Save
  * @help
  * ============================================================================
  * OVERVIEW
@@ -47,6 +48,21 @@
  * for JABS lives at the top instead of the bottom.
  *
  * CHANGELOG:
+ * - 4.14.0
+ *    Declared what JABS state on the party and the system is worth writing to
+ *    a savefile, and routed the _abs namespace into its own save section.
+ *    Moved the _abs namespace seeding from the initialize alias to initMembers,
+ *    so a decoded save can establish it without running a constructor.
+ *    Declared JABS_SkillSlot's cooldown as a typed field; it was registered as
+ *    serializable while holding a JABS_Cooldown instance nothing declared.
+ *    command352 now opens J-Base-Save's files scene when that plugin is
+ *    installed, and vanilla's save scene when it is not. Previously the JABS
+ *    branch named Scene_Save outright, so every save platform bypassed the
+ *    files scene entirely.
+ *    Added an @orderAfter for J-Base-Save, which the namespace guard alone does
+ *    not cover: reaching Scene_Files needs the class, not just the namespace.
+ *    The forced map reload JABS needs after any load moved to a shared helper,
+ *    so vanilla's load scene and the files scene cannot drift apart on it.
  * - 4.13.0
  *    Added <channel> vessel skills that repeat a child skill over time.
  *    Added cast/channel interruption via movement or <interrupt> hits.
@@ -4203,7 +4219,8 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 	* @returns {number}
 	*/
 	static parseMapAfflictionMaxSlots(rawValue) {
-		const parsedValue = Number.parseInt(String(rawValue).trim(), 10);
+		const trimmedValue = String(rawValue).trim();
+		const parsedValue = Number.parseInt(trimmedValue, 10);
 		if (Number.isFinite(parsedValue) === false || parsedValue < 1) {
 			return 8;
 		}
@@ -4245,6 +4262,24 @@ J.ABS.EXT = {};
 * A collection of helpful functions for use within this plugin.
 */
 J.ABS.Helpers = {};
+/**
+* Transfers the player onto a freshly built copy of the map they are standing on.
+*
+* Vanilla only rebuilds a map after a load when the database's version has moved on since the save was
+* written. That is not enough for JABS: a map's enemies are built from its events when the map loads
+* and do not survive being restored out of a savefile, so the map has to be rebuilt on every load
+* regardless of whether anything in the database changed.
+*
+* It lives here rather than on a scene because two scenes need it - vanilla's load screen, and the
+* files scene that replaces it when J-Base-Save is installed. Written twice, the two would eventually
+* stop matching each other, and the symptom would be "enemies are missing, but only sometimes".
+*/
+J.ABS.Helpers.forceMapReload = () => {
+	const mapId = $gameMap.mapId();
+	const { x, y } = $gamePlayer;
+	$gamePlayer.reserveTransfer(mapId, x, y);
+	$gamePlayer.requestMapReload();
+};
 /**
 * A collection of helper functions for the use with the plugin manager.
 */
@@ -4295,7 +4330,8 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = (obj) => {
 * @returns {object} The parsed root blob.
 */
 J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
-	const parsedConfig = ExternalJsonConfigLoader.load(configPath, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-ABS").configName("external configuration").build());
+	const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-ABS").configName("external configuration").build();
+	const parsedConfig = ExternalJsonConfigLoader.load(configPath, options);
 	const metadata = J.ABS.Metadata;
 	if (metadata === undefined) {
 		throw new Error("J.ABS.Metadata must be assigned before J.ABS.Helpers.loadExternalConfig().");
@@ -4307,7 +4343,7 @@ J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
 /**
 * The metadata associated with this plugin.
 */
-J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.13.0");
+J.ABS.Metadata = new J_AbsPluginMetadata("J-ABS", "4.14.0");
 J.ABS.Helpers.loadExternalConfig();
 /**
 * The various default values across the engine. Often configurable.
@@ -5591,6 +5627,7 @@ J.ABS.Aliased = {
 	RPG_Enemy: new Map(),
 	RPG_Skill: new Map(),
 	Scene_Boot: new Map(),
+	Scene_Files: new Map(),
 	Scene_Load: new Map(),
 	Scene_Map: new Map(),
 	Sprite_Animation: new Map(),
@@ -11477,7 +11514,7 @@ var JABS_SkillSlot = class {
 		return !noAutoclearSlots.includes(this.key);
 	}
 };
-SerializableRegistry.register(JABS_SkillSlot);
+SerializableRegistry.register(JABS_SkillSlot, { typed: { cooldown: JABS_Cooldown } });
 
 //#endregion
 //#region src/plugins/abs/core/models/JABS_Battler.js
@@ -14242,7 +14279,8 @@ var JABS_Battler = class JABS_Battler {
 		this.setChannelTickCountdown(this.channelTickCountdown() - 1);
 		if (this.channelTickCountdown() <= 0) {
 			this.executeChannelTick();
-			this.setChannelTickCountdown(this.channelSourceAction().getBaseSkill().jabsChannelTickSpeed);
+			const tickSpeed = this.channelSourceAction().getBaseSkill().jabsChannelTickSpeed;
+			this.setChannelTickCountdown(tickSpeed);
 		}
 		this.setChannelDurationRemaining(this.channelDurationRemaining() - 1);
 		if (this.channelDurationRemaining() <= 0) {
@@ -14566,7 +14604,8 @@ var JABS_Battler = class JABS_Battler {
 			}
 			return;
 		}
-		this.removeAggroIfInvalid(this.getTarget().getUuid());
+		const targetUuid = this.getTarget().getUuid();
+		this.removeAggroIfInvalid(targetUuid);
 		const allAggros = this.getAggrosSortedHighestToLowest();
 		if (allAggros.length === 0) {
 			this.disengageTarget();
@@ -16111,7 +16150,8 @@ var JABS_Battler = class JABS_Battler {
 			this.stateSlipMp(state),
 			this.stateSlipTp(state)
 		];
-		const jabsState = $jabsEngine.getJabsStateByUuidAndStateId(this.getBattler().getUuid(), state.id);
+		const battlerUuid = this.getBattler().getUuid();
+		const jabsState = $jabsEngine.getJabsStateByUuidAndStateId(battlerUuid, state.id);
 		slipResources.forEach((slipAmount, index) => this.processSlipEffect(slipAmount, index, jabsState), this);
 	}
 	/**
@@ -17836,6 +17876,24 @@ var JABS_DeathContext = class {
 		return JABS_AiManager.getBattlerByUuid(this.killerUuid);
 	}
 };
+/**
+* A death context survives into a savefile: an actor that died and has not yet been revived carries
+* one at `_j._abs._deathContext`, so the save encoder meets this type and needs a codec for it.
+*
+* The seed is explicit rather than derived because {@link JABS_DeathContext.initMembers} takes the
+* four values as parameters. The decoder never runs a constructor and therefore has nothing to pass
+* it, so the defaults are spelled out here as the cold equivalents of what a killing blow supplies.
+*/
+SerializableRegistry.register(JABS_DeathContext, {
+	id: "jabs-death-context",
+	aliases: ["JABS_DeathContext"],
+	seed: (instance) => {
+		instance.elementIds = [];
+		instance.hitType = String.empty;
+		instance.stypeId = 0;
+		instance.killerUuid = String.empty;
+	}
+});
 
 //#endregion
 //#region src/plugins/abs/core/managers/JABS_Engine.js
@@ -19585,7 +19643,8 @@ var JABS_Engine = class JABS_Engine {
 		action.stampActionMapVisualNoteFromActionEvent(actionEventData, pageData);
 		actionEventSprite.setMoveFrequency(pageData.moveFrequency);
 		actionEventSprite.setMoveRoute(pageData.moveRoute);
-		actionEventSprite.setCastedDirection(action.getCaster().getCharacter().direction());
+		const casterDirection = action.getCaster().getCharacter().direction();
+		actionEventSprite.setCastedDirection(casterDirection);
 		this.applyActionToActionEventSprite(actionEventSprite, action);
 		actionEventSprite.start = () => false;
 		action.setActionSprite(actionEventSprite);
@@ -20184,7 +20243,8 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	checkRetaliate(action, targetBattler) {
 		if (action.isRetaliation()) return;
-		if (JABS_TeamRules.isFriendly(action.getCaster().getTeam(), targetBattler.getTeam())) {
+		const casterTeam = action.getCaster().getTeam();
+		if (JABS_TeamRules.isFriendly(casterTeam, targetBattler.getTeam())) {
 			return;
 		}
 		if (targetBattler.isActor()) {
@@ -20331,7 +20391,8 @@ var JABS_Engine = class JABS_Engine {
 			const negativeRolls = retaliatorBattler.getNegativeRollsForSkill(skill);
 			const procCount = skillChance.resolveProcCount(positiveRolls, negativeRolls, retaliatorBattler);
 			for (let i = 0; i < procCount; i++) {
-				const retaliationActions = retaliator.createJabsActionFromSkill(skillChance.skillId, JABS_ActionOptions.Builder().setIsRetaliation(true).build());
+				const retaliationOptions = JABS_ActionOptions.Builder().setIsRetaliation(true).build();
+				const retaliationActions = retaliator.createJabsActionFromSkill(skillChance.skillId, retaliationOptions);
 				retaliationActions.forEach((retaliationAction) => retaliationAction.getAction().setTriggerDamage(hpDamage, mpDamage, tpDamage));
 				const attackerBattler = triggeringAction.getCaster();
 				const attackerDistance = retaliator.distanceToDesignatedTarget(attackerBattler);
@@ -21984,8 +22045,9 @@ var JABS_Action = class JABS_Action {
 	*/
 	static collectSyntheticVisualNoteFromActionEventPage(eventData, pageData) {
 		const lines = [];
-		if (eventData && eventData.note && String(eventData.note).trim()) {
-			lines.push(String(eventData.note).trim());
+		const trimmedNote = eventData && eventData.note ? String(eventData.note).trim() : String.empty;
+		if (trimmedNote) {
+			lines.push(trimmedNote);
 		}
 		if (!pageData || !pageData.list || pageData.list.length === 0) {
 			return lines.join("\n");
@@ -23727,7 +23789,7 @@ var StateAfflictionProvider = class StateAfflictionProvider {
 //#endregion
 //#region src/plugins/abs/core/_metadata/meta.js
 var PLUGIN_NAME = "J-ABS";
-var PLUGIN_VERSION = "4.13.0";
+var PLUGIN_VERSION = "4.14.0";
 var PLUGIN_DESC_TAG = "ABS";
 
 //#endregion
@@ -26396,7 +26458,8 @@ Game_Action.prototype.applyStateDamageMultipliers = function(baseDamage, target)
 * @returns {number} The total bonus percent from this tag type.
 */
 Game_Action.prototype.calculatePerDebuffBonusPct = function(target) {
-	const totalN = RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.PerDebuffBuff);
+	const notes = this.subject().getAllNotes();
+	const totalN = RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.PerDebuffBuff);
 	if (totalN === 0) return 0;
 	const debuffCount = target.states().filter((s) => s.isNegativeType()).length;
 	return totalN * debuffCount;
@@ -26480,7 +26543,8 @@ Game_Action.prototype.calculateThisBonusDamageIfSelfStatePct = function() {
 * @returns {number} The total bonus percent from all bonusDamage tags on the caster, or 0.
 */
 Game_Action.prototype.calculateBonusDamagePct = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.BonusDamage);
+	const notes = this.subject().getAllNotes();
+	return RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.BonusDamage);
 };
 /**
 * Calculates the unconditional flat percent damage bonus from the thisBonusDamage tag on this
@@ -26656,7 +26720,8 @@ Game_Action.prototype.countTargetStatesAuthoredByCaster = function(target) {
 * @returns {number} The total bonus percent from this tag type.
 */
 Game_Action.prototype.calculateBonusForMyStateCountPct = function(target) {
-	const perStatePct = RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.BonusDamageForMyStateCount);
+	const notes = this.subject().getAllNotes();
+	const perStatePct = RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.BonusDamageForMyStateCount);
 	if (perStatePct === 0) return 0;
 	return perStatePct * this.countTargetStatesAuthoredByCaster(target);
 };
@@ -26737,7 +26802,8 @@ Game_Action.prototype.calculateThisSkillHistoryBonusPct = function(uuid) {
 */
 Game_Action.prototype.calculateGeneralSkillHistoryBonusPct = function(uuid) {
 	let totalPct = 0;
-	const rawTags = RPGManager.getStringsFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.SkillHistoryBonus);
+	const notes = this.subject().getAllNotes();
+	const rawTags = RPGManager.getStringsFromAllNotesByRegex(notes, J.ABS.RegExp.SkillHistoryBonus);
 	if (!rawTags.length) return 0;
 	rawTags.forEach((rawTag) => {
 		const parsed = this.parseGeneralSkillHistoryBracket(rawTag);
@@ -26838,17 +26904,18 @@ Game_Action.prototype.calculateThisCastTimeDamageBonusPctPerSec = function() {
 * @returns {number} The summed percent-per-second rate from passive/equipment/state sources.
 */
 Game_Action.prototype.calculateGeneralCastTimeDamageBonusPctPerSec = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.CastTimeDamageBonus);
+	const notes = this.subject().getAllNotes();
+	return RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.CastTimeDamageBonus);
 };
 
 //#endregion
 //#region src/plugins/abs/core/objects/Game_ActionResult.js
 /**
-* Extends {@link Game_ActionResult.initialize}.<br/>
+* Extends {@link Game_ActionResult.initMembers}.<br/>
 * Initializes additional members.
 */
-J.ABS.Aliased.Game_ActionResult.set("initialize", Game_ActionResult.prototype.initialize);
-Game_ActionResult.prototype.initialize = function() {
+J.ABS.Aliased.Game_ActionResult.set("initMembers", Game_ActionResult.prototype.initMembers);
+Game_ActionResult.prototype.initMembers = function() {
 	/**
 	* Whether or not the result was guarded.
 	* @type {boolean}
@@ -26869,7 +26936,7 @@ Game_ActionResult.prototype.initialize = function() {
 	* @type {number}
 	*/
 	this.reduced = 0;
-	J.ABS.Aliased.Game_ActionResult.get("initialize").call(this);
+	J.ABS.Aliased.Game_ActionResult.get("initMembers").call(this);
 };
 /**
 * Extends `.clear()` to include wiping the custom properties.
@@ -28707,7 +28774,8 @@ Game_Battler.prototype.removeState = function(stateId) {
 J.ABS.Aliased.Game_Battler.set("clearStates", Game_Battler.prototype.clearStates);
 Game_Battler.prototype.clearStates = function() {
 	if ($jabsEngine && this.getUuid() !== String.empty) {
-		const trackedStates = Array.from($jabsEngine.getJabsStatesByUuid(this.getUuid()).values());
+		const trackedStateValues = $jabsEngine.getJabsStatesByUuid(this.getUuid()).values();
+		const trackedStates = Array.from(trackedStateValues);
 		trackedStates.forEach((trackedState) => {
 			if (trackedState.expired) return;
 			if (trackedState.stateId === this.deathStateId()) return;
@@ -31077,15 +31145,39 @@ Game_Interpreter.prototype.command351 = function() {
 * Enables saving with JABS.
 * Removed the check for seeing if the player is in-battle, because the player is
 * technically ALWAYS in-battle while the ABS is enabled.
+*
+* The JABS branch has to name a scene rather than defer, because deferring is what it is here to avoid:
+* vanilla refuses to open the save screen mid-battle, and with the ABS enabled the player is always
+* technically mid-battle. That makes the choice of scene this method's problem, so it asks whether
+* J-Base-Save is installed and opens whichever screen actually exists.
 */
 J.ABS.Aliased.Game_Interpreter.set("command352", Game_Interpreter.prototype.command352);
 Game_Interpreter.prototype.command352 = function() {
 	if ($jabsEngine.absEnabled) {
-		SceneManager.push(Scene_Save);
+		this.openSaveScene();
 		return true;
 	} else {
 		return J.ABS.Aliased.Game_Interpreter.get("command352").call(this);
 	}
+};
+/**
+* Opens whichever save screen this project actually has.
+*
+* J-Base-Save replaces vanilla's save and load scenes with a single files scene, and it is genuinely
+* optional - J-ABS must keep working in a project without it. This is the sanctioned cross-plugin
+* check: one test, at the namespace, in a path that is honestly optional.
+*
+* Note that the namespace existing is not by itself enough to reach `Scene_Files`; the *class* has to
+* have been defined, which means J-Base-Save must have loaded first. That is what the `@orderAfter`
+* declaration in this plugin's annotations is for, and why it is `@orderAfter` rather than `@base` -
+* `@base` would make the save plugin mandatory and destroy the optionality this check exists to keep.
+*/
+Game_Interpreter.prototype.openSaveScene = function() {
+	if (J.BASE.EXT.SAVE) {
+		Scene_Files.callFromSavePoint();
+		return;
+	}
+	SceneManager.push(Scene_Save);
 };
 
 //#endregion
@@ -31340,7 +31432,8 @@ Game_Map.prototype.handleActionEventRemoval = function(actionToRemove) {
 */
 Game_Map.prototype.handleLootEventRemoval = function(lootToRemove) {
 	if (!lootToRemove.isJabsLoot()) return;
-	const lootMetadatas = this.lootEventsFromDataMapByUuid(lootToRemove.getJabsLoot().uuid());
+	const lootUuid = lootToRemove.getJabsLoot().uuid();
+	const lootMetadatas = this.lootEventsFromDataMapByUuid(lootUuid);
 	lootMetadatas.forEach((lootMetadata) => {
 		$dataMap.events[lootMetadata.lootIndex] = null;
 	});
@@ -31426,9 +31519,9 @@ Game_Map.prototype.hasInteractableEventInFront = function(jabsBattler) {
 /**
 * Extends the initialize to include additional objects for JABS.
 */
-J.ABS.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function() {
-	J.ABS.Aliased.Game_Party.get("initialize").call(this);
+J.ABS.Aliased.Game_Party.set("initMembers", Game_Party.prototype.initMembers);
+Game_Party.prototype.initMembers = function() {
+	J.ABS.Aliased.Game_Party.get("initMembers").call(this);
 	this.initJabsPartyData();
 };
 /**
@@ -31676,9 +31769,42 @@ Game_Unit.prototype.inBattle = function() {
 J.ABS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.ABS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
-	ParameterRegistry.register(ParameterDefinition.Builder().key("cdr").group(ParameterGroups.SUPPORT).sortOrder(3).label(() => TextManager.cdr()).description(() => TextManager.cdrDescription()).iconIndex(() => IconManager.cdr()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).build());
-	ParameterRegistry.register(ParameterDefinition.Builder().key("per").group(ParameterGroups.PRECISION).sortOrder(3).label(() => TextManager.per()).description(() => TextManager.perDescription()).iconIndex(() => IconManager.per()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.per).build());
+	const cooldownReduction = ParameterDefinition.Builder().key("cdr").group(ParameterGroups.SUPPORT).sortOrder(3).label(() => TextManager.cdr()).description(() => TextManager.cdrDescription()).iconIndex(() => IconManager.cdr()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).build();
+	ParameterRegistry.register(cooldownReduction);
+	const parryExtension = ParameterDefinition.Builder().key("per").group(ParameterGroups.PRECISION).sortOrder(3).label(() => TextManager.per()).description(() => TextManager.perDescription()).iconIndex(() => IconManager.per()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.per).build();
+	ParameterRegistry.register(parryExtension);
 };
+
+//#endregion
+//#region src/plugins/abs/core/scenes/Scene_Files.js
+/**
+* Teaches J-Base-Save's files scene the same map-reload rule vanilla's load screen already learned.
+*
+* J-Base-Save is genuinely optional, so this whole file is behind one namespace check - the sanctioned
+* cross-plugin form. Without the check, a project running J-ABS and not J-Base-Save would throw on
+* boot; without the file, a project running both would load a map with no enemies on it and nothing
+* anywhere would say why.
+*
+* **The namespace check alone is not sufficient, and this is the subtle part.** `J.BASE.EXT.SAVE`
+* proves the namespace exists; aliasing `Scene_Files.prototype` needs the *class* to exist, which means
+* J-Base-Save has to have loaded first. That is declared as `@orderAfter J-Base-Save` in this plugin's
+* annotations - deliberately `@orderAfter` and not `@base`, since `@base` is a hard dependency and
+* would make the save plugin mandatory, destroying the optionality this check exists to preserve.
+*/
+if (J.BASE.EXT.SAVE) {
+	/**
+	* Overwrites {@link Scene_Files.reloadMapIfUpdated}.<br/>
+	* When loading, the map needs to be refreshed to load the enemies properly.
+	*/
+	J.ABS.Aliased.Scene_Files.set("reloadMapIfUpdated", Scene_Files.prototype.reloadMapIfUpdated);
+	Scene_Files.prototype.reloadMapIfUpdated = function() {
+		if ($jabsEngine.absEnabled) {
+			J.ABS.Helpers.forceMapReload();
+		} else {
+			J.ABS.Aliased.Scene_Files.get("reloadMapIfUpdated").call(this);
+		}
+	};
+}
 
 //#endregion
 //#region src/plugins/abs/core/scenes/Scene_Load.js
@@ -31689,11 +31815,7 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 J.ABS.Aliased.Scene_Load.set("reloadMapIfUpdated", Scene_Load.prototype.reloadMapIfUpdated);
 Scene_Load.prototype.reloadMapIfUpdated = function() {
 	if ($jabsEngine.absEnabled) {
-		const mapId = $gameMap.mapId();
-		const { x } = $gamePlayer;
-		const { y } = $gamePlayer;
-		$gamePlayer.reserveTransfer(mapId, x, y);
-		$gamePlayer.requestMapReload();
+		J.ABS.Helpers.forceMapReload();
 	} else {
 		J.ABS.Aliased.Scene_Load.get("reloadMapIfUpdated").call(this);
 	}
@@ -32042,7 +32164,8 @@ var Sprite_MapCastGauge = class extends Sprite_MapGauge {
 	*/
 	update() {
 		if (this.getJabsBattler()) {
-			this.setBattler(this.getJabsBattler().getBattler());
+			const battler = this.getJabsBattler().getBattler();
+			this.setBattler(battler);
 		}
 		const valid = this.isValid();
 		if (valid === false) {
@@ -34067,7 +34190,8 @@ Spriteset_Map.prototype.refreshExistingCastPreviewSprites = function() {
 Spriteset_Map.prototype.purgeOrphanedCastPreviewSprites = function() {
 	const dict = this.castPreviewSprites();
 	const layer = this.getCastPreviewLayer();
-	const activeKeys = new Set(this.collectActiveCastPreviewItems().map((it) => it.key));
+	const activeCastPreviewKeys = this.collectActiveCastPreviewItems().map((it) => it.key);
+	const activeKeys = new Set(activeCastPreviewKeys);
 	Object.keys(dict).forEach((key) => {
 		if (activeKeys.has(key)) return;
 		const sprite = dict[key];
@@ -34400,7 +34524,8 @@ Spriteset_Map.prototype.refreshExistingActionHitboxSprites = function() {
 * Removes hitbox sprites that no longer correspond to an active action.
 */
 Spriteset_Map.prototype.purgeOrphanedActionHitboxSprites = function() {
-	const activeKeys = new Set($gameMap.actionEvents().map((ev) => ev.getJabsActionUuid()));
+	const activeActionUuids = $gameMap.actionEvents().map((ev) => ev.getJabsActionUuid());
+	const activeKeys = new Set(activeActionUuids);
 	const dict = this.getActionHitboxSprites();
 	const layer = this.getJabsHitboxLayer();
 	Object.keys(dict).forEach((key) => {
@@ -34690,7 +34815,8 @@ Spriteset_Map.prototype.refreshExistingBattlerHitboxSprites = function(itemMode 
 * @param {'all'|'colliding'} itemMode Filter mode.
 */
 Spriteset_Map.prototype.purgeOrphanedBattlerHitboxSprites = function(itemMode = "all") {
-	const active = new Set(this.collectBattlerOverlayItems(itemMode).map((it) => it.key));
+	const activeOverlayKeys = this.collectBattlerOverlayItems(itemMode).map((it) => it.key);
+	const active = new Set(activeOverlayKeys);
 	const dict = this.getBattlerHitboxSprites();
 	const layer = this.getJabsHitboxLayer();
 	Object.keys(dict).forEach((key) => {
@@ -34910,6 +35036,22 @@ Spriteset_Map.prototype.hitboxPulseLayer = function() {
 Spriteset_Map.prototype.setHitboxPulseLayer = function(newHitboxPulseLayer) {
 	this._j._abs._hitboxPulseLayer = newHitboxPulseLayer;
 };
+
+//#endregion
+//#region src/plugins/abs/core/registerJabsSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-ABS a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_abs", "abs");
+}
 
 //#endregion
 //# sourceMappingURL=J-ABS.js.map

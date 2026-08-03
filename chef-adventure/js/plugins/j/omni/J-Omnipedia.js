@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.1 OMNI] Enables the "omnipedia" data-centric scene.
+ * [v1.1.0 OMNI] Enables the "omnipedia" data-centric scene.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -26,6 +26,12 @@
  * plug into. Those extensions own their own respective tags.
  * ============================================================================
  * CHANGELOG:
+ * - 1.1.0
+ *    Routed the _omni namespace into its own save section, so every
+ *    omnipedia extension's data lands in systems/omni.json together rather
+ *    than inside the party and system blobs.
+ *    Moved the _omni namespace seeding from the initialize alias to
+ *    initMembers, so a decoded save can establish it without a constructor.
  * - 1.0.1
  *    Updated JABS menu integration with help text.
  * - 1.0.0
@@ -100,7 +106,7 @@ J.OMNI = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.OMNI.Metadata = new J_Omnipedia_PluginMetadata("J-Omnipedia", "1.0.1");
+J.OMNI.Metadata = new J_Omnipedia_PluginMetadata("J-Omnipedia", "1.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -434,12 +440,12 @@ var Scene_Omnipedia = class extends Scene_MenuBase {
 //#endregion
 //#region src/plugins/omni/core/objects/Game_Party.js
 /**
-* Extends {@link #initialize}.<br/>
+* Extends {@link #initMembers}.<br/>
 * Adds a hook for omnipedia extensions to initialize their members.
 */
-J.OMNI.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function() {
-	J.OMNI.Aliased.Game_Party.get("initialize").call(this);
+J.OMNI.Aliased.Game_Party.set("initMembers", Game_Party.prototype.initMembers);
+Game_Party.prototype.initMembers = function() {
+	J.OMNI.Aliased.Game_Party.get("initMembers").call(this);
 	this.initOmnipediaMembers();
 };
 /**
@@ -518,6 +524,22 @@ Window_MenuCommand.prototype.canAddOmnipediaCommand = function() {
 	if (!$gameSwitches.value(J.OMNI.Metadata.InMainMenuSwitch)) return false;
 	return true;
 };
+
+//#endregion
+//#region src/plugins/omni/core/registerOmniSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-Omnipedia a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_omni", "omni");
+}
 
 //#endregion
 //# sourceMappingURL=J-Omnipedia.js.map

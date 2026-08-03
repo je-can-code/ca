@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.7.0 EXTEND] Extends the capabilities of skills/actions.
+ * @plugindesc [v1.7.1 EXTEND] Extends the capabilities of skills/actions.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -433,6 +433,11 @@
  * A three-state cycle: 12 -> 13 -> 14 -> 12 -> ..., one step per execution.
  * ============================================================================
  * CHANGELOG:
+ * - 1.7.1
+ *    Split Game_Item's extension state so the default lands in initMembers
+ *    while the mapping from the constructed item stays in the initialize
+ *    alias. Decoding never runs a constructor, so only the half that does not
+ *    depend on the incoming item can move.
  * - 1.7.0
  *    Renamed plugin from J-SkillExtend to J-Extend (PLUGIN_NAME only; no
  *    functional change, nothing else in the codebase referenced the old
@@ -527,7 +532,8 @@ var J_SkillExtendPluginMetadata = class extends PluginMetadata {
 	* @param {boolean} [asBoolean=false] Pass true for boolean tags (no colon) so the key is derived correctly.
 	*/
 	registerNonCombiningKey(regexp, asBoolean = false) {
-		this.#nonCombiningKeys.add(J.BASE.Helpers.getKeyFromRegexp(regexp, asBoolean).toLowerCase());
+		const key = J.BASE.Helpers.getKeyFromRegexp(regexp, asBoolean).toLowerCase();
+		this.#nonCombiningKeys.add(key);
 	}
 	/**
 	* Gets all registered non-combining tag keys as an array.
@@ -558,7 +564,7 @@ J.EXTEND = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.7.0");
+J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.7.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1793,7 +1799,8 @@ Game_Action.prototype.onHitRemoveStates = function() {
 * @param {Game_Actor|Game_Enemy} target The target being hit with the action.
 */
 Game_Action.prototype.applyOnHitApplyStates = function(target) {
-	const casterEntries = RPGManager.getArraysFromAllNotesByRegex(this.subject().getAllNotes(), J.EXTEND.RegExp.ApplyState);
+	const notes = this.subject().getAllNotes();
+	const casterEntries = RPGManager.getArraysFromAllNotesByRegex(notes, J.EXTEND.RegExp.ApplyState);
 	const skillEntries = RPGManager.getArraysFromNotesByRegex(this.item(), J.EXTEND.RegExp.ThisApplyState);
 	const allEntries = [...casterEntries, ...skillEntries];
 	if (!allEntries.length) return;
@@ -2212,16 +2219,30 @@ Game_Enemy.prototype.learnSkill = function(skillId) {
 //#endregion
 //#region src/plugins/extend/core/objects/Game_Item.js
 /**
-* Extend `initialize()` to include our update of assigning the item.
+* Extends {@link #initMembers}.<br/>
+* Also declares the underlying object, at its resting value.
+*
+* The default lives here rather than in the `initialize` alias below so that a decode establishes it
+* too - the hook is the only one of the two a savefile can run.
 */
-J.EXTEND.Aliased.Game_Item.set("initialize", Game_Item.prototype.initialize);
-Game_Item.prototype.initialize = function(item) {
-	J.EXTEND.Aliased.Game_Item.get("initialize").call(this, item);
+J.EXTEND.Aliased.Game_Item.set("initMembers", Game_Item.prototype.initMembers);
+Game_Item.prototype.initMembers = function() {
+	J.EXTEND.Aliased.Game_Item.get("initMembers").call(this);
 	/**
 	* The underlying object associated with this item.
 	* @type {RPG_EquipItem|RPG_UsableItem}
 	*/
 	this._item = null;
+};
+/**
+* Extends `initialize()` to include our update of assigning the item.
+*
+* Only the *mapping* is here; the default is in {@link #initMembers} above. An extended skill is not
+* in the database, so the object it wraps has to be carried in rather than looked up.
+*/
+J.EXTEND.Aliased.Game_Item.set("initialize", Game_Item.prototype.initialize);
+Game_Item.prototype.initialize = function(item) {
+	J.EXTEND.Aliased.Game_Item.get("initialize").call(this, item);
 	if (item) {
 		this._item = item;
 	}

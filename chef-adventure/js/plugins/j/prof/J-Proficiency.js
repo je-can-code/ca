@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v2.2.0 PROF] Enables skill proficiency tracking.
+ * @plugindesc [v2.3.0 PROF] Enables skill proficiency tracking.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -151,6 +151,10 @@
  * - Decreasing the proficiency will NOT undo rewards gained.
  * ============================================================================
  * CHANGELOG:
+ * - 2.3.0
+ *    Routed the _proficiency namespace into its own save section, so earned
+ *    proficiency lands in systems/proficiency.json rather than in the system
+ *    blob.
  * - 2.2.0
  *    Learning a skill through proficiency now announces in the dia log,
  *    naming the practiced skill, instead of only producing a floating text
@@ -377,7 +381,8 @@ var J_ProficiencyPluginMetadata = class J_ProficiencyPluginMetadata extends Plug
 	* Initializes the proficiencies from database and external data.
 	*/
 	initializeProficiencies() {
-		const classifiedConditionalData = ExternalJsonConfigLoader.load(J_ProficiencyPluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Proficiency").configName("proficiency configuration").mapper(J_ProficiencyPluginMetadata.classifyConditionals.bind(J_ProficiencyPluginMetadata)).logSummary((result) => [`- ${result.length} proficiency conditionals`]).build());
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Proficiency").configName("proficiency configuration").mapper(J_ProficiencyPluginMetadata.classifyConditionals.bind(J_ProficiencyPluginMetadata)).logSummary((result) => [`- ${result.length} proficiency conditionals`]).build();
+		const classifiedConditionalData = ExternalJsonConfigLoader.load(J_ProficiencyPluginMetadata.CONFIG_PATH, options);
 		/**
 		* The collection of all defined skill proficiencies.
 		* @type {ProficiencyConditional[]}
@@ -412,7 +417,7 @@ J.PROF = {};
 * The metadata associated with this plugin.
 * @type {J_ProficiencyPluginMetadata}
 */
-J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.2.0");
+J.PROF.Metadata = new J_ProficiencyPluginMetadata("J-Proficiency", "2.3.0");
 /**
 * The various aliases associated with this plugin.
 */
@@ -1021,7 +1026,8 @@ var ProfParameterRegistration = class {
 	* Registers proficiency bonus with the parameter catalog.
 	*/
 	static registerAll() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("prof").group(ParameterGroups.FATE).sortOrder(4).label(() => TextManager.proficiencyBonus()).description(() => TextManager.proficiencyDescription()).iconIndex(() => IconManager.proficiencyBoost()).format(ParameterFormat.FLAT).getValue((battler) => battler.prof).sdpBinding(SdpParameterBinding.byKey("prof", (actor) => actor.baseSkillProficiencyAmount())).build());
+		const proficiencyBonus = ParameterDefinition.Builder().key("prof").group(ParameterGroups.FATE).sortOrder(4).label(() => TextManager.proficiencyBonus()).description(() => TextManager.proficiencyDescription()).iconIndex(() => IconManager.proficiencyBoost()).format(ParameterFormat.FLAT).getValue((battler) => battler.prof).sdpBinding(SdpParameterBinding.byKey("prof", (actor) => actor.baseSkillProficiencyAmount())).build();
+		ParameterRegistry.register(proficiencyBonus);
 	}
 };
 
@@ -1069,6 +1075,22 @@ PluginManager.registerCommand(J.PROF.Metadata.name, "modifyPartySkillProficiency
 		});
 	});
 });
+
+//#endregion
+//#region src/plugins/prof/core/registerProficiencySaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-Proficiency a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_proficiency", "proficiency");
+}
 
 //#endregion
 //# sourceMappingURL=J-Proficiency.js.map

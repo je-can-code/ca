@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v3.2.0 BASE] The base class for all J plugins.
+ * [v3.3.0 BASE] The base class for all J plugins.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @help
@@ -157,6 +157,28 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.3.0
+ *    The shipped file moved from js/plugins/J-Base.js to
+ *    js/plugins/base/J-Base.js, following the base plugin set's split into a
+ *    core and its extensions. A plugin list still naming the old path will not
+ *    find it.
+ *    Added the J.BASE.EXT namespace, so extensions of the base plugin set have
+ *    somewhere to live that is not the core itself.
+ *    SerializableRegistry now holds serialization DECLARATIONS - what a type
+ *    regenerates, what it stores by reference, and what its typed fields are -
+ *    rather than only a list of constructors. The code that interprets those
+ *    declarations lives in J-Base-Save, so the core carries no save format.
+ *    Added register/extend/installDeclarations, plus a revision counter so a
+ *    consumer can tell that a registration was replaced rather than added.
+ *    Added an initMembers hook to Game_Party, Game_Map, Game_Timer, Game_Item,
+ *    and Game_ActionResult. Decoding a saved object never runs its constructor,
+ *    so state declared only in initialize could not be re-established; the hook
+ *    is the seam that makes those types seedable.
+ *    Added Game_Actors accessors - actorIds, actors, data, existingActors -
+ *    replacing direct reads of the underlying sparse array.
+ *    Added Scene_Title commandWindow accessors, matching the pair Scene_Menu
+ *    already carried, so a plugin replacing a title command does not have to
+ *    reach past them into the field.
  * - 3.2.0
  *    Added skillIds() to Game_Battler (stub returning empty), Game_Actor (learned skills
  *    plus trait-granted ids, deduplicated), and Game_Enemy (action skill ids plus
@@ -290,9 +312,10 @@
  * @text Enemy Base TP Max
  * @desc The base TP for enemies is this amount. Any formulai add onto this.
  * @default 100
+ *
  */
 
-//#region src/plugins/_base/core/JCache.js
+//#region src/plugins/_base/core/core/JCache.js
 /**
 * A unified typed-cache primitive. A cache declares an ordered list of "weak dimensions" at
 * construction (e.g. `['battler']`, `['object']`, `['battler', 'object']`), and `get()` requires
@@ -485,7 +508,7 @@ var JCache = class JCache {
 };
 
 //#endregion
-//#region src/plugins/_base/_utilities/JsonMapper.js
+//#region src/plugins/_base/core/_utilities/JsonMapper.js
 var JsonMapper = class {
 	/**
 	* Parses a object into whatever its given data type is.
@@ -555,7 +578,7 @@ var JsonMapper = class {
 };
 
 //#endregion
-//#region src/plugins/_base/_utilities/ArrayHelper.js
+//#region src/plugins/_base/core/_utilities/ArrayHelper.js
 var ArrayHelper = class {
 	/**
 	* A filter function for ignoring null or undefined.
@@ -614,7 +637,7 @@ var ArrayHelper = class {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/RPGManager.js
+//#region src/plugins/_base/core/managers/RPGManager.js
 /**
 * A utility class for handling common database-related translations.
 */
@@ -1392,7 +1415,7 @@ var RPGManager = class RPGManager {
 };
 
 //#endregion
-//#region src/plugins/_base/database/base/RPG_Base.js
+//#region src/plugins/_base/core/database/base/RPG_Base.js
 /**
 * A class representing the foundation of all database objects.
 * In addition to doing all the things that a database object normally does,
@@ -1591,7 +1614,7 @@ var RPG_Base = class RPG_Base {
 };
 
 //#endregion
-//#region src/plugins/_base/database/base/RPG_BaseItem.js
+//#region src/plugins/_base/core/database/base/RPG_BaseItem.js
 /**
 * The class representing baseItem from the database,
 * and now an iconIndex with a description.
@@ -1637,7 +1660,7 @@ RPG_BaseItem.Empty = Object.freeze({
 });
 
 //#endregion
-//#region src/plugins/_base/_metadata/initialization.js
+//#region src/plugins/_base/core/_metadata/initialization.js
 /**
 * The core where all of my extensions live: in the `J` object.
 */
@@ -1647,17 +1670,33 @@ globalThis.J ||= {};
 */
 J.BASE = {};
 /**
+* The plugin umbrella that governs all extensions of J-Base.
+*/
+J.BASE.EXT = {};
+/**
 * The `metadata` associated with this plugin, such as version.
 */
 J.BASE.Metadata = {};
 J.BASE.Metadata.Name = "J-Base";
-J.BASE.Metadata.Version = "3.2.0";
+J.BASE.Metadata.Version = "3.3.0";
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
 J.BASE.PluginParameters = PluginManager.parameters(J.BASE.Metadata.Name);
 J.BASE.Metadata.BaseTpMaxActors = Number(J.BASE.PluginParameters["actorBaseTp"]);
 J.BASE.Metadata.BaseTpMaxEnemies = Number(J.BASE.PluginParameters["enemyBaseTp"]);
+/**
+* How many generations of a save slot are kept on disk before the oldest are pruned.
+*
+* Every save writes a whole new generation and then points the slot at it, so the previous ones are
+* still loadable. Keeping three means the failure mode of a bad save is "you lost the last save"
+* rather than "you lost the file", which is the entire promise of the save system.
+*
+* The coalesce is the same pattern the note-parsing helpers use: a parameter the editor has not
+* written into `plugins.js` yet reads as `undefined`, and this one has to hold a usable number from
+* the first boot after the plugin is updated rather than after someone opens the plugin manager.
+*/
+J.BASE.Metadata.retainedSaveGenerations = Number(J.BASE.PluginParameters["retainedSaveGenerations"] ?? 3);
 J.BASE.Metadata.ShowExternalFileLoadInfo = false;
 /**
 * The various traits captured here by id with a more meaningful descriptor.
@@ -1799,6 +1838,7 @@ J.BASE.RegExp.ClassifierType = /<type:[ ]?([a-zA-Z][a-zA-Z0-9_-]*)>/gi;
 J.BASE.Aliased = {
 	AudioManager: new Map(),
 	Bitmap: new Map(),
+	ConfigManager: new Map(),
 	DataManager: new Map(),
 	JsonEx: new Map(),
 	Game_Action: new Map(),
@@ -1807,6 +1847,9 @@ J.BASE.Aliased = {
 	Game_Actor: new Map(),
 	Game_Battler: new Map(),
 	Game_Enemy: new Map(),
+	Game_ActionResult: new Map(),
+	Game_Item: new Map(),
+	Game_Map: new Map(),
 	Game_Party: new Map(),
 	Game_Temp: new Map(),
 	Game_Timer: new Map(),
@@ -2010,10 +2053,19 @@ J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?") {
 };
 
 //#endregion
-//#region src/plugins/_base/core/SerializableRegistry.js
+//#region src/plugins/_base/core/core/SerializableRegistry.js
 /**
 * A central registry of constructors that {@link JsonEx} can use for reliable
 * type restoration when deserializing.
+*
+* It is also where each type's save declarations are kept - but only kept. This class stores what a
+* registration said and answers "what constructor does this name mean"; it does not know what a
+* transient or a typed field *means*, because that is the save format's business and the save
+* format is an optional extension. J-Base-Save reads these declarations and builds its own codecs
+* from them.
+*
+* That division is what lets the extension be uninstalled: without it, every registration here is
+* inert metadata that nothing interprets, and the engine's own save path carries on unchanged.
 */
 var SerializableRegistry = class {
 	/**
@@ -2024,29 +2076,185 @@ var SerializableRegistry = class {
 		return this._constructors;
 	}
 	/**
+	* Gets the raw declarations each constructor was registered with.
+	* @returns {Map<Function, object>} The registrations.
+	*/
+	static registrations() {
+		return this._registrations;
+	}
+	/**
+	* Gets how many times a registration has been filed or amended.
+	*
+	* Anything caching a view of this registry compares against this rather than against the map's
+	* size, because size does not move when a registration is replaced - and a test that clears the
+	* registry and re-registers the same count would otherwise keep a stale cache silently.
+	* @returns {number} The revision.
+	*/
+	static revision() {
+		return this._revision;
+	}
+	/**
+	* Sets the revision.
+	* @param {number} value The new revision.
+	*/
+	static setRevision(value) {
+		this._revision = value;
+	}
+	/**
 	* The internal collection of registered constructors.
 	* @type {Map<string, Function>}
 	*/
 	static _constructors = new Map();
 	/**
-	* Registers a constructor for {@link JsonEx} deserialization.
+	* The options each constructor was registered with, kept so {@link #extend} can merge into them.
+	*
+	* This exists because a codec for an engine class is authored by more than one plugin. J-Base owns
+	* the `Game_Party` registration, but the transients living at `_j._omni` on that same party are
+	* J-Omni's to declare - and J-Base must never know they exist, because a core plugin does not
+	* reach into an optional extension. Keeping the raw declarations means a later contribution merges
+	* rather than clobbers.
+	* @type {Map<Function, object>}
+	*/
+	static _registrations = new Map();
+	/**
+	* How many times a registration has been filed or amended, so a cache can tell it has gone stale.
+	* @type {number}
+	*/
+	static _revision = 0;
+	/**
+	* Registers a constructor for {@link JsonEx} deserialization and for the save pipeline.
 	*
 	* This enables modern `class` syntax for serializable models without requiring
 	* `window.SomeClass = SomeClass` global exports.
 	*
+	* Everything past `aliases` describes how the save pipeline should treat this type. All of it is
+	* optional, and the defaults are chosen to fail open: a type registered with no options at all
+	* persists every own enumerable field, holds no instances, and seeds from `initMembers` if it has
+	* one. Forgetting to declare something means it gets saved, which is wasteful and harmless- the
+	* opposite mistake loses a player's progress.
+	*
+	* Both `transients` and `typed` accept **dotted paths** as keys, because the fields worth declaring
+	* usually sit inside a plugin namespace rather than directly on the class:
+	*
+	* ```javascript
+	* SerializableRegistry.register(Game_Party, {
+	*   id: 'game-party',
+	*   aliases: [ 'Game_Party' ],
+	*   transients: {
+	*     // lazy: every reader is guarded, so the cold value is the whole answer.
+	*     '_j._base._cachedAllNotes': () => null,
+	*
+	*     // eager: nothing rebuilds this on a miss, so the factory owes the rebuild.
+	*     '_j._omni._questopediaCache': party => new Map(
+	*       party.getSavedQuestopediaEntries().map(entry => [ entry.key, entry ])),
+	*   },
+	*   typed: {
+	*     _lastItem: Game_Item,
+	*   },
+	* });
+	* ```
+	*
 	* @param {Function} constructor The constructor to register.
-	* @param {{id?: string, aliases?: string[]}=} options Options for registration.
+	* @param {{
+	*   id?: string,
+	*   aliases?: string[],
+	*   transients?: Object<string, Function>,
+	*   typed?: Object<string, Function>,
+	*   typedValues?: Object<string, Function>,
+	*   seed?: Function,
+	*   encode?: Function,
+	*   decode?: Function
+	* }=} options Options for registration.
 	*/
 	static register(constructor, options = undefined) {
-		const id = options && options.id ? options.id : constructor.name;
+		const given = options ?? {};
+		const id = given.id ? given.id : constructor.name;
 		this.constructors().set(id, constructor);
-		const aliases = options && options.aliases ? options.aliases : [];
+		const aliases = given.aliases ? given.aliases : [];
 		aliases.forEach((alias) => {
 			this.constructors().set(alias, constructor);
 		});
+		const declarations = {
+			id,
+			aliases,
+			transients: given.transients ?? {},
+			typed: given.typed ?? {},
+			typedValues: given.typedValues ?? {},
+			seed: given.seed ?? null,
+			encode: given.encode ?? null,
+			decode: given.decode ?? null
+		};
+		this.installDeclarations(constructor, declarations);
+	}
+	/**
+	* Adds declarations to a type another plugin already registered.
+	*
+	* This is how a plugin claims the part of a shared host that belongs to it. `Game_Party` is
+	* registered by J-Base, but the caches at `$gameParty._j._omni` are J-Omni's - and the dependency
+	* only runs one way, so J-Base cannot name them. J-Omni calls this instead, and the two sets of
+	* declarations merge into the one codec that describes the class.
+	*
+	* Merging is per-declaration and last-wins on a collision, which is the same shape as the alias
+	* map pattern: two plugins declaring the same path would be a genuine conflict worth noticing, and
+	* two plugins declaring different paths - the normal case - simply add up.
+	*
+	* The `id`, `aliases`, and `seed` of an existing registration are left alone. Identity belongs to
+	* whoever registered the type, and an extension redefining it would silently repoint every save.
+	* @param {Function} constructor The already-registered constructor to add declarations to.
+	* @param {{
+	*   transients?: Object<string, Function>,
+	*   typed?: Object<string, Function>,
+	*   typedValues?: Object<string, Function>
+	* }} options The declarations to merge in.
+	*/
+	static extend(constructor, options) {
+		const existing = this.registrations().get(constructor);
+		if (!existing) {
+			throw new Error(`cannot extend the save codec for '${constructor.name}' because nothing has registered it. ` + "The plugin that owns the type must load before the one extending it.");
+		}
+		this.installDeclarations(constructor, {
+			...existing,
+			transients: {
+				...existing.transients,
+				...options.transients ?? {}
+			},
+			typed: {
+				...existing.typed,
+				...options.typed ?? {}
+			},
+			typedValues: {
+				...existing.typedValues,
+				...options.typedValues ?? {}
+			}
+		});
+	}
+	/**
+	* Empties the registry entirely.
+	*
+	* This exists so nothing has to reach into the two maps to reset them. Clearing them from outside
+	* would leave the revision where it was, and any cached view comparing against that revision would
+	* decide it was still current while holding codecs for types that are no longer registered.
+	*/
+	static clear() {
+		this.constructors().clear();
+		this.registrations().clear();
+		this.setRevision(this.revision() + 1);
+	}
+	/**
+	* Files a complete set of declarations against the constructor they describe.
+	* @param {Function} constructor The constructor being described.
+	* @param {object} declarations The complete, normalized declarations.
+	*/
+	static installDeclarations(constructor, declarations) {
+		this.registrations().set(constructor, declarations);
+		this.setRevision(this.revision() + 1);
 	}
 	/**
 	* Resolves a previously-registered constructor by id.
+	*
+	* This is {@link JsonEx}'s lookup, and it hands back a bare constructor because that is all
+	* {@link JsonEx} has ever wanted. Anything reading save declarations goes through the index the
+	* save extension builds instead.
 	* @param {string} id The serialization id for the constructor.
 	* @returns {Function|null} The resolved constructor, or null when not found.
 	*/
@@ -2056,10 +2264,24 @@ var SerializableRegistry = class {
 		}
 		return null;
 	}
+	/**
+	* Resolves the declarations a live value's type was registered with.
+	*
+	* Keyed on `value.constructor` rather than on a name or a prototype-chain test, which is both a
+	* plain `Map` lookup and immune to two unrelated classes sharing a name.
+	* @param {object} value The live instance to identify.
+	* @returns {object|null} The declarations, or null when the type is not registered.
+	*/
+	static registrationForInstance(value) {
+		if (this.registrations().has(value.constructor)) {
+			return this.registrations().get(value.constructor);
+		}
+		return null;
+	}
 };
 
 //#endregion
-//#region src/plugins/_base/core/ParameterFormat.js
+//#region src/plugins/_base/core/core/ParameterFormat.js
 /**
 * Display formatting policy for a {@link ParameterDefinition}.
 */
@@ -2112,7 +2334,7 @@ var ParameterFormat = class {
 };
 
 //#endregion
-//#region src/plugins/_base/core/ParameterDisplayPolicy.js
+//#region src/plugins/_base/core/core/ParameterDisplayPolicy.js
 /**
 * Value-aware display policy for {@link ParameterDefinition} entries.
 * Drives signed padding and dynamic status colors without changing raw battler math.
@@ -2146,7 +2368,7 @@ var ParameterDisplayPolicy = class {
 };
 
 //#endregion
-//#region src/plugins/_base/core/ParameterDisplaySentinel.js
+//#region src/plugins/_base/core/core/ParameterDisplaySentinel.js
 /**
 * Fixed status-screen labels for clamped rate parameters.
 */
@@ -2160,7 +2382,7 @@ var ParameterDisplaySentinel = class {
 };
 
 //#endregion
-//#region src/plugins/_base/core/ParameterGroups.js
+//#region src/plugins/_base/core/core/ParameterGroups.js
 /**
 * Status-screen and catalog grouping ids for {@link ParameterDefinition}.
 */
@@ -2192,7 +2414,7 @@ var ParameterGroups = class ParameterGroups {
 };
 
 //#endregion
-//#region src/plugins/_base/core/ParameterKeys.js
+//#region src/plugins/_base/core/core/ParameterKeys.js
 /**
 * String keys for vanilla engine parameters and legacy long-param id translation.
 */
@@ -2365,7 +2587,7 @@ var ParameterKeys = class ParameterKeys {
 };
 
 //#endregion
-//#region src/plugins/_base/core/JsonEx.js
+//#region src/plugins/_base/core/core/JsonEx.js
 /**
 * Extends {@link JsonEx._encode}.<br/>
 * Also encodes native `Map`/`Set` instances, and stops the original algorithm's in-place mutation of
@@ -2433,7 +2655,7 @@ JsonEx._decode = function(value) {
 };
 
 //#endregion
-//#region src/plugins/_base/core/Bitmap.js
+//#region src/plugins/_base/core/core/Bitmap.js
 /**
 * RMMZ {@link Window_Base.prototype.flushTextState} calls {@link Bitmap.prototype.drawText}
 * without an alignment argument. Older engines treated that like left alignment; NW.js 0.110+
@@ -2453,7 +2675,7 @@ Bitmap.prototype.drawText = function(text, x, y, maxWidth, lineHeight, align) {
 };
 
 //#endregion
-//#region src/plugins/_base/models/PluginVersion.js
+//#region src/plugins/_base/core/models/PluginVersion.js
 var PluginVersion = class PluginVersion {
 	/**
 	* The major version of this plugin.
@@ -2576,7 +2798,7 @@ var PluginVersion = class PluginVersion {
 };
 
 //#endregion
-//#region src/plugins/_base/models/PluginMetadata.js
+//#region src/plugins/_base/core/models/PluginMetadata.js
 var PluginMetadata = class PluginMetadata {
 	/**
 	* A name:metadata map of all registered plugins in the this plugin ecosystem.
@@ -2668,7 +2890,7 @@ var PluginMetadata = class PluginMetadata {
 };
 
 //#endregion
-//#region src/plugins/_base/models/MenuSection.js
+//#region src/plugins/_base/core/models/MenuSection.js
 /**
 * The sections a main menu command can belong to.
 *
@@ -2708,7 +2930,7 @@ var MenuSection = class {
 };
 
 //#endregion
-//#region src/plugins/_base/models/InputDevice.js
+//#region src/plugins/_base/core/models/InputDevice.js
 /**
 * The kinds of input device the player can be holding.
 *
@@ -2753,7 +2975,7 @@ var InputDevice = class {
 };
 
 //#endregion
-//#region src/plugins/_base/models/BuiltWindowCommand.js
+//#region src/plugins/_base/core/models/BuiltWindowCommand.js
 /**
 * An implementation of a class surrounding the data for a singular window command.
 */
@@ -2964,7 +3186,7 @@ var BuiltWindowCommand = class {
 };
 
 //#endregion
-//#region src/plugins/_base/models/ExternalJsonConfigLoaderOptions.js
+//#region src/plugins/_base/core/models/ExternalJsonConfigLoaderOptions.js
 /**
 * The options for {@link ExternalJsonConfigLoader.load}.<br>
 * This exists to avoid anonymous option objects throughout the codebase.
@@ -3115,7 +3337,7 @@ var ExternalJsonConfigLoaderOptionsBuilder = class {
 };
 
 //#endregion
-//#region src/plugins/_base/models/WindowGaugeOptions.js
+//#region src/plugins/_base/core/models/WindowGaugeOptions.js
 /**
 * The options for a gauge that shows up in the window.
 */
@@ -3212,7 +3434,7 @@ var WindowGaugeOptions = class {
 };
 
 //#endregion
-//#region src/plugins/_base/models/GaugeOptionsBuilder.js
+//#region src/plugins/_base/core/models/GaugeOptionsBuilder.js
 /**
 * A factory for generating {@link WindowGaugeOptions}.
 * Comes with sensible defaults.
@@ -3412,7 +3634,7 @@ var GaugeOptionsBuilder = class {
 };
 
 //#endregion
-//#region src/plugins/_base/models/J_EventEmitter.js
+//#region src/plugins/_base/core/models/J_EventEmitter.js
 /**
 * A custom event emitter for providing an event-driven approach to targeted
 * cross-domain communication.
@@ -3423,7 +3645,344 @@ var GaugeOptionsBuilder = class {
 var J_EventEmitter = class extends PIXI.utils.EventEmitter {};
 
 //#endregion
-//#region src/plugins/_base/models/J_Timer.js
+//#region src/plugins/_base/core/database/_data/RPG_SkillDamage.js
+/**
+* The damage data for the skill, such as the damage formula or associated element.
+*/
+var RPG_SkillDamage = class {
+	/**
+	* Whether or not the damage can produce a critical hit.
+	* @type {boolean}
+	*/
+	critical = false;
+	/**
+	* The element id associated with this damage.
+	* @type {number}
+	*/
+	elementId = -1;
+	/**
+	* The formula to be evaluated in real time to determine damage.
+	* @type {string}
+	*/
+	formula = String.empty;
+	/**
+	* The damage type this is, such as HP damage or MP healing.
+	* @type {1|2|3|4|5|6}
+	*/
+	type = 0;
+	/**
+	* The % of variance this damage can have.
+	* @type {number}
+	*/
+	variance = 0;
+	/**
+	* Constructor.
+	* Maps the skill's damage properties into this object.
+	* @param {RPG_SkillDamage} damage The original damage object to map.
+	*/
+	constructor(damage) {
+		if (damage) {
+			this.critical = damage.critical;
+			this.elementId = damage.elementId;
+			this.formula = damage.formula;
+			this.type = damage.type;
+			this.variance = damage.variance;
+		} else {}
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/database/_data/RPG_UsableEffect.js
+/**
+* A class representing a single effect on an item or skill from the database.
+*/
+var RPG_UsableEffect = class {
+	/**
+	* The type of effect this is.
+	* @type {number}
+	*/
+	code = 0;
+	/**
+	* The dataId further defines what type of effect this is.
+	* @type {number}
+	*/
+	dataId = 0;
+	/**
+	* The first value parameter of the effect.
+	* @type {number}
+	*/
+	value1 = 0;
+	/**
+	* The second value parameter of the effect.
+	* @type {number}
+	*/
+	value2 = 0;
+	/**
+	* Constructor.
+	* @param {RPG_UsableEffect} effect The effect to parse.
+	*/
+	constructor(effect) {
+		this.code = effect.code;
+		this.dataId = effect.dataId;
+		this.value1 = effect.value1;
+		this.value2 = effect.value2;
+	}
+	textName() {
+		switch (this.code) {
+			case 11: return "Recover Life";
+			case 12: return "Recover Magi";
+			case 13: return "Recover Tech";
+			case 21: return "Add State";
+			case 22: return "Remove State";
+			case 31: return "Add Buff";
+			case 32: return "Add Debuff";
+			case 33: return "Remove Buff";
+			case 34: return "Remove Debuff";
+			case 41: return "Special";
+			case 42: return "Core Stat Growth";
+			case 43: return "Learn Skill";
+			case 44: return "Execute Common Event";
+			default:
+				console.warn(`Unsupported code of [${this.code}] was provided.`);
+				return "UNKNOWN";
+		}
+	}
+	textValue() {
+		switch (this.code) {
+			case 11:
+				const flatHp = this.value2;
+				const percHp = this.value1 * 100;
+				let msg = String.empty;
+				if (flatHp) msg += flatHp;
+				if (percHp) msg += ` ${percHp}%`;
+				if (flatHp === 0 && percHp === 0) msg = "0";
+				return msg.trim();
+			case 12: return "Recover Magi";
+			case 13: return "Recover Tech";
+			case 21: return "Add State";
+			case 22: return "Remove State";
+			case 31: return "Add Buff";
+			case 32: return "Add Debuff";
+			case 33: return "Remove Buff";
+			case 34: return "Remove Debuff";
+			case 41: return "Special";
+			case 42: return "Core Stat Growth";
+			case 43: return "Learn Skill";
+			case 44: return "Execute Common Event";
+			default:
+				console.warn(`Unsupported code of [${this.code}] was provided.`);
+				return "UNKNOWN";
+		}
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/database/core/RPG_UsableItem.js
+/**
+* A class representing the base properties for any usable item or skill
+* from the database.
+*/
+var RPG_UsableItem = class extends RPG_BaseItem {
+	/**
+	* The animation id to execute for this skill.
+	* @type {number}
+	*/
+	animationId = -1;
+	/**
+	* The damage data for this skill.
+	* @type {RPG_SkillDamage}
+	*/
+	damage = null;
+	/**
+	* The various effects of this skill.
+	* @type {RPG_UsableEffect[]}
+	*/
+	effects = [];
+	/**
+	* The hit type of this skill.
+	* @type {number}
+	*/
+	hitType = 0;
+	/**
+	* The occasion type when this skill can be used.
+	* @type {number}
+	*/
+	occasion = 0;
+	/**
+	* The number of times this skill repeats.
+	* @type {number}
+	*/
+	repeats = 1;
+	/**
+	* The scope of this skill.
+	* @type {number}
+	*/
+	scope = 0;
+	/**
+	* The speed bonus of this skill.
+	* @type {number}
+	*/
+	speed = 0;
+	/**
+	* The % chance of success for this skill.
+	* @type {number}
+	*/
+	successRate = 100;
+	/**
+	* The amount of TP gained from executing this skill.
+	* @type {number}
+	*/
+	tpGain = 0;
+	/**
+	* Constructor.
+	* @param {RPG_UsableItem} usableItem The usable item to parse.
+	* @param {number} index The index of the skill in the database.
+	*/
+	constructor(usableItem, index) {
+		super(usableItem, index);
+		this.animationId = usableItem.animationId;
+		this.damage = new RPG_SkillDamage(usableItem.damage);
+		this.effects = usableItem.effects.map((effect) => new RPG_UsableEffect(effect));
+		this.hitType = usableItem.hitType;
+		this.occasion = usableItem.occasion;
+		this.repeats = usableItem.repeats;
+		this.scope = usableItem.scope;
+		this.speed = usableItem.speed;
+		this.successRate = usableItem.successRate;
+		this.tpGain = usableItem.tpGain;
+	}
+	/**
+	* Gets the type of implementation this database entry is.
+	* @returns {string}
+	*/
+	implementationType() {
+		return `${super.implementationType()}:usable`;
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/database/implementations/RPG_Skill.js
+/**
+* An class representing a single skill from the database.
+*/
+var RPG_Skill = class RPG_Skill extends RPG_UsableItem {
+	/**
+	* The first line of the message for this skill.
+	* @type {string}
+	*/
+	message1 = String.empty;
+	/**
+	* The second line of the message for this skill.
+	* @type {string}
+	*/
+	message2 = String.empty;
+	/**
+	* The amount of MP required to execute this skill.
+	* @type {number}
+	*/
+	mpCost = 0;
+	/**
+	* The first of two required weapon types to be equipped to execute this skill.
+	* @type {number}
+	*/
+	requiredWtypeId1 = 0;
+	/**
+	* The second of two required weapon types to be equipped to execute this skill.
+	* @type {number}
+	*/
+	requiredWtypeId2 = 0;
+	/**
+	* The skill type that this skill belongs to.
+	* @type {number}
+	*/
+	stypeId = 0;
+	/**
+	* The amount of TP required to execute this skill.
+	* @type {number}
+	*/
+	tpCost = 0;
+	/**
+	* Constructor.
+	* Maps the skill's properties into this object.
+	* @param {RPG_Skill} skill The underlying skill object.
+	* @param {number} index The index of the skill in the database.
+	*/
+	constructor(skill, index) {
+		super(skill, index);
+		this.initMembers(skill);
+	}
+	/**
+	* Maps all the data from the JSON to this object.
+	* @param {RPG_Skill} skill The underlying skill object.
+	*/
+	initMembers(skill) {
+		this.message1 = skill.message1;
+		this.message2 = skill.message2;
+		this.mpCost = skill.mpCost;
+		this.requiredWtypeId1 = skill.requiredWtypeId1;
+		this.requiredWtypeId2 = skill.requiredWtypeId2;
+		this.stypeId = skill.stypeId;
+		this.tpCost = skill.tpCost;
+	}
+	/**
+	* Whether or not this database entry is a skill.
+	* @returns {boolean}
+	*/
+	isSkill() {
+		return true;
+	}
+	/**
+	* Gets the type of implementation this database entry is.
+	* @returns {string}
+	*/
+	implementationType() {
+		return `${super.implementationType()}:skill`;
+	}
+	/**
+	* Hydrated blank skill row—symmetry with other DB wrappers when a slot must read as "unused but valid".
+	*
+	* @param {number} index database id and `$dataSkills` index for this row
+	* @returns {RPG_Skill}
+	*/
+	static createEmpty(index) {
+		const raw = {
+			id: index,
+			message1: String.empty,
+			message2: String.empty,
+			messageType: 1,
+			mpCost: 0,
+			requiredWtypeId1: 0,
+			requiredWtypeId2: 0,
+			stypeId: 1,
+			tpCost: 0,
+			animationId: 0,
+			damage: {
+				critical: false,
+				elementId: 0,
+				formula: "0",
+				type: 0,
+				variance: 20
+			},
+			effects: [],
+			hitType: 0,
+			occasion: 0,
+			repeats: 1,
+			scope: 1,
+			speed: 0,
+			successRate: 100,
+			tpGain: 0,
+			description: String.empty,
+			iconIndex: 0,
+			name: String.empty,
+			note: String.empty,
+			meta: {}
+		};
+		return new RPG_Skill(raw, index);
+	}
+};
+
+//#endregion
+//#region src/plugins/_base/core/models/J_Timer.js
 /**
 * A reusable timer with some nifty functions.
 */
@@ -3647,11 +4206,56 @@ var J_Timer = class {
 };
 
 //#endregion
-//#region src/plugins/_base/core/registerJBaseSerializableModels.js
+//#region src/plugins/_base/core/core/registerJBaseSerializableModels.js
 SerializableRegistry.register(J_Timer);
+/**
+* A hydrated skill row reaches a savefile through J-Passive, which stores whole `RPG_Skill` objects
+* in `_j._passive._passiveSources` rather than the ids they were looked up by. That is a
+* reference-versus-value defect and is tracked as one - a rebalanced skill never reaches a save that
+* already captured a copy of it - but the encoder still has to be able to write what the codebase
+* actually puts in front of it, so the type is registered.
+*
+* Registering it drags in the two types a skill row holds instances of: its damage block, and one
+* effect object per entry in `effects`. Both are declared below.
+*
+* The seed copies a blank row rather than restating three classes' worth of class-field defaults,
+* which keeps the defaults following the constructor chain instead of a transcription of it.
+*/
+SerializableRegistry.register(RPG_Skill, {
+	id: "rpg-skill",
+	aliases: ["RPG_Skill"],
+	typed: {
+		damage: RPG_SkillDamage,
+		effects: RPG_UsableEffect
+	},
+	seed: (instance) => Object.assign(instance, RPG_Skill.createEmpty(0))
+});
+/**
+* The damage block of a usable row. Its constructor tolerates being handed nothing and falls back to
+* its class-field defaults, so a blank instance is exactly the set of defaults the seed wants.
+*/
+SerializableRegistry.register(RPG_SkillDamage, {
+	id: "rpg-skill-damage",
+	aliases: ["RPG_SkillDamage"],
+	seed: (instance) => Object.assign(instance, new RPG_SkillDamage())
+});
+/**
+* One entry from a usable row's effects list. Unlike the damage block, this constructor reads its
+* argument unconditionally, so the defaults are spelled out rather than copied off a blank instance.
+*/
+SerializableRegistry.register(RPG_UsableEffect, {
+	id: "rpg-usable-effect",
+	aliases: ["RPG_UsableEffect"],
+	seed: (instance) => {
+		instance.code = 0;
+		instance.dataId = 0;
+		instance.value1 = 0;
+		instance.value2 = 0;
+	}
+});
 
 //#endregion
-//#region src/plugins/_base/models/WindowCommandBuilder.js
+//#region src/plugins/_base/core/models/WindowCommandBuilder.js
 /**
 * A builder class for constructing {@link BuiltWindowCommand}.<br>
 */
@@ -3905,7 +4509,7 @@ var WindowCommandBuilder = class {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/BattleManager.js
+//#region src/plugins/_base/core/managers/BattleManager.js
 /**
 * Gets the rewards accrued from the battle currently being resolved.
 * @returns {{exp: number, gold: number, items: RPG_BaseItem[]}} The battle rewards.
@@ -3922,7 +4526,7 @@ BattleManager.setRewards = function(newRewards) {
 };
 
 //#endregion
-//#region src/plugins/_base/models/SdpParameterBinding.js
+//#region src/plugins/_base/core/models/SdpParameterBinding.js
 /**
 * Describes how SDP panel rank bonuses attach to a {@link ParameterDefinition}.
 */
@@ -4005,7 +4609,7 @@ var SdpParameterBinding = class SdpParameterBinding {
 };
 
 //#endregion
-//#region src/plugins/_base/models/ParameterDefinitionBuilder.js
+//#region src/plugins/_base/core/models/ParameterDefinitionBuilder.js
 /**
 * Fluent builder for {@link ParameterDefinition}.
 */
@@ -4118,7 +4722,7 @@ var ParameterDefinitionBuilder = class {
 };
 
 //#endregion
-//#region src/plugins/_base/models/ParameterDefinition.js
+//#region src/plugins/_base/core/models/ParameterDefinition.js
 /**
 * Immutable catalog entry for a battler parameter.
 */
@@ -4398,7 +5002,7 @@ var ParameterDefinition = class ParameterDefinition {
 ParameterDefinition.Builder = () => new ParameterDefinitionBuilder();
 
 //#endregion
-//#region src/plugins/_base/core/ParameterRegistry.js
+//#region src/plugins/_base/core/core/ParameterRegistry.js
 /**
 * Central registry of {@link ParameterDefinition} entries keyed by string id.
 */
@@ -4500,7 +5104,7 @@ var ParameterRegistry = class {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/ColorManager.js
+//#region src/plugins/_base/core/managers/ColorManager.js
 /**
 * Gets the color index for a catalog parameter key.
 * @param {string} parameterKey The registry key.
@@ -4725,7 +5329,7 @@ ColorManager.colorIndexFromHex = function(hexString) {
 };
 
 //#endregion
-//#region src/plugins/_base/database/_data/RPG_Trait.js
+//#region src/plugins/_base/core/database/_data/RPG_Trait.js
 /**
 * A class representing a single trait living on one of the many types
 * of database classes that leverage traits.
@@ -4883,7 +5487,7 @@ var RPG_Trait = class RPG_Trait {
 };
 
 //#endregion
-//#region src/plugins/_base/database/base/RPG_Traited.js
+//#region src/plugins/_base/core/database/base/RPG_Traited.js
 /**
 * A class representing a BaseItem from the database, but with traits.
 */
@@ -4913,7 +5517,7 @@ var RPG_Traited = class extends RPG_BaseItem {
 };
 
 //#endregion
-//#region src/plugins/_base/database/core/RPG_EquipItem.js
+//#region src/plugins/_base/core/database/core/RPG_EquipItem.js
 /**
 * A base class representing containing common properties found in both
 * weapons and armors.
@@ -4989,7 +5593,7 @@ var RPG_EquipItem = class extends RPG_Traited {
 };
 
 //#endregion
-//#region src/plugins/_base/database/implementations/RPG_Weapon.js
+//#region src/plugins/_base/core/database/implementations/RPG_Weapon.js
 /**
 * A class representing a single weapon from the database.
 */
@@ -5076,7 +5680,7 @@ var RPG_Weapon = class RPG_Weapon extends RPG_EquipItem {
 };
 
 //#endregion
-//#region src/plugins/_base/database/implementations/RPG_State.js
+//#region src/plugins/_base/core/database/implementations/RPG_State.js
 /**
 * An class representing a single state from the database.
 */
@@ -5262,344 +5866,7 @@ var RPG_State = class RPG_State extends RPG_Traited {
 };
 
 //#endregion
-//#region src/plugins/_base/database/_data/RPG_SkillDamage.js
-/**
-* The damage data for the skill, such as the damage formula or associated element.
-*/
-var RPG_SkillDamage = class {
-	/**
-	* Whether or not the damage can produce a critical hit.
-	* @type {boolean}
-	*/
-	critical = false;
-	/**
-	* The element id associated with this damage.
-	* @type {number}
-	*/
-	elementId = -1;
-	/**
-	* The formula to be evaluated in real time to determine damage.
-	* @type {string}
-	*/
-	formula = String.empty;
-	/**
-	* The damage type this is, such as HP damage or MP healing.
-	* @type {1|2|3|4|5|6}
-	*/
-	type = 0;
-	/**
-	* The % of variance this damage can have.
-	* @type {number}
-	*/
-	variance = 0;
-	/**
-	* Constructor.
-	* Maps the skill's damage properties into this object.
-	* @param {RPG_SkillDamage} damage The original damage object to map.
-	*/
-	constructor(damage) {
-		if (damage) {
-			this.critical = damage.critical;
-			this.elementId = damage.elementId;
-			this.formula = damage.formula;
-			this.type = damage.type;
-			this.variance = damage.variance;
-		} else {}
-	}
-};
-
-//#endregion
-//#region src/plugins/_base/database/_data/RPG_UsableEffect.js
-/**
-* A class representing a single effect on an item or skill from the database.
-*/
-var RPG_UsableEffect = class {
-	/**
-	* The type of effect this is.
-	* @type {number}
-	*/
-	code = 0;
-	/**
-	* The dataId further defines what type of effect this is.
-	* @type {number}
-	*/
-	dataId = 0;
-	/**
-	* The first value parameter of the effect.
-	* @type {number}
-	*/
-	value1 = 0;
-	/**
-	* The second value parameter of the effect.
-	* @type {number}
-	*/
-	value2 = 0;
-	/**
-	* Constructor.
-	* @param {RPG_UsableEffect} effect The effect to parse.
-	*/
-	constructor(effect) {
-		this.code = effect.code;
-		this.dataId = effect.dataId;
-		this.value1 = effect.value1;
-		this.value2 = effect.value2;
-	}
-	textName() {
-		switch (this.code) {
-			case 11: return "Recover Life";
-			case 12: return "Recover Magi";
-			case 13: return "Recover Tech";
-			case 21: return "Add State";
-			case 22: return "Remove State";
-			case 31: return "Add Buff";
-			case 32: return "Add Debuff";
-			case 33: return "Remove Buff";
-			case 34: return "Remove Debuff";
-			case 41: return "Special";
-			case 42: return "Core Stat Growth";
-			case 43: return "Learn Skill";
-			case 44: return "Execute Common Event";
-			default:
-				console.warn(`Unsupported code of [${this.code}] was provided.`);
-				return "UNKNOWN";
-		}
-	}
-	textValue() {
-		switch (this.code) {
-			case 11:
-				const flatHp = this.value2;
-				const percHp = this.value1 * 100;
-				let msg = String.empty;
-				if (flatHp) msg += flatHp;
-				if (percHp) msg += ` ${percHp}%`;
-				if (flatHp === 0 && percHp === 0) msg = "0";
-				return msg.trim();
-			case 12: return "Recover Magi";
-			case 13: return "Recover Tech";
-			case 21: return "Add State";
-			case 22: return "Remove State";
-			case 31: return "Add Buff";
-			case 32: return "Add Debuff";
-			case 33: return "Remove Buff";
-			case 34: return "Remove Debuff";
-			case 41: return "Special";
-			case 42: return "Core Stat Growth";
-			case 43: return "Learn Skill";
-			case 44: return "Execute Common Event";
-			default:
-				console.warn(`Unsupported code of [${this.code}] was provided.`);
-				return "UNKNOWN";
-		}
-	}
-};
-
-//#endregion
-//#region src/plugins/_base/database/core/RPG_UsableItem.js
-/**
-* A class representing the base properties for any usable item or skill
-* from the database.
-*/
-var RPG_UsableItem = class extends RPG_BaseItem {
-	/**
-	* The animation id to execute for this skill.
-	* @type {number}
-	*/
-	animationId = -1;
-	/**
-	* The damage data for this skill.
-	* @type {RPG_SkillDamage}
-	*/
-	damage = null;
-	/**
-	* The various effects of this skill.
-	* @type {RPG_UsableEffect[]}
-	*/
-	effects = [];
-	/**
-	* The hit type of this skill.
-	* @type {number}
-	*/
-	hitType = 0;
-	/**
-	* The occasion type when this skill can be used.
-	* @type {number}
-	*/
-	occasion = 0;
-	/**
-	* The number of times this skill repeats.
-	* @type {number}
-	*/
-	repeats = 1;
-	/**
-	* The scope of this skill.
-	* @type {number}
-	*/
-	scope = 0;
-	/**
-	* The speed bonus of this skill.
-	* @type {number}
-	*/
-	speed = 0;
-	/**
-	* The % chance of success for this skill.
-	* @type {number}
-	*/
-	successRate = 100;
-	/**
-	* The amount of TP gained from executing this skill.
-	* @type {number}
-	*/
-	tpGain = 0;
-	/**
-	* Constructor.
-	* @param {RPG_UsableItem} usableItem The usable item to parse.
-	* @param {number} index The index of the skill in the database.
-	*/
-	constructor(usableItem, index) {
-		super(usableItem, index);
-		this.animationId = usableItem.animationId;
-		this.damage = new RPG_SkillDamage(usableItem.damage);
-		this.effects = usableItem.effects.map((effect) => new RPG_UsableEffect(effect));
-		this.hitType = usableItem.hitType;
-		this.occasion = usableItem.occasion;
-		this.repeats = usableItem.repeats;
-		this.scope = usableItem.scope;
-		this.speed = usableItem.speed;
-		this.successRate = usableItem.successRate;
-		this.tpGain = usableItem.tpGain;
-	}
-	/**
-	* Gets the type of implementation this database entry is.
-	* @returns {string}
-	*/
-	implementationType() {
-		return `${super.implementationType()}:usable`;
-	}
-};
-
-//#endregion
-//#region src/plugins/_base/database/implementations/RPG_Skill.js
-/**
-* An class representing a single skill from the database.
-*/
-var RPG_Skill = class RPG_Skill extends RPG_UsableItem {
-	/**
-	* The first line of the message for this skill.
-	* @type {string}
-	*/
-	message1 = String.empty;
-	/**
-	* The second line of the message for this skill.
-	* @type {string}
-	*/
-	message2 = String.empty;
-	/**
-	* The amount of MP required to execute this skill.
-	* @type {number}
-	*/
-	mpCost = 0;
-	/**
-	* The first of two required weapon types to be equipped to execute this skill.
-	* @type {number}
-	*/
-	requiredWtypeId1 = 0;
-	/**
-	* The second of two required weapon types to be equipped to execute this skill.
-	* @type {number}
-	*/
-	requiredWtypeId2 = 0;
-	/**
-	* The skill type that this skill belongs to.
-	* @type {number}
-	*/
-	stypeId = 0;
-	/**
-	* The amount of TP required to execute this skill.
-	* @type {number}
-	*/
-	tpCost = 0;
-	/**
-	* Constructor.
-	* Maps the skill's properties into this object.
-	* @param {RPG_Skill} skill The underlying skill object.
-	* @param {number} index The index of the skill in the database.
-	*/
-	constructor(skill, index) {
-		super(skill, index);
-		this.initMembers(skill);
-	}
-	/**
-	* Maps all the data from the JSON to this object.
-	* @param {RPG_Skill} skill The underlying skill object.
-	*/
-	initMembers(skill) {
-		this.message1 = skill.message1;
-		this.message2 = skill.message2;
-		this.mpCost = skill.mpCost;
-		this.requiredWtypeId1 = skill.requiredWtypeId1;
-		this.requiredWtypeId2 = skill.requiredWtypeId2;
-		this.stypeId = skill.stypeId;
-		this.tpCost = skill.tpCost;
-	}
-	/**
-	* Whether or not this database entry is a skill.
-	* @returns {boolean}
-	*/
-	isSkill() {
-		return true;
-	}
-	/**
-	* Gets the type of implementation this database entry is.
-	* @returns {string}
-	*/
-	implementationType() {
-		return `${super.implementationType()}:skill`;
-	}
-	/**
-	* Hydrated blank skill row—symmetry with other DB wrappers when a slot must read as "unused but valid".
-	*
-	* @param {number} index database id and `$dataSkills` index for this row
-	* @returns {RPG_Skill}
-	*/
-	static createEmpty(index) {
-		const raw = {
-			id: index,
-			message1: String.empty,
-			message2: String.empty,
-			messageType: 1,
-			mpCost: 0,
-			requiredWtypeId1: 0,
-			requiredWtypeId2: 0,
-			stypeId: 1,
-			tpCost: 0,
-			animationId: 0,
-			damage: {
-				critical: false,
-				elementId: 0,
-				formula: "0",
-				type: 0,
-				variance: 20
-			},
-			effects: [],
-			hitType: 0,
-			occasion: 0,
-			repeats: 1,
-			scope: 1,
-			speed: 0,
-			successRate: 100,
-			tpGain: 0,
-			description: String.empty,
-			iconIndex: 0,
-			name: String.empty,
-			note: String.empty,
-			meta: {}
-		};
-		return new RPG_Skill(raw, index);
-	}
-};
-
-//#endregion
-//#region src/plugins/_base/database/implementations/RPG_Item.js
+//#region src/plugins/_base/core/database/implementations/RPG_Item.js
 /**
 * A class representing a single item entry from the database.
 */
@@ -5689,7 +5956,7 @@ var RPG_Item = class RPG_Item extends RPG_UsableItem {
 };
 
 //#endregion
-//#region src/plugins/_base/database/_data/RPG_DropItem.js
+//#region src/plugins/_base/core/database/_data/RPG_DropItem.js
 /**
 * A class representing a single drop item of an enemy from the database.
 */
@@ -5768,7 +6035,7 @@ var RPG_DropItem = class {
 };
 
 //#endregion
-//#region src/plugins/_base/database/_data/RPG_EnemyAction.js
+//#region src/plugins/_base/core/database/_data/RPG_EnemyAction.js
 /**
 * A class representing a single enemy action from the database.
 */
@@ -5813,7 +6080,7 @@ var RPG_EnemyAction = class {
 };
 
 //#endregion
-//#region src/plugins/_base/database/core/RPG_BaseBattler.js
+//#region src/plugins/_base/core/database/core/RPG_BaseBattler.js
 /**
 * A class representing the groundwork for what all battlers
 * database data look like.
@@ -5844,7 +6111,7 @@ var RPG_BaseBattler = class extends RPG_Traited {
 };
 
 //#endregion
-//#region src/plugins/_base/database/implementations/RPG_Enemy.js
+//#region src/plugins/_base/core/database/implementations/RPG_Enemy.js
 /**
 * A class representing a single enemy battler's data from the database.
 */
@@ -5928,7 +6195,7 @@ var RPG_Enemy = class extends RPG_BaseBattler {
 };
 
 //#endregion
-//#region src/plugins/_base/database/_data/RPG_ClassLearning.js
+//#region src/plugins/_base/core/database/_data/RPG_ClassLearning.js
 /**
 * A class representing a single learning of a skill for a class from the database.
 */
@@ -5960,7 +6227,7 @@ var RPG_ClassLearning = class {
 };
 
 //#endregion
-//#region src/plugins/_base/database/implementations/RPG_Class.js
+//#region src/plugins/_base/core/database/implementations/RPG_Class.js
 /**
 * A class representing a RPG-relevant class from the database.
 */
@@ -6024,7 +6291,7 @@ var RPG_Class = class extends RPG_Traited {
 };
 
 //#endregion
-//#region src/plugins/_base/database/implementations/RPG_Armor.js
+//#region src/plugins/_base/core/database/implementations/RPG_Armor.js
 /**
 * A class representing a single armor from the database.
 */
@@ -6104,7 +6371,7 @@ var RPG_Armor = class RPG_Armor extends RPG_EquipItem {
 };
 
 //#endregion
-//#region src/plugins/_base/database/implementations/RPG_Actor.js
+//#region src/plugins/_base/core/database/implementations/RPG_Actor.js
 /**
 * A class representing a single actor battler's data from the database.
 */
@@ -6212,7 +6479,7 @@ var RPG_Actor = class extends RPG_BaseBattler {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/DataManager.js
+//#region src/plugins/_base/core/managers/DataManager.js
 /**
 * This rule is being disabled so that my personal IDE will recognize the data types and allow for intellisense to
 * actually work as-expected. The IDE gets confused due to the fact that these are globally defined as "var" and
@@ -6527,12 +6794,37 @@ DataManager.setupNewGame = function() {
 };
 /**
 * Extends {@link #extractSaveContents}.<br/>
-* Also clears the RPGManager note cache before applying save data.
+* Also clears the RPGManager note cache before applying save data, and drops the derived caches the
+* restored battlers came back holding.
 */
 J.BASE.Aliased.DataManager.set("extractSaveContents", DataManager.extractSaveContents);
 DataManager.extractSaveContents = function(contents) {
 	RPGManager.clearCache();
 	J.BASE.Aliased.DataManager.get("extractSaveContents").call(this, contents);
+	this.invalidateLoadedBattlerCaches();
+};
+/**
+* Drops every derived cache on every actor that was just restored from a savefile.
+*
+* A savefile is a snapshot of live objects, so a battler's caches come back holding database rows
+* that were copied at save time- and they come back *warm*, because every cache guard in the
+* codebase tests `!== null` and a populated cache is exactly what was written. Nothing else in the
+* load path notices: {@link Scene_Load.reloadMapIfUpdated} is the one mechanism that reacts to the
+* database having changed, and it reloads the map without ever touching an actor.
+*
+* So a loaded actor keeps its stale traits, notes, and derived numbers until some unrelated state
+* or equip change happens to fire {@link Game_Battler.onBattlerDataChange}. In combat that is
+* immediate and the bug is invisible; standing on the map it may never happen at all. That is why
+* editing a state's traits and loading a save appears to do nothing.
+*
+* {@link Game_Battler.onBattlerDataChange} is the right hammer here rather than nulling the five
+* known caches by hand, because it also runs {@link JCache.invalidateAllForBattler}- which walks
+* every battler-dimensioned {@link JCache} ever constructed and drops this battler's subtree from
+* each. That makes this method self-maintaining: a cache added years from now is covered without
+* anyone remembering to come back here.
+*/
+DataManager.invalidateLoadedBattlerCaches = function() {
+	$gameActors.existingActors().forEach((actor) => actor.onBattlerDataChange());
 };
 /**
 * Extends {@link #setupBattleTest}.<br/>
@@ -6545,7 +6837,7 @@ DataManager.setupBattleTest = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/ExternalJsonConfigLoader.js
+//#region src/plugins/_base/core/managers/ExternalJsonConfigLoader.js
 /**
 * A centralized loader for external JSON configuration files in the project.
 *
@@ -6641,7 +6933,7 @@ ${lines.map((line) => `      ${line}`).join("\n")}
 };
 
 //#endregion
-//#region src/plugins/_base/managers/Graphics.js
+//#region src/plugins/_base/core/managers/Graphics.js
 /**
 * The horizontal padding between {@link Graphics.width} and {@link Graphics.boxWidth}.<br>
 * When combined with {@link Graphics.verticalPadding}, the origin x,y can be easily
@@ -6667,7 +6959,7 @@ Object.defineProperty(Graphics, "boxOrigin", { get: function() {
 } });
 
 //#endregion
-//#region src/plugins/_base/managers/IconManager.js
+//#region src/plugins/_base/core/managers/IconManager.js
 /**
 * A static class that manages the icon to X correlation, such as stats and elements.
 * IconManager is a J-Base global — not part of the RMMZ engine (unlike TextManager).
@@ -7010,7 +7302,7 @@ var IconManager = class {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/InputDeviceTracker.js
+//#region src/plugins/_base/core/managers/InputDeviceTracker.js
 /**
 * Tracks which kind of device the player most recently gave input with.
 *
@@ -7102,7 +7394,7 @@ var InputDeviceTracker = class {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/Input.js
+//#region src/plugins/_base/core/managers/Input.js
 /**
 * Gets the merged input state for the current frame.
 * @returns {Object<string, boolean>} The current state, keyed by input symbol.
@@ -7188,7 +7480,7 @@ Input._updateGamepadState = function(gamepad) {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/InputLegendResolver.js
+//#region src/plugins/_base/core/managers/InputLegendResolver.js
 /**
 * A registry translating semantic input handlers into something displayable to the player.
 *
@@ -7245,7 +7537,7 @@ var InputLegendResolver = class {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/ImageManager.js
+//#region src/plugins/_base/core/managers/ImageManager.js
 /**
 * Generates a promise based on the resolution of the bitmap.
 * If the promise resolves successfully, it'll contain the bitmap.
@@ -7272,7 +7564,7 @@ ImageManager.loadBitmapPromise = function(filename, directory) {
 ImageManager.iconColumns = 16;
 
 //#endregion
-//#region src/plugins/_base/database/miscellaneous/RPG_SoundEffect.js
+//#region src/plugins/_base/core/database/miscellaneous/RPG_SoundEffect.js
 /**
 * The structure of the data points required to play a sound effect using the {@link SoundManager}.
 */
@@ -7313,7 +7605,7 @@ var RPG_SoundEffect = class {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/SoundManager.js
+//#region src/plugins/_base/core/managers/SoundManager.js
 /**
 * Plays the sound effect provided.
 * @param {RPG_SoundEffect} se The sound effect to play.
@@ -7323,7 +7615,7 @@ SoundManager.playSoundEffect = function(se) {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/TextManager.js
+//#region src/plugins/_base/core/managers/TextManager.js
 /**
 * Gets the proper name of "max tp".
 * @returns {string} The name of the parameter.
@@ -7641,7 +7933,7 @@ TextManager.usableEffectByCode = function(code) {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/TraitManager.js
+//#region src/plugins/_base/core/managers/TraitManager.js
 /**
 * A static class that centralizes display data (name and icon) for traits and
 * notetag-driven effects across the ecosystem.
@@ -7693,7 +7985,7 @@ var TraitManager = class {
 };
 
 //#endregion
-//#region src/plugins/_base/managers/TraitResolver.js
+//#region src/plugins/_base/core/managers/TraitResolver.js
 /**
 * A static class that centralizes trait-merging operations shared across the ecosystem.
 *
@@ -8009,7 +8301,7 @@ var TraitResolver = class {
 };
 
 //#endregion
-//#region src/plugins/_base/core/registerVanillaParameters.js
+//#region src/plugins/_base/core/core/registerVanillaParameters.js
 /**
 * Boot-time registration for vanilla engine parameters in {@link ParameterRegistry}.
 */
@@ -8023,7 +8315,8 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 	* @param {string} format The format driving this step.
 	*/
 	static registerBparam(key, paramId, group, sortOrder, format = ParameterFormat.FLAT) {
-		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.param(paramId)).description(() => TextManager.bparamDescription(paramId)).iconIndex(() => IconManager.param(paramId)).format(format).getValue((battler) => battler.param(paramId)).sdpBinding(SdpParameterBinding.bparam(paramId)).build());
+		const definition = ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.param(paramId)).description(() => TextManager.bparamDescription(paramId)).iconIndex(() => IconManager.param(paramId)).format(format).getValue((battler) => battler.param(paramId)).sdpBinding(SdpParameterBinding.bparam(paramId)).build();
+		ParameterRegistry.register(definition);
 	}
 	/**
 	* Registers a core ex-parameter with the catalog.
@@ -8034,7 +8327,8 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 	* @param {string} format The format driving this step.
 	*/
 	static registerXparam(key, xparamId, group, sortOrder, format = ParameterFormat.PERCENT) {
-		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.xparam(xparamId)).description(() => TextManager.xparamDescription(xparamId)).iconIndex(() => IconManager.xparam(xparamId)).format(format).getValue((battler) => battler.xparam(xparamId)).sdpBinding(SdpParameterBinding.xparam(xparamId)).build());
+		const definition = ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.xparam(xparamId)).description(() => TextManager.xparamDescription(xparamId)).iconIndex(() => IconManager.xparam(xparamId)).format(format).getValue((battler) => battler.xparam(xparamId)).sdpBinding(SdpParameterBinding.xparam(xparamId)).build();
+		ParameterRegistry.register(definition);
 	}
 	/**
 	* Registers a core sp-parameter with the catalog.
@@ -8046,7 +8340,8 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 	* @param {string} displayPolicy The display policy driving this step.
 	*/
 	static registerSparam(key, sparamId, group, sortOrder, format = ParameterFormat.PERCENT_CENTERED, displayPolicy = ParameterDisplayPolicy.NONE) {
-		ParameterRegistry.register(ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.sparam(sparamId)).description(() => TextManager.sparamDescription(sparamId)).iconIndex(() => IconManager.sparam(sparamId)).format(format).displayPolicy(displayPolicy).getValue((battler) => battler.sparam(sparamId)).sdpBinding(SdpParameterBinding.sparam(sparamId)).build());
+		const definition = ParameterDefinition.Builder().key(key).group(group).sortOrder(sortOrder).label(() => TextManager.sparam(sparamId)).description(() => TextManager.sparamDescription(sparamId)).iconIndex(() => IconManager.sparam(sparamId)).format(format).displayPolicy(displayPolicy).getValue((battler) => battler.sparam(sparamId)).sdpBinding(SdpParameterBinding.sparam(sparamId)).build();
+		ParameterRegistry.register(definition);
 	}
 	/**
 	* Registers HAR — the sender-side counterpart to REC — with the catalog.
@@ -8054,7 +8349,38 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 	* the registerBparam/Xparam/Sparam helpers, which wrap native param ids.
 	*/
 	static registerHar() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("har").group(ParameterGroups.VITALITY).sortOrder(7).label(() => TextManager.har()).description(() => TextManager.harDescription()).iconIndex(() => IconManager.har()).format(ParameterFormat.PERCENT_CENTERED).getValue((battler) => battler.har).sdpBinding(SdpParameterBinding.byKey("har", () => 1)).build());
+		const definition = ParameterDefinition.Builder().key("har").group(ParameterGroups.VITALITY).sortOrder(7).label(() => TextManager.har()).description(() => TextManager.harDescription()).iconIndex(() => IconManager.har()).format(ParameterFormat.PERCENT_CENTERED).getValue((battler) => battler.har).sdpBinding(SdpParameterBinding.byKey("har", () => 1)).build();
+		ParameterRegistry.register(definition);
+	}
+	/**
+	* Registers max TP with the catalog.
+	* Needs its own builder rather than the generic bparam helper, because its SDP binding reads a
+	* custom base rather than a native param id.
+	*/
+	static registerMtp() {
+		const definition = ParameterDefinition.Builder().key("mtp").group(ParameterGroups.VITALITY).sortOrder(4).label(() => TextManager.maxTp()).description(() => TextManager.bparamDescription(30)).iconIndex(() => IconManager.maxTp()).format(ParameterFormat.FLAT).getValue((battler) => battler.maxTp()).sdpBinding(SdpParameterBinding.custom((actor, base) => {
+			if (!J.SDP) return 0;
+			if (!actor.maxTpSdpBonuses) return 0;
+			return actor.maxTpSdpBonuses(base);
+		}, (actor) => actor.getBaseMaxTp())).build();
+		ParameterRegistry.register(definition);
+	}
+	/**
+	* Registers counter attack rate with the catalog.
+	* Needs its own builder rather than the generic xparam helper, because it carries a display policy
+	* and a format the helper does not offer for xparams.
+	*/
+	static registerCnt() {
+		const definition = ParameterDefinition.Builder().key("cnt").group(ParameterGroups.COMBAT).sortOrder(2).label(() => TextManager.xparam(6)).description(() => TextManager.xparamDescription(6)).iconIndex(() => IconManager.xparam(6)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.cnt).sdpBinding(SdpParameterBinding.xparam(6)).build();
+		ParameterRegistry.register(definition);
+	}
+	/**
+	* Registers magic reflection rate with the catalog.
+	* Needs its own builder for the same reason as {@link #registerCnt}.
+	*/
+	static registerMrf() {
+		const definition = ParameterDefinition.Builder().key("mrf").group(ParameterGroups.COMBAT).sortOrder(3).label(() => TextManager.xparam(5)).description(() => TextManager.xparamDescription(5)).iconIndex(() => IconManager.xparam(5)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mrf).sdpBinding(SdpParameterBinding.xparam(5)).build();
+		ParameterRegistry.register(definition);
 	}
 	/**
 	* Registers all vanilla engine parameters with the catalog.
@@ -8064,19 +8390,15 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 		VanillaParameterRegistration.registerXparam("hrg", 7, ParameterGroups.VITALITY, 1, ParameterFormat.REGEN_PER_SECOND);
 		VanillaParameterRegistration.registerBparam("mmp", 1, ParameterGroups.VITALITY, 2, ParameterFormat.FLAT_LARGE);
 		VanillaParameterRegistration.registerXparam("mrg", 8, ParameterGroups.VITALITY, 3, ParameterFormat.REGEN_PER_SECOND);
-		ParameterRegistry.register(ParameterDefinition.Builder().key("mtp").group(ParameterGroups.VITALITY).sortOrder(4).label(() => TextManager.maxTp()).description(() => TextManager.bparamDescription(30)).iconIndex(() => IconManager.maxTp()).format(ParameterFormat.FLAT).getValue((battler) => battler.maxTp()).sdpBinding(SdpParameterBinding.custom((actor, base) => {
-			if (!J.SDP) return 0;
-			if (!actor.maxTpSdpBonuses) return 0;
-			return actor.maxTpSdpBonuses(base);
-		}, (actor) => actor.getBaseMaxTp())).build());
+		VanillaParameterRegistration.registerMtp();
 		VanillaParameterRegistration.registerXparam("trg", 9, ParameterGroups.VITALITY, 5, ParameterFormat.REGEN_PER_SECOND);
 		VanillaParameterRegistration.registerSparam("rec", 2, ParameterGroups.VITALITY, 6, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
 		VanillaParameterRegistration.registerSparam("pha", 3, ParameterGroups.VITALITY, 8, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.REWARD_RATE);
 		VanillaParameterRegistration.registerHar();
 		VanillaParameterRegistration.registerBparam("atk", 2, ParameterGroups.COMBAT, 0);
 		VanillaParameterRegistration.registerBparam("mat", 4, ParameterGroups.COMBAT, 1);
-		ParameterRegistry.register(ParameterDefinition.Builder().key("cnt").group(ParameterGroups.COMBAT).sortOrder(2).label(() => TextManager.xparam(6)).description(() => TextManager.xparamDescription(6)).iconIndex(() => IconManager.xparam(6)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.cnt).sdpBinding(SdpParameterBinding.xparam(6)).build());
-		ParameterRegistry.register(ParameterDefinition.Builder().key("mrf").group(ParameterGroups.COMBAT).sortOrder(3).label(() => TextManager.xparam(5)).description(() => TextManager.xparamDescription(5)).iconIndex(() => IconManager.xparam(5)).format(ParameterFormat.PERCENT_SUFFIX).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.mrf).sdpBinding(SdpParameterBinding.xparam(5)).build());
+		VanillaParameterRegistration.registerCnt();
+		VanillaParameterRegistration.registerMrf();
 		VanillaParameterRegistration.registerSparam("mcr", 4, ParameterGroups.COMBAT, 7, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
 		VanillaParameterRegistration.registerSparam("tcr", 5, ParameterGroups.COMBAT, 9, ParameterFormat.PERCENT_CENTERED, ParameterDisplayPolicy.COST_RATE);
 		VanillaParameterRegistration.registerXparam("hit", 0, ParameterGroups.PRECISION, 0, ParameterFormat.SCALED_POINTS);
@@ -8098,7 +8420,7 @@ var VanillaParameterRegistration = class VanillaParameterRegistration {
 };
 
 //#endregion
-//#region src/plugins/_base/core/AffiliationDisplay.js
+//#region src/plugins/_base/core/core/AffiliationDisplay.js
 /**
 * Formats affiliation rates for CMS status and Monsterpedia elementalistics.
 */
@@ -8183,7 +8505,7 @@ var AffiliationDisplay = class AffiliationDisplay {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Action.js
+//#region src/plugins/_base/core/objects/Game_Action.js
 /**
 * A collection of registered formula context providers.
 * Each provider contributes a named variable to every `evalFormulaWithContext` call.
@@ -8413,7 +8735,7 @@ Game_Action.prototype.setTriggerTpDamage = function(newTriggerTpDamage) {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Actor.js
+//#region src/plugins/_base/core/objects/Game_Actor.js
 /**
 * The underlying database data for this battler.
 *
@@ -8458,7 +8780,8 @@ Game_Actor.prototype.rawEquips = function() {
 * @returns {number[]}
 */
 Game_Actor.prototype.skillIds = function() {
-	return [...new Set(this.learnedSkillIds().concat(this.addedSkills()))];
+	const allSkillIds = this.learnedSkillIds().concat(this.addedSkills());
+	return [...new Set(allSkillIds)];
 };
 /**
 * Determines whether or not this actor is the leader.
@@ -8764,7 +9087,29 @@ Game_Actor.prototype.exp = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Actors.js
+//#region src/plugins/_base/core/objects/Game_ActionResult.js
+/**
+* Extends {@link Game_ActionResult.initialize}.<br/>
+* Also runs the member-initialization hook every plugin hangs its own state off.
+*/
+J.BASE.Aliased.Game_ActionResult.set("initialize", Game_ActionResult.prototype.initialize);
+Game_ActionResult.prototype.initialize = function() {
+	J.BASE.Aliased.Game_ActionResult.get("initialize").call(this);
+	this.initMembers();
+};
+/**
+* A hook for initializing additional members in {@link Game_ActionResult}.<br>
+*
+* Vanilla sets a result up inside `initialize`, which a decode can never re-run, so plugin state
+* added through it would come back missing. A result reaches a savefile nested on every battler, so
+* its codec seeds the engine's own fields and then calls this.
+*
+* **Plugins adding state to an action result alias this, not `initialize`.**
+*/
+Game_ActionResult.prototype.initMembers = function() {};
+
+//#endregion
+//#region src/plugins/_base/core/objects/Game_Actors.js
 /**
 * Gets all proper actor ids available for actors in the database.
 * @returns {number[]}
@@ -8788,9 +9133,38 @@ Game_Actors.prototype.actorIds = function() {
 Game_Actors.prototype.actors = function() {
 	return this.actorIds().map((id) => this.actor(id), this);
 };
+/**
+* Gets the raw actor store: the array the engine indexes by actor id.
+*
+* Almost nothing wants this. {@link #existingActors} is the readable form, and it is the one to reach
+* for unless you specifically need the id-to-actor indexing that only survives here.
+* @returns {Game_Actor[]}
+*/
+Game_Actors.prototype.data = function() {
+	return this._data;
+};
+/**
+* Gets every actor this playthrough has actually built, compacted.
+*
+* This is deliberately not {@link #actors}. That one walks the database and hands each id to
+* {@link Game_Actors.actor}, which lazily constructs any actor it does not find- so asking it "who
+* exists right now" answers by making the answer true. Anything that wants to touch the actors a
+* save genuinely knows about must read the store instead.
+*
+* The compaction is not a guard against a broken contract; it is the contract. The engine indexes
+* this store by actor id and never fills the gaps, and **the gaps change shape across a save**: a
+* store built during play carries real holes, which iteration skips for free, while one restored from
+* a file carries explicit nulls, because `JSON.stringify` writes a hole as `null` and `JSON.parse`
+* hands it back as a real element. Index 0 is always one of them- there is no actor 0. A caller that
+* iterated the raw store would work until the first load and then fail on its very first element.
+* @returns {Game_Actor[]}
+*/
+Game_Actors.prototype.existingActors = function() {
+	return this.data().filter((actor) => actor !== null);
+};
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Battler.js
+//#region src/plugins/_base/core/objects/Game_Battler.js
 /**
 * Gets the skill associated with the given skill id.
 * By default, we simply get the skill from the database with no modifications.
@@ -9184,7 +9558,7 @@ Game_Battler.prototype.testNoteSources = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_BattlerBase.js
+//#region src/plugins/_base/core/objects/Game_BattlerBase.js
 /**
 * Extends {@link #initMembers}.<br/>
 * Initializes the trait objects cache for this battler.
@@ -9289,7 +9663,8 @@ Game_BattlerBase.prototype.allTraits = function() {
 	if (this.getCachedAllTraits() !== null) {
 		return this.getCachedAllTraits();
 	}
-	this.setCachedAllTraits(this.traitObjects().reduce((r, obj) => r.concat(obj.traits), []));
+	const allTraits = this.traitObjects().reduce((r, obj) => r.concat(obj.traits), []);
+	this.setCachedAllTraits(allTraits);
 	return this.getCachedAllTraits();
 };
 /**
@@ -9484,7 +9859,7 @@ Object.defineProperty(Game_BattlerBase.prototype, "tcr", {
 });
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Character.js
+//#region src/plugins/_base/core/objects/Game_Character.js
 /**
 * Determines if this character is actually a player.
 * @returns {boolean} True if this is a player, false otherwise.
@@ -9578,7 +9953,7 @@ Game_Character.prototype.moveRouteIndex = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_CharacterBase.js
+//#region src/plugins/_base/core/objects/Game_CharacterBase.js
 /**
 * Gets all valid directions supported by the default system.
 * @returns {number[]}
@@ -9733,7 +10108,7 @@ Game_CharacterBase.prototype.setRealY = function(newRealY) {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Enemies.js
+//#region src/plugins/_base/core/objects/Game_Enemies.js
 /**
 * A class that acts as a lazy dictionary for {@link Game_Enemy} data.<br/>
 * Do not use the enemies from this class as actual battlers!
@@ -9760,7 +10135,7 @@ var Game_Enemies = class {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Enemy.js
+//#region src/plugins/_base/core/objects/Game_Enemy.js
 /**
 * Gets the battler id of this enemy from the database.
 * @returns {number}
@@ -9901,7 +10276,7 @@ Game_Enemy.prototype.getBaseMaxTp = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Event.js
+//#region src/plugins/_base/core/objects/Game_Event.js
 /**
 * Gets all valid-shaped comment event commands.
 * @returns {RPG_EventListCommand[]}
@@ -10047,7 +10422,7 @@ Game_Event.prototype.setPageIndex = function(newPageIndex) {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Follower.js
+//#region src/plugins/_base/core/objects/Game_Follower.js
 /**
 * Whether or not this character is a follower.
 * @returns {boolean} True if this is a follower, false otherwise.
@@ -10057,7 +10432,27 @@ Game_Follower.prototype.isFollower = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Item.js
+//#region src/plugins/_base/core/objects/Game_Item.js
+/**
+* Extends {@link Game_Item.initialize}.<br/>
+* Also runs the member-initialization hook every plugin hangs its own state off.
+*/
+J.BASE.Aliased.Game_Item.set("initialize", Game_Item.prototype.initialize);
+Game_Item.prototype.initialize = function(item) {
+	J.BASE.Aliased.Game_Item.get("initialize").call(this, item);
+	this.initMembers();
+};
+/**
+* A hook for initializing additional members in {@link Game_Item}.<br>
+*
+* Note that this takes no arguments while `initialize` takes the item being wrapped. That split is
+* the point: a decode has a savefile, not a constructor argument, so the hook is only ever a
+* *defaulter*. Anything a plugin derives from the argument belongs in an `initialize` alias, and
+* whatever that field's resting value is belongs here.
+*
+* **Plugins adding state to a game item alias this, not `initialize`.**
+*/
+Game_Item.prototype.initMembers = function() {};
 /**
 * Gets the data class of this item, describing which database this item is drawn from.
 * @returns {string} One of "skill", "item", "weapon", or "armor"- or empty when unassigned.
@@ -10074,7 +10469,7 @@ Game_Item.prototype.setDataClass = function(newDataClass) {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Interpreter.js
+//#region src/plugins/_base/core/objects/Game_Interpreter.js
 /**
 * Gets the conditional branch results by indent depth.
 * @returns {Object<number, *>} The branch.
@@ -10105,7 +10500,26 @@ Game_Interpreter.prototype.setIndex = function(newIndex) {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Map.js
+//#region src/plugins/_base/core/objects/Game_Map.js
+/**
+* Extends {@link Game_Map.initialize}.<br/>
+* Also runs the member-initialization hook every plugin hangs its own state off.
+*/
+J.BASE.Aliased.Game_Map.set("initialize", Game_Map.prototype.initialize);
+Game_Map.prototype.initialize = function() {
+	J.BASE.Aliased.Game_Map.get("initialize").call(this);
+	this.initMembers();
+};
+/**
+* A hook for initializing additional members in {@link Game_Map}.<br>
+*
+* Vanilla sets the map up inside `initialize`, which a decode can never re-run, so plugin state
+* added through it would come back missing. This hook is what a decode *can* run: the map's codec
+* seeds the engine's own fields and then calls this, walking the same chain construction does.
+*
+* **Plugins adding state to the map alias this, not `initialize`.**
+*/
+Game_Map.prototype.initMembers = function() {};
 /**
 * Gets the raw event collection, nulls and all.
 *
@@ -10144,7 +10558,28 @@ Game_Map.prototype.note = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Party.js
+//#region src/plugins/_base/core/objects/Game_Party.js
+/**
+* Extends {@link Game_Party.initialize}.<br/>
+* Also runs the member-initialization hook every plugin hangs its own state off.
+*/
+J.BASE.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
+Game_Party.prototype.initialize = function() {
+	J.BASE.Aliased.Game_Party.get("initialize").call(this);
+	this.initMembers();
+};
+/**
+* A hook for initializing additional members in {@link Game_Party}.<br>
+*
+* Vanilla sets the party up inside `initialize`, which takes no arguments but is never safe to
+* re-run - so a save being decoded cannot call it, and any plugin state added through it would come
+* back missing. This hook exists so that state has somewhere to live that a decode *can* run:
+* `Game_Party`'s codec seeds the engine's own fields and then calls this, which walks the same alias
+* chain construction does.
+*
+* **Plugins adding state to the party alias this, not `initialize`.**
+*/
+Game_Party.prototype.initMembers = function() {};
 /**
 * Gets the raw item container, mapping item ids to the quantity held.
 *
@@ -10291,7 +10726,7 @@ Game_Party.prototype.setLevel = function(level) {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Player.js
+//#region src/plugins/_base/core/objects/Game_Player.js
 /**
 * Determines if this character is actually a player.
 * @returns {boolean}
@@ -10301,7 +10736,23 @@ Game_Player.prototype.isPlayer = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_System.js
+//#region src/plugins/_base/core/objects/Game_Screen.js
+/**
+* Gets the tone the screen is currently moving toward.
+*
+* Vanilla exposes {@link Game_Screen.tone} but nothing for the destination, and the two answer very
+* different questions. A tint runs over a duration, so partway through a fade the current tone is a
+* value nobody asked for - an interpolation between where it was and where it is going. Anything
+* deciding *who set the tint* has to compare against the destination; comparing against the current
+* value reads any in-progress fade as belonging to nobody.
+* @returns {[number, number, number, number]}
+*/
+Game_Screen.prototype.toneTarget = function() {
+	return this._toneTarget;
+};
+
+//#endregion
+//#region src/plugins/_base/core/objects/Game_System.js
 /**
 * Extends {@link Game_System.initialize}.<br/>
 * Initializes all members of this class and adds our custom members.
@@ -10345,7 +10796,7 @@ Game_System.prototype.canGainEntry = function(entry) {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Temp.js
+//#region src/plugins/_base/core/objects/Game_Temp.js
 /**
 * Extends {@link Game_Temp.initialize}.<br/>
 * Initializes all members of this class and adds our custom members.
@@ -10361,7 +10812,7 @@ Game_Temp.prototype.initialize = function() {
 Game_Temp.prototype.initMembers = function() {};
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Timer.js
+//#region src/plugins/_base/core/objects/Game_Timer.js
 /**
 * Extends {@link #initialize}.<br/>
 * Also initializes the duration.
@@ -10369,8 +10820,20 @@ Game_Temp.prototype.initMembers = function() {};
 J.BASE.Aliased.Game_Timer.set("initialize", Game_Timer.prototype.initialize);
 Game_Timer.prototype.initialize = function() {
 	J.BASE.Aliased.Game_Timer.get("initialize").call(this);
+	this.initMembers();
+};
+/**
+* A hook for initializing additional members in {@link Game_Timer}.<br>
+*
+* Vanilla sets the timer up inside `initialize`, which a decode can never re-run, so anything added
+* through it would come back missing. The timer's codec seeds the engine's own fields and then calls
+* this, walking the same chain construction does.
+*
+* **Plugins adding state to the timer alias this, not `initialize`.**
+*/
+Game_Timer.prototype.initMembers = function() {
 	/**
-	* Also initialize the duration of the timer.
+	* The duration of the timer.
 	* @type {number}
 	*/
 	this._duration = 0;
@@ -10407,7 +10870,7 @@ Game_Timer.prototype.setDuration = function(newDuration) {
 };
 
 //#endregion
-//#region src/plugins/_base/objects/Game_Vehicle.js
+//#region src/plugins/_base/core/objects/Game_Vehicle.js
 /**
 * Vehicles are in fact vehicles.
 * @return {boolean}
@@ -10417,7 +10880,7 @@ Game_Vehicle.prototype.isVehicle = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_Dimmer.js
+//#region src/plugins/_base/core/windows/Window_Dimmer.js
 /**
 * Full-box tint painted into {@link Window_Base#contents}. Uses normal {@link WindowLayer} ordering like any window so
 * scenes can insert it above most chrome and below a chosen anchor sibling.
@@ -10460,7 +10923,7 @@ var Window_Dimmer = class extends Window_Base {
 };
 
 //#endregion
-//#region src/plugins/_base/scenes/Scene_Base.js
+//#region src/plugins/_base/core/scenes/Scene_Base.js
 /**
 * Default {@link Window#contentsOpacity} for {@link #showModalDimmer} / {@link #buildModalDimmerWindow} (0 = clear,
 * 255 = strongest tint). Raise for heavier dim; override with {@link #showModalDimmer}'s first argument per call.
@@ -10590,7 +11053,7 @@ Scene_Base.prototype.windowLayer = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/scenes/Scene_Equip.js
+//#region src/plugins/_base/core/scenes/Scene_Equip.js
 /**
 * Gets the window listing this actor's equipment slots.
 * @returns {Window_EquipSlot} The slotWindow.
@@ -10621,7 +11084,7 @@ Scene_Equip.prototype.statusWindow = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/scenes/Scene_Map.js
+//#region src/plugins/_base/core/scenes/Scene_Map.js
 /**
 * Gets whether or not a map transfer is currently underway.
 * @returns {boolean} The transfer.
@@ -10631,7 +11094,7 @@ Scene_Map.prototype.transfer = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/scenes/Scene_Menu.js
+//#region src/plugins/_base/core/scenes/Scene_Menu.js
 /**
 * Gets the window listing the top-level menu commands.
 * @returns {Window_MenuCommand} The commandWindow.
@@ -10648,7 +11111,24 @@ Scene_Menu.prototype.setCommandWindow = function(newCommandWindow) {
 };
 
 //#endregion
-//#region src/plugins/_base/scenes/Scene_MenuBase.js
+//#region src/plugins/_base/core/scenes/Scene_Title.js
+/**
+* Gets the window listing the title screen's commands.
+* @returns {Window_TitleCommand} The commandWindow.
+*/
+Scene_Title.prototype.commandWindow = function() {
+	return this._commandWindow;
+};
+/**
+* Sets the window listing the title screen's commands.
+* @param {Window_TitleCommand} newCommandWindow The new commandWindow.
+*/
+Scene_Title.prototype.setCommandWindow = function(newCommandWindow) {
+	this._commandWindow = newCommandWindow;
+};
+
+//#endregion
+//#region src/plugins/_base/core/scenes/Scene_MenuBase.js
 /**
 * Gets the sprite rendering this scene's blurred background.
 * @returns {Sprite} The backgroundSprite.
@@ -10686,7 +11166,7 @@ Scene_MenuBase.prototype.helpWindow = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/scenes/Scene_Skill.js
+//#region src/plugins/_base/core/scenes/Scene_Skill.js
 /**
 * Gets the window describing the actor whose skills are shown.
 * @returns {Window_SkillStatus} The statusWindow.
@@ -10710,7 +11190,7 @@ Scene_Skill.prototype.skillTypeWindow = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/scenes/Scene_Boot.js
+//#region src/plugins/_base/core/scenes/Scene_Boot.js
 /**
 * Extends {@link #onDatabaseLoaded}.<br/>
 * Seeds vanilla engine parameters before downstream plugins extend the catalog.
@@ -10722,7 +11202,7 @@ Scene_Boot.prototype.onDatabaseLoaded = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_ControlLegend.js
+//#region src/plugins/_base/core/windows/Window_ControlLegend.js
 /**
 * A single-line legend describing what the controls do in the scene currently being viewed.
 *
@@ -10875,7 +11355,7 @@ var Window_ControlLegend = class extends Window_Base {
 };
 
 //#endregion
-//#region src/plugins/_base/scenes/Scene_MenuFacetBase.js
+//#region src/plugins/_base/core/scenes/Scene_MenuFacetBase.js
 /**
 * The shared skeleton for menu scenes.
 *
@@ -11062,7 +11542,7 @@ var Scene_MenuFacetBase = class extends Scene_MenuBase {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_ActorRibbon.js
+//#region src/plugins/_base/core/windows/Window_ActorRibbon.js
 /**
 * A window for rendering a ribbon of an actor's face.
 * If the window is made longer or taller, additional info could be rendered around it.
@@ -11214,7 +11694,7 @@ var Window_ActorRibbon = class extends Window_Base {
 };
 
 //#endregion
-//#region src/plugins/_base/scenes/Scene_ActorFacetBase.js
+//#region src/plugins/_base/core/scenes/Scene_ActorFacetBase.js
 /**
 * The shared skeleton for menu scenes scoped to a single actor.
 *
@@ -11350,7 +11830,7 @@ var Scene_ActorFacetBase = class extends Scene_MenuFacetBase {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite.js
+//#region src/plugins/_base/core/sprites/Sprite.js
 /**
 * Whether this sprite manages its own opacity independently of the HUD system.
 * {@link Sprite_Icon} and {@link Sprite_BaseText} override this when flagged with
@@ -11362,7 +11842,7 @@ Sprite.prototype.hasSelfManagedOpacity = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite_BaseText.js
+//#region src/plugins/_base/core/sprites/Sprite_BaseText.js
 /**
 * A sprite that displays some text.
 * This acts as a base class for a number of other text-based sprites.
@@ -11727,7 +12207,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite_Character.js
+//#region src/plugins/_base/core/sprites/Sprite_Character.js
 /**
 * Gets the underlying `Game_Character` or its appropriate subclass that this
 * sprite represents on the map.
@@ -11751,7 +12231,7 @@ Sprite_Character.prototype.isErased = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite_Face.js
+//#region src/plugins/_base/core/sprites/Sprite_Face.js
 /**
 * A sprite that displays a single face.
 */
@@ -11810,7 +12290,7 @@ var Sprite_Face = class extends Sprite {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite_Icon.js
+//#region src/plugins/_base/core/sprites/Sprite_Icon.js
 /**
 * A customizable sprite that displays a single icon.
 *
@@ -12004,7 +12484,7 @@ var Sprite_Icon = class extends Sprite {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite_MapGauge.js
+//#region src/plugins/_base/core/sprites/Sprite_MapGauge.js
 /**
 * The sprite for displaying a gauge on a character's sprite.
 */
@@ -12338,7 +12818,7 @@ var Sprite_MapGauge = class extends Sprite_Gauge {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite_Animation.js
+//#region src/plugins/_base/core/sprites/Sprite_Animation.js
 /**
 * Gets the animation data being played.
 * @returns {object} The animation.
@@ -12355,7 +12835,7 @@ Sprite_Animation.prototype.targets = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite_AnimationMV.js
+//#region src/plugins/_base/core/sprites/Sprite_AnimationMV.js
 /**
 * Gets the MV-format animation data being played.
 * @returns {object} The animation.
@@ -12372,7 +12852,7 @@ Sprite_AnimationMV.prototype.targets = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite_Damage.js
+//#region src/plugins/_base/core/sprites/Sprite_Damage.js
 /**
 * Gets the remaining frames before this popup disappears.
 * @returns {number} The duration.
@@ -12396,7 +12876,7 @@ Sprite_Damage.prototype.flashColor = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Sprite_Gauge.js
+//#region src/plugins/_base/core/sprites/Sprite_Gauge.js
 /**
 * Gets the battler this gauge is currently bound to.
 * @returns {Game_Battler} The battler.
@@ -12455,7 +12935,7 @@ Sprite_Gauge.prototype.setMaxValue = function(newMaxValue) {
 };
 
 //#endregion
-//#region src/plugins/_base/sprites/Spriteset_Map.js
+//#region src/plugins/_base/core/sprites/Spriteset_Map.js
 /**
 * Gets the tilemap rendering the current map.
 * @returns {Tilemap} The tilemap.
@@ -12479,7 +12959,7 @@ Spriteset_Map.prototype.setCharacterSprites = function(newCharacterSprites) {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/TileMap.js
+//#region src/plugins/_base/core/windows/TileMap.js
 /**
 * Overwrites {@link #_addShadow}.<br/>
 * Fuck those autoshadows.
@@ -12487,7 +12967,7 @@ Spriteset_Map.prototype.setCharacterSprites = function(newCharacterSprites) {
 Tilemap.prototype._addShadow = function(layer, shadowBits, dx, dy) {};
 
 //#endregion
-//#region src/plugins/_base/windows/Window_Base.js
+//#region src/plugins/_base/core/windows/Window_Base.js
 /**
 * All alignments available for {@link Window_Base.prototype.drawText}.<br>
 */
@@ -13161,7 +13641,7 @@ Window_Base.prototype.context = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_Command.js
+//#region src/plugins/_base/core/windows/Window_Command.js
 /**
 * A hook for subclasses to seed their own members before the command list is first built.
 *
@@ -13529,7 +14009,7 @@ Window_Command.prototype.prependBuiltCommand = function(command) {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_EquipItem.js
+//#region src/plugins/_base/core/windows/Window_EquipItem.js
 /**
 * Overwrites {@link #updateHelp}.<br/>
 * Enables extension of the method's logic for various menu needs.
@@ -13597,7 +14077,7 @@ Window_EquipItem.prototype.slotId = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_Help.js
+//#region src/plugins/_base/core/windows/Window_Help.js
 /**
 * Gets the text from this help window.
 * @returns {string}
@@ -13668,7 +14148,7 @@ Window_Help.prototype.renderText = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_MoreData.js
+//#region src/plugins/_base/core/windows/Window_MoreData.js
 /**
 * A window designed to display "more" data.
 * "More" data is typically defined as parameters not found otherwise listed
@@ -13816,7 +14296,7 @@ var Window_MoreData = class Window_MoreData extends Window_Command {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_Selectable.js
+//#region src/plugins/_base/core/windows/Window_Selectable.js
 /**
 * Weaves in the "more data window" at the highest level of selectable.
 *
@@ -14133,7 +14613,7 @@ Window_Selectable.prototype.helpWindow = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_ChoiceList.js
+//#region src/plugins/_base/core/windows/Window_ChoiceList.js
 /**
 * Gets the message window this choice list is anchored to.
 * @returns {Window_Message} The messageWindow.
@@ -14143,7 +14623,7 @@ Window_ChoiceList.prototype.messageWindow = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_EquipStatus.js
+//#region src/plugins/_base/core/windows/Window_EquipStatus.js
 /**
 * Gets the actor whose parameters are displayed.
 * @returns {Game_Actor} The actor.
@@ -14160,7 +14640,7 @@ Window_EquipStatus.prototype.tempActor = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_SkillList.js
+//#region src/plugins/_base/core/windows/Window_SkillList.js
 /**
 * Gets the actor whose skills are listed.
 * @returns {Game_Actor} The actor.
@@ -14177,7 +14657,7 @@ Window_SkillList.prototype.stypeId = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_SkillType.js
+//#region src/plugins/_base/core/windows/Window_SkillType.js
 /**
 * Gets the actor whose skill types are listed.
 * @returns {Game_Actor} The actor.
@@ -14187,7 +14667,7 @@ Window_SkillType.prototype.actor = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/Window_Status.js
+//#region src/plugins/_base/core/windows/Window_Status.js
 /**
 * Gets the actor whose status is displayed.
 * @returns {Game_Actor} The actor.
@@ -14197,7 +14677,7 @@ Window_Status.prototype.actor = function() {
 };
 
 //#endregion
-//#region src/plugins/_base/windows/WindowLayer.js
+//#region src/plugins/_base/core/windows/WindowLayer.js
 /**
 * Overwrites {@link #render}.<br/>
 * Renders windows, but WITH the ability to overlay.

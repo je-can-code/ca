@@ -1,6 +1,10 @@
 # rpg maker files
 file*.rmmzsave
 
+# save slots under the codec save format, which writes a directory of retained generations per slot
+# rather than one file. config.json stays tracked, matching config.rmmzsave above it.
+**/save/file*/
+
 # invisible OS configuration files
 .DS_Store
 desktop.ini

@@ -1,7 +1,7 @@
 //region initialization
 /*:
  * @target MZ
- * @plugindesc [v1.5.0 LEVEL] Allows levels to have greater control and purpose.
+ * @plugindesc [v1.6.0 LEVEL] Allows levels to have greater control and purpose.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -372,6 +372,11 @@
  * This same logic is again applied to gold from each defeated enemy.
  * ============================================================================
  * CHANGELOG:
+ * - 1.6.0
+ *    Routed the _level namespace into its own save section, so level state
+ *    lands in systems/level.json rather than inside the system blob.
+ *    Moved the _level namespace seeding from the initialize alias to
+ *    initMembers, so a decoded save can establish it without a constructor.
  * - 1.5.0
  *    Learning a skill by levelling now announces in the dia log instead of
  *    only producing a floating text pop on the same visual channel as damage
@@ -437,7 +442,8 @@ var J_LevelPluginMetadata = class J_LevelPluginMetadata extends PluginMetadata {
 		this.initializeLevelMaster();
 	}
 	initializeLevelMaster() {
-		const config = ExternalJsonConfigLoader.load(J_LevelPluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-LevelMaster").configName("level configuration").build());
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-LevelMaster").configName("level configuration").build();
+		const config = ExternalJsonConfigLoader.load(J_LevelPluginMetadata.CONFIG_PATH, options);
 		/**
 		* Whether or not the scaling functionality is enabled.
 		* @type {boolean}
@@ -554,7 +560,7 @@ J.LEVEL.EXT = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.5.0");
+J.LEVEL.Metadata = new J_LevelPluginMetadata("J-LevelMaster", "1.6.0");
 /**
 * The maximum level definable in the level. Any level below this can be determined without extra calculations.
 * @type {number}
@@ -1518,9 +1524,9 @@ Game_Party.prototype.averageActorLevel = function() {
 /**
 * Extends `initialize()` to include properties for this plugin.
 */
-J.LEVEL.Aliased.Game_System.set("initialize", Game_System.prototype.initialize);
-Game_System.prototype.initialize = function() {
-	J.LEVEL.Aliased.Game_System.get("initialize").call(this);
+J.LEVEL.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function() {
+	J.LEVEL.Aliased.Game_System.get("initMembers").call(this);
 	/**
 	* The overarching _j object, where all my stateful plugin data is stored.
 	*/
@@ -1721,6 +1727,22 @@ Sprite_Character.prototype.getBattlerName = function() {
 	originalName.name = `${levelString} ${originalName.name}`;
 	return originalName;
 };
+
+//#endregion
+//#region src/plugins/level/core/registerLevelSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-LevelMaster a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_level", "level");
+}
 
 //#endregion
 //# sourceMappingURL=J-LevelMaster.js.map

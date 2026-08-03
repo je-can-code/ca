@@ -1,0 +1,118 @@
+{
+  "alwaysDash": false,
+  "commandRemember": false,
+  "touchUI": true,
+  "bgmVolume": 0,
+  "bgsVolume": 0,
+  "meVolume": 0,
+  "seVolume": 0,
+  "jabsInputMappings": {
+    "player1": {
+      "Menu": [
+        "start"
+      ],
+      "Select": [
+        "select"
+      ],
+      "Main": [
+        "ok"
+      ],
+      "Offhand": [
+        "cancel"
+      ],
+      "Tool": [
+        "tab"
+      ],
+      "UsableItem": [
+        "r2"
+      ],
+      "Sprint": [
+        "shift"
+      ],
+      "Strafe": [
+        "l2"
+      ],
+      "Rotate": [
+        "pagedown"
+      ],
+      "Guard": [
+        "pagedown"
+      ],
+      "SkillTrigger": [
+        "pageup"
+      ],
+      "CombatSkill1": [
+        "combat-skill-1"
+      ],
+      "CombatSkill2": [
+        "combat-skill-2"
+      ],
+      "CombatSkill3": [
+        "combat-skill-3"
+      ],
+      "CombatSkill4": [
+        "combat-skill-4"
+      ]
+    }
+  },
+  "jabsInputBindings": {
+    "JABS": {
+      "Menu": [
+        "start"
+      ],
+      "Select": [
+        "select"
+      ],
+      "Main": [
+        "ok"
+      ],
+      "Offhand": [
+        "cancel"
+      ],
+      "Tool": [
+        "tab"
+      ],
+      "Sprint": [
+        "shift"
+      ],
+      "Strafe": [
+        "l2"
+      ],
+      "Rotate": [
+        "pagedown"
+      ],
+      "Guard": [],
+      "SkillTrigger": [
+        "pageup"
+      ],
+      "CombatSkill1": [
+        "combat-skill-1"
+      ],
+      "CombatSkill2": [
+        "combat-skill-2"
+      ],
+      "CombatSkill3": [
+        "combat-skill-3"
+      ],
+      "CombatSkill4": [
+        "combat-skill-4"
+      ],
+      "UsableItem": [
+        "r2"
+      ]
+    },
+    "J.OMNI.QUEST": {
+      "open-quest-log": [
+        "dpad-right"
+      ]
+    },
+    "J.MAP": {
+      "minimap-toggle": [
+        "dpad-up"
+      ],
+      "expand-minimap": [
+        "dpad-down"
+      ]
+    }
+  }
+}

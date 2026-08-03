@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v3.0.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v3.1.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -364,6 +364,11 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.1.0
+ *    Routed the _sdp namespace into its own save section, so panel investment
+ *    and mastery land in systems/sdp.json rather than in the system blob.
+ *    Moved the _sdp namespace seeding from the initialize aliases to
+ *    initMembers, so a decoded save can establish it without a constructor.
  * - 3.0.0
  *    BREAKING: Rank-up cost spine is defined per **rarity** in plugin parameters; each panel’s `baseCost`,
  *    `flatGrowthCost`, and `multGrowthCost` in `config.sdp.json` are **offsets / scale** (defaults **0 / 0 / 1.0**).
@@ -2417,11 +2422,13 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	*/
 	initializePanels() {
 		const canLogLoadInfo = J_SdpPluginMetadata.#hasMinimumBaseVersion();
-		const classifiedConfiguration = ExternalJsonConfigLoader.load(J_SdpPluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-SDP").configName("sdp configuration").mapper((parsed) => J_SdpPluginMetadata.classifyConfiguration(parsed)).logSummary(canLogLoadInfo ? (result) => [
+		const summarize = canLogLoadInfo ? (result) => [
 			`- ${result.panels().length} panels`,
 			`- ${result.subgroups().length} subgroups`,
 			`- ${result.families().length} families`
-		] : null).build());
+		] : null;
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-SDP").configName("sdp configuration").mapper((parsed) => J_SdpPluginMetadata.classifyConfiguration(parsed)).logSummary(summarize).build();
+		const classifiedConfiguration = ExternalJsonConfigLoader.load(J_SdpPluginMetadata.CONFIG_PATH, options);
 		/**
 		* The collection of all defined SDPs.
 		* @type {StatDistributionPanel[]}
@@ -2552,7 +2559,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.0.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.1.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -3178,12 +3185,12 @@ Game_Enemy.prototype.sdpPoints = function() {
 //#endregion
 //#region src/plugins/sdp/core/objects/Game_Party.js
 /**
-* Extends {@link #initialize}.<br/>
+* Extends {@link #initMembers}.<br/>
 * Also initializes our SDP members.
 */
-J.SDP.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function() {
-	J.SDP.Aliased.Game_Party.get("initialize").call(this);
+J.SDP.Aliased.Game_Party.set("initMembers", Game_Party.prototype.initMembers);
+Game_Party.prototype.initMembers = function() {
+	J.SDP.Aliased.Game_Party.get("initMembers").call(this);
 	this.initSdpMembers();
 };
 /**
@@ -3300,12 +3307,12 @@ Game_Troop.prototype.sdpTotal = function() {
 //#endregion
 //#region src/plugins/sdp/core/objects/Game_System.js
 /**
-* Extends {@link #initialize}.<br/>
+* Extends {@link #initMembers}.<br/>
 * Also initializes the debug features for the SDP system.
 */
-J.SDP.Aliased.Game_System.set("initialize", Game_System.prototype.initialize);
-Game_System.prototype.initialize = function() {
-	J.SDP.Aliased.Game_System.get("initialize").call(this);
+J.SDP.Aliased.Game_System.set("initMembers", Game_System.prototype.initMembers);
+Game_System.prototype.initMembers = function() {
+	J.SDP.Aliased.Game_System.get("initMembers").call(this);
 	this.initSdpMembers();
 };
 /**
@@ -3597,7 +3604,8 @@ var SdpParameterRegistration = class {
 	* Registers the SDP reward multiplier with the parameter catalog.
 	*/
 	static registerAll() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("sdr").group(ParameterGroups.FATE).sortOrder(5).label(() => TextManager.sdpMultiplier()).description(() => TextManager.sdpMultiplierDescription()).iconIndex(() => IconManager.sdpMultiplier()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.sdpMultiplier).sdpBinding(SdpParameterBinding.byKey("sdr", () => 1)).build());
+		const sdpMultiplier = ParameterDefinition.Builder().key("sdr").group(ParameterGroups.FATE).sortOrder(5).label(() => TextManager.sdpMultiplier()).description(() => TextManager.sdpMultiplierDescription()).iconIndex(() => IconManager.sdpMultiplier()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.sdpMultiplier).sdpBinding(SdpParameterBinding.byKey("sdr", () => 1)).build();
+		ParameterRegistry.register(sdpMultiplier);
 	}
 };
 
@@ -4826,7 +4834,8 @@ var Window_SdpPoints = class extends Window_ActorRibbon {
 		const nameX = this.faceWidth() + 12;
 		const y = this.ribbonTextY();
 		const nameMaxWidth = this.sdpWalletAnchorX() - nameX - 8;
-		this.drawText(this.actor().name(), nameX, y, nameMaxWidth, "left");
+		const actorName = this.actor().name();
+		this.drawText(actorName, nameX, y, nameMaxWidth, "left");
 	}
 	/**
 	* Draws the actor's SDP balance on the right edge of the ribbon.
@@ -6031,6 +6040,22 @@ PluginManager.registerCommand(J.SDP.Metadata.name, "Modify party SDP points", (a
 	const parsedSdpPoints = parseInt(sdpPoints);
 	$gameParty.members().forEach((member) => member.modSdpPoints(parsedSdpPoints));
 });
+
+//#endregion
+//#region src/plugins/sdp/core/registerSdpSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-SDP a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_sdp", "sdp");
+}
 
 //#endregion
 //# sourceMappingURL=J-SDP.js.map

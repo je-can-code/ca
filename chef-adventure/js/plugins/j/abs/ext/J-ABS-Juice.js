@@ -308,10 +308,11 @@ var JAbsJuice_PluginMetadata = class extends PluginMetadata {
 		* `default` is guaranteed to exist by the editor.
 		* @type {Object<string, { tiltMul: number, swingMul: number }>}
 		*/
-		this.weaponStyleMultipliers = Object.fromEntries(Object.keys(profiles).map((key) => [key, {
+		const styleEntries = Object.keys(profiles).map((key) => [key, {
 			tiltMul: profiles[key].tiltMul,
 			swingMul: profiles[key].swingMul
-		}]));
+		}]);
+		this.weaponStyleMultipliers = Object.fromEntries(styleEntries);
 	}
 };
 

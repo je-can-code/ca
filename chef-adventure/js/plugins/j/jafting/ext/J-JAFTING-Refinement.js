@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
+ * [v1.3.0 JAFTING-REFINE] An extension for JAFTING to enable equip refinement.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -148,6 +148,20 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 1.3.0
+ *    Fixed refinement lineage collapsing on save/load. A refined item's
+ *    ancestry was detected by comparing the datum's id against the refinement
+ *    starting index, but refined rows are clones that keep the base item's id -
+ *    only the slot they occupy moves. Every ancestor therefore looked like a
+ *    base item, so a +5 sword came back as +1 carrying only its last material.
+ *    Fixed commitRefinement unwrapping its arguments as Game_Item when the
+ *    scene passes raw datums, which threw before a refinement could complete.
+ *    Fixed the refinement detail panel staying blank after a commit; the
+ *    cursor was already on the row it needed to redraw, so no index change
+ *    was raised to trigger it.
+ *    Removed a call to JaftingManager.combineBaseParameterTraits, which had not
+ *    existed since the module migration and prevented the scene from opening.
+ *    Routed the _refinement namespace into its own save section.
  * - 1.2.0
  *    Replaced ~550 lines of local trait-combining logic with calls to
  *    J-Base's new shared TraitResolver.refineTraits/consolidate.
@@ -340,6 +354,130 @@ var JAFTING_RefinementData = class {
 };
 
 //#endregion
+//#region src/plugins/jafting/ext/refine/__models/JaftingRefinementLineage.js
+/**
+* The complete provenance of one refined equip: what it was made from, in what slot it lives, and
+* the dismantle stamp it was born with.
+*
+* **This is what a save stores instead of the refined equip itself.** `JaftingManager` produces a
+* refined row by a pure, deterministic function of its two inputs - parse the traits after the
+* divider, merge them with keep-better semantics, clone the base, rename with the `+N` suffix - so
+* the row is *derivable*, and a derivable thing persisted by value is a thing that stops following
+* its source. Store the whole equip and rebalancing a base weapon's ATK never reaches the refined
+* descendants a player is actually carrying. Store the lineage and every load replays them against
+* whatever the database says today.
+*
+* A node is one of two things, and {@link #isLeaf} is the test:
+*
+* - a **leaf**, naming a database row by {@link #kind} and {@link #id}; or
+* - a **refinement**, holding a {@link #base} and a {@link #material} that are themselves nodes.
+*
+* The recursion is not decorative. A material may itself have been refined, and the moment it is
+* consumed its `$data*` slot is reclaimed and blanked by {@link JaftingSalvageManager} - so by the
+* time a save is written there is nothing left in the datastore to point at. The provenance has to
+* travel inside the node that needs it.
+*
+* One field is genuinely stored rather than derived, and it is the exception worth understanding:
+* {@link #ledger}. The dismantle stamp attached to a refined output is built by
+* `JaftingSalvageManager.buildRefinementOutputLedger`, which reads the *party's* salvage bags for the
+* specific stack slot the material was drawn from - and those bags are pruned by the very `gainItem`
+* that consumes it. It is an input captured at a moment, not a derivation, so replay cannot
+* reproduce it and the node carries it verbatim.
+*/
+var JaftingRefinementLineage = class JaftingRefinementLineage {
+	/**
+	* The `$dataWeapons` / `$dataArmors` slot this refinement was allocated, or `0` on a leaf.
+	*
+	* Stored rather than derived from replay order on purpose: a reordered, deduplicated, or
+	* partially-failed lineage list can never silently repoint an inventory entry at the wrong item
+	* when every node names its own slot. It is also the field
+	* `JaftingSalvageManager.reclaimDynamicWeaponSlot` matches on when the last copy leaves the party.
+	* @type {number}
+	*/
+	index = 0;
+	/**
+	* Which datastore a leaf's row lives in: `w`, `a`, or `i`.
+	*
+	* The same letters the salvage ledger uses, so the two vocabularies do not drift apart.
+	* @type {string}
+	*/
+	kind = String.empty;
+	/**
+	* The database row id a leaf names, or `0` on a refinement.
+	* @type {number}
+	*/
+	id = 0;
+	/**
+	* The equip that was improved, as its own node, or `null` on a leaf.
+	* @type {JaftingRefinementLineage|null}
+	*/
+	base = null;
+	/**
+	* The equip that was consumed, as its own node, or `null` on a leaf.
+	* @type {JaftingRefinementLineage|null}
+	*/
+	material = null;
+	/**
+	* The dismantle stamp this output was born with, or `null` when it had none.
+	* @type {JaftingSalvageLedgerSnapshot|null}
+	*/
+	ledger = null;
+	/**
+	* Builds the node that names a database row directly.
+	* @param {string} kind The datastore letter: `w`, `a`, or `i`.
+	* @param {number} id The database row id.
+	* @returns {JaftingRefinementLineage}
+	*/
+	static leaf(kind, id) {
+		const lineage = new JaftingRefinementLineage();
+		lineage.kind = kind;
+		lineage.id = id;
+		return lineage;
+	}
+	/**
+	* Builds the node describing one refinement step.
+	* @param {number} index The datastore slot the output was allocated.
+	* @param {JaftingRefinementLineage} base The node describing the equip that was improved.
+	* @param {JaftingRefinementLineage} material The node describing the equip that was consumed.
+	* @param {JaftingSalvageLedgerSnapshot|null} ledger The dismantle stamp captured at commit time.
+	* @returns {JaftingRefinementLineage}
+	*/
+	static refinement(index, base, material, ledger) {
+		const lineage = new JaftingRefinementLineage();
+		lineage.index = index;
+		lineage.base = base;
+		lineage.material = material;
+		lineage.ledger = ledger;
+		return lineage;
+	}
+	/**
+	* Determines whether this node names a database row rather than describing a refinement.
+	*
+	* The base is the discriminator rather than the index, because a leaf and a refinement both have
+	* a meaningful position in a datastore and only a refinement has inputs.
+	* @returns {boolean}
+	*/
+	isLeaf() {
+		return this.base === null;
+	}
+};
+/**
+* Registered so the save pipeline can write and rebuild a lineage tree. The two nested nodes and the
+* captured ledger are declared, because everything below the top node is an instance the decoder
+* has to be told the type of when the tags are stripped by hand.
+*/
+SerializableRegistry.register(JaftingRefinementLineage, {
+	id: "jafting-refinement-lineage",
+	aliases: ["JaftingRefinementLineage"],
+	typed: {
+		base: JaftingRefinementLineage,
+		material: JaftingRefinementLineage,
+		ledger: JaftingSalvageLedgerSnapshot
+	},
+	seed: (instance) => Object.assign(instance, new JaftingRefinementLineage())
+});
+
+//#endregion
 //#region src/plugins/jafting/ext/refine/managers/JaftingManager.js
 /**
 * A class responsible for handling interactions between the JAFTING data stores,
@@ -402,15 +540,126 @@ var JaftingManager = class JaftingManager {
 		return output;
 	}
 	/**
+	* Stamps a freshly-merged output equip with the identity a refined row carries: one more refine on
+	* the counter, the `+N` suffix on the name, and the datastore slot it will live in.
+	*
+	* This is deliberately separated from {@link generateRefinedEquip}, which surrounds it with party
+	* side effects - spending the counter, gaining the item, recording the lineage. Everything here is
+	* a pure function of the equip and the slot, and that is precisely what makes it replayable: a
+	* load re-derives a refined row by running {@link determineRefinementOutput} and then this, with
+	* nothing in between. Two implementations that had to agree would be the bug the lineage work
+	* exists to prevent, so there is only ever one.
+	* @param {RPG_EquipItem} equip The merged output to stamp, mutated in place.
+	* @param {number} index The datastore slot this refinement occupies.
+	*/
+	static stampRefinedOutput(equip, index) {
+		equip.jaftingRefinedCount++;
+		const suffix = `+${equip.jaftingRefinedCount}`;
+		if (equip.jaftingRefinedCount === 1) {
+			equip.name = `${equip.name} ${suffix}`;
+		} else {
+			const plusIndex = equip.name.indexOf("+");
+			if (plusIndex > -1) {
+				equip.name = `${equip.name.slice(0, plusIndex)}${suffix}`;
+			} else {
+				equip.name = `${equip.name} ${suffix}`;
+			}
+		}
+		equip._updateIndex(index);
+	}
+	/**
+	* Rebuilds a refined equip from its provenance, against whatever the database says right now.
+	*
+	* This is the whole point of storing lineage instead of results. Every input is resolved fresh -
+	* a leaf out of the live `$data*` table, a nested refinement by replaying it in turn - so a base
+	* weapon whose ATK was raised during rebalancing reaches every refined descendant a player is
+	* carrying on their next load.
+	*
+	* **The tradeoff is deliberate and worth stating: derived values follow the deriver.** Changing
+	* `TraitResolver.refineTraits`, the divider convention, or the suffix format shifts every existing
+	* refined item the next time a save is opened. During pre-release rebalancing that is the feature.
+	* If it ever needs not to be, the lineage node is the place to gate it on a schema version.
+	* @param {JaftingRefinementLineage} lineage The provenance to replay.
+	* @returns {RPG_EquipItem} The rebuilt row, not yet written to any datastore.
+	*/
+	static replayLineage(lineage) {
+		if (lineage.isLeaf()) return this.resolveLineageLeaf(lineage);
+		const base = this.replayLineage(lineage.base);
+		const material = this.replayLineage(lineage.material);
+		const output = this.determineRefinementOutput(base, material);
+		this.stampRefinedOutput(output, lineage.index);
+		output._jaftingSalvageLedger = lineage.ledger;
+		return output;
+	}
+	/**
+	* Resolves the database row a leaf node names.
+	* @param {JaftingRefinementLineage} lineage The leaf to resolve.
+	* @returns {RPG_EquipItem} The live database row.
+	*/
+	static resolveLineageLeaf(lineage) {
+		const datastore = this.datastoreForLineageKind(lineage.kind);
+		const row = datastore[lineage.id];
+		if (!row) {
+			throw new Error(`refinement lineage names '${lineage.kind}:${lineage.id}', which is not in the database. ` + "A row that refined equipment was built from has been removed.");
+		}
+		return row;
+	}
+	/**
+	* Maps a lineage node's datastore letter onto the table it refers to.
+	* @param {string} kind The datastore letter: `w`, `a`, or `i`.
+	* @returns {RPG_Weapon[]|RPG_Armor[]|RPG_Item[]} The datastore.
+	*/
+	static datastoreForLineageKind(kind) {
+		if (kind === "w") return $dataWeapons;
+		if (kind === "a") return $dataArmors;
+		if (kind === "i") return $dataItems;
+		throw new Error(`refinement lineage carries an unknown datastore letter: '${kind}'.`);
+	}
+	/**
+	* Builds the lineage node describing an equip that is about to become a refinement input.
+	*
+	* A plain database row becomes a leaf. A refined row hands back the lineage already recorded for
+	* it, so the provenance nests rather than restarting - which is what lets a three-deep refinement
+	* replay from base rows alone.
+	* @param {RPG_EquipItem} datum The equip being consumed as a base or a material.
+	* @returns {JaftingRefinementLineage} The node describing it.
+	*/
+	static lineageForDatum(datum) {
+		const slot = datum._key();
+		if (slot >= this.StartingIndex) {
+			const tracked = datum.isWeapon() ? $gameParty.getRefinedWeapons() : $gameParty.getRefinedArmors();
+			const existing = tracked.find((lineage) => lineage.index === slot);
+			if (existing) return existing;
+		}
+		return JaftingRefinementLineage.leaf(this.lineageKindForDatum(datum), datum.id);
+	}
+	/**
+	* Maps an equip onto the datastore letter a lineage leaf records it under.
+	* @param {RPG_EquipItem} datum The equip to classify.
+	* @returns {string} The datastore letter: `w`, `a`, or `i`.
+	*/
+	static lineageKindForDatum(datum) {
+		if (datum.isWeapon()) return "w";
+		if (datum.isArmor()) return "a";
+		return "i";
+	}
+	/**
 	* Takes the refinement result equip and creates it in the appropriate datastore, and adds it to
 	* the player's inventory.
+	*
+	* The two input nodes come along because the party records *provenance*, not the result: the
+	* lineage node built here is what a save writes, and what a load replays. They arrive already
+	* built rather than as raw equips, because both inputs have been spent by the time this runs -
+	* see {@link RefinementWorkflowSession#commitRefinement} for why that ordering is forced.
 	* @param {RPG_EquipItem} outputEquip The equip to generate and add to the player's inventory.
+	* @param {JaftingRefinementLineage} baseLineage The provenance of the equip that was improved.
+	* @param {JaftingRefinementLineage} materialLineage The provenance of the equip that was consumed.
 	*/
-	static createRefinedOutput(outputEquip) {
+	static createRefinedOutput(outputEquip, baseLineage, materialLineage) {
 		if (outputEquip.wtypeId) {
-			this.generateRefinedEquip($dataWeapons, outputEquip, this.RefinementTypes.Weapon);
+			this.generateRefinedEquip($dataWeapons, outputEquip, this.RefinementTypes.Weapon, baseLineage, materialLineage);
 		} else if (outputEquip.atypeId) {
-			this.generateRefinedEquip($dataArmors, outputEquip, this.RefinementTypes.Armor);
+			this.generateRefinedEquip($dataArmors, outputEquip, this.RefinementTypes.Armor, baseLineage, materialLineage);
 		}
 	}
 	/**
@@ -418,30 +667,20 @@ var JaftingManager = class JaftingManager {
 	* @param {RPG_Weapon[]|RPG_Armor[]} datastore The datastore to extend with new data.
 	* @param {RPG_EquipItem} equip The equip to generate and add to the player's inventory.
 	* @param {string} refinementType The type of equip this is; for incrementing the counter on custom data.
-	* @returns {RPG_EquipItem}
+	* @param {JaftingRefinementLineage} baseLineage The provenance of the equip that was improved.
+	* @param {JaftingRefinementLineage} materialLineage The provenance of the equip that was consumed.
 	*/
-	static generateRefinedEquip(datastore, equip, refinementType) {
-		equip.jaftingRefinedCount++;
-		const suffix = `+${equip.jaftingRefinedCount}`;
-		if (equip.jaftingRefinedCount === 1) {
-			equip.name = `${equip.name} ${suffix}`;
-		} else {
-			const index = equip.name.indexOf("+");
-			if (index > -1) {
-				equip.name = `${equip.name.slice(0, index)}${suffix}`;
-			} else {
-				equip.name = `${equip.name} ${suffix}`;
-			}
-		}
+	static generateRefinedEquip(datastore, equip, refinementType, baseLineage, materialLineage) {
 		const newIndex = $gameParty.getRefinementCounter(refinementType);
-		equip._updateIndex(newIndex);
+		this.stampRefinedOutput(equip, newIndex);
 		datastore[newIndex] = equip;
 		$gameParty.gainItem(datastore[newIndex], 1);
 		$gameParty.incrementRefinementCounter(refinementType);
+		const lineage = JaftingRefinementLineage.refinement(newIndex, baseLineage, materialLineage, equip._jaftingSalvageLedger);
 		if (equip.wtypeId) {
-			$gameParty.addRefinedWeapon(equip);
+			$gameParty.addRefinedWeapon(lineage);
 		} else if (equip.atypeId) {
-			$gameParty.addRefinedArmor(equip);
+			$gameParty.addRefinedArmor(lineage);
 		} else {
 			console.error(`The following equip failed to be captured because it was neither weapon nor armor.`);
 			console.warn(equip);
@@ -563,23 +802,25 @@ var RefinementWorkflowSession = class RefinementWorkflowSession {
 		this.#phase = RefinementWorkflowSession.Phase.PickingBase;
 	}
 	/**
-	/**
 	* Performs the refinement transaction: remove inputs, stamp the hydrated output row, then register it through
 	* {@link JaftingManager.createRefinedOutput} (dynamic id allocation + party gain).
 	*
-	* @param {Game_Item} baseItem The base item driving this step.
-	* @param {Game_Item} materialItem The material item driving this step.
+	* Both inputs arrive as the database rows themselves rather than `Game_Item` wrappers, because that is what the
+	* refinable list windows carry and what `gainItem` reads an `id` off of further down.
+	*
+	* @param {RPG_EquipItem} baseDatum The base equip driving this step.
+	* @param {RPG_EquipItem} materialDatum The material equip driving this step.
 	* @param {RPG_EquipItem} outputEquip The output equip driving this step.
 	* @returns {{ ok: boolean, reason: string|null }}
 	*/
-	commitRefinement(baseItem, materialItem, outputEquip) {
-		const baseDatum = baseItem.object();
-		const materialDatum = materialItem.object();
+	commitRefinement(baseDatum, materialDatum, outputEquip) {
 		const mergedLedger = JaftingSalvageManager.buildRefinementOutputLedger(baseDatum, materialDatum);
-		$gameParty.gainItem(baseItem, -1);
-		$gameParty.gainItem(materialItem, -1);
+		const baseLineage = JaftingManager.lineageForDatum(baseDatum);
+		const materialLineage = JaftingManager.lineageForDatum(materialDatum);
+		$gameParty.gainItem(baseDatum, -1);
+		$gameParty.gainItem(materialDatum, -1);
 		outputEquip._jaftingSalvageLedger = mergedLedger;
-		JaftingManager.createRefinedOutput(outputEquip);
+		JaftingManager.createRefinedOutput(outputEquip, baseLineage, materialLineage);
 		this.markCommittedReturnToBase();
 		return {
 			ok: true,
@@ -658,7 +899,7 @@ J.JAFTING.EXT.REFINE = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.2.0");
+J.JAFTING.EXT.REFINE.Metadata = new J_CraftingRefinePluginMetadata("J-JAFTING-Refinement", "1.3.0");
 /**
 * A helpful mapping of the various messages that we use in JAFTING.
 */
@@ -881,9 +1122,9 @@ Game_Item.prototype.setObject = function(item) {
 * writes {@link RPG_Weapon.createEmpty} / {@link RPG_Armor.createEmpty} back into `$dataWeapons` / `$dataArmors` so
 * indices stay hydrated blanks instead of `null`—keep any custom refresh paths consistent with that contract.
 */
-J.JAFTING.EXT.REFINE.Aliased.Game_Party.set("initialize", Game_Party.prototype.initialize);
-Game_Party.prototype.initialize = function() {
-	J.JAFTING.EXT.REFINE.Aliased.Game_Party.get("initialize").call(this);
+J.JAFTING.EXT.REFINE.Aliased.Game_Party.set("initMembers", Game_Party.prototype.initMembers);
+Game_Party.prototype.initMembers = function() {
+	J.JAFTING.EXT.REFINE.Aliased.Game_Party.get("initMembers").call(this);
 	this.initJaftingRefinementMembers();
 };
 /**
@@ -899,13 +1140,13 @@ Game_Party.prototype.initJaftingRefinementMembers = function() {
 	*/
 	this._j._refinement ||= {};
 	/**
-	* A collection of all weapons that have been refined.
-	* @type {RPG_EquipItem[]}
+	* The provenance of every weapon that has been refined.
+	* @type {JaftingRefinementLineage[]}
 	*/
 	this._j._refinement._weapons = [];
 	/**
-	* A collection of all armors that have been refined.
-	* @type {RPG_EquipItem[]}
+	* The provenance of every armor that has been refined.
+	* @type {JaftingRefinementLineage[]}
 	*/
 	this._j._refinement._armors = [];
 	/**
@@ -926,50 +1167,55 @@ Game_Party.prototype.initJaftingRefinementMembers = function() {
 	this._j._refinement._increments[JaftingManager.RefinementTypes.Armor] = JaftingManager.StartingIndex;
 };
 /**
-* Gets all tracked weapons that have been refined.
-* @returns {RPG_EquipItem[]}
+* Gets the provenance of every weapon this party has refined.
+* @returns {JaftingRefinementLineage[]}
 */
 Game_Party.prototype.getRefinedWeapons = function() {
 	return this._j._refinement._weapons;
 };
 /**
-* Gets all tracked armors that have been refined.
-* @returns {RPG_EquipItem[]}
+* Gets the provenance of every armor this party has refined.
+* @returns {JaftingRefinementLineage[]}
 */
 Game_Party.prototype.getRefinedArmors = function() {
 	return this._j._refinement._armors;
 };
 /**
-* Adds a newly refined weapon to the collection for tracking purposes.
-* @param {RPG_EquipItem} equip The newly refined weapon.
+* Adds a newly refined weapon's provenance to the collection for tracking purposes.
+* @param {JaftingRefinementLineage} lineage The provenance of the newly refined weapon.
 */
-Game_Party.prototype.addRefinedWeapon = function(equip) {
-	this.getRefinedWeapons().push(equip);
+Game_Party.prototype.addRefinedWeapon = function(lineage) {
+	this.getRefinedWeapons().push(lineage);
 };
 /**
-* Adds a newly refined armor to the collection for tracking purposes.
-* @param {RPG_EquipItem} equip The newly refined armor.
+* Adds a newly refined armor's provenance to the collection for tracking purposes.
+* @param {JaftingRefinementLineage} lineage The provenance of the newly refined armor.
 */
-Game_Party.prototype.addRefinedArmor = function(equip) {
-	this.getRefinedArmors().push(equip);
+Game_Party.prototype.addRefinedArmor = function(lineage) {
+	this.getRefinedArmors().push(lineage);
 };
 /**
-* Updates the $dataWeapons collection to include the player's collection of
-* refined weapons.
+* Rebuilds every refined weapon from its provenance and writes it back into `$dataWeapons`.
+*
+* This runs on load rather than during decode on purpose. The loader steps back through
+* generations when one fails to read, so a decode that mutated `$dataWeapons` on its way to
+* throwing would leave a rejected generation's rows behind in the datastore. Replaying from a
+* post-load hook means the datastore is only ever touched by a load that actually succeeded.
 */
 Game_Party.prototype.refreshDatabaseWeapons = function() {
-	this.getRefinedWeapons().forEach((weapon) => {
-		const updatedWeapon = new RPG_Weapon(weapon, weapon.index);
+	this.getRefinedWeapons().forEach((lineage) => {
+		const updatedWeapon = JaftingManager.replayLineage(lineage);
 		$dataWeapons[updatedWeapon._key()] = updatedWeapon;
 	});
 };
 /**
-* Updates the $dataArmors collection to include the player's collection of
-* refined armors.
+* Rebuilds every refined armor from its provenance and writes it back into `$dataArmors`.
+*
+* Twin of {@link Game_Party#refreshDatabaseWeapons}; the same reasoning about when it runs applies.
 */
 Game_Party.prototype.refreshDatabaseArmors = function() {
-	this.getRefinedArmors().forEach((armor) => {
-		const updatedArmor = new RPG_Armor(armor, armor.index);
+	this.getRefinedArmors().forEach((lineage) => {
+		const updatedArmor = JaftingManager.replayLineage(lineage);
 		$dataArmors[updatedArmor._key()] = updatedArmor;
 	});
 };
@@ -1508,9 +1754,8 @@ var Window_RefinementDetails = class extends Window_Base {
 	*/
 	drawEquip(equip, x, type) {
 		const parsedTraits = JaftingManager.parseTraits(equip);
-		const jaftingTraits = JaftingManager.combineBaseParameterTraits(parsedTraits);
 		this.drawEquipTitle(equip, x, type);
-		this.drawEquipTraits(jaftingTraits, x);
+		this.drawEquipTraits(parsedTraits, x);
 	}
 	/**
 	* Draws the title for this portion of the equip details.
@@ -2179,6 +2424,7 @@ var Scene_JaftingRefine = class Scene_JaftingRefine extends Scene_MenuBase {
 		const listWindow = this.getBaseRefinableListWindow();
 		listWindow.refresh();
 		listWindow.select(0);
+		this.onBaseRefinableListIndexChange();
 		this.getConsumableRefinableListWindow().refresh();
 	}
 };
@@ -2235,6 +2481,22 @@ Window_JaftingList.prototype.buildRefinementCommand = function() {
 PluginManager.registerCommand(J.JAFTING.EXT.REFINE.Metadata.name, "call-menu", () => {
 	Scene_JaftingRefine.callScene();
 });
+
+//#endregion
+//#region src/plugins/jafting/ext/refine/registerJaftingRefineSaveRoutes.js
+/**
+* Lifts this plugin's slice out of whatever host carries it and into its own section file.
+*
+* Without this the namespace still saves correctly - it simply rides inline on the host it was
+* assigned to, which is where every plugin's state lived before the router existed. Registering
+* is what gives J-JAFTING-Refinement a file of its own to read.
+*
+* The namespace check is the one this codebase allows: J-Base-Save is genuinely optional, and
+* without it the engine's own save path carries this state inline just as it always did.
+*/
+if (J.BASE.EXT.SAVE) {
+	SaveSectionRouter.registerNamespace("_refinement", "refinement");
+}
 
 //#endregion
 //# sourceMappingURL=J-JAFTING-Refinement.js.map
