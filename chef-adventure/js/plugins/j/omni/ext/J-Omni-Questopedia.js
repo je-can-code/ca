@@ -2266,11 +2266,13 @@ var J_QUEST_PluginMetadata = class J_QUEST_PluginMetadata extends PluginMetadata
 	}
 	initializeQuests() {
 		const canLogLoadInfo = J_QUEST_PluginMetadata.#hasMinimumBaseVersion();
-		const parsedConfiguration = ExternalJsonConfigLoader.load(J_QUEST_PluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Omni-Questopedia").configName("quest configuration").logSummary(canLogLoadInfo ? (result) => [
+		const summarize = canLogLoadInfo ? (result) => [
 			`- ${result.quests.length} quests`,
 			`- ${result.categories.length} categories`,
 			`- ${result.tags.length} tags`
-		] : null).build());
+		] : null;
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Omni-Questopedia").configName("quest configuration").logSummary(summarize).build();
+		const parsedConfiguration = ExternalJsonConfigLoader.load(J_QUEST_PluginMetadata.CONFIG_PATH, options);
 		const classifiedQuests = J_QUEST_PluginMetadata.classifyQuests(parsedConfiguration.quests);
 		/**
 		* A collection of all defined quests.
@@ -3491,7 +3493,8 @@ Game_Party.prototype.getQuestopediaEntryByKey = function(questKey) {
 * @returns {TrackedOmniQuest[]}
 */
 Game_Party.prototype.getQuestopediaEntries = function() {
-	return Array.from(this.getQuestopediaEntriesCache().values());
+	const entries = this.getQuestopediaEntriesCache().values();
+	return Array.from(entries);
 };
 if (!Game_Party.prototype.canGainEntry) {
 	/**
@@ -3987,7 +3990,10 @@ SerializableRegistry.extend(Game_Map, { transients: { "_j._omni._quest._destinat
 * rather than as "this has not been built yet". Every saveable it needs has already decoded by the
 * time a transient factory runs.
 */
-SerializableRegistry.extend(Game_Party, { transients: { "_j._omni._questopediaCache": (party) => new Map(party.getSavedQuestopediaEntries().map((entry) => [entry.key, entry])) } });
+SerializableRegistry.extend(Game_Party, { transients: { "_j._omni._questopediaCache": (party) => {
+	const keyedEntries = party.getSavedQuestopediaEntries().map((entry) => [entry.key, entry]);
+	return new Map(keyedEntries);
+} } });
 
 //#endregion
 //# sourceMappingURL=J-Omni-Questopedia.js.map

@@ -604,7 +604,8 @@ RPG_Enemy.prototype.computeInferredTypedElementIds = function() {
 		if (Number.isFinite(asNum)) {
 			excludedIds.add(asNum);
 		} else {
-			excludedNames.add(String(entry).trim().toLowerCase());
+			const normalizedName = String(entry).trim().toLowerCase();
+			excludedNames.add(normalizedName);
 		}
 	});
 	const isSlayer = (low) => low.startsWith("vs ");

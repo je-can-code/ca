@@ -4008,16 +4008,35 @@ var Window_FilesCommand = class extends Window_Command {
 	* Offers what the origin offers, then a way out.
 	*/
 	makeCommandList() {
-		if (this.entryMode() === String.empty) return;
-		this.modes().filter((mode) => mode.isOfferedFrom(this.entryMode())).forEach((mode) => this.addModeCommand(mode));
-		this.addBuiltCommand(new WindowCommandBuilder("Back").setSymbol(this.backSymbol()).setHelpText("Return to what you were doing.").build());
+		const commands = this.buildCommands();
+		commands.forEach(this.addBuiltCommand, this);
 	}
 	/**
-	* Adds the command for one mode.
-	* @param {SaveFileMode} mode The mode being offered.
+	* Builds all commands for this command window.
+	* Whatever the origin offers, and then a way out.
+	* @returns {BuiltWindowCommand[]}
 	*/
-	addModeCommand(mode) {
-		this.addBuiltCommand(new WindowCommandBuilder(mode.label()).setSymbol(mode.key()).setHelpText(mode.helpText()).setEnabled(mode.isEnabled()).setIconIndex(mode.iconIndex()).build());
+	buildCommands() {
+		if (this.entryMode() === String.empty) return [];
+		const offered = this.modes().filter((mode) => mode.isOfferedFrom(this.entryMode()));
+		const commands = offered.map(this.buildCommand, this);
+		commands.push(this.buildBackCommand());
+		return commands;
+	}
+	/**
+	* Builds a {@link BuiltWindowCommand} for one mode.
+	* @param {SaveFileMode} mode The mode being offered.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildCommand(mode) {
+		return new WindowCommandBuilder(mode.label()).setSymbol(mode.key()).setHelpText(mode.helpText()).setEnabled(mode.isEnabled()).setIconIndex(mode.iconIndex()).build();
+	}
+	/**
+	* Builds the {@link BuiltWindowCommand} that leaves the scene.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildBackCommand() {
+		return new WindowCommandBuilder("Back").setSymbol(this.backSymbol()).setHelpText("Return to what you were doing.").build();
 	}
 };
 
@@ -4158,10 +4177,31 @@ var Window_FilesList = class extends Window_Command {
 	* Adds one command per row, enabled according to what this mode can act on.
 	*/
 	makeCommandList() {
-		if (this.mode() === null) return;
-		this.entries().forEach((entry, index) => {
-			this.addBuiltCommand(new WindowCommandBuilder(String.empty).setSymbol("entry").setEnabled(this.mode().isEntrySelectable(entry)).setExtensionData(index).build());
-		});
+		const commands = this.buildCommands();
+		commands.forEach(this.addBuiltCommand, this);
+	}
+	/**
+	* Builds all commands for this command window.
+	* One per row the active mode is listing, in the order the mode gave them.
+	* @returns {BuiltWindowCommand[]}
+	*/
+	buildCommands() {
+		if (this.mode() === null) return [];
+		return this.entries().map(this.buildCommand, this);
+	}
+	/**
+	* Builds a {@link BuiltWindowCommand} for one row.
+	*
+	* The name is empty because nothing about a row is a label- the picture, the map, the party and the
+	* timestamp are all drawn by {@link #drawItem}. The index rides along as extension data so that
+	* drawing can find its way back to the entry it belongs to.
+	* @param {SaveFileEntry} entry The row being built.
+	* @param {number} index The row's position in the list.
+	* @returns {BuiltWindowCommand}
+	*/
+	buildCommand(entry, index) {
+		const selectable = this.mode().isEntrySelectable(entry);
+		return new WindowCommandBuilder(String.empty).setSymbol("entry").setEnabled(selectable).setExtensionData(index).build();
 	}
 	/**
 	* Overwrites {@link Window_Command.drawItem}.<br/>
@@ -4379,8 +4419,18 @@ var Window_FilesConfirm = class extends Window_Command {
 	* Implements {@link Window_Command.makeCommandList}.<br/>
 	*/
 	makeCommandList() {
-		this.addBuiltCommand(new WindowCommandBuilder("Yes").setSymbol(this.confirmSymbol()).build());
-		this.addBuiltCommand(new WindowCommandBuilder("No").setSymbol(this.denySymbol()).build());
+		const commands = this.buildCommands();
+		commands.forEach(this.addBuiltCommand, this);
+	}
+	/**
+	* Builds all commands for this command window.
+	* A question only ever has the two answers, in the order a reader expects them.
+	* @returns {BuiltWindowCommand[]}
+	*/
+	buildCommands() {
+		const yes = new WindowCommandBuilder("Yes").setSymbol(this.confirmSymbol()).build();
+		const no = new WindowCommandBuilder("No").setSymbol(this.denySymbol()).build();
+		return [yes, no];
 	}
 	/**
 	* Extends {@link Window_Command.refresh}.<br/>
@@ -5427,7 +5477,8 @@ DataManager.saveGlobalInfo = function() {};
 * is a rendering decision made fresh every time the menu opens, not state written anywhere.
 */
 Window_MenuCommand.prototype.addSaveCommand = function() {
-	this.addBuiltCommand(new WindowCommandBuilder("Files").setSymbol("save").setHelpText("Save, load, or step back through this playthrough.").setIconIndex(2568).setMenuSection(MenuSection.Party).build());
+	const files = new WindowCommandBuilder("Files").setSymbol("save").setHelpText("Save, load, or step back through this playthrough.").setIconIndex(2568).setMenuSection(MenuSection.Party).build();
+	this.addBuiltCommand(files);
 };
 
 //#endregion

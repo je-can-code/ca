@@ -2422,11 +2422,13 @@ var J_SdpPluginMetadata = class J_SdpPluginMetadata extends PluginMetadata {
 	*/
 	initializePanels() {
 		const canLogLoadInfo = J_SdpPluginMetadata.#hasMinimumBaseVersion();
-		const classifiedConfiguration = ExternalJsonConfigLoader.load(J_SdpPluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-SDP").configName("sdp configuration").mapper((parsed) => J_SdpPluginMetadata.classifyConfiguration(parsed)).logSummary(canLogLoadInfo ? (result) => [
+		const summarize = canLogLoadInfo ? (result) => [
 			`- ${result.panels().length} panels`,
 			`- ${result.subgroups().length} subgroups`,
 			`- ${result.families().length} families`
-		] : null).build());
+		] : null;
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-SDP").configName("sdp configuration").mapper((parsed) => J_SdpPluginMetadata.classifyConfiguration(parsed)).logSummary(summarize).build();
+		const classifiedConfiguration = ExternalJsonConfigLoader.load(J_SdpPluginMetadata.CONFIG_PATH, options);
 		/**
 		* The collection of all defined SDPs.
 		* @type {StatDistributionPanel[]}
@@ -3602,7 +3604,8 @@ var SdpParameterRegistration = class {
 	* Registers the SDP reward multiplier with the parameter catalog.
 	*/
 	static registerAll() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("sdr").group(ParameterGroups.FATE).sortOrder(5).label(() => TextManager.sdpMultiplier()).description(() => TextManager.sdpMultiplierDescription()).iconIndex(() => IconManager.sdpMultiplier()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.sdpMultiplier).sdpBinding(SdpParameterBinding.byKey("sdr", () => 1)).build());
+		const sdpMultiplier = ParameterDefinition.Builder().key("sdr").group(ParameterGroups.FATE).sortOrder(5).label(() => TextManager.sdpMultiplier()).description(() => TextManager.sdpMultiplierDescription()).iconIndex(() => IconManager.sdpMultiplier()).format(ParameterFormat.PERCENT_CENTERED).displayPolicy(ParameterDisplayPolicy.REWARD_RATE).getValue((battler) => battler.sdpMultiplier).sdpBinding(SdpParameterBinding.byKey("sdr", () => 1)).build();
+		ParameterRegistry.register(sdpMultiplier);
 	}
 };
 
@@ -4831,7 +4834,8 @@ var Window_SdpPoints = class extends Window_ActorRibbon {
 		const nameX = this.faceWidth() + 12;
 		const y = this.ribbonTextY();
 		const nameMaxWidth = this.sdpWalletAnchorX() - nameX - 8;
-		this.drawText(this.actor().name(), nameX, y, nameMaxWidth, "left");
+		const actorName = this.actor().name();
+		this.drawText(actorName, nameX, y, nameMaxWidth, "left");
 	}
 	/**
 	* Draws the actor's SDP balance on the right edge of the ribbon.

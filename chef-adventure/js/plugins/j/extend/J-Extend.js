@@ -532,7 +532,8 @@ var J_SkillExtendPluginMetadata = class extends PluginMetadata {
 	* @param {boolean} [asBoolean=false] Pass true for boolean tags (no colon) so the key is derived correctly.
 	*/
 	registerNonCombiningKey(regexp, asBoolean = false) {
-		this.#nonCombiningKeys.add(J.BASE.Helpers.getKeyFromRegexp(regexp, asBoolean).toLowerCase());
+		const key = J.BASE.Helpers.getKeyFromRegexp(regexp, asBoolean).toLowerCase();
+		this.#nonCombiningKeys.add(key);
 	}
 	/**
 	* Gets all registered non-combining tag keys as an array.
@@ -1798,7 +1799,8 @@ Game_Action.prototype.onHitRemoveStates = function() {
 * @param {Game_Actor|Game_Enemy} target The target being hit with the action.
 */
 Game_Action.prototype.applyOnHitApplyStates = function(target) {
-	const casterEntries = RPGManager.getArraysFromAllNotesByRegex(this.subject().getAllNotes(), J.EXTEND.RegExp.ApplyState);
+	const notes = this.subject().getAllNotes();
+	const casterEntries = RPGManager.getArraysFromAllNotesByRegex(notes, J.EXTEND.RegExp.ApplyState);
 	const skillEntries = RPGManager.getArraysFromNotesByRegex(this.item(), J.EXTEND.RegExp.ThisApplyState);
 	const allEntries = [...casterEntries, ...skillEntries];
 	if (!allEntries.length) return;

@@ -963,13 +963,16 @@ var ParameterCatalogRenderer = class ParameterCatalogRenderer {
 Window_MenuCommand.prototype.addMainCommands = function() {
 	const enabled = this.areMainCommandsEnabled();
 	if (this.needsCommand("item")) {
-		this.addBuiltCommand(new WindowCommandBuilder(TextManager.item).setSymbol("item").setHelpText(J.CMS.Metadata.helpTextFor("item")).setEnabled(enabled).setIconIndex(2567).setMenuSection(MenuSection.Party).build());
+		const item = new WindowCommandBuilder(TextManager.item).setSymbol("item").setHelpText(J.CMS.Metadata.helpTextFor("item")).setEnabled(enabled).setIconIndex(2567).setMenuSection(MenuSection.Party).build();
+		this.addBuiltCommand(item);
 	}
 	if (this.needsCommand("skill")) {
-		this.addBuiltCommand(new WindowCommandBuilder(TextManager.skill).setSymbol("skill").setHelpText(J.CMS.Metadata.helpTextFor("skill")).setEnabled(enabled).setIconIndex(2564).setMenuSection(MenuSection.Actor).build());
+		const skill = new WindowCommandBuilder(TextManager.skill).setSymbol("skill").setHelpText(J.CMS.Metadata.helpTextFor("skill")).setEnabled(enabled).setIconIndex(2564).setMenuSection(MenuSection.Actor).build();
+		this.addBuiltCommand(skill);
 	}
 	if (this.needsCommand("equip")) {
-		this.addBuiltCommand(new WindowCommandBuilder(TextManager.equip).setSymbol("equip").setHelpText(J.CMS.Metadata.helpTextFor("equip")).setEnabled(enabled).setIconIndex(2565).setMenuSection(MenuSection.Actor).build());
+		const equip = new WindowCommandBuilder(TextManager.equip).setSymbol("equip").setHelpText(J.CMS.Metadata.helpTextFor("equip")).setEnabled(enabled).setIconIndex(2565).setMenuSection(MenuSection.Actor).build();
+		this.addBuiltCommand(equip);
 	}
 };
 /**
@@ -979,7 +982,8 @@ Window_MenuCommand.prototype.addMainCommands = function() {
 Window_MenuCommand.prototype.addOptionsCommand = function() {
 	if (this.needsCommand("options") === false) return;
 	const enabled = this.isOptionsEnabled();
-	this.addBuiltCommand(new WindowCommandBuilder(TextManager.options).setSymbol("options").setHelpText(J.CMS.Metadata.helpTextFor("options")).setEnabled(enabled).setIconIndex(2566).setMenuSection(MenuSection.Party).build());
+	const options = new WindowCommandBuilder(TextManager.options).setSymbol("options").setHelpText(J.CMS.Metadata.helpTextFor("options")).setEnabled(enabled).setIconIndex(2566).setMenuSection(MenuSection.Party).build();
+	this.addBuiltCommand(options);
 };
 /**
 * Overwrites {@link #addGameEndCommand}.<br/>
@@ -987,7 +991,8 @@ Window_MenuCommand.prototype.addOptionsCommand = function() {
 */
 Window_MenuCommand.prototype.addGameEndCommand = function() {
 	const enabled = this.isGameEndEnabled();
-	this.addBuiltCommand(new WindowCommandBuilder(TextManager.gameEnd).setSymbol("gameEnd").setHelpText(J.CMS.Metadata.helpTextFor("gameEnd")).setEnabled(enabled).setIconIndex(2562).setMenuSection(MenuSection.Party).build());
+	const gameEnd = new WindowCommandBuilder(TextManager.gameEnd).setSymbol("gameEnd").setHelpText(J.CMS.Metadata.helpTextFor("gameEnd")).setEnabled(enabled).setIconIndex(2562).setMenuSection(MenuSection.Party).build();
+	this.addBuiltCommand(gameEnd);
 };
 
 //#endregion

@@ -932,7 +932,8 @@ Game_Action.prototype.thisCritSelfStates = function() {
 * @returns {JABS_OnChanceEffect[]}
 */
 Game_Action.prototype.onCritTargetStates = function() {
-	return RPGManager.getOnChanceEffectsFromDatabaseObjects(this.subject().getAllNotes(), J.CRIT.RegExp.OnCritApply);
+	const notes = this.subject().getAllNotes();
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects(notes, J.CRIT.RegExp.OnCritApply);
 };
 /**
 * Gets all on-crit self states sourced from anywhere on the attacker.
@@ -940,7 +941,8 @@ Game_Action.prototype.onCritTargetStates = function() {
 * @returns {JABS_OnChanceEffect[]}
 */
 Game_Action.prototype.onCritSelfStates = function() {
-	return RPGManager.getOnChanceEffectsFromDatabaseObjects(this.subject().getAllNotes(), J.CRIT.RegExp.OnCritSelf);
+	const notes = this.subject().getAllNotes();
+	return RPGManager.getOnChanceEffectsFromDatabaseObjects(notes, J.CRIT.RegExp.OnCritSelf);
 };
 /**
 * Overwrites {@link #applyCritical}.<br/>
@@ -1153,8 +1155,10 @@ var CritParameterRegistration = class {
 	* Registers CDM and CTR with the parameter catalog.
 	*/
 	static registerAll() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier())).build());
-		ParameterRegistry.register(ParameterDefinition.Builder().key("ctr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.ctr).sdpBinding(SdpParameterBinding.byKey("ctr", (actor) => actor.baseCriticalReduction())).build());
+		const criticalDamageMultiplier = ParameterDefinition.Builder().key("cdm").group(ParameterGroups.PRECISION).sortOrder(6).label(() => TextManager.critParam(0)).description(() => TextManager.critParamDescription(0)).iconIndex(() => IconManager.critParam(0)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdm).sdpBinding(SdpParameterBinding.byKey("cdm", (actor) => actor.baseCriticalMultiplier())).build();
+		ParameterRegistry.register(criticalDamageMultiplier);
+		const criticalToleranceRate = ParameterDefinition.Builder().key("ctr").group(ParameterGroups.PRECISION).sortOrder(7).label(() => TextManager.critParam(1)).description(() => TextManager.critParamDescription(1)).iconIndex(() => IconManager.critParam(1)).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.ctr).sdpBinding(SdpParameterBinding.byKey("ctr", (actor) => actor.baseCriticalReduction())).build();
+		ParameterRegistry.register(criticalToleranceRate);
 	}
 };
 

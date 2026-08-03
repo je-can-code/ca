@@ -381,7 +381,8 @@ var J_ProficiencyPluginMetadata = class J_ProficiencyPluginMetadata extends Plug
 	* Initializes the proficiencies from database and external data.
 	*/
 	initializeProficiencies() {
-		const classifiedConditionalData = ExternalJsonConfigLoader.load(J_ProficiencyPluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Proficiency").configName("proficiency configuration").mapper(J_ProficiencyPluginMetadata.classifyConditionals.bind(J_ProficiencyPluginMetadata)).logSummary((result) => [`- ${result.length} proficiency conditionals`]).build());
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Proficiency").configName("proficiency configuration").mapper(J_ProficiencyPluginMetadata.classifyConditionals.bind(J_ProficiencyPluginMetadata)).logSummary((result) => [`- ${result.length} proficiency conditionals`]).build();
+		const classifiedConditionalData = ExternalJsonConfigLoader.load(J_ProficiencyPluginMetadata.CONFIG_PATH, options);
 		/**
 		* The collection of all defined skill proficiencies.
 		* @type {ProficiencyConditional[]}
@@ -1025,7 +1026,8 @@ var ProfParameterRegistration = class {
 	* Registers proficiency bonus with the parameter catalog.
 	*/
 	static registerAll() {
-		ParameterRegistry.register(ParameterDefinition.Builder().key("prof").group(ParameterGroups.FATE).sortOrder(4).label(() => TextManager.proficiencyBonus()).description(() => TextManager.proficiencyDescription()).iconIndex(() => IconManager.proficiencyBoost()).format(ParameterFormat.FLAT).getValue((battler) => battler.prof).sdpBinding(SdpParameterBinding.byKey("prof", (actor) => actor.baseSkillProficiencyAmount())).build());
+		const proficiencyBonus = ParameterDefinition.Builder().key("prof").group(ParameterGroups.FATE).sortOrder(4).label(() => TextManager.proficiencyBonus()).description(() => TextManager.proficiencyDescription()).iconIndex(() => IconManager.proficiencyBoost()).format(ParameterFormat.FLAT).getValue((battler) => battler.prof).sdpBinding(SdpParameterBinding.byKey("prof", (actor) => actor.baseSkillProficiencyAmount())).build();
+		ParameterRegistry.register(proficiencyBonus);
 	}
 };
 

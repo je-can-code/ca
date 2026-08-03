@@ -983,7 +983,8 @@ var Window_SkillEquipSlots = class extends Window_Command {
 	* @returns {number}
 	*/
 	computeRenderableSlotCount() {
-		const baseline = Number(this.actor().maxSlots()) || 0;
+		const maxSlots = this.actor().maxSlots();
+		const baseline = Number(maxSlots) || 0;
 		let highest = -1;
 		const map = this.actor().slotMap();
 		for (const [slotIndex] of map) {
@@ -1601,7 +1602,8 @@ var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 	* Handles confirming a slot selection.
 	*/
 	onSlotOk() {
-		this.setFocusedSlotIndex(this.slotsWindow().index());
+		const slotIndex = this.slotsWindow().index();
+		this.setFocusedSlotIndex(slotIndex);
 		this.slotsWindow().deactivate();
 		this.skillsWindow().activate();
 		this.skillsWindow().select(0);
@@ -1647,7 +1649,8 @@ var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 	onSkillCancel() {
 		this.skillsWindow().deactivate();
 		this.slotsWindow().activate();
-		const skillIdInSlot = this.actor().getSkillIdInSlot(this.slotsWindow().index());
+		const slotIndex = this.slotsWindow().index();
+		const skillIdInSlot = this.actor().getSkillIdInSlot(slotIndex);
 		this.detailWindow().setSkillId(skillIdInSlot);
 	}
 	/**
@@ -1662,8 +1665,10 @@ var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 	* Wires the initial context between windows after all are created.
 	*/
 	wireWindows() {
-		this.skillsWindow().setSlotContext(this.slotsWindow().index());
-		const skillIdInSlot = this.actor().getSkillIdInSlot(this.slotsWindow().index());
+		const initialSlotIndex = this.slotsWindow().index();
+		this.skillsWindow().setSlotContext(initialSlotIndex);
+		const firstSlotIndex = this.slotsWindow().index();
+		const skillIdInSlot = this.actor().getSkillIdInSlot(firstSlotIndex);
 		this.detailWindow().setSkillId(skillIdInSlot);
 	}
 	/**
@@ -1681,10 +1686,12 @@ var Scene_SkillEquip = class extends Scene_ActorFacetBase {
 	refreshAll() {
 		this.ribbonWindow().refresh();
 		this.slotsWindow().refresh();
-		this.skillsWindow().setSlotContext(this.slotsWindow().index());
+		const selectedSlotIndex = this.slotsWindow().index();
+		this.skillsWindow().setSlotContext(selectedSlotIndex);
 		this.skillsWindow().refresh();
 		const currentSkill = this.skillsWindow().item();
-		const skillId = currentSkill ? currentSkill.id : this.actor().getSkillIdInSlot(this.slotsWindow().index());
+		const slotIndex = this.slotsWindow().index();
+		const skillId = currentSkill ? currentSkill.id : this.actor().getSkillIdInSlot(slotIndex);
 		this.detailWindow().setSkillId(skillId);
 	}
 };

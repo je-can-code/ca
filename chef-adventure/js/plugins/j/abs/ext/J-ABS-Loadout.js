@@ -927,7 +927,8 @@ var Scene_JabsLoadout = class Scene_JabsLoadout extends Scene_MenuFacetBase {
 	*/
 	createSpineWindow() {
 		const window = new Window_LoadoutSpine(this.spineWindowRect());
-		window.setRowHeight(this.slotColumns()[0].itemHeight());
+		const rowHeight = this.slotColumns()[0].itemHeight();
+		window.setRowHeight(rowHeight);
 		this.setSpineWindow(window);
 		this.addWindow(window);
 	}
@@ -1117,7 +1118,8 @@ var Scene_JabsLoadout = class Scene_JabsLoadout extends Scene_MenuFacetBase {
 	* @param {number} skillId The id to assign, or zero to empty the slot.
 	*/
 	commitAssignment(skillId) {
-		this.focusedPicker().actor().setEquippedSkill(this.focusedPicker().slotKey(), skillId);
+		const slotKey = this.focusedPicker().slotKey();
+		this.focusedPicker().actor().setEquippedSkill(slotKey, skillId);
 		SoundManager.playEquip();
 		this.focusedSlotColumn().refresh();
 		this.closePicker();

@@ -1538,7 +1538,8 @@ var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 	*/
 	update() {
 		if (this.getJabsBattler()) {
-			this.setBattler(this.getJabsBattler().getBattler());
+			const battler = this.getJabsBattler().getBattler();
+			this.setBattler(battler);
 		}
 		const valid = this.isValid();
 		if (valid === false) {

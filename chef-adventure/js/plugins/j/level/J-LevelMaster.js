@@ -442,7 +442,8 @@ var J_LevelPluginMetadata = class J_LevelPluginMetadata extends PluginMetadata {
 		this.initializeLevelMaster();
 	}
 	initializeLevelMaster() {
-		const config = ExternalJsonConfigLoader.load(J_LevelPluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-LevelMaster").configName("level configuration").build());
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-LevelMaster").configName("level configuration").build();
+		const config = ExternalJsonConfigLoader.load(J_LevelPluginMetadata.CONFIG_PATH, options);
 		/**
 		* Whether or not the scaling functionality is enabled.
 		* @type {boolean}

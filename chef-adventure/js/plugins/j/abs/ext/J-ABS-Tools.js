@@ -499,7 +499,8 @@ JABS_Battler.prototype.pullToCaster = function(action, caster) {
 	if (this.getCharacter().isJumping()) return;
 	const pullMagnitude = action.getBaseSkill().jabsPullForward;
 	if (pullMagnitude === null) return;
-	const resist = RPGManager.getSumFromAllNotesByRegex(this.getBattler().getAllNotes(), J.ABS.RegExp.KnockbackResist);
+	const notes = this.getBattler().getAllNotes();
+	const resist = RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.KnockbackResist);
 	if (resist >= 100) return;
 	const effectiveMagnitude = pullMagnitude * ((100 - resist) / 100);
 	const { unitX, unitY, maxPullDistance } = this.resolvePullVector(caster);

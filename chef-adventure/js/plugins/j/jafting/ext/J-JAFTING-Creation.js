@@ -1170,7 +1170,9 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 	*/
 	initializeConfiguration() {
 		const canLogLoadInfo = J_CraftingCreatePluginMetadata.#hasMinimumBaseVersion();
-		const classifiedCraftingConfig = ExternalJsonConfigLoader.load(J_CraftingCreatePluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-JAFTING-Creation").configName("crafting configuration").mapper(J_CraftingCreatePluginMetadata.classify.bind(J_CraftingCreatePluginMetadata)).logSummary(canLogLoadInfo ? (result) => [`- ${result.recipes().length} recipes`, `- ${result.categories().length} categories`] : null).build());
+		const summarize = canLogLoadInfo ? (result) => [`- ${result.recipes().length} recipes`, `- ${result.categories().length} categories`] : null;
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-JAFTING-Creation").configName("crafting configuration").mapper(J_CraftingCreatePluginMetadata.classify.bind(J_CraftingCreatePluginMetadata)).logSummary(summarize).build();
+		const classifiedCraftingConfig = ExternalJsonConfigLoader.load(J_CraftingCreatePluginMetadata.CONFIG_PATH, options);
 		/**
 		* The collection of all defined jafting recipes.
 		* @type {CraftingRecipe[]}

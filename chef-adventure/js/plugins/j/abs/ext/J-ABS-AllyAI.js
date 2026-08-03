@@ -1404,7 +1404,8 @@ JABS_Engine.prototype.continuedPrimaryBattleEffects = function(action, target) {
 */
 JABS_Engine.prototype.applyBattleMemories = function(result, action, target) {
 	if (!this.canApplyBattleMemories(target)) return;
-	const newMemory = new JABS_BattleMemory(target.getBattlerId(), action.getBaseSkill().id, action.getAction().calculateRawElementRate(target.getBattler()), result.hpDamage);
+	const elementRate = action.getAction().calculateRawElementRate(target.getBattler());
+	const newMemory = new JABS_BattleMemory(target.getBattlerId(), action.getBaseSkill().id, elementRate, result.hpDamage);
 	const attacker = action.getCaster();
 	attacker.applyBattleMemories(newMemory);
 };
@@ -1693,7 +1694,8 @@ Game_Map.prototype.parseBattlers = function() {
 * @returns {JABS_Battler[]}
 */
 Game_Map.prototype.parseAllyBattlers = function() {
-	return JABS_AiManager.convertFollowersToBattlers($gamePlayer.followers().data());
+	const followers = $gamePlayer.followers().data();
+	return JABS_AiManager.convertFollowersToBattlers(followers);
 };
 /**
 * Gets all ally battlers out of the collection of battlers.

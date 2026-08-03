@@ -4219,7 +4219,8 @@ var J_AbsPluginMetadata = class J_AbsPluginMetadata extends PluginMetadata {
 	* @returns {number}
 	*/
 	static parseMapAfflictionMaxSlots(rawValue) {
-		const parsedValue = Number.parseInt(String(rawValue).trim(), 10);
+		const trimmedValue = String(rawValue).trim();
+		const parsedValue = Number.parseInt(trimmedValue, 10);
 		if (Number.isFinite(parsedValue) === false || parsedValue < 1) {
 			return 8;
 		}
@@ -4275,8 +4276,7 @@ J.ABS.Helpers = {};
 */
 J.ABS.Helpers.forceMapReload = () => {
 	const mapId = $gameMap.mapId();
-	const { x } = $gamePlayer;
-	const { y } = $gamePlayer;
+	const { x, y } = $gamePlayer;
 	$gamePlayer.reserveTransfer(mapId, x, y);
 	$gamePlayer.requestMapReload();
 };
@@ -4330,7 +4330,8 @@ J.ABS.Helpers.PluginManager.TranslateElementalIcons = (obj) => {
 * @returns {object} The parsed root blob.
 */
 J.ABS.Helpers.loadExternalConfig = (configPath = "data/config.jabs.json") => {
-	const parsedConfig = ExternalJsonConfigLoader.load(configPath, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-ABS").configName("external configuration").build());
+	const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-ABS").configName("external configuration").build();
+	const parsedConfig = ExternalJsonConfigLoader.load(configPath, options);
 	const metadata = J.ABS.Metadata;
 	if (metadata === undefined) {
 		throw new Error("J.ABS.Metadata must be assigned before J.ABS.Helpers.loadExternalConfig().");
@@ -14278,7 +14279,8 @@ var JABS_Battler = class JABS_Battler {
 		this.setChannelTickCountdown(this.channelTickCountdown() - 1);
 		if (this.channelTickCountdown() <= 0) {
 			this.executeChannelTick();
-			this.setChannelTickCountdown(this.channelSourceAction().getBaseSkill().jabsChannelTickSpeed);
+			const tickSpeed = this.channelSourceAction().getBaseSkill().jabsChannelTickSpeed;
+			this.setChannelTickCountdown(tickSpeed);
 		}
 		this.setChannelDurationRemaining(this.channelDurationRemaining() - 1);
 		if (this.channelDurationRemaining() <= 0) {
@@ -14602,7 +14604,8 @@ var JABS_Battler = class JABS_Battler {
 			}
 			return;
 		}
-		this.removeAggroIfInvalid(this.getTarget().getUuid());
+		const targetUuid = this.getTarget().getUuid();
+		this.removeAggroIfInvalid(targetUuid);
 		const allAggros = this.getAggrosSortedHighestToLowest();
 		if (allAggros.length === 0) {
 			this.disengageTarget();
@@ -16147,7 +16150,8 @@ var JABS_Battler = class JABS_Battler {
 			this.stateSlipMp(state),
 			this.stateSlipTp(state)
 		];
-		const jabsState = $jabsEngine.getJabsStateByUuidAndStateId(this.getBattler().getUuid(), state.id);
+		const battlerUuid = this.getBattler().getUuid();
+		const jabsState = $jabsEngine.getJabsStateByUuidAndStateId(battlerUuid, state.id);
 		slipResources.forEach((slipAmount, index) => this.processSlipEffect(slipAmount, index, jabsState), this);
 	}
 	/**
@@ -19639,7 +19643,8 @@ var JABS_Engine = class JABS_Engine {
 		action.stampActionMapVisualNoteFromActionEvent(actionEventData, pageData);
 		actionEventSprite.setMoveFrequency(pageData.moveFrequency);
 		actionEventSprite.setMoveRoute(pageData.moveRoute);
-		actionEventSprite.setCastedDirection(action.getCaster().getCharacter().direction());
+		const casterDirection = action.getCaster().getCharacter().direction();
+		actionEventSprite.setCastedDirection(casterDirection);
 		this.applyActionToActionEventSprite(actionEventSprite, action);
 		actionEventSprite.start = () => false;
 		action.setActionSprite(actionEventSprite);
@@ -20238,7 +20243,8 @@ var JABS_Engine = class JABS_Engine {
 	*/
 	checkRetaliate(action, targetBattler) {
 		if (action.isRetaliation()) return;
-		if (JABS_TeamRules.isFriendly(action.getCaster().getTeam(), targetBattler.getTeam())) {
+		const casterTeam = action.getCaster().getTeam();
+		if (JABS_TeamRules.isFriendly(casterTeam, targetBattler.getTeam())) {
 			return;
 		}
 		if (targetBattler.isActor()) {
@@ -20385,7 +20391,8 @@ var JABS_Engine = class JABS_Engine {
 			const negativeRolls = retaliatorBattler.getNegativeRollsForSkill(skill);
 			const procCount = skillChance.resolveProcCount(positiveRolls, negativeRolls, retaliatorBattler);
 			for (let i = 0; i < procCount; i++) {
-				const retaliationActions = retaliator.createJabsActionFromSkill(skillChance.skillId, JABS_ActionOptions.Builder().setIsRetaliation(true).build());
+				const retaliationOptions = JABS_ActionOptions.Builder().setIsRetaliation(true).build();
+				const retaliationActions = retaliator.createJabsActionFromSkill(skillChance.skillId, retaliationOptions);
 				retaliationActions.forEach((retaliationAction) => retaliationAction.getAction().setTriggerDamage(hpDamage, mpDamage, tpDamage));
 				const attackerBattler = triggeringAction.getCaster();
 				const attackerDistance = retaliator.distanceToDesignatedTarget(attackerBattler);
@@ -22038,8 +22045,9 @@ var JABS_Action = class JABS_Action {
 	*/
 	static collectSyntheticVisualNoteFromActionEventPage(eventData, pageData) {
 		const lines = [];
-		if (eventData && eventData.note && String(eventData.note).trim()) {
-			lines.push(String(eventData.note).trim());
+		const trimmedNote = eventData && eventData.note ? String(eventData.note).trim() : String.empty;
+		if (trimmedNote) {
+			lines.push(trimmedNote);
 		}
 		if (!pageData || !pageData.list || pageData.list.length === 0) {
 			return lines.join("\n");
@@ -26450,7 +26458,8 @@ Game_Action.prototype.applyStateDamageMultipliers = function(baseDamage, target)
 * @returns {number} The total bonus percent from this tag type.
 */
 Game_Action.prototype.calculatePerDebuffBonusPct = function(target) {
-	const totalN = RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.PerDebuffBuff);
+	const notes = this.subject().getAllNotes();
+	const totalN = RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.PerDebuffBuff);
 	if (totalN === 0) return 0;
 	const debuffCount = target.states().filter((s) => s.isNegativeType()).length;
 	return totalN * debuffCount;
@@ -26534,7 +26543,8 @@ Game_Action.prototype.calculateThisBonusDamageIfSelfStatePct = function() {
 * @returns {number} The total bonus percent from all bonusDamage tags on the caster, or 0.
 */
 Game_Action.prototype.calculateBonusDamagePct = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.BonusDamage);
+	const notes = this.subject().getAllNotes();
+	return RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.BonusDamage);
 };
 /**
 * Calculates the unconditional flat percent damage bonus from the thisBonusDamage tag on this
@@ -26710,7 +26720,8 @@ Game_Action.prototype.countTargetStatesAuthoredByCaster = function(target) {
 * @returns {number} The total bonus percent from this tag type.
 */
 Game_Action.prototype.calculateBonusForMyStateCountPct = function(target) {
-	const perStatePct = RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.BonusDamageForMyStateCount);
+	const notes = this.subject().getAllNotes();
+	const perStatePct = RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.BonusDamageForMyStateCount);
 	if (perStatePct === 0) return 0;
 	return perStatePct * this.countTargetStatesAuthoredByCaster(target);
 };
@@ -26791,7 +26802,8 @@ Game_Action.prototype.calculateThisSkillHistoryBonusPct = function(uuid) {
 */
 Game_Action.prototype.calculateGeneralSkillHistoryBonusPct = function(uuid) {
 	let totalPct = 0;
-	const rawTags = RPGManager.getStringsFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.SkillHistoryBonus);
+	const notes = this.subject().getAllNotes();
+	const rawTags = RPGManager.getStringsFromAllNotesByRegex(notes, J.ABS.RegExp.SkillHistoryBonus);
 	if (!rawTags.length) return 0;
 	rawTags.forEach((rawTag) => {
 		const parsed = this.parseGeneralSkillHistoryBracket(rawTag);
@@ -26892,7 +26904,8 @@ Game_Action.prototype.calculateThisCastTimeDamageBonusPctPerSec = function() {
 * @returns {number} The summed percent-per-second rate from passive/equipment/state sources.
 */
 Game_Action.prototype.calculateGeneralCastTimeDamageBonusPctPerSec = function() {
-	return RPGManager.getSumFromAllNotesByRegex(this.subject().getAllNotes(), J.ABS.RegExp.CastTimeDamageBonus);
+	const notes = this.subject().getAllNotes();
+	return RPGManager.getSumFromAllNotesByRegex(notes, J.ABS.RegExp.CastTimeDamageBonus);
 };
 
 //#endregion
@@ -28761,7 +28774,8 @@ Game_Battler.prototype.removeState = function(stateId) {
 J.ABS.Aliased.Game_Battler.set("clearStates", Game_Battler.prototype.clearStates);
 Game_Battler.prototype.clearStates = function() {
 	if ($jabsEngine && this.getUuid() !== String.empty) {
-		const trackedStates = Array.from($jabsEngine.getJabsStatesByUuid(this.getUuid()).values());
+		const trackedStateValues = $jabsEngine.getJabsStatesByUuid(this.getUuid()).values();
+		const trackedStates = Array.from(trackedStateValues);
 		trackedStates.forEach((trackedState) => {
 			if (trackedState.expired) return;
 			if (trackedState.stateId === this.deathStateId()) return;
@@ -31418,7 +31432,8 @@ Game_Map.prototype.handleActionEventRemoval = function(actionToRemove) {
 */
 Game_Map.prototype.handleLootEventRemoval = function(lootToRemove) {
 	if (!lootToRemove.isJabsLoot()) return;
-	const lootMetadatas = this.lootEventsFromDataMapByUuid(lootToRemove.getJabsLoot().uuid());
+	const lootUuid = lootToRemove.getJabsLoot().uuid();
+	const lootMetadatas = this.lootEventsFromDataMapByUuid(lootUuid);
 	lootMetadatas.forEach((lootMetadata) => {
 		$dataMap.events[lootMetadata.lootIndex] = null;
 	});
@@ -31754,8 +31769,10 @@ Game_Unit.prototype.inBattle = function() {
 J.ABS.Aliased.Scene_Boot.set("onDatabaseLoaded", Scene_Boot.prototype.onDatabaseLoaded);
 Scene_Boot.prototype.onDatabaseLoaded = function() {
 	J.ABS.Aliased.Scene_Boot.get("onDatabaseLoaded").call(this);
-	ParameterRegistry.register(ParameterDefinition.Builder().key("cdr").group(ParameterGroups.SUPPORT).sortOrder(3).label(() => TextManager.cdr()).description(() => TextManager.cdrDescription()).iconIndex(() => IconManager.cdr()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).build());
-	ParameterRegistry.register(ParameterDefinition.Builder().key("per").group(ParameterGroups.PRECISION).sortOrder(3).label(() => TextManager.per()).description(() => TextManager.perDescription()).iconIndex(() => IconManager.per()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.per).build());
+	const cooldownReduction = ParameterDefinition.Builder().key("cdr").group(ParameterGroups.SUPPORT).sortOrder(3).label(() => TextManager.cdr()).description(() => TextManager.cdrDescription()).iconIndex(() => IconManager.cdr()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.cdr).build();
+	ParameterRegistry.register(cooldownReduction);
+	const parryExtension = ParameterDefinition.Builder().key("per").group(ParameterGroups.PRECISION).sortOrder(3).label(() => TextManager.per()).description(() => TextManager.perDescription()).iconIndex(() => IconManager.per()).format(ParameterFormat.PERCENT_SUFFIX).getValue((battler) => battler.per).build();
+	ParameterRegistry.register(parryExtension);
 };
 
 //#endregion
@@ -32147,7 +32164,8 @@ var Sprite_MapCastGauge = class extends Sprite_MapGauge {
 	*/
 	update() {
 		if (this.getJabsBattler()) {
-			this.setBattler(this.getJabsBattler().getBattler());
+			const battler = this.getJabsBattler().getBattler();
+			this.setBattler(battler);
 		}
 		const valid = this.isValid();
 		if (valid === false) {
@@ -34172,7 +34190,8 @@ Spriteset_Map.prototype.refreshExistingCastPreviewSprites = function() {
 Spriteset_Map.prototype.purgeOrphanedCastPreviewSprites = function() {
 	const dict = this.castPreviewSprites();
 	const layer = this.getCastPreviewLayer();
-	const activeKeys = new Set(this.collectActiveCastPreviewItems().map((it) => it.key));
+	const activeCastPreviewKeys = this.collectActiveCastPreviewItems().map((it) => it.key);
+	const activeKeys = new Set(activeCastPreviewKeys);
 	Object.keys(dict).forEach((key) => {
 		if (activeKeys.has(key)) return;
 		const sprite = dict[key];
@@ -34505,7 +34524,8 @@ Spriteset_Map.prototype.refreshExistingActionHitboxSprites = function() {
 * Removes hitbox sprites that no longer correspond to an active action.
 */
 Spriteset_Map.prototype.purgeOrphanedActionHitboxSprites = function() {
-	const activeKeys = new Set($gameMap.actionEvents().map((ev) => ev.getJabsActionUuid()));
+	const activeActionUuids = $gameMap.actionEvents().map((ev) => ev.getJabsActionUuid());
+	const activeKeys = new Set(activeActionUuids);
 	const dict = this.getActionHitboxSprites();
 	const layer = this.getJabsHitboxLayer();
 	Object.keys(dict).forEach((key) => {
@@ -34795,7 +34815,8 @@ Spriteset_Map.prototype.refreshExistingBattlerHitboxSprites = function(itemMode 
 * @param {'all'|'colliding'} itemMode Filter mode.
 */
 Spriteset_Map.prototype.purgeOrphanedBattlerHitboxSprites = function(itemMode = "all") {
-	const active = new Set(this.collectBattlerOverlayItems(itemMode).map((it) => it.key));
+	const activeOverlayKeys = this.collectBattlerOverlayItems(itemMode).map((it) => it.key);
+	const active = new Set(activeOverlayKeys);
 	const dict = this.getBattlerHitboxSprites();
 	const layer = this.getJabsHitboxLayer();
 	Object.keys(dict).forEach((key) => {

@@ -795,7 +795,8 @@ var J_DiffPluginMetadata = class J_DiffPluginMetadata extends PluginMetadata {
 	* Loads difficulty layers from {@link J_DiffPluginMetadata.CONFIG_PATH}.
 	*/
 	initializeDifficulties() {
-		const classifiedMetadatas = ExternalJsonConfigLoader.load(J_DiffPluginMetadata.CONFIG_PATH, ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Difficulty").configName("difficulty configuration").mapper(J_DiffPluginMetadata.classifyDifficulties.bind(J_DiffPluginMetadata)).logSummary((result) => [`- ${result.size} difficulty layers`]).build());
+		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-Difficulty").configName("difficulty configuration").mapper(J_DiffPluginMetadata.classifyDifficulties.bind(J_DiffPluginMetadata)).logSummary((result) => [`- ${result.size} difficulty layers`]).build();
+		const classifiedMetadatas = ExternalJsonConfigLoader.load(J_DiffPluginMetadata.CONFIG_PATH, options);
 		/**
 		* A map of difficulty layer metadatas by their key.
 		* @type {Map<string, DifficultyMetadata>}

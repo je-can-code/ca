@@ -80,7 +80,8 @@ J.SKS.EXT.ABS.Aliased.Game_Actor = new Map();
 * @returns {RPG_Skill[]}
 */
 function filterToEquippedOrExempt(actor, candidates) {
-	const equippedIds = new Set(actor.equippedSkills().map((skill) => skill.id));
+	const equippedSkillIds = actor.equippedSkills().map((skill) => skill.id);
+	const equippedIds = new Set(equippedSkillIds);
 	return candidates.filter((skill) => skill.unslotted === true || equippedIds.has(skill.id));
 }
 /**
@@ -111,7 +112,8 @@ J.SKS.EXT.ABS.Aliased.Game_Actor.set("buildOffhandAssignableSkillPool", Game_Act
 Game_Actor.prototype.buildOffhandAssignableSkillPool = function() {
 	const candidates = J.SKS.EXT.ABS.Aliased.Game_Actor.get("buildOffhandAssignableSkillPool").call(this);
 	const mainhandProvidedSkillId = this.getMainhandProvidedOffhandSkillId();
-	const equippedIds = new Set(this.equippedSkills().map((skill) => skill.id));
+	const equippedSkillIds = this.equippedSkills().map((skill) => skill.id);
+	const equippedIds = new Set(equippedSkillIds);
 	return candidates.filter((skill) => skill.unslotted === true || equippedIds.has(skill.id) || skill.id === mainhandProvidedSkillId);
 };
 /**

@@ -404,7 +404,8 @@ var FormulaEffect = class FormulaEffect {
 	* @returns {boolean} True if valid, false otherwise.
 	*/
 	static isValidTrigger(trigger) {
-		return this.#TRIGGERS.has(String(trigger ?? "").toLowerCase());
+		const normalized = String(trigger ?? "").toLowerCase();
+		return this.#TRIGGERS.has(normalized);
 	}
 	/**
 	* Determines if a string is a valid affect literal.
@@ -412,7 +413,8 @@ var FormulaEffect = class FormulaEffect {
 	* @returns {boolean} True if valid, false otherwise.
 	*/
 	static isValidAffect(affect) {
-		return this.#AFFECTS.has(String(affect ?? "").toLowerCase());
+		const normalized = String(affect ?? "").toLowerCase();
+		return this.#AFFECTS.has(normalized);
 	}
 	/**
 	* Determines if a string is a valid resource literal.
@@ -420,7 +422,8 @@ var FormulaEffect = class FormulaEffect {
 	* @returns {boolean} True if valid, false otherwise.
 	*/
 	static isValidResource(resource) {
-		return this.#RESOURCES.has(String(resource ?? "").toLowerCase());
+		const normalized = String(resource ?? "").toLowerCase();
+		return this.#RESOURCES.has(normalized);
 	}
 	/**
 	* Determines if a string is a valid mode literal.
@@ -428,7 +431,8 @@ var FormulaEffect = class FormulaEffect {
 	* @returns {boolean} True if valid, false otherwise.
 	*/
 	static isValidMode(mode) {
-		return this.#MODES.has(String(mode ?? "").toLowerCase());
+		const normalized = String(mode ?? "").toLowerCase();
+		return this.#MODES.has(normalized);
 	}
 	/**
 	* Normalizes a candidate trigger string to a valid constant (lowercased), or returns null.
@@ -761,7 +765,8 @@ Game_Action.prototype.evaluateFormula = function(formula, source, recipient, ite
 		console.trace();
 		throw err;
 	}
-	return parseFloat(Number(result).toFixed(3));
+	const rounded = Number(result).toFixed(3);
+	return parseFloat(rounded);
 };
 /**
 * Applies a by-formula packet to a single recipient using the full battle pipeline.
