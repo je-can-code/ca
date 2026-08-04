@@ -434,21 +434,21 @@ IconManager.tst = function() {
 var HealEventManager = class {
 	/**
 	* Gets the current depth.
-	* @returns {*} The currentDepth.
+	* @returns {number} The currentDepth.
 	*/
 	static currentDepth() {
 		return this._currentDepth;
 	}
 	/**
 	* Sets the current depth.
-	* @param {*} newCurrentDepth The new currentDepth.
+	* @param {number} newCurrentDepth The new currentDepth.
 	*/
 	static setCurrentDepth(newCurrentDepth) {
 		this._currentDepth = newCurrentDepth;
 	}
 	/**
 	* Gets the self blocked tags.
-	* @returns {*} The selfBlockedTags.
+	* @returns {Set<string>} The selfBlockedTags.
 	*/
 	static selfBlockedTags() {
 		return this._selfBlockedTags;

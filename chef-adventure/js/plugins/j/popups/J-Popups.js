@@ -1038,7 +1038,10 @@ var PopupNumericDisplay = class {
 var Sprite_MapDamage = class extends Sprite_Damage {
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_popups: {_mapAccumulatePhase: boolean, _mergePulseFrameIndex: number,
+	* _mergePulseTotalFrames: number, _mergePulseBaseFrames: number, _mergePulseHoldFrames: number,
+	* _mergePulsePeakScale: number, _mergePulseFlashMaxAlpha: number,
+	* _mergePulseFlashAlpha: number}}} The j.
 	*/
 	j() {
 		return this._j;
@@ -1059,11 +1062,10 @@ var Sprite_MapDamage = class extends Sprite_Damage {
 	}
 	/**
 	* Constructor.
-	* @param {...*} args Forwarded to {@link #initialize}.
 	*/
-	constructor(...args) {
+	constructor() {
 		super();
-		this.initialize(...args);
+		this.initialize();
 	}
 	/**
 	* Runs after {@link Sprite_Damage.prototype.initialize}.
@@ -1970,7 +1972,7 @@ Sprite_Damage.prototype.setIsCritical = function(newIsCritical) {
 };
 /**
 * Gets the text accent.
-* @returns {*} The textAccent.
+* @returns {string|null} The textAccent.
 */
 Sprite_Damage.prototype.textAccent = function() {
 	return this._j._popups._textAccent;
@@ -2185,28 +2187,28 @@ Sprite_Character.prototype.updateNonDamagePopLocation = function(nonDamageSprite
 };
 /**
 * Gets the damage pop sprites.
-* @returns {*} The damagePopSprites.
+* @returns {Sprite_Damage[]} The damagePopSprites.
 */
 Sprite_Character.prototype.damagePopSprites = function() {
 	return this._j._popups._damagePopSprites;
 };
 /**
 * Sets the damage pop sprites.
-* @param {*} newDamagePopSprites The new damagePopSprites.
+* @param {Sprite_Damage[]} newDamagePopSprites The new damagePopSprites.
 */
 Sprite_Character.prototype.setDamagePopSprites = function(newDamagePopSprites) {
 	this._j._popups._damagePopSprites = newDamagePopSprites;
 };
 /**
 * Gets the non damage pop sprites.
-* @returns {*} The nonDamagePopSprites.
+* @returns {Sprite_Damage[]} The nonDamagePopSprites.
 */
 Sprite_Character.prototype.nonDamagePopSprites = function() {
 	return this._j._popups._nonDamagePopSprites;
 };
 /**
 * Sets the non damage pop sprites.
-* @param {*} newNonDamagePopSprites The new nonDamagePopSprites.
+* @param {Sprite_Damage[]} newNonDamagePopSprites The new nonDamagePopSprites.
 */
 Sprite_Character.prototype.setNonDamagePopSprites = function(newNonDamagePopSprites) {
 	this._j._popups._nonDamagePopSprites = newNonDamagePopSprites;
@@ -2292,14 +2294,14 @@ Game_Character.prototype.clearPendingTextPops = function() {
 };
 /**
 * Gets the text pop request.
-* @returns {*} The textPopRequest.
+* @returns {boolean} The textPopRequest.
 */
 Game_Character.prototype.isTextPopRequest = function() {
 	return this._j._textPopRequest;
 };
 /**
 * Sets the text pop request.
-* @param {*} newTextPopRequest The new textPopRequest.
+* @param {boolean} newTextPopRequest The new textPopRequest.
 */
 Game_Character.prototype.setTextPopRequest = function(newTextPopRequest) {
 	this._j._textPopRequest = newTextPopRequest;

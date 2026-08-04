@@ -777,14 +777,14 @@ Object.defineProperty(Game_Actor.prototype, "prof", {
 });
 /**
 * Gets the bonus skill proficiency gains.
-* @returns {*} The bonusSkillProficiencyGains.
+* @returns {number} The bonusSkillProficiencyGains.
 */
 Game_Actor.prototype.bonusSkillProficiencyGains = function() {
 	return this._j._proficiency._bonusSkillProficiencyGains;
 };
 /**
 * Sets the bonus skill proficiency gains.
-* @param {*} newBonusSkillProficiencyGains The new bonusSkillProficiencyGains.
+* @param {number} newBonusSkillProficiencyGains The new bonusSkillProficiencyGains.
 */
 Game_Actor.prototype.setBonusSkillProficiencyGains = function(newBonusSkillProficiencyGains) {
 	this._j._proficiency._bonusSkillProficiencyGains = newBonusSkillProficiencyGains;

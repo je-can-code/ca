@@ -903,42 +903,42 @@ Game_Battler.prototype.onStateRemoval = function(stateId) {
 };
 /**
 * Gets the state ids.
-* @returns {*} The stateIds.
+* @returns {number[]|null} The stateIds.
 */
 Game_Battler.prototype.stateIds = function() {
 	return this._j._passive._stateIds;
 };
 /**
 * Sets the state ids.
-* @param {*} newStateIds The new stateIds.
+* @param {number[]|null} newStateIds The new stateIds.
 */
 Game_Battler.prototype.setStateIds = function(newStateIds) {
 	this._j._passive._stateIds = newStateIds;
 };
 /**
 * Gets the external state sources.
-* @returns {*} The externalStateSources.
+* @returns {RPG_BaseItem[]} The externalStateSources.
 */
 Game_Battler.prototype.externalStateSources = function() {
 	return this._j._passive._externalStateSources;
 };
 /**
 * Sets the external state sources.
-* @param {*} newExternalStateSources The new externalStateSources.
+* @param {RPG_BaseItem[]} newExternalStateSources The new externalStateSources.
 */
 Game_Battler.prototype.setExternalStateSources = function(newExternalStateSources) {
 	this._j._passive._externalStateSources = newExternalStateSources;
 };
 /**
 * Gets the passive sources.
-* @returns {*} The passiveSources.
+* @returns {RPG_BaseItem[]} The passiveSources.
 */
 Game_Battler.prototype.passiveSources = function() {
 	return this._j._passive._passiveSources;
 };
 /**
 * Sets the passive sources.
-* @param {*} newPassiveSources The new passiveSources.
+* @param {RPG_BaseItem[]} newPassiveSources The new passiveSources.
 */
 Game_Battler.prototype.setPassiveSources = function(newPassiveSources) {
 	this._j._passive._passiveSources = newPassiveSources;
@@ -1155,14 +1155,14 @@ Game_Party.prototype.setStates = function(newStates) {
 };
 /**
 * Gets the cached states.
-* @returns {*} The cachedStates.
+* @returns {RPG_State[]} The cachedStates.
 */
 Game_Party.prototype.cachedStates = function() {
 	return this._j._passive._cachedStates;
 };
 /**
 * Sets the cached states.
-* @param {*} newCachedStates The new cachedStates.
+* @param {RPG_State[]} newCachedStates The new cachedStates.
 */
 Game_Party.prototype.setCachedStates = function(newCachedStates) {
 	this._j._passive._cachedStates = newCachedStates;
@@ -2810,14 +2810,15 @@ var Scene_Passive = class extends Scene_ActorFacetBase {
 	}
 	/**
 	* Gets the tab registry.
-	* @returns {*} The tabRegistry.
+	* @returns {Array<{key: string, label: string, filter: Function|null}>} The tabRegistry.
 	*/
 	static tabRegistry() {
 		return this._tabRegistry;
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_passive: {_windows: {_tabHeader: Window_Base|null, _list: Window_Base|null,
+	* _detail: Window_Base|null}, _tabIndex: number}}} The j.
 	*/
 	j() {
 		return this._j;

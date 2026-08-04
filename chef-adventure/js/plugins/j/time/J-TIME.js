@@ -1520,7 +1520,7 @@ var Game_Time = class Game_Time {
 	}
 	/**
 	* Gets the visible.
-	* @returns {*} The visible.
+	* @returns {boolean} The visible.
 	*/
 	isVisible() {
 		return this._visible;
@@ -1548,28 +1548,28 @@ var Game_Time = class Game_Time {
 	}
 	/**
 	* Gets the hours.
-	* @returns {*} The hours.
+	* @returns {number} The hours.
 	*/
 	hours() {
 		return this._hours;
 	}
 	/**
 	* Sets the hours.
-	* @param {*} newHours The new hours.
+	* @param {number} newHours The new hours.
 	*/
 	setHours(newHours) {
 		this._hours = newHours;
 	}
 	/**
 	* Gets the months.
-	* @returns {*} The months.
+	* @returns {number} The months.
 	*/
 	months() {
 		return this._months;
 	}
 	/**
 	* Sets the months.
-	* @param {*} newMonths The new months.
+	* @param {number} newMonths The new months.
 	*/
 	setMonths(newMonths) {
 		this._months = newMonths;
@@ -1604,63 +1604,63 @@ var Game_Time = class Game_Time {
 	}
 	/**
 	* Gets the days.
-	* @returns {*} The days.
+	* @returns {number} The days.
 	*/
 	days() {
 		return this._days;
 	}
 	/**
 	* Sets the days.
-	* @param {*} newDays The new days.
+	* @param {number} newDays The new days.
 	*/
 	setDays(newDays) {
 		this._days = newDays;
 	}
 	/**
 	* Gets the years.
-	* @returns {*} The years.
+	* @returns {number} The years.
 	*/
 	years() {
 		return this._years;
 	}
 	/**
 	* Sets the years.
-	* @param {*} newYears The new years.
+	* @param {number} newYears The new years.
 	*/
 	setYears(newYears) {
 		this._years = newYears;
 	}
 	/**
 	* Gets the minutes per tick.
-	* @returns {*} The minutesPerTick.
+	* @returns {number} The minutesPerTick.
 	*/
 	minutesPerTick() {
 		return this._minutesPerTick;
 	}
 	/**
 	* Gets the hours per tick.
-	* @returns {*} The hoursPerTick.
+	* @returns {number} The hoursPerTick.
 	*/
 	hoursPerTick() {
 		return this._hoursPerTick;
 	}
 	/**
 	* Gets the days per tick.
-	* @returns {*} The daysPerTick.
+	* @returns {number} The daysPerTick.
 	*/
 	daysPerTick() {
 		return this._daysPerTick;
 	}
 	/**
 	* Gets the months per tick.
-	* @returns {*} The monthsPerTick.
+	* @returns {number} The monthsPerTick.
 	*/
 	monthsPerTick() {
 		return this._monthsPerTick;
 	}
 	/**
 	* Gets the years per tick.
-	* @returns {*} The yearsPerTick.
+	* @returns {number} The yearsPerTick.
 	*/
 	yearsPerTick() {
 		return this._yearsPerTick;

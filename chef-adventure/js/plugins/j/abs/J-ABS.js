@@ -6201,7 +6201,7 @@ var JABS_HitboxPulseOptions = class JABS_HitboxPulseOptions {
 var Sprite_HitboxPulse = class extends Sprite {
 	/**
 	* Gets the sustained.
-	* @returns {*} The sustained.
+	* @returns {boolean} The sustained.
 	*/
 	isSustained() {
 		return this._sustained;
@@ -6299,14 +6299,14 @@ var Sprite_HitboxPulse = class extends Sprite {
 	}
 	/**
 	* Gets the line color.
-	* @returns {*} The lineColor.
+	* @returns {number} The lineColor.
 	*/
 	lineColor() {
 		return this._lineColor;
 	}
 	/**
 	* Sets the line color.
-	* @param {*} newLineColor The new lineColor.
+	* @param {number} newLineColor The new lineColor.
 	*/
 	setLineColor(newLineColor) {
 		this._lineColor = newLineColor;
@@ -6341,14 +6341,14 @@ var Sprite_HitboxPulse = class extends Sprite {
 	}
 	/**
 	* Gets the fill color.
-	* @returns {*} The fillColor.
+	* @returns {number} The fillColor.
 	*/
 	fillColor() {
 		return this._fillColor;
 	}
 	/**
 	* Sets the fill color.
-	* @param {*} newFillColor The new fillColor.
+	* @param {number} newFillColor The new fillColor.
 	*/
 	setFillColor(newFillColor) {
 		this._fillColor = newFillColor;
@@ -6369,14 +6369,14 @@ var Sprite_HitboxPulse = class extends Sprite {
 	}
 	/**
 	* Gets the shape.
-	* @returns {*} The shape.
+	* @returns {string} The shape.
 	*/
 	shape() {
 		return this._shape;
 	}
 	/**
 	* Sets the shape.
-	* @param {*} newShape The new shape.
+	* @param {string} newShape The new shape.
 	*/
 	setShape(newShape) {
 		this._shape = newShape;
@@ -7462,10 +7462,15 @@ var JABS_ActionSpawner = class {
 var JABS_BattlerRole = class {
 	/**
 	* Constructor.
-	* @param {...*} args Forwarded to {@link #initialize}.
+	* @param {boolean=} leader Whether this battler coordinates nearby followers.
+	* @param {boolean=} follower Whether this battler defers to a nearby leader.
+	* @param {boolean=} guardian Whether this battler protects a nearby ward.
+	* @param {boolean=} ward Whether this battler should be protected by nearby guardians.
+	* @param {boolean=} solo Whether this battler explicitly opts out of all coordination.
+	* @param {boolean=} sentinel Whether this battler holds position rather than pursuing.
 	*/
-	constructor(...args) {
-		this.initialize(...args);
+	constructor(leader = false, follower = false, guardian = false, ward = false, solo = false, sentinel = false) {
+		this.initialize(leader, follower, guardian, ward, solo, sentinel);
 	}
 	/**
 	* Initializes this role object.
@@ -8827,10 +8832,10 @@ var JABS_BattlerCoreDataBuilder = class {
 var JABS_BattlerCoreData = class {
 	/**
 	* Constructor.
-	* @param {...*} args Forwarded to {@link #initialize}.
+	* @param {object} coreData The bundle of core properties; see {@link #initialize} for its shape.
 	*/
-	constructor(...args) {
-		this.initialize(...args);
+	constructor(coreData) {
+		this.initialize(coreData);
 	}
 	/**
 	* Initializes this battler data object.
@@ -11525,7 +11530,7 @@ SerializableRegistry.register(JABS_SkillSlot, { typed: { cooldown: JABS_Cooldown
 var JABS_Battler = class JABS_Battler {
 	/**
 	* Gets the prepare ready.
-	* @returns {*} The prepareReady.
+	* @returns {boolean} The prepareReady.
 	*/
 	/**
 	* Sets the hidden.
@@ -11867,7 +11872,7 @@ var JABS_Battler = class JABS_Battler {
 	}
 	/**
 	* Gets the wait timer.
-	* @returns {*} The waitTimer.
+	* @returns {JABS_Timer} The waitTimer.
 	*/
 	waitTimer() {
 		return this._waitTimer;
@@ -17312,7 +17317,7 @@ var JABS_LootDrop = class {
 	}
 	/**
 	* Sets the duration.
-	* @param {*} newDuration The new duration.
+	* @param {number} newDuration The new duration.
 	*/
 	/**
 	* The duration that this loot drop will exist on the map.
@@ -21569,7 +21574,7 @@ var JABS_Action = class JABS_Action {
 	}
 	/**
 	* Gets the hits per connection bonus.
-	* @returns {*} The hitsPerConnectionBonus.
+	* @returns {number} The hitsPerConnectionBonus.
 	*/
 	hitsPerConnectionBonus() {
 		return this._hitsPerConnectionBonus;
@@ -21611,14 +21616,14 @@ var JABS_Action = class JABS_Action {
 	}
 	/**
 	* Gets the action map visual note holder.
-	* @returns {*} The actionMapVisualNoteHolder.
+	* @returns {{ note: string }|null} The actionMapVisualNoteHolder.
 	*/
 	actionMapVisualNoteHolder() {
 		return this._actionMapVisualNoteHolder;
 	}
 	/**
 	* Sets the action map visual note holder.
-	* @param {*} newActionMapVisualNoteHolder The new actionMapVisualNoteHolder.
+	* @param {{ note: string }|null} newActionMapVisualNoteHolder The new actionMapVisualNoteHolder.
 	*/
 	setActionMapVisualNoteHolder(newActionMapVisualNoteHolder) {
 		this._actionMapVisualNoteHolder = newActionMapVisualNoteHolder;
@@ -21653,7 +21658,7 @@ var JABS_Action = class JABS_Action {
 	}
 	/**
 	* Gets the delay.
-	* @returns {*} The delay.
+	* @returns {{_delayDuration: JABS_Timer, _triggerOnTouch: boolean, _triggerRadius: number|null}} The delay.
 	*/
 	delay() {
 		return this._delay;
@@ -22982,7 +22987,7 @@ var JABS_SkillSlotManager = class {
 	}
 	/**
 	* Gets the slots.
-	* @returns {*} The slots.
+	* @returns {JABS_SkillSlot[]} The slots.
 	*/
 	slots() {
 		return this._slots;
@@ -27877,14 +27882,14 @@ Game_Actor.prototype.turnEndOnMap = function() {
 };
 /**
 * Gets the death effect.
-* @returns {*} The deathEffect.
+* @returns {boolean} The deathEffect.
 */
 Game_Actor.prototype.deathEffect = function() {
 	return this._j._abs._deathEffect;
 };
 /**
 * Sets the death effect.
-* @param {*} newDeathEffect The new deathEffect.
+* @param {boolean} newDeathEffect The new deathEffect.
 */
 Game_Actor.prototype.setDeathEffect = function(newDeathEffect) {
 	this._j._abs._deathEffect = newDeathEffect;
@@ -29322,14 +29327,14 @@ Game_Battler.prototype.getResolvedSkillId = function(slot) {
 Game_Battler.prototype.regenerateAll = function() {};
 /**
 * Gets the last damage source.
-* @returns {*} The lastDamageSource.
+* @returns {{type: string, uuid: string, id: number}|null} The lastDamageSource.
 */
 Game_Battler.prototype.lastDamageSource = function() {
 	return this._j._abs._lastDamageSource;
 };
 /**
 * Sets the last damage source.
-* @param {*} newLastDamageSource The new lastDamageSource.
+* @param {{type: string, uuid: string, id: number}|null} newLastDamageSource The new lastDamageSource.
 */
 Game_Battler.prototype.setLastDamageSource = function(newLastDamageSource) {
 	this._j._abs._lastDamageSource = newLastDamageSource;
@@ -29343,7 +29348,7 @@ Game_Battler.prototype.uuid = function() {
 };
 /**
 * Gets the encore repeats.
-* @returns {*} The encoreRepeats.
+* @returns {number} The encoreRepeats.
 */
 Game_Battler.prototype.encoreRepeats = function() {
 	return this._j._abs._encoreRepeats;
@@ -30056,14 +30061,14 @@ Game_CharacterBase.prototype.glideTo = function(xPlus, yPlus) {
 };
 /**
 * Gets the no jump arc.
-* @returns {*} The noJumpArc.
+* @returns {boolean} The noJumpArc.
 */
 Game_CharacterBase.prototype.isNoJumpArc = function() {
 	return this._j._abs._noJumpArc;
 };
 /**
 * Sets the no jump arc.
-* @param {*} newNoJumpArc The new noJumpArc.
+* @param {boolean} newNoJumpArc The new noJumpArc.
 */
 Game_CharacterBase.prototype.setNoJumpArc = function(newNoJumpArc) {
 	this._j._abs._noJumpArc = newNoJumpArc;
@@ -32017,46 +32022,49 @@ var Sprite_MapCastGauge = class extends Sprite_MapGauge {
 	}
 	/**
 	* Gets the expected character.
-	* @returns {*} The expectedCharacter.
+	* @returns {Game_Character|null} The expectedCharacter.
 	*/
 	expectedCharacter() {
 		return this._expectedCharacter;
 	}
 	/**
 	* Sets the expected character.
-	* @param {*} newExpectedCharacter The new expectedCharacter.
+	* @param {Game_Character|null} newExpectedCharacter The new expectedCharacter.
 	*/
 	setExpectedCharacter(newExpectedCharacter) {
 		this._expectedCharacter = newExpectedCharacter;
 	}
 	/**
 	* Gets the expected uuid.
-	* @returns {*} The expectedUuid.
+	* @returns {string|null} The expectedUuid.
 	*/
 	expectedUuid() {
 		return this._expectedUuid;
 	}
 	/**
 	* Sets the expected uuid.
-	* @param {*} newExpectedUuid The new expectedUuid.
+	* @param {string|null} newExpectedUuid The new expectedUuid.
 	*/
 	setExpectedUuid(newExpectedUuid) {
 		this._expectedUuid = newExpectedUuid;
 	}
 	/**
 	* Gets the gauge.
-	* @returns {*} The gauge.
+	* @returns {{_bitmapWidth: number, _bitmapHeight: number, _gaugeHeight: number, _label: string,
+	* _value: number|null, _iconIndex: number, _iconSprite: Sprite|null, _activated: boolean}} The gauge.
 	*/
 	gauge() {
 		return this._gauge;
 	}
 	/**
 	* Constructor.
-	* @param {...*} args Forwarded to {@link #initialize}.
+	* @param {number=} bitmapWidth The bitmap width of this gauge.
+	* @param {number=} bitmapHeight The bitmap height of this gauge.
+	* @param {number=} gaugeHeight The height of the filled strip.
 	*/
-	constructor(...args) {
+	constructor(bitmapWidth = 128, bitmapHeight = 24, gaugeHeight = 10) {
 		super();
-		this.initialize(...args);
+		this.initialize(bitmapWidth, bitmapHeight, gaugeHeight);
 	}
 	/**
 	* Initializes this map cast gauge with the given parameters.
@@ -32601,6 +32609,7 @@ Sprite_Character.prototype.initGaugeMembers = function() {
 	this._j._abs._gauges._hpGauge = null;
 	/**
 	* The cast gauge for this sprite.
+	* @type {Sprite_MapCastGauge|null}
 	*/
 	this._j._abs._gauges._castGauge = null;
 	/**
@@ -33569,28 +33578,28 @@ Sprite_Character.prototype.shouldSwingDown = function() {
 };
 /**
 * Gets the jabs battler setup complete.
-* @returns {*} The jabsBattlerSetupComplete.
+* @returns {boolean} The jabsBattlerSetupComplete.
 */
 Sprite_Character.prototype.isJabsBattlerSetupComplete = function() {
 	return this._j._abs._jabsBattlerSetupComplete;
 };
 /**
 * Sets the jabs battler setup complete.
-* @param {*} newJabsBattlerSetupComplete The new jabsBattlerSetupComplete.
+* @param {boolean} newJabsBattlerSetupComplete The new jabsBattlerSetupComplete.
 */
 Sprite_Character.prototype.setJabsBattlerSetupComplete = function(newJabsBattlerSetupComplete) {
 	this._j._abs._jabsBattlerSetupComplete = newJabsBattlerSetupComplete;
 };
 /**
 * Gets the loot setup complete.
-* @returns {*} The lootSetupComplete.
+* @returns {boolean} The lootSetupComplete.
 */
 Sprite_Character.prototype.isLootSetupComplete = function() {
 	return this._j._abs._loot._lootSetupComplete;
 };
 /**
 * Sets the loot setup complete.
-* @param {*} newLootSetupComplete The new lootSetupComplete.
+* @param {boolean} newLootSetupComplete The new lootSetupComplete.
 */
 Sprite_Character.prototype.setLootSetupComplete = function(newLootSetupComplete) {
 	this._j._abs._loot._lootSetupComplete = newLootSetupComplete;
@@ -33611,28 +33620,28 @@ Sprite_Character.prototype.setStateOverlaySprite = function(newStateOverlaySprit
 };
 /**
 * Gets the cast gauge.
-* @returns {*} The castGauge.
+* @returns {Sprite_MapCastGauge|null} The castGauge.
 */
 Sprite_Character.prototype.castGauge = function() {
 	return this._j._abs._gauges._castGauge;
 };
 /**
 * Sets the cast gauge.
-* @param {*} newCastGauge The new castGauge.
+* @param {Sprite_MapCastGauge|null} newCastGauge The new castGauge.
 */
 Sprite_Character.prototype.setCastGauge = function(newCastGauge) {
 	this._j._abs._gauges._castGauge = newCastGauge;
 };
 /**
 * Gets the affliction strip.
-* @returns {*} The afflictionStrip.
+* @returns {Sprite_MapAfflictionStrip|null} The afflictionStrip.
 */
 Sprite_Character.prototype.afflictionStrip = function() {
 	return this._j._abs._gauges._afflictionStrip;
 };
 /**
 * Sets the affliction strip.
-* @param {*} newAfflictionStrip The new afflictionStrip.
+* @param {Sprite_MapAfflictionStrip|null} newAfflictionStrip The new afflictionStrip.
 */
 Sprite_Character.prototype.setAfflictionStrip = function(newAfflictionStrip) {
 	this._j._abs._gauges._afflictionStrip = newAfflictionStrip;
@@ -34954,84 +34963,84 @@ Spriteset_Map.prototype.destroyBattlerHitboxSprite = function(sprite) {
 };
 /**
 * Gets the debug hitbox layer.
-* @returns {*} The debugHitboxLayer.
+* @returns {Sprite} The debugHitboxLayer.
 */
 Spriteset_Map.prototype.debugHitboxLayer = function() {
 	return this._j._abs._debugHitboxLayer;
 };
 /**
 * Sets the debug hitbox layer.
-* @param {*} newDebugHitboxLayer The new debugHitboxLayer.
+* @param {Sprite} newDebugHitboxLayer The new debugHitboxLayer.
 */
 Spriteset_Map.prototype.setDebugHitboxLayer = function(newDebugHitboxLayer) {
 	this._j._abs._debugHitboxLayer = newDebugHitboxLayer;
 };
 /**
 * Gets the debug action hitbox sprites.
-* @returns {*} The debugActionHitboxSprites.
+* @returns {Record<string, Sprite>} The debugActionHitboxSprites.
 */
 Spriteset_Map.prototype.debugActionHitboxSprites = function() {
 	return this._j._abs._debugActionHitboxSprites;
 };
 /**
 * Sets the debug action hitbox sprites.
-* @param {*} newDebugActionHitboxSprites The new debugActionHitboxSprites.
+* @param {Record<string, Sprite>} newDebugActionHitboxSprites The new debugActionHitboxSprites.
 */
 Spriteset_Map.prototype.setDebugActionHitboxSprites = function(newDebugActionHitboxSprites) {
 	this._j._abs._debugActionHitboxSprites = newDebugActionHitboxSprites;
 };
 /**
 * Gets the debug battler hitbox sprites.
-* @returns {*} The debugBattlerHitboxSprites.
+* @returns {Record<string, Sprite>} The debugBattlerHitboxSprites.
 */
 Spriteset_Map.prototype.debugBattlerHitboxSprites = function() {
 	return this._j._abs._debugBattlerHitboxSprites;
 };
 /**
 * Sets the debug battler hitbox sprites.
-* @param {*} newDebugBattlerHitboxSprites The new debugBattlerHitboxSprites.
+* @param {Record<string, Sprite>} newDebugBattlerHitboxSprites The new debugBattlerHitboxSprites.
 */
 Spriteset_Map.prototype.setDebugBattlerHitboxSprites = function(newDebugBattlerHitboxSprites) {
 	this._j._abs._debugBattlerHitboxSprites = newDebugBattlerHitboxSprites;
 };
 /**
 * Gets the cast preview sprites.
-* @returns {*} The castPreviewSprites.
+* @returns {Record<string, Sprite>} The castPreviewSprites.
 */
 Spriteset_Map.prototype.castPreviewSprites = function() {
 	return this._j._abs._castPreviewSprites;
 };
 /**
 * Sets the cast preview sprites.
-* @param {*} newCastPreviewSprites The new castPreviewSprites.
+* @param {Record<string, Sprite>} newCastPreviewSprites The new castPreviewSprites.
 */
 Spriteset_Map.prototype.setCastPreviewSprites = function(newCastPreviewSprites) {
 	this._j._abs._castPreviewSprites = newCastPreviewSprites;
 };
 /**
 * Gets the cast preview layer.
-* @returns {*} The castPreviewLayer.
+* @returns {Sprite} The castPreviewLayer.
 */
 Spriteset_Map.prototype.castPreviewLayer = function() {
 	return this._j._abs._castPreviewLayer;
 };
 /**
 * Sets the cast preview layer.
-* @param {*} newCastPreviewLayer The new castPreviewLayer.
+* @param {Sprite} newCastPreviewLayer The new castPreviewLayer.
 */
 Spriteset_Map.prototype.setCastPreviewLayer = function(newCastPreviewLayer) {
 	this._j._abs._castPreviewLayer = newCastPreviewLayer;
 };
 /**
 * Gets the hitbox pulse layer.
-* @returns {*} The hitboxPulseLayer.
+* @returns {Sprite} The hitboxPulseLayer.
 */
 Spriteset_Map.prototype.hitboxPulseLayer = function() {
 	return this._j._abs._hitboxPulseLayer;
 };
 /**
 * Sets the hitbox pulse layer.
-* @param {*} newHitboxPulseLayer The new hitboxPulseLayer.
+* @param {Sprite} newHitboxPulseLayer The new hitboxPulseLayer.
 */
 Spriteset_Map.prototype.setHitboxPulseLayer = function(newHitboxPulseLayer) {
 	this._j._abs._hitboxPulseLayer = newHitboxPulseLayer;

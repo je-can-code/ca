@@ -1680,14 +1680,14 @@ Sprite_Character.prototype.hideShieldGauge = function() {
 };
 /**
 * Gets the shield gauge.
-* @returns {*} The shieldGauge.
+* @returns {Sprite_ShieldMapGauge|null} The shieldGauge.
 */
 Sprite_Character.prototype.shieldGauge = function() {
 	return this._j._abs._gauges._shieldGauge;
 };
 /**
 * Sets the shield gauge.
-* @param {*} newShieldGauge The new shieldGauge.
+* @param {Sprite_ShieldMapGauge|null} newShieldGauge The new shieldGauge.
 */
 Sprite_Character.prototype.setShieldGauge = function(newShieldGauge) {
 	this._j._abs._gauges._shieldGauge = newShieldGauge;
@@ -1883,7 +1883,7 @@ if (J.HUD && J.HUD.EXT.PARTY) {
 }
 /**
 * Gets the hud sprites.
-* @returns {*} The hudSprites.
+* @returns {Map<string, Sprite>} The hudSprites.
 */
 Window_PartyFrame.prototype.hudSprites = function() {
 	return this._hudSprites;

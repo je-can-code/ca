@@ -141,7 +141,7 @@ var Sprite_BaseSkillSlot = class extends Sprite_BaseText {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_skillSlot: JABS_SkillSlot|null}} The j.
 	*/
 	j() {
 		return this._j;
@@ -309,7 +309,7 @@ var Sprite_CooldownGauge = class extends Sprite {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_gcdMergeBattler: JABS_Battler|null, _gcdMergeSkillId: number}} The j.
 	*/
 	j() {
 		return this._j;
@@ -587,11 +587,13 @@ var Sprite_CooldownGauge = class extends Sprite {
 var Sprite_CooldownTimer = class extends Sprite {
 	/**
 	* Constructor.
-	* @param {...*} args Forwarded to {@link #initialize}.
+	* @param {string} skillType The slot's skill type key.
+	* @param {JABS_Cooldown} cooldownData The cooldown this timer reflects.
+	* @param {boolean=} isItem Whether the slot holds an item rather than a skill.
 	*/
-	constructor(...args) {
+	constructor(skillType, cooldownData, isItem = false) {
 		super();
-		this.initialize(...args);
+		this.initialize(skillType, cooldownData, isItem);
 	}
 	/**
 	* Initializes this cooldown timer sprite.
@@ -618,7 +620,7 @@ var Sprite_CooldownTimer = class extends Sprite {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_skillType: string, _cooldownData: JABS_Cooldown, _isItem: boolean}} The j.
 	*/
 	j() {
 		return this._j;
@@ -902,7 +904,8 @@ var Sprite_SkillSlotIcon = class extends Sprite_Icon {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_skillSlot: JABS_SkillSlot|null, _cooldownOverlaySprite: Sprite|null,
+	* _prevBaseReady: boolean, _prevComboReady: boolean, _pulseFrames: number}} The j.
 	*/
 	j() {
 		return this._j;
@@ -1114,7 +1117,8 @@ var Sprite_InputKeySlot = class extends Sprite {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_skillSlot: JABS_SkillSlot|null, _battler: JABS_Battler|null,
+	* _spriteCache: Map<string, Sprite>}} The j.
 	*/
 	j() {
 		return this._j;
@@ -1650,7 +1654,9 @@ var Window_InputFrame = class Window_InputFrame extends Window_Frame {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_battler: JABS_Battler|null, _needsRefresh: boolean,
+	* _last: {_skillTriggerHeld: boolean, _partyInCombat: boolean},
+	* _flip: {_progress: number, _max: number, _direction: number}}} The j.
 	*/
 	j() {
 		return this._j;

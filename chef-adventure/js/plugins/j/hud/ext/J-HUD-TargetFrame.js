@@ -703,7 +703,7 @@ var FramedTarget = class {
 var Sprite_FlowingGauge = class Sprite_FlowingGauge extends Sprite {
 	/**
 	* Gets the background bitmap.
-	* @returns {*} The backgroundBitmap.
+	* @returns {Bitmap|null} The backgroundBitmap.
 	*/
 	backgroundBitmap() {
 		return this._backgroundBitmap;
@@ -871,14 +871,14 @@ var Sprite_FlowingGauge = class Sprite_FlowingGauge extends Sprite {
 	}
 	/**
 	* Gets the gauge actual flow limit.
-	* @returns {*} The gaugeActualFlowLimit.
+	* @returns {number} The gaugeActualFlowLimit.
 	*/
 	gaugeActualFlowLimit() {
 		return this._gaugeActualFlowLimit;
 	}
 	/**
 	* Sets the gauge actual flow limit.
-	* @param {*} newGaugeActualFlowLimit The new gaugeActualFlowLimit.
+	* @param {number} newGaugeActualFlowLimit The new gaugeActualFlowLimit.
 	*/
 	setGaugeActualFlowLimit(newGaugeActualFlowLimit) {
 		this._gaugeActualFlowLimit = newGaugeActualFlowLimit;
@@ -2031,7 +2031,9 @@ var Window_TargetFrame = class Window_TargetFrame extends Window_Base {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_spriteCache: Map<string, Sprite>, _name: string, _nameColorHex: string, _text: string,
+	* _icon: number, _battler: Game_Battler|null, _requestTargetRefresh: boolean,
+	* _inactivityTimer: number}} The j.
 	*/
 	j() {
 		return this._j;
@@ -2509,7 +2511,7 @@ if (J.HUD && J.HUD.EXT.TARGET) {
 }
 /**
 * Gets the affliction presenter.
-* @returns {*} The afflictionPresenter.
+* @returns {StateAfflictionHudPresenter} The afflictionPresenter.
 */
 Window_TargetFrame.prototype.afflictionPresenter = function() {
 	return this._afflictionPresenter;
@@ -2523,7 +2525,7 @@ Window_TargetFrame.prototype.battler = function() {
 };
 /**
 * Gets the inactivity timer.
-* @returns {*} The inactivityTimer.
+* @returns {number} The inactivityTimer.
 */
 Window_TargetFrame.prototype.inactivityTimer = function() {
 	return this._j._inactivityTimer;

@@ -735,7 +735,7 @@ var Window_Frame = class extends Window_Base {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_spriteCache: Map<string, Sprite>}} The j.
 	*/
 	j() {
 		return this._j;

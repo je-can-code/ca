@@ -3347,7 +3347,7 @@ Game_System.prototype.disableForcedSdpDrops = function() {
 };
 /**
 * Determines whether or not the DEBUG functionality of forced-panel-dropping is active.
-* @returns {boolean|*|boolean}
+* @returns {boolean}
 */
 Game_System.prototype.shouldForceDropSdp = function() {
 	return this._j._sdp._forceDropPanels;
@@ -5032,7 +5032,9 @@ var Scene_SDP = class extends Scene_ActorFacetBase {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_sdp: {_windows: {_sdpList: Window_Base|null, _sdpHeader: Window_Base|null,
+	* _sdpParameterList: Window_Base|null, _sdpRewardList: Window_Base|null,
+	* _sdpMastery: Window_Base|null, _sdpCart: Window_Base|null}}}} The j.
 	*/
 	j() {
 		return this._j;

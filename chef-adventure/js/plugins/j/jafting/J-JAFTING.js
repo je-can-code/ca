@@ -1310,7 +1310,7 @@ var Window_SalvageConfirmation = class extends Window_Command {
 var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 	/**
 	* Gets the refund two column.
-	* @returns {*} The refundTwoColumn.
+	* @returns {boolean} The refundTwoColumn.
 	*/
 	/**
 	* Gets the dismantle amount.
@@ -1321,7 +1321,7 @@ var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 	}
 	/**
 	* Gets the datum.
-	* @returns {*} The datum.
+	* @returns {RPG_Item|RPG_Weapon|RPG_Armor|null} The datum.
 	*/
 	datum() {
 		return this._datum;
@@ -1334,7 +1334,7 @@ var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 	}
 	/**
 	* Sets the refund two column.
-	* @param {*} newRefundTwoColumn The new refundTwoColumn.
+	* @param {boolean} newRefundTwoColumn The new refundTwoColumn.
 	*/
 	setRefundTwoColumn(newRefundTwoColumn) {
 		this._refundTwoColumn = newRefundTwoColumn;
@@ -1595,28 +1595,28 @@ var Window_SalvagePreview = class Window_SalvagePreview extends Window_Base {
 var Scene_JaftingSalvage = class Scene_JaftingSalvage extends Scene_MenuBase {
 	/**
 	* Gets the last preview datum.
-	* @returns {*} The lastPreviewDatum.
+	* @returns {RPG_Item|RPG_Weapon|RPG_Armor|null} The lastPreviewDatum.
 	*/
 	lastPreviewDatum() {
 		return this._lastPreviewDatum;
 	}
 	/**
 	* Sets the last preview datum.
-	* @param {*} newLastPreviewDatum The new lastPreviewDatum.
+	* @param {RPG_Item|RPG_Weapon|RPG_Armor|null} newLastPreviewDatum The new lastPreviewDatum.
 	*/
 	setLastPreviewDatum(newLastPreviewDatum) {
 		this._lastPreviewDatum = newLastPreviewDatum;
 	}
 	/**
 	* Gets the last preview stack.
-	* @returns {*} The lastPreviewStack.
+	* @returns {number|null} The lastPreviewStack.
 	*/
 	lastPreviewStack() {
 		return this._lastPreviewStack;
 	}
 	/**
 	* Sets the last preview stack.
-	* @param {*} newLastPreviewStack The new lastPreviewStack.
+	* @param {number|null} newLastPreviewStack The new lastPreviewStack.
 	*/
 	setLastPreviewStack(newLastPreviewStack) {
 		this._lastPreviewStack = newLastPreviewStack;

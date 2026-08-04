@@ -535,7 +535,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	this._j._natural._harBuffRate = 0;
 	/**
 	* The permanent flat bonuses for each of the base parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._bParamsGrowthPlus = [
 		0,
@@ -549,7 +549,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The permanent multiplier bonuses for each of the base parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._bParamsGrowthRate = [
 		0,
@@ -563,7 +563,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The cache of temporary flat bonuses for each of the base parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._bParamsBuffPlus = [
 		0,
@@ -577,7 +577,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The cache of temporary multiplier bonuses for each of the base parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._bParamsBuffRate = [
 		0,
@@ -591,7 +591,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The permanent flat bonuses for each of the sp-parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._sParamsGrowthPlus = [
 		0,
@@ -607,7 +607,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The permanent multiplier bonuses for each of the sp-parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._sParamsGrowthRate = [
 		0,
@@ -623,7 +623,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The cache of temporary flat bonuses for each of the sp-parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._sParamsBuffPlus = [
 		0,
@@ -639,7 +639,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The cache of temporary multiplier bonuses for each of the sp-parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._sParamsBuffRate = [
 		0,
@@ -655,7 +655,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The permanent flat bonuses for each of the ex-parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._xParamsGrowthPlus = [
 		0,
@@ -671,7 +671,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The permanent multiplier bonuses for each of the ex-parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._xParamsGrowthRate = [
 		0,
@@ -687,7 +687,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The cache of temporary flat bonuses for each of the ex-parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._xParamsBuffPlus = [
 		0,
@@ -703,7 +703,7 @@ Game_Battler.prototype.initNaturalGrowthParameters = function() {
 	];
 	/**
 	* The cache of temporary multiplier bonuses for each of the ex-parameters.
-	* @type {number[]}
+	* @type {[number, number, number, number, number, number, number, number, number, number]}
 	*/
 	this._j._natural._xParamsBuffRate = [
 		0,
@@ -1080,7 +1080,7 @@ Game_Battler.prototype.setGoldPlus = function(goldPlus) {
 };
 /**
 * Gets the bonus to rewarded SDPs.
-* @returns {number|number|*}
+* @returns {number}
 */
 Game_Battler.prototype.sdpsPlus = function() {
 	return this._j._natural._sdpsPlus;
@@ -1467,126 +1467,130 @@ Game_Battler.prototype.getMaxTpBuff = function(baseParam) {
 };
 /**
 * Gets the b params growth plus.
-* @returns {*} The bParamsGrowthPlus.
+* @returns {[number, number, number, number, number, number, number, number]} The bParamsGrowthPlus.
 */
 Game_Battler.prototype.bParamsGrowthPlus = function() {
 	return this._j._natural._bParamsGrowthPlus;
 };
 /**
 * Gets the b params growth rate.
-* @returns {*} The bParamsGrowthRate.
+* @returns {[number, number, number, number, number, number, number, number]} The bParamsGrowthRate.
 */
 Game_Battler.prototype.bParamsGrowthRate = function() {
 	return this._j._natural._bParamsGrowthRate;
 };
 /**
 * Gets the b params buff plus.
-* @returns {*} The bParamsBuffPlus.
+* @returns {[number, number, number, number, number, number, number, number]} The bParamsBuffPlus.
 */
 Game_Battler.prototype.bParamsBuffPlus = function() {
 	return this._j._natural._bParamsBuffPlus;
 };
 /**
 * Sets the b params buff plus.
-* @param {*} newBParamsBuffPlus The new bParamsBuffPlus.
+* @param {[number, number, number, number, number, number, number, number]} newBParamsBuffPlus The new value.
 */
 Game_Battler.prototype.setBParamsBuffPlus = function(newBParamsBuffPlus) {
 	this._j._natural._bParamsBuffPlus = newBParamsBuffPlus;
 };
 /**
 * Gets the b params buff rate.
-* @returns {*} The bParamsBuffRate.
+* @returns {[number, number, number, number, number, number, number, number]} The bParamsBuffRate.
 */
 Game_Battler.prototype.bParamsBuffRate = function() {
 	return this._j._natural._bParamsBuffRate;
 };
 /**
 * Sets the b params buff rate.
-* @param {*} newBParamsBuffRate The new bParamsBuffRate.
+* @param {[number, number, number, number, number, number, number, number]} newBParamsBuffRate The new value.
 */
 Game_Battler.prototype.setBParamsBuffRate = function(newBParamsBuffRate) {
 	this._j._natural._bParamsBuffRate = newBParamsBuffRate;
 };
 /**
 * Gets the s params growth plus.
-* @returns {*} The sParamsGrowthPlus.
+* @returns {[number, number, number, number, number, number, number, number, number, number]} The sParamsGrowthPlus.
 */
 Game_Battler.prototype.sParamsGrowthPlus = function() {
 	return this._j._natural._sParamsGrowthPlus;
 };
 /**
 * Gets the s params growth rate.
-* @returns {*} The sParamsGrowthRate.
+* @returns {[number, number, number, number, number, number, number, number, number, number]} The sParamsGrowthRate.
 */
 Game_Battler.prototype.sParamsGrowthRate = function() {
 	return this._j._natural._sParamsGrowthRate;
 };
 /**
 * Gets the s params buff plus.
-* @returns {*} The sParamsBuffPlus.
+* @returns {[number, number, number, number, number, number, number, number, number, number]} The sParamsBuffPlus.
 */
 Game_Battler.prototype.sParamsBuffPlus = function() {
 	return this._j._natural._sParamsBuffPlus;
 };
 /**
 * Sets the s params buff plus.
-* @param {*} newSParamsBuffPlus The new sParamsBuffPlus.
+* @param {[number, number, number, number, number, number, number, number, number, number]} newSParamsBuffPlus
+* The new sParamsBuffPlus.
 */
 Game_Battler.prototype.setSParamsBuffPlus = function(newSParamsBuffPlus) {
 	this._j._natural._sParamsBuffPlus = newSParamsBuffPlus;
 };
 /**
 * Gets the s params buff rate.
-* @returns {*} The sParamsBuffRate.
+* @returns {[number, number, number, number, number, number, number, number, number, number]} The sParamsBuffRate.
 */
 Game_Battler.prototype.sParamsBuffRate = function() {
 	return this._j._natural._sParamsBuffRate;
 };
 /**
 * Sets the s params buff rate.
-* @param {*} newSParamsBuffRate The new sParamsBuffRate.
+* @param {[number, number, number, number, number, number, number, number, number, number]} newSParamsBuffRate
+* The new sParamsBuffRate.
 */
 Game_Battler.prototype.setSParamsBuffRate = function(newSParamsBuffRate) {
 	this._j._natural._sParamsBuffRate = newSParamsBuffRate;
 };
 /**
 * Gets the x params growth plus.
-* @returns {*} The xParamsGrowthPlus.
+* @returns {[number, number, number, number, number, number, number, number, number, number]} The xParamsGrowthPlus.
 */
 Game_Battler.prototype.xParamsGrowthPlus = function() {
 	return this._j._natural._xParamsGrowthPlus;
 };
 /**
 * Gets the x params growth rate.
-* @returns {*} The xParamsGrowthRate.
+* @returns {[number, number, number, number, number, number, number, number, number, number]} The xParamsGrowthRate.
 */
 Game_Battler.prototype.xParamsGrowthRate = function() {
 	return this._j._natural._xParamsGrowthRate;
 };
 /**
 * Gets the x params buff plus.
-* @returns {*} The xParamsBuffPlus.
+* @returns {[number, number, number, number, number, number, number, number, number, number]} The xParamsBuffPlus.
 */
 Game_Battler.prototype.xParamsBuffPlus = function() {
 	return this._j._natural._xParamsBuffPlus;
 };
 /**
 * Sets the x params buff plus.
-* @param {*} newXParamsBuffPlus The new xParamsBuffPlus.
+* @param {[number, number, number, number, number, number, number, number, number, number]} newXParamsBuffPlus
+* The new xParamsBuffPlus.
 */
 Game_Battler.prototype.setXParamsBuffPlus = function(newXParamsBuffPlus) {
 	this._j._natural._xParamsBuffPlus = newXParamsBuffPlus;
 };
 /**
 * Gets the x params buff rate.
-* @returns {*} The xParamsBuffRate.
+* @returns {[number, number, number, number, number, number, number, number, number, number]} The xParamsBuffRate.
 */
 Game_Battler.prototype.xParamsBuffRate = function() {
 	return this._j._natural._xParamsBuffRate;
 };
 /**
 * Sets the x params buff rate.
-* @param {*} newXParamsBuffRate The new xParamsBuffRate.
+* @param {[number, number, number, number, number, number, number, number, number, number]} newXParamsBuffRate
+* The new xParamsBuffRate.
 */
 Game_Battler.prototype.setXParamsBuffRate = function(newXParamsBuffRate) {
 	this._j._natural._xParamsBuffRate = newXParamsBuffRate;

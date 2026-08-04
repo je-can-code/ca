@@ -227,7 +227,7 @@ var Window_MoreEquipData = class extends Window_MoreData {
 var Window_EquipActorRibbon = class extends Window_ActorRibbon {
 	/**
 	* Gets the actor.
-	* @returns {*} The actor.
+	* @returns {Game_Actor} The actor.
 	*/
 	actor() {
 		return this._actor;

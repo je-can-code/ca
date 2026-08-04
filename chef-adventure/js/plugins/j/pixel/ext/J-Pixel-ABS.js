@@ -1467,28 +1467,28 @@ JABS_Battler.prototype.canDirectionalDodgeStepPass = function(character, directi
 };
 /**
 * Gets the pixel idle dest.
-* @returns {*} The pixelIdleDest.
+* @returns {{x: number, y: number}|null} The pixelIdleDest.
 */
 JABS_Battler.prototype.pixelIdleDest = function() {
 	return this._pixelIdleDest;
 };
 /**
 * Sets the pixel idle dest.
-* @param {*} newPixelIdleDest The new pixelIdleDest.
+* @param {{x: number, y: number}|null} newPixelIdleDest The new pixelIdleDest.
 */
 JABS_Battler.prototype.setPixelIdleDest = function(newPixelIdleDest) {
 	this._pixelIdleDest = newPixelIdleDest;
 };
 /**
 * Gets the pixel idle wait.
-* @returns {*} The pixelIdleWait.
+* @returns {number} The pixelIdleWait.
 */
 JABS_Battler.prototype.pixelIdleWait = function() {
 	return this._pixelIdleWait;
 };
 /**
 * Sets the pixel idle wait.
-* @param {*} newPixelIdleWait The new pixelIdleWait.
+* @param {number} newPixelIdleWait The new pixelIdleWait.
 */
 JABS_Battler.prototype.setPixelIdleWait = function(newPixelIdleWait) {
 	this._pixelIdleWait = newPixelIdleWait;
@@ -1715,28 +1715,28 @@ Spriteset_Map.prototype.getPixelAbsRevealHitboxStyle = function() {
 };
 /**
 * Gets the hitbox reveal layer.
-* @returns {*} The hitboxRevealLayer.
+* @returns {Sprite} The hitboxRevealLayer.
 */
 Spriteset_Map.prototype.hitboxRevealLayer = function() {
 	return this._j._pixel._abs._hitboxRevealLayer;
 };
 /**
 * Sets the hitbox reveal layer.
-* @param {*} newHitboxRevealLayer The new hitboxRevealLayer.
+* @param {Sprite} newHitboxRevealLayer The new hitboxRevealLayer.
 */
 Spriteset_Map.prototype.setHitboxRevealLayer = function(newHitboxRevealLayer) {
 	this._j._pixel._abs._hitboxRevealLayer = newHitboxRevealLayer;
 };
 /**
 * Gets the hitbox reveal sprites.
-* @returns {*} The hitboxRevealSprites.
+* @returns {Record<string, Sprite>} The hitboxRevealSprites.
 */
 Spriteset_Map.prototype.hitboxRevealSprites = function() {
 	return this._j._pixel._abs._hitboxRevealSprites;
 };
 /**
 * Sets the hitbox reveal sprites.
-* @param {*} newHitboxRevealSprites The new hitboxRevealSprites.
+* @param {Record<string, Sprite>} newHitboxRevealSprites The new hitboxRevealSprites.
 */
 Spriteset_Map.prototype.setHitboxRevealSprites = function(newHitboxRevealSprites) {
 	this._j._pixel._abs._hitboxRevealSprites = newHitboxRevealSprites;

@@ -619,7 +619,7 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	}
 	/**
 	* Gets the motion type.
-	* @returns {*} The motionType.
+	* @returns {string} The motionType.
 	*/
 	motionType() {
 		return this._motionType;
@@ -633,28 +633,28 @@ var JuiceWeaponSwingMotionEffect = class JuiceWeaponSwingMotionEffect extends Ju
 	}
 	/**
 	* Gets the trail.
-	* @returns {*} The trail.
+	* @returns {{sprite: Sprite, ttl: number}[]} The trail.
 	*/
 	trail() {
 		return this._trail;
 	}
 	/**
 	* Sets the trail.
-	* @param {*} newTrail The new trail.
+	* @param {{sprite: Sprite, ttl: number}[]} newTrail The new trail.
 	*/
 	setTrail(newTrail) {
 		this._trail = newTrail;
 	}
 	/**
 	* Gets the arc span degrees.
-	* @returns {*} The arcSpanDegrees.
+	* @returns {number} The arcSpanDegrees.
 	*/
 	arcSpanDegrees() {
 		return this._arcSpanDegrees;
 	}
 	/**
 	* Gets the base rotation.
-	* @returns {*} The baseRotation.
+	* @returns {number} The baseRotation.
 	*/
 	baseRotation() {
 		return this._baseRotation;
@@ -1565,14 +1565,14 @@ var JuiceProfileResolver = class JuiceProfileResolver {
 var JuiceTiltMotionEffect = class extends JuiceBaseEffect {
 	/**
 	* Gets the sprite.
-	* @returns {*} The sprite.
+	* @returns {Sprite} The sprite.
 	*/
 	sprite() {
 		return this._sprite;
 	}
 	/**
 	* Gets the base rotation.
-	* @returns {*} The baseRotation.
+	* @returns {number} The baseRotation.
 	*/
 	baseRotation() {
 		return this._baseRotation;
@@ -1600,7 +1600,7 @@ var JuiceTiltMotionEffect = class extends JuiceBaseEffect {
 	}
 	/**
 	* Gets the peak radians.
-	* @returns {*} The peakRadians.
+	* @returns {number} The peakRadians.
 	*/
 	peakRadians() {
 		return this._peakRadians;
@@ -1661,7 +1661,7 @@ var JuiceTiltMotionEffect = class extends JuiceBaseEffect {
 var JuiceSquishMotionEffect = class extends JuiceBaseEffect {
 	/**
 	* Gets the sprite.
-	* @returns {*} The sprite.
+	* @returns {Sprite} The sprite.
 	*/
 	sprite() {
 		return this._sprite;
@@ -1703,21 +1703,21 @@ var JuiceSquishMotionEffect = class extends JuiceBaseEffect {
 	}
 	/**
 	* Gets the intensity scale.
-	* @returns {*} The intensityScale.
+	* @returns {number} The intensityScale.
 	*/
 	intensityScale() {
 		return this._intensityScale;
 	}
 	/**
 	* Gets the repeats remaining.
-	* @returns {*} The repeatsRemaining.
+	* @returns {number} The repeatsRemaining.
 	*/
 	repeatsRemaining() {
 		return this._repeatsRemaining;
 	}
 	/**
 	* Sets the repeats remaining.
-	* @param {*} newRepeatsRemaining The new repeatsRemaining.
+	* @param {number} newRepeatsRemaining The new repeatsRemaining.
 	*/
 	setRepeatsRemaining(newRepeatsRemaining) {
 		this._repeatsRemaining = newRepeatsRemaining;
@@ -1791,7 +1791,7 @@ var JuiceSquishMotionEffect = class extends JuiceBaseEffect {
 var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
 	/**
 	* Gets the sprite.
-	* @returns {*} The sprite.
+	* @returns {Sprite} The sprite.
 	*/
 	sprite() {
 		return this._sprite;
@@ -1812,14 +1812,14 @@ var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
 	}
 	/**
 	* Gets the base blend color.
-	* @returns {*} The baseBlendColor.
+	* @returns {[number, number, number, number]} The baseBlendColor.
 	*/
 	baseBlendColor() {
 		return this._baseBlendColor;
 	}
 	/**
 	* Gets the base color tone.
-	* @returns {*} The baseColorTone.
+	* @returns {[number, number, number, number]} The baseColorTone.
 	*/
 	baseColorTone() {
 		return this._baseColorTone;
@@ -1840,7 +1840,7 @@ var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
 	}
 	/**
 	* Gets the amplitude scale.
-	* @returns {*} The amplitudeScale.
+	* @returns {number} The amplitudeScale.
 	*/
 	amplitudeScale() {
 		return this._amplitudeScale;
@@ -1929,14 +1929,14 @@ var JuiceCastingPulseMotionEffect = class extends JuiceBaseEffect {
 var JuiceFlipBodyMotionEffect = class extends JuiceBaseEffect {
 	/**
 	* Gets the sprite.
-	* @returns {*} The sprite.
+	* @returns {Sprite} The sprite.
 	*/
 	sprite() {
 		return this._sprite;
 	}
 	/**
 	* Gets the base rotation.
-	* @returns {*} The baseRotation.
+	* @returns {number} The baseRotation.
 	*/
 	baseRotation() {
 		return this._baseRotation;
@@ -1978,7 +1978,7 @@ var JuiceFlipBodyMotionEffect = class extends JuiceBaseEffect {
 	}
 	/**
 	* Gets the direction sign.
-	* @returns {*} The directionSign.
+	* @returns {number} The directionSign.
 	*/
 	directionSign() {
 		return this._directionSign;
@@ -2746,7 +2746,7 @@ Sprite_Character.prototype.updatePosition = function() {
 };
 /**
 * Gets the juice flipping.
-* @returns {*} The juiceFlipping.
+* @returns {boolean} The juiceFlipping.
 */
 Sprite_Character.prototype.juiceFlipping = function() {
 	return this._juiceFlipping;

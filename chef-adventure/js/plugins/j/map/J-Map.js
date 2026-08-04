@@ -738,7 +738,7 @@ var Sprite_MiniMap = class extends Sprite {
 	}
 	/**
 	* Gets the focus mode.
-	* @returns {*} The focusMode.
+	* @returns {boolean} The focusMode.
 	*/
 	isFocusMode() {
 		return this._focusMode;
@@ -766,28 +766,28 @@ var Sprite_MiniMap = class extends Sprite {
 	}
 	/**
 	* Gets the smooth fx.
-	* @returns {*} The smoothFx.
+	* @returns {number} The smoothFx.
 	*/
 	smoothFx() {
 		return this._smoothFx;
 	}
 	/**
 	* Sets the smooth fx.
-	* @param {*} newSmoothFx The new smoothFx.
+	* @param {number} newSmoothFx The new smoothFx.
 	*/
 	setSmoothFx(newSmoothFx) {
 		this._smoothFx = newSmoothFx;
 	}
 	/**
 	* Gets the smooth fy.
-	* @returns {*} The smoothFy.
+	* @returns {number} The smoothFy.
 	*/
 	smoothFy() {
 		return this._smoothFy;
 	}
 	/**
 	* Sets the smooth fy.
-	* @param {*} newSmoothFy The new smoothFy.
+	* @param {number} newSmoothFy The new smoothFy.
 	*/
 	setSmoothFy(newSmoothFy) {
 		this._smoothFy = newSmoothFy;
@@ -829,14 +829,16 @@ var Sprite_MiniMap = class extends Sprite {
 	}
 	/**
 	* Gets the pre focus state.
-	* @returns {*} The preFocusState.
+	* @returns {{mapRange: number, scale: number, width: number, height: number, x: number, y: number,
+	* smoothFx: number, smoothFy: number}|null} The preFocusState.
 	*/
 	preFocusState() {
 		return this._preFocusState;
 	}
 	/**
 	* Sets the pre focus state.
-	* @param {*} newPreFocusState The new preFocusState.
+	* @param {{mapRange: number, scale: number, width: number, height: number, x: number, y: number,
+	* smoothFx: number, smoothFy: number}|null} newPreFocusState The new preFocusState.
 	*/
 	setPreFocusState(newPreFocusState) {
 		this._preFocusState = newPreFocusState;
@@ -2142,7 +2144,7 @@ if (J.ABS) {
 }
 /**
 * Gets the minimap focus pressed prev.
-* @returns {*} The minimapFocusPressedPrev.
+* @returns {boolean} The minimapFocusPressedPrev.
 */
 JABS_StandardController.prototype.minimapFocusPressedPrev = function() {
 	return this._minimapFocusPressedPrev;

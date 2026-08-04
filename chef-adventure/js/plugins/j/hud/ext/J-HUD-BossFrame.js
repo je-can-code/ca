@@ -293,7 +293,8 @@ var Window_BossFrame = class extends Window_TargetFrame {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_hud: {_boss: {_requestHide: boolean, _concealing: boolean, _requestShow: boolean,
+	* _revealing: boolean}}}} The j.
 	*/
 	j() {
 		return this._j;

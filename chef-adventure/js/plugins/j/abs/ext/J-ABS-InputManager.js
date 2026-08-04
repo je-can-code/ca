@@ -2296,7 +2296,8 @@ var Window_JabsRemapPrompt = class Window_JabsRemapPrompt extends Window_Base {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_abs: {_input: {_remapCaptured: string|null, _remapActive: boolean,
+	* _remapWarmup: number, _remapTimeout: number, _remapButtonLabel: string}}}} The j.
 	*/
 	j() {
 		return this._j;
@@ -2642,7 +2643,8 @@ var Window_JabsRemapActions = class extends Window_Command {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_abs: {_input: {_actions: {_state: {_mapping: object, _externalMapping: object,
+	* _buttons: string[]}, _view: {_helpWindow: Window_Base|null}}}}}} The j.
 	*/
 	j() {
 		return this._j;

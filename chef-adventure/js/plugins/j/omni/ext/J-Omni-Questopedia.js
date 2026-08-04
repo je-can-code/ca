@@ -534,10 +534,10 @@ var OmniObjective = class OmniObjective {
 	*   Quest: Should be the name of the quest or some other clue to fulfill the objective.
 	* </pre>
 	* @param {number} type The type that aligns with one of {@link OmniObjective.Types}.
-	* @param {string[]=} templateDetails The details to plug into the fulfillment template- varies by what type it is.
+	* @param {(string|number)[]} templateDetails The details plugged into the template; the slots vary by type.
 	* @returns {string} The templated fulfillment for this objective.
 	*/
-	static FulfillmentTemplate(type, ...templateDetails) {
+	static FulfillmentTemplate(type, templateDetails) {
 		switch (type) {
 			case OmniObjective.Types.Indiscriminate: return templateDetails.at(0);
 			case OmniObjective.Types.Destination: return `Navigate to ${templateDetails.at(0)} at [${templateDetails.at(1)}, ${templateDetails.at(2)}].`;
@@ -1104,14 +1104,14 @@ var TrackedOmniObjective = class {
 	}
 	/**
 	* Gets the target coordinate range.
-	* @returns {*} The targetCoordinateRange.
+	* @returns {[[number, number],[number, number]]} The targetCoordinateRange.
 	*/
 	targetCoordinateRange() {
 		return this._targetCoordinateRange;
 	}
 	/**
 	* Sets the target coordinate range.
-	* @param {*} newTargetCoordinateRange The new targetCoordinateRange.
+	* @param {[[number, number],[number, number]]} newTargetCoordinateRange The new targetCoordinateRange.
 	*/
 	setTargetCoordinateRange(newTargetCoordinateRange) {
 		this._targetCoordinateRange = newTargetCoordinateRange;
@@ -1500,24 +1500,28 @@ var TrackedOmniObjective = class {
 		const enoughColor = 24;
 		const notEnoughColor = 25;
 		switch (this.type()) {
-			case OmniObjective.Types.Indiscriminate: return OmniObjective.FulfillmentTemplate(this.type(), this.indiscriminateTargetData());
+			case OmniObjective.Types.Indiscriminate: return OmniObjective.FulfillmentTemplate(this.type(), [this.indiscriminateTargetData()]);
 			case OmniObjective.Types.Destination:
 				const point1 = `${this.targetCoordinateRange().at(0)}`;
 				const point2 = `${this.targetCoordinateRange().at(1)}`;
-				return OmniObjective.FulfillmentTemplate(this.type(), $gameMap.displayName(), point1, point2);
+				return OmniObjective.FulfillmentTemplate(this.type(), [
+					$gameMap.displayName(),
+					point1,
+					point2
+				]);
 			case OmniObjective.Types.Fetch:
 				const fetchColor = this.currentItemFetchQuantity() < this.targetItemFetchQuantity() ? notEnoughColor : enoughColor;
 				const targetItemText = `${this.fetchDataSourceTextPrefix()}[${this.targetItemId()}]`;
 				const quantity = `\\C[${fetchColor}]${this.currentItemFetchQuantity()} / ${this.targetItemFetchQuantity()}\\C[0]`;
-				return OmniObjective.FulfillmentTemplate(this.type(), quantity, targetItemText);
+				return OmniObjective.FulfillmentTemplate(this.type(), [quantity, targetItemText]);
 			case OmniObjective.Types.Slay:
 				const slayColor = this.currentEnemyAmount() < this.targetEnemyAmount() ? notEnoughColor : enoughColor;
 				const targetEnemyText = `\\C[${slayColor}]${this.currentEnemyAmount()} / ${this.targetEnemyAmount()}\\C[0]`;
-				return OmniObjective.FulfillmentTemplate(this.type(), targetEnemyText, this.targetEnemyId());
+				return OmniObjective.FulfillmentTemplate(this.type(), [targetEnemyText, this.targetEnemyId()]);
 			case OmniObjective.Types.Quest:
 				const questNames = this.targetQuestKeys().map((questKey) => `'\\quest[${questKey}]'`);
 				const questNamesWithCommas = questNames.join(", ");
-				return OmniObjective.FulfillmentTemplate(this.type(), questNamesWithCommas);
+				return OmniObjective.FulfillmentTemplate(this.type(), [questNamesWithCommas]);
 		}
 	}
 	/**
@@ -2490,13 +2494,6 @@ var Window_QuestopediaCategories = class extends Window_HorzCommand {
 //#region src/plugins/omni/ext/quest/windows/Window_QuestopediaList.js
 var Window_QuestopediaList = class extends Window_Command {
 	/**
-	* Gets the quest filtering.
-	* @returns {*} The questFiltering.
-	*/
-	questFiltering() {
-		return this._questFiltering;
-	}
-	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
@@ -2546,7 +2543,7 @@ var Window_QuestopediaList = class extends Window_Command {
 	*/
 	buildCommands() {
 		const questEntries = $gameParty.getQuestopediaEntries();
-		const filteredQuests = questEntries.filter(this.questFiltering(), this);
+		const filteredQuests = questEntries.filter(this._questFiltering, this);
 		if (filteredQuests.length === 0) return [];
 		return filteredQuests.map(this.buildCommand, this);
 	}

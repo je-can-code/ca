@@ -1270,7 +1270,7 @@ Game_Temp.prototype.metadata = function() {
 };
 /**
 * Gets the all configs.
-* @returns {*} The allConfigs.
+* @returns {Map<string, DifficultyConfig>} The allConfigs.
 */
 Game_Temp.prototype.allConfigs = function() {
 	return this._j._difficulty._allConfigs;
