@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.0.0 HUD-FOOD] A J-HUD extension that displays the current food chain status on screen.
+ * [v1.0.1 HUD-FOOD] A J-HUD extension that displays the current food chain status on screen.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -25,6 +25,11 @@
  * Those responsibilities belong to J-ABS-Food.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    The food frame no longer declares private members. A window's constructor
+ *    reaches initialize, and through it the drawing hooks, before a derived
+ *    class installs its own members- so anything private was being touched on
+ *    an object that did not yet have it.
  * - 1.0.0
  *    Initial release.
  * ============================================================================
@@ -152,7 +157,7 @@ J.HUD.EXT.FOOD ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.HUD.EXT.FOOD.Metadata = new JFoodHud_PluginMetadata("J-HUD-FOOD", "1.0.0");
+J.HUD.EXT.FOOD.Metadata = new JFoodHud_PluginMetadata("J-HUD-FOOD", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -317,22 +322,22 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 			this.hide();
 			return;
 		}
-		const activeId = this.#resolveActiveStateId(leader, plan);
+		const activeId = this.resolveActiveStateId(leader, plan);
 		if (activeId === 0) {
 			this.hide();
 			return;
 		}
 		this.show();
-		this.#drawActiveStateIcon(activeId);
-		this.#drawVerticalBar(plan, player.getUuid(), activeId);
-		this.#drawChainLabels(plan, activeId);
+		this.drawActiveStateIcon(activeId);
+		this.drawVerticalBar(plan, player.getUuid(), activeId);
+		this.drawChainLabels(plan, activeId);
 	}
 	/**
 	* Draws the icon of the currently active food chain state, centered at the top
 	* of the content area.
 	* @param {number} activeId The state id currently active on the leader.
 	*/
-	#drawActiveStateIcon(activeId) {
+	drawActiveStateIcon(activeId) {
 		const iconIndex = $dataStates[activeId] ? $dataStates[activeId].iconIndex : 0;
 		const iconX = Math.floor((this.contentsWidth() - ImageManager.iconWidth) / 2);
 		this.drawIcon(iconIndex, iconX, Window_FoodFrame.ICON_Y);
@@ -349,7 +354,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {string} uuid The UUID of the leader's JABS battler for duration lookup.
 	* @param {number} activeId The state id currently active on the leader.
 	*/
-	#drawVerticalBar(plan, uuid, activeId) {
+	drawVerticalBar(plan, uuid, activeId) {
 		const { segments } = plan;
 		const totalFrames = segments.reduce((sum, seg) => sum + seg.frames, 0);
 		if (totalFrames <= 0) return;
@@ -357,7 +362,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 		const barY = Window_FoodFrame.BAR_START_Y;
 		const barW = Window_FoodFrame.BAR_WIDTH;
 		const barH = Window_FoodFrame.BAR_HEIGHT;
-		this.#drawBarFrame(barX, barY, barW, barH);
+		this.drawBarFrame(barX, barY, barW, barH);
 		const inner = Window_FoodFrame.#barInnerRect(barX, barY, barW, barH);
 		const activeIndex = plan.indexOfState(activeId);
 		let cumY = inner.y;
@@ -371,7 +376,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 			}
 			if (segH <= 0) continue;
 			const isActive = i === activeIndex;
-			this.#drawBarSegment(inner.x, cumY, inner.width, segH, segment, i, activeIndex, isActive, uuid, isLast);
+			this.drawBarSegment(inner.x, cumY, inner.width, segH, segment, i, activeIndex, isActive, uuid, isLast);
 			cumY += segH;
 		}
 	}
@@ -382,11 +387,11 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {number} width Outer width including the frame.
 	* @param {number} height Outer height including the frame.
 	*/
-	#drawBarFrame(x, y, width, height) {
+	drawBarFrame(x, y, width, height) {
 		const border = Window_FoodFrame.BAR_BORDER_THICKNESS;
 		this.contents.fillRect(x, y, width, height, Window_FoodFrame.BAR_FRAME_COLOR);
 		this.contents.fillRect(x + border, y + border, width - border * 2, height - border * 2, ColorManager.gaugeBackColor());
-		this.#strokeBarOutline(x, y, width, height);
+		this.strokeBarOutline(x, y, width, height);
 	}
 	/**
 	* Strokes a 1px rectangle around the outer bar bounds.
@@ -395,7 +400,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {number} width Outer width including the frame.
 	* @param {number} height Outer height including the frame.
 	*/
-	#strokeBarOutline(x, y, width, height) {
+	strokeBarOutline(x, y, width, height) {
 		const ctx = this.contents.context;
 		ctx.save();
 		ctx.beginPath();
@@ -435,12 +440,12 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {string} uuid UUID for JABS state tracker duration lookup.
 	* @param {boolean} isLast Whether this is the final slice in the chain (touches the track floor).
 	*/
-	#drawBarSegment(x, y, width, height, segment, index, activeIndex, isActive, uuid, isLast) {
+	drawBarSegment(x, y, width, height, segment, index, activeIndex, isActive, uuid, isLast) {
 		const bgColor = ColorManager.gaugeBackColor();
 		if (index < activeIndex) {
 			this.contents.fillRect(x, y, width, height, bgColor);
 		} else if (isActive) {
-			const fillRatio = this.#calculateFillRatio(segment, uuid);
+			const fillRatio = this.calculateFillRatio(segment, uuid);
 			let fillH = Math.round(height * fillRatio);
 			fillH = Math.max(0, Math.min(height, fillH));
 			this.contents.fillRect(x, y, width, height, bgColor);
@@ -461,7 +466,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {JABS_FoodChainPlan} plan The active food chain plan.
 	* @param {number} activeId The state id currently active on the leader.
 	*/
-	#drawChainLabels(plan, activeId) {
+	drawChainLabels(plan, activeId) {
 		const { segments } = plan;
 		const rowH = Window_FoodFrame.LABEL_ROW_HEIGHT;
 		const activeIndex = plan.indexOfState(activeId);
@@ -471,7 +476,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 			if (!state) continue;
 			const labelY = Window_FoodFrame.LABELS_START_Y + i * rowH;
 			const isActive = i === activeIndex;
-			this.#drawChainLabel(state.name, labelY, isActive);
+			this.drawChainLabel(state.name, labelY, isActive);
 		}
 	}
 	/**
@@ -480,14 +485,14 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {number} y The y coordinate in contents space.
 	* @param {boolean} isActive Whether this row is the currently active chain phase.
 	*/
-	#drawChainLabel(rawName, y, isActive) {
+	drawChainLabel(rawName, y, isActive) {
 		let text = this.convertEscapeCharacters(rawName);
-		text = this.#applyChainLabelFontSize(text);
+		text = this.applyChainLabelFontSize(text);
 		if (isActive) {
 			text = this.boldenText(this.italicizeText(text));
 		}
 		const { width: textWidth } = this.textSizeEx(text);
-		const drawX = this.#chainLabelCenterX(textWidth);
+		const drawX = this.chainLabelCenterX(textWidth);
 		const drawWidth = Math.min(textWidth, this.contentsWidth());
 		if (isActive) {
 			this.drawTextEx(text, drawX, y, drawWidth);
@@ -504,7 +509,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {number} textWidth The measured width of the label text.
 	* @returns {number}
 	*/
-	#chainLabelCenterX(textWidth) {
+	chainLabelCenterX(textWidth) {
 		const contentsW = this.contentsWidth();
 		if (textWidth >= contentsW) {
 			return 0;
@@ -516,7 +521,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {string} text The label text (may already include escape codes).
 	* @returns {string}
 	*/
-	#applyChainLabelFontSize(text) {
+	applyChainLabelFontSize(text) {
 		return this.modFontSizeForText(Window_FoodFrame.CHAIN_LABEL_FONT_DELTA, text);
 	}
 	/**
@@ -526,7 +531,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {JABS_FoodChainPlan} plan The active food chain plan.
 	* @returns {number} The active state id, or 0.
 	*/
-	#resolveActiveStateId(leader, plan) {
+	resolveActiveStateId(leader, plan) {
 		for (const segment of plan.segments) {
 			if (leader.isStateAffected(segment.stateId)) return segment.stateId;
 		}
@@ -540,7 +545,7 @@ var Window_FoodFrame = class Window_FoodFrame extends Window_Base {
 	* @param {string} uuid UUID for the JABS battler state tracker.
 	* @returns {number} Fill ratio clamped to [0, 1].
 	*/
-	#calculateFillRatio(segment, uuid) {
+	calculateFillRatio(segment, uuid) {
 		const jabsStateMap = $jabsEngine.getJabsStatesByUuid(uuid);
 		if (!jabsStateMap) return 1;
 		const jabsState = jabsStateMap.get(segment.stateId);

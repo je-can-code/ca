@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
+ * [v1.2.1 JAFTING-CREATE] An extension for JAFTING to enable recipe creation.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -139,6 +139,11 @@
  * the J-MZ Data Editor app), not tagged on individual database objects.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    The plugin metadata class and the category badge and recipe detail
+ *    windows no longer declare private members. Both base constructors reach
+ *    an overridable hook before a derived class installs its own members- so
+ *    anything private was being touched on an object that did not yet have it.
  * - 1.2.0
  *    Routed the _crafting namespace into its own save section, so recipe and
  *    category tracking land in systems/crafting.json.
@@ -1224,15 +1229,15 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 	* @return {boolean}
 	*/
 	usingSdp() {
-		if (!this.#hasSdpConnection()) return false;
-		if (!this.#hasMinimumSdpVersion()) return false;
+		if (!this.hasSdpConnection()) return false;
+		if (!this.hasMinimumSdpVersion()) return false;
 		return true;
 	}
 	/**
 	* Checks if the plugin metadata is detected for the SDP system.
 	* @return {boolean}
 	*/
-	#hasSdpConnection() {
+	hasSdpConnection() {
 		if (!PluginMetadata.hasPlugin("J-SDP")) return false;
 		return true;
 	}
@@ -1241,8 +1246,8 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 	* connecting with this crafting system.
 	* @return {boolean}
 	*/
-	#hasMinimumSdpVersion() {
-		const minimumVersion = this.#minimumSdpVersion();
+	hasMinimumSdpVersion() {
+		const minimumVersion = this.minimumSdpVersion();
 		const meetsThreshold = J.SDP.Metadata.version.satisfiesPluginVersion(minimumVersion);
 		if (!meetsThreshold) return false;
 		return true;
@@ -1252,7 +1257,7 @@ var J_CraftingCreatePluginMetadata = class J_CraftingCreatePluginMetadata extend
 	* this crafting will communicate with.
 	* @return {PluginVersion}
 	*/
-	#minimumSdpVersion() {
+	minimumSdpVersion() {
 		return PluginVersion.builder.major("2").minor("0").patch("0").build();
 	}
 	/**
@@ -1304,7 +1309,7 @@ J.JAFTING.EXT.CREATE = {};
 /**
 * The metadata associated with this plugin.
 */
-J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.2.0");
+J.JAFTING.EXT.CREATE.Metadata = new J_CraftingCreatePluginMetadata("J-JAFTING-Creation", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -1677,7 +1682,7 @@ var Window_CreationCategoryBadge = class extends Window_Base {
 	/**
 	* @type {CraftingCategory|null}
 	*/
-	#category = null;
+	_category = null;
 	/**
 	* @param {Rectangle} rect The rectangle that represents this window.
 	*/
@@ -1688,25 +1693,33 @@ var Window_CreationCategoryBadge = class extends Window_Base {
 	* @param {CraftingCategory|null} category The category to render, or null to clear.
 	*/
 	setCategory(category) {
-		this.#category = category;
+		this._category = category;
 		this.refresh();
 	}
 	/**
 	* Clears the badge contents (used when leaving recipe browsing).
 	*/
 	clearCategory() {
-		this.#category = null;
+		this._category = null;
 		this.refresh();
+	}
+	/**
+	* The category this badge is currently rendering, or null when cleared.
+	* @returns {CraftingCategory|null}
+	*/
+	category() {
+		return this._category;
 	}
 	/**
 	* Implements {@link Window_Base.drawContent}.
 	*/
 	drawContent() {
-		if (this.#category === null) {
+		const category = this.category();
+		if (category === null) {
 			return;
 		}
 		this.resetFontSettings();
-		const { iconIndex, name } = this.#category;
+		const { iconIndex, name } = category;
 		const lh = this.lineHeight();
 		const iy = Math.floor((this.innerHeight - lh) / 2);
 		const iconSlot = ImageManager.standardIconWidth + 8;
@@ -1874,7 +1887,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	* The currently selected recipe being detailed.
 	* @type {CraftingRecipe}
 	*/
-	#currentRecipe = null;
+	_currentRecipe = null;
 	/**
 	* True if the text of this list should be masked, false otherwise.
 	* @type {boolean}
@@ -1884,10 +1897,10 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 		super(rect);
 	}
 	getCurrentRecipe() {
-		return this.#currentRecipe;
+		return this._currentRecipe;
 	}
 	setCurrentRecipe(recipe) {
-		this.#currentRecipe = recipe;
+		this._currentRecipe = recipe;
 	}
 	setNeedsMasking(needsMasking) {
 		this.needsMasking = needsMasking;
@@ -1916,15 +1929,15 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	* @returns {number}
 	*/
 	componentListRowsInnerStartY() {
-		return this.#recipeComponentHeaderBandEndInnerY();
+		return this.recipeComponentHeaderBandEndInnerY();
 	}
 	/**
 	* Inner Y just below the unified horizontal rules under INGREDIENTS / TOOLS / OUTPUTS.
 	* @returns {number}
 	*/
-	#recipeComponentHeaderBandEndInnerY() {
+	recipeComponentHeaderBandEndInnerY() {
 		const cw = this.detailsQuarterWidth();
-		const { ruleTopY } = this.#tripleColumnHeaderRuleTopInnerY(cw);
+		const { ruleTopY } = this.tripleColumnHeaderRuleTopInnerY(cw);
 		const ruleH = Window_RecipeDetails.#COMPONENT_HEADER_RULE_HEIGHT;
 		const gapAfterRule = Window_RecipeDetails.#COMPONENT_HEADER_RULE_GAP_AFTER;
 		return ruleTopY + ruleH + gapAfterRule;
@@ -1932,7 +1945,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	/**
 	* Prepares the smaller italic face used under column titles.
 	*/
-	#prepareItalicsSubtextFont() {
+	prepareItalicsSubtextFont() {
 		this.resetFontSettings();
 		this.modFontSize(-12);
 		this.toggleItalics();
@@ -1940,7 +1953,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	/**
 	* Restores default font after italic subtext measurement or drawing.
 	*/
-	#restoreAfterItalicsSubtextFont() {
+	restoreAfterItalicsSubtextFont() {
 		this.toggleItalics();
 		this.resetFontSettings();
 	}
@@ -1951,7 +1964,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	* @param {number} maxWidth The max width driving this step.
 	* @returns {string[]}
 	*/
-	#splitLongToken(token, maxWidth) {
+	splitLongToken(token, maxWidth) {
 		const segments = [];
 		let chunk = "";
 		for (let ci = 0; ci < token.length; ci++) {
@@ -1970,7 +1983,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 		}
 		return segments;
 	}
-	#wrapPlainTextToLines(text, maxWidth) {
+	wrapPlainTextToLines(text, maxWidth) {
 		if (text === "") {
 			return [""];
 		}
@@ -1991,7 +2004,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 			if (this.textWidth(word) <= maxWidth) {
 				line = word;
 			} else {
-				const segments = this.#splitLongToken(word, maxWidth);
+				const segments = this.splitLongToken(word, maxWidth);
 				for (let si = 0; si < segments.length; si++) {
 					if (si < segments.length - 1) {
 						lines.push(segments[si]);
@@ -2016,11 +2029,11 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	* @param {number} bandWidth The band width driving this step.
 	* @returns {string[]}
 	*/
-	#measureItalicSubtextLines(subtext, bandWidth) {
-		this.#prepareItalicsSubtextFont();
+	measureItalicSubtextLines(subtext, bandWidth) {
+		this.prepareItalicsSubtextFont();
 		const usableW = Math.max(1, bandWidth - 4);
-		const lines = this.#wrapPlainTextToLines(subtext, usableW);
-		this.#restoreAfterItalicsSubtextFont();
+		const lines = this.wrapPlainTextToLines(subtext, usableW);
+		this.restoreAfterItalicsSubtextFont();
 		return lines;
 	}
 	/**
@@ -2029,15 +2042,15 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	* @param {number} cw column inner width
 	* @returns {{ ruleTopY: number, layouts: { titleH: number, lines: string[], subLineHeight: number }[] }}
 	*/
-	#tripleColumnHeaderRuleTopInnerY(cw) {
+	tripleColumnHeaderRuleTopInnerY(cw) {
 		const subtexts = [
 			Window_RecipeDetails.#SUBTEXT_INGREDIENTS,
 			Window_RecipeDetails.#SUBTEXT_TOOLS,
 			Window_RecipeDetails.#SUBTEXT_OUTPUTS
 		];
-		this.#prepareItalicsSubtextFont();
+		this.prepareItalicsSubtextFont();
 		const subLineHeight = this.lineHeight();
-		this.#restoreAfterItalicsSubtextFont();
+		this.restoreAfterItalicsSubtextFont();
 		const layouts = [];
 		for (let i = 0; i < 3; i++) {
 			this.resetFontSettings();
@@ -2045,7 +2058,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 			this.toggleBold();
 			const titleH = this.lineHeight();
 			this.toggleBold();
-			const lines = this.#measureItalicSubtextLines(subtexts[i], cw);
+			const lines = this.measureItalicSubtextLines(subtexts[i], cw);
 			layouts.push({
 				titleH,
 				lines,
@@ -2077,19 +2090,19 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	* @param {string[]} lines The lines driving this step.
 	* @param {number} subLineHeight The sub line height driving this step.
 	*/
-	#drawColumnTitleAndSubtext(x, y, bandWidth, title, lines, subLineHeight) {
+	drawColumnTitleAndSubtext(x, y, bandWidth, title, lines, subLineHeight) {
 		this.resetFontSettings();
 		this.modFontSize(4);
 		this.toggleBold();
 		this.drawText(title, x, y, bandWidth, Window_Base.TextAlignments.Left);
 		let cursor = y + this.lineHeight();
 		this.toggleBold();
-		this.#prepareItalicsSubtextFont();
+		this.prepareItalicsSubtextFont();
 		for (let li = 0; li < lines.length; li++) {
 			this.drawText(lines[li], x, cursor, bandWidth, Window_Base.TextAlignments.Left);
 			cursor += subLineHeight;
 		}
-		this.#restoreAfterItalicsSubtextFont();
+		this.restoreAfterItalicsSubtextFont();
 	}
 	/**
 	* Width of each of the four bands (ingredients, tools, outputs, detail pane).
@@ -2119,11 +2132,11 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	* Draws the recipe details header bands and the primary output column.
 	*/
 	drawContent() {
-		if (!this.#canDrawContent()) return;
+		if (!this.canDrawContent()) return;
 		const [x, y] = [0, 0];
 		const { cw, remainder } = Window_RecipeDetails.quarterWidthsFromInner(this.innerWidth);
 		const wDetail = cw + remainder;
-		const { ruleTopY, layouts } = this.#tripleColumnHeaderRuleTopInnerY(cw);
+		const { ruleTopY, layouts } = this.tripleColumnHeaderRuleTopInnerY(cw);
 		const titles = [
 			"INGREDIENTS",
 			"TOOLS",
@@ -2133,7 +2146,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 		const ruleH = Window_RecipeDetails.#COMPONENT_HEADER_RULE_HEIGHT;
 		for (let col = 0; col < 3; col++) {
 			const L = layouts[col];
-			this.#drawColumnTitleAndSubtext(x + cw * col, y, cw, titles[col], L.lines, L.subLineHeight);
+			this.drawColumnTitleAndSubtext(x + cw * col, y, cw, titles[col], L.lines, L.subLineHeight);
 			const ruleW = Math.max(1, cw - inset * 2);
 			this.drawHorizontalLine(x + cw * col + inset, ruleTopY, ruleW, ruleH);
 		}
@@ -2143,8 +2156,8 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	* Determines if the content for this window can be drawn.
 	* @return {boolean}
 	*/
-	#canDrawContent() {
-		if (this.#currentRecipe === undefined || this.#currentRecipe === null) return false;
+	canDrawContent() {
+		if (this.getCurrentRecipe() === undefined || this.getCurrentRecipe() === null) return false;
 		return true;
 	}
 	/**
@@ -2157,10 +2170,10 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 		this.drawVerticalLine(x - Window_RecipeDetails.#DETAIL_DIVIDER_LEFT_OFFSET, y, this.innerHeight, 3);
 		const lh = this.lineHeight();
 		const textW = Math.max(48, bandWidth - 8);
-		const proficiency = `Proficiency: ${this.#currentRecipe.getProficiency()}`;
+		const proficiency = `Proficiency: ${this.getCurrentRecipe().getProficiency()}`;
 		this.drawText(proficiency, x, y, textW);
 		const bodyY = this.componentListRowsInnerStartY();
-		const primaryOutput = this.#currentRecipe.outputs.at(0);
+		const primaryOutput = this.getCurrentRecipe().outputs.at(0);
 		switch (primaryOutput.getComponentType()) {
 			case CraftingComponent.Types.Item:
 				this.drawPrimaryOutputItem(x, bodyY);
@@ -2182,7 +2195,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	}
 	drawPrimaryOutputItem(x, y) {
 		const lh = this.lineHeight() - 4;
-		const output = this.#currentRecipe.outputs.at(0).getItem();
+		const output = this.getCurrentRecipe().outputs.at(0).getItem();
 		const lifeY = y + lh * 1;
 		this.drawLifeMessage(output, x, lifeY);
 		const magiY = y + lh * 2;
@@ -2274,7 +2287,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	}
 	drawFoodStateChanges(output, x, y) {
 		this.resetFontSettings();
-		const foodStateEffects = output.effects.filter((effect) => effect.code === Game_Action.EFFECT_ADD_STATE && this.#foodStateIds().includes(effect.dataId));
+		const foodStateEffects = output.effects.filter((effect) => effect.code === Game_Action.EFFECT_ADD_STATE && this.foodStateIds().includes(effect.dataId));
 		const lh = this.lineHeight() - 4;
 		const forEacher = (foodStateEffect, index) => {
 			/** @type {RPG_State} */
@@ -2290,7 +2303,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 		};
 		foodStateEffects.forEach(forEacher, this);
 	}
-	#foodStateIds() {
+	foodStateIds() {
 		return [
 			82,
 			83,
@@ -2303,7 +2316,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	}
 	drawPrimaryOutputWeaponOrArmor(x, y) {
 		const lh = this.lineHeight() - 4;
-		const output = this.#currentRecipe.outputs.at(0).getItem();
+		const output = this.getCurrentRecipe().outputs.at(0).getItem();
 		const coreParamsY = y + lh * 1;
 		this.drawCoreParams(output, x, coreParamsY);
 		const traitsY = y + lh * 5;
@@ -2362,7 +2375,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	}
 	drawPrimaryOutputGold(x, y) {
 		const lh = this.lineHeight() - 4;
-		const output = this.#currentRecipe.outputs.at(0).getItem();
+		const output = this.getCurrentRecipe().outputs.at(0).getItem();
 		const tw = this.detailsQuarterTextWidth();
 		this.drawText("Resource:", x, y + lh * 1, tw);
 		const resourceY = y + lh * 2;
@@ -2372,7 +2385,7 @@ var Window_RecipeDetails = class Window_RecipeDetails extends Window_Base {
 	}
 	drawPrimaryOutputSdp(x, y) {
 		const lh = this.lineHeight() - 4;
-		const output = this.#currentRecipe.outputs.at(0).getItem();
+		const output = this.getCurrentRecipe().outputs.at(0).getItem();
 		const tw = this.detailsQuarterTextWidth();
 		this.drawText("Resource:", x, y + lh * 1, tw);
 		const resourceY = y + lh * 2;

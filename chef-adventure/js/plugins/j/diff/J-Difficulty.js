@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v2.1.0 DIFFICULTY] A layered difficulty system.
+ * @plugindesc [v2.1.1 DIFFICULTY] A layered difficulty system.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -23,6 +23,11 @@
  * All difficulties are defined in an external JSON file.
  * ============================================================================
  * CHANGELOG:
+ * - 2.1.1
+ *    The difficulty points window no longer declares private members. A
+ *    window's constructor reaches initialize, and through it the drawing
+ *    hooks, before a derived class installs its own members- so anything
+ *    private was being touched on an object that did not yet have it.
  * - 2.1.0
  *    Routed the _difficulty namespace into its own save section, so difficulty
  *    state lands in systems/difficulty.json rather than in the system blob.
@@ -838,7 +843,7 @@ J.DIFFICULTY = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.1.0");
+J.DIFFICULTY.Metadata = new J_DiffPluginMetadata("J-Difficulty", "2.1.1");
 /**
 * The actual `plugin parameters` extracted from RMMZ.
 */
@@ -1482,7 +1487,7 @@ var Window_DifficultyPoints = class extends Window_Base {
 	* The difficulty layer that the cursor is currently hovering over.
 	* @type {DifficultyLayer|null}
 	*/
-	#hoveredDifficulty = null;
+	_hoveredDifficulty = null;
 	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
@@ -1495,14 +1500,14 @@ var Window_DifficultyPoints = class extends Window_Base {
 	* @returns {DifficultyLayer}
 	*/
 	getHoveredDifficulty() {
-		return this.#hoveredDifficulty;
+		return this._hoveredDifficulty;
 	}
 	/**
 	* Set the currently hovered difficulty used by this window.
 	* @param {DifficultyLayer} difficulty The difficulty currently hovered.
 	*/
 	setHoveredDifficulty(difficulty) {
-		this.#hoveredDifficulty = difficulty;
+		this._hoveredDifficulty = difficulty;
 	}
 	/**
 	* Implements {@link Window_Base.drawContent}.<br/>

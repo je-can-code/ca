@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
+ * [v1.2.1 OMNI-QUEST] Extends the Omnipedia with a Questopedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -138,6 +138,11 @@
  * This choice is only shown while objective 2 of that quest is completed.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    The questopedia description window no longer declares private members. A
+ *    window's constructor reaches initialize, and through it the drawing
+ *    hooks, before a derived class installs its own members- so anything
+ *    private was being touched on an object that did not yet have it.
  * - 1.2.0
  *    The questopedia lookup cache is no longer written to savefiles. It held
  *    the same entries as the saveables it is built from, keyed for lookup,
@@ -2396,7 +2401,7 @@ J.OMNI.EXT.QUEST = {};
 /**
 * The metadata associated with this plugin.
 */
-J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.2.0");
+J.OMNI.EXT.QUEST.Metadata = new J_QUEST_PluginMetadata("J-Omni-Questopedia", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2594,7 +2599,7 @@ var Window_QuestopediaDescription = class extends Window_Base {
 	* The current selected quest in the quest list window.
 	* @type {TrackedOmniQuest}
 	*/
-	#currentQuest = null;
+	_currentQuest = null;
 	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
@@ -2607,14 +2612,14 @@ var Window_QuestopediaDescription = class extends Window_Base {
 	* @returns {TrackedOmniQuest}
 	*/
 	getCurrentQuest() {
-		return this.#currentQuest;
+		return this._currentQuest;
 	}
 	/**
 	* Sets the quest currently being displayed.
 	* @param {TrackedOmniQuest} quest The quest to display data for.
 	*/
 	setCurrentQuest(quest) {
-		this.#currentQuest = quest;
+		this._currentQuest = quest;
 	}
 	drawContent() {
 		const quest = this.getCurrentQuest();
