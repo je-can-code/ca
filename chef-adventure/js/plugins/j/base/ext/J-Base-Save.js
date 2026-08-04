@@ -1,7 +1,7 @@
 //region annotations
 /*:
  * @target MZ
- * @plugindesc [v1.0.0 BASE-SAVE] Saves as readable JSON instead of a compressed heap dump.
+ * @plugindesc [v1.0.1 BASE-SAVE] Saves as readable JSON instead of a compressed heap dump.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -84,6 +84,10 @@
  * converter. Install it before a project has saves worth keeping.
  * ============================================================================
  * CHANGELOG:
+ * - 1.0.1
+ *    The retainedSaveGenerations parameter is now read as a number rather than
+ *    as the string RMMZ hands over, so a configured value survives arithmetic
+ *    and not only comparisons that happen to coerce.
  * - 1.0.0
  *    The initial release.
  *    Added Scene_Files, one scene for saving, loading, deleting and rewinding,
@@ -150,7 +154,7 @@ var J_BaseSavePluginMetadata = class extends PluginMetadata {
 		* save", never "you lost the file". Size is deliberately not a consideration here.
 		* @type {number}
 		*/
-		this.retainedSaveGenerations = this.parsedPluginParameters["retainedSaveGenerations"] ?? 3;
+		this.retainedSaveGenerations = Number(this.parsedPluginParameters["retainedSaveGenerations"] ?? 3);
 	}
 };
 
@@ -171,7 +175,7 @@ J.BASE.EXT.SAVE.EXT ||= {};
 /**
 * The metadata associated with this plugin.
 */
-J.BASE.EXT.SAVE.Metadata = new J_BaseSavePluginMetadata("J-Base-Save", "1.0.0");
+J.BASE.EXT.SAVE.Metadata = new J_BaseSavePluginMetadata("J-Base-Save", "1.0.1");
 /**
 * A collection of all aliased methods for this plugin.
 */

@@ -4,19 +4,28 @@
       "id": 0,
       "key": "ALLY",
       "name": "Allies",
-      "opposes": [ 1, 2 ]
+      "opposes": [
+        1,
+        2
+      ]
     },
     {
       "id": 1,
       "key": "ENEMY",
       "name": "Enemies",
-      "opposes": [ 0, 2 ]
+      "opposes": [
+        0,
+        2
+      ]
     },
     {
       "id": 2,
       "key": "NEUTRAL",
       "name": "Neutral",
-      "opposes": [ 0, 1 ]
+      "opposes": [
+        0,
+        1
+      ]
     }
   ],
   "juice": {
@@ -44,7 +53,39 @@
       "pulseAmplitude": 0.045
     },
     "profiles": {
-      "default": { "tiltMul": 1, "swingMul": 1 }
+      "default": {
+        "tiltMul": 1,
+        "swingMul": 1
+      }
     }
-  }
+  },
+  "bosses": [
+    {
+      "key": "gluttonwolf",
+      "map": 75,
+      "participants": [
+        {
+          "key": "mayor",
+          "eventId": 4,
+          "enemyId": 581,
+          "expect": "Gluttonwolf Mayor"
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "devour",
+          "cadence": 20,
+          "steps": [
+            {
+              "verb": "forceSkill",
+              "skill": 2584,
+              "expect": "Devour",
+              "cast": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

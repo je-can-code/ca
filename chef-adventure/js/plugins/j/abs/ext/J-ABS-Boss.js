@@ -26,8 +26,9 @@
  *
  * ----------------------------------------------------------------------------
  * DETAILS:
- * Encounters are defined in "data/config.boss.json". Each encounter names a
- * map, one or more participants, and any number of recurring routines.
+ * Encounters are defined in the "bosses" block of "data/config.jabs.json",
+ * alongside "teams" and "juice". Each encounter names a map, one or more
+ * participants, and any number of recurring routines.
  *
  * Participants are a list rather than a single boss on purpose. A lone boss, a
  * boss with destructible parts, a pair of twins, and a swarm sharing a single
@@ -44,7 +45,9 @@
  * A minimal encounter looks like this:
  *
  *  {
- *    "encounters": [
+ *    "teams": [ ... ],
+ *    "juice": { ... },
+ *    "bosses": [
  *      {
  *        "key": "gluttonwolf",
  *        "map": 75,
@@ -706,13 +709,7 @@ var JabsBossStep = class {
 * @type {number}
 */
 var FRAMES_PER_SECOND = 60;
-var J_BossPluginMetadata = class J_BossPluginMetadata extends PluginMetadata {
-	/**
-	* The project-relative path to this plugin's external configuration file. Encounters are authored
-	* as data so a fight can be revised without touching a single event command.
-	* @type {string}
-	*/
-	static CONFIG_PATH = "data/config.boss.json";
+var J_BossPluginMetadata = class extends PluginMetadata {
 	/**
 	* Constructor.
 	*/
@@ -729,11 +726,15 @@ var J_BossPluginMetadata = class J_BossPluginMetadata extends PluginMetadata {
 	}
 	/**
 	* Reads every boss encounter out of configuration and hands them to the manager.
+	*
+	* Encounters live in the `bosses` block of `config.jabs.json` rather than in a file of their own,
+	* the same way J-ABS-Juice reads its `juice` block. One file per plugin family keeps the editor's
+	* boards mapping one-to-one onto config files, and means an extension never has to own the loading
+	* of its own configuration.
 	*/
 	initializeBossEncounters() {
-		const options = ExternalJsonConfigLoaderOptions.Builder().pluginName("J-ABS-Boss").configName("boss encounter configuration").build();
-		const config = ExternalJsonConfigLoader.load(J_BossPluginMetadata.CONFIG_PATH, options);
-		const encounters = config.encounters.map((rawEncounter) => this.#parseEncounter(rawEncounter));
+		const { bosses } = J.ABS.Metadata.ExternalConfig;
+		const encounters = bosses.map((rawEncounter) => this.#parseEncounter(rawEncounter));
 		JabsBossManager.registerEncounters(encounters);
 	}
 	/**
