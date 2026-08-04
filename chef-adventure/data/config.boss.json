@@ -1,0 +1,31 @@
+{
+  "encounters": [
+    {
+      "key": "gluttonwolf",
+      "map": 75,
+      "participants": [
+        {
+          "key": "mayor",
+          "eventId": 4,
+          "enemyId": 581,
+          "expect": "Gluttonwolf Mayor"
+        }
+      ],
+      "aiControl": "shared",
+      "routines": [
+        {
+          "key": "devour",
+          "cadence": 20,
+          "steps": [
+            {
+              "verb": "forceSkill",
+              "skill": 2584,
+              "expect": "Devour",
+              "cast": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

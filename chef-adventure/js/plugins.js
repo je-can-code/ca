@@ -37,6 +37,7 @@ var $plugins =
 {"name":"j/abs/ext/J-ABS-Food","status":true,"description":"[v1.0.0 FOOD] A JABS extension enabling food group chain states and a dedicated R2 food slot.","parameters":{"equipFoodText":"Equip Food"}},
 {"name":"j/abs/ext/J-ABS-Targeting","status":true,"description":"[v1.0.0 TARGETING] An extension for JABS that adds cursor-driven tactical targeting.","parameters":{"reticleImage":"WindowArrow","targetingListWindowX":"1650","targetingListWindowY":"176"}},
 {"name":"j/abs/ext/J-ABS-Loadout","status":true,"description":"[v1.0.0 LOADOUT] A scene for managing every party member's combat loadout.","parameters":{"parentConfig":"","menu-switch":"110","command-name":"Loadout","command-icon":"77"}},
+{"name":"j/abs/ext/J-ABS-Boss","status":true,"description":"[v1.0.0 ABS-BOSS] Data-driven boss encounters for J-ABS.","parameters":{}},
 {"name":"j/abs/ext/J-ABS-DangerIndicator","status":false,"description":"[v1.0.3 DANGER] Enable danger indicators on foes on the map.","parameters":{"defaultEnemyShowDangerIndicator":"true","dangerIndicatorIconData":"{\"Worthless\":\"880\",\"Simple\":\"881\",\"Easy\":\"882\",\"Average\":\"883\",\"Hard\":\"884\",\"Grueling\":\"885\",\"Deadly\":\"886\"}"}},
 {"name":"j/abs/ext/J-ABS-Star","status":false,"description":"[v1.0.0 STAR] Converts random encounters into star battles.","parameters":{}},
 {"name":"==========================","status":false,"description":"================================================================","parameters":{}},

@@ -133,6 +133,10 @@ var BossFrameManager = class {
 	* @returns {Game_Battler|null}
 	*/
 	static getBossGameBattler() {
+		const bossManager = globalThis.JabsBossManager;
+		if (bossManager && bossManager.hasActiveEncounter()) {
+			return bossManager.getBossGameBattler();
+		}
 		if (!this.boss) return null;
 		return this.boss.battler;
 	}
@@ -141,6 +145,10 @@ var BossFrameManager = class {
 	* @returns {JABS_Battler|null}
 	*/
 	static getBossJabsBattler() {
+		const bossManager = globalThis.JabsBossManager;
+		if (bossManager && bossManager.hasActiveEncounter()) {
+			return bossManager.getBossJabsBattler();
+		}
 		if (!this.boss) return null;
 		const gameBattler = this.getBossGameBattler();
 		return JABS_AiManager.getBattlerByUuid(gameBattler.getUuid());
