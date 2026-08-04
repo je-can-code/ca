@@ -223,7 +223,7 @@
 var JAFTING_Trait = class {
 	/**
 	* Gets the code.
-	* @returns {*} The code.
+	* @returns {number} The code.
 	*/
 	code() {
 		return this._code;
@@ -295,7 +295,7 @@ var JAFTING_Trait = class {
 var JAFTING_RefinementData = class {
 	/**
 	* Gets the notes.
-	* @returns {*} The notes.
+	* @returns {string[]} The notes.
 	*/
 	notes() {
 		return this._notes;

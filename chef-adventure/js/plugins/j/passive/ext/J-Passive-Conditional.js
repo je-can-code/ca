@@ -2019,14 +2019,14 @@ var PassiveGateEvaluator = class {
 	/**
 	* Evaluates one gate rule kind against the battler's current map context.<br/>
 	* Discrete kinds dispatch in the switch; threshold kinds fall through to {@link #evaluateThresholdKind}.
-	* Variadic params mirror the tag tuple slots after the kind: [threshold, scope?, range?] for
+	* The params array mirrors the tag tuple slots after the kind: [threshold, scope?, range?] for
 	* resource gates; a single scalar for most other gates.
 	* @param {Game_Battler} battler The battler whose context we evaluate.
 	* @param {string} kind Rule kind from a parsed note tuple.
-	* @param {...(number|string)} params Remaining tuple slots after the kind.
+	* @param {(number|string)[]=} params Remaining tuple slots after the kind.
 	* @returns {boolean} Whether this single tuple passes right now.
 	*/
-	static evaluate(battler, kind, ...params) {
+	static evaluate(battler, kind, params = []) {
 		const [param, scope, range] = params;
 		switch (kind) {
 			case "alliesNearby": return PassiveRuleJabsAccess.nearbyAlliesExcludingSelf(battler, scope ? Number(scope) : null).length >= Number(param);
@@ -2604,10 +2604,10 @@ Game_Battler.prototype.getPassiveStackContributionFromSource = function(baseItem
 */
 Game_Battler.prototype.evaluatePassiveGateRulesForSource = function(baseItem, stateId) {
 	const sourceRules = baseItem.passiveSourceRules;
-	const passesSourceRules = sourceRules.every(([kind, ...params]) => PassiveGateEvaluator.evaluate(this, kind, ...params));
+	const passesSourceRules = sourceRules.every(([kind, ...params]) => PassiveGateEvaluator.evaluate(this, kind, params));
 	if (passesSourceRules === false) return false;
 	const stateRules = baseItem.passiveStateRules.filter(([ruleStateId]) => Number(ruleStateId) === stateId);
-	const passesStateRules = stateRules.every(([, kind, ...params]) => PassiveGateEvaluator.evaluate(this, kind, ...params));
+	const passesStateRules = stateRules.every(([, kind, ...params]) => PassiveGateEvaluator.evaluate(this, kind, params));
 	return passesStateRules;
 };
 /**
@@ -2752,126 +2752,126 @@ Game_Battler.prototype.onJabsStateInflicted = function(stateId, attacker) {
 };
 /**
 * Gets the auto rule last frame.
-* @returns {*} The autoRuleLastFrame.
+* @returns {Map<string, number>} The autoRuleLastFrame.
 */
 Game_Battler.prototype.autoRuleLastFrame = function() {
 	return this._j._passive._conditional._autoRuleLastFrame;
 };
 /**
 * Gets the auto rule tile credit.
-* @returns {*} The autoRuleTileCredit.
+* @returns {Map<string, number>} The autoRuleTileCredit.
 */
 Game_Battler.prototype.autoRuleTileCredit = function() {
 	return this._j._passive._conditional._autoRuleTileCredit;
 };
 /**
 * Gets the last moved frame.
-* @returns {*} The lastMovedFrame.
+* @returns {number} The lastMovedFrame.
 */
 Game_Battler.prototype.lastMovedFrame = function() {
 	return this._j._passive._conditional._lastMovedFrame;
 };
 /**
 * Sets the last moved frame.
-* @param {*} newLastMovedFrame The new lastMovedFrame.
+* @param {number} newLastMovedFrame The new lastMovedFrame.
 */
 Game_Battler.prototype.setLastMovedFrame = function(newLastMovedFrame) {
 	this._j._passive._conditional._lastMovedFrame = newLastMovedFrame;
 };
 /**
 * Gets the last hit frame.
-* @returns {*} The lastHitFrame.
+* @returns {number} The lastHitFrame.
 */
 Game_Battler.prototype.lastHitFrame = function() {
 	return this._j._passive._conditional._lastHitFrame;
 };
 /**
 * Sets the last hit frame.
-* @param {*} newLastHitFrame The new lastHitFrame.
+* @param {number} newLastHitFrame The new lastHitFrame.
 */
 Game_Battler.prototype.setLastHitFrame = function(newLastHitFrame) {
 	this._j._passive._conditional._lastHitFrame = newLastHitFrame;
 };
 /**
 * Gets the last attacked frame.
-* @returns {*} The lastAttackedFrame.
+* @returns {number} The lastAttackedFrame.
 */
 Game_Battler.prototype.lastAttackedFrame = function() {
 	return this._j._passive._conditional._lastAttackedFrame;
 };
 /**
 * Sets the last attacked frame.
-* @param {*} newLastAttackedFrame The new lastAttackedFrame.
+* @param {number} newLastAttackedFrame The new lastAttackedFrame.
 */
 Game_Battler.prototype.setLastAttackedFrame = function(newLastAttackedFrame) {
 	this._j._passive._conditional._lastAttackedFrame = newLastAttackedFrame;
 };
 /**
 * Gets the last hp heal frame.
-* @returns {*} The lastHpHealFrame.
+* @returns {number} The lastHpHealFrame.
 */
 Game_Battler.prototype.lastHpHealFrame = function() {
 	return this._j._passive._conditional._lastHpHealFrame;
 };
 /**
 * Sets the last hp heal frame.
-* @param {*} newLastHpHealFrame The new lastHpHealFrame.
+* @param {number} newLastHpHealFrame The new lastHpHealFrame.
 */
 Game_Battler.prototype.setLastHpHealFrame = function(newLastHpHealFrame) {
 	this._j._passive._conditional._lastHpHealFrame = newLastHpHealFrame;
 };
 /**
 * Gets the last mp heal frame.
-* @returns {*} The lastMpHealFrame.
+* @returns {number} The lastMpHealFrame.
 */
 Game_Battler.prototype.lastMpHealFrame = function() {
 	return this._j._passive._conditional._lastMpHealFrame;
 };
 /**
 * Sets the last mp heal frame.
-* @param {*} newLastMpHealFrame The new lastMpHealFrame.
+* @param {number} newLastMpHealFrame The new lastMpHealFrame.
 */
 Game_Battler.prototype.setLastMpHealFrame = function(newLastMpHealFrame) {
 	this._j._passive._conditional._lastMpHealFrame = newLastMpHealFrame;
 };
 /**
 * Gets the last tp heal frame.
-* @returns {*} The lastTpHealFrame.
+* @returns {number} The lastTpHealFrame.
 */
 Game_Battler.prototype.lastTpHealFrame = function() {
 	return this._j._passive._conditional._lastTpHealFrame;
 };
 /**
 * Sets the last tp heal frame.
-* @param {*} newLastTpHealFrame The new lastTpHealFrame.
+* @param {number} newLastTpHealFrame The new lastTpHealFrame.
 */
 Game_Battler.prototype.setLastTpHealFrame = function(newLastTpHealFrame) {
 	this._j._passive._conditional._lastTpHealFrame = newLastTpHealFrame;
 };
 /**
 * Gets the pending fingerprint.
-* @returns {*} The pendingFingerprint.
+* @returns {string|null} The pendingFingerprint.
 */
 Game_Battler.prototype.pendingFingerprint = function() {
 	return this._j._passive._conditional._pendingFingerprint;
 };
 /**
 * Sets the pending fingerprint.
-* @param {*} newPendingFingerprint The new pendingFingerprint.
+* @param {string|null} newPendingFingerprint The new pendingFingerprint.
 */
 Game_Battler.prototype.setPendingFingerprint = function(newPendingFingerprint) {
 	this._j._passive._conditional._pendingFingerprint = newPendingFingerprint;
 };
 /**
 * Gets the collection fingerprint.
-* @returns {*} The collectionFingerprint.
+* @returns {string} The collectionFingerprint.
 */
 Game_Battler.prototype.collectionFingerprint = function() {
 	return this._j._passive._conditional._collectionFingerprint;
 };
 /**
 * Sets the collection fingerprint.
-* @param {*} newCollectionFingerprint The new collectionFingerprint.
+* @param {string} newCollectionFingerprint The new collectionFingerprint.
 */
 Game_Battler.prototype.setCollectionFingerprint = function(newCollectionFingerprint) {
 	this._j._passive._conditional._collectionFingerprint = newCollectionFingerprint;

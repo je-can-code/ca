@@ -2297,7 +2297,10 @@ var Scene_Aptitude = class Scene_Aptitude extends Scene_ActorFacetBase {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_aptitude: {_lastAggregateIndexByActor: object, _lastSourceIndexByActor: object,
+	* _viewMode: string, _aggregates: Array, _sources: Array,
+	* _windows: {_aggregateList: Window_Base|null, _sourceList: Window_Base|null,
+	* _aggregateDetails: Window_Base|null, _sourceDetails: Window_Base|null}}}} The j.
 	*/
 	j() {
 		return this._j;

@@ -290,14 +290,14 @@ var PixelDebugSampler = class PixelDebugSampler {
 var PIXEL_CollisionManager = class {
 	/**
 	* Gets the table.
-	* @returns {*} The table.
+	* @returns {number[]} The table.
 	*/
 	static table() {
 		return this._table;
 	}
 	/**
 	* Sets the table.
-	* @param {*} newTable The new table.
+	* @param {number[]} newTable The new table.
 	*/
 	static setTable(newTable) {
 		this._table = newTable;
@@ -2902,21 +2902,21 @@ Game_Player.prototype.setLastOccupiedTileY = function(newLastOccupiedTileY) {
 var Sprite_PixelCollisionOverlay = class extends Sprite {
 	/**
 	* Gets the show grid lines.
-	* @returns {*} The showGridLines.
+	* @returns {boolean} The showGridLines.
 	*/
 	isShowGridLines() {
 		return this._showGridLines;
 	}
 	/**
 	* Gets the throttle.
-	* @returns {*} The throttle.
+	* @returns {number} The throttle.
 	*/
 	throttle() {
 		return this._throttle;
 	}
 	/**
 	* Sets the throttle.
-	* @param {*} newThrottle The new throttle.
+	* @param {number} newThrottle The new throttle.
 	*/
 	setThrottle(newThrottle) {
 		this._throttle = newThrottle;
@@ -2979,11 +2979,10 @@ var Sprite_PixelCollisionOverlay = class extends Sprite {
 	}
 	/**
 	* Constructor.
-	* @param {...*} args Forwarded to {@link #initialize}.
 	*/
-	constructor(...args) {
+	constructor() {
 		super();
-		this.initialize(...args);
+		this.initialize();
 	}
 	/**
 	* Initializes the overlay's bitmap and configuration.
@@ -3276,14 +3275,14 @@ Spriteset_Map.prototype.update = function() {
 };
 /**
 * Gets the pixel overlay visible.
-* @returns {*} The pixelOverlayVisible.
+* @returns {boolean} The pixelOverlayVisible.
 */
 Spriteset_Map.prototype.pixelOverlayVisible = function() {
 	return this._pixelOverlayVisible;
 };
 /**
 * Sets the pixel overlay visible.
-* @param {*} newPixelOverlayVisible The new pixelOverlayVisible.
+* @param {boolean} newPixelOverlayVisible The new pixelOverlayVisible.
 */
 Spriteset_Map.prototype.setPixelOverlayVisible = function(newPixelOverlayVisible) {
 	this._pixelOverlayVisible = newPixelOverlayVisible;

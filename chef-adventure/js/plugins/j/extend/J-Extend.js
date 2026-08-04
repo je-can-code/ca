@@ -911,14 +911,14 @@ J.EXTEND.RegExp.ToggleGroupOnExecute = /<toggleGroupOnExecute:[ ]?(\[[^\]]+])>/g
 var OverlayManager = class OverlayManager {
 	/**
 	* Gets the skill cache.
-	* @returns {*} The skillCache.
+	* @returns {JCache} The skillCache.
 	*/
 	static skillCache() {
 		return this._skillCache;
 	}
 	/**
 	* Gets the state cache.
-	* @returns {*} The stateCache.
+	* @returns {JCache} The stateCache.
 	*/
 	static stateCache() {
 		return this._stateCache;
@@ -972,8 +972,8 @@ var OverlayManager = class OverlayManager {
 	* @returns {boolean} True if the cache was invalidated, false otherwise.
 	*/
 	static invalidate(battler) {
-		this.skillCache().invalidate(battler);
-		this.stateCache().invalidate(battler);
+		this.skillCache().invalidate([battler]);
+		this.stateCache().invalidate([battler]);
 	}
 	/**
 	* Clears the cache for all objects.
@@ -1000,7 +1000,7 @@ var OverlayManager = class OverlayManager {
 	static getExtendedSkill(caster, skillId) {
 		if (skillId <= 0) throw new Error("Invalid skill extension id.");
 		if (!caster) return this.#requireDatabaseEntry($dataSkills[skillId], "skill", skillId);
-		return this.skillCache().get(caster, String(skillId), () => {
+		return this.skillCache().get([caster], String(skillId), () => {
 			const knownIds = caster.skillIds();
 			const targetSkill = $dataSkills[skillId];
 			const targetTypes = targetSkill ? targetSkill.types() : [];
@@ -1057,7 +1057,7 @@ var OverlayManager = class OverlayManager {
 	static getExtendedState(battler, stateId) {
 		if (stateId <= 0) throw new Error("Invalid state id for extension.");
 		if (!battler) return this.#requireDatabaseEntry($dataStates[stateId], "state", stateId);
-		return this.stateCache().get(battler, String(stateId), () => {
+		return this.stateCache().get([battler], String(stateId), () => {
 			const allIds = battler.allStateIds();
 			const targetState = $dataStates[stateId];
 			const targetTypes = targetState ? targetState.types() : [];

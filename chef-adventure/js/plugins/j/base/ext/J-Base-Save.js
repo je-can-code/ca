@@ -868,10 +868,10 @@ var SaveEncoder = class {
 	static maxDepth = 100;
 	/**
 	* Encodes any value into its plain data form.
-	* @param {*} value The value to encode.
+	* @param {object|Array|Map|Set|string|number|boolean|null} value The value to encode.
 	* @param {string=} path The JSON path of this value, used for error context.
 	* @param {number=} depth How many levels down the graph this call sits.
-	* @returns {*} The plain data form, safe to hand to `JSON.stringify`.
+	* @returns {object|Array|string|number|boolean|null} The plain data form, safe to hand to `JSON.stringify`.
 	*/
 	static encode(value, path = "$", depth = 0) {
 		if (depth >= this.maxDepth) throw SaveEncodeError.tooDeep(path, this.maxDepth);
@@ -950,12 +950,12 @@ var SaveEncoder = class {
 	* that owns them, so once the walk descends into a namespace object those keys are no longer that
 	* codec's to police - only the transient waypoint travels down, because a transient path is
 	* explicitly written to reach that far.
-	* @param {*} child The value being encoded.
+	* @param {object|Array|Map|Set|string|number|boolean|null} child The value being encoded.
 	* @param {{value: Function|null, children: Map<string, object>}|null} childNode The child's
 	* position in the transient tree, or null when nothing below it is declared.
 	* @param {string} childPath The JSON path of the child.
 	* @param {number} depth How many levels down the graph this call sits.
-	* @returns {*} The encoded child.
+	* @returns {object|Array|string|number|boolean|null} The encoded child.
 	*/
 	static encodeChild(child, childNode, childPath, depth) {
 		if (childNode === null || childNode.children.size === 0) {
@@ -976,7 +976,7 @@ var SaveEncoder = class {
 	* It applies only to the direct keys of a registered class. A plain object has no declarations of
 	* its own, so a class instance nested inside a namespace object is checked by nothing here- what
 	* protects that case is the encoder refusing to encode an unregistered type at all.
-	* @param {*} child The value held at the field.
+	* @param {object|Array|Map|Set|string|number|boolean|null} child The value held at the field.
 	* @param {SaveCodec|null} codec The codec that owns the field, or null for a plain object.
 	* @param {string} key The field name.
 	* @param {string} childPath The JSON path of the field.
@@ -1013,11 +1013,11 @@ var SaveEncoder = class {
 var SaveDecoder = class {
 	/**
 	* Decodes plain data back into live objects.
-	* @param {*} data The plain data to decode.
+	* @param {object|Array|string|number|boolean|null} data The plain data to decode.
 	* @param {Function|null=} expectedType The constructor the containing type map declares here, or
 	* null when nothing declared it.
 	* @param {string=} path The JSON path of this value, used for error context.
-	* @returns {*} The rebuilt value.
+	* @returns {object|Array|Map|Set|string|number|boolean|null} The rebuilt value.
 	*/
 	static decode(data, expectedType = null, path = "$") {
 		if (data === null) return data;
@@ -1112,9 +1112,10 @@ var SaveDecoder = class {
 	* Merging instead means the file wins wherever it has something to say and the seeded default
 	* survives wherever it does not. Instances, arrays, `Map`s, and primitives replace outright, since
 	* a decoded instance is already the complete answer for its position.
-	* @param {*} seeded Whatever the seed left at this position, which is usually nothing.
-	* @param {*} decoded The value the file produced.
-	* @returns {*} The value to assign.
+	* @param {object|Array|Map|Set|string|number|boolean|null|undefined} seeded Whatever the seed left
+	* at this position, which is usually nothing.
+	* @param {object|Array|Map|Set|string|number|boolean|null} decoded The value the file produced.
+	* @returns {object|Array|Map|Set|string|number|boolean|null} The value to assign.
 	*/
 	static mergeOverSeeded(seeded, decoded) {
 		if (this.isPlainObject(seeded) === false) return decoded;
@@ -1126,13 +1127,13 @@ var SaveDecoder = class {
 	}
 	/**
 	* Decodes one child value against whatever its position declares.
-	* @param {*} child The plain data being decoded.
+	* @param {object|Array|string|number|boolean|null} child The plain data being decoded.
 	* @param {{value: Function|null, children: Map<string, object>}|null} typedChild The child's
 	* position in the type tree, or null.
 	* @param {{value: Function|null, children: Map<string, object>}|null} typedValuesChild The child's
 	* position in the dictionary-value type tree, or null.
 	* @param {string} childPath The JSON path of the child.
-	* @returns {*} The decoded child.
+	* @returns {object|Array|Map|Set|string|number|boolean|null} The decoded child.
 	*/
 	static decodeChild(child, typedChild, typedValuesChild, childPath) {
 		if (typedValuesChild !== null && typedValuesChild.value !== null) {
@@ -1162,7 +1163,7 @@ var SaveDecoder = class {
 	}
 	/**
 	* Determines whether a value is a plain object rather than an instance, array, or primitive.
-	* @param {*} value The value to classify.
+	* @param {object|Array|Map|Set|string|number|boolean|null|undefined} value The value to classify.
 	* @returns {boolean}
 	*/
 	static isPlainObject(value) {
@@ -1190,7 +1191,7 @@ var SaveDecoder = class {
 	* one cache, on a save written before that plugin was installed.
 	* @param {object} instance The instance to assign onto.
 	* @param {string} path The dotted path to assign at.
-	* @param {*} value The value to assign.
+	* @param {object|Array|Map|Set|string|number|boolean|null} value The value to assign.
 	*/
 	static assignAtPath(instance, path, value) {
 		const segments = path.split(".");
@@ -2701,7 +2702,7 @@ var SaveFileSystem = class {
 	* Two spaces, and no attempt at compactness: the point of this format is that a developer can open
 	* a savefile, read it, edit it, and load the result. Size is explicitly not a consideration.
 	* @param {string} filePath The path to write to.
-	* @param {*} data The plain data to serialize.
+	* @param {object} data The plain data to serialize.
 	*/
 	static writeJson(filePath, data) {
 		this.writeSynced(filePath, JSON.stringify(data, null, 2));
@@ -2752,7 +2753,7 @@ var SaveFileSystem = class {
 	* the retry loop.
 	* @param {string} slotName The slot's name.
 	* @param {Function} buildFromSections Receives `(sections, manifest)` and returns the loaded value.
-	* @returns {Promise<*>} Whatever `buildFromSections` returned for the newest generation that worked.
+	* @returns {Promise<object>} Whatever `buildFromSections` returned for the newest generation that worked.
 	*/
 	static readSlot(slotName, buildFromSections) {
 		return new Promise((resolve, reject) => {
@@ -2819,7 +2820,7 @@ var SaveFileSystem = class {
 	* @param {string} slotName The slot's name.
 	* @param {string} generationName The generation to read, ex: `gen-0007`.
 	* @param {Function} buildFromSections Receives `(sections, manifest)` and returns the loaded value.
-	* @returns {Promise<*>} Whatever `buildFromSections` returned, or a rejection carrying why not.
+	* @returns {Promise<object>} Whatever `buildFromSections` returned, or a rejection carrying why not.
 	*/
 	static readGenerationAt(slotName, generationName, buildFromSections) {
 		return new Promise((resolve, reject) => {
@@ -2835,7 +2836,7 @@ var SaveFileSystem = class {
 	* @param {string} slotName The slot's name.
 	* @param {string} generationName The generation to read.
 	* @param {Function} buildFromSections Receives `(sections, manifest)` and returns the loaded value.
-	* @returns {*} Whatever `buildFromSections` returned.
+	* @returns {object} Whatever `buildFromSections` returned.
 	*/
 	static readGeneration(slotName, generationName, buildFromSections) {
 		const manifest = this.readManifestAt(slotName, generationName);
@@ -2942,7 +2943,7 @@ var SaveFileSystem = class {
 	* A single document does not need generations; it needs the same rename that makes a generation
 	* swap safe, so a crash mid-write cannot leave the player's settings half-written.
 	* @param {string} fileName The document's file name.
-	* @param {*} data The plain data to write.
+	* @param {object} data The plain data to write.
 	* @returns {Promise<void>} Resolves once the document is on disk.
 	*/
 	static writeDocument(fileName, data) {
@@ -3416,7 +3417,7 @@ var SaveFileMode = class {
 	* Always a promise, even for the modes whose work is synchronous, so the scene has one success path
 	* and one failure path rather than a branch on which command it is running.
 	* @param {SaveFileEntry} _entry The row chosen.
-	* @returns {Promise<*>}
+	* @returns {Promise<void>}
 	*/
 	execute(_entry) {
 		return Promise.resolve();
@@ -3486,7 +3487,7 @@ var SaveFileModeSave = class extends SaveFileMode {
 	* Implements {@link SaveFileMode.execute}.<br/>
 	* Follows vanilla's own save sequence, which several plugins hang state-flushing off.
 	* @param {SaveFileEntry} entry The row chosen.
-	* @returns {Promise<*>}
+	* @returns {Promise<void>}
 	*/
 	execute(entry) {
 		$gameSystem.setSavefileId(entry.savefileId());
@@ -3573,7 +3574,7 @@ var SaveFileModeLoad = class extends SaveFileMode {
 	/**
 	* Implements {@link SaveFileMode.execute}.<br/>
 	* @param {SaveFileEntry} entry The row chosen.
-	* @returns {Promise<*>}
+	* @returns {Promise<void>}
 	*/
 	execute(entry) {
 		return DataManager.loadGame(entry.savefileId());
@@ -3651,7 +3652,7 @@ var SaveFileModeDelete = class extends SaveFileMode {
 	* so deleting the last remaining save without rebuilding it leaves Continue lit up and pointing at
 	* nothing.
 	* @param {SaveFileEntry} entry The row chosen.
-	* @returns {Promise<*>}
+	* @returns {Promise<void>}
 	*/
 	execute(entry) {
 		StorageManager.remove(entry.slotName());
@@ -3776,7 +3777,7 @@ var SaveFileModeRewind = class extends SaveFileMode {
 	* Implements {@link SaveFileMode.execute}.<br/>
 	* Loads the exact generation chosen, with no fallback to a newer one.
 	* @param {SaveFileEntry} entry The row chosen.
-	* @returns {Promise<*>}
+	* @returns {Promise<void>}
 	*/
 	execute(entry) {
 		return DataManager.loadGeneration(entry.savefileId(), entry.generationName());
@@ -5248,7 +5249,7 @@ var ProfileManager = class {
 	static _registeredFields = new Map();
 	/**
 	* The live value of every registered field.
-	* @type {Map<string, *>}
+	* @type {Map<string, object|Array|Map|Set|string|number|boolean|null>}
 	*/
 	static _values = new Map();
 	/**
@@ -5265,7 +5266,7 @@ var ProfileManager = class {
 	}
 	/**
 	* Gets the live value of every registered field.
-	* @returns {Map<string, *>} The values, keyed by field name.
+	* @returns {Map<string, object|Array|Map|Set|string|number|boolean|null>} The values, keyed by field name.
 	*/
 	static values() {
 		return this._values;
@@ -5285,7 +5286,7 @@ var ProfileManager = class {
 	/**
 	* Gets the current value of a registered field.
 	* @param {string} key The field name.
-	* @returns {*} The value.
+	* @returns {object|Array|Map|Set|string|number|boolean|null} The value.
 	*/
 	static get(key) {
 		return this.values().get(key);
@@ -5293,7 +5294,7 @@ var ProfileManager = class {
 	/**
 	* Sets the value of a registered field. Writing the document is the caller's decision.
 	* @param {string} key The field name.
-	* @param {*} value The value to hold.
+	* @param {object|Array|Map|Set|string|number|boolean|null} value The value to hold.
 	*/
 	static set(key, value) {
 		this.values().set(key, value);

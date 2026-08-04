@@ -1388,7 +1388,7 @@ Game_Enemy.prototype.getLevelBalancer = function() {
 };
 /**
 * Gets the skill learnings.
-* @returns {*} The skillLearnings.
+* @returns {Record<number, number>} The skillLearnings.
 */
 Game_Enemy.prototype.skillLearnings = function() {
 	return this._j._level._skillLearnings;

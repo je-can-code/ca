@@ -327,7 +327,7 @@
 var JCache = class JCache {
 	/**
 	* Gets the battler caches.
-	* @returns {*} The battlerCaches.
+	* @returns {Set<JCache>} The battlerCaches.
 	*/
 	static battlerCaches() {
 		return this._battlerCaches;
@@ -362,7 +362,7 @@ var JCache = class JCache {
 	*/
 	static invalidateAllForBattler(battler) {
 		for (const cache of this.battlerCaches()) {
-			cache.invalidate(battler);
+			cache.invalidate([battler]);
 		}
 	}
 	/**
@@ -434,17 +434,21 @@ var JCache = class JCache {
 	}
 	/**
 	* Reads the cached value for the given dimension keys + string key, computing and storing it on
-	* a miss. Call shape is `get(...weakKeys, stringKey, computeFn)`, where `weakKeys.length` must
-	* equal `this.dims.length`.
-	* @param {...*} args The weak dimension keys, followed by the string key, followed by the compute function.
+	* a miss.
+	*
+	* The weak keys arrive as one array rather than as leading arguments so the call site states how
+	* many dimensions it is addressing. Spread across the argument list, `get(a, b, key, fn)` and
+	* `get(a, key, fn)` read identically, and telling them apart meant knowing the dimension count
+	* this cache was constructed with- which is declared in an entirely different file.
+	* @param {object[]} weakKeys The weak dimension keys, outermost first; length must equal `dims`.
+	* @param {string} stableKey The stable string key within the innermost bucket.
+	* @param {Function} computeFn Produces the value on a miss.
 	* @returns {any} The cached or freshly computed value.
 	*/
-	get(...args) {
-		const computeFn = args.pop();
-		const stringKey = args.pop();
+	get(weakKeys, stableKey, computeFn) {
 		let node = this.root();
 		for (let i = 0; i < this.dims.length; i++) {
-			const k = this.#resolve(this.dims[i], args[i]);
+			const k = this.#resolve(this.dims[i], weakKeys[i]);
 			let next = node.get(k);
 			if (!next) {
 				next = i === this.dims.length - 1 ? new Map() : new WeakMap();
@@ -452,23 +456,23 @@ var JCache = class JCache {
 			}
 			node = next;
 		}
-		if (node.has(stringKey) === false) {
+		if (node.has(stableKey) === false) {
 			this.recordMiss();
-			node.set(stringKey, computeFn());
+			node.set(stableKey, computeFn());
 		} else {
 			this.recordHit();
 		}
-		return node.get(stringKey);
+		return node.get(stableKey);
 	}
 	/**
-	* Drops the cached subtree at the given dimension-key prefix. `invalidate(battler)` (a
+	* Drops the cached subtree at the given dimension-key prefix. `invalidate([battler])` (a
 	* one-element prefix) is the common case: it drops every entry nested under that battler,
-	* regardless of how many further dimensions this cache declares. Calling with zero arguments
-	* clears the entire cache.
-	* @param {...object} prefix The dimension keys identifying the subtree to drop, outermost first.
+	* regardless of how many further dimensions this cache declares. An empty prefix clears the
+	* entire cache.
+	* @param {object[]=} prefix The dimension keys identifying the subtree to drop, outermost first.
 	* @returns {boolean} True if something was found and removed at that prefix, false otherwise.
 	*/
-	invalidate(...prefix) {
+	invalidate(prefix = []) {
 		if (prefix.length === 0) {
 			this.clear();
 			return true;
@@ -644,14 +648,14 @@ var ArrayHelper = class {
 var RPGManager = class RPGManager {
 	/**
 	* Gets the note cache.
-	* @returns {*} The noteCache.
+	* @returns {JCache} The noteCache.
 	*/
 	static noteCache() {
 		return this._noteCache;
 	}
 	/**
 	* Gets the eval cache.
-	* @returns {*} The evalCache.
+	* @returns {JCache} The evalCache.
 	*/
 	static evalCache() {
 		return this._evalCache;
@@ -703,7 +707,7 @@ var RPGManager = class RPGManager {
 	* @returns {any} The cached data for the object and tag key.
 	*/
 	static cached(object, tagKey, computeFn) {
-		return this.noteCache().get(object, tagKey, computeFn);
+		return this.noteCache().get([object], tagKey, computeFn);
 	}
 	/**
 	* Battler-scoped variant of {@link cached}: results are bucketed by the battler whose live
@@ -716,7 +720,7 @@ var RPGManager = class RPGManager {
 	* @returns {any}
 	*/
 	static cachedForBattler(battler, object, tagKey, computeFn) {
-		return this.evalCache().get(battler, object, tagKey, computeFn);
+		return this.evalCache().get([battler, object], tagKey, computeFn);
 	}
 	/**
 	* Invalidates the cache for the given object.
@@ -724,7 +728,7 @@ var RPGManager = class RPGManager {
 	* @returns {boolean} True if the cache was invalidated, false otherwise.
 	*/
 	static invalidate(object) {
-		return this.noteCache().invalidate(object);
+		return this.noteCache().invalidate([object]);
 	}
 	/**
 	* Drops all cached eval results for one battler. Called from Game_Battler#onBattlerDataChange
@@ -733,7 +737,7 @@ var RPGManager = class RPGManager {
 	* @returns {boolean}
 	*/
 	static invalidateBattlerEval(battler) {
-		return this.evalCache().invalidate(battler);
+		return this.evalCache().invalidate([battler]);
 	}
 	/**
 	* Clears the cache for all objects.
@@ -2070,7 +2074,7 @@ J.BASE.Helpers.maskString = function(stringToMask, maskingCharacter = "?") {
 var SerializableRegistry = class {
 	/**
 	* Gets the constructors.
-	* @returns {*} The constructors.
+	* @returns {Map<string, Function>} The constructors.
 	*/
 	static constructors() {
 		return this._constructors;
@@ -3022,7 +3026,7 @@ var BuiltWindowCommand = class {
 	/**
 	* The underlying data associated with this command.
 	* Usually populated with whatever this command represents data-wise.
-	* @type {null|any}
+	* @type {object|null}
 	*/
 	#extensionData = null;
 	/**
@@ -3135,7 +3139,7 @@ var BuiltWindowCommand = class {
 	}
 	/**
 	* Gets the underlying extension data for this command, if any is available.
-	* @returns {*|null}
+	* @returns {object|null}
 	*/
 	get ext() {
 		return this.#extensionData;
@@ -5009,14 +5013,14 @@ ParameterDefinition.Builder = () => new ParameterDefinitionBuilder();
 var ParameterRegistry = class {
 	/**
 	* Gets the definitions.
-	* @returns {*} The definitions.
+	* @returns {Map<string, ParameterDefinition>} The definitions.
 	*/
 	static definitions() {
 		return this._definitions;
 	}
 	/**
 	* Gets the group cache.
-	* @returns {*} The groupCache.
+	* @returns {Map<string, ParameterDefinition[]>} The groupCache.
 	*/
 	static groupCache() {
 		return this._groupCache;
@@ -8521,7 +8525,8 @@ Game_Action.formulaContextProviders = [];
 * The return value of the getter becomes the value of `name` inside every
 * formula evaluated by {@link Game_Action#evalFormulaWithContext}.
 * @param {string} name The variable name exposed inside the formula (e.g. `'p'`, `'s'`).
-* @param {function(Game_Action, Game_Battler, Game_Battler): *} getter A function returning the value.
+* @param {function(Game_Action, Game_Battler, Game_Battler): number|string|boolean|object} getter
+* A function returning the value exposed under `name`.
 */
 Game_Action.registerFormulaContext = function(name, getter) {
 	Game_Action.formulaContextProviders.push({
@@ -8693,42 +8698,42 @@ Game_Action.prototype.setSubjectEnemyIndex = function(newSubjectEnemyIndex) {
 };
 /**
 * Gets the trigger hp damage.
-* @returns {*} The triggerHpDamage.
+* @returns {number} The triggerHpDamage.
 */
 Game_Action.prototype.triggerHpDamage = function() {
 	return this._triggerHpDamage;
 };
 /**
 * Sets the trigger hp damage.
-* @param {*} newTriggerHpDamage The new triggerHpDamage.
+* @param {number} newTriggerHpDamage The new triggerHpDamage.
 */
 Game_Action.prototype.setTriggerHpDamage = function(newTriggerHpDamage) {
 	this._triggerHpDamage = newTriggerHpDamage;
 };
 /**
 * Gets the trigger mp damage.
-* @returns {*} The triggerMpDamage.
+* @returns {number} The triggerMpDamage.
 */
 Game_Action.prototype.triggerMpDamage = function() {
 	return this._triggerMpDamage;
 };
 /**
 * Sets the trigger mp damage.
-* @param {*} newTriggerMpDamage The new triggerMpDamage.
+* @param {number} newTriggerMpDamage The new triggerMpDamage.
 */
 Game_Action.prototype.setTriggerMpDamage = function(newTriggerMpDamage) {
 	this._triggerMpDamage = newTriggerMpDamage;
 };
 /**
 * Gets the trigger tp damage.
-* @returns {*} The triggerTpDamage.
+* @returns {number} The triggerTpDamage.
 */
 Game_Action.prototype.triggerTpDamage = function() {
 	return this._triggerTpDamage;
 };
 /**
 * Sets the trigger tp damage.
-* @param {*} newTriggerTpDamage The new triggerTpDamage.
+* @param {number} newTriggerTpDamage The new triggerTpDamage.
 */
 Game_Action.prototype.setTriggerTpDamage = function(newTriggerTpDamage) {
 	this._triggerTpDamage = newTriggerTpDamage;
@@ -9551,7 +9556,7 @@ Game_Battler.prototype.setCachedHarFactor = function(value) {
 };
 /**
 * Gets the test note sources.
-* @returns {*} The testNoteSources.
+* @returns {{note: string}[]} The testNoteSources.
 */
 Game_Battler.prototype.testNoteSources = function() {
 	return this.__testNoteSources;
@@ -10472,7 +10477,7 @@ Game_Item.prototype.setDataClass = function(newDataClass) {
 //#region src/plugins/_base/core/objects/Game_Interpreter.js
 /**
 * Gets the conditional branch results by indent depth.
-* @returns {Object<number, *>} The branch.
+* @returns {Object<number, number|boolean>} The branch.
 */
 Game_Interpreter.prototype.branch = function() {
 	return this._branch;
@@ -11928,7 +11933,9 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_testBitmap: Bitmap, _text: string, _color: string, _alignment: string,
+	* _italics: boolean, _bold: boolean, _fontFace: string, _fontSize: number, _minWidth: number,
+	* _disableManagedOpacity: boolean}} The j.
 	*/
 	j() {
 		return this._j;
@@ -12014,7 +12021,7 @@ var Sprite_BaseText = class Sprite_BaseText extends Sprite {
 	}
 	/**
 	* Gets the current color assigned to this sprite's text.
-	* @returns {string|*}
+	* @returns {string}
 	*/
 	color() {
 		return this.j()._color;
@@ -12238,11 +12245,12 @@ Sprite_Character.prototype.isErased = function() {
 var Sprite_Face = class extends Sprite {
 	/**
 	* Constructor.
-	* @param {...*} args Forwarded to {@link #initialize}.
+	* @param {string} faceName The name of the face file.
+	* @param {number} faceIndex The index of the face.
 	*/
-	constructor(...args) {
+	constructor(faceName, faceIndex) {
 		super();
-		this.initialize(...args);
+		this.initialize(faceName, faceIndex);
 	}
 	/**
 	* Runs after {@link Sprite.prototype.initialize}.
@@ -12267,7 +12275,7 @@ var Sprite_Face = class extends Sprite {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_faceName: string, _faceIndex: number}} The j.
 	*/
 	j() {
 		return this._j;
@@ -12491,7 +12499,8 @@ var Sprite_Icon = class extends Sprite {
 var Sprite_MapGauge = class extends Sprite_Gauge {
 	/**
 	* Gets the gauge.
-	* @returns {*} The gauge.
+	* @returns {{_bitmapWidth: number, _bitmapHeight: number, _gaugeHeight: number, _label: string,
+	* _value: number|null, _iconIndex: number, _iconSprite: Sprite|null, _activated: boolean}} The gauge.
 	*/
 	gauge() {
 		return this._gauge;

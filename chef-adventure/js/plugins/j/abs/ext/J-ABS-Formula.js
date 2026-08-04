@@ -958,7 +958,7 @@ Game_Action.prototype.applyGlobal = function() {
 };
 /**
 * Gets the filter formula eligible battler.
-* @returns {*} The filterFormulaEligibleBattler.
+* @returns {Function} The filterFormulaEligibleBattler.
 */
 Game_Action.prototype.filterFormulaEligibleBattler = function() {
 	return this._filterFormulaEligibleBattler;

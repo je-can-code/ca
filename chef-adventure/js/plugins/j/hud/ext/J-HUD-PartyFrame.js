@@ -800,7 +800,9 @@ var Sprite_ActorValue = class extends Sprite {
 	}
 	/**
 	* Gets the j.
-	* @returns {*} The j.
+	* @returns {{_parameter: string, _actor: Game_Actor, _fontSizeMod: number,
+	* _last: {_hp: number, _mp: number, _tp: number, _xp: number, _lvl: number},
+	* _autoCounter: number}} The j.
 	*/
 	j() {
 		return this._j;
@@ -1108,14 +1110,14 @@ Scene_Map.prototype.handleRefreshPartyFrameImageCache = function() {
 };
 /**
 * Gets the party frame.
-* @returns {*} The partyFrame.
+* @returns {Window_PartyFrame} The partyFrame.
 */
 Scene_Map.prototype.partyFrame = function() {
 	return this._j._partyFrame;
 };
 /**
 * Sets the party frame.
-* @param {*} newPartyFrame The new partyFrame.
+* @param {Window_PartyFrame} newPartyFrame The new partyFrame.
 */
 Scene_Map.prototype.setPartyFrame = function(newPartyFrame) {
 	this._j._partyFrame = newPartyFrame;

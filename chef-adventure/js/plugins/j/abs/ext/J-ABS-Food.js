@@ -703,7 +703,7 @@ JABS_Engine.prototype.setFoodChainPlanByUuid = function(uuid, plan) {
 };
 /**
 * Gets the food chain plans.
-* @returns {*} The foodChainPlans.
+* @returns {Map<string, JABS_FoodChainPlan>} The foodChainPlans.
 */
 JABS_Engine.prototype.foodChainPlans = function() {
 	return this._foodChainPlans;

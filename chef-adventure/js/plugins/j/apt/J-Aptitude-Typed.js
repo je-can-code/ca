@@ -693,7 +693,7 @@ Game_Temp.prototype.setAptTypedInferredEnemyTypes = function(enemyId, ids) {
 };
 /**
 * Gets the apt typed inferred enemy types.
-* @returns {*} The aptTypedInferredEnemyTypes.
+* @returns {Record<number, number[]>} The aptTypedInferredEnemyTypes.
 */
 Game_Temp.prototype.aptTypedInferredEnemyTypes = function() {
 	return this._j._apt._typed._aptTypedInferredEnemyTypes;

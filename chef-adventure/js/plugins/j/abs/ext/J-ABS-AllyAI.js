@@ -572,11 +572,11 @@ var JABS_AllyAI = class JABS_AllyAI extends JABS_AI {
 	}
 	/**
 	* Constructor.
-	* @param {...*} args Forwarded to {@link #initialize}.
+	* @param {string=} presetKey The preset key to apply on construction.
 	*/
-	constructor(...args) {
+	constructor(presetKey) {
 		super();
-		this.initialize(...args);
+		this.initialize(presetKey);
 	}
 	/**
 	* Initializes this ally AI with an optional starting preset.

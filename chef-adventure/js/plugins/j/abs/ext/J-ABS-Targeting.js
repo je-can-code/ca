@@ -559,77 +559,77 @@ var JABS_TargetingSentinelAction = class {
 var JABS_TargetingManager = class JABS_TargetingManager {
 	/**
 	* Gets the just began.
-	* @returns {*} The justBegan.
+	* @returns {boolean} The justBegan.
 	*/
 	static isJustBegan() {
 		return this._justBegan;
 	}
 	/**
 	* Sets the just began.
-	* @param {*} newJustBegan The new justBegan.
+	* @param {boolean} newJustBegan The new justBegan.
 	*/
 	static setJustBegan(newJustBegan) {
 		this._justBegan = newJustBegan;
 	}
 	/**
 	* Gets the session.
-	* @returns {*} The session.
+	* @returns {JABS_TargetingSession|null} The session.
 	*/
 	static session() {
 		return this._session;
 	}
 	/**
 	* Sets the session.
-	* @param {*} newSession The new session.
+	* @param {JABS_TargetingSession|null} newSession The new session.
 	*/
 	static setSession(newSession) {
 		this._session = newSession;
 	}
 	/**
 	* Gets the cursor.
-	* @returns {*} The cursor.
+	* @returns {JABS_TargetingCursor|null} The cursor.
 	*/
 	static cursor() {
 		return this._cursor;
 	}
 	/**
 	* Sets the cursor.
-	* @param {*} newCursor The new cursor.
+	* @param {JABS_TargetingCursor|null} newCursor The new cursor.
 	*/
 	static setCursor(newCursor) {
 		this._cursor = newCursor;
 	}
 	/**
 	* Gets the sentinel.
-	* @returns {*} The sentinel.
+	* @returns {JABS_TargetingSentinelAction} The sentinel.
 	*/
 	static sentinel() {
 		return this._sentinel;
 	}
 	/**
 	* Gets the previous dir8.
-	* @returns {*} The previousDir8.
+	* @returns {number} The previousDir8.
 	*/
 	static previousDir8() {
 		return this._previousDir8;
 	}
 	/**
 	* Sets the previous dir8.
-	* @param {*} newPreviousDir8 The new previousDir8.
+	* @param {number} newPreviousDir8 The new previousDir8.
 	*/
 	static setPreviousDir8(newPreviousDir8) {
 		this._previousDir8 = newPreviousDir8;
 	}
 	/**
 	* Gets the previous dpad step.
-	* @returns {*} The previousDpadStep.
+	* @returns {number} The previousDpadStep.
 	*/
 	static previousDpadStep() {
 		return this._previousDpadStep;
 	}
 	/**
 	* Sets the previous dpad step.
-	* @param {*} newPreviousDpadStep The new previousDpadStep.
+	* @param {number} newPreviousDpadStep The new previousDpadStep.
 	*/
 	static setPreviousDpadStep(newPreviousDpadStep) {
 		this._previousDpadStep = newPreviousDpadStep;
@@ -1125,7 +1125,7 @@ Game_Player.prototype.canMove = function() {
 var Window_TargetingList = class Window_TargetingList extends Window_Command {
 	/**
 	* Gets the candidates.
-	* @returns {*} The candidates.
+	* @returns {JABS_Battler[]} The candidates.
 	*/
 	candidates() {
 		return this._candidates;
@@ -1473,42 +1473,42 @@ Spriteset_Map.prototype.setReticle = function(newReticle) {
 };
 /**
 * Gets the highlight sprites.
-* @returns {*} The highlightSprites.
+* @returns {Record<string, Sprite>} The highlightSprites.
 */
 Spriteset_Map.prototype.highlightSprites = function() {
 	return this._j._targeting._highlightSprites;
 };
 /**
 * Sets the highlight sprites.
-* @param {*} newHighlightSprites The new highlightSprites.
+* @param {Record<string, Sprite>} newHighlightSprites The new highlightSprites.
 */
 Spriteset_Map.prototype.setHighlightSprites = function(newHighlightSprites) {
 	this._j._targeting._highlightSprites = newHighlightSprites;
 };
 /**
 * Gets the preview pulse.
-* @returns {*} The previewPulse.
+* @returns {Sprite_HitboxPulse|null} The previewPulse.
 */
 Spriteset_Map.prototype.previewPulse = function() {
 	return this._j._targeting._previewPulse;
 };
 /**
 * Sets the preview pulse.
-* @param {*} newPreviewPulse The new previewPulse.
+* @param {Sprite_HitboxPulse|null} newPreviewPulse The new previewPulse.
 */
 Spriteset_Map.prototype.setPreviewPulse = function(newPreviewPulse) {
 	this._j._targeting._previewPulse = newPreviewPulse;
 };
 /**
 * Gets the range ring.
-* @returns {*} The rangeRing.
+* @returns {Sprite_HitboxPulse|null} The rangeRing.
 */
 Spriteset_Map.prototype.rangeRing = function() {
 	return this._j._targeting._rangeRing;
 };
 /**
 * Sets the range ring.
-* @param {*} newRangeRing The new rangeRing.
+* @param {Sprite_HitboxPulse|null} newRangeRing The new rangeRing.
 */
 Spriteset_Map.prototype.setRangeRing = function(newRangeRing) {
 	this._j._targeting._rangeRing = newRangeRing;
@@ -1591,14 +1591,14 @@ Scene_Map.prototype.setTargetingListWindow = function(newTargetingListWindow) {
 };
 /**
 * Gets the targeting was active.
-* @returns {*} The targetingWasActive.
+* @returns {boolean} The targetingWasActive.
 */
 Scene_Map.prototype.targetingWasActive = function() {
 	return this._targetingWasActive;
 };
 /**
 * Sets the targeting was active.
-* @param {*} newTargetingWasActive The new targetingWasActive.
+* @param {boolean} newTargetingWasActive The new targetingWasActive.
 */
 Scene_Map.prototype.setTargetingWasActive = function(newTargetingWasActive) {
 	this._targetingWasActive = newTargetingWasActive;

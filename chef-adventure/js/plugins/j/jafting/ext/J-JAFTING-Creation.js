@@ -1611,7 +1611,7 @@ Game_Party.prototype.unlockEverythingCompletely = function() {
 	this.unlockAllCategories();
 	this.revealAllKnownRecipes();
 };
-Game_Party.prototype.updateVariableWithCraftedCountByCategories = function(variableId, ...categoryKeys) {
+Game_Party.prototype.updateVariableWithCraftedCountByCategories = function(variableId, categoryKeys) {
 	let count = 0;
 	categoryKeys.forEach((categoryKey) => {
 		count += this.getCraftedRecipeCountByCategoryKey(categoryKey);
@@ -1620,28 +1620,28 @@ Game_Party.prototype.updateVariableWithCraftedCountByCategories = function(varia
 };
 /**
 * Gets the recipe trackings.
-* @returns {*} The recipeTrackings.
+* @returns {RecipeTracking[]} The recipeTrackings.
 */
 Game_Party.prototype.recipeTrackings = function() {
 	return this._j._crafting._recipeTrackings;
 };
 /**
 * Sets the recipe trackings.
-* @param {*} newRecipeTrackings The new recipeTrackings.
+* @param {RecipeTracking[]} newRecipeTrackings The new recipeTrackings.
 */
 Game_Party.prototype.setRecipeTrackings = function(newRecipeTrackings) {
 	this._j._crafting._recipeTrackings = newRecipeTrackings;
 };
 /**
 * Gets the category trackings.
-* @returns {*} The categoryTrackings.
+* @returns {CategoryTracking[]} The categoryTrackings.
 */
 Game_Party.prototype.categoryTrackings = function() {
 	return this._j._crafting._categoryTrackings;
 };
 /**
 * Sets the category trackings.
-* @param {*} newCategoryTrackings The new categoryTrackings.
+* @param {CategoryTracking[]} newCategoryTrackings The new categoryTrackings.
 */
 Game_Party.prototype.setCategoryTrackings = function(newCategoryTrackings) {
 	this._j._crafting._categoryTrackings = newCategoryTrackings;

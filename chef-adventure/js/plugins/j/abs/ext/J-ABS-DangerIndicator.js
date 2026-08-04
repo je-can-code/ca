@@ -533,14 +533,14 @@ Sprite_Character.prototype.hideDangerIndicator = function() {
 };
 /**
 * Gets the danger indicator.
-* @returns {*} The dangerIndicator.
+* @returns {Sprite_Icon} The dangerIndicator.
 */
 Sprite_Character.prototype.dangerIndicator = function() {
 	return this._j._dangerIndicator;
 };
 /**
 * Sets the danger indicator.
-* @param {*} newDangerIndicator The new dangerIndicator.
+* @param {Sprite_Icon} newDangerIndicator The new dangerIndicator.
 */
 Sprite_Character.prototype.setDangerIndicator = function(newDangerIndicator) {
 	this._j._dangerIndicator = newDangerIndicator;

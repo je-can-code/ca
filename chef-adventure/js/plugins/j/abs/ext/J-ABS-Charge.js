@@ -1306,7 +1306,7 @@ JABS_StandardController.prototype.canChargeCombatAction4 = function() {
 };
 /**
 * Gets the charge input delay.
-* @returns {*} The chargeInputDelay.
+* @returns {Map<string, JABS_Timer>} The chargeInputDelay.
 */
 JABS_StandardController.prototype.chargeInputDelay = function() {
 	return this._chargeInputDelay;
@@ -1408,46 +1408,49 @@ var Sprite_MapChargeGauge = class extends Sprite_MapGauge {
 	}
 	/**
 	* Gets the expected character.
-	* @returns {*} The expectedCharacter.
+	* @returns {Game_Character|null} The expectedCharacter.
 	*/
 	expectedCharacter() {
 		return this._expectedCharacter;
 	}
 	/**
 	* Sets the expected character.
-	* @param {*} newExpectedCharacter The new expectedCharacter.
+	* @param {Game_Character|null} newExpectedCharacter The new expectedCharacter.
 	*/
 	setExpectedCharacter(newExpectedCharacter) {
 		this._expectedCharacter = newExpectedCharacter;
 	}
 	/**
 	* Gets the expected uuid.
-	* @returns {*} The expectedUuid.
+	* @returns {string|null} The expectedUuid.
 	*/
 	expectedUuid() {
 		return this._expectedUuid;
 	}
 	/**
 	* Sets the expected uuid.
-	* @param {*} newExpectedUuid The new expectedUuid.
+	* @param {string|null} newExpectedUuid The new expectedUuid.
 	*/
 	setExpectedUuid(newExpectedUuid) {
 		this._expectedUuid = newExpectedUuid;
 	}
 	/**
 	* Gets the gauge.
-	* @returns {*} The gauge.
+	* @returns {{_bitmapWidth: number, _bitmapHeight: number, _gaugeHeight: number, _label: string,
+	* _value: number|null, _iconIndex: number, _iconSprite: Sprite|null, _activated: boolean}} The gauge.
 	*/
 	gauge() {
 		return this._gauge;
 	}
 	/**
 	* Constructor.
-	* @param {...*} args Forwarded to {@link #initialize}.
+	* @param {number=} bitmapWidth The bitmap width of this gauge.
+	* @param {number=} bitmapHeight The bitmap height of this gauge.
+	* @param {number=} gaugeHeight The height of the filled strip.
 	*/
-	constructor(...args) {
+	constructor(bitmapWidth = 128, bitmapHeight = 24, gaugeHeight = 10) {
 		super();
-		this.initialize(...args);
+		this.initialize(bitmapWidth, bitmapHeight, gaugeHeight);
 	}
 	/**
 	* Initializes this charge gauge with the given parameters.
@@ -1753,14 +1756,14 @@ Sprite_Character.prototype.hideChargeGauge = function() {
 };
 /**
 * Gets the charge gauge.
-* @returns {*} The chargeGauge.
+* @returns {Sprite_MapChargeGauge|null} The chargeGauge.
 */
 Sprite_Character.prototype.chargeGauge = function() {
 	return this._j._abs._gauges._chargeGauge;
 };
 /**
 * Sets the charge gauge.
-* @param {*} newChargeGauge The new chargeGauge.
+* @param {Sprite_MapChargeGauge|null} newChargeGauge The new chargeGauge.
 */
 Sprite_Character.prototype.setChargeGauge = function(newChargeGauge) {
 	this._j._abs._gauges._chargeGauge = newChargeGauge;

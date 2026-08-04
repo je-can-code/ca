@@ -303,28 +303,28 @@ Game_Message.prototype.hideChoice = function(choiceIndex, isHidden) {
 };
 /**
 * Gets the hidden choice conditions.
-* @returns {*} The hiddenChoiceConditions.
+* @returns {Map<number, boolean>} The hiddenChoiceConditions.
 */
 Game_Message.prototype.hiddenChoiceConditions = function() {
 	return this._hiddenChoiceConditions;
 };
 /**
 * Sets the hidden choice conditions.
-* @param {*} newHiddenChoiceConditions The new hiddenChoiceConditions.
+* @param {Map<number, boolean>} newHiddenChoiceConditions The new hiddenChoiceConditions.
 */
 Game_Message.prototype.setHiddenChoiceConditions = function(newHiddenChoiceConditions) {
 	this._hiddenChoiceConditions = newHiddenChoiceConditions;
 };
 /**
 * Gets the old choices.
-* @returns {*} The oldChoices.
+* @returns {string[]} The oldChoices.
 */
 Game_Message.prototype.oldChoices = function() {
 	return this._oldChoices;
 };
 /**
 * Sets the old choices.
-* @param {*} newOldChoices The new oldChoices.
+* @param {string[]} newOldChoices The new oldChoices.
 */
 Game_Message.prototype.setOldChoices = function(newOldChoices) {
 	this._oldChoices = newOldChoices;
@@ -493,7 +493,7 @@ Window_Base.prototype.convertEscapeCharacters = function(text) {
 /**
 * Translates the text code into the name and icon of the weapon.
 * @param {string} text The text that has a text code in it.
-* @returns {*}
+* @returns {string}
 */
 Window_Base.prototype.translateWeaponTextCode = function(text) {
 	return text.replace(/\\weapon\[(\d+)]/gi, (_, p1) => {
@@ -730,14 +730,14 @@ Window_ChoiceList.prototype.callOkHandler = function() {
 };
 /**
 * Gets the choice map.
-* @returns {*} The choiceMap.
+* @returns {number[]} The choiceMap.
 */
 Window_ChoiceList.prototype.choiceMap = function() {
 	return this._choiceMap;
 };
 /**
 * Sets the choice map.
-* @param {*} newChoiceMap The new choiceMap.
+* @param {number[]} newChoiceMap The new choiceMap.
 */
 Window_ChoiceList.prototype.setChoiceMap = function(newChoiceMap) {
 	this._choiceMap = newChoiceMap;
