@@ -2,7 +2,7 @@
 /*:
  * @target MZ
  * @plugindesc
- * [v1.2.0 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
+ * [v1.2.1 OMNI-MONSTER] Extends the Omnipedia with a Monsterpedia entry.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -57,6 +57,11 @@
  * one per tag, in the order they appear on the note.
  * ============================================================================
  * CHANGELOG:
+ * - 1.2.1
+ *    The monsterpedia detail window no longer declares private members. A
+ *    window's constructor reaches initialize, and through it the drawing
+ *    hooks, before a derived class installs its own members- so anything
+ *    private was being touched on an object that did not yet have it.
  * - 1.2.0
  *    The monsterpedia lookup cache is no longer written to savefiles. It held
  *    the same observations as the saveables it is built from, keyed by enemy
@@ -145,7 +150,7 @@ J.OMNI.EXT.MONSTER = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-Omni-Monsterpedia", "1.2.0");
+J.OMNI.EXT.MONSTER.Metadata = new J_OmniMonster_PluginMetadata("J-Omni-Monsterpedia", "1.2.1");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -667,27 +672,27 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	* The player's observations of the currently highlighted enemy.
 	* @type {MonsterpediaObservations|null}
 	*/
-	#currentObservations = null;
+	_currentObservations = null;
 	/**
 	* A cache of all sprites associated with enemies in the monsterpedia.
 	* @type {Map<number, Sprite_Enemy>}
 	*/
-	#battlerImageCache = new Map();
+	_battlerImageCache = new Map();
 	/**
 	* A cache of all sprites associated with base parameters.
 	* @type {Map<number, Sprite_Icon>}
 	*/
-	#baseParameterIconCache = new Map();
+	_baseParameterIconCache = new Map();
 	/**
 	* A cache of all sprites associated with sp parameters.
 	* @type {Map<number, Sprite_Icon>}
 	*/
-	#spParameterIconCache = new Map();
+	_spParameterIconCache = new Map();
 	/**
 	* A cache of all sprites associated with ex parameters.
 	* @type {Map<number, Sprite_Icon>}
 	*/
-	#exParameterIconCache = new Map();
+	_exParameterIconCache = new Map();
 	/**
 	* Constructor.
 	* @param {Rectangle} rect The rectangle that represents this window.
@@ -700,42 +705,42 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	* @returns {MonsterpediaObservations|null}
 	*/
 	getObservations() {
-		return this.#currentObservations;
+		return this._currentObservations;
 	}
 	/**
 	* Sets the current enemy observations for this window.
 	* @param {MonsterpediaObservations} observations The observations driving this step.
 	*/
 	setObservations(observations) {
-		this.#currentObservations = observations;
+		this._currentObservations = observations;
 	}
 	/**
 	* Gets the battler image cache.
 	* @returns {Map<number, Sprite_Enemy>}
 	*/
 	getEnemyImageCache() {
-		return this.#battlerImageCache;
+		return this._battlerImageCache;
 	}
 	/**
 	* Gets the b-parameter icon image cache.
 	* @returns {Map<number, Sprite_Icon>}
 	*/
 	getBaseParameterIconCache() {
-		return this.#baseParameterIconCache;
+		return this._baseParameterIconCache;
 	}
 	/**
 	* Gets the s-parameter icon image cache.
 	* @returns {Map<number, Sprite_Icon>}
 	*/
 	getSpParameterIconCache() {
-		return this.#spParameterIconCache;
+		return this._spParameterIconCache;
 	}
 	/**
 	* Gets the x-parameter icon image cache.
 	* @returns {Map<number, Sprite_Icon>}
 	*/
 	getExParameterIconCache() {
-		return this.#exParameterIconCache;
+		return this._exParameterIconCache;
 	}
 	/**
 	* Populates the sprite cache ahead of rendering.
@@ -1297,8 +1302,8 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		const { id } = observations;
 		const gameEnemy = $gameEnemies.enemy(id);
 		this.modFontSize(-4);
-		const taxonomy = this.#collectMonsterpediaTaxonomyRows(gameEnemy);
-		const taxonomyLineCount = this.#countMonsterpediaTaxonomyDrawLines(taxonomy);
+		const taxonomy = this.collectMonsterpediaTaxonomyRows(gameEnemy);
+		const taxonomyLineCount = this.countMonsterpediaTaxonomyDrawLines(taxonomy);
 		const damageTypeCount = 10;
 		const blockRowCount = Math.max(damageTypeCount, taxonomyLineCount);
 		const descriptionTop = this.height - this.lineHeight() * 6;
@@ -1311,7 +1316,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		const damageColumnX = taxonomyColumnX - damageColumnOffset;
 		const damageStartRow = 0;
 		const taxonomyStartRow = 0;
-		this.#drawMonsterpediaTaxonomySections(taxonomyColumnX, yTop, lh, taxonomyStartRow, observations, taxonomy);
+		this.drawMonsterpediaTaxonomySections(taxonomyColumnX, yTop, lh, taxonomyStartRow, observations, taxonomy);
 		const damageElementIds = [
 			1,
 			2,
@@ -1326,7 +1331,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		];
 		damageElementIds.forEach((elementId, index) => {
 			const row = damageStartRow + index;
-			this.#drawMonsterpediaDamageElementRow(damageColumnX, yTop, lh, row, observations, elementId);
+			this.drawMonsterpediaDamageElementRow(damageColumnX, yTop, lh, row, observations, elementId);
 		});
 	}
 	/**
@@ -1338,7 +1343,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	*   tool: {elementId: number, label: string, rate: number}[]
 	* }}
 	*/
-	#collectMonsterpediaTaxonomyRows(gameEnemy) {
+	collectMonsterpediaTaxonomyRows(gameEnemy) {
 		const names = $dataSystem.elements;
 		const vs = [];
 		const xList = [];
@@ -1388,7 +1393,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	* @param {{ vs: object[], x: object[], tool: object[] }} taxonomy The grouped taxonomy rows.
 	* @returns {number}
 	*/
-	#countMonsterpediaTaxonomyDrawLines(taxonomy) {
+	countMonsterpediaTaxonomyDrawLines(taxonomy) {
 		let lines = 0;
 		if (taxonomy.vs.length > 0) {
 			lines += 1 + taxonomy.vs.length;
@@ -1411,11 +1416,11 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	* @param {{ vs: object[], x: object[], tool: object[] }} taxonomy The grouped taxonomy rows.
 	* @returns {number} The next row index after drawing taxonomy content.
 	*/
-	#drawMonsterpediaTaxonomySections(x, y, lh, row, observations, taxonomy) {
+	drawMonsterpediaTaxonomySections(x, y, lh, row, observations, taxonomy) {
 		let r = row;
-		r = this.#drawMonsterpediaTaxonomyBucket(x, y, lh, r, observations, taxonomy.vs, "Family");
-		r = this.#drawMonsterpediaTaxonomyBucket(x, y, lh, r, observations, taxonomy.x, "Traits");
-		r = this.#drawMonsterpediaTaxonomyBucket(x, y, lh, r, observations, taxonomy.tool, "Tools");
+		r = this.drawMonsterpediaTaxonomyBucket(x, y, lh, r, observations, taxonomy.vs, "Family");
+		r = this.drawMonsterpediaTaxonomyBucket(x, y, lh, r, observations, taxonomy.x, "Traits");
+		r = this.drawMonsterpediaTaxonomyBucket(x, y, lh, r, observations, taxonomy.tool, "Tools");
 		return r;
 	}
 	/**
@@ -1429,7 +1434,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	* @param {string} headerText The section title.
 	* @returns {number} The next row index after this bucket.
 	*/
-	#drawMonsterpediaTaxonomyBucket(x, y, lh, row, observations, rows, headerText) {
+	drawMonsterpediaTaxonomyBucket(x, y, lh, row, observations, rows, headerText) {
 		if (rows.length === 0) return row;
 		let cursor = row;
 		this.resetFontSettings();
@@ -1441,7 +1446,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 		cursor += 1;
 		rows.forEach((entry) => {
 			const { elementId, label, rate } = entry;
-			this.#drawMonsterpediaTaxonomyElementRow(x, y, lh, cursor, observations, elementId, label, rate);
+			this.drawMonsterpediaTaxonomyElementRow(x, y, lh, cursor, observations, elementId, label, rate);
 			cursor += 1;
 		});
 		return cursor;
@@ -1457,7 +1462,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	* @param {string} label The display label (prefix stripped).
 	* @param {number} rate The rounded percent rate.
 	*/
-	#drawMonsterpediaTaxonomyElementRow(x, y, lh, row, observations, elementId, label, rate) {
+	drawMonsterpediaTaxonomyElementRow(x, y, lh, row, observations, elementId, label, rate) {
 		this.resetFontSettings();
 		this.modFontSize(-4);
 		const elementIcon = IconManager.element(elementId);
@@ -1487,7 +1492,7 @@ var Window_MonsterpediaDetail = class extends Window_Base {
 	* @param {MonsterpediaObservations} observations The active observations.
 	* @param {number} elementId The database element id.
 	*/
-	#drawMonsterpediaDamageElementRow(x, y, lh, row, observations, elementId) {
+	drawMonsterpediaDamageElementRow(x, y, lh, row, observations, elementId) {
 		this.resetFontSettings();
 		this.modFontSize(-4);
 		this.changeTextColor(ColorManager.normalColor());

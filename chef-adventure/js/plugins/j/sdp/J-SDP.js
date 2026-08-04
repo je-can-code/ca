@@ -2,7 +2,7 @@
  
 /*:
  * @target MZ
- * @plugindesc [v3.1.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
+ * @plugindesc [v3.2.0 SDP] Enables the SDP system, aka Stat Distribution Panels.
  * @author JE
  * @url https://github.com/je-can-code/rmmz-plugins
  * @base J-Base
@@ -364,6 +364,18 @@
  *
  * ============================================================================
  * CHANGELOG:
+ * - 3.2.0
+ *    Unspent points now appear on each party member's cell in the main menu,
+ *    beside their level and the distance to the next one. A currency nobody is
+ *    reminded of is a currency nobody spends, and the points are otherwise
+ *    invisible until the player already went looking for them.
+ *    This is drawn through the extension hook J-CMS reserves for exactly this,
+ *    and does nothing at all when that plugin is not installed.
+ *    The family strip, header, mastery, and parameter list windows no longer
+ *    declare private members. A window's constructor reaches initialize, and
+ *    through it the drawing hooks, before a derived class installs its own
+ *    members- so anything private was being touched on an object that did not
+ *    yet have it.
  * - 3.1.0
  *    Routed the _sdp namespace into its own save section, so panel investment
  *    and mastery land in systems/sdp.json rather than in the system blob.
@@ -2559,7 +2571,7 @@ J.SDP = {};
 /**
 * The metadata associated with this plugin.
 */
-J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.1.0");
+J.SDP.Metadata = new J_SdpPluginMetadata("J-SDP", "3.2.0");
 /**
 * A collection of all aliased methods for this plugin.
 */
@@ -2579,7 +2591,8 @@ J.SDP.Aliased = {
 	Scene_Boot: new Map(),
 	Scene_Map: new Map(),
 	Scene_Menu: new Map(),
-	Window_MenuCommand: new Map()
+	Window_MenuCommand: new Map(),
+	Window_MenuStatus: new Map()
 };
 /**
 * All regular expressions used by this plugin.
@@ -3635,6 +3648,58 @@ Window_MenuCommand.prototype.canAddSdpCommand = function() {
 };
 
 //#endregion
+//#region src/plugins/sdp/core/windows/Window_MenuStatus.js
+/**
+* J-CMS reserves a block at the foot of each party member's menu cell for whatever the plugins
+* layered on top of it have to say. Unspent node points are the clearest thing this plugin can
+* contribute there: they are a currency the player is holding rather than spending, and a currency
+* nobody is reminded of is one nobody spends.
+*
+* The check is for J-CMS itself rather than for the method, because this is the one honestly
+* optional dependency in play- the main menu redesign may simply not be installed, in which case
+* there is no cell to draw into and nothing here should exist.
+*/
+if (J.CMS) {
+	/**
+	* Extends {@link #drawExtensionData}.<br/>
+	* Also reports how many node points this actor is holding unspent.
+	*
+	* Draws beneath whatever the original returned rather than at the y it was handed, so that this
+	* plugin claims a row of its own without needing to know whether anything else already claimed
+	* one above it.
+	* @param {Game_Actor} actor The actor being described.
+	* @param {number} x The left edge of the space available.
+	* @param {number} y The top of the space available.
+	* @param {number} width The width available.
+	* @returns {number}
+	*/
+	J.SDP.Aliased.Window_MenuStatus.set("drawExtensionData", Window_MenuStatus.prototype.drawExtensionData);
+	Window_MenuStatus.prototype.drawExtensionData = function(actor, x, y, width) {
+		const nextY = J.SDP.Aliased.Window_MenuStatus.get("drawExtensionData").call(this, actor, x, y, width);
+		this.drawSdpPoints(actor, x, nextY, width);
+		return nextY + this.lineHeight();
+	};
+	/**
+	* Draws how many node points this actor has available to spend.
+	*
+	* Drawn even at zero rather than hidden when empty. A row that appears only sometimes teaches the
+	* player nothing about where to look for it, and a standing zero is what makes a later non-zero
+	* legible as a change worth acting on.
+	* @param {Game_Actor} actor The actor whose points are being reported.
+	* @param {number} x The left edge of the row.
+	* @param {number} y The top of the row.
+	* @param {number} width The width available to the row.
+	*/
+	Window_MenuStatus.prototype.drawSdpPoints = function(actor, x, y, width) {
+		const points = actor.getSdpPoints();
+		this.drawIcon(J.SDP.Metadata.sdpIconIndex, x, y);
+		const valueX = x + ImageManager.standardIconWidth + 8;
+		this.resetTextColor();
+		this.drawText(`${points}`, valueX, y, width - (valueX - x), "left");
+	};
+}
+
+//#endregion
 //#region src/plugins/sdp/core/managers/SdpFamilyFilter.js
 /**
 * Family-filter symbols and helpers for the SDP panel list.
@@ -4020,20 +4085,27 @@ var Window_SdpHeader = class extends Window_Base {
 	/**
 	* @type {StatDistributionPanel|null}
 	*/
-	#panel = null;
+	_panel = null;
 	/**
 	* Binds the hovered panel to this header.
 	* @param {StatDistributionPanel|null} panel The hovered panel.
 	*/
 	setPanel(panel) {
-		this.#panel = panel;
+		this._panel = panel;
+	}
+	/**
+	* The panel currently bound to this header.
+	* @returns {StatDistributionPanel|null}
+	*/
+	panel() {
+		return this._panel;
 	}
 	/**
 	* Implements {@link Window_Base.drawContent}.<br/>
 	* Renders the single-line summary for the hovered panel.
 	*/
 	drawContent() {
-		const panel = this.#panel;
+		const panel = this.panel();
 		if (!panel) {
 			return;
 		}
@@ -4111,10 +4183,10 @@ var Window_SdpParameterList = class extends Window_Command {
 	*/
 	buildCommands() {
 		if (this.panelParameters.length === 0) return [];
-		const commands = this.panelParameters.map(this.#buildPanelParameterCommand, this);
+		const commands = this.panelParameters.map(this.buildPanelParameterCommand, this);
 		return commands;
 	}
-	#buildPanelParameterCommand(panelParameter) {
+	buildPanelParameterCommand(panelParameter) {
 		const { parameterKey, isCore } = panelParameter;
 		const definition = ParameterRegistry.get(parameterKey);
 		const colorIndex = isCore ? 14 : 0;
@@ -4123,12 +4195,12 @@ var Window_SdpParameterList = class extends Window_Command {
 		const paramValue = this.currentActor.parameter(parameterKey);
 		const paramDescription = definition ? definition.description() : [String.empty];
 		const prettyValue = definition ? definition.prettyValue(paramValue, false, this.currentActor) : Math.trunc(paramValue).toString();
-		const { modifierColorIndex, modifierText } = this.#determineModifierData(panelParameter);
+		const { modifierColorIndex, modifierText } = this.determineModifierData(panelParameter);
 		const commandName = `${paramName} ( ${prettyValue} )`;
 		const command = new WindowCommandBuilder(commandName).setSymbol(parameterKey).addTextLines(paramDescription).setIconIndex(paramIcon).setColorIndex(colorIndex).setRightText(modifierText).setRightColorIndex(modifierColorIndex).setExtensionData(panelParameter).build();
 		return command;
 	}
-	#determineModifierData(panelParameter) {
+	determineModifierData(panelParameter) {
 		const calculateAfterRankUpValue = (paramValue, modifier, isFlat) => {
 			return isFlat ? Number((paramValue + modifier).toFixed(2)) : paramValue + paramValue * (modifier / 100);
 		};
@@ -4317,20 +4389,27 @@ var Window_SdpMastery = class extends Window_Base {
 	/**
 	* @type {StatDistributionPanel|null}
 	*/
-	#panel = null;
+	_panel = null;
 	/**
 	* Binds the hovered panel to this mastery strip.
 	* @param {StatDistributionPanel|null} panel The hovered panel.
 	*/
 	setPanel(panel) {
-		this.#panel = panel;
+		this._panel = panel;
+	}
+	/**
+	* The panel currently bound to this mastery strip.
+	* @returns {StatDistributionPanel|null}
+	*/
+	panel() {
+		return this._panel;
 	}
 	/**
 	* Implements {@link Window_Base.drawContent}.<br>
 	* Renders subgroup mastery enrollment for the hovered panel.
 	*/
 	drawContent() {
-		const panel = this.#panel;
+		const panel = this.panel();
 		if (!panel) {
 			return;
 		}
@@ -4900,7 +4979,7 @@ var Window_SdpFamilyStrip = class extends Window_Base {
 	* Active family-filter key ({@link SdpFamilyFilter.ALL}, {@link SdpFamilyFilter.UNKNOWN}, or a family key).
 	* @type {string}
 	*/
-	#filterKey = SdpFamilyFilter.ALL;
+	_filterKey = SdpFamilyFilter.ALL;
 	/**
 	* @param {Rectangle} rect The dimensions of the window.
 	*/
@@ -4913,15 +4992,22 @@ var Window_SdpFamilyStrip = class extends Window_Base {
 	* @param {string} filterKey The filter key driving this step.
 	*/
 	setFilterKey(filterKey) {
-		this.#filterKey = filterKey;
+		this._filterKey = filterKey;
 		this.refresh();
+	}
+	/**
+	* The family filter currently driving this strip.
+	* @returns {string}
+	*/
+	filterKey() {
+		return this._filterKey;
 	}
 	/**
 	* Implements {@link Window_Base.drawContent}.<br/>
 	* Renders the current family filter label and icon.
 	*/
 	drawContent() {
-		const filterKey = this.#filterKey;
+		const filterKey = this.filterKey();
 		const label = SdpFamilyFilter.displayNameForFilterKey(filterKey);
 		const iconIndex = SdpFamilyFilter.iconIndexForFilterKey(filterKey);
 		const iconPad = 4;

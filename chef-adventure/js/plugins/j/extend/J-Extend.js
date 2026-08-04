@@ -1,7 +1,7 @@
 //region Introduction
 /*:
  * @target MZ
- * @plugindesc [v1.7.1 EXTEND] Extends the capabilities of skills/actions.
+ * @plugindesc [v1.7.2 EXTEND] Extends the capabilities of skills/actions.
  * @base J-Base
  * @orderAfter J-Base
  * @author JE
@@ -433,6 +433,11 @@
  * A three-state cycle: 12 -> 13 -> 14 -> 12 -> ..., one step per execution.
  * ============================================================================
  * CHANGELOG:
+ * - 1.7.2
+ *    The plugin metadata class no longer declares private members. Its base
+ *    constructor reaches postInitialize before a derived class installs its
+ *    own, so anything private was being touched on an object that did not yet
+ *    have it.
  * - 1.7.1
  *    Split Game_Item's extension state so the default lands in initMembers
  *    while the mapping from the constructed item stays in the initialize
@@ -517,7 +522,7 @@ var J_SkillExtendPluginMetadata = class extends PluginMetadata {
 	* Plugins opt in by calling {@link registerNonCombiningKey} during Scene_Boot.
 	* @type {Set<string>}
 	*/
-	#nonCombiningKeys = new Set();
+	_nonCombiningKeys = new Set();
 	/**
 	* Constructor.
 	*/
@@ -533,14 +538,23 @@ var J_SkillExtendPluginMetadata = class extends PluginMetadata {
 	*/
 	registerNonCombiningKey(regexp, asBoolean = false) {
 		const key = J.BASE.Helpers.getKeyFromRegexp(regexp, asBoolean).toLowerCase();
-		this.#nonCombiningKeys.add(key);
+		this.nonCombiningKeys().add(key);
+	}
+	/**
+	* The live set of registered non-combining tag keys.
+	* Registration mutates this set directly; readers should prefer {@link getNonCombiningKeys}, which
+	* hands back a copy rather than the collection itself.
+	* @returns {Set<string>} The backing set.
+	*/
+	nonCombiningKeys() {
+		return this._nonCombiningKeys;
 	}
 	/**
 	* Gets all registered non-combining tag keys as an array.
 	* @returns {string[]} The registered keys, all lowercase.
 	*/
 	getNonCombiningKeys() {
-		return [...this.#nonCombiningKeys];
+		return [...this.nonCombiningKeys()];
 	}
 };
 
@@ -564,7 +578,7 @@ J.EXTEND = {};
 /**
 * The `metadata` associated with this plugin, such as version.
 */
-J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.7.1");
+J.EXTEND.Metadata = new J_SkillExtendPluginMetadata("J-Extend", "1.7.2");
 /**
 * A collection of all aliased methods for this plugin.
 */
