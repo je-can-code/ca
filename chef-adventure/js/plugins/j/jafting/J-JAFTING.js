@@ -665,9 +665,6 @@ var JaftingSalvageManager = class JaftingSalvageManager {
 		if (working !== bag) {
 			$gameParty._j._jafting._salvageLedgers[key] = working;
 		}
-		if (!Array.isArray(working.unitLedgers)) {
-			working.unitLedgers = [];
-		}
 		JaftingSalvageManager.syncPartyLedgerUnitCountToStack(working, datum);
 	}
 	/**

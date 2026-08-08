@@ -1010,6 +1010,53 @@ var RPGManager = class RPGManager {
 		return val;
 	}
 	/**
+	* Gets the sum of every numeric value matching the regex on a single object's note.
+	*
+	* The counterpart to {@link getNumberFromNoteByRegex}, and the distinction is the whole point: that
+	* one keeps the *last* match and discards the rest, which is correct for a setting - an id, a cap, a
+	* hitbox dimension - where two declarations mean the later one wins. This one is for a *bonus*, where
+	* two declarations mean both apply.
+	*
+	* Reading a bonus with the last-wins variant loses values silently, and it is the shape any merged
+	* note produces: two contributions landing on one row rather than on two.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return 0 if nothing matched, or null.
+	* @returns {number|null} The sum across every matching line, or zero/null.
+	*/
+	static getSumFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		if (this.#canParsedatabaseData(databaseData) === false) {
+			return nullIfEmpty ? null : 0;
+		}
+		const key = `numsum:${structure.source}::${structure.flags}::nullIfEmpty=${nullIfEmpty}`;
+		return this.cached(databaseData, key, () => this.#getSumFromNoteByRegex(databaseData, structure, nullIfEmpty));
+	}
+	/**
+	* Sums every numeric value matching the regex across one object's note lines.
+	* @param {RPG_Base} databaseData The database object to inspect.
+	* @param {RegExp} structure The regular expression to filter notes by.
+	* @param {boolean=} nullIfEmpty Whether or not to return 0 if nothing matched, or null.
+	* @returns {number|null} The sum across every matching line, or zero/null.
+	*/
+	static #getSumFromNoteByRegex(databaseData, structure, nullIfEmpty = false) {
+		const safeFlags = structure.flags.replace("g", "").replace("y", "");
+		const scan = new RegExp(structure.source, safeFlags);
+		const lines = databaseData.note.split(/[\r\n]+/);
+		let found = false;
+		let val = 0;
+		lines.forEach((line) => {
+			const result = scan.exec(line);
+			if (result === null) return;
+			const [, numericResult] = result;
+			found = true;
+			val += parseFloat(numericResult);
+		});
+		if (found === false) {
+			return nullIfEmpty ? null : 0;
+		}
+		return val;
+	}
+	/**
 	* Gathers all numbers found in arrays on the database object provided.
 	*
 	* This accepts a regex structure, assuming the capture group is an numeric value,
@@ -1065,7 +1112,7 @@ var RPGManager = class RPGManager {
 		}
 		let val = 0;
 		databaseDatas.forEach((databaseData) => {
-			val += this.getNumberFromNoteByRegex(databaseData, structure);
+			val += this.getSumFromNoteByRegex(databaseData, structure);
 		});
 		if (!val && nullIfEmpty) {
 			return null;
@@ -7592,6 +7639,241 @@ ImageManager.loadBitmapPromise = function(filename, directory) {
 * @type {number}
 */
 ImageManager.iconColumns = 16;
+
+//#endregion
+//#region src/plugins/_base/core/managers/NoteResolver.js
+/**
+* Merges one note into another, tag-aware.
+*
+* Notes are J-Base's business: it hydrates every `$data*` row into an `RPG_*` model, {@link RPGManager}
+* reads tags off them, and {@link TraitResolver} merges the structured half of the same problem. The
+* note merger belongs beside them rather than inside whichever plugin happened to need it first.
+*
+* **The policy is a parameter, deliberately.** Which keys accumulate rather than replace is a decision
+* the caller states outright, not something read from a registry populated at boot. That matters because
+* merged notes can outlive the merge: JAFTING replays a refined equip's provenance on every load, so a
+* merge that consulted a global would silently produce different results once another plugin registered
+* a key. Passing the policy in makes the output a function of nothing but its arguments.
+*
+* Two behaviors, and they line up with how the tags are read back:
+* - **replace** (the default) suits a tag read by a scalar reader like
+*   {@link RPGManager.getNumberFromNoteByRegex}, which takes the last match on a note and ignores the
+*   rest. Appending a second one would silently discard the first.
+* - **accumulate** suits a tag read by a collecting reader like
+*   {@link RPGManager.getArraysFromNotesByRegex}, where every occurrence contributes.
+*/
+var NoteResolver = class NoteResolver {
+	/**
+	* The shapes a note line can take.
+	*/
+	static LineType = {
+		/**
+		* A "key value pair" tag, such as <key:value>.
+		*/
+		kvp: "kvp",
+		/**
+		* A "boolean" tag, such as <key>.
+		*/
+		boolean: "boolean",
+		/**
+		* A line this framework has no opinion about - free-form prose, or malformed brackets.
+		*/
+		unsupported: "unsupported"
+	};
+	/**
+	* Merges the overlay note into the base note, keyed by tag name.
+	*
+	* Keys absent from `accumulatingKeys` are replaced outright when the overlay offers any line for
+	* them, and left alone when it does not. Keys present in it keep the base's lines and gain the
+	* overlay's unique ones. Free-form lines survive from both sides, deduplicated, base first.
+	*
+	* Keys compare case-insensitively; a tag is anything wrapped in angle brackets.
+	* @param {string} baseNote The note being merged into.
+	* @param {string} overlayNote The note being merged in.
+	* @param {string[]} accumulatingKeys Keys that gain the overlay's lines instead of being replaced by
+	* them. Empty means every key replaces, which is the conservative reading.
+	* @returns {string} The merged note, newline-joined.
+	*/
+	static merge(baseNote, overlayNote, accumulatingKeys = []) {
+		const oldNote = baseNote || String.empty;
+		const newNote = overlayNote || String.empty;
+		const oldTokens = this._tokenizeNote(oldNote);
+		const newTokens = this._tokenizeNote(newNote);
+		const oldBuckets = this._toKeyBuckets(oldTokens.tags);
+		const newBuckets = this._toKeyBuckets(newTokens.tags);
+		const merged = this._mergeBuckets(oldBuckets, newBuckets, accumulatingKeys);
+		const mergedUnsupported = this._mergeUnsupported(oldTokens.unsupported, newTokens.unsupported);
+		return this._reconstructNote(mergedUnsupported, merged);
+	}
+	/**
+	* Tokenizes a note into angle-bracketed tags and everything else.
+	*
+	* Tags are extracted by pattern rather than by line, so several crammed onto one line are still seen
+	* individually. Anything that is not itself exactly a tag counts as free-form.
+	* @param {string} note The raw note text.
+	* @returns {{tags: string[], unsupported: string[]}} The extracted tags and free-form lines.
+	*/
+	static _tokenizeNote(note) {
+		const tags = note.match(/<[^>]+>/g) || [];
+		const rawLines = note.split(/[\r\n]+/).filter((l) => l.length > 0);
+		const tagSet = new Set(tags);
+		const unsupported = rawLines.filter((l) => tagSet.has(l) === false);
+		return {
+			tags,
+			unsupported
+		};
+	}
+	/**
+	* Parses a single tag into its key and shape.
+	* @param {string} tag The tag, e.g. "<range:5>" or "<direct>".
+	* @returns {{type: string, key: (string|null), line: string}} The parsed record.
+	*/
+	static _parseTag(tag) {
+		const type = this._classifyLine(tag);
+		if (type === NoteResolver.LineType.unsupported) {
+			return {
+				type,
+				key: null,
+				line: tag
+			};
+		}
+		const inner = tag.substring(1, tag.length - 1);
+		if (type === NoteResolver.LineType.kvp) {
+			const idx = inner.indexOf(":");
+			const key = inner.substring(0, idx).trim().toLowerCase();
+			return {
+				type,
+				key,
+				line: tag
+			};
+		}
+		const key = inner.trim().toLowerCase();
+		return {
+			type: NoteResolver.LineType.boolean,
+			key,
+			line: tag
+		};
+	}
+	/**
+	* Determines which shape a note line takes.
+	* @param {string} line The note line to classify.
+	* @returns {string} One of {@link NoteResolver.LineType}.
+	*/
+	static _classifyLine(line) {
+		if (line.startsWith("<") === false || line.endsWith(">") === false) return NoteResolver.LineType.unsupported;
+		if (line.match(/</g).length > 1) return NoteResolver.LineType.unsupported;
+		if (line.match(/>/g).length > 1) return NoteResolver.LineType.unsupported;
+		if (line.includes(":")) return NoteResolver.LineType.kvp;
+		return NoteResolver.LineType.boolean;
+	}
+	/**
+	* Groups tags under their keys, keeping first-seen key order and dropping exact duplicate lines.
+	* @param {string[]} tags The tag strings to bucket.
+	* @returns {{ order: string[], map: Record<string, string[]> }} The ordered keys and per-key lines.
+	*/
+	static _toKeyBuckets(tags) {
+		const order = [];
+		const map = Object.create(null);
+		tags.forEach((tag) => {
+			const parsed = this._parseTag(tag);
+			if (parsed.type === NoteResolver.LineType.unsupported) return;
+			if (map[parsed.key] === undefined) {
+				map[parsed.key] = [];
+				order.push(parsed.key);
+			}
+			if (map[parsed.key].includes(parsed.line) === false) {
+				map[parsed.key].push(parsed.line);
+			}
+		});
+		return {
+			order,
+			map
+		};
+	}
+	/**
+	* Applies replace-or-accumulate across two sets of buckets.
+	*
+	* Base key order is the baseline, so a merge never reshuffles what was already there. Keys only the
+	* overlay has arrive afterwards, in its own order.
+	* @param {{order: string[], map: Record<string, string[]>}} oldBuckets The base note's buckets.
+	* @param {{order: string[], map: Record<string, string[]>}} newBuckets The overlay note's buckets.
+	* @param {string[]} accumulatingKeys Keys that gain the overlay's lines rather than being replaced.
+	* @returns {{ order: string[], map: Record<string, string[]> }} The merged buckets.
+	*/
+	static _mergeBuckets(oldBuckets, newBuckets, accumulatingKeys) {
+		const mergedMap = Object.create(null);
+		const mergedOrder = [];
+		/**
+		* Records a key's finished lines, ignoring a key that ended up with none.
+		* @param {string} key The tag key.
+		* @param {string[]} lines The lines that survived for it.
+		*/
+		const appendKey = (key, lines) => {
+			if (!lines || lines.length === 0) return;
+			mergedMap[key] = lines.slice(0);
+			mergedOrder.push(key);
+		};
+		oldBuckets.order.forEach((key) => {
+			const accumulates = accumulatingKeys.includes(key);
+			const oldLines = oldBuckets.map[key];
+			const newLines = newBuckets.map[key];
+			const overlayHasAny = newLines && newLines.length > 0;
+			if (overlayHasAny && accumulates === false) {
+				appendKey(key, newLines);
+				return;
+			}
+			if (accumulates && overlayHasAny) {
+				const combined = oldLines.slice(0);
+				newLines.forEach((line) => {
+					if (combined.includes(line) === false) combined.push(line);
+				});
+				appendKey(key, combined);
+				return;
+			}
+			appendKey(key, oldLines);
+		});
+		newBuckets.order.forEach((key) => {
+			if (mergedOrder.includes(key) === false) appendKey(key, newBuckets.map[key]);
+		});
+		return {
+			order: mergedOrder,
+			map: mergedMap
+		};
+	}
+	/**
+	* Merges free-form lines, base order first, without duplicates.
+	* @param {string[]} oldUnsupported The base note's free-form lines.
+	* @param {string[]} newUnsupported The overlay note's free-form lines.
+	* @returns {string[]} The merged lines.
+	*/
+	static _mergeUnsupported(oldUnsupported, newUnsupported) {
+		const merged = [];
+		oldUnsupported.forEach((line) => {
+			if (merged.includes(line) === false) merged.push(line);
+		});
+		newUnsupported.forEach((line) => {
+			if (merged.includes(line) === false) merged.push(line);
+		});
+		return merged;
+	}
+	/**
+	* Rebuilds note text from free-form lines and merged tag buckets.
+	*
+	* Free-form content leads, then tags grouped by key in key order, so the result is stable enough to
+	* diff between two merges of the same inputs.
+	* @param {string[]} unsupported The free-form lines to emit first.
+	* @param {{order: string[], map: Record<string, string[]>}} buckets The merged buckets.
+	* @returns {string} The reconstructed note text.
+	*/
+	static _reconstructNote(unsupported, buckets) {
+		const parts = [];
+		unsupported.forEach((line) => parts.push(line));
+		buckets.order.forEach((key) => {
+			buckets.map[key].forEach((line) => parts.push(line));
+		});
+		return parts.join("\n");
+	}
+};
 
 //#endregion
 //#region src/plugins/_base/core/database/miscellaneous/RPG_SoundEffect.js
